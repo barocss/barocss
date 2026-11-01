@@ -1,9 +1,14 @@
 import { planeLabel } from '@barocss/cad-model/sketch/plane';
+import { bezierError, wellFormedBezier } from '@barocss/cad-model/sketch/bezier';
 import { isConvex } from '@barocss/cad-model/sketch/loops';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { SketchAnchor, SketchShape, SketchState } from '../viewport/Viewport';
 import { arcOf, arcPairs, canBeTangent, inferredHV, radiusToBulge, samePair, type ArcPair, type P2, type SolveResult } from '@barocss/cad-model/sketch/profile';
 import { isSettled, redundancy, solveShape, type SketchPick } from '@barocss/cad-model/sketch/rules';
+import { respline, splineAutoHandles, splineEditError, splineMatches, type SplineDef } from '@barocss/cad-model/sketch/spline';
+import { ellipseMatches, type EllipseDef } from '@barocss/cad-model/sketch/ellipse';
+import { applyEllipse, ellipseConstraintRows } from './ellipsePanel';
+import { liveBand } from '@barocss/cad-model/sketch/band';
 import { ConstraintTools } from './ConstraintTools';
 import { CONTROL, FIELD, NUM } from './panelStyles';
 import { Button } from '@/components/ui/button';
@@ -19,7 +24,7 @@ const NONE: SketchPick[] = [];
  * tangent joints stay tangent. The app settles every edit (see sketch/settle.ts) and reports `error`. O16: the contents
  * on shadcn (Input, NativeSelect, Button, FIELD); the shell (its title) and the chip toggles are the studio's.
  */
-export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, onOffset, onUseOutline, onLinkedInset, onToCurves }: { sketch: SketchState; toolLabel: string; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
+export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, onOffset, onUseOutline, onLinkedInset, onToCurves, onBand }: { sketch: SketchState; toolLabel: string; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
   /** Sets the picked outline entities or the dimension being edited in the viewport. */
   onUi?(patch: Pick<SketchState, 'picked' | 'editDim'>): void;
   /** Offsets the newest closed shape by `d` mm (out when positive) as a shape beside it. */
@@ -29,16 +34,23 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
   /** Replaces the empty sketch with the linked face outline and one inward inset. */
   onLinkedInset?(insetMM: number): void;
   /** The sketch's lines, arcs and circles made curves (direct geometry), the sketch left. */
-  onToCurves?(): void }) {
+  onToCurves?(): void;
+  /** B1: Make band from the picked shapes (offset, width mm; no width: filled), edit the band's offset / width (`width: null`: filled), remove it (the sources stay construction). */
+  onBand?: { make(offset: number, width?: number): void; edit(patch: { offset?: number; width?: number | null }): void; remove(): void } }) {
   const [offsetBy, setOffsetBy] = useState(2);
+  const [splineError, setSplineError] = useState<string | null>(null);
   const s = sketch.shape;
+  // A refusal belongs to the shape it was made on.
+  useEffect(() => setSplineError(null), [s]);
   const num = (id: string, label: string, value: number, set: (v: number) => void, min?: number) => (
     <label className={FIELD} key={id}><span>{label}</span>
       <span className={NUM}><Input id={'sk-' + id} type="number" step="any" min={min} value={round(value)}
         onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) set(v); }} /><em>mm</em></span></label>);
   const solved = useMemo(() => isSettled(s) ? solveShape(s) : null, [s]);
-  const status = statusOf(s, solved);
-  const constraints = s && !isSettled(s) ? inferred(s) : [];
+  const status = statusOf(s, solved, sketch.tool);
+  // A matching ellipse is edited by its definition: its 192 outline points, joints and arc pairs are not listed, and its constraint list is one summary row (plus any non-arc constraint).
+  const ell = s?.kind === 'polygon' && !!s.ellipse && !s.pending && ellipseMatches(s);
+  const constraints = s && !isSettled(s) ? (ell ? ellipseConstraintRows(inferred(s)) : inferred(s)) : [];
 
   const lock = (poly: Polygon, key: 'lengths' | 'radii', i: number, value: number | null) => {
     const next = { ...(poly[key] ?? {}) };
@@ -85,7 +97,7 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
       })()}
       {!s && <div className="empty">Snap 1 mm</div>}
       {s && <div className={'sk-status' + (status.warn ? ' open' : '')} role="status"><i />{status.text}</div>}
-      {error && <div className="sk-status open" role="alert"><i />{error}</div>}
+      {(error ?? splineError) && <div className="sk-status open" role="alert"><i />{error ?? splineError}</div>}
       {s?.kind === 'rectangle' && (() => {
         const x0 = Math.min(s.a[0], s.b[0]), y0 = Math.min(s.a[1], s.b[1]), w = Math.abs(s.b[0] - s.a[0]), h = Math.abs(s.b[1] - s.a[1]);
         const put = (nx: number, ny: number, nw: number, nh: number) => onShape({ kind: 'rectangle', a: [nx, ny], b: [nx + nw, ny + nh] });
@@ -105,7 +117,7 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
             onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) put(s.a, l, v, s.r); }} /><em>°</em></span></label>
           {num('slot-width', 'Width', s.r * 2, v => put(s.a, l, angle, Math.max(0.25, v / 2)), 0.5)}</>;
       })()}
-      {s?.kind === 'polygon' && <div className="pts pts-4" role="group" aria-label="Outline points" style={{ gridTemplateColumns: '18px minmax(0, 1fr) minmax(0, 1fr) minmax(112px, 1.1fr)' }}>
+      {s?.kind === 'polygon' && !ell && <div className="pts pts-4" role="group" aria-label="Outline points" style={{ gridTemplateColumns: '18px minmax(0, 1fr) minmax(0, 1fr) minmax(112px, 1.1fr)' }}>
         <span /><span>X</span><span>Y</span><span>Edge</span>
         {s.points.map((p, i) => {
           const n = s.points.length, b = s.bulges?.[i] ?? 0, hasEdge = s.closed || i < n - 1;
@@ -137,14 +149,17 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
           ];
         })}
       </div>}
-      {s?.kind === 'polygon' && s.closed && !s.pending && s.points.some((_, j) => canBeTangent(s.points as P2[], s.bulges, j)) && <>
+      {s?.kind === 'bezier' && wellFormedBezier(s) && <BezierSection s={s} onShape={onShape} onError={setSplineError} />}
+      {s?.kind === 'polygon' && s.ellipse && ell && <EllipseSection s={s} def={s.ellipse} onShape={onShape} onError={setSplineError} />}
+      {s?.kind === 'polygon' && s.spline && sketch.tool !== 'spline' && !s.pending && splineMatches(s) && <SplineSection s={s} def={s.spline} onShape={onShape} onError={setSplineError} />}
+      {s?.kind === 'polygon' && !ell && s.closed && !s.pending && s.points.some((_, j) => canBeTangent(s.points as P2[], s.bulges, j)) && <>
         <div className="card-title" style={{ marginTop: 10 }}>TANGENCY</div>
         <div className="tangents" role="group" aria-label="Tangent joints">
           {s.points.map((_, j) => canBeTangent(s.points as P2[], s.bulges, j) && (
             <button key={j} type="button" className={'chip' + (s.tangents?.includes(j) ? ' on' : '')} aria-pressed={!!s.tangents?.includes(j)}
               aria-label={`Tangent at point ${j + 1}`} onClick={() => toggleTangent(s, j)}>T · {j + 1}</button>))}
         </div></>}
-      {s?.kind === 'polygon' && s.closed && !s.pending && arcPairs(s.bulges).length > 0 && <>
+      {s?.kind === 'polygon' && !ell && s.closed && !s.pending && arcPairs(s.bulges).length > 0 && <>
         <div className="card-title" style={{ marginTop: 10 }}>ARC PAIRS</div>
         <div className="arc-pairs" role="group" aria-label="Arc pairs">
           {arcPairs(s.bulges).map(pair => {
@@ -164,6 +179,7 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
         {constraints.map((c, i) => <div className="kv" key={i}>{c.label}<b>{c.detail}</b></div>)}
       </>}
       {solved?.ok && <div className="kv solver">Solver<b>rank {solved.rank} · {solved.dof} DOF</b></div>}
+      {onBand && (sketch.tool === 'band' || sketch.band) && <BandSection sketch={sketch} {...onBand} />}
       {onUseOutline && <>
         <div className="card-title" style={{ marginTop: 10 }}>FACE</div>
         <div className="sk-offset">
@@ -188,12 +204,15 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
   );
 }
 
-function statusOf(s: SketchShape | null, solved: SolveResult | null): { text: string; warn: boolean } {
+function statusOf(s: SketchShape | null, solved: SolveResult | null, tool?: string): { text: string; warn: boolean } {
   if (!s) return { text: '', warn: false };
   if (s.kind === 'slot') return s.r > 0 ? { text: 'Slot · extrudes as a line + arc solid', warn: false } : { text: 'Click the second centre, then the width', warn: true };
+  if (s.kind === 'bezier') return !wellFormedBezier(s) ? { text: 'Bézier curve with unusable control points', warn: true }
+    : s.poles.length === 3 ? { text: tool === 'bezier' ? 'Quadratic Bézier · click a fourth point to make it cubic' : 'Quadratic Bézier', warn: tool === 'bezier' } : { text: 'Cubic Bézier', warn: false };
   if (s.kind !== 'polygon') return { text: 'Fully defined · every value is dimensioned', warn: false };
   if (!s.closed) return { text: s.pending ? 'Move to bend the arc, click to place it' : 'Open profile · click the first point to close', warn: true };
   if (s.pending) return { text: 'Move to bend the closing arc, click to place it', warn: true };
+  if (s.ellipse && ellipseMatches(s)) return { text: 'Ellipse · tangent arcs within 1e-5 of the exact curve · Make curves keeps it exact', warn: false };
   if (!solved) return { text: 'Outline closed', warn: false };
   if (!solved.ok) return { text: solved.reason, warn: true };
   const curved = (s.bulges ?? []).some(Boolean);
@@ -205,6 +224,7 @@ function statusOf(s: SketchShape | null, solved: SolveResult | null): { text: st
 }
 
 function inferred(s: SketchShape) {
+  if (s.kind === 'bezier') return [];
   if (s.kind === 'rectangle') return [{ label: 'Horizontal', detail: '2 edges' }, { label: 'Vertical', detail: '2 edges' }, { label: 'Perpendicular', detail: '4 corners' }];
   if (s.kind === 'circle') return [{ label: 'Diameter', detail: 'Ø' + s.r * 2 }];
   if (s.kind === 'slot') return [{ label: 'Tangent', detail: '4 joints' }, { label: 'Equal radius', detail: 'both ends' }];
@@ -238,4 +258,110 @@ function movePoint(points: [number, number][], i: number, k: number, v: number, 
 
 const round = (v: number) => Math.round(v * 1e4) / 1e4;
 
-
+/** A new definition for the spline outline: refused with its reason (the shape stays), else the regenerated outline. */
+function applySpline(s: Polygon, def: SplineDef, onShape: (shape: SketchShape | null) => void, onError: (e: string | null) => void) {
+  const why = splineEditError(def);
+  onError(why);
+  if (!why) onShape(respline(s, def));
+}
+/** A number box that keeps its own draft and applies it on Enter or blur (a refused value returns to the current one). */
+function DraftInput({ label, value, placeholder, onCommit }: { label: string; value: string; placeholder?: string; onCommit(text: string): void }) {
+  const [draft, setDraft] = useState<{ base: string; text: string } | null>(null);
+  const shown = draft && draft.base === value ? draft.text : value;
+  const commit = () => { if (draft && draft.base === value && draft.text !== value) onCommit(draft.text); setDraft(null); };
+  return <Input type="number" step="any" aria-label={label} placeholder={placeholder} value={shown} onChange={e => setDraft({ base: value, text: e.target.value })}
+    onBlur={commit} onKeyDown={e => {
+      // Enter applies the value instead of finishing the sketch (as the edge length fields do).
+      if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commit(); }
+    }} />;
+}
+/** A Bézier curve's control points (X, Y), applied on Enter or blur (D354). */
+function BezierSection({ s, onShape, onError }: { s: Extract<SketchShape, { kind: 'bezier' }>; onShape(shape: SketchShape | null): void; onError(e: string | null): void }) {
+  const set = (i: number, k: number, text: string) => {
+    const v = Number(text); if (text === '' || !Number.isFinite(v)) return;
+    const poles = s.poles.map((p, j) => j === i ? (k === 0 ? [v, p[1]] : [p[0], v]) as [number, number] : p);
+    // (An edit that leaves no curve is refused with the reason and the shape stays.)
+    const why = bezierError(poles); onError(why); if (!why) onShape({ ...s, poles });
+  };
+  return <>
+    <div className="card-title" style={{ marginTop: 10 }}>BÉZIER</div>
+    <div className="pts" role="group" aria-label="Bézier control points" style={{ gridTemplateColumns: '18px minmax(0, 1fr) minmax(0, 1fr)' }}>
+      <span /><span>X</span><span>Y</span>
+      {s.poles.map((p, i) => [
+        <span key={'n' + i}>{i + 1}</span>,
+        ...[0, 1].map(k => <DraftInput key={i + '_' + k} label={`Control point ${i + 1} ${'XY'[k]}`} value={String(round(p[k]))} onCommit={t => set(i, k, t)} />),
+      ])}
+    </div>
+    <p className="muted small">Not part of the profile · Make curves turns it into a curve for lofts and sweeps</p>
+  </>;
+}
+/** A spline outline's fit points (X, Y) and handle directions (degrees; empty is automatic), applied on Enter or blur. */
+function SplineSection({ s, def, onShape, onError }: { s: Polygon; def: SplineDef; onShape(shape: SketchShape | null): void; onError(e: string | null): void }) {
+  const auto = splineAutoHandles(def.fit, def.closed);
+  useEffect(() => () => onError(null), [onError]);
+  const setFit = (i: number, k: number, text: string) => { const v = Number(text); if (text === '' || !Number.isFinite(v)) return; applySpline(s, { ...def, fit: def.fit.map((p, j) => j === i ? (k === 0 ? [v, p[1]] : [p[0], v]) as [number, number] : p) }, onShape, onError); };
+  const setHandle = (i: number, text: string) => {
+    const v = text === '' ? null : Number(text); if (v !== null && !Number.isFinite(v)) return;
+    const handles = def.fit.map((_, j) => j === i ? v : def.handles?.[j] ?? null);
+    applySpline(s, { ...def, handles: handles.some(h => h !== null) ? handles : undefined }, onShape, onError);
+  };
+  return <>
+    <div className="card-title" style={{ marginTop: 10 }}>SPLINE</div>
+    <div className="pts pts-4" role="group" aria-label="Spline fit points" style={{ gridTemplateColumns: '18px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)' }}>
+      <span /><span>X</span><span>Y</span><span>Handle °</span>
+      {def.fit.map((p, i) => [
+        <span key={'n' + i}>{i + 1}</span>,
+        ...[0, 1].map(k => <DraftInput key={i + '_' + k} label={`Fit point ${i + 1} ${'XY'[k]}`} value={String(round(p[k]))} onCommit={t => setFit(i, k, t)} />),
+        <DraftInput key={'h' + i} label={`Fit point ${i + 1} handle`} placeholder={String(Math.round(auto[i] * 10) / 10)} value={def.handles?.[i] == null ? '' : String(def.handles[i])} onCommit={t => setHandle(i, t)} />,
+      ])}
+    </div>
+    <p className="muted small">Enter applies a value; empty handle: automatic. Dimensioning the curve or editing its outline points turns it into an ordinary outline.</p>
+  </>;
+}
+/** An ellipse outline's centre, semi-axes (mm) and the first axis's angle (degrees), applied on Enter or blur. */
+function EllipseSection({ s, def, onShape, onError }: { s: Polygon; def: EllipseDef; onShape(shape: SketchShape | null): void; onError(e: string | null): void }) {
+  useEffect(() => () => onError(null), [onError]);
+  const set = (key: 'cx' | 'cy' | 'rx' | 'ry' | 'angle', text: string) => {
+    const v = Number(text); if (text === '' || !Number.isFinite(v)) return;
+    applyEllipse(s, { center: [key === 'cx' ? v : def.center[0], key === 'cy' ? v : def.center[1]], rx: key === 'rx' ? v : def.rx, ry: key === 'ry' ? v : def.ry, angle: key === 'angle' ? v : def.angle }, onShape, onError);
+  };
+  const fields: [Parameters<typeof set>[0], string, number][] = [['cx', 'Centre X', def.center[0]], ['cy', 'Centre Y', def.center[1]], ['rx', 'Rx', def.rx], ['ry', 'Ry', def.ry], ['angle', 'Angle', def.angle]];
+  return <>
+    <div className="card-title" style={{ marginTop: 10 }}>ELLIPSE</div>
+    <div className="pts" role="group" aria-label="Ellipse" style={{ gridTemplateColumns: '64px minmax(0, 1fr)' }}>
+      {fields.map(([key, label, value]) => [
+        <span key={'l' + key}>{label}{key === 'angle' ? ' °' : ''}</span>,
+        <DraftInput key={key} label={label} value={String(round(value))} onCommit={t => set(key, t)} />,
+      ])}
+    </div>
+    <p className="muted small">Enter applies a value · Rx is the first axis, at the angle from +X · no narrower than 1 : 5. Dimensioning the curve or editing its outline points turns it into an ordinary outline.</p>
+  </>;
+}
+/** B1: the Band tool's picks and Make band (offset and width as typed), or the made band's Offset / Width (Enter or blur) with Remove band; a refusal in red. */
+function BandSection({ sketch, make, edit, remove }: { sketch: SketchState } & NonNullable<Parameters<typeof SketchPanel>[0]['onBand']>) {
+  const [offset, setOffset] = useState('0'), [width, setWidth] = useState('');
+  const band = sketch.band, picks = sketch.bandPicks?.length ?? 0;
+  const live = useMemo(() => band ? liveBand(sketch) : null, [sketch.done, sketch.shape, band]);
+  const why = live && 'error' in live ? live.error : null;
+  const num = (text: string) => { const v = Number(text); return Number.isFinite(v) ? v : null; };
+  if (!band) return <>
+    <div className="card-title" style={{ marginTop: 10 }}>BAND</div>
+    <div className="kv">{picks} shape{picks === 1 ? '' : 's'} picked<b>{picks < 2 ? 'pick at least 2' : 'ready'}</b></div>
+    <label className={FIELD}><span>Offset</span><span className={NUM}><Input aria-label="Band offset" type="number" step="any" min={0} value={offset}
+      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); } }} onChange={e => setOffset(e.target.value)} /><em>mm</em></span></label>
+    <label className={FIELD}><span>Width</span><span className={NUM}><Input aria-label="Band width" type="number" step="any" min={0} placeholder="filled" value={width}
+      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); } }} onChange={e => setWidth(e.target.value)} /><em>mm</em></span></label>
+    <Button type="button" variant="ghost" aria-label="Make band" disabled={picks < 2} data-tip="Make band" data-tip-desc="One outline wrapped round the picked shapes (they become construction); empty width: filled, else a strip of that width" onClick={() => make(num(offset) ?? 0, width.trim() === '' ? undefined : num(width) ?? undefined)}>Make band</Button>
+    <p className="muted small">Click closed shapes to pick them (click again to unpick) · they should be convex and apart</p>
+  </>;
+  return <>
+    <div className="card-title" style={{ marginTop: 10 }}>BAND · {band.sources.length} sources</div>
+    <div className="pts" role="group" aria-label="Band" style={{ gridTemplateColumns: '64px minmax(0, 1fr)' }}>
+      <span>Offset mm</span><DraftInput label="Band offset" value={String(typeof band.offset === 'number' ? round(band.offset) : band.offset === undefined ? 0 : '')} onCommit={t => { const v = num(t); if (v !== null && t.trim() !== '') edit({ offset: v }); }} />
+      <span>Width mm</span><DraftInput label="Band width" placeholder="filled" value={typeof band.width === 'number' ? String(round(band.width)) : ''} onCommit={t => edit({ width: t.trim() === '' ? null : num(t) })} />
+    </div>
+    {why && <p className="sk-band-err" role="alert">{why}</p>}
+    <Button type="button" variant="ghost" aria-label="Remove band" data-tip="Remove band" data-tip-desc="The band outline goes; its sources stay in the sketch as construction" onClick={remove}>Remove band</Button>
+    <p className="muted small">Enter applies a value · empty width: filled · a bound (ƒ) offset or width is edited in the feature editor</p>
+  </>;
+}

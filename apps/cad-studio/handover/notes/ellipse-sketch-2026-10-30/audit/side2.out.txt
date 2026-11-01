@@ -1,0 +1,22 @@
+B ellipse extrude n3 at index 1                            refused 384 / 384 n3.bottom|n3.side[e1]
+C rect extrude n2 (index 2 is ellipse extrude)             refused 0 / 12 n2.bottom|n2.side[e1]
+C ellipse extrude n7                                       refused 384 / 384 n7.bottom|n7.side[e1]
+split rect extrude: side edges                             refused 0 / 24 n1.bottom|n1.side[e1]
+   rect split names with # []
+split ellipse extrude: side edges                          refused 768 / 768 n1.bottom|n1.side[e1]
+   ellipse split names with # []
+   region sketch sideTags keys [ 'outer', 'regions' ]
+ellipse main + rect region: region sides                   refused 0 / 12 n1.bottom#2|n1.side[r1]
+ellipse main + rect region: ellipse sides                  refused 384 / 384 n1.bottom#1|n1.side[e1]
+   unnamed ellipse sketch sideTags.outer length 192
+mirror of ellipse extrude                                  refused 384 / 384 n1.bottom|n1.side[e1]
+linear pattern of ellipse extrude                          refused 384 / 768 n1.bottom|n1.side[e1]
+   pattern side names sample [
+  'n1.bottom|n1.side[e1]',
+  'n1.bottom|n1.side[e101]',
+  'n1.bottom@1|n1.side[e9]@1',
+  'n1.bottom@1|n1.side[e109]@1'
+]
+chat fillet ellipse side fillet.edges: Fillets and chamfers on an ellipse's side edges are not 
+chat fillet rect side null
+chat chamfer ellipse side chamfer.edges: Fillets and chamfers on an ellipse's side edg

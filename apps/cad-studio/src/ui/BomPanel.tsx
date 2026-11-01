@@ -55,6 +55,7 @@ export function BomPanel({ doc, name, evaluate, onCommit, onError, onClose }: {
     return () => { live = false; clearTimeout(t); };
   }, [doc, name, key, linked]);
   const why = (parts: readonly string[]) => (data?.view.elements ?? []).filter(e => parts.includes(`${e.part}:${e.item}`)).flatMap(e => e.why).filter((w, i, a) => a.indexOf(w) === i).join('; ');
+  const parentName = (path: string) => data?.view.parts.find(p => p.id === path)?.name ?? path;
   const choose = (parts: readonly string[], c: Choice) => onCommit(setBought(doc, parts, valueOf(c)));
   const copies = (n: number) => n > 1 ? ` — applies to all ${n} copies` : '';
   const toggle = (parts: readonly string[], current: Choice, label: string) => (
@@ -78,7 +79,7 @@ export function BomPanel({ doc, name, evaluate, onCommit, onError, onClose }: {
           const row = [l.row, l.catalogue].filter(Boolean).join(' · ') || '—';
           return <TableRow key={k} aria-label={`BOM line ${k + 1}`}>
             <TableCell className="mono">{k + 1}</TableCell>
-            <TableCell title={[l.item, l.size].filter(Boolean).join(' — ')}>{l.item}{l.lumps ? <span className="muted small" aria-label="Lumps"> · {l.lumps} lumps</span> : null}</TableCell>
+            <TableCell title={[l.parent ? `${parentName(l.parent)} ›` : '', l.item, l.size].filter(Boolean).join(' ')} style={l.level ? { paddingLeft: `${0.5 + 0.75 * l.level}rem` } : undefined}>{l.parent ? <span className="muted small" aria-label={`In ${parentName(l.parent)}`}>{parentName(l.parent)} › </span> : null}{l.item}{l.assembly ? <span className="muted small" aria-label="Sub-assembly"> · assembly</span> : null}{l.lumps ? <span className="muted small" aria-label="Lumps"> · {l.lumps} lumps</span> : null}</TableCell>
             <TableCell className="mono">{l.qty}</TableCell>
             <TableCell title={row}>{row}</TableCell>
             <TableCell title={[l.source, w].filter(Boolean).join(' — ')}>{l.source}{l.source && l.estimate ? ' · ' : ''}{l.estimate ? <span className="warn">estimate</span> : (!l.source ? '—' : null)}</TableCell>

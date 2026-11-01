@@ -51,9 +51,9 @@ export function bomSource(ctx: TableSourceContext): TableContent | { error: stri
     title: 'BILL OF MATERIALS',
     columns: [{ key: 'no', label: 'NO.', digits: 0 }, { key: 'item', label: 'ITEM' }, { key: 'qty', label: 'QTY', digits: 0 }, { key: 'material', label: 'MATERIAL' }, { key: 'row', label: 'ROW' },
       { key: 'source', label: 'SOURCE' }, { key: 'bought', label: 'BOUGHT' }, { key: 'mass', label: 'MASS', unit: 'g', digits: 1 }],
-    rows: lines.map((l, k) => [k + 1, l.item, l.qty, l.material, [l.row, l.catalogue].filter(Boolean).join(' · ') || null, l.estimate ? 'estimate' : l.source,
+    rows: lines.map((l, k) => [k + 1, l.level && l.parent ? `${lines.find(x => x.parts.includes(l.parent!))?.item ?? l.parent} › ${l.item}` : l.item, l.qty, l.material, [l.row, l.catalogue].filter(Boolean).join(' · ') || null, l.estimate ? 'estimate' : l.source,
       l.kind !== undefined ? `bought${l.override ? ' (set)' : ''}` : l.source !== null ? 'bought (library part)' : 'made', l.mass]),
-    notes: [`${ctx.bom.totalQty} part${ctx.bom.totalQty === 1 ? '' : 's'}${ctx.bom.elementQty ? `, ${ctx.bom.elementQty} bought element${ctx.bom.elementQty === 1 ? '' : 's'}` : ''}; the mass is each line's whole (an element's is in its part's)`, 'Rows and sources are yours (none built in); not validated for manufacturing'],
+    notes: [`${ctx.bom.totalQty} part${ctx.bom.totalQty === 1 ? '' : 's'}${ctx.bom.elementQty ? `, ${ctx.bom.elementQty} bought element${ctx.bom.elementQty === 1 ? '' : 's'}` : ''}; the mass is each line's whole (an element's is in its part's${lines.some(l => l.assembly) ? '; a sub-assembly\'s includes the parts under it, whose rows (marked ›) are not added again' : ''})`, 'Rows and sources are yours (none built in); not validated for manufacturing'],
   };
 }
 

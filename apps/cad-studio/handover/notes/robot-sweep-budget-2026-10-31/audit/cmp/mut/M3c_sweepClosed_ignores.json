@@ -1,0 +1,1 @@
+{"src/robot/verbs.ts": [["if (r.exhausted) return { clear: false, exhausted: { segment: k, t: at(", "if (false && r.exhausted) return { clear: false, exhausted: { segment: k, t: at("]]}

@@ -122,8 +122,8 @@ split keeps every other face's name exactly as it was (D149).
 | `packages/barocss-cad/src/brep/analytic-boolean.ts` | `stitchWith` (face names by `keyOrder`, edge names); `keyOrder`; `mergePieces` and `clustersOf` (D281); `splitFace` (D149) |
 | `packages/barocss-cad/src/brep/polyhedral-boolean.ts` | `baseName`; face names by loop centre; edge names |
 | `packages/barocss-cad/src/blend/edge-finish.ts` | the tool's `<id>.face` and `<id>.tool` |
-| `packages/barocss-cad/src/part/part-model.ts` | references (`ref`, `solids`), `finishEdges`, `edgeNamed`, face lookups, `@k` and `@m` copies |
-| `packages/barocss-cad/src/part/part-finish.ts` | fillet and chamfer features: their edge list and target checks |
+| `packages/barocss-cad/src/part/part-model.ts` | references (`ref`, `solids`), `edgeNamed`, face lookups, `@k` and `@m` copies |
+| `packages/barocss-cad/src/part/part-finish.ts` | fillet and chamfer features: their edge list and target checks, and `finishEdges` |
 
 ## How it is checked
 

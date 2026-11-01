@@ -1,0 +1,23 @@
+MM1 band substitution allowed: killed (fail 1) no silent retarget: a name a fillet would be re-ma
+MM2 band moved held as gone: killed (fail 1) no silent retarget: a name a fillet would be re-ma
+MM3 band groups share A parent: SURVIVED (fail 0) 
+MM4 unsigned band ignored: killed (fail 1) lost edge: a sketch that drops side e3 refuses wit
+MM5 band refs not edges: killed (fail 4) lost edge: a sketch that drops side e3 refuses wit | no silent retarget: a name a fillet would be re-ma | edit command: Flip, Re-pick empties the side and r | kernel feature: both targets are read, the stored 
+MM6 rematch band branch off: killed (fail 1) a chat edit that loses a band name refuses; one th
+MM7 rematch moved allowed: SURVIVED (fail 0) 
+MM8 parentsOf one parent: killed (fail 1) leafBodies keeps both bodies the band joins; the b
+MM9 thickness admitted (checkNode): killed (fail 1) agent: checkNode accepts a valid band and refuses 
+MM10 same name both sides admitted: killed (fail 1) agent: checkNode accepts a valid band and refuses 
+MM11 file thickness admitted: killed (fail 1) save and open: the node survives the file and the 
+MM12 gone parent not propagated: killed (fail 1) suppressing the fillet that made the band’s edges 
+MM13 expect dropped: killed (fail 1) kernel feature: both targets are read, the stored 
+MM14 flip dropped: SURVIVED (fail 0) 
+MM15 named excludes band: SURVIVED (fail 0) 
+MM16 renumber skips band: SURVIVED (fail 0) 
+MM17 flatten admits band: killed (fail 1) flatten refuses a document with a band
+MM18 other-side duplicate admitted: killed (fail 1) command: A from a selection or a face, B by clicks
+MM19 late body admitted: killed (fail 1) edit command: Flip, Re-pick empties the side and r
+MM20 second click does not remove: killed (fail 1) command: A from a selection or a face, B by clicks
+MM21 edit keeps held: SURVIVED (fail 0) 
+MM22 edit drops sigs: SURVIVED (fail 0) 
+MM23 no band note: killed (fail 1) regeneration: the band follows a box height and a 

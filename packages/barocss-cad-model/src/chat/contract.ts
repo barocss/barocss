@@ -72,22 +72,22 @@ const READ: Record<string, JsonSchema | null> = {
   get_drafts: o({ drafts: arr, unconfirmed: arr, assumptions: arr, note: str }, ['drafts', 'unconfirmed', 'assumptions', 'note']),
   check_keepouts: o({ results: arr, clear: num, violated: num, undecided: num }, ['results', 'clear', 'violated', 'undecided']),
   gravity_torques: o({ torques: obj, generalized: obj, units: obj, gravity: num, notReady: obj }, ['torques', 'generalized', 'units', 'gravity']),
-  sweep_path: o({ clear: bool, contact: obj, minClearance: clearanceSchema('fraction'), samples: num, pairs: num, skipped: arr, designed: arr }, ['clear', 'samples', 'pairs', 'skipped', 'designed']),
+  sweep_path: o({ clear: bool, contact: obj, exhausted: obj, minClearance: clearanceSchema('fraction'), samples: num, pairs: num, skipped: arr, designed: arr }, ['clear', 'samples', 'pairs', 'skipped', 'designed']),
   export_mjcf: o({ mjcf: str, files: arr, notes: arr, check: arr }, ['mjcf', 'files', 'notes', 'check']),
   export_urdf: o({ urdf: str, files: arr, notes: arr, check: arr }, ['urdf', 'files', 'notes', 'check']),
   set_pose: o({ values: obj, links: arr, frames: arr, gears: arr, out_of_limits: arr }, ['values', 'links', 'gears', 'out_of_limits']),
-  check_path: o({ motion: str, duration: num, clear: bool, contact: obj, minClearance: clearanceSchema('time'), samples: num, skipped: arr, designed: arr }, ['motion', 'duration', 'clear', 'minClearance', 'samples', 'skipped', 'designed']),
+  check_path: o({ motion: str, duration: num, clear: bool, contact: obj, exhausted: obj, minClearance: clearanceSchema('time'), samples: num, skipped: arr, designed: arr }, ['motion', 'duration', 'clear', 'minClearance', 'samples', 'skipped', 'designed']),
   play_motion: o({ motion: str, duration: num, samples: arr }, ['motion', 'duration', 'samples']),
   forward_kinematics: o({ values: obj, links: arr, frames: arr, gears: arr, out_of_limits: arr }, ['values', 'links', 'gears', 'out_of_limits']),
   get_joints: o({ version: num, base: str, links: arr, joints: arr, loops: arr, couplings: arr, problems: arr, notes: arr, frames: arr }, ['version', 'base', 'links', 'joints', 'loops', 'couplings', 'problems', 'notes']),
 };
 /** Changes that only add (a feature, a part, a mate, a proposal, a library): nothing there before is altered. */
-const ADDS = new Set(['run_command', 'add_features', 'extrude_image_layer', 'inflate_image_layer', 'add_part', 'add_mate', 'insert_part', 'add_library', 'add_library_part', 'propose']);
+const ADDS = new Set(['run_command', 'add_features', 'extrude_image_layer', 'inflate_image_layer', 'add_part', 'add_mate', 'pattern_part', 'insert_part', 'add_library', 'add_library_part', 'propose']);
 /** Changes that may alter or remove what is there; `true`: the same call twice has no further effect. */
 const ALTERS: Record<string, boolean> = {
   load_rows: true, edit_feature: true, delete_feature: true, apply_ops: false, run_script: false, restore: true, restore_best: true, set_requirements: true, set_brief: true, set_material: true, set_stock: true, set_casting: true, set_frame_stock: true, set_parameters: false, set_frame_sections: true, set_welds: true, ask_user: false, add_reference: false, add_datum: false, add_keepout: false, delete_reference_item: true, import_drawing: false, accept_proposal: true,
   subd_move: false, subd_extrude: false, subd_insert_loop: false, subd_bridge: false, subd_fill: false, subd_weld: false, subd_crease: true, subd_delete: false,
-  place_part: true, delete_part: true, edit_mate: true, lock_part: false, delete_mate: true, snap_part: true, orient_for_print: true,
+  place_part: true, delete_part: true, edit_pattern: true, delete_pattern: true, cut_parts: false, edit_mate: true, lock_part: false, delete_mate: true, snap_part: true, orient_for_print: true,
   restore_version: true, switch_branch: true, merge_branch: true,
   auto_dimension: true, fix_drawing: false, accept_tolerances: false, set_drawing: true, set_joints: true, set_inputs: true, set_variants: true, set_frames: true, set_waypoint: false,
 };
@@ -111,6 +111,14 @@ export function annotationsOf(name: string): ToolAnnotations {
 export const outputSchemaOf = (name: string): JsonSchema | undefined => READ[name] ?? undefined;
 
 /** Problems of a value against a schema (type, required, properties, items, enum); empty when it conforms. */
+/** The keywords `validate` evaluates; any other (pattern, minLength, anyOf, if/then ...) is ignored, so it must not decide a oneOf. */
+const EVALUATED = new Set(['type', 'properties', 'required', 'items', 'enum', 'const', 'not', 'additionalProperties', 'minimum', 'maximum', 'exclusiveMinimum', 'oneOf', 'description', 'title']);
+function evaluated(schema: unknown): boolean {
+  if (!schema || typeof schema !== 'object') return true;
+  const s = schema as JsonSchema;
+  if (Object.keys(s).some(k => !EVALUATED.has(k)) || (s.additionalProperties !== undefined && s.additionalProperties !== false)) return false;
+  return Object.values(s.properties ?? {}).every(evaluated) && (s.items === undefined || evaluated(s.items)) && (s.not === undefined || evaluated(s.not)) && (!Array.isArray(s.oneOf) || (s.oneOf as unknown[]).every(evaluated));
+}
 export function validate(schema: JsonSchema, value: unknown, at = '$'): string[] {
   const out: string[] = [];
   if (schema.type) {
@@ -119,6 +127,15 @@ export function validate(schema: JsonSchema, value: unknown, at = '$'): string[]
     if (!types.includes(kind) && !(kind === 'integer' && types.includes('number'))) return [`${at}: ${kind}, not ${types.join(' | ')}`];
   }
   if (schema.enum && !schema.enum.some(e => JSON.stringify(e) === JSON.stringify(value))) out.push(`${at}: not one of ${JSON.stringify(schema.enum)}`);
+  if (typeof value === 'number') {
+    if (typeof schema.minimum === 'number' && value < schema.minimum) out.push(`${at}: below ${schema.minimum}`);
+    if (typeof schema.maximum === 'number' && value > schema.maximum) out.push(`${at}: above ${schema.maximum}`);
+    if (typeof schema.exclusiveMinimum === 'number' && value <= schema.exclusiveMinimum) out.push(`${at}: not above ${schema.exclusiveMinimum}`);
+  }
+  if ('const' in schema && JSON.stringify(schema.const) !== JSON.stringify(value)) out.push(`${at}: not ${JSON.stringify(schema.const)}`);
+  if (schema.not && typeof schema.not === 'object' && !validate(schema.not as JsonSchema, value, at).length) out.push(`${at}: matches a form it must not`);
+  // (oneOf is checked only when every form uses keywords this validator evaluates; else a form that matches too much would give a false "matches 2".)
+  if (Array.isArray(schema.oneOf) && (schema.oneOf as JsonSchema[]).every(evaluated)) { const fits = (schema.oneOf as JsonSchema[]).filter(s => !validate(s, value, at).length).length; if (fits !== 1) out.push(`${at}: matches ${fits} of the ${schema.oneOf.length} forms, not exactly one`); }
   if (value && typeof value === 'object' && !Array.isArray(value)) {
     const rec = value as Record<string, unknown>;
     for (const k of schema.required ?? []) if (!(k in rec)) out.push(`${at}.${k}: missing`);

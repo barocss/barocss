@@ -1,0 +1,17 @@
+[
+ ["N2 attachCircle ignores length check", "packages/barocss-cad-model/src/sketch/select.ts", "(shape.circleIds ?? []).length === (shape.circles ?? []).length && id", "id"],
+ ["N11 finishSketch only with shape", "apps/cad-studio/src/sketch/useSketchActions.ts", "joinOpen((sketch.editNode !== undefined ? reopenedOrder", "joinOpen((sketch.editNode !== undefined && sketch.shape ? reopenedOrder"],
+ ["W1 skip renumbering", "packages/barocss-cad-model/src/sketch/rules.ts", "out.push(renumberCircle(r, fields.filter(f => rec[f] > j)));", "out.push(r);"],
+ ["W2a drop index j-1 instead of j", "packages/barocss-cad-model/src/sketch/rules.ts", "if (fields.some(f => rec[f] === j)) continue;", "if (fields.some(f => rec[f] === j - 1)) continue;"],
+ ["W2b renumber only > j+1", "packages/barocss-cad-model/src/sketch/rules.ts", "fields.filter(f => rec[f] > j)", "fields.filter(f => rec[f] > j + 1)"],
+ ["W2c step down by 2", "packages/barocss-cad-model/src/sketch/rules.ts", "out[f] = (out[f] as number) - 1;", "out[f] = (out[f] as number) - 2;"],
+ ["W3a cedge field edge", "packages/barocss-cad-model/src/sketch/rules.ts", "cedge: ['circle'],", "cedge: ['edge'],"],
+ ["W3b ccdist only a", "packages/barocss-cad-model/src/sketch/rules.ts", "ccdist: ['a', 'b'],", "ccdist: ['a'],"],
+ ["W3c ctan missing", "packages/barocss-cad-model/src/sketch/rules.ts", "ctan: ['circle'], ", ""],
+ ["W3d cconc only b", "packages/barocss-cad-model/src/sketch/rules.ts", "cconc: ['a', 'b'] }", "cconc: ['b'] }"],
+ ["W3e cdist missing", "packages/barocss-cad-model/src/sketch/rules.ts", "{ cdist: ['circle'], ", "{ "],
+ ["W3f ccdy only a", "packages/barocss-cad-model/src/sketch/rules.ts", "ccdy: ['a', 'b'],", "ccdy: ['a'],"],
+ ["W4 keep rules naming j", "packages/barocss-cad-model/src/sketch/rules.ts", "if (fields.some(f => rec[f] === j)) continue;", ""],
+ ["W5 dropCircleAt keeps old rules", "packages/barocss-cad-model/src/sketch/reopen.ts", "...(p.rules ? { rules } : {})", "...(p.rules ? { rules: p.rules } : {})"],
+ ["W6 trimSketch keeps editDim", "apps/cad-studio/src/sketch/useSketchActions.ts", "done: r.shapes, picked: [], editDim: null });", "done: r.shapes, picked: [] });"]
+]

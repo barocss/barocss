@@ -39,7 +39,12 @@ export function meshesOf(doc: StudioDoc): MeshData[] {
 
 /** The document's exact solids as one STEP AP214 file. */
 export function stepOf(doc: StudioDoc, name: string): string {
-  try { return exportStudioStep(doc, { name }).text; } catch (e) { throw fromExport(e instanceof Error ? e.message : String(e)); }
+  // (A band sheet is not in STEP yet and this call has no channel to say so: refused rather than dropped silently.)
+  try {
+    const step = exportStudioStep(doc, { name }), sheet = step.omitted?.find(x => x.startsWith('band sheet'));
+    if (sheet) throw new Error(sheet);
+    return step.text;
+  } catch (e) { throw fromExport(e instanceof Error ? e.message : String(e)); }
 }
 
 /** The material id a body names (its own, else the brief's), if any. */

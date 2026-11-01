@@ -1,0 +1,2 @@
+[{"file":"useCommandPreview.ts","find":"              hd.lastOk = hv;\n","replace":"              if (live || hd.bad === null || (hv - hd.lastOk) * hd.wall > 0) hd.lastOk = hv;\n"},
+ {"file":"useCommandGizmos.ts","find":"if (hd.bad !== null && (v - hd.bad) * hd.wall >= 0) v = hd.lastOk;","replace":"if (hd.bad !== null && (v - hd.bad) * hd.wall >= 0) { const cur = Number(active?.values[h.key]); v = Number.isFinite(cur) && (cur - hd.lastOk) * hd.wall > 0 && (hd.bad - cur) * hd.wall > 0 ? cur : hd.lastOk; }"}]

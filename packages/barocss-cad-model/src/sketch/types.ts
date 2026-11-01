@@ -1,12 +1,14 @@
 // The sketch's state types (PKG-b, B1): the shapes a sketch is drawn with, the tool, the anchor and the state — the
 // model's (sketch/*), not the viewport's. viewport/Viewport.tsx re-exports them for the UI.
-import type { PlanarFaceOutlineInsetAssociation } from '../engine/doc';
+import type { PlanarFaceOutlineInsetAssociation, SketchBand } from '../engine/doc';
 import type { PlaneKind, SketchPlane } from './plane';
 import type { SketchRule } from './terms';
 import type { SketchPick } from './rules';
+import type { SplineDef } from './spline';
+import type { EllipseDef } from './ellipse';
 
 /** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */
-export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'carc' | 'slot' | 'spline' | 'trim' | 'extend' | 'split' | 'select' | 'dimension';
+export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'carc' | 'slot' | 'spline' | 'bezier' | 'ellipse' | 'trim' | 'extend' | 'split' | 'select' | 'dimension' | 'band';
 /** Polygon segment i runs from point i to i+1; bulges[i] ≠ 0 makes it an arc. `pending`: the newest arc follows the cursor. */
 /** `construction`: a reference drawn in the sketch (dashed): snapped to, but not part of the profile. */
 export type SketchShape = (
@@ -21,11 +23,21 @@ export type SketchShape = (
       hv?: { h: number[]; v: number[] }; rules?: SketchRule[];
       /** Drawn with the Rectangle tool: saved as a rectangle again while it still is one (see sketch/loops.ts). */
       fromRectangle?: true;
+      /** Drawn with the Spline tool: closing infers only tangency at its joints, never equal radii or shared centres between its arcs. */
+      fromSpline?: true;
+      /** A Spline-tool outline's fit points and handle directions (sketch/spline.ts): kept while the points still are what it makes; any other edit drops it. */
+      spline?: SplineDef;
+      /** Drawn with the Ellipse tool: closing infers nothing (its tangent arcs are exact as generated). */
+      fromEllipse?: true;
+      /** An Ellipse-tool outline's definition (sketch/ellipse.ts): kept while the points still are what it makes; any other edit drops it. */
+      ellipse?: EllipseDef;
       /** Circles attached to the outline: dimensioned from its points and solved with it (holes or bosses of the profile). */
       circles?: { c: [number, number]; r: number }[];
       /** The attached circles' side ids (R10a, D86), one a circle. */
       circleIds?: string[] }
   | { kind: 'slot'; a: [number, number]; b: [number, number]; r: number }
+  /** A Bézier curve from its control points (3 = quadratic, 4 = cubic): open, never part of a profile (sketch/bezier.ts). */
+  | { kind: 'bezier'; poles: [number, number][] }
 ) & {
   construction?: true;
   /**
@@ -42,9 +54,15 @@ export interface SketchState { plane: SketchPlane; anchor?: SketchAnchor; /** Cl
   picked?: SketchPick[]; editDim?: string | null;
   /** Set when a finished sketch is reopened: Finish replaces this node instead of adding a feature. */
   editNode?: number;
+  /** A reopened sketch: the side ids of its stored main profile, so Finish keeps that shape first even when Select edits another one. */
+  mainIds?: string[];
   /** Explicit linked profile; manual geometry or plane edits detach it. */
   association?: PlanarFaceOutlineInsetAssociation;
   associationDetached?: boolean;
+  /** B1: the sketch's band (sketch/band.ts): its sources are construction shapes of `done`/`shape`; Finish stores it as the sketch's profile. */
+  band?: SketchBand;
+  /** B1: side ids (`ids[0]`) of the closed shapes picked with the Band tool, not yet made a band. */
+  bandPicks?: string[];
   /**
    * A reopened sketch from before R10a (no side ids): its walls' positional names to the ids its shapes took in that
    * order (`side2` → `side[e3]`), so Finish names the later features' references by them (D86).

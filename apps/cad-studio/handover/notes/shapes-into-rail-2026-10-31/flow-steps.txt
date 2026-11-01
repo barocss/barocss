@@ -1,0 +1,7 @@
+ok 1 starter plate loads
+ok 82 place shapes with the pointer: a click for a box, a drag from the shapes bar for a cylinder; Delete removes one
+FAIL 94 fastener: an M8 bolt dropped into the starter plate’s hole, its thread cosmetic — page.waitForFunction: Timeout 5000ms exceeded.
+FAIL 95 fastener at a Ø6.6 through hole: fitted M6, washer and nut under the plate, fit shown — page.waitForFunction: Timeout 5000ms exceeded.
+FAIL 96 a countersunk screw inserted as a part of its own: an assembly instance, the part unchanged — page.waitForFunction: Timeout 10000ms exceeded.
+ok 100 a cylinder clicked onto a box’s side face stands out of it
+ok 279 shapes in the tool rail (21b): no sideways page scroll at 1440, 1100 or 860; every placed shape in view in the rail, none lost; a pick from it starts

@@ -1,0 +1,3 @@
+A circle+hole before {"outer":["e1","e2","e3","e4"],"holes":[["e5"],["e6","e7","e8"]]} profile polygon
+A after {"outer":["e9","e10","e11","e12"],"holes":[["e13"],["e6","e7","e8"]]} id undefined
+B pre-R10a after sideTags {"outer":["e9","e10","e11","e12"],"holes":[["e13"],["e6","e7","e8"]]}

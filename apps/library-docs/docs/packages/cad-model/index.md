@@ -60,6 +60,17 @@ Shaping, kerning, bidi, normalization, general/curved face relief and text wrap 
 | `util/` | Small shared helpers: unit factors, guards, ids, rounding, SHA-256 digests, the document revision |
 | `rb9/` | The AI scenario ladder: its rungs, a scripted agent, its measures and report |
 
+## Drawing text layout
+
+`tableSize` and `tableLayout` in `@barocss/cad-model/drawing/table` accept an optional final `textHeight`
+argument, in sheet millimetres. Pass the same height to both helpers so the reserved size matches the drawn table.
+`tableLayout` keeps its existing third `corner` argument; `textHeight` is fourth.
+
+`symbolMarks` and `weldSymbols` in `@barocss/cad-model/drawing/welds` also accept an optional final `textHeight`.
+Weld label placement measures the resulting text at that height. All four helpers default to 2.5 mm, and reject a
+non-finite or non-positive height with `RangeError`. `buildSheet` supplies 3 mm for these ordinary labels under its
+ASME preset. See [Drawing standard](/studio/drawings#drawing-standard) for the preset's scope and limits.
+
 ## Reading saved render settings
 
 Import `readRender` and `validateRenderShadowLights` from `@barocss/cad-model/engine/render`.
@@ -463,7 +474,7 @@ A pose reply has no overall `ok` flag; inspect the fields needed by your caller:
 | `robot.pose(values).values` | The resolved joint values, including followers, in degrees or mm. |
 | `links`, optional `frames` | Named link/frame positions in mm and rotations in degrees, in the assembly coordinates. |
 | `out_of_limits` | Joint keys outside their stored limits. A direct pose preview keeps those values rather than clamping them; a returned pose alone is not a readiness check. |
-| `path.check()` | An array with one sweep reply for each adjacent waypoint pair, in waypoint order, for supported open-chain paths. Read each reply's `clear`, optional `contact`, and `minClearance`. |
+| `path.check()` | An array with one sweep reply for each adjacent waypoint pair, in waypoint order, for supported open-chain paths. Read each reply's `clear`, optional `contact`, and `minClearance`. A reply whose sample budget ran out carries `exhausted` (with `clear: false` and no `contact`): that segment is not certified, neither clear nor in contact. |
 
 Given a robot and waypoints from the caller's current joint keys:
 

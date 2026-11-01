@@ -1,0 +1,169 @@
+{
+  "label": "10-bound-draft",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {
+      "R": 25
+    },
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "band",
+        "band": {
+          "version": 1,
+          "id": "b1",
+          "sources": [
+            "e1",
+            "e2"
+          ],
+          "width": 3
+        },
+        "construction": [
+          {
+            "kind": "circle",
+            "c": [
+              0,
+              0
+            ],
+            "r": 25,
+            "construction": true,
+            "ids": [
+              "e1"
+            ]
+          },
+          {
+            "kind": "circle",
+            "c": [
+              60,
+              0
+            ],
+            "r": 10,
+            "construction": true,
+            "ids": [
+              "e2"
+            ]
+          }
+        ],
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 10,
+        "id": "n1"
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      }
+    },
+    "nextId": 2
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b1",
+        "volume": 7294.51286630686,
+        "centroid": [
+          19.54668591614652,
+          5.255580815254126e-15,
+          5.000000000000001
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": [],
+      "sketches": [
+        0
+      ]
+    },
+    "bodies": 1,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "editor": "EDIT FEATURE closedraw Edit sketchBand offsetmmƒRBand widthmmƒRBand source 1 radiusmmƒRBand source 1 centre XmmƒRBand source 1 centre YmmƒRBand source 2 radiusmmƒRBand source 2 centre XmmƒRBand source 2 centre YmmƒRDistancemmƒRStart ZmmƒRDraft°ƒRdelete Delete featureApplyReset",
+  "sketchPanel": null,
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": null,
+  "bandInputs": [],
+  "bandOverlay": {
+    "outline": 0,
+    "picked": 0,
+    "construction": 0
+  },
+  "editorFields": [
+    {
+      "label": "Band offset",
+      "value": "0",
+      "disabled": false
+    },
+    {
+      "label": "Band width",
+      "value": "3",
+      "disabled": false
+    },
+    {
+      "label": "Band source 1 radius",
+      "value": "25",
+      "disabled": true
+    },
+    {
+      "label": "Band source 1 centre X",
+      "value": "0",
+      "disabled": false
+    },
+    {
+      "label": "Band source 1 centre Y",
+      "value": "0",
+      "disabled": false
+    },
+    {
+      "label": "Band source 2 radius",
+      "value": "10",
+      "disabled": false
+    },
+    {
+      "label": "Band source 2 centre X",
+      "value": "60",
+      "disabled": false
+    },
+    {
+      "label": "Band source 2 centre Y",
+      "value": "0",
+      "disabled": false
+    },
+    {
+      "label": "Distance",
+      "value": "10",
+      "disabled": false
+    },
+    {
+      "label": "Start Z",
+      "value": "0",
+      "disabled": false
+    },
+    {
+      "label": "Draft",
+      "value": "0",
+      "disabled": false
+    }
+  ],
+  "history": [
+    "Extrude 10"
+  ]
+}

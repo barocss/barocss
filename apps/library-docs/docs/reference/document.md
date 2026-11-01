@@ -27,15 +27,14 @@ and writes it (`@barocss/cad-model/engine/doc` and `engine/container`).
 
 Documents use `"format": "barocss-cad-model"` and `"units": "mm"`. Ordinary documents use `"schema": 3`, which keys bodies by stable ids. Explicit route bundles use `"schema": 4`.
 
-- **Supported older schemas.** After its checks pass, the reader converts a missing `schema`, or schema 0, 1 or 2,
-  to schema 3. A valid explicit route-bundle document keeps schema 4.
+- **Supported schemas.** The reader reads only schemas 3 and 4. A file with a missing `schema`, or schema 0, 1 or 2,
+  is refused with a message to re-save it with a studio that reads it. A valid explicit route-bundle document keeps schema 4.
 - **Fields filled on read.** Missing units are read as millimetres, and a missing parameters list starts empty.
-  Features without stable ids are given ids. For schema 2, body looks, appearances and animation tracks move from
-  index-based body keys to stable feature-id keys.
+  Features without stable ids are given ids.
 - **Open and Save.** When **Open** fills older fields, **Opened an older model** lists the changes. Opening does not
   rewrite the source file. Save the opened document to keep its current form.
-- **Refusals.** The reader reads document schemas up to 4. Invalid or newer schemas, unknown features and explicit
-  non-mm units are refused. These conversions do not guarantee compatibility between all unreleased versions.
+- **Refusals.** Older and newer schemas, invalid schemas, unknown features and explicit
+  non-mm units are refused. This does not guarantee compatibility between all unreleased versions.
 - **Separate version fields.** `BCADPACK` version 1 describes the binary container. The document's `schema` describes
   its model data; it is not the container version.
 - **Revisions.** A document's revision names the content results depend on. See
@@ -154,7 +153,10 @@ and rollback to a partial feature history requires detaching the bundle first.
 
 | Field | What it holds |
 |---|---|
-| `instances` | Parts placed beside this one, each with its own document, position and rotation |
+| `instances` | Parts placed beside this one, each with its own document, position and rotation. An instance may also hold `joints` (its sub-assembly's joint values, offsets from the saved pose), `looks` (its own colour, material, face colours or visibility over the definition's) and, on a pattern's copies, `pattern` (the pattern and the copy's number) |
+| `instancePatterns` | Linear and circular patterns of a placed part: the seed, the count, the spacing or angle, and the copies left out |
+| `assemblyCuts` | Holes and pockets cut across placed parts in the assembly's frame: each cut's profile (circle or rectangle), centre, direction, depth and the parts it cuts. A number `depth` cuts that far one way from the profile plane, along the direction; `"through"` cuts the whole part along the direction, both ways from the plane: the tool is sized from the part's own box, starting just outside it on one side and ending just past it on the other. A part longer than the kernel's 10,000 mm tool length cannot be cut through (a cut that would remove a part, or one that cannot be built, is refused when it is made). The rectangle's width runs along X (along Y for a cut along X). A cut part is its definition with the cut taken in its placed document; the definition never changes. v1: top-level parts only, not sub-assemblies; mates still read the definition's uncut faces. A file keeps a cut whose part has since become a sub-assembly (or is gone) and reports it; the cut is not made. In the BOM a cut part is its own line (copies cut alike share one); a bought element (key, bearing, ring) inside a cut part is left whole and reported; a cut end cap or gusset keeps its plate line with the cut volume and mass, its plate area the uncut stock's |
+| `assemblySteps` | Instruction steps over the placed parts, in order: each step's `name`, an optional `note`, `add` (the top-level occurrences it introduces, by id: pattern copies and whole sub-assemblies too; a part is in one step only), an optional recommended camera `view` (`eye`, `target`, `up`, mm) and an optional display-only `explode` scale from 0 to 2. Step *k* shows the parts of the steps before it as installed, its own as active and the rest as waiting; the base part is always shown, and a part in no step shows at the last step. Presentation only: no placement, mate, body, BOM or export reads it. A step that names a part that is gone is kept and reported (never renamed to another part); a part a step lists cannot be deleted until it is taken off the step. The steps' position in the viewer is session state, not saved |
 | `pendingParts` | New revisions of placed parts, waiting to be accepted |
 | `variability` | The assembly's inputs, what each drives, and its named variants. See [Variants](/studio/assemblies#variants) |
 | `mates` | Mates placing instances by their faces |

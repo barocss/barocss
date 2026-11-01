@@ -7,6 +7,7 @@ import type { Sig } from '../engine/references';
 import { isVec3 } from '../util/guards';
 import { readDetails, type DrawingDetail } from './detail';
 import { readBreaks, type DrawingBreak } from './breaks';
+import { MAX_PRECISION, type DrawingStandard, type DrawingUnits, type UnitPrecision } from './standard';
 import { readDatums, type DrawingFace, type DrawingFaceRef } from './datums';
 export type { DrawingFaceRef } from './datums';
 import { readDatumTargets, type DrawingDatumTarget } from './datumTargets';
@@ -14,6 +15,8 @@ export type { DrawingDatumTarget } from './datumTargets';
 import { readFrames, type DrawingFrame } from './controls';
 export type { DrawingFrame } from './controls';
 import { readTitleBlock, readRevisions, type DrawingTitleBlock, type DrawingRevision } from './metadata';
+import { readSheets, type DrawingSheet, type SheetContext } from './sheets';
+export type { DrawingSheet, SheetContext };
 export type { DrawingTitleBlock, DrawingRevision };
 export type { DrawingDetail, DrawingBreak };
 
@@ -78,7 +81,7 @@ export type DrawingDimension = ({ tol?: Tolerance; count?: number; auto?: true; 
  * on a straight edge of the view (the face seen edge-on).
  */
 export type DrawingDatum = { id: string; letter: string; view: ViewId; place: XY } & ({ edge: EdgeRef; face?: never } | { face: DrawingFaceRef; edge?: never });
-export interface DrawingNote { id: string; text: string; at: XY; leader?: { view: ViewId; at: XY } }
+export interface DrawingNote { id: string; text: string; at: XY; leader?: { view: ViewId; at: XY }; /** 11 ④: a note without a leader, on this sheet (its id) of a drawing with sheets; absent: the first sheet. */ sheet?: string }
 /** A table's column (O49): its header `label [unit]`, numbers shown to `digits` places (absent: up to 2) and aligned right by default. */
 export interface TableColumn { key: string; label: string; unit?: string; align?: 'start' | 'middle' | 'end'; digits?: number }
 /** A cell: text, a number (formatted by its column), or null (shown as '—'). */
@@ -109,10 +112,23 @@ export interface DrawingSettings {
   /** Drawing-only geometry scope. Absent: base part, or legacy BOM/balloon assembly. */
   scope?: DrawingScope;
   sheet: 'A4' | 'A3';
+  /**
+   * 11 ④: the sheets after the first, each with the views (standard view names, removed sections `section:B`, details
+   * `detail:C`) drawn on it. The first sheet holds every view no other sheet lists. Absent: the one sheet, as always.
+   */
+  sheets?: DrawingSheet[];
   /** Model mm per sheet mm inverted (2 = 2:1, 0.5 = 1:2); none: the largest standard scale that fits. */
   scale?: number;
   /** Third angle (US) or first angle (ISO) arrangement of the orthographic views. */
   projection: 'third' | 'first';
+  /** The drawing standard (11 ③a): lettering, arrowheads, dimension text, projection symbol, datum targets, GD&T notes. Absent: the sheet as it always was. */
+  standard?: DrawingStandard;
+  /** The unit lengths print in (11 ③b; display only, the model stays in mm). Absent: mm. */
+  units?: DrawingUnits;
+  /** Show the other unit after the primary value in square brackets (dual dimensioning). */
+  dual?: boolean;
+  /** Decimal places per unit, 0 to 6. Absent: mm as before (trimmed), inch 3. */
+  precision?: UnitPrecision;
   /** Hidden edges dashed in the orthographic views (the isometric view shows visible edges only). */
   hidden: boolean;
   /** false: no centre marks and centrelines (shown by default). */
@@ -163,6 +179,8 @@ export interface DrawingSettings {
   datums?: DrawingDatum[];
   datumTargets?: DrawingDatumTarget[];
   frames?: DrawingFrame[];
+  /** Never stored: set on the settings of one sheet of a drawing with sheets (sheets.ts `forSheet`), which then lay out and build as a drawing of that sheet alone. */
+  sheetContext?: SheetContext;
 }
 /**
  * O148 X1: a section — its letter, the view whose depth its plane is square to, and where along that depth (mm).
@@ -239,6 +257,15 @@ function readSections(raw: unknown): DrawingSection[] | null {
   }
   return out.length ? out : null;
 }
+/** Decimal places kept where each is a whole number 0 to 6 (mm then inch); none valid: none. */
+export const precisionOk = (x: unknown): x is number => typeof x === 'number' && Number.isInteger(x) && x >= 0 && x <= MAX_PRECISION;
+function readPrecision(raw: unknown): UnitPrecision | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const { mm, inch } = raw as Record<string, unknown>, out: UnitPrecision = {};
+  if (precisionOk(mm)) out.mm = mm;
+  if (precisionOk(inch)) out.inch = inch;
+  return out.mm === undefined && out.inch === undefined ? null : out;
+}
 /** Reads drawing settings from a saved file, keeping what is valid. */
 export function readDrawing(raw: unknown): DrawingSettings {
   const d = defaultDrawing(), r = (raw ?? {}) as Partial<DrawingSettings>;
@@ -247,6 +274,10 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(r.scope !== undefined ? { scope: r.scope } : {}),
     ...(typeof r.scale === 'number' && r.scale > 0 ? { scale: r.scale } : {}),
     projection: r.projection === 'first' ? 'first' : 'third',
+    ...(r.standard === 'iso' || r.standard === 'asme' ? { standard: r.standard } : {}),
+    ...(r.units === 'inch' ? { units: 'inch' as const } : {}),
+    ...(r.dual === true ? { dual: true } : {}),
+    ...(readPrecision(r.precision) ? { precision: readPrecision(r.precision)! } : {}),
     hidden: r.hidden !== false,
     ...(r.centers === false ? { centers: false } : {}),
     ...(r.tangent === true ? { tangent: true } : {}),
@@ -267,12 +298,13 @@ export function readDrawing(raw: unknown): DrawingSettings {
     }) : [],
     ...(Array.isArray(r.views) && r.views.includes('front') && r.views.includes('top') ? { views: VIEW_IDS.filter(v => r.views!.includes(v)) } : {}),
     ...(readRoom(r.room) ? { room: readRoom(r.room)! } : {}),
+    ...(readSheets(r.sheets).length ? { sheets: readSheets(r.sheets) } : {}),
     ...(r.orientation === 'x+' || r.orientation === 'y+' || r.orientation === 'x-' ? { orientation: r.orientation } : {}),
     ...(r.tolerancing === 'geometric' ? { tolerancing: 'geometric' as const } : {}),
     ...(readDatums(r.datums).length ? { datums: readDatums(r.datums) } : {}),
     ...(readDatumTargets(r.datumTargets).length ? { datumTargets: readDatumTargets(r.datumTargets) } : {}),
     ...(readFrames(r.frames).length ? { frames: readFrames(r.frames) } : {}),
-    ...(Array.isArray(r.notes) && r.notes.some(isNote) ? { notes: r.notes.filter(isNote).map(n => ({ id: n.id, text: n.text, at: [n.at[0], n.at[1]] as XY, ...(n.leader && VIEW_IDS.includes(n.leader.view) && isXY(n.leader.at) ? { leader: { view: n.leader.view, at: [n.leader.at[0], n.leader.at[1]] as XY } } : {}) })) } : {}),
+    ...(Array.isArray(r.notes) && r.notes.some(isNote) ? { notes: r.notes.filter(isNote).map(n => ({ id: n.id, text: n.text, at: [n.at[0], n.at[1]] as XY, ...(n.leader && VIEW_IDS.includes(n.leader.view) && isXY(n.leader.at) ? { leader: { view: n.leader.view, at: [n.leader.at[0], n.leader.at[1]] as XY } } : {}), ...(typeof n.sheet === 'string' && /^[A-Za-z0-9_-]{1,16}$/.test(n.sheet) ? { sheet: n.sheet } : {}) })) } : {}),
     ...(readTables(r.tables).length ? { tables: readTables(r.tables) } : {}),
   };
 }

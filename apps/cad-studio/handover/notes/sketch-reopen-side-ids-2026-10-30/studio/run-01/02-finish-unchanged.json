@@ -1,0 +1,126 @@
+{
+  "label": "02-finish-unchanged",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          0,
+          0
+        ],
+        "max": [
+          60,
+          40
+        ],
+        "holes": [
+          [
+            {
+              "kind": "arc",
+              "start": [
+                20,
+                20
+              ],
+              "center": [
+                15,
+                20
+              ],
+              "direction": "ccw"
+            }
+          ]
+        ],
+        "sideTags": {
+          "outer": [
+            "e1",
+            "e2",
+            "e3",
+            "e4"
+          ],
+          "holes": [
+            [
+              "e5"
+            ]
+          ]
+        },
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 10,
+        "id": "n1"
+      },
+      {
+        "kind": "fillet",
+        "parent": {
+          "node": 1,
+          "side": "solid"
+        },
+        "edges": [
+          "n1.side[e2]|n1.side[e3]"
+        ],
+        "radius": 3,
+        "id": "n2",
+        "sigs": {
+          "n1.side[e2]|n1.side[e3]": {
+            "k": "line",
+            "p": [
+              60,
+              40,
+              5
+            ],
+            "d": [
+              0,
+              0,
+              1
+            ],
+            "s": 10
+          }
+        }
+      }
+    ],
+    "outputs": {
+      "b2": {
+        "node": 2,
+        "side": "solid"
+      }
+    },
+    "nextId": 3
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b2",
+        "volume": 23195.287671308324,
+        "centroid": [
+          30.48348139272657,
+          19.98390445441797,
+          5
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 1,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": null,
+  "hud": null
+}

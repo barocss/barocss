@@ -21,7 +21,7 @@ import { readRobot, type JointSettings, type JointTree } from '../robot/joints';
 import { r6 } from '../util/round';
 import { jointSettingsOut, jointTreeOut, jointValuesIn, jointValuesOut } from '../robot/units';
 import { isRefusal, refusal, type BarocssError } from '../engine/refusal';
-import { checkMotion, gravityRawOf, inertiaOf, mjcfOf, moveRawOf, partsOf, playMotion, poseOf, robotViewOf, setPose, sizeOf, sweepLinksOf, sweepOf, treeOf, urdfOf, viewWith, withJoints, withWaypoint, type RobotView } from '../robot/verbs';
+import { checkMotion, notCertified, gravityRawOf, inertiaOf, mjcfOf, moveRawOf, partsOf, playMotion, poseOf, robotViewOf, setPose, sizeOf, sweepLinksOf, sweepOf, treeOf, urdfOf, viewWith, withJoints, withWaypoint, type RobotView } from '../robot/verbs';
 
 import { gravityIn, gravityJson, inertiaJson, moveJson, PUBLIC_GRAVITY, sizeOptionsIn, sizingJson, harnessJson, sizedJson, type PublicDuty } from '../robot/reports';
 export { inertiaJson, sizingJson } from '../robot/reports';
@@ -58,7 +58,7 @@ export const ROBOT_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'sweep_path',
-    description: 'Checks a straight joint-space move for collisions between the robot\'s links: from "from" to "to" (joint values by key; absent: 0, the solved pose; degrees or mm). Conservative advancement: each step is as long as the links\' clearance allows by a bound on how far the joints can carry their points, so the whole path is certified, not just samples; the clearance from the links\' convex hulls first, the meshes exactly where those meet. Parent and child links are not checked. Returns clear, or the first contact (where, the joint values there, the two links), the least clearance and where, the samples taken. Changes nothing.',
+    description: 'Checks a straight joint-space move for collisions between the robot\'s links: from "from" to "to" (joint values by key; absent: 0, the solved pose; degrees or mm). Conservative advancement: each step is as long as the links\' clearance allows by a bound on how far the joints can carry their points, so the whole path is certified, not just samples; the clearance from the links\' convex hulls first, the meshes exactly where those meet. Parent and child links are not checked. Returns clear, or the first contact (where, the joint values there, the two links), the least clearance and where, the samples taken. When the sweep runs out of its sample budget it returns "exhausted" (how far it got) instead: neither contact nor clear, the path not certified. Changes nothing.',
     input_schema: { type: 'object', properties: { from: { type: 'object', additionalProperties: { type: 'number' } }, to: { type: 'object', additionalProperties: { type: 'number' } } }, required: ['to'], additionalProperties: false },
   },
   {
@@ -98,7 +98,7 @@ export const ROBOT_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'check_path',
-    description: 'Checks a stored motion (set_waypoint) for contact between the robot\'s links along its timing, as sweep_path checks a move (certified, not sampled): clear, or the first contact (its time in s, segment, the two links, the joint values there in degrees and mm), the least clearance (mm, when and between which links), the motion\'s duration and the samples taken. Meshing gears\' teeth and a planar loop pin\'s shared face are designed contact, not contact; anything else between them is. Refused, typed, when the motion is unknown (MOTION_UNKNOWN), cannot play (LIMITS_MISSING, JOINT_LIMIT, …) or cannot be closed (LOOP_PASSIVE, NO_CLOSURE, DEAD_POINT). A closed loop is closed at every pose (its waypoints name the driver) and swept in chords of 1° (1 mm) between closed poses, each certified; "loops" says how many and how far a chord\'s middle is from closing. Changes nothing.',
+    description: 'Checks a stored motion (set_waypoint) for contact between the robot\'s links along its timing, as sweep_path checks a move (certified, not sampled): clear, or the first contact (its time in s, segment, the two links, the joint values there in degrees and mm), the least clearance (mm, when and between which links), the motion\'s duration and the samples taken. When a segment runs out of its sample budget it returns "exhausted" (segment, time reached) instead of contact: neither contact nor clear, the path not certified. Meshing gears\' teeth and a planar loop pin\'s shared face are designed contact, not contact; anything else between them is. Refused, typed, when the motion is unknown (MOTION_UNKNOWN), cannot play (LIMITS_MISSING, JOINT_LIMIT, …) or cannot be closed (LOOP_PASSIVE, NO_CLOSURE, DEAD_POINT). A closed loop is closed at every pose (its waypoints name the driver) and swept in chords of 1° (1 mm) between closed poses, each certified; "loops" says how many and how far a chord\'s middle is from closing. Changes nothing.',
     input_schema: { type: 'object', properties: { motion: { type: 'string' } }, required: ['motion'], additionalProperties: false },
   },
   {
@@ -188,7 +188,7 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
     const bad = movementArgs(args); if (bad) return { error: bad };
     try {
       if (name === 'set_pose') { const content = setPose(view, args.values as Record<string, number>); return { doc, content, changed: false, summary: `${content.links.length} links placed` }; }
-      if (name === 'check_path') { const content = checkMotion(view, args.motion as string); return { doc, content, changed: false, summary: content.clear ? `${content.motion}: clear, ${content.duration} s` : `${content.motion}: contact at ${content.contact!.time} s (${content.contact!.links.join(' / ')})` }; }
+      if (name === 'check_path') { const content = checkMotion(view, args.motion as string); return { doc, content, changed: false, summary: content.clear ? `${content.motion}: clear, ${content.duration} s` : 'exhausted' in content && content.exhausted ? `${content.motion}: not certified: ${notCertified(content.exhausted.time, content.minClearance?.value, 'time')}` : `${content.motion}: contact at ${content.contact!.time} s (${content.contact!.links.join(' / ')})` }; }
       if (name === 'play_motion') { const content = playMotion(view, args.motion as string, (args.samples as number | undefined) ?? 30); return { doc, content, changed: false, summary: `${content.motion}: ${content.samples.length} samples over ${content.duration} s` }; }
       const out = withWaypoint(view, { motion: args.motion as string, ...(args.values ? { values: args.values as Record<string, number> } : {}), ...(args.at !== undefined ? { at: args.at as number } : {}), ...(args.remove !== undefined ? { remove: args.remove as number } : {}), ...(args.limits ? { limits: args.limits as Record<string, { velocity: number; acceleration: number; jerk?: number }> } : {}) });
       const m = readRobot(out.robot).motions!.find(x => x.name === args.motion)!, changed = JSON.stringify(doc.robot ?? null) !== JSON.stringify(out.robot ?? null);

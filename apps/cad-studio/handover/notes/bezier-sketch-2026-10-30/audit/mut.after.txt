@@ -1,0 +1,14 @@
+SURVIVED baseline (no change) pass 15 fail 0
+SURVIVED profileOf: drop bezier filter pass 15 fail 0
+NOAPPLY osnap: snap to all poles
+killed   trim: bezier pieces via polyOf (crash) pass 14 fail 1
+killed   dxf: drop bezier skip pass 14 fail 1
+killed   offset: bezier offsets like nothing pass 14 fail 1
+killed   shapeNode: bezier as closed loop pass 14 fail 1
+killed   bezierCurve: weights 2 pass 14 fail 1
+killed   bezierCurve: knots 0..2 pass 14 fail 1
+killed   bezierCurve: reverse poles pass 14 fail 1
+SURVIVED bezierPoint: lerp from b toward a pass 15 fail 0
+killed   bezierSamples: n=16 default pass 14 fail 1
+killed   cornersOf: bezier gets corners of poles pass 14 fail 1
+NOAPPLY shapeOutline: bezier as poles

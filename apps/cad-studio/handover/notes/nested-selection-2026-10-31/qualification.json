@@ -1,0 +1,42 @@
+{
+  "decision": "D388",
+  "roadmap": "10 ②c select a part inside a sub-assembly and see its path (owner order 'Go to row 10')",
+  "issues": {
+    "#2180": "occurrence identity in the Studio UI",
+    "#538": "stays open"
+  },
+  "tier": "feature (one audit + targeted re-check, actual run)",
+  "status": "QUALIFIED",
+  "change": [
+    "Outliner: a sub-assembly row expands (caret) to its shown nested parts, recursively; a nested row selects that occurrence path",
+    "Selection may hold a path ('sub1/p2'); gizmo, mates, Instance panel, Pattern/Fix/Remove/Duplicate are not offered for it; isolation and render act on the host where meaningful",
+    "Viewport: only the nested part's bodies are lit (model helpers bodyOriginOf / pathWithin / bodiesWithin map a placed body's faces to its origin path; WebGL2 and WebGPU per-body lit state)",
+    "Read-only 'Part in sub-assembly' card: Sub › Block B, path, bodies, volume, definition, placement in Sub, and how to edit it (the sub-assembly's New revision…)",
+    "Render panel: appearance editing disabled for a nested-only selection, with a hint",
+    "Viewport clicks unchanged (a click selects the host)"
+  ],
+  "audit": {
+    "verdict": "CHANGES_REQUIRED then ACCEPT on targeted re-check",
+    "findings": {
+      "medium perf": "the viewport selection was a fresh array on every commit, re-painting every instance",
+      "medium": "the Render panel applied a nested part's appearance edit to the whole sub-assembly (then, after the first fix, to the default appearance — also disabled)",
+      "low": "unknown volume shown as 0 mm³"
+    }
+  },
+  "checks": {
+    "studioSuite": "583/583",
+    "bodyOrigin": "model 4/4 (model suite 2313/2313 at the first round; the model was not touched after)",
+    "tsc": "PASS",
+    "inventory": "3 new exports, none removed"
+  },
+  "actualRun": {
+    "run02": "final source PASS: Sub's caret shows Block A and Block B (sub1/p1, sub1/p2); selecting Block B shows the card (Sub › Block B, sub1/p2, 1 body, 1000 mm³, placed at 20, 0, 0) and no Instance panel, gizmo or mate panel; Delete changes nothing; selecting Sub brings back its Instance panel; the document never changes; root reviewed the screenshots: only Block B lit, then both blocks lit"
+  },
+  "followUps": [
+    "Between an edit and its re-evaluation (or while a variant shows) the card's title comes from the current document and its volume from the old bodies",
+    "A nested part together with a body selection leaves Render controls acting on the body (intended)",
+    "Viewport click-through into a sub-assembly (select the nested part under the pointer) not in v1"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

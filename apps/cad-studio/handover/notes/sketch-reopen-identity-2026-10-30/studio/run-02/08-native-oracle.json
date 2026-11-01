@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "boxVolume": "24000",
+  "sketchArea": "375",
+  "removed": "1875",
+  "cuts": 1,
+  "analyticVolume": 22125.0,
+  "reportedVolume": 22125.000000000015,
+  "delta": 1.4551915228366852e-11,
+  "nodeTwoOn": {
+    "node": 1,
+    "side": "solid"
+  },
+  "productImports": 0
+}

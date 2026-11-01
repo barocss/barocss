@@ -1,0 +1,32 @@
+{
+  "decision": "D382",
+  "roadmap": "21 sub-item: the History bar vanished while a command ran or a sketch was open",
+  "tier": "feature (behaviour change: one independent audit + one actual run)",
+  "status": "QUALIFIED",
+  "before": "run01: .history absent from the page during a palette command (Box) and an open sketch; back when idle",
+  "change": "App: historyShown = !rendering; busy = sketch || command. FeatureHistoryBar: busy -> class busy (opacity 0.45), aria-disabled, a title, and click/double-click/context-menu stopped at the bar (it stays hit-testable, so nothing reaches its steps or the viewport under it)",
+  "audit": {
+    "verdict": "CHANGES_REQUIRED",
+    "findings": {
+      "F1 medium": "the first version used inert, which browsers treat as pointer-events none: clicks on the dimmed bar fell through to the viewport (placing a box, adding a sketch point, picking an edge under it) -> fixed: no inert, events swallowed at the bar",
+      "F2 medium": "the driver clicked with force and compared too little state -> fixed: elementFromPoint at a step must be the bar; a real click and double-click must leave document, HUD, sketch panel and picks unchanged",
+      "F3 low": "in narrow windows a floating HUD now overlaps the bottom view bar by about 8 px during a command (recorded as a limit)"
+    },
+    "file": "review/independent-audit.md"
+  },
+  "checks": {
+    "studioUnit": "570/570",
+    "tsc": "PASS",
+    "eslint": "PASS"
+  },
+  "actualRun": {
+    "run02": "inert version: PASS on the weak driver (kept as evidence of what the audit found)",
+    "run03": "final source: PASS; during the command and the sketch the bar stays at the same box (44,960,1096x40), dimmed (0.45), busy; the element at a step's centre is the bar; a real click and double-click change nothing; idle again it takes clicks and a step opens its feature editor; no page or console errors; root reviewed the sketch screenshot"
+  },
+  "limits": [
+    "Step names still off by default (the existing toggle stays)",
+    "Floating HUD may overlap the bottom view bar by ~8 px in narrow windows during a command (F3)",
+    "No History timeline redesign (first/prev/next/last buttons of the reference CAD)",
+    "CI and release NOT_RUN"
+  ]
+}

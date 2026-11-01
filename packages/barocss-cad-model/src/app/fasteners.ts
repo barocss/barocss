@@ -11,7 +11,7 @@ import { emptyDoc, withNode, type PartInstance, type StudioDoc } from '../engine
 import { fastenerSizesOf, NO_SIZES, noSizeRow } from '../engine/fastenerSizeRows';
 import { bodyKeyFor } from '../engine/ids';
 import type { Command, Ctx, HandleSpec, PlacedHole, Values } from './commands';
-import { nextFreeId } from '../util/ids';
+import { nextInstanceId } from '../assembly/takenIds';
 import { coded, refusal } from '../engine/refusal';
 
 export type FastenerKind = 'hex-bolt' | 'socket-screw' | 'csk-screw' | 'hex-nut' | 'washer';
@@ -270,7 +270,7 @@ export function withFastenerInstance(doc: StudioDoc, v: Values): StudioDoc {
   const local = fastenerNodes(emptyDoc(), at, sizes), last = local.nodes.length - 1, top = local.nodes[last];
   const made = { command: 'fastener', values: { ...at, length: String(v.length) }, ...(local.nodes.length !== 2 ? { nodes: local.nodes.length } : {}) };
   const part: StudioDoc = top && (top.kind === 'union' || top.kind === 'extrude' || top.kind === 'thread') ? { ...local, nodes: [...local.nodes.slice(0, -1), { ...top, made }] } : local;
-  const list = doc.instances ?? [], used = new Set(list.map(i => i.id));
-  const inst: PartInstance = { id: nextFreeId('inst', used), name: fastenerName(v, sizes), doc: part, position: [Number(v.x), Number(v.y), Number(v.z)], rotation: [...(UP_ROTATION[String(v.up ?? '+z')] ?? UP_ROTATION['+z'])] };
+  const list = doc.instances ?? [];
+  const inst: PartInstance = { id: nextInstanceId(doc, 'inst'), name: fastenerName(v, sizes), doc: part, position: [Number(v.x), Number(v.y), Number(v.z)], rotation: [...(UP_ROTATION[String(v.up ?? '+z')] ?? UP_ROTATION['+z'])] };
   return { ...doc, instances: [...list, inst] };
 }

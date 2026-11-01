@@ -1,0 +1,31 @@
+{
+  "count": 26,
+  "hashes": {
+    "apps/cad-studio/src/App.tsx": "48cbb35a194761f72a269ea464cb0d60893e009b7b07a7a71985fe801063b41c",
+    "apps/cad-studio/src/app/bandControls.ts": "231cac786d04b22eceece049173f3dc279a145d0755121ec9f8bc9643f49f513",
+    "apps/cad-studio/src/app/sketchControls.ts": "4fa07ea1bae1452e2e7bab7f323ab7819f69c450e164d6b9f4f0323bb42394fd",
+    "apps/cad-studio/src/sketch/useSketchActions.ts": "37d733bea5d9c1bb67b882685220542659c492c23a6eff51b90400cb5cfd4a45",
+    "apps/cad-studio/src/styles.css": "08fbd5f6cbf7bf09caac62f3a0140348693d34b4427a7c9cb285f13e78e3bb7c",
+    "apps/cad-studio/src/ui/Hud.tsx": "777545d109ae7482f64128ccdec0f53ba8627f8a06f750a5d672f0704734c2a7",
+    "apps/cad-studio/src/ui/NodeEditor.tsx": "25d592886d4829b0d2140a842d8e19251b28f407059dd4d6d5370928c482d459",
+    "apps/cad-studio/src/ui/ParametersPanel.tsx": "6fbe064ba325faf494d503f7bfb4e721e9aeb604f32a53ee3c674197d82a3b33",
+    "apps/cad-studio/src/ui/SketchPanel.tsx": "902a36d2832663615158c34bf9375d520ba850178e06b240d71b15e105fcd733",
+    "apps/cad-studio/src/viewport/Viewport.tsx": "9e8c788861e9777de518dded3f344780c8ce2a71c9e11c8bcfbdea3185c1db60",
+    "apps/cad-studio/test/band-sketch-browser.mjs": "c93032e2ed883056bbf318818551445b03b4850974acc220f51d14b93ecf44d3",
+    "apps/cad-studio/test/sketch-band-studio.test.ts": "0bdc705762bce3130bdfcc981f0cd308721d1c0c369e9f97e378e2853cdf522b",
+    "packages/barocss-cad-model/src/app/editFields.ts": "3c972fb283b231acb8970d4774b1a127c0e8cd3ffdb5fba575c386da0b999f34",
+    "packages/barocss-cad-model/src/app/profiles.ts": "105e119ec33c2408bc09978fc963d30b3e22b12edab39bc305b71419aec2f677",
+    "packages/barocss-cad-model/src/engine/doc.ts": "4a699f5728a7f72377fee8f55c9c4e97b7628618d82853184b6d2e7cff97c05d",
+    "packages/barocss-cad-model/src/engine/parameters.ts": "8e5c164f3df59f63875c82f2db6e86052da25213054fed812ac5eb5bb1560100",
+    "packages/barocss-cad-model/src/engine/part.ts": "508ed635615d0f2d3c674f49b0c6c47f7a6270d46aa02bf8bcf0d6a49b7a288a",
+    "packages/barocss-cad-model/src/sketch/band.ts": "d2a7209a3f5f0843930e814fec7a01f5b1528776e7dff22ff40b068d364aa54a",
+    "packages/barocss-cad-model/src/sketch/dxf.ts": "a42d44e1965cf7da443b7d40be5a5397fef93c27ed61d1ab560e242923529a79",
+    "packages/barocss-cad-model/src/sketch/entityIds.ts": "5374d80742bc27f14933493f66bdd749b047e504cdfadf9ead732a51bf960564",
+    "packages/barocss-cad-model/src/sketch/loops.ts": "53dedcceccd021e16d86c4dd94db2459b753fe0215fb4ceb52f2ba498f1ffdf8",
+    "packages/barocss-cad-model/src/sketch/reopen.ts": "fd21333700400cec90a8cdcea525c9596e44fba6cfa95c0ae02a67880f03f528",
+    "packages/barocss-cad-model/src/sketch/select.ts": "4c160d5bf0e30094c02f36ceae420cac7a255a53d69197d2fcab0d38b8a844f5",
+    "packages/barocss-cad-model/src/sketch/types.ts": "0b724ec18aaff8e2eda2ac75efc9e90aacedd8cf6b157d4b3dfcd3ac1e9252d0",
+    "packages/barocss-cad-model/test/sketch-band-geometry.test.ts": "803288917927f1694ac6f8e70f8933762fecf5597352494f640b1a6d4405e329",
+    "packages/barocss-cad-model/test/sketch-band-identity.test.ts": "7c99d2477b04528d98d518efe08bea38f2a3140669c9b12d9847b1a5783d4b61"
+  }
+}

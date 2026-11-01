@@ -1,0 +1,40 @@
+{
+  "decision": "D398",
+  "roadmap": "11 ④ drawing sets — several sheets (CG5 DR-8)",
+  "issues": {},
+  "tier": "full (drawing schema + public API): two audit rounds with mutation and a merge fuzz, a root-targeted weld re-check, actual run",
+  "status": "QUALIFIED",
+  "before": "measured 2026-11-01: one sheet per drawing (A4 | A3); the title block's SHEET cell printed the size; one-page PDF/SVG/DXF; details and sections could not leave their parent's sheet (DR-1 deferred)",
+  "change": {
+    "data": "drawing.sheets [{id, name?, size?, scale?, views[]}] after an implicit first sheet (view ids front/top/right/iso, section:X, detail:Y); a note without a leader may carry sheet; revisions[].eco; absent sheets = byte-identical output",
+    "model": "forSheet / mergeSheet / buildSheets / sheetsIssues / autoLayoutSheets / sheetsPdf / sheetsSvg; annotations follow their views; each sheet laid out and built as a one-sheet drawing, edits merged back (3000-edit fuzz: nothing of another sheet lost, reordered or duplicated)",
+    "sheets": "every sheet has a title block with 'n OF N' (later sheets the basic block), sheet 1 carries the sheet index, the revision table and tables; a detail/section on another sheet: 'SEE SHEET n' at its callout, 'FROM SHEET m' under its label; 'AS NOTED' scale on a sheet without standard views",
+    "checks": "drawing-level checks (datum existence, duplicate letters, coverage, breaks, weld visibility) on the whole set, placement checks per sheet; each weld joint's symbol on the sheet of the view chosen across the whole set, WELD_NOT_SHOWN as on one sheet",
+    "export": "PDF: one file, a page per sheet at its size; SVG / DXF: the sheet shown (-sheet-n suffix)",
+    "studio": "sheet tabs under the paper, Add sheet (+), Sheets panel (name, delete, Move <view> to sheet), per-sheet size and scale, balloons/weld flags from any sheet; each edit one undo step",
+    "chat": "set_drawing accepts sheets; drawing_issues names sheets; auto_dimension and fix_drawing work sheet by sheet"
+  },
+  "audits": {
+    "round1": "CHANGES_REQUIRED: high — weld symbols vanished when the iso view moved, balloons/weld flags lost in the merge; high — false DATUM_UNDEFINED across sheets; medium — chat auto_dimension/fix_drawing on the one-sheet layout; medium — a deleted sheet's notes came back; low — renamed letters' same-edit dependents. Merge fuzz and 18 byte-identity cases pass; 15/24 mutants caught",
+    "round2": "targeted CHANGES_REQUIRED: weld symbol silently lost for a joint seen only on another sheet and the warning suppressed in splits; items 2–6 pass; 21/24 + 12/16 mutants caught",
+    "rootRecheck": "the auditor's p7 weld probe on the final tree behaves as one sheet in every split (16 placed / 15 + WELD_NOT_SHOWN)"
+  },
+  "checks": {
+    "modelSuite": "2513/2513",
+    "studioSuite": "624/624",
+    "tsc": "PASS (model, Studio)",
+    "eslint": "0 errors",
+    "docsTables": "refusals, agent-tools, api-inventory, check-docs PASS"
+  },
+  "actualRun": {
+    "run03": "final source PASS on bracket.bcad: Drawing, Auto-dimension, Add sheet, Sheets → Move Top view to sheet 2 (the model never changes), export SVG of sheet 2 and sheet 1, Export PDF, Undo/Redo, Save + fresh Open equal; oracle: sheet 1 front+iso without top, 1 OF 2 and a sheet index naming both sheets; sheet 2 the top view only with its own dimension, 2 OF 2; the PDF two A4 pages; 0 page/console errors; root reviewed both sheets' screenshots"
+  },
+  "followUps": [
+    "sheet 1 is not re-laid out automatically after a view moves away (Auto layout per sheet is available)",
+    "3D annotation lift ignores sheets; fix-all across sheets is light",
+    "zone-based cross-references (B/2 with sheet zones) are not drawn",
+    "decisions-drawings.md DR-1 deferral note now answered here"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

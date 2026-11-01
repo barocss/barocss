@@ -1,0 +1,6 @@
+edges picked 1
+ellipse-fillet1 ok true ms 112137 tris 7042 bodyKeys key,ref,innerShells,family,mesh,volume,mass,centroid,inertia,area,areaBasis faces undefined jsonKB 1400
+exit 0
+edges picked 192
+ellipse-fillet-all ok false ms 3 tris 0 bodyKeys {"title":"This chamfer has no edges","hint":"Select the edges again and re-apply it (files saved before edges had names keep the chamfer without its selection).","detail":"edges must list 1 to 64 edge names","code":"INPUT"} faces undefined jsonKB 0
+exit 0

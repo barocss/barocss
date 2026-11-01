@@ -1,0 +1,108 @@
+{
+  "decision": "D366",
+  "roadmap": "09 Advanced sketch — CG3 (owner order 2026-10-30: \"Ellipse first\"; the one bounded conic item before closing bounded 09)",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "Ellipse sketch tool (key I: centre, axis end, minor point) with a stored definition {center, rx, ry, angle}; profile = 192 tangent arcs through 96 exact points with exact tangents within 1e-5 of the longer semi-axis for ratios >= 1:5; panel Centre X/Y, Rx, Ry, Angle (angle stored in [0,360)); one constraint summary row; exact rational quadratic NURBS via Make curves; refusals for narrow/out-of-range ellipses; fillet/chamfer on ellipse side edges (extrude, revolve, sweep, pattern copies) refused with a reason, also in chat add_features/edit_feature.",
+  "relatedIssues": {
+    "#2265": "kernel throughput: one-edge fillet on 192 side faces ~112 s (coordinator attaches the repro)",
+    "#2259": "fillet generality: 64-edge rim limit (coordinator attaches the repro)"
+  },
+  "baseCommit": "1a2108d3f",
+  "sourceCommit": "d07c5be59",
+  "mergedHeads": [
+    "91a1bfb79 (run-07 frozen tree)",
+    "56a67ebdd (tests rerun after D364/D365 merge)"
+  ],
+  "sourcePaths": 27,
+  "models": {
+    "rootJudgmentAndVerification": "claude-opus-5-5 (main session)",
+    "independentAudit": "claude-opus-5-5 sub-agent (three rounds)",
+    "implementation": "Sonnet sub-agents from frozen briefs (implementation; audit fixes; R1-R4 fixes; driver)",
+    "rootEdits": "ConstraintTools ellipse summary (run03 product defect), @k pattern suffix + test, driver toast/pick/regex fixes",
+    "sol": "NOT_USED"
+  },
+  "measurement": {
+    "N": 96,
+    "points": 192,
+    "tolerance": "1e-5 x longer semi-axis",
+    "maxMeasured": "6.52e-6 at ratio 0.2 (measure/table.txt; audit independent 6.517e-6)",
+    "choice": "brief set {16,24,32,48} could not reach 1e-5; N=96 is the smallest that does (80 gives 1.18e-5)"
+  },
+  "model": {
+    "newTests": "sketch-ellipse 12+ and sketch-ellipse-side 7",
+    "affected": "325/325 (sketch spline bezier loops reopen settle entityIds trim offset profiles editFields commands features)",
+    "types": "PASS",
+    "lint": "PASS",
+    "mutants": "round 3: 47/50 killed (2 equivalent settle mutants masked by the 64-segment solver limit; #k split suffix untested) + @k pattern suffix test added"
+  },
+  "studioUnit": {
+    "affected": "64/64 (sketch constraints sketchIds spline)",
+    "types": "PASS"
+  },
+  "docs": {
+    "checkDocs": "PASS",
+    "refusals": "PASS (no refusal codes changed)",
+    "apiInventory": "PASS (ellipse exports, outlineMatches, ellipseSideEdge, normalAngle)"
+  },
+  "audit": {
+    "round1": "CHANGES_REQUIRED: F1 high one-edge fillet ~112 s and rim refused (64 edges); F2 def only on the main shape (docs); F3 comment; F4 angle not normalised; side note splineMatches comment",
+    "round2": "CHANGES_REQUIRED: R1 high feature id read as node index (missed and wrong refusals); R2 chat add_features bypass; R3 sweep names not matched; R4 docs for older documents",
+    "round3": "PASS; low gaps: @k pattern copies not matched (fixed by root with a test), #k split suffix untested"
+  },
+  "browser": {
+    "run01": "PASS before audit fixes",
+    "run02": "FAIL_DRIVER: the Fillet refusal toast text starts with the icon name 'info'",
+    "run03": "FAIL_PRODUCT: after a reopen the settled constraint list (ConstraintTools) still listed 192 arc rows; fixed in ConstraintTools",
+    "run04": "FAIL_DRIVER: the refusal toast stayed (no Dismiss click)",
+    "run05": "PASS before R1-R4",
+    "run06": "PASS before the @k fix",
+    "run07": "PASS on 91a1bfb79 (source d07c5be59 merged with origin ad3767afd)",
+    "status": "PASS_RUN_07",
+    "chromeProcesses": 1,
+    "serialContexts": 2,
+    "steps": [
+      "draw: I, (10,5) (60,5) (10,30): fields 10,5,50,25,0",
+      "panel Angle 30, Ry 20 with Enter (sketch stays open)",
+      "Finish: outline.ellipse stored, 192 points, 192 side ids; oracle: fit points on the ellipse, outline within 1e-5, area vs pi rx ry",
+      "Extrude 10: volume = 10 x outline area (1e-6) and ~ pi rx ry 10 (2e-5)",
+      "pick a rim edge, Fillet refused with the ellipse reason; doc unchanged",
+      "reopen: constraint list 'Ellipse 192 tangent arcs' + Anchor; Rx 60, Finish: same side ids, volume follows",
+      "Ry 5 refused (1:5), fields unchanged, Finish unchanged",
+      "Undo/Redo, Save; fresh Open equal",
+      "Make curves: one 'Sketch curve 1 · c1', degree 2, 9 poles, oracle 801 evaluations on the rotated ellipse to 1e-9, closed"
+    ],
+    "oracles": "6/6 PASS",
+    "frozenFiles": 897,
+    "frozenEqualsCommit": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "rootImages": [
+      "02-edited: ellipse preview, ELLIPSE fields",
+      "04b-fillet-refused: toast 'Fillet can't run here' with the reason",
+      "05-reopened: CONSTRAINTS · 2 (Ellipse 192 tangent arcs, Anchor)",
+      "11-curves: NURBS control polygon around the ellipse"
+    ]
+  },
+  "limits": [
+    "Profile is tangent arcs within 1e-5 of the longer semi-axis, not an exact elliptic edge (kernel loops are lines and arcs)",
+    "No dimensions or constraints on an ellipse (192 segments exceed the solver's 64-segment limit); edit by its fields",
+    "Fillet/chamfer on its side edges refused until the kernel fillet scales (#2265, #2259; audit/fillet-scaling.md); documents made before still open and evaluate slowly",
+    "Definition kept only for the sketch's main shape; as a hole/region it becomes a plain 192-arc outline (Make curves then refuses it: field limit)",
+    "Ratios below 1:5 and large narrow ellipses (arc centres beyond the kernel range) refused",
+    "Evaluate cost ~250 ms per ellipse extrude (vs ~20 ms for a circle); ~79 KB per ellipse sketch in a file",
+    "No snapping to the ellipse centre/quadrants (endpoint snaps only); sheet-base and sweep-curve side names not covered by the refusal",
+    "Superseded runs 01-06 keep only their receipt.json"
+  ],
+  "fullKernel": "NOT_RUN",
+  "fullModel": "NOT_RUN",
+  "fullStudio": "NOT_RUN",
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

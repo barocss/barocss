@@ -1,0 +1,25 @@
+import { profileOf } from './cur/packages/barocss-cad-model/src/sketch/loops';
+import { editFields } from './cur/packages/barocss-cad-model/src/app/editFields';
+import { evaluateDoc } from './cur/packages/barocss-cad-model/src/engine/evaluate';
+const J = (x: unknown) => JSON.stringify(x);
+const X = { parameter: 'X' };
+const p: any = profileOf([{ kind: 'polygon', closed: true, points: [[0, 0], [50, 0], [50, 30], [25, 45], [0, 30]], bulges: [0, 0, 0, 0, 0], lengths: { 0: 50 } } as any, { kind: 'rectangle', a: [70, 0], b: [90, 20] } as any]);
+console.log('profile', J(p.node));
+const sk = { ...p.node, regions: p.node.regions.map((l: any) => l.map((s: any, i: number) => i === 1 ? { ...s, start: [X, s.start[1]] } : s)) };
+delete sk.sideTags;
+const params = { X: 90 };
+let nodes: any[] = [sk, { kind: 'extrude', sketch: 0, height: 5 }];
+const doc: any = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: params, nodes, outputs: {}, nextId: 0 };
+console.log('eval stored', (await evaluateDoc(doc, 1)).ok);
+const fields: any[] = editFields(nodes, 1, params);
+console.log('keys', fields.map(f => f.key).join(','));
+const len = fields.find(f => /len0$/.test(f.key));
+const next = len.set(nodes, 60);
+console.log('after len0=60 regions', J(next[0].regions), 'outline.points', J(next[0].outline?.points));
+console.log('bindable len0?', len.bind ? len.bind(nodes, 'X') : 'no bind');
+// missing parameter: field edit silently no-ops
+const next2 = editFields(nodes, 1, {}).find((f: any) => /len0$/.test(f.key))!.set(nodes as any, 60 as never);
+console.log('no params: unchanged?', next2 === nodes || J(next2) === J(nodes));
+const fieldsNoParams: any[] = editFields(nodes, 1);
+const next3 = fieldsNoParams.find(f => /len0$/.test(f.key)).set(nodes, 60);
+console.log('editFields without params (scope-less) unchanged?', J(next3) === J(nodes));

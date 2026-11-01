@@ -1,0 +1,115 @@
+{
+  "decision": "D404",
+  "date": "2026-11-01",
+  "tier": "small measurement",
+  "status": "BOUNDED_MEASURED",
+  "baseCommit": "822e55eec",
+  "model": "gpt-6.1-sol / medium",
+  "productCodeChanged": false,
+  "profiles": "README.md",
+  "producer": {
+    "status": "PASS",
+    "command": "node apps/cad-studio/test/exchange-profile-producer.mjs /tmp/barocss-d404-measure02",
+    "heavyGate": "gate.sh acquire heavy 30 d404-producer-direct-band; same-shell release",
+    "box": {
+      "bytes": 6551,
+      "entities": 152,
+      "products": 1,
+      "solids": 1,
+      "vertices": 8
+    },
+    "assembly": {
+      "bytes": 14541,
+      "entities": 369,
+      "products": 1,
+      "solids": 3,
+      "vertices": 24,
+      "nativeDefinitionCount": 1,
+      "nativeOccurrences": 3,
+      "nativeLevels": 2
+    }
+  },
+  "independent": {
+    "status": "PASS",
+    "scope": "Graph and selected prism topological vertex bounds only",
+    "productImports": 0,
+    "boundsTolerance": 1e-07,
+    "boundsUnits": "mm",
+    "surfaceEvaluation": "NOT_RUN",
+    "manifoldCertification": "NOT_RUN",
+    "volume": "NOT_CALCULATED",
+    "positiveControlsPerFixture": 2,
+    "negativeControlsPerFixture": 5,
+    "negativeKinds": [
+      "dangling reference",
+      "duplicate ID",
+      "altered coordinate with valid graph -> bounds mismatch",
+      "wrong declared unit",
+      "wrong schema"
+    ],
+    "commands": [
+      "python3 -I apps/cad-studio/test/part21-prism-check.py /tmp/barocss-d404-measure02/box.step /tmp/barocss-d404-measure02/box-expected.json",
+      "python3 -I apps/cad-studio/test/part21-prism-check.py /tmp/barocss-d404-measure02/box.step /tmp/barocss-d404-measure02/box-expected.json --selftest",
+      "python3 -I apps/cad-studio/test/part21-prism-check.py /tmp/barocss-d404-measure02/assembly.step /tmp/barocss-d404-measure02/assembly-expected.json",
+      "python3 -I apps/cad-studio/test/part21-prism-check.py /tmp/barocss-d404-measure02/assembly.step /tmp/barocss-d404-measure02/assembly-expected.json --selftest"
+    ]
+  },
+  "selfRead": {
+    "status": "PASS",
+    "volumes": [
+      40000,
+      2999.9999999999995
+    ],
+    "volumeTolerance": 1e-05,
+    "volumeUnits": "mm^3",
+    "independent": false
+  },
+  "bandProbes": {
+    "base": "2 solids plus explicit omitted band sheet",
+    "placedAlone": "BAD_REFERENCE: flattening a document with bands is not supported",
+    "placedMixed": "same BAD_REFERENCE",
+    "silentDrop": "NOT_REPRODUCED in tested profile"
+  },
+  "studio": {
+    "status": "PASS",
+    "run": 1,
+    "artifacts": "/tmp/barocss-d404-run01",
+    "command": "cd apps/cad-studio && EXCHANGE_PROFILE_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' node test/exchange-profile-browser.mjs /tmp/barocss-d404-run01 /tmp/barocss-d404-measure02",
+    "heavyGate": "gate.sh acquire heavy 30 d404-exchange-profile-studio; same-shell release",
+    "snapshots": 2,
+    "frozenFiles": 737,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "rootVisualReview": "PASS: native red occurrences and flattened grey solids with explicit loss notice",
+    "cleanup": "All owned resources closed"
+  },
+  "checks": {
+    "syntax": "PASS",
+    "targetedLint": "PASS",
+    "diff": "PASS"
+  },
+  "readers": {
+    "documentedOcpPath": "ABSENT",
+    "cachedOpenUsd": "26.8; NOT_RUN",
+    "cachedEzdxf": "1.4.5; NOT_RUN",
+    "exhaustiveMachineInventory": false,
+    "installs": 0
+  },
+  "notRun": [
+    "Third-party STEP geometry",
+    "Other-format independent reads",
+    "Broader corpus",
+    "Full suites",
+    "Independent audit (small measurement)",
+    "Outbound Export/Save UI",
+    "CI",
+    "Release"
+  ],
+  "issueClosure": {
+    "2263": "OPEN: incomplete acceptance",
+    "2248": "OPEN: research"
+  },
+  "next": "D405: third-party STEP geometric reader; downloading/installing OCP requires owner permission"
+}

@@ -1,3 +1,4 @@
+import { registerImmutableMeshPlaneExclusion } from '../brep/brep-boundary-binding-internal.js';
 // A closed triangle mesh (an STL or OBJ file's) as a planar B-rep solid: its corners welded, triangles
 // that lie flat against each other merged into one face (a box comes in as six faces, not twelve
 // triangles), each face bounded by the mesh edges round it (outer loop and holes). The mesh must close:
@@ -27,7 +28,8 @@ export interface MeshBrepOptions {
   readonly groupName?: (group: number) => string;
 }
 
-/** The mesh (x, y, z per vertex; three vertex indices per triangle, or every three vertices one) as a B-rep. */
+/** The mesh as an owned native planar B-rep. Returned headers/face list and 4-knot vectors are runtime-fixed;
+ * coordinate grids/points remain ordinary arrays. Make a new B-rep to replace a face or its spline header. */
 export function brepFromTriangles(positions: ArrayLike<number>, indices: ArrayLike<number> | null, options: MeshBrepOptions = {}): Brep {
   const id = (options.id ?? 'mesh').replace(/[^A-Za-z0-9_-]/g, '_').replace(/^(?=[^A-Za-z_])/, '_'), n = positions.length / 3, count = indices ? indices.length / 3 : n / 3;
   if (!Number.isInteger(n) || !Number.isInteger(count)) throw meshBrepError('the mesh needs three numbers per vertex and three vertices per triangle');
@@ -114,6 +116,23 @@ export function brepFromTriangles(positions: ArrayLike<number>, indices: ArrayLi
   const brep = buildBrep({ source: { family: 'mesh', id }, vertices: [...used].sort((a, b) => a - b).map(v => ({ id: vid(v), point: points[v] })), edges,
     bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_shell`, faces, closed: true }] }] });
   assertValidBrep(brep);
+  return lockOwnedMeshPlaneHeaders(brep);
+}
+
+/** Only fresh mesh-builder-owned data enters here, after full shape validation and final naming. */
+function lockOwnedMeshPlaneHeaders(brep: Brep): Brep {
+  // Check the WHOLE profile before any lock. Facet/mixed/unexpected data takes the unchanged live path.
+  for (const face of brep.faces) {
+    const s = face.surface;
+    if (s.kind !== 'surface' || s.degreeU !== 1 || s.degreeV !== 1 || s.knotsU.length !== 4 || s.knotsV.length !== 4
+      || s.controlPoints.length !== 2 || s.controlPoints[0].length !== 2 || s.controlPoints[1].length !== 2) return brep;
+  }
+  for (const face of brep.faces) {
+    const s = face.surface as Surface;
+    Object.freeze(s.knotsU); Object.freeze(s.knotsV); Object.freeze(s); Object.freeze(face);
+  }
+  Object.freeze(brep.faces); Object.freeze(brep);
+  registerImmutableMeshPlaneExclusion(brep); // Registration verifies the locks and is LAST.
   return brep;
 }
 

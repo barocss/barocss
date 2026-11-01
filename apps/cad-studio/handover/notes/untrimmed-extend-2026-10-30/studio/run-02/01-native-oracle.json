@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "case": "original",
+  "object": "obj_1",
+  "name": "d347 \u00b7 panel",
+  "degree": [
+    1,
+    1
+  ],
+  "poles": [
+    2,
+    2
+  ],
+  "position": 0.0,
+  "positionExact": "0",
+  "derivS": 0.0,
+  "derivT": 0.0,
+  "jacobianLower": 120.0,
+  "orientationDot": 120.0,
+  "productImports": 0
+}

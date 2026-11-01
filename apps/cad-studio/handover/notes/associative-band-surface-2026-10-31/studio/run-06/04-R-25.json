@@ -1,0 +1,190 @@
+{
+  "label": "04-R-25",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {
+      "R": 25
+    },
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "circle",
+        "center": [
+          0,
+          0
+        ],
+        "radius": {
+          "parameter": "R"
+        },
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 10,
+        "id": "n1"
+      },
+      {
+        "kind": "sketch",
+        "profile": "circle",
+        "center": [
+          0,
+          0
+        ],
+        "radius": 10,
+        "id": "n2"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 2,
+        "height": 10,
+        "from": 40,
+        "id": "n3"
+      },
+      {
+        "kind": "band-surface",
+        "version": 1,
+        "a": {
+          "parent": {
+            "node": 1,
+            "side": "solid"
+          },
+          "edges": [
+            "n1.side0#2|n1.top",
+            "n1.side0#1|n1.top"
+          ]
+        },
+        "b": {
+          "parent": {
+            "node": 3,
+            "side": "solid"
+          },
+          "edges": [
+            "n3.bottom|n3.side0#2",
+            "n3.bottom|n3.side0#1"
+          ]
+        },
+        "id": "n4",
+        "sigs": {
+          "n1.side0#2|n1.top": {
+            "k": "curve",
+            "p": [
+              25,
+              0,
+              10
+            ],
+            "s": 0,
+            "n": 2
+          },
+          "n1.side0#1|n1.top": {
+            "k": "curve",
+            "p": [
+              25,
+              0,
+              10
+            ],
+            "s": 0,
+            "n": 2
+          },
+          "n3.bottom|n3.side0#2": {
+            "k": "curve",
+            "p": [
+              10,
+              0,
+              40
+            ],
+            "s": 0,
+            "n": 2
+          },
+          "n3.bottom|n3.side0#1": {
+            "k": "curve",
+            "p": [
+              10,
+              0,
+              40
+            ],
+            "s": 0,
+            "n": 2
+          }
+        }
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      },
+      "b3": {
+        "node": 3,
+        "side": "solid"
+      },
+      "b4": {
+        "node": 4,
+        "side": "solid"
+      }
+    },
+    "nextId": 5
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b1",
+        "volume": 19634.9540849362,
+        "centroid": [
+          1.2448549665262368e-15,
+          3.780456162284987e-16,
+          5
+        ],
+        "massRef": null
+      },
+      {
+        "key": "b3",
+        "volume": 3141.5926535897916,
+        "centroid": [
+          3.222962077216365e-16,
+          3.6274200959680465e-16,
+          45
+        ],
+        "massRef": null
+      },
+      {
+        "key": "b4",
+        "volume": null,
+        "centroid": null,
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [
+        {
+          "body": 0,
+          "face": 2
+        }
+      ],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 3,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": null,
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": null,
+  "history": [
+    "Cylinder 10",
+    "Cylinder 10",
+    "Band surface"
+  ]
+}

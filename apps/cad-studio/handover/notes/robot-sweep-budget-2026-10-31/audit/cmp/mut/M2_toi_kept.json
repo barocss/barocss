@@ -1,0 +1,1 @@
+{"src/robot/ccd.ts": [["if (r.exhausted) return { clear: false, exhausted:", "if (r.exhausted) return { clear: false, toi: g.t0 + timeAt(g.profile, r.exhausted.s), segment: k, exhausted:"]]}

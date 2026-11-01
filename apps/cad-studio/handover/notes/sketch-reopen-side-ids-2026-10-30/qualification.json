@@ -1,0 +1,36 @@
+{
+  "decision": "D355",
+  "roadmap": "09 Advanced sketch — CG3 (eighth bounded item; reproduced correctness defect found by the D354 audit)",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "Reopen -> Finish keeps a rectangle's side ids (per side, any drawing corner) and its construction flag, so downstream references keep naming the same walls",
+  "relatedIssues": {},
+  "baseCommit": "b37a3c5f7",
+  "sourceCommit": "9c97ec8b9",
+  "sourcePaths": 5,
+  "models": { "rootJudgmentAndVerification": "claude-opus-5-5 (main session)", "independentAudit": "claude-opus-5-5 sub-agent", "implementation": "Sonnet sub-agents from frozen briefs in this worktree (fix+tests; driver+fixture; driver Bezier-first context)", "sol": "NOT_USED" },
+  "baselineDefects": [
+    "rect + circle hole: outer e1-e4 -> e6-e9 after reopen+Finish (model)",
+    "Bezier first: e2-e5 -> e1-e4; construction line first: e3-e6 -> e1-e4 (model and real hook)",
+    "upper-right-drawn rectangle: fillet silently moved to another corner with unchanged volume (audit, real hook)",
+    "construction rectangle became real geometry under Select (audit)"
+  ],
+  "baselineBrowserRun": "NOT_RUN: a temporary revert of select.ts for a Studio baseline was refused by the permission classifier; reproduction is the model probes plus the real-hook negative control",
+  "model": { "newTests": 9, "negativeControl": "6/9 fail without the fix", "affected": "115/115 (sketch select reopen loops entityIds editFields)", "types": "PASS", "lint": "PASS" },
+  "studioUnit": { "newTests": 1, "negativeControl": "Bezier-first hook case fails without the fix", "affected": "49/49", "types": "PASS" },
+  "docs": { "checkDocs": "PASS", "apiInventory": "unchanged" },
+  "audit": { "verdict": "PASS", "matrix": "48/48 keep (base 43/48 rename)", "mutants": "8/8 killed", "lowFindings": ["T1 upper-right test does not reach the mapping (unit test does)", "T2 no end-to-end construction-carry test"] },
+  "browser": {
+    "status": "PASS_RUN_01",
+    "chromeProcesses": 1,
+    "serialContexts": 3,
+    "steps": ["fixture rect+circle hole+extrude+fillet: reopen->Finish unchanged keeps sideTags, fillet, volume", "width 70 edit keeps sideTags; fillet edge at x=70; Undo/Redo; Save", "fresh Open; reopen->Finish keeps sideTags", "New part: Bezier first then rectangle; Finish e2-e5; Extrude; reopen->Finish keeps e2-e5 (model base renamed to e1-e4)"],
+    "frozenFiles": 985,
+    "frozenEqualsCommit": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "limits": ["The stored form of a construction rectangle changes once to a polygon on first reopen (stable afterwards)", "T1/T2 test gaps", "Side notes S1 (circle/region role swap), S2 (slot centre drift), S3 (parameter-bound rectangle reopened writes null coordinates — next item)"],
+  "fullKernel": "NOT_RUN", "fullModel": "NOT_RUN", "fullStudio": "NOT_RUN", "remoteCI": "NOT_RUN", "release": "NOT_RUN"
+}

@@ -8,7 +8,7 @@ import { runDrawingTool } from '../src/chat/drawing';
 import { validate, type JsonSchema } from '../src/chat/contract';
 
 const attached: DrawingFrame = { id: 'attached', dim: 'd1', characteristic: 'position', value: 0.25, datums: ['A'] };
-const standalone: DrawingFrame = { id: 'standalone', view: 'top', place: [12, -8], characteristic: 'flatness', value: 0.1, datums: ['A'], diameter: false, material: 'maximum', datumModifiers: { A: 'least' }, projected: 12, freeState: true, tangentPlane: true };
+const standalone: DrawingFrame = { id: 'standalone', view: 'top', place: [12, -8], characteristic: 'angularity', value: 0.1, datums: ['A'], diameter: false, material: 'maximum', datumModifiers: { A: 'least' }, projected: 12, freeState: true };
 
 test('standalone frames share the existing view contract and keep attachment exclusive', () => {
   assert.deepEqual(validate(framesProperty as JsonSchema, [attached, standalone]), []);

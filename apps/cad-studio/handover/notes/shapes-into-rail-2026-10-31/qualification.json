@@ -1,0 +1,23 @@
+{
+  "decision": "D385",
+  "roadmap": "21b (user 2026-10-31: 'if the sidebar has Create, can the top bar's shapes go?' → after ②a)",
+  "tier": "small (layout move: the same buttons, clicks, drags and shortcuts)",
+  "status": "QUALIFIED",
+  "change": "The 15 placed shapes (Box, Cylinder, …; place commands, click to place or drag onto the model) moved from the top bar's strip into the tool rail's first group SHAPES; the top bar no longer has a shapes strip; the rail's column cap is 8 so a short window hides none",
+  "checks": {
+    "toolColumnsUnit": "5/5 (new: 15 shapes + groups at 1080/900/800/700 → 5/6/6/8 columns)",
+    "studioSuite": "573/573",
+    "tsc": "PASS",
+    "eslint": "PASS"
+  },
+  "actualRuns": {
+    "sidebarDriver": "PASS at 1440x900 (6 columns, 200 px), 1280x800 (6, 188), 1920x1080 (5, 188), 1024x700 (8, 248): no scroll, 0 hidden, 0 overlap with the view controls; tooltip and a click start; root reviewed 1024x700",
+    "browserFlowSteps": "FLOW_ONLY of the six steps that use the shapes: rewritten 'shapes in the tool rail (21b)' ok, 'place shapes with the pointer … a drag … for a cylinder' ok (drag from the rail), 'a cylinder clicked onto a box's side face' ok; the three fastener steps (94–96) FAIL at the Hole HUD after pressing h — the same step fails on HEAD without this change (flow-base-head.txt), so pre-existing and unrelated"
+  },
+  "limits": [
+    "The rail is wider: 188–248 px over the viewport's left edge",
+    "Fastener flow steps 94–96 fail on HEAD (Hole HUD not opening on h after a face pick): recorded follow-up"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

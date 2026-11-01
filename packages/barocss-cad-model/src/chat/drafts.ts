@@ -86,6 +86,7 @@ function scaleSketch(n: ModelNode, k: number, o: [number, number]): ModelNode {
   if (n.profile === 'rectangle') { s.min = scaleXY(n.min, k, o); s.max = scaleXY(n.max, k, o); }
   else if (n.profile === 'circle') { if (!isNum(n.radius)) throw refusal('BOUND', 'a radius bound to a parameter'); s.center = scaleXY(n.center, k, o); s.radius = r6(n.radius * k); }
   else if (n.profile === 'polygon') s.points = n.points.map(p => scaleXY(p, k, o));
+  else if (n.profile === 'band') throw refusal('BOUND', 'a band sketch');
   else s.segments = scaleLoop(n.segments, k, o);
   if (n.regions) s.regions = n.regions.map(l => scaleLoop(l, k, o));
   if (n.holes) s.holes = n.holes.map(l => scaleLoop(l, k, o));

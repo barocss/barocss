@@ -1,0 +1,62 @@
+{
+  "label": "02-edited",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [],
+    "outputs": {},
+    "nextId": 0
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 0,
+    "active": null,
+    "sketch": true,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": "SKETCH · Bézier · Z 0PlaneXY (top)XZ (front)YZ (right)OffsetmmAngle°Quadratic Bézier · click a fourth point to make it cubicBÉZIERXY123Not part of the profile · Make curves turns it into a curve for lofts and sweepsOFFSETmmOutInCURVESMake curves of the sketch",
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": "Quadratic Bézier · click a fourth point to make it cubic",
+  "bezierInputs": [
+    {
+      "label": "Control point 1 X",
+      "value": "0"
+    },
+    {
+      "label": "Control point 1 Y",
+      "value": "40"
+    },
+    {
+      "label": "Control point 2 X",
+      "value": "10"
+    },
+    {
+      "label": "Control point 2 Y",
+      "value": "50"
+    },
+    {
+      "label": "Control point 3 X",
+      "value": "20"
+    },
+    {
+      "label": "Control point 3 Y",
+      "value": "40"
+    }
+  ],
+  "history": []
+}

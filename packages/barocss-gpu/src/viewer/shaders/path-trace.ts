@@ -122,6 +122,26 @@ fn environment(d: vec3f) -> vec3f {
   return mix(params.ground.rgb, params.sky.rgb, clamp(dot(d, params.upAxis.xyz) * 0.5 + 0.5, 0.0, 1.0)) * params.sky.w;
 }
 fn basis(n: vec3f) -> mat3x3f { let t = normalize(select(cross(n, vec3f(1, 0, 0)), cross(n, vec3f(0, 1, 0)), abs(n.x) > 0.7)); return mat3x3f(t, cross(n, t), n); }
+// The sampled disk changes visibility only; the light's central BRDF and attenuation stay unchanged.
+fn diskShadowRay(normal: vec3f, to: vec3f, radius: f32) -> vec4f {
+  let normalSize = max(max(abs(normal.x), abs(normal.y)), abs(normal.z));
+  if (!(normalSize > 0.0)) { return vec4f(0.0); }
+  let n = normalize(ldexp(normal, vec3i(-frexp(normalSize).exp)));
+  let r = sqrt(random()); let phi = 2.0 * PI * random();
+  let disk = basis(n) * vec3f(r * cos(phi), r * sin(phi), 0.0);
+  let largest = max(max(max(abs(to.x), abs(to.y)), abs(to.z)), radius);
+  if (!(largest > 0.0) || (bitcast<u32>(largest) & 0x7f800000u) == 0x7f800000u) { return vec4f(0.0); }
+  let exponent = frexp(largest).exp;
+  let scaled = ldexp(to, vec3i(-exponent)) + disk * ldexp(radius, -exponent);
+  let scaledSize = max(max(abs(scaled.x), abs(scaled.y)), abs(scaled.z));
+  if (!(scaledSize > 0.0)) { return vec4f(0.0); }
+  let scaleExponent = frexp(scaledSize).exp;
+  let ray = ldexp(scaled, vec3i(-scaleExponent)); let rayLength = length(ray);
+  let distanceParts = frexp(rayLength); let distanceExponent = exponent + scaleExponent + distanceParts.exp;
+  let bound = frexp(INF); var distance = INF;
+  if (distanceExponent < bound.exp || (distanceExponent == bound.exp && distanceParts.fract < bound.fract)) { distance = ldexp(distanceParts.fract, distanceExponent); }
+  return vec4f(ray / rayLength, distance);
+}
 fn halfSample(n: vec3f, along: vec3f, a: f32, k: f32) -> vec3f {
   var frame = basis(n); if (k > 0.0) { frame = mat3x3f(along, cross(n, along), n); }
   let phi = random() * 2.0 * PI; let r = random(); let slope = sqrt(r / max(1.0 - r, 1e-7));
@@ -182,7 +202,7 @@ fn primary(pixel: vec2f) -> vec3f {
     let tint = filmTint(max(dot(n, v), 0.0), layer.film, world);
     let epsilon = max(1e-6, max(max(abs(world.x), abs(world.y)), abs(world.z)) * 4e-7);
     let origin = world + gn * epsilon;
-    // Next-event estimation of all delta lights, with BVH shadows. Save the private per-hit material across traversal.
+    // Central-light next-event estimation, with optional disk-filtered visibility. Preserve the material across traversal.
     let own = object;
     for (var li = 0u; li < u32(params.env.z); li++) {
       let light = lights[li]; var l = -light.direction.xyz; var distance = INF; var fall = 1.0;
@@ -191,7 +211,14 @@ fn primary(pixel: vec2f) -> vec3f {
         if (light.direction.w > 0.0) { let q = clamp(1.0 - pow(distance / light.direction.w, 4.0), 0.0, 1.0); fall *= q * q; }
         if (light.position.w > 1.5) { fall *= smoothstep(light.cone.y, light.cone.x, dot(-l, light.direction.xyz)); }
       }
-      if (dot(gn, l) > 0.0 && surface(origin, l).t >= distance - epsilon) { object = own; radiance += throughput * brdfLayered(v, l, base, metal, layer.rough * layer.rough, layer, tint) * light.color.rgb * light.color.w * fall * PI; }
+      var visible = false;
+      if (dot(gn, l) > 0.0) {
+        if (light.position.w > 0.5 && light.cone.z > 0.0) {
+          let shadow = diskShadowRay(l, light.position.xyz - origin, light.cone.z);
+          visible = shadow.w > 0.0 && dot(gn, shadow.xyz) > 0.0 && surface(origin, shadow.xyz).t >= max(shadow.w - epsilon, 0.0);
+        } else { visible = surface(origin, l).t >= distance - epsilon; }
+      }
+      if (visible) { object = own; radiance += throughput * brdfLayered(v, l, base, metal, layer.rough * layer.rough, layer, tint) * light.color.rgb * light.color.w * fall * PI; }
       object = own;
     }
     let w = weights(metal, layer.coat); let pick = random();

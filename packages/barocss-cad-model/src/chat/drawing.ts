@@ -24,9 +24,11 @@ import { revisionOf } from '../util/revision';
 import { autoDimensions } from '../drawing/auto';
 import { autoLayout, frontByInformation } from '../drawing/layout';
 import { reorient } from '../drawing/reorient';
-import { drawingIssues, fixRound, fixRoundsOutcome, fixRoundsStart, issueContext, type DrawingFix, type DrawingIssue, type DrawingIssueCode, type SheetInputs } from '../drawing/issues';
+import { forSheet, mergeSheet, sheetCount, sheetName, sheetSize } from '../drawing/sheets';
+import { autoLayoutSheets, setIssuesOn, sheetsIssues } from '../drawing/sheetSet';
+import { applyFix, drawingIssues, fixRound, fixRoundsOutcome, fixRoundsStart, issueContext, type DrawingFix, type DrawingIssue, type DrawingIssueCode, type SheetInputs } from '../drawing/issues';
 import { acceptAll, applySuggestion, toleranceSuggestions } from '../drawing/tolerance';
-import { readDrawing, sectionsOf, VIEW_IDS, type DrawingSettings, type ViewId } from '../drawing/types';
+import { precisionOk, readDrawing, sectionsOf, VIEW_IDS, type DrawingSettings, type ViewId } from '../drawing/types';
 import { SCALES, scaleLabel } from '../drawing/views';
 
 export const DRAWING_TOOL_NAMES = new Set(['drawing_issues', 'tolerance_suggestions', 'auto_dimension', 'fix_drawing', 'accept_tolerances', 'set_drawing']);
@@ -61,8 +63,8 @@ export const DRAWING_TOOLS = [
   },
   {
     name: 'set_drawing',
-    description: 'Sets drawing-only scope ({kind: part, part?: instance id}, local coordinates; or {kind: assembly}, existing BOM/balloons). Default is base part, legacy BOM/balloons remain assembly. Scope changes with manual model references are refused. Sets weldSymbols/balloons booleans (false removes the flag), sections [{id, view: front|top|right, at: model mm, half?: {line: vertical|horizontal, at, cut: after|before} (a half section), steps?: [{past, at}] with along? (an offset section: from past on, the plane at depth at)}], details [{id, view: front|top|right|section:<letter>, center: [x, y] and radius in that view’s model mm, scale?, at?: sheet [x, y]}] (a detail view enlarges what lies inside the circle), breaks [{axis: x|y|z, from, to: model mm}] (that band left out of the views, drawn shorter; dimensions keep true values) and source tables [{id, from: bom|cut-list|weld-list, title?, at?: [sheet x,y], corner?, whole?}]. Lists replace completely; [] clears, omitted keeps. Referenced section changes and unknown/nested invalid inputs are refused atomically. Scope does not change when enabling tables or balloons. Sets the drawing’s sheet (A4 | A3), scale (a standard one: 10, 5, 2, 1, 0.5, 0.2, 0.1, … or "auto"), projection (third | first), front (the side the front view looks from: y- default, x+, y+, x-; the annotations re-mapped to the views showing their axes, or refused when one would read differently), views shown (the front and top always; right, iso optional), tolerancing mode (plus-minus | geometric) and title. Changes the drawing: propose it.',
-    input_schema: { type: 'object', properties: { ...manufacturingDrawingProperties, scope: { oneOf: [{ type: 'object', properties: { kind: { const: 'part' }, part: { type: 'string' } }, required: ['kind'], additionalProperties: false }, { type: 'object', properties: { kind: { const: 'assembly' } }, required: ['kind'], additionalProperties: false }] }, sheet: { type: 'string', enum: ['A4', 'A3'] }, scale: { anyOf: [{ type: 'number' }, { type: 'string', enum: ['auto'] }] }, projection: { type: 'string', enum: ['third', 'first'] }, front: { type: 'string', enum: ['y-', 'x+', 'y+', 'x-'] }, views: { type: 'array', items: { type: 'string', enum: ['front', 'top', 'right', 'iso'] } }, tolerancing: { type: 'string', enum: ['plus-minus', 'geometric'] }, title: { type: 'string' } }, additionalProperties: false },
+    description: 'Sets drawing-only scope ({kind: part, part?: instance id}, local coordinates; or {kind: assembly}, existing BOM/balloons). Default is base part, legacy BOM/balloons remain assembly. Scope changes with manual model references are refused. Sets weldSymbols/balloons booleans (false removes the flag), sections [{id, view: front|top|right, at: model mm, half?: {line: vertical|horizontal, at, cut: after|before} (a half section), steps?: [{past, at}] with along? (an offset section: from past on, the plane at depth at)}], details [{id, view: front|top|right|section:<letter>, center: [x, y] and radius in that view’s model mm, scale?, at?: sheet [x, y]}] (a detail view enlarges what lies inside the circle), breaks [{axis: x|y|z, from, to: model mm}] (that band left out of the views, drawn shorter; dimensions keep true values) and source tables [{id, from: bom|cut-list|weld-list, title?, at?: [sheet x,y], corner?, whole?}]. Lists replace completely; [] clears, omitted keeps. Referenced section changes and invalid inputs are refused atomically. Scope does not change when enabling tables or balloons. Sets the drawing’s sheet (A4 | A3), scale (10, 5, 2, 1, 0.5, 0.2, 0.1, … or "auto"), projection (third | first), front (the side the front view looks from: y- default, x+, y+, x-; the annotations re-mapped to the views showing their axes, or refused when one would read differently), views shown (the front and top always; right, iso optional), tolerancing mode (plus-minus | geometric), title, standard (iso | asme | none clears), units (mm | inch: lengths print in it, the model stays mm; inch has no leading zero), dual (true shows the other unit in [brackets]) and precision ({mm?, inch?}: decimals 0-6; {} resets). Changes the drawing: propose it.',
+    input_schema: { type: 'object', properties: { ...manufacturingDrawingProperties, scope: { oneOf: [{ type: 'object', properties: { kind: { const: 'part' }, part: { type: 'string' } }, required: ['kind'], additionalProperties: false }, { type: 'object', properties: { kind: { const: 'assembly' } }, required: ['kind'], additionalProperties: false }] }, sheet: { type: 'string', enum: ['A4', 'A3'] }, scale: { anyOf: [{ type: 'number' }, { type: 'string', enum: ['auto'] }] }, projection: { type: 'string', enum: ['third', 'first'] }, standard: { type: 'string', enum: ['iso', 'asme', 'none'] }, front: { type: 'string', enum: ['y-', 'x+', 'y+', 'x-'] }, views: { type: 'array', items: { type: 'string', enum: ['front', 'top', 'right', 'iso'] } }, tolerancing: { type: 'string', enum: ['plus-minus', 'geometric'] }, title: { type: 'string' }, units: { type: 'string', enum: ['mm', 'inch'] }, dual: { type: 'boolean' }, precision: { type: 'object', properties: { mm: { type: 'integer' }, inch: { type: 'integer' } }, additionalProperties: false } }, additionalProperties: false },
   },
 ];
 
@@ -78,7 +80,7 @@ export function drawingInputs(doc: StudioDoc, settings: DrawingSettings = readDr
   const r = projectViews(b.breps, b.prefixes, { tangentEdges: !!settings.tangent, ...(settings.orientation ? { orientation: settings.orientation } : {}) });
   if (!r.ok) return r.empty ? 'There is no body to draw yet.' : `The views could not be projected: ${r.error}`;
   const sections = sheetSections(sectionsCut(doc, sectionsOf(settings), settings.orientation, made)), elements = partElements(doc), bom = bomOf(doc, settings);
-  return { views: r.views, settings, locationOwner: e => holeCalloutOwnerOf(doc, e), fastenerSizes: fastenerSizesOf(doc), elements, callout: withElements(doc, withFit(doc, e => holeCallout(doc.nodes, e, doc.parameters)), elements), fitMiss: fitMiss(doc), followedChanged: followedStale(authored).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), source: revisionOf(authored), threads: threadsOf(doc.nodes, fastenerSizesOf(doc)), tableContent: tb => tableContent(tb, { doc, ...(bom ? { bom } : {}) }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}), ...(bom ? { bom } : {}), ...(bom && settings.balloons ? { bodyFaces: baseBodyFaces(doc) } : {}) }, ...(sections.length ? { sections } : {}) };
+  return { views: r.views, settings, locationOwner: e => holeCalloutOwnerOf(doc, e), fastenerSizes: fastenerSizesOf(doc), elements, callout: withElements(doc, withFit(doc, (e, f) => holeCallout(doc.nodes, e, doc.parameters, f)), elements), fitMiss: fitMiss(doc), followedChanged: followedStale(authored).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), source: revisionOf(authored), threads: threadsOf(doc.nodes, fastenerSizesOf(doc)), tableContent: tb => tableContent(tb, { doc, ...(bom ? { bom } : {}) }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}), ...(bom ? { bom } : {}), ...(bom && settings.balloons ? { bodyFaces: baseBodyFaces(doc) } : {}) }, ...(sections.length ? { sections } : {}) };
 }
 
 /** O147 B2: the BOM, when a table or the balloons read it (each document evaluated on its own, synchronously). */
@@ -95,11 +97,18 @@ function sheetOf(i: SheetInputs) {
   const ctx = issueContext(i);
   return { ctx, sheet: { sheet: i.settings.sheet, scale: scaleLabel(ctx.layout.scale), fits: ctx.layout.fits, views: VIEW_IDS.filter(v => !ctx.layout.views[v].hidden), dimensions: ctx.sheet.dimensions.map(d => d.ok ? d.text : `lost: ${d.reason}`), tolerancing: i.settings.tolerancing ?? 'plus-minus' } };
 }
-const issueList = (i: SheetInputs) => { const { ctx, sheet } = sheetOf(i); return { sheet, issues: drawingIssues(ctx).map(x => ({ code: x.code, severity: x.severity, message: x.message, ...(x.fix ? { fix: x.fix.kind } : {}) })) }; };
+const issueList = (i: SheetInputs) => {
+  // (11 ④: a drawing with sheets: each sheet's views, and every issue naming its sheet — what is missing judged on the whole drawing.)
+  if (i.settings.sheets?.length) {
+    const first = sheetOf({ ...i, settings: forSheet(i.settings, 0) }).sheet;
+    return { sheet: first, sheets: Array.from({ length: sheetCount(i.settings) }, (_, k) => ({ sheet: k + 1, name: sheetName(i.settings, k), size: sheetSize(i.settings, k), views: forSheet(i.settings, k).views })),
+      issues: sheetsIssues(i).map(x => ({ sheet: x.sheet, code: x.issue.code, severity: x.issue.severity, message: x.issue.message, ...(x.issue.fix ? { fix: x.issue.fix.kind } : {}) })) };
+  }
+  const { ctx, sheet } = sheetOf(i); return { sheet, issues: drawingIssues(ctx).map(x => ({ code: x.code, severity: x.severity, message: x.message, ...(x.fix ? { fix: x.fix.kind } : {}) })) }; };
 
 /** Runs a drawing tool on the document. */
 export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string, unknown>): Outcome {
-  if (name === 'set_drawing') { const why = setDrawingProblem(args); if (why) return { error: why }; }
+  if (name === 'set_drawing') { const why = setDrawingProblem(args, readDrawing(doc.drawing).frames); if (why) return { error: why }; }
   const original = readDrawing(doc.drawing);
   let settings = original;
   if (name === 'set_drawing' && args.scope !== undefined) {
@@ -110,7 +119,7 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
   if (typeof i === 'string') return { error: i };
   // (`from`: the projection the settings are for — another front side's when one was turned to.)
   const set = (settings: DrawingSettings, summary: string, extra: Record<string, unknown> = {}, from: SheetInputs = i): Outcome => {
-    settings = { ...settings, scope: drawingScopeOf(settings) };
+    settings = readDrawing({ ...settings, scope: drawingScopeOf(settings) });
     const next = { ...from, settings };
     return { doc: { ...doc, drawing: settings }, content: { ...extra, ...issueList(next) }, changed: JSON.stringify(settings) !== JSON.stringify(original), summary };
   };
@@ -123,6 +132,22 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
     }
     case 'auto_dimension': {
       if (drawingScopeOf(i.settings).kind === 'assembly') return { error: '[DRAWING_SCOPE_AUTO] automatic component dimensions belong to a part drawing; assembly annotations and BOM are retained' };
+      // (11 ④: a drawing with sheets is laid out and dimensioned sheet by sheet, each as a drawing of its own.)
+      if (i.settings.sheets?.length) {
+        if (args.layout === false) {
+          let settings = i.settings; const add = { overall: 0, levels: 0, holePositions: 0, pitches: 0, callouts: 0 }; let kept = 0; const skipped: unknown[] = [], crowded: unknown[] = [];
+          for (let k = 0; k < sheetCount(i.settings); k++) {
+            const ik = { ...i, settings: forSheet(settings, k) }, r = autoDimensions(ik.views, issueContext(ik).layout, ik.settings, ik.callout, ik.elements, ik.sections, ik.locationOwner);
+            settings = mergeSheet(settings, k, withElementNotes({ ...ik.settings, dimensions: r.dimensions }, ik.elements ? elementNotes(ik.views, issueContext(ik).layout, ik.elements) : []));
+            for (const key of Object.keys(add) as (keyof typeof add)[]) add[key] += r.report.added[key];
+            kept += r.report.kept; skipped.push(...r.report.skipped); crowded.push(...r.report.crowded);
+          }
+          return set(settings, 'drawing dimensioned', { added: add, kept, skipped, crowded });
+        }
+        const r = autoLayoutSheets(i), add = { overall: 0, levels: 0, holePositions: 0, pitches: 0, callouts: 0 };
+        for (const x of r.reports) for (const key of Object.keys(add) as (keyof typeof add)[]) add[key] += x.dimensions.added[key];
+        return set(r.settings, `drawing laid out on ${r.reports.length} sheets and dimensioned`, { added: add, kept: r.reports.reduce((n, x) => n + x.dimensions.kept, 0), skipped: r.reports.flatMap(x => x.dimensions.skipped), dropped_views: r.reports.flatMap(x => x.dropped), readable: r.reports.every(x => x.readable), sheets: r.reports.map((x, k) => ({ sheet: k + 1, size: x.sheet, scale: scaleLabel(x.scale), views: x.views })) });
+      }
       if (args.layout === false) {
         const ctx = issueContext(i), r = autoDimensions(i.views, ctx.layout, i.settings, i.callout, i.elements, i.sections, i.locationOwner);
         return set(withElementNotes({ ...i.settings, dimensions: r.dimensions }, i.elements ? elementNotes(i.views, ctx.layout, i.elements) : []), 'drawing dimensioned', { added: r.report.added, kept: r.report.kept, skipped: r.report.skipped, crowded: r.report.crowded });
@@ -151,8 +176,31 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
       // no round is judged alone; and a Fix whose moves and Auto-dimension cannot meet what is left changes nothing, so a
       // second Fix applies nothing.)
       // (O175: the rounds are drawing/issues' fixRound, which the studio's Fix all runs too, a round per sheet cut.)
-      const built = new Map<DrawingSettings, SheetInputs>([[i.settings, i]]);
       const only = (fix: DrawingFix, issue: DrawingIssue) => (!assembly || fix.kind !== 'auto-dimension') && (!codes || codes.includes(issue.code as DrawingIssueCode));
+      // (11 ④: with sheets each sheet is fixed as a drawing of its own, then what the whole drawing lacks — Auto-dimension — on the sheet of its view.)
+      if (i.settings.sheets?.length) {
+        let settings = i.settings; const applied: DrawingFix[] = [];
+        const on = (from: DrawingSettings, k: number): SheetInputs | null => { const b = drawingInputs({ ...doc, drawing: from }, from); return typeof b === 'string' ? null : { ...b, settings: forSheet(from, k) }; };
+        for (let k = 0; k < sheetCount(i.settings); k++) {
+          let ik = on(settings, k); if (!ik) continue;
+          let step = fixRound(fixRoundsStart(ik), ik, only);
+          while (step.next) {
+            settings = mergeSheet(settings, k, step.next);
+            ik = on(settings, k); if (!ik) { step = fixRoundsOutcome(step.state); break; }
+            step = fixRound(step.state, ik, only);
+          }
+          settings = mergeSheet(settings, k, step.settings); applied.push(...step.applied);
+        }
+        const whole = drawingInputs({ ...doc, drawing: settings }, settings);
+        if (typeof whole !== 'string') for (let k = 0; k < sheetCount(settings); k++) {
+          const ik = on(settings, k); if (!ik) continue;
+          const ctx = issueContext(ik);
+          for (const x of setIssuesOn(whole, k)) if (x.fix && x.fix.kind === 'auto-dimension' && only(x.fix, x)) { settings = mergeSheet(settings, k, applyFix(ctx, x.fix)); applied.push(x.fix); break; }
+        }
+        const final = drawingInputs({ ...doc, drawing: settings }, settings);
+        return set(settings, `${applied.length} drawing fix${applied.length === 1 ? '' : 'es'}`, { applied: applied.map(f => f.kind) }, typeof final === 'string' ? i : final);
+      }
+      const built = new Map<DrawingSettings, SheetInputs>([[i.settings, i]]);
       let step = fixRound(fixRoundsStart(i), i, only);
       while (step.next) {
         const next = drawingInputs({ ...doc, drawing: step.next }, step.next);
@@ -180,6 +228,10 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
       if (args.scale === 'auto') delete s.scale;
       else if (args.scale !== undefined) { const v = Number(args.scale); if (!SCALES.includes(v)) return { error: `A scale is one of ${SCALES.join(', ')} or "auto".` }; s.scale = v; }
       if (args.projection === 'third' || args.projection === 'first') s.projection = args.projection;
+      if (args.standard === 'none') delete s.standard; else if (args.standard === 'iso' || args.standard === 'asme') s.standard = args.standard;
+      if (args.units === 'inch') s.units = 'inch'; else if (args.units === 'mm') delete s.units;
+      if (typeof args.dual === 'boolean') { if (args.dual) s.dual = true; else delete s.dual; }
+      if (isRecord(args.precision)) { const p = readDrawing({ precision: args.precision }).precision; if (p) s.precision = p; else delete s.precision; }
       if (typeof args.front === 'string' && args.front !== (s.orientation ?? 'y-')) {
         if (!['y-', 'x+', 'y+', 'x-'].includes(args.front)) return { error: 'front is one of y-, x+, y+, x- (the side the front view looks from).' };
         const other = drawingInputs(doc, args.front === 'y-' ? (() => { const x = { ...s }; delete x.orientation; return x; })() : { ...s, orientation: args.front as 'x+' });
@@ -193,7 +245,7 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
       if (typeof args.title === 'string' && args.title.trim()) s.title = args.title.trim().slice(0, 80);
       // Freeze the pre-change scope before BOM/balloons can affect legacy scope inference.
       s = { ...s, scope: drawingScopeOf(i.settings) };
-      try { s = withManufacturingDrawing(s, args); } catch (e) { if (isRefusal(e, 'DRAWING_SECTION_REFERENCES', 'DRAWING_DETAIL_REFERENCES', 'DRAWING_DETAIL_LETTER', 'DRAWING_DETAIL_PARENT')) return { error: e.message }; throw e; }
+      try { s = withManufacturingDrawing(s, args); } catch (e) { if (isRefusal(e, 'DRAWING_OPTIONS', 'DRAWING_SECTION_REFERENCES', 'DRAWING_DETAIL_REFERENCES', 'DRAWING_DETAIL_LETTER', 'DRAWING_DETAIL_PARENT')) return { error: e.message }; throw e; }
       // Sections, weld symbols and source tables need their new projection/meta for this result too.
       const updated = drawingInputs(doc, s);
       if (typeof updated === 'string') return { error: updated };
@@ -203,18 +255,22 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
   return { error: `No drawing tool ${name}.` };
 }
 
+const isRecord = (x: unknown): x is Record<string, unknown> => !!x && typeof x === 'object' && !Array.isArray(x);
 const withMode = (s: DrawingSettings, mode: 'plus-minus' | 'geometric'): DrawingSettings => { const next = { ...s }; delete next.tolerancing; return mode === 'geometric' ? { ...next, tolerancing: 'geometric' } : next; };
 
 /** The handler also validates input: dispatch and saved proposal replay do not enforce JSON schema. */
-function setDrawingProblem(args: Record<string, unknown>): string | null {
-  const allowed = ['scope', 'sheet', 'scale', 'projection', 'front', 'views', 'tolerancing', 'title', ...Object.keys(manufacturingDrawingProperties), 'response_format', 'because'];
+function setDrawingProblem(args: Record<string, unknown>, frames: DrawingSettings['frames']): string | null {
+  const allowed = ['scope', 'sheet', 'scale', 'projection', 'standard', 'front', 'views', 'tolerancing', 'title', 'units', 'dual', 'precision', ...Object.keys(manufacturingDrawingProperties), 'response_format', 'because'];
   const unknown = Object.keys(args).find(k => !allowed.includes(k));
   if (unknown) return `[DRAWING_OPTIONS] Unknown drawing setting ${unknown}.`;
-  const choices: Record<string, readonly unknown[]> = { sheet: ['A4', 'A3'], projection: ['third', 'first'], front: ['y-', 'x+', 'y+', 'x-'], tolerancing: ['plus-minus', 'geometric'], response_format: ['auto', 'concise', 'detailed'] };
+  const choices: Record<string, readonly unknown[]> = { sheet: ['A4', 'A3'], projection: ['third', 'first'], standard: ['iso', 'asme', 'none'], units: ['mm', 'inch'], front: ['y-', 'x+', 'y+', 'x-'], tolerancing: ['plus-minus', 'geometric'], response_format: ['auto', 'concise', 'detailed'] };
   for (const [key, values] of Object.entries(choices)) if (key in args && !values.includes(args[key])) return `[DRAWING_OPTIONS] ${key} must be one of ${values.join(', ')}.`;
   if ('scope' in args) { const why = firstProblem(checkDrawingScope(args.scope)); if (why) return why; }
   if ('scale' in args && args.scale !== 'auto' && (typeof args.scale !== 'number' || !SCALES.includes(args.scale))) return '[DRAWING_OPTIONS] scale must be a standard numeric scale or "auto".';
+  if ('dual' in args && typeof args.dual !== 'boolean') return '[DRAWING_OPTIONS] dual must be true or false.';
+  const precision = args.precision;
+  if ('precision' in args && !(isRecord(precision) && Object.entries(precision).every(([k, v]) => (k === 'mm' || k === 'inch') && precisionOk(v)))) return '[DRAWING_OPTIONS] precision is decimals from 0 to 6 for mm and inch, such as {inch: 4}.';
   for (const key of ['title', 'because']) if (key in args && typeof args[key] !== 'string') return `[DRAWING_OPTIONS] ${key} must be a string.`;
   if ('views' in args && (!Array.isArray(args.views) || !args.views.every(v => VIEW_IDS.includes(v)) || new Set(args.views).size !== args.views.length)) return '[DRAWING_OPTIONS] views must be unique front/top/right/iso names.';
-  return firstProblem(checkManufacturingDrawing(args));
+  return firstProblem(checkManufacturingDrawing(args, frames));
 }

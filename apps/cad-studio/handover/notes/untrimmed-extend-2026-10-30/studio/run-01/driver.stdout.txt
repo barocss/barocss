@@ -1,0 +1,1 @@
+{"status":"PASS","phase":"public native observation 10-final-native","output":"/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-compassionate-turing-e88276/0fddd342-b409-4074-aa06-d8dff804f568/scratchpad/studio/run-01"}

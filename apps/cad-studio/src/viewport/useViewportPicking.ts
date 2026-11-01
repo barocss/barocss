@@ -12,7 +12,8 @@ import type { createValueStore } from '../state/valueStore';
 import { planeFromFace, type Section } from './sectionView';
 export function useViewportPicking({ doc, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
   sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection,
-  setDirectSel, setMeasure, pickFilterRef }: {
+  setDirectSel, setMeasure, pickFilterRef, onFilletPick }: {
+  onFilletPick?(hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; instance?: string }, additive: boolean): boolean;
   doc: StudioDoc; activeStore: ReturnType<typeof createValueStore<Active | null>>;
   setActive: Dispatch<SetStateAction<Active | null>>; measure: MeasurePick[] | null; assembly: ReturnType<typeof useAssembly>;
   sectionRef: RefObject<Section | null>; sectionFacePickRef: RefObject<number | null>; viewBodiesRef: RefObject<BodyResult[]>;
@@ -24,6 +25,8 @@ export function useViewportPicking({ doc, activeStore, setActive, measure, assem
   pickFilterRef: RefObject<'all' | 'face' | 'edge' | 'body'>;
 }) {
   const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number }; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean) => {
+    // Family attempts retire queued Apply even when an instance was removed or hidden.
+    if (activeStore.get()?.fillet && onFilletPick?.(hit, additive)) return;
     // (The section view shows cut copies of the bodies: picks wait until it is closed.)
     // (G19: a face for a section plane — its plane, the material behind it kept.)
     if (sectionRef.current && sectionFacePickRef.current !== null && hit.face) {
@@ -85,7 +88,7 @@ export function useViewportPicking({ doc, activeStore, setActive, measure, assem
       }
       return hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : { faces: [hit.face!], edges: [], bodies: [] };
     });
-  }, [activeStore, measure, assembly, doc.instances]);
+  }, [activeStore, measure, assembly, doc.instances, onFilletPick]);
 
   return { onPick };
 }

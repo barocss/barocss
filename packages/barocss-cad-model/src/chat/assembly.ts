@@ -8,7 +8,8 @@ import { firstProblem } from '../engine/refusal';
 import { tslotInterfaces } from '../frames/interfaces';
 import type { PartInstance, StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
-import { tableOf, withDatums } from '../assembly/faces';
+import { tableOf, tablesFor, withDatums } from '../assembly/faces';
+import { hostOf, nestedParts, occurrenceProblem, splitPart } from '../engine/occurrences';
 import { BASE, KIND_LABEL, mateLabel, type FaceTable, type MateFace, type MateKind, type Vec3 } from '../assembly/mates';
 import { rotationMatrix } from '../engine/placement';
 import type { ToolDefinition } from './api';
@@ -24,6 +25,11 @@ import { boundsOf } from '../engine/bounds';
 import { runVariabilityTool, VARIABILITY_TOOLS } from './variability';
 import { addMate, lockPart, addPart, ASSEMBLY_CODES, editMate, partCopy, placePart, solveDoc, type Edited, type Mated } from '../assembly/edit';
 import { isRefusal } from '../engine/refusal';
+import { bodyDocOf, instanceJointsOf, setInstanceJoints } from '../assembly/flexible';
+import { lookKey } from '../app/bodies';
+import { instanceLooksListing, setInstanceLooks, type InstanceLookPatch } from '../assembly/looks';
+import { addAssemblyCut, assemblyCutProblems, deleteAssemblyCut, editAssemblyCut } from '../assembly/cuts';
+import { addInstancePattern, deleteInstancePattern, editInstancePattern, patternDeleteRefusal, type AddPatternOptions } from '../assembly/patterns';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 interface State { doc: StudioDoc; bodies: BodyResult[] }
@@ -70,15 +76,22 @@ function memberInterfaceList(bodies: readonly BodyResult[]): { member_interfaces
 
 async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, detail: string | null) {
   const instances = await Promise.all((doc.instances ?? []).map(async inst => {
-    const r = await evaluate(inst.doc), bodies = r?.ok ? r.bodies : [];
-    const { min, max } = boundsOf(bodies);
+    const r = await evaluate(bodyDocOf(inst)), bodies = r?.ok ? r.bodies : [];
+    const { min, max } = boundsOf(bodies), flex = inst.doc.instances?.length && inst.doc.mates?.length ? instanceJointsOf(doc, inst.id) : null;
     return {
-      id: inst.id, name: inst.name, position: inst.position.map(r3), rotation: inst.rotation.map(r3), ...(inst.grounded ? { grounded: true } : {}), ...(inst.hidden ? { hidden: true } : {}),
+      id: inst.id, name: inst.name, position: inst.position.map(r3), rotation: inst.rotation.map(r3), ...(inst.grounded ? { grounded: true } : {}), ...(inst.hidden ? { hidden: true } : {}), ...(inst.pattern ? { pattern: inst.pattern.id, k: inst.pattern.k } : {}),
       feature_count: inst.doc.nodes.length, bodies: bodies.length, volume: r3(bodies.reduce((s, b) => s + (b.volume ?? 0), 0)),
       ...(bodies.length ? { world_bounds: placedBounds(inst, min, max) } : {}),
       ...(r && !r.ok ? { error: r.error.title } : {}),
       ...memberInterfaceList(bodies),
-      ...(detail === inst.id ? mateFaces(tableOf(inst.doc)) : {}),
+      // (A sub-assembly: the parts inside it by path, to name in a mate as `sub1/p2`; its faces as the mate reads them, folded.)
+      ...(flex?.joints.length ? { joints: flex.joints.map(j => ({ key: j.key, type: j.type, value: j.value, ...(j.lower !== undefined ? { lower: j.lower } : {}), ...(j.upper !== undefined ? { upper: j.upper } : {}) })), joints_note: 'this occurrence\'s own values (degrees, mm); set them with place_part "joints"' } : {}),
+      ...(flex?.problem && inst.joints ? { joint_problem: flex.problem } : {}),
+      // (Roadmap 10 ①: the keys a body's look is set by, for a part with no parts inside — place_part "looks".)
+      ...(!inst.doc.instances?.length && bodies.length ? { body_keys: bodies.map(b => lookKey(inst.doc.nodes, b)) } : {}),
+      ...(inst.looks ? { looks: instanceLooksListing(doc, inst.id), looks_note: 'this occurrence\'s own looks over its part\'s; "held" ones name a body a new revision no longer has' } : {}),
+      ...(inst.doc.instances?.length ? { parts_inside: nestedParts(inst.doc, [inst.id]), note: 'mate a part inside it by path: {"part": "<this id>/<part id>", "face": <that part\'s own face name>}; its faces: get_assembly {"faces_of": "<path>"}' } : {}),
+      ...(detail !== null && hostOf(detail) === inst.id ? mateFaces(tablesFor(doc)(detail) ?? {}) : {}),
     };
   }));
   const mates = doc.mates ?? [];
@@ -86,6 +99,7 @@ async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, 
   return {
     base: { id: BASE, feature_count: doc.nodes.length, bodies: base.length, volume: r3(base.reduce((s, b) => s + (b.volume ?? 0), 0)), note: 'the document\'s own part, fixed at the origin', ...memberInterfaceList(base), ...(detail === BASE ? mateFaces(withDatums(tableOf(doc), doc)) : {}) },
     instances,
+    ...(doc.instancePatterns?.length ? { patterns: doc.instancePatterns.map(p => ({ ...p, ...(p.skip?.length ? {} : { skip: undefined }) })) } : {}),
     mates: mates.map((m, i) => ({ id: m.id, label: mateLabel(m, i), kind: m.kind, a: m.a, b: m.b, ...(m.distance !== undefined ? { distance: m.distance } : {}), ...(m.angle !== undefined ? { angle: m.angle } : {}), ...(m.flip ? { flip: true } : {}) })),
     ...(solved.length ? { problems: solved } : {}),
     ...(detail ? {} : { note: 'mateable faces of one part: get_assembly {"faces_of": part id or "base"}' }),
@@ -112,7 +126,7 @@ function reported(doc: StudioDoc, r: Edited, what: string, extra: Record<string,
   };
 }
 
-export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'lock_part', 'delete_mate', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part', 'check_printability', 'orient_for_print', 'set_inputs', 'set_variants']);
+export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'lock_part', 'delete_mate', 'pattern_part', 'edit_pattern', 'delete_pattern', 'cut_parts', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part', 'check_printability', 'orient_for_print', 'set_inputs', 'set_variants']);
 
 export async function runAssemblyTool(state: State, name: string, args: Record<string, unknown>, evaluate: Evaluate): Promise<AssemblyOutcome> {
   const doc = state.doc, instances = doc.instances ?? [], mates = doc.mates ?? [];
@@ -121,7 +135,9 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
   switch (name) {
     case 'get_assembly': {
       const detail = args.faces_of === undefined ? null : String(args.faces_of);
-      if (detail && detail !== BASE && !byId(detail)) return fail(doc, `No part "${detail}"; parts: ${partList()}.`);
+      if (detail && detail !== BASE && !byId(hostOf(detail))) return fail(doc, `No part "${detail}"; parts: ${partList()}.`);
+      const lost = detail && detail !== BASE && detail.includes('/') ? occurrenceProblem(byId(hostOf(detail))!.doc, hostOf(detail), splitPart(detail).path) : null;
+      if (lost) return fail(doc, `Part "${detail}": ${lost}.`);
       const out = await describe(doc, state.bodies, evaluate, detail);
       return { doc, content: json(out), isError: false, changed: false, summary: `${instances.length} parts, ${mates.length} mates` };
     }
@@ -142,7 +158,17 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
       try {
         const next = placePart(doc, { part: String(args.part), ...(position ? { position } : {}), ...(rotation ? { rotation } : {}), ...(typeof args.name === 'string' && args.name.trim() ? { name: args.name.trim() } : {}),
           ...(args.grounded === undefined ? {} : { grounded: !!args.grounded }), ...(args.hidden === undefined ? {} : { hidden: !!args.hidden }) });
-        const by = mates.filter(m => m.b.part === inst!.id);
+        // (Roadmap 10 4: a sub-assembly occurrence's own joint values, assembly/flexible.ts — degrees for a turn, mm for a slide.)
+        if (args.joints !== undefined) {
+          const posed = setInstanceJoints(next.doc, { part: String(args.part), joints: args.joints as Record<string, number | null> }), now = instanceJointsOf(posed.doc, String(args.part));
+          return reported(doc, posed, `placed ${inst!.id}`, { joints: now.joints, ...(now.problem ? { problem: now.problem } : {}) });
+        }
+        // (Roadmap 10 ①: this occurrence's own looks, assembly/looks.ts — by body key; null: back to the definition's.)
+        if (args.looks !== undefined) {
+          const looked = setInstanceLooks(next.doc, String(args.part), args.looks as Record<string, InstanceLookPatch | null>);
+          return reported(doc, { ...next, doc: looked.doc }, `placed ${inst!.id}`, { looks: instanceLooksListing(looked.doc, inst!.id) });
+        }
+        const by = mates.filter(m => hostOf(m.b.part) === inst!.id);
         return reported(doc, next, `placed ${inst!.id}`,
           by.length && (args.position !== undefined || args.rotation !== undefined) ? { note: `${by.length} mate${by.length > 1 ? 's' : ''} still place it: the solver keeps what they fix and moves it only where they leave it free` } : {});
       } catch (e) { if (isRefusal(e, ...ASSEMBLY_CODES)) return fail(doc, e.message); throw e; }
@@ -150,10 +176,12 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
     case 'delete_part': {
       const inst = byId(args.part);
       if (!inst) return fail(doc, `No part "${String(args.part)}"; parts: ${instances.map(i => i.id).join(', ') || 'none'}.`);
+      const patterned = patternDeleteRefusal(doc, inst.id);
+      if (patterned) return fail(doc, patterned.message);
       // (FRf2, O125: a part whose sketch a base frame follows stays.)
       const held = firstProblem(checkPartDelete(doc, inst.id));
       if (held) return fail(doc, held);
-      const kept = mates.filter(m => m.a.part !== inst.id && m.b.part !== inst.id);
+      const kept = mates.filter(m => hostOf(m.a.part) !== inst.id && hostOf(m.b.part) !== inst.id);
       return changed(doc, { ...doc, instances: instances.filter(i => i !== inst), mates: kept }, `deleted ${inst.id} "${inst.name}"${kept.length < mates.length ? ` and ${mates.length - kept.length} mate${mates.length - kept.length > 1 ? 's' : ''} on it` : ''}`, state.bodies, evaluate);
     }
     case 'add_mate': case 'edit_mate': {
@@ -166,7 +194,7 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
         if (name === 'add_mate') {
           const ref = (v: unknown) => isObj(v) && typeof v.part === 'string' && typeof v.face === 'string' ? { part: v.part, face: v.face, ...(v.at !== undefined ? { at: readConnector(v.at) } : {}) } : null;
           const a = ref(args.a), b = ref(args.b);
-          if (KIND_LABEL[String(args.kind) as MateKind] && (!a || !b)) return fail(doc, '"a" and "b" are {part, face}: part "base" or an instance id, face a persistent face name (or origin:xy / origin:xz / origin:yz, or datum:<id> on the base part).');
+          if (KIND_LABEL[String(args.kind) as MateKind] && (!a || !b)) return fail(doc, '"a" and "b" are {part, face}: part "base", an instance id, or a part inside a sub-assembly as "<instance id>/<part id>", face a persistent face name (in that part\'s own naming; or origin:xy / origin:xz / origin:yz, or datum:<id> on the base part).');
           r = addMate(doc, { kind: String(args.kind) as MateKind, a: a!, b: b!, ...(args.distance !== undefined ? { distance: Number(args.distance) } : {}), ...(args.angle !== undefined ? { angle: Number(args.angle) } : {}), ...(typeof args.flip === 'boolean' ? { flip: args.flip } : args.flip && String(args.kind) !== 'concentric' ? { flip: true } : {}) });
         } else r = editMate(doc, { id: String(args.id), ...(args.connectors !== undefined ? { connectors: args.connectors as { a?: Connector | null; b?: Connector | null } } : {}), ...(args.distance !== undefined ? { distance: Number(args.distance) } : {}), ...(args.angle !== undefined ? { angle: Number(args.angle) } : {}), ...(typeof args.flip === 'boolean' ? { flip: args.flip } : {}) });
       } catch (e) {
@@ -176,7 +204,7 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
         if (e.code === 'MATE_UNMET') return fail(doc, e.message, { kept: 'the assembly is unchanged' });
         return fail(doc, e.message);
       }
-      const list = r.doc.mates!, moved = r.doc.instances!.find(i => i.id === r.mate.b.part)!;
+      const list = r.doc.mates!, moved = r.doc.instances!.find(i => i.id === hostOf(r.mate.b.part))!;
       return reported(doc, r, `${name === 'add_mate' ? 'added' : 'edited'} ${mateLabel(r.mate, list.findIndex(m => m.id === r.mate.id))} (${r.mate.id}): ${r.mate.b.part}.${r.mate.b.face} to ${r.mate.a.part}.${r.mate.a.face}`,
         { mate: r.mate.id, moved: { part: moved.id, position: moved.position.map(r3), rotation: moved.rotation.map(r3) }, freedom_left: r.freedom });
     }
@@ -186,6 +214,40 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
       let r: Mated;
       try { r = lockPart(doc, { part: args.part, to: args.to }); } catch (e) { if (!isRefusal(e, ...ASSEMBLY_CODES)) throw e; return fail(doc, e.message, e.code === 'MATE_UNMET' ? { kept: 'the assembly is unchanged' } : {}); }
       return reported(doc, r, `locked ${r.mate.b.part} to ${r.mate.a.part} (${r.mate.id}) where they stand`, { mate: r.mate.id, freedom_left: r.freedom });
+    }
+    case 'pattern_part': case 'edit_pattern': {
+      // (RS7.4: a part repeated along a line or about an axis; the copies are driven by the part.)
+      const shape = (): { ok: true; v: Record<string, unknown> } | { ok: false; error: string } => {
+        const v: Record<string, unknown> = {};
+        for (const [from, to] of [['direction', 'dir'], ['axis', 'axis'], ['origin', 'origin']] as const) if (args[from] !== undefined) { if (!vec3(args[from])) return { ok: false, error: `"${from}" is [x, y, z] (mm for origin; a direction and an axis are not all zero).` }; v[to] = args[from]; }
+        for (const k of ['count', 'spacing', 'angle', 'skip'] as const) if (args[k] !== undefined) v[k] = args[k];
+        return { ok: true, v };
+      };
+      const got = shape(); if (!got.ok) return fail(doc, got.error);
+      try {
+        if (name === 'pattern_part') {
+          if (args.kind !== 'linear' && args.kind !== 'circular') return fail(doc, '"kind" is linear (direction, spacing) or circular (axis, origin, angle).');
+          const r = addInstancePattern(doc, { seed: String(args.seed), kind: args.kind, ...(args.kind === 'circular' && got.v.origin === undefined ? { origin: [0, 0, 0] } : {}), ...got.v } as unknown as AddPatternOptions);
+          return reported(doc, r, `patterned ${String(args.seed)} as ${r.id}: ${r.doc.instancePatterns!.find(p => p.id === r.id)!.count} in all`, { pattern: r.id, note: 'the copies are driven by the seed (a mate holds one as its fixed side; place_part moves the seed)' });
+        }
+        const r = editInstancePattern(doc, { id: String(args.id), ...got.v } as { id: string });
+        return reported(doc, r, `edited pattern ${String(args.id)}`);
+      } catch (e) { if (isRefusal(e, ...ASSEMBLY_CODES)) return fail(doc, e.message); throw e; }
+    }
+    case 'cut_parts': {
+      // (Roadmap 10 ⑤: a hole or pocket across placed parts, in the assembly's frame. No id: a new cut; an id: that cut changed, or removed with "delete".)
+      const o: Record<string, unknown> = {};
+      for (const [from, to] of [['at', 'at'], ['dir', 'dir']] as const) if (args[from] !== undefined) { if (!vec3(args[from])) return fail(doc, `"${from}" is [x, y, z] in mm.`); o[to] = args[from]; }
+      for (const k of ['profile', 'depth', 'name'] as const) if (args[k] !== undefined) o[k] = args[k];
+      if (args.parts !== undefined) o.targets = args.parts;
+      try {
+        const done = args.id === undefined ? addAssemblyCut(doc, o as never) : args.delete === true ? deleteAssemblyCut(doc, String(args.id)) : editAssemblyCut(doc, { id: String(args.id), ...o } as never);
+        const id = 'id' in done ? String(done.id) : String(args.id), problems = args.delete === true ? [] : (await assemblyCutProblems(done.doc, evaluate)).map(p => p.message);
+        return reported(doc, done, `${args.id === undefined ? 'added' : args.delete === true ? 'deleted' : 'edited'} cut ${id}`, { cut: id, ...(problems.length ? { cut_problems: problems } : {}) });
+      } catch (e) { if (isRefusal(e, ...ASSEMBLY_CODES)) return fail(doc, e.message); throw e; }
+    }
+    case 'delete_pattern': {
+      try { return reported(doc, deleteInstancePattern(doc, String(args.id)), `deleted pattern ${String(args.id)} and its copies`); } catch (e) { if (isRefusal(e, ...ASSEMBLY_CODES)) return fail(doc, e.message); throw e; }
     }
     case 'list_library': {
       // (LIB4: what the libraries hold — read only.)
@@ -293,13 +355,33 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'place_part',
-    description: 'Moves, turns (degrees about X, then Y, then Z), renames, grounds (fixes in place: mates never move it) or hides a part. Mates on a part keep what they fix.',
-    input_schema: { type: 'object', properties: { part: { type: 'string' }, position: xyz, rotation: xyz, name: { type: 'string' }, grounded: { type: 'boolean' }, hidden: { type: 'boolean' } }, required: ['part'], additionalProperties: false },
+    description: 'Moves, turns (degrees about X, then Y, then Z), renames, grounds (fixes in place: mates never move it) or hides a part. Mates on a part keep what they fix. "joints" poses a sub-assembly occurrence: {joint key from get_assembly: degrees | mm (offsets from its saved pose) | null to remove}; each occurrence keeps its own. "looks" sets this occurrence\'s own look by body key ("b3", "p2/b3" inside a sub-assembly): {color?, material?, hidden?, faces?} or null to inherit the part\'s again; get_assembly lists them.',
+    input_schema: { type: 'object', properties: { part: { type: 'string' }, position: xyz, rotation: xyz, name: { type: 'string' }, grounded: { type: 'boolean' }, hidden: { type: 'boolean' }, joints: { type: 'object', additionalProperties: { type: ['number', 'null'] } }, looks: { type: 'object', additionalProperties: { type: ['object', 'null'] } } }, required: ['part'], additionalProperties: false },
   },
   {
     name: 'delete_part',
     description: 'Removes a placed part and the mates on it.',
     input_schema: { type: 'object', properties: { part: { type: 'string' } }, required: ['part'], additionalProperties: false },
+  },
+  {
+    name: 'pattern_part',
+    description: 'Repeats a placed part: "count" in all (2 to 64, the part itself the first). Linear: every "spacing" mm along "direction". Circular: every "angle" degrees about "axis" through "origin" (default the origin), angle × (count − 1) at most 360. The copies (ids <pattern>-<k>) are driven by the part: place_part moves the part and its copies follow; mates never move a copy, but may hold it as the fixed side ("a"). "skip" leaves out copies by k (1 to count − 1).',
+    input_schema: { type: 'object', properties: { seed: { type: 'string', description: 'The part id to repeat.' }, kind: { type: 'string', enum: ['linear', 'circular'] }, count: { type: 'number' }, spacing: { type: 'number' }, direction: xyz, angle: { type: 'number' }, axis: xyz, origin: xyz, skip: { type: 'array', items: { type: 'number' } } }, required: ['seed', 'kind', 'count'], additionalProperties: false },
+  },
+  {
+    name: 'edit_pattern',
+    description: 'Changes a pattern (get_assembly lists them): count, skip (the k left out; [] brings all back), and its own kind\'s spacing/direction or angle/axis/origin; left out: kept. Refused while a mate holds a copy it would remove.',
+    input_schema: { type: 'object', properties: { id: { type: 'string' }, count: { type: 'number' }, spacing: { type: 'number' }, direction: xyz, angle: { type: 'number' }, axis: xyz, origin: xyz, skip: { type: 'array', items: { type: 'number' } } }, required: ['id'], additionalProperties: false },
+  },
+  {
+    name: 'cut_parts',
+    description: 'A hole or pocket across placed parts, in the assembly\'s frame: no "id" makes a cut, an id changes it, or removes it with "delete": true. A number "depth" cuts that far one way from the profile plane along "dir"; "through" cuts the whole part along "dir", both ways from the plane (not a part longer than 10,000 mm). The rectangle\'s w runs along X (along Y for a cut along X). Each target part (top-level, not a sub-assembly) is cut in its own placed document only: its definition and other occurrences stay whole. Mates still read the definition\'s faces (v1). Reports a cut that removes nothing.',
+    input_schema: { type: 'object', properties: { id: { type: 'string' }, delete: { type: 'boolean' }, profile: { type: 'object', description: '{kind: "circle", radius} or {kind: "rectangle", w, d}, mm.' }, at: xyz, dir: xyz, depth: { anyOf: [{ type: 'number' }, { const: 'through' }] }, parts: { type: 'array', items: { type: 'string' } }, name: { type: 'string' } }, additionalProperties: false },
+  },
+  {
+    name: 'delete_pattern',
+    description: 'Removes a pattern and its copies; the part it repeated stays. Refused while a mate holds a copy.',
+    input_schema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'], additionalProperties: false },
   },
   {
     name: 'add_mate',

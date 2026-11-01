@@ -1,0 +1,152 @@
+{
+  "decision": "D412",
+  "date": "2026-11-01",
+  "baseCommit": "565b6c16c63bcec4813de9e08e177de18a1481bf",
+  "tier": "feature",
+  "status": "BOUNDED_QUALIFIED",
+  "models": {
+    "implementationAndIndependentAudit": "gpt-6.1-sol / medium"
+  },
+  "scope": "Owner U4 single Fillet primary entry and Type choice; existing model commands unchanged",
+  "behavior": {
+    "primary": "One Fillet rail/palette family; Chamfer separate",
+    "types": [
+      "Edge",
+      "Face",
+      "Full round"
+    ],
+    "edgeModes": [
+      "Constant",
+      "Varying"
+    ],
+    "legacyPalette": "Original ranking chooses best original member/action, rendered as one family row with Type badge",
+    "existingEdit": "Type fixed/read-only; Edge ID/parent/edges/radius endpoints/bindings retained; no new Fullround edit fields",
+    "replacement": "Synchronously retires preview generation/queue/timers/drag/previewFor/pendingApply before new Type/mode/accepted live selection",
+    "rejectedPick": "Preserves accepted context/valid preview, clears automatic pending Apply on all genuine pick attempts; explicit valid Apply recovery remains possible",
+    "references": "Exact unique original full names in proven body key/ref, or explicit current appended output key/ref+parent; no nearest, suffix stripping, merged overlap or global name search"
+  },
+  "checks": {
+    "focused": {
+      "status": "PASS",
+      "pass": 20,
+      "fail": 0,
+      "breakdown": {
+        "fillet-family": 14,
+        "palette": 4,
+        "command-icons": 2
+      }
+    },
+    "postFinalTestModelTypes": "PASS",
+    "studioTypesLintSyntaxDiff": "PASS",
+    "docs": {
+      "status": "PASS",
+      "pages": 68,
+      "shots": 55,
+      "labels": 939
+    },
+    "unchangedModelFixturePrerequisites": {
+      "status": "PASS",
+      "typeCases": 3,
+      "parallelEdgeCase": 1
+    }
+  },
+  "audit": {
+    "status": "ACCEPT_AFTER_FIXES",
+    "rounds": 1,
+    "initialFindings": [
+      "Invalid/missing/hidden instance return could bypass pendingApply clear",
+      "Missing refs compared equal in body identity proof"
+    ],
+    "targetedFixReview": [
+      "Family onPick first before section/instance/mould early returns; null clicks clear pending, pan/orbit drag remain outside onPick",
+      "Both explicit refs required; same-key/ref-less negative regression",
+      "Armed sectionFacePick route regression added"
+    ],
+    "visual": "All six actual captures reviewed; appropriate Type fields, original previews, disabled Apply on Type-change refusal, no old preview retained",
+    "evidence": "Independent source and image inspection only; runtime receipt belongs implementation worker"
+  },
+  "studio": {
+    "status": "PASS",
+    "run": 1,
+    "frozenFiles": 776,
+    "sourceChanges": 0,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "captures": 6,
+    "rootReviewedImages": 4,
+    "independentReviewedImages": 6,
+    "pointerPicks": "Actual world clicks for Edge/Face/Fullround; no selection helper",
+    "livePreviewReferenceCase": {
+      "status": "PASS",
+      "nativeEdges": [
+        "n1.side0|n1.top",
+        "n1.bottom|n1.side0"
+      ],
+      "method": "Ready top-edge preview then Shift-click original bottom/front edge on displayed appended preview; exact two refs Apply/Undo"
+    },
+    "appliedNodeKinds": [
+      "fillet",
+      "face-fillet",
+      "full-round"
+    ],
+    "otherChecks": [
+      "One primary and preserved legacy alias semantics",
+      "Face Undo/Redo exact document",
+      "Existing varying Edge edit keeps ID,parent,edges,endpoints; changes radius1\u21921.1 only",
+      "Existing node Type disabled; Fullround edit fields remain unavailable",
+      "All Undo paths restore original base document"
+    ],
+    "forcedLifecycle": {
+      "status": "PASS",
+      "method": "Hold an actual received worker preview MessageEvent, queue Apply, switch Type, release old event",
+      "result": "No old Apply, new Face refusal/disabled Apply and unchanged document",
+      "performanceMeasurement": false
+    },
+    "fontStylesheetFulfilledEmpty": 1,
+    "fontAssetRequests": 0,
+    "resources": "Context/browser/server closed; heavy gate released",
+    "artifacts": "/tmp/barocss-d412-browser-run01"
+  },
+  "retainedFailures": [
+    "Earlier13/17/19 passing tests had narrower strict-reference/route coverage; retained as historical evidence",
+    "Root/worker source tracing replaced permissive merged-name overlap/global-body search before final audit",
+    "Independent P2 route/ref guards corrected; armed-section early-return bypass corrected",
+    "Parallel-edge prerequisite scratch duplicate identifier and reversed native-name inventory expectation; corrected from original stored edge names, no product geometry refusal"
+  ],
+  "commands": {
+    "focused": "pnpm --filter @barocss/cad-studio-app exec node scripts/test.mjs fillet-family palette command-icons",
+    "studioTypes": "pnpm --filter @barocss/cad-studio-app type-check",
+    "modelTypes": "pnpm --filter @barocss/cad-model type-check",
+    "lint": "pnpm exec eslint <changed Studio TS/TSX and fillet-family.test.ts>",
+    "syntaxDiff": "node --check apps/cad-studio/test/fillet-family-browser.mjs; node --check apps/cad-studio/test/browser-flow.mjs; git diff --check",
+    "docs": "node apps/library-docs/scripts/check-docs.mjs",
+    "actual": "FILLET_FAMILY_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME=/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome node apps/cad-studio/test/fillet-family-browser.mjs /tmp/barocss-d412-browser-run01",
+    "fullCapsule": "/tmp/barocss-d412-capsule/commands.txt"
+  },
+  "execution": "Node22.19.0; serial heavy gate; no worktree writes during actual Studio",
+  "unchanged": [
+    "Core/model command IDs,builders,availability,refusals,node kinds/files/agent actions",
+    "Public model API and schema",
+    "Dependencies/lockfile/tool groups",
+    "Chamfer behavior"
+  ],
+  "notRun": [
+    "General fillet/geometry correctness, vertex/setback/contact/variable generality beyond old profiles",
+    "New Fullround edit capability or existing-feature Type conversion",
+    "Actual Save/export/download/paid calls",
+    "Full baseline/kernel suites, CI, release",
+    "Full Taste Skill installation/scripts/pipeline; optional source-only assessment only",
+    "U3 generic UI/font migration"
+  ],
+  "tasteCheck": {
+    "ownerRequest": "Optional skill use, roadmap fallback allowed",
+    "installed": false,
+    "sourceRead": "https://github.com/Leonxlnx/taste-skill/blob/main/skills/taste-skill/SKILL.md",
+    "sourceBlob": "d8444f13b76be100b3b088dfdae738e85288d6b6",
+    "result": "Website/app design guidance, not an icon-specific generator; no install/download or claim of full skill execution. Continued U4 per owner fallback."
+  },
+  "issueReview": "#536 remains incomplete backlog epic; #2259 generality not implemented; concept galleries #2031/#2061 are not implementation acceptance. No issue closure.",
+  "ocp": "Remains removed",
+  "next": "D413 U3 cached Lucide availability; no network download without separate approval"
+}

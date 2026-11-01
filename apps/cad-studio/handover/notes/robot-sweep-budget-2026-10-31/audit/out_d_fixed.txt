@@ -1,0 +1,3 @@
+joint base~a continuous [ 20.000000000000004, 20.00000000000001, 10 ] [ 0, 0, 1 ] keys [ 'base~post', 'base~a', 'a~b' ]
+link b max radius about joint a R=90.55385138137417 (hypot(90,10)=90.55385138137417), link a 50.99019513592785, b z 15,20
+COLLISION {"clear":false,"toi":0.17668778270387953,"links":["post","b"],"min":{"mm":1.0692104979170836e-9,"t":0.17668778270387953,"links":["post","b"]},"samples":80} {"clear":false,"contact":{"s":0.0390231616736922,"links":["post","b"]},"min":{"mm":0.0000010000692185485605,"s":0.0390231616736922,"links":["post","b"]},"samples":80} toi 0.17668778270387953

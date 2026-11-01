@@ -1,0 +1,18 @@
+[
+ {"id":"M0-none"},
+ {"id":"M1-extrude-handles-no-params","file":"app/profileCommands.ts","from":"toWorld(plane, profileMiddle(p.node, ctx.doc.parameters)); } catch { return []; }","to":"toWorld(plane, profileMiddle(p.node)); } catch { return []; }"},
+ {"id":"M2-revolve-handles-no-params","file":"app/profileCommands.ts","from":"m = profileMiddle(p.node, ctx.doc.parameters); } catch { return []; }","to":"m = profileMiddle(p.node); } catch { return []; }"},
+ {"id":"M3-edit-revolve-no-params","file":"app/editCommand.ts","from":"revolveHandles(now, index, ctx.doc.parameters)","to":"revolveHandles(now, index)"},
+ {"id":"M4-offsetface-no-params","file":"app/profileCommands.ts","from":"profileMiddle(profile.sketch, ctx.doc.parameters)","to":"profileMiddle(profile.sketch)"},
+ {"id":"M5-loft-available-no-params","file":"app/profileCommands.ts","from":"attempt(() => loftSections(ctx.doc.nodes, picked, ctx.doc.parameters))","to":"attempt(() => loftSections(ctx.doc.nodes, picked))"},
+ {"id":"M6-loft-build-plain-no-params","file":"app/profileCommands.ts","from":"const s = loftSections(ctx.doc.nodes, ctx.selection.sketches ?? [], ctx.doc.parameters);","to":"const s = loftSections(ctx.doc.nodes, ctx.selection.sketches ?? []);"},
+ {"id":"M7-loft-build-nurbs-no-params","file":"app/profileCommands.ts","from":"const sections = loftSections(ctx.doc.nodes, ctx.selection.sketches ?? [], ctx.doc.parameters);","to":"const sections = loftSections(ctx.doc.nodes, ctx.selection.sketches ?? []);"},
+ {"id":"M8-loft-build-framed-no-params","file":"app/profileCommands.ts","from":"const sections = framedLoftSections(ctx.doc.nodes, ctx.selection.sketches ?? [], ctx.doc.parameters);","to":"const sections = framedLoftSections(ctx.doc.nodes, ctx.selection.sketches ?? []);"},
+ {"id":"M9-loft-steps-no-params","file":"app/profileCommands.ts","from":"general ? loftSections(ctx.doc.nodes, ctx.selection.sketches ?? [], ctx.doc.parameters) : framedLoftSections(ctx.doc.nodes, ctx.selection.sketches ?? [], ctx.doc.parameters)","to":"general ? loftSections(ctx.doc.nodes, ctx.selection.sketches ?? []) : framedLoftSections(ctx.doc.nodes, ctx.selection.sketches ?? [])"},
+ {"id":"M10-recursion-drops-params","file":"app/profiles.ts","from":"...picked.filter(i => i !== out[0].source)], params);","to":"...picked.filter(i => i !== out[0].source)]);"},
+ {"id":"M11-valued-NaN-not-refuse","file":"app/profiles.ts","from":"const valued = (n: SketchNode, params: Params): SketchNode => resolveSketchDims(n, params);","to":"const valued = (n: SketchNode, params: Params): SketchNode => { try { return resolveSketchDims(n, params); } catch { return n; } };"},
+ {"id":"M12-framed-no-valued","file":"app/profiles.ts","from":"structuredClone(valued(node, params)) as typeof node","to":"structuredClone(node)"},
+ {"id":"M13-rings-no-valued","file":"app/profiles.ts","from":"const n = valued(stored, params), plane = planeOf(n);","to":"const n = stored, plane = planeOf(n);"},
+ {"id":"M14-extrude-handles-swallow-to-nan","file":"app/profileCommands.ts","from":"let c: Vec3; try { c = toWorld(plane, profileMiddle(p.node, ctx.doc.parameters)); } catch { return []; }","to":"let c: Vec3; try { c = toWorld(plane, profileMiddle(p.node, ctx.doc.parameters)); } catch { c = [NaN, NaN, NaN]; }"},
+ {"id":"M15-loftSections-only-first-valued","file":"app/profiles.ts","from":"const sketches = picked.map(i => ({ i, n: valued(nodes[i] as SketchNode, params) }))","to":"const sketches = picked.map((i, k) => ({ i, n: k ? nodes[i] as SketchNode : valued(nodes[i] as SketchNode, params) }))"}
+]

@@ -1,0 +1,4 @@
+ok 1 starter plate loads
+ok 94 fastener: an M8 bolt dropped into the starter plate’s hole, its thread cosmetic
+ok 95 fastener at a Ø6.6 through hole: fitted M6, washer and nut under the plate, fit shown
+ok 96 a countersunk screw inserted as a part of its own: an assembly instance, the part unchanged

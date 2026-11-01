@@ -11,7 +11,7 @@ export function missingCommandField(fields: readonly Field[], values: Values): F
   return undefined;
 }
 
-export interface Active { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx; placing?: boolean; upload?: 'busy' | 'error' }
+export interface Active { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx; placing?: boolean; upload?: 'busy' | 'error'; fillet?: { type: import('./filletFamily').FilletType; radiusMode: import('./filletFamily').RadiusMode } }
 /** Stable numbers for objects (a command's context, its values), for the App's subscription key. */
 const objectIds = new WeakMap<object, number>();
 let nextObjectId = 0;

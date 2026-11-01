@@ -1,0 +1,20 @@
+{
+  "count": 15,
+  "hashes": {
+    "apps/cad-studio/src/App.tsx": "70d0df2c3bbb4fe4a93571fc8c20bec3b90ee65d37d3b31311961ae01c00ad9a",
+    "apps/cad-studio/src/app/sketchControls.ts": "fa5343db482bdce8227f9c56ae7e6abbfb9d45b460e259a5555ba02fda902cb3",
+    "apps/cad-studio/src/sketch/useSketchActions.ts": "7dafcb8d9147847c0f910886a3c9d40b12d09a4d1cede763f7979cc96e648316",
+    "apps/cad-studio/src/ui/FeatureHistoryBar.tsx": "83453901bd2c5c55333688b2f4e0bcd56467c9bd91478e8d754596176e1ec387",
+    "apps/cad-studio/src/ui/NodeEditor.tsx": "25d592886d4829b0d2140a842d8e19251b28f407059dd4d6d5370928c482d459",
+    "apps/cad-studio/src/ui/ParametersPanel.tsx": "6fbe064ba325faf494d503f7bfb4e721e9aeb604f32a53ee3c674197d82a3b33",
+    "apps/cad-studio/src/ui/SketchPanel.tsx": "2b007fdb4b3d0cfd425a0f81a3dd7b5f0b286f673297e3290d003a9c00b0bfe0",
+    "apps/cad-studio/test/fixtures/d356.bcad": "be63861ad50cf5681ef5692775490eacd1cc42c7107114d6f3ed327f112619dc",
+    "apps/cad-studio/test/sketch-reopen-parameters-browser.mjs": "2dbc82b877ea6a606eb7dcfa2e2a0fe694330901a789d9130887d4e7df1cb5d4",
+    "packages/barocss-cad-model/src/app/editFields.ts": "4474758762b1aaa89a457e36439d004f62a7e56301f01a1cc26f1405829bcfb9",
+    "packages/barocss-cad-model/src/app/profileCommands.ts": "8a1fdc9adb080cae39edc1ed34c1c591e5e87095b79e79cc53e48df94be231fd",
+    "packages/barocss-cad-model/src/engine/parameters.ts": "8e5c164f3df59f63875c82f2db6e86052da25213054fed812ac5eb5bb1560100",
+    "packages/barocss-cad-model/src/sketch/loops.ts": "7abe92c6909f67d541d60f7040d0ddbd87ff3838e7e754cc947779bc54c91a2b",
+    "packages/barocss-cad-model/src/sketch/reopen.ts": "f43486d2bde2c27cfcc1187e7cebe21a7653e13fc01c6b83a65a5f9c43113a2c",
+    "packages/barocss-cad-model/src/sketch/select.ts": "b374a82a6c87d374e8c2d1a3cdb76acc78ab63ec927cf652f1a74c99bfc4a837"
+  }
+}

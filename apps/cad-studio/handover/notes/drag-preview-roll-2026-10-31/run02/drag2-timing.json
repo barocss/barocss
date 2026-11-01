@@ -1,0 +1,807 @@
+{
+  "summary": {
+    "label": "drag2",
+    "moves": 70,
+    "holdMs": 900,
+    "pointerMovesSent": 70,
+    "previewRequests": 12,
+    "rolledRequests": 0,
+    "fullRequests": 12,
+    "unknownFaces": 0,
+    "rolledMs": {
+      "median": null,
+      "p90": null,
+      "max": null
+    },
+    "fullMs": {
+      "median": 17.2,
+      "p90": 17.8,
+      "max": 18
+    },
+    "frameGapMs": {
+      "count": 111,
+      "median": 16.7,
+      "p90": 16.7,
+      "max": 16.8,
+      "over50": 0
+    },
+    "widthShown": {
+      "first": null,
+      "last": null,
+      "distinct": 1
+    }
+  },
+  "previews": [
+    {
+      "t": 63,
+      "id": 16,
+      "type": "preview",
+      "nodes": null,
+      "ms": 15.6,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.015400000095367431
+    },
+    {
+      "t": 151.2,
+      "id": 17,
+      "type": "preview",
+      "nodes": null,
+      "ms": 16.1,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.0155
+    },
+    {
+      "t": 283.6,
+      "id": 18,
+      "type": "preview",
+      "nodes": null,
+      "ms": 17.2,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.015400000095367431
+    },
+    {
+      "t": 501.4,
+      "id": 19,
+      "type": "preview",
+      "nodes": null,
+      "ms": 16.6,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.016100000143051147
+    },
+    {
+      "t": 734.6,
+      "id": 20,
+      "type": "preview",
+      "nodes": null,
+      "ms": 17,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.0155
+    },
+    {
+      "t": 867.2,
+      "id": 21,
+      "type": "preview",
+      "nodes": null,
+      "ms": 17.5,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.015299999952316285
+    },
+    {
+      "t": 1000.5,
+      "id": 22,
+      "type": "preview",
+      "nodes": null,
+      "ms": 17.3,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.016
+    },
+    {
+      "t": 1133.1,
+      "id": 23,
+      "type": "preview",
+      "nodes": null,
+      "ms": 18,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.015200000047683716
+    },
+    {
+      "t": 1283.3,
+      "id": 24,
+      "type": "preview",
+      "nodes": null,
+      "ms": 17.8,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.014700000047683716
+    },
+    {
+      "t": 1500,
+      "id": 25,
+      "type": "preview",
+      "nodes": null,
+      "ms": 17.8,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.014800000190734863
+    },
+    {
+      "t": 1633.4,
+      "id": 26,
+      "type": "preview",
+      "nodes": null,
+      "ms": 14,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.013799999952316283
+    },
+    {
+      "t": 1767,
+      "id": 27,
+      "type": "preview",
+      "nodes": null,
+      "ms": 16.7,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.013800000190734863
+    }
+  ],
+  "samples": [
+    {
+      "i": 1,
+      "t": 4946,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 2,
+      "t": 4982,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 3,
+      "t": 4998.100000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 4,
+      "t": 5032.5,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 5,
+      "t": 5066.100000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 6,
+      "t": 5082.100000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 7,
+      "t": 5097.900000095367,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 8,
+      "t": 5116.5,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 9,
+      "t": 5132.200000047684,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 10,
+      "t": 5165,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 11,
+      "t": 5200.5,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 12,
+      "t": 5231,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 13,
+      "t": 5249.5,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 14,
+      "t": 5265.5,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 15,
+      "t": 5304.900000095367,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 16,
+      "t": 5382.900000095367,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 17,
+      "t": 5417.100000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 18,
+      "t": 5432.200000047684,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 19,
+      "t": 5449.700000047684,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 20,
+      "t": 5466.200000047684,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 21,
+      "t": 5581.799999952316,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 22,
+      "t": 5616,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 23,
+      "t": 5650.600000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 24,
+      "t": 5665.700000047684,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 25,
+      "t": 5682.400000095367,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 26,
+      "t": 5698.5,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 27,
+      "t": 5715.600000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 28,
+      "t": 5748.5,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 29,
+      "t": 5783.600000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 30,
+      "t": 5798.5,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 31,
+      "t": 5814.700000047684,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 32,
+      "t": 5831.100000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 33,
+      "t": 5848,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 34,
+      "t": 5881.700000047684,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 35,
+      "t": 5915.799999952316,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 36,
+      "t": 5931.5,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 37,
+      "t": 5947.700000047684,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 38,
+      "t": 5965.200000047684,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 39,
+      "t": 5981.100000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 40,
+      "t": 6014,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 41,
+      "t": 6049.900000095367,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 42,
+      "t": 6064.5,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 43,
+      "t": 6081.100000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 44,
+      "t": 6098.700000047684,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 45,
+      "t": 6114.900000095367,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 46,
+      "t": 6132.100000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 47,
+      "t": 6164.400000095367,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 48,
+      "t": 6200.299999952316,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 49,
+      "t": 6214.299999952316,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 50,
+      "t": 6231.299999952316,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 51,
+      "t": 6331.299999952316,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 52,
+      "t": 6347.700000047684,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 53,
+      "t": 6382.400000095367,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 54,
+      "t": 6416.5,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 55,
+      "t": 6431.600000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 56,
+      "t": 6448.400000095367,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 57,
+      "t": 6465.5,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 58,
+      "t": 6482,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 59,
+      "t": 6514.299999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 60,
+      "t": 6548.900000095367,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 61,
+      "t": 6565.400000095367,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 62,
+      "t": 6581.600000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 63,
+      "t": 6598.100000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 64,
+      "t": 6615.400000095367,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 65,
+      "t": 6648.100000143051,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 66,
+      "t": 6682.799999952316,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 67,
+      "t": 6698.600000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 68,
+      "t": 6715.5,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 69,
+      "t": 6731.799999952316,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 70,
+      "t": 6748.700000047684,
+      "width": null,
+      "status": "preview"
+    }
+  ],
+  "frames": [
+    13.9,
+    30.6,
+    47.2,
+    63.9,
+    80.6,
+    97.2,
+    113.9,
+    130.5,
+    147.3,
+    163.9,
+    180.5,
+    197.3,
+    213.9,
+    230.6,
+    247.3,
+    263.9,
+    280.6,
+    297.3,
+    313.9,
+    330.5,
+    347.2,
+    363.9,
+    380.6,
+    397.2,
+    413.9,
+    430.5,
+    447.2,
+    463.9,
+    480.5,
+    497.2,
+    513.9,
+    530.6,
+    547.2,
+    563.9,
+    580.5,
+    597.2,
+    613.8,
+    630.5,
+    647.2,
+    663.9,
+    680.5,
+    697.2,
+    713.9,
+    730.5,
+    747.2,
+    763.8,
+    780.6,
+    797.2,
+    813.9,
+    830.6,
+    847.2,
+    863.9,
+    880.6,
+    897.2,
+    913.9,
+    930.6,
+    947.3,
+    963.9,
+    980.5,
+    997.2,
+    1013.9,
+    1030.6,
+    1047.2,
+    1063.9,
+    1080.6,
+    1097.2,
+    1113.8,
+    1130.5,
+    1147.2,
+    1163.9,
+    1180.5,
+    1197.2,
+    1213.9,
+    1230.5,
+    1247.2,
+    1263.8,
+    1280.5,
+    1297.2,
+    1313.9,
+    1330.5,
+    1347.2,
+    1363.9,
+    1380.5,
+    1397.2,
+    1413.8,
+    1430.5,
+    1447.2,
+    1463.8,
+    1480.5,
+    1497.2,
+    1513.9,
+    1530.6,
+    1547.2,
+    1563.8,
+    1580.5,
+    1597.2,
+    1613.8,
+    1630.6,
+    1647.2,
+    1663.8,
+    1680.5,
+    1697.2,
+    1713.9,
+    1730.5,
+    1747.2,
+    1763.9,
+    1780.6,
+    1797.1,
+    1813.8,
+    1830.5,
+    1847.2,
+    1863.8,
+    1880.5,
+    1897.1,
+    1913.8,
+    1930.5,
+    1947.2,
+    1963.9,
+    1980.5,
+    1997.2,
+    2013.8,
+    2030.5,
+    2047.2,
+    2063.9,
+    2080.5,
+    2097.2,
+    2113.8,
+    2130.5,
+    2147.2,
+    2163.9,
+    2180.5,
+    2197.1,
+    2213.9,
+    2230.4,
+    2247.2,
+    2263.8,
+    2280.5,
+    2297.1,
+    2313.8,
+    2330.5,
+    2347.1,
+    2363.8,
+    2380.5,
+    2397.1,
+    2413.8,
+    2430.5,
+    2447.2,
+    2463.8,
+    2480.4,
+    2497.2,
+    2513.9,
+    2530.4,
+    2547.2,
+    2563.8,
+    2580.4,
+    2597.1,
+    2613.8,
+    2630.5,
+    2647.1,
+    2663.8,
+    2680.5,
+    2697.1,
+    2713.8,
+    2730.4,
+    2747.1,
+    2763.8,
+    2780.4,
+    2797.2,
+    2813.8,
+    2830.4,
+    2847.1,
+    2863.8,
+    2880.5,
+    2897.2,
+    2913.8,
+    2930.5,
+    2947.1,
+    2963.8,
+    2980.5,
+    2997.2,
+    3013.8,
+    3030.5,
+    3047.1,
+    3063.8,
+    3080.4,
+    3097.1,
+    3113.8,
+    3130.5,
+    3147.1,
+    3163.8,
+    3180.5,
+    3197.1,
+    3213.7,
+    3230.4,
+    3247.2,
+    3263.8,
+    3280.4,
+    3297.1,
+    3313.8,
+    3330.5,
+    3347.1,
+    3363.7,
+    3380.4
+  ]
+}

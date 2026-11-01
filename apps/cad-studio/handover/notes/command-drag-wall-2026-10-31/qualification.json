@@ -1,0 +1,80 @@
+{
+  "decision": "D368",
+  "roadmap": "20 ② (fillet radius arrow value jumps while dragging), handled at the 09→B1 boundary as a reproduced correctness defect",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "Command handle drags with asynchronous kernel previews: refusals reset only the values they were for; stale refusals record a bound (nearest refused value); values short of it are tried; a bisect converges on the limit (continues after release; Apply waits); a stale success never moves the last good value back; a pointer held past the bound keeps the in-flight step, so the value moves one way and settles.",
+  "relatedIssues": {},
+  "baseCommit": "5179126c1",
+  "sourceCommit": "58f9e045f",
+  "sourcePaths": 5,
+  "models": {
+    "rootJudgmentAndVerification": "claude-opus-5-5 (main session)",
+    "reproduction": "claude-opus-5-5 sub-agent",
+    "independentAudit": "claude-opus-5-5 sub-agent (one round)",
+    "implementation": "Sonnet sub-agents (fix; audit fixes)",
+    "driver": "Sonnet sub-agent",
+    "rootEdits": "driver one-frame-lag bound",
+    "sol": "NOT_USED"
+  },
+  "baselineDefect": "real hooks with a fake kernel (limit 6.5, step 0.5, start 3): A drag +7 mm -> 6.5/6/5 at 5/60/150 ms latency (not the limit); B out then back to a valid 5 -> 4 (late refusal reset); C past the limit, back, out to 5.5 -> stuck at 3 (60 ms), jump to 6.5 while the pointer is at 4 (150 ms) (probe-before/out-*.txt)",
+  "studioUnit": {
+    "newTests": "command-drag-wall 20 (A/B/C x 3 latencies, held past the bound still/jitter/rolled, later validity, stale failure, late refusal, release commit)",
+    "full": "546/546 (TEST_CONCURRENCY=4)",
+    "types": "PASS",
+    "lint": "PASS (one pre-existing console warning in the driver)",
+    "failOnHead": "7/11 of the first test set fail on HEAD",
+    "mutants": "16 of the audit's set killed after the fix round (incl. M1, M4, M9, M12, M13 and F1b); survivors M14 (equivalent), F1a/F1c (timing-only dips, flaky to assert), F1d (one-frame transient)"
+  },
+  "audit": {
+    "verdict": "CHANGES_REQUIRED, fixed without another round per owner time concern",
+    "findings": [
+      "F1 medium-high: new back-and-forth while the pointer is held past the bound (4 <-> 5.5 at 60 ms; 10 <-> 6 rolled at 150 ms); HEAD stayed steady -> keep the in-flight step and never move lastOk back on a stale success",
+      "F2: tests checked only final values -> sequence, later-validity and stale-failure tests",
+      "F3: bisect continues after release; Enter applies the converged value -> stated as intended"
+    ]
+  },
+  "browser": {
+    "run01": "FAIL at D (fast out, then back): 7.5 -> 9 -> 7.5 while moving back (a probe at the pointer's own value shown as evaluating, then refused); A/B/C passed — on the first-fix source, before the F1 round",
+    "run02": "FAIL_DRIVER: B moving in, shown 6.5 with the pointer at 6.20 — the field shows the previous move's value one frame late (also present in run01's B samples)",
+    "run03": "PASS",
+    "status": "PASS_RUN_03",
+    "chromeProcesses": 1,
+    "serialContexts": 2,
+    "fixture": "box 40x30x20 with an R8 fillet on n1.side1|n1.top; a second fillet on n1.side0|n1.top is refused at r >= 8 (largest accepted 7.9; 7.5 on the 0.5 grid)",
+    "steps": [
+      "start Fillet on n1.side0|n1.top: Radius 3, preview",
+      "calibrate px/mm on the arrow",
+      "A: drag out past the limit and hold: settles at 7.5, past-limit values only while evaluating",
+      "B: back to 4: reaches 4, moves one way",
+      "C: out to 6.5: reaches 6.5 (not stuck)",
+      "D: fast out to 14 then straight back to 4: at most one evaluating probe at/below the pointer, settles at 4",
+      "Apply: document radius = shown 4.0; oracle volume closed form",
+      "Undo/Redo, Save, fresh Open equal"
+    ],
+    "oracles": "2/2 PASS (closed-form volume)",
+    "frozenFiles": 674,
+    "frozenEqualsCommit": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "driverToleranceNote": "The one-frame-lag bound loosens only 'shown <= pointer'; the oscillation bound (at most one increase while moving in, and only while evaluating) is unchanged. Replaying the new checks on run01 samples (audit/replay-inward.py): run01 B fails the old same-frame bound at samples 11 and 13 (the same lag) and passes with it; run01 D passes both (one evaluating probe, accepted by the root decision). A browser negative control on the HEAD (pre-fix) source was NOT_RUN; the stale-reset and back-and-forth regressions are caught by command-drag-wall (fails 7/11 on HEAD; F1 mutants killed)."
+  },
+  "limits": [
+    "A probe at the pointer's own value is shown once as 'evaluating…' before a refusal settles it back (a value is checked by being shown)",
+    "The bound is re-probed only on the next drag; within one drag a limit that rises is followed only if an in-flight success arrives",
+    "The edit-an-existing-fillet handle still has no max (no source edge to compute it from)",
+    "An off-grid start value snaps to the step on the first move",
+    "Browser run uses one fixture; other handle commands are covered by unit tests only",
+    "Superseded runs keep only their receipt and samples"
+  ],
+  "fullKernel": "NOT_RUN",
+  "fullModel": "NOT_RUN",
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

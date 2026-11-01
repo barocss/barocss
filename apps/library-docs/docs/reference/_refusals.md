@@ -15,6 +15,12 @@
 | `[BAD_NAME]` | `core/error-codes.ts (declared)` | — |
 | `[BAD_TEXT]` | `core/error-codes.ts (declared)` | — |
 | `[BAND]` | `core/error-codes.ts (declared)` | — |
+| `[BAND_CHAIN]` | `core/error-codes.ts (declared)` | — |
+| `[BAND_DEGENERATE]` | `core/error-codes.ts (declared)` | — |
+| `[BAND_EDGE_LOST]` | `core/error-codes.ts (declared)` | — |
+| `[BAND_OBLIQUE]` | `core/error-codes.ts (declared)` | — |
+| `[BAND_PROFILE]` | `core/error-codes.ts (declared)`, `part` | band thickening waits on exact thicken (#2258) |
+| `[BAND_TOUCH]` | `core/error-codes.ts (declared)` | — |
 | `[BASIS]` | `core/error-codes.ts (declared)` | — |
 | `[BEAD_ANGLE]` | `core/error-codes.ts (declared)`, `part` | … meets its face at …° from square: fillets on oblique ends are not modelled yet |
 | `[BEAD_KIND]` | `core/error-codes.ts (declared)`, `part` | a cap sits flush with its member's outline: it is welded by a corner weld, not a fillet (its seam is in its endCap report) |
@@ -42,7 +48,7 @@
 | `[BUTT_ON_OPEN_SIDE]` | `core/error-codes.ts (declared)`, `part` | …: its end spans … to … mm along the through member's section …, but the side …… of that section has material only at …: a gap would be left (trim it to the … |
 | `[CAM_UNDERCUT]` | `core/error-codes.ts (declared)` | — |
 | `[CAP]` | `core/error-codes.ts (declared)` | — |
-| `[CAPABILITY]` | `core/error-codes.ts (declared)` | — |
+| `[CAPABILITY]` | `brep`, `core/error-codes.ts (declared)` | B-rep: boundary binding proof unavailable: … |
 | `[CAP_END]` | `core/error-codes.ts (declared)`, `part` | member …'s … is cut by a …: a cap sits on a square end |
 | `[CHART]` | `core/error-codes.ts (declared)` | — |
 | `[CLOSURE]` | `core/error-codes.ts (declared)` | — |
@@ -104,6 +110,7 @@
 | `[FIELD]` | `core/error-codes.ts (declared)` | — |
 | `[FILE]` | `core/error-codes.ts (declared)` | — |
 | `[FILL_RANGE]` | `core/error-codes.ts (declared)` | — |
+| `[FINISH_EDGES_LIMIT]` | `core/error-codes.ts (declared)`, `part` | a … takes at most … edges: this one lists … |
 | `[FIT_FACE]` | `core/error-codes.ts (declared)` | — |
 | `[FIT_PAIR]` | `core/error-codes.ts (declared)` | — |
 | `[FIT_TABLE]` | `core/error-codes.ts (declared)` | — |
@@ -120,7 +127,7 @@
 | `[FUNCTION_REFERENCE]` | `core/error-codes.ts (declared)` | — |
 | `[FUNCTION_TYPE]` | `core/error-codes.ts (declared)` | — |
 | `[GAP_SIZE]` | `core/error-codes.ts (declared)`, `part` | gaps on curved frames are not supported |
-| `[GEOMETRY]` | `core/error-codes.ts (declared)` | — |
+| `[GEOMETRY]` | `brep`, `core/error-codes.ts (declared)` | B-rep: geometry: … |
 | `[GLAND_DIMENSIONS]` | `core/error-codes.ts (declared)` | — |
 | `[GLOBAL]` | `core/error-codes.ts (declared)` | — |
 | `[GRAPH]` | `core/error-codes.ts (declared)` | — |
@@ -202,7 +209,7 @@
 | `[REFERENCE_MOVED]` | `core/error-codes.ts (declared)`, `part` | … … … is no longer the … it named (was at …, now at ……) |
 | `[REGION]` | `core/error-codes.ts (declared)` | — |
 | `[REGULARITY]` | `core/error-codes.ts (declared)` | — |
-| `[RELIEF_REQUIRED]` | `core/error-codes.ts (declared)`, `part` | the flange on … ends inside the edge: give its relief — { kind: 'rectangular' \| 'obround', width, depth } or { kind: 'none' } |
+| `[RELIEF_REQUIRED]` | `core/error-codes.ts (declared)`, `part` | a … relief needs its … (mm): the kernel takes no default |
 | `[REPRESENTABILITY]` | `core/error-codes.ts (declared)` | — |
 | `[REQUEST]` | `core/error-codes.ts (declared)` | — |
 | `[REVISION]` | `core/error-codes.ts (declared)` | — |
@@ -300,7 +307,7 @@
 | `[APPROVAL_IS_THE_USERS]` | `team` | …: only the user moves a baseline |
 | `[BAD_CONNECTOR]` | `print` | a connector needs d > 0, length > 0, 1–8 a cut, fit > 0 and wall ≥ 0 (d …, length …, count …, fit …, wall …) |
 | `[BAD_KEEPOUT]` | `chat` | …'s solid could not be made |
-| `[BAD_REFERENCE]` | `app`, `chat`, `engine` | Select the current result of an unsuppressed subtract feature. |
+| `[BAD_REFERENCE]` | `app`, `chat`, `engine` | The band surface changed. Select it again. |
 | `[BAD_TRANSITION]` | `team` | … is still …: a baseline follows a decided one |
 | `[BAD_VALUE]` | `chat`, `engine` | … is a size above 0 mm |
 | `[BAD_VALUES]` | `chat`, `print`, `robot` | a wall t > 0, a voxel 0 < h ≤ t/2 and a drain Ø > 0 (t …, h …, drain …) |
@@ -355,7 +362,7 @@
 | `[DIRECT_PLANE]` | `engine` | The curve lies in the plane … = …: it does not cross it. |
 | `[DIRECT_RANGE]` | `engine` | The curves run over different parameter ranges: trim or rebuild them to one range first. |
 | `[DIRECT_SOURCE]` | `engine` | This CAD source has no curves or surfaces. |
-| `[DIRECT_VALUE]` | `engine` | Extend by a positive distance. |
+| `[DIRECT_VALUE]` | `engine` | Extend at u-min, u-max, v-min or v-max. |
 | `[DRAFT_ANGLE]` | `app` | A draft angle is not 0 and below 45° in size. |
 | `[DRAFT_PICK]` | `app` | … |
 | `[DRAIN_NO_ROOM]` | `print` | a drain of Ø… at (…) does not fit inside the part's bottom |
@@ -435,12 +442,11 @@
 | `[LOOP_OPEN]` | `api`, `robot` | the robot has a closed loop (…); facade sweep/CCD does not yet check its closed motion |
 | `[LOOP_PASSIVE]` | `robot` | the loop… … degree… of freedom: give … of …, and the rest are solved (… given) |
 | `[MATERIAL_UNKNOWN]` | `chat/part` | "…" is not a material here; materials: …. |
-| `[MATE_BOTH_FIXED]` | `assembly` | Both parts are fixed (the base part and grounded parts never move): one of them must be free. |
 | `[MATE_FACES]` | `assembly` | …… |
 | `[MATE_FACE_UNKNOWN]` | `assembly` | … |
 | `[MATE_KIND]` | `assembly` | "kind" is one of …. |
 | `[MATE_SAME_PART]` | `assembly` | Both faces are on the same part; mate faces of two different parts. |
-| `[MATE_UNMET]` | `assembly` | … |
+| `[MATE_UNMET]` | `assembly` | Mate … (… to …) would leave pattern … unsettled: … |
 | `[MERGE_DANGLING]` | `versions` | … uses …, which the other branch deleted: keep …, or drop what uses it |
 | `[MERGE_MISSING]` | `chat` | The merged part names …, which it does not have. |
 | `[MERGE_NO_BASE]` | `versions` | “…” and “…” share no version |
@@ -464,6 +470,7 @@
 | `[NO_BODY]` | `engine` | … |
 | `[NO_CHANGE]` | `app`, `team` | It is already there. |
 | `[NO_CLOSURE]` | `robot` | … at … rad: the loop does not close (its pin … mm apart after … steps) |
+| `[NO_CUT]` | `assembly` | No cut "…"; cuts: …. |
 | `[NO_DRAFT]` | `chat` | no draft dimension …; … |
 | `[NO_ECR]` | `team` | no ECR …; ECRs: … |
 | `[NO_FEATURE]` | `engine` | no feature … (features 0–…) |
@@ -472,7 +479,8 @@
 | `[NO_LATTICE]` | `print` | no lattice is left in the cavity at L …, k … |
 | `[NO_LINK]` | `robot` | no link … on the tree |
 | `[NO_MATE]` | `assembly` | No mate "…"; mates: …. |
-| `[NO_PART]` | `assembly` | No part "…" to copy; parts: …. |
+| `[NO_PART]` | `assembly` | No part "…"; parts: …. |
+| `[NO_PATTERN]` | `assembly` | No pattern "…"; patterns: …. |
 | `[NO_PIN]` | `robot` | the loop … has no concentric mate to close on |
 | `[NO_PRINTER]` | `print` | choose a printer first: the split is for its build volume |
 | `[NO_RANGE]` | `robot` | slide … has no limits: its range is not known |
@@ -480,6 +488,7 @@
 | `[NO_ROOM]` | `print` | the part could not be cut |
 | `[NO_ROW]` | `standards` | … … has no field …; fields: … |
 | `[NO_RUN]` | `team` | … is not a run for … … |
+| `[NO_STEP]` | `assembly` | No step "…"; steps: …. |
 | `[NO_TABLE]` | `standards` | no table …; tables: … |
 | `[ONE_BODY]` | `app`, `print` | Select one cut result to repeat. |
 | `[ORING_ROW_UNKNOWN]` | `engine` | a gland names the O-ring row "…", which the document's O-ring rows do not hold (rows: …) |
@@ -492,9 +501,12 @@
 | `[PARAMETER_EXISTS]` | `engine` | there is a parameter … already; set its value instead |
 | `[PARAMETER_NAME]` | `engine` | a parameter's name starts with a letter and has letters, digits and _ (up to 32), not … |
 | `[PARAMETER_UNBINDABLE]` | `engine` | feature …'s … can't take a parameter (its values that can are …) |
-| `[PARAMETER_UNKNOWN]` | `engine` | no parameter …; the parameters are … |
+| `[PARAMETER_UNKNOWN]` | `app`, `engine`, `sketch` | no parameter …; the parameters are … |
 | `[PART_MATED]` | `assembly` | … mate… move …; delete … first, or fix the other part. |
 | `[PATH_TOO_SHORT]` | `robot` | a path needs at least two waypoints |
+| `[PATTERN_DRIVEN]` | `assembly` | … is occurrence … of pattern …, driven by its seed …: … |
+| `[PATTERN_REFERENCED]` | `assembly` | … would remove …, and …: change that first. |
+| `[PATTERN_VALUE]` | `assembly`, `engine` | No part "…" to repeat; parts: …. |
 | `[PRIMITIVE_SIZE]` | `app` | The tube radius must be smaller than the ring radius. |
 | `[PRINT_PREVIEW_INPUT]` | `engine` | …: … |
 | `[REFERENCE_LOCKED]` | `chat` | … is a reference: the user removes it, in the studio. |
@@ -532,7 +544,7 @@
 | `[TRIM_CURVE]` | `engine` | The curve does not close: trim by a closed curve (a loop). |
 | `[UNDRAINED]` | `print` | the lattice leaves empty regions undrained after … drains: take a larger cell or a finer voxel |
 | `[UNKNOWN_ARGUMENT]` | `chat` | … takes no …: its arguments are ….… |
-| `[VALUE]` | `api`, `app`, `assembly`, `chat/part`, `engine`, `robot` | …: a joint's value is a number (degrees, or mm for a slide), not … |
+| `[VALUE]` | `api`, `app`, `assembly`, `chat/part`, `engine`, `robot`, `sketch` | …: a joint's value is a number (degrees, or mm for a slide), not … |
 | `[VARIANT_UNKNOWN]` | `assembly`, `chat` | no variant … (variants: …) |
 | `[VERSION_INPUT]` | `versions` | the time a version is made is an ISO 8601 text (got …) |
 | `[VERSION_KEY_COLLISION]` | `versions` | two different documents have the content key …: the version is not kept |

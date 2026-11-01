@@ -5,6 +5,7 @@ import type { CadPartProfileCalls } from '@barocss/cad';
 import type { EvalResult } from '../engine/evaluate';
 import { featureLabel, type StudioDoc } from '../engine/doc';
 import { nodeIndexOf } from '../engine/ids';
+import { hostOf } from '../engine/occurrences';
 import { tablesFor } from '../assembly/faces';
 import { LOOP_REASON, solveAssembly, type Problem } from '../assembly/mates';
 import { revisionOf } from '../util/revision';
@@ -63,13 +64,13 @@ function loopsOf(doc: StudioDoc, problems: readonly { mate: string; reason: stri
   const looped = new Set(problems.filter(p => p.reason.startsWith(LOOP_REASON)).map(p => p.mate));
   const root = new Map<string, string>(), find = (k: string): string => { let r = k; while (root.get(r) !== r) r = root.get(r)!; root.set(k, r); return r; };
   const ms = (doc.mates ?? []).filter(m => looped.has(m.id));
-  for (const m of ms) for (const p of [m.a.part, m.b.part]) if (!root.has(p)) root.set(p, p);
-  for (const m of ms) root.set(find(m.a.part), find(m.b.part));
+  for (const m of ms) for (const p of [hostOf(m.a.part), hostOf(m.b.part)]) if (!root.has(p)) root.set(p, p);
+  for (const m of ms) root.set(find(hostOf(m.a.part)), find(hostOf(m.b.part)));
   const loops = new Map<string, RebuildLoop>();
   for (const m of ms) {
-    const r = find(m.b.part), loop = loops.get(r) ?? { parts: [], mates: [] }; loops.set(r, loop);
+    const r = find(hostOf(m.b.part)), loop = loops.get(r) ?? { parts: [], mates: [] }; loops.set(r, loop);
     loop.mates.push(m.id);
-    for (const p of [m.a.part, m.b.part]) if (!loop.parts.includes(p)) loop.parts.push(p);
+    for (const p of [hostOf(m.a.part), hostOf(m.b.part)]) if (!loop.parts.includes(p)) loop.parts.push(p);
   }
   return [...loops.values()];
 }

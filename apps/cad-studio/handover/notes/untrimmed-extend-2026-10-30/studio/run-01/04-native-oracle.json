@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "case": "u-max",
+  "object": "obj_2",
+  "name": "d347 \u00b7 panel \u00b7 extended",
+  "degree": [
+    3,
+    3
+  ],
+  "poles": [
+    16,
+    16
+  ],
+  "position": 1.200000708060737e-09,
+  "positionExact": "648518729/540431955284459520",
+  "derivS": 1.7842772550033235e-08,
+  "derivT": 1.00000230318642e-08,
+  "jacobianLower": 139.99999961225726,
+  "orientationDot": 140.0,
+  "productImports": 0
+}

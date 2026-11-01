@@ -1,0 +1,32 @@
+joint base~a continuous [ 20.000000000000004, 20.00000000000001, 10 ] [ 0, 0, 1 ] keys [ 'base~post', 'base~a', 'a~b' ]
+link b max radius about joint a R=90.55385138137417 (hypot(90,10)=90.55385138137417), link a 50.99019513592785, b z 15,20
+A g=0.01: expect clear, min 0.01
+  sweepTimed(default cap)        {"clear":true,"min":{"mm":0.00999903336273178,"t":0.7606734364316241,"links":["post","b"]},"samples":806} 20ms
+  sweepPath(default cap, tol1e-6){"clear":true,"min":{"mm":0.009999028681207278,"s":0.638337314951366,"links":["post","b"]},"samples":806} 8ms
+  sweepPath(cap 1e7)             {"clear":true,"min":{"mm":0.009999028681207278,"s":0.638337314951366,"links":["post","b"]},"samples":806} 6ms
+A g=0.001: expect clear, min 0.001
+  sweepTimed(default cap)        {"clear":true,"min":{"mm":0.0009963359547953132,"t":0.5393437622886487,"links":["post","b"]},"samples":2659} 56ms
+  sweepPath(default cap, tol1e-6){"clear":true,"min":{"mm":0.0009963362423661692,"s":0.3616750919147466,"links":["post","b"]},"samples":2661} 37ms
+  sweepPath(cap 1e7)             {"clear":true,"min":{"mm":0.0009963362423661692,"s":0.3616750919147466,"links":["post","b"]},"samples":2661} 34ms
+A g=0.0001: expect clear, min 0.0001
+  sweepTimed(default cap)        {"clear":true,"min":{"mm":0.00010369675189281224,"t":0.7606570678733927,"links":["post","b"]},"samples":8346} 235ms
+  sweepPath(default cap, tol1e-6){"clear":true,"min":{"mm":0.00010369675595711669,"s":0.6383219467830114,"links":["post","b"]},"samples":8386} 222ms
+  sweepPath(cap 1e7)             {"clear":true,"min":{"mm":0.00010369675595711669,"s":0.6383219467830114,"links":["post","b"]},"samples":8386} 218ms
+A g=0.00001: expect clear, min 0.00001
+  sweepTimed(default cap)        {"clear":false,"exhausted":{"s":0.6386127321412164,"t":0.7608901857129732,"seg":0},"min":{"mm":0.000012144016622528397,"t":0.5393427199043764,"links":["post","b"]},"samples":20000} 577ms
+  sweepPath(default cap, tol1e-6){"clear":false,"exhausted":{"s":0.6384517554333893},"min":{"mm":0.000012144016551474124,"s":0.3616784145511392,"links":["post","b"]},"samples":20000} 563ms
+  sweepPath(cap 1e7)             {"clear":true,"min":{"mm":0.000012144016551474124,"s":0.3616784145511392,"links":["post","b"]},"samples":25558} 729ms
+A g=0.000001: expect clear, min 0.000001
+  sweepTimed(default cap)        {"clear":false,"exhausted":{"s":0.3847786351799432,"t":0.5578229081439546,"seg":0},"min":{"mm":0.0000045146219349589956,"t":0.5393427665900904,"links":["post","b"]},"samples":20000} 546ms
+  sweepPath(default cap, tol1e-6){"clear":false,"exhausted":{"s":0.36254036347512475},"min":{"mm":0.0000045146219349589956,"s":0.3616784528139544,"links":["post","b"]},"samples":20000} 522ms
+  sweepPath(cap 1e7)             {"clear":true,"min":{"mm":0.0000045146219349589956,"s":0.3616784528139544,"links":["post","b"]},"samples":45549} 1298ms
+B far post (true min 40 mm) maxSamples=1: sweepTimed {"clear":false,"exhausted":{"s":0,"t":0,"seg":0},"min":{"mm":5,"t":0,"links":["base","b"]},"samples":1}
+   sweepPath {"clear":false,"exhausted":{"s":0},"min":{"mm":5,"s":0,"links":["base","b"]},"samples":1}
+B far post (true min 40 mm) maxSamples=2: sweepTimed {"clear":false,"exhausted":{"s":0.06827165678825342,"t":0.2337034989695335,"seg":0},"min":{"mm":5,"t":0,"links":["base","b"]},"samples":2}
+   sweepPath {"clear":false,"exhausted":{"s":0.06827164314757639},"min":{"mm":5,"s":0,"links":["base","b"]},"samples":2}
+B far post (true min 40 mm) maxSamples=3: sweepTimed {"clear":false,"exhausted":{"s":0.13654331357650684,"t":0.3305066578167609,"seg":0},"min":{"mm":5,"t":0,"links":["base","b"]},"samples":3}
+   sweepPath {"clear":false,"exhausted":{"s":0.13654328629515278},"min":{"mm":5,"s":0,"links":["base","b"]},"samples":3}
+B far post (true min 40 mm) maxSamples=5: sweepTimed {"clear":false,"exhausted":{"s":0.2730866271530137,"t":0.467406997939067,"seg":0},"min":{"mm":5,"t":0,"links":["base","b"]},"samples":5}
+   sweepPath {"clear":false,"exhausted":{"s":0.27308657259030555},"min":{"mm":5,"s":0,"links":["base","b"]},"samples":5}
+B far post (true min 40 mm) maxSamples=10: sweepTimed {"clear":false,"exhausted":{"s":0.6144449110942808,"t":0.7415559288754247,"seg":0},"min":{"mm":5,"t":0,"links":["base","b"]},"samples":10}
+   sweepPath {"clear":false,"exhausted":{"s":0.6144447883281875},"min":{"mm":5,"s":0,"links":["base","b"]},"samples":10}

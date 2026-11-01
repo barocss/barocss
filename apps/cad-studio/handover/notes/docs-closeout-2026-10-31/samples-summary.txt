@@ -1,0 +1,111 @@
+ok 1 - the tool list: 13 tools under the v2 contract
+ok 2 - a query reads the part; a new feature at L2 is refused and the part kept; a bad index is refused
+ok 3 - at L3 the same hole applies and the file is saved at once
+ok 4 - P1: the two readonly core results have no direct callable declarations
+ok 5 - N1: a missing explicit source target is EX002, with no dist fallback
+ok 6 - N2: each unresolved named/star/default re-export fails independently
+ok 7 - N3: unsupported fallback/condition/escaping targets are explicit EX001
+ok 8 - P2: GPU source alias retains two exposures of one declaration; removal drifts
+ok 9 - P3: wildcard native paths and more specific JSON/explicit keys are retained
+ok 10 - N4: adding a core result method fails even with a matching expected snapshot
+ok 11 - N5: a getter and optional callback are separate direct-result failures
+ok 12 - N6: missing/any/unknown anchors cannot pass as empty data
+ok 13 - P4: facade methods/doc getter stay visible and do not become core results
+ok 14 - P5: callback/resource/Error are distinct observations, not general JSON approval
+ok 15 - P6: explicit native and public canonical units stay visible without numeric certification
+ok 16 - N7: symbol/signature/alias differences and NOTGENERATED are IV001
+ok 17 - N8: glob/private/native/stale/shape exceptions cannot waive a rule
+ok 18 - P7: equal fixture sources under different roots have byte-identical canonical output
+ok 19 - P8: ordinary absolute-looking string literals are not import-path-normalized
+ok 20 - N9: valid cyclic re-exports terminate, unresolved names still fail
+ok 21 - P9: matching baseline never suppresses a hard failure or claims full conformance
+ok 22 - R76-01: direct, star, chained and local-import type-only routes lose value exposure
+ok 23 - R76-02: typeof, import types and later merged declarations fail EX003 independently
+ok 24 - R76-03: direct and inherited callable indexes/methods/accessors cannot pass DA001
+ok 25 - R76-04: generic constraints/defaults, namespace exports and aliases each cause structural drift
+ok 26 - R76 policy regression: condition priority and null shadow retain distinct semantics
+ok 27 - serializer: empty tuple aliases and readonly property tuples stay exact and drift independently
+ok 28 - serializer: compile-result unions and nested dependency tuples retain empty and nonempty branches
+ok 29 - serializer: error constructors and callback/call signatures preserve zero-argument tuple alternatives
+ok 30 - serializer: recursive conditional generics and namespace exports retain empty tuple type identity
+ok 31 - serializer: empty tuple support cannot waive unresolved types or core callbacks
+ok 32 - diagram: the two cube sections have 50 mm² in each of A-only, common and B-only
+ok 33 - diagram: a radius-3 cylinder at (8, 5) crosses X = 10 at Y = 5 ± √5
+ok 34 - diagram: all three displayed operations match the kernel for overlapping, contained and disjoint inputs
+ok 35 - 3D scenes: independent box, circle-segment, two-hole and tilted-bore volumes
+ok 36 - 3D display data: valid triangle indices, complete face partitions, finite normals and cuts on both boundaries
+ok 37 - the bracket through the kernel facade: the hand-written document, the kernel's results
+ok 38 - refusals: the facade's own codes, the kernel's passed through with the feature
+ok 39 - sketches on planes: a section revolved into a cup, shelled with its top open
+ok 40 - two bodies: one chosen, combined with a body by name or a tool the callback adds
+ok 41 - patterns and a Location: a ring of blocks, two tiers, stood up and lifted
+ok 42 - the meshes carry their display lines
+ok 43 - mirror, scale and split
+ok 44 - parameters: named values a dimension follows, edited by withParameters
+ok 45 - a Boolean's tool callback with several verbs
+ok 46 - STEP out and back: the same volume, strictly valid
+ok 47 - DXF: a deterministic file, DXF 2000 or R12
+ok 48 - MMGS cube: independent volume, mass, centroid and full centroidal tensor
+ok 49 - plain snapshots: free functions edit, save and reload without changing the input
+ok 50 - MMGS Boolean diagrams: 33 kernel volumes match the 0.001 mm³ display precision
+ok 51 - one bracket three ways: the document by hand, the agent's commands and the facade
+ok 52 - immutable: a method returns a new part; .doc is a copy
+ok 53 - selectors: typed filters that hand back the core's names
+ok 54 - refusals: one error class, the facade's own codes and the core's passed through
+ok 55 - a material by its library id: set on the body, weighed in it, carried by its meshes
+ok 56 - an assembly: a pin placed, mated into a plate's bore, an input with a variant, a tool frame
+ok 57 - parameters: bound as the studio's editor binds them, edited by withParameters
+ok 58 - configurations: saved sets of parameter values
+ok 59 - suppression: a feature switched off by its id, and back
+ok 60 - the studio's own commands: a gear pair and a spring
+ok 61 - rows from a person's file, then a fastener from them
+ok 62 - a document: built, evaluated, written as STEP, saved and read back
+ok 63 - a plate with a hole: written, evaluated, measured, valid, written as STEP and STL
+ok 64 - a parameter edited: unchanged features reused
+ok 65 - a refusal: a CadPartError with a code and the feature it comes from
+ok 66 - Boolean set operations: two overlapping cubes have union 1500, difference 500 and intersection 500 mm³
+ok 67 - two blocks touching along an edge: one output, two separate valid bodies
+ok 68 - refusals: a fillet too large for its walls, an edge that is not there
+ok 69 - cad-cli run: a script to .bcad and STEP, its hard requirement checked; a failing one exits 3; a bad line exits 1
+ok 70 - a scene of the bracket: its data plain, Z-up, the meshes as the part gave them
+ok 71 - immutable, and a mesh that is not one refused
+ok 72 - a studio part shown in its material, with its display lines, from the iso view
+ok 73 - a scene compiled; a scene the language does not have refused with where
+ok 74 - an @shader material lowered to WGSL with its uniforms
+ok 75 - the sketch figures' solver copy takes the kernel's iterates and reports its rank
+ok 76 - the curve-roots figure's solver copy finds the kernel's roots and brackets
+ok 77 - the BVH figure's 2D build is the kernel's tree on the same flat triangles
+ok 78 - refusal generator: declared codes and both factory signatures retain message boundaries
+ok 79 - public and stored turn/slide settings keep degrees, mm, N·mm and N
+ok 80 - updated limits and pose convert a turn once and keep a slide in mm
+ok 81 - same-type gear mimic keeps its dimensionless ratio and public degree values
+ok 82 - shared tree projection: all four turn/slide mimic combinations retain independent public relations
+ok 83 - actual sweep contact reports the starting mixed pose as 45 degrees and -12.5 mm
+ok 84 - actual gear placements expose degrees once and preserve the original GearSpec
+ok 85 - actual mixed SCARA duty round-trips public degrees/mm, limits, seconds and gravity through shared producers
+ok 86 - actual harness margins and consistency use shared public projections before cloning; decisions remain intact
+ok 87 - actual bounded sizer result projects its own tree, duty and report without inventing a successful design
+ok 88 - actual four-bar agent replies expose residual and chordResidual in mm with no old aliases
+ok 89 - facade cube inertia: mass, centroid, full tensor, principal moments and body mass use MMGS
+ok 90 - facade gravity: preserve default 9806.65, distinguish explicit 9810, retain typed vector refusal
+ok 91 - facade vertical slide: cube weight remains N for default and explicit gravity
+ok 92 - facade hinge: independent drilled-block mass and 20 mm arm give the holding torque in N·mm
+ok 93 - the index and the 2R arm: two turns, a pose, a path checked
+ok 94 - the SCARA arm: turn, turn, slide, turn
+ok 95 - the 6R arm: six turns, its demo motion swept, URDF read back
+ok 96 - the Cartesian gantry: three slides
+ok 97 - the pan-tilt head: a camera frame, and a limit
+ok 98 - the gripper: the right finger follows the left one through their gears
+ok 99 - the four-bar linkage: a closed loop
+ok 100 - the gear-driven joint: 20 teeth driving 30
+ok 101 - exports: URDF, MJCF, SDF and USD, each with what it checks
+ok 102 - motions: a path timed and played, a saved motion read, a path saved as one
+ok 103 - every sample's demo motion swept; designed contact is not a collision
+ok 104 - the shipped samples: every row valid, each with its source
+ok 105 - a row refused with why
+ok 106 - mount rows: the shipped values and provenance survive canonical field names
+# tests 162
+# pass 162
+# fail 0
+# cancelled 0
+# skipped 0

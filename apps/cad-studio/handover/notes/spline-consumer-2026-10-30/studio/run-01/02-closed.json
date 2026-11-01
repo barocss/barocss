@@ -1,0 +1,35 @@
+{
+  "label": "02-closed",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [],
+    "outputs": {},
+    "nextId": 0
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 0,
+    "active": null,
+    "sketch": true,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": "SKETCH · Spline · Z 0PlaneXY (top)XZ (front)YZ (right)OffsetmmAngle°Under-defined · 46 DOF left — add dimensions or constraints · line + arc outlineXYEdge1R2R3R4R5R6R7R8R9R10R11R12R13R14R15R16R17R18R19R20R21R22R23R24RTANGENCYT · 1T · 2T · 3T · 4T · 5T · 6T · 7T · 8T · 9T · 10T · 11T · 12T · 13T · 14T · 15T · 16T · 17T · 18T · 19T · 20T · 21T · 22T · 23T · 24ARC PAIRSArc 1 · Arc 2= R◎Arc 1 · Arc 3= R◎Arc 1 · Arc 4= R◎Arc 1 · Arc 5= R◎Arc 1 · Arc 6= R◎Arc 1 · Arc 7= R◎Arc 1 · Arc 8= R◎Arc 1 · Arc 9= R◎Arc 1 · Arc 10= R◎Arc 1 · Arc 11= R◎Arc 1 · Arc 12= R◎Arc 1 · Arc 13= R◎Arc 1 · Arc 14= R◎Arc 1 · Arc 15= R◎Arc 1 · Arc 16= R◎Arc 1 · Arc 17= R◎Arc 1 · Arc 18= R◎Arc 1 · Arc 19= R◎Arc 1 · Arc 20= R◎Arc 1 · Arc 21= R◎Arc 1 · Arc 22= R◎Arc 1 · Arc 23= R◎Arc 1 · Arc 24= R◎Arc 2 · Arc 3= R◎Arc 2 · Arc 4= R◎Arc 2 · Arc 5= R◎Arc 2 · Arc 6= R◎Arc 2 · Arc 7= R◎Arc 2 · Arc 8= R◎Arc 2 · Arc 9= R◎Arc 2 · Arc 10= R◎Arc 2 · Arc 11= R◎Arc 2 · Arc 12= R◎Arc 2 · Arc 13= R◎Arc 2 · Arc 14= R◎Arc 2 · Arc 15= R◎Arc 2 · Arc 16= R◎Arc 2 · Arc 17= R◎Arc 2 · Arc 18= R◎Arc 2 · Arc 19= R◎Arc 2 · Arc 20= R◎Arc 2 · Arc 21= R◎Arc 2 · Arc 22= R◎Arc 2 · Arc 23= R◎Arc 2 · Arc 24= R◎Arc 3 · Arc 4= R◎Arc 3 · Arc 5= R◎Arc 3 · Arc 6= R◎Arc 3 · Arc 7= R◎Arc 3 · Arc 8= R◎Arc 3 · Arc 9= R◎Arc 3 · Arc 10= R◎Arc 3 · Arc 11= R◎Arc 3 · Arc 12= R◎Arc 3 · Arc 13= R◎Arc 3 · Arc 14= R◎Arc 3 · Arc 15= R◎Arc 3 · Arc 16= R◎Arc 3 · Arc 17= R◎Arc 3 · Arc 18= R◎Arc 3 · Arc 19= R◎Arc 3 · Arc 20= R◎Arc 3 · Arc 21= R◎Arc 3 · Arc 22= R◎Arc 3 · Arc 23= R◎Arc 3 · Arc 24= R◎Arc 4 · Arc 5= R◎Arc 4 · Arc 6= R◎Arc 4 · Arc 7= R◎Arc 4 · Arc 8= R◎Arc 4 · Arc 9= R◎Arc 4 · Arc 10= R◎Arc 4 · Arc 11= R◎Arc 4 · Arc 12= R◎Arc 4 · Arc 13= R◎Arc 4 · Arc 14= R◎Arc 4 · Arc 15= R◎Arc 4 · Arc 16= R◎Arc 4 · Arc 17= R◎Arc 4 · Arc 18= R◎Arc 4 · Arc 19= R◎Arc 4 · Arc 20= R◎Arc 4 · Arc 21= R◎Arc 4 · Arc 22= R◎Arc 4 · Arc 23= R◎Arc 4 · Arc 24= R◎Arc 5 · Arc 6= R◎Arc 5 · Arc 7= R◎Arc 5 · Arc 8= R◎Arc 5 · Arc 9= R◎Arc 5 · Arc 10= R◎Arc 5 · Arc 11= R◎Arc 5 · Arc 12= R◎Arc 5 · Arc 13= R◎Arc 5 · Arc 14= R◎Arc 5 · Arc 15= R◎Arc 5 · Arc 16= R◎Arc 5 · Arc 17= R◎Arc 5 · Arc 18= R◎Arc 5 · Arc 19= R◎Arc 5 · Arc 20= R◎Arc 5 · Arc 21= R◎Arc 5 · Arc 22= R◎Arc 5 · Arc 23= R◎Arc 5 · Arc 24= R◎Arc 6 · Arc 7= R◎Arc 6 · Arc 8= R◎Arc 6 · Arc 9= R◎Arc 6 · Arc 10= R◎Arc 6 · Arc 11= R◎Arc 6 · Arc 12= R◎Arc 6 · Arc 13= R◎Arc 6 · Arc 14= R◎Arc 6 · Arc 15= R◎Arc 6 · Arc 16= R◎Arc 6 · Arc 17= R◎Arc 6 · Arc 18= R◎Arc 6 · Arc 19= R◎Arc 6 · Arc 20= R◎Arc 6 · Arc 21= R◎Arc 6 · Arc 22= R◎Arc 6 · Arc 23= R◎Arc 6 · Arc 24= R◎Arc 7 · Arc 8= R◎Arc 7 · Arc 9= R◎Arc 7 · Arc 10= R◎Arc 7 · Arc 11= R◎Arc 7 · Arc 12= R◎Arc 7 · Arc 13= R◎Arc 7 · Arc 14= R◎Arc 7 · Arc 15= R◎Arc 7 · Arc 16= R◎Arc 7 · Arc 17= R◎Arc 7 · Arc 18= R◎Arc 7 · Arc 19= R◎Arc 7 · Arc 20= R◎Arc 7 · Arc 21= R◎Arc 7 · Arc 22= R◎Arc 7 · Arc 23= R◎Arc 7 · Arc 24= R◎Arc 8 · Arc 9= R◎Arc 8 · Arc 10= R◎Arc 8 · Arc 11= R◎Arc 8 · Arc 12= R◎Arc 8 · Arc 13= R◎Arc 8 · Arc 14= R◎Arc 8 · Arc 15= R◎Arc 8 · Arc 16= R◎Arc 8 · Arc 17= R◎Arc 8 · Arc 18= R◎Arc 8 · Arc 19= R◎Arc 8 · Arc 20= R◎Arc 8 · Arc 21= R◎Arc 8 · Arc 22= R◎Arc 8 · Arc 23= R◎Arc 8 · Arc 24= R◎Arc 9 · Arc 10= R◎Arc 9 · Arc 11= R◎Arc 9 · Arc 12= R◎Arc 9 · Arc 13= R◎Arc 9 · Arc 14= R◎Arc 9 · Arc 15= R◎Arc 9 · Arc 16= R◎Arc 9 · Arc 17= R◎Arc 9 · Arc 18= R◎Arc 9 · Arc 19= R◎Arc 9 · Arc 20= R◎Arc 9 · Arc 21= R◎Arc 9 · Arc 22= R◎Arc 9 · Arc 23= R◎Arc 9 · Arc 24= R◎Arc 10 · Arc 11= R◎Arc 10 · Arc 12= R◎Arc 10 · Arc 13= R◎Arc 10 · Arc 14= R◎Arc 10 · Arc 15= R◎Arc 10 · Arc 16= R◎Arc 10 · Arc 17= R◎Arc 10 · Arc 18= R◎Arc 10 · Arc 19= R◎Arc 10 · Arc 20= R◎Arc 10 · Arc 21= R◎Arc 10 · Arc 22= R◎Arc 10 · Arc 23= R◎Arc 10 · Arc 24= R◎Arc 11 · Arc 12= R◎Arc 11 · Arc 13= R◎Arc 11 · Arc 14= R◎Arc 11 · Arc 15= R◎Arc 11 · Arc 16= R◎Arc 11 · Arc 17= R◎Arc 11 · Arc 18= R◎Arc 11 · Arc 19= R◎Arc 11 · Arc 20= R◎Arc 11 · Arc 21= R◎Arc 11 · Arc 22= R◎Arc 11 · Arc 23= R◎Arc 11 · Arc 24= R◎Arc 12 · Arc 13= R◎Arc 12 · Arc 14= R◎Arc 12 · Arc 15= R◎Arc 12 · Arc 16= R◎Arc 12 · Arc 17= R◎Arc 12 · Arc 18= R◎Arc 12 · Arc 19= R◎Arc 12 · Arc 20= R◎Arc 12 · Arc 21= R◎Arc 12 · Arc 22= R◎Arc 12 · Arc 23= R◎Arc 12 · Arc 24= R◎Arc 13 · Arc 14= R◎Arc 13 · Arc 15= R◎Arc 13 · Arc 16= R◎Arc 13 · Arc 17= R◎Arc 13 · Arc 18= R◎Arc 13 · Arc 19= R◎Arc 13 · Arc 20= R◎Arc 13 · Arc 21= R◎Arc 13 · Arc 22= R◎Arc 13 · Arc 23= R◎Arc 13 · Arc 24= R◎Arc 14 · Arc 15= R◎Arc 14 · Arc 16= R◎Arc 14 · Arc 17= R◎Arc 14 · Arc 18= R◎Arc 14 · Arc 19= R◎Arc 14 · Arc 20= R◎Arc 14 · Arc 21= R◎Arc 14 · Arc 22= R◎Arc 14 · Arc 23= R◎Arc 14 · Arc 24= R◎Arc 15 · Arc 16= R◎Arc 15 · Arc 17= R◎Arc 15 · Arc 18= R◎Arc 15 · Arc 19= R◎Arc 15 · Arc 20= R◎Arc 15 · Arc 21= R◎Arc 15 · Arc 22= R◎Arc 15 · Arc 23= R◎Arc 15 · Arc 24= R◎Arc 16 · Arc 17= R◎Arc 16 · Arc 18= R◎Arc 16 · Arc 19= R◎Arc 16 · Arc 20= R◎Arc 16 · Arc 21= R◎Arc 16 · Arc 22= R◎Arc 16 · Arc 23= R◎Arc 16 · Arc 24= R◎Arc 17 · Arc 18= R◎Arc 17 · Arc 19= R◎Arc 17 · Arc 20= R◎Arc 17 · Arc 21= R◎Arc 17 · Arc 22= R◎Arc 17 · Arc 23= R◎Arc 17 · Arc 24= R◎Arc 18 · Arc 19= R◎Arc 18 · Arc 20= R◎Arc 18 · Arc 21= R◎Arc 18 · Arc 22= R◎Arc 18 · Arc 23= R◎Arc 18 · Arc 24= R◎Arc 19 · Arc 20= R◎Arc 19 · Arc 21= R◎Arc 19 · Arc 22= R◎Arc 19 · Arc 23= R◎Arc 19 · Arc 24= R◎Arc 20 · Arc 21= R◎Arc 20 · Arc 22= R◎Arc 20 · Arc 23= R◎Arc 20 · Arc 24= R◎Arc 21 · Arc 22= R◎Arc 21 · Arc 23= R◎Arc 21 · Arc 24= R◎Arc 22 · Arc 23= R◎Arc 22 · Arc 24= R◎Arc 23 · Arc 24= R◎ADD CONSTRAINTPick points and edges with Select (S) · Shift addsHHorizVVert∥Parallel⊥Perp=Equal◎Centre⌒Tangent⟷Sym⚓Fix↔DimensionCONSTRAINTS · 49Anchorpoint 1×Tangentpoint 1×Tangentpoint 2×Tangentpoint 3×Tangentpoint 4×Tangentpoint 5×Tangentpoint 6×Tangentpoint 7×Tangentpoint 8×Tangentpoint 9×Tangentpoint 10×Tangentpoint 11×Tangentpoint 12×Tangentpoint 13×Tangentpoint 14×Tangentpoint 15×Tangentpoint 16×Tangentpoint 17×Tangentpoint 18×Tangentpoint 19×Tangentpoint 20×Tangentpoint 21×Tangentpoint 22×Tangentpoint 23×Tangentpoint 24×Arcedge 1 ccw×Arcedge 2 cw×Arcedge 3 ccw×Arcedge 4 ccw×Arcedge 5 ccw×Arcedge 6 ccw×Arcedge 7 ccw×Arcedge 8 ccw×Arcedge 9 ccw×Arcedge 10 ccw×Arcedge 11 cw×Arcedge 12 ccw×Arcedge 13 ccw×Arcedge 14 cw×Arcedge 15 ccw×Arcedge 16 ccw×Arcedge 17 ccw×Arcedge 18 ccw×Arcedge 19 ccw×Arcedge 20 ccw×Arcedge 21 cw×Arcedge 22 ccw×Arcedge 23 ccw×Arcedge 24 ccw×Solverrank 50 · 46 DOFOFFSETmmOutInCURVESMake curves of the sketch",
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": "Under-defined · 46 DOF left — add dimensions or constraints · line + arc outline"
+}

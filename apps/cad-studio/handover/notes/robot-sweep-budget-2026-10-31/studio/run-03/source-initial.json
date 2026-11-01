@@ -1,0 +1,7 @@
+{
+  "count": 2,
+  "hashes": {
+    "apps/cad-studio/test/fixtures/robot-sweep-budget.bcad": "8ceeacfa7a84db06d4d3aa99b4025718ccb417ae4b357ffe7d5e9f64a1a92c2d",
+    "apps/cad-studio/vite.config.ts": "67b607e6374107bf07c232ad7ebe46a9f93e0d3bce887579c3d46ed363be5407"
+  }
+}

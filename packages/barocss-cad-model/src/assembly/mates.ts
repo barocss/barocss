@@ -8,6 +8,7 @@
 import { connectorOf, validateBallOptions, validateFastenedOptions, validateUniversalOptions, validateCylindricalOptions, type Connector } from './connectors';
 import { isRefusal, refusal } from '../engine/refusal';
 import type { PartInstance } from '../engine/doc';
+import { hostOf, occurrenceProblem, splitPart } from '../engine/occurrences';
 import type { Sig } from '../engine/references';
 import { dot, cross, add, sub, len } from '../engine/vec3';
 import { axisAngle, clean, DEG, eulerOf, matMul, rotationMatrix, type Mat3 } from '../engine/placement';
@@ -16,7 +17,11 @@ import { axisAngle, clean, DEG, eulerOf, matMul, rotationMatrix, type Mat3 } fro
 import type { Vec3 } from '../engine/vec3';
 export type { Vec3 };
 export type MateKind = 'coincident' | 'concentric' | 'distance' | 'angle' | 'tangent' | 'lock' | 'cam' | 'fastened' | 'ball' | 'universal' | 'cylindrical';
-/** A face by its persistent B-rep name on a part: `base` (the document's own part) or an instance id. */
+/**
+ * A face by its persistent B-rep name on a part: `base` (the document's own part), an instance id, or a part inside an
+ * instance that is a sub-assembly: instance ids joined by `/` (`sub1/p2`), the face in that part's own naming. The mate
+ * moves the first (top-level) instance.
+ */
 /** `sig`: the face's geometry when it was picked; `was`: its name before a re-match (engine/references.ts). */
 export interface MateRef { part: string; face: string; at?: Connector; sig?: Sig; was?: string }
 /**
@@ -197,25 +202,38 @@ export function mateRefusal(mate: Mate, fa: MateFace | undefined, fb: MateFace |
 export function solveAssembly(instances: readonly PartInstance[], mates: readonly Mate[], tables: (part: string) => FaceTable | undefined, before?: readonly PartInstance[]): Solved {
   const problems: Problem[] = [];
   const byId = new Map(instances.map(i => [i.id, i]));
-  const name = (part: string) => part === BASE ? 'the base part' : byId.get(part)?.name ?? part;
+  const name = (part: string) => part === BASE ? 'the base part' : part.includes('/') ? part : byId.get(part)?.name ?? part;
+  const host = hostOf;
   // Static checks: both parts present and different, the moving one free, both faces there and suited.
   // (`faces`: each mate's two faces as solved — an edge or a cone as a radius-0 round face, solvedFaces.)
   const valid: Mate[] = [], faces = new Map<string, ReturnType<typeof solvedFaces>>();
   for (const m of mates) {
-    if (m.a.part !== BASE && !byId.has(m.a.part) || !byId.has(m.b.part) && m.b.part !== BASE) { problems.push({ mate: m.id, reason: 'One of its parts was removed.' }); continue; }
-    if (m.a.part === m.b.part) { problems.push({ mate: m.id, reason: 'Both faces are on the same part.' }); continue; }
-    if (m.b.part === BASE || byId.get(m.b.part)?.grounded) { problems.push({ mate: m.id, reason: `${name(m.b.part)} is fixed, so this mate cannot move it.` }); continue; }
+    if (m.a.part !== BASE && !byId.has(host(m.a.part)) || !byId.has(host(m.b.part)) && m.b.part !== BASE) { problems.push({ mate: m.id, reason: 'One of its parts was removed.' }); continue; }
+    // (A part inside a sub-assembly: named by its path, so a path that leads nowhere now is said, never re-aimed.)
+    let lost: string | null = null;
+    for (const r of [m.a, m.b]) {
+      const why = r.part.includes('/') ? occurrenceProblem(byId.get(host(r.part))!.doc, host(r.part), splitPart(r.part).path) : null;
+      if (why) { lost = `Part "${r.part}": ${why}.`; break; }
+    }
+    if (lost) { problems.push({ mate: m.id, reason: lost }); continue; }
+    if (host(m.a.part) === host(m.b.part)) { problems.push({ mate: m.id, reason: 'Both faces are on the same part.' }); continue; }
+    if (m.b.part === BASE || byId.get(host(m.b.part))?.grounded) { problems.push({ mate: m.id, reason: `${name(host(m.b.part))} is fixed, so this mate cannot move it.` }); continue; }
     if ((m.a.at !== undefined || m.b.at !== undefined) && (m.kind === 'lock' || m.kind === 'cam')) { problems.push({ mate: m.id, reason: '[CONNECTOR_KIND] A cam or lock mate cannot carry connectors.' }); continue; }
     if (m.kind === 'lock') { if (m.rel) valid.push(m); else problems.push({ mate: m.id, reason: 'It has no placement to keep.' }); continue; }
     const ta = tables(m.a.part), tb = tables(m.b.part);
     if (!ta || !tb) return { instances: [...instances], problems: [], pending: true, freedom: {} };
     const why = mateRefusal(m, ta[m.a.face], tb[m.b.face]);
-    if (why) { problems.push({ mate: m.id, reason: why }); continue; }
+    if (why) {
+      // (A face named through its sub-assembly, from before parts inside were named by path: never guessed at, asked again.)
+      const through = [[m.a, ta], [m.b, tb]].find(([r, t]) => !(t as FaceTable)[(r as MateRef).face] && !(r as MateRef).part.includes('/') && byId.get((r as MateRef).part)?.doc.instances?.length) as [MateRef, FaceTable] | undefined;
+      problems.push({ mate: m.id, reason: through ? `${why} ${through[0].part} is a sub-assembly: a face of a part inside it is named by that part's path ("${through[0].part}/<part id>"); pick the face again.` : why });
+      continue;
+    }
     // (A cam mate holds nothing here: the follower's own mates place it; the joint tree couples it, robot/cam.ts.)
     if (m.kind === 'cam') continue;
     // A standalone cylindrical uses the existing concentric solve. Coupled non-lock mates are outside
     // this slice; do not silently infer a combined rank or switch the selected joint's semantics.
-    if (m.kind === 'cylindrical' && mates.some(other => other !== m && other.b.part === m.b.part && other.kind !== 'lock' && other.kind !== 'cam')) {
+    if (m.kind === 'cylindrical' && mates.some(other => other !== m && host(other.b.part) === host(m.b.part) && other.kind !== 'lock' && other.kind !== 'cam')) {
       problems.push({ mate: m.id, reason: 'A cylindrical combined with other mates needs an unsupported coupled solve.' }); continue;
     }
     const sf = mateFacesOf(m, { a: ta[m.a.face], b: tb[m.b.face] });
@@ -227,32 +245,32 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
   const fixedFace = (m: Mate) => faces.get(m.id)!.a, movingFace = (m: Mate) => faces.get(m.id)!.b;
   // Placements as solved so far (the base part at the origin).
   const placed = new Map<string, { R: Mat3; t: Vec3 }>([[BASE, { R: IDENTITY, t: [0, 0, 0] }]]);
-  const moved = new Set(valid.map(m => m.b.part));
+  const moved = new Set(valid.map(m => host(m.b.part)));
   for (const inst of instances) if (!moved.has(inst.id)) placed.set(inst.id, { R: rotationMatrix(inst.rotation), t: [...inst.position] });
   const out = new Map(instances.map(i => [i.id, i])), freedom: Record<string, Freedom> = {};
   let waiting = [...moved];
   while (waiting.length) {
-    const ready = waiting.filter(id => valid.every(m => m.b.part !== id || placed.has(m.a.part)));
+    const ready = waiting.filter(id => valid.every(m => host(m.b.part) !== id || placed.has(host(m.a.part))));
     if (!ready.length) {
       // What is left moves in a loop (A placed by B placed by A): none of it can be solved.
-      for (const id of waiting) for (const m of valid) if (m.b.part === id) problems.push({ mate: m.id, reason: `${LOOP_REASON}: ${name(m.a.part)} is itself placed by mates to ${name(id)}. Fix one of the parts or delete a mate in the loop.` });
+      for (const id of waiting) for (const m of valid) if (host(m.b.part) === id) problems.push({ mate: m.id, reason: `${LOOP_REASON}: ${name(host(m.a.part))} is itself placed by mates to ${name(id)}. Fix one of the parts or delete a mate in the loop.` });
       for (const id of waiting) { const i = byId.get(id)!; placed.set(id, { R: rotationMatrix(i.rotation), t: [...i.position] }); }
       break;
     }
     for (const id of ready) {
-      const own = valid.filter(m => m.b.part === id), lock = own.find(m => m.kind === 'lock');
+      const own = valid.filter(m => host(m.b.part) === id), lock = own.find(m => m.kind === 'lock');
       if (lock) {
         // Locked: its placement is the lock's, on the part it is locked to; the other mates are only checked.
-        const ref = placed.get(lock.a.part)!, R = matMul(ref.R, rotationMatrix(lock.rel!.rotation)), t = add(apply(ref.R, lock.rel!.position), ref.t);
+        const ref = placed.get(host(lock.a.part))!, R = matMul(ref.R, rotationMatrix(lock.rel!.rotation)), t = add(apply(ref.R, lock.rel!.position), ref.t);
         const at = { ...byId.get(id)!, rotation: eulerOf(R), position: t.map(v => clean(v)) as Vec3 };
         for (const m of own) {
           if (m === lock) continue;
           let why: string | null = null;
           if (m.kind === 'lock') {
-            const R2 = matMul(placed.get(m.a.part)!.R, rotationMatrix(m.rel!.rotation)), t2 = add(apply(placed.get(m.a.part)!.R, m.rel!.position), placed.get(m.a.part)!.t);
+            const R2 = matMul(placed.get(host(m.a.part))!.R, rotationMatrix(m.rel!.rotation)), t2 = add(apply(placed.get(host(m.a.part))!.R, m.rel!.position), placed.get(host(m.a.part))!.t);
             if (R2.some((v, k) => Math.abs(v - R[k]) > DIR_TOL) || len(sub(t2, t)) > POS_TOL) why = `it holds ${name(id)} somewhere else.`;
           } else {
-            const one = solveOne(at, [{ mate: m, fixed: placeFace(fixedFace(m), placed.get(m.a.part)!.R, placed.get(m.a.part)!.t), moving: movingFace(m) }], label, name(id));
+            const one = solveOne(at, [{ mate: m, fixed: placeFace(fixedFace(m), placed.get(host(m.a.part))!.R, placed.get(host(m.a.part))!.t), moving: movingFace(m) }], label, name(id));
             const turn = degBetween((one.R[0] * R[0] + one.R[1] * R[1] + one.R[2] * R[2] + one.R[3] * R[3] + one.R[4] * R[4] + one.R[5] * R[5] + one.R[6] * R[6] + one.R[7] * R[7] + one.R[8] * R[8] - 1) / 2), off = len(sub(one.t, t));
             if (one.problems.length) why = one.problems[0].reason;
             else if (turn > 1e-6 || off > POS_TOL) why = `it holds ${name(id)} ${off > POS_TOL ? `${fmtNum(off)} mm` : ''}${off > POS_TOL && turn > 1e-6 ? ' and ' : ''}${turn > 1e-6 ? `${fmtNum(turn)}°` : ''} from where this mate puts it.`;
@@ -262,9 +280,9 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
         placed.set(id, { R, t }); freedom[id] = { turns: 0, slides: 0 }; out.set(id, at);
         continue;
       }
-      const inst = carried(byId.get(id)!, own[0].a.part, placed.get(own[0].a.part)!, before);
+      const inst = carried(byId.get(id)!, host(own[0].a.part), placed.get(host(own[0].a.part))!, before);
       const r = solveOne(inst, own.map(m => {
-        const ref = placed.get(m.a.part)!;
+        const ref = placed.get(host(m.a.part))!;
         return { mate: m, fixed: placeFace(fixedFace(m), ref.R, ref.t), moving: movingFace(m) };
       }), label, name(id));
       problems.push(...r.problems);

@@ -3,6 +3,7 @@
 // model where they lie in the sketch plane, and to the origin — the nearest within a few pixels on
 // screen; else the 1 mm grid takes it.
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
+import { wellFormedBezier } from './bezier';
 import { toLocal, type SketchPlane } from './plane';
 
 type XY = [number, number];
@@ -13,7 +14,8 @@ export type SnapShape =
   | { kind: 'rectangle'; a: XY; b: XY }
   | { kind: 'circle'; c: XY; r: number }
   | { kind: 'polygon'; points: XY[]; closed: boolean; bulges?: number[] }
-  | { kind: 'slot'; a: XY; b: XY; r: number };
+  | { kind: 'slot'; a: XY; b: XY; r: number }
+  | { kind: 'bezier'; poles: XY[] };
 
 const mid = (a: XY, b: XY): XY => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
 
@@ -28,6 +30,8 @@ export function shapeSnaps(s: SnapShape, moving = false): SnapPoint[] {
     case 'circle':
       return moving ? [{ at: s.c, kind: 'centre' }] : [{ at: s.c, kind: 'centre' }, ...[[1, 0], [0, 1], [-1, 0], [0, -1]].map(([u, v]) => ({ at: [s.c[0] + u * s.r, s.c[1] + v * s.r] as XY, kind: 'quadrant' as const }))];
     case 'slot': return moving ? [{ at: s.a, kind: 'centre' }] : [{ at: s.a, kind: 'centre' }, { at: s.b, kind: 'centre' }, { at: mid(s.a, s.b), kind: 'mid' }];
+    // (A Bézier curve snaps to its end poles, not to the middle ones it does not pass through.)
+    case 'bezier': return wellFormedBezier(s) ? [{ at: s.poles[0], kind: 'end' }, { at: s.poles[s.poles.length - 1], kind: 'end' }] : [];
     case 'polygon': {
       const out: SnapPoint[] = s.points.map(at => ({ at, kind: 'end' as const })), n = s.points.length;
       for (let i = 0; i < (s.closed ? n : n - 1); i++) if (!s.bulges?.[i]) out.push({ at: mid(s.points[i], s.points[(i + 1) % n]), kind: 'mid' });

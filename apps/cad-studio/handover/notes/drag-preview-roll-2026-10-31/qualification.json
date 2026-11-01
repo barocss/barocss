@@ -1,0 +1,42 @@
+{
+  "decision": "D377",
+  "roadmap": "20 ① later features vanish while a dimension handle is dragged (owner order 'Go to 20/21'); 20 ③ measured on the same part",
+  "tier": "feature (one independent audit + one actual run)",
+  "status": "QUALIFIED",
+  "measurementBefore": {
+    "kernelNode": "box+2 holes+2 fillets: whole part median 23.4 ms, rolled 1.1 ms ([kernel-timing.jsonl](kernel-timing.jsonl))",
+    "studioRun01": "every drag preview rolled back to the box (6 faces): round trip ~1.2 ms, whole part ~20 ms only after the pause; holes and fillets missing in the moving screenshot; frame gaps median 16.7 ms, max 33.3 ms"
+  },
+  "change": [
+    "useCommandPreview: roll back to the dragged feature only when a whole-part preview on this document took longer than ROLL_AFTER_MS = 120 ms (measured per document; until measured, the App's last whole-document evaluation time)",
+    "App: passes that evaluation time (lastEvalMs) to the hook"
+  ],
+  "audit": {
+    "verdict": "CHANGES_REQUIRED",
+    "findings": {
+      "F1 medium": "cost keyed by command object: an idle handle drag (new edit command each time) never had a measurement, so a slow part waited one whole evaluation before its first frame -> fixed: keyed by document, seeded from the App evaluation time; 2 idle-drag tests added",
+      "F2 low": "constant split bisectValue's doc comment -> moved",
+      "others": "D368 wall/bisect invariants hold; stale slow measurement cannot lock rolling; swing allowance 2->3 for the whole-part 60 ms held case justified (bound equals last good value)"
+    },
+    "file": "review/independent-audit.md"
+  },
+  "checks": {
+    "dragWallTests": "24/24 (4 new)",
+    "mutations": "3/3 killed (seed removed, threshold, measurement record); retro tier v4: no further mutations",
+    "studioUnit": "563/563",
+    "studioTypes": "tsc PASS"
+  },
+  "actualRun": {
+    "run02": "after the first change: PASS, 12/12 drag previews whole part, 0 box-only, whole median 17.2 ms",
+    "run03": "after the audit fixes (final source): PASS; drag1 and drag2 each 12 previews, 0 box-only (rolledRequests 0), whole part median 17.5/17.4 ms, max 20.4 ms; frame gaps median 16.7 ms, max 33.4 ms, none over 50 ms; moving and held screenshots show both holes and both fillets (root reviewed); each drag cancelled with Escape and the document unchanged; no page or console errors"
+  },
+  "row20item3": "Not reproduced on this part: the screen updates every frame (16.7 ms) and previews keep up. A part whose whole preview exceeds 120 ms is needed to measure stutter; T5 dependency-scoped regeneration stays a candidate without evidence.",
+  "limits": [
+    "Headless Chrome frame times are not a display vsync; round trips exclude GPU upload",
+    "The 120 ms threshold is the roadmap's proposal, not tuned; one part measured",
+    "A slow part still rolls back as before (the whole part follows a 220 ms pause)",
+    "Screenshots are not committed (repo guard); receipts and timing JSON are"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

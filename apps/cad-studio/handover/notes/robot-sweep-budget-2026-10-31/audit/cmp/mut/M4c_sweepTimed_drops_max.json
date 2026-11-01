@@ -1,0 +1,1 @@
+{"src/robot/ccd.ts": [["trace, ...(o.maxSamples ? { maxSamples: o.maxSamples } : {})", "trace"]]}

@@ -1,0 +1,26 @@
+✘ [ERROR] Cannot read directory "../../../../../../../../Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/test/api-robot-boundary.test.ts api-robot-path-contract.test.ts api-robot.test.ts api-rs6-loop-motion.test.ts o22-designed-contact.test.ts o24a-cam.test.ts o24a-loops.test.ts pg6-running-fit.test.ts r4-caches.test.ts rb9.test.ts robot-ccd.test.ts robot-public-clearance.test.ts robot-public-angular.test.ts robot-sweep.test.ts robot-public-harness.test.ts rs1-samples.test.ts robot-sweep-budget.test.ts sheet-acceptance.test.ts rs3-movement.test.ts tool-contract.test.ts": file name too long
+
+✘ [ERROR] Could not resolve "/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/test/api-robot-boundary.test.ts api-robot-path-contract.test.ts api-robot.test.ts api-rs6-loop-motion.test.ts o22-designed-contact.test.ts o24a-cam.test.ts o24a-loops.test.ts pg6-running-fit.test.ts r4-caches.test.ts rb9.test.ts robot-ccd.test.ts robot-public-clearance.test.ts robot-public-angular.test.ts robot-sweep.test.ts robot-public-harness.test.ts rs1-samples.test.ts robot-sweep-budget.test.ts sheet-acceptance.test.ts rs3-movement.test.ts tool-contract.test.ts"
+
+/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/node_modules/esbuild/lib/main.js:1467
+  let error = new Error(text);
+              ^
+
+Error: Build failed with 2 errors:
+error: Cannot read directory "../../../../../../../../Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/test/api-robot-boundary.test.ts api-robot-path-contract.test.ts api-robot.test.ts api-rs6-loop-motion.test.ts o22-designed-contact.test.ts o24a-cam.test.ts o24a-loops.test.ts pg6-running-fit.test.ts r4-caches.test.ts rb9.test.ts robot-ccd.test.ts robot-public-clearance.test.ts robot-public-angular.test.ts robot-sweep.test.ts robot-public-harness.test.ts rs1-samples.test.ts robot-sweep-budget.test.ts sheet-acceptance.test.ts rs3-movement.test.ts tool-contract.test.ts": file name too long
+error: Could not resolve "/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/test/api-robot-boundary.test.ts api-robot-path-contract.test.ts api-robot.test.ts api-rs6-loop-motion.test.ts o22-designed-contact.test.ts o24a-cam.test.ts o24a-loops.test.ts pg6-running-fit.test.ts r4-caches.test.ts rb9.test.ts robot-ccd.test.ts robot-public-clearance.test.ts robot-public-angular.test.ts robot-sweep.test.ts robot-public-harness.test.ts rs1-samples.test.ts robot-sweep-budget.test.ts sheet-acceptance.test.ts rs3-movement.test.ts tool-contract.test.ts"
+    at failureErrorWithLog (/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/node_modules/esbuild/lib/main.js:1467:15)
+    at /Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/node_modules/esbuild/lib/main.js:926:25
+    at runOnEndCallbacks (/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/node_modules/esbuild/lib/main.js:1307:45)
+    at buildResponseToResult (/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/node_modules/esbuild/lib/main.js:924:7)
+    at /Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/node_modules/esbuild/lib/main.js:951:16
+    at responseCallbacks.<computed> (/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/node_modules/esbuild/lib/main.js:603:9)
+    at handleIncomingPacket (/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/node_modules/esbuild/lib/main.js:658:12)
+    at Socket.readFromStdout (/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/node_modules/esbuild/lib/main.js:581:7)
+    at Socket.emit (node:events:519:28)
+    at addChunk (node:internal/streams/readable:561:12) {
+  errors: [Getter/Setter],
+  warnings: [Getter/Setter]
+}
+
+Node.js v22.19.0

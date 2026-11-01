@@ -5,6 +5,7 @@
 // Part agent's patch is ops on its part only, checked: its lease (NO_LEASE, LEASE_EXPIRED), the contract it was made on
 // (CONTRACT_MOVED), its scope (OUT_OF_PART); then A7's validity and the part's contract — inside its envelope, its holes
 // on its patterns (the exact cylinder's axis through each position, at the diameter), within its mass budget.
+import { looksDocOf } from '../assembly/looks';
 import { placedBase, type PartInstance, type StudioDoc } from '../engine/doc';
 import { placeBody, type BodyResult } from '../engine/evaluate';
 import { dispatchTool, type ChatState, type Evaluate } from '../chat/tools';
@@ -22,7 +23,7 @@ export { readInterfaces, interfacesRevision, type HolePattern, type Envelope, ty
 
 export interface Lease { part: string; holder: string; contract: string; until: number; /** The ECR whose approval left it on the old contract (A8.3): renewed by the Architect. */ expiredBy?: string }
 export interface PartPatch { id: string; by: string; part: string; contract: string; ops: Op[] }
-export type PartCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET' | 'BEAD_ACCOUNTING_INCOMPLETE' | 'NO_LEASE' | 'LEASE_EXPIRED' | 'CONTRACT_MOVED' | 'OUT_OF_PART' | 'OP_REFUSED' | 'NOT_EVALUATED' | 'OUT_OF_ENVELOPE' | 'HOLE_OFF_PATTERN' | 'OVER_BUDGET';
+export type PartCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET' | 'BEAD_ACCOUNTING_INCOMPLETE' | 'CUT_REMOVES_NOTHING' | 'CUT_CONSUMES_BODY' | 'CUT_NOT_MADE' | 'CUT_PARTIAL' | 'CUT_LEAVES_BOUGHT' | 'NO_LEASE' | 'LEASE_EXPIRED' | 'CONTRACT_MOVED' | 'OUT_OF_PART' | 'OP_REFUSED' | 'NOT_EVALUATED' | 'OUT_OF_ENVELOPE' | 'HOLE_OFF_PATTERN' | 'OVER_BUDGET';
 export interface PartTrace { seq: number; patch: PartPatch; decision: Decision; gates: (Omit<GateResult, 'gate' | 'findings'> & { gate: 'lease' | 'validity' | 'contract' | 'assembly'; findings: { code: PartCode | 'NOT_REACHED'; message: string; entities?: string[] }[] })[]; revisionAfter: string | null }
 
 /** The tools that change the assembly itself, not a part: a Part agent may not use them. */
@@ -80,7 +81,7 @@ export async function integratePart(state: ChatState, patch: PartPatch, leases: 
   }
   for (const p of ifc.holePatterns.filter(x => x.parts.includes(patch.part))) { const off = holesOff(bodies, p); if (off.length) findings.push({ code: 'HOLE_OFF_PATTERN', message: `${patch.part} has no Ø${p.diameter} hole on ${p.id} at ${off.map(o => `(${o.join(', ')})`).join(', ')}` }); }
   const budget = ifc.budgets.parts?.[patch.part];
-  if (!incomplete && budget !== undefined) { const g = (massProperties(inst.doc, bodies) as { mass: number }[]).reduce((s, x) => s + x.mass, 0); if (g > budget + 1e-9) findings.push({ code: 'OVER_BUDGET', message: `${patch.part} weighs ${Number(g.toPrecision(6))} g, over its ${budget} g` }); }
+  if (!incomplete && budget !== undefined) { const g = (massProperties(looksDocOf(inst), bodies) as { mass: number }[]).reduce((s, x) => s + x.mass, 0); if (g > budget + 1e-9) findings.push({ code: 'OVER_BUDGET', message: `${patch.part} weighs ${Number(g.toPrecision(6))} g, over its ${budget} g` }); }
   gates.push({ gate: 'contract', verdict: findings.length ? 'fail' : 'pass', findings });
   if (findings.length) { gates.push({ gate: 'assembly', verdict: 'skipped', findings: [{ code: 'NOT_REACHED', message: 'not reached: an earlier gate failed' }] }); return done('rejected'); }
   // (The Assembly integrator, A8.4: the whole assembly with this part as it would be — parts meeting, every pattern on every built part, the total mass.)

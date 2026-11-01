@@ -39,7 +39,7 @@ test('G23: absent preview fields retain the existing default direction and 0.2 m
 });
 
 test('G23: existing print-only files and documents with both fields keep their authored direction', async () => {
-  for (const schema of [1, 2, 3] as const) for (const preview of [undefined, { version: 1 as const, layer: 0, printed: false }]) {
+  for (const schema of [3] as const) for (const preview of [undefined, { version: 1 as const, layer: 0, printed: false }]) {
     const doc: StudioDoc = { ...rectanglePart(4, 3, 2), schema, print: { direction: [1, 0, 0] }, ...(preview ? { printPreview: preview } : {}) };
     const read = await readStudioFile(encodeStudioFile(doc)); assert.ok('doc' in read, JSON.stringify(read));
     assert.deepEqual(read.doc.print, doc.print); assert.deepEqual(read.doc.printPreview, preview);

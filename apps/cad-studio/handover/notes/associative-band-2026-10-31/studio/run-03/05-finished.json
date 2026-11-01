@@ -1,0 +1,89 @@
+{
+  "label": "05-finished",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "band",
+        "band": {
+          "version": 1,
+          "id": "b1",
+          "sources": [
+            "e1",
+            "e2"
+          ],
+          "width": 3
+        },
+        "construction": [
+          {
+            "kind": "circle",
+            "c": [
+              0,
+              0
+            ],
+            "r": 20,
+            "construction": true,
+            "ids": [
+              "e1"
+            ]
+          },
+          {
+            "kind": "circle",
+            "c": [
+              60,
+              0
+            ],
+            "r": 10,
+            "construction": true,
+            "ids": [
+              "e2"
+            ]
+          }
+        ],
+        "id": "n0"
+      }
+    ],
+    "outputs": {},
+    "nextId": 1
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": [],
+      "sketches": [
+        0
+      ]
+    },
+    "bodies": 0,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": null,
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": null,
+  "bandInputs": [],
+  "bandOverlay": {
+    "outline": 0,
+    "picked": 0,
+    "construction": 0
+  },
+  "editorFields": [],
+  "history": [
+    "Sketch · band"
+  ]
+}

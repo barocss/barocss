@@ -17,7 +17,7 @@ import { mirrorCage, sprocketPitchDiameter, timingPitchDiameter } from '@barocss
 import type { BendTable, BeadSharedComponent, CadPartDocument, CadPartFeature, CadPartFrameOverride, CadPartNameSignature, CadPartSection } from '@barocss/cad';
 import type { Sig } from './references';
 import { frameGeometry, holeCentres, bevelSpiral, prefixDoc, rectangularPatternDocumentProblem, textDocumentProblem, textNodeProblem, textReliefNodeProblem, type TextNode, type TextReliefNode, type DocPlane, type Dim, type SketchNode, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type PartInstance, type StudioDoc } from './doc';
-import { bodyNodeOf, featureId, nodeIndexOf, serialOf, withIds } from './ids';
+import { bodyKeyFor, bodyNodeOf, featureId, isAssemblyCut, nodeIndexOf, serialOf, withIds } from './ids';
 import { keyClasses } from './fits';
 import type { StudioRingRow } from './rings';
 import { rotationSteps } from './placement';
@@ -31,6 +31,7 @@ import { faceProfile } from '../app/faceProfile';
 import { sketchShapes } from '../sketch/reopen';
 import { offsetShape } from '../sketch/offset';
 import { profileOf } from '../sketch/loops';
+import { bandProfile } from '../sketch/band';
 
 // (The nodes being converted: a feature's id and its references' ids are read from them.)
 let current: readonly ModelNode[] = [];
@@ -112,6 +113,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     // The drawn outline and its constraints are the studio's own (the kernel takes the solved profile).
     case 'sketch': {
       if (node.association !== undefined) throw associationError('linked sketches require document-prefix resolution before kernel conversion.');
+      if (node.profile === 'band') throw refusal('VALUE', 'A band sketch must be resolved first (bandProfile).');
       const profile = { ...node }; delete profile.outline; delete profile.on; delete profile.construction; delete profile.association;
       return { ...at, ...profile } as CadPartFeature;
     }
@@ -125,6 +127,8 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       if (!signature || (signature.n ?? 1) !== 1) throw refusal('BAD_REFERENCE', 'Cylindrical wrap: the selected face needs its stored individual signature.');
       return { ...at, kind: 'cylindrical-wrap', target: ref(node.parent), faces: [name], rectangle: structuredClone(node.rectangle), height: structuredClone(node.height), ...expectOf(node, node.faces) };
     }
+    // (B2: both sides' targets are read, not consumed; the stored signatures of both sides' names go as the kernel's `expect`.)
+    case 'band-surface': return { ...at, kind: 'band-surface', a: { target: ref(node.a.parent), edges: [...node.a.edges] }, b: { target: ref(node.b.parent), edges: [...node.b.edges] }, ...(node.flip ? { flip: true } : {}), ...expectOf(node, [...node.a.edges, ...node.b.edges]) };
     case 'rectangular-relief': return { ...at, kind: 'rectangular-relief', target: ref(node.parent), min: structuredClone(node.min), max: structuredClone(node.max), depth: structuredClone(node.depth), mode: node.mode };
     case 'hole': return { ...at, kind: 'hole', target: ref(node.parent), center: node.center, radius: node.radius,
       ...(node.axis ? { axis: node.axis } : {}), ...(node.side ? { side: node.side } : {}), ...(node.depth === undefined ? {} : { depth: node.depth }), ...(node.countersink ? { countersink: node.countersink } : {}), ...(node.face ? { face: node.face } : {}) };
@@ -535,6 +539,8 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
     prefixEnds.set(i, features.length);
     if (node.kind === 'skeleton') return;
     if (node.kind === 'sketch') {
+      // (B1: a band sketch is regenerated from its construction sources, parameters resolved, wherever it is evaluated.)
+      if (node.profile === 'band') { features.push(...featuresOf(bandProfile(node, params, i), i, CadPartLimits.features - features.length)); return; }
       if (node.association !== undefined) {
         const source = associationSource(doc, i), end = prefixEnds.get(source + 1);
         if (gone.has(source) || end === undefined) throw associationError('the source solid is unavailable in the evaluated prefix.');
@@ -545,7 +551,7 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
       } else features.push(...featuresOf(node, i, CadPartLimits.features - features.length));
       return;
     }
-    const makes = node.kind === 'text' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
+    const makes = node.kind === 'text' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'band-surface' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
     const two = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : null;
     if (two) {
       const [a, b] = two, ga = gone.has(a.node), gb = gone.has(b.node);
@@ -560,6 +566,8 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
     if (makes) {
       // (A library part added to a body, suppressed or its body gone: the body passes on as it was, or is gone.)
       if (node.kind === 'library' && node.addTo) { if (gone.has(node.addTo.node)) { gone.add(i); return; } if (node.suppressed) { pass(i, node.addTo); return; } features.push(...featuresOf(node, i, CadPartLimits.features - features.length)); return; }
+      // (A band whose either body is gone or suppressed is gone, as a Boolean's.)
+      if (node.kind === 'band-surface' && (node.suppressed || gone.has(node.a.parent.node) || gone.has(node.b.parent.node))) { gone.add(i); return; }
       if (node.suppressed || ('from' in node && Array.isArray(node.from) && node.from.some(p => gone.has(p))) || ((node.kind === 'gear' || node.kind === 'rack' || node.kind === 'bevel-gear' || node.kind === 'worm') && node.mesh && gone.has(node.mesh.gear))) { gone.add(i); return; }
       features.push(...convert(node, i)); return;
     }
@@ -743,6 +751,8 @@ export const bodyKeyOf = (outputId: string, nodes?: readonly ModelNode[]) => {
   // (Keyed by the id's serial, `b<k>` for `n<k>`, see ids.ts; the node only tells a file's solids from a split's halves.)
   const k = serialOf(m[1]), i = nodes ? nodeIndexOf(nodes, m[1]) : k;
   if (!(k >= 0)) return outputId;
+  // (An assembly cut's difference is the body it cuts: the key that body has, engine/ids.ts.)
+  if (nodes && m[2] === undefined && isAssemblyCut(nodes[i])) return bodyKeyFor(nodes, i);
   if (m[2] !== undefined && (nodes?.[i]?.kind === 'import' || nodes?.[i]?.kind === 'separate' || nodes?.[i]?.kind === 'mesh' || nodes?.[i]?.kind === 'frame')) return `b${k}_part${m[2]}`;
   return m[2] === undefined ? `b${k}` : `b${k}_${m[2] === '0' ? 'negative' : 'positive'}`;
 };

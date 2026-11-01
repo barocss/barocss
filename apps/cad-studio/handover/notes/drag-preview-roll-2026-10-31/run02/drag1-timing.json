@@ -1,0 +1,777 @@
+{
+  "summary": {
+    "label": "drag1",
+    "moves": 70,
+    "holdMs": 900,
+    "pointerMovesSent": 70,
+    "previewRequests": 12,
+    "rolledRequests": 0,
+    "fullRequests": 12,
+    "unknownFaces": 0,
+    "rolledMs": {
+      "median": null,
+      "p90": null,
+      "max": null
+    },
+    "fullMs": {
+      "median": 17.2,
+      "p90": 19.4,
+      "max": 22.6
+    },
+    "frameGapMs": {
+      "count": 94,
+      "median": 16.7,
+      "p90": 16.7,
+      "max": 50,
+      "over50": 0
+    },
+    "widthShown": {
+      "first": null,
+      "last": null,
+      "distinct": 1
+    }
+  },
+  "previews": [
+    {
+      "t": 94.3,
+      "id": 4,
+      "type": "preview",
+      "nodes": null,
+      "ms": 22.6,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.020099999904632567
+    },
+    {
+      "t": 183.9,
+      "id": 5,
+      "type": "preview",
+      "nodes": null,
+      "ms": 19.4,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.019
+    },
+    {
+      "t": 300.3,
+      "id": 6,
+      "type": "preview",
+      "nodes": null,
+      "ms": 18.3,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.01810000014305115
+    },
+    {
+      "t": 433.2,
+      "id": 7,
+      "type": "preview",
+      "nodes": null,
+      "ms": 18.1,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.017799999952316285
+    },
+    {
+      "t": 566.5,
+      "id": 8,
+      "type": "preview",
+      "nodes": null,
+      "ms": 18.6,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.018299999952316286
+    },
+    {
+      "t": 700,
+      "id": 9,
+      "type": "preview",
+      "nodes": null,
+      "ms": 17,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.016799999952316284
+    },
+    {
+      "t": 833.4,
+      "id": 10,
+      "type": "preview",
+      "nodes": null,
+      "ms": 16.9,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.016300000190734864
+    },
+    {
+      "t": 966.5,
+      "id": 11,
+      "type": "preview",
+      "nodes": null,
+      "ms": 16.5,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.0155
+    },
+    {
+      "t": 1116.7,
+      "id": 12,
+      "type": "preview",
+      "nodes": null,
+      "ms": 16.7,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.015800000190734863
+    },
+    {
+      "t": 1249.9,
+      "id": 13,
+      "type": "preview",
+      "nodes": null,
+      "ms": 17,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.015699999809265137
+    },
+    {
+      "t": 1383.9,
+      "id": 14,
+      "type": "preview",
+      "nodes": null,
+      "ms": 16.5,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.015399999856948853
+    },
+    {
+      "t": 1516.4,
+      "id": 15,
+      "type": "preview",
+      "nodes": null,
+      "ms": 17.2,
+      "ok": true,
+      "bodies": 1,
+      "faces": 10,
+      "meshRef": null,
+      "wall": 0.015099999904632568
+    }
+  ],
+  "samples": [
+    {
+      "i": 1,
+      "t": 1578.7999999523163,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 2,
+      "t": 1618.7000000476837,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 3,
+      "t": 1631.7999999523163,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 4,
+      "t": 1666.4000000953674,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 5,
+      "t": 1681.9000000953674,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 6,
+      "t": 1705.7999999523163,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 7,
+      "t": 1714.7000000476837,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 8,
+      "t": 1732.6000001430511,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 9,
+      "t": 1748.5,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 10,
+      "t": 1782.4000000953674,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 11,
+      "t": 1798,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 12,
+      "t": 1833,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 13,
+      "t": 1848.6000001430511,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 14,
+      "t": 1865.5,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 15,
+      "t": 1882.4000000953674,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 16,
+      "t": 1915.7999999523163,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 17,
+      "t": 1931.4000000953674,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 18,
+      "t": 1964.9000000953674,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 19,
+      "t": 1981.7999999523163,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 20,
+      "t": 1998.9000000953674,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 21,
+      "t": 2015.2000000476837,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 22,
+      "t": 2049,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 23,
+      "t": 2065.600000143051,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 24,
+      "t": 2100,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 25,
+      "t": 2115.7000000476837,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 26,
+      "t": 2131.7000000476837,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 27,
+      "t": 2148.600000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 28,
+      "t": 2182.5,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 29,
+      "t": 2217.2999999523163,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 30,
+      "t": 2232,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 31,
+      "t": 2248.100000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 32,
+      "t": 2265.600000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 33,
+      "t": 2282.4000000953674,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 34,
+      "t": 2315.7999999523163,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 35,
+      "t": 2331.4000000953674,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 36,
+      "t": 2365.600000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 37,
+      "t": 2382.5,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 38,
+      "t": 2398.9000000953674,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 39,
+      "t": 2415.4000000953674,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 40,
+      "t": 2448.9000000953674,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 41,
+      "t": 2483.7999999523163,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 42,
+      "t": 2498,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 43,
+      "t": 2515.600000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 44,
+      "t": 2532.4000000953674,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 45,
+      "t": 2549,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 46,
+      "t": 2565,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 47,
+      "t": 2599.100000143051,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 48,
+      "t": 2633.9000000953674,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 49,
+      "t": 2648.2000000476837,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 50,
+      "t": 2665.7000000476837,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 51,
+      "t": 2681.5,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 52,
+      "t": 2698.9000000953674,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 53,
+      "t": 2732.2999999523163,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 54,
+      "t": 2767.5,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 55,
+      "t": 2781.7999999523163,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 56,
+      "t": 2799.2000000476837,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 57,
+      "t": 2815.5,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 58,
+      "t": 2831.4000000953674,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 59,
+      "t": 2868.7999999523163,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 60,
+      "t": 2901.100000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 61,
+      "t": 2914.7999999523163,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 62,
+      "t": 2932.2999999523163,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 63,
+      "t": 2948.100000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 64,
+      "t": 2965,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 65,
+      "t": 2998.7000000476837,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 66,
+      "t": 3034.600000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 67,
+      "t": 3048.100000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 68,
+      "t": 3064.7000000476837,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 69,
+      "t": 3081.600000143051,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 70,
+      "t": 3098.7000000476837,
+      "width": null,
+      "status": "preview"
+    }
+  ],
+  "frames": [
+    12.7,
+    29.3,
+    79.3,
+    96,
+    112.6,
+    129.3,
+    145.9,
+    162.6,
+    179.3,
+    196,
+    212.7,
+    229.3,
+    246,
+    262.7,
+    279.3,
+    296,
+    312.6,
+    329.3,
+    346,
+    362.6,
+    379.3,
+    396,
+    412.7,
+    429.3,
+    445.9,
+    462.6,
+    479.3,
+    495.9,
+    512.6,
+    529.3,
+    545.9,
+    562.7,
+    579.3,
+    596,
+    612.6,
+    629.2,
+    645.9,
+    662.6,
+    679.3,
+    696,
+    712.6,
+    729.3,
+    745.9,
+    762.6,
+    779.3,
+    795.9,
+    812.6,
+    829.3,
+    846,
+    862.6,
+    879.3,
+    896,
+    912.6,
+    929.2,
+    945.9,
+    962.6,
+    979.2,
+    995.9,
+    1012.6,
+    1029.3,
+    1046,
+    1062.6,
+    1079.2,
+    1095.9,
+    1112.6,
+    1129.2,
+    1145.9,
+    1162.6,
+    1179.3,
+    1195.9,
+    1212.6,
+    1229.3,
+    1246,
+    1262.6,
+    1279.2,
+    1295.9,
+    1312.6,
+    1329.2,
+    1345.9,
+    1362.6,
+    1379.3,
+    1395.9,
+    1412.6,
+    1429.2,
+    1446,
+    1462.5,
+    1479.3,
+    1495.9,
+    1512.6,
+    1529.3,
+    1545.9,
+    1562.6,
+    1579.2,
+    1595.9,
+    1612.6,
+    1629.3,
+    1645.9,
+    1662.6,
+    1679.3,
+    1695.9,
+    1712.6,
+    1729.3,
+    1745.9,
+    1762.6,
+    1779.3,
+    1795.9,
+    1812.6,
+    1829.2,
+    1845.9,
+    1862.6,
+    1879.2,
+    1895.9,
+    1912.6,
+    1929.3,
+    1945.9,
+    1962.5,
+    1979.2,
+    1995.9,
+    2012.6,
+    2029.2,
+    2045.9,
+    2062.6,
+    2079.2,
+    2095.9,
+    2112.5,
+    2129.2,
+    2145.9,
+    2162.6,
+    2179.2,
+    2195.9,
+    2212.5,
+    2229.2,
+    2245.9,
+    2262.5,
+    2279.2,
+    2295.8,
+    2312.5,
+    2329.3,
+    2345.9,
+    2362.6,
+    2379.2,
+    2395.8,
+    2412.5,
+    2429.2,
+    2445.9,
+    2462.5,
+    2479.2,
+    2495.9,
+    2512.6,
+    2529.2,
+    2545.9,
+    2562.5,
+    2579.2,
+    2595.9,
+    2612.5,
+    2629.2,
+    2645.9,
+    2662.6,
+    2679.2,
+    2695.9,
+    2712.6,
+    2729.2,
+    2745.9,
+    2762.5,
+    2779.2,
+    2795.9,
+    2812.6,
+    2829.2,
+    2845.9,
+    2862.5,
+    2879.2,
+    2895.8,
+    2912.6
+  ]
+}

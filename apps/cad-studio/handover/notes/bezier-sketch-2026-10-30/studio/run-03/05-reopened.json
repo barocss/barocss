@@ -1,0 +1,78 @@
+{
+  "label": "05-reopened",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          0,
+          0
+        ],
+        "max": [
+          40,
+          30
+        ],
+        "sideTags": {
+          "outer": [
+            "e1",
+            "e2",
+            "e3",
+            "e4"
+          ]
+        },
+        "construction": [
+          {
+            "kind": "bezier",
+            "poles": [
+              [
+                0,
+                40
+              ],
+              [
+                10,
+                50
+              ],
+              [
+                20,
+                40
+              ]
+            ]
+          }
+        ],
+        "id": "n0"
+      }
+    ],
+    "outputs": {},
+    "nextId": 1
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 0,
+    "active": null,
+    "sketch": true,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": "SKETCH · Select · Z 0Under-defined · 2 DOF left — add dimensions or constraintsXYEdge1234ADD CONSTRAINTPick points and edges with Select (S) · Shift addsHHorizVVert∥Parallel⊥Perp=Equal◎Centre⌒Tangent⟷Sym⚓Fix↔DimensionCONSTRAINTS · 5Anchorpoint 1×Horizontaledge 1×Horizontaledge 3×Verticaledge 2×Verticaledge 4×Solverrank 6 · 2 DOFOFFSETmmOutInCURVESMake curves of the sketch",
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": "Under-defined · 2 DOF left — add dimensions or constraints",
+  "bezierInputs": [],
+  "history": []
+}

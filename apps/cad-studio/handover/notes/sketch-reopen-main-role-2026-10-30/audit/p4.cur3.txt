@@ -1,0 +1,56 @@
+== R1 cdist from rect corner to attached main circle, then Finish 
+  before finish shape=polygon circles=1 circleIds=["e1"] rules=[{"kind":"cdist","a":0,"circle":0,"value":30}] done=[]
+  node profile=circle r={"parameter":"R"} tags={"outer":["e1"],"regions":[["e2","e3","e4","e5"]]} regions=[4] holes=[] outline=- toasts []
+   reopens ok (circle) 2nd finish same=true  eval ok
+   after split+select: shape=polygon done=[circle["e1"]]
+   len0 edit ok
+   settle null
+== R2 cdist on attached main, Split rect edge, Select, edit len0 
+  before finish shape=polygon done=[circle["e1"]]
+  node profile=circle r={"parameter":"R"} tags={"outer":["e1"],"regions":[["e2","e6","e3","e4","e5"]]} regions=[5] holes=[] outline=- toasts []
+   reopens ok (circle) 2nd finish same=true  eval ok
+   editDim cdia1 circles [{"c":[0,0],"r":5},{"c":[60,0],"r":3}] ["e1","e6"]
+== R3 attach main (idx0) + 2nd circle (idx1), cdist point0→circle1, Split, Select STEP THREW Diameter of circle 2 = 45 would put circle 2 across the edge of the outline
+  before finish shape=polygon done=[circle["e6"] circle["e1"]]
+  node profile=circle r={"parameter":"R"} tags={"outer":["e1"],"regions":[["e6"],["e2","e3","e4","e5"]]} regions=[1,4] holes=[] outline=- toasts []
+   reopens ok (circle) 2nd finish same=true  eval ok
+== R4 polygon main + stored attached hole + circle region: click region circle 
+  before finish shape=polygon circles=2 circleIds=["e5","e6"] rules=[] done=[]
+  node profile=polygon r=undefined tags={"outer":["e1","e2","e3","e4"],"regions":[["e6"]],"holes":[["e5"]]} regions=[1] holes=[1] outline={"c":2,"rules":[]} toasts []
+   reopens ok (polygon) 2nd finish same=true  eval ok
+== R5 polygon main + 2 circle holes: click the 2nd hole 
+  before finish shape=polygon circles=1 circleIds=["e6"] rules=[] done=[circle["e5"]]
+  node profile=polygon r=undefined tags={"outer":["e1","e2","e3","e4"],"holes":[["e6"],["e5"]]} regions=[] holes=[1,1] outline={"c":1,"rules":[]} toasts []
+   reopens ok (polygon) 2nd finish same=true  eval ok
+== R6 out-of-step circleIds, click a hole circle 
+  before finish shape=polygon circles=2 circleIds=undefined rules=[] done=[]
+  node profile=polygon r=undefined tags={"outer":["e1","e2","e3","e4"],"holes":[["e5"],["e6"]]} regions=[] holes=[1,1] outline={"c":2,"rules":[]} toasts []
+   reopens ok (polygon) 2nd finish same=true  eval ok
+== R7 circle main: draw a new rectangle region, Finish 
+  before finish shape=rectangle done=[circle["e1"] polygon["e2","e3","e4","e5"]]
+  node profile=circle r={"parameter":"R"} tags={"outer":["e1"],"regions":[["e2","e3","e4","e5"],["e6","e7","e8","e9"]]} regions=[4,4] holes=[] outline=- toasts []
+   reopens ok (circle) 2nd finish same=true  eval ok
+== R7b circle main: draw a new circle inside the rect region (hole), Finish 
+  before finish shape=circle done=[circle["e1"] polygon["e2","e3","e4","e5"]]
+  node profile=circle r={"parameter":"R"} tags={"outer":["e1"],"regions":[["e2","e3","e4","e5"]],"holes":[["e6"]]} regions=[4] holes=[1] outline=- toasts []
+   reopens ok (circle) 2nd finish same=true  eval ok
+== R8 attach main, cdia 14, Undo 
+  before finish shape=polygon circles=1 circleIds=["e1"] rules=[] done=[]
+  node profile=circle r={"parameter":"R"} tags={"outer":["e1"],"regions":[["e2","e3","e4","e5"]]} regions=[4] holes=[] outline=- toasts []
+   reopens ok (circle) 2nd finish same=true  eval ok
+== R8b attach main, cdia 14 (kept) 
+  before finish shape=polygon circles=1 circleIds=["e1"] rules=[] done=[]
+  node profile=circle r=7 tags={"outer":["e1"],"regions":[["e2","e3","e4","e5"]]} regions=[4] holes=[] outline=- toasts ["Bindings became numbers: R: this value changed or its shape changed form, so it is now a plain number. Bind them again in the feature editor."]
+   reopens ok (circle) 2nd finish same=true  eval ok
+== R9 circle main, holes [rect, circle] 
+  before finish shape=polygon done=[circle["e6"] circle["e1"]]
+  node profile=circle r=20 tags={"outer":["e1"],"holes":[["e6"],["e2","e3","e4","e5"]]} regions=[] holes=[1,4] outline=- toasts []
+   reopens ok (circle) 2nd finish same=true  eval ok
+== R9b circle main, regions [rect, circle] 
+  before finish shape=polygon done=[circle["e6"] circle["e1"]]
+  node profile=circle r=5 tags={"outer":["e1"],"regions":[["e6"],["e2","e3","e4","e5"]]} regions=[1,4] holes=[] outline=- toasts []
+   reopens ok (circle) 2nd finish same=true  eval ok
+== R9c polygon main, holes [rect, circle] 
+  before finish shape=polygon done=[polygon["e5","e6","e7","e8"] circle["e9"]]
+  node profile=polygon r=undefined tags={"outer":["e1","e2","e3","e4"],"holes":[["e5","e6","e7","e8"],["e9"]]} regions=[] holes=[4,1] outline=- toasts []
+   reopens ok (polygon) 2nd finish same=true  eval ok

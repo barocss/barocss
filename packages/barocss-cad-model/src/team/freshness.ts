@@ -13,6 +13,7 @@ import type { BodyResult } from '../engine/evaluate';
 import type { Evaluate } from '../chat/tools';
 import { briefMaterial } from '../chat/brief';
 import { massProperties } from '../analysis/analysis';
+import { materialLooksDocOf, nestedMaterialLooks, withInstanceLooks } from '../assembly/looks';
 import { checkSpec, runCheck } from '../chat/spec';
 import type { Outcome, Query } from '../engine/schema/spec';
 import { runDrawingTool } from '../chat/drawing';
@@ -58,7 +59,9 @@ export interface Result {
 /** The authored evaluation inputs, including section/weld and catalogue rows, recursively for placed parts. */
 export function modelInput(doc: StudioDoc): string { const housing = bearingDependencyKey(resolveShopTree(doc)); return digestOf(housing === undefined ? modelContent(doc) : { model: modelContent(doc), housing }); }
 const ownMaterial = ([k, l]: [string, { material?: string }]) => [k, l.material ?? null] as const;
-const partMaterial = (i: NonNullable<StudioDoc['instances']>[number]) => [i.id, materialInput(i.doc)] as const;
+// (Roadmap 10 ①: an occurrence's own materials are an input of the result, as the part's are: its document read with them over it,
+// and the materials it sets for parts inside a sub-assembly. An occurrence with no look is digested as it was.)
+const partMaterial = (i: NonNullable<StudioDoc['instances']>[number]) => { const nested = nestedMaterialLooks(i); return nested.length ? [i.id, materialInput(materialLooksDocOf(i)), nested] as const : [i.id, materialInput(materialLooksDocOf(i))] as const; };
 /** The material: each body's own (only its `material`: never its colour, appearance or name), the brief's, each part's. */
 export function materialInput(doc: StudioDoc): string { return digestOf({ own: Object.entries(doc.bodies ?? {}).map(ownMaterial), brief: briefMaterial(doc) ?? null, parts: (doc.instances ?? []).map(partMaterial) }); }
 const INPUTS: Record<Exclude<InputName, 'requirement'>, (doc: StudioDoc) => string> = {
@@ -89,10 +92,11 @@ function faceSignatures(bodies: readonly BodyResult[]): Map<string, Signature> {
   for (const b of bodies) for (const [name, s] of signaturesOf(b).faces) all.set(name, s);
   return all;
 }
+// (Roadmap 10 ①: an occurrence's part as it is — its materials with the occurrence's own looks over them.)
 const partDoc = (doc: StudioDoc, part?: string) => {
   if (!part) return resolveShopTree(doc);
-  const child = doc.instances?.find(i => i.id === part)?.doc;
-  return child ? resolveShopTree(child, doc, part) : undefined;
+  const inst = doc.instances?.find(i => i.id === part);
+  return inst ? withInstanceLooks(resolveShopTree(inst.doc, doc, part), inst) : undefined;
 };
 
 /** A result stamped with what it read. */

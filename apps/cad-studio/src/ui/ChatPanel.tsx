@@ -46,6 +46,10 @@ export interface ChatPanelProps {
   /** CG6: the project's version log for a turn (storage/useProject: its index and the documents the turn needs), and the turn's brought back. */
   versions?: { turn(): import('@barocss/cad-model/versions/log').VersionLog | null; back(log: import('@barocss/cad-model/versions/log').VersionLog, wanted: readonly string[]): void };
   onOutboxSent?(id: number): void;
+  /** The document a turn runs on (an edited part, roadmap 10 ⑧, is another from the assembly): a turn that ends on a different one is dropped, not merged. */
+  scope?: object | null;
+  /** Whether a turn is running (the studio does not swap the document under one). */
+  onRunning?(running: boolean): void;
   /** The document's proposals, for a `propose` call's linked card (O17), and how they are decided (as the Proposals list). */
   proposals?: readonly Proposal[];
   proposalStale?(p: Proposal): boolean;
@@ -61,6 +65,7 @@ const brief = (input: unknown) => {
 
 export function ChatPanel(props: ChatPanelProps) {
   const chat = useStudioChat(props), { status, autonomy, messages, running } = chat;
+  useEffect(() => { props.onRunning?.(running); return () => props.onRunning?.(false); }, [running]);
   const [text, setText] = useState('');
   /** Images attached to the next message. */
   const [images, setImages] = useState<ChatImage[]>([]);

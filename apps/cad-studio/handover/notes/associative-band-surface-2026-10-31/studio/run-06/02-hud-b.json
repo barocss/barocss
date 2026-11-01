@@ -1,0 +1,109 @@
+{
+  "label": "02-hud-b",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {
+      "R": 20
+    },
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "circle",
+        "center": [
+          0,
+          0
+        ],
+        "radius": {
+          "parameter": "R"
+        },
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 10,
+        "id": "n1"
+      },
+      {
+        "kind": "sketch",
+        "profile": "circle",
+        "center": [
+          0,
+          0
+        ],
+        "radius": 10,
+        "id": "n2"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 2,
+        "height": 10,
+        "from": 40,
+        "id": "n3"
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      },
+      "b3": {
+        "node": 3,
+        "side": "solid"
+      }
+    },
+    "nextId": 4
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b1",
+        "volume": 12566.370614359166,
+        "centroid": [
+          6.44592415443273e-16,
+          7.254840191936093e-16,
+          5
+        ],
+        "massRef": null
+      },
+      {
+        "key": "b3",
+        "volume": 3141.5926535897916,
+        "centroid": [
+          3.222962077216365e-16,
+          3.6274200959680465e-16,
+          45
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [
+        {
+          "body": 0,
+          "face": 2
+        }
+      ],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 2,
+    "active": "band-surface",
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": null,
+  "hud": "Band surfacepreviewcheck_circleA2 edges on b1 (closed)check_circleB2 edges on b3 (closed)check_circlePairing2↔2 edges, paired when it is builtFlipNoYesChainTangent chainSingle edgeCancelApply",
+  "sketchAlert": null,
+  "sketchStatus": null,
+  "history": []
+}

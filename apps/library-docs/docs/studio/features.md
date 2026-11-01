@@ -59,6 +59,7 @@ or side-face relief and text wrap remain unsupported. See [Text relief](/how/tex
 In **Loft**, **Guide (copied)** selects one polynomial direct curve. A general B-spline guide (degree 1–5) takes
 2–8 ruled sections on parallel planes and must pass through a vertex of each section. The guide is copied; later
 curve edits do not update the loft. A single quadratic or cubic Bézier span keeps the two-frame path.
+A section sketch with parameter-bound sizes is copied at the parameters' values then (the Sizes step lists them, as "Copied at W = 40"): later parameter changes do not update the loft.
 See [Lofts and guides](/how/loft-sweep#one-polynomial-guide-on-height-sections) for the input rules and limits.
 
 ## Route bundles
@@ -115,8 +116,8 @@ fastener sizes you have loaded; without them they are refused with `[FASTENER_SI
 
 | Command | What it does |
 |---|---|
-| **Fillet** (<kbd>Shift</kbd> <kbd>F</kbd>), **Chamfer** (<kbd>C</kbd>) | Round or bevel the picked edges; a picked face takes all its edges |
-| **Face fillet** | Round between two picked faces. Meeting polynomial Bezier sides of a guided loft can use the rolling ball; unsupported free-form pairs are refused. See [Face fillets](/how/fillets) |
+| **Fillet** (<kbd>Shift</kbd> <kbd>F</kbd>) | One entry with Edge, Face and Full round types |
+| **Chamfer** (<kbd>C</kbd>) | Bevel the picked edges; a picked face takes all its edges |
 | **Shell** | Hollows a body, leaving the picked faces open |
 | **Draft** | Tapers the picked side faces for a pull along Z |
 | **Offset face** | Moves a flat face along its normal, adding or taking off material |
@@ -124,6 +125,21 @@ fastener sizes you have loaded; without them they are refused with `[FASTENER_SI
 | **Move** (<kbd>G</kbd>), **Rotate** (<kbd>R</kbd>), **Scale**, **Align** (<kbd>A</kbd>) | Place a body: by the gizmo, by typed values, or by putting one face on another |
 | **Hollow for printing**, **Fill with a lattice**, **Split to fit the bed** | Prepare a part for 3D printing |
 | **Simplify mesh** | Fewer triangles on a mesh body, such as an STL or a scan |
+
+### Fillet types
+
+Wait for the part to finish updating, choose **Fillet**, then choose **Type** and pick the required edges or faces.
+
+- **Edge** rounds picked edges; a picked face takes all its edges. **Radius mode** is **Constant** or **Varying**;
+  varying mode also shows the end radius. The existing circular, conic and G2 section choices remain.
+- **Face** rounds between two picked faces. Meeting polynomial Bezier sides of a guided loft can use the rolling ball;
+  unsupported free-form pairs are refused. See [Face fillets](/how/fillets).
+- **Full round** rounds the flat top of a rib or wall. It retains the existing Along choice and geometry limits.
+
+Changing Type replaces the unapplied preview and keeps only a selection valid for the new type. Set the values after
+choosing the type. Apply remains unavailable until the current type has valid input. When editing an existing feature,
+its Type stays fixed. Palette searches for **Face fillet** or **Full round** open the same Fillet interface with that type
+chosen; the existing search words and shortcuts remain available.
 
 ### Cylindrical wrap
 
@@ -202,6 +218,22 @@ says (see [Shop rows](/studio/rows)):
 
 **Frame**, **Structural member**, **Gusset** and **End cap** build welded frames. See
 [Frames and weldments](/studio/frames).
+
+### Band surface
+
+**Band surface** joins two edge chains of two bodies with an exact ruled sheet that stays in step with them. Select
+the first chain (its edges, or a face for all its edges), choose **Band surface**, then click the second chain; both
+chains are open or both closed. Chains follow tangent edges by default (set **Chain** to **Single edge** to turn that off);
+clicking an edge again removes it. Unequal edge counts are paired by normalized length. **Flip** runs the second chain
+the other way. In the History edit, **Re-pick** replaces one side with your next clicks (a body made at or after the
+band cannot be picked: roll back first). The band's bodies stay bodies, and the sheet reports its boundary deviation
+from the source edges.
+
+The band stores the edges' persistent names and never follows a renamed edge on its own: a lost or moved edge refuses
+the edit with the reason, a saved file that no longer has one opens with the band held (its reason shown) while the
+rest builds, and only your explicit choice in the reference decisions names another edge. A band cannot be placed in
+an assembly or a library part yet, and STEP export leaves the band sheet out and says so (the facade's STEP call refuses instead). Band thickening waits on exact thicken and is refused until then; a raw
+`band-surface` node is accepted through the checked `add_features`, with no chat command or facade verb yet.
 
 ### SubD and the cage editor
 

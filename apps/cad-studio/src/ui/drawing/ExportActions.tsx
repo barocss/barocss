@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
 
 type Sheet = ReturnType<typeof useDrawingSheet>;
-export function ExportActions({ sheet, layout, views, cuts, settings, dxfVersion, setDxfVersion, dxfCut, setDxfSection, exportSvg, exportPdf, exportDxf, exportSectionDxf }: {
+export function ExportActions({ sheets = 1, sheet, layout, views, cuts, settings, dxfVersion, setDxfVersion, dxfCut, setDxfSection, exportSvg, exportPdf, exportDxf, exportSectionDxf }: {
+  /** 11 ④: how many sheets the drawing has (the PDF has them all; the SVG and the DXF are of the sheet shown). */ sheets?: number;
   sheet: Sheet['sheet']; layout: Sheet['layout']; views: Sheet['views']; cuts: Sheet['cuts']; settings: DrawingSettings;
   dxfVersion: DxfVersion; setDxfVersion(v: DxfVersion): void; dxfCut: Sheet['cuts'][number] | undefined; setDxfSection(id: string): void;
   exportSvg(): void; exportPdf(): void; exportDxf(): void; exportSectionDxf(): void;
@@ -18,7 +19,7 @@ export function ExportActions({ sheet, layout, views, cuts, settings, dxfVersion
         <div className="card-title" style={{ marginTop: 8 }}>EXPORT</div>
         <div className="dw-actions">
           <Button variant="default" disabled={!sheet} onClick={exportSvg} aria-label="Export SVG"><Icon name="download" small /> SVG</Button>
-          <Button variant="ghost" disabled={!sheet} onClick={exportPdf} aria-label="Export PDF">PDF</Button>
+          <Button variant="ghost" disabled={!sheet} onClick={exportPdf} aria-label="Export PDF" title={sheets > 1 ? `All ${sheets} sheets, one page each` : undefined}>PDF</Button>
           <Button variant="ghost" disabled={!sheet} onClick={exportDxf} aria-label="Export DXF" title="The sheet as DXF, at true size in mm, layers by line kind">DXF</Button>
           <NativeSelect className={CONTROL} aria-label="DXF version" value={dxfVersion} onChange={e => setDxfVersion(e.target.value as DxfVersion)} title="DXF 2000, or R12 for older programs (curves as polylines)">
             <option value="AC1015">2000</option><option value="AC1009">R12</option>

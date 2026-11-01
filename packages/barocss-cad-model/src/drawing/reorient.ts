@@ -104,7 +104,16 @@ export function reorient(from: DrawingViews, to: DrawingViews, settings: Drawing
   });
   if (settings.notes) turned.notes = settings.notes.map(n => n.leader ? { ...n, leader: (([view, at]) => ({ view, at }))(mapPlace(n.leader.view, n.leader.at)) } : n);
   if (settings.datums) turned.datums = settings.datums.map(d => { const [view, place] = mapPlace(d.view, d.place); return { ...d, view, place }; });
-  if (settings.datumTargets) turned.datumTargets = settings.datumTargets.map(d => { const [view, place] = mapPlace(d.view, d.place); return { ...d, view, place }; });
+  if (settings.datumTargets) turned.datumTargets = settings.datumTargets.map((d): typeof d => {
+    const [view, place] = mapPlace(d.view, d.place), m = map.get(d.view);
+    // A line's ends and an area's centre are view points: they turn as the symbol's place does; a rectangle's width and height swap with the axes.
+    if (d.kind === 'line') return { ...d, view, place, line: { from: mapPlace(d.view, d.line.from)[1], to: mapPlace(d.view, d.line.to)[1] } };
+    if (d.kind === 'area') {
+      const at = mapPlace(d.view, d.area.at)[1];
+      return { ...d, view, place, area: d.area.shape === 'circle' ? { ...d.area, at } : m?.swaps ? { shape: 'rect' as const, at, w: d.area.h, h: d.area.w } : { ...d.area, at } };
+    }
+    return { ...d, view, place };
+  });
   if (settings.frames) turned.frames = settings.frames.map(f => {
     if (f.dim !== undefined) return f;
     const ownView = f.view;

@@ -5,6 +5,9 @@ import type { LoopSegment as DocSegment, SketchNode, SketchOutline } from '../en
 import { outlineSegments, sampleOutline, sampleSlot, slotSegments, type P2 } from './profile';
 import { segmentDistance as segDist, insideRing as inside } from '../engine/geom2';
 import { sideTagsFor, withIds } from './entityIds';
+import { splineMatches } from './spline';
+import { ellipseMatches } from './ellipse';
+import { bezierSamples, wellFormedBezier } from './bezier';
 
 export function isConvex(points: [number, number][]) {
   let sign = 0; const n = points.length;
@@ -21,6 +24,7 @@ export function shapeNode(s: SketchShape): SketchNode | null {
   if (s.kind === 'rectangle') return Math.abs(s.a[0] - s.b[0]) < 1 || Math.abs(s.a[1] - s.b[1]) < 1 ? null
     : { kind: 'sketch', profile: 'rectangle', min: [Math.min(s.a[0], s.b[0]), Math.min(s.a[1], s.b[1])], max: [Math.max(s.a[0], s.b[0]), Math.max(s.a[1], s.b[1])] };
   if (s.kind === 'circle') return { kind: 'sketch', profile: 'circle', center: s.c, radius: s.r };
+  if (s.kind === 'bezier') return null;
   if (s.kind === 'slot') return s.r > 0 && (s.a[0] !== s.b[0] || s.a[1] !== s.b[1]) ? { kind: 'sketch', profile: 'loop', segments: slotSegments(s.a, s.b, s.r) } : null;
   if (!s.closed || s.pending) return null;
   const rect = rectangleNode(s); if (rect) return rect;
@@ -50,17 +54,20 @@ export function rectangleNode(s: Extract<SketchShape, { kind: 'polygon' }>): Ske
   return { kind: 'sketch', profile: 'rectangle', min: [Math.min(...xs), Math.min(...ys)], max: [Math.max(...xs), Math.max(...ys)] };
 }
 
-/** A constrained outline as the sketch node keeps it (null when nothing constrains it). */
+/** A constrained outline as the sketch node keeps it (null when nothing constrains it and it is no spline or ellipse); a spline's or ellipse's definition only while it still matches. */
 export function outlineOf(s: Extract<SketchShape, { kind: 'polygon' }>): SketchOutline | null {
   const { points, bulges, lengths, radii, tangents, equalRadii, concentric, hv, rules, circles } = s;
   const has = (v: unknown) => Array.isArray(v) ? v.length > 0 : !!v && Object.keys(v).length > 0;
-  if (![lengths, radii, tangents, equalRadii, concentric, rules, circles].some(has) && !(hv && (hv.h.length || hv.v.length))) return null;
+  const spline = s.spline && splineMatches(s) ? s.spline : undefined, ellipse = s.ellipse && ellipseMatches(s) ? s.ellipse : undefined;
+  if (!spline && !ellipse && ![lengths, radii, tangents, equalRadii, concentric, rules, circles].some(has) && !(hv && (hv.h.length || hv.v.length))) return null;
   const out: SketchOutline = { points: points.map(p => [p[0], p[1]] as [number, number]) };
   if (bulges?.some(Boolean)) out.bulges = [...bulges];
   if (has(lengths)) out.lengths = { ...lengths }; if (has(radii)) out.radii = { ...radii }; if (has(tangents)) out.tangents = [...tangents!];
   if (has(equalRadii)) out.equalRadii = equalRadii!.map(p => [...p] as [number, number]); if (has(concentric)) out.concentric = concentric!.map(p => [...p] as [number, number]);
   if (hv) out.hv = { h: [...hv.h], v: [...hv.v] }; if (has(rules)) out.rules = rules!.map(r => ({ ...r }));
   if (has(circles)) out.circles = circles!.map(c => ({ c: [c.c[0], c.c[1]], r: c.r }));
+  if (spline) out.spline = { fit: spline.fit.map(p => [p[0], p[1]] as [number, number]), closed: spline.closed, ...(spline.handles ? { handles: [...spline.handles] } : {}) };
+  if (ellipse) out.ellipse = { center: [ellipse.center[0], ellipse.center[1]], rx: ellipse.rx, ry: ellipse.ry, angle: ellipse.angle };
   return out;
 }
 
@@ -110,6 +117,7 @@ export function shapeOutline(s: SketchShape): P2[] {
   if (s.kind === 'rectangle') return [s.a, [s.b[0], s.a[1]], s.b, [s.a[0], s.b[1]]];
   if (s.kind === 'circle') return Array.from({ length: 48 }, (_, i) => [s.c[0] + s.r * Math.cos(i * Math.PI / 24), s.c[1] + s.r * Math.sin(i * Math.PI / 24)] as P2);
   if (s.kind === 'slot') return sampleSlot(s.a, s.b, s.r);
+  if (s.kind === 'bezier') return wellFormedBezier(s) ? bezierSamples(s.poles) : [];
   return sampleOutline(s.points as P2[], s.bulges, true);
 }
 
@@ -121,6 +129,7 @@ export function loopOf(n: SketchNode): DocSegment[] {
     case 'circle': { const c = num(n.center), r = Number(n.radius); return [{ kind: 'arc', start: [c[0] + r, c[1]], center: c, direction: 'ccw' }]; }
     case 'polygon': return n.points.map(p => ({ kind: 'line', start: num(p) }));
     case 'loop': return n.segments;
+    case 'band': throw new Error('a band sketch must be resolved first (bandProfile)');
   }
 }
 
@@ -131,7 +140,7 @@ export function loopOf(n: SketchNode): DocSegment[] {
  */
 export function profileOf(all: SketchShape[]): { node: SketchNode } | { error: string } {
   // (Construction shapes are references: they make no part of the profile. Every side has its id, R10a.)
-  let shapes = withIds(all).filter(s => !s.construction);
+  let shapes = withIds(all).filter(s => !s.construction && s.kind !== 'bezier');
   // An outline's attached circles are shapes of the profile beside it (holes inside it, regions outside).
   shapes = shapes.flatMap(s => s.kind === 'polygon' && s.closed && s.circles?.length ? [s, ...s.circles.map((c, i): SketchShape => ({ kind: 'circle', c: c.c, r: c.r, ...(s.circleIds?.[i] ? { ids: [s.circleIds[i]] } : {}) }))] : [s]);
   const closed = shapes.map(s => ({ s, node: shapeNode(s) })).filter((x): x is { s: SketchShape; node: SketchNode } => !!x.node);

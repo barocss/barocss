@@ -1,0 +1,193 @@
+{
+  "decision": "D416",
+  "date": "2026-11-01",
+  "tier": "feature",
+  "status": "BOUNDED_PASS",
+  "base": "a022b95bec9bcd188e68132594a7e3ab53582542",
+  "models": {
+    "geometry_and_math": "GPT-6.1 Sol High",
+    "general_tests_and_actual": "GPT-6.1 Sol Medium",
+    "independent_source_and_visual_audit": "GPT-6.1 Sol High; one audit with targeted corrections"
+  },
+  "scope": "Private late linear-label placement and issue checks; no public API, schema, dependency or B-rep algorithm changes.",
+  "pass": {
+    "focused_unique": 104,
+    "focused_breakdown": {
+      "high": 61,
+      "general_model": 32,
+      "kernel_dxf": 11
+    },
+    "model_types_after_final_test_edit": true,
+    "studio_types": true,
+    "owned_lint_syntax_diff": true,
+    "api": {
+      "status": "SCOPED_PASS",
+      "drift": 0,
+      "issues": 0
+    },
+    "docs": {
+      "pages": 68,
+      "shots": 55,
+      "labels": 940
+    },
+    "independent_reader": {
+      "profiles": 12,
+      "files": 24,
+      "dimensions": 144,
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    "final_actual": {
+      "run": "run04",
+      "profiles": [
+        "ASME dual mm",
+        "ASME dual inch"
+      ],
+      "full_scene_dimensions": 6,
+      "obstacles_per_profile": 81,
+      "other_dimension_primitives": 26,
+      "collisions": 0,
+      "original_own_lines": 3,
+      "derived_connectors": 1,
+      "frozen_files": 749,
+      "source_changes": 0,
+      "errors": 0,
+      "console_errors": 0,
+      "downloads": 0,
+      "original_document": "EXACT_UNCHANGED",
+      "root_visual": "PASS",
+      "independent_visual": "PASS",
+      "cap_aware_bound_gap": 0.6660336,
+      "gap_unit": "paper mm"
+    },
+    "retained_reduced_actual": {
+      "run": "run02",
+      "profiles": 12,
+      "observations_with_undo_redo": 14,
+      "captures": 8,
+      "scope": "one dimension, not full annotation scene"
+    }
+  },
+  "fail_retained": [
+    "Original nondual plain/ISO arrow intersections in 4 profiles; 8 controls were arrow-clear only, not full readability controls.",
+    "run01 automated arrow checks PASS, root visual FAIL: extension crossings; source-owned defect.",
+    "Initial feature baseline 29 PASS / 3 FAIL before intentional position rebaseline; High fixture/type/unsafe-placement failures preserved.",
+    "run03 full six-dimension clearance PASS, visual association NOT_ACCEPTED: detached d2 label ambiguous with d1/RIGHT. Corrected by screened connector, not recast as accepted."
+  ],
+  "policy": {
+    "candidates": 3,
+    "candidate_clearance": 1.2,
+    "connector_model_gap": 1,
+    "incident_terminal_exception": 0.5,
+    "units": "paper mm",
+    "fallback": "Retain original and existing TEXT_OVER_LINES/OFF_SHEET issue when no safe supported candidate exists.",
+    "fixed_geometry": "All original lines, arrows, numeric/resolved values, body and physical datum remain unchanged; attached basic/frame payload moves atomically."
+  },
+  "goldens": {
+    "standard_changed_keys": 8,
+    "standard_unchanged_keys": 1,
+    "units_changed_keys": 8,
+    "units_unchanged_keys": 10,
+    "delta": "Changed SVGs only three text positions; DXFs four position fields. Six existing plate assets: d2 three TEXT x values and DIMENSION textAt x +8.025 from base; no original geometry changes. Oracle indentation restored; unrelated hatch summary retained.",
+    "connector_comparison": "Against preconnector feature: 20 DXFs byte-identical; four ASME dual DXFs append exactly one LINE in *D2, 6 to 7 entities. Intrinsic handles/owners excluded from semantic comparison."
+  },
+  "not_run": [
+    "General collision-free layout / exact glyph ink / standards certification",
+    "Global optimal or elbow routing / performance benchmark",
+    "Actual Undo/Redo in run04 (retained reduced run02 scope only)",
+    "Actual outbound export download / Save / external editable regeneration",
+    "Broad baseline / kernel B-rep core suite / mutation (feature tier, no B-rep/public API change)",
+    "Samples and generated tools/refusals (inputs unchanged)",
+    "CI / release / develop integration"
+  ],
+  "limits": [
+    "Only linear labels; circle/radius/PCD/angle placement unchanged.",
+    "Inline gaps, unsupported decoration, zero outward vector and no-room cases may retain original with existing issues.",
+    "No-safe means no safe option among three bounded straight candidates, not global impossibility.",
+    "Actual SVG getBBox bounds and round caps, not glyph ink; observed 0.6660336 gap is not assumed model gap 1.",
+    "Nine reversed endpoint pairs match exactly; 18 diagnostic cases overlap focused counts, not extra tests."
+  ],
+  "commands": [
+    "D416 final FEATURE verification, GPT-6.1 Sol Medium (general tools/Studio); Sol High owns Model placement/math.",
+    "Worktree /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+    "PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH",
+    "Heavy runs serial gate.sh acquire heavy 30 LABEL; trap gate.sh release EXIT. No new downloads.",
+    "",
+    "Fresh final producer and independent check:",
+    "node /tmp/barocss-d416-final/build.mjs",
+    "node /tmp/barocss-d416-final/producer.mjs /tmp/barocss-d416-final",
+    "PYTHONDONTWRITEBYTECODE=1 /opt/homebrew/bin/python3 -I -B /tmp/barocss-d416-final/check.py",
+    "PYTHONDONTWRITEBYTECODE=1 /Users/user/.cache/barocss-ezdxf/bin/python -I -B /tmp/barocss-d416-final/read.py",
+    "",
+    "Position-golden inspection (HEAD sources intercepted in memory, then current sources; captured whole SVG/DXF/resolved JSON):",
+    "node /tmp/barocss-d416-final/capture-goldens.mjs",
+    "python3 /tmp/barocss-d416-final/inspect-goldens.py",
+    "",
+    "Fresh oracles (raw outputs preserved):",
+    "PYTHONDONTWRITEBYTECODE=1 /Users/user/.cache/barocss-ezdxf/bin/python -I -B packages/barocss-cad/scripts/dxf-oracle.py /tmp/barocss-d416-final/plain-mm-single-AC1015.dxf",
+    "PYTHONDONTWRITEBYTECODE=1 /Users/user/.cache/barocss-ezdxf/bin/python -I -B packages/barocss-cad/scripts/dxf-oracle.py /tmp/barocss-d416-final/plain-mm-single-AC1009.dxf",
+    "",
+    "Affected checks (once before rebaseline29PASS/3FAIL, once after32PASS):",
+    "pnpm --filter @barocss/cad-model test dxf.test drawing-standard drawing-units-golden drawing-issues drawing-composite-issues",
+    "node --test packages/barocss-cad/test/dxf-writer.test.mjs",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad-model/test/drawing-standard.test.ts packages/barocss-cad-model/test/drawing-units-golden.test.ts",
+    "node --check apps/cad-studio/test/drawing-linear-clearance-browser.mjs",
+    "git diff --check",
+    "",
+    "Final actual (gate d416-actual-run02; final source frozen):",
+    "PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' DRAWING_LINEAR_CLEARANCE_SOURCE_FROZEN=1 node apps/cad-studio/test/drawing-linear-clearance-browser.mjs /tmp/barocss-d416-browser-run02 /tmp/barocss-d416-after/native.bcad",
+    "",
+    "45 High-focused tests/types/lint retained, not rerun by Medium. Exact owning commands in High/root capsule.",
+    "Raw command output logs /tmp/barocss-d416-final/*.log, actual /tmp/barocss-d416-browser-run02.log + receipt.json.",
+    "Original small-tier/arrow-only commands and evidence remain /tmp/barocss-d416-capsule, assessment, before, after, browser-run01. Those do not represent final feature acceptance.",
+    "",
+    "Remaining full-plate fixture (exact plateDrawing() function from final source-backed producer, 6 dimensions + note/section):",
+    "node /tmp/barocss-d416-full/build.mjs",
+    "node /tmp/barocss-d416-full/producer.mjs",
+    "",
+    "Remaining full-plate actual (gate d416-actual-run03; no repeat reduced12 states/UndoRedo):",
+    "PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' DRAWING_LINEAR_CLEARANCE_SOURCE_FROZEN=1 LINEAR_CLEARANCE_FULL_ONLY=1 node apps/cad-studio/test/drawing-linear-clearance-browser.mjs /tmp/barocss-d416-browser-run03 /tmp/barocss-d416-full/native.bcad",
+    "",
+    "Final connector source refresh (gate d416-connected-final / d416-connected-general):",
+    "node /tmp/barocss-d416-connected/build.mjs",
+    "node /tmp/barocss-d416-connected/producer.mjs /tmp/barocss-d416-connected",
+    "PYTHONDONTWRITEBYTECODE=1 /opt/homebrew/bin/python3 -I -B /tmp/barocss-d416-connected/check.py",
+    "PYTHONDONTWRITEBYTECODE=1 /Users/user/.cache/barocss-ezdxf/bin/python -I -B /tmp/barocss-d416-connected/read.py",
+    "PYTHONDONTWRITEBYTECODE=1 /Users/user/.cache/barocss-ezdxf/bin/python -I -B /tmp/barocss-d416-connected/compare-reader.py",
+    "pnpm --filter @barocss/cad-model test dxf.test drawing-standard drawing-units-golden drawing-issues drawing-composite-issues",
+    "node --test packages/barocss-cad/test/dxf-writer.test.mjs",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "node --check apps/cad-studio/test/drawing-linear-clearance-browser.mjs",
+    "git diff --check",
+    "High owns post-final-test Model tsc/lint (retained PASS after two late reversal tests); no broad61 rerun.",
+    "",
+    "Final connected full-plate actual (gate d416-actual-run04):",
+    "PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' DRAWING_LINEAR_CLEARANCE_SOURCE_FROZEN=1 LINEAR_CLEARANCE_FULL_ONLY=1 LINEAR_CLEARANCE_ORIGINAL_SVGS=/tmp/barocss-d416-browser-run03 node apps/cad-studio/test/drawing-linear-clearance-browser.mjs /tmp/barocss-d416-browser-run04 /tmp/barocss-d416-full/native.bcad",
+    "node packages/barocss-cad-model/scripts/test.mjs drawing-linear-clearance",
+    "node node_modules/typescript/bin/tsc --noEmit -p packages/barocss-cad-model",
+    "node node_modules/eslint/bin/eslint.js packages/barocss-cad-model/src/drawing/sheet.ts packages/barocss-cad-model/src/drawing/issues.ts packages/barocss-cad-model/test/drawing-linear-clearance.test.ts"
+  ],
+  "evidence_roots": [
+    "/tmp/barocss-d416-capsule",
+    "/tmp/barocss-d416-feature-capsule",
+    "/tmp/barocss-d416-connector-prep",
+    "/tmp/barocss-d416-connector-proof",
+    "/tmp/barocss-d416-connected",
+    "/tmp/barocss-d416-browser-run01",
+    "/tmp/barocss-d416-browser-run02",
+    "/tmp/barocss-d416-browser-run03",
+    "/tmp/barocss-d416-browser-run04"
+  ],
+  "issues": {
+    "540": "OPEN; incomplete backlog epic, scoped evidence comment after push"
+  },
+  "resources": {
+    "active_task_processes": 0,
+    "heavy_gate": "released",
+    "downloads": 0,
+    "ocp": "removed; not recreated",
+    "cached_ezdxf": "existing 1.4.5 preserved; Python -I -B"
+  }
+}

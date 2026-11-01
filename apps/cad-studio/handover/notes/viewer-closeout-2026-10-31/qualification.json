@@ -1,0 +1,34 @@
+{
+  "decision": "D375",
+  "roadmap": "05 Viewer product close-out and next review hand-over (row close-out, owner order 'Go to 01–06')",
+  "tier": "small (close-out: focused checks + one actual app flow)",
+  "status": "CLOSED",
+  "commit": "c75ad18b5",
+  "checks": {
+    "viewerTypes": "PASS (packages/barocss-viewer tsc --noEmit)",
+    "viewerUnit": "62/62 (non-browser tests)",
+    "viewerBrowser": "3/3 actual WebGPU: draw/pick/select/resize/clear; D319 active-Geometry lifetime (with VIEWER_D319_ARTIFACT_DIR; the first attempt failed only because that variable was missing); native lights/UV01/appearance",
+    "appTypes": "PASS (apps/cad-viewer tsc --noEmit)",
+    "appUnit": "133/133 (assembly, reviews, IGES review, close controller, inspection distance, keyboard, PNG export overlay, startup, …)",
+    "appBuild": "server.mjs --check PASS (source React/shadcn app, 600 inputs)"
+  },
+  "actualApp": {
+    "browser": "built-in browser pane, WebGPU available",
+    "steps": [
+      "start: 'Starting Viewer…' → Ready",
+      "Assembly sample → Choose instances (4 of 6) → Load: 'Assembly opened … 4 visible · 4 loaded · mm'",
+      "select instance surface_grandchild: highlighted; Selection shows type, parent, path parent/child/surface_grandchild, assembly, part document",
+      "saved view 'Check view' added (1/8)",
+      "native point inspection u=0.5 v=0.5: part-local and assembly XYZ shown",
+      "Close CAD file: 'Document closed. Ready', no dialog left",
+      "console errors: none"
+    ]
+  },
+  "limits": [
+    "PNG export (normal and with distance) was not run in the app UI (it downloads a file); it is covered by the png-export-overlay unit test",
+    "Limited IGES review, driver bytes/OOM and device-loss recovery stay outside this close-out (as the row says); stopped packaging/config/hook work is not resumed",
+    "No separate screenshot evidence committed (repo guard); the check was observed in the built-in browser pane"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

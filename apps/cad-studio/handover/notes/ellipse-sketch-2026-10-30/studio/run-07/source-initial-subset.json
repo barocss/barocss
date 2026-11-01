@@ -1,0 +1,27 @@
+{
+  "count": 22,
+  "hashes": {
+    "apps/cad-studio/src/App.tsx": "8017a9f6d4f9fd48c039759a9c58b970fdefc01c1f3e74dc0db6fa33d387b7b9",
+    "apps/cad-studio/src/app/sketchControls.ts": "cf9fd5ded42845328133fb7af6af6a0fb3261b3167cda9dd2c35e6283b946e8b",
+    "apps/cad-studio/src/sketch/useSketchActions.ts": "c9f4fbaee28ded3b59fe14569689e326463b43b497966edf52f29e0e59a6e59c",
+    "apps/cad-studio/src/ui/Hud.tsx": "777545d109ae7482f64128ccdec0f53ba8627f8a06f750a5d672f0704734c2a7",
+    "apps/cad-studio/src/ui/NodeEditor.tsx": "25d592886d4829b0d2140a842d8e19251b28f407059dd4d6d5370928c482d459",
+    "apps/cad-studio/src/ui/SketchPanel.tsx": "9eb8b014d86d67cb9d835e9ce77b949f5456fba7d39f12336b2a50d3a7f766e4",
+    "apps/cad-studio/src/viewport/Viewport.tsx": "5af6e686a2a9e9ef8694eb15c44b386eec97f2ea82e11e47523985b60c18e870",
+    "apps/cad-studio/src/viewport/ellipseDraft.ts": "82536dd39ca9b2a64ad6dbdad679fe0ea21f3f66f6a02a75b6436271701d4816",
+    "apps/cad-studio/test/ellipse-sketch-browser.mjs": "dc80adea589f8eed63b9a6e0faa8df00f2db55b3c09f605c2a49e54115b6d1ba",
+    "apps/cad-studio/test/sketch-ellipse-studio.test.ts": "683f18f9efea9749e51917fbeb6450c3b73e83cae79678616fd891aca1cd96e6",
+    "packages/barocss-cad-model/src/engine/curveSource.ts": "f94037163a63d056216d582174ab539622d0cedc3366c9f320a18bbacc07c317",
+    "packages/barocss-cad-model/src/engine/direct.ts": "a0c19c96a444d091f5b5542510d10cf5a7f40624589969975e162ed8825c8ec6",
+    "packages/barocss-cad-model/src/engine/doc.ts": "20ff4f162c9a74d67fc2fa2bbb4cebb8f0ed32481240b77c9d1b22a28971c641",
+    "packages/barocss-cad-model/src/sketch/ellipse.ts": "dc800f41149cc0008fee49c460f581978abfbca5d1da376b9730bc75ea66a615",
+    "packages/barocss-cad-model/src/sketch/entityIds.ts": "3d93cf0b394939cffbc0385acf674ae9624808dee26667ba9d519c254ad0325b",
+    "packages/barocss-cad-model/src/sketch/loops.ts": "723f7f7dce3cd7af9292c3877620fb10cc9f07cb89731c7716e9face7a689078",
+    "packages/barocss-cad-model/src/sketch/profile.ts": "25c9b0ac1aa52470df3d25b82561c7be35133557f3d2f3f401be72d5cf4d0b21",
+    "packages/barocss-cad-model/src/sketch/reopen.ts": "2b14fba020b2930afe922932fa2d445b68a7ca4fc29b5ab40cac6c42f49ad436",
+    "packages/barocss-cad-model/src/sketch/settle.ts": "746d341a85dbb4b8fdf4c84c2ec17f29eb094bc0462a049c3c6e8984955fb339",
+    "packages/barocss-cad-model/src/sketch/spline.ts": "7de17eb3378e4a302ebaf06e7cfdd51c1a66aafa9a118bbafe28bd3eaff554ae",
+    "packages/barocss-cad-model/src/sketch/types.ts": "85093d417cb0760b21565706faf66d1340e252d197349295535536b2a422eb0d",
+    "packages/barocss-cad-model/test/sketch-ellipse.test.ts": "94f1a35750a5d2d4e2af48d6763354141ca2f31fd29e859e8f0a3ed01e5bd967"
+  }
+}

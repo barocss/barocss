@@ -1,0 +1,67 @@
+a coaxial 2|2 report {"pairs":2,"pairing":"pieces","pieces":[2,2],"dev":3.552713678800501e-15}
+{"label":"a coaxial 2|2","valid":true,"patches":2,"onA":1.68e-14,"onB":1.26e-14,"coll":7.94e-15,"between":0,"c0":4.9e-15,"covA":1.03e-7,"covB":1.03e-7,"pairGap":5.55e-17,"minRuling":31.62,"area":2980.37647974,"areaRel":1.17e-13}
+a coaxial 1|1 report {"pairs":1,"pairing":"pieces","pieces":[1,1],"dev":3.552713678800501e-15}
+{"label":"a coaxial 1|1","valid":true,"patches":1,"onA":3.28e-14,"onB":1.68e-14,"coll":3.79e-15,"between":0,"c0":4.9e-15,"covA":4.14e-7,"covB":4.14e-7,"pairGap":0,"minRuling":31.62,"area":2980.37647974,"areaRel":1.35e-12}
+a2 seam 45° 1|1 report {"pairs":2,"pairing":"length","pieces":[1,1],"dev":9.441466109136565e-15}
+{"label":"a2 seam 45° 1|1","valid":true,"patches":2,"onA":3.18e-14,"onB":1.87e-14,"coll":7.94e-15,"between":0,"c0":4.9e-15,"covA":2.78e-7,"covB":2.78e-7,"pairGap":0,"minRuling":31.62,"area":2980.26954367,"areaRel":0.0000359}
+a2 seam 45° 2|2 report {"pairs":4,"pairing":"length","pieces":[2,2],"dev":1.0695084443661335e-14}
+{"label":"a2 seam 45° 2|2","valid":true,"patches":4,"onA":1.68e-14,"onB":1.47e-14,"coll":7.65e-15,"between":0,"c0":4.9e-15,"covA":4.53e-8,"covB":4.53e-8,"pairGap":5.55e-16,"minRuling":31.62,"area":2980.26954367,"areaRel":0.0000359}
+a2 seam 45° 4|4 report {"pairs":8,"pairing":"length","pieces":[4,4],"dev":7.993605777301127e-15}
+{"label":"a2 seam 45° 4|4","valid":true,"patches":8,"onA":1.35e-14,"onB":1.65e-14,"coll":9.16e-15,"between":0,"c0":4.9e-15,"covA":6.47e-9,"covB":6.47e-9,"pairGap":1.11e-16,"minRuling":31.62,"area":2980.26954367,"areaRel":0.0000359}
+a2 seam 90° 1|1 report {"pairs":2,"pairing":"length","pieces":[1,1],"dev":7.793734002518813e-15}
+{"label":"a2 seam 90° 1|1","valid":true,"patches":2,"onA":3.27e-14,"onB":1.91e-14,"coll":7.59e-15,"between":0,"c0":4.9e-15,"covA":1.81e-7,"covB":1.81e-7,"pairGap":3.33e-16,"minRuling":31.62,"area":2980.37647974,"areaRel":1.39e-13}
+a2 seam 90° 2|2 report {"pairs":4,"pairing":"length","pieces":[2,2],"dev":3.552713678800501e-15}
+{"label":"a2 seam 90° 2|2","valid":true,"patches":4,"onA":1.78e-14,"onB":1.36e-14,"coll":7.94e-15,"between":0,"c0":4.9e-15,"covA":2.59e-8,"covB":2.59e-8,"pairGap":3.89e-16,"minRuling":31.62,"area":2980.37647974,"areaRel":1.05e-13}
+a2 seam 90° 4|4 report {"pairs":4,"pairing":"pieces","pieces":[4,4],"dev":3.552713678800501e-15}
+{"label":"a2 seam 90° 4|4","valid":true,"patches":4,"onA":7.99e-15,"onB":9.93e-15,"coll":7.94e-15,"between":0,"c0":4.9e-15,"covA":2.59e-8,"covB":2.59e-8,"pairGap":3.89e-16,"minRuling":31.62,"area":2980.37647974,"areaRel":1.05e-13}
+a2 seam 162° 1|1 report {"pairs":2,"pairing":"length","pieces":[1,1],"dev":1.6377200852866893e-14}
+{"label":"a2 seam 162° 1|1","valid":true,"patches":2,"onA":3.88e-14,"onB":2.27e-14,"coll":7.59e-15,"between":0,"c0":4.9e-15,"covA":1.07e-7,"covB":1.07e-7,"pairGap":2.22e-16,"minRuling":31.62,"area":2980.28022158,"areaRel":0.0000323}
+a2 seam 162° 2|2 report {"pairs":4,"pairing":"length","pieces":[2,2],"dev":7.588599744428075e-15}
+{"label":"a2 seam 162° 2|2","valid":true,"patches":4,"onA":2.46e-14,"onB":1.34e-14,"coll":7.96e-15,"between":0,"c0":4.9e-15,"covA":7.55e-8,"covB":7.55e-8,"pairGap":3.33e-16,"minRuling":31.62,"area":2980.28022158,"areaRel":0.0000323}
+a2 seam 162° 4|4 report {"pairs":8,"pairing":"length","pieces":[4,4],"dev":7.976819157699594e-15}
+{"label":"a2 seam 162° 4|4","valid":true,"patches":8,"onA":1.28e-14,"onB":1.47e-14,"coll":8.88e-15,"between":0,"c0":4.9e-15,"covA":1.34e-8,"covB":1.34e-8,"pairGap":2.22e-16,"minRuling":31.62,"area":2980.28022158,"areaRel":0.0000323}
+b offset+tilted report {"pairs":4,"pairing":"length","pieces":[2,2],"dev":1.1269720748118955e-14}
+{"label":"b offset+tilted","valid":true,"patches":4,"onA":2.42e-14,"onB":1.54e-14,"coll":7.98e-15,"between":0,"c0":4.9e-15,"covA":8.94e-8,"covB":8.94e-8,"pairGap":1.22e-15,"minRuling":28.87,"area":2999.36540233}
+b B wound opposite report {"pairs":2,"pairing":"pieces","pieces":[2,2],"dev":3.972054645195637e-15}
+{"label":"b B wound opposite","valid":true,"patches":2,"onA":1.68e-14,"onB":1.26e-14,"coll":7.95e-15,"between":0,"c0":4.9e-15,"covA":1.03e-7,"covB":1.03e-7,"pairGap":2.78e-16,"minRuling":31.62,"area":2980.37647974,"areaRel":1.24e-13}
+c rect↔circle 4|2 report {"pairs":6,"pairing":"length","pieces":[4,2],"dev":7.377764055609925e-15}
+{"label":"c rect↔circle 4|2","valid":true,"patches":6,"onA":9.77e-15,"onB":1.58e-14,"coll":7.99e-15,"between":0,"c0":1.96e-15,"covA":2.37e-15,"covB":3.16e-8,"pairGap":4.78e-9,"minRuling":25.08,"area":2199.22403216}
+c rect↔circle 4|3 report {"pairs":7,"pairing":"length","pieces":[4,3],"dev":1.0658141036401503e-14}
+{"label":"c rect↔circle 4|3","valid":true,"patches":7,"onA":1.42e-14,"onB":1.42e-14,"coll":8.14e-15,"between":0,"c0":1.96e-15,"covA":2.96e-15,"covB":1.58e-8,"pairGap":1.73e-9,"minRuling":25.08,"area":2198.7356163}
+d hex↔hex 6|6 report {"pairs":6,"pairing":"pieces","pieces":[6,6],"dev":0}
+{"label":"d hex↔hex 6|6","valid":true,"patches":6,"onA":6.4e-15,"onB":3.97e-15,"coll":4.35e-15,"between":0,"c0":0,"covA":9.5e-14,"covB":1.98e-13,"pairGap":2.39e-15,"minRuling":16.69,"area":1584.45221173,"areaRel":0}
+e open 2|3 fwd report {"pairs":3,"pairing":"length","pieces":[2,3],"dev":1.7763568394002505e-15}
+{"label":"e open 2|3 fwd","valid":true,"patches":3,"onA":3.55e-15,"onB":1.78e-15,"coll":4.44e-16,"between":0,"c0":0,"covA":7.51e-14,"covB":3.48e-14,"pairGap":5.55e-17,"minRuling":10,"area":200}
+e open 2|3 B reversed report {"pairs":3,"pairing":"length","pieces":[2,3],"dev":1.7763568394002505e-15}
+{"label":"e open 2|3 B reversed","valid":true,"patches":3,"onA":3.55e-15,"onB":2.22e-15,"coll":4.44e-16,"between":0,"c0":0,"covA":7.51e-14,"covB":1.1e-13,"pairGap":5.55e-17,"minRuling":10,"area":200}
+e open 2|3 A listed backward report {"pairs":3,"pairing":"length","pieces":[2,3],"dev":1.7763568394002505e-15}
+{"label":"e open 2|3 A listed backward","valid":true,"patches":3,"onA":3.55e-15,"onB":1.78e-15,"coll":4.44e-16,"between":0,"c0":0,"covA":7.51e-14,"covB":3.48e-14,"pairGap":5.55e-17,"minRuling":10,"area":200}
+g bspline↔line report {"pairs":1,"pairing":"pieces","pieces":[1,1],"dev":2.5121479338940403e-15}
+{"label":"g bspline↔line","valid":true,"patches":1,"onA":7.32e-15,"onB":3.97e-15,"coll":5.34e-15,"between":0,"c0":0,"covA":4.05e-7,"covB":9.46e-14,"pairGap":0,"minRuling":9.873,"area":161.584782157}
+g bspline↔arc report {"pairs":1,"pairing":"pieces","pieces":[1,1],"dev":5.0242958677880805e-15}
+{"label":"g bspline↔arc","valid":true,"patches":1,"onA":7.32e-15,"onB":1.07e-14,"coll":4.44e-15,"between":0,"c0":0,"covA":4.05e-7,"covB":1.03e-7,"pairGap":0,"minRuling":11.83,"area":249.215491742}
+h arcs 90°/180° report {"pairs":1,"pairing":"pieces","pieces":[1,1],"dev":2.220446049250313e-15}
+{"label":"h arcs 90°/180°","valid":true,"patches":1,"onA":4.44e-15,"onB":1.43e-14,"coll":5.89e-15,"between":0,"c0":0,"covA":2.59e-8,"covB":1.03e-7,"pairGap":0,"minRuling":14.14,"area":592.391956557}
+i scale 0.001 report {"pairs":2,"pairing":"pieces","pieces":[2,2],"dev":3.469446951953614e-18}
+{"label":"i scale 0.001","valid":true,"patches":2,"onA":1.6e-14,"onB":1.28e-14,"coll":8.72e-15,"between":0,"c0":4.9e-15,"covA":1.03e-7,"covB":1.03e-7,"pairGap":0,"minRuling":0.03162,"area":0.00298037647974,"areaRel":2.01e-13}
+i scale 10000 REFUSED [BAND_PROFILE] pair 0: coordinates beyond ±10000 mm
+j 32|2 report {"pairs":32,"pairing":"length","pieces":[32,2],"dev":1.1916163935586911e-14}
+{"label":"j 32|2","valid":true,"patches":32,"onA":9.16e-15,"onB":1.94e-14,"coll":8.7e-15,"between":0,"c0":2.45e-15,"covA":5.21e-15,"covB":4.02e-10,"pairGap":2e-13,"minRuling":22.32,"area":2101.63502054}
+j 32|32 report {"pairs":32,"pairing":"pieces","pieces":[32,32],"dev":0}
+{"label":"j 32|32","valid":true,"patches":32,"onA":7.32e-15,"onB":4.35e-15,"coll":5.33e-15,"between":0,"c0":0,"covA":2.38e-15,"covB":2.38e-15,"pairGap":0,"minRuling":22.34,"area":2102.03827309}
+j 33 refused REFUSED [BAND_CHAIN] band side A: 33 edge pieces; a side takes at most 32
+l crossing between samples REFUSED [BAND_TOUCH] pair 0: the two sides cross at (4.9261, 0, 0) (the ruling shrinks to 1.1e-16 mm there)
+l crossing at sample REFUSED [BAND_TOUCH] pair 0: the two sides meet at (5, 0, 0); a band needs rulings of at least 0.0001 mm
+l crossing out of plane REFUSED [BAND_DEGENERATE] pair 0: the surface folds over near (5, -0.0075, 0) (its normal turns over)
+l2 collinear REFUSED [BAND_DEGENERATE] pair 0: the surface has no normal at (0, 0, 0) (a ruling runs along its side's tangent there)
+m 17 poles REFUSED [BAND_PROFILE] pair 0: more than 16 poles on a side (exact bands take at most 16)
+m 16 vs 16 different knots REFUSED [BAND_PROFILE] pair 0: the band would need more than 16 poles per direction
+n oblique REFUSED [BAND_OBLIQUE] the two loops are nearly perpendicular (cos 0.000); a band needs loops facing alike or opposite
+n open↔closed REFUSED [BAND_CHAIN] a band joins two open chains or two closed loops, not one of each
+o merge Δ=0.00005 report {"pairs":2,"pairing":"pieces","pieces":[2,2],"dev":0}
+{"label":"o merge Δ=0.00005","valid":true,"patches":2,"onA":3.55e-15,"onB":3.55e-15,"coll":1.83e-15,"between":0,"c0":0,"covA":1.69e-13,"covB":2.28e-13,"pairGap":0.00005,"minRuling":5,"area":50}
+o merge Δ=0.0002 report {"pairs":2,"pairing":"pieces","pieces":[2,2],"dev":0}
+{"label":"o merge Δ=0.0002","valid":true,"patches":2,"onA":3.55e-15,"onB":3.55e-15,"coll":1.83e-15,"between":0,"c0":0,"covA":1.69e-13,"covB":1.39e-13,"pairGap":0.0002,"minRuling":5,"area":50}
+p rotated cylinder top names ["e2.side0#1|e2.top","e2.side0#2|e2.top"] seam vertex [[0,10,30],[0,10,30]]
+p report {"pairs":4,"closed":true,"exact":true,"boundaryDeviation":3.972054645195637e-15,"pairing":"length","pieces":[2,2],"note":"4 exact ruled patches (paired by length 2↔2); boundary deviation ≤ 4.0e-15 mm"}
+{"label":"p kernel rotated seam","valid":true,"patches":4,"onA":1.78e-14,"onB":1.36e-14,"coll":7.95e-15,"between":0,"c0":0,"covA":2.59e-8,"covB":2.59e-8,"pairGap":3.33e-16,"minRuling":31.62,"area":2980.37647974,"areaRel":1.16e-13}

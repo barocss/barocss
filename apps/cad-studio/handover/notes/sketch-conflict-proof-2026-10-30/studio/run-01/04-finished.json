@@ -1,0 +1,175 @@
+{
+  "label": "04-finished",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "polygon",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            60,
+            0
+          ],
+          [
+            60,
+            40
+          ],
+          [
+            0,
+            40
+          ]
+        ],
+        "outline": {
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              60,
+              0
+            ],
+            [
+              60,
+              40
+            ],
+            [
+              0,
+              40
+            ]
+          ],
+          "lengths": {
+            "0": 60,
+            "1": 40
+          },
+          "hv": {
+            "h": [
+              0,
+              2
+            ],
+            "v": [
+              1,
+              3
+            ]
+          }
+        },
+        "sideTags": {
+          "outer": [
+            "e1",
+            "e2",
+            "e3",
+            "e4"
+          ]
+        },
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 10,
+        "id": "n1"
+      },
+      {
+        "kind": "sketch",
+        "profile": "polygon",
+        "points": [
+          [
+            100.00000000034353,
+            -5.476437497007764e-10
+          ],
+          [
+            110.00000000062094,
+            -9.89416394234131e-10
+          ],
+          [
+            104.70001060074209,
+            8.479983038812657
+          ]
+        ],
+        "outline": {
+          "points": [
+            [
+              100.00000000034353,
+              -5.476437497007764e-10
+            ],
+            [
+              110.00000000062094,
+              -9.89416394234131e-10
+            ],
+            [
+              104.70001060074209,
+              8.479983038812657
+            ]
+          ],
+          "lengths": {
+            "0": 10,
+            "1": 10
+          },
+          "hv": {
+            "h": [
+              0
+            ],
+            "v": []
+          }
+        },
+        "sideTags": {
+          "outer": [
+            "e1",
+            "e2",
+            "e3"
+          ]
+        },
+        "id": "n2"
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      }
+    },
+    "nextId": 3
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b1",
+        "volume": 24000,
+        "centroid": [
+          30.000000000000004,
+          20.000000000000004,
+          5
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 1,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": null,
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": null
+}

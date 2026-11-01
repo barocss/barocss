@@ -25,6 +25,6 @@ test('a spline through points is tangent arcs: through every point, smooth at ev
   o.bulges.forEach((b, i) => { if (b && i + 1 < o.points.length) assert.ok(Number.isFinite(arcOf(o.points[i], o.points[i + 1], b).radius)); });
   const sq: P2[] = [[0, 0], [10, 0], [10, 10], [0, 10]], c = splineOutline(sq, true), tc = tangents(c, true);
   for (let i = 0; i < tc.length; i++) assert.ok(sameAngle(tc[i].arrive, tc[(i + 1) % tc.length].leave), `closed, smooth at ${i}`);
-  // Three points in a row: a straight line, no arcs.
-  assert.deepEqual(splineOutline([[0, 0], [5, 0], [10, 0]], false).bulges, [0, 0, 0]);
+  // Three points in a row: straight halves, no arcs (two pieces per span since D352).
+  assert.deepEqual(splineOutline([[0, 0], [5, 0], [10, 0]], false).bulges, [0, 0, 0, 0, 0]);
 });

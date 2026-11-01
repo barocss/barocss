@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/studio357/run-01/bound-sketch-previews-oracle.py", line 75, in <module>
+    loA, hiA = rect(n0, W0); loB, hiB = rect(n1, W0)
+  File "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/studio357/run-01/bound-sketch-previews-oracle.py", line 34, in rect
+    lo = [resolve(c, W) for c in n['min']]; hi = [resolve(c, W) for c in n['max']]
+  File "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/studio357/run-01/bound-sketch-previews-oracle.py", line 34, in <listcomp>
+    lo = [resolve(c, W) for c in n['min']]; hi = [resolve(c, W) for c in n['max']]
+  File "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/studio357/run-01/bound-sketch-previews-oracle.py", line 27, in resolve
+    return fr(params['W'] if W is None else W)
+  File "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/studio357/run-01/bound-sketch-previews-oracle.py", line 21, in fr
+    assert isinstance(x, (int, float)), ('not a plain number', x)
+AssertionError: ('not a plain number', Fraction(60, 1))

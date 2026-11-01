@@ -1,0 +1,149 @@
+{
+  "label": "09-deleted",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "id": "n0",
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          0,
+          0
+        ],
+        "max": [
+          30,
+          12
+        ]
+      },
+      {
+        "id": "n1",
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 6
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      }
+    },
+    "nextId": 2,
+    "drawing": {
+      "sheet": "A4",
+      "scope": {
+        "kind": "part"
+      },
+      "projection": "third",
+      "hidden": true,
+      "dimensions": [],
+      "frames": []
+    }
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b1",
+        "volume": 2160,
+        "centroid": [
+          15.000000000000004,
+          6,
+          3
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 1,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": null,
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": null,
+  "history": [
+    "Extrude 6"
+  ],
+  "frameGroups": [],
+  "drawingHook": {
+    "scale": 2,
+    "dimensions": [],
+    "hidden": {
+      "front": 0,
+      "top": 0,
+      "right": 0,
+      "iso": 3
+    },
+    "section": null,
+    "sections": [],
+    "placedSections": [],
+    "apartSections": [],
+    "details": [],
+    "boxes": {
+      "front": [
+        77.801515190165,
+        116.04540768504862,
+        137.801515190165,
+        128.04540768504862
+      ],
+      "top": [
+        77.801515190165,
+        60,
+        137.801515190165,
+        84
+      ],
+      "right": [
+        177.5,
+        116.04540768504862,
+        201.5,
+        128.04540768504862
+      ],
+      "iso": [
+        159.801515190165,
+        49.9545923149514,
+        219.19848480983498,
+        94.04540768504862
+      ]
+    },
+    "breaks": {},
+    "issues": [
+      {
+        "code": "OVERALL_MISSING",
+        "severity": "warning",
+        "fix": "auto-dimension"
+      }
+    ],
+    "tables": [],
+    "suggestions": [
+      {
+        "id": "general-note",
+        "kind": "general-note",
+        "estimate": true
+      }
+    ]
+  },
+  "issueRows": [
+    {
+      "code": "OVERALL_MISSING",
+      "text": "warningThe part’s overall width, height, depth are not given.Auto"
+    }
+  ],
+  "framesPanel": "Standalone geometric controls (0)Choose a visible view, then click where the frame goes. This annotation does not measure geometry.Frame viewfronttoprightisoAdd standalone frame"
+}

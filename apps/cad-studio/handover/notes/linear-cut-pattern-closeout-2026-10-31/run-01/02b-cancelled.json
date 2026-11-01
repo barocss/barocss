@@ -1,0 +1,147 @@
+{
+  "label": "02b-cancelled",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          0,
+          0
+        ],
+        "max": [
+          60,
+          30
+        ],
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 10,
+        "id": "n1",
+        "made": {
+          "command": "box",
+          "values": {
+            "w": 60,
+            "d": 30,
+            "h": 10,
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          0,
+          8
+        ],
+        "max": [
+          4,
+          12
+        ],
+        "id": "n2"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 2,
+        "height": 10,
+        "id": "n3",
+        "made": {
+          "command": "box",
+          "values": {
+            "w": 4,
+            "d": 4,
+            "h": 10,
+            "x": 0,
+            "y": 8,
+            "z": 0
+          }
+        }
+      },
+      {
+        "kind": "translate",
+        "parent": {
+          "node": 3,
+          "side": "solid"
+        },
+        "offset": [
+          8,
+          0,
+          0
+        ],
+        "id": "n4"
+      },
+      {
+        "kind": "difference",
+        "parent": {
+          "node": 1,
+          "side": "solid"
+        },
+        "tool": {
+          "node": 4,
+          "side": "solid"
+        },
+        "id": "n5"
+      }
+    ],
+    "outputs": {
+      "b5": {
+        "node": 5,
+        "side": "solid"
+      }
+    },
+    "nextId": 6
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b5",
+        "volume": 17840,
+        "centroid": [
+          30.17937219730943,
+          15.04484304932736,
+          5
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": [
+        0
+      ]
+    },
+    "bodies": 1,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": null,
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": null,
+  "history": [
+    "Box 60×30×10",
+    "Box 4×4×10",
+    "Move",
+    "Subtract"
+  ],
+  "selectionText": "BODYName Colour Visible Bounds 60 × 30 × 10 boxVolume 17840 mm³Mass 48.2 gMaterial · defaultAluminium 6061Steel (mild)Stainless 304BrassTitanium Ti-6Al-4VABSPLANylon PA12PolycarbonatePolypropylenePETGAcetal (POM)Standard resin (SLA)Zinc alloy (Zamak 3 class)Aluminium die-casting alloy (A380 class)Magnesium die-casting alloy (AZ91D class)Aluminium casting alloy (A356 class)Grey cast ironCentre of mass 30.18, 15.04, 5Inertiaabout the centre of massabout the originIxx Iyy Izz 4035 · 14806 · 18039 g·mm²Ixy Iyz Ixz 43.6 · 0 · 0Surface area 5528 mm²Faces 10Point testTest",
+  "hudStatus": null
+}

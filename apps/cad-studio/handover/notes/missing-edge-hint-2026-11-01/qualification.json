@@ -1,0 +1,49 @@
+{
+  "decision": "D400",
+  "date": "2026-11-01",
+  "tier": "small",
+  "status": "BOUNDED_QUALIFIED",
+  "baseCommit": "374ebb84426ab675091b9aea8fb391997762c5c0",
+  "model": "gpt-6.1-sol / medium",
+  "scope": "Generic missing-edge hint; error code, title and detail retained",
+  "checks": {
+    "negativeControl": {
+      "status": "FAIL_EXPECTED",
+      "pass": 3,
+      "fail": 1
+    },
+    "focused": {
+      "status": "PASS",
+      "pass": 4,
+      "command": "cd packages/barocss-cad-model && node scripts/test.mjs r7-findings"
+    },
+    "types": {
+      "status": "PASS",
+      "command": "cd packages/barocss-cad-model && node ../../node_modules/typescript/bin/tsc --noEmit"
+    },
+    "lint": "PASS",
+    "syntax": "PASS",
+    "refusalTable": "PASS",
+    "diff": "PASS"
+  },
+  "studio": {
+    "status": "PASS",
+    "artifacts": "/tmp/barocss-d400-run01",
+    "command": "cd apps/cad-studio && REFERENCE_OPEN_HINT_ONLY=1 REFERENCE_OPEN_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' node test/reference-open-browser.mjs /tmp/barocss-d400-run01",
+    "heavyGate": true,
+    "frozenFiles": 734,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "rootVisualReview": "PASS: 02-lost-held.png",
+    "cleanup": "Owned browser contexts, browser and Vite closed"
+  },
+  "notRun": [
+    "Full suites",
+    "Independent audit (small tier)",
+    "Save/download",
+    "CI",
+    "Release"
+  ]
+}

@@ -17,10 +17,11 @@ import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 
 type Sheet = ReturnType<typeof useDrawingSheet>;
-export function SheetSettings({ sheet: { scopeRead, scope, views, layout, sectionA, sectionList, cutA, cutsMade, hasSheet, hasFrame, kinds, hasBought, doc, title, busy }, settings, sourceDoc, fileName, onChange, onToast, onScopeChanged, turnTo }: {
+export function SheetSettings({ sheet: { scopeRead, scope, views, layout, sectionA, sectionList, cutA, cutsMade, hasSheet, hasFrame, kinds, hasBought, doc, title, busy }, settings, sourceDoc, fileName, onChange, onToast, onScopeChanged, turnTo, later = false }: {
   sheet: Pick<Sheet, 'scopeRead' | 'scope' | 'views' | 'layout' | 'sectionA' | 'sectionList' | 'cutA' | 'cutsMade' | 'hasSheet' | 'hasFrame' | 'kinds' | 'hasBought' | 'doc' | 'title' | 'busy'>;
   settings: DrawingSettings; sourceDoc: StudioDoc; fileName: string; onChange(next: DrawingSettings): void; onToast(e: FriendlyError): void;
   /** The scope changed: what was picked or dragged on the sheet is let go. */ onScopeChanged(): void; turnTo(o: Orientation): Promise<void>;
+  /** 11 ④: a sheet after the first: its tables, balloons, weld symbols and title block fields are the first sheet's. */ later?: boolean;
 }) {
   const [sectionY, setSectionY] = useState<string | null>(null);
   const [sectionAt, setSectionAt] = useState<{ id: string; text: string } | null>(null);
@@ -50,6 +51,19 @@ export function SheetSettings({ sheet: { scopeRead, scope, views, layout, sectio
           {ORIENTATIONS.map(o => <option key={o} value={o}>{SIDE_NAMES[o]}</option>)}</NativeSelect></label>
         <label className={FIELD}><span>Projection</span><NativeSelect className={CONTROL} aria-label="Projection" value={settings.projection} onChange={e => onChange({ ...settings, projection: e.target.value as 'third' })}>
           <option value="third">Third angle</option><option value="first">First angle</option></NativeSelect></label>
+        <label className={FIELD}><span>Standard</span><NativeSelect className={CONTROL} aria-label="Drawing standard" title="Lettering, arrowheads, dimension text, projection symbol and datum targets as ISO or ASME draw them" value={settings.standard ?? ''} onChange={e => { const { standard: _s, ...rest } = settings; void _s; onChange(e.target.value === 'iso' || e.target.value === 'asme' ? { ...rest, standard: e.target.value } : rest); }}>
+          <option value="">Not set</option><option value="iso">ISO</option><option value="asme">ASME</option></NativeSelect></label>
+        <label className={FIELD}><span>Units</span><NativeSelect className={CONTROL} aria-label="Drawing units" title="The unit lengths print in on the sheet; the model stays in mm" value={settings.units ?? 'mm'} onChange={e => { const { units: _u, ...rest } = settings; void _u; onChange(e.target.value === 'inch' ? { ...rest, units: 'inch' } : rest); }}>
+          <option value="mm">mm</option><option value="inch">inch</option></NativeSelect></label>
+        <label className={FIELD}><span>Dual units</span><input type="checkbox" className={TICK} aria-label="Dual units" title="Show the other unit after each length in square brackets" checked={!!settings.dual} onChange={e => { const { dual: _d, ...rest } = settings; void _d; onChange(e.target.checked ? { ...rest, dual: true } : rest); }} /></label>
+        <details><summary className="muted cursor-pointer">Details</summary>
+          {(['mm', 'inch'] as const).map(unit => <label key={unit} className={FIELD}><span>{unit === 'mm' ? 'mm decimals' : 'inch decimals'}</span><Input type="number" className="w-20 text-right" min={0} max={6} step={1} aria-label={unit === 'mm' ? 'Decimals in mm' : 'Decimals in inch'} placeholder={unit === 'mm' ? 'auto' : '3'} value={settings.precision?.[unit] ?? ''}
+            onChange={e => {
+              const raw = e.target.value.trim(), n = Number(raw), { precision, ...rest } = settings, next = { ...precision };
+              if (raw === '') delete next[unit]; else if (Number.isInteger(n) && n >= 0 && n <= 6) next[unit] = n; else return;
+              onChange(next.mm === undefined && next.inch === undefined ? rest : { ...rest, precision: next });
+            }} /></label>)}
+        </details>
         <label className={FIELD}><span>Hidden lines</span><input type="checkbox" className={TICK} aria-label="Hidden lines" checked={settings.hidden} onChange={e => onChange({ ...settings, hidden: e.target.checked })} /></label>
         <label className={FIELD}><span>Section A–A</span><input type="checkbox" className={TICK} aria-label="Section A–A" checked={!!sectionA} onChange={e => {
           const rest = sectionList.filter(x => !(x.id === 'A' && x.view === 'front'));
@@ -91,16 +105,16 @@ export function SheetSettings({ sheet: { scopeRead, scope, views, layout, sectio
         }} /></label>)}
         <label className={FIELD}><span>Tangent edges</span><input type="checkbox" className={TICK} aria-label="Tangent edges" checked={!!settings.tangent} onChange={e => { const rest = { ...settings }; delete rest.tangent; onChange(e.target.checked ? { ...rest, tangent: true } : rest); }} /></label>
         <label className={FIELD}><span>Centre lines</span><input type="checkbox" className={TICK} aria-label="Centre lines" checked={settings.centers !== false} onChange={e => { const rest = { ...settings }; delete rest.centers; onChange(e.target.checked ? rest : { ...rest, centers: false }); }} /></label>
-        {hasSheet && <label className={FIELD}><span>Bend table</span><input type="checkbox" className={TICK} aria-label="Bend table" checked={!!settings.tables?.some(x => x.from === 'bends')} onChange={e => { const rest = (settings.tables ?? []).filter(x => x.from !== 'bends'); const tables = e.target.checked ? [...rest, { id: 'bends', from: 'bends' }] : rest; const { tables: _t, ...base } = settings; void _t; onChange(tables.length ? { ...base, tables } : base); }} /></label>}
-        {hasFrame && <label className={FIELD}><span>Cut list</span><input type="checkbox" className={TICK} aria-label="Cut list table" checked={!!settings.tables?.some(x => x.from === 'cut-list')} onChange={e => onChange(withTable(settings, 'cut-list', e.target.checked))} /></label>}
+        {!later && hasSheet && <label className={FIELD}><span>Bend table</span><input type="checkbox" className={TICK} aria-label="Bend table" checked={!!settings.tables?.some(x => x.from === 'bends')} onChange={e => { const rest = (settings.tables ?? []).filter(x => x.from !== 'bends'); const tables = e.target.checked ? [...rest, { id: 'bends', from: 'bends' }] : rest; const { tables: _t, ...base } = settings; void _t; onChange(tables.length ? { ...base, tables } : base); }} /></label>}
+        {!later && hasFrame && <label className={FIELD}><span>Cut list</span><input type="checkbox" className={TICK} aria-label="Cut list table" checked={!!settings.tables?.some(x => x.from === 'cut-list')} onChange={e => onChange(withTable(settings, 'cut-list', e.target.checked))} /></label>}
         {/* (FRd1, O118: the frame's welds as a table, W1… with the cut list's items.) */}
-        {hasFrame && <label className={FIELD}><span>Weld list</span><input type="checkbox" className={TICK} aria-label="Weld list table" checked={!!settings.tables?.some(x => x.from === 'weld-list')} onChange={e => onChange(withTable(settings, 'weld-list', e.target.checked))} /></label>}
+        {!later && hasFrame && <label className={FIELD}><span>Weld list</span><input type="checkbox" className={TICK} aria-label="Weld list table" checked={!!settings.tables?.some(x => x.from === 'weld-list')} onChange={e => onChange(withTable(settings, 'weld-list', e.target.checked))} /></label>}
         {hasFrame && <label className={FIELD}><span>Weld symbols</span><input type="checkbox" className={TICK} aria-label="Weld symbols" checked={!!settings.weldSymbols} onChange={e => { const { weldSymbols: _w, ...base } = settings; void _w; onChange(e.target.checked ? { ...base, weldSymbols: true } : base); }} /></label>}
-        {(kinds.size > 0 || hasBought) && <label className={FIELD}><span>Element list</span><input type="checkbox" className={TICK} aria-label="Element list table" checked={!!settings.tables?.some(x => x.from === 'elements')} onChange={e => onChange(withTable(settings, 'elements', e.target.checked))} /></label>}
-        {kinds.has('spring') && <label className={FIELD}><span>Spring data</span><input type="checkbox" className={TICK} aria-label="Spring data table" checked={!!settings.tables?.some(x => x.from === 'springs')} onChange={e => onChange(withTable(settings, 'springs', e.target.checked))} /></label>}
-        {kinds.has('oring-gland') && <label className={FIELD}><span>Gland table</span><input type="checkbox" className={TICK} aria-label="Gland table" checked={!!settings.tables?.some(x => x.from === 'glands')} onChange={e => onChange(withTable(settings, 'glands', e.target.checked))} /></label>}
+        {!later && (kinds.size > 0 || hasBought) && <label className={FIELD}><span>Element list</span><input type="checkbox" className={TICK} aria-label="Element list table" checked={!!settings.tables?.some(x => x.from === 'elements')} onChange={e => onChange(withTable(settings, 'elements', e.target.checked))} /></label>}
+        {!later && kinds.has('spring') && <label className={FIELD}><span>Spring data</span><input type="checkbox" className={TICK} aria-label="Spring data table" checked={!!settings.tables?.some(x => x.from === 'springs')} onChange={e => onChange(withTable(settings, 'springs', e.target.checked))} /></label>}
+        {!later && kinds.has('oring-gland') && <label className={FIELD}><span>Gland table</span><input type="checkbox" className={TICK} aria-label="Gland table" checked={!!settings.tables?.some(x => x.from === 'glands')} onChange={e => onChange(withTable(settings, 'glands', e.target.checked))} /></label>}
         {/* (O147 B2: the BOM as a table and its item balloons, for an assembly or a part with machine elements.) */}
-        {(!!doc.instances?.length || kinds.size > 0) && <label className={FIELD}><span>BOM table</span><input type="checkbox" className={TICK} aria-label="BOM table" checked={!!settings.tables?.some(x => x.from === 'bom')} onChange={e => onChange(withTable(settings, 'bom', e.target.checked))} /></label>}
+        {!later && (!!doc.instances?.length || kinds.size > 0) && <label className={FIELD}><span>BOM table</span><input type="checkbox" className={TICK} aria-label="BOM table" checked={!!settings.tables?.some(x => x.from === 'bom')} onChange={e => onChange(withTable(settings, 'bom', e.target.checked))} /></label>}
         {(!!doc.instances?.length || kinds.size > 0) && <label className={FIELD}><span>Balloons</span><input type="checkbox" className={TICK} aria-label="Balloons" checked={!!settings.balloons} onChange={e => { const { balloons: _b, ...base } = settings; void _b; onChange(e.target.checked ? { ...base, balloons: true } : base); }} /></label>}
         <label className={FIELD}><span>Title</span><Input className={CONTROL} aria-label="Drawing title" value={titleDraft ?? title} onChange={e => setTitleDraft(e.target.value)}
           onBlur={() => { if (titleDraft !== null) { const rest = { ...settings }; delete rest.title; onChange(titleDraft.trim() && titleDraft.trim() !== fileName ? { ...rest, title: titleDraft.trim() } : rest); setTitleDraft(null); } }}
@@ -112,7 +126,7 @@ export function SheetSettings({ sheet: { scopeRead, scope, views, layout, sectio
               <Button variant="ghost" aria-label="Next revision" data-tip="Next revision" data-tip-desc="A → B, 01 → 02: the drawing’s new issue" onClick={() => set(nextRevision(settings.revision))}>Next</Button></label>
             {stale && <div className="empty" style={{ color: 'var(--warn)' }} aria-label="Revision out of date">The model changed since revision {settings.revision}: give the drawing its next revision when you issue it.</div>}
           </>; })()}
-        <DrawingMetadata settings={settings} onChange={onChange} onRefused={hint => onToast({ title: 'Drawing metadata unchanged', hint, detail: '' })} />
+        {later ? <div className="empty" aria-label="First sheet items">Tables, the revision table and the title block fields are on sheet 1.</div> : <DrawingMetadata settings={settings} onChange={onChange} onRefused={hint => onToast({ title: 'Drawing metadata unchanged', hint, detail: '' })} />}
         {layout && !layout.fits && <div className="empty" style={{ color: 'var(--warn)' }}>The views do not fit the sheet at {scaleLabel(layout.scale)}. Pick a smaller scale or a larger sheet.</div>}
   </>;
 }

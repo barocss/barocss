@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "outerArea": "2050",
+  "holeArea": "50",
+  "height": "10",
+  "radius": "3",
+  "lengths": {
+    "0": "70",
+    "1": "25"
+  },
+  "analyticVolume": 19980.68583470577,
+  "reportedVolume": 19980.685834705782,
+  "delta": 1.0913936421275139e-11,
+  "productImports": 0
+}

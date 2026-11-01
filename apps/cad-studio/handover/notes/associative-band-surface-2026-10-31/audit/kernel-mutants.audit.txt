@@ -1,0 +1,31 @@
+M1 drop B reverse: killed (fail 3) closed loops of either winding join untwisted: top or bottom | B stored against A's direction is turned (the loops' sides r | flip turns B the other way: the band changes
+M2 open orientation inverted: killed (fail 6) two parallel lines: a planar trapezoid, whichever way each e | B stored against A's direction is turned (the loops' sides r | input order and the start edge: the same band (area, report) | flip turns B the other way: the band changes | every refusal is typed and tagged | limits: 32 pieces a side, 16 poles a patch, a cubic profile
+M3 closed orientation inverted: killed (fail 5) coaxial circles r20 z0 / r10 z30: every sample on the cone,  | closed loops of either winding join untwisted: top or bottom | rectangle to a rotated square, equal counts: piece k joins p | input order and the start edge: the same band (area, report) | a single closed edge is a closed side: two NURBS circles, on
+M4 no seam choice: killed (fail 3) rectangle to a rotated square, equal counts: piece k joins p | rounded rectangle (8 pieces) to a circle: split at normalize | the seam of a closed pair: B starts at the point nearest A's
+M5 seam at vertex for by-length: killed (fail 2) rounded rectangle (8 pieces) to a circle: split at normalize | the seam of a closed pair: B starts at the point nearest A's
+M6 seam at nearest point for equal counts: killed (fail 1) rectangle to a rotated square, equal counts: piece k joins p
+M7 skip split (A joints only): killed (fail 2) rounded rectangle (8 pieces) to a circle: split at normalize | the seam of a closed pair: B starts at the point nearest A's
+M8 linear length inverse: killed (fail 1) rounded rectangle (8 pieces) to a circle: split at normalize
+M9 elevation weights swapped: killed (fail 2) rounded rectangle (8 pieces) to a circle: split at normalize | the seam of a closed pair: B starts at the point nearest A's
+M10 MERGE 0: SURVIVED (fail 0) 
+M11 MERGE 0.2: killed (fail 2) rounded rectangle (8 pieces) to a circle: split at normalize | the seam of a closed pair: B starts at the point nearest A's
+M12 no TOUCH: killed (fail 1) every refusal is typed and tagged
+M13 no DEGENERATE: killed (fail 1) every refusal is typed and tagged
+M14 no OBLIQUE: killed (fail 1) every refusal is typed and tagged
+M15 MAX_PIECES 33: killed (fail 1) limits: 32 pieces a side, 16 poles a patch, a cubic profile
+M16 no 16-pole precheck: SURVIVED (fail 0) 
+M17 no branch refusal: killed (fail 1) every refusal is typed and tagged
+M18 retarget fallback by base name: killed (fail 1) the stored names are exact: a lost name, a moved one, and no
+M19 cut slice off by one: killed (fail 2) rounded rectangle (8 pieces) to a circle: split at normalize | the seam of a closed pair: B starts at the point nearest A's
+M20 deviation vs itself: SURVIVED (fail 0) 
+M21 flip ignored: killed (fail 3) closed loops of either winding join untwisted: top or bottom | B stored against A's direction is turned (the loops' sides r | flip turns B the other way: the band changes
+M22 closed↔open allowed: killed (fail 1) every refusal is typed and tagged
+M23 chain reversal not applied: killed (fail 8) coaxial circles r20 z0 / r10 z30: every sample on the cone,  | closed loops of either winding join untwisted: top or bottom | targets stay bodies: the band reads its two bodies, never co | rectangle to a rotated square, equal counts: piece k joins p | rounded rectangle (8 pieces) to a circle: split at normalize | flip turns B the other way: the band changes | the stored names are exact: a lost name, a moved one, and no | every refusal is typed and tagged
+M24 reversed piece knots not mirrored: SURVIVED (fail 0) 
+M25 insertKnot alpha flipped: killed (fail 2) rounded rectangle (8 pieces) to a circle: split at normalize | the seam of a closed pair: B starts at the point nearest A's
+M26 equal counts paired by length: killed (fail 3) coaxial circles r20 z0 / r10 z30: every sample on the cone,  | rectangle to a rotated square, equal counts: piece k joins p | input order and the start edge: the same band (area, report)
+M27 closed seam not shared: killed (fail 4) coaxial circles r20 z0 / r10 z30: every sample on the cone,  | rectangle to a rotated square, equal counts: piece k joins p | rounded rectangle (8 pieces) to a circle: split at normalize | a single closed edge is a closed side: two NURBS circles, on
+M28 ruling names off: killed (fail 3) coaxial circles r20 z0 / r10 z30: every sample on the cone,  | rectangle to a rotated square, equal counts: piece k joins p | the seam of a closed pair: B starts at the point nearest A's
+M29 expect not checked: killed (fail 1) the stored names are exact: a lost name, a moved one, and no
+M30 thickness admitted: killed (fail 1) every refusal is typed and tagged
+M31 duplicate names admitted: killed (fail 1) every refusal is typed and tagged

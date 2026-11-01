@@ -1,0 +1,11 @@
+joint base~a continuous [ 20.000000000000004, 20.00000000000001, 10 ] [ 0, 0, 1 ] keys [ 'base~post', 'base~a', 'a~b' ]
+link b max radius about joint a R=90.55385138137417 (hypot(90,10)=90.55385138137417), link a 50.99019513592785, b z 15,20
+C g=0.001 turns=4: expect clear, min 0.001
+  sweepTimed(default) {"clear":true,"min":{"mm":0.0009963359523510462,"t":12.705712437204793,"links":["post","b"]},"samples":10948}
+  sweepPath(cap 1e7)  {"clear":true,"min":{"mm":0.0009963359523510462,"s":0.4955970510280855,"links":["post","b"]},"samples":10948}
+C g=0.001 turns=10: expect clear, min 0.001
+  sweepTimed(default) {"clear":false,"toi":44.34513733928909,"links":["post","b"],"min":{"mm":0.000996335952365257,"t":12.705712437204784,"links":["post","b"]},"samples":20000}
+  sweepPath(cap 1e7)  {"clear":true,"min":{"mm":0.000996335952365257,"s":0.19823882041123403,"links":["post","b"]},"samples":27367}
+C g=0.01 turns=30: expect clear, min 0.01
+  sweepTimed(default) {"clear":false,"toi":144.6340160937143,"links":["post","b"],"min":{"mm":0.009999021459094593,"t":56.688010378181026,"links":["post","b"]},"samples":20000}
+  sweepPath(cap 1e7)  {"clear":true,"min":{"mm":0.009999021459094593,"s":0.29941294433197335,"links":["post","b"]},"samples":26503}

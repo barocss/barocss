@@ -1,0 +1,3 @@
+import { compileCadModel } from '@barocss/cad';
+for (const k of ['5e-7','-5e-7','1.5e-7','0.0000005','1e-9','-1e-9','2.3e-8']) { const r: any = compileCadModel('@model t { version:0; length-unit:mm; @curve #c { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[0,0,'+k+'],[1,0,0]]; weights:[1,1]; } }', {sourceVersion:0}); console.log(k, r.ok, r.ok ? r.model.objects[0].controlPoints[0][2] : r.diagnostics[0].message); }
+for (const k of ['5e-7', '1.5e-7']) { const r: any = compileCadModel('@model t { version:0; length-unit:mm; @curve #c { type:nurbs; degree:1; knots:[0,0,'+k+','+k+']; control-points:[[0,0,0],[1,0,0]]; weights:[1,1]; } }', {sourceVersion:0}); console.log('knot', k, r.ok, r.ok ? '' : r.diagnostics[0].message); }

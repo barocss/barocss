@@ -20,6 +20,7 @@ import { chatStatus, newChatBlobs, type ChatStatus } from './client';
 import { imageUrl, type ChatImage } from './images';
 import { StudioTransport, type StudioMessage, type TurnDone, type TurnInputs } from './transport';
 import { scriptedChat, scriptedTransport, withTurnEnd } from './scripted';
+import { turnMoved, versionsToMerge } from '../app/editInPlace';
 import type { ChatPanelProps } from '../ui/ChatPanel';
 
 /** What each autonomy level lets the agent do (D41). */
@@ -40,6 +41,8 @@ interface Turn {
   inputs: TurnInputs; message: string; base: StudioDoc; shared: StudioDoc; built: StudioDoc | null; ops: TurnOp[]; previews: LatestPump<StudioDoc>;
   /** The turn's end done here, with the notices a stopped turn's message is given afterwards (a stopped stream is read no further). */
   ended: Promise<string[]>; end(stopped: string[]): void;
+  /** The document it ran on (ChatPanelProps.scope). */
+  scope: object | null;
 }
 
 export function useStudioChat(props: ChatPanelProps) {
@@ -68,9 +71,13 @@ export function useStudioChat(props: ChatPanelProps) {
     if (done.ops) ops.push(...done.ops);
     if (done.session) session.current = done.session;
     // (CG6: the version log the turn moved, folded into the project's.)
-    if (done.versions) latest.current.versions?.back(done.versions, done.versionsWanted ?? []);
     // An aborted turn keeps what it had built when it stopped.
     let doc = done.doc ? reshareNodes(t.shared, done.doc) : done.end === 'aborted' ? t.built : null;
+    // (A part edited in place started or ended meanwhile: the turn's document is not the one open now, so none of it is applied.)
+    const moved = turnMoved(t.scope, latest.current.scope);
+    const versions = versionsToMerge(moved, done.versions);
+    if (versions) latest.current.versions?.back(versions, done.versionsWanted ?? []);
+    if (moved) { if (doc) notices.push('The part being edited changed while the turn ran, so its changes were not applied.'); doc = null; ops.length = 0; }
     // (Edited during the turn: its calls merged onto the part as it is now, the conflicting ones a proposal, O133. Edited
     // again while merging: merged again, twice at most; then every call waits.)
     let merged: Merged | undefined, from = base;
@@ -99,7 +106,7 @@ export function useStudioChat(props: ChatPanelProps) {
     if (done.end === 'aborted') notices.push(doc ? 'Stopped. The changes made so far are kept (one undo removes them).' : 'Stopped.');
     latest.current.onPreview(null);
     if (doc) latest.current.onCommit(doc, done.selection, merged);
-    else if (done.selection) latest.current.onSelect(done.selection);
+    else if (done.selection && !moved) latest.current.onSelect(done.selection);
     // (Stopped: useChat reads the stream no further, so the notices are added to the turn's message once it has settled.)
     t.end(done.end === 'aborted' ? notices : []);
     return done.end === 'aborted' ? [] : notices;
@@ -163,7 +170,7 @@ export function useStudioChat(props: ChatPanelProps) {
     const previews = latestPump((d: StudioDoc) => latest.current.evaluate(d), bodies => { if (turn.current?.previews === previews && bodies) latest.current.onPreview(bodies); });
     let end!: (stopped: string[]) => void;
     const ended = new Promise<string[]>(resolve => { end = resolve; });
-    turn.current = { message, base, shared: base, built: null, ops: [], previews, ended, end,
+    turn.current = { message, base, shared: base, built: null, ops: [], previews, ended, end, scope: latest.current.scope ?? null,
       inputs: { text: message, turns: said.current, rowFiles: allRows, rowConversation: chatBlobs.current.session, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, ...(versionLog ? { versions: versionLog } : {}) } };
     // (The message as shown: what was typed — or the row files' names — its images as file parts, its row files named.)
     const shown = said0.trim() || (incoming.length ? incoming.map(f => f.name).join(', ') : '');

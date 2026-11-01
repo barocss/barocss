@@ -1,0 +1,12 @@
+{
+  "count": 7,
+  "hashes": {
+    "apps/cad-studio/test/fixtures/linear-cut-pattern.bcad": "6729a77500703e3556b020a32ffb7526399325fb819c6bca17a75b25495e2ebc",
+    "apps/cad-studio/test/flow-helper.mjs": "993bbc0183ff82350874aa347aed05d22c3bb0ac37b59b5787dc70a856224740",
+    "apps/cad-studio/test/linear-cut-pattern-browser.mjs": "2efa6f9868023daf01d6466fac16788614fd7ff618843258db5991d368e79909",
+    "packages/barocss-cad-model/src/app/commands.ts": "9e5644ce713de053bd61351fb2a9eda76f41ad854bfad0cbc9b91823763445a5",
+    "packages/barocss-cad-model/src/app/editFields.ts": "3c972fb283b231acb8970d4774b1a127c0e8cd3ffdb5fba575c386da0b999f34",
+    "packages/barocss-cad-model/src/chat/features.ts": "481cb762c37c54f2a4c7193ca7f6c04f2afa861ef1f859e30f1e3f05896b19d9",
+    "packages/barocss-cad-model/src/engine/doc.ts": "2c85f92f29407f366eb9c23a46ff9be7aedff7ed1eed5eaa78fa7a72e49aa510"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "decision": "D399",
+  "date": "2026-11-01",
+  "tier": "small",
+  "status": "BOUNDED_QUALIFIED",
+  "baseCommit": "f01ee44630b0d79491618cd4bca4d953d77cc9ed",
+  "model": "gpt-6.1-sol / medium",
+  "scope": "Native Open recovery of lost or moved signed references; usable repair and current-owner checks",
+  "negativeControl": {
+    "status": "FAIL_EXPECTED",
+    "pass": 4,
+    "fail": 3,
+    "cause": "Old helper skips BAND_EDGE_LOST verification"
+  },
+  "checks": {
+    "focusedTests": {
+      "status": "PASS",
+      "pass": 9,
+      "fail": 0,
+      "command": "cd apps/cad-studio && node scripts/test.mjs document-file"
+    },
+    "studioTypes": {
+      "status": "PASS",
+      "command": "cd apps/cad-studio && node ../../node_modules/typescript/bin/tsc --noEmit"
+    },
+    "modelTypes": {
+      "status": "PASS",
+      "command": "cd packages/barocss-cad-model && node ../../node_modules/typescript/bin/tsc --noEmit"
+    },
+    "driverSyntax": {
+      "status": "PASS",
+      "command": "node --check apps/cad-studio/test/reference-open-browser.mjs"
+    },
+    "targetedLint": {
+      "status": "PASS",
+      "command": "node node_modules/eslint/bin/eslint.js apps/cad-studio/src/files/documentFile.ts apps/cad-studio/test/document-file.test.ts apps/cad-studio/test/reference-open-fixture.ts apps/cad-studio/test/reference-open-browser.mjs"
+    },
+    "diffCheck": "PASS"
+  },
+  "studio": {
+    "run01": "FAIL_DRIVER: unsupported missing-reference text expectation; product already recovered",
+    "run02": "PASS",
+    "artifacts": "/tmp/barocss-d399-run02",
+    "snapshots": 8,
+    "frozenFiles": 734,
+    "sourceUnchanged": true,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "watcherChanges": 0,
+    "downloads": 0,
+    "rootVisualReview": "PASS: renamed-held and unrelated-refusal screenshots",
+    "cleanup": "All owned contexts, browser and Vite closed",
+    "command": "cd apps/cad-studio && REFERENCE_OPEN_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' node test/reference-open-browser.mjs /tmp/barocss-d399-run02",
+    "execution": "Heavy gate acquired and released by the same shell; no worktree writes during flow"
+  },
+  "notRun": [
+    "Native Save/download",
+    "Full baseline suites",
+    "Independent audit (small tier)",
+    "Kernel suite",
+    "CI",
+    "Release"
+  ],
+  "limits": [
+    "Actual recovery is bounded to signed band references.",
+    "Fresh-context Open uses prewritten accepted JSON; it does not prove native Save.",
+    "Unrelated invalid native files retain existing adoption behavior and remain evaluation-refused.",
+    "Candidate (b), generic chamfer/fillet hint for a band, remains."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "count": 10,
+  "hashes": {
+    "apps/cad-studio/src/ui/DrawingWorkspace.tsx": "b614f32a24404f2ccf347a757d24d69739fd720d0015b0c7013ccb236992f194",
+    "apps/cad-studio/src/ui/drawing/FrameEditor.tsx": "f420f7f82a96debe97cd59e16467cadcd1857053b1c5849502ab42009f4c1c6a",
+    "apps/cad-studio/src/ui/drawing/StandaloneFramesEditor.tsx": "154bce59d151fa15d5e9d767d4ee2133e154f07b97615bcc58f16e3a9d25bc0e",
+    "apps/cad-studio/test/fixtures/bracket.bcad": "36b79a5ceb65f46d72a51cfb05c9e0db83e416ecec57d5b5221e9469919dcb3f",
+    "apps/cad-studio/test/flow-helper.mjs": "993bbc0183ff82350874aa347aed05d22c3bb0ac37b59b5787dc70a856224740",
+    "apps/cad-studio/test/standalone-frame-browser.mjs": "5469fec309ca6f354a83c415ed6ff81be309ef84b8936a9b0f252cf811283e84",
+    "packages/barocss-cad-model/src/drawing/controls.ts": "c345c98dbf3eed8e6ac8fd4792fc9565fb678e5e8004aef9339f61e39b9ff581",
+    "packages/barocss-cad-model/src/drawing/issues.ts": "ec7e077ac0d07e546cee291b7920889f917b1b98336a1bf82abb34a9e5b2e7ae",
+    "packages/barocss-cad-model/src/drawing/sheet.ts": "664dc5ad8b42e3e01158826ed15708452b033025243c0a5df3d1df72c9bb2218",
+    "packages/barocss-cad-model/src/io/svg.ts": "fabb3ccad509e158fef1c53795ce5a17a96c02301e641739b0f71788e7f7f6bf"
+  }
+}

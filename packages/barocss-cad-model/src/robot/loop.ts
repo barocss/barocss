@@ -4,6 +4,7 @@
 // other), from the previous solution, so the motion follows the branch the linkage was assembled in. The branch is
 // the sign of the turn between the two levers that meet at the pin (each from its part's own joint): a solution on
 // the other branch is refused (BRANCH_FLIP), never taken; a driver value with no closure is NO_CLOSURE.
+import { hostOf } from '../engine/occurrences';
 import type { StudioDoc } from '../engine/doc';
 import { forwardKinematics } from './fk';
 import { pathTo } from './ik';
@@ -56,7 +57,7 @@ export function closureOfDoc(doc: StudioDoc, tree: JointTree, loop: Loop): Closu
   const side = conc.a, fa = tables(side.part)?.[side.face], fb = tables(conc.b.part)?.[conc.b.face];
   const f = fa && fb ? mateFacesOf(conc, { a: fa, b: fb }).a : undefined;
   if (!f || f.kind !== 'cylinder') throw refusal('NO_PIN', `${side.part}.${side.face} is not a round face`);
-  const inst = (solved.instances ?? []).find(i => i.id === side.part), R = inst ? rotationMatrix(inst.rotation) : [1, 0, 0, 0, 1, 0, 0, 0, 1], t = inst ? inst.position : [0, 0, 0];
+  const inst = (solved.instances ?? []).find(i => i.id === hostOf(side.part)), R = inst ? rotationMatrix(inst.rotation) : [1, 0, 0, 0, 1, 0, 0, 0, 1], t = inst ? inst.position : [0, 0, 0];
   const p = [0, 1, 2].map(i => R[i * 3] * f.point[0] + R[i * 3 + 1] * f.point[1] + R[i * 3 + 2] * f.point[2] + t[i]), n = [0, 1, 2].map(i => R[i * 3] * f.axis[0] + R[i * 3 + 1] * f.axis[1] + R[i * 3 + 2] * f.axis[2]);
   const [a, b] = loop.parts;
   return closureOf(tree, a, b, p, n);
@@ -120,13 +121,13 @@ const dot3 = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] 
 /** The loops' terms from the document's own mates (solved), refused where a mate has no term (LOOP_MATE_UNSUPPORTED). */
 export function loopTermsOf(doc: StudioDoc, tree: JointTree): LoopTerm[] {
   const solved = solveDoc(doc).doc, tables = tablesFor(solved), out: LoopTerm[] = [];
-  const placeOf = (part: string) => { const i = (solved.instances ?? []).find(x => x.id === part); return { R: i ? rotationMatrix(i.rotation) : [1, 0, 0, 0, 1, 0, 0, 0, 1], t: i ? i.position : [0, 0, 0] }; };
+  const placeOf = (part: string) => { const i = (solved.instances ?? []).find(x => x.id === hostOf(part)); return { R: i ? rotationMatrix(i.rotation) : [1, 0, 0, 0, 1, 0, 0, 0, 1], t: i ? i.position : [0, 0, 0] }; };
   const worldP = (part: string, p: readonly number[]): V3 => { const { R, t } = placeOf(part); return [0, 1, 2].map(i => R[i * 3] * p[0] + R[i * 3 + 1] * p[1] + R[i * 3 + 2] * p[2] + t[i]) as V3; };
   const worldV = (part: string, v: readonly number[]): V3 => { const { R } = placeOf(part); return unit3([0, 1, 2].map(i => R[i * 3] * v[0] + R[i * 3 + 1] * v[1] + R[i * 3 + 2] * v[2])); };
   for (const loop of tree.loops) for (const id of loop.mates) {
     const m = (solved.mates ?? []).find(x => x.id === id);
     if (!m) continue;
-    const base = { mate: id, a: m.a.part, b: m.b.part, n: [0, 0, 0] as V3, at0: 0 };
+    const base = { mate: id, a: hostOf(m.a.part), b: hostOf(m.b.part), n: [0, 0, 0] as V3, at0: 0 };
     if (m.kind === 'lock') {
       const o = worldP(m.b.part, [0, 0, 0]);
       out.push({ ...base, kind: 'point', p: [o, worldP(m.b.part, [20, 0, 0]), worldP(m.b.part, [0, 20, 0])], o, d: [0, 0, 0] });

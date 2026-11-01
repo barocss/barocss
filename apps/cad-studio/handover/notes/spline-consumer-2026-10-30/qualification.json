@@ -1,0 +1,59 @@
+{
+  "decision": "D351",
+  "roadmap": "09 Advanced sketch — CG3 (fourth bounded item; spline consumer repair before spline handles)",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "Existing Spline tool (P): a closed spline keeps its clicked points on the curve and its joints tangent; closing infers only tangency for Spline-tool outlines; biarc joints unrounded. Spline handles (persisted fit points and editable tangents) are NOT part of D351.",
+  "baseCommit": "4bb6f8d5f",
+  "sourceCommit": "20b706542",
+  "sourcePaths": ["packages/barocss-cad-model/src/sketch/spline.ts", "packages/barocss-cad-model/src/sketch/types.ts", "packages/barocss-cad-model/src/sketch/settle.ts", "packages/barocss-cad-model/src/sketch/entityIds.ts", "packages/barocss-cad-model/src/sketch/corner.ts", "apps/cad-studio/src/viewport/Viewport.tsx", "packages/barocss-cad-model/test/sketch-spline-closing.test.ts", "apps/cad-studio/test/spline-closing-browser.mjs", "apps/library-docs/scripts/api-inventory.expected.json", "apps/library-docs/docs/reference/_refusals.md"],
+  "models": {
+    "rootJudgmentAndVerification": "claude-opus-5-5 (main session)",
+    "independentAudit": "claude-opus-5-5 sub-agent",
+    "implementation": "Sonnet sub-agents from frozen briefs (repair+tests in an isolated worktree; Studio driver)",
+    "rootEdits": "driver New part start; spline.ts comment wrap; test names and the 2.5 m audit case; docs table regeneration",
+    "sol": "NOT_USED"
+  },
+  "baselineDefects": [
+    "closing inferred equal radii (5..24 pairs) and shared centres between unrelated biarc arcs and moved clicked points up to 0.19 mm (12 points; audit: 3.84 mm at 2.5 m)",
+    "biarc joints rounded to 1e-6: kinks ~1e-7 rad, never repaired past the solver size limit (k >= 17)",
+    "actual Studio run00: 12 equal-radius and 2 concentric pairs stored, all 12 clicked points off the stored outline (e.g. 35,12 -> 35.1851,11.9539)"
+  ],
+  "model": { "newTests": 11, "negativeControl": "9/10 fail on base (first version)", "affected": "97/97 (sketch- spline engine editFields)", "types": "PASS", "lint": "PASS" },
+  "studioUnit": { "constraintsSketchIdsSketchEditIdentity": "32/32", "types": "PASS" },
+  "docs": { "checkDocs": "PASS (68 pages, 862 labels)", "apiInventory": "regenerated: D350 conflict exports + SolveResult and D351 polygon type", "refusals": "regenerated: D347 DIRECT_VALUE message" },
+  "kernel": { "sourceChanged": false },
+  "audit": { "verdict": "CHANGES_REQUIRED (low)", "f1": "fit points bitwise claim false in ~2/1800 random closings (max 2.37e-6 mm at 2.5 m): claim narrowed, case added", "fuzz": "600 closed + 60 open: 0 points moved, 0 relations, 0 profileOf/settle failures; kernel admission identical to base" },
+  "browser": {
+    "run00a": "DRIVER_FAIL: a new page is not empty (starter document); driver now clicks New part",
+    "run00": "BASELINE_FAIL_AS_EXPECTED at 03: fit points off the stored outline, equalRadii 12, concentric 2; errors 0",
+    "status": "PASS_RUN_01",
+    "chromeProcesses": 1,
+    "serialContexts": 2,
+    "fitPoints": 12,
+    "storedOutline": "loop, 24 arcs, tangents 24, no equalRadii/concentric",
+    "worstTangentAngle": 3.5245226858155858e-15,
+    "volume": "31850.163458... (oracle area x 10 within 1e-6 relative)",
+    "productReads": 4,
+    "independentPythonFractionOracles": 4,
+    "nativeFiles": 1,
+    "frozenFiles": 982,
+    "frozenEqualsCommit": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "visual": { "status": "PASS", "rootImages": ["run01 02-closed", "run01 04-extruded"] },
+  "limits": [
+    "Clicked points stay bitwise only when the closing solve takes no step; at metre scale they can move by solver-scale amounts (max 2.37e-6 mm observed)",
+    "Closed splines with 17+ points carry no tangent constraints (solver size limit); a later edit can kink them",
+    "Biarc straight fallback can leave a corner for tiny dense point sets (pre-existing)",
+    "Spline handles (stored fit points, editable tangents) remain the next 09 item",
+    "Hashes are provenance only"
+  ],
+  "fullKernel": "NOT_RUN",
+  "fullModel": "NOT_RUN",
+  "fullStudio": "NOT_RUN",
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

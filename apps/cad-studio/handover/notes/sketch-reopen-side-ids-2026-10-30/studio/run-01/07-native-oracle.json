@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "sideTags": {
+    "outer": [
+      "e2",
+      "e3",
+      "e4",
+      "e5"
+    ]
+  },
+  "analyticVolume": 24000.0,
+  "reportedVolume": 24000,
+  "productImports": 0
+}

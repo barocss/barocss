@@ -1,0 +1,406 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+        0,
+        0
+      ],
+      "max": [
+        100,
+        40
+      ],
+      "id": "n0"
+    },
+    {
+      "kind": "extrude",
+      "sketch": 0,
+      "height": 10,
+      "id": "n1"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 1,
+        "side": "solid"
+      },
+      "center": [
+        20,
+        20
+      ],
+      "radius": 5,
+      "id": "n2"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 2,
+        "side": "solid"
+      },
+      "center": [
+        80,
+        20
+      ],
+      "radius": 5,
+      "id": "n3"
+    }
+  ],
+  "outputs": {
+    "b3": {
+      "node": 3,
+      "side": "solid"
+    }
+  },
+  "nextId": 4,
+  "instances": [
+    {
+      "id": "a",
+      "name": "a",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              20
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 5,
+            "id": "n1"
+          },
+          {
+            "kind": "hole",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "center": [
+              10,
+              10
+            ],
+            "radius": 5,
+            "id": "n2"
+          },
+          {
+            "kind": "hole",
+            "parent": {
+              "node": 2,
+              "side": "solid"
+            },
+            "center": [
+              50,
+              10
+            ],
+            "radius": 5,
+            "id": "n3"
+          }
+        ],
+        "outputs": {
+          "b3": {
+            "node": 3,
+            "side": "solid"
+          }
+        },
+        "nextId": 4
+      },
+      "position": [
+        10,
+        10,
+        10
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "b",
+      "name": "b",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              20
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 5,
+            "id": "n1"
+          },
+          {
+            "kind": "hole",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "center": [
+              10,
+              10
+            ],
+            "radius": 5,
+            "id": "n2"
+          },
+          {
+            "kind": "hole",
+            "parent": {
+              "node": 2,
+              "side": "solid"
+            },
+            "center": [
+              50,
+              10
+            ],
+            "radius": 5,
+            "id": "n3"
+          }
+        ],
+        "outputs": {
+          "b3": {
+            "node": 3,
+            "side": "solid"
+          }
+        },
+        "nextId": 4
+      },
+      "position": [
+        50,
+        10,
+        15
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "post",
+      "name": "post",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              60
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 30,
+            "id": "n1"
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "nextId": 2
+      },
+      "position": [
+        110.55386138137418,
+        -10,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "grounded": true
+    },
+    {
+      "id": "wall",
+      "name": "wall",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 30,
+            "id": "n1"
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "nextId": 2
+      },
+      "position": [
+        -10,
+        -77.55385138137417,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "grounded": true
+    }
+  ],
+  "mates": [
+    {
+      "id": "m1c",
+      "kind": "concentric",
+      "a": {
+        "part": "base",
+        "face": "n2.side0"
+      },
+      "b": {
+        "part": "a",
+        "face": "n2.side0"
+      }
+    },
+    {
+      "id": "m1f",
+      "kind": "coincident",
+      "a": {
+        "part": "base",
+        "face": "n1.top"
+      },
+      "b": {
+        "part": "a",
+        "face": "n1.bottom"
+      }
+    },
+    {
+      "id": "m2c",
+      "kind": "concentric",
+      "a": {
+        "part": "a",
+        "face": "n3.side0"
+      },
+      "b": {
+        "part": "b",
+        "face": "n2.side0"
+      }
+    },
+    {
+      "id": "m2f",
+      "kind": "coincident",
+      "a": {
+        "part": "a",
+        "face": "n1.top"
+      },
+      "b": {
+        "part": "b",
+        "face": "n1.bottom"
+      }
+    }
+  ],
+  "robot": {
+    "version": 1,
+    "motions": [
+      {
+        "name": "graze",
+        "path": {
+          "waypoints": [
+            {
+              "base~a": 0
+            },
+            {
+              "base~a": -22.918311805
+            },
+            {
+              "base~a": 22.918311805
+            }
+          ],
+          "profile": "trapezoid",
+          "limits": {
+            "default": {
+              "velocity": 90,
+              "acceleration": 180
+            }
+          }
+        }
+      },
+      {
+        "name": "collide",
+        "path": {
+          "waypoints": [
+            {
+              "base~a": 0
+            },
+            {
+              "base~a": -91.7
+            }
+          ],
+          "profile": "trapezoid",
+          "limits": {
+            "default": {
+              "velocity": 90,
+              "acceleration": 180
+            }
+          }
+        }
+      }
+    ]
+  }
+}

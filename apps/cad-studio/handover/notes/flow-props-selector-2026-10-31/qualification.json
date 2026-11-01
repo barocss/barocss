@@ -1,0 +1,20 @@
+{
+  "decision": "D386",
+  "what": "browser-flow fastener steps 94–96 failing ('Hole HUD never opens' as first reported)",
+  "tier": "small (test driver fix; no product change)",
+  "status": "FIXED",
+  "cause": "Not the product and not the Hole shortcut: the flow waited for text in document.querySelector('.props:not([aria-label$=\" panel\"])'), meaning 'the first property card'. Commit 878f92a0d (2026-10-26, 'add explicit static gravity experiment controls') added GravityExperimentPanel, a .props card labelled 'Static gravity experiment', rendered before the Selection card whenever no instance is selected; the selector then read the gravity card and waited out ('SELECTION · FACE', 'M8×1.25 right', 'modelled'). The failure screenshot shows STATIC GRAVITY above SELECTION · FACE.",
+  "culprit": "878f92a0d (made the flow's first-card selector ambiguous; the product behaved correctly)",
+  "fix": "apps/cad-studio/test/browser-flow.mjs: the 30 waits for the Selection card's 'SELECTION · …' text read [aria-label=\"Selection\"] (as step 216 already did); the other 54 first-card reads skip the gravity card (:not([aria-label=\"Static gravity experiment\"]))",
+  "runs": {
+    "before": "HEAD: step 94 FAIL (before-head.txt)",
+    "run01": "Selection waits only: 95 ok, 94 and 96 still FAIL at other first-card reads",
+    "run02": "final: 1, 94, 95, 96 all ok"
+  },
+  "bisect": "not run: the cause was identified directly from the screenshot and the selector, and confirmed by the fix; the culprit is the commit that introduced the card",
+  "limits": [
+    "Only steps 94–96 (and step 1) were rerun, as assigned; other steps using the first-card selector were changed the same way but not rerun",
+    "The flow's other generic selectors were not audited"
+  ],
+  "remoteCI": "NOT_RUN"
+}

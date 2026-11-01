@@ -4,6 +4,7 @@ import { linear, parseColor } from './lights.js';
 import { identity, invert, multiply, normalize, transformPoint, type Vec3 } from './math.js';
 import { SURFACE_FINISHES, type ImageTexture, type Mesh } from './scene.js';
 import { ViewerError } from './viewer-error.js';
+import { RenderTargetTexture } from './render-target.js';
 
 export interface TraceScene { bvh: PackedBvh; attributes: Float32Array; materials: Float32Array; maps: ImageTexture[]; dataMaps: ImageTexture[] }
 /** Only visible, bounded triangle surfaces are exported; grid, labels, lines and overlays stay in the raster view. */
@@ -19,6 +20,7 @@ export function traceScene(meshes: readonly Mesh[]): TraceScene {
   for (const mesh of meshes) {
     if (!mesh.visible || !mesh.bounded || mesh.geometry.disposed || mesh.geometry.topology !== 'triangles' || mesh.material.colorWrite === false || mesh.material.shadowOnly) continue;
     const m = mesh.material, g = mesh.geometry.data;
+    if (m.map instanceof RenderTargetTexture) throw new ViewerError('PATH_TRACE_UNSUPPORTED', 'Path tracing cannot sample a render target');
     if (m.shader || mesh.colorMap || g.contour) throw new ViewerError('PATH_TRACE_UNSUPPORTED', 'Path tracing needs triangle surfaces without custom shaders, scalar maps, contours');
     const material = materials.length / 48, color = linear(parseColor(m.color));
     // The exact G15a object frame (instance transforms affect geometry, not the finish frame).

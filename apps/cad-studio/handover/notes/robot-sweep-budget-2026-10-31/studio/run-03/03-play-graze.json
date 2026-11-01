@@ -1,0 +1,16 @@
+{
+  "label": "03-play-graze",
+  "nodes": 4,
+  "instances": [
+    "a",
+    "b",
+    "post",
+    "wall"
+  ],
+  "notices": [
+    "infoMotion contact check not certifiedThe sweep ran out of its sample budget at t 1.294 s: the motion is neither clear nor in contact.close"
+  ],
+  "pathCheck": null,
+  "contactLinks": [],
+  "motionContact": null
+}

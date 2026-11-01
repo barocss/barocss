@@ -1,0 +1,14 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": { "R": 20 },
+  "nodes": [
+    { "kind": "sketch", "profile": "circle", "center": [0, 0], "radius": { "parameter": "R" }, "id": "n0" },
+    { "kind": "extrude", "sketch": 0, "height": 10, "id": "n1" },
+    { "kind": "sketch", "profile": "circle", "center": [0, 0], "radius": 10, "id": "n2" },
+    { "kind": "extrude", "sketch": 2, "height": 10, "from": 40, "id": "n3" }
+  ],
+  "outputs": { "b1": { "node": 1, "side": "solid" }, "b3": { "node": 3, "side": "solid" } },
+  "nextId": 4
+}

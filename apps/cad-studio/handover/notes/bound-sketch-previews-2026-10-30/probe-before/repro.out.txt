@@ -1,0 +1,3 @@
+profileMiddle [null,20]
+profileRings [[0,0,0],[null,null,null]]
+loftSections [[{"kind":"line","start":[0,0]},{"kind":"line","start":[null,null]},{"kind":"line","start":[null,null]},{"kind":"line","start":[0,40]}],[{"kind":"line","start":[0,0]},{"kind":"line","start":[null,null]},{"kind":"line","start":[null,null]},{"kind":"line","start":[0,40]}]]

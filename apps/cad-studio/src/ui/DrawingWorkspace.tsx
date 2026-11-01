@@ -20,10 +20,14 @@ import type { ProjectedEdge } from '@barocss/cad';
 import type { EngineClient } from '../engine/client';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
-import { buildSheet, curveMark, dimensionMarks, placementOf, projectionOf, sheetSections } from '@barocss/cad-model/drawing/sheet';
+import { presetFor } from '@barocss/cad-model/drawing/standard';
+import { buildSheet, curveMark, dimensionMarks, placementOf, projectionOf, sheetSections, withShownText } from '@barocss/cad-model/drawing/sheet';
 import { marksSvg, sheetGroupsSvg, sheetSvg } from '@barocss/cad-model/io/svg';
 
-import { pdfMissing, sheetPdf } from '@barocss/cad-model/io/pdf';
+import { pdfMissing, sheetsPdf } from '@barocss/cad-model/io/pdf';
+import { forSheet, mergeSheet, sheetCount, sheetName } from '@barocss/cad-model/drawing/sheets';
+import { buildSheets, setIssuesOn } from '@barocss/cad-model/drawing/sheetSet';
+import { SheetTabs, SheetsMenu, newSheetId } from './drawing/SheetSet';
 import { sectionDxfDocument, sheetDxf } from '@barocss/cad-model/io/dxf';
 import { MIN_HOLE_ON_PAPER_MM, autoLayout, frontByInformation } from '@barocss/cad-model/drawing/layout';
 import { reorient, turnSections } from '@barocss/cad-model/drawing/reorient';
@@ -48,11 +52,12 @@ import { IssuesList } from './drawing/IssuesList';
 import { TolerancingList } from './drawing/TolerancingList';
 import { DimensionsList } from './drawing/DimensionsList';
 import { DatumsEditor } from './drawing/DatumsEditor';
-import { DatumTargetsEditor } from './drawing/DatumTargetsEditor';
-import { checkDatumTargetOptions, datumTargetConflicts, datumTargetEndpoint, resolveDatumTarget, type DrawingDatumTarget } from '@barocss/cad-model/drawing/datumTargets';
+import { DatumTargetsEditor, DEFAULT_TARGET_DRAFT, type DatumTargetDraft } from './drawing/DatumTargetsEditor';
+import { checkDatumTargetOptions, datumTargetConflicts, datumTargetEndpoint, resolveDatumTarget, type DatumTargetPoint, type DrawingDatumTarget } from '@barocss/cad-model/drawing/datumTargets';
 import { FrameEditor } from './drawing/FrameEditor';
+import { committedSettings } from './drawing/commitSettings';
 import { StandaloneFramesEditor } from './drawing/StandaloneFramesEditor';
-import { checkDrawingFrames, type DrawingFrame } from '@barocss/cad-model/drawing/controls';
+import { checkDrawingFrames, readFrames, type DrawingFrame } from '@barocss/cad-model/drawing/controls';
 import { ToleranceEditor } from './drawing/ToleranceEditor';
 import { NotesList } from './drawing/NotesList';
 import { ExportActions } from './drawing/ExportActions';
@@ -67,11 +72,13 @@ const TOOLS: { tool: Tool; label: string; icon: string; key: string; hint: strin
   { tool: 'angle', label: 'Angle', icon: 'architecture', key: 'A', hint: 'Click two straight edges, then the side of their corner the angle goes on' },
   { tool: 'note', label: 'Note', icon: 'sticky_note_2', key: 'N', hint: 'Click on the paper for a note, or on a view for a leader and then where its text goes' },
   { tool: 'detail', label: 'Detail view', icon: 'zoom_in', key: 'E', hint: 'Click the centre of what to enlarge on a view or a section, then how far its circle reaches' },
-  { tool: 'datum-target', label: 'Point datum target', icon: 'my_location', key: 'T', hint: 'Click a straight edge endpoint, then place the target symbol. Overlapping endpoints require a choice.' },
+  { tool: 'datum-target', label: 'Datum target', icon: 'my_location', key: 'T', hint: 'Choose point, line or area under Datum targets. Point: click a straight edge endpoint. Line: click its two ends. Area: click its centre. Then place the target symbol.' },
 ];
 type Pending =
   | { kind: 'standalone-frame'; view: DimView; frame: Extract<DrawingFrame, { view: DimView }>; moving: boolean; settingsKey: string; sourceDoc: StudioDoc; model: StudioDoc }
   | { kind: 'datum-target'; view: ViewId; target: DrawingDatumTarget; moving: boolean }
+  /** A target line's first end, picked in its view (view mm). */
+  | { kind: 'datum-line'; view: ViewId; from: XY }
   | { kind: 'linear'; view: DimView; a: DimPoint; b?: DimPoint }
   | { kind: 'diameter' | 'radius'; view: DimView; edge: string; near: Vec3 }
   | { kind: 'angle'; view: DimView; a: EdgeRef; b?: EdgeRef }
@@ -85,17 +92,25 @@ interface Hover { q: XY; view: DimView; at: XY; snap: SnapPoint | null; edge: Pr
 export interface DrawingReferencePreview { dimensionId: string; edge?: string }
 export interface DrawingReferenceLabel { dimensionId: string; view: DimView; text: string | null; reason?: string }
 
-export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, onChange: sourceOnChange, onToast, referencePreview, onReferenceLabels }: {
+export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies, settings: wholeSettings, fileName, onChange: sourceOnChange, onToast, referencePreview, onReferenceLabels }: {
   engine: EngineClient; doc: StudioDoc; bodies?: readonly BodyResult[]; settings: DrawingSettings; fileName: string;
   onChange(next: DrawingSettings): void; onToast(e: FriendlyError): void;
   referencePreview?: DrawingReferencePreview | null; onReferenceLabels?(labels: readonly DrawingReferenceLabel[]): void;
 }) {
+  // 11 ④: a drawing of several sheets shows one at a time, as a drawing of its own (its views and what belongs to them); what is
+  // edited on it is merged back into the whole drawing's settings. With one sheet `settings` is `wholeSettings`, untouched.
+  const [sheetNo, setSheetNo] = useState(0);
+  const sheetTotal = sheetCount(wholeSettings), current = Math.min(sheetNo, sheetTotal - 1);
+  const settings = useMemo(() => forSheet(wholeSettings, current), [wholeSettings, current]);
   // (The sheet's pipeline, shared with the viewport's 3D annotations, G24: views, layout, sheet and what they are built from.)
-  const { source, scopeRead, scope, scopeKey, doc, model, currentModel, bodies, views, cutsMade, sectionList, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, locationOwner, fitMissOf, followedChanged, threads, bom, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet } = useDrawingSheet(true, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName });
-  const onChange = (next: DrawingSettings) => {
+  const { source, scopeRead, scope, scopeKey, doc, model, currentModel, bodies, views, cutsMade, sectionList, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, locationOwner, fitMissOf, followedChanged, threads, bom, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet } = useDrawingSheet(true, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, ...(wholeSettings.sheets?.length ? { allSections: sectionsOf(wholeSettings) } : {}) });
+  /** The whole drawing's next settings, as the file will have them. */
+  const commitWhole = (next: DrawingSettings) => {
     if (!scopeRead.scope) { onToast({ title: 'Drawing scope unchanged', hint: scopeRead.error ?? 'Invalid drawing scope', detail: '' }); return; }
-    sourceOnChange({ ...next, scope: next.scope ?? scopeRead.scope });
+    sourceOnChange(committedSettings(next, scopeRead.scope));
   };
+  /** An edit of the sheet shown. */
+  const onChange = (next: DrawingSettings) => commitWhole(mergeSheet(wholeSettings, current, next));
   const [dxfSection, setDxfSection] = useState<string | null>(null);
   const [tool, setTool] = useState<Tool>('select');
   const [pending, setPending] = useState<Pending | null>(null);
@@ -105,6 +120,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
   const [targetChoices, setTargetChoices] = useState<DrawingDatumTarget[]>([]);
   const [reselectTarget, setReselectTarget] = useState<DrawingDatumTarget | null>(null);
+  const [targetDraft, setTargetDraft] = useState<DatumTargetDraft>(DEFAULT_TARGET_DRAFT);
   useEffect(() => { if (selected !== null) { setSelectedTarget(null); setSelectedFrame(null); } }, [selected]);
   useEffect(() => { if (selectedTarget !== null) setSelectedFrame(null); }, [selectedTarget]);
   const [message, setMessage] = useState<string | null>(null);
@@ -124,10 +140,12 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const svg = useRef<SVGSVGElement>(null);
   useEffect(() => {
     setPending(null); setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTargetChoices([]); setReselectTarget(null); setHover(null); setDrag(null); setNoteDraft(null); setTolDraft({});
-  }, [scopeKey]);
+  }, [scopeKey, current]);
 
   // The drawing's issue list (R14.2, O3): what is wrong on the sheet, then what is missing; fixes where safe.
-  const issues = useMemo<DrawingIssue[]>(() => views && layout && sheet ? drawingIssues({ views, layout, settings, sheet, callout, locationOwner, fitMiss: fitMissOf, followedChanged, elements, ...(cuts.length ? { sections: cuts } : {}) }) : [], [views, layout, settings, sheet, callout, locationOwner, fitMissOf, followedChanged, elements, cuts]);
+  const issues = useMemo<DrawingIssue[]>(() => views && layout && sheet ? [...drawingIssues({ views, layout, settings, sheet, callout, locationOwner, fitMiss: fitMissOf, followedChanged, elements, ...(cuts.length ? { sections: cuts } : {}) }),
+    // (11 ④: what is missing judged on the whole drawing, and a sheet with no view: this sheet's share.)
+    ...(sheetTotal > 1 ? setIssuesOn({ views, settings: wholeSettings, callout, locationOwner, fitMiss: fitMissOf, followedChanged, elements, meta: { title, date: today(), source, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) }, current) : [])] : [], [views, layout, settings, wholeSettings, current, sheet, callout, locationOwner, fitMissOf, followedChanged, elements, cuts]);
   // Tolerance and GD&T suggestions (R14.4, O5): offered with their basis, applied only when accepted.
   const suggestions = useMemo<ToleranceSuggestion[]>(() => views && layout && sheet ? toleranceSuggestions({ views, layout, settings, sheet, callout, locationOwner, fastenerSizes: fastenerSizesOf(doc) }) : [], [views, layout, settings, sheet, callout, locationOwner, doc.fastenerSizes]);
   const acceptEvery = () => {
@@ -146,7 +164,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const fixOnly = (fix: DrawingFix) => scope.kind !== 'assembly' || fix.kind !== 'auto-dimension';
   const fixStep = (step: FixRoundStep) => {
     if (step.next) {
-      fixing.current = { state: step.state, want: JSON.stringify({ ...step.next, scope: step.next.scope ?? scopeRead.scope }) };
+      fixing.current = { state: step.state, want: wholeSettings.sheets?.length && scopeRead.scope ? JSON.stringify(forSheet(committedSettings(mergeSheet(wholeSettings, current, step.next), scopeRead.scope), current)) : JSON.stringify({ ...step.next, scope: step.next.scope ?? scopeRead.scope }) };
       onChange(step.next); return;
     }
     fixing.current = null;
@@ -195,7 +213,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const sheetMarkup = useMemo(() => sheet ? sheetGroupsSvg(sheet, selected, selectedTarget, selectedFrame) : '', [sheet, selected, selectedTarget, selectedFrame]);
   const [W, H] = layout?.size ?? [297, 210];
   const [box, setBox] = useState<[number, number, number, number] | null>(null);
-  useEffect(() => { setBox(null); }, [settings.sheet]);
+  useEffect(() => { setBox(null); }, [settings.sheet, current]);
   const viewBox = box ?? [-6, -6, W + 12, H + 12];
 
   // Pointer position on the sheet (mm), and the view under it.
@@ -241,9 +259,9 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const commitDims = (dimensions: DrawingDimension[]) => onChange({ ...settings, dimensions });
   const commitFrames = (frames: DrawingFrame[]) => {
     if (!scopeRead.scope) { setMessage(scopeRead.error ?? 'Invalid drawing scope.'); return false; }
-    const why = checkDrawingFrames({ frames })[0];
+    const why = checkDrawingFrames({ frames }, settings.frames ?? [])[0];
     if (why) { setMessage(why.message); return false; }
-    onChange({ ...settings, frames }); return true;
+    onChange({ ...settings, frames: readFrames(frames) }); return true;
   };
   const removeFrame = (frame: DrawingFrame) => {
     if (frame.dim !== undefined) return;
@@ -251,7 +269,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   };
   const commitTargets = (datumTargets: DrawingDatumTarget[]) => {
     if (!scopeRead.scope) { setMessage(scopeRead.error ?? 'Invalid drawing scope.'); return false; }
-    if (datumTargets.length > 200 || datumTargetConflicts(datumTargets).size) { setMessage('Point targets need at most 200 rows with unique IDs and letter-number pairs.'); return false; }
+    if (datumTargets.length > 200 || datumTargetConflicts(datumTargets).size) { setMessage('Datum targets need at most 200 rows with unique IDs and letter-number pairs.'); return false; }
     // Saved legacy rows may remain untouched while one row is explicitly repaired. New objects stay strict.
     const existing = new Set(settings.datumTargets ?? []), changed = datumTargets.filter(row => !existing.has(row));
     const why = checkDatumTargetOptions({ datumTargets: changed })[0];
@@ -264,7 +282,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (reselectTarget && !moving) {
       const current = (settings.datumTargets ?? []).filter(row => row.id === reselectTarget.id);
       if (!views || busy || current.length !== 1 || current[0] !== reselectTarget) { setMessage('The target changed or its current drawing is not ready. Select Reselect endpoint again.'); return; }
-      const next = { ...reselectTarget, point: target.point }, resolved = resolveDatumTarget(views[next.view], next);
+      const next = { ...reselectTarget, point: target.point } as DrawingDatumTarget, resolved = resolveDatumTarget(views[next.view], next);
       if (!resolved.ok) { setMessage(`${resolved.code}: ${resolved.reason}`); return; }
       if (commitTargets(settings.datumTargets!.map(row => row === reselectTarget ? next : row))) {
         setReselectTarget(null); setTool('select'); setSelected(null); setSelectedTarget(next.id); setMessage(null);
@@ -287,6 +305,27 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     setMessage(`Click where the standalone frame goes in the ${viewLabel(view)}. Esc cancels.`);
   };
 
+  /** A line or area target: its points are clicked in a view (a snapped edge end or centre, else the exact point). */
+  const pickFreeTarget = (h: Hover, view: ViewId) => {
+    const rows = settings.datumTargets ?? [], round = (p: readonly number[]): XY => [Math.round(p[0] * 100) / 100, Math.round(p[1] * 100) / 100];
+    if (rows.length >= 200) { setMessage('A drawing can contain up to 200 datum targets.'); return; }
+    const picked = round(h.snap ? h.snap.at : h.at);
+    let n = 1; while (rows.some(t => t.letter === 'A' && t.number === n)) n++;
+    let id = 'target-1', k = 2; while (rows.some(t => t.id === id)) id = `target-${k++}`;
+    const head = { id, letter: 'A', number: n, view, place: round(h.at) };
+    if (targetDraft.kind === 'line') {
+      if (pending?.kind !== 'datum-line') { setPending({ kind: 'datum-line', view, from: picked }); setMessage('Click the other end of the target line. Esc cancels.'); return; }
+      if (pending.view !== view) { setMessage(`Pick the other end in the ${pending.view} view.`); return; }
+      if (pending.from[0] === picked[0] && pending.from[1] === picked[1]) { setMessage('A target line needs two distinct points.'); return; }
+      chooseTarget({ ...head, kind: 'line', line: { from: pending.from, to: picked } }); return;
+    }
+    const number = (v: string) => v.trim() ? Number(v) : NaN;
+    const area = targetDraft.shape === 'circle' ? { shape: 'circle' as const, at: picked, d: number(targetDraft.d) } : { shape: 'rect' as const, at: picked, w: number(targetDraft.w), h: number(targetDraft.h) };
+    const why = checkDatumTargetOptions({ datumTargets: [{ ...head, kind: 'area', area }] })[0];
+    if (why) { setMessage(why.message); return; }
+    chooseTarget({ ...head, kind: 'area', area });
+  };
+
   const click = (h: Hover) => {
     if (!views) return;
     if (pending?.kind === 'standalone-frame') return; // Placed directly from its explicit view in onPointerDown.
@@ -305,7 +344,8 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         }
         return;
       }
-      if (!isViewId(h.view)) { setMessage('Point targets use a base view. Select a straight edge endpoint.'); return; }
+      if (!isViewId(h.view)) { setMessage('Datum targets use a base view. Select a point on the front, top or right view.'); return; }
+      if (!reselectTarget && targetDraft.kind !== 'point') { pickFreeTarget(h, h.view); return; }
       if (reselectTarget && h.view !== reselectTarget.view) { setMessage(`Select a current endpoint in the target's ${reselectTarget.view} view.`); return; }
       if (!bodies) { setMessage('Wait for the current drawing bodies before selecting a target endpoint.'); return; }
       const rows = settings.datumTargets ?? [];
@@ -315,7 +355,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       let id = 'target-1', k = 2; while (rows.some(t => t.id === id)) id = `target-${k++}`;
       const picked = endpointSnap(pr, h.at, 9 * mmPerPx() / placement.scale, bodies);
       if (picked.error) { setMessage(picked.error); return; }
-      const candidates = picked.points.map(point => reselectTarget ? { ...reselectTarget, point } : { id, letter: 'A', number: n, view: h.view as ViewId, place: [...h.at] as XY, point });
+      const candidates = picked.points.map((point): DrawingDatumTarget => reselectTarget ? { ...reselectTarget, point } as DrawingDatumTarget : { id, letter: 'A', number: n, view: h.view as ViewId, place: [...h.at] as XY, point, ...(targetDraft.moveable ? { moveable: true as const } : {}) });
       if (!candidates.length) { setMessage('Select a visible straight edge endpoint. Circle centres and curved edges are not supported.'); return; }
       if (candidates.length > 1) { setTargetChoices(candidates); setMessage('Endpoints overlap here. Choose the exact edge and endpoint in Point datum targets.'); return; }
       const resolved = resolveDatumTarget(pr, candidates[0]);
@@ -578,11 +618,14 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     return () => { delete w.__studioDrawingAt; delete w.__studioDrawing; delete w.__studioAnnotations; };
   }, [layout, sheet, views, cutsMade, issues, suggestions, settings, weldJoints]);
 
-  const exportSvg = () => { if (sheet) downloadBytes(new TextEncoder().encode(sheetSvg(sheet, title)), `${fileName}.svg`, 'image/svg+xml'); };
+  // (11 ④: the SVG and the DXF are of the sheet shown, named by its number when there are several; the PDF has every sheet.)
+  const sheetSuffix = sheetTotal > 1 ? `-sheet-${current + 1}` : '';
+  const exportSvg = () => { if (sheet) downloadBytes(new TextEncoder().encode(sheetSvg(sheet, title)), `${fileName}${sheetSuffix}.svg`, 'image/svg+xml'); };
   const exportPdf = () => {
     if (!sheet) return;
-    downloadBytes(sheetPdf(sheet, title), `${fileName}.pdf`, 'application/pdf');
-    const missing = pdfMissing(sheet);
+    const all = sheetTotal > 1 && views ? buildSheets(views, wholeSettings, { title, date: today(), source, callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts).map(x => x.sheet) : [sheet];
+    downloadBytes(sheetsPdf(all, title), `${fileName}.pdf`, 'application/pdf');
+    const missing = [...new Set(all.flatMap(pdfMissing))];
     if (missing.length) onToast({ title: 'PDF written, with some characters as ?', hint: `The PDF's standard fonts cannot show ${missing.map(c => `“${c}”`).join(' ')}: they print as ?. The SVG export keeps them.`, detail: '' });
   };
   const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
@@ -629,7 +672,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (!sheet || !layout) return;
     try {
       const r = sheetDxf(sheet, layout, dxfVersion);
-      downloadBytes(r.bytes, `${fileName}.dxf`, 'image/vnd.dxf');
+      downloadBytes(r.bytes, `${fileName}${sheetSuffix}.dxf`, 'image/vnd.dxf');
       // R12 has no ellipses, splines, hatches, line weights or units: say what was changed to fit it.
       if (r.report.r12) { const x = r.report.r12, n = x.ellipses + x.splines; onToast({ title: 'DXF R12 written', hint: `${n ? `${n} curve${n > 1 ? 's' : ''} as polylines within 0.001 mm; ` : ''}${x.hatches ? 'hatching as lines; ' : ''}no line weights or units in R12 (the drawing is in mm).`, detail: '' }); }
     } catch (e) { dxfFailed(e); }
@@ -657,6 +700,12 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       const c = toSheet(P(pending.view), pending.center), r = hover ? Math.hypot(hover.q[0] - c[0], hover.q[1] - c[1]) : 0;
       parts.push(`<circle class="dw-pick" cx="${c[0]}" cy="${c[1]}" r="0.9"/>`);
       if (r > 0) parts.push(`<g class="dw-preview"><circle cx="${c[0]}" cy="${c[1]}" r="${r}" fill="none" stroke-width="0.25"/></g>`);
+      return parts.join('');
+    }
+    if (pending?.kind === 'datum-line') {
+      const q = toSheet(P(pending.view), pending.from);
+      parts.push(`<circle class="dw-pick" cx="${q[0]}" cy="${q[1]}" r="0.9"/>`);
+      if (hover) parts.push(`<g class="dw-preview"><line x1="${q[0]}" y1="${q[1]}" x2="${hover.q[0]}" y2="${hover.q[1]}" stroke-width="0.25"/></g>`);
       return parts.join('');
     }
     if (pending?.kind === 'datum-target') {
@@ -687,7 +736,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         : pending.kind === 'angle' ? { id: 'preview', view: pending.view, kind: 'angle', a: pending.a, b: pending.b!, place: at }
         : { id: 'preview', view: pending.view, kind: pending.kind, edge: pending.edge, near: pending.near, place: at };
       const r = resolveDimension({ ...views, [pending.view]: R(pending.view) }, d);
-      if (r.ok) parts.push(`<g class="dw-preview">${marksSvg(dimensionMarks(P(pending.view), r))}</g>`);
+      if (r.ok) { const preset = presetFor(settings); parts.push(`<g class="dw-preview">${marksSvg(dimensionMarks(P(pending.view), withShownText(r, undefined, preset) as typeof r, preset))}</g>`); }
     } else if (hover && v && tool === 'datum-target' && isViewId(hover.view)) {
       for (const point of (bodies ? endpointSnap(views[hover.view], hover.at, 9 * mmPerPx() / v.scale, bodies).points : [])) {
         const q = toSheet(v, inView(views[hover.view], point.near));
@@ -714,7 +763,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected, selectedTarget);
   }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected, selectedTarget, weldJoints, bom]);
 
-  const hint = message ?? (pending ? (pending.kind === 'standalone-frame' ? 'Click where the standalone frame goes · Esc cancels' : pending.kind === 'datum-target' ? 'Click where the target symbol goes · Esc cancels' : pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'detail' ? 'Now how far the detail’s circle reaches · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
+  const hint = message ?? (pending ? (pending.kind === 'standalone-frame' ? 'Click where the standalone frame goes · Esc cancels' : pending.kind === 'datum-target' ? 'Click where the target symbol goes · Esc cancels' : pending.kind === 'datum-line' ? 'Now the other end of the target line · Esc cancels' : pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'detail' ? 'Now how far the detail’s circle reaches · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
   const selDim = selected ? settings.dimensions.find(d => d.id === selected) : undefined, selNote = selected ? settings.notes?.find(n => n.id === selected) : undefined;
 
   return (
@@ -733,13 +782,14 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
             <rect className="dw-sheet" x={0} y={0} width={W} height={H} fill="#fff" />
             <g fill="none" stroke="#000" strokeLinecap="round" strokeLinejoin="round" fontFamily="Helvetica, Arial, sans-serif" dangerouslySetInnerHTML={{ __html: shownMarkup }} />
             <g dangerouslySetInnerHTML={{ __html: overlay }} />
-            {selectedTarget && !(drag && 'target' in drag) && sheet?.groups.filter(g => g.datumTarget && g.id === selectedTarget).length === 1 && <g className="dw-hover" pointerEvents="none" aria-label="Selected point datum target" dangerouslySetInnerHTML={{ __html: marksSvg(sheet.groups.find(g => g.datumTarget && g.id === selectedTarget)!.marks) }} />}
+            {selectedTarget && !(drag && 'target' in drag) && sheet?.groups.filter(g => g.datumTarget && g.id === selectedTarget).length === 1 && <g className="dw-hover" pointerEvents="none" aria-label="Selected datum target" dangerouslySetInnerHTML={{ __html: marksSvg(sheet.groups.find(g => g.datumTarget && g.id === selectedTarget)!.marks) }} />}
             {selectedFrame && sheet?.groups.filter(g => g.standaloneFrame && g.id === selectedFrame).length === 1 && <g className="dw-hover" pointerEvents="none" aria-label="Selected standalone frame" dangerouslySetInnerHTML={{ __html: marksSvg(sheet.groups.find(g => g.standaloneFrame && g.id === selectedFrame)!.marks) }} />}
             {referenceInspection?.markup && <g className="dw-hover" pointerEvents="none" aria-label="Reference candidate preview" dangerouslySetInnerHTML={{ __html: referenceInspection.markup }} />}
           </svg>}
           {busy && !views && <div className="dw-busy">Projecting views…</div>}
           {!busy && !views && <div className="dw-busy">{error ?? 'Nothing to draw.'}</div>}
         </div>
+        <SheetTabs whole={wholeSettings} current={current} onSelect={setSheetNo} onAdd={() => { commitWhole({ ...wholeSettings, sheets: [...(wholeSettings.sheets ?? []), { id: newSheetId(wholeSettings), views: [] }] }); setSheetNo(sheetTotal); }} />
         <div className={'card dw-hint' + (message ? ' warn' : '')} role="status">
           <span>{hint}</span>
           {(selected || selectedTarget || selectedFrame) && <span><Kbd>Del</Kbd> remove</span>}
@@ -750,7 +800,9 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       <aside className="card dw-panel" aria-label="Drawing settings">
         {referenceInspection && <div role="status" aria-label="Reference preview" style={{ marginBottom: 8 }}>{referenceInspection.message}</div>}
         <SheetSettings sheet={{ scopeRead, scope, views, layout, sectionA, sectionList, cutA, cutsMade, hasSheet, hasFrame, kinds, hasBought, doc, title, busy }} settings={settings} sourceDoc={sourceDoc} fileName={fileName} onChange={onChange} onToast={onToast}
-          onScopeChanged={() => { setPending(null); setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTargetChoices([]); setReselectTarget(null); setHover(null); setDrag(null); }} turnTo={turnTo} />
+          onScopeChanged={() => { setPending(null); setSelected(null); setSelectedTarget(null); setSelectedFrame(null); setTargetChoices([]); setReselectTarget(null); setHover(null); setDrag(null); }} turnTo={turnTo} later={current > 0} />
+
+        <SheetsMenu whole={wholeSettings} current={current} onChange={(next, then) => { commitWhole(next); if (then !== undefined) setSheetNo(then); }} />
 
         <DetailsList settings={settings} sheet={sheet} layout={layout} onChange={onChange} />
 
@@ -758,7 +810,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
 
         <DatumsEditor settings={settings} views={views} scale={layout?.scale ?? 1} onChange={onChange} onRefused={setMessage} />
 
-        <DatumTargetsEditor settings={settings} views={busy ? null : views} hiddenViews={VIEW_IDS.filter(id => !!layout?.views[id].hidden)} selected={selectedTarget} choices={targetChoices} onChoose={chooseTarget} onSelect={id => { setSelectedTarget(id); setSelected(null); setTool('select'); cancel(); }}
+        <DatumTargetsEditor draft={targetDraft} onDraft={next => { if (next.kind !== targetDraft.kind && (pending?.kind === 'datum-line' || (pending?.kind === 'datum-target' && !pending.moving))) cancel(); setTargetDraft(next); }} settings={settings} views={busy ? null : views} hiddenViews={VIEW_IDS.filter(id => !!layout?.views[id].hidden)} selected={selectedTarget} choices={targetChoices} onChoose={chooseTarget} onSelect={id => { setSelectedTarget(id); setSelected(null); setTool('select'); cancel(); }}
           onAdd={() => { setTool('datum-target'); cancel(); }} onMove={target => { setTool('datum-target'); chooseTarget(target, true); }}
           onReselect={target => { cancel(); if (layout?.views[target.view].hidden) { setMessage('Show the target view before selecting its endpoint again.'); return; } setTool('datum-target'); setReselectTarget(target); setSelected(null); setSelectedTarget(target.id); setMessage(`Select the target endpoint again in the ${target.view} view. Its symbol position will be kept. Esc cancels.`); }}
           onCommit={commitTargets} onRefused={setMessage} />
@@ -768,7 +820,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
           onSelect={id => { cancel(); setSelected(null); setSelectedTarget(null); setSelectedFrame(id); setDrag(null); setTool('select'); }}
           onAdd={view => placeFrame(view)} onMove={frame => { if (frame.dim === undefined) placeFrame(frame.view, frame); }} onRemove={removeFrame} />
 
-        <IssuesList issues={issues} scope={scope} views={views} fixIssue={fixIssue} fixEvery={fixEvery} onSelectDimension={d => { setSelected(d); setTool('select'); }} />
+        <IssuesList sheetLabel={sheetTotal > 1 ? `${sheetName(wholeSettings, current)} of ${sheetTotal}` : undefined} issues={issues} scope={scope} views={views} fixIssue={fixIssue} fixEvery={fixEvery} onSelectDimension={d => { setSelected(d); setTool('select'); }} />
 
         <TolerancingList suggestions={suggestions} settings={settings} views={views} onChange={onChange} acceptEvery={acceptEvery} />
 
@@ -780,15 +832,15 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
 
         <NotesList settings={settings} selected={selected} selNote={selNote} noteDraft={noteDraft} setNoteDraft={setNoteDraft} noteBox={noteBox} onSelect={n => { setSelected(n.id); setNoteDraft(n.text); setTool('select'); }} remove={remove} onChange={onChange} />
 
-        <ExportActions sheet={sheet} layout={layout} views={views} cuts={cuts} settings={settings} dxfVersion={dxfVersion} setDxfVersion={setDxfVersion} dxfCut={dxfCut} setDxfSection={setDxfSection} exportSvg={exportSvg} exportPdf={exportPdf} exportDxf={exportDxf} exportSectionDxf={exportSectionDxf} />
+        <ExportActions sheets={sheetTotal} sheet={sheet} layout={layout} views={views} cuts={cuts} settings={settings} dxfVersion={dxfVersion} setDxfVersion={setDxfVersion} dxfCut={dxfCut} setDxfSection={setDxfSection} exportSvg={exportSvg} exportPdf={exportPdf} exportDxf={exportDxf} exportSectionDxf={exportSectionDxf} />
       </aside>
     </div>
   );
 }
 
 /** Keep every visible straight-edge endpoint near the pointer. A 2D overlap is a choice, not a 3D match. */
-function endpointSnap(pr: DrawingViews[ViewId], at: XY, tolerance: number, bodies: readonly BodyResult[]): { points: DrawingDatumTarget['point'][]; error?: string } {
-  const out: DrawingDatumTarget['point'][] = [];
+function endpointSnap(pr: DrawingViews[ViewId], at: XY, tolerance: number, bodies: readonly BodyResult[]): { points: DatumTargetPoint[]; error?: string } {
+  const out: DatumTargetPoint[] = [];
   for (const edge of pr.edges) {
     if (edge.kind !== 'line' || edge.circle || !edge.ends || !edge.pieces.some(piece => piece.visible)) continue;
     // Apply the existing snap routine per edge so it cannot discard another edge's overlapping endpoint.

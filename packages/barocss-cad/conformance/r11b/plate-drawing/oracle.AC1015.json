@@ -95,7 +95,7 @@
     "layer": "TEXT",
     "rotationDeg": 0,
     "style": "BC_TEXT",
-    "text": "64 \u00b10.1",
+    "text": "64 ±0.1",
     "type": "TEXT"
    }
   ],
@@ -182,7 +182,7 @@
    },
    {
     "at": [
-     144.35887450304574,
+     152.38387450304572,
      97.63759573402366
     ],
     "halign": 0,
@@ -195,7 +195,7 @@
    },
    {
     "at": [
-     142.85887450304574,
+     150.88387450304572,
      100.38359573402366
     ],
     "halign": 0,
@@ -208,7 +208,7 @@
    },
    {
     "at": [
-     144.95887450304573,
+     152.9838745030457,
      100.38359573402366
     ],
     "halign": 0,
@@ -372,7 +372,7 @@
     "layer": "TEXT",
     "rotationDeg": 0,
     "style": "BC_TEXT",
-    "text": "\u00d88 H7",
+    "text": "Ø8 H7",
     "type": "TEXT"
    }
   ],
@@ -552,7 +552,7 @@
     "layer": "TEXT",
     "rotationDeg": 0,
     "style": "BC_TEXT",
-    "text": "90\u00b0",
+    "text": "90°",
     "type": "TEXT"
    }
   ],
@@ -784,7 +784,7 @@
     "layer": "TEXT",
     "rotationDeg": 0,
     "style": "BC_BOLD",
-    "text": "PLATE 64 \u00d7 32",
+    "text": "PLATE 64 × 32",
     "type": "TEXT"
    },
    {
@@ -1709,7 +1709,7 @@
    "style": "Standard",
    "text": "8 +0.05/-0.1",
    "textAt": [
-    144.35887450304574,
+    152.38387450304572,
     97.63759573402366
    ],
    "type": "DIMENSION"
@@ -1836,7 +1836,7 @@
    "layer": "TEXT",
    "rotationDeg": 0,
    "style": "BC_TEXT",
-   "text": "MATERIAL: AL 6061 (\u00d8 \u00b1 \u00b0)",
+   "text": "MATERIAL: AL 6061 (Ø ± °)",
    "type": "TEXT"
   },
   {
@@ -2296,7 +2296,7 @@
    "layer": "TEXT",
    "rotationDeg": 0,
    "style": "BC_TEXT",
-   "text": "SECTION A\u2013A",
+   "text": "SECTION A–A",
    "type": "TEXT"
   }
  ],

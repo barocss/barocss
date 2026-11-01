@@ -16,8 +16,8 @@
 html, body, #root { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 400 12px var(--sans); overflow: hidden; }
 button { font: inherit; color: inherit; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-.ms { font-family: 'Material Symbols Outlined'; font-weight: 300; font-size: 19px; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; -webkit-font-smoothing: antialiased; }
-.ms.sm { font-size: 16px; }
+.ui-icon { display: inline-block; vertical-align: middle; flex: none; width: 19px; height: 19px; }
+.ui-icon.sm { width: 16px; height: 16px; }
 .accent { color: var(--accent); }
 .muted { color: var(--muted); }
 .mono { font-family: var(--mono); }
@@ -125,6 +125,10 @@ select.param-bind { width: 44px; margin-left: 4px; font-size: 11px; padding: 2px
 :root[data-theme='light'] .sk-shape.done { stroke: rgba(40, 46, 56, 0.6); }
 .sk-point { fill: var(--accent); }
 .sk-guide { stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 4; }
+.sk-handle { stroke: #3fb6e8; stroke-width: 1.5; }
+.sk-handle-end { fill: #3fb6e8; stroke: #101113; stroke-width: 1; }
+:root[data-theme='light'] .sk-handle { stroke: #1479a8; }
+:root[data-theme='light'] .sk-handle-end { fill: #1479a8; stroke: #fff; }
 .sk-cursor { stroke: var(--accent); stroke-width: 1.5; }
 .sk-grid { stroke: rgba(160, 166, 176, 0.22); stroke-width: 1; }
 .sk-grid.axis { stroke: rgba(232, 194, 90, 0.45); }
@@ -176,8 +180,10 @@ select.param-bind { width: 44px; margin-left: 4px; font-size: 11px; padding: 2px
 .tool.on { background: var(--accent); color: var(--accent-ink); }
 .tool.off { opacity: 0.4; }
 .tool.tiny { width: 22px; height: 22px; }
-.toolbar { position: absolute; top: 50px; left: calc(12px + var(--strip-w, 0px)); width: 44px; padding: 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; z-index: 2; max-height: calc(100vh - 110px); overflow-y: auto; scrollbar-width: none; }
-.tool-group { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.toolbar { position: absolute; top: 50px; left: calc(12px + var(--strip-w, 0px)); min-width: 44px; box-sizing: border-box; padding: 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; z-index: 2; max-height: calc(100vh - 110px); overflow-y: auto; scrollbar-width: none; }
+/* (Roadmap 21: each group a grid under its label, as few columns as fit the window's height — ui/ModelTools.tsx sets --tool-cols.) */
+.tool-group { display: grid; grid-template-columns: repeat(var(--tool-cols, 1), var(--tool-w, 34px)); justify-items: center; justify-content: start; align-self: stretch; gap: 2px; }
+.tool-group-label { grid-column: 1 / -1; justify-self: start; height: 12px; margin: 2px 2px 2px; font: 600 9px/12px var(--sans); letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
 .sep { height: 1px; width: 26px; background: var(--line); margin: 4px 0; }
 
 .right-col { position: absolute; right: 12px; top: 50px; width: 248px; display: flex; flex-direction: column; gap: 10px; z-index: 2; max-height: calc(100vh - 120px); }
@@ -246,6 +252,7 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .hs, .hs-more { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px; border: 0; border-radius: 5px; background: #2e3034; color: var(--text-2); white-space: nowrap; cursor: pointer; font-size: 11px; }
 .hs:hover, .hs-more:hover { background: #393b40; }
 .history .hs { flex: none; width: 28px; justify-content: center; padding: 0; }
+.history.busy { opacity: 0.45; }
 .history.show-labels .hs { width: auto; padding-inline: 9px; }
 .history-labels { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--muted); cursor: pointer; }
 .history-labels:hover { background: var(--line-soft); color: var(--text); }
@@ -301,10 +308,12 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 /* (G12d: within the stage's room, clear of the dock's strip or open sheet at its right, and below the view cube (G12e: the
    recovery card met it at 1024 with the chat open) — 220 px at least: on a cramped
    stage, an open sheet over a narrow centre, the toast runs under the sheet, below the top bar's menus.) */
-.toast { position: absolute; left: calc(66px + var(--strip-w, 0px)); top: 144px; bottom: auto; max-width: max(220px, min(380px, calc(100% - 78px - var(--strip-w, 0px) - var(--dock-strip-w, 0px)))); box-sizing: border-box; padding: 10px 10px 10px 12px; display: flex; gap: 10px; align-items: flex-start; z-index: 4; border-color: #6e4220; }
+.toast { position: absolute; left: calc(22px + var(--rail-w, 44px) + var(--strip-w, 0px)); top: 144px; bottom: auto; max-width: max(220px, min(380px, calc(100% - 34px - var(--rail-w, 44px) - var(--strip-w, 0px) - var(--dock-strip-w, 0px)))); box-sizing: border-box; padding: 10px 10px 10px 12px; display: flex; gap: 10px; align-items: flex-start; z-index: 4; border-color: #6e4220; }
 /* (The stack takes the toast's place and width; its notices sit one under another instead of on top of each other.) */
-.toast-stack { position: absolute; left: calc(66px + var(--strip-w, 0px)); top: 144px; width: max(220px, min(380px, calc(100% - 78px - var(--strip-w, 0px) - var(--dock-strip-w, 0px)))); display: flex; flex-direction: column; align-items: flex-start; gap: 8px; z-index: 4; pointer-events: none; }
-.toast-stack > .toast { position: static; max-width: 100%; pointer-events: auto; }
+.toast-stack { position: absolute; left: calc(22px + var(--rail-w, 44px) + var(--strip-w, 0px)); top: 144px; width: max(220px, min(380px, calc(100% - 34px - var(--rail-w, 44px) - var(--strip-w, 0px) - var(--dock-strip-w, 0px)))); display: flex; flex-direction: column; align-items: flex-start; gap: 8px; z-index: 4; pointer-events: none; }
+/* (Roadmap 20 ⑦: a notice's text lets a click through to the face under it; its buttons, links, fields and expandable detail still take theirs.) */
+.toast-stack > .toast { position: static; max-width: 100%; pointer-events: none; }
+.toast-stack > .toast :is(button, a, input, select, textarea, summary, details) { pointer-events: auto; }
 .toast-title { font-weight: 600; margin-bottom: 2px; }
 .toast-hint { color: var(--text-2); line-height: 1.45; }
 .edge-hover { fill: none; stroke: var(--selection-hover); stroke-width: 2.5; stroke-linecap: round; opacity: 0.85; }
@@ -454,8 +463,8 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .hud-step { display: flex; align-items: center; gap: 6px; color: var(--muted); }
 .hud-step b { font-weight: 600; color: var(--text-2); min-width: 52px; }
 .hud-step.done { color: var(--text-2); }
-.hud-step.done .ms { color: var(--ok); }
-.hud-step:not(.done) .ms { color: var(--accent); }
+.hud-step.done .ui-icon { color: var(--ok); }
+.hud-step:not(.done) .ui-icon { color: var(--accent); }
 
 /* The keyboard and mouse list (ui/ShortcutHelp.tsx). */
 .help-scrim { background: rgba(0, 0, 0, 0.35); }
@@ -493,7 +502,7 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .vp-overlay .sk-osnap rect, .vp-overlay .sk-osnap polygon, .vp-overlay .sk-osnap circle { fill: none; stroke: #4fd1c5; stroke-width: 1.6; }
 .vp-overlay .sk-osnap text { fill: #4fd1c5; font: 600 10px var(--sans); paint-order: stroke; stroke: rgba(0, 0, 0, 0.55); stroke-width: 3px; }
 .ol.clash { display: flex; align-items: center; gap: 6px; width: 100%; text-align: left; }
-.ol.clash .ms { color: #f0ad4e; }
+.ol.clash .ui-icon { color: #f0ad4e; }
 .vp-overlay .sk-shape.construction { stroke-dasharray: 5 4; fill: none !important; opacity: 0.75; }
 button.chip.snap { border: 0; cursor: pointer; color: var(--text-2); font: inherit; font-size: 11px; }
 button.chip.snap:hover { background: #3a3c41; }
@@ -501,8 +510,8 @@ button.chip.snap:hover { background: #3a3c41; }
 .ol-caret:disabled { visibility: hidden; }
 .ol.ol-step { display: flex; align-items: center; gap: 6px; width: calc(100% - 22px); margin-left: 22px; font-size: 11px; color: var(--text-2); }
 /* A short window: the rail's buttons a little smaller, so the whole set fits (else it scrolls). */
-@media (max-height: 960px) { .toolbar .tool { width: 30px; height: 30px; } .toolbar .tool .cad-icon { width: 18px; height: 18px; } .toolbar .sep { margin: 2px 0; } }
-@media (max-height: 820px) { .toolbar .tool { width: 28px; height: 26px; } .toolbar .tool .cad-icon { width: 16px; height: 16px; } }
+@media (max-height: 960px) { .toolbar { --tool-w: 30px; } .toolbar .tool { width: 30px; height: 30px; } .toolbar .tool .cad-icon { width: 18px; height: 18px; } .toolbar .sep { margin: 2px 0; } }
+@media (max-height: 820px) { .toolbar { --tool-w: 28px; } .toolbar .tool { width: 28px; height: 26px; } .toolbar .tool .cad-icon { width: 16px; height: 16px; } }
 .sk-offset { display: flex; align-items: center; gap: 6px; }
 .sk-offset .num { flex: 1; display: flex; align-items: center; gap: 4px; }
 .sk-offset input { width: 100%; height: 24px; padding: 0 6px; border-radius: 4px; border: 1px solid #4a4d53; background: var(--bg); color: var(--text); font: 500 12px var(--mono); }
@@ -531,6 +540,9 @@ button.chip.snap:hover { background: #3a3c41; }
 .chat-chip { display: inline-flex; align-items: center; gap: 2px; padding: 1px 2px 1px 6px; border-radius: 10px; background: rgba(255, 255, 255, 0.08); font: 11px var(--mono); }
 .chat-chip button { border: 0; background: transparent; color: inherit; padding: 0 2px; cursor: pointer; line-height: 1; }
 .chat-autonomy { font-size: 11px; padding: 1px 2px; }
+.in-place-bar { position: absolute; top: 92px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 6px 10px; font-size: 12px; max-width: calc(100% - 24px); }
+.in-place-details { flex-basis: 100%; }
+.in-place-details summary { cursor: pointer; color: var(--text-2); }
 .work-bar { position: absolute; top: 56px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; align-items: center; gap: 10px; padding: 6px 10px; font-size: 12px; }
 /* Mesh repair (M3). */
 .mesh-repair { max-width: 520px; }
@@ -615,3 +627,13 @@ button.chip.snap:hover { background: #3a3c41; }
 .skeleton-constraints li.over button { color: #f0c070; }
 .skeleton-constraints input { width: 80px; }
 }
+
+/* B1: a band's derived outline (solid, no handles) and its picked sources. */
+.vp-overlay .sk-band { fill: rgba(232, 194, 90, 0.10); fill-rule: evenodd; stroke: #f1f2f4; stroke-width: 2.4; pointer-events: none; }
+.vp-overlay .sk-band-pick { fill: rgba(79, 209, 197, 0.14); stroke: #4fd1c5; stroke-width: 2; pointer-events: none; }
+.vp-overlay .sk-band-hover { fill: rgba(79, 209, 197, 0.08); stroke: #4fd1c5; stroke-width: 1.4; stroke-dasharray: 3 3; pointer-events: none; }
+:root[data-theme='light'] .vp-overlay .sk-band { stroke: #1b232c; fill: rgba(176, 130, 20, 0.12); }
+:root[data-theme='light'] .vp-overlay .sk-band-pick { stroke: #0f8f86; fill: rgba(15, 143, 134, 0.14); }
+:root[data-theme='light'] .vp-overlay .sk-band-hover { stroke: #0f8f86; }
+.sk-band-err { color: #e5534b; font-size: 11px; margin: 6px 0 0; }
+:root[data-theme='light'] .sk-band-err { color: #c0392b; }

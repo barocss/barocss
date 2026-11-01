@@ -1,0 +1,17 @@
+[
+ ["M1 rebind never", "packages/barocss-cad-model/src/sketch/reopen.ts", "  if (stored.profile !== next.profile) return next;", "  return next;"],
+ ["M2 rebind always (ignore value)", "packages/barocss-cad-model/src/sketch/reopen.ts", "typeof b === 'number' && Object.hasOwn(params, a.parameter) && SAME(params[a.parameter], b) ? a : b", "a"],
+ ["M3 tolerance exact", "packages/barocss-cad-model/src/sketch/reopen.ts", "Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b))", "a === b"],
+ ["M4 tolerance loose 1e-1", "packages/barocss-cad-model/src/sketch/reopen.ts", "Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b))", "Math.abs(a - b) <= 1e-1 * Math.max(1, Math.abs(a), Math.abs(b))"],
+ ["M5 no profile-kind guard", "packages/barocss-cad-model/src/sketch/reopen.ts", "  if (stored.profile !== next.profile) return next;", ""],
+ ["M6 resolve missing -> NaN (no throw)", "packages/barocss-cad-model/src/sketch/reopen.ts", "throw refusal('PARAMETER_UNKNOWN', `the sketch uses parameter ${v.parameter}, which this document does not have`);", "return NaN;"],
+ ["M7 resolve accepts non-finite", "packages/barocss-cad-model/src/sketch/reopen.ts", "typeof x !== 'number' || !Number.isFinite(x)", "typeof x !== 'number'"],
+ ["M8 DIM_KEYS without center", "packages/barocss-cad-model/src/sketch/reopen.ts", "'min', 'max', 'center', 'radius'", "'min', 'max', 'radius'"],
+ ["M9 DIM_KEYS without regions/holes", "packages/barocss-cad-model/src/sketch/reopen.ts", "'segments', 'regions', 'holes'", "'segments'"],
+ ["M10 DIM_KEYS without radius", "packages/barocss-cad-model/src/sketch/reopen.ts", "'center', 'radius'", "'center'"],
+ ["M11 studio finish no rebind", "apps/cad-studio/src/sketch/useSketchActions.ts", "rebindDims(stored, placedNode, doc.parameters) : placedNode", "placedNode : placedNode"],
+ ["M12 studio reopen without params", "apps/cad-studio/src/sketch/useSketchActions.ts", "reopened = sketchShapes(node, doc.parameters); }", "reopened = sketchShapes(node, {}); }"],
+ ["M13 outlineFields no rebind", "packages/barocss-cad-model/src/sketch/outlineFields.ts", "replaced(old, rebindDims(old, next.node, params))", "replaced(old, next.node)"],
+ ["M14 editFields sketchFields no params", "packages/barocss-cad-model/src/app/editFields.ts", "out.push(...outlineFields(nodes, s, prefix, params));", "out.push(...outlineFields(nodes, s, prefix));"],
+ ["M15 rebind arrays ignore extra index guard", "packages/barocss-cad-model/src/sketch/reopen.ts", "b.map((x, i) => i < a.length ? walk(a[i], x) : x)", "b.map((x, i) => walk(a[i], x))"]
+]

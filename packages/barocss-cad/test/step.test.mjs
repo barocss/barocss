@@ -85,8 +85,9 @@ test('STEP from other systems: analytic surfaces, closed circles, seams and pole
   const chamfered = evaluateCadPart(D([{ id: 'i', kind: 'import', step: cylinderStep() }, { id: 'c', kind: 'chamfer', target: 'i', edges: ['i.top|i.wall#1'], distance: 1 }])).outputs[0];
   assert.ok(near(massPropertiesOf(chamfered, 1).volume, 250 * pi - 2 * pi * (5 - 1 / 3) * 0.5, 5e-4), String(massPropertiesOf(chamfered, 1).volume)); // (the 32-per-quarter mesh's error)
   // What cannot be read yet is refused by name.
-  assert.throws(() => evaluateCadPart(D([{ id: 'i', kind: 'import', step: "ISO-10303-21;\nDATA;\n#1=OFFSET_SURFACE('',#5,1.,.F.);\n#2=MANIFOLD_SOLID_BREP('',#3);\n#3=CLOSED_SHELL('',(#4));\n#4=ADVANCED_FACE('',(),#1,.T.);\nENDSEC;" }])),
-    e => e.code === 'CAPABILITY' && /OFFSET_SURFACE surfaces are not supported yet/.test(e.message));
+  const { unsupportedOffsetStep } = await import('./step-offset-fixtures.mjs');
+  assert.throws(() => evaluateCadPart(D([{ id: 'i', kind: 'import', step: unsupportedOffsetStep() }])),
+    e => e.code === 'CAPABILITY' && /OFFSET_SURFACE basis SPHERICAL_SURFACE is not supported yet/.test(e.message));
   // A hole across the seam itself is not cut yet.
   assert.throws(() => importStep(pocketedCylinderStep(5, 10, 340, 380)), e => e instanceof BrepError && /across the seam/.test(e.message));
   // A profile off the plane through its axis is not turned yet.

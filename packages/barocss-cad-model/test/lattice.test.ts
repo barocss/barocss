@@ -96,7 +96,7 @@ test('STEP leaves the infill out and says so (by its role, not its name); 3MF an
   assert.match(step.omitted?.join(' ') ?? '', /lattice infill not included \(.+\); 3MF carries it/);
   // (Without the role, the same doc's STEP carries every piece.)
   const plain = { ...out, nodes: out.nodes.map(n => n.kind === 'mesh' ? { ...n, role: undefined } : n) }, all = exportStudioStep(plain, { name: 'part' });
-  assert.equal(solids(all.text), 1 + lats.length); assert.equal(all.omitted, undefined);
+  assert.equal(solids(all.text), 1 + lats.length); assert.ok(!all.omitted?.some(x => x.startsWith('lattice infill')));
   // (Renamed: still left out.)
   const renamed = { ...out, nodes: out.nodes.map(n => n.kind === 'mesh' ? { ...n, name: 'my infill' } : n) }, r = exportStudioStep(renamed, { name: 'part' });
   assert.equal(solids(r.text), 1);

@@ -1,0 +1,1911 @@
+TAP version 13
+# Subtest: public loft: cubic guide and explicit section frames reach evaluation and codec reopen with the fixed CG1 oracle
+ok 1 - public loft: cubic guide and explicit section frames reach evaluation and codec reopen with the fixed CG1 oracle
+  ---
+  duration_ms: 401.370416
+  type: 'test'
+  ...
+# Subtest: public loft: legacy heights, unguided frames and the quadratic guide retain their existing cylinder oracles
+ok 2 - public loft: legacy heights, unguided frames and the quadratic guide retain their existing cylinder oracles
+  ---
+  duration_ms: 130.666625
+  type: 'test'
+  ...
+# Subtest: public loft: invalid guide failure leaves the accepted part, inputs and mass results intact and returns document copies
+ok 3 - public loft: invalid guide failure leaves the accepted part, inputs and mass results intact and returns document copies
+  ---
+  duration_ms: 161.364292
+  type: 'test'
+  ...
+# Subtest: public loft: frame editing, draft depth and chat admission preserve the explicit guide contract
+ok 4 - public loft: frame editing, draft depth and chat admission preserve the explicit guide contract
+  ---
+  duration_ms: 105.294083
+  type: 'test'
+  ...
+# Subtest: public loft: polynomial multi-span guide on height sections keeps volume, centroid and file values
+ok 5 - public loft: polynomial multi-span guide on height sections keeps volume, centroid and file values
+  ---
+  duration_ms: 178.268041
+  type: 'test'
+  ...
+# Subtest: public loft: a tapered section follows nonlinear guide height and keeps the closed-form frustum on reopen
+ok 6 - public loft: a tapered section follows nonlinear guide height and keeps the closed-form frustum on reopen
+  ---
+  duration_ms: 94.856458
+  type: 'test'
+  ...
+# Subtest: public loft: 17 and 64 control guides reach actual display meshes and both file readers without changing inputs
+ok 7 - public loft: 17 and 64 control guides reach actual display meshes and both file readers without changing inputs
+  ---
+  duration_ms: 286.392375
+  type: 'test'
+  ...
+# Subtest: public multi-conic loft: four framed circles preserve cylinder COM, full inertia and codec values
+ok 8 - public multi-conic loft: four framed circles preserve cylinder COM, full inertia and codec values
+  ---
+  duration_ms: 133.6425
+  type: 'test'
+  ...
+# Subtest: public multi-conic loft: eight framed circles reach the inclusive section limit and reopen
+ok 9 - public multi-conic loft: eight framed circles reach the inclusive section limit and reopen
+  ---
+  duration_ms: 140.486834
+  type: 'test'
+  ...
+# Subtest: public multi-conic loft: changed circle sections use the fixed piecewise-frustum volume without changing accepted input
+ok 10 - public multi-conic loft: changed circle sections use the fixed piecewise-frustum volume without changing accepted input
+  ---
+  duration_ms: 158.279
+  type: 'test'
+  ...
+# Subtest: public multi-conic loft: section limit, smoothing, guide, order and contour refusals preserve accepted state
+ok 11 - public multi-conic loft: section limit, smoothing, guide, order and contour refusals preserve accepted state
+  ---
+  duration_ms: 26.128958
+  type: 'test'
+  ...
+# Subtest: the facade writes the hand-written document, byte for byte
+ok 12 - the facade writes the hand-written document, byte for byte
+  ---
+  duration_ms: 180.642
+  type: 'test'
+  ...
+# Subtest: …the one the agent's run_command writes for the same three commands
+ok 13 - …the one the agent's run_command writes for the same three commands
+  ---
+  duration_ms: 127.057458
+  type: 'test'
+  ...
+# Subtest: its mass, meshes and STEP are the core functions' on that document, byte for byte
+ok 14 - its mass, meshes and STEP are the core functions' on that document, byte for byte
+  ---
+  duration_ms: 216.190209
+  type: 'test'
+  ...
+# Subtest: every method returns a new part of its own kind and leaves the old one as it was
+ok 15 - every method returns a new part of its own kind and leaves the old one as it was
+  ---
+  duration_ms: 22.540958
+  type: 'test'
+  ...
+# Subtest: typed selectors read the core's edges and faces by their names
+ok 16 - typed selectors read the core's edges and faces by their names
+  ---
+  duration_ms: 22.198
+  type: 'test'
+  ...
+# Subtest: refusals are typed: the facade's own, and the core's passed through with its code
+ok 17 - refusals are typed: the facade's own, and the core's passed through with its code
+  ---
+  duration_ms: 3.616
+  type: 'test'
+  ...
+# Subtest: Drawing consumes the current linked inset boundary and cut depth without rewriting its saved cache
+ok 18 - Drawing consumes the current linked inset boundary and cut depth without rewriting its saved cache
+  ---
+  duration_ms: 137.253083
+  type: 'test'
+  ...
+# Subtest: Drawing keeps the legacy copied inset at x38 and x40 despite the same sixty-mm outer bounds
+ok 19 - Drawing keeps the legacy copied inset at x38 and x40 despite the same sixty-mm outer bounds
+  ---
+  duration_ms: 31.681333
+  type: 'test'
+  ...
+# O68 splines: points to 2.86e-14 mm of ezdxf's, chords within 4.984e-3 mm
+# O68 ellipses: points to 1.42e-14 mm of ezdxf's, chords within 4.996e-3 mm
+# O68 blocks: 16 polylines, {"ELLIPSE":1,"LINE":8,"CIRCLE":7}; against the closed form to 6.93e-14
+# Subtest: splines: as ezdxf reads them (degree, knots, control points, weights), their points at 64 parameters to 1e-9, every chord within 0.01 mm; the fit-points-only one listed, not drawn
+ok 20 - splines: as ezdxf reads them (degree, knots, control points, weights), their points at 64 parameters to 1e-9, every chord within 0.01 mm; the fit-points-only one listed, not drawn
+  ---
+  duration_ms: 219.712292
+  type: 'test'
+  ...
+# Subtest: ellipses: full, partial and tilted — their points at ezdxf's parameters to 1e-9, every chord within 0.01 mm
+ok 21 - ellipses: full, partial and tilted — their points at ezdxf's parameters to 1e-9, every chord within 0.01 mm
+  ---
+  duration_ms: 61.656875
+  type: 'test'
+  ...
+# Subtest: blocks: nested three deep, scaled (2, −1), rotated, mirrored by the OCS, a 3 × 2 MINSERT — the counts ezdxf expands to, and every circle vertex on its composed transform's image, to 1e-9
+ok 22 - blocks: nested three deep, scaled (2, −1), rotated, mirrored by the OCS, a 3 × 2 MINSERT — the counts ezdxf expands to, and every circle vertex on its composed transform's image, to 1e-9
+  ---
+  duration_ms: 77.763542
+  type: 'test'
+  ...
+# Subtest: texts: insertion (the alignment point when aligned), height, rotation and MTEXT's plain string as ezdxf reads them
+ok 23 - texts: insertion (the alignment point when aligned), height, rotation and MTEXT's plain string as ezdxf reads them
+  ---
+  duration_ms: 3.576333
+  type: 'test'
+  ...
+# Subtest: the plate: its regions and holes exactly as without the underlay — deep-equal to the same file with the underlay's entities deleted; the underlay its spline, text and block
+ok 24 - the plate: its regions and holes exactly as without the underlay — deep-equal to the same file with the underlay's entities deleted; the underlay its spline, text and block
+  ---
+  duration_ms: 9.691125
+  type: 'test'
+  ...
+# Subtest: import_drawing: the plate's underlay beside its draft (counts in the result, on the document, scaled with a confirmed width); a splines-only file an underlay alone; text alone still nothing to read
+ok 25 - import_drawing: the plate's underlay beside its draft (counts in the result, on the document, scaled with a confirmed width); a splines-only file an underlay alone; text alone still nothing to read
+  ---
+  duration_ms: 34.143542
+  type: 'test'
+  ...
+# Subtest: an arc of the sheet becomes the same curve in DXF: circle, arc either way round, ellipse on its axes
+ok 26 - an arc of the sheet becomes the same curve in DXF: circle, arc either way round, ellipse on its axes
+  ---
+  duration_ms: 70.740709
+  type: 'test'
+  ...
+# Subtest: the plate drawing as DXF: every mark of the sheet, dimensions as DIMENSION entities, the section as a HATCH
+ok 27 - the plate drawing as DXF: every mark of the sheet, dimensions as DIMENSION entities, the section as a HATCH
+  ---
+  duration_ms: 256.026042
+  type: 'test'
+  ...
+# Subtest: section A–A alone at 1:1 and a sketch with arcs, holes and construction as DXF
+ok 28 - section A–A alone at 1:1 and a sketch with arcs, holes and construction as DXF
+  ---
+  duration_ms: 87.079083
+  type: 'test'
+  ...
+# Subtest: edit fields: an extrude edits its sketch's width and corner as well as its distance
+ok 29 - edit fields: an extrude edits its sketch's width and corner as well as its distance
+  ---
+  duration_ms: 28.445166
+  type: 'test'
+  ...
+# Subtest: edit fields: a circle extrude edits its diameter; a parameter-driven size is left out
+ok 30 - edit fields: a circle extrude edits its diameter; a parameter-driven size is left out
+  ---
+  duration_ms: 33.173333
+  type: 'test'
+  ...
+# Subtest: edit fields: choice and toggle fields — a loft turns smooth, a pipe bends the other way, a pattern counts
+ok 31 - edit fields: choice and toggle fields — a loft turns smooth, a pipe bends the other way, a pattern counts
+  ---
+  duration_ms: 281.487292
+  type: 'test'
+  ...
+# Subtest: box part evaluates to one outward mesh with 6 faces and 12 edges
+ok 32 - box part evaluates to one outward mesh with 6 faces and 12 edges
+  ---
+  duration_ms: 30.709084
+  type: 'test'
+  ...
+# Subtest: starter plate with a hole shows a curved wall and the hole edges
+ok 33 - starter plate with a hole shows a curved wall and the hole edges
+  ---
+  duration_ms: 33.32975
+  type: 'test'
+  ...
+# Subtest: cylinder part meshes caps and a smooth side without side seams
+ok 34 - cylinder part meshes caps and a smooth side without side seams
+  ---
+  duration_ms: 16.643083
+  type: 'test'
+  ...
+# Subtest: union of two boxes meshes the orthogonal result
+ok 35 - union of two boxes meshes the orthogonal result
+  ---
+  duration_ms: 5.664959
+  type: 'test'
+  ...
+# Subtest: a pattern is one output holding the original and its copies; rollback evaluates a prefix
+ok 36 - a pattern is one output holding the original and its copies; rollback evaluates a prefix
+  ---
+  duration_ms: 7.40125
+  type: 'test'
+  ...
+# Subtest: kernel refusals come back as plain-language errors
+ok 37 - kernel refusals come back as plain-language errors
+  ---
+  duration_ms: 14.829084
+  type: 'test'
+  ...
+# Subtest: B-rep part model: Boolean chains, holes on results, and name-based fillets that survive edits
+ok 38 - B-rep part model: Boolean chains, holes on results, and name-based fillets that survive edits
+  ---
+  duration_ms: 198.476459
+  type: 'test'
+  ...
+# Subtest: side holes along X and Y, and a pin along X joined to the plate (plane + cylinder Booleans)
+ok 39 - side holes along X and Y, and a pin along X joined to the plate (plane + cylinder Booleans)
+  ---
+  duration_ms: 71.89975
+  type: 'test'
+  ...
+# Subtest: a side hole drilled across a round boss (quartic trims) and through a plate turned 30°
+ok 40 - a side hole drilled across a round boss (quartic trims) and through a plate turned 30°
+  ---
+  duration_ms: 307.558208
+  type: 'test'
+  ...
+# Subtest: fillets and chamfers on any edge: a box top edge, a hole rim picked by one arc, a chamfered rim
+ok 41 - fillets and chamfers on any edge: a box top edge, a hole rim picked by one arc, a chamfered rim
+  ---
+  duration_ms: 243.751541
+  type: 'test'
+  ...
+# Subtest: shell: an open box from its top face, exact and still upright; a too-thick wall is refused plainly
+ok 42 - shell: an open box from its top face, exact and still upright; a too-thick wall is refused plainly
+  ---
+  duration_ms: 69.6695
+  type: 'test'
+  ...
+# Subtest: extrude with draft: the walls lean in, the volume is exact, the label shows the angle
+ok 43 - extrude with draft: the walls lean in, the volume is exact, the label shows the angle
+  ---
+  duration_ms: 3.6555
+  type: 'test'
+  ...
+# Subtest: a STEP file opens as a body: its faces named, features work on it
+ok 44 - a STEP file opens as a body: its faces named, features work on it
+  ---
+  duration_ms: 41.459667
+  type: 'test'
+  ...
+# Subtest: STEP export of the whole part: every body in one exact file that reads back
+ok 45 - STEP export of the whole part: every body in one exact file that reads back
+  ---
+  duration_ms: 50.44075
+  type: 'test'
+  ...
+# Subtest: pipe: a circle swept along a run, a bend and a run, with exact mass
+ok 46 - pipe: a circle swept along a run, a bend and a run, with exact mass
+  ---
+  duration_ms: 115.907875
+  type: 'test'
+  ...
+# Subtest: shell after a fillet: a tray with a rounded foot, its hollow rounded by the radius less the wall
+ok 47 - shell after a fillet: a tray with a rounded foot, its hollow rounded by the radius less the wall
+  ---
+  duration_ms: 393.975292
+  type: 'test'
+  ...
+# Subtest: shell a plate with a boss on it, open at the boss top: one hollow through both
+ok 48 - shell a plate with a boss on it, open at the boss top: one hollow through both
+  ---
+  duration_ms: 17.909542
+  type: 'test'
+  ...
+# Subtest: smooth loft: a square bulging to a wider middle and back, through three sections
+ok 49 - smooth loft: a square bulging to a wider middle and back, through three sections
+  ---
+  duration_ms: 42.982292
+  type: 'test'
+  ...
+# Subtest: shell a box with a round boss turned out of its side: one wall throughout, open at the boss end
+ok 50 - shell a box with a round boss turned out of its side: one wall throughout, open at the boss end
+  ---
+  duration_ms: 576.676
+  type: 'test'
+  ...
+# Subtest: shell a revolved cup open at the top: exact, its walls 2 thick
+ok 51 - shell a revolved cup open at the top: exact, its walls 2 thick
+  ---
+  duration_ms: 218.639292
+  type: 'test'
+  ...
+# Subtest: loft: a square to a smaller square above is a frustum, exact; the top comes from the drawn sketch
+ok 52 - loft: a square to a smaller square above is a frustum, exact; the top comes from the drawn sketch
+  ---
+  duration_ms: 4.339542
+  type: 'test'
+  ...
+# Subtest: revolve: a circle sketch turns into a torus, cut by a box; a profile along the axis is solid, one across it refused
+ok 53 - revolve: a circle sketch turns into a torus, cut by a box; a profile along the axis is solid, one across it refused
+  ---
+  duration_ms: 292.899333
+  type: 'test'
+  ...
+# Subtest: a slot sketch extrudes as one line + arc body with two curved faces and exact mass
+ok 54 - a slot sketch extrudes as one line + arc body with two curved faces and exact mass
+  ---
+  duration_ms: 5.959625
+  type: 'test'
+  ...
+# Subtest: a concave outline with an arc notch becomes a loop body; straight convex outlines stay polygons
+ok 55 - a concave outline with an arc notch becomes a loop body; straight convex outlines stay polygons
+  ---
+  duration_ms: 3.646542
+  type: 'test'
+  ...
+# Subtest: the numerical solver keeps H/V edges, honours locked lengths and reports DOF
+ok 56 - the numerical solver keeps H/V edges, honours locked lengths and reports DOF
+  ---
+  duration_ms: 7.722834
+  type: 'test'
+  ...
+# Subtest: arcs in the solver: tangent joints snap exact, a radius lock holds, DOF counts the centre
+ok 57 - arcs in the solver: tangent joints snap exact, a radius lock holds, DOF counts the centre
+  ---
+  duration_ms: 2.135041
+  type: 'test'
+  ...
+# Subtest: closing an outline infers near-tangent arc joints and settles them exact
+ok 58 - closing an outline infers near-tangent arc joints and settles them exact
+  ---
+  duration_ms: 16.030583
+  type: 'test'
+  ...
+# Subtest: equal radius and concentric arc pairs
+ok 59 - equal radius and concentric arc pairs
+  ---
+  duration_ms: 21.304291
+  type: 'test'
+  ...
+# Subtest: closing infers equal radii and shared centres; a loop with them still extrudes
+ok 60 - closing infers equal radii and shared centres; a loop with them still extrudes
+  ---
+  duration_ms: 4.960833
+  type: 'test'
+  ...
+# Subtest: a STEP file with two solids opens as two bodies that take features on their own (D2)
+ok 61 - a STEP file with two solids opens as two bodies that take features on their own (D2)
+  ---
+  duration_ms: 6.546625
+  type: 'test'
+  ...
+# Subtest: sewn surfaces become one closed body; a missing side is refused with the open edges
+ok 62 - sewn surfaces become one closed body; a missing side is refused with the open edges
+  ---
+  duration_ms: 20.996625
+  type: 'test'
+  ...
+# Subtest: a cross hole whose side touches a vertical hole’s wall from inside is built, either way round
+ok 63 - a cross hole whose side touches a vertical hole’s wall from inside is built, either way round
+  ---
+  duration_ms: 536.108208
+  type: 'test'
+  ...
+# Subtest: quadratic arch area converges to the independent polynomial integral
+ok 64 - quadratic arch area converges to the independent polynomial integral
+  ---
+  duration_ms: 8.764042
+  type: 'test'
+  ...
+# Subtest: cyclic off-curve starts and consecutive off-curve points retain the same exact quadratic shape
+ok 65 - cyclic off-curve starts and consecutive off-curve points retain the same exact quadratic shape
+  ---
+  duration_ms: 40.471916
+  type: 'test'
+  ...
+# Subtest: nonzero winding preserves a hole and its separate material island
+ok 66 - nonzero winding preserves a hole and its separate material island
+  ---
+  duration_ms: 0.834958
+  type: 'test'
+  ...
+# Subtest: em scale, scalar advance, spaces, and world tracking are explicit
+ok 67 - em scale, scalar advance, spaces, and world tracking are explicit
+  ---
+  duration_ms: 0.51075
+  type: 'test'
+  ...
+# Subtest: source points and returned components do not share mutable coordinates
+ok 68 - source points and returned components do not share mutable coordinates
+  ---
+  duration_ms: 0.318292
+  type: 'test'
+  ...
+# Subtest: invalid flatness, coordinates, scalars, and fixed budgets are typed refusals
+ok 69 - invalid flatness, coordinates, scalars, and fixed budgets are typed refusals
+  ---
+  duration_ms: 10.72975
+  type: 'test'
+  ...
+# Subtest: crossings, touching components, retracing joins, and sub-tolerance gaps are refused
+ok 70 - crossings, touching components, retracing joins, and sub-tolerance gaps are refused
+  ---
+  duration_ms: 0.42325
+  type: 'test'
+  ...
+# Subtest: three original fonts match independent filled area, topology, and advances for selected glyphs
+ok 71 - three original fonts match independent filled area, topology, and advances for selected glyphs
+  ---
+  duration_ms: 178.526916
+  type: 'test'
+  ...
+# Subtest: canonical printer profiles preserve all five mm vectors, scalar layers and optional nozzles
+ok 72 - canonical printer profiles preserve all five mm vectors, scalar layers and optional nozzles
+  ---
+  duration_ms: 1.541917
+  type: 'test'
+  ...
+# Subtest: canonical mould finishes retain degree values and source pages; threshold lookup IDs remain separate
+ok 73 - canonical mould finishes retain degree values and source pages; threshold lookup IDs remain separate
+  ---
+  duration_ms: 0.221334
+  type: 'test'
+  ...
+# Subtest: canonical profile validator retains existing build, layer, process, finish and page rules
+ok 74 - canonical profile validator retains existing build, layer, process, finish and page rules
+  ---
+  duration_ms: 4.854667
+  type: 'test'
+  ...
+# Subtest: Loft None preserves the fixed legacy authored bytes, including height sections and copied loop profiles
+ok 75 - Loft None preserves the fixed legacy authored bytes, including height sections and copied loop profiles
+  ---
+  duration_ms: 5.520334
+  type: 'test'
+  ...
+# Subtest: framed sections retain pick order and authored profile coordinates, with independent frames and no copied feature ids
+ok 76 - framed sections retain pick order and authored profile coordinates, with independent frames and no copied feature ids
+  ---
+  duration_ms: 0.786542
+  type: 'test'
+  ...
+# Subtest: quadratic and cubic guide commands author copied controls and explicit frames with unique new feature ids
+ok 77 - quadratic and cubic guide commands author copied controls and explicit frames with unique new feature ids
+  ---
+  duration_ms: 0.719958
+  type: 'test'
+  ...
+# Subtest: affine knot intervals and common positive weights keep the controls; baked Direct movement is copied once and stays independent
+ok 78 - affine knot intervals and common positive weights keep the controls; baked Direct movement is copied once and stays independent
+  ---
+  duration_ms: 3.59325
+  type: 'test'
+  ...
+# Subtest: unsupported direct geometry returns explicit reasons without changing the document or silently choosing another curve
+ok 79 - unsupported direct geometry returns explicit reasons without changing the document or silently choosing another curve
+  ---
+  duration_ms: 0.541917
+  type: 'test'
+  ...
+# Subtest: Guide choice lists only supported snapshots and its steps describe the chosen copied source rather than a live link
+ok 80 - Guide choice lists only supported snapshots and its steps describe the chosen copied source rather than a live link
+  ---
+  duration_ms: 0.92825
+  type: 'test'
+  ...
+# Subtest: a deleted guide or invalid saved choice is refused without falling back to None or another imported curve
+ok 81 - a deleted guide or invalid saved choice is refused without falling back to None or another imported curve
+  ---
+  duration_ms: 0.461209
+  type: 'test'
+  ...
+# Subtest: general guide snapshots retain knots and independent controls; the command authors height sections through each vertex
+ok 82 - general guide snapshots retain knots and independent controls; the command authors height sections through each vertex
+  ---
+  duration_ms: 0.771667
+  type: 'test'
+  ...
+# Subtest: a multi-span guide on three parallel sketches evaluates to the fixed translated-square oracle
+ok 83 - a multi-span guide on three parallel sketches evaluates to the fixed translated-square oracle
+  ---
+  duration_ms: 66.077166
+  type: 'test'
+  ...
+# Subtest: quartic and quintic single spans copy as general guides with their authored knot interval
+ok 84 - quartic and quintic single spans copy as general guides with their authored knot interval
+  ---
+  duration_ms: 4.531167
+  type: 'test'
+  ...
+# Subtest: 17 and 64 control copied guides preserve height recipes, actual meshes and file values
+ok 85 - 17 and 64 control copied guides preserve height recipes, actual meshes and file values
+  ---
+  duration_ms: 220.656
+  type: 'test'
+  ...
+# Subtest: non-XY parallel height sections retain the existing two, three and eight section world placement
+ok 86 - non-XY parallel height sections retain the existing two, three and eight section world placement
+  ---
+  duration_ms: 300.3225
+  type: 'test'
+  ...
+# Subtest: IM5 a box pulled along +Z: its walls along the pull go to the − half by default — one loop round the top, 140 long, flat at 10; put in the + half, the loop round the bottom at 0
+ok 87 - IM5 a box pulled along +Z: its walls along the pull go to the − half by default — one loop round the top, 140 long, flat at 10; put in the + half, the loop round the bottom at 0
+  ---
+  duration_ms: 20.735083
+  type: 'test'
+  ...
+# Subtest: IM5 a box drafted 2°: its walls in the + half by their draft — the loop round the bottom, the sketch's 140, at 0
+ok 88 - IM5 a box drafted 2°: its walls in the + half by their draft — the loop round the bottom, the sketch's 140, at 0
+  ---
+  duration_ms: 96.7055
+  type: 'test'
+  ...
+# Subtest: IM5 a cylinder lying across the pull: straddling, its isocline z = 0 traced on the exact surface (80 long), the loop closed round it and the caps' upper halves, stepped; to split — or put whole in one half: then two loops round the caps
+ok 89 - IM5 a cylinder lying across the pull: straddling, its isocline z = 0 traced on the exact surface (80 long), the loop closed round it and the caps' upper halves, stepped; to split — or put whole in one half: then two loops round the caps
+  ---
+  duration_ms: 63.437458
+  type: 'test'
+  ...
+# Subtest: IM5 in the manufacturability report: a box passes (one flat loop); the cross cylinder warned (the face to split named, the split not built); its halves set — the doc's sides, or the tool's; no pull — unknown
+ok 90 - IM5 in the manufacturability report: a box passes (one flat loop); the cross cylinder warned (the face to split named, the split not built); its halves set — the doc's sides, or the tool's; no pull — unknown
+  ---
+  duration_ms: 1252.631125
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-7: the slider-crank (e 0; the bore left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+ok 91 - O24 (a) PG-7: the slider-crank (e 0; the bore left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+  ---
+  duration_ms: 776.204375
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-7: the slider-crank (e 5; the bore left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+ok 92 - O24 (a) PG-7: the slider-crank (e 5; the bore left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+  ---
+  duration_ms: 275.6575
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-7: the slider-crank (e 5; the wrist pin left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+ok 93 - O24 (a) PG-7: the slider-crank (e 5; the wrist pin left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+  ---
+  duration_ms: 266.410083
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-7: the four-bar through the general closer equals the pin closer (RM8) to 1e-9; LOOP_PASSIVE, LOOP_MATE_UNSUPPORTED and a dead point refused
+ok 94 - O24 (a) PG-7: the four-bar through the general closer equals the pin closer (RM8) to 1e-9; LOOP_PASSIVE, LOOP_MATE_UNSUPPORTED and a dead point refused
+  ---
+  duration_ms: 268.704542
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-7, the agent: forward_kinematics and set_pose close the slider-crank from its crank (the piston where the closed form puts it); a passive joint given is refused
+ok 95 - O24 (a) PG-7, the agent: forward_kinematics and set_pose close the slider-crank from its crank (the piston where the closed form puts it); a passive joint given is refused
+  ---
+  duration_ms: 796.958875
+  type: 'test'
+  ...
+# Subtest: RS6: play_motion closes the slider-crank's loop at every sample — the piston where the closed form puts it; check_path sweeps the closed path in 1° chords, clear
+ok 96 - RS6: play_motion closes the slider-crank's loop at every sample — the piston where the closed form puts it; check_path sweeps the closed path in 1° chords, clear
+  ---
+  duration_ms: 24787.711834
+  type: 'test'
+  ...
+# Subtest: RS6: check_path finds the piston meeting a block behind its stroke where the closed form puts it, to the chord's error
+ok 97 - RS6: check_path finds the piston meeting a block behind its stroke where the closed form puts it, to the chord's error
+  ---
+  duration_ms: 9489.104
+  type: 'test'
+  ...
+# Subtest: A9-2: a brief and a report per part — p1 milled, the base printed; each judged by its own process; the base's brief untouched by p1's
+ok 98 - A9-2: a brief and a report per part — p1 milled, the base printed; each judged by its own process; the base's brief untouched by p1's
+  ---
+  duration_ms: 128.509
+  type: 'test'
+  ...
+# Subtest: A9-2: a brief stating a process with no rules (sheet-metal) after an applied one (fdm) — the report says so, not fdm's rules
+ok 99 - A9-2: a brief stating a process with no rules (sheet-metal) after an applied one (fdm) — the report says so, not fdm's rules
+  ---
+  duration_ms: 2.794458
+  type: 'test'
+  ...
+# Subtest: D357 rectangle: helpers on a bound sketch equal the resolved sketch
+ok 100 - D357 rectangle: helpers on a bound sketch equal the resolved sketch
+  ---
+  duration_ms: 1.846916
+  type: 'test'
+  ...
+# Subtest: D357 rectangle: a missing parameter is refused, not NaN
+ok 101 - D357 rectangle: a missing parameter is refused, not NaN
+  ---
+  duration_ms: 0.326583
+  type: 'test'
+  ...
+# Subtest: D357 circle: helpers on a bound sketch equal the resolved sketch
+ok 102 - D357 circle: helpers on a bound sketch equal the resolved sketch
+  ---
+  duration_ms: 0.678666
+  type: 'test'
+  ...
+# Subtest: D357 circle: a missing parameter is refused, not NaN
+ok 103 - D357 circle: a missing parameter is refused, not NaN
+  ---
+  duration_ms: 0.15
+  type: 'test'
+  ...
+# Subtest: D357 polygon: helpers on a bound sketch equal the resolved sketch
+ok 104 - D357 polygon: helpers on a bound sketch equal the resolved sketch
+  ---
+  duration_ms: 0.206209
+  type: 'test'
+  ...
+# Subtest: D357 polygon: a missing parameter is refused, not NaN
+ok 105 - D357 polygon: a missing parameter is refused, not NaN
+  ---
+  duration_ms: 0.130958
+  type: 'test'
+  ...
+# Subtest: D357 Extrude and Revolve handles are finite for a bound sketch
+ok 106 - D357 Extrude and Revolve handles are finite for a bound sketch
+  ---
+  duration_ms: 0.390291
+  type: 'test'
+  ...
+# Subtest: D357 an existing revolve of a bound sketch has finite angle handles
+ok 107 - D357 an existing revolve of a bound sketch has finite angle handles
+  ---
+  duration_ms: 13.2025
+  type: 'test'
+  ...
+# Subtest: D357 Loft of two bound sketches writes only numbers (a snapshot) and evaluates
+ok 108 - D357 Loft of two bound sketches writes only numbers (a snapshot) and evaluates
+  ---
+  duration_ms: 24.103792
+  type: 'test'
+  ...
+# Subtest: D357 guided Loft (quadratic, picked 0,1) from bound sections: numeric copies, evaluates, notice
+ok 109 - D357 guided Loft (quadratic, picked 0,1) from bound sections: numeric copies, evaluates, notice
+  ---
+  duration_ms: 226.460708
+  type: 'test'
+  ...
+# Subtest: D357 guided Loft (multi, picked 0,1) from bound sections: numeric copies, evaluates, notice
+ok 110 - D357 guided Loft (multi, picked 0,1) from bound sections: numeric copies, evaluates, notice
+  ---
+  duration_ms: 121.797958
+  type: 'test'
+  ...
+# Subtest: D357 guided Loft (multi, picked 1,0) from bound sections: numeric copies, evaluates, notice
+ok 111 - D357 guided Loft (multi, picked 1,0) from bound sections: numeric copies, evaluates, notice
+  ---
+  duration_ms: 6.915458
+  type: 'test'
+  ...
+# Subtest: D357 reversed pick order: Loft is available and numeric without a guide
+ok 112 - D357 reversed pick order: Loft is available and numeric without a guide
+  ---
+  duration_ms: 30.136917
+  type: 'test'
+  ...
+# Subtest: D357 Loft notice: parameters once each with current values; none when nothing is bound
+ok 113 - D357 Loft notice: parameters once each with current values; none when nothing is bound
+  ---
+  duration_ms: 9.190541
+  type: 'test'
+  ...
+# Subtest: D357 Loft refusal names the sketch and drops the bracketed code
+ok 114 - D357 Loft refusal names the sketch and drops the bracketed code
+  ---
+  duration_ms: 0.314333
+  type: 'test'
+  ...
+# Subtest: D357 loftTop refuses a parameter-bound sketch, not NaN
+ok 115 - D357 loftTop refuses a parameter-bound sketch, not NaN
+  ---
+  duration_ms: 0.212708
+  type: 'test'
+  ...
+# Subtest: selectors: a feature’s face by role, the flat face facing a direction, the edge two faces share
+ok 116 - selectors: a feature’s face by role, the flat face facing a direction, the edge two faces share
+  ---
+  duration_ms: 19.469792
+  type: 'test'
+  ...
+# Subtest: selectors: the same direction on two bodies is refused with both, narrowed by "on"
+ok 117 - selectors: the same direction on two bodies is refused with both, narrowed by "on"
+  ---
+  duration_ms: 6.94275
+  type: 'test'
+  ...
+# Subtest: selectors in the tools: a fillet on edges said by their faces, a measure between faces said by direction; each reports its name
+ok 118 - selectors in the tools: a fillet on edges said by their faces, a measure between faces said by direction; each reports its name
+  ---
+  duration_ms: 56.0165
+  type: 'test'
+  ...
+# Subtest: conformance a1-selectors: Selectors resolve to persistent names: a feature's face by role, the flat face facing a direction (narrowed to a body), the edge two faces share; one fitting several faces is refused with them.
+ok 119 - conformance a1-selectors: Selectors resolve to persistent names: a feature's face by role, the flat face facing a direction (narrowed to a body), the edge two faces share; one fitting several faces is refused with them.
+  ---
+  duration_ms: 5.142625
+  type: 'test'
+  ...
+# Subtest: Shaft parts (R12c.3b): the default shaft, a hub over its seat with a keyway, the key under it, a ring in the groove, a pin in a cross hole — the checks in the notes
+ok 120 - Shaft parts (R12c.3b): the default shaft, a hub over its seat with a keyway, the key under it, a ring in the groove, a pin in a cross hole — the checks in the notes
+  ---
+  duration_ms: 1271.051791
+  type: 'test'
+  ...
+# Subtest: Shaft parts (R12c.3b) refusals in the studio: a key too high for its keyway, a keyway turned off the seat
+ok 121 - Shaft parts (R12c.3b) refusals in the studio: a key too high for its keyway, a keyway turned off the seat
+  ---
+  duration_ms: 388.747417
+  type: 'test'
+  ...
+# Subtest: Shaft parts (R12c.3b) in the chat: key, keyway, retaining-ring and pin are v2 features commands, their values behind describe
+ok 122 - Shaft parts (R12c.3b) in the chat: key, keyway, retaining-ring and pin are v2 features commands, their values behind describe
+  ---
+  duration_ms: 0.647208
+  type: 'test'
+  ...
+# Subtest: explicit inset: independent annulus oracle distinguishes linked width edit from the legacy snapshot
+ok 123 - explicit inset: independent annulus oracle distinguishes linked width edit from the legacy snapshot
+  ---
+  duration_ms: 45.908708
+  type: 'test'
+  ...
+# Subtest: explicit inset: resolved outer/inner geometry follows source width and the current source plane
+ok 124 - explicit inset: resolved outer/inner geometry follows source width and the current source plane
+  ---
+  duration_ms: 2.506542
+  type: 'test'
+  ...
+# Subtest: explicit inset: source-only parent and kernel metadata stripping do not invent a legacy dependency
+ok 125 - explicit inset: source-only parent and kernel metadata stripping do not invent a legacy dependency
+  ---
+  duration_ms: 2.979417
+  type: 'test'
+  ...
+# Subtest: explicit inset: actual file encoding/reading retains the recipe and future width evaluation
+ok 126 - explicit inset: actual file encoding/reading retains the recipe and future width evaluation
+  ---
+  duration_ms: 11.282291
+  type: 'test'
+  ...
+# Subtest: explicit inset: stable feature identity resolves after earlier unrelated feature insertion
+ok 127 - explicit inset: stable feature identity resolves after earlier unrelated feature insertion
+  ---
+  duration_ms: 1.700042
+  type: 'test'
+  ...
+# Subtest: explicit inset: invalid or stale bindings refuse without falling back to saved geometry
+ok 128 - explicit inset: invalid or stale bindings refuse without falling back to saved geometry
+  ---
+  duration_ms: 8.282166
+  type: 'test'
+  ...
+# Subtest: explicit inset: an actual cylindrical source side is unsupported rather than approximated as planar
+ok 129 - explicit inset: an actual cylindrical source side is unsupported rather than approximated as planar
+  ---
+  duration_ms: 56.562834
+  type: 'test'
+  ...
+# Subtest: explicit inset: flattening and placing a recipe refuse instead of silently copying source indices
+ok 130 - explicit inset: flattening and placing a recipe refuse instead of silently copying source indices
+  ---
+  duration_ms: 3.071833
+  type: 'test'
+  ...
+# Subtest: explicit inset: real feature reorder and unrelated deletion renumber only source indices and protect dependencies
+ok 131 - explicit inset: real feature reorder and unrelated deletion renumber only source indices and protect dependencies
+  ---
+  duration_ms: 8.280084
+  type: 'test'
+  ...
+# Subtest: explicit inset: duplicateBody with new stable ids refuses stale recipe identity instead of claiming automatic rematch
+ok 132 - explicit inset: duplicateBody with new stable ids refuses stale recipe identity instead of claiming automatic rematch
+  ---
+  duration_ms: 3.248167
+  type: 'test'
+  ...
+# Subtest: explicit inset: defined malformed association values refuse at resolve, dependency and renumber boundaries
+ok 133 - explicit inset: defined malformed association values refuse at resolve, dependency and renumber boundaries
+  ---
+  duration_ms: 0.680959
+  type: 'test'
+  ...
+# Subtest: explicit inset: an actual planar cylinder top with circular boundary refuses straight-outline support
+ok 134 - explicit inset: an actual planar cylinder top with circular boundary refuses straight-outline support
+  ---
+  duration_ms: 3.253833
+  type: 'test'
+  ...
+# Subtest: explicit inset: a frame following the linked sketch refuses raw snapshot consumption
+ok 135 - explicit inset: a frame following the linked sketch refuses raw snapshot consumption
+  ---
+  duration_ms: 1.503459
+  type: 'test'
+  ...
+# Subtest: explicit inset: the original face drives geometry while a separate earlier on target remains an independent copied BodyRef
+ok 136 - explicit inset: the original face drives geometry while a separate earlier on target remains an independent copied BodyRef
+  ---
+  duration_ms: 1.154917
+  type: 'test'
+  ...
+# Subtest: two circles: the open belt, exactly (perimeter, area, tangents and endpoints)
+ok 137 - two circles: the open belt, exactly (perimeter, area, tangents and endpoints)
+  ---
+  duration_ms: 2.868083
+  type: 'test'
+  ...
+# Subtest: three circles, circle + rectangle, circle + slot: perimeter and area against Cauchy integrals
+ok 138 - three circles, circle + rectangle, circle + slot: perimeter and area against Cauchy integrals
+  ---
+  duration_ms: 321.507
+  type: 'test'
+  ...
+# Subtest: polygon + polygon: exactly the convex hull at offset 0, Cauchy with an offset
+ok 139 - polygon + polygon: exactly the convex hull at offset 0, Cauchy with an offset
+  ---
+  duration_ms: 83.755833
+  type: 'test'
+  ...
+# Subtest: a source that wins twice is named by its order (_0, _1); every side has its own tag
+ok 140 - a source that wins twice is named by its order (_0, _1); every side has its own tag
+  ---
+  duration_ms: 0.507208
+  type: 'test'
+  ...
+# Subtest: a width makes a strip: the hull at offset + width with the hull at offset as its hole; its volume
+ok 141 - a width makes a strip: the hull at offset + width with the hull at offset as its hole; its volume
+  ---
+  duration_ms: 221.825416
+  type: 'test'
+  ...
+# Subtest: a filled band extrudes to area x height; bandProfile is the plain loop it makes
+ok 142 - a filled band extrudes to area x height; bandProfile is the plain loop it makes
+  ---
+  duration_ms: 6.676459
+  type: 'test'
+  ...
+# Subtest: refusals name the sketch, the band and the cause
+ok 143 - refusals name the sketch, the band and the cause
+  ---
+  duration_ms: 0.852125
+  type: 'test'
+  ...
+# Subtest: bandProfile refuses, never keeps a stale loop: unknown parameter, regions, holes, a linked sketch
+ok 144 - bandProfile refuses, never keeps a stale loop: unknown parameter, regions, holes, a linked sketch
+  ---
+  duration_ms: 0.385041
+  type: 'test'
+  ...
+# Subtest: makeBand marks the picks construction, gives every shape ids and refuses fewer than two
+ok 145 - makeBand marks the picks construction, gives every shape ids and refuses fewer than two
+  ---
+  duration_ms: 6.987959
+  type: 'test'
+  ...
+# Subtest: Finish refuses any other closed shape: a band sketch holds only the band and its construction
+ok 146 - Finish refuses any other closed shape: a band sketch holds only the band and its construction
+  ---
+  duration_ms: 0.461375
+  type: 'test'
+  ...
+# Subtest: Finish → reopen → Finish is the same JSON, again and again
+ok 147 - Finish → reopen → Finish is the same JSON, again and again
+  ---
+  duration_ms: 0.904375
+  type: 'test'
+  ...
+# Subtest: a band sketch needs its ids: construction ids exist after Finish (the id gap) and reopen seeds fresh ids after them
+ok 148 - a band sketch needs its ids: construction ids exist after Finish (the id gap) and reopen seeds fresh ids after them
+  ---
+  duration_ms: 0.316792
+  type: 'test'
+  ...
+# Subtest: the band follows its sources and its parameters; the sides keep their names
+ok 149 - the band follows its sources and its parameters; the sides keep their names
+  ---
+  duration_ms: 199.414708
+  type: 'test'
+  ...
+# Subtest: bindings on the sources, the offset and the width survive reopen → Finish
+ok 150 - bindings on the sources, the offset and the width survive reopen → Finish
+  ---
+  duration_ms: 8.894416
+  type: 'test'
+  ...
+# Subtest: feature editor fields: offset, width, and each circle source, edited and bound
+ok 151 - feature editor fields: offset, width, and each circle source, edited and bound
+  ---
+  duration_ms: 0.474875
+  type: 'test'
+  ...
+# Subtest: Save → Open evaluates the same; the Undo snapshot is plain JSON
+ok 152 - Save → Open evaluates the same; the Undo snapshot is plain JSON
+  ---
+  duration_ms: 63.563125
+  type: 'test'
+  ...
+# Subtest: the agent cannot write a band or construction shapes in v1 (chat refuses them)
+ok 153 - the agent cannot write a band or construction shapes in v1 (chat refuses them)
+  ---
+  duration_ms: 0.631792
+  type: 'test'
+  ...
+# Subtest: pickShapeAt picks a whole closed shape by its outline or its inside, the smallest first
+ok 154 - pickShapeAt picks a whole closed shape by its outline or its inside, the smallest first
+  ---
+  duration_ms: 0.937875
+  type: 'test'
+  ...
+# Subtest: a quadratic Bezier evaluates exactly at dyadic parameters and leaves and arrives along its legs
+ok 155 - a quadratic Bezier evaluates exactly at dyadic parameters and leaves and arrives along its legs
+  ---
+  duration_ms: 0.88325
+  type: 'test'
+  ...
+# Subtest: a cubic Bezier: de Casteljau equals the Bernstein form, tangents are 3 × the end legs
+ok 156 - a cubic Bezier: de Casteljau equals the Bernstein form, tangents are 3 × the end legs
+  ---
+  duration_ms: 0.201667
+  type: 'test'
+  ...
+# Subtest: the curve does not pass through its middle control point; the samples run from the first pole to the last
+ok 157 - the curve does not pass through its middle control point; the samples run from the first pole to the last
+  ---
+  duration_ms: 0.247
+  type: 'test'
+  ...
+# Subtest: bezierCurve: degree, clamped knots, weights 1 and poles mapped through the plane as outlineCurve maps them
+ok 158 - bezierCurve: degree, clamped knots, weights 1 and poles mapped through the plane as outlineCurve maps them
+  ---
+  duration_ms: 0.577916
+  type: 'test'
+  ...
+# Subtest: a Bezier is never part of a profile; beside a rectangle the rectangle profile is unchanged; it has one side id
+ok 159 - a Bezier is never part of a profile; beside a rectangle the rectangle profile is unchanged; it has one side id
+  ---
+  duration_ms: 0.648042
+  type: 'test'
+  ...
+# Subtest: Finish keeps a Bezier in the node's construction array and reopen restores it, with the main profile first
+ok 160 - Finish keeps a Bezier in the node's construction array and reopen restores it, with the main profile first
+  ---
+  duration_ms: 0.572208
+  type: 'test'
+  ...
+# Subtest: the made curve is a direct source object and a loft guide admits it as one Bezier span (tilted plane, non-integer poles, within the source rounding)
+ok 161 - the made curve is a direct source object and a loft guide admits it as one Bezier span (tilted plane, non-integer poles, within the source rounding)
+  ---
+  duration_ms: 4.759792
+  type: 'test'
+  ...
+# Subtest: object snaps: a Bezier snaps to its two end poles only; a malformed one snaps to nothing
+ok 162 - object snaps: a Bezier snaps to its two end poles only; a malformed one snaps to nothing
+  ---
+  duration_ms: 0.53125
+  type: 'test'
+  ...
+# Subtest: trim, extend and split: a Bezier is no cutting edge and is left untouched; the lines act as without it
+ok 163 - trim, extend and split: a Bezier is no cutting edge and is left untouched; the lines act as without it
+  ---
+  duration_ms: 5.727583
+  type: 'test'
+  ...
+# Subtest: the DXF of a sketch skips a Bezier; offset refuses it; it is no profile node, no corners, and its outline is its samples
+ok 164 - the DXF of a sketch skips a Bezier; offset refuses it; it is no profile node, no corners, and its outline is its samples
+  ---
+  duration_ms: 4.782625
+  type: 'test'
+  ...
+# Subtest: bezierCurve refuses poles that make no curve with the reason
+ok 165 - bezierCurve refuses poles that make no curve with the reason
+  ---
+  duration_ms: 0.243875
+  type: 'test'
+  ...
+# Subtest: wellFormedBezier: kind bezier with three or four finite [x, y] poles
+ok 166 - wellFormedBezier: kind bezier with three or four finite [x, y] poles
+  ---
+  duration_ms: 0.074167
+  type: 'test'
+  ...
+# Subtest: bezierError: null for a curve; a reason for malformed, all-coincident and doubled-back poles
+ok 167 - bezierError: null for a curve; a reason for malformed, all-coincident and doubled-back poles
+  ---
+  duration_ms: 0.17125
+  type: 'test'
+  ...
+# Subtest: reopen ignores malformed stored Beziers (no throw) and keeps good ones and other construction shapes
+ok 168 - reopen ignores malformed stored Beziers (no throw) and keeps good ones and other construction shapes
+  ---
+  duration_ms: 0.354542
+  type: 'test'
+  ...
+# Subtest: Select: a current Bezier goes aside like a circle and the profile is picked as without it
+ok 169 - Select: a current Bezier goes aside like a circle and the profile is picked as without it
+  ---
+  duration_ms: 0.193791
+  type: 'test'
+  ...
+# Subtest: rectangle: opposite edge lengths 60 then 50 is a proven conflict
+ok 170 - rectangle: opposite edge lengths 60 then 50 is a proven conflict
+  ---
+  duration_ms: 15.594625
+  type: 'test'
+  ...
+# Subtest: L outline: horizontal lengths 60, 40, 30 conflict
+ok 171 - L outline: horizontal lengths 60, 40, 30 conflict
+  ---
+  duration_ms: 17.052625
+  type: 'test'
+  ...
+# Subtest: dx between opposite corners then a conflicting edge length
+ok 172 - dx between opposite corners then a conflicting edge length
+  ---
+  duration_ms: 24.619042
+  type: 'test'
+  ...
+# Subtest: edge length 30 then a conflicting dy
+ok 173 - edge length 30 then a conflicting dy
+  ---
+  duration_ms: 29.180042
+  type: 'test'
+  ...
+# Subtest: a consistent redundant length is still the over-define message
+ok 174 - a consistent redundant length is still the over-define message
+  ---
+  duration_ms: 0.99175
+  type: 'test'
+  ...
+# Subtest: consistent edits are accepted
+ok 175 - consistent edits are accepted
+  ---
+  duration_ms: 2.270209
+  type: 'test'
+  ...
+# Subtest: a non-rectilinear conflict keeps the kernel nonconvergence message
+ok 176 - a non-rectilinear conflict keeps the kernel nonconvergence message
+  ---
+  duration_ms: 5.179416
+  type: 'test'
+  ...
+# Subtest: tolerance band: 3e-7 apart is not proven, 1e-5 apart is
+ok 177 - tolerance band: 3e-7 apart is not proven, 1e-5 apart is
+  ---
+  duration_ms: 2.90525
+  type: 'test'
+  ...
+# Subtest: an arc-bearing outline or an unmodelled constraint is outside the class
+ok 178 - an arc-bearing outline or an unmodelled constraint is outside the class
+  ---
+  duration_ms: 0.404
+  type: 'test'
+  ...
+# Subtest: sign search stops at its budget
+ok 179 - sign search stops at its budget
+  ---
+  duration_ms: 435.429458
+  type: 'test'
+  ...
+# Subtest: a pruned search proves the conflict rather than running out of budget
+ok 180 - a pruned search proves the conflict rather than running out of budget
+  ---
+  duration_ms: 1.003209
+  type: 'test'
+  ...
+# Subtest: arithmetic is exact: 0.1 + 0.2 against 0.3 and values just past the band
+ok 181 - arithmetic is exact: 0.1 + 0.2 against 0.3 and values just past the band
+  ---
+  duration_ms: 0.859292
+  type: 'test'
+  ...
+# Subtest: one-ulp boundary of a dx chain: largest double within the bound is feasible, the next is proven
+ok 182 - one-ulp boundary of a dx chain: largest double within the bound is feasible, the next is proven
+  ---
+  duration_ms: 0.29025
+  type: 'test'
+  ...
+# Subtest: a conflict that depends only on the anchor (no fix on point 0)
+ok 183 - a conflict that depends only on the anchor (no fix on point 0)
+  ---
+  duration_ms: 0.071291
+  type: 'test'
+  ...
+# Subtest: malformed indices are outside the class and do not throw
+ok 184 - malformed indices are outside the class and do not throw
+  ---
+  duration_ms: 0.097375
+  type: 'test'
+  ...
+# Subtest: ids that are not indices: the ellipse extrude n3 over sketch n2 (indices 1 and 0) is refused
+ok 185 - ids that are not indices: the ellipse extrude n3 over sketch n2 (indices 1 and 0) is refused
+  ---
+  duration_ms: 656.291667
+  type: 'test'
+  ...
+# Subtest: ids that are not indices: a rectangle extrude is not refused because its id equals the index of an ellipse extrude
+ok 186 - ids that are not indices: a rectangle extrude is not refused because its id equals the index of an ellipse extrude
+  ---
+  duration_ms: 328.838083
+  type: 'test'
+  ...
+# Subtest: an ellipse with a circle hole: the hole's side edges are not refused, the ellipse's are
+ok 187 - an ellipse with a circle hole: the hole's side edges are not refused, the ellipse's are
+  ---
+  duration_ms: 286.846708
+  type: 'test'
+  ...
+# Subtest: a second sketch's extrude joined onto the ellipse body: its sides are not refused
+ok 188 - a second sketch's extrude joined onto the ellipse body: its sides are not refused
+  ---
+  duration_ms: 243.7675
+  type: 'test'
+  ...
+# Subtest: a partial revolve and a sweep of an ellipse profile refuse their side edges (sweep names carry an .s<j> infix)
+ok 189 - a partial revolve and a sweep of an ellipse profile refuse their side edges (sweep names carry an .s<j> infix)
+  ---
+  duration_ms: 877.299584
+  type: 'test'
+  ...
+# Subtest: a linear pattern of an ellipse body: the copies' side edges (named with @<k>) are refused too
+ok 190 - a linear pattern of an ellipse body: the copies' side edges (named with @<k>) are refused too
+  ---
+  duration_ms: 510.099334
+  type: 'test'
+  ...
+# Subtest: chat add_features: a fillet or chamfer on an ellipse side edge is refused with the reason
+ok 191 - chat add_features: a fillet or chamfer on an ellipse side edge is refused with the reason
+  ---
+  duration_ms: 173.125375
+  type: 'test'
+  ...
+# Subtest: the outline has 2 × ELLIPSE_POINTS points whatever the ratio, size, angle or centre
+ok 192 - the outline has 2 × ELLIPSE_POINTS points whatever the ratio, size, angle or centre
+  ---
+  duration_ms: 16.439583
+  type: 'test'
+  ...
+# Subtest: every fit point lies on the exact ellipse (1e-9 relative)
+ok 193 - every fit point lies on the exact ellipse (1e-9 relative)
+  ---
+  duration_ms: 3.665041
+  type: 'test'
+  ...
+# Subtest: the largest distance from the arcs to the true ellipse is within ELLIPSE_TOLERANCE × the longer axis, over ratios, angles and sizes
+ok 194 - the largest distance from the arcs to the true ellipse is within ELLIPSE_TOLERANCE × the longer axis, over ratios, angles and sizes
+  ---
+  duration_ms: 1332.281084
+  type: 'test'
+  ...
+# Subtest: the outline encloses π·rx·ry within 1e-5 (relative)
+ok 195 - the outline encloses π·rx·ry within 1e-5 (relative)
+  ---
+  duration_ms: 0.451292
+  type: 'test'
+  ...
+# Subtest: ellipseError: non-finite or non-positive axes, a ratio below 1 : 5, coordinates beyond the kernel limits
+ok 196 - ellipseError: non-finite or non-positive axes, a ratio below 1 : 5, coordinates beyond the kernel limits
+  ---
+  duration_ms: 1.609667
+  type: 'test'
+  ...
+# Subtest: ellipseMatches: true for a fresh shape, false once a point moves or the definition is gone
+ok 197 - ellipseMatches: true for a fresh shape, false once a point moves or the definition is gone
+  ---
+  duration_ms: 0.815459
+  type: 'test'
+  ...
+# Subtest: closing infers no tangents, equal radii or shared centres; a dimension is refused beyond the solver size
+ok 198 - closing infers no tangents, equal radii or shared centres; a dimension is refused beyond the solver size
+  ---
+  duration_ms: 0.639333
+  type: 'test'
+  ...
+# Subtest: reellipse regenerates the outline, keeps ids and attached circles, drops other constraints
+ok 199 - reellipse regenerates the outline, keeps ids and attached circles, drops other constraints
+  ---
+  duration_ms: 0.654458
+  type: 'test'
+  ...
+# Subtest: reopen: the definition survives profileOf → node → JSON → sketchShapes, and Finish again is idempotent
+ok 200 - reopen: the definition survives profileOf → node → JSON → sketchShapes, and Finish again is idempotent
+  ---
+  duration_ms: 3.661541
+  type: 'test'
+  ...
+# Subtest: a malformed or stale stored definition is ignored on reopen without throwing
+ok 201 - a malformed or stale stored definition is ignored on reopen without throwing
+  ---
+  duration_ms: 2.88975
+  type: 'test'
+  ...
+# Subtest: downstream: sketch + extrude evaluates, its volume is π·rx·ry·h within 2e-5, and editing keeps the side names
+ok 202 - downstream: sketch + extrude evaluates, its volume is π·rx·ry·h within 2e-5, and editing keeps the side names
+  ---
+  duration_ms: 607.130541
+  type: 'test'
+  ...
+# Subtest: ellipseCurve: the degree-2 rational NURBS lies on the exact ellipse (1e-9 relative) at many parameters
+ok 203 - ellipseCurve: the degree-2 rational NURBS lies on the exact ellipse (1e-9 relative) at many parameters
+  ---
+  duration_ms: 4.845459
+  type: 'test'
+  ...
+# Subtest: outlineOf stores the ellipse definition only while the points still match it
+ok 204 - outlineOf stores the ellipse definition only while the points still match it
+  ---
+  duration_ms: 0.417625
+  type: 'test'
+  ...
+# Subtest: a corner edit and a point edit (carryPolygon) make the ellipse an ordinary outline
+ok 205 - a corner edit and a point edit (carryPolygon) make the ellipse an ordinary outline
+  ---
+  duration_ms: 0.531833
+  type: 'test'
+  ...
+# Subtest: the angle is stored in [0, 360) and an unusable one is refused
+ok 206 - the angle is stored in [0, 360) and an unusable one is refused
+  ---
+  duration_ms: 0.969916
+  type: 'test'
+  ...
+# Subtest: fillet and chamfer on an ellipse extrude's top edge are unavailable with the reason and refused in build
+ok 207 - fillet and chamfer on an ellipse extrude's top edge are unavailable with the reason and refused in build
+  ---
+  duration_ms: 197.2495
+  type: 'test'
+  ...
+# Subtest: an ellipse hole loses its definition on Finish, so a body edge of it is an ordinary arc edge; the rectangle's edges stay allowed
+ok 208 - an ellipse hole loses its definition on Finish, so a body edge of it is an ordinary arc edge; the rectangle's edges stay allowed
+  ---
+  duration_ms: 219.996875
+  type: 'test'
+  ...
+# Subtest: D348: a driving-dimension edit keeps the sketch id, side ids, construction and target
+ok 209 - D348: a driving-dimension edit keeps the sketch id, side ids, construction and target
+  ---
+  duration_ms: 14.490833
+  type: 'test'
+  ...
+# Subtest: D348: a fillet stored on the sketch's side ids still resolves after a dimension edit, and the volume follows
+ok 210 - D348: a fillet stored on the sketch's side ids still resolves after a dimension edit, and the volume follows
+  ---
+  duration_ms: 201.235
+  type: 'test'
+  ...
+# Subtest: D348: an attached circle and another loop keep their side ids through an edit
+ok 211 - D348: an attached circle and another loop keep their side ids through an edit
+  ---
+  duration_ms: 16.795
+  type: 'test'
+  ...
+# Subtest: D348: a node from before side ids gains none from an edit (its positional names are not renamed)
+ok 212 - D348: a node from before side ids gains none from an edit (its positional names are not renamed)
+  ---
+  duration_ms: 7.869667
+  type: 'test'
+  ...
+# Subtest: D348: a value the constraints cannot take leaves the very same node list
+ok 213 - D348: a value the constraints cannot take leaves the very same node list
+  ---
+  duration_ms: 1.333167
+  type: 'test'
+  ...
+# Subtest: accepted outline coordinates retain the driving noninteger length and off-grid anchor
+ok 214 - accepted outline coordinates retain the driving noninteger length and off-grid anchor
+  ---
+  duration_ms: 3.253958
+  type: 'test'
+  ...
+# Subtest: a successful edit adopts off-grid circle centres without changing circle radii or driving values
+ok 215 - a successful edit adopts off-grid circle centres without changing circle radii or driving values
+  ---
+  duration_ms: 3.299291
+  type: 'test'
+  ...
+# Subtest: final arc points and bulge preserve the noninteger radius and tangent angles
+ok 216 - final arc points and bulge preserve the noninteger radius and tangent angles
+  ---
+  duration_ms: 1.36625
+  type: 'test'
+  ...
+# Subtest: final oblique edges retain an explicit angular constraint at the existing angular tolerance
+ok 217 - final oblique edges retain an explicit angular constraint at the existing angular tolerance
+  ---
+  duration_ms: 0.678375
+  type: 'test'
+  ...
+# Subtest: ordinary valid geometry stays accepted and an existing impossible arc edit preserves the previous shape
+ok 218 - ordinary valid geometry stays accepted and an existing impossible arc edit preserves the previous shape
+  ---
+  duration_ms: 18.641917
+  type: 'test'
+  ...
+# XY numerical sketch: Bounded local solve did not meet fixed residual tolerances; this is not an inconsistency proof
+# Subtest: circle main + rectangle region: unchanged reopen keeps the circle, the region and the ids, twice
+ok 219 - circle main + rectangle region: unchanged reopen keeps the circle, the region and the ids, twice
+  ---
+  duration_ms: 2.985875
+  type: 'test'
+  ...
+# Subtest: a hand-written circle main keeps its main, centre and radius
+ok 220 - a hand-written circle main keeps its main, centre and radius
+  ---
+  duration_ms: 0.399583
+  type: 'test'
+  ...
+# Subtest: a radius bound to a parameter stays bound and nothing is dropped
+ok 221 - a radius bound to a parameter stays bound and nothing is dropped
+  ---
+  duration_ms: 0.59825
+  type: 'test'
+  ...
+# Subtest: a slot main + rectangle region keeps the slot as main
+ok 222 - a slot main + rectangle region keeps the slot as main
+  ---
+  duration_ms: 2.346709
+  type: 'test'
+  ...
+# Subtest: a node without side tags (before R10a) keeps its main too
+ok 223 - a node without side tags (before R10a) keeps its main too
+  ---
+  duration_ms: 0.615458
+  type: 'test'
+  ...
+# Subtest: main deleted: the order falls back and the rectangle becomes the main profile
+ok 224 - main deleted: the order falls back and the rectangle becomes the main profile
+  ---
+  duration_ms: 0.219916
+  type: 'test'
+  ...
+# Subtest: reopenedOrder: no ids, empty ids or no match is [shape, ...done]
+ok 225 - reopenedOrder: no ids, empty ids or no match is [shape, ...done]
+  ---
+  duration_ms: 0.132375
+  type: 'test'
+  ...
+# Subtest: reopenedOrder: the matching shape moves to the front, the other finished shapes follow and the edited shape is last
+ok 226 - reopenedOrder: the matching shape moves to the front, the other finished shapes follow and the edited shape is last
+  ---
+  duration_ms: 0.068
+  type: 'test'
+  ...
+# Subtest: the Extrude of the round-tripped circle still lists dia, cc0 and cc1
+ok 227 - the Extrude of the round-tripped circle still lists dia, cc0 and cc1
+  ---
+  duration_ms: 1.9555
+  type: 'test'
+  ...
+# Subtest: F1: split a rectangle edge (shape is null afterwards): Finish keeps the circle main and its binding
+ok 228 - F1: split a rectangle edge (shape is null afterwards): Finish keeps the circle main and its binding
+  ---
+  duration_ms: 0.973292
+  type: 'test'
+  ...
+# Subtest: F1: Finish with shape null and every shape in done (tool switch) keeps the circle main
+ok 229 - F1: Finish with shape null and every shape in done (tool switch) keeps the circle main
+  ---
+  duration_ms: 0.240208
+  type: 'test'
+  ...
+# Subtest: F2: clicking the main circle keeps its side id and the circle main, and the binding
+ok 230 - F2: clicking the main circle keeps its side id and the circle main, and the binding
+  ---
+  duration_ms: 0.6375
+  type: 'test'
+  ...
+# Subtest: F2: polygon main + circle region: clicking the circle keeps the circle region id
+ok 231 - F2: polygon main + circle region: clicking the circle keeps the circle region id
+  ---
+  duration_ms: 3.196167
+  type: 'test'
+  ...
+# Subtest: F4: circle main + two rectangle regions: two no-op round trips give exactly the stored node
+ok 232 - F4: circle main + two rectangle regions: two no-op round trips give exactly the stored node
+  ---
+  duration_ms: 0.448167
+  type: 'test'
+  ...
+# Subtest: F4: polygon main + circle region and the single-region case keep the stored order
+ok 233 - F4: polygon main + circle region and the single-region case keep the stored order
+  ---
+  duration_ms: 0.213125
+  type: 'test'
+  ...
+# Subtest: reopenedOrder: the main rebuilt order is main, the other finished shapes, then the edited shape
+ok 234 - reopenedOrder: the main rebuilt order is main, the other finished shapes, then the edited shape
+  ---
+  duration_ms: 0.042792
+  type: 'test'
+  ...
+# Subtest: reopenedOrder: a main circle attached to an outline comes back as its own shape first
+ok 235 - reopenedOrder: a main circle attached to an outline comes back as its own shape first
+  ---
+  duration_ms: 0.095334
+  type: 'test'
+  ...
+# Subtest: rulesWithoutCircle: every circle-indexed rule kind drops circle 1 and renumbers circle 2 to 1
+ok 236 - rulesWithoutCircle: every circle-indexed rule kind drops circle 1 and renumbers circle 2 to 1
+  ---
+  duration_ms: 0.143375
+  type: 'test'
+  ...
+# Subtest: N1: pulling the attached main circle out keeps the other circles' rules on the same physical circles
+ok 237 - N1: pulling the attached main circle out keeps the other circles' rules on the same physical circles
+  ---
+  duration_ms: 16.99675
+  type: 'test'
+  ...
+# Subtest: N1: a main circle with no rules attached leaves the outline's rules alone
+ok 238 - N1: a main circle with no rules attached leaves the outline's rules alone
+  ---
+  duration_ms: 0.125959
+  type: 'test'
+  ...
+# Subtest: attachCircle: ids out of step stay out of step; in-step ids gain exactly the circle's id
+ok 239 - attachCircle: ids out of step stay out of step; in-step ids gain exactly the circle's id
+  ---
+  duration_ms: 0.110458
+  type: 'test'
+  ...
+# Subtest: rectangle with max[0] bound reopens at the parameter and finishes unchanged with the binding
+ok 240 - rectangle with max[0] bound reopens at the parameter and finishes unchanged with the binding
+  ---
+  duration_ms: 24.170791
+  type: 'test'
+  ...
+# Subtest: rectangle with min[1] bound keeps it
+ok 241 - rectangle with min[1] bound keeps it
+  ---
+  duration_ms: 10.772834
+  type: 'test'
+  ...
+# Subtest: changing the bound value makes it a number and says so
+ok 242 - changing the bound value makes it a number and says so
+  ---
+  duration_ms: 0.269375
+  type: 'test'
+  ...
+# Subtest: circle radius bound
+ok 243 - circle radius bound
+  ---
+  duration_ms: 36.442042
+  type: 'test'
+  ...
+# Subtest: polygon point coordinate bound
+ok 244 - polygon point coordinate bound
+  ---
+  duration_ms: 3.297084
+  type: 'test'
+  ...
+# Subtest: a missing parameter refuses the reopen with no NaN
+ok 245 - a missing parameter refuses the reopen with no NaN
+  ---
+  duration_ms: 0.300709
+  type: 'test'
+  ...
+# Subtest: loop segment start and arc centre bound
+ok 246 - loop segment start and arc centre bound
+  ---
+  duration_ms: 27.945334
+  type: 'test'
+  ...
+# Subtest: circle centre bound through the feature editor (cc0, cc1) reopens and finishes unchanged with both bindings
+ok 247 - circle centre bound through the feature editor (cc0, cc1) reopens and finishes unchanged with both bindings
+  ---
+  duration_ms: 12.658
+  type: 'test'
+  ...
+# Subtest: region and hole bindings are kept; a region the person deleted is dropped and reported
+ok 248 - region and hole bindings are kept; a region the person deleted is dropped and reported
+  ---
+  duration_ms: 4.104667
+  type: 'test'
+  ...
+# Subtest: F1 (D358): circle first with a rectangle region, reopened and finished unchanged: the circle stays the main profile and keeps its binding
+ok 249 - F1 (D358): circle first with a rectangle region, reopened and finished unchanged: the circle stays the main profile and keeps its binding
+  ---
+  duration_ms: 11.542416
+  type: 'test'
+  ...
+# Subtest: loops swapping slots keep their binding when the form matches, and nothing is bound across forms
+ok 250 - loops swapping slots keep their binding when the form matches, and nothing is bound across forms
+  ---
+  duration_ms: 0.295167
+  type: 'test'
+  ...
+# Subtest: F2: a deleted, rotated or inserted vertex never lands the binding on another vertex
+ok 251 - F2: a deleted, rotated or inserted vertex never lands the binding on another vertex
+  ---
+  duration_ms: 0.845333
+  type: 'test'
+  ...
+# Subtest: C1: deleting region 0 does not hand its binding to region 1; deleting an unbound region 0 moves region 1 up and keeps its binding
+ok 252 - C1: deleting region 0 does not hand its binding to region 1; deleting an unbound region 0 moves region 1 up and keeps its binding
+  ---
+  duration_ms: 1.257209
+  type: 'test'
+  ...
+# Subtest: F3: a loop that changes form drops its binding and says so; untouched loops keep theirs
+ok 253 - F3: a loop that changes form drops its binding and says so; untouched loops keep theirs
+  ---
+  duration_ms: 5.942541
+  type: 'test'
+  ...
+# Subtest: an unbound change keeps the other binding of a rectangle or a circle; a point list does not
+ok 254 - an unbound change keeps the other binding of a rectangle or a circle; a point list does not
+  ---
+  duration_ms: 0.280083
+  type: 'test'
+  ...
+# Subtest: a non-finite parameter value is refused as having no finite value; a missing one as not there
+ok 255 - a non-finite parameter value is refused as having no finite value; a missing one as not there
+  ---
+  duration_ms: 0.456542
+  type: 'test'
+  ...
+# Subtest: the same value within 1e-9 relative keeps the binding; 1e-6 away does not
+ok 256 - the same value within 1e-9 relative keeps the binding; 1e-6 away does not
+  ---
+  duration_ms: 0.119833
+  type: 'test'
+  ...
+# Subtest: D348: an outline field edit keeps the bindings of loops it did not touch, given the parameters
+ok 257 - D348: an outline field edit keeps the bindings of loops it did not touch, given the parameters
+  ---
+  duration_ms: 6.58375
+  type: 'test'
+  ...
+# Subtest: editCommand given the document reads bound sketch values: their fields are there, and an edit keeps the other binding
+ok 258 - editCommand given the document reads bound sketch values: their fields are there, and an edit keeps the other binding
+  ---
+  duration_ms: 2.326291
+  type: 'test'
+  ...
+# Subtest: a loop of another form never takes a binding, even when its values line up (line,line vs one arc; an arc turning the other way)
+ok 259 - a loop of another form never takes a binding, even when its values line up (line,line vs one arc; an arc turning the other way)
+  ---
+  duration_ms: 0.132708
+  type: 'test'
+  ...
+# Subtest: D355: rectangle + circle hole: reopen then Finish with no change keeps the side ids
+ok 260 - D355: rectangle + circle hole: reopen then Finish with no change keeps the side ids
+  ---
+  duration_ms: 2.760417
+  type: 'test'
+  ...
+# Subtest: D355: construction line first, then a rectangle: reopen then Finish with no change keeps the side ids
+ok 261 - D355: construction line first, then a rectangle: reopen then Finish with no change keeps the side ids
+  ---
+  duration_ms: 0.337
+  type: 'test'
+  ...
+# Subtest: D355: Bezier first, then a rectangle: reopen then Finish with no change keeps the side ids
+ok 262 - D355: Bezier first, then a rectangle: reopen then Finish with no change keeps the side ids
+  ---
+  duration_ms: 41.12175
+  type: 'test'
+  ...
+# Subtest: D355: rectangle alone: reopen then Finish with no change keeps the side ids
+ok 263 - D355: rectangle alone: reopen then Finish with no change keeps the side ids
+  ---
+  duration_ms: 4.176334
+  type: 'test'
+  ...
+# Subtest: D355: polygon + polygon hole: reopen then Finish with no change keeps the side ids
+ok 264 - D355: polygon + polygon hole: reopen then Finish with no change keeps the side ids
+  ---
+  duration_ms: 0.823792
+  type: 'test'
+  ...
+# Subtest: D355: slot: reopen then Finish with no change keeps the side ids
+ok 265 - D355: slot: reopen then Finish with no change keeps the side ids
+  ---
+  duration_ms: 0.28175
+  type: 'test'
+  ...
+# Subtest: D355: rectangle drawn from its upper-right corner: reopen then Finish with no change keeps the side ids
+ok 266 - D355: rectangle drawn from its upper-right corner: reopen then Finish with no change keeps the side ids
+  ---
+  duration_ms: 0.822833
+  type: 'test'
+  ...
+# Subtest: D355: rectangleOutline keeps the ids by side and the construction flag
+ok 267 - D355: rectangleOutline keeps the ids by side and the construction flag
+  ---
+  duration_ms: 0.098958
+  type: 'test'
+  ...
+# Subtest: D355: a fillet on a named side edge survives reopen and Finish with no change (same edge, same volume)
+ok 268 - D355: a fillet on a named side edge survives reopen and Finish with no change (same edge, same volume)
+  ---
+  duration_ms: 195.235917
+  type: 'test'
+  ...
+# Subtest: closed spline through 3 points: points kept, joints smooth, no arc relations
+ok 269 - closed spline through 3 points: points kept, joints smooth, no arc relations
+  ---
+  duration_ms: 13.28425
+  type: 'test'
+  ...
+# Subtest: closed spline through 4 points: points kept, joints smooth, no arc relations
+ok 270 - closed spline through 4 points: points kept, joints smooth, no arc relations
+  ---
+  duration_ms: 16.704208
+  type: 'test'
+  ...
+# Subtest: closed spline through 5 points: points kept, joints smooth, no arc relations
+ok 271 - closed spline through 5 points: points kept, joints smooth, no arc relations
+  ---
+  duration_ms: 36.102042
+  type: 'test'
+  ...
+# Subtest: closed spline through 8 points: points kept, joints smooth, no arc relations
+ok 272 - closed spline through 8 points: points kept, joints smooth, no arc relations
+  ---
+  duration_ms: 52.039916
+  type: 'test'
+  ...
+# Subtest: closed spline through 12 points: points kept, joints smooth, no arc relations
+ok 273 - closed spline through 12 points: points kept, joints smooth, no arc relations
+  ---
+  duration_ms: 71.10925
+  type: 'test'
+  ...
+# Subtest: closed spline through 16 points: points kept, joints smooth, no arc relations
+ok 274 - closed spline through 16 points: points kept, joints smooth, no arc relations
+  ---
+  duration_ms: 215.389625
+  type: 'test'
+  ...
+# Subtest: closed spline through 17 points: points kept, joints smooth, no arc relations
+ok 275 - closed spline through 17 points: points kept, joints smooth, no arc relations
+  ---
+  duration_ms: 0.615541
+  type: 'test'
+  ...
+# Subtest: closed spline through 20 points: points kept, joints smooth, no arc relations
+ok 276 - closed spline through 20 points: points kept, joints smooth, no arc relations
+  ---
+  duration_ms: 0.563667
+  type: 'test'
+  ...
+# Subtest: open spline through 5 points: points kept, joints smooth, no arc relations
+ok 277 - open spline through 5 points: points kept, joints smooth, no arc relations
+  ---
+  duration_ms: 0.881834
+  type: 'test'
+  ...
+# Subtest: a hand-drawn outline with two nearly equal arcs still gets its inferred equal-radius pair
+ok 278 - a hand-drawn outline with two nearly equal arcs still gets its inferred equal-radius pair
+  ---
+  duration_ms: 1.1515
+  type: 'test'
+  ...
+# Subtest: a 2.5 m spline: clicked points stay within 1e-5 mm, joints within 1e-9 rad, no arc relations
+ok 279 - a 2.5 m spline: clicked points stay within 1e-5 mm, joints within 1e-9 rad, no arc relations
+  ---
+  duration_ms: 94.658125
+  type: 'test'
+  ...
+# Subtest: two pieces per span: automatic, handled, straight and failing spans; fit points bitwise at even indices
+ok 280 - two pieces per span: automatic, handled, straight and failing spans; fit points bitwise at even indices
+  ---
+  duration_ms: 1.536583
+  type: 'test'
+  ...
+# Subtest: with handles the curve leaves each fit point along its handle and every joint is tangent
+ok 281 - with handles the curve leaves each fit point along its handle and every joint is tangent
+  ---
+  duration_ms: 0.574541
+  type: 'test'
+  ...
+# Subtest: respline keeps ids, circles, tangents and the outline point count when a handle or a fit point changes
+ok 282 - respline keeps ids, circles, tangents and the outline point count when a handle or a fit point changes
+  ---
+  duration_ms: 0.312916
+  type: 'test'
+  ...
+# Subtest: closed spline: settle as closing does, profileOf stores the definition, reopening restores it
+ok 283 - closed spline: settle as closing does, profileOf stores the definition, reopening restores it
+  ---
+  duration_ms: 53.643375
+  type: 'test'
+  ...
+# Subtest: a 17-point spline (no stored constraints) still stores its outline and spline
+ok 284 - a 17-point spline (no stored constraints) still stores its outline and spline
+  ---
+  duration_ms: 0.720083
+  type: 'test'
+  ...
+# Subtest: a 20-point spline (no stored constraints) still stores its outline and spline
+ok 285 - a 20-point spline (no stored constraints) still stores its outline and spline
+  ---
+  duration_ms: 0.629583
+  type: 'test'
+  ...
+# Subtest: a 33-point spline (no stored constraints) still stores its outline and spline
+ok 286 - a 33-point spline (no stored constraints) still stores its outline and spline
+  ---
+  duration_ms: 1.414709
+  type: 'test'
+  ...
+# Subtest: consistency: other edits turn the spline into an ordinary outline
+ok 287 - consistency: other edits turn the spline into an ordinary outline
+  ---
+  duration_ms: 210.320209
+  type: 'test'
+  ...
+# Subtest: refusal comes from the generated outline: reversed handles, unbuildable arcs (far centre, tiny line), coincident points; ordinary edits pass
+ok 288 - refusal comes from the generated outline: reversed handles, unbuildable arcs (far centre, tiny line), coincident points; ordinary edits pass
+  ---
+  duration_ms: 0.885166
+  type: 'test'
+  ...
+# Subtest: typing: the prefixes of a wanted handle (1, 17, 170, -, -1) are accepted, and a handle equal to its placeholder is
+ok 289 - typing: the prefixes of a wanted handle (1, 17, 170, -, -1) are accepted, and a handle equal to its placeholder is
+  ---
+  duration_ms: 1.027542
+  type: 'test'
+  ...
+# Subtest: panel flow: respline then settleShape against the settled spline keeps the spline, ids and tangents
+ok 290 - panel flow: respline then settleShape against the settled spline keeps the spline, ids and tangents
+  ---
+  duration_ms: 11.517833
+  type: 'test'
+  ...
+# Subtest: near-parallel handles are honoured to 1e-9 rad and the spline survives the settle
+ok 291 - near-parallel handles are honoured to 1e-9 rad and the spline survives the settle
+  ---
+  duration_ms: 27.424084
+  type: 'test'
+  ...
+# Subtest: a dimension or explicit relation drops the spline at the commit; tangents and hv do not
+ok 292 - a dimension or explicit relation drops the spline at the commit; tangents and hv do not
+  ---
+  duration_ms: 98.794417
+  type: 'test'
+  ...
+# Subtest: a malformed stored spline is ignored on reopen (no throw); a well-formed one is restored
+ok 293 - a malformed stored spline is ignored on reopen (no throw); a well-formed one is restored
+  ---
+  duration_ms: 24.418
+  type: 'test'
+  ...
+# Subtest: closing keeps the definition across scales (the match tolerance holds at close)
+ok 294 - closing keeps the definition across scales (the match tolerance holds at close)
+  ---
+  duration_ms: 1946.900042
+  type: 'test'
+  ...
+# Subtest: downstream: a closed spline extrudes; a handle change keeps the side names
+ok 295 - downstream: a closed spline extrudes; a handle change keeps the side names
+  ---
+  duration_ms: 93.667208
+  type: 'test'
+  ...
+# Subtest: a 2.5 m spline keeps its definition through the closing solve
+ok 296 - a 2.5 m spline keeps its definition through the closing solve
+  ---
+  duration_ms: 46.367417
+  type: 'test'
+  ...
+# Subtest: automatic handles of a one-point spline are defined (the first click of the Spline tool)
+ok 297 - automatic handles of a one-point spline are defined (the first click of the Spline tool)
+  ---
+  duration_ms: 0.156708
+  type: 'test'
+  ...
+# Subtest: a skeleton's sides bound to W and D: solved on add for 600 × 400; W set to 800 — re-solved, the frame follows; evaluated without the re-solve, the same
+ok 298 - a skeleton's sides bound to W and D: solved on add for 600 × 400; W set to 800 — re-solved, the frame follows; evaluated without the re-solve, the same
+  ---
+  duration_ms: 263.317708
+  type: 'test'
+  ...
+# Subtest: a conflict refused naming the parameter; a parameter the document lacks, or a bound length not above 0, refused on add
+ok 299 - a conflict refused naming the parameter; a parameter the document lacks, or a bound length not above 0, refused on add
+  ---
+  duration_ms: 152.084416
+  type: 'test'
+  ...
+# Subtest: FRg a tetrahedron of edges 3, √5, √6, √8, 3, √5 (corners (0,0,0) (3,0,0) (1,2,0) (1,1,2)): p0 fixed, p1 on the x axis, p2 on the xy plane — well constrained (0 freedoms), every edge to 1e-9, p1 = (3, 0, 0), p2 = (1, ±2, 0), p3 = (1, ±1, ±2); edges 3 4 5 6 7 8, which bound no tetrahedron — a conflict
+ok 300 - FRg a tetrahedron of edges 3, √5, √6, √8, 3, √5 (corners (0,0,0) (3,0,0) (1,2,0) (1,1,2)): p0 fixed, p1 on the x axis, p2 on the xy plane — well constrained (0 freedoms), every edge to 1e-9, p1 = (3, 0, 0), p2 = (1, ±2, 0), p3 = (1, ±1, ±2); edges 3 4 5 6 7 8, which bound no tetrahedron — a conflict
+  ---
+  duration_ms: 6.53625
+  type: 'test'
+  ...
+# Subtest: FRg a rectangle 30 × 20 square in 3D (a tilted start): p0 fixed, the sides' lengths, the corners square, opposite sides parallel — every side and right angle to 1e-9, planar; 3 freedoms left (turning about p0); p1 on an axis through p0 — 1
+ok 301 - FRg a rectangle 30 × 20 square in 3D (a tilted start): p0 fixed, the sides' lengths, the corners square, opposite sides parallel — every side and right angle to 1e-9, planar; 3 freedoms left (turning about p0); p1 on an axis through p0 — 1
+  ---
+  duration_ms: 4.270958
+  type: 'test'
+  ...
+# Subtest: FRg the freedoms counted: one free segment of length 10 — 5 (3 moves, 2 turns); two points coincident — 3; nothing at all — 3 a point
+ok 302 - FRg the freedoms counted: one free segment of length 10 — 5 (3 moves, 2 turns); two points coincident — 3; nothing at all — 3 a point
+  ---
+  duration_ms: 0.223542
+  type: 'test'
+  ...
+# Subtest: FRg diagnosis, typed: a triangle 1 1 5 cannot close — conflict, its unmet lengths named; a length given twice — over, the second redundant; a bad index refused
+ok 303 - FRg diagnosis, typed: a triangle 1 1 5 cannot close — conflict, its unmet lengths named; a length given twice — over, the second redundant; a bad index refused
+  ---
+  duration_ms: 1.78625
+  type: 'test'
+  ...
+# Subtest: FRg a skeleton with constraints through the chat: a rectangle 600 × 400 from a rough start, solved on add (diagnosis returned), a mitred frame on it A · L; its length constraint edited to 800, solved again, the frame follows; a constraint that cannot hold refused (SKETCH3D_CONFLICT, named)
+ok 304 - FRg a skeleton with constraints through the chat: a rectangle 600 × 400 from a rough start, solved on add (diagnosis returned), a mitred frame on it A · L; its length constraint edited to 800, solved again, the frame follows; a constraint that cannot hold refused (SKETCH3D_CONFLICT, named)
+  ---
+  duration_ms: 290.057458
+  type: 'test'
+  ...
+# Subtest: text relief adds or removes the independent straight-outline area from one physical box
+ok 305 - text relief adds or removes the independent straight-outline area from one physical box
+  ---
+  duration_ms: 148.478959
+  type: 'test'
+  ...
+# Subtest: text relief preserves bound dimensions and current-schema recipe through native Save/Open
+ok 306 - text relief preserves bound dimensions and current-schema recipe through native Save/Open
+  ---
+  duration_ms: 80.406292
+  type: 'test'
+  ...
+# Subtest: precomposed Korean components and local holes all seat into one physical base
+ok 307 - precomposed Korean components and local holes all seat into one physical base
+  ---
+  duration_ms: 970.385959
+  type: 'test'
+  ...
+# Subtest: a tighter Korean pocket explicitly refuses the unchanged work budget without rewriting its tolerance
+ok 308 - a tighter Korean pocket explicitly refuses the unchanged work budget without rewriting its tolerance
+  ---
+  duration_ms: 55.228333
+  type: 'test'
+  ...
+# Subtest: structural relief validation shares Text source rules and rejects malformed modifier fields without rewriting
+ok 309 - structural relief validation shares Text source rules and rejects malformed modifier fields without rewriting
+  ---
+  duration_ms: 2.84625
+  type: 'test'
+  ...
+# Subtest: native admission refuses unsupported faces, floating or overlapping strokes and excess depth atomically
+ok 310 - native admission refuses unsupported faces, floating or overlapping strokes and excess depth atomically
+  ---
+  duration_ms: 18.160333
+  type: 'test'
+  ...
+# Subtest: suppressed relief passes the parent, while an active orphan reaches native source admission
+ok 311 - suppressed relief passes the parent, while an active orphan reaches native source admission
+  ---
+  duration_ms: 3.538791
+  type: 'test'
+  ...
+# Subtest: relief signatures are captured, forwarded and renamed without mutating original source metadata
+ok 312 - relief signatures are captured, forwarded and renamed without mutating original source metadata
+  ---
+  duration_ms: 4.024
+  type: 'test'
+  ...
+# Subtest: generated relief sketch IDs retain authored priority and reject non-generated roles
+ok 313 - generated relief sketch IDs retain authored priority and reject non-generated roles
+  ---
+  duration_ms: 3.377375
+  type: 'test'
+  ...
+# Subtest: relief feature budget and placed-coordinate preflight refuse before native evaluation
+ok 314 - relief feature budget and placed-coordinate preflight refuse before native evaluation
+  ---
+  duration_ms: 13.70625
+  type: 'test'
+  ...
+# Subtest: font collectors retain relief nodes and nested prepared commands, but skip closed or malformed proposals
+ok 315 - font collectors retain relief nodes and nested prepared commands, but skip closed or malformed proposals
+  ---
+  duration_ms: 4.957417
+  type: 'test'
+  ...
+# Subtest: assembly flatten keeps source text opaque, shifts its parent/face signatures and resolves Dim placement
+ok 316 - assembly flatten keeps source text opaque, shifts its parent/face signatures and resolves Dim placement
+  ---
+  duration_ms: 2.559542
+  type: 'test'
+  ...
+1..316
+# tests 316
+# suites 0
+# pass 316
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 36908.891083
+exit 0

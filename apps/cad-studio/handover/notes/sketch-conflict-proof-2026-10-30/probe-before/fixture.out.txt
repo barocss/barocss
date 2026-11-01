@@ -1,0 +1,1 @@
+bodies 1 [["sketch","n0","polygon",{"0":60},{"h":[0,2],"v":[1,3]}],["extrude","n1",null,null,null],["sketch","n2","polygon",{"0":10,"1":10},{"h":[0],"v":[]}]]

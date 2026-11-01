@@ -1,0 +1,75 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+        0,
+        0
+      ],
+      "max": [
+        40,
+        30
+      ],
+      "sideTags": {
+        "outer": [
+          "e1",
+          "e2",
+          "e3",
+          "e4"
+        ]
+      },
+      "construction": [
+        {
+          "kind": "bezier",
+          "poles": [
+            [
+              0,
+              40
+            ],
+            [
+              10,
+              50
+            ],
+            [
+              20,
+              40
+            ]
+          ]
+        }
+      ],
+      "id": "n0"
+    }
+  ],
+  "outputs": {},
+  "nextId": 1,
+  "direct": {
+    "sources": {
+      "src_1": "@model sketch {\n  version: 0;\n  length-unit: mm;\n  @curve #c1 { type: nurbs; degree: 2; knots: [0,0,0,1,1,1]; control-points: [[0,40,0],[10,50,0],[20,40,0]]; weights: [1,1,1]; }\n  @curve #c2 { type: nurbs; degree: 2; knots: [0,0,0,1,1,2,2,3,3,4,4,4]; control-points: [[0,0,0],[20,0,0],[40,0,0],[40,15,0],[40,30,0],[20,30,0],[0,30,0],[0,15,0],[0,0,0]]; weights: [1,1,1,1,1,1,1,1,1]; }\n  @curve #c3 { type: nurbs; degree: 3; knots: [0,0,0,0,1,1,1,1]; control-points: [[30,40,0],[35,55,0],[45,55,0],[50,40,0]]; weights: [1,1,1,1]; }\n}"
+    },
+    "objects": [
+      {
+        "id": "obj_1",
+        "name": "Sketch curve 1 · c1",
+        "source": "src_1",
+        "geometry": "c1"
+      },
+      {
+        "id": "obj_2",
+        "name": "Sketch curve 1 · c2",
+        "source": "src_1",
+        "geometry": "c2"
+      },
+      {
+        "id": "obj_3",
+        "name": "Sketch curve 1 · c3",
+        "source": "src_1",
+        "geometry": "c3"
+      }
+    ]
+  }
+}

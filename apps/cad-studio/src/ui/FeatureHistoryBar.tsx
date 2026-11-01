@@ -1,10 +1,14 @@
-import type { Dispatch, SetStateAction, RefObject, MouseEventHandler } from 'react';
+import type { Dispatch, SetStateAction, RefObject, MouseEventHandler, SyntheticEvent } from 'react';
 import { featureLabel, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { Selection } from '@barocss/cad-model/app/commands';
 import { iconFor } from './featureIcon';
 import { Icon } from './atoms';
 export type HistoryMenuTarget = { at: { x: number; y: number }; index: number };
+/** A busy bar's clicks stop at the bar: it stays hit-testable, so they reach neither its steps nor the viewport under it (not `inert`, which lets them through). */
+function swallow(e: SyntheticEvent) { e.preventDefault(); e.stopPropagation(); }
 interface FeatureHistoryBarProps {
+  /** A command runs or a sketch is open: the bar is shown dimmed and takes no input (roadmap 21). */
+  busy?: boolean;
   doc: StudioDoc;
   selection: Selection;
   editNode: number | null;
@@ -13,12 +17,14 @@ interface FeatureHistoryBarProps {
   layout: { historyBar: RefObject<HTMLDivElement | null>; historyRows: boolean; setHistoryRows: Dispatch<SetStateAction<boolean>>; historyLabels: boolean; setHistoryLabels: Dispatch<SetStateAction<boolean>>; historyHidden: number };
   actions: { pickProfile(index: number, additive: boolean): void; setEditNode(index: number): void; setMarker(marker: number | null): void; setHistoryMenu(target: HistoryMenuTarget): void; openHistoryFeature: MouseEventHandler<HTMLButtonElement> };
 }
-export function FeatureHistoryBar({ doc, selection, editNode, marker, source, layout, actions }: FeatureHistoryBarProps) {
+export function FeatureHistoryBar({ busy = false, doc, selection, editNode, marker, source, layout, actions }: FeatureHistoryBarProps) {
   const { innerSteps, freeSketches } = source;
   const { historyBar, historyRows, setHistoryRows, historyLabels, setHistoryLabels, historyHidden } = layout;
   const { pickProfile, setEditNode, setMarker, setHistoryMenu, openHistoryFeature } = actions;
   const totalNodes = doc.nodes.length, markerAt = marker ?? totalNodes;
-  return <div className={'history' + (historyRows ? ' expanded' : '') + (historyLabels ? ' show-labels' : '')} role="group" aria-label="History" ref={historyBar}>
+  return <div className={'history' + (historyRows ? ' expanded' : '') + (historyLabels ? ' show-labels' : '') + (busy ? ' busy' : '')} role="group" aria-label="History" ref={historyBar}
+        aria-disabled={busy || undefined} title={busy ? 'Finish or cancel the command or sketch to use the History' : undefined}
+        onClickCapture={busy ? swallow : undefined} onDoubleClickCapture={busy ? swallow : undefined} onContextMenuCapture={busy ? swallow : undefined}>
         <button className="history-labels" aria-label="Show history step names" aria-pressed={historyLabels} title={historyLabels ? 'Hide step names' : 'Show step names'} onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') e.stopPropagation(); }} onClick={() => setHistoryLabels(shown => !shown)}><Icon name="short_text" small /></button>
         {doc.nodes.map((n, i) => innerSteps.has(i) ? null : n.kind === 'sketch' ? (freeSketches.includes(i) ? (
           // A finished sketch no feature uses yet: click picks it as a profile (Shift adds) and opens its editor.

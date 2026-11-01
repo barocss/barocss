@@ -1,6 +1,7 @@
 // Editing a feature already in the part by dragging: the feature's own dimensions (the feature editor's
 // fields, app/editFields.ts) as a command, with arrows in the viewport where they act. Selecting a body
 // shows them; dragging one opens the edit with the usual preview, limits and Apply.
+import { bandSurfaceEditCommand } from './bandSurfaceCommand';
 import { dropStaleMade, featureLabel, parentsOf, type ModelNode, type SketchNode, type StudioDoc } from '../engine/doc';
 import { toWorld } from '../sketch/plane';
 import { editFields } from './editFields';
@@ -20,9 +21,9 @@ const ok = { ok: true as const };
 const num = (v: unknown) => typeof v === 'number' ? v : NaN;
 
 /** The nodes with the edit's values written into them (only the fields whose value changed). */
-function edited(nodes: readonly ModelNode[], index: number, v: Values): ModelNode[] {
+function edited(nodes: readonly ModelNode[], index: number, v: Values, params?: Record<string, number>): ModelNode[] {
   let out = [...nodes];
-  for (const f of editFields(nodes, index)) {
+  for (const f of editFields(nodes, index, params)) {
     if (!(f.key in v) || f.kind === 'toggle') continue;
     if (f.kind === 'number') { const x = Number(v[f.key]); if (Number.isFinite(x) && x !== f.get(out)) out = f.set(out, x); }
     else if (String(v[f.key]) !== f.get(out)) out = f.set(out, String(v[f.key]));
@@ -76,11 +77,12 @@ function placedHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): Ha
   return [{ key: 'spacing', at: at(box.min[k] + len / 2 + s), dir, min: 1 }, { key: 'count', at: at(box.min[k] + len + s * (count - 1)), dir, scale: 1 / Math.max(1, s), min: 2, max: 24, unit: '' }];
 }
 /** A revolve's angle: an arc about its axis from the profile's middle. */
-function revolveHandles(nodes: readonly ModelNode[], index: number): HandleSpec[] {
+function revolveHandles(nodes: readonly ModelNode[], index: number, params?: Readonly<Record<string, number>>): HandleSpec[] {
   const r = nodes[index] as Extract<ModelNode, { kind: 'revolve' }>, sk = nodes[r.sketch] as SketchNode | undefined;
   if (!sk || sk.kind !== 'sketch') return [];
   const plane = planeOf(sk), o: [number, number] = r.origin ? [num(r.origin[0]), num(r.origin[1])] : [0, 0];
-  const d0: [number, number] = r.dir ?? (r.axis === 'x' ? [1, 0] : [0, 1]), l = Math.hypot(d0[0], d0[1]) || 1, d: [number, number] = [d0[0] / l, d0[1] / l], m = profileMiddle(sk);
+  const d0: [number, number] = r.dir ?? (r.axis === 'x' ? [1, 0] : [0, 1]), l = Math.hypot(d0[0], d0[1]) || 1, d: [number, number] = [d0[0] / l, d0[1] / l];
+  let m: [number, number]; try { m = profileMiddle(sk, params); } catch { return []; }
   const t = (m[0] - o[0]) * d[0] + (m[1] - o[1]) * d[1], foot: [number, number] = [o[0] + d[0] * t, o[1] + d[1] * t];
   const centre = toWorld(plane, foot), from = toWorld(plane, m), tip = toWorld(plane, [foot[0] + d[0], foot[1] + d[1]]), axis: V3 = [tip[0] - centre[0], tip[1] - centre[1], tip[2] - centre[2]];
   if (Math.hypot(from[0] - centre[0], from[1] - centre[1], from[2] - centre[2]) < 1e-6) return [];
@@ -115,7 +117,7 @@ function holeHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): Hand
  * those values, rebuilding its sketch and solid in place — with all its arrows and its puck. Null when the
  * nodes were changed since (by the feature editor), so its values no longer describe them.
  */
-function shapeEdit(index: number, nodes: readonly ModelNode[], rows: Pick<StudioDoc, 'fastenerSizes'>): Command | null {
+function shapeEdit(index: number, nodes: readonly ModelNode[], rows: Pick<StudioDoc, 'fastenerSizes'> & Partial<Pick<StudioDoc, 'parameters'>>): Command | null {
   const node = nodes[index], solid = node && (node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'union' || node.kind === 'rotate') ? node : null, made = solid?.made;
   const cmd = made && commands.find(c => c.id === made.command), n = made?.nodes ?? 2, start = index - n + 1;
   if (!solid || !made || !cmd?.build || start < 0) return null;
@@ -129,26 +131,27 @@ function shapeEdit(index: number, nodes: readonly ModelNode[], rows: Pick<Studio
 }
 
 /** The edit of feature `index`, or null when it has no dimension to drag; `rows`: the document's (a fastener's sizes, O7). */
-export function editCommand(index: number, nodes: readonly ModelNode[], rows: Pick<StudioDoc, 'fastenerSizes'> = {}): Command | null {
+export function editCommand(index: number, nodes: readonly ModelNode[], rows: Pick<StudioDoc, 'fastenerSizes'> & Partial<Pick<StudioDoc, 'parameters'>> = {}): Command | null {
   const node = nodes[index]; if (!node) return null;
   if (node.kind === 'text') return textEditCommand(index, node);
   if (node.kind === 'cylindrical-wrap') return cylindricalWrapEditCommand(index, node);
+  if (node.kind === 'band-surface') return bandSurfaceEditCommand(index, node);
   if (node.kind === 'text-relief') return textReliefEditCommand(index, node);
   const shape = shapeEdit(index, nodes, rows); if (shape) return shape;
-  const fields = editFields(nodes, index).filter(f => f.kind !== 'toggle' && !(f.kind === 'number' && Number.isNaN(f.get(nodes))));
+  const fields = editFields(nodes, index, rows.parameters).filter(f => f.kind !== 'toggle' && !(f.kind === 'number' && Number.isNaN(f.get(nodes))));
   if (!fields.length) return null;
   return {
     id: 'edit', label: `Edit ${featureLabel(node, index, nodes)}`, icon: 'edit', group: 'modify', hint: 'Change this feature',
     available: () => ok,
     fields: (): Field[] => fields.map(f => f.kind === 'choice' ? { key: f.key, label: f.label, kind: 'choice' as const, options: f.options } : { key: f.key, label: f.label, kind: (f.kind === 'number' && f.unit === '°' ? 'deg' : 'mm') as 'deg' | 'mm' }),
     defaults: (ctx: Ctx) => Object.fromEntries(fields.map(f => [f.key, f.get(ctx.doc.nodes) as number | string])),
-    build: (ctx, v) => ({ ...ctx.doc, nodes: dropStaleMade(ctx.doc.nodes, edited(ctx.doc.nodes, index, v)) }),
+    build: (ctx, v) => ({ ...ctx.doc, nodes: dropStaleMade(ctx.doc.nodes, edited(ctx.doc.nodes, index, v, ctx.doc.parameters)) }),
     handles: (ctx, v) => {
-      const now = edited(ctx.doc.nodes, index, v), n = now[index];
+      const now = edited(ctx.doc.nodes, index, v, ctx.doc.parameters), n = now[index];
       if (n.kind === 'extrude') return extrudeHandles(now, index);
       if (n.kind === 'hole') return holeHandles(ctx, now, index);
       if (n.kind === 'split' || n.kind === 'linear-pattern') return placedHandles(ctx, now, index);
-      if (n.kind === 'revolve') return revolveHandles(now, index);
+      if (n.kind === 'revolve') return revolveHandles(now, index, ctx.doc.parameters);
       // A shell's wall: on its largest inside face, into the hollow; further in is thicker.
       if (n.kind === 'shell') {
         const was = ctx.doc.nodes[index], t0 = was?.kind === 'shell' ? num(was.thickness) : NaN, t = num(n.thickness);

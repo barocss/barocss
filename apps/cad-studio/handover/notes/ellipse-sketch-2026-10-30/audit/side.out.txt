@@ -1,0 +1,13 @@
+A extrude ids=indices                    edges 384 refused 384 sample n1.bottom|n1.side[e1] ; n1.side[e1]|n1.top
+B extrude ids!=indices                   edges 384 refused 0 sample n3.bottom|n3.side[e1] ; n3.side[e1]|n3.top
+C mixed ids                              edges 396 refused 12 sample n7.bottom|n7.side[e1] ; n7.side[e1]|n7.top
+   rect (n2) edges refused: 12  ellipse (n7) edges refused: 0 / 384
+revolve nodes [["n0","sketch",null,null],["n1","revolve",0,"y"]]
+D revolve 90                             edges 384 refused 384 sample n1.side[e1]|n1.start ; n1.side[e2]|n1.start
+D2 revolve 360                           edges 0 refused 0 sample 
+E sweep                                  edges 384 refused 0 sample n1.s0.bottom|n1.s0.side[e1] ; n1.s0.bottom|n1.s0.side[e2]
+F chat checkNode(fillet on ellipse side) null
+G fillet ids!=indices available {"ok":true} | build built
+G chamfer ids!=indices available {"ok":true} | build built
+G fillet ids=indices available {"ok":false,"reason":"Fillets and chamfers on an ellipse's side edges are not supported ye | build refused: [VALUE] Fillets and chamfers on an ellipse's side edges are 
+G chamfer ids=indices available {"ok":false,"reason":"Fillets and chamfers on an ellipse's side edges are not supported ye | build refused: [VALUE] Fillets and chamfers on an ellipse's side edges are 

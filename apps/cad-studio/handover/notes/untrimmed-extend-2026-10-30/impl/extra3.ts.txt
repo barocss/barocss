@@ -1,0 +1,21 @@
+
+// A curved support is re-fitted: its loss between the sample rows is shown in the name, near an independent dense measurement.
+test('a curved support names its measured deviation', () => {
+  const w = Math.SQRT1_2.toFixed(15), R = 10;
+  const src = `@model c { version:0; length-unit:mm; @surface #s { type:nurbs; degree-u:2; degree-v:1; knots-u:[0,0,0,1,1,1]; knots-v:[0,0,1,1];
+ control-points:[[[${R},0,0],[${R},0,10]],[[${R},${R},0],[${R},${R},10]],[[0,${R},0],[0,${R},10]]]; weights:[[1,1],[${w},${w}],[1,1]]; } }`;
+  const d = importSource(emptyDirect(), src, 'C'), id = d.objects[0].id;
+  for (const D of [1, 10]) {
+    const out = directOps.extendSurface(d, id, 'u-max', D), name = out.objects[out.objects.length - 1].name, g = surfaceOfLast(out), dm = surfaceDomain(g);
+    // Dense measurement: radial distance off the cylinder where x >= 0, distance off the tangent plane y = R where x < 0.
+    let dense = 0;
+    for (let i = 0; i <= 200; i++) for (let j = 0; j <= 20; j++) {
+      const p = evaluateSurface(g, i === 200 ? dm.u[1] : dm.u[0] + (dm.u[1] - dm.u[0]) * i / 200, j === 20 ? dm.v[1] : dm.v[0] + (dm.v[1] - dm.v[0]) * j / 20);
+      dense = Math.max(dense, p[0] >= 0 ? Math.abs(Math.hypot(p[0], p[1]) - R) : Math.abs(p[1] - R));
+    }
+    const m = /\(±([0-9.e+-]+)\)$/.exec(name);
+    assert.ok(m, `D=${D}: no deviation label in "${name}" (dense measurement ${dense})`);
+    const label = Number(m[1]);
+    assert.ok(label >= dense * 0.5 && label <= dense * 2, `D=${D}: label ${label} vs dense ${dense} (name "${name}")`);
+  }
+});

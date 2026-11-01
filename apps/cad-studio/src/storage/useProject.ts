@@ -30,6 +30,8 @@ export interface ProjectCallbacks extends OpenIntentBridge {
   onError(title: string, hint: string): void;
   /** Placed parts whose project files differ (offered as waiting revisions), or that the project no longer has. */
   onLinked?(linked: Linked): void;
+  /** Whether an opened file may take the document now (not while a part is edited in place): asked before the project points at it. */
+  canOpen?(): boolean;
 }
 interface OpenOwner { request: object; scope?: OpenScope; session?: object; store?: ProjectStore; path?: string | null }
 const EMPTY: ProjectView = { store: null, part: null, parts: [], log: null, offered: null };
@@ -43,7 +45,7 @@ export function useProject(cb: ProjectCallbacks) {
   const [recent, setRecent] = useState<DirHandle | null>(null);
   // (The tags read with — not shown, so not state — and the view as the async actions see it.)
   const tags = useRef<{ part: string | null; log: string | null }>({ part: null, log: null });
-  const opening = useRef<object>({}), projectSession = useRef<object>({});
+  const opening = useRef<object>({}), projectSession = useRef<object>({}), reading = useRef(0);
   const saves = useRef({ path: null as string | null, next: 0, success: 0 });
   const live = useRef(view); live.current = view;
   const call = useRef(cb); call.current = cb;
@@ -119,6 +121,7 @@ export function useProject(cb: ProjectCallbacks) {
       /** A document of the project opened, its versions read, its autosaved work offered when there is some. */
       async openPart(path: string) {
         const owner = beginOpen(), store = live.current.store; if (!store) return false;
+        reading.current++;
         owner.session = projectSession.current; owner.store = store;
         invalidateSaves(path);
         const current = () => currentOpen(owner);
@@ -126,6 +129,7 @@ export function useProject(cb: ProjectCallbacks) {
           const r = await readPart(store, path);
           if (!current()) return false;
           if ('error' in r) return fail(`Could not open ${path}`, new Error(r.error));
+          if (call.current.canOpen && !call.current.canOpen()) return false;
           tags.current.part = r.tag; set({ part: path, offered: null }); owner.path = path;
           const accepted = call.current.onOpened(r.doc, path, r.notes);
           if (accepted) owner.scope = accepted;
@@ -137,6 +141,7 @@ export function useProject(cb: ProjectCallbacks) {
           if (a && 'doc' in a) set({ offered: a.doc });
           return await checkLinked(r.doc, store, current);
         } catch (e) { if (!current()) return false; return fail(`Could not open ${path}`, e); }
+        finally { reading.current--; }
       },
       /** Saved into the project: over the file it was read from (its tag expected), or as `name` when new there. */
       async save(doc: StudioDoc, name: string, onCurrent?: () => void) {
@@ -234,7 +239,9 @@ export function useProject(cb: ProjectCallbacks) {
     };
     return actions;
   }, [recent]);
-  return { ...actions, view, recent: recent?.name ?? null };
+  /** Whether a project file is being opened (read) now. */
+  const opening_ = () => reading.current > 0;
+  return { ...actions, view, recent: recent?.name ?? null, opening: opening_ };
 }
 
 /** The project's view and actions together, as the App and the panels take them. */

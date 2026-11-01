@@ -1,0 +1,20 @@
+const P = 'useCommandPreview.ts', G = 'useCommandGizmos.ts';
+export default {
+  M1_drop_live_check: [{ file: P, find: '            if (!live) return;\n            const to', replace: '            const to' }],
+  M2_sign_only_wall: [{ file: G, find: 'if (hd.bad !== null && (v - hd.bad) * hd.wall >= 0) v = hd.lastOk;', replace: 'if (hd.wall && Math.sign(v - hd.lastOk) === hd.wall) v = hd.lastOk;' }],
+  M3a_bisect_toward_pointer: [{ file: P, find: 'const gap = hd.bad - hd.lastOk, step', replace: 'const gap = hd.want - hd.lastOk, step' }],
+  M3b_bisect_no_pointer_guard: [{ file: P, find: 'if (hd.bad === null || (hd.want - hd.bad) * hd.wall < 0) return null;', replace: 'if (hd.bad === null) return null;' }],
+  M3c_bisect_overshoot: [{ file: P, find: 'return Math.abs(half) < Math.abs(gap) ? Math.round((hd.lastOk + half) * 1e6) / 1e6 : null;', replace: 'return Math.round((hd.lastOk + 2 * half) * 1e6) / 1e6;' }],
+  M4_never_clear_bad: [{ file: P, find: '{ hd.bad = null; hd.wall = 0; }', replace: '{ }' }],
+  M5_unbounded_bisect: [{ file: P, find: 'if (!(Math.abs(gap) > step * (1 + 1e-9))) return null;', replace: 'if (!gap) return null;' }, { file: P, find: 'return Math.abs(half) < Math.abs(gap) ? Math.round((hd.lastOk + half) * 1e6) / 1e6 : null;', replace: 'return Math.round((hd.lastOk + half) * 1e6) / 1e6;' }],
+  M6_stale_failure_ignored: [{ file: P, find: '            const side = Math.sign(hv - hd.lastOk);', replace: '            if (!live) return;\n            const side = Math.sign(hv - hd.lastOk);' }],
+  M7_bad_always_latest: [{ file: P, find: 'if (hd.bad === null || side !== hd.wall || Math.abs(hv - hd.lastOk) < Math.abs(hd.bad - hd.lastOk)) { hd.bad = hv; hd.wall = side; }', replace: '{ hd.bad = hv; hd.wall = side; }' }],
+  M8_no_bisect_after_success: [{ file: P, find: 'bisect = live;', replace: 'bisect = false;' }],
+  M9_failure_resets_to_lastOk: [{ file: P, find: 'const to = bisectValue(hd) ?? hd.lastOk;', replace: 'const to = hd.lastOk;' }],
+  M10_old_lastOk_rule: [{ file: P, find: '              hd.lastOk = hv;\n', replace: '              if (hd.wall === 0 || Math.sign(hv - hd.lastOk) !== hd.wall) hd.lastOk = hv;\n' }],
+  M11_clamp_strict: [{ file: G, find: '(v - hd.bad) * hd.wall >= 0) v = hd.lastOk', replace: '(v - hd.bad) * hd.wall > 0) v = hd.lastOk' }],
+  M12_clear_strict: [{ file: P, find: '(hv - hd.bad) * hd.wall >= 0) { hd.bad = null', replace: '(hv - hd.bad) * hd.wall > 0) { hd.bad = null' }],
+  M13_no_clamp: [{ file: G, find: 'if (hd.bad !== null && (v - hd.bad) * hd.wall >= 0) v = hd.lastOk;', replace: '' }],
+  M14_bisect_ignores_stale_check: [{ file: P, find: "a.cmd === cmd && a.values === values ? { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [hd!.key]: mid })", replace: "a.cmd === cmd ? { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [hd!.key]: mid })" }],
+  M15_rolled_updates_lastOk: [{ file: P, find: '            if (!rolled) {\n              hd.lastOk = hv;', replace: '            {\n              hd.lastOk = hv;' }],
+};

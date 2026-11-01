@@ -9,11 +9,11 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url)), temp = await mkdtemp(join(tmpdir(), 'cad-clearance-gpu-'));
-let GpuRenderer;
+let GpuRenderer, PALETTE;
 try {
   const outfile = join(temp, 'renderer.mjs');
-  await build({ entryPoints: [resolve(root, 'apps/cad-studio/src/viewport/gpuRenderer.ts')], outfile, bundle: true, platform: 'node', format: 'esm', logLevel: 'silent', alias: { '@barocss/gpu/viewer': resolve(root, 'packages/barocss-gpu/src/viewer/index.ts'), '@barocss/gpu': resolve(root, 'packages/barocss-gpu/src'), '@barocss/cad-model': resolve(root, 'packages/barocss-cad-model/src'), '@barocss/cad': resolve(root, 'packages/barocss-cad/src') } });
-  ({ GpuRenderer } = await import(pathToFileURL(outfile).href));
+  await build({ stdin: { contents: 'export { GpuRenderer } from "./apps/cad-studio/src/viewport/gpuRenderer.ts"; export { PALETTE } from "./apps/cad-studio/src/viewport/displayPolicy.ts";', resolveDir: root }, outfile, bundle: true, platform: 'node', format: 'esm', logLevel: 'silent', alias: { '@barocss/gpu/viewer': resolve(root, 'packages/barocss-gpu/src/viewer/index.ts'), '@barocss/gpu': resolve(root, 'packages/barocss-gpu/src'), '@barocss/cad-model': resolve(root, 'packages/barocss-cad-model/src'), '@barocss/cad': resolve(root, 'packages/barocss-cad/src') } });
+  ({ GpuRenderer, PALETTE } = await import(pathToFileURL(outfile).href));
 } finally { await rm(temp, { recursive: true, force: true }); }
 
 const identity = () => Float64Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
@@ -44,7 +44,7 @@ function fixture() {
   const mesh = { ...source, faceOfVertex: new Float32Array([0, 0, 0]), faces: [{ index: 0, id: 'native-plane', kind: 'plane' }], edgeLines: new Float32Array([0, 0, 0, 1, 0, 0]), edgeOfSegment: new Float32Array([7, 7]), bounds: { min: [-2, -2, 0], max: [2, 2, 0] } };
   Object.assign(renderer, { tally: { tracking: false },
     viewer, canvas: { clientWidth: 320, clientHeight: 200 }, displayMode: { requested: 'shaded-with-edges', effective: 'shaded-with-edges', supported: true },
-    theme: { base: [0.7, 0.7, 0.8], edge: [0.1, 0.1, 0.1], ao: 0.9, shadow: 0.45 }, aoEnabled: true, settings: null, analysis: null, scalarMaps: null, direct: [], proposalMeshes: [], mould: null,
+    theme: { ...PALETTE.dark, gridOpacity: 0.16, base: [0.7, 0.7, 0.8], edge: [0.1, 0.1, 0.1], ao: 0.9, shadow: 0.45 }, aoEnabled: true, settings: null, analysis: null, scalarMaps: null, direct: [], proposalMeshes: [], mould: null,
     bodies: [{ result: { key: 'native', mesh }, surface: native, edges: edge, highlight: null, state: '', painted: null, runs: { vertexCount: 3, byFace: new Map([[0, [0, 3]]]) } }],
     instances: [], instanceDisplayMode: 'shaded-with-edges', instanceFaces: [], instanceSelection: [], contactLinks: new Set(), instanceMeshes: new Map(), instanceTiles: new WeakMap(), instancePainted: new WeakMap(), shapes: new Map(),
     hatchLines: new Map(), maps: new Map(), shaders: new Map(), clip: { planes: [{ normal: [0, 1, 0], offset: -100 }], bodies: true, cutout: false, hatch: 2 },

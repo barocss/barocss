@@ -1,0 +1,20 @@
+A rectangle 60x30: len0=60, then len2=50 (opposite side)
+   len0 = 60 -> ok
+   len2 = 50 -> REFUSED: Length of edge 3 = 50: XY numerical sketch: Bounded local solve did not meet fixed residual tolerances; this is not an inconsistency proof
+B rectangle: len0=60 then len2=60 (consistent, redundant)
+   len0 = 60 -> ok
+   len2 = 60 -> REFUSED: Length of edge 3 = 60 is already implied by the other constraints — adding it would over-define the sketch
+C L shape: len0=60, len2=40, len4=30 (outer 60 must equal 40+20 -> conflict when len4=30?)
+   len0 = 60 -> ok
+   len2 = 40 -> ok
+   len4 = 30 -> REFUSED: Length of edge 5 = 30: XY numerical sketch: Bounded local solve did not meet fixed residual tolerances; this is not an inconsistency proof
+D rectangle: dx0_2=60 then len0=50
+   dx0_2 = 60 -> ok
+   len0 = 50 -> REFUSED: Length of edge 1 = 50: XY numerical sketch: Bounded local solve did not meet fixed residual tolerances; this is not an inconsistency proof
+E rectangle: len1=30 then dy0_2=20
+   len1 = 30 -> ok
+   dy0_2 = 20 -> REFUSED: Vertical distance point 1 – point 3 = 20: XY numerical sketch: Bounded local solve did not meet fixed residual tolerances; this is not an inconsistency proof
+F triangle (non-rectilinear): len0=10,len1=10, len2=30 (triangle inequality conflict)
+   len0 = 10 -> ok
+   len1 = 10 -> ok
+   len2 = 30 -> REFUSED: Length of edge 3 = 30: XY numerical sketch: Bounded local solve did not meet fixed residual tolerances; this is not an inconsistency proof

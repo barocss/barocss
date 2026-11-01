@@ -1,3 +1,5 @@
+import { nodeFilletType } from '../app/filletFamily';
+import { FilletTypeFields } from './FilletTypeFields';
 import { useEffect, useState } from 'react';
 import type { ModelNode, StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BearingAssemblyInput } from '@barocss/cad-model/engine/bearingContext';
@@ -12,11 +14,12 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDel
   const [typed, setTyped] = useState<Record<string, string>>({});
   useEffect(() => { setDraft(nodes); setTyped({}); }, [nodes, index]);
   const fields = editFields(draft, index, parameters, bearingAssembly, { doc }).filter(f => f.kind !== 'number' || !Number.isNaN(f.get(draft)));
-  const names = Object.keys(parameters);
+  const names = Object.keys(parameters), filletType = nodeFilletType(draft[index]);
   const changed = draft !== nodes;
   return (
     <div className="node-editor" onKeyDown={e => { if (e.key === 'Enter' && changed && !pending) onApply(draft); else if (e.key === 'Escape') onClose(); else if (e.key === 'Delete' && !pending && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement)) onDelete?.(); }}>
       <div className="card-title" style={{ marginTop: 10 }}>EDIT FEATURE <ToolIconButton size="tiny" aria-label="Close editor" onClick={onClose}><Icon name="close" small /></ToolIconButton></div>
+      {filletType && <FilletTypeFields type={filletType} mode={draft[index]?.kind === 'fillet' && draft[index].radii ? 'varying' : 'constant'} fixed />}
       {onEditSketch && <button className="ghost" aria-label="Edit sketch" title="Reopen the sketch this feature is made from, with its constraints" onClick={onEditSketch}><Icon name="draw" small /> Edit sketch</button>}
       {fields.length ? fields.map(f => (
         <label key={f.key} className="field"><span>{f.label}</span>

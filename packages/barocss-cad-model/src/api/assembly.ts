@@ -5,12 +5,13 @@
 // tool writes (./assemblyCore), the assembly solved again after it. Results are plain data.
 import { Location, refuse, type BodyQuery, type FaceQuery, type Vec3 } from '@barocss/cad/api';
 import type { StudioDoc } from '../engine/doc';
+import { assemblyStepProblems, stepStateOf, stepsOf } from '../assembly/steps';
 import type { MateKind } from '../assembly/mates';
 import type { FrameSettings } from '../robot/frames';
 import type { MeshData } from './core';
 import { meshSelection } from './select';
 import { bodiesOf } from './core';
-import { addMateDoc, addPartDoc, lockDoc, assemblyMeshes, BASE, emptyDoc, framePosesOf, framesDoc, placePartDoc, problemsOf, variabilityDoc, variantDoc } from './assemblyCore';
+import { stepDoc, editStepDoc, deleteStepDoc, moveStepDoc, cutDoc, deleteCutDoc, editCutDoc, addMateDoc, addPartDoc, deletePatternDoc, editPatternDoc, lockDoc, patternDoc, skipOccurrenceDoc, assemblyMeshes, BASE, emptyDoc, framePosesOf, framesDoc, partJointsOf, partLooksOf, placePartDoc, problemsOf, setPartJointsDoc, setPartLookDoc, variabilityDoc, variantDoc } from './assemblyCore';
 import { part as studioPart, StudioPart } from './part';
 import { Robot } from './robot';
 import { drawingDoc, drawingOf, outputOf } from './outputs';
@@ -25,6 +26,29 @@ export interface MateEnd { part: string; face: string | ((body: BodyQuery) => Fa
 export interface MateOptions { distance?: number; angle?: number; flip?: boolean }
 /** A tool or sensor frame (O12) on a link — the base part or a placed part, by name — at a Location in that part's own coordinates. */
 export interface FrameOptions { link: string; at?: Location; kind?: 'tool' | 'sensor' }
+
+/** A pattern of a part (`pattern`): `count` in all, the part itself the first; a line (`direction`, `spacing` mm between neighbours) or an axis (`axis` through `origin`, `angle` degrees between neighbours). */
+export type PatternOptions = { count: number; skip?: number[] } & ({ kind: 'linear'; direction: Vec3; spacing: number } | { kind: 'circular'; axis: Vec3; origin?: Vec3; angle: number });
+/** What `editPattern` changes (each left out: kept): the values of the pattern's own kind. */
+export interface PatternEdit { count?: number; skip?: number[]; spacing?: number; direction?: Vec3; angle?: number; axis?: Vec3; origin?: Vec3 }
+
+/**
+ * A cut across placed parts (`cut`, roadmap 10 ⑤): a circle (`radius`) or rectangle (`w`, `d`) profile centred on `at` (mm, the assembly's
+ * frame), cut along `dir` for `depth` mm from the profile plane or `'through'`, in the parts named in `parts`. The definitions never change.
+ */
+export interface CutOptions { profile: { kind: 'circle'; radius: number } | { kind: 'rectangle'; w: number; d: number }; at: Vec3; dir: Vec3; depth: number | 'through'; parts: string[]; name?: string }
+/** What `editCut` changes (each left out: kept; `name: null` clears it). */
+export interface CutEdit { profile?: CutOptions['profile']; at?: Vec3; dir?: Vec3; depth?: number | 'through'; parts?: string[]; name?: string | null }
+
+/**
+ * An instruction step (`step`, roadmap 10 ⑥): the placed parts it introduces (`parts`, by name), a recommended camera (`view`: eye, target, up, mm)
+ * and a display-only explode scale 0 to 2. Presentation only: no placement, mate, BOM or export reads it.
+ */
+export interface StepOptions { name?: string; note?: string; parts?: string[]; view?: { eye: Vec3; target: Vec3; up: Vec3 }; explode?: number }
+/** What `editStep` changes (each left out: kept; `note`, `view` and `explode` null: cleared). */
+export interface StepEdit { name?: string; note?: string | null; parts?: string[]; view?: StepOptions['view'] | null; explode?: number | null }
+/** A step as `steps()` lists it: parts by name (an id when the part is gone). */
+export interface StepListing { id: string; name: string; note?: string; parts: string[]; view?: StepOptions['view']; explode?: number }
 
 const toVec = (v: readonly number[]): XYZ => [v[0], v[1], v[2]];
 
@@ -66,6 +90,43 @@ export class Assembly {
   }
 
   /**
+   * `assembly.set_part_joints` (roadmap 10 4): a sub-assembly occurrence's own joint values — by joint key (`base~lid`, see `partJoints`),
+   * degrees for a turn and mm for a slide, offsets from the pose it was saved in; `null` removes a key; `replace` resets the keys not given.
+   * Each occurrence of the same sub-assembly keeps its own values, so two copies of a hinge can stand open and shut.
+   */
+  setPartJoints(name: string, joints: Record<string, number | null>, options: { replace?: boolean } = {}): Assembly {
+    const id = this.idOf(name);
+    if (id === BASE) throw refuse('VALUE', 'the base part has no joints of its own; the assembly\'s joints are the robot\'s (robot())');
+    return new Assembly(this.name, setPartJointsDoc(this.#doc, id, joints, options.replace === true));
+  }
+
+  /**
+   * `assembly.set_part_look` (roadmap 10 ①): this occurrence's own look for a body of a placed part — `color` ("#rrggbb"), `material` (a library
+   * material id: its mass and BOM line change for this occurrence only), `hidden`, `faces` (face name to colour) — over the part's own look,
+   * which every occurrence otherwise shows. `null` for a field goes back to the part's; `null` for the whole look resets the body. Name a body of a
+   * part inside a sub-assembly by its path: `"p2/b3"`. Kept through new revisions of the part (one whose body is gone is held, see `partLooks`).
+   */
+  setPartLook(name: string, body: string, look: { color?: string | null; material?: string | null; hidden?: boolean | null; faces?: Record<string, string | null> } | null): Assembly {
+    const id = this.idOf(name);
+    if (id === BASE) throw refuse('VALUE', 'the base part is not an occurrence: set its bodies\' looks on the part itself');
+    return new Assembly(this.name, setPartLookDoc(this.#doc, id, body, look));
+  }
+
+  /** A placed part's own looks by body key: what this occurrence overrides, and the problem in words for one whose body the part no longer has (held). */
+  partLooks(name: string): { body: string; look: { color?: string; material?: string; hidden?: boolean; faces?: Record<string, string> }; held?: string }[] {
+    const id = this.idOf(name);
+    if (id === BASE) throw refuse('VALUE', 'the base part is not an occurrence: it has no looks of its own over a definition');
+    return partLooksOf(this.#doc, id);
+  }
+
+  /** A sub-assembly occurrence's joints: key, type, parent and child part, this occurrence's value and the limits (degrees, mm); `problem` in words when it cannot be posed. */
+  partJoints(name: string): { part: string; joints: { key: string; type: 'revolute' | 'continuous' | 'prismatic'; parent: string; child: string; value: number; lower?: number; upper?: number }[]; problem?: string } {
+    const id = this.idOf(name);
+    if (id === BASE) throw refuse('VALUE', 'the base part has no joints of its own; the assembly\'s joints are the robot\'s (robot())');
+    return partJointsOf(this.#doc, id);
+  }
+
+  /**
    * `assembly.add_mate`: a mate between a face of each of two parts — coincident, concentric, distance, angle or
    * tangent. The second part moves (a fixed second and a free first swap, as in the studio), solved exactly.
    */
@@ -75,6 +136,86 @@ export class Assembly {
     const ea = this.#end(a), eb = this.#end(b);
     return new Assembly(this.name, addMateDoc(this.#doc, kind, ea, eb, { distance: options.distance, angle: options.angle, flip: options.flip }).doc);
   }
+
+  /**
+   * `assembly.pattern`: a placed part repeated — `count` in all, itself the first — along a line or about an axis. The
+   * copies are driven by it (no mate moves them; one may hold them fixed) and share its part definition. Its id: `patterns()`.
+   */
+  pattern(name: string, o: PatternOptions): Assembly {
+    const seed = this.idOf(name), shape = o.kind === 'linear' ? { kind: 'linear' as const, dir: toVec(o.direction), spacing: o.spacing } : { kind: 'circular' as const, axis: toVec(o.axis), origin: toVec(o.origin ?? [0, 0, 0]), angle: o.angle };
+    return new Assembly(this.name, patternDoc(this.#doc, { seed, count: o.count, ...(o.skip ? { skip: o.skip } : {}), ...shape }).doc);
+  }
+
+  /** `assembly.edit_pattern`: a pattern's count, skipped copies, spacing or direction, angle, axis or origin changed. */
+  editPattern(id: string, o: PatternEdit): Assembly {
+    return new Assembly(this.name, editPatternDoc(this.#doc, { id, ...(o.count !== undefined ? { count: o.count } : {}), ...(o.skip !== undefined ? { skip: o.skip } : {}), ...(o.spacing !== undefined ? { spacing: o.spacing } : {}),
+      ...(o.direction !== undefined ? { dir: toVec(o.direction) } : {}), ...(o.angle !== undefined ? { angle: o.angle } : {}), ...(o.axis !== undefined ? { axis: toVec(o.axis) } : {}), ...(o.origin !== undefined ? { origin: toVec(o.origin) } : {}) }));
+  }
+
+  /** `assembly.delete_pattern`: the pattern and its copies removed; the part it repeated stays. */
+  deletePattern(id: string): Assembly { return new Assembly(this.name, deletePatternDoc(this.#doc, id)); }
+
+  /** `assembly.skip_occurrence`: one copy (by name) left out of its pattern; `editPattern` with `skip` brings it back. */
+  skipOccurrence(name: string): Assembly { return new Assembly(this.name, skipOccurrenceDoc(this.#doc, this.idOf(name))); }
+
+  /** The patterns: id, the part repeated (its name), count, skipped copies and the line or axis. */
+  patterns(): { id: string; part: string; count: number; skip: number[]; kind: 'linear' | 'circular'; direction?: Vec3; spacing?: number; axis?: Vec3; origin?: Vec3; angle?: number }[] {
+    return (this.#doc.instancePatterns ?? []).map(p => ({ id: p.id, part: this.#doc.instances!.find(i => i.id === p.seed)!.name, count: p.count, skip: [...(p.skip ?? [])], kind: p.kind,
+      ...(p.kind === 'linear' ? { direction: toVec(p.dir), spacing: p.spacing } : { axis: toVec(p.axis), origin: toVec(p.origin), angle: p.angle }) }));
+  }
+
+  /** `assembly.cut`: a hole or pocket made across the named placed parts, in the assembly's frame; each cut part is its definition with the cut taken, in every output. Its id: `cuts()`. */
+  cut(o: CutOptions): Assembly {
+    return new Assembly(this.name, cutDoc(this.#doc, { profile: { ...o.profile }, at: toVec(o.at), dir: toVec(o.dir), depth: o.depth, targets: o.parts.map(n => this.idOf(n)), ...(o.name ? { name: o.name } : {}) }).doc);
+  }
+
+  /** `assembly.edit_cut`: a cut's profile, place, direction, depth, parts or name changed. */
+  editCut(id: string, o: CutEdit): Assembly {
+    return new Assembly(this.name, editCutDoc(this.#doc, { id, ...(o.profile !== undefined ? { profile: { ...o.profile } } : {}), ...(o.at !== undefined ? { at: toVec(o.at) } : {}), ...(o.dir !== undefined ? { dir: toVec(o.dir) } : {}),
+      ...(o.depth !== undefined ? { depth: o.depth } : {}), ...(o.parts !== undefined ? { targets: o.parts.map(n => this.idOf(n)) } : {}), ...(o.name !== undefined ? { name: o.name } : {}) }));
+  }
+
+  /** `assembly.delete_cut`: the cut removed; its parts are whole again. */
+  deleteCut(id: string): Assembly { return new Assembly(this.name, deleteCutDoc(this.#doc, id)); }
+
+  /** The cuts: id, name, profile, place, direction, depth and the parts they cut (their names). */
+  cuts(): { id: string; name?: string; profile: CutOptions['profile']; at: Vec3; dir: Vec3; depth: number | 'through'; parts: string[] }[] {
+    return (this.#doc.assemblyCuts ?? []).map(c => ({ id: c.id, ...(c.name ? { name: c.name } : {}), profile: { ...c.profile }, at: toVec(c.at), dir: toVec(c.dir), depth: c.depth, parts: c.targets.map(t => this.#doc.instances!.find(i => i.id === t)?.name ?? t) }));
+  }
+
+  /** `assembly.step`: an instruction step added at the end, introducing the named parts; each part is in one step. Its id: `steps()`. Presentation only. */
+  step(o: StepOptions): Assembly {
+    return new Assembly(this.name, stepDoc(this.#doc, { ...(o.name ? { name: o.name } : {}), ...(o.note ? { note: o.note } : {}), add: (o.parts ?? []).map(n => this.idOf(n)), ...(o.view ? { view: this.#view(o.view) } : {}), ...(o.explode !== undefined ? { explode: o.explode } : {}) }).doc);
+  }
+
+  /** `assembly.edit_step`: a step's name, note, parts, view or explode scale changed. */
+  editStep(id: string, o: StepEdit): Assembly {
+    return new Assembly(this.name, editStepDoc(this.#doc, { id, ...(o.name !== undefined ? { name: o.name } : {}), ...(o.note !== undefined ? { note: o.note } : {}), ...(o.parts !== undefined ? { add: o.parts.map(n => this.idOf(n)) } : {}),
+      ...(o.view !== undefined ? { view: o.view === null ? null : this.#view(o.view) } : {}), ...(o.explode !== undefined ? { explode: o.explode } : {}) }));
+  }
+
+  /** `assembly.delete_step`: the step removed; the placed parts stay. */
+  deleteStep(id: string): Assembly { return new Assembly(this.name, deleteStepDoc(this.#doc, id)); }
+
+  /** `assembly.move_step`: the step put at position `to` (0 is first). */
+  moveStep(id: string, to: number): Assembly { return new Assembly(this.name, moveStepDoc(this.#doc, id, to)); }
+
+  /** The steps in order: id, name, note, the parts each introduces (names), its view and explode scale. */
+  steps(): StepListing[] {
+    const nameOf = (id: string) => this.#doc.instances?.find(i => i.id === id)?.name ?? id;
+    return stepsOf(this.#doc).map(s => ({ id: s.id, name: s.name, ...(s.note ? { note: s.note } : {}), parts: s.add.map(nameOf), ...(s.view ? { view: { eye: toVec(s.view.eye), target: toVec(s.view.target), up: toVec(s.view.up) } } : {}), ...(s.explode !== undefined ? { explode: s.explode } : {}) }));
+  }
+
+  /** What step `index` (0 is the first) shows, parts by name: installed, active, waiting, unresolved (placed no more) and unassigned (in no step). */
+  stepState(index: number): { installed: string[]; active: string[]; waiting: string[]; unresolved: string[]; unassigned: string[] } {
+    const nameOf = (id: string) => this.#doc.instances?.find(i => i.id === id)?.name ?? id, r = stepStateOf(this.#doc, index);
+    return { installed: r.installed.map(nameOf), active: r.active.map(nameOf), waiting: r.waiting.map(nameOf), unresolved: r.unresolved, unassigned: r.unassigned.map(nameOf) };
+  }
+
+  /** What the steps get wrong about the placed parts now (a part a step names that is gone; parts in no step), in words. */
+  stepProblems(): string[] { return assemblyStepProblems(this.#doc).map(p => p.message); }
+
+  #view(v: NonNullable<StepOptions['view']>) { return { eye: toVec(v.eye), target: toVec(v.target), up: toVec(v.up) }; }
 
   /** A placed part locked where it stands to another (the base part unless named) — the studio's Lock: they move as one. */
   lock(name: string, to = BASE): Assembly {
@@ -123,8 +264,8 @@ export class Assembly {
   }
 
   /** Where each placed part stands: its id, name, position (mm) and rotation (degrees about X, then Y, then Z). */
-  placements(): { part: string; name: string; position: Vec3; rotation: Vec3; grounded?: true }[] {
-    return (this.#doc.instances ?? []).map(i => ({ part: i.id, name: i.name, position: toVec(i.position), rotation: toVec(i.rotation), ...(i.grounded ? { grounded: true as const } : {}) }));
+  placements(): { part: string; name: string; position: Vec3; rotation: Vec3; grounded?: true; pattern?: { id: string; k: number } }[] {
+    return (this.#doc.instances ?? []).map(i => ({ part: i.id, name: i.name, position: toVec(i.position), rotation: toVec(i.rotation), ...(i.grounded ? { grounded: true as const } : {}), ...(i.pattern ? { pattern: { ...i.pattern } } : {}) }));
   }
 
   /** The mates the solver cannot meet, with its reasons (none: every mate is met). */
@@ -151,6 +292,21 @@ export class Assembly {
   // (A mate's end: the part's id, and the face's name as the face tables key it — a selector's one face, its `#k` and
   // the display's merged `a+b` taken back to the first name the part's table has.)
   #end(end: MateEnd): { part: string; face: string } {
+    // (A part inside a sub-assembly: `<part>/<nested part>…`, each by id or name, kept as the ids' path; its face by name.
+    // A whole part name is tried first, so "Bracket A/B" is that part.)
+    if (end.part.includes('/') && !(this.#doc.instances ?? []).some(i => i.name === end.part)) {
+      if (typeof end.face !== 'string') throw refuse('VALUE', `a part inside a sub-assembly (${end.part}) is mated by its face's name`);
+      const ids: string[] = [];
+      let level = this.#doc.instances ?? [], scope = 'the assembly';
+      for (const seg of end.part.split('/')) {
+        const byId = level.find(i => i.id === seg), byName = level.find(i => i.name === seg);
+        if (byId && byName && byId !== byName) throw refuse('VALUE', `${seg} in ${scope} names two parts: ${byId.id} (by id) and ${byName.id} (by name ${seg}); use the other one's id`);
+        const at = byId ?? byName;
+        if (!at) throw refuse('PART_UNKNOWN', `no part ${seg} in ${scope}; its parts are ${level.map(i => i.name).join(', ') || 'none'}`);
+        ids.push(at.id); level = at.doc.instances ?? []; scope = ids.join('/');
+      }
+      return { part: ids.join('/'), face: end.face };
+    }
     const id = this.idOf(end.part);
     if (typeof end.face === 'string') return { part: id, face: end.face };
     const d = id === BASE ? this.#doc : this.#doc.instances!.find(i => i.id === id)!.doc;

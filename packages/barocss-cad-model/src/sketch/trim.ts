@@ -25,10 +25,13 @@ function polyOf(s: SketchShape): Poly | null {
       return { points: [[s.a[0] - n[0], s.a[1] - n[1]], [s.b[0] - n[0], s.b[1] - n[1]], [s.b[0] + n[0], s.b[1] + n[1]], [s.a[0] + n[0], s.a[1] + n[1]]], bulges: [0, 1, 0, 1], closed: true };
     }
     case 'polygon': return { points: s.points, bulges: s.points.map((_, i) => s.bulges?.[i] ?? 0), closed: s.closed };
+    case 'bezier': return null;
   }
 }
 function piecesOf(s: SketchShape): Piece[] {
   if (s.kind === 'circle') return [{ kind: 'arc', c: s.c, r: s.r, t0: 0, sw: TAU }];
+  // (A Bézier curve has no pieces: not trimmed, split or extended, and no cutting edge.)
+  if (s.kind === 'bezier') return [];
   const p = polyOf(s)!, n = p.points.length, out: Piece[] = [];
   for (let i = 0; i < (p.closed ? n : n - 1); i++) {
     const a = p.points[i], b = p.points[(i + 1) % n];

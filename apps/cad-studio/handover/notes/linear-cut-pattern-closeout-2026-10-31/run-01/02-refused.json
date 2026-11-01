@@ -1,0 +1,142 @@
+{
+  "label": "02-refused",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          0,
+          0
+        ],
+        "max": [
+          60,
+          30
+        ],
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 10,
+        "id": "n1",
+        "made": {
+          "command": "box",
+          "values": {
+            "w": 60,
+            "d": 30,
+            "h": 10,
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          0,
+          8
+        ],
+        "max": [
+          4,
+          12
+        ],
+        "id": "n2"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 2,
+        "height": 10,
+        "id": "n3",
+        "made": {
+          "command": "box",
+          "values": {
+            "w": 4,
+            "d": 4,
+            "h": 10,
+            "x": 0,
+            "y": 8,
+            "z": 0
+          }
+        }
+      },
+      {
+        "kind": "translate",
+        "parent": {
+          "node": 3,
+          "side": "solid"
+        },
+        "offset": [
+          8,
+          0,
+          0
+        ],
+        "id": "n4"
+      },
+      {
+        "kind": "difference",
+        "parent": {
+          "node": 1,
+          "side": "solid"
+        },
+        "tool": {
+          "node": 4,
+          "side": "solid"
+        },
+        "id": "n5"
+      }
+    ],
+    "outputs": {
+      "b5": {
+        "node": 5,
+        "side": "solid"
+      }
+    },
+    "nextId": 6
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b5",
+        "volume": 17840,
+        "centroid": [
+          30.17937219730943,
+          15.04484304932736,
+          5
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": [
+        0
+      ]
+    },
+    "bodies": 1,
+    "active": "linear-feature-pattern",
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": null,
+  "hud": "Linear cut patternrefusedDirectionXYZSpacingmmCountInvalid inputBarocssError: [VALUE] Count must be a whole number from 2 to 64, including the original cut.CancelApply",
+  "sketchAlert": null,
+  "sketchStatus": null,
+  "history": [],
+  "selectionText": null,
+  "hudStatus": "refused"
+}

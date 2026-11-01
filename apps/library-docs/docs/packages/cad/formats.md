@@ -53,10 +53,13 @@ export function prepareDxf(drawing: DxfDocument) {
 - **Reading.** `importStep(text)`, or the `import` feature in a part, reads B-rep solids:
   - **surfaces:** planes, cylinders, cones, spheres and tori as exact rational patches, B-spline surfaces as they are,
     and surfaces of linear extrusion and of revolution;
+  - **offset surfaces:** one `OFFSET_SURFACE` over a direct plane or cylinder. The signed distance follows the basis
+    normal. Plane boundaries are lines or conics; cylinder boundaries are coaxial circles and axis-parallel lines.
+    This profile checks boundary binding and reduction precision before admission and does not change authored curves or tolerance;
   - **curves:** lines, circles and ellipses as rational arcs, and B-spline curves.
 
-  A face that goes once round its axis is cut along a new edge. Entities it doesn't take, such as offset surfaces,
-  are refused by name. `stepMeshes(text)` reads a file of AP242 tessellated meshes only.
+  A face that goes once round its axis is cut along a new edge. Other offset bases, nested offsets, unsupported boundary curves and singular cylinder offsets are refused by name.
+  A non-positive resulting cylinder radius is not repaired. `stepMeshes(text)` reads a file of AP242 tessellated meshes only.
 
 <<< @/../samples/cad-formats.test.mjs#step
 
@@ -95,6 +98,12 @@ It does not change the on-screen mesh; see [STL export choices](/studio/files#ex
   - anything else is refused, typed.
 
   The report counts every such change, so nothing is approximated silently.
+
+The document may also supply `dimensionStyle` with all three fields: a finite positive `textHeight` in
+the drawing's units, `textPlacement` (`above` or `center`) and `textOrientation` (`aligned` or `horizontal`).
+Both versions write these dimension-style defaults. Omitting the object preserves the existing defaults
+and bytes. Invalid values throw a typed DXF write error. The fields do not rebuild anonymous dimension
+display blocks or guarantee an external editor's regenerated layout.
 
 <<< @/../samples/cad-formats.test.mjs#dxf
 

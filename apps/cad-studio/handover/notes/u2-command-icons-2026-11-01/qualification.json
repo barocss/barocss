@@ -1,0 +1,110 @@
+{
+  "decision": "D410",
+  "date": "2026-11-01",
+  "baseCommit": "c7c6d6f0e68ceb1654d1603a81e250974b27ade9",
+  "tier": "feature",
+  "status": "BOUNDED_QUALIFIED",
+  "models": {
+    "implementationAndIndependentAudit": "gpt-6.1-sol / medium"
+  },
+  "scope": "Owner U2 only: five path-based CAD command icons and consistent icon forwarding",
+  "commandsAndMetaphors": {
+    "sketch3d": "spatial node polyline with axes",
+    "cylindrical-wrap": "curve/arrow around upright cylinder",
+    "edit": "solid plus pencil",
+    "text": "flat outlined A with baseline",
+    "text-relief": "extruded A with shaded depth edge"
+  },
+  "checks": {
+    "focused": {
+      "status": "PASS",
+      "pass": 6,
+      "fail": 0,
+      "breakdown": {
+        "command-icons": 2,
+        "palette-rank": 2,
+        "palette": 2
+      }
+    },
+    "studioTypes": "PASS",
+    "modelTypesAfterLastTestEdit": "PASS",
+    "changedFileLintSyntaxDiff": "PASS"
+  },
+  "audit": {
+    "status": "ACCEPT",
+    "rounds": 1,
+    "source": "Semantic-ID mapping, unchanged command labels/actions/keywords, existing aria-hidden SVG pattern and fontless harness reviewed",
+    "visual": "All five20/48px light/dark icons distinct and unclipped; subtle relief depth visible at20",
+    "evidence": "Independent source/image inspection; no separate runtime rerun"
+  },
+  "studio": {
+    "status": "PASS",
+    "frozen": 298,
+    "afterCleanup": 298,
+    "states": 5,
+    "observations": 6,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "fontStylesheetFulfilledEmpty": 1,
+    "fontAssetRequests": 0,
+    "rootReviewedImages": 3,
+    "independentReviewedImages": 6,
+    "contactDrawings": 20,
+    "contactSizes": [
+      20,
+      48
+    ],
+    "themes": [
+      "dark #242529",
+      "light #ffffff"
+    ],
+    "verified": [
+      "Real palette3D sketch/wrap/Text/Text relief registry SVG signatures",
+      "Visible20px wrap/Text/Text relief toolbar signatures",
+      "Generic Edit history action SVG",
+      "Existing Box control unchanged",
+      "Accessible command labels and complete document unchanged"
+    ],
+    "resources": "Context/browser/server/contact page closed; gate released",
+    "artifacts": "/tmp/barocss-d410-browser-run01"
+  },
+  "retainedFailures": [
+    "Initial test harness3PASS2FAIL: react-dom/server dynamic require(util); corrected to established server.edge",
+    "Existing palette test expected app cwd; corrected package exec invocation",
+    "Search hit briefly misidentified App IGES polyline; targeted restoration, App has zero diff"
+  ],
+  "unchanged": [
+    "Command IDs/labels/keywords/actions/node behavior",
+    "Public library API and document schema",
+    "Dependencies/lockfile/tool groups",
+    "App IGES icon and generic UI icon font markup"
+  ],
+  "commands": {
+    "focused": "pnpm --filter @barocss/cad-studio-app exec node scripts/test.mjs command-icons palette",
+    "studioTypes": "pnpm --filter @barocss/cad-studio-app type-check",
+    "modelTypes": "pnpm --filter @barocss/cad-model type-check",
+    "contact": "node apps/cad-studio/test/u2-icon-contact-sheet.mjs /tmp/barocss-d410-contact",
+    "actual": "U2_COMMAND_ICONS_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME=/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome node apps/cad-studio/test/u2-command-icons-browser.mjs /tmp/barocss-d410-browser-run01 /tmp/barocss-d410-contact",
+    "fullCapsule": "/tmp/barocss-d410-checks/commands.md"
+  },
+  "execution": "Node22.19.0; serial heavy gate; no worktree writes during actual Studio",
+  "notRun": [
+    "Costly geometry Apply/new command behavior qualification",
+    "Dynamic edit HUD/context/shortcut-help runtime states; source/routing evidence only",
+    "Whole U1 icon gallery legibility",
+    "U3 generic Material-to-Lucide migration; unrelated UI glyph names visible with font CSS empty",
+    "U4 Fillet unification",
+    "Save/outbound export/download/paid calls",
+    "Full baseline suites, CI, release"
+  ],
+  "issueReview": "Bounded icon-title search found #1554/#1545/#1564, all older cad-editor app scopes. No dedicated U2 Studio issue identified; none closed.",
+  "ocp": "Remains removed; no new dependency/font/download",
+  "next": "D411 owner U1 existing command-icon legibility"
+}

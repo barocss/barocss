@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GLB 32-bit indices · BaroCSS GPU</title>
+  <style>
+    :root { color-scheme: dark; font: 16px/1.5 system-ui,sans-serif; background: #17191d; color: #eceef2; }
+    body { max-width: 780px; margin: 32px auto; padding: 0 20px; }
+    h1 { font-size: 1.6rem; margin-bottom: 4px; }
+    p { color: #bbc1cb; }
+    button { font: inherit; padding: 7px 14px; cursor: pointer; }
+    button:disabled { cursor: default; }
+    canvas { display: block; width: min(100%,512px); height: auto; background: #20242b; border: 1px solid #414854; }
+    #error { color: #ffb4ad; white-space: pre-wrap; }
+    [hidden] { display: none; }
+  </style>
+  <script type="importmap">{"imports":{"@barocss/cad":"../../barocss-cad/dist/index.js"}}</script>
+</head>
+<body>
+  <h1>GLB 32-bit indices</h1>
+  <p>This generated GLB has one triangle that uses vertices 0, 65535 and 65536. Load a reflected copy to check its winding.</p>
+  <button id="mirror" type="button" disabled>Show reflected triangle</button>
+  <p id="status" role="status" aria-live="polite">Loading the viewer…</p>
+  <p id="error" role="alert" hidden></p>
+  <canvas id="view" width="256" height="256" aria-label="Imported 32-bit indexed triangle"></canvas>
+  <script type="module">
+    import { u32Sample } from './glb-u32-sample.js';
+    const byId = id => document.getElementById(id);
+    let viewer = null, api = null, current = null, mirrored = false, closed = false;
+    const showError = reason => { byId('error').textContent = `${reason.code ? `${reason.code}: ` : ''}${reason.message ?? String(reason)}`; byId('error').hidden = false; };
+    const release = entry => { if (entry) { entry.mesh.remove(); entry.geometry.dispose(); } };
+    function cleanup() { closed = true; release(current); current = null; viewer?.dispose(); }
+    window.addEventListener('beforeunload',cleanup,{ once: true });
+    function load(nextMirrored) {
+      if (closed) return;
+      byId('mirror').disabled = true; byId('error').hidden = true;
+      let geometry = null, mesh = null;
+      try {
+        const row = api.prepareGlb(u32Sample({ mirrored: nextMirrored }).bytes)[0];
+        geometry = viewer.createGeometry(row.geometry);
+        mesh = viewer.add(geometry,{ material: { ...row.material, color: '#f05b54', unlit: true }, transform: row.transform });
+        release(current); current = { geometry, mesh }; geometry = null; mesh = null;
+        mirrored = nextMirrored; viewer.render();
+        byId('status').textContent = `${mirrored ? 'Reflected' : 'Original'} triangle loaded · indices ${mirrored ? '0, 65536, 65535' : '0, 65535, 65536'}.`;
+        byId('mirror').textContent = mirrored ? 'Show original triangle' : 'Show reflected triangle';
+      } catch (reason) { mesh?.remove(); geometry?.dispose(); showError(reason); byId('status').textContent = 'The GLB could not be loaded.'; }
+      finally { if (!closed) byId('mirror').disabled = false; }
+    }
+    try {
+      api = await import('../dist/viewer/index.js');
+      viewer = await api.createViewer(byId('view'), { controls: false, autoResize: false, pixelRatio: 1, antialias: false, background: '#20242b', lights: [],
+        camera: { position: [0,0,5], target: [0,0,0], up: [0,1,0], projection: 'orthographic', fovY: 2 * Math.atan(2 / 5) * 180 / Math.PI },
+        environment: { sky: '#000000', ground: '#000000', ambient: 0, toneMapping: 'none' }, onRequestRender: () => {}, onError: reason => { if (!closed) showError(new Error(reason)); } });
+      if (closed) { viewer.dispose(); throw new Error('The page closed before viewer creation completed.'); }
+      byId('mirror').addEventListener('click',() => load(!mirrored)); load(false);
+    } catch (reason) { if (!closed) { showError(reason); byId('status').textContent = 'The viewer could not start.'; } cleanup(); }
+  </script>
+</body>
+</html>

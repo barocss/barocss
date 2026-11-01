@@ -1,0 +1,708 @@
+TAP version 13
+# Subtest: joints and setJoints keep mixed turn/slide public settings in the latest document and project once
+ok 1 - joints and setJoints keep mixed turn/slide public settings in the latest document and project once
+  ---
+  duration_ms: 242.387291
+  type: 'test'
+  ...
+# Subtest: the shared public tree scales mixed mimic multipliers and offsets in both directions
+ok 2 - the shared public tree scales mixed mimic multipliers and offsets in both directions
+  ---
+  duration_ms: 0.200083
+  type: 'test'
+  ...
+# Subtest: a coupled gear facade keeps its dimensionless ratio and degree pose values
+ok 3 - a coupled gear facade keeps its dimensionless ratio and degree pose values
+  ---
+  duration_ms: 1153.734125
+  type: 'test'
+  ...
+# Subtest: sweep contact at the initial mixed pose returns exact degrees and mm before rounding
+ok 4 - sweep contact at the initial mixed pose returns exact degrees and mm before rounding
+  ---
+  duration_ms: 68.3115
+  type: 'test'
+  ...
+# Subtest: direct RobotPath snapshots nested waypoints, limits and profile at construction
+ok 5 - direct RobotPath snapshots nested waypoints, limits and profile at construction
+  ---
+  duration_ms: 142.261791
+  type: 'test'
+  ...
+# Subtest: motion and waypoints getters return independent copies of the constructor snapshot
+ok 6 - motion and waypoints getters return independent copies of the constructor snapshot
+  ---
+  duration_ms: 37.064958
+  type: 'test'
+  ...
+# Subtest: duration and poseAt refuse unknown joints with the same first problem and details
+ok 7 - duration and poseAt refuse unknown joints with the same first problem and details
+  ---
+  duration_ms: 95.388583
+  type: 'test'
+  ...
+# Subtest: duration refuses a gear follower rather than timing an independent follower move
+ok 8 - duration refuses a gear follower rather than timing an independent follower move
+  ---
+  duration_ms: 331.396208
+  type: 'test'
+  ...
+# Subtest: duration enforces public degree bounds and missing timing limits like poseAt
+ok 9 - duration enforces public degree bounds and missing timing limits like poseAt
+  ---
+  duration_ms: 751.245542
+  type: 'test'
+  ...
+# Subtest: withMotion validates the destination robot even when a path came from another robot
+ok 10 - withMotion validates the destination robot even when a path came from another robot
+  ---
+  duration_ms: 82.0895
+  type: 'test'
+  ...
+# Subtest: withMotion checks a single recorded waypoint for unknown, mimic, range and finite inputs
+ok 11 - withMotion checks a single recorded waypoint for unknown, mimic, range and finite inputs
+  ---
+  duration_ms: 312.19925
+  type: 'test'
+  ...
+# Subtest: withMotion preserves empty, single-waypoint and untimed recording drafts
+ok 12 - withMotion preserves empty, single-waypoint and untimed recording drafts
+  ---
+  duration_ms: 155.720792
+  type: 'test'
+  ...
+# Subtest: withMotion snapshots the saved path and replaces only the named motion
+ok 13 - withMotion snapshots the saved path and replaces only the named motion
+  ---
+  duration_ms: 152.404041
+  type: 'test'
+  ...
+# Subtest: saving loop drivers retains passive-driver refusal and sweep/finite-passive-bound boundaries
+ok 14 - saving loop drivers retains passive-driver refusal and sweep/finite-passive-bound boundaries
+  ---
+  duration_ms: 203.599083
+  type: 'test'
+  ...
+# Subtest: joints, pose, inertia and gravity: the tools' replies in the same public contract
+ok 15 - joints, pose, inertia and gravity: the tools' replies in the same public contract
+  ---
+  duration_ms: 422.314958
+  type: 'test'
+  ...
+# Subtest: a path's check: sweep_path's reply for each segment between waypoints
+ok 16 - a path's check: sweep_path's reply for each segment between waypoints
+  ---
+  duration_ms: 176.510708
+  type: 'test'
+  ...
+# Subtest: URDF and MJCF: the tools' replies, each file's data besides; SDF and USD: the core exports the studio's menu makes
+ok 17 - URDF and MJCF: the tools' replies, each file's data besides; SDF and USD: the core exports the studio's menu makes
+  ---
+  duration_ms: 190.331542
+  type: 'test'
+  ...
+# Subtest: setJoints: what set_joints writes; a new robot, the old one as it was
+ok 18 - setJoints: what set_joints writes; a new robot, the old one as it was
+  ---
+  duration_ms: 88.363334
+  type: 'test'
+  ...
+# Subtest: the robot from an assembly, and the refusals: the tools' own, and how it was called
+ok 19 - the robot from an assembly, and the refusals: the tools' own, and how it was called
+  ---
+  duration_ms: 151.364459
+  type: 'test'
+  ...
+# Subtest: poseAt and duration: the core's, in degrees; the path's ends at its first and last waypoints
+ok 20 - poseAt and duration: the core's, in degrees; the path's ends at its first and last waypoints
+  ---
+  duration_ms: 295.969917
+  type: 'test'
+  ...
+# Subtest: motions: saved under a name in the robot settings, read back, replaced by name; problems typed
+ok 21 - motions: saved under a name in the robot settings, read back, replaced by name; problems typed
+  ---
+  duration_ms: 158.058667
+  type: 'test'
+  ...
+# Subtest: a looped robot plays in degrees on its assembled branch; its path check still refuses LOOP_OPEN
+ok 22 - a looped robot plays in degrees on its assembled branch; its path check still refuses LOOP_OPEN
+  ---
+  duration_ms: 369.601792
+  type: 'test'
+  ...
+# Subtest: RS6 four-bar: driver timing, closed geometry, saved round trip and seam continuity in degrees
+ok 23 - RS6 four-bar: driver timing, closed geometry, saved round trip and seam continuity in degrees
+  ---
+  duration_ms: 1912.593666
+  type: 'test'
+  ...
+# Subtest: RS6 slider-crank: 720 unwrapped degrees, a passive slide in mm and the closed-form wrist point
+ok 24 - RS6 slider-crank: 720 unwrapped degrees, a passive slide in mm and the closed-form wrist point
+  ---
+  duration_ms: 3925.424417
+  type: 'test'
+  ...
+# Subtest: RS6 refuses missing motion limits, unknown joints, extra loop drivers and unsupported passive bounds
+ok 25 - RS6 refuses missing motion limits, unknown joints, extra loop drivers and unsupported passive bounds
+  ---
+  duration_ms: 914.353667
+  type: 'test'
+  ...
+# Subtest: RS6 cannot skip an unreachable excursion by seeking its home endpoint; toggle refusal stays typed
+ok 26 - RS6 cannot skip an unreachable excursion by seeking its home endpoint; toggle refusal stays typed
+  ---
+  duration_ms: 245.914625
+  type: 'test'
+  ...
+# Subtest: open-chain motion keeps degrees for turns, mm for slides and the original synchronized timing
+ok 27 - open-chain motion keeps degrees for turns, mm for slides and the original synchronized timing
+  ---
+  duration_ms: 179.915333
+  type: 'test'
+  ...
+# Subtest: O22 gears: two bare meshing gears are no contact (left out, said so); an arm on one finger swung into the other gear is
+ok 28 - O22 gears: two bare meshing gears are no contact (left out, said so); an arm on one finger swung into the other gear is
+  ---
+  duration_ms: 788.388583
+  type: 'test'
+  ...
+# Subtest: O22 loop pin: the four-bar's stacked coupler and rocker are no contact (left out, said so); a post on the rocker the coupler swings into is
+ok 29 - O22 loop pin: the four-bar's stacked coupler and rocker are no contact (left out, said so); a post on the rocker the coupler swings into is
+  ---
+  duration_ms: 230.342958
+  type: 'test'
+  ...
+# Subtest: O22 → RS6: check_path and play_motion close a robot's loop along its motion (the four-bar; LOOP_OPEN retired)
+ok 30 - O22 → RS6: check_path and play_motion close a robot's loop along its motion (the four-bar; LOOP_OPEN retired)
+  ---
+  duration_ms: 216.434417
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-5: the follower's lift is the lobe's support — max(r_b, c cos θ + r_n) − h(0) — at 72 cam angles, to 1e-9 mm; the valve pushed with it
+ok 31 - O24 (a) PG-5: the follower's lift is the lobe's support — max(r_b, c cos θ + r_n) − h(0) — at 72 cam angles, to 1e-9 mm; the valve pushed with it
+  ---
+  duration_ms: 100.666084
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-5: the cam as the agent sees it — get_joints' couplings, pose closes the lift, a sweep stays certified with its bound, exports refuse it (leave_out writes it free)
+ok 32 - O24 (a) PG-5: the cam as the agent sees it — get_joints' couplings, pose closes the lift, a sweep stays certified with its bound, exports refuse it (leave_out writes it free)
+  ---
+  duration_ms: 149.576125
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-5: a follower off the lobe is not coupled (CAM_NOT_SEATED), said so
+ok 33 - O24 (a) PG-5: a follower off the lobe is not coupled (CAM_NOT_SEATED), said so
+  ---
+  duration_ms: 18.55525
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-5: the sweep still reports a real crash between cam and follower — a skirt under the follower's face, beside the lobe, hit by the nose swinging toward it and clear of it swinging away
+ok 34 - O24 (a) PG-5: the sweep still reports a real crash between cam and follower — a skirt under the follower's face, beside the lobe, hit by the nose swinging toward it and clear of it swinging away
+  ---
+  duration_ms: 46.941125
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-5: couplings that lead round to themselves are refused (COUPLING_CYCLE), a joint coupled twice (COUPLED_TWICE)
+ok 35 - O24 (a) PG-5: couplings that lead round to themselves are refused (COUPLING_CYCLE), a joint coupled twice (COUPLED_TWICE)
+  ---
+  duration_ms: 39.947167
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-7: the slider-crank (e 0; the bore left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+ok 36 - O24 (a) PG-7: the slider-crank (e 0; the bore left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+  ---
+  duration_ms: 357.587375
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-7: the slider-crank (e 5; the bore left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+ok 37 - O24 (a) PG-7: the slider-crank (e 5; the bore left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+  ---
+  duration_ms: 128.893333
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-7: the slider-crank (e 5; the wrist pin left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+ok 38 - O24 (a) PG-7: the slider-crank (e 5; the wrist pin left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+  ---
+  duration_ms: 131.081959
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-7: the four-bar through the general closer equals the pin closer (RM8) to 1e-9; LOOP_PASSIVE, LOOP_MATE_UNSUPPORTED and a dead point refused
+ok 39 - O24 (a) PG-7: the four-bar through the general closer equals the pin closer (RM8) to 1e-9; LOOP_PASSIVE, LOOP_MATE_UNSUPPORTED and a dead point refused
+  ---
+  duration_ms: 165.984916
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-7, the agent: forward_kinematics and set_pose close the slider-crank from its crank (the piston where the closed form puts it); a passive joint given is refused
+ok 40 - O24 (a) PG-7, the agent: forward_kinematics and set_pose close the slider-crank from its crank (the piston where the closed form puts it); a passive joint given is refused
+  ---
+  duration_ms: 602.548041
+  type: 'test'
+  ...
+# Subtest: RS6: play_motion closes the slider-crank's loop at every sample — the piston where the closed form puts it; check_path sweeps the closed path in 1° chords, clear
+ok 41 - RS6: play_motion closes the slider-crank's loop at every sample — the piston where the closed form puts it; check_path sweeps the closed path in 1° chords, clear
+  ---
+  duration_ms: 25553.558083
+  type: 'test'
+  ...
+# Subtest: RS6: check_path finds the piston meeting a block behind its stroke where the closed form puts it, to the chord's error
+ok 42 - RS6: check_path finds the piston meeting a block behind its stroke where the closed form puts it, to the chord's error
+  ---
+  duration_ms: 9671.691792
+  type: 'test'
+  ...
+# Subtest: PG-6: a piston 0.05 mm inside its bore, facets out of phase, strokes 20 mm clear — the fit's round faces its own
+ok 43 - PG-6: a piston 0.05 mm inside its bore, facets out of phase, strokes 20 mm clear — the fit's round faces its own
+  ---
+  duration_ms: 113.591375
+  type: 'test'
+  ...
+# Subtest: PG-6: without the fit's seat the meshes touch at once (the gap P1 met); a boss past the bore's radius is contact with it
+ok 44 - PG-6: without the fit's seat the meshes touch at once (the gap P1 met); a boss past the bore's radius is contact with it
+  ---
+  duration_ms: 44.85625
+  type: 'test'
+  ...
+# Subtest: R4 C4: placed copies kept between exports — the clearance fixture, a 6R arm and fasteners as parts, as from nothing
+ok 45 - R4 C4: placed copies kept between exports — the clearance fixture, a 6R arm and fasteners as parts, as from nothing
+  ---
+  duration_ms: 1079.179917
+  type: 'test'
+  ...
+# Subtest: R4 C4: a placed weldment (its beads placed from the origin snapshot), kept and edited, as from nothing
+ok 46 - R4 C4: a placed weldment (its beads placed from the origin snapshot), kept and edited, as from nothing
+  ---
+  duration_ms: 4802.187917
+  type: 'test'
+  ...
+# RB9.1: 1 5/5 (12/12 mutants) · 2 5/5 (12/12 mutants) · 3 5/5 (12/12 mutants) · 4 5/5 (18/18 mutants) · 5 5/5 (14/14 mutants) · 6 5/5 (14/14 mutants) · 7 5/5 (12/12 mutants) · 8 5/5 (20/20 mutants) · 9 5/5 (14/14 mutants) · 10 5/5 (16/16 mutants) · 11 5/5 (10/10 mutants) · 12 5/5 (12/12 mutants) · 13 5/5 (10/10 mutants) · 14 5/5 (12/12 mutants)
+# Subtest: the sampler: trial 0 at every low end, 1 at every high end, 2 and 3 alternating; the same seed the same values; on the step grid
+ok 47 - the sampler: trial 0 at every low end, 1 at every high end, 2 and 3 alternating; the same seed the same values; on the step grid
+  ---
+  duration_ms: 0.966583
+  type: 'test'
+  ...
+# Subtest: the ladder (scripted): every built rung 5/5, RS 1; every mutant killed; no hard predicate without a mutant that kills it
+ok 48 - the ladder (scripted): every built rung 5/5, RS 1; every mutant killed; no hard predicate without a mutant that kills it
+  ---
+  duration_ms: 42580.10975
+  type: 'test'
+  ...
+# Subtest: trial timing: public seconds and JSON keep the original rounded interval; Markdown keeps integer ms and metrics
+ok 49 - trial timing: public seconds and JSON keep the original rounded interval; Markdown keeps integer ms and metrics
+  ---
+  duration_ms: 5.185166
+  type: 'test'
+  ...
+# RM9a post: toi 1.131635311870 s vs 1.131635311896 s (|Δ| 2.55e-11), q* 0.881635311896, 53 samples
+# RM9a two segments: toi 4.773227965 s (oracle 4.773227965); segment 1 least clearance 5.000000 mm vs dense 5.000000 mm (± 0.353)
+# RM9a 6R: toi 2.221024879 s, base–l4, 45 samples; 17 ms vs RM6 9 ms (45 samples)
+# RM9a MuJoCo: first contact 1.131635321 s vs ours 1.131635312 s (|Δ| 9.29e-9), post_collision–a_collision
+# Subtest: the normalised profile: every joint within its limits, all starting and stopping together; u⁻¹ exact
+ok 50 - the normalised profile: every joint within its limits, all starting and stopping together; u⁻¹ exact
+  ---
+  duration_ms: 0.703917
+  type: 'test'
+  ...
+# Subtest: the 2R arm swung into the post on a trapezoid: the time of impact where the plane's separating axes put it, to 1e-9 s
+ok 51 - the 2R arm swung into the post on a trapezoid: the time of impact where the plane's separating axes put it, to 1e-9 s
+  ---
+  duration_ms: 116.514792
+  type: 'test'
+  ...
+# Subtest: two segments: out clear, then back into the post — the contact on the second at its oracle time; the first's least clearance against a dense exact sampling
+ok 52 - two segments: out clear, then back into the post — the contact on the second at its oracle time; the first's least clearance against a dense exact sampling
+  ---
+  duration_ms: 891.881666
+  type: 'test'
+  ...
+# Subtest: the 6R arm folding on an S-curve: no earlier contact in 2000 exact samples; in contact to the tolerance at the time of impact; within the S0's budget (twice RM6's 225 ms)
+ok 53 - the 6R arm folding on an S-curve: no earlier contact in 2000 exact samples; in contact to the tolerance at the time of impact; within the S0's budget (twice RM6's 225 ms)
+  ---
+  duration_ms: 58793.16425
+  type: 'test'
+  ...
+# Subtest: MuJoCo's first contact (kinematic replay, its hulls these boxes) equals ours within 1e-6 s; the case written for it
+ok 54 - MuJoCo's first contact (kinematic replay, its hulls these boxes) equals ours within 1e-6 s; the case written for it
+  ---
+  duration_ms: 33.62875
+  type: 'test'
+  ...
+# Subtest: latest storage: a newly configured cylindrical joint resolves turn/slide types, saves public values and restores solver units once
+ok 55 - latest storage: a newly configured cylindrical joint resolves turn/slide types, saves public values and restores solver units once
+  ---
+  duration_ms: 75.583833
+  type: 'test'
+  ...
+# Subtest: mixed coupling projections scale follower/leader ratios and offsets without changing solver values
+ok 56 - mixed coupling projections scale follower/leader ratios and offsets without changing solver values
+  ---
+  duration_ms: 0.18875
+  type: 'test'
+  ...
+# Subtest: sweep keeps raw mixed-joint contact values until the public boundary: initial contact is exactly 45 degrees and 5 mm
+ok 57 - sweep keeps raw mixed-joint contact values until the public boundary: initial contact is exactly 45 degrees and 5 mm
+  ---
+  duration_ms: 4.264875
+  type: 'test'
+  ...
+# Subtest: public nested gear placements use degrees once; phase and backlash metadata keep existing values with canonical names
+ok 58 - public nested gear placements use degrees once; phase and backlash metadata keep existing values with canonical names
+  ---
+  duration_ms: 471.221583
+  type: 'test'
+  ...
+# Subtest: direct gear phase keeps the analytic 3 degree phase in the 12 degree follower period
+ok 59 - direct gear phase keeps the analytic 3 degree phase in the 12 degree follower period
+  ---
+  duration_ms: 7.732375
+  type: 'test'
+  ...
+# Subtest: public clearance separates a 0.25 path fraction from 0.5 elapsed seconds, with unchanged mm and precision
+ok 60 - public clearance separates a 0.25 path fraction from 0.5 elapsed seconds, with unchanged mm and precision
+  ---
+  duration_ms: 0.84925
+  type: 'test'
+  ...
+# Subtest: fixed public schemas require canonical clearance fields and reject old mm/s aliases or a time/fraction substitution
+ok 61 - fixed public schemas require canonical clearance fields and reject old mm/s aliases or a time/fraction substitution
+  ---
+  duration_ms: 0.312959
+  type: 'test'
+  ...
+# Subtest: range, atMost and actuator raw quantities convert before r9; the full core report and catalogue are unchanged
+ok 62 - range, atMost and actuator raw quantities convert before r9; the full core report and catalogue are unchanged
+  ---
+  duration_ms: 41.088125
+  type: 'test'
+  ...
+# Subtest: sweep stores the independent unrounded clearance limit and keeps mm unchanged
+ok 63 - sweep stores the independent unrounded clearance limit and keeps mm unchanged
+  ---
+  duration_ms: 28.659792
+  type: 'test'
+  ...
+# Subtest: consistency ratios preserve original decisions and explicitly handle zero limits, non-finite values and overflow
+ok 64 - consistency ratios preserve original decisions and explicitly handle zero limits, non-finite values and overflow
+  ---
+  duration_ms: 11.799708
+  type: 'test'
+  ...
+# Subtest: cloned, serialized or edited margins refuse with a typed provenance boundary; sized uses the same projector
+ok 65 - cloned, serialized or edited margins refuse with a typed provenance boundary; sized uses the same projector
+  ---
+  duration_ms: 23.2635
+  type: 'test'
+  ...
+# Subtest: default core check and size accept only canonical Duty and project native results once
+ok 66 - default core check and size accept only canonical Duty and project native results once
+  ---
+  duration_ms: 31.882458
+  type: 'test'
+  ...
+# Subtest: a gap of 1e-5 mm, default budget: never a contact or a TOI (the swing never touches); the least clearance met is the gap
+not ok 67 - a gap of 1e-5 mm, default budget: never a contact or a TOI (the swing never touches); the least clearance met is the gap
+  ---
+  duration_ms: 712.84075
+  type: 'test'
+  location: '/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/audit2229/cmp/b-base-head/robot-sweep-budget.test.mjs:109679:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   links: [
+    +     'post',
+    +     'b'
+    +   ],
+    +   s: 0.6384517554333893,
+    +   values: {
+    +     'a~b': 0,
+    +     'base~a': 0.11076140434671145,
+    +     'base~post': 0
+    +   }
+    + }
+    - undefined
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual:
+    s: 0.6384517554333893
+    values:
+      base~post: 0
+      base~a: 0.11076140434671145
+      a~b: 0
+    links:
+      0: 'post'
+      1: 'b'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/audit2229/cmp/b-base-head/robot-sweep-budget.test.mjs:109682:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: a gap of 1e-2 mm over 30 turns of a continuous joint, default budget: not a contact
+not ok 68 - a gap of 1e-2 mm over 30 turns of a continuous joint, default budget: not a contact
+  ---
+  duration_ms: 232.3175
+  type: 'test'
+  location: '/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/audit2229/cmp/b-base-head/robot-sweep-budget.test.mjs:109698:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 144.6340160937143
+    - undefined
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual: 144.6340160937143
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/audit2229/cmp/b-base-head/robot-sweep-budget.test.mjs:109701:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a 5 mm gap with maxSamples 1, 2, 3, 5, 10: exhausted, never a contact, no TOI
+not ok 69 - a 5 mm gap with maxSamples 1, 2, 3, 5, 10: exhausted, never a contact, no TOI
+  ---
+  duration_ms: 58.030083
+  type: 'test'
+  location: '/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/audit2229/cmp/b-base-head/robot-sweep-budget.test.mjs:109710:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    maxSamples 1
+    + actual - expected
+    
+    + {
+    +   links: [
+    +     'base',
+    +     'b'
+    +   ],
+    +   s: 0,
+    +   values: {
+    +     'a~b': 0,
+    +     'base~a': -0.4,
+    +     'base~post': 0
+    +   }
+    + }
+    - undefined
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual:
+    s: 0
+    values:
+      base~post: 0
+      base~a: -0.4
+      a~b: 0
+    links:
+      0: 'base'
+      1: 'b'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/audit2229/cmp/b-base-head/robot-sweep-budget.test.mjs:109714:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a first segment completed, the second out of budget: the exhausted segment index and time are on the second; no TOI
+not ok 70 - a first segment completed, the second out of budget: the exhausted segment index and time are on the second; no TOI
+  ---
+  duration_ms: 54.0465
+  type: 'test'
+  location: '/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/audit2229/cmp/b-base-head/robot-sweep-budget.test.mjs:109729:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 0.8393143931698519
+    - undefined
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual: 0.8393143931698519
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/audit2229/cmp/b-base-head/robot-sweep-budget.test.mjs:109732:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a real collision still gives the same contact (s, links, TOI) as before the fix
+ok 71 - a real collision still gives the same contact (s, links, TOI) as before the fix
+  ---
+  duration_ms: 56.991125
+  type: 'test'
+  ...
+# Subtest: callers: sweep_path, check_path (open and closed), RM6 duty and the captive rung say "not certified" for an exhausted sweep; contact and clear are unchanged
+not ok 72 - callers: sweep_path, check_path (open and closed), RM6 duty and the captive rung say "not certified" for an exhausted sweep; contact and clear are unchanged
+  ---
+  duration_ms: 88.5645
+  type: 'test'
+  location: '/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/audit2229/cmp/b-base-head/robot-sweep-budget.test.mjs:109746:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/audit2229/cmp/b-base-head/robot-sweep-budget.test.mjs:109752:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# 6R sweep: contact base–l4 at s 0.738856, 45 samples, least clearance 0.0000 mm
+# Subtest: GJK: the distance between convex sets equals the polytopes' brute-force distance; boxes in closed form; 0 when they overlap
+ok 73 - GJK: the distance between convex sets equals the polytopes' brute-force distance; boxes in closed form; 0 when they overlap
+  ---
+  duration_ms: 28.504083
+  type: 'test'
+  ...
+# Subtest: the motion bound holds: no point of a link moves more than Σ|Δq_i|·r_i, over random trees and steps (dense FK)
+ok 74 - the motion bound holds: no point of a link moves more than Σ|Δq_i|·r_i, over random trees and steps (dense FK)
+  ---
+  duration_ms: 22.407958
+  type: 'test'
+  ...
+# Subtest: a 2R arm swung into a grounded post: the first contact where the plane's separating axes put it; the way back clear, its least clearance
+ok 75 - a 2R arm swung into a grounded post: the first contact where the plane's separating axes put it; the way back clear, its least clearance
+  ---
+  duration_ms: 104.175708
+  type: 'test'
+  ...
+# Subtest: the 6R arm against a dense sweep with the exact mesh test: no contact the bound let through
+ok 76 - the 6R arm against a dense sweep with the exact mesh test: no contact the bound let through
+  ---
+  duration_ms: 5971.761958
+  type: 'test'
+  ...
+# Subtest: the sweep_path tool; the conformance case (rm/sweep-post: the first contact from the plane's closed form)
+ok 77 - the sweep_path tool; the conformance case (rm/sweep-post: the first contact from the plane's closed form)
+  ---
+  duration_ms: 76.050625
+  type: 'test'
+  ...
+# Subtest: RS1: the samples on disk are what the script writes, listed in index.json, each a robot with one demo motion
+ok 78 - RS1: the samples on disk are what the script writes, listed in index.json, each a robot with one demo motion
+  ---
+  duration_ms: 5.566708
+  type: 'test'
+  ...
+# Subtest: RS1: each sample's joint tree (types, the gear followers) and its demo motion valid on it
+ok 79 - RS1: each sample's joint tree (types, the gear followers) and its demo motion valid on it
+  ---
+  duration_ms: 1125.962459
+  type: 'test'
+  ...
+# Subtest: RS1: FK at 20 poses each against the closed form (the chain's product of exponentials), to 1e-9 mm
+ok 80 - RS1: FK at 20 poses each against the closed form (the chain's product of exponentials), to 1e-9 mm
+  ---
+  duration_ms: 462.740834
+  type: 'test'
+  ...
+# Subtest: RS1: the demo motions' durations in degrees (arm-2r's wave against the trapezoid's closed form); the arms carry real joint limits
+ok 81 - RS1: the demo motions' durations in degrees (arm-2r's wave against the trapezoid's closed form); the arms carry real joint limits
+  ---
+  duration_ms: 516.835291
+  type: 'test'
+  ...
+# Subtest: RS1 (O22, RS6): every sample's demo motion passes check_path clear along its timing — the four-bar's with its loop closed
+ok 82 - RS1 (O22, RS6): every sample's demo motion passes check_path clear along its timing — the four-bar's with its loop closed
+  ---
+  duration_ms: 974.473041
+  type: 'test'
+  ...
+# Subtest: RS1: the four-bar closes its loop through its demo motion (the pins meet to 1e-9 mm)
+ok 83 - RS1: the four-bar closes its loop through its demo motion (the pins meet to 1e-9 mm)
+  ---
+  duration_ms: 28.158458
+  type: 'test'
+  ...
+# Subtest: RS1: URDF and MJCF exported and read back by our readers: FK through the files equals ours, to 1e-12 m
+ok 84 - RS1: URDF and MJCF exported and read back by our readers: FK through the files equals ours, to 1e-12 m
+  ---
+  duration_ms: 1051.474375
+  type: 'test'
+  ...
+# Subtest: RS1: check_urdf reads every open-chain sample's URDF; MuJoCo's kinematics of each MJCF equals our reader's (where installed)
+ok 85 - RS1: check_urdf reads every open-chain sample's URDF; MuJoCo's kinematics of each MJCF equals our reader's (where installed)
+  ---
+  duration_ms: 2225.401834
+  type: 'test'
+  ...
+# Subtest: RS3 set_pose: degrees in and out, the links where FK puts them in radians; past a limit, an unknown key or a gear follower refused, typed; nothing stored
+ok 86 - RS3 set_pose: degrees in and out, the links where FK puts them in radians; past a limit, an unknown key or a gear follower refused, typed; nothing stored
+  ---
+  duration_ms: 244.555166
+  type: 'test'
+  ...
+# Subtest: RS3 set_waypoint: a motion recorded (made, inserted, removed, its limits), checked as it will play; the robot's, so proposed
+ok 87 - RS3 set_waypoint: a motion recorded (made, inserted, removed, its limits), checked as it will play; the robot's, so proposed
+  ---
+  duration_ms: 44.523291
+  type: 'test'
+  ...
+# Subtest: RS3 check_path: the SCARA's pick clear along its timing, its duration the trapezoid's closed form; a motion that cannot play refused
+ok 88 - RS3 check_path: the SCARA's pick clear along its timing, its duration the trapezoid's closed form; a motion that cannot play refused
+  ---
+  duration_ms: 120.476083
+  type: 'test'
+  ...
+# Subtest: RS3 play_motion: the stored motion's poses at even times, each poseAt's in degrees, its links FK's
+ok 89 - RS3 play_motion: the stored motion's poses at even times, each poseAt's in degrees, its links FK's
+  ---
+  duration_ms: 456.052875
+  type: 'test'
+  ...
+# Subtest: RB9 rung 5 (D121): the sheet-metal L-bracket by the agent — one body; the volume, the flat (70 − BD) × 30 with its two holes, one bend, by closed forms; its DXF
+ok 90 - RB9 rung 5 (D121): the sheet-metal L-bracket by the agent — one body; the volume, the flat (70 − BD) × 30 with its two holes, one bend, by closed forms; its DXF
+  ---
+  duration_ms: 101.326125
+  type: 'test'
+  ...
+# Subtest: RB9 rung 10 (D121): the sheet-metal PCB enclosure by the agent — corner reliefs, four flanges, four standoff holes, a connector slot; the volume and the flat (100 + 2(25 − BD)) × (70 + 2(25 − BD)) with six loops, four bends up
+ok 91 - RB9 rung 10 (D121): the sheet-metal PCB enclosure by the agent — corner reliefs, four flanges, four standoff holes, a connector slot; the volume and the flat (100 + 2(25 − BD)) × (70 + 2(25 − BD)) with six loops, four bends up
+  ---
+  duration_ms: 198.795958
+  type: 'test'
+  ...
+# Subtest: every handler is classified, nothing reaches outside the document, read handlers change nothing
+ok 92 - every handler is classified, nothing reaches outside the document, read handlers change nothing
+  ---
+  duration_ms: 1.325708
+  type: 'test'
+  ...
+# Subtest: the breaking-change rules: removals and narrowing break, additions do not
+ok 93 - the breaking-change rules: removals and narrowing break, additions do not
+  ---
+  duration_ms: 0.433625
+  type: 'test'
+  ...
+# Subtest: every read tool’s result matches its output schema and changes nothing
+ok 94 - every read tool’s result matches its output schema and changes nothing
+  ---
+  duration_ms: 593.950625
+  type: 'test'
+  ...
+# Subtest: O7 refusals, typed: [FASTENER_SIZE_ROW] for a tapped hole or a fastener with no size row loaded
+ok 95 - O7 refusals, typed: [FASTENER_SIZE_ROW] for a tapped hole or a fastener with no size row loaded
+  ---
+  duration_ms: 31.469791
+  type: 'test'
+  ...
+1..95
+# tests 95
+# suites 0
+# pass 90
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 67275.765375

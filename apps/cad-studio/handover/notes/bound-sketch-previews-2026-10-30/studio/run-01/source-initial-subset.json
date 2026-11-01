@@ -1,0 +1,17 @@
+{
+  "count": 12,
+  "hashes": {
+    "apps/cad-studio/src/App.tsx": "2b6fdc1216e5da7e41ae0179cd32ecdfb4a7d03167bf15524ec4f2c21ba2f0ff",
+    "apps/cad-studio/src/ui/Hud.tsx": "777545d109ae7482f64128ccdec0f53ba8627f8a06f750a5d672f0704734c2a7",
+    "apps/cad-studio/src/ui/ParametersPanel.tsx": "6fbe064ba325faf494d503f7bfb4e721e9aeb604f32a53ee3c674197d82a3b33",
+    "apps/cad-studio/src/viewport/GizmoMarks.tsx": "17686ca9a9236d9546f5c378adcc461d78082a7a3f406f7626f8a2c622952f01",
+    "apps/cad-studio/src/viewport/Viewport.tsx": "660013eb07a4aa2cf474825d42de7e9dc041b1a77169fa8470aa0a2a58faf232",
+    "apps/cad-studio/test/bound-sketch-previews-browser.mjs": "6f5bf0a19ed0d34940a6ed6719496705a64a7be71b89bf24b86ce2a084393253",
+    "apps/cad-studio/test/fixtures/d357.bcad": "45b62980d89e0f6ce397c632186788b11546ee9f799b97a303a3cf40a1f61d3c",
+    "packages/barocss-cad-model/src/app/editCommand.ts": "80ea03286f094b746315a7a0b5646f5714fc814694053d66cdda5aad5111c477",
+    "packages/barocss-cad-model/src/app/profileCommands.ts": "04b2f253647e1a7feeea13bc46b5ddb24018354db7e063e33a2dfc66bbf60861",
+    "packages/barocss-cad-model/src/app/profiles.ts": "b9d1416d41b5cb3b95fa55f3ead65057c456d01dc48d8344e275beedc4839916",
+    "packages/barocss-cad-model/src/engine/parameters.ts": "8e5c164f3df59f63875c82f2db6e86052da25213054fed812ac5eb5bb1560100",
+    "packages/barocss-cad-model/src/sketch/loops.ts": "7abe92c6909f67d541d60f7040d0ddbd87ff3838e7e754cc947779bc54c91a2b"
+  }
+}

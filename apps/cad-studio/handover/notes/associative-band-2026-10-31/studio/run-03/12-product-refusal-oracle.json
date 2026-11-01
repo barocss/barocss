@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "productImports": 0,
+  "mode": "overlap",
+  "R": 55,
+  "r2": 10,
+  "C": 60,
+  "sum": 65,
+  "overlap": 5
+}

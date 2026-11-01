@@ -451,12 +451,12 @@ try {
   }
   await page.click('[aria-label="Hide workspace"]');
   // 120 holed brackets (bench-assembly's), exploded from 0 to 2 one step an animation frame, 60 steps: an explode drag.
-  const bracket = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [
+  const bracket = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [
     { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [30, 12] }, { kind: 'extrude', sketch: 0, height: 6 },
     { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 2 }, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [24, 6], radius: 2 }],
     outputs: { b1: { node: 3, side: 'solid' } } };
   const N = 120, side = Math.ceil(Math.sqrt(N));
-  const many = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {},
+  const many = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {},
     instances: Array.from({ length: N }, (_, k) => ({ id: `i${k}`, name: `bracket ${k}`, doc: bracket, position: [40 * (k % side), 20 * Math.floor(k / side), 0], rotation: [0, 0, 0], part: { id: 'bracket', rev: 'A' } })) };
   await open('brackets.bcad', many, () => window.__studioInstanceBounds?.().length === 120);
   await measure('explode: 120 brackets, 60-step drag', BUDGET.explode, async () => {

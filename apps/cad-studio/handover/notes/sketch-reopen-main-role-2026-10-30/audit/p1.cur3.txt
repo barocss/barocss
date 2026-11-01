@@ -1,0 +1,118 @@
+== A circle main + rect region
+  picked      polygon / polygon
+  stored      {"profile":"circle","radius":5,"regions":[4],"holes":[],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\",\"e3\",\"e4\",\"e5\"]]}","outlineCircles":0}
+  finish1     {"profile":"circle","radius":5,"regions":[4],"holes":[],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\",\"e3\",\"e4\",\"e5\"]]}","outlineCircles":0} notices []
+  finish2     {"profile":"circle","radius":5,"regions":[4],"holes":[],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\",\"e3\",\"e4\",\"e5\"]]}","outlineCircles":0} notices []
+  same1/same2 true true  f1==f2 true
+  radius      5 5 5
+  extrude fields dia,cc0,cc1,h,from,draft -> dia,cc0,cc1,h,from,draft
+  bodies same true
+   b b2:n2.bottom,n2.bottom,n2.side[e1],n2.side[e2],n2.side[e3],n2.side[e4],n2.side[e5],n2.top,n2.top | vol=2785.398
+== B circle main + 2 rect regions
+  picked      polygon / polygon
+  stored      {"profile":"circle","radius":5,"regions":[4,4],"holes":[],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\",\"e3\",\"e4\",\"e5\"],[\"e6\",\"e7\",\"e8\",\"e9\"]]}","outlineCircles":0}
+  finish1     {"profile":"circle","radius":5,"regions":[4,4],"holes":[],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\",\"e3\",\"e4\",\"e5\"],[\"e6\",\"e7\",\"e8\",\"e9\"]]}","outlineCircles":0} notices []
+  finish2     {"profile":"circle","radius":5,"regions":[4,4],"holes":[],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\",\"e3\",\"e4\",\"e5\"],[\"e6\",\"e7\",\"e8\",\"e9\"]]}","outlineCircles":0} notices []
+  same1/same2 true true  f1==f2 true
+  radius      5 5 5
+  extrude fields dia,cc0,cc1,h,from,draft -> dia,cc0,cc1,h,from,draft
+  bodies same true
+   b b2:n2.bottom,n2.bottom,n2.bottom,n2.side[e1],n2.side[e2],n2.side[e3],n2.side[e4],n2.side[e5],n2.side[e6],n2.side[e7],n2.side[e8],n2.side[e9],n2.top,n2.top,n2.top | vol=4785.398
+== C circle main with circle hole + rect hole
+  picked      polygon / polygon
+  stored      {"profile":"circle","radius":20,"regions":[],"holes":[1,4],"tags":"{\"outer\":[\"e1\"],\"holes\":[[\"e2\"],[\"e3\",\"e4\",\"e5\",\"e6\"]]}","outlineCircles":0}
+  finish1     {"profile":"circle","radius":20,"regions":[],"holes":[1,4],"tags":"{\"outer\":[\"e1\"],\"holes\":[[\"e2\"],[\"e3\",\"e4\",\"e5\",\"e6\"]]}","outlineCircles":0} notices []
+  finish2     {"profile":"circle","radius":20,"regions":[],"holes":[1,4],"tags":"{\"outer\":[\"e1\"],\"holes\":[[\"e2\"],[\"e3\",\"e4\",\"e5\",\"e6\"]]}","outlineCircles":0} notices []
+  same1/same2 true true  f1==f2 true
+  radius      20 20 20
+  extrude fields dia,cc0,cc1,h,from,draft -> dia,cc0,cc1,h,from,draft
+  bodies same true
+   b b2:n2.bottom,n2.side[e1],n2.side[e2],n2.side[e3],n2.side[e4],n2.side[e5],n2.side[e6],n2.top | vol=11923.627
+== C2 circle main + rect region + rect hole in main
+  picked      polygon / polygon
+  stored      {"profile":"circle","radius":20,"regions":[4],"holes":[4],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\",\"e3\",\"e4\",\"e5\"]],\"holes\":[[\"e6\",\"e7\",\"e8\",\"e9\"]]}","outlineCircles":0}
+  finish1     {"profile":"circle","radius":20,"regions":[4],"holes":[4],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\",\"e3\",\"e4\",\"e5\"]],\"holes\":[[\"e6\",\"e7\",\"e8\",\"e9\"]]}","outlineCircles":0} notices []
+  finish2     {"profile":"circle","radius":20,"regions":[4],"holes":[4],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\",\"e3\",\"e4\",\"e5\"]],\"holes\":[[\"e6\",\"e7\",\"e8\",\"e9\"]]}","outlineCircles":0} notices []
+  same1/same2 true true  f1==f2 true
+  radius      20 20 20
+  extrude fields dia,cc0,cc1,h,from,draft -> dia,cc0,cc1,h,from,draft
+  bodies same true
+   b b2:n2.bottom,n2.bottom,n2.side[e1],n2.side[e2],n2.side[e3],n2.side[e4],n2.side[e5],n2.side[e6],n2.side[e7],n2.side[e8],n2.side[e9],n2.top,n2.top | vol=14206.371
+== D slot main + rect region
+  picked      polygon / polygon
+  stored      {"profile":"loop","regions":[4],"holes":[],"tags":"{\"outer\":[\"e1\",\"e2\",\"e3\",\"e4\"],\"regions\":[[\"e5\",\"e6\",\"e7\",\"e8\"]]}","outlineCircles":0}
+  finish1     {"profile":"loop","regions":[4],"holes":[],"tags":"{\"outer\":[\"e1\",\"e2\",\"e3\",\"e4\"],\"regions\":[[\"e5\",\"e6\",\"e7\",\"e8\"]]}","outlineCircles":0} notices []
+  finish2     {"profile":"loop","regions":[4],"holes":[],"tags":"{\"outer\":[\"e1\",\"e2\",\"e3\",\"e4\"],\"regions\":[[\"e5\",\"e6\",\"e7\",\"e8\"]]}","outlineCircles":0} notices []
+  same1/same2 true true  f1==f2 true
+  extrude fields h,from,draft -> h,from,draft
+  bodies same true
+   b b2:n2.bottom,n2.bottom,n2.side[e1],n2.side[e2],n2.side[e3],n2.side[e4],n2.side[e5],n2.side[e6],n2.side[e7],n2.side[e8],n2.top,n2.top | vol=2882.743
+== E pre-R10a circle main (no sideTags) + region, R bound
+  picked      polygon / polygon
+  stored      {"profile":"circle","radius":{"parameter":"R"},"regions":[4],"holes":[],"tags":"-","outlineCircles":0}
+  finish1     {"profile":"circle","radius":{"parameter":"R"},"regions":[4],"holes":[],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\",\"e3\",\"e4\",\"e5\"]]}","outlineCircles":0} notices []
+  finish2     {"profile":"circle","radius":{"parameter":"R"},"regions":[4],"holes":[],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\",\"e3\",\"e4\",\"e5\"]]}","outlineCircles":0} notices []
+  same1/same2 false false  f1==f2 true
+  radius      {"parameter":"R"} {"parameter":"R"} {"parameter":"R"}
+  extrude fields dia,cc0,cc1,h,from,draft -> dia,cc0,cc1,h,from,draft
+  bodies same false
+   b0 b2:n2.bottom,n2.bottom,n2.region0.side0,n2.region0.side1,n2.region0.side2,n2.region0.side3,n2.side0,n2.top,n2.top | vol=2785.398
+   b2 b2:n2.bottom,n2.bottom,n2.side[e1],n2.side[e2],n2.side[e3],n2.side[e4],n2.side[e5],n2.top,n2.top | vol=2785.398
+== E2 pre-R10a circle main + 2 regions
+  picked      polygon / polygon
+  stored      {"profile":"circle","radius":5,"regions":[4,4],"holes":[],"tags":"-","outlineCircles":0}
+  finish1     {"profile":"circle","radius":5,"regions":[4,4],"holes":[],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\",\"e3\",\"e4\",\"e5\"],[\"e6\",\"e7\",\"e8\",\"e9\"]]}","outlineCircles":0} notices []
+  finish2     {"profile":"circle","radius":5,"regions":[4,4],"holes":[],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\",\"e3\",\"e4\",\"e5\"],[\"e6\",\"e7\",\"e8\",\"e9\"]]}","outlineCircles":0} notices []
+  same1/same2 false false  f1==f2 true
+  radius      5 5 5
+  extrude fields dia,cc0,cc1,h,from,draft -> dia,cc0,cc1,h,from,draft
+  bodies same false
+   b0 b2:n2.bottom,n2.bottom,n2.bottom,n2.region0.side0,n2.region0.side1,n2.region0.side2,n2.region0.side3,n2.region1.side0,n2.region1.side1,n2.region1.side2,n2.region1.side3,n2.side0,n2.top,n2.top,n2.top | vol=4785.398
+   b2 b2:n2.bottom,n2.bottom,n2.bottom,n2.side[e1],n2.side[e2],n2.side[e3],n2.side[e4],n2.side[e5],n2.side[e6],n2.side[e7],n2.side[e8],n2.side[e9],n2.top,n2.top,n2.top | vol=4785.398
+== F polygon main + circle region
+  picked      polygon / polygon
+  stored      {"profile":"polygon","regions":[1],"holes":[],"tags":"{\"outer\":[\"e1\",\"e2\",\"e3\",\"e4\"],\"regions\":[[\"e5\"]]}","outlineCircles":0}
+  finish1     {"profile":"polygon","regions":[1],"holes":[],"tags":"{\"outer\":[\"e1\",\"e2\",\"e3\",\"e4\"],\"regions\":[[\"e5\"]]}","outlineCircles":0} notices []
+  finish2     {"profile":"polygon","regions":[1],"holes":[],"tags":"{\"outer\":[\"e1\",\"e2\",\"e3\",\"e4\"],\"regions\":[[\"e5\"]]}","outlineCircles":0} notices []
+  same1/same2 true true  f1==f2 true
+  extrude fields h,from,draft -> h,from,draft
+  bodies same true
+   b b2:n2.bottom,n2.bottom,n2.side[e1],n2.side[e2],n2.side[e3],n2.side[e4],n2.side[e5],n2.top,n2.top | vol=1502.655
+== F2 rect main + rect region
+  picked      polygon / polygon
+  stored      {"profile":"polygon","regions":[4],"holes":[],"tags":"{\"outer\":[\"e1\",\"e2\",\"e3\",\"e4\"],\"regions\":[[\"e5\",\"e6\",\"e7\",\"e8\"]]}","outlineCircles":0}
+  finish1     {"profile":"polygon","regions":[4],"holes":[],"tags":"{\"outer\":[\"e1\",\"e2\",\"e3\",\"e4\"],\"regions\":[[\"e5\",\"e6\",\"e7\",\"e8\"]]}","outlineCircles":0} notices []
+  finish2     {"profile":"polygon","regions":[4],"holes":[],"tags":"{\"outer\":[\"e1\",\"e2\",\"e3\",\"e4\"],\"regions\":[[\"e5\",\"e6\",\"e7\",\"e8\"]]}","outlineCircles":0} notices []
+  same1/same2 true true  f1==f2 true
+  extrude fields h,from,draft -> h,from,draft
+  bodies same true
+   b b2:n2.bottom,n2.bottom,n2.side[e1],n2.side[e2],n2.side[e3],n2.side[e4],n2.side[e5],n2.side[e6],n2.side[e7],n2.side[e8],n2.top,n2.top | vol=2000.000
+== G outline with attached circle + region
+  picked      polygon / polygon
+  stored      {"profile":"polygon","regions":[4],"holes":[1],"tags":"{\"outer\":[\"e1\",\"e2\",\"e3\",\"e4\"],\"regions\":[[\"e6\",\"e7\",\"e8\",\"e9\"]],\"holes\":[[\"e5\"]]}","outlineCircles":1}
+  finish1     {"profile":"polygon","regions":[4],"holes":[1],"tags":"{\"outer\":[\"e1\",\"e2\",\"e3\",\"e4\"],\"regions\":[[\"e6\",\"e7\",\"e8\",\"e9\"]],\"holes\":[[\"e5\"]]}","outlineCircles":1} notices []
+  finish2     {"profile":"polygon","regions":[4],"holes":[1],"tags":"{\"outer\":[\"e1\",\"e2\",\"e3\",\"e4\"],\"regions\":[[\"e6\",\"e7\",\"e8\",\"e9\"]],\"holes\":[[\"e5\"]]}","outlineCircles":1} notices []
+  same1/same2 true true  f1==f2 true
+  extrude fields ocdia0,h,from,draft -> ocdia0,h,from,draft
+  bodies same true
+   b b2:n2.bottom,n2.bottom,n2.side[e1],n2.side[e2],n2.side[e3],n2.side[e4],n2.side[e5],n2.side[e6],n2.side[e7],n2.side[e8],n2.side[e9],n2.top,n2.top | vol=11717.257
+== H circle main + circle region
+  picked      circle / circle
+  stored      {"profile":"circle","radius":5,"regions":[1],"holes":[],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\"]]}","outlineCircles":0}
+  finish1     {"profile":"circle","radius":5,"regions":[1],"holes":[],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\"]]}","outlineCircles":0} notices []
+  finish2     {"profile":"circle","radius":5,"regions":[1],"holes":[],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\"]]}","outlineCircles":0} notices []
+  same1/same2 true true  f1==f2 true
+  radius      5 5 5
+  extrude fields dia,cc0,cc1,h,from,draft -> dia,cc0,cc1,h,from,draft
+  bodies same true
+   b b2:n2.bottom,n2.bottom,n2.side[e1],n2.side[e2],n2.top,n2.top | vol=1288.053
+== I circle main + rect region, tagged + R bound
+  picked      polygon / polygon
+  stored      {"profile":"circle","radius":{"parameter":"R"},"regions":[4],"holes":[],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\",\"e3\",\"e4\",\"e5\"]]}","outlineCircles":0}
+  finish1     {"profile":"circle","radius":{"parameter":"R"},"regions":[4],"holes":[],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\",\"e3\",\"e4\",\"e5\"]]}","outlineCircles":0} notices []
+  finish2     {"profile":"circle","radius":{"parameter":"R"},"regions":[4],"holes":[],"tags":"{\"outer\":[\"e1\"],\"regions\":[[\"e2\",\"e3\",\"e4\",\"e5\"]]}","outlineCircles":0} notices []
+  same1/same2 true true  f1==f2 true
+  radius      {"parameter":"R"} {"parameter":"R"} {"parameter":"R"}
+  extrude fields dia,cc0,cc1,h,from,draft -> dia,cc0,cc1,h,from,draft
+  bodies same true
+   b b2:n2.bottom,n2.bottom,n2.side[e1],n2.side[e2],n2.side[e3],n2.side[e4],n2.side[e5],n2.top,n2.top | vol=2785.398

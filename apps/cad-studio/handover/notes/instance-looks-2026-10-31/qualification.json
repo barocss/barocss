@@ -1,0 +1,46 @@
+{
+  "decision": "D390",
+  "roadmap": "10 ① instance looks: inherited from the definition, per-occurrence overrides with provenance, kept across revisions (owner order 'Go to row 10')",
+  "issues": {
+    "#2233": "linked-part inherited values vs local overrides on source update",
+    "#538": "stays open"
+  },
+  "tier": "full (document field, revision semantics, mass/BOM, both renderers: three audit rounds with mutation, actual run)",
+  "status": "QUALIFIED",
+  "before": "placed instances rendered in a fixed base colour: neither the definition's look nor any per-instance look reached the screen; no per-occurrence material",
+  "change": {
+    "screen": "instance bodies show their definition's colour, face colours and hidden state (WebGPU; WebGL2 without face colours, as for own bodies), sub-assembly nested parts included",
+    "overrides": "PartInstance.looks (colour, faces, material, hidden) per body key or nested path; effective look = override ?? definition, with per-field provenance; set/reset per field",
+    "consumers": "BOM material/mass/grouping, assembly mass, result freshness digests, team bundle, robot inertia/link masses/URDF/MJCF, per-part budget, 3MF colours (nested faces through the fold); documents without looks byte-identical (454 outputs on 48 documents)",
+    "revisions": "accept keeps overrides; an override whose body the revision no longer makes (vanished, split side gone, absorbed by a merge) is held and reported on offer and accept, never re-aimed; suppressed features neither hide nor make bodies",
+    "guards": "Open refuses unknown look fields and material ids; a face colour on a face not in the part refused; a pattern occurrence copies the seed's looks and refuses its own (PATTERN_DRIVEN)",
+    "studio": "Appearance (this occurrence): Colour and Material rows only; an overridden field shows a dot and a Reset icon; Visible, face colours, source text and held problems inside a closed 'Details' (owner feedback 2026-10-31: too much listed at once)",
+    "agent": "facade setPartLook/partLooks; chat place_part `looks`; get_assembly body_keys and looks"
+  },
+  "audits": {
+    "round1": "CHANGES_REQUIRED: high — material overrides missed result freshness, the team bundle and robot inertia/URDF; medium — vanished split side not held, a merge re-aimed an override, nested face colours never painted; low — Open looser than the setter, face names unchecked, hatch/threads on hidden bodies — all fixed",
+    "round2": "CHANGES_REQUIRED: medium — suppressed features made a live body read as held — fixed; 454 outputs byte-identical; 6/6 mutants killed",
+    "round3": "targeted: ACCEPT; corpus 96 part documents keys = evaluation; mutant killed"
+  },
+  "checks": {
+    "instanceLooks": "model 25/25, Studio 9/9",
+    "modelSuite": "2354/2354",
+    "studioSuite": "597/597",
+    "tsc": "PASS",
+    "docsTables": "PASS"
+  },
+  "actualRun": {
+    "run04": "final source PASS: both cubes in the definition's red; Cube 2 set blue and steel (dot markers, no provenance text, Details closed); BOM masses by independent density arithmetic (aluminium 2.70, steel 7.85); Undo/Redo; Rev B (a hole) accepted keeps Cube 2's override with the new volume; Save and fresh Open; Reset of the colour back to the definition's red while the steel stays; 0 page/console errors; root reviewed the screenshots",
+    "failedRuns": [
+      "run02: the driver's 'no provenance text' check matched the section title 'Appearance (this occurrence)' (driver)"
+    ]
+  },
+  "followUps": [
+    "a suppressed split plus a later live union consuming the same body lists it as held (false note, no data loss)",
+    "nested material overrides cannot reach the team bundle yet (massResult/materialsOf fail for a sub-assembly occurrence at HEAD)",
+    "WebGL2 has no per-face colours",
+    "the Instance panel's header (Definition, From, New revision…, Make independent, Pattern…) could move behind Details too (owner UI direction)"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

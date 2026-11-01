@@ -1,0 +1,10 @@
+import { part, sketch } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/api';
+import { evaluateDoc } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/engine/evaluate';
+import { ellipseShape } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/sketch/ellipse';
+import { settleShape } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/sketch/settle';
+import { profileOf } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/sketch/loops';
+const s = settleShape(ellipseShape({ center: [0, 0], rx: 30, ry: 12, angle: 20 }), null).shape as any; const p: any = profileOf([s]);
+const t = part('e').extrude(sketch().polygon([[0, 0], [10, 0], [10, 10], [0, 10]]), { h: 8 }).doc;
+const r: any = evaluateDoc({ ...t, nodes: t.nodes.map((n: any, i: number) => i === 0 ? { ...p.node, id: n.id } : n) } as any, 1);
+const m = r.bodies[0].mesh; console.log('faces', m.faces.length, 'edges', m.edges.length, 'edgeLine segments', m.edgeLines.length / 6, 'edge0', JSON.stringify(m.edges[0]).slice(0, 300));
+const kinds: Record<string, number> = {}; m.edges.forEach((e: any) => { const k = (e.smooth ?? e.tangent ?? e.kind ?? 'na') + ''; kinds[k] = (kinds[k] ?? 0) + 1; }); console.log(kinds);

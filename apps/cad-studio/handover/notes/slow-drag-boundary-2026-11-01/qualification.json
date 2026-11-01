@@ -1,0 +1,113 @@
+{
+  "decision": "D403",
+  "date": "2026-11-01",
+  "tier": "small measurement",
+  "status": "BOUNDED_MEASURED",
+  "baseCommit": "cab1d7b28",
+  "model": "gpt-6.1-sol / medium",
+  "productCodeChanged": false,
+  "workload": {
+    "fixture": "apps/cad-studio/test/fixtures/drag-preview-slow.bcad",
+    "nodes": 51,
+    "faces": 56,
+    "holes": 48,
+    "box": [
+      60,
+      40,
+      20
+    ],
+    "holeRadius": 1,
+    "filletRadius": 3
+  },
+  "nodePremeasure": {
+    "cold": 408.4,
+    "changedWidth61": 313.2,
+    "changedWidth62": 288.6,
+    "unit": "ms",
+    "operation": "evaluatePreview"
+  },
+  "studio": {
+    "run01": "FAIL_DRIVER: HUD prerequisite before drag",
+    "run02": "FAIL_DRIVER: stale W/Width selector missed Width X after valid timing",
+    "run03": "PASS",
+    "artifacts": "/tmp/barocss-d403-run03",
+    "command": "cd apps/cad-studio && DRAG_TIMING_SLOW=1 DRAG_TIMING_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' node test/drag-preview-timing-browser.mjs /tmp/barocss-d403-run03",
+    "heavyGate": true,
+    "measurement": {
+      "label": "slow-drag",
+      "moves": 70,
+      "holdMs": 1800,
+      "pointerMovesSent": 70,
+      "previewRequests": 12,
+      "rolledRequests": 10,
+      "fullRequests": 2,
+      "unknownFaces": 0,
+      "rolledMs": {
+        "median": 0.9,
+        "p90": 3.2,
+        "max": 3.2
+      },
+      "fullMs": {
+        "median": 235.5,
+        "p90": 235.5,
+        "max": 235.5
+      },
+      "frameGapMs": {
+        "count": 98,
+        "median": 16.7,
+        "p90": 16.7,
+        "max": 33.3,
+        "over50": 0
+      },
+      "pointerDelivered": 70,
+      "pointerGapMs": {
+        "median": 16.7,
+        "p90": 50,
+        "max": 50.1
+      },
+      "widthUpdateGapMs": {
+        "count": 13,
+        "median": 149.9,
+        "p90": 166.6,
+        "max": 166.7
+      },
+      "fullWorkerWallMs": [
+        235.1,
+        217.4
+      ],
+      "widthShown": {
+        "first": "60",
+        "last": "71",
+        "distinct": 12
+      }
+    },
+    "frozenFiles": 279,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "escapeDocumentEquality": true,
+    "rootVisualReview": "PASS: 99-unchanged.png",
+    "cleanup": "All owned resources closed"
+  },
+  "checks": {
+    "syntax": "PASS",
+    "targetedLint": "PASS",
+    "diff": "PASS"
+  },
+  "stutter": "NOT_REPRODUCED on selected slow part; row 20\u2462 is not generally closed",
+  "notRun": [
+    "Quick D377 baseline",
+    "Broad suites",
+    "Independent audit (small measurement)",
+    "Apply",
+    "Save/download",
+    "CI",
+    "Release"
+  ],
+  "limits": [
+    "Headless animation frames do not establish physical vsync.",
+    "Worker round trips include clone/build but not GPU upload.",
+    "Snapped width cadence is distinct from animation-frame cadence."
+  ]
+}

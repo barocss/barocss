@@ -5,28 +5,13 @@ import { featureLabel, parentsOf, type BodyLook, type ModelNode, type StudioDoc 
 import type { BodyResult } from '../engine/evaluate';
 import { commands } from './commands';
 import { refOf } from './bodyRef';
-import { bodyKeyFor } from '../engine/ids';
+import { lookKey, rootOf } from './lookKey';
 import { briefMaterial } from '../chat/brief';
 
 /** The colours offered for bodies (the theme's grey is no colour). */
 export const BODY_COLOURS = ['#d9534f', '#f0ad4e', '#e8d44d', '#5cb85c', '#3fb6a8', '#4a90d9', '#8e6bd8', '#d26fa9', '#8d6e63', '#5b6470'] as const;
 
-/** The feature a body was first made by: back through each feature to the solid it was built on (a Boolean's first body). */
-export function rootOf(nodes: readonly ModelNode[], index: number): number {
-  for (let i = index, guard = 0; guard < 4096; guard++) {
-    const n = nodes[i]; if (!n) return index;
-    const solids = parentsOf(n).filter(p => nodes[p] && nodes[p].kind !== 'sketch');
-    if (!solids.length) return i;
-    i = solids[0];
-  }
-  return index;
-}
-/** The key of a body's look: `b<first feature's serial>`, and its side when it is one of several parts. */
-export function lookKey(nodes: readonly ModelNode[], body: BodyResult): string {
-  if (!/^b\d+(_.+)?$/.test(body.key)) return body.key;
-  const { node, side } = refOf(body);
-  return bodyKeyFor(nodes, rootOf(nodes, node), side === 'negative' || side.startsWith('part') ? side : 'solid');
-}
+export { lookKey, rootOf };
 export const lookOf = (doc: StudioDoc, body: BodyResult): BodyLook => doc.bodies?.[lookKey(doc.nodes, body)] ?? {};
 /** A body's material id: its own, else the brief's stated library material (A6.1), else none (the default, assumed). */
 export const materialIdOf = (doc: StudioDoc, body: BodyResult): string | undefined => lookOf(doc, body).material ?? briefMaterial(doc);

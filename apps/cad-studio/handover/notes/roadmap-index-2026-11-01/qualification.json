@@ -1,0 +1,165 @@
+{
+  "model": "GPT-6.1 Sol Medium",
+  "status": "QUALIFIED",
+  "validation": {
+    "status": "PASS",
+    "archives": {
+      "roadmap": {
+        "sha256": "1325b18b05f71ca1ffb8cb56552d7e0ee95bb516792a1ef77096a2b24cf1ad2e",
+        "bytes": 389423,
+        "headings": 92,
+        "currentBytes": 25234,
+        "currentFrontMatterLines": 80,
+        "compatibilityLines": 380
+      },
+      "decisions": {
+        "sha256": "ab13b705211d7b76b52e43b2f3fa7d603a7db95a941a53c9ac5e709c8a3075c7",
+        "bytes": 1654526,
+        "headings": 460,
+        "currentBytes": 118809,
+        "currentFrontMatterLines": 40,
+        "compatibilityLines": 1848
+      }
+    },
+    "rowPages": 34,
+    "parsedLegacyOutboundLinks": 913,
+    "oldHeadingFragments": 552,
+    "authoredInboundLinks": 82,
+    "checkedLocalLinks": 2356,
+    "knownMissingPaths": [
+      {
+        "file": "apps/cad-studio/handover/decisions-history-through-D417.md",
+        "href": "evidence/2443211888b5bc5d219fa3075dfea444bd6d5d4a/final-window/lanes/kernel-D.md"
+      }
+    ],
+    "newBroken": [],
+    "limits": [
+      "Actual local VitePress parser; GitHub slug equivalence is not assumed.",
+      "Original literal heading sequence preserves renderer input in both original filenames.",
+      "The pre-existing double-hyphen renderer discrepancy is retained as an explicit root alias.",
+      "Documentation-only validation; new Studio/build/kernel/type/API checks NOT_RUN."
+    ]
+  },
+  "scopeOwnerPages": 34,
+  "recentDecisionRows": 20,
+  "runtimeHashReuse": {
+    "unchanged": 748,
+    "total": 748,
+    "handoffUnchanged": true
+  },
+  "newStudio": "NOT_RUN",
+  "newProductChecks": "NOT_RUN",
+  "resources": 0,
+  "indexBytesReductionPercent": 92.95271065961039,
+  "files": {
+    "roadmap.md": {
+      "lines": 460,
+      "bytes": 25234
+    },
+    "decisions.md": {
+      "lines": 1888,
+      "bytes": 118809
+    }
+  },
+  "decision": "D418",
+  "date": "2026-11-01",
+  "tier": "small",
+  "baseCommit": "b920418ae8f0ce12207940649a917bff69782246",
+  "scope": "Documentation navigation only; no product code or acceptance changes",
+  "baselineCounts": {
+    "roadmapLines": 2515,
+    "decisionsLines": 18309,
+    "roadmapBytes": 389423,
+    "decisionsBytes": 1654526,
+    "originalParsedInboundLinks": 101,
+    "originalGeneratedHeadingPermalinks": 92,
+    "originalAuthoredInboundLinks": 9,
+    "originalObservedFragments": 93,
+    "originalParsedOutboundLinks": 913,
+    "generatedPermalinksWithinOutbound": 552,
+    "authoredOutboundLinks": 361,
+    "note": "Parsed link totals include renderer-generated heading permalinks; they are not independent authored references."
+  },
+  "commands": [
+    "# Worktree root only; Node 22.19.0 for Markdown validator. No heavy/browser/product checks.",
+    "PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH node /tmp/barocss-d418-prep/inventory.mjs",
+    "python3 /tmp/barocss-d418-prep/generate.py",
+    "PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH node apps/cad-studio/handover/scripts/check-navigation.mjs",
+    "node --check apps/cad-studio/handover/scripts/check-navigation.mjs",
+    "git diff --check",
+    "# Read-only Python hash comparison: all748 D417 source-frozen entries; handoff README compared byte-for-byte with HEAD.",
+    "# Receipt: /tmp/barocss-d418-prep/reuse.json",
+    "# Final combined receipt: /tmp/barocss-d418-prep/result.json",
+    "node --check apps/cad-studio/handover/scripts/check-navigation.mjs",
+    "node apps/cad-studio/handover/scripts/check-navigation.mjs > /tmp/barocss-d418-prep/root-final-navigation.json",
+    "git diff --check",
+    "git diff b920418ae 94ce44b88 --check",
+    "git diff b920418ae 94ce44b88 --check -- apps/cad-studio/handover (excluding the two byte-exact historical copies)"
+  ],
+  "failedEvidencePreserved": [
+    {
+      "stage": "scratch inventory",
+      "status": "FAIL",
+      "cause": "Malformed rg pattern before any inventory result; switched to git-tracked Markdown."
+    },
+    {
+      "stage": "first validator scope",
+      "status": "FAIL",
+      "cause": "Unrelated outgoing links from inbound-candidate files were treated as new failures; validation restricted to incoming links plus all outgoing links of new/index/archive files."
+    },
+    {
+      "stage": "staged copied-history whitespace check",
+      "status": "FAIL",
+      "cause": "Three inherited whitespace-only lines; original byte-exact copy is preserved, new-content check PASS."
+    }
+  ],
+  "reviewChanges": [
+    "Every compatibility heading directly links to its archived section, not an empty target.",
+    "Row pages contain actual scope and owner/dependency navigation.",
+    "Latest D417/related drawing and UI notes added; recent decisions have explicit D399-D418 IDs.",
+    "Active row13 and original sequence/hold boundaries remain explicit.",
+    "Validator root derives from its own file, independent of caller cwd; split heading lines once per parse.",
+    "Known missing path exception applies only to its byte-exact historical decision archive; new links to that path fail.",
+    "Root-owned new note is included before staging."
+  ],
+  "actualStudio": {
+    "newExecution": "NOT_RUN",
+    "reused": "D417 run01 + scoped run02",
+    "proof": "All748 recorded runtime/input hashes unchanged; no new product acceptance claimed."
+  },
+  "notRun": [
+    "New Studio or browser flow",
+    "Kernel/Model/Studio suites, builds and type checks",
+    "API inventory and library-docs build",
+    "R5/RB, paid calls, downloads, release or develop integration"
+  ],
+  "issues": "No feature acceptance changed and no issue closed; D417 issue evidence remains the product checkpoint.",
+  "archivePolicy": "The two through-D417 archives are fixed, same-folder, byte-exact source history. Future milestones add canonical notes and update indexes, not another full archive.",
+  "rawEvidence": "/tmp/barocss-d418-prep",
+  "productChanges": false,
+  "rootReview": "PASS: direct archived-section navigation, actual scope/dependencies, recent decision IDs, active lane and hold boundaries.",
+  "verifiedAtRoot": {
+    "syntax": "PASS",
+    "navigation": "PASS",
+    "newBrokenLinks": 0,
+    "knownHistoricalMissingPaths": 1,
+    "operatingHandoff": "unchanged",
+    "productRuntime": "748/748 unchanged; reused D417 only",
+    "newProductExecution": "NOT_RUN",
+    "syntaxAndNavigation": "PASS",
+    "diffWhitespace": "PASS for new/changed content excluding historical copies; full copied-history diff FAIL as recorded"
+  },
+  "verificationBoundaryCorrection": {
+    "discoveredAfterStaging": true,
+    "fullPublishedDiffWhitespaceCheck": "FAIL: three inherited trailing-whitespace lines in byte-exact historical decision copy",
+    "inheritedLines": [
+      1369,
+      1401,
+      1496
+    ],
+    "sourceArchiveBytesEqual": true,
+    "newAndChangedContentExcludingHistoricalCopies": "PASS",
+    "cause": "The earlier unstaged git diff --check omitted new untracked archives. The staged check reported inherited whitespace, but the shell continued to commit. This record corrects the scope; published history is not rewritten.",
+    "resolution": "Keep archived original bytes; distinguish inherited archive warnings from new content, with a follow-up commit."
+  }
+}

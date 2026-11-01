@@ -10,7 +10,7 @@ import { modelAnnotations } from '../src/drawing/annotations3d';
 import { sheetGroupsSvg, sheetSvg } from '../src/io/svg';
 
 const upper = { characteristic: 'position' as const, value: 0.25, datums: ['A', 'B'], diameter: false, material: 'maximum' as const, datumModifiers: { A: 'least' as const } };
-const composite = { value: 0.1, datums: ['C'], material: 'least' as const, datumModifiers: { C: 'maximum' as const } };
+const composite = { value: 0.1, datums: ['B'], material: 'least' as const, datumModifiers: { B: 'maximum' as const } };
 const attached: DrawingFrame = { id: 'attached', dim: 'd1', ...upper, composite };
 const standalone: DrawingFrame = { id: 'standalone', view: 'front', place: [10, 20], ...upper, composite };
 const under: Extract<Mark, { kind: 'text' }> = { kind: 'text', at: [20, 30], text: '64', size: 3.5, anchor: 'start' };
@@ -21,7 +21,7 @@ test('composite frame has one full-height characteristic cell and two independen
   const marks = frameMarks(under, attached), border = borderOf(marks);
   const [x, y] = border.points[0], right = border.points[1][0];
   assert.equal(border.points[2][1] - y, 12);
-  assert.deepEqual(texts(marks).map(m => m.text), ['0.25', 'M', 'A', 'L', 'B', 'Ø0.1', 'L', 'C', 'M']);
+  assert.deepEqual(texts(marks).map(m => m.text), ['0.25', 'M', 'A', 'L', 'B', 'Ø0.1', 'L', 'B', 'M']);
   assert.ok(marks.some(m => m.kind === 'line' && m.a[0] === x + 7 && m.a[1] === y + 6 && m.b[0] === right && m.b[1] === y + 6), 'row divider starts after the shared symbol');
   assert.equal(marks.filter(m => m.kind === 'arc' && m.center[0] === x + 3.5 && m.center[1] === y + 6).length, 1, 'one centred position symbol');
   assert.ok(texts(marks).slice(0, 5).every(m => m.at[1] < y + 6));
@@ -68,7 +68,7 @@ test('attached and standalone composite frames keep both rows through the file c
       const group: (typeof controls)[number] | undefined = controls.find(g => g.id === frame.id); assert.ok(group);
       const border = borderOf(group.marks), [x, y] = border.points[0];
       assert.ok(Math.abs(border.points[2][1] - y - 12) < 1e-9, 'two 6 mm rows remain paper-sized');
-      assert.deepEqual(texts(group.marks).map(m => m.text), ['0.25', 'M', 'A', 'L', 'B', 'Ø0.1', 'L', 'C', 'M']);
+      assert.deepEqual(texts(group.marks).map(m => m.text), ['0.25', 'M', 'A', 'L', 'B', 'Ø0.1', 'L', 'B', 'M']);
       const w = border.points[1][0] - x;
       if (width === undefined) width = w; else assert.ok(Math.abs(w - width) < 1e-9);
       const fragment = sheetGroupsSvg({ ...ctx.sheet, groups: [group] }, null, null, frame.id);
@@ -84,8 +84,8 @@ test('attached and standalone composite frames keep both rows through the file c
     assert.match(sheetSvg(ctx.sheet, 'Composite frame'), /width="297mm" height="210mm"/);
     const lifted = modelAnnotations({ ...input, settings: current, layout: ctx.layout, sheet: ctx.sheet });
     const item = lifted.items.find(i => i.kind === 'frame' && i.id === 'attached'); assert.ok(item?.frame);
-    assert.deepEqual(item.texts.map(t => t.text), ['0.25', 'M', 'A', 'L', 'B', 'Ø0.1', 'L', 'C', 'M']);
-    assert.deepEqual(item.frame.composite, { zone: 'diameter', value: 0.1, datums: ['C'], material: 'least', datumModifiers: { C: 'maximum' }, cells: [{ text: 'Ø0.1(L)' }, { text: 'C(M)' }] });
+    assert.deepEqual(item.texts.map(t => t.text), ['0.25', 'M', 'A', 'L', 'B', 'Ø0.1', 'L', 'B', 'M']);
+    assert.deepEqual(item.frame.composite, { zone: 'diameter', value: 0.1, datums: ['B'], material: 'least', datumModifiers: { B: 'maximum' }, cells: [{ text: 'Ø0.1(L)' }, { text: 'B(M)' }] });
     assert.ok(lifted.left.some(i => i.id === 'standalone' && i.why === 'a standalone frame has no attached model geometry'));
   }
   assert.deepEqual(source, before);

@@ -29,7 +29,7 @@ Each of the three packages has an object facade over its own data-and-functions 
 
 | Package | Entry | Over | For |
 |---|---|---|---|
-| @barocss/cad | `@barocss/cad/api` | The kernel's `CadPartDocument` and `evaluateCadPart` | Using the kernel on its own. It replaces the older `createCadModel()` |
+| @barocss/cad | `@barocss/cad/api` | The kernel's `CadPartDocument` and `evaluateCadPart` | Using the kernel on its own. It replaced the older `createCadModel()`, retired in R7.3d. |
 | @barocss/cad-model | `@barocss/cad-model/api` | The CAD model document, its evaluation, mass, STEP and assemblies | Materials by id, assemblies, variants and frames, in code or in Studio |
 | @barocss/gpu | `@barocss/gpu/api` | The `Viewer` and its geometry and material data | Putting parts on screen |
 

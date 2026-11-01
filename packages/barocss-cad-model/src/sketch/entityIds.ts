@@ -12,9 +12,9 @@ import type { SketchRule } from './terms';
 export interface SideTags { outer: string[]; regions?: string[][]; holes?: string[][] }
 
 const ID = /^e(\d+)$/;
-/** How many sides (ids) a shape has: a rectangle's four, a circle's one, a slot's four, a polygon's points. */
+/** How many sides (ids) a shape has: a rectangle's four, a circle's one, a slot's four, a Bézier curve's one, a polygon's points. */
 export function sidesOf(s: SketchShape): number {
-  return s.kind === 'rectangle' ? 4 : s.kind === 'circle' ? 1 : s.kind === 'slot' ? 4 : s.points.length;
+  return s.kind === 'rectangle' ? 4 : s.kind === 'circle' ? 1 : s.kind === 'slot' ? 4 : s.kind === 'bezier' ? 1 : s.points.length;
 }
 /** The next id number after every id in the shapes. */
 export function nextIdOf(shapes: readonly SketchShape[]): number {
@@ -38,6 +38,11 @@ export function withIds(shapes: readonly SketchShape[], from = 1): SketchShape[]
     if (out.kind === 'polygon' && (out.circles?.length ?? 0) !== (out.circleIds?.length ?? 0)) out = { ...out, circleIds: fresh(out.circles?.length ?? 0) };
     return out;
   });
+}
+
+/** The construction shapes (and open Bézier curves) of `shapes` with their side ids, numbered as `withIds(shapes)` (and so Finish's profile) numbers them: what a sketch node stores as `construction`. */
+export function withConstructionIds(shapes: readonly SketchShape[]): SketchShape[] {
+  return withIds(shapes).filter(s => s.construction || s.kind === 'bezier');
 }
 
 /**
@@ -67,6 +72,8 @@ export function carryPolygon(old: Polygon, next: Polygon, from: readonly number[
   set('rules', rules);
   if (old.circles) { out.circles = old.circles.map(c => ({ c: [c.c[0], c.c[1]], r: c.r })); if (old.circleIds) out.circleIds = [...old.circleIds]; }
   if (old.fromRectangle && n1 === 4) out.fromRectangle = true; else delete out.fromRectangle;
+  // (A point inserted or removed makes a spline or ellipse an ordinary outline.)
+  delete out.fromSpline; delete out.spline; delete out.fromEllipse; delete out.ellipse;
   return out;
 }
 /** A rule's fields that name points or segments (circles keep their numbers through an outline edit). */
@@ -107,12 +114,12 @@ export function tagsOf(s: SketchShape, loop: readonly LoopSegment[]): string[] |
 
 /**
  * A shape's corners in the order its ids run (a rectangle from `a` round by `(b.x, a.y)`, a slot as its loop, a
- * polygon's points); null for a circle (one side, no corners).
+ * polygon's points); null for a circle or a Bézier curve (one side, no corners).
  */
 export function cornersOf(s: SketchShape): [number, number][] | null {
   switch (s.kind) {
     case 'rectangle': return [s.a, [s.b[0], s.a[1]], s.b, [s.a[0], s.b[1]]];
-    case 'circle': return null;
+    case 'circle': case 'bezier': return null;
     case 'slot': {
       const l = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]) || 1, n: [number, number] = [-(s.b[1] - s.a[1]) / l * s.r, (s.b[0] - s.a[0]) / l * s.r];
       return [[s.a[0] - n[0], s.a[1] - n[1]], [s.b[0] - n[0], s.b[1] - n[1]], [s.b[0] + n[0], s.b[1] + n[1]], [s.a[0] + n[0], s.a[1] + n[1]]];

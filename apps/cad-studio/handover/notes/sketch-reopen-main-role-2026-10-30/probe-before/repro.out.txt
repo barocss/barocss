@@ -1,0 +1,7 @@
+circle main + rectangle region
+  stored      {"profile":"circle","regions":1}
+  picked      polygon
+  finish 1    {"profile":"polygon","regions":[["arc"]]}
+  finish 2    {"profile":"polygon","regions":[["arc"]]}
+  fields before ["dia","cc0","cc1","h","from","draft"]
+  fields after  ["h","from","draft"]

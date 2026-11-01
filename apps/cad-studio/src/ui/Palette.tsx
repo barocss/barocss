@@ -1,3 +1,5 @@
+import { filletPaletteRows, filletType, FILLET_TYPES } from '../app/filletFamily';
+import { commandIconName } from './commandIcons';
 import { useMemo, useState } from 'react';
 import { commands, type Command as StudioCommand, type Ctx } from '@barocss/cad-model/app/commands';
 import { Command, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -10,7 +12,7 @@ import { Icon, Kbd } from './atoms';
 export function Palette({ ctx, onRun, onClose, extra }: { ctx: Ctx; onRun(c: StudioCommand): void; onClose(): void; extra?: readonly StudioCommand[] }) {
   const [q, setQ] = useState('');
   const all = useMemo(() => extra?.length ? [...commands, ...extra] : commands, [extra]);
-  const list = useMemo(() => paletteList(q, ctx, all), [q, ctx, all]);
+  const list = useMemo(() => filletPaletteRows(paletteList(q, ctx, all), q, ctx), [q, ctx, all]);
   return <Dialog open onOpenChange={open => { if (!open) onClose(); }}>
     <DialogContent className="card palette top-[18vh] translate-y-0" overlayClassName="palette-backdrop bg-black/25" aria-label="Command palette" aria-describedby={undefined}>
       <DialogTitle className="sr">Command palette</DialogTitle>
@@ -21,7 +23,7 @@ export function Palette({ ctx, onRun, onClose, extra }: { ctx: Ctx; onRun(c: Stu
         <CommandList className="palette-list">
           {list.map(({ c, a }) => (
             <CommandItem key={c.id} value={c.id} className={'pl-item' + (a.ok ? '' : ' off')} onSelect={() => onRun(c)}>
-              <Icon name={c.icon} small /><span className="pl-label">{c.label}</span>
+              <Icon name={commandIconName(c.id, c.icon)} small /><span className="pl-label">{filletType(c.id) ? 'Fillet' : c.label}</span>{filletType(c.id) && <span className="muted">{FILLET_TYPES.find(t => t.value === filletType(c.id))!.label}</span>}
               {!a.ok && <span className="pl-reason">{a.reason}</span>}
               <span className="grow" />{c.shortcut && <Kbd>{c.shortcut}</Kbd>}
             </CommandItem>))}

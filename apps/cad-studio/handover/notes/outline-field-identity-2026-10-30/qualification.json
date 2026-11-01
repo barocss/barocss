@@ -1,0 +1,75 @@
+{
+  "decision": "D348",
+  "roadmap": "09 Advanced sketch — CG3 (first bounded item)",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "Existing feature-editor driving-dimension fields of a sketch kept as a constrained outline (outlineFields.set, reached from the extrude/revolve/sweep/section/sheet editors): keep the sketch node id, side ids (outer, holes, attached circles), construction, body target and node extras through the edit, downstream feature, Undo/Redo and native Save/fresh Open",
+  "baseCommit": "5445ba911",
+  "sourceCommit": "a85968f2c",
+  "sourcePaths": ["packages/barocss-cad-model/src/sketch/outlineFields.ts", "packages/barocss-cad-model/test/sketch-outline-field-identity.test.ts", "apps/cad-studio/test/outline-field-identity-browser.mjs", "apps/cad-studio/test/fixtures/d348.bcad"],
+  "models": {
+    "rootJudgmentAndVerification": "claude-opus-5-5 (main session)",
+    "independentAudit": "claude-opus-5-5 sub-agent",
+    "implementation": "Sonnet sub-agents from frozen briefs (fix+tests in an isolated worktree; Studio driver)",
+    "rootEdits": "audit-follow-up wording of one source comment, one test name and four added test assertions; driver lint helper",
+    "sol": "NOT_USED"
+  },
+  "candidateSearch": {
+    "returnedGeometryResidual": "NO_DEFECT: rounded-rectangle outlines with tangents/radii/lengths/H-V, on/off grid and jittered (24 solves) all within 1e-7 mm / 1e-9 rad on the returned points+bulges (probe-before/ret.ts)",
+    "chosen": "feature-editor dimension edit identity loss (reproduced in Model and actual Studio)"
+  },
+  "baselineDefects": [
+    "node id dropped (Studio withIds would hand out a new serial)",
+    "construction shapes, on and NODE_EXTRA_FIELDS dropped",
+    "outer side ids renumbered when the sketch has another loop or attached circle (e1..e6 -> e11..e16; circle hole e5 -> e13)",
+    "downstream fillet on n1.side[e2]|n1.side[e3] fails: 'The selected edge no longer exists'",
+    "node without sideTags gains them (positional names renamed without the features)",
+    "actual Studio run00: Apply refused with that toast; document unchanged; outer tags in the refused attempt e12..e17"
+  ],
+  "model": {
+    "negativeControl": "new test on base: 1 pass / 4 fail",
+    "newTests": 5,
+    "affectedPASS": "65/65 (editFields construction frk3-editor frk4-editor frk5-editor parameters api-parameters sheet hole-types sketch-outline-field-identity api-verbs)",
+    "afterAuditEdits": "11/11 (sketch-outline-field-identity editFields fields.test)",
+    "types": "PASS",
+    "lint": "PASS"
+  },
+  "studioUnit": { "constraintsAndSketchIds": "28/28", "types": "PASS", "driverLint": "0 errors, 1 console warning (same as other drivers)" },
+  "kernel": { "sourceChanged": false, "build": "NOT_RUN_NO_KERNEL_CHANGE" },
+  "audit": { "verdict": "PASS", "findings": ["F1 pre-existing loop-order shift for pre-R10a positional hole names (loud refusal); retained limit, claim narrowed", "F2 weak test name/coverage; fixed"], "downstreamEdits": "23 edits across 13 dimension kinds: fixed 0 failures, unfixed 23" },
+  "browser": {
+    "run00": "BASELINE_FAIL_AS_EXPECTED: Apply refused 'The selected edge no longer exists', doc unchanged, errors 0, resources closed",
+    "run00EnvFailure": "first attempt never started: offline pnpm install lacked @rolldown/binding-darwin-arm64; copied the same pinned 1.2.11 package from the D347 worktree (real copy)",
+    "status": "PASS_RUN_01",
+    "chromeProcesses": 1,
+    "serialContexts": 3,
+    "states": 10,
+    "productReads": 5,
+    "independentPythonFractionOracles": 5,
+    "worstVolumeDelta": 1.0913936421275139e-11,
+    "edits": ["Length of edge 1 60->70", "Length of edge 2 20->25 after fresh Open"],
+    "refusal": "value 0 leaves Apply disabled, no toast, document unchanged",
+    "identity": "ids n0/n1/n2, nextId 3, sideTags and construction equal the opened document after both edits and after both fresh Opens; fillet edges unchanged; no rematched/held/suppressed",
+    "nativeFiles": 2,
+    "openedEqualsFixtureBytes": true,
+    "frozenFiles": 980,
+    "frozenEqualsCommit": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "visual": { "status": "PASS", "rootImages": ["run00 failure", "run01 02-edited", "run01 04-sketch-reopened", "run01 07-final"] },
+  "limits": [
+    "One L plate with one rectangular hole and one construction line in the actual flow; other layouts and dimension kinds are Model/audit scope",
+    "Pre-R10a nodes (no sideTags): an outline with an attached circle drawn after another hole reorders the holes, so positional hole names can still fail loudly (pre-existing, F1)",
+    "Linked (associative) sketches have no outline fields; association is not carried",
+    "Studio reopen->Finish identity of node extras/on (audit S1) is unverified and not changed here",
+    "The Python oracle checks the stored outline and analytic volume, not kernel topology; hashes are provenance only"
+  ],
+  "fullKernel": "NOT_RUN",
+  "fullModel": "NOT_RUN",
+  "fullStudio": "NOT_RUN",
+  "perfBench": "NOT_RUN_NOT_A_PERFORMANCE_CHANGE",
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

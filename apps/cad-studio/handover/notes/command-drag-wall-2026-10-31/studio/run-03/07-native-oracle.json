@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "productImports": 0,
+  "radius": 4,
+  "boxVolume": 24000,
+  "firstRound": 412.0355262768993,
+  "secondRound": 189.4089834935005,
+  "expectedVolume": 23398.5554902296,
+  "studioVolume": 23398.55549022955,
+  "relativeDifference": 2.0212241098362007e-15
+}

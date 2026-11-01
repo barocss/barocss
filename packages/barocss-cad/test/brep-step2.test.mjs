@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cad, BrepEditor, BrepError, isExtrudedProfileError, brepFromBody, checkBrep, assertValidBrep, extrudeProfileWithHoles, tessellateBrep, triangulatePolygonWithHoles } from '../dist/index.js';
+import { readFileSync } from 'node:fs';
+import { BrepEditor, BrepError, isExtrudedProfileError, checkBrep, assertValidBrep, extrudeProfileWithHoles, tessellateBrep, triangulatePolygonWithHoles } from '../dist/index.js';
+const load = name => JSON.parse(readFileSync(new URL(`./fixtures/legacy-inputs/${name}.json`, import.meta.url), 'utf8'));
 
 const rect = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(p => ({ kind: 'line', start: p }));
 const circle = (cx, cy, r) => [{ kind: 'arc', start: [cx + r, cy], center: [cx, cy], direction: 'ccw' }];
@@ -55,13 +57,13 @@ function closedVolume(mesh) {
 }
 
 test('B-rep tessellation is watertight, outward and converges to the exact volume — for every family', () => {
-  const m = make => { const x = cad.model(); return brepFromBody(make(x).bodies.b); };
+  // The first five: createCadModel's bodies as B-reps, recorded from the build at fa79c9969 before its retirement (R7.3d).
   const cases = [
-    [m(x => x.build({ b: x.sketch.rectangle({ width: 20, height: 20 }).extrude(20) })), 8000, 1e-12],
-    [m(x => x.build({ b: x.sketch.rectangle({ width: 64, height: 32 }).extrude(8).hole({ center: [32, 16], radius: 4 }) })), (64 * 32 - Math.PI * 16) * 8, 1e-4],
-    [m(x => x.build({ b: x.sketch.circle({ center: [0, 0], radius: 5 }).extrude(10) })), Math.PI * 250, 1e-3],
-    [m(x => { const a = x.sketch.rectangle({ width: 16, height: 16 }).extrude(16), b = x.sketch.rectangle({ min: [16, 0], max: [32, 8] }).extrude(16); return x.build({ b: a.union(b) }); }), 4096 + 2048, 1e-12],
-    [m(x => x.build({ b: x.sketch.loop(slot(0, 40, 0, 6)).extrude(5) })), (480 + Math.PI * 36) * 5, 1e-3],
+    [load('brep-cube'), 8000, 1e-12],
+    [load('brep-hole-plate'), (64 * 32 - Math.PI * 16) * 8, 1e-4],
+    [load('brep-cylinder'), Math.PI * 250, 1e-3],
+    [load('brep-union'), 4096 + 2048, 1e-12],
+    [load('brep-slot'), (480 + Math.PI * 36) * 5, 1e-3],
     [extrudeProfileWithHoles({ outer: rect(0, 0, 80, 40), holes: [circle(20, 20, 6), circle(60, 20, 8)], height: 5 }), (3200 - Math.PI * 100) * 5, 1e-4],
     [extrudeProfileWithHoles({ outer: rect(0, 0, 100, 50), holes: [slot(15, 45, 25, 6), rect(60, 10, 85, 40)], height: 8 }), (5000 - 360 - Math.PI * 36 - 750) * 8, 1e-4],
   ];

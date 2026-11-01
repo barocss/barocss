@@ -174,6 +174,44 @@ export function textReliefNodeProblem(input: unknown, parameters: Readonly<Recor
   }
   return null;
 }
+/** One side of a band surface: a body and its kernel edge names, in pick order. */
+export interface BandSide { parent: BodyRef; edges: string[] }
+export const BAND_MAX_EDGES = 32;
+/**
+ * Structural admission of a band-surface node (B2): known fields, two earlier visible bodies, bounded edge-name lists with
+ * no name on both sides. The kernel proves the chains. Thickening is refused until exact thicken (#2258).
+ */
+export function bandSurfaceNodeProblem(input: unknown, nodes: readonly ModelNode[], parameters: Readonly<Record<string, number>>): string | null {
+  void parameters;
+  if (!textRecord(input) || input.kind !== 'band-surface') return 'Band surface: a band-surface node is required.';
+  if (input.thickness !== undefined || input.side !== undefined) return 'Band surface: band thickening waits on exact thicken (#2258).';
+  const allowed = new Set(['kind', 'version', 'a', 'b', 'flip', ...NODE_EXTRA_FIELDS]);
+  for (const key of Object.keys(input)) if (!allowed.has(key)) return `Band surface: unknown field ${key}.`;
+  if (input.version !== 1) return 'Band surface: version must be 1.';
+  if (input.flip !== undefined && input.flip !== true) return 'Band surface: flip, when present, must be true.';
+  const leaves = leafBodies(nodes), seen = new Set<string>();
+  for (const key of ['a', 'b'] as const) {
+    const side = input[key], label = `side ${key.toUpperCase()}`;
+    if (!textRecord(side) || Object.keys(side).sort().join(',') !== 'edges,parent') return `Band surface: ${label} needs a parent body and edges.`;
+    const parent = side.parent;
+    if (!textRecord(parent) || Object.keys(parent).sort().join(',') !== 'node,side' || !Number.isSafeInteger(parent.node) || (parent.node as number) < 0 || typeof parent.side !== 'string') return `Band surface: ${label} needs a body reference.`;
+    if (!leaves.some(l => l.node === parent.node && l.side === parent.side)) return `Band surface: ${label} is not a visible body (feature ${String(parent.node)}).`;
+    const edges = side.edges;
+    if (!Array.isArray(edges) || edges.length < 1 || edges.length > BAND_MAX_EDGES) return `Band surface: ${label} needs 1 to ${BAND_MAX_EDGES} edge names.`;
+    for (const name of edges) {
+      if (typeof name !== 'string' || !name.trim() || name.includes('+') || name.includes('\0')) return `Band surface: ${label} needs exact individual edge names.`;
+      if (seen.has(name)) return `Band surface: the edge "${name}" is named twice (a name may stand on one side only, once).`;
+      seen.add(name);
+    }
+  }
+  if (input.id !== undefined && (typeof input.id !== 'string' || !/^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(input.id))) return 'Band surface: the authored feature id is invalid.';
+  if (input.suppressed !== undefined && input.suppressed !== true) return 'Band surface: suppressed, when present, must be true.';
+  if (input.bought !== undefined && typeof input.bought !== 'boolean') return 'Band surface: bought must be boolean.';
+  if (input.held !== undefined && typeof input.held !== 'string') return 'Band surface: held must be a string.';
+  if (input.rematched !== undefined && (!textRecord(input.rematched) || Object.values(input.rematched).some(x => typeof x !== 'string'))) return 'Band surface: rematched values must be persistent names.';
+  if (input.sigs !== undefined && !textRecord(input.sigs)) return 'Band surface: sigs must be a signature record.';
+  return null;
+}
 /** One rectangle on the original +Y wall's first native quarter; outward height must equal the source radius. */
 export interface CylindricalWrapNode { kind: 'cylindrical-wrap'; parent: BodyRef; faces: [string]; rectangle: { u: [number, number]; v: [number, number] }; height: Dim }
 /** Structural admission; the kernel proves source identity, native margins and fixed radial height. */
@@ -211,6 +249,14 @@ export function textDocumentProblem(input: unknown): string | null {
     const parameters = textRecord(value.parameters) ? value.parameters as Record<string, number> : {};
     if (Array.isArray(value.nodes)) for (let i = 0; i < value.nodes.length; i++) {
       const node = value.nodes[i];
+      if (textRecord(node) && node.kind === 'band-surface') {
+        // (Structure only here — the saved document's own bodies are not yet known; its parents must precede it.)
+        const { a, b, thickness, side } = node as Record<string, unknown>;
+        if (thickness !== undefined || side !== undefined) return 'Band surface: band thickening waits on exact thicken (#2258).';
+        for (const s of [a, b]) if (!textRecord(s) || !textRecord(s.parent) || !Number.isSafeInteger(s.parent.node) || (s.parent.node as number) >= i || (s.parent.node as number) < 0 || !Array.isArray(s.edges) || s.edges.length < 1 || s.edges.length > BAND_MAX_EDGES || s.edges.some(e => typeof e !== 'string')) return 'Band surface: both sides need a preceding parent body and 1 to 32 edge names.';
+        if (node.version !== 1) return 'Band surface: version must be 1.';
+        continue;
+      }
       if (!textRecord(node) || node.kind !== 'text' && node.kind !== 'text-relief' && node.kind !== 'cylindrical-wrap') continue;
       const why = node.kind === 'text' ? textNodeProblem(node, parameters) : node.kind === 'cylindrical-wrap' ? cylindricalWrapNodeProblem(node, parameters) : textReliefNodeProblem(node, parameters);
       if (why) return why;
@@ -270,6 +316,10 @@ export interface SketchOutline {
   equalRadii?: [number, number][]; concentric?: [number, number][]; hv?: { h: number[]; v: number[] }; rules?: SketchRule[];
   /** Circles dimensioned from the outline (they are also the profile's holes or regions). */
   circles?: { c: [number, number]; r: number }[];
+  /** A spline outline's fit points and handle directions (degrees; null = automatic), kept while the points still are what it makes. */
+  spline?: { fit: [number, number][]; closed: boolean; handles?: (number | null)[] };
+  /** An ellipse outline's definition (centre, semi-axes in mm, the first axis's angle in degrees), kept while the points still are what it makes. */
+  ellipse?: { center: [number, number]; rx: number; ry: number; angle: number };
 }
 /** `regions`: more loops of material; `holes`: loops cut from them (straight extrudes only); `outline`: the main loop as drawn and constrained. */
 /** `on`: the body the sketch was drawn on (a feature from it joins or cuts that body by default). */
@@ -278,6 +328,11 @@ export interface SketchOutline {
 /** `faces`: colours of single faces by their persistent names (`n1.top`), over the body's own. */
 /** `faces`: per-face colours by face name, with their faces' signatures (`faceSigs`) and re-matched names (`facesWas`, new → old), see engine/references.ts. */
 export interface BodyLook { name?: string; color?: string; hidden?: boolean; material?: string; faces?: Record<string, string>; faceSigs?: Record<string, Sig>; facesWas?: Record<string, string> }
+/**
+ * What one occurrence of a placed part sets of a body's look (PartInstance.looks): its colour, face colours, material and
+ * whether it is hidden. A field left out is the definition's (the part's own look), see assembly/looks.ts.
+ */
+export type InstanceLook = Pick<BodyLook, 'color' | 'faces' | 'material' | 'hidden'>;
 /** A solid made by a shape command (Box, Sphere …) with these values: picking it again edits those values. */
 /** `nodes`: how many nodes the command added (a sketch and its solid when absent). */
 export interface Made { command: string; values: Record<string, number | string>; nodes?: number }
@@ -291,12 +346,20 @@ export interface Made { command: string; values: Record<string, number | string>
 export interface PlanarFaceOutlineInsetAssociation {
   kind: 'planar-face-outline-inset'; version: 1; source: BodyRef; sourceFeature: string; face: string; insetMM: number;
 }
+/**
+ * B1: an associative 2D band — the closed hull (a belt, a pulley run) wrapped round ≥ 2 convex construction shapes of the sketch
+ * (`construction`), regenerated from them wherever the sketch is evaluated (sketch/band.ts). `sources`: one side id of each source
+ * shape (its `ids[0]`), resolved to the one construction shape holding it; `offset` ≥ 0 grows the hull by that much; `width` > 0
+ * makes a strip (the hull at `offset` as a hole in the hull at `offset + width`) instead of the filled hull.
+ */
+export interface SketchBand { version: 1; id: string; sources: string[]; offset?: Dim; width?: Dim }
 type OnPlane = { association?: PlanarFaceOutlineInsetAssociation; plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline; on?: BodyRef; construction?: unknown[]; sideTags?: { outer: string[]; regions?: string[][]; holes?: string[][] } };
 export type SketchNode =
   | ({ kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] } & OnPlane)
   | ({ kind: 'sketch'; profile: 'circle'; center: [Dim, Dim]; radius: Dim } & OnPlane)
   | ({ kind: 'sketch'; profile: 'polygon'; points: [Dim, Dim][] } & OnPlane)
-  | ({ kind: 'sketch'; profile: 'loop'; segments: LoopSegment[] } & OnPlane);
+  | ({ kind: 'sketch'; profile: 'loop'; segments: LoopSegment[] } & OnPlane)
+  | ({ kind: 'sketch'; profile: 'band'; band: SketchBand } & OnPlane);
 
 /**
  * A feature of the part; `suppressed`: left out of the model for now (see engine/part.ts), kept in its history.
@@ -405,6 +468,13 @@ type ModelNodeBase = SketchNode | TextNode | TextReliefNode | CylindricalWrapNod
   | { kind: 'frame'; follows?: FrameFollows; points: [Dim, Dim, Dim][]; segments: ModelFrameSegment[]; bends?: ModelFrameBend[]; section: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean; up?: [number, number, number]; overrides?: FrameOverride[]; corners?: FrameCorners; trims?: FrameTrim[]; estimates?: string[] }
   | { kind: 'frame-member'; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; up?: [number, number, number]; estimates?: string[] }
   /** An open surface (copied from a direct surface `name`) thickened into a solid along its normal: faceted. */
+  /**
+   * An associative ruled band surface (B2): an exact sheet joining the kernel-named edge chain on body `a.parent` to the one
+   * on `b.parent`. Both bodies stay bodies (referenced, not consumed). Edge names are the kernel's, in pick order, at
+   * most 32 per side; a name may stand on one side only. Its names are strict: the stored signatures only ever refuse
+   * or hold, never retarget (references.ts). Thickening waits on exact thicken (#2258), so none is stored.
+   */
+  | { kind: 'band-surface'; version: 1; a: BandSide; b: BandSide; flip?: true }
   | { kind: 'thicken'; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }; thickness: Dim; side?: 'normal' | 'reverse' | 'both' }
   /**
    * An involute spur gear (R6a, issue #2167, D53–D54): module, teeth and face width, standing on z `from` about
@@ -616,6 +686,8 @@ import type { DrawingSettings } from '../drawing/types';
 import { type Mate } from '../assembly/mates';
 import { rotationMatrix, rotationSteps } from './placement';
 import { flattenAssembly } from './flatten';
+import { bodyDocOf, savedInstanceOf } from '../assembly/flexible';
+import { cutBase, cutsOf, partBoxOf } from './assemblyCut';
 import { bodyKeyFor, nextSerial, nodeIndexOf as nodeIndexOfLocal, withIds } from './ids';
 import type { Sig } from './references';
 import type { Requirement } from './schema/spec';
@@ -664,8 +736,8 @@ export interface RouteBundle {
 }
 export interface StudioDoc {
   format: 'barocss-cad-model';
-  /** 4: explicit route bundles; 3: stable body keys; 2: stable feature ids; 1: index-based feature ids. */
-  schema: 1 | 2 | 3 | 4;
+  /** 4: explicit route bundles; 3: stable body keys (schema 1 and 2 files are refused on read, D365). */
+  schema: 3 | 4;
   /** The next feature serial to hand out (`n<nextId>`): ids are never used twice, see engine/ids.ts. */
   nextId?: number;
   units: 'mm';
@@ -745,6 +817,12 @@ export interface StudioDoc {
   bodies?: Record<string, BodyLook>;
   /** Mates placing instances by their faces (see assembly/mates.ts). */
   mates?: Mate[];
+  /** Patterns of instances: a seed instance repeated along a line or about an axis (assembly/patterns.ts); the occurrences are regenerated into `instances`. */
+  instancePatterns?: InstancePattern[];
+  /** Cuts across placed parts, made in the assembly's frame (roadmap 10 ⑤, assembly/cuts.ts): the placed documents carry them, the definitions never do. */
+  assemblyCuts?: AssemblyCut[];
+  /** Instruction steps over the placed parts (roadmap 10 ⑥, assembly/steps.ts): an ordered explanation of how the assembly goes together. Presentation only: nothing here changes a placement, a mate, a body, the BOM or an export. */
+  assemblySteps?: AssemblyStep[];
   /** The assembly read as a robot: its base link, joint limits and ratings (robot/joints.ts, RM1; versioned). */
   robot?: RobotSettings;
   /**
@@ -789,15 +867,68 @@ export interface PartInstance {
    * is the others' too) at revision `rev`; `source` is the file it came from. Absent: a part of its own.
    */
   part?: { id: string; rev: string; source?: string };
+  /**
+   * This occurrence's values for its sub-assembly's own joints (assembly/flexible.ts): by joint key (`base~lid`), in the joint
+   * tree's units (radians, mm), as offsets from the pose the sub-assembly was saved in. Absent or `{}`: rigid, as saved.
+   */
+  joints?: Record<string, number>;
+  /**
+   * This occurrence's own looks (assembly/looks.ts), by the look key of the body in the definition (`b3`, `b3_negative`; a part
+   * inside a sub-assembly by its path first: `p2/b3`). A field set here is this occurrence's; one left out is the definition's.
+   * Kept when a new revision is accepted (a key the revision no longer has is held, reported, never dropped).
+   */
+  looks?: Record<string, InstanceLook>;
+  /** Set on an occurrence a pattern generated (never on a seed): the pattern's id and the occurrence's index k (the seed is 0). Driven by the seed: no mate moves it. */
+  pattern?: { id: string; k: number };
+  /** Set only on a part of a POSED sub-assembly (assembly/flexible.ts), never saved: the placement the sub-assembly saved it at, which its assembly cuts are made from. */
+  savedPlacement?: { position: [number, number, number]; rotation: [number, number, number] };
 }
 
-/** An instance's part with its placement applied: every body rotated and moved by the part's own features. */
+/**
+ * A pattern of instances: the seed repeated `count` times in all (k = 0 is the seed itself, 2 to 64), the occurrences
+ * k ≥ 1 not in `skip` generated beside it. Linear: `spacing` mm between neighbours along `dir`. Circular: `angle` degrees
+ * between neighbours about the axis `axis` through `origin`. `dir` and `axis` are stored as given and normalised when used.
+ */
+export type InstancePattern = { id: string; seed: string; count: number; skip?: number[] }
+  & ({ kind: 'linear'; dir: [number, number, number]; spacing: number } | { kind: 'circular'; origin: [number, number, number]; axis: [number, number, number]; angle: number });
+
+/**
+ * A cut across placed parts (roadmap 10 ⑤): a circle or rectangle profile centred on `at` (mm, the assembly's frame), cut along
+ * `dir` (any length but zero). A number `depth` cuts that many mm one way from the profile plane, along `dir`; `'through'` cuts the whole part
+ * along `dir`, both ways from it (the tool is sized from the part's own box, just outside it at each end; a part longer than the kernel's
+ * 10,000 mm tool is refused). The rectangle's `w` runs along the profile plane's X, which is
+ * the assembly's X for a cut along Z or Y and the assembly's Y for a cut along X. `targets` are the top-level placed parts it cuts, by id.
+ * v1: mates read the definition's faces, not the cut part's.
+ */
+export interface AssemblyCut {
+  id: string; name?: string;
+  profile: { kind: 'circle'; radius: number } | { kind: 'rectangle'; w: number; d: number };
+  at: [number, number, number]; dir: [number, number, number];
+  depth: number | 'through';
+  targets: string[];
+}
+
+/**
+ * One instruction step (roadmap 10 ⑥): the top-level occurrences it introduces (`add`, by occurrence id: pattern copies and whole sub-assemblies
+ * too; an occurrence is in at most one step), the camera it recommends (`view`: where the eye is, what it looks at, which way is up) and the
+ * display-only explode scale (0..2) it is shown at. A step that names a part that is gone is kept and reported; it is never renamed to another part.
+ */
+export interface AssemblyStep {
+  id: string; name: string; note?: string;
+  add: string[];
+  view?: { eye: [number, number, number]; target: [number, number, number]; up: [number, number, number] };
+  explode?: number;
+}
+
 /** An instance's part as placed at the origin (a sub-assembly's own instances folded in as features). */
 export function placedBase(inst: PartInstance, parent?: StudioDoc): StudioDoc {
   if (inst.doc.nodes.some(n => n.kind === 'sketch' && n.association !== undefined)) throw refusal('BAD_REFERENCE', 'Associative sketch: placed part recipes are not supported.');
-  const resolved = resolveShopTree(inst.doc, parent, parent ? inst.id : undefined);
+  // (A flexible sub-assembly occurrence: its own joint values applied first, assembly/flexible.ts.)
+  const resolved = resolveShopTree(bodyDocOf(inst), parent, parent ? inst.id : undefined);
   const flat = flattenAssembly(flattenShopView(resolved));
-  return prefixDoc(flat, flat.nodes.length);
+  const base = prefixDoc(flat, flat.nodes.length), cuts = parent ? cutsOf(inst, parent) : [];
+  // (Roadmap 10 ⑤: the assembly's cuts of this occurrence, made in the part's own frame — its definition never changes.)
+  return cuts.length ? cutBase(base, savedInstanceOf(inst), cuts, cuts.some(c => c.depth === 'through') ? partBoxOf(base, bodyDocOf(inst)) : null) : base;
 }
 
 export function placedDoc(inst: PartInstance, parent?: StudioDoc): StudioDoc {
@@ -822,7 +953,7 @@ export function placedDoc(inst: PartInstance, parent?: StudioDoc): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'variability', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'routeBundles', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'printPreview', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings', 'rings', 'fasteners', 'fastenerSizes', 'castingRules', 'mounts', 'drives', 'connectors', 'rowSources'] as const satisfies readonly (keyof StudioDoc)[];
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'variability', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'routeBundles', 'instances', 'drawing', 'bodies', 'mates', 'instancePatterns', 'assemblyCuts', 'assemblySteps', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'printPreview', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings', 'rings', 'fasteners', 'fastenerSizes', 'castingRules', 'mounts', 'drives', 'connectors', 'rowSources'] as const satisfies readonly (keyof StudioDoc)[];
 export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);
@@ -872,6 +1003,7 @@ export function parentsOf(node: ModelNode): number[] {
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
     case 'library': return node.addTo ? [node.addTo.node] : [];
     case 'text': case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'sprocket': case 'pulley': case 'belt': case 'coupling': case 'connector-body': case 'gusset': case 'end-cap': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'sheet-contour': case 'skeleton': return [];
+    case 'band-surface': return node.a.parent.node === node.b.parent.node ? [node.a.parent.node] : [node.a.parent.node, node.b.parent.node];
     case 'frame-member': return node.section.kind === 'sketch' ? [node.section.sketch] : [];
     case 'frame': return [...(node.follows && followsIndex(node.follows) !== null ? [followsIndex(node.follows)!] : []), ...[node.section, ...(node.overrides ?? []).map(o => o.section)].flatMap(sec => sec?.kind === 'sketch' ? [sec.sketch] : [])];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
@@ -888,7 +1020,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   nodes.forEach(node => {
     // (A library part added to a body consumes it, as a Boolean's first body.)
     if (node.kind === 'library' && node.addTo) { consumed.add(node.addTo.side === 'solid' ? String(node.addTo.node) : `${node.addTo.node}_${node.addTo.side}`); return; }
-    if (node.kind === 'sketch' || node.kind === 'skeleton' || node.kind === 'text' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
+    if (node.kind === 'sketch' || node.kind === 'skeleton' || node.kind === 'text' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'band-surface' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -937,6 +1069,9 @@ export function withNode(doc: StudioDoc, node: ModelNode): StudioDoc {
  * `scale` times the sketch about the centre of its outline's box.
  */
 export function loftTop(sketch: SketchNode, shape: 'scaled' | 'circle' | 'rectangle', scale: number): SketchNode {
+  // A parameter-bound size has no number here: refused, not turned into NaN (resolve the sketch first).
+  if (sketch.profile === 'band') throw refusal('VALUE', 'A loft top needs a plain sketch: a band sketch must be resolved first.');
+  if (/"parameter":/.test(JSON.stringify(sketch))) throw refusal('VALUE', 'A loft top needs a sketch with plain sizes: resolve its parameters first.');
   const pts: [number, number][] = sketch.profile === 'rectangle' ? [sketch.min, sketch.max].map(p => p.map(Number) as [number, number])
     : sketch.profile === 'circle' ? [[Number(sketch.center[0]) - Number(sketch.radius), Number(sketch.center[1]) - Number(sketch.radius)], [Number(sketch.center[0]) + Number(sketch.radius), Number(sketch.center[1]) + Number(sketch.radius)]]
       : sketch.profile === 'polygon' ? sketch.points.map(p => p.map(Number) as [number, number]) : sketch.segments.map(g => g.start.map(Number) as [number, number]);
@@ -1000,6 +1135,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
   switch (node.kind) {
     case 'text': return `Text · ${node.text}`;
     case 'cylindrical-wrap': return 'Cylindrical wrap';
+    case 'band-surface': return 'Band surface';
     case 'text-relief': return `${node.mode === 'emboss' ? 'Text emboss' : 'Text engrave'} · ${node.text}`;
     case 'sketch': return `Sketch · ${node.profile === 'loop' ? 'outline' : node.profile}`;
     case 'extrude': {

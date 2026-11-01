@@ -1,0 +1,2 @@
+ok 1 starter plate loads
+FAIL 94 fastener: an M8 bolt dropped into the starter plate’s hole, its thread cosmetic — page.waitForFunction: Timeout 5000ms exceeded.

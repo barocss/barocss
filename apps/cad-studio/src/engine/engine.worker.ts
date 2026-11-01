@@ -6,6 +6,7 @@ import { projectViews } from '@barocss/cad-model/drawing/project';
 import { sectionsCut } from '@barocss/cad-model/drawing/section';
 import type { DrawingSection } from '@barocss/cad-model/drawing/types';
 import { WireReceiver, type WireDoc } from '@barocss/cad-model/engine/wireDoc';
+import { receiveStepMetadata, type StepMetadata } from './stepMetadata';
 import { mouldView } from './mouldView';
 import { proposalDiffFor } from '@barocss/cad-model/chat/proposalDiff';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
@@ -28,7 +29,7 @@ export type WorkerRequest =
   | { type: 'mould'; id: number; doc: WireDoc; revision: number; halves: boolean; mould: StudioDoc['mould'] }
   | { type: 'proposalDiff'; id: number; doc: WireDoc; proposed: WireDoc; revision: number; key: { revision: string; proposal: string } }
   | { type: 'stl'; id: number; doc: WireDoc; key: string; options?: { segmentsPerQuarter: number } }
-  | { type: 'step'; id: number; doc: WireDoc; name: string; meshes?: 'auto' | 'tessellated' | 'planar' }
+  | { type: 'step'; id: number; doc: WireDoc; metadata: StepMetadata; name: string; meshes?: 'auto' | 'tessellated' | 'planar' }
   /** A STEP file's meshes when it holds nothing else (R3.5), for the repair gate. */
   | { type: 'stepMeshes'; id: number; step: string }
   | { type: 'drawing'; id: number; doc: WireDoc; options?: { tangentEdges?: boolean; sections?: DrawingSection[]; orientation?: 'x+' | 'y+' | 'x-'; made?: boolean } }
@@ -140,7 +141,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     if (drawing.ok && request.options?.sections?.length) drawing.sections = sectionsCut(request.doc, request.options.sections, request.options.orientation, made);
     (self as unknown as Worker).postMessage({ id: request.id, drawing });
   } else if (request.type === 'step') {
-    (self as unknown as Worker).postMessage({ id: request.id, step: stepReply(request.doc, request.name, request.meshes) });
+    (self as unknown as Worker).postMessage({ id: request.id, step: stepReply(receiveStepMetadata(request.doc, request.metadata), request.name, request.meshes) });
   } else {
     try {
       const bytes = stlFor(request.doc, request.key, request.options);

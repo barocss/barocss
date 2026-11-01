@@ -1,23 +1,24 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cad, brepFromBody, checkBrep, assertValidBrep, buildBrep, lineCurve, BrepError } from '../dist/index.js';
+import { readFileSync } from 'node:fs';
+import { checkBrep, assertValidBrep, buildBrep, lineCurve, BrepError } from '../dist/index.js';
+const load = name => JSON.parse(readFileSync(new URL(`./fixtures/legacy-inputs/${name}.json`, import.meta.url), 'utf8'));
 
-const model = make => { const m = cad.model(); return make(m); };
-const bodies = {
-  cube: [() => model(m => m.build({ b: m.sketch.rectangle({ width: 20, height: 20 }).extrude(20) })), 'convex-planar', { V: 8, E: 12, F: 6, L: 6, S: 1, G: 0 }],
-  hexPrism: [() => model(m => m.build({ b: m.sketch.polygon([[0, 0], [10, 0], [15, 8], [10, 16], [0, 16], [-5, 8]]).extrude(6) })), 'convex-planar', { V: 12, E: 18, F: 8, L: 8, S: 1, G: 0 }],
-  holePlate: [() => model(m => m.build({ b: m.sketch.rectangle({ width: 64, height: 32 }).extrude(8).hole({ center: [32, 16], radius: 4 }) })), 'stored-rational-plate-hole', { V: 10, E: 15, F: 7, L: 9, S: 1, G: 1 }],
-  cylinder: [() => model(m => m.build({ b: m.sketch.circle({ center: [0, 0], radius: 5 }).extrude(10) })), 'stored-rational-circle-prism', { V: 2, E: 3, F: 3, L: 3, S: 1, G: 0 }],
-  lPrism: [() => model(m => m.build({ b: m.sketch.loop([[0, 0], [30, 0], [30, 10], [10, 10], [10, 25], [0, 25]].map(p => ({ kind: 'line', start: p }))).extrude(5) })), 'extruded-profile', { V: 12, E: 18, F: 8, L: 8, S: 1, G: 0 }],
-  slot: [() => model(m => m.build({ b: m.sketch.loop([{ kind: 'line', start: [0, -6] }, { kind: 'arc', start: [40, -6], center: [40, 0], direction: 'ccw' }, { kind: 'line', start: [40, 6] }, { kind: 'arc', start: [0, 6], center: [0, 0], direction: 'ccw' }]).extrude(5) })), 'extruded-profile', { V: 8, E: 12, F: 6, L: 6, S: 1, G: 0 }],
-  union: [() => model(m => { const a = m.sketch.rectangle({ width: 16, height: 16 }).extrude(16), b = m.sketch.rectangle({ min: [16, 0], max: [32, 8] }).extrude(16); return m.build({ b: a.union(b) }); }), 'orthogonal-cell', { V: 16, E: 28, F: 14, L: 14, S: 1, G: 0 }],
+const bodies = { // name: [recorded B-rep, its family, Euler–Poincaré counts]
+  cube: ['brep-cube', 'convex-planar', { V: 8, E: 12, F: 6, L: 6, S: 1, G: 0 }],
+  hexPrism: ['brep-hex-prism', 'convex-planar', { V: 12, E: 18, F: 8, L: 8, S: 1, G: 0 }],
+  holePlate: ['brep-hole-plate', 'stored-rational-plate-hole', { V: 10, E: 15, F: 7, L: 9, S: 1, G: 1 }],
+  cylinder: ['brep-cylinder', 'stored-rational-circle-prism', { V: 2, E: 3, F: 3, L: 3, S: 1, G: 0 }],
+  lPrism: ['brep-l-prism', 'extruded-profile', { V: 12, E: 18, F: 8, L: 8, S: 1, G: 0 }],
+  slot: ['brep-slot', 'extruded-profile', { V: 8, E: 12, F: 6, L: 6, S: 1, G: 0 }],
+  union: ['brep-union', 'orthogonal-cell', { V: 16, E: 28, F: 14, L: 14, S: 1, G: 0 }],
 };
-const brepOf = name => brepFromBody(bodies[name][0]().bodies.b);
+// createCadModel's bodies, as B-reps recorded from the build at fa79c9969 before its retirement (R7.3d).
+const brepOf = name => load(bodies[name][0]);
 
 test('every modeling body family converts to one valid B-rep with the right Euler–Poincaré counts', () => {
-  for (const [name, [make, family, expected]] of Object.entries(bodies)) {
-    const body = make().bodies.b; assert.equal(body.family, family, name);
-    const brep = brepFromBody(body), report = assertValidBrep(brep), t = report.topology[0];
+  for (const [name, [, family, expected]] of Object.entries(bodies)) {
+    const brep = brepOf(name), report = assertValidBrep(brep), t = report.topology[0];
     assert.deepEqual({ V: t.vertices, E: t.edges, F: t.faces, L: t.loops, S: t.shells, G: t.genus }, expected, name);
     assert.equal(brep.source.family, family);
     assert.doesNotThrow(() => JSON.parse(JSON.stringify(brep)), name);

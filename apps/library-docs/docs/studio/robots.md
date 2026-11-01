@@ -76,6 +76,14 @@ decomposition in this candidate; its assembly freedom does not establish robot o
   shows the gravity torques at the current pose. Right after an edit, these wait until the masses are worked out.
 - **Paths.** **Add waypoint** records poses. **Check path** sweeps the robot along them and reports the first
   collision, with continuous collision between samples.
+  - **A sweep can run out of its sample budget.** The path is then neither clear nor in contact: Check path and the
+    agent's `sweep_path` and `check_path` say "not certified" with how far the sweep got and the least clearance met
+    (`exhausted` in the reply), and never report a collision or a time of impact for it.
+    The default budget is 20,000 samples per sweep. For an open timed path, `maxSamples` applies to each timed
+    segment. A closed-loop motion divides each timed segment into chords of at most 1° of rotation or 1 mm of
+    travel. Each chord has its own `maxSamples` budget. The closed-loop budget is not shared across the timed
+    segment or the whole motion. The returned `samples` is the total used; it can exceed `maxSamples`.
+    `exhausted.samples` is the count in the segment, or closed-loop chord, that ran out of budget.
   - **Designed contact isn't a collision.** Some faces touch by design, and the sweep leaves those to the design
     while it still checks the rest of the same links. Each pair it skips says why.
     - Two meshing gears' teeth are the coupling's to hold.

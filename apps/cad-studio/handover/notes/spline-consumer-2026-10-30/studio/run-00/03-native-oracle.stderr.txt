@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/studio351/run-00/spline-oracle.py", line 24, in <module>
+    assert not missing, ('fit points not on the stored outline as segment starts', missing)
+AssertionError: ('fit points not on the stored outline as segment starts', [['47', '0'], ['35', '12'], ['13', '22'], ['0', '25'], ['-13', '22'], ['-35', '12'], ['-47', '0'], ['-35', '-12'], ['-13', '-22'], ['0', '-25'], ['13', '-22'], ['35', '-13']])

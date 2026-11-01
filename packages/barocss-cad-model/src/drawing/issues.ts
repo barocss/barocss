@@ -8,10 +8,12 @@
 //   TEXT_OVER_LINES    a dimension's text lies over a view's lines or another dimension   fix: move it out
 //   OFF_SHEET          an annotation reaches past the frame or into the title block       fix: move it in
 //   VIEWS_DONT_FIT     the views do not fit the sheet at its scale                        fix: an automatic scale (or A3)
+//   UNIT_PRECISION     a tolerance too fine to print in the drawing's unit even at the most decimals (11 ③b)  (no fix)
 //   DATUM_LOST         a datum's edge is gone (R14.4)                                     fix: remove it
 //   DATUM_TWICE        two datums with one letter                                         fix: remove the later
 //   FRAME_LOST         a feature control frame's dimension is gone or lost               fix: remove it
-//   DATUM_UNDEFINED    a frame refers to a datum the drawing does not have                (none: define it or edit the frame)
+//   DATUM_UNDEFINED    a frame refers to a datum no datum feature or datum target set has  (none: define it or edit the frame)
+//   FRAME_RULE         a frame breaks a Y14.5 / ISO 1101 rule (a datum on a form tolerance, a profile composite that is not a refinement ...)  (none: edit the frame)
 // Worth a check (warnings):
 //   DUPLICATE          the same size given twice (in one view or two that share the axis) fix: remove the auto one or the later
 //   REMATCHED          a reference was matched again after an edit: check it              fix: accept it as it is
@@ -20,6 +22,7 @@
 //   STEP_NOT_LOCATED   a step's (an inner edge's) position not given                     fix: Auto-dimension
 //   OVERALL_MISSING    the part's width, height or depth not given                         fix: Auto-dimension
 //   VIEW_NEEDED        a hole shows round only in a view not shown (R14.3)                 fix: show the view
+//   DATUM_TARGET_OUTSIDE  a line or area datum target (placed by view points) lies partly outside the part as the view shows it  (none: move it)
 // Tables (O49) are annotations: TEXT_OVERLAP, TEXT_OVER_LINES (a view's lines or area) and OFF_SHEET, fix: move it
 // (move-table); and an error of their own:
 //   TABLE_SOURCE       a table's source is unknown or gave nothing (drawn with its reason)   (none: fix the part or the table)
@@ -29,17 +32,19 @@ import type { BrepProjection } from '@barocss/cad';
 import { autoDimensions, axisOf, holesOf, levels, type Hole } from './auto';
 import { sameLinearDependency, samePointDependency } from './measurement';
 import { datumTargetConflicts, resolveDatumTarget, type DatumTargetFailureCode } from './datumTargets';
-import { basicBox, buildSheet, datumMarks, dimensionMarks, frameMarks, placementOf, projectionOf, sectionExtents, tableRoom, type Mark, type MarkGroup, type Sheet, type SheetSection } from './sheet';
+import { PENS, basicBox, buildSheet, datumMarks, dimensionMarks, frameMarks, placementOf, projectionOf, sectionExtents, tableRoom, type Mark, type MarkGroup, type Sheet, type SheetSection } from './sheet';
 import { textCorners } from './text';
 import { SCALES, layoutSheet, scaleLabel, sectionDepth, type SheetLayout } from './views';
 import { detailScale } from './detail';
 import { viewBreaksOf } from './breaks';
+import { frameNotes, frameRules } from './controls';
+import { UNPRINTABLE_FIT_LIMITS, deviationPair, frameValue, presetFor, type DrawingUnits, type FrameRounding } from './standard';
 import { fmtMM, type Resolved } from './dimensions';
 import { SECTION_VIEWS, VIEW_IDS, baseViewOf, detailLetter, isDetailRef, isViewId, isSectionRef, nextSectionId, sectionLetter, sectionsOf, withSections, type DimPoint, type SectionViewId, type DimView, type DrawingDimension, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';
 
 export const DRAWING_ISSUES_VERSION = 'cad-studio-drawing-issues-v1';
 
-export type DrawingIssueCode = 'DIM_ON_HIDDEN' | 'DATUM_LOST' | 'FRAME_LOST' | 'FRAME_VIEW_MISSING' | 'DATUM_UNDEFINED' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN' | 'BALLOON_NOT_CLEAR' | 'BALLOON_NO_EDGE' | 'FIT_ROW_MISSING' | 'FOLLOWED_CHANGED' | 'DETAIL_PARENT_MISSING' | 'DETAIL_EMPTY' | 'DETAIL_NO_ROOM' | 'BREAK_NO_VIEW' | 'SECTION_NO_ROOM' | 'SECTION_NO_VIEW' | DatumTargetFailureCode;
+export type DrawingIssueCode = 'SHEET_SET' | 'UNIT_PRECISION' | 'DIM_ON_HIDDEN' | 'DATUM_LOST' | 'FRAME_LOST' | 'FRAME_VIEW_MISSING' | 'DATUM_UNDEFINED' | 'FRAME_RULE' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN' | 'BALLOON_NOT_CLEAR' | 'BALLOON_NO_EDGE' | 'FIT_ROW_MISSING' | 'FOLLOWED_CHANGED' | 'DETAIL_PARENT_MISSING' | 'DETAIL_EMPTY' | 'DETAIL_NO_ROOM' | 'BREAK_NO_VIEW' | 'SECTION_NO_ROOM' | 'SECTION_NO_VIEW' | 'DATUM_TARGET_OUTSIDE' | DatumTargetFailureCode;
 export type DrawingFix =
   | { kind: 'remove'; dim: string }
   | { kind: 'move'; dim: string; place: XY }
@@ -194,6 +199,65 @@ function placedOf(g: MarkGroup): Placed {
 
 const same = (a: Owner, b: Owner) => a.kind === b.kind && a.id === b.id && a.view === b.view && a.datumTarget === b.datumTarget;
 const ownerKey = (o: Owner) => `${o.datumTarget ? 'datum-target' : o.kind}:${o.id}`;
+/** Payload bounds retain the text/line orientation; decorated frame bounds remain conservative. */
+function linearMarkPolygon(m: Mark): readonly XY[] {
+  if (m.kind === 'text') return textBox(m);
+  if (m.kind === 'fill') return m.points;
+  if (m.kind === 'polyline' && m.role === 'frame' && m.points.length === 5) {
+    const q = m.points, dx = q[1][0] - q[0][0], dy = q[1][1] - q[0][1], ex = q[3][0] - q[0][0], ey = q[3][1] - q[0][1], lx = Math.hypot(dx, dy), ly = Math.hypot(ex, ey), half = PENS[m.pen].width / 2;
+    if (lx > 1e-8 && ly > 1e-8 && Math.abs(dx * ex + dy * ey) <= 1e-10 * lx * ly && Math.hypot(q[4][0] - q[0][0], q[4][1] - q[0][1]) < 1e-8 && Math.hypot(q[2][0] - q[1][0] - ex, q[2][1] - q[1][1] - ey) < 1e-8) {
+      const x = dx * half / lx, y = dy * half / lx, u = ex * half / ly, v = ey * half / ly;
+      return [[q[0][0] - x - u, q[0][1] - y - v], [q[1][0] + x - u, q[1][1] + y - v], [q[2][0] + x + u, q[2][1] + y + v], [q[3][0] - x + u, q[3][1] - y + v]];
+    }
+  }
+  if (m.kind === 'line') {
+    const dx = m.b[0] - m.a[0], dy = m.b[1] - m.a[1], length = Math.hypot(dx, dy), half = PENS[m.pen].width / 2;
+    if (length > 1e-8) {
+      const x = -dy * half / length, y = dx * half / length, u = dx * half / length, v = dy * half / length;
+      return [[m.a[0] - u + x, m.a[1] - v + y], [m.b[0] + u + x, m.b[1] + v + y], [m.b[0] + u - x, m.b[1] + v - y], [m.a[0] - u - x, m.a[1] - v - y]];
+    }
+  }
+  let points: readonly XY[], pad = 0;
+  if (m.kind === 'arc') { const rx = Math.hypot(m.u[0], m.v[0]), ry = Math.hypot(m.u[1], m.v[1]); points = [[m.center[0] - rx, m.center[1] - ry], [m.center[0] + rx, m.center[1] + ry]]; pad = PENS[m.pen].width / 2; }
+  else if (m.kind === 'line') { points = [m.a, m.b]; pad = PENS[m.pen].width / 2; }
+  else { points = m.kind === 'hatch' ? m.rings.flat() : m.points; pad = PENS[m.pen].width / 2; }
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const point of points) { x0 = Math.min(x0, point[0] - pad); y0 = Math.min(y0, point[1] - pad); x1 = Math.max(x1, point[0] + pad); y1 = Math.max(y1, point[1] + pad); }
+  return [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+}
+function linearPolygonsOverlap(a: readonly XY[], b: readonly XY[]): boolean {
+  for (const polygon of [a, b]) for (let i = 0; i < polygon.length; i++) {
+    const p = polygon[i], q = polygon[(i + 1) % polygon.length], nx = p[1] - q[1], ny = q[0] - p[0], length = Math.hypot(nx, ny);
+    if (length < 1e-8) continue;
+    let a0 = Infinity, a1 = -Infinity, b0 = Infinity, b1 = -Infinity;
+    for (const point of a) { const t = point[0] * nx + point[1] * ny; a0 = Math.min(a0, t); a1 = Math.max(a1, t); }
+    for (const point of b) { const t = point[0] * nx + point[1] * ny; b0 = Math.min(b0, t); b1 = Math.max(b1, t); }
+    if (Math.min(a1, b1) - Math.max(a0, b0) <= 1e-8 * length) return false;
+  }
+  return true;
+}
+function linearPayloadGeometryClash(ctx: IssueContext, id: string | undefined, view: DimView | undefined): boolean {
+  let r: Resolved | undefined; for (const d of ctx.sheet.dimensions) if (d.ok && d.kind === 'linear' && d.dim.id === id && d.dim.view === view) { r = d; break; }
+  if (!r?.ok || r.kind !== 'linear') return false;
+  let group: MarkGroup | undefined; for (const g of ctx.sheet.groups) if (g.role === 'dimension' && g.id === id && g.view === view) { group = g; break; }
+  if (!group) return false;
+  const moving: Mark[] = [], fixed: Mark[] = [];
+  for (const m of group.marks) {
+    if (m.kind === 'text' || (m.kind === 'polyline' && m.role === 'frame')) moving.push(m);
+    else if ((m.kind === 'line' && (m.role === 'dimension' || m.role === 'extension' || m.role === 'leader')) || (m.kind === 'fill' && m.head)) fixed.push(m);
+  }
+  const attached = new Set<MarkGroup>();
+  for (const f of ctx.settings.frames ?? []) if (f.dim === id) for (const g of ctx.sheet.groups) if (g.role === 'control' && !g.standaloneFrame && g.id === f.id) { attached.add(g); moving.push(...g.marks); }
+  // A retained no-safe payload may hit a datum leader, control border or view line without any text/text overlap.
+  // Frame/title occupancy retains the existing OFF_SHEET path. Text/text has its existing TEXT_OVERLAP path.
+  for (const g of ctx.sheet.groups) {
+    if (g === group || attached.has(g) || g.role === 'frame' || g.role === 'title') continue;
+    for (const m of g.marks) if (m.kind !== 'text') fixed.push(m);
+  }
+  const polygons: (readonly XY[])[] = []; for (const m of moving) polygons.push(linearMarkPolygon(m));
+  for (const f of fixed) { const polygon = linearMarkPolygon(f); for (const moving of polygons) if (linearPolygonsOverlap(moving, polygon)) return true; }
+  return false;
+}
 const name = (o: Owner, sheet: Sheet) => o.kind === 'frame' ? 'a standalone feature control frame' : o.kind === 'dimension' ? `dimension ${textOf(sheet, o.id!)}` : o.kind === 'note' ? 'a note' : o.kind === 'table' ? `table ${o.id}` : o.kind === 'balloon' ? `balloon ${o.id}` : o.kind === 'weld' ? `weld symbol ${o.id}` : o.kind === 'datum' ? `datum${o.datumTarget ? ' target' : ''} ${datumLetter(sheet, o.id!, o.datumTarget)}` : `the ${o.view ?? 'section'} view’s name`;
 function datumLetter(sheet: Sheet, id: string, target?: true): string { const t = sheet.groups.find(g => g.role === 'datum' && g.id === id && g.datumTarget === target)?.marks.find(m => m.kind === 'text'); return t && t.kind === 'text' ? t.text : id; }
 function textOf(sheet: Sheet, id: string): string { const r = sheet.dimensions.find(d => d.dim.id === id); return r?.ok ? r.text : id; }
@@ -234,11 +298,15 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     const next = settings.scale !== undefined ? { kind: 'scale' as const } : settings.sheet === 'A4' ? { kind: 'scale' as const, sheet: 'A3' as const } : undefined;
     out.push({ code: 'VIEWS_DONT_FIT', severity: 'error', message: `The views do not fit the ${settings.sheet} sheet at the scale${settings.scale !== undefined ? ' set' : ''}.`, ...(next ? { fix: next } : {}) });
   }
+  // (11 ④: what the file lists on its sheets that the drawing does not have, on the first sheet's list.)
+  for (const why of settings.sheetContext?.stale ?? []) out.push({ code: 'SHEET_SET', severity: 'warning', message: why });
   // Datums and frames (R14.4, O5).
   const letters = new Map<string, string>();
   for (const d of settings.datums ?? []) {
-    if (!layout.views[d.view].hidden && !datumMarks(layout, ctx.views, d)) out.push({ code: 'DATUM_LOST', severity: 'error', message: d.face ? `Datum ${d.letter}: its face in the ${d.view} view has no unique current boundary anchor.` : `Datum ${d.letter}: its edge in the ${d.view} view is no longer in the part.`, view: d.view, fix: { kind: 'remove-datum', datum: d.id } });
-    if (letters.has(d.letter)) out.push({ code: 'DATUM_TWICE', severity: 'error', message: `Datum ${d.letter} is defined twice.`, view: d.view, fix: { kind: 'remove-datum', datum: d.id } });
+    if (!layout.views[d.view].hidden && !datumMarks(layout, ctx.views, d, presetFor(settings))) out.push({ code: 'DATUM_LOST', severity: 'error', message: d.face ? `Datum ${d.letter}: its face in the ${d.view} view has no unique current boundary anchor.` : `Datum ${d.letter}: its edge in the ${d.view} view is no longer in the part.`, view: d.view, fix: { kind: 'remove-datum', datum: d.id } });
+    // (11 ④: with sheets, a letter is repeated when an earlier datum feature of the whole drawing has it, wherever that is.)
+    const first = settings.sheetContext?.datumFirst[d.letter];
+    if (settings.sheetContext ? first !== undefined && first !== d.id : letters.has(d.letter)) out.push({ code: 'DATUM_TWICE', severity: 'error', message: `Datum ${d.letter} is defined twice.`, view: d.view, fix: { kind: 'remove-datum', datum: d.id } });
     else letters.set(d.letter, d.id);
   }
   const targetConflicts = datumTargetConflicts(settings.datumTargets ?? []);
@@ -246,19 +314,51 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     const result = targetConflicts.has(d) ? { ok: false as const, code: 'DATUM_TARGET_DUPLICATE' as const, reason: 'The datum target id or letter-number is defined more than once.' } : resolveDatumTarget(ctx.views[d.view], d);
     if (!result.ok) out.push({ code: result.code, severity: 'error', message: `Datum target ${d.letter}${d.number}: ${result.reason}`, datumTargets: [d.id], view: d.view });
     else if (layout.views[d.view].hidden) out.push({ code: 'VIEW_NEEDED', severity: 'warning', message: `Datum target ${d.letter}${d.number}: its ${d.view} view is not shown.`, datumTargets: [d.id], view: d.view });
+    else if (d.kind === 'line' || d.kind === 'area') {
+      // Line and area targets are placed by view points and follow no geometry: say when they no longer lie on the part.
+      const pr = ctx.views[d.view], pts: XY[] = d.kind === 'line' ? [d.line.from, d.line.to]
+        : d.area.shape === 'circle' ? [[d.area.at[0] - d.area.d / 2, d.area.at[1] - d.area.d / 2], [d.area.at[0] + d.area.d / 2, d.area.at[1] + d.area.d / 2]]
+        : [[d.area.at[0] - d.area.w / 2, d.area.at[1] - d.area.h / 2], [d.area.at[0] + d.area.w / 2, d.area.at[1] + d.area.h / 2]];
+      const eps = 1e-6;
+      if (pts.some(p => p[0] < pr.min[0] - eps || p[0] > pr.max[0] + eps || p[1] < pr.min[1] - eps || p[1] > pr.max[1] + eps))
+        out.push({ code: 'DATUM_TARGET_OUTSIDE', severity: 'warning', message: `Datum target ${d.letter}${d.number}: its ${d.kind === 'line' ? 'line' : 'area'} lies partly outside the part in the ${d.view} view. It is placed by view points and does not follow the part; move it.`, datumTargets: [d.id], view: d.view });
+    }
   }
+  // A numeric interval remains inside its true zone; an unrepresentable interval is omitted, never inverted or collapsed.
+  const preset = presetFor(settings), units: DrawingUnits[] = preset.dual ? [preset.units, preset.units === 'mm' ? 'inch' : 'mm'] : [preset.units];
+  for (const r of sheet.dimensions) {
+    if (!r.ok || r.kind === 'angle') continue;
+    const t = r.dim.tol;
+    const displayedPreset = r.shownPrecision ? { ...preset, precision: { ...preset.precision, ...r.shownPrecision } } : preset;
+    for (const u of units) {
+      const pair = t && t.kind !== 'fit' ? deviationPair(t.kind === 'symmetric' ? t.value : t.upper, t.kind === 'symmetric' ? -t.value : t.lower, displayedPreset, u, r.value) : null;
+      // Fit callouts already include their unit-specific marker. This detects omitted fit limits only, not numeric-but-tight fits.
+      const omittedFit = (u === preset.units ? r.text : r.alt)?.includes(UNPRINTABLE_FIT_LIMITS) === true;
+      if (!pair?.tight && !omittedFit) continue;
+      const digits = pair?.digits ?? Math.max(u === 'inch' ? 5 : 4, preset.precision[u] ?? 0), omitted = omittedFit || pair?.printable === false;
+      out.push({ code: 'UNIT_PRECISION', severity: 'warning', message: `Dimension ${r.dim.id}: its tolerance is too fine to print in ${u === 'inch' ? 'inches' : 'mm'} even at ${digits} decimals. ${omitted ? 'Its limits are omitted because no numeric interval can be printed inside the true zone.' : 'Its printed limits remain inside the true zone but do not preserve enough of its width or a nonzero deviation.'} Use more decimal places or another drawing unit.`, dims: [r.dim.id], view: r.dim.view });
+    }
+  }
+  if (preset.units === 'inch') for (const f of settings.frames ?? []) {
+    const values: [number | undefined, FrameRounding][] = [[f.value, 'down'], [f.projected, 'up'], [f.unequal, 'nearest'], [f.composite?.value, 'down'], [f.stacked?.value, 'down']];
+    if (values.some(([v, mode]) => v !== undefined && v > 0 && frameValue(v, preset, mode).tight)) out.push({ code: 'UNIT_PRECISION', severity: 'warning', message: `The ${f.characteristic} frame${f.dim === undefined ? '' : ` on dimension ${f.dim}`}: a value is too fine to print in inches even at 5 decimals, so the printed value is lower than the real one. Print this drawing in mm.`, frames: [f.id], ...(f.dim === undefined ? { view: f.view } : { dims: [f.dim] }) });
+  }
+  // (A datum exists when a datum feature symbol or a datum target set has its letter.)
+  const known = new Set(settings.sheetContext?.datumLetters ?? [...letters.keys(), ...(settings.datumTargets ?? []).map(t => t.letter)]);
   for (const f of settings.frames ?? []) {
+    for (const why of frameNotes(f, settings.standard)) out.push({ code: 'FRAME_RULE', severity: 'warning', message: `The ${f.characteristic} frame${f.dim === undefined ? '' : ` on dimension ${f.dim}`}: ${why}`, frames: [f.id], ...(f.dim === undefined ? { view: f.view } : { dims: [f.dim] }) });
+    for (const why of frameRules(f)) out.push({ code: 'FRAME_RULE', severity: 'error', message: `The ${f.characteristic} frame${f.dim === undefined ? '' : ` on dimension ${f.dim}`}: ${why}`, frames: [f.id], ...(f.dim === undefined ? { view: f.view } : { dims: [f.dim] }) });
     if (f.dim === undefined) {
       const placement = placementOf(layout, sheet, f.view), projection = projectionOf(ctx.views, sheet, f.view);
       if (!placement || !projection) out.push({ code: 'FRAME_VIEW_MISSING', severity: 'error', message: `A standalone ${f.characteristic} frame has no current ${viewName(f.view)}. The saved frame is retained.`, frames: [f.id], view: f.view });
       else if (placement.hidden) out.push({ code: 'VIEW_NEEDED', severity: 'warning', message: `A standalone ${f.characteristic} frame is in ${viewName(f.view)}, which is not shown.`, frames: [f.id], view: f.view });
-      const missing = [...new Set([...f.datums, ...(f.composite?.datums ?? [])])].filter(l => !letters.has(l));
+      const missing = [...new Set([...f.datums, ...(f.composite?.datums ?? []), ...(f.stacked?.datums ?? [])])].filter(l => !known.has(l));
       if (missing.length) out.push({ code: 'DATUM_UNDEFINED', severity: 'error', message: `A standalone ${f.characteristic} frame refers to datum${missing.length > 1 ? 's' : ''} ${missing.join(', ')}, which the drawing does not have.`, frames: [f.id], view: f.view });
       continue;
     }
     const r = sheet.dimensions.find(x => x.dim.id === f.dim);
     if (!r?.ok) { out.push({ code: 'FRAME_LOST', severity: 'error', message: `A ${f.characteristic} frame (${f.characteristic === 'position' ? 'Ø' : ''}${f.value}) belongs to a dimension that is ${r ? 'lost' : 'gone'}.`, ...(r ? { dims: [f.dim] } : {}), fix: { kind: 'remove-frame', frame: f.id } }); continue; }
-    const missing = [...new Set([...f.datums, ...(f.composite?.datums ?? [])])].filter(l => !letters.has(l));
+    const missing = [...new Set([...f.datums, ...(f.composite?.datums ?? []), ...(f.stacked?.datums ?? [])])].filter(l => !known.has(l));
     if (missing.length) out.push({ code: 'DATUM_UNDEFINED', severity: 'error', message: `The ${f.characteristic} frame on ${r.text} refers to datum${missing.length > 1 ? 's' : ''} ${missing.join(', ')}, which the drawing does not have.`, dims: [f.dim], view: r.dim.view });
   }
   for (const r of sheet.dimensions) {
@@ -285,6 +385,7 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     if (why) out.push({ code: 'FIT_ROW_MISSING', severity: 'error', message: `Dimension ${r.text}: its tolerance class has no limits here — ${why.replace(/^\[FIT_TABLE_MISS\] /, '')}.`, dims: [r.dim.id], view: r.dim.view });
   }
   // (FRd2, O119: a weld seen in no view has no symbol: said, the weld list holds it.)
+  // (11 ④: with sheets, a joint seen in no shown view of the whole set is said on the first sheet, once.)
   if (sheet.welds?.unshown.length) out.push({ code: 'WELD_NOT_SHOWN', severity: 'warning', message: `Weld${sheet.welds.unshown.length > 1 ? 's' : ''} ${sheet.welds.unshown.join(', ')}: no edge of the joint is visible in the front, top or right view, so no symbol is drawn. The weld list holds ${sheet.welds.unshown.length > 1 ? 'them' : 'it'}; a section or a detail view would show ${sheet.welds.unshown.length > 1 ? 'them' : 'it'}.` });
   // (O147 B2: a balloon with no clear room, and a BOM line none of whose items shows an edge in any shown base view.)
   if (sheet.balloons?.unclear.length) {
@@ -314,7 +415,9 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
   }
   // (DR-2: a break that shortens no shown orthographic view: its band misses the part, or only hidden views show its axis.)
   (settings.breaks ?? []).forEach((b, index) => {
-    if ((['front', 'top', 'right'] as const).some(id => !ctx.layout.views[id].hidden && viewBreaksOf(ctx.views[id], [b]).length)) return;
+    // (11 ④: a break is the drawing's: said on the first sheet only, and judged against the views of every sheet.)
+    if (settings.sheetContext && settings.sheetContext.n !== 1) return;
+    if ((['front', 'top', 'right'] as const).some(id => (!ctx.layout.views[id].hidden || ctx.settings.sheetContext?.allViews.includes(id)) && viewBreaksOf(ctx.views[id], [b]).length)) return;
     out.push({ code: 'BREAK_NO_VIEW', severity: 'warning', message: `The break along ${b.axis.toUpperCase()} from ${fmtMM(b.from)} to ${fmtMM(b.to)} shortens no view: it misses the part, or no view shown has its axis across or up.`, fix: { kind: 'remove-break', index } });
   });
   for (const tb of sheet.tables ?? []) if (tb.error) out.push({ code: 'TABLE_SOURCE', severity: 'error', message: `Table ${tb.id} has no rows from its source: ${tb.error}.`, tables: [tb.id] });
@@ -354,11 +457,13 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
       if (!flagged.has(`weld:${p.owner.id}`) && p.boxes.some(b => viewGrid.hits(b) || onOtherView(ctx.layout, ctx.sheet, b, p.owner.view))) { flagged.add(`weld:${p.owner.id}`); out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `${cap(name(p.owner, sheet))} lies over lines of the drawing.`, ...ids([p]), at: center(p.boxes[0]) }); }
       continue;
     }
-    if (p.owner.kind !== 'dimension' || flagged.has(`dimension:${p.owner.id}`)) continue;
+    if (p.owner.kind !== 'dimension') continue;
+    const ownClash = linearPayloadGeometryClash(ctx, p.owner.id, p.owner.view);
+    if (flagged.has(`dimension:${p.owner.id}`) && !ownClash) continue;
     const others = placed.filter(q => q !== p && (q.owner.kind === 'dimension' || q.owner.kind === 'weld' || q.owner.kind === 'balloon')).flatMap(q => q.lines);
-    if (p.boxes.some(b => viewGrid.hits(b) || others.some(([s, t]) => segmentHitsQuad(s, t, b)) || onOtherView(ctx.layout, ctx.sheet, b, p.owner.view))) {
+    if (ownClash || p.boxes.some(b => viewGrid.hits(b) || others.some(([s, t]) => segmentHitsQuad(s, t, b)) || onOtherView(ctx.layout, ctx.sheet, b, p.owner.view))) {
       flagged.add(`dimension:${p.owner.id}`);
-      out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `The text of ${name(p.owner, sheet)} lies over lines of the drawing.`, ...ids([p]), at: center(p.boxes[0]), ...fixFor(ctx, p, placed, viewGrid) });
+      out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `The text of ${name(p.owner, sheet)} lies over lines of the drawing.`, ...ids([p]), at: center(p.boxes[0]), ...(ownClash ? {} : fixFor(ctx, p, placed, viewGrid)) });
     }
   }
   const [fx0, fy0, fx1, fy1] = layout.frame, [tx0, ty0, tx1, ty1] = layout.title;
@@ -369,7 +474,8 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     flagged.add(ownerKey(p.owner));
     out.push({ code: 'OFF_SHEET', severity: 'error', message: `${cap(name(p.owner, sheet))} reaches past the frame or into the title block.`, ...ids([p]), at: center(p.boxes[0] ?? [p.points[0], p.points[0], p.points[0], p.points[0]]), ...fixFor(ctx, p, placed, viewGrid) });
   }
-  out.push(...duplicates(ctx), ...coverage(ctx));
+  // (11 ④: what is missing is judged on the whole drawing: sheetSet.ts `setCoverage`.)
+  out.push(...(settings.sheetContext ? [] : [...duplicates(ctx), ...coverage(ctx)]));
   // (A table no fix clears — no room here, on A3 or at a smaller standard scale — said so, never left as if one might, O67.)
   for (const x of out) if (!x.fix && x.tables?.length && TABLE_CLASH.has(x.code)) x.message += ' Nothing clears it: the table has no room on this sheet, on A3 or at a smaller standard scale; make it smaller or show fewer views.';
   return out;
@@ -528,9 +634,9 @@ function fixFor(ctx: IssueContext, p: Placed, placed: readonly Placed[], viewGri
     // (The sheet's resolved dimension carries its shown text, callout and count included.)
     const moved = { ...r, dim: { ...r.dim, place } } as Extract<Resolved, { ok: true }>;
     // (Drawn as the sheet draws it: boxed if basic, its feature control frame under it.)
-    const marks = dimensionMarks(v, moved); if (r.dim.basic) marks.push(...basicBox(marks));
+    const marks = dimensionMarks(v, moved, presetFor(ctx.settings)); if (r.dim.basic) marks.push(...basicBox(marks));
     const frame = ctx.settings.frames?.find(f => f.dim === r.dim.id), main = marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
-    if (frame && main) marks.push(...frameMarks(main, frame));
+    if (frame && main) marks.push(...frameMarks(main, frame, presetFor(ctx.settings)));
     if (clear(placedOf({ role: 'dimension', id: r.dim.id, view: r.dim.view, marks }))) return { fix: { kind: 'move', dim: r.dim.id, place } };
   }
   return {};
@@ -596,7 +702,7 @@ const unit = (v: XY): XY => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0
 // Duplicates and coverage
 
 
-function duplicates(ctx: IssueContext): DrawingIssue[] {
+export function duplicates(ctx: IssueContext): DrawingIssue[] {
   const out: DrawingIssue[] = [], seen = new Map<string, Extract<Resolved, { ok: true }>[]>();
   for (const r of ctx.sheet.dimensions) {
     if (!r.ok) continue;
@@ -671,7 +777,7 @@ function holeLocated(ctx: IssueContext, h: Hole, ring: Extract<Resolved, { ok: t
   return false;
 }
 
-function coverage(ctx: IssueContext): DrawingIssue[] {
+export function coverage(ctx: IssueContext): DrawingIssue[] {
   const { views, sheet } = ctx, out: DrawingIssue[] = [], auto: DrawingFix = { kind: 'auto-dimension' };
   const along: Record<string, number[]> = {};
   const given = (axis: string) => along[axis] ??= givenAlong(sheet, axis);

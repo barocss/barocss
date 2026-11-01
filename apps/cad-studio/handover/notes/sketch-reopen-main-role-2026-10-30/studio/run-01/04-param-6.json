@@ -1,0 +1,116 @@
+{
+  "label": "04-param-6",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {
+      "R": 6
+    },
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "circle",
+        "center": [
+          0,
+          0
+        ],
+        "radius": {
+          "parameter": "R"
+        },
+        "regions": [
+          [
+            {
+              "kind": "line",
+              "start": [
+                20,
+                -5
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                40,
+                -5
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                40,
+                5
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                20,
+                5
+              ]
+            }
+          ]
+        ],
+        "sideTags": {
+          "outer": [
+            "e1"
+          ],
+          "regions": [
+            [
+              "e2",
+              "e3",
+              "e4",
+              "e5"
+            ]
+          ]
+        },
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 10,
+        "id": "n1"
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      }
+    },
+    "nextId": 2
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b1",
+        "volume": 3130.9733552923244,
+        "centroid": [
+          19.163369722895027,
+          6.259450294001501e-17,
+          5
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 1,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": null,
+  "parametersPanel": null,
+  "hud": null
+}

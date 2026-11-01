@@ -138,7 +138,7 @@ test('G1 the renderer: an instance\'s meshes made once — a new selection, the 
 // G10: copies of one part turned about Z (and placed) share one tessellation: one geometry, drawn through each copy's
 // matrix onto it; an edited copy, a not-rigid one, or one with picked faces draws its own.
 test('G10 copies share a tessellation: four turned copies one geometry, each drawn where its own mesh is; an edited or scaled copy its own; picked faces a private copy and back; all released', async () => {
-  const bracket = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [
+  const bracket = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [
     { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [30, 12] }, { kind: 'extrude', sketch: 0, height: 6 },
     { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 2 }, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [24, 6], radius: 2 }],
     outputs: { b1: { node: 3, side: 'solid' } } } as unknown as StudioDoc;

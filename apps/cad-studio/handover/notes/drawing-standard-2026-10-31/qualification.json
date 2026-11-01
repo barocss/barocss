@@ -1,0 +1,40 @@
+{
+  "decision": "D396",
+  "roadmap": "11 ③a ISO / ASME drawing standard setting (CG5 DR-7)",
+  "issues": {},
+  "tier": "full (drawing document field + public API): two audit rounds with mutation, actual run",
+  "status": "QUALIFIED",
+  "before": "measured 2026-10-31: no standard setting; text 3.5, arrowheads 3 × 1.2, aligned dimension text, projection only as words and a small symbol, standard-specific GD&T rules and the ISO line target deferred by D394/D395",
+  "change": {
+    "field": "drawing.standard?: 'iso' | 'asme' — absent is byte-identical to before (91 outputs across 11 fixtures compared by the auditor)",
+    "presets": "standard.ts table: text ISO 3.5 (ISO 3098) / ASME 3.0 (Y14.2); arrowheads ISO 3 × 0.8 (≈15°, ISO 129-1) / ASME 3 × 1 (3:1, Y14.2); dimension text ISO aligned above the line / ASME unidirectional in a break of the line (beside it when it does not fit); zeros keep the leading zero and drop trailing ones (metric, both); ISO 5456-2 projection symbol sized by the lettering; ISO 5459 line datum target (two X joined by a thin line) vs ASME phantom line; ASME warns on concentricity/symmetry (removed in Y14.5-2018)",
+    "api": "the preset is an explicit parameter (presetOf(settings.standard)) through buildSheet, drawingIssues, placeDimensionLabels, toleranceSuggestions and the exported mark builders — no module state",
+    "chat": "set_drawing schema standard enum iso | asme | none (none clears); per-turn budget unchanged 24,997/25,000",
+    "studio": "sheet settings 'Standard' select (Not set / ISO / ASME) after Projection; one undo step; previews follow"
+  },
+  "audits": {
+    "round1": "CHANGES_REQUIRED: medium — preset as module state read by paths that never set it (tolerance datum placement, exported builders); medium — agent could not set the standard (schema); low-medium — DXF DIMSTYLE header (kernel lane) still 3.5 for ASME; low — test gaps, dead branch, symbol 1 mm into the title room. 33/48 mutants caught",
+    "round2": "targeted ACCEPT; 44/66 mutants caught (survivors are test gaps); 91/91 byte-identical; root restored two words the description shortening dropped and named `standard` in it"
+  },
+  "checks": {
+    "modelSuite": "2460/2460",
+    "studioSuite": "623/623",
+    "chatDrawingTests": "298/298 after the final description edit",
+    "tsc": "PASS (model, Studio)",
+    "eslint": "clean on changed files",
+    "docsTables": "refusals, agent-tools, api-inventory, check-docs PASS"
+  },
+  "actualRun": {
+    "run03": "final source PASS on bracket.bcad: Drawing, Auto-dimension, export (no standard); Standard → ASME, export; Undo/Redo; Save + fresh Open equal; Standard → ISO, export; Not set, export; oracle: the unset sheet byte-identical after the round trip (title word aside), ASME text 3 mm never turned with 3 × 1 arrowheads, ISO text 3.5 mm with a vertical dimension's text turned and 3 × 0.8 arrowheads, each projection symbol's circles sized by its lettering (R 3 / 3.5); 0 page/console errors; root reviewed zoomed renders of both standards",
+    "failedRuns": ["run01: oracle compared titles across a Save (the title follows the file name) and assumed the unset sheet had no projection symbol (it has a small one)"]
+  },
+  "followUps": [
+    "DXF DIMSTYLE header (DIMTXT 3.5, DIMTAD 1) in packages/barocss-cad does not follow ASME — kernel lane",
+    "under ASME, fixed 2.5 mm view names, tables and deviations fall below the Y14.2 3 mm minimum",
+    "ISO 129-1 unidirectional text (method 2) is not offered",
+    "tests for the surviving mutants (issue/label/tolerance-datum paths, section/detail values and letters, ASME gap details)",
+    "inch display and dual dimensions (11 ③b)"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

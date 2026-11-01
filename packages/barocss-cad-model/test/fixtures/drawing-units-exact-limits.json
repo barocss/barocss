@@ -1,0 +1,20 @@
+{
+  "coarse-plain.svg": "387b280a6306e285c0ac6538041c779c79804ad96234704037fec1c04f8cbc89",
+  "coarse-plain.dxf": "d10584e14bca72aaff34ee50d79c475817012448313c689c96f15fb1a66e9492",
+  "coarse-plain.dims": "ce7c93b20bb6a99306d29c2e0166a00c5bf9e2be1d27e6f69bee1c0c37e230b2",
+  "coarse-iso.svg": "f4ba4e70adf5335c61b75d88c617653a7262e7f626b7abe7e2b1648e8f56cb78",
+  "coarse-iso.dxf": "395844e740ab0a26cfc23ab6550529f3e18de840740d6001dc782fcd8024357e",
+  "coarse-iso.dims": "ce7c93b20bb6a99306d29c2e0166a00c5bf9e2be1d27e6f69bee1c0c37e230b2",
+  "coarse-asme.svg": "8d28d5cf0a0bb3e2190583c372368aa66277768759fcdbbbefec04e9b1bed507",
+  "coarse-asme.dxf": "0671a9f6acbb604fa39206ca7930b2d84ada583b5fa4f6a7f485b098ad04bbbd",
+  "coarse-asme.dims": "ce7c93b20bb6a99306d29c2e0166a00c5bf9e2be1d27e6f69bee1c0c37e230b2",
+  "plain.svg": "755ecdce2c308894f2d70cd525028cce34bb3f49c7e1f5da83ede362495de0fa",
+  "plain.dxf": "9398e2e88c552b3ffa7a4aba7d626ab227c39b3e94a201c1e0da8351d60781da",
+  "plain.dims": "d77e690d4a09a4d45384513c1eca9edae649693b259948f43fbbed105d7cd5d2",
+  "iso.svg": "fcf80df5db03c5a5076f63b4521cd8b7685579767bdadec4ba8e05d6caf0616b",
+  "iso.dxf": "de1fd834a729a4577c3d980cf130249e2fbaf8210f69cdce89b0ce0da4fc9819",
+  "iso.dims": "d77e690d4a09a4d45384513c1eca9edae649693b259948f43fbbed105d7cd5d2",
+  "asme.svg": "eb6737d5fbc62dfc99eadd8133a4396f785a21a05442445736fed1dc06d9a528",
+  "asme.dxf": "d36379ac4e39c1c71867e1591599e474f761aa40f6fb5341b4d1e3e92b4963a9",
+  "asme.dims": "d77e690d4a09a4d45384513c1eca9edae649693b259948f43fbbed105d7cd5d2"
+}

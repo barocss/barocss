@@ -1,0 +1,39 @@
+{
+  "decision": "D389",
+  "roadmap": "10 ④ flexible sub-assemblies (RS7.4: flexible occurrences retain their own joint state; owner order 'Go to row 10')",
+  "issues": {
+    "#538": "stays open"
+  },
+  "tier": "full (document field + fold semantics + public API: two audit rounds with mutation, actual run)",
+  "status": "QUALIFIED",
+  "before": "every occurrence of a sub-assembly was folded rigid at its saved pose (flattenAssembly drops its mates); two occurrences could not differ",
+  "change": {
+    "data": "PartInstance.joints: this occurrence's values for its sub-assembly's internal joints, radians/mm, offsets from the saved pose; absent or all zero = the very saved document (byte-identical for every existing file)",
+    "fold": "assembly/flexible.ts bodyDocOf builds the sub-assembly's joint tree (robot jointTreeOf) and forwardKinematics and moves its nested placements; engine/doc.ts placedBase folds it, so the viewport, placed lane, drawings, STEP/3MF, clearance, explode and the parent's face tables (mates to sub1/lid) all see the pose; occurrence-path names do not change with pose",
+    "api": "setInstanceJoints (degrees/mm), instanceJointsOf (type, limits, value, problem); facade Assembly.setPartJoints/partJoints; chat place_part `joints` (the per-turn tool budget had no room for a new tool) and get_assembly joints/joint_problem",
+    "studio": "Instance panel 'JOINTS (THIS OCCURRENCE)': a value per joint (° or mm, limits), Apply on Enter as one undo step, Reset",
+    "guards": "immediate sub-assembly only; unknown key, value past a limit, non-finite value, a tree with problems → the occurrence folds rigid and the problem is reported; Open refuses malformed joints; a pattern occurrence's joints refused (PATTERN_DRIVEN), patterns copy the seed's"
+  },
+  "audits": {
+    "round1": "CHANGES_REQUIRED: pose maths correct (tilted two-joint chain, prismatic, offsets, rotated occurrence, within 3e-13); M1 joints on a pattern occurrence silently lost; M2 Open accepted non-finite / string joints and posed with them; L1 cached problem named the wrong occurrence; L2 stale zero key unreported; L3 comment — all fixed with tests",
+    "round2": "ACCEPT: fixes confirmed, 623 JSON fixtures open, 4/4 mutants killed"
+  },
+  "checks": {
+    "flexibleSubassembly": "16/16",
+    "modelSuite": "2329/2329",
+    "studioSuite": "588/588",
+    "tsc": "PASS",
+    "docsTables": "PASS (inventory additions only)"
+  },
+  "actualRun": {
+    "run02": "final source PASS: Hinge 2's Joint base~lid = 90, Enter → stored π/2 on Hinge 2 only; the posed lid is the saved lid turned 90° about Z through (20, 20) (oracle, independent rotation), Hinge 1's lid unmoved; Undo/Redo; Save and fresh Open keep it; Reset back to the saved pose; 0 page/console errors; root reviewed the screenshot (Hinge 2's lid turned off the plate, Hinge 1's along it)"
+  },
+  "followUps": [
+    "robot view and chat get_assembly world_bounds leave out a sub-assembly's nested parts at any pose (pre-existing)",
+    "joints of deeper sub-assembly levels are refused (immediate level only)",
+    "gear couplings inside a sub-assembly are not built into the pose tree",
+    "a joint value {k: 0} whose limits exclude 0 now reports 'outside its limits' and stays rigid (the saved pose is outside its own limits)"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

@@ -175,7 +175,7 @@ The hierarchy itself, how it is built and how its two queries search it, is on
 | `packages/barocss-cad/src/mesh/mesh-clearance.ts` | `meshClearance`: the dual descent and the triangle–triangle distance |
 | `packages/barocss-cad/src/mesh/triangle-bvh.ts` | the hierarchy and its nearest query (`triangleBvh`, `nearestDistance2`) |
 | `packages/barocss-cad/src/part/part-mesh.ts` | the `decimate` feature: its inputs, refusals and naming |
-| `packages/barocss-cad/src/part/part-model.ts` | `shellOf`: a mesh body's shell through `meshInnerOffset` |
+| `packages/barocss-cad/src/part/part-shell.ts` | `shellOf`: a mesh body's shell through `meshInnerOffset` |
 | `packages/barocss-cad-model/src/print/hollow.ts` | the hollowing: exact shell first, else the voxel cavity, decimated and subtracted, with drains |
 
 ## How it is checked

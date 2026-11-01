@@ -4,19 +4,23 @@
 // frame and title block are one block (TITLE_BLOCK); each dimension is a DIMENSION entity showing exactly what
 // the sheet draws, with its definition points from the model; the section's hatching is a HATCH.
 import { writeDxf, type BrepProjection, type DxfDocument, type DxfEntity, type DxfLayer, type DxfVersion, type DxfWriteResult, type DxfXY, type ProjectedCurve } from '@barocss/cad';
-import { hatchGroups, placementOf, toleranceText, type Mark, type MarkGroup, type Pen, type Sheet } from '../drawing/sheet';
+import { dimensionLine, hatchGroups, placementOf, type Mark, type MarkGroup, type Pen, type Sheet } from '../drawing/sheet';
 import { toSheet, type SheetLayout, type ViewPlacement } from '../drawing/views';
 import type { Resolved } from '../drawing/dimensions';
+import { presetFor, type StandardPreset } from '../drawing/standard';
 import type { XY } from '../drawing/types';
 
 export const SHEET_DXF_VERSION = 'cad-studio-sheet-dxf-v1';
 
-const PEN_LAYER: Record<Pen, string> = { visible: 'VISIBLE', hidden: 'HIDDEN', thin: 'THIN', center: 'CENTER', frame: 'FRAME' };
+const PEN_LAYER: Record<Pen, string> = { visible: 'VISIBLE', hidden: 'HIDDEN', thin: 'THIN', center: 'CENTER', phantom: 'PHANTOM', frame: 'FRAME' };
 /** The pens' dash patterns (sheet mm, as PENS) and weights (1/100 mm). */
 export const DXF_LINETYPES = [
   { name: 'BC_HIDDEN', description: 'Hidden __ __ __ (3, 1.5)', pattern: [3, -1.5] },
   { name: 'BC_CENTER', description: 'Centre ____ _ ____ (8, 1.5, 1.5, 1.5)', pattern: [8, -1.5, 1.5, -1.5] },
 ];
+/** The phantom pen (datum target lines and areas): declared only on a sheet that uses it, so other files are unchanged. */
+const PHANTOM_LINETYPE = { name: 'BC_PHANTOM', description: 'Phantom ____ _ _ ____ (10, 1.5, 1.5, 1.5, 1.5, 1.5)', pattern: [10, -1.5, 1.5, -1.5, 1.5, -1.5] };
+const PHANTOM_LAYER: DxfLayer = { name: 'PHANTOM', color: 5, linetype: 'BC_PHANTOM', lineweight: 25 };
 export const DXF_LAYERS: DxfLayer[] = [
   { name: 'VISIBLE', color: 7, lineweight: 50 },
   { name: 'HIDDEN', color: 8, linetype: 'BC_HIDDEN', lineweight: 35 },
@@ -31,6 +35,12 @@ const STYLES = [{ name: 'BC_TEXT', font: 'arial.ttf' }, { name: 'BC_BOLD', font:
 
 const TAU = 2 * Math.PI;
 const degOf = (r: number) => r * 180 / Math.PI;
+/** A datum target's arcs with their angles in 0 to 360 (the existing sheet files keep theirs as they were). */
+const inTurn = (e: DxfEntity): DxfEntity => {
+  if (e.type !== 'arc') return e;
+  const wrap = (d: number) => { while (d < 0) d += 360; while (d > 360) d -= 360; return d; };
+  return { ...e, start: wrap(e.start), end: wrap(e.end) };
+};
 
 /**
  * An arc `center + u·cos t + v·sin t` (t0 → t1) of y-up coordinates as DXF: a CIRCLE or ARC where it is
@@ -89,13 +99,12 @@ function markEntities(m: Mark, H: number, out: DxfEntity[], solidFills: boolean)
 const unit = (v: XY): XY => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l, v[1] / l]; };
 
 /** A dimension's DXF geometry, text and measurement, from what it measures (sheet coordinates, then up). */
-function dimensionEntity(r: Extract<Resolved, { ok: true }>, v: ViewPlacement, g: MarkGroup, H: number, solidFills: boolean): DxfEntity {
+function dimensionEntity(r: Extract<Resolved, { ok: true }>, v: ViewPlacement, g: MarkGroup, H: number, solidFills: boolean, p: StandardPreset): DxfEntity {
   const block: DxfEntity[] = [];
   for (const m of g.marks) markEntities(m, H, block, solidFills);
   const main = g.marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
   const textAt = main ? up(H, main.at) : up(H, toSheet(v, r.dim.place));
-  const unitText = r.kind === 'angle' ? '°' : '';
-  const text = r.dim.tol ? `${r.text} ${toleranceText(r.dim.tol, unitText)}` : r.text;
+  const text = dimensionLine(r, p);
   const place = toSheet(v, r.dim.place);
   let geometry: Extract<DxfEntity, { type: 'dimension' }>['geometry'];
   if (r.kind === 'linear') {
@@ -125,11 +134,14 @@ export function sheetDxfDocument(sheet: Sheet, layout: SheetLayout, version: Dxf
       const r = sheet.dimensions.find((x): x is Extract<Resolved, { ok: true }> => x.ok && x.dim.id === g.id);
       // (A pitch circle has no DXF dimension type: its lines, arrow and text as they are.)
       const v = r && placementOf(layout, sheet, r.dim.view);
-      if (r && v && r.kind !== 'pcd') { entities.push(dimensionEntity(r, v, g, H, solidFills)); continue; }
+      if (r && v && r.kind !== 'pcd') { entities.push(dimensionEntity(r, v, g, H, solidFills, presetFor(sheet.units ?? {}))); continue; }
     }
+    const first = entities.length;
     for (const m of g.marks) markEntities(m, H, entities, solidFills);
+    if (g.datumTarget) for (let k = first; k < entities.length; k++) entities[k] = inTurn(entities[k]);
   }
-  return { units: 'mm', linetypes: DXF_LINETYPES, layers: DXF_LAYERS, styles: STYLES, blocks: [{ name: 'TITLE_BLOCK', base: [0, 0], entities: title }], entities: [{ type: 'insert', block: 'TITLE_BLOCK', at: [0, 0] }, ...entities] };
+  const phantom = [...title, ...entities].some(e => 'layer' in e && e.layer === 'PHANTOM');
+  return { units: 'mm', ...(sheet.standard === 'asme' ? { dimensionStyle: { textHeight: 3, textPlacement: 'center' as const, textOrientation: 'horizontal' as const } } : {}), linetypes: phantom ? [...DXF_LINETYPES, PHANTOM_LINETYPE] : DXF_LINETYPES, layers: phantom ? [...DXF_LAYERS, PHANTOM_LAYER] : DXF_LAYERS, styles: STYLES, blocks: [{ name: 'TITLE_BLOCK', base: [0, 0], entities: title }], entities: [{ type: 'insert', block: 'TITLE_BLOCK', at: [0, 0] }, ...entities] };
 }
 
 /** The sheet as a DXF file (AC1015 by default; R12 with its curves as polylines within 0.001 mm of the paper). */

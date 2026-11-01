@@ -1,0 +1,115 @@
+{
+  "decision": "D411",
+  "date": "2026-11-01",
+  "baseCommit": "5443e7495826be78e0e88d2072e96b4385e391a9",
+  "tier": "feature",
+  "status": "BOUNDED_QUALIFIED",
+  "models": {
+    "implementationAndIndependentAudit": "gpt-6.1-sol / medium"
+  },
+  "registryCount": 100,
+  "registeredTargets": 17,
+  "redrawn": [
+    "cad-fillet",
+    "cad-chamfer",
+    "cad-shell",
+    "cad-draft",
+    "cad-duplicate",
+    "cad-decimate",
+    "cad-split",
+    "cad-oring",
+    "cad-bearing",
+    "cad-fit",
+    "cad-prism",
+    "cad-internal-gear",
+    "cad-keyway",
+    "cad-retaining-ring",
+    "cad-hollow",
+    "cad-sk-construction"
+  ],
+  "exactUnchanged": 84,
+  "controls": "Canonical Box and D410 five icons exactly unchanged; no registry key/mapping/action changes",
+  "checks": {
+    "focused": {
+      "status": "PASS",
+      "pass": 6,
+      "fail": 0,
+      "breakdown": "command-icons2/palette-rank2/palette2"
+    },
+    "studioTypesLintSyntaxDiff": "PASS",
+    "SSRGeometryScopeControl": "PASS16changed/84exactunchanged"
+  },
+  "audit": {
+    "status": "ACCEPT",
+    "rounds": 1,
+    "evidence": "Independent source, before/after selected20/48dark/light, full100\u00d720gallery and actual Studio image review; no separate runtime rerun",
+    "scope": "Materially clearer registered shapes, visible depth, no new clipping/dashes/font elements; bounded labeled/contextual interpretation"
+  },
+  "visualFindingsRetained": [
+    "First candidate internalgear4teeth read as plus/cross; changed to8inwardteeth",
+    "First candidate split halves projected as touching; visible gap added",
+    "First candidate fillet/chamfer appeared nearly flat; connecting3Ddepthfaces added",
+    "Diff check found2trailing spaces; removed before final source check"
+  ],
+  "studio": {
+    "status": "PASS",
+    "frozenBefore": 788,
+    "frozenAfter": 788,
+    "states": 5,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0,
+    "commands": 18,
+    "visibleToolbars": 18,
+    "constructionSolidStroke": true,
+    "docUnchanged": true,
+    "fontStylesheetsFulfilledEmpty": 1,
+    "fontAssetRequests": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "rootReviewedImages": 5,
+    "independentReviewedActualImages": 5,
+    "galleryCaptureCount": 2,
+    "resources": "All context/browser/server/contact pages closed; gate released",
+    "artifacts": "/tmp/barocss-d411-browser-run01"
+  },
+  "commands": {
+    "before": "PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME=/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome node apps/cad-studio/test/u1-icon-gallery.mjs /tmp/barocss-d411-before --render",
+    "final": "PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME=/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome node apps/cad-studio/test/u1-icon-gallery.mjs /tmp/barocss-d411-final --render",
+    "focused": "pnpm --filter @barocss/cad-studio-app exec node scripts/test.mjs command-icons palette",
+    "types": "pnpm --filter @barocss/cad-studio-app type-check",
+    "lint": "pnpm exec eslint apps/cad-studio/src/ui/cadIcons.tsx",
+    "syntaxDiff": "node --check apps/cad-studio/test/u1-icon-gallery.mjs; node --check apps/cad-studio/test/u1-command-icons-browser.mjs; git diff --check",
+    "actual": "U1_COMMAND_ICONS_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME=/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome node apps/cad-studio/test/u1-command-icons-browser.mjs /tmp/barocss-d411-browser-run01 /tmp/barocss-d411-final",
+    "fullCapsule": "/tmp/barocss-d411-checks/commands.md"
+  },
+  "execution": "Node22.19.0; serial heavy gate; no worktree writes during actual Studio",
+  "rawEvidence": [
+    "/tmp/barocss-d411-before",
+    "/tmp/barocss-d411-after",
+    "/tmp/barocss-d411-final",
+    "/tmp/barocss-d411-checks",
+    "/tmp/barocss-d411-browser-run01"
+  ],
+  "limits": [
+    "Labeled/contextual review only, not every-user/universal100iconidentification.",
+    "ExistingThicken/Sew shell aliases preserved.",
+    "Related prism/wedge and oring/torus families remain contextual.",
+    "U3/U4 separate; no modelApply/Save/export/download/paid calls."
+  ],
+  "notRun": [
+    "Universal unlabeled recognition/user study of100icons",
+    "Independent icons for existing Thicken/Sew aliases",
+    "Geometry Apply/new tool behavior",
+    "Model/broad baseline suites/API/docs regeneration; no owning source/test changes",
+    "Save/outbound exports/paid calls, CI, release",
+    "U3 generic UI migration and U4 Fillet unification"
+  ],
+  "issueReview": "Owner U1 is a roadmap item; scoped icon-title search from D410 found only unrelated older cad-editor issues. No dedicated closable Studio issue identified; none closed.",
+  "ocp": "Remains removed; no dependency/font/download",
+  "next": "D412 owner U4 one Fillet entry with Type choice"
+}

@@ -1,0 +1,15 @@
+import { commitDimension, checkEdit, constraintOptions } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/sketch/rules';
+import { settleShape } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/sketch/settle';
+const close = (pts: [number, number][]) => { const s: any = { kind: 'polygon', closed: true, points: pts, bulges: pts.map(() => 0) }; return settleShape(s, { ...s, closed: false }).shape as any; };
+const step = (s: any, k: string, v: number) => { const r = commitDimension(s, k, v); console.log('  ', k, '=', v, '->', r.ok ? 'ok' : 'REFUSED: ' + r.reason); return r.ok ? r.shape : s; };
+console.log('A rectangle 60x30: len0=60, then len2=50 (opposite side)');
+let s = close([[0,0],[60,0],[60,30],[0,30]]); s = step(s, 'len0', 60); s = step(s, 'len2', 50);
+console.log('B rectangle: len0=60 then len2=60 (consistent, redundant)'); s = close([[0,0],[60,0],[60,30],[0,30]]); s = step(s, 'len0', 60); s = step(s, 'len2', 60);
+console.log('C L shape: len0=60, len2=40, len4=30 (outer 60 must equal 40+20 -> conflict when len4=30?)');
+s = close([[0,0],[60,0],[60,20],[20,20],[20,40],[0,40]]); s = step(s, 'len0', 60); s = step(s, 'len2', 40); s = step(s, 'len4', 30);
+console.log('D rectangle: dx0_2=60 then len0=50');
+s = close([[0,0],[60,0],[60,30],[0,30]]); s = step(s, 'dx0_2', 60); s = step(s, 'len0', 50);
+console.log('E rectangle: len1=30 then dy0_2=20');
+s = close([[0,0],[60,0],[60,30],[0,30]]); s = step(s, 'len1', 30); s = step(s, 'dy0_2', 20);
+console.log('F triangle (non-rectilinear): len0=10,len1=10, len2=30 (triangle inequality conflict)');
+s = close([[0,0],[10,0],[5,8]]); s = step(s, 'len0', 10); s = step(s, 'len1', 10); s = step(s, 'len2', 30);

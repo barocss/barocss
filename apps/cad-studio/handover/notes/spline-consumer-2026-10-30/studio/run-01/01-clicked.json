@@ -1,0 +1,35 @@
+{
+  "label": "01-clicked",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [],
+    "outputs": {},
+    "nextId": 0
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 0,
+    "active": null,
+    "sketch": true,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": "SKETCH · Spline · Z 0PlaneXY (top)XZ (front)YZ (right)OffsetmmAngle°Open profile · click the first point to closeXYEdge1R2R3R4R5R6R7R8R9R10R11R12R13R14R15R16R17R18R19R20R21R22R23CONSTRAINTS · 22Arcedge 1 ccwArcedge 2 ccwArcedge 3 ccwArcedge 4 ccwArcedge 5 ccwArcedge 6 ccwArcedge 7 ccwArcedge 8 ccwArcedge 9 ccwArcedge 10 ccwArcedge 11 cwArcedge 12 ccwArcedge 13 ccwArcedge 14 cwArcedge 15 ccwArcedge 16 ccwArcedge 17 ccwArcedge 18 ccwArcedge 19 ccwArcedge 20 ccwArcedge 21 ccwArcedge 22 ccwOFFSETmmOutInCURVESMake curves of the sketch",
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": "Open profile · click the first point to close"
+}

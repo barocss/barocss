@@ -51,18 +51,27 @@ function markOps(m: Mark): string {
   return ops + ' S\n';
 }
 
-export function sheetPdf(sheet: Sheet, title: string): Uint8Array {
-  const [W, H] = sheet.size;
-  const content = `1 J 1 j 0 G 0 g\n${n(PT)} 0 0 ${n(-PT)} 0 ${n(H * PT)} cm\n` + sheet.groups.flatMap(g => g.marks.map(markOps)).join('');
+/** The sheet as a one-page PDF. */
+export const sheetPdf = (sheet: Sheet, title: string): Uint8Array => sheetsPdf([sheet], title);
+
+/** 11 ④: a drawing set as one PDF, a page for each sheet at its own size. One sheet gives the file `sheetPdf` always did. */
+export function sheetsPdf(sheets: readonly Sheet[], title: string): Uint8Array {
+  const page = (sheet: Sheet) => { const [W, H] = sheet.size; return { W, H, content: `1 J 1 j 0 G 0 g\n${n(PT)} 0 0 ${n(-PT)} 0 ${n(H * PT)} cm\n` + sheet.groups.flatMap(g => g.marks.map(markOps)).join('') }; };
+  const pages = sheets.map(page);
+  // (Objects: catalog, pages, the first page, its two fonts and content; each later page and its content; the info.)
+  const pageObj = (k: number) => k === 0 ? 3 : 5 + 2 * k, contentObj = (k: number) => k === 0 ? 6 : 6 + 2 * k;
+  const pageDict = (k: number) => `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${n(pages[k].W * PT)} ${n(pages[k].H * PT)}] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents ${contentObj(k)} 0 R >>`;
+  const stream = (k: number) => `<< /Length ${pages[k].content.length} >>\nstream\n${pages[k].content}endstream`;
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R >>',
-    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-    `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${n(W * PT)} ${n(H * PT)}] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>`,
+    `<< /Type /Pages /Kids [${pages.map((_, k) => `${pageObj(k)} 0 R`).join(' ')}] /Count ${pages.length} >>`,
+    pageDict(0),
     '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
     '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>',
-    `<< /Length ${content.length} >>\nstream\n${content}endstream`,
-    `<< /Title (${winAnsi(title)}) /Producer (barocss cad-studio) >>`,
+    stream(0),
   ];
+  for (let k = 1; k < pages.length; k++) objects.push(pageDict(k), stream(k));
+  objects.push(`<< /Title (${winAnsi(title)}) /Producer (barocss cad-studio) >>`);
   let out = '%PDF-1.4\n%\xe2\xe3\xcf\xd3\n';
   const offsets: number[] = [];
   objects.forEach((o, i) => { offsets.push(out.length); out += `${i + 1} 0 obj\n${o}\nendobj\n`; });

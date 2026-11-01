@@ -1,0 +1,17 @@
+{
+  "count": 12,
+  "hashes": {
+    "apps/cad-studio/src/App.tsx": "05549b623c70054aae87144d5ec03779880c4ba121c1c97baa56f4d9c33ad6db",
+    "apps/cad-studio/src/state/useCommandPreview.ts": "2bb9446aef071d23d3f2e47b3143da816b3d6b1d269c34d60bd1845e55cb5ec0",
+    "apps/cad-studio/src/ui/Hud.tsx": "777545d109ae7482f64128ccdec0f53ba8627f8a06f750a5d672f0704734c2a7",
+    "apps/cad-studio/src/viewport/GizmoMarks.tsx": "17686ca9a9236d9546f5c378adcc461d78082a7a3f406f7626f8a2c622952f01",
+    "apps/cad-studio/src/viewport/Viewport.tsx": "5af6e686a2a9e9ef8694eb15c44b386eec97f2ea82e11e47523985b60c18e870",
+    "apps/cad-studio/src/viewport/gizmo.ts": "251159c2daf5a101b2042644181bd7de63a6988598385b3188d277a5cc80c5a5",
+    "apps/cad-studio/src/viewport/useCommandGizmos.ts": "86ca31af538871dae4589e8b7aa6242c6c9e7976f8d6886b08408d3dfd4ca66c",
+    "apps/cad-studio/test/command-drag-wall.test.ts": "915975cf31bc09f4cf894cb25f2365116e33d4576fd295303ec6d34ebc18fafd",
+    "apps/cad-studio/test/fillet-drag-wall-browser.mjs": "478414bef4f7aded098505bda05cbe242e2a777b6eaf0c0eba506bc90ab2e36a",
+    "apps/cad-studio/test/fixtures/fillet-drag.bcad": "a236d07a8a61e88761bbdf99de19bf5538d388a2cc3c96e87a3605a34c06236a",
+    "packages/barocss-cad-model/src/app/commands.ts": "8dd23e41e5a18fdb1be38ce760bf993828732b8c673bb857a2e1abbc2625ceb8",
+    "packages/barocss-cad-model/src/engine/evaluate.ts": "e19916805fca12e41bca23acba3bcf6878efcc636d600e372a3c2320c37b1c59"
+  }
+}

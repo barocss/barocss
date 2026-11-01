@@ -1,0 +1,30 @@
+{
+  "decision": "D381",
+  "roadmap": "20 ⑦ notices over the viewport stop a face under them from being picked",
+  "tier": "feature (click behaviour changes: one independent audit + one actual run)",
+  "status": "QUALIFIED",
+  "before": "run02 (actual Studio): a 'can't run here' notice over the box's face; a click at its title hit div.toast-title and picked nothing (0 faces)",
+  "change": "styles.css: .toast-stack > .toast takes no pointer events; its buttons, links, fields, summary and details still do (the notices stay where they are, beside the tool rail)",
+  "audit": {
+    "verdict": "ACCEPT",
+    "low": [
+      "title and hint text can no longer be selected or copied; a double-click there reaches the viewport (selection only)",
+      "a click in the 6 px gap between a pending question's buttons reaches the viewport (deleteCascade uses the indices stored when asked: harmless)"
+    ],
+    "file": "review/independent-audit.md"
+  },
+  "actualRun": {
+    "run03": "PASS: same notice over the face; elementFromPoint at its title is the viewport canvas; the click picks the face under it (1 face, the R3 fillet); the notice's close button still dismisses it; no page or console errors; root reviewed the screenshot",
+    "failedRuns": [
+      "run01: the driver zoomed at an empty point and lost the model (driver; fixed by Top view and zooming at the centre)"
+    ]
+  },
+  "checks": {
+    "unit": "CSS only: no unit test reaches pointer events; Studio 570/570 from D380 on the same tree"
+  },
+  "limits": [
+    "Notice text cannot be selected (detail <details> still can)",
+    "Notices still sit over the viewport (moving them to the dock or the bottom was not chosen)",
+    "CI and release NOT_RUN"
+  ]
+}

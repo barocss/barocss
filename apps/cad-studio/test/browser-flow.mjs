@@ -85,14 +85,14 @@ const outliner = () => page.locator('.outliner').innerText();
 // the switch's item clicked again turns it off.)
 const preview = async mode => { const b = page.locator(`[aria-label="Preview: ${mode}"]`); if (await b.getAttribute('data-state') !== 'on') await b.click(); };
 /** The first body's volume from its properties (a click on its row selects it, or takes it out of the selection: until the body's panel shows). */
-// (The inspector and the context panels are read as `.props:not([aria-label$=" panel"])`: the first .props card that is not
+// (The inspector and the context panels are read as `.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])`: the first .props card that is not
 // a toolbar card left open across steps — the Variants, Rebuild, BOM, Library and Parameters panels, each "… panel".)
 // Static gravity can precede BODY: find the volume across the visible inspector cards.
 async function bodyVolume() {
   for (let k = 0; k < 3; k++) {
     await page.locator('.outliner .ol').first().click();
     // (O18: read in the same check that sees it, the masses there — "Volume …" is a state of its own while they come.)
-    try { const got = await page.waitForFunction(() => { const m = /Volume\s*([\d,]+) mm³/.exec([...document.querySelectorAll('.props:not([aria-label$=" panel"])')].map(panel => panel.textContent ?? '').join('\n')); return m && window.__studioBodies?.().massReady !== false ? m[1] : false; }, null, { timeout: 15000 }); return Number((await got.jsonValue()).replace(/,/g, '')); } catch { /* clicked off: again */ }
+    try { const got = await page.waitForFunction(() => { const m = /Volume\s*([\d,]+) mm³/.exec([...document.querySelectorAll('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')].map(panel => panel.textContent ?? '').join('\n')); return m && window.__studioBodies?.().massReady !== false ? m[1] : false; }, null, { timeout: 15000 }); return Number((await got.jsonValue()).replace(/,/g, '')); } catch { /* clicked off: again */ }
   }
   return NaN;
 }
@@ -158,8 +158,9 @@ const loadSampleSizes = async () => {
 const hudReady = async () => { await page.waitForTimeout(250); return page.waitForFunction(() => /preview|refused/.test(document.querySelector('.hud .status')?.textContent ?? ''), null, { timeout: 15000 }); };
 const field = (label) => page.locator('.hud .field', { has: page.locator(`span:text-is("${label}")`) }).locator('input, select');
 const press = (k) => page.keyboard.press(k);
-/** A shape's button from the top bar's strip, or from its More shapes menu when the strip has no room for it. */
-const shape = async label => { if (!(await page.locator(`.shapes > [aria-label="${label}"]`).count())) await page.click('[aria-label="More shapes"]'); await page.click(`.shapes [aria-label="${label}"]`); };
+/** A shape's button. */
+// (Since 21b the placed shapes are the tool rail's first group, every one in view.)
+const shape = async label => { await page.click(`nav.toolbar [role="group"][aria-label="Shapes"] [aria-label="${label}"]`); };
 const canvasCenter = async () => { const b = await page.locator('canvas').boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
 
 try {
@@ -278,7 +279,7 @@ try {
     assert.match(await outliner(), /1 body/);
     await page.click('.views button:text-is("Top")'); await page.waitForTimeout(300);
     const [cx, cy] = await canvasCenter(); await page.mouse.move(cx, cy); await page.mouse.click(cx, cy);
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''));
     await press('h'); await hudReady();
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
@@ -290,7 +291,7 @@ try {
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     await page.click('.views button:text-is("Front")'); await press('f'); await page.waitForTimeout(400);
     const [cx, cy] = await canvasCenter(); await page.mouse.move(cx, cy); await page.mouse.click(cx, cy);
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''));
     await press('h'); await hudReady();
     assert.ok(await field('Centre Z').count(), 'a front-face hole is placed in X and Z');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
@@ -343,7 +344,7 @@ try {
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     await page.click('.views button:text-is("Front")'); await press('f'); await page.waitForTimeout(400);
     let [cx, cy] = await canvasCenter(); await clickAt(cx, cy);
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''));
     await press('s'); await page.waitForFunction(() => /SKETCH · Y 0 · on face/.test(document.querySelector('.sk-panel')?.textContent ?? ''));
     [cx, cy] = await canvasCenter(); await press('r'); await clickAt(cx - 40, cy - 25); await clickAt(cx + 40, cy + 25); await snap('front-face-sketch');
     await press('Enter'); await press('e'); await hudReady();
@@ -377,7 +378,7 @@ try {
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const n = (await doc()).nodes[0].plane.normal;
     assert.ok(Math.abs(n[0]) < 1e-9 && Math.abs(n[1] - 0.5) < 1e-9 && Math.abs(n[2] - Math.sqrt(3) / 2) < 1e-9, `normal ${n}`);
-    await page.locator('.outliner .ol').first().click(); assert.match(await page.locator('.props:not([aria-label$=" panel"])').innerText(), /Faces\s*6/); await iso();
+    await page.locator('.outliner .ol').first().click(); assert.match(await page.locator('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])').innerText(), /Faces\s*6/); await iso();
   });
 
   await check('slot sketch extrudes as a curved body', async () => {
@@ -388,7 +389,7 @@ try {
     await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     const d = await doc(); assert.equal(d.nodes[0].profile, 'loop'); assert.deepEqual(d.nodes[0].segments.map(x => x.kind), ['line', 'arc', 'line', 'arc']);
-    await page.locator('.outliner .ol').first().click(); assert.match(await page.locator('.props:not([aria-label$=" panel"])').innerText(), /Faces\s*6/); await iso();
+    await page.locator('.outliner .ol').first().click(); assert.match(await page.locator('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])').innerText(), /Faces\s*6/); await iso();
   });
 
   await check('solver locks typed lengths until fully defined', async () => {
@@ -1241,7 +1242,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioPickEdge('n1.side0|n1.top'), null, { timeout: 15000 });
     assert.ok(await page.evaluate(() => window.__studioPickEdge('n1.side1|n1.top', true)));
-    await page.waitForFunction(() => /2 edges|Edges\s*2/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? '') || true, null, { timeout: 2000 });
+    await page.waitForFunction(() => /2 edges|Edges\s*2/i.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? '') || true, null, { timeout: 2000 });
     await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
     await field('Radius').fill('3'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 20000 });
@@ -1277,7 +1278,9 @@ try {
   });
 
   await check('export the part as STEP', async () => {
-    const [download] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export STEP"]')]);
+    await page.click('[aria-label="Export STEP"]');
+    await page.locator('[aria-label="STEP export"] button.primary:enabled').waitFor();
+    const [download] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.locator('[aria-label="STEP export"] button.primary').click()]);
     assert.match(download.suggestedFilename(), /\.step$/);
     const path = await download.path(), text = (await import('node:fs')).readFileSync(path, 'utf8');
     assert.match(text, /^ISO-10303-21;/); assert.match(text, /MANIFOLD_SOLID_BREP|BREP_WITH_VOIDS/); assert.match(text, /AUTOMOTIVE_DESIGN/);
@@ -1349,7 +1352,7 @@ try {
     // (Once the new plate is evaluated — the outliner lists evaluated bodies — its top face can be picked.)
     await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`), 'the top face exists');
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
@@ -1636,7 +1639,7 @@ try {
     await page.setInputFiles('input[aria-label="Model file"]', file);
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /7000 mm³/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /7000 mm³/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 5000 });
   });
 
   await check('a mesh with a hole: checked, the repair gate (steps, holes, its numbers before it is applied), applied as a recorded step, its badge shows the fill and opens it again', async () => {
@@ -1675,8 +1678,10 @@ try {
     const fs = await import('node:fs');
     // The repaired cup from the last step is a mesh body: Export STEP asks.
     await page.click('[aria-label="Export STEP"]');
-    await page.waitForSelector('[aria-label="STEP mesh bodies"]', { timeout: 5000 });
-    const [tess] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.locator('[aria-label="STEP mesh bodies"] button', { hasText: 'Tessellated' }).click()]);
+    await page.waitForSelector('[aria-label="STEP mesh representation"]', { timeout: 5000 });
+    await page.selectOption('[aria-label="STEP mesh representation"]', 'tessellated');
+    await page.locator('[aria-label="STEP export"] button.primary:enabled').waitFor();
+    const [tess] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.locator('[aria-label="STEP export"] button.primary').click()]);
     const text = fs.readFileSync(await tess.path(), 'utf8');
     assert.match(text, /AP242_MANAGED_MODEL_BASED_3D_ENGINEERING_MIM_LF/); assert.match(text, /TRIANGULATED_FACE/);
     // Read back: a closed mesh imports as it is.
@@ -1967,7 +1972,7 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'thicken', null, { timeout: 10000 });
     await page.waitForFunction(() => /Thicken study · panel 3/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
     await page.locator('.outliner .ol', { hasText: 'Thicken' }).first().click();
-    await page.waitForFunction(() => /Volume\s*1200 mm³/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /Volume\s*1200 mm³/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 15000 });
     await snap('thicken'); await press('Meta+z');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind !== 'thicken', null, { timeout: 5000 });
   });
@@ -1982,7 +1987,7 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'sew', null, { timeout: 10000 });
     await page.waitForFunction(() => /Sew 6 surfaces/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
     await page.locator('.outliner .ol', { hasText: 'Sew' }).first().click();
-    await page.waitForFunction(() => /Volume\s*1200 mm³/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /Volume\s*1200 mm³/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 15000 });
     assert.equal(await page.evaluate(() => window.__studioDoc.direct.objects.filter(o => o.name.startsWith('lid · ') && o.hidden).length), 6, 'the sewn surfaces are hidden');
     await snap('sew'); await press('Meta+z');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind !== 'sew', null, { timeout: 5000 });
@@ -2047,6 +2052,8 @@ try {
     assert.equal(inst[1].x, inst[0].x + 20);
     const download = page.waitForEvent('download');
     await page.click('[aria-label="Export STEP"]');
+    await page.locator('[aria-label="STEP export"] button.primary:enabled').waitFor();
+    await page.locator('[aria-label="STEP export"] button.primary').click();
     const text = await (await download).createReadStream().then(s => new Promise(r => { let t = ''; s.on('data', c => t += c); s.on('end', () => r(t)); }));
     const solids = (text.match(/MANIFOLD_SOLID_BREP/g) ?? []).length, own = await page.evaluate(() => Object.keys(window.__studioDoc.outputs).length);
     assert.equal(solids, own + 2, `the part's ${own} bodies and both instances in the STEP file (${solids})`);
@@ -2207,7 +2214,7 @@ try {
   await check('chat builds a plate through a scripted chat (createChat)', async () => {
     // The chat's turns are scripted in the browser (O17: shadcn's createChat, no server); the studio's end of each turn —
     // its commit, the design history — runs on them as on the chat server's.
-    const empty = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} };
+    const empty = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {} };
     const docOf = nodes => ({ ...empty, nodes, outputs: { [`b${nodes.length - 1}`]: { node: nodes.length - 1, side: 'solid' } } });
     const nodes = [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [64, 32] }, { kind: 'extrude', sketch: 0, height: 8 }];
     const events = [{ type: 'text', delta: 'Plate first.' }, { type: 'tool', name: 'features', input: { action: 'command', command: 'box' }, summary: 'Box → 1 body, 16384 mm³', isError: false }, { type: 'state', doc: docOf(nodes) }];
@@ -2266,7 +2273,7 @@ try {
 
   await check('chat commits an assembly: a pin part mated into a plate', async () => {
     // A mocked turn whose result is an assembly (the tools that build it are covered by the unit tests).
-    const empty = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} };
+    const empty = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {} };
     const plate = { ...empty, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [64, 32] }, { kind: 'extrude', sketch: 0, height: 8 }, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [32, 16], radius: 4 }], outputs: { b2: { node: 2, side: 'solid' } } };
     const pin = { ...empty, nodes: [{ kind: 'sketch', profile: 'circle', center: [0, 0], radius: 4 }, { kind: 'extrude', sketch: 0, height: 20 }], outputs: { b1: { node: 1, side: 'solid' } } };
     const doc = { ...plate, instances: [{ id: 'p1', name: 'Pin', doc: pin, position: [32, 16, 8], rotation: [0, 0, 0] }],
@@ -2304,7 +2311,7 @@ try {
     const statusUrl = u => u.pathname === '/api/chat/status';
     await page.route(statusUrl, r => r.fulfill({ json: { enabled: true, model: 'mock-model' } }));
     await page.click('[aria-label="New part"]'); await idle();
-    const empty = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} };
+    const empty = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {} };
     const box = { ...empty, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { kind: 'extrude', sketch: 0, height: 10 }], outputs: { b1: { node: 1, side: 'solid' } } };
     const risk = level => ({ level, features_touched: 1, references_broken: 0, hard_requirements_changed: [], approval: [] });
     const proposal = (id, title, status, level) => ({ id, title, status, by: { agent: 'chat' }, at: '2026-10-24T00:00:00Z', base: 'not-this-part', ops: [], risk: risk(level), summary: title, ...(status === 'open' ? {} : { decided: { by: 'user', at: '2026-10-24T00:00:00Z' } }) });
@@ -2383,7 +2390,7 @@ try {
     // (Once the new box is evaluated: new bodies clear what was picked on the old ones.)
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     const seen = await page.evaluate(() => JSON.stringify(window.__studioSelection));
     await press('e'); await hudReady().catch(e => { throw new Error(`${e.message.split('\n')[0]} — before E: ${seen}`); });
     await page.waitForFunction(() => /Extrude/.test(document.querySelector('.hud')?.textContent ?? '') && /picked face/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
@@ -2401,7 +2408,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady();
     await page.waitForSelector('[data-handle="x+y"]', { timeout: 5000 });
     const before = await page.evaluate(() => [...document.querySelectorAll('.hud input')].map(i => Number(i.value)));
@@ -2418,7 +2425,7 @@ try {
     // A face picked for Fillet rounds every edge round it: the bottom's four and the hole's rim.
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.bottom')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
     await page.waitForFunction(() => /5 edges round the picked face/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
     await field('Radius').fill('2'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
@@ -2450,7 +2457,7 @@ try {
     await hudReady(); await page.waitForTimeout(250); await snap('preview-tint'); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     // The cylinder dragged from the shapes bar onto the ground beside the box.
-    await page.dragAndDrop('.shapes [aria-label="Cylinder"]', 'canvas', { targetPosition: { x: vp.width * 0.7, y: vp.height * 0.45 } });
+    await page.dragAndDrop('nav.toolbar [role="group"][aria-label="Shapes"] [aria-label="Cylinder"]', 'canvas', { targetPosition: { x: vp.width * 0.7, y: vp.height * 0.45 } });
     await page.waitForFunction(() => /Cylinder/.test(document.querySelector('.hud')?.textContent ?? '') && /placed/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
     await hudReady(); await page.waitForTimeout(250); await press('Enter');
     await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
@@ -2464,7 +2471,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press('Shift+F'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 20000 }); await idle();
     // Pick the box's side (the box feature), drag its width arrow.
@@ -2491,7 +2498,7 @@ try {
     await press('y'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n3.bottom')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press('a'); await hudReady();
     assert.ok(await page.evaluate(() => window.__studioPickFace('n1.top')));
     await page.waitForFunction(() => /face n1\.top/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
@@ -2554,7 +2561,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     const nodes = (await doc()).nodes.length;
@@ -2643,7 +2650,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     await page.locator('.history .hs', { hasText: 'Box' }).click({ button: 'right' });
@@ -2692,7 +2699,7 @@ try {
     await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await field('Centre X').fill('32'); await field('Centre Y').fill('16'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     await press('Escape');
@@ -2702,7 +2709,7 @@ try {
     await hudReady(); await page.waitForTimeout(300); await snap('fastener-preview'); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.made?.command === 'fastener', null, { timeout: 15000 }); await idle();
     await page.locator('.outliner .ol', { hasText: 'Bolt M8×20' }).click();
-    await page.waitForFunction(() => /M8×1\.25 right/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /M8×1\.25 right/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 5000 });
     await snap('fastener');
   });
 
@@ -2712,7 +2719,7 @@ try {
     await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await field('Centre X').fill('32'); await field('Centre Y').fill('16'); await field('Diameter').fill('6.6'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     await press('Escape');
@@ -2763,11 +2770,11 @@ try {
     await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'thread', null, { timeout: 30000 }); await idle();
     await page.locator('.outliner .ol', { hasText: 'Bolt M8×30' }).last().click();
-    await page.waitForFunction(() => /modelled|M8×1\.25/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 10000 });
+    await page.waitForFunction(() => /modelled|M8×1\.25/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 10000 });
     assert.equal(await page.evaluate(() => window.__studioDoc.nodes.at(-1).form), 'helical');
     await press('Escape');
     assert.ok(await page.evaluate(() => window.__studioSelectFace(`n${window.__studioDoc.nodes.length - 1}.head`)), 'the bolt head picked by name');
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press('Escape'); await press('f'); await page.waitForTimeout(1000); await snap('fastener-modelled-thread');
   });
 
@@ -2836,11 +2843,11 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     await page.locator('.outliner .ol').first().click();
-    const mass = () => page.evaluate(() => Number((/Mass\s*([\d.]+)/.exec(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? '') ?? [])[1]));
+    const mass = () => page.evaluate(() => Number((/Mass\s*([\d.]+)/.exec(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? '') ?? [])[1]));
     const before = await mass();
     const steel = await page.evaluate(() => [...document.querySelectorAll('select[aria-label="Material"] option')].find(o => /Steel/.test(o.textContent))?.value);
     await page.selectOption('select[aria-label="Material"]', steel);
-    await page.waitForFunction(m => window.__studioDoc.bodies?.b1?.material && Number((/Mass\s*([\d.]+)/.exec(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? '') ?? [])[1]) > m * 2, before, { timeout: 5000 });
+    await page.waitForFunction(m => window.__studioDoc.bodies?.b1?.material && Number((/Mass\s*([\d.]+)/.exec(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? '') ?? [])[1]) > m * 2, before, { timeout: 5000 });
   });
 
   await check('the snap step cycles and the sketch grid follows it', async () => {
@@ -2861,20 +2868,20 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     await page.click('.outliner [aria-label="Show its features"]');
     await page.waitForFunction(() => document.querySelectorAll('.outliner .ol-step').length === 2, null, { timeout: 5000 });
     await page.locator('.outliner .ol-step', { hasText: 'Hole' }).click();
-    await page.waitForFunction(() => /EDIT FEATURE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? '') && /Diameter/.test(document.querySelector('.node-editor')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /EDIT FEATURE/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? '') && /Diameter/.test(document.querySelector('.node-editor')?.textContent ?? ''), null, { timeout: 5000 });
   });
 
   await check('hole types: a countersunk hole and a tapped M6 on a box top', async () => {
     await page.click('[aria-label="New part"]'); await loadSampleSizes(); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await field('Type').selectOption('countersink'); await field('Centre X').fill('9'); await hudReady(); await page.waitForTimeout(300);
     await snap('hole-countersink'); await press('Shift+Enter');
     // One history step, a hole of its own with the countersink (the kernel cuts the cone).
@@ -2914,7 +2921,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && !window.__studioDoc.fastenerSizes, null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await field('Type').selectOption('tapped'); await page.waitForTimeout(400);
     await page.waitForFunction(() => /\[FASTENER_SIZE_ROW\] no row for M6/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 10000 });
     await snap('o7e-tapped-refused'); await press('Escape'); await press('Escape');
@@ -2932,19 +2939,19 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     // Ø6 down through the top at (13, 16): its wall reaches x = 10.
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await field('Diameter').fill('6'); await field('Centre X').fill('13'); await field('Centre Y').fill('16'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 3, null, { timeout: 15000 }); await idle();
     // Ø4 across from the front at x = 12, z = 8: its side at x = 10 touches that wall at (10, 16, 8).
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.side0')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? '') && /0, -1, 0/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? '') && /0, -1, 0/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await field('Diameter').fill('4'); await field('Centre X').fill('12'); await field('Centre Z').fill('8'); await hudReady();
     await page.waitForFunction(() => /preview/.test(document.querySelector('.hud .status')?.textContent ?? ''), null, { timeout: 15000 });
     await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 4 && window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     // 32 × 32 × 16 less Ø6 × 16 and Ø4 × 32 plus their overlap (integrated): 15594.74 mm³.
     await page.locator('.outliner .ol', { hasText: 'Box' }).first().click();
-    await page.waitForFunction(() => /Volume\s*1559[45]/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /Volume\s*1559[45]/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 15000 });
     await snap('tangent-holes');
   });
 
@@ -2952,7 +2959,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     await press('Escape'); await page.waitForTimeout(200);
-    assert.match(await page.locator('.props:not([aria-label$=" panel"])').innerText(), /PART · 1 body[\s\S]*Mass/);
+    assert.match(await page.locator('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])').innerText(), /PART · 1 body[\s\S]*Mass/);
     await page.locator('.outliner .ol', { hasText: 'Box' }).first().click();
     await page.waitForSelector('[aria-label="Moments of inertia"]', { timeout: 5000 });
     const centre = await page.locator('[aria-label="Moments of inertia"]').innerText();
@@ -2966,16 +2973,16 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle(); await press('Escape');
     const [fx, fy] = await page.evaluate(() => window.__studioScreenOf([16, 16, 16]));
-    const filter = page.locator('[aria-label="Selection filter"]'), props = () => page.locator('.props:not([aria-label$=" panel"])').innerText();
+    const filter = page.locator('[aria-label="Selection filter"]'), props = () => page.locator('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])').innerText();
     await filter.click(); await filter.click(); assert.match(await filter.innerText(), /Edges/);
     await page.mouse.click(fx, fy); await page.waitForTimeout(300);
     assert.doesNotMatch(await props(), /SELECTION · FACE/, 'a face is not picked with Edges');
     await filter.click(); assert.match(await filter.innerText(), /Bodies/);
     // (A body made by a shape command opens for editing when picked whole.)
-    await page.mouse.click(fx, fy); await page.waitForFunction(() => /Edit Box/.test(document.querySelector('.hud')?.textContent ?? '') || /BODY/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.mouse.click(fx, fy); await page.waitForFunction(() => /Edit Box/.test(document.querySelector('.hud')?.textContent ?? '') || /BODY/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 5000 });
     await press('Escape'); await page.waitForTimeout(200);
     await filter.click(); assert.match(await filter.innerText(), /Pick all/);
-    await page.mouse.click(fx, fy); await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.mouse.click(fx, fy); await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
   });
 
   await check('parameters: a chamfer bound to C follows it; a configuration saves and applies values', async () => {
@@ -3013,7 +3020,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press('s'); await page.waitForTimeout(300);
     const [cx, cy] = await canvasCenter(); await press('r'); await clickAt(cx - 300, cy - 8); await clickAt(cx + 300, cy + 8);
     await press('Enter'); await press('e'); await hudReady();
@@ -3027,7 +3034,7 @@ try {
     assert.equal((await doc()).nodes.at(-1).kind, 'separate');
   });
 
-  await check('templates: a part from the plate template, kept as a template, started again from it; an older file opens with a note', async () => {
+  await check('templates: a part from the plate template, kept as a template, started again from it; an older file is refused', async () => {
     await page.click('[aria-label="New from a template"]'); await page.click('[aria-label="New from Plate with a hole"]');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     await page.click('[aria-label="New from a template"]'); await page.fill('[aria-label="Template name"]', 'My plate'); await page.click('[aria-label="Save as a template"]');
@@ -3035,12 +3042,12 @@ try {
     await page.click('[aria-label="New from a template"]'); await page.click('[aria-label="New from My plate"]');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 3, null, { timeout: 15000 });
     await page.click('[aria-label="New from a template"]'); await page.click('[aria-label="Remove template My plate"]');
-    // A file saved before schemas: opened, with what was filled in.
+    // A file saved before schemas (no schema): refused, said why, the part unchanged.
     const old = join(out, 'old-model.bcad'); (await import('node:fs')).writeFileSync(old, JSON.stringify({ format: 'barocss-cad-model', nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [20, 10] }, { kind: 'extrude', sketch: 0, height: 5 }], outputs: {} }));
+    const before = await doc();
     await page.setInputFiles('input[aria-label="Model file"]', old);
-    await page.waitForFunction(() => /Opened an older model/.test(document.body.innerText), null, { timeout: 10000 });
-    // (Read as the current schema, its features given stable ids n0, n1 — their names as they were, A1.)
-    const opened = await doc(); assert.equal(opened.schema, 3); assert.deepEqual(opened.nodes.map(n => n.id), ['n0', 'n1']);
+    await page.waitForFunction(() => /older form \(no schema\); this cad-studio reads schemas 3 and 4/.test(document.body.innerText), null, { timeout: 10000 });
+    assert.deepEqual((await doc()).nodes, before.nodes, 'the part is unchanged');
     await page.click('[aria-label="Dismiss"]');
   });
 
@@ -3240,11 +3247,11 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /Volume/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /Volume/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 15000 });
     await page.evaluate(() => {
       const seen = window.__staleWatch = { evaluating: 0, bad: [] };
       const look = () => {
-        const props = document.querySelector('.props:not([aria-label$=" panel"])'), name = props?.querySelector('input[aria-label="Name"]')?.value ?? '', text = props?.textContent ?? '';
+        const props = document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])'), name = props?.querySelector('input[aria-label="Name"]')?.value ?? '', text = props?.textContent ?? '';
         const vol = Number(/Volume\s*([\d,]+) mm³/.exec(text)?.[1]?.replace(/,/g, '') ?? NaN);
         if (/evaluating…/.test(document.querySelector('.outliner .card-title')?.textContent ?? '')) seen.evaluating++;
         if (/Mesh ring/.test(name) && Number.isFinite(vol) && !(vol < 9870 && vol > 9600)) seen.bad.push(`props: ${name} with ${vol} mm³`);
@@ -3260,8 +3267,8 @@ try {
     const watch = await page.evaluate(() => { window.__staleObs.disconnect(); return window.__staleWatch; });
     assert.deepEqual(watch.bad, []); assert.ok(watch.evaluating > 0, 'the evaluating state was seen while the ring evaluated');
     await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /Mesh ring/.test(document.querySelector('.props:not([aria-label$=" panel"]) input')?.value ?? '') && /Volume/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
-    const vol = Number(/Volume\s*([\d,]+) mm³/.exec(await page.textContent('.props:not([aria-label$=" panel"])'))?.[1].replace(/,/g, ''));
+    await page.waitForFunction(() => /Mesh ring/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"]) input')?.value ?? '') && /Volume/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 15000 });
+    const vol = Number(/Volume\s*([\d,]+) mm³/.exec(await page.textContent('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])'))?.[1].replace(/,/g, ''));
     const ring = 2 * Math.PI * Math.PI * 20 * 25;
     assert.ok(vol < ring && vol > ring - 2 * Math.PI * 4 * 10, `${vol}`);
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
@@ -3532,7 +3539,7 @@ try {
     await press('Meta+Shift+z');
     await page.waitForFunction(() => { const b = window.__studioBodies?.()?.bodies; return b?.length === 1 && (b[0].massRef !== null || b[0].volume !== null); }, null, { timeout: 60000 });
     await page.locator('.outliner .ol').first().click();
-    const early = await page.locator('.props:not([aria-label$=" panel"])').innerText();
+    const early = await page.locator('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])').innerText();
     const shown = await bodyVolume(), mass = await page.evaluate(() => window.__studioBodies().bodies[0].volume);
     assert.ok(mass > 0 && Math.abs(shown - mass) <= 1, `${shown} shown, ${mass}`);
     if (/Volume …/.test(early)) console.log('  O18: the inspector read "…" before the mass');
@@ -3606,7 +3613,7 @@ try {
         await page.click('[aria-label="Close chat"]');
         await page.waitForFunction(k => new RegExp(`${k} bodies`).test(document.querySelector('.outliner')?.textContent ?? ''), bodies, { timeout: 120000 }); await idle();
         await page.locator('.outliner .ol').filter({ hasText: at }).first().click();
-        await page.waitForFunction(re => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => new RegExp(re).test((x.textContent ?? '').replace(/^warning\s*/, '').trim())), note.source, { timeout: 60000 });
+        await page.waitForFunction(re => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => new RegExp(re).test((x.textContent ?? '').trim())), note.source, { timeout: 60000 });
         await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
         await snap(`r12c-8-${name}`);
       }
@@ -3846,8 +3853,8 @@ try {
       assert.deepEqual((await doc()).nodes[0].cage, want.input.partDocument.features[0].cage);
       await page.click('[aria-label="Close chat"]');
       await page.locator('.outliner .ol').first().click();
-      await page.waitForFunction(() => /Volume/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 30000 });
-      const props = await page.textContent('.props:not([aria-label$=" panel"])'), vol = Number(/Volume\s*([\d,.]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
+      await page.waitForFunction(() => /Volume/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 30000 });
+      const props = await page.textContent('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])'), vol = Number(/Volume\s*([\d,.]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
       assert.ok(Math.abs(vol / want.expect.outputs[0].volume.value - 1) < 1e-3, `${vol} mm³ shown`);
       await page.click('.views button:text-is("Iso")'); await frameAll(); await page.waitForTimeout(800);
       await snap('clamp-agent');
@@ -3861,8 +3868,8 @@ try {
       await page.setInputFiles('input[aria-label="Model file"]', file);
       await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 120000 }); await idle();
       await page.locator('.outliner .ol').first().click();
-      await page.waitForFunction(() => /Volume/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 30000 });
-      const back = Number(/Volume\s*([\d,.]+) mm³/.exec(await page.textContent('.props:not([aria-label$=" panel"])'))?.[1].replace(/,/g, ''));
+      await page.waitForFunction(() => /Volume/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 30000 });
+      const back = Number(/Volume\s*([\d,.]+) mm³/.exec(await page.textContent('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])'))?.[1].replace(/,/g, ''));
       assert.ok(Math.abs(back / vol - 1) < 1e-4, `${back} mm³ after STEP, ${vol} before`);
       await page.click('.views button:text-is("Iso")'); await frameAll(); await page.waitForTimeout(800);
       await snap('clamp-step-reopened');
@@ -4007,8 +4014,8 @@ try {
     await page.waitForFunction(k => window.__studioDoc.nodes.length === k + 1 && window.__studioDoc.nodes[k].kind === 'decimate', before, { timeout: 30000 });
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
     await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /Simplified: 10,000 → 1,000 triangles/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
-    const props = await page.textContent('.props:not([aria-label$=" panel"])');
+    await page.waitForFunction(() => /Simplified: 10,000 → 1,000 triangles/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 15000 });
+    const props = await page.textContent('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])');
     assert.match(props, /Measured distance from the original: at most [\d.]+ mm/);
     assert.match(await page.textContent('.history'), /Simplify mesh to 10%/);
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(600);
@@ -4072,7 +4079,7 @@ try {
     await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: 20000 }); await idle();
     await page.locator('.outliner .ol').first().click();
-    const props = await page.textContent('.props:not([aria-label$=" panel"])'), vol = Number(/Volume\s*([\d,]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
+    const props = await page.textContent('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])'), vol = Number(/Volume\s*([\d,]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
     const yc = Math.sqrt(45), section = yc - 2 * Math.atan2(yc, 2) - 12.5 * Math.atan2(2, yc), exact = 16000 + 500 * Math.PI + 40 * section;
     assert.ok(Math.abs(vol - exact) <= 1, `${vol} vs ${exact}`);
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
@@ -4228,7 +4235,7 @@ try {
     // virtual-sharp relations) = 5406.17 mm³; the panel rounds to 1 mm³.
     const vol = await bodyVolume();
     assert.ok(Math.abs(vol - 5406.17) <= 1, `${vol}`);
-    const props = await page.textContent('.props:not([aria-label$=" panel"])');
+    const props = await page.textContent('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])');
     assert.match(props, /Sheet metal: 1\.5 mm thick, bends of inner radius 1\.5 mm, K-factor 0\.5/);
     assert.match(props, /K 0\.5 is an estimate/);
     assert.match(props, /bend4: 90°, allowance 3\.534 mm/);
@@ -4247,7 +4254,7 @@ try {
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
     await bodyVolume();
     // The flat: 100 − 2·BD long (BD = 2(R + T) − (π/2)(R + K·T), R 2, T 1.5, K 0.44) = 94.357 × 25 mm.
-    await page.waitForFunction(() => /Flat pattern 94\.357 × 25 mm, 2 bends/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /Flat pattern 94\.357 × 25 mm, 2 bends/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 15000 });
     await page.click('[aria-label="Show the flat pattern"]');
     await page.waitForSelector('[aria-label="Flat pattern"]');
     assert.equal(await page.locator('[aria-label="Flat pattern drawing"] [aria-label="Bend down"]').count(), 2);
@@ -4278,7 +4285,7 @@ try {
     // The plate less the trim (R + T), plus the bend and a 17 mm leg, times 50: 7315.07 mm³; its flat 80 + 20 − BD = 97.393 mm.
     const vol = await bodyVolume();
     assert.ok(Math.abs(vol - 7315.07) <= 1, `${vol}`);
-    await page.waitForFunction(() => /Flat pattern 97\.393 × 50 mm, 1 bend/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /Flat pattern 97\.393 × 50 mm, 1 bend/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 15000 });
     assert.match(await page.textContent('.history'), /Flange 20 · 90°/);
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
     await snap('r12-3a-flange');
@@ -4309,7 +4316,7 @@ try {
       await page.waitForFunction(n => window.__studioDoc.nodes.length === n + 1, k, { timeout: 30000 }); await idle();
     }
     await bodyVolume();
-    await page.waitForFunction(() => /Flat pattern [\d.]+ × [\d.]+ mm, 2 bends/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /Flat pattern [\d.]+ × [\d.]+ mm, 2 bends/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 15000 });
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
     await snap('r12-3b-corner-relief');
   });
@@ -4325,8 +4332,8 @@ try {
     await page.setInputFiles('input[aria-label="Bend table file"]', tableFile);
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.bendTable?.id === 'shop-2mm' && window.__studioDoc.nodes[0].kFactor === undefined, null, { timeout: 15000 }); await idle();
     await bodyVolume();
-    await page.waitForFunction(() => /K from bend table shop-2mm \(1 rows\)/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
-    const props = await page.textContent('.props:not([aria-label$=" panel"])');
+    await page.waitForFunction(() => /K from bend table shop-2mm \(1 rows\)/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 15000 });
+    const props = await page.textContent('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])');
     assert.match(props, /deduction 4\.2 mm; K [\d.]+ from row 0/);
     assert.match(props, /Flat pattern 80\.8 × 20 mm, 1 bend/);
     await snap('r12-4-bend-table');
@@ -4352,9 +4359,9 @@ try {
         // (The panel rounds to 1 mm³.)
         const vol = await bodyVolume();
         assert.ok(Math.abs(vol - want) <= 1, `${name}: ${vol} vs ${want}`);
-        await page.waitForFunction(re => new RegExp(`Flat pattern ${re}`).test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), flat, { timeout: 15000 });
+        await page.waitForFunction(re => new RegExp(`Flat pattern ${re}`).test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), flat, { timeout: 15000 });
         // (The enclosure's four flanges' bends read apart, each by its feature, D122.)
-        if (name === 'pcb-enclosure') assert.equal(new Set((await page.locator('.props:not([aria-label$=" panel"])').textContent()).match(/n\d+\.bend(?=: )/g)).size, 4);
+        if (name === 'pcb-enclosure') assert.equal(new Set((await page.locator('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])').textContent()).match(/n\d+\.bend(?=: )/g)).size, 4);
         await page.click('[aria-label="Show the flat pattern"]');
         await page.waitForSelector('[aria-label="Flat pattern"]');
         assert.equal(await page.locator(`[aria-label="Flat pattern drawing"] [aria-label="Bend ${bends[0]}"]`).count(), bends[1]);
@@ -4383,7 +4390,7 @@ try {
     // 126 246.9 mm³ (the panel rounds to 1 mm³).
     const A = 1600 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9), vol = await bodyVolume();
     assert.ok(Math.abs(vol - A * 300) <= 1, `${vol} vs ${A * 300}`);
-    let props = await page.textContent('.props:not([aria-label$=" panel"])');
+    let props = await page.textContent('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])');
     assert.match(props, /Member: rect-tube 40 × 40 × 3, ro 6, ri 3 \(concentric\) · section 420\.823 mm² · length 300 mm/);
     assert.match(props, /Line through its centroid; section x −X, y \+Z/);
     assert.match(props, /Estimates, not your stock's: outerRadius 6 mm/);
@@ -4396,8 +4403,8 @@ try {
     await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
     await page.locator('.outliner .ol').nth(1).click();
-    await page.waitForFunction(() => /Member: tslot/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
-    props = await page.textContent('.props:not([aria-label$=" panel"])');
+    await page.waitForFunction(() => /Member: tslot/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 15000 });
+    props = await page.textContent('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])');
     const At = 800 - 6 * (6.2 * 6.1 + 4.8 * 4.8 / 4) - 2 * Math.PI * 2.1 * 2.1;
     assert.ok(props.includes(`section ${+At.toFixed(3)} mm²`), props);
     assert.match(props, /Estimates, not your stock's: opening 6\.2 mm, lip 1\.8 mm, undercut 11 mm, depth 6\.1 mm, bore 4\.2 mm/);
@@ -4418,7 +4425,7 @@ try {
     // trim became the palette's default (D126): 302 993 mm³.
     const A = 1600 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9), vol = await bodyVolume();
     assert.ok(Math.abs(vol - A * 720) <= 1, `${vol} vs ${A * 720}`);
-    const props = await page.textContent('.props:not([aria-label$=" panel"])');
+    const props = await page.textContent('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])');
     assert.match(props, /Frame member 1 of 8: point 1 → point 5/);
     assert.match(props, /the line runs along up, so y follows \+X/);
     const ol = await page.textContent('.outliner');
@@ -4443,7 +4450,7 @@ try {
     // The first member: 600 mm of a sharp 40 × 40 × 3 tube (A 444 mm²), mitred at both ends: 266 400 mm³.
     const vol = await bodyVolume();
     assert.ok(Math.abs(vol - 444 * 600) <= 1, `${vol}`);
-    assert.match(await page.textContent('.props:not([aria-label$=" panel"])'), /Ends: start mitre 45° with member 4; end mitre 45° with member 2/);
+    assert.match(await page.textContent('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])'), /Ends: start mitre 45° with member 4; end mitre 45° with member 2/);
     await press('Escape'); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
     await snap('fr3a-mitred-rectangle');
   });
@@ -4467,8 +4474,8 @@ try {
       await page.waitForFunction(n => new RegExp(`${n} bodies`).test(document.querySelector('.outliner')?.textContent ?? ''), bodies, { timeout: 60000 }); await idle();
       const row = await page.evaluate(k => [...document.querySelectorAll('.outliner .ol')].findIndex(e => new RegExp(k).test(e.textContent ?? '')), kind === 'gusset' ? 'Gusset' : 'End cap');
       await page.locator('.outliner .ol').nth(row).click();
-      await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
-      return { volume: Number(/Volume\s*([\d,.]+) mm³/.exec(await page.textContent('.props:not([aria-label$=" panel"])'))?.[1].replace(/,/g, '')), notes: (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.trim()) };
+      await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 15000 });
+      return { volume: Number(/Volume\s*([\d,.]+) mm³/.exec(await page.textContent('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])'))?.[1].replace(/,/g, '')), notes: (await page.locator('[aria-label="Generator note"]').allInnerTexts()).map(t => t.trim()) };
     };
     await frameOf('rectangle', 4);
     const rows = page.locator('.outliner .ol'); await rows.nth(0).click(); await rows.nth(1).click({ modifiers: ['Shift'] });
@@ -4505,8 +4512,8 @@ try {
     // Three members, the gusset, the T's bead (one ring) and the gusset's four runs: 9 solids.
     await page.waitForFunction(() => /9 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
     await page.locator('.outliner .ol').nth(3).click();
-    await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
-    assert.match(await page.textContent('.props:not([aria-label$=" panel"])'), /Volume\s*756 mm³/);
+    await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.match(await page.textContent('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])'), /Volume\s*756 mm³/);
     await press('Escape'); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
     await snap('frk2-beads');
   });
@@ -4525,8 +4532,8 @@ try {
     assert.ok(Math.abs(leg - 444 * 720) <= 1, `leg ${leg}`);
     // The fifth body: the first top rail, 600 between the legs' faces: 444 × 560.
     await page.locator('.outliner .ol').nth(4).click();
-    await page.waitForFunction(() => /Frame member 5 of 8/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
-    const props = await page.textContent('.props:not([aria-label$=" panel"])'), rail = Number(/Volume\s*([\d,]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
+    await page.waitForFunction(() => /Frame member 5 of 8/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 15000 });
+    const props = await page.textContent('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])'), rail = Number(/Volume\s*([\d,]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
     assert.ok(Math.abs(rail - 444 * 560) <= 1, `rail ${rail}`);
     assert.match(props, /Ends: start trimmed to member 1 \(2 in order\); end trimmed to member 2 \(2 in order\)/);
     await press('Escape'); await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
@@ -5387,7 +5394,7 @@ try {
       await page.click('[aria-label="Close chat"]');
     } finally { chat.kill(); }
     await page.waitForFunction(() => /4 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
-    const first = async () => { await page.locator('.outliner .ol').first().click(); await page.waitForFunction(() => /Volume/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 30000 }); return bodyVolume(); };
+    const first = async () => { await page.locator('.outliner .ol').first().click(); await page.waitForFunction(() => /Volume/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 30000 }); return bodyVolume(); };
     assert.ok(Math.abs(await first() - 444 * 600) <= 1);
     const setValue = async (name, v) => { await page.click('[aria-label="Parameters"]'); await page.fill(`[aria-label="Value of ${name}"]`, v); await page.locator(`[aria-label="Value of ${name}"]`).press('Enter'); await page.click('[aria-label="Close parameters"]'); };
     await setValue('W', '800');
@@ -5697,7 +5704,7 @@ try {
     const before = await bodyVolume();
     await (await page.waitForFunction(ns => ns.find(n => window.__studioPickEdge(n)) ?? null, ['n1.side0|n1.top', 'n1.top|n1.side0'], { timeout: 30000 })).jsonValue();
     await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
-    await field('Radius').fill('1'); await field('End radius (0: same)').fill('3');
+    await field('Radius').fill('1'); await page.getByLabel('Fillet radius mode', { exact: true }).selectOption('varying'); await field('End radius (0: same)').fill('3');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 90000 });
     await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet' && !!window.__studioDoc.nodes.at(-1)?.radii, null, { timeout: 90000 }); await idle();
@@ -5740,7 +5747,7 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'subd' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     assert.match(await page.textContent('.history'), /SubD torus \(128 quads\)/);
     await page.locator('.outliner .ol').first().click();
-    const props = await page.textContent('.props:not([aria-label$=" panel"])');
+    const props = await page.textContent('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])');
     const vol = Number(/Volume\s*([\d,]+) mm³/.exec(props)?.[1].replace(/,/g, '')), exact = 2 * Math.PI * Math.PI * 20 * 36;
     assert.ok(Math.abs(vol / exact - 1) < 0.03, `${vol} vs ${exact}`);
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
@@ -5800,7 +5807,7 @@ try {
     await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'union', null, { timeout: 20000 }); await idle();
     await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /× 13\b/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 10000 });
+    await page.waitForFunction(() => /× 13\b/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 10000 });
     await iso(); await snap('draft-offset');
   });
 
@@ -5824,9 +5831,9 @@ try {
     const [ax, ay] = await page.evaluate(() => window.__studioScreenOf([32, 0, 16])), [bx, by] = await page.evaluate(() => window.__studioScreenOf([0, 0, 16]));
     await page.mouse.move(ax + 2, ay + 1); await page.waitForSelector('.vp-overlay .vertex-mark', { state: 'attached', timeout: 5000 });
     await page.mouse.click(ax + 2, ay + 1);
-    await page.waitForFunction(() => /SELECTION · POINT[\s\S]*32, 0, 16/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · POINT[\s\S]*32, 0, 16/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await page.keyboard.down('Shift'); await page.mouse.click(bx - 1, by + 1); await page.keyboard.up('Shift');
-    await page.waitForFunction(() => /2 POINTS[\s\S]*Distance\s*32 mm/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /2 POINTS[\s\S]*Distance\s*32 mm/.test(document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent ?? ''), null, { timeout: 5000 });
     await snap('corners'); await press('Escape');
   });
 
@@ -5855,7 +5862,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await field('Centre X').fill('8'); await hudReady(); await page.waitForTimeout(300); await press('Shift+Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 });
     await page.waitForFunction(() => /Hole/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 10000 });
@@ -5939,7 +5946,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press('s'); await page.waitForSelector('[aria-label="Use the face outline"]', { timeout: 5000 });
     await page.click('[aria-label="Use the face outline"]');
     await page.fill('[aria-label="Offset distance"]', '3'); await page.click('[aria-label="Offset inward"]');
@@ -5958,7 +5965,7 @@ try {
     const ext = (await doc()).nodes.length - 1;
     await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
@@ -6451,7 +6458,7 @@ try {
     const ext = (await doc()).nodes.length - 1;
     await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
@@ -6480,7 +6487,7 @@ try {
     const ext = (await doc()).nodes.length - 1;
     await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('6.6'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
     await page.waitForFunction(() => /Hole Ø6.6/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
@@ -6538,7 +6545,7 @@ try {
     const ext = (await doc()).nodes.length - 1;
     await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
@@ -7265,7 +7272,7 @@ try {
     assert.deepEqual(kinds.slice(-2), ['shell', 'hole']);
     // (abc − (a−4)(b−4)(c−4) − π·2²·2 = 24000 − 36·26·16 − 8π = 9000.87: exact; the panel rounds to 1 mm³.)
     const vol = await bodyVolume();
-    if (!Number.isFinite(vol)) console.log(`  O18 AM7a (${renderer}): ${JSON.stringify(await page.evaluate(() => ({ b: window.__studioBodies(), props: document.querySelector('.props:not([aria-label$=" panel"])')?.textContent?.slice(0, 300) })))}`);
+    if (!Number.isFinite(vol)) console.log(`  O18 AM7a (${renderer}): ${JSON.stringify(await page.evaluate(() => ({ b: window.__studioBodies(), props: document.querySelector('.props:not([aria-label$=" panel"]):not([aria-label="Static gravity experiment"])')?.textContent?.slice(0, 300) })))}`);
     assert.ok(Math.abs(vol - (24000 - 36 * 26 * 16 - 8 * Math.PI)) <= 1, String(vol));
     await snap('am7a-hollow');
   });
@@ -7923,35 +7930,32 @@ try {
     } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
   });
 
-  await check('shapes strip: no sideways page scroll at 1440, 1100 or 860; what has no room goes under More shapes, none lost; a pick from it starts', async () => {
+  await check('shapes in the tool rail (21b): no sideways page scroll at 1440, 1100 or 860; every placed shape in view in the rail, none lost; a pick from it starts', async () => {
     await page.click('[aria-label="New part"]'); await idle();
-    // (Nothing wider than the window: the page's own width, and every top-bar control's right edge.)
-    const wide = () => page.evaluate(() => ({ page: document.documentElement.scrollWidth - window.innerWidth, scrolled: document.scrollingElement.scrollLeft,
-      bar: Math.max(...[...document.querySelectorAll('.topbar > *')].map(e => e.getBoundingClientRect().right)) - window.innerWidth,
-      shown: document.querySelectorAll('.shapes > .tool').length, more: !!document.querySelector('[aria-label="More shapes"]') }));
-    const inMenu = async () => { if (!(await page.locator('[aria-label="More shapes"]').count())) return 0; await page.click('[aria-label="More shapes"]'); const n = await page.locator('[role="menu"][aria-label="More shapes"] .tool').count(); await page.keyboard.press('Escape'); return n; };
+    // (Nothing wider than the window: the page's own width, and every top-bar control's right edge; the rail's Shapes group whole and in view.)
+    const wide = () => page.evaluate(() => {
+      const rail = document.querySelector('nav.toolbar')?.getBoundingClientRect(), shapes = [...document.querySelectorAll('nav.toolbar [role="group"][aria-label="Shapes"] button')];
+      return { page: document.documentElement.scrollWidth - window.innerWidth, scrolled: document.scrollingElement.scrollLeft,
+        bar: Math.max(...[...document.querySelectorAll('.topbar > *')].map(e => e.getBoundingClientRect().right)) - window.innerWidth,
+        shapes: shapes.length, hidden: shapes.filter(b => { const r = b.getBoundingClientRect(); return !rail || r.bottom > rail.bottom + 0.5 || r.right > rail.right + 0.5; }).length,
+        strip: document.querySelectorAll('.topbar .shapes').length };
+    });
     const seen = [];
     try {
       for (const width of [1440, 1100, 860]) {
         await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(300);
         const w = await wide();
-        // (The page never scrolls sideways; the bar itself fits down to 1100 — at 860 its other controls alone are wider than
-        // the window and are clipped at its edge, a follow-up beyond the strip.)
         assert.ok(w.page <= 0 && w.scrolled === 0 && (width < 1100 || w.bar <= 0.5), `${width}: ${JSON.stringify(w)}`);
-        seen.push([width, w.shown, await inMenu()]);
+        assert.equal(w.strip, 0, `${width}: no shapes strip in the top bar`);
+        assert.equal(w.hidden, 0, `${width}: every shape in view: ${JSON.stringify(w)}`);
+        seen.push([width, w.shapes]);
       }
-      const totals = seen.map(([, a, b]) => a + b);
-      assert.ok(totals.every(x => x === totals[0]) && totals[0] > 0, `none lost: ${JSON.stringify(seen)}`);
-      assert.ok(seen[0][1] > seen[2][1] && seen.every(([, a], k) => k === 0 || a <= seen[k - 1][1]), `no more shown as the window narrows: ${JSON.stringify(seen)}`);
-      // A shape from the menu starts its command.
-      await page.click('[aria-label="More shapes"]');
-      const last = page.locator('[role="menu"][aria-label="More shapes"] .tool:not(.off)').last(), label = await last.getAttribute('aria-label');
+      assert.ok(seen.every(([, n]) => n === seen[0][1]) && seen[0][1] > 0, `none lost: ${JSON.stringify(seen)}`);
+      // A shape from the rail starts its command (its button lit).
+      const last = page.locator('nav.toolbar [role="group"][aria-label="Shapes"] .tool:not(.off)').last(), label = await last.getAttribute('aria-label');
       await last.click();
-      assert.equal(await page.locator('[role="menu"][aria-label="More shapes"]').count(), 0, 'the menu closes on a pick');
-      // (Its command is the active one: its button lit when the menu opens again.)
-      await page.click('[aria-label="More shapes"]');
-      await page.waitForFunction(l => document.querySelector(`[role="menu"][aria-label="More shapes"] [aria-label="${l}"]`)?.classList.contains('on'), label, { timeout: 5000 });
-      await snap('shapes-more');
+      await page.waitForFunction(l => document.querySelector(`nav.toolbar [role="group"][aria-label="Shapes"] [aria-label="${l}"]`)?.classList.contains('on'), label, { timeout: 5000 });
+      await snap('shapes-rail');
       await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
     } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
     const w = await wide(); assert.ok(w.page <= 0 && w.scrolled === 0, JSON.stringify(w));
@@ -8212,12 +8216,12 @@ try {
   // ---- G10: copies turned about Z share one tessellation --------------------------------------------------------------
   await check('G10: 24 copies of a bracket turned about Z in 15° steps share one tessellation — the same pixels and picks as each its own mesh; an edited copy gets its own, the others kept', async () => {
     const fs = await import('node:fs');
-    const bracket = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [
+    const bracket = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [
       { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [30, 12] }, { kind: 'extrude', sketch: 0, height: 6 },
       { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 2 }, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [24, 6], radius: 2 }],
       outputs: { b1: { node: 3, side: 'solid' } } };
     const edited = { ...bracket, nodes: [...bracket.nodes.slice(0, 3), { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [21, 6], radius: 2.5 }] };
-    const ring = edit => ({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {},
+    const ring = edit => ({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {},
       instances: Array.from({ length: 24 }, (_, k) => ({ id: `r${k}`, name: `bracket ${k}`, doc: edit && k === 5 ? edited : bracket,
         position: [70 * Math.cos(k * Math.PI / 12), 70 * Math.sin(k * Math.PI / 12), 0], rotation: [0, 0, 15 * k] })) });
     const file = join(out, 'g10-ring.bcad');
@@ -8411,7 +8415,7 @@ try {
     await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'rotate', null, { timeout: 15000 }); await idle();
     // (Its top face is picked again once it is made: cleared, as it was not lit while it turned.)
-    await press('Escape'); await page.waitForFunction(() => !/SELECTION/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 }); await page.waitForTimeout(600);
+    await press('Escape'); await page.waitForFunction(() => !/SELECTION/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 }); await page.waitForTimeout(600);
     const after = await page.evaluate(() => window.__studioFrame(32));
     const diff = (x, y) => x.reduce((t, v, i) => t + Math.abs(v - y[i]), 0) / x.length;
     const turned = { toAfter: diff(during, after), toBefore: diff(during, before), moved: diff(before, after) };
@@ -9290,7 +9294,7 @@ try {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
-    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     await press('h'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole' && window.__studioFresh === true, null, { timeout: 15000 }); await idle();
     const hole = await page.evaluate(() => { const n = window.__studioDoc.nodes; return n.at(-1).id ?? `n${n.length - 1}`; });

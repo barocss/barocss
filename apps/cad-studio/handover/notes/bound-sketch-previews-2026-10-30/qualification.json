@@ -1,0 +1,96 @@
+{
+  "decision": "D357",
+  "roadmap": "09 Advanced sketch — CG3 (tenth bounded item; D356 audit side note: previews read bound sketches as NaN)",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "Free-sketch rings, Extrude/Revolve/edit-Revolve handles and Loft (plain, Bézier-guided, NURBS-guided) resolve parameter-bound sketch sizes with the document parameters; a missing or non-finite parameter is refused naming the sketch; Loft section copies are a snapshot and the Loft steps say so (Sizes: Copied at W = 60 …); loftTop refuses bound input.",
+  "relatedIssues": {
+    "#551": "context: dependency recomputation; the Loft snapshot does not recompute from its sources (stated, not changed)",
+    "#2250": "context: parameter consumers; not decided here"
+  },
+  "baseCommit": "8885f19be",
+  "sourceCommit": "9ba588d0c",
+  "sourcePaths": 11,
+  "models": {
+    "rootJudgmentAndVerification": "claude-opus-5-5 (main session)",
+    "independentAudit": "claude-opus-5-5 sub-agent",
+    "implementation": "Sonnet sub-agents from frozen briefs in this worktree (fix, driver+fixture, audit fixes)",
+    "rootEdits": "oracle Fraction type, collectParameters hoisted out of a closure, step label Parameters -> Sizes after image review, driver notice assertion",
+    "sol": "NOT_USED"
+  },
+  "baselineDefect": "profileMiddle [null,20]; profileRings [[0,0,0],[null,null,null]]; loftSections copies with start [null,null] (probe-before/repro.ts) -> NaN rings, NaN handles, kernel refusal of the Loft",
+  "baselineBrowserRun": "NOT_RUN: model reproduction recorded",
+  "model": {
+    "newTests": 16,
+    "affected": "155/155 (profiles profileCommands loft plane feature-handles sketch-reopen-parameters engine)",
+    "auditWider": "168/168 (11 related files, pre-fix)",
+    "types": "PASS",
+    "lint": "PASS",
+    "mutants": "M1-M3, M5-M15 killed; M4 equivalent (face-built profile)"
+  },
+  "studioUnit": {
+    "affected": "36/36 (constraints sketchIds sketch-edit-identity)",
+    "types": "PASS"
+  },
+  "docs": {
+    "checkDocs": "PASS",
+    "refusals": "PASS (regenerated: PARAMETER_UNKNOWN from app)",
+    "apiInventory": "SCOPED_PASS (regenerated: boundParameters, params arguments)"
+  },
+  "audit": {
+    "verdict": "CHANGES_REQUIRED (fixed)",
+    "findings": [
+      "F1 Loft snapshot silent -> Sizes step + docs",
+      "F2 Bézier-guided copies used to keep bindings (loud kernel failure on change) -> now a stated snapshot",
+      "F3 mutants M7-M10 survived -> guided/reversed tests",
+      "F4 code prefix in reasons -> plain text naming the sketch"
+    ],
+    "sideNotes": [
+      "S1 loopOf NaN for bound sketches (open)",
+      "S2 loftTop NaN (fixed: refused)",
+      "S3 ringsOf swallowed all errors (fixed)"
+    ]
+  },
+  "browser": {
+    "run01": "FAIL_DRIVER at oracle 05-native: oracle fr() rejected Fraction input; steps 01-04 passed",
+    "run02": "PASS on the pre-audit source",
+    "run03": "PASS automated on the audit-fixed source; root image review FAIL: the new step label 'Parameters' overlapped its text in the HUD",
+    "status": "PASS_RUN_04",
+    "chromeProcesses": 1,
+    "serialContexts": 2,
+    "steps": [
+      "open fixture (W=60, two free bound rectangles): two finite rings",
+      "pick n0, Extrude 10: HUD preview, finite handle, volume 24000",
+      "Undo; pick both, Loft: preview, step 'Sizes — Copied at W = 60 …', Apply: volume 49999.99999999998 (ruled analytic 50000, oracle exact)",
+      "W=70: loftFollows False, no toast",
+      "Save, fresh Open: same volume"
+    ],
+    "oracles": "5/5 PASS (null/NaN scan, exact Fraction volumes)",
+    "frozenFiles": 985,
+    "frozenEqualsCommit": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "rootImages": [
+      "run-04 02-extrude-hud: handle at the profile middle",
+      "run-04 04-loft-hud: Sizes/Guide steps aligned"
+    ]
+  },
+  "limits": [
+    "Loft section copies are a snapshot: later parameter changes do not update the loft (stated in the steps and docs)",
+    "Bézier-guided Loft used to keep bindings in its copies; now a snapshot (F2)",
+    "loopOf still returns NaN for a bound sketch (S1; no caller passes one)",
+    "Revolve is not driven in the browser (model tests only)",
+    "Screenshots and page HTML are not committed (repo guard); bundled inspector.mjs omitted (rebuildable from inspector.ts)"
+  ],
+  "fullKernel": "NOT_RUN",
+  "fullModel": "NOT_RUN",
+  "fullStudio": "NOT_RUN",
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

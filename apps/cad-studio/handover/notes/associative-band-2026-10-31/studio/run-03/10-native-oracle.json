@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "productImports": 0,
+  "mode": "volume",
+  "studioVolume": 7294.51286630686,
+  "volumeRelative": 6.7328298401649234e-15,
+  "R1": 25.0,
+  "R2": 10.0,
+  "C": 60.0,
+  "offset": 0.0,
+  "width": 3.0,
+  "stripArea": 729.4512866306909,
+  "hullArea": 729.4512854764785,
+  "oracleVolume": 7294.512866306909
+}

@@ -1,0 +1,12 @@
+import { splineOutline, splineShape, respline, splineEditError } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/sketch/spline';
+import { arcOf } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/sketch/profile';
+import { settleShape } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/sketch/settle';
+type P2 = [number, number];
+const formula = (k: number): P2[] => Array.from({ length: k }, (_, i) => { const t = 2 * Math.PI * i / k; return [Math.round((40 * Math.cos(t) + 7 * Math.cos(3 * t)) * 1e6) / 1e6, Math.round(25 * Math.sin(t) * 1e6) / 1e6]; });
+const fit0 = formula(5); console.log('fit0', JSON.stringify(fit0));
+const first = splineShape({ fit: fit0, closed: true }), s0: any = settleShape(first, { ...first, closed: false }).shape;
+const fit: P2[] = [[47,0],[5.697561,21.776413],[-30.197561,14.694631],[-30.197561,-14.694631],[6.697561,-23.776413]];
+const def = { fit, closed: true }, o = splineOutline(fit, true);
+console.log('editError', splineEditError(def));
+o.bulges.forEach((b, i) => { if (b) { const a = arcOf(o.points[i] as P2, o.points[(i + 1) % o.points.length] as P2, b); console.log(i, 'bulge', b.toExponential(3), 'R', a.radius.toFixed(1), 'centre', a.center.map(v => v.toFixed(0)).join(',')); } else console.log(i, 'straight'); });
+const r = settleShape(respline(s0, def), s0); console.log('settle error:', r.error);

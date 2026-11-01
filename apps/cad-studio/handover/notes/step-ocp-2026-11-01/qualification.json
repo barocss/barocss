@@ -1,0 +1,129 @@
+{
+  "decision": "D405",
+  "date": "2026-11-01",
+  "tier": "small test-only measurement; High SDK/B-rep control diagnosis",
+  "status": "PARTIAL_REVERSE_PASS_FORWARD_CONTROL_BLOCKED",
+  "baseCommit": "962323a09506c23ee928596182daee9910cf3c98",
+  "models": {
+    "implementationVerification": "gpt-6.1-sol / medium",
+    "difficultControlDiagnosis": "gpt-6.1-sol / high"
+  },
+  "productCodeChanged": false,
+  "installation": {
+    "status": "PASS",
+    "ownerApproval": "Explicit approval of pinned OCP+dependency download batch",
+    "environment": "/Users/user/.cache/barocss-step-reader",
+    "distributions": 14,
+    "ocp": "8.0.1.1.0",
+    "proxy": "8.0.1.1.0",
+    "occtDylibs": "8.0.1",
+    "python": "3.13.5",
+    "command": "/opt/homebrew/bin/python3.13 -m venv /Users/user/.cache/barocss-step-reader; /Users/user/.cache/barocss-step-reader/bin/python -m pip install --only-binary=:all: --require-hashes -r packages/barocss-cad/test/consumer-requirements.txt",
+    "runtimeDependencyChange": false
+  },
+  "reverse": {
+    "status": "PASS",
+    "source": "Locally OCP-created box; no downloaded fixture",
+    "dimensions": [
+      12,
+      7,
+      3
+    ],
+    "origin": [
+      5,
+      -4,
+      2
+    ],
+    "nativeValid": true,
+    "signedVolume": 252,
+    "bounds": [
+      5,
+      -4,
+      2,
+      17,
+      3,
+      5
+    ],
+    "stepBytes": 15407,
+    "schemaSetting": "AP214IS",
+    "unit": "MM",
+    "importedSolids": 1,
+    "importedVolume": 252,
+    "volumeError": 0,
+    "boundsErrors": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "boundsTolerance": 1e-06,
+    "volumeTolerance": 1e-05,
+    "commands": [
+      "/Users/user/.cache/barocss-step-reader/bin/python -I apps/cad-studio/test/step-ocp-profile.py /tmp/barocss-d405-forward /tmp/barocss-d405-ocp03 --reverse-only",
+      "node apps/cad-studio/test/step-ocp-import.mjs /tmp/barocss-d405-ocp03/ocp-box.step /tmp/barocss-d405-import"
+    ]
+  },
+  "controls": {
+    "status": "PASS",
+    "truncated": "OCP ReadFile IFSelect_RetFail; no transfer",
+    "validWrongGeometry": {
+      "valid": true,
+      "volume": 336,
+      "volumeError": 84,
+      "boundsMaxError": 1,
+      "productNumericGateExit": 1
+    },
+    "command": "/Users/user/.cache/barocss-step-reader/bin/python -I apps/cad-studio/test/step-ocp-negative-controls.py /tmp/barocss-d405-controls-final /tmp/barocss-d405-import/import-probe.mjs /Users/user/Library/pnpm/nodejs/22.19.0/bin/node"
+  },
+  "forward": {
+    "status": "NOT_RUN_CONTROL_BLOCKED",
+    "reason": "Pinned Python binding cannot pass/return std::bitset<18>; default FixShape cannot be explicitly cleared",
+    "defaultHealingFallbackUsed": false,
+    "productGeometryFailureClaimed": false
+  },
+  "studio": {
+    "status": "PASS",
+    "run": 1,
+    "artifacts": "/tmp/barocss-d405-run01",
+    "command": "cd apps/cad-studio && STEP_OCP_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' node test/step-ocp-browser.mjs /tmp/barocss-d405-run01 /tmp/barocss-d405-ocp03/ocp-box.step /tmp/barocss-d405-import",
+    "frozenFiles": 735,
+    "snapshots": 1,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "outboundDownloads": 0,
+    "rootVisualReview": "PASS: 01-ocp-step-opened.png",
+    "cleanup": "All owned contexts/browser/Vite closed"
+  },
+  "execution": "Heavy gate acquired/released per command, one at a time; Node22.19.0; no worktree writes during actual Studio flow",
+  "checks": {
+    "pythonSyntax": "PASS (2 tools)",
+    "jsSyntaxAndLint": "PASS (2 tools)",
+    "diff": "PASS"
+  },
+  "failuresRetained": [
+    "OCP flags binding setup failure",
+    "Initial AP214 setting spelling refusal",
+    "Initial unbound Bnd_Box::Limits result"
+  ],
+  "notRun": [
+    "Strict forward product STEP geometry",
+    "Forward transferred-shape controls",
+    "OCP STEP reimport",
+    "Broad suites/corpus/formats",
+    "Outbound Save/Export",
+    "CI",
+    "Release"
+  ],
+  "issueClosure": "No closure; #2263 incomplete and #2248 research",
+  "next": {
+    "decision": "D406",
+    "proposal": "Test-only native C++ reader with explicitly empty ShapeProcess flags",
+    "sourceCommit": "b8f597c677811d1f9f4d8a97f5ae2825c0353a42",
+    "downloadApproval": "PENDING: new official source archive for missing headers",
+    "nativeBuildAndRun": "NOT_RUN",
+    "existingDylibChanges": "NOT_AUTHORIZED"
+  }
+}

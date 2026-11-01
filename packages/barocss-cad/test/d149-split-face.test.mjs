@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, splitFaceAlongCurve, splitFaceAlongIsocline, brepFromPrismatic, prismaticFromProfile, brepFromBody, cad, revolveProfile, sewSolid, checkBrep, brepMassProperties, brepSurfaceArea, evaluateSurface, curveEvaluator, curveDomain, surfaceDomain } from '../dist/index.js';
+import { readFileSync } from 'node:fs';
+import { evaluateCadPart, splitFaceAlongCurve, splitFaceAlongIsocline, brepFromPrismatic, prismaticFromProfile, revolveProfile, sewSolid, checkBrep, brepMassProperties, brepSurfaceArea, evaluateSurface, curveEvaluator, curveDomain, surfaceDomain } from '../dist/index.js';
 import { faceIntegrals, oracleVolume, domainArea, distanceToSurface, bezierThrough } from './d149-oracle.mjs';
+const load = name => JSON.parse(readFileSync(new URL(`./fixtures/legacy-inputs/${name}.json`, import.meta.url), 'utf8'));
 
 // D149 (queue item 2, for IM5's two-half parting): a face split along a curve lying on it, or along its isocline n·d = 0.
 // Oracles: closed-form areas (planes, cylinders, a cone, a sphere), the area of the same region integrated over the
@@ -39,7 +41,8 @@ function edgesOnSurface(brep, pieces, S, tol = 1e-6) {
   assert.ok(worst <= tol, `the shared edges lie on the face: ${worst}`);
 }
 const box = () => prism(rect(0, 0, 40, 30), 0, 10, 'b');
-const seamed = () => { const m = cad.model(), c = m.sketch.circle({ center: [0, 0], radius: 5 }).extrude(10); return brepFromBody(m.build({ c }).bodies.c); };
+// createCadModel's circle prism (r 5, h 10) as a B-rep, recorded from the build at fa79c9969 before its retirement (R7.3d).
+const seamed = () => load('brep-cylinder');
 const WALL = 'circle-prism/shell/m1_shell_wall';
 // A biquadratic Bézier face over 40 × 30: its edges straight at z 10, its middle raised to 18; sewn to five flat sides.
 const bil = (a, b, c, d) => ({ kind: 'surface', id: 'p', degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: [[a, b], [c, d]], weights: [[1, 1], [1, 1]] });

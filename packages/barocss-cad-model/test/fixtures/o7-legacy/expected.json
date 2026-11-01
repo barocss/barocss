@@ -200,7 +200,9 @@
   "instances": [],
   "drawing": {
    "suggestions": [],
-   "issues": [],
+   "issues": [
+    "HOLE_NOT_LOCATED: 3 holes are not located (a position across or up is missing)."
+   ],
    "dimensions": [
     "3× 20",
     "20",
@@ -255,7 +257,7 @@
    "suggestedUntoleranced": [
     {
      "kind": "hole-plus-minus",
-     "message": "M6×1 × 12 DEEP: ±0.1 on 2 location dimensions.",
+     "message": "M6×1 × 12 DEEP: ±0.1 on 1 location dimension.",
      "estimate": false
     },
     {
@@ -265,12 +267,7 @@
     },
     {
      "kind": "hole-plus-minus",
-     "message": "Ø5.5 THRU: ±0.17 on 2 location dimensions.",
-     "estimate": false
-    },
-    {
-     "kind": "hole-plus-minus",
-     "message": "Ø9 THRU: ±0.35 on 2 location dimensions.",
+     "message": "Ø9 THRU: ±0.35 on 1 location dimension.",
      "estimate": false
     }
    ]
@@ -361,7 +358,7 @@
    {
     "id": "drawing",
     "status": "warn",
-    "message": "the drawing: 5 of 7 items in order; title: the title block names no part (set_drawing title)"
+    "message": "the drawing: 4 of 7 items in order; dimensions: 1 size or position not given (HOLE_NOT_LOCATED): 3 holes are not located (a position across or up is missing).; title: the title block names no part (set_drawing title)"
    },
    {
     "id": "features",

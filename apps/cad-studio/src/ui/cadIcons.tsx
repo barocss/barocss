@@ -108,6 +108,16 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-sketch': <>{face(isoPath([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]]), 0.12)}{ghost(isoPath([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]]))}
     {ac(isoPath([[0.2, 0.25, 0], [0.75, 0.25, 0], [0.75, 0.75, 0], [0.2, 0.75, 0]]))}
     <path d="M13.2 13.8l6.6-6.6 2.2 2.2-6.6 6.6-3 .8z" style={tone(0.34)} /><path d="M18.4 8.6l2.2 2.2" /></>,
+  // A spatial polyline above a quiet three-axis corner: no sketch plane.
+  'cad-sketch3d': <>{ghost('M4 18.5v-7M4 18.5l7 3M4 18.5l-2.5 2')}{ac('M4 12.5l6-6 5 4 5-6')}{dots([[4, 12.5], [10, 6.5], [15, 10.5], [20, 4.5]])}</>,
+  // The highlighted curve follows the front of a cylinder rather than wrapping lines of text.
+  'cad-cylindrical-wrap': <>{cylinder(0.5, 0.5, -0.05, 0.95)}{ac('M5.2 12.2c3 4.4 10.6 4.4 13.6 0')}{head([16, 14.5], [18.8, 12.2], 2.8)}{dots([[5.2, 12.2]])}</>,
+  // A pencil changes an edge of existing solid geometry.
+  'cad-edit': <><g transform="translate(-3 5) scale(.72)">{block(0, 0, 0, 1, 1, 1)}</g>{face('M10.3 14.4l7.9-7.9 3 3-7.9 7.9-4.1 1.1z', 0, true)}{ac('M10.3 14.4l7.9-7.9 3 3-7.9 7.9-4.1 1.1z')}{line('M16.8 7.9l3 3M10.3 14.4l3 3')}</>,
+  // A flat outlined glyph on a baseline, drawn as paths instead of a font.
+  'cad-text': <>{ghost('M3 21h18')}<path d="M5 18.5L10.4 4h3.2L19 18.5h-3.5l-1.1-3.4H9.6l-1.1 3.4zM10.5 12.3h3L12 8z" fillRule="evenodd" style={acTone} className="ac" /></>,
+  // A raised glyph: its top and right extrusion faces distinguish it from flat text.
+  'cad-text-relief': <>{face('M7 17L12.4 3.5h3.2L21 17h-3.5l-1.1-3.5h-4.8L10.5 17z', TONE.top)}{line('M7 17L12.4 3.5h3.2L21 17h-3.5')}{face('M11.6 6.5l4-3L21 17l-4 3z', TONE.right)}{line('M11.6 6.5l4-3L21 17l-4 3z')}<path d="M3 20L8.4 6.5h3.2L17 20h-3.5l-1.1-3.5H7.6L6.5 20zM8.5 13.8h3L10 9.4z" fillRule="evenodd" style={acTone} className="ac" /></>,
   // A profile pulled up into a block: the new block in the accent colour, the pull arrow.
   'cad-extrude': <>{face(isoPath([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]]), 0.1)}{ghost(isoPath([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]]))}
     {prism([[0.15, 0], [0.85, 0], [0.85, 0.55], [0.15, 0.55]], 0.15, 0.85, { accent: () => true, capAccent: true })}
@@ -130,7 +140,7 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   // A plate with a round hole in its top.
   'cad-hole': <>{block(0, 0, 0, 1, 1, 0.6)}<g transform="translate(0 3.4)">{ellipse([0.5, 0.5, 0.6], 0.24, { style: dark })}{ellipse([0.5, 0.5, 0.6], 0.24, { className: 'ac' })}</g></>,
   // A block with its front top edge rounded.
-  'cad-fillet': <>{prism([[0, 0], [1, 0], ...arc([0.5, 0.5], 0.5, 0, 90), [0, 1]], 0, 1, { accent: i => i >= 2 && i < 10 })}{ac(isoPath(arc([0.5, 0.5], 0.5, 0, 90).map(p => [p[0], 1, p[1]] as V3), false))}</>,
+  'cad-fillet': <>{face('M3 21V8h5a8 8 0 0 1 8 8v5z', TONE.left)}{face('M3 8l4-2.3h5L8 8z', TONE.top)}{face('M16 16l4-2.3v5l-4 2.3z', TONE.right)}{face('M8 8l4-2.3a8 8 0 0 1 8 8L16 16a8 8 0 0 0-8-8z', 0, true)}{line('M3 21V8l4-2.3h5a8 8 0 0 1 8 8v5L16 21zM3 8h5a8 8 0 0 1 8 8v5')}{ac('M8 8a8 8 0 0 1 8 8')}</>,
   // An L whose inside corner is one round, tangent to its floor and its wall.
   'cad-face-fillet': <>{prism([[0, 0], [1, 0], [1, 0.3], ...arc([0.7, 0.7], 0.4, 270, 180).slice(1), [0.3, 1], [0, 1]], 0, 1, { accent: i => i >= 2 && i < 10 })}{ac(isoPath(arc([0.7, 0.7], 0.4, 270, 180).map(p => [p[0], 1, p[1]] as V3), false))}</>,
   // A rod with a helix wound round it.
@@ -138,20 +148,10 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   // A wall whose top is one half cylinder, side to side.
   'cad-full-round': <>{prism([[0.2, 0], [0.8, 0], ...arc([0.5, 0.7], 0.3, 0, 180), [0.2, 0.7]], 0, 1, { accent: i => i >= 2 && i < 10 })}{ac(isoPath(arc([0.5, 0.7], 0.3, 0, 180).map(p => [p[0], 1, p[1]] as V3), false))}</>,
   // A block with its front top edge cut at 45°.
-  'cad-chamfer': <>{prism([[0, 0], [1, 0], [1, 0.55], [0.55, 1], [0, 1]], 0, 1, { accent: i => i === 2 })}{ac(isoPath([[1, 1, 0.55], [0.55, 1, 1]], false))}</>,
+  'cad-chamfer': <>{face('M3 21V8h5l8 8v5z', TONE.left)}{face('M3 8l4-2.3h5L8 8z', TONE.top)}{face('M16 16l4-2.3v5L16 21z', TONE.right)}{face('M8 8l4-2.3 8 8-4 2.3z', 0, true)}{line('M3 21V8l4-2.3h5l8 8v5L16 21zM3 8h5l8 8v5')}{ac('M8 8l8 8')}</>,
   // A block hollowed to thin walls, open at the top.
-  'cad-shell': (() => {
-    const t = 0.17, u = 1 - t, o: V3[] = [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]], i: V3[] = [[t, t, 1], [u, t, 1], [u, u, 1], [t, u, 1]];
-    return <><clipPath id="cad-shell-open"><path d={isoPath(i)} /></clipPath>
-      <g clipPath="url(#cad-shell-open)">{face(isoPath([[t, t, t], [t, t, 1], [t, u, 1], [t, u, t]]), TONE.right * 0.7)}{face(isoPath([[t, t, t], [t, t, 1], [u, t, 1], [u, t, t]]), TONE.left)}
-      {face(isoPath([[t, t, t], [u, t, t], [u, u, t], [t, u, t]]), TONE.top * 0.7)}
-      {line(isoPath([[t, t, 1], [t, t, t]], false) + isoPath([[u, t, t], [t, t, t], [t, u, t]], false))}</g>
-      <path d={isoPath(o) + isoPath(i)} fillRule="evenodd" style={acTone} stroke="none" />
-      {face(isoPath([[1, 0, 1], [1, 1, 1], [1, 1, 0], [1, 0, 0]]), TONE.right)}{face(isoPath([[0, 1, 1], [1, 1, 1], [1, 1, 0], [0, 1, 0]]), TONE.left)}
-      {line(isoPath([[0, 0, 1], [1, 0, 1], [1, 0, 0], [1, 1, 0], [0, 1, 0], [0, 1, 1]]) + isoPath([[1, 1, 1], [1, 1, 0]], false))}{ac(isoPath(i))}</>;
-  })(),
-  // Walls leaning in from a pull direction.
-  'cad-draft': <>{prism([[0.05, 0], [0.95, 0], [0.75, 1], [0.25, 1]], 0, 1, { accent: i => i === 1 })}{ghost(d([iso([0.95, 1, 0]), iso([0.95, 1, 1.05])], false))}</>,
+  'cad-shell': <>{face('M3 8l9 5 9-5v7l-9 5-9-5z', TONE.right)}{face('M3 8l9 5v7l-9-5z', TONE.left)}<path d="M3 8l9-5 9 5-9 5zM5.5 8l6.5-3.5L18.5 8 12 11.5z" fillRule="evenodd" style={acTone} className="ac" />{face('M5.5 8L12 11.5 18.5 8 12 9.5z', TONE.left)}{line('M3 8v7l9 5 9-5V8M12 13v7')}{ghost('M12 4.5v5')}</>,
+  'cad-draft': <>{face('M3 21L7 6h9l5 15z', 0, true)}{face('M7 6l4-3h7l-2 3z', TONE.top)}{face('M16 6l2-3 5 15-2 3z', TONE.right)}{line('M3 21L7 6h9l5 15zM16 6l2-3 5 15-2 3')}{ghost('M3 6v15')}{ac('M11.5 17V8')}{head([11.5, 12], [11.5, 8], 2.5)}</>,
   // Four arrows from a centre.
   'cad-move': <>{line('M12 3.5v17M3.5 12h17')}<g>{head([12, 8], [12, 2.5], 3.6, false)}{head([12, 16], [12, 21.5], 3.6, false)}{head([8, 12], [2.5, 12], 3.6, false)}{head([16, 12], [21.5, 12], 3.6, false)}</g><circle cx="12" cy="12" r="2.2" className="acf ac" /></>,
   // A turn about a centre.
@@ -163,7 +163,7 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   // A hex head bolt: the head, the shank with cosmetic thread lines.
   'cad-fastener': <>{cylinder(0.5, 0.18, -0.95, 0.35, 0.18)}{prism([[0.12, 0.35], [0.88, 0.35], [0.88, 0.62], [0.12, 0.62]], 0.12, 0.88)}{ac('M10.6 15.4l2.8 1.4M10.6 17.6l2.8 1.4M10.6 19.8l2.8 1.4')}</>,
   // A block and its copy beside it.
-  'cad-duplicate': <><g transform="translate(-4 -2.4)">{block(0.08, 0.08, 0.1, 0.62, 0.62, 0.64)}</g><g transform="translate(4 2.4)">{block(0.08, 0.08, 0.1, 0.62, 0.62, 0.64, { accent: () => true })}</g></>,
+  'cad-duplicate': <><g transform="translate(-2.5 -2) scale(.72)">{block(0, 0, 0, 1, 1, 1)}</g><g transform="translate(6 5) scale(.78)">{block(0, 0, 0, 1, 1, 1, { accent: () => true })}</g>{ghost('M11 8l3 3')}{head([11, 8], [14, 11], 2.2)}</>,
   // A shape and its mirror image across a plane.
   'cad-mirror': <>{ac('M12 2.5v19')}{face('M9.5 6.5v11h-6z', TONE.right)}{line('M9.5 6.5v11h-6z')}{ghost('M14.5 6.5v11h6z')}</>,
   // Copies in a row along an arrow.
@@ -174,14 +174,8 @@ export const CAD_ICONS: Record<string, ReactNode> = {
     {[0, 90, 180, 270].map((a, k) => { const r = a * Math.PI / 180, x = 12 + 7.5 * Math.sin(r), y = 12 - 7.5 * Math.cos(r); return <rect key={a} x={f1(x - 2.3)} y={f1(y - 2.3)} width="4.6" height="4.6" rx="1" className={k === 0 ? 'ac' : undefined} style={k ? tone(0.2) : acTone} strokeOpacity={k ? 0.6 : 1} />; })}</>,
   // A block cut in two by a plane between the halves.
   // (A block whose top is fine triangles on its near half and two coarse ones, in the accent, on the far half.)
-  'cad-decimate': (() => {
-    const top = (x: number, y: number): V3 => [x, y, 1], fine: string[] = [];
-    for (let k = 1; k < 4; k++) fine.push(isoPath([top(k / 8, 0), top(k / 8, 1)], false));
-    for (let k = 1; k < 4; k++) fine.push(isoPath([top(0, k / 4), top(0.5, k / 4)], false));
-    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) fine.push(isoPath([top(i / 8, j / 4), top((i + 1) / 8, (j + 1) / 4)], false));
-    return <>{block(0, 0, 0, 1, 1, 1)}{fine.map((p, k) => ghost(p, k))}{ac(isoPath([top(0.5, 0), top(0.5, 1)], false), 'm')}{ac(isoPath([top(0.5, 0), top(1, 1)], false), 'c')}</>;
-  })(),
-  'cad-split': <>{block(0, 0, 0, 1, 0.42, 1)}{face(isoPath([[-0.1, 0.5, -0.12], [1.1, 0.5, -0.12], [1.1, 0.5, 1.12], [-0.1, 0.5, 1.12]]), 0, true)}{ac(isoPath([[-0.1, 0.5, -0.12], [1.1, 0.5, -0.12], [1.1, 0.5, 1.12], [-0.1, 0.5, 1.12]]))}{block(0, 0.58, 0, 1, 1, 1)}</>,
+  'cad-decimate': <>{face('M3 7l10-4 8 6-3 11-11 1z', TONE.right)}{face('M3 7l10-4-2 10-4 8z', TONE.left)}{face('M11 13l10-4-3 11z', 0, true)}{line('M3 7l10-4 8 6-3 11-11 1z')}{ac('M3 7l8 6 2-10M7 21l4-8 7 7M11 13l10-4')}</>,
+  'cad-split': <>{face('M2 7l5-3 5 3-5 3z', TONE.top)}{face('M2 7l5 3v11l-5-3z', TONE.left)}{face('M7 10l5-3v11l-5 3z', 0, true)}{line('M2 7l5-3 5 3v11l-5 3-5-3zM7 10v11')}{face('M14 5l5-2 4 3-5 2z', TONE.top)}{face('M14 5l4 3v10l-4-3z', 0, true)}{face('M18 8l5-2v10l-5 2z', TONE.right)}{line('M14 5l5-2 4 3v10l-5 2-4-3zM18 8v10')}</>,
   // Two blocks overlapping, the overlap lit.
   'cad-interference': <><g transform="translate(-3.4 -1.6)">{block(0.05, 0.05, 0.1, 0.62, 0.62, 0.7)}</g><g transform="translate(3.4 1.6)">{block(0.05, 0.05, 0.1, 0.62, 0.62, 0.7)}</g>{face('M10.2 8.6l3.6 1.8v3.8l-3.6-1.8z', 0, true)}{ac('M10.2 8.6l3.6 1.8v3.8l-3.6-1.8z')}</>,
   // A rule with ticks.
@@ -197,15 +191,15 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-cone': <>{cylinder(0.5, 0.52, -0.08, 1.05, 0)}</>,
   'cad-gear': <><path d="M12 2.5l1.6 2.6 3-.6.6 3 2.6 1.6-1.4 2.9 1.4 2.9-2.6 1.6-.6 3-3-.6L12 21.5l-1.6-2.6-3 .6-.6-3-2.6-1.6 1.4-2.9-1.4-2.9 2.6-1.6.6-3 3 .6z" style={tone(TONE.right)} /><circle cx="12" cy="12" r="2.6" style={dark} /></>,
   // An O-ring (R12c.5): the ring's section as a torus seen across, its gland's groove in the accent colour.
-  'cad-oring': <><circle cx="12" cy="12" r="8.5" style={tone(TONE.right)} /><circle cx="12" cy="12" r="5" style={dark} />{ac('M3.5 12a8.5 8.5 0 0 1 17 0')}</>,
+  'cad-oring': <><ellipse cx="12" cy="13.2" rx="9" ry="6.7" style={tone(TONE.right)} /><ellipse cx="12" cy="11" rx="9" ry="6.7" style={acTone} className="ac" /><ellipse cx="12" cy="11" rx="5.8" ry="3.7" style={dark} />{line('M3 11v2.2a9 6.7 0 0 0 18 0V11')}</>,
   // A bearing (R12c.4): its outer and inner rings, the balls between in the accent colour.
-  'cad-bearing': <><circle cx="12" cy="12" r="9.5" style={tone(TONE.right)} /><circle cx="12" cy="12" r="4.5" style={dark} />{[0, 1, 2, 3, 4, 5].map(k => <circle key={k} cx={12 + 7 * Math.cos(k * Math.PI / 3)} cy={12 + 7 * Math.sin(k * Math.PI / 3)} r="1.3" className="acf" stroke="none" />)}</>,
+  'cad-bearing': <><circle cx="12" cy="12" r="9.5" style={tone(TONE.right)} /><circle cx="12" cy="12" r="4" style={dark} />{[0,1,2,3].map(k=><circle key={k} cx={12+6.5*Math.cos(k*Math.PI/2)} cy={12+6.5*Math.sin(k*Math.PI/2)} r="2.2" className="acf" stroke="none" />)}{line('M8 3.4A9.5 9.5 0 0 1 20.6 8M20.6 16A9.5 9.5 0 0 1 16 20.6M8 20.6A9.5 9.5 0 0 1 3.4 16M3.4 8A9.5 9.5 0 0 1 8 3.4')}</>,
   // A key (R12c.3b): a round-ended block, its top in the accent colour.
   'cad-key': <><path d="M7 9h10a3 3 0 0 1 0 6H7a3 3 0 0 1 0-6z" style={tone(TONE.right)} />{ac('M7 9h10')}</>,
   // A shaft (R12c.3a): three steps side by side, the middle one larger, its keyseat in the accent colour.
   'cad-shaft': <><path d="M2.5 9.5h6v-2h7v2h6v5h-6v2h-7v-2h-6z" style={tone(TONE.right)} />{ac('M10.2 7.5h3.6')}<path d="M8.5 7.5v9M15.5 7.5v9" strokeOpacity={0.55} /></>,
   // A fit (R12c.2): a shaft in its bore, the gap between them in the accent colour.
-  'cad-fit': <><circle cx="12" cy="12" r="9" style={tone(TONE.right)} /><circle cx="12" cy="12" r="5.6" style={dark} /><circle cx="12" cy="12" r="4.6" style={tone(TONE.top)} />{ac('M17.6 12h3.4M3 12h3.4')}</>,
+  'cad-fit': <>{face('M3 8l7-4 7 4v10l-7 4-7-4z', TONE.right)}{face('M3 8l7 4v10l-7-4z', TONE.left)}<ellipse cx="10" cy="8" rx="6.8" ry="3.5" style={dark} />{face('M10 5l7-3 5 3v10l-7 4-5-3z', TONE.top)}{face('M10 5l5 3 7-3v10l-7 4-5-3z', 0, true)}{line('M10 5l7-3 5 3v10l-7 4-5-3zM15 8v11')}{ac('M3.5 8c1 5 12 5 13 0')}</>,
   // A gusset (FRk1): an L of two members, the clipped plate in its corner in the accent colour.
   'cad-gusset': <><path d="M3 3h4v14h14v4H3z" style={tone(TONE.right)} /><path d="M7 9.5v7.5h7.5z" style={dark} />{ac('M7 9.5v7.5h7.5z')}</>,
   // An end cap (FRk1): a tube seen along its end, the cap over it in the accent colour.
@@ -250,18 +244,12 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-frame-member': <>{prism([[0, 0], [0.62, 0], [0.62, 0.16], [0.16, 0.16], [0.16, 0.62], [0, 0.62]], 0, 1, { capAccent: true })}</>,
   // A frame (FR2): a table's top rail on two legs, the members' caps in the accent colour.
   'cad-frame': <>{prism([[0, 0], [0.16, 0], [0.16, 0.84], [0.84, 0.84], [0.84, 0], [1, 0], [1, 1], [0, 1]], 0.2, 0.8, { capAccent: true })}</>,
-  'cad-prism': <>{(() => {
-    // A hexagonal prism, axis up: the top hexagon, then the three faces toward the view.
-    const h = Array.from({ length: 6 }, (_, k) => { const a = (k * 60 + 30) * Math.PI / 180; return [0.5 + 0.55 * Math.cos(a), 0.5 + 0.55 * Math.sin(a)] as XY; });
-    const top = h.map(([x, y]) => [x, y, 1] as V3), bottom = h.map(([x, y]) => [x, y, 0] as V3), out: ReactNode[] = [];
-    [5, 0, 1].forEach(k => { const j = (k + 1) % 6, q = [bottom[k], bottom[j], top[j], top[k]]; out.push(face(isoPath(q), k === 5 ? TONE.right : k === 0 ? (TONE.right + TONE.left) / 2 : TONE.left, false, 'p' + k)); });
-    out.push(face(isoPath(top), TONE.top, false, 'top'), line(isoPath(top), 'tl'), line(isoPath([bottom[5], bottom[0], bottom[1], bottom[2]], false), 'bl'));
-    out.push(line([5, 0, 1, 2].map(k => isoPath([bottom[k], top[k]], false)).join(''), 'v'));
-    return out;
-  })()}</>,
-  // Command-specific silhouettes: keep the original icons above for their original commands.
-  // Internal teeth face into a ring, rather than out from a spur gear.
-  'cad-internal-gear': <><circle cx="12" cy="12" r="9.5" style={tone(TONE.right)} /><path d="M10 5h4v2l2 1 1.7-1 2 3.5-1.7 1v2l1.7 1-2 3.5-1.7-1-2 1v2h-4v-2l-2-1-1.7 1-2-3.5 1.7-1v-2l-1.7-1 2-3.5L8 8l2-1z" style={dark} className="ac" /></>,
+  'cad-prism': <>{face('M3 18L10 4l6 14z', 0, true)}{face('M10 4l5-2 7 14-6 2z', TONE.right)}{face('M3 18l6 4 13-6-6 2z', TONE.left)}{line('M3 18L10 4l5-2 7 14-13 6zM10 4l6 14 6-2M3 18h13')}</>,
+  'cad-internal-gear': (() => {
+    const bore: XY[] = [];
+    for (let k = 0; k < 8; k++) for (const [offset, radius] of [[-.22, 8], [-.14, 5.8], [.14, 5.8], [.22, 8]]) { const a = k * Math.PI / 4 + offset; bore.push([12 + radius * Math.cos(a), 12 + radius * Math.sin(a)]); }
+    return <><circle cx="12" cy="12" r="10" style={tone(TONE.right)} /><path d={d(bore)} style={dark} className="ac" /></>;
+  })(),
   // A toothed cone: wide heel below, narrow hub above.
   'cad-bevel-gear': <><ellipse cx="12" cy="6" rx="3.2" ry="1.7" style={tone(TONE.top)} /><path d="M8.8 6L3 17q9 6 18 0L15.2 6" style={tone(TONE.right)} /><path d="M3 17l1 3 2.4-.5 1.7 2 2.5-1 2.4 1 2.4-1 2.5.4L21 17" className="ac" /><path d="M9 9L6 17M12 9v10M15 9l3 8" strokeOpacity={0.55} /></>,
   // A threaded worm above its crossed wheel.
@@ -269,9 +257,9 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   // Two separate toothed wheels engaging on a diagonal.
   'cad-gear-mesh': <><path d="M6 2.5h3l.6 2 2 .6 1.5 2.6-1.4 1.5.3 2.1-2.6 1.5L7.5 12 5 13l-2-2 .8-2.2L2.5 7l1.5-2.5L6 4z" style={tone(TONE.right)} /><circle cx="7.7" cy="7.7" r="1.6" style={dark} /><path d="M15.4 11l2.6.7.6 2 2 .7.8 2.6-1.5 1.6-.2 2.1-2.7.8-1.5-1.4-2.1.3-1.8-2.1.7-2-1-1.9 1.9-2z" style={acTone} className="ac" /><circle cx="16.6" cy="16.8" r="1.6" style={dark} /></>,
   // A hub with the rectangular key slot cut into its bore.
-  'cad-keyway': <><circle cx="12" cy="12" r="9" style={tone(TONE.right)} /><path d="M10 6h4v3a4.5 4.5 0 1 1-4 0z" style={dark} /><path d="M10 9V6h4v3" className="ac" /></>,
+  'cad-keyway': <>{face('M5 5l13-2 4 7-3 10-13 2-4-7z', TONE.right)}<ellipse cx="10" cy="13" rx="7" ry="8" style={tone(TONE.top)} /><path d="M8 6h4v4a4 4.8 0 1 1-4 0z" style={dark} className="ac" />{face('M8 6l10-2 4 3-10 3V6z', 0, true)}{line('M8 6h4v4')}</>,
   // An open circlip with two plier holes.
-  'cad-retaining-ring': <><path d="M8 3.7a9 9 0 1 0 8 0l-1.5 4a4.7 4.7 0 1 1-5 0z" style={tone(TONE.right)} /><circle cx="7.4" cy="6.2" r="1.1" className="ac" /><circle cx="16.6" cy="6.2" r="1.1" className="ac" /></>,
+  'cad-retaining-ring': <><path d="M6 4a10 10 0 1 0 12 0l-2.6 5a4.5 4.5 0 1 1-6.8 0z" style={acTone} className="ac" /><circle cx="6.5" cy="6.4" r="1.5" style={dark} /><circle cx="17.5" cy="6.4" r="1.5" style={dark} /></>,
   // A long dowel, with its circular end and chamfer visible.
   'cad-pin': <><path d="M5 17L15.5 3.5q3.5-1 4.5 3L9.5 20q-3.5 1-4.5-3z" style={tone(TONE.right)} /><ellipse cx="7.3" cy="18.5" rx="2.6" ry="1.6" transform="rotate(38 7.3 18.5)" style={tone(TONE.top)} /><path d="M15 4.2l4.4 3" className="ac" /></>,
   // An elbow pipe with open annular ends; the sweep icon retains its section/path view.
@@ -279,7 +267,7 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   // An existing face displaced outwards, with its former plane still visible.
   'cad-offset-face': <>{block(0.05, 0.05, 0, 0.8, 0.8, 0.65)}{ghost(isoPath([[0.8, 0.05, 0], [0.8, 0.8, 0], [0.8, 0.8, 0.65], [0.8, 0.05, 0.65]]))}{face('M18 8l4-2v9l-4 2z', 0, true)}{ac('M18 8l4-2v9l-4 2z')}{arrow([15.5, 11], [20.5, 8.5])}</>,
   // A closed print body with an exposed cavity and a small drain below.
-  'cad-hollow': <><path d="M4 4h16v16H4z" style={tone(TONE.right)} /><path d="M7 7h10v9H7z" style={dark} /><path d="M7 16V7h10" className="ac" /><circle cx="12" cy="19" r="1.2" style={dark} /></>,
+  'cad-hollow': <>{face('M3 7l9-5 9 5v11l-9 5-9-5z', TONE.right)}{face('M3 7l9 5v11l-9-5z', TONE.left)}{face('M3 7l9-5 9 5-9 5z', TONE.top)}<path d="M8 9.8l4 2.2 7-3.8v8.5l-7 4-4-2.2z" style={dark} />{ac('M8 9.8v8.7l4 2.2 7-4V8.2')}{line('M3 7l9-5 9 5v11l-9 5-9-5z')}<ellipse cx="6" cy="16.2" rx="1.2" ry="1.8" style={dark} className="ac" /></>,
   // An open frame filled with crossing struts, rather than a hollow wall.
   'cad-lattice': <><path d="M3 5h18v15H3z" style={tone(TONE.left)} /><path d="M3 10l5-5 10 15 3-5M3 15L13 5l8 10M3 20L18 5M8 20L21 7" className="ac" /><path d="M3 5h18v15H3z" /></>,
   // Two keyed pieces on a printer bed, rather than a single cutting plane.
@@ -297,6 +285,9 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   // Sketch tools: flat drawings with their defining points (the points you click) in the accent colour.
   'cad-sk-rect': <>{face('M4.5 7h15v10h-15z', 0.12)}{line('M4.5 7h15v10h-15z')}{dots([[4.5, 7], [19.5, 17]])}</>,
   'cad-sk-circle': <><circle cx="12" cy="12" r="7.5" style={tone(0.12)} /><circle cx="12" cy="12" r="7.5" />{ghost('M12 12l5.3-5.3')}{dots([[12, 12], [17.3, 6.7]])}</>,
+  // A belt band: two circles wrapped by one outline.
+  'cad-sk-band': <><path d="M7 6.5h9a5.5 5.5 0 0 1 0 11H7a5.5 5.5 0 0 1 0-11z" style={tone(0.12)} />{line('M7 6.5h9a5.5 5.5 0 0 1 0 11H7a5.5 5.5 0 0 1 0-11z')}{ghost('M7 12m-2.5 0a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0M16 12m-2.5 0a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0')}{dots([[7, 12], [16, 12]])}</>,
+  'cad-sk-ellipse': <><ellipse cx="12" cy="12" rx="9" ry="5.5" style={tone(0.12)} /><ellipse cx="12" cy="12" rx="9" ry="5.5" />{ghost('M12 12h9M12 12v-5.5')}{dots([[12, 12], [21, 12], [12, 6.5]])}</>,
   'cad-sk-line': <>{line('M4 18L9 7l6 8 5-9')}{dots([[4, 18], [9, 7], [15, 15], [20, 6]])}</>,
   'cad-sk-arc': <>{ghost('M5 18L19 18')}{line('M5 18A8 8 0 0 1 19 18')}{dots([[5, 18], [19, 18], [12, 10.2]])}</>,
   // Centre arc: the centre and the two ends lit, the radii to them ghosted.
@@ -311,7 +302,7 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   // Split: one line broken at a lit point, its two halves apart.
   'cad-sk-split': <>{line('M4 16.5l6.6-4.2M13.4 10.5L20 6.5')}<circle cx="12" cy="11.4" r="2.2" className="ac" />{dots([[4, 16.5], [20, 6.5]])}</>,
   'cad-sk-select': <>{ghost('M4 15l7-9 9 7')}<path d="M10 9.5l9 3.6-3.9 1.3 2.6 3.7-1.7 1.2-2.6-3.7-2.6 3z" style={acTone} className="ac" strokeWidth={1.2} />{dots([[4, 15]])}</>,
-  'cad-sk-construction': <><path d="M4 18L20 6" strokeDasharray="2.4 2.2" className="ac" /><circle cx="12" cy="12" r="5.5" strokeDasharray="2.4 2.2" strokeOpacity={0.6} />{dots([[4, 18], [20, 6]])}</>,
+  'cad-sk-construction': <>{ghost('M3 18L21 6M12 5a7 7 0 1 0 0 14 7 7 0 0 0 0-14')}{ac('M4 17.3L20 6.7')}{dots([[4,17.3],[20,6.7]])}</>,
   'cad-sk-dim': <>{line('M5 17V9M19 17V9')}{ac('M5 12h14')}<g>{head([9, 12], [5, 12], 3.2)}{head([15, 12], [19, 12], 3.2)}</g>{ghost('M5 19h14')}</>,
   // Booleans: the result shaded in the accent colour.
   'cad-union': <><path d={BA + 'A6.5 6.5 0 1 0 12 6.23Z'} style={acTone} stroke="none" /><path d={BA + 'A6.5 6.5 0 1 0 12 6.23'} /></>,

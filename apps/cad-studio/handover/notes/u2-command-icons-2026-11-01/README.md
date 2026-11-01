@@ -1,0 +1,9 @@
+# U2 drawn CAD command icons
+
+D410 replaces the five Material command glyphs with path-based CAD SVGs:3D sketch, Cylindrical wrap, Edit, Text and Text relief. They use the established24×24/1.5stroke/grey-depth/blue-accent system. Command surfaces forward semantic IDs through the existing icon resolver; history Edit/3D-sketch actions use the same drawn entries. Command IDs, labels, keywords, actions and document data stay unchanged. App's unrelated IGES polyline glyph remains unchanged.
+
+PASS:6 focused routing/fontless-structure/palette tests, Studio and post-test Model types, changed-file lint/syntax/diff. One independent feature audit accepted source and20/48px light/dark images. Five metaphors remain distinguishable; relief depth is subtle but visible at20px. This does not qualify the full U1 gallery.
+
+Actual Studio run01 verified real palette, visible20px toolbar and generic Edit history mappings against registry SVG geometry, retained accessible labels, an existing Box control and unchanged document. The test fulfills Google Fonts CSS empty before navigation:1stylesheet intercepted,0font-asset requests/downloads. New CAD icons stay drawn while unrelated generic UI glyph names expose the known U3 limit.298 frozen files unchanged; errors/downloads0; five Studio states and one separate contact PNG; all resources closed. Root reviewed contact and two Studio images; independent auditor reviewed the whole six-image set.
+
+Initial test-harness failures are preserved; no product failure remains. NOT_RUN: geometry Apply, dynamic HUD/context/shortcut-help runtime states, U1/U3/U4, outbound files, full suites/CI/release. These forwarding paths have source/routing coverage. [Qualification](qualification.json) records commands, counts and raw paths. No generated HTML/PNG/log is committed. No dependency or public API changes. OCP remains removed.

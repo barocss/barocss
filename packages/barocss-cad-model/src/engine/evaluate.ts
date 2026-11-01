@@ -12,11 +12,15 @@ import { bodyKeyOf, partSnapshot } from './part';
 import { placedBase, placedDoc, type PartInstance, type BodyRef, type ModelNode, type Side, type StudioDoc } from './doc';
 import { placementOf } from './placement';
 import { bodyKeyFor, bodyNodeOf } from './ids';
+import { registerPartBox, type PartBox } from './assemblyCut';
+import { boundsOf } from './bounds';
+import { evaluationKey } from './evalMemo';
 import { fastenerLinkNotes } from '../library/fastenerLinks';
 import { fastenerSizesOf } from './fastenerSizeRows';
 import { revisionOf } from '../util/revision';
 import { beadNotes, bearingNotes, bevelGearNotes, bevelMeshNotes, camNotes, connectorNotes, decimateNotes, driveNotes, endCapNotes, gearNotes, glandNotes, gussetNotes, internalGearNotes, memberNotes, meshNotes, rackMeshNotes, rackNotes, shaftNotes, shaftPartNotes, sheetOf, springNotes, staleOf, subdNotes, wormMeshNotes, wormNotes, wormWheelNotes } from './bodyNotes';
 import { refusal } from './refusal';
+import { stableNames } from './occurrences';
 import { rememberNativeMass, placeNativeMass } from './nativeMassWire';
 
 /** A kernel output's body key and the node and side it is now. */
@@ -41,6 +45,8 @@ export interface BodyResult {
   family: string; mesh: DisplayMesh;
   /** Mass belongs to the closed radial reference; literal stored coefficient closure is not asserted. */
   cylindricalWrap?: CadPartOutput['cylindricalWrap'];
+  /** B2: a band surface's report — exact ruled patches, closed or open, the measured boundary deviation, and the sentence shown (kernel `band`). */
+  band?: CadPartOutput['band'];
   /** 'infill' (O60): a print infill body (its node's role) — in the mass and 3MF, left out of STEP. */
   role?: 'infill';
   volume: number | null; mass: number | null;
@@ -210,6 +216,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   const notes: NonNullable<BodyResult['notes']> = [
     ...(libNotes ?? []),
     ...(o.cylindricalWrap ? [{ text: 'Wrap mass uses the closed reference. Surface joins follow the model tolerance. Further features are not supported for this wrap yet.' }] : []),
+    ...(o.band ? [{ text: o.band.note }] : []),
     ...(o.gear ? [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] : []),
     ...(o.internalGear ? internalGearNotes(o.internalGear, node) : []),
     ...(o.worm ? [...wormNotes(o.worm), ...wormMeshNotes(o.wormPlacement)] : []),
@@ -235,7 +242,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
     ...(o.member ? memberNotes(o.member, lib ?? node, doc.frames?.sections, doc.nodes, at.ref ? staleOf(doc).get(at.ref.node) : undefined, counts) : []),
   ];
   const element = elementOf(o, node);
-  return { ...at, ...(o.cylindricalWrap ? { cylindricalWrap: o.cylindricalWrap } : {}), ...(notes.length ? { notes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...areaOf(A, o.brep, revision, quality), ...(o.bodyCount > 1 ? { pieces: o.bodyCount, ...touchField(o.brep, meshOf(o.brep, revision, quality)) } : {}),
+  return { ...at, ...(o.cylindricalWrap ? { cylindricalWrap: o.cylindricalWrap } : {}), ...(o.band ? { band: o.band } : {}), ...(notes.length ? { notes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...areaOf(A, o.brep, revision, quality), ...(o.bodyCount > 1 ? { pieces: o.bodyCount, ...touchField(o.brep, meshOf(o.brep, revision, quality)) } : {}),
     ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.bevelGear?.idealModel ? { idealModel: o.bevelGear.diagnostics.find(x => x.code === 'IDEAL_MODEL')?.message ?? 'an ideal model' } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}),
     ...(o.subd && o.subd.caps ? { subd: o.subd } : {}), ...(sheet ? sheetFields(sheet) : {}), ...(o.member && m ? { cutPiece: cutPiece(o, { volume: m.volume }) } : {}), ...(element ? { element } : {}) };
 }
@@ -472,17 +479,47 @@ export interface StudioStepOptions {
 }
 /** A StudioDoc's STEP file: its text, the source revision it names (O9), and what was left out. */
 export interface StudioStep { text: string; source: string; omitted?: string[] }
+// These losses describe this exporter, not STEP's full format capabilities. They do not affect bytes or revision.
+function stepProfileLosses(doc: StudioDoc): string[] {
+  let history = false, parameters = false, labels = false, appearance = false, assembly = false, pmi = false, datums = false;
+  const visit = (part: StudioDoc) => {
+    history ||= part.nodes.some(node => node.kind !== 'import' && node.kind !== 'mesh');
+    parameters ||= Object.keys(part.parameters ?? {}).length > 0;
+    pmi ||= !!part.drawing;
+    datums ||= !!part.references?.datums.length;
+    for (const look of Object.values(part.bodies ?? {})) {
+      labels ||= !!look.name;
+      appearance ||= !!(look.color || look.material || Object.keys(look.faces ?? {}).length);
+    }
+    for (const occurrence of part.instances ?? []) if (!occurrence.hidden) {
+      assembly = true; labels ||= !!occurrence.name;
+      for (const look of Object.values(occurrence.looks ?? {})) appearance ||= !!(look.color || look.material || Object.keys(look.faces ?? {}).length);
+      visit(occurrence.doc);
+    }
+  };
+  visit(doc);
+  return [
+    ...(history ? ['Native feature history is not included; STEP contains the resulting geometry.'] : []),
+    ...(parameters ? ['Native parameters and expressions are not included.'] : []),
+    ...(assembly ? ['Visible placed parts are flattened at their placements; assembly hierarchy and shared definitions are not included.'] : []),
+    ...(labels ? ['User body and occurrence labels are not included; the file/product name and generated face names are separate.'] : []),
+    ...(appearance ? ['Body, face and occurrence colours and materials are not included.'] : []),
+    ...(pmi ? ['Drawing sheets, dimensions, annotations and semantic PMI are not included.'] : []),
+    ...(datums ? ['Named reference datums and their coordinate systems are not included.'] : []),
+  ];
+}
+
 /**
  * The part (and its shown instances) as one STEP file (R7.3c: the model level's one STEP function; the kernel's is
  * exportStep(breps, options)). Bodies with the `infill` role (O60: a print lattice) are left out — STEP stays the exact
- * part — and `omitted` says so; 3MF and the mass keep them. No body to write is refused (NO_BODY); the kernel's own
+ * part — and `omitted` says so; 3MF and the mass keep them. A band surface's sheet (B2) is left out likewise, named in `omitted`. No body to write is refused (NO_BODY); the kernel's own
  * refusal while writing is passed through.
  */
 export function exportStudioStep(doc: StudioDoc, options: StudioStepOptions): StudioStep {
   const { name, meshes } = options;
-  const breps: Brep[] = [], left: string[] = [];
+  const breps: Brep[] = [], left: string[] = [], sheets: string[] = [];
   const take = (d: StudioDoc, outputs: CadPartSnapshot['outputs'], prefix: string) => {
-    for (const o of outputs) { const r = keyed(o.id, d.nodes).ref; if (r && roleOf(d.nodes[r.node])) left.push(`${prefix}${bodyKeyOf(o.id, d.nodes)}`); else breps.push(o.brep); }
+    for (const o of outputs) { const r = keyed(o.id, d.nodes).ref; if (r && d.nodes[r.node]?.kind === 'band-surface') sheets.push(`${prefix}${bodyKeyOf(o.id, d.nodes)}`); else if (r && roleOf(d.nodes[r.node])) left.push(`${prefix}${bodyKeyOf(o.id, d.nodes)}`); else breps.push(o.brep); }
   };
   take(doc, snapshotOf(doc).outputs, '');
   // (O10: a copy's body by its origin node — its role and key the instance's own, not a placement transform's.)
@@ -493,10 +530,11 @@ export function exportStudioStep(doc: StudioDoc, options: StudioStepOptions): St
       if (at !== undefined && roleOf(base.nodes[at])) left.push(`${inst.id}/${bodyKeyFor(base.nodes, at)}`); else breps.push(o.brep);
     }
   }
-  if (!breps.length) throw refusal('NO_BODY', left.length ? 'Only infill bodies: STEP carries the exact part, and there is none to export.' : 'There is no body to export.');
+  if (!breps.length) throw refusal('NO_BODY', sheets.length && !left.length ? `Only band sheets: STEP of band sheets is not supported yet, and there is no other body to export (${sheets.join(', ')}).` : left.length ? 'Only infill bodies: STEP carries the exact part, and there is none to export.' : 'There is no body to export.');
   // (O9: the header names the source revision the file was made from.)
   const source = revisionOf(doc), text = exportStep(breps, { name, description: ['BaroCSS CAD part', `source revision ${source}`], ...(meshes ? { meshes } : {}), ...(options.timestamp ? { timestamp: options.timestamp } : {}) });
-  return left.length ? { text, source, omitted: [`lattice infill not included (${left.join(', ')}); 3MF carries it`] } : { text, source };
+  const omitted = [...(left.length ? [`lattice infill not included (${left.join(', ')}); 3MF carries it`] : []), ...sheets.map(k => `band sheet ${k} not included: STEP of band sheets is not supported yet`), ...stepProfileLosses(doc)];
+  return omitted.length ? { text, source, omitted } : { text, source };
 }
 
 export function stlFor(doc: StudioDoc, key: string, options: NonNullable<Parameters<typeof exportStl>[1]> = {}): Uint8Array | null {
@@ -544,7 +582,7 @@ export function brepsFor(doc: StudioDoc, options: { made?: boolean } = {}): { br
   try {
     const all = snapshotOf(doc).outputs, bought = options.made ? boughtOutputIds(doc) : null, own = bought && all.some(x => !bought.has(x.id)) ? all.filter(x => !bought.has(x.id)) : all;
     const breps = own.map(x => x.brep), prefixes = breps.map(() => '');
-    for (const inst of doc.instances ?? []) if (!inst.hidden) for (const o of placedOutputs(inst, placedDoc(inst, doc), doc)) { breps.push(o.brep); prefixes.push(`${inst.id}/`); }
+    for (const inst of doc.instances ?? []) if (!inst.hidden) for (const o of placedOutputs(inst, placedDoc(inst, doc), doc)) { breps.push(inst.doc.instances?.length ? stableNames(o.brep, inst.doc) : o.brep); prefixes.push(`${inst.id}/`); }
     return { breps, prefixes };
   } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
 }
@@ -572,4 +610,32 @@ function placedOutputs(inst: PartInstance, placed = placedDoc(inst), parent?: St
     if (!bead) throw new Error(`placed bead ${o.id} has no origin body`);
     return { ...o, brep: transformBrep(bead.brep, { matrix: m as [number, number, number, number, number, number, number, number, number], offset: t }) };
   });
+}
+
+// Roadmap 10 ⑤: what sizes an assembly cut's through tool — a part's box in its own frame, built once per part document (coarsely tessellated) —
+// and the trial that a cut leaves every body of a part there to be built.
+const partBoxes = new Map<string, PartBox | null>();
+// (Keyed by what the part is evaluated from — its features and the rows it takes from the assembly — so a changed row is a new box.)
+registerPartBox(doc => {
+  const key = evaluationKey(doc);
+  if (partBoxes.has(key)) { const have = partBoxes.get(key)!; partBoxes.delete(key); partBoxes.set(key, have); return have; }
+  let box: PartBox | null = null;
+  try {
+    const bodies = partSnapshot(doc, part => evaluateCadPart(part)).outputs.map(o => bodyOf(o, doc, 0, 4));
+    if (bodies.length) box = boundsOf(bodies);
+  } catch { box = null; }
+  partBoxes.set(key, box); if (partBoxes.size > 64) partBoxes.delete(partBoxes.keys().next().value!);
+  return box;
+});
+/** Whether the part builds with every one of its bodies (a cut that fails to build, or takes a whole body, is told here in words), else undefined. Synchronous, for the editing operations. */
+export function partBuildProblem(doc: StudioDoc, bodies: number): string | undefined {
+  try {
+    const outputs = partSnapshot(doc, part => evaluateCadPart(part)).outputs;
+    if (outputs.length < bodies || outputs.some(o => !o.brep.faces.length)) return 'a body of it is gone';
+    return undefined;
+  } catch (cause) { const e = friendlyCause(cause); return `${e.title}${e.hint ? ` (${e.hint})` : ''}`; }
+}
+/** How many bodies the part has, built; null when it does not build. */
+export function partBodyCount(doc: StudioDoc): number | null {
+  try { return partSnapshot(doc, part => evaluateCadPart(part)).outputs.length; } catch { return null; }
 }

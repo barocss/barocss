@@ -1,0 +1,17 @@
+2:58:23 PM [vite] (client) [Unhandled error] TypeError: Cannot read properties of undefined (reading '0')
+ > sub ../../packages/barocss-cad-model/src/sketch/spline.ts:11:37
+    9  |  
+    10 |  const unit = (v: P2): P2 => { const l = Math.hypot(v[0], v[1]); return l > 0 ? [v[0] / l, v[1] / l] : [1, 0]; };
+    11 |  const sub = (a: P2, b: P2): P2 => [a[0] - b[0], a[1] - b[1]];
+       |                                       ^
+    12 |  const dot = (a: P2, b: P2) => a[0] * b[0] + a[1] * b[1];
+    13 |  const cross = (a: P2, b: P2) => a[0] * b[1] - a[1] * b[0];
+ > ../../packages/barocss-cad-model/src/sketch/spline.ts:31:42
+ > splineTangents ../../packages/barocss-cad-model/src/sketch/spline.ts:28:16
+ > splineAutoHandles ../../packages/barocss-cad-model/src/sketch/spline.ts:82:44
+ > SplineSection src/ui/SketchPanel.tsx:252:15
+ > Object.react_stack_bottom_frame ../../node_modules/react-dom/cjs/react-dom-client.development.js:25904:19
+ > renderWithHooks ../../node_modules/react-dom/cjs/react-dom-client.development.js:7662:21
+ > updateFunctionComponent ../../node_modules/react-dom/cjs/react-dom-client.development.js:10166:18
+ > beginWork ../../node_modules/react-dom/cjs/react-dom-client.development.js:11778:17
+

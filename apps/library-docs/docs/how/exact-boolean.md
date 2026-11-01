@@ -233,7 +233,8 @@ and never a sign at all.
 | `packages/barocss-cad/src/brep/polyhedral-boolean.ts` | `booleanPolyhedra`; fractions (`q`, `cmp`, raw ops); `newellNormal`, `facesOf`; `cutPair`, `intervals`, `overlap`; `classify`, `pointInFace`, `crossing`; `stitch` |
 | `packages/barocss-cad/src/brep/planar-arrangement.ts` | Homogeneous integer points, `orient`, segment intersection, the arrangement and its windings; `arrangementRegions` for face splitting |
 | `packages/barocss-cad/src/brep/brep-tessellate.ts` | `triangulatePolygonWithHoles`, for each piece's interior point |
-| `packages/barocss-cad/src/part/part-model.ts` | `boolean` (dispatch), `planarBrep`, `planarBoolean` (the `NOT_PLANAR_WITHIN_FLOAT` retry), `wedgeChamfer` |
+| `packages/barocss-cad/src/part/part-model.ts` | `boolean` (dispatch), `planarBrep`, `planarBoolean` (the `NOT_PLANAR_WITHIN_FLOAT` retry) |
+| `packages/barocss-cad/src/part/part-finish.ts` | `wedgeChamfer` |
 | `packages/barocss-cad/src/exact-proof/robust-orientation-v1.ts`, `exact-binary64-orientation-v1.ts` | The two separate orientation predicates |
 
 ## How it is checked

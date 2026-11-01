@@ -1,0 +1,151 @@
+{
+  "decision": "D409",
+  "date": "2026-11-01",
+  "baseCommit": "e5d58da86c55946f32326321581bb652888e9b8b",
+  "tier": "full additive public parameters",
+  "status": "BOUNDED_QUALIFIED",
+  "models": {
+    "implementationAndIndependentAudit": "gpt-6.1-sol / medium"
+  },
+  "scope": "Recorded3mm ordinary ASME view/section/detail/cross-sheet labels, stacked deviations, table/BOM and weld text with matching layout metrics",
+  "api": {
+    "tableSize": "(content, textHeight = 2.5)",
+    "tableLayout": "(content, at, corner = 'top-left', textHeight = 2.5)",
+    "symbolMarks": "(tip, knee, side, joint, label, format = plainSize, textHeight = 2.5)",
+    "weldSymbols": "(layout, views, joints, format?, sheetSet?, textHeight = 2.5)"
+  },
+  "apiPolicy": "Appended optional finite-positive sheet-mm height; defaults and old calls preserved. Actual table widths/rows/notes, weld collision bounds and placement use supplied height. ASME sheet passes3; plain/ISO ordinary labels stay2.5. No public names, document/schema or tolerance/B-rep arithmetic changes.",
+  "apiInventory": {
+    "status": "PASS",
+    "added": 0,
+    "removed": 0,
+    "changed": 4,
+    "names": [
+      "tableSize",
+      "tableLayout",
+      "symbolMarks",
+      "weldSymbols"
+    ],
+    "otherFieldsUnchanged": true
+  },
+  "checks": {
+    "focused": {
+      "status": "PASS",
+      "unique": 44,
+      "breakdown": {
+        "drawing-ordinary-text": 12,
+        "drawing-standard": 18,
+        "drawing-table": 5,
+        "frame-weld-symbols": 3,
+        "p2-drawing-table-contract": 5,
+        "drawing-units-golden": 1,
+        "uniqueTotal": 44
+      }
+    },
+    "postFinalTestModelTypes": "PASS",
+    "studioTypes": "PASS",
+    "changedFileLintSyntaxDiff": "PASS",
+    "richPlainIsoSvgExactComparisons": 2,
+    "docs": {
+      "status": "PASS",
+      "pages": 68,
+      "shots": 55,
+      "labels": 930
+    }
+  },
+  "golden": {
+    "changedKeys": [
+      "coarse-asme.svg",
+      "coarse-asme.dxf",
+      "asme.svg",
+      "asme.dxf"
+    ],
+    "unchangedHashCount": 14,
+    "allResolvedDimensionHashesUnchanged": 6,
+    "plainIsoOutputHashesUnchanged": 8,
+    "originalD408Commit": "e5d58da86"
+  },
+  "audit": {
+    "status": "ACCEPT",
+    "round1": "Design accepted; required actual-height stacked text spacing",
+    "round2": "Final source accepted; all table probes, column metrics and weld collision bounds use supplied height",
+    "mutationInitial": {
+      "baselinePass": 9,
+      "killed": 5,
+      "survived": 4
+    },
+    "coverageAdded": [
+      "Actual3mm header/cell1.5mm side padding",
+      "Actual split blocks within sheet and mutually disjoint",
+      "Constrained29.5mm column grouping based on3mm widths",
+      "Feasible weld-view clearance at least1mm from actual3mm glyph bounds"
+    ],
+    "mutationFinal": {
+      "baselinePass": 12,
+      "applied": 9,
+      "killed": 9,
+      "survived": 0,
+      "unmatched": 0
+    },
+    "artifacts": "/tmp/barocss-d409-audit"
+  },
+  "producer": {
+    "directory": "/tmp/barocss-d409-final",
+    "inputManifest": "/tmp/barocss-d409-final/producer-inputs.json",
+    "inputCount": 531,
+    "asmeNativeFixtureSha256": "85b722fe9b5257d05def688e8f5a733d6f8d7bc2db583fd8de69c1ff4af6d596"
+  },
+  "studio": {
+    "status": "PASS",
+    "run": 1,
+    "frozenFiles": 813,
+    "sourceChanges": 0,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "rootReviewedImages": 2,
+    "observed": {
+      "viewLabels": "4 x3mm",
+      "widthAndDeviations": "320,+0.1,-0.05 all3mm; actual glyph bounds do not overlap",
+      "weldText": "3* and W1 both3mm",
+      "tableText": "7 x3mm",
+      "iso": "ordinary2.5mm retained",
+      "undoRedo": "exact ASME/ISO document snapshots",
+      "modelAndToleranceNumbers": "unchanged"
+    },
+    "resources": "Context/browser/server closed; heavy gate released",
+    "artifacts": "/tmp/barocss-d409-browser-run01",
+    "visualLimits": "Fit-sheet overview only; no enlarged legibility or broad overlap certification"
+  },
+  "retainedFailures": {
+    "repro-tests.log": "pre-fix1PASS2FAIL (2.5mm ordinary labels/stacked deviations)",
+    "focused.log": "fixed-source5PASS1FAIL from strict subtraction coordinate assertion, then corrected1e-10 coordinate comparison",
+    "exact-limits-pre-update.log": "expected ASME output baseline mismatch; only4 approved ASME hashes updated",
+    "independentMutationInitial": "5/9killed,4survived; all4 physical test gaps subsequently covered"
+  },
+  "commands": {
+    "focused": "node packages/barocss-cad-model/scripts/test.mjs drawing-ordinary-text drawing-standard drawing-table frame-weld-symbols",
+    "finalSurvivorTests": "node packages/barocss-cad-model/scripts/test.mjs drawing-ordinary-text",
+    "modelTypes": "pnpm --filter @barocss/cad-model type-check",
+    "studioTypes": "pnpm --filter @barocss/cad-studio-app type-check",
+    "producer": "node apps/cad-studio/test/drawing-ordinary-text-producer.mjs /tmp/barocss-d409-final",
+    "defaultByteControls": "cmp /tmp/barocss-d409-prep/plain.svg /tmp/barocss-d409-final/plain.svg; cmp /tmp/barocss-d409-prep/iso.svg /tmp/barocss-d409-final/iso.svg",
+    "golden": "UPDATE_UNITS_GOLDEN=1 node packages/barocss-cad-model/scripts/test.mjs drawing-units-golden; node packages/barocss-cad-model/scripts/test.mjs drawing-units-golden",
+    "mutation": "node /tmp/barocss-d409-audit/mutations.mjs (in-memory source hooks; original and final results preserved)",
+    "api": "node apps/library-docs/scripts/api-inventory.mjs --write-expected /tmp/barocss-d409-root/api-inventory.expected.json; reviewed4signature-only changes then copied baseline",
+    "docs": "node apps/library-docs/scripts/check-docs.mjs",
+    "actual": "DRAWING_ORDINARY_TEXT_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME=/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome node apps/cad-studio/test/drawing-ordinary-text-browser.mjs /tmp/barocss-d409-browser-run01 /tmp/barocss-d409-final",
+    "fullCapsule": "/tmp/barocss-d409-prep/commands.md"
+  },
+  "execution": "Node22.19.0; serial heavy gate; no worktree writes during actual Studio",
+  "notRun": [
+    "No broad ASME certification;3mm is recorded ordinary-text product requirement.",
+    "Deliberate title-block small labels and symbol-internal glyphs remain;3D annotation behavior unchanged.",
+    "No actual Save/export/download.",
+    "Cross-sheet section/detail captions, split blocks and constrained collision edge witnesses are model tests, not actual UI qualification.",
+    "No OCP recreation, downloads, paid calls or external standards fetch.",
+    "Full baseline/kernel suites, CI, release"
+  ],
+  "issueReview": "#540 broader drawing backlog epic remains incomplete; no closure claimed",
+  "next": "D410 registered U2 five CAD command icons; no new dependency/download"
+}

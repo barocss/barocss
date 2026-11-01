@@ -7,7 +7,7 @@ import { KernelError } from '../dist/core/barocss-error.js';
 test('R7.3a: every error class the kernel exports is a BarocssError, the facade\'s class the same one', () => {
   assert.equal(FacadeError, cad.BarocssError);
   const classes = Object.entries(cad).filter(([name, v]) => typeof v === 'function' && /Error$/.test(name) && v.prototype instanceof Error);
-  assert.ok(classes.length > 100, `${classes.length} error classes`);
+  assert.ok(classes.length > 90, `${classes.length} error classes`); // (100 after R7.3d retired the legacy files' classes)
   for (const [name, C] of classes) assert.ok(C === cad.BarocssError || C.prototype instanceof cad.BarocssError, `${name} is a BarocssError`);
 });
 

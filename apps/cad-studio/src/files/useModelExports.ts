@@ -1,4 +1,4 @@
-import { useRef, useState, type RefObject } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
@@ -6,18 +6,24 @@ import { bodyName } from '@barocss/cad-model/app/bodies';
 import { draftWarning } from '@barocss/cad-model/chat/drafts';
 import { sourceBytes, sourceRecord } from '@barocss/cad-model/team/source';
 import { quotePackage } from '@barocss/cad-model/mould/quote';
+import { withCutNodes } from '@barocss/cad-model/assembly/cuts';
 import { write3mf } from '@barocss/cad-model/print/threemf';
 import { threeMfModelOf } from '@barocss/cad-model/print/export3mf';
+import { looksOnFold } from '@barocss/cad-model/assembly/looks';
+import { placedLooksOf } from '../state/useInstanceLooks';
 import type { EngineClient } from '../engine/client';
 import { downloadBytes, lumpStls, meshToStl } from '../ui/files';
+import { createStepPreparation, type StepPreview, type StepMeshes } from './stepExportPreparation';
 
 export interface ModelExportContext {
   doc: StudioDoc;
   evaluated: StudioDoc;
+  shown: StudioDoc;
   bodies: BodyResult[];
   fresh: boolean;
   busy: boolean;
   massReady: boolean;
+  instancesFresh: boolean;
   instanceBodies: ReadonlyMap<string, { bodies: BodyResult[] }>;
 }
 
@@ -26,8 +32,20 @@ export interface ModelExportOptions {
   engine: EngineClient;
   fileName: string;
   /** App's synchronous accepted-document refs, not copies updated by an effect. */
-  current: { doc: RefObject<StudioDoc>; evaluated: RefObject<StudioDoc> };
+  current: { doc: RefObject<StudioDoc>; evaluated: RefObject<StudioDoc>; shown: RefObject<StudioDoc>; name?: RefObject<string> };
   onNotice(notice: FriendlyError): void;
+}
+
+function currentStepOwner(s: { model: ModelExportContext; fileName: string; current: ModelExportOptions['current'] }) {
+  const visible = (s.model.shown.instances ?? []).filter(i => !i.hidden);
+  const all = [...s.model.bodies, ...visible.flatMap(i => s.model.instanceBodies.get(i.id)?.bodies ?? [])];
+  return { doc: s.current.doc.current, shown: s.current.shown.current, evaluated: s.current.evaluated.current, name: s.current.name?.current ?? s.fileName,
+    fresh: s.model.fresh && s.model.instancesFresh && !s.model.busy && s.current.doc.current === s.model.doc && s.current.evaluated.current === s.model.evaluated && s.current.shown.current === s.model.shown,
+    hasBody: all.some(b => b.role !== 'infill' && !b.band), hasMeshes: all.some(b => b.family === 'faceted' && b.role !== 'infill') };
+}
+function lastStepMeshes(): StepMeshes {
+  try { const stored = localStorage.getItem('studio.stepMeshes'); if (stored === 'planar' || stored === 'tessellated') return stored; } catch { /* private mode */ }
+  return 'auto';
 }
 
 /** STEP, STL, quote and 3MF actions for the current evaluated model. */
@@ -35,21 +53,28 @@ export function useModelExports({ model, engine, fileName, current, onNotice }: 
   const { doc, evaluated, bodies, fresh, busy, massReady, instanceBodies } = model;
   const { doc: docNow, evaluated: evaluatedRef } = current;
   /** Asked how mesh bodies go out when the part has any (R3.5, D48): its answer kept in this browser. */
-  const [stepAsk, setStepAsk] = useState(false);
+  const [stepPreview, setStepPreview] = useState<StepPreview | null>(null);
+  const stepLatest = useRef({ model, engine, fileName, current, onNotice }); stepLatest.current = { model, engine, fileName, current, onNotice };
+  const stepControl = useRef<ReturnType<typeof createStepPreparation> | null>(null);
+  if (!stepControl.current) stepControl.current = createStepPreparation({
+    current: () => currentStepOwner(stepLatest.current),
+    step: (d, name, meshes) => stepLatest.current.engine.step(d, name, meshes), changed: setStepPreview,
+    notice: hint => stepLatest.current.onNotice({ title: 'STEP not prepared', hint, detail: '' }),
+    download: (bytes, name, captured) => { downloadBytes(bytes, name, 'model/step'); const warning = draftWarning(captured); if (warning) stepLatest.current.onNotice({ title: 'STEP written as a draft', hint: warning, detail: '' }); },
+  });
+  const clearStepAsk = stepControl.current.cancel;
+  useEffect(() => { stepControl.current?.reconcile(); }, [doc, evaluated, model.shown, fileName, fresh, busy, instanceBodies, model.instancesFresh]);
+  useEffect(() => () => stepControl.current?.dispose(), []);
   const [stlAsk, setStlAsk] = useState(false), [stlQuality, setStlQuality] = useState<'automatic' | '8' | '16' | '32'>('automatic'), [stlBusy, setStlBusy] = useState(false);
   const stlGeneration = useRef(0), stlPending = useRef(false), stlCancelButton = useRef<HTMLButtonElement>(null);
   const cancelStlExport = () => { stlGeneration.current++; stlPending.current = false; setStlBusy(false); setStlAsk(false); };
   const askStlExport = () => { stlGeneration.current++; stlPending.current = false; setStlBusy(false); setStlQuality('automatic'); setStlAsk(true); };
-  const exportStepFile = async (meshes?: 'auto' | 'tessellated' | 'planar') => {
-    // (An infill body is left out of STEP, O60: it asks nothing.)
-    if (!meshes && bodies.some(b => b.family === 'faceted' && b.role !== 'infill')) { setStepAsk(true); return; }
-    setStepAsk(false);
-    if (meshes) { try { localStorage.setItem('studio.stepMeshes', meshes); } catch { /* private mode */ } }
-    // (The evaluated model, with the instances placed beside it now.)
-    const r = await engine.step({ ...evaluated, instances: doc.instances }, fileName, meshes);
-    if ('text' in r) { downloadBytes(new TextEncoder().encode(r.text), `${fileName}.step`, 'model/step'); const w = draftWarning(doc); if (w) onNotice({ title: 'STEP written as a draft', hint: [w, ...(r.omitted ?? [])].join(' '), detail: '' }); else if (r.omitted) onNotice({ title: 'STEP written', hint: r.omitted.join(' '), detail: '' }); }
-    else onNotice({ title: 'Could not write STEP', hint: 'Fix the model’s errors first, then export again.', detail: r.error });
+  const exportStepFile = async (choice?: StepMeshes) => {
+    const meshes = choice ?? lastStepMeshes();
+    try { localStorage.setItem('studio.stepMeshes', meshes); } catch { /* private mode */ }
+    await stepControl.current!.prepare(meshes);
   };
+  const downloadStep = stepControl.current.download;
   const exportStl = async () => {
     if (stlPending.current) return;
     if (!fresh) { setStlAsk(false); onNotice({ title: 'Not written yet', hint: busy ? 'The part is still evaluating: export once it is up to date.' : 'The part did not evaluate: fix it first.', detail: '' }); return; }
@@ -111,7 +136,12 @@ export function useModelExports({ model, engine, fileName, current, onNotice }: 
   /** 3MF (AM5, D76): every shown body and instance, its material and colours, turned the way it prints when chosen. */
   const exportThreeMf = async () => {
     if (!fresh) { onNotice({ title: 'Not written yet', hint: busy ? 'The part is still evaluating: export once it is up to date.' : 'The part did not evaluate: fix it first.', detail: '' }); return; }
-    const parts = [{ doc, bodies }, ...(doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => ({ doc: i.doc, bodies: instanceBodies.get(i.id)!.bodies, name: i.name }))];
+    const parts = [{ doc, bodies }, ...(doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => {
+      // (Roadmap 10 ①: each body in the definition's colours and material, this occurrence's own over them.)
+      const bodies = instanceBodies.get(i.id)!.bodies;
+      // (Roadmap 10 ⑤: a cut part's bodies name their features in the cut part's nodes.)
+      return { doc: withCutNodes(i.doc, i, doc), bodies, name: i.name, looks: looksOnFold(i, placedLooksOf(i, doc, bodies).targets) };
+    })];
     const model = threeMfModelOf(doc, parts, fileName);
     const r = typeof model === 'string' ? { error: model } : await write3mf(model);
     if ('error' in r) { onNotice({ title: 'Could not write 3MF', hint: r.error, detail: '' }); return; }
@@ -120,11 +150,10 @@ export function useModelExports({ model, engine, fileName, current, onNotice }: 
     onNotice({ title: `3MF written: ${s.objects} bod${s.objects === 1 ? 'y' : 'ies'}, ${s.triangles.toLocaleString()} triangles`, hint: `${draftWarning(doc) ? `${draftWarning(doc)} ` : ''}${doc.print ? 'Turned the way it prints and set on the bed. ' : 'As modelled (choose a print direction to have it turned for printing). '}The on-screen mesh, in millimetres, with materials and colours.${open ? ` ${open} edges are not closed: the slicer may repair it.` : ''}`, detail: '' });
   };
 
-  const clearStepAsk = () => setStepAsk(false);
   const changeStlQuality = (value: string) => {
     if (value === 'automatic' || value === '8' || value === '16' || value === '32') { stlGeneration.current++; setStlQuality(value); }
   };
-  return { stepAsk, stlAsk, stlQuality, stlBusy, stlCancelButton, clearStepAsk, changeStlQuality,
+  return { stepAsk: !!stepPreview, stepPreview, downloadStep, stlAsk, stlQuality, stlBusy, stlCancelButton, clearStepAsk, changeStlQuality,
     askStlExport, cancelStlExport, exportStepFile, exportStl, exportQuote, exportThreeMf };
 }
 

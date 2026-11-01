@@ -1,0 +1,1 @@
+{"src/robot/native/harness.ts": [["if (s.exhausted) margins.push(", "if (false && s.exhausted) margins.push("], ["else if (!s.clear) margins.push(", "else if (!s.clear && !s.exhausted) margins.push("]]}

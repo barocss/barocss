@@ -1,0 +1,230 @@
+[
+  {
+    "window": [
+      1440,
+      900
+    ],
+    "bar": {
+      "left": 56,
+      "top": 50,
+      "width": 200,
+      "height": 692,
+      "bottom": 742
+    },
+    "scrollHeight": 690,
+    "clientHeight": 690,
+    "scrolls": false,
+    "overlaps": 0,
+    "buttons": 90,
+    "hidden": 0,
+    "hiddenNames": [],
+    "groups": [
+      {
+        "label": "Shapes",
+        "buttons": 15,
+        "columns": 6
+      },
+      {
+        "label": "Create",
+        "buttons": 30,
+        "columns": 6
+      },
+      {
+        "label": "Modify",
+        "buttons": 27,
+        "columns": 6
+      },
+      {
+        "label": "Pattern",
+        "buttons": 8,
+        "columns": 6
+      },
+      {
+        "label": "Combine",
+        "buttons": 3,
+        "columns": 3
+      },
+      {
+        "label": "Inspect",
+        "buttons": 7,
+        "columns": 6
+      }
+    ],
+    "viewport": {
+      "left": 0,
+      "width": 1140
+    },
+    "insideWindow": true
+  },
+  {
+    "window": [
+      1280,
+      800
+    ],
+    "bar": {
+      "left": 56,
+      "top": 50,
+      "width": 188,
+      "height": 620,
+      "bottom": 670
+    },
+    "scrollHeight": 618,
+    "clientHeight": 618,
+    "scrolls": false,
+    "overlaps": 0,
+    "buttons": 90,
+    "hidden": 0,
+    "hiddenNames": [],
+    "groups": [
+      {
+        "label": "Shapes",
+        "buttons": 15,
+        "columns": 6
+      },
+      {
+        "label": "Create",
+        "buttons": 30,
+        "columns": 6
+      },
+      {
+        "label": "Modify",
+        "buttons": 27,
+        "columns": 6
+      },
+      {
+        "label": "Pattern",
+        "buttons": 8,
+        "columns": 6
+      },
+      {
+        "label": "Combine",
+        "buttons": 3,
+        "columns": 3
+      },
+      {
+        "label": "Inspect",
+        "buttons": 7,
+        "columns": 6
+      }
+    ],
+    "viewport": {
+      "left": 0,
+      "width": 980
+    },
+    "insideWindow": true
+  },
+  {
+    "window": [
+      1920,
+      1080
+    ],
+    "bar": {
+      "left": 56,
+      "top": 50,
+      "width": 188,
+      "height": 836,
+      "bottom": 886
+    },
+    "scrollHeight": 834,
+    "clientHeight": 834,
+    "scrolls": false,
+    "overlaps": 0,
+    "buttons": 90,
+    "hidden": 0,
+    "hiddenNames": [],
+    "groups": [
+      {
+        "label": "Shapes",
+        "buttons": 15,
+        "columns": 5
+      },
+      {
+        "label": "Create",
+        "buttons": 30,
+        "columns": 5
+      },
+      {
+        "label": "Modify",
+        "buttons": 27,
+        "columns": 5
+      },
+      {
+        "label": "Pattern",
+        "buttons": 8,
+        "columns": 5
+      },
+      {
+        "label": "Combine",
+        "buttons": 3,
+        "columns": 3
+      },
+      {
+        "label": "Inspect",
+        "buttons": 7,
+        "columns": 5
+      }
+    ],
+    "viewport": {
+      "left": 0,
+      "width": 1620
+    },
+    "insideWindow": true
+  },
+  {
+    "window": [
+      1024,
+      700
+    ],
+    "bar": {
+      "left": 56,
+      "top": 50,
+      "width": 248,
+      "height": 480,
+      "bottom": 530
+    },
+    "scrollHeight": 478,
+    "clientHeight": 478,
+    "scrolls": false,
+    "overlaps": 0,
+    "buttons": 90,
+    "hidden": 0,
+    "hiddenNames": [],
+    "groups": [
+      {
+        "label": "Shapes",
+        "buttons": 15,
+        "columns": 8
+      },
+      {
+        "label": "Create",
+        "buttons": 30,
+        "columns": 8
+      },
+      {
+        "label": "Modify",
+        "buttons": 27,
+        "columns": 8
+      },
+      {
+        "label": "Pattern",
+        "buttons": 8,
+        "columns": 8
+      },
+      {
+        "label": "Combine",
+        "buttons": 3,
+        "columns": 3
+      },
+      {
+        "label": "Inspect",
+        "buttons": 7,
+        "columns": 7
+      }
+    ],
+    "viewport": {
+      "left": 0,
+      "width": 744
+    },
+    "insideWindow": true
+  }
+]

@@ -16,12 +16,12 @@ if (!process.env.PW_DIR) { console.error('Set PW_DIR to a Playwright package dir
 const { chromium } = createRequire(join(process.env.PW_DIR, 'package.json'))('playwright');
 const vite = await import('vite');
 const RUNS = Number(process.env.RUNS ?? 5), builds = (process.env.BUILDS ?? 'dev,prod').split(',');
-const bracket = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [
+const bracket = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [
   { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [30, 12] }, { kind: 'extrude', sketch: 0, height: 6 },
   { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 2 }, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [24, 6], radius: 2 }],
   outputs: { b1: { node: 3, side: 'solid' } } };
 const N = 120, side = Math.ceil(Math.sqrt(N));
-const many = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {},
+const many = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {},
   instances: Array.from({ length: N }, (_, k) => ({ id: `i${k}`, name: `bracket ${k}`, doc: bracket, position: [40 * (k % side), 20 * Math.floor(k / side), 0], rotation: [0, 0, 0], part: { id: 'bracket', rev: 'A' } })) };
 const tmp = fs.mkdtempSync(join(os.tmpdir(), 'cad-bench-panels-')), file = join(tmp, 'brackets.bcad'); fs.writeFileSync(file, JSON.stringify(many));
 const median = (xs) => { const s = [...xs].sort((a, b) => a - b); return s[Math.floor(s.length / 2)]; };

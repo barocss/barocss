@@ -1,0 +1,47 @@
+{
+  "decision": "D376",
+  "roadmap": "06 GPU-owned results hand-over (owner order 'Go to 01-06')",
+  "tier": "small (docs only)",
+  "status": "CLOSED (hand-over recorded; not merged)",
+  "branches": {
+    "gpu/readback-camera-20261026": {
+      "tip": "861ab440897db1759a783e0ce3ee3741007f59b3",
+      "onOrigin": false,
+      "aheadOfHead": 37
+    },
+    "gpu/gltf-03-20261027": {
+      "tip": "133d29e9bbf640b035930b4210f9d6943917409e",
+      "onOrigin": false,
+      "aheadOfHead": 35
+    },
+    "forkPoint": "0d1ec35512cf122c91ecfdbd6597f8cc40c35db2"
+  },
+  "commits": {
+    "ptSoftVisibility": "fe2637f41",
+    "renderTarget": "607f7d086",
+    "sizedTarget": "8de2f6ac8",
+    "targetAsTexture": "2a35e9b66",
+    "glbSubset": "5d8b77579",
+    "glbTextures": [
+      "29fd01911",
+      "d4e2c3ec7"
+    ]
+  },
+  "inHead": {
+    "all": false
+  },
+  "originalFailures": [
+    "29fd01911 emit TS2345/TS2322 (MIME string vs PNG/JPEG union); wait2/acquire0/command2/release0/wrapper2; CPU/WebGPU/lint/public NOT_RUN on it",
+    "2b0566777 needed typed colour tuple fix 5d8b77579 (original text not in repo)",
+    "02.2 initial sandbox failure (original text not in repo)",
+    "device failure: forced recovery rejection console-only; fixes 4187210f9/861ab4408 unqualified here; physical failure NOT_RUN"
+  ],
+  "png": "NOT_FOUND in git or this checkout (repo guard refuses PNG); examples on the branches reproduce them",
+  "notRun": [
+    "product merge",
+    "product build/test/browser for this record",
+    "133d29e9b checks",
+    "CI",
+    "release"
+  ]
+}

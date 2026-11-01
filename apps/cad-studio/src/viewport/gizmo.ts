@@ -48,6 +48,11 @@ export interface FeatureHandle {
   toValue(start: number, mm: number): number;
   format(value: number): string;
   onDrag(value: number, done: boolean, value2?: number): void;
+  /**
+   * Roadmap 20 ④ ⑥: the value's unit ('mm', '°' or a count's own), the command it belongs to (`owner`, compared by identity),
+   * and while that command runs (`editing`) a typed value for it.
+   */
+  unit?: string; owner?: unknown; editing?: boolean; onType?(value: number): void;
 }
 export type GizmoHit = { kind: 'move' | 'turn'; axis: Axis3 } | { kind: 'plane'; axes: [Axis3, Axis3] } | { kind: 'handle'; index: number } | { kind: 'scale'; axis: Axis3 | null };
 /** Screen projection, the camera's forward direction, and `size`: world mm that make the gizmo's full size on screen there. */

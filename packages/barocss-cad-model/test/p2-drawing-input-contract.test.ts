@@ -152,7 +152,7 @@ test('authored edge/face exclusion and nested unknown rules preserve the establi
     [{ ...face, face: { ...face.face, injected: true } }],
     [{ ...edge, edge: { ...edge.edge, injected: true } }],
   ];
-  // The repository's small validate helper does not evaluate oneOf/not; assert that metadata above.
+  // The repository's small validate helper evaluates oneOf/not/const where every form uses keywords it knows; the unknowns check below needs only that.
   for (const datums of unknowns) assert.ok(validate(datumsProperty as JsonSchema, datums).length > 0);
   for (const datums of [...exclusive, ...unknowns]) {
     assert.equal(checkDatumOptions({ datums })[0]?.code, 'DRAWING_OPTIONS');

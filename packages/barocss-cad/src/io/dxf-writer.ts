@@ -68,6 +68,8 @@ export type DxfEntity = DxfEntityBase & (
 export interface DxfBlock { name: string; base?: DxfXY; entities: readonly DxfEntity[] }
 export interface DxfDocument {
   units: DxfUnits;
+  /** Dimension style defaults in drawing units; anonymous display blocks are unchanged. Omitted: legacy defaults. */
+  dimensionStyle?: { textHeight: number; textPlacement: 'above' | 'center'; textOrientation: 'aligned' | 'horizontal' };
   layers?: readonly DxfLayer[];
   linetypes?: readonly DxfLinetype[];
   styles?: readonly DxfTextStyle[];
@@ -604,11 +606,23 @@ function r12Curve(w: Writer, e: DxfEntity, c: Curve): void {
 // ---------------------------------------------------------------------------------------------------------
 // The document
 
+function dimensionTextStyle(o: Out, style: DxfDocument['dimensionStyle']): void {
+  o.g(140, style?.textHeight ?? 3.5); o.g(147, 1); o.g(77, style?.textPlacement === 'center' ? 0 : 1);
+  if (style) { const horizontal = style.textOrientation === 'horizontal' ? 1 : 0; o.g(73, horizontal); o.g(74, horizontal); }
+}
+
 /** Writes a DXF file of the document. Throws a typed refusal (dxfWriteError) for anything it cannot write as given. */
 export function writeDxf(doc: DxfDocument, options: DxfWriteOptions = {}): DxfWriteResult {
   const version: DxfVersion = options.version ?? 'AC1015';
   if (version !== 'AC1015' && version !== 'AC1009') throw dxfWriteError('BAD_ENTITY', `version ${String(version)}`);
   if (!(doc.units in INSUNITS)) throw dxfWriteError('BAD_ENTITY', `units ${String(doc.units)}`);
+  const style = doc.dimensionStyle;
+  if (style !== undefined && (!style || typeof style !== 'object' || Array.isArray(style)
+    || typeof style.textHeight !== 'number' || !Number.isFinite(style.textHeight) || style.textHeight <= 0
+    || (style.textPlacement !== 'above' && style.textPlacement !== 'center')
+    || (style.textOrientation !== 'aligned' && style.textOrientation !== 'horizontal'))) {
+    throw dxfWriteError('BAD_ENTITY', 'dimensionStyle needs a finite positive textHeight, above or center textPlacement, and aligned or horizontal textOrientation');
+  }
   const tol = options.r12ChordTolerance;
   if (tol !== undefined && !(tol > 0 && Number.isFinite(tol))) throw dxfWriteError('BAD_ENTITY', `r12ChordTolerance ${tol}`);
   const layers = doc.layers ?? [], linetypes = doc.linetypes ?? [], styles = doc.styles ?? [], userBlocks = doc.blocks ?? [];
@@ -712,8 +726,8 @@ function writeAc1015(doc: DxfDocument, ctx: Context, dims: Extract<DxfEntity, { 
   table('APPID', T.appid, 1); record('APPID', h.take(), T.appid, 'AcDbRegAppTableRecord'); o.g(2, 'ACAD'); o.g(70, 0); o.g(0, 'ENDTAB');
   table('DIMSTYLE', T.dimstyle, 1); o.g(100, 'AcDbDimStyleTable');
   record('DIMSTYLE', h.take(), T.dimstyle, 'AcDbDimStyleTableRecord', 105);
-  // Arrows 3, text 3.5, extension lines 1 off the part and 2 past the dimension line, gap 1, two decimals (what the studio draws).
-  o.g(2, 'Standard'); o.g(70, 0); o.g(40, 1); o.g(41, 3); o.g(42, 1); o.g(44, 2); o.g(140, 3.5); o.g(147, 1); o.g(77, 1); o.g(271, 2); o.g(277, 2);
+  // Legacy defaults: arrows 3, text 3.5 above, extension lines 1 off and 2 past, gap 1, two decimals.
+  o.g(2, 'Standard'); o.g(70, 0); o.g(40, 1); o.g(41, 3); o.g(42, 1); o.g(44, 2); dimensionTextStyle(o, doc.dimensionStyle); o.g(271, 2); o.g(277, 2);
   o.g(0, 'ENDTAB');
   table('BLOCK_RECORD', T.blockRecord, blockList.length);
   for (const b of blockList) {
@@ -808,7 +822,7 @@ function writeAc1009(doc: DxfDocument, ctx: Context, dims: Extract<DxfEntity, { 
   o.g(0, 'ENDTAB');
   o.g(0, 'TABLE'); o.g(2, 'APPID'); o.g(70, 1); o.g(0, 'APPID'); o.g(2, 'ACAD'); o.g(70, 0); o.g(0, 'ENDTAB');
   o.g(0, 'TABLE'); o.g(2, 'DIMSTYLE'); o.g(70, 1);
-  o.g(0, 'DIMSTYLE'); o.g(2, 'STANDARD'); o.g(70, 0); o.g(40, 1); o.g(41, 3); o.g(42, 1); o.g(44, 2); o.g(140, 3.5); o.g(147, 1); o.g(77, 1);
+  o.g(0, 'DIMSTYLE'); o.g(2, 'STANDARD'); o.g(70, 0); o.g(40, 1); o.g(41, 3); o.g(42, 1); o.g(44, 2); dimensionTextStyle(o, doc.dimensionStyle);
   o.g(0, 'ENDTAB');
   o.g(0, 'ENDSEC');
   const w: Writer = { o, v: 'AC1009', h: new Handles(), ctx, counts: {}, owner: '0', dimBlocks, dimIndex: 0 };

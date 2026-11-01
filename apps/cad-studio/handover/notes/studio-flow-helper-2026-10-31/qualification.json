@@ -1,0 +1,43 @@
+{
+  "decision": "D370",
+  "tier": "small change (owner retro 2026-10-31: focused checks + the proving runs, no independent audit)",
+  "status": "QUALIFIED",
+  "scope": "Shared actual-Studio driver helper apps/cad-studio/test/flow-helper.mjs; the D369 band and D366 ellipse drivers ported to it",
+  "sourceCommit": "085f7cbf7",
+  "models": {
+    "implementation": "Sonnet sub-agent",
+    "rootVerification": "claude-opus-5-5 (main session)",
+    "sol": "NOT_USED"
+  },
+  "checks": {
+    "nodeCheck": "PASS (helper + 2 drivers)",
+    "eslint": "PASS (root eslint.config.mjs; caught 3 port bugs, fixed)",
+    "selfTest": "PASS (capsule hashing/change detection, oracle runner pass/fail, receipt persistence, env guard; selftest.mjs)"
+  },
+  "runs": {
+    "band": {
+      "status": "PASS",
+      "frozenFiles": 902,
+      "frozenMismatchVsCommit": 0,
+      "oracles": 9,
+      "note": "first run after the port"
+    },
+    "ellipse": {
+      "status": "PASS",
+      "frozenFiles": 900,
+      "frozenMismatchVsCommit": 0,
+      "oracles": 6,
+      "note": "first run after the port"
+    }
+  },
+  "lines": {
+    "band-sketch-browser.mjs": "428 -> 290",
+    "ellipse-sketch-browser.mjs": "400 -> 293",
+    "flow-helper.mjs": "275 (new)"
+  },
+  "limits": [
+    "Per-driver flows stay in drivers (Extrude start route, reopen route, band parameter attempts, construction toggle), built on the shared primitives",
+    "Oracles and inspector entry sources stay per driver",
+    "Older drivers (D348–D368) are not ported; new drivers use the helper"
+  ]
+}

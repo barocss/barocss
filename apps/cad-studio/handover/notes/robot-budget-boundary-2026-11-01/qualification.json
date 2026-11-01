@@ -1,0 +1,59 @@
+{
+  "decision": "D402",
+  "date": "2026-11-01",
+  "tier": "small (documentation and boundary qualification)",
+  "status": "BOUNDED_QUALIFIED",
+  "baseCommit": "dfdca110f",
+  "model": "gpt-6.1-sol / medium",
+  "numericImplementationChanged": false,
+  "budget": {
+    "openTimedPath": "per segment",
+    "closedLoop": "per chord",
+    "samples": "cumulative",
+    "exhausted.samples": "local exhausted segment/chord"
+  },
+  "cancellation": {
+    "synchronousStudioCalls": "NOT_APPLICABLE: no asynchronous sweep completion in Check path or motion-sweep effect",
+    "source": [
+      "apps/cad-studio/src/robot/RobotInspector.tsx",
+      "apps/cad-studio/src/App.tsx"
+    ],
+    "asyncChatTransport": "NOT_RUN"
+  },
+  "checks": {
+    "targetedLint": "PASS",
+    "driverSyntax": "PASS",
+    "diffCheck": "PASS",
+    "unchangedNumericTests": "NOT_RUN: reuse D367 recorded PASS"
+  },
+  "studio": {
+    "status": "PASS",
+    "artifacts": "/tmp/barocss-d402-run01",
+    "command": "cd apps/cad-studio && ROBOT_BUDGET_BOUNDARY_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' node test/robot-budget-boundary-browser.mjs /tmp/barocss-d402-run01",
+    "heavyGate": true,
+    "time": 1.655,
+    "segment": "2 of 2",
+    "totalSamples": 32243,
+    "display": "Not certified; neither clear nor in contact",
+    "contactLinks": [],
+    "documentUnchanged": true,
+    "frozenFiles": 283,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "rootVisualReview": "PASS: 01-not-certified.png",
+    "cleanup": "All owned resources closed"
+  },
+  "fail": [],
+  "notRun": [
+    "Full suites",
+    "Independent audit (small tier)",
+    "Async chat/transport cancellation and stale results",
+    "Closed-loop Studio Check path (still refused)",
+    "Save/download",
+    "CI",
+    "Release"
+  ],
+  "issue2229": "OPEN: incomplete acceptance; D367 contact-bound limitation retained"
+}

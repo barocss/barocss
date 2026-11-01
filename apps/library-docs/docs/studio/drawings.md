@@ -16,7 +16,7 @@ so it follows every change; the dimensions and notes you add are kept with it.
   export of the sheet. See [Revisions and sources](/guide/concepts#revisions-and-sources).
 
 Changing the drawing scope is refused with `DRAWING_SCOPE_REFERENCES` while the sheet has manual dimensions,
-datums, point datum targets, control frames or notes with leaders. Keep the scope, or remove those references explicitly first.
+datums, datum targets, control frames or notes with leaders. Keep the scope, or remove those references explicitly first.
 A permitted scope change clears automatic dimensions; it does not transfer their references to the new part.
 
 Without an explicit scope, sheets with balloons or a BOM table use assembly scope. Other sheets use the base part. A part sheet normally draws made bodies only. Assembly scope keeps bought elements, and enabling
@@ -48,6 +48,96 @@ between views. A different front orientation changes which model axes form the v
 The diagram is a calculated layout schematic, not a captured drawing or a print-size reference. Its rectangles
 show the relative outline sizes; the app also reserves space for annotations when laying out the sheet.
 
+### Drawing standard
+
+**Standard** (next to **Projection**) is **Not set**, **ISO** or **ASME**. Not set keeps the default drawing style.
+ISO and ASME each apply one preset; changing it is one undo step and the sheet is drawn again. The
+same preset reaches every export: the SVG, PDF and DXF sheets and the 3D annotations. In chat, `set_drawing` takes
+`standard` as `iso`, `asme` or `none`.
+
+| | Not set | ISO | ASME |
+|---|---|---|---|
+| Lettering height | 3.5 mm | 3.5 mm (ISO 3098) | 3 mm, 0.12 in (ASME Y14.2) |
+| Arrowhead | filled, 3 mm long, 1.2 mm across | filled 15°: 3 mm long, 0.8 mm across (ISO 129-1) | filled 3:1: 3 mm long, 1 mm across (ASME Y14.2) |
+| Dimension text | aligned with the line, above it | aligned with the line, above it (ISO 129-1) | horizontal, in a break of the dimension line (ASME Y14.5 unidirectional) |
+| Zeros (millimetres) | leading zero, trailing zeros dropped | `0.5`, `12`, `1.25` (ISO 129-1) | `0.5`, `12`, `1.25` (ASME Y14.5 metric) |
+| Projection symbol | the sheet's own small symbol | truncated cone, ends h and 2h across, 2h long, end view circles h and 2h, centre line; h = 3.5 mm (ISO 5456-2) | the same, h = 3 mm |
+| Datum feature triangle | filled | filled (ISO 5459) | filled (ASME Y14.5) |
+| Datum line target | phantom line | two crosses joined by a thin continuous line (ISO 5459) | phantom line (ASME Y14.5) |
+| Concentricity, symmetry | no advice | allowed | a **FRAME_RULE** warning: Y14.5-2018 dropped them, use position or profile |
+
+Under ASME the text is placed in a break of the dimension line, the break being the text's width and a millimetre either
+side. When the text does not fit between the arrowheads, it is set horizontally beside the line instead. The
+inch rule is under [Units](#units-inch-and-dual-dimensions).
+
+The ASME preset also uses 3 mm for ordinary view, section and detail labels, stacked tolerance deviations,
+table and BOM text, and weld text. Their spacing and layout use the same text height. Small title-block labels
+and glyphs inside symbols retain their own sizes; this preset does not certify a complete drawing against ASME.
+
+The ASME advice on concentricity and symmetry is a warning in **Drawing issues**, never a refusal: the frame can still be
+authored and an old one opens unchanged. In AutoCAD 2000 and R12 DXF, the ASME dimension style also records
+3 mm text, centered placement and horizontal orientation. Each dimension's own drawing keeps its text height,
+arrowheads and placement. Plain and ISO dimension-style defaults stay unchanged. These style fields guide an
+external reader's defaults; they do not guarantee the same layout after that reader regenerates a dimension.
+DXF sheet coordinates stay in mm, including inch and dual display. The printed labels carry those display units;
+editable dimension-unit regeneration is a separate limitation.
+
+### Units: inch and dual dimensions
+
+The part and every dimension value stay in millimetres; **Units** only changes how the sheet prints lengths. **Units**
+(next to **Standard**) is **mm** or **inch**; **Dual units** adds the other unit after each dimension in square brackets,
+primary first (ASME Y14.5 §1.6.4, Y14.2): `2.500 [63.5]` on an inch drawing, `63.5 [2.500]` on a mm one. **Details**
+(closed) holds **mm decimals** and **inch decimals**, each 0 to 6; empty keeps the default (mm as before, inch 3).
+Each change is one undo step, the sheet and its previews are drawn again, and the title block's **UNITS** cell reads
+`mm`, `inch`, `mm [inch]` or `inch [mm]`. In chat, `set_drawing` takes `units` (`mm` or `inch`), `dual` (true or false)
+and `precision` (`{mm?, inch?}`; `{}` resets); a value outside those is refused.
+
+- Inch numbers are the mm value divided by 25.4, with no leading zero and trailing zeros kept to the precision
+  (ASME Y14.5 §1.6.2): 25.4 mm is `1.000`, 12.7 is `.500`, 0.127 is `.005`, 100 is `3.937`. ISO has no inch rule of
+  its own, so the ISO and the unset drawings use this one too.
+- Millimetres follow the standard's rule as before (trailing zeros dropped); with an **mm decimals** value the
+  number has exactly that many places (`12.0`). A tolerance in plain mm prints as entered, up to 4 places
+  (`±0.005`, `±0.125`).
+- Numeric tolerance limits stay ordered and inside the authored zone. The dimension is rounded to nearest at the chosen
+  decimals, and each deviation is then rounded inward from the true limit (the upper one down, the lower one up), so
+  every printed limit lies inside the true zone. The decimals start at the drawing's (inch 3, or **mm decimals**; plain mm 2
+  or the decimals the tolerance was entered with) and rise, inch up to 5 and mm up to 4 (or an explicitly higher precision), until no nonzero deviation prints as zero
+  and the zone keeps at least 80% of its width; the dimension gains zeros to the same decimals (ASME Y14.5 §1.6.2).
+  Rounding can make a symmetric tolerance unequal, and then it prints as two deviations. 0.05 mm on 64 is
+  `2.5197 ±.0019`, 0.005 mm is `2.51969 +.00019/-.00020`, +0.009/-0.004 mm on 8 is `.31496 +.00035/-.00015`, ±0.05 mm at
+  0 mm decimals is `64.00 ±0.05`, and 10.004 ±0.005 in plain mm is `10.004 ±0.005`. If even the most decimals cannot do it,
+  an ordered numeric interval still prints at the most and **Drawing issues** shows `UNIT_PRECISION` naming the dimension.
+  If no numeric interval can be represented, the sheet prints **tolerance not printable** and reports `UNIT_PRECISION`;
+  it does not print inverted limits or collapse a positive-width zone to a point. An exact zero-width zone remains numeric
+  when its endpoint is representable, including a deviation that compensates for rounding the nominal. The authored
+  tolerance is unchanged. A fit class (`h7`, `H7/g6`) stays as written; its size and deviations print at common decimals by
+  the same rule. An unrepresentable fit member shows **limits not printable** while other members remain numeric.
+  An explicit tolerance and a fit on the same dimension share the displayed nominal precision. Exact decimal limits
+  use the resolved model number: a small floating-point residue in a measured size can contract a printed limit by one
+  final decimal step to keep it inside the authored zone.
+- Dual prints the dimension and its tolerance in both units: `2.5197 ±.0019 [64 ±0.05]`. Deviations that stack
+  beside the value print on the line instead (`.3150 +.0039/-.0019 [8 +0.1/-0.05]`). A hole callout prints whole in both
+  units. An angle never converts and never gets brackets.
+- A short linear label can use an outside position when its original region overlaps drawing marks.
+  Nearby views, annotations, tables and the sheet/title regions are checked before choosing a position. Stacked
+  deviations, basic boxes and attached control frames move with the label. Existing safe labels stay in place;
+  the original dimension line, arrowheads, value, tolerance and authored placement stay unchanged. A label placed
+  beyond an endpoint gets a connector to its dimension; a blocked connector makes that candidate unavailable. If no safe position is
+  found, the original placement stays and **Drawing issues** reports `TEXT_OVER_LINES` or `OFF_SHEET` as applicable.
+  Existing inline text gaps and radius, diameter, pitch-circle and angle labels keep their placement rules.
+- What converts: linear, radius, diameter and pitch circle values, tolerances, fit deviations, hole callouts
+  (diameter, depth, counterbore, countersink), geometric tolerance frame values (a frame is not a dimension, so
+  the decimals setting does not apply: in mm as entered; in inch a zone width rounds down and a projected zone height
+  rounds up, each at 3 to 5 places keeping 80% of the value, and an unequal amount, which moves the zone, rounds to
+  nearest within 5%; `UNIT_PRECISION` when 5 places are not enough), weld symbol sizes and the weld list's size column, datum target sizes, the bearing-ring width in element callouts, and the mm columns of a table made from the
+  part (bend, cut list, spring, gland and weld tables; mass and counts stay). An element size line (a sentence of
+  lengths) keeps its mm header, and a table with a section column adds the note `Section sizes are in mm`. Frames, datum targets and tables print the
+  primary unit only, even when **Dual units** is on.
+- What stays in millimetres: a thread designation (`M6×1`), notes and a table you typed yourself, the element size lines and section names, the
+  drawing check's messages, and the size fields in the editors (they take model millimetres).
+- Exports follow the sheet: the SVG and PDF text, the DXF dimension text (`2.520 ±.002 [64 ±0.05]`) and the 3D
+  annotations (`text` in the primary unit, `alt` in the other, the `value` still in mm).
+
 ### Title blocks and revision history
 
 - **Title block** chooses **Basic** or **Extended**. Basic keeps the original layout. Extended adds **Organization**,
@@ -67,6 +157,8 @@ show the relative outline sizes; the app also reserves space for annotations whe
   It replaces the previous title block. Each revision record has `revision`, `date` (`YYYY-MM-DD`), `description`
   and optional `by`. The list replaces the history; `[]` clears it, and omission keeps it. To show it, include a table
   with `from: 'revisions'`. Invalid fields, dates, duplicate labels and multiline text are refused with `DRAWING_OPTIONS`.
+- A record can also carry `eco`, an engineering change order number (1–20 characters, single-line). The revision table gains an
+  **ECO** column only when at least one record has one; without any, the table is as it was.
 
 For authored revision history, supply a dense list with no empty slots. One invalid record refuses the update; it
 does not silently remove that record or clear the history. Revision labels allow 1–6 characters, descriptions
@@ -154,8 +246,9 @@ at its own scale. Nothing is approximated except a section's hatch boundary.
   holds nothing. Both are fixed by removing the detail with its dimensions. `DETAIL_NO_ROOM` has no automatic fix.
 - **The agent.** It sets them with `set_drawing`'s `details`, each `{ id, view, center, radius, scale?, at? }`. A list
   replaces the details, and `[]` clears them. A detail's parent, centre or radius can't change while it has dimensions.
-- **Not yet:** centre and thread marks inside a detail, a rectangular or jagged boundary, a detail of the isometric
-  view, and a detail on another sheet.
+- **On another sheet.** A detail can be drawn on a different sheet than its parent (see Drawing sets below).
+- **Not yet:** centre and thread marks inside a detail, a rectangular or jagged boundary, and a detail of the isometric
+  view.
 
 ## Broken views
 
@@ -192,7 +285,7 @@ a larger scale.
 | <kbd>R</kbd> | Radius | Click a circle or an arc, then where its radius goes |
 | <kbd>A</kbd> | Angle | Click two straight edges, then the side of their corner |
 | <kbd>N</kbd> | Note | Click the paper for a note, or a view for a leader |
-| <kbd>T</kbd> | Point datum target | Click a straight edge endpoint, then place the target symbol |
+| <kbd>T</kbd> | Datum target | Point: click a straight edge endpoint. Line: click its two ends. Area: click its centre. Then place the target symbol |
 
 **Auto** under **Dimensions** (Auto-dimension) lays out the views with room, picks a scale and sheet that read cleanly, then adds the overall
 sizes, steps, hole positions and callouts. It replaces its own earlier dimensions and keeps yours. A dimension goes
@@ -241,22 +334,107 @@ A datum stores one edge reference or one face reference. A face reference keeps 
 assembly occurrence prefix. Its `near` point selects the nearest current boundary vertex of that face. A missing
 or ambiguous face stays unresolved; the drawing does not substitute another face or reuse the old point.
 
-A point datum target marks one endpoint of a straight B-rep edge in a base view. Choose **Point datum target**
-or press **T**, click the endpoint, then click where the symbol goes. If endpoints overlap, choose the exact edge
-and endpoint in **Point datum targets**. Each target has a unique letter-number pair, such as A1. Circle centres
-and curved edges are not supported.
+A datum target (ASME Y14.5 section 7.24) marks where a part touches its datum. Open **Datum targets**, choose a
+**Kind**, choose **Add point target**, **Add line target** or **Add area target** (or press **T**), pick in a base view, then click where the symbol goes. Each
+target has a datum letter (A to Z without I, O and Q) and a number from 1 to 99, unique per letter, such as A1. The
+symbol is a circle split by a horizontal line: the letter and number below, an area's size above.
 
-The target records the endpoint and the current edge signature. If the edge changes, is missing, or cannot be
+- **Point** marks one endpoint of a straight B-rep edge with an X. Click the endpoint; if endpoints overlap, choose the
+  exact edge and endpoint in the list. Circle centres and curved edges are not supported. **Details** has **Moveable
+  symbol** (point targets only). Following ASME Y14.5, the moveable datum target symbol is the circle drawn out to a
+  point by two lines tangent to it; the point faces away from the leader, so the leader never crosses it. A saved
+  point target with no recorded endpoint, or a number above 99, says what to repair before this can change.
+- **Line** is two points clicked in a view, drawn as a phantom (two-dot chain) line in that view with no X marks
+  (following ASME; the X belongs to a point target); the leader ends on the line. With the **ISO** drawing standard
+  set it is drawn as ISO 5459 does: two X marks joined by a thin continuous line.
+- **Area** is a circle (**Ø**) or a rectangle (**Width**, **Height**), in model mm, centred on a clicked point. It is
+  drawn with a phantom outline and 45° hatching at the view's scale; the leader ends at a dot inside it. Its size is
+  the upper half of the symbol (`Ø6` or `6×4`). Edit the size on the target's row.
+
+A point target records the endpoint and the current edge signature. If the edge changes, is missing, or cannot be
 identified, the saved target stays unresolved; it does not move to another edge or use the old hint as its point.
 Show its view and choose **Reselect endpoint** to confirm a current endpoint. **Move symbol** changes only the
-symbol's position.
+symbol's position. A line or area target is placed by view points, so it does not follow the geometry; the issue list warns
+(`DATUM_TARGET_OUTSIDE`) when one lies partly outside the part as its view shows it. The drawing
+does not count targets per datum; whether a datum has enough targets is yours to judge. A frame that names a datum
+letter held only by targets is not reported as `DATUM_UNDEFINED`.
 
 Each datum has an `id` and a letter. A geometric control frame has its own `id` and names its datums by letter.
 An attached frame refers to a dimension by `dim`; there can be at most one frame per dimension. A standalone
 frame instead has a view and a position in that view's model mm. In **Standalone geometric controls**, choose
-a visible view, select **Add standalone frame**, then click where the frame goes. The controls also let you move
-or remove it. Authored inputs require unique datum ids, datum letters and frame ids. These symbols and modifiers
-are annotations; they do not solve or verify the part's geometric tolerances.
+a visible view, select **Add standalone frame**, then click where the frame goes. **Frame details** edits its
+characteristic, tolerance and datums; the controls also let you move or remove it. If its view is hidden, the
+frame is kept at its saved position, is not drawn and cannot be moved, and `VIEW_NEEDED` says which view to show.
+Saved files and the SVG export keep the frame at its position in the view. Authored inputs require unique datum
+ids, datum letters and frame ids. These symbols and modifiers are annotations; they do not solve or verify the
+part's geometric tolerances.
+
+A frame can also carry a spherical zone (`sphere`, drawn SØ, position only), a statistical tolerance (`statistical`,
+ST in a hexagon), an unequally disposed profile (`unequal`, the outward amount from 0 up to the value, drawn as a circled U
+and the amount) and `around` (`all-around` or `all-over`, a circle or double circle beside the frame; profile only).
+A profile frame can have a `composite` second segment like position, or a `stacked` frame: a second, independent frame of the
+same position or profile characteristic, drawn as a full frame with its own symbol directly below the first. A frame is
+composite or stacked, not both. In the frame editor the options that fit the chosen characteristic are shown; the rarer ones
+(statistical tolerance, the unequal amount) are under **Details**, and the problem with the frame is written under the controls.
+
+New and edited frames must follow the rules that ASME Y14.5 and ISO 1101 share, and are refused in plain words when they do not:
+
+- Form tolerances (straightness, flatness, circularity, cylindricity) take no datums. Maximum or least material is allowed on straightness and flatness only.
+- Orientation (parallelism, perpendicularity, angularity), concentricity, symmetry and runout need at least one datum.
+- Runout takes no material modifier on the tolerance or the datums; profile takes none on the tolerance; circularity and cylindricity take none.
+- A diameter zone is for position, straightness, orientation and concentricity. Runout takes none.
+- A projected zone is for position and orientation. A tangent plane is for orientation and profile, and is not combined with a diameter zone or a projected zone.
+- A composite second segment names some of the first segment's datums in the same order and has a smaller tolerance.
+
+Only rules that ASME Y14.5 and ISO 1101 share are enforced. What one standard drops, such as concentricity and symmetry in ASME Y14.5-2018, is advice under the drawing standard setting (see [Drawing standard](#drawing-standard)).
+A frame is refused only for a rule break it did not already have, so an old frame can be repaired one field at a time. Frame numbers show as authored, up to 4 decimals.
+
+A saved drawing that breaks one of these still opens unchanged: `FRAME_RULE` lists each broken rule, with no automatic fix.
+`DATUM_UNDEFINED` also counts a point datum
+target set as defining its letter.
+
+## Drawing sets (several sheets)
+
+A drawing is one sheet until you add more. **Add sheet** (the **+** after the sheet tabs along the bottom of the drawing)
+makes an empty Sheet 2, and a tab for each sheet switches the paper shown. Everything you do — dimensions, notes, Auto
+layout, issues — applies to the sheet shown, and each edit is one undo step.
+
+- Which view is on which sheet. Under **Sheets** (a closed toggle in the panel) each view, removed section and detail has
+  a a *Move … to sheet* list list. The first sheet holds every view that no other sheet lists. A section that is not removed is
+  drawn in projection with its view, so it always stays on its view's sheet. A section or detail you move nowhere is on
+  its parent's sheet. A view lives on exactly one sheet. Ticking Right view or Isometric view while on a sheet moves
+  that view to the sheet shown.
+- Annotations follow their view. A dimension, datum feature, datum target, frame or note with a leader is on the sheet of
+  the view it belongs to. A note without a leader stays on the sheet it was made on (a deleted sheet's notes go back to sheet 1).
+  In v1, tables (the revision table, BOM and other source tables) and the title block's fields are on sheet 1.
+  Balloons and weld symbols are drawing-level settings, ticked from any sheet: balloons are drawn on the sheet of the first of the
+  isometric, front, top or right view that is shown, each weld symbol on the sheet of the view a single sheet would show it in (the first of the front, top or right view
+  that is shown and sees the joint; an isometric view carries none). A joint seen in no shown view is warned once, on sheet 1.
+- Each sheet has its own title block, with SHEET reading `n OF N` and its size. Sheets after the first use the basic
+  block (a continuation block): the title block's fields and the revision table are on sheet 1 only. Sheet 1 also carries a
+  sheet index table (sheet, name, size) while there are two or more sheets. A sheet with no standard view reads `AS NOTED`
+  for its scale.
+- Each sheet is laid out on its own: its own size, its own scale and its own room for dimensions. Auto lays out each
+  sheet in turn. A sheet's scale and size are its own (the first sheet's are the drawing's `scale` and `sheet`).
+- A detail or removed section on another sheet than its view. Its circle (or cutting line) stays on the parent's sheet with
+  the letter and `SEE SHEET 2`; the detail or section is drawn on the other sheet with `FROM SHEET 1` under its name. Zone
+  references are not used.
+- Export. Export PDF writes one file with a page for each sheet, each at its own size. Export SVG and Export
+  DXF write the sheet shown (the file name ends `-sheet-2` when the drawing has several sheets).
+- Issues. The issue list names the sheet it is for. What is missing — a hole's size or position, a step, an overall size,
+  a view a hole shows round in — is judged on the whole drawing, so a dimension on one sheet counts for a view on another.
+  So are datums and given-twice dimensions: a frame on one sheet may name a datum defined on another, and a repeated datum
+  letter or dimension is reported once. Only placement checks (off the sheet, overlap) run sheet by sheet.
+  `SHEET_SET` (a warning) reports a sheet with no view on it, and what a file lists that the drawing does not have.
+- Delete sheet removes the sheet shown (not the first): its views go back to sheet 1, a detail or section to its parent's sheet, its notes to sheet 1. A sheet id that a note still names is not given to a new sheet.
+- Open. A file that lists a section or detail the drawing no longer has, or a section that is not removed, keeps the entry and the first sheet's issue list says so; the entry has no effect.
+- The agent. `drawing.set` (`set_drawing`) takes `sheets`, the sheets after the first: `{ id, name?, size?: A4|A3, scale?, views: [...] }`
+  with view ids `front`, `top`, `right`, `iso`, `section:B` (removed sections only) and `detail:C`. The list replaces the sheets; `[]`
+  returns to one sheet. A view listed twice, an id that is not a view, a section or detail the drawing does not have, and a
+  section that is not removed are refused with `DRAWING_OPTIONS`, in words that name the sheet and the view. The tool's own
+  description is only a short hint, so use `describe` on the tool for the shape above.
+- Not yet: tables and balloons on a later sheet, a sheet-1 entry in the list, reordering sheets, an
+  all-sheets DXF, and a different title block on later sheets.
 
 ## Issues
 
@@ -266,9 +444,10 @@ applies them all, and **Issue count** shows how many are left.
 
 `DATUM_LOST` reports a datum with no current anchor in a visible view. `DATUM_TWICE` reports a repeated datum
 letter. `FRAME_LOST` reports a frame whose dimension is lost or missing, and `DATUM_UNDEFINED` reports a frame
-that names an undefined datum. `FRAME_VIEW_MISSING` reports a standalone frame whose view is missing;
-its saved position is kept. `DATUM_TARGET_UNVERIFIED` reports a point target that needs its endpoint selected
-again. `DATUM_UNDEFINED` has no automatic fix: define the datum or edit the frame.
+that names a datum with no datum feature or point target set. `FRAME_RULE` reports a frame that breaks a rule above, or (a warning) one the drawing standard no longer has. `FRAME_VIEW_MISSING` reports a standalone frame whose view is missing;
+its saved position is kept. `TEXT_OVER_LINES` reports annotation text, such as a dimension's, a table's or a
+standalone frame's, that lies over drawing lines. `DATUM_TARGET_UNVERIFIED` reports a point target that needs its endpoint selected
+again. `UNIT_PRECISION` (a warning, no fix) reports a tolerance or frame value too fine to print in the drawing's unit even at the most decimals. `DATUM_UNDEFINED` has no automatic fix: define the datum or edit the frame.
 
 ## Tables and balloons
 
@@ -288,7 +467,7 @@ selects which table corner sits on `at`. These positions do not use model coordi
 
 ## Export
 
-- **Export SVG** and **Export PDF** write the sheet as shown.
+- **Export SVG** and **Export PDF** write the sheet as shown. With several sheets (Drawing sets above) the PDF has every sheet; the SVG and the DXF are of the sheet shown.
 - **Export DXF** writes it as AutoCAD 2000 or R12, chosen in **DXF version**.
 
 R12 converts unsupported curve forms to polylines with a chord tolerance of 0.001 mm on the sheet.

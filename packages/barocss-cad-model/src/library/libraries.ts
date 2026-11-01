@@ -19,6 +19,7 @@ import { tslotInterfaces } from '../frames/interfaces';
 import { castingProfileOf } from '../engine/castingRuleRows';
 import { nextFreeId } from '../util/ids';
 import { refusal } from '../engine/refusal';
+import { nextInstanceId } from '../assembly/takenIds';
 
 /** Where a library comes from: built into the studio, shared by a team, or the user's own. */
 export type LibrarySource = 'built-in' | 'team' | 'user';
@@ -142,7 +143,7 @@ export function insertLibraryPart(doc: StudioDoc, libraryId: string, part: strin
 export function libraryInstance(doc: StudioDoc, libraryId: string, part: string, options: { variant?: string; params?: Record<string, number>; name?: string; position?: Vec3; rotation?: Vec3 } = {}): { doc: StudioDoc; id: string } {
   registerDocLibraries(doc);
   const instances = doc.instances ?? [];
-  const id = nextFreeId('p', new Set(instances.map(i => i.id))), partDoc = insertLibraryPart(emptyDoc(), libraryId, part, options);
+  const id = nextInstanceId(doc, 'p'), partDoc = insertLibraryPart(emptyDoc(), libraryId, part, options);
   const node = partDoc.nodes[partDoc.nodes.length - 1] as LibraryNode;
   const inst: PartInstance = { id, name: options.name ?? node.name, doc: partDoc, position: options.position ?? [0, 0, 0], rotation: options.rotation ?? [0, 0, 0] };
   return { doc: { ...doc, instances: [...instances, inst] }, id };

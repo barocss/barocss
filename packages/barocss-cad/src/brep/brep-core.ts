@@ -1,3 +1,4 @@
+import { faceBoundaryContradiction } from './brep-boundary-binding-internal.js';
 // One shared boundary representation (B-rep) for every modeling body family — step 1 of the
 // brep-core plan: the data structure, one checker, and adapters from the existing result types.
 //
@@ -182,6 +183,9 @@ export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number
   const loops = index(brep.loops, 'loop', issues), coedges = index(brep.coedges, 'coedge', issues), edges = index(brep.edges, 'edge', issues), vertices = index(brep.vertices, 'vertex', issues);
   const need = <T>(map: Map<string, T>, id: string | null, what: string): T | undefined => { const v = id === null ? undefined : map.get(id); if (!v) add('reference', `${what} → missing ${id}`); return v; };
   let maximumVertexGap = 0, maximumPcurveGap = 0;
+
+  // D417: exact bounded proof of an edge/surface contradiction, including faces without pcurves.
+  for (const face of brep.faces) { const contradiction = faceBoundaryContradiction(brep, face); if (contradiction) add('geometry', contradiction); }
 
   // Persistent names, where present, are unique among faces and among edges.
   for (const list of [brep.faces, brep.edges] as const) {

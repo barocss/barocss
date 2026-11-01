@@ -2,6 +2,7 @@
 // apply to it, and every constraint with a remove button. Refusals are shown with their reason.
 import { useEffect, useState } from 'react';
 import { roundCorner } from '@barocss/cad-model/sketch/corner';
+import { ELLIPSE_POINTS, ellipseMatches } from '@barocss/cad-model/sketch/ellipse';
 import {
   applyConstraint, circleDimensionKeys, circlePairKeys, constraintEntries, constraintOptions, dimensionKey, pointDimensionKeys, removeConstraint, samePick,
   type ConstraintKind, type Polygon, type SketchPick,
@@ -33,7 +34,8 @@ export function ConstraintTools({ shape: s, picked, onShape, onPicked, onEditDim
     if (!r.ok) { setRefused(r.reason); return; }
     onShape(r.shape); onPicked([]);
   };
-  const entries = constraintEntries(s);
+  // A matching ellipse lists its arc-direction rows (one per arc) as one summary row.
+  const ell = !!s.ellipse && ellipseMatches(s), all = constraintEntries(s), entries = ell ? all.filter(c => c.label !== 'Arc') : all;
   return <>
     <div className="card-title" style={{ marginTop: 10 }}>ADD CONSTRAINT</div>
     <div className="cons-sel" aria-live="polite">{picked.length
@@ -57,8 +59,9 @@ export function ConstraintTools({ shape: s, picked, onShape, onPicked, onEditDim
       <button className="ghost" aria-label="Round the corner" onClick={() => { const r = roundCorner(s, point.i, roundR); if ('error' in r) { setRefused(r.error); return; } onShape(r.shape); onPicked([]); }}>Round</button>
     </div>}
     {refused && <div className="sk-status open" role="alert"><i />{refused}</div>}
-    <div className="card-title" style={{ marginTop: 10 }}>CONSTRAINTS · {entries.length}</div>
+    <div className="card-title" style={{ marginTop: 10 }}>CONSTRAINTS · {entries.length + (ell ? 1 : 0)}</div>
     <div role="list" aria-label="Constraints">
+      {ell && <div className="cons-row" role="listitem"><div className="kv">Ellipse<b>{2 * ELLIPSE_POINTS} tangent arcs</b></div></div>}
       {entries.map(c => {
         const hit = c.involves.some(p => picked.some(q => samePick(p, q)));
         return <div className={'cons-row' + (hit ? ' hit' : '')} role="listitem" key={c.id}>

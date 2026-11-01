@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "productImports": 0,
+  "mode": "sketch",
+  "points": 192,
+  "sideIds": 192,
+  "worstFitImplicit": 5.551115123125783e-16,
+  "worstFitPosition": 2.009718347115232e-16,
+  "worstOutlineDistance": 0.00012459789247877513,
+  "worstOutlineDistanceRelative": 2.4919578495755025e-06,
+  "outlineArea": 3141.593516697582,
+  "exactArea": 3141.5926535897934,
+  "areaRelativeToExact": 2.747357419276324e-07
+}

@@ -1,0 +1,38 @@
+{
+  "status": "PASS",
+  "productImports": 0,
+  "mode": "curve",
+  "name": "Sketch curve 1 \u00b7 c1",
+  "degree": 2,
+  "poles": 9,
+  "weights": [
+    1,
+    0.707106781,
+    1,
+    0.707106781,
+    1,
+    0.707106781,
+    1,
+    0.707106781,
+    1
+  ],
+  "knots": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    2,
+    2,
+    3,
+    3,
+    4,
+    4,
+    4
+  ],
+  "worstImplicit": 8.291101138979684e-11,
+  "samples": 801,
+  "maxLocalU": 59.99999999994257,
+  "maxLocalV": 20.00000000026953,
+  "worstProductDifference": 0.0
+}

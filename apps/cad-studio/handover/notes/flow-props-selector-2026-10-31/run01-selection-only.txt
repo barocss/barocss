@@ -1,0 +1,4 @@
+ok 1 starter plate loads
+FAIL 94 fastener: an M8 bolt dropped into the starter plate’s hole, its thread cosmetic — page.waitForFunction: Timeout 5000ms exceeded.
+ok 95 fastener at a Ø6.6 through hole: fitted M6, washer and nut under the plate, fit shown
+FAIL 96 a countersunk screw inserted as a part of its own: an assembly instance, the part unchanged — page.waitForFunction: Timeout 10000ms exceeded.

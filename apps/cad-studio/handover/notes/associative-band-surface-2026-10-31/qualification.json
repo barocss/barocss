@@ -1,0 +1,95 @@
+{
+  "decision": "D371",
+  "roadmap": "B2 associative 3D band surface (owner request 2026-10-30; after D370 shared flow helper)",
+  "status": "BOUNDED_QUALIFIED",
+  "tier": "kernel part FULL (mutation set + re-check of kernel findings), model/Studio FEATURE (one audit round + actual run) — owner retro rule 2026-10-31",
+  "scope": "Band surface command: edge chain/loop A on one body and B on another; kernel feature resolves stored edge names each evaluation and builds an exact ruled sheet (rational ruled patches); open↔open, closed↔closed; B seamed at the point nearest A's start; equal counts piece-to-piece when the seam is a B joint, else by normalized length; strict reference policy (no silent retarget); BAND_* refusals; edit (Flip, Re-pick) via the command HUD; raw agent node; STEP omits the sheet with a note; no thicken (#2258).",
+  "relatedIssues": {
+    "#2258": "thickening deferred: exact thicken replaces faceted output (owner decision); not touched",
+    "#2265/#2259": "not related"
+  },
+  "baseCommit": "a6a1847c3",
+  "sourceCommit": "9ccfae37c",
+  "sourcePaths": 32,
+  "models": {
+    "design": "claude-opus-5-5 Plan sub-agent (design/brief.md, root decisions + #2258 correction)",
+    "rootJudgmentAndVerification": "claude-opus-5-5 (main session; after the user's pause the root verified F1/F2 and reran the mutation sweeps itself)",
+    "independentAudit": "claude-opus-5-5 sub-agent (one round)",
+    "implementation": "Sonnet sub-agents: kernel, model, Studio+driver in parallel; kernel and model audit-fix agents (stopped by the user's pause after most fixes had landed)",
+    "rootEdits": "band-surface history routing in App.tsx (run02 product defect), driver area/edit/delete/lost-edge steps",
+    "sol": "NOT_USED"
+  },
+  "kernel": {
+    "tests": "19/19 (band-surface.test.mjs)",
+    "cone": "area 1.7e-15 rel, boundary deviation 4e-15 mm, samples on the cone 1e-9",
+    "seams": "F1 fixed: rotated cylinder pair exact (1e-9); seam on a quarter span exact; seam inside a span within 3.6e-5 area (equal-parameter rulings inside a patch)",
+    "bowtie": "F2 fixed: crossing between samples refused [BAND_TOUCH] at (4.926,0,0); out-of-plane fold [BAND_DEGENERATE]",
+    "mutants": "after fixes 30 killed of 31 applicable + 4 new seam mutants killed; survivor M16 (no 16-pole precheck) equivalent: the aligner refuses the same cases"
+  },
+  "model": {
+    "tests": "band-surface 20/20",
+    "full": "2253/2253 (TEST_CONCURRENCY=4)",
+    "mutants": "23/23 killed after fixes (MM3, MM7, MM14, MM15, MM16, MM21, MM22 newly killed)"
+  },
+  "studioUnit": {
+    "full": "559/559",
+    "bandHighlight": "3/3"
+  },
+  "types": "tsc PASS kernel/model/Studio",
+  "docs": {
+    "apiInventory": "PASS (B2 additions + TypeScript union order-only churn, confirmed by the audit)",
+    "refusals": "PASS (BAND_* kernel codes)",
+    "agentTools": "PASS",
+    "checkDocs": "PASS"
+  },
+  "audit": {
+    "verdict": "CHANGES_REQUIRED",
+    "findings": [
+      "F1 KERNEL high: closed band twisted when loop seams sit at different angles (-12.3% area, no refusal) -> seam B at the point nearest A's start, pair by normalized length unless the seam is a B joint and counts match; root re-check: fixed; residual in-span skew 3.6e-5 recorded as a limit (user decision)",
+      "F2 KERNEL medium: a ruling shrinking to zero between samples not refused -> reversal detection + minimisation; root re-check: refused",
+      "F3 medium: edit refused after a later feature consumed a parent -> validate against the prefix",
+      "F4 medium: STEP dropped the band silently -> omitted note; facade refuses",
+      "F5: kernel/model test gaps -> tests added; mutation sweeps rerun by root",
+      "F6: jargon messages -> plain; HUD shows kernel pieces/patches"
+    ]
+  },
+  "browser": {
+    "run01": "FAIL_ORACLE: compared the faceted mesh area to the exact frustum (-0.21%) -> kernel exact area (areaBasis exact)",
+    "run02": "FAIL_PRODUCT: the band edit was unreachable (history routing omitted band-surface) -> fixed",
+    "run03": "FAIL_DRIVER: Delete key on a body selection is not a feature delete",
+    "run04": "FAIL_DRIVER: Studio asks a cascade-delete question (not a refusal); the page also reloaded to the default document mid-run (watcher change events; cause not found, did not recur)",
+    "run05": "FAIL_DRIVER: lost-edge open expected a hold; Studio's Open verifies references only after a REFERENCE_MOVED failure, a lost name is refused loudly instead",
+    "run06": "PASS (nothing else running)",
+    "status": "PASS_RUN_06",
+    "chromeProcesses": 1,
+    "contexts": 3,
+    "steps": [
+      "fixture: cylinders r=R(20) z0-10 and r10 z40-50",
+      "A = cylinder 1 top face, Band surface, B = cylinder 2 bottom face, Apply: 3 bodies, node band-surface, no thickness fields",
+      "oracle: kernel exact area = frustum pi(r1+r2)sqrt((r1-r2)^2+h^2) to 1.7e-15; boundary radii; no volume; report exact, closed, boundaryDeviation <= 1e-6",
+      "R=25: area follows (2.2e-15), names unchanged",
+      "Undo/Redo",
+      "Save, fresh Open equal",
+      "band edit HUD: Flip, Re-pick, '2↔2 pieces → 2 patches', no thickness; Escape leaves the doc unchanged",
+      "delete cylinder 1: asks 'Delete Cylinder 10 and what is built on it? … Band surface'; Cancel leaves the doc",
+      "open a file with an A edge renamed to a missing name: '[BAND_EDGE_LOST] band side A: no edge named …' with the name; not retargeted; document opened as it is"
+    ],
+    "frozenFiles": 682,
+    "frozenEqualsCommit": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0
+  },
+  "limits": [
+    "Seam inside a span: rulings join equal parameters inside a patch, not equal angles (area within 3.6e-5 of the frustum at 45°); exact at quarter-span seams (user decision: record, no Möbius reparametrisation in v1)",
+    "Studio Open holds a band only for moved names; a lost name opens with a refusal naming the edge (existing policy for all features)",
+    "The lost-edge message title/hint still speaks of 'chamfer or fillet' (generic SELECTION mapping)",
+    "The band body is named after A's body ('Cylinder 10 · Band surface')",
+    "No thickening (#2258), no tangent loft, closed↔open refused, no features on band edges, no bands in library parts, STEP omits the sheet, no chat command/facade verb",
+    "Sheet bodies have no mass; team mass reports 'unsupported: a body has no closed volume'",
+    "Unexplained mid-run page reload in run04 (did not recur in run05/06)"
+  ],
+  "fullKernel": "PARTIAL (band + touched areas; full kernel suite last run by the kernel agent before fixes: 3 failures in other areas, two pre-existing build/import issues, unverified)",
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

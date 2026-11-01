@@ -1,0 +1,52 @@
+{
+  "label": "04-band-made",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [],
+    "outputs": {},
+    "nextId": 0
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 0,
+    "active": null,
+    "sketch": true,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": "SKETCH · Band · Z 0PlaneXY (top)XZ (front)YZ (right)OffsetmmAngle°Snap 1 mmBAND · 2 sourcesOffset mmWidth mmRemove bandEnter applies a value · empty width: filled · a bound (ƒ) offset or width is edited in the feature editorOFFSETmmOutInCURVESMake curves of the sketch",
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": null,
+  "bandInputs": [
+    {
+      "label": "Band offset",
+      "value": "0"
+    },
+    {
+      "label": "Band width",
+      "value": "3"
+    }
+  ],
+  "bandOverlay": {
+    "outline": 1,
+    "picked": 0,
+    "construction": 2
+  },
+  "editorFields": [],
+  "history": []
+}

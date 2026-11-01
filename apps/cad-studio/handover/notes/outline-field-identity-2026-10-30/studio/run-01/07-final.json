@@ -1,0 +1,250 @@
+{
+  "label": "07-final",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "loop",
+        "segments": [
+          {
+            "kind": "line",
+            "start": [
+              0,
+              0
+            ]
+          },
+          {
+            "kind": "line",
+            "start": [
+              70,
+              0
+            ]
+          },
+          {
+            "kind": "line",
+            "start": [
+              70,
+              25
+            ]
+          },
+          {
+            "kind": "line",
+            "start": [
+              20,
+              25
+            ]
+          },
+          {
+            "kind": "line",
+            "start": [
+              20,
+              40
+            ]
+          },
+          {
+            "kind": "line",
+            "start": [
+              0,
+              40
+            ]
+          }
+        ],
+        "outline": {
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              70,
+              0
+            ],
+            [
+              70,
+              25
+            ],
+            [
+              20,
+              25
+            ],
+            [
+              20,
+              40
+            ],
+            [
+              0,
+              40
+            ]
+          ],
+          "lengths": {
+            "0": 70,
+            "1": 25
+          },
+          "hv": {
+            "h": [
+              0,
+              2,
+              4
+            ],
+            "v": [
+              1,
+              3,
+              5
+            ]
+          }
+        },
+        "holes": [
+          [
+            {
+              "kind": "line",
+              "start": [
+                5,
+                5
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                15,
+                5
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                15,
+                10
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                5,
+                10
+              ]
+            }
+          ]
+        ],
+        "sideTags": {
+          "outer": [
+            "e1",
+            "e2",
+            "e3",
+            "e4",
+            "e5",
+            "e6"
+          ],
+          "holes": [
+            [
+              "e7",
+              "e8",
+              "e9",
+              "e10"
+            ]
+          ]
+        },
+        "construction": [
+          {
+            "kind": "polygon",
+            "closed": false,
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                60,
+                40
+              ]
+            ],
+            "bulges": [
+              0,
+              0
+            ],
+            "construction": true,
+            "ids": [
+              "e11"
+            ]
+          }
+        ],
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 10,
+        "id": "n1"
+      },
+      {
+        "kind": "fillet",
+        "parent": {
+          "node": 1,
+          "side": "solid"
+        },
+        "edges": [
+          "n1.side[e2]|n1.side[e3]"
+        ],
+        "radius": 3,
+        "id": "n2",
+        "sigs": {
+          "n1.side[e2]|n1.side[e3]": {
+            "k": "line",
+            "p": [
+              60,
+              20,
+              5
+            ],
+            "d": [
+              0,
+              0,
+              1
+            ],
+            "s": 10
+          }
+        }
+      }
+    ],
+    "outputs": {
+      "b2": {
+        "node": 2,
+        "side": "solid"
+      }
+    },
+    "nextId": 3
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b2",
+        "volume": 19980.685834705782,
+        "centroid": [
+          31.838794533283554,
+          15.61658548384466,
+          5
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 1,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": null
+}

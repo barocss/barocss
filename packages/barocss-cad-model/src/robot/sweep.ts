@@ -32,13 +32,20 @@ import type { BodyResult } from '../engine/evaluate';
 import type { JointTree } from './joints';
 import { spurGearDimensions } from '@barocss/cad';
 import { forwardKinematics, type Motion } from './fk';
+import { refusal } from '../engine/refusal';
 import { convexDistance, meshClearance } from '@barocss/cad';
 
 export interface SweepLink { link: string; /** Its mesh at home (world, mm): every body of its part, merged. */ positions: Float64Array; indices: Uint32Array; /** Its convex hull's corners at home (world, mm). */ hull: Float64Array }
 export interface SweepResult {
   /** The first contact along the path: where, between which links, how (an edge through a triangle, or inside). */
   contact?: { s: number; values: Record<string, number>; links: [string, string] };
-  /** The path is free of contact (certified between samples by the bound). */
+  /**
+   * #2229: the sample budget ran out before the path was certified or touched: NOT a contact and NOT clear. `s`: how far along
+   * the path (0–1) the sweep got, `values`: the joint values there, `samples`: the budget spent. Everything before `s` is
+   * certified free; nothing after it is known. `minClearance` is the least clearance met up to `s`.
+   */
+  exhausted?: { s: number; values: Record<string, number>; samples: number };
+  /** The path is free of contact (certified between samples by the bound). False when `contact` or `exhausted` is set. */
   clear: boolean;
   /** The least clearance met (mm) and where. */
   minClearance: { mm: number; s: number; links: [string, string] } | null;
@@ -241,6 +248,14 @@ function followerBound(tree: JointTree, j: JointTree['joints'][number], q0: Read
   for (let guard = 0; cur?.mimic && guard < tree.joints.length; guard++) { k *= cur.cam ? cur.cam.reach / Math.abs(cur.cam.uw) : Math.abs(cur.mimic.multiplier); const lead: string = cur.mimic.joint; cur = tree.joints.find(x => x.key === lead); }
   return cur ? k * Math.abs((q1[cur.key] ?? 0) - (q0[cur.key] ?? 0)) : 0;
 }
+/** #2229: the sample budget's default and ceiling. */
+export const DEFAULT_MAX_SAMPLES = 20000, MAX_SAMPLES_CEILING = 10_000_000;
+/** `maxSamples` as given: undefined is the default 20000; otherwise a whole number from 1 to 10,000,000, else refused (VALUE). */
+export function checkMaxSamples(n: unknown): number {
+  if (n === undefined) return DEFAULT_MAX_SAMPLES;
+  if (typeof n !== 'number' || !Number.isInteger(n) || n < 1 || n > MAX_SAMPLES_CEILING) throw refusal('VALUE', `maxSamples must be a whole number from 1 to ${MAX_SAMPLES_CEILING}.`);
+  return n;
+}
 /** Sweeps the straight path from `from` to `to` (joint values by key; absent: 0). */
 /**
  * Options: `tolerance` (mm), the clearance counted as contact (RM6: 1e-6; RM9a's time of impact takes 1e-9). Each step keeps
@@ -248,7 +263,7 @@ function followerBound(tree: JointTree, j: JointTree['joints'][number], q0: Read
  * `trace`: each sample's least clearance over the pairs, as [s, mm] (RM9a's clearance profile).
  */
 export function sweepPath(tree: JointTree, links: readonly SweepLink[], from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>, o: { maxSamples?: number; tolerance?: number; trace?: [number, number][] } = {}): SweepResult {
-  const tol = o.tolerance ?? TOL;
+  const cap = checkMaxSamples(o.maxSamples), tol = o.tolerance ?? TOL;
   const byId = new Map(links.map(l => [l.link, l])), keys = tree.joints.filter(j => j.type !== 'fixed' && !j.mimic).map(j => j.key);
   const q0 = Object.fromEntries(keys.map(k => [k, from[k] ?? 0])), q1 = Object.fromEntries(keys.map(k => [k, to[k] ?? 0]));
   // (A follower moves by its multiplier times its leader — a cam's by at most its lobe's reach per radian over u·w (O24 a)
@@ -274,7 +289,6 @@ export function sweepPath(tree: JointTree, links: readonly SweepLink[], from: Re
   const posed = new Map(links.map(l => [l.link, { hull: new Float64Array(l.hull.length), mesh: new Float64Array(l.positions.length) }]));
   const crossingCap = pairs.some(([A, B]) => { const x = seats.get(`${A}|${B}`); return !!x && !('skip' in x) && !!x.crossing?.length; });
   let s = 0, samples = 0, min: SweepResult['minClearance'] = null;
-  const cap = o.maxSamples ?? 20000;
   for (;;) {
     samples++;
     const values = at(s), fk = forwardKinematics(tree, values);
@@ -300,9 +314,16 @@ export function sweepPath(tree: JointTree, links: readonly SweepLink[], from: Re
     }
     if (o.trace && least < Infinity) o.trace.push([s, least]);
     if (s >= 1) break;
-    // (A step too small to make progress: the clearance is all but nothing — met, to the tolerance.)
-    if (!(step > 1e-12) || samples >= cap) {
+    // (A step too small to make progress: the clearance is all but nothing — met, to the tolerance. step = (d − tol)/r ≤ 1e-12
+    // means d ≤ tol + 1e-12·r (the bound on the clearance this calls contact: nanometre-scale at these rates, the step's own 1e-12): a true contact.)
+    if (!(step > 1e-12)) {
       if (limiting) return { contact: { s, values: fk.values, links: limiting }, clear: false, minClearance: min, samples, pairs, skipped, designed };
+      break;
+    }
+    // (#2229: the budget spent with a step still to take: the path is not certified past s, and nothing touched — neither a contact nor clear.)
+    if (samples >= cap) {
+      // (No limiting pair but s < 1 with a crossing seat, whose capped step still has ground to cover: the rest of the path is unswept — exhausted too, never clear.)
+      if (limiting || crossingCap) return { exhausted: { s, values: fk.values, samples }, clear: false, minClearance: min, samples, pairs, skipped, designed };
       break;
     }
     s = Math.min(1, s + (crossingCap ? Math.min(step, CROSSING_STEP) : step));

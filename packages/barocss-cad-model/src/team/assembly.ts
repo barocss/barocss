@@ -5,8 +5,9 @@ import { resolveShopTree } from '../engine/shopRows';
 // and the whole assembly within the total mass budget — so parts each under a share that is not fixed cannot sum past
 // the total unnoticed. The BOM agent is read-only: given a built view of the assembly, it lists the parts; the BOM is
 // checked against the assembly (every instance counted once, the totals), with a library part's source named.
+import { hostOf } from '../engine/occurrences';
 import { meshClearance } from '@barocss/cad';
-import type { StudioDoc } from '../engine/doc';
+import type { PartInstance, StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { Evaluate } from '../chat/tools';
 import { massProperties } from '../analysis/analysis';
@@ -18,8 +19,15 @@ import { bomViewOf, type Bom, type BomView } from '../bom/core';
 import { beadAccounting, combineBeadAccounting, incompleteBeadReason, type BeadAccounting } from '../frames/beadAccounting';
 import { r6 } from '../util/round';
 import { evaluateTree } from '../assembly/instances';
+import { looksDocOf, looksOf, lookTargetsOf } from '../assembly/looks';
+import { withCutNodes, assemblyCutProblems } from '../assembly/cuts';
+import { placedBase } from '../engine/doc';
+import { massGOf } from '../app/mass';
+import { materialOf } from '../library/materials';
+import { briefMaterial } from '../chat/brief';
+import { r3 } from '../util/round';
 
-export type AssemblyCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET' | 'BEAD_ACCOUNTING_INCOMPLETE';
+export type AssemblyCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET' | 'BEAD_ACCOUNTING_INCOMPLETE' | 'CUT_REMOVES_NOTHING' | 'CUT_CONSUMES_BODY' | 'CUT_NOT_MADE' | 'CUT_PARTIAL' | 'CUT_LEAVES_BOUGHT';
 export interface AssemblyFinding { code: AssemblyCode; message: string; entities?: string[] }
 export interface AssemblyCheck { verdict: 'pass' | 'fail' | 'undecided'; findings: AssemblyFinding[]; /** Valid body subtotal when beadAccounting is incomplete. */ mass: number; beadAccounting?: BeadAccounting }
 
@@ -32,6 +40,17 @@ export async function assemblyBodies(doc: StudioDoc, evaluate: Evaluate): Promis
   return out;
 }
 const massOf = (doc: StudioDoc, bodies: readonly BodyResult[]) => (massProperties(doc, bodies) as { mass: number }[]).reduce((s, x) => s + x.mass, 0);
+
+/**
+ * A placed part's mass: by its document's materials, with the occurrence's own looks over them (roadmap 10 ①). Overrides inside a
+ * sub-assembly name nested parts, whose bodies carry folded keys: each body's material is then read through where it comes from.
+ */
+function occurrenceMass(inst: PartInstance, bodies: readonly BodyResult[], parent: StudioDoc): number {
+  const nested = Object.keys(inst.looks ?? {}).some(k => k.includes('/'));
+  if (!nested) return massOf(withCutNodes(looksDocOf(inst), inst, parent), bodies);
+  const looks = looksOf(inst, lookTargetsOf(inst, placedBase(inst, parent).nodes, bodies));
+  return bodies.reduce((t, b, k) => t + (b.volume === null ? 0 : r3(massGOf(b.volume, materialOf(looks[k].material ?? briefMaterial(inst.doc)).density))), 0);
+}
 
 /** The whole assembly's gate: parts meeting, the patterns on every built part, the total mass. */
 export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise<AssemblyCheck> {
@@ -53,8 +72,11 @@ export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise
   }
   const ifc = readInterfaces(doc.interfaces);
   for (const p of ifc.holePatterns) for (const part of p.parts) { const b = parts.get(part); if (!b) continue; const off = holesOff(b, p); if (off.length) findings.push({ code: 'PATTERN_MISALIGNED', message: `${part} is off ${p.id} at ${off.map(o => `(${o.join(', ')})`).join(', ')}`, entities: [part] }); }
+  // (Roadmap 10 ⑤: a cut that removes nothing, takes a whole body or cannot be made is a finding naming the cut and the part.)
+  const cutCode = { 'removes-nothing': 'CUT_REMOVES_NOTHING', 'consumes-body': 'CUT_CONSUMES_BODY', 'not-made': 'CUT_NOT_MADE', 'partial-through': 'CUT_PARTIAL', 'leaves-bought': 'CUT_LEAVES_BOUGHT' } as const;
+  for (const p of await assemblyCutProblems(doc, evaluate)) findings.push({ code: cutCode[p.kind], message: p.message, entities: [p.part] });
   let mass = 0;
-  for (const [id, b] of parts) mass += massOf(id === 'base' ? doc : (doc.instances ?? []).find(i => i.id === id)!.doc, b);
+  for (const [id, b] of parts) mass += id === 'base' ? massOf(doc, b) : occurrenceMass((doc.instances ?? []).find(i => i.id === id)!, b, doc);
   const accountingRows: { scope: string; accounting?: BeadAccounting }[] = [];
   const inspect = async (d: StudioDoc, scope: string) => {
     const e = await evaluate(d); accountingRows.push({ scope, accounting: beadAccounting(d, e?.ok ? e.bodies : []) });
@@ -65,7 +87,7 @@ export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise
   const incomplete = incompleteBeadReason(accounting);
   if (incomplete) findings.push({ code: 'BEAD_ACCOUNTING_INCOMPLETE', message: `${incomplete}; massG is a valid body subtotal only` });
   if (!incomplete && ifc.budgets.mass !== undefined && mass > ifc.budgets.mass + 1e-9) findings.push({ code: 'OVER_TOTAL_BUDGET', message: `the assembly weighs ${Number(mass.toPrecision(6))} g, over its ${ifc.budgets.mass} g` });
-  const deciding = findings.filter(f => f.code !== 'EXPECTED_CONTACT');
+  const deciding = findings.filter(f => f.code !== 'EXPECTED_CONTACT' && f.code !== 'CUT_LEAVES_BOUGHT');
   return { verdict: deciding.some(f => f.code !== 'PARTS_TOUCH' && f.code !== 'BEAD_ACCOUNTING_INCOMPLETE') ? 'fail' : deciding.length ? 'undecided' : 'pass', findings, mass, ...(accounting ? { beadAccounting: accounting } : {}) };
 }
 
@@ -73,7 +95,7 @@ export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise
 export function declaredContact(doc: StudioDoc, a: string, b: string): string | null {
   const p = readInterfaces(doc.interfaces).holePatterns.find(x => x.parts.includes(a) && x.parts.includes(b));
   if (p) return `the hole pattern ${p.id}`;
-  const m = (doc.mates ?? []).find(x => (x.a.part === a && x.b.part === b) || (x.a.part === b && x.b.part === a));
+  const m = (doc.mates ?? []).find(x => (hostOf(x.a.part) === a && hostOf(x.b.part) === b) || (hostOf(x.a.part) === b && hostOf(x.b.part) === a));
   return m ? `the mate ${m.id}` : null;
 }
 
@@ -137,7 +159,8 @@ export function checkBom(view: BomView, bom: Bom): string[] {
   for (const o of others) if (bom.lines.filter(l => !l.member && l.parts.includes(`base:${o.key}`)).length !== 1) out.push(`base:${o.key} is not on one line`);
   for (const p of view.parts) if ((seen.get(p.id) ?? 0) !== 1) out.push(`${p.id} (${p.name}) is on ${seen.get(p.id) ?? 0} lines, not one`);
   for (const id of seen.keys()) if (!view.parts.some(p => p.id === id)) out.push(`${id} is not in the assembly`);
-  const qty = view.parts.length, mass = r6(view.parts.reduce((s, p) => s + p.mass, 0) + (view.base?.mass ?? 0));
+  // (D387: a sub-assembly's mass is rolled up its nested parts': the total is the top-level parts' once.)
+  const topParts = view.parts.filter(p => p.parent === undefined), qty = topParts.length, mass = r6(topParts.reduce((s, p) => s + p.mass, 0) + (view.base?.mass ?? 0));
   if (bom.totalQty !== qty) out.push(`total quantity ${bom.totalQty}, the assembly has ${qty} parts`);
   if (Math.abs(bom.totalMass - mass) > 1e-6 * Math.max(1, mass)) out.push(`total mass ${bom.totalMass} g, the assembly weighs ${mass} g`);
   for (const l of lines) { const lib = view.parts.find(p => p.id === l.parts[0])?.library; if (lib && l.source !== lib) out.push(`${l.item}: a library part with no source (${lib})`); }

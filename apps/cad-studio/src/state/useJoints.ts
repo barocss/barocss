@@ -25,7 +25,7 @@ export function useJoints(jointTree: JointTree | null, subscribed: boolean, save
     jointInputStore.set(next); poseStore.set(jointInputStore.get());
   }, [jointInputStore, poseStore]);
   const [jointPlaying, setJointPlaying] = useState<string | null>(null);
-  const [pathCheck, setPathCheck] = useState<{ text: string; contact: boolean } | null>(null);
+  const [pathCheck, setPathCheck] = useState<{ text: string; contact: boolean; uncertified?: boolean } | null>(null);
   // (RM9a: the waypoints recorded for Check path, a preview like the pose; nothing saved.)
   const [jointWaypoints, setJointWaypoints] = useState<Record<string, number>[]>([]);
   // (RM9b: the workspace map shown, a preview; nothing saved.)

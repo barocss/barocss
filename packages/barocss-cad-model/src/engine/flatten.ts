@@ -4,28 +4,39 @@ import { fillPatternDocumentProblem } from './fillFeaturePattern';
 // another assembly, it is then one instance with several bodies whose faces mate like any part's.
 import { placedDoc, prefixDoc, type BodyRef, type Dim, type MemberSection, type ModelNode, type StudioDoc } from './doc';
 import { nextSerial, renameFeatureIds, withIds } from './ids';
+import { cutsOf } from './assemblyCut';
 import { refusal } from './refusal';
 import { assertRouteBundleDocument } from './routeBundle';
 import { curvePatternDocumentProblem } from './curveFeaturePattern';
 
 /** The document with its instances folded in as features (nested sub-assemblies too). */
-export function flattenAssembly(doc: StudioDoc): StudioDoc {
+export function flattenAssembly(doc: StudioDoc): StudioDoc { return flattenPlan(doc).doc; }
+
+/**
+ * The folded document, and where each shown instance's ids start in it: that instance's feature `n<d>` is
+ * `n<d + serial>` in the folded document (occurrences.ts reads names back through this, so it cannot drift).
+ */
+export function flattenPlan(doc: StudioDoc): { doc: StudioDoc; placed: { id: string; serial: number }[] } {
   const pathProblem = fillPatternDocumentProblem(doc) ?? curvePatternDocumentProblem({ instances: [{ doc }] });
   if (pathProblem) throw refusal('VALUE', pathProblem);
   assertRouteBundleDocument(doc);
   if (doc.schema === 4 || Object.prototype.hasOwnProperty.call(doc, 'routeBundles') || doc.nodes.some(n => Object.prototype.hasOwnProperty.call(n, 'routeBundleMember'))) throw refusal('BAD_REFERENCE', 'Route bundle: flattening linked route documents is not supported.');
   if (doc.nodes.some(n => n.kind === 'sketch' && n.association !== undefined)) throw refusal('BAD_REFERENCE', 'Associative sketch: flattening recipes is not supported.');
-  const own: StudioDoc = { ...doc, instances: undefined, mates: undefined, render: undefined, direct: undefined };
+  if (doc.nodes.some(n => n.kind === 'band-surface')) throw refusal('BAD_REFERENCE', 'Band surface: flattening a document with bands is not supported.');
+  const own: StudioDoc = { ...doc, instances: undefined, mates: undefined, instancePatterns: undefined, render: undefined, direct: undefined };
   const shown = (doc.instances ?? []).filter(i => !i.hidden);
-  if (!shown.length) return own;
+  if (!shown.length) return { doc: own, placed: [] };
   let nodes = withIds(own).nodes;
+  const placedAt: { id: string; serial: number }[] = [];
   for (const inst of shown) {
     // (placedDoc folds the instance's own instances first. Its features' ids move past every id so far, the
     // document's handed-out ones too: with none deleted, by its node count, as its names always moved.)
-    const placed = withIds(placedDoc(inst)), serial = nextSerial({ nodes, nextId: own.nextId });
+    // (Roadmap 10 ⑤: a sub-assembly's own cuts are taken from its parts as they are folded in.)
+    const placed = withIds(placedDoc(inst, cutsOf(inst, doc).length ? doc : undefined)), serial = nextSerial({ nodes, nextId: own.nextId });
     nodes = [...nodes, ...placed.nodes.map(n => shiftNode(inlineParameters(n, placed.parameters), nodes.length, serial))];
+    placedAt.push({ id: inst.id, serial });
   }
-  return prefixDoc({ ...own, nodes, nextId: nextSerial({ nodes, nextId: own.nextId }) }, nodes.length);
+  return { doc: prefixDoc({ ...own, nodes, nextId: nextSerial({ nodes, nextId: own.nextId }) }, nodes.length), placed: placedAt };
 }
 
 /**
@@ -45,6 +56,7 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return { ...node, sketch: node.sketch + k };
     case 'frame-member': return node.section.kind === 'sketch' ? { ...node, section: { kind: 'sketch', sketch: node.section.sketch + k } } : node;
     case 'skeleton': return node;
+    case 'band-surface': throw refusal('BAD_REFERENCE', 'Band surface: a part with a band cannot be placed in an assembly yet.');
     // (R12c.6b, D161: the wheels a belt runs on.)
     case 'belt': return { ...node, wheels: [node.wheels[0] + k, node.wheels[1] + k] };
     case 'connector-body': return { ...node, opening: node.opening + k };

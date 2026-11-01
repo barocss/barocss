@@ -3,7 +3,9 @@
 import type { SketchShape, SketchState } from './types';
 import { sampleSegment, type P2 } from './profile';
 import { angleKey, circlePairKeys, distanceKey, edgeCircleKey, isSettled, samePick, type Polygon, type SketchPick } from './rules';
-import { segmentDistance as toSegment } from '../engine/geom2';
+import { segmentDistance as toSegment, insideRing, signedArea } from '../engine/geom2';
+import { shapeNode, shapeOutline } from './loops';
+import { tagsOf } from './entityIds';
 
 /** Plane coordinates → screen pixels. */
 export type Project = (u: number, v: number) => readonly number[];
@@ -36,12 +38,34 @@ export function pickSketch(s: Polygon, project: Project, x: number, y: number, d
   return best;
 }
 
+/**
+ * The closed shape (an index of `shapes`) a click at (x, y) means: the one whose outline passes within `px` pixels, nearest first, else
+ * the smallest one the click lies inside; null when it is on none (open shapes, Bézier curves and shapes still being drawn never are).
+ */
+export function pickShapeAt(shapes: readonly SketchShape[], project: Project, x: number, y: number, px = 7): number | null {
+  const at: P2 = [x, y];
+  let edge: number | null = null, edgeD = px, inner: number | null = null, innerA = Infinity;
+  for (let i = 0; i < shapes.length; i++) {
+    if (!shapeNode(shapes[i])) continue;
+    const ring = shapeOutline(shapes[i]).map(p => project(p[0], p[1]) as P2);
+    if (ring.length < 3) continue;
+    let d = Infinity;
+    for (let k = 0; k < ring.length; k++) d = Math.min(d, toSegment(at, ring[k], ring[(k + 1) % ring.length]));
+    if (d <= edgeD) { edgeD = d; edge = i; }
+    const a = Math.abs(signedArea(ring));
+    if (insideRing(at, ring) && a < innerA) { innerA = a; inner = i; }
+  }
+  return edge ?? inner;
+}
+
 /** A finished circle of the sketch (`done` index) moved onto the outline, so its centre can be dimensioned from it. */
 export function attachCircle(s: SketchState, doneIndex: number): { state: SketchState; circle: number } | null {
   const shape = s.shape, c = s.done?.[doneIndex];
   if (!isSettled(shape) || c?.kind !== 'circle') return null;
   const circles = [...(shape.circles ?? []), { c: [c.c[0], c.c[1]] as [number, number], r: c.r }];
-  return { state: { ...s, shape: { ...shape, circles }, done: s.done!.filter((_, k) => k !== doneIndex) }, circle: circles.length - 1 };
+  // (Its id goes along, so Finish gives the circle the same side id; ids that were already out of step are left to be renewed.)
+  const id = c.ids?.[0], ids = (shape.circleIds ?? []).length === (shape.circles ?? []).length && id ? { circleIds: [...(shape.circleIds ?? []), id] } : {};
+  return { state: { ...s, shape: { ...shape, circles, ...ids }, done: s.done!.filter((_, k) => k !== doneIndex) }, circle: circles.length - 1 };
 }
 
 /** The selection after a click: replace, or toggle with Shift; empty space clears it. */
@@ -89,7 +113,10 @@ export function sketchClick(s: SketchState, hit: SketchPick | null, additive: bo
 export function rectangleOutline(r: Extract<NonNullable<SketchState['shape']>, { kind: 'rectangle' }>): Polygon | null {
   const x0 = Math.min(r.a[0], r.b[0]), x1 = Math.max(r.a[0], r.b[0]), y0 = Math.min(r.a[1], r.b[1]), y1 = Math.max(r.a[1], r.b[1]);
   if (x1 - x0 < 1 || y1 - y0 < 1) return null;
-  return { kind: 'polygon', points: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], closed: true, bulges: [0, 0, 0, 0], hv: { h: [0, 2], v: [1, 3] }, fromRectangle: true };
+  const points: [number, number][] = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+  // (Side ids follow the sides, not their order: the outline runs from the lower-left corner, the rectangle from `a`.)
+  const ids = tagsOf(r, points.map(start => ({ kind: 'line' as const, start })));
+  return { kind: 'polygon', points, closed: true, bulges: [0, 0, 0, 0], hv: { h: [0, 2], v: [1, 3] }, fromRectangle: true, ...(ids ? { ids } : {}), ...(r.construction ? { construction: true as const } : {}) };
 }
 
 /**
@@ -99,13 +126,17 @@ export function rectangleOutline(r: Extract<NonNullable<SketchState['shape']>, {
 export function startPicking(s: SketchState, tool: 'select' | 'dimension'): SketchState {
   let shape = s.shape, done = s.done ?? [];
   if (shape?.kind === 'polygon' && shape.pending) shape = { ...shape, pending: false };
+  // A Bézier curve drawn last goes aside like a circle; the profile is then picked as it would be without it.
+  if (shape?.kind === 'bezier') { done = [...done, shape]; shape = null; }
   // A circle or slot drawn last goes beside the outline; the last finished outline or rectangle is edited.
-  if (shape && (shape.kind === 'circle' || shape.kind === 'slot')) {
+  else if (shape && (shape.kind === 'circle' || shape.kind === 'slot')) {
     const k = done.map(d => d.kind === 'rectangle' || isSettled(d)).lastIndexOf(true);
     if (k >= 0) { done = [...done.slice(0, k), ...done.slice(k + 1), shape]; shape = s.done![k]; }
   }
-  const last = done[done.length - 1];
-  if (!shape && (last?.kind === 'rectangle' || isSettled(last))) { shape = last; done = done.slice(0, -1); }
+  // (Béziers at the end of `done` are no profile and do not hide the outline before them.)
+  let end = done.length; while (end > 0 && done[end - 1].kind === 'bezier') end--;
+  const last = done[end - 1];
+  if (!shape && (last?.kind === 'rectangle' || isSettled(last))) { shape = last; done = [...done.slice(0, end - 1), ...done.slice(end)]; }
   if (shape?.kind === 'rectangle') shape = rectangleOutline(shape) ?? shape;
   return { ...s, tool, picked: [], editDim: null, shape, done };
 }

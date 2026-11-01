@@ -14,6 +14,11 @@ import { eulerOf } from '../engine/placement';
 import { addMate, addPart, checkFramesOn, placePart, solveDoc, withFrames } from '../assembly/edit';
 import { bodiesOf, meshesOf, type MeshData } from './core';
 import { explodeOffsets } from '../assembly/explode';
+import { instanceJointsOf, setInstanceJoints } from '../assembly/flexible';
+import { instanceLooksListing, setInstanceLooks, type InstanceLookPatch } from '../assembly/looks';
+import { addAssemblyStep, deleteAssemblyStep, editAssemblyStep, moveAssemblyStep, type AddAssemblyStepOptions, type EditAssemblyStepOptions } from '../assembly/steps';
+import { addAssemblyCut, deleteAssemblyCut, editAssemblyCut, type AddAssemblyCutOptions, type EditAssemblyCutOptions } from '../assembly/cuts';
+import { addInstancePattern, drivenRefusal, seedMateRefusal, deleteInstancePattern, editInstancePattern, skipOccurrence, type AddPatternOptions, type EditPatternOptions } from '../assembly/patterns';
 
 // (Document fields are mutable tuples; what the facade hands back is §10.2's readonly Vec3.)
 type XYZ = [number, number, number];
@@ -32,6 +37,18 @@ export function placePartDoc(doc: StudioDoc, id: string, o: { position?: XYZ; ro
   return placePart(doc, { part: id, ...o }).doc;
 }
 
+/** set_part_joints (setInstanceJoints): a sub-assembly occurrence's own joint values (degrees, mm; null removes one), checked and solved again. */
+export function setPartJointsDoc(doc: StudioDoc, id: string, joints: Record<string, number | null>, replace: boolean): StudioDoc {
+  return setInstanceJoints(doc, { part: id, joints, ...(replace ? { replace: true } : {}) }).doc;
+}
+export { instanceJointsOf as partJointsOf };
+
+/** set_part_look (setInstanceLooks): this occurrence's own looks by body key, each checked; `null` for a body, or for a field, goes back to the part's own. */
+export function setPartLookDoc(doc: StudioDoc, id: string, body: string, patch: InstanceLookPatch | null): StudioDoc {
+  return setInstanceLooks(doc, id, { [body]: patch }).doc;
+}
+export { instanceLooksListing as partLooksOf };
+
 /** add_mate (addMate): a mate between faces of two parts (b moves; a fixed b and a free a swap), checked, solved, or refused. */
 export function addMateDoc(doc: StudioDoc, kind: MateKind, a: { part: string; face: string }, b: { part: string; face: string }, o: { distance?: number; angle?: number; flip?: boolean }): { doc: StudioDoc; id: string } {
   const r = addMate(doc, { kind, a, b, ...o });
@@ -48,6 +65,8 @@ export function lockDoc(doc: StudioDoc, part: string, to: string): { doc: Studio
   const instances = doc.instances ?? [], mates = doc.mates ?? [], b = instances.find(i => i.id === part), a = to === BASE ? null : instances.find(i => i.id === to);
   if (!b) throw new BarocssError('NO_PART', `No part "${String(part)}" to lock; parts: ${instances.map(i => i.id).join(', ') || 'none'}.`, 'evaluate');
   if (to !== BASE && !a) throw new BarocssError('NO_PART', `No part "${String(to)}"; parts: ${[BASE, ...instances.map(i => i.id)].join(', ')}.`, 'evaluate');
+  const driven = drivenRefusal(doc, part, 'it never moves for a lock; lock another part to it.') ?? seedMateRefusal(doc, part, to);
+  if (driven) throw driven;
   const used = new Set(mates.map(m => m.id));
   let n = mates.length + 1; while (used.has(`m${n}`)) n++;
   const mate: Mate = { id: `m${n}`, kind: 'lock', a: { part: to, face: '' }, b: { part, face: '' }, rel: lockRel(a ?? null, b) };
@@ -55,6 +74,24 @@ export function lockDoc(doc: StudioDoc, part: string, to: string): { doc: Studio
   if (problem) throw fromTool(problem.reason);
   return { doc: { ...doc, instances: r.instances, mates: [...mates, mate] }, id: mate.id };
 }
+
+/** pattern_part (addInstancePattern): a part's seed repeated along a line or about an axis; the new pattern's id. */
+export const patternDoc = (doc: StudioDoc, o: AddPatternOptions): { doc: StudioDoc; id: string } => { const r = addInstancePattern(doc, o); return { doc: r.doc, id: r.id }; };
+/** edit_pattern (editInstancePattern), delete_pattern (deleteInstancePattern) and skip_occurrence: a pattern changed, removed, or one occurrence left out. */
+export const editPatternDoc = (doc: StudioDoc, o: EditPatternOptions): StudioDoc => editInstancePattern(doc, o).doc;
+export const deletePatternDoc = (doc: StudioDoc, id: string): StudioDoc => deleteInstancePattern(doc, id).doc;
+export const skipOccurrenceDoc = (doc: StudioDoc, occurrence: string): StudioDoc => skipOccurrence(doc, occurrence).doc;
+
+/** cut_parts (addAssemblyCut), edit and delete (roadmap 10 ⑤): a cut across placed parts made, changed or removed; the new cut's id. */
+export const cutDoc = (doc: StudioDoc, o: AddAssemblyCutOptions): { doc: StudioDoc; id: string } => { const r = addAssemblyCut(doc, o); return { doc: r.doc, id: r.id }; };
+export const editCutDoc = (doc: StudioDoc, o: EditAssemblyCutOptions): StudioDoc => editAssemblyCut(doc, o).doc;
+export const deleteCutDoc = (doc: StudioDoc, id: string): StudioDoc => deleteAssemblyCut(doc, id).doc;
+
+/** Instruction steps (roadmap 10 ⑥) added, changed, removed or reordered; the new step's id. Presentation only. */
+export const stepDoc = (doc: StudioDoc, o: AddAssemblyStepOptions): { doc: StudioDoc; id: string } => { const r = addAssemblyStep(doc, o); return { doc: r.doc, id: r.id }; };
+export const editStepDoc = (doc: StudioDoc, o: EditAssemblyStepOptions): StudioDoc => editAssemblyStep(doc, o).doc;
+export const deleteStepDoc = (doc: StudioDoc, id: string): StudioDoc => deleteAssemblyStep(doc, id).doc;
+export const moveStepDoc = (doc: StudioDoc, id: string, to: number): StudioDoc => moveAssemblyStep(doc, id, to).doc;
 
 /** set_inputs and set_variants (O11): the variability written, every variant regenerated to check it. */
 export function variabilityDoc(doc: StudioDoc, tool: 'set_inputs' | 'set_variants', args: Record<string, unknown>): StudioDoc {

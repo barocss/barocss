@@ -3,6 +3,7 @@
 // (bulge 0) or a circular arc. Bulge is the DXF convention: tan(sweep / 4), positive = counter-clockwise.
 import { solveXYNumericalSketchPoints } from '@barocss/cad';
 import { ruleTerms, type SketchRule } from './terms';
+import { rectilinearConflict } from './conflict';
 
 export type P2 = [number, number];
 export type LoopSegment = { kind: 'line'; start: P2 } | { kind: 'arc'; start: P2; center: P2; direction: 'ccw' | 'cw' };
@@ -101,7 +102,8 @@ export interface OutlineConstraints {
 }
 /** `rows`: scalar equations; more rows than `rank` means some constraints are redundant (over-defined). */
 export interface SolveReport { ok: true; dof: number; rank: number; rows: number; points: P2[]; bulges: number[]; circles: P2[] }
-export type SolveResult = SolveReport | { ok: false; reason: string };
+/** `conflict`: the constraints are provably contradictory (rectilinear class, see conflict.ts), not merely unsolved. */
+export type SolveResult = SolveReport | { ok: false; reason: string; conflict?: true };
 
 /** Horizontal / vertical straight edges as drawn (exact coordinate equality on the 1 mm snap). */
 export function inferredHV(points: P2[], bulges?: number[]): { h: number[]; v: number[] } {
@@ -208,6 +210,8 @@ export function solveOutline(points: P2[], c: OutlineConstraints = {}, bulgesIn?
   }
   if (!result.ok) {
     const code = result.diagnostics[0]?.code;
+    if (code === 'NONCONVERGENCE' && rectilinearConflict(points, { ...c, hv }, bulges).proven)
+      return { ok: false, reason: 'Conflict: no shape meets all of these constraints (proven for horizontal and vertical edges, their lengths, axis distances and fixed points)', conflict: true };
     return { ok: false, reason: code === 'LIMIT' || code === 'BUDGET' ? 'The sketch is too large for the solver (at most 128 constraints)'
       : code === 'DEGENERATE_GEOMETRY' ? 'These constraints would collapse an edge to a point' : result.diagnostics[0]?.message ?? 'The solver refused this sketch' };
   }

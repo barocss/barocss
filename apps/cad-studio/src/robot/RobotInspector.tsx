@@ -93,7 +93,8 @@ export function RobotInspector({ controller, motion: joints, loopMotionContext, 
           const r = sweepTimed(jointTree, links, { waypoints: [{}, ...jointWaypoints, poseStore.get()], profile: 'trapezoid', limits });
           const name = (l: string) => jointTree.links.find(x => x.id === l)?.name ?? l, total = r.segments.reduce((t, g) => t + g.duration, 0), n = r.segments.length;
           const note = assumed.length ? `; no velocity limit on ${assumed.join(', ')}: 1 rad/s (100 mm/s) taken` : '';
-          setPathCheck(r.toi !== undefined ? { contact: true, text: `Contact ${name(r.links![0])} – ${name(r.links![1])} at ${(total > 0 ? r.toi / total * 100 : 0).toFixed(1)} % of the move, t ${r.toi.toFixed(3)} s${n > 1 ? ` (segment ${r.segment! + 1} of ${n})` : ''} (${r.samples} steps${note})` }
+          setPathCheck(r.exhausted ? { contact: false, uncertified: true, text: `Not certified: the sweep ran out of its sample budget at t ${r.exhausted.t.toFixed(3)} s${n > 1 ? ` (segment ${r.exhausted.segment + 1} of ${n})` : ''}, least clearance ${r.minClearance ? `${r.minClearance.mm.toFixed(2)} mm` : 'none met'} (${r.samples} steps${note}); the path is neither clear nor in contact` }
+            : r.toi !== undefined ? { contact: true, text: `Contact ${name(r.links![0])} – ${name(r.links![1])} at ${(total > 0 ? r.toi / total * 100 : 0).toFixed(1)} % of the move, t ${r.toi.toFixed(3)} s${n > 1 ? ` (segment ${r.segment! + 1} of ${n})` : ''} (${r.samples} steps${note})` }
             : { contact: false, text: `Clear: the whole move certified, ${total.toFixed(3)} s${n > 1 ? ` over ${n} segments` : ''} (${r.samples} steps${note})${r.minClearance ? `; least clearance ${r.minClearance.mm.toFixed(2)} mm at t ${r.minClearance.t.toFixed(3)} s, ${name(r.minClearance.links[0])} – ${name(r.minClearance.links[1])}` : ''}` });
         }}
         onExportMjcf={exportMjcfFile}

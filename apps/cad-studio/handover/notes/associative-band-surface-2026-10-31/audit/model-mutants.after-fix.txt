@@ -1,0 +1,23 @@
+MM1 band substitution allowed: killed (fail 1) no silent retarget: a name a fillet would be re-ma
+MM2 band moved held as gone: killed (fail 1) no silent retarget: a name a fillet would be re-ma
+MM3 band groups share A parent: killed (fail 1) an intact two-body band verifies clean: side B is 
+MM4 unsigned band ignored: killed (fail 3) lost edge: a sketch that drops side e3 refuses wit | an intact two-body band verifies clean: side B is  | an edit that releases a held band: re-picking its 
+MM5 band refs not edges: killed (fail 6) lost edge: a sketch that drops side e3 refuses wit | an intact two-body band verifies clean: side B is  | an edit that releases a held band: re-picking its  | no silent retarget: a name a fillet would be re-ma | edit command: Flip, Re-pick empties the side and r | kernel feature: both targets are read, the stored 
+MM6 rematch band branch off: killed (fail 1) a chat edit that loses a band name refuses; one th
+MM7 rematch moved allowed: killed (fail 1) a chat edit that loses a band name refuses; one th
+MM8 parentsOf one parent: killed (fail 2) leafBodies keeps both bodies the band joins; the b | undo snapshot: the document before the band is the
+MM9 thickness admitted (checkNode): killed (fail 1) agent: checkNode accepts a valid band and refuses 
+MM10 same name both sides admitted: killed (fail 1) agent: checkNode accepts a valid band and refuses 
+MM11 file thickness admitted: killed (fail 1) save and open: the node survives the file and the 
+MM12 gone parent not propagated: killed (fail 1) suppressing the fillet that made the band’s edges 
+MM13 expect dropped: killed (fail 1) kernel feature: both targets are read, the stored 
+MM14 flip dropped: killed (fail 1) flip reaches the kernel feature and changes the ba
+MM15 named excludes band: killed (fail 1) names: a feature a band’s edge names belong to is 
+MM16 renumber skips band: killed (fail 1) undo snapshot: the document before the band is the
+MM17 flatten admits band: killed (fail 1) flatten refuses a document with a band
+MM18 other-side duplicate admitted: killed (fail 1) command: A from a selection or a face, B by clicks
+MM19 late body admitted: killed (fail 1) edit command: Flip, Re-pick empties the side and r
+MM20 second click does not remove: killed (fail 1) command: A from a selection or a face, B by clicks
+MM21 edit keeps held: killed (fail 1) an edit that releases a held band: re-picking its 
+MM22 edit drops sigs: killed (fail 1) an edit that releases a held band: re-picking its 
+MM23 no band note: killed (fail 1) regeneration: the band follows a box height and a 

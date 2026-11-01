@@ -1,0 +1,7 @@
+S1 probe (temporary test apps/cad-studio/test/zz-s1-probe.test.ts using the sketch-edit-identity.test.ts actions() harness,
+actual useSketchActions hook; base 94d9b1f70; file removed after the run):
+box 60x40x10 + rectangle sketch on plane z=10 with on {node:0, side:'solid'}, held:'probe', bought:true; editSketch → finishSketch, no change.
+# editing base null
+# notices [] accepted 1
+# BEFORE keys bought,held,id,kind,on,outline,plane,points,profile,sideTags on {"node":0,"side":"solid"}
+# AFTER  keys id,kind,outline,plane,points,profile,sideTags on undefined

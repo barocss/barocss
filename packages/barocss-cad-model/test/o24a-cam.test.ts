@@ -144,3 +144,13 @@ test('O24 (a) PG-5: couplings that lead round to themselves are refused (COUPLIN
   const tt = await treeOfDoc(twice, rt.bodies, evaluate);
   assert.deepEqual(tt.problems.map(p => p.code), ['COUPLED_TWICE']); assert.match(tt.problems[0].message, /^back: \S+ already follows /);
 });
+
+test('#2229: a cam sweep (a crossing seat) that runs out of its sample budget is exhausted, never clear', async () => {
+  const doc = await camDoc(), r = await evaluate(doc); assert.ok(r.ok);
+  const view = await robotViewOf(doc, r.bodies, evaluate), tree = treeOf(view), camJ = tree.joints.find(j => j.child === 'cam')!;
+  for (const m of [1, 2, 3]) {
+    const sw = sweepOf(view, {}, { [camJ.key]: Math.PI }, tree, { maxSamples: m });
+    assert.equal(sw.reply.clear, false, `maxSamples ${m}`); assert.ok((sw.reply as { exhausted?: unknown }).exhausted, `maxSamples ${m}`); assert.match(sw.summary, /^not certified/);
+  }
+  assert.equal(sweepOf(view, {}, { [camJ.key]: Math.PI }, tree).reply.clear, true);
+});

@@ -1,0 +1,80 @@
+{
+  "label": "04-fresh-open",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          0,
+          0
+        ],
+        "max": [
+          40,
+          30
+        ],
+        "sideTags": {
+          "outer": [
+            "e1",
+            "e2",
+            "e3",
+            "e4"
+          ]
+        },
+        "construction": [
+          {
+            "kind": "bezier",
+            "poles": [
+              [
+                0,
+                40
+              ],
+              [
+                10,
+                50
+              ],
+              [
+                20,
+                40
+              ]
+            ]
+          }
+        ],
+        "id": "n0"
+      }
+    ],
+    "outputs": {},
+    "nextId": 1
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 0,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": null,
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": null,
+  "bezierInputs": [],
+  "history": [
+    "Sketch · rectangle"
+  ]
+}

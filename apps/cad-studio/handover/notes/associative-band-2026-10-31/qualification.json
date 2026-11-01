@@ -1,0 +1,96 @@
+{
+  "decision": "D369",
+  "roadmap": "B1 associative 2D band (owner request 2026-10-30; first item after bounded 09)",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "Band tool (M) picks two or more closed shapes in one sketch; Make band turns them into construction sources and stores {version, id, sources (side ids), offset?, width?} with no copied geometry; every evaluation path (part, previews/rings/middle, loft sections, DXF) regenerates the exact outer envelope (common tangent lines + wrap arcs; offset grows it, width makes a strip); refusals name the band; v1 rule: a band sketch holds only the band and its construction sources; construction shapes get side ids at Finish; bindings on sources/offset/width survive reopen; Extrude editor lists bindable band fields.",
+  "relatedIssues": {},
+  "baseCommit": "2e7e97d61",
+  "sourceCommit": "4a135b1cb",
+  "sourcePaths": 28,
+  "models": {
+    "design": "claude-opus-5-5 Plan sub-agent (frozen brief in design/brief.md, root-approved)",
+    "rootJudgmentAndVerification": "claude-opus-5-5 (main session)",
+    "independentAudit": "claude-opus-5-5 sub-agent (one round)",
+    "implementation": "Sonnet sub-agents: model (A) and Studio (B) in parallel against a frozen API; audit fixes",
+    "driver": "Sonnet sub-agent",
+    "rootEdits": "reopen uses the resolved band; toggleBandPick stores the id-assigned shapes (run01 product defect) + test",
+    "sol": "NOT_USED"
+  },
+  "geometry": {
+    "algorithm": "upper envelope of support functions h_i(θ)=c·u(θ)+ρ over each generator's normal cone, closed-form crossing angles; exact lines and arcs",
+    "checks": "two circles vs openBeltLength (perimeter 1e-9 rel, area closed form, lines ⟂ radii ≤1e-12); 3 circles / circle+rectangle / circle+slot / polygons vs Cauchy integrals and a monotone-chain hull; audit oracle 5,634 random accepted bands (2–8 mixed sources, offsets, widths, ±8000 mm, ×1000 sizes) support-equal over 6,000 directions; 186 extruded volumes = area·h to 1e-6"
+  },
+  "model": {
+    "newTests": "sketch-band-geometry + sketch-band-identity",
+    "full": "2233/2233 (TEST_CONCURRENCY=4)",
+    "targeted": "323/323",
+    "types": "PASS",
+    "lint": "PASS",
+    "mutants": "audit 24/33 killed; the 6 real survivors now covered (reopen with bound offset/width, previews, DXF, ambiguous holder, tiny-arc collapse, tie check removed); 3 equivalent"
+  },
+  "studioUnit": {
+    "full": "556/556",
+    "types": "PASS"
+  },
+  "docs": {
+    "checkDocs": "PASS",
+    "refusals": "PASS (VALUE row lists the sketch directory)",
+    "apiInventory": "PASS (SketchBand, band arm of SketchNode)"
+  },
+  "audit": {
+    "verdict": "CHANGES_REQUIRED, fixed in one round without re-audit (owner time concern)",
+    "findings": [
+      "F1 medium: repeated-piece tags _0/_1 swapped under continuous rotation (start-dependent) -> named by the preceding source (b1_e1-e2), duplicates refused",
+      "F2 medium-low: false 'share part of their outline' refusals from a midpoint tie check on tiny intervals (1e-10..1e-7 noise) -> tie check removed (ties go to the lower source index; < 1e-12 rad intervals merged)",
+      "F3 low: picked shapes not highlighted (ids not stored) -> fixed by root after run01",
+      "F4 low: guided loft checked holes before resolving a band strip -> checked after",
+      "F5 low: malformed band files threw TypeErrors -> refusals"
+    ],
+    "accepted": "construction shapes in existing sketches gain ids once on their next Finish (no downstream effect: construction is stripped before the kernel)"
+  },
+  "browser": {
+    "run01": "FAIL_PRODUCT: picked shapes were not highlighted (toggleBandPick computed ids without storing them); panel counted 2 picks",
+    "run02": "PASS before the audit fixes",
+    "run03": "PASS on the final source",
+    "status": "PASS_RUN_03",
+    "chromeProcesses": 1,
+    "serialContexts": 2,
+    "steps": [
+      "construction circles A (0,0) r20 and B (60,0) r10",
+      "Band tool: pick both (highlighted), width 3, Make band; outline drawn",
+      "Finish: profile 'band', sources e1/e2, width 3",
+      "Extrude 10: volume = 10 x strip area (independent two-circle closed form, cross-checked by a 2x50000-point hull)",
+      "Extrude editor: 8 band fields; source 1 radius 25 -> volume follows",
+      "parameter R=25 bound to source 1 radius; R=28 -> follows",
+      "R=55: 'Parameters not changed … Sketch 1 band b1: sources e1 and e2 overlap'; document unchanged, body kept",
+      "reopen: band drawn, fields; Finish unchanged -> doc equal, binding kept",
+      "Undo/Redo, Save; fresh Open: doc and volume equal; reopen + Finish unchanged"
+    ],
+    "frozenFiles": 901,
+    "frozenEqualsCommit": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "rootImages": [
+      "04-band-made: strip drawn tangent to both dashed construction circles, BAND · 2 sources panel",
+      "11-param-R-28: extruded strip, bounds 104 x 62 x 10 (= analytic)"
+    ]
+  },
+  "limits": [
+    "v1: a band sketch holds only the band and its construction sources; sources must be convex; crossed/inner bands not supported",
+    "No agent/API band action (chat refuses profile 'band')",
+    "Make band / Remove band are undone only at document level, not with in-sketch Ctrl+Z",
+    "A topology change (a source starts/stops winning twice) renames or removes repeated-piece tags; references to a removed tag are refused, not rebound",
+    "Band offset/width bound to a parameter are edited in the feature editor, not the sketch panel",
+    "Superseded runs keep only their receipt"
+  ],
+  "fullKernel": "NOT_RUN",
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

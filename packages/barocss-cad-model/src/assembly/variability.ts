@@ -7,8 +7,8 @@ import { emptyDoc, placedBase, type ModelNode, type PartInstance, type StudioDoc
 import { evaluatePart } from '../engine/evaluate';
 import { featureId } from '../engine/ids';
 import { insertLibraryPart, libraries } from '../library/libraries';
-import { tablesFor } from './faces';
-import { solveAssembly, type Mate, type Problem } from './mates';
+import { solveDoc } from './edit';
+import type { Mate, Problem } from './mates';
 import type { Binding, Input, InputValue } from '../engine/schema/variability';
 import { problem, refusal, refused, type CadModelCode, type Problem as Refusal } from '../engine/refusal';
 
@@ -136,9 +136,8 @@ export function variantOf(master: StudioDoc, values: Readonly<Record<string, Inp
       }
     }
   }
-  if (!doc.mates?.length || !doc.instances?.length) return { doc, problems: [] };
-  const solved = solveAssembly(doc.instances, doc.mates, tablesFor(doc), doc.instances);
-  return { doc: { ...doc, instances: solved.instances }, problems: solved.problems };
+  // (The patterns' occurrences follow the seed's bindings and its solved place: solveDoc regenerates them.)
+  return solveDoc(doc, doc.instances);
 }
 
 /** A named variant of `master` (variantOf with its values). */

@@ -22,15 +22,16 @@ import { threadsOf } from '@barocss/cad-model/app/threads';
 import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
 import { revisionOf } from '@barocss/cad-model/util/revision';
 import { layoutSheet } from '@barocss/cad-model/drawing/views';
-import { sameSection, sectionsOf, type DrawingSettings, type DrawingTable, type DrawingViews } from '@barocss/cad-model/drawing/types';
+import { sameSection, sectionsOf, type DrawingSection, type DrawingSettings, type DrawingTable, type DrawingViews } from '@barocss/cad-model/drawing/types';
 import type { SectionCut } from '@barocss/cad-model/drawing/section';
 import type { EngineClient } from '../engine/client';
 import { Lanes } from '../engine/lanes';
 
 export const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
-export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, annotations: wantAnnotations = false }: {
+export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, annotations: wantAnnotations = false, allSections }: {
   engine: EngineClient; doc: StudioDoc; bodies?: readonly BodyResult[]; settings: DrawingSettings; fileName: string; annotations?: boolean;
+  /** 11 ④: the whole drawing's sections, cut whichever sheet is shown (a detail on this sheet may enlarge a section on another). Absent: this settings' own. */ allSections?: readonly DrawingSection[];
 }) {
   const scopeRead = (() => {
     try { return { scope: drawingScopeOf(settings), error: null }; }
@@ -64,7 +65,7 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   /** The sections as last cut (O148 X1; each with why it could not be cut). */
   const [rawCutsMade, setCutsMade] = useState<SectionCut[] | null>(null);
   const cutsMade = projected?.model === model ? rawCutsMade : null;
-  const sectionList = sectionsOf(settings), sectionKey = JSON.stringify(sectionList), madeOnly = drawsMadeOnly(settings);
+  const sectionList = sectionsOf(settings), sectionKey = JSON.stringify(sectionList), cutList = allSections ?? sectionList, cutKey = JSON.stringify(cutList), madeOnly = drawsMadeOnly(settings);
   const [error, setError] = useState<string | null>(null);
   /** The part has no body yet: the panel says so, and nothing is raised as an error. */
   const [empty, setEmpty] = useState(false);
@@ -76,7 +77,7 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
     setBusy(true);
     const side = settings.orientation ?? 'y-';
     // (O174: a part's drawing documents what the part makes — its bought elements left out of the views and sections.)
-    void lanes.run('drawing', { revision: 0, source: side }, () => engine.drawing(model, { tangentEdges: !!settings.tangent, ...(sectionList.length ? { sections: sectionList } : {}), ...(settings.orientation ? { orientation: settings.orientation } : {}), made: madeOnly })).then(reply => {
+    void lanes.run('drawing', { revision: 0, source: side }, () => engine.drawing(model, { tangentEdges: !!settings.tangent, ...(cutList.length ? { sections: [...cutList] } : {}), ...(settings.orientation ? { orientation: settings.orientation } : {}), made: madeOnly })).then(reply => {
       if (reply.stale) return;
       const r = reply.result;
       setBusy(false);
@@ -84,18 +85,18 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
       if (r.ok) { setProjected({ views: r.views, side, model }); setCutsMade(r.sections ?? null); setError(null); } else { setProjected(null); setCutsMade(null); setError(r.error); }
     });
     return () => lanes.cancel('drawing');
-  }, [active, engine, model, scoped.error, settings.tangent, sectionKey, settings.orientation, madeOnly]);
+  }, [active, engine, model, scoped.error, settings.tangent, cutKey, settings.orientation, madeOnly]);
 
   const title = settings.title ?? fileName;
   // (The sections the settings list, as cut for them: one whose letter, view or place changed is cut again first.)
-  const cuts = useMemo(() => sheetSections((projected?.model === model ? cutsMade ?? [] : []).filter(c => sectionList.some(x => sameSection(x, c)))), [cutsMade, sectionKey, projected, model]);
+  const cuts = useMemo(() => sheetSections((projected?.model === model ? cutsMade ?? [] : []).filter(c => cutList.some(x => sameSection(x, c)))), [cutsMade, cutKey, projected, model]);
   const sectionA = sectionList.find(x => x.id === 'A' && x.view === 'front'), cutA = cutsMade?.find(c => c.id === 'A' && c.view === 'front');
   const layout = useMemo(() => views && layoutSheet(views, settings, sectionExtents(settings, cuts)), [views, settings, cuts]);
   // Diameter dimensions on a hole read as its callout (count, size or thread, depth, counterbore or countersink).
   // (D155: a diameter on a face with a fit class shows the class and its limits; a class with no row, an issue.)
   // (O145: and the machine elements' callouts — a bearing's seat, a ring's groove.)
   const elements = useMemo(() => elementsOfBodies(doc.nodes, bodies ?? []), [doc.nodes, bodies]);
-  const callout = useMemo(() => withElements(doc, withFit(doc, (edge: string) => holeCallout(doc.nodes, edge, doc.parameters)), elements), [doc.nodes, doc.parameters, doc.fits, elements]);
+  const callout = useMemo(() => withElements(doc, withFit(doc, (edge, f) => holeCallout(doc.nodes, edge, doc.parameters, f)), elements), [doc.nodes, doc.parameters, doc.fits, elements]);
   // Physical hole ownership is independent of the formatted size/counterbore callout.
   const locationOwner = useMemo(() => (edge: string) => holeCalloutOwnerOf(doc, edge), [doc]);
   const fitMissOf = useMemo(() => fitMiss(doc), [doc.fits]);

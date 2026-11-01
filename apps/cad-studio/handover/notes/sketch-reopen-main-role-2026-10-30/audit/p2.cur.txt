@@ -1,0 +1,60 @@
+== B circle main + 2 regions, fillet on region1 vertical edge
+  fillet edges stored/1/2 ["n2.side[e7]|n2.side[e8]"] ["n2.side[e7]|n2.side[e8]"] ["n2.side[e7]|n2.side[e8]"]
+  vol 4783.252145031418 4783.252145031418 4783.252145031418  faces 1==2 true  edges 1==2 true  faces 0==1 true
+  faces only in 1 vs 2 [] []
+  faces stored [
+  'n2.bottom@0,0,0',
+  'n2.bottom@30,0,0',
+  'n2.bottom@59.99,-0.01,0',
+  'n2.top@0,0,10',
+  'n2.top@30,0,10',
+  'n2.top@59.99,-0.01,10'
+]
+  faces trip1  [
+  'n2.bottom@0,0,0',
+  'n2.bottom@30,0,0',
+  'n2.bottom@59.99,-0.01,0',
+  'n2.top@0,0,10',
+  'n2.top@30,0,10',
+  'n2.top@59.99,-0.01,10'
+]
+  faces trip2  [
+  'n2.bottom@0,0,0',
+  'n2.bottom@30,0,0',
+  'n2.bottom@59.99,-0.01,0',
+  'n2.top@0,0,10',
+  'n2.top@30,0,10',
+  'n2.top@59.99,-0.01,10'
+]
+  fillet faces 0 [ 'n3.face@69.63,4.63,5' ]
+  fillet faces 2 [ 'n3.face@69.63,4.63,5' ]
+== E2 pre-R10a circle main + 2 regions, fillet on region1.side1|region1.side2
+  fillet edges stored/1/2 ["n2.region1.side1|n2.region1.side2"] ["n2.side[e7]|n2.side[e8]"] ["n2.side[e7]|n2.side[e8]"]
+  vol 4783.252145031418 4783.252145031418 4783.252145031418  faces 1==2 true  edges 1==2 true  faces 0==1 false
+  faces only in 1 vs 2 [] []
+  faces stored [
+  'n2.bottom@0,0,0',
+  'n2.bottom@30,0,0',
+  'n2.bottom@59.99,-0.01,0',
+  'n2.top@0,0,10',
+  'n2.top@30,0,10',
+  'n2.top@59.99,-0.01,10'
+]
+  faces trip1  [
+  'n2.bottom@0,0,0',
+  'n2.bottom@30,0,0',
+  'n2.bottom@59.99,-0.01,0',
+  'n2.top@0,0,10',
+  'n2.top@30,0,10',
+  'n2.top@59.99,-0.01,10'
+]
+  faces trip2  [
+  'n2.bottom@0,0,0',
+  'n2.bottom@30,0,0',
+  'n2.bottom@59.99,-0.01,0',
+  'n2.top@0,0,10',
+  'n2.top@30,0,10',
+  'n2.top@59.99,-0.01,10'
+]
+  fillet faces 0 [ 'n3.face@69.63,4.63,5' ]
+  fillet faces 2 [ 'n3.face@69.63,4.63,5' ]

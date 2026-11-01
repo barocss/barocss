@@ -1,0 +1,41 @@
+{
+  "decision": "D394",
+  "roadmap": "11 ① GD&T completion (CG5 DR-6)",
+  "issues": { "#2243": "related research (drawing automation), stays open" },
+  "tier": "full (drawing document fields + public API): two audit rounds with mutation, actual run",
+  "status": "QUALIFIED",
+  "before": "measured 2026-10-31: 14 characteristics, M/L/F/T/P, Ø zone, position-only two-row composite, point datum targets; no Ⓢ/ST, SØ, Ⓤ, all around/over, stacked frames, profile composite; only shape-level validation",
+  "change": {
+    "fields": "frame sphere (SØ, position), statistical (ST hexagon), unequal (Ⓤ + amount, profile, 0 ≤ U ≤ value), around (all-around / all-over, profile), stacked (independent second frame, position/profile), composite for profile too",
+    "rules": "frameRules + FRAME_RULE: form takes no datums (M/L only straightness/flatness); orientation, concentricity, symmetry, runout need a datum; runout/profile/circularity/cylindricity no M/L on the tolerance; Ø zone only position, straightness, orientation, concentricity; Ⓟ only position/orientation; Ⓣ only orientation/profile and never with Ø or Ⓟ; composite lower row datums a subsequence and smaller value; only rules ISO 1101 and ASME Y14.5 share (standard-specific rules wait for 11③)",
+    "authoring": "editor, workspace commits, chat drawing.set and model ops refuse only a rule break the frame did not already have (step-by-step repair of old frames works); Open never refuses a semantic break, it reports FRAME_RULE",
+    "datums": "DATUM_UNDEFINED counts datum target letters and stacked rows",
+    "output": "sheet SVG/PDF/DXF and 3D annotation data agree; frame numbers as entered (fmtTol, up to 4 decimals, no 0.01 rounding)",
+    "roundTrip": "every drawing commit path goes through the Open reader (readDrawing), so an authored drawing equals its reopened form as JSON (the settings key-order mismatch predated 11①)",
+    "studio": "Geometric control editor: characteristic, tolerance, Ø, material, datums, sphere, all around and stacked visible; projected height, free state, tangent plane, datum modifiers, ST and unequal under a closed Details; a refused change keeps the old value and says why"
+  },
+  "audits": {
+    "root": "actual runs 02–03: Save → fresh Open not equal as JSON (frame keys, then drawing-settings keys) — fixed; editor too dense — rare options moved under Details; after round 2: second-segment Ø checkbox default — fixed",
+    "round1": "CHANGES_REQUIRED: high — workspace checked without current frames (edits next to an old broken frame refused); high — an old frame with two breaks could not be repaired; medium — ISO-allowed Ⓜ refused on symmetry/coaxiality; medium — 3D annotation data disagreed with the sheet; low — SØ lost on lower rows, Ⓣ with Ø/Ⓟ accepted; wrong display — frame values rounded to 0.01. 25/29 mutants caught",
+    "round2": "targeted ACCEPT; 22/28 mutants caught (survivors are wiring/width tests, recorded as follow-ups)"
+  },
+  "checks": {
+    "modelSuite": "2426/2426",
+    "studioSuite": "623/623 (after the last editor fix)",
+    "tsc": "PASS (model, Studio)",
+    "eslint": "clean on changed files",
+    "docsTables": "refusals, agent-tools, api-inventory, check-docs PASS"
+  },
+  "actualRun": {
+    "run06": "final source PASS on bracket.bcad: Drawing workspace, Add standalone frame in the right view, the frame's row → editor: profile of a surface, datums A (Enter), All around, Add stacked frame 0.05 (Enter), Details → Statistical (ST); flatness refused while the stacked frame exists and a material modifier on a profile refused by rule (hint bar words, nothing changed); Undo/Redo; Save + fresh Open equal; Export SVG → oracle: two frames, the stacked one directly below and as tall, a 7-point ST hexagon inside the first frame, an all-around ring left of it, A in both frames; DATUM_UNDEFINED reported, no FRAME_RULE; 0 page/console errors; root reviewed a zoomed render of the exported frame",
+    "failedRuns": ["run01: driver waited for a toast; the drawing workspace answers in its hint bar", "run02, run03: Save → fresh Open not JSON-equal (product, fixed)"]
+  },
+  "followUps": [
+    "tests for the surviving mutants: workspace/editor current-frames wiring, frame value and unequal cell widths, chat canonical form, saved-mark stacked",
+    "rule-break comparison by message: unnamed messages match across orientation characteristics",
+    "datum target areas/lines and the target symbol (11②); ISO/ASME setting and standard-specific rules (11③)",
+    "FRAME_LOST message prints the raw value and Ø for position only"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

@@ -1,0 +1,36 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "label": "01-native#0",
+      "kind": "rect",
+      "edge": 2,
+      "value": "50",
+      "opposite": 0,
+      "oppositeStored": "60",
+      "difference": "10",
+      "verdict": "conflict",
+      "analyticVolume": 18000.0
+    },
+    {
+      "label": "01-native#1",
+      "kind": "rect",
+      "edge": 2,
+      "value": "60",
+      "opposite": 0,
+      "oppositeStored": "60",
+      "difference": "0",
+      "verdict": "implied",
+      "analyticVolume": 18000.0
+    },
+    {
+      "label": "01-native#2",
+      "kind": "tri",
+      "edge": 2,
+      "value": "30",
+      "verdict": "infeasible",
+      "note": "triangle inequality: the contradiction is real, the product is expected not to claim a proof for it"
+    }
+  ],
+  "productImports": 0
+}

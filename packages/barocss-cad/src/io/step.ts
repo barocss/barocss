@@ -1,3 +1,4 @@
+import { assertBoundaryBindings } from '../brep/brep-boundary-binding-internal.js';
 // STEP (ISO 10303-21, AP214 automotive_design) exchange of a B-rep solid. Export writes each body as a
 // MANIFOLD_SOLID_BREP (BREP_WITH_VOIDS when it has cavities) of ADVANCED_FACEs: planes as PLANE, every
 // other surface exactly as its (rational) B-spline, straight edges as LINE and the rest as (rational)
@@ -68,6 +69,7 @@ const facetTriangles = (b: Brep) => b.faces.reduce((n, f) => n + (f.surface.kind
  */
 export function exportStep(input: Brep | readonly Brep[] | { readonly id: string; readonly brep: Brep }, options: StepExportOptions = {}): string {
   if (!Array.isArray(input) && 'brep' in input && 'id' in input) return exportStep(input.brep, { ...options, name: options.name ?? input.id });
+  if (Array.isArray(input)) { for (const b of input) assertBoundaryBindings(b); } else assertBoundaryBindings(input as Brep);
   // (F0: a facet body is written as its triangles, planar faces merged where flat — the planar mesh B-rep any
   // reader takes. AP242 tessellated faces come with R3.5.)
   // (A body mixing mesh and exact faces, F2, goes out as a mesh body, tessellated: its exact faces sampled at 64
@@ -213,7 +215,8 @@ function writeValidationProperties(breps: readonly Brep[], add_: (e: string) => 
   }
   if (!(volume > 0)) return;
   const property = (what: string, representation: string) => { const def = add_(`PROPERTY_DEFINITION('geometric validation property',${text(`${what} of ${name}`)},${shape})`); add_(`PROPERTY_DEFINITION_REPRESENTATION(${def},${representation})`); };
-  const volumeUnit = add_(`(DERIVED_UNIT((${add_(`DERIVED_UNIT_ELEMENT(${mm},3.)`)}))VOLUME_UNIT())`), areaUnit = add_(`(AREA_UNIT()DERIVED_UNIT((${add_(`DERIVED_UNIT_ELEMENT(${mm},2.)`)})))`);
+  // Plain derived units keep the mm powers readable by the declared AP214 profile and OCCT's unit select.
+  const volumeUnit = add_(`DERIVED_UNIT((${add_(`DERIVED_UNIT_ELEMENT(${mm},3.)`)}))`), areaUnit = add_(`DERIVED_UNIT((${add_(`DERIVED_UNIT_ELEMENT(${mm},2.)`)}))`);
   property('volume', add_(`REPRESENTATION('volume',(${add_(`MEASURE_REPRESENTATION_ITEM('volume measure',VOLUME_MEASURE(${real(volume)}),${volumeUnit})`)}),${context})`));
   property('surface area', add_(`REPRESENTATION('surface area',(${add_(`MEASURE_REPRESENTATION_ITEM('surface area measure',AREA_MEASURE(${real(area)}),${areaUnit})`)}),${context})`));
   const centre = moment.map(x => x / volume);

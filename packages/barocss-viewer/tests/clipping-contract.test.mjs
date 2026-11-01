@@ -36,7 +36,7 @@ function fixture(scale = 1) {
   const canvas = new Canvas(), core = Object.create(api.CoreViewer.prototype);
   Object.assign(core, { disposed: false, geometries: new Set(), meshes: [], costRecords: new Map(), freeSlots: [], nextSlot: 0, nextId: 1,
     pickSceneRevision: 0, objectCapacity: 1024, scene: null, canvas, camera: new api.Camera(), grid: { visible: false },
-    lights: [], environment: {}, options: {}, scheduled: 0, pathTraces: new Set(), pendingPathTraces: 0, textures: new Set(), shadowFrameBuffers: [], waiters: [] });
+    lights: [], environment: {}, options: {}, scheduled: 0, pathTraces: new Set(), pendingPathTraces: 0, renderTargets: new Set(), textures: new Set(), shadowFrameBuffers: [], waiters: [] });
   core.requestRender = () => {};
   const presenter = new api.Presenter(core);
   const viewer = new api.Viewer(canvas, { mmToSceneUnit: scale, background: [0, 0, 0] }, presenter);
