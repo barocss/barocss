@@ -1,0 +1,549 @@
+{
+  "work_id": "D427",
+  "artifact_type": "small-camera-scale-qualification",
+  "status": "QUALIFIED_BOUNDED_CAMERA_FRAMING_VISIBILITY_AND_PICKING_IMAGE_QUALITY_HOLD",
+  "owner_role": "executor",
+  "source_request": "Continue autonomously by roadmap; announce task and overall estimate",
+  "last_updated": "2026-11-02",
+  "rows": [
+    6,
+    13,
+    16
+  ],
+  "overallPercent": 43,
+  "tier": "full",
+  "sourceCheckpoint": "65acfc7cb3f4ee461192977fadcf27e66766ca26",
+  "models": {
+    "cameraAuthor": "GPT-6.1 Sol High",
+    "independentMathReviewer": "GPT-6.1 Sol High",
+    "actualDriver": "GPT-6.1 Sol Medium"
+  },
+  "selectedScope": "Camera scale for the original centered radius-.001 sphere; large-world GPU frame work follows as D428.",
+  "units": {
+    "world": "mm",
+    "screen": "CSS pixels",
+    "imageArea": "pixels",
+    "time": "ms"
+  },
+  "contract": [
+    "No new hidden fit-scale or stored fields; camera behavior derives from existing pose/distance/projection fields.",
+    "Valid positive tiny bounds use their measured radius; exact zero uses unit fallback; invalid bounds keep target finite.",
+    "Existing RenderCamera admission minimum distance1e-3 is reused; ordinary fit radius>=1 and ordinary zoom states retain legacy formulas.",
+    "Near envelope is positive below distance1 and exactly legacy for distance>=1; far remains40*distance+2000.",
+    "Only subunit positive frame spans use their genuine values.",
+    "Orbit projection clip planes and actual Viewer autoClip planes are distinct and measured separately."
+  ],
+  "checks": {
+    "preFix": {
+      "status": "EXPECTED_ASSERTION_FAILURES",
+      "tests": 16,
+      "pass": 2,
+      "fail": 14,
+      "harnessErrors": 0
+    },
+    "focused": {
+      "status": "PASS",
+      "pass": 34,
+      "fail": 0,
+      "newTests": 16,
+      "existingTests": 18
+    },
+    "types": {
+      "status": "PASS",
+      "studio": "PASS",
+      "model": "PASS_AFTER_LAST_DRIVER_EDIT"
+    },
+    "independent": {
+      "status": "PASS_BOUNDED",
+      "baseline": {
+        "pass": 16,
+        "fail": 0,
+        "limits": "Repeat of author16 as mutation baseline; not additional unique tests."
+      },
+      "floorControls": {
+        "pass": 12,
+        "fail": 0,
+        "scope": "distance.001 finiteprojection/analyticray/projectreciprocity/restore; ortho+perspective,3aspects,iso+top"
+      },
+      "sourceCertificate": "13 unaffected methods byte-identical, including analytic ray, far and projection arithmetic; no hidden fit state.",
+      "actual": "Reviewer checked both receipts and pictures; confirms finite visibility/picking while noting unresolved WebGPU ortho artifact."
+    },
+    "mutation": {
+      "status": "PASS_FOUR_NUMERIC_KILLS",
+      "caught": 4,
+      "survived": 0,
+      "harnessErrors": 0,
+      "results": [
+        {
+          "name": "fit-unit-radius",
+          "sourceSha256": "fe4805b6eddc50d4c1c6fa7726466e930a2be77cb314af6a9e5cb5248d9d4b70",
+          "bundleSha256": "7ec062ce31e6f2f3680cf8fc4521586c229403f67fe6eb91d99fa119526862e2",
+          "pass": 5,
+          "fail": 11,
+          "assertionFailures": 11
+        },
+        {
+          "name": "near-fixed-floor",
+          "sourceSha256": "9dd59e217442c1575cbabba9e375708ca77bb317e07b56a335b042aa48f371e4",
+          "bundleSha256": "c5b930689f17931b7359534c0c6e581f8e3817e9c0b052942e04b5892b0e1f90",
+          "pass": 7,
+          "fail": 9,
+          "assertionFailures": 9
+        },
+        {
+          "name": "zoom-unit-floor",
+          "sourceSha256": "e3e2f4b6a3f7263fb3dc247d273b591eafb3b4c695fa1e7ecde57db1784264e9",
+          "bundleSha256": "7c17a01ddad3cebbd77ceaee9fe03080cd44cf24715e08c5ccacd822402761c1",
+          "pass": 14,
+          "fail": 2,
+          "assertionFailures": 2
+        },
+        {
+          "name": "frame-unit-span",
+          "sourceSha256": "a515844c32d0f64c102119420102cd90414499814b2f624848138ca85e7a6ad2",
+          "bundleSha256": "04d9231a7332e0f1573dcd955939d4e99b399596565d1f40f3b1f29f8df23476",
+          "pass": 14,
+          "fail": 2,
+          "assertionFailures": 2
+        }
+      ]
+    },
+    "driver": "NOT_RUN_FINAL",
+    "actualWebGPU": {
+      "status": "PASS_BOUNDED",
+      "receiptSha256": "327941972b5c7da65f5ac720284ee76a0295a67f68b03db31d058a0e88e84810",
+      "driverSha256": "ea09044145bb4f79b0a53c1731b90b9a129e31fb46f68e95ad1858e9a7932de2",
+      "frozenFiles": 745,
+      "afterFiles": 745,
+      "cleanupFiles": 745,
+      "capsulesEqual": true,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "changes": 0,
+      "downloads": 0,
+      "pointerAttempts": 38,
+      "pointerPass": 38,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "profiles": [
+        {
+          "label": "ordinary-bracket",
+          "tiny": false,
+          "ortho": false,
+          "backend": "webgpu",
+          "fixtureSha256": null,
+          "projected": {
+            "width": 743.0041995360914,
+            "height": 371.5020707218609
+          },
+          "pixels": {
+            "box": {
+              "left": 309,
+              "top": 369,
+              "right": 831,
+              "bottom": 631
+            },
+            "changed": 130305,
+            "total": 136764,
+            "fraction": 0.9527726594717908,
+            "rgbThreshold": 20
+          },
+          "documentRestoredExactly": true,
+          "pointerCounts": {
+            "faces": 1,
+            "bodies": 1
+          },
+          "bodyIdentityValid": true,
+          "eye": [
+            32,
+            15.952814112102574,
+            154.1973411197506
+          ],
+          "rasterCamera": {
+            "position": [
+              32,
+              15.952814112102574,
+              154.1973411197506
+            ],
+            "target": [
+              32,
+              16,
+              4
+            ],
+            "distance": 150.19734853169263,
+            "projection": "perspective",
+            "fovY": 32,
+            "near": 0.016409777603611817,
+            "far": "Infinity",
+            "autoClip": true,
+            "clipValid": true
+          },
+          "orbitClipPlanes": "NOT_EXPOSED_LIVE; separate source/unit controls only"
+        },
+        {
+          "label": "tiny-perspective",
+          "tiny": true,
+          "ortho": false,
+          "backend": "webgpu",
+          "fixtureSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+          "projected": {
+            "width": 483.9019035048935,
+            "height": 483.90186604911383
+          },
+          "pixels": {
+            "box": {
+              "left": 400,
+              "top": 330,
+              "right": 740,
+              "bottom": 670
+            },
+            "changed": 115600,
+            "total": 115600,
+            "fraction": 1,
+            "rgbThreshold": 20
+          },
+          "documentRestoredExactly": true,
+          "pointerCounts": {
+            "faces": 9,
+            "bodies": 9
+          },
+          "bodyIdentityValid": true,
+          "eye": [
+            -1.0828158095145517e-19,
+            -2.2641025509036243e-06,
+            0.007206862015766368
+          ],
+          "rasterCamera": {
+            "position": [
+              -1.0828158095145517e-19,
+              -2.2641025509036243e-06,
+              0.007206862015766368
+            ],
+            "target": [
+              -1.0842021724855044e-19,
+              0,
+              -1.0842021724855044e-19
+            ],
+            "distance": 0.007206862371410768,
+            "projection": "perspective",
+            "fovY": 32,
+            "near": 7.206862371410768e-06,
+            "far": "Infinity",
+            "autoClip": true,
+            "clipValid": true
+          },
+          "orbitClipPlanes": "NOT_EXPOSED_LIVE; separate source/unit controls only"
+        },
+        {
+          "label": "tiny-orthographic",
+          "tiny": true,
+          "ortho": true,
+          "backend": "webgpu",
+          "fixtureSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+          "projected": {
+            "width": 483.9018896484374,
+            "height": 483.9018859863282
+          },
+          "pixels": {
+            "box": {
+              "left": 400,
+              "top": 330,
+              "right": 740,
+              "bottom": 670
+            },
+            "changed": 115600,
+            "total": 115600,
+            "fraction": 1,
+            "rgbThreshold": 20
+          },
+          "documentRestoredExactly": true,
+          "pointerCounts": {
+            "faces": 9,
+            "bodies": 9
+          },
+          "bodyIdentityValid": true,
+          "eye": [
+            -1.0828158095145517e-19,
+            -2.2641025509036243e-06,
+            0.007206862015766368
+          ],
+          "rasterCamera": {
+            "position": [
+              -1.0828158095145517e-19,
+              -2.2641025509036243e-06,
+              0.007206862015766368
+            ],
+            "target": [
+              -1.0842021724855044e-19,
+              0,
+              -1.0842021724855044e-19
+            ],
+            "distance": 0.007206862371410768,
+            "projection": "orthographic",
+            "fovY": 32,
+            "near": -29.685718439152325,
+            "far": 29.720132162860686,
+            "autoClip": true,
+            "clipValid": true
+          },
+          "orbitClipPlanes": "NOT_EXPOSED_LIVE; separate source/unit controls only"
+        }
+      ]
+    },
+    "actualWebGL": {
+      "status": "PASS_BOUNDED",
+      "receiptSha256": "bae33edb631a9217d370c8eec8f0c8df6aead2895d90b7f6bb0f5504d2b7c099",
+      "driverSha256": "ea09044145bb4f79b0a53c1731b90b9a129e31fb46f68e95ad1858e9a7932de2",
+      "frozenFiles": 745,
+      "afterFiles": 745,
+      "cleanupFiles": 745,
+      "capsulesEqual": true,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "changes": 0,
+      "downloads": 0,
+      "pointerAttempts": 38,
+      "pointerPass": 38,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "profiles": [
+        {
+          "label": "ordinary-bracket",
+          "tiny": false,
+          "ortho": false,
+          "backend": "webgl2",
+          "fixtureSha256": null,
+          "projected": {
+            "width": 743.0041995360914,
+            "height": 371.5020707218609
+          },
+          "pixels": {
+            "box": {
+              "left": 309,
+              "top": 369,
+              "right": 831,
+              "bottom": 631
+            },
+            "changed": 130105,
+            "total": 136764,
+            "fraction": 0.9513102863326607,
+            "rgbThreshold": 20
+          },
+          "documentRestoredExactly": true,
+          "pointerCounts": {
+            "faces": 1,
+            "bodies": 1
+          },
+          "bodyIdentityValid": true,
+          "eye": [
+            32,
+            15.952814112102574,
+            154.1973411197506
+          ],
+          "rasterCamera": "NOT_EXPOSED_WEBGL2",
+          "orbitClipPlanes": "NOT_EXPOSED_LIVE; separate source/unit controls only"
+        },
+        {
+          "label": "tiny-perspective",
+          "tiny": true,
+          "ortho": false,
+          "backend": "webgl2",
+          "fixtureSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+          "projected": {
+            "width": 483.9019035048935,
+            "height": 483.90186604911383
+          },
+          "pixels": {
+            "box": {
+              "left": 400,
+              "top": 330,
+              "right": 740,
+              "bottom": 670
+            },
+            "changed": 115600,
+            "total": 115600,
+            "fraction": 1,
+            "rgbThreshold": 20
+          },
+          "documentRestoredExactly": true,
+          "pointerCounts": {
+            "faces": 9,
+            "bodies": 9
+          },
+          "bodyIdentityValid": true,
+          "eye": [
+            -1.0828158095145517e-19,
+            -2.2641025509036243e-06,
+            0.007206862015766368
+          ],
+          "rasterCamera": "NOT_EXPOSED_WEBGL2",
+          "orbitClipPlanes": "NOT_EXPOSED_LIVE; separate source/unit controls only"
+        },
+        {
+          "label": "tiny-orthographic",
+          "tiny": true,
+          "ortho": true,
+          "backend": "webgl2",
+          "fixtureSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+          "projected": {
+            "width": 483.9018896484374,
+            "height": 483.9018859863282
+          },
+          "pixels": {
+            "box": {
+              "left": 400,
+              "top": 330,
+              "right": 740,
+              "bottom": 670
+            },
+            "changed": 115600,
+            "total": 115600,
+            "fraction": 1,
+            "rgbThreshold": 20
+          },
+          "documentRestoredExactly": true,
+          "pointerCounts": {
+            "faces": 9,
+            "bodies": 9
+          },
+          "bodyIdentityValid": true,
+          "eye": [
+            -1.0828158095145517e-19,
+            -2.2641025509036243e-06,
+            0.007206862015766368
+          ],
+          "rasterCamera": "NOT_EXPOSED_WEBGL2",
+          "orbitClipPlanes": "NOT_EXPOSED_LIVE; separate source/unit controls only"
+        }
+      ]
+    },
+    "lint": {
+      "status": "PASS",
+      "cameraAndUnitTest": "PASS",
+      "driver": "PASS_ZERO_WARNINGS",
+      "driverSyntax": "PASS_Node22.19.0"
+    },
+    "actualInitialWebGPU": {
+      "status": "FAIL_DRIVER_ACTION_COMPLETION_AFTER_EXPECTED_HIDE",
+      "receiptSha256": "adf55304c155d667c30fe00e9f61031cf605448fcf115a7b8e36fc4155f98d9b",
+      "driverSha256": "73ffd15db7f551415ed3b6b9810b19c40e86ff018f176505f36220f5316916e3",
+      "boundary": "ordinary Bracket Visible uncheck completed the real hide; expected selection clear removed checkbox before Playwright checked its final state.",
+      "acceptedBeforeFailure": {
+        "ordinaryFacePick": true,
+        "ordinaryBodyPick": true,
+        "documentHiddenOverride": {
+          "b1": {
+            "hidden": true
+          }
+        },
+        "selectionEmpty": true
+      },
+      "notRun": [
+        "tiny profiles",
+        "image coverage",
+        "Undo restore",
+        "WebGL2"
+      ],
+      "sourceFrozenFiles": 745,
+      "sourceAfter": "NOT_RECORDED_FAILED_FLOW",
+      "sourceAfterCleanupFiles": 745,
+      "cleanupMatchesFrozen": true,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "ownedResourcesClosed": true,
+      "repair": "Driver-only real click and explicit accepted hidden-document/empty-selection conditions; geometry nodes and all pixel/pick/camera limits preserved. Original source/logs/images retained."
+    },
+    "navigation": {
+      "status": "PASS",
+      "node": "22.19.0",
+      "checkedLocalLinks": 2394,
+      "newBroken": 0,
+      "archivesUnchanged": true
+    },
+    "sourceProof": "Runtime camera and accepted driver match both actual frozen capsules. Unit source is separately hashed and verified by focused/independent tests."
+  },
+  "actualPolicy": {
+    "centeredFixtureSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+    "minimumProjectedSpan": 100,
+    "rgbDifferenceThreshold": 20,
+    "minimumChangedArea": 5000,
+    "minimumChangedCoverage": 0.1,
+    "pointerGrid": "3x3 interior world points; real Faces and Bodies picks per tiny projection profile",
+    "restore": "Public Visible toggle, Undo and exact document equality, pose stable; raster autoClip may change while hidden.",
+    "limits": "Finite fixture witness including body/shadow raster changes; not universal photometry or general geometric accuracy."
+  },
+  "reusedEvidence": [
+    "D426 native Model Float64/wire/bounds and ordinary GL byte compatibility.",
+    "D424 full kernel on unchanged B-rep math."
+  ],
+  "notRun": [
+    "Far-coordinate rendering/picking: retained pending after D428 orthographic raster assessment.",
+    "Generic GPU effects/world-frame redesign",
+    "Full kernel/Model/GPU suites without affected source change",
+    "Further develop integration/release/publication"
+  ],
+  "artifacts": [
+    "/tmp/barocss-d427-independent",
+    "/tmp/barocss-d427-assessment",
+    "/tmp/barocss-d427-camera-author",
+    "/tmp/barocss-d427-consumer",
+    "/tmp/barocss-d427-browser-webgpu-run01",
+    "/tmp/barocss-d427-browser-webgpu-run02",
+    "/tmp/barocss-d427-browser-webgl-run01"
+  ],
+  "next": "D428 GPU orthographic raster/moire artifact diagnosis; retain far-coordinate GPU frame and picking work before further exchange admission.",
+  "source": {
+    "apps/cad-studio/src/viewport/camera.ts": "9d13f10780ff61b478b1f8bcd11a1026b13271a314196cc1b0b4c7f6e826339f",
+    "apps/cad-studio/test/small-camera-scale.test.ts": "fdc603f05ba314ccfafa46b298e44b9473eb448365539238749cf0f6c363532b",
+    "apps/cad-studio/test/small-camera-scale-browser.mjs": "ea09044145bb4f79b0a53c1731b90b9a129e31fb46f68e95ad1858e9a7932de2"
+  },
+  "originalCameraSha256": "19f11516961affb3422f2efa6c43f2145158da4f7e959ca5902127188bc3b7db",
+  "visualReview": {
+    "root": "Viewed all six full-page profiles plus orthographic visible/hidden/restored pairs on both backends. Ordinary parts and centered tiny spheres are visible; all accepted picks are genuine.",
+    "independent": "Confirms bounded framing/visibility/selection metrics, source integrity and restore proof.",
+    "webgpuOrthographic": "Persistent dense raster/moire lines in visible and restored images; GL ortho lacks the pattern. No cause established.",
+    "imageQuality": "NOT_QUALIFIED_GENERAL_RASTER_QUALITY",
+    "next": "D428 measures this orthographic artifact first; far-coordinate frame/picking work remains pending after that boundary."
+  },
+  "gate": {
+    "ownJobsSerial": true,
+    "preIdleAndPostSoleHolder": true,
+    "startLoads": {
+      "preFix": 10.56,
+      "focused": 10.34,
+      "authorTypes": 9.97,
+      "independent": 7.91,
+      "driverFinal": 12.62,
+      "actualWebGPUAccepted": 12.32,
+      "actualWebGLAccepted": 9.04
+    },
+    "rule": "Node22.19.0, gate heavy30, load<40; no worktree writes through actual cleanup; no foreign process/lease affected."
+  },
+  "commands": [
+    "TEST_CONCURRENCY=1 node apps/cad-studio/scripts/test.mjs small-camera-scale",
+    "TEST_CONCURRENCY=1 node apps/cad-studio/scripts/test.mjs small-camera-scale camera-projector sketch-framing render-focus",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm exec eslint apps/cad-studio/src/viewport/camera.ts apps/cad-studio/test/small-camera-scale.test.ts",
+    "node --check apps/cad-studio/test/small-camera-scale-browser.mjs",
+    "SMALL_CAMERA_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' CAD_STUDIO_CHAT_PORT=52391 node apps/cad-studio/test/small-camera-scale-browser.mjs /tmp/barocss-d427-browser-webgpu-run02 /tmp/barocss-d423-consumer/fixtures",
+    "Same driver with SMALL_CAMERA_RENDERER=webgl2 and output /tmp/barocss-d427-browser-webgl-run01.",
+    "pnpm exec eslint --no-warn-ignored apps/cad-studio/test/small-camera-scale-browser.mjs",
+    "node /tmp/barocss-d427-assessment/independent-camera/run.mjs (under Node22 and serial heavy gate)",
+    "PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH node apps/cad-studio/handover/scripts/check-navigation.mjs"
+  ],
+  "issues": {
+    "2263": "OPEN broader STEP acceptance incomplete; no breadth extension from camera fix."
+  }
+}
