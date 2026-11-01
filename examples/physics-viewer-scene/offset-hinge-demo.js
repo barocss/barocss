@@ -1,3 +1,4 @@
+import { makeModel, dynamicPart } from '../physics-model-input/model.mjs';
 import { createPhysicsWorld } from '../../packages/barocss-physics/dist/index.js';
 import { createViewer } from '../../packages/barocss-viewer/dist/index.js';
 import { drawHingeMarkers, hingeProxyPoints } from './hinge-markers.js';
@@ -23,19 +24,14 @@ const bindings = [
 if (surfaces.length !== 2) throw new Error('Expected two original Surfaces');
 
 function createWorld() {
-  const shape = { kind: 'sphere', radiusM: 0.1 };
-  return createPhysicsWorld({ fixedStepSeconds: DT, gravityMps2: [0, 0, 0],
-    bodies: [
-      { id: BODY_IDS[0], kind: 'dynamic', shape, positionM: [-0.1, 0, 0],
-        velocityMps: [0, 0, 0], massKg: 1, restitution: 0 },
-      { id: BODY_IDS[1], kind: 'dynamic', shape, positionM: [0.1, 0, 0],
-        velocityMps: [0, 0, 0], massKg: 1, restitution: 0 },
-    ],
-    joints: [{ id: 'joint:hinge', kind: 'hinge', aId: BODY_IDS[0], bId: BODY_IDS[1],
-      anchorALocalM: [0.1, 0, 0], anchorBLocalM: [-0.1, 0, 0],
-      axisWorld: [0, 0, 1], limitRad: [-0.8, 0.8],
-      motor: { targetSpeedRadps: 0.5, maxImpulseNms: 0.0001,
-        maxReactionNms: 0.01 } }] });
+  return createPhysicsWorld(makeModel({ gravityMps2: [0, 0, 0], parts: [
+    dynamicPart(BODY_IDS[0], { kind: 'sphere', radiusM: 0.1 }, { positionM: [-0.1, 0, 0] }),
+    dynamicPart(BODY_IDS[1], { kind: 'sphere', radiusM: 0.1 }, { positionM: [0.1, 0, 0] }),
+  ], joints: [{ id: 'joint:hinge', kind: 'hinge', bodyAId: BODY_IDS[0], bodyBId: BODY_IDS[1],
+    anchorALocalM: [0.1, 0, 0], anchorBLocalM: [-0.1, 0, 0],
+    axisWorld: [0, 0, 1], limitRad: [-0.8, 0.8],
+    motor: { targetSpeedRadps: 0.5, maxImpulseNms: 0.0001, maxReactionNms: 0.01 } }] }),
+  { profile: 'rigid-discrete-v1', fixedStepSeconds: DT, broadPhase: 'direct' });
 }
 
 let world = createWorld();
@@ -61,9 +57,9 @@ function show(state) {
   const [a, b] = admit(state);
   const frame = { contextId, timeSeconds: state.timeSeconds, poses: [
     { targetId: BODY_IDS[0], translation: a.positionM.map((value) => value * 1000),
-      rotation: a.orientation },
+      rotation: a.orientationXYZW },
     { targetId: BODY_IDS[1], translation: b.positionM.map((value) => value * 1000),
-      rotation: b.orientation },
+      rotation: b.orientationXYZW },
   ] };
   viewer.applyMotionFrame(frame, bindings, { basis: 'part-xyz-matches-rhyup' });
   const markers = drawHingeMarkers(viewer, $('viewer'), $('markers'), [a, b]);
@@ -72,7 +68,7 @@ function show(state) {
   $('angle').textContent = `${state.joints[0].angleRad.toFixed(6)} rad`;
   $('gap').textContent = `${markers.gapM.toExponential(2)} m`;
   $('motor').textContent = `${state.joints[0].motorImpulseNms.toFixed(6)} N·m·s`;
-  $('reaction').textContent = `${state.joints[0].angularImpulseNms[2].toFixed(6)} N·m·s`;
+  $('reaction').textContent = `${state.joints[0].angularImpulseOnBNms[2].toFixed(6)} N·m·s`;
   $('status').textContent = errorMessage || (playing ? 'Playing' : 'Paused');
   $('play').textContent = playing ? 'Pause' : 'Play';
 }
@@ -80,7 +76,7 @@ function show(state) {
 function step() {
   if (world.getState().stepIndex >= 120) { playing = false; show(accepted); return; }
   try {
-    show(world.step(DT));
+    show(world.step());
   } catch (error) {
     playing = false;
     errorMessage = error instanceof Error ? error.message : String(error);
@@ -137,7 +133,7 @@ $('overload').addEventListener('click', () => {
     errorMessage = 'Run to step 120 before overload'; show(accepted); return;
   }
   const before = JSON.stringify(viewer.getState().motion);
-  try { world.step(DT, [{ kind: 'angularImpulse', bodyId: BODY_IDS[1],
+  try { world.step([{ kind: 'angularImpulse', bodyId: BODY_IDS[1],
     angularImpulseNms: [0, 0, 0.1] }]); errorMessage = 'Unexpected overload acceptance'; }
   catch (error) {
     errorMessage = error?.code === 'NUMERIC_LIMIT' &&

@@ -1,4 +1,4 @@
-import type { Body } from './types.js';
+import type { Body } from './internal-types.js';
 
 export function filterAllowsPair(a: Body, b: Body): boolean {
   const left = a.collisionFilter;

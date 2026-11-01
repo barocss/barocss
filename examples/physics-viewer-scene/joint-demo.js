@@ -1,3 +1,4 @@
+import { makeModel, dynamicPart } from '../physics-model-input/model.mjs';
 import { createPhysicsWorld } from '../../packages/barocss-physics/dist/index.js';
 import { createViewer } from '../../packages/barocss-viewer/dist/index.js';
 
@@ -22,12 +23,12 @@ const bindings = [
 if (surfaces.length !== 2) throw new Error('Expected two original Surfaces');
 
 function createWorld() {
-  const body = (id, x) => ({ id, kind: 'dynamic', shape: { kind: 'sphere', radiusM: 0.05 },
-    positionM: [x, 0.3, 0], velocityMps: [0, 0, 0], massKg: 1, restitution: 0 });
-  return createPhysicsWorld({ fixedStepSeconds: DT, gravityMps2: [0, 0, 0],
-    bodies: [body(BODY_IDS[0], 0), body(BODY_IDS[1], 0.2)],
-    joints: [{ id: 'joint:pair', kind: 'fixed', aId: BODY_IDS[0], bId: BODY_IDS[1],
-      anchorALocalM: [0.1, 0, 0], anchorBLocalM: [-0.1, 0, 0] }] });
+  return createPhysicsWorld(makeModel({ gravityMps2: [0, 0, 0], parts: [
+    dynamicPart(BODY_IDS[0], { kind: 'sphere', radiusM: 0.05 }, { positionM: [0, 0.3, 0] }),
+    dynamicPart(BODY_IDS[1], { kind: 'sphere', radiusM: 0.05 }, { positionM: [0.2, 0.3, 0] }),
+  ], joints: [{ id: 'joint:pair', kind: 'fixed', bodyAId: BODY_IDS[0], bodyBId: BODY_IDS[1],
+    anchorALocalM: [0.1, 0, 0], anchorBLocalM: [-0.1, 0, 0] }] }),
+  { profile: 'rigid-discrete-v1', fixedStepSeconds: DT, broadPhase: 'direct' });
 }
 
 let world = createWorld();
@@ -57,7 +58,7 @@ function show(state) {
   accepted = state;
   $('step').textContent = String(state.stepIndex);
   $('centres').textContent = `${a.positionM[0].toFixed(4)} m / ${b.positionM[0].toFixed(4)} m`;
-  $('reaction').textContent = `${state.joints[0].linearImpulseNs[0].toFixed(6)} N·s`;
+  $('reaction').textContent = `${state.joints[0].linearImpulseOnBNs[0].toFixed(6)} N·s`;
   $('status').textContent = errorMessage || (playing ? 'Playing' : 'Paused');
   $('play').textContent = playing ? 'Pause' : 'Play';
 }
@@ -66,7 +67,7 @@ function step() {
   if (world.getState().stepIndex >= 120) { playing = false; show(accepted); return; }
   try {
     const initial = world.getState().stepIndex === 0;
-    show(world.step(DT, initial ? [{ kind: 'impulse', bodyId: BODY_IDS[1],
+    show(world.step(initial ? [{ kind: 'impulse', bodyId: BODY_IDS[1],
       impulseNs: [0.2, 0, 0] }] : []));
   } catch (error) {
     playing = false;

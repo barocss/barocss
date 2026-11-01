@@ -1,9 +1,10 @@
+import {makeModel,dynamicPart,staticPart} from '../physics-model-input/model.mjs';
 /** #1572: independent box interval projection reference at SAT-chosen normal.
  * Capture actual internal b0/b1 poses without altering source physics.
  * Check SAT overlap arithmetic and classify positive face gaps separately.
  */
 import {createPhysicsWorld} from '../../packages/barocss-physics/src/index.js';
-import type {PhysicsBodyConfig,PhysicsWorldConfig} from '../../packages/barocss-physics/src/types.js';
+
 type V=[number,number,number];type Q=[number,number,number,number];
 type BodyPose={positionM:V,orientation:Q,halfExtentsM:V};
 type Event={step:number,pass:number,a:BodyPose,b:BodyPose,normal:V,penetrationM:number};
@@ -21,10 +22,10 @@ function interval(box:BodyPose,n:V):[number,number]{
  const radius=basis.reduce((v,axis,i)=>v+box.halfExtentsM[i]*Math.abs(dot(axis,n)),0);
  return [centre-radius,centre+radius];
 }
-const floor:PhysicsBodyConfig={id:'floor',kind:'static',shape:{kind:'box',halfExtentsM:[2,.1,2]},positionM:[0,-.1,0],restitution:0,friction:{static:1,dynamic:.7}};
-function cube(i:number,mode:'OFFSET'|'YAW'):PhysicsBodyConfig{
+const floor=staticPart('floor',{kind:'box',halfExtentsM:[2,.1,2]},{positionM:[0,-.1,0]},{restitution:0,friction:{static:1,dynamic:.7}});
+function cube(i:number,mode:'OFFSET'|'YAW'){
  const yaw=mode==='YAW'?(i%2===0?.05:-.05):0;
- return {id:'b'+i,kind:'dynamic',shape:{kind:'box',halfExtentsM:[.25,.25,.25]},positionM:[(i%2)*.05,.25+.5*i,0],massKg:1,velocityMps:[0,0,0],orientation:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)],restitution:0,friction:{static:1,dynamic:.7}};
+ return dynamicPart('b'+i,{kind:'box',halfExtentsM:[.25,.25,.25]},{positionM:[(i%2)*.05,.25+.5*i,0],velocityMps:[0,0,0],orientationXYZW:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)]},1,{restitution:0,friction:{static:1,dynamic:.7}});
 }
 const host=globalThis as typeof globalThis&{__p1572ProjectionProbe?:(e:Event)=>void};
 for(const mode of ['OFFSET','YAW'] as const){
@@ -45,10 +46,9 @@ for(const mode of ['OFFSET','YAW'] as const){
      overlapM:overlap,sourcePenetrationM:e.penetrationM,normal:e.normal,independentResidualM:residual});
   }
  };
- const world=createPhysicsWorld({fixedStepSeconds:1/120,gravityMps2:[0,-9.81,0],contactMode:'persistent-box-v1',
-  bodies:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]});
+ const world=createPhysicsWorld(makeModel({gravityMps2:[0,-9.81,0],parts:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]}),{profile:'rigid-persistent-box-v1',fixedStepSeconds:1/120,broadPhase:'direct'});
  let accepted=0,failure:string|null=null;
- try{for(let step=1;step<=1200;step++){try{world.step(1/120);accepted=step;}
+ try{for(let step=1;step<=1200;step++){try{world.step();accepted=step;}
  catch(err){failure=String(err);break;}}}
  finally{world.dispose();delete host.__p1572ProjectionProbe;}
  console.log(JSON.stringify({mode,accepted,failure,count,maxResidualM,samples,

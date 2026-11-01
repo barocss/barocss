@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createPhysicsWorld, PhysicsError } from '@barocss/physics';
 import { admitCadSurfaceProxy, cadProxyPose } from '@barocss/physics/cad-proxy';
-import { createPhysicsScene, createPhysicsReplaySession, restorePhysicsReplaySession } from '@barocss/physics/replay';
+import { createPhysicsScene, createPhysicsReplaySession, restorePhysicsReplaySession, serializePhysicsSnapshot, deserializePhysicsSnapshot } from '@barocss/physics/replay';
 import { createFluidWorld } from '@barocss/physics/fluid';
 
 const source = readFileSync(new URL('./two-surfaces.barocad', import.meta.url), 'utf8');
@@ -13,29 +13,29 @@ const moving = admitCadSurfaceProxy(source, { sourceVersion: 0, sourceRevision, 
 const fixed = admitCadSurfaceProxy(source, { sourceVersion: 0, sourceRevision, modelId,
   surfaceId: 'flat_panel', kind: 'static', proxy: 'box', minimumHalfExtentM: 0.01 });
 const dt = 1 / 120;
-const config = { fixedStepSeconds: dt, gravityMps2: [0, -9.81, 0],
-  bodies: [moving.body, fixed.body] };
-const world = createPhysicsWorld(config);
+const options={profile:'rigid-discrete-v1',fixedStepSeconds:dt,broadPhase:'direct'};
+const model={format:'barocss-physics-model',version:1,revision:'releaseModel1',frame:{id:'world',basis:'right-handed-xyz',rotation:'local-to-world-xyzw'},units:{length:'m',mass:'kg',time:'s',angle:'rad'},gravityMps2:[0,-9.81,0],bodies:[moving.body,fixed.body],colliders:[moving.collider,fixed.collider],joints:[],cloths:[],fluids:[],sourceBindings:[moving.binding,fixed.binding]};
+const world = createPhysicsWorld(model,options);
 const firstState = world.getState();
 const firstPose = cadProxyPose(moving, firstState.bodies.find((body) => body.id === moving.bodyId),
   source, sourceRevision);
 assert.deepEqual(firstPose.translation, [0, 280, 0]);
 let contactStep = null;
 for (let step = 1; step <= 120; step++) {
-  if (world.step(dt).contacts.length) { contactStep = step; break; }
+  if (world.step().contacts.length) { contactStep = step; break; }
 }
 assert.equal(contactStep, 21);
 world.dispose();
 
-const scene = createPhysicsScene(config, { revision: 'releaseScene1', sourceRevision });
+const scene = createPhysicsScene(model,options, { revision: 'releaseScene1', sourceRevision });
 const session = createPhysicsReplaySession(scene);
 for (let step = 0; step < 24; step++) session.step();
-const snapshot = JSON.parse(JSON.stringify(session.saveSnapshot()));
+const snapshot = deserializePhysicsSnapshot(serializePhysicsSnapshot(session.saveSnapshot()));
 const restored = restorePhysicsReplaySession(snapshot, scene);
 assert.deepEqual(restored.getState(), session.getState());
 assert.deepEqual(restored.step(), session.step());
 assert.throws(() => restorePhysicsReplaySession(snapshot,
-  createPhysicsScene(config, { revision: 'releaseScene1', sourceRevision: 'changed' })),
+  createPhysicsScene(model,options, { revision: 'releaseScene1', sourceRevision: 'changed' })),
   (error) => error instanceof PhysicsError && error.code === 'STALE_SNAPSHOT');
 session.dispose(); restored.dispose();
 
@@ -58,7 +58,7 @@ const physicsManifest = JSON.parse(readFileSync(new URL('./node_modules/@barocss
 const cadManifest = JSON.parse(readFileSync(new URL('./node_modules/@barocss/cad/package.json', import.meta.url)));
 assert.equal(physicsManifest.version, '0.0.0-experimental');
 assert.equal(cadManifest.version, '0.0.0-experimental');
-assert.deepEqual(Object.keys(physicsManifest.exports).sort(), ['.', './cad-proxy', './fluid', './replay']);
+assert.deepEqual(Object.keys(physicsManifest.exports).sort(), ['.', './cad-proxy', './cloth', './fluid', './fluid-cad', './replay']);
 for (const name of ['index.d.ts', 'cad-proxy.d.ts', 'fluid.d.ts', 'replay.d.ts']) {
   assert.ok(readFileSync(new URL(`./node_modules/@barocss/physics/dist/${name}`, import.meta.url), 'utf8').length > 0);
 }

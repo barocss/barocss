@@ -1,4 +1,4 @@
-import type { Body, Joint, PhysicsJointState, Vec3 } from './types.js';
+import type { Body, Joint, PhysicsJointState, Vec3 } from './internal-types.js';
 import type { AdmittedCommands } from './validation.js';
 import { error } from './validation.js';
 import { add, advanceOrientation, dot, inertia, inverse, inverseInertia,

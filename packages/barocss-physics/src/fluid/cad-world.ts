@@ -36,10 +36,10 @@ class BoundedCadFluidWorld implements CadFluidWorld {
   getObstacle(): CadFluidObstacleInfo {
     this.active();
     const body = this.proxy.body;
-    if (body.shape.kind !== 'box') throw new PhysicsError('INVALID_CONFIG', 'CAD proxy shape changed');
+    if (this.proxy.collider.geometry.kind !== 'box') throw new PhysicsError('INVALID_CONFIG', 'CAD proxy shape changed');
     return { sourceVersion: 0, sourceSnapshot: this.proxy.sourceSnapshot,
       sourceRevision: this.proxy.sourceRevision, bodyId: this.proxy.bodyId,
-      centerM: [...body.positionM], halfExtentsM: [...body.shape.halfExtentsM],
+      centerM: [...body.initial.positionM], halfExtentsM: [...this.proxy.collider.geometry.halfExtentsM],
       lossLabel: this.proxy.lossLabel };
   }
 

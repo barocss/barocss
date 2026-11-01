@@ -1,3 +1,4 @@
+import { makeModel, dynamicPart, staticPart } from '../physics-model-input/model.mjs';
 import assert from 'node:assert/strict';
 import { createPhysicsWorld, PhysicsError } from '../../packages/barocss-physics/dist/index.js';
 
@@ -5,24 +6,14 @@ const dt = 1 / 120;
 const near = (actual, expected, label, tolerance = 1e-6) =>
   assert.ok(Math.abs(actual - expected) <= tolerance, `${label}: ${actual} != ${expected}`);
 const capsuleShape = { kind: 'capsule', radiusM: 0.2, halfLengthM: 0.3 };
-const dynamicCapsule = (id = 'a:capsule', positionM = [0, 0, 0], orientation) => ({
-  id, kind: 'dynamic', shape: capsuleShape, positionM, velocityMps: [0, 0, 0],
-  massKg: 1, restitution: 0, ...(orientation ? { orientation } : {}),
-});
-const staticCapsule = (id = 'z:capsule', positionM = [0.35, 0, 0], orientation) => ({
-  id, kind: 'static', shape: capsuleShape, positionM, restitution: 0,
-  ...(orientation ? { orientation } : {}),
-});
-const staticBox = (id = 'z:box', positionM = [0.35, 0, 0], orientation) => ({
-  id, kind: 'static', shape: { kind: 'box', halfExtentsM: [0.2, 0.2, 0.2] },
-  positionM, restitution: 0, ...(orientation ? { orientation } : {}),
-});
-const world = (bodies, broadPhase) => createPhysicsWorld({ fixedStepSeconds: dt,
-  gravityMps2: [0, 0, 0], bodies, ...(broadPhase ? { broadPhase } : {}) });
+const dynamicCapsule = (id='a:capsule',positionM=[0,0,0],orientationXYZW) => dynamicPart(id,capsuleShape,{positionM,...(orientationXYZW?{orientationXYZW}:{})},1,{restitution:0});
+const staticCapsule = (id='z:capsule',positionM=[0.35,0,0],orientationXYZW) => staticPart(id,capsuleShape,{positionM,...(orientationXYZW?{orientationXYZW}:{})},{restitution:0});
+const staticBox = (id='z:box',positionM=[0.35,0,0],orientationXYZW) => staticPart(id,{kind:'box',halfExtentsM:[0.2,0.2,0.2]},{positionM,...(orientationXYZW?{orientationXYZW}:{})},{restitution:0});
+const world = (bodies, broadPhase) => createPhysicsWorld(makeModel({gravityMps2: [0, 0, 0], parts: bodies}), {profile: 'rigid-discrete-v1', fixedStepSeconds: dt, broadPhase: broadPhase ?? 'direct'});
 
 function contact(bodies, broadPhase) {
   const instance = world(bodies, broadPhase);
-  const state = instance.step(dt);
+  const state = instance.step();
   instance.dispose();
   return state;
 }
@@ -68,15 +59,15 @@ assert.equal(contact([dynamicCapsule(), staticBox('z:box', [2, 0, 0])]).contacts
 assert.equal(contact([dynamicCapsule(), staticCapsule('z:capsule', [2, 0, 0])]).contacts.length, 0);
 
 for (const damaged of [
-  { ...dynamicCapsule(), shape: { kind: 'mesh' } },
-  { ...dynamicCapsule(), shape: { kind: 'capsule', radiusM: Number.NaN, halfLengthM: 0.3 } },
+  {...(dynamicCapsule()), collider: {...(dynamicCapsule()).collider, geometry: { kind: 'mesh' }}},
+  {...(dynamicCapsule()), collider: {...(dynamicCapsule()).collider, geometry: { kind: 'capsule', radiusM: Number.NaN, halfLengthM: 0.3 }}},
 ]) assert.throws(() => world([damaged, staticBox()]),
   (error) => error instanceof PhysicsError && error.code === 'INVALID_CONFIG');
 const retained = world([dynamicCapsule(), staticBox()]);
-retained.step(dt);
+retained.step();
 const before = retained.getState();
 assert.throws(() => retained.step(Number.NaN),
-  (error) => error instanceof PhysicsError && error.code === 'INVALID_STEP');
+  (error) => error instanceof PhysicsError && error.code === 'INVALID_COMMAND');
 assert.deepEqual(retained.getState(), before);
 const copied = retained.getState();
 copied.contacts[0].pointM[0] = 99;

@@ -1,5 +1,5 @@
 /** #1572: gravity-load, fixed-pose velocity-only slice. NOT a PhysicsWorld/stack stability test. */
-import type { Body, Vec3 } from '../../packages/barocss-physics/src/types.js';
+import type { Body, Vec3 } from '../../packages/barocss-physics/src/internal-types.js';
 import { solvePersistentPoint, type PointImpulse } from '../../packages/barocss-physics/src/persistent-box-contact.js';
 
 const v=(x=0,y=0,z=0):Vec3=>[x,y,z];

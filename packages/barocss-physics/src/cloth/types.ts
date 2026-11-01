@@ -1,4 +1,4 @@
-import type { Vec3 } from '../types.js';
+import type { Vec3 } from '../internal-types.js';
 
 /** A fixed visual profile. It is not calibrated fabric or authoritative CAD. */
 export interface ClothSceneV1 {

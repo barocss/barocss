@@ -1,0 +1,9 @@
+
+/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/capsule-query/admission.ts
+  10:10  error  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/generate-provider.mjs
+  38:1  warning  Unexpected console statement  no-console
+
+✖ 2 problems (1 error, 1 warning)
+

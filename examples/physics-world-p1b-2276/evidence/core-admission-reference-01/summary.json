@@ -1,0 +1,93 @@
+{
+  "result": "ok",
+  "stage": "public-admission-and-one-step-only",
+  "base": "9616f178fdf3fbc4d78d02a8e4c313fa5769e53f",
+  "measuredHead": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+  "node": "v22.19.0",
+  "fixtureSha256": "b20ce00017c16dedc7ef11e9a53f972e4539c49dd50af55819bacfbda9f602e7",
+  "sourceCompiledEqual": true,
+  "providerDigestCompared": false,
+  "modelConfigurationAndPhysicalStateExact": true,
+  "graphs": [
+    {
+      "graph": "source",
+      "sourceInputs": 43,
+      "distInputs": 0
+    },
+    {
+      "graph": "compiled",
+      "sourceInputs": 0,
+      "distInputs": 3
+    }
+  ],
+  "cases": [
+    {
+      "id": "DROP16",
+      "admission": "admitted",
+      "quality": "unmeasured"
+    },
+    {
+      "id": "STACK2_CONTROL",
+      "admission": "admitted",
+      "quality": "unmeasured"
+    },
+    {
+      "id": "STACK8_ALIGNED",
+      "admission": "refused",
+      "error": {
+        "code": "INVALID_CONFIG",
+        "message": "bodies exceeds the profile bound"
+      },
+      "quality": "unmeasured"
+    },
+    {
+      "id": "STACK8_ROTATED",
+      "admission": "refused",
+      "error": {
+        "code": "INVALID_CONFIG",
+        "message": "bodies exceeds the profile bound"
+      },
+      "quality": "unmeasured"
+    },
+    {
+      "id": "STACK8_BASIC",
+      "admission": "admitted",
+      "quality": "unmeasured"
+    },
+    {
+      "id": "LARGE_STACK8_PERSISTENT",
+      "admission": "refused",
+      "error": {
+        "code": "INVALID_CONFIG",
+        "message": "profile is not implemented"
+      },
+      "quality": "unmeasured"
+    },
+    {
+      "id": "HINGE1_CONTROL",
+      "admission": "admitted",
+      "quality": "unmeasured"
+    },
+    {
+      "id": "HINGE2",
+      "admission": "refused",
+      "error": {
+        "code": "INVALID_CONFIG",
+        "message": "dynamic pair supports one joint between two dynamic spheres"
+      },
+      "quality": "unmeasured"
+    },
+    {
+      "id": "CAPSULE_THIN_CCD",
+      "admission": "refused",
+      "error": {
+        "code": "INVALID_CONFIG",
+        "message": "ccd is supported for dynamic spheres or boxes only and must be true"
+      },
+      "quality": "unmeasured"
+    }
+  ],
+  "numericalCampaignExecuted": false,
+  "viewerExecuted": false,
+  "performanceMeasured": false
+}

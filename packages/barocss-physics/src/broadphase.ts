@@ -1,4 +1,4 @@
-import type { Body, Vec3 } from './types.js';
+import type { Body, Vec3 } from './internal-types.js';
 import { rotate } from './math.js';
 import { error } from './validation.js';
 

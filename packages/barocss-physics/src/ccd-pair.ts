@@ -1,4 +1,4 @@
-import type { Body, PhysicsCcdHit, Vec3 } from './types.js';
+import type { Body, PhysicsCcdHit, Vec3 } from './internal-types.js';
 import { add, dot, scale, sub } from './math.js';
 import { error } from './validation.js';
 

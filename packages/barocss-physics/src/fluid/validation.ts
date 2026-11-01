@@ -1,5 +1,5 @@
 import { PhysicsError } from '../types.js';
-import type { Vec3 } from '../types.js';
+import type { Vec3 } from '../internal-types.js';
 import { FLUID_BASIN_M, FLUID_COUNT, FLUID_GRAVITY_MPS2, FLUID_MIN_SPACING_M,
   FLUID_PARTICLE_RADIUS_M, FLUID_STEP_SECONDS } from './constants.js';
 import type { AcceptedFluidScene } from './types.js';

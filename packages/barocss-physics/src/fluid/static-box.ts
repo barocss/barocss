@@ -5,8 +5,8 @@ export interface FluidStaticBox {
   high: [number, number, number];
 }
 
-export function inflatedBoxBounds(centerM: [number, number, number],
-  halfExtentsM: [number, number, number]): FluidStaticBox {
+export function inflatedBoxBounds(centerM: readonly [number, number, number],
+  halfExtentsM: readonly [number, number, number]): FluidStaticBox {
   return { low: centerM.map((value, axis) =>
     value - halfExtentsM[axis] - FLUID_PARTICLE_RADIUS_M) as [number, number, number],
   high: centerM.map((value, axis) =>

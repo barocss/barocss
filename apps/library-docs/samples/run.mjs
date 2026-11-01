@@ -12,6 +12,8 @@ const here = import.meta.dirname, repo = resolve(here, '../../..');
 const { build } = createRequire(join(repo, 'apps/cad-studio/package.json'))('esbuild');
 const filter = process.argv[2] ?? '';
 const tests = readdirSync(here).filter(f => f.endsWith('.test.mjs') && f.includes(filter)).sort();
+const provider = spawnSync(process.execPath, [join(repo, 'packages/barocss-physics/src/generate-provider.mjs')], { stdio: 'pipe' });
+if (provider.status !== 0) throw new Error(provider.stderr?.toString() || 'Physics provider generation failed');
 const out = mkdtempSync(join(tmpdir(), 'library-docs-samples-'));
 try {
   await build({

@@ -1,3 +1,4 @@
+import { makeModel, dynamicPart, staticPart } from '../physics-model-input/model.mjs';
 import { createHash } from 'node:crypto';
 
 function freeze(value) {
@@ -44,15 +45,18 @@ export function buildConfig(name) {
     positionM: floorPosition, orientation: floorOrientation }];
   if (name === 'STEP10') fixtures.push({ id: 'step10', halfExtentsM: [...PARAMETERS.stepHalfExtentsM],
     positionM: [...PARAMETERS.stepCentreM], orientation: [...PARAMETERS.identityQuaternion] });
-  const actor = { id: PARAMETERS.actorId, kind: 'dynamic',
-    shape: { kind: 'capsule', radiusM: PARAMETERS.radiusM, halfLengthM: PARAMETERS.halfLengthM },
-    positionM: actorPosition, velocityMps: [...PARAMETERS.initialVelocityMps], massKg: PARAMETERS.massKg,
-    orientation: [...PARAMETERS.identityQuaternion], angularVelocityRadps: [...PARAMETERS.initialAngularVelocityRadps],
-    restitution: PARAMETERS.restitution, friction: { ...PARAMETERS.friction } };
-  const config = { fixedStepSeconds: PARAMETERS.dt, gravityMps2: [...PARAMETERS.gravityMps2], broadPhase: 'aabb',
-    bodies: [actor, ...fixtures.map(fixture => ({ id: fixture.id, kind: 'static',
-      shape: { kind: 'box', halfExtentsM: [...fixture.halfExtentsM] }, positionM: [...fixture.positionM],
-      orientation: [...fixture.orientation], restitution: PARAMETERS.restitution, friction: { ...PARAMETERS.friction } }))] };
+  const actor = dynamicPart(PARAMETERS.actorId,
+    { kind: 'capsule', radiusM: PARAMETERS.radiusM, halfLengthM: PARAMETERS.halfLengthM },
+    { positionM: actorPosition, velocityMps: [...PARAMETERS.initialVelocityMps],
+      orientationXYZW: [...PARAMETERS.identityQuaternion],
+      angularVelocityRadps: [...PARAMETERS.initialAngularVelocityRadps] }, PARAMETERS.massKg,
+    { restitution: PARAMETERS.restitution, friction: { ...PARAMETERS.friction } });
+  const config = { model: makeModel({ revision: `character${name}`,
+    gravityMps2: [...PARAMETERS.gravityMps2], parts: [actor, ...fixtures.map(fixture => staticPart(fixture.id,
+      { kind: 'box', halfExtentsM: [...fixture.halfExtentsM] },
+      { positionM: [...fixture.positionM], orientationXYZW: [...fixture.orientation] },
+      { restitution: PARAMETERS.restitution, friction: { ...PARAMETERS.friction } }))] }),
+  options: { profile: 'rigid-discrete-v1', fixedStepSeconds: PARAMETERS.dt, broadPhase: 'aabb' } };
   const geometry = { floorPlane: { normal: [...normal], point: [0, 0, 0] },
     actor: { radiusM: PARAMETERS.radiusM, halfLengthM: PARAMETERS.halfLengthM },
     fixtures: structuredClone(fixtures), walkableMaxSlopeDegrees: PARAMETERS.walkableMaxSlopeDegrees };

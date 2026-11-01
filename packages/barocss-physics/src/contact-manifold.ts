@@ -1,4 +1,4 @@
-import type { Body, BoxShape, Hit, Vec3 } from './types.js';
+import type { Body, BoxShape, Hit, Vec3 } from './internal-types.js';
 import { add, dot, rotate, scale, sub } from './math.js';
 
 export interface ManifoldPoint { id: string; pointM: Vec3 }

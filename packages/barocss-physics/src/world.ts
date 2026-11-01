@@ -1,8 +1,14 @@
-import type { Body, PhysicsCcdHit, PhysicsContact, PhysicsEvent, PhysicsJointState, PhysicsPairStats, PhysicsState, PhysicsWorld, PhysicsWorldConfig, PhysicsRayHit, Vec3 } from './types.js';
-import { MAX_BODIES, MAX_LARGE_BODIES, MAX_STEPS, MAX_STEP_DISPLACEMENT_M, SOLVER_PASSES } from './limits.js';
-import { error, record, fields, finite, vector, parseBody, parseCommands, copyBody, copyShape, queryRecord, queryVector, queryNumber, includeSensors } from './validation.js';
+import type { PhysicsModel, WorldOptions, PhysicsWorld, PhysicsState, Identity, QueryResult } from './types.js';
+import { PhysicsError } from './types.js';
+import type { FailureDetails } from './types.js';
+import { admitModel } from './model-admission.js';
+import { copyData, digest } from './identity.js';
+import { providerManifest } from './provider-manifest.generated.js';
+import type { Body, PhysicsCcdHit, PhysicsContact, PhysicsEvent, PhysicsJointState, PhysicsPairStats,  PhysicsRayHit, Vec3 } from './internal-types.js';
+import { MAX_STEPS, MAX_STEP_DISPLACEMENT_M, SOLVER_PASSES } from './limits.js';
+import { error, parseCommands, copyBody, queryRecord, queryVector, queryNumber, includeSensors } from './validation.js';
 import { add, scale, inverseInertia, advanceOrientation } from './math.js';
-import { parseJoints, projectJoint } from './joints.js';
+import { projectJoint } from './joints.js';
 import { driveDynamicHingeMotor, driveHingeMotor } from './joint-motor.js';
 import { admitDynamicHingeCommands, admitDynamicHingeScene } from './dynamic-hinge-joint.js';
 import { detect, solve, validateResult, sphereOverlaps, rayDistance } from './collision.js';
@@ -18,66 +24,46 @@ import { updateSleeping, wakeForActions } from './sleep.js';
 
 function publicState(bodies: Body[], contacts: PhysicsContact[], events: PhysicsEvent[],
   joints: PhysicsJointState[], ccdHits: PhysicsCcdHit[], pairStats: PhysicsPairStats,
-  stepIndex: number, dt: number): PhysicsState {
+  stepIndex: number, dt: number, identity: Identity, colliderIds: Map<string, string>): PhysicsState {
   return {
-    stepIndex, timeSeconds: stepIndex * dt,
-    bodies: bodies.map(({ id, kind, shape: collider, positionM, velocityMps, orientation, angularVelocityRadps, inertiaKgM2, inertiaDiagonalKgM2, sensor, ccd, collisionFilter, sleeping }) =>
-      ({ id, kind, shape: copyShape(collider), positionM: [...positionM], velocityMps: [...velocityMps],
-        orientation: [...orientation], angularVelocityRadps: [...angularVelocityRadps],
-        ...(inertiaKgM2 === undefined ? {} : { inertiaKgM2 }),
-        ...(inertiaDiagonalKgM2 === undefined ? {} : { inertiaDiagonalKgM2: [...inertiaDiagonalKgM2] as Vec3 }),
-        ...(sensor ? { sensor: true } : {}), ...(ccd ? { ccd: true as const } : {}),
-        ...(collisionFilter ? { collisionFilter: { ...collisionFilter } } : {}),
-        ...(sleeping !== undefined ? { sleeping } : {}) })),
-    contacts: contacts.map(({ aId, bId, normalAtoB, pointM, penetrationM, impulseNs, tangentImpulseNs }) =>
-      ({ aId, bId, normalAtoB: [...normalAtoB], pointM: [...pointM], penetrationM, impulseNs,
-        tangentImpulseNs: [...tangentImpulseNs] })),
-    events: events.map((event) => ({ ...event })),
-    joints: joints.map((joint) => ({ ...joint, linearImpulseNs: [...joint.linearImpulseNs],
-      angularImpulseNms: [...joint.angularImpulseNms] })),
-    ccdHits: ccdHits.map((hit) => ({ ...hit, normalFixtureToBody: [...hit.normalFixtureToBody] })),
-    pairStats: { ...pairStats },
+    identity: { ...identity }, stepIndex, timeSeconds: stepIndex * dt,
+    bodies: bodies.map((body) => ({ id: body.id, kind: body.kind, positionM: [...body.positionM],
+      orientationXYZW: [...body.orientation], velocityMps: [...body.velocityMps],
+      angularVelocityRadps: [...body.angularVelocityRadps], sleeping: body.sleeping ?? false })),
+    contacts: contacts.map((contact) => ({ colliderAId: colliderIds.get(contact.aId)!,
+      colliderBId: colliderIds.get(contact.bId)!, bodyAId: contact.aId, bodyBId: contact.bId,
+      normalAtoB: [...contact.normalAtoB], pointM: [...contact.pointM], penetrationM: contact.penetrationM,
+      normalImpulseNs: contact.impulseNs, tangentImpulseOnBNs: [...contact.tangentImpulseNs] })),
+    events: events.map((event) => ({ colliderAId: colliderIds.get(event.aId)!,
+      colliderBId: colliderIds.get(event.bId)!, kind: event.kind, phase: event.phase })),
+    joints: joints.map((joint) => ({ id: joint.id, bodyAId: joint.aId, bodyBId: joint.bId,
+      linearImpulseOnBNs: [...joint.linearImpulseNs], angularImpulseOnBNms: [...joint.angularImpulseNms],
+      angleRad: joint.angleRad ?? null, motorImpulseNms: joint.motorImpulseNms ?? null })),
+    ccdHits: ccdHits.map((hit) => ({ bodyId: hit.bodyId, colliderId: colliderIds.get(hit.fixtureId)!,
+      toiFraction: hit.toiFraction, normalFixtureToBody: [...hit.normalFixtureToBody] })),
+    cloths: [], fluids: [], pairStats: { ...pairStats },
   };
 }
 
-export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
-  const input = record(config, 'world');
-  fields(input, ['fixedStepSeconds', 'gravityMps2', 'bodies', 'joints', 'broadPhase', 'contactMode', 'sceneMode'], 'world');
-  if (Object.hasOwn(input, 'sceneMode') && input.sceneMode !== 'large-v1') {
-    error('INVALID_CONFIG', 'sceneMode must be large-v1 when present');
-  }
-  if (Object.hasOwn(input, 'broadPhase') && input.broadPhase !== 'aabb') {
-    error('INVALID_CONFIG', 'broadPhase must be aabb when present');
-  }
-  if (Object.hasOwn(input, 'contactMode') && input.contactMode !== 'persistent-box-v1') {
-    error('INVALID_CONFIG', 'contactMode must be persistent-box-v1 when present');
-  }
-  const useAabb = input.broadPhase === 'aabb';
-  const usePersistentBox = input.contactMode === 'persistent-box-v1';
-  const largeMode = input.sceneMode === 'large-v1';
-  if (largeMode && (!useAabb || usePersistentBox || Object.hasOwn(input, 'joints'))) {
-    error('INVALID_CONFIG', 'large-v1 requires aabb and excludes joints and persistent-box-v1');
-  }
-  const dt = finite(input.fixedStepSeconds, 1 / 240, 1 / 30, 'fixedStepSeconds');
-  const gravity = vector(input.gravityMps2, -1000, 1000, 'gravityMps2');
-  const bodyLimit = largeMode ? MAX_LARGE_BODIES : MAX_BODIES;
-  if (!Array.isArray(input.bodies) || input.bodies.length < 1 || input.bodies.length > bodyLimit) {
-    error('INVALID_CONFIG', `bodies must contain 1..${bodyLimit} entries`);
-  }
-  if (usePersistentBox && input.bodies.length > 4) {
-    error('INVALID_CONFIG', 'persistent-box-v1 admits at most four bodies');
-  }
-  let bodies = input.bodies.map((value) => parseBody(value, largeMode));
-  if (largeMode && bodies.some((body) => body.ccd)) {
-    error('INVALID_CONFIG', 'large-v1 excludes CCD');
-  }
-  if (!bodies.some((body) => body.kind === 'dynamic')) error('INVALID_CONFIG', 'at least one dynamic body is required');
-  if (new Set(bodies.map((body) => body.id)).size !== bodies.length) error('INVALID_CONFIG', 'duplicate body ID');
-  const joints = parseJoints(Object.hasOwn(input, 'joints') ? input.joints : [], bodies);
-  const dynamicHinge = joints.find((joint) => joint.kind === 'hinge' &&
+export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): PhysicsWorld {
+  const admitted = admitModel(model, options);
+  const dt = admitted.options.fixedStepSeconds;
+  const gravity = [...admitted.model.gravityMps2] as Vec3;
+  const useAabb = admitted.options.broadPhase === 'aabb';
+  const usePersistentBox = admitted.options.profile === 'rigid-persistent-box-v1';
+  const largeMode = admitted.options.profile === 'rigid-large-v1';
+  let bodies = admitted.bodies;
+  let joints = admitted.joints;
+  let modelCopy: PhysicsModel | null = admitted.model;
+  const colliderIds = new Map(admitted.model.colliders.map((collider) => [collider.bodyId, collider.id]));
+  const identity: Identity = { modelRevision: admitted.model.revision,
+    modelDigest: digest(admitted.model), configurationDigest: digest(admitted.options),
+    providerDigest: digest(providerManifest), profile: admitted.options.profile,
+    frameId: admitted.model.frame.id, fixedStepSeconds: dt };
+  let dynamicHinge = joints.find((joint) => joint.kind === 'hinge' &&
     bodies[joint.aIndex].kind === 'dynamic');
   if (dynamicHinge) admitDynamicHingeScene(dynamicHinge, bodies, gravity);
-  const ccd = admitCcd(bodies, joints.length, gravity);
+  let ccd = admitCcd(bodies, joints.length, gravity);
   if (ccd.kind === 'box-pair' && usePersistentBox) {
     error('INVALID_CONFIG', 'box CCD excludes persistent-box-v1');
   }
@@ -109,11 +95,11 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
   let stepIndex = 0;
   let disposed = false;
   const ensureActive = () => { if (disposed) error('DISPOSED', 'world is disposed'); };
-  return {
-    getState() { ensureActive(); return publicState(bodies, contacts, events, jointStates, ccdHits, pairStats, stepIndex, dt); },
-    step(fixedStepSeconds, commands = []) {
+  const world: PhysicsWorld = {
+    getModel() { ensureActive(); return copyData(modelCopy!); },
+    getState() { ensureActive(); return publicState(bodies, contacts, events, jointStates, ccdHits, pairStats, stepIndex, dt, identity, colliderIds); },
+    step(commands = []) {
       ensureActive();
-      if (fixedStepSeconds !== dt) error('INVALID_STEP', 'step must equal configured fixedStepSeconds');
       if (stepIndex >= MAX_STEPS) error('WORLD_LIMIT', 'world step limit reached');
       const actions = parseCommands(commands, bodies);
       if (dynamicHinge) admitDynamicHingeCommands(dynamicHinge, bodies, actions);
@@ -288,7 +274,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
           error('NUMERIC_LIMIT', `${joints[index].id} exceeded motor reaction limit`);
         }
       }
-      const state = publicState(next, nextContacts, nextEvents, nextJoints, nextCcdHits, nextPairStats, stepIndex + 1, dt);
+      const state = publicState(next, nextContacts, nextEvents, nextJoints, nextCcdHits, nextPairStats, stepIndex + 1, dt, identity, colliderIds);
       bodies = next;
       contacts = nextContacts;
       events = nextEvents;
@@ -301,38 +287,63 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
       stepIndex++;
       return state;
     },
-    overlapSphere(input) {
+    query(input): QueryResult {
       ensureActive();
-      const query = queryRecord(input, ['centerM', 'radiusM'], ['includeSensors']);
-      const center = queryVector(query.centerM, 10000, 'centerM');
-      const radius = queryNumber(query.radiusM, 0.0001, 1000, 'radiusM');
-      const sensors = includeSensors(query);
-      return bodies.filter((body) => (sensors || !body.sensor) && sphereOverlaps(center, radius, body))
-        .map((body) => body.id).sort();
-    },
-    raycast(input) {
-      ensureActive();
-      const query = queryRecord(input, ['originM', 'direction', 'maxDistanceM'], ['includeSensors']);
+      const data = queryRecord(input, ['kind','includeSensors'], ['centerM','radiusM','originM','direction','maxDistanceM']);
+      const sensors = includeSensors(data);
+      if (data.kind === 'overlap-sphere') {
+        const query = queryRecord(data, ['kind','centerM','radiusM','includeSensors'], []);
+        const center = queryVector(query.centerM, 10000, 'centerM');
+        const radius = queryNumber(query.radiusM, 0.0001, 1000, 'radiusM');
+        return { kind: 'overlap-sphere', colliderIds: bodies.filter((body) => (sensors || !body.sensor) && sphereOverlaps(center, radius, body))
+          .map((body) => body.id).sort().map((id) => colliderIds.get(id)!) };
+      }
+      if (data.kind !== 'raycast') error('INVALID_QUERY', 'unsupported query kind');
+      const query = queryRecord(data, ['kind','originM','direction','maxDistanceM','includeSensors'], []);
       const origin = queryVector(query.originM, 10000, 'originM');
       const direction = queryVector(query.direction, 1 + 1e-9, 'direction');
-      if (Math.abs(Math.hypot(...direction) - 1) > 1e-9) {
-        error('INVALID_QUERY', 'direction must be a unit 3-vector');
-      }
+      if (Math.abs(Math.hypot(...direction) - 1) > 1e-9) error('INVALID_QUERY', 'direction must be a unit 3-vector');
       const limit = queryNumber(query.maxDistanceM, 0.0001, 10000, 'maxDistanceM');
-      const sensors = includeSensors(query);
       let best: PhysicsRayHit | null = null;
       for (const body of bodies) {
         if (!sensors && body.sensor) continue;
         const distance = rayDistance(origin, direction, body);
         if (distance === null || distance > limit) continue;
-        if (best === null || distance < best.distanceM ||
-          (distance === best.distanceM && body.id < best.bodyId)) {
-          best = { bodyId: body.id, distanceM: distance };
-        }
+        if (best === null || distance < best.distanceM || (distance === best.distanceM && body.id < best.bodyId)) best = { bodyId: body.id, distanceM: distance };
       }
-      return best;
+      return { kind: 'raycast', hit: best === null ? null : { ...best, colliderId: colliderIds.get(best.bodyId)! } };
     },
     dispose() { disposed = true; bodies = []; contacts = []; events = []; ccdHits = [];
-      activePairs.clear(); persistentPoints.clear(); sleepFrames = []; },
+      activePairs.clear(); persistentPoints.clear(); sleepFrames = []; jointStates = [];
+      joints = []; dynamicHinge = undefined; ccd = { kind: 'none' }; pairs.length = 0;
+      colliderIds.clear(); modelCopy = null; },
   };
+  let running = false;
+  function guarded<T>(operation: FailureDetails['operation'], action: () => T): T {
+    if (running) throw new PhysicsError('REENTRANT_CALL', 'World call is reentrant', {
+      operation, phase: 'lifecycle', domain: 'world', entityIds: [], accepted: { stepIndex, timeSeconds: stepIndex * dt } });
+    running = true;
+    try { return action(); }
+    catch (failure) {
+      if (!(failure instanceof PhysicsError)) throw failure;
+      const enriched = new PhysicsError(failure.code, failure.message, {
+        operation, phase: failure.code === 'DISPOSED' ? 'lifecycle' :
+          failure.code === 'WORLD_LIMIT' ? 'budget' : failure.code === 'NUMERIC_LIMIT' ? 'validation' : 'admission',
+        domain: 'rigid', entityIds: failure.details.entityIds,
+        accepted: { stepIndex, timeSeconds: stepIndex * dt } });
+      enriched.stack = failure.stack;
+      throw enriched;
+    } finally { running = false; }
+  }
+  const getModel = world.getModel;
+  const getState = world.getState;
+  const step = world.step;
+  const query = world.query;
+  const dispose = world.dispose;
+  world.getModel = () => guarded('read', getModel);
+  world.getState = () => guarded('read', getState);
+  world.step = (commands) => guarded('step', () => step(commands));
+  world.query = (input) => guarded('query', () => query(input));
+  world.dispose = () => guarded('read', dispose);
+  return world;
 }

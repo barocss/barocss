@@ -1,4 +1,4 @@
-import type { Body, Vec3 } from './types.js';
+import type { Body, Vec3 } from './internal-types.js';
 import { add, cross, dot, inverseInertia, scale, sub } from './math.js';
 
 export interface PointImpulse { normalNs: number; tangentNs: Vec3 }

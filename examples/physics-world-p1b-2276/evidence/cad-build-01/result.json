@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "exit": 0,
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "node_modules/typescript/bin/tsc",
+    "-p",
+    "packages/barocss-cad"
+  ],
+  "source": "observed terminal execution during this P1b turn; raw streams not separately captured",
+  "boundary": "CAD source unchanged; only local ignored dist build; compiled JS/declarations consumed by emitted/native checks"
+}

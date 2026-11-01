@@ -14,7 +14,7 @@ decisions remain in force. See [Physics verification](/reference/physics-verific
 | Need | Owning entry or API | Scope |
 | --- | --- | --- |
 | Rigid forward dynamics | `createPhysicsWorld` from `@barocss/physics` | Fixed-step primitive bodies, contacts, bounded joints and queries. Choose an admitted profile. |
-| One planar pendulum | `createPlanarPendulum` from the root | Local one-coordinate ODE, separate from the rigid world and its joint solver. |
+| One planar pendulum | Independent `examples/physics-planar-pendulum-reference/pendulum.ts` | Local one-coordinate ODE, separate from the rigid world and its joint solver. |
 | Static-box capsule sweep | `createUprightCapsuleQuery` from the root | Geometric query; no dynamic body or hidden clock. |
 | Upright capsule movement | `createUprightCapsuleController` from the root | Fixed upright capsule and immutable bounded box scene. No general character dynamics. |
 | CAD proxy admission and display mapping | `admitCadSurfaceProxy`, `assertCadProxyCurrent`, `cadProxyPose` from `@barocss/physics/cad-proxy` | Source-bound control-net sphere or box approximation. |
@@ -43,6 +43,12 @@ and no other body. Its radius is 0.1 m. Keep conversion code outside the step lo
 
 <<< @/../samples/physics-docs.test.mjs#world-fixture
 
+Pass `createPhysicsWorld(model, options)` a complete model and an explicit profile. The model separates
+rigid bodies, colliders and source bindings. Each body has an `initial` transform and motion. Each collider
+has its own geometry, local transform, material and filter. The options declare the fixed step and broad phase.
+`getModel()` returns a copy of the admitted input; `getState()` returns the accepted state and its identity.
+`step(commands?)` advances that configured step and takes no time argument.
+
 The world uses a configured fixed step. The sample compares 12 free-flight steps with the discrete
 semi-implicit Euler solution. Its position oracle includes the integrator's time-discretization term;
 it is not the continuous expression `p = p0 + v0*t + g*t²/2`.
@@ -59,7 +65,7 @@ These examples supply no contact, browser or hardware result.
 
 ## Apply a force or an impulse
 
-`step(dt, commands)` validates the commands before it advances a candidate. A `force` acts for this
+`step(commands)` validates the commands before it advances a candidate. A `force` acts for this
 one step, so its velocity change is `forceN * dt / massKg`. An `impulse` changes velocity once by
 `impulseNs / massKg`. Supply a force on each step when you need a sustained load.
 
@@ -73,9 +79,11 @@ holds its position and reports zero velocity when the next step has no target.
 
 ## Reduced planar pendulum
 
-This branch exports `createPlanarPendulum`. It solves one angle about a fixed +Z pivot at the origin,
+The independent example reference `createPlanarPendulum` solves one angle about a fixed +Z pivot at the origin,
 with gravity along −Y. It admits no contact geometry, motor, damping or joint network. It uses
 velocity Verlet and explicit COM or pivot inertia. Read the [unit and frame contract](./units-and-frames).
+
+<<< @/../samples/physics-docs.test.mjs#pendulum-reference-import
 
 <<< @/../samples/physics-docs.test.mjs#reduced-pendulum
 
@@ -84,14 +92,14 @@ experiment records period, matched-time state, convergence and energy-envelope c
 [Physics verification](/reference/physics-verification). The pendulum interface has `getState()`,
 `step(dt)` and `dispose()`. Create a new instance for a new initial state.
 
-The local export does not establish adoption by the active CAD checkout. The CAD-bound workflow
+The reference is outside the public package root. It does not establish adoption by the active CAD checkout. The CAD-bound workflow
 that authors a hinge, applies loads and displays free motion remains a separate product gate.
 It does not activate the original eight-box or two-hinge experiments.
 
 ## Select a bounded profile before creating a world
 
-The default world admits 1–32 bodies and uses one contact point per pair. The opt-in
-`persistent-box-v1` mode admits at most four bodies. `large-v1` admits up to 64 bodies with required
+The `rigid-discrete-v1` profile admits 1–32 bodies and uses one contact point per pair. The opt-in
+`rigid-persistent-box-v1` profile admits at most four bodies. `rigid-large-v1` admits up to 64 bodies with required
 AABB broad phase and excludes joints, CCD and persistent boxes. These capacities are admission
 bounds. They are not interchangeable stack-stability guarantees.
 
@@ -101,22 +109,30 @@ connecting a CAD or Robot host. Contact impulses and joint projection reactions 
 solver outputs. They are not calibrated mechanical loads.
 
 Source owners for this guide are `packages/barocss-physics/package.json` and
-`src/{index,types,world,limits,pendulum,cad-proxy,replay}.ts` in that package. The
+`src/{index,types,world,limits,cad-proxy,replay}.ts` in that package. The
 [verification page](/reference/physics-verification) keeps numerical evidence, geometry-only
 receipts, failed trajectories and product acceptance separate.
 
 
-## Planned common World contract
+## Common World transition
 
-The API described above currently has separate rigid, fluid and cloth runtime owners. Replay wraps a rigid world;
-CAD fluid wraps a fluid solver with one static obstacle. There is no cross-domain force exchange or atomic shared
-step. The [library roadmap](/physics-evidence/api-roadmap.txt) proposes one accepted World state and clock above
-separate numerical solvers, with replay as a service and CAD as an adapter. That target API is not implemented.
-A common facade cannot establish coupling: each admitted interaction needs its own numerical checks.
-The unreleased transition will update callers directly; it will not retain a parallel compatibility engine.
+The current rigid root uses the [model/state/command/failure contract](/physics-evidence/p0-contract.txt):
+`createPhysicsWorld(model, options)`, copied `getModel()` and `getState()`, `step(commands?)`, tagged `query(input)`
+and `dispose()`. State includes model, configuration and provider digests. It identifies bodies and colliders
+separately. The old root config and root reduced-pendulum factory are removed. There is no compatibility engine.
+
+Fluid and cloth still have separate runtime owners and clocks until their own model transition. They do not
+exchange forces with the rigid world. The current replay service owns one rigid world; attachment through a future
+`createPhysicsRecorder(world)` is P2 work. CAD admission emits a body, collider and source binding; it never steps a
+world. The [roadmap](/physics-evidence/api-roadmap.txt) and [migration contract](/physics-evidence/p0-migration.txt)
+separate these later transitions from this rigid root change. This API change does not establish coupling or a new
+numerical, Viewer, hardware or product acceptance result.
 
 
-P0 now fixes the proposed [model/state/command/failure contract](/physics-evidence/p0-contract.txt),
-[unexported target types](/physics-evidence/p0-types.txt) and
-[direct caller transition](/physics-evidence/p0-migration.txt). These documents do not change the current API shown
-above. Type checks and an inventory do not establish runtime integration, physical coupling or a numerical pass.
+## P1b local evidence status
+
+The rigid model/options cutover has selected source 8 / emitted 8 public checks,21 focused probes in each graph and
+a native local published-map runtime/declaration receipt (`examples/physics-world-p1b-2276/evidence/native-04`).
+These are checks of named providers, not a new numerical qualification. Five foundation entries pass 21 tests; documentation samples pass 174/174 and source mapping passes (`mapping-02`).
+Documentation build, site and scoped link checks pass. README examples compile and execute (`native-05`). Current host callsites bundle with the absent Viewer SDK explicitly external; full Viewer/DOM execution remains NOT_RUN. Independent reduced-ODE receipts remain reference
+results; P2 recorder attachment and P5 domain migration remain future work. Existing HOLD and NO_GO decisions stay in force.

@@ -1,10 +1,11 @@
+import {makeModel,dynamicPart,staticPart} from '../physics-model-input/model.mjs';
 /**
  * #1572 internal-cache research entry.
  * MUST run only through instrument-private-cache.mjs, which instruments a
  * temporary esbuild graph. The production Physics API and files stay unchanged.
  */
 import {createPhysicsWorld} from '../../packages/barocss-physics/src/index.js';
-import type {PhysicsBodyConfig,PhysicsWorldConfig,PhysicsState} from '../../packages/barocss-physics/src/types.js';
+import type {PhysicsState} from '../../packages/barocss-physics/src/types.js';
 
 type CacheEvent =
  | {kind:'manifold',step:number,pass:number,pointCount:number,fallback:boolean}
@@ -20,12 +21,12 @@ type CacheEvent =
 // public World state, not the private per-iteration point-speed or friction law.
 // Comparing consecutive accepted snapshots is only a temporal correlation.
 function acceptedContactSlip(state:PhysicsState):number|null{
-  const c=state.contacts.find(contact=>contact.aId==='b0'&&contact.bId==='b1');
+  const c=state.contacts.find(contact=>contact.bodyAId==='b0'&&contact.bodyBId==='b1');
   if(!c)return null;
-  const a=state.bodies.find(body=>body.id===c.aId);
-  const b=state.bodies.find(body=>body.id===c.bId);
+  const a=state.bodies.find(body=>body.id===c.bodyAId);
+  const b=state.bodies.find(body=>body.id===c.bodyBId);
   if(!a||!b)return null;
-  const cross=(u:number[],v:number[])=>[
+  const cross=(u:readonly number[],v:readonly number[])=>[
     u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];
   const at=(body:typeof a)=>{
     const arm=c.pointM.map((v,i)=>v-body.positionM[i]);
@@ -38,20 +39,13 @@ function acceptedContactSlip(state:PhysicsState):number|null{
 }
 
 const dt=1/120;
-const floor:PhysicsBodyConfig={id:'floor',kind:'static',
-  shape:{kind:'box',halfExtentsM:[2,.1,2]},positionM:[0,-.1,0],
-  restitution:0,friction:{static:1,dynamic:.7}};
-function box(i:number,mode:'OFFSET'|'YAW'):PhysicsBodyConfig {
+const floor=staticPart('floor',{kind:'box',halfExtentsM:[2,.1,2]},{positionM:[0,-.1,0]},{restitution:0,friction:{static:1,dynamic:.7}});
+function box(i:number,mode:'OFFSET'|'YAW') {
   const yaw=mode==='YAW'?(i%2===0?.05:-.05):0;
-  return {id:`b${i}`,kind:'dynamic',shape:{kind:'box',halfExtentsM:[.25,.25,.25]},
-    positionM:[(i%2)*.05,.25+i*.5,0],velocityMps:[0,0,0],massKg:1,
-    orientation:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)],
-    restitution:0,friction:{static:1,dynamic:.7}};
+  return dynamicPart(`b${i}`,{kind:'box',halfExtentsM:[.25,.25,.25]},{positionM:[(i%2)*.05,.25+i*.5,0],velocityMps:[0,0,0],orientationXYZW:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)]},1,{restitution:0,friction:{static:1,dynamic:.7}});
 }
 for(const mode of ['OFFSET','YAW'] as const){
-  const config:PhysicsWorldConfig={fixedStepSeconds:dt,gravityMps2:[0,-9.81,0],
-    contactMode:'persistent-box-v1',
-    bodies:[floor,box(0,mode),box(1,mode),box(2,mode)]};
+  const config={model:makeModel({gravityMps2:[0,-9.81,0],parts:[floor,box(0,mode),box(1,mode),box(2,mode)]}),options:{profile:'rigid-persistent-box-v1',fixedStepSeconds:dt,broadPhase:'direct'} as const};
   const counters={manifoldPasses:0,fallbackPasses:0,pointFresh:0,pointReused:0,
     priorNormalSumNs:0,priorTangentSumNs:0,framesWithCache:0,peakCachedPoints:0};
   const perStep=new Map<number,{fallbackPasses:number,manifoldPasses:number,fresh:number,reused:number}>();
@@ -95,7 +89,7 @@ for(const mode of ['OFFSET','YAW'] as const){
       }
       perStep.set(event.step,row);
     };
-  const world=createPhysicsWorld(config);
+  const world=createPhysicsWorld(config.model,config.options);
   let accepted=0,firstFailure:string|null=null;
   const samples:unknown[]=[];
   const transitionSamples:unknown[]=[];
@@ -106,7 +100,7 @@ for(const mode of ['OFFSET','YAW'] as const){
     for(let step=1;step<=1200;step++){
       try{
         const priorSlip=acceptedContactSlip(world.getState());
-        const state=world.step(dt);accepted=step;
+        const state=world.step();accepted=step;
         const slip=acceptedContactSlip(state);
         const stepCache=perStep.get(step)??{fallbackPasses:0,manifoldPasses:0,fresh:0,reused:0};
         if(priorSlip!==null&&slip!==null){

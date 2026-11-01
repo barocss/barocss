@@ -1,5 +1,5 @@
 import { PhysicsError } from '../types.js';
-import type { Vec3 } from '../types.js';
+import type { Vec3 } from '../internal-types.js';
 import { insideBasin } from './boundary.js';
 import { FLUID_BASIN_M, FLUID_COUNT, FLUID_MAX_STEPS, FLUID_STEP_SECONDS } from './constants.js';
 import { fluidDiagnostics } from './diagnostics.js';

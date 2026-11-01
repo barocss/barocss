@@ -1,4 +1,4 @@
-import type { Vec3, Quat } from '../types.js';
+import type { Vec3, Quat } from '../internal-types.js';
 import type { CapsuleQuerySceneV1, CapsuleSweepInputV1, CapsuleSweepHitV1 } from '../capsule-query.js';
 
 export interface CapsuleControllerConfigV1 {

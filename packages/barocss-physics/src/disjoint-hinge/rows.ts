@@ -1,4 +1,4 @@
-import type {Body,Joint,Vec3} from '../types.js';
+import type {Body,Joint,Vec3} from '../internal-types.js';
 import {sub,cross,rotate} from '../math.js';
 import type {BodyMetrics} from './measure.js';
 import {fail,finiteData} from './errors.js';

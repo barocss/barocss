@@ -139,8 +139,10 @@ boundary work records this correction and connects the actual runner path. The o
 ## Reproduce and inspect provenance
 
 Use a checkout that contains the named source revisions and its existing project dependencies. Do not overwrite
-existing run IDs. Apply the repository's heavy-lane gate before numerical campaigns. These are opt-in numerical
-commands, not steps performed by a documentation build:
+existing run IDs. Apply the repository's heavy-lane gate before numerical campaigns. These are historical checkpoint reproduction commands, not current P1b root qualification or steps performed
+by a documentation build. The original boundary-research entries now forward to a provider pinned at parent
+`0be1dffb8`; their preserved records retain that historical meaning. Use the current P1b slice runner and receipts
+for the new model/options API. Do not treat a successful archived provider run as a current-root result:
 
 ```sh
 # From the repository root, with the supported Node 22 runtime.
@@ -166,6 +168,31 @@ The [P1a report](/physics-evidence/p1a-report.txt) records a later software reli
 prepares its returned copy before committing accepted state, and replay prepares its next log before advancing.
 Test-only preparation exceptions reproduce the old post-exception advance/log mismatch. Fixed source and actual
 emitted root/replay pass the selected continuation checks; ordinary uninstrumented consumers and the unchanged
-five independent rigid/contact tests pass separately. The original public signatures and numerical laws remain.
-This does not implement the proposed common model API, fix cloth/fluid hidden-state ownership, clear HOLDs or
+five independent rigid/contact tests pass separately. At that P1a checkpoint the original public signatures and numerical laws remained.
+That checkpoint did not implement the proposed common model API, fix cloth/fluid hidden-state ownership, clear HOLDs or
 replace the original hinge and eight-box NO_GO. Deterministic continuation is distinct from physical accuracy.
+
+
+## P1b API cutover and verification limits
+
+The current unreleased rigid root now accepts `createPhysicsWorld(model,options)`, copies admitted model and accepted
+state, steps only its configured interval, and returns tagged collider queries. Replay scenes now contain explicit
+model/options/identity. The sole snapshot wire codec uses `BCPHSNP1` plus canonical typed bytes, preserving signed
+zero. The reduced pendulum is an independent reference example outside the public root. These API changes add no
+new collision, joint or domain law and do not widen any numerical acceptance gate.
+
+The local P1b slice has recorded 8 selected source public tests, 8 emitted public tests and 21 focused probes per graph.
+The native published-map runtime and strict declaration checks passed in
+`examples/physics-world-p1b-2276/evidence/native-04/result.json`. Source and emitted provider identities remain
+separate. Five foundation entries pass 21 tests, current docs samples pass 174/174, and source mapping passes (`mapping-02`).
+Documentation site checks, build and scoped links pass. Four README blocks compile and execute in `native-05`.
+Seven current host callsites bundle with the absent Viewer SDK explicitly external (`hosts-03`); full Viewer/DOM
+execution remains NOT_RUN. The basic HTTP startup/bundle/close and idempotent provider refresh pass (`server-01`). The existing tables above remain attributed to their
+original numerical providers. P1a pinned injection runners remain historical, and original failed reports are retained.
+
+Selected #1572 diagnostic commands exit normally, but their three-box OFFSET and YAW reductions retain
+`BOUNDED_SETTLING_NO_GO`. The collision reference is producer-only; these are not independent eight-box passes.
+
+P2 recorder attachment/exclusive advancing ownership, common fluid/cloth migration, Viewer product acceptance,
+hardware and manufacturing remain outside this cutover. Existing Physics/Studio/manufacturing HOLDs, public
+multi-hinge and original-stack NO_GO decisions and all original first-failure tolerances remain unchanged.

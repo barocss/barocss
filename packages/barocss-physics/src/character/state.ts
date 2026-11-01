@@ -1,5 +1,5 @@
 import { PhysicsError } from '../capsule-query-error.js';
-import type { Vec3 } from '../types.js';
+import type { Vec3 } from '../internal-types.js';
 import { DT, PROFILE } from './profile.js';
 import { clone, norm } from './math.js';
 import type { CharacterState, CapsuleControllerStateV1, ErrorRecord } from './types.js';

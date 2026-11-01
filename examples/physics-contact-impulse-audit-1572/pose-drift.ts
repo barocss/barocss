@@ -1,7 +1,7 @@
 /** #1572 bounded pose/rotation probe; private reference, NOT a full PhysicsWorld.
  * run: npx tsx examples/physics-contact-impulse-audit-1572/pose-drift.ts
  */
-import type { Body, Vec3 } from '../../packages/barocss-physics/src/types.js';
+import type { Body, Vec3 } from '../../packages/barocss-physics/src/internal-types.js';
 import { solvePersistentPoint, type PointImpulse } from '../../packages/barocss-physics/src/persistent-box-contact.js';
 import { advanceOrientation } from '../../packages/barocss-physics/src/math.js';
 const v=(x=0,y=0,z=0):Vec3=>[x,y,z];

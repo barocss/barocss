@@ -1,4 +1,4 @@
-import type { Body, PhysicsBodyState } from '../types.js';
+import type { Body, PhysicsBodyState } from '../internal-types.js';
 import { copyBody, copyShape } from '../validation.js';
 import { projectHingePoseVelocity } from './projection.js';
 import { makeReport, enforceHingeMotorReactionCap } from './report.js';

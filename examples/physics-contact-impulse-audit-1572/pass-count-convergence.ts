@@ -1,3 +1,4 @@
+import {makeModel,dynamicPart,staticPart} from '../physics-model-input/model.mjs';
 /**
  * #1572 counterfactual: identical public three-cube OFFSET/YAW fixtures,
  * identical Physics solver and material laws; vary ONLY outer solver pass count and
@@ -5,7 +6,7 @@
  * Never claim an eight-box or public API acceptance from three-box evidence.
  */
 import {createPhysicsWorld} from '../../packages/barocss-physics/src/index.js';
-import type {PhysicsBodyConfig,PhysicsWorldConfig} from '../../packages/barocss-physics/src/types.js';
+
 type Scene='OFFSET'|'YAW';
 type Order='baseline'|'supportUp';
 type Passes=8|16|32;
@@ -15,32 +16,23 @@ const globals=globalThis as typeof globalThis & {
   __p1572PassCount?:Passes;
   __p1572PairVisit?: (event:{step:number,pass:number,pair:string})=>void;
 };
-const floor:PhysicsBodyConfig={
-  id:'floor',kind:'static',shape:{kind:'box',halfExtentsM:[2,.1,2]},
-  positionM:[0,-.1,0],restitution:0,friction:{static:1,dynamic:.7}
-};
-function cube(i:number,scene:Scene):PhysicsBodyConfig{
+const floor=staticPart('floor',{kind:'box',halfExtentsM:[2,.1,2]},{positionM:[0,-.1,0]},{restitution:0,friction:{static:1,dynamic:.7}});
+function cube(i:number,scene:Scene){
   const yaw=scene==='YAW'?(i%2===0?.05:-.05):0;
-  return {id:'b'+i,kind:'dynamic',shape:{kind:'box',halfExtentsM:[.25,.25,.25]},
-    positionM:[(i%2)*.05,.25+.5*i,0],velocityMps:[0,0,0],massKg:1,
-    orientation:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)],
-    restitution:0,friction:{static:1,dynamic:.7}};
+  return dynamicPart('b'+i,{kind:'box',halfExtentsM:[.25,.25,.25]},{positionM:[(i%2)*.05,.25+.5*i,0],velocityMps:[0,0,0],orientationXYZW:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)]},1,{restitution:0,friction:{static:1,dynamic:.7}});
 }
 function run(scene:Scene,order:Order,passes:Passes){
   globals.__p1572PairOrder=order;
   globals.__p1572PassCount=passes;
   const inputs=[cube(0,scene),cube(1,scene),cube(2,scene)];
-  const worldConfig:PhysicsWorldConfig={
-    fixedStepSeconds:dt,gravityMps2:[0,-9.81,0],
-    contactMode:'persistent-box-v1',bodies:[floor,...inputs]
-  };
+  const worldConfig={model:makeModel({gravityMps2:[0,-9.81,0],parts:[floor,...inputs]}),options:{profile:'rigid-persistent-box-v1',fixedStepSeconds:dt,broadPhase:'direct'} as const};
   const seen=new Map<number,string[]>();
   globals.__p1572PairVisit=event=>{
     if(event.step!==1)return;
     const value=seen.get(event.pass)??[];
     value.push(event.pair);seen.set(event.pass,value);
   };
-  const world=createPhysicsWorld(worldConfig);
+  const world=createPhysicsWorld(worldConfig.model,worldConfig.options);
   let accepted=0,firstFailure:string|null=null;
   let maxHorizontalFromInitialM=0,maxLinearSpeedMps=0,maxAngularSpeedRadps=0;
   let maxReportedPenetrationM=0,maxVerticalDriftM=0;
@@ -50,7 +42,7 @@ function run(scene:Scene,order:Order,passes:Passes){
   try{
     for(let step=1;step<=steps;step++){
       try{
-        const state=world.step(dt);
+        const state=world.step();
         if(state.stepIndex!==step)throw Error('PAIR_ORDER_BAD_STEP_CURSOR');
         for(const contact of state.contacts){
           if(!Number.isFinite(contact.penetrationM))throw Error('PAIR_ORDER_NONFINITE_CONTACT');
@@ -59,14 +51,14 @@ function run(scene:Scene,order:Order,passes:Passes){
         const dynamic=state.bodies.filter(b=>b.kind==='dynamic');
         for(const body of dynamic){
           if(![...body.positionM,...body.velocityMps,...body.angularVelocityRadps,
-            ...body.orientation].every(Number.isFinite))throw Error('PAIR_ORDER_NONFINITE_BODY');
+            ...body.orientationXYZW].every(Number.isFinite))throw Error('PAIR_ORDER_NONFINITE_BODY');
           finalX[body.id]=body.positionM[0];
           if(step===960)referenceY.set(body.id,body.positionM[1]);
           if(step>960){
-            const initial=inputs.find(item=>item.id===body.id)!;
+            const initial=inputs.find(item=>item.body.id===body.id)!;
             maxHorizontalFromInitialM=Math.max(maxHorizontalFromInitialM,
-              Math.hypot(body.positionM[0]-initial.positionM[0],
-                body.positionM[2]-initial.positionM[2]));
+              Math.hypot(body.positionM[0]-initial.body.initial.positionM[0],
+                body.positionM[2]-initial.body.initial.positionM[2]));
             maxLinearSpeedMps=Math.max(maxLinearSpeedMps,Math.hypot(...body.velocityMps));
             maxAngularSpeedRadps=Math.max(maxAngularSpeedRadps,
               Math.hypot(...body.angularVelocityRadps));

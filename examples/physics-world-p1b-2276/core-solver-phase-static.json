@@ -1,0 +1,12 @@
+{
+  "kind": "static-byte-comparison",
+  "baseline": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+  "path": "packages/barocss-physics/src/world.ts",
+  "startAnchor": "const actions = parseCommands",
+  "endExclusiveAnchor": "const state = publicState",
+  "equal": true,
+  "baselineSha256": "89bdece7bf2c4293f4764710fedad54ca70a21d88d2182aa17e8484b4770eaf7",
+  "currentSha256": "89bdece7bf2c4293f4764710fedad54ca70a21d88d2182aa17e8484b4770eaf7",
+  "bytes": 9682,
+  "proofBoundary": "Exact candidate solver source phase only. Constructor, metadata, serialization, query and public state mapping are outside this slice; no broad numerical qualification inferred."
+}

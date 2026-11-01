@@ -1,20 +1,23 @@
 import assert from 'node:assert/strict';
-import { createPlanarPendulum, createPhysicsWorld, PhysicsError } from '@barocss/physics';
-import type { PlanarPendulum, PlanarPendulumConfig, PlanarPendulumState, PhysicsWorld } from '@barocss/physics';
+import { createPhysicsWorld, PhysicsError } from '@barocss/physics';
+import type { PhysicsModel, PhysicsWorld } from '@barocss/physics';
 
-const config: PlanarPendulumConfig = { massKg: 2, comDistanceM: 0.6,
-  inertia: { about: 'com', kgM2: 0.2 }, gravityMps2: 9.80665,
-  initialAngleRad: 0.5, initialAngularVelocityRadps: 0, fixedStepSeconds: 1 / 120 };
-const pendulum: PlanarPendulum = createPlanarPendulum(config);
-const state: PlanarPendulumState = pendulum.step(config.fixedStepSeconds);
-assert.equal(state.stepIndex, 1);
-assert.ok(state.angleRad < config.initialAngleRad);
-assert.ok(state.angularVelocityRadps < 0);
-const world: PhysicsWorld = createPhysicsWorld({ fixedStepSeconds: 1 / 120, gravityMps2: [0, 0, 0],
-  bodies: [{ id: 'sphere', kind: 'dynamic', shape: { kind: 'sphere', radiusM: 0.1 }, massKg: 1,
-    positionM: [0, 0, 0], velocityMps: [0, 0, 0], restitution: 0 }] });
-assert.equal(world.step(1 / 120).stepIndex, 1);
-pendulum.dispose(); pendulum.dispose(); world.dispose();
-assert.throws(() => pendulum.getState(), (error: unknown) => error instanceof PhysicsError && error.code === 'DISPOSED');
+// Native Node consumer of emitted declarations and root. Reduced ODE proofs live in pendulum.test.ts.
+const model: PhysicsModel = { format: 'barocss-physics-model', version: 1, revision: 'publicConsumer1',
+  frame: { id: 'world', basis: 'right-handed-xyz', rotation: 'local-to-world-xyzw' },
+  units: { length: 'm', mass: 'kg', time: 's', angle: 'rad' }, gravityMps2: [0, 0, 0],
+  bodies: [{ id: 'sphere', kind: 'dynamic', massKg: 1,
+    inertia: { kind: 'primitive-com', about: 'com', frame: 'body-local' },
+    initial: { positionM: [0, 0, 0], orientationXYZW: [0, 0, 0, 1],
+      velocityMps: [0, 0, 0], angularVelocityRadps: [0, 0, 0] } }],
+  colliders: [{ id: 'sphere.shape', bodyId: 'sphere', geometry: { kind: 'sphere', radiusM: 0.1 },
+    local: { positionM: [0, 0, 0], orientationXYZW: [0, 0, 0, 1] },
+    material: { restitution: 0, friction: { static: 0, dynamic: 0 } }, sensor: false, ccd: false,
+    filter: { categoryBits: 1, maskBits: 65535 } }], joints: [], cloths: [], fluids: [], sourceBindings: [] };
+const world: PhysicsWorld = createPhysicsWorld(model,
+  { profile: 'rigid-discrete-v1', fixedStepSeconds: 1 / 120, broadPhase: 'direct' });
+assert.equal(world.step().stepIndex, 1);
+world.dispose(); world.dispose();
+assert.throws(() => world.getState(), (error: unknown) => error instanceof PhysicsError && error.code === 'DISPOSED');
 console.log(JSON.stringify({ publicSpecifier: '@barocss/physics', emittedDeclarations: true,
-  nativeNodeResolution: true, pendulumStep: state.stepIndex, worldUnchanged: true }));
+  nativeNodeResolution: true, worldUnchanged: true, reducedPendulum: 'independent-reference-test' }));

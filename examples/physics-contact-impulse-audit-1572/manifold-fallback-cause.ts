@@ -1,20 +1,19 @@
+import {makeModel,dynamicPart,staticPart} from '../physics-model-input/model.mjs';
 /** #1572 test-only classify source Manifold fallback: strict reference face
  * alignment versus clipped incident face emptiness, and compare to the actual
  * b0/b1 contact fallbacks in original OFFSET/YAW 3-box PhysicsWorld scenes.
  * No production Physics kernel change.
  */
 import {createPhysicsWorld} from '../../packages/barocss-physics/src/index.js';
-import type {PhysicsBodyConfig,PhysicsWorldConfig} from '../../packages/barocss-physics/src/types.js';
+
 type V=[number,number,number];
 type Event={step:number,pass:number,pair:string,manifoldCount:number,hasManifold:boolean,
   maxAlignmentA:number,maxAlignmentB:number,normal:V};
 const dt=1/120,steps=1200;
-const floor:PhysicsBodyConfig={id:'floor',kind:'static',shape:{kind:'box',halfExtentsM:[2,.1,2]},positionM:[0,-.1,0],restitution:0,friction:{static:1,dynamic:.7}};
-function cube(i:number,mode:'OFFSET'|'YAW'):PhysicsBodyConfig{
+const floor=staticPart('floor',{kind:'box',halfExtentsM:[2,.1,2]},{positionM:[0,-.1,0]},{restitution:0,friction:{static:1,dynamic:.7}});
+function cube(i:number,mode:'OFFSET'|'YAW'){
  const yaw=mode==='YAW'?(i%2===0?.05:-.05):0;
- return {id:'b'+i,kind:'dynamic',shape:{kind:'box',halfExtentsM:[.25,.25,.25]},
- positionM:[(i%2)*.05,.25+.5*i,0],velocityMps:[0,0,0],massKg:1,
- orientation:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)],restitution:0,friction:{static:1,dynamic:.7}};
+ return dynamicPart('b'+i,{kind:'box',halfExtentsM:[.25,.25,.25]},{positionM:[(i%2)*.05,.25+.5*i,0],velocityMps:[0,0,0],orientationXYZW:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)]},1,{restitution:0,friction:{static:1,dynamic:.7}});
 }
 const host=globalThis as typeof globalThis&{__p1572FaceCauseProbe?:(e:Event)=>void};
 for(const mode of ['OFFSET','YAW'] as const){
@@ -43,11 +42,10 @@ for(const mode of ['OFFSET','YAW'] as const){
      manifoldCount:e.manifoldCount,normal:e.normal});
   }
  };
- const world=createPhysicsWorld({fixedStepSeconds:dt,gravityMps2:[0,-9.81,0],
-  contactMode:'persistent-box-v1',bodies:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]});
+ const world=createPhysicsWorld(makeModel({gravityMps2:[0,-9.81,0],parts:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]}),{profile:'rigid-persistent-box-v1',fixedStepSeconds:dt,broadPhase:'direct'});
  let accepted=0,firstFailure:string|null=null;
  try{for(let step=1;step<=steps;step++){
-  try{world.step(dt);accepted=step;}catch(e){firstFailure=e instanceof Error?e.message:String(e);break;}
+  try{world.step();accepted=step;}catch(e){firstFailure=e instanceof Error?e.message:String(e);break;}
  }}finally{world.dispose();delete host.__p1572FaceCauseProbe;}
  if(stats.passesWithHit!==1200*8||stats.fallback!==stats.referenceFaceIneligible+stats.clipOrSeparationRejected)
   throw Error('P1572_FACE_MISSING_SAMPLES');

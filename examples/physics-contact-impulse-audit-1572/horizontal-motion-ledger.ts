@@ -1,3 +1,4 @@
+import {makeModel,dynamicPart,staticPart} from '../physics-model-input/model.mjs';
 /**
  * #1572: Decompose horizontal motion in the ORIGINAL public OFFSET/YAW
  * three-box subsets into free integration vs collision/position phases.
@@ -5,7 +6,7 @@
  * No production source or public API changes. No 8-box qualification.
  */
 import {createPhysicsWorld} from '../../packages/barocss-physics/src/index.js';
-import type {PhysicsBodyConfig,PhysicsBodyState,PhysicsWorldConfig} from '../../packages/barocss-physics/src/types.js';
+import type {BodyState} from '../../packages/barocss-physics/src/types.js';
 
 type Mode='OFFSET'|'YAW';
 type Prediction={id:string,x:number,vx:number};
@@ -14,18 +15,13 @@ type Ledger={sumSignedIntegratedDx:number,sumSignedContactDx:number,sumSignedNet
  sumAbsIntegratedDx:number,sumAbsContactDx:number,maxAbsContactDx:number,
  sumAbsContactDvx:number,maxAbsContactDvx:number,startingX:number,finalX:number};
 const dt=1/120,steps=1200;
-const floor:PhysicsBodyConfig={id:'floor',kind:'static',
- shape:{kind:'box',halfExtentsM:[2,.1,2]},positionM:[0,-.1,0],
- restitution:0,friction:{static:1,dynamic:.7}};
-function cube(i:number,mode:Mode):PhysicsBodyConfig{
+const floor=staticPart('floor',{kind:'box',halfExtentsM:[2,.1,2]},{positionM:[0,-.1,0]},{restitution:0,friction:{static:1,dynamic:.7}});
+function cube(i:number,mode:Mode){
  const yaw=mode==='YAW'?(i%2===0?.05:-.05):0;
- return {id:`b${i}`,kind:'dynamic',shape:{kind:'box',halfExtentsM:[.25,.25,.25]},
-  positionM:[(i%2)*.05,.25+.5*i,0],velocityMps:[0,0,0],massKg:1,
-  orientation:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)],
-  restitution:0,friction:{static:1,dynamic:.7}};
+ return dynamicPart(`b${i}`,{kind:'box',halfExtentsM:[.25,.25,.25]},{positionM:[(i%2)*.05,.25+.5*i,0],velocityMps:[0,0,0],orientationXYZW:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)]},1,{restitution:0,friction:{static:1,dynamic:.7}});
 }
 const probe=globalThis as typeof globalThis & {__physics1572HorizontalProbe?: (event:Event)=>void};
-function getBody(states:PhysicsBodyState[],id:string):PhysicsBodyState{
+function getBody(states:readonly BodyState[],id:string):BodyState{
  const b=states.find(item=>item.id===id);
  if(!b)throw Error('P1572_MISSING_BODY:'+id);
  return b;
@@ -38,30 +34,29 @@ for(const mode of ['OFFSET','YAW'] as const){
   predictionByStep.set(event.step,event.predicted);
  };
  const inputs=[cube(0,mode),cube(1,mode),cube(2,mode)];
- const config:PhysicsWorldConfig={fixedStepSeconds:dt,gravityMps2:[0,-9.81,0],
-  contactMode:'persistent-box-v1',bodies:[floor,...inputs]};
- const world=createPhysicsWorld(config);
- const metric=new Map<string,Ledger>(inputs.map(b=>[b.id,{
+ const config={model:makeModel({gravityMps2:[0,-9.81,0],parts:[floor,...inputs]}),options:{profile:'rigid-persistent-box-v1',fixedStepSeconds:dt,broadPhase:'direct'} as const};
+ const world=createPhysicsWorld(config.model,config.options);
+ const metric=new Map<string,Ledger>(inputs.map(b=>[b.body.id,{
   sumSignedIntegratedDx:0,sumSignedContactDx:0,sumSignedNetDx:0,
   sumAbsIntegratedDx:0,sumAbsContactDx:0,maxAbsContactDx:0,
   sumAbsContactDvx:0,maxAbsContactDvx:0,
-  startingX:b.positionM[0],finalX:b.positionM[0]}]));
+  startingX:b.body.initial.positionM[0],finalX:b.body.initial.positionM[0]}]));
  let accepted=0,firstFailure:string|null=null;
  const samples:unknown[]=[];
  try{
   for(let step=1;step<=steps;step++){
    try{
     const before=world.getState();
-    const after=world.step(dt);
+    const after=world.step();
     if(after.stepIndex!==step)throw Error('P1572_STEP_CURSOR');
     const predicted=predictionByStep.get(step);
     if(!predicted)throw Error('P1572_MISSING_PREDICTION:'+step);
     const perBody=[];
     for(const initial of inputs){
-     const previous=getBody(before.bodies,initial.id);
-     const result=getBody(after.bodies,initial.id);
-     const predictedBody=predicted.find(x=>x.id===initial.id);
-     if(!predictedBody)throw Error('P1572_MISSING_PREDICTED_BODY:'+initial.id);
+     const previous=getBody(before.bodies,initial.body.id);
+     const result=getBody(after.bodies,initial.body.id);
+     const predictedBody=predicted.find(x=>x.id===initial.body.id);
+     if(!predictedBody)throw Error('P1572_MISSING_PREDICTED_BODY:'+initial.body.id);
      const integratedDx=predictedBody.x-previous.positionM[0];
      const postIntegrationDx=result.positionM[0]-predictedBody.x;
      const netDx=result.positionM[0]-previous.positionM[0];
@@ -70,7 +65,7 @@ for(const mode of ['OFFSET','YAW'] as const){
        throw Error('P1572_NONFINITE_LEDGER:'+step);
      if(Math.abs((integratedDx+postIntegrationDx)-netDx)>1e-12)
        throw Error('P1572_LEDGER_MISMATCH:'+step);
-     const m=metric.get(initial.id)!;
+     const m=metric.get(initial.body.id)!;
      m.sumSignedIntegratedDx+=integratedDx;
      m.sumSignedContactDx+=postIntegrationDx;
      m.sumSignedNetDx+=netDx;
@@ -80,7 +75,7 @@ for(const mode of ['OFFSET','YAW'] as const){
      m.sumAbsContactDvx+=Math.abs(contactDvx);
      m.maxAbsContactDvx=Math.max(m.maxAbsContactDvx,Math.abs(contactDvx));
      m.finalX=result.positionM[0];
-     if(step===1||step%120===0)perBody.push({id:initial.id,
+     if(step===1||step%120===0)perBody.push({id:initial.body.id,
        integratedDx,postIntegrationDx,netDx,contactDvx,
        cumulativeIntegratedDx:m.sumSignedIntegratedDx,
        cumulativePostIntegrationDx:m.sumSignedContactDx});

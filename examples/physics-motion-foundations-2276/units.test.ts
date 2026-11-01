@@ -36,23 +36,23 @@ test('public CAD proxy: off-origin 100 mm span becomes 0.1 m with explicit appro
   vectorError(proxy.sourceBoundsMM.min, [20, -30, 40], MM_TOL);
   vectorError(proxy.sourceBoundsMM.max, [120, 10, 100], MM_TOL);
   vectorError(proxy.sourceCenterMM, [70, -10, 70], MM_TOL);
-  assert.equal(proxy.body.shape.kind, 'box');
-  if (proxy.body.shape.kind !== 'box') throw new Error('expected admitted box');
-  let maxAdmissionErrorM = vectorError(proxy.body.shape.halfExtentsM, [0.05, 0.02, 0.03], M_TOL);
-  maxAdmissionErrorM = Math.max(maxAdmissionErrorM, vectorError(proxy.body.positionM, [0.17, -0.01, 0.07], M_TOL));
-  const spanM = proxy.body.shape.halfExtentsM[0] * 2;
+  assert.equal(proxy.collider.geometry.kind, 'box');
+  if (proxy.collider.geometry.kind !== 'box') throw new Error('expected admitted box');
+  let maxAdmissionErrorM = vectorError(proxy.collider.geometry.halfExtentsM, [0.05, 0.02, 0.03], M_TOL);
+  maxAdmissionErrorM = Math.max(maxAdmissionErrorM, vectorError(proxy.body.initial.positionM, [0.17, -0.01, 0.07], M_TOL));
+  const spanM = proxy.collider.geometry.halfExtentsM[0] * 2;
   near(spanM, 0.1, M_TOL);
   near((proxy.sourceBoundsMM.max[0] - proxy.sourceBoundsMM.min[0]) / 1000, spanM, M_TOL);
-  const pose = cadProxyPose(proxy, { id: proxy.bodyId, positionM: [...proxy.body.positionM], orientation: [0, 0, 0, 1] }, source, input.sourceRevision);
+  const pose = cadProxyPose(proxy, { id: proxy.bodyId, positionM: [...proxy.body.initial.positionM], orientationXYZW: [0, 0, 0, 1] }, source, input.sourceRevision);
   const maxIdentityDisplayErrorMm = vectorError(pose.translation, [100, 0, 0], MM_TOL);
   assert.match(proxy.lossLabel, /Control-net axis-aligned box/);
   assert.match(proxy.lossLabel, /native Surface geometry is not the collision shape/);
   const sphere = admitCadSurfaceProxy(source, { ...input, proxy: 'sphere' });
-  assert.equal(sphere.body.shape.kind, 'sphere');
-  if (sphere.body.shape.kind !== 'sphere') throw new Error('expected admitted sphere');
+  assert.equal(sphere.collider.geometry.kind, 'sphere');
+  if (sphere.collider.geometry.kind !== 'sphere') throw new Error('expected admitted sphere');
   const expectedRadiusM = Math.sqrt(0.05 ** 2 + 0.02 ** 2 + 0.03 ** 2);
-  const sphereRadiusErrorM = Math.abs(sphere.body.shape.radiusM - expectedRadiusM);
-  near(sphere.body.shape.radiusM, expectedRadiusM, M_TOL);
+  const sphereRadiusErrorM = Math.abs(sphere.collider.geometry.radiusM - expectedRadiusM);
+  near(sphere.collider.geometry.radiusM, expectedRadiusM, M_TOL);
   assert.match(sphere.lossLabel, /Control-net enclosing sphere/);
   assert.match(sphere.lossLabel, /native Surface geometry is not the collision shape/);
   assert.deepEqual(input, before);
@@ -63,8 +63,8 @@ test('public CAD proxy: off-origin 100 mm span becomes 0.1 m with explicit appro
 test('public CAD proxy: +pi/2 rad Z pose returns the literal center-pivot display transform', t => {
   const input = request(), proxy = admitCadSurfaceProxy(source, input);
   const angleRad = Math.PI / 2;
-  const body: CadProxyBodyState = { id: proxy.bodyId, positionM: [...proxy.body.positionM],
-    orientation: [0, 0, Math.sin(angleRad / 2), Math.cos(angleRad / 2)] };
+  const body: CadProxyBodyState = { id: proxy.bodyId, positionM: [...proxy.body.initial.positionM],
+    orientationXYZW: [0, 0, Math.sin(angleRad / 2), Math.cos(angleRad / 2)] };
   const before = structuredClone(body), pose = cadProxyPose(proxy, body, source, input.sourceRevision);
   assert.equal(pose.targetId, proxy.bodyId);
   vectorError(pose.rotation, [0, 0, Math.SQRT1_2, Math.SQRT1_2], 1e-12);
@@ -89,7 +89,7 @@ test('public CAD proxy: +pi/2 rad Z pose returns the literal center-pivot displa
 
 test('public CAD proxy: exact source/revision mismatch refuses without changing retained input', t => {
   const input = request(), proxy = admitCadSurfaceProxy(source, input);
-  const body: CadProxyBodyState = { id: proxy.bodyId, positionM: [...proxy.body.positionM], orientation: [0, 0, 0, 1] };
+  const body: CadProxyBodyState = { id: proxy.bodyId, positionM: [...proxy.body.initial.positionM], orientationXYZW: [0, 0, 0, 1] };
   const proxyBefore = structuredClone(proxy), inputBefore = structuredClone(input), bodyBefore = structuredClone(body);
   const good = cadProxyPose(proxy, body, source, input.sourceRevision);
   for (const [currentSource, revision] of [[`${source}\n`, input.sourceRevision], [source, 'unitsRev2']]) {

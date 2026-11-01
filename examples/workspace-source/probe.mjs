@@ -77,11 +77,18 @@ export async function publishedResolver() {
   } } };
 }
 
+// Refresh the actual Physics source graph before every source build or rebuild.
+export function refreshPhysicsProvider() {
+  execFileSync(process.execPath, [resolve(root, 'packages/barocss-physics/src/generate-provider.mjs')],
+    { cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024 });
+}
+
 export async function runProbe(mode) {
   const output = outputDirectory();
   const started = performance.now();
   let evidence;
   try {
+    if (mode === 'source') refreshPhysicsProvider();
     const published = mode === 'compiled' ? await publishedResolver() : null;
     const transformed = performance.now();
     const result = await build({ absWorkingDir: root, entryPoints: [resolve(here, 'cpu-entry.mjs')],

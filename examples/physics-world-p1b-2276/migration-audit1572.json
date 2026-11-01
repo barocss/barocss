@@ -1,0 +1,410 @@
+{
+  "format": "barocss-physics-p1b-migration-audit",
+  "version": 1,
+  "group": "physics-contact-impulse-audit-1572",
+  "parent": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+  "changedFiles": [
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/asymmetric-contact-diagnostic.ts",
+      "originalSha256": "e92a291a1805ae8d8e5192acb1cdf5c6bc765d8ba1b10cacce44b1e24ca048da",
+      "currentSha256": "e9ba106a8a8e5df4e518bd2a813310ab7b08976dd13e1b3b7a38d36e20188044",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained",
+        "public contact body and collider identity"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/cache-counterfactual.ts",
+      "originalSha256": "a6d39f19262fe762d4963428e03c488ad7ddb231b9e0638037bb5da8e34a5caa",
+      "currentSha256": "0242bd7bf10a0a38117770c420049ccb70b17e15198cc78496e92c30339d4e06",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/clip-stage-audit.ts",
+      "originalSha256": "83a3802a148baec144f562ee107f5365fe74eb2135f41e0dc3f06b41557952cf",
+      "currentSha256": "78f70e8cfd8aeba6a2fe10f430372290c76b5a24dd175bcf2ebbb63d43dfea3b",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/contact-energy-ledger.ts",
+      "originalSha256": "8dbd7dd9143af1c1d54fe4cb5cdba7c9ba342c547a97c4ec1576ed142b5eb721",
+      "currentSha256": "740a5525c7d7b8adfd636e018185676b661a865db81e5d10eb7cadd9829f5b3b",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/correction-ledger.ts",
+      "originalSha256": "ca72c4df6242b7ce8ef40fd9558ca1c8ce3d71729c6cf2d5fb34258d3d50f4b3",
+      "currentSha256": "cbd4b7e09b53ec2ac61cdc65f7b21cf69ae58c6bec6e07bc9b792ca0fda7261a",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/entry.ts",
+      "originalSha256": "4664a0c7b966d597d4873417f9bd4ced585b0167869bb1fa3a4d798651c4a335",
+      "currentSha256": "406f187fb56475868968ce7261c479edb78e8b64377806c61fb90b9fcbdecd09",
+      "apiChanges": [
+        "private mutable kernel type imports"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/face-choice-audit.ts",
+      "originalSha256": "b85c877ce9e8fe12a1b1dbc73e43e2f72d2f10bcaf9a7d19094984b9ba39734d",
+      "currentSha256": "f455cc0d39fb3013029b45209db71e3a7185ccfc0ada7d76eddf0de41192437d",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/face-plane-witness.ts",
+      "originalSha256": "841f98daf2932c23ce7fd8de6a47d939f7e8d5a6f79ed0cda9d3d34fb6a66154",
+      "currentSha256": "969fc32734478a08f5f85a4fb7d88d07014849aad5da239752af5f5853134089",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/fallback-angular-ledger.ts",
+      "originalSha256": "412b501324d51f962a61c022f82113a2cc238318a62fb3b4e1bc7e87e98eade5",
+      "currentSha256": "a536ce0240e1389df5547a2defd6a4fd12b12dc38caaf310d3c3cf611c59bd9f",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/fallback-impulse-ledger.ts",
+      "originalSha256": "60a0d366d00e58acdca01a703e7539b704ed2aca19e9de7858a4e75a1da2f665",
+      "currentSha256": "77ae4ec86c05cf8d680b3399581aa8618265cb4c9272ad5b24fe1237619ef2b5",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/fallback-inclusive-impulse.ts",
+      "originalSha256": "7e42da6792b0bbdcbb2feb14467d17076039b89712002ff8eb5a1b23fe8ad171",
+      "currentSha256": "26cdb64262f3587a4dc9cdc9efdb522335477a1e869bc8929c386e06c881fcfb",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/fallback-torque-reference.ts",
+      "originalSha256": "3e508263b7e188e1841c024007917143a15e7903157fb73fa9a6752805c22c61",
+      "currentSha256": "74fef591ca292407363923dfcbadd500d8acf3647050e9b4b390eeeebd0b9ed9",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/fresh-contact.ts",
+      "originalSha256": "0a01f78441d4ab38450c1273cf51275f0a9120aca7556d3b0f9b5fc6ba42ef5a",
+      "currentSha256": "687efd041f51c8df6f9dc06d5b6676d6a8a211860a5d1f0447508d659a850b3f",
+      "apiChanges": [
+        "private mutable kernel type imports"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/friction-release.ts",
+      "originalSha256": "07b1f85b8772cd392aa2fbb885309694e39f2530b817bf5ad8a761fd9d96e99d",
+      "currentSha256": "7652938767f694c7be4a77404ddcf09752b1e9081cded1dbffe649603b6a2f61",
+      "apiChanges": [
+        "private mutable kernel type imports"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/gap-after-correction.ts",
+      "originalSha256": "3680f5eccc01677ff9acf404c8fd0221d53a7f2f66e369f87f61ac1563360026",
+      "currentSha256": "138b3809bd75326e80dce2675e03667dee2bec882d8ae1794b1b36532768b497",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/gravity-velocity.ts",
+      "originalSha256": "bd57692455b3702cf74bdd984cc0c52a83fabe6bd494641c75db70c40e99250d",
+      "currentSha256": "de0e4bf828032994d8bbfa7f49a3287dcab1d45a9c5ac7dee3943277899c8267",
+      "apiChanges": [
+        "private mutable kernel type imports"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/horizontal-motion-ledger.ts",
+      "originalSha256": "d6cc6f54c83320290768918fedd0eb6d4ea1393f598ebc5d0b4bbe24ac3dbe61",
+      "currentSha256": "aa39cb02472a91d6b999893c6c8df42203745fbf083631f0c00c81c8e98dbcb8",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/independent-axis-selection.ts",
+      "originalSha256": "3055483a294cf018e899ebce6ee212c44c2e48edfb12eff154a723192ad382eb",
+      "currentSha256": "74ece273c5e4976e82be1bdf08d21cfa17728d811aad604b474099480018fcc8",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/independent-projection.ts",
+      "originalSha256": "904cd3ad94a9ce9b84b955c5f630852abf53f13d4dd2a5df94f9aaa9c44ce98f",
+      "currentSha256": "db77a4b47434c00800047e200207e8361c1792920477f33966dbaef87a2fe383",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/manifold-fallback-cause.ts",
+      "originalSha256": "adb70d428f97f97a415503f4daeb21975f68a9d92c76d8006a087b5bd7dd75b1",
+      "currentSha256": "a516cd620091e0206f4e2469de8390bf39aecca324f518840184ce721bd1b465",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/manifold-identity.ts",
+      "originalSha256": "3a14cfc7ae39659fd01f0bb668447bdb0d11670c668259199987720ec542348e",
+      "currentSha256": "887a2773df4cdf3e955fa414d0813296049724f68127ad30ecdbc612a893f25c",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained",
+        "public contact body and collider identity"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/original-mini-stacks.ts",
+      "originalSha256": "80245e312b6660d15cd496112cf2a51dccb7104e1d684f2363140365096202b5",
+      "currentSha256": "830c93651a793d8bf9b12d3bb458093d143046856c338250541354a3da4d942f",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/pair-order-counterfactual.ts",
+      "originalSha256": "17939d87933a23d82ad9fdb21f5dc5d69b63173c1ca50342571ea46bbaff9559",
+      "currentSha256": "0e2f7f8c5d5299f95c142e4d1f50101e95b01423f27667262b49a5088ff46e73",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/pair-response-ledger.ts",
+      "originalSha256": "4fc30c487034ee10ced8cd7f4f1253ccc3f9045f9dede337d6316f245d640d05",
+      "currentSha256": "88df6170578ec37a852ed9f5c5e394a66a19a1e63f65b6b7bcc11825d0bc9bb0",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/pass-count-convergence.ts",
+      "originalSha256": "b2275e8c0a30af7761f8b85e8fd38c5b0c2c4f871fdcd60cd29c19b8cdbaa67d",
+      "currentSha256": "2710e99e6ba3da2dbfccb7dce12b6075127ac053d6392ad66c466ffc25655bbc",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/point-momentum-reference.ts",
+      "originalSha256": "fe7988929430ef744d7959d308682593c8e18e549cfd0d55aba33c8805a6b161",
+      "currentSha256": "5b99320f5e7dfb39e7dde7217731ab1800abe4b1e34249b861525520d306d6f2",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/pose-drift.ts",
+      "originalSha256": "eb35273b0d9d7184f17b3959b8000425955c2b7dc32199b4b5fc921fa876c8c9",
+      "currentSha256": "7426c6cabfe60ea6adc48d1925b31c89be427ce82d15167c3202cb6810e195e4",
+      "apiChanges": [
+        "private mutable kernel type imports"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/post-correction-redetect.ts",
+      "originalSha256": "69644ae39926a71416ec1a61e70608ee276d9d9889ee752f8f2e624616b7ad85",
+      "currentSha256": "b24906abb6595ee943e15ca77f13eb587eef9d5910e8413b9b82b7da24e90974",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/private-cache-entry.ts",
+      "originalSha256": "0a25e5b6ee08bcd87cce4f7874a75026d2df6e7416d6d566540d3480ff33051e",
+      "currentSha256": "21a815311e1b52a18dcb7987a8bc17417756295ada24d93c30d29321dabbf3ba",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained",
+        "public contact body and collider identity"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/public-two-box-resting-10s.ts",
+      "originalSha256": "a4861cb701dbabe4ac5bc5f1df1e2902de5b97483416da5807310be7aa5a8f15",
+      "currentSha256": "e0aa09c37e8bfae0978c823b28fc1072f5d22b4dd053e39717cff3d3fb970fa2",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained",
+        "scalar step argument now INVALID_COMMAND"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/public-world-smoke.ts",
+      "originalSha256": "ac602138989ef696d10b199a5568501159252f3fe3da647f3ff7864cd223b59e",
+      "currentSha256": "11ecd625346890c1c1356adda93b97d892e93e5f45cd1ab495224ad2f7d2b1b8",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained",
+        "scalar step argument now INVALID_COMMAND"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/sat-separation-witness.ts",
+      "originalSha256": "305caa19cdaa06a083f8f506be76c9d71d3727f4ecdcfa2c34ff1018dc31f61a",
+      "currentSha256": "12847e1d185dd98119b0c3fb1ea35723ba0979e747a18c1acfd54b815f9712f8",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/static-support-reference.ts",
+      "originalSha256": "ec4a491f1f19618a0195abae1b723c371dba5870422ee4c51801a55a6892598b",
+      "currentSha256": "31af0e65fc67329052339bb3f90fb7345f59aa93721c0eb0674405eb61a60a4a",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/support-centroid.ts",
+      "originalSha256": "cd0c70a517361fb306a39fc92dc0c575bc0f014ed17907aec08fdbd0341aaab3",
+      "currentSha256": "9aa49ec50bcfbe55b6f4478a286130f29d8db54cfae7c146b612a113d3844653",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/total-energy-phase-ledger.ts",
+      "originalSha256": "277b2d921a1693138e846dc1e405eb5624938e52137fad69c594a161f4b2e172",
+      "currentSha256": "b18e75a61d755a5cba7b759d0ff0d3afdb25b64209850543c2d4b4ffcd29e50e",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/total-mechanical-energy.ts",
+      "originalSha256": "b25c5511d1542fb519d908395211d3355f830a10399c5e59e658e12adbfc4ec3",
+      "currentSha256": "d56c31df898ea9d23497838af151d73afae79a7d14090608d5c4fb6b1eed72cf",
+      "apiChanges": [
+        "explicit new body/collider model data",
+        "createPhysicsWorld(model, options)",
+        "step(commands)",
+        "public pose orientationXYZW; private numerical orientation retained"
+      ]
+    }
+  ],
+  "proof": {
+    "sourceBuild": {
+      "passed": 36,
+      "failed": 0,
+      "receipt": "examples/physics-world-p1b-2276/evidence/core-audit1572-sourcebuild-01/stdout"
+    },
+    "numericalCampaign": "NOT_RUN",
+    "runtime": "NOT_RUN",
+    "originalEvidence": "UNCHANGED",
+    "physicalConstantsOrThresholdsChanged": false,
+    "solverPhaseArithmeticChanged": false,
+    "instrumentationScripts": "UNCHANGED",
+    "privateObserverFields": "orientation, impulseNs and tangentImpulseNs retained",
+    "perCallDtRefusal": "old scalar dt is now an invalid commands argument, INVALID_COMMAND"
+  },
+  "limits": "Source graph closure only. Does not qualify stack settling, private hook execution or numerical trajectories."
+}

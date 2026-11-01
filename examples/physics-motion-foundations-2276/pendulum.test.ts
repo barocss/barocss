@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createPlanarPendulum, PhysicsError } from '@barocss/physics';
-import type { PlanarPendulumConfig, PlanarPendulumState } from '@barocss/physics';
+import { PhysicsError } from '@barocss/physics';
+import { createPlanarPendulum } from '../physics-planar-pendulum-reference/pendulum.js';
+import type { PlanarPendulumConfig, PlanarPendulumState } from '../physics-planar-pendulum-reference/pendulum.js';
 
 // Gates fixed before the first solver run. Neither reference integrates the ODE.
 const GATES = { periodRelative: 0.01, energyRelative: 0.01,

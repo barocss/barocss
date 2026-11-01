@@ -1,15 +1,12 @@
+import { makeModel, dynamicPart, staticPart, kinematicPart } from '../physics-model-input/model.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 import { createPhysicsWorld, PhysicsError } from '../../packages/barocss-physics/dist/index.js';
 
 const dt = 1 / 120;
-const floor = (collisionFilter) => ({ id: 'fixture:floor', kind: 'static',
-  shape: { kind: 'box', halfExtentsM: [4, 0.1, 4] }, positionM: [0, -0.1, 0],
-  restitution: 0, ...(collisionFilter ? { collisionFilter } : {}) });
-const ball = (id, positionM, collisionFilter) => ({ id, kind: 'dynamic',
-  shape: { kind: 'sphere', radiusM: 0.1 }, positionM, velocityMps: [0, 0, 0],
-  massKg: 1, restitution: 0, ...(collisionFilter ? { collisionFilter } : {}) });
+const floor = filter => staticPart('fixture:floor',{kind:'box',halfExtentsM:[4,0.1,4]},{positionM:[0,-0.1,0]},{restitution:0,...(filter?{filter}:{})});
+const ball = (id,positionM,filter) => dynamicPart(id,{kind:'sphere',radiusM:0.1},{positionM,velocityMps:[0,0,0]},1,{restitution:0,...(filter?{filter}:{})});
 function grid(count, largeMode) {
   const bodies = [floor(largeMode ? { categoryBits: 8, maskBits: 7 } : undefined)];
   for (let index = 0; index < count; index++) {
@@ -19,21 +16,20 @@ function grid(count, largeMode) {
       [0.35 * (x - 3), 0.1, 0.35 * (z - 4)],
       largeMode ? { categoryBits: category, maskBits: category | 8 } : undefined));
   }
-  return { fixedStepSeconds: dt, gravityMps2: [0, -9.81, 0], bodies,
-    broadPhase: 'aabb', ...(largeMode ? { sceneMode: 'large-v1' } : {}) };
+  return {model:makeModel({gravityMps2:[0,-9.81,0],parts:bodies}),options:{profile:largeMode?'rigid-large-v1':'rigid-discrete-v1',fixedStepSeconds:dt,broadPhase:'aabb'}};
 }
 function checkRefusal(action, code) {
   assert.throws(action, (cause) => cause instanceof PhysicsError && cause.code === code);
 }
 function run(config) {
-  const world = createPhysicsWorld(config);
+  const world = createPhysicsWorld(config.model,config.options);
   const elapsed = [];
   let early, final;
   if (global.gc) global.gc();
   const heapStart = global.gc ? process.memoryUsage().heapUsed : null;
   for (let step = 1; step <= 180; step++) {
     const start = performance.now();
-    const state = world.step(dt);
+    const state = world.step();
     elapsed.push(performance.now() - start);
     if (step === 20) early = state;
     if (step === 180) final = state;
@@ -51,12 +47,8 @@ function run(config) {
 }
 
 const largeConfig = grid(63, true);
-const unfiltered = createPhysicsWorld({ ...largeConfig, bodies: largeConfig.bodies.map((body) => {
-  const copy = { ...body };
-  delete copy.collisionFilter;
-  return copy;
-}) });
-const unfilteredPairs = unfiltered.step(dt).pairStats;
+const unfiltered=createPhysicsWorld({...largeConfig.model,colliders:largeConfig.model.colliders.map(collider=>({...collider,filter:{categoryBits:1,maskBits:65535}}))},largeConfig.options);
+const unfilteredPairs = unfiltered.step().pairStats;
 assert.equal(unfilteredPairs.eligiblePairs, 2016 * 8);
 unfiltered.dispose();
 const large = run(largeConfig);
@@ -70,13 +62,13 @@ assert.ok(dynamic.every((body) => [...body.positionM, ...body.velocityMps].every
 assert.ok(large.final.pairStats.eligiblePairs < 2016 * 8);
 assert.ok(large.final.pairStats.candidatePairs < large.early.pairStats.candidatePairs);
 const prior = structuredClone(large.world.getState());
-checkRefusal(() => large.world.step(dt, [{ kind: 'impulse', bodyId: 'part:missing',
+checkRefusal(() => large.world.step([{ kind: 'impulse', bodyId: 'part:missing',
   impulseNs: [0, 0.1, 0] }]), 'INVALID_COMMAND');
 assert.deepEqual(large.world.getState(), prior);
-checkRefusal(() => large.world.step(dt, [{ kind: 'impulse', bodyId: 'part:00',
+checkRefusal(() => large.world.step([{ kind: 'impulse', bodyId: 'part:00',
   impulseNs: [0, 100000, 0] }]), 'NUMERIC_LIMIT');
 assert.deepEqual(large.world.getState(), prior);
-const woke = large.world.step(dt, [{ kind: 'impulse', bodyId: 'part:00', impulseNs: [0, 0.1, 0] }]);
+const woke = large.world.step([{ kind: 'impulse', bodyId: 'part:00', impulseNs: [0, 0.1, 0] }]);
 assert.equal(woke.bodies.find((body) => body.id === 'part:00').sleeping, false);
 assert.ok(woke.bodies.filter((body) => body.kind === 'dynamic' && body.sleeping).length >= 59);
 large.world.dispose();
@@ -85,7 +77,7 @@ const repeated = run(largeConfig);
 const digest = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const finalDigest = digest(large.final);
 assert.equal(digest(repeated.final), finalDigest);
-assert.deepEqual(repeated.world.step(dt, [{ kind: 'impulse', bodyId: 'part:00',
+assert.deepEqual(repeated.world.step([{ kind: 'impulse', bodyId: 'part:00',
   impulseNs: [0, 0.1, 0] }]), woke);
 repeated.world.dispose();
 
@@ -95,51 +87,46 @@ baseline.world.dispose();
 
 const crossing = [ball('part:a', [0, 0, 0], { categoryBits: 1, maskBits: 1 }),
   ball('part:b', [0.15, 0, 0], { categoryBits: 2, maskBits: 2 })];
-const crossingConfig = { fixedStepSeconds: dt, gravityMps2: [0, 0, 0],
-  bodies: crossing, broadPhase: 'aabb', sceneMode: 'large-v1' };
-const excluded = createPhysicsWorld(crossingConfig);
-assert.equal(excluded.step(dt).contacts.length, 0);
-assert.equal(excluded.getState().pairStats.eligiblePairs, 0);
+const crossingConfig=makeModel({gravityMps2:[0,0,0],parts:crossing});
+const largeOptions={profile:'rigid-large-v1',fixedStepSeconds:dt,broadPhase:'aabb'};
+const excluded=createPhysicsWorld(crossingConfig,largeOptions);
+assert.equal(excluded.step().contacts.length,0);
+assert.equal(excluded.getState().pairStats.eligiblePairs,0);
 excluded.dispose();
-const allowed = createPhysicsWorld({ ...crossingConfig, bodies: crossing.map((body) =>
-  ({ ...body, collisionFilter: { ...body.collisionFilter, maskBits: 3 } })) });
-assert.equal(allowed.step(dt).contacts.length, 1);
+const allowed=createPhysicsWorld({...crossingConfig,colliders:crossingConfig.colliders.map(collider=>({...collider,filter:{...collider.filter,maskBits:3}}))},largeOptions);
+assert.equal(allowed.step().contacts.length,1);
 allowed.dispose();
-const sensor = createPhysicsWorld({ ...crossingConfig, bodies: [crossing[0],
-  { id: 'fixture:sensor', kind: 'static', shape: crossing[1].shape,
-    positionM: crossing[1].positionM, restitution: 0, sensor: true,
-    collisionFilter: crossing[1].collisionFilter }] });
-assert.equal(sensor.step(dt).events.length, 0);
+const sensor=createPhysicsWorld(makeModel({gravityMps2:[0,0,0],parts:[crossing[0],staticPart('fixture:sensor',crossing[1].collider.geometry,crossing[1].body.initial,{restitution:0,sensor:true,filter:crossing[1].collider.filter})]}),largeOptions);
+assert.equal(sensor.step().events.length,0);
 sensor.dispose();
 
-const stack = createPhysicsWorld({ fixedStepSeconds: dt, gravityMps2: [0, -9.81, 0],
-  broadPhase: 'aabb', sceneMode: 'large-v1', bodies: [floor(),
-    ball('part:lower', [0, 0.1, 0]), ball('part:upper', [0, 0.3, 0])] });
-for (let step = 0; step < 120; step++) stack.step(dt);
+const stack = createPhysicsWorld(makeModel({gravityMps2: [0, -9.81, 0], parts: [floor(),
+    ball('part:lower', [0, 0.1, 0]), ball('part:upper', [0, 0.3, 0])]}), {profile: 'rigid-large-v1', fixedStepSeconds: dt, broadPhase: 'aabb'});
+for (let step = 0; step < 120; step++) stack.step();
 assert.equal(stack.getState().bodies.filter((body) => body.sleeping).length, 2);
-const stackWoke = stack.step(dt, [{ kind: 'impulse', bodyId: 'part:upper', impulseNs: [0, 0.1, 0] }]);
+const stackWoke = stack.step([{ kind: 'impulse', bodyId: 'part:upper', impulseNs: [0, 0.1, 0] }]);
 assert.equal(stackWoke.bodies.filter((body) => body.sleeping).length, 0);
 stack.dispose();
 
-const movingFixture = { ...floor(), id: 'fixture:moving', kind: 'kinematic' };
-const moving = createPhysicsWorld({ fixedStepSeconds: dt, gravityMps2: [0, -9.81, 0],
-  broadPhase: 'aabb', sceneMode: 'large-v1', bodies: [movingFixture,
-    ball('part:on-platform', [0, 0.1, 0])] });
-for (let step = 0; step < 120; step++) moving.step(dt);
+const movingFixture=kinematicPart('fixture:moving',floor().collider.geometry,floor().body.initial,{restitution:0});
+const moving = createPhysicsWorld(makeModel({gravityMps2: [0, -9.81, 0], parts: [movingFixture,
+    ball('part:on-platform', [0, 0.1, 0])]}), {profile: 'rigid-large-v1', fixedStepSeconds: dt, broadPhase: 'aabb'});
+for (let step = 0; step < 120; step++) moving.step();
 assert.equal(moving.getState().bodies[1].sleeping, true);
-const moved = moving.step(dt, [{ kind: 'kinematicTarget', bodyId: movingFixture.id,
+const moved = moving.step([{ kind: 'kinematicTarget', bodyId: movingFixture.body.id,
   positionM: [0, -0.095, 0] }]);
 assert.equal(moved.bodies[1].sleeping, false);
 moving.dispose();
 
-for (const invalid of [
-  { ...largeConfig, bodies: [...largeConfig.bodies, ball('part:extra', [0, 0.1, 0])] },
-  { ...largeConfig, broadPhase: undefined },
-  { ...largeConfig, contactMode: 'persistent-box-v1' },
-  { ...largeConfig, joints: [] },
-  { ...largeConfig, bodies: largeConfig.bodies.map((body, index) => index === 1
-    ? { ...body, collisionFilter: { categoryBits: 0, maskBits: 8 } } : body) },
-]) checkRefusal(() => createPhysicsWorld(invalid), 'INVALID_CONFIG');
+const extra=ball('part:extra',[0,0.1,0]);
+for(const [model,options] of [
+ [{...largeConfig.model,bodies:[...largeConfig.model.bodies,extra.body],colliders:[...largeConfig.model.colliders,extra.collider]},largeOptions],
+ [largeConfig.model,{...largeOptions,broadPhase:undefined}],
+ [largeConfig.model,{...largeOptions,profile:'rigid-persistent-box-v1'}],
+ // Empty joints are required in P0. A nonempty joint remains refused by large-v1.
+ [{...largeConfig.model,joints:[{id:'joint:forbidden',kind:'fixed',bodyAId:'fixture:floor',bodyBId:'part:00',anchorALocalM:[0,0,0],anchorBLocalM:[0,0,0]}]},largeOptions],
+ [{...largeConfig.model,colliders:largeConfig.model.colliders.map((collider,index)=>index===1?{...collider,filter:{categoryBits:0,maskBits:8}}:collider)},largeOptions],
+])checkRefusal(()=>createPhysicsWorld(model,options),'INVALID_CONFIG');
 
 console.log(JSON.stringify({ result: 'ok', machine: `${process.platform}/${process.arch}/node-${process.version}`,
   bodies: large.final.bodies.length, steps: 180, sleeping, maxHeightErrorM,

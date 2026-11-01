@@ -1,4 +1,4 @@
-import type { Body, Vec3 } from './types.js';
+import type { Body, Vec3 } from './internal-types.js';
 import { MAX_STEP_DISPLACEMENT_M } from './limits.js';
 import { error } from './validation.js';
 import { add, advanceOrientation, cross, inverseInertia, rotate, scale, sub, worldPoint } from './math.js';

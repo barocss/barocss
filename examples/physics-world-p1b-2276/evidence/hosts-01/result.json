@@ -1,0 +1,12 @@
+{
+  "start": "2026-11-01T16:17:46.675Z",
+  "end": "2026-11-01T16:17:47.036Z",
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "examples/physics-world-p1b-2276/hosts.mjs"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "exit": 1,
+  "signal": null,
+  "error": null
+}

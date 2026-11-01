@@ -1,3 +1,4 @@
+import {makeModel,dynamicPart,staticPart} from '../physics-model-input/model.mjs';
 /** #1572 read-only total mechanical energy ledger for original 3-box
  * OFFSET/YAW fixtures. Explicit scalar cube inertia from geometry
  * independent of Physics mass/inertia implementation. No solver edits.
@@ -6,18 +7,14 @@
  * projects positions and can create effective numerical work.
  */
 import {createPhysicsWorld} from '../../packages/barocss-physics/src/index.js';
-import type {PhysicsBodyConfig,PhysicsWorldConfig} from '../../packages/barocss-physics/src/types.js';
+
 type Mode='OFFSET'|'YAW';
 const dt=1/120,stepCount=1200,g=9.81,halfExtent=.25,mass=1;
 const scalarInertia=mass*((2*halfExtent)**2+(2*halfExtent)**2)/12;
-const floor:PhysicsBodyConfig={id:'floor',kind:'static',
- shape:{kind:'box',halfExtentsM:[2,.1,2]},positionM:[0,-.1,0],
- restitution:0,friction:{static:1,dynamic:.7}};
-function cube(i:number,mode:Mode):PhysicsBodyConfig{
+const floor=staticPart('floor',{kind:'box',halfExtentsM:[2,.1,2]},{positionM:[0,-.1,0]},{restitution:0,friction:{static:1,dynamic:.7}});
+function cube(i:number,mode:Mode){
  const yaw=mode==='YAW'?(i%2===0?.05:-.05):0;
- return {id:'b'+i,kind:'dynamic',shape:{kind:'box',halfExtentsM:[halfExtent,halfExtent,halfExtent]},
-  positionM:[(i%2)*.05,.25+i*.5,0],massKg:mass,velocityMps:[0,0,0],
-  orientation:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)],restitution:0,friction:{static:1,dynamic:.7}};
+ return dynamicPart('b'+i,{kind:'box',halfExtentsM:[halfExtent,halfExtent,halfExtent]},{positionM:[(i%2)*.05,.25+i*.5,0],velocityMps:[0,0,0],orientationXYZW:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)]},mass,{restitution:0,friction:{static:1,dynamic:.7}});
 }
 function sample(state:ReturnType<ReturnType<typeof createPhysicsWorld>['getState']>){
  let kinetic=0,potential=0;
@@ -32,9 +29,8 @@ function sample(state:ReturnType<ReturnType<typeof createPhysicsWorld>['getState
 }
 if(Math.abs(scalarInertia-1/24)>1e-15)throw Error('ENERGY_REFERENCE_INERTIA');
 for(const mode of ['OFFSET','YAW'] as const){
- const config:PhysicsWorldConfig={fixedStepSeconds:dt,gravityMps2:[0,-g,0],
-  contactMode:'persistent-box-v1',bodies:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]};
- const world=createPhysicsWorld(config);
+ const config={model:makeModel({gravityMps2:[0,-g,0],parts:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]}),options:{profile:'rigid-persistent-box-v1',fixedStepSeconds:dt,broadPhase:'direct'} as const};
+ const world=createPhysicsWorld(config.model,config.options);
  let accepted=0,firstFailure:string|null=null;
  const start=sample(world.getState());
  let last=start,peakTotalJ=start.totalJ,minTotalJ=start.totalJ;
@@ -44,7 +40,7 @@ for(const mode of ['OFFSET','YAW'] as const){
  try{
   for(let step=1;step<=stepCount;step++){
    try{
-    const state=world.step(dt);
+    const state=world.step();
     if(state.stepIndex!==step)throw Error('ENERGY_STEP_INDEX');
     const now=sample(state),deltaJ=now.totalJ-last.totalJ;
     if(!Number.isFinite(deltaJ))throw Error('ENERGY_NONFINITE_DELTA');

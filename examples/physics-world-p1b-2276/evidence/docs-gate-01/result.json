@@ -1,0 +1,12 @@
+{
+  "status": "NOT_RUN",
+  "exit": 75,
+  "reason": "heavy-lane load refusal",
+  "message": "GATE: gave up after 30 s, nothing ran. Running: ; load 65.87.",
+  "dependentChecks": [
+    "hosts-01",
+    "docs-check-01",
+    "docs-build-01",
+    "docs-links-01"
+  ]
+}

@@ -1,3 +1,4 @@
+import { makeModel, dynamicPart, staticPart } from '../physics-model-input/model.mjs';
 import { createPhysicsWorld } from '../../packages/barocss-physics/src/index.ts';
 import { createViewer } from '../../packages/barocss-viewer/dist/index.js';
 
@@ -27,16 +28,11 @@ const bindings = [
 if (surfaces.length !== 2) throw new Error('This fixture needs exactly two native Surfaces');
 
 function createWorld() {
-  return createPhysicsWorld({
-    fixedStepSeconds: DT,
-    gravityMps2: [0, -9.81, 0],
-    bodies: [
-      { id: BODY_ID, kind: 'dynamic', shape: { kind: 'sphere', radiusM: 0.05 },
-        positionM: [0.05, 0.28, 0.02], velocityMps: [0, 0, 0], massKg: 1, restitution: 0 },
-      { id: FIXTURE_ID, kind: 'static', shape: { kind: 'box', halfExtentsM: [0.05, 0.02, 0.02] },
-        positionM: [0.05, 0.05, 0.02], restitution: 0 },
-    ],
-  });
+  return createPhysicsWorld(makeModel({ parts: [
+    dynamicPart(BODY_ID, { kind: 'sphere', radiusM: 0.05 }, { positionM: [0.05, 0.28, 0.02] }),
+    staticPart(FIXTURE_ID, { kind: 'box', halfExtentsM: [0.05, 0.02, 0.02] },
+      { positionM: [0.05, 0.05, 0.02] }),
+  ] }), { profile: 'rigid-discrete-v1', fixedStepSeconds: DT, broadPhase: 'direct' });
 }
 
 let world = createWorld();
@@ -47,20 +43,23 @@ let accumulator = 0;
 let errorMessage = '';
 
 function bodyFrom(state) {
+  const colliders = world.getModel().colliders;
+  const bodyGeometry = colliders.find(collider => collider.bodyId === BODY_ID)?.geometry;
+  const fixtureGeometry = colliders.find(collider => collider.bodyId === FIXTURE_ID)?.geometry;
   if (!state || !Number.isInteger(state.stepIndex) || state.stepIndex < 0 || state.stepIndex > 3600
     || !Number.isFinite(state.timeSeconds) || state.timeSeconds < 0 || state.timeSeconds > 30
     || !Array.isArray(state.bodies) || state.bodies.length !== 2
     || !Array.isArray(state.contacts) || state.contacts.some((contact) =>
-      !contact || ![FIXTURE_ID, BODY_ID].includes(contact.aId)
-      || ![FIXTURE_ID, BODY_ID].includes(contact.bId)
-      || contact.aId === contact.bId || !Number.isFinite(contact.impulseNs))
+      !contact || ![FIXTURE_ID, BODY_ID].includes(contact.bodyAId)
+      || ![FIXTURE_ID, BODY_ID].includes(contact.bodyBId)
+      || contact.bodyAId === contact.bodyBId || !Number.isFinite(contact.normalImpulseNs))
     || new Set(state.bodies.map((body) => body.id)).size !== 2) {
     throw new Error('Invalid Physics state for this Viewer fixture');
   }
   const body = state.bodies.find((candidate) => candidate.id === BODY_ID);
   const fixture = state.bodies.find((candidate) => candidate.id === FIXTURE_ID);
-  if (body?.kind !== 'dynamic' || body.shape?.kind !== 'sphere'
-    || fixture?.kind !== 'static' || fixture.shape?.kind !== 'box'
+  if (body?.kind !== 'dynamic' || bodyGeometry?.kind !== 'sphere'
+    || fixture?.kind !== 'static' || fixtureGeometry?.kind !== 'box'
     || !Array.isArray(body.positionM) || body.positionM.length !== 3
     || !body.positionM.every((value) => Number.isFinite(value) && Math.abs(value) <= 10)
     || !Array.isArray(body.velocityMps) || body.velocityMps.length !== 3
@@ -76,8 +75,8 @@ function draw(state, body) {
   $('proxy-ball').setAttribute('cy', y.toFixed(3));
   $('proxy-center').setAttribute('y1', y.toFixed(3));
   $('proxy-center').setAttribute('y2', y.toFixed(3));
-  const contact = state.contacts.find(({ aId, bId }) =>
-    aId === FIXTURE_ID && bId === BODY_ID);
+  const contact = state.contacts.find(({ bodyAId, bodyBId }) =>
+    bodyAId === FIXTURE_ID && bodyBId === BODY_ID);
   $('proxy-ball').classList.toggle('touching', Boolean(contact));
   $('contact-indicator').classList.toggle('touching', Boolean(contact));
   $('height').textContent = body.positionM[1].toFixed(4);
@@ -85,7 +84,7 @@ function draw(state, body) {
   $('step-index').textContent = String(state.stepIndex);
   $('sim-time').textContent = state.timeSeconds.toFixed(3);
   $('contact').textContent = contact
-    ? `${contact.aId} ↔ ${contact.bId} · ${contact.impulseNs.toFixed(4)} N·s`
+    ? `${contact.bodyAId} ↔ ${contact.bodyBId} · ${contact.normalImpulseNs.toFixed(4)} N·s`
     : 'No contact in this step';
   $('mode').textContent = running ? 'RUNNING' : 'PAUSED';
   $('mode').classList.toggle('paused', !running);
@@ -116,7 +115,7 @@ function applyState(state, candidateBindings = bindings) {
 function step() {
   if (world.getState().stepIndex >= 3600) { running = false; draw(accepted, bodyFrom(accepted)); return; }
   try {
-    const state = world.step(DT);
+    const state = world.step();
     applyState(state);
   } catch (error) {
     running = false;

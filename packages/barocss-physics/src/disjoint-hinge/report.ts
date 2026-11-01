@@ -1,4 +1,4 @@
-import { PhysicsError, type Joint, type Vec3 } from '../types.js';
+import { PhysicsError, type Joint, type Vec3 } from '../internal-types.js';
 import { sub, scale } from '../math.js';
 import type { BodyCorrection, HingeMotorJointReport, PairBodies, ReportCap } from './types.js';
 

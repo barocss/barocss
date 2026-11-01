@@ -1,15 +1,16 @@
+import {makeModel,dynamicPart,staticPart} from '../physics-model-input/model.mjs';
 /** #1572 temporary diagnostic: same-pose SAT penetration versus clipped
  * candidate face-plane separations at b0/b1. No production changes.
  */
 import {createPhysicsWorld} from '../../packages/barocss-physics/src/index.js';
-import type {PhysicsBodyConfig,PhysicsWorldConfig} from '../../packages/barocss-physics/src/types.js';
+
 type Mode='OFFSET'|'YAW';
 type Event={step:number,pass:number,penetrationM:number,normal:number[],
  candidateCount:number,acceptedCount:number,minSeparationM:number|null,maxSeparationM:number|null};
-const floor:PhysicsBodyConfig={id:'floor',kind:'static',shape:{kind:'box',halfExtentsM:[2,.1,2]},positionM:[0,-.1,0],restitution:0,friction:{static:1,dynamic:.7}};
-const cube=(i:number,mode:Mode):PhysicsBodyConfig=>{
+const floor=staticPart('floor',{kind:'box',halfExtentsM:[2,.1,2]},{positionM:[0,-.1,0]},{restitution:0,friction:{static:1,dynamic:.7}});
+const cube=(i:number,mode:Mode)=>{
  const yaw=mode==='YAW'?(i%2===0?.05:-.05):0;
- return {id:'b'+i,kind:'dynamic',shape:{kind:'box',halfExtentsM:[.25,.25,.25]},positionM:[(i%2)*.05,.25+i*.5,0],massKg:1,velocityMps:[0,0,0],orientation:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)],restitution:0,friction:{static:1,dynamic:.7}};
+ return dynamicPart('b'+i,{kind:'box',halfExtentsM:[.25,.25,.25]},{positionM:[(i%2)*.05,.25+i*.5,0],velocityMps:[0,0,0],orientationXYZW:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)]},1,{restitution:0,friction:{static:1,dynamic:.7}});
 };
 const host=globalThis as typeof globalThis&{
  __p1572SepContext?:{step:number,pass:number,penetrationM:number,normal:number[]};
@@ -39,10 +40,9 @@ for(const mode of ['OFFSET','YAW'] as const){
   if((e.step===1||e.step===600||e.step===1200)&&checkpoints.length<36)
     checkpoints.push(e);
  };
- const world=createPhysicsWorld({fixedStepSeconds:1/120,gravityMps2:[0,-9.81,0],
-  contactMode:'persistent-box-v1',bodies:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]});
+ const world=createPhysicsWorld(makeModel({gravityMps2:[0,-9.81,0],parts:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]}),{profile:'rigid-persistent-box-v1',fixedStepSeconds:1/120,broadPhase:'direct'});
  let accepted=0,failure:null|string=null;
- try{for(let step=1;step<=1200;step++){try{world.step(1/120);accepted=step;}
+ try{for(let step=1;step<=1200;step++){try{world.step();accepted=step;}
  catch(err){failure=err instanceof Error?err.message:String(err);break;}}}
  finally{world.dispose();delete host.__p1572SepProbe;delete host.__p1572SepContext;}
  console.log(JSON.stringify({mode,accepted,failure,stats,checkpoints,

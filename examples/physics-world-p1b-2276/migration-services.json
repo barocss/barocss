@@ -1,0 +1,526 @@
+{
+  "format": "barocss-physics-p1b-services-migration",
+  "version": 1,
+  "parent": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+  "status": "READY-source-wiring-frozen-runtime-NOT_RUN",
+  "files": [
+    {
+      "sourceAtParent": "apps/library-docs/docs/packages/physics/index.md",
+      "currentPath": "apps/library-docs/docs/packages/physics/index.md",
+      "parentSha256": "954437c2a10c11f32f24512ebc7e8b6ab3e3aa23b3618923a255f7bdeebea4b6",
+      "currentSha256": "59d4f9e3d73a6674a470a46544490eeed111713181bb97f540a700ee36704cce",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "apps/library-docs/docs/packages/physics/profiles-and-lifecycle.md",
+      "currentPath": "apps/library-docs/docs/packages/physics/profiles-and-lifecycle.md",
+      "parentSha256": "4c041bbcc2db18b024d680a3fc22dbad33d2c0c874162a1cc5f10f55dd18ca2a",
+      "currentSha256": "b27678285937102f607f62e17f210feef60e18878249a691c09a6e41a040a8f2",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "apps/library-docs/docs/packages/physics/units-and-frames.md",
+      "currentPath": "apps/library-docs/docs/packages/physics/units-and-frames.md",
+      "parentSha256": "e6818b58f01814c377ef334024a94ca4879892c4265e00fb579ca5b5b2c3cf9e",
+      "currentSha256": "d5036c91272610ef6519460f0ab16be4ca9d93f9d7999456ac8d850e237e9d68",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt",
+      "currentPath": "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt",
+      "parentSha256": "62b8e48bc6eb28c3c183172aa4221b767ea248a36ee1c89c6856d3619cad1b8d",
+      "currentSha256": "18c9280c26a326ba5c7ef1b34581ca82cbebbb5eb49b939cac62e6cac5edf9e4",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN-by-services-agent"
+    },
+    {
+      "sourceAtParent": "apps/library-docs/docs/reference/physics-verification.md",
+      "currentPath": "apps/library-docs/docs/reference/physics-verification.md",
+      "parentSha256": "388cdf2dcee5fefaaf387cf02dcfae12d3bc3d8817f61427943c7c9c00adeca7",
+      "currentSha256": "4b2852e1d801e1d925b0cda3e166548e7016e5ed28a84a2d75d924cb4eb4c9fb",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN-by-services-agent"
+    },
+    {
+      "sourceAtParent": "apps/library-docs/samples/physics-docs.test.mjs",
+      "currentPath": "apps/library-docs/samples/physics-docs.test.mjs",
+      "parentSha256": "59477db958d10202d5192d34b90c8a3d4dea5bbc5ebd8afc7c5419f79262b247",
+      "currentSha256": "8d81188c94b3ada17176af8165e06d9dc314f48cfca9d76eb1a467d74b0d6326",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-cad-scene/cad-proxy-probe.mjs",
+      "currentPath": "examples/physics-cad-scene/cad-proxy-probe.mjs",
+      "parentSha256": "fc60fcf09835ed1172d4d16a81960bd92267e21bf3a475739ef8cdfaaf0a0f4d",
+      "currentSha256": "3ad3f11c557a04577d803467907e080018aad81a304339baff90b243397a348a",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-cad-scene/model.js",
+      "currentPath": "examples/physics-cad-scene/model.js",
+      "parentSha256": "d89d2e73debbdf1c79720e5156721a9371c2e593c1236e18da7686e259c62020",
+      "currentSha256": "1fa9f9d27be3e37c0bc76c7343a3cb755f376c0687223164e61957672f252dc2",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-cad-scene/server.mjs",
+      "currentPath": "examples/physics-cad-scene/server.mjs",
+      "parentSha256": "347fcd89754c72fbba746818d8e7898f6390d63f02dd4897c30531b19b556030",
+      "currentSha256": "a87166977513a81a22f8ff6d6ab5cccb6a28e2305389f13dcd7c3db4b67f92b3",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN-by-services-agent"
+    },
+    {
+      "sourceAtParent": "examples/physics-character-reference/entry.mjs",
+      "currentPath": "examples/physics-character-reference/entry.mjs",
+      "parentSha256": "b0c41b3b816eeb30d196b5e2da7ac7ad136c7aa272785e39760749d1193eb246",
+      "currentSha256": "5bdbe6ccf3e6abf913cbb7e1517148c3abdd2b7a4dfc523e69190dc52c849597",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-character-reference/fixture.mjs",
+      "currentPath": "examples/physics-character-reference/fixture.mjs",
+      "parentSha256": "b98159a14795147ef543cc547d8efc886a932d8b2695ebd050562490751a838c",
+      "currentSha256": "9e1a82b3dfdd13902424e621c79bcb79095f2ed94fc647a5193e50ab8a1be33f",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-character-reference/metrics.mjs",
+      "currentPath": "examples/physics-character-reference/metrics.mjs",
+      "parentSha256": "72431e062ac88375d972dd65e310d6974edb0759428a5affe340b7768b98266d",
+      "currentSha256": "85abe3375a7a59fb0a5f0e8fd9a7ae0f202c7ebef0b7a7bfc8cc630d323dccb6",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-character-reference/scene.mjs",
+      "currentPath": "examples/physics-character-reference/scene.mjs",
+      "parentSha256": "46ce933f1aebadb37f860ee4d779c1d1ab2d3524de22d8630d2c12ad80b92add",
+      "currentSha256": "1b3b348eceacc2b545e0b5859533a88ff10cd5d69b020e18e807d3e35ecd4b9b",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-error-entry/entry.mjs",
+      "currentPath": "examples/physics-error-entry/entry.mjs",
+      "parentSha256": "f4c7d558556675a804f40ab021f1f885c46e89b23293d01f66270d2f126ef442",
+      "currentSha256": "4a273da37c0cf74753af6be33d407d09d9ac22552888f001717f95e12f44f878",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-motion-foundations-2276/baseline.test.ts",
+      "currentPath": "examples/physics-motion-foundations-2276/baseline.test.ts",
+      "parentSha256": "cfdd5704a513f89d9a4963f6a54e8b27d9145bac2d2ad52d024ef025fedaded9",
+      "currentSha256": "6438a4f649a49f71013c5f8ca1e2b897154c41e793cc21107ad15581bf0838f1",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-motion-foundations-2276/contact.test.ts",
+      "currentPath": "examples/physics-motion-foundations-2276/contact.test.ts",
+      "parentSha256": "4b030e19f75f42be3a12f2a8241a8b94b5d815534ab6def00fc5932b9ac4a579",
+      "currentSha256": "f9fbdc4aac3973009de1355832b215f57f165344b2d1c1d86745db6c3501be73",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-motion-foundations-2276/pendulum.test.ts",
+      "currentPath": "examples/physics-motion-foundations-2276/pendulum.test.ts",
+      "parentSha256": "4b40d8b9e8a13fc506f6e7b53d086d9c4508eebe43cc873f24f6ed97d14874d5",
+      "currentSha256": "08a99935eb0a12604db39e9a9ec1f26485a08a6a29a2849bd565092233eca120",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-motion-foundations-2276/public-consumer.ts",
+      "currentPath": "examples/physics-motion-foundations-2276/public-consumer.ts",
+      "parentSha256": "31ba437bc6404db7bce6664b36b44425b1f3a99571fdb819b4f9bc118defd594",
+      "currentSha256": "5f24112233905e8beb7bb207086ce243ee1e20a16be86cad4c5ca1a7e3785539",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-motion-foundations-2276/units.test.ts",
+      "currentPath": "examples/physics-motion-foundations-2276/units.test.ts",
+      "parentSha256": "b88dc4bc2548d9e7dfbe4e5dccee4a91f11d41740e0f912fea99353ed53554cb",
+      "currentSha256": "14d98e0f5058aa02beab886ed5852d426251bd3e06ec9b657971d5593bf58389",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-motion-foundations-2276/world.test.ts",
+      "currentPath": "examples/physics-motion-foundations-2276/world.test.ts",
+      "parentSha256": "c64be9b6319e9f018ac8cb9a618c570c32b255d092a7f850d0bf566cdad71d98",
+      "currentSha256": "faa6a6f32b61be46f1292dbc91371cf313c84dbda5ca4d1ad5674db5cf4d16c0",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-scene/app.js",
+      "currentPath": "examples/physics-scene/app.js",
+      "parentSha256": "9cb3e9f0a6d572d7aeb1dd57eb9a6fda2f763284919e0503aad12ba49c1162f6",
+      "currentSha256": "888046dd613e8aef38835d050dec17d552cb6d85df5afc88070c64c4d03fbdfa",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN-by-services-agent"
+    },
+    {
+      "sourceAtParent": "examples/physics-scene/replay-probe.mjs",
+      "currentPath": "examples/physics-scene/replay-probe.mjs",
+      "parentSha256": "e5e930ba4b336344edebb38aa9379b0b2d6bdcf87d1e234f85f947d48591e69e",
+      "currentSha256": "f7623f10ff11af70c3ce07e9f862e6a646d35c0186c251b002b39c48eff05dac",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-scene/server.mjs",
+      "currentPath": "examples/physics-scene/server.mjs",
+      "parentSha256": "e71d03cb84f3ca4e45cd32bdd9f481e1777e15bb7b2b968b1781969d6182c129",
+      "currentSha256": "d73b807f5bc0b73f6f26f12f01d742defe405c78a3e6a1245c11d92641bee5b2",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN-by-services-agent"
+    },
+    {
+      "sourceAtParent": "examples/physics-viewer-scene/app.js",
+      "currentPath": "examples/physics-viewer-scene/app.js",
+      "parentSha256": "d4365ac8fc102fafc41b0644f902b9b71589e599a3c18e91d66d68c88470a03b",
+      "currentSha256": "757a5ecb5e4bb8bafa81f91a2233eb366bd06da0814f48f71b3f86d03cf4ba10",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-viewer-scene/dynamic-hinge-demo.js",
+      "currentPath": "examples/physics-viewer-scene/dynamic-hinge-demo.js",
+      "parentSha256": "85c418b68b650c5f4b07aff4474c505aca949c5a6fa1592005adf8d5516ba861",
+      "currentSha256": "f36f51c2966ffbfff888744fcb2cce605a1e6f597df8ef6d96b595df04fe2f2b",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-viewer-scene/hinge-markers.js",
+      "currentPath": "examples/physics-viewer-scene/hinge-markers.js",
+      "parentSha256": "8782d4e3bb3f9b2310f47abf097e67960a8eebec87f779c0859fadbf2570da97",
+      "currentSha256": "5bb25512d54e3eef10b391cfea29dafa0759b129d32eb873ed4d52046c9aef8d",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-viewer-scene/joint-demo.js",
+      "currentPath": "examples/physics-viewer-scene/joint-demo.js",
+      "parentSha256": "d55da6a5285d63ea638737bcb69db96f289af0d315a3539e75c5385fc4ce3d0c",
+      "currentSha256": "ed7646ac9c58670999cec21807f9da0bdc760bec24ac2a810ac612fb2bb9395a",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-viewer-scene/motor-demo.js",
+      "currentPath": "examples/physics-viewer-scene/motor-demo.js",
+      "parentSha256": "dbc49b80ebb4cc60836ec86c189c1f14cf3349eb713582d23f65cb262b1dba75",
+      "currentSha256": "fc771f37dd076300e7d274a72ce98db52e837411ca7e0b6485fcb795f4838a98",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-viewer-scene/offset-hinge-demo.js",
+      "currentPath": "examples/physics-viewer-scene/offset-hinge-demo.js",
+      "parentSha256": "0c0b5a90dc28eed21ee77c3d09fe9110eb22dfaeceb525e870ff4029d4b4f847",
+      "currentSha256": "4ef938b5ab99c4551c92c58c0bc03c27a04f005ddd7c0c323245d745d588d8f4",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/physics-viewer-scene/server.mjs",
+      "currentPath": "examples/physics-viewer-scene/server.mjs",
+      "parentSha256": "be2aa520f9741094882a73d42a00974fc3f6a7b6b362897d2ca5f7408c0d2d59",
+      "currentSha256": "1f24065ce1286024dae0c01733e7dfc46ffe46bbce77f2a5f094e0b93a7a9d6c",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN-by-services-agent"
+    },
+    {
+      "sourceAtParent": "examples/workspace-source/flow.mjs",
+      "currentPath": "examples/workspace-source/flow.mjs",
+      "parentSha256": "576d1ec06b1b987c9078489758e9cd2775577cbf0b2df9c8d5baf8e75146305e",
+      "currentSha256": "f7b9bb6aafb1d9026f2ab2278dafd601f29f357161fb684af8f23c0e42e85478",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/workspace-source/probe.mjs",
+      "currentPath": "examples/workspace-source/probe.mjs",
+      "parentSha256": "0bc0aeb464e28d1789c0c291af7ea2ff86001034b6f8d27e1937342c828db14b",
+      "currentSha256": "e077c98279d08e83f9839d2a47a042ba4d77fed328a8b87af60f70ca4d54810e",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "examples/workspace-source/serve.mjs",
+      "currentPath": "examples/workspace-source/serve.mjs",
+      "parentSha256": "c8f6c6e4f9df8d2c59ce6384836047c96f08838991f075636eb7148813f93e09",
+      "currentSha256": "6716a8662d245a35d793a111cac7d408f96bb5eb1331ae050f27400c9130211a",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/README.md",
+      "currentPath": "packages/barocss-physics/README.md",
+      "parentSha256": "a17a0c00700d1fc67d19d2f4f108ddec449c59df1490aedb62e9983acb614b04",
+      "currentSha256": "839a0763304dcb4783d99b1fede8ab382fc39a5da87328bc8d52f95fdb97b3bc",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN-by-services-agent"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/ROADMAP.md",
+      "currentPath": "packages/barocss-physics/ROADMAP.md",
+      "parentSha256": "62b8e48bc6eb28c3c183172aa4221b767ea248a36ee1c89c6856d3619cad1b8d",
+      "currentSha256": "18c9280c26a326ba5c7ef1b34581ca82cbebbb5eb49b939cac62e6cac5edf9e4",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN-by-services-agent"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/cad-proxy-admission.ts",
+      "currentPath": "packages/barocss-physics/src/cad-proxy-admission.ts",
+      "parentSha256": "271dcaadfe47426fd5a6823e00b7ebce8c534c62987c4bc014f18f2b22ecd4a7",
+      "currentSha256": "898fb55af369727440fef9f4bfadba0ea455b4c800a719909e5311029a663441",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/cad-proxy-pose.ts",
+      "currentPath": "packages/barocss-physics/src/cad-proxy-pose.ts",
+      "parentSha256": "813fc8607be59bf6228c42d1324324cff3187f0552bc57523c133fabfdf3f36c",
+      "currentSha256": "8b5f50642144e335421ee6483f8b016b8a0babdb0c312ddf6ba4afbcf8bda322",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/cad-proxy-types.ts",
+      "currentPath": "packages/barocss-physics/src/cad-proxy-types.ts",
+      "parentSha256": "58baa111a728fd85988ceb5094308ee8eb2727bc0ef289badeaf32851cad4e71",
+      "currentSha256": "31bbf6766887913149d6fa2185c173adb0c6b78cdb21d1556ae4ffd055666128",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/cad-proxy-validation.ts",
+      "currentPath": "packages/barocss-physics/src/cad-proxy-validation.ts",
+      "parentSha256": "5e586a65eb810a0881a1a69ab3700c1c44a2a94b17622eb953c8e02ee70ee399",
+      "currentSha256": "4429f957bb51ff2604a15478095e35642368dcf91ca0d854561693d3f99f748e",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/cad-proxy.ts",
+      "currentPath": "packages/barocss-physics/src/cad-proxy.ts",
+      "parentSha256": "03745054fcec2bd660258fa9cf303aced00456bda3a705294c664e509882356b",
+      "currentSha256": "03745054fcec2bd660258fa9cf303aced00456bda3a705294c664e509882356b",
+      "operation": "unchanged-inspected",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/cloth/types.ts",
+      "currentPath": "packages/barocss-physics/src/cloth/types.ts",
+      "parentSha256": "280f610d20f03c98a324e1e2defa4e29ad640986ec604cb07725417388ca35b5",
+      "currentSha256": "6fa716f52e0a31e1821ce11e0528ac3fe07ba79ce0daaa443b799c8b56f43446",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/fluid/cad-admission.ts",
+      "currentPath": "packages/barocss-physics/src/fluid/cad-admission.ts",
+      "parentSha256": "3509a84b1ea0ce9b8528d57619a69f504eda641e2b1e7db183ca58decf128071",
+      "currentSha256": "769d8fb16a9639c03df6a63afe5f7be86fc1a9ad1d4e0f548cf1effa6336afeb",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/fluid/cad-world.ts",
+      "currentPath": "packages/barocss-physics/src/fluid/cad-world.ts",
+      "parentSha256": "d958f33d6aebf9b4f9d9824b1d5e2532d10f7c9e71e0e285baf309662791fd05",
+      "currentSha256": "e4555c86bd31f4016609e778e1d57c510eb54d15da46c55632de880d4cccae9d",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/fluid/constants.ts",
+      "currentPath": "packages/barocss-physics/src/fluid/constants.ts",
+      "parentSha256": "8573b3540bf8cb9d9957bd8be9cfef6c40f3cd381b28d77ba5712b4daf1b41c9",
+      "currentSha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/fluid/static-box.ts",
+      "currentPath": "packages/barocss-physics/src/fluid/static-box.ts",
+      "parentSha256": "aad5c9a7d22e7ca93c0a0f54198a6581978bfbdd45cc18e3bbbfc77c7315545b",
+      "currentSha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/fluid/types.ts",
+      "currentPath": "packages/barocss-physics/src/fluid/types.ts",
+      "parentSha256": "1e81f1da08ba38cc6b4434c166da88097c706e6d5f57b2a828150d40f66a8fe7",
+      "currentSha256": "a6c25087eaeaa6a0b290c2a400040eb19d082d8c0ec3d170de26729f53ba8cb1",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/fluid/validation.ts",
+      "currentPath": "packages/barocss-physics/src/fluid/validation.ts",
+      "parentSha256": "00d15fd97afed4f133f135fb0881bdf43ca88e8d366acd66d3660c7c09319441",
+      "currentSha256": "0f78de306b95c55b5193e07a7b11f9ceece9ccae15e93403401c5fe1c9b3b3a4",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/fluid/world.ts",
+      "currentPath": "packages/barocss-physics/src/fluid/world.ts",
+      "parentSha256": "bdfcfa50dd17096a0307d4bc4faae2c6d64dd20f0dcbb0e64d0474a175fce5bb",
+      "currentSha256": "be1f29eaa50b2c7d827711611b53fb623eff32ab49eb77d9933ea47de8317615",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/replay-compare.ts",
+      "currentPath": "packages/barocss-physics/src/replay-compare.ts",
+      "parentSha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec",
+      "currentSha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec",
+      "operation": "unchanged-inspected",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/replay-json.ts",
+      "currentPath": "packages/barocss-physics/src/replay-json.ts",
+      "parentSha256": "01f4b80861f9e9b5958fdd11175633ca1aff69de3c7c179e142415665f055fe8",
+      "currentSha256": "730c80e6aa3e05d5d8465eebbc7547cdb45105a859a848cf7f21608cff1086c5",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/replay-scene.ts",
+      "currentPath": "packages/barocss-physics/src/replay-scene.ts",
+      "parentSha256": "07468207326d3dd2f082e77727bdef5a984de5e72a6e5cb0a2da5229429ae436",
+      "currentSha256": "95610be2f4541331b13cfc446b1bba09363978271ff559e5d58676d2f894e272",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/replay-session.ts",
+      "currentPath": "packages/barocss-physics/src/replay-session.ts",
+      "parentSha256": "93f24d3e6372a8615fd123d8047eb40b8e4cdb95a88c0c7511ea79f9934d585c",
+      "currentSha256": "5ec7675a440bff92b7c4691eac8308bb755f30f902ea1ab6828aa7aa30eebff2",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/replay-types.ts",
+      "currentPath": "packages/barocss-physics/src/replay-types.ts",
+      "parentSha256": "830a839b7ca0751652e40ff8730e5e2b927cb0df2a259e23456fe1e10300703d",
+      "currentSha256": "a1673f181ba1eb760f6f77e997da3c784f4d63a026ee738efdaeca0fe676f60a",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    },
+    {
+      "sourceAtParent": "packages/barocss-physics/src/replay.ts",
+      "currentPath": "packages/barocss-physics/src/replay.ts",
+      "parentSha256": "6836331c3fc261272319d956c5f9f7e4b90913453a87d91673f301d8ff2d8f45",
+      "currentSha256": "ac43246306afd24964db5bc94f964cc084c4365831be509f5ccf1eeac2b41f4f",
+      "operation": "direct-api-cutover",
+      "proof": "NOT_RUN"
+    }
+  ],
+  "historicalRunners": [
+    {
+      "path": "examples/physics-world-p1a-2276/run.mjs",
+      "sha256": "8ee79a0c97b9b4dd4c35445bc98fed08ef6451c4b169c77691029ecc3adc91fa",
+      "status": "historical-only-not-current-P1b-runner",
+      "providerBaseline": "66df02f8e7d5a3a7ab7b8ff7a0184bf34d978713",
+      "reason": "Pinned pre-cutover DTO, source anchors or reduced-root exports; do not reinterpret as modern API proof."
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/reference-run.mjs",
+      "sha256": "f3a7a69a0e1157065deee11d127d8104757b7165535a32d22525bf12b647af48",
+      "status": "historical-only-not-current-P1b-runner",
+      "providerBaseline": "see immutable P1a contract and receipts",
+      "reason": "Pinned pre-cutover DTO, source anchors or reduced-root exports; do not reinterpret as modern API proof."
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/transaction.test.mjs",
+      "sha256": "be06ca1289685c9e542c62a7add8ceb33c7ff7fbaf04f16347d0fe1088315e6a",
+      "status": "historical-only-not-current-P1b-runner",
+      "providerBaseline": "see immutable P1a contract and receipts",
+      "reason": "Pinned pre-cutover DTO, source anchors or reduced-root exports; do not reinterpret as modern API proof."
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/fixtures.mjs",
+      "sha256": "f59905e181169c1aa791402115f9f00edebedd9d825d0a9ea1d9923581efe730",
+      "status": "historical-only-not-current-P1b-runner",
+      "providerBaseline": "see immutable P1a contract and receipts",
+      "reason": "Pinned pre-cutover DTO, source anchors or reduced-root exports; do not reinterpret as modern API proof."
+    }
+  ],
+  "immutableInputs": {
+    "characterParametersSourceSha256": "b1432d846a97d68dd00752d520b14f97d6167387204691049f80dd350f5d6446",
+    "characterParametersUnchanged": true,
+    "geometryJsonConstruction": "unchanged; numerical geometry values and canonical JSON/hash algorithm retained",
+    "oldConfigJson": "Preserved at parent and prior evidence. Current configJson describes explicit model/options and has its own hash."
+  },
+  "proofBoundaries": {
+    "syntax": "PASS for changed JavaScript at preparation; TypeScript execution deferred to parent",
+    "diffWhitespace": "PASS",
+    "tests": "Services agent did not run test campaigns. Parent owns selected source/emitted/native/docs receipts and final qualification.",
+    "viewer": "HOLD; host API mapping only, no rendering campaign",
+    "publication": "NOT_RUN",
+    "docs": "Current text records parent-confirmed source8/emitted8, native04, mapping02, foundation21, docs174/174; current docs build/link and remaining DOM/watch pending."
+  },
+  "specificTransitions": [
+    {
+      "path": "examples/physics-motion-foundations-2276/world.test.ts",
+      "removedField": "BodyState.inertiaKgM2",
+      "newObservation": "applied angular impulse 0.032 / accepted angular velocity; expected 0.032 and original 1e-14 tolerance retained"
+    },
+    {
+      "path": "examples/physics-character-reference/entry.mjs",
+      "removedField": "BodyState.inertiaDiagonalKgM2",
+      "newObservation": "declared capsule geometry and mass give 2*m*(r+halfLength)^2/5; original exact [.1,.1,.1] retained"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/baseline.test.ts",
+      "transition": "Persistent profile retains four-body bound. Typed refusal code unchanged; exact message reflects new model array admission."
+    },
+    {
+      "path": "examples/physics-error-entry/entry.mjs",
+      "transition": "Numeric rigid step argument is INVALID_COMMAND. Shared error constructor/code assertions retained; messages are recorded, not treated as protocol."
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/public-consumer.ts",
+      "transition": "Emitted native consumer now checks rigid root only. All reduced ODE period/convergence/oracle tests remain in pendulum.test.ts with independent example-reference imports."
+    }
+  ],
+  "newWire": {
+    "exports": [
+      "serializePhysicsSnapshot",
+      "deserializePhysicsSnapshot"
+    ],
+    "magic": "BCPHSNP1",
+    "encoding": "P0 canonical typed bytes; preserves signed zero",
+    "sceneByteLimit": 131072,
+    "snapshotByteLimitIncludingMagic": 1048576,
+    "legacyReader": false
+  },
+  "sourceBuildHooks": {
+    "examples/physics-scene/server.mjs": "provider generation before each watched source rebuild",
+    "examples/physics-viewer-scene/server.mjs": "provider generation before startup builds",
+    "examples/physics-cad-scene/server.mjs": "provider generation before startup build",
+    "examples/workspace-source/probe.mjs": "provider generation before source probe build",
+    "examples/workspace-source/serve.mjs": "provider generation before each source rebuild"
+  }
+}

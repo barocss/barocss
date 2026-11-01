@@ -7,8 +7,8 @@ const unit = (value) => value.map((component) => component / Math.hypot(...value
 export function hingeProxyPoints(bodies) {
   const [a, b] = bodies;
   const anchor = (body, localX) => [
-    body.positionM[0] + localX * (1 - 2 * body.orientation[2] ** 2),
-    body.positionM[1] + localX * 2 * body.orientation[2] * body.orientation[3],
+    body.positionM[0] + localX * (1 - 2 * body.orientationXYZW[2] ** 2),
+    body.positionM[1] + localX * 2 * body.orientationXYZW[2] * body.orientationXYZW[3],
     body.positionM[2],
   ];
   const anchorA = anchor(a, 0.1), anchorB = anchor(b, -0.1);

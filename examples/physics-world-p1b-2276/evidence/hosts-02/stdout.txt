@@ -1,0 +1,7 @@
+{"entry":"physics-scene/app.js","bytes":115012,"inputs":45,"execution":"NOT_RUN","kind":"source-bundle-only","viewerSDK":"explicit external rendering boundary; dist absent; NOT_BUILT"}
+{"entry":"physics-cad-scene/app.js","bytes":342208,"inputs":390,"execution":"NOT_RUN","kind":"source-bundle-only","viewerSDK":"explicit external rendering boundary; dist absent; NOT_BUILT"}
+{"entry":"physics-viewer-scene/app.js","bytes":118203,"inputs":45,"execution":"NOT_RUN","kind":"source-bundle-only","viewerSDK":"explicit external rendering boundary; dist absent; NOT_BUILT"}
+{"entry":"physics-viewer-scene/joint-demo.js","bytes":111318,"inputs":5,"execution":"NOT_RUN","kind":"source-bundle-only","viewerSDK":"explicit external rendering boundary; dist absent; NOT_BUILT"}
+{"entry":"physics-viewer-scene/motor-demo.js","bytes":113037,"inputs":5,"execution":"NOT_RUN","kind":"source-bundle-only","viewerSDK":"explicit external rendering boundary; dist absent; NOT_BUILT"}
+{"entry":"physics-viewer-scene/dynamic-hinge-demo.js","bytes":112975,"inputs":5,"execution":"NOT_RUN","kind":"source-bundle-only","viewerSDK":"explicit external rendering boundary; dist absent; NOT_BUILT"}
+{"entry":"physics-viewer-scene/offset-hinge-demo.js","bytes":116366,"inputs":6,"execution":"NOT_RUN","kind":"source-bundle-only","viewerSDK":"explicit external rendering boundary; dist absent; NOT_BUILT"}

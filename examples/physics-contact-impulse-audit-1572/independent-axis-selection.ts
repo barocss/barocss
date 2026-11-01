@@ -1,9 +1,10 @@
+import {makeModel,dynamicPart,staticPart} from '../physics-model-input/model.mjs';
 /** #1572 independent 15-axis OBB SAT reference, original OFFSET/YAW 3 cubes.
  * Captures exact b0/b1 internal collision poses via temporary World build.
  * No production source modification or acceptance changes.
  */
 import {createPhysicsWorld} from '../../packages/barocss-physics/src/index.js';
-import type {PhysicsBodyConfig,PhysicsWorldConfig} from '../../packages/barocss-physics/src/types.js';
+
 type V=[number,number,number];type Q=[number,number,number,number];
 type Pose={p:V,q:Q,e:V};
 type Hit={step:number,pass:number,a:Pose,b:Pose,normal:V,penetration:number};
@@ -32,10 +33,10 @@ function independent(b1:Pose,b2:Pose){
  }
  return {best,normal:bestNormal,considered};
 }
-const floor:PhysicsBodyConfig={id:'floor',kind:'static',shape:{kind:'box',halfExtentsM:[2,.1,2]},positionM:[0,-.1,0],restitution:0,friction:{static:1,dynamic:.7}};
-function cube(i:number,mode:'OFFSET'|'YAW'):PhysicsBodyConfig{
+const floor=staticPart('floor',{kind:'box',halfExtentsM:[2,.1,2]},{positionM:[0,-.1,0]},{restitution:0,friction:{static:1,dynamic:.7}});
+function cube(i:number,mode:'OFFSET'|'YAW'){
  const yaw=mode==='YAW'?(i%2===0?.05:-.05):0;
- return {id:'b'+i,kind:'dynamic',shape:{kind:'box',halfExtentsM:[.25,.25,.25]},positionM:[(i%2)*.05,.25+.5*i,0],massKg:1,velocityMps:[0,0,0],orientation:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)],restitution:0,friction:{static:1,dynamic:.7}};
+ return dynamicPart('b'+i,{kind:'box',halfExtentsM:[.25,.25,.25]},{positionM:[(i%2)*.05,.25+.5*i,0],velocityMps:[0,0,0],orientationXYZW:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)]},1,{restitution:0,friction:{static:1,dynamic:.7}});
 }
 const host=globalThis as typeof globalThis&{__p1572AxisProbe?:(e:Hit)=>void};
 for(const mode of ['OFFSET','YAW'] as const){
@@ -54,10 +55,9 @@ for(const mode of ['OFFSET','YAW'] as const){
     producerPenetrationM:e.penetration,axisCount:expected.considered,
     normalResidual:normMismatch});
  };
- const world=createPhysicsWorld({fixedStepSeconds:1/120,gravityMps2:[0,-9.81,0],
-  contactMode:'persistent-box-v1',bodies:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]});
+ const world=createPhysicsWorld(makeModel({gravityMps2:[0,-9.81,0],parts:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]}),{profile:'rigid-persistent-box-v1',fixedStepSeconds:1/120,broadPhase:'direct'});
  let accepted=0,failure:null|string=null;
- try{for(let step=1;step<=1200;step++){try{world.step(1/120);accepted=step;}catch(err){failure=String(err);break;}}}
+ try{for(let step=1;step<=1200;step++){try{world.step();accepted=step;}catch(err){failure=String(err);break;}}}
  finally{world.dispose();delete host.__p1572AxisProbe;}
  console.log(JSON.stringify({mode,accepted,failure,count,maxPenetrationResidual,maxNormalMismatch,samples,
   caveat:'independent 15-axis arithmetic on source body poses, not independent polygon manifold validation',

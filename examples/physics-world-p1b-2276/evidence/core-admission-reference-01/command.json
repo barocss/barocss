@@ -1,0 +1,10 @@
+{
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "examples/physics-rigid-engine-reference/run.mjs",
+    "examples/physics-world-p1b-2276/evidence/core-admission-reference-01"
+  ],
+  "exit": 0,
+  "signal": null,
+  "proof": "nine explicit P0 admission/one-step fixtures; source and emitted physical/model/config state exact; provider digest excluded from parity"
+}

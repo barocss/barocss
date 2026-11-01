@@ -1,3 +1,4 @@
+import { makeModel, dynamicPart, staticPart } from '../physics-model-input/model.mjs';
 import { createPhysicsWorld } from '../../packages/barocss-physics/dist/index.js';
 import { createViewer } from '../../packages/barocss-viewer/dist/index.js';
 
@@ -22,18 +23,14 @@ const bindings = [
 if (surfaces.length !== 2) throw new Error('Expected two original Surfaces');
 
 function createWorld() {
-  const shape = { kind: 'sphere', radiusM: 0.1 };
-  return createPhysicsWorld({ fixedStepSeconds: DT, gravityMps2: [0, 0, 0],
-    bodies: [
-      { id: BODY_IDS[0], kind: 'static', shape, positionM: [0, 0, 0], restitution: 0 },
-      { id: BODY_IDS[1], kind: 'dynamic', shape, positionM: [0, 0, 0],
-        velocityMps: [0, 0, 0], massKg: 1, restitution: 0 },
-    ],
-    joints: [{ id: 'joint:hinge', kind: 'hinge', aId: BODY_IDS[0], bId: BODY_IDS[1],
-      anchorALocalM: [0, 0, 0], anchorBLocalM: [0, 0, 0],
-      axisWorld: [0, 0, 1], limitRad: [-0.5, 0.5],
-      motor: { targetSpeedRadps: 0.5, maxImpulseNms: 0.0001,
-        maxReactionNms: 0.0005 } }] });
+  return createPhysicsWorld(makeModel({ gravityMps2: [0, 0, 0], parts: [
+    staticPart(BODY_IDS[0], { kind: 'sphere', radiusM: 0.1 }, { positionM: [0, 0, 0] }),
+    dynamicPart(BODY_IDS[1], { kind: 'sphere', radiusM: 0.1 }, { positionM: [0, 0, 0] }),
+  ], joints: [{ id: 'joint:hinge', kind: 'hinge', bodyAId: BODY_IDS[0], bodyBId: BODY_IDS[1],
+    anchorALocalM: [0, 0, 0], anchorBLocalM: [0, 0, 0],
+    axisWorld: [0, 0, 1], limitRad: [-0.5, 0.5],
+    motor: { targetSpeedRadps: 0.5, maxImpulseNms: 0.0001, maxReactionNms: 0.0005 } }] }),
+  { profile: 'rigid-discrete-v1', fixedStepSeconds: DT, broadPhase: 'direct' });
 }
 
 let world = createWorld();
@@ -59,14 +56,14 @@ function show(state) {
   const frame = { contextId, timeSeconds: state.timeSeconds, poses: [
     { targetId: BODY_IDS[0], translation: [0, 0, 0] },
     { targetId: BODY_IDS[1], translation: [b.positionM[0] * 1000, b.positionM[1] * 1000, 0],
-      rotation: b.orientation },
+      rotation: b.orientationXYZW },
   ] };
   viewer.applyMotionFrame(frame, bindings, { basis: 'part-xyz-matches-rhyup' });
   accepted = state;
   $('step').textContent = String(state.stepIndex);
   $('angle').textContent = `${state.joints[0].angleRad.toFixed(6)} rad`;
   $('motor').textContent = `${state.joints[0].motorImpulseNms.toFixed(6)} N·m·s`;
-  $('reaction').textContent = `${state.joints[0].angularImpulseNms[2].toFixed(6)} N·m·s`;
+  $('reaction').textContent = `${state.joints[0].angularImpulseOnBNms[2].toFixed(6)} N·m·s`;
   $('status').textContent = errorMessage || (playing ? 'Playing' : 'Paused');
   $('play').textContent = playing ? 'Pause' : 'Play';
 }
@@ -74,7 +71,7 @@ function show(state) {
 function step() {
   if (world.getState().stepIndex >= 120) { playing = false; show(accepted); return; }
   try {
-    show(world.step(DT));
+    show(world.step());
   } catch (error) {
     playing = false;
     errorMessage = error instanceof Error ? error.message : String(error);
@@ -127,10 +124,10 @@ $('overload').addEventListener('click', () => {
   if (world.getState().stepIndex !== 120) {
     errorMessage = 'Run to step 120 before overload'; show(accepted); return;
   }
-  show(world.step(DT, [{ kind: 'angularImpulse', bodyId: BODY_IDS[1],
+  show(world.step([{ kind: 'angularImpulse', bodyId: BODY_IDS[1],
     angularImpulseNms: [0, 0, 0.01] }]));
   const before = JSON.stringify(viewer.getState().motion);
-  try { world.step(DT); errorMessage = 'Unexpected overload acceptance'; }
+  try { world.step(); errorMessage = 'Unexpected overload acceptance'; }
   catch (error) {
     errorMessage = error?.code === 'NUMERIC_LIMIT' &&
       JSON.stringify(viewer.getState().motion) === before && world.getState().stepIndex === 121

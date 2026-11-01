@@ -1,0 +1,29 @@
+[
+  {
+    "name": "source",
+    "command": [
+      "git",
+      "diff",
+      "--cached",
+      "--check",
+      "--",
+      ".",
+      ":(exclude)examples/physics-world-p1b-2276/evidence/**"
+    ],
+    "exit": 0,
+    "interpretation": "PASS source whitespace"
+  },
+  {
+    "name": "raw-evidence",
+    "command": [
+      "git",
+      "diff",
+      "--cached",
+      "--check",
+      "--",
+      "examples/physics-world-p1b-2276/evidence"
+    ],
+    "exit": 2,
+    "interpretation": "Raw first-failure/lint streams preserved; original whitespace is not changed"
+  }
+]

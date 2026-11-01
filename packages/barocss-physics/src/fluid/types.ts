@@ -1,4 +1,4 @@
-import type { Vec3 } from '../types.js';
+import type { Vec3 } from '../internal-types.js';
 
 export interface FluidSceneV1 {
   format: 'barocss-fluid-scene';

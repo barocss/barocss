@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { resolve, relative } from 'node:path';
 import { context } from 'esbuild';
-import { here, root, families, inputProof, outputDirectory, writeEvidence } from './probe.mjs';
+import { here, root, families, inputProof, outputDirectory, writeEvidence, refreshPhysicsProvider } from './probe.mjs';
 
 const output = outputDirectory();
 const evidence = { work_id: 1010, mode: 'source', port: 52935, startedAt: new Date().toISOString(),
@@ -31,6 +31,7 @@ async function fingerprint(paths) {
 function bundle() {
   const task = pending.then(async () => {
     const started = performance.now();
+    refreshPhysicsProvider();
     const checked = performance.now();
     const current = await fingerprint([...inputHashes.keys()]);
     const changed = [...current].filter(([path, digest]) => digest !== inputHashes.get(path))

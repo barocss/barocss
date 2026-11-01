@@ -1,34 +1,29 @@
+import {makeModel,dynamicPart,staticPart} from '../physics-model-input/model.mjs';
 /**
  * #1572: first 3 dynamic cubes of the immutable #1185 ALIGNED/OFFSET/YAW
  * input families, within the current public persistent-box-v1 cap (4 bodies).
  * No solver change, no 8-box qualification, no independent SAT observer.
  */
 import { createPhysicsWorld } from '../../packages/barocss-physics/src/index.js';
-import type { PhysicsBodyConfig, PhysicsWorldConfig, PhysicsBodyState } from '../../packages/barocss-physics/src/types.js';
+import type {BodyState} from '../../packages/barocss-physics/src/types.js';
 
 type CaseName = 'ALIGNED' | 'OFFSET' | 'YAW';
 type Vec3 = [number,number,number];
 const dt=1/120, steps=1200;
-const floor:PhysicsBodyConfig={id:'floor',kind:'static',
-  shape:{kind:'box',halfExtentsM:[2,.1,2]},positionM:[0,-.1,0],
-  restitution:0,friction:{static:1,dynamic:.7}};
-function cube(i:number,name:CaseName):PhysicsBodyConfig{
+const floor=staticPart('floor',{kind:'box',halfExtentsM:[2,.1,2]},{positionM:[0,-.1,0]},{restitution:0,friction:{static:1,dynamic:.7}});
+function cube(i:number,name:CaseName){
   const x=name==='ALIGNED'?0:(i%2)*.05;
   const yaw=name==='YAW'?(i%2===0?.05:-.05):0;
-  return {id:`b${i}`,kind:'dynamic',shape:{kind:'box',halfExtentsM:[.25,.25,.25]},
-    positionM:[x,.25+.5*i,0],velocityMps:[0,0,0],massKg:1,
-    orientation:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)],
-    angularVelocityRadps:[0,0,0],restitution:0,friction:{static:1,dynamic:.7}};
+  return dynamicPart(`b${i}`,{kind:'box',halfExtentsM:[.25,.25,.25]},{positionM:[x,.25+.5*i,0],velocityMps:[0,0,0],orientationXYZW:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)],angularVelocityRadps:[0,0,0]},1,{restitution:0,friction:{static:1,dynamic:.7}});
 }
-function finiteBody(b:PhysicsBodyState):boolean{
-  return [...b.positionM,...b.velocityMps,...b.orientation,...b.angularVelocityRadps].every(Number.isFinite);
+function finiteBody(b:BodyState):boolean{
+  return [...b.positionM,...b.velocityMps,...b.orientationXYZW,...b.angularVelocityRadps].every(Number.isFinite);
 }
 let anyFailure=false;
 for(const name of ['ALIGNED','OFFSET','YAW'] as const){
   const inputs=[0,1,2].map(i=>cube(i,name));
-  const config:PhysicsWorldConfig={fixedStepSeconds:dt,gravityMps2:[0,-9.81,0],
-    contactMode:'persistent-box-v1',bodies:[floor,...inputs]};
-  const world=createPhysicsWorld(config);
+  const config={model:makeModel({gravityMps2:[0,-9.81,0],parts:[floor,...inputs]}),options:{profile:'rigid-persistent-box-v1',fixedStepSeconds:dt,broadPhase:'direct'} as const};
+  const world=createPhysicsWorld(config.model,config.options);
   const at8s=new Map<string,Vec3>();
   const stats=new Map<string,{maxVerticalDriftM:number,maxHorizontalFromInitialM:number,
     maxLinearSpeedMps:number,maxAngularSpeedRadps:number,maxTiltFromUprightRad:number}>();
@@ -36,7 +31,7 @@ for(const name of ['ALIGNED','OFFSET','YAW'] as const){
   try{
     for(let i=0;i<steps;i++){
       try{
-        const state=world.step(dt);
+        const state=world.step();
         if(state.stepIndex!==i+1||state.timeSeconds!==(i+1)*dt)throw Error('bad cursor');
         for(const b of state.bodies){
           if(!finiteBody(b))throw Error('nonfinite body '+b.id);
@@ -49,17 +44,17 @@ for(const name of ['ALIGNED','OFFSET','YAW'] as const){
           at8s.set(b.id,[...b.positionM]);
         if(i>=960)for(const b of state.bodies.filter(b=>b.kind==='dynamic')){
           const start=at8s.get(b.id);
-          const initial=inputs.find(x=>x.id===b.id);
+          const initial=inputs.find(x=>x.body.id===b.id);
           if(!start||!initial)throw Error('missing reference pose');
           const current=stats.get(b.id)??{maxVerticalDriftM:0,maxHorizontalFromInitialM:0,
             maxLinearSpeedMps:0,maxAngularSpeedRadps:0,maxTiltFromUprightRad:0};
           current.maxVerticalDriftM=Math.max(current.maxVerticalDriftM,Math.abs(b.positionM[1]-start[1]));
           current.maxHorizontalFromInitialM=Math.max(current.maxHorizontalFromInitialM,
-            Math.hypot(b.positionM[0]-initial.positionM[0],b.positionM[2]-initial.positionM[2]));
+            Math.hypot(b.positionM[0]-initial.body.initial.positionM[0],b.positionM[2]-initial.body.initial.positionM[2]));
           current.maxLinearSpeedMps=Math.max(current.maxLinearSpeedMps,Math.hypot(...b.velocityMps));
           current.maxAngularSpeedRadps=Math.max(current.maxAngularSpeedRadps,Math.hypot(...b.angularVelocityRadps));
           // upright deviation means the box local up axis vs world Y, not absolute yaw.
-          const [qx,,qz,qw]=b.orientation;
+          const [qx,,qz,qw]=b.orientationXYZW;
           current.maxTiltFromUprightRad=Math.max(current.maxTiltFromUprightRad,
             Math.acos(Math.min(1,Math.max(-1,1-2*(qx*qx+qz*qz)))));
           stats.set(b.id,current);

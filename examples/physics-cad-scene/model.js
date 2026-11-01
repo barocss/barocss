@@ -26,8 +26,12 @@ export async function createScene(canvas) {
     admitCadSurfaceProxy(source, { sourceVersion: 0, sourceRevision: revision, modelId,
       surfaceId: 'flat_panel', kind: 'static', proxy: 'box', minimumHalfExtentM: 0.01 }),
   ];
-  const makeWorld = (entries) => createPhysicsWorld({ fixedStepSeconds: DT,
-    gravityMps2: [0, -9.81, 0], bodies: entries.map((entry) => entry.body) });
+  const makeWorld = (entries) => createPhysicsWorld({ format: 'barocss-physics-model', version: 1,
+    revision, frame: { id: 'cad-world', basis: 'right-handed-xyz', rotation: 'local-to-world-xyzw' },
+    units: { length: 'm', mass: 'kg', time: 's', angle: 'rad' }, gravityMps2: [0, -9.81, 0],
+    bodies: entries.map(entry => entry.body), colliders: entries.map(entry => entry.collider),
+    sourceBindings: entries.map(entry => entry.binding), joints: [], cloths: [], fluids: [] },
+  { profile: 'rigid-discrete-v1', fixedStepSeconds: DT, broadPhase: 'direct' });
   const currentSource = () => viewer.getState().native?.source;
   const ensureCurrent = () => proxies.forEach((proxy) =>
     assertCadProxyCurrent(proxy, currentSource(), revision));
@@ -64,7 +68,7 @@ export async function createScene(canvas) {
     getState: () => world.getState(),
     step() {
       ensureCurrent();
-      const state = world.step(DT);
+      const state = world.step();
       apply(proxies, state);
       return state;
     },

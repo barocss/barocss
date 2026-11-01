@@ -1,4 +1,4 @@
-import type { Vec3 } from './types.js';
+import type { Vec3 } from './internal-types.js';
 import { sub } from './math.js';
 
 export interface SlabHit { fraction: number; normalLocal: Vec3 }

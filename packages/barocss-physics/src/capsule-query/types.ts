@@ -1,4 +1,4 @@
-import type { Vec3, Quat } from '../types.js';
+import type { Vec3, Quat } from '../internal-types.js';
 
 export interface CapsuleQueryBoxV1 {
   id: string;

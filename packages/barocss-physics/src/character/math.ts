@@ -1,4 +1,4 @@
-import type { Vec3 } from '../types.js';
+import type { Vec3 } from '../internal-types.js';
 
 export const dot = (a: Vec3, b: Vec3): number => a.reduce((sum, value, index) => sum + value * b[index], 0);
 export const add = (a: Vec3, b: Vec3): Vec3 => a.map((value, index) => value + b[index]) as Vec3;

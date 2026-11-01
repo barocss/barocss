@@ -1,10 +1,11 @@
+import {makeModel,dynamicPart,staticPart} from '../physics-model-input/model.mjs';
 /** #1572 controlled read-only kinetic energy balance for actual individual
  * point warm-start / solver calls. No production source edits. A point impulse
  * may raise local kinetic energy under warm-start; judge the full trace, not
  * any intermediate event alone. Energies use independent world inertia math.
  */
 import {createPhysicsWorld} from '../../packages/barocss-physics/src/index.js';
-import type {PhysicsBodyConfig,PhysicsWorldConfig} from '../../packages/barocss-physics/src/types.js';
+
 type V=[number,number,number];type Q=[number,number,number,number];
 type BodySnapshot={pos:V,vel:V,omega:V,orientation:Q,inverseMass:number,inverseInertiaLocal:V};
 type Impulse={normalNs:number,tangentNs:V};
@@ -38,10 +39,10 @@ function energy(b:BodySnapshot):number{
  return .5*dot(b.vel,b.vel)/b.inverseMass+.5*rotational;
 }
 const dt=1/120,steps=1200;
-const floor:PhysicsBodyConfig={id:'floor',kind:'static',shape:{kind:'box',halfExtentsM:[2,.1,2]},positionM:[0,-.1,0],friction:{static:1,dynamic:.7},restitution:0};
-function cube(i:number,mode:'OFFSET'|'YAW'):PhysicsBodyConfig{
+const floor=staticPart('floor',{kind:'box',halfExtentsM:[2,.1,2]},{positionM:[0,-.1,0]},{restitution:0,friction:{static:1,dynamic:.7}});
+function cube(i:number,mode:'OFFSET'|'YAW'){
  const yaw=mode==='YAW'?(i%2===0?.05:-.05):0;
- return {id:'b'+i,kind:'dynamic',shape:{kind:'box',halfExtentsM:[.25,.25,.25]},positionM:[(i%2)*.05,.25+.5*i,0],velocityMps:[0,0,0],massKg:1,orientation:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)],friction:{static:1,dynamic:.7},restitution:0};
+ return dynamicPart('b'+i,{kind:'box',halfExtentsM:[.25,.25,.25]},{positionM:[(i%2)*.05,.25+.5*i,0],velocityMps:[0,0,0],orientationXYZW:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)]},1,{restitution:0,friction:{static:1,dynamic:.7}});
 }
 const probe=globalThis as typeof globalThis&{__physics1572EnergyProbe?:(e:Event)=>void};
 for(const mode of ['OFFSET','YAW'] as const){
@@ -77,11 +78,11 @@ for(const mode of ['OFFSET','YAW'] as const){
     samples.push({step:e.step,pass:e.pass,iteration:e.iteration,pair:e.pair,kind:e.kind,deltaJ:delta,
       predictedImpulseWorkJ:expectedImpulseWorkJ,workResidualJ});
  };
- const world=createPhysicsWorld({fixedStepSeconds:dt,gravityMps2:[0,-9.81,0],contactMode:'persistent-box-v1',bodies:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]});
+ const world=createPhysicsWorld(makeModel({gravityMps2:[0,-9.81,0],parts:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]}),{profile:'rigid-persistent-box-v1',fixedStepSeconds:dt,broadPhase:'direct'});
  let accepted=0,firstFailure:string|null=null;
  try{
   for(let step=1;step<=steps;step++){
-   try{world.step(dt);accepted=step;}catch(err){firstFailure=err instanceof Error?err.message:String(err);break;}
+   try{world.step();accepted=step;}catch(err){firstFailure=err instanceof Error?err.message:String(err);break;}
   }
  }finally{world.dispose();delete probe.__physics1572EnergyProbe;}
  console.log(JSON.stringify({mode,accepted,firstFailure,stats,driftWindowStats,samples,

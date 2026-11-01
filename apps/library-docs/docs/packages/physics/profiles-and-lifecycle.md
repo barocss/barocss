@@ -7,21 +7,20 @@ active CAD adoption claim. Start with the [package overview](./) and [unit contr
 
 ## Rigid world profiles
 
-All rigid-world profiles use `createPhysicsWorld(config)` from `@barocss/physics`. Unless a narrower
-profile fixes the step, `fixedStepSeconds` is in `[1/240, 1/30]` s. Each call must use exactly that
-configured value. The world admits at most 3600 accepted steps and requires at least one dynamic body.
+All rigid-world profiles use `createPhysicsWorld(model, options)` from `@barocss/physics`. Unless a narrower
+profile fixes the step, `fixedStepSeconds` is in `[1/240, 1/30]` s. `step(commands?)` uses the configured value and takes no time argument. The world admits at most 3600 accepted steps and requires at least one dynamic body.
 
 | Selection | Capacity and combinations | Numerical scope and evidence route |
 | --- | --- | --- |
-| Default settings | 1–32 spheres, oriented boxes or capsules; optional `broadPhase:'aabb'` | One contact point per pair and eight solver passes. Primitive contacts are not exact CAD collision. See the package's `examples/physics-scene` probes and [verification](/reference/physics-verification). |
-| `contactMode:'persistent-box-v1'` | At most four bodies; no `large-v1` or box-pair CCD | Up to four clipped points for face-normal box contacts and bounded impulse reuse. Edge/edge and non-box pairs use the one-point path. Recorded centred and 0.05 m offset fixtures do not qualify arbitrary stacks. |
-| `sceneMode:'large-v1'` | 1–64 bodies; requires `broadPhase:'aabb'`; excludes any `joints` field, CCD and persistent boxes | Fixed collision filters and contact-island sleep. The named 63-sphere floor probe is a capacity case, not a general 64-body stack certificate. |
+| `profile:'rigid-discrete-v1'` | 1–32 spheres, oriented boxes or capsules; optional `broadPhase:'aabb'` | One contact point per pair and eight solver passes. Primitive contacts are not exact CAD collision. See the package's `examples/physics-scene` probes and [verification](/reference/physics-verification). |
+| `profile:'rigid-persistent-box-v1'` | At most four bodies; no `large-v1` or box-pair CCD | Up to four clipped points for face-normal box contacts and bounded impulse reuse. Edge/edge and non-box pairs use the one-point path. Recorded centred and 0.05 m offset fixtures do not qualify arbitrary stacks. |
+| `profile:'rigid-large-v1'` | 1–64 bodies; requires `broadPhase:'aabb'`; requires an empty `joints` array, CCD and persistent boxes | Fixed collision filters and contact-island sleep. The named 63-sphere floor probe is a capacity case, not a general 64-body stack certificate. |
 | Anchored fixed or hinge joints | At most eight records. Each static/kinematic A connects to a uniquely jointed dynamic B | Body-local initial anchors must coincide within `1e-6` m. A hinge uses unit `axisWorld` and limits within ±π/2 that include zero. Connected bodies do not collide. |
 | One dynamic fixed joint | Exactly two dynamic spheres, no other bodies or joints | Inverse mass/inertia distribute corrections. The recorded equal-mass impulse fixture does not qualify general joint networks. |
 | One concentric dynamic hinge | Exactly two dynamic spheres at the same centre; zero gravity, zero initial motion, identity orientation, zero local anchors | Planar angular commands along the hinge axis only. An optional motor drives relative B/A speed with equal and opposite impulses. |
 | One offset dynamic hinge | Exactly two 1 kg spheres of radius 0.1 m; centres at ±0.1 m on X; opposing 0.1 m local X anchors | Fixed +Z hinge, limits `[-0.8,0.8]`, zero gravity and 1/120 s step. Motor target 0.5 rad/s, impulse cap 0.0001 N·m·s and reaction cap 0.01 N·m·s. This is one fixture. |
 | Sphere/static-box CCD | One CCD dynamic sphere and 1–8 static nonsensor oriented boxes; no joints or other bodies | Conservative expanded-box sweep. Rounded corners can produce early hits. |
-| Dynamic-sphere-pair CCD | Exactly two nonsensor dynamic spheres, exactly one with `ccd:true`; zero gravity, no joints | Relative sphere sweep. `fixtureId` denotes the other dynamic sphere. |
+| Dynamic-sphere-pair CCD | Exactly two nonsensor dynamic spheres, exactly one with `ccd:true`; zero gravity, no joints | Relative sphere sweep. `colliderId` denotes the other dynamic sphere's collider. |
 | Axis-aligned-box-pair CCD | One CCD dynamic box and one static nonsensor box, both axis-aligned; no joints or persistent boxes | Nonzero angular commands refuse. Contact-induced rotation refuses the candidate. This covers the named thin-box fixture. |
 
 CCD stops at the earliest admitted hit with a `1e-9` m inward offset. It does not integrate the
@@ -40,11 +39,17 @@ bounded results in [Physics verification](/reference/physics-verification).
 
 ### Rigid input bounds
 
+The model declares all entity arrays, including empty `joints`, `cloths`, `fluids` and `sourceBindings`.
+Rigid profiles refuse nonempty cloth/fluid arrays. Each rigid body has exactly one collider with an identity
+local transform. `ccd`, sensor flags, geometry, material and collision filters belong to the collider.
+The body declares mass/inertia for dynamics and its explicit `initial` state. State carries numerical motion;
+read copied `getModel()` data for initial conditions, collider geometry and source bindings.
+
 Body IDs are unique ASCII identifiers with at most 64 characters and a starting letter.
 Each position component is within ±10000 m. Velocity components are within ±1000 m/s and gravity
 components within ±1000 m/s². Mass is `1e-6`–`1e6` kg. Sphere radius, box half extents and capsule
-length parameters are `1e-4`–1000 m. Restitution is 0–1. Optional friction satisfies
-`0 <= dynamic <= static <= 2`; both coefficients default to zero.
+length parameters are `1e-4`–1000 m. Restitution is 0–1. Explicit material friction satisfies
+`0 <= dynamic <= static <= 2`; supply both coefficients, including zero values.
 
 A step accepts at most 64 dense plain-object commands. Each body can receive one command of each
 applicable kind. Force and torque components are bounded by ±`1e6` N or N·m; linear and angular
@@ -59,34 +64,34 @@ rigid world; it is a recording layer. `/fluid-cad` delegates to the fluid solver
 adapter. Fluid and cloth own separate state and clocks. They do not exchange forces with the rigid world or with
 each other. Calling each `step` in turn does not provide a combined, atomic physical step.
 
-Lifecycle also differs today: rigid, cloth and the reduced pendulum have idempotent `dispose()`. Fluid and CAD fluid
+Lifecycle also differs today: rigid, cloth and the independent reduced pendulum reference have idempotent `dispose()`. Fluid and CAD fluid
 throw `DISPOSED` on a second disposal. Do not assume one lifecycle contract across the current factories.
 
 | Entry and selection | Step and capacity | Boundary |
 | --- | --- | --- |
-| Root `createPlanarPendulum` | Step `1e-6`–`1/30` s; `dt * naturalFrequency <= 0.05`; `maxSteps` integer 1–1000000, default 1000000 | One reduced angle, velocity Verlet, no contacts, motors or damping. Pivot +Z, gravity −Y. No `reset()` method. |
+| Independent example `createPlanarPendulum`, outside the public root | Step `1e-6`–`1/30` s; `dt * naturalFrequency <= 0.05`; `maxSteps` integer 1–1000000, default 1000000 | One reduced angle, velocity Verlet, no contacts, motors or damping. Pivot +Z, gravity −Y. No `reset()` method. |
 | Root `createUprightCapsuleQuery`, `upright-capsule-box-v1` | 0–32 immutable static boxes; query displacement norm at most 2 m | Fixed upright capsule: radius 0.15 m, half segment 0.35 m. Scene box centres ±10 m, half extents 0.0001–5 m; query centres ±5 m. A sweep does not advance a world. |
 | Root `createUprightCapsuleController`, `upright-capsule-controller-v1` | Exactly 1/120 s; at most 240 steps | Uses the bounded capsule query, −Y gravity, 0.002 m skin, 0.1 m step limit and 10° walkable slope. No general dynamic obstacles. |
 | `/fluid`, version 1 or version 2 visual viscosity | Exactly 256 particles in a 0.7 × 1.3 × 0.5 m basin; 1/120 s; 3600 steps | Version 2 requires `visualViscosity:{kind:'xsph',coefficient:0.15}`. No calibrated viscosity, emitters or moving obstacles. |
 | `/cloth`, `pinned-sheet-sphere-v1` | Fixed 289 vertices and 512 triangles; 1/120 s; 240 host steps | Two pinned corners and one static sphere. Visual settings; no fabric calibration, self-collision, tearing or arbitrary meshes. |
 | `/fluid-cad`, version 1 water | Same version 1 water limits and one static axis-aligned CAD box proxy | Exact source/revision checks on step and reset. No version 2 viscosity combination or moving CAD obstacle. |
-| `/replay` | At most 512 frames, 4096 total commands, 128 Ki-code-unit scene and 1 Mi-code-unit snapshot | Bounded accepted rigid command log. Equality on restore does not establish physical accuracy. |
+| `/replay` | At most 512 frames, 4096 total commands, 128 KiB canonical scene and 1 MiB binary snapshot including its 8-byte magic | Bounded accepted rigid command log. Equality on restore does not establish physical accuracy. |
 
 ## Own the clock and retain accepted state
 
-`PhysicsWorld.step(dt, commands?)` advances one configured step. It does not read wall time or change
+`PhysicsWorld.step(commands?)` advances one configured step. It does not read wall time or change
 the step size to match display refresh. The host can accumulate elapsed display time and request
 whole fixed steps, subject to its own work budget. A dropped display frame does not authorize a
 larger Physics step.
 
 `getState()` and successful `step()` return independent copies, including nested body vectors,
 contacts, events, joints, CCD hits and pair counts. Editing returned arrays does not edit the world.
-The world commits only an accepted candidate. An invalid step, command or numerical candidate
+The world commits only an accepted candidate. An invalid command or numerical candidate
 leaves the last accepted state available. Do not hide refusal with an automatic retry or a changed gate.
 
 <<< @/../samples/physics-docs.test.mjs#refusal-and-lifecycle
 
-This sample uses the imports, `dt` and `freeBody()` fixture shown on the [overview](./).
+This sample uses the imports, `dt`, `worldOptions` and `freeModel()` fixture shown on the [overview](./).
 Its `hasCode(code)` helper accepts only `error instanceof PhysicsError && error.code === code`.
 The test checks refusal after one accepted step, edits returned data, then checks the retained world.
 `dispose()` is idempotent. Later reads, queries and steps give `DISPOSED`. The rigid world has no
@@ -97,7 +102,7 @@ public reset or arbitrary state setter. Create a new world for a new initial con
 | Code | Caller action |
 | --- | --- |
 | `INVALID_CONFIG` | Correct the input model or select a supported profile before creating another instance. |
-| `INVALID_STEP` | Supply the configured step exactly. Retain the last accepted frame. |
+| `INVALID_STEP` | For separate domain or reference APIs that take `dt`, supply their configured step. A numeric argument to the rigid root `step` gives `INVALID_COMMAND`. |
 | `INVALID_COMMAND` / `INVALID_QUERY` | Correct the command or query; do not alter accepted state to conceal the refusal. |
 | `WORLD_LIMIT` | The admitted step, frame or command budget is exhausted. Choose an explicit new session. |
 | `NUMERIC_LIMIT` | Stop advancing this model. Record the first failed input and the retained state before investigating. |
@@ -107,22 +112,39 @@ public reset or arbitrary state setter. Create a new world for a new initial con
 | `INITIAL_OVERLAP` / `ITERATION_LIMIT` | Capsule-query refusal: initial penetration or unresolved bounded search. This is not a partial valid sweep. |
 | `DISPOSED` | Create a new instance. A disposed object cannot resume. |
 
+State has `identity`, tagged query results use collider IDs, and bodies report `orientationXYZW`.
+Contacts use `bodyAId`, `bodyBId`, `colliderAId`, `colliderBId`, `normalImpulseNs` and
+`tangentImpulseOnBNs`. Joint reactions use `linearImpulseOnBNs` and `angularImpulseOnBNms`.
+`PhysicsError.details` identifies the operation, phase, domain, entity IDs and last accepted step/time.
+
 Use `PhysicsError.code` for branching. Error messages supply context and are not a stable protocol.
 The root and fluid/cloth/fluid-cad subpaths share the error constructor within one installed package
 instance. Do not assume `instanceof` identity across versions, realms or separate source/compiled bundles.
 
 ## Restore a command log, not arbitrary state
 
-Create a scene with `createPhysicsScene(worldConfig,{revision,sourceRevision})`. Use
+Create a scene with `createPhysicsScene(model,options,{revision,sourceRevision})`. Use
 `sourceRevision:null` when there is no CAD source. Then create a session with
 `createPhysicsReplaySession(scene)`. Its `step(commands?)` owns the configured `dt`; it does not take
 a step-size argument. `getScene()`, `getState()` and `saveSnapshot()` return copied data.
 
-`restorePhysicsReplaySession(snapshot, expectedScene)` validates exact scene/config and source
+`restorePhysicsReplaySession(snapshot, expectedScene)` validates exact scene/model/options, source and provider
 identity, creates a new world, replays accepted command frames and compares the final state at
 `1e-12` absolute/relative numeric tolerance. A changed revision gives `STALE_SNAPSHOT`; damaged
 data gives `INVALID_SNAPSHOT`. Object key insertion order does not change scene identity.
-There is no old-version migration, arbitrary body-state import or bitwise cross-platform promise.
+Persist only with `serializePhysicsSnapshot(snapshot):Uint8Array` and read with
+`deserializePhysicsSnapshot(bytes)`. The wire format is ASCII `BCPHSNP1` followed by the bounded canonical
+typed encoding. It preserves IEEE754 binary64 number bits, including `-0`. JSON text is not a snapshot wire
+format. The decoder refuses old JSON, unknown tags, nonfinite numbers, truncated/trailing bytes and unsupported
+versions. Record keys use canonical ASCII order; arrays retain their order.
+There is no old-version migration, arbitrary body-state import or bitwise cross-platform trajectory promise.
+
+<<< @/../samples/physics-docs.test.mjs#replay-import
+
+<<< @/../samples/physics-docs.test.mjs#replay-wire
+
+The current service creates and owns its rigid World. P2 recorder attachment, exclusive advancing ownership and
+factory renaming remain future work; `createPhysicsRecorder` is not a current runtime export.
 
 Keep a source-run receipt separate from a compiled-consumer receipt. Workspace aliases can resolve
 source even after a build. A compiled check must resolve each transitive package through its published

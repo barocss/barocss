@@ -1,0 +1,1 @@
+{"result":"ok","imports":["@barocss/physics","@barocss/physics/cad-proxy","@barocss/physics/replay","@barocss/physics/fluid"],"contactStep":21,"replayedSteps":24,"fluidSteps":1,"declarations":4,"physicsVersion":"0.0.0-experimental","cadVersion":"0.0.0-experimental"}

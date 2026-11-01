@@ -1,7 +1,7 @@
 ---
 work_id: physics-api-roadmap-2276
 artifact_type: architecture-and-development-roadmap
-status: ready_for_build
+status: p1b_local_verification_in_progress
 owner_role: independent-physics-algorithm-work
 source_request: redesign the unreleased Physics library and reorganize its roadmap; preserve HOLD, NO_GO and first failures
 last_updated: 2026-11-02
@@ -16,12 +16,12 @@ inside that World. Give the World one frame, gravity definition, entity identity
 boundary. Replay records that World. CAD code admits numerical inputs and binds results to a source revision.
 Neither replay nor a CAD adapter is a physical domain.
 
-This is the local design direction for subsequent bounded implementation. The proposed API below is NOT implemented.
-`ready_for_build` applies to the first contract/inventory slice, not to all later solvers or to release. Numerical
-profiles beyond existing receipts remain BACKLOG until their own inputs, error gates and execution costs are frozen.
-The current public API remains unchanged by this design document. The frozen [P0 contract](design/p0/CONTRACT.md),
-[target types](design/p0/types.ts), [direct migration scope](design/p0/MIGRATION.md) and [validation requirements](design/p0/validation.json)
-now define the first implementation boundary. They are design artifacts, not package exports or runtime support.
+The rigid P1b root now implements the P0 model/options/state contract locally. The remaining domain and service
+transitions below are future work. Selected source and emitted checks exist, but this is not completion of the
+whole common World or release qualification. The frozen [P0 contract](design/p0/CONTRACT.md),
+[target types](design/p0/types.ts), [direct migration scope](design/p0/MIGRATION.md) and
+[validation requirements](design/p0/validation.json) define the boundary. The design files remain design artifacts;
+the current package runtime exports only implemented capabilities. See the P1b checkpoint below for exact evidence limits.
 
 The initial product is a renderer-neutral numerical library for bounded CAD and mechanism experiments. Visual
 fluid and cloth models can be useful, but their evidence class must stay visual until separately validated.
@@ -37,11 +37,11 @@ Existing Physics, Studio and manufacturing HOLDs remain. This roadmap is not an 
 merge to develop, activate an unsupported profile, deploy, publish or run hardware. Work continues in the independent
 branch with explicit owned paths. No dependency or security-setting change is proposed in this slice.
 
-## Source baseline: the apparent worlds have different roles
+## Historical source baseline: the apparent worlds have different roles
 
 Baseline: `db84f1e17833fbdb140de953e1efb538da7ed865`. Paths below are relative to this package.
 
-| Current entry | Actual ownership | Consequence |
+| Entry at this baseline | Actual ownership | Consequence |
 |---|---|---|
 | Root `createPhysicsWorld` | Rigid bodies, joints, contact, queries, candidate state and configured clock (`src/world.ts`, `src/types.ts`) | It is currently a rigid World, not a multiphysics World. |
 | `/replay` | `RecordedPhysicsSession` creates one root World and records accepted commands (`src/replay-session.ts:12–40`) | It is a recording/session layer, not another solver. Its scene schema contains only `PhysicsWorldConfig`. |
@@ -51,8 +51,7 @@ Baseline: `db84f1e17833fbdb140de953e1efb538da7ed865`. Paths below are relative t
 
 The public factories also disagree on lifecycle: fluid and CAD fluid call `active()` in `dispose()` and refuse a
 second disposal; rigid, cloth and the reduced pendulum dispose idempotently. Rigid has no reset; fluid and cloth
-reset fixed scenes. Replay takes commands without a dt argument, while numerical worlds take dt. These are current
-facts, not a proposed common contract.
+reset fixed scenes. Replay takes commands without a dt argument, while numerical worlds take dt. These are facts of the named historical baseline. P1b changes the rigid root and recording scene inputs; separate cloth/fluid lifecycle remains until P5.
 
 Calling independent `rigid.step()` and `fluid.step()` in sequence cannot create a shared physical scene. If the
 second call refuses, the first may already have advanced. There is no combined rollback, shared contact law or
@@ -113,13 +112,13 @@ their owning entity, not interchangeable global body IDs. A collider has an owne
 identity. Source revision, model digest and approximation loss stay with a CAD binding; parsing a CAD source must
 not be required by the numerical core.
 
-### Proposed API shape — NOT executable today
+### Current rigid API and planned common services
 
-The following is a signature sketch for the contract phase, not a supported code sample:
+The first five operations are the current rigid root. Recorder attachment and final CAD service naming remain P2 work:
 
 ```text
-createPhysicsWorld(model: PhysicsModel, options: PhysicsWorldOptions): PhysicsWorld
-  options: fixedStepSeconds, supportProfile
+createPhysicsWorld(model: PhysicsModel, options: WorldOptions): PhysicsWorld
+  options: fixedStepSeconds, profile, broadPhase
 
 world.getModel()                  -> copied immutable model description
 world.getState()                  -> copied accepted state, all admitted domains, one stepIndex/time
@@ -127,11 +126,11 @@ world.step(commands = [])         -> copied state after exactly one configured h
 world.query(request)              -> result from accepted state only
 world.dispose()                   -> idempotent; subsequent operations refuse DISPOSED
 
-createPhysicsRecorder(world)      -> recording controller with exclusive step ownership
-restorePhysicsRecording(log, expectedModel, expectedRuntime) -> new admitted World and recorder
+createPhysicsRecorder(world)      -> planned P2: recording controller with exclusive step ownership
+restorePhysicsRecording(log, expectedModel, expectedRuntime) -> planned P2: new admitted World and recorder
 
-admitCadProxy(source, request)     -> numerical collider/body input + source binding + explicit loss
-cadPose(binding, acceptedState, currentSourceIdentity) -> display transform after exact source/revision checks
+admitCadSurfaceProxy(source, request) -> current: numerical collider/body input + source binding + explicit loss
+cadProxyPose(proxy, bodyState, currentSource, currentRevision) -> current: display transform after exact source/revision checks
 ```
 
 The World stores dt once. Callers cannot advance individual domains independently. An application owns wall time;
@@ -206,7 +205,7 @@ iterations, original input law or evidence in order to pass.
 | Slice | Dependency and bounded change | Exit evidence | Current status |
 |---|---|---|---|
 | P0 — capability and API contract | This source baseline and current owner/HOLD check. Inventory all public factories, subpaths and first-party callers; fix model/state/command/error/lifetime/recording contracts. | Every current supported/refused/unmeasured row mapped; complete caller file list; proposed types and negative cases; no silent domain isolation. | CONTRACT_READY: target types/negative consumers and admission-constant checks pass; bounded caller inventory classified. Runtime target NOT_IMPLEMENTED. |
-| P1 — common World, rigid first | P0. Separate immutable model from rigid runtime without changing numerical phases; implement one clock, candidate caches, copied state and idempotent disposal. | Existing admitted rigid fixtures and refusal precedence preserved; failure injection before and after each phase leaves accepted state/cache/log/time identical; deterministic next accepted step matches a fresh control. Measure allocation and per-step cost. | P1a_DONE: prepared rigid return/log commit verified in source and actual emitted closure; P1b model/options cutover NOT_RUN. No new body/joint support. |
+| P1 — common World, rigid first | P0. Separate immutable model from rigid runtime without changing numerical phases; implement one clock, candidate caches, copied state and idempotent disposal. | Existing admitted rigid fixtures and refusal precedence preserved; failure injection before and after each phase leaves accepted state/cache/log/time identical; deterministic next accepted step matches a fresh control. Measure allocation and per-step cost. | P1a_DONE. P1b model/options cutover implemented locally: selected source 8 / emitted 8 public checks and 21 focused probes per graph pass; native emitted runtime/declarations pass. Docs samples174/174, site/build/link checks and README native examples pass. Viewer SDK stays explicitly external in host callsite bundles; full DOM execution NOT_RUN. No new body/joint support. |
 | P2 — recording and CAD boundary | P1. Move recording to the common World; separate CAD admission from runtime; migrate actual callers directly. | Record/restore/continue matches source and actual emitted consumers; stale source/model/profile rejection; unrecorded stepping prevented; numerical root graph has no CAD/parser/Viewer imports. MMGS/off-origin independent adapter tests pass. | BACKLOG. No arbitrary checkpoint import or CAD Studio integration. |
 | P3 — hinge and mechanism dynamics | P1; original #1489 contract. Preserve four spheres, two disjoint hinges, 1/120 s and 1200 steps. Retain step77 raw-bit failure. | Exact original source/repeat/emitted/reference gates; independently verified rename/order controls before widening admission. Resolve missing original runtime operands or separately decide a new cross-runtime claim without rewriting the old gate. | NO_GO. Scalar reconstruction alone is insufficient. #1490 stays dependent on public adoption and existing owner authority. |
 | P4 — contact and original eight-box exit | P1 and the already measured 32-point equilibrium/192-row repair. Improve independent reference cost within the fixed 180 s budget before full replay. Preserve original inputs and all points. | Same32 patch equilibrium, strict line booleans, 1e-9 m geometry, 1e-10 SI residual gates; original ALIGNED/OFFSET/YAW1200-step settling metrics; actual source/repeat/emitted graph and per-phase accounting. Public adoption only after the full selected contract. | NO_GO. Matched16-step prefixes pass; separate ALIGNED308-step source attempt is incomplete. Public persistent limit stays4. |
@@ -244,8 +243,7 @@ valid; duplicate public simulation ownership must be removed. New input admissio
 shapes explicitly. Do not silently infer missing units, profile or revision.
 
 The reduced `createPlanarPendulum` implementation is a verified one-coordinate model, not a replacement rigid hinge.
-Move this standalone model to independent reference examples when transitioning its callers; preserve its algorithm,
-contracts and numerical receipts. Do not turn it into a second permanent public simulation owner. A later product
+The standalone model now lives in `examples/physics-planar-pendulum-reference/pendulum.ts`, outside the public root; its algorithm, contracts and numerical receipts are preserved. Do not turn it into a second permanent public simulation owner. A later product
 need for a reduced model would require an explicitly admitted profile under the common World contract. This API
 placement change does not qualify a rigid-body pendulum or invalidate the reduced model's numerical evidence.
 
@@ -301,15 +299,15 @@ sketch above. They must change with each canonical API transition. See
 ## P0 checkpoint (2026-11-02)
 
 P0 fixes the required model/state/command/failure/lifetime/recording contracts in `design/p0/`.
-The target API remains unexported. `contract-check.ts` verifies positive/negative type consumers only;
+At the P0 checkpoint the target API remained unexported. `contract-check.ts` verifies positive/negative type consumers only;
 `examples/physics-world-p0-2276/check-contract.mjs` checks admission constants, fixed vectors and requirement structure.
 The expanded caller inventory separates active imports, computed loaders, shared build metadata and frozen evidence.
 No lexical count is a runtime call count. Source-based review identified return-copy/log allocations after commit,
 shared cloth lambdas and fluid scratch ownership as explicit next-step tests, not verified retention properties.
 
-P1 starts with internal preparation P1a under the one current root signature, then P1b performs the atomic public
+The transition started with preparation P1a under the old root signature; P1b now performs the direct public
 model/options cutover with all affected root/replay/CAD consumers. This adds no compatibility overload or parallel
-engine. Recording wire encoding must preserve signed zero; raw JSON is not its future save/load path. See the
+engine. Recording wire encoding must preserve signed zero; raw JSON is not the current snapshot wire path. See the
 P0 report in `examples/physics-world-p0-2276/`. Original HOLD/NO_GO/error gates and archived failures remain unchanged.
 
 
@@ -317,7 +315,7 @@ P0 report in `examples/physics-world-p0-2276/`. Original HOLD/NO_GO/error gates 
 
 The canonical rigid implementation prepares its copied successful output before accepted state replacement.
 Replay prepares next frames/count before advancing its privately owned World. Only those two runtime providers
-change; current signatures, exports, admission and numerical phases are retained as the sole canonical API.
+changed at that checkpoint; its then-current signatures, exports, admission and numerical phases were retained as the sole canonical API.
 This is the explicit P1a preparation in `design/p0/MIGRATION.md`, not a compatibility facade or completed P1b.
 
 The frozen baseline reproduces three post-exception step advances and a replay log/state mismatch. Fixed
@@ -327,3 +325,31 @@ Failure injection is test-only; it is not ordinary package or hardware evidence.
 remain. Detailed commands, provider hashes, first diagnostic and limits are in `examples/physics-world-p1a-2276/`.
 The next public cutover must implement the P0 model/options contract and migrate its actual root/replay/CAD
 consumer graph together; it cannot retain an old World behind a wrapper or claim full physical engine completion.
+
+
+## P1b checkpoint (2026-11-02; selected local verification complete)
+
+The single rigid creation API is now `createPhysicsWorld(model:PhysicsModel,options:WorldOptions)`.
+It exposes copied `getModel()`/`getState()`, fixed `step(commands?)`, tagged `query(input)` and idempotent disposal.
+Bodies, colliders and source bindings are explicit model entities. Identity uses canonical typed SHA-256 model,
+configuration and provider digests; signed zero is retained. The source and emitted provider manifests identify
+their actual graphs. The emitted root keeps its provider module external until post-bundle manifest generation.
+No old config converter, root overload, fallback engine or root reduced-pendulum export remains.
+
+Replay retains its sole current scene/session service until P2, with direct `model`, `options` and `identity`
+scene fields. Its binary snapshot codec uses `BCPHSNP1` plus bounded canonical typed bytes. There is no raw JSON
+or old-schema migration reader. CAD admission supplies separate numerical body/collider and source-binding data;
+exact source text/revision and off-origin mapping remain adapter responsibilities. Fluid/cloth own their current
+single domain factories until P5; no new domain law or dynamic coupling is enabled.
+
+Selected checks recorded at this slice: 8 source public tests and 8 emitted public tests;21 focused current probes
+in each graph; native local published-map runtime and strict declarations in
+`examples/physics-world-p1b-2276/evidence/native-04/result.json`. Earlier failed attempts remain beside later results.
+Five foundation entries also pass 21 tests, current documentation samples pass 174/174, and source mapping
+passes in `mapping-02`. These records verify the named providers only. Documentation build/site/link checks pass; README examples compile and execute in `native-05`. Seven host callsites bundle with the absent Viewer SDK explicitly external (`hosts-03`); full Viewer/DOM execution remains NOT_RUN. Basic HTTP startup/bundle/close passes (`server-01`). See `examples/physics-world-p1b-2276/README.md` for exact proof boundaries.
+P1a pinned injection runners remain historical and are not modern API evidence. Source mappings and preserved parent
+hashes are in `examples/physics-world-p1b-2276/migration-services.json` and the other slice migration ledgers.
+
+No new physics qualification follows from an API cutover. P2 attached-recorder ownership, P3 mechanisms, P4 full
+original-stack exit and P5 domain migration remain separate work. Existing HOLDs, original NO_GO results,
+first failures, numerical gates, immutable reports and release boundaries remain unchanged.

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {existsSync} from 'node:fs';
 import { build } from 'esbuild';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
@@ -12,6 +13,7 @@ const pkg = resolve(root, 'packages/barocss-physics');
 const manifest = JSON.parse(await readFile(resolve(pkg, 'package.json'), 'utf8'));
 const results = [];
 const outputDir = resolve(process.argv[2] ?? '/tmp/physics-1179-admission');
+assert.equal(existsSync(outputDir),false,'preserve every prior admission receipt');
 await mkdir(outputDir, { recursive: true });
 for (const graph of ['source', 'compiled']) {
   // Source is package self-resolution from the actual package manifest, with default conditions.
@@ -29,8 +31,13 @@ for (const graph of ['source', 'compiled']) {
   await writeFile(resolve(outputDir, `${graph}-report.json`), JSON.stringify(report, null, 2) + '\n');
   results.push(report);
 }
-assert.deepEqual(results[0].cases, results[1].cases, 'source/compiled public result differs');
+const comparable=cases=>cases.map(row=>{
+  const copy=structuredClone(row);
+  for(const key of ['initial','accepted'])if(copy[key])delete copy[key].identity.providerDigest;
+  return copy;
+});
+assert.deepEqual(comparable(results[0].cases),comparable(results[1].cases),'source/compiled physical result or non-provider identity differs');
 const inputs = JSON.stringify(fixtures());
-const summary = { result: 'ok', stage: 'public-admission-and-one-step-only', base: '9616f178fdf3fbc4d78d02a8e4c313fa5769e53f', measuredHead: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(), node: process.version, fixtureSha256: createHash('sha256').update(inputs).digest('hex'), sourceCompiledEqual: true, graphs: results.map(({graph,sourceInputs,distInputs})=>({graph,sourceInputs,distInputs})), cases: results[0].cases.map(({ id, admission, error }) => ({ id, admission, ...(error ? {error} : {}), quality: 'unmeasured' })), numericalCampaignExecuted: false, viewerExecuted: false, performanceMeasured: false };
+const summary = { result: 'ok', stage: 'public-admission-and-one-step-only', base: '9616f178fdf3fbc4d78d02a8e4c313fa5769e53f', measuredHead: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(), node: process.version, fixtureSha256: createHash('sha256').update(inputs).digest('hex'), sourceCompiledEqual: true, providerDigestCompared: false, modelConfigurationAndPhysicalStateExact: true, graphs: results.map(({graph,sourceInputs,distInputs})=>({graph,sourceInputs,distInputs})), cases: results[0].cases.map(({ id, admission, error }) => ({ id, admission, ...(error ? {error} : {}), quality: 'unmeasured' })), numericalCampaignExecuted: false, viewerExecuted: false, performanceMeasured: false };
 await writeFile(resolve(outputDir, 'summary.json'), JSON.stringify(summary, null, 2) + '\n');
 console.log(JSON.stringify(summary, null, 2));

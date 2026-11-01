@@ -1,5 +1,5 @@
 import { PhysicsError } from '../capsule-query-error.js';
-import type { Vec3 } from '../types.js';
+import type { Vec3 } from '../internal-types.js';
 import { SKIN, WALKABLE, SLIDE_CAP, LOOKAHEAD } from './profile.js';
 import { add, scale, dot, norm } from './math.js';
 import { tryStep } from './step-assist.js';

@@ -20,10 +20,10 @@ export function admitCadFluidObstacle(scene: unknown, sourceText: string,
   try { proxy = admitCadSurfaceProxy(sourceText, request); }
   catch (error) { throwCadFluidError(error); }
   const body = proxy.body;
-  if (body.kind !== 'static' || body.shape.kind !== 'box') {
+  if (body.kind !== 'static' || proxy.collider.geometry.kind !== 'box') {
     throw new PhysicsError('INVALID_CONFIG', 'CAD fluid obstacle must be a static box');
   }
-  const box = inflatedBoxBounds(body.positionM, body.shape.halfExtentsM);
+  const box = inflatedBoxBounds(body.initial.positionM, proxy.collider.geometry.halfExtentsM);
   for (let axis = 0; axis < 3; axis++) {
     if (box.low[axis] < FLUID_PARTICLE_RADIUS_M
       || box.high[axis] > FLUID_BASIN_M[axis] - FLUID_PARTICLE_RADIUS_M) {

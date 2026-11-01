@@ -1,5 +1,5 @@
 import { PhysicsError } from '../capsule-query-error.js';
-import type { Vec3 } from '../types.js';
+import type { Vec3 } from '../internal-types.js';
 import { SKIN, SNAP, WALKABLE } from './profile.js';
 import type { CharacterState } from './types.js';
 import type { QueryContext } from './query.js';

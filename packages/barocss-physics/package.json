@@ -39,9 +39,14 @@
   },
   "main": "./src/index.ts",
   "types": "./src/index.ts",
-  "files": ["src", "dist", "README.md", "LICENSE"],
+  "files": [
+    "src",
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --external:./types.js --outfile=dist/index.js"
+    "build:library": "node src/generate-provider.mjs && tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --external:./types.js --external:./provider-manifest.generated.js --outfile=dist/index.js && node src/generate-provider.mjs --emitted"
   },
   "dependencies": {
     "@barocss/cad": "workspace:*"
