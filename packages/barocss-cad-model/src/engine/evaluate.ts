@@ -479,6 +479,12 @@ export interface StudioStepOptions {
 }
 /** A StudioDoc's STEP file: its text, the source revision it names (O9), and what was left out. */
 export interface StudioStep { text: string; source: string; omitted?: string[] }
+// The writer keeps printable ASCII and replaces other header/product-name characters with underscores.
+function stepNameLosses(name: string): string[] {
+  return /[^\x20-\x7e]/.test(name)
+    ? ['Non-ASCII and control characters in the STEP header file name and product name are replaced with underscores.']
+    : [];
+}
 // These losses describe this exporter, not STEP's full format capabilities. They do not affect bytes or revision.
 function stepProfileLosses(doc: StudioDoc): string[] {
   let history = false, parameters = false, labels = false, appearance = false, assembly = false, pmi = false, datums = false;
@@ -533,7 +539,7 @@ export function exportStudioStep(doc: StudioDoc, options: StudioStepOptions): St
   if (!breps.length) throw refusal('NO_BODY', sheets.length && !left.length ? `Only band sheets: STEP of band sheets is not supported yet, and there is no other body to export (${sheets.join(', ')}).` : left.length ? 'Only infill bodies: STEP carries the exact part, and there is none to export.' : 'There is no body to export.');
   // (O9: the header names the source revision the file was made from.)
   const source = revisionOf(doc), text = exportStep(breps, { name, description: ['BaroCSS CAD part', `source revision ${source}`], ...(meshes ? { meshes } : {}), ...(options.timestamp ? { timestamp: options.timestamp } : {}) });
-  const omitted = [...(left.length ? [`lattice infill not included (${left.join(', ')}); 3MF carries it`] : []), ...sheets.map(k => `band sheet ${k} not included: STEP of band sheets is not supported yet`), ...stepProfileLosses(doc)];
+  const omitted = [...(left.length ? [`lattice infill not included (${left.join(', ')}); 3MF carries it`] : []), ...sheets.map(k => `band sheet ${k} not included: STEP of band sheets is not supported yet`), ...stepProfileLosses(doc), ...stepNameLosses(name)];
   return omitted.length ? { text, source, omitted } : { text, source };
 }
 

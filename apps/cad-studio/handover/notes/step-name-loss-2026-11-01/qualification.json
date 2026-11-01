@@ -1,0 +1,199 @@
+{
+  "workId": "D421",
+  "status": "QUALIFIED",
+  "baseline": {
+    "head": "41c06e66608d0899d0db2074129f75743db7ae97",
+    "method": "Real full exportStudioStep before edit, not source-primitive inference",
+    "fixedTimestamp": "2026-11-01T00:00:00Z",
+    "volume": 24,
+    "sourceKey": "b46faf1dcfd84471",
+    "cases": [
+      {
+        "id": "default",
+        "name": "part",
+        "expectedLoss": false,
+        "actualLoss": false,
+        "status": "PASS_ASCII_CONTROL",
+        "source": "b46faf1dcfd84471",
+        "omitted": null,
+        "sha256": "56b8a72f1fc851380967abfd745427764ba12812711fc1ec4bdae15b63401b3c"
+      },
+      {
+        "id": "ascii",
+        "name": "plate A_1",
+        "expectedLoss": false,
+        "actualLoss": false,
+        "status": "PASS_ASCII_CONTROL",
+        "source": "b46faf1dcfd84471",
+        "omitted": null,
+        "sha256": "892d46a0f694d1694b3d93744d975c4c28fdb25031de27af8885cf86160ab0cd"
+      },
+      {
+        "id": "unicode-latin",
+        "name": "M\u00fcnchen",
+        "expectedLoss": true,
+        "actualLoss": false,
+        "status": "FAIL_REPRODUCED_MISSING_LOSS",
+        "source": "b46faf1dcfd84471",
+        "omitted": null,
+        "sha256": "12e1007d16909ba56dd4b472faf154763e6039d4f4720b42bca25a611ff5af5d"
+      },
+      {
+        "id": "unicode-korean",
+        "name": "\ubd80\ud488",
+        "expectedLoss": true,
+        "actualLoss": false,
+        "status": "FAIL_REPRODUCED_MISSING_LOSS",
+        "source": "b46faf1dcfd84471",
+        "omitted": null,
+        "sha256": "519ff6a7c9d95b6159fdca513ca99606643bbb7a12506b5d4c14ca65bfbf95a5"
+      },
+      {
+        "id": "control",
+        "name": "A\nB",
+        "expectedLoss": true,
+        "actualLoss": false,
+        "status": "FAIL_REPRODUCED_MISSING_LOSS",
+        "source": "b46faf1dcfd84471",
+        "omitted": null,
+        "sha256": "d8a094a82c9cec5e62a2c33b3f72469fd6de678a487e6f5ed7c3399419040c78"
+      },
+      {
+        "id": "quote-backslash",
+        "name": "bolt'\\test",
+        "expectedLoss": false,
+        "actualLoss": false,
+        "status": "PASS_ASCII_CONTROL",
+        "source": "b46faf1dcfd84471",
+        "omitted": null,
+        "sha256": "0ecc011cbad168efe4960e62dec6c2a790748ecba26112b9021f89cb8f6c0da9"
+      }
+    ],
+    "expectedDefectCases": 3,
+    "ASCIIControls": 3,
+    "artifact": "/tmp/barocss-d421/baseline"
+  },
+  "tier": "small",
+  "model": "GPT-6.1 Sol Medium; root source/visual review",
+  "problem": "Applicable non-ASCII/control replacement in STEP header file/product names was missing from existing loss list",
+  "implementation": "One private loss predicate appended through existing omitted list; resolved exporter name used",
+  "publicSignatureOrSchemaChange": false,
+  "serializerGeometrySourceRevisionOrDownloadNameChange": false,
+  "sourceSHA256": {
+    "packages/barocss-cad-model/src/engine/evaluate.ts": "86bb11738cad0b9fa48844370b059f4255b609d20766550e7008ac274d2488c0",
+    "packages/barocss-cad-model/test/step-profile-losses.test.ts": "40147ed2ca62f0287cd231bc8cd43741871ba49e75c25455bca000c14c91ec91",
+    "apps/cad-studio/test/step-name-loss-browser.mjs": "cbb7863b5de1231d269bb4d0038ef9b55be84c426faab10358ae81a3dc403227",
+    "packages/barocss-cad/src/io/step.ts": "6679c111ad1fb14d8b38c97a7a9f7d5a3ff21389a05ec5889d2582ee5093a638"
+  },
+  "focusedTests": {
+    "pass": 6,
+    "fail": 0,
+    "existing": 3,
+    "new": 3,
+    "command": "pnpm --filter @barocss/cad-model test step-profile-losses",
+    "coverage": [
+      "Actual FILE_NAME/PRODUCT values for Latin/Korean/newline/DEL/emoji",
+      "No destructive warning for printable ASCII/quote/backslash",
+      "Six fixed-timestamp pre-edit byte hashes and source key identical",
+      "Document unchanged and existing history/appearance/datum reports retained"
+    ],
+    "hashMeaning": "Byte equality/provenance only; not geometric ground truth"
+  },
+  "static": {
+    "postFinalTestModelTypes": "PASS: pnpm --filter @barocss/cad-model type-check",
+    "scopedLint": "PASS:3files,0errors/0warnings",
+    "driverNodeSyntax": "PASS",
+    "docsAPIRefusals": "PASS:68pages/55existing images/940labels",
+    "navigation": "PASS:newBroken0, one known archived missing evidence path",
+    "commands": [
+      "pnpm --filter @barocss/cad-model type-check",
+      "pnpm exec eslint packages/barocss-cad-model/src/engine/evaluate.ts packages/barocss-cad-model/test/step-profile-losses.test.ts apps/cad-studio/test/step-name-loss-browser.mjs",
+      "node --check apps/cad-studio/test/step-name-loss-browser.mjs",
+      "node apps/library-docs/scripts/check-docs.mjs",
+      "node apps/cad-studio/handover/scripts/check-navigation.mjs"
+    ]
+  },
+  "actual": {
+    "status": "PASS",
+    "artifact": "/tmp/barocss-d421-browser-run01",
+    "states": 2,
+    "rootVisual": "PASS",
+    "observations": [
+      {
+        "label": "01-korean-name-loss",
+        "intendedDownloadBaseName": "\ubd80\ud488",
+        "serializedHeaderBaseName": "__",
+        "preparedSha256": "5835b1725c40d8ac828f91ad7d58dd6faa182a623ac73d2239e0cf20b643a984",
+        "source": "b46faf1dcfd84471",
+        "losses": [
+          "Non-ASCII and control characters in the STEP header file name and product name are replaced with underscores."
+        ],
+        "exactDocumentUnchanged": true,
+        "download": "NOT_RUN"
+      },
+      {
+        "label": "02-ascii-name-control",
+        "intendedDownloadBaseName": "plate A_1",
+        "serializedHeaderBaseName": "plate A_1",
+        "preparedSha256": "2077b786d0470e7788be58e2d2d25ba2603b6892312c64f7ea8961c5b0affa19",
+        "source": "b46faf1dcfd84471",
+        "losses": [],
+        "exactDocumentUnchanged": true,
+        "download": "NOT_RUN"
+      }
+    ],
+    "frozen": 744,
+    "after": 744,
+    "afterCleanup": 744,
+    "allBytesEqual": true,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "changes": 0,
+    "downloads": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "ownedResources": 0,
+    "fontNetwork": {
+      "stylesheets": 1,
+      "assets": 0
+    },
+    "passiveWorkerReplies": true,
+    "noMockedResponse": true,
+    "inspector": "Built only to capture fresh458-input Model/Kernel dependency graph; no inspector runtime/independent geometry claim",
+    "command": "STEP_NAME_LOSS_SOURCE_FROZEN=1 CAD_STUDIO_CHAT_PORT=52391 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME=\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" node test/step-name-loss-browser.mjs /tmp/barocss-d421-browser-run01 /tmp/barocss-d421/fixtures",
+    "cwd": "apps/cad-studio"
+  },
+  "FAIL": [
+    {
+      "stage": "Pre-fix full Model export",
+      "count": 3,
+      "reason": "Latin/Korean/newline names changed to underscores while omitted was absent",
+      "resolved": "Applicable name loss now reported without changing text/source"
+    }
+  ],
+  "preExecutionReviewFindings": [
+    {
+      "finding": "Driver initially had no inspector/extraFrozen Model graph despite requiredFrozen entries",
+      "fix": "Minimal exportStudioStep re-export yields fresh458-input graph; required evaluate/writer paths verified before actual",
+      "notAnActualFailure": true
+    },
+    {
+      "finding": "Same-doc Open can update name separately",
+      "fix": "Wait exact File name input before ASCII preparation",
+      "notAnActualFailure": true
+    }
+  ],
+  "NOT_RUN": [
+    "Actual outbound Export/download and filesystem download filename acceptance",
+    "New Unicode codec/name preservation or arbitrary face/description loss coverage",
+    "Independent audit (not required for small tier)",
+    "Whole kernel/Model/Studio suites and unchanged CAD/GPU builds",
+    "New external reader/OCP/download/paid call/release/develop feature integration"
+  ],
+  "holds": "D420 integrates completed work through D419 only; D421 continues on local/cad-dev; broader rows13/16/30 and research issues remain open",
+  "artifacts": "/tmp/barocss-d421; raw images/STEP/native/metafiles/logs remain outside git",
+  "environment": "Local Node22.19.0; one gated heavy task at a time, load<40; no worktree writes during actual through cleanup"
+}

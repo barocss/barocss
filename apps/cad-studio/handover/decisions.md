@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D421: applicable STEP header/product-name loss](notes/step-name-loss-2026-11-01/README.md).
 - [D420: owner-approved develop integration](notes/develop-integration-2026-11-01/README.md).
 - [D419: bounded analytic STEP offsets and precision admission](notes/step-analytic-offset-2026-11-01/README.md).
 - [D418: documentation organization — qualified record](notes/roadmap-index-2026-11-01/README.md).
@@ -40,6 +41,7 @@ Numeric proof and limits remain in the canonical item notes.
 | D418 | Documentation navigation organization — qualified | [Root-owned note](notes/roadmap-index-2026-11-01/README.md) |
 | D419 | Bounded direct plane/cylinder STEP offsets | [Note](notes/step-analytic-offset-2026-11-01/README.md) |
 | D420 | Develop integration through D419 | [Note](notes/develop-integration-2026-11-01/README.md) |
+| D421 | Applicable STEP header/product-name loss | [Note](notes/step-name-loss-2026-11-01/README.md) |
 
 <!-- D418 LEGACY COMPATIBILITY BEGIN: fixed original heading sequence -->
 <details>

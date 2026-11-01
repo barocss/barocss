@@ -6,7 +6,7 @@ A bounded closeout does not close an entire feature family, format, standard or 
 
 ## Current navigation — authority
 
-- Current qualified product checkpoint: [D419](notes/step-analytic-offset-2026-11-01/README.md).
+- Current qualified product checkpoint: [D421](notes/step-name-loss-2026-11-01/README.md).
 - D418 documentation organization: **QUALIFIED**, [record](notes/roadmap-index-2026-11-01/README.md).
 - D420 owner-approved develop integration: **MERGED**, [PR #2274](https://github.com/barocss/barocss/pull/2274), [scope and CI](notes/develop-integration-2026-11-01/README.md).
 - Operating rules and priority remain in the unchanged [handoff](notes/codex-handoff-2026-11-01/README.md).
@@ -18,7 +18,7 @@ A bounded closeout does not close an entire feature family, format, standard or 
 
 - Active feature lane: **row 13, exchange and explicit loss profiles**. D418 is documentation maintenance, not a new exchange feature.
 - Rows 12 and 16 are cross-cutting file/acceptance and robustness work. Row 30 runs with row 16; row 31 follows row 30.
-- D419 direct plane/cylinder STEP offsets: **QUALIFIED**, [bounded record](notes/step-analytic-offset-2026-11-01/README.md). D420 integration is complete. The next decision is **D421 — not started**; select one bounded gap after checking dependencies and HOLDs.
+- D419 direct plane/cylinder STEP offsets: **QUALIFIED**, [bounded record](notes/step-analytic-offset-2026-11-01/README.md). D420 integration is complete. D421 applicable STEP header/product-name loss report is **QUALIFIED**, [record](notes/step-name-loss-2026-11-01/README.md). The next decision is **D422 — not started**.
 - Accepted sequence: 10 → 11 → 13 → 14, subject to all owner HOLDs; usability row 15 precedes rows 17–19.
 - The unchanged [handoff §3 continuation order](notes/codex-handoff-2026-11-01/README.md#_3-%E1%84%83%E1%85%A1%E1%84%8B%E1%85%B3%E1%86%B7-%E1%84%8C%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%A5%E1%86%B8-%E1%84%85%E1%85%A9%E1%84%83%E1%85%B3%E1%84%86%E1%85%A2%E1%86%B8-%E1%84%89%E1%85%AE%E1%86%AB%E1%84%89%E1%85%A5) retains the detailed sequence and authority. This pointer does not activate manufacturing or Motion/Physics work.
 
@@ -38,7 +38,7 @@ A bounded closeout does not close an entire feature family, format, standard or 
 | 10 | [조립 확장 — CG4](roadmap-rows/10.md) | Qualified assembly slices D383–D393; motion/physics HOLD remains. |
 | 11 | [도면 확장 — CG5 DR-6/7/8](roadmap-rows/11.md) | Qualified drawing slices through D416; general certification remains open. |
 | 12 | [파일·버전·협업 — CG6](roadmap-rows/12.md) | OPEN general file/version/collaboration scope. |
-| 13 | [교환과 손실 표시 — CG7](roadmap-rows/13.md) | OPEN exchange scope; bounded analytic offsets D419. #2263/#2248/#2266 remain open. |
+| 13 | [교환과 손실 표시 — CG7](roadmap-rows/13.md) | OPEN exchange scope; bounded analytic offsets D419 and name-loss report D421. #2263/#2248/#2266 remain open. |
 | 14 | [생산 기능 — CG8](roadmap-rows/14.md) | Planned manufacturing; P2/PG11 HOLDs remain. |
 | 15 | [제품 사용성 — CG9](roadmap-rows/15.md) | U1–U4 bounded closeouts; other usability work remains. |
 | 16 | [정확도·강건성·API/참조 — CG10, R7, #2210/#2215](roadmap-rows/16.md) | OPEN accuracy/robustness scope; D417/D419 qualify bounded admission and refusal fixes. |
