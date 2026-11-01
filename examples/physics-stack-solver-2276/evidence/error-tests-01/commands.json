@@ -1,0 +1,22 @@
+{
+  "mode": "error-tests",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "records": [
+    {
+      "name": "trajectory-errors",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/evidence/error-tests-01/trajectory-errors.mjs"
+      ],
+      "started": "2026-11-01T13:17:12.504Z",
+      "finished": "2026-11-01T13:17:12.579Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "8b771b07ea5ed217c45f4d9fdfa248ba688b693f99cf0f000ab5110a5a49461e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

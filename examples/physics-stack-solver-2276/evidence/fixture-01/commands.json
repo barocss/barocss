@@ -1,0 +1,23 @@
+{
+  "mode": "fixture",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "records": [
+    {
+      "name": "fixture",
+      "command": [
+        "python3",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/extract-fixture.py",
+        "--output",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/evidence/fixture-01/fixture.json"
+      ],
+      "started": "2026-11-01T12:58:44.517Z",
+      "finished": "2026-11-01T12:58:44.607Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "6c3b6cb38ff45fc1239ee1a63334845fafdefbe76fa62513a4db706204b390df",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -1,0 +1,1579 @@
+{
+  "workId": "physics-stack-solver-2276",
+  "parent": "7105c4755fcbf4f0cbc764b864a55bf550f741b3",
+  "branch": "codex/physics-stack-solver-2276",
+  "inventory": "all owned files except this manifest itself",
+  "files": [
+    {
+      "path": "examples/physics-stack-solver-2276/CONTRACT.md",
+      "bytes": 6593,
+      "sha256": "7bab1a3f684eed91ec467633c9118d947f7b910e807d67291cd62c6f522427b7"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/README.md",
+      "bytes": 12354,
+      "sha256": "62d263262c1af9aa1a7e660b56f9252f3c6109be26f2f5a9b8a7d0bdc9b9a9df"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/adapter-contract.md",
+      "bytes": 6316,
+      "sha256": "5e13db9a226abf266559c3789d1f8b01795d96a1b585ea05788713d3f9a49309"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/audit.py",
+      "bytes": 6944,
+      "sha256": "d0effe076764a5aa83c991d2a44bb72d0cd5d3a073040ba1a84a6774e5809b21"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/candidate-contract.md",
+      "bytes": 5839,
+      "sha256": "eef7ecf23b9366a989e7eb198871fba5d8ec365d041c835d8f41fee7c61a276e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/candidate.test.ts",
+      "bytes": 6865,
+      "sha256": "c88843020be2cb5bfb3043926eae3e25de8aefd6eab19680b56b4726b1a11d85"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/candidate.ts",
+      "bytes": 16642,
+      "sha256": "6380bc290909527fbd196ccafe45378f5fb8d93d3ace91ee6c06015b077c73a0"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/audit-01.json",
+      "bytes": 32012,
+      "sha256": "d26dd9760e98efff36c2db073955e95f80e21bf53fb478e5de9f323aa3b7e3ed"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/error-tests-01/commands.json",
+      "bytes": 778,
+      "sha256": "7c4268033d5123e19275fc6347aa111656b6cfb3126ca072eb3f54fc195ec717"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/error-tests-01/source.json",
+      "bytes": 3630,
+      "sha256": "821b6bb3d02b0e9384cc9756d949fd10156c21dda992806275721ea42fdb5c6d"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/error-tests-01/trajectory-errors.graph.json",
+      "bytes": 645,
+      "sha256": "fcdcc27ca2d530ab749e67ee18af7905d0797b9a3138b1289769118e510a7e74"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/error-tests-01/trajectory-errors.mjs",
+      "bytes": 2250,
+      "sha256": "cfff838d657a00ae8894900032aa0f28f8dcfadf1872584370af59f71d8e7421"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/error-tests-01/trajectory-errors.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/error-tests-01/trajectory-errors.stdout",
+      "bytes": 739,
+      "sha256": "8b771b07ea5ed217c45f4d9fdfa248ba688b693f99cf0f000ab5110a5a49461e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-01/commands.json",
+      "bytes": 1296,
+      "sha256": "e172b96798c6ceeded77146b282c93dc2a6ee864168d6e00609301e0db9f8043"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-01/failure.txt",
+      "bytes": 54,
+      "sha256": "f31691837390afd9a91f734fcc2840af7eb9a60d25dec1cf823f7537d2d13bea"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-01/modules/candidate.d.ts",
+      "bytes": 2374,
+      "sha256": "134cdc1639f53d87a4d64f155094f8cdec870658fc0f95007568b5fb27c0772a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-01/modules/candidate.js",
+      "bytes": 15419,
+      "sha256": "45f12e21aae00ef93c8fc55da6faa13b6846aa3b5c203853609deca4ebb5cd89"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-01/modules/package.json",
+      "bytes": 18,
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-01/modules/verification.d.ts",
+      "bytes": 3419,
+      "sha256": "b70519bcb8db01ec7fc7689a01f930d08f4bee4e22a294f8335583fae0acfee3"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-01/modules/verification.js",
+      "bytes": 14039,
+      "sha256": "3fdf10c21fbe90f8fa041b3bf77bad12ab91b669ec5e0022004310a09191a72d"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-01/source.json",
+      "bytes": 1912,
+      "sha256": "d500473f7e9270c9ed49c8ce959ff026c6281843178353b4dbfc90854ed58a70"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-01/strict-emission.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-01/strict-emission.stdout",
+      "bytes": 354,
+      "sha256": "0999090d5c6c6d9e2ddd9c76bf98bcfc95e1f257b7c37b375ec11c7b4b82353f"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/candidate.graph.json",
+      "bytes": 487,
+      "sha256": "6e594a79f9e15cc480cc9d88a8d77ffd1aa516b280f734dc8b5391af07b1629d"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/candidate.mjs",
+      "bytes": 20968,
+      "sha256": "08d767a54a28fa5f7946c10eb6a554102b3c867107f4cf4291d383e7561167f5"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/candidate.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/candidate.stdout",
+      "bytes": 2775,
+      "sha256": "9186efe2db759fb57942ecc7ce3e885534ca4daa452a7bb599fb275411f39734"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/commands.json",
+      "bytes": 3449,
+      "sha256": "69303815ebc8db78449547fd4350dc4e585271143dd40a7ef45dedfe6f62fe87"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/first-frame.graph.json",
+      "bytes": 682,
+      "sha256": "c4ce7e07b55ec108d6107f0c74f801448dd3c5e5a027b4ba95b24875c870df56"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/first-frame.mjs",
+      "bytes": 29681,
+      "sha256": "e849896044433ae699ef3ac0ea349c31c191e90e74d1bde352d04427f363b1c4"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/first-frame.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/first-frame.stdout",
+      "bytes": 903,
+      "sha256": "f6cd6f7b924d386c9f31f55fdc1a74a01e2c71fe25bf4a7d4bbe995546f50576"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/modules/candidate.d.ts",
+      "bytes": 2374,
+      "sha256": "134cdc1639f53d87a4d64f155094f8cdec870658fc0f95007568b5fb27c0772a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/modules/candidate.js",
+      "bytes": 15421,
+      "sha256": "d672f4a7f41179fc9aefb767d0e92ed580cf346c9bd17ac8cc75b75aefba9570"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/modules/package.json",
+      "bytes": 18,
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/modules/verification.d.ts",
+      "bytes": 3419,
+      "sha256": "b70519bcb8db01ec7fc7689a01f930d08f4bee4e22a294f8335583fae0acfee3"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/modules/verification.js",
+      "bytes": 14039,
+      "sha256": "3fdf10c21fbe90f8fa041b3bf77bad12ab91b669ec5e0022004310a09191a72d"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/result.json",
+      "bytes": 59056,
+      "sha256": "652976dbc13745c7b727284b645010b5525750bd49df0928ced5d8102a337621"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/source.json",
+      "bytes": 1912,
+      "sha256": "9ff62044a0183d3923b81c42f92c9f64af0a8416145dd0e3df0d157f80cbf055"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/strict-emission.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/strict-emission.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/verification.graph.json",
+      "bytes": 493,
+      "sha256": "9b93db46ae1be52fc38391db8232795628b387281821ee21f8a6f1a8ac873754"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/verification.mjs",
+      "bytes": 22709,
+      "sha256": "ddb9a25bd055e9b426b577b2a63631193f2e3d32368f07f81c251d6c9afd2669"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/verification.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-02/verification.stdout",
+      "bytes": 2365,
+      "sha256": "5d07f93fe3819415d4b6e8781db88220371b338051bab107133ee5a6c3bf8bbc"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/candidate.graph.json",
+      "bytes": 487,
+      "sha256": "774e6cc078b90355393e5d9c2facbb7727df7d91bbaef453e5b2c561c6eef078"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/candidate.mjs",
+      "bytes": 20968,
+      "sha256": "9a0a92232b4fa2d5a65af3e0328e4bc97ab35d7eefa7597c0b9a45bb12da0c4f"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/candidate.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/candidate.stdout",
+      "bytes": 2781,
+      "sha256": "9b76d195cc7f3548363cccca422b3d767efef53aee587a61f839553e3297e36f"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/commands.json",
+      "bytes": 3449,
+      "sha256": "6438a56254829413f53482753cdbf3ecfaf1da68620a0a4603d04efffe82b754"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/first-frame.graph.json",
+      "bytes": 682,
+      "sha256": "9344d4d292c2509fd28a0b563946a07eb60ed7a52db782d25bfb7573c46c2899"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/first-frame.mjs",
+      "bytes": 30012,
+      "sha256": "12afa4d6ee1c8f6bd2eb4689b43236e94a87ab1b5ad4593a33c8b1c730c0cb7b"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/first-frame.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/first-frame.stdout",
+      "bytes": 903,
+      "sha256": "f6cd6f7b924d386c9f31f55fdc1a74a01e2c71fe25bf4a7d4bbe995546f50576"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/modules/candidate.d.ts",
+      "bytes": 2374,
+      "sha256": "134cdc1639f53d87a4d64f155094f8cdec870658fc0f95007568b5fb27c0772a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/modules/candidate.js",
+      "bytes": 15421,
+      "sha256": "d672f4a7f41179fc9aefb767d0e92ed580cf346c9bd17ac8cc75b75aefba9570"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/modules/package.json",
+      "bytes": 18,
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/modules/verification.d.ts",
+      "bytes": 4098,
+      "sha256": "2c94969db13d4433b8fe83e2c350345e7b55298cc8d561ab50fca671f1e975c8"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/modules/verification.js",
+      "bytes": 15845,
+      "sha256": "6b57a2a7c750af195f82e4e10d7b4271fe8a56bb5e07a4b4310d8a07f6a71a33"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/result.json",
+      "bytes": 59056,
+      "sha256": "652976dbc13745c7b727284b645010b5525750bd49df0928ced5d8102a337621"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/source.json",
+      "bytes": 2598,
+      "sha256": "27f3fb38ed3da4fe4fb902f9e3dbdd49b5863aa2a5cbeb48afbb315d1c353f1b"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/strict-emission.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/strict-emission.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/verification.graph.json",
+      "bytes": 493,
+      "sha256": "89504ba8d4420c1f7b45de49381740a0d614678583d7123c68d6d2c26b09b68c"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/verification.mjs",
+      "bytes": 27697,
+      "sha256": "af5ed6f7336a0a7219e1e94820df6f05e71c06d36f16476900bdd4f65755670f"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/verification.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/verification.stdout",
+      "bytes": 3315,
+      "sha256": "8ad6df8651ee3daabdef924744ee43ec63859206c40ecfe7a337d5708fb59fbf"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-source-01/commands.json",
+      "bytes": 1041,
+      "sha256": "82fc948f62dad9926348803753616f2fad491cd8ada92f7dd55eb732396b40f4"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-source-01/first-frame.graph.json",
+      "bytes": 615,
+      "sha256": "f93162b55b81c203801817363335a6bf14311411e0200b2141972a2c238b9b06"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-source-01/first-frame.mjs",
+      "bytes": 29445,
+      "sha256": "8d5a0381b95510401994389f69bc069c726b16536724db5fb0ed410e20fb2955"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-source-01/first-frame.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-source-01/first-frame.stdout",
+      "bytes": 903,
+      "sha256": "113c191aedb47399319c6dba3f1f53e79e395cfcef7b83ed948b5e23234df8c9"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-source-01/result.json",
+      "bytes": 93472,
+      "sha256": "07c7ec9b5f444433c97c49bcecd88624ab675d29f0c197d9586a4d5df086910e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-source-01/source.json",
+      "bytes": 1917,
+      "sha256": "cce3ee2908c72ae910f277a5f66d8f62fab4bc67005ce39335381815dc8243c0"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-source-02/commands.json",
+      "bytes": 1041,
+      "sha256": "d4a0d81b5edbadbb1c01f79af80cc35856d91ea3e33626673e4727dc6245f48a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-source-02/first-frame.graph.json",
+      "bytes": 615,
+      "sha256": "877882632d6191f79fae4750353a9aba491e36e85e16469d7deedae05b4d6872"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-source-02/first-frame.mjs",
+      "bytes": 29774,
+      "sha256": "103362c061e84e6e6e8b8a9018eeb1014463e91d82c7ec8b8c0be7b8cfef0c43"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-source-02/first-frame.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-source-02/first-frame.stdout",
+      "bytes": 903,
+      "sha256": "113c191aedb47399319c6dba3f1f53e79e395cfcef7b83ed948b5e23234df8c9"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-source-02/result.json",
+      "bytes": 93472,
+      "sha256": "07c7ec9b5f444433c97c49bcecd88624ab675d29f0c197d9586a4d5df086910e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-source-02/source.json",
+      "bytes": 2603,
+      "sha256": "6d22437f6cb8493034b4af4395c6be039a179ea412b64bc80e6356a81686ee9c"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/fixture-01/commands.json",
+      "bytes": 831,
+      "sha256": "2875ba82de4b5d9a39ba14963dddb89e0bd72d9b4c5ba8747c3ae2f1ff5461bf"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/fixture-01/fixture.json",
+      "bytes": 211160,
+      "sha256": "da088aeff200bdcfe27927f11286e8a9f6a63f772c6f5558ae11feb2e9d769eb"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/fixture-01/fixture.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/fixture-01/fixture.stdout",
+      "bytes": 288,
+      "sha256": "6c3b6cb38ff45fc1239ee1a63334845fafdefbe76fa62513a4db706204b390df"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/fixture-01/source.json",
+      "bytes": 1912,
+      "sha256": "916ffaa6366a8398ee3feac7a55ea3521a9bd5e5c9586d6ad94c06dadff93760"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/git-precommit-01.json",
+      "bytes": 378,
+      "sha256": "500698c03648844c5686563130548d022c987ddfe86a31adee4dfcad523dd50e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-01/candidate.graph.json",
+      "bytes": 454,
+      "sha256": "72d68c013e97d582fb3b9d6250c6d789adc0c0c7f972892892a31b469863001e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-01/candidate.mjs",
+      "bytes": 20772,
+      "sha256": "7b672c8ca768ff1e4e3cd448b458d4ebbf1dc786e3ca5802bf8a8e5f6936a4f0"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-01/candidate.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-01/candidate.stdout",
+      "bytes": 2780,
+      "sha256": "f7af366eb6b31cbb7eda97fa858131f4f5cc07675ccae3e778a968b63465d9c2"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-01/commands.json",
+      "bytes": 1392,
+      "sha256": "f87473a9124ee43a6f087e9b2e2e5fc23d16f0f8dae492952566cc0204eb1129"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-01/source.json",
+      "bytes": 1917,
+      "sha256": "4523b69433a2742c06be68dbb6b37dfec05609e4f7ecd8225e6c77da29acfe72"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-01/verification.graph.json",
+      "bytes": 460,
+      "sha256": "91ca7f49a9484af3cc00be1e9300593a72826182642993559a4177693252bf02"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-01/verification.mjs",
+      "bytes": 22669,
+      "sha256": "96baf2340cfc2ca4d49dfc73f608a7ed1e13db10d41007d98bd60e455b986c1b"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-01/verification.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-01/verification.stdout",
+      "bytes": 2369,
+      "sha256": "0d8378d07438a50a31032718a298a754e56951ec87b79d845ed59228a453660c"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-02/candidate.graph.json",
+      "bytes": 454,
+      "sha256": "7dbe299aa2e23c2ba74e3185d9708cf962306622dd62989cef61a833a6b1117d"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-02/candidate.mjs",
+      "bytes": 20772,
+      "sha256": "7b672c8ca768ff1e4e3cd448b458d4ebbf1dc786e3ca5802bf8a8e5f6936a4f0"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-02/candidate.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-02/candidate.stdout",
+      "bytes": 2780,
+      "sha256": "57fa310dde9a21bcfb2e5bdad1b859695a68ea1e6ab1fe9aa1e5db5d1c9d3a44"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-02/commands.json",
+      "bytes": 1392,
+      "sha256": "add8120f033845d047935f39ef3fc6f3084825108c618728e7ed4641997ce5f2"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-02/source.json",
+      "bytes": 2603,
+      "sha256": "7c346b88a40baf96bff6032f59ec17c1c9dbb49da1bff3fb5cb0ab0401f2177c"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-02/verification.graph.json",
+      "bytes": 460,
+      "sha256": "6724414686d8041e8fc5dcb78bafa82601eb911983a868e550e91cb79f509875"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-02/verification.mjs",
+      "bytes": 27655,
+      "sha256": "e333ea8c0f13956cfc0f8458983065e90e572da769e7b4d358aac6df19f73ba9"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-02/verification.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/source-tests-02/verification.stdout",
+      "bytes": 3315,
+      "sha256": "68059cc3e98a909f0ee586e05bb4c77676adc5ff537ce1bca44d4ba1c4170091"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/execution-failure.json",
+      "bytes": 151,
+      "sha256": "2cf31ac3ff092a63d64e675e301a2550eb125af83df6e81aad8721c885a549e6"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-feature-contact-reference/geometry-adapter.d.ts",
+      "bytes": 814,
+      "sha256": "c8b08e1fb0e825d002878922af127ff87a98e6b11f7c9097f2580cf1acc3a373"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-feature-contact-reference/geometry-adapter.js",
+      "bytes": 1512,
+      "sha256": "cd444d7f5dd063e9b94f77b50c001dab74b764bba2c113340d2eb360620ff4a5"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-feature-contact-reference/warm-cache.d.ts",
+      "bytes": 660,
+      "sha256": "8d93567684f3d450d68535b94e8575e47a062c63e43321720c26090e37bc043a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-feature-contact-reference/warm-cache.js",
+      "bytes": 808,
+      "sha256": "039d1631dfbf9ec769a9fee672072021324729879909d8879976fb3446516938"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-feature-geometry/contact-types.d.ts",
+      "bytes": 880,
+      "sha256": "6a3287bce8dd245057e6503943780c814b4f5c9d0cc77ad6a76ca50997beecdf"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-feature-geometry/contact-types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-feature-geometry/edge-contact.d.ts",
+      "bytes": 650,
+      "sha256": "e3ab7d1a3e58923e14a2c6fa3a0d80bbf2b887478e83e9acc77f528609dc51ed"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-feature-geometry/edge-contact.js",
+      "bytes": 3370,
+      "sha256": "13dd3dabb7ea07c5dfa117236181e7c2941fa6a59a983a69cd53c3a768460153"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-feature-geometry/face-contact.d.ts",
+      "bytes": 501,
+      "sha256": "2e24687c07645092ca8dd0c671e89ef5c3f99dd534fd89b4174d929a51e0fdff"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-feature-geometry/face-contact.js",
+      "bytes": 3668,
+      "sha256": "009af220de82db31af9cb0a2614ba1d4091d3f63998e506ec9053981fccafdab"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-feature-geometry/geometry.d.ts",
+      "bytes": 273,
+      "sha256": "fa10128fb03ba93653a6933200b67d719aa30869c9a59f245194874355e42b8d"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-feature-geometry/geometry.js",
+      "bytes": 2153,
+      "sha256": "304fb39a9f97839ad6a019b1774badcc72ac4487482893116c01b568a83988b0"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-feature-geometry/sat-feature.d.ts",
+      "bytes": 1693,
+      "sha256": "6bed25c6d3da81e1f76f15e6061f1918cba71c86dda42739381feb7846c2878e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-feature-geometry/sat-feature.js",
+      "bytes": 5172,
+      "sha256": "33aa7163b124eda00b1fb75ee507aabf4c7f26fe8e9bee5d679606f4f3bc03e6"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-feature-geometry/witness.d.ts",
+      "bytes": 560,
+      "sha256": "4554b7887491d11198b34a19b9ee5c548d16422461f2d9901f1c13b584ee1297"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-feature-geometry/witness.js",
+      "bytes": 1107,
+      "sha256": "dcdf55a960e1c486df7e9e98ef768a7bf20fd958421e5eb1013114010dd482ff"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-full-pair-position-world/full-pair-apply.d.ts",
+      "bytes": 535,
+      "sha256": "c56c34d0ad0b3c03ee2d1ae795174a07aef13d9528898414333673dd06042365"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-full-pair-position-world/full-pair-apply.js",
+      "bytes": 3352,
+      "sha256": "1bec72424d6bfdffc7a5661c66c20a6e8f488509e6759b1bf24e6d68704e3e2c"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-full-pair-position-world/full-pair-phase.d.ts",
+      "bytes": 642,
+      "sha256": "95a148f68e917b5b3adff05582d8d1cfaac6863f8b4570237e92c527e88df1f9"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-full-pair-position-world/full-pair-phase.js",
+      "bytes": 5527,
+      "sha256": "49e217b5ec0411a5137ea20c13bd01f76c52292301a0ce071a41e0972e13f2ce"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-full-pair-position-world/full-pair-rows.d.ts",
+      "bytes": 2350,
+      "sha256": "7475d5049f4cbc7d866ad4f1c76e71dc0d803b28c4a72f096823b2a5cce50404"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-full-pair-position-world/full-pair-rows.js",
+      "bytes": 7982,
+      "sha256": "248e21f4c8a902faff3a4d6a95d8c271fdfb5b8ce4e16af48b1ee703e46b2749"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-full-pair-position-world/full-pair-types.d.ts",
+      "bytes": 3710,
+      "sha256": "42097479473685ed35769eb164c0410d34633c794d854720076be0ee0643a85f"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-full-pair-position-world/full-pair-types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-full-pair-position-world/global-island.d.ts",
+      "bytes": 2577,
+      "sha256": "2c9b58e033ef6586406dd9b3ec4a9755453caa56f3297cf86f33d757e58e4ad4"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-full-pair-position-world/global-island.js",
+      "bytes": 8648,
+      "sha256": "854ad41d769358f9574e009b0f8fded6afee2abb352ab6a0a1efdf02bbb56a15"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-full-pair-position-world/world-types.d.ts",
+      "bytes": 4693,
+      "sha256": "47d9fd96c6a12c65c3a0f1b279351a6e8103dfed48b2448582ac250c728c7901"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-full-pair-position-world/world-types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-signed-separation-reference/signed-sat.d.ts",
+      "bytes": 1886,
+      "sha256": "5243b7bee0c92b5617e5725594477d734dd4e9f4d208eac7bf9ece97f0c14b6a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-rigid-signed-separation-reference/signed-sat.js",
+      "bytes": 6842,
+      "sha256": "f9f9249faee61825bd06e7a3e0ce32f2aadb57c209658adce6e9abca669ec741"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-stack-solver-2276/candidate.d.ts",
+      "bytes": 2374,
+      "sha256": "134cdc1639f53d87a4d64f155094f8cdec870658fc0f95007568b5fb27c0772a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-stack-solver-2276/candidate.js",
+      "bytes": 15421,
+      "sha256": "d672f4a7f41179fc9aefb767d0e92ed580cf346c9bd17ac8cc75b75aefba9570"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-stack-solver-2276/verification.d.ts",
+      "bytes": 4098,
+      "sha256": "2c94969db13d4433b8fe83e2c350345e7b55298cc8d561ab50fca671f1e975c8"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-stack-solver-2276/verification.js",
+      "bytes": 15845,
+      "sha256": "6b57a2a7c750af195f82e4e10d7b4271fe8a56bb5e07a4b4310d8a07f6a71a33"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-stack-solver-2276/world-adapter.d.ts",
+      "bytes": 2214,
+      "sha256": "3a26f9d606927af3bb9fbb00fade1bfdba332e147c5b014055db6cf64d2ae775"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/examples/physics-stack-solver-2276/world-adapter.js",
+      "bytes": 10093,
+      "sha256": "9ab4e627e271eeb5ceda3f761fd1c2b66f00eabce9fcae209193b0e13ee26c10"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/packages/barocss-physics/src/capsule-contact.d.ts",
+      "bytes": 189,
+      "sha256": "6886362e762a3bd07d1594de24c128d461cd7819e822d684b154b334de6160b5"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/packages/barocss-physics/src/capsule-contact.js",
+      "bytes": 5708,
+      "sha256": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/packages/barocss-physics/src/collision.d.ts",
+      "bytes": 526,
+      "sha256": "822b6148463875531facd48ee80876ff5d1946cfc7c20c7d116d39cbf20fe49a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/packages/barocss-physics/src/collision.js",
+      "bytes": 13712,
+      "sha256": "404bbb24c4552828f8bd943481a15b11af7d93333c5651c4c8f8cae88e3dd28a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/packages/barocss-physics/src/limits.d.ts",
+      "bytes": 476,
+      "sha256": "9389e2dca0a552e1173fd3be829ea8f2cc698a86f6e7d92ddf305404192f0b6b"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/packages/barocss-physics/src/limits.js",
+      "bytes": 416,
+      "sha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/packages/barocss-physics/src/math.d.ts",
+      "bytes": 884,
+      "sha256": "36a9fd9c465be2439f3cbbf444aaeab64d3cea2bbd585a51d0107b497ec90066"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/packages/barocss-physics/src/math.js",
+      "bytes": 2114,
+      "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/packages/barocss-physics/src/persistent-box-contact.d.ts",
+      "bytes": 465,
+      "sha256": "f2088fef66e7ca221d679d544f596a3224f3244cd7ce05ef92566475b0132c79"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/packages/barocss-physics/src/persistent-box-contact.js",
+      "bytes": 3405,
+      "sha256": "c45006197178d3a50cd4bbc6b038e286ceadf230e3e459f86882ffc29a96d861"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/packages/barocss-physics/src/types.d.ts",
+      "bytes": 5521,
+      "sha256": "27bcd9ef96a169602c056de1f7ee5f42f36dea951f1912d40511f32d8e87ac7f"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/packages/barocss-physics/src/types.js",
+      "bytes": 179,
+      "sha256": "932dad524c2e342e7335203e1e47aafb4025b3da32339385d79847c51283be1e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/packages/barocss-physics/src/validation.d.ts",
+      "bytes": 1392,
+      "sha256": "ff010dba91c4bacc1df2f5109611c3615933af84cc58127ef1ce8e440f5fc470"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/modules/packages/barocss-physics/src/validation.js",
+      "bytes": 13787,
+      "sha256": "d7bb0ca0e1ac7f0485b60e46d72d4a49a2856473276cf28e56967895f06fe919"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/source.json",
+      "bytes": 11530,
+      "sha256": "0666903db80dd9cdcb67f8b0d739585478b0dba55eb34f45cbf47e4f8d9b00a0"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/strict-emission.json",
+      "bytes": 965,
+      "sha256": "db49f8b6a422545088f8840cc65454b8b74cb1a06835ce029f43f1c4228bd945"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/strict-emission.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/strict-emission.stdout",
+      "bytes": 1667,
+      "sha256": "d4ee96882ef68d4f14d6269c953f646a45372796f42871d276cc0088d8c9b2c9"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/transform-tool.mjs",
+      "bytes": 24115,
+      "sha256": "0315a0c474992201637f1d4083bb85da0f7677ddb5bc80c1e0d02e5004bc7a64"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/transform.json",
+      "bytes": 633,
+      "sha256": "73115bef07a40772c489b1e8e8e673a14184c2fba7b42d04dc97fe947224dcae"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-01/transformed-global-island.ts",
+      "bytes": 8048,
+      "sha256": "381f72400c69eebe91f5f73dc5799ab111a2339f2e43f247de650399b4d9c7c7"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/ALIGNED-result.json",
+      "bytes": 9022,
+      "sha256": "67de1753802d6bdb821d8a5a831d081248786d60a4c78117d007c2ff024a5b2b"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/ALIGNED.f64le.gz",
+      "bytes": 1367,
+      "sha256": "1ea8dfd206a8999ac5261cef0797e74adee15ee7c80673ca690240a9c8724f7f"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/ALIGNED.jsonl.gz",
+      "bytes": 96725,
+      "sha256": "5b736f932da555d4f481770fa16d7b04bd3cfb6b98a57fc9ec60f36c84244dd9"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/OFFSET-result.json",
+      "bytes": 4610,
+      "sha256": "f87c0af309949b1f8502e355f4782e90cbfda8de0fae56fa5ba770d8d695af01"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/OFFSET.f64le.gz",
+      "bytes": 523,
+      "sha256": "0ef45dc8e0f5f208dfb24f35161b04e0d5267c113d7aaa0eb81aa10267a9ab0d"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/OFFSET.jsonl.gz",
+      "bytes": 23251,
+      "sha256": "8668779657e073257dfd52c1289ab1b6babca773e7014df4c4b2371d6cf4647a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/YAW-result.json",
+      "bytes": 9281,
+      "sha256": "464443dae43f0c155d50cfc8b94afe996cd5f927437b52b013bf0542e3a61dd6"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/YAW.f64le.gz",
+      "bytes": 558,
+      "sha256": "73f2f5ce8b8bf704167ed4b51d62a67c89f385a886ca76e581f8edfcf6a1a2a8"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/YAW.jsonl.gz",
+      "bytes": 34794,
+      "sha256": "a47d33315f99ad1569bf20c503cd8a0fd169c7c9e8c5e66c42333cf9b97ae8e2"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/graph.json",
+      "bytes": 7007,
+      "sha256": "8b304bac75ad8cd6bec9b8ec4ae9b54812e00dd782c66b2147b51a4bf71ce108"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/modules/examples/physics-stack-solver-2276/candidate.d.ts",
+      "bytes": 2374,
+      "sha256": "134cdc1639f53d87a4d64f155094f8cdec870658fc0f95007568b5fb27c0772a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/modules/examples/physics-stack-solver-2276/candidate.js",
+      "bytes": 15421,
+      "sha256": "d672f4a7f41179fc9aefb767d0e92ed580cf346c9bd17ac8cc75b75aefba9570"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/modules/examples/physics-stack-solver-2276/verification.d.ts",
+      "bytes": 4098,
+      "sha256": "2c94969db13d4433b8fe83e2c350345e7b55298cc8d561ab50fca671f1e975c8"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/modules/examples/physics-stack-solver-2276/verification.js",
+      "bytes": 15845,
+      "sha256": "6b57a2a7c750af195f82e4e10d7b4271fe8a56bb5e07a4b4310d8a07f6a71a33"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/modules/examples/physics-stack-solver-2276/world-adapter.d.ts",
+      "bytes": 2552,
+      "sha256": "b72db3e938799af2ad05cb8ced9396554feeb74da23b0703012b2839744cf197"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/modules/examples/physics-stack-solver-2276/world-adapter.js",
+      "bytes": 10093,
+      "sha256": "9ab4e627e271eeb5ceda3f761fd1c2b66f00eabce9fcae209193b0e13ee26c10"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/modules/packages/barocss-physics/src/math.d.ts",
+      "bytes": 884,
+      "sha256": "36a9fd9c465be2439f3cbbf444aaeab64d3cea2bbd585a51d0107b497ec90066"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/modules/packages/barocss-physics/src/math.js",
+      "bytes": 2114,
+      "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/modules/packages/barocss-physics/src/persistent-box-contact.d.ts",
+      "bytes": 465,
+      "sha256": "f2088fef66e7ca221d679d544f596a3224f3244cd7ce05ef92566475b0132c79"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/modules/packages/barocss-physics/src/persistent-box-contact.js",
+      "bytes": 3405,
+      "sha256": "c45006197178d3a50cd4bbc6b038e286ceadf230e3e459f86882ffc29a96d861"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/modules/packages/barocss-physics/src/types.d.ts",
+      "bytes": 5521,
+      "sha256": "27bcd9ef96a169602c056de1f7ee5f42f36dea951f1912d40511f32d8e87ac7f"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/modules/packages/barocss-physics/src/types.js",
+      "bytes": 179,
+      "sha256": "932dad524c2e342e7335203e1e47aafb4025b3da32339385d79847c51283be1e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/result.json",
+      "bytes": 26632,
+      "sha256": "3a9e48a3591f2b5d08a1b2acd3413556c56824d0385685294a4fbc9602014a3e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/source.json",
+      "bytes": 18050,
+      "sha256": "c0ed4a6627066952893e808ee609ed75a42afbd49098a5cbe9d49129f4606346"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/strict-emission.json",
+      "bytes": 965,
+      "sha256": "126a52433feeb36673f6b7ab278f7a6fe51cf9bb1ae441abedfbf98dddea98a8"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/strict-emission.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/strict-emission.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/transform-tool.mjs",
+      "bytes": 24115,
+      "sha256": "0315a0c474992201637f1d4083bb85da0f7677ddb5bc80c1e0d02e5004bc7a64"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/transform.json",
+      "bytes": 633,
+      "sha256": "73115bef07a40772c489b1e8e8e673a14184c2fba7b42d04dc97fe947224dcae"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/transformed-global-island.ts",
+      "bytes": 8048,
+      "sha256": "381f72400c69eebe91f5f73dc5799ab111a2339f2e43f247de650399b4d9c7c7"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-02/world.mjs",
+      "bytes": 180390,
+      "sha256": "9b0d0f4622d1d4b342688cb7805f827533ffc31ed9bca98c66a795d604c7d8fb"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/ALIGNED-result.json",
+      "bytes": 9022,
+      "sha256": "67de1753802d6bdb821d8a5a831d081248786d60a4c78117d007c2ff024a5b2b"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/ALIGNED.f64le.gz",
+      "bytes": 1367,
+      "sha256": "1ea8dfd206a8999ac5261cef0797e74adee15ee7c80673ca690240a9c8724f7f"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/ALIGNED.jsonl.gz",
+      "bytes": 96725,
+      "sha256": "5b736f932da555d4f481770fa16d7b04bd3cfb6b98a57fc9ec60f36c84244dd9"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/OFFSET-result.json",
+      "bytes": 4610,
+      "sha256": "f87c0af309949b1f8502e355f4782e90cbfda8de0fae56fa5ba770d8d695af01"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/OFFSET.f64le.gz",
+      "bytes": 523,
+      "sha256": "0ef45dc8e0f5f208dfb24f35161b04e0d5267c113d7aaa0eb81aa10267a9ab0d"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/OFFSET.jsonl.gz",
+      "bytes": 23251,
+      "sha256": "8668779657e073257dfd52c1289ab1b6babca773e7014df4c4b2371d6cf4647a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/YAW-result.json",
+      "bytes": 9281,
+      "sha256": "464443dae43f0c155d50cfc8b94afe996cd5f927437b52b013bf0542e3a61dd6"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/YAW.f64le.gz",
+      "bytes": 558,
+      "sha256": "73f2f5ce8b8bf704167ed4b51d62a67c89f385a886ca76e581f8edfcf6a1a2a8"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/YAW.jsonl.gz",
+      "bytes": 34794,
+      "sha256": "a47d33315f99ad1569bf20c503cd8a0fd169c7c9e8c5e66c42333cf9b97ae8e2"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/graph.json",
+      "bytes": 7007,
+      "sha256": "2bf2e8580011389ae81c054272f9317a0b2a8093ce6735f24f90e19a69383bf0"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/modules/examples/physics-stack-solver-2276/candidate.d.ts",
+      "bytes": 2374,
+      "sha256": "134cdc1639f53d87a4d64f155094f8cdec870658fc0f95007568b5fb27c0772a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/modules/examples/physics-stack-solver-2276/candidate.js",
+      "bytes": 15421,
+      "sha256": "d672f4a7f41179fc9aefb767d0e92ed580cf346c9bd17ac8cc75b75aefba9570"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/modules/examples/physics-stack-solver-2276/verification.d.ts",
+      "bytes": 4098,
+      "sha256": "2c94969db13d4433b8fe83e2c350345e7b55298cc8d561ab50fca671f1e975c8"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/modules/examples/physics-stack-solver-2276/verification.js",
+      "bytes": 15845,
+      "sha256": "6b57a2a7c750af195f82e4e10d7b4271fe8a56bb5e07a4b4310d8a07f6a71a33"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/modules/examples/physics-stack-solver-2276/world-adapter.d.ts",
+      "bytes": 2552,
+      "sha256": "b72db3e938799af2ad05cb8ced9396554feeb74da23b0703012b2839744cf197"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/modules/examples/physics-stack-solver-2276/world-adapter.js",
+      "bytes": 10093,
+      "sha256": "9ab4e627e271eeb5ceda3f761fd1c2b66f00eabce9fcae209193b0e13ee26c10"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/modules/packages/barocss-physics/src/math.d.ts",
+      "bytes": 884,
+      "sha256": "36a9fd9c465be2439f3cbbf444aaeab64d3cea2bbd585a51d0107b497ec90066"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/modules/packages/barocss-physics/src/math.js",
+      "bytes": 2114,
+      "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/modules/packages/barocss-physics/src/persistent-box-contact.d.ts",
+      "bytes": 465,
+      "sha256": "f2088fef66e7ca221d679d544f596a3224f3244cd7ce05ef92566475b0132c79"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/modules/packages/barocss-physics/src/persistent-box-contact.js",
+      "bytes": 3405,
+      "sha256": "c45006197178d3a50cd4bbc6b038e286ceadf230e3e459f86882ffc29a96d861"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/modules/packages/barocss-physics/src/types.d.ts",
+      "bytes": 5521,
+      "sha256": "27bcd9ef96a169602c056de1f7ee5f42f36dea951f1912d40511f32d8e87ac7f"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/modules/packages/barocss-physics/src/types.js",
+      "bytes": 179,
+      "sha256": "932dad524c2e342e7335203e1e47aafb4025b3da32339385d79847c51283be1e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/result.json",
+      "bytes": 26632,
+      "sha256": "3a9e48a3591f2b5d08a1b2acd3413556c56824d0385685294a4fbc9602014a3e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/source.json",
+      "bytes": 18572,
+      "sha256": "d4e6fa8dcdee43d7c10bc9ab56086106f07051b7c97508dfedda55d645b72cbe"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/strict-emission.json",
+      "bytes": 965,
+      "sha256": "30dc7b5bdca4e19954a1310acb963a07eee059e44f66c784f6cb05dddf3c6b48"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/strict-emission.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/strict-emission.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/transform-tool.mjs",
+      "bytes": 24115,
+      "sha256": "0315a0c474992201637f1d4083bb85da0f7677ddb5bc80c1e0d02e5004bc7a64"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/transform.json",
+      "bytes": 633,
+      "sha256": "73115bef07a40772c489b1e8e8e673a14184c2fba7b42d04dc97fe947224dcae"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/transformed-global-island.ts",
+      "bytes": 8048,
+      "sha256": "381f72400c69eebe91f5f73dc5799ab111a2339f2e43f247de650399b4d9c7c7"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-03/world.mjs",
+      "bytes": 180390,
+      "sha256": "fc1575ecff8989d48192cbb57b87c8ff60e166008d993ea294195747f2e3a408"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-command-01/commands.json",
+      "bytes": 926,
+      "sha256": "820b2645778225b4649e292b029fa404bcaa0376fe1c6255e997bf76f5277b8a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-command-01/failure.txt",
+      "bytes": 49,
+      "sha256": "d65651e6f4a5f243c3def5f124ea66b6ae7f525dc0e793fb38ca9af9d9e1b588"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-command-01/source.json",
+      "bytes": 3110,
+      "sha256": "11f5afd55a67b13b7f4a38d74fe57f142a6b65bae3ae33fdd280d1181a2a92ef"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-command-01/trajectory.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-command-01/trajectory.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-command-02/commands.json",
+      "bytes": 926,
+      "sha256": "c5acdccfce0ae73dd1f6f9bf7168dfcd8302ebfe2e51de625e4c3e2ee4690a13"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-command-02/source.json",
+      "bytes": 3110,
+      "sha256": "85f0770e763dfd81e31ed3b82b08ddfc9b855e6c8a236d3fefd91056d490930e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-command-02/trajectory.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-command-02/trajectory.stdout",
+      "bytes": 29400,
+      "sha256": "c4aec958e8840fc996f0c1df9172ade6d1a60d703db22e1832e93ac1f085de5e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-command-03/commands.json",
+      "bytes": 926,
+      "sha256": "3b7a4140cf214bb55d4b193315fb0cf237cb39a610c886cb8448a96f55c66be0"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-command-03/source.json",
+      "bytes": 3632,
+      "sha256": "7b10e1156b3732b9b90f3ccda913033f82f5b1c6931bb19f2439a125d8b82290"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-command-03/trajectory.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-emitted-command-03/trajectory.stdout",
+      "bytes": 29400,
+      "sha256": "c4aec958e8840fc996f0c1df9172ade6d1a60d703db22e1832e93ac1f085de5e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-01/ALIGNED-emergency.json.gz",
+      "bytes": 11824,
+      "sha256": "3af9748a176abe7b44386e9c0853ab5341ed25e2d73638191ee66d78f8c0e1df"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-01/ALIGNED-result.json",
+      "bytes": 1572,
+      "sha256": "4c8583ddec4d56636910ff4d2207e5ab8e4c8772667b45a27e9579f8618c8b82"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-01/ALIGNED.f64le.gz",
+      "bytes": 67,
+      "sha256": "db7d794458a4f7a5a5b540697bd1b659698ac201eddcaa899901ad88830d475b"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-01/ALIGNED.jsonl.gz",
+      "bytes": 782,
+      "sha256": "d9b7c5a3acbdffffa1379f98d996fd9e3f06a7d00aacd4950c9fafc5e7a94df9"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-01/execution-failure.json",
+      "bytes": 1777,
+      "sha256": "f10fb578928fb67ec4d5d69edd13052c68c9faabf47ca0f303c9481154f1b322"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-01/graph.json",
+      "bytes": 6778,
+      "sha256": "e512cf856d66910c7077ac9c11e96d36ddf1db6e8dc5fc4a3148bb550c254c9d"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-01/source.json",
+      "bytes": 17342,
+      "sha256": "edecebfc119d5cb098904db297c14858a8450760d12ab7ea0b4f01d22a052e82"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-01/transform-tool.mjs",
+      "bytes": 24115,
+      "sha256": "0315a0c474992201637f1d4083bb85da0f7677ddb5bc80c1e0d02e5004bc7a64"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-01/transform.json",
+      "bytes": 633,
+      "sha256": "73115bef07a40772c489b1e8e8e673a14184c2fba7b42d04dc97fe947224dcae"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-01/transformed-global-island.ts",
+      "bytes": 8048,
+      "sha256": "381f72400c69eebe91f5f73dc5799ab111a2339f2e43f247de650399b4d9c7c7"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-01/world.mjs",
+      "bytes": 180063,
+      "sha256": "48b6da2920f62116cda4122a4c18e5ba5c14366bef0cfb3f24d091fff1c8487b"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-02/ALIGNED-result.json",
+      "bytes": 9022,
+      "sha256": "67de1753802d6bdb821d8a5a831d081248786d60a4c78117d007c2ff024a5b2b"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-02/ALIGNED.f64le.gz",
+      "bytes": 1367,
+      "sha256": "1ea8dfd206a8999ac5261cef0797e74adee15ee7c80673ca690240a9c8724f7f"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-02/ALIGNED.jsonl.gz",
+      "bytes": 96725,
+      "sha256": "5b736f932da555d4f481770fa16d7b04bd3cfb6b98a57fc9ec60f36c84244dd9"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-02/OFFSET-result.json",
+      "bytes": 4610,
+      "sha256": "f87c0af309949b1f8502e355f4782e90cbfda8de0fae56fa5ba770d8d695af01"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-02/OFFSET.f64le.gz",
+      "bytes": 523,
+      "sha256": "0ef45dc8e0f5f208dfb24f35161b04e0d5267c113d7aaa0eb81aa10267a9ab0d"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-02/OFFSET.jsonl.gz",
+      "bytes": 23251,
+      "sha256": "8668779657e073257dfd52c1289ab1b6babca773e7014df4c4b2371d6cf4647a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-02/YAW-result.json",
+      "bytes": 9281,
+      "sha256": "464443dae43f0c155d50cfc8b94afe996cd5f927437b52b013bf0542e3a61dd6"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-02/YAW.f64le.gz",
+      "bytes": 558,
+      "sha256": "73f2f5ce8b8bf704167ed4b51d62a67c89f385a886ca76e581f8edfcf6a1a2a8"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-02/YAW.jsonl.gz",
+      "bytes": 34794,
+      "sha256": "a47d33315f99ad1569bf20c503cd8a0fd169c7c9e8c5e66c42333cf9b97ae8e2"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-02/graph.json",
+      "bytes": 6778,
+      "sha256": "e512cf856d66910c7077ac9c11e96d36ddf1db6e8dc5fc4a3148bb550c254c9d"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-02/result.json",
+      "bytes": 26621,
+      "sha256": "29f278e54caf91b67904b23b13a682cf1eed7545744417d98b9d27f7096358da"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-02/source.json",
+      "bytes": 17342,
+      "sha256": "47ccdbc217e5fb9a11061c12db94c706ba933cee806da80aecb14f4faf0c3dec"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-02/transform-tool.mjs",
+      "bytes": 24115,
+      "sha256": "0315a0c474992201637f1d4083bb85da0f7677ddb5bc80c1e0d02e5004bc7a64"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-02/transform.json",
+      "bytes": 633,
+      "sha256": "73115bef07a40772c489b1e8e8e673a14184c2fba7b42d04dc97fe947224dcae"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-02/transformed-global-island.ts",
+      "bytes": 8048,
+      "sha256": "381f72400c69eebe91f5f73dc5799ab111a2339f2e43f247de650399b4d9c7c7"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-02/world.mjs",
+      "bytes": 180063,
+      "sha256": "48b6da2920f62116cda4122a4c18e5ba5c14366bef0cfb3f24d091fff1c8487b"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-03/ALIGNED-result.json",
+      "bytes": 9022,
+      "sha256": "67de1753802d6bdb821d8a5a831d081248786d60a4c78117d007c2ff024a5b2b"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-03/ALIGNED.f64le.gz",
+      "bytes": 1367,
+      "sha256": "1ea8dfd206a8999ac5261cef0797e74adee15ee7c80673ca690240a9c8724f7f"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-03/ALIGNED.jsonl.gz",
+      "bytes": 96725,
+      "sha256": "5b736f932da555d4f481770fa16d7b04bd3cfb6b98a57fc9ec60f36c84244dd9"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-03/OFFSET-result.json",
+      "bytes": 4610,
+      "sha256": "f87c0af309949b1f8502e355f4782e90cbfda8de0fae56fa5ba770d8d695af01"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-03/OFFSET.f64le.gz",
+      "bytes": 523,
+      "sha256": "0ef45dc8e0f5f208dfb24f35161b04e0d5267c113d7aaa0eb81aa10267a9ab0d"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-03/OFFSET.jsonl.gz",
+      "bytes": 23251,
+      "sha256": "8668779657e073257dfd52c1289ab1b6babca773e7014df4c4b2371d6cf4647a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-03/YAW-result.json",
+      "bytes": 9281,
+      "sha256": "464443dae43f0c155d50cfc8b94afe996cd5f927437b52b013bf0542e3a61dd6"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-03/YAW.f64le.gz",
+      "bytes": 558,
+      "sha256": "73f2f5ce8b8bf704167ed4b51d62a67c89f385a886ca76e581f8edfcf6a1a2a8"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-03/YAW.jsonl.gz",
+      "bytes": 34794,
+      "sha256": "a47d33315f99ad1569bf20c503cd8a0fd169c7c9e8c5e66c42333cf9b97ae8e2"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-03/graph.json",
+      "bytes": 6778,
+      "sha256": "d768558279d9810acf5c667a909e3ce098814acc9707b31e8daafc8fed22bc42"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-03/result.json",
+      "bytes": 26621,
+      "sha256": "29f278e54caf91b67904b23b13a682cf1eed7545744417d98b9d27f7096358da"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-03/source.json",
+      "bytes": 17864,
+      "sha256": "b6cead754f4fb1b8ac6e02069beacb82eac397588bf96962bff7eb10d17b561d"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-03/transform-tool.mjs",
+      "bytes": 24115,
+      "sha256": "0315a0c474992201637f1d4083bb85da0f7677ddb5bc80c1e0d02e5004bc7a64"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-03/transform.json",
+      "bytes": 633,
+      "sha256": "73115bef07a40772c489b1e8e8e673a14184c2fba7b42d04dc97fe947224dcae"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-03/transformed-global-island.ts",
+      "bytes": 8048,
+      "sha256": "381f72400c69eebe91f5f73dc5799ab111a2339f2e43f247de650399b4d9c7c7"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-03/world.mjs",
+      "bytes": 180063,
+      "sha256": "48b6da2920f62116cda4122a4c18e5ba5c14366bef0cfb3f24d091fff1c8487b"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-command-01/commands.json",
+      "bytes": 772,
+      "sha256": "19b5a20698d81ca850bbc938e5f1f7ee1fdf3cceae04f06f68d5558cb771cb31"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-command-01/failure.txt",
+      "bytes": 49,
+      "sha256": "d65651e6f4a5f243c3def5f124ea66b6ae7f525dc0e793fb38ca9af9d9e1b588"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-command-01/source.json",
+      "bytes": 3109,
+      "sha256": "4bc0e707cc273ecea10e24ce7e852bab9f97cd47eae5f2d4b0e85ece9fd36500"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-command-01/trajectory.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-command-01/trajectory.stdout",
+      "bytes": 1478,
+      "sha256": "5849b9c1a933705db8ae7b0ae3cc024eccf68c8754fb17cbc7f486d6abd3e911"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-command-02/commands.json",
+      "bytes": 772,
+      "sha256": "ed9af433c58220a4a55975a1466a85e3dc0424d417b3fdf35ef55b945dbbbe59"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-command-02/source.json",
+      "bytes": 3109,
+      "sha256": "d785cfd223b33b16061e9714436f279183541227e14173aa017e53453d86df3a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-command-02/trajectory.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-command-02/trajectory.stdout",
+      "bytes": 29334,
+      "sha256": "d761808304adf2e9268642365437191e13d0d5c782c88bbe6d94710562062345"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-command-03/commands.json",
+      "bytes": 772,
+      "sha256": "ff225b0567f9f56e53024cc23e0ded148c494a2b31732c8fef398bbf8e20e1df"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-command-03/source.json",
+      "bytes": 3631,
+      "sha256": "91da2e06cd251e253e0103e0bab0ae0ecdda604ec167fda3fa9aa56df162d97a"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-command-03/trajectory.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/world-source-command-03/trajectory.stdout",
+      "bytes": 29334,
+      "sha256": "d761808304adf2e9268642365437191e13d0d5c782c88bbe6d94710562062345"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/extract-fixture.py",
+      "bytes": 10916,
+      "sha256": "a06acad9037eb0244d83d756deb4e1e6056fe1af2291d91c13fdc185ee9e5ee3"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/first-frame.ts",
+      "bytes": 2175,
+      "sha256": "081e6e30a1b0db23e83355f141075deb6be87350718832fe376017b8a62d88b8"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/fixture-contract.md",
+      "bytes": 5313,
+      "sha256": "acaf948df777b73e71d2cfda0dc8e1fede7db5e005dcdb13e6641b90607b7939"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/newgeometry-nogo-analysis.md",
+      "bytes": 7922,
+      "sha256": "7927ee0c5bb387ac68f148f05c365a9f3fc2365989f854ec440fb55a6afff7ac"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/run.mjs",
+      "bytes": 5390,
+      "sha256": "e335c185b3a10e22eb35cf60ac2dedd21676d70f46c8a0f02354299823efeca5"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-contract.md",
+      "bytes": 5993,
+      "sha256": "efb1f3b48e435fed3ca0a4d9dabd131eb9841fc7ae2196ce6002d1a119d898ca"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-entry.ts",
+      "bytes": 290,
+      "sha256": "3587613cf00b6a179b10750b7816b2aab5f77750b3bc1c820018a6563dc72621"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-errors.mjs",
+      "bytes": 544,
+      "sha256": "8e5b820c495fc439cc9501b258a1390f8b8d7e976b6ed8c7334de38b104c7bbf"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-errors.test.mjs",
+      "bytes": 1312,
+      "sha256": "f6b53bf348fd3ae07d08d513475d1ec5caa9db937afbd08b8166336949e941aa"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-reference-contract.md",
+      "bytes": 3992,
+      "sha256": "af8ccc9ce4459ddb90db29958e288c25fa702d680bef6fcaddc4bfa7d0dc1301"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-reference.py",
+      "bytes": 6575,
+      "sha256": "f2c1850b193a14944de657848d065c461e3ff2440e9e9bf452b6d24519af0ea0"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-run.mjs",
+      "bytes": 18114,
+      "sha256": "2ca872e4dc6b024f6e01984c3e50250eadf43c815a080c0f69fa3602189ddf71"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/verification-contract.md",
+      "bytes": 10951,
+      "sha256": "fa0bc4bf67388f426fb1596489a54f5dbd92f73cdc3a1179897cbb11ed3b5e13"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/verification.test.ts",
+      "bytes": 13751,
+      "sha256": "b1bc3da25251afef12936ac1ef768eee7f9fccebcd1eb8e88a0be2b2b8075d7e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/verification.ts",
+      "bytes": 19506,
+      "sha256": "cc9ee1f949af20472e8c733a3fe57abb61683712d388af8f76adaf8d8d62b7c8"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/world-adapter.ts",
+      "bytes": 12000,
+      "sha256": "43904b7f32f2ea3c5587c33c77048cd2002f1fa47797daf81e5fc42177e9bbdd"
+    }
+  ],
+  "fileCount": 313,
+  "bytes": 3740514,
+  "disposition": "FIRST_32_POINT_EQUILIBRIUM_PASS__STACK_GEOMETRY_NO_GO",
+  "holdsRetained": true,
+  "publicApiIntegrated": false,
+  "hardwareValidated": false
+}

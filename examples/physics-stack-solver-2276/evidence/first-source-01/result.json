@@ -1,0 +1,3322 @@
+{
+  "status": "FIRST_PATCH_SOLVER_AND_INDEPENDENT_ORACLE_PASS",
+  "fixtureSha256": "da088aeff200bdcfe27927f11286e8a9f6a63f772c6f5558ae11feb2e9d769eb",
+  "requestedSolves": 2,
+  "actualSolves": 2,
+  "inputRetained": true,
+  "results": [
+    {
+      "candidate": {
+        "ok": true,
+        "status": "SOLVED_NORMAL_ONLY",
+        "bodies": [
+          {
+            "id": "b0",
+            "positionM": [
+              0,
+              0.24931875,
+              0
+            ],
+            "velocityMps": [
+              0,
+              -6.938893903907228e-18,
+              0
+            ],
+            "angularVelocityRadps": [
+              -9.601388298825564e-17,
+              0,
+              6.798699777552591e-17
+            ],
+            "inverseMass": 1,
+            "inverseInertiaWorld": [
+              [
+                24,
+                0,
+                0
+              ],
+              [
+                0,
+                24,
+                0
+              ],
+              [
+                0,
+                0,
+                24
+              ]
+            ]
+          },
+          {
+            "id": "b1",
+            "positionM": [
+              0,
+              0.74931875,
+              0
+            ],
+            "velocityMps": [
+              0,
+              -6.938893903907228e-18,
+              0
+            ],
+            "angularVelocityRadps": [
+              -7.099729423158016e-17,
+              0,
+              3.3993498887762956e-17
+            ],
+            "inverseMass": 1,
+            "inverseInertiaWorld": [
+              [
+                24,
+                0,
+                0
+              ],
+              [
+                0,
+                24,
+                0
+              ],
+              [
+                0,
+                0,
+                24
+              ]
+            ]
+          },
+          {
+            "id": "b2",
+            "positionM": [
+              0,
+              1.24931875,
+              0
+            ],
+            "velocityMps": [
+              0,
+              -6.938893903907228e-18,
+              0
+            ],
+            "angularVelocityRadps": [
+              -6.953328426353228e-18,
+              0,
+              -3.3993498887762956e-17
+            ],
+            "inverseMass": 1,
+            "inverseInertiaWorld": [
+              [
+                24,
+                0,
+                0
+              ],
+              [
+                0,
+                24,
+                0
+              ],
+              [
+                0,
+                0,
+                24
+              ]
+            ]
+          },
+          {
+            "id": "b3",
+            "positionM": [
+              0,
+              1.74931875,
+              0
+            ],
+            "velocityMps": [
+              0,
+              -6.938893903907228e-18,
+              0
+            ],
+            "angularVelocityRadps": [
+              -2.2549940972801904e-17,
+              0,
+              3.3993498887762956e-17
+            ],
+            "inverseMass": 1,
+            "inverseInertiaWorld": [
+              [
+                24,
+                0,
+                0
+              ],
+              [
+                0,
+                24,
+                0
+              ],
+              [
+                0,
+                0,
+                24
+              ]
+            ]
+          },
+          {
+            "id": "b4",
+            "positionM": [
+              0,
+              2.24931875,
+              0
+            ],
+            "velocityMps": [
+              0,
+              6.938893903907228e-18,
+              0
+            ],
+            "angularVelocityRadps": [
+              -1.447665373138529e-17,
+              0,
+              -3.3993498887762956e-17
+            ],
+            "inverseMass": 1,
+            "inverseInertiaWorld": [
+              [
+                24,
+                0,
+                0
+              ],
+              [
+                0,
+                24,
+                0
+              ],
+              [
+                0,
+                0,
+                24
+              ]
+            ]
+          },
+          {
+            "id": "b5",
+            "positionM": [
+              0,
+              2.74931875,
+              0
+            ],
+            "velocityMps": [
+              0,
+              6.938893903907228e-18,
+              0
+            ],
+            "angularVelocityRadps": [
+              -4.043167730183575e-17,
+              0,
+              0
+            ],
+            "inverseMass": 1,
+            "inverseInertiaWorld": [
+              [
+                24,
+                0,
+                0
+              ],
+              [
+                0,
+                24,
+                0
+              ],
+              [
+                0,
+                0,
+                24
+              ]
+            ]
+          },
+          {
+            "id": "b6",
+            "positionM": [
+              0,
+              3.24931875,
+              0
+            ],
+            "velocityMps": [
+              0,
+              6.938893903907228e-18,
+              0
+            ],
+            "angularVelocityRadps": [
+              -5.4552531627388586e-17,
+              0,
+              3.3993498887762956e-17
+            ],
+            "inverseMass": 1,
+            "inverseInertiaWorld": [
+              [
+                24,
+                0,
+                0
+              ],
+              [
+                0,
+                24,
+                0
+              ],
+              [
+                0,
+                0,
+                24
+              ]
+            ]
+          },
+          {
+            "id": "b7",
+            "positionM": [
+              0,
+              3.74931875,
+              0
+            ],
+            "velocityMps": [
+              0,
+              6.938893903907228e-18,
+              0
+            ],
+            "angularVelocityRadps": [
+              -6.28765971597503e-17,
+              0,
+              0
+            ],
+            "inverseMass": 1,
+            "inverseInertiaWorld": [
+              [
+                24,
+                0,
+                0
+              ],
+              [
+                0,
+                24,
+                0
+              ],
+              [
+                0,
+                0,
+                24
+              ]
+            ]
+          },
+          {
+            "id": "floor",
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inverseMass": 0,
+            "inverseInertiaWorld": [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "normalImpulsesNs": [
+          0.286125,
+          0,
+          6.364493960339868e-17,
+          0.286125,
+          2.026980648162706e-17,
+          0.32700000000000007,
+          0.32700000000000007,
+          0,
+          0.24525000000000008,
+          0,
+          0,
+          0.2452500000000001,
+          0.204375,
+          0,
+          1.4322665413388945e-17,
+          0.204375,
+          0.16350000000000006,
+          0,
+          0,
+          0.16350000000000003,
+          0.12262500000000005,
+          0,
+          0,
+          0.12262500000000005,
+          0.08175000000000004,
+          0,
+          0,
+          0.08175000000000007,
+          0.04087499999999999,
+          0,
+          3.0662275599633505e-17,
+          0.040875
+        ],
+        "rowResiduals": [
+          {
+            "id": "[\"b0\\u0000b1\",\"face:b0:1:1:b1:1:-1:0\"]",
+            "normalSpeedMps": 1.475252191110961e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 4.2210653318162375e-18,
+            "tangentSpeedMps": 4.8921336740760724e-17
+          },
+          {
+            "id": "[\"b0\\u0000b1\",\"face:b0:1:1:b1:1:-1:1\"]",
+            "normalSpeedMps": 2.2442275327718678e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 4.8921336740760724e-17
+          },
+          {
+            "id": "[\"b0\\u0000b1\",\"face:b0:1:1:b1:1:-1:2\"]",
+            "normalSpeedMps": -2.2442275327718678e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.4283372577954996e-34,
+            "tangentSpeedMps": 4.8921336740760724e-17
+          },
+          {
+            "id": "[\"b0\\u0000b1\",\"face:b0:1:1:b1:1:-1:3\"]",
+            "normalSpeedMps": -1.475252191110961e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 4.2210653318162375e-18,
+            "tangentSpeedMps": 4.8921336740760724e-17
+          },
+          {
+            "id": "[\"b0\\u0000floor\",\"face:b0:1:-1:floor:1:1:0\"]",
+            "normalSpeedMps": -4.793911409485262e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 9.717165656033028e-34,
+            "tangentSpeedMps": 2.9371762418817807e-17
+          },
+          {
+            "id": "[\"b0\\u0000floor\",\"face:b0:1:-1:floor:1:1:1\"]",
+            "normalSpeedMps": 6.782739927520454e-20,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 2.217955956299189e-20,
+            "tangentSpeedMps": 2.9371762418817807e-17
+          },
+          {
+            "id": "[\"b0\\u0000floor\",\"face:b0:1:-1:floor:1:1:2\"]",
+            "normalSpeedMps": -1.394561520708966e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 4.56021617271832e-18,
+            "tangentSpeedMps": 2.9371762418817807e-17
+          },
+          {
+            "id": "[\"b0\\u0000floor\",\"face:b0:1:-1:floor:1:1:3\"]",
+            "normalSpeedMps": 3.406132628703816e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 2.9371762418817807e-17
+          },
+          {
+            "id": "[\"b1\\u0000b2\",\"face:b1:1:1:b2:1:-1:0\"]",
+            "normalSpeedMps": 3.300774089518821e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 8.095148454544911e-18,
+            "tangentSpeedMps": 1.9487655664483345e-17
+          },
+          {
+            "id": "[\"b1\\u0000b2\",\"face:b1:1:1:b2:1:-1:1\"]",
+            "normalSpeedMps": 9.857579925747453e-19,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 1.9487655664483345e-17
+          },
+          {
+            "id": "[\"b1\\u0000b2\",\"face:b1:1:1:b2:1:-1:2\"]",
+            "normalSpeedMps": -9.857579925747438e-19,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 1.9487655664483345e-17
+          },
+          {
+            "id": "[\"b1\\u0000b2\",\"face:b1:1:1:b2:1:-1:3\"]",
+            "normalSpeedMps": -3.300774089518821e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 8.095148454544913e-18,
+            "tangentSpeedMps": 1.9487655664483345e-17
+          },
+          {
+            "id": "[\"b2\\u0000b3\",\"face:b2:1:1:b3:1:-1:0\"]",
+            "normalSpeedMps": -2.089590258049365e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 4.27060008988839e-18,
+            "tangentSpeedMps": 7.375817349788783e-18
+          },
+          {
+            "id": "[\"b2\\u0000b3\",\"face:b2:1:1:b3:1:-1:1\"]",
+            "normalSpeedMps": -1.3097596307269309e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 7.375817349788783e-18
+          },
+          {
+            "id": "[\"b2\\u0000b3\",\"face:b2:1:1:b3:1:-1:2\"]",
+            "normalSpeedMps": 1.3097596307269307e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.8759248962865687e-34,
+            "tangentSpeedMps": 7.375817349788783e-18
+          },
+          {
+            "id": "[\"b2\\u0000b3\",\"face:b2:1:1:b3:1:-1:3\"]",
+            "normalSpeedMps": 2.089590258049365e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 4.27060008988839e-18,
+            "tangentSpeedMps": 7.375817349788783e-18
+          },
+          {
+            "id": "[\"b3\\u0000b4\",\"face:b3:1:1:b4:1:-1:0\"]",
+            "normalSpeedMps": 3.289285906205009e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 5.377982456645192e-18,
+            "tangentSpeedMps": 9.2566486760468e-18
+          },
+          {
+            "id": "[\"b3\\u0000b4\",\"face:b3:1:1:b4:1:-1:1\"]",
+            "normalSpeedMps": 2.885621544134178e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 9.2566486760468e-18
+          },
+          {
+            "id": "[\"b3\\u0000b4\",\"face:b3:1:1:b4:1:-1:2\"]",
+            "normalSpeedMps": -1.100639825712867e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 9.2566486760468e-18
+          },
+          {
+            "id": "[\"b3\\u0000b4\",\"face:b3:1:1:b4:1:-1:3\"]",
+            "normalSpeedMps": -5.137283446421176e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 8.399458434898624e-19,
+            "tangentSpeedMps": 9.2566486760468e-18
+          },
+          {
+            "id": "[\"b4\\u0000b5\",\"face:b4:1:1:b5:1:-1:0\"]",
+            "normalSpeedMps": -1.4987130614553352e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.8377968916096055e-18,
+            "tangentSpeedMps": 1.614481879637808e-17
+          },
+          {
+            "id": "[\"b4\\u0000b5\",\"face:b4:1:1:b5:1:-1:1\"]",
+            "normalSpeedMps": -2.0096188293281255e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 1.614481879637808e-17
+          },
+          {
+            "id": "[\"b4\\u0000b5\",\"face:b4:1:1:b5:1:-1:2\"]",
+            "normalSpeedMps": 2.009618829328124e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 1.614481879637808e-17
+          },
+          {
+            "id": "[\"b4\\u0000b5\",\"face:b4:1:1:b5:1:-1:3\"]",
+            "normalSpeedMps": 1.4987130614553352e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.8377968916096055e-18,
+            "tangentSpeedMps": 1.614481879637808e-17
+          },
+          {
+            "id": "[\"b5\\u0000b6\",\"face:b5:1:1:b6:1:-1:0\"]",
+            "normalSpeedMps": -1.2028588303328949e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 9.83337093797142e-19,
+            "tangentSpeedMps": 2.5220970828537315e-17
+          },
+          {
+            "id": "[\"b5\\u0000b6\",\"face:b5:1:1:b6:1:-1:1\"]",
+            "normalSpeedMps": -4.968161140552528e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 2.5220970828537315e-17
+          },
+          {
+            "id": "[\"b5\\u0000b6\",\"face:b5:1:1:b6:1:-1:2\"]",
+            "normalSpeedMps": 4.968161140552529e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 2.5220970828537315e-17
+          },
+          {
+            "id": "[\"b5\\u0000b6\",\"face:b5:1:1:b6:1:-1:3\"]",
+            "normalSpeedMps": 1.202858830332895e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 9.833370937971425e-19,
+            "tangentSpeedMps": 2.5220970828537315e-17
+          },
+          {
+            "id": "[\"b6\\u0000b7\",\"face:b6:1:1:b7:1:-1:0\"]",
+            "normalSpeedMps": 6.4173583388503114e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 2.623095221005064e-19,
+            "tangentSpeedMps": 3.0562597908165043e-17
+          },
+          {
+            "id": "[\"b6\\u0000b7\",\"face:b6:1:1:b7:1:-1:1\"]",
+            "normalSpeedMps": 1.0579391105031166e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 3.0562597908165043e-17
+          },
+          {
+            "id": "[\"b6\\u0000b7\",\"face:b6:1:1:b7:1:-1:2\"]",
+            "normalSpeedMps": -1.0579391105031166e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 3.2438820573877687e-34,
+            "tangentSpeedMps": 3.0562597908165043e-17
+          },
+          {
+            "id": "[\"b6\\u0000b7\",\"face:b6:1:1:b7:1:-1:3\"]",
+            "normalSpeedMps": -6.4173583388503114e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 2.623095221005065e-19,
+            "tangentSpeedMps": 3.0562597908165043e-17
+          }
+        ],
+        "certificate": {
+          "maxClosingNormalSpeedMps": 4.793911409485262e-17,
+          "maxNegativeNormalImpulseNs": 0,
+          "maxComplementarityJ": 8.095148454544913e-18,
+          "maxStationaritySqrtJ": 1.942890293094024e-16,
+          "maxLoadedTangentSpeedMps": 4.8921336740760724e-17,
+          "zeroTangentFeasible": true
+        },
+        "stats": {
+          "outerIterations": 1,
+          "blockQrFactorizations": 1,
+          "activeChanges": 0,
+          "qrRank": 24,
+          "finalActiveRows": 24,
+          "dynamicDof": 48,
+          "rankTests": 25,
+          "dotProducts": 2930,
+          "dotScalarProducts": 129252,
+          "vectorUpdates": 72576,
+          "triangularTerms": 332,
+          "constraintTests": 32
+        },
+        "reason": null
+      },
+      "verification": {
+        "passed": true,
+        "normalKktPassed": true,
+        "zeroTangentFrictionFeasible": true,
+        "oracleMatched": true,
+        "candidateReportsMatched": true,
+        "sourceReceiptSha256": "e570e89c488bc89f6a22c5a34875156b1a43628f3af1312c9437826f3b8020f9",
+        "bodies": [
+          {
+            "id": "b0",
+            "velocityMps": [
+              0,
+              -1.3877787807814457e-17,
+              0
+            ],
+            "angularVelocityRadps": [
+              -3.3306690738754696e-16,
+              0,
+              -3.3306690738754696e-16
+            ],
+            "netImpulseNs": [
+              0,
+              0.08174999999999999,
+              0
+            ],
+            "netTorqueNms": [
+              -1.3877787807814457e-17,
+              0,
+              -1.3877787807814457e-17
+            ]
+          },
+          {
+            "id": "b1",
+            "velocityMps": [
+              0,
+              -4.163336342344337e-17,
+              0
+            ],
+            "angularVelocityRadps": [
+              4.996003610813204e-16,
+              0,
+              1.6653345369377348e-16
+            ],
+            "netImpulseNs": [
+              0,
+              0.08174999999999996,
+              0
+            ],
+            "netTorqueNms": [
+              2.0816681711721685e-17,
+              0,
+              6.938893903907228e-18
+            ]
+          },
+          {
+            "id": "b2",
+            "velocityMps": [
+              0,
+              1.8041124150158794e-16,
+              0
+            ],
+            "angularVelocityRadps": [
+              -3.3306690738754696e-16,
+              0,
+              0
+            ],
+            "netImpulseNs": [
+              0,
+              0.08175000000000018,
+              0
+            ],
+            "netTorqueNms": [
+              -1.3877787807814457e-17,
+              0,
+              0
+            ]
+          },
+          {
+            "id": "b3",
+            "velocityMps": [
+              0,
+              -4.163336342344337e-17,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              3.3306690738754696e-16
+            ],
+            "netImpulseNs": [
+              0,
+              0.08174999999999996,
+              0
+            ],
+            "netTorqueNms": [
+              0,
+              0,
+              1.3877787807814457e-17
+            ]
+          },
+          {
+            "id": "b4",
+            "velocityMps": [
+              0,
+              -2.7755575615628914e-17,
+              0
+            ],
+            "angularVelocityRadps": [
+              1.6653345369377348e-16,
+              0,
+              -1.6653345369377348e-16
+            ],
+            "netImpulseNs": [
+              0,
+              0.08174999999999998,
+              0
+            ],
+            "netTorqueNms": [
+              6.938893903907228e-18,
+              0,
+              -6.938893903907228e-18
+            ]
+          },
+          {
+            "id": "b5",
+            "velocityMps": [
+              0,
+              -1.3877787807814457e-17,
+              0
+            ],
+            "angularVelocityRadps": [
+              1.6653345369377348e-16,
+              0,
+              -1.6653345369377348e-16
+            ],
+            "netImpulseNs": [
+              0,
+              0.08174999999999999,
+              0
+            ],
+            "netTorqueNms": [
+              6.938893903907228e-18,
+              0,
+              -6.938893903907228e-18
+            ]
+          },
+          {
+            "id": "b6",
+            "velocityMps": [
+              0,
+              9.71445146547012e-17,
+              0
+            ],
+            "angularVelocityRadps": [
+              -2.498001805406602e-16,
+              0,
+              -8.326672684688674e-17
+            ],
+            "netImpulseNs": [
+              0,
+              0.0817500000000001,
+              0
+            ],
+            "netTorqueNms": [
+              -1.0408340855860843e-17,
+              0,
+              -3.469446951953614e-18
+            ]
+          },
+          {
+            "id": "b7",
+            "velocityMps": [
+              0,
+              1.3877787807814457e-17,
+              0
+            ],
+            "angularVelocityRadps": [
+              8.326672684688674e-17,
+              0,
+              2.498001805406602e-16
+            ],
+            "netImpulseNs": [
+              0,
+              0.08175000000000002,
+              0
+            ],
+            "netTorqueNms": [
+              3.469446951953614e-18,
+              0,
+              1.0408340855860843e-17
+            ]
+          },
+          {
+            "id": "floor",
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "netImpulseNs": [
+              0,
+              -0.6540000000000001,
+              0
+            ],
+            "netTorqueNms": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "[\"b0\\u0000b1\",\"face:b0:1:1:b1:1:-1:0\"]",
+            "normalImpulseNs": 0.286125,
+            "normalSpeedMps": 5.551115123125783e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.5883128146043647e-17,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b0\\u0000b1\",\"face:b0:1:1:b1:1:-1:1\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": -3.608224830031759e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b0\\u0000b1\",\"face:b0:1:1:b1:1:-1:2\"]",
+            "normalImpulseNs": 6.364493960339868e-17,
+            "normalSpeedMps": 3.0531133177191805e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.9431521270856942e-32,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b0\\u0000b1\",\"face:b0:1:1:b1:1:-1:3\"]",
+            "normalImpulseNs": 0.286125,
+            "normalSpeedMps": -1.1102230246251565e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 3.1766256292087294e-17,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b0\\u0000floor\",\"face:b0:1:-1:floor:1:1:0\"]",
+            "normalImpulseNs": 2.026980648162706e-17,
+            "normalSpeedMps": -1.3877787807814457e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 2.8130007325748247e-34,
+            "tangentSpeedMps": 1.175964905781614e-16
+          },
+          {
+            "id": "[\"b0\\u0000floor\",\"face:b0:1:-1:floor:1:1:1\"]",
+            "normalImpulseNs": 0.32700000000000007,
+            "normalSpeedMps": 1.5265566588595902e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 4.991840274470861e-17,
+            "tangentSpeedMps": 1.175964905781614e-16
+          },
+          {
+            "id": "[\"b0\\u0000floor\",\"face:b0:1:-1:floor:1:1:2\"]",
+            "normalImpulseNs": 0.32700000000000007,
+            "normalSpeedMps": -1.8041124150158794e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 5.899447597101927e-17,
+            "tangentSpeedMps": 1.175964905781614e-16
+          },
+          {
+            "id": "[\"b0\\u0000floor\",\"face:b0:1:-1:floor:1:1:3\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": -1.3877787807814457e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 1.175964905781614e-16
+          },
+          {
+            "id": "[\"b1\\u0000b2\",\"face:b1:1:1:b2:1:-1:0\"]",
+            "normalImpulseNs": 0.24525000000000008,
+            "normalSpeedMps": 5.551115123125783e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.3614109839465986e-17,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b1\\u0000b2\",\"face:b1:1:1:b2:1:-1:1\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": 4.718447854656915e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b1\\u0000b2\",\"face:b1:1:1:b2:1:-1:2\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": -2.7755575615628914e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b1\\u0000b2\",\"face:b1:1:1:b2:1:-1:3\"]",
+            "normalImpulseNs": 0.2452500000000001,
+            "normalSpeedMps": 3.885780586188048e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 9.529876887626191e-17,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b2\\u0000b3\",\"face:b2:1:1:b3:1:-1:0\"]",
+            "normalImpulseNs": 0.204375,
+            "normalSpeedMps": -2.220446049250313e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 4.5380366131553274e-17,
+            "tangentSpeedMps": 1.1775693440128314e-16
+          },
+          {
+            "id": "[\"b2\\u0000b3\",\"face:b2:1:1:b3:1:-1:1\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": -3.885780586188048e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 1.1775693440128314e-16
+          },
+          {
+            "id": "[\"b2\\u0000b3\",\"face:b2:1:1:b3:1:-1:2\"]",
+            "normalImpulseNs": 1.4322665413388945e-17,
+            "normalSpeedMps": -5.551115123125783e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 7.950676457973396e-34,
+            "tangentSpeedMps": 1.1775693440128314e-16
+          },
+          {
+            "id": "[\"b2\\u0000b3\",\"face:b2:1:1:b3:1:-1:3\"]",
+            "normalImpulseNs": 0.204375,
+            "normalSpeedMps": -2.220446049250313e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 4.5380366131553274e-17,
+            "tangentSpeedMps": 1.1775693440128314e-16
+          },
+          {
+            "id": "[\"b3\\u0000b4\",\"face:b3:1:1:b4:1:-1:0\"]",
+            "normalImpulseNs": 0.16350000000000006,
+            "normalSpeedMps": 1.8041124150158794e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 2.9497237985509636e-17,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b3\\u0000b4\",\"face:b3:1:1:b4:1:-1:1\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": 9.71445146547012e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b3\\u0000b4\",\"face:b3:1:1:b4:1:-1:2\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": -6.938893903907228e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b3\\u0000b4\",\"face:b3:1:1:b4:1:-1:3\"]",
+            "normalImpulseNs": 0.16350000000000003,
+            "normalSpeedMps": -1.5265566588595902e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 2.4959201372354306e-17,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b4\\u0000b5\",\"face:b4:1:1:b5:1:-1:0\"]",
+            "normalImpulseNs": 0.12262500000000005,
+            "normalSpeedMps": 1.3877787807814457e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.7017637299332485e-18,
+            "tangentSpeedMps": 1.1775693440128314e-16
+          },
+          {
+            "id": "[\"b4\\u0000b5\",\"face:b4:1:1:b5:1:-1:1\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": 1.3877787807814457e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 1.1775693440128314e-16
+          },
+          {
+            "id": "[\"b4\\u0000b5\",\"face:b4:1:1:b5:1:-1:2\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": 1.3877787807814457e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 1.1775693440128314e-16
+          },
+          {
+            "id": "[\"b4\\u0000b5\",\"face:b4:1:1:b5:1:-1:3\"]",
+            "normalImpulseNs": 0.12262500000000005,
+            "normalSpeedMps": 1.3877787807814457e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.7017637299332485e-18,
+            "tangentSpeedMps": 1.1775693440128314e-16
+          },
+          {
+            "id": "[\"b5\\u0000b6\",\"face:b5:1:1:b6:1:-1:0\"]",
+            "normalImpulseNs": 0.08175000000000004,
+            "normalSpeedMps": -1.3877787807814457e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.1345091532888325e-18,
+            "tangentSpeedMps": 6.582812753581314e-17
+          },
+          {
+            "id": "[\"b5\\u0000b6\",\"face:b5:1:1:b6:1:-1:1\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": 1.942890293094024e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 6.582812753581314e-17
+          },
+          {
+            "id": "[\"b5\\u0000b6\",\"face:b5:1:1:b6:1:-1:2\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": 2.7755575615628914e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 6.582812753581314e-17
+          },
+          {
+            "id": "[\"b5\\u0000b6\",\"face:b5:1:1:b6:1:-1:3\"]",
+            "normalImpulseNs": 0.08175000000000007,
+            "normalSpeedMps": 2.3592239273284576e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.9286655605910157e-17,
+            "tangentSpeedMps": 6.582812753581314e-17
+          },
+          {
+            "id": "[\"b6\\u0000b7\",\"face:b6:1:1:b7:1:-1:0\"]",
+            "normalImpulseNs": 0.04087499999999999,
+            "normalSpeedMps": -8.326672684688674e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 3.4035274598664943e-18,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b6\\u0000b7\",\"face:b6:1:1:b7:1:-1:1\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": -2.498001805406602e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b6\\u0000b7\",\"face:b6:1:1:b7:1:-1:2\"]",
+            "normalImpulseNs": 3.0662275599633505e-17,
+            "normalSpeedMps": 8.326672684688674e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 2.5531473268586432e-33,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b6\\u0000b7\",\"face:b6:1:1:b7:1:-1:3\"]",
+            "normalImpulseNs": 0.040875,
+            "normalSpeedMps": -8.326672684688674e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 3.403527459866496e-18,
+            "tangentSpeedMps": 5.887846720064157e-17
+          }
+        ],
+        "maxima": {
+          "closingNormalSpeedMps": 3.885780586188048e-16,
+          "negativeNormalImpulseNs": 0,
+          "complementarityJ": 9.529876887626191e-17,
+          "loadedTangentSpeedMps": 1.1775693440128314e-16,
+          "reportedVelocityErrorMps": 1.8735013540549517e-16,
+          "reportedAngularVelocityErrorRadps": 5.705976553129006e-16,
+          "oracleVelocityErrorMps": 1.8041124150158794e-16,
+          "oracleAngularVelocityErrorRadps": 4.996003610813204e-16,
+          "oracleNetImpulseErrorNs": 1.8041124150158794e-16,
+          "oracleNetTorqueErrorNms": 2.0816681711721685e-17,
+          "reportedResidualError": 4.708590274731168e-16,
+          "impulseWorkErrorJ": 3.469446951953614e-18
+        },
+        "energy": {
+          "freeKineticJ": 0.026732250000000006,
+          "finalKineticJ": 4.362231324037089e-32,
+          "normalImpulseWorkJ": -0.026732250000000003
+        },
+        "violations": []
+      }
+    },
+    {
+      "candidate": {
+        "ok": true,
+        "status": "SOLVED_NORMAL_ONLY",
+        "bodies": [
+          {
+            "id": "b0",
+            "positionM": [
+              0,
+              0.24931875,
+              0
+            ],
+            "velocityMps": [
+              0,
+              -6.938893903907228e-18,
+              0
+            ],
+            "angularVelocityRadps": [
+              -9.601388298825564e-17,
+              0,
+              6.798699777552591e-17
+            ],
+            "inverseMass": 1,
+            "inverseInertiaWorld": [
+              [
+                24,
+                0,
+                0
+              ],
+              [
+                0,
+                24,
+                0
+              ],
+              [
+                0,
+                0,
+                24
+              ]
+            ]
+          },
+          {
+            "id": "b1",
+            "positionM": [
+              0,
+              0.74931875,
+              0
+            ],
+            "velocityMps": [
+              0,
+              -6.938893903907228e-18,
+              0
+            ],
+            "angularVelocityRadps": [
+              -7.099729423158016e-17,
+              0,
+              3.3993498887762956e-17
+            ],
+            "inverseMass": 1,
+            "inverseInertiaWorld": [
+              [
+                24,
+                0,
+                0
+              ],
+              [
+                0,
+                24,
+                0
+              ],
+              [
+                0,
+                0,
+                24
+              ]
+            ]
+          },
+          {
+            "id": "b2",
+            "positionM": [
+              0,
+              1.24931875,
+              0
+            ],
+            "velocityMps": [
+              0,
+              -6.938893903907228e-18,
+              0
+            ],
+            "angularVelocityRadps": [
+              -6.953328426353228e-18,
+              0,
+              -3.3993498887762956e-17
+            ],
+            "inverseMass": 1,
+            "inverseInertiaWorld": [
+              [
+                24,
+                0,
+                0
+              ],
+              [
+                0,
+                24,
+                0
+              ],
+              [
+                0,
+                0,
+                24
+              ]
+            ]
+          },
+          {
+            "id": "b3",
+            "positionM": [
+              0,
+              1.74931875,
+              0
+            ],
+            "velocityMps": [
+              0,
+              -6.938893903907228e-18,
+              0
+            ],
+            "angularVelocityRadps": [
+              -2.2549940972801904e-17,
+              0,
+              3.3993498887762956e-17
+            ],
+            "inverseMass": 1,
+            "inverseInertiaWorld": [
+              [
+                24,
+                0,
+                0
+              ],
+              [
+                0,
+                24,
+                0
+              ],
+              [
+                0,
+                0,
+                24
+              ]
+            ]
+          },
+          {
+            "id": "b4",
+            "positionM": [
+              0,
+              2.24931875,
+              0
+            ],
+            "velocityMps": [
+              0,
+              6.938893903907228e-18,
+              0
+            ],
+            "angularVelocityRadps": [
+              -1.447665373138529e-17,
+              0,
+              -3.3993498887762956e-17
+            ],
+            "inverseMass": 1,
+            "inverseInertiaWorld": [
+              [
+                24,
+                0,
+                0
+              ],
+              [
+                0,
+                24,
+                0
+              ],
+              [
+                0,
+                0,
+                24
+              ]
+            ]
+          },
+          {
+            "id": "b5",
+            "positionM": [
+              0,
+              2.74931875,
+              0
+            ],
+            "velocityMps": [
+              0,
+              6.938893903907228e-18,
+              0
+            ],
+            "angularVelocityRadps": [
+              -4.043167730183575e-17,
+              0,
+              0
+            ],
+            "inverseMass": 1,
+            "inverseInertiaWorld": [
+              [
+                24,
+                0,
+                0
+              ],
+              [
+                0,
+                24,
+                0
+              ],
+              [
+                0,
+                0,
+                24
+              ]
+            ]
+          },
+          {
+            "id": "b6",
+            "positionM": [
+              0,
+              3.24931875,
+              0
+            ],
+            "velocityMps": [
+              0,
+              6.938893903907228e-18,
+              0
+            ],
+            "angularVelocityRadps": [
+              -5.4552531627388586e-17,
+              0,
+              3.3993498887762956e-17
+            ],
+            "inverseMass": 1,
+            "inverseInertiaWorld": [
+              [
+                24,
+                0,
+                0
+              ],
+              [
+                0,
+                24,
+                0
+              ],
+              [
+                0,
+                0,
+                24
+              ]
+            ]
+          },
+          {
+            "id": "b7",
+            "positionM": [
+              0,
+              3.74931875,
+              0
+            ],
+            "velocityMps": [
+              0,
+              6.938893903907228e-18,
+              0
+            ],
+            "angularVelocityRadps": [
+              -6.28765971597503e-17,
+              0,
+              0
+            ],
+            "inverseMass": 1,
+            "inverseInertiaWorld": [
+              [
+                24,
+                0,
+                0
+              ],
+              [
+                0,
+                24,
+                0
+              ],
+              [
+                0,
+                0,
+                24
+              ]
+            ]
+          },
+          {
+            "id": "floor",
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inverseMass": 0,
+            "inverseInertiaWorld": [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0
+              ]
+            ]
+          }
+        ],
+        "normalImpulsesNs": [
+          0.286125,
+          0,
+          6.364493960339868e-17,
+          0.286125,
+          2.026980648162706e-17,
+          0.32700000000000007,
+          0.32700000000000007,
+          0,
+          0.24525000000000008,
+          0,
+          0,
+          0.2452500000000001,
+          0.204375,
+          0,
+          1.4322665413388945e-17,
+          0.204375,
+          0.16350000000000006,
+          0,
+          0,
+          0.16350000000000003,
+          0.12262500000000005,
+          0,
+          0,
+          0.12262500000000005,
+          0.08175000000000004,
+          0,
+          0,
+          0.08175000000000007,
+          0.04087499999999999,
+          0,
+          3.0662275599633505e-17,
+          0.040875
+        ],
+        "rowResiduals": [
+          {
+            "id": "[\"b0\\u0000b1\",\"face:b0:1:1:b1:1:-1:0\"]",
+            "normalSpeedMps": 1.475252191110961e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 4.2210653318162375e-18,
+            "tangentSpeedMps": 4.8921336740760724e-17
+          },
+          {
+            "id": "[\"b0\\u0000b1\",\"face:b0:1:1:b1:1:-1:1\"]",
+            "normalSpeedMps": 2.2442275327718678e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 4.8921336740760724e-17
+          },
+          {
+            "id": "[\"b0\\u0000b1\",\"face:b0:1:1:b1:1:-1:2\"]",
+            "normalSpeedMps": -2.2442275327718678e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.4283372577954996e-34,
+            "tangentSpeedMps": 4.8921336740760724e-17
+          },
+          {
+            "id": "[\"b0\\u0000b1\",\"face:b0:1:1:b1:1:-1:3\"]",
+            "normalSpeedMps": -1.475252191110961e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 4.2210653318162375e-18,
+            "tangentSpeedMps": 4.8921336740760724e-17
+          },
+          {
+            "id": "[\"b0\\u0000floor\",\"face:b0:1:-1:floor:1:1:0\"]",
+            "normalSpeedMps": -4.793911409485262e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 9.717165656033028e-34,
+            "tangentSpeedMps": 2.9371762418817807e-17
+          },
+          {
+            "id": "[\"b0\\u0000floor\",\"face:b0:1:-1:floor:1:1:1\"]",
+            "normalSpeedMps": 6.782739927520454e-20,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 2.217955956299189e-20,
+            "tangentSpeedMps": 2.9371762418817807e-17
+          },
+          {
+            "id": "[\"b0\\u0000floor\",\"face:b0:1:-1:floor:1:1:2\"]",
+            "normalSpeedMps": -1.394561520708966e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 4.56021617271832e-18,
+            "tangentSpeedMps": 2.9371762418817807e-17
+          },
+          {
+            "id": "[\"b0\\u0000floor\",\"face:b0:1:-1:floor:1:1:3\"]",
+            "normalSpeedMps": 3.406132628703816e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 2.9371762418817807e-17
+          },
+          {
+            "id": "[\"b1\\u0000b2\",\"face:b1:1:1:b2:1:-1:0\"]",
+            "normalSpeedMps": 3.300774089518821e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 8.095148454544911e-18,
+            "tangentSpeedMps": 1.9487655664483345e-17
+          },
+          {
+            "id": "[\"b1\\u0000b2\",\"face:b1:1:1:b2:1:-1:1\"]",
+            "normalSpeedMps": 9.857579925747453e-19,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 1.9487655664483345e-17
+          },
+          {
+            "id": "[\"b1\\u0000b2\",\"face:b1:1:1:b2:1:-1:2\"]",
+            "normalSpeedMps": -9.857579925747438e-19,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 1.9487655664483345e-17
+          },
+          {
+            "id": "[\"b1\\u0000b2\",\"face:b1:1:1:b2:1:-1:3\"]",
+            "normalSpeedMps": -3.300774089518821e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 8.095148454544913e-18,
+            "tangentSpeedMps": 1.9487655664483345e-17
+          },
+          {
+            "id": "[\"b2\\u0000b3\",\"face:b2:1:1:b3:1:-1:0\"]",
+            "normalSpeedMps": -2.089590258049365e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 4.27060008988839e-18,
+            "tangentSpeedMps": 7.375817349788783e-18
+          },
+          {
+            "id": "[\"b2\\u0000b3\",\"face:b2:1:1:b3:1:-1:1\"]",
+            "normalSpeedMps": -1.3097596307269309e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 7.375817349788783e-18
+          },
+          {
+            "id": "[\"b2\\u0000b3\",\"face:b2:1:1:b3:1:-1:2\"]",
+            "normalSpeedMps": 1.3097596307269307e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.8759248962865687e-34,
+            "tangentSpeedMps": 7.375817349788783e-18
+          },
+          {
+            "id": "[\"b2\\u0000b3\",\"face:b2:1:1:b3:1:-1:3\"]",
+            "normalSpeedMps": 2.089590258049365e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 4.27060008988839e-18,
+            "tangentSpeedMps": 7.375817349788783e-18
+          },
+          {
+            "id": "[\"b3\\u0000b4\",\"face:b3:1:1:b4:1:-1:0\"]",
+            "normalSpeedMps": 3.289285906205009e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 5.377982456645192e-18,
+            "tangentSpeedMps": 9.2566486760468e-18
+          },
+          {
+            "id": "[\"b3\\u0000b4\",\"face:b3:1:1:b4:1:-1:1\"]",
+            "normalSpeedMps": 2.885621544134178e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 9.2566486760468e-18
+          },
+          {
+            "id": "[\"b3\\u0000b4\",\"face:b3:1:1:b4:1:-1:2\"]",
+            "normalSpeedMps": -1.100639825712867e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 9.2566486760468e-18
+          },
+          {
+            "id": "[\"b3\\u0000b4\",\"face:b3:1:1:b4:1:-1:3\"]",
+            "normalSpeedMps": -5.137283446421176e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 8.399458434898624e-19,
+            "tangentSpeedMps": 9.2566486760468e-18
+          },
+          {
+            "id": "[\"b4\\u0000b5\",\"face:b4:1:1:b5:1:-1:0\"]",
+            "normalSpeedMps": -1.4987130614553352e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.8377968916096055e-18,
+            "tangentSpeedMps": 1.614481879637808e-17
+          },
+          {
+            "id": "[\"b4\\u0000b5\",\"face:b4:1:1:b5:1:-1:1\"]",
+            "normalSpeedMps": -2.0096188293281255e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 1.614481879637808e-17
+          },
+          {
+            "id": "[\"b4\\u0000b5\",\"face:b4:1:1:b5:1:-1:2\"]",
+            "normalSpeedMps": 2.009618829328124e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 1.614481879637808e-17
+          },
+          {
+            "id": "[\"b4\\u0000b5\",\"face:b4:1:1:b5:1:-1:3\"]",
+            "normalSpeedMps": 1.4987130614553352e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.8377968916096055e-18,
+            "tangentSpeedMps": 1.614481879637808e-17
+          },
+          {
+            "id": "[\"b5\\u0000b6\",\"face:b5:1:1:b6:1:-1:0\"]",
+            "normalSpeedMps": -1.2028588303328949e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 9.83337093797142e-19,
+            "tangentSpeedMps": 2.5220970828537315e-17
+          },
+          {
+            "id": "[\"b5\\u0000b6\",\"face:b5:1:1:b6:1:-1:1\"]",
+            "normalSpeedMps": -4.968161140552528e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 2.5220970828537315e-17
+          },
+          {
+            "id": "[\"b5\\u0000b6\",\"face:b5:1:1:b6:1:-1:2\"]",
+            "normalSpeedMps": 4.968161140552529e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 2.5220970828537315e-17
+          },
+          {
+            "id": "[\"b5\\u0000b6\",\"face:b5:1:1:b6:1:-1:3\"]",
+            "normalSpeedMps": 1.202858830332895e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 9.833370937971425e-19,
+            "tangentSpeedMps": 2.5220970828537315e-17
+          },
+          {
+            "id": "[\"b6\\u0000b7\",\"face:b6:1:1:b7:1:-1:0\"]",
+            "normalSpeedMps": 6.4173583388503114e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 2.623095221005064e-19,
+            "tangentSpeedMps": 3.0562597908165043e-17
+          },
+          {
+            "id": "[\"b6\\u0000b7\",\"face:b6:1:1:b7:1:-1:1\"]",
+            "normalSpeedMps": 1.0579391105031166e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 3.0562597908165043e-17
+          },
+          {
+            "id": "[\"b6\\u0000b7\",\"face:b6:1:1:b7:1:-1:2\"]",
+            "normalSpeedMps": -1.0579391105031166e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 3.2438820573877687e-34,
+            "tangentSpeedMps": 3.0562597908165043e-17
+          },
+          {
+            "id": "[\"b6\\u0000b7\",\"face:b6:1:1:b7:1:-1:3\"]",
+            "normalSpeedMps": -6.4173583388503114e-18,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 2.623095221005065e-19,
+            "tangentSpeedMps": 3.0562597908165043e-17
+          }
+        ],
+        "certificate": {
+          "maxClosingNormalSpeedMps": 4.793911409485262e-17,
+          "maxNegativeNormalImpulseNs": 0,
+          "maxComplementarityJ": 8.095148454544913e-18,
+          "maxStationaritySqrtJ": 1.942890293094024e-16,
+          "maxLoadedTangentSpeedMps": 4.8921336740760724e-17,
+          "zeroTangentFeasible": true
+        },
+        "stats": {
+          "outerIterations": 1,
+          "blockQrFactorizations": 1,
+          "activeChanges": 0,
+          "qrRank": 24,
+          "finalActiveRows": 24,
+          "dynamicDof": 48,
+          "rankTests": 25,
+          "dotProducts": 2930,
+          "dotScalarProducts": 129252,
+          "vectorUpdates": 72576,
+          "triangularTerms": 332,
+          "constraintTests": 32
+        },
+        "reason": null
+      },
+      "verification": {
+        "passed": true,
+        "normalKktPassed": true,
+        "zeroTangentFrictionFeasible": true,
+        "oracleMatched": true,
+        "candidateReportsMatched": true,
+        "sourceReceiptSha256": "e570e89c488bc89f6a22c5a34875156b1a43628f3af1312c9437826f3b8020f9",
+        "bodies": [
+          {
+            "id": "b0",
+            "velocityMps": [
+              0,
+              -1.3877787807814457e-17,
+              0
+            ],
+            "angularVelocityRadps": [
+              -3.3306690738754696e-16,
+              0,
+              -3.3306690738754696e-16
+            ],
+            "netImpulseNs": [
+              0,
+              0.08174999999999999,
+              0
+            ],
+            "netTorqueNms": [
+              -1.3877787807814457e-17,
+              0,
+              -1.3877787807814457e-17
+            ]
+          },
+          {
+            "id": "b1",
+            "velocityMps": [
+              0,
+              -4.163336342344337e-17,
+              0
+            ],
+            "angularVelocityRadps": [
+              4.996003610813204e-16,
+              0,
+              1.6653345369377348e-16
+            ],
+            "netImpulseNs": [
+              0,
+              0.08174999999999996,
+              0
+            ],
+            "netTorqueNms": [
+              2.0816681711721685e-17,
+              0,
+              6.938893903907228e-18
+            ]
+          },
+          {
+            "id": "b2",
+            "velocityMps": [
+              0,
+              1.8041124150158794e-16,
+              0
+            ],
+            "angularVelocityRadps": [
+              -3.3306690738754696e-16,
+              0,
+              0
+            ],
+            "netImpulseNs": [
+              0,
+              0.08175000000000018,
+              0
+            ],
+            "netTorqueNms": [
+              -1.3877787807814457e-17,
+              0,
+              0
+            ]
+          },
+          {
+            "id": "b3",
+            "velocityMps": [
+              0,
+              -4.163336342344337e-17,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              3.3306690738754696e-16
+            ],
+            "netImpulseNs": [
+              0,
+              0.08174999999999996,
+              0
+            ],
+            "netTorqueNms": [
+              0,
+              0,
+              1.3877787807814457e-17
+            ]
+          },
+          {
+            "id": "b4",
+            "velocityMps": [
+              0,
+              -2.7755575615628914e-17,
+              0
+            ],
+            "angularVelocityRadps": [
+              1.6653345369377348e-16,
+              0,
+              -1.6653345369377348e-16
+            ],
+            "netImpulseNs": [
+              0,
+              0.08174999999999998,
+              0
+            ],
+            "netTorqueNms": [
+              6.938893903907228e-18,
+              0,
+              -6.938893903907228e-18
+            ]
+          },
+          {
+            "id": "b5",
+            "velocityMps": [
+              0,
+              -1.3877787807814457e-17,
+              0
+            ],
+            "angularVelocityRadps": [
+              1.6653345369377348e-16,
+              0,
+              -1.6653345369377348e-16
+            ],
+            "netImpulseNs": [
+              0,
+              0.08174999999999999,
+              0
+            ],
+            "netTorqueNms": [
+              6.938893903907228e-18,
+              0,
+              -6.938893903907228e-18
+            ]
+          },
+          {
+            "id": "b6",
+            "velocityMps": [
+              0,
+              9.71445146547012e-17,
+              0
+            ],
+            "angularVelocityRadps": [
+              -2.498001805406602e-16,
+              0,
+              -8.326672684688674e-17
+            ],
+            "netImpulseNs": [
+              0,
+              0.0817500000000001,
+              0
+            ],
+            "netTorqueNms": [
+              -1.0408340855860843e-17,
+              0,
+              -3.469446951953614e-18
+            ]
+          },
+          {
+            "id": "b7",
+            "velocityMps": [
+              0,
+              1.3877787807814457e-17,
+              0
+            ],
+            "angularVelocityRadps": [
+              8.326672684688674e-17,
+              0,
+              2.498001805406602e-16
+            ],
+            "netImpulseNs": [
+              0,
+              0.08175000000000002,
+              0
+            ],
+            "netTorqueNms": [
+              3.469446951953614e-18,
+              0,
+              1.0408340855860843e-17
+            ]
+          },
+          {
+            "id": "floor",
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "netImpulseNs": [
+              0,
+              -0.6540000000000001,
+              0
+            ],
+            "netTorqueNms": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "[\"b0\\u0000b1\",\"face:b0:1:1:b1:1:-1:0\"]",
+            "normalImpulseNs": 0.286125,
+            "normalSpeedMps": 5.551115123125783e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.5883128146043647e-17,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b0\\u0000b1\",\"face:b0:1:1:b1:1:-1:1\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": -3.608224830031759e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b0\\u0000b1\",\"face:b0:1:1:b1:1:-1:2\"]",
+            "normalImpulseNs": 6.364493960339868e-17,
+            "normalSpeedMps": 3.0531133177191805e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.9431521270856942e-32,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b0\\u0000b1\",\"face:b0:1:1:b1:1:-1:3\"]",
+            "normalImpulseNs": 0.286125,
+            "normalSpeedMps": -1.1102230246251565e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 3.1766256292087294e-17,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b0\\u0000floor\",\"face:b0:1:-1:floor:1:1:0\"]",
+            "normalImpulseNs": 2.026980648162706e-17,
+            "normalSpeedMps": -1.3877787807814457e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 2.8130007325748247e-34,
+            "tangentSpeedMps": 1.175964905781614e-16
+          },
+          {
+            "id": "[\"b0\\u0000floor\",\"face:b0:1:-1:floor:1:1:1\"]",
+            "normalImpulseNs": 0.32700000000000007,
+            "normalSpeedMps": 1.5265566588595902e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 4.991840274470861e-17,
+            "tangentSpeedMps": 1.175964905781614e-16
+          },
+          {
+            "id": "[\"b0\\u0000floor\",\"face:b0:1:-1:floor:1:1:2\"]",
+            "normalImpulseNs": 0.32700000000000007,
+            "normalSpeedMps": -1.8041124150158794e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 5.899447597101927e-17,
+            "tangentSpeedMps": 1.175964905781614e-16
+          },
+          {
+            "id": "[\"b0\\u0000floor\",\"face:b0:1:-1:floor:1:1:3\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": -1.3877787807814457e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 1.175964905781614e-16
+          },
+          {
+            "id": "[\"b1\\u0000b2\",\"face:b1:1:1:b2:1:-1:0\"]",
+            "normalImpulseNs": 0.24525000000000008,
+            "normalSpeedMps": 5.551115123125783e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.3614109839465986e-17,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b1\\u0000b2\",\"face:b1:1:1:b2:1:-1:1\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": 4.718447854656915e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b1\\u0000b2\",\"face:b1:1:1:b2:1:-1:2\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": -2.7755575615628914e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b1\\u0000b2\",\"face:b1:1:1:b2:1:-1:3\"]",
+            "normalImpulseNs": 0.2452500000000001,
+            "normalSpeedMps": 3.885780586188048e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 9.529876887626191e-17,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b2\\u0000b3\",\"face:b2:1:1:b3:1:-1:0\"]",
+            "normalImpulseNs": 0.204375,
+            "normalSpeedMps": -2.220446049250313e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 4.5380366131553274e-17,
+            "tangentSpeedMps": 1.1775693440128314e-16
+          },
+          {
+            "id": "[\"b2\\u0000b3\",\"face:b2:1:1:b3:1:-1:1\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": -3.885780586188048e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 1.1775693440128314e-16
+          },
+          {
+            "id": "[\"b2\\u0000b3\",\"face:b2:1:1:b3:1:-1:2\"]",
+            "normalImpulseNs": 1.4322665413388945e-17,
+            "normalSpeedMps": -5.551115123125783e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 7.950676457973396e-34,
+            "tangentSpeedMps": 1.1775693440128314e-16
+          },
+          {
+            "id": "[\"b2\\u0000b3\",\"face:b2:1:1:b3:1:-1:3\"]",
+            "normalImpulseNs": 0.204375,
+            "normalSpeedMps": -2.220446049250313e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 4.5380366131553274e-17,
+            "tangentSpeedMps": 1.1775693440128314e-16
+          },
+          {
+            "id": "[\"b3\\u0000b4\",\"face:b3:1:1:b4:1:-1:0\"]",
+            "normalImpulseNs": 0.16350000000000006,
+            "normalSpeedMps": 1.8041124150158794e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 2.9497237985509636e-17,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b3\\u0000b4\",\"face:b3:1:1:b4:1:-1:1\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": 9.71445146547012e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b3\\u0000b4\",\"face:b3:1:1:b4:1:-1:2\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": -6.938893903907228e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b3\\u0000b4\",\"face:b3:1:1:b4:1:-1:3\"]",
+            "normalImpulseNs": 0.16350000000000003,
+            "normalSpeedMps": -1.5265566588595902e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 2.4959201372354306e-17,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b4\\u0000b5\",\"face:b4:1:1:b5:1:-1:0\"]",
+            "normalImpulseNs": 0.12262500000000005,
+            "normalSpeedMps": 1.3877787807814457e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.7017637299332485e-18,
+            "tangentSpeedMps": 1.1775693440128314e-16
+          },
+          {
+            "id": "[\"b4\\u0000b5\",\"face:b4:1:1:b5:1:-1:1\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": 1.3877787807814457e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 1.1775693440128314e-16
+          },
+          {
+            "id": "[\"b4\\u0000b5\",\"face:b4:1:1:b5:1:-1:2\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": 1.3877787807814457e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 1.1775693440128314e-16
+          },
+          {
+            "id": "[\"b4\\u0000b5\",\"face:b4:1:1:b5:1:-1:3\"]",
+            "normalImpulseNs": 0.12262500000000005,
+            "normalSpeedMps": 1.3877787807814457e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.7017637299332485e-18,
+            "tangentSpeedMps": 1.1775693440128314e-16
+          },
+          {
+            "id": "[\"b5\\u0000b6\",\"face:b5:1:1:b6:1:-1:0\"]",
+            "normalImpulseNs": 0.08175000000000004,
+            "normalSpeedMps": -1.3877787807814457e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.1345091532888325e-18,
+            "tangentSpeedMps": 6.582812753581314e-17
+          },
+          {
+            "id": "[\"b5\\u0000b6\",\"face:b5:1:1:b6:1:-1:1\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": 1.942890293094024e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 6.582812753581314e-17
+          },
+          {
+            "id": "[\"b5\\u0000b6\",\"face:b5:1:1:b6:1:-1:2\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": 2.7755575615628914e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 6.582812753581314e-17
+          },
+          {
+            "id": "[\"b5\\u0000b6\",\"face:b5:1:1:b6:1:-1:3\"]",
+            "normalImpulseNs": 0.08175000000000007,
+            "normalSpeedMps": 2.3592239273284576e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 1.9286655605910157e-17,
+            "tangentSpeedMps": 6.582812753581314e-17
+          },
+          {
+            "id": "[\"b6\\u0000b7\",\"face:b6:1:1:b7:1:-1:0\"]",
+            "normalImpulseNs": 0.04087499999999999,
+            "normalSpeedMps": -8.326672684688674e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 3.4035274598664943e-18,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b6\\u0000b7\",\"face:b6:1:1:b7:1:-1:1\"]",
+            "normalImpulseNs": 0,
+            "normalSpeedMps": -2.498001805406602e-16,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 0,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b6\\u0000b7\",\"face:b6:1:1:b7:1:-1:2\"]",
+            "normalImpulseNs": 3.0662275599633505e-17,
+            "normalSpeedMps": 8.326672684688674e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 2.5531473268586432e-33,
+            "tangentSpeedMps": 5.887846720064157e-17
+          },
+          {
+            "id": "[\"b6\\u0000b7\",\"face:b6:1:1:b7:1:-1:3\"]",
+            "normalImpulseNs": 0.040875,
+            "normalSpeedMps": -8.326672684688674e-17,
+            "negativeNormalImpulseNs": 0,
+            "complementarityJ": 3.403527459866496e-18,
+            "tangentSpeedMps": 5.887846720064157e-17
+          }
+        ],
+        "maxima": {
+          "closingNormalSpeedMps": 3.885780586188048e-16,
+          "negativeNormalImpulseNs": 0,
+          "complementarityJ": 9.529876887626191e-17,
+          "loadedTangentSpeedMps": 1.1775693440128314e-16,
+          "reportedVelocityErrorMps": 1.8735013540549517e-16,
+          "reportedAngularVelocityErrorRadps": 5.705976553129006e-16,
+          "oracleVelocityErrorMps": 1.8041124150158794e-16,
+          "oracleAngularVelocityErrorRadps": 4.996003610813204e-16,
+          "oracleNetImpulseErrorNs": 1.8041124150158794e-16,
+          "oracleNetTorqueErrorNms": 2.0816681711721685e-17,
+          "reportedResidualError": 4.708590274731168e-16,
+          "impulseWorkErrorJ": 3.469446951953614e-18
+        },
+        "energy": {
+          "freeKineticJ": 0.026732250000000006,
+          "finalKineticJ": 4.362231324037089e-32,
+          "normalImpulseWorkJ": -0.026732250000000003
+        },
+        "violations": []
+      }
+    }
+  ],
+  "baseline": {
+    "status": "DIAGNOSTIC_NORMAL_CONTACT_NO_GO",
+    "bodies": [
+      {
+        "id": "b0",
+        "positionM": [
+          0,
+          0.24931875,
+          0
+        ],
+        "velocityMps": [
+          -0.00008349619433260791,
+          -0.0006020626012276098,
+          -0.00015936659147008816
+        ],
+        "angularVelocityRadps": [
+          0.00008344669988716194,
+          -0.0001432761056209663,
+          0.0007194672893281349
+        ],
+        "inverseMass": 1,
+        "inverseInertiaWorld": [
+          [
+            24,
+            0,
+            0
+          ],
+          [
+            0,
+            24,
+            0
+          ],
+          [
+            0,
+            0,
+            24
+          ]
+        ]
+      },
+      {
+        "id": "b1",
+        "positionM": [
+          0,
+          0.74931875,
+          0
+        ],
+        "velocityMps": [
+          0.000007970057620306252,
+          -0.004766365812801647,
+          0.00007897887069809105
+        ],
+        "angularVelocityRadps": [
+          0.0006244746466962476,
+          -0.0007374527494428728,
+          0.0008589302043119414
+        ],
+        "inverseMass": 1,
+        "inverseInertiaWorld": [
+          [
+            24,
+            0,
+            0
+          ],
+          [
+            0,
+            24,
+            0
+          ],
+          [
+            0,
+            0,
+            24
+          ]
+        ]
+      },
+      {
+        "id": "b2",
+        "positionM": [
+          0,
+          1.24931875,
+          0
+        ],
+        "velocityMps": [
+          0.000039652840059608294,
+          -0.0066150810118305176,
+          0.0000488473944891129
+        ],
+        "angularVelocityRadps": [
+          0.0005883118401522128,
+          -0.0011975153547686386,
+          0.0007664452325476766
+        ],
+        "inverseMass": 1,
+        "inverseInertiaWorld": [
+          [
+            24,
+            0,
+            0
+          ],
+          [
+            0,
+            24,
+            0
+          ],
+          [
+            0,
+            0,
+            24
+          ]
+        ]
+      },
+      {
+        "id": "b3",
+        "positionM": [
+          0,
+          1.74931875,
+          0
+        ],
+        "velocityMps": [
+          0.00006492967199156659,
+          -0.008177062361570425,
+          0.00004837632685211475
+        ],
+        "angularVelocityRadps": [
+          0.0004809660545519786,
+          -0.0016430035851749108,
+          0.0006732121443489107
+        ],
+        "inverseMass": 1,
+        "inverseInertiaWorld": [
+          [
+            24,
+            0,
+            0
+          ],
+          [
+            0,
+            24,
+            0
+          ],
+          [
+            0,
+            0,
+            24
+          ]
+        ]
+      },
+      {
+        "id": "b4",
+        "positionM": [
+          0,
+          2.24931875,
+          0
+        ],
+        "velocityMps": [
+          0.00007812217923705838,
+          -0.009396345143540062,
+          0.00003991450544655489
+        ],
+        "angularVelocityRadps": [
+          0.0003416766981748859,
+          -0.002020986795928802,
+          0.0005525849030771756
+        ],
+        "inverseMass": 1,
+        "inverseInertiaWorld": [
+          [
+            24,
+            0,
+            0
+          ],
+          [
+            0,
+            24,
+            0
+          ],
+          [
+            0,
+            0,
+            24
+          ]
+        ]
+      },
+      {
+        "id": "b5",
+        "positionM": [
+          0,
+          2.74931875,
+          0
+        ],
+        "velocityMps": [
+          0.00006919688439127082,
+          -0.0102398389402827,
+          0.000020635599615344052
+        ],
+        "angularVelocityRadps": [
+          0.00017914086061128227,
+          -0.0023046680945893374,
+          0.00038114527401175973
+        ],
+        "inverseMass": 1,
+        "inverseInertiaWorld": [
+          [
+            24,
+            0,
+            0
+          ],
+          [
+            0,
+            24,
+            0
+          ],
+          [
+            0,
+            0,
+            24
+          ]
+        ]
+      },
+      {
+        "id": "b6",
+        "positionM": [
+          0,
+          3.24931875,
+          0
+        ],
+        "velocityMps": [
+          0.00008245152208883591,
+          -0.01068195740026387,
+          -0.00002436783884416483
+        ],
+        "angularVelocityRadps": [
+          0.00013340867348427161,
+          -0.0025092825557476712,
+          0.00038693860752816176
+        ],
+        "inverseMass": 1,
+        "inverseInertiaWorld": [
+          [
+            24,
+            0,
+            0
+          ],
+          [
+            0,
+            24,
+            0
+          ],
+          [
+            0,
+            0,
+            24
+          ]
+        ]
+      },
+      {
+        "id": "b7",
+        "positionM": [
+          0,
+          3.74931875,
+          0
+        ],
+        "velocityMps": [
+          0.00005635790502042095,
+          -0.010747434204992823,
+          -0.00005617783616928521
+        ],
+        "angularVelocityRadps": [
+          -0.00032955500748354984,
+          -0.0025570301706170054,
+          -0.00033793229235543065
+        ],
+        "inverseMass": 1,
+        "inverseInertiaWorld": [
+          [
+            24,
+            0,
+            0
+          ],
+          [
+            0,
+            24,
+            0
+          ],
+          [
+            0,
+            0,
+            24
+          ]
+        ]
+      },
+      {
+        "id": "floor",
+        "positionM": [
+          0,
+          -0.1,
+          0
+        ],
+        "velocityMps": [
+          0,
+          0,
+          0
+        ],
+        "angularVelocityRadps": [
+          0,
+          0,
+          0
+        ],
+        "inverseMass": 0,
+        "inverseInertiaWorld": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ]
+      }
+    ],
+    "observedVelocityPhaseBodies": [
+      {
+        "id": "b0",
+        "kind": "dynamic",
+        "shape": {
+          "kind": "box",
+          "halfExtentsM": [
+            0.25,
+            0.25,
+            0.25
+          ]
+        },
+        "positionM": [
+          0,
+          0.24931875,
+          0
+        ],
+        "sensor": false,
+        "velocityMps": [
+          -0.00008349619433260791,
+          -0.0006020626012276098,
+          -0.00015936659147008816
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "angularVelocityRadps": [
+          0.00008344669988716194,
+          -0.0001432761056209663,
+          0.0007194672893281349
+        ],
+        "inertiaDiagonalKgM2": [
+          0.041666666666666664,
+          0.041666666666666664,
+          0.041666666666666664
+        ],
+        "inverseInertiaLocal": [
+          24,
+          24,
+          24
+        ],
+        "inverseMass": 1,
+        "restitution": 0,
+        "frictionStatic": 1,
+        "frictionDynamic": 0.7
+      },
+      {
+        "id": "b1",
+        "kind": "dynamic",
+        "shape": {
+          "kind": "box",
+          "halfExtentsM": [
+            0.25,
+            0.25,
+            0.25
+          ]
+        },
+        "positionM": [
+          0,
+          0.74931875,
+          0
+        ],
+        "sensor": false,
+        "velocityMps": [
+          0.000007970057620306252,
+          -0.004766365812801647,
+          0.00007897887069809105
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "angularVelocityRadps": [
+          0.0006244746466962476,
+          -0.0007374527494428728,
+          0.0008589302043119414
+        ],
+        "inertiaDiagonalKgM2": [
+          0.041666666666666664,
+          0.041666666666666664,
+          0.041666666666666664
+        ],
+        "inverseInertiaLocal": [
+          24,
+          24,
+          24
+        ],
+        "inverseMass": 1,
+        "restitution": 0,
+        "frictionStatic": 1,
+        "frictionDynamic": 0.7
+      },
+      {
+        "id": "b2",
+        "kind": "dynamic",
+        "shape": {
+          "kind": "box",
+          "halfExtentsM": [
+            0.25,
+            0.25,
+            0.25
+          ]
+        },
+        "positionM": [
+          0,
+          1.24931875,
+          0
+        ],
+        "sensor": false,
+        "velocityMps": [
+          0.000039652840059608294,
+          -0.0066150810118305176,
+          0.0000488473944891129
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "angularVelocityRadps": [
+          0.0005883118401522128,
+          -0.0011975153547686386,
+          0.0007664452325476766
+        ],
+        "inertiaDiagonalKgM2": [
+          0.041666666666666664,
+          0.041666666666666664,
+          0.041666666666666664
+        ],
+        "inverseInertiaLocal": [
+          24,
+          24,
+          24
+        ],
+        "inverseMass": 1,
+        "restitution": 0,
+        "frictionStatic": 1,
+        "frictionDynamic": 0.7
+      },
+      {
+        "id": "b3",
+        "kind": "dynamic",
+        "shape": {
+          "kind": "box",
+          "halfExtentsM": [
+            0.25,
+            0.25,
+            0.25
+          ]
+        },
+        "positionM": [
+          0,
+          1.74931875,
+          0
+        ],
+        "sensor": false,
+        "velocityMps": [
+          0.00006492967199156659,
+          -0.008177062361570425,
+          0.00004837632685211475
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "angularVelocityRadps": [
+          0.0004809660545519786,
+          -0.0016430035851749108,
+          0.0006732121443489107
+        ],
+        "inertiaDiagonalKgM2": [
+          0.041666666666666664,
+          0.041666666666666664,
+          0.041666666666666664
+        ],
+        "inverseInertiaLocal": [
+          24,
+          24,
+          24
+        ],
+        "inverseMass": 1,
+        "restitution": 0,
+        "frictionStatic": 1,
+        "frictionDynamic": 0.7
+      },
+      {
+        "id": "b4",
+        "kind": "dynamic",
+        "shape": {
+          "kind": "box",
+          "halfExtentsM": [
+            0.25,
+            0.25,
+            0.25
+          ]
+        },
+        "positionM": [
+          0,
+          2.24931875,
+          0
+        ],
+        "sensor": false,
+        "velocityMps": [
+          0.00007812217923705838,
+          -0.009396345143540062,
+          0.00003991450544655489
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "angularVelocityRadps": [
+          0.0003416766981748859,
+          -0.002020986795928802,
+          0.0005525849030771756
+        ],
+        "inertiaDiagonalKgM2": [
+          0.041666666666666664,
+          0.041666666666666664,
+          0.041666666666666664
+        ],
+        "inverseInertiaLocal": [
+          24,
+          24,
+          24
+        ],
+        "inverseMass": 1,
+        "restitution": 0,
+        "frictionStatic": 1,
+        "frictionDynamic": 0.7
+      },
+      {
+        "id": "b5",
+        "kind": "dynamic",
+        "shape": {
+          "kind": "box",
+          "halfExtentsM": [
+            0.25,
+            0.25,
+            0.25
+          ]
+        },
+        "positionM": [
+          0,
+          2.74931875,
+          0
+        ],
+        "sensor": false,
+        "velocityMps": [
+          0.00006919688439127082,
+          -0.0102398389402827,
+          0.000020635599615344052
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "angularVelocityRadps": [
+          0.00017914086061128227,
+          -0.0023046680945893374,
+          0.00038114527401175973
+        ],
+        "inertiaDiagonalKgM2": [
+          0.041666666666666664,
+          0.041666666666666664,
+          0.041666666666666664
+        ],
+        "inverseInertiaLocal": [
+          24,
+          24,
+          24
+        ],
+        "inverseMass": 1,
+        "restitution": 0,
+        "frictionStatic": 1,
+        "frictionDynamic": 0.7
+      },
+      {
+        "id": "b6",
+        "kind": "dynamic",
+        "shape": {
+          "kind": "box",
+          "halfExtentsM": [
+            0.25,
+            0.25,
+            0.25
+          ]
+        },
+        "positionM": [
+          0,
+          3.24931875,
+          0
+        ],
+        "sensor": false,
+        "velocityMps": [
+          0.00008245152208883591,
+          -0.01068195740026387,
+          -0.00002436783884416483
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "angularVelocityRadps": [
+          0.00013340867348427161,
+          -0.0025092825557476712,
+          0.00038693860752816176
+        ],
+        "inertiaDiagonalKgM2": [
+          0.041666666666666664,
+          0.041666666666666664,
+          0.041666666666666664
+        ],
+        "inverseInertiaLocal": [
+          24,
+          24,
+          24
+        ],
+        "inverseMass": 1,
+        "restitution": 0,
+        "frictionStatic": 1,
+        "frictionDynamic": 0.7
+      },
+      {
+        "id": "b7",
+        "kind": "dynamic",
+        "shape": {
+          "kind": "box",
+          "halfExtentsM": [
+            0.25,
+            0.25,
+            0.25
+          ]
+        },
+        "positionM": [
+          0,
+          3.74931875,
+          0
+        ],
+        "sensor": false,
+        "velocityMps": [
+          0.00005635790502042095,
+          -0.010747434204992823,
+          -0.00005617783616928521
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "angularVelocityRadps": [
+          -0.00032955500748354984,
+          -0.0025570301706170054,
+          -0.00033793229235543065
+        ],
+        "inertiaDiagonalKgM2": [
+          0.041666666666666664,
+          0.041666666666666664,
+          0.041666666666666664
+        ],
+        "inverseInertiaLocal": [
+          24,
+          24,
+          24
+        ],
+        "inverseMass": 1,
+        "restitution": 0,
+        "frictionStatic": 1,
+        "frictionDynamic": 0.7
+      },
+      {
+        "id": "floor",
+        "kind": "static",
+        "shape": {
+          "kind": "box",
+          "halfExtentsM": [
+            2,
+            0.1,
+            2
+          ]
+        },
+        "positionM": [
+          0,
+          -0.1,
+          0
+        ],
+        "velocityMps": [
+          0,
+          0,
+          0
+        ],
+        "orientation": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "angularVelocityRadps": [
+          0,
+          0,
+          0
+        ],
+        "inverseInertiaLocal": [
+          0,
+          0,
+          0
+        ],
+        "sensor": false,
+        "inverseMass": 0,
+        "restitution": 0,
+        "frictionStatic": 1,
+        "frictionDynamic": 0.7
+      }
+    ],
+    "normalImpulsesNs": [
+      0.1322365777346647,
+      0.12493334798499536,
+      0.12371166507101165,
+      0.1307443243340463,
+      0.1506941788271764,
+      0.1473464782279786,
+      0.1459115124483528,
+      0.14882168301998264,
+      0.11641677524533302,
+      0.10193821486615495,
+      0.10087089332611408,
+      0.11541639749991761,
+      0.09629937367362319,
+      0.08418114279706672,
+      0.0833190049629147,
+      0.09570784051574557,
+      0.07644743356592165,
+      0.06698412177084918,
+      0.06634020315338095,
+      0.07616266582076883,
+      0.05720134461014613,
+      0.049852364639198746,
+      0.049420944445420056,
+      0.05710611575969568,
+      0.03816281225402766,
+      0.03299417070232131,
+      0.0327596957418347,
+      0.03815392969655962,
+      0.019851866048885062,
+      0.01570575682549169,
+      0.015593865013243589,
+      0.019851077907386838
+    ],
+    "tangentImpulsesNs": [
+      [
+        -0.008931803305973653,
+        0,
+        -0.002464955237177744
+      ],
+      [
+        -0.003977566976236949,
+        0,
+        -0.0033424076286638414
+      ],
+      [
+        0.004326505734815154,
+        0,
+        0.0034370157213021143
+      ],
+      [
+        0.008981545607804516,
+        0,
+        0.0025265541666272383
+      ],
+      [
+        -0.10944157668029723,
+        0,
+        -0.08159687053026128
+      ],
+      [
+        -0.09642611871718502,
+        0,
+        0.07070786357381503
+      ],
+      [
+        0.09730062955513075,
+        0,
+        -0.06895245091247078
+      ],
+      [
+        0.10825188097627506,
+        0,
+        0.07984461743829935
+      ],
+      [
+        -0.009103900101121979,
+        0,
+        0.005710187443197585
+      ],
+      [
+        -0.01085130870093561,
+        0,
+        -0.0050236407713488895
+      ],
+      [
+        0.010966562078405746,
+        0,
+        0.005106784595676784
+      ],
+      [
+        0.009379357726440603,
+        0,
+        -0.0057161031161358025
+      ],
+      [
+        -0.009068192133462398,
+        0,
+        0.006026865033535183
+      ],
+      [
+        -0.011091742146723715,
+        0,
+        -0.005220937420540958
+      ],
+      [
+        0.010955039382875727,
+        0,
+        0.0051673601677298545
+      ],
+      [
+        0.009555953060039538,
+        0,
+        -0.005944907023823515
+      ],
+      [
+        -0.007863984130667839,
+        0,
+        0.005008785120083711
+      ],
+      [
+        -0.009360098289935812,
+        0,
+        -0.00457105396274199
+      ],
+      [
+        0.009237441286427697,
+        0,
+        0.0044910049448197405
+      ],
+      [
+        0.00827276962491354,
+        0,
+        -0.004948731672113013
+      ],
+      [
+        -0.006160551697214821,
+        0,
+        0.003789988523022696
+      ],
+      [
+        -0.0071905709109739875,
+        0,
+        -0.003526229536509527
+      ],
+      [
+        0.007172517278923474,
+        0,
+        0.0034640303896785072
+      ],
+      [
+        0.006386611640765862,
+        0,
+        -0.0037876994515897823
+      ],
+      [
+        -0.005243431013658602,
+        0,
+        0.003059850164264273
+      ],
+      [
+        -0.005866165358596368,
+        0,
+        -0.0029457098242637128
+      ],
+      [
+        0.005889441631917572,
+        0,
+        0.002897660785025042
+      ],
+      [
+        0.005358964167446655,
+        0,
+        -0.0030923468000390525
+      ],
+      [
+        -0.0018518052883790682,
+        0,
+        0.001146493671789155
+      ],
+      [
+        -0.002201932589782932,
+        0,
+        -0.0010537680159765199
+      ],
+      [
+        0.002213884662337974,
+        0,
+        0.0010197622137799159
+      ],
+      [
+        0.001896211120844447,
+        0,
+        -0.0011686657057618363
+      ]
+    ],
+    "firstViolation": {
+      "step": 1,
+      "pointIndex": 0,
+      "pointId": "face:b0:1:1:b1:1:-1:0",
+      "pairKey": "b0\u0000b1",
+      "pointFamily": "face",
+      "recordSha256": "f588b8d940c75dc246b164b7ab0b0182e6cf32604672986bcdabbe81b2108840",
+      "recordRawOffsetBytes": 936,
+      "recordRawBytes": 9360,
+      "recordRawSha256": "b156e035caaa3c94f5885a24a2541b9913869221a22311a416af64d58121ecc2",
+      "decimal80": {
+        "normalSpeedMps": "-0.0040639119536177174189621463806787460271152667701244354248046875000000000000000000",
+        "normalImpulseNs": "0.1322365777346647119916411838858039118349552154541015625",
+        "residuals": {
+          "negativeNormalImpulseNs": "0",
+          "closingNormalSpeedMps": "0.0040639119536177174189621463806787460271152667701244354248046875000000000000000000",
+          "complementarityJ": "0.00053739780896140242300077736292853103894585763456045175159896285241345706309816499"
+        },
+        "violations": [
+          "closingNormalSpeedMps",
+          "complementarityJ"
+        ]
+      },
+      "decimal120": {
+        "normalSpeedMps": "-0.004063911953617717418962146380678746027115266770124435424804687500000000000000000000000000000000000000000000000000000",
+        "normalImpulseNs": "0.1322365777346647119916411838858039118349552154541015625",
+        "residuals": {
+          "negativeNormalImpulseNs": "0",
+          "closingNormalSpeedMps": "0.004063911953617717418962146380678746027115266770124435424804687500000000000000000000000000000000000000000000000000000",
+          "complementarityJ": "0.000537397808961402423000777362928531038945857634560451751598962852413457063098164989689564663422061130404472351074218750000"
+        },
+        "violations": [
+          "closingNormalSpeedMps",
+          "complementarityJ"
+        ]
+      },
+      "precisionDifferences": {
+        "negativeNormalImpulseNs": "0",
+        "closingNormalSpeedMps": "0E-117",
+        "complementarityJ": "3.104353365779388695955276489E-85",
+        "normalSpeedMps": "0E-117"
+      },
+      "independentGeometry": {
+        "toleranceM": "1E-9",
+        "normalizedProjectionNormal": [
+          "0",
+          "1",
+          "0"
+        ],
+        "a": {
+          "supportPlaneM": "0.4993187500000000056399329650957952253520488739013671875",
+          "supportCornersM": [
+            [
+              "-0.25",
+              "0.4993187500000000056399329650957952253520488739013671875",
+              "-0.25"
+            ],
+            [
+              "-0.25",
+              "0.4993187500000000056399329650957952253520488739013671875",
+              "0.25"
+            ],
+            [
+              "0.25",
+              "0.4993187500000000056399329650957952253520488739013671875",
+              "-0.25"
+            ],
+            [
+              "0.25",
+              "0.4993187500000000056399329650957952253520488739013671875",
+              "0.25"
+            ]
+          ],
+          "localPointM": [
+            "-0.2500000000000000000000000000000000000000000000000000000",
+            "0.2500000000000000277555756156289135105907917022705078125",
+            "-0.2500000000000000000000000000000000000000000000000000000"
+          ],
+          "maxLocalSlabViolationM": "2.77555756156289135105907917022705078125E-17",
+          "pointInsideTolerance": true,
+          "lineIntersects": true,
+          "surfaceLineParameterM": "-2.77555756156289135105907917022705078125E-17",
+          "surfaceWitnessM": [
+            "-0.2500000000000000000000000000000000000000000000000000000",
+            "0.4993187500000000056399329650957952253520488739013671875",
+            "-0.2500000000000000000000000000000000000000000000000000000"
+          ]
+        },
+        "b": {
+          "supportPlaneM": "0.499318750000000033395508580724708735942840576171875",
+          "supportCornersM": [
+            [
+              "-0.25",
+              "0.499318750000000033395508580724708735942840576171875",
+              "-0.25"
+            ],
+            [
+              "-0.25",
+              "0.499318750000000033395508580724708735942840576171875",
+              "0.25"
+            ],
+            [
+              "0.25",
+              "0.499318750000000033395508580724708735942840576171875",
+              "-0.25"
+            ],
+            [
+              "0.25",
+              "0.499318750000000033395508580724708735942840576171875",
+              "0.25"
+            ]
+          ],
+          "localPointM": [
+            "-0.250000000000000000000000000000000000000000000000000",
+            "-0.250000000000000000000000000000000000000000000000000",
+            "-0.250000000000000000000000000000000000000000000000000"
+          ],
+          "maxLocalSlabViolationM": "0",
+          "pointInsideTolerance": true,
+          "lineIntersects": true,
+          "surfaceLineParameterM": "0E-51",
+          "surfaceWitnessM": [
+            "-0.250000000000000000000000000000000000000000000000000",
+            "0.499318750000000033395508580724708735942840576171875",
+            "-0.250000000000000000000000000000000000000000000000000"
+          ]
+        },
+        "supportPlaneGapM": "2.77555756156289135105907917022705078125E-17",
+        "lineIntersectsBoth": true,
+        "lineWitnessGapM": "2.77555756156289135105907917022705078125E-17",
+        "pointToLineWitnessMidpointM": "1.387778780781445675529539585113525390625E-17",
+        "lineMidpointWithinTolerance": true,
+        "causalLawDefect": "UNKNOWN",
+        "contactPatchSufficiency": "UNKNOWN"
+      },
+      "geometryPrecisionMaxDifference": "0"
+    }
+  },
+  "publicActivation": "NO_GO",
+  "originalWorldRuns": 0
+}

@@ -1,0 +1,37 @@
+{
+  "mode": "source-tests",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "records": [
+    {
+      "name": "candidate",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/evidence/source-tests-01/candidate.mjs"
+      ],
+      "started": "2026-11-01T12:58:44.661Z",
+      "finished": "2026-11-01T12:58:44.732Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "f7af366eb6b31cbb7eda97fa858131f4f5cc07675ccae3e778a968b63465d9c2",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "verification",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/evidence/source-tests-01/verification.mjs"
+      ],
+      "started": "2026-11-01T12:58:44.736Z",
+      "finished": "2026-11-01T12:58:44.812Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "0d8378d07438a50a31032718a298a754e56951ec87b79d845ed59228a453660c",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

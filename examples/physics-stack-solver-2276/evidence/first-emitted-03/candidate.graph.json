@@ -1,0 +1,14 @@
+{
+  "emitted": true,
+  "inputs": [
+    {
+      "path": "examples/physics-stack-solver-2276/evidence/first-emitted-03/modules/candidate.js",
+      "sha256": "d672f4a7f41179fc9aefb767d0e92ed580cf346c9bd17ac8cc75b75aefba9570"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/candidate.test.ts",
+      "sha256": "c88843020be2cb5bfb3043926eae3e25de8aefd6eab19680b56b4726b1a11d85"
+    }
+  ],
+  "bundleSha256": "9a0a92232b4fa2d5a65af3e0328e4bc97ab35d7eefa7597c0b9a45bb12da0c4f"
+}

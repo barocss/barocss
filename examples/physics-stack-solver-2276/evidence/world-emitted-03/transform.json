@@ -1,0 +1,12 @@
+{
+  "inputSha256": "670f5226576cb0a2c1963705b99704be71d4ebd3ad38c312adf9c16d43781d8d",
+  "outputSha256": "381f72400c69eebe91f5f73dc5799ab111a2339f2e43f247de650399b4d9c7c7",
+  "replacedBlockSha256": "8d1f50b64113266dcf934f2cec74631546a436d904d00c6683e20ca895fa3a4e",
+  "inputBytes": 9924,
+  "outputBytes": 8048,
+  "replacedBlockBytes": 2458,
+  "startAnchorCount": 1,
+  "endAnchorCount": 1,
+  "helperImport": "import { solveFrozenNormalIsland } from \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/world-adapter.ts\";\n",
+  "changedRegion": "entire velocity solve including warm start"
+}

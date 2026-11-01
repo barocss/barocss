@@ -1,0 +1,25 @@
+{
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/bin/tsc",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/candidate.ts",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/verification.ts",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/world-adapter.ts",
+    "--target",
+    "ES2022",
+    "--module",
+    "ES2022",
+    "--moduleResolution",
+    "Bundler",
+    "--strict",
+    "--skipLibCheck",
+    "--declaration",
+    "--rootDir",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+    "--outDir",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/evidence/world-emitted-01/modules"
+  ],
+  "exit": 2,
+  "signal": null,
+  "error": null
+}
