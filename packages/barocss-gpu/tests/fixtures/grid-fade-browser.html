@@ -1,0 +1,54 @@
+<!doctype html><meta charset="utf-8"><title>Production orthographic grid fade</title>
+<style>body{margin:0;background:#000;color:#fff;font:12px monospace}canvas{width:512px;height:512px;image-rendering:pixelated}</style>
+<script type="importmap">{"imports":{"@barocss/cad":"/cad/index.js"}}</script><canvas id="preview" width="256" height="256"></canvas>
+<script type="module">
+import { Camera } from '/viewer/camera.js';
+import { packFrame } from '/viewer/lights.js';
+import { gridWGSL,FRAME_BYTES } from '/viewer/shaders.js';
+import { transformPoint } from '/viewer/math.js';
+const SIZE=256,grid={cell:.5,major:2.5,fade:12,height:0,color:[1,1,1],opacity:1};
+let device,pipeline,uniform,group,color,depth,read,disposed=false;
+async function initialize(){
+ const adapter=await navigator.gpu?.requestAdapter();if(!adapter)throw new Error('WebGPU adapter required');device=await adapter.requestDevice();
+ device.pushErrorScope('validation');
+ const module=device.createShaderModule({code:gridWGSL,label:'production grid shader'});
+ pipeline=await device.createRenderPipelineAsync({label:'isolated production grid',layout:'auto',vertex:{module,entryPoint:'vs'},fragment:{module,entryPoint:'fs',targets:[{format:'rgba8unorm'}]},primitive:{topology:'triangle-list'},depthStencil:{format:'depth32float',depthWriteEnabled:true,depthCompare:'always'}});
+ const error=await device.popErrorScope();if(error)throw new Error(error.message);
+ uniform=device.createBuffer({size:FRAME_BYTES,usage:GPUBufferUsage.UNIFORM|GPUBufferUsage.COPY_DST});
+ group=device.createBindGroup({layout:pipeline.getBindGroupLayout(0),entries:[{binding:0,resource:{buffer:uniform}}]});
+ color=device.createTexture({size:[SIZE,SIZE],format:'rgba8unorm',usage:GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.COPY_SRC});
+ depth=device.createTexture({size:[SIZE,SIZE],format:'depth32float',usage:GPUTextureUsage.RENDER_ATTACHMENT});
+ read=device.createBuffer({size:SIZE*SIZE*4,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
+ return{vendor:adapter.info?.vendor,architecture:adapter.info?.architecture,frameBytes:FRAME_BYTES,source:gridWGSL};
+}
+const specs={
+ axial:{position:[0,0,2],target:[0,0,0],up:[0,0,1],projection:'orthographic',fovY:90},
+ behind:{position:[0,0,-2],target:[0,0,-4],up:[0,0,1],projection:'orthographic',fovY:90},
+ oblique:{position:[0,-2,2],target:[0,0,0],up:[0,0,1],projection:'orthographic',fovY:90},
+ perspective:{position:[0,-2,2],target:[0,0,0],up:[0,0,1],projection:'perspective',fovY:90},
+};
+const probes=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[1.25,.25,0]];
+function sample(bytes,x,y){let alpha=0,rgb=0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){const i=Math.floor(x)+dx,j=Math.floor(y)+dy;if(i<0||i>=SIZE||j<0||j>=SIZE)continue;const at=(j*SIZE+i)*4;alpha=Math.max(alpha,bytes[at+3]);rgb=Math.max(rgb,bytes[at],bytes[at+1],bytes[at+2]);}return{alpha,rgb};}
+async function render(name,near,far){
+ const state=structuredClone(specs[name]),camera=new Camera(state);camera.autoClip=false;camera.near=near;camera.far=far;
+ const vp=camera.viewProjection(1),packet=packFrame(vp,camera,[],{},null,[SIZE,SIZE,1,1],grid);
+ device.queue.writeBuffer(uniform,0,packet);
+ const encoder=device.createCommandEncoder(),pass=encoder.beginRenderPass({colorAttachments:[{view:color.createView(),clearValue:{r:0,g:0,b:0,a:0},loadOp:'clear',storeOp:'store'}],depthStencilAttachment:{view:depth.createView(),depthClearValue:0,depthLoadOp:'clear',depthStoreOp:'store'}});
+ pass.setPipeline(pipeline);pass.setBindGroup(0,group);pass.draw(3);pass.end();
+ encoder.copyTextureToBuffer({texture:color},{buffer:read,bytesPerRow:SIZE*4},[SIZE,SIZE]);device.queue.submit([encoder.finish()]);
+ await read.mapAsync(GPUMapMode.READ);const bytes=Uint8Array.from(new Uint8Array(read.getMappedRange()));read.unmap();
+ let nonzero=0;for(let i=3;i<bytes.length;i+=4)if(bytes[i]>0)nonzero++;
+ const results=[];
+ for(const point of probes){
+  const clip=transformPoint(vp,point),x=(clip[0]*.5+.5)*SIZE,y=(.5-clip[1]*.5)*SIZE,ray=camera.ray(clip[0],clip[1],1),t=-ray.origin[2]/ray.direction[2];
+  const hit=ray.origin.map((v,k)=>v+t*ray.direction[k]),signed=(hit[0]-camera.position[0])*ray.direction[0]+(hit[1]-camera.position[1])*ray.direction[1]+(hit[2]-camera.position[2])*ray.direction[2];
+  results.push({point,screen:[x,y],depth:clip[2],t,grazing:Math.abs(ray.direction[2]),signedEyePlaneDistance:signed,eyePlaneDistance:Math.abs(signed),sample:sample(bytes,x,y)});
+ }
+ // Preview is actual premultiplied GPU RGBA composited on black; raw bytes remain the test oracle.
+ const preview=Uint8ClampedArray.from(bytes);for(let i=3;i<preview.length;i+=4)preview[i]=255;
+ document.getElementById('preview').getContext('2d').putImageData(new ImageData(preview,SIZE,SIZE),0,0);
+ return{name,near,far,state:camera.state(),position:camera.position,target:camera.target,up:camera.up,fovY:camera.fovY,packet:Array.from(packet),nonzero,probes:results,rgba:Array.from(bytes)};
+}
+async function dispose(){if(!disposed){disposed=true;uniform?.destroy();color?.destroy();depth?.destroy();read?.destroy();device?.destroy();}return{disposed,ownDevice:true};}
+window.gridFade={initialize,render,dispose,specs,grid};
+</script>

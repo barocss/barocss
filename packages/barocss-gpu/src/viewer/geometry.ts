@@ -88,6 +88,31 @@ export function prepareScalars(g: PreparedGeometry, input: ArrayLike<number>, pe
   return { per, values, draw: { values: dv, positions: P, normals: N } };
 }
 
+// Raster-local coordinates are private; CPU positions and all query helpers remain world based.
+const suppliedNormals = new WeakSet<PreparedGeometry>();
+const rasterOrigins = new WeakMap<PreparedGeometry, Vec3>();
+const zeroRasterOrigin: Vec3 = [0, 0, 0];
+/** @internal Caller normals, rather than legacy world-F32 generated normals. */
+export function rasterNormalsSupplied(g: PreparedGeometry): boolean { return suppliedNormals.has(g); }
+/** @internal The active upload origin; never a public geometry-coordinate change. */
+export function rasterOrigin(g: PreparedGeometry): Vec3 { return rasterOrigins.get(g) ?? zeroRasterOrigin; }
+/** @internal Returns whether existing raster buffers need rebuilding. */
+export function setRasterOrigin(g: PreparedGeometry, origin: Vec3): boolean {
+  const old = rasterOrigin(g);
+  if (old[0] === origin[0] && old[1] === origin[1] && old[2] === origin[2]) return false;
+  if (origin[0] === 0 && origin[1] === 0 && origin[2] === 0) rasterOrigins.delete(g);
+  else rasterOrigins.set(g, [origin[0], origin[1], origin[2]]);
+  return true;
+}
+/** @internal Numeric Float32 upload, independently owned when coordinates need conversion. */
+export function rasterPositions(g: PreparedGeometry): Float32Array {
+  const P = g.positions, o = rasterOrigin(g);
+  if (o[0] === 0 && o[1] === 0 && o[2] === 0) return P instanceof Float32Array ? P : Float32Array.from(P);
+  const q = new Float32Array(P.length);
+  for (let i = 0; i < P.length; i += 3) { q[i] = P[i] - o[0]; q[i + 1] = P[i + 1] - o[1]; q[i + 2] = P[i + 2] - o[2]; }
+  return q;
+}
+
 /** A field's value at a point (the geometry's own space) on triangle t: its triangle's, or its vertices' by barycentric weights; NaN where none. */
 export function scalarAt(g: PreparedGeometry, t: number, p: ArrayLike<number>): number {
   const f = g.scalars;
@@ -137,7 +162,9 @@ export function prepareGeometry(input: GeometryInput): PreparedGeometry {
   }
   const uvs = input.uvs ? Float32Array.from(input.uvs) : null;
   if (uvs && uvs.length !== vertexCount * 2) throw new ViewerError('GEOMETRY_INVALID', 'uvs must hold two numbers per vertex');
-  return { topology, positions, normals, colors: vertexColors(input.colors, vertexCount), uvs, indices, faces, edges, contour, vertexCount, elementCount, bounds: boxOfPositions(positions), scalars: null, labels: null };
+  const prepared: PreparedGeometry = { topology, positions, normals, colors: vertexColors(input.colors, vertexCount), uvs, indices, faces, edges, contour, vertexCount, elementCount, bounds: boxOfPositions(positions), scalars: null, labels: null };
+  if (input.normals) suppliedNormals.add(prepared);
+  return prepared;
 }
 /** Labels (G15): their anchors as the positions — for the bounds, the frustum and the scene tree — one element each. */
 function prepareLabels(input: GeometryInput): PreparedGeometry {
@@ -592,7 +619,7 @@ function testPiece(sgm: number, s0: number, s1: number, x: number, y: number, cw
 /** Points as the point shader reads them, one instance each (G8): the position (3 floats) and the colour (RGBA8). */
 export function pointInstances(g: PreparedGeometry): ArrayBuffer {
   const n = g.elementCount, out = new ArrayBuffer(n * 16), f = new Float32Array(out), u = new Uint32Array(out);
-  const P = g.positions, I = g.indices, C = new Uint32Array(g.colors.buffer, g.colors.byteOffset, g.vertexCount);
+  const P = rasterPositions(g), I = g.indices, C = new Uint32Array(g.colors.buffer, g.colors.byteOffset, g.vertexCount);
   for (let s = 0; s < n; s++) { const a = I ? I[s] : s; f[4 * s] = P[3 * a]; f[4 * s + 1] = P[3 * a + 1]; f[4 * s + 2] = P[3 * a + 2]; u[4 * s + 3] = C[a]; }
   return out;
 }
@@ -641,7 +668,7 @@ function testPoint(g: PreparedGeometry, M: ArrayLike<number>, s: number): void {
 export function lineCount(g: PreparedGeometry): number { return g.contour ? g.elementCount / 3 : g.elementCount / 2; }
 /** A contour's triangles as the GPU reads them (G8): three positions, then their three normals, 72 bytes each. */
 export function contourInstances(g: PreparedGeometry): ArrayBuffer {
-  const n = g.elementCount / 3, out = new ArrayBuffer(n * 72), f = new Float32Array(out), P = g.positions, N = g.normals, I = g.indices;
+  const n = g.elementCount / 3, out = new ArrayBuffer(n * 72), f = new Float32Array(out), P = rasterPositions(g), N = g.normals, I = g.indices;
   for (let t = 0; t < n; t++) for (let k = 0; k < 3; k++) {
     const v = I ? I[3 * t + k] : 3 * t + k, o = t * 18 + 3 * k;
     f[o] = P[3 * v]; f[o + 1] = P[3 * v + 1]; f[o + 2] = P[3 * v + 2];
@@ -651,7 +678,7 @@ export function contourInstances(g: PreparedGeometry): ArrayBuffer {
 }
 export function segmentInstances(g: PreparedGeometry): ArrayBuffer {
   const n = g.elementCount / 2, out = new ArrayBuffer(n * 32), f = new Float32Array(out), u = new Uint32Array(out);
-  const P = g.positions, I = g.indices, C = new Uint32Array(g.colors.buffer, g.colors.byteOffset, g.vertexCount);
+  const P = rasterPositions(g), I = g.indices, C = new Uint32Array(g.colors.buffer, g.colors.byteOffset, g.vertexCount);
   for (let s = 0; s < n; s++) {
     const a = I ? I[2 * s] : 2 * s, b = I ? I[2 * s + 1] : 2 * s + 1;
     f.set([P[3 * a], P[3 * a + 1], P[3 * a + 2], P[3 * b], P[3 * b + 1], P[3 * b + 2]], s * 8);

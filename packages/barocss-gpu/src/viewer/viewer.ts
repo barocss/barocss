@@ -20,6 +20,8 @@ import { defaultLights, directionalLights, spotLights, pointLights, packFrame, p
 import { spotShadowFrame, validateSpotShadowLights } from './spot-shadow.js';
 import { pointShadowFrames, validatePointShadowLights } from './point-shadow.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalize, orthographic, scale, srgbToLinear, sub, transformPoint, type Mat4, type Vec3 } from './math.js';
+import { captureRaster, decodeRasterPoint, packRasterMetadata, rasterInputs, rasterModel, sameRasterInputs, ZERO_RASTER_ORIGIN, type RasterCapture } from './relative-raster.js';
+import { rasterOrigin, rasterPositions, setRasterOrigin } from './geometry.js';
 import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_SHADOWS, POINT_SHADOW_START, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, bloomWGSL, BLOOM_LEVELS, depthOfFieldWGSL, capProbeSamplesWGSL, envWGSL, ENV_LEVELS, IRRADIANCE_SIZE, BRDF_LUT_SIZE, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
 
 /** The ground grid on the plane across the camera's up axis. */
@@ -299,6 +301,9 @@ export class Viewer {
   private meshes: Mesh[] = [];
   /** Membership and accepted instance changes invalidate pending GPU pick readbacks. */
   private pickSceneRevision = 0;
+  private raster: RasterCapture | null = null;
+  private rasterGeneration = 0;
+  private rasterRevision = 0;
   /** The dirty meshes' slots of a frame (writeUniforms), kept from frame to frame. */
   private dirtySlots = new Int32Array(64);
   private freeSlots: number[] = [];
@@ -1042,6 +1047,7 @@ export class Viewer {
   private readonly scheduledRun = (): void => { this.scheduled = 0; this.renderCanvas(true); };
   /** Draw on the next animation frame (several requests make one frame). */
   requestRender(): void {
+    this.rasterRevision = (this.rasterRevision ?? 0) + 1;
     if (this.disposed || this.recoveryFailure) return;
     if (this.options.onRequestRender) { this.options.onRequestRender(); return; }
     if (this.scheduled) return;
@@ -1354,7 +1360,7 @@ export class Viewer {
       ? { device: d, positions: buffer(new Uint8Array(data.topology === 'lines' ? (data.contour ? contourInstances(data) : segmentInstances(data)) : pointInstances(data)), BufferUsage.VERTEX, data.topology), normals: null, colors: null, uvs: null, indices: null }
       : {
         device: d,
-        positions: buffer(data.positions instanceof Float64Array ? Float32Array.from(data.positions) : data.positions, BufferUsage.VERTEX, 'positions'), normals: buffer(data.normals, BufferUsage.VERTEX, 'normals'),
+        positions: buffer(rasterPositions(data), BufferUsage.VERTEX, 'positions'), normals: buffer(data.normals, BufferUsage.VERTEX, 'normals'),
         colors: buffer(data.colors, BufferUsage.VERTEX, 'colors'), uvs: data.uvs ? buffer(data.uvs, BufferUsage.VERTEX, 'uvs') : this.zeroUVs(data.vertexCount), ownUVs: !!data.uvs, indices: data.indices ? buffer(data.indices, BufferUsage.INDEX, 'indices') : null,
       };
     return true;
@@ -1409,7 +1415,7 @@ export class Viewer {
   }
 
   /** One directional light's orthographic view of all scene casters, including those outside the camera. */
-  private shadowFrame(light: ReturnType<typeof directionalLights>[number]): ShadowFrame | null {
+  private shadowFrame(light: ReturnType<typeof directionalLights>[number], origin: Vec3 = ZERO_RASTER_ORIGIN): ShadowFrame | null {
     const scene = this.sceneBounds();
     if (!light || !scene) return null;
     const r = Math.max(boxRadius(scene), 1e-6), c = boxCenter(scene), d = normalize(light.direction);
@@ -1423,12 +1429,14 @@ export class Viewer {
       const t = ((i & 1 ? deep.max[0] : deep.min[0]) - eye[0]) * d[0] + ((i & 2 ? deep.max[1] : deep.min[1]) - eye[1]) * d[1] + ((i & 4 ? deep.max[2] : deep.min[2]) - eye[2]) * d[2];
       if (t - r * 0.01 < near) near = Math.max(r * 1e-3, t - r * 0.01); if (t + r * 0.01 > far) far = t + r * 0.01;
     }
-    const viewProjection = multiply(orthographic(r, r, near, far), lookAt(eye, c, up)), size = this.shadowMapSize;
+    const relative = origin[0] !== 0 || origin[1] !== 0 || origin[2] !== 0;
+    const rasterEye = relative ? sub(eye, origin) : eye, rasterCenter = relative ? sub(c, origin) : c;
+    const viewProjection = multiply(orthographic(r, r, near, far), lookAt(rasterEye, rasterCenter, up)), size = this.shadowMapSize;
     // (G15b: a light of an angular size softens it — the penumbra's uv per unit of map depth: the depth's world range
     // times the size's tangent, over the map's breadth, 2r.)
     const soft = this.environment.softShadows ?? 0;
     const softness = soft > 0 ? ((far - near) * Math.tan((Math.min(soft, 30) * Math.PI) / 180)) / (2 * r) : 0;
-    return { viewProjection, normalOffset: (2 * r / size) * 1.5, texel: 1 / size, bias: 0.0005, eye, direction: d, softness };
+    return { viewProjection, normalOffset: (2 * r / size) * 1.5, texel: 1 / size, bias: 0.0005, eye: rasterEye, direction: d, softness };
   }
 
   /** The grid this frame: a power-of-ten cell fitted to the view distance unless one is set. */
@@ -1443,12 +1451,16 @@ export class Viewer {
     // (Into the frame block kept for it, G13.)
     const vpt = frameViewport; vpt[0] = width; vpt[1] = height; vpt[2] = this.pixelRatio; const sb = this.sceneBounds(); vpt[3] = sb ? boxRadius(sb) : 0.866;
     const first = shadows.slice(0, MAX_DIRECTIONAL).find(frame => frame !== null) ?? null;
-    this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, first, vpt, this.gridFrame(), this.clip, frameBlock, shadows));
+    const raster = this.raster, camera = raster?.camera ?? this.camera, vp = raster?.viewProjection ?? viewProjection;
+    const packed = packFrame(vp, camera, this.lights, this.environment, first, vpt, raster ? raster.grid : this.gridFrame(), this.clip, frameBlock, shadows);
+    packRasterMetadata(packed, raster);
+    this.device.queue.writeBuffer(this.frameBuffer, 0, packed);
     for (let i = 0; i < shadows.length; i++) {
       const shadow = shadows[i]; if (!shadow) continue;
-      const f = packFrame(shadow.viewProjection, this.camera, NO_LIGHTS, this.environment, null, SHADOW_VIEWPORT, null, this.clip, shadowFrameBlock);
+      const f = packFrame(shadow.viewProjection, camera, NO_LIGHTS, this.environment, null, SHADOW_VIEWPORT, null, this.clip, shadowFrameBlock);
       // Every encoded light pass owns a distinct buffer: queue writes all precede command submission.
       if (shadow.eye && shadow.direction) { f[16] = shadow.eye[0]; f[17] = shadow.eye[1]; f[18] = shadow.eye[2]; f[19] = shadow.perspective ? 1 : 0; f[20] = shadow.direction[0]; f[21] = shadow.direction[1]; f[22] = shadow.direction[2]; }
+      packRasterMetadata(f, raster, false);
       this.device.queue.writeBuffer(this.shadowFrameBuffers[i], 0, f);
     }
     // (Each run of dirty slots written on its own, G8: one write from the lowest dirty slot to the highest sent every block
@@ -1456,6 +1468,7 @@ export class Viewer {
     let n = 0;
     for (const m of this.meshes) if (m.dirty) {
       m.pack(this.objectData, m.slot * OBJECT_STRIDE, this.pixelRatio);
+      if (raster) this.objectData.set(rasterModel(m.transform, rasterOrigin(m.geometry.data), raster.origin), (m.slot * OBJECT_STRIDE) / 4);
       m.dirty = false;
       if (n === this.dirtySlots.length) { const grown = new Int32Array(n * 2); grown.set(this.dirtySlots); this.dirtySlots = grown; }
       this.dirtySlots[n++] = m.slot;
@@ -1699,11 +1712,12 @@ export class Viewer {
     validateSpotShadowLights(this.lights);
     validatePointShadowLights(this.lights);
     const aspect = width / Math.max(1, height), vp = this.prepareCamera(aspect);
+    this.prepareRaster(aspect);
     const { opaque, transparent, culled } = this.visibleMeshes(vp);
     const outlines = this.outlineColors();
     const outlineArea = outlines.length ? this.outlineRect(vp, width, height) : null;
     const shadows: (ShadowFrame | null)[] = Array(MAX_SHADOWS).fill(null);
-    directionalLights(this.lights).forEach((light, i) => { if (light.castShadow) shadows[i] = this.shadowFrame(light); });
+    directionalLights(this.lights).forEach((light, i) => { if (light.castShadow) shadows[i] = this.shadowFrame(light, this.raster?.origin); });
     const scene = this.sceneBounds(), depth = this.clip ? this.depthBounds() : null;
     spotLights(this.lights).forEach((light, i) => { if (light.castShadow) shadows[MAX_DIRECTIONAL + i] = spotShadowFrame(light, scene, depth, this.shadowMapSize); });
     const point = pointLights(this.lights).find(light => light.castShadow);
@@ -1887,6 +1901,25 @@ export class Viewer {
     return { inverseProjection: invert(proj), radius: ao.radius ?? boxRadius(scene) / 12, pixelsPerUnit: proj[5] * height / 2, perspective: this.camera.projection === 'perspective' };
   }
 
+  /** Select one complete upload frame; public matrices remain world inputs to CPU culling and queries. */
+  private prepareRaster(aspect: number): void {
+    const t = this.camera.target;
+    const next = Math.max(Math.abs(t[0]), Math.abs(t[1]), Math.abs(t[2])) >= 65536
+      ? captureRaster(this.meshes, this.camera, this.gridFrame(), this.lights, this.environment, this.clip, aspect) : null;
+    const before = this.raster?.origin ?? ZERO_RASTER_ORIGIN, after = next?.origin ?? ZERO_RASTER_ORIGIN;
+    let changed = !!this.raster !== !!next || before[0] !== after[0] || before[1] !== after[1] || before[2] !== after[2];
+    for (const g of this.geometries ?? []) {
+      const origin = next?.origins.get(g) ?? ZERO_RASTER_ORIGIN;
+      if (setRasterOrigin(g.data, origin)) { g.release(); changed = true; }
+    }
+    this.raster = next;
+    if (changed) {
+      this.rasterGeneration = (this.rasterGeneration ?? 0) + 1;
+      for (const m of this.meshes) m.dirty = true;
+      for (const cache of this.shadowCache) cache.length = -1;
+    }
+  }
+
   private prepareCamera(aspect = this.aspect): Mat4 {
     this.validateManualClipping();
     this.clipCamera(aspect);
@@ -1996,8 +2029,11 @@ export class Viewer {
     const py = Math.floor((y / Math.max(1, this.canvas.clientHeight || this.canvas.height)) * this.canvas.height);
     if (px < 0 || py < 0 || px >= this.canvas.width || py >= this.canvas.height) return null;
     const vp = this.prepareCamera();
+    this.prepareRaster(this.aspect);
     // The GPU depth belongs to this camera and pixel mapping, even while its readback waits.
     const camera = this.camera, clip = this.clip, pickSceneRevision = this.pickSceneRevision;
+    const raster = this.raster, generation = this.rasterGeneration, revision = this.rasterRevision;
+    const rasterKey = raster ? rasterInputs(this.meshes, camera, this.grid, this.lights, this.environment, clip) : null;
     const cameraValues = [...camera.position, ...camera.target, ...camera.up,
       camera.projection, camera.fovY, camera.near, camera.far, camera.autoClip];
     const width = this.canvas.width, height = this.canvas.height;
@@ -2039,11 +2075,13 @@ export class Viewer {
       || this.canvas.clientWidth !== clientWidth || this.canvas.clientHeight !== clientHeight || this.aspect !== aspect
       || cameraValues.some((value, i) => !Object.is(value, currentCameraValues[i]))) return null;
     for (const [mesh, transform] of transforms) if (transform.some((value, i) => !Object.is(value, mesh.transform[i]))) return null;
+    if (rasterKey && (generation !== this.rasterGeneration || revision !== this.rasterRevision
+      || !sameRasterInputs(rasterKey, rasterInputs(this.meshes, this.camera, this.grid, this.lights, this.environment, this.clip)))) return null;
 
     const mesh = id ? this.meshes.find(m => m.id === id) : undefined;
     if (!mesh) return null;
     const ndcX = ((px + 0.5) / this.canvas.width) * 2 - 1, ndcY = 1 - ((py + 0.5) / this.canvas.height) * 2;
-    const point = this.camera.unproject(ndcX, ndcY, depth, this.aspect);
+    const point = raster ? decodeRasterPoint(raster, ndcX, ndcY, depth) : this.camera.unproject(ndcX, ndcY, depth, this.aspect);
     // The triangle: a ray through the pixel in the (instance's) own space (on the cap: none).
     const ray = this.camera.ray(ndcX, ndcY, this.aspect), c = this.capHit(ray.origin, ray.direction);
     const hit = this.meshRay(mesh, mesh.instances ? instance : null, ray.origin, ray.direction);
