@@ -479,6 +479,36 @@ export interface StudioStepOptions {
 }
 /** A StudioDoc's STEP file: its text, the source revision it names (O9), and what was left out. */
 export interface StudioStep { text: string; source: string; omitted?: string[] }
+// These losses describe this exporter, not STEP's full format capabilities. They do not affect bytes or revision.
+function stepProfileLosses(doc: StudioDoc): string[] {
+  let history = false, parameters = false, labels = false, appearance = false, assembly = false, pmi = false, datums = false;
+  const visit = (part: StudioDoc) => {
+    history ||= part.nodes.some(node => node.kind !== 'import' && node.kind !== 'mesh');
+    parameters ||= Object.keys(part.parameters ?? {}).length > 0;
+    pmi ||= !!part.drawing;
+    datums ||= !!part.references?.datums.length;
+    for (const look of Object.values(part.bodies ?? {})) {
+      labels ||= !!look.name;
+      appearance ||= !!(look.color || look.material || Object.keys(look.faces ?? {}).length);
+    }
+    for (const occurrence of part.instances ?? []) if (!occurrence.hidden) {
+      assembly = true; labels ||= !!occurrence.name;
+      for (const look of Object.values(occurrence.looks ?? {})) appearance ||= !!(look.color || look.material || Object.keys(look.faces ?? {}).length);
+      visit(occurrence.doc);
+    }
+  };
+  visit(doc);
+  return [
+    ...(history ? ['Native feature history is not included; STEP contains the resulting geometry.'] : []),
+    ...(parameters ? ['Native parameters and expressions are not included.'] : []),
+    ...(assembly ? ['Visible placed parts are flattened at their placements; assembly hierarchy and shared definitions are not included.'] : []),
+    ...(labels ? ['User body and occurrence labels are not included; the file/product name and generated face names are separate.'] : []),
+    ...(appearance ? ['Body, face and occurrence colours and materials are not included.'] : []),
+    ...(pmi ? ['Drawing sheets, dimensions, annotations and semantic PMI are not included.'] : []),
+    ...(datums ? ['Named reference datums and their coordinate systems are not included.'] : []),
+  ];
+}
+
 /**
  * The part (and its shown instances) as one STEP file (R7.3c: the model level's one STEP function; the kernel's is
  * exportStep(breps, options)). Bodies with the `infill` role (O60: a print lattice) are left out — STEP stays the exact
@@ -503,7 +533,7 @@ export function exportStudioStep(doc: StudioDoc, options: StudioStepOptions): St
   if (!breps.length) throw refusal('NO_BODY', sheets.length && !left.length ? `Only band sheets: STEP of band sheets is not supported yet, and there is no other body to export (${sheets.join(', ')}).` : left.length ? 'Only infill bodies: STEP carries the exact part, and there is none to export.' : 'There is no body to export.');
   // (O9: the header names the source revision the file was made from.)
   const source = revisionOf(doc), text = exportStep(breps, { name, description: ['BaroCSS CAD part', `source revision ${source}`], ...(meshes ? { meshes } : {}), ...(options.timestamp ? { timestamp: options.timestamp } : {}) });
-  const omitted = [...(left.length ? [`lattice infill not included (${left.join(', ')}); 3MF carries it`] : []), ...sheets.map(k => `band sheet ${k} not included: STEP of band sheets is not supported yet`)];
+  const omitted = [...(left.length ? [`lattice infill not included (${left.join(', ')}); 3MF carries it`] : []), ...sheets.map(k => `band sheet ${k} not included: STEP of band sheets is not supported yet`), ...stepProfileLosses(doc)];
   return omitted.length ? { text, source, omitted } : { text, source };
 }
 

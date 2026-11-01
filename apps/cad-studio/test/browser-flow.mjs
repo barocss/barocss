@@ -1278,7 +1278,9 @@ try {
   });
 
   await check('export the part as STEP', async () => {
-    const [download] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export STEP"]')]);
+    await page.click('[aria-label="Export STEP"]');
+    await page.locator('[aria-label="STEP export"] button.primary:enabled').waitFor();
+    const [download] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.locator('[aria-label="STEP export"] button.primary').click()]);
     assert.match(download.suggestedFilename(), /\.step$/);
     const path = await download.path(), text = (await import('node:fs')).readFileSync(path, 'utf8');
     assert.match(text, /^ISO-10303-21;/); assert.match(text, /MANIFOLD_SOLID_BREP|BREP_WITH_VOIDS/); assert.match(text, /AUTOMOTIVE_DESIGN/);
@@ -1676,8 +1678,10 @@ try {
     const fs = await import('node:fs');
     // The repaired cup from the last step is a mesh body: Export STEP asks.
     await page.click('[aria-label="Export STEP"]');
-    await page.waitForSelector('[aria-label="STEP mesh bodies"]', { timeout: 5000 });
-    const [tess] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.locator('[aria-label="STEP mesh bodies"] button', { hasText: 'Tessellated' }).click()]);
+    await page.waitForSelector('[aria-label="STEP mesh representation"]', { timeout: 5000 });
+    await page.selectOption('[aria-label="STEP mesh representation"]', 'tessellated');
+    await page.locator('[aria-label="STEP export"] button.primary:enabled').waitFor();
+    const [tess] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.locator('[aria-label="STEP export"] button.primary').click()]);
     const text = fs.readFileSync(await tess.path(), 'utf8');
     assert.match(text, /AP242_MANAGED_MODEL_BASED_3D_ENGINEERING_MIM_LF/); assert.match(text, /TRIANGULATED_FACE/);
     // Read back: a closed mesh imports as it is.
@@ -2048,6 +2052,8 @@ try {
     assert.equal(inst[1].x, inst[0].x + 20);
     const download = page.waitForEvent('download');
     await page.click('[aria-label="Export STEP"]');
+    await page.locator('[aria-label="STEP export"] button.primary:enabled').waitFor();
+    await page.locator('[aria-label="STEP export"] button.primary').click();
     const text = await (await download).createReadStream().then(s => new Promise(r => { let t = ''; s.on('data', c => t += c); s.on('end', () => r(t)); }));
     const solids = (text.match(/MANIFOLD_SOLID_BREP/g) ?? []).length, own = await page.evaluate(() => Object.keys(window.__studioDoc.outputs).length);
     assert.equal(solids, own + 2, `the part's ${own} bodies and both instances in the STEP file (${solids})`);

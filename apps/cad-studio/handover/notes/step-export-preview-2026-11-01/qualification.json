@@ -1,0 +1,129 @@
+{
+  "decision": "D407",
+  "date": "2026-11-01",
+  "tier": "feature",
+  "status": "BOUNDED_QUALIFIED",
+  "baseCommit": "e41be4604bad49d0401110d3bb7408aca28d6e29",
+  "models": {
+    "implementationAndIndependentAudit": "gpt-6.1-sol / medium"
+  },
+  "scope": "STEP preparation in existing right dock, applicable loss report, explicit separate download action and private worker metadata transport; no geometry/public API change",
+  "checks": {
+    "studioControllerTransportClient": {
+      "status": "PASS",
+      "pass": 31,
+      "fail": 0,
+      "command": "node apps/cad-studio/scripts/test.mjs step-metadata step-export-preparation engine-client-lifecycle"
+    },
+    "lastMapEdit": {
+      "status": "PASS",
+      "pass": 2,
+      "command": "node apps/cad-studio/scripts/test.mjs step-metadata"
+    },
+    "modelLosses": {
+      "status": "PASS",
+      "pass": 3,
+      "command": "node packages/barocss-cad-model/scripts/test.mjs step-profile-losses"
+    },
+    "existingSheetAndInfill": {
+      "status": "PASS",
+      "uniquePass": 2
+    },
+    "modelTypes": {
+      "status": "PASS",
+      "afterLastTestEdit": true,
+      "command": "pnpm --filter @barocss/cad-model type-check"
+    },
+    "studioTypes": {
+      "status": "PASS",
+      "command": "pnpm --filter @barocss/cad-studio-app type-check"
+    },
+    "changedFileLintSyntaxDiff": "PASS",
+    "sameInputDirectProducerBytesVsD406": "PASS box and assembly exact cmp",
+    "independentStdlibPart21AndPrismVertexBounds": {
+      "status": "PASS",
+      "pass": 2
+    }
+  },
+  "audit": {
+    "status": "ACCEPT_AFTER_FIXES",
+    "initialFindings": [
+      "Master rather than shown variant instances used for export/freshness",
+      "Stale appearance metadata after metadata-only edits",
+      "Authored drawing/datum loss reporting missing"
+    ],
+    "fixed": true,
+    "followOnReview": "New private transport and prior snapshot wiring reviewed, no further actionable findings",
+    "evidence": "Source-only independent review; root inspected fixes and actual images"
+  },
+  "retainedFailures": [
+    {
+      "kind": "test oracle",
+      "detail": "Initial model test incorrectly expected source revision unchanged after appearance edit; corrected to compare geometry DATA"
+    },
+    {
+      "run": 1,
+      "kind": "product",
+      "detail": "Evaluation transport stripped appearance/drawing/reference metadata; fixed STEP-only transport"
+    },
+    {
+      "run": 2,
+      "kind": "driver",
+      "detail": "Outside-panel viewport click at 20,20 intercepted by Chat overlay; fixed to real Iso footer focus"
+    }
+  ],
+  "studio": {
+    "status": "PASS_SCOPED_COMBINED_RUN02_RUN03",
+    "run02WholeStatus": "FAIL_DRIVER_AFTER_REPORT_AND_CANCEL_PASS",
+    "run03WholeStatus": "PASS_REMAINING_ONLY",
+    "observed": [
+      "Six applicable losses in one right dock; unchanged nested assembly",
+      "Cancel",
+      "Escape from outside panel",
+      "Open invalidation",
+      "Tetrahedron tessellated/planar/auto prepare choices; unchanged doc",
+      "Close",
+      "New invalidation"
+    ],
+    "frozenFilesPerRun": 738,
+    "sourceChanges": 0,
+    "errors": 0,
+    "consoleErrors": 0,
+    "outboundDownloads": 0,
+    "rootReviewedImages": 3,
+    "resources": "Context, browser and server closed; heavy gate released",
+    "artifacts": [
+      "/tmp/barocss-d407-browser-run01",
+      "/tmp/barocss-d407-browser-run02",
+      "/tmp/barocss-d407-browser-run03"
+    ],
+    "command": "cd apps/cad-studio && STEP_PREVIEW_REMAINING=1 STEP_EXPORT_PREVIEW_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME=/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome CAD_STUDIO_CHAT_PORT=52391 node test/step-export-preview-browser.mjs /tmp/barocss-d407-browser-run03 /tmp/barocss-d407-forward-final"
+  },
+  "compatibility": {
+    "directSameInputBytes": "Unchanged",
+    "workerGeometryData": "Unchanged",
+    "workerSourceRevision": "Now includes restored export metadata; old stripped-input header can change",
+    "sourceRevisionAlgorithm": "Unchanged",
+    "ocp": "Previously removed; not recreated"
+  },
+  "execution": "Node22.19.0, serial heavy gate, no worktree writes during actual Studio",
+  "notRun": [
+    "Actual outbound Export/Save/download",
+    "Actual UI variant selection",
+    "Actual forced worker timing; injected-controller evidence only",
+    "General independent geometry requalification/AP242/curved corpus",
+    "Hierarchy/sharing/presentation/PMI/datum preservation",
+    "Full baseline suites, CI, release"
+  ],
+  "issueClosure": "#2263 incomplete; #539 backlog epic; #2248 research. All remain open",
+  "rawChecks": "/tmp/barocss-d407-checks",
+  "commands": {
+    "environment": "export PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH; gate.sh acquire heavy 30 LABEL; trap release EXIT (serial)",
+    "producer": "node apps/cad-studio/test/exchange-profile-producer.mjs /tmp/barocss-d407-forward-final",
+    "sameBytes": "cmp /tmp/barocss-d407-forward-final/box.step /tmp/barocss-d406-forward-fixed/box.step; cmp /tmp/barocss-d407-forward-final/assembly.step /tmp/barocss-d406-forward-fixed/assembly.step",
+    "structuralBounds": "python3 apps/cad-studio/test/part21-prism-check.py /tmp/barocss-d407-forward-final/<box|assembly>.step /tmp/barocss-d407-forward-final/<box|assembly>-expected.json",
+    "affectedOmissions": "esbuild bundle band-surface.test.ts and lattice.test.ts with platform:node, format:esm, target:node22; node --test --test-name-pattern=\"STEP leaves the band sheet\" <bundle>/band-surface.test.js; node --test --test-name-pattern=\"infill.*STEP|STEP.*infill\" <bundle>/lattice.test.js",
+    "lint": "pnpm exec eslint <all changed TS/TSX files>; node --check apps/cad-studio/test/step-export-preview-browser.mjs; node --check apps/cad-studio/test/browser-flow.mjs; git diff --check",
+    "fullCapsule": "/tmp/barocss-d407-checks/commands.md"
+  }
+}

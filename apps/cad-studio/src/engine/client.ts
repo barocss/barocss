@@ -14,6 +14,7 @@ import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { DrawingResult } from '@barocss/cad-model/drawing/project';
 import type { DrawingSection } from '@barocss/cad-model/drawing/types';
+import { stepMetadata } from './stepMetadata';
 import { WireSender } from '@barocss/cad-model/engine/wireDoc';
 import type { MeshDiagnosis, MeshRepairResult, MeshRepairSteps } from '@barocss/cad';
 import { Lanes, type LaneReply } from './lanes';
@@ -311,7 +312,7 @@ export class EngineClient {
     const id = this.next++;
     return new Promise(resolve => {
       this.pending.set(id, data => resolve((data as { step: { text: string; omitted?: string[] } | { error: string } }).step));
-      this.post(id, () => ({ type: 'step', id, doc: this.wire!.pack(doc), name, ...(meshes ? { meshes } : {}) }));
+      this.post(id, () => ({ type: 'step', id, doc: this.wire!.pack(doc), metadata: stepMetadata(doc), name, ...(meshes ? { meshes } : {}) }));
     });
   }
 

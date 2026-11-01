@@ -37,6 +37,7 @@ import { useRobotExports } from './robot/useRobotExports';
 import { RobotInspector } from './robot/RobotInspector';
 import { useModelExports } from './files/useModelExports';
 import { ModelExportDialogs } from './files/ModelExportDialogs';
+import { StepExportPanel } from './files/StepExportPanel';
 import { readDocumentFile, verifyDocumentFile, writeDocumentFile } from './files/documentFile';
 import { changesBeyondVariability } from './app/documentChanges';
 import { sameMeshes, withMasses, samePlacement, meshVolume } from './app/bodyResults';
@@ -244,7 +245,8 @@ export function App() {
   const saveDocumentToken = useRef<object>({});
   const openIntent = useRef<OpenScope>({});
   const discardDirectCandidateRef = useRef<() => void>(() => {});
-  const beginOpenIntent = useCallback((): OpenScope => { discardDirectCandidateRef.current(); const scope = {}; openIntent.current = scope; return scope; }, []);
+  const cancelStepExportRef = useRef<() => void>(() => {});
+  const beginOpenIntent = useCallback((): OpenScope => { discardDirectCandidateRef.current(); cancelStepExportRef.current(); const scope = {}; openIntent.current = scope; return scope; }, []);
   const currentOpenScope = useCallback(() => openIntent.current, []);
   const isOpenCurrent = useCallback((scope: OpenScope) => openIntent.current === scope, []);
   useEffect(() => () => { openIntent.current = {}; }, []);
@@ -252,6 +254,7 @@ export function App() {
   const setDocState = useCallback((update: StudioDoc | ((previous: StudioDoc) => StudioDoc)) => {
     saveDocumentToken.current = {};
     openIntent.current = {};
+    cancelStepExportRef.current();
     if (typeof update === 'function') setDocStateRaw(update);
     else { docNow.current = update; setDocStateRaw(update); }
   }, []);
@@ -676,6 +679,7 @@ export function App() {
   // (Roadmap 10 ⑧: an edited part evaluates with the rows it inherits from its assembly, as a placed part does; the authored document is unchanged, carryOver keeps its own rows.)
   const evalDoc = useMemo(() => inPlace ? resolveShopRows(doc, inPlace.assembly).doc : doc, [doc, inPlace?.assembly]);
   const variants = useVariants(evalDoc), shownDoc = variants.shown; shownVariant.current = variants.showing;
+  const shownDocNow = useRef(shownDoc); shownDocNow.current = shownDoc;
   const followsParts = shownDoc.nodes.some(n => n.kind === 'frame' && !!n.follows && 'part' in n.follows);
   const rootContextKey = useMemo(() => {
     try { return contentKey(shownDoc); }
@@ -1370,7 +1374,7 @@ export function App() {
     return ready;
   };
   workerFailureHandler.current = error => {
-    beginOpenIntent(); invalidateDocumentWork(); invalidateWorkerResults(); setWorkerFailure(error);
+    beginOpenIntent(); invalidateDocumentWork(); invalidateWorkerResults(); cancelStepExportRef.current(); setWorkerFailure(error);
   };
   const retryWorker = () => {
     beginOpenIntent(); invalidateDocumentWork();
@@ -1464,7 +1468,7 @@ export function App() {
   // (What was picked in the old part goes too: instances, direct-edit faces, measurements.)
   // (CG6: from anywhere but the project, the document is no longer its open one — `fromProject` keeps it so.)
   const replaceDoc = (next: StudioDoc, fromProject = false) => {
-    invalidateDocumentWork(); replacementScope.current = workOwnership.current.scope;
+    cancelStepExportRef.current(); invalidateDocumentWork(); replacementScope.current = workOwnership.current.scope;
     try {
       if (!commit(next, false, true)) return;
       if (!fromProject) { project.detach(); setCompareBase(null); }
@@ -1692,8 +1696,9 @@ export function App() {
     try { downloadBytes(sketchDxf(n, doc.parameters).bytes, `${fileName}-sketch-${index + 1}.dxf`, 'image/vnd.dxf'); }
     catch (e) { setToast({ title: 'Could not write the DXF', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
   };
-  const modelExports = useModelExports({ model: { doc, evaluated, bodies, fresh, busy, massReady, instanceBodies },
-    engine, fileName: inPlace ? inPlace.name : fileName, current: { doc: docNow, evaluated: evaluatedRef }, onNotice: setToast });
+  const modelExports = useModelExports({ model: { doc, evaluated, shown: shownDoc, bodies, fresh, busy, massReady, instanceBodies, instancesFresh: (shownDoc.instances ?? []).filter(i => !i.hidden).every(i => { const source = instanceSources.get(i.id), have = instanceBodies.get(i.id); return source?.ok && have?.sourceKey === source.key && samePlacement(have.inst, i); }) },
+    engine, fileName: inPlace ? inPlace.name : fileName, current: { doc: docNow, evaluated: evaluatedRef, shown: shownDocNow, name: inPlace ? undefined : fileNameNow }, onNotice: setToast });
+  cancelStepExportRef.current = modelExports.clearStepAsk;
   const { stepAsk, stlAsk, askStlExport, exportStepFile, exportQuote, exportThreeMf, clearStepAsk } = modelExports;
   // (DEV, for the flow: the columns as a fresh viewer has them — the chat collapsed at its default width, no dock sheet — so
   // one step's open or drag does not carry into the next; and no toast — G12f: one left from an earlier step met the view
@@ -1717,6 +1722,7 @@ export function App() {
   {
     const onKey = (e: KeyboardEvent) => {
       if (e.isComposing) return;
+      if (e.key === 'Escape' && stepAsk) { e.preventDefault(); clearStepAsk(); return; }
       if (cageEd.onKey(e)) return;
       if (skel.onKey(e)) return;
       const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement;
@@ -2014,7 +2020,7 @@ export function App() {
   const dockEdge = dockDocked ? 0 : CHAT_STRIP + (layout.dockSheet ? layout.dockWidth : 0);
   useEffect(() => setStripWidth((chatColumnShown ? 0 : CHAT_STRIP) + dockEdge), [chatColumnShown, dockEdge]);
   // (A panel opened while the dock is a strip opens its sheet: the panel is in it.)
-  useEffect(() => { if (!dockDocked && (bomOpen || libraryOpen || paramsOpen || routePanelOpen)) layout.setDockSheet(true); }, [dockDocked, bomOpen, libraryOpen, paramsOpen, routePanelOpen, layout.setDockSheet]);
+  useEffect(() => { if (!dockDocked && (bomOpen || libraryOpen || paramsOpen || routePanelOpen || stepAsk)) layout.setDockSheet(true); }, [dockDocked, bomOpen, libraryOpen, paramsOpen, routePanelOpen, stepAsk, layout.setDockSheet]);
   // Reference decisions stay in the existing Browser panel. Preview never commits a candidate.
   const referenceDecisions = !sketch && !active && !rendering && (refMarks.length > 0 || refProblems.length > 0)
     ? <ReferenceDecisions doc={doc} referenceLabels={referenceLabels} refMarks={refMarks} refProblems={refProblems} refChoices={refChoices}
@@ -2365,7 +2371,7 @@ export function App() {
       <Dock width={layout.dockWidth} docked={dockDocked} sheet={layout.dockSheet} onSheet={layout.setDockSheet}>
         {browserPlacement === 'dock' && browserPanel}
         {dockDocked && hud}
-        {routePanelOpen ? <RouteBundlePanel doc={routeViewDoc ?? doc} directSelection={directSel} busy={routeContext.current.blocked || routePhase === 'preview' || routePhase === 'validating'} phase={routePhase}
+        {stepAsk ? <StepExportPanel controller={modelExports} /> : routePanelOpen ? <RouteBundlePanel doc={routeViewDoc ?? doc} directSelection={directSel} busy={routeContext.current.blocked || routePhase === 'preview' || routePhase === 'validating'} phase={routePhase}
           createDraft={routeCreate} moveDraft={routeMove} selectedBundleId={routeSelected} error={routeError}
           onCreateDraftChange={next => { discardRouteRef.current(); setRouteCreate(next); setRoutePhase('draft'); }} onMoveDraftChange={changeRouteMove}
           onBundleChange={selectRouteBundle} onCreate={createRoute} onPreview={previewRoute} onApply={applyRoute} onCancel={discardRoute}

@@ -403,11 +403,11 @@ test('STEP leaves the band sheet out and says so; the facade refuses rather than
   const doc = cylinders();
   const step = exportStudioStep(doc, { name: 'band' });
   assert.ok(step.text.length > 100);
-  assert.equal(step.omitted?.length, 1); assert.match(step.omitted![0], /^band sheet b4 not included: STEP of band sheets is not supported yet$/);
+  assert.equal(step.omitted?.filter(x => x.startsWith('band sheet')).length, 1); assert.match(step.omitted![0], /^band sheet b4 not included: STEP of band sheets is not supported yet$/);
   assert.equal((step.text.match(/CLOSED_SHELL/g) ?? []).length, 2, 'the two cylinders only');
   assert.throws(() => stepOf(doc, 'band'), /band sheet b4 not included/);
-  // Without the band: no omission.
-  assert.equal(exportStudioStep(prefixDoc(doc, 4), { name: 'x' }).omitted, undefined);
+  // Without the band: no sheet omission (the native feature history still does not transfer).
+  assert.ok(!exportStudioStep(prefixDoc(doc, 4), { name: 'x' }).omitted?.some(x => x.startsWith('band sheet')));
 });
 
 test('HUD pairing: edge counts before the band is evaluated, the kernel’s pieces, pairing and patches after', () => {
