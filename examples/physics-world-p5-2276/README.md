@@ -188,3 +188,27 @@ complete the earlier user request for actual example verification. All earlier
 HOLD/NO_GO, first failures, tolerances and receipts remain. P4 cache approach
 ended at cost NO_GO; P4 full-stack and required P6/P7 still block develop merge.
 No push, deployment, release or equipment validation is authorized by this plan.
+
+## One-time independent cloth reference captured
+
+`oracle-01` PASSes original research generation only:1 research constructor,
+1 research topology call,240 accepted research steps/1920 inner advances,
+6013440 distance projections,3840 sphere projections and241 raw frames.
+Physics World factories/current kernel calls remain0. Raw position+velocity
+bytes total3343152, within the frozen4MiB data cap. Raw stream SHA256:
+`84afe417169896fd243ad5e0ca0913a845183b4109812cd4561a03806db3558c`.
+The original research closure was authenticated, copied and imported natively;
+only counter overlays changed those copies. Original source files remain intact.
+
+The parent supplied `oracle-execution-freeze-01.json` and its calculated SHA as
+argv, under the existing heavy gate:
+
+```sh
+$NODE22 examples/physics-world-p5-2276/oracle-run.mjs --run-id oracle-01 --freeze examples/physics-world-p5-2276/oracle-execution-freeze-01.json --freeze-sha256 "$ORACLE_FREEZE_SHA256" --authorize-oracle
+```
+
+The owned group closed normally, without timeout, output overflow or survivors.
+`oracle-results.json` pins the actual receipt/data. Future source/native public
+trials authenticate and reuse these same241frames at original1e-12 absolute
+error; no second reference generation is authorized. The reference generation
+is not a current public API comparison, cost PASS, browser or equipment proof.

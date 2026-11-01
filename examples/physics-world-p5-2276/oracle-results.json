@@ -1,0 +1,47 @@
+{
+  "workId": "physics-world-p5b-2276",
+  "status": "PARENT_ACCEPTS_ONE_TIME_ORIGINAL_RESEARCH_ORACLE",
+  "receipt": {
+    "path": "examples/physics-world-p5-2276/evidence/oracle-01/summary.json",
+    "bytes": 2591,
+    "sha256": "42123f80b9a8de4db7d7860fc2ade5642cc8ca9114af9ad36c336e4ab6fb7db4"
+  },
+  "counts": {
+    "researchFactoryAttempts": 1,
+    "researchConstructors": 1,
+    "researchFactoryReturns": 1,
+    "researchCreateSheetCalls": 1,
+    "researchStepCalls": 240,
+    "researchStepReturns": 240,
+    "privateAdvances": 1920,
+    "originalResearchProjectDistanceCalls": 6013440,
+    "originalResearchProjectSphereCalls": 3840,
+    "frames": 241,
+    "rawBytes": 3343152,
+    "PhysicsWorldFactoryCalls": 0,
+    "currentKernelCalls": 0
+  },
+  "artifacts": {
+    "oracle-f64le.bin": {
+      "bytes": 3343152,
+      "sha256": "84afe417169896fd243ad5e0ca0913a845183b4109812cd4561a03806db3558c"
+    },
+    "oracle-triangles-u16le.bin": {
+      "bytes": 3072,
+      "sha256": "a3f72db317e3d3aba24dd161664480e88b709053d80184182806fd1aea8665a0"
+    },
+    "oracle-index.json": {
+      "bytes": 84149,
+      "sha256": "0456e5f8f44f268aa0145085d915351c17d18de865f7a5c9cdba3d94e93ff348"
+    },
+    "provider-graph.json": {
+      "bytes": 1067,
+      "sha256": "a094347f3e39c85c5abe425c6d045e90ecb25bf301e42466a0bee909d3732c05"
+    }
+  },
+  "reuse": "same241frames source+native; nosecondgeneration",
+  "comparisonToleranceAbsolute": 1e-12,
+  "currentPublicAPIQualification": "NOT_RUN",
+  "originalHoldsTolerancesFailures": "PRESERVED",
+  "deploy": "NOT_RUN"
+}

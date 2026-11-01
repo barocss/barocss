@@ -1,0 +1,53 @@
+{
+  "status": "AUTHOR_READY_NOT_RUN_PARENT_MUST_FREEZE_EXTERNAL_SHA",
+  "files": {
+    "examples/physics-cloth-spike/world.mjs": {
+      "bytes": 2033,
+      "sha256": "25551263b87a26debdd802c7f4a2e0b91e16b9b1ade320767d960f91487aae5c"
+    },
+    "examples/physics-cloth-spike/topology.mjs": {
+      "bytes": 1707,
+      "sha256": "9623e307ff500ab1add9bb94fa2343530bba47f266e519d9849ade4117ac164f"
+    },
+    "examples/physics-cloth-spike/constraints.mjs": {
+      "bytes": 1754,
+      "sha256": "9e1eac17a83fb6fbf987dc6d0ae3fb3791b8b5031edaaca3c9968b8c82a06f64"
+    },
+    "examples/physics-cloth-spike/fixture.mjs": {
+      "bytes": 514,
+      "sha256": "a1ce782d1ead3059692d74d54555e399f01806b372a5744049c9a0df257526dd"
+    },
+    "examples/physics-world-p5-2276/oracle-generation.mjs": {
+      "bytes": 7771,
+      "sha256": "52ce3b70beba7902f70cef95c2e09d1a6502519e1444599fba29481955884f15"
+    },
+    "examples/physics-world-p5-2276/oracle-run.mjs": {
+      "bytes": 5599,
+      "sha256": "07bb814c244a9bfcb19b0a3d4457e416d4a85cba7c1ffc20608299696fd00944"
+    },
+    "examples/physics-world-p5-2276/oracle-reader.mjs": {
+      "bytes": 2343,
+      "sha256": "0d7bb8a06822e8084c3e0e39d9e2c66bf1440d0b1ad2523fa3b14d93d538026f"
+    },
+    "examples/physics-world-p5-2276/ORACLE-RECIPE.json": {
+      "bytes": 2350,
+      "sha256": "2d82b8f10202b7eb4c6ad6543bdf87165028fa7e5ebc2de31fca13b63b299876"
+    },
+    "examples/physics-world-p5-2276/oracle-source-check-01.json": {
+      "bytes": 1146,
+      "sha256": "02126ca88d0ff4a087783a92c74a20da9b523b46cb578c1e1a13539bcd938faa"
+    },
+    "examples/physics-world-p5-2276/P5B-CONTRACT.md": {
+      "bytes": 22428,
+      "sha256": "1e972155e7d03d3894904e9363e79800a6e2d56273d4112acc8696eec2d89d49"
+    },
+    "examples/physics-world-p5-2276/P5B-PLAN.json": {
+      "bytes": 35784,
+      "sha256": "06c4a28707c43f929e19a2783ba14666666375e10e7c03f42cd59039273e5518"
+    },
+    "examples/physics-world-p5-2276/p5b-implementation-freeze-01.json": {
+      "bytes": 5710,
+      "sha256": "ac2ef771742260c7f6106669334ac91213e62001b7cc2aacd8cf18f9bee36fdd"
+    }
+  }
+}
