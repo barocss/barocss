@@ -7,6 +7,7 @@ import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, growBox, screenRect,
 import type { PathTraceSession, PathTraceOptions } from './path-trace.js';
 import { RenderTargetTexture, ViewerRenderTarget, type RenderTarget, type RenderTargetOptions } from './render-target.js';
 import { Camera } from './camera.js';
+import { orthographicDepth } from './orthographic-depth-internal.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
 import { clippedRay, clippedRayFull, localPlane, nearestPoint, pointInstances, sceneNear, sceneRay, sceneTree, type SceneTree, prepareGeometry, scalarAt, segmentInstances, contourInstances, lineCount, nearestSegment, type ClippedHit, type GeometryInput } from './geometry.js';
 import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
@@ -1888,7 +1889,7 @@ export class Viewer {
 
   private prepareCamera(aspect = this.aspect): Mat4 {
     this.validateManualClipping();
-    this.clipCamera();
+    this.clipCamera(aspect);
     return this.camera.viewProjection(aspect);
   }
 
@@ -1910,10 +1911,20 @@ export class Viewer {
   }
 
   /** Clip planes around the scene, and out to the grid's fade distance when the grid shows. */
-  private clipCamera(): void {
+  private clipCamera(aspect = this.aspect): void {
     const c = this.camera;
     if (c.autoClip === false) return;
-    c.clip(this.depthBounds());
+    const scene = this.depthBounds();
+    c.clip(scene);
+    if (c.projection === 'orthographic' && scene) {
+      // Glyphs can extend in world depth beyond their anchor-only geometry bounds.
+      let labels = false;
+      for (const m of this.meshes) if (m.visible && !m.geometry.disposed && m.geometry.topology === 'labels') { labels = true; break; }
+      if (!labels) {
+        const range = orthographicDepth(scene, c.position, c.target, c.halfHeight * aspect, c.halfHeight);
+        if (range) { c.near = range.near; c.far = range.far; }
+      }
+    }
     const g = this.gridFrame();
     if (!g) return;
     if (c.projection === 'perspective') c.near = Math.min(c.near, Math.max(c.distance * 1e-3, 1e-6));

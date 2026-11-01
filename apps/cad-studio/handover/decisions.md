@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D429: automatic orthographic depth conditioning — bounded fixture and compatibility qualification](notes/orthographic-depth-conditioning-2026-11-02/README.md).
+
 - [D428: orthographic AO/bounds interaction — bounded diagnosis, product repair pending](notes/orthographic-ao-artifact-2026-11-02/README.md).
 
 - [D427: centered small-camera framing and pointer selection — raster quality held](notes/small-camera-scale-2026-11-02/README.md).
@@ -57,6 +59,7 @@ Numeric proof and limits remain in the canonical item notes.
 | D426 | Native Model world coordinates and ordinary GL byte compatibility; GPU precision separate | [Note](notes/native-display-world-precision-2026-11-02/README.md) |
 | D427 | Centered small-camera framing, visibility and real pointer picks; raster quality held | [Note](notes/small-camera-scale-2026-11-02/README.md) |
 | D428 | Orthographic AO/bounds interaction; diagnostic only, product repair pending | [Note](notes/orthographic-ao-artifact-2026-11-02/README.md) |
+| D429 | Viewer automatic orthographic depth conditioning; centered AO-ON artifact, real picks and bounded compatibility | [Note](notes/orthographic-depth-conditioning-2026-11-02/README.md) |
 
 <!-- D418 LEGACY COMPATIBILITY BEGIN: fixed original heading sequence -->
 <details>

@@ -1,0 +1,531 @@
+{
+  "work_id": "D429",
+  "artifact_type": "viewer-orthographic-depth-conditioning",
+  "status": "QUALIFIED_BOUNDED_FIXTURE_AND_COMPATIBILITY_PROFILES",
+  "owner_role": "executor",
+  "source_request": "Continue autonomously by roadmap; report row and overall progress",
+  "last_updated": "2026-11-02",
+  "rows": [
+    6,
+    13,
+    16
+  ],
+  "overallPercent": 43,
+  "sourceCheckpoint": "c0fecf15e7b76c940cb1e814d1f86db81bf81e17",
+  "tier": "feature: internal Viewer behavior with independent range and compatibility review",
+  "models": {
+    "sourceAndMath": "GPT-6.1 Sol High",
+    "independentReview": "GPT-6.1 Sol High",
+    "actualStudioDriver": "GPT-6.1 Sol Medium"
+  },
+  "units": {
+    "world": "mm",
+    "screen": "CSS pixels",
+    "image": "sRGB luma code values 0..255",
+    "time": "ms"
+  },
+  "intent": "Keep AO ON and ground bounded/visible; refine automatic orthographic depth to the finite box support along the view direction. Preserve public Camera.clip arithmetic, sceneBounds, full cap bounds, grid extension, manual guards and visible-label compatibility.",
+  "predeclaredArtifactCriteria": {
+    "profile": "Original D428 centered radius-.001mm STEP; Model Top/F/Ortho, same80x80 interior ROI",
+    "statistic": "12800 absolute horizontal/vertical second differences using .2126R+.7152G+.0722B",
+    "meanLessThan": 1.0,
+    "fractionAbove1_5LessThan": 0.02,
+    "scope": "Fixture-specific artifact regression with actual visible geometry/pointer picks, not universal image-quality or numeric-accuracy certification.",
+    "baseline": "D428 bounded+AO6.9349534844/.843125; experimental unbounded+AO.4550391406/.0028125"
+  },
+  "checks": {
+    "source": "PASS_ROOT_AND_INDEPENDENT_SCOPE_MATH_REVIEW",
+    "focused": {
+      "status": "PASS",
+      "tests": 88,
+      "new": 27,
+      "existing": 61,
+      "fail": 0,
+      "skip": 0,
+      "commands": [
+        {
+          "name": "build",
+          "command": [
+            "pnpm",
+            "build:library"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu",
+          "exitCode": 0,
+          "expectedExitCode": 0,
+          "elapsedSeconds": 8.586,
+          "log": "/tmp/barocss-d429-author/build.log"
+        },
+        {
+          "name": "focused",
+          "command": [
+            "node",
+            "--import",
+            "./tests/cad-dist.mjs",
+            "--test",
+            "tests/viewer-orthographic-depth.test.mjs",
+            "tests/viewer-core.test.mjs",
+            "tests/camera.test.mjs",
+            "tests/glyphs.test.mjs",
+            "tests/viewer-cap-samples.test.mjs",
+            "tests/viewer-depth-of-field.test.mjs",
+            "tests/viewer-path-trace-lifecycle.test.mjs"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu",
+          "exitCode": 0,
+          "expectedExitCode": 0,
+          "elapsedSeconds": 2.143,
+          "log": "/tmp/barocss-d429-author/focused.log"
+        },
+        {
+          "name": "types",
+          "command": [
+            "pnpm",
+            "type-check"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu",
+          "exitCode": 0,
+          "expectedExitCode": 0,
+          "elapsedSeconds": 7.444,
+          "log": "/tmp/barocss-d429-author/types.log"
+        },
+        {
+          "name": "lint",
+          "command": [
+            "pnpm",
+            "exec",
+            "eslint",
+            "src/viewer/viewer.ts",
+            "src/viewer/orthographic-depth-internal.ts",
+            "tests/viewer-orthographic-depth.test.mjs"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu",
+          "exitCode": 0,
+          "expectedExitCode": 0,
+          "elapsedSeconds": 1.628,
+          "log": "/tmp/barocss-d429-author/lint.log"
+        }
+      ]
+    },
+    "mutation": {
+      "status": "PASS",
+      "baselinePass": 17,
+      "results": [
+        {
+          "name": "no-depth-refinement",
+          "exit": 1,
+          "pass": 8,
+          "fail": 9,
+          "assertionFailures": 9,
+          "viewerSha256": "53e091e8c8288a1511078707a39de4c0e87fe93961632afc4d2b2cb32ebd03c6",
+          "helperSha256": "fd62bb99f19f9460be3c8c85e5474d66380fe00b258b4c9bb5b324544ba34ee6",
+          "bundleSha256": "8648ab183a8b209d802195f6569eb84eb9694ba406a78b182b0f37abc08c171d",
+          "classification": "ASSERTION_KILLED"
+        },
+        {
+          "name": "signed-support-without-abs",
+          "exit": 1,
+          "pass": 10,
+          "fail": 7,
+          "assertionFailures": 7,
+          "viewerSha256": "dec5564cfdb4a01de3c7916792414f8fdac5b99cb19d1ee2d768108a780a579a",
+          "helperSha256": "9286e10c63aba4ba2f73d7cb51ca57f6047e01e66eb54b0b426ef7340ec050db",
+          "bundleSha256": "23c8b42dc8aadd855522c2f87bbba72f47f6a831507fd3d179e88513caf04227",
+          "classification": "ASSERTION_KILLED"
+        },
+        {
+          "name": "unbounded-label-not-protected",
+          "exit": 1,
+          "pass": 16,
+          "fail": 1,
+          "assertionFailures": 1,
+          "viewerSha256": "b8ea3f2e44abf002c4fba2ddbcc2be16b8ab7bd52fa5d5ee53a056e434b0c202",
+          "helperSha256": "fd62bb99f19f9460be3c8c85e5474d66380fe00b258b4c9bb5b324544ba34ee6",
+          "bundleSha256": "ed6902102b0e7a126adfaa12d6d10ee6a7e2fef12de3e182017768fa6c58bc57",
+          "classification": "ASSERTION_KILLED"
+        },
+        {
+          "name": "double-only-admission",
+          "exit": 1,
+          "pass": 16,
+          "fail": 1,
+          "assertionFailures": 1,
+          "viewerSha256": "dec5564cfdb4a01de3c7916792414f8fdac5b99cb19d1ee2d768108a780a579a",
+          "helperSha256": "0fac8b25082608cf2bc40b72c84cef2aedcca0432ebbb3992a32fcdf22425be2",
+          "bundleSha256": "7a6fb146dce0604c368950c02e641e11461a5db29761bfa0c34a992ad49f4054",
+          "classification": "ASSERTION_KILLED"
+        }
+      ],
+      "firstAttempt": "FAIL_TEMP_HARNESS_SYNTAX; candidate NOT_RUN, fixed only/tmp runner; first log preserved",
+      "sourceUnchanged": true,
+      "receiptSha256": "69e369a0c09ddb00e9a3128c13d6a507e5a84e879edee9b308622494620903e1"
+    },
+    "typesAndLint": {
+      "status": "PASS",
+      "gpu": "author build/type-check/scoped lint",
+      "finalAfterAllTestEdits": [
+        "node --check apps/cad-studio/test/orthographic-depth-browser.mjs",
+        "pnpm exec eslint --no-warn-ignored apps/cad-studio/test/orthographic-depth-browser.mjs",
+        "pnpm --dir packages/barocss-cad-model type-check",
+        "pnpm --dir apps/cad-studio type-check"
+      ],
+      "node": "v22.19.0",
+      "output": "/tmp/barocss-d429-root-checks"
+    },
+    "actualStudio": {
+      "status": "PASS",
+      "sourceFrozenCount": 791,
+      "sourceAfterCount": 791,
+      "sourceAfterCleanupCount": 791,
+      "capsulesEqual": true,
+      "errors": [],
+      "consoleErrors": [],
+      "changes": [],
+      "downloads": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "exit": 0,
+      "pointerAttempts": 40,
+      "pointerPass": 40,
+      "receiptSha256": "318739ee57c38e999dc82b71822bcd683883e482d10cf37b47e1c88649919444",
+      "driverSha256": "aa6514f6b999e2358d7b392341878ebbc8c0b0fadf3b9bc4b6d60a6be0424839",
+      "perspectiveReference": {
+        "file": "/tmp/barocss-d427-browser-webgpu-run02/receipt.json",
+        "sha256": "327941972b5c7da65f5ac720284ee76a0295a67f68b03db31d058a0e88e84810",
+        "scope": "Retained D427 actual tiny perspective observation, not an ordinary pose baseline"
+      },
+      "profiles": [
+        {
+          "label": "ordinary-top-orthographic",
+          "view": "top",
+          "ortho": true,
+          "fixtureSha256": null,
+          "nativeSourceHash": "ca85974b93e5b9d64327f41c1c35408354d5d7adf6d83badcd900f69c342cf6f",
+          "imageRequired": false,
+          "imageMetrics": {
+            "roi": {
+              "left": 610,
+              "right": 690,
+              "top": 540,
+              "bottom": 620
+            },
+            "samples": 12800,
+            "mean": 0,
+            "p95": 0,
+            "max": 0,
+            "fractionAbove": 0,
+            "threshold": 1.5
+          },
+          "projected": {
+            "width": 743.0042052268982,
+            "height": 371.5020716190338
+          },
+          "pixels": {
+            "box": {
+              "left": 309,
+              "top": 369,
+              "right": 831,
+              "bottom": 631
+            },
+            "changed": 130022,
+            "total": 136764,
+            "fraction": 0.9507034014799216,
+            "rgbThreshold": 20
+          },
+          "documentRestoredExactly": true,
+          "sceneRadius": 164.09777603611818,
+          "actualAO": {
+            "radius": 3.2399999999999998,
+            "strength": 0.9
+          },
+          "perspectiveCompatibility": null,
+          "rasterClip": [
+            -901.1840911901558,
+            901.1840911901558
+          ],
+          "ground": {
+            "id": 3,
+            "bounded": true,
+            "visible": true
+          }
+        },
+        {
+          "label": "ordinary-iso-orthographic",
+          "view": "iso",
+          "ortho": true,
+          "fixtureSha256": null,
+          "nativeSourceHash": "ca85974b93e5b9d64327f41c1c35408354d5d7adf6d83badcd900f69c342cf6f",
+          "imageRequired": false,
+          "imageMetrics": {
+            "roi": {
+              "left": 610,
+              "right": 690,
+              "top": 540,
+              "bottom": 620
+            },
+            "samples": 12800,
+            "mean": 1.2486545937499998,
+            "p95": 0,
+            "max": 214.08419999999998,
+            "fractionAbove": 0.01875,
+            "threshold": 1.5
+          },
+          "projected": {
+            "width": 627.3392164707184,
+            "height": 184.37036871910095
+          },
+          "pixels": {
+            "box": {
+              "left": 350,
+              "top": 435,
+              "right": 790,
+              "bottom": 565
+            },
+            "changed": 57136,
+            "total": 57200,
+            "fraction": 0.9988811188811189,
+            "rgbThreshold": 20
+          },
+          "documentRestoredExactly": true,
+          "sceneRadius": 164.09777603611818,
+          "actualAO": {
+            "radius": 3.2399999999999998,
+            "strength": 0.9
+          },
+          "perspectiveCompatibility": null,
+          "rasterClip": [
+            -901.1840911901556,
+            901.1840911901556
+          ],
+          "ground": {
+            "id": 3,
+            "bounded": true,
+            "visible": true
+          }
+        },
+        {
+          "label": "tiny-perspective",
+          "view": "top",
+          "ortho": false,
+          "fixtureSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+          "nativeSourceHash": "d8e64eb95d195dff3885213d3c21be0cc8ad2f82c7538f3db5d6189c883225da",
+          "imageRequired": false,
+          "imageMetrics": {
+            "roi": {
+              "left": 610,
+              "right": 690,
+              "top": 540,
+              "bottom": 620
+            },
+            "samples": 12800,
+            "mean": 0.36965128124999497,
+            "p95": 1,
+            "max": 3.212599999999952,
+            "fractionAbove": 0.002734375,
+            "threshold": 1.5
+          },
+          "projected": {
+            "width": 483.9019035048935,
+            "height": 483.90186604911383
+          },
+          "pixels": {
+            "box": {
+              "left": 400,
+              "top": 330,
+              "right": 740,
+              "bottom": 670
+            },
+            "changed": 115600,
+            "total": 115600,
+            "fraction": 1,
+            "rgbThreshold": 20
+          },
+          "documentRestoredExactly": true,
+          "sceneRadius": 28.28850028667286,
+          "actualAO": {
+            "radius": 1,
+            "strength": 0.9
+          },
+          "perspectiveCompatibility": {
+            "reference": "/tmp/barocss-d427-browser-webgpu-run02/receipt.json",
+            "poseExact": true,
+            "rasterClipExact": true,
+            "projectionExact": true,
+            "volumeCentroidExact": true
+          },
+          "rasterClip": [
+            7.206862371410768e-06,
+            "Infinity"
+          ],
+          "ground": {
+            "id": 3,
+            "bounded": true,
+            "visible": true
+          }
+        },
+        {
+          "label": "tiny-top-orthographic",
+          "view": "top",
+          "ortho": true,
+          "fixtureSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+          "nativeSourceHash": "d8e64eb95d195dff3885213d3c21be0cc8ad2f82c7538f3db5d6189c883225da",
+          "imageRequired": true,
+          "imageMetrics": {
+            "roi": {
+              "left": 610,
+              "right": 690,
+              "top": 540,
+              "bottom": 620
+            },
+            "samples": 12800,
+            "mean": 0.4550391406249941,
+            "p95": 1,
+            "max": 3.0000000000000284,
+            "fractionAbove": 0.0028125,
+            "threshold": 1.5
+          },
+          "projected": {
+            "width": 483.9018896484374,
+            "height": 483.9018859863282
+          },
+          "pixels": {
+            "box": {
+              "left": 400,
+              "top": 330,
+              "right": 740,
+              "bottom": 670
+            },
+            "changed": 115600,
+            "total": 115600,
+            "fraction": 1,
+            "rgbThreshold": 20
+          },
+          "documentRestoredExactly": true,
+          "sceneRadius": 28.28850028667286,
+          "actualAO": {
+            "radius": 1,
+            "strength": 0.9
+          },
+          "perspectiveCompatibility": null,
+          "rasterClip": [
+            -0.04324117422846461,
+            0.04324117422846461
+          ],
+          "ground": {
+            "id": 3,
+            "bounded": true,
+            "visible": true
+          }
+        }
+      ],
+      "runtimeModules": {
+        "responses": 48,
+        "missingDirectSources": [],
+        "requiredViewerAndHelper": "actual200 bodies in every context",
+        "helperTransformedSha256": "dd3f95197614ef4366c676fb64df07b6ba9f35a029e5f5d78181779480b02bdc",
+        "scope": "provenance only; semantic correctness uses source review, numerical checks and actual behavior"
+      },
+      "restoration": "Exact document, canonical arrays and full public effect/ground/grid/light/scene controls after hide/Undo; camera pose fixed, temporary hidden-state raster clips may change.",
+      "D428CleanExperimentalROIEqual": true,
+      "ROIHash": "6cd9686c8f3bbdf053c2b1026ce685108c4fb3298d1fa551cd5ff5ee450721f2"
+    },
+    "affectedViewerBrowser": {
+      "status": "PASS",
+      "tests": 4,
+      "fail": 0,
+      "skip": 0,
+      "profiles": [
+        "G2 clip caps/area/picks/lines/outline",
+        "G19 multiple clip planes, orthographic oblique caps and CPU/GPU picks",
+        "G19.4 cap shadows versus equivalent kept cube",
+        "orthographic depth of field DPR1 AAfalse: focus, blur, exact off restoration and resize"
+      ],
+      "elapsed": 6949.732584,
+      "elapsedUnit": "ms",
+      "command": "cd packages/barocss-gpu && node --import ./tests/cad-dist.mjs --test --test-concurrency=1 --test-name-pattern='G2 the clip plane:|G19 several clip planes:|G19.4 caps cast shadows:|depth of field orthographic DPR 1 AA false:' tests/viewer-pose-clip-browser.test.mjs tests/viewer-depth-of-field-browser.test.mjs"
+    },
+    "navigation": {
+      "status": "PASS",
+      "rows": 34,
+      "newBroken": 0,
+      "archives": "unchanged",
+      "command": "PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH node apps/cad-studio/handover/scripts/check-navigation.mjs"
+    },
+    "fullKernel": "NOT_RUN_NO_BREP_CORE_CHANGE; latest D424 PASS2052/FAIL0/SKIP2",
+    "independentActualAudit": {
+      "status": "PASS_BOUNDED",
+      "model": "GPT-6.1 Sol High",
+      "fourPNGEqualsRGBA": true,
+      "independentMetricsMatch": true,
+      "restoredROIExactAllFour": true,
+      "realPointerPass": 40,
+      "D428WorldSourceAndSceneEffectsExact": true,
+      "tinyPerspectiveReferenceExact": true,
+      "transformedSourceResponsesHashVerified": 48,
+      "capsulesEqual": true,
+      "scope": "Measured centered artifact/geometry/picking and listed compatibility profiles; no universal/far-world claim.",
+      "artifacts": [
+        "/tmp/barocss-d429-independent/actual-image-audit.json",
+        "/tmp/barocss-d429-independent/actual-state-audit.json"
+      ]
+    }
+  },
+  "limits": [
+    "Far-coordinate GPU framing/picking remains unqualified.",
+    "Actual default ground and AO must remain enabled for repair acceptance.",
+    "Projected box support only covers geometry within supplied bounds; visible label scenes retain legacy bounds because glyph depth exceeds anchor bounds.",
+    "No dependency/download/paid call/new develop merge/release."
+  ],
+  "source": {
+    "packages/barocss-gpu/src/viewer/viewer.ts": "dec5564cfdb4a01de3c7916792414f8fdac5b99cb19d1ee2d768108a780a579a",
+    "packages/barocss-gpu/src/viewer/orthographic-depth-internal.ts": "fd62bb99f19f9460be3c8c85e5474d66380fe00b258b4c9bb5b324544ba34ee6",
+    "packages/barocss-gpu/tests/viewer-orthographic-depth.test.mjs": "7e060358fdcb7cb7b9e7f42697f57f56c3464275aaf93302fb18a3481ed56b29",
+    "packages/barocss-gpu/src/viewer/camera.ts": "73d7f311c4e0f65d3755be2364d26dd8dfdf8e39bd894a2757bce39d0ab6ee0a",
+    "apps/cad-studio/test/orthographic-depth-browser.mjs": "aa6514f6b999e2358d7b392341878ebbc8c0b0fadf3b9bc4b6d60a6be0424839"
+  },
+  "preFix": {
+    "status": "FAIL_EXPECTED_NUMERIC_REGRESSION",
+    "counts": {
+      "tests": 27,
+      "pass": 15,
+      "fail": 12,
+      "skipped": 0,
+      "assertionFailures": 12
+    },
+    "provenance": {
+      "sourceSha256": "3854abb758253896f51af5beaa2d8831884e06c17f66a2a2aaadb83b25e8a10d",
+      "transpiledSha256": "4568bd781d76c0a12c28bdf241beb9fbdd5db8ff6c38f6689afdf23a0e7eaf9b",
+      "distSha256": "4568bd781d76c0a12c28bdf241beb9fbdd5db8ff6c38f6689afdf23a0e7eaf9b",
+      "identical": true,
+      "typescriptVersion": "5.9.3",
+      "node": "v22.19.0"
+    },
+    "firstFailure": "range follows actual depth, not the40mm ground width; ERR_ASSERTION",
+    "retained": "/tmp/barocss-d429-author/pre-fix.log"
+  },
+  "implementation": {
+    "formula": "q=sum(abs(forward_i)*halfExtent_i); depth=dot(center-eye,forward); near/far=depth +/-1.05*max(q,1e-6)",
+    "insertion": "private Viewer.clipCamera after unmodified Camera.clip(full depthBounds), before existing grid extension; actual requested aspect forwarded",
+    "fallback": "any visible non-disposed label (bounded or unbounded), invalid/reversed/nonfinite box/view/half-size, collapsed/unrepresentable interval, nonfinite packed projection/inverse, collapsed packed inverse endpoints, or simulated packedZ corner outside [0,1]",
+    "numericLimit": "Packed projection-Z/source arithmetic only, not complete GPU vertex/FMA arithmetic certification. Legacy invalid output is preserved on fallback, not repaired or certified."
+  },
+  "artifacts": [
+    "/tmp/barocss-d429-author",
+    "/tmp/barocss-d429-independent",
+    "/tmp/barocss-d429-root-checks",
+    "/tmp/barocss-d429-browser-webgpu-run01"
+  ],
+  "visualReview": "Root viewed four full-page profiles, four visible canvas images, tinyTop hidden/restored and ordinaryIso restored. Tiny orthographic dense pattern is absent; smooth visible material and actual silhouette remain. Bounded fixture artifact acceptance only.",
+  "issues": {
+    "2263": "OPEN; complete assemblies/presentation/PMI/remaining offset and degenerate/seam acceptance absent."
+  },
+  "next": "D430: measure far-coordinate GPU local-frame/display/picking boundary on the retained original far STEP before further OFFSET admission.",
+  "commands": [
+    "ORTHOGRAPHIC_DEPTH_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' CAD_STUDIO_CHAT_PORT=52391 node apps/cad-studio/test/orthographic-depth-browser.mjs /tmp/barocss-d429-browser-webgpu-run01 /tmp/barocss-d423-consumer/fixtures /tmp/barocss-d427-browser-webgpu-run02/receipt.json"
+  ]
+}
