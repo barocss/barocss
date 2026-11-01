@@ -1,0 +1,8 @@
+{
+  "profile": "fluid-static-box-visual-v1",
+  "canonicalModelBytes": 18376,
+  "sha256": "fc07548eb393592733908b87f168d8d19a482ab693af0b01db0792562d7d4f11",
+  "withinRecorderModelCap": true,
+  "recordingAdmission": "NOT_TESTED",
+  "numericInitializationAlreadyDeclared": true
+}

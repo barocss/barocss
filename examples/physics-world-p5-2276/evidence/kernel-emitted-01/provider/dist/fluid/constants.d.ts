@@ -1,0 +1,10 @@
+import type { Vec3 } from '../internal-types.js';
+export declare const FLUID_COUNT = 256;
+export declare const FLUID_STEP_SECONDS: number;
+export declare const FLUID_MAX_STEPS = 3600;
+export declare const FLUID_BASIN_M: Vec3;
+export declare const FLUID_GRAVITY_MPS2: Vec3;
+export declare const FLUID_SPACING_M = 0.05;
+export declare const FLUID_MIN_SPACING_M = 0.025;
+export declare const FLUID_PARTICLE_RADIUS_M = 0.0125;
+export declare const FLUID_SMOOTHING_RADIUS_M: number;

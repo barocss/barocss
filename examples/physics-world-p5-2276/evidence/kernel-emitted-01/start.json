@@ -1,0 +1,20 @@
+{
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/kernel-trial.mjs",
+    "emitted",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/kernel-emitted-01",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/kernel-emitted-execution-freeze-01.json",
+    "ae3153ccc5bc01c8472cae3f80a7aeee118f5689dc9919f0d54bbd74d0a74bb1",
+    "--authorized-child"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "freezePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/kernel-emitted-execution-freeze-01.json",
+  "freezeSha": "ae3153ccc5bc01c8472cae3f80a7aeee118f5689dc9919f0d54bbd74d0a74bb1",
+  "startedAt": "2026-11-01T21:23:29.823Z",
+  "childMs": 180000,
+  "termMs": 1000,
+  "postKillMs": 2000,
+  "combinedLogCap": 4194304,
+  "evidenceCap": 67108864
+}

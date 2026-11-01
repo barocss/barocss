@@ -1,0 +1,59 @@
+import { add, cross, dot, inverseInertia, scale, sub } from './math.js';
+function apply(a, b, pointM, impulse) {
+    const armA = sub(pointM, a.positionM), armB = sub(pointM, b.positionM);
+    a.velocityMps = sub(a.velocityMps, scale(impulse, a.inverseMass));
+    b.velocityMps = add(b.velocityMps, scale(impulse, b.inverseMass));
+    a.angularVelocityRadps = sub(a.angularVelocityRadps, inverseInertia(a, cross(armA, impulse)));
+    b.angularVelocityRadps = add(b.angularVelocityRadps, inverseInertia(b, cross(armB, impulse)));
+}
+function relativeVelocity(a, b, pointM) {
+    const armA = sub(pointM, a.positionM), armB = sub(pointM, b.positionM);
+    return sub(add(b.velocityMps, cross(b.angularVelocityRadps, armB)), add(a.velocityMps, cross(a.angularVelocityRadps, armA)));
+}
+function effectiveInverseMass(a, b, pointM, direction) {
+    const torqueA = cross(sub(pointM, a.positionM), direction);
+    const torqueB = cross(sub(pointM, b.positionM), direction);
+    return a.inverseMass + b.inverseMass + dot(torqueA, inverseInertia(a, torqueA))
+        + dot(torqueB, inverseInertia(b, torqueB));
+}
+export function warmStartPoint(a, b, pointM, normal, impulse) {
+    apply(a, b, pointM, add(scale(normal, impulse.normalNs), impulse.tangentNs));
+}
+export function solvePersistentPoint(a, b, pointM, normal, impulse) {
+    const normalSpeed = dot(relativeVelocity(a, b, pointM), normal);
+    const normalMass = effectiveInverseMass(a, b, pointM, normal);
+    const nextNormal = Math.max(0, impulse.normalNs - normalSpeed / normalMass);
+    const deltaNormal = nextNormal - impulse.normalNs;
+    impulse.normalNs = nextNormal;
+    if (deltaNormal !== 0)
+        apply(a, b, pointM, scale(normal, deltaNormal));
+    const relative = relativeVelocity(a, b, pointM);
+    const tangent = sub(relative, scale(normal, dot(relative, normal)));
+    const tangentSpeed = Math.hypot(...tangent);
+    // Even when tangential speed is zero, a reduced normal impulse may
+    // invalidate previously accumulated friction. Reproject the cache instead
+    // of returning with a now-impossible Coulomb impulse.
+    let requested = impulse.tangentNs;
+    if (tangentSpeed >= 1e-12) {
+        const direction = scale(tangent, 1 / tangentSpeed);
+        const tangentMass = effectiveInverseMass(a, b, pointM, direction);
+        requested = sub(impulse.tangentNs, scale(direction, tangentSpeed / tangentMass));
+    }
+    const requestedMagnitude = Math.hypot(...requested);
+    const staticLimit = Math.sqrt(a.frictionStatic * b.frictionStatic) * impulse.normalNs;
+    const dynamicLimit = Math.sqrt(a.frictionDynamic * b.frictionDynamic) * impulse.normalNs;
+    const limit = requestedMagnitude <= staticLimit ? staticLimit : dynamicLimit;
+    const nextTangent = requestedMagnitude > limit && requestedMagnitude > 0
+        ? scale(requested, limit / requestedMagnitude) : requested;
+    const deltaTangent = sub(nextTangent, impulse.tangentNs);
+    impulse.tangentNs = nextTangent;
+    apply(a, b, pointM, deltaTangent);
+}
+export function correctPersistentPair(a, b, normal, penetration) {
+    const inverseTotal = a.inverseMass + b.inverseMass;
+    if (inverseTotal === 0 || penetration <= 0)
+        return;
+    const correction = scale(normal, penetration / inverseTotal);
+    a.positionM = sub(a.positionM, scale(correction, a.inverseMass));
+    b.positionM = add(b.positionM, scale(correction, b.inverseMass));
+}

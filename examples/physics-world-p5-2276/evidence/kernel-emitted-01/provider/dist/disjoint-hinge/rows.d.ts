@@ -1,0 +1,26 @@
+import type { Body, Joint, Vec3 } from '../internal-types.js';
+import type { BodyMetrics } from './measure.js';
+import type { StopKind, LinearProblem } from './types.js';
+export declare const DOF_ORDER: string[];
+export declare const ROW_IDS: string[];
+export declare function makeRows(beforeBodies: Body[], finalBodies: Body[], joint: Joint, before: BodyMetrics, origin: Vec3, target: number): {
+    dofOrder: string[];
+    rowIds: string[];
+    physicalA: number[][];
+    physicalB: number[];
+    physicalH: number[];
+    physicalX0: number[];
+    columnScales: number[];
+    rowDivisors: number[];
+    dimensionlessA: number[][];
+    dimensionlessB: number[];
+    dimensionlessH: number[];
+    dimensionlessX0: number[];
+    centerOfMassOriginM: Vec3;
+    originalOriginM: number[];
+    stopKind: StopKind;
+    physicalStopRow: number[];
+    dimensionlessStopRow: number[];
+    rankSufficientMarginKgM2: number;
+    problem: LinearProblem;
+};

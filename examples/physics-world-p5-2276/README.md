@@ -91,3 +91,54 @@ source/native campaigns require the normal guard and frozen provider graph.
 a preserved native CAD declaration has inherited trailing whitespace. Its bytes
 are exact old provider operands and were retained. Authored-scope whitespace
 checks pass; the inherited failure is not relabeled.
+
+## P5a private extraction verified in source and native paths
+
+`kernel-source-01` and `kernel-emitted-01` both PASS the frozen four-fixture
+campaign. Per graph:4 initializations,32 prepare attempts,20 returns,12 exact
+synthetic throws,8 nominal outputs and12 recoveries. Actual helper counts match
+the frozen recipe, including175393 cloth distance projections and24 fresh PBF
+solver calls per graph. No World factory/step, recorder or restore ran.
+
+Nominal output arrays at captured steps1/2 and each recovery match the old raw
+F64LE authority exactly: measured position/velocity differences are zero. Source
+and native nominal/size receipts are byte-identical. Every injected mid-kernel,
+diagnostic and output-copy failure retains accepted buffers/model/definition;
+next preparation equals the never-failed candidate/output control. Poisoning
+returned arrays/diagnostics does not change candidates or accepted buffers.
+Historical diagnostic JSON cannot supply unknown old zero signs; this limit is
+separate from array-bit and new-state fingerprint checks.
+
+Three private production additions live in `src/domain/{types,cloth,fluid}.ts`.
+They own candidate buffers and fresh solver scratch; they have no World, clock,
+reset or recording owner. All1376 original provider/authority files remain
+byte-identical. Native `tsc` emitted to a fresh evidence directory, exit0, then
+actual emitted private modules ran unbundled. Current production dist was not
+rewritten. Guards closed normally with pipe EOF/group absence and no timeout.
+
+The source-only overlay anchor failure is retained in `kernel-source-check-01`.
+A whitespace-only matching repair passed text/compile inspection in02 before any
+candidate execution. This is distinct from the previously disclosed ungated
+`tsc --noEmit`. Actual native emission and candidate execution were gated.
+
+Commands used parent-frozen source hashes and argv-supplied freeze digest:
+
+```sh
+$NODE22 examples/physics-world-p5-2276/kernel-run.mjs --run-id kernel-source-01 --graph source --freeze examples/physics-world-p5-2276/kernel-source-execution-freeze-01.json --freeze-sha256 "$SOURCE_FREEZE_SHA256" --authorize-kernel
+$NODE22 examples/physics-world-p5-2276/kernel-run.mjs --run-id kernel-emitted-01 --graph emitted --freeze examples/physics-world-p5-2276/kernel-emitted-execution-freeze-01.json --freeze-sha256 "$EMITTED_FREEZE_SHA256" --authorize-kernel
+```
+
+Measured canonical model bytes:cloth222324; plain fluid17732; XSPH17757;
+static-box18376. Cloth exceeds recorder's unchanged131072-byte model cap.
+Fluid sizes fit that cap but do not qualify recording closure. Actual public
+record support/refusal tests remain P5b work. The private initializers' checks
+are trusted internal checks, not complete public profile admission: P5b must
+validate exact cloth topology/rest/mass data, full schema/IDs/static geometry/
+material/filter roles before runtime allocation.
+
+`kernel-results.json` pins results and proof boundaries. This is two-step
+transfer/ownership proof only. Public common-World admission, one shared host
+transaction,21 caller removal, package exports, recorder decisions, full declared
+horizons, active contact and fresh-scratch cost are pending. P5b must make one
+atomic public cutover without compatibility aliases. All prior HOLD/NO_GO,
+tolerances and first receipts remain. Whole-roadmap merge/deployment did not run.
