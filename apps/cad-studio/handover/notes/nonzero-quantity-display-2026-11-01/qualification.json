@@ -240,7 +240,7 @@
       "newBroken": 0,
       "archivesUnchanged": true
     },
-    "sourceProof": "All five changed code-file hashes match the final actual frozen capsule; CAD/Model core and shared formatter remain unchanged."
+    "sourceProof": "The three changed runtime files and browser driver match the actual frozen capsule. The focused unit-test file is separately hashed above and was not a runtime capsule input. CAD/Model core and shared formatter remain unchanged."
   },
   "retainedEvidence": {
     "D424Actual": "PASS two literal cases with native eager/evaluate/adopted values; small-value label readability not accepted.",
