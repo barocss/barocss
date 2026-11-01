@@ -1,0 +1,1190 @@
+{
+  "inputs": {
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/types.ts": {
+      "bytes": 11905,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/identity.ts": {
+      "bytes": 6081,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/types.ts",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/internal-types.ts": {
+      "bytes": 2615,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/types.ts",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/limits.ts": {
+      "bytes": 417,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts": {
+      "bytes": 14165,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/internal-types.ts",
+          "kind": "import-statement",
+          "original": "./internal-types.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/limits.ts",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts": {
+      "bytes": 2421,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/dynamic-anchor-pair.ts": {
+      "bytes": 3072,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/limits.ts",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/dynamic-fixed-joint.ts": {
+      "bytes": 2051,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/dynamic-anchor-pair.ts",
+          "kind": "import-statement",
+          "original": "./dynamic-anchor-pair.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/dynamic-hinge-joint.ts": {
+      "bytes": 4835,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/dynamic-anchor-pair.ts",
+          "kind": "import-statement",
+          "original": "./dynamic-anchor-pair.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/joints.ts": {
+      "bytes": 7231,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/limits.ts",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/dynamic-fixed-joint.ts",
+          "kind": "import-statement",
+          "original": "./dynamic-fixed-joint.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/dynamic-hinge-joint.ts",
+          "kind": "import-statement",
+          "original": "./dynamic-hinge-joint.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/admission.ts": {
+      "bytes": 3654,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/joints.ts",
+          "kind": "import-statement",
+          "original": "../joints.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "../validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/model-admission.ts": {
+      "bytes": 10088,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/identity.ts",
+          "kind": "import-statement",
+          "original": "./identity.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/joints.ts",
+          "kind": "import-statement",
+          "original": "./joints.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/limits.ts",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/admission.ts",
+          "kind": "import-statement",
+          "original": "./disjoint-hinge/admission.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/recording-owner.ts": {
+      "bytes": 895,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/provider-manifest.generated.ts": {
+      "bytes": 5905,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/joint-motor.ts": {
+      "bytes": 1723,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-contact.ts": {
+      "bytes": 5615,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/collision.ts": {
+      "bytes": 13442,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-contact.ts",
+          "kind": "import-statement",
+          "original": "./capsule-contact.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/contact-manifold.ts": {
+      "bytes": 4743,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/persistent-box-contact.ts": {
+      "bytes": 3646,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/ccd-slab.ts": {
+      "bytes": 1125,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/ccd-box.ts": {
+      "bytes": 1978,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/ccd-slab.ts",
+          "kind": "import-statement",
+          "original": "./ccd-slab.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/ccd.ts": {
+      "bytes": 3220,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/ccd-slab.ts",
+          "kind": "import-statement",
+          "original": "./ccd-slab.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/ccd-box.ts",
+          "kind": "import-statement",
+          "original": "./ccd-box.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/ccd-pair.ts": {
+      "bytes": 2110,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/broadphase.ts": {
+      "bytes": 1371,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/scene-profile.ts": {
+      "bytes": 1202,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/sleep.ts": {
+      "bytes": 4411,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/measure.ts": {
+      "bytes": 4626,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "../math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/errors.ts": {
+      "bytes": 2777,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "../validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/pose.ts": {
+      "bytes": 3194,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "../validation.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/collision.ts",
+          "kind": "import-statement",
+          "original": "../collision.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "../math.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/measure.ts",
+          "kind": "import-statement",
+          "original": "./measure.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/errors.ts",
+          "kind": "import-statement",
+          "original": "./errors.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/rows.ts": {
+      "bytes": 3685,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "../math.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/errors.ts",
+          "kind": "import-statement",
+          "original": "./errors.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/linear-solver.ts": {
+      "bytes": 10615,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/errors.ts",
+          "kind": "import-statement",
+          "original": "./errors.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/projection.ts": {
+      "bytes": 3538,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "../validation.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/collision.ts",
+          "kind": "import-statement",
+          "original": "../collision.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "../math.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/pose.ts",
+          "kind": "import-statement",
+          "original": "./pose.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/errors.ts",
+          "kind": "import-statement",
+          "original": "./errors.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/measure.ts",
+          "kind": "import-statement",
+          "original": "./measure.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/rows.ts",
+          "kind": "import-statement",
+          "original": "./rows.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/linear-solver.ts",
+          "kind": "import-statement",
+          "original": "./linear-solver.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/report.ts": {
+      "bytes": 5726,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/internal-types.ts",
+          "kind": "import-statement",
+          "original": "../internal-types.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "../math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/postcontact.ts": {
+      "bytes": 2936,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "../validation.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/projection.ts",
+          "kind": "import-statement",
+          "original": "./projection.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/report.ts",
+          "kind": "import-statement",
+          "original": "./report.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/stage.ts": {
+      "bytes": 2648,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "../validation.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/dynamic-hinge-joint.ts",
+          "kind": "import-statement",
+          "original": "../dynamic-hinge-joint.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/joint-motor.ts",
+          "kind": "import-statement",
+          "original": "../joint-motor.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/postcontact.ts",
+          "kind": "import-statement",
+          "original": "./postcontact.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/world.ts": {
+      "bytes": 24256,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/types.ts",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/model-admission.ts",
+          "kind": "import-statement",
+          "original": "./model-admission.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/identity.ts",
+          "kind": "import-statement",
+          "original": "./identity.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/recording-owner.ts",
+          "kind": "import-statement",
+          "original": "./recording-owner.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/provider-manifest.generated.ts",
+          "kind": "import-statement",
+          "original": "./provider-manifest.generated.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/limits.ts",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/joints.ts",
+          "kind": "import-statement",
+          "original": "./joints.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/joint-motor.ts",
+          "kind": "import-statement",
+          "original": "./joint-motor.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/dynamic-hinge-joint.ts",
+          "kind": "import-statement",
+          "original": "./dynamic-hinge-joint.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/collision.ts",
+          "kind": "import-statement",
+          "original": "./collision.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/contact-manifold.ts",
+          "kind": "import-statement",
+          "original": "./contact-manifold.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/persistent-box-contact.ts",
+          "kind": "import-statement",
+          "original": "./persistent-box-contact.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/ccd.ts",
+          "kind": "import-statement",
+          "original": "./ccd.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/ccd-pair.ts",
+          "kind": "import-statement",
+          "original": "./ccd-pair.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/ccd-box.ts",
+          "kind": "import-statement",
+          "original": "./ccd-box.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/broadphase.ts",
+          "kind": "import-statement",
+          "original": "./broadphase.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/scene-profile.ts",
+          "kind": "import-statement",
+          "original": "./scene-profile.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/sleep.ts",
+          "kind": "import-statement",
+          "original": "./sleep.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/stage.ts",
+          "kind": "import-statement",
+          "original": "./disjoint-hinge/stage.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query-error.ts": {
+      "bytes": 137,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/types.ts",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query/profile.ts": {
+      "bytes": 303,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query/admission.ts": {
+      "bytes": 5248,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query/geometry.ts": {
+      "bytes": 2570,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query/sweep.ts": {
+      "bytes": 1861,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query/geometry.ts",
+          "kind": "import-statement",
+          "original": "./geometry.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query/snapshot.ts": {
+      "bytes": 2537,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query/admission.ts",
+          "kind": "import-statement",
+          "original": "./admission.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query/sweep.ts",
+          "kind": "import-statement",
+          "original": "./sweep.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query.ts": {
+      "bytes": 222,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query/snapshot.ts",
+          "kind": "import-statement",
+          "original": "./capsule-query/snapshot.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/profile.ts": {
+      "bytes": 334,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/admission.ts": {
+      "bytes": 4488,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/math.ts": {
+      "bytes": 859,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/state.ts": {
+      "bytes": 2181,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/query.ts": {
+      "bytes": 2733,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/state.ts",
+          "kind": "import-statement",
+          "original": "./state.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/step-assist.ts": {
+      "bytes": 3129,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/slide.ts": {
+      "bytes": 2555,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/step-assist.ts",
+          "kind": "import-statement",
+          "original": "./step-assist.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/ground.ts": {
+      "bytes": 1242,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/core.ts": {
+      "bytes": 4057,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/admission.ts",
+          "kind": "import-statement",
+          "original": "./admission.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/state.ts",
+          "kind": "import-statement",
+          "original": "./state.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/query.ts",
+          "kind": "import-statement",
+          "original": "./query.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/slide.ts",
+          "kind": "import-statement",
+          "original": "./slide.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/ground.ts",
+          "kind": "import-statement",
+          "original": "./ground.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/step-assist.ts",
+          "kind": "import-statement",
+          "original": "./step-assist.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character-controller.ts": {
+      "bytes": 1363,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/admission.ts",
+          "kind": "import-statement",
+          "original": "./character/admission.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/core.ts",
+          "kind": "import-statement",
+          "original": "./character/core.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/state.ts",
+          "kind": "import-statement",
+          "original": "./character/state.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "./capsule-query-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/index.ts": {
+      "bytes": 570,
+      "imports": [
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/types.ts",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/world.ts",
+          "kind": "import-statement",
+          "original": "./world.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query.ts",
+          "kind": "import-statement",
+          "original": "./capsule-query.js"
+        },
+        {
+          "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character-controller.ts",
+          "kind": "import-statement",
+          "original": "./character-controller.js"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "examples/physics-world-p3-2276/evidence/candidate-build-01/source-plain.mjs": {
+      "imports": [],
+      "exports": [
+        "PhysicsError",
+        "createPhysicsWorld",
+        "createUprightCapsuleController",
+        "createUprightCapsuleQuery"
+      ],
+      "entryPoint": "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/index.ts",
+      "inputs": {
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/types.ts": {
+          "bytesInOutput": 320
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/index.ts": {
+          "bytesInOutput": 0
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/identity.ts": {
+          "bytesInOutput": 5816
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/internal-types.ts": {
+          "bytesInOutput": 0
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/limits.ts": {
+          "bytesInOutput": 255
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/validation.ts": {
+          "bytesInOutput": 12865
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts": {
+          "bytesInOutput": 1990
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/dynamic-anchor-pair.ts": {
+          "bytesInOutput": 2639
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/dynamic-fixed-joint.ts": {
+          "bytesInOutput": 1568
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/dynamic-hinge-joint.ts": {
+          "bytesInOutput": 4173
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/joints.ts": {
+          "bytesInOutput": 6491
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/admission.ts": {
+          "bytesInOutput": 2944
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/model-admission.ts": {
+          "bytesInOutput": 9443
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/recording-owner.ts": {
+          "bytesInOutput": 53
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/provider-manifest.generated.ts": {
+          "bytesInOutput": 5822
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/joint-motor.ts": {
+          "bytesInOutput": 1517
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-contact.ts": {
+          "bytesInOutput": 5150
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/collision.ts": {
+          "bytesInOutput": 12492
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/contact-manifold.ts": {
+          "bytesInOutput": 3926
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/persistent-box-contact.ts": {
+          "bytesInOutput": 3021
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/ccd-slab.ts": {
+          "bytesInOutput": 925
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/ccd-box.ts": {
+          "bytesInOutput": 1610
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/ccd.ts": {
+          "bytesInOutput": 2603
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/ccd-pair.ts": {
+          "bytesInOutput": 1821
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/broadphase.ts": {
+          "bytesInOutput": 1084
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/scene-profile.ts": {
+          "bytesInOutput": 1019
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/sleep.ts": {
+          "bytesInOutput": 4041
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/measure.ts": {
+          "bytesInOutput": 4789
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/errors.ts": {
+          "bytesInOutput": 2588
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/pose.ts": {
+          "bytesInOutput": 2793
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/rows.ts": {
+          "bytesInOutput": 3856
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/linear-solver.ts": {
+          "bytesInOutput": 11190
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/projection.ts": {
+          "bytesInOutput": 3265
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/report.ts": {
+          "bytesInOutput": 4547
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/postcontact.ts": {
+          "bytesInOutput": 2215
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/stage.ts": {
+          "bytesInOutput": 1561
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/world.ts": {
+          "bytesInOutput": 21945
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query-error.ts": {
+          "bytesInOutput": 0
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query/profile.ts": {
+          "bytesInOutput": 135
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query/admission.ts": {
+          "bytesInOutput": 4495
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query/geometry.ts": {
+          "bytesInOutput": 1974
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query/sweep.ts": {
+          "bytesInOutput": 1493
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query/snapshot.ts": {
+          "bytesInOutput": 2031
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/capsule-query.ts": {
+          "bytesInOutput": 0
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/profile.ts": {
+          "bytesInOutput": 331
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/admission.ts": {
+          "bytesInOutput": 3702
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/math.ts": {
+          "bytesInOutput": 528
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/state.ts": {
+          "bytesInOutput": 1763
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/query.ts": {
+          "bytesInOutput": 1821
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/step-assist.ts": {
+          "bytesInOutput": 2616
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/slide.ts": {
+          "bytesInOutput": 2091
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/ground.ts": {
+          "bytesInOutput": 935
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character/core.ts": {
+          "bytesInOutput": 3190
+        },
+        "examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/character-controller.ts": {
+          "bytesInOutput": 717
+        }
+      },
+      "bytes": 186303
+    }
+  }
+}

@@ -19,6 +19,7 @@ profile fixes the step, `fixedStepSeconds` is in `[1/240, 1/30]` s. `step(comman
 | One dynamic fixed joint | Exactly two dynamic spheres, no other bodies or joints | Inverse mass/inertia distribute corrections. The recorded equal-mass impulse fixture does not qualify general joint networks. |
 | One concentric dynamic hinge | Exactly two dynamic spheres at the same centre; zero gravity, zero initial motion, identity orientation, zero local anchors | Planar angular commands along the hinge axis only. An optional motor drives relative B/A speed with equal and opposite impulses. |
 | One offset dynamic hinge | Exactly two 1 kg spheres of radius 0.1 m; centres at ±0.1 m on X; opposing 0.1 m local X anchors | Fixed +Z hinge, limits `[-0.8,0.8]`, zero gravity and 1/120 s step. Motor target 0.5 rad/s, impulse cap 0.0001 N·m·s and reaction cap 0.01 N·m·s. This is one fixture. |
+| Two disjoint dynamic hinges | Exactly four 1 kg spheres of radius 0.1 m, forming the offset pair at Z=0 and Z=1 m | `rigid-discrete-v1`, direct broad phase, zero gravity, exact identity initial quaternions, zero initial motion, restitution 0, friction 1/0.7. Both hinges use the offset limits/motor above. Only empty commands; cross-component contact refuses. See the bounded evidence below. |
 | Sphere/static-box CCD | One CCD dynamic sphere and 1–8 static nonsensor oriented boxes; no joints or other bodies | Conservative expanded-box sweep. Rounded corners can produce early hits. |
 | Dynamic-sphere-pair CCD | Exactly two nonsensor dynamic spheres, exactly one with `ccd:true`; zero gravity, no joints | Relative sphere sweep. `colliderId` denotes the other dynamic sphere's collider. |
 | Axis-aligned-box-pair CCD | One CCD dynamic box and one static nonsensor box, both axis-aligned; no joints or persistent boxes | Nonzero angular commands refuse. Contact-induced rotation refuses the candidate. This covers the named thin-box fixture. |
@@ -33,9 +34,31 @@ is at most 1 N·m·s. It stops pushing outward at a hinge limit. Exceeding the r
 `NUMERIC_LIMIT`; it is not a material break-strength model. The offset profile fixes narrower values.
 
 The public persistent-box limit remains four bodies. Private nine-body studies do not raise it or
-activate the original eight-box experiment. A scalar hinge result does not admit the original
-two-hinge assembly. Keep its historical NO_GO results and unresolved causes alongside later
+activate the original eight-box experiment. The disjoint-hinge profile has a separate qualification;
+it does not admit connected two-link mechanisms. Keep historical NO_GO results and unresolved causes alongside later
 bounded results in [Physics verification](/reference/physics-verification).
+
+### Use the selected disjoint-hinge model
+
+Both directed pairs have local anchors `[0.1,0,0]` and `[-0.1,0,0]` m. The
+centres are `[-0.1,0,0]`, `[0.1,0,0]`, `[-0.1,0,1]` and `[0.1,0,1]` m.
+Initial quaternions must be exactly `[+0,+0,+0,1]`; normalization aliases and
+negative-zero quaternion components refuse. No body is shared between joints.
+The existing common World owns both pairs and one accepted clock.
+
+<<< @/../samples/physics-docs.test.mjs#disjoint-hinge-fixture
+
+Use the imports and `worldOptions` from the [overview](./). The helper above
+also uses its `freeModel()` and `freeBody()` data builders. Empty arrays are
+the supported command input for this profile. Nonempty angular commands along
+the axis also refuse. Do not substitute a prescribed motion path.
+
+<<< @/../samples/physics-docs.test.mjs#disjoint-hinge-step
+
+This short example verifies API use. The separate original 1,200-step campaign
+and its precise source/emitted boundaries are in [verification](/reference/physics-verification#p3-disjoint-hinge-qualification).
+It does not establish arbitrary joint networks, contact coupling, a convergence
+order, cross-runtime equality or measured machine accuracy.
 
 ### Rigid input bounds
 

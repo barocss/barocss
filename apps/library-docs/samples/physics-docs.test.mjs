@@ -46,6 +46,39 @@ const freeModel = (gravityMps2 = [0, -9.81, 0]) => ({
 });
 // #endregion world-fixture
 
+// #region disjoint-hinge-fixture
+const disjointHingeModel = () => {
+  const model = freeModel([0, 0, 0]);
+  model.revision = 'docsHinge2';
+  const ids = ['pairA0', 'pairB0', 'pairA1', 'pairB1'];
+  model.bodies = ids.map((id, index) => ({ ...freeBody(), id, massKg: 1,
+    initial: { positionM: [index % 2 === 0 ? -0.1 : 0.1, 0, Math.floor(index / 2)],
+      orientationXYZW: [0, 0, 0, 1], velocityMps: [0, 0, 0], angularVelocityRadps: [0, 0, 0] } }));
+  model.colliders = ids.map(id => ({ ...freeModel().colliders[0], id: `collider:${id}`, bodyId: id,
+    material: { restitution: 0, friction: { static: 1, dynamic: 0.7 } } }));
+  model.joints = [0, 1].map(index => ({ id: `hinge${index}`, kind: 'hinge',
+    bodyAId: ids[index * 2], bodyBId: ids[index * 2 + 1],
+    anchorALocalM: [0.1, 0, 0], anchorBLocalM: [-0.1, 0, 0], axisWorld: [0, 0, 1],
+    limitRad: [-0.8, 0.8],
+    motor: { targetSpeedRadps: 0.5, maxImpulseNms: 0.0001, maxReactionNms: 0.01 } }));
+  return model;
+};
+// #endregion disjoint-hinge-fixture
+
+test('the selected disjoint hinge API advances two empty command frames', () => {
+  // #region disjoint-hinge-step
+  const world = createPhysicsWorld(disjointHingeModel(), worldOptions);
+  try {
+    world.step([]);
+    const state = world.step([]);
+    assert.equal(state.stepIndex, 2);
+    assert.equal(state.timeSeconds, 2 / 120);
+    assert.equal(state.joints.length, 2);
+    assert.equal(state.contacts.length, 0);
+  } finally { world.dispose(); }
+  // #endregion disjoint-hinge-step
+});
+
 test('free flight matches the discrete fixed-step analytic solution', () => {
   // #region free-flight
   const world = createPhysicsWorld(freeModel(), worldOptions);

@@ -1,8 +1,9 @@
 # Physics verification
 
 This page records bounded numerical evidence available on this independent development branch. It does not clear
-the existing Physics, Studio or manufacturing HOLDs. Public two-hinge assemblies and stable eight-box stacks remain
-NO_GO. No measured machine validation, manufacturing approval or deployment follows from these results.
+the existing Physics, Studio or manufacturing HOLDs. Historical two-hinge failures and stable eight-box stacks remain
+NO_GO. A new bounded disjoint-hinge qualification is recorded separately below. No measured machine validation,
+manufacturing approval or deployment follows from these results.
 
 Read [Physics](/packages/physics/), [Units and frames](/packages/physics/units-and-frames) and
 [Profiles and lifecycle](/packages/physics/profiles-and-lifecycle) before selecting a test. For prescribed joint
@@ -128,7 +129,7 @@ The 16-step comparison is a selected comparison range, not a replacement for the
 |---|---|
 | Original ALIGNED collapse at step 960; OFFSET 315; YAW 243 | Complete original-duration verification within the fixed execution budget; retain all quality and geometry gates. |
 | Full repaired 1200-step settling run | Reduce independent reference execution cost, then rerun. No long-time pass yet. |
-| Public two-hinge network | Define and verify a multi-joint admission/solve profile before public activation. Removing guards is insufficient. |
+| General or connected multi-hinge network | The new disjoint profile does not share bodies or qualify a connected two-link mechanism. See P3 below. |
 | Historical hinge report discrepancy at step 77 | Historical reconstructed operands support 0.3020821295571869 rad; failed report was 0.30208212955718694 rad. The candidate's original preprojection operands were not observed, so the full cause is unresolved. |
 | Original motion input failures | Keep the [24/25 first-failure record](/physics-evidence/first-motion-input-failure.txt); later finite-input guards do not erase it. |
 | Hardware prediction and manufacturing safety | Separate controlled measurements, uncertainty and intended-use approval. |
@@ -215,3 +216,45 @@ Canonical Unicode and signed zero are preserved. Physical candidate source is un
 ballistic refinement and CAD off-origin bounds remain. The large profile actually restores six sleeping bodies
 and matches20subsequent steps after wake-up. Existing HOLDs, multi-hinge/eight-box NO_GO, first failures and
 measurement/manufacturing limits remain. Full Viewer/Studio and hardware validation are NOT_RUN.
+
+## P3 disjoint-hinge qualification
+
+The common World now admits the exact four-sphere/two-disjoint-hinge profile
+in [profiles and lifecycle](/packages/physics/profiles-and-lifecycle#use-the-selected-disjoint-hinge-model).
+No body is shared. Empty commands are the supported input. The study uses
+Node 22.19.0 on macOS ARM64, zero gravity and dt=1/120 s.
+
+| Receipt | Executed result and boundary |
+|---|---|
+| Staged observed source | Original 1,200 steps pass. Exact six-phase raw data, complete projection certificates, reports, corrections and caps match the authenticated independent 80/120-digit bank. All original physical gates also pass. |
+| Staged ordinary repeat and actual native emitted | 1,200 steps each pass public-bit correspondence to that qualified source. Their internal phases were not observed. |
+| Selected controls | PASS: global constructor attempts 47, step attempts 4,180, queries 18. Includes six first-step RENAME/PERMUTE checks, two RENAME recovery steps and retained state after 52 refusals. No 1,200-step variant claim. |
+| Attached recorder, separate gate | Source/native PASS: four constructors, 20 accepted steps and six refused step entries. Four-frame restore and both S5 continuations agree exactly. Eight internal restore steps are source-bound counts, not new instrumented native traces. |
+| Actual current public API, separate gate | Source/native PASS; strict emitted declarations compile. Fourteen constructor attempts include ten quaternion refusals. Six accepted steps include four original-bank comparisons and two existing free-sphere compatibility steps. |
+
+The current source differs from the staged calculation only by an additional
+raw-quaternion admission restriction and generated provider identity. It requires
+exact initial `[+0,+0,+0,1]`; scaled or negative-zero aliases refuse. The
+original 1,200-step receipts retain their staged source hash. They are not
+reported as a fresh 1,200-step execution of the hardened current source.
+
+For observed SOURCE, maximum COM/plane drift, anchor gap, axis deviation and
+measured momentum residual components are zero for this fixture. Maximum
+angular correction is 0.0010000000000000002 N·m·s, below the original 0.01 cap.
+First reported limit is step 197; motor first becomes zero at step 198; both
+final angles are 0.8 rad. These measurements do not supply a time-step
+convergence order or general mechanism accuracy.
+
+The historical candidate's step77 one-ULP report mismatch remains NO_GO. Its
+original intermediate operands are still unknown. New step77 operands match
+the saved bank; this does not explain or erase the older failure. Connected
+joints, arbitrary geometry/materials/gravity, cross-component contact, nonempty
+control commands, stable eight-box stacks and hardware validation remain
+unsupported or NO_GO. All existing HOLDs and first failures remain.
+
+See the [P3 report](/physics-evidence/p3-report.txt),
+[main DATA audit](/physics-evidence/p3-main.json),
+[controls](/physics-evidence/p3-controls.json),
+[recorder](/physics-evidence/p3-recorder.json) and
+[current API](/physics-evidence/p3-adoption.json). These local receipts do not
+establish publication, Studio/Viewer acceptance or measured equipment agreement.

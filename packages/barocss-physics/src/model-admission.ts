@@ -4,6 +4,8 @@ import { copyData } from './identity.js';
 import { error, finite, parseBody, vector } from './validation.js';
 import { parseJoints } from './joints.js';
 import { ID } from './limits.js';
+import { parseDisjointHingeProfile } from './disjoint-hinge/admission.js';
+import type { ParsedPair } from './disjoint-hinge/types.js';
 
 function exact(value: unknown, keys: readonly string[], label: string): Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) error('INVALID_CONFIG', `${label} must be a record`);
@@ -28,6 +30,7 @@ function transform(value: unknown, label: string): void {
 }
 export function admitModel(rawModel: PhysicsModel, rawOptions: WorldOptions): {
   model: PhysicsModel; options: WorldOptions; bodies: Body[]; joints: Joint[];
+  disjointHinges: [ParsedPair, ParsedPair] | null;
 } {
   // Copy before dependent reads; getters, custom prototypes and sparse arrays never reach parsers.
   const model = copyData(rawModel);
@@ -107,7 +110,8 @@ export function admitModel(rawModel: PhysicsModel, rawOptions: WorldOptions): {
     return {id:j.id,kind:j.kind,aId:j.bodyAId,bId:j.bodyBId,anchorALocalM:j.anchorALocalM,anchorBLocalM:j.anchorBLocalM,
       ...(j.kind==='hinge'?{axisWorld:j.axisWorld,limitRad:j.limitRad,...(j.motor===null?{}:{motor:j.motor})}:{})};
   });
-  const joints=parseJoints(numericJoints,bodies);
+  const disjoint = parseDisjointHingeProfile(model, options, numericJoints, bodies);
+  const joints = disjoint ? disjoint.joints : parseJoints(numericJoints, bodies);
   // Bindings are inert provenance. All references must resolve to declared numerical entities.
   const numericalIds = new Set(ids);
   for(const value of bindings){
@@ -117,5 +121,5 @@ export function admitModel(rawModel: PhysicsModel, rawOptions: WorldOptions): {
     const refs=list(s.entityIds,128,'entityIds');if(refs.length===0||new Set(refs).size!==refs.length||refs.some(ref=>typeof ref!=='string'||!numericalIds.has(ref)))error('INVALID_CONFIG','invalid source binding references');
     const a=exact(s.approximation,['kind','lossLabel'],'approximation');if(a.kind!=='control-net-box'&&a.kind!=='control-net-sphere')error('INVALID_CONFIG','unsupported approximation');text(a.lossLabel,'lossLabel');
   }
-  return {model,options,bodies,joints};
+  return {model,options,bodies,joints,disjointHinges:disjoint?.pairs ?? null};
 }

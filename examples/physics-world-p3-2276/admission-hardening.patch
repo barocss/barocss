@@ -1,0 +1,13 @@
+diff --git a/packages/barocss-physics/src/disjoint-hinge/admission.ts b/packages/barocss-physics/src/disjoint-hinge/admission.ts
+--- a/packages/barocss-physics/src/disjoint-hinge/admission.ts
++++ b/packages/barocss-physics/src/disjoint-hinge/admission.ts
+@@ -32,7 +32,8 @@
+   if (options.profile !== 'rigid-discrete-v1' || options.broadPhase !== 'direct' ||
+     options.fixedStepSeconds !== 1 / 120 || !equal(model.gravityMps2, [0, 0, 0]) ||
+     model.cloths.length !== 0 || model.fluids.length !== 0 ||
+-    model.bodies.some(body => body.kind !== 'dynamic' || body.inertia.kind !== 'primitive-com')) refuse();
++    model.bodies.some(body => body.kind !== 'dynamic' || body.inertia.kind !== 'primitive-com' ||
++      !body.initial.orientationXYZW.every((component, index) => Object.is(component, index === 3 ? 1 : 0)))) refuse();
+   for (const body of bodies) {
+     if (body.shape.kind !== 'sphere' || body.shape.radiusM !== .1 || body.inverseMass !== 1 ||
+       body.inertiaKgM2 !== .4 * .1 ** 2 || body.restitution !== 0 ||

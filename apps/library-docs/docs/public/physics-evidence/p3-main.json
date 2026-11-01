@@ -1,0 +1,728 @@
+{
+  "kind": "P3_SAVED_ACTUAL_MAIN_DATA_AUDIT",
+  "id": "main-data-audit-01",
+  "status": "PASS",
+  "node": "v22.19.0",
+  "execPath": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "platform": "darwin",
+  "arch": "arm64",
+  "extractorSha256": "ac334ce4a82b6ec4916a60af85ed38d6a005b7b309748aa1f449c752a6f71fdd",
+  "modelsRun": 0,
+  "referencesRun": 0,
+  "projectionCalls": 0,
+  "atan2Calls": 0,
+  "trigCalls": 0,
+  "graphs": [
+    {
+      "runId": "source-trial-01",
+      "graph": "sourceObserved",
+      "summary": {
+        "bytes": 3767,
+        "sha256": "87a61b7ff9518049b35d257afb7ee13dc2e51b3cf5fc00a881fc9a6214c8baf1"
+      },
+      "frames": {
+        "bytes": 15785618,
+        "sha256": "3af2294836f55bf8a1a90da88d720b4f3006388afccdf40f30b8239322bb5e60"
+      },
+      "actualCounts": {
+        "constructors": 1,
+        "attempts": 1200,
+        "accepted": 1200,
+        "qualified": 1200,
+        "getters": 1,
+        "references": 0,
+        "cleanupAttempts": 1,
+        "cleanupCompleted": 1
+      },
+      "actualHelperCounts": {
+        "fullDataAuthenticationPasses": 1,
+        "authenticatedRowsBeforeCalls": 1200,
+        "comparisonBankRows": 1200,
+        "sourceComparisonCalls": 1200,
+        "publicReplayComparisonCalls": 0,
+        "observedProjectionReturns": 2400,
+        "observedAtan2Calls": 9600
+      },
+      "executionFreezeSha256": "06b30c2f3575a2b7472b19301070ed26dffd2efd3a666a750139b898c686cafe",
+      "identity": {
+        "modelRevision": "p3-original-f401",
+        "modelDigest": "sha256:7702874baf6266cb722ef61c90dcecec8e692eb1a2b171c4996e4e059ca08c17",
+        "configurationDigest": "sha256:e88357a1b38446b29e23c3c495dad798317021ffe110f557c75ffe6a88cff423",
+        "providerDigest": "sha256:bb9b57a955d04f416529e67f8c6ed764d3a9025c80ed75a16821d207651a1105",
+        "profile": "rigid-discrete-v1",
+        "frameId": "world",
+        "fixedStepSeconds": 0.008333333333333333
+      }
+    },
+    {
+      "runId": "repeat-trial-01",
+      "graph": "sourceRepeat",
+      "summary": {
+        "bytes": 3766,
+        "sha256": "b5531b7b1c9613ccd341e6b83627b93a461f180d73cdf7ad83aca32a31964ce6"
+      },
+      "frames": {
+        "bytes": 4243190,
+        "sha256": "d63a2ab592eaee44cef291339e42dc18b19e7337f57e1cf18517e2e9dbaf723d"
+      },
+      "actualCounts": {
+        "constructors": 1,
+        "attempts": 1200,
+        "accepted": 1200,
+        "qualified": 1200,
+        "getters": 1,
+        "references": 0,
+        "cleanupAttempts": 1,
+        "cleanupCompleted": 1
+      },
+      "actualHelperCounts": {
+        "fullDataAuthenticationPasses": 1,
+        "authenticatedRowsBeforeCalls": 1200,
+        "comparisonBankRows": 1200,
+        "sourceComparisonCalls": 0,
+        "publicReplayComparisonCalls": 1200,
+        "observedProjectionReturns": 0,
+        "observedAtan2Calls": 0
+      },
+      "executionFreezeSha256": "60ca8935f60115405cb8b936997e3588382a0cf9255c00a391e8cc3b4a18c883",
+      "identity": {
+        "modelRevision": "p3-original-f401",
+        "modelDigest": "sha256:7702874baf6266cb722ef61c90dcecec8e692eb1a2b171c4996e4e059ca08c17",
+        "configurationDigest": "sha256:e88357a1b38446b29e23c3c495dad798317021ffe110f557c75ffe6a88cff423",
+        "providerDigest": "sha256:bb9b57a955d04f416529e67f8c6ed764d3a9025c80ed75a16821d207651a1105",
+        "profile": "rigid-discrete-v1",
+        "frameId": "world",
+        "fixedStepSeconds": 0.008333333333333333
+      }
+    },
+    {
+      "runId": "emitted-trial-01",
+      "graph": "emittedNative",
+      "summary": {
+        "bytes": 3768,
+        "sha256": "d9905e4b6d7f24e34c607774b45ceb9285a54ae2602b63b91fc2b4ded0b3dc2c"
+      },
+      "frames": {
+        "bytes": 4243190,
+        "sha256": "f6f45194f800bffa74cd0226dfe896b9291a2f3edfe4e2a8cef202cb31cb1fad"
+      },
+      "actualCounts": {
+        "constructors": 1,
+        "attempts": 1200,
+        "accepted": 1200,
+        "qualified": 1200,
+        "getters": 1,
+        "references": 0,
+        "cleanupAttempts": 1,
+        "cleanupCompleted": 1
+      },
+      "actualHelperCounts": {
+        "fullDataAuthenticationPasses": 1,
+        "authenticatedRowsBeforeCalls": 1200,
+        "comparisonBankRows": 1200,
+        "sourceComparisonCalls": 0,
+        "publicReplayComparisonCalls": 1200,
+        "observedProjectionReturns": 0,
+        "observedAtan2Calls": 0
+      },
+      "executionFreezeSha256": "9686ea3a4865a506b8efcd0525c6038f137f3419c666efa910fc1a39fe703202",
+      "identity": {
+        "modelRevision": "p3-original-f401",
+        "modelDigest": "sha256:7702874baf6266cb722ef61c90dcecec8e692eb1a2b171c4996e4e059ca08c17",
+        "configurationDigest": "sha256:e88357a1b38446b29e23c3c495dad798317021ffe110f557c75ffe6a88cff423",
+        "providerDigest": "sha256:58c76159bffc1f3c395ce760c507ae6700a785de4e616ea7f5ae66291ca1bde0",
+        "profile": "rigid-discrete-v1",
+        "frameId": "world",
+        "fixedStepSeconds": 0.008333333333333333
+      }
+    }
+  ],
+  "rows": 1200,
+  "firstFailure": null,
+  "scope": "Saved actual source measurements and saved actual uninstrumented public outputs; no new numerical evaluation.",
+  "step77ActualOperands": {
+    "events": [
+      {
+        "pairIndex": 0,
+        "jointId": "hinge0",
+        "ordinal": 0,
+        "site": "measureBodies.relativeAngle",
+        "y": 0.15046742604928554,
+        "x": 0.9886149673650017,
+        "value": 0.15104106477859344,
+        "yBits": "805bff408442c33f",
+        "xBits": "b96625dbbba2ef3f",
+        "valueBits": "a3ddc9485055c33f"
+      },
+      {
+        "pairIndex": 0,
+        "jointId": "hinge0",
+        "ordinal": 1,
+        "site": "pose.relativeAngle",
+        "y": 0.15046742604928554,
+        "x": 0.9886149673650017,
+        "value": 0.15104106477859344,
+        "yBits": "805bff408442c33f",
+        "xBits": "b96625dbbba2ef3f",
+        "valueBits": "a3ddc9485055c33f"
+      },
+      {
+        "pairIndex": 0,
+        "jointId": "hinge0",
+        "ordinal": 2,
+        "site": "pose.relativeAngle",
+        "y": 0.15046742604928554,
+        "x": 0.9886149673650017,
+        "value": 0.15104106477859344,
+        "yBits": "805bff408442c33f",
+        "xBits": "b96625dbbba2ef3f",
+        "valueBits": "a3ddc9485055c33f"
+      },
+      {
+        "pairIndex": 0,
+        "jointId": "hinge0",
+        "ordinal": 3,
+        "site": "measureBodies.relativeAngle",
+        "y": 0.15046742604928554,
+        "x": 0.9886149673650017,
+        "value": 0.15104106477859344,
+        "yBits": "805bff408442c33f",
+        "xBits": "b96625dbbba2ef3f",
+        "valueBits": "a3ddc9485055c33f"
+      },
+      {
+        "pairIndex": 1,
+        "jointId": "hinge1",
+        "ordinal": 4,
+        "site": "measureBodies.relativeAngle",
+        "y": 0.15046742604928554,
+        "x": 0.9886149673650017,
+        "value": 0.15104106477859344,
+        "yBits": "805bff408442c33f",
+        "xBits": "b96625dbbba2ef3f",
+        "valueBits": "a3ddc9485055c33f"
+      },
+      {
+        "pairIndex": 1,
+        "jointId": "hinge1",
+        "ordinal": 5,
+        "site": "pose.relativeAngle",
+        "y": 0.15046742604928554,
+        "x": 0.9886149673650017,
+        "value": 0.15104106477859344,
+        "yBits": "805bff408442c33f",
+        "xBits": "b96625dbbba2ef3f",
+        "valueBits": "a3ddc9485055c33f"
+      },
+      {
+        "pairIndex": 1,
+        "jointId": "hinge1",
+        "ordinal": 6,
+        "site": "pose.relativeAngle",
+        "y": 0.15046742604928554,
+        "x": 0.9886149673650017,
+        "value": 0.15104106477859344,
+        "yBits": "805bff408442c33f",
+        "xBits": "b96625dbbba2ef3f",
+        "valueBits": "a3ddc9485055c33f"
+      },
+      {
+        "pairIndex": 1,
+        "jointId": "hinge1",
+        "ordinal": 7,
+        "site": "measureBodies.relativeAngle",
+        "y": 0.15046742604928554,
+        "x": 0.9886149673650017,
+        "value": 0.15104106477859344,
+        "yBits": "805bff408442c33f",
+        "xBits": "b96625dbbba2ef3f",
+        "valueBits": "a3ddc9485055c33f"
+      }
+    ],
+    "knownHistoricalReconstruction": {
+      "yBits": "805bff408442c33f",
+      "xBits": "b96625dbbba2ef3f",
+      "atan2HalfAngleBits": "a3ddc9485055c33f",
+      "reportAngleBits": "a3ddc9485055d33f"
+    },
+    "actualOperandEqualityToReconstruction": [
+      {
+        "ordinal": 0,
+        "site": "measureBodies.relativeAngle",
+        "yBitsMatch": true,
+        "xBitsMatch": true,
+        "atan2BitsMatch": true
+      },
+      {
+        "ordinal": 1,
+        "site": "pose.relativeAngle",
+        "yBitsMatch": true,
+        "xBitsMatch": true,
+        "atan2BitsMatch": true
+      },
+      {
+        "ordinal": 2,
+        "site": "pose.relativeAngle",
+        "yBitsMatch": true,
+        "xBitsMatch": true,
+        "atan2BitsMatch": true
+      },
+      {
+        "ordinal": 3,
+        "site": "measureBodies.relativeAngle",
+        "yBitsMatch": true,
+        "xBitsMatch": true,
+        "atan2BitsMatch": true
+      },
+      {
+        "ordinal": 4,
+        "site": "measureBodies.relativeAngle",
+        "yBitsMatch": true,
+        "xBitsMatch": true,
+        "atan2BitsMatch": true
+      },
+      {
+        "ordinal": 5,
+        "site": "pose.relativeAngle",
+        "yBitsMatch": true,
+        "xBitsMatch": true,
+        "atan2BitsMatch": true
+      },
+      {
+        "ordinal": 6,
+        "site": "pose.relativeAngle",
+        "yBitsMatch": true,
+        "xBitsMatch": true,
+        "atan2BitsMatch": true
+      },
+      {
+        "ordinal": 7,
+        "site": "measureBodies.relativeAngle",
+        "yBitsMatch": true,
+        "xBitsMatch": true,
+        "atan2BitsMatch": true
+      }
+    ],
+    "actualReportAngleBits": [
+      "a3ddc9485055d33f",
+      "a3ddc9485055d33f"
+    ],
+    "historicalAbsent7178434": {
+      "observedReportAngleBits": "a4ddc9485055d33f",
+      "preprojectionOperands": "UNKNOWN_NOT_OBSERVED",
+      "conclusion": "New staged actual operands do not establish the absent historical candidate operands or erase its failure."
+    }
+  },
+  "actualMeasuredQuality": {
+    "maximumComDriftM": {
+      "count": 1200,
+      "min": 0,
+      "max": 0,
+      "maxAbsolute": 0,
+      "minimumStep": 1,
+      "maximumStep": 1,
+      "distinctF64Patterns": 1,
+      "positiveZeroCount": 1200,
+      "negativeZeroCount": 0
+    },
+    "maximumPlaneDriftM": {
+      "count": 1200,
+      "min": 0,
+      "max": 0,
+      "maxAbsolute": 0,
+      "minimumStep": 1,
+      "maximumStep": 1,
+      "distinctF64Patterns": 1,
+      "positiveZeroCount": 1200,
+      "negativeZeroCount": 0
+    },
+    "maximumAnchorGapM": {
+      "count": 1200,
+      "min": 0,
+      "max": 0,
+      "maxAbsolute": 0,
+      "minimumStep": 1,
+      "maximumStep": 1,
+      "distinctF64Patterns": 1,
+      "positiveZeroCount": 1200,
+      "negativeZeroCount": 0
+    },
+    "maximumAxisErrorRad": {
+      "count": 1200,
+      "min": 0,
+      "max": 0,
+      "maxAbsolute": 0,
+      "minimumStep": 1,
+      "maximumStep": 1,
+      "distinctF64Patterns": 1,
+      "positiveZeroCount": 1200,
+      "negativeZeroCount": 0
+    }
+  },
+  "actualMeasuredMomentum": {
+    "linearKgMps": [
+      {
+        "count": 1200,
+        "min": 0,
+        "max": 0,
+        "maxAbsolute": 0,
+        "minimumStep": 1,
+        "maximumStep": 1,
+        "distinctF64Patterns": 1,
+        "positiveZeroCount": 1200,
+        "negativeZeroCount": 0
+      },
+      {
+        "count": 1200,
+        "min": 0,
+        "max": 0,
+        "maxAbsolute": 0,
+        "minimumStep": 1,
+        "maximumStep": 1,
+        "distinctF64Patterns": 1,
+        "positiveZeroCount": 1200,
+        "negativeZeroCount": 0
+      },
+      {
+        "count": 1200,
+        "min": 0,
+        "max": 0,
+        "maxAbsolute": 0,
+        "minimumStep": 1,
+        "maximumStep": 1,
+        "distinctF64Patterns": 1,
+        "positiveZeroCount": 1200,
+        "negativeZeroCount": 0
+      }
+    ],
+    "angularKgM2ps": [
+      {
+        "count": 1200,
+        "min": 0,
+        "max": 0,
+        "maxAbsolute": 0,
+        "minimumStep": 1,
+        "maximumStep": 1,
+        "distinctF64Patterns": 1,
+        "positiveZeroCount": 1200,
+        "negativeZeroCount": 0
+      },
+      {
+        "count": 1200,
+        "min": 0,
+        "max": 0,
+        "maxAbsolute": 0,
+        "minimumStep": 1,
+        "maximumStep": 1,
+        "distinctF64Patterns": 1,
+        "positiveZeroCount": 1200,
+        "negativeZeroCount": 0
+      },
+      {
+        "count": 1200,
+        "min": 0,
+        "max": 0,
+        "maxAbsolute": 0,
+        "minimumStep": 1,
+        "maximumStep": 1,
+        "distinctF64Patterns": 1,
+        "positiveZeroCount": 1200,
+        "negativeZeroCount": 0
+      }
+    ]
+  },
+  "actualObservedReports": {
+    "motorImpulseNms": {
+      "count": 2400,
+      "min": 0,
+      "max": 0.0001,
+      "maxAbsolute": 0.0001,
+      "minimumStep": 198,
+      "maximumStep": 1,
+      "distinctF64Patterns": 189,
+      "positiveZeroCount": 2006,
+      "negativeZeroCount": 0
+    },
+    "correctionLinearImpulseNsByAxis": [
+      {
+        "count": 4800,
+        "min": -0.009693401387295162,
+        "max": 0.009693401387295162,
+        "maxAbsolute": 0.009693401387295162,
+        "minimumStep": 197,
+        "maximumStep": 197,
+        "distinctF64Patterns": 399,
+        "positiveZeroCount": 4004,
+        "negativeZeroCount": 0
+      },
+      {
+        "count": 4800,
+        "min": 0,
+        "max": 0,
+        "maxAbsolute": 0,
+        "minimumStep": 1,
+        "maximumStep": 1,
+        "distinctF64Patterns": 1,
+        "positiveZeroCount": 4800,
+        "negativeZeroCount": 0
+      },
+      {
+        "count": 4800,
+        "min": 0,
+        "max": 0,
+        "maxAbsolute": 0,
+        "minimumStep": 1,
+        "maximumStep": 1,
+        "distinctF64Patterns": 1,
+        "positiveZeroCount": 4800,
+        "negativeZeroCount": 0
+      }
+    ],
+    "correctionAngularImpulseNmsByAxis": [
+      {
+        "count": 4800,
+        "min": 0,
+        "max": 0,
+        "maxAbsolute": 0,
+        "minimumStep": 1,
+        "maximumStep": 1,
+        "distinctF64Patterns": 1,
+        "positiveZeroCount": 4800,
+        "negativeZeroCount": 0
+      },
+      {
+        "count": 4800,
+        "min": 0,
+        "max": 0,
+        "maxAbsolute": 0,
+        "minimumStep": 1,
+        "maximumStep": 1,
+        "distinctF64Patterns": 1,
+        "positiveZeroCount": 4800,
+        "negativeZeroCount": 0
+      },
+      {
+        "count": 4800,
+        "min": -0.0010000000000000002,
+        "max": 0.0010000000000000002,
+        "maxAbsolute": 0.0010000000000000002,
+        "minimumStep": 197,
+        "maximumStep": 197,
+        "distinctF64Patterns": 399,
+        "positiveZeroCount": 4004,
+        "negativeZeroCount": 0
+      }
+    ],
+    "capReactionNormNms": {
+      "count": 2400,
+      "min": 0,
+      "max": 0.0010000000000000002,
+      "maxAbsolute": 0.0010000000000000002,
+      "minimumStep": 200,
+      "maximumStep": 197,
+      "distinctF64Patterns": 200,
+      "positiveZeroCount": 2002,
+      "negativeZeroCount": 0
+    },
+    "capMaximumNms": {
+      "count": 2400,
+      "min": 0.01,
+      "max": 0.01,
+      "maxAbsolute": 0.01,
+      "minimumStep": 1,
+      "maximumStep": 1,
+      "distinctF64Patterns": 1,
+      "positiveZeroCount": 0,
+      "negativeZeroCount": 0
+    },
+    "capExceedances": 0,
+    "firstReportedLimitStep": 197,
+    "firstZeroMotorStep": 198
+  },
+  "observedSourceEvidenceCounts": {
+    "sourcePhaseFrames": 7200,
+    "actualProjectionFingerprints": 2400,
+    "actualAngleEvents": 9600,
+    "independentReuseRows": 1200
+  },
+  "pairStats": [
+    {
+      "value": {
+        "eligiblePairs": 32,
+        "candidatePairs": 32,
+        "aabbTests": 0
+      },
+      "count": 1200
+    }
+  ],
+  "samples": [
+    {
+      "stepIndex": 1,
+      "timeSeconds": 0.008333333333333333,
+      "afterRawSha256": "079700aedf8289e66f5d6433fc3ac83e207d8f02a4e60b309b287779fca8d7e9",
+      "mappedBeforeFingerprint": "b46685cab8f17cf2c1bc1265a93c2a6ecbbcfb33637c977a20d613a036656f4a",
+      "mappedAfterFingerprint": "2cef8dd512f1ba17df2b373a5868062ede70f0819f42d2e648cb6f949b874e5b",
+      "pairStats": {
+        "eligiblePairs": 32,
+        "candidatePairs": 32,
+        "aabbTests": 0
+      },
+      "joints": [
+        {
+          "id": "hinge0",
+          "angleRad": 0.0004166666666666666,
+          "angleBits": "4d1be8b4814e3b3f",
+          "motorImpulseNms": 0.0001,
+          "motorImpulseBits": "2d431cebe2361a3f"
+        },
+        {
+          "id": "hinge1",
+          "angleRad": 0.0004166666666666666,
+          "angleBits": "4d1be8b4814e3b3f",
+          "motorImpulseNms": 0.0001,
+          "motorImpulseBits": "2d431cebe2361a3f"
+        }
+      ]
+    },
+    {
+      "stepIndex": 76,
+      "timeSeconds": 0.6333333333333333,
+      "afterRawSha256": "82166c7a47e4ac55e8cc7bca4f497311012693ffb57ea2216134b99632474428",
+      "mappedBeforeFingerprint": "94900e5dabb4979e49431990a34ce6c0d830a562bc3fed0f668a1d2c7f13ec35",
+      "mappedAfterFingerprint": "b7ecbed1552f07810c8549492378f37ddab3c98df523aec41ca5ba2f83f305c0",
+      "pairStats": {
+        "eligiblePairs": 32,
+        "candidatePairs": 32,
+        "aabbTests": 0
+      },
+      "joints": [
+        {
+          "id": "hinge0",
+          "angleRad": 0.29791546289052023,
+          "angleBits": "5f9985040c11d33f",
+          "motorImpulseNms": 7.530174385158574e-7,
+          "motorImpulseBits": "ae1cf0db5e44a93e"
+        },
+        {
+          "id": "hinge1",
+          "angleRad": 0.29791546289052023,
+          "angleBits": "5f9985040c11d33f",
+          "motorImpulseNms": 7.530174385158574e-7,
+          "motorImpulseBits": "ae1cf0db5e44a93e"
+        }
+      ]
+    },
+    {
+      "stepIndex": 77,
+      "timeSeconds": 0.6416666666666666,
+      "afterRawSha256": "0ac9fd68b1ae6f81f327899549ab41c8170b100b66d5f6319cf70c62085d6e7d",
+      "mappedBeforeFingerprint": "b7ecbed1552f07810c8549492378f37ddab3c98df523aec41ca5ba2f83f305c0",
+      "mappedAfterFingerprint": "303aa010cd817d3c5d2385b6cc2c71cb25b4e4a05197e7613ac4d3f59c352672",
+      "pairStats": {
+        "eligiblePairs": 32,
+        "candidatePairs": 32,
+        "aabbTests": 0
+      },
+      "joints": [
+        {
+          "id": "hinge0",
+          "angleRad": 0.3020821295571869,
+          "angleBits": "a3ddc9485055d33f",
+          "motorImpulseNms": 7.633694216983013e-7,
+          "motorImpulseBits": "7468631c4b9da93e"
+        },
+        {
+          "id": "hinge1",
+          "angleRad": 0.3020821295571869,
+          "angleBits": "a3ddc9485055d33f",
+          "motorImpulseNms": 7.633694216983013e-7,
+          "motorImpulseBits": "7468631c4b9da93e"
+        }
+      ]
+    },
+    {
+      "stepIndex": 197,
+      "timeSeconds": 1.6416666666666666,
+      "afterRawSha256": "5e49921ebc7cc07307ac5da89ac44cf8b544ec5d0699df83e979499374c87867",
+      "mappedBeforeFingerprint": "aa7838c413b0738107533566878af9987d5f1923f77bb0eb77478ebeaffafa4e",
+      "mappedAfterFingerprint": "be1c0819a30079cc148be4661b38c0df632e3c5f89454c34f31fc24d56b1cb22",
+      "pairStats": {
+        "eligiblePairs": 32,
+        "candidatePairs": 32,
+        "aabbTests": 0
+      },
+      "joints": [
+        {
+          "id": "hinge0",
+          "angleRad": 0.8,
+          "angleBits": "9a9999999999e93f",
+          "motorImpulseNms": 0.0000018588426697647712,
+          "motorImpulseBits": "bc492e21ab2fbf3e"
+        },
+        {
+          "id": "hinge1",
+          "angleRad": 0.8,
+          "angleBits": "9a9999999999e93f",
+          "motorImpulseNms": 0.0000018588426697647712,
+          "motorImpulseBits": "bc492e21ab2fbf3e"
+        }
+      ]
+    },
+    {
+      "stepIndex": 1200,
+      "timeSeconds": 10,
+      "afterRawSha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15",
+      "mappedBeforeFingerprint": "2a03d2278459f2d9e9781ef7ea3cdd3525ea2eb148d7cbf537976febfd5b3e7e",
+      "mappedAfterFingerprint": "12924bfb3d711409cd049a29752bef958cee9ce2117c5cfac27df329bdcb9e32",
+      "pairStats": {
+        "eligiblePairs": 32,
+        "candidatePairs": 32,
+        "aabbTests": 0
+      },
+      "joints": [
+        {
+          "id": "hinge0",
+          "angleRad": 0.8,
+          "angleBits": "9a9999999999e93f",
+          "motorImpulseNms": 0,
+          "motorImpulseBits": "0000000000000000"
+        },
+        {
+          "id": "hinge1",
+          "angleRad": 0.8,
+          "angleBits": "9a9999999999e93f",
+          "motorImpulseNms": 0,
+          "motorImpulseBits": "0000000000000000"
+        }
+      ]
+    }
+  ],
+  "wholeGraphEquality": [
+    {
+      "graph": "sourceObserved",
+      "raw416ConcatenationSha256": "c12fb7d41b0cefcbc3f6963665b78daafc1732e8c31d6587f76132690f581551",
+      "publicPhysicalF64EncodingSha256": "39961eaf206954e65e0e084d5afcc59833c5dcf3bbad512b05b6017845231de3",
+      "mappedBeforeFingerprintStreamSha256": "89c5e7f117bc73b2b87ac1210fced84765283c87b98f0bdefd7c0a904c623fe4",
+      "mappedAfterFingerprintStreamSha256": "354c34f412966a7b24ddeb0456d2c0853e980b0c8818cf3ff3db14d1064256fd"
+    },
+    {
+      "graph": "sourceRepeat",
+      "raw416ConcatenationSha256": "c12fb7d41b0cefcbc3f6963665b78daafc1732e8c31d6587f76132690f581551",
+      "publicPhysicalF64EncodingSha256": "39961eaf206954e65e0e084d5afcc59833c5dcf3bbad512b05b6017845231de3",
+      "mappedBeforeFingerprintStreamSha256": "89c5e7f117bc73b2b87ac1210fced84765283c87b98f0bdefd7c0a904c623fe4",
+      "mappedAfterFingerprintStreamSha256": "354c34f412966a7b24ddeb0456d2c0853e980b0c8818cf3ff3db14d1064256fd"
+    },
+    {
+      "graph": "emittedNative",
+      "raw416ConcatenationSha256": "c12fb7d41b0cefcbc3f6963665b78daafc1732e8c31d6587f76132690f581551",
+      "publicPhysicalF64EncodingSha256": "39961eaf206954e65e0e084d5afcc59833c5dcf3bbad512b05b6017845231de3",
+      "mappedBeforeFingerprintStreamSha256": "89c5e7f117bc73b2b87ac1210fced84765283c87b98f0bdefd7c0a904c623fe4",
+      "mappedAfterFingerprintStreamSha256": "354c34f412966a7b24ddeb0456d2c0853e980b0c8818cf3ff3db14d1064256fd"
+    }
+  ],
+  "notMeasuredHere": [
+    "Uninstrumented repeat/emitted internal phases, corrections, caps, operands, and physical quality are not directly observed.",
+    "No new independent oracle, trajectory-accuracy convergence study, runtime comparison, equipment comparison, or historical7178434 operand observation."
+  ],
+  "elapsedMs": 384
+}

@@ -1,0 +1,31 @@
+{
+  "entry": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/controls-build-01/source-cap-entry.mjs",
+  "outfile": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/controls-build-01/sourceCap.mjs",
+  "sha256": "7e2ae5e560b977689fcd1156ea22bde1590996969665c107fa32ca8365a90ffd",
+  "inputs": [
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/types.ts",
+      "sha256": "c7239aee629e9e331949c67bf49e43315cae50df1a8f90730b7d634b185ca182"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/internal-types.ts",
+      "sha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/math.ts",
+      "sha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/src/disjoint-hinge/report.ts",
+      "sha256": "d46b3e289c58b289b059928580ff2b89d9bd3ecfb11cb688d8b7a4735143973d"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/controls-build-01/source-cap-entry.mjs",
+      "sha256": "139fed6422650e86140eea4fedad4fd0ab336cbc1c4d6b1a626fd3b429935a79"
+    }
+  ],
+  "cadence": "build only; zero World/guard/model calls",
+  "modelsRun": 0,
+  "guardCalls": 0,
+  "cadBoundary": "NONE"
+}

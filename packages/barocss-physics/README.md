@@ -153,6 +153,21 @@ One `hinge` may instead connect exactly two dynamic spheres at the same centre. 
 
 One separate offset-hinge profile connects exactly two 1 kg dynamic spheres with 0.1 m radius. Their initial centres are `[-0.1,0,0]` and `[0.1,0,0]` m; local anchors `[0.1,0,0]` and `[-0.1,0,0]` m meet at one pivot. It admits one planar +Z hinge with `limitRad:[-0.8,0.8]`, a motor targeting 0.5 rad/s relative speed with 0.0001 N·m·s motor impulse and 0.01 N·m·s reaction caps, zero gravity and no linear or off-axis commands. The caller steps at 1/120 s. Joint state copies the reaction on B; a reaction above `maxReactionNms` refuses the candidate and retains the accepted world and Viewer frame. That cap is a numeric limit, not a material break strength. At step 120 the measured relative angle is 0.4809513021838483 rad. The [numeric probe](../../examples/physics-scene/offset-hinge-probe.mjs), [Viewer demo](../../examples/physics-viewer-scene/offset-hinge-demo.html?step=120) and [#939 merged receipt](https://github.com/barocss/barocss/issues/939#issuecomment-6077079018) cover this one fixture. Other mass ratios, nonzero gravity, arbitrary offset axes, multiple joints, exact CAD collision and calibrated loads remain outside it.
 
+The common World also admits one exact two-disjoint-hinge fixture: four 1 kg,
+0.1 m spheres, with the offset pair above at Z=0 and Z=1 m. Use
+`profile:'rigid-discrete-v1'`, `broadPhase:'direct'`, dt=1/120 s, zero gravity
+and initial motion, exact `[+0,+0,+0,1]` initial quaternions, restitution 0 and
+friction 1/0.7. Both pairs use +Z, limits ±0.8 rad and the same fixed offset
+motor/caps. Only empty commands are supported; any cross-component contact
+refuses. It shares no body between joints and does not support a connected
+two-link mechanism. The qualified staged source/repeat/native graphs each
+pass 1,200 original steps; exact source transfer, stricter raw-quaternion
+admission, current source/native API and attached-recorder checks have separate
+receipts in [P3](../../examples/physics-world-p3-2276/README.md). The hardened
+current source has a short API check and unchanged calculation bytes, not a
+new 1,200-step run. Historical step77 and eight-box NO_GO remain. No cross-runtime
+equality or equipment accuracy is claimed.
+
 Set `ccd:true` on a dynamic sphere's collider to prevent it from crossing a thin static box in one step. The first opt-in profile admits exactly one dynamic sphere, 1–8 static nonsensor oriented boxes, and no joints or other bodies. The sphere center sweeps through each box-local axis-aligned bound expanded by its radius. The earliest entry fraction wins, with fixture ID breaking equal-fraction ties. The candidate stops at the entry point with a 1e-9 m inward offset so the discrete contact solver can respond. An initial center inside an expanded box uses the discrete solver. Expanded-box corners can conservatively report a hit before exact sphere/box contact. See [PHYS-08 #771](https://github.com/barocss/barocss/issues/771#issuecomment-6059234992) for that profile.
 
 A second opt-in CCD profile admits exactly two nonsensor dynamic spheres, exactly one marked `ccd:true`, zero gravity and no joints. It sweeps their relative centres and stops both at the first entry, with a total inward offset of 1e-9 m so the discrete contact solver can respond. The reported `colliderId` names the **other dynamic sphere's collider**, and `normalFixtureToBody` points from it to the marked sphere. Initial overlap/touch and a missing entry use the discrete solver. See [RIGID-05 #824](https://github.com/barocss/barocss/issues/824) and `examples/physics-scene/ccd-pair-probe.mjs`.

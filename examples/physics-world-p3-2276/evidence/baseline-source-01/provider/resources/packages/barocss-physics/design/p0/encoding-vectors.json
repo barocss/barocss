@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "purpose": "frozen independent canonical-byte vectors for P1/P2, no codec implemented by P0",
+  "tagReference": "CONTRACT.md Source identity and digests",
+  "expectedDigestsFrom": "Python hashlib.sha256 over manually specified expected bytes; not a runtime encoder",
+  "vectors": [
+    {
+      "id": "positive-zero",
+      "inputDescription": "number +0",
+      "encodedHex": "040000000000000000",
+      "expectedSha256": "sha256:93e60f669b99ad3e3ee6284b139e57adfb419960f390858e46ea565bbf82d001"
+    },
+    {
+      "id": "negative-zero",
+      "inputDescription": "number -0",
+      "encodedHex": "040000000000000080",
+      "expectedSha256": "sha256:a78e85468abe2fefc1c36a8278057b11574835a6940a2fcc5972f93e558dd838"
+    },
+    {
+      "id": "one",
+      "inputDescription": "number 1",
+      "encodedHex": "04000000000000f03f",
+      "expectedSha256": "sha256:504db1da3eb9adacae535011f0bc1e0827e0dd13db498950984eaece64258bc5"
+    },
+    {
+      "id": "utf8-micro",
+      "inputDescription": "string U+00B5",
+      "encodedHex": "0302000000c2b5",
+      "expectedSha256": "sha256:b8ab3d7fb56566eb46e78debd0bb8ac056ccccd79a1157f58893df0141d0ebef"
+    },
+    {
+      "id": "ordered-zeros",
+      "inputDescription": "array [+0,-0]",
+      "encodedHex": "0502000000040000000000000000040000000000000080",
+      "expectedSha256": "sha256:ab743446a4e23eb97dca5b79aba644ef4fb9a336d2e29dfa6697a393dd66a71c"
+    },
+    {
+      "id": "reversed-zeros",
+      "inputDescription": "array [-0,+0]",
+      "encodedHex": "0502000000040000000000000080040000000000000000",
+      "expectedSha256": "sha256:179db66b5e59eea3038d70749277a2ba61fb22533690ca79d8fdb0be36c82f1b"
+    },
+    {
+      "id": "record-keys",
+      "inputDescription": "record {b:1,a:0} or {a:0,b:1}",
+      "encodedHex": "060200000003010000006104000000000000000003010000006204000000000000f03f",
+      "expectedSha256": "sha256:e93fa43bc53b1c16d1a65fa956ba3df19720b9ba3ce28db3e6ff6fcbfee3f620"
+    }
+  ],
+  "recordingMagicHex": "4243504852454331",
+  "wireTestsRequired": [
+    "signed-zero roundtrip all numeric fields",
+    "typed array flattened arrays",
+    "raw JSON refused",
+    "exact end-of-input",
+    "duplicate keys refused",
+    "truncated and depth>32 refused"
+  ]
+}

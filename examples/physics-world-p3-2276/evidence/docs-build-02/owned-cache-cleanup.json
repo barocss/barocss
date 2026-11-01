@@ -1,0 +1,6 @@
+{
+  "owner": "docs-build-02 default-dev invocation",
+  "files": [],
+  "operation": "remove only newly generated site-root cache",
+  "otherProcessesTouched": false
+}

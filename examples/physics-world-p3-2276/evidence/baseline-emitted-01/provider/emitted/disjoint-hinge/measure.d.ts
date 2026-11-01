@@ -1,0 +1,36 @@
+import type { Body, Joint, Vec3 } from '../internal-types.js';
+export declare function measureBodies(bodies: Body[], joint: Joint, origin: Vec3): {
+    relativeAngleRad: number;
+    anchorAM: Vec3;
+    anchorBM: Vec3;
+    anchorGapM: number;
+    axisDeviationRad: number;
+    quaternionNormError: number;
+    limitExcessRad: number;
+    centerOfMassM: Vec3;
+    linearMomentumVectorKgMps: Vec3;
+    orbitalAngularMomentumVectorKgM2ps: Vec3;
+    spinAngularMomentumVectorKgM2ps: Vec3;
+    angularMomentumVectorKgM2ps: Vec3;
+    energyJ: number;
+    anchorVelocityAMps: Vec3;
+    anchorVelocityBMps: Vec3;
+    anchorRelativeVelocityMps: Vec3;
+    relativeAngularVelocityRadps: Vec3;
+};
+export type BodyMetrics = ReturnType<typeof measureBodies>;
+export declare function measurePose(bodies: Body[], joint: Joint, origin: Vec3): {
+    centerOfMassM: Vec3;
+    linearMomentumVectorKgMps: Vec3;
+    orbitalAngularMomentumVectorKgM2ps: Vec3;
+    spinAngularMomentumVectorKgM2ps: Vec3;
+    angularMomentumVectorKgM2ps: Vec3;
+    energyJ: number;
+    relativeAngleRad: number;
+    anchorAM: Vec3;
+    anchorBM: Vec3;
+    anchorGapM: number;
+    axisDeviationRad: number;
+    quaternionNormError: number;
+    limitExcessRad: number;
+};

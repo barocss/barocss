@@ -35,6 +35,17 @@ export const providerManifest = {
     "character/types.ts": "866c5974fd99ec08b5dc6b5edf165241f4d02a8ed87274faf4cf35b19a3fb938",
     "collision.ts": "baa1492ee990bb156d4ba10deb45e0ddc31d31ab6555318c5f652043aa1ea501",
     "contact-manifold.ts": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428",
+    "disjoint-hinge/admission.ts": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d",
+    "disjoint-hinge/errors.ts": "5e51e5662fbce80bee3ccd3aa3694ee986b1492ed816d171774e261ab982bf4f",
+    "disjoint-hinge/linear-solver.ts": "4009d4d7f171be3a5d79ca309a14b039da54f9201b438a410a6e29ed0f90bfdf",
+    "disjoint-hinge/measure.ts": "97cbaf697dc8ef5caba0bf2c702699b025bcc6f906f553b623466618bbd77178",
+    "disjoint-hinge/pose.ts": "ab950c1f9f1a79f9f00cb26e4b3cef0e3dcaea7b16d74e345e711159706b39e4",
+    "disjoint-hinge/postcontact.ts": "8d07190383a64cb592165772109a4f462099743492f8373794ef7981b1431e38",
+    "disjoint-hinge/projection.ts": "9d0def632c07f8085e860a2dbf21f26d8073f3265eb57590607d23ea6d333b87",
+    "disjoint-hinge/report.ts": "d46b3e289c58b289b059928580ff2b89d9bd3ecfb11cb688d8b7a4735143973d",
+    "disjoint-hinge/rows.ts": "6556f07d1d7d22edb67af1b214c689c5b5c2b30628334abaec67280d7302903f",
+    "disjoint-hinge/stage.ts": "a66e09b816259c2bb1305fed8f90696585b9fd4b750406b0ce006cbe2c2f33ab",
+    "disjoint-hinge/types.ts": "89b2708fd9209932084eaa765f93ff6ea00a2d775911e8c9e607a7eb824c8cc1",
     "dynamic-anchor-pair.ts": "8ff622a6ce007e5e7fcb43f0b7c08521615ddacbc8195cde1ac4f574304b579d",
     "dynamic-fixed-joint.ts": "f5a0fa82c062c7406f6edfeb2aeb169c927ddd8d0965957f630f87e118c52dfa",
     "dynamic-hinge-joint.ts": "69c816393446b6e06d66849840ecf88a7d28baf72bd30c792180616f55e455f2",
@@ -45,7 +56,7 @@ export const providerManifest = {
     "joints.ts": "b6d0ec667a96fc26ec43d9d812c5ffd0a3b7446d135bd9b18713059327c59181",
     "limits.ts": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3",
     "math.ts": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2",
-    "model-admission.ts": "75ed6d033f6c76b90bb753458ea3464ad9126dd9ba7af82ca1fbe4f01bf8fdd9",
+    "model-admission.ts": "706a9e89bd334f7b5680e906748fffec9eb65e80ddbf1070837b987e065068c8",
     "persistent-box-contact.ts": "2c117202db9bcb0b988b59f9add9cae57e09d175927122a313e7166720a63d9b",
     "recording-owner.ts": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1",
     "replay-compare.ts": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec",
@@ -56,6 +67,6 @@ export const providerManifest = {
     "sleep.ts": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2",
     "types.ts": "c7239aee629e9e331949c67bf49e43315cae50df1a8f90730b7d634b185ca182",
     "validation.ts": "651d12754b77f86493f399baf3c02d60d9ad1fe54e0ece664a05a4430e8a0f01",
-    "world.ts": "781c7a9ade917c49833d506b884d27df0f92c81e8c0539f07b15c3c7d9fda243"
+    "world.ts": "ab14cacd43e0fe02dd4deee8f98fb9a2a7f8175b74a983eb04baa271b02b7600"
   }
 } as const;

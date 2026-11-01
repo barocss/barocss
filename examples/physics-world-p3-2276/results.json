@@ -1,0 +1,1699 @@
+{
+  "workId": "physics-world-p3-2276",
+  "kind": "P3_DATA_ONLY_FINAL_AUDIT",
+  "status": "PASS",
+  "base": "2e270d3b2d452e684ca6abe333ee761f1247c10e",
+  "headAtAudit": "2e270d3b2d452e684ca6abe333ee761f1247c10e",
+  "branch": "codex/physics-world-p3-2276",
+  "generatedAtUtc": "2026-11-01T18:07:50.531360+00:00",
+  "auditCalls": {
+    "World": 0,
+    "projection": 0,
+    "oracle": 0,
+    "trig": 0,
+    "browser": 0
+  },
+  "historicalPreservation": {
+    "status": "PASS",
+    "protectedPrefixes": [
+      "examples/physics-capsule-distinct-reference/",
+      "examples/physics-capsule-reuse-reference/",
+      "examples/physics-capsule-sweep-reference/",
+      "examples/physics-character-controller-reference/",
+      "examples/physics-character-lookahead-reference/",
+      "examples/physics-character-public-reference/",
+      "examples/physics-character-reference/",
+      "examples/physics-contact-boundary-2276/",
+      "examples/physics-contact-solver-2276/",
+      "examples/physics-motion-foundations-2276/",
+      "examples/physics-motion-nogo-2276/",
+      "examples/physics-planar-pendulum-reference/",
+      "examples/physics-public-disjoint-hinge-reference/",
+      "examples/physics-rigid-cache-reference/",
+      "examples/physics-rigid-capsule-ccd-reference/",
+      "examples/physics-rigid-capsule-face-world-reference/",
+      "examples/physics-rigid-contact-reference/",
+      "examples/physics-rigid-coupled-hinge-reference/",
+      "examples/physics-rigid-coupled-position-reference/",
+      "examples/physics-rigid-engine-reference/",
+      "examples/physics-rigid-feature-contact-reference/",
+      "examples/physics-rigid-global-contact-reference/",
+      "examples/physics-rigid-hinge-motor-reference/",
+      "examples/physics-rigid-hinge-velocity-reference/",
+      "examples/physics-rigid-hinge-velocity-world-reference/",
+      "examples/physics-rigid-position-reference/",
+      "examples/physics-rigid-signed-separation-reference/",
+      "examples/physics-stack-solver-2276/",
+      "examples/physics-world-p0-2276/",
+      "examples/physics-world-p1a-2276/",
+      "examples/physics-world-p1b-2276/",
+      "examples/physics-world-p2-2276/",
+      "packages/barocss-physics/design/p0/"
+    ],
+    "trackedFilesUnchanged": 5402,
+    "baseModeTypeBlobInventorySha256": "fe9536dd693eb97c4f2ff0f835530df826d34fa2e1898caa983f492863300011",
+    "referenceDirectories": 23,
+    "nonignoredNewProtectedFiles": 0,
+    "verification": "git diff against immutable base plus base mode/type/blob inventory; ignored untracked historical files not assessed"
+  },
+  "exactSourceTransfer": {
+    "status": "PASS",
+    "baseSourceEntries": 91,
+    "currentSourceEntries": 93,
+    "nonGeneratedTransferEntries": 92,
+    "sourceTransferReceipt": {
+      "bytes": 23841,
+      "sha256": "e0a75463d1663b08625f2f9a806c01dbf238faa423654fde9b5d02c4001e7786"
+    },
+    "files": [
+      {
+        "path": "src/broadphase.ts",
+        "candidateSha256": "d93e38d78cc3d202481ceeba83631d528032426d03a8adafb2e461fc72a042a0",
+        "currentSha256": "d93e38d78cc3d202481ceeba83631d528032426d03a8adafb2e461fc72a042a0",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/cad-proxy-admission.ts",
+        "candidateSha256": "898fb55af369727440fef9f4bfadba0ea455b4c800a719909e5311029a663441",
+        "currentSha256": "898fb55af369727440fef9f4bfadba0ea455b4c800a719909e5311029a663441",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/cad-proxy-pose.ts",
+        "candidateSha256": "8b5f50642144e335421ee6483f8b016b8a0babdb0c312ddf6ba4afbcf8bda322",
+        "currentSha256": "8b5f50642144e335421ee6483f8b016b8a0babdb0c312ddf6ba4afbcf8bda322",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/cad-proxy-types.ts",
+        "candidateSha256": "31bbf6766887913149d6fa2185c173adb0c6b78cdb21d1556ae4ffd055666128",
+        "currentSha256": "31bbf6766887913149d6fa2185c173adb0c6b78cdb21d1556ae4ffd055666128",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/cad-proxy-validation.ts",
+        "candidateSha256": "4429f957bb51ff2604a15478095e35642368dcf91ca0d854561693d3f99f748e",
+        "currentSha256": "4429f957bb51ff2604a15478095e35642368dcf91ca0d854561693d3f99f748e",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/cad-proxy.ts",
+        "candidateSha256": "03745054fcec2bd660258fa9cf303aced00456bda3a705294c664e509882356b",
+        "currentSha256": "03745054fcec2bd660258fa9cf303aced00456bda3a705294c664e509882356b",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/capsule-contact.ts",
+        "candidateSha256": "cc29d60423bd9a1883585cf164cca0b0736b9fc72e7feb3575c5208c7d892929",
+        "currentSha256": "cc29d60423bd9a1883585cf164cca0b0736b9fc72e7feb3575c5208c7d892929",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/capsule-query-error.ts",
+        "candidateSha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f",
+        "currentSha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/capsule-query.ts",
+        "candidateSha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1",
+        "currentSha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/capsule-query/admission.ts",
+        "candidateSha256": "9b67efc7a8824ce49361485eff925afa50017e05bc23d900db5ec7c4e2c8760d",
+        "currentSha256": "9b67efc7a8824ce49361485eff925afa50017e05bc23d900db5ec7c4e2c8760d",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/capsule-query/geometry.ts",
+        "candidateSha256": "5fdbe1eb40f46e930161e98244a9e5ec0e00c29297caf6f91d530c98df3df4a7",
+        "currentSha256": "5fdbe1eb40f46e930161e98244a9e5ec0e00c29297caf6f91d530c98df3df4a7",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/capsule-query/profile.ts",
+        "candidateSha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff",
+        "currentSha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/capsule-query/snapshot.ts",
+        "candidateSha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd",
+        "currentSha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/capsule-query/sweep.ts",
+        "candidateSha256": "a8f4d16879b2ff88086ceec54cef19d04d58fb063893e7a146382cad59cbaf77",
+        "currentSha256": "a8f4d16879b2ff88086ceec54cef19d04d58fb063893e7a146382cad59cbaf77",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/capsule-query/types.ts",
+        "candidateSha256": "c22d17887cd8ab889a443c828200310a4c560fd3b4f8ed49f3f1f60e5dd46f44",
+        "currentSha256": "c22d17887cd8ab889a443c828200310a4c560fd3b4f8ed49f3f1f60e5dd46f44",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/ccd-box.ts",
+        "candidateSha256": "43667cba73a01782cac3b9fe14828b67885229a6e09bc9f0e68b6a2d27057b43",
+        "currentSha256": "43667cba73a01782cac3b9fe14828b67885229a6e09bc9f0e68b6a2d27057b43",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/ccd-pair.ts",
+        "candidateSha256": "570b434c19e432ccc3632bafa2c174df6dac9968e6c38b0f7d4416f75090231f",
+        "currentSha256": "570b434c19e432ccc3632bafa2c174df6dac9968e6c38b0f7d4416f75090231f",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/ccd-slab.ts",
+        "candidateSha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340",
+        "currentSha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/ccd.ts",
+        "candidateSha256": "040de88f74673b297164227ff5faada12f0eb190aa14a9471dbeb02f879a57ab",
+        "currentSha256": "040de88f74673b297164227ff5faada12f0eb190aa14a9471dbeb02f879a57ab",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/character-controller.ts",
+        "candidateSha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927",
+        "currentSha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/character/admission.ts",
+        "candidateSha256": "d83cdb8231620a18935d4d4d5e19ab7ec5440b043e1df71d49d5fa42f3fecb26",
+        "currentSha256": "d83cdb8231620a18935d4d4d5e19ab7ec5440b043e1df71d49d5fa42f3fecb26",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/character/core.ts",
+        "candidateSha256": "6c6251e9782baed07be65cce68bfdbca14e2f930ca04a54ee6812cbbfc925a02",
+        "currentSha256": "6c6251e9782baed07be65cce68bfdbca14e2f930ca04a54ee6812cbbfc925a02",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/character/ground.ts",
+        "candidateSha256": "bd1621641ebc9300943b88c9083710218768454acb0a5e1ba8b330086d68c321",
+        "currentSha256": "bd1621641ebc9300943b88c9083710218768454acb0a5e1ba8b330086d68c321",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/character/math.ts",
+        "candidateSha256": "df0e88c320d8a189004991cd5cfc3f8de3d7bb3eecb305bb01830a11191dcdc5",
+        "currentSha256": "df0e88c320d8a189004991cd5cfc3f8de3d7bb3eecb305bb01830a11191dcdc5",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/character/profile.ts",
+        "candidateSha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82",
+        "currentSha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/character/query.ts",
+        "candidateSha256": "9ef96eeb1529dc42466445529b100affc2f56913081f0c2fc169079cffe1a8cf",
+        "currentSha256": "9ef96eeb1529dc42466445529b100affc2f56913081f0c2fc169079cffe1a8cf",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/character/slide.ts",
+        "candidateSha256": "587d5512212e68fdc26068646152d2f8c52c3c6119d6c222de91b750c01fcd77",
+        "currentSha256": "587d5512212e68fdc26068646152d2f8c52c3c6119d6c222de91b750c01fcd77",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/character/state.ts",
+        "candidateSha256": "6eb744c82f24604a8ecadd6e9d86406600119a3fbc7918129f93983df7cbf47e",
+        "currentSha256": "6eb744c82f24604a8ecadd6e9d86406600119a3fbc7918129f93983df7cbf47e",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/character/step-assist.ts",
+        "candidateSha256": "9166857ad8509049a56d5b255ed59de17ee03e159581b495de7f1d985780c390",
+        "currentSha256": "9166857ad8509049a56d5b255ed59de17ee03e159581b495de7f1d985780c390",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/character/types.ts",
+        "candidateSha256": "866c5974fd99ec08b5dc6b5edf165241f4d02a8ed87274faf4cf35b19a3fb938",
+        "currentSha256": "866c5974fd99ec08b5dc6b5edf165241f4d02a8ed87274faf4cf35b19a3fb938",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/cloth.ts",
+        "candidateSha256": "20088da3e20e782153deec6719e6946562fabe474dc5eaebe6d1ac9c20a508ce",
+        "currentSha256": "20088da3e20e782153deec6719e6946562fabe474dc5eaebe6d1ac9c20a508ce",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/cloth/admission.ts",
+        "candidateSha256": "8beee60c6d48f5afb48743f945b06484e96d3cfaf13c0816edb4ea6e00407177",
+        "currentSha256": "8beee60c6d48f5afb48743f945b06484e96d3cfaf13c0816edb4ea6e00407177",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/cloth/constraints.ts",
+        "candidateSha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be",
+        "currentSha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/cloth/metrics.ts",
+        "candidateSha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd",
+        "currentSha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/cloth/profile.ts",
+        "candidateSha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f",
+        "currentSha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/cloth/solver.ts",
+        "candidateSha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d",
+        "currentSha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/cloth/topology.ts",
+        "candidateSha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203",
+        "currentSha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/cloth/types.ts",
+        "candidateSha256": "6fa716f52e0a31e1821ce11e0528ac3fe07ba79ce0daaa443b799c8b56f43446",
+        "currentSha256": "6fa716f52e0a31e1821ce11e0528ac3fe07ba79ce0daaa443b799c8b56f43446",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/cloth/world.ts",
+        "candidateSha256": "586368a30bcf54389a39f370321d5890ff33a0fc8a53408bf8d1a92a84a480ae",
+        "currentSha256": "586368a30bcf54389a39f370321d5890ff33a0fc8a53408bf8d1a92a84a480ae",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/collision.ts",
+        "candidateSha256": "baa1492ee990bb156d4ba10deb45e0ddc31d31ab6555318c5f652043aa1ea501",
+        "currentSha256": "baa1492ee990bb156d4ba10deb45e0ddc31d31ab6555318c5f652043aa1ea501",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/contact-manifold.ts",
+        "candidateSha256": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428",
+        "currentSha256": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/disjoint-hinge/admission.ts",
+        "candidateSha256": "a64f8e9bf77b36e760dfcd21783773a0340b38c3e1b568e03096ed3003d46a4a",
+        "currentSha256": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d",
+        "equal": false,
+        "boundary": "reviewed raw-quaternion guard"
+      },
+      {
+        "path": "src/disjoint-hinge/errors.ts",
+        "candidateSha256": "5e51e5662fbce80bee3ccd3aa3694ee986b1492ed816d171774e261ab982bf4f",
+        "currentSha256": "5e51e5662fbce80bee3ccd3aa3694ee986b1492ed816d171774e261ab982bf4f",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/disjoint-hinge/linear-solver.ts",
+        "candidateSha256": "4009d4d7f171be3a5d79ca309a14b039da54f9201b438a410a6e29ed0f90bfdf",
+        "currentSha256": "4009d4d7f171be3a5d79ca309a14b039da54f9201b438a410a6e29ed0f90bfdf",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/disjoint-hinge/measure.ts",
+        "candidateSha256": "97cbaf697dc8ef5caba0bf2c702699b025bcc6f906f553b623466618bbd77178",
+        "currentSha256": "97cbaf697dc8ef5caba0bf2c702699b025bcc6f906f553b623466618bbd77178",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/disjoint-hinge/pose.ts",
+        "candidateSha256": "ab950c1f9f1a79f9f00cb26e4b3cef0e3dcaea7b16d74e345e711159706b39e4",
+        "currentSha256": "ab950c1f9f1a79f9f00cb26e4b3cef0e3dcaea7b16d74e345e711159706b39e4",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/disjoint-hinge/postcontact.ts",
+        "candidateSha256": "8d07190383a64cb592165772109a4f462099743492f8373794ef7981b1431e38",
+        "currentSha256": "8d07190383a64cb592165772109a4f462099743492f8373794ef7981b1431e38",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/disjoint-hinge/projection.ts",
+        "candidateSha256": "9d0def632c07f8085e860a2dbf21f26d8073f3265eb57590607d23ea6d333b87",
+        "currentSha256": "9d0def632c07f8085e860a2dbf21f26d8073f3265eb57590607d23ea6d333b87",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/disjoint-hinge/report.ts",
+        "candidateSha256": "d46b3e289c58b289b059928580ff2b89d9bd3ecfb11cb688d8b7a4735143973d",
+        "currentSha256": "d46b3e289c58b289b059928580ff2b89d9bd3ecfb11cb688d8b7a4735143973d",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/disjoint-hinge/rows.ts",
+        "candidateSha256": "6556f07d1d7d22edb67af1b214c689c5b5c2b30628334abaec67280d7302903f",
+        "currentSha256": "6556f07d1d7d22edb67af1b214c689c5b5c2b30628334abaec67280d7302903f",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/disjoint-hinge/stage.ts",
+        "candidateSha256": "a66e09b816259c2bb1305fed8f90696585b9fd4b750406b0ce006cbe2c2f33ab",
+        "currentSha256": "a66e09b816259c2bb1305fed8f90696585b9fd4b750406b0ce006cbe2c2f33ab",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/disjoint-hinge/types.ts",
+        "candidateSha256": "89b2708fd9209932084eaa765f93ff6ea00a2d775911e8c9e607a7eb824c8cc1",
+        "currentSha256": "89b2708fd9209932084eaa765f93ff6ea00a2d775911e8c9e607a7eb824c8cc1",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/dynamic-anchor-pair.ts",
+        "candidateSha256": "8ff622a6ce007e5e7fcb43f0b7c08521615ddacbc8195cde1ac4f574304b579d",
+        "currentSha256": "8ff622a6ce007e5e7fcb43f0b7c08521615ddacbc8195cde1ac4f574304b579d",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/dynamic-fixed-joint.ts",
+        "candidateSha256": "f5a0fa82c062c7406f6edfeb2aeb169c927ddd8d0965957f630f87e118c52dfa",
+        "currentSha256": "f5a0fa82c062c7406f6edfeb2aeb169c927ddd8d0965957f630f87e118c52dfa",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/dynamic-hinge-joint.ts",
+        "candidateSha256": "69c816393446b6e06d66849840ecf88a7d28baf72bd30c792180616f55e455f2",
+        "currentSha256": "69c816393446b6e06d66849840ecf88a7d28baf72bd30c792180616f55e455f2",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/fluid-cad.ts",
+        "candidateSha256": "379e7e1c9745b630e31de4a7718c1eb093bd27c04a0850509d49ac6d3ecf01df",
+        "currentSha256": "379e7e1c9745b630e31de4a7718c1eb093bd27c04a0850509d49ac6d3ecf01df",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/fluid.ts",
+        "candidateSha256": "f0af54170c9d1afdb899ae09298a58be462496d524f0e2e75d22028081aeb44b",
+        "currentSha256": "f0af54170c9d1afdb899ae09298a58be462496d524f0e2e75d22028081aeb44b",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/fluid/boundary.ts",
+        "candidateSha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c",
+        "currentSha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/fluid/cad-admission.ts",
+        "candidateSha256": "769d8fb16a9639c03df6a63afe5f7be86fc1a9ad1d4e0f548cf1effa6336afeb",
+        "currentSha256": "769d8fb16a9639c03df6a63afe5f7be86fc1a9ad1d4e0f548cf1effa6336afeb",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/fluid/cad-errors.ts",
+        "candidateSha256": "ab88933fdb5b51f6a299bb16a69f05452ea66f9698a5465f2cc0c35231fd6f16",
+        "currentSha256": "ab88933fdb5b51f6a299bb16a69f05452ea66f9698a5465f2cc0c35231fd6f16",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/fluid/cad-types.ts",
+        "candidateSha256": "66e648dcdf0d7a6631d44c5f48a47cd5e1de96b7e56d6083072ae3182fa22869",
+        "currentSha256": "66e648dcdf0d7a6631d44c5f48a47cd5e1de96b7e56d6083072ae3182fa22869",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/fluid/cad-world.ts",
+        "candidateSha256": "e4555c86bd31f4016609e778e1d57c510eb54d15da46c55632de880d4cccae9d",
+        "currentSha256": "e4555c86bd31f4016609e778e1d57c510eb54d15da46c55632de880d4cccae9d",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/fluid/constants.ts",
+        "candidateSha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec",
+        "currentSha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/fluid/diagnostics.ts",
+        "candidateSha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215",
+        "currentSha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/fluid/kernel.ts",
+        "candidateSha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da",
+        "currentSha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/fluid/neighbors.ts",
+        "candidateSha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3",
+        "currentSha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/fluid/pbf.ts",
+        "candidateSha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50",
+        "currentSha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/fluid/static-box.ts",
+        "candidateSha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9",
+        "currentSha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/fluid/types.ts",
+        "candidateSha256": "a6c25087eaeaa6a0b290c2a400040eb19d082d8c0ec3d170de26729f53ba8cb1",
+        "currentSha256": "a6c25087eaeaa6a0b290c2a400040eb19d082d8c0ec3d170de26729f53ba8cb1",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/fluid/validation.ts",
+        "candidateSha256": "0f78de306b95c55b5193e07a7b11f9ceece9ccae15e93403401c5fe1c9b3b3a4",
+        "currentSha256": "0f78de306b95c55b5193e07a7b11f9ceece9ccae15e93403401c5fe1c9b3b3a4",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/fluid/visual-viscosity.ts",
+        "candidateSha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3",
+        "currentSha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/fluid/world.ts",
+        "candidateSha256": "be1f29eaa50b2c7d827711611b53fb623eff32ab49eb77d9933ea47de8317615",
+        "currentSha256": "be1f29eaa50b2c7d827711611b53fb623eff32ab49eb77d9933ea47de8317615",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/generate-provider.mjs",
+        "candidateSha256": "c45a6eb52df5f4840aa30006ac65d15ea0758066f63d815e4a3b394e8eb20557",
+        "currentSha256": "c45a6eb52df5f4840aa30006ac65d15ea0758066f63d815e4a3b394e8eb20557",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/identity.ts",
+        "candidateSha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be",
+        "currentSha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/index.ts",
+        "candidateSha256": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30",
+        "currentSha256": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/internal-types.ts",
+        "candidateSha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8",
+        "currentSha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/joint-motor.ts",
+        "candidateSha256": "9a50b0d006ca2386cd2d79b8ba162f6850a5d08d3eb1c7d03460d606559b56ea",
+        "currentSha256": "9a50b0d006ca2386cd2d79b8ba162f6850a5d08d3eb1c7d03460d606559b56ea",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/joints.ts",
+        "candidateSha256": "b6d0ec667a96fc26ec43d9d812c5ffd0a3b7446d135bd9b18713059327c59181",
+        "currentSha256": "b6d0ec667a96fc26ec43d9d812c5ffd0a3b7446d135bd9b18713059327c59181",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/limits.ts",
+        "candidateSha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3",
+        "currentSha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/math.ts",
+        "candidateSha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2",
+        "currentSha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/model-admission.ts",
+        "candidateSha256": "706a9e89bd334f7b5680e906748fffec9eb65e80ddbf1070837b987e065068c8",
+        "currentSha256": "706a9e89bd334f7b5680e906748fffec9eb65e80ddbf1070837b987e065068c8",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/persistent-box-contact.ts",
+        "candidateSha256": "2c117202db9bcb0b988b59f9add9cae57e09d175927122a313e7166720a63d9b",
+        "currentSha256": "2c117202db9bcb0b988b59f9add9cae57e09d175927122a313e7166720a63d9b",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/provider-manifest.generated.ts",
+        "candidateSha256": "78a6fe00aef78224cc10bab7e1cd273bb0537d6d74ee92b9bdd825466678af83",
+        "currentSha256": "1fbaddea84e70e1a0ba78c1f64dbbdeae1d563cb494f810e5b0a78e8a7e54e2a",
+        "equal": false,
+        "boundary": "generated provider identity"
+      },
+      {
+        "path": "src/recording-owner.ts",
+        "candidateSha256": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1",
+        "currentSha256": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/replay-compare.ts",
+        "candidateSha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec",
+        "currentSha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/replay-json.ts",
+        "candidateSha256": "1ab8cf962443edd3be387e5095a9cce3f2071c8b44e47cc165ce82d5c00ac617",
+        "currentSha256": "1ab8cf962443edd3be387e5095a9cce3f2071c8b44e47cc165ce82d5c00ac617",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/replay-validation.ts",
+        "candidateSha256": "5fdbc90c06b8bd0e6fcc704447514400ea0d96c965f29d9ffa0b63063578f13c",
+        "currentSha256": "5fdbc90c06b8bd0e6fcc704447514400ea0d96c965f29d9ffa0b63063578f13c",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/replay.ts",
+        "candidateSha256": "ecbdb6cd31452a57080ca52f43f75541a78080acf0288a2e6d0f022676c2c9e1",
+        "currentSha256": "ecbdb6cd31452a57080ca52f43f75541a78080acf0288a2e6d0f022676c2c9e1",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/scene-profile.ts",
+        "candidateSha256": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7",
+        "currentSha256": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/sleep.ts",
+        "candidateSha256": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2",
+        "currentSha256": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/types.ts",
+        "candidateSha256": "c7239aee629e9e331949c67bf49e43315cae50df1a8f90730b7d634b185ca182",
+        "currentSha256": "c7239aee629e9e331949c67bf49e43315cae50df1a8f90730b7d634b185ca182",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/validation.ts",
+        "candidateSha256": "651d12754b77f86493f399baf3c02d60d9ad1fe54e0ece664a05a4430e8a0f01",
+        "currentSha256": "651d12754b77f86493f399baf3c02d60d9ad1fe54e0ece664a05a4430e8a0f01",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      },
+      {
+        "path": "src/world.ts",
+        "candidateSha256": "ab14cacd43e0fe02dd4deee8f98fb9a2a7f8175b74a983eb04baa271b02b7600",
+        "currentSha256": "ab14cacd43e0fe02dd4deee8f98fb9a2a7f8175b74a983eb04baa271b02b7600",
+        "equal": true,
+        "boundary": "exact candidate bytes"
+      }
+    ],
+    "physicalKernelChangesAfterStagedQualification": 0,
+    "exceptions": [
+      "src/disjoint-hinge/admission.ts",
+      "src/provider-manifest.generated.ts"
+    ]
+  },
+  "rootGraphs": {
+    "noCadViewer": true,
+    "stagedGraphReceipts": [
+      {
+        "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/source-observed.graph.json",
+        "bytes": 14442,
+        "sha256": "0107437df5223b1e3f81aa7227493412dd2e1c728250be48abef9670e018ff4e",
+        "inputs": 54,
+        "cadViewerInputs": 0
+      },
+      {
+        "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/source-plain.graph.json",
+        "bytes": 12935,
+        "sha256": "b3b3bff8b60aa93312df0af4d66b4c1a291aeb106f03a4dfd5b523346417f697",
+        "inputs": 54,
+        "cadViewerInputs": 0
+      },
+      {
+        "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/emitted-native.graph.json",
+        "bytes": 947,
+        "sha256": "b658fbc3c6f08078fa0c06f594341f669636eacef42bcba8e60b67f330e7be00",
+        "inputs": 4,
+        "cadViewerInputs": 0
+      }
+    ],
+    "stagedBuild": {
+      "run": "candidate-build-01",
+      "path": "examples/physics-world-p3-2276/evidence/candidate-build-01/build.json",
+      "bytes": 15594,
+      "sha256": "94dbe0f2e67749f1a38b6a76b647e7dd1afddc03fc748d8625a7c5bcf432bf05"
+    },
+    "currentAdoptionBuild": {
+      "run": "adoption-build-01",
+      "path": "examples/physics-world-p3-2276/evidence/adoption-build-01/adoption-providers.json",
+      "bytes": 51442,
+      "sha256": "d694e4c08583dbe3dc186093221da8fb1b822f3d127c05f1c315717ac1d13a65"
+    },
+    "actualCurrentNativeEntry": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/index.js",
+    "providerIdentityBoundary": "source/emitted provider digests may differ; exact physical output parity is separate"
+  },
+  "mainQualification": {
+    "status": "PASS",
+    "graphs": [
+      {
+        "run": "source-trial-01",
+        "path": "examples/physics-world-p3-2276/evidence/source-trial-01/summary.json",
+        "bytes": 3767,
+        "sha256": "87a61b7ff9518049b35d257afb7ee13dc2e51b3cf5fc00a881fc9a6214c8baf1",
+        "graph": "sourceObserved",
+        "counts": {
+          "constructors": 1,
+          "attempts": 1200,
+          "accepted": 1200,
+          "qualified": 1200,
+          "getters": 1,
+          "references": 0,
+          "cleanupAttempts": 1,
+          "cleanupCompleted": 1
+        },
+        "actualFrames": {
+          "rows": 1200,
+          "bytes": 15785618,
+          "sha256": "3af2294836f55bf8a1a90da88d720b4f3006388afccdf40f30b8239322bb5e60"
+        },
+        "phasesObserved": true,
+        "runtime": {
+          "node": "v22.19.0",
+          "platform": "darwin",
+          "arch": "arm64"
+        }
+      },
+      {
+        "run": "repeat-trial-01",
+        "path": "examples/physics-world-p3-2276/evidence/repeat-trial-01/summary.json",
+        "bytes": 3766,
+        "sha256": "b5531b7b1c9613ccd341e6b83627b93a461f180d73cdf7ad83aca32a31964ce6",
+        "graph": "sourceRepeat",
+        "counts": {
+          "constructors": 1,
+          "attempts": 1200,
+          "accepted": 1200,
+          "qualified": 1200,
+          "getters": 1,
+          "references": 0,
+          "cleanupAttempts": 1,
+          "cleanupCompleted": 1
+        },
+        "actualFrames": {
+          "rows": 1200,
+          "bytes": 4243190,
+          "sha256": "d63a2ab592eaee44cef291339e42dc18b19e7337f57e1cf18517e2e9dbaf723d"
+        },
+        "phasesObserved": false,
+        "runtime": {
+          "node": "v22.19.0",
+          "platform": "darwin",
+          "arch": "arm64"
+        }
+      },
+      {
+        "run": "emitted-trial-01",
+        "path": "examples/physics-world-p3-2276/evidence/emitted-trial-01/summary.json",
+        "bytes": 3768,
+        "sha256": "d9905e4b6d7f24e34c607774b45ceb9285a54ae2602b63b91fc2b4ded0b3dc2c",
+        "graph": "emittedNative",
+        "counts": {
+          "constructors": 1,
+          "attempts": 1200,
+          "accepted": 1200,
+          "qualified": 1200,
+          "getters": 1,
+          "references": 0,
+          "cleanupAttempts": 1,
+          "cleanupCompleted": 1
+        },
+        "actualFrames": {
+          "rows": 1200,
+          "bytes": 4243190,
+          "sha256": "f6f45194f800bffa74cd0226dfe896b9291a2f3edfe4e2a8cef202cb31cb1fad"
+        },
+        "phasesObserved": false,
+        "runtime": {
+          "node": "v22.19.0",
+          "platform": "darwin",
+          "arch": "arm64"
+        }
+      }
+    ],
+    "authority": "original f401 saved independent certificates after full exact correspondence",
+    "newColdReferenceCalls": 0,
+    "scope": "original candidate-build-01 hashes; hardened current source has a separate two-step/API gate, not a fresh1200 run"
+  },
+  "qualificationControls": {
+    "run": "controls-01",
+    "path": "examples/physics-world-p3-2276/evidence/controls-01/summary.json",
+    "bytes": 5160,
+    "sha256": "098c6d4620982c004a2f090245c237145523648ac530f37a83509b9e9d581b37",
+    "counts": {
+      "constructors": 47,
+      "attempts": 4180,
+      "accepted": 4128,
+      "refused": 52,
+      "getters": 639,
+      "queries": 18,
+      "explicitDisposals": 4,
+      "cleanupAttempts": 31,
+      "cleanupCompleted": 31,
+      "internalCapCases": 12,
+      "internalCapLeafCalls": 14,
+      "independentStepsQualified": 3608
+    },
+    "includesBaselinesAndMain": true
+  },
+  "separateRecorderIntegration": {
+    "run": "recorder-01",
+    "path": "examples/physics-world-p3-2276/evidence/recorder-01/summary.json",
+    "bytes": 2942,
+    "sha256": "781848db3fc10f34fdf2d3b0575c7677b9195c796eedac324d4201c5c0e561de",
+    "counts": {
+      "explicitConstructors": 2,
+      "successfulRestoreConstructorsSourceBound": 2,
+      "explicitWorldStepCalls": 4,
+      "explicitRecorderStepCalls": 14,
+      "explicitAcceptedSteps": 12,
+      "refusedWorldSteps": 6,
+      "successfulRestoreStepsSourceBound": 8,
+      "restoreCalls": 2,
+      "successfulRestores": 2,
+      "recorderAttachCalls": 4,
+      "recorderAttachRefusals": 2,
+      "recorderDisposals": 4,
+      "worldCleanupAttempts": 4,
+      "worldCleanupCompleted": 4
+    },
+    "totalConstructors": 4,
+    "WorldStepEntries": 26,
+    "acceptedPhysicalSteps": 20,
+    "refusedWorldSteps": 6,
+    "countBoundary": "eight restore steps and two restore constructors are source-bound, not newly observed native internal calls"
+  },
+  "separateCurrentAdoption": {
+    "run": "adoption-01",
+    "path": "examples/physics-world-p3-2276/evidence/adoption-01/summary.json",
+    "bytes": 2300,
+    "sha256": "497f3250d1d7b15f28f922b8278249dfffd99491bd3dae339deb920b01a29f33",
+    "counts": {
+      "constructors": 14,
+      "constructorRefusals": 10,
+      "attempts": 6,
+      "accepted": 6,
+      "qualified": 4,
+      "getters": 2,
+      "cleanupAttempts": 4,
+      "cleanupCompleted": 4
+    },
+    "newHardened1200TrajectoryClaim": false
+  },
+  "separateDocsSample": {
+    "status": "PASS",
+    "requiredCurrentRuns": {
+      "docs-samples-01": "PASS",
+      "docs-check-01": "PASS",
+      "docs-build-03": "PASS",
+      "docs-links-02": "PASS",
+      "docs-p3-assets-01": "PASS"
+    },
+    "newP3SampleBudget": {
+      "constructors": 1,
+      "acceptedSteps": 2
+    },
+    "receipts": [
+      {
+        "run": "docs-build-01",
+        "receipt": "examples/physics-world-p3-2276/evidence/docs-build-01/result.json",
+        "bytes": 372,
+        "sha256": "faf3d33afe23ec8a4a91235ad5c6f18014842f94f60aea4f1330dd0696aaa8c1",
+        "status": "FAIL",
+        "rawExit": 1,
+        "scope": "Documentation receipt only; new P3 sample has one constructor/two steps; never a new full trajectory"
+      },
+      {
+        "run": "docs-build-02",
+        "receipt": "examples/physics-world-p3-2276/evidence/docs-build-02/result.json",
+        "bytes": 341,
+        "sha256": "a94ef1471adc4131685ba4faa6fe65fb1ed77894d4759a6cf2a9bd645268feb1",
+        "status": "INVALID_BUILD_INVOCATION",
+        "rawExit": 0,
+        "scope": "Documentation receipt only; new P3 sample has one constructor/two steps; never a new full trajectory",
+        "invocationCorrection": {
+          "path": "examples/physics-world-p3-2276/evidence/docs-build-02/invocation-correction.json",
+          "bytes": 298,
+          "sha256": "48e9045bd2455233b39dc90e4ebf379307b8ffb78f27673dde9156a9faddd205",
+          "data": {
+            "classification": "HARNESS_COMMAND_ARGUMENT_FAILURE",
+            "requested": "documentation build",
+            "actualCommandOmitted": [
+              "build",
+              "docs"
+            ],
+            "actualMode": "VitePress default dev; not a build",
+            "stoppedOwnedChildPid": 58737,
+            "preservedOriginalReceipt": true,
+            "physicsCalls": 0
+          }
+        }
+      },
+      {
+        "run": "docs-build-03",
+        "receipt": "examples/physics-world-p3-2276/evidence/docs-build-03/result.json",
+        "bytes": 366,
+        "sha256": "633de5513a1a709db405c005172923ba4cd2d5a50add986622817e9cf73a4fa6",
+        "status": "PASS",
+        "rawExit": 0,
+        "scope": "Documentation receipt only; new P3 sample has one constructor/two steps; never a new full trajectory"
+      },
+      {
+        "run": "docs-check-01",
+        "receipt": "examples/physics-world-p3-2276/evidence/docs-check-01/result.json",
+        "bytes": 324,
+        "sha256": "79e3244d0c2f2aacdfd52d69995b7d5a4b468e31c23ac5b349d0e282e609ad4f",
+        "status": "PASS",
+        "rawExit": 0,
+        "scope": "Documentation receipt only; new P3 sample has one constructor/two steps; never a new full trajectory"
+      },
+      {
+        "run": "docs-links-01",
+        "receipt": "examples/physics-world-p3-2276/evidence/docs-links-01/result.json",
+        "bytes": 332,
+        "sha256": "959f42714d09268b0d580edb275e5eff4f5227491090d16b3c113122620c65d8",
+        "status": "FAIL",
+        "rawExit": 1,
+        "scope": "Documentation receipt only; new P3 sample has one constructor/two steps; never a new full trajectory"
+      },
+      {
+        "run": "docs-links-02",
+        "receipt": "examples/physics-world-p3-2276/evidence/docs-links-02/result.json",
+        "bytes": 332,
+        "sha256": "dbc4cd65045e27355d13d115362c2b4cc75892bf60962e05ea8a519699d7c53a",
+        "status": "PASS",
+        "rawExit": 0,
+        "scope": "Documentation receipt only; new P3 sample has one constructor/two steps; never a new full trajectory"
+      },
+      {
+        "run": "docs-p3-assets-01",
+        "receipt": "examples/physics-world-p3-2276/evidence/docs-p3-assets-01/result.json",
+        "bytes": 330,
+        "sha256": "611e1e136c0e5e2eb3037922f79c55e2d07f5955868403c1f2392e2f4dc37dd7",
+        "status": "PASS",
+        "rawExit": 0,
+        "scope": "Documentation receipt only; new P3 sample has one constructor/two steps; never a new full trajectory"
+      },
+      {
+        "run": "docs-samples-01",
+        "receipt": "examples/physics-world-p3-2276/evidence/docs-samples-01/result.json",
+        "bytes": 317,
+        "sha256": "2dab97fe0a25180eb29aafcc0ae89824648afc3f35b3ff6f41da52517f81ce73",
+        "status": "PASS",
+        "rawExit": 0,
+        "scope": "Documentation receipt only; new P3 sample has one constructor/two steps; never a new full trajectory"
+      }
+    ],
+    "historicalFailureBoundary": "All original failed/invalid invocation receipts remain listed; later corrected runs do not relabel them."
+  },
+  "lintReceipts": [
+    {
+      "run": "lint-01",
+      "receipt": "examples/physics-world-p3-2276/evidence/lint-01/result.json",
+      "bytes": 418,
+      "sha256": "18c58307ab662b9ef6fe5222a81bfb4f23b88437f755f993f9481218f45579ff",
+      "status": "PASS",
+      "rawExit": 0,
+      "scope": "Changed source/harness lint only; no numerical or documentation build claim"
+    }
+  ],
+  "actualMeasuredSource": {
+    "receipt": {
+      "run": "main-data-audit-01",
+      "path": "examples/physics-world-p3-2276/evidence/main-data-audit-01/summary.json",
+      "bytes": 22256,
+      "sha256": "efaeb60ab5a25f55c57232e08ada1f29b4ba6780f402d3dcba26bb93b7773e4d"
+    },
+    "quality": {
+      "maximumComDriftM": {
+        "count": 1200,
+        "min": 0,
+        "max": 0,
+        "maxAbsolute": 0,
+        "minimumStep": 1,
+        "maximumStep": 1,
+        "distinctF64Patterns": 1,
+        "positiveZeroCount": 1200,
+        "negativeZeroCount": 0
+      },
+      "maximumPlaneDriftM": {
+        "count": 1200,
+        "min": 0,
+        "max": 0,
+        "maxAbsolute": 0,
+        "minimumStep": 1,
+        "maximumStep": 1,
+        "distinctF64Patterns": 1,
+        "positiveZeroCount": 1200,
+        "negativeZeroCount": 0
+      },
+      "maximumAnchorGapM": {
+        "count": 1200,
+        "min": 0,
+        "max": 0,
+        "maxAbsolute": 0,
+        "minimumStep": 1,
+        "maximumStep": 1,
+        "distinctF64Patterns": 1,
+        "positiveZeroCount": 1200,
+        "negativeZeroCount": 0
+      },
+      "maximumAxisErrorRad": {
+        "count": 1200,
+        "min": 0,
+        "max": 0,
+        "maxAbsolute": 0,
+        "minimumStep": 1,
+        "maximumStep": 1,
+        "distinctF64Patterns": 1,
+        "positiveZeroCount": 1200,
+        "negativeZeroCount": 0
+      }
+    },
+    "reports": {
+      "motorImpulseNms": {
+        "count": 2400,
+        "min": 0,
+        "max": 0.0001,
+        "maxAbsolute": 0.0001,
+        "minimumStep": 198,
+        "maximumStep": 1,
+        "distinctF64Patterns": 189,
+        "positiveZeroCount": 2006,
+        "negativeZeroCount": 0
+      },
+      "correctionLinearImpulseNsByAxis": [
+        {
+          "count": 4800,
+          "min": -0.009693401387295162,
+          "max": 0.009693401387295162,
+          "maxAbsolute": 0.009693401387295162,
+          "minimumStep": 197,
+          "maximumStep": 197,
+          "distinctF64Patterns": 399,
+          "positiveZeroCount": 4004,
+          "negativeZeroCount": 0
+        },
+        {
+          "count": 4800,
+          "min": 0,
+          "max": 0,
+          "maxAbsolute": 0,
+          "minimumStep": 1,
+          "maximumStep": 1,
+          "distinctF64Patterns": 1,
+          "positiveZeroCount": 4800,
+          "negativeZeroCount": 0
+        },
+        {
+          "count": 4800,
+          "min": 0,
+          "max": 0,
+          "maxAbsolute": 0,
+          "minimumStep": 1,
+          "maximumStep": 1,
+          "distinctF64Patterns": 1,
+          "positiveZeroCount": 4800,
+          "negativeZeroCount": 0
+        }
+      ],
+      "correctionAngularImpulseNmsByAxis": [
+        {
+          "count": 4800,
+          "min": 0,
+          "max": 0,
+          "maxAbsolute": 0,
+          "minimumStep": 1,
+          "maximumStep": 1,
+          "distinctF64Patterns": 1,
+          "positiveZeroCount": 4800,
+          "negativeZeroCount": 0
+        },
+        {
+          "count": 4800,
+          "min": 0,
+          "max": 0,
+          "maxAbsolute": 0,
+          "minimumStep": 1,
+          "maximumStep": 1,
+          "distinctF64Patterns": 1,
+          "positiveZeroCount": 4800,
+          "negativeZeroCount": 0
+        },
+        {
+          "count": 4800,
+          "min": -0.0010000000000000002,
+          "max": 0.0010000000000000002,
+          "maxAbsolute": 0.0010000000000000002,
+          "minimumStep": 197,
+          "maximumStep": 197,
+          "distinctF64Patterns": 399,
+          "positiveZeroCount": 4004,
+          "negativeZeroCount": 0
+        }
+      ],
+      "capReactionNormNms": {
+        "count": 2400,
+        "min": 0,
+        "max": 0.0010000000000000002,
+        "maxAbsolute": 0.0010000000000000002,
+        "minimumStep": 200,
+        "maximumStep": 197,
+        "distinctF64Patterns": 200,
+        "positiveZeroCount": 2002,
+        "negativeZeroCount": 0
+      },
+      "capMaximumNms": {
+        "count": 2400,
+        "min": 0.01,
+        "max": 0.01,
+        "maxAbsolute": 0.01,
+        "minimumStep": 1,
+        "maximumStep": 1,
+        "distinctF64Patterns": 1,
+        "positiveZeroCount": 0,
+        "negativeZeroCount": 0
+      },
+      "capExceedances": 0,
+      "firstReportedLimitStep": 197,
+      "firstZeroMotorStep": 198
+    },
+    "step77ActualOperands": {
+      "events": [
+        {
+          "pairIndex": 0,
+          "jointId": "hinge0",
+          "ordinal": 0,
+          "site": "measureBodies.relativeAngle",
+          "y": 0.15046742604928554,
+          "x": 0.9886149673650017,
+          "value": 0.15104106477859344,
+          "yBits": "805bff408442c33f",
+          "xBits": "b96625dbbba2ef3f",
+          "valueBits": "a3ddc9485055c33f"
+        },
+        {
+          "pairIndex": 0,
+          "jointId": "hinge0",
+          "ordinal": 1,
+          "site": "pose.relativeAngle",
+          "y": 0.15046742604928554,
+          "x": 0.9886149673650017,
+          "value": 0.15104106477859344,
+          "yBits": "805bff408442c33f",
+          "xBits": "b96625dbbba2ef3f",
+          "valueBits": "a3ddc9485055c33f"
+        },
+        {
+          "pairIndex": 0,
+          "jointId": "hinge0",
+          "ordinal": 2,
+          "site": "pose.relativeAngle",
+          "y": 0.15046742604928554,
+          "x": 0.9886149673650017,
+          "value": 0.15104106477859344,
+          "yBits": "805bff408442c33f",
+          "xBits": "b96625dbbba2ef3f",
+          "valueBits": "a3ddc9485055c33f"
+        },
+        {
+          "pairIndex": 0,
+          "jointId": "hinge0",
+          "ordinal": 3,
+          "site": "measureBodies.relativeAngle",
+          "y": 0.15046742604928554,
+          "x": 0.9886149673650017,
+          "value": 0.15104106477859344,
+          "yBits": "805bff408442c33f",
+          "xBits": "b96625dbbba2ef3f",
+          "valueBits": "a3ddc9485055c33f"
+        },
+        {
+          "pairIndex": 1,
+          "jointId": "hinge1",
+          "ordinal": 4,
+          "site": "measureBodies.relativeAngle",
+          "y": 0.15046742604928554,
+          "x": 0.9886149673650017,
+          "value": 0.15104106477859344,
+          "yBits": "805bff408442c33f",
+          "xBits": "b96625dbbba2ef3f",
+          "valueBits": "a3ddc9485055c33f"
+        },
+        {
+          "pairIndex": 1,
+          "jointId": "hinge1",
+          "ordinal": 5,
+          "site": "pose.relativeAngle",
+          "y": 0.15046742604928554,
+          "x": 0.9886149673650017,
+          "value": 0.15104106477859344,
+          "yBits": "805bff408442c33f",
+          "xBits": "b96625dbbba2ef3f",
+          "valueBits": "a3ddc9485055c33f"
+        },
+        {
+          "pairIndex": 1,
+          "jointId": "hinge1",
+          "ordinal": 6,
+          "site": "pose.relativeAngle",
+          "y": 0.15046742604928554,
+          "x": 0.9886149673650017,
+          "value": 0.15104106477859344,
+          "yBits": "805bff408442c33f",
+          "xBits": "b96625dbbba2ef3f",
+          "valueBits": "a3ddc9485055c33f"
+        },
+        {
+          "pairIndex": 1,
+          "jointId": "hinge1",
+          "ordinal": 7,
+          "site": "measureBodies.relativeAngle",
+          "y": 0.15046742604928554,
+          "x": 0.9886149673650017,
+          "value": 0.15104106477859344,
+          "yBits": "805bff408442c33f",
+          "xBits": "b96625dbbba2ef3f",
+          "valueBits": "a3ddc9485055c33f"
+        }
+      ],
+      "knownHistoricalReconstruction": {
+        "yBits": "805bff408442c33f",
+        "xBits": "b96625dbbba2ef3f",
+        "atan2HalfAngleBits": "a3ddc9485055c33f",
+        "reportAngleBits": "a3ddc9485055d33f"
+      },
+      "actualOperandEqualityToReconstruction": [
+        {
+          "ordinal": 0,
+          "site": "measureBodies.relativeAngle",
+          "yBitsMatch": true,
+          "xBitsMatch": true,
+          "atan2BitsMatch": true
+        },
+        {
+          "ordinal": 1,
+          "site": "pose.relativeAngle",
+          "yBitsMatch": true,
+          "xBitsMatch": true,
+          "atan2BitsMatch": true
+        },
+        {
+          "ordinal": 2,
+          "site": "pose.relativeAngle",
+          "yBitsMatch": true,
+          "xBitsMatch": true,
+          "atan2BitsMatch": true
+        },
+        {
+          "ordinal": 3,
+          "site": "measureBodies.relativeAngle",
+          "yBitsMatch": true,
+          "xBitsMatch": true,
+          "atan2BitsMatch": true
+        },
+        {
+          "ordinal": 4,
+          "site": "measureBodies.relativeAngle",
+          "yBitsMatch": true,
+          "xBitsMatch": true,
+          "atan2BitsMatch": true
+        },
+        {
+          "ordinal": 5,
+          "site": "pose.relativeAngle",
+          "yBitsMatch": true,
+          "xBitsMatch": true,
+          "atan2BitsMatch": true
+        },
+        {
+          "ordinal": 6,
+          "site": "pose.relativeAngle",
+          "yBitsMatch": true,
+          "xBitsMatch": true,
+          "atan2BitsMatch": true
+        },
+        {
+          "ordinal": 7,
+          "site": "measureBodies.relativeAngle",
+          "yBitsMatch": true,
+          "xBitsMatch": true,
+          "atan2BitsMatch": true
+        }
+      ],
+      "actualReportAngleBits": [
+        "a3ddc9485055d33f",
+        "a3ddc9485055d33f"
+      ],
+      "historicalAbsent7178434": {
+        "observedReportAngleBits": "a4ddc9485055d33f",
+        "preprojectionOperands": "UNKNOWN_NOT_OBSERVED",
+        "conclusion": "New staged actual operands do not establish the absent historical candidate operands or erase its failure."
+      }
+    },
+    "wholeGraphEquality": [
+      {
+        "graph": "sourceObserved",
+        "raw416ConcatenationSha256": "c12fb7d41b0cefcbc3f6963665b78daafc1732e8c31d6587f76132690f581551",
+        "publicPhysicalF64EncodingSha256": "39961eaf206954e65e0e084d5afcc59833c5dcf3bbad512b05b6017845231de3",
+        "mappedBeforeFingerprintStreamSha256": "89c5e7f117bc73b2b87ac1210fced84765283c87b98f0bdefd7c0a904c623fe4",
+        "mappedAfterFingerprintStreamSha256": "354c34f412966a7b24ddeb0456d2c0853e980b0c8818cf3ff3db14d1064256fd"
+      },
+      {
+        "graph": "sourceRepeat",
+        "raw416ConcatenationSha256": "c12fb7d41b0cefcbc3f6963665b78daafc1732e8c31d6587f76132690f581551",
+        "publicPhysicalF64EncodingSha256": "39961eaf206954e65e0e084d5afcc59833c5dcf3bbad512b05b6017845231de3",
+        "mappedBeforeFingerprintStreamSha256": "89c5e7f117bc73b2b87ac1210fced84765283c87b98f0bdefd7c0a904c623fe4",
+        "mappedAfterFingerprintStreamSha256": "354c34f412966a7b24ddeb0456d2c0853e980b0c8818cf3ff3db14d1064256fd"
+      },
+      {
+        "graph": "emittedNative",
+        "raw416ConcatenationSha256": "c12fb7d41b0cefcbc3f6963665b78daafc1732e8c31d6587f76132690f581551",
+        "publicPhysicalF64EncodingSha256": "39961eaf206954e65e0e084d5afcc59833c5dcf3bbad512b05b6017845231de3",
+        "mappedBeforeFingerprintStreamSha256": "89c5e7f117bc73b2b87ac1210fced84765283c87b98f0bdefd7c0a904c623fe4",
+        "mappedAfterFingerprintStreamSha256": "354c34f412966a7b24ddeb0456d2c0853e980b0c8818cf3ff3db14d1064256fd"
+      }
+    ],
+    "scope": "actual observed SOURCE measurements only; uninstrumented repeat/native internals not observed"
+  },
+  "bankAuthentication": {
+    "run": "bank-auth-04",
+    "path": "examples/physics-world-p3-2276/evidence/bank-auth-04/summary.json",
+    "bytes": 26154,
+    "sha256": "0a7834e1824bd5aa356439afd1967f2916adc2d82acc04fd918528d36eb05e57"
+  },
+  "firstDataFailuresPreserved": [
+    {
+      "run": "bank-auth-01",
+      "path": "examples/physics-world-p3-2276/evidence/bank-auth-01/summary.json",
+      "bytes": 1402,
+      "sha256": "538160c46609707f8f15653c4e6f28d5c27456718c17facdfda5770c277b9928",
+      "rows": 0,
+      "firstFailure": {
+        "name": "SyntaxError",
+        "code": null,
+        "message": "Expected property name or '}' in JSON at position 2 (line 2 column 1)",
+        "stack": "SyntaxError: Expected property name or '}' in JSON at position 2 (line 2 column 1)\n    at JSON.parse (<anonymous>)\n    at parse (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/bank-auth.mjs:24:37)\n    at lines (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/bank-auth.mjs:63:63)\n    at lines.next (<anonymous>)\n    at at (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/bank-auth.mjs:117:30)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async iterateOriginalRows (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/bank-auth.mjs:155:27)\n    at async file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/bank-auth-01/run.mjs:12:20"
+      },
+      "classification": "DATA harness failure; no World/reference calls"
+    },
+    {
+      "run": "bank-auth-02",
+      "path": "examples/physics-world-p3-2276/evidence/bank-auth-02/summary.json",
+      "bytes": 1459,
+      "sha256": "aefd82edde2d53b15d2095b213e1a15634bf81c2c6bef8988f827660aa6e9375",
+      "rows": 0,
+      "firstFailure": {
+        "name": "BankAuthenticationError",
+        "code": "BANK_AUTHENTICATION_FAILED",
+        "message": "saved row locator: byte/hash mismatch",
+        "stack": "BankAuthenticationError: saved row locator: byte/hash mismatch\n    at need (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/bank-auth.mjs:23:51)\n    at exact (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/bank-auth.mjs:25:44)\n    at locatorMatches (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/bank-auth.mjs:113:3)\n    at at (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/bank-auth.mjs:119:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async iterateOriginalRows (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/bank-auth.mjs:158:25)\n    at async file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/bank-auth-02/run.mjs:12:20"
+      },
+      "classification": "DATA harness failure; no World/reference calls"
+    },
+    {
+      "run": "bank-auth-03",
+      "path": "examples/physics-world-p3-2276/evidence/bank-auth-03/summary.json",
+      "bytes": 23098,
+      "sha256": "36da185c81e6162b8d42dea3dff0de76688c08c937e6f53fc6c01fc979056721",
+      "rows": 1200,
+      "firstFailure": {
+        "name": "BankAuthenticationError",
+        "code": "BANK_AUTHENTICATION_FAILED",
+        "message": "alias differs from pinned original stream",
+        "stack": "BankAuthenticationError: alias differs from pinned original stream\n    at need (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/bank-auth.mjs:23:51)\n    at authenticateOriginalAliases (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/bank-auth.mjs:231:9)\n    at async file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/bank-auth-03/run.mjs:25:3"
+      },
+      "classification": "DATA harness failure; no World/reference calls"
+    }
+  ],
+  "ownedNonEvidenceFiles": [
+    {
+      "path": "examples/physics-world-p3-2276/ADMISSION-HARDENING.md",
+      "bytes": 4113,
+      "sha256": "53a37c1515cec32b9657113a6e48bc37546e1897313279257374fefc23860069"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/ADOPTION-CONTRACT.md",
+      "bytes": 3673,
+      "sha256": "69c954b1b2f3818b26be02b1017263eef0bb7e2c2b1c1723c0bfc2a6e7d8c1ea"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/CONTRACT.md",
+      "bytes": 8780,
+      "sha256": "dfc39201372ad63acb1f6230d0d0804eed2d6652a21b01f0f9c4ce1835637731"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/CONTROLS-ADDENDUM.md",
+      "bytes": 2881,
+      "sha256": "3f165ccc86f835c780926f38459cc5947028f90cb330d69f7e8829ef337f8fbf"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/GATES.md",
+      "bytes": 3307,
+      "sha256": "733155cf6a50b9f1946142b48c54bf961db07d2ae0c68c72bc18d07603dd0524"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/OWNER-DECISIONS.md",
+      "bytes": 1653,
+      "sha256": "45a09411c0caa2d75dc03abc0a12a0c80e4137dee229a053f5204b0163192e17"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/README.md",
+      "bytes": 10509,
+      "sha256": "79c5bb7d29381873a1ef57e47521fa1956c2dfdd7bfe88bbd853a0ae7c753a9f"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/RECORDER-CONTRACT.md",
+      "bytes": 4475,
+      "sha256": "d19db8c8a627ef7ae8552b059d24336294ca0501328e21efe0dc54ef9d0b1d5b"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/admission-hardening/src/disjoint-hinge/admission.ts",
+      "bytes": 3764,
+      "sha256": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/admission-hardening.patch",
+      "bytes": 1031,
+      "sha256": "843c48a17efc80760196500bb25c08d2f3b41782d8e68ac46119057351103052"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/adoption-build-freeze-01.json",
+      "bytes": 5802,
+      "sha256": "35698c3549bc56de0bc2a25f5bca5b7aa450974a02dce7735ff3305ac6e6ff02"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/adoption-execution-freeze-01.json",
+      "bytes": 5934,
+      "sha256": "8e492cf2ffe83abf2895dd1ca21738cdd770a8712d339c5f2d7e35965b53b3b5"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/adoption-positive.mts",
+      "bytes": 2102,
+      "sha256": "fd618045e7765c1dc37075b128b503394efeeba8537fe7b13723d7e05bf00274"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/adoption.mjs",
+      "bytes": 17703,
+      "sha256": "fc186c0f8feee704c5cc56d254cfe007ec8c5fee128faade19c691f4abea6366"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/adoption.test.mjs",
+      "bytes": 4441,
+      "sha256": "a93a77de3217899d52f655074e97cc45d3d828814461d10632fa8457c906773b"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/bank-auth.mjs",
+      "bytes": 16881,
+      "sha256": "aa5524892cf1dfd9481d55c8e29410eae06ff35554733c1f94b4e132359e4502"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/baseline.mjs",
+      "bytes": 17315,
+      "sha256": "cbd1c19051a22393ffbb4f2e40a8abc0d570b5564e7068a007a4e622a2f8014e"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/baseline.test.mjs",
+      "bytes": 1041,
+      "sha256": "944ed264d25ef8535938d532cfb8024a33ae2ddb10d185a39728b36cf19a2b2a"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/build-freeze-01.json",
+      "bytes": 12937,
+      "sha256": "6015e8e4cb4d4bd420e7d2c91ba989a3015de0cbdb9b1891f12bf04a6f6b120e"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/build.mjs",
+      "bytes": 12015,
+      "sha256": "fdd4cd083af1206f7c15705193dbc757f26c9af1e65f73de94bd7af858a6d9ab"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/candidate/src/disjoint-hinge/admission.ts",
+      "bytes": 3654,
+      "sha256": "a64f8e9bf77b36e760dfcd21783773a0340b38c3e1b568e03096ed3003d46a4a"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/candidate/src/disjoint-hinge/stage.ts",
+      "bytes": 2648,
+      "sha256": "a66e09b816259c2bb1305fed8f90696585b9fd4b750406b0ce006cbe2c2f33ab"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/candidate/src/model-admission.ts",
+      "bytes": 10088,
+      "sha256": "706a9e89bd334f7b5680e906748fffec9eb65e80ddbf1070837b987e065068c8"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/candidate/src/world.ts",
+      "bytes": 24256,
+      "sha256": "ab14cacd43e0fe02dd4deee8f98fb9a2a7f8175b74a983eb04baa271b02b7600"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/candidate.patch",
+      "bytes": 13811,
+      "sha256": "83592486a1704d0e2c75f3860016bc07b987bee5b317cc0408a43bade89afd14"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/checks.mjs",
+      "bytes": 1211,
+      "sha256": "2f5e508b8c2e056a881a138041604a21cb22e9be196a2a686c40a1a5b1f397ba"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/compare.mjs",
+      "bytes": 20506,
+      "sha256": "7f7a86d77c451acb2fb39e39273128c96dddc6a41abfc2b7f9f47fbb32801f25"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/compat.mjs",
+      "bytes": 31141,
+      "sha256": "2db662f1ced4d3f76b4e24b96b5ce9ab47e39d30fbe801ac5ebcd5711f850e7a"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/control-plan.md",
+      "bytes": 7024,
+      "sha256": "bb4a4cd99a07828f39a47c4ec9a0bfe0ec749a512ecd18a9b80ce6d44cd8dbf0"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/controls-build-freeze-01.json",
+      "bytes": 39792,
+      "sha256": "7bce92eb542f77ac7d18c2f9ad7929d367c778f30744c377fc8070a449160d03"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/controls-execution-freeze-01.json",
+      "bytes": 39923,
+      "sha256": "6dcf11eb247cd37ce1d48f8778542d237052da5061f062d09c86fdee686e7dbb"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/controls-run.mjs",
+      "bytes": 22028,
+      "sha256": "1c263b4f462bc49b453355fc51ffe8db85bb7642e08c67383c429f2a4a7228fa"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/data-controls.test.mjs",
+      "bytes": 2800,
+      "sha256": "c011b211d858e8cce63045f80c4de2f69630c372f0a7390643571b86a1e07a5c"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/data-review.md",
+      "bytes": 6736,
+      "sha256": "09291cc441c47377fd45ed7afef20d38bc5872c39be9729c0dde6546858bea69"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/design-review.md",
+      "bytes": 11380,
+      "sha256": "97e873695fc64cd5fa930d34ee0fc31f51ef3e085966b0103226a8103b6f6f8b"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/execution-emitted-01.json",
+      "bytes": 3867,
+      "sha256": "9686ea3a4865a506b8efcd0525c6038f137f3419c666efa910fc1a39fe703202"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/execution-repeat-01.json",
+      "bytes": 3866,
+      "sha256": "60ca8935f60115405cb8b936997e3588382a0cf9255c00a391e8cc3b4a18c883"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/execution-source-01.json",
+      "bytes": 3770,
+      "sha256": "06b30c2f3575a2b7472b19301070ed26dffd2efd3a666a750139b898c686cafe"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/extract-results.mjs",
+      "bytes": 15504,
+      "sha256": "ac334ce4a82b6ec4916a60af85ed38d6a005b7b309748aa1f449c752a6f71fdd"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/final-audit.py",
+      "bytes": 17023,
+      "sha256": "394db32722e9e4119cb2976acbf15b724089d29d54981762a00312abf64c7075"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/fixture.mjs",
+      "bytes": 2247,
+      "sha256": "fdc716579550fb4240539dba915c32620f25a6a27d06e7e84d37ffe0f4dedd04"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/observe.mjs",
+      "bytes": 9201,
+      "sha256": "5dcb40f6b67846fa1a98bd4a476370694cd8bc1165f14a4f048f4e02fa5baa91"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/recorder-build-freeze-01.json",
+      "bytes": 31827,
+      "sha256": "ebd46df89a8eebbcfec4db8428b01b9f1167ef3a4be067157a4d3fa19c802ed5"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/recorder-execution-freeze-01.json",
+      "bytes": 31959,
+      "sha256": "2b0d67bbcc05830e0277171c057c336dfd67896a79680eb6300c8550f3174f49"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/recorder-integration.mjs",
+      "bytes": 22280,
+      "sha256": "ce6d5d5052e017fb9d5d51229be2cd727ca9cc3a62b29ec63dcbfbe5ed8bdf97"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/site-assets.mjs",
+      "bytes": 1302,
+      "sha256": "29976dfc730311ffac862ddf005e3a28882f4ca0dbb8eaf82d5692ec175c8c9e"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/source-transfer.json",
+      "bytes": 23841,
+      "sha256": "e0a75463d1663b08625f2f9a806c01dbf238faa423654fde9b5d02c4001e7786"
+    },
+    {
+      "path": "examples/physics-world-p3-2276/trial.mjs",
+      "bytes": 17578,
+      "sha256": "f3a82df8a9855da819c244d5204841c37095e52e3ffae824f15773ce2bf3a9ba"
+    }
+  ],
+  "proofLimits": [
+    "No combined count or accuracy badge across separately budgeted gates.",
+    "Historical7178434 step77 failure remains NO_GO; original actual operands remain unobserved.",
+    "No convergence-order, cross-runtime, equipment, connected-mechanism, full-stack, Viewer or whole-engine acceptance.",
+    "Original HOLDs and P4/P5/P6/P7 roadmap dependencies remain separate."
+  ],
+  "remoteOperationsInThisAudit": "NOT_RUN"
+}

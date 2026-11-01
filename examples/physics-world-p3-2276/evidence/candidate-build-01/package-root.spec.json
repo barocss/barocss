@@ -1,0 +1,9 @@
+{
+  "physics": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics",
+  "observed": false,
+  "library": true,
+  "observerURL": "file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/observe.mjs",
+  "outfile": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/dist/index.js",
+  "metafile": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/candidate-build-01/package-root.metafile.json",
+  "graph": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/candidate-build-01/package-root.graph.json"
+}

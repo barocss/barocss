@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "examples/physics-world-p3-2276/extract-results.mjs",
+    "main-data-audit-01"
+  ],
+  "timeoutSeconds": 180,
+  "exit": 0,
+  "elapsedSeconds": 0.5120489597320557,
+  "stdoutSha256": "8f6d5ef0c0c7b79bba68a812b6694b8e701465695482ed75ef857bfb1ba4ab6d",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "modelsRun": 0,
+  "referencesRun": 0
+}

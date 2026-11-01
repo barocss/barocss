@@ -1,0 +1,127 @@
+import { createPhysicsWorld } from './index.js';
+import { PhysicsError } from './types.js';
+import type { PhysicsWorld, PhysicsRecorder, PhysicsCommand, PhysicsState, RecordedState, Recording, RestoredRecording, Digest, PhysicsModel, WorldOptions } from './types.js';
+import { recordingWorlds } from './recording-owner.js';
+import type { RecordingOwner } from './recording-owner.js';
+import { canonicalEncode } from './identity.js';
+import { copyReplayJson, replayError, encodeRecordingData, decodeRecordingData, equivalentReplayIdentity, exactFields } from './replay-json.js';
+import { equivalentReplayValue } from './replay-compare.js';
+import { admitRecording } from './replay-validation.js';
+export type { Recording, RecordedState, PhysicsRecorder, RestoredRecording, CreatePhysicsRecorder, RestorePhysicsRecording, SerializePhysicsRecording, DeserializePhysicsRecording } from './types.js';
+
+function recordedState(state: PhysicsState): RecordedState {
+  if (state.cloths.length || state.fluids.length) replayError('INVALID_SNAPSHOT', 'domain recording is unsupported');
+  return copyReplayJson({ ...state, cloths: [], fluids: [] }, 'state');
+}
+
+function recordingBudget<T>(prepare: () => T): T {
+  try { return prepare(); }
+  catch (error) {
+    if (error instanceof PhysicsError && error.code === 'INVALID_SNAPSHOT') {
+      replayError('WORLD_LIMIT', 'recording data exceeds resource bounds');
+    }
+    throw error;
+  }
+}
+
+function attachRecorder(world: PhysicsWorld): PhysicsRecorder {
+  const access = recordingWorlds.get(world);
+  if (!access) replayError('INVALID_SNAPSHOT', 'recorder requires a genuine World');
+  let recorder: PhysicsRecorder;
+  access.attach(({ model, options, state }) => {
+    if (canonicalEncode(model).length > 128 * 1024) replayError('WORLD_LIMIT', 'recording model exceeds byte limit');
+    const initial: Recording = { format: 'barocss-physics-recording', version: 1,
+      model, options, identity: state.identity, frames: [], finalState: recordedState(state) };
+    encodeRecordingData(initial);
+    const preparedOwner: RecordingOwner = { recording: initial, commandCount: 0,
+      prepareFrames(commands: readonly PhysicsCommand[], stepIndex: number): Recording['frames'] {
+        return recordingBudget(() => {
+          const frames = [...preparedOwner.recording!.frames,
+            { stepIndex, commands: copyReplayJson(commands, 'commands') }];
+          // Byte/resource preflight only; the accepted final cursor remains unchanged here.
+          encodeRecordingData({ ...preparedOwner.recording!, frames });
+          return frames;
+        });
+      },
+      prepare(frames: Recording['frames'], next: PhysicsState): Recording {
+        return recordingBudget(() => {
+          const recording: Recording = { ...preparedOwner.recording!, frames,
+            finalState: recordedState(next) };
+          encodeRecordingData(recording);
+          return recording;
+        });
+      } };
+    let detached = false;
+    recorder = {
+      getState: () => access.read(preparedOwner),
+      step: (commands = []) => access.step(preparedOwner, commands),
+      saveRecording() { access.read(preparedOwner); return copyReplayJson(preparedOwner.recording!, 'recording'); },
+      dispose() { if (!detached) { access.detach(preparedOwner); detached = true; } },
+    };
+    return preparedOwner;
+  });
+  return recorder!;
+}
+
+function restoreRecording(input: Recording,
+  expectedInput: { readonly model: PhysicsModel; readonly options: WorldOptions; readonly providerDigest: Digest }): RestoredRecording {
+  const recording = admitRecording(input);
+  const expected = copyReplayJson(expectedInput, 'expected identity');
+  exactFields(expected, ['model','options','providerDigest'], 'expected identity');
+  if (!equivalentReplayIdentity(recording.model, expected.model) ||
+      !equivalentReplayIdentity(recording.options, expected.options) || recording.identity.providerDigest !== expected.providerDigest) replayError('STALE_SNAPSHOT', 'recording identity differs from expected inputs');
+  let world: PhysicsWorld | undefined;
+  try {
+    world = createPhysicsWorld(recording.model, recording.options);
+    if (!equivalentReplayIdentity(world.getState().identity, recording.identity)) replayError('STALE_SNAPSHOT', 'recording provider differs from current provider');
+    const recorder = createPhysicsRecorder(world);
+    for (const frame of recording.frames) recorder.step(frame.commands);
+    if (!equivalentReplayValue(recorder.getState(), recording.finalState)) replayError('INVALID_SNAPSHOT', 'final state differs from reconstructed state');
+    return { world, recorder };
+  } catch (error) {
+    world?.dispose();
+    if (error instanceof PhysicsError && error.code === 'STALE_SNAPSHOT') throw error;
+    replayError('INVALID_SNAPSHOT', 'recording reconstruction failed');
+  }
+}
+
+function serializeRecording(input: Recording): Uint8Array {
+  const recording = admitRecording(input);
+  const candidate = restorePhysicsRecording(recording, { model: recording.model, options: recording.options, providerDigest: recording.identity.providerDigest });
+  try { return encodeRecordingData(recording); } finally { candidate.world.dispose(); }
+}
+function deserializeRecording(bytes: Uint8Array): Recording {
+  const recording = admitRecording(decodeRecordingData(bytes));
+  const candidate = restorePhysicsRecording(recording, { model: recording.model, options: recording.options, providerDigest: recording.identity.providerDigest });
+  try { return copyReplayJson(recording, 'recording'); } finally { candidate.world.dispose(); }
+}
+
+function recordingOperation<T>(operation: 'record' | 'restore', action: () => T): T {
+  try { return action(); }
+  catch (failure) {
+    if (!(failure instanceof PhysicsError)) throw failure;
+    const error = new PhysicsError(failure.code, failure.message, {
+      operation, domain: 'recording', entityIds: failure.details.entityIds,
+      accepted: operation === 'record' ? failure.details.accepted : null,
+      phase: failure.code === 'STALE_SNAPSHOT' ? 'identity' :
+        failure.code === 'WORLD_LIMIT' ? 'budget' :
+        ['DISPOSED', 'WORLD_OWNED', 'REENTRANT_CALL'].includes(failure.code) ? 'lifecycle' : 'validation',
+    });
+    error.stack = failure.stack;
+    throw error;
+  }
+}
+
+export function createPhysicsRecorder(world: PhysicsWorld): PhysicsRecorder {
+  return recordingOperation('record', () => attachRecorder(world));
+}
+export function restorePhysicsRecording(recording: Recording,
+  expected: { readonly model: PhysicsModel; readonly options: WorldOptions; readonly providerDigest: Digest }): RestoredRecording {
+  return recordingOperation('restore', () => restoreRecording(recording, expected));
+}
+export function serializePhysicsRecording(recording: Recording): Uint8Array {
+  return recordingOperation('record', () => serializeRecording(recording));
+}
+export function deserializePhysicsRecording(bytes: Uint8Array): Recording {
+  return recordingOperation('record', () => deserializeRecording(bytes));
+}

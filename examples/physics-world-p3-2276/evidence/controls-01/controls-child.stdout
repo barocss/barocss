@@ -1,0 +1,1 @@
+{"runId":"controls-01","status":"PASS","counts":{"constructors":47,"attempts":4180,"accepted":4128,"refused":52,"getters":639,"queries":18,"explicitDisposals":4,"cleanupAttempts":31,"cleanupCompleted":31,"internalCapCases":12,"internalCapLeafCalls":14,"independentStepsQualified":3608},"firstFailure":null}

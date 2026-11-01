@@ -1,0 +1,27 @@
+{
+  "kind": "emittedNative",
+  "actualEntry": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/candidate-build-01/provider/packages/barocss-physics/dist/index.js",
+  "publishConfigImport": "./dist/index.js",
+  "inputs": [
+    {
+      "path": "dist/index.js",
+      "sha256": "6fe78672c16e399d506d973fce74687ecee4bac3bd60884564dc38a93c635253"
+    },
+    {
+      "path": "dist/types.js",
+      "sha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b"
+    },
+    {
+      "path": "dist/recording-owner.js",
+      "sha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521"
+    },
+    {
+      "path": "dist/provider-manifest.generated.js",
+      "sha256": "61582ff17d96a1fcf67518ddbe1876dff720b3e7fde9d6be3f1e74fbcb3ae44d"
+    }
+  ],
+  "runtimeMode": "native ESM import, no source bundle/fallback",
+  "modelsRun": 0,
+  "referencesRun": 0,
+  "cadBoundary": "NONE"
+}

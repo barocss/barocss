@@ -1,7 +1,7 @@
 ---
 work_id: physics-api-roadmap-2276
 artifact_type: architecture-and-development-roadmap
-status: p1b_local_verification_in_progress
+status: p3_selected_local_pass_p4_full_stack_no_go
 owner_role: independent-physics-algorithm-work
 source_request: redesign the unreleased Physics library and reorganize its roadmap; preserve HOLD, NO_GO and first failures
 last_updated: 2026-11-02
@@ -210,7 +210,7 @@ iterations, original input law or evidence in order to pass.
 | P0 — capability and API contract | This source baseline and current owner/HOLD check. Inventory all public factories, subpaths and first-party callers; fix model/state/command/error/lifetime/recording contracts. | Every current supported/refused/unmeasured row mapped; complete caller file list; proposed types and negative cases; no silent domain isolation. | CONTRACT_READY at frozen P0; bounded inventory and types passed. Rigid runtime is adopted by P1b/P2; unsupported domains remain future work. |
 | P1 — common World, rigid first | P0. Separate immutable model from rigid runtime without changing numerical phases; implement one clock, candidate caches, copied state and idempotent disposal. | Existing admitted rigid fixtures and refusal precedence preserved; failure injection before and after each phase leaves accepted state/cache/log/time identical; deterministic next accepted step matches a fresh control. Measure allocation and per-step cost. | P1a_DONE. P1b model/options cutover implemented locally: selected source 8 / emitted 8 public checks and 21 focused probes per graph pass; native emitted runtime/declarations pass. Docs samples174/174, site/build/link checks and README native examples pass. Viewer SDK stays explicitly external in host callsite bundles; full DOM execution NOT_RUN. No new body/joint support. |
 | P2 — recording and CAD boundary | P1. Move recording to the common World; separate CAD admission from runtime; migrate actual callers directly. | Record/restore/continue matches source and actual emitted consumers; stale source/model/profile rejection; unrecorded stepping prevented; numerical root graph has no CAD/parser/Viewer imports. MMGS/off-origin independent adapter tests pass. | P2_DONE_LOCALSELECTED. Public source/emitted11/11 each; test-only injected preparation15/15 each; native published maps/types PASS. No arbitrary checkpoint import or CAD Studio integration. |
-| P3 — hinge and mechanism dynamics | P1; original #1489 contract. Preserve four spheres, two disjoint hinges, 1/120 s and 1200 steps. Retain step77 raw-bit failure. | Exact original source/repeat/emitted/reference gates; independently verified rename/order controls before widening admission. Resolve missing original runtime operands or separately decide a new cross-runtime claim without rewriting the old gate. | NO_GO. Scalar reconstruction alone is insufficient. #1490 stays dependent on public adoption and existing owner authority. |
+| P3 — hinge and mechanism dynamics | P1/P2; original #1489 contract. Preserve four spheres, two disjoint hinges, 1/120 s and 1200 steps. Retain step77 raw-bit failure. | Exact original source/repeat/emitted/reference gates; independently mapped rename/order controls; separately budgeted recorder and hardened current API checks. Historical operands remain unavailable; no cross-runtime claim follows. | Selected local disjoint profile PASS; current API adopted with unchanged calculation bytes. Historical step77, general connected joints and #1490 live adoption remain separate. See the P3 checkpoint. |
 | P4 — contact and original eight-box exit | P1 and the already measured 32-point equilibrium/192-row repair. Improve independent reference cost within the fixed 180 s budget before full replay. Preserve original inputs and all points. | Same32 patch equilibrium, strict line booleans, 1e-9 m geometry, 1e-10 SI residual gates; original ALIGNED/OFFSET/YAW1200-step settling metrics; actual source/repeat/emitted graph and per-phase accounting. Public adoption only after the full selected contract. | NO_GO. Matched16-step prefixes pass; separate ALIGNED308-step source attempt is incomplete. Public persistent limit stays4. |
 | P5 — cloth and fluid as model data | P1/P2 and each domain's independent current receipts. Extract kernels into candidate buffers, admit existing fixed scenes as explicit model data and static colliders. No dynamic coupling. | Reproduce original fixed-profile results before adding input freedom; domain failure rolls back whole host step; common-clock/substep checks; source/emitted closure; reject unsupported cross-domain pairs. | BACKLOG; visual evidence class stays visual. Can proceed independently of unrelated full-stack acceptance within its own frozen scope. |
 | P6a — cloth–rigid coupling | P5 and qualified contact/rigid cases needed by a small declared pair, not a blanket full-engine GO. | Equal/opposite impulse and torque, attachment/contact residuals, work/dissipation balance, dt refinement, mass-ratio/boundary/refusal tests; no pinned-vertex masquerading as dynamic reaction. Freeze numerical tolerances first. | NOT_SUPPORTED; gates must be specified before execution. |
@@ -386,3 +386,35 @@ no garbage-collection timing or out-of-memory guarantee follows.
 Whole-engine acceptance remains NO_GO. Named provider receipts and first failures remain separate from physical
 qualification. P0/P1a/P1b evidence, original two-hinge/eight-box NO_GO, HOLDs, numerical gates, domain factories
 pending P5, and deployment/product acceptance boundaries remain unchanged.
+
+## P3 checkpoint (2026-11-02; selected local disjoint profile)
+
+The common World directly admits the exact two-disjoint-hinge/four-sphere case.
+It reuses the existing pose/velocity projection and report mathematics. Canonical
+Z0 then Z1 calculation order is separate from caller-order state arrays. Generic
+command admission and both axis restrictions precede the new empty-command rule.
+Any cross-component contact refuses. The P0/P2 candidate/preflight/shared-commit
+boundary remains. No legacy factory, engine switch or alternate public World exists.
+
+Original staged observed source, ordinary repeat and native emitted each pass
+1,200 steps. Full independent saved certificate reuse requires exact six-phase,
+projection, report, correction, cap and signed-zero correspondence plus every
+original physical gate. Selected controls pass within the unchanged47/4182
+ceilings (actual47/4180). Separate recorder integration passes with four Worlds,
+20 accepted steps and six refused entries. Actual hardened source/native public
+API passes fourteen constructor attempts and six accepted steps; emitted strict
+positive declarations compile. The only nongenerated transfer difference is a
+raw initial-quaternion guard. No new 1,200-step run at that hardened hash is claimed.
+
+Observed SOURCE maxima are zero COM/plane drift, anchor gap, axis deviation and
+measured momentum residual components; maximum angular correction is
+.0010000000000000002 Nms against the unchanged.01 cap. These are fixture-specific
+measurements, not convergence, cross-runtime, connected-mechanism or equipment
+claims. The old step77 failure and missing original operands stay historical
+NO_GO/UNKNOWN. Public #1490 live integration and all existing HOLDs remain.
+
+Commands, exact providers, first failures and documentation check receipts are
+in `examples/physics-world-p3-2276/README.md`. Next is P4 independent reference
+cost analysis before the original full-stack exit. P5 domain migration and P6/P7
+remain separate. The owner authorized a develop merge after the entire required
+roadmap completes; that conditional step is pending. No push, release or deployment.

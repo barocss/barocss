@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/generate-provider.mjs"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "timeoutMs": 180000,
+  "elapsedMs": 49,
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "stdoutSha256": "a297e23fa741726404e08e99584c9eb5bce719872556f2f7f15900a1d4aedf02",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

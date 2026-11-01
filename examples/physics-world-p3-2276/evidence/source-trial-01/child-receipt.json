@@ -1,0 +1,15 @@
+{
+  "kind": "P3_TRIAL_CHILD_RECEIPT",
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/trial.mjs",
+    "--child",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/source-trial-01/trial-spec.json"
+  ],
+  "elapsedMs": 11314,
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "stdoutSha256": "e51f80865d089290be59a6e59b1ddcc7471ec332d0a8c39dfb6fafa17400b76d",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

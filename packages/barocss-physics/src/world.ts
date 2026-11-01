@@ -23,6 +23,7 @@ import { axisAlignedBox, rejectAngularBoxCommand, sweepDynamicBox } from './ccd-
 import { bodyBounds, boundsOverlap } from './broadphase.js';
 import { dormantPair, filterAllowsPair, wakeOnContact } from './scene-profile.js';
 import { updateSleeping, wakeForActions } from './sleep.js';
+import { admitDisjointHingeCommands, driveDisjointHingeMotors, applyDisjointHingePostContact } from './disjoint-hinge/stage.js';
 
 function publicState(bodies: Body[], contacts: PhysicsContact[], events: PhysicsEvent[],
   joints: PhysicsJointState[], ccdHits: PhysicsCcdHit[], pairStats: PhysicsPairStats,
@@ -56,6 +57,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
   const largeMode = admitted.options.profile === 'rigid-large-v1';
   let bodies = admitted.bodies;
   let joints = admitted.joints;
+  let disjointHinges = admitted.disjointHinges;
   let modelCopy: PhysicsModel | null = admitted.model;
   let optionsCopy: WorldOptions | null = admitted.options;
   const colliderIds = new Map(admitted.model.colliders.map((collider) => [collider.bodyId, collider.id]));
@@ -65,7 +67,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
     frameId: admitted.model.frame.id, fixedStepSeconds: dt };
   let dynamicHinge = joints.find((joint) => joint.kind === 'hinge' &&
     bodies[joint.aIndex].kind === 'dynamic');
-  if (dynamicHinge) admitDynamicHingeScene(dynamicHinge, bodies, gravity);
+  if (dynamicHinge && !disjointHinges) admitDynamicHingeScene(dynamicHinge, bodies, gravity);
   let ccd = admitCcd(bodies, joints.length, gravity);
   if (ccd.kind === 'box-pair' && usePersistentBox) {
     error('INVALID_CONFIG', 'box CCD excludes persistent-box-v1');
@@ -121,7 +123,8 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
         error('WORLD_LIMIT', 'recording command limit reached');
       }
       const actions = parseCommands(admittedCommands, bodies);
-      if (dynamicHinge) admitDynamicHingeCommands(dynamicHinge, bodies, actions);
+      if (disjointHinges) admitDisjointHingeCommands(disjointHinges, bodies, actions, admittedCommands.length);
+      else if (dynamicHinge) admitDynamicHingeCommands(dynamicHinge, bodies, actions);
       if (ccd.kind === 'box-pair') rejectAngularBoxCommand(actions.get(bodies[ccd.boxIndex].id));
       const preparedFrames = owner ? owner.prepareFrames(admittedCommands, stepIndex + 1) : null;
       const next = bodies.map(copyBody);
@@ -135,7 +138,8 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
           inverseInertia(body, add(action?.angularImpulseNms ?? [0, 0, 0],
             scale(action?.torqueNm ?? [0, 0, 0], dt))));
       }
-      for (let index = 0; index < joints.length; index++) {
+      if (disjointHinges) driveDisjointHingeMotors(disjointHinges, next, jointStates, motorImpulses);
+      else for (let index = 0; index < joints.length; index++) {
         const joint = joints[index];
         if (!joint.motor) continue;
         motorImpulses[index] = next[joint.aIndex].kind === 'dynamic'
@@ -261,12 +265,18 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
             bounds[bIndex] = bodyBounds(b);
           }
         }
-        for (let index = 0; index < joints.length; index++) {
+        if (!disjointHinges) for (let index = 0; index < joints.length; index++) {
           const reaction = projectJoint(joints[index], next, bodies, dt);
           nextJoints[index].linearImpulseNs = add(nextJoints[index].linearImpulseNs, reaction.linearImpulseNs);
           nextJoints[index].angularImpulseNms = add(nextJoints[index].angularImpulseNms, reaction.angularImpulseNms);
           if (reaction.angleRad !== undefined) nextJoints[index].angleRad = reaction.angleRad;
         }
+      }
+      if (disjointHinges) {
+        if (found.size !== 0 || sensed.size !== 0) {
+          error('NUMERIC_LIMIT', 'disjoint hinge contact profile is unsupported');
+        }
+        applyDisjointHingePostContact(disjointHinges, next, nextJoints, motorImpulses, stepIndex, stepIndex * dt);
       }
       const nextContacts = [...found.values()];
       if (largeMode) updateSleeping(next, nextContacts, nextSleepFrames);
@@ -342,7 +352,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
       if (owner) { owner.recording = null; owner.commandCount = 0; owner = null; }
       optionsCopy = null; bodies = []; contacts = []; events = []; ccdHits = [];
       activePairs.clear(); persistentPoints.clear(); sleepFrames = []; jointStates = [];
-      joints = []; dynamicHinge = undefined; ccd = { kind: 'none' }; pairs.length = 0;
+      joints = []; dynamicHinge = undefined; disjointHinges = null; ccd = { kind: 'none' }; pairs.length = 0;
       colliderIds.clear(); modelCopy = null; },
   };
   let running = false;
