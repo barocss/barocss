@@ -1250,5 +1250,15 @@
     "genericInitial": "/bin/bash /tmp/barocss-d434-author/browser-batch01-executed.sh",
     "genericGrid": "/bin/bash /tmp/barocss-d434-author/grid-fade-v2/browser-run01.sh",
     "finalRoot": "/bin/zsh /tmp/barocss-d434-root-checks/run06.sh"
+  },
+  "deliveryInventory": {
+    "status": "PASS_POSTCOMMIT_BEFORE_PUSH",
+    "files": 29,
+    "newFiles": 10,
+    "rawEvidenceFiles": 0,
+    "author": "easylogic <cyberuls@gmail.com>",
+    "codeCommit": "8abfb8fe7b925c98d6d6f69464a8e9ddf48e0e47",
+    "initialInventoryFailure": "Invented100KB new-artifact cap was incorrectly applied to existing decisions.md(123325bytes); Python assertion failed. Shell lacked fail-fast and continued to normalcommit. Earlier configured identity had passed; postcommit configured+actualauthor and all29 named files/new-only sizes recheckedPASS beforepush. No source/test/evidence change; no amend/reset used.",
+    "scope": "Postcommit delivery metadata only; existing final source/native/type receipts reused."
   }
 }
