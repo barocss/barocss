@@ -1,0 +1,41 @@
+{
+  "workId": "physics-world-p4-observable-cost-2276",
+  "base": "26a3ce9e5e4d685c2bff13ed0dbb84939e2a37e3",
+  "status": "frozen_before_remaining_reference_calls",
+  "inputs": {
+    "OBSERVABLE-CONTRACT.md": "1f8d4107d4154b33ae1da21dd4d23b65f355a9ef8e19296261b374915805078a",
+    "observable-census.py": "964241f58710fbc2089a64675df19f50be47c7a74ac32751564559c3f2576ca4",
+    "observable-run.mjs": "6df0f7086487983e3cae8aed7d5de97675372fc22ddd628d6b3a2e48c6976d48",
+    "CONTRACT.md": "d8baef877fa39cdf8e974b26da12fc4f2f46ae01e4457c2568a7d7eadb2231ae",
+    "cost-census.py": "67c23875efa2836cd2c374794dfb6b942366493e8fbf979ffcd8789ac2c8464f",
+    "run.mjs": "c614affc65ade8363d1c0d0643dabc333524d5fc0c7449b096f2dcd5581ccb06",
+    "reply-observation-audit.mjs": "8577371ad7a562cd2e9d0a505d8300b4fdc54168ee53d38460a29f4f7eda8b5f"
+  },
+  "preservedFailure": {
+    "path": "evidence/cost-census-01/summary.json",
+    "sha256": "bf65e7fadf3b87f6f80cfac4f1f05bd5fb9f4462fcf0947aaa3a19125bf44357",
+    "status": "FAIL",
+    "historicalRawReplyZeroSign": "UNKNOWN"
+  },
+  "dataPrerequisite": {
+    "path": "evidence/reply-audit-01/summary.json",
+    "sha256": "9210f1417bf64077cb113ed498b8194aa20efe19abaf72a5d13e3ba04a9b8164",
+    "status": "PASS_DATA_OBSERVATION_CLASSIFICATION"
+  },
+  "population": {
+    "reusedReferenceCalls": 2,
+    "maximumNewReferenceCalls": 22,
+    "maximumNodeDataProjectionProcesses": 22,
+    "newFixtureCalls": 0,
+    "newWorldCalls": 0,
+    "productionSolverCalls": 0
+  },
+  "externalDeadlineMs": 180000,
+  "internalDeadlineSeconds": 170,
+  "cleanupSeconds": 4,
+  "physicalGateChanges": false,
+  "rawProducerAndPointBitsChanged": false,
+  "freshRawRepliesPreserved": true,
+  "wrapperReceiptId": "observable-guard-01",
+  "censusId": "observable-census-01"
+}

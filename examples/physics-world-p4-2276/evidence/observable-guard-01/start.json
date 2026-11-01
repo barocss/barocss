@@ -1,0 +1,78 @@
+{
+  "kind": "P4_OBSERVABLE_COST_OUTER_GUARD",
+  "receiptId": "observable-guard-01",
+  "censusId": "observable-census-01",
+  "status": "SPAWNING",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "python3",
+    "-B",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/observable-census.py",
+    "--run-id",
+    "observable-census-01",
+    "--node",
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "--prior",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/evidence/cost-census-01",
+    "--audit",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/evidence/reply-audit-01/summary.json"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "inputs": {
+    "observable-run.mjs": {
+      "bytes": 11945,
+      "sha256": "6df0f7086487983e3cae8aed7d5de97675372fc22ddd628d6b3a2e48c6976d48"
+    },
+    "observable-census.py": {
+      "bytes": 21194,
+      "sha256": "964241f58710fbc2089a64675df19f50be47c7a74ac32751564559c3f2576ca4"
+    },
+    "OBSERVABLE-CONTRACT.md": {
+      "bytes": 6426,
+      "sha256": "1f8d4107d4154b33ae1da21dd4d23b65f355a9ef8e19296261b374915805078a"
+    },
+    "run.mjs": {
+      "bytes": 11633,
+      "sha256": "c614affc65ade8363d1c0d0643dabc333524d5fc0c7449b096f2dcd5581ccb06"
+    },
+    "cost-census.py": {
+      "bytes": 33990,
+      "sha256": "67c23875efa2836cd2c374794dfb6b942366493e8fbf979ffcd8789ac2c8464f"
+    },
+    "fixture-data.mjs": {
+      "bytes": 675,
+      "sha256": "de953d847b5627b372ab96c20b18dd7e5f20f3a52ca871582a36d3c906962a23"
+    },
+    "CONTRACT.md": {
+      "bytes": 9553,
+      "sha256": "d8baef877fa39cdf8e974b26da12fc4f2f46ae01e4457c2568a7d7eadb2231ae"
+    },
+    "reply-observation-audit.mjs": {
+      "bytes": 19261,
+      "sha256": "8577371ad7a562cd2e9d0a505d8300b4fdc54168ee53d38460a29f4f7eda8b5f"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": "2026-11-01T18:31:42.621Z",
+  "spawnAt": null,
+  "pid": null,
+  "processGroupId": null,
+  "exit": null,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": null,
+  "processClosed": false,
+  "groupSignals": [],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/evidence/observable-census-01/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/evidence/observable-census-01/progress.json",
+  "errors": []
+}

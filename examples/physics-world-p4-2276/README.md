@@ -1,7 +1,7 @@
 ---
 work_id: physics-world-p4-2276
 artifact_type: independent-reference-cost-and-stack-exit-report
-status: raw_reply_census_fail_observable_data_audit_pass
+status: observable_cost_census_pass_raw_reply_sign_unknown
 owner_role: independent-physics-algorithm-work
 source_request: continue the roadmap with fixed gates and preserved original failures
 last_updated: 2026-11-02
@@ -104,3 +104,35 @@ $NODE22 examples/physics-world-p4-2276/reply-observation-audit.mjs reply-audit-0
 These IDs identify preserved results. New execution requires fresh IDs and the
 applicable frozen contract. Existing physical error gates and all original
 HOLD/NO_GO/first-failure records remain unchanged.
+
+## Separate observable cost census
+
+`observable-guard-01` / `observable-census-01` passes in about 3.14 s outer
+wall time. It reuses two prior actual replies and makes 22 new reference calls.
+All 24 complete Node JSON observations match their archived authority. The
+22 new DATA projection processes take about 723 ms in total and are recorded
+separately from reference compute. No new fixture, trig or World runs occur.
+Both reference children exit cleanly with complete EOF. The original raw-reply
+census stays FAIL; historical Python zero signs remain UNKNOWN.
+
+`cost-profile.json` reads the saved results with zero new reference calls.
+The table combines six frames across two sessions; it is not one uninterrupted
+24-request timing benchmark or a 1,200-step prediction.
+
+| Reference operation | Six-sample total compute | Mean | Maximum |
+|---|---:|---:|---:|
+| Contacts | 68.095 ms | 11.349 ms | 13.534 ms |
+| Full-pair position | 886.494 ms | 147.749 ms | 177.701 ms |
+| Step ledger | 89.583 ms | 14.930 ms | 17.304 ms |
+| Quality | 129.545 ms | 21.591 ms | 27.191 ms |
+
+Position reference work accounts for about 76% of the measured reference
+compute. Contact-only caching would target a small fraction. The next bounded
+measurement profiles ALIGNED16 and YAW16 position calls internally to separate
+geometry from exact optimization work. Those are two additional reference calls
+under a separate contract, not new World steps or an old census retry. No
+performance optimization or full-duration stack run has been executed yet.
+
+```sh
+$NODE22 examples/physics-world-p4-2276/observable-run.mjs observable-guard-01 observable-census-01
+```
