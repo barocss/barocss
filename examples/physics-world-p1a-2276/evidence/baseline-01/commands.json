@@ -1,0 +1,80 @@
+{
+  "workId": "physics-world-p1a-2276",
+  "mode": "baseline",
+  "runId": "baseline-01",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "platform": "darwin",
+  "arch": "arm64",
+  "head": "a81748a54c7e1ecf0915015575256e81d989f43a",
+  "baselineSha": "66df02f8e7d5a3a7ab7b8ff7a0184bf34d978713",
+  "proofBoundary": "instrumented transaction proof; not an ordinary package proof",
+  "records": [
+    {
+      "name": "baseline-replay-session",
+      "command": [
+        "git",
+        "show",
+        "66df02f8e7d5a3a7ab7b8ff7a0184bf34d978713:packages/barocss-physics/src/replay-session.ts"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T15:11:29.954Z",
+      "finished": "2026-11-01T15:11:29.970Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "1d34c1376dbfc1aeca25ca0586a574f1362f41afa68dac25260ac00a5ac2618c",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "baseline-world",
+      "command": [
+        "git",
+        "show",
+        "66df02f8e7d5a3a7ab7b8ff7a0184bf34d978713:packages/barocss-physics/src/world.ts"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T15:11:29.972Z",
+      "finished": "2026-11-01T15:11:29.981Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "f34f79ee743dff7302b5c87c56407767b7dabb61c2715c90a60826c07637dc69",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "transaction-tests",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p1a-2276/evidence/baseline-01/transaction.test.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T15:11:30.290Z",
+      "finished": "2026-11-01T15:11:31.450Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "00956f61cbf2eceba4d5d4f2a6cce6f17d251558782f0dab26849f3a3644315b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "transformations": [
+    {
+      "path": "packages/barocss-physics/src/replay-session.ts",
+      "source": "66df02f8e7d5a3a7ab7b8ff7a0184bf34d978713",
+      "originalSha256": "1d34c1376dbfc1aeca25ca0586a574f1362f41afa68dac25260ac00a5ac2618c",
+      "transformedSha256": "9b6688c5808ae77953c17bfe3c73d813efa3098cc21ea02a5cb8f90dc7169885",
+      "frozen": "examples/physics-world-p1a-2276/evidence/baseline-01/instrumented/replay-session.ts",
+      "injection": "before-replay-log-preparation"
+    },
+    {
+      "path": "packages/barocss-physics/src/world.ts",
+      "source": "66df02f8e7d5a3a7ab7b8ff7a0184bf34d978713",
+      "originalSha256": "f34f79ee743dff7302b5c87c56407767b7dabb61c2715c90a60826c07637dc69",
+      "transformedSha256": "7b76061ac3085e47d716ea472dbf482daef0da16f4fd059221aa90aa0280a951",
+      "frozen": "examples/physics-world-p1a-2276/evidence/baseline-01/instrumented/world.ts",
+      "injection": "before-publicState-return"
+    }
+  ]
+}

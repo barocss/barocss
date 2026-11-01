@@ -1,0 +1,31 @@
+{
+  "workId": "physics-world-p1a-2276",
+  "mode": "ordinary-source",
+  "runId": "ordinary-source-01",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "platform": "darwin",
+  "arch": "arm64",
+  "head": "a81748a54c7e1ecf0915015575256e81d989f43a",
+  "baselineSha": "66df02f8e7d5a3a7ab7b8ff7a0184bf34d978713",
+  "proofBoundary": "ordinary uninstrumented root and replay consumer",
+  "records": [
+    {
+      "name": "transaction-tests",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p1a-2276/evidence/ordinary-source-01/transaction.test.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T15:12:40.252Z",
+      "finished": "2026-11-01T15:12:40.333Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "0e381ba732800268929de1038d1e3921954e558832e9590144e39a313c3291ac",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "transformations": []
+}

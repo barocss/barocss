@@ -158,3 +158,14 @@ fixed-patch candidate in `8d7474ba0b4df5367dbeee93b3a95cb777dcac48`; final bound
 The [evidence manifest](/physics-evidence/manifest.json) names each original repository path, byte count and SHA-256.
 Included evidence files are byte-identical copies. Complete raw archives, provider graphs and command records remain
 in the corresponding `examples/` directories at those checkpoints. No failed archive was replaced by a later result.
+
+
+## Transaction preparation checkpoint
+
+The [P1a report](/physics-evidence/p1a-report.txt) records a later software reliability change: the rigid World
+prepares its returned copy before committing accepted state, and replay prepares its next log before advancing.
+Test-only preparation exceptions reproduce the old post-exception advance/log mismatch. Fixed source and actual
+emitted root/replay pass the selected continuation checks; ordinary uninstrumented consumers and the unchanged
+five independent rigid/contact tests pass separately. The original public signatures and numerical laws remain.
+This does not implement the proposed common model API, fix cloth/fluid hidden-state ownership, clear HOLDs or
+replace the original hinge and eight-box NO_GO. Deterministic continuation is distinct from physical accuracy.

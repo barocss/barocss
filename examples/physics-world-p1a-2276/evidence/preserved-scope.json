@@ -1,0 +1,18 @@
+{
+  "base": "a81748a54c7e1ecf0915015575256e81d989f43a",
+  "unchanged": [
+    "packages/barocss-cad-model/src",
+    "packages/barocss-physics/design/p0",
+    "examples/physics-motion-foundations-2276",
+    "examples/physics-motion-nogo-2276",
+    "examples/physics-stack-solver-2276",
+    "examples/physics-contact-boundary-2276",
+    "examples/physics-motion-docs-2276",
+    "examples/physics-world-p0-2276"
+  ],
+  "runtimeEditsOnly": [
+    "packages/barocss-physics/src/world.ts",
+    "packages/barocss-physics/src/replay-session.ts"
+  ],
+  "runtimePackageManifestUnchanged": true
+}

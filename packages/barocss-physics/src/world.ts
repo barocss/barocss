@@ -288,6 +288,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
           error('NUMERIC_LIMIT', `${joints[index].id} exceeded motor reaction limit`);
         }
       }
+      const state = publicState(next, nextContacts, nextEvents, nextJoints, nextCcdHits, nextPairStats, stepIndex + 1, dt);
       bodies = next;
       contacts = nextContacts;
       events = nextEvents;
@@ -298,7 +299,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
       persistentPoints = nextPersistentPoints;
       sleepFrames = nextSleepFrames;
       stepIndex++;
-      return publicState(bodies, contacts, events, jointStates, ccdHits, pairStats, stepIndex, dt);
+      return state;
     },
     overlapSphere(input) {
       ensureActive();

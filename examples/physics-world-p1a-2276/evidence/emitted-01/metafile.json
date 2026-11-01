@@ -1,0 +1,958 @@
+{
+  "inputs": {
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/types.js": {
+      "bytes": 179,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/limits.js": {
+      "bytes": 416,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/validation.js": {
+      "bytes": 13787,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/limits.js",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/math.js": {
+      "bytes": 2114,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/dynamic-anchor-pair.js": {
+      "bytes": 3099,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/limits.js",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/validation.js",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/dynamic-fixed-joint.js": {
+      "bytes": 1935,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/validation.js",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/dynamic-anchor-pair.js",
+          "kind": "import-statement",
+          "original": "./dynamic-anchor-pair.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/dynamic-hinge-joint.js": {
+      "bytes": 4671,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/validation.js",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/dynamic-anchor-pair.js",
+          "kind": "import-statement",
+          "original": "./dynamic-anchor-pair.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/joints.js": {
+      "bytes": 7382,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/limits.js",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/validation.js",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/dynamic-fixed-joint.js",
+          "kind": "import-statement",
+          "original": "./dynamic-fixed-joint.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/dynamic-hinge-joint.js",
+          "kind": "import-statement",
+          "original": "./dynamic-hinge-joint.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/joint-motor.js": {
+      "bytes": 1651,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-contact.js": {
+      "bytes": 5708,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/collision.js": {
+      "bytes": 13712,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/validation.js",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-contact.js",
+          "kind": "import-statement",
+          "original": "./capsule-contact.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/contact-manifold.js": {
+      "bytes": 4576,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/persistent-box-contact.js": {
+      "bytes": 3405,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/ccd-slab.js": {
+      "bytes": 1088,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/ccd-box.js": {
+      "bytes": 1825,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/ccd-slab.js",
+          "kind": "import-statement",
+          "original": "./ccd-slab.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/validation.js",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/ccd.js": {
+      "bytes": 2966,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/validation.js",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/ccd-slab.js",
+          "kind": "import-statement",
+          "original": "./ccd-slab.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/ccd-box.js",
+          "kind": "import-statement",
+          "original": "./ccd-box.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/ccd-pair.js": {
+      "bytes": 2103,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/validation.js",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/broadphase.js": {
+      "bytes": 1253,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/validation.js",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/scene-profile.js": {
+      "bytes": 1138,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/sleep.js": {
+      "bytes": 4621,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/world.js": {
+      "bytes": 21471,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/limits.js",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/validation.js",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/joints.js",
+          "kind": "import-statement",
+          "original": "./joints.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/joint-motor.js",
+          "kind": "import-statement",
+          "original": "./joint-motor.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/dynamic-hinge-joint.js",
+          "kind": "import-statement",
+          "original": "./dynamic-hinge-joint.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/collision.js",
+          "kind": "import-statement",
+          "original": "./collision.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/contact-manifold.js",
+          "kind": "import-statement",
+          "original": "./contact-manifold.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/persistent-box-contact.js",
+          "kind": "import-statement",
+          "original": "./persistent-box-contact.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/ccd.js",
+          "kind": "import-statement",
+          "original": "./ccd.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/ccd-pair.js",
+          "kind": "import-statement",
+          "original": "./ccd-pair.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/ccd-box.js",
+          "kind": "import-statement",
+          "original": "./ccd-box.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/broadphase.js",
+          "kind": "import-statement",
+          "original": "./broadphase.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/scene-profile.js",
+          "kind": "import-statement",
+          "original": "./scene-profile.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/sleep.js",
+          "kind": "import-statement",
+          "original": "./sleep.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/pendulum.js": {
+      "bytes": 5390,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query-error.js": {
+      "bytes": 137,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query/profile.js": {
+      "bytes": 294,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query/admission.js": {
+      "bytes": 4875,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query-error.js",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query/profile.js",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query/geometry.js": {
+      "bytes": 2319,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query/profile.js",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query/sweep.js": {
+      "bytes": 1833,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query-error.js",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query/geometry.js",
+          "kind": "import-statement",
+          "original": "./geometry.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query/snapshot.js": {
+      "bytes": 2468,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query-error.js",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query/admission.js",
+          "kind": "import-statement",
+          "original": "./admission.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query/profile.js",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query/sweep.js",
+          "kind": "import-statement",
+          "original": "./sweep.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query.js": {
+      "bytes": 73,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query/snapshot.js",
+          "kind": "import-statement",
+          "original": "./capsule-query/snapshot.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/profile.js": {
+      "bytes": 334,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/admission.js": {
+      "bytes": 4100,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query-error.js",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/profile.js",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/math.js": {
+      "bytes": 686,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/state.js": {
+      "bytes": 1923,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query-error.js",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/profile.js",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/query.js": {
+      "bytes": 2186,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query-error.js",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/profile.js",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/state.js",
+          "kind": "import-statement",
+          "original": "./state.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/step-assist.js": {
+      "bytes": 2969,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query-error.js",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/profile.js",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/slide.js": {
+      "bytes": 2636,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query-error.js",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/profile.js",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/step-assist.js",
+          "kind": "import-statement",
+          "original": "./step-assist.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/ground.js": {
+      "bytes": 1117,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query-error.js",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/profile.js",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/core.js": {
+      "bytes": 4194,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query.js",
+          "kind": "import-statement",
+          "original": "../capsule-query.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query-error.js",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/profile.js",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/admission.js",
+          "kind": "import-statement",
+          "original": "./admission.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/state.js",
+          "kind": "import-statement",
+          "original": "./state.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/query.js",
+          "kind": "import-statement",
+          "original": "./query.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/slide.js",
+          "kind": "import-statement",
+          "original": "./slide.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/ground.js",
+          "kind": "import-statement",
+          "original": "./ground.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/step-assist.js",
+          "kind": "import-statement",
+          "original": "./step-assist.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character-controller.js": {
+      "bytes": 1083,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/admission.js",
+          "kind": "import-statement",
+          "original": "./character/admission.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/core.js",
+          "kind": "import-statement",
+          "original": "./character/core.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/state.js",
+          "kind": "import-statement",
+          "original": "./character/state.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query-error.js",
+          "kind": "import-statement",
+          "original": "./capsule-query-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/index.js": {
+      "bytes": 286,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/world.js",
+          "kind": "import-statement",
+          "original": "./world.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/pendulum.js",
+          "kind": "import-statement",
+          "original": "./pendulum.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query.js",
+          "kind": "import-statement",
+          "original": "./capsule-query.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character-controller.js",
+          "kind": "import-statement",
+          "original": "./character-controller.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/replay-json.js": {
+      "bytes": 3167,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/index.js",
+          "kind": "import-statement",
+          "original": "./index.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/replay-scene.js": {
+      "bytes": 1377,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/index.js",
+          "kind": "import-statement",
+          "original": "./index.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/replay-json.js",
+          "kind": "import-statement",
+          "original": "./replay-json.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/replay-compare.js": {
+      "bytes": 974,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/replay-session.js": {
+      "bytes": 4483,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/index.js",
+          "kind": "import-statement",
+          "original": "./index.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/replay-scene.js",
+          "kind": "import-statement",
+          "original": "./replay-scene.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/replay-json.js",
+          "kind": "import-statement",
+          "original": "./replay-json.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/replay-compare.js",
+          "kind": "import-statement",
+          "original": "./replay-compare.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/evidence/emitted-01/physics/replay.js": {
+      "bytes": 151,
+      "imports": [
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/replay-scene.js",
+          "kind": "import-statement",
+          "original": "./replay-scene.js"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/replay-session.js",
+          "kind": "import-statement",
+          "original": "./replay-session.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/fixtures.mjs": {
+      "bytes": 2392,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-world-p1a-2276/transaction.test.mjs": {
+      "bytes": 9875,
+      "imports": [
+        {
+          "path": "node:assert/strict",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "node:test",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/index.js",
+          "kind": "import-statement",
+          "original": "@barocss/physics"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/evidence/emitted-01/physics/replay.js",
+          "kind": "import-statement",
+          "original": "@barocss/physics/replay"
+        },
+        {
+          "path": "examples/physics-world-p1a-2276/fixtures.mjs",
+          "kind": "import-statement",
+          "original": "./fixtures.mjs"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "examples/physics-world-p1a-2276/evidence/emitted-01/transaction.test.mjs": {
+      "imports": [
+        {
+          "path": "node:assert/strict",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "node:test",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "exports": [],
+      "entryPoint": "examples/physics-world-p1a-2276/transaction.test.mjs",
+      "inputs": {
+        "examples/physics-world-p1a-2276/transaction.test.mjs": {
+          "bytesInOutput": 9660
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/types.js": {
+          "bytesInOutput": 161
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/index.js": {
+          "bytesInOutput": 0
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/limits.js": {
+          "bytesInOutput": 303
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/validation.js": {
+          "bytesInOutput": 12932
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/math.js": {
+          "bytesInOutput": 1989
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/dynamic-anchor-pair.js": {
+          "bytesInOutput": 2644
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/dynamic-fixed-joint.js": {
+          "bytesInOutput": 1576
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/dynamic-hinge-joint.js": {
+          "bytesInOutput": 4145
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/joints.js": {
+          "bytesInOutput": 6518
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/joint-motor.js": {
+          "bytesInOutput": 1489
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-contact.js": {
+          "bytesInOutput": 5220
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/collision.js": {
+          "bytesInOutput": 12622
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/contact-manifold.js": {
+          "bytesInOutput": 3910
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/persistent-box-contact.js": {
+          "bytesInOutput": 2993
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/ccd-slab.js": {
+          "bytesInOutput": 943
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/ccd-box.js": {
+          "bytesInOutput": 1606
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/ccd.js": {
+          "bytesInOutput": 2597
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/ccd-pair.js": {
+          "bytesInOutput": 1853
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/broadphase.js": {
+          "bytesInOutput": 1092
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/scene-profile.js": {
+          "bytesInOutput": 1027
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/sleep.js": {
+          "bytesInOutput": 4109
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/world.js": {
+          "bytesInOutput": 17848
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query-error.js": {
+          "bytesInOutput": 0
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/capsule-query.js": {
+          "bytesInOutput": 0
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/character/profile.js": {
+          "bytesInOutput": 63
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/replay-json.js": {
+          "bytesInOutput": 2907
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/replay-scene.js": {
+          "bytesInOutput": 1185
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/replay.js": {
+          "bytesInOutput": 0
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/replay-compare.js": {
+          "bytesInOutput": 903
+        },
+        "examples/physics-world-p1a-2276/evidence/emitted-01/physics/replay-session.js": {
+          "bytesInOutput": 3946
+        },
+        "examples/physics-world-p1a-2276/fixtures.mjs": {
+          "bytesInOutput": 2734
+        }
+      },
+      "bytes": 111193
+    }
+  }
+}

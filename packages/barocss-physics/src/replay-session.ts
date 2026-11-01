@@ -34,9 +34,11 @@ class RecordedPhysicsSession implements PhysicsReplaySession {
     if (Array.isArray(admitted) && this.commandCount + admitted.length > MAX_COMMANDS) {
       replayError('WORLD_LIMIT', 'replay command limit reached');
     }
+    const nextFrames = [...this.frames, { commands: admitted }];
+    const nextCommandCount = this.commandCount + admitted.length;
     const state = this.world.step(this.scene.world.fixedStepSeconds, admitted);
-    this.frames.push({ commands: admitted });
-    this.commandCount += admitted.length;
+    this.frames = nextFrames;
+    this.commandCount = nextCommandCount;
     return state;
   }
 

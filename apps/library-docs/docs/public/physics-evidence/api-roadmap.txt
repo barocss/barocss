@@ -206,7 +206,7 @@ iterations, original input law or evidence in order to pass.
 | Slice | Dependency and bounded change | Exit evidence | Current status |
 |---|---|---|---|
 | P0 — capability and API contract | This source baseline and current owner/HOLD check. Inventory all public factories, subpaths and first-party callers; fix model/state/command/error/lifetime/recording contracts. | Every current supported/refused/unmeasured row mapped; complete caller file list; proposed types and negative cases; no silent domain isolation. | CONTRACT_READY: target types/negative consumers and admission-constant checks pass; bounded caller inventory classified. Runtime target NOT_IMPLEMENTED. |
-| P1 — common World, rigid first | P0. Separate immutable model from rigid runtime without changing numerical phases; implement one clock, candidate caches, copied state and idempotent disposal. | Existing admitted rigid fixtures and refusal precedence preserved; failure injection before and after each phase leaves accepted state/cache/log/time identical; deterministic next accepted step matches a fresh control. Measure allocation and per-step cost. | BACKLOG; no new body/joint support. |
+| P1 — common World, rigid first | P0. Separate immutable model from rigid runtime without changing numerical phases; implement one clock, candidate caches, copied state and idempotent disposal. | Existing admitted rigid fixtures and refusal precedence preserved; failure injection before and after each phase leaves accepted state/cache/log/time identical; deterministic next accepted step matches a fresh control. Measure allocation and per-step cost. | P1a_DONE: prepared rigid return/log commit verified in source and actual emitted closure; P1b model/options cutover NOT_RUN. No new body/joint support. |
 | P2 — recording and CAD boundary | P1. Move recording to the common World; separate CAD admission from runtime; migrate actual callers directly. | Record/restore/continue matches source and actual emitted consumers; stale source/model/profile rejection; unrecorded stepping prevented; numerical root graph has no CAD/parser/Viewer imports. MMGS/off-origin independent adapter tests pass. | BACKLOG. No arbitrary checkpoint import or CAD Studio integration. |
 | P3 — hinge and mechanism dynamics | P1; original #1489 contract. Preserve four spheres, two disjoint hinges, 1/120 s and 1200 steps. Retain step77 raw-bit failure. | Exact original source/repeat/emitted/reference gates; independently verified rename/order controls before widening admission. Resolve missing original runtime operands or separately decide a new cross-runtime claim without rewriting the old gate. | NO_GO. Scalar reconstruction alone is insufficient. #1490 stays dependent on public adoption and existing owner authority. |
 | P4 — contact and original eight-box exit | P1 and the already measured 32-point equilibrium/192-row repair. Improve independent reference cost within the fixed 180 s budget before full replay. Preserve original inputs and all points. | Same32 patch equilibrium, strict line booleans, 1e-9 m geometry, 1e-10 SI residual gates; original ALIGNED/OFFSET/YAW1200-step settling metrics; actual source/repeat/emitted graph and per-phase accounting. Public adoption only after the full selected contract. | NO_GO. Matched16-step prefixes pass; separate ALIGNED308-step source attempt is incomplete. Public persistent limit stays4. |
@@ -311,3 +311,19 @@ P1 starts with internal preparation P1a under the one current root signature, th
 model/options cutover with all affected root/replay/CAD consumers. This adds no compatibility overload or parallel
 engine. Recording wire encoding must preserve signed zero; raw JSON is not its future save/load path. See the
 P0 report in `examples/physics-world-p0-2276/`. Original HOLD/NO_GO/error gates and archived failures remain unchanged.
+
+
+## P1a checkpoint (2026-11-02)
+
+The canonical rigid implementation prepares its copied successful output before accepted state replacement.
+Replay prepares next frames/count before advancing its privately owned World. Only those two runtime providers
+change; current signatures, exports, admission and numerical phases are retained as the sole canonical API.
+This is the explicit P1a preparation in `design/p0/MIGRATION.md`, not a compatibility facade or completed P1b.
+
+The frozen baseline reproduces three post-exception step advances and a replay log/state mismatch. Fixed
+source and actual emitted root/replay each pass4injected transaction cases plus2ordinary API cases. The
+unchanged independent rigid/contact references pass5cases per graph with matching numerical diagnostics.
+Failure injection is test-only; it is not ordinary package or hardware evidence. All original gates/HOLDs/NO_GO
+remain. Detailed commands, provider hashes, first diagnostic and limits are in `examples/physics-world-p1a-2276/`.
+The next public cutover must implement the P0 model/options contract and migrate its actual root/replay/CAD
+consumer graph together; it cannot retain an old World behind a wrapper or claim full physical engine completion.
