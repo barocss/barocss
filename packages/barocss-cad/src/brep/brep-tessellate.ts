@@ -873,6 +873,28 @@ function isSmoothPatch(S: Surface): boolean {
  * edge differ by at most one angular step. Boundary edges are never split.
  */
 interface Inversion { readonly at: (u: number, v: number) => Point; readonly U: readonly [number, number]; readonly V: readonly [number, number]; readonly seeds: readonly { a: number; b: number; p: Point }[]; readonly done: number }
+/** One exact frame for inverse evaluation, seeds and every boundary target; world output stays separate. */
+function localInversion(S: Surface, rings: readonly (readonly Point[])[], original: Inversion): { inversion: Inversion; origin: Point } | null {
+  const lo: Point = [Infinity, Infinity, Infinity], hi: Point = [-Infinity, -Infinity, -Infinity], origin: Point = [0, 0, 0];
+  for (const row of S.controlPoints) for (const p of row) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], p[k]); hi[k] = Math.max(hi[k], p[k]); }
+  for (const ring of rings) for (const p of ring) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], p[k]); hi[k] = Math.max(hi[k], p[k]); }
+  for (let k = 0; k < 3; k++) {
+    // Every coordinate and the midpoint are same-sign and within a factor two (Sterbenz).
+    // Wide/cross-zero axes stay untouched; shifted native control points cannot grow in magnitude.
+    if (lo[k] > 0 && hi[k] <= 2 * lo[k] || hi[k] < 0 && -lo[k] <= -2 * hi[k]) origin[k] = lo[k] + (hi[k] - lo[k]) / 2;
+  }
+  if (origin[0] === 0 && origin[1] === 0 && origin[2] === 0) return null;
+  const controlPoints: Point[][] = [];
+  for (const row of S.controlPoints) {
+    const local: Point[] = [];
+    for (const p of row) local.push(sub(p, origin));
+    controlPoints.push(local);
+  }
+  const at = surfaceEvaluator({ ...S, controlPoints }), seeds: { a: number; b: number; p: Point }[] = [];
+  // Keep the original world pole exclusions and grid order; evaluate seed points directly locally.
+  for (const seed of original.seeds) seeds.push({ a: seed.a, b: seed.b, p: at(seed.a, seed.b) });
+  return { inversion: { ...original, at, seeds }, origin };
+}
 /** Newton steps from a seed (a, b) to the surface point nearest p. */
 function newtonUV(x: Inversion, start: { a: number; b: number }, p: Point): XY {
   const { at, U, V } = x;
@@ -956,13 +978,14 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   const polar = new Set(polesOf(S).flatMap(q => grid.filter(g => q.along === 0 ? g.b === q.at : g.a === q.at)));
   // (Inversion seeds: the grid off the poles, a pole's parameters saying nothing about the free one.)
   const inv: Inversion = { at, U, V, seeds: grid.filter(g => !polar.has(g)), done: 1e-12 * (Lu + Lv + 1) };
+  const local = localInversion(S, rings, inv);
   // A boundary point at a pole stands for a whole side of the domain: it becomes that side's two ends
   // (at its neighbours' free coordinate), so the domain polygon stays a polygon; the triangles on that
   // side collapse in space and are dropped at the end.
   const poles = polesOf(S), atPole = (p: Point) => poles.find(q => Math.hypot(p[0] - q.point[0], p[1] - q.point[1], p[2] - q.point[2]) <= 1e-9 * (Lu + Lv + 1));
   const pts: Point[] = [], uv: XY[] = [], ringSizes: number[] = [], inverted: (XY | null)[] = [], polar3 = new Set<Point>();
   for (const r of rings) {
-    const exact = r.map(p => invert(inv, p)), base = snapIsoRuns(exact, U, V), before = pts.length;
+    const exact = r.map(p => local ? invert(local.inversion, sub(p, local.origin)) : invert(inv, p)), base = snapIsoRuns(exact, U, V), before = pts.length;
     r.forEach((p, i) => {
       const q = atPole(p);
       if (!q) { pts.push(p); uv.push(base[i]); inverted.push(exact[i]); return; }

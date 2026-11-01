@@ -6,9 +6,9 @@ A bounded closeout does not close an entire feature family, format, standard or 
 
 ## Current navigation — authority
 
-- Current qualified product checkpoint: [D422](notes/step-sphere-hemisphere-2026-11-01/README.md).
+- Current qualified bounded product checkpoint: [D424](notes/display-inversion-conditioning-2026-11-01/README.md).
 - D418 documentation organization: **QUALIFIED**, [record](notes/roadmap-index-2026-11-01/README.md).
-- D423 mass source checkpoint: **IMPLEMENTED / scoped checks PASS; Studio and full-backend HOLD**, [record](notes/mass-translation-2026-11-01/README.md).
+- D423 historical mass source checkpoint: **scoped source PASS; original Studio/full-backend HOLD**, [record](notes/mass-translation-2026-11-01/README.md). D424 current source has full-kernel and two bounded actual flow PASS; original failure cause remains unexplained.
 - D420 owner-approved develop integration: **MERGED**, [PR #2274](https://github.com/barocss/barocss/pull/2274), [scope and CI](notes/develop-integration-2026-11-01/README.md).
 - Operating rules and priority remain in the unchanged [handoff](notes/codex-handoff-2026-11-01/README.md).
 - Decisions: [current navigation](decisions.md); numeric proof belongs to canonical item notes and qualifications.
@@ -19,7 +19,7 @@ A bounded closeout does not close an entire feature family, format, standard or 
 
 - Active feature lane: **row 13, exchange and explicit loss profiles**. D418 is documentation maintenance, not a new exchange feature.
 - Rows 12 and 16 are cross-cutting file/acceptance and robustness work. Row 30 runs with row 16; row 31 follows row 30.
-- D419 direct plane/cylinder STEP offsets: **QUALIFIED**, [bounded record](notes/step-analytic-offset-2026-11-01/README.md). D420 integration is complete. D421 applicable STEP header/product-name loss report is **QUALIFIED**, [record](notes/step-name-loss-2026-11-01/README.md). D422 translation-stable STEP hemisphere selection and display normals is **QUALIFIED**, [record](notes/step-sphere-hemisphere-2026-11-01/README.md). D423 mass correction is an **IMPLEMENTED SOURCE CHECKPOINT** with Studio/full-backend HOLD, [record](notes/mass-translation-2026-11-01/README.md). Next: **D424 — display UV inversion diagnosis**, before any spherical OFFSET extension. Tiny-body rendering quality remains unqualified.
+- D419 direct plane/cylinder STEP offsets: **QUALIFIED**, [bounded record](notes/step-analytic-offset-2026-11-01/README.md). D420 integration is complete. D421 applicable STEP header/product-name loss report is **QUALIFIED**, [record](notes/step-name-loss-2026-11-01/README.md). D422 translation-stable STEP hemisphere selection and display normals is **QUALIFIED**, [record](notes/step-sphere-hemisphere-2026-11-01/README.md). D423 mass correction was recorded as an **IMPLEMENTED SOURCE CHECKPOINT** with Studio/full-backend HOLD at that checkpoint, [record](notes/mass-translation-2026-11-01/README.md). D424 local-frame display inversion is **QUALIFIED for the bounded profile**, [record](notes/display-inversion-conditioning-2026-11-01/README.md), with current full-kernel and two actual Open/adoption checks PASS. Next: **D425 — nonzero body quantities displayed as zero**, rows 15/16, before returning to spherical OFFSET admission. Tiny-body rendering quality remains unqualified.
 - Accepted sequence: 10 → 11 → 13 → 14, subject to all owner HOLDs; usability row 15 precedes rows 17–19.
 - The unchanged [handoff §3 continuation order](notes/codex-handoff-2026-11-01/README.md#_3-%E1%84%83%E1%85%A1%E1%84%8B%E1%85%B3%E1%86%B7-%E1%84%8C%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%A5%E1%86%B8-%E1%84%85%E1%85%A9%E1%84%83%E1%85%B3%E1%84%86%E1%85%A2%E1%86%B8-%E1%84%89%E1%85%AE%E1%86%AB%E1%84%89%E1%85%A5) retains the detailed sequence and authority. This pointer does not activate manufacturing or Motion/Physics work.
 
@@ -45,10 +45,10 @@ A bounded closeout does not close an entire feature family, format, standard or 
 | 10 | [조립 확장 — CG4](roadmap-rows/10.md) | Qualified assembly slices D383–D393; motion/physics HOLD remains. | Partial |
 | 11 | [도면 확장 — CG5 DR-6/7/8](roadmap-rows/11.md) | Qualified drawing slices through D416; general certification remains open. | Partial |
 | 12 | [파일·버전·협업 — CG6](roadmap-rows/12.md) | OPEN general file/version/collaboration scope. | Partial |
-| 13 | [교환과 손실 표시 — CG7](roadmap-rows/13.md) | OPEN exchange scope; bounded analytic offsets D419, name-loss report D421 and translation arithmetic D422; mass source checkpoint D423 has Studio/full-backend HOLD. #2263/#2248/#2266 remain open. | Partial |
+| 13 | [교환과 손실 표시 — CG7](roadmap-rows/13.md) | OPEN exchange scope; bounded analytic offsets D419, name-loss report D421 and translation arithmetic D422; D423 historical holds retained; D424 bounded inversion/current flow PASS. #2263/#2248/#2266 remain open. | Partial |
 | 14 | [생산 기능 — CG8](roadmap-rows/14.md) | Planned manufacturing; P2/PG11 HOLDs remain. | Planned / held |
 | 15 | [제품 사용성 — CG9](roadmap-rows/15.md) | U1–U4 bounded closeouts; other usability work remains. | Partial |
-| 16 | [정확도·강건성·API/참조 — CG10, R7, #2210/#2215](roadmap-rows/16.md) | OPEN accuracy/robustness scope; D417/D419/D422 qualify bounded admission/refusal and translation-arithmetic fixes. | Partial |
+| 16 | [정확도·강건성·API/참조 — CG10, R7, #2210/#2215](roadmap-rows/16.md) | OPEN accuracy/robustness scope; D417/D419/D422/D424 qualify bounded admission/refusal and translation-arithmetic fixes. | Partial |
 | 17 | [경로 묶음·가상 클립 — PB0–PB4](roadmap-rows/17.md) | Existing bounded path/clip profiles; no automatic dynamics work. | Partial |
 | 18 | [관절·로봇 — J1/J2, R1/D1/R2, RS6/RS7/P4](roadmap-rows/18.md) | Existing staged robotics plan; Physics/Motion HOLD remains. | Partial |
 | 19 | [가상 실험·다물리·실측 — Stage0–6](roadmap-rows/19.md) | Existing staged experiment plan; CAE/Physics HOLDs remain. | Planned / held |
