@@ -8,7 +8,7 @@ import { FaceClient } from './faceClient';
 import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
 import { faceOriginOf, flatFaceOf, hostOf, occurrenceProblem, pathTable, splitPart } from '@barocss/cad-model/engine/occurrences';
 import { bodyDocOf } from '@barocss/cad-model/assembly/flexible';
-import { drivenRefusal, seedMateRefusal } from '@barocss/cad-model/assembly/patterns';
+import { drivenRefusal, seedMateRefusal, unsettledRefusal } from '@barocss/cad-model/assembly/patterns';
 import { resolved } from '@barocss/cad-model/assembly/edit';
 import { BASE, mateKindsOf, lockRel, mateRefusal, solveAssembly, type FaceTable, type Freedom, type Mate, type MateKind, type MateRef, type Problem } from '@barocss/cad-model/assembly/mates';
 
@@ -47,6 +47,14 @@ export interface Assembly {
    * base part faces (`faces`), instance faces, and the instances to outline while adding.
    */
   highlight: { faces: { body: number; face: number }[]; instanceFaces: { id: string; body: number; face: number }[]; instances: string[] };
+}
+
+/** Match the model's precommit pattern refusal using the Studio's current face tables. */
+function patternMateRefusal(doc: StudioDoc, mate: Mate, mates: Mate[], instances: PartInstance[], tableFor: (part: string) => FaceTable | undefined): string | null {
+  if (!doc.instancePatterns?.length) return null;
+  const out = resolved({ ...doc, instances, mates }, next => solveAssembly(next.instances!, next.mates!, tableFor, doc.instances));
+  if (out.last?.pending) return FACES_PENDING;
+  return unsettledRefusal(out.problems, mate.id, doc, hostOf(mate.a.part), hostOf(mate.b.part))?.message ?? null;
 }
 
 export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, commit, readFaces }: {
@@ -160,6 +168,8 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     const problem = r.problems.find(p => p.mate === mate.id) ?? (mate.kind === 'fastened' || mate.kind === 'ball' || mate.kind === 'universal' || mate.kind === 'cylindrical' || mates.some(m => m.kind === 'universal' || m.kind === 'cylindrical') ? r.problems[0] : undefined);
     if (r.pending) return { ...d, picks: [d.picks[0]], error: 'The parts’ faces are still being read. Click the face again in a moment.' };
     if (problem) return { ...d, picks: [d.picks[0]], error: problem.reason };
+    const patternWhy = patternMateRefusal(doc, mate, [...mates, mate], r.instances, tableFor);
+    if (patternWhy) return { ...d, picks: [d.picks[0]], error: patternWhy };
     commit(r.instances, [...mates, mate]); setSelected(mate.id);
     return null;
   };
@@ -233,6 +243,8 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     const r = solve(instances, next), problem = r.problems.find(p => p.mate === id) ?? (next.some(m => m.kind === 'fastened' || m.kind === 'ball' || m.kind === 'universal' || m.kind === 'cylindrical') ? r.problems[0] : undefined);
     if ((mate.kind === 'fastened' || mate.kind === 'ball' || mate.kind === 'universal' || mate.kind === 'cylindrical') && r.pending) return FACES_PENDING;
     if (problem) return problem.reason;
+    const patternWhy = patternMateRefusal(doc, mate, next, r.instances, tableFor);
+    if (patternWhy) return patternWhy;
     commit(r.instances, next); return null;
   };
 
@@ -254,6 +266,8 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
       const mate: Mate = { id: `m${n}`, kind: 'lock', a: { part: to, face: '' }, b: { part, face: '' }, rel: lockRel(a ?? null, b) };
       const r = solve(instances, [...mates, mate]), problem = r.problems.find(p => p.mate === mate.id) ?? (mates.some(m => m.kind === 'universal' || m.kind === 'cylindrical') ? r.problems[0] : undefined);
       if (problem) return problem.reason;
+      const patternWhy = patternMateRefusal(doc, mate, [...mates, mate], r.instances, tableFor);
+      if (patternWhy) return patternWhy;
       commit(r.instances, [...mates, mate]); setSelected(mate.id); return null;
     },
     remove: id => { commit(instances, mates.filter(m => m.id !== id)); if (selected === id) setSelected(null); },

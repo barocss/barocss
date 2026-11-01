@@ -1,0 +1,111 @@
+{
+  "decision": "D413",
+  "date": "2026-11-01",
+  "baseCommit": "0366a1da655ccddcec10de335d0b0b40fe400c5a",
+  "tier": "small",
+  "status": "BOUNDED_QUALIFIED",
+  "models": {
+    "implementationAndTests": "gpt-6.1-sol / medium"
+  },
+  "scope": "Registered D383 Studio pattern-feedback mate refusal before finish/edit/lock commit",
+  "reproduction": {
+    "baseline": "Actual useAssembly hook with real model solver/patterns/face tables committed one refused finish. Original HEAD hook negative control failed4/5 new tests; valid/pending control passed.",
+    "cause": "Single-solve Studio write paths published instances before existing repeated pattern-settling refusal."
+  },
+  "change": "Studio-private guard reuses resolved, current face tables and existing unsettledRefusal before all three commits. Refusal keeps the accepted document and first finish pick; no new solver.",
+  "checks": {
+    "focused": {
+      "status": "PASS",
+      "pass": 11,
+      "fail": 0,
+      "newHook": 5,
+      "existingLinkedFaces": 6
+    },
+    "modelTypesAfterFinalTestEdit": "PASS",
+    "studioTypes": "PASS",
+    "changedLint": "PASS",
+    "driverSyntaxAndDiff": "PASS",
+    "independentAudit": "NOT_RUN: small tier",
+    "fullSuites": "NOT_RUN: unchanged owning source/baselines"
+  },
+  "studio": {
+    "status": "SCOPED_PASS_WITH_RETAINED_RUN01_FAIL",
+    "run01": {
+      "status": "FAIL",
+      "passed": "Finish refusal with first pick retained, exact document unchanged, Cancel recovery, valid pattern mate, exact Undo/Redo",
+      "failure": "Driver clicked an already-selected mate after Open, closing its editor; distance-input locator timed out.",
+      "artifacts": "/tmp/barocss-d413-browser-run01"
+    },
+    "run02": {
+      "status": "PASS",
+      "subset": "FLOW_ONLY=edit: native Open prerequisite and failed edit phase only",
+      "checks": "Existing settled distance -40 to -39 refuses with MATE_UNMET; document unchanged and editor returns -40.",
+      "artifacts": "/tmp/barocss-d413-browser-run02"
+    },
+    "perRun": {
+      "frozenFiles": 740,
+      "sourceChanges": 0,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "visual": {
+      "capturesReviewedByRoot": 3,
+      "finish": "Refusal asserted in DOM; message below viewport fold in run01 image, no visible-refusal claim",
+      "edit": "Run02 image visibly shows exact refusal and retained -40 field"
+    },
+    "lockCycle": "FOCUSED_HOOK_ONLY",
+    "fonts": "Stylesheet fulfilled empty once in run02, zero font assets; known U3 generic glyph words remain",
+    "wholeFlowPass": false
+  },
+  "notRun": [
+    "Actual Lock cycle/pending-face race (focused real-hook evidence only)",
+    "General closed-loop geometry/physics or solver correctness",
+    "Save/outbound exports/paid calls",
+    "Public API/generated docs/full baseline/kernel suites/CI/release"
+  ],
+  "retainedFailures": [
+    "Initial finish baseline committed1 vs expected0",
+    "Original hook negative control4FAIL/1PASS",
+    "First whole-hook baseline attempt omitted stdin TS loader; corrected harness control",
+    "A focused recovery test reused stale API after accepted commit while fresh faces pending; test corrected to existing admission semantics",
+    "Actual run01 driver editor-toggle locator timeout; passing phases retained, only failed phase rerun",
+    "U3 standard offline add ERR_PNPM_NO_OFFLINE_META with downloaded0/trackedChanges0"
+  ],
+  "preflights": {
+    "u3": {
+      "status": "AWAITING_OWNER_DOWNLOAD_APPROVAL",
+      "command": "pnpm --filter @barocss/cad-studio-app add lucide-react@1.52.0 --save-exact --offline --ignore-scripts",
+      "result": "ERR_PNPM_NO_OFFLINE_META",
+      "downloads": 0,
+      "trackedChanges": 0,
+      "log": "/tmp/barocss-d413-checks/offline-add.log"
+    },
+    "d398": "Source-only assessment: view layout already recomputes after move; scale/room/auto-dimension optimization is explicit Auto. No accuracy defect reproduced or change made."
+  },
+  "unchanged": [
+    "Model/core/solver/pattern rules and existing refusal wording/code",
+    "Public API/schema/agent commands/tool groups",
+    "Dependencies/lockfile/CAD icon registry"
+  ],
+  "ocp": "Task venv/source/native build remain absent",
+  "issueReview": "#538 OPEN backlog epic with broader unchecked acceptance. #2180 already CLOSED as research. Bounded mate-cycle title search found no dedicated issue; no closure.",
+  "execution": "Node22.19.0; serial heavy gate/load<40; no worktree writes during either actual flow",
+  "commands": {
+    "focused": "MATE_CYCLE_FIXTURE_OUT=/tmp/barocss-d413-checks/cycle.bcad pnpm --filter @barocss/cad-studio-app exec node scripts/test.mjs mate-pattern-commit assembly-linked-faces",
+    "fullCapsule": "/tmp/barocss-d413-capsule/commands.txt",
+    "modelTypes": "pnpm --filter @barocss/cad-model type-check",
+    "studioTypes": "pnpm --filter @barocss/cad-studio-app type-check",
+    "lint": "pnpm exec eslint apps/cad-studio/src/assembly/useAssembly.ts apps/cad-studio/test/mate-pattern-commit.test.ts",
+    "syntax": "node --check apps/cad-studio/test/mate-pattern-commit-browser.mjs; git diff --check",
+    "actual": "MATE_PATTERN_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME=/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome node apps/cad-studio/test/mate-pattern-commit-browser.mjs <output> /tmp/barocss-d413-checks/cycle.bcad",
+    "remaining": "FLOW_ONLY=edit with same actual command and run02 output",
+    "raw": "/tmp/barocss-d413-checks"
+  },
+  "next": "D414 registered drawing DXF-header follow-up assessment; U3 download permission and production/motion/external-SDK holds remain"
+}
