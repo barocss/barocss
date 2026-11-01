@@ -1,0 +1,76 @@
+{
+  "workId": "physics-world-p5-2276",
+  "status": "parent_kernel_scope_frozen_before_implementation",
+  "base": "abc9bd5b87c0b389d92d4ad5e1bbaf4ee272c5cb",
+  "sources": {
+    "KERNEL-CONTRACT.md": {
+      "bytes": 12110,
+      "sha256": "b076bef80b5b5fa4be9de0d4ca35a3010b4897a92a694ce47719e24e91cbff92"
+    },
+    "KERNEL-RECIPES.json": {
+      "bytes": 19180,
+      "sha256": "f96f010fd612883b7ab18fa5bf5c46a07879ad87bff88b57e3a022e2b2bd43e9"
+    }
+  },
+  "productionAdditionsOnly": [
+    "packages/barocss-physics/src/domain/types.ts",
+    "packages/barocss-physics/src/domain/cloth.ts",
+    "packages/barocss-physics/src/domain/fluid.ts"
+  ],
+  "existingProductionEditsAllowed": false,
+  "perGraphCounts": {
+    "initializations": 4,
+    "prepareAttempts": 32,
+    "prepareReturns": 20,
+    "injectedThrows": 12,
+    "nominalOutputs": 8,
+    "recoveryOutputs": 12,
+    "completeKernelReturns": 28,
+    "clothSolverConstructions": 8,
+    "clothSolverCalls": 8,
+    "pbfSolverConstructions": 24,
+    "pbfSolverCalls": 24,
+    "clothInitialDiagnostics": 1,
+    "clothPrepareDiagnostics": 7,
+    "fluidInitialDiagnostics": 3,
+    "fluidPrepareDiagnostics": 21,
+    "createSheet": 1,
+    "triangleMassAccumulations": 1,
+    "initialRestDensity": 3,
+    "inflatedBoxBounds": 1,
+    "canonicalEncode": 4,
+    "WorldConstructors": 0,
+    "WorldFactoryAttempts": 0,
+    "WorldStepCalls": 0,
+    "recordingCalls": 0,
+    "restoreCalls": 0,
+    "cadCompilerCalls": 0
+  },
+  "furtherHelperCounts": {
+    "clothProjectDistance": 175393,
+    "clothProjectSphere": 112,
+    "pbfProjectDensity": 66,
+    "xsphBlend": 7,
+    "floorSamples": 25,
+    "densities": 93,
+    "note": "7 complete cloth solves*8*2*1566 plus one completed projection;7 complete PBF solves plus1 first-pass fault per fluid profile;fluid diagnostic module floor initialized once,24 freshPBF constructors. Counters must confirm these actual counts; no extra calls to compute counters."
+  },
+  "graphs": [
+    "source",
+    "native_after_source_review"
+  ],
+  "bounds": {
+    "childTimeoutMs": 180000,
+    "campaignEvidenceBytes": 67108864,
+    "emergencyReserveWithinCampaignBytes": 8388608,
+    "recorderModelBytesUnchanged": 131072,
+    "recordingBytesUnchanged": 1048576,
+    "recordingFramesUnchanged": 512,
+    "recordingCommandsUnchanged": 4096
+  },
+  "nominalOracle": "captured source/native baseline raw F64LE states1/2, exact equality; no new independent accuracy claim",
+  "runtimeAuthorized": false,
+  "publicDomainAdmission": false,
+  "oldFirstFailuresPreserved": true,
+  "physicalToleranceChanges": false
+}

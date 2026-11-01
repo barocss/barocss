@@ -1,0 +1,109 @@
+{
+  "status": "PASS_STATIC_INPUT_OPERANDS",
+  "counts": {
+    "admissionAttempts": 1,
+    "admissionReturns": 1,
+    "WorldCalls": 0,
+    "candidateCalls": 0
+  },
+  "firstFailure": null,
+  "operands": {
+    "sourceBoundsMM": {
+      "min": [
+        200,
+        200,
+        100
+      ],
+      "max": [
+        500,
+        200,
+        400
+      ]
+    },
+    "sourceCenterMM": [
+      350,
+      200,
+      250
+    ],
+    "body": {
+      "id": "fixture:fluid_shelf.shelf",
+      "kind": "static",
+      "initial": {
+        "positionM": [
+          0.35,
+          0.2,
+          0.25
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    "collider": {
+      "id": "collider:41f745f9014813a115c8c218f6dfb8845c41515aba0f60bf",
+      "bodyId": "fixture:fluid_shelf.shelf",
+      "geometry": {
+        "kind": "box",
+        "halfExtentsM": [
+          0.15,
+          0.01,
+          0.15
+        ]
+      },
+      "local": {
+        "positionM": [
+          0,
+          0,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "material": {
+        "restitution": 0,
+        "friction": {
+          "static": 0,
+          "dynamic": 0
+        }
+      },
+      "sensor": false,
+      "ccd": false,
+      "filter": {
+        "categoryBits": 1,
+        "maskBits": 65535
+      }
+    },
+    "binding": {
+      "id": "source:41f745f9014813a115c8c218f6dfb8845c41515aba0f60bf",
+      "sourceRevision": "shelfRev1",
+      "sourceDigest": "sha256:b1040c9e5fbf4c2ef3de48877efeca18153055f81ee4ea3103a4014e993fe630",
+      "modelId": "fluid_shelf",
+      "occurrenceId": "shelf",
+      "entityIds": [
+        "fixture:fluid_shelf.shelf",
+        "collider:41f745f9014813a115c8c218f6dfb8845c41515aba0f60bf"
+      ],
+      "approximation": {
+        "kind": "control-net-box",
+        "lossLabel": "Control-net axis-aligned box with minimum thickness; native Surface geometry is not the collision shape."
+      }
+    },
+    "positionF64LE": [
+      "666666666666d63f",
+      "9a9999999999c93f",
+      "000000000000d03f"
+    ],
+    "halfExtentsF64LE": [
+      "333333333333c33f",
+      "7b14ae47e17a843f",
+      "333333333333c33f"
+    ]
+  }
+}

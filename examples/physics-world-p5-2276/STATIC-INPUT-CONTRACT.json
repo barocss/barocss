@@ -1,0 +1,57 @@
+{
+  "workId": "physics-world-p5-2276",
+  "status": "parent_frozen_before_static_operand_execution",
+  "population": {
+    "admitCadSurfaceProxyAttempts": 1,
+    "compileCadModelNestedCalls": 1,
+    "PhysicsWorldConstructors": 0,
+    "WorldSteps": 0,
+    "candidateCalls": 0,
+    "fluidObstacleAdmissionCalls": 0
+  },
+  "entry": "captured unbundled native cad-proxy.js, no source fallback",
+  "request": {
+    "sourceVersion": 0,
+    "sourceRevision": "shelfRev1",
+    "modelId": "fluid_shelf",
+    "surfaceId": "shelf",
+    "kind": "static",
+    "proxy": "box",
+    "minimumHalfExtentM": 0.01
+  },
+  "expected": {
+    "sourceBoundsMM": {
+      "min": [
+        200,
+        200,
+        100
+      ],
+      "max": [
+        500,
+        200,
+        400
+      ]
+    },
+    "sourceCenterMM": [
+      350,
+      200,
+      250
+    ],
+    "positionM": [
+      0.35,
+      0.2,
+      0.25
+    ],
+    "halfExtentsM": [
+      0.15,
+      0.01,
+      0.15
+    ]
+  },
+  "tolerance": "exact deep values and captured F64LE bits, no epsilon",
+  "runId": "static-input-01",
+  "timeoutMs": 180000,
+  "outputLimitBytes": 4194304,
+  "firstFailure": "stop preserve; no automatic retry or candidate expansion",
+  "claims": "current actual static operand provenance; no contact or dynamic accuracy qualification"
+}

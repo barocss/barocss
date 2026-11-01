@@ -1,0 +1,10 @@
+{
+  "counts": {
+    "admissionAttempts": 0,
+    "admissionReturns": 0,
+    "WorldCalls": 0,
+    "candidateCalls": 0
+  },
+  "providerFiles": 914,
+  "node": "v22.19.0"
+}

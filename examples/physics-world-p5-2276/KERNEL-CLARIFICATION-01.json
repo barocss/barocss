@@ -1,0 +1,31 @@
+{
+  "workId": "physics-world-p5-2276",
+  "status": "parent_pre_runtime_clarification_accepted",
+  "frozenRecipePreserved": true,
+  "originalContract": "KERNEL-CONTRACT.md",
+  "originalRecipes": "KERNEL-RECIPES.json",
+  "finding": "Recipe rounded an existing computed binary64 constant to a distinct literal",
+  "source": {
+    "path": "packages/barocss-physics/src/fluid/constants.ts",
+    "bytes": 459,
+    "sha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec",
+    "expression": "FLUID_SMOOTHING_RADIUS_M = 1.8 * FLUID_SPACING_M; FLUID_SPACING_M = 0.05"
+  },
+  "originalRecipe": {
+    "smoothingRadiusM": 0.09,
+    "f64le": "0ad7a3703d0ab73f"
+  },
+  "effectivePrivateFixture": {
+    "smoothingRadiusM": 0.09000000000000001,
+    "f64le": "0bd7a3703d0ab73f",
+    "selection": "import actual unchanged exported FLUID_SMOOTHING_RADIUS_M; exact field validation"
+  },
+  "decision": "Use actual original computed constant in new candidate model; do not edit kernel/constants or normalize/ignore authored fields",
+  "observationBoundary": "DATA-only Node22 binary64 constant/bit comparison, no provider import or topology/CAD/World/candidate/recording helper call",
+  "numericCriteriaChanges": false,
+  "physicalToleranceChanges": false,
+  "canonicalModelOrCandidateCallsSoFar": 0,
+  "originalFailureReceiptsPreserved": true,
+  "staticShelfOperands": "PENDING_SEPARATE_AUTHORITY_NO_SILENT_LITERAL_SELECTION",
+  "futurePublicDocs": "must specify effective binary64 profile coefficient, not claim literal0.09 is the exact source operand"
+}

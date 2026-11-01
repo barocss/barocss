@@ -1,0 +1,57 @@
+{
+  "kind": "P5_STATIC_INPUT_OUTER_GUARD",
+  "receiptId": "static-input-guard-01",
+  "censusId": "static-input-01",
+  "status": "RUNNING",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/static-input.mjs",
+    "--run-id",
+    "static-input-01"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "inputs": {
+    "static-input-run.mjs": {
+      "bytes": 11715,
+      "sha256": "58cc96e6a4219c1a7b68dc156727a2a75bcbbe244f16d12e78101ee9e5ef9b18"
+    },
+    "static-input.mjs": {
+      "bytes": 2787,
+      "sha256": "336f37ee0ba849a23a3c9a7590efe5ca35b3aca807f0e547efbcc4010e6e1a16"
+    },
+    "STATIC-INPUT-CONTRACT.json": {
+      "bytes": 1296,
+      "sha256": "283280f147ce6d5ab88c07da644a39515cd1585dd2e481e2f69bcf48b744a561"
+    },
+    "STATIC-INPUT-PROVIDERS.json": {
+      "bytes": 217747,
+      "sha256": "e8756be6ca074d12b7e9bef76e42c59fe426e68d48328c4f99ad4230b28052da"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": "2026-11-01T21:15:40.299Z",
+  "spawnAt": "2026-11-01T21:15:40.306Z",
+  "pid": 6110,
+  "processGroupId": 6110,
+  "exit": null,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": null,
+  "processClosed": false,
+  "groupSignals": [],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/static-input-01/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/static-input-01/progress.json",
+  "errors": [],
+  "elapsedMs": 7.17525,
+  "outputCapturedBytes": 0
+}

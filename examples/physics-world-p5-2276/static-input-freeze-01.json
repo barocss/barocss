@@ -1,0 +1,37 @@
+{
+  "workId": "physics-world-p5-2276",
+  "status": "parent_static_operand_source_frozen_before_execution",
+  "sources": {
+    "static-input.mjs": {
+      "bytes": 2787,
+      "sha256": "336f37ee0ba849a23a3c9a7590efe5ca35b3aca807f0e547efbcc4010e6e1a16"
+    },
+    "static-input-run.mjs": {
+      "bytes": 11715,
+      "sha256": "58cc96e6a4219c1a7b68dc156727a2a75bcbbe244f16d12e78101ee9e5ef9b18"
+    },
+    "STATIC-INPUT-CONTRACT.json": {
+      "bytes": 1296,
+      "sha256": "283280f147ce6d5ab88c07da644a39515cd1585dd2e481e2f69bcf48b744a561"
+    },
+    "STATIC-INPUT-PROVIDERS.json": {
+      "bytes": 217747,
+      "sha256": "e8756be6ca074d12b7e9bef76e42c59fe426e68d48328c4f99ad4230b28052da"
+    },
+    "KERNEL-CLARIFICATION-02.json": {
+      "bytes": 1868,
+      "sha256": "417355636c711b6fea678cf8866a9b89a5a69e779b056d976491a3e7f8abd7da"
+    }
+  },
+  "command": [
+    "node",
+    "examples/physics-world-p5-2276/static-input-run.mjs",
+    "static-input-guard-01",
+    "static-input-01"
+  ],
+  "newPublicCadAdmissionCalls": 1,
+  "newWorldOrCandidateCalls": 0,
+  "nestedCompilerBoundary": "one nested compile follows from frozen admission source; direct public call counters observed, no extra compiler observer",
+  "oldKernelOrToleranceChanges": false,
+  "onFailure": "stop preserve"
+}

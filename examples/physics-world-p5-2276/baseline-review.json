@@ -1,0 +1,32 @@
+{
+  "workId": "physics-world-p5-2276",
+  "reviewedCommit": "abc9bd5b87c0b389d92d4ad5e1bbaf4ee272c5cb",
+  "sourceAndNativeBaseline": "PASS_REPRODUCED_KNOWN_ATOMICITY_NO_GO",
+  "crossGraphRawCaseEquality": "PASS_5_CASES",
+  "productionDelta": "NONE",
+  "wholeCommitWhitespaceCheck": {
+    "status": "FAIL_INHERITED_ARCHIVE_WHITESPACE_PRESERVED",
+    "path": "examples/physics-world-p5-2276/evidence/baseline-emitted-01/provider/barocss-cad/dist/io/dxf-writer.d.ts",
+    "line": 39,
+    "sha256": "d3a570fb8aee2eca17dab8a09baef27f90cace63361cc2e81633bad75a04ba05",
+    "bytesEqualToOriginalNativeCAD": true,
+    "decision": "preserve original provider bytes; do not reformat historical operands"
+  },
+  "authoredScopeWhitespaceCheck": {
+    "status": "PASS",
+    "command": [
+      "git",
+      "diff",
+      "abc9bd5b8^",
+      "abc9bd5b8",
+      "--check",
+      "--",
+      "examples/physics-world-p5-2276",
+      ":!examples/physics-world-p5-2276/evidence/baseline-emitted-01/provider/barocss-cad/dist"
+    ]
+  },
+  "newPhysicalAccuracy": "NOT_RUN",
+  "fullRoadmapCompletion": false,
+  "developMerge": "NOT_RUN_PENDING_FULL_REQUIRED_ROADMAP",
+  "deployment": "NOT_RUN"
+}
