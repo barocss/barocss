@@ -14,7 +14,7 @@ import { assertBoundaryBindings } from '../brep/brep-boundary-binding-internal.j
 //              so in their other faces' loops too), and the halves meet along a new edge
 //   closed     an edge starting and ending at one vertex is split in two
 //
-// A face once round with holes is cut where no hole is. Other entities (offset surfaces, vertex loops,
+// A face once round with holes is cut where no hole is. Other entities (general offsets, vertex loops,
 // holes across a seam) are refused by name.
 import { BrepError, buildBrep, mergeBreps, type Brep } from '../brep/brep-core.js';
 import { facetBrepFromTriangles, facetBrepsFromTriangles } from '../mesh/facet-brep.js';
@@ -25,6 +25,7 @@ import { isMeshBrepError } from '../mesh/mesh-brep.js';
 import { curveDomain, evaluateCurve } from '../core/math.js';
 import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
 import type { Curve, Point, Surface } from '../types.js';
+import { checkOffsetBoundary, checkOffsetSourceEndpoints, type OffsetSupport } from './step-offset-internal.js';
 
 // ---- Part 21 -----------------------------------------------------------------------------------------
 type Value = number | string | { ref: number } | { enum: string } | null | '*' | Value[] | { type: string; args: Value[] };
@@ -234,12 +235,34 @@ interface IFace { id: string; sd: SurfDef; same: boolean; loops: { outer: boolea
 /** Reads the solids of a STEP file as one B-rep. */
 export function importStep(source: string, options: { readonly id?: string } = {}): Brep {
   const data = parseData(source), id = options.id ?? 'step';
+  let trackOffsets = false; for (const entity of data.values()) if (entity.type === 'OFFSET_SURFACE') { trackOffsets = true; break; }
   const get = (v: Value | undefined): Entity => { if (!v || typeof v !== 'object' || !('ref' in v)) refuse('expected a reference'); const e = data.get((v as { ref: number }).ref); if (!e) refuse(`#${(v as { ref: number }).ref} is missing`); return e!; };
   const refNo = (v: Value) => (v as { ref: number }).ref, num = (v: Value) => v as number, list = (v: Value) => v as Value[], flag = (v: Value) => (v as { enum: string }).enum === 'T';
   const part = (e: Entity, type: string) => e.parts?.find(p => p.type === type);
   const pointOf = (v: Value): Point => { const e = get(v); if (e.type !== 'CARTESIAN_POINT') refuse(`expected a point, found ${e.type}`); return list(e.args[1]).map(num) as Point; };
   const dirOf = (v: Value): Point => unit(list(get(v).args[1]).map(num) as Point);
   const frameOf = (v: Value): Frame => { const a = get(v).args; const z = a[2] === null ? [0, 0, 1] as Point : dirOf(a[2]); let x = a[3] === null || a[3] === undefined ? (Math.abs(z[0]) < 0.9 ? [1, 0, 0] as Point : [0, 1, 0] as Point) : dirOf(a[3]); x = unit(sub(x, scale(z, dot(x, z)))); return { o: pointOf(a[1]), x, y: cross(z, x), z }; };
+  const offsetPoint = (v: Value, direction = false): Point => {
+    const e = get(v), p = e.args[1];
+    if (e.type !== (direction ? 'DIRECTION' : 'CARTESIAN_POINT') || !Array.isArray(p) || p.length !== 3) refuse('OFFSET_SURFACE requires finite three-dimensional frame values');
+    for (const x of p as Value[]) if (typeof x !== 'number' || !Number.isFinite(x)) refuse('OFFSET_SURFACE requires finite three-dimensional frame values');
+    const q = p as Point;
+    if (direction && (!(len(q) > 0) || !Number.isFinite(len(q)))) refuse('OFFSET_SURFACE frame direction must be finite and nonzero');
+    return q;
+  };
+  const offsetAxes = new WeakMap<Frame, Point>();
+  const offsetFrameOf = (v: Value): Frame => {
+    const e = get(v), a = e.args;
+    if (e.type !== 'AXIS2_PLACEMENT_3D' || a.length !== 4) refuse('OFFSET_SURFACE requires AXIS2_PLACEMENT_3D');
+    const o = offsetPoint(a[1]), rawAxis = a[2] === null ? [0, 0, 1] as Point : offsetPoint(a[2], true), z = unit(rawAxis);
+    const rawX = a[3] === null ? (Math.abs(z[0]) < 0.9 ? [1, 0, 0] as Point : [0, 1, 0] as Point) : offsetPoint(a[3], true);
+    const perpendicular = sub(rawX, scale(z, dot(rawX, z)));
+    if (!(len(perpendicular) > 0) || !Number.isFinite(len(perpendicular))) refuse('OFFSET_SURFACE frame directions must not be parallel');
+    const x = unit(perpendicular), y = cross(z, x);
+    if (!(len(y) > 0) || !Number.isFinite(len(y))) refuse('OFFSET_SURFACE frame is degenerate');
+    if (Math.abs(dot(x, z)) > 1e-12) refuse('OFFSET_SURFACE nearly parallel frame directions are not supported yet');
+    const f = { o, x, y, z }; offsetAxes.set(f, rawAxis); return f;
+  };
 
   // Vertices.
   const points = new Map<string, Point>();
@@ -247,13 +270,24 @@ export function importStep(source: string, options: { readonly id?: string } = {
 
   // Edges, in their own direction (first vertex to second).
   const edges = new Map<string, IEdge>();
+  const sourceCurves = new Map<string, Entity>();
+  const sourceSenses = new Map<string, boolean>();
+  const generatedEdges = new Set<string>();
   const curveEntity = (e: Entity): Entity => {
     if (e.type === 'SURFACE_CURVE' || e.type === 'SEAM_CURVE') return curveEntity(get(e.args[1]));
     if (e.type === 'TRIMMED_CURVE') return curveEntity(get(e.args[1]));
     return e;
   };
+  const offsetCurveEntity = (raw: Entity): Entity => {
+    const seen = new Set<Entity>(); let e = raw;
+    while (e.type === 'SURFACE_CURVE' || e.type === 'SEAM_CURVE' || e.type === 'TRIMMED_CURVE') {
+      if (seen.has(e) || seen.size >= 32) refuse('OFFSET_SURFACE boundary wrapper cycle or depth is not supported yet');
+      seen.add(e); e = get(e.args[1]);
+    }
+    return e;
+  };
   const geoOf = (raw: Entity, a: Point, b: Point, same: boolean): Geo => {
-    const e = curveEntity(raw);
+    const e = trackOffsets ? offsetCurveEntity(raw) : curveEntity(raw);
     if (e.type === 'LINE') return { kind: 'line', p: a, q: b };
     if (e.type === 'CIRCLE' || e.type === 'ELLIPSE') {
       const f = frameOf(e.args[1]), ra = num(e.args[2]), rb = e.type === 'ELLIPSE' ? num(e.args[3]) : ra;
@@ -285,16 +319,62 @@ export function importStep(source: string, options: { readonly id?: string } = {
     if (!c) return refuse(`surfaces swept by ${e.type} curves are not supported yet`);
     return { kind: 'curve', c };
   };
-  const edgeOf = (v: Value): IEdge => {
-    const n = refNo(v), eid = `${id}_e${n}`; let x = edges.get(eid); if (x) return x;
+  const offsetPrimitive = (edge: Entity): void => {
+    if (edge.args.length !== 5) refuse('OFFSET_SURFACE source EDGE_CURVE requires five attributes');
+    for (let i = 1; i <= 2; i++) {
+      const vertex = get(edge.args[i]);
+      if (vertex.type !== 'VERTEX_POINT' || vertex.args.length !== 2) refuse('OFFSET_SURFACE source edge requires VERTEX_POINT endpoints');
+      offsetPoint(vertex.args[1]);
+    }
+    const raw = offsetCurveEntity(get(edge.args[3])), sense = edge.args[4];
+    if (!sense || typeof sense !== 'object' || !('enum' in sense) || sense.enum !== 'T' && sense.enum !== 'F') refuse('OFFSET_SURFACE source EDGE_CURVE same_sense must be BOOLEAN');
+    if (raw.type === 'LINE') {
+      offsetPoint(raw.args[1]); const v = get(raw.args[2]);
+      if (v.type !== 'VECTOR' || typeof v.args[2] !== 'number' || !Number.isFinite(v.args[2]) || !(v.args[2] > 0)) refuse('OFFSET_SURFACE source LINE requires a finite positive vector');
+      offsetPoint(v.args[1], true);
+    } else if (raw.type === 'CIRCLE' || raw.type === 'ELLIPSE') {
+      offsetFrameOf(raw.args[1]);
+      for (let i = 2; i < (raw.type === 'CIRCLE' ? 3 : 4); i++) if (typeof raw.args[i] !== 'number' || !Number.isFinite(raw.args[i]) || !(raw.args[i] as number > 0)) refuse('OFFSET_SURFACE source conic requires finite positive radii');
+    } else refuse(`OFFSET_SURFACE boundary ${raw.type} is not supported yet`);
+  };
+  const edgeOf = (v: Value, offset = false): IEdge => {
+    const n = refNo(v), eid = `${id}_e${n}`; let x = edges.get(eid);
     const e = get(v); if (e.type !== 'EDGE_CURVE') refuse(`${e.type} edges are not supported`);
+    if (offset) offsetPrimitive(e);
+    if (x) return x;
     const a = vertexOf(e.args[1]), b = vertexOf(e.args[2]);
     x = { id: eid, geo: geoOf(get(e.args[3]), points.get(a)!, points.get(b)!, flag(e.args[4])), v: [a, b], ...(e.args[0] ? { name: e.args[0] as string } : {}) };
+    if (trackOffsets) { sourceCurves.set(eid, offsetCurveEntity(get(e.args[3]))); sourceSenses.set(eid, flag(e.args[4])); }
     edges.set(eid, x); return x;
   };
 
   // Surfaces.
+  const offsetDefinitions = new Set<SurfDef>(), offsetPatches = new Map<Surface, OffsetSupport>();
   const surfDefOf = (e: Entity): SurfDef => {
+    if (e.type === 'OFFSET_SURFACE') {
+      if (e.args.length !== 4 || typeof e.args[0] !== 'string' || typeof e.args[2] !== 'number' || !Number.isFinite(e.args[2])) refuse('OFFSET_SURFACE requires a string name, finite numeric distance and four attributes');
+      const logical = e.args[3];
+      if (!logical || typeof logical !== 'object' || !('enum' in logical) || !['T', 'F', 'U'].includes(logical.enum)) refuse('OFFSET_SURFACE self_intersect must be LOGICAL T, F or U');
+      const base = get(e.args[1]);
+      if (base.type !== 'PLANE' && base.type !== 'CYLINDRICAL_SURFACE') refuse(`OFFSET_SURFACE basis ${base.type} is not supported yet (direct plane or cylinder only)`);
+      if (base.args.length !== (base.type === 'PLANE' ? 2 : 3)) refuse('OFFSET_SURFACE basis has invalid attributes');
+      const f = offsetFrameOf(base.args[1]), distance = e.args[2] as number;
+      const input = { origin: f.o, axis: offsetAxes.get(f)!, distance }; let sd: OffsetSupport;
+      if (base.type === 'PLANE') {
+        const o = add(f.o, scale(f.z, distance));
+        if (!o.every(Number.isFinite)) refuse('OFFSET_SURFACE plane origin is not finite');
+        sd = { kind: 'plane', f: { ...f, o }, input };
+      } else {
+        const value = base.args[2];
+        if (typeof value !== 'number' || !Number.isFinite(value) || !(value > 0)) refuse('OFFSET_SURFACE cylinder basis radius must be finite and positive');
+        const r = value as number;
+        const result = r + distance;
+        if (!Number.isFinite(result) || !(result > 0)) refuse('OFFSET_SURFACE cylinder radius at or beyond collapse is not supported yet');
+        sd = { kind: 'cylinder', f, r: result, input: { ...input, radius: r } };
+      }
+      // self_intersect is advisory; ADVANCED_FACE.same_sense does not change the offset sign.
+      offsetDefinitions.add(sd); return sd;
+    }
     if (e.type === 'PLANE') return { kind: 'plane', f: frameOf(e.args[1]) };
     if (e.type === 'CYLINDRICAL_SURFACE') return { kind: 'cylinder', f: frameOf(e.args[1]), r: num(e.args[2]) };
     if (e.type === 'CONICAL_SURFACE') return { kind: 'cone', f: frameOf(e.args[1]), r: num(e.args[2]), tan: Math.tan(num(e.args[3])) };
@@ -341,15 +421,20 @@ export function importStep(source: string, options: { readonly id?: string } = {
   const faces: IFace[] = [];
   const faceOf = (v: Value, k: number): IFace => {
     const e = get(v); if (e.type !== 'ADVANCED_FACE' && e.type !== 'FACE_SURFACE') refuse(`${e.type} faces are not supported`);
+    const sd = surfDefOf(get(e.args[2])), offset = offsetDefinitions.has(sd);
+    if (offset) {
+      const sense = e.args[3];
+      if (!sense || typeof sense !== 'object' || !('enum' in sense) || sense.enum !== 'T' && sense.enum !== 'F') refuse('OFFSET_SURFACE face same_sense must be BOOLEAN T or F');
+    }
     const loops = list(e.args[1]).map(bv => {
       const b = get(bv), loop = get(b.args[1]);
       if (loop.type !== 'EDGE_LOOP') refuse(`${loop.type} bounds are not supported yet`);
-      let uses = list(loop.args[1]).map(ov => { const o = get(ov); return { edge: edgeOf(o.args[3]).id, fwd: flag(o.args[4]) }; });
+      let uses = list(loop.args[1]).map(ov => { const o = get(ov); return { edge: edgeOf(o.args[3], offset).id, fwd: flag(o.args[4]) }; });
       if (!flag(b.args[2])) uses = [...uses].reverse().map(u => ({ edge: u.edge, fwd: !u.fwd }));
       return { outer: b.type === 'FACE_OUTER_BOUND', uses };
     });
     if (loops.length && !loops.some(l => l.outer)) loops[0].outer = true;
-    return { id: `${id}_f${k}_${refNo(v)}`, sd: surfDefOf(get(e.args[2])), same: flag(e.args[3]), loops, ...(e.args[0] ? { name: e.args[0] as string } : {}) };
+    return { id: `${id}_f${k}_${refNo(v)}`, sd, same: flag(e.args[3]), loops, ...(e.args[0] ? { name: e.args[0] as string } : {}) };
   };
   const shellFaces = (v: Value) => { const s = get(v); const shell = s.type === 'ORIENTED_CLOSED_SHELL' ? get(s.args[2]) : s; if (shell.type !== 'CLOSED_SHELL') refuse(`${shell.type} shells are not supported`); return list(shell.args[1]); };
   const bodies: { id: string; shells: { id: string; faces: IFace[] }[] }[] = [];
@@ -374,6 +459,9 @@ export function importStep(source: string, options: { readonly id?: string } = {
     const a: IEdge = { id: `${eid}_a${fresh}`, geo: geoPart(e.geo, 0, u, points.get(e.v[0])!, x), v: [e.v[0], vid], ...(e.name ? { name: e.name } : {}) };
     const b: IEdge = { id: `${eid}_b${fresh}`, geo: geoPart(e.geo, u, 1, x, points.get(e.v[1])!), v: [vid, e.v[1]], ...(e.name ? { name: e.name } : {}) };
     edges.delete(eid); edges.set(a.id, a); edges.set(b.id, b);
+    const source = sourceCurves.get(eid);
+    if (source) { sourceCurves.set(a.id, source); sourceCurves.set(b.id, source); sourceSenses.set(a.id, sourceSenses.get(eid)!); sourceSenses.set(b.id, sourceSenses.get(eid)!); }
+    if (generatedEdges.has(eid)) { generatedEdges.add(a.id); generatedEdges.add(b.id); }
     for (const f of faces) for (const l of f.loops) l.uses = l.uses.flatMap(us => us.edge !== eid ? [us] : us.fwd ? [{ edge: a.id, fwd: true }, { edge: b.id, fwd: true }] : [{ edge: b.id, fwd: false }, { edge: a.id, fwd: false }]);
     return vid;
   };
@@ -447,6 +535,7 @@ export function importStep(source: string, options: { readonly id?: string } = {
       geo = { kind: 'conic', f: fr, a: r, b: r, t0, sweep: via <= ccw ? ccw : ccw - TAU };
     }
     edges.set(sid, { id: sid, geo, v: [P1, P2] });
+    if (trackOffsets) generatedEdges.add(sid);
     // The halves are named as any face split in two: name#1, name#2.
     const half = (uses: IUse[], suffix: string, k: number): IFace => ({ ...f, id: `${f.id}${suffix}`, loops: [{ outer: true, uses }], ...(f.name ? { name: `${f.name}#${k}` } : {}) });
     const A = half([R[0], ...C1a, { edge: sid, fwd: false }, ...C2b], '_a', 1), B = half([{ edge: sid, fwd: true }, ...C1b, R[jj], ...C2a], '_b', 2);
@@ -463,8 +552,10 @@ export function importStep(source: string, options: { readonly id?: string } = {
 
   // Patches over each face's extent.
   const curves = new Map<string, Curve>();
+  const unpinnedEnds = new Map<string, [Point, Point]>();
   for (const e of edges.values()) {
     const c = toCurve(e.geo, e.id), cp = c.controlPoints as Point[];
+    if (trackOffsets) unpinnedEnds.set(e.id, [cp[0], cp[cp.length - 1]]);
     cp[0] = points.get(e.v[0])!; cp[cp.length - 1] = points.get(e.v[1])!; curves.set(e.id, c);
   }
   // Boundary samples along each loop in its own direction.
@@ -505,6 +596,7 @@ export function importStep(source: string, options: { readonly id?: string } = {
     const S = surface, P = S.controlPoints as Point[][], m = Math.floor(P.length / 2), n2 = Math.floor(P[0].length / 2);
     const own = cross(sub(P[Math.min(P.length - 1, m + 1)][n2], P[Math.max(0, m - 1)][n2]), sub(P[m][Math.min(P[0].length - 1, n2 + 1)], P[m][Math.max(0, n2 - 1)]));
     const natN = naturalNormal(sd, P[m][n2]);
+    if (offsetDefinitions.has(sd) && (sd.kind === 'plane' || sd.kind === 'cylinder')) offsetPatches.set(surface, sd);
     return { surface, sense: (dot(own, natN) >= 0) === f.same ? 'forward' : 'reversed' };
   };
 
@@ -531,6 +623,31 @@ export function importStep(source: string, options: { readonly id?: string } = {
       return { id: f.id, surface, sense, loops: f.loops.map(l => ({ kind: (l.outer ? 'outer' : 'inner') as 'outer' | 'inner', uses: l.uses.map(us => ({ edge: us.edge, sense: (us.fwd ? 'forward' : 'reversed') as 'forward' | 'reversed' })) })), ...(f.name ? { name: f.name } : {}) };
     }) })) })),
   });
+  // New offsets alone get a bounded analytic binding preflight. Legacy import families are unchanged.
+  if (offsetDefinitions.size) {
+  const offsetEdges = new Map(brep.edges.map(e => [e.id, e])), byLoop = new Map(brep.loops.map(l => [l.id, l])), byCoedge = new Map(brep.coedges.map(c => [c.id, c]));
+  for (const face of brep.faces) {
+    const support = face.surface.kind === 'surface' ? offsetPatches.get(face.surface) : undefined;
+    if (!support) continue;
+    for (const lid of face.loops) for (const cid of byLoop.get(lid)?.coedges ?? []) {
+      const edge = offsetEdges.get(byCoedge.get(cid)!.edge)!, source = sourceCurves.get(edge.id);
+      if (!source && !generatedEdges.has(edge.id) || source && source.type !== 'LINE' && source.type !== 'CIRCLE' && !(support.kind === 'plane' && source.type === 'ELLIPSE')) refuse(`OFFSET_SURFACE boundary ${source?.type ?? 'derived edge'} is not supported yet`);
+      const a = edge.curve.controlPoints[0], b = edge.curve.controlPoints[edge.curve.controlPoints.length - 1];
+      if (source?.type === 'LINE') {
+        const p = offsetPoint(source.args[1]), v = get(source.args[2]);
+        if (v.type !== 'VECTOR' || typeof v.args[2] !== 'number' || !Number.isFinite(v.args[2]) || !(v.args[2] > 0)) refuse('OFFSET_SURFACE source LINE requires a finite positive vector');
+        const z = offsetPoint(v.args[1], true); // Exact predicate keeps the raw LINE direction ratios.
+        checkOffsetSourceEndpoints({ kind: 'line', o: p, z, same: sourceSenses.get(edge.id)! }, a, b, edge.tolerance, face.id, edge.id);
+      } else if (source) {
+        offsetFrameOf(source.args[1]); const r = source.args[2], rb = source.type === 'ELLIPSE' ? source.args[3] : r;
+        if (typeof r !== 'number' || typeof rb !== 'number' || !Number.isFinite(r) || !Number.isFinite(rb) || !(r > 0) || !(rb > 0)) refuse('OFFSET_SURFACE source conic requires finite positive radii');
+        const ends = unpinnedEnds.get(edge.id)!;
+        checkOffsetSourceEndpoints({ kind: 'conic', start: ends[0], end: ends[1] }, a, b, edge.tolerance, face.id, edge.id);
+      }
+      checkOffsetBoundary(support, edge.curve, edge.tolerance, face.id, edge.id);
+    }
+  }
+  }
   assertBoundaryBindings(brep); // Refuse proved invalid binding before names, merging or caller commit.
   // Unnamed edges are named by their two faces (as edges of any body), numbered where that repeats.
   const faceName = new Map(brep.faces.map(f => [f.id, f.name ?? f.id])), loopFace = new Map(brep.loops.map(l => [l.id, l.face]));

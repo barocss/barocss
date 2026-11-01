@@ -1,0 +1,578 @@
+{
+  "workId": "D419",
+  "status": "QUALIFIED",
+  "baseline": "f2ca2cc014ce2602298c9272ee5a5a2d18e6dfe3",
+  "date": "2026-11-01",
+  "tier": "full",
+  "models": {
+    "geometryImplementation": "GPT-6.1 Sol High",
+    "consumerAndInventory": "GPT-6.1 Sol Medium",
+    "independentMathMutationAndVisual": "GPT-6.1 Sol High"
+  },
+  "scope": {
+    "supported": "One OFFSET_SURFACE over direct PLANE/CYLINDRICAL_SURFACE; exact analytic normalization and bounded line/conic admission",
+    "refused": "Other/nested bases, unsupported boundaries, singular radii and uncertified precision/binding",
+    "publicSignatures": "Unchanged; two inventory union-order strings only",
+    "core": "No B-rep core, schema, fitter or dependency change"
+  },
+  "sourceSHA256": {
+    "packages/barocss-cad/src/io/step-import.ts": "48bf2436bc6fe84c4b34a5ca02fdc9de0bb2ceb90a7af183157aaf6cd8af21ef",
+    "packages/barocss-cad/src/io/step-offset-internal.ts": "061dee76cda7c182c4def841e57e4092bcf29886c9c1d7e2f686c6e50fa17fa8",
+    "packages/barocss-cad/test/step-offset.test.mjs": "de05296f31acdaa2e342efc63ede68a346d2c0a16ccd8b43668392ad71619227",
+    "packages/barocss-cad/test/step-offset-fixtures.mjs": "6f64b038e6eb89652f0bfbbd5215ebf6b931e33a877a80953dd9daedc03ff412",
+    "packages/barocss-cad-model/test/step-offset-units.test.ts": "ae5b05d6f3d4ee4c7f60f0087eaf3668db16b6aabfa49294ce095f0cf2c0a490",
+    "apps/cad-studio/test/step-offset-producer.mjs": "048649f3b0a0fbab5833312019b6971f7cb377e7bf30feae55793423e5399e0a",
+    "apps/cad-studio/test/step-offset-oracle.py": "8fafde6d7acab750831ec7e8539e05410b8effe14c549d77e6350dc0d6687c6a",
+    "apps/cad-studio/test/step-offset-browser.mjs": "9f2ad51a1728ec821176efe75091cd976e59c364eabcab4d6895da063bcb3d8e"
+  },
+  "author": {
+    "uniqueTestsAcrossScopedRevisions": 63,
+    "newTests": 58,
+    "existingSTEPTests": 5,
+    "finalPrecisionSelection": {
+      "pass": 7,
+      "new": 5,
+      "overlap": 2
+    },
+    "notAWholeFinal63TestRun": true,
+    "fullHistory": "/tmp/barocss-d419-author/attempt-summary.json",
+    "attempts": [
+      {
+        "attempt": 1,
+        "counts": {
+          "tests": 47,
+          "pass": 29,
+          "fail": 18,
+          "skipped": 0
+        },
+        "buildCommand": "node /tmp/barocss-d419-author/build.mjs /tmp/barocss-d419-author/attempt01",
+        "testCommand": "node --test /tmp/barocss-d419-author/attempt01/step-offset.test.js /tmp/barocss-d419-author/attempt01/step.test.js"
+      },
+      {
+        "attempt": 2,
+        "counts": {
+          "tests": 18,
+          "pass": 10,
+          "fail": 8,
+          "skipped": 0
+        },
+        "buildCommand": "node /tmp/barocss-d419-author/build.mjs /tmp/barocss-d419-author/attempt02",
+        "testCommand": "node --test --test-name-pattern='^(offset (plane|cylinder)|plane (negative|zero)|cylinder (negative|zero|large|near)|scaled cylinder|offset face sense)' /tmp/barocss-d419-author/attempt02/step-offset.test.js"
+      },
+      {
+        "attempt": 3,
+        "counts": {
+          "tests": 56,
+          "pass": 47,
+          "fail": 9,
+          "skipped": 0
+        },
+        "buildCommand": "node /tmp/barocss-d419-author/build.mjs /tmp/barocss-d419-author/attempt03",
+        "testCommand": "node --test /tmp/barocss-d419-author/attempt03/step-offset.test.js /tmp/barocss-d419-author/attempt03/step.test.js"
+      },
+      {
+        "attempt": 4,
+        "counts": {
+          "tests": 19,
+          "pass": 19,
+          "fail": 0,
+          "skipped": 0
+        },
+        "buildCommand": "node /tmp/barocss-d419-author/build.mjs /tmp/barocss-d419-author/attempt04",
+        "testCommand": "node --test --test-name-pattern='^(offset (plane|cylinder)|plane (negative|zero)|cylinder (negative|zero|large|near)|scaled cylinder|offset face sense)' /tmp/barocss-d419-author/attempt04/step-offset.test.js"
+      },
+      {
+        "attempt": "05-face-sense",
+        "counts": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "skipped": 0
+        },
+        "buildCommand": "node /tmp/barocss-d419-author/build.mjs /tmp/barocss-d419-author/attempt05-face-sense",
+        "testCommand": "node --test --test-name-pattern='^(new offset face rejects|offset plane advisory F|offset face sense)' /tmp/barocss-d419-author/attempt05-face-sense/step-offset.test.js"
+      },
+      {
+        "attempt": "06-precision",
+        "counts": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0
+        },
+        "buildCommand": "node /tmp/barocss-d419-author/build.mjs /tmp/barocss-d419-author/attempt06-precision",
+        "testCommand": "node --test --test-name-pattern='^(offset precision|offset plane advisory F|offset cylinder advisory F)' /tmp/barocss-d419-author/attempt06-precision/step-offset.test.js"
+      }
+    ],
+    "finalCADBuild": {
+      "status": "PASS",
+      "command": "node scripts/tool.mjs build",
+      "cwd": "packages/barocss-cad",
+      "receipt": "/tmp/barocss-d419-author/attempt06-precision/library-build.log",
+      "includes": "TypeScript and emitted library; reused while source hashes stay unchanged"
+    }
+  },
+  "independent": {
+    "finalSourceCases": 54,
+    "publicCases": 27,
+    "privateMathCases": 27,
+    "status": "PASS",
+    "sourceReviewRounds": "plan; candidate; face-BOOLEAN repro/fix; precision theorem/repro/fix; final code and visual",
+    "mutants": {
+      "rawAssertionKilled": 20,
+      "behaviorGeometryOrClassification": 19,
+      "reasonContractOnlyMasked": 1,
+      "survivors": 0,
+      "mixedFailures": 0,
+      "crashes": 0,
+      "unmatched": 0,
+      "earlier14NotAddedAgain": true
+    },
+    "artifact": "/tmp/barocss-d419-independent/final02",
+    "priorRevisions": "Earlier 40-case/14-mutant success retained separately, not added to final counts"
+  },
+  "consumer": {
+    "earlierModelTests": {
+      "pass": 6,
+      "sourceCheckpoint": "eec9920f/29be4bcb",
+      "notRerunAsFinalSix": true
+    },
+    "finalProducer": {
+      "positiveCases": 5,
+      "expectedRefusals": 2,
+      "status": "PASS",
+      "path": "/tmp/barocss-d419-final-fixtures"
+    },
+    "finalEmittedDistSmoke": {
+      "pass": 2,
+      "overlapWithAuthorTests": true
+    },
+    "selectedOutputComparison": {
+      "status": "PASS",
+      "stepAndNativeFiles": 10,
+      "completeNativeObservationBytes": 45607,
+      "byteEqualAcrossPrecisionFix": true,
+      "artifact": "/tmp/barocss-d419/final-output-comparison.json"
+    }
+  },
+  "oracle": {
+    "method": "Independent stdlib Part21 graph lexer and Cox-de Boor support samples plus analytic literal scalar volume; zero product imports",
+    "thirdPartyReader": false,
+    "globalSurfaceOrSolidCertificate": false,
+    "samples": 1113,
+    "sampledSupportResidualLimit": 1e-07,
+    "maximumSupportResidual": 3.552713678800501e-15,
+    "scalarVolumeAbsoluteLimit": 1e-05,
+    "normalFixtureRelativeLimit": 1e-09,
+    "nearCollapse": "Author absolute-only topology/support check, not relative volume qualification",
+    "negativeControls": {
+      "plane-coordinate": "plane support residual 0.25mm",
+      "cylinder-radius": "cylinder support residual 1.200000000000001mm",
+      "unit-double-scale": "cylinder support residual 108.0mm",
+      "offset-sign-or-advisory-T-misread": "cylinder support residual 4.0mm",
+      "broken-source-graph": "dangling reference #999998 from #999999"
+    },
+    "directDigitEnumControl": "PASS on final source",
+    "actualVsPrepared": "Two actual accepted native observations plus three prepared T/F/U controls",
+    "supportExtent": "Full stored supports may extend beyond trim; physical body bounds are checked separately",
+    "caseMeasurements": [
+      {
+        "name": "plane-mm",
+        "samples": 49,
+        "expectedVolume": 24,
+        "observedVolume": 24,
+        "volumeAbsoluteError": 0,
+        "volumeRelativeError": 0.0,
+        "maximumResidual": 0.0
+      },
+      {
+        "name": "cylinder-mm-T",
+        "samples": 266,
+        "expectedVolume": 4523.893421169302,
+        "observedVolume": 4523.893421285352,
+        "volumeAbsoluteError": 1.160497049568221e-07,
+        "volumeRelativeError": 2.5652616928103146e-11,
+        "maximumResidual": 3.552713678800501e-15
+      },
+      {
+        "name": "cylinder-mm-F",
+        "samples": 266,
+        "expectedVolume": 4523.893421169302,
+        "observedVolume": 4523.893421285352,
+        "volumeAbsoluteError": 1.160497049568221e-07,
+        "volumeRelativeError": 2.5652616928103146e-11,
+        "maximumResidual": 3.552713678800501e-15
+      },
+      {
+        "name": "cylinder-mm-U",
+        "samples": 266,
+        "expectedVolume": 4523.893421169302,
+        "observedVolume": 4523.893421285352,
+        "volumeAbsoluteError": 1.160497049568221e-07,
+        "volumeRelativeError": 2.5652616928103146e-11,
+        "maximumResidual": 3.552713678800501e-15
+      },
+      {
+        "name": "cylinder-cm",
+        "samples": 266,
+        "expectedVolume": 4523.893421169302,
+        "observedVolume": 4523.89342129446,
+        "volumeAbsoluteError": 1.251573849003762e-07,
+        "volumeRelativeError": 2.7665856210208076e-11,
+        "maximumResidual": 3.552713678800501e-15
+      }
+    ],
+    "lengthUnit": "mm",
+    "volumeUnit": "mm^3"
+  },
+  "actual": {
+    "status": "PASS",
+    "run": "/tmp/barocss-d419-browser-run01",
+    "states": [
+      "Plane offset mm Open",
+      "Cylinder offset cm Open with one scale x10",
+      "Nonbinding cylinder refusal retains exact prior document"
+    ],
+    "visualRoot": "PASS",
+    "visualIndependent": "PASS; /tmp/barocss-d419-independent/actual-visual-verdict.md",
+    "sourceFrozen": 751,
+    "sourceAfter": 751,
+    "sourceAfterCleanup": 751,
+    "allFrozenBytesEqual": true,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "changes": 0,
+    "downloads": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "ownedResourcesAfterCleanup": 0,
+    "fontNetwork": {
+      "stylesheets": 1,
+      "assets": 0
+    },
+    "limits": [
+      "No outbound Save/export download",
+      "No actual precision-amplification input; its public/facade and exact mathematical controls are independently verified",
+      "Existing rail overlap on the box is not new UI layout acceptance"
+    ],
+    "oracleSHA256AsExecuted": "443b6504ca6699788e6e2c4255cd849d71aa3f14cd7572c922b09f035c1f608c"
+  },
+  "APIInventory": {
+    "initial": "FAIL IV001",
+    "final": "PASS via check-docs.mjs internal api-inventory --check",
+    "differences": 2,
+    "exposuresChanged": 2,
+    "exposuresTotal": 6469,
+    "allOtherJSONIdentical": true,
+    "ASTCanaries": 14,
+    "independentlyReviewed": true,
+    "expectedBeforeSHA256": "fbfcc276fb0935c1f6c882ad4983983d9404cf60cae9a440ee6c2e704e1f3788",
+    "expectedAfterSHA256": "66f172b37a51af421984aa8b9a12e0a6bbd01e611883ce157018d1d48358f986",
+    "generatorChanged": false,
+    "artifact": "/tmp/barocss-d419-api"
+  },
+  "checks": [
+    {
+      "name": "api-inventory",
+      "command": [
+        "node",
+        "apps/library-docs/scripts/api-inventory.mjs",
+        "--check"
+      ],
+      "status": "FAIL",
+      "exitCode": 1,
+      "seconds": 18.261893,
+      "log": "/tmp/barocss-d419/checks/api-inventory.log",
+      "phase": "historical, resolved",
+      "resolvedBy": "Independent complete two-string AST comparison and exact expected update; final docs command internal API check PASS"
+    },
+    {
+      "name": "code-shape",
+      "command": [
+        "node",
+        "packages/barocss-cad/scripts/code-shape.mjs",
+        "--check"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "seconds": 0.469767,
+      "log": "/tmp/barocss-d419/checks/code-shape.log",
+      "phase": "final-source PASS"
+    },
+    {
+      "name": "dist-smoke",
+      "command": [
+        "node",
+        "--test",
+        "--test-name-pattern=^offset (plane|cylinder) advisory F",
+        "packages/barocss-cad/test/step-offset.test.mjs"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "seconds": 0.326804,
+      "log": "/tmp/barocss-d419/checks/dist-smoke.log",
+      "phase": "final-source PASS"
+    },
+    {
+      "name": "docs",
+      "command": [
+        "node",
+        "apps/library-docs/scripts/check-docs.mjs"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "seconds": 19.999303,
+      "log": "/tmp/barocss-d419/checks/docs.log",
+      "phase": "final-source PASS"
+    },
+    {
+      "name": "final-oracle",
+      "command": [
+        "python3",
+        "-I",
+        "apps/cad-studio/test/step-offset-oracle.py"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "seconds": 0.046054,
+      "log": "/tmp/barocss-d419/checks/final-oracle.log",
+      "phase": "final-source PASS"
+    },
+    {
+      "name": "final-producer",
+      "command": [
+        "node",
+        "apps/cad-studio/test/step-offset-producer.mjs",
+        "/tmp/barocss-d419-final-fixtures"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "seconds": 0.739375,
+      "log": "/tmp/barocss-d419/checks/final-producer.log",
+      "phase": "final-source PASS"
+    },
+    {
+      "name": "inspector-preflight",
+      "command": [
+        "node",
+        "/tmp/barocss-d419/inspector-preflight.mjs",
+        "/tmp/barocss-d419-final-fixtures"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "seconds": 0.428918,
+      "log": "/tmp/barocss-d419/checks/inspector-preflight.log",
+      "phase": "final-source PASS"
+    },
+    {
+      "name": "library-build",
+      "command": [
+        "pnpm",
+        "--filter",
+        "@barocss/cad",
+        "build:library"
+      ],
+      "status": "FAIL",
+      "exitCode": 1,
+      "seconds": 8.231674,
+      "log": "/tmp/barocss-d419/checks/library-build.log",
+      "phase": "historical, resolved",
+      "resolvedBy": "Author attempt06 successful full library build"
+    },
+    {
+      "name": "lint",
+      "command": [
+        "pnpm",
+        "exec",
+        "eslint",
+        "packages/barocss-cad/src/io/step-import.ts",
+        "packages/barocss-cad/src/io/step-offset-internal.ts",
+        "packages/barocss-cad/test/step-offset.test.mjs",
+        "packages/barocss-cad/test/step-offset-fixtures.mjs",
+        "packages/barocss-cad/test/step.test.mjs",
+        "packages/barocss-cad-model/test/step-offset-units.test.ts",
+        "apps/cad-studio/test/step-offset-producer.mjs",
+        "apps/cad-studio/test/step-offset-browser.mjs"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "seconds": 1.343569,
+      "log": "/tmp/barocss-d419/checks/lint.log",
+      "phase": "final-source PASS"
+    },
+    {
+      "name": "model-types",
+      "command": [
+        "pnpm",
+        "--filter",
+        "@barocss/cad-model",
+        "type-check"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "seconds": 17.642976,
+      "log": "/tmp/barocss-d419/checks/model-types.log",
+      "phase": "final-source PASS"
+    },
+    {
+      "name": "navigation",
+      "command": [
+        "node",
+        "apps/cad-studio/handover/scripts/check-navigation.mjs"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "seconds": 2.808876,
+      "log": "/tmp/barocss-d419/checks/navigation.log",
+      "phase": "final-source PASS"
+    },
+    {
+      "name": "refusal-catalog",
+      "command": [
+        "node",
+        "apps/library-docs/scripts/refusals.mjs",
+        "--check"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "seconds": 1.798452,
+      "log": "/tmp/barocss-d419/checks/refusal-catalog.log",
+      "phase": "final-source PASS"
+    },
+    {
+      "name": "oracle-report-naming",
+      "command": [
+        "python3",
+        "-I",
+        "apps/cad-studio/test/step-offset-oracle.py"
+      ],
+      "status": "PASS",
+      "exitCode": 0,
+      "seconds": 0.046666,
+      "log": "/tmp/barocss-d419/checks/oracle-report-naming.log"
+    }
+  ],
+  "failedEvidencePreserved": [
+    {
+      "stage": "Author attempt01",
+      "status": "FAIL",
+      "reason": "18 harness failures: missing required density argument; fixed helper only"
+    },
+    {
+      "stage": "Author attempts02/03",
+      "status": "FAIL",
+      "reason": "Strict draft1e-7 absolute mass assertions; matched plain cylinder exactly equal. Quadrature32 did not remove existing bias. Final comparisons require both1e-5 absolute and1e-9 relative for normal fixtures; support/rawtol unchanged"
+    },
+    {
+      "stage": "Independent initial20",
+      "status": "FAIL",
+      "reason": "18 PASS/2 FAIL: offset face .U. accepted and $ TypeError; fixed new-offset-only BOOLEAN validation"
+    },
+    {
+      "stage": "Large native coordinate witness",
+      "status": "NOT_REPRODUCED",
+      "reason": "Existing1e6 coordinate cap refused both controls"
+    },
+    {
+      "stage": "Raw-normal amplification",
+      "status": "FAIL",
+      "reason": "Literal raw-axis target plane gap2/5mm accepted at2e-6 edge tolerance; fixed exact error budget and classification",
+      "artifact": "/tmp/barocss-d419-independent/normal-amplification01/result.json"
+    },
+    {
+      "stage": "First full CAD build",
+      "status": "FAIL",
+      "reason": "TS numeric narrowing; fixed validated locals/casts, later full buildPASS"
+    },
+    {
+      "stage": "Consumer first oracle",
+      "status": "FAIL",
+      "reason": "Independent reused lexer did not recognize .CURVE_3D.; own bounded lexer extension plus drift and direct lexical controls; D404/product parser unchanged"
+    },
+    {
+      "stage": "API inventory",
+      "status": "FAIL",
+      "reason": "Exactly2 order-only union strings, full AST and14canary independent proof before expected update"
+    }
+  ],
+  "NOT_RUN": [
+    "New OCP/OCCT external-reader qualification (environment remains removed)",
+    "Full kernel suite (no B-rep core change)",
+    "Unchanged Studio TypeScript baseline",
+    "Broad R5/RB/fuzz/CI/customer-file campaigns",
+    "General STEP/AP242 assembly/presentation/PMI/UCS acceptance",
+    "Outbound Save/export download, paid live call, dependency download, release or develop integration"
+  ],
+  "issues": {
+    "2263": "OPEN: broader acceptance incomplete; bounded progress comment after push",
+    "2248": "RESEARCH OPEN: named UCS separate",
+    "2258": "OPEN: generic offset/thicken/fitting not implemented",
+    "2266": "OPEN: no NURBS widening"
+  },
+  "runtimeSourceInvariant": "No worktree writes during actual start through cleanup. Subsequent changes only qualification/navigation and oracle report key metadata; product/browser/inspector and all predicates unchanged.",
+  "reproduction": {
+    "library": "pnpm --filter @barocss/cad build:library",
+    "tests": "node --test packages/barocss-cad/test/step-offset.test.mjs packages/barocss-cad/test/step.test.mjs (full reproduction command; actual scoped runs listed above)",
+    "producer": "node apps/cad-studio/test/step-offset-producer.mjs /tmp/barocss-d419-final-fixtures",
+    "oracle": "python3 -I apps/cad-studio/test/step-offset-oracle.py < /tmp/barocss-d419-final-fixtures/oracle-input.json",
+    "actual": "cd apps/cad-studio; STEP_OFFSET_SOURCE_FROZEN=1 STEP_OFFSET_REFUSAL=\"OFFSET_SURFACE edge\" CAD_STUDIO_CHAT_PORT=52391 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME=\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" node test/step-offset-browser.mjs /tmp/barocss-d419-browser-run01 /tmp/barocss-d419-final-fixtures",
+    "environment": "Node22.19.0; heavy runs serialized with gate.sh acquire heavy30 and same-shell release, observed load<40"
+  },
+  "outstandingFailures": [],
+  "navigation": {
+    "status": "PASS",
+    "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+    "checkedLocalLinks": 2361,
+    "newBroken": 0,
+    "preExistingArchivedMissingEvidencePaths": 1,
+    "scope": "Navigation only; its D418-specific NOT_RUN label does not replace separate D419 product evidence"
+  },
+  "OcpCleanup": {
+    "status": "ABSENT",
+    "checkedPaths": [
+      "/Users/user/.cache/barocss-step-reader",
+      "/tmp/barocss-d406-native-source",
+      "/tmp/barocss-d406-native-build"
+    ],
+    "downloadOrReinstall": false
+  },
+  "verificationSummary": {
+    "PASS": [
+      "Bounded direct plane/cylinder profile",
+      "Final independent54 and19behavior/classification plus1reason-only mutation",
+      "Final CAD library/types, Modeltypes, lint/code-shape, docs/API/navigation",
+      "Final actual3states and both visualreviews;751frozen files unchanged;resources0"
+    ],
+    "FAIL": "Historical failures preserved with resolutions; no outstanding blocker",
+    "NOT_RUN": [
+      "New OCP/OCCT external-reader qualification (environment remains removed)",
+      "Full kernel suite (no B-rep core change)",
+      "Unchanged Studio TypeScript baseline",
+      "Broad R5/RB/fuzz/CI/customer-file campaigns",
+      "General STEP/AP242 assembly/presentation/PMI/UCS acceptance",
+      "Outbound Save/export download, paid live call, dependency download, release or develop integration"
+    ]
+  },
+  "postActualReportMetadataChange": {
+    "scope": "Independent oracle report keys only; remove unit suffixes and declare length/volume units separately as required by naming rule",
+    "oldSHA256": "443b6504ca6699788e6e2c4255cd849d71aa3f14cd7572c922b09f035c1f608c",
+    "newSHA256": "8fafde6d7acab750831ec7e8539e05410b8effe14c549d77e6350dc0d6687c6a",
+    "renamedKeys": {
+      "maximumResidualMM": "maximumResidual",
+      "sampledSupportZExtentsMM": "sampledSupportZExtents",
+      "expectedVolumeMM3": "expectedVolume",
+      "observedVolumeMM3": "observedVolume",
+      "volumeAbsoluteErrorMM3": "volumeAbsoluteError",
+      "toleranceMM": "tolerance",
+      "volumeAbsoluteToleranceMM3": "volumeAbsoluteTolerance"
+    },
+    "predicateAndNumericResults": "Byte/value-equivalent after exact recursive key mapping plus unit metadata; asserted PASS",
+    "actualBrowserOrProductChanges": false,
+    "recheck": "python3 -I apps/cad-studio/test/step-offset-oracle.py < /tmp/barocss-d419-browser-run01/actual-native-oracle-input.json",
+    "status": "PASS",
+    "actualUIRepeat": "NOT_RUN: no browser/product/predicate change"
+  }
+}

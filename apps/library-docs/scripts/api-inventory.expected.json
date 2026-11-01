@@ -111143,7 +111143,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
-                "type": "\"schematic-radial\" | \"generated\""
+                "type": "\"generated\" | \"schematic-radial\""
               }
             ],
             "indexSignatures": []
@@ -111256,7 +111256,7 @@
                 "kind": "property",
                 "optional": true,
                 "readonly": true,
-                "type": "\"schematic-radial\" | \"generated\" | undefined"
+                "type": "\"generated\" | \"schematic-radial\" | undefined"
               },
               {
                 "name": "teeth",

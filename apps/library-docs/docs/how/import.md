@@ -222,7 +222,7 @@ parameters are packed into 64 columns, every number in its shortest exact decima
     frustum, a sphere, a cylinder with a pocket across from its seam, a prism with an extruded B-spline side and a
     revolved B-spline profile. Each is valid, with the expected face names (`wall#1`, `wall#2` …) and volume within
     5 × 10⁻⁴, no closed edges, and is valid again when written and read back. Imported bodies take a hole, a fillet and
-    a chamfer. `OFFSET_SURFACE` is refused as `CAPABILITY`; a hole across the seam and a profile off its axis plane
+    a chamfer. Unsupported `OFFSET_SURFACE` bases are refused as `CAPABILITY`; a hole across the seam and a profile off its axis plane
     are refused by name.
   - *a STEP file with several solids: one body by default, each solid its own part with each*.
   - *curved bodies read back from STEP keep their exact volume*: a torus, a bent pipe, a torus joined to a rod, to
@@ -248,7 +248,12 @@ built kernel.
 
 - **Refused by name**, as a `BrepError` with code `INPUT` and the message `STEP: …`. The part's `import` feature
   reports a message saying *not supported* as `CAPABILITY`, anything else as `INPUT`:
-  - other surfaces (`OFFSET_SURFACE` …), curves, edges, faces, shells, and bounds that are not edge loops;
+  - other surfaces, curves, edges, faces, shells, and bounds that are not edge loops;
+  - `OFFSET_SURFACE` except one level over a direct plane or cylinder, with analytically checked line/conic
+    boundaries for planes and coaxial circle/axis-parallel line boundaries for cylinders. Nested offsets, other
+    boundary families and collapsed or crossed cylinder offsets remain unsupported. Offset distance follows the
+    basis normal; face orientation and the informational `self_intersect` flag do not change that sign.
+    Reductions whose normalization/arithmetic error leaves no tolerance budget are refused;
   - a hole across a seam, and holes that leave no angle to cut;
   - a B-spline edge that a seam cut or a closed edge would have to split;
   - a face once round a swept circle, a face of revolution bounded by two meridians only, and a face once round

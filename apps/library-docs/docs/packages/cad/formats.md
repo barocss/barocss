@@ -53,10 +53,13 @@ export function prepareDxf(drawing: DxfDocument) {
 - **Reading.** `importStep(text)`, or the `import` feature in a part, reads B-rep solids:
   - **surfaces:** planes, cylinders, cones, spheres and tori as exact rational patches, B-spline surfaces as they are,
     and surfaces of linear extrusion and of revolution;
+  - **offset surfaces:** one `OFFSET_SURFACE` over a direct plane or cylinder. The signed distance follows the basis
+    normal. Plane boundaries are lines or conics; cylinder boundaries are coaxial circles and axis-parallel lines.
+    This profile checks boundary binding and reduction precision before admission and does not change authored curves or tolerance;
   - **curves:** lines, circles and ellipses as rational arcs, and B-spline curves.
 
-  A face that goes once round its axis is cut along a new edge. Entities it doesn't take, such as offset surfaces,
-  are refused by name. `stepMeshes(text)` reads a file of AP242 tessellated meshes only.
+  A face that goes once round its axis is cut along a new edge. Other offset bases, nested offsets, unsupported boundary curves and singular cylinder offsets are refused by name.
+  A non-positive resulting cylinder radius is not repaired. `stepMeshes(text)` reads a file of AP242 tessellated meshes only.
 
 <<< @/../samples/cad-formats.test.mjs#step
 

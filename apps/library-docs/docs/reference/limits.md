@@ -64,7 +64,8 @@ It tightens input validation; it adds no supported geometry operations.
   untransformed rational B-spline curves and surfaces. ([Exchange formats](/packages/cad/formats))
 - **STL** carries triangles only: no units, colours, names or exact curves.
 - **STEP.**
-  - Entities the kernel doesn't take, such as offset surfaces, are refused by name.
+  - Offset surfaces are limited to one level over a direct plane or cylinder, with checked analytic boundaries.
+    Other bases, nested offsets, unsupported boundaries and singular cylinder offsets are refused by name.
   - A mesh body written as planar faces is refused past 250,000 triangles.
 - **DXF R12** has no ellipses, splines, hatches or multi-line text. They are rewritten within a tolerance you give, or
   refused.
