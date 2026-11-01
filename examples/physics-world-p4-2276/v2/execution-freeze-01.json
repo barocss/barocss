@@ -1,0 +1,59 @@
+{
+  "workId": "physics-world-p4-sat-scoped-cache-v2-2276",
+  "status": "parent_source_frozen_before_any_execution",
+  "base": "9551959c488f3f688846427b408f67036e70096b",
+  "sources": {
+    "scoped-cache.py": {
+      "bytes": 17169,
+      "sha256": "c100855cdf88cd00a6716df38447f78caeb099e7459e98fee68517f19a85bc4a"
+    },
+    "controls.py": {
+      "bytes": 20834,
+      "sha256": "611f6cf5ac6fa5a63b72d28420aa2de018692d25709f06cec369d23108a1b6a4"
+    },
+    "gate.py": {
+      "bytes": 12401,
+      "sha256": "1c7af538507ee22be2d547f8bd9acb7e10be2752fd91652e7eadc6a087a0575c"
+    },
+    "controls-run.mjs": {
+      "bytes": 11784,
+      "sha256": "e26e17be802d7913a785a74d6c9b9a1a214cd7fec684e9d89bb27bfeb296ec40"
+    },
+    "gate-run.mjs": {
+      "bytes": 12670,
+      "sha256": "ad940f88f21f23e2a1af588de89bda75f86eadfeb153746d60f990eefa5e69ce"
+    },
+    "SCOPE-CONTRACT.md": {
+      "bytes": 9864,
+      "sha256": "9bd49605d1e1cb70d8f2ecdff2cc3f4c62dd2f497b679f656cef9ab202c8cbd3"
+    },
+    "CONTROL-RECIPES.json": {
+      "bytes": 30310,
+      "sha256": "3fb30d65c4e6f6a9b1158ee5100f02c80be2a08bf7adb4b6c4e4f25be532cfa5"
+    },
+    "implementation-freeze-01.json": {
+      "bytes": 1679,
+      "sha256": "adb409a0b409dcafd213b042e0f95693fce9e2a792926baf0e5c0ffd1285e394"
+    }
+  },
+  "controlsCommand": [
+    "node",
+    "controls-run.mjs",
+    "controls-guard-01",
+    "controls-01"
+  ],
+  "controlsPopulation": {
+    "pairedCases": 12,
+    "totalSatCalls": 24,
+    "maxOriginalSupportAttempts": 720,
+    "fullEvaluateCalls": 0,
+    "WorldCalls": 0
+  },
+  "onFirstFailure": "stop_preserve_no_full_gate",
+  "fullGatePrecondition": "all12 controls PASS, same source graph and parent-pinned receipt",
+  "newFullReferenceCallsMax": 6,
+  "oldStudyEvaluateCalls": 32,
+  "originalToleranceChanges": false,
+  "heavyGateRequired": true,
+  "noProductionAdoption": true
+}

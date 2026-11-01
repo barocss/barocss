@@ -219,3 +219,44 @@ all original arithmetic, candidate order and fresh center projection. It is
 not implemented here. Full 1,200-step cost and the original eight-box exit
 remain NO_GO/UNKNOWN. P5 domain migration can proceed independently under its
 own frozen model/state/transaction contract. No deploy, push or develop merge.
+
+## Second cache candidate: exact output, cost still NO_GO
+
+The separate `v2/` candidate amortizes the complete key once per original SAT
+call. All original arithmetic and traversal remain in the original functions.
+The contract, 12 control recipes and implementation source hashes were frozen
+before execution. `v2/evidence/controls-01` passes all12 paired cases:24 SAT
+attempts and494 original support attempts (273 baseline,221 delegated), with
+52 candidate hits. Context flags, original exception object, Decimal tuples,
+complete replies, capacity bypass, failed pending entries and cleanup pass.
+
+`v2/evidence/gate-01` then makes exactly six candidate full reference calls.
+All CURRENT raw response bytes and parsed number bits match, including signed
+zero. The total study now contains38 full reference evaluations. Primitive
+SAT/support attempts are separate. No World, producer, fixture, trigonometric
+seed or JSON projection ran in these gates. This is numerical equality to the
+selected CURRENT reference replies, not a new physical qualification.
+
+CPU still fails the original cost criterion:885.643ms uncached versus1233.559ms
+candidate, a39.284% increase. Every measured frame regresses. Complete-key CPU
+falls to15.2–17.5ms per frame, but this does not establish an overall gain.
+Peak accounted cache ownership is2278280bytes, below the unchanged64MiB bound.
+Both control and full-gate process groups close normally without timeouts.
+The full wrapper returns exit1 for `NUMERIC_EQ_PASS_COST_NO_GO`, preventing
+expansion even though the six-call child completed its numerical checks.
+
+`v2/results.json` records paired costs, counters and receipt hashes. Commands
+ran under the existing heavy gate, with the unchanged180s outer deadline:
+
+```sh
+$NODE22 examples/physics-world-p4-2276/v2/controls-run.mjs controls-guard-01 controls-01
+# controls SHA is read from v2/gate-freeze-01.json and passed as an argv element.
+$NODE22 examples/physics-world-p4-2276/v2/gate-run.mjs gate-guard-01 gate-01 controls-01 "$CONTROLS_SHA256"
+```
+
+V2 is **not adopted**. V1, the first raw-census failure, historical reply-sign
+UNKNOWN, original8-box NO_GO, first failures, tolerances, iteration counts and
+runtime budgets remain intact. No fresh original trajectory ran. Next is a
+read-only check for a narrowly justified overhead reduction; P5 baseline work
+can proceed independently. P4 is not complete and develop merge remains pending
+the full required roadmap. No push, deployment or release ran.

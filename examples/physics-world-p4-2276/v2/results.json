@@ -1,0 +1,126 @@
+{
+  "workId": "physics-world-p4-sat-scoped-cache-v2-2276",
+  "status": "NUMERIC_EQ_PASS_COST_NO_GO",
+  "evidence": {
+    "evidence/controls-01/summary.json": {
+      "bytes": 227344,
+      "sha256": "cde6d889e992ba8d114a047a5290319c98a5065e770fe8e1c50083ed1b567015"
+    },
+    "evidence/controls-guard-01/result.json": {
+      "bytes": 4680,
+      "sha256": "5c59ba2c088a9bfa21d1d07e65fd636b37aee1dc959b53f8a7ad65a309a53def"
+    },
+    "evidence/gate-01/summary.json": {
+      "bytes": 23816,
+      "sha256": "4669d6344cd04681a5ddf4f5e91ea0fbd481e24d7765f7608b64ae4df23b1715"
+    },
+    "evidence/gate-guard-01/result.json": {
+      "bytes": 4842,
+      "sha256": "9786a6cf7ae548a33817197298bd70a6fef9e8b39b0dce212646334db8df753e"
+    }
+  },
+  "primitiveCounts": {
+    "baselineSatAttempts": 12,
+    "candidateSatAttempts": 12,
+    "baselineOriginalSupportAttempts": 273,
+    "candidateOriginalSupportAttempts": 221,
+    "candidateLogicalSupportCalls": 273,
+    "candidateHits": 52
+  },
+  "totalSatAttempts": 24,
+  "totalOriginalSupportAttempts": 494,
+  "fullCounts": {
+    "evaluateAttempted": 6,
+    "evaluateReturned": 6,
+    "currentRawMatched": 6
+  },
+  "pairedCpu": {
+    "uncachedTotalNs": 885643000,
+    "candidateTotalNs": 1233559000,
+    "deltaNs": 347916000,
+    "observedReductionFraction": -0.39284000438099786,
+    "singlePriorFreshPairing": true,
+    "perFrameNonRegressionClaimed": false
+  },
+  "studyFullEvaluateCalls": 38,
+  "primitiveCallsCountedSeparately": true,
+  "maximumPeakOwnedBytes": 2278280,
+  "frames": [
+    {
+      "scene": "ALIGNED",
+      "step": 1,
+      "uncachedCpuNs": 112457000,
+      "candidateCpuNs": 139051000,
+      "supportCalls": 6912,
+      "hits": 6720,
+      "originalAttempts": 192,
+      "keyCpuNs": 15291000,
+      "peakOwnedBytes": 108044
+    },
+    {
+      "scene": "ALIGNED",
+      "step": 16,
+      "uncachedCpuNs": 176826000,
+      "candidateCpuNs": 263605000,
+      "supportCalls": 8640,
+      "hits": 4320,
+      "originalAttempts": 4320,
+      "keyCpuNs": 17524000,
+      "peakOwnedBytes": 2278280
+    },
+    {
+      "scene": "OFFSET",
+      "step": 1,
+      "uncachedCpuNs": 111036000,
+      "candidateCpuNs": 137825000,
+      "supportCalls": 6912,
+      "hits": 6720,
+      "originalAttempts": 192,
+      "keyCpuNs": 15243000,
+      "peakOwnedBytes": 108028
+    },
+    {
+      "scene": "OFFSET",
+      "step": 16,
+      "uncachedCpuNs": 172805000,
+      "candidateCpuNs": 258129000,
+      "supportCalls": 8640,
+      "hits": 4320,
+      "originalAttempts": 4320,
+      "keyCpuNs": 17116000,
+      "peakOwnedBytes": 2271532
+    },
+    {
+      "scene": "YAW",
+      "step": 1,
+      "uncachedCpuNs": 134943000,
+      "candidateCpuNs": 172239000,
+      "supportCalls": 7680,
+      "hits": 7040,
+      "originalAttempts": 640,
+      "keyCpuNs": 17451000,
+      "peakOwnedBytes": 352545
+    },
+    {
+      "scene": "YAW",
+      "step": 16,
+      "uncachedCpuNs": 177576000,
+      "candidateCpuNs": 262710000,
+      "supportCalls": 8640,
+      "hits": 4320,
+      "originalAttempts": 4320,
+      "keyCpuNs": 17089000,
+      "peakOwnedBytes": 2272813
+    }
+  ],
+  "numericMeaning": "complete CURRENT raw bytes and full parsed number bits incl signed zero; no historical full Context proof",
+  "originalCensus": "FAIL_PRESERVED",
+  "historicalReplyZeroSigns": "UNKNOWN",
+  "original8BoxFullExit": "NO_GO",
+  "productionAdopted": false,
+  "worldCalls": 0,
+  "originalReferencesChanged": false,
+  "oldToleranceOrBudgetChanges": false,
+  "deployment": "NOT_RUN",
+  "developMerge": "PENDING_FULL_ROADMAP"
+}
