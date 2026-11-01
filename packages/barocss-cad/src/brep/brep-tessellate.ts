@@ -1,3 +1,4 @@
+import { assertBoundaryBindings } from './brep-boundary-binding-internal.js';
 // Display tessellation of a shared B-rep (brep-core step 2). Every edge is sampled once and both of
 // its faces use those exact points, so the mesh is watertight by construction (no welding). The B-rep
 // edges come out as polylines too, so viewers can draw real model edges instead of guessing creases.
@@ -305,6 +306,7 @@ export function segmentKey(a: ArrayLike<number>, b: ArrayLike<number>): string {
 }
 
 function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Map<string, FaceParameters> | null, only: ReadonlySet<string> | null = null, segments: Map<string, EdgeSegment> | null = null): BrepMesh {
+  assertBoundaryBindings(brep);
   const perQuarter = Math.max(1, Math.min(64, Math.floor(options.segmentsPerQuarter ?? 8)));
   const edges = new Map(brep.edges.map(e => [e.id, e])), loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(c => [c.id, c]));
   // Faces on a cylinder that are not two rails with straight sides: triangulated in their (r·θ, height) domain.

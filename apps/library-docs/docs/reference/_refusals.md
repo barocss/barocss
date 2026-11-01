@@ -48,7 +48,7 @@
 | `[BUTT_ON_OPEN_SIDE]` | `core/error-codes.ts (declared)`, `part` | …: its end spans … to … mm along the through member's section …, but the side …… of that section has material only at …: a gap would be left (trim it to the … |
 | `[CAM_UNDERCUT]` | `core/error-codes.ts (declared)` | — |
 | `[CAP]` | `core/error-codes.ts (declared)` | — |
-| `[CAPABILITY]` | `core/error-codes.ts (declared)` | — |
+| `[CAPABILITY]` | `brep`, `core/error-codes.ts (declared)` | B-rep: boundary binding proof unavailable: … |
 | `[CAP_END]` | `core/error-codes.ts (declared)`, `part` | member …'s … is cut by a …: a cap sits on a square end |
 | `[CHART]` | `core/error-codes.ts (declared)` | — |
 | `[CLOSURE]` | `core/error-codes.ts (declared)` | — |
@@ -127,7 +127,7 @@
 | `[FUNCTION_REFERENCE]` | `core/error-codes.ts (declared)` | — |
 | `[FUNCTION_TYPE]` | `core/error-codes.ts (declared)` | — |
 | `[GAP_SIZE]` | `core/error-codes.ts (declared)`, `part` | gaps on curved frames are not supported |
-| `[GEOMETRY]` | `core/error-codes.ts (declared)` | — |
+| `[GEOMETRY]` | `brep`, `core/error-codes.ts (declared)` | B-rep: geometry: … |
 | `[GLAND_DIMENSIONS]` | `core/error-codes.ts (declared)` | — |
 | `[GLOBAL]` | `core/error-codes.ts (declared)` | — |
 | `[GRAPH]` | `core/error-codes.ts (declared)` | — |

@@ -1,3 +1,4 @@
+import { assertBoundaryBindings } from '../brep/brep-boundary-binding-internal.js';
 // STEP (ISO 10303-21) import of B-rep solids into the shared B-rep, where every face is a bounded
 // NURBS patch without seams and every edge has two vertices.
 //
@@ -530,6 +531,7 @@ export function importStep(source: string, options: { readonly id?: string } = {
       return { id: f.id, surface, sense, loops: f.loops.map(l => ({ kind: (l.outer ? 'outer' : 'inner') as 'outer' | 'inner', uses: l.uses.map(us => ({ edge: us.edge, sense: (us.fwd ? 'forward' : 'reversed') as 'forward' | 'reversed' })) })), ...(f.name ? { name: f.name } : {}) };
     }) })) })),
   });
+  assertBoundaryBindings(brep); // Refuse proved invalid binding before names, merging or caller commit.
   // Unnamed edges are named by their two faces (as edges of any body), numbered where that repeats.
   const faceName = new Map(brep.faces.map(f => [f.id, f.name ?? f.id])), loopFace = new Map(brep.loops.map(l => [l.id, l.face]));
   const byEdge = new Map<string, string[]>(); for (const c of brep.coedges) byEdge.set(c.edge, [...(byEdge.get(c.edge) ?? []), faceName.get(loopFace.get(c.loop)!)!]);

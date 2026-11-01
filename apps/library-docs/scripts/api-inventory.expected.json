@@ -987,7 +987,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"MATRIX\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"MATRIX\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -2527,7 +2527,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"TOPOLOGY\" | \"BUDGET\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CONTACT\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"TOPOLOGY\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CONTACT\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -2733,7 +2733,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BOOLEAN\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BOOLEAN\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -3588,7 +3588,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"OWNED\" | \"BOOLEAN\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"BINDING\" | \"OWNED\" | \"BOOLEAN\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -4147,7 +4147,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SELECTION\" | \"OWNED\" | \"MASS\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"SELECTION\" | \"OWNED\" | \"MASS\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -9023,7 +9023,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"PARAMETER\" | \"IDENTITY\" | \"OWNED\" | \"DEPENDENCY\" | \"JSON\" | \"REVISION\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"PARAMETER\" | \"IDENTITY\" | \"OWNED\" | \"DEPENDENCY\" | \"JSON\" | \"REVISION\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -10956,7 +10956,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
-                "type": "\"INPUT\" | \"TOPOLOGY\" | \"GEOMETRY\""
+                "type": "\"GEOMETRY\" | \"INPUT\" | \"TOPOLOGY\""
               },
               {
                 "name": "details",
@@ -11013,7 +11013,7 @@
               "KernelError"
             ],
             "constructSignatures": [
-              "new (code: \"INPUT\" | \"TOPOLOGY\" | \"GEOMETRY\", detail: string, report?: BrepCheckReport | undefined, reason?: \"NOT_PLANAR_WITHIN_FLOAT\" | undefined) => BrepError"
+              "new (code: \"GEOMETRY\" | \"INPUT\" | \"TOPOLOGY\", detail: string, report?: BrepCheckReport | undefined, reason?: \"NOT_PLANAR_WITHIN_FLOAT\" | undefined) => BrepError"
             ],
             "staticMembers": [],
             "abstract": false,
@@ -12712,7 +12712,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"REFERENCE\" | \"VERSION\" | \"IDENTITY\" | \"OWNED\" | \"HIERARCHY\" | \"JSON\" | \"PLACEMENT\" | \"QUERY\" | \"REVISION\" | \"STALE\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"REFERENCE\" | \"VERSION\" | \"IDENTITY\" | \"OWNED\" | \"HIERARCHY\" | \"JSON\" | \"PLACEMENT\" | \"QUERY\" | \"REVISION\" | \"STALE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -14463,7 +14463,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"REFERENCE\" | \"BINDING\" | \"OWNED\" | \"INTERVAL\" | \"STALE\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"REFERENCE\" | \"BINDING\" | \"OWNED\" | \"INTERVAL\" | \"STALE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -15821,7 +15821,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"SOURCE\" | \"IDENTITY\" | \"OWNED\" | \"FRAME\" | \"JSON\" | \"PROFILE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"SOURCE\" | \"IDENTITY\" | \"OWNED\" | \"FRAME\" | \"JSON\" | \"PROFILE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -16601,7 +16601,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"CONTINUITY\" | \"ARITHMETIC\" | \"NATIVE\" | \"TOPOLOGY\" | \"GEOMETRY\" | \"CURVED_ARRANGEMENT\" | \"BUDGET\" | \"SELF_INTERSECTION\" | \"PRISMATIC_SOLID\" | \"REPRESENTABILITY\" | \"PLANAR_ARRANGEMENT\" | \"SURFACE_INTERSECTION\" | \"SOLID_MASS\" | \"FORMAT\" | \"PARAMETER\" | \"REFERENCE\" | \"SELECTION\" | \"CAPABILITY\" | \"LIMIT\" | \"SYNTAX\" | \"FUNCTION_ARGUMENT\" | \"VALUE\" | \"UNIT\" | \"CYCLE\" | \"DEGREE\" | \"DIMENSION\" | \"DIVISION_ZERO\" | \"DUPLICATE\" | \"FIELD\" | \"FUNCTION_CAPTURE\" | \"FUNCTION_RECURSION\" | \"FUNCTION_REFERENCE\" | \"FUNCTION_TYPE\" | \"KIND\" | \"KNOTS\" | \"TYPE\" | \"VERSION\" | \"WEIGHTS\" | \"SUPPORT\" | \"SOURCE\" | \"BINDING\" | \"UNRESOLVED\" | \"MESH_BREP\" | \"REQUEST\" | \"IDENTITY\" | \"NATIVE_CAPACITY\" | \"OWNED\" | \"BASIS\" | \"BAND_EDGE_LOST\" | \"BAND_CHAIN\" | \"BAND_OBLIQUE\" | \"BAND_PROFILE\" | \"BAND_TOUCH\" | \"BAND_DEGENERATE\" | \"INVALID_INPUT\" | \"UNSUPPORTED_PROFILE_SHIFT\" | \"UNSUPPORTED_GEAR_KIND\" | \"PROFILE_BUDGET_EXCEEDED\" | \"ROOT_TRANSITION_UNVALIDATED\" | \"BORE_INTERSECTION\" | \"MATE_INCOMPATIBLE\" | \"UNDERCUT\" | \"INVOLUTE_INTERFERENCE\" | \"TROCHOID_INTERFERENCE\" | \"TRIMMING_INTERFERENCE\" | \"RIM_INTERSECTION\" | \"IDEAL_MODEL\" | \"FIT_TABLE\" | \"FIT_TABLE_MISS\" | \"FIT_FACE\" | \"FIT_PAIR\" | \"GLAND_DIMENSIONS\" | \"SQUEEZE_RANGE\" | \"FILL_RANGE\" | \"STRETCH_RANGE\" | \"SHAFT_STEPS\" | \"KEYSEAT_DIMENSIONS\" | \"GROOVE_DIMENSIONS\" | \"HOLE_DIMENSIONS\" | \"KEY_FIT\" | \"RING_FIT\" | \"PIN_FIT\" | \"SEAT_ABUTMENT\" | \"SEAT_FIT\" | \"UNSUPPORTED_TOOTH_FORM\" | \"TOOTH_FORM\" | \"BELT_GEOMETRY\" | \"SECTION_DIMENSIONS\" | \"CONNECTOR_PLACEMENT\" | \"CONNECTOR_FIT\" | \"CAM_UNDERCUT\" | \"COILS_OVERLAP\" | \"UNSUPPORTED_SPRING_KIND\" | \"LEG_OVERLAP\" | \"NOT_FINITE\" | \"BAD_ENTITY\" | \"BAD_NAME\" | \"DUPLICATE_NAME\" | \"UNKNOWN_LAYER\" | \"UNKNOWN_LINETYPE\" | \"UNKNOWN_STYLE\" | \"UNKNOWN_BLOCK\" | \"BLOCK_CYCLE\" | \"BAD_TEXT\" | \"TEXT_TOO_LONG\" | \"R12_UNSUPPORTED\" | \"R12_NEEDS_TOLERANCE\" | \"APPROX_TOLERANCE_NOT_MET\" | \"ARC\" | \"SOLID\" | \"SECTION\" | \"NOT_A_SHEET\" | \"NON_NORMAL_CUT\" | \"BEND_NOT_CYLINDRICAL\" | \"FLAT_OVERLAPS\" | \"CUT_ACROSS_BEND\" | \"BEND_TABLE_MISS\" | \"TANGENT_FACES\" | \"RADIUS_EXCEEDS_FACE\" | \"RADIUS_EXCEEDS_CURVATURE\" | \"NOT_ANALYTIC_PAIR\" | \"CONTACT_LEAVES_FACE\" | \"SEW\" | \"DERIVATIVE\" | \"REGULARITY\" | \"GAP_SIZE\" | \"NOTCH_CUTTER\" | \"BEND_RADIUS\" | \"ARC_MEMBER\" | \"BEAD_SHARED_UNSUPPORTED\" | \"BEAD_ANGLE\" | \"BEAD_KIND\" | \"BEAD_SEAM_NOT_PLANAR\" | \"BEAD_SIZE\" | \"BEND_ANGLE\" | \"BEND_DOES_NOT_FIT\" | \"BEND_TABLE\" | \"BUTT_NOT_ON_A_FACE\" | \"BUTT_ON_CURVED_MEMBER\" | \"BUTT_ON_OPEN_SIDE\" | \"CAP_END\" | \"CONE_TOP_CHAMFER_SCOPE\" | \"CONE_TOP_CHAMFER_SIZE\" | \"CORNER_ANGLE\" | \"CORNER_NOT_A_JOINT\" | \"CORNER_NOT_CLEAR\" | \"CORNER_NOT_SQUARE\" | \"DENSITY\" | \"EDGE_NOT_SHEET\" | \"FACE_FILLET_FACE\" | \"FACE_FILLET_FACES\" | \"FACE_FILLET_NOT_CLEAR\" | \"FACE_FILLET_PARALLEL\" | \"FACE_FILLET_RADIUS\" | \"FACE_THREAD_FACE\" | \"FACE_THREAD_NOT_CLEAR\" | \"FACE_THREAD_RELIEF\" | \"FACE_THREAD_SIZE\" | \"FINISH_EDGES_LIMIT\" | \"FLANGES_COLLIDE\" | \"FULL_ROUND_FACE\" | \"FULL_ROUND_NOT_CLEAR\" | \"GUSSET_FIT\" | \"MEMBERS_CLASH\" | \"MEMBER_DUPLICATE\" | \"MESH_WALL_THIN\" | \"MITRE_SECTIONS_DIFFER\" | \"NOT_A_MEMBER\" | \"OBSTRUCTED_ABOVE\" | \"OFFSET_FOLDS\" | \"OPENING_AT_A_VERTEX\" | \"REFERENCE_MOVED\" | \"RELIEF_REQUIRED\" | \"SECTION_TABLE\" | \"SECTION_TABLE_MISS\" | \"SEGMENT_ZERO_LENGTH\" | \"SHEET_CROSSES_ITSELF\" | \"SHEET_IN_PIECES\" | \"SHELL_FACE_KIND\" | \"SHELL_MESH_NOT_CLOSED\" | \"SHELL_NOT_CLOSED\" | \"SHELL_OPENING_NOT_PLANAR\" | \"SHELL_PLANE_NOT_BOUNDING\" | \"SHELL_REGIONS_SHARP\" | \"SHELL_VARIABLE_RADIUS\" | \"SHELL_WALL_UNION\" | \"SKELETON_OVERLAP\" | \"TRIM_EMPTY\" | \"TRIM_LEAVES_PIECES\" | \"TRIM_MISSES\" | \"TRIM_PARALLEL\" | \"VERTEX_BLEND_UNSUPPORTED\" | \"WALL_NEAR_RADIUS\" | \"WALL_TOO_THIN\" | \"AFFINE\" | \"ASSOCIATION\" | \"AXIS\" | \"BAND\" | \"BODY\" | \"BOOLEAN\" | \"BOUNDARY\" | \"BRANCH\" | \"BREP_EULER\" | \"CAP\" | \"CHART\" | \"CLOSURE\" | \"CODEC\" | \"COLLAPSE\" | \"COMPILATION\" | \"CONDITION\" | \"CONDITIONING\" | \"CONFLICT\" | \"CONNECTED\" | \"CONSTRUCTION\" | \"CONTACT\" | \"CONVEXITY\" | \"COVERAGE\" | \"CROSSING\" | \"CUT\" | \"CUT_LIST\" | \"DEGENERATE\" | \"DEGENERATE_GEOMETRY\" | \"DEPENDENCY\" | \"DIRECTORY\" | \"DISTANCE\" | \"DOMAIN\" | \"EMBEDDING\" | \"EXPRESSION\" | \"EXTRUSION\" | \"FACE\" | \"FILE\" | \"FRAME\" | \"GLOBAL\" | \"GRAPH\" | \"HIERARCHY\" | \"INCIDENCE\" | \"INSERTION\" | \"INTERVAL\" | \"INVALID_DOCUMENT\" | \"ISO\" | \"JSON\" | \"LOCAL\" | \"LOCALITY\" | \"LOFT\" | \"MASS\" | \"MATERIAL\" | \"MATRIX\" | \"MESH\" | \"METRIC\" | \"NESTING\" | \"NONCONVERGENCE\" | \"NORMAL\" | \"NUMBER\" | \"NUMERICAL\" | \"OBSERVATION\" | \"ORIENTATION\" | \"OWNERSHIP\" | \"PAIR\" | \"PARENT\" | \"PARTITION\" | \"PLACEMENT\" | \"POSE\" | \"PROFILE\" | \"QUERY\" | \"RANGE\" | \"RECIPE\" | \"RECORD\" | \"REGION\" | \"REVISION\" | \"RULED\" | \"SHELL\" | \"SLAB\" | \"SOLVER\" | \"SPAN\" | \"STAGNATION\" | \"STALE\" | \"STATIONS\" | \"STRUCTURE\" | \"TANGENCY\" | \"TARGET\" | \"TOO_FEW\" | \"TRANSLATION\" | \"TRIANGULATION\" | \"TRIM\" | \"UNCERTAINTY\" | \"UNSUPPORTED\" | \"UV\" | \"VOLUME\" | \"WIDTH\" | \"WORK\" | \"XY_AFFINE_SKETCH_PRISM\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"CAPABILITY\" | \"GEOMETRY\" | \"INPUT\" | \"CONTINUITY\" | \"ARITHMETIC\" | \"NATIVE\" | \"TOPOLOGY\" | \"CURVED_ARRANGEMENT\" | \"SELF_INTERSECTION\" | \"PRISMATIC_SOLID\" | \"PLANAR_ARRANGEMENT\" | \"SURFACE_INTERSECTION\" | \"SOLID_MASS\" | \"FORMAT\" | \"PARAMETER\" | \"REFERENCE\" | \"SELECTION\" | \"LIMIT\" | \"SYNTAX\" | \"FUNCTION_ARGUMENT\" | \"VALUE\" | \"UNIT\" | \"CYCLE\" | \"DEGREE\" | \"DIMENSION\" | \"DIVISION_ZERO\" | \"DUPLICATE\" | \"FIELD\" | \"FUNCTION_CAPTURE\" | \"FUNCTION_RECURSION\" | \"FUNCTION_REFERENCE\" | \"FUNCTION_TYPE\" | \"KIND\" | \"KNOTS\" | \"TYPE\" | \"VERSION\" | \"WEIGHTS\" | \"SUPPORT\" | \"SOURCE\" | \"BINDING\" | \"UNRESOLVED\" | \"MESH_BREP\" | \"REQUEST\" | \"IDENTITY\" | \"NATIVE_CAPACITY\" | \"OWNED\" | \"BASIS\" | \"BAND_EDGE_LOST\" | \"BAND_CHAIN\" | \"BAND_OBLIQUE\" | \"BAND_PROFILE\" | \"BAND_TOUCH\" | \"BAND_DEGENERATE\" | \"INVALID_INPUT\" | \"UNSUPPORTED_PROFILE_SHIFT\" | \"UNSUPPORTED_GEAR_KIND\" | \"PROFILE_BUDGET_EXCEEDED\" | \"ROOT_TRANSITION_UNVALIDATED\" | \"BORE_INTERSECTION\" | \"MATE_INCOMPATIBLE\" | \"UNDERCUT\" | \"INVOLUTE_INTERFERENCE\" | \"TROCHOID_INTERFERENCE\" | \"TRIMMING_INTERFERENCE\" | \"RIM_INTERSECTION\" | \"IDEAL_MODEL\" | \"FIT_TABLE\" | \"FIT_TABLE_MISS\" | \"FIT_FACE\" | \"FIT_PAIR\" | \"GLAND_DIMENSIONS\" | \"SQUEEZE_RANGE\" | \"FILL_RANGE\" | \"STRETCH_RANGE\" | \"SHAFT_STEPS\" | \"KEYSEAT_DIMENSIONS\" | \"GROOVE_DIMENSIONS\" | \"HOLE_DIMENSIONS\" | \"KEY_FIT\" | \"RING_FIT\" | \"PIN_FIT\" | \"SEAT_ABUTMENT\" | \"SEAT_FIT\" | \"UNSUPPORTED_TOOTH_FORM\" | \"TOOTH_FORM\" | \"BELT_GEOMETRY\" | \"SECTION_DIMENSIONS\" | \"CONNECTOR_PLACEMENT\" | \"CONNECTOR_FIT\" | \"CAM_UNDERCUT\" | \"COILS_OVERLAP\" | \"UNSUPPORTED_SPRING_KIND\" | \"LEG_OVERLAP\" | \"NOT_FINITE\" | \"BAD_ENTITY\" | \"BAD_NAME\" | \"DUPLICATE_NAME\" | \"UNKNOWN_LAYER\" | \"UNKNOWN_LINETYPE\" | \"UNKNOWN_STYLE\" | \"UNKNOWN_BLOCK\" | \"BLOCK_CYCLE\" | \"BAD_TEXT\" | \"TEXT_TOO_LONG\" | \"R12_UNSUPPORTED\" | \"R12_NEEDS_TOLERANCE\" | \"APPROX_TOLERANCE_NOT_MET\" | \"ARC\" | \"SOLID\" | \"SECTION\" | \"NOT_A_SHEET\" | \"NON_NORMAL_CUT\" | \"BEND_NOT_CYLINDRICAL\" | \"FLAT_OVERLAPS\" | \"CUT_ACROSS_BEND\" | \"BEND_TABLE_MISS\" | \"TANGENT_FACES\" | \"RADIUS_EXCEEDS_FACE\" | \"RADIUS_EXCEEDS_CURVATURE\" | \"NOT_ANALYTIC_PAIR\" | \"CONTACT_LEAVES_FACE\" | \"SEW\" | \"DERIVATIVE\" | \"REGULARITY\" | \"GAP_SIZE\" | \"NOTCH_CUTTER\" | \"BEND_RADIUS\" | \"ARC_MEMBER\" | \"BEAD_SHARED_UNSUPPORTED\" | \"BEAD_ANGLE\" | \"BEAD_KIND\" | \"BEAD_SEAM_NOT_PLANAR\" | \"BEAD_SIZE\" | \"BEND_ANGLE\" | \"BEND_DOES_NOT_FIT\" | \"BEND_TABLE\" | \"BUTT_NOT_ON_A_FACE\" | \"BUTT_ON_CURVED_MEMBER\" | \"BUTT_ON_OPEN_SIDE\" | \"CAP_END\" | \"CONE_TOP_CHAMFER_SCOPE\" | \"CONE_TOP_CHAMFER_SIZE\" | \"CORNER_ANGLE\" | \"CORNER_NOT_A_JOINT\" | \"CORNER_NOT_CLEAR\" | \"CORNER_NOT_SQUARE\" | \"DENSITY\" | \"EDGE_NOT_SHEET\" | \"FACE_FILLET_FACE\" | \"FACE_FILLET_FACES\" | \"FACE_FILLET_NOT_CLEAR\" | \"FACE_FILLET_PARALLEL\" | \"FACE_FILLET_RADIUS\" | \"FACE_THREAD_FACE\" | \"FACE_THREAD_NOT_CLEAR\" | \"FACE_THREAD_RELIEF\" | \"FACE_THREAD_SIZE\" | \"FINISH_EDGES_LIMIT\" | \"FLANGES_COLLIDE\" | \"FULL_ROUND_FACE\" | \"FULL_ROUND_NOT_CLEAR\" | \"GUSSET_FIT\" | \"MEMBERS_CLASH\" | \"MEMBER_DUPLICATE\" | \"MESH_WALL_THIN\" | \"MITRE_SECTIONS_DIFFER\" | \"NOT_A_MEMBER\" | \"OBSTRUCTED_ABOVE\" | \"OFFSET_FOLDS\" | \"OPENING_AT_A_VERTEX\" | \"REFERENCE_MOVED\" | \"RELIEF_REQUIRED\" | \"SECTION_TABLE\" | \"SECTION_TABLE_MISS\" | \"SEGMENT_ZERO_LENGTH\" | \"SHEET_CROSSES_ITSELF\" | \"SHEET_IN_PIECES\" | \"SHELL_FACE_KIND\" | \"SHELL_MESH_NOT_CLOSED\" | \"SHELL_NOT_CLOSED\" | \"SHELL_OPENING_NOT_PLANAR\" | \"SHELL_PLANE_NOT_BOUNDING\" | \"SHELL_REGIONS_SHARP\" | \"SHELL_VARIABLE_RADIUS\" | \"SHELL_WALL_UNION\" | \"SKELETON_OVERLAP\" | \"TRIM_EMPTY\" | \"TRIM_LEAVES_PIECES\" | \"TRIM_MISSES\" | \"TRIM_PARALLEL\" | \"VERTEX_BLEND_UNSUPPORTED\" | \"WALL_NEAR_RADIUS\" | \"WALL_TOO_THIN\" | \"AFFINE\" | \"ASSOCIATION\" | \"AXIS\" | \"BAND\" | \"BODY\" | \"BOOLEAN\" | \"BOUNDARY\" | \"BRANCH\" | \"BREP_EULER\" | \"CAP\" | \"CHART\" | \"CLOSURE\" | \"CODEC\" | \"COLLAPSE\" | \"COMPILATION\" | \"CONDITION\" | \"CONDITIONING\" | \"CONFLICT\" | \"CONNECTED\" | \"CONSTRUCTION\" | \"CONTACT\" | \"CONVEXITY\" | \"COVERAGE\" | \"CROSSING\" | \"CUT\" | \"CUT_LIST\" | \"DEGENERATE\" | \"DEGENERATE_GEOMETRY\" | \"DEPENDENCY\" | \"DIRECTORY\" | \"DISTANCE\" | \"DOMAIN\" | \"EMBEDDING\" | \"EXPRESSION\" | \"EXTRUSION\" | \"FACE\" | \"FILE\" | \"FRAME\" | \"GLOBAL\" | \"GRAPH\" | \"HIERARCHY\" | \"INCIDENCE\" | \"INSERTION\" | \"INTERVAL\" | \"INVALID_DOCUMENT\" | \"ISO\" | \"JSON\" | \"LOCAL\" | \"LOCALITY\" | \"LOFT\" | \"MASS\" | \"MATERIAL\" | \"MATRIX\" | \"MESH\" | \"METRIC\" | \"NESTING\" | \"NONCONVERGENCE\" | \"NORMAL\" | \"NUMBER\" | \"NUMERICAL\" | \"OBSERVATION\" | \"ORIENTATION\" | \"OWNERSHIP\" | \"PAIR\" | \"PARENT\" | \"PARTITION\" | \"PLACEMENT\" | \"POSE\" | \"PROFILE\" | \"QUERY\" | \"RANGE\" | \"RECIPE\" | \"RECORD\" | \"REGION\" | \"REVISION\" | \"RULED\" | \"SHELL\" | \"SLAB\" | \"SOLVER\" | \"SPAN\" | \"STAGNATION\" | \"STALE\" | \"STATIONS\" | \"STRUCTURE\" | \"TANGENCY\" | \"TARGET\" | \"TOO_FEW\" | \"TRANSLATION\" | \"TRIANGULATION\" | \"TRIM\" | \"UNCERTAINTY\" | \"UNSUPPORTED\" | \"UV\" | \"VOLUME\" | \"WIDTH\" | \"WORK\" | \"XY_AFFINE_SKETCH_PRISM\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -20905,7 +20905,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"GEOMETRY\" | \"FORMAT\" | \"PARAMETER\" | \"REFERENCE\" | \"SELECTION\" | \"CAPABILITY\"",
+            "type": "\"CAPABILITY\" | \"GEOMETRY\" | \"INPUT\" | \"FORMAT\" | \"PARAMETER\" | \"REFERENCE\" | \"SELECTION\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -21349,7 +21349,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "Base & (({ readonly kind: \"sketch\"; readonly profile: \"rectangle\"; readonly min: CadPartPoint2; readonly max: CadPartPoint2; } & Placed) | ({ readonly kind: \"sketch\"; readonly profile: \"circle\"; readonly center: CadPartPoint2; readonly radius: CadPartDim; } & Placed) | ({ readonly kind: \"sketch\"; readonly profile: \"polygon\"; readonly points: readonly CadPartPoint2[]; } & Placed) | ({ readonly kind: \"sketch\"; readonly profile: \"loop\"; readonly segments: readonly CadPartLoopSegment[]; } & Placed) | { readonly kind: \"extrude\"; readonly sketch: string; readonly height: CadPartDim; readonly from?: CadPartDim | undefined; readonly draft?: number | undefined; } | { readonly kind: \"revolve\"; readonly sketch: string; readonly axis: { readonly origin: CadPartPoint2; readonly direction: readonly [number, number] | \"x\" | \"y\"; }; readonly angle?: number | undefined; } | { readonly kind: \"union\" | \"difference\" | \"intersect\"; readonly target: string; readonly tool: string; } | { readonly kind: \"rib\"; readonly target: string; readonly min: CadPartPoint3; readonly max: CadPartPoint3; } | { readonly kind: \"rectangular-relief\"; readonly target: string; readonly min: CadPartPoint2; readonly max: CadPartPoint2; readonly depth: CadPartDim; readonly mode: \"emboss\" | \"engrave\"; } | { readonly kind: \"profile-relief\"; readonly target: string; readonly faces: readonly string[]; readonly sketches: readonly string[]; readonly depth: CadPartDim; readonly mode: \"emboss\" | \"engrave\"; readonly clearance?: number | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"cylindrical-wrap\"; readonly target: string; readonly faces: readonly string[]; readonly rectangle: { readonly u: readonly [number, number]; readonly v: readonly [number, number]; }; readonly height: CadPartDim; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"full-round\"; readonly target: string; readonly faces: readonly string[]; readonly along?: \"x\" | \"y\" | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"face-thread\"; readonly target: string; readonly face: string; readonly pitch: CadPartDim; readonly diameter?: CadPartDim | undefined; readonly length?: CadPartDim | undefined; readonly end?: \"+\" | \"-\" | undefined; readonly relief?: CadPartDim | undefined; readonly clearance?: CadPartDim | undefined; readonly hand?: \"left\" | \"right\" | undefined; } | { readonly kind: \"face-fillet\"; readonly target: string; readonly faces: readonly [string, string]; readonly radius: CadPartDim; } | { readonly kind: \"hole\"; readonly target: string; readonly center: CadPartPoint2; readonly radius: CadPartDim; readonly depth?: CadPartDim | undefined; readonly axis?: CadPartAxis | undefined; readonly side?: \"min\" | \"max\" | undefined; readonly countersink?: CadPartDim | undefined; readonly face?: string | undefined; } | { readonly kind: \"translate\"; readonly target: string; readonly offset: CadPartPoint3; } | { readonly kind: \"rotate\"; readonly target: string; readonly axis: CadPartAxis; readonly angle: number; readonly pivot?: CadPartPoint3 | undefined; } | { readonly kind: \"mirror\"; readonly target: string; readonly plane: \"xy\" | \"xz\" | \"yz\"; readonly keep?: boolean | undefined; } | { readonly kind: \"scale\"; readonly target: string; readonly factor: number; readonly pivot?: CadPartPoint3 | undefined; } | { readonly kind: \"linear-pattern\"; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number; } | { readonly kind: \"linear-feature-pattern\"; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number; } | { readonly kind: \"rectangular-feature-pattern\"; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number; readonly axis2: CadPartAxis; readonly spacing2: CadPartDim; readonly count2: number; } | { readonly kind: \"fill-feature-pattern\"; readonly target: string; readonly region: FillFeaturePatternRegion; readonly anchor: readonly [number, number]; readonly spacing: CadPartDim; readonly count: number; readonly spacing2: CadPartDim; readonly count2: number; } | { readonly kind: \"curve-feature-pattern\"; readonly target: string; readonly path: RawNurbsPath; readonly spacing: CadPartDim; readonly count: number; } | { readonly kind: \"circular-pattern\"; readonly target: string; readonly axis: CadPartAxis; readonly angle: number; readonly count: number; readonly pivot?: CadPartPoint3 | undefined; } | { readonly kind: \"split\"; readonly target: string; readonly axis?: CadPartAxis | undefined; readonly normal?: CadPartPoint3 | undefined; readonly at: CadPartDim; } | { readonly kind: \"sweep\"; readonly sketch: string; readonly path: readonly CadPartSweepStep[]; } | { readonly kind: \"loft\"; readonly sections: readonly CadPartLoftSection[]; readonly smooth?: boolean | undefined; readonly guide?: LoftNurbsGuideInput | { readonly kind: \"quadratic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | { readonly kind: \"cubic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | undefined; } | { readonly kind: \"import\"; readonly step: string; readonly each?: boolean | undefined; } | { readonly kind: \"mesh\"; readonly positions: Float64Array<ArrayBufferLike> | readonly number[] | Float32Array<ArrayBufferLike>; readonly indices: Uint32Array<ArrayBufferLike> | readonly number[]; readonly representation?: \"facets\" | \"planar\" | undefined; readonly each?: boolean | undefined; readonly open?: boolean | undefined; readonly groups?: readonly number[] | Int32Array<ArrayBufferLike> | undefined; } | { readonly kind: \"sweep-curve\"; readonly sketch: string; readonly path: RawNurbsPath; } | { readonly kind: \"draft\"; readonly target: string; readonly faces: readonly string[]; readonly angle: number; readonly pull?: \"-x\" | \"-y\" | CadPartAxis | \"-z\" | undefined; readonly neutral?: CadPartDim | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"split-face\"; readonly target: string; readonly face: string; readonly curves?: readonly { readonly degree: number; readonly knots: readonly number[]; readonly controlPoints: readonly (readonly [number, number, number])[]; readonly weights: readonly number[]; }[] | undefined; readonly pull?: CadPartPoint3 | undefined; readonly names?: readonly string[] | undefined; } | { readonly kind: \"thicken\"; readonly surface: { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[]; }; readonly thickness: CadPartDim; readonly side?: \"reverse\" | \"normal\" | \"both\" | undefined; } | { readonly kind: \"band-surface\"; readonly a: { readonly target: string; readonly edges: readonly string[]; }; readonly b: { readonly target: string; readonly edges: readonly string[]; }; readonly flip?: boolean | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"subd\"; readonly cage: { readonly positions: Float64Array<ArrayBufferLike> | readonly number[]; readonly faces: readonly (readonly number[])[]; readonly creases?: readonly (readonly [number, number])[] | undefined; }; } | { readonly kind: \"sew\"; readonly surfaces: readonly { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[]; }[]; readonly tolerance?: number | undefined; } | { readonly kind: \"spur-gear\"; readonly module?: CadPartDim | undefined; readonly normalModule?: CadPartDim | undefined; readonly helixAngle?: number | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly teeth: number; readonly faceWidth: CadPartDim; readonly pressureAngle?: number | undefined; readonly profileShift?: number | undefined; readonly bore?: CadPartDim | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly mesh?: { readonly gear: string; readonly direction?: number | undefined; readonly centerDistance?: CadPartDim | undefined; readonly phase?: number | undefined; } | undefined; readonly generator?: \"spur-gear@0\" | \"spur-gear@1\" | undefined; readonly toolTipRadius?: CadPartDim | undefined; } | { readonly kind: \"spur-rack\"; readonly module?: CadPartDim | undefined; readonly normalModule?: CadPartDim | undefined; readonly helixAngle?: number | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly teeth: number; readonly faceWidth: CadPartDim; readonly height: CadPartDim; readonly pressureAngle?: number | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly origin?: CadPartPoint2 | undefined; readonly angle?: number | undefined; readonly from?: CadPartDim | undefined; readonly mesh?: { readonly gear: string; readonly direction?: number | undefined; readonly centerDistance?: CadPartDim | undefined; readonly phase?: CadPartDim | undefined; } | undefined; readonly generator?: \"spur-rack@0\" | \"spur-rack@1\" | undefined; readonly rootFillet?: CadPartDim | undefined; } | { readonly kind: \"internal-gear\"; readonly module?: CadPartDim | undefined; readonly normalModule?: CadPartDim | undefined; readonly helixAngle?: number | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly teeth: number; readonly faceWidth: CadPartDim; readonly rim: CadPartDim; readonly pressureAngle?: number | undefined; readonly profileShift?: number | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"internal-gear@0\" | \"internal-gear@1\" | undefined; readonly cutter?: { readonly teeth: number; readonly shift?: number | undefined; readonly tipRadius?: CadPartDim | undefined; } | undefined; } | { readonly kind: \"bevel-gear\"; readonly module: CadPartDim; readonly teeth: number; readonly mateTeeth: number; readonly shaftAngle?: number | undefined; readonly faceWidth: CadPartDim; readonly pressureAngle?: number | undefined; readonly bore?: CadPartDim | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly mesh?: { readonly gear: string; readonly direction?: number | undefined; readonly phase?: number | undefined; } | undefined; readonly spiral?: { readonly angle: number; readonly hand: \"left\" | \"right\"; readonly cutterRadius: CadPartDim; } | undefined; readonly generator?: \"bevel-gear@0\" | undefined; } | { readonly kind: \"worm\"; readonly axialModule?: CadPartDim | undefined; readonly starts: number; readonly diameter?: CadPartDim | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly length: CadPartDim; readonly form?: \"ZI\" | \"ZA\" | \"ZN\" | \"ZK\" | \"ZC\" | undefined; readonly bore?: CadPartDim | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly mesh?: { readonly gear: string; readonly direction?: number | undefined; readonly phase?: number | undefined; } | undefined; readonly generator?: \"worm@0\" | undefined; } | { readonly kind: \"worm-wheel\"; readonly worm: { readonly axialModule: CadPartDim; readonly starts: number; readonly diameter: CadPartDim; readonly hand: \"left\" | \"right\"; }; readonly teeth: number; readonly faceWidth: CadPartDim; readonly bore?: CadPartDim | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"worm-wheel@0\" | undefined; } | { readonly kind: \"spring\"; readonly wire: CadPartDim; readonly diameter?: CadPartDim | undefined; readonly outerDiameter?: CadPartDim | undefined; readonly innerDiameter?: CadPartDim | undefined; readonly activeCoils: number; readonly pitch?: CadPartDim | undefined; readonly freeLength?: CadPartDim | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly ends?: \"closed\" | \"open\" | \"closed-ground\" | undefined; readonly endCoils?: number | undefined; readonly transition?: number | undefined; readonly shearModulus?: number | undefined; readonly shearModulusEstimate?: boolean | undefined; readonly load?: number | undefined; readonly profileTolerance?: number | undefined; readonly hooks?: \"machine-loop\" | \"crossover\" | undefined; readonly bendRadius?: CadPartDim | undefined; readonly loopRadius?: CadPartDim | undefined; readonly loopAngle?: number | undefined; readonly initialTension?: number | undefined; readonly legLengths?: readonly [CadPartDim, CadPartDim] | undefined; readonly youngsModulus?: number | undefined; readonly youngsModulusEstimate?: boolean | undefined; readonly moment?: number | undefined; readonly type?: \"compression\" | \"extension\" | \"torsion\" | undefined; readonly body?: \"cylindrical\" | \"conical\" | \"barrel\" | \"variable-pitch\" | undefined; readonly wireSection?: \"round\" | \"rectangular\" | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"spring@0\" | undefined; } | { readonly kind: \"cam\"; readonly base: CadPartDim; readonly thickness: CadPartDim; readonly follower: \"flat\" | \"roller\"; readonly motion?: \"translating\" | \"oscillating\" | undefined; readonly roller?: CadPartDim | undefined; readonly offset?: CadPartDim | undefined; readonly pivotDistance?: CadPartDim | undefined; readonly armLength?: CadPartDim | undefined; readonly faceOffset?: CadPartDim | undefined; readonly faceWidth?: CadPartDim | undefined; readonly segments: readonly { readonly angle: number; readonly to?: number | undefined; readonly law?: CamLaw | undefined; }[]; readonly bore?: CadPartDim | undefined; readonly minimumRim?: CadPartDim | undefined; readonly pressureAngleLimit?: number | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"cam@0\" | undefined; } | { readonly kind: \"sprocket\"; readonly row: DriveRow; readonly teeth: number; readonly tip: CadPartDim; readonly width: CadPartDim; readonly seat?: CadPartDim | undefined; readonly toothForm?: string | undefined; readonly bore?: CadPartDim | undefined; readonly minimumRim?: CadPartDim | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"sprocket@0\" | undefined; } | { readonly kind: \"pulley\"; readonly row: DriveRow; readonly teeth?: number | undefined; readonly diameter?: CadPartDim | undefined; readonly grooves?: number | undefined; readonly width?: CadPartDim | undefined; readonly crown?: CadPartDim | undefined; readonly bore?: CadPartDim | undefined; readonly minimumRim?: CadPartDim | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"pulley@0\" | undefined; } | { readonly kind: \"belt\"; readonly row: DriveRow; readonly pitchRadii: readonly [CadPartDim, CadPartDim]; readonly centerDistance: CadPartDim; readonly rounding?: \"whole\" | \"even\" | undefined; readonly width?: CadPartDim | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"belt@0\" | undefined; } | { readonly kind: \"coupling\"; readonly row: DriveRow; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"coupling@0\" | undefined; } | { readonly kind: \"connector-opening\"; readonly target: string; readonly face: string; readonly row: ConnectorRow; readonly center: CadPartPoint3; readonly rotation?: number | undefined; } | { readonly kind: \"connector-body\"; readonly opening: string; } | { readonly kind: \"gusset\"; readonly frame: string; readonly point: number; readonly members?: readonly [number, number] | undefined; readonly along?: number | undefined; readonly legs: readonly [CadPartDim, CadPartDim]; readonly thickness: CadPartDim; readonly clip?: CadPartDim | undefined; readonly offset?: CadPartDim | undefined; } | { readonly kind: \"end-cap\"; readonly frame: string; readonly member: number; readonly end: \"start\" | \"end\"; readonly fit: \"over\" | \"inset\"; readonly thickness: CadPartDim; } | { readonly kind: \"weld-bead\"; readonly frame: string; readonly on: { readonly member: number; readonly end: \"start\" | \"end\"; } | { readonly gusset: string; } | { readonly cap: string; }; readonly leg: CadPartDim; readonly inner?: boolean | undefined; readonly sharing?: CadPartBeadSharing | undefined; } | { readonly kind: \"shaft\"; readonly steps: readonly { readonly diameter: CadPartDim; readonly length: CadPartDim; readonly fillet?: CadPartDim | undefined; readonly undercut?: { readonly width: CadPartDim; readonly depth: CadPartDim; } | undefined; readonly grooves?: readonly { readonly diameter: CadPartDim; readonly width: CadPartDim; readonly at: CadPartDim; }[] | undefined; readonly keyseats?: readonly { readonly width: CadPartDim; readonly depth: CadPartDim; readonly length: CadPartDim; readonly offset: CadPartDim; readonly ends?: \"square\" | \"end-mill\" | \"disc\" | undefined; readonly cutterRadius?: CadPartDim | undefined; readonly angle?: number | undefined; }[] | undefined; }[]; readonly chamfers?: readonly [CadPartDim, CadPartDim] | undefined; readonly holes?: readonly { readonly diameter: CadPartDim; readonly at: CadPartDim; readonly angle?: number | undefined; }[] | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"shaft@0\" | undefined; } | { readonly kind: \"key\"; readonly shaft: string; readonly keyseat: number; readonly width?: CadPartDim | undefined; readonly height: CadPartDim; readonly length?: CadPartDim | undefined; readonly ends?: \"square\" | \"round\" | undefined; readonly hub?: string | undefined; readonly fit?: { readonly tables: readonly FitTable[]; readonly key: string; readonly seat?: string | undefined; readonly hub?: string | undefined; } | undefined; } | { readonly kind: \"keyway\"; readonly target: string; readonly face: string; readonly width: CadPartDim; readonly depth: CadPartDim; readonly angle?: number | undefined; } | { readonly kind: \"retaining-ring\"; readonly shaft: string; readonly groove: number; readonly thickness: CadPartDim; readonly outerDiameter: CadPartDim; readonly row?: { readonly shaftDiameter?: number | undefined; readonly grooveDiameter?: number | undefined; readonly grooveWidth?: number | undefined; readonly source?: string | undefined; readonly estimate?: boolean | undefined; } | undefined; } | { readonly kind: \"oring-gland\"; readonly target: string; readonly face: string; readonly gland: \"face\" | \"piston\" | \"rod\"; readonly ring: { readonly id: string; readonly dash?: string | undefined; readonly insideDiameter: number; readonly crossSection: number; readonly source?: string | undefined; readonly estimate?: boolean | undefined; }; readonly groove: { readonly diameter: CadPartDim; readonly width: CadPartDim; readonly at?: CadPartDim | undefined; readonly depth?: CadPartDim | undefined; readonly center?: CadPartPoint3 | undefined; }; readonly seal?: CadPartDim | undefined; readonly ranges?: GlandRanges | undefined; readonly fit?: { readonly tables: readonly FitTable[]; readonly seal?: string | undefined; readonly groove?: string | undefined; } | undefined; } | { readonly kind: \"oring\"; readonly gland: string; } | { readonly kind: \"bearing\"; readonly row: BearingRow; readonly shaft: string; readonly step: number; readonly against: \"start\" | \"end\"; readonly housing?: string | undefined; readonly fit?: BearingFitClasses | undefined; } | { readonly kind: \"pin\"; readonly shaft: string; readonly hole: number; readonly diameter?: CadPartDim | undefined; readonly length?: CadPartDim | undefined; readonly fit?: boolean | undefined; } | { readonly kind: \"thread\"; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2 | undefined; readonly seat?: CadPartDim | undefined; readonly length?: CadPartDim | undefined; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean | undefined; } | undefined; readonly form?: \"faceted\" | \"helical\" | undefined; } | { readonly kind: \"separate\"; readonly target: string; } | { readonly kind: \"decimate\"; readonly target: string; readonly triangles?: number | undefined; readonly ratio?: number | undefined; readonly maxError?: CadPartDim | undefined; readonly featureAngle?: number | undefined; } | ({ readonly kind: \"sheet-base\"; readonly sketch: string; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim; readonly reverse?: boolean | undefined; } & CadPartSheetK) | ({ readonly kind: \"sheet-contour\"; readonly path: readonly CadPartPoint2[]; readonly plane?: CadPartSketchPlane | undefined; readonly side: \"left\" | \"right\"; readonly width: CadPartDim; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim; } & CadPartSheetK) | { readonly kind: \"frame\"; readonly points: readonly CadPartPoint3[]; readonly segments: readonly CadPartFrameSegment[]; readonly bends?: readonly { readonly point: number; readonly radius: CadPartDim; }[] | undefined; readonly section: CadPartSection; readonly anchor?: \"left\" | \"right\" | \"origin\" | \"bottom\" | \"top\" | \"center\" | \"centroid\" | \"bottom-left\" | \"bottom-right\" | \"top-left\" | \"top-right\" | undefined; readonly offset?: readonly [CadPartDim, CadPartDim] | undefined; readonly roll?: number | undefined; readonly mirror?: boolean | undefined; readonly up?: CadPartPoint3 | undefined; readonly overrides?: readonly CadPartFrameOverride[] | undefined; readonly corners?: CadPartFrameCorners | undefined; readonly trims?: readonly CadPartFrameTrim[] | undefined; } | { readonly kind: \"frame-member\"; readonly section: CadPartSection; readonly start: CadPartPoint3; readonly end: CadPartPoint3; readonly anchor?: \"left\" | \"right\" | \"origin\" | \"bottom\" | \"top\" | \"center\" | \"centroid\" | \"bottom-left\" | \"bottom-right\" | \"top-left\" | \"top-right\" | undefined; readonly offset?: readonly [CadPartDim, CadPartDim] | undefined; readonly roll?: number | undefined; readonly up?: CadPartPoint3 | undefined; } | { readonly kind: \"sheet-corner-relief\"; readonly target: string; readonly corner: string; readonly shape: \"square\" | \"round\"; readonly size: CadPartDim; } | { readonly kind: \"sheet-flange\"; readonly target: string; readonly edge: string; readonly length: CadPartDim; readonly angle?: number | undefined; readonly bendRadius?: CadPartDim | undefined; readonly measure?: \"outer\" | \"inner\" | \"tangent\" | undefined; readonly position?: \"material-inside\" | \"material-outside\" | \"bend-outside\" | undefined; readonly offsets?: readonly [CadPartDim, CadPartDim] | undefined; readonly relief?: { readonly kind: \"rectangular\" | \"obround\"; readonly width: CadPartDim; readonly depth: CadPartDim; } | { readonly kind: \"none\"; } | undefined; } | { readonly kind: \"shell\"; readonly target: string; readonly thickness: CadPartDim; readonly open?: readonly string[] | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"chamfer\"; readonly target: string; readonly edges: readonly string[]; readonly distance: CadPartDim; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"fillet\"; readonly target: string; readonly edges: readonly string[]; readonly radius?: CadPartDim | undefined; readonly radii?: readonly { readonly at: CadPartPoint3; readonly radius: CadPartDim; readonly atEnd?: true | undefined; }[] | undefined; readonly section?: { readonly kind: \"circular\"; } | { readonly kind: \"conic\"; readonly rho: number; } | { readonly kind: \"g2\"; readonly tension?: number | undefined; } | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; })",
+            "type": "Base & (({ readonly kind: \"sketch\"; readonly profile: \"rectangle\"; readonly min: CadPartPoint2; readonly max: CadPartPoint2; } & Placed) | ({ readonly kind: \"sketch\"; readonly profile: \"circle\"; readonly center: CadPartPoint2; readonly radius: CadPartDim; } & Placed) | ({ readonly kind: \"sketch\"; readonly profile: \"polygon\"; readonly points: readonly CadPartPoint2[]; } & Placed) | ({ readonly kind: \"sketch\"; readonly profile: \"loop\"; readonly segments: readonly CadPartLoopSegment[]; } & Placed) | { readonly kind: \"extrude\"; readonly sketch: string; readonly height: CadPartDim; readonly from?: CadPartDim | undefined; readonly draft?: number | undefined; } | { readonly kind: \"revolve\"; readonly sketch: string; readonly axis: { readonly origin: CadPartPoint2; readonly direction: \"x\" | readonly [number, number] | \"y\"; }; readonly angle?: number | undefined; } | { readonly kind: \"union\" | \"difference\" | \"intersect\"; readonly target: string; readonly tool: string; } | { readonly kind: \"rib\"; readonly target: string; readonly min: CadPartPoint3; readonly max: CadPartPoint3; } | { readonly kind: \"rectangular-relief\"; readonly target: string; readonly min: CadPartPoint2; readonly max: CadPartPoint2; readonly depth: CadPartDim; readonly mode: \"emboss\" | \"engrave\"; } | { readonly kind: \"profile-relief\"; readonly target: string; readonly faces: readonly string[]; readonly sketches: readonly string[]; readonly depth: CadPartDim; readonly mode: \"emboss\" | \"engrave\"; readonly clearance?: number | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"cylindrical-wrap\"; readonly target: string; readonly faces: readonly string[]; readonly rectangle: { readonly u: readonly [number, number]; readonly v: readonly [number, number]; }; readonly height: CadPartDim; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"full-round\"; readonly target: string; readonly faces: readonly string[]; readonly along?: \"x\" | \"y\" | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"face-thread\"; readonly target: string; readonly face: string; readonly pitch: CadPartDim; readonly diameter?: CadPartDim | undefined; readonly length?: CadPartDim | undefined; readonly end?: \"+\" | \"-\" | undefined; readonly relief?: CadPartDim | undefined; readonly clearance?: CadPartDim | undefined; readonly hand?: \"left\" | \"right\" | undefined; } | { readonly kind: \"face-fillet\"; readonly target: string; readonly faces: readonly [string, string]; readonly radius: CadPartDim; } | { readonly kind: \"hole\"; readonly target: string; readonly center: CadPartPoint2; readonly radius: CadPartDim; readonly depth?: CadPartDim | undefined; readonly axis?: CadPartAxis | undefined; readonly side?: \"min\" | \"max\" | undefined; readonly countersink?: CadPartDim | undefined; readonly face?: string | undefined; } | { readonly kind: \"translate\"; readonly target: string; readonly offset: CadPartPoint3; } | { readonly kind: \"rotate\"; readonly target: string; readonly axis: CadPartAxis; readonly angle: number; readonly pivot?: CadPartPoint3 | undefined; } | { readonly kind: \"mirror\"; readonly target: string; readonly plane: \"xy\" | \"xz\" | \"yz\"; readonly keep?: boolean | undefined; } | { readonly kind: \"scale\"; readonly target: string; readonly factor: number; readonly pivot?: CadPartPoint3 | undefined; } | { readonly kind: \"linear-pattern\"; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number; } | { readonly kind: \"linear-feature-pattern\"; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number; } | { readonly kind: \"rectangular-feature-pattern\"; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number; readonly axis2: CadPartAxis; readonly spacing2: CadPartDim; readonly count2: number; } | { readonly kind: \"fill-feature-pattern\"; readonly target: string; readonly region: FillFeaturePatternRegion; readonly anchor: readonly [number, number]; readonly spacing: CadPartDim; readonly count: number; readonly spacing2: CadPartDim; readonly count2: number; } | { readonly kind: \"curve-feature-pattern\"; readonly target: string; readonly path: RawNurbsPath; readonly spacing: CadPartDim; readonly count: number; } | { readonly kind: \"circular-pattern\"; readonly target: string; readonly axis: CadPartAxis; readonly angle: number; readonly count: number; readonly pivot?: CadPartPoint3 | undefined; } | { readonly kind: \"split\"; readonly target: string; readonly axis?: CadPartAxis | undefined; readonly normal?: CadPartPoint3 | undefined; readonly at: CadPartDim; } | { readonly kind: \"sweep\"; readonly sketch: string; readonly path: readonly CadPartSweepStep[]; } | { readonly kind: \"loft\"; readonly sections: readonly CadPartLoftSection[]; readonly smooth?: boolean | undefined; readonly guide?: LoftNurbsGuideInput | { readonly kind: \"quadratic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | { readonly kind: \"cubic-bezier\"; readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]]; } | undefined; } | { readonly kind: \"import\"; readonly step: string; readonly each?: boolean | undefined; } | { readonly kind: \"mesh\"; readonly positions: Float64Array<ArrayBufferLike> | readonly number[] | Float32Array<ArrayBufferLike>; readonly indices: Uint32Array<ArrayBufferLike> | readonly number[]; readonly representation?: \"facets\" | \"planar\" | undefined; readonly each?: boolean | undefined; readonly open?: boolean | undefined; readonly groups?: readonly number[] | Int32Array<ArrayBufferLike> | undefined; } | { readonly kind: \"sweep-curve\"; readonly sketch: string; readonly path: RawNurbsPath; } | { readonly kind: \"draft\"; readonly target: string; readonly faces: readonly string[]; readonly angle: number; readonly pull?: \"-x\" | \"-y\" | CadPartAxis | \"-z\" | undefined; readonly neutral?: CadPartDim | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"split-face\"; readonly target: string; readonly face: string; readonly curves?: readonly { readonly degree: number; readonly knots: readonly number[]; readonly controlPoints: readonly (readonly [number, number, number])[]; readonly weights: readonly number[]; }[] | undefined; readonly pull?: CadPartPoint3 | undefined; readonly names?: readonly string[] | undefined; } | { readonly kind: \"thicken\"; readonly surface: { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[]; }; readonly thickness: CadPartDim; readonly side?: \"reverse\" | \"normal\" | \"both\" | undefined; } | { readonly kind: \"band-surface\"; readonly a: { readonly target: string; readonly edges: readonly string[]; }; readonly b: { readonly target: string; readonly edges: readonly string[]; }; readonly flip?: boolean | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"subd\"; readonly cage: { readonly positions: Float64Array<ArrayBufferLike> | readonly number[]; readonly faces: readonly (readonly number[])[]; readonly creases?: readonly (readonly [number, number])[] | undefined; }; } | { readonly kind: \"sew\"; readonly surfaces: readonly { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[]; }[]; readonly tolerance?: number | undefined; } | { readonly kind: \"spur-gear\"; readonly module?: CadPartDim | undefined; readonly normalModule?: CadPartDim | undefined; readonly helixAngle?: number | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly teeth: number; readonly faceWidth: CadPartDim; readonly pressureAngle?: number | undefined; readonly profileShift?: number | undefined; readonly bore?: CadPartDim | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly mesh?: { readonly gear: string; readonly direction?: number | undefined; readonly centerDistance?: CadPartDim | undefined; readonly phase?: number | undefined; } | undefined; readonly generator?: \"spur-gear@0\" | \"spur-gear@1\" | undefined; readonly toolTipRadius?: CadPartDim | undefined; } | { readonly kind: \"spur-rack\"; readonly module?: CadPartDim | undefined; readonly normalModule?: CadPartDim | undefined; readonly helixAngle?: number | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly teeth: number; readonly faceWidth: CadPartDim; readonly height: CadPartDim; readonly pressureAngle?: number | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly origin?: CadPartPoint2 | undefined; readonly angle?: number | undefined; readonly from?: CadPartDim | undefined; readonly mesh?: { readonly gear: string; readonly direction?: number | undefined; readonly centerDistance?: CadPartDim | undefined; readonly phase?: CadPartDim | undefined; } | undefined; readonly generator?: \"spur-rack@0\" | \"spur-rack@1\" | undefined; readonly rootFillet?: CadPartDim | undefined; } | { readonly kind: \"internal-gear\"; readonly module?: CadPartDim | undefined; readonly normalModule?: CadPartDim | undefined; readonly helixAngle?: number | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly teeth: number; readonly faceWidth: CadPartDim; readonly rim: CadPartDim; readonly pressureAngle?: number | undefined; readonly profileShift?: number | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"internal-gear@0\" | \"internal-gear@1\" | undefined; readonly cutter?: { readonly teeth: number; readonly shift?: number | undefined; readonly tipRadius?: CadPartDim | undefined; } | undefined; } | { readonly kind: \"bevel-gear\"; readonly module: CadPartDim; readonly teeth: number; readonly mateTeeth: number; readonly shaftAngle?: number | undefined; readonly faceWidth: CadPartDim; readonly pressureAngle?: number | undefined; readonly bore?: CadPartDim | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly mesh?: { readonly gear: string; readonly direction?: number | undefined; readonly phase?: number | undefined; } | undefined; readonly spiral?: { readonly angle: number; readonly hand: \"left\" | \"right\"; readonly cutterRadius: CadPartDim; } | undefined; readonly generator?: \"bevel-gear@0\" | undefined; } | { readonly kind: \"worm\"; readonly axialModule?: CadPartDim | undefined; readonly starts: number; readonly diameter?: CadPartDim | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly length: CadPartDim; readonly form?: \"ZI\" | \"ZA\" | \"ZN\" | \"ZK\" | \"ZC\" | undefined; readonly bore?: CadPartDim | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly mesh?: { readonly gear: string; readonly direction?: number | undefined; readonly phase?: number | undefined; } | undefined; readonly generator?: \"worm@0\" | undefined; } | { readonly kind: \"worm-wheel\"; readonly worm: { readonly axialModule: CadPartDim; readonly starts: number; readonly diameter: CadPartDim; readonly hand: \"left\" | \"right\"; }; readonly teeth: number; readonly faceWidth: CadPartDim; readonly bore?: CadPartDim | undefined; readonly thicknessReduction?: CadPartDim | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"worm-wheel@0\" | undefined; } | { readonly kind: \"spring\"; readonly wire: CadPartDim; readonly diameter?: CadPartDim | undefined; readonly outerDiameter?: CadPartDim | undefined; readonly innerDiameter?: CadPartDim | undefined; readonly activeCoils: number; readonly pitch?: CadPartDim | undefined; readonly freeLength?: CadPartDim | undefined; readonly hand?: \"left\" | \"right\" | undefined; readonly ends?: \"closed\" | \"open\" | \"closed-ground\" | undefined; readonly endCoils?: number | undefined; readonly transition?: number | undefined; readonly shearModulus?: number | undefined; readonly shearModulusEstimate?: boolean | undefined; readonly load?: number | undefined; readonly profileTolerance?: number | undefined; readonly hooks?: \"machine-loop\" | \"crossover\" | undefined; readonly bendRadius?: CadPartDim | undefined; readonly loopRadius?: CadPartDim | undefined; readonly loopAngle?: number | undefined; readonly initialTension?: number | undefined; readonly legLengths?: readonly [CadPartDim, CadPartDim] | undefined; readonly youngsModulus?: number | undefined; readonly youngsModulusEstimate?: boolean | undefined; readonly moment?: number | undefined; readonly type?: \"compression\" | \"extension\" | \"torsion\" | undefined; readonly body?: \"cylindrical\" | \"conical\" | \"barrel\" | \"variable-pitch\" | undefined; readonly wireSection?: \"round\" | \"rectangular\" | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"spring@0\" | undefined; } | { readonly kind: \"cam\"; readonly base: CadPartDim; readonly thickness: CadPartDim; readonly follower: \"flat\" | \"roller\"; readonly motion?: \"translating\" | \"oscillating\" | undefined; readonly roller?: CadPartDim | undefined; readonly offset?: CadPartDim | undefined; readonly pivotDistance?: CadPartDim | undefined; readonly armLength?: CadPartDim | undefined; readonly faceOffset?: CadPartDim | undefined; readonly faceWidth?: CadPartDim | undefined; readonly segments: readonly { readonly angle: number; readonly to?: number | undefined; readonly law?: CamLaw | undefined; }[]; readonly bore?: CadPartDim | undefined; readonly minimumRim?: CadPartDim | undefined; readonly pressureAngleLimit?: number | undefined; readonly profileTolerance?: number | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"cam@0\" | undefined; } | { readonly kind: \"sprocket\"; readonly row: DriveRow; readonly teeth: number; readonly tip: CadPartDim; readonly width: CadPartDim; readonly seat?: CadPartDim | undefined; readonly toothForm?: string | undefined; readonly bore?: CadPartDim | undefined; readonly minimumRim?: CadPartDim | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"sprocket@0\" | undefined; } | { readonly kind: \"pulley\"; readonly row: DriveRow; readonly teeth?: number | undefined; readonly diameter?: CadPartDim | undefined; readonly grooves?: number | undefined; readonly width?: CadPartDim | undefined; readonly crown?: CadPartDim | undefined; readonly bore?: CadPartDim | undefined; readonly minimumRim?: CadPartDim | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"pulley@0\" | undefined; } | { readonly kind: \"belt\"; readonly row: DriveRow; readonly pitchRadii: readonly [CadPartDim, CadPartDim]; readonly centerDistance: CadPartDim; readonly rounding?: \"whole\" | \"even\" | undefined; readonly width?: CadPartDim | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"belt@0\" | undefined; } | { readonly kind: \"coupling\"; readonly row: DriveRow; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"coupling@0\" | undefined; } | { readonly kind: \"connector-opening\"; readonly target: string; readonly face: string; readonly row: ConnectorRow; readonly center: CadPartPoint3; readonly rotation?: number | undefined; } | { readonly kind: \"connector-body\"; readonly opening: string; } | { readonly kind: \"gusset\"; readonly frame: string; readonly point: number; readonly members?: readonly [number, number] | undefined; readonly along?: number | undefined; readonly legs: readonly [CadPartDim, CadPartDim]; readonly thickness: CadPartDim; readonly clip?: CadPartDim | undefined; readonly offset?: CadPartDim | undefined; } | { readonly kind: \"end-cap\"; readonly frame: string; readonly member: number; readonly end: \"start\" | \"end\"; readonly fit: \"over\" | \"inset\"; readonly thickness: CadPartDim; } | { readonly kind: \"weld-bead\"; readonly frame: string; readonly on: { readonly member: number; readonly end: \"start\" | \"end\"; } | { readonly gusset: string; } | { readonly cap: string; }; readonly leg: CadPartDim; readonly inner?: boolean | undefined; readonly sharing?: CadPartBeadSharing | undefined; } | { readonly kind: \"shaft\"; readonly steps: readonly { readonly diameter: CadPartDim; readonly length: CadPartDim; readonly fillet?: CadPartDim | undefined; readonly undercut?: { readonly width: CadPartDim; readonly depth: CadPartDim; } | undefined; readonly grooves?: readonly { readonly diameter: CadPartDim; readonly width: CadPartDim; readonly at: CadPartDim; }[] | undefined; readonly keyseats?: readonly { readonly width: CadPartDim; readonly depth: CadPartDim; readonly length: CadPartDim; readonly offset: CadPartDim; readonly ends?: \"square\" | \"end-mill\" | \"disc\" | undefined; readonly cutterRadius?: CadPartDim | undefined; readonly angle?: number | undefined; }[] | undefined; }[]; readonly chamfers?: readonly [CadPartDim, CadPartDim] | undefined; readonly holes?: readonly { readonly diameter: CadPartDim; readonly at: CadPartDim; readonly angle?: number | undefined; }[] | undefined; readonly center?: CadPartPoint2 | undefined; readonly from?: CadPartDim | undefined; readonly rotation?: number | undefined; readonly generator?: \"shaft@0\" | undefined; } | { readonly kind: \"key\"; readonly shaft: string; readonly keyseat: number; readonly width?: CadPartDim | undefined; readonly height: CadPartDim; readonly length?: CadPartDim | undefined; readonly ends?: \"square\" | \"round\" | undefined; readonly hub?: string | undefined; readonly fit?: { readonly tables: readonly FitTable[]; readonly key: string; readonly seat?: string | undefined; readonly hub?: string | undefined; } | undefined; } | { readonly kind: \"keyway\"; readonly target: string; readonly face: string; readonly width: CadPartDim; readonly depth: CadPartDim; readonly angle?: number | undefined; } | { readonly kind: \"retaining-ring\"; readonly shaft: string; readonly groove: number; readonly thickness: CadPartDim; readonly outerDiameter: CadPartDim; readonly row?: { readonly shaftDiameter?: number | undefined; readonly grooveDiameter?: number | undefined; readonly grooveWidth?: number | undefined; readonly source?: string | undefined; readonly estimate?: boolean | undefined; } | undefined; } | { readonly kind: \"oring-gland\"; readonly target: string; readonly face: string; readonly gland: \"face\" | \"piston\" | \"rod\"; readonly ring: { readonly id: string; readonly dash?: string | undefined; readonly insideDiameter: number; readonly crossSection: number; readonly source?: string | undefined; readonly estimate?: boolean | undefined; }; readonly groove: { readonly diameter: CadPartDim; readonly width: CadPartDim; readonly at?: CadPartDim | undefined; readonly depth?: CadPartDim | undefined; readonly center?: CadPartPoint3 | undefined; }; readonly seal?: CadPartDim | undefined; readonly ranges?: GlandRanges | undefined; readonly fit?: { readonly tables: readonly FitTable[]; readonly seal?: string | undefined; readonly groove?: string | undefined; } | undefined; } | { readonly kind: \"oring\"; readonly gland: string; } | { readonly kind: \"bearing\"; readonly row: BearingRow; readonly shaft: string; readonly step: number; readonly against: \"start\" | \"end\"; readonly housing?: string | undefined; readonly fit?: BearingFitClasses | undefined; } | { readonly kind: \"pin\"; readonly shaft: string; readonly hole: number; readonly diameter?: CadPartDim | undefined; readonly length?: CadPartDim | undefined; readonly fit?: boolean | undefined; } | { readonly kind: \"thread\"; readonly diameter: CadPartDim; readonly pitch: CadPartDim; readonly center?: CadPartPoint2 | undefined; readonly seat?: CadPartDim | undefined; readonly length?: CadPartDim | undefined; readonly hex?: { readonly across: CadPartDim; readonly height: CadPartDim; readonly internal?: boolean | undefined; } | undefined; readonly form?: \"faceted\" | \"helical\" | undefined; } | { readonly kind: \"separate\"; readonly target: string; } | { readonly kind: \"decimate\"; readonly target: string; readonly triangles?: number | undefined; readonly ratio?: number | undefined; readonly maxError?: CadPartDim | undefined; readonly featureAngle?: number | undefined; } | ({ readonly kind: \"sheet-base\"; readonly sketch: string; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim; readonly reverse?: boolean | undefined; } & CadPartSheetK) | ({ readonly kind: \"sheet-contour\"; readonly path: readonly CadPartPoint2[]; readonly plane?: CadPartSketchPlane | undefined; readonly side: \"left\" | \"right\"; readonly width: CadPartDim; readonly thickness: CadPartDim; readonly bendRadius: CadPartDim; } & CadPartSheetK) | { readonly kind: \"frame\"; readonly points: readonly CadPartPoint3[]; readonly segments: readonly CadPartFrameSegment[]; readonly bends?: readonly { readonly point: number; readonly radius: CadPartDim; }[] | undefined; readonly section: CadPartSection; readonly anchor?: \"left\" | \"right\" | \"origin\" | \"bottom\" | \"top\" | \"center\" | \"centroid\" | \"bottom-left\" | \"bottom-right\" | \"top-left\" | \"top-right\" | undefined; readonly offset?: readonly [CadPartDim, CadPartDim] | undefined; readonly roll?: number | undefined; readonly mirror?: boolean | undefined; readonly up?: CadPartPoint3 | undefined; readonly overrides?: readonly CadPartFrameOverride[] | undefined; readonly corners?: CadPartFrameCorners | undefined; readonly trims?: readonly CadPartFrameTrim[] | undefined; } | { readonly kind: \"frame-member\"; readonly section: CadPartSection; readonly start: CadPartPoint3; readonly end: CadPartPoint3; readonly anchor?: \"left\" | \"right\" | \"origin\" | \"bottom\" | \"top\" | \"center\" | \"centroid\" | \"bottom-left\" | \"bottom-right\" | \"top-left\" | \"top-right\" | undefined; readonly offset?: readonly [CadPartDim, CadPartDim] | undefined; readonly roll?: number | undefined; readonly up?: CadPartPoint3 | undefined; } | { readonly kind: \"sheet-corner-relief\"; readonly target: string; readonly corner: string; readonly shape: \"square\" | \"round\"; readonly size: CadPartDim; } | { readonly kind: \"sheet-flange\"; readonly target: string; readonly edge: string; readonly length: CadPartDim; readonly angle?: number | undefined; readonly bendRadius?: CadPartDim | undefined; readonly measure?: \"outer\" | \"inner\" | \"tangent\" | undefined; readonly position?: \"material-inside\" | \"material-outside\" | \"bend-outside\" | undefined; readonly offsets?: readonly [CadPartDim, CadPartDim] | undefined; readonly relief?: { readonly kind: \"rectangular\" | \"obround\"; readonly width: CadPartDim; readonly depth: CadPartDim; } | { readonly kind: \"none\"; } | undefined; } | { readonly kind: \"shell\"; readonly target: string; readonly thickness: CadPartDim; readonly open?: readonly string[] | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"chamfer\"; readonly target: string; readonly edges: readonly string[]; readonly distance: CadPartDim; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"fillet\"; readonly target: string; readonly edges: readonly string[]; readonly radius?: CadPartDim | undefined; readonly radii?: readonly { readonly at: CadPartPoint3; readonly radius: CadPartDim; readonly atEnd?: true | undefined; }[] | undefined; readonly section?: { readonly kind: \"circular\"; } | { readonly kind: \"conic\"; readonly rho: number; } | { readonly kind: \"g2\"; readonly tension?: number | undefined; } | undefined; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; })",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -21460,7 +21460,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
-                "type": "{ readonly origin: CadPartPoint2; readonly direction: readonly [number, number] | \"x\" | \"y\"; }"
+                "type": "{ readonly origin: CadPartPoint2; readonly direction: \"x\" | readonly [number, number] | \"y\"; }"
               },
               {
                 "name": "axis2",
@@ -25888,7 +25888,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"REPRESENTABILITY\" | \"REFERENCE\" | \"VERSION\" | \"BINDING\" | \"OWNED\" | \"FRAME\" | \"QUERY\" | \"STALE\"",
+            "type": "\"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"REFERENCE\" | \"VERSION\" | \"BINDING\" | \"OWNED\" | \"FRAME\" | \"QUERY\" | \"STALE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -26968,7 +26968,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"REFERENCE\" | \"BINDING\" | \"OWNED\" | \"REGION\" | \"STALE\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"REFERENCE\" | \"BINDING\" | \"OWNED\" | \"REGION\" | \"STALE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -29549,7 +29549,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -36421,7 +36421,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"DEGENERATE\" | \"INCIDENCE\" | \"SLAB\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"DEGENERATE\" | \"INCIDENCE\" | \"SLAB\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -37690,7 +37690,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CONVEXITY\" | \"COVERAGE\" | \"DEGENERATE\" | \"INCIDENCE\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CONVEXITY\" | \"COVERAGE\" | \"DEGENERATE\" | \"INCIDENCE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -39206,7 +39206,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CONTACT\" | \"INCIDENCE\" | \"NESTING\" | \"UNCERTAINTY\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CONTACT\" | \"INCIDENCE\" | \"NESTING\" | \"UNCERTAINTY\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -39440,7 +39440,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"INCIDENCE\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"INCIDENCE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -39843,7 +39843,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"COVERAGE\" | \"INCIDENCE\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"COVERAGE\" | \"INCIDENCE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -41219,7 +41219,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"OWNED\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -42715,7 +42715,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"COVERAGE\" | \"INCIDENCE\" | \"TRIANGULATION\" | \"UNCERTAINTY\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"COVERAGE\" | \"INCIDENCE\" | \"TRIANGULATION\" | \"UNCERTAINTY\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -44275,7 +44275,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -45854,7 +45854,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SPAN\"",
+            "type": "\"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SPAN\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -47453,7 +47453,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CONDITIONING\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CONDITIONING\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -48155,7 +48155,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"NATIVE_CAPACITY\" | \"OWNED\" | \"INTERVAL\"",
+            "type": "\"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"NATIVE_CAPACITY\" | \"OWNED\" | \"INTERVAL\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -51402,7 +51402,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CONDITIONING\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CONDITIONING\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -52312,7 +52312,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"OWNED\" | \"UNCERTAINTY\" | \"UNSUPPORTED\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"OWNED\" | \"UNCERTAINTY\" | \"UNSUPPORTED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -54287,7 +54287,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"DOMAIN\"",
+            "type": "\"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"DOMAIN\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -61329,7 +61329,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BAND\" | \"EMBEDDING\" | \"PAIR\" | \"PARENT\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BAND\" | \"EMBEDDING\" | \"PAIR\" | \"PARENT\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -62028,7 +62028,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"EMBEDDING\" | \"PARENT\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"EMBEDDING\" | \"PARENT\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -63358,7 +63358,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"TOPOLOGY\" | \"GEOMETRY\" | \"BUDGET\" | \"SELF_INTERSECTION\"",
+            "type": "\"BUDGET\" | \"GEOMETRY\" | \"INPUT\" | \"TOPOLOGY\" | \"SELF_INTERSECTION\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -72937,7 +72937,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"PARAMETER\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"DIRECTORY\" | \"FILE\" | \"GLOBAL\" | \"NUMBER\" | \"RECORD\" | \"UNSUPPORTED\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"PARAMETER\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"DIRECTORY\" | \"FILE\" | \"GLOBAL\" | \"NUMBER\" | \"RECORD\" | \"UNSUPPORTED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -74991,7 +74991,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -77580,7 +77580,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\" | \"CONDITIONING\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\" | \"CONDITIONING\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -78498,7 +78498,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CHART\" | \"CROSSING\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"SUPPORT\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CHART\" | \"CROSSING\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -79091,7 +79091,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SECTION\" | \"INTERVAL\" | \"UV\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SECTION\" | \"INTERVAL\" | \"UV\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -79741,7 +79741,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"TRIM\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"TRIM\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -80542,7 +80542,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"REFERENCE\" | \"VERSION\" | \"SOURCE\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\" | \"CODEC\" | \"DEPENDENCY\" | \"REVISION\" | \"STATIONS\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"REFERENCE\" | \"VERSION\" | \"SOURCE\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\" | \"CODEC\" | \"DEPENDENCY\" | \"REVISION\" | \"STATIONS\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -83113,7 +83113,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\" | \"SECTION\" | \"GRAPH\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\" | \"SECTION\" | \"GRAPH\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -87472,7 +87472,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SOURCE\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\" | \"STATIONS\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"SOURCE\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\" | \"STATIONS\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -94205,7 +94205,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"TOPOLOGY\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"MATERIAL\" | \"ORIENTATION\" | \"PAIR\" | \"PARENT\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"TOPOLOGY\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"MATERIAL\" | \"ORIENTATION\" | \"PAIR\" | \"PARENT\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -94425,7 +94425,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"TOPOLOGY\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SOURCE\" | \"OWNED\" | \"BODY\" | \"FILE\" | \"ORIENTATION\" | \"UV\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"TOPOLOGY\" | \"SOURCE\" | \"OWNED\" | \"BODY\" | \"FILE\" | \"ORIENTATION\" | \"UV\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -98362,7 +98362,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SECTION\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SECTION\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -98998,7 +98998,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -102912,7 +102912,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"REFERENCE\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"FILE\" | \"SPAN\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"REFERENCE\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"FILE\" | \"SPAN\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -103499,7 +103499,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"TARGET\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"TARGET\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -104135,7 +104135,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"DEGREE\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\" | \"FILE\" | \"TARGET\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"DEGREE\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\" | \"FILE\" | \"TARGET\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -104729,7 +104729,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"FILE\" | \"INTERVAL\" | \"TARGET\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"FILE\" | \"INTERVAL\" | \"TARGET\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -105344,7 +105344,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"REQUEST\" | \"IDENTITY\" | \"OWNED\" | \"FILE\" | \"TARGET\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"REQUEST\" | \"IDENTITY\" | \"OWNED\" | \"FILE\" | \"TARGET\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -105938,7 +105938,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\" | \"FILE\" | \"INSERTION\" | \"LOFT\" | \"STATIONS\" | \"TARGET\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\" | \"FILE\" | \"INSERTION\" | \"LOFT\" | \"STATIONS\" | \"TARGET\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -106532,7 +106532,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BOUNDARY\" | \"FACE\" | \"FILE\" | \"PROFILE\" | \"RULED\" | \"TARGET\" | \"WIDTH\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BOUNDARY\" | \"FACE\" | \"FILE\" | \"PROFILE\" | \"RULED\" | \"TARGET\" | \"WIDTH\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -107155,7 +107155,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"TARGET\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"TARGET\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -107735,7 +107735,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"TARGET\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"TARGET\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -108385,7 +108385,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\" | \"FILE\" | \"TARGET\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\" | \"FILE\" | \"TARGET\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -109007,7 +109007,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"REQUEST\" | \"IDENTITY\" | \"OWNED\" | \"FILE\" | \"TARGET\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"VERSION\" | \"SOURCE\" | \"BINDING\" | \"REQUEST\" | \"IDENTITY\" | \"OWNED\" | \"FILE\" | \"TARGET\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -111926,7 +111926,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
-                "type": "\"INPUT\" | \"CAPABILITY\""
+                "type": "\"CAPABILITY\" | \"INPUT\""
               },
               {
                 "name": "details",
@@ -111969,7 +111969,7 @@
               "KernelError"
             ],
             "constructSignatures": [
-              "new (code: \"INPUT\" | \"CAPABILITY\", detail: string) => SubdError"
+              "new (code: \"CAPABILITY\" | \"INPUT\", detail: string) => SubdError"
             ],
             "staticMembers": [],
             "abstract": false,
@@ -112523,7 +112523,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"AXIS\" | \"DOMAIN\"",
+            "type": "\"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"AXIS\" | \"DOMAIN\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -114960,7 +114960,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CONDITIONING\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CONDITIONING\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -118220,7 +118220,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"NATIVE_CAPACITY\" | \"OWNED\" | \"INTERVAL\"",
+            "type": "\"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"NATIVE_CAPACITY\" | \"OWNED\" | \"INTERVAL\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -119731,7 +119731,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"BASIS\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -120743,7 +120743,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CONSTRUCTION\" | \"PAIR\" | \"PARENT\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CONSTRUCTION\" | \"PAIR\" | \"PARENT\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -121948,7 +121948,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"TRANSLATION\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"TRANSLATION\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -122739,7 +122739,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"TRANSLATION\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"TRANSLATION\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -123276,7 +123276,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"TRANSLATION\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"PAIR\" | \"PARENT\" | \"TRANSLATION\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -123954,7 +123954,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"PARENT\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"SUPPORT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"PARENT\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -124506,7 +124506,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -125467,7 +125467,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"TOPOLOGY\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"BINDING\" | \"DOMAIN\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"TOPOLOGY\" | \"SUPPORT\" | \"BINDING\" | \"DOMAIN\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -125736,7 +125736,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"TOPOLOGY\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"BINDING\" | \"DOMAIN\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"TOPOLOGY\" | \"SUPPORT\" | \"BINDING\" | \"DOMAIN\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -126401,7 +126401,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"TOPOLOGY\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"BINDING\" | \"DOMAIN\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"TOPOLOGY\" | \"SUPPORT\" | \"BINDING\" | \"DOMAIN\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -127691,7 +127691,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CHART\" | \"CROSSING\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"SUPPORT\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CHART\" | \"CROSSING\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -128242,7 +128242,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SECTION\" | \"INTERVAL\" | \"UV\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SECTION\" | \"INTERVAL\" | \"UV\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -128878,7 +128878,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"TRIM\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"TRIM\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -130153,7 +130153,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CONDITIONING\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"CONDITIONING\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -131115,7 +131115,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SPAN\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SPAN\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -132075,7 +132075,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SPAN\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SPAN\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -132725,7 +132725,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SPAN\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"SPAN\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -133255,7 +133255,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -134146,7 +134146,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"REPRESENTABILITY\" | \"BINDING\" | \"REQUEST\" | \"IDENTITY\" | \"NATIVE_CAPACITY\" | \"OWNED\"",
+            "type": "\"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"REQUEST\" | \"IDENTITY\" | \"NATIVE_CAPACITY\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -134953,7 +134953,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"DOMAIN\"",
+            "type": "\"BUDGET\" | \"REPRESENTABILITY\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"IDENTITY\" | \"OWNED\" | \"DOMAIN\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -136469,7 +136469,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"ARITHMETIC\" | \"NATIVE\" | \"BUDGET\" | \"UNIT\" | \"SOURCE\" | \"IDENTITY\" | \"OWNED\" | \"RANGE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"ARITHMETIC\" | \"NATIVE\" | \"UNIT\" | \"SOURCE\" | \"IDENTITY\" | \"OWNED\" | \"RANGE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -151243,14 +151243,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(code: \"GEOMETRY\" | \"CAPABILITY\", detail: string) => KernelError & { readonly code: \"CAPABILITY\" | \"GEOMETRY\"; }",
+            "type": "(code: \"CAPABILITY\" | \"GEOMETRY\", detail: string) => KernelError & { readonly code: \"CAPABILITY\" | \"GEOMETRY\"; }",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
               }
             ],
             "callSignatures": [
-              "(code: \"GEOMETRY\" | \"CAPABILITY\", detail: string) => KernelError & { readonly code: \"CAPABILITY\" | \"GEOMETRY\"; }"
+              "(code: \"CAPABILITY\" | \"GEOMETRY\", detail: string) => KernelError & { readonly code: \"CAPABILITY\" | \"GEOMETRY\"; }"
             ]
           }
         }
@@ -153223,14 +153223,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(e: unknown) => e is KernelError & { readonly code: \"GEOMETRY\" | \"CAPABILITY\"; }",
+            "type": "(e: unknown) => e is KernelError & { readonly code: \"CAPABILITY\" | \"GEOMETRY\"; }",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
               }
             ],
             "callSignatures": [
-              "(e: unknown) => e is KernelError & { readonly code: \"GEOMETRY\" | \"CAPABILITY\"; }"
+              "(e: unknown) => e is KernelError & { readonly code: \"CAPABILITY\" | \"GEOMETRY\"; }"
             ]
           }
         }
@@ -352595,7 +352595,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"face\" | \"edge\" | \"vertex\"",
+            "type": "\"edge\" | \"face\" | \"vertex\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -379130,7 +379130,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"MATERIAL\" | \"NUMERICAL\" | \"PROFILE\" | \"UV\" | \"UNIFORM\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"MATERIAL\" | \"NUMERICAL\" | \"PROFILE\" | \"UV\" | \"UNIFORM\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -379443,7 +379443,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"CONVERSION\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"CONVERSION\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -384782,7 +384782,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"NUMERICAL\" | \"SCENE\" | \"LIGHTING\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"NUMERICAL\" | \"SCENE\" | \"LIGHTING\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -385045,7 +385045,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"MATERIAL\" | \"SCENE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"MATERIAL\" | \"SCENE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -385344,7 +385344,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"NUMERICAL\" | \"RANGE\" | \"SCENE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"NUMERICAL\" | \"RANGE\" | \"SCENE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -385762,7 +385762,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"VERSION\" | \"NUMERICAL\" | \"SCENE\" | \"RAY\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"VERSION\" | \"NUMERICAL\" | \"SCENE\" | \"RAY\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -385897,7 +385897,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"FRAME\" | \"RANGE\" | \"SCENE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"FRAME\" | \"RANGE\" | \"SCENE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -386295,7 +386295,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"FRAME\" | \"RANGE\" | \"SCENE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"FRAME\" | \"RANGE\" | \"SCENE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -386686,7 +386686,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"GEOMETRY\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"REPRESENTATION\" | \"TRANSFORM\" | \"CAMERA\"",
+            "type": "\"BUDGET\" | \"GEOMETRY\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"REPRESENTATION\" | \"TRANSFORM\" | \"CAMERA\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -387418,7 +387418,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"SCENE\" | \"TEXTURE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"SCENE\" | \"TEXTURE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -387730,7 +387730,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"FRAME\" | \"RANGE\" | \"SCENE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"FRAME\" | \"RANGE\" | \"SCENE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -388142,7 +388142,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"FRAME\" | \"RANGE\" | \"SCENE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"FRAME\" | \"RANGE\" | \"SCENE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -389484,7 +389484,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"MATERIAL\" | \"SCENE\" | \"UNIFORM\" | \"TEXTURE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"MATERIAL\" | \"SCENE\" | \"UNIFORM\" | \"TEXTURE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -391529,7 +391529,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"GEOMETRY\" | \"BUDGET\" | \"REFERENCE\" | \"SELECTION\" | \"SYNTAX\" | \"TYPE\" | \"VERSION\" | \"OPTIONS\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"FRAME\" | \"MATERIAL\" | \"NUMERICAL\" | \"PROFILE\" | \"RANGE\" | \"UNSUPPORTED\" | \"UV\" | \"MATERIAL_UNKNOWN\" | \"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"PATH_TRACE_UNSUPPORTED\" | \"PATH_TRACE_BUSY\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"LIGHT_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\" | \"MESH_PACKET_INVALID\" | \"MESH_OPTIONS_INVALID\" | \"MESH_INVALID\" | \"CAMERA_INVALID\" | \"PRIMITIVE_FRAME_INVALID\" | \"FACE_PREVIEW_INVALID\" | \"SCENE_INVALID\" | \"BOOLEAN_BUFFERS_INVALID\" | \"GPU_BVH_DEPTH\" | \"SCENE\" | \"GPU\" | \"RECONSTRUCTION\" | \"IR\" | \"UNIFORM\" | \"CONVERSION\" | \"REPRESENTATION\" | \"TRANSFORM\" | \"CAMERA\" | \"RAY\" | \"LIGHTING\" | \"TEXTURE\" | \"CONTEXT\" | \"LIGHTS\" | \"PROGRAM\" | \"INIT\" | \"RENDER\" | \"STATE\" | \"BUSY\" | \"SELECTOR\" | \"NORMALIZATION\" | \"SOURCE_BINDING\" | \"SCENE_VIEW\"",
+            "type": "\"BUDGET\" | \"GEOMETRY\" | \"INPUT\" | \"NATIVE\" | \"REFERENCE\" | \"SELECTION\" | \"SYNTAX\" | \"TYPE\" | \"VERSION\" | \"OPTIONS\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"FRAME\" | \"MATERIAL\" | \"NUMERICAL\" | \"PROFILE\" | \"RANGE\" | \"UNSUPPORTED\" | \"UV\" | \"MATERIAL_UNKNOWN\" | \"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"PATH_TRACE_UNSUPPORTED\" | \"PATH_TRACE_BUSY\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"LIGHT_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\" | \"MESH_PACKET_INVALID\" | \"MESH_OPTIONS_INVALID\" | \"MESH_INVALID\" | \"CAMERA_INVALID\" | \"PRIMITIVE_FRAME_INVALID\" | \"FACE_PREVIEW_INVALID\" | \"SCENE_INVALID\" | \"BOOLEAN_BUFFERS_INVALID\" | \"GPU_BVH_DEPTH\" | \"SCENE\" | \"GPU\" | \"RECONSTRUCTION\" | \"IR\" | \"UNIFORM\" | \"CONVERSION\" | \"REPRESENTATION\" | \"TRANSFORM\" | \"CAMERA\" | \"RAY\" | \"LIGHTING\" | \"TEXTURE\" | \"CONTEXT\" | \"LIGHTS\" | \"PROGRAM\" | \"INIT\" | \"RENDER\" | \"STATE\" | \"BUSY\" | \"SELECTOR\" | \"NORMALIZATION\" | \"SOURCE_BINDING\" | \"SCENE_VIEW\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -396315,7 +396315,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"SYNTAX\" | \"TYPE\" | \"RANGE\" | \"IR\" | \"UNIFORM\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"SYNTAX\" | \"TYPE\" | \"RANGE\" | \"IR\" | \"UNIFORM\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -397546,7 +397546,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"VERSION\" | \"SOURCE\" | \"PROFILE\" | \"DISPOSED\" | \"GPU\" | \"CAMERA\" | \"CONTEXT\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"VERSION\" | \"SOURCE\" | \"PROFILE\" | \"DISPOSED\" | \"GPU\" | \"CAMERA\" | \"CONTEXT\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -398445,7 +398445,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"MATERIAL\" | \"REPRESENTATION\" | \"LIGHTS\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"MATERIAL\" | \"REPRESENTATION\" | \"LIGHTS\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -399293,7 +399293,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"FRAME\" | \"PROFILE\" | \"UNSUPPORTED\" | \"DEVICE_LOST\" | \"REPRESENTATION\" | \"PROGRAM\" | \"INIT\" | \"RENDER\" | \"STATE\" | \"BUSY\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"FRAME\" | \"PROFILE\" | \"UNSUPPORTED\" | \"DEVICE_LOST\" | \"REPRESENTATION\" | \"PROGRAM\" | \"INIT\" | \"RENDER\" | \"STATE\" | \"BUSY\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -399556,7 +399556,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"VERSION\" | \"IDENTITY\" | \"NUMERICAL\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"VERSION\" | \"IDENTITY\" | \"NUMERICAL\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -399932,7 +399932,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"MATERIAL\" | \"REPRESENTATION\" | \"LIGHTS\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"MATERIAL\" | \"REPRESENTATION\" | \"LIGHTS\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -400787,7 +400787,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"FRAME\" | \"PROFILE\" | \"UNSUPPORTED\" | \"DEVICE_LOST\" | \"REPRESENTATION\" | \"PROGRAM\" | \"INIT\" | \"RENDER\" | \"STATE\" | \"BUSY\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"FRAME\" | \"PROFILE\" | \"UNSUPPORTED\" | \"DEVICE_LOST\" | \"REPRESENTATION\" | \"PROGRAM\" | \"INIT\" | \"RENDER\" | \"STATE\" | \"BUSY\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -401050,7 +401050,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"VERSION\" | \"IDENTITY\" | \"NUMERICAL\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"VERSION\" | \"IDENTITY\" | \"NUMERICAL\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -401270,7 +401270,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"GEOMETRY\" | \"MATERIAL\" | \"UNIFORM\"",
+            "type": "\"GEOMETRY\" | \"INPUT\" | \"MATERIAL\" | \"UNIFORM\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -401847,7 +401847,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"OPTIONS\" | \"BINDING\" | \"FRAME\" | \"REPRESENTATION\" | \"PROGRAM\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"OPTIONS\" | \"BINDING\" | \"FRAME\" | \"REPRESENTATION\" | \"PROGRAM\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -402400,7 +402400,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"SOURCE\" | \"SELECTOR\" | \"NORMALIZATION\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"SOURCE\" | \"SELECTOR\" | \"NORMALIZATION\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -409081,7 +409081,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"VERSION\" | \"SOURCE\" | \"DISPOSED\" | \"GPU\" | \"CONTEXT\" | \"SOURCE_BINDING\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"VERSION\" | \"SOURCE\" | \"DISPOSED\" | \"GPU\" | \"CONTEXT\" | \"SOURCE_BINDING\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -411664,7 +411664,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"SYNTAX\" | \"TYPE\" | \"RANGE\" | \"SCENE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"SYNTAX\" | \"TYPE\" | \"RANGE\" | \"SCENE\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -413063,7 +413063,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"SELECTION\" | \"VERSION\" | \"SOURCE\" | \"NUMERICAL\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"SELECTION\" | \"VERSION\" | \"SOURCE\" | \"NUMERICAL\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -417346,7 +417346,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"GEOMETRY\" | \"BUDGET\" | \"VERSION\" | \"REPRESENTATION\"",
+            "type": "\"BUDGET\" | \"GEOMETRY\" | \"INPUT\" | \"VERSION\" | \"REPRESENTATION\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -417785,7 +417785,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"SOURCE\" | \"PROFILE\" | \"RECONSTRUCTION\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"SOURCE\" | \"PROFILE\" | \"RECONSTRUCTION\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -427127,7 +427127,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"MATERIAL\" | \"NUMERICAL\" | \"PROFILE\" | \"UV\" | \"UNIFORM\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"MATERIAL\" | \"NUMERICAL\" | \"PROFILE\" | \"UV\" | \"UNIFORM\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -427440,7 +427440,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"BINDING\" | \"CONVERSION\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"BINDING\" | \"CONVERSION\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -432779,7 +432779,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"NUMERICAL\" | \"SCENE\" | \"LIGHTING\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"NUMERICAL\" | \"SCENE\" | \"LIGHTING\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -433042,7 +433042,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"MATERIAL\" | \"SCENE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"MATERIAL\" | \"SCENE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -433341,7 +433341,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"NUMERICAL\" | \"RANGE\" | \"SCENE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"NUMERICAL\" | \"RANGE\" | \"SCENE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -433759,7 +433759,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"VERSION\" | \"NUMERICAL\" | \"SCENE\" | \"RAY\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"VERSION\" | \"NUMERICAL\" | \"SCENE\" | \"RAY\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -433894,7 +433894,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"FRAME\" | \"RANGE\" | \"SCENE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"FRAME\" | \"RANGE\" | \"SCENE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -434292,7 +434292,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"FRAME\" | \"RANGE\" | \"SCENE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"FRAME\" | \"RANGE\" | \"SCENE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -434683,7 +434683,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"GEOMETRY\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"REPRESENTATION\" | \"TRANSFORM\" | \"CAMERA\"",
+            "type": "\"BUDGET\" | \"GEOMETRY\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"REPRESENTATION\" | \"TRANSFORM\" | \"CAMERA\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -435415,7 +435415,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"SCENE\" | \"TEXTURE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"SCENE\" | \"TEXTURE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -435727,7 +435727,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"FRAME\" | \"RANGE\" | \"SCENE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"FRAME\" | \"RANGE\" | \"SCENE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -436139,7 +436139,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"FRAME\" | \"RANGE\" | \"SCENE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"FRAME\" | \"RANGE\" | \"SCENE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -437481,7 +437481,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"VERSION\" | \"MATERIAL\" | \"SCENE\" | \"UNIFORM\" | \"TEXTURE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"VERSION\" | \"MATERIAL\" | \"SCENE\" | \"UNIFORM\" | \"TEXTURE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -439526,7 +439526,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"GEOMETRY\" | \"BUDGET\" | \"REFERENCE\" | \"SELECTION\" | \"SYNTAX\" | \"TYPE\" | \"VERSION\" | \"OPTIONS\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"FRAME\" | \"MATERIAL\" | \"NUMERICAL\" | \"PROFILE\" | \"RANGE\" | \"UNSUPPORTED\" | \"UV\" | \"MATERIAL_UNKNOWN\" | \"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"PATH_TRACE_UNSUPPORTED\" | \"PATH_TRACE_BUSY\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"LIGHT_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\" | \"MESH_PACKET_INVALID\" | \"MESH_OPTIONS_INVALID\" | \"MESH_INVALID\" | \"CAMERA_INVALID\" | \"PRIMITIVE_FRAME_INVALID\" | \"FACE_PREVIEW_INVALID\" | \"SCENE_INVALID\" | \"BOOLEAN_BUFFERS_INVALID\" | \"GPU_BVH_DEPTH\" | \"SCENE\" | \"GPU\" | \"RECONSTRUCTION\" | \"IR\" | \"UNIFORM\" | \"CONVERSION\" | \"REPRESENTATION\" | \"TRANSFORM\" | \"CAMERA\" | \"RAY\" | \"LIGHTING\" | \"TEXTURE\" | \"CONTEXT\" | \"LIGHTS\" | \"PROGRAM\" | \"INIT\" | \"RENDER\" | \"STATE\" | \"BUSY\" | \"SELECTOR\" | \"NORMALIZATION\" | \"SOURCE_BINDING\" | \"SCENE_VIEW\"",
+            "type": "\"BUDGET\" | \"GEOMETRY\" | \"INPUT\" | \"NATIVE\" | \"REFERENCE\" | \"SELECTION\" | \"SYNTAX\" | \"TYPE\" | \"VERSION\" | \"OPTIONS\" | \"SOURCE\" | \"BINDING\" | \"IDENTITY\" | \"FRAME\" | \"MATERIAL\" | \"NUMERICAL\" | \"PROFILE\" | \"RANGE\" | \"UNSUPPORTED\" | \"UV\" | \"MATERIAL_UNKNOWN\" | \"WEBGPU_UNAVAILABLE\" | \"NO_ADAPTER\" | \"NO_CONTEXT\" | \"SHADER\" | \"PIPELINE\" | \"DISPOSED\" | \"DEVICE_LOST\" | \"PATH_TRACE_UNSUPPORTED\" | \"PATH_TRACE_BUSY\" | \"GEOMETRY_INVALID\" | \"INSTANCES_INVALID\" | \"TRANSFORM_INVALID\" | \"COLOR_MAP_INVALID\" | \"COLOR_INVALID\" | \"MATERIAL_INVALID\" | \"LIGHT_INVALID\" | \"CLIP_INVALID\" | \"TEXTURE_INVALID\" | \"SIZE_INVALID\" | \"MATRIX_SINGULAR\" | \"MESH_PACKET_INVALID\" | \"MESH_OPTIONS_INVALID\" | \"MESH_INVALID\" | \"CAMERA_INVALID\" | \"PRIMITIVE_FRAME_INVALID\" | \"FACE_PREVIEW_INVALID\" | \"SCENE_INVALID\" | \"BOOLEAN_BUFFERS_INVALID\" | \"GPU_BVH_DEPTH\" | \"SCENE\" | \"GPU\" | \"RECONSTRUCTION\" | \"IR\" | \"UNIFORM\" | \"CONVERSION\" | \"REPRESENTATION\" | \"TRANSFORM\" | \"CAMERA\" | \"RAY\" | \"LIGHTING\" | \"TEXTURE\" | \"CONTEXT\" | \"LIGHTS\" | \"PROGRAM\" | \"INIT\" | \"RENDER\" | \"STATE\" | \"BUSY\" | \"SELECTOR\" | \"NORMALIZATION\" | \"SOURCE_BINDING\" | \"SCENE_VIEW\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -444312,7 +444312,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"SYNTAX\" | \"TYPE\" | \"RANGE\" | \"IR\" | \"UNIFORM\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"SYNTAX\" | \"TYPE\" | \"RANGE\" | \"IR\" | \"UNIFORM\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -445543,7 +445543,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"VERSION\" | \"SOURCE\" | \"PROFILE\" | \"DISPOSED\" | \"GPU\" | \"CAMERA\" | \"CONTEXT\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"VERSION\" | \"SOURCE\" | \"PROFILE\" | \"DISPOSED\" | \"GPU\" | \"CAMERA\" | \"CONTEXT\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -446442,7 +446442,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"MATERIAL\" | \"REPRESENTATION\" | \"LIGHTS\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"MATERIAL\" | \"REPRESENTATION\" | \"LIGHTS\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -447290,7 +447290,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"FRAME\" | \"PROFILE\" | \"UNSUPPORTED\" | \"DEVICE_LOST\" | \"REPRESENTATION\" | \"PROGRAM\" | \"INIT\" | \"RENDER\" | \"STATE\" | \"BUSY\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"FRAME\" | \"PROFILE\" | \"UNSUPPORTED\" | \"DEVICE_LOST\" | \"REPRESENTATION\" | \"PROGRAM\" | \"INIT\" | \"RENDER\" | \"STATE\" | \"BUSY\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -447553,7 +447553,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"VERSION\" | \"IDENTITY\" | \"NUMERICAL\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"VERSION\" | \"IDENTITY\" | \"NUMERICAL\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -447929,7 +447929,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"MATERIAL\" | \"REPRESENTATION\" | \"LIGHTS\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"MATERIAL\" | \"REPRESENTATION\" | \"LIGHTS\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -448784,7 +448784,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"FRAME\" | \"PROFILE\" | \"UNSUPPORTED\" | \"DEVICE_LOST\" | \"REPRESENTATION\" | \"PROGRAM\" | \"INIT\" | \"RENDER\" | \"STATE\" | \"BUSY\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"FRAME\" | \"PROFILE\" | \"UNSUPPORTED\" | \"DEVICE_LOST\" | \"REPRESENTATION\" | \"PROGRAM\" | \"INIT\" | \"RENDER\" | \"STATE\" | \"BUSY\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -449047,7 +449047,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"VERSION\" | \"IDENTITY\" | \"NUMERICAL\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"VERSION\" | \"IDENTITY\" | \"NUMERICAL\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -449267,7 +449267,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"GEOMETRY\" | \"MATERIAL\" | \"UNIFORM\"",
+            "type": "\"GEOMETRY\" | \"INPUT\" | \"MATERIAL\" | \"UNIFORM\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -449844,7 +449844,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"REFERENCE\" | \"OPTIONS\" | \"BINDING\" | \"FRAME\" | \"REPRESENTATION\" | \"PROGRAM\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"REFERENCE\" | \"OPTIONS\" | \"BINDING\" | \"FRAME\" | \"REPRESENTATION\" | \"PROGRAM\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -450397,7 +450397,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"SOURCE\" | \"SELECTOR\" | \"NORMALIZATION\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"SOURCE\" | \"SELECTOR\" | \"NORMALIZATION\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -457078,7 +457078,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"VERSION\" | \"SOURCE\" | \"DISPOSED\" | \"GPU\" | \"CONTEXT\" | \"SOURCE_BINDING\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"VERSION\" | \"SOURCE\" | \"DISPOSED\" | \"GPU\" | \"CONTEXT\" | \"SOURCE_BINDING\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -459661,7 +459661,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"SYNTAX\" | \"TYPE\" | \"RANGE\" | \"SCENE\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"SYNTAX\" | \"TYPE\" | \"RANGE\" | \"SCENE\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -461060,7 +461060,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"SELECTION\" | \"VERSION\" | \"SOURCE\" | \"NUMERICAL\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"SELECTION\" | \"VERSION\" | \"SOURCE\" | \"NUMERICAL\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -465343,7 +465343,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"GEOMETRY\" | \"BUDGET\" | \"VERSION\" | \"REPRESENTATION\"",
+            "type": "\"BUDGET\" | \"GEOMETRY\" | \"INPUT\" | \"VERSION\" | \"REPRESENTATION\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -465782,7 +465782,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"SOURCE\" | \"PROFILE\" | \"RECONSTRUCTION\"",
+            "type": "\"BUDGET\" | \"INPUT\" | \"NATIVE\" | \"SOURCE\" | \"PROFILE\" | \"RECONSTRUCTION\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",

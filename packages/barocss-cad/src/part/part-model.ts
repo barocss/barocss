@@ -85,6 +85,7 @@ import { frameOperation, planEndpointBeads, endpointContext, isEndpointBead } fr
 import type { GussetPlaced, MemberPlaced, EndpointBead } from './part-frame.js';
 import { checkExpected, expectOf, type CadPartNameSignature } from './part-expect.js';
 import { KernelError } from '../core/barocss-error.js';
+import { boundaryBindingRefusal } from './part-boundary-refusal-internal.js';
 import { refusalCodeOf, type CadRefusalCode } from '../core/error-codes.js';
 
 export type CadPartDim = number | { readonly parameter: string };
@@ -1098,6 +1099,8 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
       }
     } catch (cause) {
       if (cause instanceof CadPartError) throw cause;
+      const binding = boundaryBindingRefusal(cause);
+      if (binding) throw new CadPartError(binding.code, at, binding.message);
       // Kernel refusals keep their own reason; anything else is reported, never swallowed.
       const known = cause instanceof BrepError || isPrismaticSolidError(cause) || isCurvedArrangementError(cause) || isExtrudedProfileError(cause) || isSolidMassError(cause);
       throw new CadPartError('GEOMETRY', at, known ? (cause as Error).message : `unexpected kernel failure: ${cause instanceof Error ? cause.message : String(cause)}`);

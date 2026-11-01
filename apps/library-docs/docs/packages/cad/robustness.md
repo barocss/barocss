@@ -26,6 +26,26 @@ surfaces; mesh inputs retain faceted faces. The Boolean algorithm depends on tha
   The neutral plane must be at or below the entire selected face for a positive pull, or at or above it for a negative pull, within the existing 1e-6 mm plane tolerance.
   The face must extend a positive distance from that plane along the pull direction; violations of these placement or height conditions give `SELECTION`.
 
+### Mesh conversion values
+
+`brepFromTriangles` creates its own planar faces. It fixes properties on the returned B-rep, face and
+surface records, plus the face list and knot arrays. Record properties such as `edges`, `vertices`,
+`controlPoints` and `weights` cannot be rebound. The remaining nested data, including coordinate and
+weight arrays, is not frozen by this step. The input positions and indices are not frozen.
+
+Create a deep copy before changing its face, degree or knot structure, for example with
+`structuredClone(brep)`. A shallow copy can still share the fixed records and knot arrays. Copies and
+transforms are checked independently. Existing numeric caches treat
+a B-rep as a value; use a new value after editing coordinates too.
+
+The fixed structure lets the kernel exclude this mesh conversion from one specific boundary check without
+reading every face again. It does not certify its geometry, mass or general surface bindings. Caller-created
+B-reps and faceted patches retain their existing ownership.
+
+A separate exact lower-bound check rejects a supported extruded piecewise-linear graph when a straight
+incident edge is proved farther from the surface than its declared tolerance. Other surface families keep
+their existing checks.
+
 ### A draft calculated from its dimensions
 
 Calculated geometry; the diagram is not an API render.

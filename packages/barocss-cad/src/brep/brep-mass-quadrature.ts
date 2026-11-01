@@ -1,3 +1,4 @@
+import { assertBoundaryBindings, faceBoundaryContradiction } from './brep-boundary-binding-internal.js';
 // Volume integrals of a B-rep over its exact surfaces. A curved face that is a whole patch (its one loop
 // runs along the patch's domain boundary) is integrated by tensor Gauss–Legendre over each knot span with
 // the surface's analytic derivatives: no tessellation, exact to rounding for polynomial patches. Each
@@ -144,6 +145,7 @@ type Maps = { loops: Map<string, Brep['loops'][number]>; coedges: Map<string, Br
  * left unintegrated (each such face held to its vector area to 1e-9).
  */
 export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number): { integrals: number[]; meshed: boolean; squared?: number[]; cubed?: number[]; dropped?: number } | null {
+  assertBoundaryBindings(brep);
   const maps: Maps = { loops: new Map(brep.loops.map(l => [l.id, l])), coedges: new Map(brep.coedges.map(c => [c.id, c])), edges: new Map(brep.edges.map(e => [e.id, e])) };
   const I = Array(11).fill(0) as number[], rest = new Set<string>();
   setCentre(brep);
@@ -647,7 +649,7 @@ function fromCentre(I: number[]): number[] {
 /** A test of whether a face of `brep` is its surface's whole patch, bounded by the four sides of its domain (D151: exact extremes). */
 export function wholePatchTest(brep: Brep): (face: BrepFace) => boolean {
   const maps: Maps = { loops: new Map(brep.loops.map(l => [l.id, l])), coedges: new Map(brep.coedges.map(c => [c.id, c])), edges: new Map(brep.edges.map(e => [e.id, e])) };
-  return face => face.surface.kind === 'surface' && wholePatch(face, maps);
+  return face => face.surface.kind === 'surface' && !faceBoundaryContradiction(brep, face) && wholePatch(face, maps);
 }
 function wholePatch(face: BrepFace, maps: Maps): boolean {
   if (face.loops.length !== 1) return false;

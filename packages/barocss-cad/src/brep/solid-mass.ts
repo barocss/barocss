@@ -1,3 +1,4 @@
+import { assertBoundaryBindings } from './brep-boundary-binding-internal.js';
 // Mass properties of B-rep solids: closed form for prismatic solids (area moments of each slab's
 // section times its height); for any other B-rep, quadrature over the exact surfaces (brep-mass-
 // quadrature.ts), else exact integration of the display tessellation (exact for planar faces; for curved
@@ -97,6 +98,7 @@ function quadratureOf(brep: Brep, q: number): number[] | null {
  * else the area of its fine tessellation.
  */
 export function brepSurfaceArea(brep: Brep, options: { readonly segmentsPerQuarter?: number; readonly quadratureSegments?: number } = {}): number {
+  assertBoundaryBindings(brep);
   const poly = polyhedralIntegrals(brep);
   if (poly) return poly[10];
   const q = options.quadratureSegments ?? 8, Q = q > 0 ? quadrature(brep, q) : null;
@@ -119,6 +121,7 @@ export function brepSurfaceArea(brep: Brep, options: { readonly segmentsPerQuart
  * origin over the watertight tessellation (divergence theorem).
  */
 export function brepMassProperties(brep: Brep, density: number, options: { readonly segmentsPerQuarter?: number; readonly quadratureSegments?: number } = {}): MassProperties {
+  assertBoundaryBindings(brep);
   const poly = polyhedralIntegrals(brep);
   if (poly && poly[0] > 0) return solidMassFromIntegrals(poly, density, 'planar-exact');
   const curved = brep.faces.some(f => f.surface.kind === 'surface' && (f.surface.degreeU > 1 || f.surface.degreeV > 1));

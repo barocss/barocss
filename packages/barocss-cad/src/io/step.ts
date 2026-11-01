@@ -1,3 +1,4 @@
+import { assertBoundaryBindings } from '../brep/brep-boundary-binding-internal.js';
 // STEP (ISO 10303-21, AP214 automotive_design) exchange of a B-rep solid. Export writes each body as a
 // MANIFOLD_SOLID_BREP (BREP_WITH_VOIDS when it has cavities) of ADVANCED_FACEs: planes as PLANE, every
 // other surface exactly as its (rational) B-spline, straight edges as LINE and the rest as (rational)
@@ -68,6 +69,7 @@ const facetTriangles = (b: Brep) => b.faces.reduce((n, f) => n + (f.surface.kind
  */
 export function exportStep(input: Brep | readonly Brep[] | { readonly id: string; readonly brep: Brep }, options: StepExportOptions = {}): string {
   if (!Array.isArray(input) && 'brep' in input && 'id' in input) return exportStep(input.brep, { ...options, name: options.name ?? input.id });
+  if (Array.isArray(input)) { for (const b of input) assertBoundaryBindings(b); } else assertBoundaryBindings(input as Brep);
   // (F0: a facet body is written as its triangles, planar faces merged where flat — the planar mesh B-rep any
   // reader takes. AP242 tessellated faces come with R3.5.)
   // (A body mixing mesh and exact faces, F2, goes out as a mesh body, tessellated: its exact faces sampled at 64

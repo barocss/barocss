@@ -1,0 +1,318 @@
+{
+  "item": "D417",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "Existing original-limit invalid boundary-binding acceptance fixed; #2266 pole/degree expansion deferred/open",
+  "models": {
+    "general": "GPT-6.1 Sol Medium",
+    "geometry_math_and_independent_review": "GPT-6.1 Sol High"
+  },
+  "reproduction": {
+    "degree": [
+      1,
+      2
+    ],
+    "poles": [
+      4,
+      3
+    ],
+    "sameParameterZDeltaMm": 1,
+    "closestDistanceMm": "1/sqrt(65537) about0.00390622, not1mm",
+    "oldStrictCheck": "wrong valid/zero reported gaps",
+    "oldFormalFlux": 1.00390625,
+    "volumeCaution": "Invalid mismatched faces do not enclose a valid solid; formal flux is not a valid-solid volume error",
+    "oldMeshZMax": 1,
+    "nativePeak": 2
+  },
+  "implementation": {
+    "guard": "Bounded exact proof of invalidity for uniform-weight Cartesian extruded piecewise-linear graph; not a general valid-binding certificate",
+    "limits": "degree/pole/curve/fitter/split limits unchanged",
+    "typedAdapter": "actualKernelError +exactsourcebrep-boundary-binding+GEOMETRY/CAPABILITY only; legacy/unknown paths unchanged",
+    "ownedProducer": "Only freshnative2x2brepFromTriangles recordheaders/face list/knot arrays locked and privately certified outside proof family; inputs/CPnesteddata/FacetPatch/rawclone remain unfrozen/live. No geometry/mass certificate."
+  },
+  "checks": {
+    "geometryCheckpointFullKernel": {
+      "total": 1940,
+      "pass": 1938,
+      "fail": 0,
+      "skip": 2,
+      "note": "Before later error-only adapter; targeted adapter verification follows, not a repeated full suite"
+    },
+    "geometryFocused68": "subset/full; editedownership5passed inside mutationbaseline68",
+    "adapterFocusedKernel": {
+      "total": 13,
+      "pass": 13,
+      "new": 7,
+      "fullOverlap": 6
+    },
+    "modelR7": {
+      "pass": 4
+    },
+    "mutations": {
+      "geometryOwned": 36,
+      "adapter": 4,
+      "assertionKilled": 40,
+      "mixedOrCrashOrSurvivor": 0
+    },
+    "statics": "CAD/Modelafterfinaltestedit/Studio types +scopedlint +code-shape +syntax/diff PASS",
+    "api": "SCOPED_PASS;6469names unchanged,150representation-only union-order strings independently reviewed; no semantic/public signature change",
+    "docs": "PASS68pages/55shots/940labels;2generated existingrefusalrows synchronized",
+    "independent": {
+      "exactFractionPrivateAndPublic": 59,
+      "contradiction": 50,
+      "noProof": 9,
+      "consumerRefusals": 11,
+      "validControls": 6,
+      "budgetRefusals": 7,
+      "malformedControls": 2,
+      "ownershipForgeryControls": 34,
+      "sourceMathOwnershipAudit": "PASS",
+      "mutationOutcomeReview": "PASS",
+      "adapterSourceAndMutationReview": "PASS",
+      "finalActualVisualReview": "PASS; same independent High audit"
+    },
+    "apiReview": {
+      "totalExposures": 6469,
+      "changedRepresentationalStrings": 150,
+      "affectedExposures": 145,
+      "addedNames": 0,
+      "removedNames": 0,
+      "semanticTypeChanges": 0,
+      "method": "Complete single-type AST with all leaf text; only UnionTypeNode member order normalized for review, not in the generator. Independent 14 canaries PASS.",
+      "generatedCatalog": "Only existing CAPABILITY/GEOMETRY rows regenerated from sources."
+    }
+  },
+  "performance": {
+    "initialCachedQueryMs": 5.976834,
+    "deadlineMs": 1,
+    "controlledCurrentMs": [
+      5.258333,
+      4.958667
+    ],
+    "controlledHeadConsoleRoundedMs": 0.09,
+    "initialCold": "PASS; only cached query failed",
+    "hotLoopAndKnotPrototypes": "Failures retained, no threshold widened",
+    "ownedSourceB9Ms": 0.094417,
+    "constructorABSingleObservation": {
+      "beforeMs": 993.9345,
+      "afterMs": 1049.159334,
+      "deltaMs": 55.224834,
+      "percentAbout": 5.56,
+      "serializedGeometryBytesIdentical": 72860297,
+      "scope": "single fixed observation, not general performance acceptance"
+    }
+  },
+  "actualRun01": {
+    "status": "AUTOMATED4STATE_PASS_COPY_NOT_ACCEPTED",
+    "frozen": 747,
+    "states": [
+      "01-valid-flat-box",
+      "02-valid-matched-roof",
+      "03-invalid-refused-matched-roof-retained",
+      "04-owned-mesh-planar-step-preview"
+    ],
+    "flatVolume": 0.9999999999999999,
+    "roofVolume": 1.2499999999999982,
+    "ownedSTL": "12trianglemmOpen\u2192Auto\u22645000\u2192planarFacets\u2192ownedproducer; realpassiveWorkerreply6planes/V1; Cancel same meshdoc",
+    "copyFinding": "unexpected kernel failure prefix led to typed adapter fix",
+    "errors": 0,
+    "downloads": 0,
+    "rootVisual": "Geometry, retained document, unclipped reason and owned mesh preview PASS; unexpected-prefix classification NOT_ACCEPTED until adapter repair.",
+    "independentVisual": "Same bounded verdict; all four images viewed."
+  },
+  "actualRun02": {
+    "status": "PASS",
+    "frozen": 748,
+    "afterCleanup": 748,
+    "states": [
+      "02-valid-matched-roof",
+      "03-invalid-refused-matched-roof-retained"
+    ],
+    "noUnexpectedPrefix": true,
+    "exactRoofDocRetained": true,
+    "roofVolume": 1.2499999999999982,
+    "peak": [
+      0.25,
+      0.5,
+      2
+    ],
+    "errors": 0,
+    "consoleErrors": 0,
+    "changes": 0,
+    "downloads": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "rootVisual": "PASS; both images viewed, expected reason has no unexpected prefix and retained roof visible.",
+    "independentVisual": "PASS; same full audit closed with no remaining blocker."
+  },
+  "failedEvidencePreserved": [
+    "Initial focused 60 PASS / 1 factory failure: builder-prefixed face id; corrected persistent-name lookup and reran only that control.",
+    "Optimized focused 62 PASS / 1 test-oracle failure: entire-box determinant-one shear has volume 1, not the proposed 1.5; corrected only test literal/name, retained log.",
+    "firstfull1933:1930PASS/1cachedB9FAIL/2SKIP",
+    "controlledB9current/sourceFAIL, HEADPASS",
+    "hot-loop/knotprototypesFAIL",
+    "ownroofproducerinternalboundsimportTypeError beforebrowser, corrected",
+    "initialAPIIV001 unionorderingFAIL beforewholemanifestreview",
+    "initialdocs generatedrefusalcatalogFAIL before2rowregeneration",
+    "actualrun01 wrong unexpected-prefix copy despitefunctionalPASS"
+  ],
+  "notRun": [
+    "fullR5/RB and highdegree/poleexpansion",
+    "OCP/independentthirdpartySTEP geometry",
+    "outboundSave/Export/download/paidcalls",
+    "fullkernelrepeat after error-only adapter (focusedchecks instead)"
+  ],
+  "limits": [
+    "Proof-of-invalidity only within exact admitted graph family; no general B-rep validity/accuracy guarantee.",
+    "Independent exact geometric/resource oracles belong to High evidence; product inspector is not independent proof.",
+    "Actual captures selected flat/roof/invalid/STL consumers, not all UI or assembly coverage."
+  ],
+  "resources": {
+    "taskProcesses": 0,
+    "contextBrowserServer": "closed",
+    "gate": "released",
+    "userApps": "preserved",
+    "ocp": "Absent after tests; not recreated",
+    "downloads": 0,
+    "paidCalls": 0,
+    "largeEvidenceCommitted": false
+  },
+  "visualReview": "FINAL_PASS at scoped run02 + separately retained run01 flat/STL scope; no final-source whole-four-state rerun claim",
+  "decision": "D417",
+  "date": "2026-11-01",
+  "tier": "full",
+  "baseCommit": "c5fe3dcda4a3285b096728289005091790b1ea9f",
+  "branch": "local/cad-dev",
+  "node": "22.19.0",
+  "proof": {
+    "family": "Uniform-weight Cartesian tensor extrusion of a piecewise-linear graph; one parameter degree 1, graph coordinate strictly monotone, height invariant along extrusion, extrusion coordinate separable and strictly monotone.",
+    "candidates": "Incident two-pole straight edge endpoints and graph breaks inside that edge own physical coordinate interval.",
+    "predicate": "delta^2 > edgeTolerance^2 * (1 + maxGraphSlope^2), exact reduced-rational arithmetic.",
+    "meaning": "Proved distance to the entire surface exceeds declared edge tolerance; otherwise no invalidity claim.",
+    "tolerance": "Declared edge tolerance; intentionally stricter in this family than legacy sampled max(10*edgeTolerance,1e-6*max(1,size)). Equality and within-declared-tolerance controls preserved.",
+    "resourceFailure": "CAPABILITY means proof unavailable; never converted to a successful numerical fallback.",
+    "noCertification": "No general valid-binding, whole-patch, mass or NURBS degree/pole certificate."
+  },
+  "ownedOutputContract": {
+    "producer": "brepFromTriangles only; fresh native degree1x1, 2x2 output after full validation",
+    "fixed": "B-rep/face/surface record properties, face list, knot arrays; whole candidate profile checked before any freezing, private registration last",
+    "notFrozen": "Caller inputs, other nested coordinate/weight arrays, raw caller B-reps and FacetPatch data",
+    "permanentExclusion": "Fixed degree and 4+4 knots cannot form a valid graph in this refusal family, which needs at least 9 total knots. This excludes only this one refusal family.",
+    "copies": "JSON/spread/deep copy/transform/merge do not inherit registration. Shallow copies can share fixed nested records; deep copy before structural edits.",
+    "runtimeChange": "Intentional new header/knot restriction despite unchanged public signatures. Documented in package README and robustness page. Existing numeric caches treat each B-rep as a value; use a new value after coordinate edits.",
+    "rawCost": "Mutable raw values retain O(face count) current-data checks; no general constant-time cache claim."
+  },
+  "commands": [
+    "D417 exact command capsule. Worktree /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b, base c5fe3dcda. GPT-6.1 Sol Medium general implementation/verification; High owns mathematics/geometry/owned-output contract.",
+    "Every heavy command used Node22.19 PATH, one serial gate.sh acquire heavy 30 LABEL + trap gate.sh release EXIT, load<40. No downloads/install/OCP/paid calls.",
+    "",
+    "Initial correctness checkpoint (FAIL preserved):",
+    "pnpm --filter @barocss/cad build:library",
+    "node --test --test-concurrency=4 packages/barocss-cad/test/*.test.mjs",
+    "Logs /tmp/barocss-d417-final/{cad-build,kernel-full}.log:1933 tests,1930PASS/1cachedB9FAIL/2opt-inSKIP.",
+    "",
+    "Controlled failed-B9 diagnosis ONLY:",
+    "B9_PERF=1 node --test --test-name-pattern='^B9 performance: a 200k-triangle facet body and a 40k-triangle planar one, mass and area cold$' packages/barocss-cad/test/mass-polyhedral.test.mjs",
+    "node /tmp/barocss-d417-b9-diagnostic/compare.mjs",
+    "Logs/head-vs-current source interception in /tmp/barocss-d417-b9-diagnostic. No source/dist writes by diagnostic. High later optimized/profiled under its separately recorded commands.",
+    "",
+    "Owned-output final geometry checkpoint (fresh build justified by changed mesh producer):",
+    "pnpm --filter @barocss/cad build:library",
+    "node --test --test-concurrency=4 packages/barocss-cad/test/*.test.mjs",
+    "Logs /tmp/barocss-d417-owned-final/{cad-build,kernel-full}.log:1940 tests,1938PASS/0FAIL/2opt-inSKIP. Later ownership-test assertion wrappers were checked by mutation baseline68, not another full suite.",
+    "",
+    "Fixture/preflight generation:",
+    "node /tmp/barocss-d417-owned-final/roof-producer.mjs",
+    "node /tmp/barocss-d417-owned-final/compile-inspector.mjs",
+    "Roof uses High matchedBox(), literalV1.25/peak2. STL uses exact8vertices/12triangles from High ownership test. No new geometry oracle. Initial own producer brepBounds root-export mistake retained in roof-producer-initial-fail.log, corrected to existing internal bounds module before any browser.",
+    "",
+    "Post-final-edit static checks (all PASS; repeated only after later adapter source/test edits):",
+    "pnpm --filter @barocss/cad type-check",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad/src/brep/brep-boundary-binding-internal.ts packages/barocss-cad/src/brep/brep-core.ts packages/barocss-cad/src/brep/brep-mass-quadrature.ts packages/barocss-cad/src/brep/solid-mass.ts packages/barocss-cad/src/brep/brep-tessellate.ts packages/barocss-cad/src/io/step.ts packages/barocss-cad/src/io/step-import.ts packages/barocss-cad/src/mesh/mesh-brep.ts packages/barocss-cad/test/brep-boundary-binding.test.mjs packages/barocss-cad/test/brep-boundary-binding-fixtures.mjs packages/barocss-cad/test/brep-boundary-binding-ownership.test.mjs apps/cad-studio/test/patch-boundary-binding-browser.mjs",
+    "node packages/barocss-cad/scripts/code-shape.mjs --check",
+    "node apps/library-docs/scripts/api-inventory.mjs --check",
+    "node apps/library-docs/scripts/check-docs.mjs",
+    "node --check apps/cad-studio/test/patch-boundary-binding-browser.mjs",
+    "git diff --check",
+    "",
+    "API/canonical source catalog synchronization, all initial failures retained:",
+    "node apps/library-docs/scripts/api-inventory.mjs --write-expected /tmp/barocss-d417-proposed-api.json",
+    "Root independently reviewed/applied150union-order-only expected strings; no baseline write by this worker. Names6469 unchanged; root semantic AST receipts /tmp/barocss-d417-api-{semantic-review,independent-review}.json.",
+    "node apps/library-docs/scripts/refusals.mjs",
+    "Only authorized generated _refusals.md changed: existingGEOMETRY/CAPABILITY rows gainbrep folder/examples. Initial API/docs FAIL logs preserved. Then only read-only check commands rerun.",
+    "",
+    "Geometry/owned-contract mutation evidence:",
+    "node /tmp/barocss-d417-mutations/run.mjs",
+    "/tmp/barocss-d417-mutations/run01:baseline68PASS (63binding+5ownership; full-suite subsets), independent34probe standalonePASS, B9PASS;36/36assertion-killed,0mixed/crash/survivor/unmatched. RawTAP/nestedJSON/hashes retained. Root independent review /tmp/barocss-d417-owned-independent/mutation-outcome-review.json.",
+    "",
+    "Actual run01 (4 states, then typed-copy issue found):",
+    "PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' PATCH_BOUNDARY_BINDING_SOURCE_FROZEN=1 PATCH_BINDING_REFUSAL='edge is separated from its face surface' node apps/cad-studio/test/patch-boundary-binding-browser.mjs /tmp/barocss-d417-browser-run01 /tmp/barocss-d417-audit-prep /tmp/barocss-d417-owned-final/matched.step /tmp/barocss-d417-owned-final/owned-unit-box.stl",
+    "Atomic refusal/valid geometry/owned STL preparation PASS, but unexpected-kernel-failure prefix was NOT accepted as final copy.",
+    "",
+    "Typed adapter final focused checks (no full geometry or36-mutation repeat):",
+    "pnpm --filter @barocss/cad build:library",
+    "node --test packages/barocss-cad/test/part-boundary-refusal.test.mjs packages/barocss-cad/test/barocss-error.test.mjs packages/barocss-cad/test/error-codes.test.mjs",
+    "pnpm --filter @barocss/cad-model test r7-findings",
+    "pnpm --filter @barocss/cad type-check",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm exec eslint packages/barocss-cad/src/part/part-boundary-refusal-internal.ts packages/barocss-cad/src/part/part-model.ts packages/barocss-cad/test/part-boundary-refusal.test.mjs apps/cad-studio/test/patch-boundary-binding-browser.mjs",
+    "node packages/barocss-cad/scripts/code-shape.mjs --check",
+    "node apps/library-docs/scripts/api-inventory.mjs --check",
+    "node apps/library-docs/scripts/check-docs.mjs",
+    "node --check apps/cad-studio/test/patch-boundary-binding-browser.mjs",
+    "git diff --check",
+    "node /tmp/barocss-d417-adapter-mutants/run.mjs",
+    "Logs /tmp/barocss-d417-adapter-final and adapter-mutants/run01.13kernelPASS=7new+6full-suite overlap;4ModelPASS;7mutation baseline/4assertion-killed,0mixed. Real public STEP GEOMETRY and4097-incidence CAPABILITY, exact code/literal preserved; unknown/spoof remains outside adapter. No production guard bypass. Independent review adapter-mutation-review.json.",
+    "",
+    "Actual run02 remaining-only, exact final adapter:",
+    "PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' PATCH_BOUNDARY_BINDING_SOURCE_FROZEN=1 PATCH_BINDING_REMAINING_REFUSAL=1 PATCH_BINDING_REFUSAL='edge is separated from its face surface' node apps/cad-studio/test/patch-boundary-binding-browser.mjs /tmp/barocss-d417-browser-run02 /tmp/barocss-d417-audit-prep /tmp/barocss-d417-owned-final/matched.step /tmp/barocss-d417-owned-final/owned-unit-box.stl",
+    "Only roof prerequisite+bad STEP refusal repeated. Flat/STL run01 evidence retained. All evidence/tmp; no Save/outbound Export/download/paidcall. Actual scoped resources0 after helper cleanup; user apps preserved."
+  ],
+  "additionalCommands": [
+    "node /tmp/barocss-d417-owned-author-run01/build-focused.mjs",
+    "node --test /tmp/barocss-d417-owned-author-run01/brep-boundary-binding.test.js /tmp/barocss-d417-owned-author-run01/brep-boundary-binding-ownership.test.js",
+    "node /tmp/barocss-d417-owned-author-run01/constructors.mjs",
+    "node /tmp/barocss-d417-api-review.mjs",
+    "node /tmp/barocss-d417-api-independent-review.mjs"
+  ],
+  "sourceHashes": {
+    "packages/barocss-cad/src/brep/brep-boundary-binding-internal.ts": "fc88e1af859109866af97ddcf65146859d46d2471329b2be593c0bd6845457b8",
+    "packages/barocss-cad/src/mesh/mesh-brep.ts": "f5ceebffb9de2be43427f7992efee16d83a97df37a6d7b647d44f9ce2897be8b",
+    "packages/barocss-cad/src/brep/brep-core.ts": "e60c9a6ff9a4d3b5b1d68f8ae3bb1113ec2d55a14760fa2b6354037972d876d7",
+    "packages/barocss-cad/src/brep/brep-mass-quadrature.ts": "c96cc97de1bdde2c420f904d143a824082e39e84be4aecdcbae70a6baccf0169",
+    "packages/barocss-cad/src/brep/brep-tessellate.ts": "4c89491c387bd2ba9539bf659e8f5ae6821c220e6237d8f68c4bd0f2e09a8ddc",
+    "packages/barocss-cad/src/brep/solid-mass.ts": "122ca279aa0e0f3604b84c4fccea8e1e340a67d61ee452d6b004b5b93df16fad",
+    "packages/barocss-cad/src/io/step.ts": "6679c111ad1fb14d8b38c97a7a9f7d5a3ff21389a05ec5889d2582ee5093a638",
+    "packages/barocss-cad/src/io/step-import.ts": "99ccbe3fe5032b33aaf5789dd2c31b221956dd7bd3f1aede22b686cb7fd3e6b5",
+    "packages/barocss-cad/src/part/part-boundary-refusal-internal.ts": "4d7ecb6f420a04d8b2e32419fe28618b7733f0c16cc685e18847581a52f21623",
+    "packages/barocss-cad/src/part/part-model.ts": "5f8389e3a6c4f699b6b234e220f64b06efebf8c47afe77497be6947981bb4827"
+  },
+  "issues": {
+    "2263": "OPEN: assemblies/presentation/PMI/other analytic profiles remain incomplete; evidence comment after push",
+    "2266": "OPEN: no degree/pole widening; original-limit correctness defect took priority",
+    "2262": "OPEN: no healing implementation or tolerance growth"
+  },
+  "evidenceRoots": [
+    "/tmp/barocss-d417-audit-prep",
+    "/tmp/barocss-d417-author",
+    "/tmp/barocss-d417-final",
+    "/tmp/barocss-d417-b9-diagnostic",
+    "/tmp/barocss-d417-b9-opt-author-run01",
+    "/tmp/barocss-d417-knot-profile-run01",
+    "/tmp/barocss-d417-owned-author-run01",
+    "/tmp/barocss-d417-b9-owned-author-run01",
+    "/tmp/barocss-d417-owned-independent",
+    "/tmp/barocss-d417-owned-final",
+    "/tmp/barocss-d417-mutations/run01",
+    "/tmp/barocss-d417-adapter-final",
+    "/tmp/barocss-d417-adapter-mutants/run01",
+    "/tmp/barocss-d417-browser-run01",
+    "/tmp/barocss-d417-browser-run02",
+    "/tmp/barocss-d417-capsule"
+  ]
+}

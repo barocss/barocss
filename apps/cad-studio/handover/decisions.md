@@ -18296,3 +18296,14 @@ A private late Model sheet pass preserves safe originals and screens three place
 **FAIL retained.** Initial4nondual arrow-collision profiles;8controls are only arrow-clear/byte-preserved, not full readability. Run01 automated arrowPASS/rootvisualFAIL(extensioncrossings). Feature baseline29PASS/3FAIL before intendedgoldenupdate; High fixture/type/unsafe-candidate failures preserved. Fullrun03 boundsPASS/associationNOT_ACCEPTED(detached d2 near d1/RIGHT); corrected run04 visibly connects ownership. Raw receipts unchanged. **NOT_RUN.** General layout/standards/ink/optimal routing/performance, actualrun04UndoRedo(retainedreducedrun02 only), outbound download/Save/editable regeneration, broadbaseline/B-repcore/mutation(feature/noAPI), unchangedsamples/generators,CI/release. No downloads;OCPabsent;raw/tmp only.
 
 **Issues/next.** #540 remains an incomplete backlog epic; scoped evidence comment after push, no closure. D397 short linear-label follow-up closes only at this bounded profile; no blanket circle-family closure. Next D417 assesses registered #2266 NURBS degree/pole limits before selecting an implementation; owner says raise limits first, splitting only explicit loss. Other holds unchanged.
+
+
+## D417 — Reject proven boundary mismatches; full (2026-11-01)
+
+[Decision and scope](notes/patch-boundary-binding-2026-11-01/README.md). [Authoritative counts, commands and qualification](notes/patch-boundary-binding-2026-11-01/qualification.json).
+
+The #2266 assessment reproduces a wrong success inside the original limits. A bounded exact graph/straight-edge proof now rejects invalid binding in validation and before mass, mesh and STEP fallbacks. A narrow typed adapter preserves the expected refusal instead of labelling it an unexpected failure. Unknown errors retain their existing handling.
+
+`brepFromTriangles` now fixes newly owned record properties, face list and knots; raw caller/FacetPatch data and nested coordinates remain unfrozen. Deep copy before structural edits. The private record excludes only this proof family, not geometry or mass validity. This intentional runtime contract restores the existing cached-performance gate with separately measured construction cost.
+
+Required checks, independent audits, mutation and scoped actual Studio are PASS at their recorded boundaries. Earlier correctness, performance, harness, inventory/catalog and actual-copy failures remain in the linked record. No whole-family certification, limit widening or final-source whole-four-state claim. #2263/#2266 remain OPEN. No release/develop action. Next decision D418 is unstarted; roadmap-document organization is the next proposed maintenance step after the owner's size concern.

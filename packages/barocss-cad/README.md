@@ -12,6 +12,22 @@ compiled checkpoint and publication.
 build configuration. Published files include compiled modules/declarations,
 original source, this README and the MIT LICENSE. Compiled runtime import needs no repository build scripts or TypeScript loader.
 
+## Mesh conversion ownership
+
+`brepFromTriangles` returns newly owned planar B-rep data. Properties on its B-rep, face and
+surface records are fixed, along with the face list and knot arrays. Bindings such as `edges`,
+`vertices`, `controlPoints` and `weights` cannot be replaced. Other nested data, including coordinate
+and weight arrays, is not frozen by this step; neither are caller positions/indices. Create a deep copy, such as
+`structuredClone(brep)`, before editing its face, degree or knot structure. A shallow copy can still
+share the fixed records and knot arrays. Use a new value for
+coordinate edits too: numeric caches already treat each B-rep as a value.
+
+A private record of the fixed structure excludes only one exact boundary-refusal family from
+repeated checks; it is not a geometry or mass certificate. Copies/transforms do not inherit it.
+Caller-created B-reps and FacetPatch data retain their existing ownership. No new public field or
+signature is introduced. The additional refusal proves separation only for a supported uniform-weight
+extruded piecewise-linear graph and an incident straight edge; it is not general binding certification.
+
 ## Whole-surface snapshot thicken facade
 
 The document facade `@barocss/cad/api` provides `part().thicken(surface, { t, side })`.
