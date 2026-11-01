@@ -245818,14 +245818,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(t: TableContent, at: XY, corner?: TableCorner) => TableLayout",
+            "type": "(t: TableContent, at: XY, corner?: TableCorner, textHeight?: number) => TableLayout",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(t: TableContent, at: XY, corner?: TableCorner) => TableLayout"
+              "(t: TableContent, at: XY, corner?: TableCorner, textHeight?: number) => TableLayout"
             ]
           }
         }
@@ -245849,14 +245849,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(t: TableContent) => { widths: number[]; width: number; height: number; }",
+            "type": "(t: TableContent, textHeight?: number) => { widths: number[]; width: number; height: number; }",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(t: TableContent) => { widths: number[]; width: number; height: number; }"
+              "(t: TableContent, textHeight?: number) => { widths: number[]; width: number; height: number; }"
             ]
           }
         }
@@ -254794,14 +254794,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(tip: XY, knee: XY, side: Side, j: WeldJoint, label: string, f?: LengthFormat) => Mark[]",
+            "type": "(tip: XY, knee: XY, side: Side, j: WeldJoint, label: string, f?: LengthFormat, textHeight?: number) => Mark[]",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(tip: XY, knee: XY, side: Side, j: WeldJoint, label: string, f?: LengthFormat) => Mark[]"
+              "(tip: XY, knee: XY, side: Side, j: WeldJoint, label: string, f?: LengthFormat, textHeight?: number) => Mark[]"
             ]
           }
         }
@@ -254825,14 +254825,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(layout: SheetLayout, views: DrawingViews, joints: readonly WeldJoint[], f?: LengthFormat | undefined, set?: { shown: readonly ViewId[]; mine(view: ViewId): boolean; reportUnshown: boolean; } | undefined) => WeldSymbols",
+            "type": "(layout: SheetLayout, views: DrawingViews, joints: readonly WeldJoint[], f?: LengthFormat | undefined, set?: { shown: readonly ViewId[]; mine(view: ViewId): boolean; reportUnshown: boolean; } | undefined, textHeight?: number) => WeldSymbols",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(layout: SheetLayout, views: DrawingViews, joints: readonly WeldJoint[], f?: LengthFormat | undefined, set?: { shown: readonly ViewId[]; mine(view: ViewId): boolean; reportUnshown: boolean; } | undefined) => WeldSymbols"
+              "(layout: SheetLayout, views: DrawingViews, joints: readonly WeldJoint[], f?: LengthFormat | undefined, set?: { shown: readonly ViewId[]; mine(view: ViewId): boolean; reportUnshown: boolean; } | undefined, textHeight?: number) => WeldSymbols"
             ]
           }
         }

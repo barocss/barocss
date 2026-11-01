@@ -1,0 +1,11 @@
+# Ordinary ASME drawing text and layout
+
+D409 closes the registered D396 fixed2.5mm ordinary-text follow-up. The current ASME sheet uses3mm view/section/detail labels, cross-sheet captions, stacked deviations, table/BOM text and weld text. Stacked deviations use3.6mm baseline separation; table widths/rows/notes and weld placement use the actual lettering height. This is the recorded product requirement, not broad ASME certification. Small title-block and symbol-internal glyph sizes, and3D annotations, retain their prior scope.
+
+Four existing public helpers append optional textHeight in sheet mm: tableSize, tableLayout (after corner), symbolMarks (after format) and weldSymbols (after sheet-set options). Defaults remain2.5; nonfinite/nonpositive values throw RangeError. Callers measuring and drawing tables must pass the same height. No new names/schema/geometry/tolerance arithmetic change. API review found exactly4 changed signatures,0 added/removed names.
+
+PASS:44 unique focused tests, final-test Model types, Studio types, lint/syntax/diff, API inventory and docs. Rich default/ISO SVG files match pre-change bytes. Only4 ASME SVG/DXF golden entries change;14 entries including all6 resolved dimensions and8 default/ISO outputs stay unchanged. Independent design/final source reviews accepted. Initial mutation5/9 left4 coverage gaps; physical padding/split/column/clearance regressions now detect the same9/9 mutants.
+
+Actual Studio run01 PASS on one mitred L-frame: four view labels, width and two deviations, two weld texts and seven table texts measure3mm in DOM SVG. Actual deviation glyph bounds are separate. ISO ordinary2.5, exact Undo/Redo snapshots, model and numeric tolerance text are preserved.813 frozen files unchanged, errors/downloads0; all resources closed. Root reviewed two fit-sheet overview images; enlarged text legibility is not claimed.
+
+FAIL evidence remains: pre-fix1PASS2FAIL, one strict floating-coordinate assertion corrected to1e-10 display-coordinate comparison, expected ASME golden mismatch, and initial mutation survivors. NOT_RUN: actual Save/outbound exports, actual cross-sheet/section/detail/split-block UI, general standard/manufacturing acceptance, full suites/CI/release. [Qualification](qualification.json) records numbers, commands and raw paths. No screenshots/logs/archives are committed. OCP remains removed.

@@ -52,6 +52,8 @@ export interface SheetSection extends DrawingSection { projection: BrepProjectio
 /** A body's hatch in a section of several (the viewport's order, the GPU lane's G19.3): 45°, 135°, 30°, 120°, 60°, 150°; past them, wider. */
 export const HATCH_ANGLES: readonly number[] = [45, 135, 30, 120, 60, 150];
 export const HATCH_SPACING = 2.5;
+// The ASME preset is the unidirectional style; copies made for unit precision keep this discriminator.
+function ordinaryTextHeight(p: StandardPreset): number { return p.dimensionText === 'unidirectional' ? 3 : 2.5; }
 /** A section's rings by body, each body's angle and spacing (no bodies given: one group at 45°). */
 export function hatchGroups(rings: readonly XY[][], bodies?: readonly number[]): { body: number; rings: XY[][]; angle: number; spacing: number }[] {
   const by = new Map<number, XY[][]>();
@@ -160,7 +162,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     const g = cuttingPlane(layout, views, sec, settings.orientation, p);
     // (11 ④: a removed section drawn on another sheet: its cutting line says where.)
     const to = settings.sheetContext?.lineOnly.includes(sec.id) ? settings.sheetContext.where[`section:${sec.id}`] : undefined, first = g?.marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
-    if (g && to && first) g.marks.push({ kind: 'text', at: [first.at[0], first.at[1] + 3.5], text: `SEE SHEET ${to}`, size: 2, anchor: first.anchor });
+    if (g && to && first) g.marks.push({ kind: 'text', at: [first.at[0], first.at[1] + 3.5], text: `SEE SHEET ${to}`, size: p.dimensionText === 'unidirectional' ? 3 : 2, anchor: first.anchor });
     if (g) cutting.set(sec.id, g);
   }
   // Each view's name under it, below any dimension placed under the view.
@@ -169,7 +171,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     const [x0, , x1, y1] = layout.views[id].box;
     let below = y1;
     for (const g of [...groups, ...cutting.values()]) if ((g.role === 'dimension' || g.role === 'datum' || g.role === 'control' || g.role === 'section') && g.view === id) for (const m of g.marks) for (const p of markPoints(m)) if (p[0] >= x0 - 2 && p[0] <= x1 + 2 && p[1] > below) below = p[1];
-    groups.push({ role: 'label', view: id, marks: [{ kind: 'text', at: [(x0 + x1) / 2, below + 7], text: VIEWS[id].label, size: 2.5, anchor: 'middle' }] });
+    groups.push({ role: 'label', view: id, marks: [{ kind: 'text', at: [(x0 + x1) / 2, below + 7], text: VIEWS[id].label, size: ordinaryTextHeight(p), anchor: 'middle' }] });
   }
   // (O148 X1: each section placed, its name under it; a front's or a right's under its view's name, as A–A always was.)
   const onSheet: SheetSectionPlaced[] = [], inSections = new Map<string, Resolved>();
@@ -193,7 +195,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     const [x0, , x1, y1] = placed.box;
     let below = y1;
     for (const g of groups) if (g.role === 'dimension' && g.view === ref) for (const m of g.marks) for (const q of markPoints(m)) if (q[0] >= x0 - 2 && q[0] <= x1 + 2 && q[1] > below) below = q[1];
-    groups.push({ role: 'label', marks: [{ kind: 'text', at: [(x0 + x1) / 2, below + 7], text: `SECTION ${sec.id}–${sec.id}`, size: 2.5, anchor: 'middle' }] });
+    groups.push({ role: 'label', marks: [{ kind: 'text', at: [(x0 + x1) / 2, below + 7], text: `SECTION ${sec.id}–${sec.id}`, size: ordinaryTextHeight(p), anchor: 'middle' }] });
   }
   // (DR-4: the removed sections in free room and the revolved ones on their views, after the others; their dimensions too.)
   const apart = apartSections(layout, views, settings, groups, onSheet, sections ?? [], cutting, p, meta.callout);
@@ -220,11 +222,11 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   const dimensions: Resolved[] = settings.dimensions.map(d => inSections.get(d.id) ?? inViews.find(r => r.dim === d)!);
   // (FRd2, O119: the weld symbols, before the tables so an auto-placed one keeps clear of their texts.)
   const sc = settings.sheetContext;
-  const welds = settings.weldSymbols && meta.welds?.length ? weldSymbols(layout, views, meta.welds, p.units === 'mm' && p.precision.mm === undefined ? undefined : lengthFormats(p).primary, sc ? { shown: sc.allViews, mine: v => sc.where[v] === sc.n, reportUnshown: sc.n === 1 } : undefined) : null;
+  const welds = settings.weldSymbols && meta.welds?.length ? weldSymbols(layout, views, meta.welds, p.units === 'mm' && p.precision.mm === undefined ? undefined : lengthFormats(p).primary, sc ? { shown: sc.allViews, mine: v => sc.where[v] === sc.n, reportUnshown: sc.n === 1 } : undefined, ordinaryTextHeight(p)) : null;
   if (welds) groups.push(...welds.groups);
   // (O147 B2: the item balloons, after the weld symbols and before the tables: clear of the texts so far and of the pinned tables.)
   // (Clear of the tables pinned by `at` too: they are placed after, where they were set.)
-  const pinned = (settings.tables ?? []).filter(t => t.at).map(t => tableLayout(tableContentOf(t, meta.tableContent, settings).content, t.at!, t.corner ?? 'top-left').box as Rect);
+  const pinned = (settings.tables ?? []).filter(t => t.at).map(t => tableLayout(tableContentOf(t, meta.tableContent, settings).content, t.at!, t.corner ?? 'top-left', ordinaryTextHeight(p)).box as Rect);
   const detailBoxes = [...drawn.details.map(x => x.box), ...apart.boxes];
   const balloons = settings.balloons && settings.sheetContext?.balloonsHere !== false && meta.bom?.lines.length ? balloonMarks(layout, views, meta.bom, [...takenOf(layout, groups, detailBoxes), ...pinned], meta.bodyFaces) : null;
   if (balloons) groups.push(...balloons.groups);
@@ -312,7 +314,7 @@ function apartSections(layout: SheetLayout, views: DrawingViews, settings: Drawi
     for (const g of groups) if (g.role === 'dimension' && g.view === ref) for (const m of g.marks) for (const q of markPoints(m)) if (q[0] >= x0 - 2 && q[0] <= x1 + 2 && q[1] > below) below = q[1];
     // (11 ④: drawn on another sheet than its view's: the name says from which.)
     const from = settings.sheetContext?.sectionViewOnly.includes(s.id) ? settings.sheetContext.where[s.view] : undefined;
-    groups.push({ role: 'label', marks: [{ kind: 'text', at: [(x0 + x1) / 2, below + DETAIL_LABEL], text: `SECTION ${s.id}–${s.id}${Math.abs(k - layout.scale) > 1e-12 ? ` (${scaleLabel(k)})` : ''}`, size: 2.5, anchor: 'middle' }, ...(from ? [{ kind: 'text' as const, at: [(x0 + x1) / 2, below + DETAIL_LABEL + 3.5] as XY, text: `FROM SHEET ${from}`, size: 2, anchor: 'middle' as const }] : [])] });
+    groups.push({ role: 'label', marks: [{ kind: 'text', at: [(x0 + x1) / 2, below + DETAIL_LABEL], text: `SECTION ${s.id}–${s.id}${Math.abs(k - layout.scale) > 1e-12 ? ` (${scaleLabel(k)})` : ''}`, size: ordinaryTextHeight(p), anchor: 'middle' }, ...(from ? [{ kind: 'text' as const, at: [(x0 + x1) / 2, below + DETAIL_LABEL + 3.5] as XY, text: `FROM SHEET ${from}`, size: p.dimensionText === 'unidirectional' ? 3 : 2, anchor: 'middle' as const }] : [])] });
     const box: Rect = [placement.box[0], placement.box[1], placement.box[2], below + DETAIL_LABEL + (from ? 3.5 : 0)];
     taken.push(box); boxes.push(box);
   }
@@ -341,7 +343,7 @@ function detailGroups(layout: SheetLayout, views: DrawingViews, settings: Drawin
     if (circleOnly) {
       const pc = toSheet(parent.placement, d.center), pr = d.radius * parent.placement.scale, to = ctx!.where[`detail:${d.id}`];
       const at: XY = [pc[0] + pr * Math.SQRT1_2 + 1, pc[1] - pr * Math.SQRT1_2 - 1];
-      groups.push({ role: 'detail', id: d.id, view: d.view, marks: [circleMark(pc, pr, 'thin'), { kind: 'text', at, text: d.id, size: p.text, anchor: 'start', bold: true }, { kind: 'text', at: [at[0], at[1] - 3.5], text: `SEE SHEET ${to}`, size: 2, anchor: 'start' }] });
+      groups.push({ role: 'detail', id: d.id, view: d.view, marks: [circleMark(pc, pr, 'thin'), { kind: 'text', at, text: d.id, size: p.text, anchor: 'start', bold: true }, { kind: 'text', at: [at[0], at[1] - 3.5], text: `SEE SHEET ${to}`, size: p.dimensionText === 'unidirectional' ? 3 : 2, anchor: 'start' }] });
       continue;
     }
     const projection = clipProjectionToDisk(parent.projection, d.center, d.radius);
@@ -377,7 +379,7 @@ function detailGroups(layout: SheetLayout, views: DrawingViews, settings: Drawin
     let below = placement.box[3];
     for (const g of groups) if (g.role === 'dimension' && g.view === ref) for (const m of g.marks) for (const q of markPoints(m)) if (q[0] >= placement.box[0] - 2 && q[0] <= placement.box[2] + 2 && q[1] > below) below = q[1];
     const from = viewOnly ? ctx!.where[d.view] : undefined;
-    groups.push({ role: 'label', marks: [{ kind: 'text', at: [at[0], below + DETAIL_LABEL], text: `DETAIL ${d.id} (${scaleLabel(k)})`, size: 2.5, anchor: 'middle' }, ...(from ? [{ kind: 'text' as const, at: [at[0], below + DETAIL_LABEL + 3.5] as XY, text: `FROM SHEET ${from}`, size: 2, anchor: 'middle' as const }] : [])] });
+    groups.push({ role: 'label', marks: [{ kind: 'text', at: [at[0], below + DETAIL_LABEL], text: `DETAIL ${d.id} (${scaleLabel(k)})`, size: ordinaryTextHeight(p), anchor: 'middle' }, ...(from ? [{ kind: 'text' as const, at: [at[0], below + DETAIL_LABEL + 3.5] as XY, text: `FROM SHEET ${from}`, size: p.dimensionText === 'unidirectional' ? 3 : 2, anchor: 'middle' as const }] : [])] });
     const box: Rect = [placement.box[0], placement.box[1], placement.box[2], below + DETAIL_LABEL + (from ? 3.5 : 0)];
     taken.push(box);
     details.push({ detail: { id: d.id, view: d.view, scale: k, placement, projection }, box });
@@ -440,20 +442,20 @@ function takenOf(layout: SheetLayout, groups: readonly MarkGroup[], extra: reado
  * inside the frame; none clear, it stays at the first place (the issue list then says what it meets).
  */
 function tableGroups(layout: SheetLayout, settings: DrawingSettings, before: readonly MarkGroup[], contentOf?: (t: DrawingTable) => TableContent | { error: string }, extra: readonly Rect[] = []): { groups: MarkGroup[]; placed: NonNullable<Sheet['tables']> } {
-  const groups: MarkGroup[] = [], placed: NonNullable<Sheet['tables']> = [], taken = takenOf(layout, before, extra);
-  for (const t of settings.tables ?? []) if (t.at) { const c = tableContentOf(t, contentOf, settings); taken.push(tableLayout(c.content, t.at, t.corner ?? 'top-left').box); }
+  const groups: MarkGroup[] = [], placed: NonNullable<Sheet['tables']> = [], taken = takenOf(layout, before, extra), textHeight = ordinaryTextHeight(presetFor(settings));
+  for (const t of settings.tables ?? []) if (t.at) { const c = tableContentOf(t, contentOf, settings); taken.push(tableLayout(c.content, t.at, t.corner ?? 'top-left', textHeight).box); }
   for (const t of settings.tables ?? []) {
     const { content, error } = tableContentOf(t, contentOf, settings);
-    let l = t.at ? tableLayout(content, t.at, t.corner ?? 'top-left') : tableLayout(content, [layout.title[2], layout.title[1] - 3], 'bottom-right');
+    let l = t.at ? tableLayout(content, t.at, t.corner ?? 'top-left', textHeight) : tableLayout(content, [layout.title[2], layout.title[1] - 3], 'bottom-right', textHeight);
     if (!t.at) {
       const at = roomIn(layout, taken, l.box[2] - l.box[0], l.box[3] - l.box[1]);
       // (FRa, O115: no room for the whole table — the A4 cut list at 1:20, D128 — then its rows in blocks, each placed clear.)
-      const blocks = at || t.whole ? null : inBlocks(layout, taken, content);
+      const blocks = at || t.whole ? null : inBlocks(layout, taken, content, textHeight);
       if (blocks) {
         for (const [k, b] of blocks.entries()) { taken.push(b.box); groups.push({ role: 'table', id: t.id, marks: b.marks }); placed.push({ id: t.id, box: b.box, part: [k + 1, blocks.length], ...(error ? { error } : {}) }); }
         continue;
       }
-      if (at) l = tableLayout(content, at, 'top-left'); taken.push(l.box);
+      if (at) l = tableLayout(content, at, 'top-left', textHeight); taken.push(l.box);
     }
     groups.push({ role: 'table', id: t.id, marks: l.marks });
     placed.push({ id: t.id, box: l.box, ...(error ? { error } : {}) });
@@ -468,28 +470,28 @@ export const TABLE_BLOCKS_MAX = 6;
  * most one); each block with its header, the title on the first, the notes on the last; each placed clear in turn (as a
  * whole table is). Null when none do.
  */
-function inBlocks(layout: SheetLayout, taken: readonly Rect[], content: TableContent): TableLayout[] | null {
+function inBlocks(layout: SheetLayout, taken: readonly Rect[], content: TableContent, textHeight: number): TableLayout[] | null {
   const n = content.rows.length, rest = content.columns.length - 1, tries: [number, number][] = [];
   for (let m = 1; m <= Math.min(3, Math.max(1, rest)); m++) for (let k = 1; k <= Math.min(n, TABLE_BLOCKS_MAX); k++) if (m * k > 1 && m * k <= TABLE_BLOCKS_MAX) tries.push([m, k]);
   tries.sort((a, b) => a[0] * a[1] - b[0] * b[1] || a[0] - b[0]);
   for (const [m, k] of tries) {
-    const groups = columnGroups(content, m), room = [...taken], out: TableLayout[] = [], total = m * k;
+    const groups = columnGroups(content, m, textHeight), room = [...taken], out: TableLayout[] = [], total = m * k;
     for (const cols of groups) for (let i = 0, start = 0; i < k; i++) {
       const size = Math.floor(n / k) + (i < n % k ? 1 : 0), first = out.length === 0, last = out.length === total - 1;
       const part: TableContent = { columns: cols.map(c => content.columns[c]), rows: content.rows.slice(start, start + size).map(r => cols.map(c => r[c])), ...(first && content.title ? { title: content.title } : {}), ...(last && content.notes ? { notes: content.notes } : {}) };
       start += size;
-      const probe = tableLayout(part, [0, 0], 'top-left'), at = roomIn(layout, room, probe.box[2] - probe.box[0], probe.box[3] - probe.box[1]);
+      const probe = tableLayout(part, [0, 0], 'top-left', textHeight), at = roomIn(layout, room, probe.box[2] - probe.box[0], probe.box[3] - probe.box[1]);
       if (!at) break;
-      const placedBlock = tableLayout(part, at, 'top-left'); room.push(placedBlock.box); out.push(placedBlock);
+      const placedBlock = tableLayout(part, at, 'top-left', textHeight); room.push(placedBlock.box); out.push(placedBlock);
     }
     if (out.length === total) return out;
   }
   return null;
 }
 /** The columns' indices in m groups, the first column leading each: the rest split where the widths balance. */
-function columnGroups(content: TableContent, m: number): number[][] {
+function columnGroups(content: TableContent, m: number, textHeight: number): number[][] {
   if (m === 1) return [content.columns.map((_, i) => i)];
-  const widths = tableSize(content).widths, rest = widths.slice(1), sum = rest.reduce((a, b) => a + b, 0), out: number[][] = [];
+  const widths = tableSize(content, textHeight).widths, rest = widths.slice(1), sum = rest.reduce((a, b) => a + b, 0), out: number[][] = [];
   let at = 1;
   for (let g = 0; g < m; g++) {
     const cols = [0], target = sum * (g + 1) / m;
@@ -710,14 +712,14 @@ export function valueMarks(at: XY, angle: number, anchor: 'start' | 'middle' | '
   const dv = tol?.kind === 'deviation' && alt === undefined ? deviationsOf(tol, unit, p, p.units, nominal) : null;
   const stacked = !!dv?.printable, part = (v: string, u: DrawingUnits) => tol && !stacked ? `${v} ${toleranceText(tol, unit, p, u, nominal)}` : v;
   const main = alt === undefined ? part(value, p.units) : `${part(value, p.units)} [${part(alt, otherUnit(p))}]`;
-  const small = 2.5, devs = stacked && dv ? [withUnit(dv.upper, unit), withUnit(dv.lower, unit)] : null;
+  const small = ordinaryTextHeight(p), devs = stacked && dv ? [withUnit(dv.upper, unit), withUnit(dv.lower, unit)] : null;
   const wMain = textWidth(main, p.text, false), wDev = devs ? 0.8 + Math.max(...devs.map(d => textWidth(d, small, false))) : 0, total = wMain + wDev;
   const from = add(at, x, anchor === 'start' ? 0 : anchor === 'middle' ? -total / 2 : -total);
   const marks: Mark[] = [{ kind: 'text', at: from, text: main, size: p.text, anchor: 'start', ...(angle ? { angle } : {}) }];
   if (devs) {
     const col = add(from, x, wMain + 0.8);
-    marks.push({ kind: 'text', at: add(col, up, 1.5), text: devs[0], size: small, anchor: 'start', ...(angle ? { angle } : {}) },
-      { kind: 'text', at: add(col, up, -0.6), text: devs[1], size: small, anchor: 'start', ...(angle ? { angle } : {}) });
+    marks.push({ kind: 'text', at: add(col, up, p.dimensionText === 'unidirectional' ? small * 0.6 : 1.5), text: devs[0], size: small, anchor: 'start', ...(angle ? { angle } : {}) },
+      { kind: 'text', at: add(col, up, p.dimensionText === 'unidirectional' ? -small * 0.6 : -0.6), text: devs[1], size: small, anchor: 'start', ...(angle ? { angle } : {}) });
   }
   return marks;
 }

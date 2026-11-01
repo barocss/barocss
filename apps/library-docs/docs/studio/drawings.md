@@ -50,8 +50,8 @@ show the relative outline sizes; the app also reserves space for annotations whe
 
 ### Drawing standard
 
-**Standard** (next to **Projection**) is **Not set**, **ISO** or **ASME**. Not set keeps the sheet exactly as it has
-always been drawn. ISO and ASME each apply one preset; changing it is one undo step and the sheet is drawn again. The
+**Standard** (next to **Projection**) is **Not set**, **ISO** or **ASME**. Not set keeps the default drawing style.
+ISO and ASME each apply one preset; changing it is one undo step and the sheet is drawn again. The
 same preset reaches every export: the SVG, PDF and DXF sheets and the 3D annotations. In chat, `set_drawing` takes
 `standard` as `iso`, `asme` or `none`.
 
@@ -69,6 +69,10 @@ same preset reaches every export: the SVG, PDF and DXF sheets and the 3D annotat
 Under ASME the text is placed in a break of the dimension line, the break being the text's width and a millimetre either
 side. When the text does not fit between the arrowheads, it is set horizontally beside the line instead. The
 inch rule is under [Units](#units-inch-and-dual-dimensions).
+
+The ASME preset also uses 3 mm for ordinary view, section and detail labels, stacked tolerance deviations,
+table and BOM text, and weld text. Their spacing and layout use the same text height. Small title-block labels
+and glyphs inside symbols retain their own sizes; this preset does not certify a complete drawing against ASME.
 
 The ASME advice on concentricity and symmetry is a warning in **Drawing issues**, never a refusal: the frame can still be
 authored and an old one opens unchanged. The DXF dimension style keeps its general defaults; each dimension's own drawing

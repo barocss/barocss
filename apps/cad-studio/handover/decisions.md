@@ -18000,7 +18000,7 @@ The preset is passed explicitly everywhere. It is exposed as a Studio select and
 
 **Follow-ups.**
 - The DXF DIMSTYLE header.
-- Under ASME, the 2.5 mm fixed texts fall below the 3 mm minimum.
+- Under ASME, the 2.5 mm fixed ordinary texts fall below the recorded 3 mm minimum (closed at the bounded D409 profile; title-block/internal glyph limits remain).
 - Inch and dual dimensions (11③b).
 
 ## D397 — Row 11 ③b: inch display and dual dimensions (CG5 DR-7); full (2026-11-01)
@@ -18195,3 +18195,17 @@ Independent R2 found explicit-tolerance and fit digits could disagree on the pri
 **FAIL retained.** Initial29/33, first test-only TS2339 narrowing, R2 compound mismatch, stale D407 STEP docs labels (now corrected), run01 dependency-capsule guard before browser launch. **NOT_RUN.** Actual Save/outbound SVG/PDF/DXF, actual fit UI/all dimension kinds, whole standards/manufacturing acceptance, full baseline/kernel suites, CI/release. OCP remains removed. No logs/screens/archives are committed.
 
 **Issues/follow-ups.** Checked related issue search and #540; parent is a backlog epic with broader unchecked acceptance, remains OPEN. No dedicated closable issue identified. D397 inversion is closed only at this profile. Next D409: reproduce registered D396 ASME fixed2.5mm text follow-up before optional UI work; existing production/motion/external-format holds remain.
+
+## D409 — Ordinary ASME lettering and matching layout metrics; full (2026-11-01)
+
+[Report](notes/drawing-ordinary-text-2026-11-01/README.md), [commands/counts](notes/drawing-ordinary-text-2026-11-01/qualification.json). Registered D396 follow-up under11/16. Sol Medium implementation, independent review/mutation and actual Studio driver. Full tier because4 public helpers append optional numeric textHeight.
+
+**Reproduced.** ASME preset text was3mm but ordinary view/section/detail labels, stacked deviations, tables and weld lettering stayed2.5mm. Existing lettering tests filtered these out. These ordinary paths now use3mm explicitly; FROM/SEE SHEET captions also follow the preset. Deviation baselines are3.6mm apart for3.06mm calculated glyph extents. Table size/width/row/notes, pinned/probe/block/column balancing and weld collision placement all use actual height. No post-hoc scaling, hidden module state, B-rep or tolerance arithmetic change.
+
+Public tableSize/tableLayout/symbolMarks/weldSymbols append optional finite-positive sheet-mm textHeight, default2.5; invalid heights throw RangeError. Review found0added/0removed/4changed signatures only. Plain/ISO style and old calls remain byte-identical on the selected controls. Only4 ASME SVG/DXF golden entries change;14 hashes, including6 resolved-dimension and8 plain/ISO outputs, stay unchanged. D408 historical evidence remains pinned to its commit.
+
+**PASS.**44 unique focused tests (ordinary12, standard18, table5, weld3, table-contract5, golden1), post-final-test Model types, Studio types, changed lint/syntax/diff, API inventory and docs68pages/55shots/930labels. Independent design and final source reviews accepted. Initial mutation5/9 left4 coverage gaps; added real padding/split-frame/column-width/1mm weld-clearance witnesses. Final same9/9 killed, baseline12/12PASS,0survivors/unmatched. Actual Studio run01: four view labels3mm; width320 and deviations+0.1/-0.05 all3mm with actual nonoverlapping glyph bounds; weld3*/W1 and seven table texts3mm. ISO ordinary2.5, numbers, model and exact Undo/Redo snapshots preserved.813 frozen files unchanged;2root-reviewed overview images; errors/console errors/downloads0; all owned resources closed.
+
+**FAIL retained.** Pre-fix1PASS2FAIL, fixed-run5PASS1FAIL from strict floating-coordinate subtraction (corrected display-coordinate tolerance1e-10), expected ASME golden mismatch and initial4 mutation survivors. **NOT_RUN.** Enlarged legibility/general overlap or whole ASME certification; intentional small title-block/internal glyphs and3D annotation scope; actual cross-sheet/section/detail/split UI (focused tests only), Save/outbound exports, full baseline/kernel suites, CI/release. OCP remains removed; no download/dependency or large artifact added.
+
+**Issues/next.** #540 remains a backlog epic with broader incomplete acceptance; no issue closure. D396 ordinary-text follow-up is closed at this profile. Next D410: owner-registered U2, drawn CAD icons for sketch3d/cylindrical-wrap/edit/text/text-relief, with20px review and no download. Production/motion/external-format holds and U3 dependency-download approval remain unchanged.

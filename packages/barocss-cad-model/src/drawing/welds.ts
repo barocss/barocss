@@ -54,13 +54,14 @@ export function seamEdge(pr: BrepProjection, face: string): { name: string; mid:
   return best && { name: best.name, mid: best.mid };
 }
 
-/** The symbols of the joints (labelled W1… in their order) in the shown views. */
+/** The joints' symbols in shown views. Optional textHeight is sheet mm (default2.5), including placement bounds. */
 /**
  * `set` (11 ④, a drawing with sheets): each joint's view is chosen across every shown view of the whole set, in the same
  * order a single sheet uses, and its symbol drawn on that view's sheet only (`mine`); a joint seen in none is `unshown`
  * on the first sheet only (`reportUnshown`), so it is warned once, as on one sheet.
  */
-export function weldSymbols(layout: SheetLayout, views: DrawingViews, joints: readonly WeldJoint[], f?: LengthFormat, set?: { shown: readonly ViewId[]; mine(view: ViewId): boolean; reportUnshown: boolean }): WeldSymbols {
+export function weldSymbols(layout: SheetLayout, views: DrawingViews, joints: readonly WeldJoint[], f?: LengthFormat, set?: { shown: readonly ViewId[]; mine(view: ViewId): boolean; reportUnshown: boolean }, textHeight = TEXT): WeldSymbols {
+  checkTextHeight(textHeight);
   const found: { j: WeldJoint; label: string; view: ViewId; tip: XY; edge: string; side: Side }[] = [], unshown: string[] = [];
   joints.forEach((j, k) => {
     const label = `W${k + 1}`;
@@ -84,12 +85,12 @@ export function weldSymbols(layout: SheetLayout, views: DrawingViews, joints: re
     for (const side of sidesFrom(f.side)) {
       for (let k = 0; k <= 2 * TRIES && !best; k++) {
         const step = k % 2 ? (k + 1) / 2 : -k / 2, t = f.tip[alongOf(side)] + step * KNEE_GAP;
-        const marks = symbolMarks(f.tip, kneeOf(v, side, t), side, f.j, f.label, size), box = boxOf(marks);
+        const marks = symbolMarks(f.tip, kneeOf(v, side, t), side, f.j, f.label, size, textHeight), box = boxOf(marks);
         if (clear(box, layout, taken)) best = { marks, box };
       }
       if (best) break;
     }
-    if (!best) { const marks = symbolMarks(f.tip, kneeOf(v, f.side, f.tip[alongOf(f.side)]), f.side, f.j, f.label, size); best = { marks, box: boxOf(marks) }; }
+    if (!best) { const marks = symbolMarks(f.tip, kneeOf(v, f.side, f.tip[alongOf(f.side)]), f.side, f.j, f.label, size, textHeight); best = { marks, box: boxOf(marks) }; }
     taken.push(best.box);
     groups.push({ role: 'weld', id: f.label, view: f.view, marks: best.marks });
     placed.push({ label: f.label, joint: f.j.id, view: f.view, tip: f.tip, edge: f.edge });
@@ -110,8 +111,9 @@ function kneeOf(v: ViewPlacement, side: Side, t: number): XY {
   return side === 'left' ? [x0 - OUT, t] : side === 'right' ? [x1 + OUT, t] : side === 'top' ? [t, y0 - OUT] : [t, y1 + OUT];
 }
 
-/** `f`: the format the size prints in (the drawing's unit, 11 ③b; absent: mm to 0.01). */
-export function symbolMarks(tip: XY, knee: XY, side: Side, j: WeldJoint, label: string, f: LengthFormat = plainSize): Mark[] {
+/** `f` formats the size; optional textHeight sets lettering in sheet mm, default2.5. */
+export function symbolMarks(tip: XY, knee: XY, side: Side, j: WeldJoint, label: string, f: LengthFormat = plainSize, textHeight = TEXT): Mark[] {
+  checkTextHeight(textHeight);
   const dir = side === 'left' ? -1 : 1, end: XY = [knee[0] + dir * LINE, knee[1]], d = [tip[0] - knee[0], tip[1] - knee[1]], l = Math.hypot(d[0], d[1]) || 1, u: XY = [d[0] / l, d[1] / l];
   const back: XY = [tip[0] - u[0] * ARROW, tip[1] - u[1] * ARROW], n: XY = [-u[1] * ARROW_HALF, u[0] * ARROW_HALF];
   const marks: Mark[] = [
@@ -123,12 +125,13 @@ export function symbolMarks(tip: XY, knee: XY, side: Side, j: WeldJoint, label: 
   const mx = knee[0] + dir * LINE / 3, my = knee[1];
   if (j.weld.kind === 'fillet') marks.push({ kind: 'polyline', points: [[mx, my], [mx, my - MARK], [mx + dir * MARK, my], [mx, my]], pen: 'thin', role: 'weld' });
   else marks.push({ kind: 'line', a: [mx, my], b: [mx, my - MARK], pen: 'thin', role: 'weld' }, { kind: 'line', a: [mx + dir * MARK * 0.6, my], b: [mx + dir * MARK * 0.6, my - MARK], pen: 'thin', role: 'weld' });
-  if (j.weld.size !== null) marks.push({ kind: 'text', at: [mx - dir * 1, my - 0.6], text: `${f(j.weld.size)}${j.weld.sizeBasis === 'estimate' ? '*' : ''}`, size: TEXT, anchor: dir > 0 ? 'end' : 'start' });
+  if (j.weld.size !== null) marks.push({ kind: 'text', at: [mx - dir * 1, my - 0.6], text: `${f(j.weld.size)}${j.weld.sizeBasis === 'estimate' ? '*' : ''}`, size: textHeight, anchor: dir > 0 ? 'end' : 'start' });
   if (j.weld.allRound) marks.push(ring(knee, RING));
   if (j.innerLoop?.welded) marks.push(ring(knee, RING * 1.8));
-  marks.push({ kind: 'text', at: [end[0] + dir * 1, end[1] + 0.9], text: label, size: TEXT, anchor: dir > 0 ? 'start' : 'end' });
+  marks.push({ kind: 'text', at: [end[0] + dir * 1, end[1] + 0.9 * (textHeight / TEXT)], text: label, size: textHeight, anchor: dir > 0 ? 'start' : 'end' });
   return marks;
 }
+function checkTextHeight(height: number): void { if (!Number.isFinite(height) || height <= 0) throw new RangeError('Weld text height must be finite and above zero.'); }
 const ring = (c: XY, r: number): Mark => ({ kind: 'arc', center: c, u: [r, 0], v: [0, r], t0: 0, t1: 2 * Math.PI, pen: 'thin', role: 'weld' });
 
 /** A symbol's box but its leader and arrow (they run into the view by design): its knee, reference line, mark, rings and texts. */

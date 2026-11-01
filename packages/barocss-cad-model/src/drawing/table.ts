@@ -26,39 +26,42 @@ export function cellText(v: TableCell, c: TableColumn): string {
 export const headerText = (c: TableColumn) => (c.unit ? `${c.label} [${c.unit}]` : c.label);
 const alignOf = (c: TableColumn, rows: readonly TableCell[][], i: number): 'start' | 'middle' | 'end' => c.align ?? (rows.some(r => typeof r[i] === 'number') ? 'end' : 'start');
 
-/** The table's size (mm): its column widths and its height, before it is placed. */
-export function tableSize(t: TableContent): { widths: number[]; width: number; height: number } {
-  const widths = t.columns.map((c, i) => Math.max(textWidth(headerText(c), TABLE_TEXT, true), ...t.rows.map(r => textWidth(cellText(r[i], c), TABLE_TEXT, false))) + 2 * TABLE_PAD);
+/** The table's size (mm), before placement. Optional textHeight is sheet mm; default2.5 preserves existing output. */
+export function tableSize(t: TableContent, textHeight = TABLE_TEXT): { widths: number[]; width: number; height: number } {
+  if (!Number.isFinite(textHeight) || textHeight <= 0) throw new RangeError('Table text height must be finite and above zero.');
+  const rowHeight = TABLE_ROW * (textHeight / TABLE_TEXT);
+  const widths = t.columns.map((c, i) => Math.max(textWidth(headerText(c), textHeight, true), ...t.rows.map(r => textWidth(cellText(r[i], c), textHeight, false))) + 2 * TABLE_PAD);
   let width = widths.reduce((s, w) => s + w, 0);
-  if (t.title) width = Math.max(width, textWidth(t.title, TABLE_TEXT, true) + 2 * TABLE_PAD);
+  if (t.title) width = Math.max(width, textWidth(t.title, textHeight, true) + 2 * TABLE_PAD);
   // (A title wider than the columns widens the last one.)
   const extra = width - widths.reduce((s, w) => s + w, 0); if (extra > 0) widths[widths.length - 1] += extra;
   const rows = (t.title ? 1 : 0) + 1 + t.rows.length, notes = t.notes?.length ?? 0;
-  return { widths, width, height: rows * TABLE_ROW + notes * TABLE_ROW };
+  return { widths, width, height: rows * rowHeight + notes * rowHeight };
 }
 
-/** The table laid out with its `corner` on `at` (sheet mm, y down). */
-export function tableLayout(t: TableContent, at: XY, corner: TableCorner = 'top-left'): TableLayout {
-  const { widths, width, height } = tableSize(t), notesH = (t.notes?.length ?? 0) * TABLE_ROW, gridH = height - notesH;
+/** The table laid out with its `corner` on `at` (sheet mm, y down), using textHeight for text and row metrics. */
+export function tableLayout(t: TableContent, at: XY, corner: TableCorner = 'top-left', textHeight = TABLE_TEXT): TableLayout {
+  const rowHeight = TABLE_ROW * (textHeight / TABLE_TEXT);
+  const { widths, width, height } = tableSize(t, textHeight), notesH = (t.notes?.length ?? 0) * rowHeight, gridH = height - notesH;
   const x0 = corner.endsWith('right') ? at[0] - width : at[0], y0 = corner.startsWith('bottom') ? at[1] - height : at[1], x1 = x0 + width, y1 = y0 + gridH;
-  const marks: Mark[] = [], base = TABLE_ROW / 2 + TABLE_TEXT * 0.35;
+  const marks: Mark[] = [], base = rowHeight / 2 + textHeight * 0.35;
   // (The border with the visible pen, the inner rules thin.)
   marks.push({ kind: 'line', a: [x0, y0], b: [x1, y0], pen: 'visible' }, { kind: 'line', a: [x1, y0], b: [x1, y1], pen: 'visible' }, { kind: 'line', a: [x1, y1], b: [x0, y1], pen: 'visible' }, { kind: 'line', a: [x0, y1], b: [x0, y0], pen: 'visible' });
   let y = y0;
-  if (t.title) { marks.push({ kind: 'text', at: [x0 + TABLE_PAD, y + base], text: t.title, size: TABLE_TEXT, anchor: 'start', bold: true }); y += TABLE_ROW; marks.push({ kind: 'line', a: [x0, y], b: [x1, y], pen: 'thin' }); }
+  if (t.title) { marks.push({ kind: 'text', at: [x0 + TABLE_PAD, y + base], text: t.title, size: textHeight, anchor: 'start', bold: true }); y += rowHeight; marks.push({ kind: 'line', a: [x0, y], b: [x1, y], pen: 'thin' }); }
   const lefts: number[] = []; let x = x0; for (const w of widths) { lefts.push(x); x += w; }
   const textAt = (i: number, align: 'start' | 'middle' | 'end', yy: number): XY => [align === 'start' ? lefts[i] + TABLE_PAD : align === 'end' ? lefts[i] + widths[i] - TABLE_PAD : lefts[i] + widths[i] / 2, yy + base];
-  t.columns.forEach((c, i) => { const a = alignOf(c, t.rows, i); marks.push({ kind: 'text', at: textAt(i, a, y), text: headerText(c), size: TABLE_TEXT, anchor: a, bold: true }); });
-  y += TABLE_ROW; marks.push({ kind: 'line', a: [x0, y], b: [x1, y], pen: 'visible' });
+  t.columns.forEach((c, i) => { const a = alignOf(c, t.rows, i); marks.push({ kind: 'text', at: textAt(i, a, y), text: headerText(c), size: textHeight, anchor: a, bold: true }); });
+  y += rowHeight; marks.push({ kind: 'line', a: [x0, y], b: [x1, y], pen: 'visible' });
   for (const [k, r] of t.rows.entries()) {
-    t.columns.forEach((c, i) => { const a = alignOf(c, t.rows, i); marks.push({ kind: 'text', at: textAt(i, a, y), text: cellText(r[i], c), size: TABLE_TEXT, anchor: a }); });
-    y += TABLE_ROW; if (k < t.rows.length - 1) marks.push({ kind: 'line', a: [x0, y], b: [x1, y], pen: 'thin' });
+    t.columns.forEach((c, i) => { const a = alignOf(c, t.rows, i); marks.push({ kind: 'text', at: textAt(i, a, y), text: cellText(r[i], c), size: textHeight, anchor: a }); });
+    y += rowHeight; if (k < t.rows.length - 1) marks.push({ kind: 'line', a: [x0, y], b: [x1, y], pen: 'thin' });
   }
   // (Column rules from the header down.)
-  const top = t.title ? y0 + TABLE_ROW : y0;
+  const top = t.title ? y0 + rowHeight : y0;
   for (let i = 1; i < lefts.length; i++) marks.push({ kind: 'line', a: [lefts[i], top], b: [lefts[i], y1], pen: 'thin' });
-  for (const [k, n] of (t.notes ?? []).entries()) marks.push({ kind: 'text', at: [x0, y1 + k * TABLE_ROW + base], text: n, size: TABLE_TEXT, anchor: 'start' });
+  for (const [k, n] of (t.notes ?? []).entries()) marks.push({ kind: 'text', at: [x0, y1 + k * rowHeight + base], text: n, size: textHeight, anchor: 'start' });
   // (The box takes in the notes, which may run wider than the columns.)
-  const right = Math.max(x1, ...(t.notes ?? []).map(n => x0 + textWidth(n, TABLE_TEXT, false)));
-  return { box: [x0, y0, right, y0 + height], widths, rowHeight: TABLE_ROW, marks };
+  const right = Math.max(x1, ...(t.notes ?? []).map(n => x0 + textWidth(n, textHeight, false)));
+  return { box: [x0, y0, right, y0 + height], widths, rowHeight, marks };
 }
