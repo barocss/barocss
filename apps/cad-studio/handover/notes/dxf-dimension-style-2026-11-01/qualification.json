@@ -1,0 +1,180 @@
+{
+  "decision": "D414",
+  "date": "2026-11-01",
+  "baseCommit": "c646a0d8ff55f37208ad0ca9a163d9d51c8b186d",
+  "tier": "full",
+  "status": "BOUNDED_QUALIFIED",
+  "models": {
+    "implementationAndIndependentReviews": "gpt-6.1-sol / medium"
+  },
+  "scope": "Registered D396/D397 DXF-header follow-up: ASME lettering/placement/orientation defaults only",
+  "reproduction": {
+    "files": 18,
+    "dimensions": 36,
+    "asmeStyleHeightMismatches": 6,
+    "readerAuditErrors": 0,
+    "readerAuditFixes": 0,
+    "meaning": "Anonymous display blocks already had correct text. DIMSTYLE defaults differed, affecting potential editing/regeneration, not a proved current display failure.",
+    "artifacts": "/tmp/barocss-d414-baseline"
+  },
+  "api": {
+    "addedNames": 0,
+    "removedNames": 0,
+    "semanticShapeChanges": 2,
+    "changes": [
+      "DxfDocument.dimensionStyle?: {textHeight:number;textPlacement:'above'|'center';textOrientation:'aligned'|'horizontal'}; all3 required when supplied",
+      "Sheet.standard?: DrawingStandard; transient export metadata, no authored schema change"
+    ],
+    "validation": "Finite positive height in drawing units; recognized placement/orientation; existing BAD_ENTITY typed refusal",
+    "representationOnly": "ConstraintKind union order changed in compiler inventory; same9 literals and unchanged source; no semantic change"
+  },
+  "behavior": {
+    "asme": [
+      3,
+      0,
+      1,
+      1
+    ],
+    "codes": [
+      140,
+      77,
+      73,
+      74
+    ],
+    "versions": [
+      "AC1015",
+      "AC1009"
+    ],
+    "default": "Omitted style preserves old bytes and omits new flags; model adds custom style onlyASME",
+    "units": "Studio paper coordinates remain mm. AC1015 INSUNITS4 retained; R12 legacy unit-header behavior retained. Inch/dual labels remain explicit overrides.",
+    "unchanged": "Anonymous blocks, entities, labels, geometry, reports, dimensionEntity formatter and unit/tolerance algorithms"
+  },
+  "checks": {
+    "focused": {
+      "status": "PASS",
+      "unique": 22,
+      "kernel": {
+        "newStyle": 4,
+        "existingWriter": 11
+      },
+      "model": {
+        "newStyle": 3,
+        "existingDxf": 3,
+        "golden": 1
+      }
+    },
+    "freshKernelBuild": "PASS",
+    "kernelTypes": "PASS",
+    "modelTypesAfterFinalTestEdit": "PASS",
+    "studioConsumerTypes": "PASS",
+    "lintSyntaxPythonAstDiff": "PASS",
+    "apiInventory": "PASS",
+    "docs": {
+      "status": "PASS",
+      "pages": 68,
+      "shots": 55,
+      "labels": 939
+    },
+    "golden": {
+      "changed": 2,
+      "keys": [
+        "asme.dxf",
+        "coarse-asme.dxf"
+      ],
+      "unchanged": 16,
+      "allSvgAndResolvedDimensionsUnchanged": true
+    }
+  },
+  "independentReader": {
+    "status": "PASS",
+    "environment": "Existing cached Python3.12.9/ezdxf1.4.5; -I -B, PYTHONDONTWRITEBYTECODE=1; no install/download",
+    "files": 18,
+    "dimensions": 36,
+    "styleMismatches": 0,
+    "auditErrors": 0,
+    "auditFixes": 0,
+    "byteComparison": {
+      "plainIsoIdentical": 12,
+      "asmeOnlyFourStyleFieldsChanged": 6
+    },
+    "artifacts": "/tmp/barocss-d414-final"
+  },
+  "audit": {
+    "status": "ACCEPT",
+    "rounds": [
+      "Design with explicit contract/default/unit boundaries",
+      "Final source with unchanged entity formatting and optional validation"
+    ],
+    "mutation": {
+      "baselinePass": 7,
+      "killedByAssertion": 14,
+      "survivors": 0,
+      "crashKills": 0,
+      "unmatched": 0,
+      "artifacts": "/tmp/barocss-d414-audit"
+    }
+  },
+  "studio": {
+    "status": "PASS",
+    "run": 1,
+    "frozenFiles": 751,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "settingsSnapshotReads": 6,
+    "independentDxfFiles": 12,
+    "dimensions": 24,
+    "captures": 2,
+    "rootReviewed": 2,
+    "checks": [
+      "Real ASME/ISO settings",
+      "Exact Undo/Redo",
+      "ASME inch/dual",
+      "Geometry unchanged",
+      "Exact accepted native snapshot -> frozen Model producer -> independent reader; labels agree with actual DOM"
+    ],
+    "exportButton": "NOT_RUN; no outbound file action",
+    "fonts": {
+      "stylesheetsFulfilledEmpty": 1,
+      "fontAssets": 0
+    },
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED",
+      "GATE_RELEASED"
+    ],
+    "artifacts": "/tmp/barocss-d414-browser-run01"
+  },
+  "fail": {
+    "unexpected": 0,
+    "retained": "Six pre-fix ASME metadata mismatches. Golden update was intentional and followed by a normal PASS, not a failed check recast as pass."
+  },
+  "notRun": [
+    "Actual Export DXF button/download/Save",
+    "External CAD regeneration appearance/general roundtrip",
+    "Editable inch/dual/precision-unit regeneration",
+    "Short-dimension arrow clearance/dual-fit changes",
+    "Full kernel/model baseline suites; no B-rep core change",
+    "General ASME/R12 certification, CI/release"
+  ],
+  "commands": {
+    "fullCapsule": "/tmp/barocss-d414-capsule/commands.txt",
+    "kernel": "pnpm --filter @barocss/cad build:library; node --test packages/barocss-cad/test/dxf-dimstyle.test.mjs packages/barocss-cad/test/dxf-writer.test.mjs",
+    "model": "pnpm --filter @barocss/cad-model test dxf.test dxf-dimstyle drawing-units-golden",
+    "types": "pnpm --filter @barocss/cad type-check; pnpm --filter @barocss/cad-model type-check; pnpm --filter @barocss/cad-studio-app type-check",
+    "api": "node apps/library-docs/scripts/api-inventory.mjs --write-expected /tmp/barocss-d414-proposed-api.json; reviewed exact delta, then --check",
+    "docs": "node apps/library-docs/scripts/check-docs.mjs",
+    "mutation": "node /tmp/barocss-d414-audit/mutations.mjs",
+    "actual": "DRAWING_DIMSTYLE_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME=/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome node apps/cad-studio/test/drawing-dimstyle-browser.mjs /tmp/barocss-d414-browser-run01 /tmp/barocss-d414-final/native/drawing-box.bcad"
+  },
+  "primaryReferences": [
+    "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm",
+    "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-Core/files/GUID-38DAEEF0-AB44-4C58-8D0E-955BFCFF71A7.htm"
+  ],
+  "execution": "Node22.19.0; serial heavy gate/load<40; no worktree writes during actual Studio; evidence only/tmp",
+  "issueReview": "#540 OPEN backlog epic with incomplete broader acceptance; bounded DXF-title search found no dedicated issue. No closure.",
+  "ocp": "Remains removed; existing unrelated ezdxf environment preserved",
+  "next": "D415 owner U3 Lucide1.52.0 Studio UI migration; fresh download/install explicitly approved after D413, still unused; production/motion/external-SDK holds unchanged"
+}

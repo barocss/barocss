@@ -57952,6 +57952,13 @@
                 "type": "readonly DxfBlock[] | undefined"
               },
               {
+                "name": "dimensionStyle",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "{ textHeight: number; textPlacement: \"center\" | \"above\"; textOrientation: \"aligned\" | \"horizontal\"; } | undefined"
+              },
+              {
                 "name": "entities",
                 "kind": "property",
                 "optional": false,
@@ -241252,6 +241259,13 @@
                 "type": "[number, number]"
               },
               {
+                "name": "standard",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "DrawingStandard | undefined"
+              },
+              {
                 "name": "tables",
                 "kind": "property",
                 "optional": true,
@@ -347251,7 +347265,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"vertical\" | \"tangent\" | \"coincident\" | \"horizontal\" | \"parallel\" | \"perpendicular\" | \"equal\" | \"fix\" | \"symmetric\"",
+            "type": "\"vertical\" | \"horizontal\" | \"tangent\" | \"coincident\" | \"parallel\" | \"perpendicular\" | \"equal\" | \"fix\" | \"symmetric\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",

@@ -96,6 +96,12 @@ It does not change the on-screen mesh; see [STL export choices](/studio/files#ex
 
   The report counts every such change, so nothing is approximated silently.
 
+The document may also supply `dimensionStyle` with all three fields: a finite positive `textHeight` in
+the drawing's units, `textPlacement` (`above` or `center`) and `textOrientation` (`aligned` or `horizontal`).
+Both versions write these dimension-style defaults. Omitting the object preserves the existing defaults
+and bytes. Invalid values throw a typed DXF write error. The fields do not rebuild anonymous dimension
+display blocks or guarantee an external editor's regenerated layout.
+
 <<< @/../samples/cad-formats.test.mjs#dxf
 
 Sheet metal's flat pattern has its own DXF writer, `flatPatternDxf`. Reading a DXF sketch is the document model's

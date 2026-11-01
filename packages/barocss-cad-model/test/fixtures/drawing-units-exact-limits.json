@@ -6,7 +6,7 @@
   "coarse-iso.dxf": "4d73cf506c77b83b1693f08f10812becc0c67ba0f0ad5600a81fd0add3e947b2",
   "coarse-iso.dims": "ce7c93b20bb6a99306d29c2e0166a00c5bf9e2be1d27e6f69bee1c0c37e230b2",
   "coarse-asme.svg": "8d28d5cf0a0bb3e2190583c372368aa66277768759fcdbbbefec04e9b1bed507",
-  "coarse-asme.dxf": "d875bdab1dbd55a2d829762ae4e887af764f4ecfe31beee1a780acfdc835160a",
+  "coarse-asme.dxf": "0671a9f6acbb604fa39206ca7930b2d84ada583b5fa4f6a7f485b098ad04bbbd",
   "coarse-asme.dims": "ce7c93b20bb6a99306d29c2e0166a00c5bf9e2be1d27e6f69bee1c0c37e230b2",
   "plain.svg": "be1caf8c1a90532c427bbdda411adbc7bc841b07dae61ec0e849abee49c5b383",
   "plain.dxf": "173b2875dd219011e8b2b57684afff65b3bdb5f0401f1923b8778fe8493aba27",
@@ -15,6 +15,6 @@
   "iso.dxf": "2c0e7c7582d79f3abc28092e55b012b9802adfb82d15435cf32ce5b3f0f8f495",
   "iso.dims": "d77e690d4a09a4d45384513c1eca9edae649693b259948f43fbbed105d7cd5d2",
   "asme.svg": "eb6737d5fbc62dfc99eadd8133a4396f785a21a05442445736fed1dc06d9a528",
-  "asme.dxf": "f52fad250a9de126eaf55a37b74ae708042cc6fd3cc1c40bdce7422c18806c79",
+  "asme.dxf": "d36379ac4e39c1c71867e1591599e474f761aa40f6fb5341b4d1e3e92b4963a9",
   "asme.dims": "d77e690d4a09a4d45384513c1eca9edae649693b259948f43fbbed105d7cd5d2"
 }

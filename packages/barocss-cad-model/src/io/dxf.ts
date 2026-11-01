@@ -141,7 +141,7 @@ export function sheetDxfDocument(sheet: Sheet, layout: SheetLayout, version: Dxf
     if (g.datumTarget) for (let k = first; k < entities.length; k++) entities[k] = inTurn(entities[k]);
   }
   const phantom = [...title, ...entities].some(e => 'layer' in e && e.layer === 'PHANTOM');
-  return { units: 'mm', linetypes: phantom ? [...DXF_LINETYPES, PHANTOM_LINETYPE] : DXF_LINETYPES, layers: phantom ? [...DXF_LAYERS, PHANTOM_LAYER] : DXF_LAYERS, styles: STYLES, blocks: [{ name: 'TITLE_BLOCK', base: [0, 0], entities: title }], entities: [{ type: 'insert', block: 'TITLE_BLOCK', at: [0, 0] }, ...entities] };
+  return { units: 'mm', ...(sheet.standard === 'asme' ? { dimensionStyle: { textHeight: 3, textPlacement: 'center' as const, textOrientation: 'horizontal' as const } } : {}), linetypes: phantom ? [...DXF_LINETYPES, PHANTOM_LINETYPE] : DXF_LINETYPES, layers: phantom ? [...DXF_LAYERS, PHANTOM_LAYER] : DXF_LAYERS, styles: STYLES, blocks: [{ name: 'TITLE_BLOCK', base: [0, 0], entities: title }], entities: [{ type: 'insert', block: 'TITLE_BLOCK', at: [0, 0] }, ...entities] };
 }
 
 /** The sheet as a DXF file (AC1015 by default; R12 with its curves as polylines within 0.001 mm of the paper). */

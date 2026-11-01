@@ -17999,7 +17999,7 @@ The preset is passed explicitly everywhere. It is exposed as a Studio select and
 **Verification.** Model 2460/2460; Studio 623/623; chat/drawing tests 298/298 after the final description edit. Actual run03 PASS.
 
 **Follow-ups.**
-- The DXF DIMSTYLE header.
+- The DXF DIMSTYLE header (ASME height/placement/orientation defaults closed at the bounded D414 profile; editable unit regeneration remains separate).
 - Under ASME, the 2.5 mm fixed ordinary texts fall below the recorded 3 mm minimum (closed at the bounded D409 profile; title-block/internal glyph limits remain).
 - Inch and dual dimensions (11③b).
 
@@ -18259,3 +18259,15 @@ Transitions synchronously retire generation/queues/timers/drag/previewFor/pendin
 **FAIL retained.** Baseline finish commit1, expanded old-hook control4FAIL/1PASS, initial missing stdin TS loader and stale test API while faces pending. Actual run01 whole FAIL: clicking selected mate after Open closed its editor; distance locator timed out. Driver-only correction, only failed phase+prerequisite rerun. No clean whole-flow claim. **NOT_RUN.** Actual Lock cycle/pending-face race (focused only), general closed-loop physics/geometry, Save/outbound exports, broad baseline/kernel suites, CI/release. OCP remains absent; no large evidence committed.
 
 **Preflights/issues/next.** U3 standard offline add lucide-react@1.52.0 failed ERR_PNPM_NO_OFFLINE_META, downloaded0/trackedChanges0; fresh network permission pending. D398 source assessment found existing view reflow and explicit Auto optimization, not an accuracy defect; unchanged. #538 remains incomplete backlog epic; #2180 already closed research, no dedicated closable cycle issue found. Next D414 assesses registered drawing DXF-header mismatch; U3 permission and production/motion/external-SDK holds remain.
+
+## D414 — Explicit DXF dimension-style defaults, ASME propagation; full (2026-11-01)
+
+[Report](notes/dxf-dimension-style-2026-11-01/README.md), [commands/counts](notes/dxf-dimension-style-2026-11-01/qualification.json). Registered D396/D397 header follow-up under11/13/16. Sol Medium implementation and independent design/source/mutation review; full tier for additive public fields.
+
+**Reproduced.** Existing cached ezdxf1.4.5 read18files/36dimensions with0audit errors/fixes, but6ASME DIMSTYLE heights stayed3.5 while anonymous blocks already used3mm. This is editable/regeneration-default metadata, not a current text-render failure. Optional DxfDocument.dimensionStyle has3required fields when supplied: finite-positive drawing-unit height, above/center placement, aligned/horizontal orientation; existing BAD_ENTITY validates them. Both writers map140/77/73/74. Transient Sheet.standard carries the source preset; onlyASME supplies3/center/horizontal. Omitted style and plain/ISO bytes stay unchanged. No entity/block/label/report/geometry/tolerance or dimensionEntity formatter change. Coordinates remainmm; editable inch/dual/precision regeneration remains open.
+
+**PASS.**22unique focused (Kernel4new+11writer;Model3new+3DXF+1golden), freshKernelbuild, Kernel/Model post-test types, Studio consumer types, lint/syntax/PythonAST/diff. Golden2ASME-DXF keys changed intentionally,16entries unchanged inclallSVG/resolveddimensions; subsequent normal checkPASS. Independent final18files/36dims:0mismatch/error/fix;12plainISO byte-identical,6ASME four-style-fields only. Design and final source audits ACCEPT; mutationbaseline7/7,14/14 assertion-killed,0survivor/crash/unmatched. API0names added/removed,2optional shapes changed; ConstraintKind same9literal union ordering only. Docs68pages/55shots/939labels. Actualrun01 ASME/ISO/exactUndoRedo/inch/dual and unchanged geometryPASS;6actual snapshots→frozenModelproducer→12DXF/24dims independently read, labels matchDOM.751frozen unchanged,2root-reviewed images,0errors/console errors/downloads/source changes; resources closed/gate released.
+
+**FAIL/history.**6pre-fix metadata mismatches retained; no unexpected source/harness/actual failures and no failing golden recast. **NOT_RUN.** Actual ExportDXF/download/Save, external regeneration/generalroundtrip, unit-regeneration/short-arrow/dual-fit overhaul, fullbaseline/kernel suites(noB-repcorechange), generalASME/R12 certification,CI/release. Existing ezdxf cache preserved with-I-B/no bytecode writes; no install/download, OCP remains removed. Only numeric records/source/tests/docs committed.
+
+**Issues/next.** #540 remains an incomplete backlog epic, no dedicated closable DXF issue found. D396 ASME header defaults are closed at this profile; D397 editable display-unit regeneration remains a limit. Owner explicitly approved Lucide1.52.0 download/install during D414; approval remains unused. Next D415 ownerU3 StudioUI Lucide migration; other holds unchanged.

@@ -75,8 +75,12 @@ table and BOM text, and weld text. Their spacing and layout use the same text he
 and glyphs inside symbols retain their own sizes; this preset does not certify a complete drawing against ASME.
 
 The ASME advice on concentricity and symmetry is a warning in **Drawing issues**, never a refusal: the frame can still be
-authored and an old one opens unchanged. The DXF dimension style keeps its general defaults; each dimension's own drawing
-carries the standard's text height and arrowheads.
+authored and an old one opens unchanged. In AutoCAD 2000 and R12 DXF, the ASME dimension style also records
+3 mm text, centered placement and horizontal orientation. Each dimension's own drawing keeps its text height,
+arrowheads and placement. Plain and ISO dimension-style defaults stay unchanged. These style fields guide an
+external reader's defaults; they do not guarantee the same layout after that reader regenerates a dimension.
+DXF sheet coordinates stay in mm, including inch and dual display. The printed labels carry those display units;
+editable dimension-unit regeneration is a separate limitation.
 
 ### Units: inch and dual dimensions
 
