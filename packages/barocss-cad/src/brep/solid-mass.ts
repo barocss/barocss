@@ -142,7 +142,15 @@ export function brepSurfaceArea(brep: Brep, options: { readonly segmentsPerQuart
 export function brepMassProperties(brep: Brep, density: number, options: { readonly segmentsPerQuarter?: number; readonly quadratureSegments?: number } = {}): MassProperties {
   assertBoundaryBindings(brep);
   const poly = polyhedralIntegrals(brep);
-  if (poly && poly[0] > 0) return solidMassFromIntegrals(poly, density, 'planar-exact');
+  if (poly && poly[0] > 0) {
+    const local = polyhedralFrames.get(poly);
+    if (!local || local.origin[0] === 0 && local.origin[1] === 0 && local.origin[2] === 0) return solidMassFromIntegrals(poly, density, 'planar-exact');
+    const props = solidMassFromIntegrals(local.integrals, density, 'planar-exact');
+    // The tensor is already centroidal. Restore only the centroid, without rebuilding large world raw moments.
+    const result: MassProperties = { ...props, centroid: [props.centroid[0] + local.origin[0], props.centroid[1] + local.origin[1], props.centroid[2] + local.origin[2]] };
+    transferNativeMassBasis(props, result);
+    return result;
+  }
   const curved = brep.faces.some(f => f.surface.kind === 'surface' && (f.surface.degreeU > 1 || f.surface.degreeV > 1));
   const q = options.quadratureSegments ?? 8;
   if (curved && q > 0) {
@@ -207,6 +215,8 @@ export function combineMassProperties(parts: readonly { readonly props: MassProp
 
 /** Each B-rep's polyhedral integrals (null: not polyhedral), worked out once: a B-rep is a value. */
 const polyhedral = new WeakMap<Brep, readonly number[] | null>();
+/** The public raw array remains in world coordinates; mass also keeps its pre-reconstruction frame privately. */
+const polyhedralFrames = new WeakMap<readonly number[], { readonly integrals: readonly number[]; readonly origin: Point }>();
 /**
  * The ten volume integrals and the area (eleventh) of a body whose every face is a facet patch or a planar face
  * bounded by straight edges, exactly and without a tessellation: tetrahedra from the body's centre over each
@@ -253,7 +263,9 @@ function polyhedralOf(brep: Brep): readonly number[] | null {
     for (let k = 0; k < 10; k++) I[k] += J[k];
     I[10] += area2 / 2;
   }
-  return fromCentreAt(I, o);
+  const world = fromCentreAt(I, o);
+  polyhedralFrames.set(world, { integrals: I, origin: o });
+  return world;
 }
 const faceScratch = new Float64Array(10);
 /** One fan triangle's cone from the centre (a, b, c about it) added to the ten integrals; its doubled area along n, signed. */

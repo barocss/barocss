@@ -1,0 +1,781 @@
+{
+  "work_id": "D433",
+  "artifact_type": "planar-inertia-conditioning",
+  "status": "QUALIFIED_BOUNDED_POLYHEDRAL_CENTROIDAL_MASS",
+  "owner_role": "executor",
+  "source_request": "Continue autonomously; fix reproduced accuracy defects before further roadmap work",
+  "last_updated": "2026-11-02",
+  "rows": [
+    13,
+    16
+  ],
+  "overallPercent": 43,
+  "sourceCheckpoint": "4544fe6dc4f694eba09b0de46420c27e93bfc222",
+  "tier": "full: native mass geometry arithmetic; independent audits, physical mutations and full B-rep suite required after source correction",
+  "models": {
+    "sourceAuthor": "GPT-6.1 Sol High",
+    "independentMathReview": "GPT-6.1 Sol High",
+    "actualDriver": "GPT-6.1 Sol Medium"
+  },
+  "finding": {
+    "preparationReceiptSha256": "817be16f704b2b5ef11fca9a18b7a9406275d3dd61881762b1a5ec28e18c1d55",
+    "fixture": {
+      "file": "/tmp/barocss-d433-probe/fixture-run01/far-native-edge-box.step",
+      "bytes": 7241,
+      "sha256": "9721f6ab371e723fab012421a398656056c0047a4c6fcb2d928998f7d39f94c1"
+    },
+    "validBrep": true,
+    "topology": {
+      "bodies": 1,
+      "shells": 1,
+      "faces": 6,
+      "loops": 6,
+      "coedges": 24,
+      "edges": 12,
+      "vertices": 8
+    },
+    "maxBoundaryGaps": 0,
+    "representedSpans": [
+      0.001999999978579581,
+      0.001999999978579581,
+      0.001999999978579581
+    ],
+    "recordedMassAtDensity1": {
+      "volume": 7.999999742954973e-09,
+      "mass": 7.999999742954974e-12,
+      "centroid": [
+        999000.0000000001,
+        -997999.9999999999,
+        996999.9999999999
+      ],
+      "method": "planar-exact",
+      "inertia": [
+        [
+          3.637978807091713e-15,
+          0,
+          9.094947017729283e-16
+        ],
+        [
+          0,
+          -1.8189894035458565e-15,
+          1.8189894035458565e-15
+        ],
+        [
+          9.094947017729283e-16,
+          1.8189894035458565e-15,
+          0
+        ]
+      ]
+    },
+    "densityUnits": "g/cm^3; one density unit gives 0.001g/mm^3",
+    "inertiaUnits": "g*mm^2 about centroid",
+    "representedAxisBoxReferenceDiagonals": [
+      5.333333047727751e-18,
+      5.333333047727751e-18,
+      5.333333047727751e-18
+    ],
+    "referenceScope": "Initial independent axis-box closed-form check using represented spans and recorded mass; final error contract pending independent preflight",
+    "defect": "A negative central inertia diagonal and large residual moments for a valid nonzero-density axis box; negative off-diagonal signs alone are not a defect."
+  },
+  "checks": {
+    "localFixturePreparation": "PASS_NATIVE_GENERATE_EXPORT_IMPORT_CHECK_BREP;NO_PRODUCT_FIX",
+    "source": "PASS_BOUNDED_POSITIVE_POLYHEDRAL_BRANCH",
+    "focused": {
+      "status": "PASS",
+      "new": 14,
+      "existing": 35,
+      "pass": 49,
+      "fail": 0,
+      "skip": 0
+    },
+    "independent": {
+      "preflight": "PASS_REPRODUCED_ACCURACY_DEFECT_AND_BOUNDED_REPAIR",
+      "reviewSha256": "f18e0148d4c9f4171120eea711694176dd4b5a6e2ba6408d7bd04ac69a5952c5",
+      "physicalOracleSha256": "01bb65efab99beb99d3479be2635714b61b1148384077f228724440bdd5c039f",
+      "candidate": "PASS_9_PHYSICAL_CACHE_RAW_API_SI_CHECKS_AND_SOURCE_REVIEW",
+      "receiptSha256": "94c2cb71b5a8762004aaa7cd90a7d1a6b625409d7eb14f7bf2253a222ce54932",
+      "finalReviewSha256": "9898b986f171d50cc013cb15f4e93b1c952d17a0cd7e0bb8478b026af795539e"
+    },
+    "mutation": {
+      "status": "PASS_4_CLEAN_ASSERTION_KILLS",
+      "physical": 3,
+      "SIProvenance": 1,
+      "crashes": 0,
+      "survivors": 0,
+      "outcomes": {
+        "worldCentralize": {
+          "pass": 5,
+          "fail": 4
+        },
+        "missingCentroidRestore": {
+          "pass": 6,
+          "fail": 3
+        },
+        "zeroMixedProducts": {
+          "pass": 8,
+          "fail": 1
+        },
+        "missingSIBasisTransfer": {
+          "pass": 8,
+          "fail": 1
+        }
+      }
+    },
+    "typesAndBuild": "PASS_CAD_BUILD_TYPES_SCOPED_LINT_CODE_SHAPE",
+    "fullKernel": {
+      "status": "PASS_WITH_2_EXISTING_SKIPS",
+      "tests": 2068,
+      "pass": 2066,
+      "fail": 0,
+      "skip": 2,
+      "skipRecords": [
+        "D150 survey (GEAR_SURVEY=1): the whole 16/20 pair at 3\u00b0, 4\u00b0, 5\u00b0, 6\u00b0 and 9\u00b0 off \u2014 each intersection valid, growing with the phase # SKIP",
+        "D152 survey (GEAR_SURVEY=1): the whole 16/20 pair at 4\u00b0 and 6\u00b0 \u2014 48 and 57 edges (were 766 and 809) # SKIP"
+      ],
+      "seconds": 952.289,
+      "tapSha256": "e7d52d4f3e065a763964147bca22d0ac6d085f458f86bdc13f231abf4b554b48",
+      "scope": "Current full B-rep source run; not an explanation or erasure of D423 historical failure cause"
+    },
+    "actualStudio": {
+      "status": "PASS_3_BOUNDED_PLANAR_BOX_PROFILES",
+      "independentActual": "PASS_EXACT_RATIONAL_NATIVE_MODEL_AND_UI_ACK",
+      "receiptSha256": "972e67b1562d8d47f18346d2419c9ee84ad784c788e4c24de1b175cc6d7fb1a4",
+      "consumerSummarySha256": "5f4365996a6caa000356c8e36823381d4bdb11de3c1a1a0aa816fe730ad69106",
+      "profiles": [
+        {
+          "label": "01-far-box",
+          "fields": {
+            "volume": 7.999999742954973e-09,
+            "mass": 2.1599999305978433e-11,
+            "area": 2.399999948590994e-05,
+            "centroid": [
+              998999.9999999999,
+              -998000.0000000001,
+              996999.9999999999
+            ],
+            "inertia": [
+              [
+                1.4399999228864926e-17,
+                -2.600668440940434e-35,
+                -2.6006699481892815e-35
+              ],
+              [
+                -2.600668440940434e-35,
+                1.4399999228864926e-17,
+                -2.600670741647968e-35
+              ],
+              [
+                -2.6006699481892815e-35,
+                -2.600670741647968e-35,
+                1.4399999228864926e-17
+              ]
+            ],
+            "areaBasis": "exact",
+            "volumeBasis": null
+          },
+          "checks": {
+            "accepted": {
+              "pass": true,
+              "issues": [],
+              "numericComparisons": 15,
+              "maxInertiaError": 2.600670741647968e-35,
+              "inertiaBudget": 1.3096723004186903e-29,
+              "maxCentroidError": 1.1641532182693481e-10,
+              "maxBudgetRatio": 0.39999750001565165,
+              "symmetryErrors": [
+                0,
+                0,
+                0
+              ],
+              "principalMinors": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            },
+            "eager": {
+              "pass": true,
+              "issues": [],
+              "numericComparisons": 15,
+              "maxInertiaError": 2.600670741647968e-35,
+              "inertiaBudget": 1.3096723004186903e-29,
+              "maxCentroidError": 1.1641532182693481e-10,
+              "maxBudgetRatio": 0.39999750001565165,
+              "symmetryErrors": [
+                0,
+                0,
+                0
+              ],
+              "principalMinors": [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+              ]
+            }
+          },
+          "display": {
+            "moments": "1.44e-17 \u00b7 1.44e-17 \u00b7 1.44e-17",
+            "products": "0 \u00b7 0 \u00b7 0"
+          },
+          "material": "al6061",
+          "documentUnchanged": true,
+          "nativeArraysUnchanged": true,
+          "matchedDeferredPatch": true,
+          "nativeTypes": {
+            "positions": "Float64Array",
+            "edgeLines": "Float64Array"
+          },
+          "faces": 6,
+          "edges": 12
+        },
+        {
+          "label": "02-centered-box",
+          "fields": {
+            "volume": 7.999999742954972e-09,
+            "mass": 2.1599999305978423e-11,
+            "area": 2.399999948590994e-05,
+            "centroid": [
+              0,
+              0,
+              0
+            ],
+            "inertia": [
+              [
+                1.4399999228864926e-17,
+                0,
+                0
+              ],
+              [
+                0,
+                1.4399999228864926e-17,
+                0
+              ],
+              [
+                0,
+                0,
+                1.4399999228864923e-17
+              ]
+            ],
+            "areaBasis": "exact",
+            "volumeBasis": null
+          },
+          "checks": {
+            "accepted": {
+              "pass": true,
+              "issues": [],
+              "numericComparisons": 15,
+              "maxInertiaError": 3.0814879110195774e-33,
+              "inertiaBudget": 1.3096723004186903e-29,
+              "maxCentroidError": 0,
+              "maxBudgetRatio": 0.00023525926567607804,
+              "symmetryErrors": [
+                0,
+                0,
+                0
+              ],
+              "principalMinors": [
+                1,
+                1,
+                0.9999999999999998,
+                1,
+                0.9999999999999998,
+                0.9999999999999998,
+                0.9999999999999998
+              ]
+            },
+            "eager": {
+              "pass": true,
+              "issues": [],
+              "numericComparisons": 15,
+              "maxInertiaError": 3.0814879110195774e-33,
+              "inertiaBudget": 1.3096723004186903e-29,
+              "maxCentroidError": 0,
+              "maxBudgetRatio": 0.00023525926567607804,
+              "symmetryErrors": [
+                0,
+                0,
+                0
+              ],
+              "principalMinors": [
+                1,
+                1,
+                0.9999999999999998,
+                1,
+                0.9999999999999998,
+                0.9999999999999998,
+                0.9999999999999998
+              ]
+            }
+          },
+          "display": {
+            "moments": "1.44e-17 \u00b7 1.44e-17 \u00b7 1.44e-17",
+            "products": "0 \u00b7 0 \u00b7 0"
+          },
+          "material": "al6061",
+          "documentUnchanged": true,
+          "nativeArraysUnchanged": true,
+          "matchedDeferredPatch": true,
+          "nativeTypes": {
+            "positions": "Float64Array",
+            "edgeLines": "Float64Array"
+          },
+          "faces": 6,
+          "edges": 12
+        },
+        {
+          "label": "03-new-ordinary-box",
+          "fields": {
+            "volume": 2160,
+            "mass": 5.832,
+            "area": 1224,
+            "centroid": [
+              15.000000000000004,
+              6,
+              3
+            ],
+            "inertia": [
+              [
+                87.48000000000009,
+                7.8580342233181e-14,
+                3.92901711165905e-14
+              ],
+              [
+                7.8580342233181e-14,
+                454.89599999999973,
+                0
+              ],
+              [
+                3.92901711165905e-14,
+                0,
+                507.3839999999998
+              ]
+            ],
+            "areaBasis": "exact",
+            "volumeBasis": null
+          },
+          "checks": {
+            "accepted": {
+              "pass": true,
+              "issues": [],
+              "numericComparisons": 15,
+              "maxInertiaError": 2.8421709430404007e-13,
+              "inertiaBudget": 4.6146305976435543e-10,
+              "maxCentroidError": 3.552713678800501e-15,
+              "maxBudgetRatio": 0.0006158663934519114,
+              "symmetryErrors": [
+                0,
+                0,
+                0
+              ],
+              "principalMinors": [
+                0.17241379310344845,
+                0.8965517241379305,
+                0.9999999999999996,
+                0.15457788347205714,
+                0.17241379310344837,
+                0.89655172413793,
+                0.15457788347205706
+              ]
+            }
+          },
+          "display": {
+            "moments": "87.5 \u00b7 455 \u00b7 507",
+            "products": "0 \u00b7 0 \u00b7 0"
+          },
+          "material": "al6061",
+          "documentUnchanged": true,
+          "nativeArraysUnchanged": true,
+          "matchedDeferredPatch": true,
+          "nativeTypes": {
+            "positions": "Float64Array",
+            "edgeLines": "Float64Array"
+          },
+          "faces": 6,
+          "edges": 12
+        }
+      ],
+      "profilesCount": 3,
+      "eagerMassStates": 2,
+      "acceptedMassStates": 3,
+      "scalarComparisons": 75,
+      "tensorEntries": 45,
+      "DOMTensorLabels": 18,
+      "sourceFrozenCount": 763,
+      "sourceAfterCount": 763,
+      "sourceAfterCleanupCount": 763,
+      "capsulesEqual": true,
+      "errors": 0,
+      "consoleErrors": 0,
+      "changes": 0,
+      "downloads": 0,
+      "runtimeResponseBodies": 144,
+      "runtimeMissing": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "gate": "GLOBAL_IDLE_PRE;SOLE_OWN_POST_LOAD8.74_LT40;RELEASED",
+      "rootVisualReview": "VIEWED_ALL_3_PROPERTIES_SCREENSHOTS;FAR_VISUAL_BLANK_NOT_QUALIFIED_AS_RASTER_FIX",
+      "independentActualAuditSha256": "f6de793263fbdc8e6a5b609087cf96e26bb2a4be2b8cbdd0fde3f4a143e83ca2",
+      "independentActualReviewSha256": "02a206ea5c7b284fcd9d1a786d32f27a984bbff2106b972982eb8766f3f04aec",
+      "independentExactRationalProfiles": [
+        {
+          "profile": "far",
+          "native8CornerIdentity": true,
+          "sourceMappedIdsAnd12CompoundNames": true,
+          "protocolMatchedAndAdopted": true,
+          "nativeSIPhysicalUnitsPass": true,
+          "states": {
+            "accepted": {
+              "all15Pass": true,
+              "maxInertiaExactRationalError": 3.904111918261079e-34,
+              "maxCentroidExactRationalError": 5.820766091346741e-11,
+              "inertiaBudget": 1.3096723004186903e-29,
+              "minNormalizedPrincipalMinor": 1.0
+            },
+            "eager": {
+              "all15Pass": true,
+              "maxInertiaExactRationalError": 3.904111918261079e-34,
+              "maxCentroidExactRationalError": 5.820766091346741e-11,
+              "inertiaBudget": 1.3096723004186903e-29,
+              "minNormalizedPrincipalMinor": 1.0
+            }
+          },
+          "ui6LabelsPass": true,
+          "docAndNativeArraysUnchanged": true
+        },
+        {
+          "profile": "center",
+          "native8CornerIdentity": true,
+          "sourceMappedIdsAnd12CompoundNames": true,
+          "protocolMatchedAndAdopted": true,
+          "nativeSIPhysicalUnitsPass": true,
+          "states": {
+            "accepted": {
+              "all15Pass": true,
+              "maxInertiaExactRationalError": 2.6910767191934694e-33,
+              "maxCentroidExactRationalError": 0.0,
+              "inertiaBudget": 1.3096723004186903e-29,
+              "minNormalizedPrincipalMinor": 0.9999999999999998
+            },
+            "eager": {
+              "all15Pass": true,
+              "maxInertiaExactRationalError": 2.6910767191934694e-33,
+              "maxCentroidExactRationalError": 0.0,
+              "inertiaBudget": 1.3096723004186903e-29,
+              "minNormalizedPrincipalMinor": 0.9999999999999998
+            }
+          },
+          "ui6LabelsPass": true,
+          "docAndNativeArraysUnchanged": true
+        },
+        {
+          "profile": "ordinary",
+          "native8CornerIdentity": true,
+          "sourceMappedIdsAnd12CompoundNames": true,
+          "protocolMatchedAndAdopted": true,
+          "nativeSIPhysicalUnitsPass": true,
+          "states": {
+            "accepted": {
+              "all15Pass": true,
+              "maxInertiaExactRationalError": 2.991384917550022e-13,
+              "maxCentroidExactRationalError": 3.552713678800501e-15,
+              "inertiaBudget": 4.6146305976435543e-10,
+              "minNormalizedPrincipalMinor": 0.15457788347205706
+            }
+          },
+          "ui6LabelsPass": true,
+          "docAndNativeArraysUnchanged": true
+        }
+      ],
+      "driverComparisonReference": "Rounded exact-Fraction reference with explicit half-ULP reserve; independent exact-rational errors are recorded separately above."
+    },
+    "finalModelAndDriver": {
+      "status": "PASS",
+      "command": "/tmp/barocss-d433-root-checks/run.sh",
+      "scope": "targeted mass wire/deferred/longitudinal tests; driver syntax/stdin lint; final cad-model tsc after last test/driver edit",
+      "gpuAndStudioTypes": "Reuse D432 PASS: no GPU/Studio or exported type/API change",
+      "targetedTests": {
+        "pass": 7,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    "actualPreflight01": {
+      "status": "NOT_RUN_BEFORE_BROWSER_OR_GATE",
+      "recordSha256": "385b67d8fcd2d2a9c83a40df06b968f7aee3e6cb768d4dc589c898f00535ff2b",
+      "reason": "Initial independent native BRep used default step namespace; product import uses feature namespace n0 and prefixes each face/edge alias via part-mesh.ts27/33-34. Root source review requested this precheck before execution.",
+      "repair": "Keep original native identity and add exact source-derived product identity mapping; pin producer source; no source/helper/tolerance change. Final driver and Model type recheck required before actual.",
+      "repairStatus": "PASS_INDEPENDENT_EXACT_MAPPING_ACK_BEFORE_ANY_BROWSER; original39pins preserved; driver/helper/numeric budgets unchanged"
+    },
+    "finalRecheckAfterMapping": {
+      "status": "PASS",
+      "command": "/tmp/barocss-d433-root-recheck/run.sh",
+      "scope": "Unchanged driver syntax/stdin lint and final cad-model tsc after mapped-case finalization; no accepted test rerun"
+    },
+    "GPUAndGL": "NOT_RUN_D433_MASS_ONLY; prior D432 far raster/GPU pick FAIL retained; no new GPU rendering/picking/edge quality claim",
+    "navigation": "PASS_34_ROWS_2430_LOCAL_LINKS_0_NEW_BROKEN_ARCHIVES_UNCHANGED"
+  },
+  "priorityChange": "GPU relative-frame design began read-only, with no product edits or heavy build/browser. The locally authored nonempty-edge box exposed this prior native accuracy defect. Preserve GPU design scratch for the next item and fix this defect first.",
+  "limits": [
+    "No clamping negative moments or changing geometry tolerances to hide cancellation.",
+    "No nominal-dimension exactness claim: source coordinates are already represented binary64 values.",
+    "Existing far GPU raster/hardware picking remain FAIL; this item does not repair them.",
+    "No new dependency/download/OCP/develop integration/release.",
+    "Only the positive polyhedral branch is corrected: straight-edged planar/facet bodies admitted by polyhedralIntegrals. An unchanged fallback may also report method planar-exact; that label alone is not precision admission.",
+    "Exported world-raw integral arrays and solidMassFromIntegrals retain their input conditioning limits. No general recovery of already lost world-moment digits is claimed."
+  ],
+  "selectedDesign": "Keep exported polyhedralIntegrals world-raw array/cache and area semantics. Privately retain its already computed local moments/reference; centralize there, restore only world centroid and transfer native-SI basis. Preserve zero-origin legacy arithmetic, curved quadrature and fallback. No clamping, density or tolerance change.",
+  "centeredControl": {
+    "stepSha256": "3b912136a32a47c35493392e32f28d847ac0c4bb4e5e8c1b339cf0d6f232b5cb",
+    "receiptSha256": "b94cd6c98c0ec083e34dc2e22057529a70d779c9b813772b910341c026b6d65e",
+    "representedSpansBitExactEqualToFar": true,
+    "validBrep": true,
+    "positiveInitialDensity1Diagonals": [
+      5.3333330477277496e-18,
+      5.3333330477277496e-18,
+      5.3333330477277496e-18
+    ],
+    "scope": "Locally generated center control only; no correction or actual Studio proof yet"
+  },
+  "predeclaredActualContract": {
+    "helperSha256": "7877ac86f4d9c6b182af905d215f9586e4a0fae2b699eba80109f4d5bbfb292a",
+    "exactRationalOracleSha256": "7463c9e38ebe792b188fa80beef516739bfe65923b7cb06fad1ea4b26185e883",
+    "oracleScope": "Exact Fraction arithmetic from represented binary64 orthotope corners and densities1/2.7, not nominal far dimensions or production integrator",
+    "budget": "4096*EPS times each local physical scale, plus explicit half-ULP rounded-oracle reserve; absolute mixed-moment reserve at zero; centroid2worldULP+local reserve",
+    "farDensity2point7Bounds": {
+      "tensorPerEntry": 1.3096723004e-29,
+      "area": 2.1827872375e-17,
+      "mass": 1.9645084927e-23
+    },
+    "admission": "Actual native corner/topology match required; finite symmetric strictly positive principal minors. GPU precision not qualified by this mass check."
+  },
+  "actualProfilesPlanned": [
+    {
+      "profile": "far-axis-box",
+      "input": "original local STEP 9721f6ab...",
+      "purpose": "Correct original impossible centered tensor; far raster remains separate FAIL"
+    },
+    {
+      "profile": "center-axis-box",
+      "input": "local STEP 3b912136...",
+      "purpose": "Identical represented spans at center; independent mass/tensor positive control"
+    },
+    {
+      "profile": "ordinary-axis-box",
+      "input": "apps/cad-studio/test/fixtures/bracket.bcad",
+      "purpose": "NEW simple30x12x6 ordinary mass control; not D429 historical holed64x32x8 bracket",
+      "preAdmission": "PASS_OFFLINE_ONLY; receipt SHA256 fed28c1d27c62fea39f28f85552a811f0d1c2292473d25dcc1cb2929327d1782"
+    }
+  ],
+  "sourceHashes": {
+    "packages/barocss-cad/src/brep/solid-mass.ts": "886065c7e0113dca015f78cc91eac900d427cddbcdc30ed045d9a33364457c70",
+    "packages/barocss-cad/test/planar-inertia-conditioning.test.mjs": "6397de48e39146c3a532cd9a1ccc3d8ed74cbc0a9a17df7831825ce4737c0f20"
+  },
+  "preFixFocused": {
+    "tests": 14,
+    "pass": 4,
+    "fail": 10,
+    "failureClass": "ALL_CLEAN_PHYSICAL_ERR_ASSERTION",
+    "oldSourceDistProvenance": "COMPILED_OLD_TS_IDENTICAL_TO_EXISTING_DIST"
+  },
+  "authorCommands": [
+    {
+      "name": "baseline-provenance",
+      "command": [
+        "node",
+        "/tmp/barocss-d433-author/baseline-provenance.cjs"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "elapsedSeconds": 0.186,
+      "log": "/tmp/barocss-d433-author/baseline-provenance.log",
+      "firstFailure": null,
+      "stoppedOnFirstUnexpectedFailure": false
+    },
+    {
+      "name": "pre-fix",
+      "command": [
+        "node",
+        "--test",
+        "--test-concurrency=1",
+        "test/planar-inertia-conditioning.test.mjs"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "elapsedSeconds": 0.322,
+      "log": "/tmp/barocss-d433-author/pre-fix.log",
+      "firstFailure": null,
+      "stoppedOnFirstUnexpectedFailure": false
+    },
+    {
+      "name": "cad-build",
+      "command": [
+        "pnpm",
+        "build:library"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "elapsedSeconds": 8.169,
+      "log": "/tmp/barocss-d433-author/cad-build.log",
+      "firstFailure": null,
+      "stoppedOnFirstUnexpectedFailure": false
+    },
+    {
+      "name": "ordinary-admission",
+      "command": [
+        "node",
+        "/tmp/barocss-d433-probe/ordinary-admission.mjs"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "elapsedSeconds": 0.461,
+      "log": "/tmp/barocss-d433-author/ordinary-admission.log",
+      "firstFailure": null,
+      "stoppedOnFirstUnexpectedFailure": false
+    },
+    {
+      "name": "focused",
+      "command": [
+        "node",
+        "--test",
+        "--test-concurrency=1",
+        "test/planar-inertia-conditioning.test.mjs",
+        "test/mass-polyhedral.test.mjs",
+        "test/brep-mass-translation.test.mjs",
+        "test/native-si-boundary.test.mjs",
+        "test/mass-tessellated-bound.test.mjs",
+        "test/api-part.test.mjs"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "elapsedSeconds": 5.5,
+      "log": "/tmp/barocss-d433-author/focused.log",
+      "firstFailure": null,
+      "stoppedOnFirstUnexpectedFailure": false
+    },
+    {
+      "name": "cad-types",
+      "command": [
+        "pnpm",
+        "type-check"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "elapsedSeconds": 6.043,
+      "log": "/tmp/barocss-d433-author/cad-types.log",
+      "firstFailure": null,
+      "stoppedOnFirstUnexpectedFailure": false
+    },
+    {
+      "name": "lint",
+      "command": [
+        "pnpm",
+        "exec",
+        "eslint",
+        "src/brep/solid-mass.ts",
+        "test/planar-inertia-conditioning.test.mjs"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "elapsedSeconds": 1.053,
+      "log": "/tmp/barocss-d433-author/lint.log",
+      "firstFailure": null,
+      "stoppedOnFirstUnexpectedFailure": false
+    },
+    {
+      "name": "code-shape",
+      "command": [
+        "node",
+        "scripts/code-shape.mjs",
+        "--check"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "elapsedSeconds": 0.459,
+      "log": "/tmp/barocss-d433-author/code-shape.log",
+      "firstFailure": null,
+      "stoppedOnFirstUnexpectedFailure": false
+    },
+    {
+      "name": "full-kernel",
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "elapsedSeconds": 952.289,
+      "log": "/tmp/barocss-d433-author/full-kernel.log",
+      "firstFailure": null,
+      "stoppedOnFirstUnexpectedFailure": false,
+      "expandedCommandManifest": {
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad",
+        "shellEquivalent": "node --test --test-concurrency=1 test/*.test.mjs",
+        "expandedCommandSha256": "e1d4f482b1632a20b880a9bd60180bf6eba498ae78354cf276683c4cfc0c043c",
+        "testFiles": 284,
+        "rawExpandedCommandLocation": "/tmp/barocss-d433-author/full-kernel-command.json"
+      }
+    }
+  ],
+  "baselineProvenance": {
+    "sourceSha256": "8f87d33be2716bfc259a658ab409de302240a7f025c1ce416468aa05b526749a",
+    "compiledSha256": "be4a7eb2cce466004cffcd1db8d08ddc61d2535559908697a268c7ae00f23135",
+    "distSha256": "be4a7eb2cce466004cffcd1db8d08ddc61d2535559908697a268c7ae00f23135",
+    "identical": true,
+    "node": "v22.19.0",
+    "typescript": "5.9.3"
+  },
+  "authorReceiptSha256": "f0fce548575169a2c418b2ef8a33ae3a0c5706de5a2b099cf838850bdd40277c",
+  "sourceCertificate": {
+    "status": "PASS_12_UNCHANGED_DECLARATIONS_AND_UNCHANGED_POLY_ARITHMETIC_EXCEPT_PRIVATE_RETENTION",
+    "sha256": "b08c38402c9c52edc45fbf9d82a95a574859ad6cfcdca77e16e6cf2e87a565ce",
+    "initialToolingFailure": "TMP_PARSER_TYPEERROR_CONST_ARROW_LOOKUP; repaired parser only, no source/test change or check rerun",
+    "initialFailureSha256": "fe6b6ec26cdde66c5b221098c6b012aa19cb6e4c633cc2ee3d3ccc00fbbae278",
+    "initialFailureProvenance": "Original TypeError tool chunk6f2d88; exact stack transcribed to /tmp/barocss-d433-author/source-certificate-initial-failure.log after the tool call. No product or test edit."
+  },
+  "fullKernelCommand": {
+    "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad",
+    "shellEquivalent": "node --test --test-concurrency=1 test/*.test.mjs",
+    "expandedCommandSha256": "e1d4f482b1632a20b880a9bd60180bf6eba498ae78354cf276683c4cfc0c043c",
+    "testFiles": 284,
+    "rawExpandedCommandLocation": "/tmp/barocss-d433-author/full-kernel-command.json"
+  },
+  "actualReadyPins": {
+    "driverSha256": "672e5b8608ec22608f58fccac7705c9761df7477746d5f61b5e7a4df181e4828",
+    "casesSha256": "317b28763935503e349d9fc11c9b0aa9710fee4fc583c75422c06cfbda20dd13",
+    "sourceManifestSha256": "d534a93c62ac433b77a553ed04997bbabff709ad40ef95dcd00a93a3652660eb",
+    "readinessSha256": "6d536d48d1dd97b60f1f80a1a01918adb15f68904a4ce12dc6f305d678a6def8",
+    "readinessInputs": 43,
+    "productSourcePins": 21,
+    "identityMappingSha256": "d4974dc825344c24dacbad1e2be5ed8f69097ae4fb62fd543aa28ad7241dfc7c"
+  },
+  "reproduction": {
+    "node": "22.19.0",
+    "readiness": "Final43 pinned inputs verified; globally idle heavy gate/load<40, acquire own lease and confirm sole holder/load<40; entire worktree and inputs/helpers frozen through cleanup",
+    "command": "PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME=\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" CAD_STUDIO_CHAT_PORT=52391 PLANAR_MASS_SOURCE_FROZEN=1 node /tmp/barocss-d433-probe/planar-mass-browser.mjs /tmp/barocss-d433-probe/mass-run01 /tmp/barocss-d433-probe/mass-cases.json /tmp/barocss-d433-probe/candidate-source-manifest.json",
+    "rawEvidence": "/tmp/barocss-d433-* only; raw arrays, STEP evidence, traffic, logs, capsules, screenshots and bundles not committed"
+  },
+  "issueReview": {
+    "issue": 2263,
+    "state": "OPEN",
+    "reason": "This mass accuracy prerequisite does not complete assemblies, AP242 presentation/names/PMI or remaining offset/loop/seam acceptance."
+  },
+  "next": "D434: resume coherent relative GPU raster-frame design and bounded correction, rows6/13/16; native F64 authority and D432 CPU queries retained."
+}
