@@ -1,0 +1,69 @@
+{
+  "kind": "P4_COST_CENSUS_OUTER_GUARD",
+  "receiptId": "guard-01",
+  "censusId": "cost-census-01",
+  "status": "RUNNING",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "python3",
+    "-B",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/cost-census.py",
+    "--run-id",
+    "cost-census-01",
+    "--node",
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "inputs": {
+    "run.mjs": {
+      "bytes": 11633,
+      "sha256": "c614affc65ade8363d1c0d0643dabc333524d5fc0c7449b096f2dcd5581ccb06"
+    },
+    "cost-census.py": {
+      "bytes": 33990,
+      "sha256": "67c23875efa2836cd2c374794dfb6b942366493e8fbf979ffcd8789ac2c8464f"
+    },
+    "fixture-data.mjs": {
+      "bytes": 675,
+      "sha256": "de953d847b5627b372ab96c20b18dd7e5f20f3a52ca871582a36d3c906962a23"
+    },
+    "CONTRACT.md": {
+      "bytes": 9553,
+      "sha256": "d8baef877fa39cdf8e974b26da12fc4f2f46ae01e4457c2568a7d7eadb2231ae"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": "2026-11-01T18:19:16.647Z",
+  "spawnAt": "2026-11-01T18:19:16.693Z",
+  "pid": 77451,
+  "processGroupId": 77451,
+  "exit": 1,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": "CENSUS_EXIT_FAILURE",
+  "processClosed": false,
+  "groupSignals": [
+    {
+      "signal": "SIGTERM",
+      "elapsedMs": 848.96575,
+      "result": "GROUP_ABSENT",
+      "code": "ESRCH"
+    }
+  ],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/evidence/cost-census-01/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/evidence/cost-census-01/progress.json",
+  "errors": [],
+  "exitAt": "2026-11-01T18:19:17.496Z",
+  "stopRequestedAtMs": 848.829833,
+  "elapsedMs": 848.973458,
+  "outputCapturedBytes": 0
+}

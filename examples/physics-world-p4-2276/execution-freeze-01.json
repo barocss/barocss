@@ -1,0 +1,33 @@
+{
+  "workId": "physics-world-p4-cost-census-2276",
+  "base": "4338d7141237be2b62265f9cd19c0304f0a89a4c",
+  "branch": "codex/physics-world-p4-2276",
+  "status": "frozen_before_reference_calls",
+  "inputs": {
+    "CONTRACT.md": "d8baef877fa39cdf8e974b26da12fc4f2f46ae01e4457c2568a7d7eadb2231ae",
+    "cost-census.py": "67c23875efa2836cd2c374794dfb6b942366493e8fbf979ffcd8789ac2c8464f",
+    "fixture-data.mjs": "de953d847b5627b372ab96c20b18dd7e5f20f3a52ca871582a36d3c906962a23",
+    "run.mjs": "c614affc65ade8363d1c0d0643dabc333524d5fc0c7449b096f2dcd5581ccb06"
+  },
+  "node": {
+    "path": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "sha256": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+  },
+  "python": {
+    "path": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+    "version": "3.13.5 (main, Jun 11 2025, 15:36:57) [Clang 17.0.0 (clang-1700.0.13.3)]"
+  },
+  "population": {
+    "frames": 6,
+    "maximumReferenceRequests": 24,
+    "WorldCalls": 0,
+    "productionSolverCalls": 0
+  },
+  "externalDeadlineMs": 180000,
+  "internalDeadlineSeconds": 170,
+  "cleanupSeconds": 4,
+  "wrapperReceiptId": "guard-01",
+  "censusId": "cost-census-01",
+  "numericalGateChanges": false,
+  "firstFailureStop": true
+}

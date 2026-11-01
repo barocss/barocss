@@ -1,0 +1,16 @@
+{
+  "differences": [],
+  "zeroSignOnlyCount": 0,
+  "nonZeroSignDifferenceCount": 0,
+  "nodes": 2834,
+  "equalNumericLeaves": 37,
+  "archiveZeroPaths": [
+    "/metrics/maxPrecisionDifference",
+    "/rows/0/pointIndex"
+  ],
+  "freshZeroPaths": [
+    "/metrics/maxPrecisionDifference",
+    "/rows/0/pointIndex"
+  ],
+  "freshNegativeZeroPaths": []
+}
