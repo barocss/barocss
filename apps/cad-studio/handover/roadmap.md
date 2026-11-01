@@ -6,7 +6,7 @@ A bounded closeout does not close an entire feature family, format, standard or 
 
 ## Current navigation — authority
 
-- Current qualified product checkpoint: [D421](notes/step-name-loss-2026-11-01/README.md).
+- Current qualified product checkpoint: [D422](notes/step-sphere-hemisphere-2026-11-01/README.md).
 - D418 documentation organization: **QUALIFIED**, [record](notes/roadmap-index-2026-11-01/README.md).
 - D420 owner-approved develop integration: **MERGED**, [PR #2274](https://github.com/barocss/barocss/pull/2274), [scope and CI](notes/develop-integration-2026-11-01/README.md).
 - Operating rules and priority remain in the unchanged [handoff](notes/codex-handoff-2026-11-01/README.md).
@@ -18,48 +18,54 @@ A bounded closeout does not close an entire feature family, format, standard or 
 
 - Active feature lane: **row 13, exchange and explicit loss profiles**. D418 is documentation maintenance, not a new exchange feature.
 - Rows 12 and 16 are cross-cutting file/acceptance and robustness work. Row 30 runs with row 16; row 31 follows row 30.
-- D419 direct plane/cylinder STEP offsets: **QUALIFIED**, [bounded record](notes/step-analytic-offset-2026-11-01/README.md). D420 integration is complete. D421 applicable STEP header/product-name loss report is **QUALIFIED**, [record](notes/step-name-loss-2026-11-01/README.md). The next decision is **D422 — not started**.
+- D419 direct plane/cylinder STEP offsets: **QUALIFIED**, [bounded record](notes/step-analytic-offset-2026-11-01/README.md). D420 integration is complete. D421 applicable STEP header/product-name loss report is **QUALIFIED**, [record](notes/step-name-loss-2026-11-01/README.md). D422 translation-stable STEP hemisphere selection and display normals is **QUALIFIED**, [record](notes/step-sphere-hemisphere-2026-11-01/README.md). Next: **D423 — compound-placement pole-angle / mass accuracy**, before any spherical OFFSET extension. Tiny-body rendering quality remains unqualified.
 - Accepted sequence: 10 → 11 → 13 → 14, subject to all owner HOLDs; usability row 15 precedes rows 17–19.
 - The unchanged [handoff §3 continuation order](notes/codex-handoff-2026-11-01/README.md#_3-%E1%84%83%E1%85%A1%E1%84%8B%E1%85%B3%E1%86%B7-%E1%84%8C%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%A5%E1%86%B8-%E1%84%85%E1%85%A9%E1%84%83%E1%85%B3%E1%84%86%E1%85%A2%E1%86%B8-%E1%84%89%E1%85%AE%E1%86%AB%E1%84%89%E1%85%A5) retains the detailed sequence and authority. This pointer does not activate manufacturing or Motion/Physics work.
 
+## Current navigation — progress estimate
+
+- Owner reporting rule (2026-11-01): announce the roadmap row, concrete task and overall estimate when starting each next item.
+- Current estimate: **43%**. Equal row weights: 7 bounded closeouts × 1, 15 partial rows × 0.5, 12 planned/held rows × 0; `(7 + 15 × 0.5) / 34 = 42.65%`.
+- This is a coarse estimate from current status. Closeout means the agreed bounded scope. The score changes when a row changes class; detailed acceptance stays in each canonical record.
+
 ## Current navigation — 34 scope rows
 
-| Row | Scope and acceptance navigation | Current bounded status / next boundary |
-| --- | --- | --- |
-| 01 | [독립 공차 프레임 — CG5 DR-6](roadmap-rows/01.md) | Bounded closeout D372. |
-| 02 | [도면 사용 문서 연결](roadmap-rows/02.md) | Bounded documentation closeout D374. |
-| 03 | [절삭 피처 선형 반복 — CG2](roadmap-rows/03.md) | Bounded closeout D373. |
-| 04 | [실제 API 문서·그림·탐색 구조](roadmap-rows/04.md) | Bounded API/documentation closeout D374. |
-| 05 | [Viewer 제품 마감과 다음 리뷰 전달](roadmap-rows/05.md) | Bounded Viewer closeout D375. |
-| 06 | [GPU 소유 결과 인계와 다음 GPU 기능](roadmap-rows/06.md) | Existing GPU handoff/local-merge records; later GPU work is separate. |
-| 07 | [Advanced modeling — CG1](roadmap-rows/07.md) | Delivered recorded modeling profiles; reuse D288–D316. |
-| 08 | [Feature patterns, direct editing and surfaces — CG2](roadmap-rows/08.md) | Bounded closeout D333–D347; extensions are separate. |
-| 09 | [Advanced sketch — CG3](roadmap-rows/09.md) | BOUNDED_CLOSED for D348–D358/D366 scope. |
-| 10 | [조립 확장 — CG4](roadmap-rows/10.md) | Qualified assembly slices D383–D393; motion/physics HOLD remains. |
-| 11 | [도면 확장 — CG5 DR-6/7/8](roadmap-rows/11.md) | Qualified drawing slices through D416; general certification remains open. |
-| 12 | [파일·버전·협업 — CG6](roadmap-rows/12.md) | OPEN general file/version/collaboration scope. |
-| 13 | [교환과 손실 표시 — CG7](roadmap-rows/13.md) | OPEN exchange scope; bounded analytic offsets D419 and name-loss report D421. #2263/#2248/#2266 remain open. |
-| 14 | [생산 기능 — CG8](roadmap-rows/14.md) | Planned manufacturing; P2/PG11 HOLDs remain. |
-| 15 | [제품 사용성 — CG9](roadmap-rows/15.md) | U1–U4 bounded closeouts; other usability work remains. |
-| 16 | [정확도·강건성·API/참조 — CG10, R7, #2210/#2215](roadmap-rows/16.md) | OPEN accuracy/robustness scope; D417/D419 qualify bounded admission and refusal fixes. |
-| 17 | [경로 묶음·가상 클립 — PB0–PB4](roadmap-rows/17.md) | Existing bounded path/clip profiles; no automatic dynamics work. |
-| 18 | [관절·로봇 — J1/J2, R1/D1/R2, RS6/RS7/P4](roadmap-rows/18.md) | Existing staged robotics plan; Physics/Motion HOLD remains. |
-| 19 | [가상 실험·다물리·실측 — Stage0–6](roadmap-rows/19.md) | Existing staged experiment plan; CAE/Physics HOLDs remain. |
-| 20 | [기즈모·핸들 드래그 UI/UX·렌더링 (2026-10-27 사용자 관찰)](roadmap-rows/20.md) | Bounded handle/UI profiles; measured drag limits remain. |
-| 21 | [Studio 도구 사이드바 배치 (2026-10-27 사용자 요청)](roadmap-rows/21.md) | Bounded sidebar/history closeouts; search/ribbon scope remains. |
-| 22 | [Kernel JavaScript performance and code shape](roadmap-rows/22.md) | Bounded performance/code-shape measurements; no universal acceptance. |
-| 23 | [대형 조립 성능 (2026-10-30 상용 공백)](roadmap-rows/23.md) | Planned large-assembly work after assembly foundations. |
-| 24 | [곡면 품질·Class-A (2026-10-30)](roadmap-rows/24.md) | Planned Class-A scope; preserve B2/08 dependencies. |
-| 25 | [공차 누적 해석 (2026-10-30)](roadmap-rows/25.md) | Planned tolerance-stack scope after drawing/assembly foundations. |
-| 26 | [실제 고객 파일 회귀 (2026-10-30)](roadmap-rows/26.md) | Customer regression requires per-download permission. |
-| 27 | [릴리스·운영 (2026-10-30)](roadmap-rows/27.md) | Release/operations decisions retain owner gates. |
-| 28 | [교환 형식 범위·표준 부품 카탈로그 (2026-10-30)](roadmap-rows/28.md) | Format/catalog/SDK decisions retain owner gates. |
-| 29 | [협업·PDM (2026-10-30)](roadmap-rows/29.md) | Collaboration/PDM retains server and owner gates. |
-| 30 | [커널 일반성 (2026-10-30 엔진 리뷰)](roadmap-rows/30.md) | OPEN kernel generality; #2266 widening is deferred. |
-| 31 | [B-rep 직접 편집 (2026-10-30 엔진 리뷰)](roadmap-rows/31.md) | Planned direct editing after kernel generality. |
-| 32 | [Viewer SDK 상용 기준 (2026-10-30 엔진 리뷰)](roadmap-rows/32.md) | Viewer commercial scope remains separately qualified. |
-| 33 | [CI 브라우저 검증 (2026-10-30 엔진 리뷰)](roadmap-rows/33.md) | Local-only browser verification boundary D359; no CI restart. |
-| 34 | [단위 접미사 이름 정리 R7.7 (2026-10-30 엔진 리뷰)](roadmap-rows/34.md) | R7.7 quiet boundary; no schema5/migration authority. |
+| Row | Scope and acceptance navigation | Current bounded status / next boundary | Progress class |
+| --- | --- | --- | --- |
+| 01 | [독립 공차 프레임 — CG5 DR-6](roadmap-rows/01.md) | Bounded closeout D372. | Bounded closed |
+| 02 | [도면 사용 문서 연결](roadmap-rows/02.md) | Bounded documentation closeout D374. | Bounded closed |
+| 03 | [절삭 피처 선형 반복 — CG2](roadmap-rows/03.md) | Bounded closeout D373. | Bounded closed |
+| 04 | [실제 API 문서·그림·탐색 구조](roadmap-rows/04.md) | Bounded API/documentation closeout D374. | Bounded closed |
+| 05 | [Viewer 제품 마감과 다음 리뷰 전달](roadmap-rows/05.md) | Bounded Viewer closeout D375. | Bounded closed |
+| 06 | [GPU 소유 결과 인계와 다음 GPU 기능](roadmap-rows/06.md) | Existing GPU handoff/local-merge records; later GPU work is separate. | Partial |
+| 07 | [Advanced modeling — CG1](roadmap-rows/07.md) | Delivered recorded modeling profiles; reuse D288–D316. | Partial |
+| 08 | [Feature patterns, direct editing and surfaces — CG2](roadmap-rows/08.md) | Bounded closeout D333–D347; extensions are separate. | Bounded closed |
+| 09 | [Advanced sketch — CG3](roadmap-rows/09.md) | BOUNDED_CLOSED for D348–D358/D366 scope. | Bounded closed |
+| 10 | [조립 확장 — CG4](roadmap-rows/10.md) | Qualified assembly slices D383–D393; motion/physics HOLD remains. | Partial |
+| 11 | [도면 확장 — CG5 DR-6/7/8](roadmap-rows/11.md) | Qualified drawing slices through D416; general certification remains open. | Partial |
+| 12 | [파일·버전·협업 — CG6](roadmap-rows/12.md) | OPEN general file/version/collaboration scope. | Partial |
+| 13 | [교환과 손실 표시 — CG7](roadmap-rows/13.md) | OPEN exchange scope; bounded analytic offsets D419, name-loss report D421 and translation arithmetic D422. #2263/#2248/#2266 remain open. | Partial |
+| 14 | [생산 기능 — CG8](roadmap-rows/14.md) | Planned manufacturing; P2/PG11 HOLDs remain. | Planned / held |
+| 15 | [제품 사용성 — CG9](roadmap-rows/15.md) | U1–U4 bounded closeouts; other usability work remains. | Partial |
+| 16 | [정확도·강건성·API/참조 — CG10, R7, #2210/#2215](roadmap-rows/16.md) | OPEN accuracy/robustness scope; D417/D419/D422 qualify bounded admission/refusal and translation-arithmetic fixes. | Partial |
+| 17 | [경로 묶음·가상 클립 — PB0–PB4](roadmap-rows/17.md) | Existing bounded path/clip profiles; no automatic dynamics work. | Partial |
+| 18 | [관절·로봇 — J1/J2, R1/D1/R2, RS6/RS7/P4](roadmap-rows/18.md) | Existing staged robotics plan; Physics/Motion HOLD remains. | Partial |
+| 19 | [가상 실험·다물리·실측 — Stage0–6](roadmap-rows/19.md) | Existing staged experiment plan; CAE/Physics HOLDs remain. | Planned / held |
+| 20 | [기즈모·핸들 드래그 UI/UX·렌더링 (2026-10-27 사용자 관찰)](roadmap-rows/20.md) | Bounded handle/UI profiles; measured drag limits remain. | Partial |
+| 21 | [Studio 도구 사이드바 배치 (2026-10-27 사용자 요청)](roadmap-rows/21.md) | Bounded sidebar/history closeouts; search/ribbon scope remains. | Partial |
+| 22 | [Kernel JavaScript performance and code shape](roadmap-rows/22.md) | Bounded performance/code-shape measurements; no universal acceptance. | Partial |
+| 23 | [대형 조립 성능 (2026-10-30 상용 공백)](roadmap-rows/23.md) | Planned large-assembly work after assembly foundations. | Planned / held |
+| 24 | [곡면 품질·Class-A (2026-10-30)](roadmap-rows/24.md) | Planned Class-A scope; preserve B2/08 dependencies. | Planned / held |
+| 25 | [공차 누적 해석 (2026-10-30)](roadmap-rows/25.md) | Planned tolerance-stack scope after drawing/assembly foundations. | Planned / held |
+| 26 | [실제 고객 파일 회귀 (2026-10-30)](roadmap-rows/26.md) | Customer regression requires per-download permission. | Planned / held |
+| 27 | [릴리스·운영 (2026-10-30)](roadmap-rows/27.md) | Release/operations decisions retain owner gates. | Planned / held |
+| 28 | [교환 형식 범위·표준 부품 카탈로그 (2026-10-30)](roadmap-rows/28.md) | Format/catalog/SDK decisions retain owner gates. | Planned / held |
+| 29 | [협업·PDM (2026-10-30)](roadmap-rows/29.md) | Collaboration/PDM retains server and owner gates. | Planned / held |
+| 30 | [커널 일반성 (2026-10-30 엔진 리뷰)](roadmap-rows/30.md) | OPEN kernel generality; #2266 widening is deferred. | Partial |
+| 31 | [B-rep 직접 편집 (2026-10-30 엔진 리뷰)](roadmap-rows/31.md) | Planned direct editing after kernel generality. | Planned / held |
+| 32 | [Viewer SDK 상용 기준 (2026-10-30 엔진 리뷰)](roadmap-rows/32.md) | Viewer commercial scope remains separately qualified. | Partial |
+| 33 | [CI 브라우저 검증 (2026-10-30 엔진 리뷰)](roadmap-rows/33.md) | Local-only browser verification boundary D359; no CI restart. | Planned / held |
+| 34 | [단위 접미사 이름 정리 R7.7 (2026-10-30 엔진 리뷰)](roadmap-rows/34.md) | R7.7 quiet boundary; no schema5/migration authority. | Planned / held |
 
 ## Current navigation — holds and evidence
 

@@ -928,6 +928,24 @@ function snapIsoRuns(ring: XY[], U: readonly number[], V: readonly number[]): XY
 }
 /** The i-th of n steps across [D0, D1], the last D1 itself (D0 + (D1 − D0)·n/n can round past it, out of the domain). */
 const spaced = (D: readonly number[], i: number, n: number): number => i >= n ? D[1] : D[0] + (D[1] - D[0]) * i / n;
+/** A normal-only local net; every shifted subtraction is exact, and native coordinate limits stay valid. */
+function localNormalSurface(S: Surface): Surface | null {
+  const lo: Point = [Infinity, Infinity, Infinity], hi: Point = [-Infinity, -Infinity, -Infinity], origin: Point = [0, 0, 0];
+  for (const row of S.controlPoints) for (const p of row) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], p[k]); hi[k] = Math.max(hi[k], p[k]); }
+  for (let k = 0; k < 3; k++) {
+    // Same-sign values and midpoint are within a factor two: Sterbenz subtraction is exact.
+    // Wide/cross-zero axes stay untouched, avoiding a new rounding loss or a doubled native range.
+    if (lo[k] > 0 && hi[k] <= 2 * lo[k] || hi[k] < 0 && -lo[k] <= -2 * hi[k]) origin[k] = (lo[k] + hi[k]) / 2;
+  }
+  if (origin[0] === 0 && origin[1] === 0 && origin[2] === 0) return null;
+  const controlPoints: Point[][] = [];
+  for (const row of S.controlPoints) {
+    const local: Point[] = [];
+    for (const p of row) local.push(sub(p, origin));
+    controlPoints.push(local);
+  }
+  return { ...S, controlPoints };
+}
 function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: number, near = 0): { pts: Point[]; tris: [number, number, number][]; uv: XY[]; domain: [number, number, number][]; normals: (Point | null)[] } {
   const S = face.surface as Surface, { u: U, v: V } = surfaceDomain(S), at = surfaceEvaluator(S);
   // Arc-length scale of each direction.
@@ -981,7 +999,8 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   // One-sided differences stepping inward, signed so the normal is always along Su × Sv.
   // (The point between its two neighbours: each shares a parameter with the call before, whose basis the evaluator keeps.
   // K13, D244.)
-  const normalAt = (q: XY): Point => { const h = 1e-6, a = inward(q[0], U, h), b = inward(q[1], V, h), pa = at(a, q[1]), p = at(q[0], q[1]), pb = at(q[0], b); return scale3(cross(sub(pa, p), sub(pb, p)), Math.sign(a - q[0]) * Math.sign(b - q[1])); };
+  const normalSurface = localNormalSurface(S), normalPoint = normalSurface ? surfaceEvaluator(normalSurface) : at;
+  const normalAt = (q: XY): Point => { const h = 1e-6, a = inward(q[0], U, h), b = inward(q[1], V, h), pa = normalPoint(a, q[1]), p = normalPoint(q[0], q[1]), pb = normalPoint(q[0], b); return scale3(cross(sub(pa, p), sub(pb, p)), Math.sign(a - q[0]) * Math.sign(b - q[1])); };
   // At a pole the normal is the limit from inside the domain.
   const normal = (q: XY): Point => { const n = normalAt(q); if (Math.hypot(...n) > 1e-20 * (Lu + Lv + 1) ** 2) return unit(n); return unit(normalAt([inward(q[0], U, 1e-5), inward(q[1], V, 1e-5)])); };
   const nrm: Point[] = uv.map(normal), cosStep = Math.cos(1.5 * step);

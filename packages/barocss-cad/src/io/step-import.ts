@@ -584,7 +584,11 @@ export function importStep(source: string, options: { readonly id?: string } = {
       let pick = gaps[0];
       if (gaps.length > 1 && gaps[0].size - gaps[1].size < 1e-6) {
         let area: Point = [0, 0, 0];
-        for (const ring of loopPoints(f)) for (let i = 0; i < ring.length; i++) area = add(area, scale(cross(ring[i], ring[(i + 1) % ring.length]), 0.5));
+        for (const ring of loopPoints(f)) {
+          const origin = ring[0]; if (!origin) continue;
+          // A closed ring has the same vector area in this local frame, without world-coordinate cancellation.
+          for (let i = 0; i < ring.length; i++) area = add(area, scale(cross(sub(ring[i], origin), sub(ring[(i + 1) % ring.length], origin)), 0.5));
+        }
         const score = (g: { size: number; start: number }) => { const mid = g.start + (TAU - g.size) / 2, vm = (vlo + vhi) / 2, probe = revolutionPatch(an, mid - 1e-3, mid + 1e-3, vm - 1e-3, vm + 1e-3, 'probe'), P = probe.controlPoints[1][Math.floor(probe.controlPoints[1].length / 2)] as Point; return dot(area, naturalNormal(sd, P)) * (f.same ? 1 : -1); };
         if (score(gaps[1]) > score(gaps[0])) pick = gaps[1];
       }
