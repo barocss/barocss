@@ -1,0 +1,174 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+// #region physics-import
+import { createPhysicsWorld, createPlanarPendulum, PhysicsError } from '@barocss/physics';
+import { admitCadSurfaceProxy, cadProxyPose } from '@barocss/physics/cad-proxy';
+// #endregion physics-import
+
+const near = (actual, expected, tolerance = 1e-12) =>
+  assert.ok(Number.isFinite(actual) && Math.abs(actual - expected) <= tolerance,
+    `${actual} vs ${expected}; tolerance ${tolerance}`);
+const vectorNear = (actual, expected, tolerance) => {
+  assert.equal(actual.length, expected.length);
+  actual.forEach((value, i) => near(value, expected[i], tolerance));
+};
+const hasCode = code => error => error instanceof PhysicsError && error.code === code;
+
+// #region world-fixture
+const dt = 1 / 120;
+const freeBody = () => ({
+  id: 'part:ball', kind: 'dynamic',
+  shape: { kind: 'sphere', radiusM: 0.1 },
+  positionM: [0, 2, 0], velocityMps: [1, 0, 0],
+  massKg: 2, restitution: 0,
+});
+// #endregion world-fixture
+
+test('free flight matches the discrete fixed-step analytic solution', () => {
+  // #region free-flight
+  const world = createPhysicsWorld({
+    fixedStepSeconds: dt, gravityMps2: [0, -9.81, 0], bodies: [freeBody()],
+  });
+  try {
+    const n = 12;
+    for (let i = 0; i < n; i++) world.step(dt);
+    const state = world.getState();
+    // Semi-implicit Euler: v_n = v_0 + n*g*dt;
+    // p_n = p_0 + n*v_0*dt + g*dt²*n*(n+1)/2.
+    vectorNear(state.bodies[0].velocityMps, [1, -9.81 * n * dt, 0]);
+    vectorNear(state.bodies[0].positionM,
+      [n * dt, 2 - 9.81 * dt ** 2 * n * (n + 1) / 2, 0]);
+    near(state.timeSeconds, n * dt);
+    assert.equal(state.contacts.length, 0);
+  } finally { world.dispose(); }
+  // #endregion free-flight
+});
+
+test('force lasts one step; impulse changes velocity once', () => {
+  // #region force-and-impulse
+  const world = createPhysicsWorld({
+    fixedStepSeconds: dt, gravityMps2: [0, 0, 0], bodies: [freeBody()],
+  });
+  try {
+    const first = world.step(dt, [
+      { kind: 'impulse', bodyId: 'part:ball', impulseNs: [2, 0, 0] },
+      { kind: 'force', bodyId: 'part:ball', forceN: [0, 24, 0] },
+    ]);
+    // Mass is 2 kg: J/m = 1 m/s; F*dt/m = 0.1 m/s.
+    vectorNear(first.bodies[0].velocityMps, [2, 0.1, 0]);
+    vectorNear(first.bodies[0].positionM, [2 * dt, 2 + 0.1 * dt, 0]);
+    const second = world.step(dt);
+    vectorNear(second.bodies[0].velocityMps, [2, 0.1, 0]);
+    vectorNear(second.bodies[0].positionM, [4 * dt, 2 + 0.2 * dt, 0]);
+  } finally { world.dispose(); }
+  // #endregion force-and-impulse
+});
+
+test('invalid step retains accepted state; copies and disposal are explicit', () => {
+  // #region refusal-and-lifecycle
+  const world = createPhysicsWorld({
+    fixedStepSeconds: dt, gravityMps2: [0, 0, 0], bodies: [freeBody()],
+  });
+  const accepted = world.step(dt);
+  assert.throws(() => world.step(dt / 2), hasCode('INVALID_STEP'));
+  assert.deepEqual(world.getState(), accepted);
+  accepted.bodies[0].positionM[0] = 999;
+  accepted.bodies[0].orientation[3] = 0;
+  const copied = world.getState();
+  near(copied.bodies[0].positionM[0], dt);
+  assert.deepEqual(copied.bodies[0].orientation, [0, 0, 0, 1]);
+  world.dispose();
+  world.dispose(); // Idempotent.
+  assert.throws(() => world.getState(), hasCode('DISPOSED'));
+  assert.throws(() => world.step(dt), hasCode('DISPOSED'));
+  // #endregion refusal-and-lifecycle
+});
+
+// #region proxy-source
+const source = `@model units_fixture {
+  version: 0;
+  length-unit: mm;
+  @surface #asymmetric_panel {
+    type: nurbs;
+    degree-u: 1;
+    degree-v: 1;
+    knots-u: [0,0,1,1];
+    knots-v: [0,0,1,1];
+    control-points: [[[20,-30,40],[20,-30,100]],[[120,10,40],[120,10,100]]];
+    weights: [[1,1],[1,1]];
+  }
+}`;
+// #endregion proxy-source
+
+test('off-origin CAD proxy uses literal quarter-turn coordinates', () => {
+  // #region off-origin-pose
+  const proxy = admitCadSurfaceProxy(source, {
+    sourceVersion: 0, sourceRevision: 'unitsRev1', modelId: 'units_fixture',
+    surfaceId: 'asymmetric_panel', kind: 'dynamic', proxy: 'box',
+    massKg: 1, initialOffsetM: [0.1, 0, 0],
+  });
+  vectorNear(proxy.sourceCenterMM, [70, -10, 70], 1e-6);
+  assert.equal(proxy.body.shape.kind, 'box');
+  vectorNear(proxy.body.shape.halfExtentsM, [0.05, 0.02, 0.03], 1e-9);
+  vectorNear(proxy.body.positionM, [0.17, -0.01, 0.07], 1e-9);
+  const body = { id: proxy.bodyId, positionM: [...proxy.body.positionM],
+    orientation: [0, 0, Math.SQRT1_2, Math.SQRT1_2] };
+  const pose = cadProxyPose(proxy, body, source, 'unitsRev1');
+  vectorNear(pose.translation, [160, -80, 0], 1e-6);
+  // Independent +90° Z matrix: (x,y,z) -> (-y,x,z).
+  const original = [[20, -30, 40], [20, -30, 100], [120, 10, 40], [120, 10, 100]];
+  const expected = [[190, -60, 40], [190, -60, 100], [150, 40, 40], [150, 40, 100]];
+  original.forEach(([x, y, z], i) => {
+    const displayed = [-y + pose.translation[0], x + pose.translation[1], z + pose.translation[2]];
+    vectorNear(displayed, expected[i], 1e-6);
+    vectorNear([displayed[1] + 80, 160 - displayed[0], displayed[2]], original[i], 1e-6);
+  });
+  // #endregion off-origin-pose
+  const retained = structuredClone(proxy);
+  for (const [text, revision] of [[source + '\n', 'unitsRev1'], [source, 'unitsRev2']]) {
+    assert.throws(() => cadProxyPose(proxy, body, text, revision), hasCode('STALE_SOURCE'));
+    assert.deepEqual(proxy, retained);
+  }
+  assert.deepEqual(cadProxyPose(proxy, body, source, 'unitsRev1'), pose);
+});
+
+test('reduced pendulum equilibrium and lifecycle use the local root export', () => {
+  // #region reduced-pendulum
+  const pendulum = createPlanarPendulum({
+    massKg: 1, comDistanceM: 0.5, inertia: { about: 'com', kgM2: 0.02 },
+    gravityMps2: 9.81, initialAngleRad: 0, initialAngularVelocityRadps: 0,
+    fixedStepSeconds: dt, maxSteps: 2,
+  });
+  const state = pendulum.step(dt);
+  near(state.angleRad, 0);
+  near(state.energyJ, 0);
+  vectorNear(state.comPositionM, [0, -0.5, 0]);
+  assert.throws(() => pendulum.step(dt / 2), hasCode('INVALID_STEP'));
+  assert.deepEqual(pendulum.getState(), state);
+  pendulum.dispose();
+  assert.throws(() => pendulum.getState(), hasCode('DISPOSED'));
+  // #endregion reduced-pendulum
+});
+
+
+test('free flight converges against the continuous ballistic solution at fixed physical time', t => {
+  // Freeze these gates before execution: velocity1e-12m/s, position errors <=.0041m
+  // at1/120s and1/240s, refinement ratio in[1.99,2.01]. No contact is present.
+  const time = 0.1;
+  const errors = [1 / 120, 1 / 240].map(step => {
+    const world = createPhysicsWorld({ fixedStepSeconds: step,
+      gravityMps2: [0, -9.81, 0], bodies: [freeBody()] });
+    try {
+      for (let i = 0; i < Math.round(time / step); i++) world.step(step);
+      const body = world.getState().bodies[0];
+      vectorNear(body.velocityMps, [1, -9.81 * time, 0], 1e-12);
+      const continuousY = 2 - 0.5 * 9.81 * time ** 2;
+      const errorM = Math.abs(body.positionM[1] - continuousY);
+      assert.ok(errorM > 0 && errorM <= 0.0041);
+      return errorM;
+    } finally { world.dispose(); }
+  });
+  const ratio = errors[0] / errors[1];
+  assert.ok(ratio >= 1.99 && ratio <= 2.01);
+  t.diagnostic(JSON.stringify({ ballisticTimeSeconds: time, positionErrorsM: errors, refinementRatio: ratio }));
+});

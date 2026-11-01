@@ -1,0 +1,295 @@
+{
+  "base": "db84f1e17833fbdb140de953e1efb538da7ed865",
+  "files": [
+    {
+      "path": "apps/library-docs/ROADMAP.md",
+      "bytes": 35589,
+      "sha256": "bfd84751cc5ac71e388bc05429f22fe7e19cef0924a7663304edff86924c5e7a"
+    },
+    {
+      "path": "apps/library-docs/docs/.vitepress/config.mts",
+      "bytes": 1838,
+      "sha256": "3dd5089c4e03c554128886d204c11dd8df7c5c69976b9cfca42fa05e4e7dfcd4"
+    },
+    {
+      "path": "apps/library-docs/docs/.vitepress/sidebar.mjs",
+      "bytes": 9846,
+      "sha256": "ed14a0a1f4f4ace9dbb4ca262f7969c540e1e3348bb0887982f1349699913f1a"
+    },
+    {
+      "path": "apps/library-docs/docs/guide/robot-motion.md",
+      "bytes": 10413,
+      "sha256": "1edcdc6f0e7aaf9d6ee6ffbae55694a8341c0df9fbf3f17382b1ac6ffb91c2b9"
+    },
+    {
+      "path": "apps/library-docs/docs/index.md",
+      "bytes": 3940,
+      "sha256": "48c3a393e13df065c1849fd714f0035a188b1e74a5a65cf961422ca2f10da7c3"
+    },
+    {
+      "path": "apps/library-docs/docs/packages/cad-model/index.md",
+      "bytes": 48362,
+      "sha256": "28ef818a60b9ee5cb3ea5b87cb27286be3f065dd6a0add4afc1575ca0fd42732"
+    },
+    {
+      "path": "apps/library-docs/docs/packages/physics/index.md",
+      "bytes": 7850,
+      "sha256": "d41e1a0ba14347bf2e53d9732f4fed397799e7b92789fb480b42feddc046dec8"
+    },
+    {
+      "path": "apps/library-docs/docs/packages/physics/profiles-and-lifecycle.md",
+      "bytes": 12040,
+      "sha256": "4c041bbcc2db18b024d680a3fc22dbad33d2c0c874162a1cc5f10f55dd18ca2a"
+    },
+    {
+      "path": "apps/library-docs/docs/packages/physics/units-and-frames.md",
+      "bytes": 6855,
+      "sha256": "e6818b58f01814c377ef334024a94ca4879892c4265e00fb579ca5b5b2c3cf9e"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt",
+      "bytes": 28487,
+      "sha256": "f12e50e7c4c7b6f6468230ccc100efb40905cb7ac7c645898810a54322557877"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/boundary-contract.txt",
+      "bytes": 8515,
+      "sha256": "7747762590f712b1d57b048d96f86dc8c3841b0e9e8b567a2d1817a47eb94625"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/boundary-report.txt",
+      "bytes": 9159,
+      "sha256": "9f86b4077cdd67049ac045b33639287872d30efb028a5309d76fdd1bedd40321"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/first-equilibrium-source.json",
+      "bytes": 93472,
+      "sha256": "07c7ec9b5f444433c97c49bcecd88624ab675d29f0c197d9586a4d5df086910e"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt",
+      "bytes": 31815,
+      "sha256": "431e7542613591ec60d4be164511a32e2081afc1aa4722f0b698b43187b25d64"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/first-stack-failure.json",
+      "bytes": 16407,
+      "sha256": "f8941733862d59a49730c5f5624d99186e7d9f8a1f307dda3026371efc2b89db"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/foundation-contract.txt",
+      "bytes": 5175,
+      "sha256": "07c610210446a6af3906d776f1c59eb5c49fabc705cf8b0d18bd6a9cd8011e7b"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/foundation-report.txt",
+      "bytes": 14760,
+      "sha256": "d0f75b7871a665a5b00576e1708c2f0de34451f91f59e2724023fec22dad4c86"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/geometry-emitted.json",
+      "bytes": 1371647,
+      "sha256": "5f4d89f053b2b441227755cc83e12ea670e2eb54c2c20b8945d00429fcf642d1"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/geometry-source.json",
+      "bytes": 1371647,
+      "sha256": "07461105327f8177195ec33ee6c94324754710d228c743434294dda22d036648"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/manifest.json",
+      "bytes": 3524,
+      "sha256": "1d8c77e72941ab8ba3857ccc33568974d076c4232564abaf41f81325bc3aaeb9"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/nogo-report.txt",
+      "bytes": 14399,
+      "sha256": "3464490873bc39c7d6e21c32331d13e6343a3b4df60a41331bd02ed926ecc9a2"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/solver-report.txt",
+      "bytes": 12354,
+      "sha256": "62d263262c1af9aa1a7e660b56f9252f3c6109be26f2f5a9b8a7d0bdc9b9a9df"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/world-emitted.json",
+      "bytes": 5301,
+      "sha256": "d254c76f7c833dd0b15efa647a7e00a6d04d2675b918c5bc0663d4662a26d356"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/world-source.json",
+      "bytes": 5301,
+      "sha256": "ab4bfbd942b2432b0a207559f493fba61c567476e9b565871cb8fff72edff0f0"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/world-time-guard.json",
+      "bytes": 1506,
+      "sha256": "19170615b2d5e7a6d26f087ea50db4b5606aa02d0275da02b72e32cefbd98ebb"
+    },
+    {
+      "path": "apps/library-docs/docs/reference/limits.md",
+      "bytes": 10511,
+      "sha256": "2f95f2dca62a3e4ddc9548250368c3b3635a3ec75eb49bd034cc70ea10f8c365"
+    },
+    {
+      "path": "apps/library-docs/docs/reference/physics-verification.md",
+      "bytes": 13206,
+      "sha256": "d0e9de0b47098b9d321a88a8256f1984576b62309868398725b7d9c8fa2d1949"
+    },
+    {
+      "path": "apps/library-docs/docs/reference/verification.md",
+      "bytes": 10234,
+      "sha256": "8237fff63193f78ab98c468d1f23f0ccdcd38d1dcef3d3710ebf040516e923a7"
+    },
+    {
+      "path": "apps/library-docs/docs/studio/robots.md",
+      "bytes": 32103,
+      "sha256": "ae40dde41ce39cacfa4fdd79d6bf287acd48b3f12959c40ceddfac2df37678bc"
+    },
+    {
+      "path": "apps/library-docs/samples/physics-docs.test.mjs",
+      "bytes": 7295,
+      "sha256": "59477db958d10202d5192d34b90c8a3d4dea5bbc5ebd8afc7c5419f79262b247"
+    },
+    {
+      "path": "apps/library-docs/samples/physics-motion.test.mjs",
+      "bytes": 11316,
+      "sha256": "5037e9a942862a4c864219cfb2d5b94e8560b4e77dfe45040d43d154b62f1578"
+    },
+    {
+      "path": "apps/library-docs/samples/run.mjs",
+      "bytes": 1993,
+      "sha256": "8a64bba3762fafb0ea30b545c6f4a5496baf755c24a1d666090b94d7c8bb2709"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/README.md",
+      "bytes": 11586,
+      "sha256": "baf4ac4bb3dbfad0d26855a0d5ebb0011f27ff6b410613174dde450789e8114c"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/check-site.mjs",
+      "bytes": 4657,
+      "sha256": "db833d0558df21fb0960030d5844db5b9338da583e049e13f63961199638208f"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/api-callsite-inventory.json",
+      "bytes": 31642,
+      "sha256": "6f9753172c4974b4c2351c591a5177a2dd6cc71714d987458874b6da6f6dfcad"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/audit-first-failure.txt",
+      "bytes": 618,
+      "sha256": "5f430d7f54731bcb07068320bdc340b6b7cee5b67584bf0752e0640ec3a12bd7"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/build-01.log",
+      "bytes": 519,
+      "sha256": "cef3d9f519bcde1fe701fc583055b65a4841a5788b3118f99b2d2fc3e627cc28"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/build-02.log",
+      "bytes": 518,
+      "sha256": "8abed767bc953f6f44491912ecc8a46ece5cf314358413a07ef5e875f86de8ff"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/build-03.log",
+      "bytes": 518,
+      "sha256": "3e1d419934e456ed4d4a816ba6289a372efd66b49a2a2508a156e9088d161fff"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/check-docs-01.log",
+      "bytes": 68,
+      "sha256": "f000a55e73987aede01b7568e640b07d755cdcce5c236aa48e52c5e054fda658"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/check-docs-02.log",
+      "bytes": 68,
+      "sha256": "f000a55e73987aede01b7568e640b07d755cdcce5c236aa48e52c5e054fda658"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/issue-1489.json",
+      "bytes": 8428,
+      "sha256": "8bc04a0bbfc67589bb797dada08c98c1dfcf19a8e6f384e401b6a5906e211c6e"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/issue-1490.json",
+      "bytes": 6935,
+      "sha256": "cf93df81d6e1c424cde022744f98c976a965012d9e75cae8eb9c586daede691f"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/issue-1572.json",
+      "bytes": 113540,
+      "sha256": "558424c0f61ff9c39532628f11b8f546c46dee9707f4363ee64029e5783ea783"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/issue-2276.json",
+      "bytes": 15786,
+      "sha256": "20f80fa466f126069ee8e00c7a10fe671c8d5669cae0c0b4356d5bc6b35b2686"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/links-01.log",
+      "bytes": 823,
+      "sha256": "70686e1bf971f74d95ec39373e41d1c835c91d48b295124396b5a899459e4ad6"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/links-02.log",
+      "bytes": 146,
+      "sha256": "c9d9cd9031307cc5968db6ed9a5f3aa7f0ed1d731c98e046a1e474f4faa0bc82"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/results.json",
+      "bytes": 5801,
+      "sha256": "a2b0e9022855b6d7785071a9c97057ad5fe29049cbcdf70902f165e46b7c00bf"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/samples-all-01.log",
+      "bytes": 36430,
+      "sha256": "0457e36353067b949adc1340652537723081106ee5800f8ec4811f31d7b79f42"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/samples-physics-01.log",
+      "bytes": 3148,
+      "sha256": "339f4142203a45d5ea8cd2adedd7030818101956c0513279899c953dd1d1ac44"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/scara-corrected-01.log",
+      "bytes": 1934,
+      "sha256": "ffcbaaf5ddb7eadc7debb39525886207813ff32f21a8250c048ddb4d7ba71a0b"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/scara-corrected-02.log",
+      "bytes": 1938,
+      "sha256": "b5ee90673cfdcb648ba2766aa1b84edad65600fcc2003c95c81cce4e532a90e8"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/scara-diagnostic-01.log",
+      "bytes": 2622,
+      "sha256": "84127a93e262b14cd81f179a112d43b2d7f5edf4efbdc9bd6576612185f0fc50"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/source-whitespace-01.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/staged-whitespace-01.txt",
+      "bytes": 2638,
+      "sha256": "a096535ef03c6728502d117feb3ec3d4a77678ece89fa0ea025441ea08080493"
+    },
+    {
+      "path": "examples/physics-motion-docs-2276/evidence/staged-whitespace-02.txt",
+      "bytes": 2638,
+      "sha256": "a096535ef03c6728502d117feb3ec3d4a77678ece89fa0ea025441ea08080493"
+    },
+    {
+      "path": "packages/barocss-physics/README.md",
+      "bytes": 40061,
+      "sha256": "a17a0c00700d1fc67d19d2f4f108ddec449c59df1490aedb62e9983acb614b04"
+    },
+    {
+      "path": "packages/barocss-physics/ROADMAP.md",
+      "bytes": 28487,
+      "sha256": "f12e50e7c4c7b6f6468230ccc100efb40905cb7ac7c645898810a54322557877"
+    }
+  ]
+}

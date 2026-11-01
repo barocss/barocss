@@ -40,6 +40,7 @@ features:
 |---|---|
 | [CAD](/packages/cad/) | `@barocss/cad`: the B-rep and NURBS kernel, with Booleans, fillets, offsets, mass properties and exchange formats. |
 | [CAD Model](/packages/cad-model/) | `@barocss/cad-model`: the editable document above the kernel, with parts, assemblies, drawings, BOMs, processes and robots. |
+| [Physics](/packages/physics/) | `@barocss/physics`: bounded fixed-step simulation, with explicit profiles, SI inputs and numerical evidence. |
 | [GPU](/packages/gpu/) | `@barocss/gpu`: the renderer for WebGPU scenes, materials, shadows and supported compute analyses. |
 | [Studio](/studio/) | The browser app (`apps/cad-studio`): modeling, the viewport, drawings, manufacturing checks and chat. |
 | [Viewer](/packages/viewer/) | `@barocss/viewer`: the SDK for embedding a CAD viewer and managing its review state. |
@@ -47,14 +48,15 @@ features:
 
 ## From design to experiments
 
-The current pages cover CAD geometry, manufacturing reports and supported robot motion and load calculations.
+The current pages cover CAD geometry, manufacturing reports, [robot motion](/guide/robot-motion) and load calculations,
+and the separate [Physics package](/packages/physics/).
 Read each feature's limits before using its results; a displayed motion or manufacturing check does not establish
 the accuracy of a physical simulation.
 
 The long-term goal adds experiments to the same project: define a supported profile, bind its inputs to a design
 revision, run it and compare results. That common input/result workflow is planned, not implemented or verified.
-A bounded physical pendulum is the first planned dynamics experiment; its hinge, gravity and inertia path still
-needs support confirmation. Structural, thermal and fluid experiments are later plans, not current solver support.
+The standalone reduced pendulum API has [bounded numerical verification](/reference/physics-verification).
+The CAD-authored physical pendulum workflow remains planned; its hinge, gravity and inertia path still needs support confirmation. Structural, thermal and fluid experiments are later plans, not current solver support.
 
 See [Planned experiment evidence](/reference/verification#planned-experiment-evidence) for the separate implementation,
 numerical and measurement gates, and [Limits](/reference/limits#planned-physical-experiments) for the current boundaries.

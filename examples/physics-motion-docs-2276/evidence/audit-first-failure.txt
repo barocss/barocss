@@ -1,0 +1,5 @@
+The first staging/audit shell exited1 after git diff --cached --check because it assigned the zsh read-only variable status.
+Observed stderr: zsh:31: read-only variable: status
+The Git operation staged only the explicitly listed docs/design paths. No commit ran.
+The preserved staged-whitespace-01.txt contains24 trailing-whitespace findings in the byte-identical first-motion-input-failure.txt historical copy. The second audit reproduced exit2 and those same findings.
+The raw failure copy is intentionally unchanged. A separate author-source-only audit excludes raw evidence rather than claiming a clean full diff.

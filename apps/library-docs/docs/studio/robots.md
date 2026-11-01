@@ -1,5 +1,7 @@
 # Robots
 
+For joint timing, pose sampling and the boundary with dynamics, see [Robot motion](/guide/robot-motion).
+
 An assembly whose mates leave motion free is a mechanism. The **Joints** card reads it as a robot: links, joints and
 their limits. You can move it, check it and export it for simulators.
 

@@ -1,0 +1,191 @@
+{
+  "workId": "physics-motion-docs-2276",
+  "base": "db84f1e17833fbdb140de953e1efb538da7ed865",
+  "branch": "codex/physics-motion-docs-2276",
+  "platform": "darwin-arm64",
+  "node": "22.19.0",
+  "esbuild": "0.25.12",
+  "vitepress": "1.6.4",
+  "executionTimes": "not captured by the shell commands; do not infer timestamps from this summary",
+  "runs": [
+    {
+      "log": "samples-physics-01.log",
+      "exit": 1,
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "apps/library-docs/samples/run.mjs",
+        "physics"
+      ],
+      "cwd": "repository root",
+      "bytes": 3148,
+      "sha256": "339f4142203a45d5ea8cd2adedd7030818101956c0513279899c953dd1d1ac44"
+    },
+    {
+      "log": "scara-diagnostic-01.log",
+      "exit": 1,
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "apps/library-docs/samples/run.mjs",
+        "physics-motion"
+      ],
+      "cwd": "repository root",
+      "bytes": 2622,
+      "sha256": "84127a93e262b14cd81f179a112d43b2d7f5edf4efbdc9bd6576612185f0fc50"
+    },
+    {
+      "log": "scara-corrected-01.log",
+      "exit": 0,
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "apps/library-docs/samples/run.mjs",
+        "physics-motion"
+      ],
+      "cwd": "repository root",
+      "bytes": 1934,
+      "sha256": "ffcbaaf5ddb7eadc7debb39525886207813ff32f21a8250c048ddb4d7ba71a0b"
+    },
+    {
+      "log": "scara-corrected-02.log",
+      "exit": 0,
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "apps/library-docs/samples/run.mjs",
+        "physics-motion"
+      ],
+      "cwd": "repository root",
+      "bytes": 1938,
+      "sha256": "b5ee90673cfdcb648ba2766aa1b84edad65600fcc2003c95c81cce4e532a90e8"
+    },
+    {
+      "log": "samples-all-01.log",
+      "exit": 0,
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "apps/library-docs/samples/run.mjs"
+      ],
+      "cwd": "repository root",
+      "bytes": 36430,
+      "sha256": "0457e36353067b949adc1340652537723081106ee5800f8ec4811f31d7b79f42"
+    },
+    {
+      "log": "check-docs-01.log",
+      "exit": 0,
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "apps/library-docs/scripts/check-docs.mjs"
+      ],
+      "cwd": "repository root",
+      "bytes": 68,
+      "sha256": "f000a55e73987aede01b7568e640b07d755cdcce5c236aa48e52c5e054fda658"
+    },
+    {
+      "log": "check-docs-02.log",
+      "exit": 0,
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "apps/library-docs/scripts/check-docs.mjs"
+      ],
+      "cwd": "repository root",
+      "bytes": 68,
+      "sha256": "f000a55e73987aede01b7568e640b07d755cdcce5c236aa48e52c5e054fda658"
+    },
+    {
+      "log": "build-01.log",
+      "exit": 0,
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "node_modules/vitepress/bin/vitepress.js",
+        "build",
+        "docs"
+      ],
+      "cwd": "apps/library-docs",
+      "bytes": 519,
+      "sha256": "cef3d9f519bcde1fe701fc583055b65a4841a5788b3118f99b2d2fc3e627cc28"
+    },
+    {
+      "log": "build-02.log",
+      "exit": 0,
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "node_modules/vitepress/bin/vitepress.js",
+        "build",
+        "docs"
+      ],
+      "cwd": "apps/library-docs",
+      "bytes": 518,
+      "sha256": "8abed767bc953f6f44491912ecc8a46ece5cf314358413a07ef5e875f86de8ff"
+    },
+    {
+      "log": "build-03.log",
+      "exit": 0,
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "node_modules/vitepress/bin/vitepress.js",
+        "build",
+        "docs"
+      ],
+      "cwd": "apps/library-docs",
+      "bytes": 518,
+      "sha256": "3e1d419934e456ed4d4a816ba6289a372efd66b49a2a2508a156e9088d161fff"
+    },
+    {
+      "log": "links-01.log",
+      "exit": 1,
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-motion-docs-2276/check-site.mjs"
+      ],
+      "cwd": "repository root",
+      "bytes": 823,
+      "sha256": "70686e1bf971f74d95ec39373e41d1c835c91d48b295124396b5a899459e4ad6"
+    },
+    {
+      "log": "links-02.log",
+      "exit": 0,
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-motion-docs-2276/check-site.mjs"
+      ],
+      "cwd": "repository root",
+      "bytes": 146,
+      "sha256": "c9d9cd9031307cc5968db6ed9a5f3aa7f0ed1d731c98e046a1e474f4faa0bc82"
+    }
+  ],
+  "status": "DOCS_AND_DESIGN_PASS_WITH_RETAINED_NO_GO",
+  "sourceExamples": {
+    "pass": 173,
+    "fail": 0,
+    "skipped": 0,
+    "newTests": 11
+  },
+  "docs": {
+    "pages": 73,
+    "links": 782,
+    "anchors": 201,
+    "snippetInclusions": 19,
+    "historicalCopies": 14
+  },
+  "freshEmittedPhysicsConsumer": "NOT_RUN; historical evidence separately attributed",
+  "runtimeApiChanged": false,
+  "originalNumericalEvidenceChanged": false,
+  "heldWorkersResumed": false,
+  "publicTwoHinge": "NO_GO",
+  "originalEightBoxSettling": "NO_GO/NOT_RUN",
+  "deployment": "NOT_RUN",
+  "hardwareValidation": "NOT_RUN",
+  "remoteWrites": false,
+  "dependenciesInstalled": false,
+  "stagedWhitespace": {
+    "fullDiff": "FAIL24 raw historical whitespace lines preserved",
+    "authorSourceOnly": "PASS",
+    "firstShell": "FAIL read-only variable status; no commit"
+  },
+  "unchangedDirectoriesAgainstParent": [
+    "packages/barocss-physics/src",
+    "packages/barocss-cad-model/src",
+    "examples/physics-motion-foundations-2276",
+    "examples/physics-motion-nogo-2276",
+    "examples/physics-stack-solver-2276",
+    "examples/physics-contact-boundary-2276"
+  ]
+}

@@ -1,5 +1,7 @@
 # @barocss/cad-model
 
+For joint timing, pose sampling and the boundary with dynamics, see [Robot motion](/guide/robot-motion).
+
 The studio's model layer, on top of [the kernel](/packages/cad/). It holds:
 
 - the document and its evaluation;

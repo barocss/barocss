@@ -1,5 +1,9 @@
 # @barocss/physics
 
+The [library design and development roadmap](ROADMAP.md) defines the unreleased target API and
+its staged verification. It is a design direction, not an implemented unified World. Existing HOLDs,
+public admission limits and original NO_GO receipts remain in force.
+
 A bounded, renderer-neutral fixed-step 3D Physics package. Its rigid world simulates admitted sphere, oriented-box and capsule pairs, limited fixed/hinge joints and narrow opt-in CCD profiles. A separate visual-water world simulates one fixed 256-particle basin. A separate cloth world advances one fixed pinned sheet over a static sphere. The caller owns time and display. The package does not simulate exact CAD Surface or mesh collision, general joint networks, arbitrary cloth meshes or engineering fluid flow.
 
 | Entry point | Current result | Example |

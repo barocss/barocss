@@ -1,0 +1,48 @@
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:75: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:79: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:105: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:109: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:158: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:161: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:187: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:190: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:304: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:307: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:333: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:336: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:381: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:385: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:411: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:415: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:509: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:513: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:539: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:543: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:569: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:573: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:599: trailing whitespace.
++    
+apps/library-docs/docs/public/physics-evidence/first-motion-input-failure.txt:603: trailing whitespace.
++    

@@ -1,0 +1,665 @@
+{
+  "purpose": "lexical P0 seed inventory, not complete runtime reachability or migration approval",
+  "command": [
+    "rg",
+    "-l",
+    "--glob",
+    "*.ts",
+    "--glob",
+    "*.tsx",
+    "--glob",
+    "*.mjs",
+    "--glob",
+    "*.html",
+    "--glob",
+    "!**/evidence/**",
+    "--glob",
+    "!**/dist/**",
+    "@barocss/physics|createPhysicsWorld|createFluidWorld|createClothWorld|createCadFluidWorld|createPlanarPendulum",
+    "packages",
+    "apps",
+    "examples"
+  ],
+  "exit": 0,
+  "matchesMayBeCommentsOrDefinitions": true,
+  "computedPathsMayBeMissing": true,
+  "historicalEvidenceExcludedAndImmutable": true,
+  "fileCount": 127,
+  "files": [
+    {
+      "path": "apps/library-docs/samples/physics-docs.test.mjs",
+      "sha256": "59477db958d10202d5192d34b90c8a3d4dea5bbc5ebd8afc7c5419f79262b247",
+      "classification": "app-or-docs"
+    },
+    {
+      "path": "apps/library-docs/samples/run.mjs",
+      "sha256": "8a64bba3762fafb0ea30b545c6f4a5496baf755c24a1d666090b94d7c8bb2709",
+      "classification": "app-or-docs"
+    },
+    {
+      "path": "examples/physics-cad-scene/cad-proxy-probe.mjs",
+      "sha256": "fc60fcf09835ed1172d4d16a81960bd92267e21bf3a475739ef8cdfaaf0a0f4d",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-capsule-query-scene/browser.html",
+      "sha256": "9f7560304df3911c6745106010a146babaacde18b78b19d5d68d1335e5b35e64",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-capsule-query-scene/controls.mjs",
+      "sha256": "8adac403c1e25833e5d631cf10bdedb872eb22a21253342fd27f15016c6360f0",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-capsule-query-scene/public-snapshot.mjs",
+      "sha256": "7eb3653d5efb8f45f382612964e023fe4a6b908a53b84480de202b82e88f620a",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-capsule-query-scene/source-contract.ts",
+      "sha256": "66d186838037e89d7bf11dd0f4365d87a10fa75db0057b5bd13780b6b20cf39f",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-character-controller-reference/controller.mjs",
+      "sha256": "76f15e473eac376fa76bfe4a4e9da4dd133388c8ff9f0cfa042ba2d7b901a6cf",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-character-lookahead-reference/controller.mjs",
+      "sha256": "d9ca10281edd2412560e76deefcfb8b74fa86e3ec9dec66848ce2697872bbce3",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-character-public-reference/browser.html",
+      "sha256": "7fe424d559eaa057cb9ecb6556b044995bbb96be3e238c093130a74491113e55",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-character-public-reference/campaign.mjs",
+      "sha256": "9b33b87ffd17240b33fe74ddbd0d9c4a04045aa3d85af1d2cb4dd2dd1beb17b0",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-character-public-reference/controls.mjs",
+      "sha256": "7a795217608936e4eddda3bd7d3942be58abb037ff94f570b342c164d4c2445e",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-character-public-reference/source-contract.ts",
+      "sha256": "7c0ebd09b9d3f4fc63018bcb83b983b363154633a67717b495865dcbed423e4a",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-character-reference/entry.mjs",
+      "sha256": "b0c41b3b816eeb30d196b5e2da7ac7ad136c7aa272785e39760749d1193eb246",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-character-reference/scene.mjs",
+      "sha256": "46ce933f1aebadb37f860ee4d779c1d1ab2d3524de22d8630d2c12ad80b92add",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-character-viewer/host-controller.mjs",
+      "sha256": "1d775ca42b7a65e879782758205da3de74d4d2f89116b8318d1e9630dc0b48c3",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-character-viewer/numeric-entry.mjs",
+      "sha256": "46f8af88b66ea2f185c79713f2f973c81162b922468ec9449bd40ea27a24fd94",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-cloth-viewer/host-controller.mjs",
+      "sha256": "cc251e53d6f079d2af14dba0b53a62bdbe194a65ee5f86a9b14962b877e9246d",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-cloth-viewer/numeric-entry.mjs",
+      "sha256": "b32f67639020945bacf3c04c759c61f324de26c26214a56740697a4f49a270ec",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-boundary-2276/world-consumer.mjs",
+      "sha256": "106c4c9b14f3e3b8268538409782d6b0124f806fa2363ae638a114872c77e316",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-boundary-2276/world-entry.ts",
+      "sha256": "18f3c8f42c552d3bf7dc080aaae6bc0d71535dfa6c271e959fbc6491e32d36fd",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/asymmetric-contact-diagnostic.ts",
+      "sha256": "e92a291a1805ae8d8e5192acb1cdf5c6bc765d8ba1b10cacce44b1e24ca048da",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/cache-counterfactual.ts",
+      "sha256": "a6d39f19262fe762d4963428e03c488ad7ddb231b9e0638037bb5da8e34a5caa",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/clip-stage-audit.ts",
+      "sha256": "83a3802a148baec144f562ee107f5365fe74eb2135f41e0dc3f06b41557952cf",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/contact-energy-ledger.ts",
+      "sha256": "8dbd7dd9143af1c1d54fe4cb5cdba7c9ba342c547a97c4ec1576ed142b5eb721",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/correction-ledger.ts",
+      "sha256": "ca72c4df6242b7ce8ef40fd9558ca1c8ce3d71729c6cf2d5fb34258d3d50f4b3",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/face-choice-audit.ts",
+      "sha256": "b85c877ce9e8fe12a1b1dbc73e43e2f72d2f10bcaf9a7d19094984b9ba39734d",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/face-plane-witness.ts",
+      "sha256": "841f98daf2932c23ce7fd8de6a47d939f7e8d5a6f79ed0cda9d3d34fb6a66154",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/fallback-angular-ledger.ts",
+      "sha256": "412b501324d51f962a61c022f82113a2cc238318a62fb3b4e1bc7e87e98eade5",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/fallback-impulse-ledger.ts",
+      "sha256": "60a0d366d00e58acdca01a703e7539b704ed2aca19e9de7858a4e75a1da2f665",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/fallback-inclusive-impulse.ts",
+      "sha256": "7e42da6792b0bbdcbb2feb14467d17076039b89712002ff8eb5a1b23fe8ad171",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/fallback-torque-reference.ts",
+      "sha256": "3e508263b7e188e1841c024007917143a15e7903157fb73fa9a6752805c22c61",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/gap-after-correction.ts",
+      "sha256": "3680f5eccc01677ff9acf404c8fd0221d53a7f2f66e369f87f61ac1563360026",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/horizontal-motion-ledger.ts",
+      "sha256": "d6cc6f54c83320290768918fedd0eb6d4ea1393f598ebc5d0b4bbe24ac3dbe61",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/independent-axis-selection.ts",
+      "sha256": "3055483a294cf018e899ebce6ee212c44c2e48edfb12eff154a723192ad382eb",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/independent-projection.ts",
+      "sha256": "904cd3ad94a9ce9b84b955c5f630852abf53f13d4dd2a5df94f9aaa9c44ce98f",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/manifold-fallback-cause.ts",
+      "sha256": "adb70d428f97f97a415503f4daeb21975f68a9d92c76d8006a087b5bd7dd75b1",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/manifold-identity.ts",
+      "sha256": "3a14cfc7ae39659fd01f0bb668447bdb0d11670c668259199987720ec542348e",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/original-mini-stacks.ts",
+      "sha256": "80245e312b6660d15cd496112cf2a51dccb7104e1d684f2363140365096202b5",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/pair-order-counterfactual.ts",
+      "sha256": "17939d87933a23d82ad9fdb21f5dc5d69b63173c1ca50342571ea46bbaff9559",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/pair-response-ledger.ts",
+      "sha256": "4fc30c487034ee10ced8cd7f4f1253ccc3f9045f9dede337d6316f245d640d05",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/pass-count-convergence.ts",
+      "sha256": "b2275e8c0a30af7761f8b85e8fd38c5b0c2c4f871fdcd60cd29c19b8cdbaa67d",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/point-momentum-reference.ts",
+      "sha256": "fe7988929430ef744d7959d308682593c8e18e549cfd0d55aba33c8805a6b161",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/post-correction-redetect.ts",
+      "sha256": "69644ae39926a71416ec1a61e70608ee276d9d9889ee752f8f2e624616b7ad85",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/private-cache-entry.ts",
+      "sha256": "0a25e5b6ee08bcd87cce4f7874a75026d2df6e7416d6d566540d3480ff33051e",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/public-two-box-resting-10s.ts",
+      "sha256": "a4861cb701dbabe4ac5bc5f1df1e2902de5b97483416da5807310be7aa5a8f15",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/public-world-smoke.ts",
+      "sha256": "ac602138989ef696d10b199a5568501159252f3fe3da647f3ff7864cd223b59e",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/sat-separation-witness.ts",
+      "sha256": "305caa19cdaa06a083f8f506be76c9d71d3727f4ecdcfa2c34ff1018dc31f61a",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/static-support-reference.ts",
+      "sha256": "ec4a491f1f19618a0195abae1b723c371dba5870422ee4c51801a55a6892598b",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/support-centroid.ts",
+      "sha256": "cd0c70a517361fb306a39fc92dc0c575bc0f014ed17907aec08fdbd0341aaab3",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/total-energy-phase-ledger.ts",
+      "sha256": "277b2d921a1693138e846dc1e405eb5624938e52137fad69c594a161f4b2e172",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/total-mechanical-energy.ts",
+      "sha256": "b25c5511d1542fb519d908395211d3355f830a10399c5e59e658e12adbfc4ec3",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-error-entry/entry.mjs",
+      "sha256": "f4c7d558556675a804f40ab021f1f885c46e89b23293d01f66270d2f126ef442",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/baseline.test.ts",
+      "sha256": "cfdd5704a513f89d9a4963f6a54e8b27d9145bac2d2ad52d024ef025fedaded9",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/contact.test.ts",
+      "sha256": "4b030e19f75f42be3a12f2a8241a8b94b5d815534ab6def00fc5932b9ac4a579",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/pendulum.test.ts",
+      "sha256": "4b40d8b9e8a13fc506f6e7b53d086d9c4508eebe43cc873f24f6ed97d14874d5",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/public-consumer.ts",
+      "sha256": "31ba437bc6404db7bce6664b36b44425b1f3a99571fdb819b4f9bc118defd594",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/run.mjs",
+      "sha256": "d09eaacb1904ca2cb4f39d1a1b548915caca7aa2d38bd7caa80f1b40a0f12608",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/units.test.ts",
+      "sha256": "b88dc4bc2548d9e7dfbe4e5dccee4a91f11d41740e0f912fea99353ed53554cb",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/world.test.ts",
+      "sha256": "c64be9b6319e9f018ac8cb9a618c570c32b255d092a7f850d0bf566cdad71d98",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-cache-reference/entry.mjs",
+      "sha256": "f0e031a77a716922fb6efda43009c5f83bee9bda72a751d6838c5593636b54e1",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-cache-reference/reference-world.ts",
+      "sha256": "53d7a3ce23d8d035a78cd833ac2ac3228d32e22b7757be74722866c71d3e5e57",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-face-world-reference/entry.ts",
+      "sha256": "12d7f84be623a34835a60cf02ffe050643829749671b949a95de814bfebac5ce",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-contact-diagnostic/entry.mjs",
+      "sha256": "d78864f1209b668226649c55940040cec0e2e1741d71fca9b4901e87f8148579",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-contact-diagnostic/instrumented-world.ts",
+      "sha256": "643ba6a82aa7823d4b5cadf16f642c9662a4e3705405f2e7969b73f5efb5babe",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-contact-reference/consumer-entry.mjs",
+      "sha256": "f0e031a77a716922fb6efda43009c5f83bee9bda72a751d6838c5593636b54e1",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-contact-reference/reference-world.ts",
+      "sha256": "96ed50f8e5f84853ddbe3e45fecbccb453fcb9a62f05968d8717e01a68310341",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-position-world/entry.mjs",
+      "sha256": "508e16a04967b46ab5fb851021f8996d58129b411ad2fd6bf6c2b880412290d8",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-position-world/reference-world.ts",
+      "sha256": "ca253faf466a293168378ceaf25137b50d338e5f394997945e441ed6ecf7eba1",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-engine-reference/admission-flow.mjs",
+      "sha256": "044b231fa18c86678331d8911898829af73526490ff86e0ef12b518c09a189c7",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-engine-reference/run.mjs",
+      "sha256": "bccb4757d50c5d6914bd2d7e17501a94661614e5adfebb451403694af69ce7e4",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-feature-contact-reference/entry.mjs",
+      "sha256": "ec0d2b669498d8747526d684591e769c4f61f4c0a37672ed0088747c78c7e13e",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-feature-contact-reference/reference-world.ts",
+      "sha256": "6f4aab9c3ba7c7375152d8e3f306259e819432b48da65a4f0d74da1728fbba8c",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/entry.mjs",
+      "sha256": "26f1cc206ccfd0d5d9b987b61581085805961532d62fa631e9bf2622fc8b3d0f",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/reference-world.ts",
+      "sha256": "671da74d216905c94592e4b7ecae488ea35d4db926108779c38a8c26d3b1d33e",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-global-contact-reference/entry.mjs",
+      "sha256": "f0e031a77a716922fb6efda43009c5f83bee9bda72a751d6838c5593636b54e1",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-global-contact-reference/reference-world.ts",
+      "sha256": "38d0a884b13975ce1cc7f1b25824f108c73a33c667b255e930432fcbb6f19e38",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/consumer.mjs",
+      "sha256": "56bf5e416dce9664d5e078b729e5d00638f2327d5ead410df5713bbd50e97060",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/harness-entry.mjs",
+      "sha256": "1a7bdaa0be79b7a3801f8fbbc1feb8bd0a8f4861347c15d96d36dea57683fc49",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-position-reference/entry.mjs",
+      "sha256": "f0e031a77a716922fb6efda43009c5f83bee9bda72a751d6838c5593636b54e1",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-position-reference/reference-world.ts",
+      "sha256": "3ac5de63eefe34dc3501fa261b8ee70ff4c3b63da2bac78553f743f30e90b26b",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-signed-closure-world/entry.mjs",
+      "sha256": "3447ff10e61e3b755fed249540791e0cc2713291868b2f5f962c655560f03108",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-signed-closure-world/reference-world.ts",
+      "sha256": "eca14ead804e67b484591236a8a3246fe323afa8937097c87ae2b7933a49bd04",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-velocity-diagnostic/entry.mjs",
+      "sha256": "e195ff749ab55bf6f6f5ef29853cd8863d27cc07573bf0d67f907eca77cb871d",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-rigid-velocity-diagnostic/instrumented-world.ts",
+      "sha256": "733a197c08992af095c9a25df7882e3b349b9d63f14c5cea49ce7b61e1237dba",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/box-point-probe.mjs",
+      "sha256": "a2713a2eb97bb77bda23be9266ec2169275a06d16fc211346f1bd3e30cff2f4c",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/broadphase-probe.mjs",
+      "sha256": "f266041e22aa09a9733a3f989fca4d4d9367945d21a6dcda9d6d403d065cc2a1",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/ccd-pair-probe.mjs",
+      "sha256": "aadce837d3c9784fb76808d98263b59ec85b152e165b85d94f048a95c25831f6",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/ccd-probe.mjs",
+      "sha256": "04f498092d410ec8ff0dd0286eea4678b6825cc6bd6f94763eb1a8b191b25f32",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/cloth-source-import-probe.mjs",
+      "sha256": "8ae5647934bd57e4ac5cd26aa8f7aac46f5bdfd5d9d1fa4ccb67dd6219ffba7c",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/cloth-world-probe.mjs",
+      "sha256": "a974ac03d39a5c25dc3cac12f9cd8aebf0d653858478beb94d1cdb407581f3e5",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/controls-probe.mjs",
+      "sha256": "5575627c7719297fa0fceb0054cb6e3411a0d170463fdd1991f338dd93bcb182",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/dynamic-fixed-pair-probe.mjs",
+      "sha256": "60c206e2281b10771b302067f0a06e72761ea0104543bde45a918780ad5d95d5",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/dynamic-hinge-motor-probe.mjs",
+      "sha256": "ed5cd826ed2e8c8ecfceb102e0a169d0ff6234a91e71d659a1211d8cd81f3b77",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/events-queries-probe.mjs",
+      "sha256": "56cc74b65c3430014836fa0709b72a7637c572ac94c1baa9168b38606fddec0e",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/fluid-cad-shelf-probe.mjs",
+      "sha256": "398c5f0fa4482e77e7e941ff2b93d8186d076e930d79820609ae26744aa6c0c8",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/fluid-release-gate.mjs",
+      "sha256": "3d4a5c6275685229fc2c4b711236737b27211698e4d05b6da706bc8207d6556d",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/fluid-visual-profile-probe.mjs",
+      "sha256": "1950a8588cce7f6e0331ace73aaddca1782fc094b4d2d4745d1e1f9bf2a6386a",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/fluid-world-probe.mjs",
+      "sha256": "cb2a368828ec4306b7ce1420a23cd5346ee06ba19c9da02299d3bf010bb4de08",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/friction-stack-probe.mjs",
+      "sha256": "0d0998ee56a1e0a54ef9a9e3d95ba818a1c1434fd22ebb3301e4828ecdcfb64a",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/hinge-motor-probe.mjs",
+      "sha256": "ac0b948beaa6f22e84314499082c1f96b2cba0b7103069f6d8ff15997170d7bf",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/joints-probe.mjs",
+      "sha256": "187ef868d124472cbcd5a3b0c0679ad0cdb1e4753a0a347135ef2a67dd2150b5",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/large-scene-probe.mjs",
+      "sha256": "68e1b6e15a3423bb8f2657d096d05877b6a5ea6bfd693afd535366e37c1600c6",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/offset-hinge-probe.mjs",
+      "sha256": "2063b2cee8191a83c58d61536b482be278512a52bfdd64a42332580a5b52e2fc",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/oriented-colliders-probe.mjs",
+      "sha256": "348bc1cad7fbe37e9648f7baf895937a4f11f5bb04493a247c1418a8aa76d331",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/persistent-box-probe.mjs",
+      "sha256": "9f6a8464fefe21ddcb74aa85678f9b02cd1064106170325f68c2bbde83e910bc",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/probe.mjs",
+      "sha256": "23a106b88483fc696c9b0582614d679ec737a08108afddf7a723b7d8e7ceda29",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/release-consumer.mjs",
+      "sha256": "5cc244d1c98f1b74cb8dea3d081d1713b93e0e810b36263af9aa67da84dafe8a",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/release-gate.mjs",
+      "sha256": "27801765d67b45f028c6bc96d18d8304aedf7fb348bc16d910a276331c7cc8b6",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/rigid-pairs-probe.mjs",
+      "sha256": "46042c457ee82f0d6f6cfcfb38d90e6a18e299d5479dd4036c8217b868442e39",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/rotation-probe.mjs",
+      "sha256": "b4ce0a8bd86755542277767bbcbcc1c0f7c21bdb3ac9a7596323b549e7b824c0",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/source-import-probe.mjs",
+      "sha256": "f241b74380533f1077802ddcd45ad3baabed28f27f186957aabbd73714e74d06",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-scene/thin-box-ccd-probe.mjs",
+      "sha256": "f678d055fc497812a6295822f9656b11321dd584b68d171a083bbc541f6b4baf",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-entry.ts",
+      "sha256": "3587613cf00b6a179b10750b7816b2aab5f77750b3bc1c820018a6563dc72621",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-run.mjs",
+      "sha256": "2ca872e4dc6b024f6e01984c3e50250eadf43c815a080c0f69fa3602189ddf71",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "examples/workspace-source/flow.mjs",
+      "sha256": "576d1ec06b1b987c9078489758e9cd2775577cbf0b2df9c8d5baf8e75146305e",
+      "classification": "example-needs-live-versus-historical-classification"
+    },
+    {
+      "path": "packages/barocss-physics/src/cloth.ts",
+      "sha256": "20088da3e20e782153deec6719e6946562fabe474dc5eaebe6d1ac9c20a508ce",
+      "classification": "package-source"
+    },
+    {
+      "path": "packages/barocss-physics/src/cloth/world.ts",
+      "sha256": "586368a30bcf54389a39f370321d5890ff33a0fc8a53408bf8d1a92a84a480ae",
+      "classification": "package-source"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid-cad.ts",
+      "sha256": "379e7e1c9745b630e31de4a7718c1eb093bd27c04a0850509d49ac6d3ecf01df",
+      "classification": "package-source"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid.ts",
+      "sha256": "f0af54170c9d1afdb899ae09298a58be462496d524f0e2e75d22028081aeb44b",
+      "classification": "package-source"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/cad-world.ts",
+      "sha256": "d958f33d6aebf9b4f9d9824b1d5e2532d10f7c9e71e0e285baf309662791fd05",
+      "classification": "package-source"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/world.ts",
+      "sha256": "bdfcfa50dd17096a0307d4bc4faae2c6d64dd20f0dcbb0e64d0474a175fce5bb",
+      "classification": "package-source"
+    },
+    {
+      "path": "packages/barocss-physics/src/index.ts",
+      "sha256": "363ccc9b0ca0a16f7de00a62729f166a5b4c36133b543df986aab5aaab8b483c",
+      "classification": "package-source"
+    },
+    {
+      "path": "packages/barocss-physics/src/pendulum.ts",
+      "sha256": "ffbe2413ed129694f0bdbcfaa2c5564363121edf3d63da2cef01d4cd5f276a25",
+      "classification": "package-source"
+    },
+    {
+      "path": "packages/barocss-physics/src/replay-scene.ts",
+      "sha256": "07468207326d3dd2f082e77727bdef5a984de5e72a6e5cb0a2da5229429ae436",
+      "classification": "package-source"
+    },
+    {
+      "path": "packages/barocss-physics/src/replay-session.ts",
+      "sha256": "1d34c1376dbfc1aeca25ca0586a574f1362f41afa68dac25260ac00a5ac2618c",
+      "classification": "package-source"
+    },
+    {
+      "path": "packages/barocss-physics/src/world.ts",
+      "sha256": "f34f79ee743dff7302b5c87c56407767b7dabb61c2715c90a60826c07637dc69",
+      "classification": "package-source"
+    }
+  ]
+}

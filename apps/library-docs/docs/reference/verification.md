@@ -3,6 +3,10 @@
 Claims about supported behaviour name their checks and limits. Planned work and source-only candidates are
 identified separately. This page describes checks from the kernel up to the studio in a browser.
 
+For fixed-step dynamics, contact research, numerical errors and retained NO_GO results, read
+[Physics verification](/reference/physics-verification). For joint timing and pose sampling, read
+[Robot motion](/guide/robot-motion).
+
 ## Unit and conformance tests
 
 - **The kernel** (`pnpm test` in `packages/barocss-cad`) runs its tests and the conformance suite against the built
