@@ -136,3 +136,32 @@ performance optimization or full-duration stack run has been executed yet.
 ```sh
 $NODE22 examples/physics-world-p4-2276/observable-run.mjs observable-guard-01 observable-census-01
 ```
+
+## Position reference attribution
+
+`position-profile-guard-01` / `position-profile-01` passes. Exactly two new
+direct reference evaluations run under cProfile: ALIGNED16 then YAW16. Both
+full raw byte streams and recursively compared IEEE numbers, including signed
+zero, match the separately saved CURRENT uncached responses exactly. No JSON
+observation projection is used in this gate. The research total is 26 actual
+reference evaluations; the new calls are not hidden inside the original24.
+World, fixture, trig and production-solver calls remain zero.
+
+The profiled wall times are about 359 ms and 355 ms. Profiling adds overhead;
+these are attribution measurements, not a speed claim. In each sample, the
+72 `compact_pair` calls consume about 196–198 ms cumulatively (~55%); the
+separate exact-QP root consumes about 132–137 ms (~37–38%). Their roots are
+disjoint. Other inclusive function rows overlap and must not be added. Full
+function/caller records and binary pstats are retained.
+
+`pose-reuse-data.json` reads captured operands without new reference work. All
+eight dynamic body poses change between PRE and HYP; only the floor's full
+raw record is unchanged. All nine quaternion bit patterns are held. A full
+pose-result cache therefore has no demonstrated reuse for those moved pairs.
+The next design examines only orientation-dependent SAT preparation, with
+complete Decimal context/sign/exponent keys and exact raw-response gates. No
+cache implementation or new trajectory has run at this checkpoint.
+
+```sh
+$NODE22 examples/physics-world-p4-2276/position-profile-run.mjs position-profile-guard-01 position-profile-01
+```

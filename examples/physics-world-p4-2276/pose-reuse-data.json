@@ -1,0 +1,52 @@
+{
+  "kind": "DATA_ONLY_POSE_REUSE_AUDIT",
+  "status": "PASS",
+  "newReferenceCalls": 0,
+  "WorldCalls": 0,
+  "rows": [
+    {
+      "scene": "ALIGNED",
+      "step": 16,
+      "requestPath": "examples/physics-world-p4-2276/evidence/observable-census-01/ALIGNED-16-position-world.stdin.jsonl",
+      "requestSha256": "c5014cbd7b6948642ff43cced4cbd0a5d216ac90302f21857f20848c5d8fa2e1",
+      "bodies": 9,
+      "fullBodyRawUnchanged": [
+        "floor"
+      ],
+      "quaternionRawUnchanged": [
+        "b0",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "floor"
+      ],
+      "rawLayout": "position3 velocity3 quaternion4 angularVelocity3 F64LE;104bytes/body"
+    },
+    {
+      "scene": "YAW",
+      "step": 16,
+      "requestPath": "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-16-position-world.stdin.jsonl",
+      "requestSha256": "e1567a963b0a8bc416e7ce027bbcce41710112575d5ce9380dc82d2eb0a150c3",
+      "bodies": 9,
+      "fullBodyRawUnchanged": [
+        "floor"
+      ],
+      "quaternionRawUnchanged": [
+        "b0",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "floor"
+      ],
+      "rawLayout": "position3 velocity3 quaternion4 angularVelocity3 F64LE;104bytes/body"
+    }
+  ]
+}
