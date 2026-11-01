@@ -189,3 +189,33 @@ Capacity bypass computes the original function and stores no new entry.
 These are authored contracts and recipes. Primitive and six-call cache gates
 are NOT_RUN at this checkpoint. No cache performance or full-stack result is
 claimed.
+
+## First cache candidate: exact output, cost NO_GO
+
+`support-radius-controls-01` passes all 12 primitive groups: 43 wrapper
+invocations and 51 original helper attempts. `support-radius-02` then executes
+six optimized reference evaluations. Every complete CURRENT raw byte stream
+and parsed number bit matches, including signed zero. The numerical result is
+`NUMERIC_EQ_PASS`. The study now has 32 full reference evaluations; the 51
+primitive helper attempts are separate. World/producer calls remain zero.
+
+CPU cost fails the fixed rule: prior uncached sum 885.643 ms, cached sum
+3,176.860 ms, or 3.587 times the prior cost. Key construction alone takes
+273–401 ms per request. Cache hits range from 5,085 to 7,339, but this does not
+establish a cost gain. Maximum retained owned cache memory is about 8.30 MiB,
+within the frozen 64 MiB bound. No bound or tolerance was raised. The result is
+`COST_NO_GO`; this candidate is **not adopted** and no full-stack expansion ran.
+`support-radius-results.json` records all paired costs and cache counts.
+
+Two preflight failures remain before the six-call run. The first caller passed
+the wrong primitive-receipt hash; no Python process started. The next attempt
+detected a controls-file diagnostic edit after its successful execution; no
+reference evaluation started. The exact tested controls bytes were restored
+by hash. The added diagnostics are preserved as an unrun draft, with recovery
+proof. The successful primitive run was not repeated or relabelled.
+
+The next read-only design examines SAT-scoped key amortization while keeping
+all original arithmetic, candidate order and fresh center projection. It is
+not implemented here. Full 1,200-step cost and the original eight-box exit
+remain NO_GO/UNKNOWN. P5 domain migration can proceed independently under its
+own frozen model/state/transaction contract. No deploy, push or develop merge.

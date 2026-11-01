@@ -1,0 +1,68 @@
+{
+  "kind": "P4_SUPPORT_RADIUS_PRIMITIVES_OUTER_GUARD",
+  "receiptId": "support-radius-controls-guard-01",
+  "censusId": "support-radius-controls-01",
+  "status": "SPAWNING",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "python3",
+    "-B",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/support-radius-controls.py",
+    "--run-id",
+    "support-radius-controls-01"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "inputs": {
+    "support-radius-controls-run.mjs": {
+      "bytes": 11840,
+      "sha256": "27b9decebf5f8aefaf67eb1d720404da773100822e4e050151c456be32be04f3"
+    },
+    "support-radius-controls.py": {
+      "bytes": 22053,
+      "sha256": "15d0d36f39305500bd07c071cf106d2d1c1279bebd2781f15e77b6ae242c933b"
+    },
+    "support-radius-cache.py": {
+      "bytes": 11008,
+      "sha256": "464a53b1634a8b6de26a6c5e45c807b664d49637902fc52786ed99fa895968aa"
+    },
+    "CACHE-CONTRACT.md": {
+      "bytes": 11189,
+      "sha256": "d4f53304f6c1bb11c31c35c695c564970fb8b44c88b7ef6debf28b14f94f3812"
+    },
+    "CACHE-CONTROLS.json": {
+      "bytes": 51441,
+      "sha256": "ad6ee93d263ea5cb5ffc0c96011f7808826b564fb589879e96c271de887ff0cb"
+    },
+    "cache-implementation-freeze-01.json": {
+      "bytes": 1729,
+      "sha256": "5ce630e842017debb8129f90a047867f3da7e011461b0d1b9a3b595e980ee42f"
+    },
+    "cost-census.py": {
+      "bytes": 33990,
+      "sha256": "67c23875efa2836cd2c374794dfb6b942366493e8fbf979ffcd8789ac2c8464f"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": "2026-11-01T19:14:40.791Z",
+  "spawnAt": null,
+  "pid": null,
+  "processGroupId": null,
+  "exit": null,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": null,
+  "processClosed": false,
+  "groupSignals": [],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/evidence/support-radius-controls-01/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/evidence/support-radius-controls-01/progress.json",
+  "errors": []
+}

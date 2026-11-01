@@ -1,0 +1,30 @@
+{
+  "workId": "physics-world-p4-support-radius-primitives-2276",
+  "base": "8cdaf2d03f3b377b2ada8686f3ec6090b5d24d8b",
+  "status": "frozen_before_primitive_calls",
+  "inputs": {
+    "CACHE-CONTRACT.md": "d4f53304f6c1bb11c31c35c695c564970fb8b44c88b7ef6debf28b14f94f3812",
+    "CACHE-CONTROLS.json": "ad6ee93d263ea5cb5ffc0c96011f7808826b564fb589879e96c271de887ff0cb",
+    "cache-implementation-freeze-01.json": "5ce630e842017debb8129f90a047867f3da7e011461b0d1b9a3b595e980ee42f",
+    "support-radius-cache.py": "464a53b1634a8b6de26a6c5e45c807b664d49637902fc52786ed99fa895968aa",
+    "support-radius-controls.py": "15d0d36f39305500bd07c071cf106d2d1c1279bebd2781f15e77b6ae242c933b",
+    "support-radius-controls-run.mjs": "27b9decebf5f8aefaf67eb1d720404da773100822e4e050151c456be32be04f3"
+  },
+  "expectedLedger": {
+    "wrapperCalls": 43,
+    "directOriginalAttempts": 23,
+    "delegatedOriginalAttempts": 28,
+    "totalOriginalAttempts": 51
+  },
+  "ceilings": {
+    "wrapperCalls": 48,
+    "originalHelperAttempts": 72
+  },
+  "maximumFullReferenceCalls": 0,
+  "WorldCalls": 0,
+  "physicalGateChanges": false,
+  "externalDeadlineMs": 180000,
+  "internalDeadlineSeconds": 170,
+  "wrapperReceiptId": "support-radius-controls-guard-01",
+  "controlsId": "support-radius-controls-01"
+}
