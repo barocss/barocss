@@ -1,0 +1,14 @@
+import type { Body, Quat, Vec3 } from './internal-types.js';
+export declare function multiplyQuaternion(a: Quat, b: Quat): Quat;
+export declare function advanceOrientation(orientation: Quat, angularVelocity: Vec3, dt: number): Quat;
+export declare const add: (a: Vec3, b: Vec3) => Vec3;
+export declare const sub: (a: Vec3, b: Vec3) => Vec3;
+export declare const scale: (a: Vec3, value: number) => Vec3;
+export declare const dot: (a: Vec3, b: Vec3) => number;
+export declare const cross: (a: Vec3, b: Vec3) => Vec3;
+export declare const inverse: (q: Quat) => Quat;
+export declare function rotate(q: Quat, v: Vec3): Vec3;
+export declare const localPoint: (body: Body, point: Vec3) => Vec3;
+export declare const worldPoint: (body: Body, point: Vec3) => Vec3;
+export declare function inverseInertia(body: Body, vector: Vec3): Vec3;
+export declare function inertia(body: Body, vector: Vec3): Vec3;

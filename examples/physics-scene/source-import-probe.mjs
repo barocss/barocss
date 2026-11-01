@@ -10,9 +10,7 @@ const contents = `
   import { createPhysicsWorld } from '@barocss/physics';
   import { admitCadSurfaceProxy } from '@barocss/physics/cad-proxy';
   import { createPhysicsRecorder } from '@barocss/physics/replay';
-  import { createFluidWorld } from '@barocss/physics/fluid';
-  import { createCadFluidWorld } from '@barocss/physics/fluid-cad';
-  console.log(createPhysicsWorld, admitCadSurfaceProxy, createPhysicsRecorder, createFluidWorld, createCadFluidWorld);
+  console.log(createPhysicsWorld, admitCadSurfaceProxy, createPhysicsRecorder);
 `;
 
 const published = JSON.parse(readFileSync(resolve(packageDir, 'package.json'), 'utf8')).publishConfig.exports;
@@ -29,11 +27,11 @@ async function resolvedInputs(conditions, usePublished = false) {
 const source = await resolvedInputs(['barocss-source']);
 const workspaceDefault = await resolvedInputs([]);
 const compiled = await resolvedInputs([], true);
-for (const entry of ['index', 'cad-proxy', 'replay', 'fluid', 'fluid-cad']) {
+for (const entry of ['index', 'cad-proxy', 'replay']) {
   assert.ok(source.some((path) => path.endsWith(`/src/${entry}.ts`)), `${entry} must use source`);
   assert.ok(workspaceDefault.some((path) => path.endsWith(`/src/${entry}.ts`)), `${entry} workspace default must use source`);
   assert.ok(compiled.some((path) => path.endsWith(`/dist/${entry}.js`)), `${entry} must use dist`);
 }
 assert.ok(source.every((path) => !path.includes('/dist/')));
 assert.ok(compiled.every((path) => !path.includes('/src/')));
-console.log(JSON.stringify({ result: 'ok', sourceEntries: 5, compiledEntries: 5 }));
+console.log(JSON.stringify({ result: 'ok', sourceEntries: 3, compiledEntries: 3 }));

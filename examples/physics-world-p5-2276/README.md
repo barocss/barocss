@@ -244,3 +244,59 @@ remain frozen, and no second generation is authorized. The generation validates
 input data/ownership, not public admission, full World behavior, performance,
 native declarations, documentation snippets or actual equipment. Those P5b
 qualifications remain NOT_RUN while the atomic implementation is in progress.
+
+## P5b bounded public runtime PASS; static/docs gates pending
+
+Actual `public-source-01` and `public-native-01` both PASS the frozen full
+cohort. Per graph:101 factory attempts,37 Worlds,64 rejected creates and6334
+step entries:6281accepted,13 unknown/log synthetic failures and40refusals,
+including4 deliberately poisoned-candidate NUMERIC_LIMIT controls. Each graph
+also preserves one external headless host-submit failure. Actual constructor,
+initializer, solver, accepted cursor and cleanup counts match the fixed ledger.
+The two graphs use actual source and published unbundled/native package paths,
+with no source fallback. Canonical PhysicsError and recorder ownership pass.
+
+Before these trials, native-entry-01 failed at ESM linking: relative external
+`./types.js` matched the internal domain/types helper and routed its functions
+to root types. That exact failed bundle/types/manifest and error remain saved.
+`build-root.mjs` now externalizes only three canonical resolved root source
+files. It leaves domain/types in the bundle, keeps the same build target and
+adds no dependency. Native-entry-02 PASSes import/error-class identity. Source
+and native numerical trials ran only after this repair. All prior failures,
+HOLDs and criteria remain; this was a build integration failure, not physics.
+
+Selected numerical proof:all five240-step cloth trajectories compare to the
+same one-time original241-frame reference at1e-12 absolute component error.
+The exact peak difference was asserted but not saved; no zero-error claim is
+made from that comparison. Old cloth checkpoint hashes/residuals also match.
+Maximum sampled triangle penetration is0.0013840839157666096m (<0.002), and peak
+structural extension0.05174255069177636 (<0.10). Source timed p95 values are
+1.850/1.690/1.772ms; native1.828/1.866/1.947ms, each below1000/120ms.
+
+Low-v1 density errors are0.22785881124725596 at60 (<0.25) and
+0.015288410357167534 at240 (<0.05). XSPH cost ratios are1.144/1.200 source and
+1.141/1.212 native (<1.5). Retained low-pair heap changes are70288/73312bytes
+(<1MiB) under the frozen GC method. Exact old fluid60/240/720 hashes, raw repeats,
+active shelf60/240 hashes and geometry checks pass. Shelf cumulative hits are
+859/2660; relative costs0.974/0.980 (<1.5). This does not certify3600 steps,
+calibrated fabric/CFD, dynamic coupling or real machinery.
+
+Whole-step failure/control cohorts pass full accepted-state/definition/log
+fingerprints and recovery. Cloth recorder attach refuses at the original
+128KiB model cap; three fluid profiles refuse unqualified recording with no
+owner residue. Rigid recorder log failure/recovery and the real two-World
+headless host/reset seam pass. Browser/Studio/UI proof is separate NOT_RUN.
+
+```sh
+$NODE22 examples/physics-world-p5-2276/public-run.mjs --run-id public-source-01 --graph source --freeze examples/physics-world-p5-2276/public-source-execution-freeze-01.json --freeze-sha256 "$SOURCE_SHA256" --authorize-public
+$NODE22 examples/physics-world-p5-2276/public-run.mjs --run-id public-native-01 --graph native --freeze examples/physics-world-p5-2276/public-native-execution-freeze-01.json --freeze-sha256 "$NATIVE_SHA256" --authorize-public
+```
+
+Both owned groups close with EOF/absence proof, no timeout/overflow. Evidence
+including the oracle reserve is5.44MiB source/14.03MiB native, below64MiB.
+`public-runtime-results.json` pins receipts, exact counters, errors/bounds and
+performance values. Strict consumers, all computed bundles, changed actual docs
+examples and docs build/links remain pending; P5b is not marked wholly complete.
+Old runtime factories/subpaths/DTOs are removed directly, with historical old
+providers/first failures retained. P4 original8-box NO_GO and required P6/P7
+still block whole-roadmap develop integration. No push/deploy/release occurred.

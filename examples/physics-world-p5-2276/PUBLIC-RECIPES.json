@@ -1,0 +1,105 @@
+{
+  "status": "AUTHOR_READY_NOT_RUN_PARENT_EXTERNAL_FREEZE_REQUIRED",
+  "literalControls": "P5B-CONTROL-RECIPES.json",
+  "literalControlsSha256": "3715c34d81c6ceffcfcb0caf696e7e0aaa54b8666f4d189822f186cba4dee278",
+  "perGraph": {
+    "factoryAttempts": 101,
+    "worlds": 37,
+    "creationRefusals": 64,
+    "stepEntries": 6334,
+    "accepted": 6281,
+    "syntheticFailures": 13,
+    "refusedSteps": 40,
+    "typedNumericControls": 4,
+    "initializers": 35,
+    "disposes": 41
+  },
+  "domainHelpers": {
+    "prepareCloth": 1217,
+    "prepareFluid": 5076,
+    "ClothSolverSteps": 1217,
+    "PbfSolverSteps": 5076,
+    "ClothSolverConstructions": 1217,
+    "PbfSolverConstructions": 5076,
+    "initializeCloth": 13,
+    "initializeFluid": 22
+  },
+  "literalRunOrder": [
+    "64preinitializationnegativecreations",
+    "clothreference240+warmup240+3timed240",
+    "lowv1+lowxsph720interleaved+lowxsphrepeat720",
+    "highv1+highxsph720interleaved+highxsphrepeat720",
+    "CADvalid1+bad4dataadmissions;3stalecurrentchecks;pairedshelf240+bare240;shelfrepeat240",
+    "4profilesxcontrol2+3faultWorlds;oneactualNaNvalidationperprofile;recorder/32commands/8queries/disposedreadreusecontrols",
+    "rigidcontrol2+recorderS1/logfault/S2recovery+3refusedsteps",
+    "actualhostpairnormal2;submitfaultaftershadow1;resetpairnormal2",
+    "shiftedfluidcreate/read/dispose0steps"
+  ],
+  "measurement": {
+    "timing": "performance.now immediately before and after actual public step. Source/native test counter writes and fault-site checks stay included. No reference/geometry/file evidence write is inside that interval. Shelf timing additionally includes explicit currentness check. Each cloth trial p95<=1000/120ms; no per-step exclusions.",
+    "p95": "sort ascending;indexceil(N*0.95)-1;240clothsamplespertrial;720fluidpair;shelf240andmatchedbare240",
+    "fluidOrder": "oddstepsv1thenxsph;evenstepsxsphthenv1;originalrelativep95cost<=1.5",
+    "heap": "Node--expose-gc required. All nominalmodeltemplates/imports are loaded first. After lowv1+lowxsph World initialization, invoke global.gc then baseline heapUsed. Execute the same planned two720-step Worlds, keep bounded checkpoints and timing arrays, dispose both, invoke global.gc then heapUsed-baseline. No extra World/step/GC claim. Original retainedheap<=1048576bytes stays. This measures retained low-paircohort heap rather than legacy standalone extra-control population.",
+    "raw": "Float64Array underlying raw bytes,LEhostassertion;rawcheckpointarrays60/240/720fluidand60/240shelf;newfullstatefingerprints encode number bits including-0;old diagnosticJSON sign remainsUNKNOWN",
+    "cloth": "all5trajectoriescompare241authenticatedoriginalframesatunchanged1e-12;referenceonlysamples4points/triangle/step;oldpublicclothsnapshothashesandresidualtable0/60/240checkedseparately;massabs<=1e-14;structural<=.10;vertex<=1e-6;sampled<=.002;pin0",
+    "fluid": "originalfluid-release-criteria.mjs exacthashesandrelativecost;density<=.25/.05at60/240;compression<=.05;boundsradius\u00b11e-9;finitearrays;originalhigh/dropxsphspeed/densitybounds",
+    "shelf": "actualCADdataadapter/source-currentness;hitssum>0by60;strictinflated-boxinteriorpredicateold\u00b11e-9;oldhashes60/240;baredivergence;fullrawrepeat;matchedcost<=1.5"
+  },
+  "faults": {
+    "unknownWorldThrows": 13,
+    "actualPrivateNaNValidatorControls": 4,
+    "externalHostSubmit": 1,
+    "midKernel": "afterfirstoriginalprojectDistance/projectDensityreturn",
+    "diagnostic": "afteroriginaldiagnostics",
+    "publicCopy": "publicDomainStatebeforestatic/publiccopyafterprivatepreparereturn",
+    "log": "realowner.prepareafterencodebeforeWorldcommit",
+    "typed": "freshpositions[0]=NaNafteroriginalsolverreturnbeforeprivatevalidation;noacceptedmutation"
+  },
+  "provider": {
+    "source": "oneisolatedowned-sourcebundle;explicitworkspacealiases;canonicaltypes/replay/ownerrootgraph",
+    "native": "actualpublishConfigexports+actualPhysics/CADdiststagedwithoutrootrebundle;nativeclassidentityandrealownerregistry;nosourcefallback",
+    "sourceBeforeAfterPins": true,
+    "sourcePASSReviewedBeforeNative": true,
+    "numericRootCADfree": true
+  },
+  "recording": {
+    "cloth": "WORLD_LIMIT128KiBpreflight",
+    "fluid": "INVALID_SNAPSHOTexplicitrefusal",
+    "domainAttachAttempts": 8,
+    "domainAttachReturns": 0,
+    "rigidAttachAttempts": 3,
+    "rigidAttachReturns": 1,
+    "rigidSaveCalls": 3,
+    "restoreWireCalls": 0
+  },
+  "caps": {
+    "childMs": 180000,
+    "totalEvidenceBytes": 67108864,
+    "authoredBytes": 16777216,
+    "nativeStagingBytes": 33554432,
+    "logsBytes": 4194304,
+    "emergencyReserveBytes": 8388608,
+    "oracleDataReserveBytes": 4194304
+  },
+  "executionFreezeFields": {
+    "graph": "source|native",
+    "authorization": "PUBLIC_P5B_EXACT_COHORT",
+    "files": "all harness/transitive sources/data/criteria/real emitted native closure bytes+SHA256",
+    "reviewedSourcePass": "nativeonly:{path,sha256};actualsourcePASSsummary reviewedbyparent"
+  },
+  "executionCommands": [
+    "$NODE22 examples/physics-world-p5-2276/public-run.mjs --run-id public-source-01 --graph source --freeze $SOURCE_FREEZE --freeze-sha256 $SOURCE_SHA --authorize-public",
+    "$NODE22 examples/physics-world-p5-2276/public-run.mjs --run-id public-native-01 --graph native --freeze $NATIVE_FREEZE --freeze-sha256 $NATIVE_SHA --authorize-public"
+  ],
+  "noAutomaticGraphContinuation": true,
+  "firstUnexpectedFailure": "STOP;savefirstfailure+actualentry/acceptedcounterfile+summary;noautorunothergraph/retry",
+  "separateNotRun": [
+    "docscompile/build/link",
+    "docsactualruntimecohort",
+    "browser/Studio/ViewerUI",
+    "GPUcompletion",
+    "release",
+    "3600fluidstability",
+    "P4/P6/P7"
+  ]
+}

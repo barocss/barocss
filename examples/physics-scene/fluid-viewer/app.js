@@ -1,6 +1,7 @@
 import { createViewer } from '../../../packages/barocss-viewer/dist/index.js';
 import { loadBaroCadModelSet } from '../../../packages/barocss-cad-interop/dist/model-set.js';
-import { createWaterWorld } from './scene.js';
+import { waterModelData } from './scene.js';
+import { createPhysicsWorld } from '../../../packages/barocss-physics/src/index.ts';
 import { createFluidController } from './controller.js';
 import { cameraForScene } from './camera.js';
 
@@ -11,8 +12,8 @@ const stepButton = document.querySelector('#step');
 const resetButton = document.querySelector('#reset');
 const sceneSelect = document.querySelector('#scene');
 const digest = async state => [...new Uint8Array(await crypto.subtle.digest('SHA-256',
-  state.positionsM.buffer.slice(state.positionsM.byteOffset,
-    state.positionsM.byteOffset + state.positionsM.byteLength)))].map(byte =>
+  state.fluids[0].positionsM.buffer.slice(state.fluids[0].positionsM.byteOffset,
+    state.fluids[0].positionsM.byteOffset + state.fluids[0].positionsM.byteLength)))].map(byte =>
       byte.toString(16).padStart(2, '0')).join('');
 
 let viewer;
@@ -31,8 +32,8 @@ try {
   const present = (state, running, reset = false) => {
     if (reset) { viewer.setFluidFrame(null); generation++; }
     viewer.setFluidFrame({ version: 0, contextId: `water_generation_${generation}`,
-      sceneRevision: state.sceneRevision, stepIndex: state.stepIndex,
-      particleCount: state.particleCount, positionsM: state.positionsM });
+      sceneRevision: state.identity.modelRevision, stepIndex: state.stepIndex,
+      particleCount: state.fluids[0].positionsM.length / 3, positionsM: state.fluids[0].positionsM });
     const accepted = viewer.getState().fluidFrame;
     if (accepted?.stepIndex !== state.stepIndex || accepted.particleCount !== 256) {
       throw new Error('Viewer did not accept the Physics frame');
@@ -41,10 +42,10 @@ try {
     const version = ++renderVersion;
     digest(state).then(sha => {
       if (version !== renderVersion) return;
-      status.textContent = `장면: ${sceneSelect.selectedOptions[0].textContent}\n상태: ${running ? '재생' : '일시 정지'}\n단계: ${state.stepIndex}\n시간: ${state.timeSeconds.toFixed(3)} s\n입자: ${state.particleCount}\n밀도 오차: ${state.diagnostics.meanAbsoluteDensityError.toFixed(4)}\n경계 접촉: ${state.diagnostics.boundaryHits}\n위치 SHA-256: ${sha}`;
+      status.textContent = `장면: ${sceneSelect.selectedOptions[0].textContent}\n상태: ${running ? '재생' : '일시 정지'}\n단계: ${state.stepIndex}\n시간: ${state.timeSeconds.toFixed(3)} s\n입자: ${state.fluids[0].positionsM.length / 3}\n밀도 오차: ${state.fluids[0].diagnostics.meanAbsoluteDensityError.toFixed(4)}\n경계 접촉: ${state.fluids[0].diagnostics.boundaryHits}\n위치 SHA-256: ${sha}`;
       window.fluidViewerState = { running, stepIndex: state.stepIndex,
-        particleCount: state.particleCount, sceneRevision: state.sceneRevision, sha256: sha,
-        diagnostics: { ...state.diagnostics },
+        particleCount: state.fluids[0].positionsM.length / 3, sceneRevision: state.identity.modelRevision, sha256: sha,
+        diagnostics: { ...state.fluids[0].diagnostics },
         displayStep: accepted.stepIndex };
     }).catch(error => { status.textContent = String(error); });
   };
@@ -55,9 +56,9 @@ try {
     generation++;
     const selection = sceneSelect.value;
     viewer.setView(cameraForScene(selection));
-    controller = createFluidController(createWaterWorld({
-      high: selection.startsWith('splash'), tuned: selection.endsWith('tuned'),
-    }), present);
+    const input = waterModelData({ high: selection.startsWith('splash'), tuned: selection.endsWith('tuned') });
+    const world = createPhysicsWorld(input.model, input.options);
+    controller = createFluidController(world, input, present);
   };
   startScene();
   sceneSelect.addEventListener('change', startScene);

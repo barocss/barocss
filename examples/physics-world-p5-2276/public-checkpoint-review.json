@@ -1,0 +1,23 @@
+{
+  "workId": "physics-world-p5b-2276",
+  "runtimeQualification": "SOURCE_AND_NATIVE_PASS",
+  "wholeCommitWhitespaceCheck": "FAIL_COSMETIC_RETAINED_EXACT_QUALIFIED_BYTES",
+  "findings": [
+    {
+      "path": "evidence/public-native-01/provider/node_modules/@barocss/cad/dist/io/dxf-writer.d.ts",
+      "line": 39,
+      "cause": "original native CAD declaration trailingwhitespace",
+      "decision": "preserve historicaloperandbytes"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/types.ts",
+      "line": 6,
+      "cause": "extra EOFblankline after oldruntimeDTO removal",
+      "decision": "retain exact source-qualified bytes; cosmetic only, not a physics/API check"
+    }
+  ],
+  "sourceNativeFirstFailure": "native-entry01 preserved before exactcanonicalbuildboundaryfix",
+  "strictConsumerAndDocs": "PENDING_SEPARATE_GATES",
+  "thresholdChanges": false,
+  "deploy": false
+}

@@ -6,6 +6,8 @@ import { parseJoints } from './joints.js';
 import { ID } from './limits.js';
 import { parseDisjointHingeProfile } from './disjoint-hinge/admission.js';
 import type { ParsedPair } from './disjoint-hinge/types.js';
+import { admitDomainModel } from './domain/admission.js';
+import type { DomainModelData } from './domain/types.js';
 
 function exact(value: unknown, keys: readonly string[], label: string): Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) error('INVALID_CONFIG', `${label} must be a record`);
@@ -31,6 +33,7 @@ function transform(value: unknown, label: string): void {
 export function admitModel(rawModel: PhysicsModel, rawOptions: WorldOptions): {
   model: PhysicsModel; options: WorldOptions; bodies: Body[]; joints: Joint[];
   disjointHinges: [ParsedPair, ParsedPair] | null;
+  domain: DomainModelData | null;
 } {
   // Copy before dependent reads; getters, custom prototypes and sparse arrays never reach parsers.
   const model = copyData(rawModel);
@@ -44,6 +47,8 @@ export function admitModel(rawModel: PhysicsModel, rawOptions: WorldOptions): {
   if(units.length!=='m'||units.mass!=='kg'||units.time!=='s'||units.angle!=='rad') error('INVALID_CONFIG','model units must be m/kg/s/rad');
   vector(input.gravityMps2,-1000,1000,'gravityMps2');
   const opt=exact(options,['profile','fixedStepSeconds','broadPhase'],'options');
+  const domain = admitDomainModel(model,options);
+  if(domain) return {model,options,bodies:[],joints:[],disjointHinges:null,domain};
   if(!['rigid-discrete-v1','rigid-persistent-box-v1','rigid-large-v1'].includes(opt.profile as string)) error('INVALID_CONFIG','profile is not implemented');
   finite(opt.fixedStepSeconds,1/240,1/30,'fixedStepSeconds');
   const large=opt.profile==='rigid-large-v1';
@@ -121,5 +126,5 @@ export function admitModel(rawModel: PhysicsModel, rawOptions: WorldOptions): {
     const refs=list(s.entityIds,128,'entityIds');if(refs.length===0||new Set(refs).size!==refs.length||refs.some(ref=>typeof ref!=='string'||!numericalIds.has(ref)))error('INVALID_CONFIG','invalid source binding references');
     const a=exact(s.approximation,['kind','lossLabel'],'approximation');if(a.kind!=='control-net-box'&&a.kind!=='control-net-sphere')error('INVALID_CONFIG','unsupported approximation');text(a.lossLabel,'lossLabel');
   }
-  return {model,options,bodies,joints,disjointHinges:disjoint?.pairs ?? null};
+  return {model,options,bodies,joints,disjointHinges:disjoint?.pairs ?? null,domain:null};
 }

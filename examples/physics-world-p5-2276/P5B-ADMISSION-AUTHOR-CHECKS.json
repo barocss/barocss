@@ -1,0 +1,58 @@
+{
+  "status": "AUTHOR_READY_SOURCE_ONLY_NOT_COMPILED_OR_RUN",
+  "base": "89d208b127c7c42a16b398c5641dcbf588d4a31b",
+  "sources": {
+    "packages/barocss-physics/src/model-admission.ts": {
+      "bytes": 10384,
+      "sha256": "7e77f184fed57d51ee1b0599e60c80d83b96045b139d236a37f76a4207689397"
+    },
+    "packages/barocss-physics/src/domain/admission.ts": {
+      "bytes": 11327,
+      "sha256": "1182fb21ec319132ac2f16ddec8494e3d1c4c5ac750bbe1ebab4c29817b4423e"
+    },
+    "packages/barocss-physics/src/domain/types.ts": {
+      "bytes": 3839,
+      "sha256": "35fcadf07a848d919806955f6c3d934d01217ff1c26ca7d4eb4eb2807eb4ee6f"
+    },
+    "packages/barocss-physics/src/cad-fluid-data.ts": {
+      "bytes": 2345,
+      "sha256": "5a15e23ba65663433501f07d2f35f323960879218d52a007efeb09ca7934ce10"
+    },
+    "packages/barocss-physics/src/cad-proxy.ts": {
+      "bytes": 321,
+      "sha256": "cc7715b4fc974c8ed4511ebf684cdc7c2923f7ab4b8b7f5db45b208f8e6ffa99"
+    }
+  },
+  "rigidAdmissionRegion": {
+    "unchanged": true,
+    "from": "rigid profile check",
+    "through": "source binding validation, excluding return-shape addition",
+    "bytes": 6858,
+    "sha256": "978c2e609de33c8a92bc376a55f31a42a124f5eb68ab28c3797db3a39982aa93"
+  },
+  "privateTypeModuleRuntimeFunctions": {
+    "unchanged": true,
+    "from": "export function invalid(",
+    "sha256": "016dea5c9e5573d48edd23235519de114c9f6a19d3efd1f1a8c66863c0198bae"
+  },
+  "generatedAuthority": {
+    "packages/barocss-physics/src/domain/cloth-reference.generated.ts": "c9ee88af8e25b533c2694433502b28f51dffdeae5cce656b53eb36a187be60bc",
+    "examples/physics-model-data-2276/model-data.mjs": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604",
+    "apps/library-docs/docs/public/physics/model-data.mjs": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604"
+  },
+  "generatedAuthorityChanged": false,
+  "domainInterface": "{kind:'cloth';data:Cloth;staticData:StaticDomainData}|{kind:'fluid';data:Fluid;staticData:StaticDomainData}",
+  "admissionInitializerCalls": 0,
+  "admissionWorldCalls": 0,
+  "validationScratch": {
+    "profile": "fluid-static-box-visual-v1",
+    "numbers": 768,
+    "bytes": 6144,
+    "retained": false,
+    "purpose": "original insideStaticBox helper after complete schema/ID/binding/role/positivegeometry/strictfluid validation"
+  },
+  "helperAccounting": "pure static-box admission calls inflatedBoxBounds+insideStaticBox once on a valid box; World initialization later independently calls its original box checks again; CAD data adapter performs base pure admission, one actual CAD proxy admission, final pure static-box admission, and constructs no World",
+  "retiredOwnedSource": "packages/barocss-physics/src/fluid/cad-admission.ts",
+  "numericalOrPublicAPIRuntimeByAuthor": false,
+  "compile": "NOT_RUN_PENDING_PARENT_FREEZE"
+}

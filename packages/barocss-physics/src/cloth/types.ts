@@ -1,15 +1,3 @@
-import type { Vec3 } from '../internal-types.js';
-
-/** A fixed visual profile. It is not calibrated fabric or authoritative CAD. */
-export interface ClothSceneV1 {
-  format: 'barocss-cloth-scene';
-  version: 1;
-  revision: string;
-  basis: 'right-handed-xyz-metres';
-  fixedStepSeconds: number;
-  profile: 'pinned-sheet-sphere-v1';
-}
-
 export interface ClothDiagnostics {
   maxStructuralExtension: number;
   maxStructuralCompression: number;
@@ -19,28 +7,6 @@ export interface ClothDiagnostics {
   totalMassKg: number;
 }
 
-export interface ClothStateV1 {
-  sceneRevision: string;
-  profile: 'pinned-sheet-sphere-v1';
-  stepIndex: number;
-  timeSeconds: number;
-  vertexCount: 289;
-  triangleCount: 512;
-  positionsM: Float64Array;
-  velocitiesMps: Float64Array;
-  triangles: Uint16Array;
-  pinnedVertexIndices: Uint16Array;
-  /** A derived simulation proxy, without a native CAD identity. */
-  collider: { kind: 'sphere'; centreM: Vec3; radiusM: number; collisionOffsetM: number };
-  diagnostics: ClothDiagnostics;
-}
-
-export interface ClothWorld {
-  getState(): ClothStateV1;
-  step(fixedStepSeconds: number): ClothStateV1;
-  reset(): ClothStateV1;
-  dispose(): void;
-}
 
 export interface ClothConstraint {
   a: number;

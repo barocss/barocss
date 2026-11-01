@@ -1,0 +1,401 @@
+{
+  "status": "PASS",
+  "trials": [
+    {
+      "trial": 0,
+      "kind": "reference",
+      "steps": 240,
+      "samples": [
+        {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "identity": {
+            "modelRevision": "p5KernelFixture1",
+            "modelDigest": "sha256:27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f",
+            "configurationDigest": "sha256:9e368b1c7c393e62b43f653a93b7b69f1df5b69b94db76b34fa8182e0b295fd0",
+            "providerDigest": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+            "profile": "cloth-pinned-sphere-visual-v1",
+            "frameId": "world",
+            "fixedStepSeconds": 0.008333333333333333
+          },
+          "positionsSha256": "8a96d5bfa1a04f846a5ada61cd8d07b76a5286b9b86ee815710ff76b2de0cda4",
+          "velocitiesSha256": "2910dc8d13bace0cfe170d1ac684392e2ace3a986908afb2a3d810363b76c841",
+          "rawStateFingerprint": "c092e2ad2326cfca4c199c4fddbdf935d4378f89686c6e7d8a01676bcd4517c7",
+          "diagnostics": {
+            "maxStructuralExtension": 0,
+            "maxStructuralCompression": 0,
+            "maxVertexPenetrationM": 0,
+            "maxPinDriftM": 0,
+            "totalMassKg": 0.20000000000000082
+          }
+        },
+        {
+          "stepIndex": 60,
+          "timeSeconds": 0.5,
+          "identity": {
+            "modelRevision": "p5KernelFixture1",
+            "modelDigest": "sha256:27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f",
+            "configurationDigest": "sha256:9e368b1c7c393e62b43f653a93b7b69f1df5b69b94db76b34fa8182e0b295fd0",
+            "providerDigest": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+            "profile": "cloth-pinned-sphere-visual-v1",
+            "frameId": "world",
+            "fixedStepSeconds": 0.008333333333333333
+          },
+          "positionsSha256": "b9a600fe75c91fc112edaf26baaa3c855879aaea0f330c6fe2267e98942dfeb5",
+          "velocitiesSha256": "0ab647729fcf70a10204bd952c5814ad87f2bca226cf23ef049f2ce94e2479a0",
+          "rawStateFingerprint": "99589343b337b34f9b317a4fb2db8cf34a6d6c311a800035a4d7d591c8b3096b",
+          "diagnostics": {
+            "maxStructuralExtension": 0.05159844151662041,
+            "maxStructuralCompression": 0.018763107123223932,
+            "maxVertexPenetrationM": 0,
+            "maxPinDriftM": 0,
+            "totalMassKg": 0.20000000000000082
+          }
+        },
+        {
+          "stepIndex": 240,
+          "timeSeconds": 2,
+          "identity": {
+            "modelRevision": "p5KernelFixture1",
+            "modelDigest": "sha256:27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f",
+            "configurationDigest": "sha256:9e368b1c7c393e62b43f653a93b7b69f1df5b69b94db76b34fa8182e0b295fd0",
+            "providerDigest": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+            "profile": "cloth-pinned-sphere-visual-v1",
+            "frameId": "world",
+            "fixedStepSeconds": 0.008333333333333333
+          },
+          "positionsSha256": "127f1c7626b9b089ccfef63503a01d67ac05abb65d0bb7aad272d6f1e66ff1a4",
+          "velocitiesSha256": "0c2c803fba9097a2487078b0f028d19605488e8a6d0f7f4abcb359bb2208dff8",
+          "rawStateFingerprint": "fef10923403d68321bb21ec2ae589915b34715c76db39bf8ae01c38fa3d9668b",
+          "diagnostics": {
+            "maxStructuralExtension": 0.0284154683313953,
+            "maxStructuralCompression": 0.0028517828842439252,
+            "maxVertexPenetrationM": 0,
+            "maxPinDriftM": 0,
+            "totalMassKg": 0.20000000000000082
+          }
+        }
+      ],
+      "peakSampled": 0.0013840839157666096,
+      "peakExtension": 0.05174255069177636,
+      "p95StepMs": null
+    },
+    {
+      "trial": 1,
+      "kind": "warmup",
+      "steps": 240,
+      "samples": [
+        {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "identity": {
+            "modelRevision": "p5KernelFixture1",
+            "modelDigest": "sha256:27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f",
+            "configurationDigest": "sha256:9e368b1c7c393e62b43f653a93b7b69f1df5b69b94db76b34fa8182e0b295fd0",
+            "providerDigest": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+            "profile": "cloth-pinned-sphere-visual-v1",
+            "frameId": "world",
+            "fixedStepSeconds": 0.008333333333333333
+          },
+          "positionsSha256": "8a96d5bfa1a04f846a5ada61cd8d07b76a5286b9b86ee815710ff76b2de0cda4",
+          "velocitiesSha256": "2910dc8d13bace0cfe170d1ac684392e2ace3a986908afb2a3d810363b76c841",
+          "rawStateFingerprint": "c092e2ad2326cfca4c199c4fddbdf935d4378f89686c6e7d8a01676bcd4517c7",
+          "diagnostics": {
+            "maxStructuralExtension": 0,
+            "maxStructuralCompression": 0,
+            "maxVertexPenetrationM": 0,
+            "maxPinDriftM": 0,
+            "totalMassKg": 0.20000000000000082
+          }
+        },
+        {
+          "stepIndex": 60,
+          "timeSeconds": 0.5,
+          "identity": {
+            "modelRevision": "p5KernelFixture1",
+            "modelDigest": "sha256:27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f",
+            "configurationDigest": "sha256:9e368b1c7c393e62b43f653a93b7b69f1df5b69b94db76b34fa8182e0b295fd0",
+            "providerDigest": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+            "profile": "cloth-pinned-sphere-visual-v1",
+            "frameId": "world",
+            "fixedStepSeconds": 0.008333333333333333
+          },
+          "positionsSha256": "b9a600fe75c91fc112edaf26baaa3c855879aaea0f330c6fe2267e98942dfeb5",
+          "velocitiesSha256": "0ab647729fcf70a10204bd952c5814ad87f2bca226cf23ef049f2ce94e2479a0",
+          "rawStateFingerprint": "99589343b337b34f9b317a4fb2db8cf34a6d6c311a800035a4d7d591c8b3096b",
+          "diagnostics": {
+            "maxStructuralExtension": 0.05159844151662041,
+            "maxStructuralCompression": 0.018763107123223932,
+            "maxVertexPenetrationM": 0,
+            "maxPinDriftM": 0,
+            "totalMassKg": 0.20000000000000082
+          }
+        },
+        {
+          "stepIndex": 240,
+          "timeSeconds": 2,
+          "identity": {
+            "modelRevision": "p5KernelFixture1",
+            "modelDigest": "sha256:27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f",
+            "configurationDigest": "sha256:9e368b1c7c393e62b43f653a93b7b69f1df5b69b94db76b34fa8182e0b295fd0",
+            "providerDigest": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+            "profile": "cloth-pinned-sphere-visual-v1",
+            "frameId": "world",
+            "fixedStepSeconds": 0.008333333333333333
+          },
+          "positionsSha256": "127f1c7626b9b089ccfef63503a01d67ac05abb65d0bb7aad272d6f1e66ff1a4",
+          "velocitiesSha256": "0c2c803fba9097a2487078b0f028d19605488e8a6d0f7f4abcb359bb2208dff8",
+          "rawStateFingerprint": "fef10923403d68321bb21ec2ae589915b34715c76db39bf8ae01c38fa3d9668b",
+          "diagnostics": {
+            "maxStructuralExtension": 0.0284154683313953,
+            "maxStructuralCompression": 0.0028517828842439252,
+            "maxVertexPenetrationM": 0,
+            "maxPinDriftM": 0,
+            "totalMassKg": 0.20000000000000082
+          }
+        }
+      ],
+      "peakSampled": 0,
+      "peakExtension": 0,
+      "p95StepMs": null
+    },
+    {
+      "trial": 2,
+      "kind": "timed",
+      "steps": 240,
+      "samples": [
+        {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "identity": {
+            "modelRevision": "p5KernelFixture1",
+            "modelDigest": "sha256:27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f",
+            "configurationDigest": "sha256:9e368b1c7c393e62b43f653a93b7b69f1df5b69b94db76b34fa8182e0b295fd0",
+            "providerDigest": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+            "profile": "cloth-pinned-sphere-visual-v1",
+            "frameId": "world",
+            "fixedStepSeconds": 0.008333333333333333
+          },
+          "positionsSha256": "8a96d5bfa1a04f846a5ada61cd8d07b76a5286b9b86ee815710ff76b2de0cda4",
+          "velocitiesSha256": "2910dc8d13bace0cfe170d1ac684392e2ace3a986908afb2a3d810363b76c841",
+          "rawStateFingerprint": "c092e2ad2326cfca4c199c4fddbdf935d4378f89686c6e7d8a01676bcd4517c7",
+          "diagnostics": {
+            "maxStructuralExtension": 0,
+            "maxStructuralCompression": 0,
+            "maxVertexPenetrationM": 0,
+            "maxPinDriftM": 0,
+            "totalMassKg": 0.20000000000000082
+          }
+        },
+        {
+          "stepIndex": 60,
+          "timeSeconds": 0.5,
+          "identity": {
+            "modelRevision": "p5KernelFixture1",
+            "modelDigest": "sha256:27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f",
+            "configurationDigest": "sha256:9e368b1c7c393e62b43f653a93b7b69f1df5b69b94db76b34fa8182e0b295fd0",
+            "providerDigest": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+            "profile": "cloth-pinned-sphere-visual-v1",
+            "frameId": "world",
+            "fixedStepSeconds": 0.008333333333333333
+          },
+          "positionsSha256": "b9a600fe75c91fc112edaf26baaa3c855879aaea0f330c6fe2267e98942dfeb5",
+          "velocitiesSha256": "0ab647729fcf70a10204bd952c5814ad87f2bca226cf23ef049f2ce94e2479a0",
+          "rawStateFingerprint": "99589343b337b34f9b317a4fb2db8cf34a6d6c311a800035a4d7d591c8b3096b",
+          "diagnostics": {
+            "maxStructuralExtension": 0.05159844151662041,
+            "maxStructuralCompression": 0.018763107123223932,
+            "maxVertexPenetrationM": 0,
+            "maxPinDriftM": 0,
+            "totalMassKg": 0.20000000000000082
+          }
+        },
+        {
+          "stepIndex": 240,
+          "timeSeconds": 2,
+          "identity": {
+            "modelRevision": "p5KernelFixture1",
+            "modelDigest": "sha256:27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f",
+            "configurationDigest": "sha256:9e368b1c7c393e62b43f653a93b7b69f1df5b69b94db76b34fa8182e0b295fd0",
+            "providerDigest": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+            "profile": "cloth-pinned-sphere-visual-v1",
+            "frameId": "world",
+            "fixedStepSeconds": 0.008333333333333333
+          },
+          "positionsSha256": "127f1c7626b9b089ccfef63503a01d67ac05abb65d0bb7aad272d6f1e66ff1a4",
+          "velocitiesSha256": "0c2c803fba9097a2487078b0f028d19605488e8a6d0f7f4abcb359bb2208dff8",
+          "rawStateFingerprint": "fef10923403d68321bb21ec2ae589915b34715c76db39bf8ae01c38fa3d9668b",
+          "diagnostics": {
+            "maxStructuralExtension": 0.0284154683313953,
+            "maxStructuralCompression": 0.0028517828842439252,
+            "maxVertexPenetrationM": 0,
+            "maxPinDriftM": 0,
+            "totalMassKg": 0.20000000000000082
+          }
+        }
+      ],
+      "peakSampled": 0,
+      "peakExtension": 0,
+      "p95StepMs": 1.8277500000003783
+    },
+    {
+      "trial": 3,
+      "kind": "timed",
+      "steps": 240,
+      "samples": [
+        {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "identity": {
+            "modelRevision": "p5KernelFixture1",
+            "modelDigest": "sha256:27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f",
+            "configurationDigest": "sha256:9e368b1c7c393e62b43f653a93b7b69f1df5b69b94db76b34fa8182e0b295fd0",
+            "providerDigest": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+            "profile": "cloth-pinned-sphere-visual-v1",
+            "frameId": "world",
+            "fixedStepSeconds": 0.008333333333333333
+          },
+          "positionsSha256": "8a96d5bfa1a04f846a5ada61cd8d07b76a5286b9b86ee815710ff76b2de0cda4",
+          "velocitiesSha256": "2910dc8d13bace0cfe170d1ac684392e2ace3a986908afb2a3d810363b76c841",
+          "rawStateFingerprint": "c092e2ad2326cfca4c199c4fddbdf935d4378f89686c6e7d8a01676bcd4517c7",
+          "diagnostics": {
+            "maxStructuralExtension": 0,
+            "maxStructuralCompression": 0,
+            "maxVertexPenetrationM": 0,
+            "maxPinDriftM": 0,
+            "totalMassKg": 0.20000000000000082
+          }
+        },
+        {
+          "stepIndex": 60,
+          "timeSeconds": 0.5,
+          "identity": {
+            "modelRevision": "p5KernelFixture1",
+            "modelDigest": "sha256:27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f",
+            "configurationDigest": "sha256:9e368b1c7c393e62b43f653a93b7b69f1df5b69b94db76b34fa8182e0b295fd0",
+            "providerDigest": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+            "profile": "cloth-pinned-sphere-visual-v1",
+            "frameId": "world",
+            "fixedStepSeconds": 0.008333333333333333
+          },
+          "positionsSha256": "b9a600fe75c91fc112edaf26baaa3c855879aaea0f330c6fe2267e98942dfeb5",
+          "velocitiesSha256": "0ab647729fcf70a10204bd952c5814ad87f2bca226cf23ef049f2ce94e2479a0",
+          "rawStateFingerprint": "99589343b337b34f9b317a4fb2db8cf34a6d6c311a800035a4d7d591c8b3096b",
+          "diagnostics": {
+            "maxStructuralExtension": 0.05159844151662041,
+            "maxStructuralCompression": 0.018763107123223932,
+            "maxVertexPenetrationM": 0,
+            "maxPinDriftM": 0,
+            "totalMassKg": 0.20000000000000082
+          }
+        },
+        {
+          "stepIndex": 240,
+          "timeSeconds": 2,
+          "identity": {
+            "modelRevision": "p5KernelFixture1",
+            "modelDigest": "sha256:27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f",
+            "configurationDigest": "sha256:9e368b1c7c393e62b43f653a93b7b69f1df5b69b94db76b34fa8182e0b295fd0",
+            "providerDigest": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+            "profile": "cloth-pinned-sphere-visual-v1",
+            "frameId": "world",
+            "fixedStepSeconds": 0.008333333333333333
+          },
+          "positionsSha256": "127f1c7626b9b089ccfef63503a01d67ac05abb65d0bb7aad272d6f1e66ff1a4",
+          "velocitiesSha256": "0c2c803fba9097a2487078b0f028d19605488e8a6d0f7f4abcb359bb2208dff8",
+          "rawStateFingerprint": "fef10923403d68321bb21ec2ae589915b34715c76db39bf8ae01c38fa3d9668b",
+          "diagnostics": {
+            "maxStructuralExtension": 0.0284154683313953,
+            "maxStructuralCompression": 0.0028517828842439252,
+            "maxVertexPenetrationM": 0,
+            "maxPinDriftM": 0,
+            "totalMassKg": 0.20000000000000082
+          }
+        }
+      ],
+      "peakSampled": 0,
+      "peakExtension": 0,
+      "p95StepMs": 1.8663750000005166
+    },
+    {
+      "trial": 4,
+      "kind": "timed",
+      "steps": 240,
+      "samples": [
+        {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "identity": {
+            "modelRevision": "p5KernelFixture1",
+            "modelDigest": "sha256:27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f",
+            "configurationDigest": "sha256:9e368b1c7c393e62b43f653a93b7b69f1df5b69b94db76b34fa8182e0b295fd0",
+            "providerDigest": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+            "profile": "cloth-pinned-sphere-visual-v1",
+            "frameId": "world",
+            "fixedStepSeconds": 0.008333333333333333
+          },
+          "positionsSha256": "8a96d5bfa1a04f846a5ada61cd8d07b76a5286b9b86ee815710ff76b2de0cda4",
+          "velocitiesSha256": "2910dc8d13bace0cfe170d1ac684392e2ace3a986908afb2a3d810363b76c841",
+          "rawStateFingerprint": "c092e2ad2326cfca4c199c4fddbdf935d4378f89686c6e7d8a01676bcd4517c7",
+          "diagnostics": {
+            "maxStructuralExtension": 0,
+            "maxStructuralCompression": 0,
+            "maxVertexPenetrationM": 0,
+            "maxPinDriftM": 0,
+            "totalMassKg": 0.20000000000000082
+          }
+        },
+        {
+          "stepIndex": 60,
+          "timeSeconds": 0.5,
+          "identity": {
+            "modelRevision": "p5KernelFixture1",
+            "modelDigest": "sha256:27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f",
+            "configurationDigest": "sha256:9e368b1c7c393e62b43f653a93b7b69f1df5b69b94db76b34fa8182e0b295fd0",
+            "providerDigest": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+            "profile": "cloth-pinned-sphere-visual-v1",
+            "frameId": "world",
+            "fixedStepSeconds": 0.008333333333333333
+          },
+          "positionsSha256": "b9a600fe75c91fc112edaf26baaa3c855879aaea0f330c6fe2267e98942dfeb5",
+          "velocitiesSha256": "0ab647729fcf70a10204bd952c5814ad87f2bca226cf23ef049f2ce94e2479a0",
+          "rawStateFingerprint": "99589343b337b34f9b317a4fb2db8cf34a6d6c311a800035a4d7d591c8b3096b",
+          "diagnostics": {
+            "maxStructuralExtension": 0.05159844151662041,
+            "maxStructuralCompression": 0.018763107123223932,
+            "maxVertexPenetrationM": 0,
+            "maxPinDriftM": 0,
+            "totalMassKg": 0.20000000000000082
+          }
+        },
+        {
+          "stepIndex": 240,
+          "timeSeconds": 2,
+          "identity": {
+            "modelRevision": "p5KernelFixture1",
+            "modelDigest": "sha256:27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f",
+            "configurationDigest": "sha256:9e368b1c7c393e62b43f653a93b7b69f1df5b69b94db76b34fa8182e0b295fd0",
+            "providerDigest": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+            "profile": "cloth-pinned-sphere-visual-v1",
+            "frameId": "world",
+            "fixedStepSeconds": 0.008333333333333333
+          },
+          "positionsSha256": "127f1c7626b9b089ccfef63503a01d67ac05abb65d0bb7aad272d6f1e66ff1a4",
+          "velocitiesSha256": "0c2c803fba9097a2487078b0f028d19605488e8a6d0f7f4abcb359bb2208dff8",
+          "rawStateFingerprint": "fef10923403d68321bb21ec2ae589915b34715c76db39bf8ae01c38fa3d9668b",
+          "diagnostics": {
+            "maxStructuralExtension": 0.0284154683313953,
+            "maxStructuralCompression": 0.0028517828842439252,
+            "maxVertexPenetrationM": 0,
+            "maxPinDriftM": 0,
+            "totalMassKg": 0.20000000000000082
+          }
+        }
+      ],
+      "peakSampled": 0,
+      "peakExtension": 0,
+      "p95StepMs": 1.9471249999996871
+    }
+  ],
+  "independentOracleTolerance": 1e-12
+}

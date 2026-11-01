@@ -1,0 +1,38 @@
+{
+  "actualBytesBeforeSummary": 9807146,
+  "cap": 67108864,
+  "emergencyReserve": 8388608,
+  "authoredWrites": 337206,
+  "argv": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/public-trial.mjs",
+    "native",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/public-native-01",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/public-native-execution-freeze-01.json",
+    "ff568a45ed6e3c686d26f50572972ef1a4767c04c900fd5dc25d269dd974220d",
+    "--authorized-public-child"
+  ],
+  "execArgv": [
+    "--expose-gc"
+  ],
+  "counterKeys": [
+    "factoryAttempts",
+    "worlds",
+    "creationRefusals",
+    "stepEntries",
+    "accepted",
+    "syntheticFailures",
+    "typedNumericControls",
+    "initializers",
+    "reads",
+    "disposes",
+    "domainQueries",
+    "domainRecorderAttachAttempts",
+    "rigidRecorderAttachAttempts",
+    "rigidRecorderSaveCalls",
+    "disposedReadRefusals",
+    "hostExternalSubmitFailures"
+  ],
+  "counterFormat": "unsigned64LE;one fixed file updated on actual entry/commit;updates included in public step timing",
+  "unknownOldDiagnosticZeroSigns": "UNKNOWN"
+}

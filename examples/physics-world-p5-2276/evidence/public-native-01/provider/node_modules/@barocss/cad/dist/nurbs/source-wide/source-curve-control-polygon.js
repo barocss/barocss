@@ -1,0 +1,173 @@
+import { compileCadModel } from '../../model-compiler.js';
+import { validateCurve, curveDomain, evaluateCurve } from '../../core/math.js';
+import { evaluateCurveD1 } from '../../core/derivatives.js';
+import { curveDecimal } from '../curves/curve-source.js';
+import { copyCadData } from '../../data-copy.js';
+import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
+import { EXACT_OWN_FIELDS_REQUIRED, OWN_RECORD_REQUIRED, hasExactOwnFields, isOwnRecord, ownSnapshot } from '../../core/own-data.js';
+export const SourceCurveControlPolygonDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE', TARGET: 'TARGET', BINDING: 'BINDING', BUDGET: 'BUDGET', NATIVE: 'NATIVE', OWNED: 'OWNED' });
+export class SourceCurveControlPolygonError extends KernelError {
+    code;
+    constructor(code, detail, cause) { super(('Source Curve control-polygon: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'SourceCurveControlPolygonError'; this.code = code; }
+}
+const CODE = SourceCurveControlPolygonDiagnosticCode, FIELDS = ['xMM', 'yMM', 'zMM', 'weight'];
+function check(condition, code, detail) { if (!condition)
+    throw new SourceCurveControlPolygonError(code, detail); }
+function child(action, detail) { try {
+    return action();
+}
+catch (cause) {
+    throw new SourceCurveControlPolygonError(CODE.NATIVE, detail, cause);
+} }
+function record(input, fields, code = CODE.INPUT) { check(isOwnRecord(input), code, OWN_RECORD_REQUIRED); check(hasExactOwnFields(input, fields), code, EXACT_OWN_FIELDS_REQUIRED); return input; }
+const OWN = { input: CODE.INPUT, owned: CODE.OWNED, budget: CODE.BUDGET, fail: (code, detail) => { throw new SourceCurveControlPolygonError(code, detail); }, wrap: (code, detail, cause) => { throw new SourceCurveControlPolygonError(code, detail, cause); }, isRefusal: e => e instanceof SourceCurveControlPolygonError };
+function snapshot(input, owned = false) { return ownSnapshot(input, owned, OWN); }
+function bytes(source) { check(source.length <= 262144, CODE.BUDGET, 'Source UTF-16 limit exceeded'); let count = 0; for (let i = 0; i < source.length; i++) {
+    const code = source.charCodeAt(i), next = source.charCodeAt(i + 1);
+    if (code < 128)
+        count++;
+    else if (code < 2048)
+        count += 2;
+    else if (code >= 0xd800 && code <= 0xdbff && next >= 0xdc00 && next <= 0xdfff) {
+        count += 4;
+        i++;
+    }
+    else
+        count += 3;
+    check(count <= 262144, CODE.BUDGET, 'Source UTF-8 limit exceeded');
+} return count; }
+function compile(source, stage) { let result; try {
+    result = compileCadModel(source, { sourceVersion: 0 });
+}
+catch (cause) {
+    throw new SourceCurveControlPolygonError(CODE.SOURCE, 'Actual ' + stage + ' Source0 compiler failed', cause);
+} if (!result.ok)
+    throw new SourceCurveControlPolygonError(CODE.SOURCE, 'Actual ' + stage + ' whole Source0 compilation refused', result); return result; }
+function value(curve, index, field) { return field === 'weight' ? curve.weights[index] : curve.controlPoints[index][field === 'xMM' ? 0 : field === 'yMM' ? 1 : 2]; }
+function item(value, index) { check(value.kind === 'array' && Number.isInteger(index) && index >= 0 && index < value.items.length, CODE.BINDING, 'Actual numeric AST array path is required'); return value.items[index]; }
+function scalar(declaration, index, field, curve, source) {
+    const fields = declaration.fields.filter(fieldValue => fieldValue.name === (field === 'weight' ? 'weights' : 'control-points'));
+    check(fields.length === 1, CODE.BINDING, 'A unique actual scalar field binding is required');
+    const pole = item(fields[0].value, index), node = field === 'weight' ? pole : item(pole, field === 'xMM' ? 0 : field === 'yMM' ? 1 : 2);
+    check(node.kind === 'number', CODE.BINDING, 'An actual directly authored numeric scalar is required');
+    const range = node.range;
+    check(Number.isInteger(range.start) && Number.isInteger(range.end) && range.start >= declaration.range.start && range.start >= fields[0].value.range.start && range.start >= 0 && range.start < range.end && range.end <= fields[0].value.range.end && range.end <= declaration.range.end && range.end <= source.length, CODE.BINDING, 'Actual numeric UTF-16 exclusive range is invalid');
+    const lexeme = source.slice(range.start, range.end);
+    check(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(lexeme) && Object.is(Number(lexeme), node.value) && Object.is(node.value, value(curve, index, field)), CODE.BINDING, 'Original scalar source/AST/native coefficient bits disagree');
+    return node;
+}
+function apply(source, patches) { let result = source; for (let i = patches.length - 1; i >= 0; i--) {
+    const patch = patches[i];
+    check(source.slice(patch.startUTF16, patch.endUTF16) === patch.originalText, CODE.BINDING, 'Each retained patch must bind the original source lexeme');
+    result = result.slice(0, patch.startUTF16) + patch.replacementText + result.slice(patch.endUTF16);
+} return result; }
+function untouched(original, candidate, patches) { let before = 0, after = 0; for (const patch of patches) {
+    const length = patch.startUTF16 - before;
+    check(original.slice(before, patch.startUTF16) === candidate.slice(after, after + length), CODE.BINDING, 'An untouched original source span changed');
+    after += length;
+    check(candidate.slice(after, after + patch.replacementText.length) === patch.replacementText, CODE.BINDING, 'Candidate scalar differs from the retained patch');
+    after += patch.replacementText.length;
+    before = patch.endUTF16;
+} check(original.slice(before) === candidate.slice(after), CODE.BINDING, 'The untouched original source suffix changed'); }
+/** Edit requested literal scalars on the actual full native Curve profile, preserving the complete original Model source. */
+export function editSourceCurveControlPolygon(input) {
+    const data = record(snapshot(input), ['source', 'sourceVersion', 'curveId', 'edits']);
+    check(data.sourceVersion === 0, CODE.VERSION, 'Only explicit literal Source0 editing is supported');
+    check(typeof data.source === 'string', CODE.INPUT, 'The complete original source string is required');
+    check(typeof data.curveId === 'string' && data.curveId.length <= 48 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(data.curveId), CODE.IDENTITY, 'Selected Curve ID must be ASCII1..48');
+    const request = data, editData = record(request.edits, ['poleEdits']);
+    check(Array.isArray(editData.poleEdits) && editData.poleEdits.length >= 1 && editData.poleEdits.length <= 64, CODE.BUDGET, 'Exactly1..64 distinct existing pole edits are supported');
+    const originalSourceUTF8 = bytes(request.source), original = compile(request.source, 'original'), originalModel = original.model, selectedObjectIndex = originalModel.objects.findIndex(object => object.id === request.curveId), selected = originalModel.objects[selectedObjectIndex];
+    check(selected?.kind === 'curve', CODE.TARGET, 'The selected ID must identify an existing original Curve');
+    const declarations = original.ast.declarations.filter(value => value.id === selected.id), nodes = original.ir.nodes.filter(value => value.id === selected.id);
+    check(declarations.length === 1 && declarations[0].kind === 'curve' && nodes.length === 1 && nodes[0].kind === 'curve' && same(nodes[0].geometry, selected) && same(nodes[0].span, declarations[0].range), CODE.BINDING, 'Unique actual Curve AST/IR/full Model binding is required');
+    const declaration = declarations[0], curve = copyCadData(selected), targets = new Set(), provenance = [];
+    let requestedFieldCount = 0;
+    for (const raw of editData.poleEdits) {
+        check(raw !== null && typeof raw === 'object' && !Array.isArray(raw), CODE.INPUT, 'Each pole edit must be an own record');
+        const edit = raw, keys = Object.keys(edit);
+        check(Object.hasOwn(edit, 'index') && keys.length >= 2 && keys.length <= 5 && keys.every(key => key === 'index' || FIELDS.includes(key)), CODE.INPUT, 'An existing index and nonempty coordinate/weight subset are required');
+        check(typeof edit.index === 'number' && Number.isInteger(edit.index) && edit.index >= 0 && edit.index < selected.controlPoints.length && !targets.has(edit.index), CODE.INPUT, 'Unique in-range integer pole indices are required');
+        const index = edit.index;
+        targets.add(index);
+        const requestedFields = FIELDS.filter(field => Object.hasOwn(edit, field));
+        requestedFieldCount += requestedFields.length;
+        check(requestedFieldCount <= 256, CODE.BUDGET, 'The complete requested scalar limit256 exceeded');
+        const before = { pointMM: copyCadData(selected.controlPoints[index]), weight: selected.weights[index] };
+        for (const field of requestedFields) {
+            check(typeof edit[field] === 'number' && Number.isFinite(edit[field]), CODE.INPUT, 'Finite replacement scalars are required');
+            scalar(declaration, index, field, selected, request.source);
+            if (field === 'weight')
+                curve.weights[index] = edit[field];
+            else
+                curve.controlPoints[index][field === 'xMM' ? 0 : field === 'yMM' ? 1 : 2] = edit[field];
+        }
+        const changedFields = requestedFields.filter(field => !Object.is(value(selected, index, field), value(curve, index, field))), after = { pointMM: copyCadData(curve.controlPoints[index]), weight: curve.weights[index] };
+        provenance.push({ index, requestedFields, changedFields, before, after });
+    }
+    child(() => validateCurve(curve), 'Actual complete edited native Curve validation refused');
+    check(curve.knots.length <= 70 && same(curve.knots, selected.knots) && curve.degree === selected.degree && curve.id === selected.id && curve.controlPoints.length === selected.controlPoints.length, CODE.BINDING, 'Original native degree/knots/identity/count must remain unchanged');
+    for (let index = 0; index < curve.controlPoints.length; index++)
+        for (const field of FIELDS)
+            if (!provenance.find(change => change.index === index)?.requestedFields.includes(field))
+                check(Object.is(value(curve, index, field), value(selected, index, field)), CODE.BINDING, 'Every unrequested original pole/weight scalar must retain its bits');
+    const patches = [];
+    for (const change of provenance)
+        for (const field of change.changedFields) {
+            const node = scalar(declaration, change.index, field, selected, request.source), after = value(curve, change.index, field), replacementText = child(() => curveDecimal(after, 'Source Curve control-polygon'), 'Actual CAD decimal emission refused');
+            check(replacementText.length <= 512 && Object.is(Number(replacementText), after), CODE.BINDING, 'Changed scalar decimal must round-trip exact accepted bits within512characters');
+            patches.push({ index: change.index, field, startUTF16: node.range.start, endUTF16: node.range.end, originalText: request.source.slice(node.range.start, node.range.end), replacementText });
+        }
+    patches.sort((a, b) => a.startUTF16 - b.startUTF16);
+    check(patches.length <= 256 && patches.every((patch, index) => index === 0 || patches[index - 1].endUTF16 <= patch.startUTF16), CODE.BINDING, 'All changed scalar patches must be unique/nonoverlapping and bounded');
+    const source = apply(request.source, patches), candidateSourceUTF8 = bytes(source);
+    untouched(request.source, source, patches);
+    const candidate = compile(source, 'candidate'), expected = copyCadData(originalModel);
+    expected.objects[selectedObjectIndex] = copyCadData(curve);
+    check(same(candidate.model, expected), CODE.BINDING, 'The whole candidate Model must retain original metadata/order/IDs/siblings and the complete actual edited Curve');
+    const accepted = candidate.model.objects[selectedObjectIndex];
+    check(accepted.kind === 'curve', CODE.BINDING, 'Actual complete candidate must retain selected Curve kind');
+    const noOp = patches.length === 0;
+    check(!noOp || source === request.source && same(candidate.model, originalModel), CODE.BINDING, 'Bitwise no-op must retain exact original source spelling and Model');
+    const domain = child(() => curveDomain(selected), 'Actual original Curve domain query refused'), parameters = [domain[0], domain[0] / 2 + domain[1] / 2, domain[1]];
+    check(parameters.every(parameter => Number.isFinite(parameter) && parameter >= domain[0] && parameter <= domain[1]), CODE.NATIVE, 'Three finite original-domain observation parameters are required');
+    const observations = parameters.map(parameter => { const beforePointMM = child(() => evaluateCurve(selected, parameter), 'Actual original native Curve D0 observation refused'), afterPointMM = child(() => evaluateCurve(accepted, parameter), 'Actual edited native Curve D0 observation refused'), observedChangeMM = Math.hypot(...afterPointMM.map((value, axis) => value - beforePointMM[axis])); check(Number.isFinite(observedChangeMM), CODE.NATIVE, 'Actual native point change norm must remain finite'); return { parameter, beforePoint: beforePointMM, afterPoint: afterPointMM, observedChange: observedChangeMM }; });
+    let derivativeSuccessCount = 0, derivativeRefusalCount = 0;
+    const derivative = (curve, parameter) => { try {
+        const result = evaluateCurveD1(curve, parameter);
+        derivativeSuccessCount++;
+        return { kind: 'evaluated', result };
+    }
+    catch (cause) {
+        if (!(cause instanceof Error))
+            throw new SourceCurveControlPolygonError(CODE.NATIVE, 'Actual native derivative attempt did not provide an Error', cause);
+        derivativeRefusalCount++;
+        return { kind: 'refused', message: cause.message.slice(0, 512) };
+    } };
+    const derivativeObservations = parameters.map(parameter => ({ parameter, before: derivative(selected, parameter), after: derivative(accepted, parameter) }));
+    check(derivativeSuccessCount + derivativeRefusalCount === 6, CODE.BINDING, 'All six actual native derivative attempts must be accounted');
+    const changedFieldCount = provenance.reduce((count, change) => count + change.changedFields.length, 0), changedPoleCount = provenance.filter(change => change.changedFields.length > 0).length, count = accepted.controlPoints.length;
+    check(changedFieldCount === patches.length, CODE.BINDING, 'Every genuinely changed scalar must have exactly one retained patch');
+    const report = {
+        schema: 'barocss-source-curve-control-polygon-edit', version: 0, sourceVersion: 0, modelVersion: 0, lengthUnit: 'mm', modelName: originalModel.name, curveId: accepted.id, selectedObjectIndex, objectCount: originalModel.objects.length, degree: accepted.degree, controlPointCount: count, domain,
+        requestedPoleCount: provenance.length, requestedFieldCount, changedPoleCount, changedFieldCount, untouchedPoleCount: count - changedPoleCount, untouchedFieldCount: 4 * count - changedFieldCount, patchCount: patches.length, noOp, originalSourceUTF16: request.source.length, candidateSourceUTF16: source.length, originalSourceUTF8, candidateSourceUTF8, observations, maximumObservedChange: Math.max(...observations.map(observation => observation.observedChange)), derivativeObservations,
+        preservation: { untouchedSourceSpans: true, modelHeaderBits: true, objectOrderAndIds: true, unselectedObjectBits: true, selectedCurveEqualsActualEditedCurve: true, degreeKnotsDomainAndCount: true }, directCounts: { originalCompileCount: 1, candidateCompileCount: 1, nativeCurveValidationCount: 1, domainQueryCount: 1, curvePointEvaluationCount: 6, curveDerivativeEvaluationCount: 6, derivativeSuccessCount, derivativeRefusalCount, decimalEmissionCount: changedFieldCount },
+        quality: { geometricValidity: 'not-certified', topologyCertified: false, solid: false, globalBinary64ErrorCertified: false, manufacturingToleranceCertified: false, editorDisplayCertified: false, persistentTopologyBindingCertified: false, derivativeSemantics: 'native-guards-unchanged', ownership: 'independent-copied-cpu-data-gc' },
+        limits: { maximumPatches: 256, maximumEdits: 64, maximumRequestedFields: 256, maximumModelObjects: 16, maximumSelectedDegree: 5, maximumSelectedPoles: 64, maximumSelectedKnots: 70, selectedCoordinateAbs: 1000000, minimumWeight: 0.000001, maximumWeight: 1000000, maximumReplacementLiteralCharacters: 512, maximumPointObservations: 3, maximumDerivativeObservations: 3, sourceUTF16: 262144, sourceUTF8: 262144, ownValues: 1048576, ownDepth: 64, arrayElements: 8192, recordFields: 64, stringCharacters: 262144 }, workScope: 'direct-original-candidate-compiles-edited-native-validation-and-fixed-observations-inherited-work-excluded', budgetFailure: 'atomic-no-partial-source-curve-edit',
+    };
+    return snapshot({ request, originalModel, model: candidate.model, source, curve: accepted, provenance, patches, report }, true);
+}
+/** Rebuild the complete original-source operation and all actual native observations, comparing every retained bit. */
+export function validateSourceCurveControlPolygonEdit(input) {
+    const owned = record(snapshot(input, true), ['request', 'originalModel', 'model', 'source', 'curve', 'provenance', 'patches', 'report'], CODE.OWNED);
+    let expected;
+    try {
+        expected = editSourceCurveControlPolygon(owned.request);
+    }
+    catch (cause) {
+        throw new SourceCurveControlPolygonError(CODE.OWNED, 'Whole owned source/native Curve edit reconstruction refused', cause);
+    }
+    check(same(owned, expected), CODE.OWNED, 'Owned request/full sources/Model/Curve/provenance/patches/native observations/counters changed');
+    return snapshot(expected.report, true);
+}

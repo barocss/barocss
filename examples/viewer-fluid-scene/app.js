@@ -1,13 +1,14 @@
 import { createViewer } from '../../packages/barocss-viewer/dist/index.js';
 import { loadBaroCadModelSet } from '../../packages/barocss-cad-interop/dist/model-set.js';
-import { createFluidWorld } from '../../packages/barocss-physics/dist/fluid.js';
+import { createPhysicsWorld } from '../../packages/barocss-physics/dist/index.js';
+import { copyPhysicsModelPreset } from '../physics-model-data-2276/model-data.mjs';
 
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
 const sha256 = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))]
   .map(byte => byte.toString(16).padStart(2, '0')).join('');
-const metreHash = state => sha256(state.positionsM.buffer.slice(
-  state.positionsM.byteOffset, state.positionsM.byteOffset + state.positionsM.byteLength));
+const metreHash = state => sha256(state.fluids[0].positionsM.buffer.slice(
+  state.fluids[0].positionsM.byteOffset, state.fluids[0].positionsM.byteOffset + state.fluids[0].positionsM.byteLength));
 const expectedSHA = new Map([
   [0, '9f3fec9d63e9be9f313857c9591bbe1deda5ffa471382184081e4c18cf8c618b'],
   [60, 'f14b5eaa5b34c074c8ecbe501be5b84af56eabbfdfbbcb823940aa999605e1bc'],
@@ -27,13 +28,9 @@ const cyanPixels = pixels => {
 
 let viewer, world, worldDisposed = false;
 try {
-  const initialPositionsM = [];
-  for (let z = 0; z < 4; z++) for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
-    initialPositionsM.push([0.2 + x * 0.05, 0.45 + y * 0.05, 0.3 + z * 0.05]);
-  }
-  world = createFluidWorld({ format: 'barocss-fluid-scene', version: 1,
-    revision: 'waterRev1', basis: 'right-handed-xyz-metres', fixedStepSeconds: 1 / 120,
-    gravityMps2: [0, -9.81, 0], basinM: [0.7, 1.3, 0.5], initialPositionsM });
+  const input = copyPhysicsModelPreset('fluid-basin-visual-v1');
+  input.model.revision = 'waterRev1';
+  world = createPhysicsWorld(input.model, input.options);
   const set = await loadBaroCadModelSet({ format: 'barocad-model-set', version: 0, entries: [
     { aliasId: 'fluid_surface', url: 'occluder.barocad',
       options: { sourceVersion: 0, countU: 5, countV: 5, unitsPerMillimeter: 1 } },
@@ -49,11 +46,11 @@ try {
   assert(viewer.getState().surfaces.length === 1 && viewer.getState().curves.length === 0,
     'Qualified native Surface missing');
   const frame = (state, contextId = 'water_generation_1') => ({ version: 0, contextId,
-    sceneRevision: state.sceneRevision, stepIndex: state.stepIndex,
-    particleCount: state.particleCount, positionsM: state.positionsM });
+    sceneRevision: state.identity.modelRevision, stepIndex: state.stepIndex,
+    particleCount: state.fluids[0].positionsM.length / 3, positionsM: state.fluids[0].positionsM });
   const receipts = [];
   const accept = async state => {
-    assert(state.particleCount === 256 && state.positionsM.length === 768,
+    assert(state.fluids[0].positionsM.length / 3 === 256 && state.fluids[0].positionsM.length === 768,
       'Actual Physics state is not 256 particles');
     if (expectedSHA.has(state.stepIndex)) assert(await metreHash(state) === expectedSHA.get(state.stepIndex),
       `Physics metre SHA changed at step ${state.stepIndex}`);
@@ -63,7 +60,7 @@ try {
     assert(accepted?.stepIndex === state.stepIndex && accepted.positionsM instanceof Float64Array
       && accepted.positionsM.length === 768, 'Viewer copied frame query missing');
     receipts.push({ stepIndex: state.stepIndex, rawMetreSHA256: await metreHash(state),
-      pixelHash: hash(await viewer.readPixels()), density: state.diagnostics,
+      pixelHash: hash(await viewer.readPixels()), density: state.fluids[0].diagnostics,
       particleCount: accepted.particleCount });
   };
   const initial = world.getState();
@@ -128,7 +125,7 @@ try {
   assert(viewer.getState().fluidFrame?.stepIndex === 0 && viewer.getState().fluidFrame.particleCount === 256,
     'Resize dropped particles');
   viewer.resize(640, 480);
-  const one = world.step(1 / 120);
+  const one = world.step([]);
   viewer.setFluidFrame(frame(one));
   assert(viewer.getState().fluidFrame.stepIndex === 1, 'One host step missing');
   const pausedStep = viewer.getState().fluidFrame.stepIndex;
@@ -137,7 +134,7 @@ try {
     'Paused host frame advanced without a Physics step');
   let state = one;
   for (let step = 2; step <= 240; step++) {
-    state = world.step(1 / 120);
+    state = world.step([]);
     if (step === 60 || step === 240) await accept(state);
   }
   assert(state.stepIndex === 240, 'Host did not reach step 240');
@@ -145,7 +142,9 @@ try {
   viewer.setFluidFrame(null);
   assert(viewer.getState().fluidFrame === null && hash(await viewer.readPixels()) === nativeOnly,
     'Layer-only clear did not restore exact native-only pixels');
-  const reset = world.reset();
+  const nextWorld = createPhysicsWorld(input.model, input.options);
+  world.dispose(); world = nextWorld;
+  const reset = world.getState();
   viewer.setFluidFrame(frame(reset, 'water_generation_2'));
   assert(viewer.getState().fluidFrame?.stepIndex === 0, 'Explicit host reset missing');
   viewer.loadModelSet(set);

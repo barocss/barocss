@@ -12,8 +12,8 @@ const raw = {
 
 export function checkSourceImports(result) {
   assert.equal(result.result, 'ok');
-  assert.equal(result.sourceEntries, 5);
-  assert.equal(result.compiledEntries, 5);
+  assert.equal(result.sourceEntries, 3);
+  assert.equal(result.compiledEntries, 3);
 }
 
 export function checkBareWorld(result) {

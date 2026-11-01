@@ -7,7 +7,7 @@ import * as Physics from '@barocss/physics';
 import * as Viewer from '@barocss/viewer';
 import { parseBaroCadSource } from '@barocss/cad-interop/native';
 import { prepareBaroCadModelSetDisplay } from '@barocss/cad-interop/model-set';
-import { createClothWorld, PhysicsError as ClothPhysicsError } from '@barocss/physics/cloth';
+import { copyPhysicsModelPreset } from '../physics-model-data-2276/model-data.mjs';
 
 export { Viewer };
 export const nativeSource = `@model source_model {
@@ -63,22 +63,22 @@ export function runCPUFlow() {
       'Physics provider identity is missing');
   } finally { rigid.dispose(); }
 
-  const world = createClothWorld({ format: 'barocss-cloth-scene', version: 1,
-    revision: 'sourceConsumer1', basis: 'right-handed-xyz-metres',
-    fixedStepSeconds: 1 / 120, profile: 'pinned-sheet-sphere-v1' });
+  const clothInput = copyPhysicsModelPreset('cloth-pinned-sphere-visual-v1');
+  clothInput.model.revision = 'sourceConsumer1';
+  const world = Physics.createPhysicsWorld(clothInput.model, clothInput.options);
   let cloth;
   try {
-    cloth = world.step(1 / 120);
-    requireValue(cloth.stepIndex === 1 && cloth.vertexCount === 289,
+    cloth = world.step([]);
+    requireValue(cloth.stepIndex === 1 && cloth.cloths[0].positionsM.length / 3 === 289,
       'Physics cloth API did not perform one step');
   } finally { world.dispose(); }
   let disposedRefused = false;
   let rootErrorIdentity = false;
   try { world.getState(); } catch (error) {
-    disposedRefused = error instanceof ClothPhysicsError && error.code === 'DISPOSED';
+    disposedRefused = error instanceof Physics.PhysicsError && error.code === 'DISPOSED';
     rootErrorIdentity = error instanceof Physics.PhysicsError;
   }
-  requireValue(disposedRefused, 'Disposed cloth accepted getState or lost its subpath error identity');
+  requireValue(disposedRefused, 'Disposed cloth accepted getState or lost its canonical root error identity');
   requireValue(typeof Viewer.Viewer === 'function' && typeof Viewer.createViewer === 'function',
     'Viewer public class or factory is missing');
   const familyExports = Object.fromEntries(Object.entries({ CAD, Interop, GPU, Physics, Viewer })

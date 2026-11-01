@@ -1,5 +1,5 @@
-import { createClothWorld } from '@barocss/physics/cloth';
-import { DT, STEPS, scene, frameFromState, copyData, sameState } from './frame.mjs';
+import { createPhysicsWorld } from '@barocss/physics';
+import { DT, STEPS, clothModelData, frameFromState, copyData, sameState } from './frame.mjs';
 
 export class ClothHostError extends Error {
   constructor(code, message) { super(message); this.name = 'ClothHostError'; this.code = code; }
@@ -8,10 +8,11 @@ export class ClothHostError extends Error {
 function freshPair() {
   let first = null, second = null;
   try {
-    first = createClothWorld(scene()); second = createClothWorld(scene());
+    const input = clothModelData();
+    first = createPhysicsWorld(input.model, input.options); second = createPhysicsWorld(input.model, input.options);
     const state = first.getState(), spareState = second.getState();
     if (!sameState(state, spareState)) throw new ClothHostError('TWIN_MISMATCH', 'Fresh cloth worlds disagree');
-    return { active: first, shadow: second, state };
+    return { active: first, shadow: second, state, model: first.getModel() };
   } catch (error) { first?.dispose(); second?.dispose(); throw error; }
 }
 
@@ -19,12 +20,12 @@ function freshPair() {
 export function createHostController(viewer, { generation = 1 } = {}) {
   if (!Number.isSafeInteger(generation) || generation < 1) throw new ClothHostError('INVALID_GENERATION', 'Positive generation required');
   let pair = freshPair(), acceptedState = pair.state, frame;
-  try { frame = frameFromState(acceptedState, generation); viewer.setClothFrame(frame); }
+  try { frame = frameFromState(acceptedState, generation, pair.model); viewer.setClothFrame(frame); }
   catch (error) { pair.active.dispose(); pair.shadow.dispose(); throw error; }
   let displayStep = 0, phase = 'paused', needsReset = false, disposed = false, lastWork = null;
   function live() { if (disposed) throw new ClothHostError('DISPOSED', 'Cloth host is disposed'); }
   function snapshot() {
-    return { state: copyData(acceptedState), frame: copyData(frame), displayStep, phase, needsReset, generation, lastWork: copyData(lastWork) };
+    return { state: copyData(acceptedState), model: copyData(pair.model), frame: copyData(frame), displayStep, phase, needsReset, generation, lastWork: copyData(lastWork) };
   }
   return {
     getSnapshot() { live(); return snapshot(); },
@@ -37,8 +38,8 @@ export function createHostController(viewer, { generation = 1 } = {}) {
       try {
         let marked = performance.now();
         twinSteps++;
-        const candidate = pair.shadow.step(DT);
-        const candidateFrame = frameFromState(candidate, generation);
+        const candidate = pair.shadow.step([]);
+        const candidateFrame = frameFromState(candidate, generation, pair.model);
         solverMs += performance.now() - marked;
         stage = 'viewer-submit'; marked = performance.now();
         try { viewer.setClothFrame(candidateFrame); }
@@ -49,7 +50,7 @@ export function createHostController(viewer, { generation = 1 } = {}) {
         acceptedState = candidate; frame = candidateFrame; displayStep = candidate.stepIndex; promoted = true;
         stage = 'spare-step'; marked = performance.now();
         twinSteps++;
-        const spare = pair.shadow.step(DT);
+        const spare = pair.shadow.step([]);
         if (!sameState(candidate, spare)) throw new ClothHostError('TWIN_MISMATCH', 'Accepted and spare cloth worlds disagree');
         const returnedState = copyData(acceptedState), returnedFrame = copyData(frame);
         solverMs += performance.now() - marked;
@@ -77,7 +78,7 @@ export function createHostController(viewer, { generation = 1 } = {}) {
       let nextFrame;
       let cleared = false;
       try {
-        nextFrame = frameFromState(candidates.state, nextGeneration);
+        nextFrame = frameFromState(candidates.state, nextGeneration, candidates.model);
         viewer.setClothFrame(null); cleared = true;
         frame = null; displayStep = null;
         viewer.setClothFrame(nextFrame);

@@ -38,6 +38,7 @@ export function admitRecording(input: unknown): Recording {
   let admitted: ReturnType<typeof admitModel>;
   try { admitted = admitModel(data.model as Recording['model'], data.options as Recording['options']); }
   catch { replayError('INVALID_SNAPSHOT', 'recording model or options are invalid'); }
+  if (admitted.domain) replayError('INVALID_SNAPSHOT', 'visual domain recording is unsupported');
   const model = admitted.model, options = admitted.options;
   identity(data.identity);
   if (!Array.isArray(data.frames) || data.frames.length > 512) replayError('INVALID_SNAPSHOT', 'recording frame limit exceeded');

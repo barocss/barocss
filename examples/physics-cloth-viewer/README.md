@@ -1,6 +1,6 @@
 # Actual pinned cloth Viewer host — #981
 
-This independently runnable example uses public Physics/cloth and the adopted
+This independently runnable example uses the common public Physics World and explicit cloth model data and the adopted
 ViewerClothFrameV0 bridge. A17×17 sheet drapes on the fixed sphere collision
 proxy; an original authored CAD reference panel remains unchanged. The sphere
 is an explicitly labelled projected guide with no depth. The CAD panel is not
@@ -126,3 +126,5 @@ No exact Integration adoption or currentRoot screen/file/recovery/release claim
 follows from nativeGO. #981 staysOPEN until its exact handoff is adopted under
 owner674. Existing #1064 is separately scopedCLOSED after exactRoot adoption;
 actual capsulehost#1065 is ready to freeze/implement using that available API.
+
+The original CONTRACT.md and evidence describe the old-provider fixture and remain unchanged. The current P5b host uses the same physical data through common World/state/model ownership; its changed-source browser qualification is pending.

@@ -1,5 +1,5 @@
 /** Private P5a candidate data. No public World admission or lifetime. */
-import type { Cloth, Fluid, PhysicsModel, PhysicsState, PlannedVisualProfileId } from '../types.js';
+import type { Cloth, Fluid, PhysicsModel, PhysicsState, VisualProfileId } from '../types.js';
 import type { ClothConstraint } from '../cloth/types.js';
 import type { FluidStaticBox } from '../fluid/static-box.js';
 import { copyData } from '../identity.js';
@@ -7,13 +7,16 @@ import { PhysicsError } from '../types.js';
 
 export type ClothOutput = PhysicsState['cloths'][number];
 export type FluidOutput = PhysicsState['fluids'][number];
-export type FluidProfile = Exclude<PlannedVisualProfileId, 'cloth-pinned-sphere-visual-v1'>;
+export type FluidProfile = Exclude<VisualProfileId, 'cloth-pinned-sphere-visual-v1'>;
 export interface StaticDomainData {
-  readonly profile: PlannedVisualProfileId;
+  readonly profile: VisualProfileId;
   readonly gravityMps2: PhysicsModel['gravityMps2'];
   readonly bodies: PhysicsModel['bodies'];
   readonly colliders: PhysicsModel['colliders'];
 }
+export type DomainModelData =
+  | { readonly kind: 'cloth'; readonly data: Cloth; readonly staticData: StaticDomainData }
+  | { readonly kind: 'fluid'; readonly data: Fluid; readonly staticData: StaticDomainData };
 export interface ClothDefinition { readonly cloth: Cloth; readonly staticData: StaticDomainData }
 export interface FluidDefinition {
   readonly fluid: Fluid; readonly staticData: StaticDomainData;

@@ -1,7 +1,7 @@
 import { createViewer } from '@barocss/viewer';
 import { loadBaroCadModelSet } from '@barocss/cad-interop/model-set';
-import { createClothWorld } from '@barocss/physics/cloth';
-import { createFluidWorld } from '@barocss/physics/fluid';
+import { createPhysicsWorld } from '@barocss/physics';
+import { copyPhysicsModelPreset } from '../physics-model-data-2276/model-data.mjs';
 import { compileMeshMaterial } from '@barocss/gpu';
 
 const check = (condition, message) => { if (!condition) throw new Error(message); };
@@ -28,15 +28,16 @@ const front = { eye: [0, 2.6, 0], target: [0, 0.39, 0], up: [0, 0, -1],
 const back = { eye: [0, -2.6, 0], target: [0, 0.39, 0], up: [0, 0, 1],
   fovY: 45, near: 0.01, far: 10 };
 const frameFromState = state => ({ version: 0, layerId: 'viewer_cloth_sheet', contextId: 'cloth_world_980',
-  sceneRevision: state.sceneRevision, stepIndex: state.stepIndex,
-  vertexCount: state.vertexCount, triangleCount: state.triangleCount,
-  positionsM: state.positionsM.slice(), triangles: state.triangles.slice() });
-const world = createClothWorld({ format: 'barocss-cloth-scene', version: 1, revision: 'clothRev980',
-  basis: 'right-handed-xyz-metres', fixedStepSeconds: fixedStep, profile: 'pinned-sheet-sphere-v1' });
+  sceneRevision: state.identity.modelRevision, stepIndex: state.stepIndex,
+  vertexCount: state.cloths[0].positionsM.length / 3, triangleCount: clothInput.model.cloths[0].triangles.length,
+  positionsM: state.cloths[0].positionsM.slice(), triangles: Uint16Array.from(clothInput.model.cloths[0].triangles.flat()) });
+const clothInput = copyPhysicsModelPreset('cloth-pinned-sphere-visual-v1');
+clothInput.model.revision = 'clothRev980';
+const world = createPhysicsWorld(clothInput.model, clothInput.options);
 const states = [world.getState()], frames = [frameFromState(states[0])];
 // One bounded public producer run; no RAF loop, numerical acceptance replay or playback controller.
 for (let step = 1; step <= 240; step++) {
-  const state = world.step(fixedStep); frames.push(frameFromState(state));
+  const state = world.step([]); frames.push(frameFromState(state));
   if (step === 60 || step === 240) states.push(state);
 }
 let viewer = null, nativeSet = null, ref = null, disposed = false, running = false, result = null;
@@ -91,7 +92,7 @@ async function runProof() {
   if (running || disposed || viewer.getState().status !== 'ready') throw new Error('Proof needs a live ready Viewer.');
   running = true; controls();
   result = { ok: false, schema: 'barocss-viewer-cloth-980', cases: [], refusals: [], failures: [],
-    producer: 'genuine public createClothWorld pinned-sheet-sphere-v1, one0..240 run',
+    producer: 'genuine public createPhysicsWorld cloth-pinned-sphere-visual-v1, one0..240 run',
     conversion: { mmToSceneUnit, operation: 'positionsM * 1000 * mmToSceneUnit' },
     scope: 'bounded Viewer bridge consumption; native-only picking/fits; no playback, collision certification or publication' };
   window.viewerClothProof = result;
@@ -178,16 +179,13 @@ async function runProof() {
     const compiledMaterial = compileMeshMaterial('@shader #cloth_native_only { @fragment { color:#336699; } }');
     check(compiledMaterial.ok, 'Native opaque material failed to compile');
     viewer.setSurfaceMaterial({ modelId: ref.modelId, surfaceId: ref.surfaceId }, { material: compiledMaterial.material, uniforms: {} });
-    const initialPositionsM = [];
-    for (let z = 0; z < 4; z++) for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++)
-      initialPositionsM.push([.2 + x * .05, .45 + y * .05, .3 + z * .05]);
-    fluidWorld ??= createFluidWorld({ format: 'barocss-fluid-scene', version: 1, revision: 'waterRev980',
-      basis: 'right-handed-xyz-metres', fixedStepSeconds: fixedStep, gravityMps2: [0, -9.81, 0],
-      basinM: [.7, 1.3, .5], initialPositionsM });
+    const fluidInput = copyPhysicsModelPreset('fluid-basin-visual-v1');
+    fluidInput.model.revision = 'waterRev980';
+    fluidWorld ??= createPhysicsWorld(fluidInput.model, fluidInput.options);
     const fluid = fluidWorld.getState();
-    viewer.setFluidFrame({ version: 0, contextId: 'cloth_fluid_world', sceneRevision: fluid.sceneRevision,
-      stepIndex: fluid.stepIndex, particleCount: fluid.particleCount, positionsM: fluid.positionsM });
-    check(fluid.particleCount === 256 && viewer.getState().fluidFrame?.particleCount === 256,
+    viewer.setFluidFrame({ version: 0, contextId: 'cloth_fluid_world', sceneRevision: fluid.identity.modelRevision,
+      stepIndex: fluid.stepIndex, particleCount: fluid.fluids[0].positionsM.length / 3, positionsM: fluid.fluids[0].positionsM });
+    check(fluid.fluids[0].positionsM.length / 3 === 256 && viewer.getState().fluidFrame?.particleCount === 256,
       'Actual public256-particle frame missing');
     const compatible = viewer.getState(); viewer.orbit(.01, 0); pose([10, 0, 0]);
     check(same(viewer.getState().clothFrame, compatible.clothFrame)

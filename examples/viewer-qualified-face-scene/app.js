@@ -31,7 +31,8 @@ import {parseBaroCadSource} from '@barocss/cad-interop/native';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2} from '@barocss/cad-interop/document';
 import {parseBaroCadAssembly,loadBaroCadAssembly} from '@barocss/cad-interop/assembly';
-import {createClothWorld} from '@barocss/physics/cloth';
+import {createPhysicsWorld} from '@barocss/physics';
+import {copyPhysicsModelPreset} from '../physics-model-data-2276/model-data.mjs';
 
 const check=(condition,message)=>{if(!condition)throw Error(message);},clone=value=>structuredClone(value);
 const same=(a,b)=>Object.is(a,b)||!!a&&!!b&&typeof a==='object'&&typeof b==='object'&&Object.keys(a).length===Object.keys(b).length
@@ -1117,7 +1118,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
     compileCadModel,validateFaceBundle,tessellateSurface,evaluateSurface,evaluateCurve,curveDomain,parseBooleanExtrusionFeatureGraph,parseBaroCadSource,
     createCadDocument,createCadGeometryReference,queryCadDocumentSurfaceArea,validateCadDocumentSurfaceArea,queryCadDocumentCurveArcLength,validateCadDocumentCurveArcLength,
     loadBaroCadModelSet,loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2,parseBaroCadAssembly,loadBaroCadAssembly,
-    createClothWorld,createPhysicsClothWorld:createClothWorld,canvas,
+    createPhysicsWorld,copyPhysicsModelPreset,canvas,
     get state(){return viewer.getState();},get currentScene(){return viewer.getState().qualifiedFaceScene;},get inspectionReport(){return clone(inspectionReport);},
     get measurementReport(){return clone(measurementReport);},get currentProjections(){return clone(currentProjections);},get areaReport(){return clone(areaReport);},
     get lengthReport(){return clone(lengthReport);},get angleReport(){return clone(angleReport);},get curvatureReport(){return clone(curvatureReport);},

@@ -24,6 +24,11 @@ import { bodyBounds, boundsOverlap } from './broadphase.js';
 import { dormantPair, filterAllowsPair, wakeOnContact } from './scene-profile.js';
 import { updateSleeping, wakeForActions } from './sleep.js';
 import { admitDisjointHingeCommands, driveDisjointHingeMotors, applyDisjointHingePostContact } from './disjoint-hinge/stage.js';
+import { initializeCloth, prepareCloth } from './domain/cloth.js';
+import { initializeFluid, prepareFluid } from './domain/fluid.js';
+import type { ClothCandidate, ClothDefinition, ClothOutput, FluidCandidate, FluidDefinition, FluidOutput } from './domain/types.js';
+import { CLOTH_MAX_STEPS } from './cloth/profile.js';
+import { FLUID_MAX_STEPS } from './fluid/constants.js';
 
 function publicState(bodies: Body[], contacts: PhysicsContact[], events: PhysicsEvent[],
   joints: PhysicsJointState[], ccdHits: PhysicsCcdHit[], pairStats: PhysicsPairStats,
@@ -48,9 +53,52 @@ function publicState(bodies: Body[], contacts: PhysicsContact[], events: Physics
   };
 }
 
+type DomainRuntime =
+  | { readonly kind: 'cloth'; readonly definition: ClothDefinition; readonly accepted: ClothCandidate }
+  | { readonly kind: 'fluid'; readonly definition: FluidDefinition; readonly accepted: FluidCandidate };
+
+/** Copies all externally visible data before the shared World commit. */
+function publicDomainState(runtime: DomainRuntime, model: PhysicsModel, identity: Identity,
+  stepIndex: number, dt: number, prepared?: ClothOutput | FluidOutput): PhysicsState {
+  const bodies = model.bodies.map((body): PhysicsState['bodies'][number] => ({
+    id: body.id, kind: body.kind, positionM: [...body.initial.positionM],
+    orientationXYZW: [...body.initial.orientationXYZW], velocityMps: [0, 0, 0],
+    angularVelocityRadps: [0, 0, 0], sleeping: false,
+  }));
+  const state: PhysicsState = {
+    identity: { ...identity }, stepIndex, timeSeconds: stepIndex * dt, bodies,
+    joints: [], contacts: [], events: [], ccdHits: [], cloths: [], fluids: [],
+    pairStats: { eligiblePairs: 0, candidatePairs: 0, aabbTests: 0 },
+  };
+  if (runtime.kind === 'cloth') {
+    const output: ClothOutput = prepared as ClothOutput | undefined ?? {
+      id: runtime.definition.cloth.id, positionsM: runtime.accepted.positions.slice(),
+      velocitiesMps: runtime.accepted.velocities.slice(), diagnostics: { ...runtime.accepted.diagnostics },
+    };
+    return { ...state, cloths: [output] };
+  }
+  const output: FluidOutput = prepared as FluidOutput | undefined ?? {
+    id: runtime.definition.fluid.id, positionsM: runtime.accepted.positions.slice(),
+    velocitiesMps: runtime.accepted.velocities.slice(), diagnostics: { ...runtime.accepted.diagnostics },
+  };
+  return { ...state, fluids: [output] };
+}
+
 export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): PhysicsWorld {
   const admitted = admitModel(model, options);
   const dt = admitted.options.fixedStepSeconds;
+  const domainKind = admitted.domain?.kind ?? null;
+  const domainId = admitted.domain?.data.id ?? null;
+  const stepLimit = domainKind === 'cloth' ? CLOTH_MAX_STEPS : domainKind === 'fluid' ? FLUID_MAX_STEPS : MAX_STEPS;
+  // Only this clearable holder owns runtime definitions and accepted domain buffers.
+  let domainState: DomainRuntime | null = null;
+  if (admitted.domain?.kind === 'cloth') {
+    const initialized = initializeCloth(admitted.domain.data, admitted.domain.staticData);
+    domainState = { kind: 'cloth', definition: initialized.definition, accepted: initialized.initial };
+  } else if (admitted.domain?.kind === 'fluid') {
+    const initialized = initializeFluid(admitted.domain.data, admitted.domain.staticData);
+    domainState = { kind: 'fluid', definition: initialized.definition, accepted: initialized.initial };
+  }
   const gravity = [...admitted.model.gravityMps2] as Vec3;
   const useAabb = admitted.options.broadPhase === 'aabb';
   const usePersistentBox = admitted.options.profile === 'rigid-persistent-box-v1';
@@ -68,7 +116,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
   let dynamicHinge = joints.find((joint) => joint.kind === 'hinge' &&
     bodies[joint.aIndex].kind === 'dynamic');
   if (dynamicHinge && !disjointHinges) admitDynamicHingeScene(dynamicHinge, bodies, gravity);
-  let ccd = admitCcd(bodies, joints.length, gravity);
+  let ccd = domainKind ? { kind: 'none' as const } : admitCcd(bodies, joints.length, gravity);
   if (ccd.kind === 'box-pair' && usePersistentBox) {
     error('INVALID_CONFIG', 'box CCD excludes persistent-box-v1');
   }
@@ -104,11 +152,15 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
   const ensureActive = () => { if (disposed) error('DISPOSED', 'world is disposed'); };
   const world: PhysicsWorld = {
     getModel() { ensureActive(); return copyData(modelCopy!); },
-    getState() { ensureActive(); return publicState(bodies, contacts, events, jointStates, ccdHits, pairStats, stepIndex, dt, identity, colliderIds); },
+    getState() {
+      ensureActive();
+      return domainState ? publicDomainState(domainState, modelCopy!, identity, stepIndex, dt)
+        : publicState(bodies, contacts, events, jointStates, ccdHits, pairStats, stepIndex, dt, identity, colliderIds);
+    },
     step(commands = []) {
       ensureActive();
       if (owner !== advancingOwner) error('WORLD_OWNED', 'World has an exclusive recorder');
-      if (stepIndex >= MAX_STEPS) error('WORLD_LIMIT', 'world step limit reached');
+      if (stepIndex >= stepLimit) error('WORLD_LIMIT', 'world step limit reached');
       if (owner && (owner.recording!.frames.length >= 512 ||
         (Array.isArray(commands) && owner.commandCount + commands.length > 4096))) {
         error('WORLD_LIMIT', 'recording frame or command limit reached');
@@ -123,6 +175,29 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
         error('WORLD_LIMIT', 'recording command limit reached');
       }
       const actions = parseCommands(admittedCommands, bodies);
+      if (domainState) {
+        if (admittedCommands.length !== 0) error('INVALID_COMMAND', 'visual domain commands are unsupported');
+        const preparedFrames = owner ? owner.prepareFrames(admittedCommands, stepIndex + 1) : null;
+        let nextDomain: DomainRuntime;
+        let output: ClothOutput | FluidOutput;
+        if (domainState.kind === 'cloth') {
+          const prepared = prepareCloth(domainState.definition, domainState.accepted);
+          nextDomain = { kind: 'cloth', definition: domainState.definition, accepted: prepared.candidate };
+          output = prepared.output;
+        } else {
+          const prepared = prepareFluid(domainState.definition, domainState.accepted);
+          nextDomain = { kind: 'fluid', definition: domainState.definition, accepted: prepared.candidate };
+          output = prepared.output;
+        }
+        const state = publicDomainState(nextDomain, modelCopy!, identity, stepIndex + 1, dt, output);
+        const preparedRecording = owner ? owner.prepare(preparedFrames!, state) : null;
+        const preparedCommandCount = owner ? owner.commandCount + admittedCommands.length : 0;
+        // Shared domain commit: all allocations/callbacks above, assignments only below.
+        domainState = nextDomain;
+        stepIndex++;
+        if (owner) { owner.recording = preparedRecording!; owner.commandCount = preparedCommandCount; }
+        return state;
+      }
       if (disjointHinges) admitDisjointHingeCommands(disjointHinges, bodies, actions, admittedCommands.length);
       else if (dynamicHinge) admitDynamicHingeCommands(dynamicHinge, bodies, actions);
       if (ccd.kind === 'box-pair') rejectAngularBoxCommand(actions.get(bodies[ccd.boxIndex].id));
@@ -330,6 +405,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
         const query = queryRecord(data, ['kind','centerM','radiusM','includeSensors'], []);
         const center = queryVector(query.centerM, 10000, 'centerM');
         const radius = queryNumber(query.radiusM, 0.0001, 1000, 'radiusM');
+        if (domainState) error('INVALID_QUERY', 'visual domain queries are unsupported');
         return { kind: 'overlap-sphere', colliderIds: bodies.filter((body) => (sensors || !body.sensor) && sphereOverlaps(center, radius, body))
           .map((body) => body.id).sort().map((id) => colliderIds.get(id)!) };
       }
@@ -339,6 +415,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
       const direction = queryVector(query.direction, 1 + 1e-9, 'direction');
       if (Math.abs(Math.hypot(...direction) - 1) > 1e-9) error('INVALID_QUERY', 'direction must be a unit 3-vector');
       const limit = queryNumber(query.maxDistanceM, 0.0001, 10000, 'maxDistanceM');
+      if (domainState) error('INVALID_QUERY', 'visual domain queries are unsupported');
       let best: PhysicsRayHit | null = null;
       for (const body of bodies) {
         if (!sensors && body.sensor) continue;
@@ -350,7 +427,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
     },
     dispose() { disposed = true;
       if (owner) { owner.recording = null; owner.commandCount = 0; owner = null; }
-      optionsCopy = null; bodies = []; contacts = []; events = []; ccdHits = [];
+      optionsCopy = null; domainState = null; advancingOwner = null; bodies = []; contacts = []; events = []; ccdHits = [];
       activePairs.clear(); persistentPoints.clear(); sleepFrames = []; jointStates = [];
       joints = []; dynamicHinge = undefined; disjointHinges = null; ccd = { kind: 'none' }; pairs.length = 0;
       colliderIds.clear(); modelCopy = null; },
@@ -368,7 +445,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
       const enriched = new PhysicsError(failure.code, failure.message, {
         operation, phase: ['DISPOSED','WORLD_OWNED','REENTRANT_CALL'].includes(failure.code) ? 'lifecycle' :
           failure.code === 'WORLD_LIMIT' ? 'budget' : failure.code === 'NUMERIC_LIMIT' ? 'validation' : 'admission',
-        domain: 'rigid', entityIds: failure.details.entityIds,
+        domain: domainKind ?? 'rigid', entityIds: domainId && failure.details.entityIds.length === 0 ? [domainId] : failure.details.entityIds,
         accepted: { stepIndex, timeSeconds: stepIndex * dt } });
       enriched.stack = failure.stack;
       throw enriched;

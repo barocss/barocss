@@ -99,14 +99,14 @@ export interface PhysicsModel {
   readonly sourceBindings: readonly SourceBinding[];
 }
 export type RigidProfileId = 'rigid-discrete-v1' | 'rigid-persistent-box-v1' | 'rigid-large-v1';
-export type PlannedVisualProfileId = 'cloth-pinned-sphere-visual-v1' | 'fluid-basin-visual-v1' |
+export type VisualProfileId = 'cloth-pinned-sphere-visual-v1' | 'fluid-basin-visual-v1' |
   'fluid-basin-xsph-visual-v1' | 'fluid-static-box-visual-v1';
-export type SupportProfileId = RigidProfileId | PlannedVisualProfileId;
+export type SupportProfileId = RigidProfileId | VisualProfileId;
 export type WorldOptions =
   | { readonly profile: 'rigid-discrete-v1' | 'rigid-persistent-box-v1'; readonly fixedStepSeconds: number;
       readonly broadPhase: 'direct' | 'aabb' }
   | { readonly profile: 'rigid-large-v1'; readonly fixedStepSeconds: number; readonly broadPhase: 'aabb' }
-  | { readonly profile: PlannedVisualProfileId; readonly fixedStepSeconds: number; readonly broadPhase: 'domain-fixed' };
+  | { readonly profile: VisualProfileId; readonly fixedStepSeconds: number; readonly broadPhase: 'domain-fixed' };
 
 export type PhysicsCommand =
   | { readonly kind: 'force'; readonly bodyId: EntityId; readonly forceN: Vec3 }

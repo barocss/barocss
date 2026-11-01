@@ -12,6 +12,7 @@ export function runPackedConsumer(command, root, example) {
     command('pnpm', ['pack', '--pack-destination', tempDirectory], join(root, 'packages/barocss-physics'));
     writeFileSync(join(tempDirectory, 'package.json'), JSON.stringify({ private: true, type: 'module' }));
     cpSync(join(example, 'release-consumer.mjs'), join(tempDirectory, 'release-consumer.mjs'));
+    cpSync(join(example, '../physics-model-data-2276/model-data.mjs'), join(tempDirectory, 'physics-model-data.mjs'));
     cpSync(join(root, 'examples/physics-cad-scene/two-surfaces.barocad'), join(tempDirectory, 'two-surfaces.barocad'));
     command('npm', ['install', '--offline', '--no-audit', '--no-fund', '--ignore-scripts',
       ...tarballs.map((name) => join(tempDirectory, name))], tempDirectory,

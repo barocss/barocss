@@ -30,6 +30,7 @@ function attachRecorder(world: PhysicsWorld): PhysicsRecorder {
   let recorder: PhysicsRecorder;
   access.attach(({ model, options, state }) => {
     if (canonicalEncode(model).length > 128 * 1024) replayError('WORLD_LIMIT', 'recording model exceeds byte limit');
+    if (state.fluids.length) replayError('INVALID_SNAPSHOT', 'visual fluid profile recording is unsupported');
     const initial: Recording = { format: 'barocss-physics-recording', version: 1,
       model, options, identity: state.identity, frames: [], finalState: recordedState(state) };
     encodeRecordingData(initial);

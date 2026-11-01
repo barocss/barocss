@@ -19,9 +19,44 @@ decisions remain in force. See [Physics verification](/reference/physics-verific
 | Upright capsule movement | `createUprightCapsuleController` from the root | Fixed upright capsule and immutable bounded box scene. No general character dynamics. |
 | CAD proxy admission and display mapping | `admitCadSurfaceProxy`, `assertCadProxyCurrent`, `cadProxyPose` from `@barocss/physics/cad-proxy` | Source-bound control-net sphere or box approximation. |
 | Accepted command-log replay | `createPhysicsRecorder`, `restorePhysicsRecording` from `@barocss/physics/replay` | Attach at step0; bounded indexed recording; no arbitrary state loading. |
-| Visual water | `createFluidWorld` from `@barocss/physics/fluid` | Fixed 256-particle basin; visual settings, no calibrated fluid material. |
-| Visual sheet | `createClothWorld` from `@barocss/physics/cloth` | Fixed 289-vertex pinned sheet and static sphere. |
-| CAD obstacle in visual water | `createCadFluidWorld` from `@barocss/physics/fluid-cad` | One static axis-aligned CAD box proxy in version 1 water. |
+| Visual water | Root `createPhysicsWorld(model, options)` | Fixed 256-particle basin; visual settings, no calibrated fluid material. |
+| Visual sheet | Root `createPhysicsWorld(model, options)` | Fixed 289-vertex pinned sheet and static sphere. |
+| CAD obstacle in visual water | `admitCadFluidStaticData` data adapter, then root World | One static axis-aligned CAD box proxy in version 1 water. |
+
+## Fixed cloth and fluid model data
+
+These visual profiles use the same World clock, guard and state contract.
+P5a private kernels passed their bounded two-step source/native gates. P5b
+full public/source/native and affected-example runtime verification is pending;
+compiling these snippets does not complete that proof.
+
+[Download the inert model asset](/physics/model-data.mjs). It contains explicit
+public PhysicsModel data, not another World factory. Copy it into your
+application and import it locally. The repository sample uses that same asset.
+
+<<< @/../samples/physics-visual-docs.test.mjs#visual-model-import
+
+<<< @/../samples/physics-visual-docs.test.mjs#visual-model-step
+
+Cloth topology, pins, physical vertex masses and ordered constraints remain in
+`getModel().cloths[0]`. Copied positions/velocities and diagnostics are in
+`getState().cloths[0]`; fluid data uses the corresponding `fluids[0]` entry.
+Do not pass time to step. Host reset means dispose and recreate a root World.
+Only empty commands are supported for these fixed visual profiles.
+
+Profiles are `cloth-pinned-sphere-visual-v1`, `fluid-basin-visual-v1`,
+`fluid-basin-xsph-visual-v1`, and `fluid-static-box-visual-v1`, all with
+`domain-fixed` broad phase and1/120s. The fluid smoothing radius is the original
+computed binary64 value `0.09000000000000001`, not literal `0.09`. These are
+visual settings, without calibrated fabric, viscosity, pressure or P6 coupling.
+
+Domain recording is explicitly refused. Cloth exceeds the unchanged128KiB
+model cap (`WORLD_LIMIT`); fluid profiles use `INVALID_SNAPSHOT` until actual
+wire/budget/restore closure is qualified. The failed attach changes no owner or
+accepted state. Preserve1MiB/512frames/4096commands; no JSON wire fallback.
+For CAD-derived static data, keep its admitted proxy and call the existing
+current-source check before each World step. SourceBinding alone cannot prove
+current source. No CAD Studio/Viewer UI or release action is implied here.
 
 Robot FK, IK, timed paths and prescribed-motion loads belong to
 [CAD Model](/packages/cad-model/). Read the [robot motion guide](/guide/robot-motion) and

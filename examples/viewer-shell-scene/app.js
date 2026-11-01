@@ -2,7 +2,8 @@ import {createViewer} from '@barocss/viewer';
 import {parseBooleanExtrusionFeatureGraph,evaluateBooleanExtrusionFeatureGraph,updateBooleanExtrusionFeatureGraph} from '@barocss/cad';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {parseBaroCadAssembly,loadBaroCadAssembly} from '@barocss/cad-interop/assembly';
-import {createClothWorld} from '@barocss/physics/cloth';
+import {createPhysicsWorld} from '@barocss/physics';
+import {copyPhysicsModelPreset} from '../physics-model-data-2276/model-data.mjs';
 import {prepareCamera,prepareBooleanShellBuffers} from '@barocss/gpu';
 
 const check=(condition,message)=>{if(!condition)throw Error(message);};
@@ -165,7 +166,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();
   inspectionObserver=new ResizeObserver(()=>refreshInspection());inspectionObserver.observe(canvas);
   window.__viewerShellProof={viewer,get state(){return viewer.getState();},graphs,sources,fixtures,manifest,graphOptions,meshOptions,colors,
     mmToSceneUnit,canvas,createViewer,parseBooleanExtrusionFeatureGraph,evaluateBooleanExtrusionFeatureGraph,updateBooleanExtrusionFeatureGraph,
-    parseBaroCadAssembly,loadBaroCadAssembly,loadBaroCadModelSet,createPhysicsClothWorld:createClothWorld,createClothWorld,
+    parseBaroCadAssembly,loadBaroCadAssembly,loadBaroCadModelSet,createPhysicsWorld,copyPhysicsModelPreset,
     prepareCamera,prepareBooleanShellBuffers,entriesFor,loadOptions,refFor,load,render,
     inspectAt,inspectionSnapshot,refreshInspection,runProof,retained,capture,depthProof,
     pixelInfo,errors,warnings,dispose,get result(){return result;}};

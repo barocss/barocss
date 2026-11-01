@@ -1,43 +1,25 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
-
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const packageDir = resolve(root, 'packages/barocss-physics');
-
-async function resolvedInputs(conditions) {
-  const result = await build({
-    stdin: {
-      contents: "import { createClothWorld } from '@barocss/physics/cloth'; console.log(createClothWorld);",
-      resolveDir: packageDir, sourcefile: 'cloth-source-import-probe.ts',
-    },
-    bundle: true, write: false, format: 'esm', platform: 'browser', target: 'es2022',
-    conditions, metafile: true,
-  });
-  return Object.keys(result.metafile.inputs);
-}
-
-const source = await resolvedInputs(['barocss-source']);
-const compiled = await resolvedInputs([]);
-assert.ok(source.some(path => path.endsWith('/src/cloth.ts')), 'cloth must resolve to source');
-assert.ok(source.every(path => !path.includes('/dist/')), 'source resolution must not include dist');
-assert.ok(compiled.some(path => path.endsWith('/dist/cloth.js')), 'default cloth must resolve to dist');
-assert.ok(compiled.every(path => !path.includes('/src/')), 'default resolution must not include source');
-const nodeConsumer = JSON.parse(execFileSync(process.execPath, ['--input-type=module', '-e', `
-  import assert from 'node:assert/strict';
-  import { createClothWorld, PhysicsError } from '@barocss/physics/cloth';
-  const world = createClothWorld({ format: 'barocss-cloth-scene', version: 1,
-    revision: 'namedConsumer1', basis: 'right-handed-xyz-metres',
-    fixedStepSeconds: 1 / 120, profile: 'pinned-sheet-sphere-v1' });
-  const state = world.step(1 / 120);
-  assert.equal(state.stepIndex, 1);
-  assert.equal(state.vertexCount, 289);
-  world.dispose();
-  assert.throws(() => world.getState(), error => error.constructor === PhysicsError && error.code === 'DISPOSED');
-  console.log(JSON.stringify({ result: 'ok', stepIndex: state.stepIndex,
-    vertexCount: state.vertexCount, physicsErrorIdentity: true }));
-`], { cwd: packageDir, encoding: 'utf8' }));
-assert.equal(nodeConsumer.result, 'ok');
-console.log(JSON.stringify({ result: 'ok', sourceInputs: source, compiledInputs: compiled, nodeConsumer }));
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
+const pkg=resolve(root,'packages/barocss-physics');
+const published=JSON.parse(readFileSync(resolve(pkg,'package.json'),'utf8')).publishConfig.exports;
+const contents="import {createPhysicsWorld,PhysicsError} from '@barocss/physics'; console.log(createPhysicsWorld,PhysicsError);";
+async function inputs(native){const result=await build({stdin:{contents,resolveDir:pkg,sourcefile:'cloth-model-consumer.ts'},bundle:true,write:false,format:'esm',platform:'node',metafile:true,conditions:native?[]:['barocss-source'],plugins:native?[{name:'actual-published-root',setup(api){api.onResolve({filter:/^@barocss\/physics$/},()=>({path:resolve(pkg,published['.'].import)}));}}]:[]});return Object.keys(result.metafile.inputs);}
+const source=await inputs(false),compiled=await inputs(true);
+assert(source.some(p=>p.endsWith('/src/index.ts')));assert(source.every(p=>!p.includes('/dist/')));
+assert(compiled.some(p=>p.endsWith('/dist/index.js')));assert(compiled.every(p=>!p.includes('/src/')));
+const program=`
+import assert from 'node:assert/strict';
+import {createPhysicsWorld,PhysicsError} from ${JSON.stringify(pathToFileURL(resolve(pkg,published['.'].import)).href)};
+import {copyPhysicsModelPreset} from ${JSON.stringify(pathToFileURL(resolve(root,'examples/physics-model-data-2276/model-data.mjs')).href)};
+const input=copyPhysicsModelPreset('cloth-pinned-sphere-visual-v1');
+const world=createPhysicsWorld(input.model,input.options);
+const state=world.step([]);assert.equal(state.stepIndex,1);assert.equal(state.cloths[0].positionsM.length/3,289);
+world.dispose();assert.throws(()=>world.getState(),e=>e instanceof PhysicsError&&e.code==='DISPOSED');
+console.log(JSON.stringify({result:'ok',stepIndex:state.stepIndex,vertexCount:state.cloths[0].positionsM.length/3,physicsErrorIdentity:true}));`;
+const nodeConsumer=JSON.parse(execFileSync(process.execPath,['--input-type=module','-e',program],{cwd:root,encoding:'utf8'}));
+console.log(JSON.stringify({result:'ok',sourceInputs:source,compiledInputs:compiled,nodeConsumer}));

@@ -1,0 +1,115 @@
+import { ConvexPlanarSolidError, SolidProof, same } from '../convex-planar-solid-proof-internal.js';
+import { KernelError } from '../core/barocss-error.js';
+export { SolidProof, same };
+export class ConvexPlanarSlabSubtractionError extends KernelError {
+    code;
+    stage;
+    entity;
+    constructor(code, stage, entity, detail, cause) {
+        super(('Convex planar solid slab subtraction: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
+        this.code = code;
+        this.stage = stage;
+        this.entity = entity;
+        this.name = 'ConvexPlanarSlabSubtractionError';
+    }
+}
+export function demand(condition, code, detail) {
+    if (!condition)
+        throw new ConvexPlanarSlabSubtractionError(code, 'admission', 'request', detail);
+}
+export function at(stage, entity, action) {
+    try {
+        return action();
+    }
+    catch (cause) {
+        if (cause instanceof ConvexPlanarSlabSubtractionError) {
+            if (cause.stage !== 'admission')
+                throw cause;
+            throw new ConvexPlanarSlabSubtractionError(cause.code, stage, entity, cause.message, cause);
+        }
+        const code = cause instanceof ConvexPlanarSolidError && ['BUDGET', 'REPRESENTABILITY', 'BINDING', 'OWNED', 'IDENTITY', 'INCIDENCE', 'DEGENERATE', 'INPUT'].includes(cause.code) ? cause.code : 'NATIVE';
+        throw new ConvexPlanarSlabSubtractionError(code, stage, entity, cause instanceof Error ? cause.message : 'Native construction refused', cause);
+    }
+}
+export function fields(value, keys) {
+    demand(value !== null && typeof value === 'object' && !Array.isArray(value), 'INPUT', 'Own record required');
+    const object = value;
+    demand(Object.keys(object).length === keys.length && keys.every(k => Object.hasOwn(object, k)), 'INPUT', 'Exact fields required: ' + keys.join(','));
+    return object;
+}
+export function identity(value, maximum = 48) {
+    demand(typeof value === 'string' && value.length <= maximum && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(value), 'IDENTITY', 'Bounded ASCII identity required');
+    return value;
+}
+export const SLAB_LIMITS = Object.freeze({ inputBytes: 33554432, resultBytes: 67108864, cumulativeSnapshotBytes: 201326592, retainedSnapshotBytes: 134217728, inputValues: 2097152, resultValues: 4194304, inputDepth: 48, resultDepth: 56, inputStringCharacters: 16777216, resultStringCharacters: 33554432, arrayElements: 4096, recordFields: 64, keyCharacters: 128, stringCharacters: 262144, facesPerChild: 12, edgesPerFace: 8, usesPerChild: 64, verticesPerChild: 32, facetPlanePasses: 48, temporaryPolygonVertices: 20, classifications: 960, crossings: 96, candidateRecords: 256, coveragePredicates: 320, faceCompilations: 72, sourceCompilations: 72, bindingObservations: 1152, totalD1: 3456, rationalContexts: 5, rationalOperationsPerContext: 200000, aggregateRationalOperations: 1000000, aggregateGcdSteps: 1000000, integerBits: 8192 });
+/** Serialized signed-JSON occurrence accounting, not heap telemetry. Child ledgers remain unchanged. */
+export class SlabSubtractionLedger {
+    cumulativeBytes = 0;
+    retainedBytes = 0;
+    copy(input, result = false, inspectOnly = false, retained = !inspectOnly) {
+        let bytes = 0, values = 0, characters = 0;
+        const ancestors = new Set(), encoder = new TextEncoder(), limits = SLAB_LIMITS;
+        const charge = (n) => { bytes += n; this.cumulativeBytes += n; demand(bytes <= (result ? limits.resultBytes : limits.inputBytes) && this.cumulativeBytes <= limits.cumulativeSnapshotBytes, 'BUDGET', 'Root snapshot/cumulative byte ceiling exceeded'); };
+        const string = (v, key = false) => { demand(v.length <= (key ? limits.keyCharacters : limits.stringCharacters), 'BUDGET', 'String/key ceiling exceeded'); characters += v.length; demand(characters <= (result ? limits.resultStringCharacters : limits.inputStringCharacters), 'BUDGET', 'Aggregate string ceiling exceeded'); charge(encoder.encode(JSON.stringify(v)).length); };
+        const visit = (v, depth) => {
+            demand(++values <= (result ? limits.resultValues : limits.inputValues) && depth <= (result ? limits.resultDepth : limits.inputDepth), 'BUDGET', 'Root value/depth ceiling exceeded');
+            if (v === null || typeof v === 'boolean') {
+                charge(v === null ? 4 : v ? 4 : 5);
+                return v;
+            }
+            if (typeof v === 'number') {
+                demand(Number.isFinite(v), 'INPUT', 'Finite own number required');
+                charge(Object.is(v, -0) ? 2 : JSON.stringify(v).length);
+                return v;
+            }
+            if (typeof v === 'string') {
+                string(v);
+                return v;
+            }
+            demand(typeof v === 'object' && !ancestors.has(v), 'INPUT', 'Acyclic own plain data required');
+            const array = Array.isArray(v), prototype = Object.getPrototypeOf(v), keys = Reflect.ownKeys(v);
+            demand(array ? prototype === Array.prototype : prototype === Object.prototype || prototype === null, 'INPUT', 'Foreign prototype refused');
+            demand(keys.length <= (array ? limits.arrayElements + 1 : limits.recordFields), 'BUDGET', 'Container ceiling exceeded');
+            const descriptors = Object.getOwnPropertyDescriptors(v);
+            demand(keys.every(k => typeof k === 'string' && k.length <= limits.keyCharacters && 'value' in descriptors[k] && (array && k === 'length' || descriptors[k].enumerable)), 'INPUT', 'Getter/symbol/hidden property refused');
+            ancestors.add(v);
+            charge(2);
+            let output;
+            if (array) {
+                const length = descriptors.length.value;
+                demand(Number.isInteger(length) && length >= 0 && length <= limits.arrayElements && keys.length === length + 1, 'INPUT', 'Dense bounded array required');
+                const entries = [];
+                for (let i = 0; i < length; i++) {
+                    demand(Object.hasOwn(descriptors, String(i)), 'INPUT', 'Sparse array refused');
+                    if (i)
+                        charge(1);
+                    const entry = visit(descriptors[String(i)].value, depth + 1);
+                    if (!inspectOnly)
+                        entries.push(entry);
+                }
+                output = inspectOnly ? v : entries;
+            }
+            else {
+                const entries = [];
+                for (const [i, k] of keys.entries()) {
+                    if (i)
+                        charge(1);
+                    string(k, true);
+                    charge(1);
+                    const entry = visit(descriptors[k].value, depth + 1);
+                    if (!inspectOnly)
+                        entries.push([k, entry]);
+                }
+                output = inspectOnly ? v : Object.fromEntries(entries);
+            }
+            ancestors.delete(v);
+            return output;
+        };
+        const output = visit(input, 0);
+        if (retained) {
+            this.retainedBytes += bytes;
+            demand(this.retainedBytes <= limits.retainedSnapshotBytes, 'BUDGET', 'Root retained snapshot ceiling exceeded');
+        }
+        return output;
+    }
+}

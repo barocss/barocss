@@ -1,0 +1,88 @@
+{
+  "kind": "P5B_OWNED_COMMAND_GUARD",
+  "receiptId": "root-bundle-01",
+  "censusId": "root-bundle-01",
+  "status": "PASS",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/@esbuild/darwin-arm64/bin/esbuild",
+    "src/index.ts",
+    "--bundle",
+    "--format=esm",
+    "--platform=browser",
+    "--target=es2022",
+    "--external:./recording-owner.js",
+    "--external:./types.js",
+    "--external:./provider-manifest.generated.js",
+    "--outfile=dist/index.js"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics",
+  "inputs": {
+    "command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": "2026-11-01T22:47:12.831Z",
+  "spawnAt": "2026-11-01T22:47:12.840Z",
+  "pid": 7184,
+  "processGroupId": 7184,
+  "exit": 0,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": null,
+  "processClosed": true,
+  "groupSignals": [],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/root-bundle-01/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/root-bundle-01/progress.json",
+  "errors": [],
+  "exitAt": "2026-11-01T22:47:13.052Z",
+  "finishedAt": "2026-11-01T22:47:13.053Z",
+  "elapsedMs": 221.490208,
+  "ownedGroupPresentAtFinalization": false,
+  "censusElapsedMs": 215.051125,
+  "cleanupElapsedMs": 0,
+  "output": {
+    "stdout": {
+      "observedBytes": 0,
+      "capturedBytes": 0,
+      "omittedBytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "eof": true,
+      "writeError": null
+    },
+    "stderr": {
+      "observedBytes": 44,
+      "capturedBytes": 44,
+      "omittedBytes": 0,
+      "sha256": "c9c9ec695c5e49e2645adcd296bda9a774289449ea5edf9bb9670893cae996cd",
+      "eof": true,
+      "writeError": null
+    }
+  },
+  "censusSummary": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/root-bundle-01/summary.json",
+    "present": false
+  },
+  "censusProgress": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/root-bundle-01/progress.json",
+    "present": true,
+    "bytes": 1848,
+    "sha256": "590eeaebbbb2c14f35cd90b9e083fe87c2d4a03f3682b9c9d56668e37b65b605",
+    "status": "RUNNING",
+    "counts": null,
+    "referenceCallCounts": null,
+    "firstFailure": null
+  },
+  "callCountBoundary": "Only counts present in original census progress/summary/timing receipts are reported; a timeout never implies the primitive call population completed."
+}

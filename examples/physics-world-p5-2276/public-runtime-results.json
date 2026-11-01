@@ -1,0 +1,206 @@
+{
+  "workId": "physics-world-p5b-2276",
+  "status": "PASS_SOURCE_NATIVE_BOUNDED_PUBLIC_RUNTIME_ONLY",
+  "graphs": [
+    {
+      "graph": "source",
+      "summary": {
+        "path": "examples/physics-world-p5-2276/evidence/public-source-01/summary.json",
+        "bytes": 27173,
+        "sha256": "501758069a42233aa3890348987ae2ffddf220745e8294b876f0e08744b9ba4e"
+      },
+      "ledger": {
+        "factoryAttempts": 101,
+        "worlds": 37,
+        "creationRefusals": 64,
+        "stepEntries": 6334,
+        "accepted": 6281,
+        "syntheticFailures": 13,
+        "typedNumericControls": 4,
+        "initializers": 35,
+        "reads": 38,
+        "disposes": 41,
+        "domainQueries": 8,
+        "domainRecorderAttachAttempts": 8,
+        "rigidRecorderAttachAttempts": 3,
+        "rigidRecorderSaveCalls": 3,
+        "disposedReadRefusals": 4,
+        "hostExternalSubmitFailures": 1,
+        "solverReturns": 6289,
+        "refusedSteps": 40
+      },
+      "helpers": {
+        "floorSamples": 5077,
+        "initializeCloth": 13,
+        "clothDiagnostics": 1229,
+        "canonicalEncode": 136,
+        "reads": 38,
+        "prepareCloth": 1217,
+        "ClothSolverConstructions": 1217,
+        "ClothSolverSteps": 1217,
+        "projectDistance": 30468097,
+        "projectSphere": 19456,
+        "solverReturns": 6289,
+        "outputCopies": 6281,
+        "disposes": 41,
+        "initializeFluid": 22,
+        "initialRestDensity": 22,
+        "densities": 20336,
+        "fluidDiagnostics": 5092,
+        "prepareFluid": 5076,
+        "PbfSolverConstructions": 5076,
+        "PbfSolverSteps": 5076,
+        "blendVisualViscosity": 2891,
+        "admitCadFluidStaticData": 5,
+        "admitCadSurfaceProxy": 4,
+        "compileCadModel": 3,
+        "inflatedBoxBounds": 15,
+        "assertCadProxyCurrent": 483
+      },
+      "cloth": {
+        "independentAbsoluteErrorBound": 1e-12,
+        "exactPeakError": "NOT_RECORDED; enforcedcomponentmax<=1e-12 ineachframe",
+        "timedP95Ms": [
+          1.8498750000003383,
+          1.6902499999996508,
+          1.7720839999997224
+        ],
+        "peakSampledPenetrationM": 0.0013840839157666096,
+        "peakStructuralExtension": 0.05174255069177636
+      },
+      "fluid": {
+        "retainedHeapDeltaBytes": 70288,
+        "costRatios": [
+          1.144376703139297,
+          1.2000338485393511
+        ],
+        "lowV1Density60": 0.22785881124725596,
+        "lowV1Density240": 0.015288410357167534
+      },
+      "shelf": {
+        "costRatio": 0.9742740962636237,
+        "cumulativeHits": [
+          859,
+          2660
+        ],
+        "checkpoints": [
+          60,
+          240
+        ]
+      }
+    },
+    {
+      "graph": "native",
+      "summary": {
+        "path": "examples/physics-world-p5-2276/evidence/public-native-01/summary.json",
+        "bytes": 27173,
+        "sha256": "a94608330959e4084a4d79a3ed796116f415a3338640973b3dddb114dc34f7d8"
+      },
+      "ledger": {
+        "factoryAttempts": 101,
+        "worlds": 37,
+        "creationRefusals": 64,
+        "stepEntries": 6334,
+        "accepted": 6281,
+        "syntheticFailures": 13,
+        "typedNumericControls": 4,
+        "initializers": 35,
+        "reads": 38,
+        "disposes": 41,
+        "domainQueries": 8,
+        "domainRecorderAttachAttempts": 8,
+        "rigidRecorderAttachAttempts": 3,
+        "rigidRecorderSaveCalls": 3,
+        "disposedReadRefusals": 4,
+        "hostExternalSubmitFailures": 1,
+        "solverReturns": 6289,
+        "refusedSteps": 40
+      },
+      "helpers": {
+        "floorSamples": 5077,
+        "initializeCloth": 13,
+        "clothDiagnostics": 1229,
+        "canonicalEncode": 136,
+        "reads": 38,
+        "prepareCloth": 1217,
+        "ClothSolverConstructions": 1217,
+        "ClothSolverSteps": 1217,
+        "projectDistance": 30468097,
+        "projectSphere": 19456,
+        "solverReturns": 6289,
+        "outputCopies": 6281,
+        "disposes": 41,
+        "initializeFluid": 22,
+        "initialRestDensity": 22,
+        "densities": 20336,
+        "fluidDiagnostics": 5092,
+        "prepareFluid": 5076,
+        "PbfSolverConstructions": 5076,
+        "PbfSolverSteps": 5076,
+        "blendVisualViscosity": 2891,
+        "admitCadFluidStaticData": 5,
+        "admitCadSurfaceProxy": 4,
+        "compileCadModel": 3,
+        "inflatedBoxBounds": 15,
+        "assertCadProxyCurrent": 483
+      },
+      "cloth": {
+        "independentAbsoluteErrorBound": 1e-12,
+        "exactPeakError": "NOT_RECORDED; enforcedcomponentmax<=1e-12 ineachframe",
+        "timedP95Ms": [
+          1.8277500000003783,
+          1.8663750000005166,
+          1.9471249999996871
+        ],
+        "peakSampledPenetrationM": 0.0013840839157666096,
+        "peakStructuralExtension": 0.05174255069177636
+      },
+      "fluid": {
+        "retainedHeapDeltaBytes": 73312,
+        "costRatios": [
+          1.1412605147521158,
+          1.2117053610334445
+        ],
+        "lowV1Density60": 0.22785881124725596,
+        "lowV1Density240": 0.015288410357167534
+      },
+      "shelf": {
+        "costRatio": 0.9803576266598697,
+        "cumulativeHits": [
+          859,
+          2660
+        ],
+        "checkpoints": [
+          60,
+          240
+        ]
+      }
+    }
+  ],
+  "totals": {
+    "factoryAttempts": 202,
+    "worlds": 74,
+    "creationRefusals": 128,
+    "stepEntries": 12668,
+    "accepted": 12562,
+    "unknownSyntheticFailures": 26,
+    "refusedSteps": 80,
+    "typedNumericControls": 8,
+    "externalHostSubmitFaults": 2
+  },
+  "supportedRuntime": "fourdeclaredvisualprofiles;cloth240/fluid720/shelf240 selectedgates;nostated3600stability",
+  "recording": "clothWORLD_LIMITmodelbudget;fluidINVALID_SNAPSHOTunqualified;rigidowner/logrecoveryleafpassed",
+  "legacyCompatibility": "nooldruntimefactory/subpath/DTO/bridge; historicalproviderspreserved",
+  "firstBuildFailure": "native-entry01FAIL; exactfailedproviderbytespreserved; canonicalresolvedexternalsfixentry02PASS",
+  "strictConsumerTypes": "NOT_RUN",
+  "computedCallerBundles": "NOT_RUN",
+  "actualDocsRuntime": "NOT_RUN",
+  "docsBuildLinks": "NOT_RUN",
+  "browserProduct": "NOT_RUN",
+  "hardwareOrManufacturing": "NOT_VALIDATED",
+  "originalHoldsTolerancesFirstFailures": "PRESERVED",
+  "P4Original8Box": "NO_GO",
+  "P6P7": "PENDING",
+  "developMerge": "PENDING_WHOLE_REQUIRED_ROADMAP",
+  "deploy": "NOT_RUN"
+}

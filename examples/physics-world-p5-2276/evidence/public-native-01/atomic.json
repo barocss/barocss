@@ -1,0 +1,92 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "site": "mid-kernel",
+      "exactThrownIdentity": true,
+      "stateFingerprint": "7d1c2f39392726cbda1b8c8678a21f440a750dcbcc2949fe869c7b498038142e",
+      "recoveredFingerprint": "5bd8ceb1d181182e9fd793a422fb18eafbd18f2bc0788dc9171fcda8c2eff86b"
+    },
+    {
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "site": "post-diagnostic",
+      "exactThrownIdentity": true,
+      "stateFingerprint": "7d1c2f39392726cbda1b8c8678a21f440a750dcbcc2949fe869c7b498038142e",
+      "recoveredFingerprint": "5bd8ceb1d181182e9fd793a422fb18eafbd18f2bc0788dc9171fcda8c2eff86b"
+    },
+    {
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "site": "public-copy",
+      "exactThrownIdentity": true,
+      "stateFingerprint": "7d1c2f39392726cbda1b8c8678a21f440a750dcbcc2949fe869c7b498038142e",
+      "recoveredFingerprint": "5bd8ceb1d181182e9fd793a422fb18eafbd18f2bc0788dc9171fcda8c2eff86b"
+    },
+    {
+      "profile": "fluid-basin-visual-v1",
+      "site": "mid-kernel",
+      "exactThrownIdentity": true,
+      "stateFingerprint": "38d467d9f9a998f25980d4b48edf3d19cbecc34ea63e9c94e4f25015ba0f5f63",
+      "recoveredFingerprint": "48ede3ceafe4c037ddbc57577e949dfd1f4d9796b7ec77c6c5d48a93f62ee829"
+    },
+    {
+      "profile": "fluid-basin-visual-v1",
+      "site": "post-diagnostic",
+      "exactThrownIdentity": true,
+      "stateFingerprint": "38d467d9f9a998f25980d4b48edf3d19cbecc34ea63e9c94e4f25015ba0f5f63",
+      "recoveredFingerprint": "48ede3ceafe4c037ddbc57577e949dfd1f4d9796b7ec77c6c5d48a93f62ee829"
+    },
+    {
+      "profile": "fluid-basin-visual-v1",
+      "site": "public-copy",
+      "exactThrownIdentity": true,
+      "stateFingerprint": "38d467d9f9a998f25980d4b48edf3d19cbecc34ea63e9c94e4f25015ba0f5f63",
+      "recoveredFingerprint": "48ede3ceafe4c037ddbc57577e949dfd1f4d9796b7ec77c6c5d48a93f62ee829"
+    },
+    {
+      "profile": "fluid-basin-xsph-visual-v1",
+      "site": "mid-kernel",
+      "exactThrownIdentity": true,
+      "stateFingerprint": "9248843b94b27c29e100d4341fb11496174233d18c257dc4f91996a9c2bdf5ef",
+      "recoveredFingerprint": "73c4822d71ca45036165d7243067d83930dc1c2f179d7b341e346a3022db25c5"
+    },
+    {
+      "profile": "fluid-basin-xsph-visual-v1",
+      "site": "post-diagnostic",
+      "exactThrownIdentity": true,
+      "stateFingerprint": "9248843b94b27c29e100d4341fb11496174233d18c257dc4f91996a9c2bdf5ef",
+      "recoveredFingerprint": "73c4822d71ca45036165d7243067d83930dc1c2f179d7b341e346a3022db25c5"
+    },
+    {
+      "profile": "fluid-basin-xsph-visual-v1",
+      "site": "public-copy",
+      "exactThrownIdentity": true,
+      "stateFingerprint": "9248843b94b27c29e100d4341fb11496174233d18c257dc4f91996a9c2bdf5ef",
+      "recoveredFingerprint": "73c4822d71ca45036165d7243067d83930dc1c2f179d7b341e346a3022db25c5"
+    },
+    {
+      "profile": "fluid-static-box-visual-v1",
+      "site": "mid-kernel",
+      "exactThrownIdentity": true,
+      "stateFingerprint": "3854434870f78e7beea88a12dd2c3729252135f52a6bf18216ff5af5bb513a53",
+      "recoveredFingerprint": "7446a9a6afaf03fce0f6eb615739db7c256712c5801c3272ca0140a753ad3bb0"
+    },
+    {
+      "profile": "fluid-static-box-visual-v1",
+      "site": "post-diagnostic",
+      "exactThrownIdentity": true,
+      "stateFingerprint": "3854434870f78e7beea88a12dd2c3729252135f52a6bf18216ff5af5bb513a53",
+      "recoveredFingerprint": "7446a9a6afaf03fce0f6eb615739db7c256712c5801c3272ca0140a753ad3bb0"
+    },
+    {
+      "profile": "fluid-static-box-visual-v1",
+      "site": "public-copy",
+      "exactThrownIdentity": true,
+      "stateFingerprint": "3854434870f78e7beea88a12dd2c3729252135f52a6bf18216ff5af5bb513a53",
+      "recoveredFingerprint": "7446a9a6afaf03fce0f6eb615739db7c256712c5801c3272ca0140a753ad3bb0"
+    }
+  ],
+  "typedNumericControls": 4,
+  "externalCopiesSurviveDispose": true,
+  "forcedGCClaim": false
+}

@@ -1,0 +1,116 @@
+{
+  "status": "all22oldbytes_authenticated_and_preserved_before_retirement",
+  "files": [
+    {
+      "path": "packages/barocss-physics/dist/cloth.js",
+      "bytes": 96,
+      "sha256BeforeBuild": "9952183db070274b3a8db0f99cc589bdd31729eeaefc70f4ee6d05253a318960"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth.d.ts",
+      "bytes": 194,
+      "sha256BeforeBuild": "20088da3e20e782153deec6719e6946562fabe474dc5eaebe6d1ac9c20a508ce"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid.js",
+      "bytes": 96,
+      "sha256BeforeBuild": "bb20b7d945c005c508b1c7fad4de60743be20a26758adf634112ced218d136fa"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid.d.ts",
+      "bytes": 208,
+      "sha256BeforeBuild": "f0af54170c9d1afdb899ae09298a58be462496d524f0e2e75d22028081aeb44b"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid-cad.js",
+      "bytes": 103,
+      "sha256BeforeBuild": "de55c9a5902562e3a52dcf59ee6a9d0575ebf91ec008fb8354c1640d224f2dc8"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid-cad.d.ts",
+      "bytes": 302,
+      "sha256BeforeBuild": "8078be1d069a01496fc63718294c6bbad54112f945bab00a9db1c63e1742fceb"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/world.js",
+      "bytes": 2960,
+      "sha256BeforeBuild": "c5e64d36a869e3ee689d949741ad15a1cfe8e2c78d538d8c3f0b6e7cd034caaa"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/world.d.ts",
+      "bytes": 116,
+      "sha256BeforeBuild": "3ab4d9c5e896789222d1d333f805e7ffc22c7e1995a3e8293207714e44c7e3ab"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/admission.js",
+      "bytes": 1582,
+      "sha256BeforeBuild": "8d1837695f375cdd4a1a2b7eecdc08d386b2f973dcd9c1343791ba14aece8e87"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/admission.d.ts",
+      "bytes": 65,
+      "sha256BeforeBuild": "4828945ecdd7136f98f5ebe94139490c58bf6b71905a896f7558726100bcede0"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/world.js",
+      "bytes": 3655,
+      "sha256BeforeBuild": "a84e6b31b065e77a26f7a70c9c162da56293854a4605ecbdf2d3639a867e172d"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/world.d.ts",
+      "bytes": 311,
+      "sha256BeforeBuild": "988557d9b6c28cca45c0a4faea70123845f4a9e5369054f979c5df8f2efd4d39"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/validation.js",
+      "bytes": 4345,
+      "sha256BeforeBuild": "66993795c3eba7e53214c5b3bc6f77ae2293c7ab3c35be77efbada996bce01a9"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/validation.d.ts",
+      "bytes": 131,
+      "sha256BeforeBuild": "99b1b580f08a9b98ad130498280ce7249917a51f9b95db1a095d27366def5f8a"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/cad-world.js",
+      "bytes": 2154,
+      "sha256BeforeBuild": "de3c70767df904eb4ea00b90d0755ab686a6dcc2eded6edc4c2b72ec1406a9f8"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/cad-world.d.ts",
+      "bytes": 276,
+      "sha256BeforeBuild": "bd1b990f0baad372457867d51492a845edfa46a82f67ad6e7f85a2c7f5fc5b4a"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/cad-types.js",
+      "bytes": 11,
+      "sha256BeforeBuild": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/cad-types.d.ts",
+      "bytes": 784,
+      "sha256BeforeBuild": "186d51b622ab729d8d7547b4b774b36c10a30556e49a059b5f04586579d31573"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/cad-errors.js",
+      "bytes": 554,
+      "sha256BeforeBuild": "28eb00a5b8d0aba227910d7c0fc93655f92d399c4b64e6effe5aac24a75b0680"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/cad-errors.d.ts",
+      "bytes": 145,
+      "sha256BeforeBuild": "a3abcdbc06483ece85adf3e2c5341d79d6926259d908b7c316bb25c26570b4d5"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/cad-admission.js",
+      "bytes": 1763,
+      "sha256BeforeBuild": "511a888250188935146b1b3542aa3afb4b39907c04199e23aadfb165896d9c67"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/cad-admission.d.ts",
+      "bytes": 315,
+      "sha256BeforeBuild": "c8cbdc9d16c1a64e73152a19d46fd6133c3a0fe805d1d5de621d69b10aef921d"
+    }
+  ],
+  "PublicWorldCalls": 0
+}

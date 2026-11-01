@@ -1,19 +1,19 @@
+import { copyPhysicsModelPreset } from '../physics-model-data-2276/model-data.mjs';
 export const DT = 1 / 120, STEPS = 240;
 
-export function scene() {
-  return {
-    format: 'barocss-cloth-scene', version: 1, revision: 'clothRev981',
-    basis: 'right-handed-xyz-metres', fixedStepSeconds: DT, profile: 'pinned-sheet-sphere-v1',
-  };
+export function clothModelData() {
+  const input = copyPhysicsModelPreset('cloth-pinned-sphere-visual-v1');
+  input.model.revision = 'clothRev981';
+  return input;
 }
 
 /** Public Viewer DTO. Metres remain metres; the Viewer performs the unit conversion. */
-export function frameFromState(state, generation) {
+export function frameFromState(state, generation, model) {
   return {
     version: 0, layerId: 'cloth_sheet_981', contextId: `cloth_host_gen_${generation}`,
-    sceneRevision: state.sceneRevision, stepIndex: state.stepIndex,
-    vertexCount: state.vertexCount, triangleCount: state.triangleCount,
-    positionsM: state.positionsM.slice(), triangles: state.triangles.slice(),
+    sceneRevision: state.identity.modelRevision, stepIndex: state.stepIndex,
+    vertexCount: state.cloths[0].positionsM.length / 3, triangleCount: model.cloths[0].triangles.length,
+    positionsM: state.cloths[0].positionsM.slice(), triangles: Uint16Array.from(model.cloths[0].triangles.flat()),
   };
 }
 
