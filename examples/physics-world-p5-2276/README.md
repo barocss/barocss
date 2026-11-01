@@ -212,3 +212,35 @@ The owned group closed normally, without timeout, output overflow or survivors.
 trials authenticate and reuse these same241frames at original1e-12 absolute
 error; no second reference generation is authorized. The reference generation
 is not a current public API comparison, cost PASS, browser or equipment proof.
+
+## One-time public-model data authoring verified
+
+`model-data-01` PASSes the separately frozen generation:original topology1,
+one additional explicit vertex-mass accumulation,12 canonical encodes and16
+copy-isolation checks. World/step/CAD/initializer/rest-density/solver calls are0.
+Every complete model's canonical bytes/SHA matches the prior actual P5a target;
+cloth stays222324bytes, fluids17732/17757/18376. Literal rendering preserves
+binary64 and explicit -0; internal/reference/example containers are detached
+and deeply immutable. No new Physics factory, dependency or public subpath.
+
+Generated internal `src/domain/cloth-reference.generated.ts` has SHA
+`c9ee88af8e25b533c2694433502b28f51dffdeae5cce656b53eb36a187be60bc`.
+Example `examples/physics-model-data-2276/model-data.mjs` and docs public
+`physics/model-data.mjs` are byte-identical, SHA
+`ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604`.
+They export inert physicsModelPresets plus copyPhysicsModelPreset(profile),
+which returns detached plain model/options data. Preset import performs no
+Physics construction or geometry/solver arithmetic. Current public API users
+still call actual createPhysicsWorld themselves.
+
+```sh
+$NODE22 examples/physics-world-p5-2276/model-data-run.mjs model-data-guard-01 model-data-01
+```
+
+The parent verified19 source/tool inputs plus actual Node/esbuild executables
+before the owned-group run. `model-data-results.json` pins the actual receipt
+and all outputs. No timeout/overflow/group survivor occurred. Generated outputs
+remain frozen, and no second generation is authorized. The generation validates
+input data/ownership, not public admission, full World behavior, performance,
+native declarations, documentation snippets or actual equipment. Those P5b
+qualifications remain NOT_RUN while the atomic implementation is in progress.

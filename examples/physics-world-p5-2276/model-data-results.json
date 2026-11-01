@@ -1,0 +1,44 @@
+{
+  "workId": "physics-world-p5b-2276",
+  "status": "PARENT_ACCEPTS_ONE_TIME_MODEL_DATA_GENERATION",
+  "receipt": {
+    "path": "examples/physics-world-p5-2276/evidence/model-data-01/summary.json",
+    "bytes": 1362,
+    "sha256": "d5e82ee9cf09f340c7f366d4e8b7e138b5e7dc1edb7f95309320f90d4dfc1e9a"
+  },
+  "counts": {
+    "createSheet": 1,
+    "triangleMassAccumulations": 1,
+    "canonicalEncode": 12,
+    "presetCopies": 16,
+    "WorldCalls": 0,
+    "WorldSteps": 0,
+    "CADCalls": 0,
+    "initialRestDensity": 0,
+    "solverCalls": 0
+  },
+  "outputs": [
+    {
+      "path": "packages/barocss-physics/src/domain/cloth-reference.generated.ts",
+      "bytes": 158018,
+      "sha256": "c9ee88af8e25b533c2694433502b28f51dffdeae5cce656b53eb36a187be60bc"
+    },
+    {
+      "path": "examples/physics-model-data-2276/model-data.mjs",
+      "bytes": 185560,
+      "sha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics/model-data.mjs",
+      "bytes": 185560,
+      "sha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604"
+    }
+  ],
+  "matches": "all4 original P5a canonical size+SHA targets; internalObject.is checks; example/docsbyte-identical",
+  "copyIsolation": "16detached copies+deepimmutabletables checked; -0literalroundtrip",
+  "runtimeWorldOrSolverCalls": 0,
+  "publicAPIQualification": "NOT_RUN",
+  "generationRepeatAuthorized": false,
+  "sourceInputTypeHoldMayBeReleased": true,
+  "originalHoldsTolerancesFirstFailures": "PRESERVED"
+}
