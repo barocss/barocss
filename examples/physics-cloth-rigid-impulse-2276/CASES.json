@@ -1,0 +1,1346 @@
+{
+  "workId": "physics-cloth-rigid-impulse-2276",
+  "artifactType": "literal-private-impulse-plant-cases",
+  "status": "PROPOSAL_PARENT_REVIEW_REQUIRED_NO_IMPLEMENTATION_OR_RUN",
+  "contract": {
+    "path": "examples/physics-cloth-rigid-impulse-2276/CONTRACT.md",
+    "bytes": 13569,
+    "sha256": "7e11f247a8287d5713bdba8f18a3a36fba2abf3602a39cfcd5663461974a05a6"
+  },
+  "inputProtocol": {
+    "scope": "private reduced plant; no PhysicsModel/World/schema adoption",
+    "rationalGrammar": "^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$",
+    "negativeZero": "-0 is exact physical0 and native signed negative zero; preserve raw input bits",
+    "patchApplication": "fresh detached deep copy of literal base; assign only listed existing paths in order; no derived geometric value or fixture math",
+    "nativeConversion": "finite rational numerator/denominator converted to binary64 once, all bits logged; IEEE tag decoded exactly only for R09",
+    "idealConversion": "Fraction from rational string directly; no native float expected values",
+    "ownerRules": "point clothId matches clothContext.id; vertex index dense integer in range and absent from pins; rigid endpoint bodyId matches rigidContext; cloth/rigid IDs distinct and qualified ASCII<=64",
+    "inertData": "plain exact records/dense ordinary arrays, writable inputs for mutation detection",
+    "pointContextNote": "vertex144/pins0,16 are endpoint metadata only; literal masses are independent reduced-plant test masses, not P5 native cloth weights",
+    "refusalPrecedence": [
+      "exact schema and endpoint kinds",
+      "nonfinite state",
+      "owner/index/pin",
+      "mass/inertia/component ranges",
+      "physical moment inequalities",
+      "proper rotation",
+      "anchor coincidence"
+    ]
+  },
+  "literalBases": {
+    "literal-off-com": {
+      "clothContext": {
+        "id": "clothA",
+        "vertexCount": 289,
+        "pinnedVertexIndices": [
+          0,
+          16
+        ]
+      },
+      "rigidContext": {
+        "bodyId": "rigidA"
+      },
+      "point": {
+        "endpoint": {
+          "kind": "cloth-vertex",
+          "clothId": "clothA",
+          "vertexIndex": 144
+        },
+        "positionM": [
+          "1/2",
+          "0",
+          "0"
+        ],
+        "velocityMps": [
+          "0",
+          "1",
+          "0"
+        ],
+        "massKg": "1"
+      },
+      "rigid": {
+        "endpoint": {
+          "kind": "rigid-anchor",
+          "bodyId": "rigidA",
+          "anchorLocalM": [
+            "1/2",
+            "0",
+            "0"
+          ]
+        },
+        "comPositionM": [
+          "0",
+          "0",
+          "0"
+        ],
+        "velocityMps": [
+          "0",
+          "0",
+          "0"
+        ],
+        "angularVelocityRadps": [
+          "0",
+          "0",
+          "0"
+        ],
+        "massKg": "1",
+        "rotationBodyToWorld": [
+          [
+            "1",
+            "0",
+            "0"
+          ],
+          [
+            "0",
+            "1",
+            "0"
+          ],
+          [
+            "0",
+            "0",
+            "1"
+          ]
+        ],
+        "principalInertiaKgM2": [
+          "1/4",
+          "3/8",
+          "1/2"
+        ]
+      }
+    }
+  },
+  "admittedBounds": {
+    "pointMassKg": [
+      "1/1024",
+      "1"
+    ],
+    "rigidMassKg": [
+      "1/1024",
+      "1"
+    ],
+    "principalInertiaKgM2": [
+      "1/4096",
+      "1"
+    ],
+    "positionComponentAbsMaxM": "1",
+    "anchorLocalComponentAbsMaxM": "1/2",
+    "initialLinearVelocityComponentAbsMaxMps": "1",
+    "initialAngularVelocityComponentAbsMaxRadps": "1",
+    "exactSchurInfinityConditionMax": "4096",
+    "properRotation": "R-transpose R=I and determinant+1 exactly for ideal Fraction input; no normalization",
+    "nativeRotationResidualMax": "64 * 2^-52",
+    "nativeCoincidenceMaxM": "64 * 2^-52 * max(1, max absolute input position/arm component)",
+    "inertiaPhysicality": "all diagonal moments positive within bounds and each no greater than sum of other two"
+  },
+  "reference": {
+    "velocityOrder": [
+      "point.vx",
+      "point.vy",
+      "point.vz",
+      "rigid.vx",
+      "rigid.vy",
+      "rigid.vz",
+      "rigid.wx",
+      "rigid.wy",
+      "rigid.wz"
+    ],
+    "multiplierOrder": [
+      "lambdaX",
+      "lambdaY",
+      "lambdaZ"
+    ],
+    "exactExpectedSolution": "independent full12x12 Fraction KKT for min 1/2(delta-v)^T M(delta-v) subject A*v_after=0; never condensed production matrix",
+    "exactPivotRule": "first nonzero row, no epsilon",
+    "conditionOnly": "independent Schur A*M^-1*A^T from full blocks; exact3x3 inverse with3RHS, not solution oracle",
+    "decimalCrosscheck": "separate full KKT builder/elimination at80 and120 digits, max-absolute pivot/first tie, ROUND_HALF_EVEN; stdlib decimal only",
+    "forbiddenImports": [
+      "production solver",
+      "production matrix assembler",
+      "reported expected reaction",
+      "numpy",
+      "scipy",
+      "external engine"
+    ],
+    "originM": [
+      "0",
+      "0",
+      "0"
+    ],
+    "signs": {
+      "pointLinearImpulse": "J",
+      "rigidLinearImpulse": "-J",
+      "rigidAngularImpulse": "worldArm cross (-J)"
+    },
+    "units": {
+      "mass": "kg",
+      "inertia": "kg*m^2 about body COM in principal frame",
+      "positionArm": "m",
+      "linearVelocity": "m/s",
+      "angularVelocity": "rad/s in world frame",
+      "linearImpulse": "N*s",
+      "angularImpulse": "N*m*s",
+      "energyWork": "J"
+    },
+    "forceOrDtConversion": false,
+    "decimalContext": {
+      "precisions": [
+        80,
+        120
+      ],
+      "rounding": "ROUND_HALF_EVEN",
+      "Emin": -999999,
+      "Emax": 999999,
+      "capitals": 1,
+      "clamp": 0,
+      "signalOrder": [
+        "Clamped",
+        "InvalidOperation",
+        "DivisionByZero",
+        "Inexact",
+        "Rounded",
+        "Subnormal",
+        "Overflow",
+        "Underflow",
+        "FloatOperation"
+      ],
+      "traps": [
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        false,
+        true
+      ],
+      "incomingFlags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "ownership": "new local context per solve; restore caller; no precision escalation"
+    }
+  },
+  "gates": {
+    "exactFraction": [
+      "KKT residual0",
+      "relative velocity0",
+      "total linear momentum change0",
+      "total angular momentum change0 about origin including orbital+spin",
+      "kinetic change equals independent impulse work",
+      "kinetic change plus minimum mass-metric objective0",
+      "dissipated energy nonnegative"
+    ],
+    "decimal80Vs120": "absolute1e-60 * max(1SI, abs exact reference component)",
+    "decimal120VsFraction": "absolute1e-100 * max(1SI, abs exact reference component), Fraction converted under120-digit context",
+    "candidateComponents": "abs error <= 1e-12 in field SI unit + 1e-12*abs exact reference component",
+    "candidateInvariants": "same1e-12 absolute+relative rule using max(oneSI, before/after reference magnitude)",
+    "rawOwnership": [
+      "both writable original inputs byte/field exact after every call including refusal/fault",
+      "poses/inertia/masses/endpoints copied bit-exact",
+      "no output/input or point/rigid output alias",
+      "source/emitted raw output bytes exactly equal per accepted case including signed0"
+    ],
+    "zeroOracleLimit": "Fraction predicts numerical zero only; never manufacture output zero-sign authority or normalize actual data",
+    "toleranceStatus": "PROPOSED_NEW_OPERATOR_GATES_PENDING_PARENT_REVIEW; old gates unchanged; no postfailure relaxation"
+  },
+  "acceptedCases": [
+    {
+      "id": "01-centered",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "positionM"
+          ],
+          "value": [
+            "0",
+            "0",
+            "0"
+          ]
+        },
+        {
+          "path": [
+            "point",
+            "velocityMps"
+          ],
+          "value": [
+            "1",
+            "0",
+            "0"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "endpoint",
+            "anchorLocalM"
+          ],
+          "value": [
+            "0",
+            "0",
+            "0"
+          ]
+        }
+      ],
+      "relations": [
+        "rigid angular impulse is numerical zero",
+        "both linear reactions are nonzero and opposite"
+      ],
+      "base": "literal-off-com",
+      "expected": "accepted",
+      "exactKktSolves": 1,
+      "exactSchurInversions": 1,
+      "decimalKktPrecisions": [
+        80,
+        120
+      ],
+      "candidateCondensed3x3Solves": 1
+    },
+    {
+      "id": "02-off-com-parallel",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "velocityMps"
+          ],
+          "value": [
+            "1",
+            "0",
+            "0"
+          ]
+        }
+      ],
+      "relations": [
+        "rigid angular impulse is numerical zero despite nonzero arm",
+        "point impulse X is negative"
+      ],
+      "base": "literal-off-com",
+      "expected": "accepted",
+      "exactKktSolves": 1,
+      "exactSchurInversions": 1,
+      "decimalKktPrecisions": [
+        80,
+        120
+      ],
+      "candidateCondensed3x3Solves": 1
+    },
+    {
+      "id": "03-off-com-transverse",
+      "patches": [],
+      "relations": [
+        "point impulse Y is negative",
+        "rigid angular impulse Z is positive and nonzero"
+      ],
+      "base": "literal-off-com",
+      "expected": "accepted",
+      "exactKktSolves": 1,
+      "exactSchurInversions": 1,
+      "decimalKktPrecisions": [
+        80,
+        120
+      ],
+      "candidateCondensed3x3Solves": 1
+    },
+    {
+      "id": "04-off-com-three-dimensional",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "positionM"
+          ],
+          "value": [
+            "1/4",
+            "1/4",
+            "1/4"
+          ]
+        },
+        {
+          "path": [
+            "point",
+            "velocityMps"
+          ],
+          "value": [
+            "1/2",
+            "-1/4",
+            "3/4"
+          ]
+        },
+        {
+          "path": [
+            "point",
+            "massKg"
+          ],
+          "value": "1/2"
+        },
+        {
+          "path": [
+            "rigid",
+            "endpoint",
+            "anchorLocalM"
+          ],
+          "value": [
+            "1/4",
+            "1/4",
+            "1/4"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "velocityMps"
+          ],
+          "value": [
+            "-1/4",
+            "1/4",
+            "0"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "angularVelocityRadps"
+          ],
+          "value": [
+            "1/4",
+            "-1/2",
+            "1/4"
+          ]
+        }
+      ],
+      "relations": [
+        "compare all three linear/angular components; no planar reduction"
+      ],
+      "base": "literal-off-com",
+      "expected": "accepted",
+      "exactKktSolves": 1,
+      "exactSchurInversions": 1,
+      "decimalKktPrecisions": [
+        80,
+        120
+      ],
+      "candidateCondensed3x3Solves": 1
+    },
+    {
+      "id": "05-compatible-moving-state",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "velocityMps"
+          ],
+          "value": [
+            "1/4",
+            "0",
+            "1/2"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "velocityMps"
+          ],
+          "value": [
+            "1/4",
+            "-1/4",
+            "1/2"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "angularVelocityRadps"
+          ],
+          "value": [
+            "0",
+            "0",
+            "1/2"
+          ]
+        }
+      ],
+      "relations": [
+        "reference relative velocity is exactly zero",
+        "reference impulse and kinetic loss are exactly zero",
+        "nonzero common motion is retained numerically"
+      ],
+      "base": "literal-off-com",
+      "expected": "accepted",
+      "exactKktSolves": 1,
+      "exactSchurInversions": 1,
+      "decimalKktPrecisions": [
+        80,
+        120
+      ],
+      "candidateCondensed3x3Solves": 1
+    },
+    {
+      "id": "06-integer-quarter-turn",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "positionM"
+          ],
+          "value": [
+            "0",
+            "1/2",
+            "0"
+          ]
+        },
+        {
+          "path": [
+            "point",
+            "velocityMps"
+          ],
+          "value": [
+            "1/2",
+            "0",
+            "1/4"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "rotationBodyToWorld"
+          ],
+          "value": [
+            [
+              "0",
+              "-1",
+              "0"
+            ],
+            [
+              "1",
+              "0",
+              "0"
+            ],
+            [
+              "0",
+              "0",
+              "1"
+            ]
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "velocityMps"
+          ],
+          "value": [
+            "0",
+            "1/4",
+            "0"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "angularVelocityRadps"
+          ],
+          "value": [
+            "1/4",
+            "0",
+            "-1/4"
+          ]
+        }
+      ],
+      "relations": [
+        "body principal inertia is rotated into world axes",
+        "local anchor is not treated as a world arm"
+      ],
+      "base": "literal-off-com",
+      "expected": "accepted",
+      "exactKktSolves": 1,
+      "exactSchurInversions": 1,
+      "decimalKktPrecisions": [
+        80,
+        120
+      ],
+      "candidateCondensed3x3Solves": 1
+    },
+    {
+      "id": "07-rational-non-axis-rotation",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "positionM"
+          ],
+          "value": [
+            "3/10",
+            "2/5",
+            "0"
+          ]
+        },
+        {
+          "path": [
+            "point",
+            "velocityMps"
+          ],
+          "value": [
+            "0",
+            "1/2",
+            "1/4"
+          ]
+        },
+        {
+          "path": [
+            "point",
+            "massKg"
+          ],
+          "value": "1/2"
+        },
+        {
+          "path": [
+            "rigid",
+            "rotationBodyToWorld"
+          ],
+          "value": [
+            [
+              "3/5",
+              "-4/5",
+              "0"
+            ],
+            [
+              "4/5",
+              "3/5",
+              "0"
+            ],
+            [
+              "0",
+              "0",
+              "1"
+            ]
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "velocityMps"
+          ],
+          "value": [
+            "-1/4",
+            "0",
+            "0"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "angularVelocityRadps"
+          ],
+          "value": [
+            "0",
+            "1/4",
+            "0"
+          ]
+        }
+      ],
+      "relations": [
+        "exact rational rotation is proper",
+        "world inertia has non-axis coupling",
+        "native non-dyadic rounding is recorded without normalization"
+      ],
+      "base": "literal-off-com",
+      "expected": "accepted",
+      "exactKktSolves": 1,
+      "exactSchurInversions": 1,
+      "decimalKktPrecisions": [
+        80,
+        120
+      ],
+      "candidateCondensed3x3Solves": 1
+    },
+    {
+      "id": "08-light-cloth-mass-bound",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "positionM"
+          ],
+          "value": [
+            "1/4",
+            "0",
+            "0"
+          ]
+        },
+        {
+          "path": [
+            "point",
+            "massKg"
+          ],
+          "value": "1/1024"
+        },
+        {
+          "path": [
+            "rigid",
+            "endpoint",
+            "anchorLocalM"
+          ],
+          "value": [
+            "1/4",
+            "0",
+            "0"
+          ]
+        }
+      ],
+      "relations": [
+        "mass ratio is1024 with light point",
+        "both reactions remain finite and opposite"
+      ],
+      "base": "literal-off-com",
+      "expected": "accepted",
+      "exactKktSolves": 1,
+      "exactSchurInversions": 1,
+      "decimalKktPrecisions": [
+        80,
+        120
+      ],
+      "candidateCondensed3x3Solves": 1
+    },
+    {
+      "id": "09-light-rigid-mass-bound",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "positionM"
+          ],
+          "value": [
+            "1/4",
+            "0",
+            "0"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "endpoint",
+            "anchorLocalM"
+          ],
+          "value": [
+            "1/4",
+            "0",
+            "0"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "massKg"
+          ],
+          "value": "1/1024"
+        },
+        {
+          "path": [
+            "rigid",
+            "principalInertiaKgM2"
+          ],
+          "value": [
+            "1/4096",
+            "3/8192",
+            "1/2048"
+          ]
+        }
+      ],
+      "relations": [
+        "mass ratio is1024 with light rigid",
+        "rigid inertia scales with its mass in this fixture"
+      ],
+      "base": "literal-off-com",
+      "expected": "accepted",
+      "exactKktSolves": 1,
+      "exactSchurInversions": 1,
+      "decimalKktPrecisions": [
+        80,
+        120
+      ],
+      "candidateCondensed3x3Solves": 1
+    },
+    {
+      "id": "10-small-inertia-bound",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "positionM"
+          ],
+          "value": [
+            "1/2",
+            "1/2",
+            "1/2"
+          ]
+        },
+        {
+          "path": [
+            "point",
+            "velocityMps"
+          ],
+          "value": [
+            "1/2",
+            "-1/2",
+            "1/4"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "endpoint",
+            "anchorLocalM"
+          ],
+          "value": [
+            "1/2",
+            "1/2",
+            "1/2"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "principalInertiaKgM2"
+          ],
+          "value": [
+            "1/4096",
+            "1/4096",
+            "1/4096"
+          ]
+        }
+      ],
+      "relations": [
+        "principal inertia is at lower bound",
+        "independent exact Schur condition must be at most4096",
+        "no tolerance adjustment if this conditioning control fails"
+      ],
+      "base": "literal-off-com",
+      "expected": "accepted",
+      "exactKktSolves": 1,
+      "exactSchurInversions": 1,
+      "decimalKktPrecisions": [
+        80,
+        120
+      ],
+      "candidateCondensed3x3Solves": 1
+    },
+    {
+      "id": "11-large-inertia-bound",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "positionM"
+          ],
+          "value": [
+            "1/2",
+            "1/2",
+            "0"
+          ]
+        },
+        {
+          "path": [
+            "point",
+            "velocityMps"
+          ],
+          "value": [
+            "1/4",
+            "1/2",
+            "-1/2"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "endpoint",
+            "anchorLocalM"
+          ],
+          "value": [
+            "1/2",
+            "1/2",
+            "0"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "principalInertiaKgM2"
+          ],
+          "value": [
+            "1",
+            "1",
+            "1"
+          ]
+        }
+      ],
+      "relations": [
+        "principal inertia is at upper bound"
+      ],
+      "base": "literal-off-com",
+      "expected": "accepted",
+      "exactKktSolves": 1,
+      "exactSchurInversions": 1,
+      "decimalKktPrecisions": [
+        80,
+        120
+      ],
+      "candidateCondensed3x3Solves": 1
+    },
+    {
+      "id": "12-negative-zero-input",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "positionM"
+          ],
+          "value": [
+            "-0",
+            "0",
+            "-0"
+          ]
+        },
+        {
+          "path": [
+            "point",
+            "velocityMps"
+          ],
+          "value": [
+            "-0",
+            "0",
+            "-0"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "endpoint",
+            "anchorLocalM"
+          ],
+          "value": [
+            "0",
+            "-0",
+            "0"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "comPositionM"
+          ],
+          "value": [
+            "0",
+            "-0",
+            "0"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "velocityMps"
+          ],
+          "value": [
+            "0",
+            "-0",
+            "0"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "angularVelocityRadps"
+          ],
+          "value": [
+            "-0",
+            "0",
+            "-0"
+          ]
+        }
+      ],
+      "relations": [
+        "exact physical solution is zero impulse",
+        "all input/unchanged-field signs remain raw observable data",
+        "physical result agrees numerically with13; no Fraction sign claim"
+      ],
+      "base": "literal-off-com",
+      "expected": "accepted",
+      "exactKktSolves": 1,
+      "exactSchurInversions": 1,
+      "decimalKktPrecisions": [
+        80,
+        120
+      ],
+      "candidateCondensed3x3Solves": 1
+    },
+    {
+      "id": "13-positive-zero-input",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "positionM"
+          ],
+          "value": [
+            "0",
+            "0",
+            "0"
+          ]
+        },
+        {
+          "path": [
+            "point",
+            "velocityMps"
+          ],
+          "value": [
+            "0",
+            "0",
+            "0"
+          ]
+        },
+        {
+          "path": [
+            "rigid",
+            "endpoint",
+            "anchorLocalM"
+          ],
+          "value": [
+            "0",
+            "0",
+            "0"
+          ]
+        }
+      ],
+      "relations": [
+        "exact physical solution is zero impulse",
+        "physical result agrees numerically with12; source/native raw comparison is per case"
+      ],
+      "base": "literal-off-com",
+      "expected": "accepted",
+      "exactKktSolves": 1,
+      "exactSchurInversions": 1,
+      "decimalKktPrecisions": [
+        80,
+        120
+      ],
+      "candidateCondensed3x3Solves": 1
+    }
+  ],
+  "refusalCases": [
+    {
+      "id": "R01-zero-point-mass",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "massKg"
+          ],
+          "value": "0"
+        }
+      ],
+      "reason": "POINT_MASS_RANGE",
+      "base": "literal-off-com",
+      "expected": "private-input-error",
+      "code": "INVALID_INPUT",
+      "candidateLinearSolves": 0,
+      "referenceLinearSolves": 0,
+      "sideUpdates": 0
+    },
+    {
+      "id": "R02-pinned-cloth-endpoint",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "endpoint",
+            "vertexIndex"
+          ],
+          "value": 0
+        }
+      ],
+      "reason": "PINNED_ENDPOINT",
+      "base": "literal-off-com",
+      "expected": "private-input-error",
+      "code": "INVALID_INPUT",
+      "candidateLinearSolves": 0,
+      "referenceLinearSolves": 0,
+      "sideUpdates": 0
+    },
+    {
+      "id": "R03-zero-rigid-mass",
+      "patches": [
+        {
+          "path": [
+            "rigid",
+            "massKg"
+          ],
+          "value": "0"
+        }
+      ],
+      "reason": "RIGID_MASS_RANGE",
+      "base": "literal-off-com",
+      "expected": "private-input-error",
+      "code": "INVALID_INPUT",
+      "candidateLinearSolves": 0,
+      "referenceLinearSolves": 0,
+      "sideUpdates": 0
+    },
+    {
+      "id": "R04-singular-inertia",
+      "patches": [
+        {
+          "path": [
+            "rigid",
+            "principalInertiaKgM2"
+          ],
+          "value": [
+            "0",
+            "3/8",
+            "1/2"
+          ]
+        }
+      ],
+      "reason": "INERTIA_RANGE",
+      "base": "literal-off-com",
+      "expected": "private-input-error",
+      "code": "INVALID_INPUT",
+      "candidateLinearSolves": 0,
+      "referenceLinearSolves": 0,
+      "sideUpdates": 0
+    },
+    {
+      "id": "R05-reflection",
+      "patches": [
+        {
+          "path": [
+            "rigid",
+            "rotationBodyToWorld"
+          ],
+          "value": [
+            [
+              "-1",
+              "0",
+              "0"
+            ],
+            [
+              "0",
+              "1",
+              "0"
+            ],
+            [
+              "0",
+              "0",
+              "1"
+            ]
+          ]
+        }
+      ],
+      "reason": "NOT_PROPER_ROTATION",
+      "base": "literal-off-com",
+      "expected": "private-input-error",
+      "code": "INVALID_INPUT",
+      "candidateLinearSolves": 0,
+      "referenceLinearSolves": 0,
+      "sideUpdates": 0
+    },
+    {
+      "id": "R06-separated-endpoints",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "positionM"
+          ],
+          "value": [
+            "513/1024",
+            "0",
+            "0"
+          ]
+        }
+      ],
+      "reason": "ANCHOR_MISMATCH",
+      "base": "literal-off-com",
+      "expected": "private-input-error",
+      "code": "INVALID_INPUT",
+      "candidateLinearSolves": 0,
+      "referenceLinearSolves": 0,
+      "sideUpdates": 0
+    },
+    {
+      "id": "R07-wrong-cloth-owner",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "endpoint",
+            "clothId"
+          ],
+          "value": "clothMissing"
+        }
+      ],
+      "reason": "ENDPOINT_OWNER_MISMATCH",
+      "base": "literal-off-com",
+      "expected": "private-input-error",
+      "code": "INVALID_INPUT",
+      "candidateLinearSolves": 0,
+      "referenceLinearSolves": 0,
+      "sideUpdates": 0
+    },
+    {
+      "id": "R08-negative-zero-mass",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "massKg"
+          ],
+          "value": "-0"
+        }
+      ],
+      "reason": "POINT_MASS_RANGE",
+      "base": "literal-off-com",
+      "expected": "private-input-error",
+      "code": "INVALID_INPUT",
+      "candidateLinearSolves": 0,
+      "referenceLinearSolves": 0,
+      "sideUpdates": 0
+    },
+    {
+      "id": "R09-nonfinite-velocity",
+      "patches": [
+        {
+          "path": [
+            "point",
+            "velocityMps"
+          ],
+          "value": [
+            {
+              "ieee754F64LE": "000000000000f07f"
+            },
+            "1",
+            "0"
+          ]
+        }
+      ],
+      "reason": "NONFINITE_STATE",
+      "base": "literal-off-com",
+      "expected": "private-input-error",
+      "code": "INVALID_INPUT",
+      "candidateLinearSolves": 0,
+      "referenceLinearSolves": 0,
+      "sideUpdates": 0
+    },
+    {
+      "id": "R10-impossible-principal-moments",
+      "patches": [
+        {
+          "path": [
+            "rigid",
+            "principalInertiaKgM2"
+          ],
+          "value": [
+            "1/4",
+            "1/4",
+            "1"
+          ]
+        }
+      ],
+      "reason": "NONPHYSICAL_INERTIA",
+      "base": "literal-off-com",
+      "expected": "private-input-error",
+      "code": "INVALID_INPUT",
+      "candidateLinearSolves": 0,
+      "referenceLinearSolves": 0,
+      "sideUpdates": 0
+    }
+  ],
+  "faultCases": [
+    {
+      "id": "F01-first-side-prepared",
+      "baseAcceptedCase": "03-off-com-transverse",
+      "injection": "after-point-candidate-before-rigid-candidate",
+      "marker": "firstSideMarker",
+      "expected": "same-marker-object-thrown",
+      "noPairOutput": true,
+      "candidateCondensed3x3Solves": 1
+    },
+    {
+      "id": "F02-pair-prepared",
+      "baseAcceptedCase": "03-off-com-transverse",
+      "injection": "after-both-candidates-and-report-before-return",
+      "marker": "pairPublishMarker",
+      "expected": "same-marker-object-thrown",
+      "noPairOutput": true,
+      "candidateCondensed3x3Solves": 1
+    }
+  ],
+  "executionOrder": [
+    "reference accepted01..13 once each with Fraction+condition+Decimal80/120",
+    "reference refusalsR01..R10 classification only",
+    "source accepted01..13 then refusalsR01..R10 then faultsF01,F02",
+    "emitted same only after all required source gates PASS"
+  ],
+  "perGraphCounts": {
+    "acceptedCandidateCalls": 13,
+    "refusedCandidateCalls": 10,
+    "injectedThrows": 2,
+    "candidateAttempts": 25,
+    "candidateCondensed3x3Solves": 15,
+    "candidateCondensedRightHandSides": 15
+  },
+  "aggregateCeilings": {
+    "referenceRequests": 23,
+    "exactKktFactorizations12x12": 13,
+    "exactConditionFactorizations3x3": 13,
+    "exactConditionRightHandSides": 39,
+    "decimalKkt80": 13,
+    "decimalKkt120": 13,
+    "candidateAttempts": 50,
+    "candidateReturns": 26,
+    "candidateRefusals": 20,
+    "candidateInjectedThrows": 4,
+    "WorldCalls": 0,
+    "CADCalls": 0,
+    "trajectorySteps": 0,
+    "recordingCalls": 0,
+    "extraRecoveryCalls": 0,
+    "warmups": 0,
+    "retries": 0,
+    "candidateCondensed3x3Solves": 30,
+    "candidateCondensedRightHandSides": 30
+  },
+  "resourceBounds": {
+    "internalMs": 170000,
+    "externalOwnedGroupMs": 180000,
+    "cleanupMsMax": 4000,
+    "totalOwnedDataAndArtifactsBytes": 67108864,
+    "referenceWorkingBytes": 8388608,
+    "candidateWorkingBytes": 8388608,
+    "sourceBuildBytes": 16777216,
+    "evidenceBytes": 8388608,
+    "remainingReserveBytes": 25165824,
+    "maxKktRows": 12,
+    "maxKktAugmentedColumns": 13,
+    "maxConditionInverseRows": 3,
+    "maxConditionInverseAugmentedColumns": 6,
+    "maxFractionStoredNumeratorOrDenominatorBits": 4096,
+    "maxPrecheckedIntermediateProductBits": 8192,
+    "RSSClaim": false
+  },
+  "executionAuthorization": "NONE; freeze all literals/provider hashes/error gates before implementation and separately authorize one run",
+  "firstFailure": "stop all later required prefixes on any mismatch, unknown, time, bit, ownership or resource failure; no fallback/precision/iteration/case expansion",
+  "deferred": [
+    "P6a fullcloth trajectory/contact/position drift/substep/dt convergence",
+    "public coupling schema/API",
+    "P6b calibrated fluid mass/pressure plant",
+    "P7 connected nonlinear/control plant",
+    "P4 oldstack exit",
+    "merge/release/deploy/hardware"
+  ]
+}
