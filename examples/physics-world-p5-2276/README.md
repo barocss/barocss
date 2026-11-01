@@ -142,3 +142,49 @@ transaction,21 caller removal, package exports, recorder decisions, full declare
 horizons, active contact and fresh-scratch cost are pending. P5b must make one
 atomic public cutover without compatibility aliases. All prior HOLD/NO_GO,
 tolerances and first receipts remain. Whole-roadmap merge/deployment did not run.
+
+## P5b implementation scope frozen; public qualification NOT_RUN
+
+`P5B-CONTRACT.md`, `P5B-PLAN.json`, the independent source admission review and
+`p5b-implementation-freeze-01.json` define the next atomic cutover. Source/native
+qualification is **NOT_RUN**. Merely defining the tests is not a PASS.
+
+The admission path returns pure validated DomainModelData; it initializes no
+kernel. The sole common World initializes once, owns clearable state/lifetime/
+clock/guard and prepares output/log before one assignments-only commit. Static
+owners remain actual model bodies, without a fake box-interior rigid kernel
+record. Fixed cloth native values and implicit zeros use raw identity checks;
+fluid keeps original strict initial bounds, admitted layout variation and old
+spacing expression. New fixed-field -0 is rejected rather than normalized.
+
+The direct cutover includes21 callers, old factory/subpath/global/DTO removal,
+actual export/declaration paths, optional CAD data-only adapter, and current
+docs. Shared presets are inert example data with detached copies, not another
+package World factory. CAD currentness remains an explicit caller operation.
+Cloth recording refuses at the unchanged byte cap; three fluid profiles refuse
+unqualified recording before attachment. No new wire path or limit increase.
+
+Planned per graph:101 factory attempts/37 returned Worlds and6334 World steps:
+6281accepted,13 unknown/log synthetic failures,40 refusals. Four of those
+refusals deliberately poison fresh candidates to exercise the actual typed
+NUMERIC_LIMIT constructor and shared root error identity. They are validation
+controls, not naturally observed physical failures. Total World-step injections
+are17; a separate headless host-submit failure makes18 harness injections.
+Counts include full240-step cloth and720-step fluid trials, active shelf gates,
+CPU controls, headless host/shadow reset and rigid recorder ownership. Actual
+browser/Studio/UI proof is NOT_RUN and is not implied by headless checks.
+
+The full240-step independent cloth raw stream is absent from old sparse
+snapshots. Its proposed one-time original research oracle has1 constructor,
+240 steps and241 raw frames, reused by both current graphs at unchanged1e-12.
+Preset generation separately allows original createSheet1/mass accumulation1/
+canonicalEncode12, with zero Worlds/solvers. Both require effective-source
+freezes before execution; neither ran during contract authoring. All64 negative
+model mutations/commands/faults and actual provider graphs also need freezing.
+
+A separate affected-document-example runtime cohort must be counted/frozen
+before executing changed snippets. Compile/build/link evidence alone does not
+complete the earlier user request for actual example verification. All earlier
+HOLD/NO_GO, first failures, tolerances and receipts remain. P4 cache approach
+ended at cost NO_GO; P4 full-stack and required P6/P7 still block develop merge.
+No push, deployment, release or equipment validation is authorized by this plan.

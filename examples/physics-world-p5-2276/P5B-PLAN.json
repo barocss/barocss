@@ -1,0 +1,802 @@
+{
+  "work_id": "physics-world-p5-2276",
+  "artifact_type": "atomic-public-world-domain-migration-plan",
+  "status": "AUTHOR_ONLY_PENDING_PARENT_REVIEW_AND_FREEZE_NOT_RUN",
+  "owner_role": "p5b-public-cutover-plan",
+  "source_request": "Atomic model/admission/World/caller/export/docs transition",
+  "last_updated": "2026-11-02",
+  "p5aCheckpoint": "46e4a957fac7b8f114a603ff9ad939573176b56a",
+  "authoringHead": "89d208b127c7c42a16b398c5641dcbf588d4a31b",
+  "authorityPins": {
+    "examples/physics-world-p5-2276/CALLER-INVENTORY.md": {
+      "bytes": 25952,
+      "sha256": "890999fc5a752a761da0ed7f93d2923e770541d095563b0ba238c036538c3f0c"
+    },
+    "examples/physics-world-p5-2276/SCOPE-CONTRACT.md": {
+      "bytes": 14945,
+      "sha256": "d9f7ba51b02e1679add38df2ca24e483824c1cd5b85f67176fd9d4b1dad2d40c"
+    },
+    "examples/physics-world-p5-2276/MIGRATION-PLAN.json": {
+      "bytes": 19231,
+      "sha256": "1d4a4c32186778b3c1d8a865bb0fa97b7fb3fab5970e3d5552bb48b4634b90d1"
+    },
+    "examples/physics-world-p5-2276/KERNEL-CONTRACT.md": {
+      "bytes": 12110,
+      "sha256": "b076bef80b5b5fa4be9de0d4ca35a3010b4897a92a694ce47719e24e91cbff92"
+    },
+    "examples/physics-world-p5-2276/KERNEL-RECIPES.json": {
+      "bytes": 19180,
+      "sha256": "f96f010fd612883b7ab18fa5bf5c46a07879ad87bff88b57e3a022e2b2bd43e9"
+    },
+    "examples/physics-world-p5-2276/KERNEL-CLARIFICATION-01.json": {
+      "bytes": 1556,
+      "sha256": "249394d1c4210fffda7482d1f9838376d5181946f42d4678bddd518810ddfa7b"
+    },
+    "examples/physics-world-p5-2276/KERNEL-CLARIFICATION-02.json": {
+      "bytes": 1868,
+      "sha256": "417355636c711b6fea678cf8866a9b89a5a69e779b056d976491a3e7f8abd7da"
+    },
+    "examples/physics-world-p5-2276/static-input-results.json": {
+      "bytes": 975,
+      "sha256": "bd34c013007731efc2cb50e46d97fa06798c41c693d91b4d60853e54775455e5"
+    },
+    "examples/physics-world-p5-2276/KERNEL-AUTHOR-CHECKS.json": {
+      "bytes": 1132,
+      "sha256": "54c9b067b45efc0149188f4ee9e49d31f57306dacad4b3e532e9e0c7c6e6b19a"
+    },
+    "examples/physics-world-p5-2276/evidence/kernel-source-01/summary.json": {
+      "bytes": 1524,
+      "sha256": "95b6ff9bb181c0cefe5f15ea82c306e85abb10bca91db451e050e7d23c5f191f"
+    },
+    "examples/physics-world-p5-2276/evidence/kernel-source-01/model-size-cloth-pinned-sphere-visual-v1.json": {
+      "bytes": 283,
+      "sha256": "2f70bc8c75664d05f7f70ec9326b7e27cd0e96bb2b9229a83aa67e363902c9e8"
+    },
+    "examples/physics-world-p5-2276/evidence/kernel-source-01/model-size-fluid-basin-visual-v1.json": {
+      "bytes": 273,
+      "sha256": "bd191c1ef06d2389f8ac54e0514377ac75adaea0bc6fd583c0e2b6ece3a6bde2"
+    },
+    "examples/physics-world-p5-2276/evidence/kernel-source-01/model-size-fluid-basin-xsph-visual-v1.json": {
+      "bytes": 278,
+      "sha256": "db7471e9034f8457019d43bc7da95734e5c1d628d0bf58cb8f2b68315b38aa72"
+    },
+    "examples/physics-world-p5-2276/evidence/kernel-source-01/model-size-fluid-static-box-visual-v1.json": {
+      "bytes": 278,
+      "sha256": "81f1ea2f7e68f0e72d6e7e08f0d5baf5d0814df6ac3d1125b8874739e60e4ad5"
+    },
+    "examples/physics-world-p5-2276/evidence/kernel-emitted-01/summary.json": {
+      "bytes": 1525,
+      "sha256": "70455d43c5a8c4da251aae0f6fccbe7df9ce04a636c55f4802e34fcd416f38ae"
+    },
+    "examples/physics-world-p5-2276/evidence/kernel-emitted-01/model-size-cloth-pinned-sphere-visual-v1.json": {
+      "bytes": 283,
+      "sha256": "2f70bc8c75664d05f7f70ec9326b7e27cd0e96bb2b9229a83aa67e363902c9e8"
+    },
+    "examples/physics-world-p5-2276/evidence/kernel-emitted-01/model-size-fluid-basin-visual-v1.json": {
+      "bytes": 273,
+      "sha256": "bd191c1ef06d2389f8ac54e0514377ac75adaea0bc6fd583c0e2b6ece3a6bde2"
+    },
+    "examples/physics-world-p5-2276/evidence/kernel-emitted-01/model-size-fluid-basin-xsph-visual-v1.json": {
+      "bytes": 278,
+      "sha256": "db7471e9034f8457019d43bc7da95734e5c1d628d0bf58cb8f2b68315b38aa72"
+    },
+    "examples/physics-world-p5-2276/evidence/kernel-emitted-01/model-size-fluid-static-box-visual-v1.json": {
+      "bytes": 278,
+      "sha256": "81f1ea2f7e68f0e72d6e7e08f0d5baf5d0814df6ac3d1125b8874739e60e4ad5"
+    },
+    "examples/physics-world-p5-2276/P5B-ADMISSION-REVIEW.md": {
+      "bytes": 16940,
+      "sha256": "7e1d509a36afdffa60c0b08d23e9d2aa4a24b41db17029201de504f2e3422cf3"
+    },
+    "examples/physics-cloth-spike/world.mjs": {
+      "bytes": 2033,
+      "sha256": "25551263b87a26debdd802c7f4a2e0b91e16b9b1ade320767d960f91487aae5c"
+    },
+    "examples/physics-cloth-spike/topology.mjs": {
+      "bytes": 1707,
+      "sha256": "9623e307ff500ab1add9bb94fa2343530bba47f266e519d9849ade4117ac164f"
+    },
+    "examples/physics-cloth-spike/constraints.mjs": {
+      "bytes": 1754,
+      "sha256": "9e1eac17a83fb6fbf987dc6d0ae3fb3791b8b5031edaaca3c9968b8c82a06f64"
+    },
+    "examples/physics-cloth-spike/fixture.mjs": {
+      "bytes": 514,
+      "sha256": "a1ce782d1ead3059692d74d54555e399f01806b372a5744049c9a0df257526dd"
+    }
+  },
+  "contract": "examples/physics-world-p5-2276/P5B-CONTRACT.md",
+  "implementation": "NOT_STARTED",
+  "execution": "NOT_RUN",
+  "recordingDecision": {
+    "cloth": "WORLD_LIMIT at step0 encoded-model budget before owner attach",
+    "fluid-basin-visual-v1": "INVALID_SNAPSHOT explicit unsupported domain recording",
+    "fluid-basin-xsph-visual-v1": "INVALID_SNAPSHOT explicit unsupported domain recording",
+    "fluid-static-box-visual-v1": "INVALID_SNAPSHOT explicit unsupported domain recording",
+    "measuredP5aBytes": {
+      "cloth": 222324,
+      "fluid": 17732,
+      "xsph": 17757,
+      "staticBox": 18376
+    },
+    "fluidSizeIsNotWireSupport": true,
+    "caps": {
+      "modelBytes": 131072,
+      "recordBytes": 1048576,
+      "frames": 512,
+      "commands": 4096
+    },
+    "schema": "existing RecordedState=Serialized<PhysicsState>; unchanged BCPHREC1",
+    "perGraphDomainAttachAttempts": 8,
+    "perGraphDomainAttachReturns": 0,
+    "perGraphRigidAttachAttempts": 3,
+    "perGraphRigidAttachReturns": 1,
+    "domainRestoreOrWireCalls": 0,
+    "hiddenWorldConstructors": 0
+  },
+  "dataAuthoring": {
+    "strategy": "One canonical fixed cloth data authority generates internal exact-admission reference and shared example public-model literal assets. Deep-copy helpers return plain public model/options only, no Physics runtime imports/World/scene converter/new package subpath. Docs/isolated consumers reuse hash-linked asset copies.",
+    "generationMax": {
+      "createSheet": 1,
+      "triangleMassAccumulations": 1,
+      "Worlds": 0,
+      "WorldSteps": 0,
+      "CAD": 0,
+      "candidatePrepares": 0,
+      "canonicalEncode": 12,
+      "initialRestDensity": 0,
+      "solverCalls": 0
+    },
+    "runtimeMathOnPresetImport": false,
+    "negativeZero": "literal renderer explicitly preserves -0 and binary64 roundtrip; canonical/raw digests validated",
+    "generationPath": "PARENT_FREEZE_REQUIRED: reuse exact existing complete model artifact if available, otherwise one bounded original helper generation",
+    "codecLedger": "4original public-model targets +4example literal checks +4docs-copy checks. Internal reference uses recursive raw-bit comparison without extra canonicalEncode.",
+    "inputCopies": "Internal reference, public preset asset and every caller clone are detached; module shared tables deeply immutable; verify model/definition/candidate/output copy writes.",
+    "execution": "NOT_RUN_NO_HIDDEN_GENERATION_DURING_AUTHORING"
+  },
+  "ownershipModules": [
+    {
+      "responsibility": "complete-public-domain-admission",
+      "targets": [
+        "src/model-admission.ts",
+        "new private domain admission/reference-data modules"
+      ],
+      "requirements": [
+        "inert exact schema/globalIDs/references before allocation",
+        "exact canonical cloth topology/rest/masses/order/compliance",
+        "strict fluid initial bounds; old min\u00b2\u22121e\u221212; actual smoothing bits",
+        "complete static owners/geometry/material/filter/roles",
+        "unchanged rigid admission numerical regions"
+      ]
+    },
+    {
+      "responsibility": "common-world-transaction-and-release",
+      "targets": [
+        "src/world.ts",
+        "src/domain/{types,cloth,fluid}.ts as verified private kernels"
+      ],
+      "requirements": [
+        "single guard/cursor/owner; empty commands only",
+        "prepare candidates/diagnostics/public output/log before assignment commit",
+        "no old World or secondary facade/clock",
+        "clearable model/definition/accepted refs; no closure over whole immutable admitted object",
+        "release on idempotent dispose while external copies survive"
+      ]
+    },
+    {
+      "responsibility": "recorder-explicit-profile-refusal",
+      "targets": [
+        "src/replay.ts",
+        "src/replay-validation.ts",
+        "src/recording-owner.ts only if affected"
+      ],
+      "requirements": [
+        "cloth WORLD_LIMIT oldcap priority",
+        "fluid INVALID_SNAPSHOT no owner residue",
+        "no new domain wire DTO/codec/restore support",
+        "rigid ownership/log failure regression only"
+      ]
+    },
+    {
+      "responsibility": "one-optional-CAD-data-adapter",
+      "targets": [
+        "src/cad-proxy.ts",
+        "new optional data adapter; retire old fluid/cad-world runtime"
+      ],
+      "requirements": [
+        "public model/options input -> copied completed model+actual existing proxy token",
+        "reuse real native admission and fluid strict margin/overlap checks",
+        "source currentness explicit before each caller World step",
+        "no CAD import in numerical root; no World held/created"
+      ]
+    },
+    {
+      "responsibility": "direct-removal-and-package-maps",
+      "targets": [
+        "src/{cloth,fluid,fluid-cad}.ts",
+        "src/{cloth,fluid}/world.ts",
+        "src/fluid/cad-world.ts",
+        "package.json",
+        "generated provider graph and exact obsolete dist files"
+      ],
+      "requirements": [
+        "remove all old factory/reset/dt/scene/World runtime APIs and3subpaths",
+        "retain necessary internal kernel types without legacy aliases",
+        "no stale emitted factory files",
+        "current root/native exports/declarations and owner identity"
+      ]
+    },
+    {
+      "responsibility": "callers-and-docs",
+      "targets": "21direct callers + inherited computed graphs",
+      "requirements": [
+        "actual root model+step[] usage",
+        "model+domain state frame conversion",
+        "headless host shadow/reset counts explicit",
+        "no3oldbrowserglobals",
+        "update generated consumer strings/export lists/docs samples"
+      ]
+    }
+  ],
+  "directCallers": [
+    {
+      "path": "examples/physics-capsule-query-scene/controls.mjs",
+      "inventoryAnchors": "2\u20134",
+      "action": "Old domain error-constructor imports only; use the canonical root error and update removed-entry expectations. Capsule geometric API is not a migrated physical domain.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/physics-cloth-viewer/host-controller.mjs",
+      "inventoryAnchors": "1,11",
+      "action": "Two actual cloth Worlds for display commit/shadow recovery; use two actual common Worlds with authored model/options. Host reset recreates owned Worlds. Preserve Viewer failure separation.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/physics-cloth-viewer/numeric-entry.mjs",
+      "inventoryAnchors": "1,4",
+      "action": "Update both0..240 trajectories and common domain DTO selection; keep numerical criteria and raw arrays.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/physics-error-entry/entry.mjs",
+      "inventoryAnchors": "4\u20136,33,54,56,58",
+      "action": "Root error identity plus cloth malformed/disposed and fluid/CAD malformed controls; replace obsolete constructors and update export-family tests together.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/physics-scene/cloth-source-import-probe.mjs",
+      "inventoryAnchors": "13,30,31",
+      "action": "Source/compiled generated consumer strings and entry-closure assertions. Remove expected runtime cloth entry/factory.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/physics-scene/cloth-world-probe.mjs",
+      "inventoryAnchors": "7,67,70,77,130,141,163,191,201",
+      "action": "Admission, copies, invalid dt/reset adaptations, numerical-boundary injection, independent spike comparison, hashes, cost and limit checks. Keep old expected physics; author new common-lifecycle controls.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/physics-scene/fluid-cad-shelf-probe.mjs",
+      "inventoryAnchors": "5\u20136,42\u201358,98",
+      "action": "Direct compiled CAD-fluid and bare fluid, stale source, overlap/admission and repeat outputs; author adapter+common World inputs with retained source checks.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/physics-scene/fluid-cad-viewer/app.js",
+      "inventoryAnchors": "3,70",
+      "action": "Direct source CAD-fluid; wrapper at73\u201377 forwards step(dt,current)/reset. Remove these runtime adapters and use source check plus common step.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/physics-scene/fluid-viewer/scene.js",
+      "inventoryAnchors": "1,26",
+      "action": "Shared `createWaterWorld` factory calls old fluid; replace with explicit model/options creation. It is an active transitive caller of several hosts.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/physics-scene/fluid-visual-profile-probe.mjs",
+      "inventoryAnchors": "4,41,47,49,85",
+      "action": "Ordinary/tuned/repeat cases, exact coefficient and hashes; update DTO access without changing smoothing law.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/physics-scene/fluid-world-probe.mjs",
+      "inventoryAnchors": "4,30,55,58,90,97",
+      "action": "v1 admission, shifted scene, copies,240-step density/compression/bounds/repeat/heap proof and reset; new reset is explicit fresh World.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/physics-scene/release-consumer.mjs",
+      "inventoryAnchors": "6,51,68",
+      "action": "Published fluid consumer plus explicit export list/declaration assertions at62\u201364. Preserve rigid/recorder/CAD checks and update obsolete domain map expectations.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/physics-scene/source-import-probe.mjs",
+      "inventoryAnchors": "13\u201315",
+      "action": "Generated source string imports fluid/CAD-fluid; expected source/dist entry loop also changes.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/viewer-assembly-scene/app.js",
+      "inventoryAnchors": "5,307",
+      "action": "Lazy cloth initialization; update authored common model and frame projection.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/viewer-cloth-scene/app.js",
+      "inventoryAnchors": "3\u20134,34,94,184",
+      "action": "Precomputed cloth frames and optional water World. Both are separate admitted Worlds; do not imply coupling. Update numeric provenance labels and common DTO mapping.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/viewer-fluid-scene/app.js",
+      "inventoryAnchors": "3,34",
+      "action": "Direct compiled water, step/reset at131\u2013148; new root import plus owned recreation.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/viewer-native-scene-replacement/app.js",
+      "inventoryAnchors": "9,1122",
+      "action": "Imported cloth factory and browser-test global aliases, including `createPhysicsClothWorld`. Remove old aliases directly.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/viewer-qualified-face-scene/app.js",
+      "inventoryAnchors": "34,1120",
+      "action": "Same browser-test factory exposure; direct root/model caller update, no compatibility alias.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/viewer-shell-scene/app.js",
+      "inventoryAnchors": "5,168",
+      "action": "Same old browser-global aliases. Update test consumers with the public root.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/viewer-surface-material/app.js",
+      "inventoryAnchors": "3,134",
+      "action": "Direct compiled fluid for display; retain display-only proof boundary.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    },
+    {
+      "path": "examples/workspace-source/flow.mjs",
+      "inventoryAnchors": "10,66",
+      "action": "Shared source/compiled/browser cloth smoke and canonical disposed error identity. Update one-step state checks and removed import.",
+      "slice": "P5b atomic cutover",
+      "status": "NOT_IMPLEMENTED_NOT_RUN",
+      "dataAuthoring": "shared inert public-model assets; no old Scene converter or World alias"
+    }
+  ],
+  "indirectEntryGraphs": [
+    "examples/physics-cloth-viewer/{app,server,browser-driver,browser-checks,frame,metrics,views,clock,numeric-probe,bundle}.mjs",
+    "examples/physics-scene/fluid-viewer/{app.js,controller.js,server.mjs}",
+    "examples/physics-scene/fluid-cad-viewer/{server.mjs,timings.js}",
+    "examples/physics-viewer-scene/server.mjs",
+    "examples/viewer-*/server.mjs (only inventoried domain hosts; computed local app.js builds)",
+    "examples/workspace-source/{source-probe,compiled-probe,cpu-entry,probe,browser,serve,setup}.mjs",
+    "examples/physics-error-entry/{probe,setup}.mjs",
+    "examples/physics-capsule-query-scene entry/probe/server paths to controls.mjs",
+    "examples/physics-scene/{release-gate-criteria,fluid-release-criteria}.mjs",
+    "apps/library-docs/samples/{run,physics-docs.test}.mjs",
+    "packages/barocss-physics/{README.md,ROADMAP.md}",
+    "apps/library-docs/docs/packages/physics/index.md",
+    "Current cloth/fluid/CAD-water example READMEs"
+  ],
+  "cohortsPerGraph": [
+    {
+      "id": "full-original-numeric-and-cost",
+      "worlds": 14,
+      "creationRefusals": 0,
+      "stepEntries": 6241,
+      "accepted": 6240,
+      "syntheticFailures": 0,
+      "refusedSteps": 1,
+      "recipe": {
+        "cloth": [
+          "reference-and-triangle-sampling240",
+          "warmup240",
+          "timed240x3"
+        ],
+        "fluid": [
+          "low-v1-720",
+          "low-xsph-720",
+          "high-v1-720",
+          "high-xsph-720",
+          "low-xsph-repeat720",
+          "high-xsph-repeat720"
+        ],
+        "static": [
+          "shelf240",
+          "shelf-repeat240",
+          "matched-bare-timing240"
+        ],
+        "extraRefusedStep": "cloth main after240 WORLD_LIMIT"
+      },
+      "referenceCalls": "One separately frozen original research spike generation240steps before trials, reused both graphs;0oldPhysicsWorld reruns."
+    },
+    {
+      "id": "domain-whole-step-atomicity",
+      "worlds": 16,
+      "creationRefusals": 0,
+      "stepEntries": 48,
+      "accepted": 32,
+      "syntheticFailures": 12,
+      "refusedSteps": 4,
+      "recipe": "For each4profiles:control2steps;3fault Worlds each S1valid/S2synthetic/S2recovery. Faults mid-kernel,diagnostic,public-return-copy. Compare raw full accepted/hidden state to control. In one planned S2 recovery perprofile, add real NUMERIC_LIMIT candidate-invalid attempt after synthetic throw, then use same already-planned recovery. Four attempts replace disposed-step slots; canonical root Error identity required.",
+      "typedNumericControls": 4,
+      "numericControlMutation": "NaN in fresh candidate position after original solver returns, before existing private validation"
+    },
+    {
+      "id": "domain-command-refusals-and-disposed-read-reuse-controls",
+      "worlds": 0,
+      "creationRefusals": 0,
+      "stepEntries": 32,
+      "accepted": 0,
+      "syntheticFailures": 0,
+      "refusedSteps": 32,
+      "recipe": "Per4control Worlds:5supported-union command kinds at unsupported static/domain role +numericdt argument+accessor payload+unknownkind=8steprefusals. After dispose getState must throw canonical DISPOSED (not a World step); no extra step slot."
+    },
+    {
+      "id": "rigid-recording-owner-log-preparation",
+      "worlds": 2,
+      "creationRefusals": 0,
+      "stepEntries": 8,
+      "accepted": 4,
+      "syntheticFailures": 1,
+      "refusedSteps": 3,
+      "recipe": "Control2accepted;recorder S1accepted,S2log-prepare synthetic,S2recovery;direct andcached steps WORLD_OWNED;malformed recorder command refused. No serialize/restore."
+    },
+    {
+      "id": "headless-render-host-twin-reset",
+      "worlds": 4,
+      "creationRefusals": 0,
+      "stepEntries": 5,
+      "accepted": 5,
+      "syntheticFailures": 0,
+      "refusedSteps": 0,
+      "recipe": "Initial2World pair:normaladvance2steps;next Viewer-submit injected failure after1shadow step;reset constructs2Worlds;advance2steps;disposeall4. Host failure is external, not World failure or browser proof."
+    },
+    {
+      "id": "shifted-fluid-initial-admission",
+      "worlds": 1,
+      "creationRefusals": 0,
+      "stepEntries": 0,
+      "accepted": 0,
+      "syntheticFailures": 0,
+      "refusedSteps": 0,
+      "recipe": "Original first particle x+=0.005;create/read raw copied initial state/dispose, no extra accuracy step"
+    },
+    {
+      "id": "invalid-public-model-population",
+      "worlds": 0,
+      "creationRefusals": 64,
+      "stepEntries": 0,
+      "accepted": 0,
+      "syntheticFailures": 0,
+      "refusedSteps": 0,
+      "recipe": "16groups x4literal mutations, frozen before runtime; all reject before domain initializer/runtime allocation"
+    }
+  ],
+  "perGraphTotals": {
+    "worlds": 37,
+    "creationRefusals": 64,
+    "stepEntries": 6334,
+    "accepted": 6281,
+    "syntheticFailures": 13,
+    "refusedSteps": 40,
+    "factoryAttempts": 101
+  },
+  "combinedSourceNativeTotals": {
+    "worlds": 74,
+    "creationRefusals": 128,
+    "stepEntries": 12668,
+    "accepted": 12562,
+    "syntheticFailures": 26,
+    "refusedSteps": 80,
+    "factoryAttempts": 202
+  },
+  "separatePerGraphNonWorldCalls": {
+    "domainQueries": 8,
+    "domainRecorderAttachAttempts": 8,
+    "rigidRecorderAttachAttempts": 3,
+    "rigidRecorderSaveCalls": 3,
+    "restoreSerializeDeserialize": 0,
+    "CADDataAdapterAttemptsMax": 5,
+    "CADSurfaceAdmissionCallsMax": 5,
+    "CADCompileCallsMax": 3,
+    "explicitCurrentnessChecks": 483,
+    "currentnessDetail": "240shelf+240repeat valid;3stale before first step with0World attempts",
+    "hostExternalSubmitFailures": 1,
+    "oldWorldCalls": 0,
+    "disposedReadRefusals": 4,
+    "getStateGetModelMax": 512,
+    "WorldDisposeCalls": 41,
+    "disposeCountDetail": "37ownedWorldcleanup +4idempotence repeatdispose controls; no GC/OS guarantee"
+  },
+  "publicNegativeModelGroups": [
+    {
+      "group": "inert-prototype-accessor-sparse-container",
+      "cases": 4,
+      "status": "LITERAL_RECIPE_FREEZE_REQUIRED_BEFORE_RUNTIME"
+    },
+    {
+      "group": "format-version-frame-units",
+      "cases": 4,
+      "status": "LITERAL_RECIPE_FREEZE_REQUIRED_BEFORE_RUNTIME"
+    },
+    {
+      "group": "global-ID-and-reference-integrity",
+      "cases": 4,
+      "status": "LITERAL_RECIPE_FREEZE_REQUIRED_BEFORE_RUNTIME"
+    },
+    {
+      "group": "unsupported-body-role-owner-population",
+      "cases": 4,
+      "status": "LITERAL_RECIPE_FREEZE_REQUIRED_BEFORE_RUNTIME"
+    },
+    {
+      "group": "vector-arity-finite-domain-shape",
+      "cases": 4,
+      "status": "LITERAL_RECIPE_FREEZE_REQUIRED_BEFORE_RUNTIME"
+    },
+    {
+      "group": "quaternion-arity-identity-local-transform",
+      "cases": 4,
+      "status": "LITERAL_RECIPE_FREEZE_REQUIRED_BEFORE_RUNTIME"
+    },
+    {
+      "group": "material-restitution-friction-combinations",
+      "cases": 4,
+      "status": "LITERAL_RECIPE_FREEZE_REQUIRED_BEFORE_RUNTIME"
+    },
+    {
+      "group": "filter-sensor-ccd-fields",
+      "cases": 4,
+      "status": "LITERAL_RECIPE_FREEZE_REQUIRED_BEFORE_RUNTIME"
+    },
+    {
+      "group": "positive-geometry-and-box-interior-role",
+      "cases": 4,
+      "status": "LITERAL_RECIPE_FREEZE_REQUIRED_BEFORE_RUNTIME"
+    },
+    {
+      "group": "cloth-ordered-rest-initial-position-data",
+      "cases": 4,
+      "status": "LITERAL_RECIPE_FREEZE_REQUIRED_BEFORE_RUNTIME"
+    },
+    {
+      "group": "cloth-ordered-triangle-and-pin-data",
+      "cases": 4,
+      "status": "LITERAL_RECIPE_FREEZE_REQUIRED_BEFORE_RUNTIME"
+    },
+    {
+      "group": "cloth-physical-mass-and-constraint-order",
+      "cases": 4,
+      "status": "LITERAL_RECIPE_FREEZE_REQUIRED_BEFORE_RUNTIME"
+    },
+    {
+      "group": "cloth-rest-compliance-kind-and-initial-velocity",
+      "cases": 4,
+      "status": "LITERAL_RECIPE_FREEZE_REQUIRED_BEFORE_RUNTIME"
+    },
+    {
+      "group": "fluid-count-velocity-mass-model-smoothing-bits",
+      "cases": 4,
+      "status": "LITERAL_RECIPE_FREEZE_REQUIRED_BEFORE_RUNTIME"
+    },
+    {
+      "group": "fluid-strict-initial-boundaries-and-minspacing",
+      "cases": 4,
+      "status": "LITERAL_RECIPE_FREEZE_REQUIRED_BEFORE_RUNTIME"
+    },
+    {
+      "group": "mixed-domain-joint-sourcebinding-unknown-options",
+      "cases": 4,
+      "status": "LITERAL_RECIPE_FREEZE_REQUIRED_BEFORE_RUNTIME"
+    }
+  ],
+  "numericGates": {
+    "authority": "original cloth-world-probe,fluid-release-criteria,fluid-visual-profile-probe,fluid-cad-shelf-probe and immutable receipts; pin before calls",
+    "clothSteps": 240,
+    "clothBench": "warmup240+3timed240; p95 each<=1000/120ms, no exclusions for freshscratch/publiccopies",
+    "fluidCheckpoints": [
+      60,
+      240,
+      720
+    ],
+    "staticCheckpoints": [
+      60,
+      240
+    ],
+    "activeBox": [
+      "hits>0 by60",
+      "no inflated-box penetration",
+      "bare/shelf divergence",
+      "all original shelf hashes",
+      "paired matched bare/current cost<=1.5"
+    ],
+    "originalErrorTolerancesUnchanged": true,
+    "full3600Stability": "NOT_CLAIMED",
+    "historicalDiagnosticZeroSign": "UNKNOWN where old JSON writer erased signs; raw arrays preserve authority",
+    "independentNewAccuracy": "NOT_CLAIMED",
+    "oldClothSpikeComparison": "One separately frozen original research oracle240steps; full raw arrays0..240 authenticated and reused both graphs at unchanged1e-12. Historical publicWorld raw hashes/residuals remain separate."
+  },
+  "checksWithoutWorldExecution": [
+    "source and published-native strict positive/negative consumer types",
+    "all21active and computed entry bundles without module evaluation",
+    "no legacyfactory/global/scene-DT bridge active scans",
+    "canonical PhysicsError/owner module graph and provider identity distinction",
+    "CAD-free numerical root actual import closure",
+    "current public export maps/declarations and absence of exact stale emitted runtime files",
+    "docs snippet compile and explicit docs build/link receipts, no sample runner that silently constructs extra Worlds",
+    "old P3 math byte hashes and unchanged rigid-region source audit"
+  ],
+  "notAuthorized": [
+    "implementation under this task",
+    "numerical runs before exact recipe/provider/command freeze",
+    "automatic source-to-native continuation",
+    "broad install/release runner",
+    "actual browser/Studio/Viewer UI work",
+    "new deps/downloads/services/root lockfile changes",
+    "domain recording support/cap raises",
+    "P6 coupling",
+    "full roadmap merge/release"
+  ],
+  "bounds": {
+    "childMs": 180000,
+    "campaignEvidenceBytes": 67108864,
+    "emergencyReserveWithinCap": 8388608,
+    "cleanup": "owned process group, bounded TERM/KILL, require EOF+close+group absence"
+  },
+  "hold": "Missing literal case recipes/provider pins/budget reconciliation/commands remains HOLD before execution. First unexpected failure stops and stays immutable.",
+  "integration": "Whole required roadmap completion; P4 NO_GO and every pending required exit still blocks conditional merge.",
+  "publicAdmissionZeroRule": "Selected fixed fields use native+0 exact; retain P0 bits and unrelated rigid admission rules; no normalization.",
+  "nativeErrorIdentityGate": {
+    "checks": [
+      "domain admission INVALID_CONFIG instanceof actualroot.PhysicsError",
+      "actual domain NUMERIC_LIMIT instanceof actualroot.PhysicsError",
+      "disposed World error same class",
+      "root/replay refusal WORLD_LIMIT/INVALID_SNAPSHOT same class"
+    ],
+    "existingExternalPatterns": [
+      "./types.js",
+      "./recording-owner.js",
+      "./provider-manifest.generated.js"
+    ],
+    "domainImport": "../types.js",
+    "decision": "verify actual bundled root and native sibling graph; do not assume pattern coverage; targeted build correction only after observed failure preserved"
+  },
+  "oneTimeIndependentOracle": {
+    "status": "NOT_RUN_REQUIRES_SEPARATE_PARENT_FREEZE",
+    "archiveFinding": "Research receipts have0/60/240snapshots, not full240-step position+velocity raw stream",
+    "factory": "createClothTrial(CLOTH_FIXTURE,'xpbd',2,8)",
+    "researchConstructors": 1,
+    "researchCreateSheetCalls": 1,
+    "researchStepCalls": 240,
+    "privateAdvances": 1920,
+    "originalResearchProjectDistanceCalls": 6013440,
+    "originalResearchProjectSphereCalls": 3840,
+    "frames": 241,
+    "positionsPerFrame": 867,
+    "velocitiesPerFrame": 867,
+    "rawBytes": 3343152,
+    "dataCap": 4194304,
+    "childMs": 180000,
+    "PhysicsWorldFactoryCalls": 0,
+    "currentKernelCalls": 0,
+    "reuse": "One authenticated raw stream reused by source/native; no second independent generation",
+    "comparison": "original1e-12 absolute array gate unchanged; rawbit/current historical hash checks remain separate",
+    "providers": [
+      "examples/physics-cloth-spike/world.mjs",
+      "examples/physics-cloth-spike/topology.mjs",
+      "examples/physics-cloth-spike/constraints.mjs",
+      "examples/physics-cloth-spike/fixture.mjs"
+    ],
+    "extraImports": "authenticate full transitive closure before any original module call"
+  },
+  "internalInterface": {
+    "typeName": "DomainModelData",
+    "definition": "{kind:'cloth';data:Cloth;staticData:StaticDomainData} | {kind:'fluid';data:Fluid;staticData:StaticDomainData}",
+    "admitModelReturnAddition": "domain:DomainModelData|null",
+    "rigidReturn": "domain:null; original rigid kernel data unchanged",
+    "domainReturn": {
+      "bodies": [],
+      "joints": [],
+      "disjointHinges": null,
+      "meaning": "Internal rigid kernel data only. Model keeps static owners/colliders; World builds honest copied static public state without fake Body box-interior."
+    },
+    "admissionInitializeCalls": 0,
+    "worldInitializeCallsPerSuccessfulDomainWorld": 1,
+    "HighOwnership": [
+      "src/model-admission.ts",
+      "src/domain/admission.ts",
+      "generated internalclothreference",
+      "optional CADdataadapter and src/cad-proxy.ts export",
+      "src/domain/types.ts DomainModelData addition if needed"
+    ],
+    "MediumOwnership": [
+      "src/world.ts",
+      "replay",
+      "public/legacy typescleanup",
+      "package/export/provider generation",
+      "21callers and computed graphs",
+      "currentdocs"
+    ],
+    "noConcurrentDomainTypesEdit": true,
+    "WorldHolder": "clearable owned definition/accepted/static model refs; one guard/clock/recorder capability"
+  },
+  "perGraphInjectedEvents": {
+    "WorldStepInjectedEvents": 17,
+    "unknownOrLogSyntheticThrows": 13,
+    "typedNumericValidatorControls": 4,
+    "typedNumericControlsAreWithinRefusedSteps": true,
+    "headlessHostExternalSubmitFailure": 1,
+    "allHarnessInjectedEventsIncludingHost": 18,
+    "classification": "All authored fault controls, not naturally observed physical NO_GOs."
+  },
+  "combinedInjectedEvents": {
+    "WorldStepInjectedEvents": 34,
+    "unknownOrLogSyntheticThrows": 26,
+    "typedNumericValidatorControls": 8,
+    "headlessHostExternalSubmitFailure": 2,
+    "allHarnessInjectedEventsIncludingHost": 36
+  },
+  "typedNumericControl": {
+    "countPerGraph": 4,
+    "mutation": "NaN in fresh candidate position after original solver returns, before existing private validation",
+    "acceptedMutation": false,
+    "expectedCode": "NUMERIC_LIMIT",
+    "expectedClass": "actual root.PhysicsError across source/native/domain/replay graph",
+    "expectedDetails": {
+      "operation": "step",
+      "phase": "validation",
+      "domain": "actual cloth or fluid",
+      "accepted": "retained currentS1 cursor/time; neverS2",
+      "entityIds": "appropriate selected domain identities"
+    },
+    "faultScope": "synthetic validation control, not physical NO_GO",
+    "recovery": "already planned never-failed S2 comparison; no extra accepted/control steps",
+    "unknownExceptions": "13preallocated unknown/log throws retain exact identity; no blanket relabel"
+  }
+}
