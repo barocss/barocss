@@ -1,0 +1,55 @@
+{
+  "workId": "physics-world-p5-2276",
+  "status": "parent_source_baseline_frozen_before_execution",
+  "base": "9b16f1ab411cdcc95acb92bcb71b3c2d396df59a",
+  "branch": "codex/physics-world-p5-2276",
+  "sources": {
+    "BASELINE-CONTRACT.md": {
+      "bytes": 9654,
+      "sha256": "059a08b9f85d232858041f4439f875d6f84d16a6099be4e1143334c2f91c395b"
+    },
+    "baseline.mjs": {
+      "bytes": 20907,
+      "sha256": "8d74d3ecea118ed5ebf57dbfebb0c87685dbe01273999525c1c072711b261609"
+    },
+    "BASELINE-PROVIDERS.json": {
+      "bytes": 245686,
+      "sha256": "c2fe348bf7187a7df6181e504ad3b6d64797241168c40e3b39d5aa337b713649"
+    }
+  },
+  "providerFileCount": 1376,
+  "receiptId": "baseline-source-01",
+  "command": [
+    "node",
+    "examples/physics-world-p5-2276/baseline.mjs",
+    "--run-id",
+    "baseline-source-01",
+    "--graph",
+    "source",
+    "--authorize-baseline"
+  ],
+  "expectedPerGraph": {
+    "constructors": 14,
+    "stepEntries": 28,
+    "kernelCommits": 20,
+    "publicSteps": 20,
+    "copyThrows": 5,
+    "commonRefusalAttempts": 4,
+    "clothSolverCalls": 4,
+    "pbfCalls": 16,
+    "publicStepReturns": 15,
+    "commonReturnedWorlds": 0
+  },
+  "firstUnexpectedFailure": "stop preserve; emitted NOT_RUN until source reviewed",
+  "knownFaults": "5 synthetic copy faults record ATOMICITY_NO_GO; not allocator exhaustion",
+  "profileRefusals": "4 outer-only profile-first refusals, not full domain validity",
+  "sourceOnlyRepair": {
+    "oldRunnerSha256": "1723c8aec8a14005bc0e78f12a018f187dc7524892bce15d41a7387baebc03ab",
+    "issue": "wrong child2 call binding found by parent before freeze/runtime",
+    "fix": "call module-level child function",
+    "numericAttemptsBeforeRepair": 0
+  },
+  "recordingSize": "NOT_MEASURED",
+  "productionChanges": false,
+  "deploy": false
+}

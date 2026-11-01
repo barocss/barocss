@@ -1,0 +1,394 @@
+{
+  "work_id": "physics-world-p5-2276",
+  "artifact_type": "author-only-module-and-caller-migration-plan",
+  "status": "AUTHOR_ONLY_PENDING_PARENT_FREEZE_NO_RUNTIME",
+  "owner_role": "common-world-domain-migration-plan",
+  "source_request": "Direct common World domain cutover without legacy factories",
+  "last_updated": "2026-11-02",
+  "authoringHead": "9551959c488f3f688846427b408f67036e70096b",
+  "inventory": {
+    "path": "examples/physics-world-p5-2276/CALLER-INVENTORY.md",
+    "sha256": "890999fc5a752a761da0ed7f93d2923e770541d095563b0ba238c036538c3f0c",
+    "verifiedDirectCallerFiles": 21,
+    "runtimeInvocationCount": "NOT_MEASURED"
+  },
+  "scopeContract": "examples/physics-world-p5-2276/SCOPE-CONTRACT.md",
+  "profiles": [
+    {
+      "id": "cloth-pinned-sphere-visual-v1",
+      "hostDt": "1/120",
+      "broadPhase": "domain-fixed",
+      "hostStepLimit": 240,
+      "recording": "PENDING_DATA_SIZE_AND_CLOSURE_GATE_OR_EXPLICIT_REFUSAL"
+    },
+    {
+      "id": "fluid-basin-visual-v1",
+      "hostDt": "1/120",
+      "broadPhase": "domain-fixed",
+      "hostStepLimit": 3600,
+      "recording": "PENDING_DATA_SIZE_AND_CLOSURE_GATE_OR_EXPLICIT_REFUSAL"
+    },
+    {
+      "id": "fluid-basin-xsph-visual-v1",
+      "hostDt": "1/120",
+      "broadPhase": "domain-fixed",
+      "hostStepLimit": 3600,
+      "recording": "PENDING_DATA_SIZE_AND_CLOSURE_GATE_OR_EXPLICIT_REFUSAL"
+    },
+    {
+      "id": "fluid-static-box-visual-v1",
+      "hostDt": "1/120",
+      "broadPhase": "domain-fixed",
+      "hostStepLimit": 3600,
+      "recording": "PENDING_DATA_SIZE_AND_CLOSURE_GATE_OR_EXPLICIT_REFUSAL"
+    }
+  ],
+  "fixedRecordingCaps": {
+    "canonicalModelBytes": 131072,
+    "completeRecordingBytes": 1048576,
+    "frames": 512,
+    "aggregateCommands": 4096,
+    "mayRaise": false,
+    "clothConstraintCountExpected": 1566,
+    "actualEncodedSizes": "NOT_MEASURED",
+    "schemaGate": "Per-profile exact encoded model size AND serializable RecordingState schema must pass before attach; otherwise explicit tested profile refusal. PhysicsState retains Float64Array; RecordingState maps domain arrays to dense numeric arrays in existing Recording DTO/BCPHREC1. No second WorldState/scene/codec."
+  },
+  "moduleResponsibilities": [
+    {
+      "owner": "common-world-core",
+      "paths": [
+        "packages/barocss-physics/src/world.ts",
+        "packages/barocss-physics/src/model-admission.ts",
+        "packages/barocss-physics/src/types.ts"
+      ],
+      "interface": "Route domain-fixed profiles before rigid-only requirements; own admitted immutable data, accepted candidates, single clock/guard, prepared output/log and assignment-only commit. Keep frozen public schemas."
+    },
+    {
+      "owner": "cloth-kernel-extraction",
+      "paths": [
+        "packages/barocss-physics/src/cloth/world.ts",
+        "packages/barocss-physics/src/cloth/solver.ts",
+        "packages/barocss-physics/src/cloth/constraints.ts",
+        "packages/barocss-physics/src/cloth/topology.ts",
+        "packages/barocss-physics/src/cloth/metrics.ts"
+      ],
+      "interface": "Internal prepareDomainStep(admitted,accepted,scratch)->candidate; no World/clock/reset; candidate-own lambdas or prove full overwrite and no accepted alias. Preserve XPBD8x2/arithmetic."
+    },
+    {
+      "owner": "fluid-kernel-extraction",
+      "paths": [
+        "packages/barocss-physics/src/fluid/world.ts",
+        "packages/barocss-physics/src/fluid/pbf.ts",
+        "packages/barocss-physics/src/fluid/neighbors.ts",
+        "packages/barocss-physics/src/fluid/kernel.ts",
+        "packages/barocss-physics/src/fluid/diagnostics.ts",
+        "packages/barocss-physics/src/fluid/boundary.ts",
+        "packages/barocss-physics/src/fluid/static-box.ts",
+        "packages/barocss-physics/src/fluid/visual-viscosity.ts",
+        "packages/barocss-physics/src/fluid/validation.ts"
+      ],
+      "interface": "Internal candidate phase; prove overwrite/ownership for all PBF/grid buffers and counters; preserve 3 density passes, traversal, damping, projection and XSPH order."
+    },
+    {
+      "owner": "cad-adapter-and-hosts",
+      "paths": [
+        "packages/barocss-physics/src/cad-proxy.ts",
+        "packages/barocss-physics/src/fluid/cad-world.ts",
+        "packages/barocss-physics/src/fluid/cad-errors.ts",
+        "packages/barocss-physics/src/fluid/cad-admission.ts",
+        "packages/barocss-physics/src/cad-proxy-admission.ts",
+        "packages/barocss-physics/src/fluid/static-box.ts"
+      ],
+      "interface": "One optional data-only adapter reuses actual admitCadFluidObstacle/admitFluidScene/admitCadSurfaceProxy/inflatedBoxBounds/insideStaticBox semantics: v1/static-box, basin margins, initial overlap, provenance. Return copied common-model static data plus proxy token, never World. Caller invokes existing assertCadProxyCurrent(proxy,sourceText,currentRevision) immediately before World or recorder advance. Generic surface admission alone is insufficient; numerical root remains CAD-free."
+    },
+    {
+      "owner": "recorder-closure",
+      "paths": [
+        "packages/barocss-physics/src/recording-owner.ts",
+        "packages/barocss-physics/src/replay.ts",
+        "packages/barocss-physics/src/replay-validation.ts"
+      ],
+      "interface": "Existing registry/BCPHREC1/limits only. Per-profile DATA encoded-size AND schema gate before attach. PhysicsState retains Float64Array; introduce only serializable RecordingState/mapped representation for dense wire arrays, not another WorldState/scene/codec. Exact restore closure or explicit tested refusal."
+    },
+    {
+      "owner": "package-and-consumer-transition",
+      "paths": [
+        "packages/barocss-physics/src/index.ts",
+        "packages/barocss-physics/src/cloth.ts",
+        "packages/barocss-physics/src/fluid.ts",
+        "packages/barocss-physics/src/fluid-cad.ts",
+        "packages/barocss-physics/package.json",
+        "packages/barocss-physics/src/generate-provider.mjs"
+      ],
+      "interface": "Remove obsolete factory exports/types/maps and exact stale emitted runtime files; regenerate source/emitted manifests by existing build; root source and genuine native exports only."
+    }
+  ],
+  "slices": [
+    {
+      "id": "P5a",
+      "exit": "Original-provider and extracted candidate equality/failure baseline reviewed before public cutover",
+      "publicAdmission": false,
+      "tasks": [
+        "Freeze immutable original source/emitted providers, receipt hashes, fixtures, raw hashes, tolerances and numerical call/resource budgets.",
+        "Extract internal candidate stages without changing arithmetic or public legacy contract yet.",
+        "Prove candidate lambdas and scratch ownership, failure continuation, and baseline output/error gates.",
+        "Measure exact canonical model sizes with existing codec as DATA-only; decide each profile recorder support or explicit refusal."
+      ]
+    },
+    {
+      "id": "P5b",
+      "exit": "One buildable atomic public API/export/caller/docs transition with all required gates reviewed",
+      "publicAdmission": true,
+      "tasks": [
+        "Admit frozen explicit model profiles in common World; use existing state schemas and one transaction/clock/guard/owner.",
+        "Prepare public output and recording before commit; enforce supported command/query/record boundaries.",
+        "Migrate every direct and indirect caller and remove obsolete factory/reset/dt/global APIs together.",
+        "Update workspace and published maps, source/native declarations/providers and retire only exact obsolete emitted factories.",
+        "Qualify source/native profile horizons, failure recovery, ownership, recorder decision, consumers and docs; report browser proof separately."
+      ]
+    }
+  ],
+  "directCallers": [
+    {
+      "path": "examples/physics-capsule-query-scene/controls.mjs",
+      "inventoryAnchors": "2–4",
+      "action": "Old domain error-constructor imports only; use the canonical root error and update removed-entry expectations. Capsule geometric API is not a migrated physical domain.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/physics-cloth-viewer/host-controller.mjs",
+      "inventoryAnchors": "1,11",
+      "action": "Two actual cloth Worlds for display commit/shadow recovery; use two actual common Worlds with authored model/options. Host reset recreates owned Worlds. Preserve Viewer failure separation.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/physics-cloth-viewer/numeric-entry.mjs",
+      "inventoryAnchors": "1,4",
+      "action": "Update both0..240 trajectories and common domain DTO selection; keep numerical criteria and raw arrays.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/physics-error-entry/entry.mjs",
+      "inventoryAnchors": "4–6,33,54,56,58",
+      "action": "Root error identity plus cloth malformed/disposed and fluid/CAD malformed controls; replace obsolete constructors and update export-family tests together.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/physics-scene/cloth-source-import-probe.mjs",
+      "inventoryAnchors": "13,30,31",
+      "action": "Source/compiled generated consumer strings and entry-closure assertions. Remove expected runtime cloth entry/factory.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/physics-scene/cloth-world-probe.mjs",
+      "inventoryAnchors": "7,67,70,77,130,141,163,191,201",
+      "action": "Admission, copies, invalid dt/reset adaptations, numerical-boundary injection, independent spike comparison, hashes, cost and limit checks. Keep old expected physics; author new common-lifecycle controls.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/physics-scene/fluid-cad-shelf-probe.mjs",
+      "inventoryAnchors": "5–6,42–58,98",
+      "action": "Direct compiled CAD-fluid and bare fluid, stale source, overlap/admission and repeat outputs; author adapter+common World inputs with retained source checks.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/physics-scene/fluid-cad-viewer/app.js",
+      "inventoryAnchors": "3,70",
+      "action": "Direct source CAD-fluid; wrapper at73–77 forwards step(dt,current)/reset. Remove these runtime adapters and use source check plus common step.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/physics-scene/fluid-viewer/scene.js",
+      "inventoryAnchors": "1,26",
+      "action": "Shared `createWaterWorld` factory calls old fluid; replace with explicit model/options creation. It is an active transitive caller of several hosts.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/physics-scene/fluid-visual-profile-probe.mjs",
+      "inventoryAnchors": "4,41,47,49,85",
+      "action": "Ordinary/tuned/repeat cases, exact coefficient and hashes; update DTO access without changing smoothing law.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/physics-scene/fluid-world-probe.mjs",
+      "inventoryAnchors": "4,30,55,58,90,97",
+      "action": "v1 admission, shifted scene, copies,240-step density/compression/bounds/repeat/heap proof and reset; new reset is explicit fresh World.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/physics-scene/release-consumer.mjs",
+      "inventoryAnchors": "6,51,68",
+      "action": "Published fluid consumer plus explicit export list/declaration assertions at62–64. Preserve rigid/recorder/CAD checks and update obsolete domain map expectations.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/physics-scene/source-import-probe.mjs",
+      "inventoryAnchors": "13–15",
+      "action": "Generated source string imports fluid/CAD-fluid; expected source/dist entry loop also changes.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/viewer-assembly-scene/app.js",
+      "inventoryAnchors": "5,307",
+      "action": "Lazy cloth initialization; update authored common model and frame projection.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/viewer-cloth-scene/app.js",
+      "inventoryAnchors": "3–4,34,94,184",
+      "action": "Precomputed cloth frames and optional water World. Both are separate admitted Worlds; do not imply coupling. Update numeric provenance labels and common DTO mapping.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/viewer-fluid-scene/app.js",
+      "inventoryAnchors": "3,34",
+      "action": "Direct compiled water, step/reset at131–148; new root import plus owned recreation.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/viewer-native-scene-replacement/app.js",
+      "inventoryAnchors": "9,1122",
+      "action": "Imported cloth factory and browser-test global aliases, including `createPhysicsClothWorld`. Remove old aliases directly.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/viewer-qualified-face-scene/app.js",
+      "inventoryAnchors": "34,1120",
+      "action": "Same browser-test factory exposure; direct root/model caller update, no compatibility alias.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/viewer-shell-scene/app.js",
+      "inventoryAnchors": "5,168",
+      "action": "Same old browser-global aliases. Update test consumers with the public root.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/viewer-surface-material/app.js",
+      "inventoryAnchors": "3,134",
+      "action": "Direct compiled fluid for display; retain display-only proof boundary.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    },
+    {
+      "path": "examples/workspace-source/flow.mjs",
+      "inventoryAnchors": "10,66",
+      "action": "Shared source/compiled/browser cloth smoke and canonical disposed error identity. Update one-step state checks and removed import.",
+      "slice": "P5b",
+      "status": "NOT_RUN"
+    }
+  ],
+  "indirectEntryGraphs": [
+    "examples/physics-cloth-viewer/{app,server,browser-driver,browser-checks,frame,metrics,views,clock,numeric-probe,bundle}.mjs",
+    "examples/physics-scene/fluid-viewer/{app.js,controller.js,server.mjs}",
+    "examples/physics-scene/fluid-cad-viewer/{server.mjs,timings.js}",
+    "examples/physics-viewer-scene/server.mjs",
+    "examples/viewer-*/server.mjs (only inventoried domain hosts; computed local app.js builds)",
+    "examples/workspace-source/{source-probe,compiled-probe,cpu-entry,probe,browser,serve,setup}.mjs",
+    "examples/physics-error-entry/{probe,setup}.mjs",
+    "examples/physics-capsule-query-scene entry/probe/server paths to controls.mjs",
+    "examples/physics-scene/{release-gate-criteria,fluid-release-criteria}.mjs",
+    "apps/library-docs/samples/{run,physics-docs.test}.mjs",
+    "packages/barocss-physics/{README.md,ROADMAP.md}",
+    "apps/library-docs/docs/packages/physics/index.md",
+    "Current cloth/fluid/CAD-water example READMEs"
+  ],
+  "requiredTests": [
+    {
+      "id": "original-baseline-pins",
+      "status": "NOT_RUN",
+      "boundary": "Immutable old provider/criteria/receipt hashes and raw arrays; no tolerance changes."
+    },
+    {
+      "id": "profile-numerics",
+      "status": "NOT_RUN",
+      "boundary": "Original cloth independent spike/residual/hash checks and fluid bare/shelf/v1/v2 original criteria; continuous declared source/native horizon."
+    },
+    {
+      "id": "atomic-failure-recovery",
+      "status": "NOT_RUN",
+      "boundary": "Mid-kernel, diagnostics, public-copy and recorder-prepare failure retains full accepted state/log/clock; next valid equals never-failed control."
+    },
+    {
+      "id": "scratch-ownership",
+      "status": "NOT_RUN",
+      "boundary": "No accepted aliases; all mutable lambda/grid/PBF writes audited and failed-candidate retention exercised."
+    },
+    {
+      "id": "common-lifetime-and-inputs",
+      "status": "NOT_RUN",
+      "boundary": "Canonical errors, guard/reentrancy, inert copy/getter/copy isolation, command/query refusals, step limits, idempotent dispose."
+    },
+    {
+      "id": "static-cad-currentness",
+      "status": "NOT_RUN",
+      "boundary": "Same static box/source binding; stale check outside World retains state/log; no hidden World."
+    },
+    {
+      "id": "recording-size-decision",
+      "status": "NOT_RUN",
+      "boundary": "Per-profile exact model encoded sizes and RecordingState dense-array schema before attach; test boundaries; never raise caps; qualify support or explicit refusal."
+    },
+    {
+      "id": "recording-if-admitted",
+      "status": "NOT_RUN",
+      "boundary": "Actual same-registry source/native record/restore/continue/ownership/copy/failure/wire signed-zero and old replay tolerance; count hidden calls."
+    },
+    {
+      "id": "source-native-public-api",
+      "status": "NOT_RUN",
+      "boundary": "Strict positive/negative types, actual published import/declarations, root CAD-free closure, no source fallback/obsolete emitted factories."
+    },
+    {
+      "id": "all-callers-and-docs",
+      "status": "NOT_RUN",
+      "boundary": "21 direct callers plus computed entry graphs/generated strings/globals/maps/docs compile; no old API/alias runtime left."
+    },
+    {
+      "id": "browser-separate",
+      "status": "NOT_RUN",
+      "boundary": "NOT_RUN unless separately scoped/authorized/executed. No CAD Studio/Viewer UI work or release implied; existing-host browser proof separate from numerical/type/bundle proof."
+    },
+    {
+      "id": "cost-and-resource",
+      "status": "NOT_RUN",
+      "boundary": "Keep original measured cost/residual gates; exact runtime budgets require parent freeze before calls."
+    }
+  ],
+  "prohibitions": [
+    "No P4 edits or reinterpretation of COST_NO_GO",
+    "No edits to frozen P0 or old receipts/criteria/tolerances",
+    "No private World facade, secondary clock, dt bridge, reset API, legacy alias or fallback",
+    "No new dependencies/downloads/services/root lockfile changes",
+    "No numerical or build execution under this authoring task",
+    "No dynamic obstacles/P6 coupling/general topology/new particle freedoms",
+    "No calibrated CFD/material/pressure/viscosity/hardware performance claims",
+    "No recording budget increase or JSON wire fallback"
+  ],
+  "holdAndNoGo": {
+    "missingProof": "HOLD",
+    "firstFailure": "Preserve immutable fresh receipt; stop affected campaign. No automatic retries.",
+    "integration": "DEVELOP_CONDITIONAL_PENDING_WHOLE_REQUIRED_ROADMAP_COMPLETION_INCLUDING_P5A_P5B; P4_FULL_STACK_NO_GO_AND_OTHER_PENDING_REQUIRED_PHASES_BLOCK_MERGE",
+    "historicalEvidence": "Never overwrite or relabel old receipts as common-World observations."
+  },
+  "roadmapMergePrerequisite": "Whole required roadmap completion and reviewed acceptance. P5a+b alone never authorize merge; P4 full-stack NO_GO and every other required pending phase remain blockers."
+}

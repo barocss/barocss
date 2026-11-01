@@ -1,0 +1,94 @@
+{
+  "workId": "physics-world-p5-2276",
+  "status": "CURRENT_ATOMICITY_NO_GO_REPRODUCED_SOURCE_AND_NATIVE",
+  "rows": [
+    {
+      "graph": "source",
+      "counts": {
+        "constructors": 14,
+        "constructorKinds": {
+          "cloth": 2,
+          "fluid": 8,
+          "cad": 4
+        },
+        "stepEntries": 28,
+        "stepKinds": {
+          "cloth": 4,
+          "fluid": 16,
+          "cad": 8
+        },
+        "kernelCommits": 20,
+        "clothSolverCalls": 4,
+        "pbfCalls": 16,
+        "publicCreationAttempts": 10,
+        "commonCreationAttempts": 4,
+        "commonReturnedWorlds": 0,
+        "publicStepAttempts": 20,
+        "publicStepReturns": 15,
+        "injectedThrows": 5,
+        "cleanupAttempts": 10,
+        "cleanupCompleted": 10
+      },
+      "summary": {
+        "path": "examples/physics-world-p5-2276/evidence/baseline-source-01/summary.json",
+        "sha256": "a2293f423fa547ffd3b0567863690df4c46c2a66fc7a01ded6783ba6c9d81209"
+      },
+      "exit": {
+        "path": "examples/physics-world-p5-2276/evidence/baseline-source-01/exit.json",
+        "sha256": "287682b559257b8e17097c6a855c54b8fd6ac472c0ca727b1a9dbed72d4cf09a"
+      }
+    },
+    {
+      "graph": "emitted",
+      "counts": {
+        "constructors": 14,
+        "constructorKinds": {
+          "cloth": 2,
+          "fluid": 8,
+          "cad": 4
+        },
+        "stepEntries": 28,
+        "stepKinds": {
+          "cloth": 4,
+          "fluid": 16,
+          "cad": 8
+        },
+        "kernelCommits": 20,
+        "clothSolverCalls": 4,
+        "pbfCalls": 16,
+        "publicCreationAttempts": 10,
+        "commonCreationAttempts": 4,
+        "commonReturnedWorlds": 0,
+        "publicStepAttempts": 20,
+        "publicStepReturns": 15,
+        "injectedThrows": 5,
+        "cleanupAttempts": 10,
+        "cleanupCompleted": 10
+      },
+      "summary": {
+        "path": "examples/physics-world-p5-2276/evidence/baseline-emitted-01/summary.json",
+        "sha256": "4b5f205736e8168f88693d6fab0ed522ade7aa23feb9c216e703435beb9a16b4"
+      },
+      "exit": {
+        "path": "examples/physics-world-p5-2276/evidence/baseline-emitted-01/exit.json",
+        "sha256": "dc938a6e7cb51cfce6ebc5c16d904fb013dc36c8e78a9917ca1cbb9224383a4e"
+      }
+    }
+  ],
+  "crossGraphCaseRecords": "exact full JSON data equality for all5cases incl rawhosthex",
+  "totalActualConstructors": 28,
+  "totalActualMethodEntries": 56,
+  "totalNumericalCommits": 40,
+  "totalClothSolverCalls": 8,
+  "totalPbfCalls": 32,
+  "totalInjectedKnownFailures": 10,
+  "totalCommonFactoryRefusals": 8,
+  "fullDomainFixtureRefusalProof": false,
+  "physicalAccuracyCampaign": "NOT_RUN",
+  "recordingModelSizes": "NOT_MEASURED",
+  "candidateKernelImplementation": "NOT_RUN",
+  "publicCommonDomainAdmission": "NOT_RUN",
+  "historicalFailuresAndToleranceChanges": false,
+  "developMerge": "PENDING_WHOLE_REQUIRED_ROADMAP",
+  "deploy": "NOT_RUN"
+}

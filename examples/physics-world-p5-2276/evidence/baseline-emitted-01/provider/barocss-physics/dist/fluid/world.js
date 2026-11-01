@@ -1,0 +1,95 @@
+import { PhysicsError } from '../types.js';
+import { insideBasin } from './boundary.js';
+import { FLUID_BASIN_M, FLUID_COUNT, FLUID_MAX_STEPS, FLUID_STEP_SECONDS } from './constants.js';
+import { fluidDiagnostics } from './diagnostics.js';
+import { initialRestDensity } from './kernel.js';
+import { PbfSolver } from './pbf.js';
+import { admitFluidScene } from './validation.js';
+class BoundedFluidWorld {
+__p5BaselineCtor = globalThis.__p5Baseline.constructed(this, 'fluid');
+
+    scene;
+    initial;
+    restDensity;
+    solver;
+    positions;
+    velocities = new Float64Array(FLUID_COUNT * 3);
+    diagnostics;
+    stepIndex = 0;
+    obstacleHits = 0;
+    disposed = false;
+    constructor(scene, box = null) {
+        this.scene = scene;
+        this.initial = scene.initialPositionsM.slice();
+        this.positions = this.initial.slice();
+        this.restDensity = initialRestDensity(this.initial);
+        this.solver = new PbfSolver(this.restDensity, scene.visualViscosityCoefficient, box);
+        this.diagnostics = fluidDiagnostics(this.positions, this.restDensity, 0);
+    }
+    active() {
+        if (this.disposed)
+            throw new PhysicsError('DISPOSED', 'Fluid world is disposed');
+    }
+    getState() {
+        this.active();
+        return { sceneRevision: this.scene.revision, stepIndex: this.stepIndex,
+            timeSeconds: this.stepIndex * FLUID_STEP_SECONDS, particleCount: FLUID_COUNT,
+            basinM: [...FLUID_BASIN_M],
+            positionsM: globalThis.__p5Baseline.copy(this, 'fluid-copy', () => this.positions.slice()), velocitiesMps: this.velocities.slice(),
+            diagnostics: { ...this.diagnostics } };
+    }
+    getObstacleHits() {
+        this.active();
+        return this.obstacleHits;
+    }
+    step(fixedStepSeconds) {
+globalThis.__p5Baseline.enter(this, 'fluid');
+
+        this.active();
+        if (fixedStepSeconds !== FLUID_STEP_SECONDS) {
+            throw new PhysicsError('INVALID_STEP', 'Fluid step must equal 1/120 s');
+        }
+        if (this.stepIndex >= FLUID_MAX_STEPS) {
+            throw new PhysicsError('WORLD_LIMIT', 'Fluid step limit reached');
+        }
+        const positions = this.positions.slice();
+        const velocities = this.velocities.slice();
+        const { boundaryHits, obstacleHits } = this.solver.step(positions, velocities);
+        if (!insideBasin(positions) || !velocities.every((value) => Number.isFinite(value)
+            && Math.abs(value) <= 1000)) {
+            throw new PhysicsError('NUMERIC_LIMIT', 'Fluid candidate exceeded numeric bounds');
+        }
+        const diagnostics = fluidDiagnostics(positions, this.restDensity, boundaryHits);
+        if (!Number.isFinite(diagnostics.meanAbsoluteDensityError)
+            || !Number.isFinite(diagnostics.p95Compression)) {
+            throw new PhysicsError('NUMERIC_LIMIT', 'Fluid candidate density is not finite');
+        }
+        this.positions = positions;
+        this.velocities = velocities;
+        this.diagnostics = diagnostics;
+        this.obstacleHits = obstacleHits;
+        this.stepIndex++; globalThis.__p5Baseline.committed(this, 'fluid');
+        return this.getState();
+    }
+    reset() {
+        this.active();
+        this.positions = this.initial.slice();
+        this.velocities = new Float64Array(FLUID_COUNT * 3);
+        this.diagnostics = fluidDiagnostics(this.positions, this.restDensity, 0);
+        this.stepIndex = 0;
+        this.obstacleHits = 0;
+        return this.getState();
+    }
+    dispose() {
+        this.active();
+        this.disposed = true;
+        this.positions = new Float64Array(0);
+        this.velocities = new Float64Array(0);
+    }
+}
+export function createFluidWorld(scene) {
+    return new BoundedFluidWorld(admitFluidScene(scene));
+}
+export function createFluidWorldWithObstacle(scene, box) {
+    return new BoundedFluidWorld(admitFluidScene(scene), box);
+}

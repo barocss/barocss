@@ -1,0 +1,515 @@
+// Surface–surface intersection by marching (brep-core step 9). Two parametric patches over boxes in
+// their own 2D coordinates; seeds from intersecting triangles of coarse grids of both, each seed
+// refined onto both surfaces and traced both ways along n₁ × n₂ (predictor step, corrector: Newton on
+// the two surfaces and the plane normal to the curve through the predicted point) until it leaves a
+// box or closes on itself. The result is a list of point chains (with tangents) on both surfaces.
+import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
+import { KernelError } from '../core/barocss-error.js';
+export class SurfaceIntersectionError extends KernelError {
+    constructor(detail) { super('Surface intersection: ' + detail, { code: 'SURFACE_INTERSECTION' }); this.name = 'SurfaceIntersectionError'; }
+}
+function derivatives(P, p) {
+    const [[u0, v0], [u1, v1]] = P.box, hu = 1e-6 * (u1 - u0 || 1), hv = 1e-6 * (v1 - v0 || 1);
+    const x = P.at(p), a = P.at([p[0] + hu, p[1]]), b = P.at([p[0] - hu, p[1]]), c = P.at([p[0], p[1] + hv]), d = P.at([p[0], p[1] - hv]);
+    return { x, du: scale(sub(a, b), 1 / (2 * hu)), dv: scale(sub(c, d), 1 / (2 * hv)) };
+}
+const inside = (P, p, slack = 0) => p[0] >= P.box[0][0] - slack && p[0] <= P.box[1][0] + slack && p[1] >= P.box[0][1] - slack && p[1] <= P.box[1][1] + slack;
+/** Within a hundredth of each side's length of the patch's box. */
+const nearBox = (P, p) => { const [[u0, v0], [u1, v1]] = P.box, su = 0.01 * (u1 - u0), sv = 0.01 * (v1 - v0); return p[0] >= u0 - su && p[0] <= u1 + su && p[1] >= v0 - sv && p[1] <= v1 + sv; };
+/** Whether x lies within r of a chain point other than its first and last eight (a march running back over itself). */
+function runsBack(pts, x, r) {
+    for (let i = 1; i < pts.length - 8; i++)
+        if (len(sub(x, pts[i])) < r)
+            return true;
+    return false;
+}
+/** Nearest point of a patch to x by Newton (from a start), unclamped (callers test the box). */
+function project(P, x, start) {
+    let p = [start[0], start[1]];
+    for (let it = 0; it < 30; it++) {
+        const { x: q, du, dv } = derivatives(P, p), r = sub(x, q);
+        const g11 = dot(du, du), g12 = dot(du, dv), g22 = dot(dv, dv), r1 = dot(r, du), r2 = dot(r, dv), det = g11 * g22 - g12 * g12;
+        if (!(Math.abs(det) > 1e-300))
+            break;
+        const a = (r1 * g22 - r2 * g12) / det, b = (g11 * r2 - g12 * r1) / det;
+        p = [p[0] + a, p[1] + b];
+        if (Math.abs(a) + Math.abs(b) < 1e-15 * (1 + Math.abs(p[0]) + Math.abs(p[1])))
+            break;
+    }
+    return p;
+}
+/**
+ * A point on both surfaces near x (and, with a plane, on it): Newton on F = PA(a) − PB(b) (3 rows) plus
+ * the plane row, solved by least squares over the 4 parameters.
+ */
+function onBoth(A, B, pa, pb, plane) {
+    for (let it = 0; it < 40; it++) {
+        const da = derivatives(A, pa), db = derivatives(B, pb), F = sub(da.x, db.x);
+        // Rows: F (3) and optionally n·(PA − o) (1); columns: a0, a1, b0, b1.
+        const rows = [[da.du[0], da.dv[0], -db.du[0], -db.dv[0], -F[0]], [da.du[1], da.dv[1], -db.du[1], -db.dv[1], -F[1]], [da.du[2], da.dv[2], -db.du[2], -db.dv[2], -F[2]]];
+        if (plane)
+            rows.push([dot(plane.n, da.du), dot(plane.n, da.dv), 0, 0, -dot(plane.n, sub(da.x, plane.o))]);
+        // Minimum-norm least squares: solve (J Jᵀ) y = rhs, step = Jᵀ y. (Loops, not closures per iteration: R5.2, D220;
+        // the same sums in the same order, the step's from 0 as the reduce had it.)
+        const m = rows.length, JJ = [], rhs = [];
+        for (let i = 0; i < m; i++) {
+            const r = rows[i], row = [];
+            for (let k = 0; k < m; k++) {
+                const q = rows[k];
+                row.push(r[0] * q[0] + r[1] * q[1] + r[2] * q[2] + r[3] * q[3]);
+            }
+            JJ.push(row);
+            rhs.push(r[4]);
+        }
+        const y = solve(JJ, rhs, m);
+        if (!y)
+            return null;
+        const step = [0, 0, 0, 0];
+        for (let j = 0; j < 4; j++) {
+            let acc = 0;
+            for (let i = 0; i < m; i++)
+                acc = acc + rows[i][j] * y[i];
+            step[j] = acc;
+        }
+        pa = [pa[0] + step[0], pa[1] + step[1]];
+        pb = [pb[0] + step[2], pb[1] + step[3]];
+        if (Math.abs(step[0]) + Math.abs(step[1]) + Math.abs(step[2]) + Math.abs(step[3]) < 1e-14 * (1 + Math.abs(pa[0]) + Math.abs(pa[1]) + Math.abs(pb[0]) + Math.abs(pb[1])))
+            break;
+    }
+    const xa = A.at(pa), xb = B.at(pb);
+    return { pa, pb, x: scale(add(xa, xb), 0.5) };
+}
+function solve(M, b, n) {
+    for (let c = 0; c < n; c++) {
+        let piv = c;
+        for (let r = c + 1; r < n; r++)
+            if (Math.abs(M[r][c]) > Math.abs(M[piv][c]))
+                piv = r;
+        if (Math.abs(M[piv][c]) < 1e-300)
+            return null;
+        [M[c], M[piv]] = [M[piv], M[c]];
+        [b[c], b[piv]] = [b[piv], b[c]];
+        for (let r = c + 1; r < n; r++) {
+            const f = M[r][c] / M[c][c];
+            for (let k = c; k < n; k++)
+                M[r][k] -= f * M[c][k];
+            b[r] -= f * b[c];
+        }
+    }
+    const x = Array(n).fill(0);
+    for (let r = n - 1; r >= 0; r--) {
+        let s = b[r];
+        for (let k = r + 1; k < n; k++)
+            s -= M[r][k] * x[k];
+        x[r] = s / M[r][r];
+    }
+    return x;
+}
+const normalOf = (P, p) => { const d = derivatives(P, p); return unit(cross(d.du, d.dv)); };
+/** Segment–triangle crossing points of two triangles (Möller-style: each triangle's edges against the other). */
+function triangleCrossings(t1, t2) {
+    const out = [];
+    const edgeTri = (p, q, t) => {
+        const e1 = sub(t[1], t[0]), e2 = sub(t[2], t[0]), d = sub(q, p), h = cross(d, e2), a = dot(e1, h);
+        if (Math.abs(a) < 1e-300)
+            return;
+        const f = 1 / a, s = sub(p, t[0]), u = f * dot(s, h);
+        if (u < 0 || u > 1)
+            return;
+        const qq = cross(s, e1), v = f * dot(d, qq);
+        if (v < 0 || u + v > 1)
+            return;
+        const w = f * dot(e2, qq);
+        if (w < 0 || w > 1)
+            return;
+        out.push(add(p, scale(d, w)));
+    };
+    for (let i = 0; i < 3; i++) {
+        edgeTri(t1[i], t1[(i + 1) % 3], t2);
+        edgeTri(t2[i], t2[(i + 1) % 3], t1);
+    }
+    return out;
+}
+/** A grid's triangles, two a cell (its first corner's diagonal), each with its corners, their parameters and its box. */
+function gridTriangles(G, n) {
+    const out = [];
+    for (let i = 0; i < n; i++)
+        for (let j = 0; j < n; j++) {
+            const c00 = G[i][j], c10 = G[i + 1][j], c11 = G[i + 1][j + 1], c01 = G[i][j + 1];
+            out.push(gridTriangle(c00, c10, c11), gridTriangle(c00, c11, c01));
+        }
+    return out;
+}
+function gridTriangle(a, b, c) {
+    const A = a.x, B = b.x, C = c.x;
+    return { pts: [A, B, C], uv: [a.p, b.p, c.p], min: [Math.min(A[0], B[0], C[0]), Math.min(A[1], B[1], C[1]), Math.min(A[2], B[2], C[2])], max: [Math.max(A[0], B[0], C[0]), Math.max(A[1], B[1], C[1]), Math.max(A[2], B[2], C[2])] };
+}
+/** The box of all the triangles' boxes. */
+function boxOfTriangles(T) {
+    const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+    for (const t of T)
+        for (let k = 0; k < 3; k++) {
+            min[k] = Math.min(min[k], t.min[k]);
+            max[k] = Math.max(max[k], t.max[k]);
+        }
+    return { min, max };
+}
+const boxesMeet = (t, b, tol) => t.max[0] >= b.min[0] - tol && t.min[0] <= b.max[0] + tol && t.max[1] >= b.min[1] - tol && t.min[1] <= b.max[1] + tol && t.max[2] >= b.min[2] - tol && t.min[2] <= b.max[2] + tol;
+export function intersectPatches(A, B, options) {
+    const n = options.grid ?? 24, h = options.step, tol = options.tolerance;
+    if (!Number.isFinite(h) || !(h > 0))
+        throw new SurfaceIntersectionError('step must be a finite positive number');
+    if (!Number.isFinite(tol) || !(tol >= 0))
+        throw new SurfaceIntersectionError('tolerance must be a finite nonnegative number');
+    if (!Number.isFinite(n) || !Number.isInteger(n) || !(n > 0))
+        throw new SurfaceIntersectionError('grid must be a finite positive integer');
+    // A chain point and both parameter tracks must describe the same finite intersection.
+    const withinTolerance = (r) => {
+        if (!r.pa.every(Number.isFinite) || !r.pb.every(Number.isFinite) || !r.x.every(Number.isFinite))
+            return false;
+        const a = A.at(r.pa), b = B.at(r.pb);
+        return a.every(Number.isFinite) && b.every(Number.isFinite)
+            && len(sub(a, b)) <= tol && len(sub(a, r.x)) <= tol && len(sub(b, r.x)) <= tol;
+    };
+    let budget = options.budget ?? 200000;
+    if (!Number.isFinite(budget) || !(budget >= 0))
+        throw new SurfaceIntersectionError('budget must be a finite nonnegative number');
+    const spend = () => { if (--budget < 0)
+        throw new SurfaceIntersectionError('too many marching steps (the surfaces touch or overlap along a curve)'); };
+    const strictlyInside = (r) => inside(A, r.pa) && inside(B, r.pb);
+    // Recovery samples must satisfy the same prediction plane as well as both surfaces.
+    const onPredictionPlane = (r, o, n) => [A.at(r.pa), B.at(r.pb), r.x].every(p => {
+        const residual = dot(sub(p, o), n);
+        return Number.isFinite(residual) && Math.abs(residual) <= tol;
+    });
+    // Narrow only a valid inside/outside bracket; a failed correction is never an outside sample.
+    const boundary = (start, outside, t, recovery = false) => {
+        if (!strictlyInside(start) || strictlyInside(outside) || !withinTolerance(start) || !withinTolerance(outside))
+            throw new SurfaceIntersectionError('boundary bracket has no inside starting point');
+        let lo = 0, hi = 1, last = start;
+        for (let it = 0; it < 40; it++) {
+            spend();
+            const m = (lo + hi) / 2, g = add(start.x, scale(sub(outside.x, start.x), m)), r = onBoth(A, B, project(A, g, start.pa), project(B, g, start.pb), { o: g, n: t });
+            // A correction that fails is not taken as a point, inside or outside: the end is sought short of it, between the
+            // last inside point and it. (Before a cone's apex or a ball's pole — on a domain's side, the normal undefined —
+            // corrections fail within a few 1e-6 of it; the end lands there and D208/D269 carry the curve on to the point.)
+            if (!r || !withinTolerance(r) || (recovery && !onPredictionPlane(r, g, t))) {
+                hi = m;
+                continue;
+            }
+            if (strictlyInside(r)) {
+                lo = m;
+                last = r;
+            }
+            else
+                hi = m;
+        }
+        return last;
+    };
+    // An end where the surfaces touch (n₁ × n₂ next to nothing) on the side of a box the step left by: two convex rounds'
+    // tools meeting in a mitre, tangent at their tops where a patch ends. Two curves cross there and the bisection's
+    // corrections land on either: its end came 4e-5 short. The touch is where that side of the box, a curve on its patch,
+    // comes nearest the other surface: found by golden section along the side, about the bisection's end.
+    const touchOnSide = (last, outside) => {
+        for (let s = 0; s < 2; s++) {
+            const P = s ? B : A, Q = s ? A : B, p = s ? last.pb : last.pa, o = s ? outside.pb : outside.pa, q0 = s ? last.pa : last.pb;
+            const [[u0, v0], [u1, v1]] = P.box;
+            const k = o[0] < u0 || o[0] > u1 ? 0 : o[1] < v0 || o[1] > v1 ? 1 : -1;
+            if (k < 0)
+                continue;
+            const at = k === 0 ? (o[0] < u0 ? u0 : u1) : (o[1] < v0 ? v0 : v1), j = 1 - k, d = Math.abs(o[j] - p[j]);
+            let a = Math.max(P.box[0][j], Math.min(p[j], o[j]) - d), b = Math.min(P.box[1][j], Math.max(p[j], o[j]) + d);
+            const g = 0.5 * (Math.sqrt(5) - 1), pt = (w) => k === 0 ? [at, w] : [w, at];
+            let c = b - g * (b - a), e = a + g * (b - a), xc = P.at(pt(c)), xe = P.at(pt(e));
+            let fc = len(sub(xc, Q.at(project(Q, xc, q0)))), fe = len(sub(xe, Q.at(project(Q, xe, q0))));
+            for (let it = 0; it < 80 && b - a > 1e-15 * (1 + Math.abs(a)); it++) {
+                spend();
+                if (fc < fe) {
+                    b = e;
+                    e = c;
+                    fe = fc;
+                    c = b - g * (b - a);
+                    xc = P.at(pt(c));
+                    fc = len(sub(xc, Q.at(project(Q, xc, q0))));
+                }
+                else {
+                    a = c;
+                    c = e;
+                    fc = fe;
+                    e = a + g * (b - a);
+                    xe = P.at(pt(e));
+                    fe = len(sub(xe, Q.at(project(Q, xe, q0))));
+                }
+            }
+            const w = fc < fe ? c : e, pp = pt(w), x = P.at(pp), qq = project(Q, x, q0);
+            const r = s ? { pa: qq, pb: pp, x: scale(add(Q.at(qq), x), 0.5) } : { pa: pp, pb: qq, x: scale(add(x, Q.at(qq)), 0.5) };
+            if (withinTolerance(r) && inside(Q, qq, 1e-9) && len(sub(r.x, last.x)) <= len(sub(outside.x, last.x)))
+                return r;
+        }
+        return null;
+    };
+    for (const P of [A, B]) {
+        const [[u0, v0], [u1, v1]] = P.box;
+        if (![u0, v0, u1, v1].every(Number.isFinite) || u0 > u1 || v0 > v1) {
+            throw new SurfaceIntersectionError('patch domains must have finite ordered bounds');
+        }
+    }
+    const gridOf = (P) => {
+        const [[u0, v0], [u1, v1]] = P.box, pts = [];
+        for (let i = 0; i <= n; i++) {
+            const row = [];
+            for (let j = 0; j <= n; j++) {
+                const p = [u0 + (u1 - u0) * i / n, v0 + (v1 - v0) * j / n];
+                if (!p.every(Number.isFinite))
+                    throw new SurfaceIntersectionError('grid parameters must be finite');
+                const x = P.at(p);
+                if (!x || x.length !== 3 || !Number.isFinite(x[0]) || !Number.isFinite(x[1]) || !Number.isFinite(x[2])) {
+                    throw new SurfaceIntersectionError('patch grid evaluation must return a finite 3D point');
+                }
+                row.push({ p, x });
+            }
+            pts.push(row);
+        }
+        return pts;
+    };
+    const GA = gridOf(A), GB = gridOf(B);
+    // No chain is longer than a few times both patches' size.
+    const extent = (G) => { let m = 0; for (const row of G)
+        for (const c of row)
+            m = Math.max(m, len(sub(c.x, G[0][0].x))); return m; };
+    const maxSteps = Math.min(20000, Math.ceil(8 * (extent(GA) + extent(GB)) / h) + 100);
+    // Only triangles within the other patch's box can cross it.
+    const allA = gridTriangles(GA, n), allB = gridTriangles(GB, n), bA = boxOfTriangles(allA), bB = boxOfTriangles(allB);
+    const TA = allA.filter(t => boxesMeet(t, bB, tol)), TB = allB.filter(t => boxesMeet(t, bA, tol));
+    // Facet crossings, refined onto both surfaces only when reached (most lie on a chain traced by then).
+    const raw = [];
+    for (const a of TA)
+        for (const b of TB) {
+            if (a.max[0] < b.min[0] - tol || b.max[0] < a.min[0] - tol || a.max[1] < b.min[1] - tol || b.max[1] < a.min[1] - tol || a.max[2] < b.min[2] - tol || b.max[2] < a.min[2] - tol)
+                continue;
+            // Facets nearly parallel are a tangency or one surface twice: no curve to trace there.
+            const na = cross(sub(a.pts[1], a.pts[0]), sub(a.pts[2], a.pts[0])), nb = cross(sub(b.pts[1], b.pts[0]), sub(b.pts[2], b.pts[0]));
+            if (len(cross(na, nb)) <= 1e-4 * len(na) * len(nb))
+                continue;
+            for (const x of triangleCrossings(a.pts, b.pts))
+                raw.push({ x, ua: a.uv[0], ub: b.uv[0] });
+        }
+    const chains = [];
+    const near = (x, r) => chains.some(c => c.points.some((p, i) => { if (len(sub(p, x)) <= 2 * r)
+        return true; const q = c.points[i + 1]; if (!q)
+        return false; const d = sub(q, p), t = Math.max(0, Math.min(1, dot(sub(x, p), d) / (dot(d, d) || 1))); return len(sub(add(p, scale(d, t)), x)) <= r; }));
+    const covered = (x) => near(x, h);
+    // Given points first: each from the nearest grid point of either patch.
+    const nearest = (G, x) => { let best = G[0][0]; for (const row of G)
+        for (const c of row)
+            if (len(sub(c.x, x)) < len(sub(best.x, x)))
+                best = c; return best.p; };
+    function* seeds() {
+        for (const x of options.seeds ?? []) {
+            const s = onBoth(A, B, project(A, x, nearest(GA, x)), project(B, x, nearest(GB, x)));
+            if (s && withinTolerance(s) && len(sub(s.x, x)) <= 100 * tol && inside(A, s.pa, 1e-9) && inside(B, s.pb, 1e-9))
+                yield s;
+        }
+        for (const c of raw) {
+            // A crossing well within a traced chain's reach refines onto that chain: skipped unrefined.
+            if (near(c.x, h / 2) || options.skipNear?.(c.x, h / 2))
+                continue;
+            const s = onBoth(A, B, project(A, c.x, c.ua), project(B, c.x, c.ub));
+            if (s && withinTolerance(s) && inside(A, s.pa, 1e-9) && inside(B, s.pb, 1e-9))
+                yield s;
+        }
+    }
+    for (const initial of seeds()) {
+        if (covered(initial.x) || options.skip?.(initial.x))
+            continue;
+        let seed = initial;
+        // Tangent contact (normals within about 0.006°, above the differencing noise at a domain edge): not traced.
+        if (len(cross(normalOf(A, seed.pa), normalOf(B, seed.pb))) < 1e-4)
+            continue;
+        if (!strictlyInside(seed)) {
+            // Seeds alone admit the existing 1e-9 UV slack. Marching needs a strict inside start:
+            // recover the actual boundary from a corrected inside point, rather than clamping UV or dropping the seed.
+            const tangent = unit(cross(normalOf(A, seed.pa), normalOf(B, seed.pb)));
+            let recovered = null, passesBy = true;
+            for (const sign of [1, -1]) {
+                const t = scale(tangent, sign);
+                for (let tries = 0, step = h; tries < 6; tries++, step /= 2) {
+                    spend();
+                    const guess = add(seed.x, scale(t, step)), r = onBoth(A, B, project(A, guess, seed.pa), project(B, guess, seed.pb), { o: guess, n: t });
+                    const onCurve = !!r && withinTolerance(r) && onPredictionPlane(r, guess, t) && len(sub(r.x, guess)) < step && dot(sub(r.x, seed.x), t) > 0;
+                    if (onCurve && strictlyInside(r)) {
+                        recovered = boundary(r, seed, t, true);
+                        break;
+                    }
+                    if (!onCurve)
+                        passesBy = false;
+                }
+                if (recovered)
+                    break;
+            }
+            // Every step both ways, down to 1/32 of one, corrected onto the curve and outside a box: the curve crosses the boxes
+            // at the seed alone (through a corner of a domain, a fillet's wall at a boss's upright edge) and has no piece here.
+            // (A correction that failed is no evidence of that: refused as before.)
+            if (!recovered && passesBy)
+                continue;
+            if (!recovered)
+                throw new SurfaceIntersectionError('boundary bracket has no inside starting point');
+            seed = recovered;
+            if (covered(seed.x) || options.skip?.(seed.x))
+                continue;
+        }
+        const march = (dir) => {
+            const pts = [seed.x], tans = [], uvA = [seed.pa], uvB = [seed.pb], touched = [];
+            let closed = false, k = 0;
+            for (; k < maxSteps; k++) {
+                spend();
+                const pa = uvA[uvA.length - 1], pb = uvB[uvB.length - 1], x = pts[pts.length - 1], c = cross(normalOf(A, pa), normalOf(B, pb));
+                // The surfaces turn tangent: the curve ends here (its direction is undefined).
+                if (len(c) < 1e-4)
+                    break;
+                // (Along the march's own direction: through a point where the surfaces touch — a cylinder inside a ball, tangent
+                // to it where their curve crosses itself — n₁ × n₂ passes through zero and turns its sign, and the march turned
+                // back there, to and fro across the point. Turned back means its step lands by the point before; round the tight
+                // end of a slender loop — a spring's ground plane along its wire — the tangent turns as far between two steps and
+                // goes on. L4 fuzz 110, D238.)
+                let sign = dir, t = scale(unit(c), sign);
+                if (pts.length > 1 && dot(t, tans[tans.length - 1]) < 0 && len(sub(add(x, scale(t, h)), pts[pts.length - 2])) < 0.5 * h) {
+                    sign = -sign;
+                    t = scale(t, -1);
+                    touched.push(x);
+                }
+                tans.push(t);
+                // Predictor, then corrector on both surfaces and the plane through the prediction normal to t.
+                // (`taken`: the step that found the point. The loop's update halves `step` once more after it, and the tests below
+                // compared with that half: a closed curve passing its start between 0.375 and 0.75 of a step away went round
+                // again, traced twice. L4 fuzz 119, D236.)
+                let step = h, taken = h, next = null;
+                for (let tries = 0; tries < 6 && !next; tries++, step /= 2) {
+                    const guess = add(x, scale(t, step));
+                    const r = onBoth(A, B, project(A, guess, pa), project(B, guess, pb), { o: guess, n: t });
+                    if (r && len(sub(r.x, guess)) < step && withinTolerance(r)) {
+                        next = r;
+                        taken = step;
+                    }
+                }
+                // No step down to 1/32 corrects onto both surfaces: the chain ends at its last point, each of which is on both
+                // (checked below). Its loose end is the stitch's to close or refuse (a pipe tee's fillet tool where the ball goes
+                // over onto the branch's rim, R10.4b: the march from the other side meets it there).
+                if (!next)
+                    break;
+                // Leaving a box: cut the step at the box edge (bisection on the fraction of the step).
+                if (!inside(A, next.pa) || !inside(B, next.pb)) {
+                    let last = boundary({ pa, pb, x }, next, t), touch = false;
+                    if (len(cross(normalOf(A, last.pa), normalOf(B, last.pb))) < 1e-3) {
+                        const r = touchOnSide(last, next);
+                        if (r) {
+                            last = r;
+                            touch = true;
+                        }
+                    }
+                    // The end lies exactly on the edge: a point closer than the step tolerance replaces the last one. (At a touch the
+                    // normals' cross has no direction: the step's own.)
+                    const endTan = touch ? t : scale(unit(cross(normalOf(A, last.pa), normalOf(B, last.pb))), sign);
+                    if (len(sub(last.x, x)) > tol) {
+                        pts.push(last.x);
+                        uvA.push(last.pa);
+                        uvB.push(last.pb);
+                        tans.push(endTan);
+                    }
+                    else if (last.x !== x) {
+                        pts[pts.length - 1] = last.x;
+                        uvA[uvA.length - 1] = last.pa;
+                        uvB[uvB.length - 1] = last.pb;
+                        tans[tans.length - 1] = endTan;
+                    }
+                    break;
+                }
+                // Closing on the start.
+                if (k > 3 && len(sub(next.x, pts[0])) < taken * 0.75 && dot(sub(pts[0], x), t) > 0) {
+                    closed = true;
+                    break;
+                }
+                // Running back over itself (circling a tangency): the curve ends there.
+                if (k > 8 && runsBack(pts, next.x, taken * 0.5))
+                    break;
+                pts.push(next.x);
+                uvA.push(next.pa);
+                uvB.push(next.pb);
+            }
+            if (k === maxSteps)
+                throw new SurfaceIntersectionError('maximum marching steps reached before completion');
+            for (let i = 0; i < pts.length; i++)
+                if (!withinTolerance({ pa: uvA[i], pb: uvB[i], x: pts[i] })) {
+                    throw new SurfaceIntersectionError('chain point does not satisfy the intersection tolerance');
+                }
+            if (tans.length < pts.length)
+                tans.push(tans[tans.length - 1] ?? [1, 0, 0]);
+            return { pts, tans, closed, uvA, uvB, touched };
+        };
+        const fwd = march(1);
+        if (fwd.closed) {
+            chains.push({ points: fwd.pts, tangents: fwd.tans, closed: true, uvA: fwd.uvA, uvB: fwd.uvB, ...(fwd.touched.length ? { touches: fwd.touched } : {}) });
+            continue;
+        }
+        const back = march(-1), touches = [...back.touched, ...fwd.touched];
+        const points = [...back.pts.slice(1).reverse(), ...fwd.pts], tangents = [...back.tans.slice(1).reverse().map(t => scale(t, -1)), ...fwd.tans];
+        if (points.length >= 2)
+            chains.push({ points, tangents, closed: false, uvA: [...back.uvA.slice(1).reverse(), ...fwd.uvA], uvB: [...back.uvB.slice(1).reverse(), ...fwd.uvB], ...(touches.length ? { touches } : {}) });
+    }
+    return chains;
+}
+/**
+ * A chain as a C¹ curve on t ∈ [0, 1] (cubic Hermite between consecutive points, by chord length).
+ * With the two patches, every chain step is first subdivided in four by points corrected onto both
+ * surfaces (in the plane normal to the curve), with their tangents: the interpolant then deviates
+ * from the intersection by about (step / 4)⁴ κ³ / 384, far below tolerance, at no cost per evaluation.
+ */
+export function chainCurve(chain, on) {
+    const close = (xs) => chain.closed ? [...xs, xs[0]] : [...xs];
+    let pts = close(chain.points), tans = close(chain.tangents);
+    const hermite = (P, T, i, d, u) => {
+        const u2 = u * u, u3 = u2 * u;
+        const h00 = 2 * u3 - 3 * u2 + 1, h10 = u3 - 2 * u2 + u, h01 = -2 * u3 + 3 * u2, h11 = u3 - u2;
+        const g00 = 6 * u2 - 6 * u, g10 = 3 * u2 - 4 * u + 1, g01 = -6 * u2 + 6 * u, g11 = 3 * u2 - 2 * u;
+        return { x: add(add(scale(P[i], h00), scale(T[i], h10 * d)), add(scale(P[i + 1], h01), scale(T[i + 1], h11 * d))),
+            dx: add(add(scale(P[i], g00 / d), scale(T[i], g10)), add(scale(P[i + 1], g01 / d), scale(T[i + 1], g11))) };
+    };
+    if (on) {
+        const uvA = close(chain.uvA), uvB = close(chain.uvB), P = [pts[0]], T = [tans[0]];
+        for (let i = 0; i + 1 < pts.length; i++) {
+            const d = len(sub(pts[i + 1], pts[i])) || 1;
+            for (let j = 1; j < 4; j++) {
+                const { x, dx } = hermite(pts, tans, i, d, j / 4), k = j < 2 ? i : i + 1, dir = unit(dx);
+                const r = onBoth(on.A, on.B, project(on.A, x, uvA[k]), project(on.B, x, uvB[k]), { o: x, n: dir });
+                // (Not a point Newton took off either patch: beside a ball's pole, from a hint across it, the ball's u ran to
+                // −21091 and the point found lay on the surface's extension, 1.2e-5 mm off the ball. L4 fuzz 110, D235.)
+                if (r && len(sub(r.x, x)) < d / 4 && nearBox(on.A, r.pa) && nearBox(on.B, r.pb)) {
+                    const t = unit(cross(normalOf(on.A, r.pa), normalOf(on.B, r.pb)));
+                    P.push(r.x);
+                    T.push(dot(t, dir) < 0 ? scale(t, -1) : t);
+                }
+            }
+            P.push(pts[i + 1]);
+            T.push(tans[i + 1]);
+        }
+        pts = P;
+        tans = T;
+    }
+    const s = [0];
+    for (let i = 1; i < pts.length; i++)
+        s.push(s[i - 1] + len(sub(pts[i], pts[i - 1])));
+    const L = s[s.length - 1] || 1;
+    return t => {
+        const target = Math.min(1, Math.max(0, t)) * L;
+        let i = 0, hi = pts.length - 2;
+        while (i < hi) {
+            const m = (i + hi + 1) >> 1;
+            if (s[m] <= target)
+                i = m;
+            else
+                hi = m - 1;
+        }
+        const d = s[i + 1] - s[i] || 1;
+        return hermite(pts, tans, i, d, (target - s[i]) / d).x;
+    };
+}

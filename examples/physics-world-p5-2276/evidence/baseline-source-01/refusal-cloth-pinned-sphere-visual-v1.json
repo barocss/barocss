@@ -1,0 +1,9 @@
+{
+  "status": "PASS_CURRENT_PROFILE_REFUSAL",
+  "profile": "cloth-pinned-sphere-visual-v1",
+  "error": {
+    "code": "INVALID_CONFIG",
+    "message": "profile is not implemented"
+  },
+  "scope": "profile dispatch rejects before body/domain validation; not proof of a valid full P5 fixture or recording admission"
+}

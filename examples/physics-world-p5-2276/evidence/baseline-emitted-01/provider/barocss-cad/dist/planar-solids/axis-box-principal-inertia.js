@@ -1,0 +1,174 @@
+import { validateAxisBoxSolidBooleanMass } from '../axis-box-solid-mass.js';
+import { copyCadData } from '../data-copy.js';
+import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
+import { EXACT_OWN_FIELDS_REQUIRED, OWN_RECORD_REQUIRED, SPARSE_OWN_ARRAY_FIELDS_REFUSED, hasExactOwnFields, isOwnRecord, ownSnapshot } from '../core/own-data.js';
+export const AxisBoxSolidPrincipalInertiaDiagnosticCode = Object.freeze({ INPUT: 'INPUT', BUDGET: 'BUDGET', MASS: 'MASS', SELECTION: 'SELECTION', REPRESENTABILITY: 'REPRESENTABILITY', OWNED: 'OWNED' });
+export class AxisBoxSolidPrincipalInertiaError extends KernelError {
+    code;
+    constructor(code, detail, cause) {
+        super(('Axis-box Solid principal inertia: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
+        this.name = 'AxisBoxSolidPrincipalInertiaError';
+        this.code = code;
+    }
+}
+const CODE = AxisBoxSolidPrincipalInertiaDiagnosticCode, ROUNDING = 512 * Number.EPSILON;
+function check(condition, code, detail) { if (!condition)
+    throw new AxisBoxSolidPrincipalInertiaError(code, detail); }
+function finite(value) { check(Number.isFinite(value), CODE.REPRESENTABILITY, 'Finite principal-inertia arithmetic range exceeded'); return value; }
+function product(a, b) { const value = finite(a * b); check(a === 0 || b === 0 || value !== 0, CODE.REPRESENTABILITY, 'Nonzero principal-inertia product underflowed'); return value; }
+function quotient(a, b) { check(Number.isFinite(b) && b !== 0, CODE.REPRESENTABILITY, 'A finite nonzero moment denominator is required'); const value = finite(a / b); check(a === 0 || value !== 0, CODE.REPRESENTABILITY, 'Nonzero principal-inertia quotient underflowed'); return value; }
+function sum(values) { return values.reduce((total, value) => finite(total + value), 0); }
+function matrix(value) { return [0, 1, 2].map(row => [0, 1, 2].map(column => finite(value(row, column)))); }
+function identity() { return matrix((row, column) => row === column ? 1 : 0); }
+function transpose(a) { return matrix((row, column) => a[column][row]); }
+function multiply(a, b) { return matrix((row, column) => sum([0, 1, 2].map(index => product(a[row][index], b[index][column])))); }
+function norm(a) { return finite(Math.hypot(...a.flat())); }
+function residual(a, b) { return norm(matrix((row, column) => finite(a[row][column] - b[row][column]))); }
+function similarity(a, vectors) { return multiply(multiply(transpose(vectors), a), vectors); }
+function offDiagonal(a) { return finite(Math.hypot(a[0][1], a[0][2], a[1][2])); }
+function determinant(a) { return sum([product(a[0][0], finite(product(a[1][1], a[2][2]) - product(a[1][2], a[2][1]))), -product(a[0][1], finite(product(a[1][0], a[2][2]) - product(a[1][2], a[2][0]))), product(a[0][2], finite(product(a[1][0], a[2][1]) - product(a[1][1], a[2][0])))]); }
+const OWN = { input: CODE.INPUT, owned: CODE.OWNED, budget: CODE.BUDGET, fail: (code, detail) => { throw new AxisBoxSolidPrincipalInertiaError(code, detail); }, wrap: (code, detail, cause) => { throw new AxisBoxSolidPrincipalInertiaError(code, detail, cause); }, isRefusal: e => e instanceof AxisBoxSolidPrincipalInertiaError, sparse: SPARSE_OWN_ARRAY_FIELDS_REFUSED };
+function snapshot(input, owned = false) { return ownSnapshot(input, owned, OWN); }
+function record(input, fields, code = CODE.INPUT) { check(isOwnRecord(input), code, OWN_RECORD_REQUIRED); check(hasExactOwnFields(input, fields), code, EXACT_OWN_FIELDS_REQUIRED); return input; }
+/** Local static adaptation of the established bounded Jacobi method; no prism DTO or constructor is used. */
+function analyzeTensor(original, scale, options) {
+    const a = copyCadData(original), vectors = identity(), rotationTrace = [], originalNorm = Math.max(1, norm(original));
+    const roundingGuard = (rotations) => product(product(ROUNDING, rotations + 1), originalNorm);
+    while (offDiagonal(a) > options.scaledResidualTolerance) {
+        check(rotationTrace.length < options.maximumRotations, CODE.BUDGET, 'Jacobi rotation budget exhausted before actual scaled convergence');
+        const pairs = [[0, 1], [0, 2], [1, 2]];
+        let pivot = pairs[0];
+        for (const pair of pairs.slice(1))
+            if (Math.abs(a[pair[0]][pair[1]]) > Math.abs(a[pivot[0]][pivot[1]]))
+                pivot = pair;
+        const [p, q] = pivot, av = a[p][p], b = a[p][q], d = a[q][q], matrixBeforeScaled = copyCadData(a);
+        check(b !== 0, CODE.REPRESENTABILITY, 'A nonzero Jacobi pivot is required');
+        const thetaRadians = product(.5, finite(Math.atan2(product(2, b), finite(d - av)))), sine = finite(Math.sin(thetaRadians)), cosine = finite(Math.cos(thetaRadians));
+        const cc = product(cosine, cosine), ss = product(sine, sine), cs = product(cosine, sine);
+        check(Math.abs(finite(cc + ss - 1)) <= ROUNDING, CODE.REPRESENTABILITY, 'Jacobi sine/cosine unit residual exceeded its rounding guard');
+        const rawAnnihilationResidualScaled = sum([product(finite(av - d), cs), product(b, finite(cc - ss))]), annihilationGuardScaled = product(ROUNDING, Math.max(1, Math.abs(av), Math.abs(b), Math.abs(d)));
+        check(Math.abs(rawAnnihilationResidualScaled) <= annihilationGuardScaled, CODE.REPRESENTABILITY, 'Raw computed Jacobi annihilation residual exceeded its disclosed guard');
+        a[p][p] = sum([product(cc, av), -product(2, product(cs, b)), product(ss, d)]);
+        a[q][q] = sum([product(ss, av), product(2, product(cs, b)), product(cc, d)]);
+        for (const index of [0, 1, 2])
+            if (index !== p && index !== q) {
+                const ap = matrixBeforeScaled[index][p], aq = matrixBeforeScaled[index][q];
+                a[index][p] = a[p][index] = finite(product(cosine, ap) - product(sine, aq));
+                a[index][q] = a[q][index] = sum([product(sine, ap), product(cosine, aq)]);
+            }
+        // Retain the raw computed annihilation witness before setting the pivot to zero.
+        a[p][q] = a[q][p] = 0;
+        for (const row of [0, 1, 2]) {
+            const vp = vectors[row][p], vq = vectors[row][q];
+            vectors[row][p] = finite(product(cosine, vp) - product(sine, vq));
+            vectors[row][q] = sum([product(sine, vp), product(cosine, vq)]);
+        }
+        const similarityResidualScaled = residual(similarity(original, vectors), a), similarityGuardScaled = roundingGuard(rotationTrace.length + 1);
+        check(similarityResidualScaled <= similarityGuardScaled, CODE.REPRESENTABILITY, 'Actual accumulated Jacobi similarity residual exceeded its rounding guard');
+        rotationTrace.push({ index: rotationTrace.length, pivot, pivotValueScaled: b, diagonalBeforeScaled: [av, d], thetaRadians, sine, cosine, rawAnnihilationResidualScaled, annihilationGuardScaled,
+            remainingOffDiagonalNormScaled: offDiagonal(a), similarityResidualScaled, similarityGuardScaled, matrixBeforeScaled, matrixAfterScaled: copyCadData(a), eigenvectorsAfter: copyCadData(vectors) });
+    }
+    const order = [0, 1, 2].sort((left, right) => a[left][left] - a[right][right] || left - right), eigenvalues = order.map(index => a[index][index]), sortedVectors = matrix((row, column) => vectors[row][order[column]]);
+    for (const column of [0, 1]) {
+        let dominant = 0;
+        for (const row of [1, 2])
+            if (Math.abs(sortedVectors[row][column]) > Math.abs(sortedVectors[dominant][column]))
+                dominant = row;
+        if (sortedVectors[dominant][column] < 0)
+            for (const row of [0, 1, 2])
+                sortedVectors[row][column] = -sortedVectors[row][column];
+    }
+    if (determinant(sortedVectors) < 0)
+        for (const row of [0, 1, 2])
+            sortedVectors[row][2] = -sortedVectors[row][2];
+    for (const row of [0, 1, 2])
+        for (const column of [0, 1, 2])
+            if (sortedVectors[row][column] === 0)
+                sortedVectors[row][column] = 0;
+    const diagonal = matrix((row, column) => row === column ? eigenvalues[row] : 0), finalOffDiagonal = offDiagonal(a), scaledGuard = sum([product(Math.SQRT2, options.scaledResidualTolerance), roundingGuard(rotationTrace.length)]);
+    check(eigenvalues.every(value => value > scaledGuard), CODE.REPRESENTABILITY, 'A principal moment is nonpositive or numerical uncertainty overlaps zero');
+    const similarityScaled = residual(similarity(original, sortedVectors), diagonal), eigensystemScaled = residual(multiply(original, sortedVectors), multiply(sortedVectors, diagonal)), reconstructionScaled = residual(multiply(multiply(sortedVectors, diagonal), transpose(sortedVectors)), original);
+    const orthogonality = residual(multiply(transpose(sortedVectors), sortedVectors), identity()), maximumUnitNorm = Math.max(...[0, 1, 2].map(column => Math.abs(finite(Math.hypot(...sortedVectors.map(row => row[column])) - 1)))), orientation = determinant(sortedVectors), unitGuard = product(ROUNDING, rotationTrace.length + 1);
+    check(similarityScaled <= scaledGuard && eigensystemScaled <= scaledGuard && reconstructionScaled <= scaledGuard, CODE.REPRESENTABILITY, 'Actual final similarity/eigenvector/reconstruction residual exceeded its disclosed guard');
+    check(orthogonality <= unitGuard && maximumUnitNorm <= unitGuard && Math.abs(finite(orientation - 1)) <= unitGuard, CODE.REPRESENTABILITY, 'Actual final eigenbasis unit/orthogonality/right-handed determinant residual exceeded its guard');
+    const momentsKgM2 = eigenvalues.map(value => product(value, scale)), axesXYZ = [0, 1, 2].map(index => ({ index, directionXYZ: sortedVectors.map(row => row[index]), momentKgM2: momentsKgM2[index] }));
+    const thresholdKgM2 = product(options.degeneracyToleranceRelative, scale), clusters = [];
+    let indices = [0];
+    const emitCluster = () => { if (indices.length > 1)
+        clusters.push({ indices, momentsKgM2: indices.map(index => momentsKgM2[index]), maximumAdjacentGapKgM2: Math.max(...indices.slice(1).map(index => finite(momentsKgM2[index] - momentsKgM2[index - 1]))), thresholdKgM2 }); };
+    for (const index of [1, 2]) {
+        if (finite(momentsKgM2[index] - momentsKgM2[index - 1]) <= thresholdKgM2)
+            indices.push(index);
+        else {
+            emitCluster();
+            indices = [index];
+        }
+    }
+    emitCluster();
+    return { principal: { momentsKgM2, axesXYZ }, rotationTrace, finalOffDiagonal, residuals: { similarityScaled, eigensystemScaled, reconstructionScaled, orthogonality, maximumUnitNorm, determinant: orientation, scaledGuard, unitGuard }, clusters };
+}
+/** Analyze one actual total/Body STORED tensor; exact parent moment/conversion certificates remain separate and unchanged. */
+export function analyzeAxisBoxSolidPrincipalInertia(massInput, optionsInput) {
+    const input = record(snapshot({ mass: massInput, options: optionsInput }), ['mass', 'options']), data = record(input.options, ['selection', 'maximumRotations', 'scaledResidualTolerance', 'degeneracyToleranceRelative']);
+    check(typeof data.maximumRotations === 'number' && Number.isInteger(data.maximumRotations) && data.maximumRotations >= 0 && data.maximumRotations <= 64, CODE.BUDGET, 'An integer maximumRotations in0..64 is required');
+    for (const [field, maximum] of [['scaledResidualTolerance', 1e-8], ['degeneracyToleranceRelative', 1e-6]])
+        check(typeof data[field] === 'number' && data[field] >= 256 * Number.EPSILON && data[field] <= maximum, CODE.INPUT, 'Finite analysis tolerances within the declared bounds are required');
+    check(data.selection !== null && typeof data.selection === 'object' && !Array.isArray(data.selection), CODE.SELECTION, 'An exact total/Body selection is required');
+    const selected = data.selection;
+    check(selected.kind === 'total' || selected.kind === 'body', CODE.SELECTION, 'Selection kind must be total or body');
+    record(selected, selected.kind === 'total' ? ['kind'] : ['kind', 'bodyId'], CODE.SELECTION);
+    if (selected.kind === 'body')
+        check(typeof selected.bodyId === 'string' && selected.bodyId.length <= 48 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(selected.bodyId), CODE.SELECTION, 'Selected Body ID must be ASCII1..48');
+    const options = data, mass = input.mass;
+    try {
+        validateAxisBoxSolidBooleanMass(mass);
+    }
+    catch (cause) {
+        throw new AxisBoxSolidPrincipalInertiaError(CODE.MASS, 'Actual whole Solid mass owned validation failed', cause);
+    }
+    const selectedBodyId = options.selection.kind === 'body' ? options.selection.bodyId : null;
+    const measure = selectedBodyId === null ? mass.total : mass.bodies.find(body => body.bodyId === selectedBodyId);
+    check(measure !== undefined, CODE.SELECTION, 'The selected Body must exist in the complete actual mass result');
+    const tensor = measure.inertiaCentroidKgM2, empty = measure.volumeMM3 === 0;
+    let principal = null, normalizedMatrix = null, matrixScaleKgM2 = 0;
+    let rotationTrace = [], residuals = null, observedDegenerateClusters = [], finalOffDiagonal = 0;
+    if (!empty) {
+        check(Array.isArray(tensor) && tensor.length === 3 && tensor.every(row => Array.isArray(row) && row.length === 3 && row.every(Number.isFinite)), CODE.REPRESENTABILITY, 'Actual selected mass must retain its finite3x3 stored inertia tensor');
+        check(tensor.every((row, i) => row.every((value, j) => Object.is(value, tensor[j][i]))), CODE.REPRESENTABILITY, 'Actual selected stored tensor must be bitwise symmetric');
+        matrixScaleKgM2 = Math.max(...tensor.flat().map(Math.abs));
+        check(matrixScaleKgM2 > 0, CODE.REPRESENTABILITY, 'A positive finite selected stored tensor scale is required');
+        normalizedMatrix = matrix((row, column) => quotient(tensor[row][column], matrixScaleKgM2));
+        const analysis = analyzeTensor(normalizedMatrix, matrixScaleKgM2, options);
+        principal = analysis.principal;
+        rotationTrace = analysis.rotationTrace;
+        residuals = analysis.residuals;
+        observedDegenerateClusters = analysis.clusters;
+        finalOffDiagonal = analysis.finalOffDiagonal;
+    }
+    else
+        check(tensor === null && measure.centroidMM === null && measure.massKG === 0, CODE.SELECTION, 'Empty total must retain mass0/nullcentroid/nulltensor and no axes');
+    const report = {
+        schema: 'barocss-axis-box-solid-principal-inertia', version: 0, evaluationId: mass.report.evaluationId, selection: options.selection, selectedBodyId: measure.bodyId, units: { moment: 'kg*m2', centroid: 'mm', direction: 'world-xyz-unit-vector' }, sourceFrame: 'authored-xyz-no-axis-conversion', densityKgPerM3: mass.options.densityKgPerM3, massKG: measure.massKG, centroidMM: measure.centroidMM, empty,
+        storedTensorAuthority: 'only-selected-stored-binary64-tensor-parent-exact-moments-and-errors-separate', inputTensorKgM2: tensor, matrixScaleKgM2, normalizedMatrix, options, rotationTrace, rotationCount: rotationTrace.length, convergence: { offDiagonalNormScaled: finalOffDiagonal, toleranceScaled: options.scaledResidualTolerance, converged: true },
+        sortedMomentsKgM2: principal?.momentsKgM2 ?? null, axesXYZ: principal?.axesXYZ ?? null, residuals, observedDegenerateClusters, axesUnique: principal === null ? null : observedDegenerateClusters.length === 0,
+        signPolicy: 'first-two-largest-absolute-component-positive-xyz-ties-third-right-handed', directCounts: { massValidationCount: 1, selectedMeasureBindingCount: 1, rotationCount: rotationTrace.length, curvePointEvaluationCount: 0, curveDerivativeEvaluationCount: 0, surfacePointEvaluationCount: 0, surfaceDerivativeEvaluationCount: 0, sourceCompilationCount: 0 },
+        numericPolicy: { pivot: 'largest-absolute-offdiagonal-lexicographic-01-02-12', angle: 'half-atan2-2b-d-minus-a', annihilation: 'checked-raw-jacobi-pivot-residual-then-zero', residualNorm: 'frobenius', convergenceNorm: 'upper-offdiagonal-euclidean', roundingFactor: 512, clustering: 'connected-adjacent-gaps-within-relative-original-matrix-scale', axesMeaning: 'canonical-local-representatives-not-persistent-axes', axisZeroSign: 'positive-zero-only-for-exact-zero-components', guards: 'observed-normalized-rounding-residual-policy-not-rigorous-global-error-bounds', uniqueness: 'observed-cluster-status-not-certified-geometry-axis-uniqueness' },
+        quality: { storedTensorAnalysisOnly: true, exactGeometryEigenvaluesCertified: false, exactGeometryAxesCertified: false, globalFloatingEigenanalysisCertified: false, axesUniquenessCertified: false, persistentAxesCertified: false, densityCertified: false, materialCertified: false, manufacturingToleranceCertified: false, physicalPoseConversionCertified: false, parentExactAndConversionProofUnchanged: true, ownership: 'independent-copied-cpu-data-gc' },
+        workScope: 'one-actual-public-solid-mass-validation-and-new-jacobi-rotations-parent-rebuild-work-excluded', budgetFailure: 'atomic-no-partial-eigensystem', limits: { maximumRotations: 64, ownValues: 1048576, ownDepth: 64, arrayElements: 8192, recordFields: 64, stringCharacters: 262144 },
+    };
+    return snapshot({ mass, options, measure, principal, report }, true);
+}
+/** Re-run the complete actual parent binding and stored-tensor analysis, then compare all sources/proofs/numeric trace bits. */
+export function validateAxisBoxSolidPrincipalInertia(input) {
+    const owned = record(snapshot(input, true), ['mass', 'options', 'measure', 'principal', 'report'], CODE.OWNED);
+    let expected;
+    try {
+        expected = analyzeAxisBoxSolidPrincipalInertia(owned.mass, owned.options);
+    }
+    catch (cause) {
+        throw new AxisBoxSolidPrincipalInertiaError(CODE.OWNED, 'Whole owned Solid principal-inertia reconstruction failed', cause);
+    }
+    check(same(owned, expected), CODE.OWNED, 'Owned mass/selection/measure/options/trace/eigensystem/signs/clusters/counters changed');
+    return snapshot(expected.report, true);
+}
