@@ -1354,7 +1354,7 @@ export class Viewer {
       ? { device: d, positions: buffer(new Uint8Array(data.topology === 'lines' ? (data.contour ? contourInstances(data) : segmentInstances(data)) : pointInstances(data)), BufferUsage.VERTEX, data.topology), normals: null, colors: null, uvs: null, indices: null }
       : {
         device: d,
-        positions: buffer(data.positions, BufferUsage.VERTEX, 'positions'), normals: buffer(data.normals, BufferUsage.VERTEX, 'normals'),
+        positions: buffer(data.positions instanceof Float64Array ? Float32Array.from(data.positions) : data.positions, BufferUsage.VERTEX, 'positions'), normals: buffer(data.normals, BufferUsage.VERTEX, 'normals'),
         colors: buffer(data.colors, BufferUsage.VERTEX, 'colors'), uvs: data.uvs ? buffer(data.uvs, BufferUsage.VERTEX, 'uvs') : this.zeroUVs(data.vertexCount), ownUVs: !!data.uvs, indices: data.indices ? buffer(data.indices, BufferUsage.INDEX, 'indices') : null,
       };
     return true;
@@ -1525,7 +1525,7 @@ export class Viewer {
     const g = m.geometry, data = g.data, f = data.scalars!, base = g.gpu!, n = m.instanceCount;
     let s = g.scalarGpu;
     if (!s || s.device !== this.device) {
-      const buf = (src: Float32Array, label: string) => { const b = this.device.createBuffer({ size: Math.max(4, src.byteLength), usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label }); this.device.queue.writeBuffer(b, 0, src); return b; };
+      const buf = (src: Float32Array | Float64Array, label: string) => { const data = src instanceof Float64Array ? Float32Array.from(src) : src; const b = this.device.createBuffer({ size: Math.max(4, data.byteLength), usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label }); this.device.queue.writeBuffer(b, 0, data); return b; };
       s = g.scalarGpu = { device: this.device, values: buf(f.draw.values, 'scalars'), positions: f.draw.positions ? buf(f.draw.positions, 'scalar positions') : null, normals: f.draw.normals ? buf(f.draw.normals, 'scalar normals') : null };
     }
     pass.setVertexBuffer(0, s.positions ?? base.positions); pass.setVertexBuffer(1, s.normals ?? base.normals!); pass.setVertexBuffer(2, this.instanceBuffer(m)); pass.setVertexBuffer(3, s.values);

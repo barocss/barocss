@@ -1,0 +1,597 @@
+{
+  "work_id": "D431",
+  "artifact_type": "viewer-cpu-world-coordinate-precision",
+  "status": "QUALIFIED_BOUNDED_CPU_GEOMETRY_AND_WORLD_HITS_RASTER_PROJECT_FAILURES_REMAIN",
+  "owner_role": "executor",
+  "source_request": "Continue autonomously by roadmap while owner sleeps",
+  "last_updated": "2026-11-02",
+  "rows": [
+    6,
+    13,
+    16
+  ],
+  "overallPercent": 43,
+  "sourceCheckpoint": "8fcd4037565cbb1b4d3067a7fa20233861fbce62",
+  "tier": "full: public PreparedGeometry coordinate type widening, multiple independent audits and mutations; no B-rep core/full-kernel change",
+  "models": {
+    "sourceAuthor": "GPT-6.1 Sol High",
+    "independentReview": "GPT-6.1 Sol High",
+    "actualProbe": "GPT-6.1 Sol Medium"
+  },
+  "units": {
+    "world": "mm",
+    "screen": "CSS pixels",
+    "time": "ms"
+  },
+  "scope": "Preserve owned Float64 source coordinates in the caller frame (native Model supplies world coordinates), genuine geometry/Mesh world bounds and CPU queries; other ArrayLike inputs stay in the old Float32 profile. GPU submissions remain explicit numeric Float32.",
+  "compatibility": [
+    "Same finite-Float32 coordinate admission and existing error order/codes",
+    "Existing default derived normals use the same rounded raster inputs; supplied normals unchanged",
+    "No original coordinates, units, tolerance, indices or face/edge IDs changed",
+    "No origin, shader, frame, object, instance, Studio Orbit or GL change",
+    "Native sphere edge arrays are empty: CPU line precision needs a separate meaningful off-center fixture"
+  ],
+  "checks": {
+    "source": "PASS_ROOT_AND_INDEPENDENT_API_FRAME_BYTE_REVIEW",
+    "focused": {
+      "status": "PASS",
+      "uniquePass": 139,
+      "new": 22,
+      "existingUnchanged": 117,
+      "fail": 0,
+      "skip": 0,
+      "counts": {
+        "pre-fix-initial": {
+          "tests": 22,
+          "pass": 6,
+          "fail": 16,
+          "skipped": 0,
+          "assertionFailures": 16
+        },
+        "focused-initial": {
+          "tests": 139,
+          "pass": 138,
+          "fail": 1,
+          "skipped": 0,
+          "assertionFailures": 1
+        },
+        "pre-fix-corrected": {
+          "tests": 22,
+          "pass": 6,
+          "fail": 16,
+          "skipped": 0,
+          "assertionFailures": 16
+        },
+        "dedicated-corrected": {
+          "tests": 22,
+          "pass": 22,
+          "fail": 0,
+          "skipped": 0,
+          "assertionFailures": 0
+        }
+      },
+      "qualified": {
+        "newDedicated": 22,
+        "unchangedExisting": 117,
+        "pass": 139,
+        "fail": 0,
+        "note": "Combined evidence: existing117 passed initial focused run on unchanged product source; final corrected dedicated22 passed separately. No full139 rerun."
+      },
+      "method": "Existing117 passed initial run on unchanged product source; final corrected22 passed separately. No full139 repeat.",
+      "correctedPreFixClassification": {
+        "physicalNumericOrQuery": 15,
+        "arrayClassOnly": 1,
+        "allCleanAssertions": true
+      },
+      "commands": [
+        [
+          "pnpm",
+          "build:library"
+        ],
+        [
+          "node",
+          "--import",
+          "./tests/cad-dist.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/viewer-world-precision.test.mjs",
+          "tests/viewer-core.test.mjs",
+          "tests/viewer-display.test.mjs",
+          "tests/viewer-material-bindings.test.mjs",
+          "tests/api-scene.test.mjs",
+          "tests/pick-instance-readback.test.mjs",
+          "tests/viewer-path-trace.test.mjs",
+          "tests/viewer-orthographic-depth.test.mjs"
+        ],
+        [
+          "node",
+          "--import",
+          "/tmp/barocss-d431-author/baseline-hook.mjs",
+          "--import",
+          "./tests/cad-dist.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/viewer-world-precision.test.mjs"
+        ],
+        [
+          "node",
+          "--import",
+          "./tests/cad-dist.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "tests/viewer-world-precision.test.mjs"
+        ],
+        [
+          "pnpm",
+          "type-check"
+        ],
+        [
+          "pnpm",
+          "exec",
+          "eslint",
+          "src/viewer/geometry.ts",
+          "src/viewer/viewer.ts",
+          "tests/viewer-world-precision.test.mjs"
+        ]
+      ]
+    },
+    "independent": {
+      "status": "PASS",
+      "tests": 9,
+      "fail": 0,
+      "sourceUnchanged": true,
+      "receiptSha256": "4fb366822180e4ce52338fcc5366b8dc7523ab021249528a405aa4f496591f0c",
+      "sourceReviewSha256": "df2db0dae639a4fd7ebf7223479eb0be9f6545c846a27b896b59070f39d00c14"
+    },
+    "mutation": {
+      "status": "PASS",
+      "results": [
+        {
+          "name": "F64-storage-rounded-source",
+          "exit": 1,
+          "pass": 3,
+          "fail": 6,
+          "assertionFailures": 6,
+          "geometrySha256": "3007f9c2a6376da18bee476b4db16c900c19f56335aac23ed029bec84b9aabed",
+          "viewerSha256": "0abe82b03f52b787dfd8df4a4b306d0da00ff2abdae3a43fcb17a3f8167da4e5",
+          "bundleSha256": "92118a9162b286cb7b927ea7ce705dd03609eee11da8c4871a887fea722a5f94",
+          "classification": "ASSERTION_KILLED"
+        },
+        {
+          "name": "rounded-bounds-only",
+          "exit": 1,
+          "pass": 7,
+          "fail": 2,
+          "assertionFailures": 2,
+          "geometrySha256": "b0ab004322609ef59e8b5b1db2508e0e7e7d6eeaa859e9cca28d59f6f5e30404",
+          "viewerSha256": "0abe82b03f52b787dfd8df4a4b306d0da00ff2abdae3a43fcb17a3f8167da4e5",
+          "bundleSha256": "de677a5039f92525a0a59edb7eb3143ae2dd5d41539bf50e5248182402eeaf91",
+          "classification": "ASSERTION_KILLED"
+        },
+        {
+          "name": "raw-F64-triangle-upload",
+          "exit": 1,
+          "pass": 8,
+          "fail": 1,
+          "assertionFailures": 1,
+          "geometrySha256": "15ed7fadc82081523184c77ecdbf988ba5696ffeb470b1cee7f2d3608fbdadb4",
+          "viewerSha256": "f107973f7e0335d0c4411ade615c4902cff501854b2212b8f7643aa6e3425a70",
+          "bundleSha256": "87cbed97df16087e8a69a8c00734f741d5d4abf22e1652e53c0ecc51b8072769",
+          "classification": "ASSERTION_KILLED"
+        },
+        {
+          "name": "F64-scalar-rounded-source",
+          "exit": 1,
+          "pass": 8,
+          "fail": 1,
+          "assertionFailures": 1,
+          "geometrySha256": "c2faeb6afea3bea00d9217e30afda8323a93082d3d4df476985b06ea49e4dd14",
+          "viewerSha256": "0abe82b03f52b787dfd8df4a4b306d0da00ff2abdae3a43fcb17a3f8167da4e5",
+          "bundleSha256": "c05808ec92a9a572c61ced97b99dd8a860e53aafd29b837f8bd1553cf462726b",
+          "classification": "ASSERTION_KILLED"
+        }
+      ],
+      "survivors": 0,
+      "crashes": 0,
+      "scope": "Isolated source overlays; no worktree mutations."
+    },
+    "typesAndLint": {
+      "status": "PASS",
+      "gpu": "build/type-check/scopedlint passed",
+      "model": "PASS final rerun after required /tmp driver correction",
+      "studio": "PASS before driver-only correction; Studio and GPU source unchanged afterward",
+      "driver": "Node22 syntax and ESLint stdin with virtual repository test filename, final corrected58b4d308",
+      "commands": [
+        "pnpm --dir packages/barocss-cad-model type-check",
+        "pnpm --dir apps/cad-studio type-check",
+        "node --check /tmp/barocss-d431-probe/cpu-world-precision.mjs",
+        "pnpm exec eslint --no-warn-ignored --stdin --stdin-filename apps/cad-studio/test/cpu-world-precision-browser.mjs < /tmp/barocss-d431-probe/cpu-world-precision.mjs"
+      ]
+    },
+    "actualCPU": {
+      "status": "PASS",
+      "qualification": "D431_CPU_WORLD_PRECISION_ONLY_GPU_AND_ORBIT_SEPARATE",
+      "sourceFrozenCount": 794,
+      "sourceAfterCount": 794,
+      "sourceAfterCleanupCount": 794,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "errors": [],
+      "consoleErrors": [],
+      "changes": [],
+      "downloads": [],
+      "productProfiles": [
+        {
+          "label": "far-top-perspective",
+          "render": "FAIL_RENDER",
+          "pick": "PASS_CPU_WORLD_PICK",
+          "gpuPick": "FAIL_PICK",
+          "project": "FAIL_PROJECT",
+          "projectScope": "Product route finite/unoccluded inside canvas only; exact numeric projection witnesses are recorded separately",
+          "queryStatus": "FAIL_PICK"
+        },
+        {
+          "label": "far-top-orthographic",
+          "render": "FAIL_RENDER",
+          "pick": "PASS_CPU_WORLD_PICK",
+          "gpuPick": "FAIL_PICK",
+          "project": "FAIL_PROJECT",
+          "projectScope": "Product route finite/unoccluded inside canvas only; exact numeric projection witnesses are recorded separately",
+          "queryStatus": "FAIL_PICK"
+        },
+        {
+          "label": "center-top-orthographic",
+          "render": "PASS_RENDER",
+          "pick": "PASS_CPU_WORLD_PICK",
+          "gpuPick": "PASS_PICK",
+          "project": "PASS_PROJECT",
+          "projectScope": "Product route finite/unoccluded inside canvas only; exact numeric projection witnesses are recorded separately",
+          "queryStatus": "PASS_PICK"
+        }
+      ],
+      "capsulesEqual": true,
+      "receiptSha256": "f316182e0aa4f15dad02ca899f9b801c5e4f9c80311289c6f114cae74e288bd3",
+      "probeSha256": "58b4d308c4de024e6c869e5b6902965bee6310b3bd7d388a59b6f190b770d3bc",
+      "manifestSha256": "9998546a5664b0bc0d3d299c8e4464ec9a52838114f8509648bbbd1ee6bb72c7",
+      "UIRealPicks": {
+        "pass": 8,
+        "idealRoute": 6,
+        "centerProductRoute": 2,
+        "farProductRoute": "NOT_EXERCISED_OUTSIDE_CANVAS"
+      },
+      "profiles": [
+        {
+          "label": "far-top-perspective",
+          "cpuPrepared": "PASS_CPU_GEOMETRY",
+          "preparedType": "Float64Array",
+          "preparedStats": {
+            "vertices": 522,
+            "unique": 484,
+            "min": [
+              998999.9990056084,
+              -998000.0009943799,
+              996999.9989999998
+            ],
+            "max": [
+              999000.0009943917,
+              -997999.9990056204,
+              997000.001
+            ],
+            "spans": [
+              0.0019887833623215556,
+              0.001988759497180581,
+              0.0020000002114102244
+            ],
+            "nondegenerate": 964,
+            "degenerate": 0,
+            "arrayHash": "80dee0bd93a6e0533fb32e35d697152eeff7981ba52148c869890328cc409da9"
+          },
+          "nativeArraysAndQuantitiesEqualD430": true,
+          "triangle": 55,
+          "oracleTriangle": 55,
+          "face": 0,
+          "oracleFace": 0,
+          "worldPointError": [
+            1.1878324292593535e-11,
+            1.0714250599469337e-11,
+            4.430917178305238e-11
+          ],
+          "budget": 9.313226769244143e-10,
+          "oracleMethod": "Independent local plane intersection plus Gram barycentric test, no production ray/triangle helper",
+          "budgetRule": "8*max binary64 ULP(native hit triangle vertices,public ray origin)+64*EPS*localScale; interior barycentric>1e-6,incidence>.1; no postfailure widening",
+          "basisVsPublicLocalDelta": [
+            -4.106136845252392e-09,
+            2.497964860040538e-07,
+            -1.389044742249046e-08
+          ],
+          "basisScope": "Separate camera-query diagnostic; not the primary geometry oracle",
+          "submittedType": "Float32Array",
+          "submittedBytes": 6264,
+          "submittedSha256": "6aef68e6f815de28ef27c5465eb969ba924cbce3b2c4e1472eb295556980626e",
+          "actualPublicWriteMatches": 1,
+          "submittedValidTriangles": 0,
+          "submittedDegenerateTriangles": 964,
+          "submitScope": "Actual CPU bytes passed to public GPUQueue.writeBuffer, not device buffer readback. Native-derived F32 numbers equal D430 prepared numbers, not a historical submit-byte comparison.",
+          "render": "FAIL_RENDER",
+          "GPUQuery": "FAIL_PICK",
+          "productProjection": "FAIL_PROJECT",
+          "pixels": {
+            "box": {
+              "left": 398,
+              "right": 742,
+              "top": 328,
+              "bottom": 672
+            },
+            "changed": 0,
+            "total": 118336,
+            "fraction": 0,
+            "rgbThreshold": 20,
+            "scope": "Body/helper image difference; not by itself a physical surface oracle"
+          },
+          "restoredExactly": true
+        },
+        {
+          "label": "far-top-orthographic",
+          "cpuPrepared": "PASS_CPU_GEOMETRY",
+          "preparedType": "Float64Array",
+          "preparedStats": {
+            "vertices": 522,
+            "unique": 484,
+            "min": [
+              998999.9990056084,
+              -998000.0009943799,
+              996999.9989999998
+            ],
+            "max": [
+              999000.0009943917,
+              -997999.9990056204,
+              997000.001
+            ],
+            "spans": [
+              0.0019887833623215556,
+              0.001988759497180581,
+              0.0020000002114102244
+            ],
+            "nondegenerate": 964,
+            "degenerate": 0,
+            "arrayHash": "80dee0bd93a6e0533fb32e35d697152eeff7981ba52148c869890328cc409da9"
+          },
+          "nativeArraysAndQuantitiesEqualD430": true,
+          "triangle": 55,
+          "oracleTriangle": 55,
+          "face": 0,
+          "oracleFace": 0,
+          "worldPointError": [
+            0,
+            3.7849256877536125e-11,
+            3.180258834056815e-11
+          ],
+          "budget": 9.313232907784804e-10,
+          "oracleMethod": "Independent local plane intersection plus Gram barycentric test, no production ray/triangle helper",
+          "budgetRule": "8*max binary64 ULP(native hit triangle vertices,public ray origin)+64*EPS*localScale; interior barycentric>1e-6,incidence>.1; no postfailure widening",
+          "basisVsPublicLocalDelta": [
+            -1.1641532182693481e-10,
+            2.3275844930105167e-10,
+            -3.0262658698432254e-12
+          ],
+          "basisScope": "Separate camera-query diagnostic; not the primary geometry oracle",
+          "submittedType": "Float32Array",
+          "submittedBytes": 6264,
+          "submittedSha256": "6aef68e6f815de28ef27c5465eb969ba924cbce3b2c4e1472eb295556980626e",
+          "actualPublicWriteMatches": 1,
+          "submittedValidTriangles": 0,
+          "submittedDegenerateTriangles": 964,
+          "submitScope": "Actual CPU bytes passed to public GPUQueue.writeBuffer, not device buffer readback. Native-derived F32 numbers equal D430 prepared numbers, not a historical submit-byte comparison.",
+          "render": "FAIL_RENDER",
+          "GPUQuery": "FAIL_PICK",
+          "productProjection": "FAIL_PROJECT",
+          "pixels": {
+            "box": {
+              "left": 401,
+              "right": 739,
+              "top": 331,
+              "bottom": 669
+            },
+            "changed": 0,
+            "total": 114244,
+            "fraction": 0,
+            "rgbThreshold": 20,
+            "scope": "Body/helper image difference; not by itself a physical surface oracle"
+          },
+          "restoredExactly": true
+        },
+        {
+          "label": "center-top-orthographic",
+          "cpuPrepared": "PASS_CPU_GEOMETRY",
+          "preparedType": "Float64Array",
+          "preparedStats": {
+            "vertices": 552,
+            "unique": 514,
+            "min": [
+              -0.0009962900100075728,
+              -0.0009956044981891043,
+              -0.0010000000000000002
+            ],
+            "max": [
+              0.0009962900100075726,
+              0.0009956044981891043,
+              0.001
+            ],
+            "spans": [
+              0.0019925800200151457,
+              0.0019912089963782086,
+              0.002
+            ],
+            "nondegenerate": 1024,
+            "degenerate": 0,
+            "arrayHash": "4b956c89f0279584c698ce10746b287b7d8f229d74a11320803cc6bd544623b4"
+          },
+          "nativeArraysAndQuantitiesEqualD430": true,
+          "triangle": 8,
+          "oracleTriangle": 8,
+          "face": 0,
+          "oracleFace": 0,
+          "worldPointError": [
+            0,
+            0,
+            0
+          ],
+          "budget": 7.72421282476801e-16,
+          "oracleMethod": "Independent local plane intersection plus Gram barycentric test, no production ray/triangle helper",
+          "budgetRule": "8*max binary64 ULP(native hit triangle vertices,public ray origin)+64*EPS*localScale; interior barycentric>1e-6,incidence>.1; no postfailure widening",
+          "basisVsPublicLocalDelta": [
+            -2.710505431213761e-20,
+            0,
+            -3.469446951953614e-18
+          ],
+          "basisScope": "Separate camera-query diagnostic; not the primary geometry oracle",
+          "submittedType": "Float32Array",
+          "submittedBytes": 6624,
+          "submittedSha256": "4902c3732bcdafca03f27a37edd1dc66451bc66889c3d36269c8574705f300f6",
+          "actualPublicWriteMatches": 1,
+          "submittedValidTriangles": 1024,
+          "submittedDegenerateTriangles": 0,
+          "submitScope": "Actual CPU bytes passed to public GPUQueue.writeBuffer, not device buffer readback. Native-derived F32 numbers equal D430 prepared numbers, not a historical submit-byte comparison.",
+          "render": "PASS_RENDER",
+          "GPUQuery": "PASS_PICK",
+          "productProjection": "PASS_PROJECT",
+          "pixels": {
+            "box": {
+              "left": 401,
+              "right": 739,
+              "top": 331,
+              "bottom": 669
+            },
+            "changed": 114244,
+            "total": 114244,
+            "fraction": 1,
+            "rgbThreshold": 20,
+            "scope": "Body/helper image difference; not by itself a physical surface oracle"
+          },
+          "restoredExactly": true
+        }
+      ],
+      "runtime": {
+        "passiveBodies": 60,
+        "missingDirectSources": [
+          "packages/barocss-gpu/src/api/scene.ts"
+        ],
+        "scope": "Provenance; direct Studio path did not request facade source, no fetch to fill coverage."
+      },
+      "nativeEdges": "EMPTY_ALL_THREE; no actual edge precision claim"
+    },
+    "actualRasterAndGPUQuery": "FAIL_FAR_BOTH_PROJECTIONS; CENTER_PASS",
+    "productOrbitProjection": "FAIL_FAR_BOTH_PROJECTIONS; CENTER_PASS",
+    "navigation": {
+      "status": "PASS",
+      "newBroken": 0,
+      "rowPages": 34,
+      "archives": "unchanged"
+    },
+    "fullKernel": "NOT_RUN_NO_BREP_CORE_CHANGE; latest D424 PASS2052/FAIL0/SKIP2",
+    "initialAuthorFocused": {
+      "status": "FAIL_TEST_ORACLE_ONE_ULP_PARAMETER_EQUALITY",
+      "total": 139,
+      "pass": 138,
+      "fail": 1,
+      "existingPass": 117,
+      "newPass": 21,
+      "testCorrection": "Replace strict ray parameter bit equality with exact reconstructed hit on the authored literal plane; no product algorithm changed.",
+      "qualifiedReplay": "NOT_RUN_LOAD_GATE",
+      "rawEvidence": "/tmp/barocss-d431-author"
+    },
+    "initialPreFix": {
+      "status": "FAIL_EXPECTED",
+      "pass": 6,
+      "fail": 16,
+      "physicalNumericOrQueryFailures": 15,
+      "arrayClassOnlyFailures": 1,
+      "classification": "ERR_ASSERTION; original log/test hash preserved, corrected final-test replay pending"
+    },
+    "independentSourceAudit": "PASS_DRAFT_NO_BLOCKER; independent9physical/bytechecks+4mutants prepared, NOT_RUN",
+    "actualAttempt01": {
+      "status": "FAIL_DRIVER_OPTIONAL_UNDEFINED_VERSUS_JSON_MISSING",
+      "receiptSha256": "fa7a24c272034098c216d61db5d534f1f7bae99feaed0a6c8db5f915fd86b59c",
+      "sourceBeforeFiles": 794,
+      "sourceAfter": "NOT_CAPTURED_FAILURE_PATH",
+      "sourceAfterCleanupFiles": 794,
+      "beforeEqualsCleanup": true,
+      "pageAndConsoleErrors": 0,
+      "changes": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "exit": 1,
+      "phase": "far-top-perspective input/provenance before queries",
+      "failure": "Exact quantities object comparison treated own volumeBasis:undefined as different from omitted field in retained JSON. Native arrays/prepared F64 coordinate assertions already passed; product query/payload acceptance NOT_RUN.",
+      "repair": "Compare seven recorded field values exactly; optional absent reads undefined. No numeric coercion or tolerance/source change."
+    },
+    "independentActualAudit": {
+      "status": "PASS_BOUNDED_CPU_ONLY",
+      "model": "GPT-6.1 Sol High",
+      "method": "Independent native plane+dominant-axis2D barycentric oracle, distinct from driverGram method",
+      "triangles": [
+        55,
+        55,
+        8
+      ],
+      "realUIPicksPass": 8,
+      "nativeArraysAndBoundsAndTablesExact": true,
+      "actualSubmitBytesVerified": [
+        6264,
+        6264,
+        6624
+      ],
+      "contrastPixels": [
+        0,
+        0,
+        114244
+      ],
+      "capsulesEqual": true,
+      "runtimeHashesVerified": 60,
+      "auditSha256": "0b8f91433bc5015e02867400640afd9cecf693db1c9d59814837c1c3af0d3674",
+      "limits": "Far raster, GPU pick and product Orbit projection FAIL remain; run01 driver FAIL preserved; no actual edge profile."
+    }
+  },
+  "limits": [
+    "A CPU data/query PASS does not qualify raster visibility, hardware picking or product Orbit projection.",
+    "Preserved Float64 is never fabricated by upcasting already rounded input.",
+    "No actual edge precision acceptance from a sphere without native edges.",
+    "No dependency/download/paid call/develop integration/release."
+  ],
+  "memoryBoundary": {
+    "retainedFloat64CoordinateBytes": 8,
+    "previousPreparedCoordinateBytes": 4,
+    "GPUCoordinateBytes": 4,
+    "scope": "Additional Viewer CPU storage for explicit Float64 inputs; no general memory/performance qualification."
+  },
+  "source": {
+    "packages/barocss-gpu/src/viewer/geometry.ts": "15ed7fadc82081523184c77ecdbf988ba5696ffeb470b1cee7f2d3608fbdadb4",
+    "packages/barocss-gpu/src/viewer/viewer.ts": "0abe82b03f52b787dfd8df4a4b306d0da00ff2abdae3a43fcb17a3f8167da4e5",
+    "packages/barocss-gpu/tests/viewer-world-precision.test.mjs": "bc6390355454a2aba61f90bc25cbab7796610375a0a41c564b04fb0cd3113d05"
+  },
+  "actualCameraFollowup": "Far perspective basis-hit vs public-ray local delta peaks2.49796486e-7mm; ortho~2.33e-10. This was descriptive, outside D431 CPU geometry acceptance; use separate camera proof before changing it.",
+  "commands": [
+    "CPU_WORLD_PRECISION_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' CAD_STUDIO_CHAT_PORT=52391 node /tmp/barocss-d431-probe/cpu-world-precision.mjs /tmp/barocss-d431-probe/run02 /tmp/barocss-d423-consumer/fixtures /tmp/barocss-d431-probe/candidate-source-manifest.json /tmp/barocss-d430-probe/run01/receipt.json"
+  ],
+  "artifacts": [
+    "/tmp/barocss-d431-author",
+    "/tmp/barocss-d431-independent",
+    "/tmp/barocss-d431-root-checks",
+    "/tmp/barocss-d431-root-recheck",
+    "/tmp/barocss-d431-probe/run01",
+    "/tmp/barocss-d431-probe/run02"
+  ],
+  "next": "D432: correct measured Orbit CPU projection and Viewer CPU perspective/orthographic ray precision. Keep unproject and all raster matrix bytes unchanged unless separately justified. Far GPU relative raster follows its own proof.",
+  "issues": {
+    "2263": "OPEN; full exchange acceptance absent."
+  }
+}

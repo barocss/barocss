@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D431: retained Viewer Float64 input and genuine CPU world hits — raster/project failures remain](notes/viewer-cpu-world-precision-2026-11-02/README.md).
+
 - [D430: far-coordinate first loss — diagnostic qualified, product failures remain](notes/far-gpu-first-loss-2026-11-02/README.md).
 
 - [D429: automatic orthographic depth conditioning — bounded fixture and compatibility qualification](notes/orthographic-depth-conditioning-2026-11-02/README.md).
@@ -63,6 +65,7 @@ Numeric proof and limits remain in the canonical item notes.
 | D428 | Orthographic AO/bounds interaction; diagnostic only, product repair pending | [Note](notes/orthographic-ao-artifact-2026-11-02/README.md) |
 | D429 | Viewer automatic orthographic depth conditioning; centered AO-ON artifact, real picks and bounded compatibility | [Note](notes/orthographic-depth-conditioning-2026-11-02/README.md) |
 | D430 | Far-coordinate first loss measured; integrity PASS, render/pick/product projection FAIL | [Note](notes/far-gpu-first-loss-2026-11-02/README.md) |
+| D431 | Viewer retained CPU Float64 input/world bounds/hits, explicit Float32 draw submissions; raster/Orbit held | [Note](notes/viewer-cpu-world-precision-2026-11-02/README.md) |
 
 <!-- D418 LEGACY COMPATIBILITY BEGIN: fixed original heading sequence -->
 <details>

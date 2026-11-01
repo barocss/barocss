@@ -1,5 +1,5 @@
-// Geometry kept on the CPU (so it can be re-uploaded after a device loss and ray-cast for picking) and
-// its vertex data as the viewer uploads it: positions, normals and linear RGBA8 colours.
+// Geometry kept on the CPU (so it can be re-uploaded after a device loss and ray-cast for picking).
+// Float64 input coordinates retain their precision here; raster uploads remain numeric Float32 copies.
 import { ViewerError } from './viewer-error.js';
 import { boxOfPositions, type Box3 } from './bounds.js';
 import type { LabelInput } from './glyphs.js';
@@ -37,7 +37,8 @@ export interface PreparedGeometry {
   /** A label geometry's labels (laid out against the viewer's glyph atlas when uploaded), else null. */
   labels: readonly LabelInput[] | null;
   /** uvs: null when the input had none (G13: they read as zero, from one buffer the viewer shares). */
-  positions: Float32Array; normals: Float32Array; colors: Uint8Array; uvs: Float32Array | null;
+  /** Owned source coordinates: Float64 input stays Float64; other ArrayLike input uses Float32. */
+  positions: Float32Array | Float64Array; normals: Float32Array; colors: Uint8Array; uvs: Float32Array | null;
   indices: Uint32Array | Uint16Array | null;
   faces: Uint32Array | null;
   edges: Uint32Array | null;
@@ -51,13 +52,13 @@ export interface PreparedGeometry {
 
 /**
  * A scalar field on a triangle geometry (G6): one value per vertex (interpolated) or per triangle (flat), NaN where there
- * is none. `draw` is what the GPU reads: the values per drawn vertex (a sentinel for none), and for a per-triangle field
- * the triangles' positions and normals laid out one vertex each (drawn without the index buffer, each triangle flat).
+ * is none. `draw` lays out values per drawn vertex (a sentinel for none), and for a per-triangle field the triangles'
+ * positions and normals one vertex each. Positions keep their CPU precision until the numeric Float32 raster upload.
  */
 export interface ScalarField {
   per: 'vertex' | 'triangle';
   values: Float32Array;
-  draw: { values: Float32Array; positions: Float32Array | null; normals: Float32Array | null };
+  draw: { values: Float32Array; positions: Float32Array | Float64Array | null; normals: Float32Array | null };
 }
 /** What the GPU reads for a missing value (WGSL makes no promise about NaN). */
 export const SCALAR_MISSING = -3e38;
@@ -73,7 +74,8 @@ export function prepareScalars(g: PreparedGeometry, input: ArrayLike<number>, pe
     for (let v = 0; v < n; v++) draw[v] = Number.isFinite(values[v]) ? values[v] : SCALAR_MISSING;
     return { per, values, draw: { values: draw, positions: null, normals: null } };
   }
-  const dv = new Float32Array(3 * T), P = new Float32Array(9 * T), N = new Float32Array(9 * T), GP = g.positions, GN = g.normals;
+  const GP = g.positions, GN = g.normals;
+  const dv = new Float32Array(3 * T), P = GP instanceof Float64Array ? new Float64Array(9 * T) : new Float32Array(9 * T), N = new Float32Array(9 * T);
   for (let t = 0; t < T; t++) {
     const x = Number.isFinite(values[t]) ? values[t] : SCALAR_MISSING;
     for (let k = 0; k < 3; k++) {
@@ -105,10 +107,10 @@ export function scalarAt(g: PreparedGeometry, t: number, p: ArrayLike<number>): 
 export function prepareGeometry(input: GeometryInput): PreparedGeometry {
   const topology = input.topology ?? 'triangles';
   if (topology === 'labels') return prepareLabels(input);
-  const positions = Float32Array.from(input.positions);
+  const positions = input.positions instanceof Float64Array ? Float64Array.from(input.positions) : Float32Array.from(input.positions);
   if (positions.length % 3) throw new ViewerError('GEOMETRY_INVALID', 'positions must hold three numbers per vertex');
   const vertexCount = positions.length / 3;
-  for (let i = 0; i < positions.length; i++) if (!Number.isFinite(positions[i])) throw new ViewerError('GEOMETRY_INVALID', `positions[${i}] is not finite`);
+  for (let i = 0; i < positions.length; i++) if (!Number.isFinite(Math.fround(positions[i]))) throw new ViewerError('GEOMETRY_INVALID', `positions[${i}] is not finite`);
   let indices: Uint32Array | Uint16Array | null = null;
   if (input.indices) {
     indices = vertexCount <= 0xffff ? Uint16Array.from(input.indices) : Uint32Array.from(input.indices);
@@ -122,7 +124,7 @@ export function prepareGeometry(input: GeometryInput): PreparedGeometry {
   if (input.normals) {
     normals = Float32Array.from(input.normals);
     if (normals.length !== positions.length) throw new ViewerError('GEOMETRY_INVALID', 'normals must match positions');
-  } else normals = topology !== 'triangles' ? new Float32Array(positions.length) : vertexNormals(positions, indices);
+  } else normals = topology !== 'triangles' ? new Float32Array(positions.length) : vertexNormals(positions instanceof Float64Array ? Float32Array.from(positions) : positions, indices);
   let faces: Uint32Array | null = null;
   if (input.faces) {
     if (topology !== 'triangles' || input.faces.length !== elementCount / 3) throw new ViewerError('GEOMETRY_INVALID', 'faces must hold one id per triangle');
@@ -342,7 +344,7 @@ export function rayTriangles(g: PreparedGeometry, origin: Vec3, direction: Vec3,
 // (The ray being tested and the nearest hit so far, at module level: one function for every triangle, no closure per
 // pick; PERF3 C17.)
 const EMPTY = new Float32Array(0), rayBox = new Float64Array(6);
-const ray = { P: EMPTY as Float32Array<ArrayBufferLike>, I: null as Uint32Array | Uint16Array | null, ox: 0, oy: 0, oz: 0, dx: 0, dy: 0, dz: 0, bestT: Infinity, bestTri: -1, bestBack: false, backs: true, tMin: 0, planes: null as ArrayLike<number> | null };
+const ray = { P: EMPTY as Float32Array<ArrayBufferLike> | Float64Array<ArrayBufferLike>, I: null as Uint32Array | Uint16Array | null, ox: 0, oy: 0, oz: 0, dx: 0, dy: 0, dz: 0, bestT: Infinity, bestTri: -1, bestBack: false, backs: true, tMin: 0, planes: null as ArrayLike<number> | null };
 /** Möller–Trumbore, both faces, with no allocation: triangle t against the ray, kept when nearer. */
 function rayTriangle(t: number): void {
   const P = ray.P, I = ray.I, dx = ray.dx, dy = ray.dy, dz = ray.dz;
@@ -525,7 +527,7 @@ function rectDistance(box: Float64Array, o: number, M: ArrayLike<number>, x: num
   return Math.hypot(dx, dy);
 }
 /** Clip coordinates (x, y, w) of vertex i through M. */
-function clipOf(out: Float64Array, M: ArrayLike<number>, P: Float32Array, i: number): void {
+function clipOf(out: Float64Array, M: ArrayLike<number>, P: ArrayLike<number>, i: number): void {
   const px = P[3 * i], py = P[3 * i + 1], pz = P[3 * i + 2];
   out[0] = M[0] * px + M[4] * py + M[8] * pz + M[12]; out[1] = M[1] * px + M[5] * py + M[9] * pz + M[13]; out[2] = M[3] * px + M[7] * py + M[11] * pz + M[15];
 }
