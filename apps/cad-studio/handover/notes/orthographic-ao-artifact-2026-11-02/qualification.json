@@ -1,0 +1,499 @@
+{
+  "work_id": "D428",
+  "artifact_type": "orthographic-ao-artifact-assessment",
+  "status": "QUALIFIED_BOUNDED_DIAGNOSTIC_NO_PRODUCT_REPAIR",
+  "owner_role": "executor",
+  "source_request": "Continue autonomously by roadmap; announce row/task and overall estimate",
+  "last_updated": "2026-11-02",
+  "rows": [
+    6,
+    13,
+    16
+  ],
+  "overallPercent": 43,
+  "sourceCheckpoint": "3d865008d4ee84fa3ff9a5121670b2d94b170be3",
+  "models": {
+    "gpuSource": "GPT-6.1 Sol High",
+    "independentRangeMath": "GPT-6.1 Sol High",
+    "actualProbe": "GPT-6.1 Sol Medium"
+  },
+  "units": {
+    "world": "mm",
+    "screen": "CSS pixels",
+    "image": "RGBA8 code values",
+    "time": "ms"
+  },
+  "profile": "Original centered radius-.001 STEP, Model Top/F/Ortho, public AO and Mesh.bounded factors; default grid and ground stay visible.",
+  "checks": {
+    "initialAOProbe": {
+      "status": "PASS_DIAGNOSTIC_INPUT_INTEGRITY_ONLY",
+      "probeSha256": "6b021babeb5792a070f7baa2e170099d123a1b61072707fc953d5689c2a02b0d",
+      "receiptSha256": "63ea7f4230ae944b8a0f5f2ea11c6817bdd53b8052eddc6f6bc511d8639ec611",
+      "frozenFiles": 755,
+      "afterFiles": 755,
+      "cleanupFiles": 755,
+      "capsulesEqual": true,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "changes": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "held": "Captured doc/body/workerF64arrays/tokens, Viewer IDs/data/transforms/materials/ground/grid/lights, eye/FOV/pose, clip planes and matrices exactly match; only environment AO changes.",
+      "arms": [
+        {
+          "label": "01-ao-on",
+          "enabled": true,
+          "inputSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+          "sourceDataHash": "272080c9692b4076f608c7eded794add3d9c81eb839039fd168cbd52a4b13d41",
+          "docHash": "bf3642f1231104efc2c5af1bb52aa8c8b26196948957289db6b1a7239c8b5821",
+          "width": 483.9018896484374,
+          "height": 483.9018859863282,
+          "image": {
+            "width": 1140,
+            "height": 1000,
+            "format": "RGBA8",
+            "pngSha256": "0040f2c658f447187bc938fdbfffcf72cb85a5057ab0490555eb9fbdd389c62f",
+            "rgbaSha256": "6859e7fd6219570883509e4c1ed5222b55c6636529cd92a8cf2ee312653ac73c"
+          },
+          "metrics": {
+            "roi": {
+              "left": 610,
+              "right": 690,
+              "top": 540,
+              "bottom": 620
+            },
+            "samples": 12800,
+            "mean": 6.934953484375014,
+            "p95": 17.14439999999999,
+            "max": 32.64700000000002,
+            "fractionAbove": 0.843125,
+            "threshold": 1.5,
+            "units": "sRGB luma levels (0..255), absolute axis second differences"
+          },
+          "actualAO": {
+            "radius": 1,
+            "strength": 0.9
+          }
+        },
+        {
+          "label": "02-ao-off",
+          "enabled": false,
+          "inputSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+          "sourceDataHash": "272080c9692b4076f608c7eded794add3d9c81eb839039fd168cbd52a4b13d41",
+          "docHash": "bf3642f1231104efc2c5af1bb52aa8c8b26196948957289db6b1a7239c8b5821",
+          "width": 483.9018896484374,
+          "height": 483.9018859863282,
+          "image": {
+            "width": 1140,
+            "height": 1000,
+            "format": "RGBA8",
+            "pngSha256": "fc9584891edb42cb0e3a032f657bb2847e324e1af01d429d65ee716e07c23ad9",
+            "rgbaSha256": "c6f19931a5b67a4a3f1e5e5003039c2744c78b16047813d0f3ea03b51fe5ca35"
+          },
+          "metrics": {
+            "roi": {
+              "left": 610,
+              "right": 690,
+              "top": 540,
+              "bottom": 620
+            },
+            "samples": 12800,
+            "mean": 0.44918870312499365,
+            "p95": 1,
+            "max": 1.0000000000000284,
+            "fractionAbove": 0,
+            "threshold": 1.5,
+            "units": "sRGB luma levels (0..255), absolute axis second differences"
+          },
+          "actualAO": false
+        },
+        {
+          "label": "03-ao-restored",
+          "enabled": true,
+          "inputSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+          "sourceDataHash": "272080c9692b4076f608c7eded794add3d9c81eb839039fd168cbd52a4b13d41",
+          "docHash": "bf3642f1231104efc2c5af1bb52aa8c8b26196948957289db6b1a7239c8b5821",
+          "width": 483.9018896484374,
+          "height": 483.9018859863282,
+          "image": {
+            "width": 1140,
+            "height": 1000,
+            "format": "RGBA8",
+            "pngSha256": "351291153c2f699ee4a4ce88371cd0bcaafbc199ea77c423fa673233e1edbad4",
+            "rgbaSha256": "f8920537f0a9a24b092f046270c4ecf49e01f3d4ce0e900e7cb3fd3ed24e36b8"
+          },
+          "metrics": {
+            "roi": {
+              "left": 610,
+              "right": 690,
+              "top": 540,
+              "bottom": 620
+            },
+            "samples": 12800,
+            "mean": 6.934953484375014,
+            "p95": 17.14439999999999,
+            "max": 32.64700000000002,
+            "fractionAbove": 0.843125,
+            "threshold": 1.5,
+            "units": "sRGB luma levels (0..255), absolute axis second differences"
+          },
+          "actualAO": {
+            "radius": 1,
+            "strength": 0.9
+          }
+        }
+      ],
+      "runtimeModules": {
+        "responses": 12,
+        "missingDirectSources": [],
+        "scope": "Transformed response hashes are provenance, not semantic source equivalence. Initial capture does not include surface/material-layer response bodies; next factor adds them."
+      },
+      "camera": {
+        "position": [
+          -1.0828158095145517e-19,
+          -2.2641025509036243e-06,
+          0.007206862015766368
+        ],
+        "target": [
+          -1.0842021724855044e-19,
+          0,
+          -1.0842021724855044e-19
+        ],
+        "distance": 0.007206862371410768,
+        "projection": "orthographic",
+        "near": -29.685718439152325,
+        "far": 29.720132162860686,
+        "autoClip": true
+      }
+    },
+    "groundFactor": {
+      "status": "PASS",
+      "qualification": "D428_DIAGNOSTIC_PUBLIC_GROUND_BOUNDS_AO_FACTOR",
+      "artifactAssessment": "DIAGNOSTIC_ONLY_NO_REPAIR_ACCEPTANCE",
+      "firstFailure": null,
+      "restoreFailure": null,
+      "finallyRestored": {
+        "status": "RESTORED",
+        "groundId": 3,
+        "docHash": "bf3642f1231104efc2c5af1bb52aa8c8b26196948957289db6b1a7239c8b5821"
+      },
+      "sourceFrozenCount": 758,
+      "sourceAfterCount": 758,
+      "sourceAfterCleanupCount": 758,
+      "capsulesEqual": true,
+      "errors": [],
+      "consoleErrors": [],
+      "changes": [],
+      "downloads": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "exit": 0,
+      "roiPairs": [
+        {
+          "a": "02-bounded-ao-off",
+          "b": "03-unbounded-ao-off",
+          "roiRGBAExactlyEqual": true,
+          "changedPixels": 0,
+          "maxRGBDifference": 0,
+          "meanAbsoluteRGBDifference": 0.0,
+          "aRoiHash": "b48fb934b383b9da879b37765b9cc48d01ee251bd9f4776e8620245b592d2ee4",
+          "bRoiHash": "b48fb934b383b9da879b37765b9cc48d01ee251bd9f4776e8620245b592d2ee4"
+        },
+        {
+          "a": "01-bounded-ao-on",
+          "b": "04-unbounded-ao-on",
+          "roiRGBAExactlyEqual": false,
+          "changedPixels": 5235,
+          "maxRGBDifference": 21,
+          "meanAbsoluteRGBDifference": 3.6157291666666667,
+          "aRoiHash": "728a89a20d86af65b69576abdb763bb6e9fe2b13eec8b0a082c34d2ef1a2d6d5",
+          "bRoiHash": "6cd9686c8f3bbdf053c2b1026ce685108c4fb3298d1fa551cd5ff5ee450721f2"
+        },
+        {
+          "a": "01-bounded-ao-on",
+          "b": "05-bounded-ao-restored",
+          "roiRGBAExactlyEqual": true,
+          "changedPixels": 0,
+          "maxRGBDifference": 0,
+          "meanAbsoluteRGBDifference": 0.0,
+          "aRoiHash": "728a89a20d86af65b69576abdb763bb6e9fe2b13eec8b0a082c34d2ef1a2d6d5",
+          "bRoiHash": "728a89a20d86af65b69576abdb763bb6e9fe2b13eec8b0a082c34d2ef1a2d6d5"
+        }
+      ],
+      "runtimeModules": {
+        "responses": 15,
+        "missingDirectSources": [],
+        "scope": "Passive real transformed response bodies and URLs, not semantic source equivalence",
+        "additionalShaderBodies": [
+          {
+            "source": "packages/barocss-gpu/src/viewer/shaders/surface.ts",
+            "url": "http://127.0.0.1:55221/@fs/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/src/viewer/shaders/surface.ts",
+            "status": 200,
+            "sha256": "14f339378951f59c4aa318fee27aca7c5b3f1d98794c6aa53b5ffd604045ed1b",
+            "bytes": 78972,
+            "file": "runtime-module-12.js"
+          },
+          {
+            "source": "packages/barocss-gpu/src/viewer/shaders/material-layer.ts",
+            "url": "http://127.0.0.1:55221/@fs/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/src/viewer/shaders/material-layer.ts",
+            "status": 200,
+            "sha256": "b17836562f72f7f64494837e0ac51761795fa466e00898edcf277353a704bb54",
+            "bytes": 19422,
+            "file": "runtime-module-14.js"
+          }
+        ]
+      },
+      "receiptSha256": "472f1a4017c9393f01a93e6f4718a46426fcbc40965bb1a9ae4b57abe21dde24",
+      "probeSha256": "9aa05e1851a67f038fb813586d6060b56730c263eeffecea53beed037f025092",
+      "arms": [
+        {
+          "label": "01-bounded-ao-on",
+          "bounded": true,
+          "enabled": true,
+          "inputSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+          "sourceDataHash": "77f3a35f83702d52dd5c229f8723decb03adaa1114aeba555f970314e2708f51",
+          "docHash": "bf3642f1231104efc2c5af1bb52aa8c8b26196948957289db6b1a7239c8b5821",
+          "metrics": {
+            "roi": {
+              "left": 610,
+              "right": 690,
+              "top": 540,
+              "bottom": 620
+            },
+            "samples": 12800,
+            "mean": 6.934953484375014,
+            "p95": 17.14439999999999,
+            "max": 32.64700000000002,
+            "fractionAbove": 0.843125,
+            "threshold": 1.5,
+            "units": "sRGB luma levels (0..255), absolute axis second differences"
+          },
+          "actualAO": {
+            "radius": 1,
+            "strength": 0.9
+          },
+          "sceneRadius": 28.28850028667286,
+          "groundCornerDepth": {
+            "min": 0.4997090501442065,
+            "max": 0.49992061597892967,
+            "allInNominalClip": true
+          },
+          "rasterClip": [
+            -29.685718439152325,
+            29.720132162860686
+          ]
+        },
+        {
+          "label": "02-bounded-ao-off",
+          "bounded": true,
+          "enabled": false,
+          "inputSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+          "sourceDataHash": "77f3a35f83702d52dd5c229f8723decb03adaa1114aeba555f970314e2708f51",
+          "docHash": "bf3642f1231104efc2c5af1bb52aa8c8b26196948957289db6b1a7239c8b5821",
+          "metrics": {
+            "roi": {
+              "left": 610,
+              "right": 690,
+              "top": 540,
+              "bottom": 620
+            },
+            "samples": 12800,
+            "mean": 0.44918870312499365,
+            "p95": 1,
+            "max": 1.0000000000000284,
+            "fractionAbove": 0,
+            "threshold": 1.5,
+            "units": "sRGB luma levels (0..255), absolute axis second differences"
+          },
+          "actualAO": false,
+          "sceneRadius": 28.28850028667286,
+          "groundCornerDepth": {
+            "min": 0.4997090501442065,
+            "max": 0.49992061597892967,
+            "allInNominalClip": true
+          },
+          "rasterClip": [
+            -29.685718439152325,
+            29.720132162860686
+          ]
+        },
+        {
+          "label": "03-unbounded-ao-off",
+          "bounded": false,
+          "enabled": false,
+          "inputSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+          "sourceDataHash": "77f3a35f83702d52dd5c229f8723decb03adaa1114aeba555f970314e2708f51",
+          "docHash": "bf3642f1231104efc2c5af1bb52aa8c8b26196948957289db6b1a7239c8b5821",
+          "metrics": {
+            "roi": {
+              "left": 610,
+              "right": 690,
+              "top": 540,
+              "bottom": 620
+            },
+            "samples": 12800,
+            "mean": 0.44918870312499365,
+            "p95": 1,
+            "max": 1.0000000000000284,
+            "fractionAbove": 0,
+            "threshold": 1.5,
+            "units": "sRGB luma levels (0..255), absolute axis second differences"
+          },
+          "actualAO": false,
+          "sceneRadius": 0.0017273743956007586,
+          "groundCornerDepth": {
+            "min": 0.10117889794233298,
+            "max": 0.24650622304741057,
+            "allInNominalClip": true
+          },
+          "rasterClip": [
+            -0.04324117422846461,
+            0.04324117422846461
+          ]
+        },
+        {
+          "label": "04-unbounded-ao-on",
+          "bounded": false,
+          "enabled": true,
+          "inputSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+          "sourceDataHash": "77f3a35f83702d52dd5c229f8723decb03adaa1114aeba555f970314e2708f51",
+          "docHash": "bf3642f1231104efc2c5af1bb52aa8c8b26196948957289db6b1a7239c8b5821",
+          "metrics": {
+            "roi": {
+              "left": 610,
+              "right": 690,
+              "top": 540,
+              "bottom": 620
+            },
+            "samples": 12800,
+            "mean": 0.4550391406249941,
+            "p95": 1,
+            "max": 3.0000000000000284,
+            "fractionAbove": 0.0028125,
+            "threshold": 1.5,
+            "units": "sRGB luma levels (0..255), absolute axis second differences"
+          },
+          "actualAO": {
+            "radius": 1,
+            "strength": 0.9
+          },
+          "sceneRadius": 0.0017273743956007586,
+          "groundCornerDepth": {
+            "min": 0.10117889794233298,
+            "max": 0.24650622304741057,
+            "allInNominalClip": true
+          },
+          "rasterClip": [
+            -0.04324117422846461,
+            0.04324117422846461
+          ]
+        },
+        {
+          "label": "05-bounded-ao-restored",
+          "bounded": true,
+          "enabled": true,
+          "inputSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+          "sourceDataHash": "77f3a35f83702d52dd5c229f8723decb03adaa1114aeba555f970314e2708f51",
+          "docHash": "bf3642f1231104efc2c5af1bb52aa8c8b26196948957289db6b1a7239c8b5821",
+          "metrics": {
+            "roi": {
+              "left": 610,
+              "right": 690,
+              "top": 540,
+              "bottom": 620
+            },
+            "samples": 12800,
+            "mean": 6.934953484375014,
+            "p95": 17.14439999999999,
+            "max": 32.64700000000002,
+            "fractionAbove": 0.843125,
+            "threshold": 1.5,
+            "units": "sRGB luma levels (0..255), absolute axis second differences"
+          },
+          "actualAO": {
+            "radius": 1,
+            "strength": 0.9
+          },
+          "sceneRadius": 28.28850028667286,
+          "groundCornerDepth": {
+            "min": 0.4997090501442065,
+            "max": 0.49992061597892967,
+            "allInNominalClip": true
+          },
+          "rasterClip": [
+            -29.685718439152325,
+            29.720132162860686
+          ]
+        }
+      ]
+    },
+    "productionRepair": "NOT_RUN_NEXT_D429",
+    "generalImageQuality": "NOT_QUALIFIED",
+    "unitAndTypeChecks": "NOT_RUN_NO_PRODUCT_OR_REPOSITORY_TEST_CHANGE",
+    "navigation": {
+      "status": "PASS",
+      "command": "PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH node apps/cad-studio/handover/scripts/check-navigation.mjs",
+      "newBroken": 0,
+      "rowPages": 34,
+      "archives": "unchanged"
+    },
+    "OCPAndNativeSourceCleanup": "PASS_ABSENT",
+    "independentPairedAudit": {
+      "status": "PASS",
+      "model": "GPT-6.1 Sol High",
+      "state01Equals05AndFinally": true,
+      "AOOffROIPairExact": true,
+      "restoredROIPairExact": true,
+      "allMeshBoundsCornerDepthContainedDoubleAndRoundedCoefficients": true,
+      "limit": "Rounded F32 coefficients are a source-arithmetic check, not GPU arithmetic readback. Scene-derived coupling prevents clip-only causation."
+    }
+  },
+  "sourceAssessment": {
+    "AO": "Post effect reconstructs view positions and normals from depth32float/F32 inverse projection; supplied PBR vertex normals are a separate path.",
+    "defaultModel": "AO radius1, strength.9. Two lit directions do not cast shadows; third shadow direction has intensity0. Contact shadows/DOF/bloom/custom material absent in this profile.",
+    "rangeSource": "Bounded ground helper adds20XY padding andz=minZ-.02; full3D bounding sphere creates captured ortho clip range. Source of range identified, not complete artifact mechanism.",
+    "manualClip": "Existing guard rejects manual autoClip=false with active AO/grid; no bypass allowed."
+  },
+  "independentMeasurements": {
+    "centralDiskSecondDifferenceRMS": {
+      "gpuOrtho": 7.0609,
+      "gpuOrthoRestored": 7.0609,
+      "gpuPerspective": 0.3644,
+      "glOrtho": 0.5612
+    },
+    "depthStep": 3.5409e-06,
+    "depthRoundingHalfStep": 1.7704e-06,
+    "limits": "Literal fixture/source-derived numerical support and descriptive PNG statistic; not GPU arithmetic certification or causal proof."
+  },
+  "nextProbe": "D429: preserve public Camera.clip and refine automatic Viewer orthographic depth to projected box support, with visible-label and invalid-interval legacy fallback. Qualify with AO ON and ground bounded/visible.",
+  "candidateRepair": "Selected direction only, not implemented in D428. Preserve scene bounds, caps, manual guards, grid extension and all default effect settings. Label shader depth expansion requires automatic legacy fallback; reject collapsed/nonfinite candidate intervals.",
+  "artifacts": [
+    "/tmp/barocss-d428-assessment",
+    "/tmp/barocss-d428-independent",
+    "/tmp/barocss-d428-probe/model-ao-run01",
+    "/tmp/barocss-d428-probe/ground-ao-run01"
+  ],
+  "limits": [
+    "No product, shader, camera or default AO/ground change.",
+    "AO participation does not by itself identify depth reconstruction versus radius/other AO mechanism.",
+    "Generic image quality and far-coordinate rendering/picking remain unqualified.",
+    "No download, paid call, further develop integration or release."
+  ],
+  "visualReview": "Root viewed all five paired images; pattern is absent with narrower bounds/AO ON and returns on restoration. This is bounded diagnostic proof, not repair acceptance.",
+  "commands": [
+    "MODEL_AO_PROBE_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' CAD_STUDIO_CHAT_PORT=52391 node /tmp/barocss-d428-probe/model-ao-probe.mjs /tmp/barocss-d428-probe/model-ao-run01 /tmp/barocss-d423-consumer/fixtures",
+    "GROUND_AO_PROBE_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' CAD_STUDIO_CHAT_PORT=52391 node /tmp/barocss-d428-probe/ground-ao-probe.mjs /tmp/barocss-d428-probe/ground-ao-run01 /tmp/barocss-d423-consumer/fixtures"
+  ],
+  "tier": "measurement with independent source and range review",
+  "conclusion": "Public bounded factor interacts strongly with AO: OFF ROI bytes identical across bounds; ON mean6.934953\u2192.455039; restored ON ROI exact. This supports depth-conditioning correction but scene-bound/shadow/frame-derived quantities are coupled, so it is not a clip-only intervention or unique shader mechanism proof.",
+  "issues": {
+    "2263": "OPEN; assemblies, presentation, PMI, remaining offsets and degenerate/seam profiles do not meet complete acceptance."
+  }
+}
