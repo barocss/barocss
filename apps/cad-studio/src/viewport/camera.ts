@@ -49,19 +49,27 @@ export class OrbitCamera {
 
   viewProjection(): Mat4 { return mul(this.projection(), this.view()); }
   /**
-   * The view-projection for project (R1b): made again only when the camera has moved — project runs for every edge end
-   * under a hover and every overlay point in a frame. The same matrix as viewProjection.
+   * The relative basis and projection for project: made again only when the camera has moved — project runs for
+   * every edge end under a hover and every overlay point in a frame. Invalid bases retain the legacy matrix path.
    */
-  private projector(): Mat4 {
+  private projector() {
     const k = this.projectorKey, t = this.target, o = this.ortho ? 1 : 0;
-    if (!this.projectorMatrix || k[0] !== t[0] || k[1] !== t[1] || k[2] !== t[2] || k[3] !== this.distance || k[4] !== this.yaw || k[5] !== this.pitch || k[6] !== this.fovY || k[7] !== o || k[8] !== this.aspect) {
+    if ((!this.projectorData && !this.projectorMatrix) || k[0] !== t[0] || k[1] !== t[1] || k[2] !== t[2] || k[3] !== this.distance || k[4] !== this.yaw || k[5] !== this.pitch || k[6] !== this.fovY || k[7] !== o || k[8] !== this.aspect) {
       k[0] = t[0]; k[1] = t[1]; k[2] = t[2]; k[3] = this.distance; k[4] = this.yaw; k[5] = this.pitch; k[6] = this.fovY; k[7] = o; k[8] = this.aspect;
-      this.projectorMatrix = this.viewProjection();
+      const b = this.basis(), projection = this.projection();
+      if (b.eye.every(Number.isFinite) && b.forward.every(Number.isFinite) && b.right.every(Number.isFinite) && b.up.every(Number.isFinite)
+        && (b.forward[0] !== 0 || b.forward[1] !== 0 || b.forward[2] !== 0)
+        && (b.right[0] !== 0 || b.right[1] !== 0 || b.right[2] !== 0)
+        && (b.up[0] !== 0 || b.up[1] !== 0 || b.up[2] !== 0)
+        && projection.every(Number.isFinite) && projection[0] !== 0 && projection[5] !== 0) {
+        this.projectorData = { ...b, projection }; this.projectorMatrix = null;
+      } else { this.projectorData = null; this.projectorMatrix = this.viewProjection(); }
     }
-    return this.projectorMatrix;
+    return this.projectorData;
   }
   private projectorKey = new Float64Array(9);
   private projectorMatrix: Mat4 | null = null;
+  private projectorData: { eye: Vec3; forward: Vec3; right: Vec3; up: Vec3; projection: Mat4 } | null = null;
 
   orbit(dx: number, dy: number) {
     this.yaw -= dx * 0.008;
@@ -145,7 +153,16 @@ export class OrbitCamera {
 
   /** Project a world point to CSS pixels. */
   project(p: Vec3, width: number, height: number): [number, number, number] {
-    const m = this.projector();
+    const b = this.projector();
+    if (b) {
+      const dx = p[0] - b.eye[0], dy = p[1] - b.eye[1], dz = p[2] - b.eye[2], P = b.projection;
+      const x = P[0] * (dx * b.right[0] + dy * b.right[1] + dz * b.right[2]);
+      const y = P[5] * (dx * b.up[0] + dy * b.up[1] + dz * b.up[2]);
+      const viewZ = -(dx * b.forward[0] + dy * b.forward[1] + dz * b.forward[2]);
+      const z = P[10] * viewZ + P[14], w = this.ortho ? 1 : -viewZ;
+      return [(x / w * 0.5 + 0.5) * width, (1 - (y / w * 0.5 + 0.5)) * height, z / w];
+    }
+    const m = this.projectorMatrix!;
     const x = m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12];
     const y = m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13];
     const z = m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14];

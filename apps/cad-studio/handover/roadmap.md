@@ -6,7 +6,8 @@ A bounded closeout does not close an entire feature family, format, standard or 
 
 ## Current navigation — authority
 
-- Latest CPU checkpoint: [D431 retained Viewer coordinates and world hits](notes/viewer-cpu-world-precision-2026-11-02/README.md), bounded CPU PASS; far raster/GPU pick/product projection remain FAIL.
+- Latest CPU camera checkpoint: [D432 relative project/ray queries](notes/camera-query-precision-2026-11-02/README.md), bounded CPU PASS including actual product pointer routes; far raster/GPU pick remain FAIL.
+- Previous CPU checkpoint: [D431 retained Viewer coordinates and world hits](notes/viewer-cpu-world-precision-2026-11-02/README.md), bounded CPU PASS; far raster/GPU pick/product projection remain FAIL.
 - Latest diagnosis: [D430 far-coordinate first loss](notes/far-gpu-first-loss-2026-11-02/README.md), diagnostic integrity PASS; far render/pick/product projection FAIL remain.
 - Latest bounded correction: [D429 orthographic depth conditioning](notes/orthographic-depth-conditioning-2026-11-02/README.md), effects-ON centered artifact and compatibility profiles qualified. General image quality and far GPU remain open.
 - Latest measurement: [D428 orthographic AO/bounds interaction](notes/orthographic-ao-artifact-2026-11-02/README.md), bounded diagnostic PASS; its selected correction is D429.
@@ -23,7 +24,7 @@ A bounded closeout does not close an entire feature family, format, standard or 
 
 - Active feature lane: **row 13, exchange and explicit loss profiles**. D418 is documentation maintenance, not a new exchange feature.
 - Rows 12 and 16 are cross-cutting file/acceptance and robustness work. Row 30 runs with row 16; row 31 follows row 30.
-- Latest bounded profile: [D429 orthographic depth conditioning, effects-ON image and real picking](notes/orthographic-depth-conditioning-2026-11-02/README.md). D430 first loss measured and D431 CPU authority qualified. Next: **D432 — correct measured CPU camera projection/ray precision**, rows 6/13/16. Far-coordinate GPU frame and picking work remains pending after that measured boundary, before further spherical OFFSET admission.
+- Latest bounded profile: [D429 orthographic depth conditioning, effects-ON image and real picking](notes/orthographic-depth-conditioning-2026-11-02/README.md). D430 first loss measured and D431 CPU authority qualified. D432 CPU camera projection/ray precision is qualified. Next: **D433 — coherent relative GPU raster-frame design and bounded correction**, rows 6/13/16. Far-coordinate GPU frame and picking work remains pending after that measured boundary, before further spherical OFFSET admission.
 - Accepted sequence: 10 → 11 → 13 → 14, subject to all owner HOLDs; usability row 15 precedes rows 17–19.
 - The unchanged [handoff §3 continuation order](notes/codex-handoff-2026-11-01/README.md#_3-%E1%84%83%E1%85%A1%E1%84%8B%E1%85%B3%E1%86%B7-%E1%84%8C%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%A5%E1%86%B8-%E1%84%85%E1%85%A9%E1%84%83%E1%85%B3%E1%84%86%E1%85%A2%E1%86%B8-%E1%84%89%E1%85%AE%E1%86%AB%E1%84%89%E1%85%A5) retains the detailed sequence and authority. This pointer does not activate manufacturing or Motion/Physics work.
 
@@ -42,7 +43,7 @@ A bounded closeout does not close an entire feature family, format, standard or 
 | 03 | [절삭 피처 선형 반복 — CG2](roadmap-rows/03.md) | Bounded closeout D373. | Bounded closed |
 | 04 | [실제 API 문서·그림·탐색 구조](roadmap-rows/04.md) | Bounded API/documentation closeout D374. | Bounded closed |
 | 05 | [Viewer 제품 마감과 다음 리뷰 전달](roadmap-rows/05.md) | Bounded Viewer closeout D375. | Bounded closed |
-| 06 | [GPU 소유 결과 인계와 다음 GPU 기능](roadmap-rows/06.md) | Existing GPU handoff/local merges; D427/D429 centered profiles qualified; D430 diagnosed first loss, D431 CPU world hits qualified; D432 camera queries next. | Partial |
+| 06 | [GPU 소유 결과 인계와 다음 GPU 기능](roadmap-rows/06.md) | Existing GPU handoff/local merges; D427/D429 centered profiles qualified; D430 diagnosed first loss, D431 CPU world hits qualified; D432 CPU camera queries qualified; D433 coherent GPU frame next. | Partial |
 | 07 | [Advanced modeling — CG1](roadmap-rows/07.md) | Delivered recorded modeling profiles; reuse D288–D316. | Partial |
 | 08 | [Feature patterns, direct editing and surfaces — CG2](roadmap-rows/08.md) | Bounded closeout D333–D347; extensions are separate. | Bounded closed |
 | 09 | [Advanced sketch — CG3](roadmap-rows/09.md) | BOUNDED_CLOSED for D348–D358/D366 scope. | Bounded closed |
@@ -52,7 +53,7 @@ A bounded closeout does not close an entire feature family, format, standard or 
 | 13 | [교환과 손실 표시 — CG7](roadmap-rows/13.md) | OPEN exchange scope; bounded analytic offsets D419, name-loss report D421 and translation arithmetic D422; D423 historical holds retained; bounded accuracy/label/Model profiles through D427, D429 centered ortho artifact fixed. Far GPU and general raster quality remain open. #2263/#2248/#2266 remain open. | Partial |
 | 14 | [생산 기능 — CG8](roadmap-rows/14.md) | Planned manufacturing; P2/PG11 HOLDs remain. | Planned / held |
 | 15 | [제품 사용성 — CG9](roadmap-rows/15.md) | U1–U4 and D425 quantity labels bounded closeouts; other usability work remains. | Partial |
-| 16 | [정확도·강건성·API/참조 — CG10, R7, #2210/#2215](roadmap-rows/16.md) | OPEN accuracy/robustness scope; Bounded kernel/Model fixes through D426; D427 centered camera/picking qualified. D428 diagnosis and D429 centered raster correction qualified; D431 CPU world data/queries qualified; D432 camera queries and far raster remain open. | Partial |
+| 16 | [정확도·강건성·API/참조 — CG10, R7, #2210/#2215](roadmap-rows/16.md) | OPEN accuracy/robustness scope; Bounded kernel/Model fixes through D426; D427 centered camera/picking qualified. D428 diagnosis and D429 centered raster correction qualified; D431 CPU world data/queries qualified; D432 CPU camera queries qualified; coherent far raster remains open. | Partial |
 | 17 | [경로 묶음·가상 클립 — PB0–PB4](roadmap-rows/17.md) | Existing bounded path/clip profiles; no automatic dynamics work. | Partial |
 | 18 | [관절·로봇 — J1/J2, R1/D1/R2, RS6/RS7/P4](roadmap-rows/18.md) | Existing staged robotics plan; Physics/Motion HOLD remains. | Partial |
 | 19 | [가상 실험·다물리·실측 — Stage0–6](roadmap-rows/19.md) | Existing staged experiment plan; CAE/Physics HOLDs remain. | Planned / held |

@@ -84,7 +84,25 @@ export class Camera implements CameraState {
 
   /** The ray through a point in normalised device coordinates (x, y in [−1, 1], y up). */
   ray(ndcX: number, ndcY: number, aspect: number): Ray {
+    // Keep the existing matrix admission and invalid-state behavior; valid rays avoid its world near-point cancellation.
     const inv = invert(this.viewProjection(aspect));
+    const P = this.projectionMatrix(aspect), b = this.basis();
+    if (inv.every(Number.isFinite) && P.every(Number.isFinite) && P[0] !== 0 && P[5] !== 0
+      && Number.isFinite(ndcX) && Number.isFinite(ndcY) && this.position.every(Number.isFinite)
+      && b.right.every(Number.isFinite) && b.up.every(Number.isFinite) && b.forward.every(Number.isFinite)
+      && (b.right[0] !== 0 || b.right[1] !== 0 || b.right[2] !== 0)
+      && (b.up[0] !== 0 || b.up[1] !== 0 || b.up[2] !== 0)
+      && (b.forward[0] !== 0 || b.forward[1] !== 0 || b.forward[2] !== 0)) {
+      const x = ndcX / P[0], y = ndcY / P[5], r = b.right, u = b.up, f = b.forward;
+      if (this.projection === 'orthographic' && Number.isFinite(this.near) && P[10] > 0) {
+        const origin: Vec3 = [this.position[0] + (r[0] * x + u[0] * y + f[0] * this.near),
+          this.position[1] + (r[1] * x + u[1] * y + f[1] * this.near), this.position[2] + (r[2] * x + u[2] * y + f[2] * this.near)];
+        if (origin.every(Number.isFinite)) return { origin, direction: f };
+      } else if (this.projection === 'perspective' && this.near > 0 && P[14] > 0) {
+        const direction = normalize([f[0] + r[0] * x + u[0] * y, f[1] + r[1] * x + u[1] * y, f[2] + r[2] * x + u[2] * y]);
+        if (direction.every(Number.isFinite) && (direction[0] !== 0 || direction[1] !== 0 || direction[2] !== 0)) return { origin: this.position, direction };
+      }
+    }
     const nearPoint = transformPoint(inv, [ndcX, ndcY, 1]);
     if (this.projection === 'orthographic') {
       const farPoint = transformPoint(inv, [ndcX, ndcY, 0]);
