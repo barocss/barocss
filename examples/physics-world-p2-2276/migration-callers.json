@@ -1,0 +1,127 @@
+{
+  "base": "0c8b3be71f10bc9e39f8c8097eeaf0cfba8175ae",
+  "changedFiles": [
+    {
+      "path": "examples/physics-scene/replay-probe.mjs",
+      "parentSha256": "f7623f10ff11af70c3ce07e9f862e6a646d35c0186c251b002b39c48eff05dac",
+      "currentSha256": "b086d97d76e81f2099c2a04c4d0f4c93c7f6b94e6eddad7e2515c0ad49e0e33c",
+      "parentGitBlob": "5cb6c5799d35811e74ea570033b0f3434b58cc99"
+    },
+    {
+      "path": "examples/physics-scene/release-consumer.mjs",
+      "parentSha256": "6bea7e5c62a9bf78142fd74132f80aa8e122b63292b6bd13b8d42208b0638947",
+      "currentSha256": "8df5c992d4f4180bc6bcb4fb6fe907716ad9f258566eda52e0ff2098ad04d2f2",
+      "parentGitBlob": "a8d019a9974b60a041d07afe64642760f1340ffd"
+    },
+    {
+      "path": "examples/physics-scene/source-import-probe.mjs",
+      "parentSha256": "82615b4a85afb6cd596477b638de497e7185eac7af79cbf174195ab28a3704be",
+      "currentSha256": "da26de1ea8e67ee44f72b7fce594a241af667d5750a367c39d0c7c153d645249",
+      "parentGitBlob": "889646aafff1d0a8590c62adc842017880f5ba72"
+    },
+    {
+      "path": "examples/physics-scene/dynamic-fixed-pair-probe.mjs",
+      "parentSha256": "4b24732fc9e4798a75cc64300c49baf4185363802a352d8c1809fe00fb598f87",
+      "currentSha256": "c6698e1c409981833da98f403ca5a080ec23906f7a011d0d9d208b1bde3b64e9",
+      "parentGitBlob": "4baad6cc5232a6d1cf085066dbc0d114497ce011"
+    },
+    {
+      "path": "examples/physics-scene/persistent-box-probe.mjs",
+      "parentSha256": "54d6ba34260811547fef8b03a0baaa1d1b30d156c30a66c1e20ab851ed20ed7d",
+      "currentSha256": "c829aaa7fcccae1d9844b211e8e40068561db7b841d898d523eeb34400538ee8",
+      "parentGitBlob": "c9cc452f404bd0d18ee933bda25af658d02ccfad"
+    },
+    {
+      "path": "examples/physics-scene/README.md",
+      "parentSha256": "e697505e12c731f3ebdac506e2f53ecd6185600596e7a5cfea2007d7c88036eb",
+      "currentSha256": "6ee2e59ca1c106f4bdfd33d7edd7ed9ec548810b062584d5e653f4418abed671",
+      "parentGitBlob": "200e0d9bfceebc88c1c9b5f3c003735772cb5b2c"
+    },
+    {
+      "path": "apps/library-docs/samples/physics-docs.test.mjs",
+      "parentSha256": "8d81188c94b3ada17176af8165e06d9dc314f48cfca9d76eb1a467d74b0d6326",
+      "currentSha256": "0496188d74602f7c229e159b8be17de50d9b1f34a33dea13aa03c6d1991ca9e5",
+      "parentGitBlob": "1c4f571ce5b7edaa6935721570479043d081fb17"
+    },
+    {
+      "path": "packages/barocss-physics/README.md",
+      "parentSha256": "e688eec9a3a0bac83107c471fe0b77b98e77f043a528ecc34a83d0817539e3ef",
+      "currentSha256": "3de48d5e32861ab6f2f54e68c0af1d5863e6c6570b1bf41b9e198a9dc473a2c8",
+      "parentGitBlob": "5e56b3b6a0585e97beb1fe4a792674a6c941811a"
+    },
+    {
+      "path": "packages/barocss-physics/ROADMAP.md",
+      "parentSha256": "150170ebd2bb62180f091e5295504f85504214d9a6d5b2559eb94ab9c588da3e",
+      "currentSha256": "8429142aecd7c7975809a997850b2a1c78fd3b9cbeea3e3ce077b35fa4002cc0",
+      "parentGitBlob": "af4a70e5f1f54b3c5676845961ef360b2fe7fde2"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt",
+      "parentSha256": "150170ebd2bb62180f091e5295504f85504214d9a6d5b2559eb94ab9c588da3e",
+      "currentSha256": "8429142aecd7c7975809a997850b2a1c78fd3b9cbeea3e3ce077b35fa4002cc0",
+      "parentGitBlob": "af4a70e5f1f54b3c5676845961ef360b2fe7fde2"
+    },
+    {
+      "path": "apps/library-docs/docs/packages/physics/index.md",
+      "parentSha256": "b3cfd09dd9fc487a0510c1fcc0a13a18ce8097a9400a9a4e12136f29d602fef9",
+      "currentSha256": "bc35c1d740c35f0d3a3eecd1c23e9931b2bfb817dff350913e18620800710c4f",
+      "parentGitBlob": "c698c6f67f6e6aafe4960cdb1ca5fd25c5a8b4ed"
+    },
+    {
+      "path": "apps/library-docs/docs/packages/physics/profiles-and-lifecycle.md",
+      "parentSha256": "b27678285937102f607f62e17f210feef60e18878249a691c09a6e41a040a8f2",
+      "currentSha256": "c5486a2adb1c28c068edfb65b29f117dd876d33603727f5260897f93210ce1b2",
+      "parentGitBlob": "455e35cf5ad0e04efe5824464a1fa51b820f41ec"
+    }
+  ],
+  "historicalOnlyCallers": [
+    {
+      "path": "examples/physics-world-p0-2276/callers.json",
+      "reason": "Named immutable historical P0/P1a/P1b checkpoint. Preserve; not a current API verification runner."
+    },
+    {
+      "path": "examples/physics-world-p0-2276/inventory.mjs",
+      "reason": "Named immutable historical P0/P1a/P1b checkpoint. Preserve; not a current API verification runner."
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/transaction.test.mjs",
+      "reason": "Named immutable historical P0/P1a/P1b checkpoint. Preserve; not a current API verification runner."
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/migration-services.json",
+      "reason": "Named immutable historical P0/P1a/P1b checkpoint. Preserve; not a current API verification runner."
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/native.mjs",
+      "reason": "Named immutable historical P0/P1a/P1b checkpoint. Preserve; not a current API verification runner."
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/public.test.mjs",
+      "reason": "Named immutable historical P0/P1a/P1b checkpoint. Preserve; not a current API verification runner."
+    }
+  ],
+  "immutableContractReferences": [
+    "packages/barocss-physics/design/p0/CONTRACT.md",
+    "packages/barocss-physics/design/p0/MIGRATION.md",
+    "apps/library-docs/docs/public/physics-evidence/p0-contract.txt",
+    "apps/library-docs/docs/public/physics-evidence/p0-migration.txt"
+  ],
+  "checks": {
+    "syntaxChecks": [
+      "node --check examples/physics-scene/replay-probe.mjs: PASS",
+      "node --check examples/physics-scene/dynamic-fixed-pair-probe.mjs: PASS",
+      "node --check apps/library-docs/samples/physics-docs.test.mjs: PASS"
+    ],
+    "gitDiffCheck": "PASS",
+    "runtimeSource": "NOT_RUN; parent owns actual frozen provider checks",
+    "runtimeEmitted": "NOT_RUN; parent owns actual frozen provider checks",
+    "build": "NOT_RUN; core owns build",
+    "scope": "12 caller/doc files only; no package src, root/shared build, numerical tolerances or archived evidence changed by this worker"
+  },
+  "notes": [
+    "Additional active replay callers dynamic-fixed-pair-probe and persistent-box-probe migrated under parent authorization.",
+    "Replay probe retains stale source gate in model.sourceBindings; release consumer uses actual CAD bindings; dynamic pair retains stale source gate in explicit inert binding. Original numerical gates unchanged.",
+    "Current docs describe P2 IMPLEMENTED_SOURCE, verification pending. Historical P1b checks remain attributed to their original providers.",
+    "No broad tree memory facts used. MEMORY search had no relevant hits."
+  ]
+}

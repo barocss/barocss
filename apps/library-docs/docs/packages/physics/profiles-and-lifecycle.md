@@ -60,7 +60,7 @@ A candidate refuses movement or measured penetration above 10 m, or angular disp
 ## Separate numerical profiles
 
 These entry points do not increase `PhysicsWorld` capacity or share its contacts. `/replay` delegates to one
-rigid world; it is a recording layer. `/fluid-cad` delegates to the fluid solver with a static CAD box; it is an
+rigid World through an attached recorder. `/fluid-cad` delegates to the fluid solver with a static CAD box; it is an
 adapter. Fluid and cloth own separate state and clocks. They do not exchange forces with the rigid world or with
 each other. Calling each `step` in turn does not provide a combined, atomic physical step.
 
@@ -75,7 +75,7 @@ throw `DISPOSED` on a second disposal. Do not assume one lifecycle contract acro
 | `/fluid`, version 1 or version 2 visual viscosity | Exactly 256 particles in a 0.7 × 1.3 × 0.5 m basin; 1/120 s; 3600 steps | Version 2 requires `visualViscosity:{kind:'xsph',coefficient:0.15}`. No calibrated viscosity, emitters or moving obstacles. |
 | `/cloth`, `pinned-sheet-sphere-v1` | Fixed 289 vertices and 512 triangles; 1/120 s; 240 host steps | Two pinned corners and one static sphere. Visual settings; no fabric calibration, self-collision, tearing or arbitrary meshes. |
 | `/fluid-cad`, version 1 water | Same version 1 water limits and one static axis-aligned CAD box proxy | Exact source/revision checks on step and reset. No version 2 viscosity combination or moving CAD obstacle. |
-| `/replay` | At most 512 frames, 4096 total commands, 128 KiB canonical scene and 1 MiB binary snapshot including its 8-byte magic | Bounded accepted rigid command log. Equality on restore does not establish physical accuracy. |
+| `/replay` | At most 512 frames, 4096 total commands, 128 KiB canonical model and 1 MiB binary recording including its 8-byte magic | Bounded accepted rigid command log. Equality on restore does not establish physical accuracy. |
 
 ## Own the clock and retain accepted state
 
@@ -107,7 +107,8 @@ public reset or arbitrary state setter. Create a new world for a new initial con
 | `WORLD_LIMIT` | The admitted step, frame or command budget is exhausted. Choose an explicit new session. |
 | `NUMERIC_LIMIT` | Stop advancing this model. Record the first failed input and the retained state before investigating. |
 | `STALE_SOURCE` | Re-admit the CAD source/revision explicitly before replacing the binding. |
-| `STALE_SNAPSHOT` | Scene or source identity differs. Restore only against the intended matching scene. |
+| `WORLD_OWNED` | Advance through the attached recorder; reads and queries remain available. |
+| `STALE_SNAPSHOT` | Model, source, configuration or provider identity differs. Restore only against the intended matching identity. |
 | `INVALID_SNAPSHOT` | Reject malformed, unsupported or damaged replay data. |
 | `INITIAL_OVERLAP` / `ITERATION_LIMIT` | Capsule-query refusal: initial penetration or unresolved bounded search. This is not a partial valid sweep. |
 | `DISPOSED` | Create a new instance. A disposed object cannot resume. |
@@ -123,28 +124,39 @@ instance. Do not assume `instanceof` identity across versions, realms or separat
 
 ## Restore a command log, not arbitrary state
 
-Create a scene with `createPhysicsScene(model,options,{revision,sourceRevision})`. Use
-`sourceRevision:null` when there is no CAD source. Then create a session with
-`createPhysicsReplaySession(scene)`. Its `step(commands?)` owns the configured `dt`; it does not take
-a step-size argument. `getScene()`, `getState()` and `saveSnapshot()` return copied data.
+Attach `createPhysicsRecorder(world)` at step0, before any World step. The recorder supplies
+`step(commands?)`, `getState()`, copied `saveRecording()` and `dispose()`. The configured `dt` owns time;
+`step` takes no step-size argument. A direct or cached `world.step` call and a second attachment refuse with
+`WORLD_OWNED`. World reads and queries remain available.
 
-`restorePhysicsReplaySession(snapshot, expectedScene)` validates exact scene/model/options, source and provider
-identity, creates a new world, replays accepted command frames and compares the final state at
-`1e-12` absolute/relative numeric tolerance. A changed revision gives `STALE_SNAPSHOT`; damaged
-data gives `INVALID_SNAPSHOT`. Object key insertion order does not change scene identity.
-Persist only with `serializePhysicsSnapshot(snapshot):Uint8Array` and read with
-`deserializePhysicsSnapshot(bytes)`. The wire format is ASCII `BCPHSNP1` followed by the bounded canonical
-typed encoding. It preserves IEEE754 binary64 number bits, including `-0`. JSON text is not a snapshot wire
-format. The decoder refuses old JSON, unknown tags, nonfinite numbers, truncated/trailing bytes and unsupported
-versions. Record keys use canonical ASCII order; arrays retain their order.
+Recorder disposal detaches it without disposing the World. Dispose both objects when finished. World disposal
+invalidates its recorder. Disposal releases recording/options references; no garbage-collection timing or
+out-of-memory recovery guarantee follows. An advanced World cannot acquire a new recording history.
+
+`restorePhysicsRecording(recording,{model,options,providerDigest})` validates complete recording shape and bounds
+before expected model, configuration and provider identity. Source revisions are model `sourceBindings` data.
+Use the intended current World's `getState().identity.providerDigest` as the external expected provider digest.
+Restore reconstructs an isolated World, replays indexed accepted commands and compares final state at `1e-12`
+absolute/relative numeric tolerance. It returns `{world,recorder}` only on success. Dispose both objects.
+The command frame and log budgets are checked before candidate calculation. Final state, returned copy and
+complete bounded encoding are prepared before the nonthrowing shared physical/log commit.
+Changed identity gives `STALE_SNAPSHOT`; damaged data gives `INVALID_SNAPSHOT`.
+
+Persist with `serializePhysicsRecording(recording):Uint8Array` and read with `deserializePhysicsRecording(bytes)`.
+The wire format is ASCII `BCPHREC1` followed by bounded canonical typed encoding. It preserves binary64 number
+bits, including `-0`. The decoder refuses JSON, unknown tags, nonfinite numbers, truncated/trailing bytes and
+unsupported versions. Record keys use canonical ASCII order; arrays retain their order.
 There is no old-version migration, arbitrary body-state import or bitwise cross-platform trajectory promise.
 
 <<< @/../samples/physics-docs.test.mjs#replay-import
 
 <<< @/../samples/physics-docs.test.mjs#replay-wire
 
-The current service creates and owns its rigid World. P2 recorder attachment, exclusive advancing ownership and
-factory renaming remain future work; `createPhysicsRecorder` is not a current runtime export.
+P2_DONE_LOCALSELECTED: public source05/emitted05 pass11/11 each; test-only preparation faults pass15/15 each
+across four step preparation points plus attach output preparation, each in three rigid profiles. Native03 passes staged published maps, strict positive/negative
+declarations, shared ownership registry, CAD release consumer and four README blocks. Ordinary probes and foundation
+checks pass21 per source/emitted graph; documentation samples pass174/174 in run03. Final recording callers pass3 per graph; documentation build/site/link receipts are docs-check/build/links-01. Historical P1b receipts apply only to their original providers.
+Whole-engine acceptance remains NO_GO.
 
 Keep a source-run receipt separate from a compiled-consumer receipt. Workspace aliases can resolve
 source even after a build. A compiled check must resolve each transitive package through its published

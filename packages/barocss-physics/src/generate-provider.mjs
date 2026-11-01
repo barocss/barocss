@@ -1,11 +1,21 @@
 // Build-time only. No file I/O or Node dependency reaches the numerical root.
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, unlink } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { dirname, resolve, relative, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const emitted = process.argv.includes('--emitted');
 const root = resolve(packageRoot, emitted ? 'dist' : 'src');
+// Retire only the generated modules removed by the P2 public API cutover.
+if (emitted) {
+  for (const name of ['replay-scene', 'replay-session', 'replay-types']) {
+    for (const suffix of ['.js', '.d.ts']) {
+      try { await unlink(resolve(root, name + suffix)); }
+      catch (error) { if (error.code !== 'ENOENT') throw error; }
+    }
+  }
+}
+
 const extension = emitted ? '.js' : '.ts';
 const excluded = `provider-manifest.generated${extension}`;
 const seen = new Map();

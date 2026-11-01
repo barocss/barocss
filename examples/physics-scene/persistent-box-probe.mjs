@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 import { createPhysicsWorld, PhysicsError } from '../../packages/barocss-physics/dist/index.js';
-import { createPhysicsScene, createPhysicsReplaySession,
-  restorePhysicsReplaySession } from '../../packages/barocss-physics/dist/replay.js';
+import { createPhysicsRecorder,
+  restorePhysicsRecording } from '../../packages/barocss-physics/dist/replay.js';
 
 const dt = 1 / 120;
 const material = { static: 1, dynamic: 0.7 };
@@ -78,14 +78,16 @@ copied.contacts[0].pointM[0] = 99;
 assert.notEqual(accepted.getState().contacts[0].pointM[0], 99);
 accepted.dispose(); control.dispose();
 
-const scene = createPhysicsScene(config(0.05), options, { revision: 'offsetStackRev1', sourceRevision: null });
-const replay = createPhysicsReplaySession(scene);
+const replayModel = config(0.05);
+const replayWorld = createPhysicsWorld(replayModel, options);
+const replay = createPhysicsRecorder(replayWorld);
 for (let index = 0; index < 120; index++) replay.step();
-const snapshot = replay.saveSnapshot();
-const restored = restorePhysicsReplaySession(snapshot, scene);
-assert.deepEqual(restored.getState(), replay.getState());
-assert.deepEqual(restored.step(), replay.step());
-replay.dispose(); restored.dispose();
+const recording = replay.saveRecording();
+const restored = restorePhysicsRecording(recording,
+  { model: replayModel, options, providerDigest: replayWorld.getState().identity.providerDigest });
+assert.deepEqual(restored.recorder.getState(), replay.getState());
+assert.deepEqual(restored.recorder.step(), replay.step());
+replay.dispose(); restored.recorder.dispose(); replayWorld.dispose(); restored.world.dispose();
 
 const rotated = createPhysicsWorld(makeModel({gravityMps2: [0, 0, 0], parts: [box('part:lower', 0, 0.25), {...(box('part:upper', 0.2, 0.68)), body: {...(box('part:upper', 0.2, 0.68)).body, initial: {...(box('part:upper', 0.2, 0.68)).body.initial, orientationXYZW: [0, 0, Math.sin(Math.PI / 12), Math.cos(Math.PI / 12)]}}}, floor]}), {profile: 'rigid-persistent-box-v1', fixedStepSeconds: dt, broadPhase: 'direct'});
 const rotatedState = rotated.step();

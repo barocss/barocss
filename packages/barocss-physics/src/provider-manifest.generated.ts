@@ -47,16 +47,15 @@ export const providerManifest = {
     "math.ts": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2",
     "model-admission.ts": "75ed6d033f6c76b90bb753458ea3464ad9126dd9ba7af82ca1fbe4f01bf8fdd9",
     "persistent-box-contact.ts": "2c117202db9bcb0b988b59f9add9cae57e09d175927122a313e7166720a63d9b",
+    "recording-owner.ts": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1",
     "replay-compare.ts": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec",
-    "replay-json.ts": "730c80e6aa3e05d5d8465eebbc7547cdb45105a859a848cf7f21608cff1086c5",
-    "replay-scene.ts": "95610be2f4541331b13cfc446b1bba09363978271ff559e5d58676d2f894e272",
-    "replay-session.ts": "5ec7675a440bff92b7c4691eac8308bb755f30f902ea1ab6828aa7aa30eebff2",
-    "replay-types.ts": "a1673f181ba1eb760f6f77e997da3c784f4d63a026ee738efdaeca0fe676f60a",
-    "replay.ts": "ac43246306afd24964db5bc94f964cc084c4365831be509f5ccf1eeac2b41f4f",
+    "replay-json.ts": "1ab8cf962443edd3be387e5095a9cce3f2071c8b44e47cc165ce82d5c00ac617",
+    "replay-validation.ts": "5fdbc90c06b8bd0e6fcc704447514400ea0d96c965f29d9ffa0b63063578f13c",
+    "replay.ts": "ecbdb6cd31452a57080ca52f43f75541a78080acf0288a2e6d0f022676c2c9e1",
     "scene-profile.ts": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7",
     "sleep.ts": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2",
     "types.ts": "c7239aee629e9e331949c67bf49e43315cae50df1a8f90730b7d634b185ca182",
     "validation.ts": "651d12754b77f86493f399baf3c02d60d9ad1fe54e0ece664a05a4430e8a0f01",
-    "world.ts": "9cd20a716c8be02129cdae9c8e937be298b3e24507d17d4821c7d0a4304df252"
+    "world.ts": "781c7a9ade917c49833d506b884d27df0f92c81e8c0539f07b15c3c7d9fda243"
   }
 } as const;

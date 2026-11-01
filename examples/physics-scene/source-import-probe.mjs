@@ -9,10 +9,10 @@ const packageDir = resolve(root, 'packages/barocss-physics');
 const contents = `
   import { createPhysicsWorld } from '@barocss/physics';
   import { admitCadSurfaceProxy } from '@barocss/physics/cad-proxy';
-  import { createPhysicsScene } from '@barocss/physics/replay';
+  import { createPhysicsRecorder } from '@barocss/physics/replay';
   import { createFluidWorld } from '@barocss/physics/fluid';
   import { createCadFluidWorld } from '@barocss/physics/fluid-cad';
-  console.log(createPhysicsWorld, admitCadSurfaceProxy, createPhysicsScene, createFluidWorld, createCadFluidWorld);
+  console.log(createPhysicsWorld, admitCadSurfaceProxy, createPhysicsRecorder, createFluidWorld, createCadFluidWorld);
 `;
 
 const published = JSON.parse(readFileSync(resolve(packageDir, 'package.json'), 'utf8')).publishConfig.exports;

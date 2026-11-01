@@ -1,21 +1,31 @@
 import { canonicalEncode } from './identity.js';
-import { PhysicsError } from './index.js';
+import { PhysicsError } from './types.js';
 import type { FailureCode } from './types.js';
 
 export function replayError(code: FailureCode, message: string): never {
   throw new PhysicsError(code, message);
 }
 
-interface Budget { nodes: number; seen: Set<object> }
+interface Budget { nodes: number; bytes: number; seen: Set<object> }
 
 function copyValue(input: unknown, label: string, depth: number, budget: Budget): unknown {
   if (++budget.nodes > 50000 || depth > 32) replayError('INVALID_SNAPSHOT', `${label} exceeds JSON depth or size`);
-  if (input === null || typeof input === 'string' || typeof input === 'boolean') return input;
+  budget.bytes += input === null || typeof input === 'boolean' ? 1 : typeof input === 'number' ? 9 : 5;
+  if (budget.bytes + 8 > MAX_RECORDING_BYTES) replayError('INVALID_SNAPSHOT', `${label} exceeds byte limit`);
+  if (input === null || typeof input === 'boolean') return input;
+  if (typeof input === 'string') {
+    for (const character of input) { const point = character.codePointAt(0)!;
+      budget.bytes += point < 0x80 ? 1 : point < 0x800 ? 2 : point < 0x10000 ? 3 : 4;
+      if (point >= 0xd800 && point <= 0xdfff) replayError('INVALID_SNAPSHOT', `${label} contains malformed Unicode`);
+    }
+    if (budget.bytes + 8 > MAX_RECORDING_BYTES) replayError('INVALID_SNAPSHOT', `${label} string exceeds byte limit`);
+    return input;
+  }
   if (typeof input === 'number') {
     if (!Number.isFinite(input)) replayError('INVALID_SNAPSHOT', `${label} contains a nonfinite number`);
     return input;
   }
-  if (typeof input !== 'object' || ![Object.prototype, null, Array.prototype].includes(Object.getPrototypeOf(input))) {
+  if (typeof input !== 'object' || Object.getPrototypeOf(input) !== (Array.isArray(input) ? Array.prototype : Object.prototype)) {
     replayError('INVALID_SNAPSHOT', `${label} must be plain JSON-compatible data`);
   }
   if (budget.seen.has(input)) replayError('INVALID_SNAPSHOT', `${label} has a cycle`);
@@ -37,6 +47,9 @@ function copyValue(input: unknown, label: string, depth: number, budget: Budget)
     if (keys.length > 64 || keys.some((key) => typeof key !== 'string' || !/^[\x20-\x7e]+$/.test(key))) {
       replayError('INVALID_SNAPSHOT', `${label} has unsupported fields`);
     }
+    budget.nodes += keys.length;
+    budget.bytes += (keys as string[]).reduce((total, key) => total + 5 + key.length, 0);
+    if (budget.nodes > 50000 || budget.bytes + 8 > MAX_RECORDING_BYTES) replayError('INVALID_SNAPSHOT', `${label} exceeds size limit`);
     const copied: Record<string, unknown> = {};
     for (const key of keys as string[]) {
       const field = Object.getOwnPropertyDescriptor(input, key);
@@ -50,7 +63,7 @@ function copyValue(input: unknown, label: string, depth: number, budget: Budget)
 }
 
 export function copyReplayJson<T>(input: T, label: string): T {
-  return copyValue(input, label, 0, { nodes: 0, seen: new Set() }) as T;
+  return copyValue(input, label, 0, { nodes: 0, bytes: 0, seen: new Set() }) as T;
 }
 
 export function exactFields(value: unknown, fields: string[], label: string): asserts value is Record<string, unknown> {
@@ -67,35 +80,35 @@ export function equivalentReplayIdentity(left: unknown, right: unknown): boolean
   return a.length === b.length && a.every((byte, index) => byte === b[index]);
 }
 
-/** BCPHSNP1 + P0 canonical typed encoding. No JSON or format migration reader. */
-const SNAPSHOT_MAGIC = Uint8Array.of(66, 67, 80, 72, 83, 78, 80, 49);
-export const MAX_SNAPSHOT_BYTES = 1024 * 1024;
+/** BCPHREC1 + P0 canonical typed encoding. No JSON or format migration reader. */
+const RECORDING_MAGIC = Uint8Array.of(66, 67, 80, 72, 82, 69, 67, 49);
+export const MAX_RECORDING_BYTES = 1024 * 1024;
 
-export function encodeSnapshotData(input: unknown): Uint8Array {
-  const data = canonicalEncode(copyReplayJson(input, 'snapshot'));
-  if (data.length + SNAPSHOT_MAGIC.length > MAX_SNAPSHOT_BYTES) replayError('INVALID_SNAPSHOT', 'snapshot exceeds byte limit');
-  const bytes = new Uint8Array(data.length + SNAPSHOT_MAGIC.length);
-  bytes.set(SNAPSHOT_MAGIC); bytes.set(data, SNAPSHOT_MAGIC.length);
+export function encodeRecordingData(input: unknown): Uint8Array {
+  const data = canonicalEncode(copyReplayJson(input, 'recording'));
+  if (data.length + RECORDING_MAGIC.length > MAX_RECORDING_BYTES) replayError('INVALID_SNAPSHOT', 'recording exceeds byte limit');
+  const bytes = new Uint8Array(data.length + RECORDING_MAGIC.length);
+  bytes.set(RECORDING_MAGIC); bytes.set(data, RECORDING_MAGIC.length);
   return bytes;
 }
 
-export function decodeSnapshotData(input: Uint8Array): unknown {
-  if (!(input instanceof Uint8Array) || input.length > MAX_SNAPSHOT_BYTES ||
-    input.length <= SNAPSHOT_MAGIC.length || !SNAPSHOT_MAGIC.every((byte, index) => input[index] === byte)) {
-    replayError('INVALID_SNAPSHOT', 'unsupported snapshot wire format or byte limit');
+export function decodeRecordingData(input: Uint8Array): unknown {
+  if (!(input instanceof Uint8Array) || input.length > MAX_RECORDING_BYTES ||
+    input.length <= RECORDING_MAGIC.length || !RECORDING_MAGIC.every((byte, index) => input[index] === byte)) {
+    replayError('INVALID_SNAPSHOT', 'unsupported recording wire format or byte limit');
   }
   // Own the bytes: decoder must never depend on caller mutations.
   const bytes = Uint8Array.from(input);
   const view = new DataView(bytes.buffer);
-  const decoder = new TextDecoder('utf-8', { fatal: true });
-  let offset = SNAPSHOT_MAGIC.length, nodes = 0;
+  const decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
+  let offset = RECORDING_MAGIC.length, nodes = 0;
   function take(length: number): number {
-    if (length > bytes.length - offset) replayError('INVALID_SNAPSHOT', 'truncated snapshot');
+    if (length > bytes.length - offset) replayError('INVALID_SNAPSHOT', 'truncated recording');
     const start = offset; offset += length; return start;
   }
   function uint32(): number { return view.getUint32(take(4), true); }
   function read(depth: number): unknown {
-    if (++nodes > 50000 || depth > 32) replayError('INVALID_SNAPSHOT', 'snapshot exceeds node or depth limit');
+    if (++nodes > 50000 || depth > 32) replayError('INVALID_SNAPSHOT', 'recording exceeds node or depth limit');
     const tag = bytes[take(1)];
     if (tag === 0) return null;
     if (tag === 1 || tag === 2) return tag === 2;
@@ -105,37 +118,37 @@ export function decodeSnapshotData(input: Uint8Array): unknown {
     }
     if (tag === 4) {
       const value = view.getFloat64(take(8), true);
-      if (!Number.isFinite(value)) replayError('INVALID_SNAPSHOT', 'snapshot contains nonfinite number');
+      if (!Number.isFinite(value)) replayError('INVALID_SNAPSHOT', 'recording contains nonfinite number');
       return value;
     }
     if (tag === 5) {
       const length = uint32();
-      if (length > 4096) replayError('INVALID_SNAPSHOT', 'snapshot array exceeds limit');
+      if (length > 4096) replayError('INVALID_SNAPSHOT', 'recording array exceeds limit');
       return Array.from({ length }, () => read(depth + 1));
     }
     if (tag === 6) {
       const length = uint32();
-      if (length > 64) replayError('INVALID_SNAPSHOT', 'snapshot record exceeds limit');
+      if (length > 64) replayError('INVALID_SNAPSHOT', 'recording record exceeds limit');
       const result: Record<string, unknown> = {};
       let previous: string | undefined;
       for (let i = 0; i < length; i++) {
         const key = read(depth + 1);
         if (typeof key !== 'string' || !/^[\x20-\x7e]+$/.test(key) || (previous !== undefined && key <= previous)) {
-          replayError('INVALID_SNAPSHOT', 'snapshot record keys must be unique canonical ASCII');
+          replayError('INVALID_SNAPSHOT', 'recording record keys must be unique canonical ASCII');
         }
         Object.defineProperty(result, key, { value: read(depth + 1), enumerable: true, writable: true, configurable: true });
         previous = key;
       }
       return result;
     }
-    replayError('INVALID_SNAPSHOT', 'unknown snapshot data tag');
+    replayError('INVALID_SNAPSHOT', 'unknown recording data tag');
   }
   try {
     const result = read(0);
-    if (offset !== bytes.length) replayError('INVALID_SNAPSHOT', 'snapshot has trailing bytes');
+    if (offset !== bytes.length) replayError('INVALID_SNAPSHOT', 'recording has trailing bytes');
     return result;
   } catch (error) {
     if (error instanceof PhysicsError) throw error;
-    replayError('INVALID_SNAPSHOT', 'invalid snapshot encoding');
+    replayError('INVALID_SNAPSHOT', 'invalid recording encoding');
   }
 }

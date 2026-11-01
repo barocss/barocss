@@ -1,8 +1,8 @@
 import { makeModel, dynamicPart } from '../physics-model-input/model.mjs';
 import assert from 'node:assert/strict';
 import { createPhysicsWorld, PhysicsError } from '../../packages/barocss-physics/dist/index.js';
-import { createPhysicsScene, createPhysicsReplaySession,
-  restorePhysicsReplaySession } from '../../packages/barocss-physics/dist/replay.js';
+import { createPhysicsRecorder,
+  restorePhysicsRecording, serializePhysicsRecording, deserializePhysicsRecording } from '../../packages/barocss-physics/dist/replay.js';
 
 const stepSeconds = 1 / 120;
 const body = (id, x) => (dynamicPart(id, { kind: 'sphere', radiusM: 0.05 }, {positionM: [x, 0.3, 0], velocityMps: [0, 0, 0]}, 1, {restitution: 0}));
@@ -56,17 +56,21 @@ assert.throws(() => world.step([{ kind: 'impulse', bodyId: 'part:b',
     (error.code === 'INVALID_COMMAND' || error.code === 'NUMERIC_LIMIT'));
 assert.equal(JSON.stringify(world.getState()), before, 'failed step replaced accepted pair state');
 world.dispose();
-const replayScene = createPhysicsScene(scene(), options, { revision: 'pair1', sourceRevision: 'cad1' });
-const replay = createPhysicsReplaySession(replayScene);
+const replayModel = { ...scene(), sourceBindings: [{ id: 'source:pair', sourceRevision: 'cad1', sourceDigest: 'sha256:' + '1'.repeat(64),
+  modelId: 'pair', occurrenceId: 'pair', entityIds: ['part:a', 'part:b'],
+  approximation: { kind: 'control-net-sphere', lossLabel: 'bounded pair replay fixture' } }] };
+const replayWorld = createPhysicsWorld(replayModel, options);
+const replay = createPhysicsRecorder(replayWorld);
+const expected = { model: replayModel, options, providerDigest: replayWorld.getState().identity.providerDigest };
 for (let step = 1; step <= 30; step++) replay.step(step === 1
   ? [{ kind: 'impulse', bodyId: 'part:b', impulseNs: [0.2, 0, 0] }] : []);
-const snapshot = JSON.parse(JSON.stringify(replay.saveSnapshot()));
-const restored = restorePhysicsReplaySession(snapshot, replayScene);
-assert.deepEqual(restored.getState(), replay.getState(), 'dynamic pair replay changed state');
-assert.throws(() => restorePhysicsReplaySession(snapshot,
-  createPhysicsScene(scene(), options, { revision: 'pair1', sourceRevision: 'cad2' })),
+const recording = deserializePhysicsRecording(serializePhysicsRecording(replay.saveRecording()));
+const restored = restorePhysicsRecording(recording, expected);
+assert.deepEqual(restored.recorder.getState(), replay.getState(), 'dynamic pair replay changed state');
+assert.throws(() => restorePhysicsRecording(recording,
+  { ...expected, model: { ...replayModel, sourceBindings: replayModel.sourceBindings.map(binding => ({ ...binding, sourceRevision: 'cad2' })) } }),
 error => error instanceof PhysicsError && error.code === 'STALE_SNAPSHOT');
-replay.dispose(); restored.dispose();
+replay.dispose(); restored.recorder.dispose(); replayWorld.dispose(); restored.world.dispose();
 const sortedStepMs = stepMs.slice().sort((left, right) => left - right);
 console.log(JSON.stringify({ result: 'ok', stepIndex: state.stepIndex, velocityCOM,
   peakAnchorGap, peakMomentumError, peakEnergyDrift, firstReactionA, firstReactionB,

@@ -1,0 +1,1 @@
+{"result":"PASS","providerDigest":"sha256:9e169ef8cca28c4d57c7bf9ae5919895ecb66bafa7ee95bd04db7680c0645f59","nativePackageImports":["@barocss/physics","@barocss/physics/replay"],"ownership":true,"sharedRegistry":true,"restoreContinuation":true,"signedZero":true}

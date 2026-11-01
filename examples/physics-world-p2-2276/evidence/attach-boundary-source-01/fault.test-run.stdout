@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: rigid-discrete-v1 injected frame-preflight preserves state,log and next20steps
+ok 1 - rigid-discrete-v1 injected frame-preflight preserves state,log and next20steps
+  ---
+  duration_ms: 104.840917
+  type: 'test'
+  ...
+# Subtest: rigid-discrete-v1 injected before-output preserves state,log and next20steps
+ok 2 - rigid-discrete-v1 injected before-output preserves state,log and next20steps
+  ---
+  duration_ms: 86.967875
+  type: 'test'
+  ...
+# Subtest: rigid-discrete-v1 injected log-encoding preserves state,log and next20steps
+ok 3 - rigid-discrete-v1 injected log-encoding preserves state,log and next20steps
+  ---
+  duration_ms: 86.436708
+  type: 'test'
+  ...
+# Subtest: rigid-discrete-v1 injected before-commit preserves state,log and next20steps
+ok 4 - rigid-discrete-v1 injected before-commit preserves state,log and next20steps
+  ---
+  duration_ms: 80.790625
+  type: 'test'
+  ...
+# Subtest: rigid-persistent-box-v1 injected frame-preflight preserves state,log and next20steps
+ok 5 - rigid-persistent-box-v1 injected frame-preflight preserves state,log and next20steps
+  ---
+  duration_ms: 279.628666
+  type: 'test'
+  ...
+# Subtest: rigid-persistent-box-v1 injected before-output preserves state,log and next20steps
+ok 6 - rigid-persistent-box-v1 injected before-output preserves state,log and next20steps
+  ---
+  duration_ms: 274.967125
+  type: 'test'
+  ...
+# Subtest: rigid-persistent-box-v1 injected log-encoding preserves state,log and next20steps
+ok 7 - rigid-persistent-box-v1 injected log-encoding preserves state,log and next20steps
+  ---
+  duration_ms: 265.060333
+  type: 'test'
+  ...
+# Subtest: rigid-persistent-box-v1 injected before-commit preserves state,log and next20steps
+ok 8 - rigid-persistent-box-v1 injected before-commit preserves state,log and next20steps
+  ---
+  duration_ms: 288.849833
+  type: 'test'
+  ...
+# Subtest: rigid-large-v1 injected frame-preflight preserves state,log and next20steps
+ok 9 - rigid-large-v1 injected frame-preflight preserves state,log and next20steps
+  ---
+  duration_ms: 641.22075
+  type: 'test'
+  ...
+# Subtest: rigid-large-v1 injected before-output preserves state,log and next20steps
+ok 10 - rigid-large-v1 injected before-output preserves state,log and next20steps
+  ---
+  duration_ms: 570.445208
+  type: 'test'
+  ...
+# Subtest: rigid-large-v1 injected log-encoding preserves state,log and next20steps
+ok 11 - rigid-large-v1 injected log-encoding preserves state,log and next20steps
+  ---
+  duration_ms: 562.04575
+  type: 'test'
+  ...
+# Subtest: rigid-large-v1 injected before-commit preserves state,log and next20steps
+ok 12 - rigid-large-v1 injected before-commit preserves state,log and next20steps
+  ---
+  duration_ms: 557.2325
+  type: 'test'
+  ...
+# Subtest: rigid-discrete-v1 failed recorder output preparation must not strand World ownership
+not ok 13 - rigid-discrete-v1 failed recorder output preparation must not strand World ownership
+  ---
+  duration_ms: 1.009042
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2738:91'
+  failureType: 'testCodeFailure'
+  error: 'World has an exclusive recorder'
+  code: 'WORLD_OWNED'
+  name: 'PhysicsError'
+  stack: |-
+    error (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:157:9)
+    file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2268:18
+    guarded (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2238:14)
+    Object.attach (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2267:26)
+    attachRecorder (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2536:24)
+    file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2639:45
+    recordingOperation (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2624:12)
+    createPhysicsRecorder (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2639:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2747:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+  ...
+# Subtest: rigid-persistent-box-v1 failed recorder output preparation must not strand World ownership
+not ok 14 - rigid-persistent-box-v1 failed recorder output preparation must not strand World ownership
+  ---
+  duration_ms: 0.60075
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2738:91'
+  failureType: 'testCodeFailure'
+  error: 'World has an exclusive recorder'
+  code: 'WORLD_OWNED'
+  name: 'PhysicsError'
+  stack: |-
+    error (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:157:9)
+    file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2268:18
+    guarded (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2238:14)
+    Object.attach (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2267:26)
+    attachRecorder (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2536:24)
+    file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2639:45
+    recordingOperation (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2624:12)
+    createPhysicsRecorder (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2639:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2747:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+  ...
+# Subtest: rigid-large-v1 failed recorder output preparation must not strand World ownership
+not ok 15 - rigid-large-v1 failed recorder output preparation must not strand World ownership
+  ---
+  duration_ms: 0.564875
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2738:91'
+  failureType: 'testCodeFailure'
+  error: 'World has an exclusive recorder'
+  code: 'WORLD_OWNED'
+  name: 'PhysicsError'
+  stack: |-
+    error (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:157:9)
+    file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2268:18
+    guarded (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2238:14)
+    Object.attach (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2267:26)
+    attachRecorder (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2536:24)
+    file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2639:45
+    recordingOperation (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2624:12)
+    createPhysicsRecorder (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2639:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/attach-boundary-source-01/fault.test.mjs:2747:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 12
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3859.182

@@ -1,0 +1,120 @@
+{
+  "inputs": {
+    "examples/physics-model-input/model.mjs": {
+      "bytes": 2051,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/types.js": {
+      "bytes": 418,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/recording-owner.js": {
+      "bytes": 46,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/provider-manifest.generated.js": {
+      "bytes": 1785,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/index.js": {
+      "bytes": 135977,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/recording-owner.js",
+          "kind": "import-statement",
+          "original": "./recording-owner.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/provider-manifest.generated.js",
+          "kind": "import-statement",
+          "original": "./provider-manifest.generated.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-scene/events-queries-probe.mjs": {
+      "bytes": 4142,
+      "imports": [
+        {
+          "path": "examples/physics-model-input/model.mjs",
+          "kind": "import-statement",
+          "original": "../physics-model-input/model.mjs"
+        },
+        {
+          "path": "node:assert/strict",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "packages/barocss-physics/dist/index.js",
+          "kind": "import-statement",
+          "original": "../../packages/barocss-physics/dist/index.js"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "examples/physics-world-p2-2276/evidence/probes-emitted-01/events-queries-probe.mjs": {
+      "imports": [
+        {
+          "path": "node:assert/strict",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "exports": [],
+      "entryPoint": "examples/physics-scene/events-queries-probe.mjs",
+      "inputs": {
+        "examples/physics-model-input/model.mjs": {
+          "bytesInOutput": 1888
+        },
+        "examples/physics-scene/events-queries-probe.mjs": {
+          "bytesInOutput": 4054
+        },
+        "packages/barocss-physics/dist/types.js": {
+          "bytesInOutput": 337
+        },
+        "packages/barocss-physics/dist/index.js": {
+          "bytesInOutput": 105743
+        },
+        "packages/barocss-physics/dist/recording-owner.js": {
+          "bytesInOutput": 53
+        },
+        "packages/barocss-physics/dist/provider-manifest.generated.js": {
+          "bytesInOutput": 1710
+        }
+      },
+      "bytes": 114135
+    }
+  }
+}

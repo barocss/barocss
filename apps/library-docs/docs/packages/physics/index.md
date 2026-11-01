@@ -18,7 +18,7 @@ decisions remain in force. See [Physics verification](/reference/physics-verific
 | Static-box capsule sweep | `createUprightCapsuleQuery` from the root | Geometric query; no dynamic body or hidden clock. |
 | Upright capsule movement | `createUprightCapsuleController` from the root | Fixed upright capsule and immutable bounded box scene. No general character dynamics. |
 | CAD proxy admission and display mapping | `admitCadSurfaceProxy`, `assertCadProxyCurrent`, `cadProxyPose` from `@barocss/physics/cad-proxy` | Source-bound control-net sphere or box approximation. |
-| Accepted command-log replay | `createPhysicsScene`, `createPhysicsReplaySession`, `restorePhysicsReplaySession` from `@barocss/physics/replay` | Versioned bounded scene and replay; no arbitrary state loading. |
+| Accepted command-log replay | `createPhysicsRecorder`, `restorePhysicsRecording` from `@barocss/physics/replay` | Attach at step0; bounded indexed recording; no arbitrary state loading. |
 | Visual water | `createFluidWorld` from `@barocss/physics/fluid` | Fixed 256-particle basin; visual settings, no calibrated fluid material. |
 | Visual sheet | `createClothWorld` from `@barocss/physics/cloth` | Fixed 289-vertex pinned sheet and static sphere. |
 | CAD obstacle in visual water | `createCadFluidWorld` from `@barocss/physics/fluid-cad` | One static axis-aligned CAD box proxy in version 1 water. |
@@ -122,8 +122,9 @@ and `dispose()`. State includes model, configuration and provider digests. It id
 separately. The old root config and root reduced-pendulum factory are removed. There is no compatibility engine.
 
 Fluid and cloth still have separate runtime owners and clocks until their own model transition. They do not
-exchange forces with the rigid world. The current replay service owns one rigid world; attachment through a future
-`createPhysicsRecorder(world)` is P2 work. CAD admission emits a body, collider and source binding; it never steps a
+exchange forces with the rigid world. The replay service attaches to the common World through
+`createPhysicsRecorder(world)` at step0 and owns advancing commands while attached. Recorder disposal detaches it;
+the caller also disposes the World. CAD admission emits a body, collider and source binding; it never steps a
 world. The [roadmap](/physics-evidence/api-roadmap.txt) and [migration contract](/physics-evidence/p0-migration.txt)
 separate these later transitions from this rigid root change. This API change does not establish coupling or a new
 numerical, Viewer, hardware or product acceptance result.
@@ -135,4 +136,7 @@ The rigid model/options cutover has selected source 8 / emitted 8 public checks,
 a native local published-map runtime/declaration receipt (`examples/physics-world-p1b-2276/evidence/native-04`).
 These are checks of named providers, not a new numerical qualification. Five foundation entries pass 21 tests; documentation samples pass 174/174 and source mapping passes (`mapping-02`).
 Documentation build, site and scoped link checks pass. README examples compile and execute (`native-05`). Current host callsites bundle with the absent Viewer SDK explicitly external; full Viewer/DOM execution remains NOT_RUN. Independent reduced-ODE receipts remain reference
-results; P2 recorder attachment and P5 domain migration remain future work. Existing HOLD and NO_GO decisions stay in force.
+results. P2_DONE_LOCALSELECTED has public source05/emitted05 checks11/11 each, test-only preparation-fault checks12/12
+each, and native published-map/runtime/type checks. These receipts apply to the named providers; whole-engine
+acceptance remains NO_GO. Final recording callers pass3 per graph and docs samples174/174; documentation build/site/link receipts are recorded separately. P5 domain migration
+remains future work. Existing HOLD and NO_GO decisions stay in force.

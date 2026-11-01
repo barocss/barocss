@@ -1,0 +1,96 @@
+TAP version 13
+# {"profile":"rigid-persistent-box-v1","frames":24,"continued":20,"sleeping":0,"contacts":1,"scope":"exact continuation; no stable-stack qualification"}
+# {"profile":"rigid-large-v1","frames":180,"continued":20,"sleeping":6,"contacts":6,"scope":"exact continuation; no stable-stack qualification"}
+# {"metric":"ballistic","errorsM":[0.08174999999999999,0.04087500000000688,0.020437499999998554],"ratios":[1.9999999999996632,2.000000000000478]}
+# {"metric":"cad-off-origin","translationMm":[160,-80.00000000000001,0],"gateMm":0.000001,"sourceAndRevisionStaleRefused":true}
+# Subtest: one attached owner; cached direct step cannot bypass; read/query and detached lifecycle
+ok 1 - one attached owner; cached direct step cannot bypass; read/query and detached lifecycle
+  ---
+  duration_ms: 11.609958
+  type: 'test'
+  ...
+# Subtest: accepted log/state are copied; invalid and numerical failures preserve continuation
+ok 2 - accepted log/state are copied; invalid and numerical failures preserve continuation
+  ---
+  duration_ms: 25.571417
+  type: 'test'
+  ...
+# Subtest: command reflection cannot reenter any lifecycle operation or diverge applied and recorded values
+ok 3 - command reflection cannot reenter any lifecycle operation or diverge applied and recorded values
+  ---
+  duration_ms: 7.001916
+  type: 'test'
+  ...
+# Subtest: frame and aggregate command budgets refuse without advancing or changing log
+ok 4 - frame and aggregate command budgets refuse without advancing or changing log
+  ---
+  duration_ms: 2394.985542
+  type: 'test'
+  ...
+# Subtest: recording byte/model budgets fail before ownership or accepted physical commit
+ok 5 - recording byte/model budgets fail before ownership or accepted physical commit
+  ---
+  duration_ms: 10.073
+  type: 'test'
+  ...
+# Subtest: rigid-persistent-box-v1 restores contact/cache/events/sleep continuation at unchanged gates
+ok 6 - rigid-persistent-box-v1 restores contact/cache/events/sleep continuation at unchanged gates
+  ---
+  duration_ms: 179.67525
+  type: 'test'
+  ...
+# Subtest: rigid-large-v1 restores contact/cache/events/sleep continuation at unchanged gates
+ok 7 - rigid-large-v1 restores contact/cache/events/sleep continuation at unchanged gates
+  ---
+  duration_ms: 757.916625
+  type: 'test'
+  ...
+# Subtest: wire signed zero and frozen canonical bytes match independent SHA; old wire and malformed bytes refuse
+ok 8 - wire signed zero and frozen canonical bytes match independent SHA; old wire and malformed bytes refuse
+  ---
+  duration_ms: 10.496541
+  type: 'test'
+  ...
+# Subtest: complete shape refusal precedes stale identity; damage never mutates the source World/log
+ok 9 - complete shape refusal precedes stale identity; damage never mutates the source World/log
+  ---
+  duration_ms: 18.408208
+  type: 'test'
+  ...
+# Subtest: ballistic independent truth and CAD off-origin/stale source gates remain unchanged
+ok 10 - ballistic independent truth and CAD off-origin/stale source gates remain unchanged
+  ---
+  duration_ms: 290.804959
+  type: 'test'
+  ...
+# Subtest: canonical UTF-8 leading BOM is model data, and must survive save/load unchanged
+not ok 11 - canonical UTF-8 leading BOM is model data, and must survive save/load unchanged
+  ---
+  duration_ms: 4.73675
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/wire-boundary-source-01/public.test.mjs:7988:1'
+  failureType: 'testCodeFailure'
+  error: 'recording identity differs from inputs'
+  code: 'INVALID_SNAPSHOT'
+  name: 'PhysicsError'
+  stack: |-
+    replayError (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/wire-boundary-source-01/public.test.mjs:2313:9)
+    admitRecording (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/wire-boundary-source-01/public.test.mjs:2532:278)
+    deserializeRecording (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/wire-boundary-source-01/public.test.mjs:2691:21)
+    file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/wire-boundary-source-01/public.test.mjs:2725:45
+    recordingOperation (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/wire-boundary-source-01/public.test.mjs:2701:12)
+    deserializePhysicsRecording (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/wire-boundary-source-01/public.test.mjs:2725:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/wire-boundary-source-01/public.test.mjs:7994:21)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 10
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3777.460125

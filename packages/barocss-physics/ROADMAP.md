@@ -112,9 +112,9 @@ their owning entity, not interchangeable global body IDs. A collider has an owne
 identity. Source revision, model digest and approximation loss stay with a CAD binding; parsing a CAD source must
 not be required by the numerical core.
 
-### Current rigid API and planned common services
+### Current rigid API and recording services
 
-The first five operations are the current rigid root. Recorder attachment and final CAD service naming remain P2 work:
+The rigid root and attached recording service use these current signatures:
 
 ```text
 createPhysicsWorld(model: PhysicsModel, options: WorldOptions): PhysicsWorld
@@ -126,8 +126,10 @@ world.step(commands = [])         -> copied state after exactly one configured h
 world.query(request)              -> result from accepted state only
 world.dispose()                   -> idempotent; subsequent operations refuse DISPOSED
 
-createPhysicsRecorder(world)      -> planned P2: recording controller with exclusive step ownership
-restorePhysicsRecording(log, expectedModel, expectedRuntime) -> planned P2: new admitted World and recorder
+createPhysicsRecorder(world)      -> recorder with exclusive advancing ownership; attach at step0
+restorePhysicsRecording(recording, {model, options, providerDigest}) -> {world, recorder}
+serializePhysicsRecording(recording) -> Uint8Array with BCPHREC1 magic
+deserializePhysicsRecording(bytes) -> copied validated recording
 
 admitCadSurfaceProxy(source, request) -> current: numerical collider/body input + source binding + explicit loss
 cadProxyPose(proxy, bodyState, currentSource, currentRevision) -> current: display transform after exact source/revision checks
@@ -147,11 +149,12 @@ For reset, construct a new World from its admitted model. Recording restore foll
 path. Do not retain domain-specific reset semantics in the common API.
 
 A recorder must prevent unrecorded direct steps while attached. It reads only completed accepted commits and appends
-the matching commands exactly once. It prepares the bounded log entry and checks recording budgets before any
-physical candidate executes. World state, hidden caches, clock and that prepared entry commit together through a
-non-throwing internal operation. No serialization, callback or further admission check may fail between those
+the matching commands exactly once. It preflights the next indexed command frame and log budgets before any physical candidate executes. After
+candidate calculation, it prepares the returned state copy, final recording state and complete bounded encoding
+before the nonthrowing shared commit. World state, hidden caches, clock and the prepared recording commit together. No serialization, callback or further admission check may fail between those
 commits. Observer failures after a completed commit are reported as observer errors, never as a refused physical step.
-Disposing a recorder detaches it; World disposal remains owned by its creator.
+Disposing a recorder detaches it and releases its recording/options references; World disposal remains owned by its
+creator. These ownership checks do not establish garbage-collection timing or recovery from out-of-memory failure.
 Restore creates a new World and validates profile, model, source revision, solver/runtime identity and log budgets.
 Distinguish replay-by-reexecution from exact checkpoint restore. Checkpoints would need warm impulses, XPBD lambdas,
 sleep/island state, RNG state and all other history-dependent data. Until that state is specified and tested, expose
@@ -204,9 +207,9 @@ iterations, original input law or evidence in order to pass.
 
 | Slice | Dependency and bounded change | Exit evidence | Current status |
 |---|---|---|---|
-| P0 — capability and API contract | This source baseline and current owner/HOLD check. Inventory all public factories, subpaths and first-party callers; fix model/state/command/error/lifetime/recording contracts. | Every current supported/refused/unmeasured row mapped; complete caller file list; proposed types and negative cases; no silent domain isolation. | CONTRACT_READY: target types/negative consumers and admission-constant checks pass; bounded caller inventory classified. Runtime target NOT_IMPLEMENTED. |
+| P0 — capability and API contract | This source baseline and current owner/HOLD check. Inventory all public factories, subpaths and first-party callers; fix model/state/command/error/lifetime/recording contracts. | Every current supported/refused/unmeasured row mapped; complete caller file list; proposed types and negative cases; no silent domain isolation. | CONTRACT_READY at frozen P0; bounded inventory and types passed. Rigid runtime is adopted by P1b/P2; unsupported domains remain future work. |
 | P1 — common World, rigid first | P0. Separate immutable model from rigid runtime without changing numerical phases; implement one clock, candidate caches, copied state and idempotent disposal. | Existing admitted rigid fixtures and refusal precedence preserved; failure injection before and after each phase leaves accepted state/cache/log/time identical; deterministic next accepted step matches a fresh control. Measure allocation and per-step cost. | P1a_DONE. P1b model/options cutover implemented locally: selected source 8 / emitted 8 public checks and 21 focused probes per graph pass; native emitted runtime/declarations pass. Docs samples174/174, site/build/link checks and README native examples pass. Viewer SDK stays explicitly external in host callsite bundles; full DOM execution NOT_RUN. No new body/joint support. |
-| P2 — recording and CAD boundary | P1. Move recording to the common World; separate CAD admission from runtime; migrate actual callers directly. | Record/restore/continue matches source and actual emitted consumers; stale source/model/profile rejection; unrecorded stepping prevented; numerical root graph has no CAD/parser/Viewer imports. MMGS/off-origin independent adapter tests pass. | BACKLOG. No arbitrary checkpoint import or CAD Studio integration. |
+| P2 — recording and CAD boundary | P1. Move recording to the common World; separate CAD admission from runtime; migrate actual callers directly. | Record/restore/continue matches source and actual emitted consumers; stale source/model/profile rejection; unrecorded stepping prevented; numerical root graph has no CAD/parser/Viewer imports. MMGS/off-origin independent adapter tests pass. | P2_DONE_LOCALSELECTED. Public source/emitted11/11 each; test-only injected preparation15/15 each; native published maps/types PASS. No arbitrary checkpoint import or CAD Studio integration. |
 | P3 — hinge and mechanism dynamics | P1; original #1489 contract. Preserve four spheres, two disjoint hinges, 1/120 s and 1200 steps. Retain step77 raw-bit failure. | Exact original source/repeat/emitted/reference gates; independently verified rename/order controls before widening admission. Resolve missing original runtime operands or separately decide a new cross-runtime claim without rewriting the old gate. | NO_GO. Scalar reconstruction alone is insufficient. #1490 stays dependent on public adoption and existing owner authority. |
 | P4 — contact and original eight-box exit | P1 and the already measured 32-point equilibrium/192-row repair. Improve independent reference cost within the fixed 180 s budget before full replay. Preserve original inputs and all points. | Same32 patch equilibrium, strict line booleans, 1e-9 m geometry, 1e-10 SI residual gates; original ALIGNED/OFFSET/YAW1200-step settling metrics; actual source/repeat/emitted graph and per-phase accounting. Public adoption only after the full selected contract. | NO_GO. Matched16-step prefixes pass; separate ALIGNED308-step source attempt is incomplete. Public persistent limit stays4. |
 | P5 — cloth and fluid as model data | P1/P2 and each domain's independent current receipts. Extract kernels into candidate buffers, admit existing fixed scenes as explicit model data and static colliders. No dynamic coupling. | Reproduce original fixed-profile results before adding input freedom; domain failure rolls back whole host step; common-clock/substep checks; source/emitted closure; reject unsupported cross-domain pairs. | BACKLOG; visual evidence class stays visual. Can proceed independently of unrelated full-stack acceptance within its own frozen scope. |
@@ -307,14 +310,14 @@ shared cloth lambdas and fluid scratch ownership as explicit next-step tests, no
 
 The transition started with preparation P1a under the old root signature; P1b now performs the direct public
 model/options cutover with all affected root/replay/CAD consumers. This adds no compatibility overload or parallel
-engine. Recording wire encoding must preserve signed zero; raw JSON is not the current snapshot wire path. See the
+engine. Recording wire encoding must preserve signed zero; raw JSON is not the current recording wire path. See the
 P0 report in `examples/physics-world-p0-2276/`. Original HOLD/NO_GO/error gates and archived failures remain unchanged.
 
 
 ## P1a checkpoint (2026-11-02)
 
 The canonical rigid implementation prepares its copied successful output before accepted state replacement.
-Replay prepares next frames/count before advancing its privately owned World. Only those two runtime providers
+At P1a, replay prepared next frames/count before advancing its then-private World. Only those two runtime providers
 changed at that checkpoint; its then-current signatures, exports, admission and numerical phases were retained as the sole canonical API.
 This is the explicit P1a preparation in `design/p0/MIGRATION.md`, not a compatibility facade or completed P1b.
 
@@ -336,9 +339,9 @@ configuration and provider digests; signed zero is retained. The source and emit
 their actual graphs. The emitted root keeps its provider module external until post-bundle manifest generation.
 No old config converter, root overload, fallback engine or root reduced-pendulum export remains.
 
-Replay retains its sole current scene/session service until P2, with direct `model`, `options` and `identity`
-scene fields. Its binary snapshot codec uses `BCPHSNP1` plus bounded canonical typed bytes. There is no raw JSON
-or old-schema migration reader. CAD admission supplies separate numerical body/collider and source-binding data;
+At the frozen P1b checkpoint, replay used its former scene/session service and prior binary format. Those
+receipts remain historical. Current P2 source uses the attached common-World recorder and `BCPHREC1` binary
+recording format. There is no raw JSON or old-schema migration reader. CAD admission supplies separate numerical body/collider and source-binding data;
 exact source text/revision and off-origin mapping remain adapter responsibilities. Fluid/cloth own their current
 single domain factories until P5; no new domain law or dynamic coupling is enabled.
 
@@ -350,6 +353,36 @@ passes in `mapping-02`. These records verify the named providers only. Documenta
 P1a pinned injection runners remain historical and are not modern API evidence. Source mappings and preserved parent
 hashes are in `examples/physics-world-p1b-2276/migration-services.json` and the other slice migration ledgers.
 
-No new physics qualification follows from an API cutover. P2 attached-recorder ownership, P3 mechanisms, P4 full
-original-stack exit and P5 domain migration remain separate work. Existing HOLDs, original NO_GO results,
+No new physics qualification follows from an API cutover. P2 attached-recorder ownership has selected local source/emitted and native verification. P3 mechanisms, P4 full original-stack exit and P5 domain migration remain
+separate work. Existing HOLDs, original NO_GO results,
 first failures, numerical gates, immutable reports and release boundaries remain unchanged.
+
+## P2 checkpoint (2026-11-02; P2_DONE_LOCALSELECTED)
+
+`createPhysicsRecorder(world)` attaches to one common World at step0. Direct/cached World stepping and a second
+attachment refuse `WORLD_OWNED`; reads and queries remain available. Recorder disposal detaches without disposing
+the World. World disposal invalidates its recorder. Advanced Worlds cannot start a new history.
+`saveRecording()` returns copied model/options/identity, indexed command frames and final state.
+`restorePhysicsRecording(recording,{model,options,providerDigest})` reconstructs an isolated candidate and returns
+`{world,recorder}` only after complete validation, exact expected identity and the original1e-12 final-state comparison.
+Source revisions remain in model source bindings; CAD mapping still checks exact current source text/revision.
+`serializePhysicsRecording` / `deserializePhysicsRecording` use bounded canonical typed bytes with `BCPHREC1` magic.
+The old public scene/session constructors and snapshot codec are removed without aliases or migration readers.
+
+Selected P2 checks pass on their named providers: public source05 and emitted05 each11/11; test-only fault
+source04 and emitted04 each15/15: four step preparation points and attach output preparation, each across three rigid profiles. Native03 passes actual
+staged publish-map runtime, strict positive/negative declarations, shared ownership registry, CAD release consumer
+and all four README code blocks. Ordinary probes pass21 per source/emitted graph in run02; the three recording callers also pass after final fixes in records-source/emitted-01; foundation checks pass21
+per graph. Documentation samples pass174/174 in run03. Documentation build/site/link checks are recorded separately in docs-check/build/links-01.
+
+The large fixture has six sleeping bodies at step180, restores and continues20steps, then checks wake behavior.
+The off-origin CAD maximum error is1.421e-14mm against the original1e-6mm gate. Independent ballistic position
+errors are81.75/40.875/20.4375mm with refinement ratio2. These checks do not widen the admitted physics profiles.
+Frame512, aggregate-command4096, canonical-model128KiB, total-recording1MiB and original1e-12 comparison gates remain.
+Before a physical candidate, frame/log preflight completes. After the candidate, final state, returned copy and
+recording encoding complete before the nonthrowing shared commit. Disposal releases recording/options references;
+no garbage-collection timing or out-of-memory guarantee follows.
+
+Whole-engine acceptance remains NO_GO. Named provider receipts and first failures remain separate from physical
+qualification. P0/P1a/P1b evidence, original two-hinge/eight-box NO_GO, HOLDs, numerical gates, domain factories
+pending P5, and deployment/product acceptance boundaries remain unchanged.

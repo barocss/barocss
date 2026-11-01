@@ -1,0 +1,130 @@
+{
+  "inputs": {
+    "packages/barocss-physics/dist/types.js": {
+      "bytes": 418,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/recording-owner.js": {
+      "bytes": 46,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/provider-manifest.generated.js": {
+      "bytes": 1785,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/index.js": {
+      "bytes": 135977,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/recording-owner.js",
+          "kind": "import-statement",
+          "original": "./recording-owner.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/provider-manifest.generated.js",
+          "kind": "import-statement",
+          "original": "./provider-manifest.generated.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-planar-pendulum-reference/pendulum.ts": {
+      "bytes": 6523,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "../../packages/barocss-physics/src/types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-motion-foundations-2276/pendulum.test.ts": {
+      "bytes": 16820,
+      "imports": [
+        {
+          "path": "node:assert/strict",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "node:test",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "packages/barocss-physics/dist/index.js",
+          "kind": "import-statement",
+          "original": "@barocss/physics"
+        },
+        {
+          "path": "examples/physics-planar-pendulum-reference/pendulum.ts",
+          "kind": "import-statement",
+          "original": "../physics-planar-pendulum-reference/pendulum.js"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "examples/physics-world-p2-2276/evidence/foundation-emitted-01/pendulum.mjs": {
+      "imports": [
+        {
+          "path": "node:assert/strict",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "node:test",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "exports": [],
+      "entryPoint": "examples/physics-motion-foundations-2276/pendulum.test.ts",
+      "inputs": {
+        "examples/physics-motion-foundations-2276/pendulum.test.ts": {
+          "bytesInOutput": 15228
+        },
+        "packages/barocss-physics/dist/types.js": {
+          "bytesInOutput": 328
+        },
+        "packages/barocss-physics/dist/index.js": {
+          "bytesInOutput": 63
+        },
+        "examples/physics-planar-pendulum-reference/pendulum.ts": {
+          "bytesInOutput": 4644
+        }
+      },
+      "bytes": 20531
+    }
+  }
+}

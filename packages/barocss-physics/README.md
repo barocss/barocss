@@ -53,18 +53,31 @@ The bounded fluid neighbor grid uses reusable numeric cell arrays for the declar
 
 The optional `@barocss/physics/cad-proxy` subpath admits one selected BaroCAD sourceVersion 0 native Surface from an exact source string. Its modules separate native admission, input validation, copied binding types and Viewer pose mapping. It depends on the public `@barocss/cad` compiler. `admitCadSurfaceProxy(source, request)` creates a qualified `part:<model>.<surface>` or `fixture:<model>.<surface>` Physics body from the original Surface control-net bounds in right-handed XYZ millimetres. A sphere encloses the control-net AABB; a box uses its axis-aligned half-spans plus a declared minimum half-extent. The result reports the original IDs, source revision, source center and a shape-loss label. It emits separate `body:RigidBody`, `collider:Collider` and `binding:SourceBinding` values for the corresponding model arrays. Position input is `body.initial.positionM`; collision geometry is `collider.geometry`. The binding contains numerical entity IDs, occurrence/model IDs, source revision/digest and approximation metadata. Exact source text and bounds remain in the adapter. Accepted body states use `orientationXYZW`. Native rational Surface weights are positive under the CAD compiler profile, so the control net is a conservative envelope; this is not exact Surface collision. Dynamic bodies need explicit mass and may declare a starting offset. Body lengths convert by 0.001 to metres. `assertCadProxyCurrent` compares both the complete source string and caller revision. A change throws `STALE_SOURCE` until explicit re-admission. `cadProxyPose` checks that binding and maps an accepted Physics body pose back to Viewer millimetres, including rotation about the source center. The host owns world replacement and Viewer frame application. See [PHYS-10 #773](https://github.com/barocss/barocss/issues/773#issuecomment-6060408936) and the [native Viewer consumer](../../examples/physics-cad-scene/README.md).
 
-The optional `@barocss/physics/replay` subpath saves an admitted scene and accepted fixed-step command log.
-`createPhysicsScene(model,options,{revision,sourceRevision})` copies the model, options and current runtime identity;
-use `sourceRevision:null` without CAD. `createPhysicsReplaySession(scene)` owns one rigid World with
-`step(commands?)`, `getState()`, `getScene()`, `saveSnapshot()` and `dispose()`. Restore checks exact scene, source,
-model/options and provider identity, replays a private candidate and compares final state at the existing 1e-12
-absolute/relative gate. Changed identity gives `STALE_SNAPSHOT`; damaged data gives `INVALID_SNAPSHOT`.
-Persist copied snapshots with `serializePhysicsSnapshot(snapshot):Uint8Array` and read them with
-`deserializePhysicsSnapshot(bytes)`. The sole wire format is ASCII `BCPHSNP1` plus P0 canonical typed bytes; it
-preserves binary64 number bits, including signed zero. There is no JSON/old-version migration reader. Limits remain
-512 frames and 4096 commands; the canonical scene is at most 128 KiB and snapshot bytes, including magic, at most
-1 MiB. Object key order does not change identity. This does not import arbitrary state or promise bitwise
-cross-platform trajectories. P2 recorder attachment and factory renaming are future work.
+The optional `@barocss/physics/replay` subpath records accepted commands on an existing common World.
+Call `createPhysicsRecorder(world)` before the first step. The recorder supplies `step(commands?)`, `getState()`,
+`saveRecording()` and `dispose()`. While attached, direct or cached `world.step` calls and a second attachment
+refuse with `WORLD_OWNED`. World reads and queries remain available. Recorder disposal detaches it; the caller must
+also dispose the World. Disposal releases the recorder's recording/options references; it makes no claim about
+garbage-collection timing or out-of-memory recovery. World disposal invalidates its recorder. An advanced World cannot start a new recording.
+
+`saveRecording()` returns copied model/options/identity, consecutive 1-based command frames and final state.
+Restore with `restorePhysicsRecording(recording,{model,options,providerDigest})`; take the expected provider digest
+from the intended current World's `getState().identity.providerDigest`. Source revisions remain in model
+`sourceBindings`. Restore validates the complete bounded recording before expected identity, reconstructs an isolated
+World, compares final state at the existing `1e-12` absolute/relative gate, and returns `{world,recorder}`.
+The next command frame and log budgets are checked before candidate calculation. The final state, returned copy
+and complete recording encoding are prepared before the nonthrowing shared physical/log commit.
+Changed identity gives `STALE_SNAPSHOT`; damaged data gives `INVALID_SNAPSHOT`. Dispose both returned objects.
+
+Persist recordings with `serializePhysicsRecording(recording):Uint8Array` and read them with
+`deserializePhysicsRecording(bytes)`. The wire format is ASCII `BCPHREC1` plus P0 canonical typed bytes; it preserves
+binary64 signed zero. There is no JSON or old-schema migration reader. Limits remain 512 frames and 4096 commands;
+the canonical model is at most 128 KiB and recording bytes, including magic, at most 1 MiB. Object key order does not
+change identity. Reconstruction does not import arbitrary state or promise bitwise cross-platform trajectories.
+P2_DONE_LOCALSELECTED: public source05/emitted05 each pass11/11; test-only preparation faults each pass15/15.
+Native03 passes actual published maps, strict positive/negative declarations, the shared registry, CAD release
+consumer and four README blocks. See the [P2 report](../../examples/physics-world-p2-2276/README.md) for providers,
+commands, first failures and final check status. Whole-engine acceptance remains NO_GO.
 
 [PHYS-12 #775](https://github.com/barocss/barocss/issues/775#issuecomment-6060693170) defines the first release-candidate gate for this 3D profile. The default `node examples/physics-scene/release-gate.mjs <report-path>` is a bounded prototype checkpoint: frozen offline setup, CAD and Physics builds, and one compiled Surface proxy flow. The host checks the actual Viewer flow separately. Explicit `--full` runs all five library builds, eleven compiled probes, numeric/workload criteria and the independent offline packed-package consumer on the declared macOS 15.6.1 arm64, Node 22.22.0, pnpm 10.11.0 profile. This broader validation is a separate scheduled phase. The [native full report](../../examples/physics-scene/evidence/release-gate-native-2026-10-08.json) and [merged-base preflight](../../examples/physics-scene/evidence/release-gate-merged-preflight-2026-10-08.md) are measured evidence, not Integration-owned release acceptance. No mode sets `releaseCandidate:true`, publishes a package or certifies professional engineering use.
 
@@ -157,7 +170,7 @@ an inside ray reports distance zero. Queries read accepted state without advanci
 explicitly. Query positions remain within ±10000 m, sphere radius 0.0001–1000 m, ray distance 0.0001–10000 m.
 Invalid queries give `INVALID_QUERY` and retain accepted state.
 
-`PhysicsError.code` identifies `INVALID_CONFIG`, `INVALID_STEP`, `INVALID_COMMAND`, `INVALID_QUERY`, `INVALID_SNAPSHOT`, `STALE_SOURCE`, `STALE_SNAPSHOT`, `WORLD_LIMIT`, `NUMERIC_LIMIT` or `DISPOSED`. The separate upright capsule query also uses `INITIAL_OVERLAP` and `ITERATION_LIMIT`.
+`PhysicsError.code` identifies `INVALID_CONFIG`, `INVALID_STEP`, `INVALID_COMMAND`, `INVALID_QUERY`, `INVALID_SNAPSHOT`, `STALE_SOURCE`, `STALE_SNAPSHOT`, `WORLD_LIMIT`, `NUMERIC_LIMIT`, `WORLD_OWNED` or `DISPOSED`. The separate upright capsule query also uses `INITIAL_OVERLAP` and `ITERATION_LIMIT`.
 
 The root, `/cloth`, `/fluid` and `/fluid-cad` export the same `PhysicsError`
 constructor within one installed package instance. A caller can catch a genuine
@@ -269,5 +282,5 @@ Selected P1b source/emitted public checks pass 8 tests per graph, the 21 focused
 passes (`mapping-02`), and documentation samples pass 174/174. These receipts apply to their named providers.
 Documentation build, site checks and scoped links pass. README examples compile and execute in `native-05`. Seven current host callsites bundle with the unbuilt Viewer SDK explicitly external; Viewer/DOM execution remains NOT_RUN. The basic HTTP host startup/bundle/close check passes (`server-01`). See the [slice report](../../examples/physics-world-p1b-2276/README.md) for actual results and provider hashes. Historical numerical
 reports remain attributed to their original providers. No Viewer, Studio, hardware or manufacturing HOLD is lifted;
-original NO_GO trajectories and first-failure gates remain unchanged. P2 recording ownership and P5 domain
-migration remain future work.
+original NO_GO trajectories and first-failure gates remain unchanged. P2 recording ownership has its own selected local source/emitted/native checks. P5 domain
+migration remains future work.

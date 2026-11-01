@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: rigid-discrete-v1 injected frame-preflight preserves state,log and next20steps
+ok 1 - rigid-discrete-v1 injected frame-preflight preserves state,log and next20steps
+  ---
+  duration_ms: 110.85375
+  type: 'test'
+  ...
+# Subtest: rigid-discrete-v1 injected before-output preserves state,log and next20steps
+ok 2 - rigid-discrete-v1 injected before-output preserves state,log and next20steps
+  ---
+  duration_ms: 93.216167
+  type: 'test'
+  ...
+# Subtest: rigid-discrete-v1 injected log-encoding preserves state,log and next20steps
+ok 3 - rigid-discrete-v1 injected log-encoding preserves state,log and next20steps
+  ---
+  duration_ms: 88.12
+  type: 'test'
+  ...
+# Subtest: rigid-discrete-v1 injected before-commit preserves state,log and next20steps
+ok 4 - rigid-discrete-v1 injected before-commit preserves state,log and next20steps
+  ---
+  duration_ms: 83.581958
+  type: 'test'
+  ...
+# Subtest: rigid-persistent-box-v1 injected frame-preflight preserves state,log and next20steps
+ok 5 - rigid-persistent-box-v1 injected frame-preflight preserves state,log and next20steps
+  ---
+  duration_ms: 287.348334
+  type: 'test'
+  ...
+# Subtest: rigid-persistent-box-v1 injected before-output preserves state,log and next20steps
+ok 6 - rigid-persistent-box-v1 injected before-output preserves state,log and next20steps
+  ---
+  duration_ms: 280.048917
+  type: 'test'
+  ...
+# Subtest: rigid-persistent-box-v1 injected log-encoding preserves state,log and next20steps
+ok 7 - rigid-persistent-box-v1 injected log-encoding preserves state,log and next20steps
+  ---
+  duration_ms: 256.139125
+  type: 'test'
+  ...
+# Subtest: rigid-persistent-box-v1 injected before-commit preserves state,log and next20steps
+ok 8 - rigid-persistent-box-v1 injected before-commit preserves state,log and next20steps
+  ---
+  duration_ms: 270.423959
+  type: 'test'
+  ...
+# Subtest: rigid-large-v1 injected frame-preflight preserves state,log and next20steps
+ok 9 - rigid-large-v1 injected frame-preflight preserves state,log and next20steps
+  ---
+  duration_ms: 564.252958
+  type: 'test'
+  ...
+# Subtest: rigid-large-v1 injected before-output preserves state,log and next20steps
+ok 10 - rigid-large-v1 injected before-output preserves state,log and next20steps
+  ---
+  duration_ms: 560.665208
+  type: 'test'
+  ...
+# Subtest: rigid-large-v1 injected log-encoding preserves state,log and next20steps
+ok 11 - rigid-large-v1 injected log-encoding preserves state,log and next20steps
+  ---
+  duration_ms: 552.725041
+  type: 'test'
+  ...
+# Subtest: rigid-large-v1 injected before-commit preserves state,log and next20steps
+ok 12 - rigid-large-v1 injected before-commit preserves state,log and next20steps
+  ---
+  duration_ms: 556.620666
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3757.3505

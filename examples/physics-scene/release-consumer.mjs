@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createPhysicsWorld, PhysicsError } from '@barocss/physics';
 import { admitCadSurfaceProxy, cadProxyPose } from '@barocss/physics/cad-proxy';
-import { createPhysicsScene, createPhysicsReplaySession, restorePhysicsReplaySession, serializePhysicsSnapshot, deserializePhysicsSnapshot } from '@barocss/physics/replay';
+import { createPhysicsRecorder, restorePhysicsRecording, serializePhysicsRecording, deserializePhysicsRecording } from '@barocss/physics/replay';
 import { createFluidWorld } from '@barocss/physics/fluid';
 
 const source = readFileSync(new URL('./two-surfaces.barocad', import.meta.url), 'utf8');
@@ -27,17 +27,18 @@ for (let step = 1; step <= 120; step++) {
 assert.equal(contactStep, 21);
 world.dispose();
 
-const scene = createPhysicsScene(model,options, { revision: 'releaseScene1', sourceRevision });
-const session = createPhysicsReplaySession(scene);
+const replayWorld = createPhysicsWorld(model, options);
+const session = createPhysicsRecorder(replayWorld);
+const expected = { model, options, providerDigest: replayWorld.getState().identity.providerDigest };
 for (let step = 0; step < 24; step++) session.step();
-const snapshot = deserializePhysicsSnapshot(serializePhysicsSnapshot(session.saveSnapshot()));
-const restored = restorePhysicsReplaySession(snapshot, scene);
-assert.deepEqual(restored.getState(), session.getState());
-assert.deepEqual(restored.step(), session.step());
-assert.throws(() => restorePhysicsReplaySession(snapshot,
-  createPhysicsScene(model,options, { revision: 'releaseScene1', sourceRevision: 'changed' })),
+const recording = deserializePhysicsRecording(serializePhysicsRecording(session.saveRecording()));
+const restored = restorePhysicsRecording(recording, expected);
+assert.deepEqual(restored.recorder.getState(), session.getState());
+assert.deepEqual(restored.recorder.step(), session.step());
+const staleModel = { ...model, sourceBindings: model.sourceBindings.map(binding => ({ ...binding, sourceRevision: 'changed' })) };
+assert.throws(() => restorePhysicsRecording(recording, { ...expected, model: staleModel }),
   (error) => error instanceof PhysicsError && error.code === 'STALE_SNAPSHOT');
-session.dispose(); restored.dispose();
+session.dispose(); restored.recorder.dispose(); replayWorld.dispose(); restored.world.dispose();
 
 const initialPositionsM = [];
 for (let z = 0; z < 4; z++) {

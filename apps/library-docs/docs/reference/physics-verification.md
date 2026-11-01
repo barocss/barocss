@@ -175,9 +175,9 @@ replace the original hinge and eight-box NO_GO. Deterministic continuation is di
 
 ## P1b API cutover and verification limits
 
-The current unreleased rigid root now accepts `createPhysicsWorld(model,options)`, copies admitted model and accepted
-state, steps only its configured interval, and returns tagged collider queries. Replay scenes now contain explicit
-model/options/identity. The sole snapshot wire codec uses `BCPHSNP1` plus canonical typed bytes, preserving signed
+At the frozen P1b checkpoint, the rigid root accepted `createPhysicsWorld(model,options)`, copies admitted model and accepted
+state, steps only its configured interval, and returns tagged collider queries. That checkpoint's former replay scenes contained explicit
+model/options/identity. Its former snapshot wire codec used `BCPHSNP1` plus canonical typed bytes, preserving signed
 zero. The reduced pendulum is an independent reference example outside the public root. These API changes add no
 new collision, joint or domain law and do not widen any numerical acceptance gate.
 
@@ -193,6 +193,25 @@ original numerical providers. P1a pinned injection runners remain historical, an
 Selected #1572 diagnostic commands exit normally, but their three-box OFFSET and YAW reductions retain
 `BOUNDED_SETTLING_NO_GO`. The collision reference is producer-only; these are not independent eight-box passes.
 
-P2 recorder attachment/exclusive advancing ownership, common fluid/cloth migration, Viewer product acceptance,
-hardware and manufacturing remain outside this cutover. Existing Physics/Studio/manufacturing HOLDs, public
+Recorder attachment was outside that P1b slice. The current P2 recorder is described below. Common fluid/cloth migration, Viewer product acceptance, hardware and manufacturing remain outside this work. Existing Physics/Studio/manufacturing HOLDs, public
 multi-hinge and original-stack NO_GO decisions and all original first-failure tolerances remain unchanged.
+
+## P2 attached recorder: selected local software verification
+
+The current `/replay` entry attaches `createPhysicsRecorder(world)` at step0 and restores with
+`restorePhysicsRecording(recording,{model,options,providerDigest})`. Direct/cached World stepping and a second
+attachment refuse WORLD_OWNED. Read/query remain available. Recorder disposal detaches; the caller owns World
+disposal. Old scene/session/snapshot exports have no aliases or migration reader. The sole wire is BCPHREC1.
+
+Public source05/emitted05 pass11/11. Test-only preparation faults source04/emitted04 pass15/15, including attach
+output allocation failure before ownership transfer. Native03 checks actual published maps, positive/negative
+declarations, shared registry, CAD release consumer and four README blocks. Ordinary probes pass21 per graph,
+foundations21 per graph, final recording callers3 per graph and documentation samples174/174. The build/site/link
+checks have separate receipts. Sources, actual commands and numerical errors are in
+`examples/physics-world-p2-2276/README.md`; this is local verification, not publication.
+
+The saved UTF-8 leading-BOM failure and stranded-ownership fault failures are retained beside successful runs.
+Canonical Unicode and signed zero are preserved. Physical candidate source is unchanged; original1e-12 replay,
+ballistic refinement and CAD off-origin bounds remain. The large profile actually restores six sleeping bodies
+and matches20subsequent steps after wake-up. Existing HOLDs, multi-hinge/eight-box NO_GO, first failures and
+measurement/manufacturing limits remain. Full Viewer/Studio and hardware validation are NOT_RUN.

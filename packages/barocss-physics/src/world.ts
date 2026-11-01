@@ -3,6 +3,8 @@ import { PhysicsError } from './types.js';
 import type { FailureDetails } from './types.js';
 import { admitModel } from './model-admission.js';
 import { copyData, digest } from './identity.js';
+import { recordingWorlds } from './recording-owner.js';
+import type { RecordingOwner } from './recording-owner.js';
 import { providerManifest } from './provider-manifest.generated.js';
 import type { Body, PhysicsCcdHit, PhysicsContact, PhysicsEvent, PhysicsJointState, PhysicsPairStats,  PhysicsRayHit, Vec3 } from './internal-types.js';
 import { MAX_STEPS, MAX_STEP_DISPLACEMENT_M, SOLVER_PASSES } from './limits.js';
@@ -55,6 +57,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
   let bodies = admitted.bodies;
   let joints = admitted.joints;
   let modelCopy: PhysicsModel | null = admitted.model;
+  let optionsCopy: WorldOptions | null = admitted.options;
   const colliderIds = new Map(admitted.model.colliders.map((collider) => [collider.bodyId, collider.id]));
   const identity: Identity = { modelRevision: admitted.model.revision,
     modelDigest: digest(admitted.model), configurationDigest: digest(admitted.options),
@@ -94,16 +97,33 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
   let sleepFrames = bodies.map(() => 0);
   let stepIndex = 0;
   let disposed = false;
+  let owner: RecordingOwner | null = null;
+  let advancingOwner: RecordingOwner | null = null;
   const ensureActive = () => { if (disposed) error('DISPOSED', 'world is disposed'); };
   const world: PhysicsWorld = {
     getModel() { ensureActive(); return copyData(modelCopy!); },
     getState() { ensureActive(); return publicState(bodies, contacts, events, jointStates, ccdHits, pairStats, stepIndex, dt, identity, colliderIds); },
     step(commands = []) {
       ensureActive();
+      if (owner !== advancingOwner) error('WORLD_OWNED', 'World has an exclusive recorder');
       if (stepIndex >= MAX_STEPS) error('WORLD_LIMIT', 'world step limit reached');
-      const actions = parseCommands(commands, bodies);
+      if (owner && (owner.recording!.frames.length >= 512 ||
+        (Array.isArray(commands) && owner.commandCount + commands.length > 4096))) {
+        error('WORLD_LIMIT', 'recording frame or command limit reached');
+      }
+      let admittedCommands: typeof commands;
+      try { admittedCommands = copyData(commands); }
+      catch (failure) {
+        if (failure instanceof PhysicsError && failure.code === 'INVALID_CONFIG') error('INVALID_COMMAND', failure.message);
+        throw failure;
+      }
+      if (owner && Array.isArray(admittedCommands) && owner.commandCount + admittedCommands.length > 4096) {
+        error('WORLD_LIMIT', 'recording command limit reached');
+      }
+      const actions = parseCommands(admittedCommands, bodies);
       if (dynamicHinge) admitDynamicHingeCommands(dynamicHinge, bodies, actions);
       if (ccd.kind === 'box-pair') rejectAngularBoxCommand(actions.get(bodies[ccd.boxIndex].id));
+      const preparedFrames = owner ? owner.prepareFrames(admittedCommands, stepIndex + 1) : null;
       const next = bodies.map(copyBody);
       const motorImpulses = joints.map(() => 0);
       const nextSleepFrames = sleepFrames.slice();
@@ -275,6 +295,10 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
         }
       }
       const state = publicState(next, nextContacts, nextEvents, nextJoints, nextCcdHits, nextPairStats, stepIndex + 1, dt, identity, colliderIds);
+      // All candidate, output and recording allocations finish before shared commit.
+      const preparedRecording = owner ? owner.prepare(preparedFrames!, state) : null;
+      const preparedCommandCount = owner ? owner.commandCount + admittedCommands.length : 0;
+      // Shared commit: assignments only. No allocation or callback.
       bodies = next;
       contacts = nextContacts;
       events = nextEvents;
@@ -285,6 +309,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
       persistentPoints = nextPersistentPoints;
       sleepFrames = nextSleepFrames;
       stepIndex++;
+      if (owner) { owner.recording = preparedRecording!; owner.commandCount = preparedCommandCount; }
       return state;
     },
     query(input): QueryResult {
@@ -313,13 +338,17 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
       }
       return { kind: 'raycast', hit: best === null ? null : { ...best, colliderId: colliderIds.get(best.bodyId)! } };
     },
-    dispose() { disposed = true; bodies = []; contacts = []; events = []; ccdHits = [];
+    dispose() { disposed = true;
+      if (owner) { owner.recording = null; owner.commandCount = 0; owner = null; }
+      optionsCopy = null; bodies = []; contacts = []; events = []; ccdHits = [];
       activePairs.clear(); persistentPoints.clear(); sleepFrames = []; jointStates = [];
       joints = []; dynamicHinge = undefined; ccd = { kind: 'none' }; pairs.length = 0;
       colliderIds.clear(); modelCopy = null; },
   };
   let running = false;
   function guarded<T>(operation: FailureDetails['operation'], action: () => T): T {
+    if (disposed) throw new PhysicsError('DISPOSED', 'world is disposed', {
+      operation, phase: 'lifecycle', domain: 'world', entityIds: [], accepted: { stepIndex, timeSeconds: stepIndex * dt } });
     if (running) throw new PhysicsError('REENTRANT_CALL', 'World call is reentrant', {
       operation, phase: 'lifecycle', domain: 'world', entityIds: [], accepted: { stepIndex, timeSeconds: stepIndex * dt } });
     running = true;
@@ -327,7 +356,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
     catch (failure) {
       if (!(failure instanceof PhysicsError)) throw failure;
       const enriched = new PhysicsError(failure.code, failure.message, {
-        operation, phase: failure.code === 'DISPOSED' ? 'lifecycle' :
+        operation, phase: ['DISPOSED','WORLD_OWNED','REENTRANT_CALL'].includes(failure.code) ? 'lifecycle' :
           failure.code === 'WORLD_LIMIT' ? 'budget' : failure.code === 'NUMERIC_LIMIT' ? 'validation' : 'admission',
         domain: 'rigid', entityIds: failure.details.entityIds,
         accepted: { stepIndex, timeSeconds: stepIndex * dt } });
@@ -344,6 +373,30 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
   world.getState = () => guarded('read', getState);
   world.step = (commands) => guarded('step', () => step(commands));
   world.query = (input) => guarded('query', () => query(input));
-  world.dispose = () => guarded('read', dispose);
+  world.dispose = () => { if (!disposed) guarded('read', dispose); };
+  recordingWorlds.set(world, {
+    attach: (prepare) => guarded('record', () => {
+      if (owner) error('WORLD_OWNED', 'World has an exclusive recorder');
+      if (stepIndex !== 0) error('INVALID_SNAPSHOT', 'recording must attach at step zero');
+      const prepared = prepare({ model: copyData(modelCopy!), options: copyData(optionsCopy!), state: getState() });
+      owner = prepared;
+      return prepared;
+    }),
+    detach: (current) => {
+      if (!disposed) guarded('record', () => {
+        if (owner === current) owner = null;
+        current.recording = null; current.commandCount = 0;
+      });
+    },
+    read: (current) => guarded('record', () => {
+      if (owner !== current) error('DISPOSED', 'recorder is detached');
+      return getState();
+    }),
+    step: (current, commands) => guarded('record', () => {
+      if (owner !== current) error('DISPOSED', 'recorder is detached');
+      advancingOwner = current;
+      try { return step(commands); } finally { advancingOwner = null; }
+    }),
+  });
   return world;
 }

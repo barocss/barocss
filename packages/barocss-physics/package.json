@@ -46,7 +46,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build:library": "node src/generate-provider.mjs && tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --external:./types.js --external:./provider-manifest.generated.js --outfile=dist/index.js && node src/generate-provider.mjs --emitted"
+    "build:library": "node src/generate-provider.mjs && tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --external:./recording-owner.js --external:./types.js --external:./provider-manifest.generated.js --outfile=dist/index.js && node src/generate-provider.mjs --emitted"
   },
   "dependencies": {
     "@barocss/cad": "workspace:*"

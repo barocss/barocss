@@ -1,0 +1,1082 @@
+TAP version 13
+# Subtest: the tool list: 13 tools under the v2 contract
+ok 1 - the tool list: 13 tools under the v2 contract
+  ---
+  duration_ms: 855.384042
+  type: 'test'
+  ...
+# Subtest: a query reads the part; a new feature at L2 is refused and the part kept; a bad index is refused
+ok 2 - a query reads the part; a new feature at L2 is refused and the part kept; a bad index is refused
+  ---
+  duration_ms: 581.633833
+  type: 'test'
+  ...
+# Subtest: at L3 the same hole applies and the file is saved at once
+ok 3 - at L3 the same hole applies and the file is saved at once
+  ---
+  duration_ms: 580.528333
+  type: 'test'
+  ...
+# Subtest: P1: the two readonly core results have no direct callable declarations
+ok 4 - P1: the two readonly core results have no direct callable declarations
+  ---
+  duration_ms: 957.210541
+  type: 'test'
+  ...
+# Subtest: N1: a missing explicit source target is EX002, with no dist fallback
+ok 5 - N1: a missing explicit source target is EX002, with no dist fallback
+  ---
+  duration_ms: 314.92375
+  type: 'test'
+  ...
+# Subtest: N2: each unresolved named/star/default re-export fails independently
+    # Subtest: named
+    ok 1 - named
+      ---
+      duration_ms: 296.339667
+      type: 'test'
+      ...
+    # Subtest: star
+    ok 2 - star
+      ---
+      duration_ms: 197.606833
+      type: 'test'
+      ...
+    # Subtest: default
+    ok 3 - default
+      ---
+      duration_ms: 140.470125
+      type: 'test'
+      ...
+    1..3
+ok 6 - N2: each unresolved named/star/default re-export fails independently
+  ---
+  duration_ms: 634.823333
+  type: 'test'
+  ...
+# Subtest: N3: unsupported fallback/condition/escaping targets are explicit EX001
+    # Subtest: array
+    ok 1 - array
+      ---
+      duration_ms: 182.408834
+      type: 'test'
+      ...
+    # Subtest: condition
+    ok 2 - condition
+      ---
+      duration_ms: 123.313625
+      type: 'test'
+      ...
+    # Subtest: escape
+    ok 3 - escape
+      ---
+      duration_ms: 117.741875
+      type: 'test'
+      ...
+    1..3
+ok 7 - N3: unsupported fallback/condition/escaping targets are explicit EX001
+  ---
+  duration_ms: 424.141125
+  type: 'test'
+  ...
+# Subtest: P2: GPU source alias retains two exposures of one declaration; removal drifts
+ok 8 - P2: GPU source alias retains two exposures of one declaration; removal drifts
+  ---
+  duration_ms: 250.639458
+  type: 'test'
+  ...
+# Subtest: P3: wildcard native paths and more specific JSON/explicit keys are retained
+ok 9 - P3: wildcard native paths and more specific JSON/explicit keys are retained
+  ---
+  duration_ms: 108.087083
+  type: 'test'
+  ...
+# Subtest: N4: adding a core result method fails even with a matching expected snapshot
+ok 10 - N4: adding a core result method fails even with a matching expected snapshot
+  ---
+  duration_ms: 109.100708
+  type: 'test'
+  ...
+# Subtest: N5: a getter and optional callback are separate direct-result failures
+    # Subtest: getter
+    ok 1 - getter
+      ---
+      duration_ms: 109.612833
+      type: 'test'
+      ...
+    # Subtest: optional callback
+    ok 2 - optional callback
+      ---
+      duration_ms: 113.200167
+      type: 'test'
+      ...
+    1..2
+ok 11 - N5: a getter and optional callback are separate direct-result failures
+  ---
+  duration_ms: 223.074833
+  type: 'test'
+  ...
+# Subtest: N6: missing/any/unknown anchors cannot pass as empty data
+    # Subtest: missing
+    ok 1 - missing
+      ---
+      duration_ms: 120.347541
+      type: 'test'
+      ...
+    # Subtest: any
+    ok 2 - any
+      ---
+      duration_ms: 108.957708
+      type: 'test'
+      ...
+    # Subtest: unknown
+    ok 3 - unknown
+      ---
+      duration_ms: 99.740542
+      type: 'test'
+      ...
+    1..3
+ok 12 - N6: missing/any/unknown anchors cannot pass as empty data
+  ---
+  duration_ms: 329.411916
+  type: 'test'
+  ...
+# Subtest: P4: facade methods/doc getter stay visible and do not become core results
+ok 13 - P4: facade methods/doc getter stay visible and do not become core results
+  ---
+  duration_ms: 122.149084
+  type: 'test'
+  ...
+# Subtest: P5: callback/resource/Error are distinct observations, not general JSON approval
+ok 14 - P5: callback/resource/Error are distinct observations, not general JSON approval
+  ---
+  duration_ms: 109.227209
+  type: 'test'
+  ...
+# Subtest: P6: explicit native and public canonical units stay visible without numeric certification
+ok 15 - P6: explicit native and public canonical units stay visible without numeric certification
+  ---
+  duration_ms: 127.17425
+  type: 'test'
+  ...
+# Subtest: N7: symbol/signature/alias differences and NOTGENERATED are IV001
+ok 16 - N7: symbol/signature/alias differences and NOTGENERATED are IV001
+  ---
+  duration_ms: 351.625
+  type: 'test'
+  ...
+# Subtest: N8: glob/private/native/stale/shape exceptions cannot waive a rule
+ok 17 - N8: glob/private/native/stale/shape exceptions cannot waive a rule
+  ---
+  duration_ms: 114.681333
+  type: 'test'
+  ...
+# Subtest: P7: equal fixture sources under different roots have byte-identical canonical output
+ok 18 - P7: equal fixture sources under different roots have byte-identical canonical output
+  ---
+  duration_ms: 201.167959
+  type: 'test'
+  ...
+# Subtest: P8: ordinary absolute-looking string literals are not import-path-normalized
+ok 19 - P8: ordinary absolute-looking string literals are not import-path-normalized
+  ---
+  duration_ms: 114.044458
+  type: 'test'
+  ...
+# Subtest: N9: valid cyclic re-exports terminate, unresolved names still fail
+ok 20 - N9: valid cyclic re-exports terminate, unresolved names still fail
+  ---
+  duration_ms: 204.967666
+  type: 'test'
+  ...
+# Subtest: P9: matching baseline never suppresses a hard failure or claims full conformance
+ok 21 - P9: matching baseline never suppresses a hard failure or claims full conformance
+  ---
+  duration_ms: 194.541416
+  type: 'test'
+  ...
+# Subtest: R76-01: direct, star, chained and local-import type-only routes lose value exposure
+    # Subtest: direct
+    ok 1 - direct
+      ---
+      duration_ms: 204.067042
+      type: 'test'
+      ...
+    # Subtest: specifier
+    ok 2 - specifier
+      ---
+      duration_ms: 198.367833
+      type: 'test'
+      ...
+    # Subtest: star
+    ok 3 - star
+      ---
+      duration_ms: 189.469708
+      type: 'test'
+      ...
+    # Subtest: chain
+    ok 4 - chain
+      ---
+      duration_ms: 204.157458
+      type: 'test'
+      ...
+    # Subtest: type-star-chain
+    ok 5 - type-star-chain
+      ---
+      duration_ms: 201.449125
+      type: 'test'
+      ...
+    # Subtest: local-import
+    ok 6 - local-import
+      ---
+      duration_ms: 193.839334
+      type: 'test'
+      ...
+    # Subtest: independent value star restores value space
+    ok 7 - independent value star restores value space
+      ---
+      duration_ms: 97.81525
+      type: 'test'
+      ...
+    1..7
+ok 22 - R76-01: direct, star, chained and local-import type-only routes lose value exposure
+  ---
+  duration_ms: 1289.77
+  type: 'test'
+  ...
+# Subtest: R76-02: typeof, import types and later merged declarations fail EX003 independently
+    # Subtest: typeof
+    ok 1 - typeof
+      ---
+      duration_ms: 113.56225
+      type: 'test'
+      ...
+    # Subtest: import module
+    ok 2 - import module
+      ---
+      duration_ms: 102.867542
+      type: 'test'
+      ...
+    # Subtest: import namespace
+    ok 3 - import namespace
+      ---
+      duration_ms: 95.115208
+      type: 'test'
+      ...
+    # Subtest: import member
+    ok 4 - import member
+      ---
+      duration_ms: 94.859917
+      type: 'test'
+      ...
+    # Subtest: merged interface
+    ok 5 - merged interface
+      ---
+      duration_ms: 96.479416
+      type: 'test'
+      ...
+    # Subtest: merged namespace
+    ok 6 - merged namespace
+      ---
+      duration_ms: 98.580875
+      type: 'test'
+      ...
+    # Subtest: resolved query/import types and implementation-only unresolved names
+    ok 7 - resolved query/import types and implementation-only unresolved names
+      ---
+      duration_ms: 109.032333
+      type: 'test'
+      ...
+    1..7
+ok 23 - R76-02: typeof, import types and later merged declarations fail EX003 independently
+  ---
+  duration_ms: 711.083667
+  type: 'test'
+  ...
+# Subtest: R76-03: direct and inherited callable indexes/methods/accessors cannot pass DA001
+    # Subtest: string callable index
+    ok 1 - string callable index
+      ---
+      duration_ms: 98.022209
+      type: 'test'
+      ...
+    # Subtest: number callable index
+    ok 2 - number callable index
+      ---
+      duration_ms: 95.294833
+      type: 'test'
+      ...
+    # Subtest: inherited callable index
+    ok 3 - inherited callable index
+      ---
+      duration_ms: 94.925208
+      type: 'test'
+      ...
+    # Subtest: inherited method
+    ok 4 - inherited method
+      ---
+      duration_ms: 101.1655
+      type: 'test'
+      ...
+    # Subtest: inherited getter
+    ok 5 - inherited getter
+      ---
+      duration_ms: 103.579458
+      type: 'test'
+      ...
+    # Subtest: readonly scalar index remains data
+    ok 6 - readonly scalar index remains data
+      ---
+      duration_ms: 93.303667
+      type: 'test'
+      ...
+    1..6
+ok 24 - R76-03: direct and inherited callable indexes/methods/accessors cannot pass DA001
+  ---
+  duration_ms: 586.850458
+  type: 'test'
+  ...
+# Subtest: R76-04: generic constraints/defaults, namespace exports and aliases each cause structural drift
+    # Subtest: interface constraint
+    ok 1 - interface constraint
+      ---
+      duration_ms: 199.036209
+      type: 'test'
+      ...
+    # Subtest: interface default
+    ok 2 - interface default
+      ---
+      duration_ms: 190.786209
+      type: 'test'
+      ...
+    # Subtest: class constraint
+    ok 3 - class constraint
+      ---
+      duration_ms: 205.171041
+      type: 'test'
+      ...
+    # Subtest: alias default
+    ok 4 - alias default
+      ---
+      duration_ms: 228.996333
+      type: 'test'
+      ...
+    # Subtest: namespace field
+    ok 5 - namespace field
+      ---
+      duration_ms: 186.660167
+      type: 'test'
+      ...
+    # Subtest: namespace added name
+    ok 6 - namespace added name
+      ---
+      duration_ms: 185.174042
+      type: 'test'
+      ...
+    # Subtest: merged namespace
+    ok 7 - merged namespace
+      ---
+      duration_ms: 216.429042
+      type: 'test'
+      ...
+    # Subtest: namespace re-export
+    ok 8 - namespace re-export
+      ---
+      duration_ms: 192.833917
+      type: 'test'
+      ...
+    # Subtest: alias literal union
+    ok 9 - alias literal union
+      ---
+      duration_ms: 235.230625
+      type: 'test'
+      ...
+    # Subtest: alias target
+    ok 10 - alias target
+      ---
+      duration_ms: 210.9865
+      type: 'test'
+      ...
+    # Subtest: alias referenced union
+    ok 11 - alias referenced union
+      ---
+      duration_ms: 227.4515
+      type: 'test'
+      ...
+    # Subtest: namespace implementation bodies do not enter canonical signatures
+    ok 12 - namespace implementation bodies do not enter canonical signatures
+      ---
+      duration_ms: 195.021791
+      type: 'test'
+      ...
+    1..12
+ok 25 - R76-04: generic constraints/defaults, namespace exports and aliases each cause structural drift
+  ---
+  duration_ms: 2474.729542
+  type: 'test'
+  ...
+# Subtest: R76 policy regression: condition priority and null shadow retain distinct semantics
+ok 26 - R76 policy regression: condition priority and null shadow retain distinct semantics
+  ---
+  duration_ms: 283.856166
+  type: 'test'
+  ...
+# Subtest: serializer: empty tuple aliases and readonly property tuples stay exact and drift independently
+    # Subtest: alias
+    ok 1 - alias
+      ---
+      duration_ms: 273.005334
+      type: 'test'
+      ...
+    # Subtest: readonly alias
+    ok 2 - readonly alias
+      ---
+      duration_ms: 251.934292
+      type: 'test'
+      ...
+    # Subtest: document properties
+    ok 3 - document properties
+      ---
+      duration_ms: 224.018791
+      type: 'test'
+      ...
+    # Subtest: readonly property
+    ok 4 - readonly property
+      ---
+      duration_ms: 216.683292
+      type: 'test'
+      ...
+    # Subtest: intersection property
+    ok 5 - intersection property
+      ---
+      duration_ms: 201.475791
+      type: 'test'
+      ...
+    1..5
+ok 27 - serializer: empty tuple aliases and readonly property tuples stay exact and drift independently
+  ---
+  duration_ms: 1167.6695
+  type: 'test'
+  ...
+# Subtest: serializer: compile-result unions and nested dependency tuples retain empty and nonempty branches
+    # Subtest: compile result
+    ok 1 - compile result
+      ---
+      duration_ms: 202.807167
+      type: 'test'
+      ...
+    # Subtest: compile result reference
+    ok 2 - compile result reference
+      ---
+      duration_ms: 198.769458
+      type: 'test'
+      ...
+    # Subtest: dependency tuple
+    ok 3 - dependency tuple
+      ---
+      duration_ms: 197.561125
+      type: 'test'
+      ...
+    1..3
+ok 28 - serializer: compile-result unions and nested dependency tuples retain empty and nonempty branches
+  ---
+  duration_ms: 599.482875
+  type: 'test'
+  ...
+# Subtest: serializer: error constructors and callback/call signatures preserve zero-argument tuple alternatives
+    # Subtest: Error constructor rest union
+    ok 1 - Error constructor rest union
+      ---
+      duration_ms: 202.640208
+      type: 'test'
+      ...
+    # Subtest: generic callback and callable interface
+    ok 2 - generic callback and callable interface
+      ---
+      duration_ms: 199.666291
+      type: 'test'
+      ...
+    1..2
+ok 29 - serializer: error constructors and callback/call signatures preserve zero-argument tuple alternatives
+  ---
+  duration_ms: 402.539
+  type: 'test'
+  ...
+# Subtest: serializer: recursive conditional generics and namespace exports retain empty tuple type identity
+ok 30 - serializer: recursive conditional generics and namespace exports retain empty tuple type identity
+  ---
+  duration_ms: 181.80575
+  type: 'test'
+  ...
+# Subtest: serializer: empty tuple support cannot waive unresolved types or core callbacks
+    # Subtest: import
+    ok 1 - import
+      ---
+      duration_ms: 115.698416
+      type: 'test'
+      ...
+    # Subtest: typeof
+    ok 2 - typeof
+      ---
+      duration_ms: 119.845209
+      type: 'test'
+      ...
+    # Subtest: callback remains forbidden on core data
+    ok 3 - callback remains forbidden on core data
+      ---
+      duration_ms: 99.230333
+      type: 'test'
+      ...
+    1..3
+ok 31 - serializer: empty tuple support cannot waive unresolved types or core callbacks
+  ---
+  duration_ms: 335.073917
+  type: 'test'
+  ...
+# Subtest: diagram: the two cube sections have 50 mm² in each of A-only, common and B-only
+ok 32 - diagram: the two cube sections have 50 mm² in each of A-only, common and B-only
+  ---
+  duration_ms: 0.699041
+  type: 'test'
+  ...
+# Subtest: diagram: a radius-3 cylinder at (8, 5) crosses X = 10 at Y = 5 ± √5
+ok 33 - diagram: a radius-3 cylinder at (8, 5) crosses X = 10 at Y = 5 ± √5
+  ---
+  duration_ms: 0.574541
+  type: 'test'
+  ...
+# Subtest: diagram: all three displayed operations match the kernel for overlapping, contained and disjoint inputs
+ok 34 - diagram: all three displayed operations match the kernel for overlapping, contained and disjoint inputs
+  ---
+  duration_ms: 1367.524625
+  type: 'test'
+  ...
+# Subtest: 3D scenes: independent box, circle-segment, two-hole and tilted-bore volumes
+ok 35 - 3D scenes: independent box, circle-segment, two-hole and tilted-bore volumes
+  ---
+  duration_ms: 3.780167
+  type: 'test'
+  ...
+# Subtest: 3D display data: valid triangle indices, complete face partitions, finite normals and cuts on both boundaries
+ok 36 - 3D display data: valid triangle indices, complete face partitions, finite normals and cuts on both boundaries
+  ---
+  duration_ms: 7.836834
+  type: 'test'
+  ...
+# Subtest: the bracket through the kernel facade: the hand-written document, the kernel's results
+ok 37 - the bracket through the kernel facade: the hand-written document, the kernel's results
+  ---
+  duration_ms: 231.096375
+  type: 'test'
+  ...
+# Subtest: refusals: the facade's own codes, the kernel's passed through with the feature
+ok 38 - refusals: the facade's own codes, the kernel's passed through with the feature
+  ---
+  duration_ms: 17.800166
+  type: 'test'
+  ...
+# Subtest: sketches on planes: a section revolved into a cup, shelled with its top open
+ok 39 - sketches on planes: a section revolved into a cup, shelled with its top open
+  ---
+  duration_ms: 845.127417
+  type: 'test'
+  ...
+# Subtest: two bodies: one chosen, combined with a body by name or a tool the callback adds
+ok 40 - two bodies: one chosen, combined with a body by name or a tool the callback adds
+  ---
+  duration_ms: 162.809083
+  type: 'test'
+  ...
+# Subtest: patterns and a Location: a ring of blocks, two tiers, stood up and lifted
+ok 41 - patterns and a Location: a ring of blocks, two tiers, stood up and lifted
+  ---
+  duration_ms: 153.660666
+  type: 'test'
+  ...
+# Subtest: the meshes carry their display lines
+ok 42 - the meshes carry their display lines
+  ---
+  duration_ms: 1.111833
+  type: 'test'
+  ...
+# Subtest: mirror, scale and split
+ok 43 - mirror, scale and split
+  ---
+  duration_ms: 44.461417
+  type: 'test'
+  ...
+# Subtest: parameters: named values a dimension follows, edited by withParameters
+ok 44 - parameters: named values a dimension follows, edited by withParameters
+  ---
+  duration_ms: 63.818667
+  type: 'test'
+  ...
+# Subtest: a Boolean's tool callback with several verbs
+ok 45 - a Boolean's tool callback with several verbs
+  ---
+  duration_ms: 114.452834
+  type: 'test'
+  ...
+# Subtest: STEP out and back: the same volume, strictly valid
+ok 46 - STEP out and back: the same volume, strictly valid
+  ---
+  duration_ms: 86.850916
+  type: 'test'
+  ...
+# Subtest: DXF: a deterministic file, DXF 2000 or R12
+ok 47 - DXF: a deterministic file, DXF 2000 or R12
+  ---
+  duration_ms: 3.118417
+  type: 'test'
+  ...
+# Subtest: MMGS cube: independent volume, mass, centroid and full centroidal tensor
+ok 48 - MMGS cube: independent volume, mass, centroid and full centroidal tensor
+  ---
+  duration_ms: 21.929292
+  type: 'test'
+  ...
+# Subtest: plain snapshots: free functions edit, save and reload without changing the input
+ok 49 - plain snapshots: free functions edit, save and reload without changing the input
+  ---
+  duration_ms: 11.191375
+  type: 'test'
+  ...
+# Subtest: MMGS Boolean diagrams: 33 kernel volumes match the 0.001 mm³ display precision
+ok 50 - MMGS Boolean diagrams: 33 kernel volumes match the 0.001 mm³ display precision
+  ---
+  duration_ms: 93.561584
+  type: 'test'
+  ...
+# Subtest: one bracket three ways: the document by hand, the agent's commands and the facade
+ok 51 - one bracket three ways: the document by hand, the agent's commands and the facade
+  ---
+  duration_ms: 327.658083
+  type: 'test'
+  ...
+# Subtest: immutable: a method returns a new part; .doc is a copy
+ok 52 - immutable: a method returns a new part; .doc is a copy
+  ---
+  duration_ms: 12.628625
+  type: 'test'
+  ...
+# Subtest: selectors: typed filters that hand back the core's names
+ok 53 - selectors: typed filters that hand back the core's names
+  ---
+  duration_ms: 1.347542
+  type: 'test'
+  ...
+# Subtest: refusals: one error class, the facade's own codes and the core's passed through
+ok 54 - refusals: one error class, the facade's own codes and the core's passed through
+  ---
+  duration_ms: 17.76625
+  type: 'test'
+  ...
+# Subtest: a material by its library id: set on the body, weighed in it, carried by its meshes
+ok 55 - a material by its library id: set on the body, weighed in it, carried by its meshes
+  ---
+  duration_ms: 2.949833
+  type: 'test'
+  ...
+# Subtest: an assembly: a pin placed, mated into a plate's bore, an input with a variant, a tool frame
+ok 56 - an assembly: a pin placed, mated into a plate's bore, an input with a variant, a tool frame
+  ---
+  duration_ms: 266.278167
+  type: 'test'
+  ...
+# Subtest: parameters: bound as the studio's editor binds them, edited by withParameters
+ok 57 - parameters: bound as the studio's editor binds them, edited by withParameters
+  ---
+  duration_ms: 104.016625
+  type: 'test'
+  ...
+# Subtest: configurations: saved sets of parameter values
+ok 58 - configurations: saved sets of parameter values
+  ---
+  duration_ms: 42.933125
+  type: 'test'
+  ...
+# Subtest: suppression: a feature switched off by its id, and back
+ok 59 - suppression: a feature switched off by its id, and back
+  ---
+  duration_ms: 24.811875
+  type: 'test'
+  ...
+# Subtest: the studio's own commands: a gear pair and a spring
+ok 60 - the studio's own commands: a gear pair and a spring
+  ---
+  duration_ms: 3891.69875
+  type: 'test'
+  ...
+# Subtest: rows from a person's file, then a fastener from them
+ok 61 - rows from a person's file, then a fastener from them
+  ---
+  duration_ms: 28.255542
+  type: 'test'
+  ...
+# Subtest: a document: built, evaluated, written as STEP, saved and read back
+ok 62 - a document: built, evaluated, written as STEP, saved and read back
+  ---
+  duration_ms: 86.79475
+  type: 'test'
+  ...
+# Subtest: a plate with a hole: written, evaluated, measured, valid, written as STEP and STL
+ok 63 - a plate with a hole: written, evaluated, measured, valid, written as STEP and STL
+  ---
+  duration_ms: 140.809875
+  type: 'test'
+  ...
+# Subtest: a parameter edited: unchanged features reused
+ok 64 - a parameter edited: unchanged features reused
+  ---
+  duration_ms: 3.19025
+  type: 'test'
+  ...
+# Subtest: a refusal: a CadPartError with a code and the feature it comes from
+ok 65 - a refusal: a CadPartError with a code and the feature it comes from
+  ---
+  duration_ms: 0.4875
+  type: 'test'
+  ...
+# Subtest: Boolean set operations: two overlapping cubes have union 1500, difference 500 and intersection 500 mm³
+ok 66 - Boolean set operations: two overlapping cubes have union 1500, difference 500 and intersection 500 mm³
+  ---
+  duration_ms: 112.220042
+  type: 'test'
+  ...
+# Subtest: two blocks touching along an edge: one output, two separate valid bodies
+ok 67 - two blocks touching along an edge: one output, two separate valid bodies
+  ---
+  duration_ms: 5.935
+  type: 'test'
+  ...
+# Subtest: refusals: a fillet too large for its walls, an edge that is not there
+ok 68 - refusals: a fillet too large for its walls, an edge that is not there
+  ---
+  duration_ms: 21.652875
+  type: 'test'
+  ...
+# Subtest: cad-cli run: a script to .bcad and STEP, its hard requirement checked; a failing one exits 3; a bad line exits 1
+ok 69 - cad-cli run: a script to .bcad and STEP, its hard requirement checked; a failing one exits 3; a bad line exits 1
+  ---
+  duration_ms: 2424.742292
+  type: 'test'
+  ...
+# Subtest: a scene of the bracket: its data plain, Z-up, the meshes as the part gave them
+ok 70 - a scene of the bracket: its data plain, Z-up, the meshes as the part gave them
+  ---
+  duration_ms: 166.375041
+  type: 'test'
+  ...
+# Subtest: immutable, and a mesh that is not one refused
+ok 71 - immutable, and a mesh that is not one refused
+  ---
+  duration_ms: 0.413542
+  type: 'test'
+  ...
+# Subtest: a studio part shown in its material, with its display lines, from the iso view
+ok 72 - a studio part shown in its material, with its display lines, from the iso view
+  ---
+  duration_ms: 13.304833
+  type: 'test'
+  ...
+# Subtest: a scene compiled; a scene the language does not have refused with where
+ok 73 - a scene compiled; a scene the language does not have refused with where
+  ---
+  duration_ms: 2.8905
+  type: 'test'
+  ...
+# Subtest: an @shader material lowered to WGSL with its uniforms
+ok 74 - an @shader material lowered to WGSL with its uniforms
+  ---
+  duration_ms: 8.661667
+  type: 'test'
+  ...
+# Subtest: the sketch figures' solver copy takes the kernel's iterates and reports its rank
+ok 75 - the sketch figures' solver copy takes the kernel's iterates and reports its rank
+  ---
+  duration_ms: 264.910333
+  type: 'test'
+  ...
+# Subtest: the curve-roots figure's solver copy finds the kernel's roots and brackets
+ok 76 - the curve-roots figure's solver copy finds the kernel's roots and brackets
+  ---
+  duration_ms: 395.996084
+  type: 'test'
+  ...
+# Subtest: the BVH figure's 2D build is the kernel's tree on the same flat triangles
+ok 77 - the BVH figure's 2D build is the kernel's tree on the same flat triangles
+  ---
+  duration_ms: 49.104333
+  type: 'test'
+  ...
+# Subtest: free flight matches the discrete fixed-step analytic solution
+ok 78 - free flight matches the discrete fixed-step analytic solution
+  ---
+  duration_ms: 8.740625
+  type: 'test'
+  ...
+# Subtest: force lasts one step; impulse changes velocity once
+ok 79 - force lasts one step; impulse changes velocity once
+  ---
+  duration_ms: 5.497333
+  type: 'test'
+  ...
+# Subtest: invalid command argument retains accepted state; copies and disposal are explicit
+ok 80 - invalid command argument retains accepted state; copies and disposal are explicit
+  ---
+  duration_ms: 5.084833
+  type: 'test'
+  ...
+# Subtest: off-origin CAD proxy uses literal quarter-turn coordinates
+ok 81 - off-origin CAD proxy uses literal quarter-turn coordinates
+  ---
+  duration_ms: 3.359834
+  type: 'test'
+  ...
+# Subtest: independent reduced pendulum reference preserves equilibrium and lifecycle
+ok 82 - independent reduced pendulum reference preserves equilibrium and lifecycle
+  ---
+  duration_ms: 0.815625
+  type: 'test'
+  ...
+# Subtest: free flight converges against the continuous ballistic solution at fixed physical time
+ok 83 - free flight converges against the continuous ballistic solution at fixed physical time
+  ---
+  duration_ms: 5.022292
+  type: 'test'
+  ...
+# {"ballisticTimeSeconds":0.1,"positionErrorsM":[0.004087500000000022,0.002043750000000122],"refinementRatio":1.9999999999998914}
+# Subtest: copied rigid recordings use the signed-zero-preserving binary codec
+ok 84 - copied rigid recordings use the signed-zero-preserving binary codec
+  ---
+  duration_ms: 21.524583
+  type: 'test'
+  ...
+# Subtest: robot motion guide: mixed turn/slide timing, saved motion and analytic SCARA FK
+ok 85 - robot motion guide: mixed turn/slide timing, saved motion and analytic SCARA FK
+  ---
+  duration_ms: 2223.80825
+  type: 'test'
+  ...
+# {"metric":"scara-analytic","samples":22,"maxReportedFkErrorMm":0,"maxReportingQuantizationMm":4.901169035065323e-7,"maxJointSampleError":7.105427357601002e-15,"durationErrorS":0,"solvedHomeQuillMm":[225,25,-30],"comparisonToleranceMm":1e-9}
+# Subtest: robot motion guide: jerk-limited path keeps synchronized endpoints and finite samples
+ok 86 - robot motion guide: jerk-limited path keeps synchronized endpoints and finite samples
+  ---
+  duration_ms: 1570.275542
+  type: 'test'
+  ...
+# Subtest: robot motion guide: typed invalid-input and joint-limit refusals
+ok 87 - robot motion guide: typed invalid-input and joint-limit refusals
+  ---
+  duration_ms: 377.999625
+  type: 'test'
+  ...
+# Subtest: robot motion guide: analytic IK targets, independent residuals and joint bounds
+ok 88 - robot motion guide: analytic IK targets, independent residuals and joint bounds
+  ---
+  duration_ms: 2.050292
+  type: 'test'
+  ...
+# {"metric":"ik-analytic","targetDegrees":-60,"slideMm":25,"errorM":2.660641766657152e-14,"errorRad":0,"fkErrorMm":0}
+# {"metric":"ik-analytic","targetDegrees":0,"slideMm":-10,"errorM":1.0508927061891882e-14,"errorRad":0,"fkErrorMm":0}
+# {"metric":"ik-analytic","targetDegrees":45,"slideMm":60,"errorM":1.1656366413268348e-15,"errorRad":0,"fkErrorMm":1.4210854715202004e-14}
+# Subtest: robot motion guide: IK target outside travel stays unreached with a measured residual
+ok 89 - robot motion guide: IK target outside travel stays unreached with a measured residual
+  ---
+  duration_ms: 4.777875
+  type: 'test'
+  ...
+# {"reached":false,"errorM":0.04,"returnedSlideMm":80}
+# Subtest: refusal generator: declared codes and both factory signatures retain message boundaries
+ok 90 - refusal generator: declared codes and both factory signatures retain message boundaries
+  ---
+  duration_ms: 40.928667
+  type: 'test'
+  ...
+# Subtest: public and stored turn/slide settings keep degrees, mm, N·mm and N
+ok 91 - public and stored turn/slide settings keep degrees, mm, N·mm and N
+  ---
+  duration_ms: 636.401208
+  type: 'test'
+  ...
+# Subtest: updated limits and pose convert a turn once and keep a slide in mm
+ok 92 - updated limits and pose convert a turn once and keep a slide in mm
+  ---
+  duration_ms: 537.683625
+  type: 'test'
+  ...
+# Subtest: same-type gear mimic keeps its dimensionless ratio and public degree values
+ok 93 - same-type gear mimic keeps its dimensionless ratio and public degree values
+  ---
+  duration_ms: 883.595292
+  type: 'test'
+  ...
+# Subtest: shared tree projection: all four turn/slide mimic combinations retain independent public relations
+ok 94 - shared tree projection: all four turn/slide mimic combinations retain independent public relations
+  ---
+  duration_ms: 0.8405
+  type: 'test'
+  ...
+# Subtest: actual sweep contact reports the starting mixed pose as 45 degrees and -12.5 mm
+ok 95 - actual sweep contact reports the starting mixed pose as 45 degrees and -12.5 mm
+  ---
+  duration_ms: 75.110625
+  type: 'test'
+  ...
+# Subtest: actual gear placements expose degrees once and preserve the original GearSpec
+ok 96 - actual gear placements expose degrees once and preserve the original GearSpec
+  ---
+  duration_ms: 2440.732208
+  type: 'test'
+  ...
+# {"rotations":[90,-45.00000000000001],"spec":{"module":2,"teeth":20,"faceWidth":8,"boreDiameter":8,"toothThicknessReduction":0},"gear":{"leader":"base~g1","follower":"base~g2","phase":3,"homePhase":3,"held":true,"backlash":0}}
+# Subtest: actual mixed SCARA duty round-trips public degrees/mm, limits, seconds and gravity through shared producers
+ok 97 - actual mixed SCARA duty round-trips public degrees/mm, limits, seconds and gravity through shared producers
+  ---
+  duration_ms: 40.869833
+  type: 'test'
+  ...
+# Subtest: actual harness margins and consistency use shared public projections before cloning; decisions remain intact
+ok 98 - actual harness margins and consistency use shared public projections before cloning; decisions remain intact
+  ---
+  duration_ms: 608.662167
+  type: 'test'
+  ...
+# {"ok":true,"range":{"check":"joint range","joint":"base~arm1","move":0,"value":10,"limit":130,"unit":"degree","margin":0.461538462,"source":"robot.joints","ok":true,"detail":"to"},"velocity":{"check":"joint velocity","joint":"base~arm1","move":0,"value":10,"limit":180,"unit":"degree/s","margin":0.944444444,"source":"robot.joints","ok":true},"effort":{"check":"joint effort","joint":"base~arm1","move":0,"value":1.909390368,"limit":2000,"unit":"N·mm","margin":0.999045305,"source":"robot.joints","ok":true},"consistency":[{"check":"holding torque: RNEA = RD1","move":0,"at":"from","ok":true,"errorRatio":0,"limitRatio":1},{"check":"mass matrix symmetric, positive definite","move":0,"at":"from","ok":true,"errorRatio":0,"limitRatio":1},{"check":"holding torque: RNEA = RD1","move":0,"at":"to","ok":true,"errorRatio":0,"limitRatio":1},{"check":"mass matrix symmetric, positive definite","move":0,"at":"to","ok":true,"errorRatio":0,"limitRatio":1}]}
+# Subtest: actual bounded sizer result projects its own tree, duty and report without inventing a successful design
+ok 99 - actual bounded sizer result projects its own tree, duty and report without inventing a successful design
+  ---
+  duration_ms: 607.964625
+  type: 'test'
+  ...
+# {"ok":true,"rounds":0,"stopped":null}
+# Subtest: actual four-bar agent replies expose residual and chordResidual in mm with no old aliases
+ok 100 - actual four-bar agent replies expose residual and chordResidual in mm with no old aliases
+  ---
+  duration_ms: 200.671292
+  type: 'test'
+  ...
+# {"pose":{"drivers":["base~crank"],"solved":["crank~coupler","base~rocker"],"residual":6.355287432313019e-14},"motion":{"chords":240,"chordResidual":0.00162}}
+# Subtest: facade cube inertia: mass, centroid, full tensor, principal moments and body mass use MMGS
+ok 101 - facade cube inertia: mass, centroid, full tensor, principal moments and body mass use MMGS
+  ---
+  duration_ms: 61.309709
+  type: 'test'
+  ...
+# {"link":"base","part":"base","mass":2.7,"centroid":[5,5,5],"inertia":[[45,-1.964508556e-14,0],[-1.964508556e-14,45,0],[0,0,45]],"principal":{"moments":[45,45,45],"axes":[[1,0,0],[0,1,0],[0,0,1]]},"frame":{"origin":[0,0,0],"axes":[[1,0,0],[0,1,0],[0,0,1]]},"bodies":[{"key":"b1","material":"Aluminium 6061","assumed":false,"materialSnapshot":{"bodyMaterialId":"al6061","inputMaterialId":"al6061","resolvedMaterialId":"al6061","fallback":"none","densityGPerCm3":2.7,"catalogueDensityGPerCm3":2.7,"libraryVersion":"0.7.0","densitySourceId":"S-DENS","densitySourceText":"BaroCSS typical density for the family, written for this table (the studio's earlier density list, kept)","rowEstimate":true,"basis":"builtin-catalogue-not-measured"},"inertiaSource":"mmgs-density-scaled","mass":2.7}],"issues":[]}
+# Subtest: facade gravity: preserve default 9806.65, distinguish explicit 9810, retain typed vector refusal
+ok 102 - facade gravity: preserve default 9806.65, distinguish explicit 9810, retain typed vector refusal
+  ---
+  duration_ms: 8.96475
+  type: 'test'
+  ...
+# {"standard":{"torques":{},"generalized":{},"units":{},"gravity":9806.65},"explicit":{"torques":{},"generalized":{},"units":{},"gravity":9810}}
+# Subtest: facade vertical slide: cube weight remains N for default and explicit gravity
+ok 103 - facade vertical slide: cube weight remains N for default and explicit gravity
+  ---
+  duration_ms: 12.716708
+  type: 'test'
+  ...
+# {"gravity":9806.65,"force":0.026477955,"expected":0.026477955}
+# {"gravity":9810,"force":0.026487,"expected":0.026487}
+# Subtest: facade hinge: independent drilled-block mass and 20 mm arm give the holding torque in N·mm
+ok 104 - facade hinge: independent drilled-block mass and 20 mm arm give the holding torque in N·mm
+  ---
+  duration_ms: 538.505084
+  type: 'test'
+  ...
+# {"gravity":9806.65,"torque":-15.4552527555,"expected":-15.455252755531346}
+# {"gravity":9810,"torque":-15.4605323461,"expected":-15.460532346087856}
+# Subtest: the index and the 2R arm: two turns, a pose, a path checked
+ok 105 - the index and the 2R arm: two turns, a pose, a path checked
+  ---
+  duration_ms: 706.837125
+  type: 'test'
+  ...
+# Subtest: the SCARA arm: turn, turn, slide, turn
+ok 106 - the SCARA arm: turn, turn, slide, turn
+  ---
+  duration_ms: 330.236166
+  type: 'test'
+  ...
+# Subtest: the 6R arm: six turns, its demo motion swept, URDF read back
+ok 107 - the 6R arm: six turns, its demo motion swept, URDF read back
+  ---
+  duration_ms: 428.177541
+  type: 'test'
+  ...
+# Subtest: the Cartesian gantry: three slides
+ok 108 - the Cartesian gantry: three slides
+  ---
+  duration_ms: 33.382209
+  type: 'test'
+  ...
+# Subtest: the pan-tilt head: a camera frame, and a limit
+ok 109 - the pan-tilt head: a camera frame, and a limit
+  ---
+  duration_ms: 573.4795
+  type: 'test'
+  ...
+# Subtest: the gripper: the right finger follows the left one through their gears
+ok 110 - the gripper: the right finger follows the left one through their gears
+  ---
+  duration_ms: 336.387792
+  type: 'test'
+  ...
+# Subtest: the four-bar linkage: a closed loop
+ok 111 - the four-bar linkage: a closed loop
+  ---
+  duration_ms: 137.448209
+  type: 'test'
+  ...
+# Subtest: the gear-driven joint: 20 teeth driving 30
+ok 112 - the gear-driven joint: 20 teeth driving 30
+  ---
+  duration_ms: 471.798667
+  type: 'test'
+  ...
+# Subtest: exports: URDF, MJCF, SDF and USD, each with what it checks
+ok 113 - exports: URDF, MJCF, SDF and USD, each with what it checks
+  ---
+  duration_ms: 74.607125
+  type: 'test'
+  ...
+# Subtest: motions: a path timed and played, a saved motion read, a path saved as one
+ok 114 - motions: a path timed and played, a saved motion read, a path saved as one
+  ---
+  duration_ms: 77.265167
+  type: 'test'
+  ...
+# Subtest: every sample's demo motion swept; designed contact is not a collision
+ok 115 - every sample's demo motion swept; designed contact is not a collision
+  ---
+  duration_ms: 2077.033833
+  type: 'test'
+  ...
+# Subtest: the shipped samples: every row valid, each with its source
+ok 116 - the shipped samples: every row valid, each with its source
+  ---
+  duration_ms: 27.473375
+  type: 'test'
+  ...
+# Subtest: a row refused with why
+ok 117 - a row refused with why
+  ---
+  duration_ms: 0.133333
+  type: 'test'
+  ...
+# Subtest: mount rows: the shipped values and provenance survive canonical field names
+ok 118 - mount rows: the shipped values and provenance survive canonical field names
+  ---
+  duration_ms: 2.330041
+  type: 'test'
+  ...
+1..118
+# tests 174
+# suites 0
+# pass 174
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13287.31025

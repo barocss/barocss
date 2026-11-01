@@ -1,0 +1,1 @@
+{"pages":5,"links":789,"anchors":205,"snippetRegions":22,"byteIdenticalHistoricalCopies":14,"proposedRoadmapCopy":true,"networkChecks":"NOT_RUN"}

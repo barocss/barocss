@@ -6,8 +6,8 @@ import { admitCadSurfaceProxy, cadProxyPose } from '@barocss/physics/cad-proxy';
 // #endregion physics-import
 
 // #region replay-import
-import { createPhysicsScene, createPhysicsReplaySession, restorePhysicsReplaySession,
-  serializePhysicsSnapshot, deserializePhysicsSnapshot } from '@barocss/physics/replay';
+import { createPhysicsRecorder, restorePhysicsRecording,
+  serializePhysicsRecording, deserializePhysicsRecording } from '@barocss/physics/replay';
 // #endregion replay-import
 
 // #region pendulum-reference-import
@@ -202,25 +202,26 @@ test('free flight converges against the continuous ballistic solution at fixed p
   t.diagnostic(JSON.stringify({ ballisticTimeSeconds: time, positionErrorsM: errors, refinementRatio: ratio }));
 });
 
-test('copied rigid replay snapshots use the signed-zero-preserving binary codec', () => {
+test('copied rigid recordings use the signed-zero-preserving binary codec', () => {
   // #region replay-wire
-  const scene = createPhysicsScene(freeModel([-0, 0, 0]), worldOptions,
-    { revision: 'docsReplay1', sourceRevision: null });
-  const session = createPhysicsReplaySession(scene);
+  const model = freeModel([-0, 0, 0]);
+  const world = createPhysicsWorld(model, worldOptions);
+  const session = createPhysicsRecorder(world);
+  const expected = { model, options: worldOptions, providerDigest: world.getState().identity.providerDigest };
   let restored;
   try {
     session.step([{ kind: 'impulse', bodyId: 'part:ball', impulseNs: [2, 0, 0] }]);
-    const snapshot = session.saveSnapshot();
-    const bytes = serializePhysicsSnapshot(snapshot);
-    assert.equal(Buffer.from(bytes.subarray(0, 8)).toString('ascii'), 'BCPHSNP1');
-    const decoded = deserializePhysicsSnapshot(bytes);
-    assert.ok(Object.is(decoded.scene.model.gravityMps2[0], -0));
-    restored = restorePhysicsReplaySession(decoded, scene);
-    assert.deepEqual(restored.getState(), session.getState());
-    assert.deepEqual(restored.step(), session.step());
-    snapshot.frames[0].commands[0].impulseNs[0] = 999;
-    near(session.saveSnapshot().frames[0].commands[0].impulseNs[0], 2);
-    assert.throws(() => deserializePhysicsSnapshot(bytes.subarray(0, -1)), hasCode('INVALID_SNAPSHOT'));
-  } finally { restored?.dispose(); session.dispose(); }
+    const recording = session.saveRecording();
+    const bytes = serializePhysicsRecording(recording);
+    assert.equal(Buffer.from(bytes.subarray(0, 8)).toString('ascii'), 'BCPHREC1');
+    const decoded = deserializePhysicsRecording(bytes);
+    assert.ok(Object.is(decoded.model.gravityMps2[0], -0));
+    restored = restorePhysicsRecording(decoded, expected);
+    assert.deepEqual(restored.recorder.getState(), session.getState());
+    assert.deepEqual(restored.recorder.step(), session.step());
+    recording.frames[0].commands[0].impulseNs[0] = 999;
+    near(session.saveRecording().frames[0].commands[0].impulseNs[0], 2);
+    assert.throws(() => deserializePhysicsRecording(bytes.subarray(0, -1)), hasCode('INVALID_SNAPSHOT'));
+  } finally { restored?.recorder.dispose(); restored?.world.dispose(); session.dispose(); world.dispose(); }
   // #endregion replay-wire
 });
