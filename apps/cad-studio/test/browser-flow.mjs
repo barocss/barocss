@@ -5704,7 +5704,7 @@ try {
     const before = await bodyVolume();
     await (await page.waitForFunction(ns => ns.find(n => window.__studioPickEdge(n)) ?? null, ['n1.side0|n1.top', 'n1.top|n1.side0'], { timeout: 30000 })).jsonValue();
     await press(' '); await page.locator('.palette input').fill('fillet'); await press('Enter'); await hudReady();
-    await field('Radius').fill('1'); await field('End radius (0: same)').fill('3');
+    await field('Radius').fill('1'); await page.getByLabel('Fillet radius mode', { exact: true }).selectOption('varying'); await field('End radius (0: same)').fill('3');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 90000 });
     await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet' && !!window.__studioDoc.nodes.at(-1)?.radii, null, { timeout: 90000 }); await idle();

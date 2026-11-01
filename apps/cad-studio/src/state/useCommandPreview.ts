@@ -1,4 +1,5 @@
-import { useRef, type Dispatch, type SetStateAction } from 'react';
+import { createPreviewLifetime, ownedPreview } from './previewLifetime';
+import { useCallback, useRef, type Dispatch, type SetStateAction } from 'react';
 import { prefixDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { patchValues, shownFields, type Values } from '@barocss/cad-model/app/commands';
@@ -48,7 +49,8 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
    * keeps up with the pointer — and the whole part follows when the drag pauses or ends (`fullTimer`), which also
    * measures it again. (Keyed by the document, not the command: an idle handle's edit is a new command each time.)
    */
-  const fullTimer = useRef(0);
+  const fullTimer = useRef(0), lifetime = useRef(createPreviewLifetime()), stopCurrent = useRef<(() => void) | undefined>(undefined);
+  const retire = useCallback(() => { lifetime.current.retire(); stopCurrent.current?.(); previewRun.current.next = null; window.clearTimeout(fullTimer.current); handleDrag.current = null; lastTyped.current = 0; previewFor.current = null; setPreviewBodies(null); }, [setPreviewBodies, previewFor]);
   const wholeCost = useRef<{ doc: StudioDoc; ms: number } | null>(null);
   const watch = () => {
     // (R1d: run on each change of the command's values, followed in the store — the App does not render for a value typed
@@ -61,7 +63,7 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
         setActive(a => a && { ...a, preview: 'error', error: { title: 'Assembly changed', hint: 'Start Bearing again to use the current housing geometry.', detail: '' } });
         return;
       }
-      let live = true;
+      let live = true; const ticket = lifetime.current.capture();
       const missing = missingCommandField(shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values), active.values);
       if (missing) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: { title: 'Enter a value', hint: `${missing.label} is empty.`, detail: '' } }); return; }
       const values = active.values, cmd = active.cmd, ctx = active.ctx;
@@ -87,7 +89,8 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
           if (k >= 0 && k < candidate.nodes.length - 1) { shown = prefixDoc(candidate, k + 1); rolled = true; }
         }
         window.clearTimeout(fullTimer.current);
-        const t0 = performance.now(), result = await engine.preview(shown, nextRevision());
+        const t0 = performance.now(), reply = await ownedPreview(lifetime.current, ticket, () => engine.preview(shown, nextRevision()));
+        if (reply.stale) return; const result = reply.result;
         if (!rolled) wholeCost.current = { doc: ctx.doc, ms: performance.now() - t0 };
         if (cmd.id === 'bearing' && ctx.bearingAssembly?.root !== currentBearingDoc()) return;
         if (rolled && live) fullTimer.current = window.setTimeout(() => { if (!live) return; run.next = () => job(true); if (!run.busy) void pump(); }, 220);
@@ -130,11 +133,11 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
       const t = setTimeout(() => { run.next = job; if (!run.busy) void pump(); }, typed ? 140 : 0);
       return () => { live = false; clearTimeout(t); };
     };
-    const follow = () => { const a = activeStore.get(); if (a?.values === seen) return; seen = a?.values; stop?.(); stop = evaluate(a); };
+    const follow = () => { const a = activeStore.get(); if (a?.values === seen) return; seen = a?.values; stop?.(); stop = evaluate(a); stopCurrent.current = stop; };
     follow();
     const unsubscribe = activeStore.subscribe(follow);
     return () => { unsubscribe(); stop?.(); };
   };
 
-  return { handleDrag, lastTyped, watch };
+  return { handleDrag, lastTyped, watch, retire };
 }

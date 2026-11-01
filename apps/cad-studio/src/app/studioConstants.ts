@@ -1,3 +1,4 @@
+import { FILLET_LAUNCHER } from './filletFamily';
 import { commands, type Selection } from '@barocss/cad-model/app/commands';
 import type { PartInstance } from '@barocss/cad-model/engine/doc';
 import { SKETCH3D_COMMAND } from '../skeleton/useSkeletonEditor';
@@ -9,7 +10,7 @@ export const NO_INSTANCES: PartInstance[] = [];
 export const NO_CUTS: readonly import('@barocss/cad-model/engine/doc').AssemblyCut[] = [];
 // (The rail's groups and the shapes strip's commands, made once: the button lists compare them by identity.)
 export const TOOL_GROUPS = ['create', 'modify', 'pattern', 'combine', 'inspect'] as const;
-export const GROUP_COMMANDS = TOOL_GROUPS.map(g => commands.filter(c => c.group === g && !c.place));
+export const GROUP_COMMANDS = TOOL_GROUPS.map(g => commands.filter(c => c.group === g && !c.place && c.id !== 'face-fillet' && c.id !== 'full-round').map(c => c.id === 'fillet' ? FILLET_LAUNCHER : c));
 export const PLACE_COMMANDS = commands.filter(c => c.place);
 /** What a command is about to add, in its preview. */
 export const PREVIEW_TINT = '#7fb2f0';

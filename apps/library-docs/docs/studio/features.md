@@ -116,8 +116,8 @@ fastener sizes you have loaded; without them they are refused with `[FASTENER_SI
 
 | Command | What it does |
 |---|---|
-| **Fillet** (<kbd>Shift</kbd> <kbd>F</kbd>), **Chamfer** (<kbd>C</kbd>) | Round or bevel the picked edges; a picked face takes all its edges |
-| **Face fillet** | Round between two picked faces. Meeting polynomial Bezier sides of a guided loft can use the rolling ball; unsupported free-form pairs are refused. See [Face fillets](/how/fillets) |
+| **Fillet** (<kbd>Shift</kbd> <kbd>F</kbd>) | One entry with Edge, Face and Full round types |
+| **Chamfer** (<kbd>C</kbd>) | Bevel the picked edges; a picked face takes all its edges |
 | **Shell** | Hollows a body, leaving the picked faces open |
 | **Draft** | Tapers the picked side faces for a pull along Z |
 | **Offset face** | Moves a flat face along its normal, adding or taking off material |
@@ -125,6 +125,21 @@ fastener sizes you have loaded; without them they are refused with `[FASTENER_SI
 | **Move** (<kbd>G</kbd>), **Rotate** (<kbd>R</kbd>), **Scale**, **Align** (<kbd>A</kbd>) | Place a body: by the gizmo, by typed values, or by putting one face on another |
 | **Hollow for printing**, **Fill with a lattice**, **Split to fit the bed** | Prepare a part for 3D printing |
 | **Simplify mesh** | Fewer triangles on a mesh body, such as an STL or a scan |
+
+### Fillet types
+
+Wait for the part to finish updating, choose **Fillet**, then choose **Type** and pick the required edges or faces.
+
+- **Edge** rounds picked edges; a picked face takes all its edges. **Radius mode** is **Constant** or **Varying**;
+  varying mode also shows the end radius. The existing circular, conic and G2 section choices remain.
+- **Face** rounds between two picked faces. Meeting polynomial Bezier sides of a guided loft can use the rolling ball;
+  unsupported free-form pairs are refused. See [Face fillets](/how/fillets).
+- **Full round** rounds the flat top of a rib or wall. It retains the existing Along choice and geometry limits.
+
+Changing Type replaces the unapplied preview and keeps only a selection valid for the new type. Set the values after
+choosing the type. Apply remains unavailable until the current type has valid input. When editing an existing feature,
+its Type stays fixed. Palette searches for **Face fillet** or **Full round** open the same Fillet interface with that type
+chosen; the existing search words and shortcuts remain available.
 
 ### Cylindrical wrap
 
