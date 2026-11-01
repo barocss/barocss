@@ -1,0 +1,9 @@
+# U1 icon legibility at rail size
+
+D411 measures the100-icon registry and redraws16 of the17 registered U1 entries. Canonical Box remains the control. Shell has a larger open cavity; Decimate has sparse facets; Split has separated halves; Prism a triangular end; Duplicate separated copies. Fillet/Chamfer have broad round/flat corner surfaces and visible depth; Draft has a tapered silhouette. Mechanical parts use larger balls, rubber-ring section, shaft/bore interface, key slot, C-gap/lugs and inward teeth. Construction loses dashed strokes; Hollow becomes a3D cutaway with drain port.
+
+All100 keys and command mappings stay unchanged.84 SVG geometries, including Box and all five D410 icons, match the captured source exactly. Existing Thicken/Sew consumers still share Shell. The full gallery is a context/collision check, not universal recognition proof. Prism/Wedge and O-ring/Torus remain related families whose labels help interpretation.
+
+PASS:6 focused routing/palette tests, Studio types, changed-file lint/syntax/diff. One independent feature audit accepts source, before/after20/48dark/light, full100×20gallery and actual images. Root also reviewed both final galleries and three actual states. The first candidate's cross-like internal gear, touching split and flat-looking edge profiles were corrected; images remain outside the repository.
+
+Actual Studio run01 verifies18 existing command consumers in palette and visible toolbar, solid-stroke Construction toggle/cancel, unchanged document and Box control. Font CSS1fulfilled empty, font-asset requests0.788 frozen files unchanged; errors/downloads0; five Studio captures and two gallery images; all resources closed. No geometry Apply, outbound file action, new dependency or public API change. U3/U4 remain separate. [Qualification](qualification.json) records commands/counts/limits; no raw image/log/HTML is committed. OCP remains removed.
