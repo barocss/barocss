@@ -1,0 +1,42 @@
+{
+  "work_id": "physics-motion-nogo-2276",
+  "base": "031f66c3ea572c3a496cfa319a4c542e7b19fc3a",
+  "preserved": [
+    {
+      "path": "examples/physics-motion-foundations-2276/CONTRACT.md",
+      "sha256": "07c610210446a6af3906d776f1c59eb5c49fabc705cf8b0d18bd6a9cd8011e7b"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.stdout",
+      "sha256": "431e7542613591ec60d4be164511a32e2081afc1aa4722f0b698b43187b25d64"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/final-audit.json",
+      "sha256": "3fdbfd70c3e0f59cf048587b13150aa86ab78f123f273e1567801a21e0e9a622"
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/RESULT.md",
+      "sha256": "5753de3d16aecf2d888d59f28454276fdbaa1a54c159d41c187024849f52f254"
+    },
+    {
+      "path": "examples/physics-public-disjoint-hinge-reference/RESULT.md",
+      "sha256": "3e5ee142293db4772371f3adfa2729fa513d8da1dc9841a1d0abbf08c2c09156"
+    }
+  ],
+  "readOnlyProbeErrors": [
+    {
+      "kind": "KeyError",
+      "stage": "agent hinge schema probe",
+      "assumption": "output.joints",
+      "filesMutated": false,
+      "worldCalls": 0
+    },
+    {
+      "kind": "not found",
+      "stage": "parent initial stack archive path probe",
+      "path": "examples/physics-rigid-full-pair-position-world/evidence/run-01/manifest.json",
+      "filesMutated": false,
+      "worldCalls": 0
+    }
+  ]
+}

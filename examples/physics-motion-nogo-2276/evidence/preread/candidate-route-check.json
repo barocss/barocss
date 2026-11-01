@@ -1,0 +1,71 @@
+{
+  "work_id": "physics-motion-nogo-2276",
+  "knownHistoricalCheckout": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss",
+  "knownHistoricalCheckoutExists": false,
+  "worktreeRootExists": true,
+  "physicsNamedDirectories": [
+    "/Users/user/.codex/worktrees/physics-775",
+    "/Users/user/.codex/worktrees/physics-772",
+    "/Users/user/.codex/worktrees/physics-773",
+    "/Users/user/.codex/worktrees/physics-774",
+    "/Users/user/.codex/worktrees/cad-plate-1644-physical",
+    "/Users/user/.codex/worktrees/physics-engine-1179",
+    "/Users/user/.codex/worktrees/physics-fluid-818-final",
+    "/Users/user/.codex/worktrees/physics-offset-hinge-939",
+    "/Users/user/.codex/worktrees/physics-hinge-motor-1179",
+    "/Users/user/.codex/worktrees/physics-hinge-world-1179",
+    "/Users/user/.codex/worktrees/physics-soft-continuum-826",
+    "/Users/user/.codex/worktrees/physics-rigid-823",
+    "/Users/user/.codex/worktrees/physics-soft-volume-phase-826",
+    "/Users/user/.codex/worktrees/physics-fluid-818-accept",
+    "/Users/user/.codex/worktrees/physics-volume-phase-recovered-826",
+    "/Users/user/.codex/worktrees/physics-coupled-hinge-1309",
+    "/Users/user/.codex/worktrees/physics-coupled-diagnostic-1308",
+    "/Users/user/.codex/worktrees/physics-767",
+    "/Users/user/.codex/worktrees/physics-multi-hinge",
+    "/Users/user/.codex/worktrees/physics-769",
+    "/Users/user/.codex/worktrees/physics-751",
+    "/Users/user/.codex/worktrees/physics-hinge-recorded-viewer",
+    "/Users/user/.codex/worktrees/physics-capsule-ccd",
+    "/Users/user/.codex/worktrees/physics-fluid-812",
+    "/Users/user/.codex/worktrees/physics-fluid-871",
+    "/Users/user/.codex/worktrees/physics-768",
+    "/Users/user/.codex/worktrees/physics-capsule-world-1298",
+    "/Users/user/.codex/worktrees/physics-fluid-813",
+    "/Users/user/.codex/worktrees/physics-771",
+    "/Users/user/.codex/worktrees/physics-signed-closure-world-1384",
+    "/Users/user/.codex/worktrees/physics-776",
+    "/Users/user/.codex/worktrees/physics-soft-continuum-compact-826",
+    "/Users/user/.codex/worktrees/physics-demo-959",
+    "/Users/user/.codex/worktrees/physics-770",
+    "/Users/user/.codex/worktrees/physics-rigid-819",
+    "/Users/user/.codex/worktrees/physics-hinge-limit-1294",
+    "/Users/user/.codex/worktrees/physics-coupled-world-1264",
+    "/Users/user/.codex/worktrees/physics-dev-source-811",
+    "/Users/user/.codex/worktrees/physics-soft-balance-826",
+    "/Users/user/.codex/worktrees/physics-hinge-velocity-1349",
+    "/Users/user/.codex/worktrees/physics-rigid-823-motor",
+    "/Users/user/.codex/worktrees/physics-soft-budget-826",
+    "/Users/user/.codex/worktrees/physics-fluid-816",
+    "/Users/user/.codex/worktrees/physics-764",
+    "/Users/user/.codex/worktrees/physics-rigid-cache-1204",
+    "/Users/user/.codex/worktrees/physics-signed-separation-1344",
+    "/Users/user/.codex/worktrees/physics-fluid-818-gate",
+    "/Users/user/.codex/worktrees/physics-765",
+    "/Users/user/.codex/worktrees/physics-soft-continuum-world-826"
+  ],
+  "lookupScope": "known historical path plus three physics directories; only worktree-name marker files present; not an exhaustive disk search",
+  "worldCalls": 0,
+  "targetedDirectoriesInspected": {
+    "/Users/user/.codex/worktrees/physics-hinge-world-1179": [
+      ".codex-worktree-name"
+    ],
+    "/Users/user/.codex/worktrees/physics-multi-hinge": [
+      ".codex-worktree-name"
+    ],
+    "/Users/user/.codex/worktrees/physics-engine-1179": [
+      ".codex-worktree-name"
+    ]
+  },
+  "targetedEvidenceFilenameMatches": []
+}

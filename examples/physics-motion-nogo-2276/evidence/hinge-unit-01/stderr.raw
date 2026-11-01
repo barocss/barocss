@@ -1,0 +1,16 @@
+test_alternating_series_exact_remainder (__main__.HingeStudyHelpers.test_alternating_series_exact_remainder) ... ok
+test_basic_arithmetic_ties_to_even (__main__.HingeStudyHelpers.test_basic_arithmetic_ties_to_even) ... ok
+test_identity_relative_quaternion_and_dot (__main__.HingeStudyHelpers.test_identity_relative_quaternion_and_dot) ... ok
+test_interval_across_halfway_is_unresolved (__main__.HingeStudyHelpers.test_interval_across_halfway_is_unresolved) ... ok
+test_interval_rounds_to_one_known_binary_value (__main__.HingeStudyHelpers.test_interval_rounds_to_one_known_binary_value) ... ok
+test_json_duplicate_and_nonfinite_are_refused (__main__.HingeStudyHelpers.test_json_duplicate_and_nonfinite_are_refused) ... ok
+test_positive_binary_operand_contract (__main__.HingeStudyHelpers.test_positive_binary_operand_contract) ... ok
+test_raw_frame_size_finite_values_and_zero_bits (__main__.HingeStudyHelpers.test_raw_frame_size_finite_values_and_zero_bits) ... ok
+test_selected_span_authentication_and_prefix_bounds (__main__.HingeStudyHelpers.test_selected_span_authentication_and_prefix_bounds) ... ok
+test_series_domain_is_strict (__main__.HingeStudyHelpers.test_series_domain_is_strict) ... ok
+test_signed_zero_is_preserved (__main__.HingeStudyHelpers.test_signed_zero_is_preserved) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.001s
+
+OK

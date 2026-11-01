@@ -1,0 +1,16 @@
+test_branched_topology_refuses (__main__.ExactCertificateTests.test_branched_topology_refuses) ... ok
+test_exact_fraction_feasibility_all32rows (__main__.ExactCertificateTests.test_exact_fraction_feasibility_all32rows) ... ok
+test_exact_zero_torque_for_all_dynamic_bodies (__main__.ExactCertificateTests.test_exact_zero_torque_for_all_dynamic_bodies) ... ok
+test_ideal_gravity_product_is_reported_separately (__main__.ExactCertificateTests.test_ideal_gravity_product_is_reported_separately) ... ok
+test_loads_do_not_use_id_suffixes_or_row_order (__main__.ExactCertificateTests.test_loads_do_not_use_id_suffixes_or_row_order) ... ok
+test_missing_actual_corner_refuses (__main__.ExactCertificateTests.test_missing_actual_corner_refuses) ... ok
+test_nonzero_warm_impulse_refuses (__main__.ExactCertificateTests.test_nonzero_warm_impulse_refuses) ... ok
+test_unequal_free_velocity_refuses (__main__.ExactCertificateTests.test_unequal_free_velocity_refuses) ... ok
+test_all32_axis_aligned_witnesses (__main__.IndependentGeometryTests.test_all32_axis_aligned_witnesses) ... ok
+test_floor_penetration_is_retained (__main__.IndependentGeometryTests.test_floor_penetration_is_retained) ... ok
+test_invalid_geometry_refuses (__main__.IndependentGeometryTests.test_invalid_geometry_refuses) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.037s
+
+OK

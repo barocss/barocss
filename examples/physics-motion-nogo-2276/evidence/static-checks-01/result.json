@@ -1,0 +1,38 @@
+{
+  "work_id": "physics-motion-nogo-2276",
+  "commands": [
+    {
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--check",
+        "examples/physics-motion-nogo-2276/run.mjs"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--check",
+        "examples/physics-motion-nogo-2276/hinge-runtime.mjs"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "examples/physics-motion-nogo-2276/run.mjs",
+        "examples/physics-motion-nogo-2276/hinge-runtime.mjs"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "pythonAstParse": "PASS",
+  "worldCalls": 0
+}

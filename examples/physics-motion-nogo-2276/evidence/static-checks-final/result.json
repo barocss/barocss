@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "node_modules/eslint/bin/eslint.js",
+    "examples/physics-motion-nogo-2276/run.mjs",
+    "examples/physics-motion-nogo-2276/hinge-runtime.mjs",
+    "examples/physics-motion-nogo-2276/summarize.mjs"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": "",
+  "worldCalls": 0
+}
