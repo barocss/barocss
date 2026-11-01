@@ -16,8 +16,8 @@
 html, body, #root { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 400 12px var(--sans); overflow: hidden; }
 button { font: inherit; color: inherit; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-.ms { font-family: 'Material Symbols Outlined'; font-weight: 300; font-size: 19px; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; -webkit-font-smoothing: antialiased; }
-.ms.sm { font-size: 16px; }
+.ui-icon { display: inline-block; vertical-align: middle; flex: none; width: 19px; height: 19px; }
+.ui-icon.sm { width: 16px; height: 16px; }
 .accent { color: var(--accent); }
 .muted { color: var(--muted); }
 .mono { font-family: var(--mono); }
@@ -463,8 +463,8 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .hud-step { display: flex; align-items: center; gap: 6px; color: var(--muted); }
 .hud-step b { font-weight: 600; color: var(--text-2); min-width: 52px; }
 .hud-step.done { color: var(--text-2); }
-.hud-step.done .ms { color: var(--ok); }
-.hud-step:not(.done) .ms { color: var(--accent); }
+.hud-step.done .ui-icon { color: var(--ok); }
+.hud-step:not(.done) .ui-icon { color: var(--accent); }
 
 /* The keyboard and mouse list (ui/ShortcutHelp.tsx). */
 .help-scrim { background: rgba(0, 0, 0, 0.35); }
@@ -502,7 +502,7 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .vp-overlay .sk-osnap rect, .vp-overlay .sk-osnap polygon, .vp-overlay .sk-osnap circle { fill: none; stroke: #4fd1c5; stroke-width: 1.6; }
 .vp-overlay .sk-osnap text { fill: #4fd1c5; font: 600 10px var(--sans); paint-order: stroke; stroke: rgba(0, 0, 0, 0.55); stroke-width: 3px; }
 .ol.clash { display: flex; align-items: center; gap: 6px; width: 100%; text-align: left; }
-.ol.clash .ms { color: #f0ad4e; }
+.ol.clash .ui-icon { color: #f0ad4e; }
 .vp-overlay .sk-shape.construction { stroke-dasharray: 5 4; fill: none !important; opacity: 0.75; }
 button.chip.snap { border: 0; cursor: pointer; color: var(--text-2); font: inherit; font-size: 11px; }
 button.chip.snap:hover { background: #3a3c41; }

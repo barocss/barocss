@@ -17,5 +17,5 @@ test('five U2 command IDs resolve to registered SVGs across supplied glyph fallb
 });
 test('existing command aliases and unrelated icon fallbacks keep their meanings', () => {
   assert.equal(commandIconName('linear-pattern', 'fallback'), 'cad-pattern-linear'); assert.equal(commandIconName('sweep-curve', 'fallback'), 'cad-sweep');
-  assert.equal(commandIconName('non-command-ui', 'search'), 'search'); assert.match(renderToStaticMarkup(createElement(Icon, { name: 'search' })), /class="ms/);
+  assert.equal(commandIconName('non-command-ui', 'search'), 'search'); assert.match(renderToStaticMarkup(createElement(Icon, { name: 'search' })), /data-ui-icon="search"/);
 });

@@ -81,7 +81,7 @@ export function AssemblyStepsPanel({ doc, index, offer, faded, problems, onGo, o
           <Button size="xs" variant="ghost" aria-label="Delete step" title="Delete this step: its parts are in no step, nothing is moved" onClick={() => onDelete(step.id)}><Icon name="delete" small /></Button>
         </div>
         <Collapsible>
-          <CollapsibleTrigger className="flex w-full cursor-pointer items-center gap-1 bg-transparent p-0 text-left text-[11px] text-foreground hover:text-[var(--accent)] [&[data-state=open]_.ms]:rotate-90" aria-label="Details"><Icon name="chevron_right" small />Details{problems.length ? ' ·' : ''}</CollapsibleTrigger>
+          <CollapsibleTrigger className="flex w-full cursor-pointer items-center gap-1 bg-transparent p-0 text-left text-[11px] text-foreground hover:text-[var(--accent)] [&[data-state=open]_.ui-icon]:rotate-90" aria-label="Details"><Icon name="chevron_right" small />Details{problems.length ? ' ·' : ''}</CollapsibleTrigger>
           <CollapsibleContent className="flex flex-col gap-1 pt-1">
             <label className={FIELD}><span>Note</span><CommitText key={step.id} multiline aria-label="Step note" className="h-12 w-40 min-w-0" maxLength={500} value={step.note ?? ''} onCommit={v => onNote(step.id, v)} /></label>
             <label className={FIELD}><span>Show waiting parts faded</span><input type="checkbox" className={TICK} aria-label="Show waiting parts faded" checked={faded} onChange={e => onFaded(e.target.checked)} /></label>

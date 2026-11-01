@@ -3613,7 +3613,7 @@ try {
         await page.click('[aria-label="Close chat"]');
         await page.waitForFunction(k => new RegExp(`${k} bodies`).test(document.querySelector('.outliner')?.textContent ?? ''), bodies, { timeout: 120000 }); await idle();
         await page.locator('.outliner .ol').filter({ hasText: at }).first().click();
-        await page.waitForFunction(re => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => new RegExp(re).test((x.textContent ?? '').replace(/^warning\s*/, '').trim())), note.source, { timeout: 60000 });
+        await page.waitForFunction(re => [...document.querySelectorAll('[aria-label="Generator note"]')].some(x => new RegExp(re).test((x.textContent ?? '').trim())), note.source, { timeout: 60000 });
         await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
         await snap(`r12c-8-${name}`);
       }

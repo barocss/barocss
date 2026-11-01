@@ -59,7 +59,7 @@ export function InstanceLooksControls({ rows, held = [], readOnly = false, detai
           </div>);
       })}
       <Collapsible defaultOpen={detailsOpen}>
-        <CollapsibleTrigger className="flex w-full cursor-pointer items-center gap-1 bg-transparent p-0 text-left text-[11px] text-foreground hover:text-[var(--accent)] [&[data-state=open]_.ms]:rotate-90">
+        <CollapsibleTrigger className="flex w-full cursor-pointer items-center gap-1 bg-transparent p-0 text-left text-[11px] text-foreground hover:text-[var(--accent)] [&[data-state=open]_.ui-icon]:rotate-90">
           <Icon name="chevron_right" small />Details{held.length ? ` · ${held.length} held` : ''}</CollapsibleTrigger>
         <CollapsibleContent className="flex flex-col gap-0.5 pt-1">
           {rows.map(({ key, name, look }) => {

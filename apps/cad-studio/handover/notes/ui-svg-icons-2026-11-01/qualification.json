@@ -1,0 +1,189 @@
+{
+  "decision": "D415",
+  "date": "2026-11-01",
+  "baseCommit": "43ecc210cd4bc3e2aae8f898f608c506660419c8",
+  "tier": "feature",
+  "status": "BOUNDED_QUALIFIED",
+  "models": {
+    "implementationAndIndependentAudit": "gpt-6.1-sol / medium"
+  },
+  "scope": "Owner U3 generic Studio UI SVG migration; all100 drawn CAD icons retained",
+  "dependency": {
+    "name": "lucide-react",
+    "version": "1.52.0",
+    "license": "ISC",
+    "authorization": "Owner explicitly approved this pinned download/install; permission used for standard add",
+    "command": "pnpm --filter @barocss/cad-studio-app add lucide-react@1.52.0 --save-exact --ignore-scripts",
+    "status": "PASS",
+    "seconds": 5.8,
+    "pnpm": {
+      "resolved": 943,
+      "reused": 13,
+      "downloadedPayloads": 0,
+      "added": 19
+    },
+    "meaning": "Authorized registry resolution reused cached package payloads; hoisted linker refreshed local links",
+    "trackedDelta": {
+      "studioManifestLines": 1,
+      "lockfileLines": 18,
+      "unrelatedDependenciesChanged": 0
+    },
+    "react": "Existing19.2.3, supported peer",
+    "typesReact": "Existing19.3.0, optional peer",
+    "otherDownloads": "Not authorized"
+  },
+  "inventory": {
+    "semanticNames": 88,
+    "olderEstimate": 46,
+    "astMetadataCandidates": 86,
+    "featureFallbacks": [
+      "file_open",
+      "category"
+    ],
+    "dynamicExpressionsTraced": 30,
+    "namedLucideImports": 87,
+    "unknown": "Own-key blank decorative diagnostic data-ui-icon-missing; never raw text/unrelated glyph; all current used names covered"
+  },
+  "behavior": {
+    "generic": "Bundled currentColor SVG, decorative aria-hidden/focusable=false; normal19/small16px",
+    "sizeCorrection": "Pre-actual source inspection found existing shadcn SVG14px utility could override stylesheet sizes; inline19/16 dimensions preserve prior span sizes. No actual failure occurred.",
+    "cad": "Existing early CAD branch and registry unchanged;100normal+small render-delegation controls",
+    "font": "Material family removed from combined stylesheet and .ms font path removed. IBM Sans/Mono/preconnect retained.",
+    "consumers": "Three collapse selectors and status/issue color selectors use ui-icon. Existing labels/actions/IDs/keyboard/doc/file contracts unchanged.",
+    "browserHelper": "Only obsolete warning glyph-text strip removed; SVG has no text. Prior .ms absence assertions retained."
+  },
+  "cad": {
+    "sourceByteIdentical": true,
+    "sourceSha256": "9f78ea0d309f29ac0325170e7865e826c7f3f9782c11fa12e7ac9532c5fd7821",
+    "icons": 100,
+    "normalAndSmallControls": true,
+    "actualBoxControl": "PASS",
+    "evidence": "Source/delegation provenance, not a geometry or all-user recognition oracle"
+  },
+  "checks": {
+    "focused": {
+      "status": "PASS",
+      "unique": 7,
+      "newUi": 5,
+      "existingCommand": 2
+    },
+    "studioBuildIncludesTypes": "PASS after final test and inline-size fix",
+    "modelTypesAfterFinalTestEdit": "PASS; no later test edit",
+    "lintSyntaxDiff": "PASS",
+    "bundleInspection": "87 static named imports/sideEffects:false;3selected markers present,4unused markers absent. No comparative size/performance claim.",
+    "warnings": "Observed peer/use-client/ineffective-dynamic-import categories; build/install PASS; no blanket before/after warning claim"
+  },
+  "gallery": {
+    "status": "PASS",
+    "names": 88,
+    "sizes": [
+      20,
+      48
+    ],
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "svgCells": 352,
+    "pages": 4,
+    "httpRequests": 0,
+    "physicalSizeChecks": "PASS20/48; gallery-only important overrides",
+    "artifacts": "/tmp/barocss-d415-gallery-final",
+    "initialGallery": "/tmp/barocss-d415-gallery preserved",
+    "rootReviewedPages": 2
+  },
+  "audit": {
+    "status": "ACCEPT",
+    "rounds": 1,
+    "scope": "Source, all4gallery pages, targeted size-fix confirmation within same audit, all5actual images",
+    "findings": "No outstanding actionable finding",
+    "mutation": "NOT_RUN: feature tier"
+  },
+  "studio": {
+    "status": "PASS",
+    "run": 1,
+    "frozenFiles": 303,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "captures": 5,
+    "rootReviewed": 2,
+    "independentReviewed": 5,
+    "states": [
+      {
+        "name": "main",
+        "genericSvg": 26
+      },
+      {
+        "name": "palette",
+        "genericSvg": 27
+      },
+      {
+        "name": "parameters",
+        "genericSvg": 28
+      },
+      {
+        "name": "history",
+        "genericSvg": 32
+      },
+      {
+        "name": "sketch",
+        "genericSvg": 27
+      },
+      {
+        "name": "drawing",
+        "genericSvg": 39
+      },
+      {
+        "name": "chat",
+        "genericSvg": 28
+      }
+    ],
+    "missingIcons": 0,
+    "rawMsSpans": 0,
+    "materialLinks": 0,
+    "physicalSizes": "All visible generic SVG rects19/16; explicit real shadcn Finish19/Delete16 controls",
+    "workflows": "Keyboard palette/ArrowUp/ArrowDown/Escape, parameters close, history menu/Escape, sketch cancel, drawing, chat open/close, CADBox",
+    "document": "Exact native document unchanged; unused parameter fixture, no geometry edit",
+    "fonts": {
+      "materialRequests": 0,
+      "fontAssets": 0,
+      "ibmStylesheetLocallyFulfilledEmpty": 1
+    },
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED",
+      "GATE_RELEASED"
+    ],
+    "artifacts": "/tmp/barocss-d415-browser-run01"
+  },
+  "fail": {
+    "unexpectedFunctionalOrActualFailures": 0,
+    "preflightHistory": [
+      "App-local package.json lookup failed because package is correctly hoisted inside this worktree; root resolution confirmed",
+      "Declaration-only alias precheck reported5legacy aliases; actual exports/types/build available and PASS",
+      "14px existing Button-utility conflict identified before actual, fixed and confirmed in same audit"
+    ]
+  },
+  "notRun": [
+    "Actual Apply/Save/export/download/Chat Send/paid calls",
+    "All UI combinations/universal unlabeled recognition/user study",
+    "Full baseline suites/CI/release",
+    "API/library-docs regeneration: unchanged owning sources; D414 checks retained",
+    "Full Taste Skill installation/scripts/pipeline; prior optional fallback remains"
+  ],
+  "issueReview": "Bounded Lucide/icon-title searches found older cad-editor or shared integration scopes, not this Studio U3 item; no dedicated closable issue found, none closed",
+  "commands": {
+    "fullCapsule": "/tmp/barocss-d415-capsule/commands.txt",
+    "focused": "pnpm --filter @barocss/cad-studio-app exec node scripts/test.mjs ui-icons command-icons",
+    "build": "pnpm --filter @barocss/cad-studio-app build",
+    "modelTypes": "pnpm --filter @barocss/cad-model type-check",
+    "gallery": "UI_ICON_CAPTURE=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME=/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome node apps/cad-studio/test/ui-icon-gallery.mjs /tmp/barocss-d415-gallery-final",
+    "actual": "UI_ICONS_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME=/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome node apps/cad-studio/test/ui-icons-browser.mjs /tmp/barocss-d415-browser-run01 /tmp/barocss-d415-gallery-final"
+  },
+  "execution": "Node22.19.0; serial heavy gate/load<40; no worktree writes during actual; raw logs/screens/galleries only/tmp",
+  "ocp": "Remains removed",
+  "next": "D416 assess registered non-dual short-dimension arrow clearance; production/motion/external-SDK holds remain"
+}

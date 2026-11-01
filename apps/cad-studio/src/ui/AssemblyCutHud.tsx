@@ -51,7 +51,7 @@ export function AssemblyCutHud({ draft, instances, problem, onChange, onAddSelec
           </div>
         </div>
         <Collapsible>
-          <CollapsibleTrigger className="flex w-full cursor-pointer items-center gap-1 bg-transparent p-0 text-left text-[11px] text-foreground hover:text-[var(--accent)] [&[data-state=open]_.ms]:rotate-90"><Icon name="chevron_right" small />Details</CollapsibleTrigger>
+          <CollapsibleTrigger className="flex w-full cursor-pointer items-center gap-1 bg-transparent p-0 text-left text-[11px] text-foreground hover:text-[var(--accent)] [&[data-state=open]_.ui-icon]:rotate-90"><Icon name="chevron_right" small />Details</CollapsibleTrigger>
           <CollapsibleContent className="flex flex-col gap-0.5 pt-1">
             <label className={FIELD}><span>Name</span><input aria-label="Cut name" className="w-32 min-w-0" type="text" maxLength={60} value={draft.name} onChange={e => set('name', e.target.value)} /></label>
             <div className="text-[10px] text-muted-foreground">A depth cuts one way from the profile plane, along the direction; Through cuts the whole part along the direction, both ways from the plane (a part longer than 10,000 mm cannot be cut through). The rectangle's width runs along X (along Y for a cut along X). Each part's definition stays whole; mates still read its uncut faces.</div>
