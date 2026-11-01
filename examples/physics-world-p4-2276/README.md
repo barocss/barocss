@@ -165,3 +165,27 @@ cache implementation or new trajectory has run at this checkpoint.
 ```sh
 $NODE22 examples/physics-world-p4-2276/position-profile-run.mjs position-profile-guard-01 position-profile-01
 ```
+
+## Frozen first cache candidate
+
+`cache-implementation-freeze-01.json` approves the exact `CACHE-CONTRACT.md`
+and `CACHE-CONTROLS.json` bytes before core implementation. The target is only
+the original `support_radius` function. It used 8,640 calls and about 62 ms
+cumulatively inside each profiled position sample. No formula is replaced.
+
+The literal primitive ledger has 12 groups, 43 wrapper invocations and 51
+original helper attempts (23 direct baselines and 28 delegated attempts),
+within the predeclared48/72 ceilings. The full gate then admits six optimized
+reference evaluations against the already captured CURRENT raw responses.
+Correctness and cost have separate exits. Aggregate process CPU must strictly
+decrease for `COST_GO`; every per-frame regression remains visible.
+
+Cache bounds are fixed before implementation: 8,192 entries, 16 KiB per key,
+16 MiB retained encoded keys and 64 MiB accounted owned cache storage. Input
+representations, Decimal Context, traps and incoming flags are complete key
+dependencies; hits replay the original post-flags. Exceptions propagate intact.
+Capacity bypass computes the original function and stores no new entry.
+
+These are authored contracts and recipes. Primitive and six-call cache gates
+are NOT_RUN at this checkpoint. No cache performance or full-stack result is
+claimed.

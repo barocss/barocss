@@ -1,0 +1,1762 @@
+{
+  "workId": "physics-world-p4-support-radius-cache-2276",
+  "artifactType": "literal-preimplementation-primitive-recipes",
+  "status": "AWAITING_PARENT_FREEZE_NO_IMPLEMENTATION_NO_EXECUTION",
+  "recipeVersion": 1,
+  "authority": {
+    "contractPath": "examples/physics-world-p4-2276/CACHE-CONTRACT.md",
+    "contractSha256": "d4f53304f6c1bb11c31c35c695c564970fb8b44c88b7ef6debf28b14f94f3812",
+    "originalPath": "examples/physics-rigid-feature-penetration-diagnostic/geometry-reference.py",
+    "originalSha256": "9ff4ed05dc2f2f98d32533527b506d4aa0f7799bc6d86a0862ecf24f389b9841",
+    "function": "support_radius(extents,bases,direction)"
+  },
+  "api": {
+    "constructor": "SupportRadiusCache(original, bounds)",
+    "methods": [
+      "call(*args, **kwargs)",
+      "clear()",
+      "stats()"
+    ],
+    "statsNames": [
+      "calls",
+      "eligible",
+      "hits",
+      "misses",
+      "type_bypasses",
+      "context_bypasses",
+      "capacity_bypasses",
+      "original_attempts",
+      "original_returns",
+      "original_raises",
+      "entries",
+      "encoded_key_bytes",
+      "owned_bytes",
+      "peak_owned_bytes",
+      "key_build_cpu_ns",
+      "key_build_wall_ns"
+    ]
+  },
+  "defaultBounds": {
+    "max_entries": 8192,
+    "max_key_bytes": 16384,
+    "max_encoded_bytes": 16777216,
+    "max_owned_bytes": 67108864,
+    "max_logical_calls": 8640
+  },
+  "primitiveCeilings": {
+    "wrapperCalls": 48,
+    "totalOriginalAttempts": 72
+  },
+  "exactPlannedLedger": {
+    "wrapperCalls": 43,
+    "delegatedOriginalAttempts": 28,
+    "directOriginalAttempts": 23,
+    "totalOriginalAttempts": 51
+  },
+  "executionRules": [
+    "Authenticate the contract, recipes, new helper/controls source and immutable original provider closure before importing or calling original mathematics.",
+    "Execute groups1..12 once in listed order; stop immediately on first assertion, source, accounting, exception-identity or resource mismatch. No retry or full reference call.",
+    "Each group creates one fresh cache and new exact builtin Context instances from the listed literal templates. Keep each instance alive so its flags persist naturally across that group calls.",
+    "A contextInstance selects that same actual active Context with setcontext; it is not copied or flag-cleared between wrapper calls. Restore the prior caller Context in finally.",
+    "Baseline calls run once each BEFORE wrapper calls, each in its own independent literal-template Context, and do not warm the cache. Save actual result.as_tuple/exception type and full post-flags; restore the prior Context afterward.",
+    "Each wrapper receives a recording forwarding delegate that calls the unchanged original exactly once and records return/raise identity and full flags. Direct baselines call original directly; both count toward72.",
+    "No Decimal arithmetic, normalization, float conversion or support-radius formula exists in fixtures, comparisons, keys, snapshots, timing or accounting. Only the original helper performs arithmetic.",
+    "A capacity bypass is also a lookup miss for eligible data: misses includes capacity misses. type/context bypasses are not eligible lookup misses.",
+    "Aggregate actual wrapper/direct/delegated counts outside per-request cache stats so group9.clear cannot erase actual work.",
+    "Construct fixtures with the exact declared builtin containers and Decimal string representations; only explicitly marked leaves use the test Decimal subclass.",
+    "Every stored key is typed length-delimited bytes covering function/source identity, full argument tuples/as_tuple representations and full Context settings/traps/incoming flags. A hash alone is not a key.",
+    "All successful original return comparisons use exact Decimal type/as_tuple; Decimal numeric equality alone is insufficient. Do not independently derive expected support radius.",
+    "Full reference/evaluate/QP/World/fixture-function/trig/production calls are0 in this primitive gate."
+  ],
+  "signalOrder": [
+    "Clamped",
+    "InvalidOperation",
+    "DivisionByZero",
+    "Inexact",
+    "Rounded",
+    "Subnormal",
+    "Overflow",
+    "Underflow",
+    "FloatOperation"
+  ],
+  "contextTemplates": {
+    "even80": {
+      "type": "exact-builtin-decimal.Context",
+      "prec": 80,
+      "rounding": "ROUND_HALF_EVEN",
+      "Emin": -999999,
+      "Emax": 999999,
+      "capitals": 1,
+      "clamp": 0,
+      "signalOrder": [
+        "Clamped",
+        "InvalidOperation",
+        "DivisionByZero",
+        "Inexact",
+        "Rounded",
+        "Subnormal",
+        "Overflow",
+        "Underflow",
+        "FloatOperation"
+      ],
+      "traps": [
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false
+      ],
+      "incomingFlags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "even120": {
+      "type": "exact-builtin-decimal.Context",
+      "prec": 120,
+      "rounding": "ROUND_HALF_EVEN",
+      "Emin": -999999,
+      "Emax": 999999,
+      "capitals": 1,
+      "clamp": 0,
+      "signalOrder": [
+        "Clamped",
+        "InvalidOperation",
+        "DivisionByZero",
+        "Inexact",
+        "Rounded",
+        "Subnormal",
+        "Overflow",
+        "Underflow",
+        "FloatOperation"
+      ],
+      "traps": [
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false
+      ],
+      "incomingFlags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "floor80": {
+      "type": "exact-builtin-decimal.Context",
+      "prec": 80,
+      "rounding": "ROUND_FLOOR",
+      "Emin": -999999,
+      "Emax": 999999,
+      "capitals": 1,
+      "clamp": 0,
+      "signalOrder": [
+        "Clamped",
+        "InvalidOperation",
+        "DivisionByZero",
+        "Inexact",
+        "Rounded",
+        "Subnormal",
+        "Overflow",
+        "Underflow",
+        "FloatOperation"
+      ],
+      "traps": [
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false
+      ],
+      "incomingFlags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "preset80": {
+      "type": "exact-builtin-decimal.Context",
+      "prec": 80,
+      "rounding": "ROUND_HALF_EVEN",
+      "Emin": -999999,
+      "Emax": 999999,
+      "capitals": 1,
+      "clamp": 0,
+      "signalOrder": [
+        "Clamped",
+        "InvalidOperation",
+        "DivisionByZero",
+        "Inexact",
+        "Rounded",
+        "Subnormal",
+        "Overflow",
+        "Underflow",
+        "FloatOperation"
+      ],
+      "traps": [
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false
+      ],
+      "incomingFlags": [
+        false,
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "trap80": {
+      "type": "exact-builtin-decimal.Context",
+      "prec": 80,
+      "rounding": "ROUND_HALF_EVEN",
+      "Emin": -999999,
+      "Emax": 999999,
+      "capitals": 1,
+      "clamp": 0,
+      "signalOrder": [
+        "Clamped",
+        "InvalidOperation",
+        "DivisionByZero",
+        "Inexact",
+        "Rounded",
+        "Subnormal",
+        "Overflow",
+        "Underflow",
+        "FloatOperation"
+      ],
+      "traps": [
+        false,
+        true,
+        true,
+        true,
+        false,
+        false,
+        true,
+        false,
+        false
+      ],
+      "incomingFlags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "trapPreset80": {
+      "type": "exact-builtin-decimal.Context",
+      "prec": 80,
+      "rounding": "ROUND_HALF_EVEN",
+      "Emin": -999999,
+      "Emax": 999999,
+      "capitals": 1,
+      "clamp": 0,
+      "signalOrder": [
+        "Clamped",
+        "InvalidOperation",
+        "DivisionByZero",
+        "Inexact",
+        "Rounded",
+        "Subnormal",
+        "Overflow",
+        "Underflow",
+        "FloatOperation"
+      ],
+      "traps": [
+        false,
+        true,
+        true,
+        true,
+        false,
+        false,
+        true,
+        false,
+        false
+      ],
+      "incomingFlags": [
+        false,
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "unsupported79": {
+      "type": "exact-builtin-decimal.Context",
+      "prec": 79,
+      "rounding": "ROUND_HALF_EVEN",
+      "Emin": -999999,
+      "Emax": 999999,
+      "capitals": 1,
+      "clamp": 0,
+      "signalOrder": [
+        "Clamped",
+        "InvalidOperation",
+        "DivisionByZero",
+        "Inexact",
+        "Rounded",
+        "Subnormal",
+        "Overflow",
+        "Underflow",
+        "FloatOperation"
+      ],
+      "traps": [
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false
+      ],
+      "incomingFlags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "argumentFixtures": {
+    "A": {
+      "positionalArity": 3,
+      "outerCallArgs": "tuple",
+      "extentsContainer": "tuple",
+      "basesContainer": "tuple-of-three-builtin-tuples",
+      "directionContainer": "tuple",
+      "leafConstruction": "Decimal(literal_string), no arithmetic conversion",
+      "decimalSubclassPaths": [],
+      "extents": [
+        "0.25",
+        "0.5",
+        "0.75"
+      ],
+      "bases": [
+        [
+          "1",
+          "0",
+          "0"
+        ],
+        [
+          "0",
+          "1",
+          "0"
+        ],
+        [
+          "0",
+          "0",
+          "1"
+        ]
+      ],
+      "direction": [
+        "1",
+        "0",
+        "0"
+      ]
+    },
+    "A_negative_zero": {
+      "positionalArity": 3,
+      "outerCallArgs": "tuple",
+      "extentsContainer": "tuple",
+      "basesContainer": "tuple-of-three-builtin-tuples",
+      "directionContainer": "tuple",
+      "leafConstruction": "Decimal(literal_string), no arithmetic conversion",
+      "decimalSubclassPaths": [],
+      "extents": [
+        "0.25",
+        "0.5",
+        "0.75"
+      ],
+      "bases": [
+        [
+          "1",
+          "0",
+          "0"
+        ],
+        [
+          "0",
+          "1",
+          "0"
+        ],
+        [
+          "0",
+          "0",
+          "1"
+        ]
+      ],
+      "direction": [
+        "1",
+        "-0",
+        "0"
+      ]
+    },
+    "A_exponent": {
+      "positionalArity": 3,
+      "outerCallArgs": "tuple",
+      "extentsContainer": "tuple",
+      "basesContainer": "tuple-of-three-builtin-tuples",
+      "directionContainer": "tuple",
+      "leafConstruction": "Decimal(literal_string), no arithmetic conversion",
+      "decimalSubclassPaths": [],
+      "extents": [
+        "0.250",
+        "0.5",
+        "0.75"
+      ],
+      "bases": [
+        [
+          "1",
+          "0",
+          "0"
+        ],
+        [
+          "0",
+          "1",
+          "0"
+        ],
+        [
+          "0",
+          "0",
+          "1"
+        ]
+      ],
+      "direction": [
+        "1",
+        "0",
+        "0"
+      ]
+    },
+    "B_inexact": {
+      "positionalArity": 3,
+      "outerCallArgs": "tuple",
+      "extentsContainer": "tuple",
+      "basesContainer": "tuple-of-three-builtin-tuples",
+      "directionContainer": "tuple",
+      "leafConstruction": "Decimal(literal_string), no arithmetic conversion",
+      "decimalSubclassPaths": [],
+      "extents": [
+        "1.234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567",
+        "0",
+        "0"
+      ],
+      "bases": [
+        [
+          "1",
+          "0",
+          "0"
+        ],
+        [
+          "0",
+          "1",
+          "0"
+        ],
+        [
+          "0",
+          "0",
+          "1"
+        ]
+      ],
+      "direction": [
+        "1",
+        "0",
+        "0"
+      ]
+    },
+    "A_list_extents": {
+      "positionalArity": 3,
+      "outerCallArgs": "tuple",
+      "extentsContainer": "list",
+      "basesContainer": "tuple-of-three-builtin-tuples",
+      "directionContainer": "tuple",
+      "leafConstruction": "Decimal(literal_string), no arithmetic conversion",
+      "decimalSubclassPaths": [],
+      "extents": [
+        "0.25",
+        "0.5",
+        "0.75"
+      ],
+      "bases": [
+        [
+          "1",
+          "0",
+          "0"
+        ],
+        [
+          "0",
+          "1",
+          "0"
+        ],
+        [
+          "0",
+          "0",
+          "1"
+        ]
+      ],
+      "direction": [
+        "1",
+        "0",
+        "0"
+      ]
+    },
+    "A_short_extents": {
+      "positionalArity": 3,
+      "outerCallArgs": "tuple",
+      "extentsContainer": "tuple",
+      "basesContainer": "tuple-of-three-builtin-tuples",
+      "directionContainer": "tuple",
+      "leafConstruction": "Decimal(literal_string), no arithmetic conversion",
+      "decimalSubclassPaths": [],
+      "extents": [
+        "0.25",
+        "0.5"
+      ],
+      "bases": [
+        [
+          "1",
+          "0",
+          "0"
+        ],
+        [
+          "0",
+          "1",
+          "0"
+        ],
+        [
+          "0",
+          "0",
+          "1"
+        ]
+      ],
+      "direction": [
+        "1",
+        "0",
+        "0"
+      ]
+    },
+    "A_decimal_subclass": {
+      "positionalArity": 3,
+      "outerCallArgs": "tuple",
+      "extentsContainer": "tuple",
+      "basesContainer": "tuple-of-three-builtin-tuples",
+      "directionContainer": "tuple",
+      "leafConstruction": "Decimal(literal_string), no arithmetic conversion",
+      "decimalSubclassPaths": [
+        "/direction/0"
+      ],
+      "extents": [
+        "0.25",
+        "0.5",
+        "0.75"
+      ],
+      "bases": [
+        [
+          "1",
+          "0",
+          "0"
+        ],
+        [
+          "0",
+          "1",
+          "0"
+        ],
+        [
+          "0",
+          "0",
+          "1"
+        ]
+      ],
+      "direction": [
+        "1",
+        "0",
+        "0"
+      ]
+    },
+    "A_infinity": {
+      "positionalArity": 3,
+      "outerCallArgs": "tuple",
+      "extentsContainer": "tuple",
+      "basesContainer": "tuple-of-three-builtin-tuples",
+      "directionContainer": "tuple",
+      "leafConstruction": "Decimal(literal_string), no arithmetic conversion",
+      "decimalSubclassPaths": [],
+      "extents": [
+        "Infinity",
+        "0.5",
+        "0.75"
+      ],
+      "bases": [
+        [
+          "1",
+          "0",
+          "0"
+        ],
+        [
+          "0",
+          "1",
+          "0"
+        ],
+        [
+          "0",
+          "0",
+          "1"
+        ]
+      ],
+      "direction": [
+        "1",
+        "1",
+        "1"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "group": 1,
+      "name": "signed-zero-argument-keys",
+      "bounds": {
+        "max_entries": 8192,
+        "max_key_bytes": 16384,
+        "max_encoded_bytes": 16777216,
+        "max_owned_bytes": 67108864,
+        "max_logical_calls": 8640
+      },
+      "freshCache": true,
+      "contextInstances": {
+        "c": "even80"
+      },
+      "baselineCalls": [
+        {
+          "id": "plus",
+          "fixture": "A",
+          "contextTemplate": "even80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        },
+        {
+          "id": "minus",
+          "fixture": "A_negative_zero",
+          "contextTemplate": "even80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        }
+      ],
+      "sequence": [
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-store",
+          "expectedOutcome": "return",
+          "baselineId": "plus",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A_negative_zero",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-store",
+          "expectedOutcome": "return",
+          "baselineId": "minus",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "hit",
+          "expectedOutcome": "return",
+          "baselineId": "plus",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A_negative_zero",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "hit",
+          "expectedOutcome": "return",
+          "baselineId": "minus",
+          "checks": []
+        }
+      ],
+      "requiredAssertions": [
+        "Every reached wrapper attempt calls the original at most once.",
+        "Compare returned Decimal as_tuple exactly, not float/numeric equality; compare raised type and complete flags against the stated baseline when present.",
+        "Context precision/rounding/Emin/Emax/capitals/clamp and traps remain unchanged; post-flags are actual original effects.",
+        "Input values/containers are not mutated; no World/full-reference/QP/trig call.",
+        "Final entries=2, hits=2, misses=2; actual encoded keys distinguish +0 and -0."
+      ],
+      "callLedger": {
+        "wrapperCalls": 4,
+        "delegatedOriginalAttempts": 2,
+        "directOriginalAttempts": 2,
+        "totalOriginalAttempts": 4
+      }
+    },
+    {
+      "group": 2,
+      "name": "equal-value-different-exponent-keys",
+      "bounds": {
+        "max_entries": 8192,
+        "max_key_bytes": 16384,
+        "max_encoded_bytes": 16777216,
+        "max_owned_bytes": 67108864,
+        "max_logical_calls": 8640
+      },
+      "freshCache": true,
+      "contextInstances": {
+        "c": "even80"
+      },
+      "baselineCalls": [
+        {
+          "id": "short",
+          "fixture": "A",
+          "contextTemplate": "even80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        },
+        {
+          "id": "long",
+          "fixture": "A_exponent",
+          "contextTemplate": "even80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        }
+      ],
+      "sequence": [
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-store",
+          "expectedOutcome": "return",
+          "baselineId": "short",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A_exponent",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-store",
+          "expectedOutcome": "return",
+          "baselineId": "long",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "hit",
+          "expectedOutcome": "return",
+          "baselineId": "short",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A_exponent",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "hit",
+          "expectedOutcome": "return",
+          "baselineId": "long",
+          "checks": []
+        }
+      ],
+      "requiredAssertions": [
+        "Every reached wrapper attempt calls the original at most once.",
+        "Compare returned Decimal as_tuple exactly, not float/numeric equality; compare raised type and complete flags against the stated baseline when present.",
+        "Context precision/rounding/Emin/Emax/capitals/clamp and traps remain unchanged; post-flags are actual original effects.",
+        "Input values/containers are not mutated; no World/full-reference/QP/trig call.",
+        "Final entries=2, hits=2, misses=2; 0.25 and 0.250 dependency representations remain distinct."
+      ],
+      "callLedger": {
+        "wrapperCalls": 4,
+        "delegatedOriginalAttempts": 2,
+        "directOriginalAttempts": 2,
+        "totalOriginalAttempts": 4
+      }
+    },
+    {
+      "group": 3,
+      "name": "precision80-and120-separate",
+      "bounds": {
+        "max_entries": 8192,
+        "max_key_bytes": 16384,
+        "max_encoded_bytes": 16777216,
+        "max_owned_bytes": 67108864,
+        "max_logical_calls": 8640
+      },
+      "freshCache": true,
+      "contextInstances": {
+        "c80": "even80",
+        "c120": "even120"
+      },
+      "baselineCalls": [
+        {
+          "id": "p80",
+          "fixture": "A",
+          "contextTemplate": "even80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        },
+        {
+          "id": "p120",
+          "fixture": "A",
+          "contextTemplate": "even120",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        }
+      ],
+      "sequence": [
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c80",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-store",
+          "expectedOutcome": "return",
+          "baselineId": "p80",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c120",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-store",
+          "expectedOutcome": "return",
+          "baselineId": "p120",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c80",
+          "callStyle": "positional",
+          "expectedDisposition": "hit",
+          "expectedOutcome": "return",
+          "baselineId": "p80",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c120",
+          "callStyle": "positional",
+          "expectedDisposition": "hit",
+          "expectedOutcome": "return",
+          "baselineId": "p120",
+          "checks": []
+        }
+      ],
+      "requiredAssertions": [
+        "Every reached wrapper attempt calls the original at most once.",
+        "Compare returned Decimal as_tuple exactly, not float/numeric equality; compare raised type and complete flags against the stated baseline when present.",
+        "Context precision/rounding/Emin/Emax/capitals/clamp and traps remain unchanged; post-flags are actual original effects.",
+        "Input values/containers are not mutated; no World/full-reference/QP/trig call.",
+        "Final entries=2, hits=2, misses=2; no precision/context substitution."
+      ],
+      "callLedger": {
+        "wrapperCalls": 4,
+        "delegatedOriginalAttempts": 2,
+        "directOriginalAttempts": 2,
+        "totalOriginalAttempts": 4
+      }
+    },
+    {
+      "group": 4,
+      "name": "rounding-settings-separate",
+      "bounds": {
+        "max_entries": 8192,
+        "max_key_bytes": 16384,
+        "max_encoded_bytes": 16777216,
+        "max_owned_bytes": 67108864,
+        "max_logical_calls": 8640
+      },
+      "freshCache": true,
+      "contextInstances": {
+        "even": "even80",
+        "floor": "floor80"
+      },
+      "baselineCalls": [
+        {
+          "id": "even",
+          "fixture": "A",
+          "contextTemplate": "even80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        },
+        {
+          "id": "floor",
+          "fixture": "A",
+          "contextTemplate": "floor80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        }
+      ],
+      "sequence": [
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "even",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-store",
+          "expectedOutcome": "return",
+          "baselineId": "even",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "floor",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-store",
+          "expectedOutcome": "return",
+          "baselineId": "floor",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "even",
+          "callStyle": "positional",
+          "expectedDisposition": "hit",
+          "expectedOutcome": "return",
+          "baselineId": "even",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "floor",
+          "callStyle": "positional",
+          "expectedDisposition": "hit",
+          "expectedOutcome": "return",
+          "baselineId": "floor",
+          "checks": []
+        }
+      ],
+      "requiredAssertions": [
+        "Every reached wrapper attempt calls the original at most once.",
+        "Compare returned Decimal as_tuple exactly, not float/numeric equality; compare raised type and complete flags against the stated baseline when present.",
+        "Context precision/rounding/Emin/Emax/capitals/clamp and traps remain unchanged; post-flags are actual original effects.",
+        "Input values/containers are not mutated; no World/full-reference/QP/trig call.",
+        "Exact arithmetic fixture intentionally leaves flags clear; different rounding settings still require distinct entries."
+      ],
+      "callLedger": {
+        "wrapperCalls": 4,
+        "delegatedOriginalAttempts": 2,
+        "directOriginalAttempts": 2,
+        "totalOriginalAttempts": 4
+      }
+    },
+    {
+      "group": 5,
+      "name": "incoming-and-replayed-sticky-flags",
+      "bounds": {
+        "max_entries": 8192,
+        "max_key_bytes": 16384,
+        "max_encoded_bytes": 16777216,
+        "max_owned_bytes": 67108864,
+        "max_logical_calls": 8640
+      },
+      "freshCache": true,
+      "contextInstances": {
+        "clearA": "even80",
+        "preset": "preset80",
+        "clearB": "even80"
+      },
+      "baselineCalls": [
+        {
+          "id": "clear",
+          "fixture": "B_inexact",
+          "contextTemplate": "even80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        },
+        {
+          "id": "preset",
+          "fixture": "B_inexact",
+          "contextTemplate": "preset80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        }
+      ],
+      "sequence": [
+        {
+          "op": "wrapper_call",
+          "fixture": "B_inexact",
+          "contextInstance": "clearA",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-store",
+          "expectedOutcome": "return",
+          "baselineId": "clear",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "B_inexact",
+          "contextInstance": "preset",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-store",
+          "expectedOutcome": "return",
+          "baselineId": "preset",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "B_inexact",
+          "contextInstance": "preset",
+          "callStyle": "positional",
+          "expectedDisposition": "hit",
+          "expectedOutcome": "return",
+          "baselineId": "preset",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "B_inexact",
+          "contextInstance": "clearB",
+          "callStyle": "positional",
+          "expectedDisposition": "hit",
+          "expectedOutcome": "return",
+          "baselineId": "clear",
+          "checks": []
+        }
+      ],
+      "requiredAssertions": [
+        "Every reached wrapper attempt calls the original at most once.",
+        "Compare returned Decimal as_tuple exactly, not float/numeric equality; compare raised type and complete flags against the stated baseline when present.",
+        "Context precision/rounding/Emin/Emax/capitals/clamp and traps remain unchanged; post-flags are actual original effects.",
+        "Input values/containers are not mutated; no World/full-reference/QP/trig call.",
+        "clearB is a distinct freshly initialized Context, not a cleared live Context.",
+        "No clear_flags or flag reset occurs during this sequence.",
+        "Original B arithmetic sets Inexact and Rounded; complete post-flags on both hits must equal the respective direct original baseline.",
+        "Final entries=2, hits=2, misses=2."
+      ],
+      "callLedger": {
+        "wrapperCalls": 4,
+        "delegatedOriginalAttempts": 2,
+        "directOriginalAttempts": 2,
+        "totalOriginalAttempts": 4
+      }
+    },
+    {
+      "group": 6,
+      "name": "trap-settings-return-and-raise",
+      "bounds": {
+        "max_entries": 8192,
+        "max_key_bytes": 16384,
+        "max_encoded_bytes": 16777216,
+        "max_owned_bytes": 67108864,
+        "max_logical_calls": 8640
+      },
+      "freshCache": true,
+      "contextInstances": {
+        "openA": "even80",
+        "trapA": "trap80",
+        "trapB": "trap80",
+        "openB": "even80"
+      },
+      "baselineCalls": [
+        {
+          "id": "open",
+          "fixture": "B_inexact",
+          "contextTemplate": "even80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        },
+        {
+          "id": "trapped",
+          "fixture": "B_inexact",
+          "contextTemplate": "trap80",
+          "callStyle": "positional",
+          "expectedOutcome": "raise-original"
+        }
+      ],
+      "sequence": [
+        {
+          "op": "wrapper_call",
+          "fixture": "B_inexact",
+          "contextInstance": "openA",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-store",
+          "expectedOutcome": "return",
+          "baselineId": "open",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "B_inexact",
+          "contextInstance": "trapA",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-original-raise",
+          "expectedOutcome": "raise-original",
+          "baselineId": "trapped",
+          "checks": [
+            "Caught exception is the same object recorded by the forwarding original delegate."
+          ]
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "B_inexact",
+          "contextInstance": "trapB",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-original-raise",
+          "expectedOutcome": "raise-original",
+          "baselineId": "trapped",
+          "checks": [
+            "Identical failing key calls original again; no exception entry."
+          ]
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "B_inexact",
+          "contextInstance": "openB",
+          "callStyle": "positional",
+          "expectedDisposition": "hit",
+          "expectedOutcome": "return",
+          "baselineId": "open",
+          "checks": []
+        }
+      ],
+      "requiredAssertions": [
+        "Every reached wrapper attempt calls the original at most once.",
+        "Compare returned Decimal as_tuple exactly, not float/numeric equality; compare raised type and complete flags against the stated baseline when present.",
+        "Context precision/rounding/Emin/Emax/capitals/clamp and traps remain unchanged; post-flags are actual original effects.",
+        "Input values/containers are not mutated; no World/full-reference/QP/trig call.",
+        "Final entries=1, hits=1, misses=3, original_returns=1, original_raises=2."
+      ],
+      "callLedger": {
+        "wrapperCalls": 4,
+        "delegatedOriginalAttempts": 3,
+        "directOriginalAttempts": 2,
+        "totalOriginalAttempts": 5
+      }
+    },
+    {
+      "group": 7,
+      "name": "unsupported-call-type-structure-context-bypass",
+      "bounds": {
+        "max_entries": 8192,
+        "max_key_bytes": 16384,
+        "max_encoded_bytes": 16777216,
+        "max_owned_bytes": 67108864,
+        "max_logical_calls": 8640
+      },
+      "freshCache": true,
+      "contextInstances": {
+        "c": "even80",
+        "p79": "unsupported79"
+      },
+      "baselineCalls": [
+        {
+          "id": "kwargs",
+          "fixture": "A",
+          "contextTemplate": "even80",
+          "callStyle": "all-three-named-kwargs",
+          "expectedOutcome": "return"
+        },
+        {
+          "id": "list",
+          "fixture": "A_list_extents",
+          "contextTemplate": "even80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        },
+        {
+          "id": "short",
+          "fixture": "A_short_extents",
+          "contextTemplate": "even80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        },
+        {
+          "id": "subclass",
+          "fixture": "A_decimal_subclass",
+          "contextTemplate": "even80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        },
+        {
+          "id": "nonfinite",
+          "fixture": "A_infinity",
+          "contextTemplate": "even80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        },
+        {
+          "id": "precision79",
+          "fixture": "A",
+          "contextTemplate": "unsupported79",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        }
+      ],
+      "sequence": [
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c",
+          "callStyle": "all-three-named-kwargs",
+          "expectedDisposition": "type-bypass",
+          "expectedOutcome": "return",
+          "baselineId": "kwargs",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A_list_extents",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "type-bypass",
+          "expectedOutcome": "return",
+          "baselineId": "list",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A_short_extents",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "type-bypass",
+          "expectedOutcome": "return",
+          "baselineId": "short",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A_decimal_subclass",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "type-bypass",
+          "expectedOutcome": "return",
+          "baselineId": "subclass",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A_infinity",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "type-bypass",
+          "expectedOutcome": "return",
+          "baselineId": "nonfinite",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "p79",
+          "callStyle": "positional",
+          "expectedDisposition": "context-bypass",
+          "expectedOutcome": "return",
+          "baselineId": "precision79",
+          "checks": []
+        }
+      ],
+      "requiredAssertions": [
+        "Every reached wrapper attempt calls the original at most once.",
+        "Compare returned Decimal as_tuple exactly, not float/numeric equality; compare raised type and complete flags against the stated baseline when present.",
+        "Context precision/rounding/Emin/Emax/capitals/clamp and traps remain unchanged; post-flags are actual original effects.",
+        "Input values/containers are not mutated; no World/full-reference/QP/trig call.",
+        "all-three-named-kwargs means args=() and exact kwargs extents,bases,direction referencing the fixture objects.",
+        "Decimal subclass is one test-only class ProbeDecimal(Decimal) with no overrides; only the named leaf uses it.",
+        "Original Infinity result passes through unchanged and is not stored.",
+        "Final calls=6, eligible=0, type_bypasses=5, context_bypasses=1, original_attempts=original_returns=6, entries=0."
+      ],
+      "callLedger": {
+        "wrapperCalls": 6,
+        "delegatedOriginalAttempts": 6,
+        "directOriginalAttempts": 6,
+        "totalOriginalAttempts": 12
+      }
+    },
+    {
+      "group": 8,
+      "name": "same-original-exception-object-and-flags",
+      "bounds": {
+        "max_entries": 8192,
+        "max_key_bytes": 16384,
+        "max_encoded_bytes": 16777216,
+        "max_owned_bytes": 67108864,
+        "max_logical_calls": 8640
+      },
+      "freshCache": true,
+      "contextInstances": {
+        "first": "trapPreset80",
+        "second": "trapPreset80"
+      },
+      "baselineCalls": [],
+      "sequence": [
+        {
+          "op": "wrapper_call",
+          "fixture": "B_inexact",
+          "contextInstance": "first",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-original-raise",
+          "expectedOutcome": "raise-original",
+          "baselineId": null,
+          "checks": [
+            "Caught exception is delegate.last_exception by identity; post-flags equal delegate captured post-flags."
+          ]
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "B_inexact",
+          "contextInstance": "second",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-original-raise",
+          "expectedOutcome": "raise-original",
+          "baselineId": null,
+          "checks": [
+            "Identical key attempts original again; caught object equals this call delegate.last_exception; no flags rollback."
+          ]
+        }
+      ],
+      "requiredAssertions": [
+        "Every reached wrapper attempt calls the original at most once.",
+        "Compare returned Decimal as_tuple exactly, not float/numeric equality; compare raised type and complete flags against the stated baseline when present.",
+        "Context precision/rounding/Emin/Emax/capitals/clamp and traps remain unchanged; post-flags are actual original effects.",
+        "Input values/containers are not mutated; no World/full-reference/QP/trig call.",
+        "Both Context instances begin with identical Inexact+Rounded flags and identical traps.",
+        "Final calls=2, eligible=2, misses=2, original_raises=2, original_returns=0, entries=0."
+      ],
+      "callLedger": {
+        "wrapperCalls": 2,
+        "delegatedOriginalAttempts": 2,
+        "directOriginalAttempts": 0,
+        "totalOriginalAttempts": 2
+      }
+    },
+    {
+      "group": 9,
+      "name": "clear-new-request-and-detached-stats",
+      "bounds": {
+        "max_entries": 8192,
+        "max_key_bytes": 16384,
+        "max_encoded_bytes": 16777216,
+        "max_owned_bytes": 67108864,
+        "max_logical_calls": 8640
+      },
+      "freshCache": true,
+      "contextInstances": {
+        "c": "even80"
+      },
+      "baselineCalls": [
+        {
+          "id": "a",
+          "fixture": "A",
+          "contextTemplate": "even80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        }
+      ],
+      "sequence": [
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-store",
+          "expectedOutcome": "return",
+          "baselineId": "a",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "hit",
+          "expectedOutcome": "return",
+          "baselineId": "a",
+          "checks": []
+        },
+        {
+          "op": "snapshot_stats",
+          "id": "old_request",
+          "checks": [
+            "Detached dictionary: set snapshot entries=999 and calls=999; live stats must remain entries=1,calls=2."
+          ]
+        },
+        {
+          "op": "clear",
+          "checks": [
+            "entries=0, encoded_key_bytes=0; all per-request logical/helper/hit/miss/bypass/timing counters reset.",
+            "Owned bytes return to measured empty-cache baseline; no retained old keys/results/post-flag entries.",
+            "Current Context settings/traps/flags remain unchanged."
+          ]
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-store",
+          "expectedOutcome": "return",
+          "baselineId": "a",
+          "checks": []
+        }
+      ],
+      "requiredAssertions": [
+        "Every reached wrapper attempt calls the original at most once.",
+        "Compare returned Decimal as_tuple exactly, not float/numeric equality; compare raised type and complete flags against the stated baseline when present.",
+        "Context precision/rounding/Emin/Emax/capitals/clamp and traps remain unchanged; post-flags are actual original effects.",
+        "Input values/containers are not mutated; no World/full-reference/QP/trig call.",
+        "Aggregate ledger remains3 wrapper/2 delegated calls despite clear resetting per-request stats.",
+        "Final new-request stats calls=1,hits=0,misses=1,original_attempts=original_returns=1,entries=1."
+      ],
+      "callLedger": {
+        "wrapperCalls": 3,
+        "delegatedOriginalAttempts": 2,
+        "directOriginalAttempts": 1,
+        "totalOriginalAttempts": 3
+      }
+    },
+    {
+      "group": 10,
+      "name": "miss-and-hit-input-immutability",
+      "bounds": {
+        "max_entries": 8192,
+        "max_key_bytes": 16384,
+        "max_encoded_bytes": 16777216,
+        "max_owned_bytes": 67108864,
+        "max_logical_calls": 8640
+      },
+      "freshCache": true,
+      "contextInstances": {
+        "c": "even80"
+      },
+      "baselineCalls": [
+        {
+          "id": "a",
+          "fixture": "A",
+          "contextTemplate": "even80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        }
+      ],
+      "sequence": [
+        {
+          "op": "snapshot_arguments",
+          "fixture": "A",
+          "id": "inputs",
+          "fields": [
+            "container types",
+            "container identities",
+            "every Decimal.as_tuple"
+          ]
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-store",
+          "expectedOutcome": "return",
+          "baselineId": "a",
+          "checks": [
+            "Arguments match inputs snapshot by types/identities/as_tuple."
+          ]
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "hit",
+          "expectedOutcome": "return",
+          "baselineId": "a",
+          "checks": [
+            "Arguments still match inputs snapshot; no normalization or tuple rewrite."
+          ]
+        }
+      ],
+      "requiredAssertions": [
+        "Every reached wrapper attempt calls the original at most once.",
+        "Compare returned Decimal as_tuple exactly, not float/numeric equality; compare raised type and complete flags against the stated baseline when present.",
+        "Context precision/rounding/Emin/Emax/capitals/clamp and traps remain unchanged; post-flags are actual original effects.",
+        "Input values/containers are not mutated; no World/full-reference/QP/trig call.",
+        "Final entries=1,hits=1,misses=1; do not build a second formula for comparison."
+      ],
+      "callLedger": {
+        "wrapperCalls": 2,
+        "delegatedOriginalAttempts": 1,
+        "directOriginalAttempts": 1,
+        "totalOriginalAttempts": 2
+      }
+    },
+    {
+      "group": 11,
+      "name": "immutable-result-alias-and-context-isolation",
+      "bounds": {
+        "max_entries": 8192,
+        "max_key_bytes": 16384,
+        "max_encoded_bytes": 16777216,
+        "max_owned_bytes": 67108864,
+        "max_logical_calls": 8640
+      },
+      "freshCache": true,
+      "contextInstances": {
+        "c": "even80"
+      },
+      "baselineCalls": [
+        {
+          "id": "a",
+          "fixture": "A",
+          "contextTemplate": "even80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        }
+      ],
+      "sequence": [
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-store",
+          "expectedOutcome": "return",
+          "baselineId": "a",
+          "checks": [
+            "Retain actual result object and as_tuple snapshot."
+          ]
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "hit",
+          "expectedOutcome": "return",
+          "baselineId": "a",
+          "checks": [
+            "Hit result is the identical immutable result object from this request miss."
+          ]
+        },
+        {
+          "op": "attempt_result_attribute_write",
+          "attribute": "caller_marker",
+          "value": true,
+          "expectedException": "AttributeError",
+          "checks": [
+            "Result as_tuple and active full Context remain unchanged."
+          ]
+        },
+        {
+          "op": "mutate_detached_stats",
+          "fields": {
+            "entries": 999,
+            "owned_bytes": 999
+          },
+          "checks": [
+            "New stats snapshot reflects actual entries/owned bytes, not caller changes."
+          ]
+        }
+      ],
+      "requiredAssertions": [
+        "Every reached wrapper attempt calls the original at most once.",
+        "Compare returned Decimal as_tuple exactly, not float/numeric equality; compare raised type and complete flags against the stated baseline when present.",
+        "Context precision/rounding/Emin/Emax/capitals/clamp and traps remain unchanged; post-flags are actual original effects.",
+        "Input values/containers are not mutated; no World/full-reference/QP/trig call.",
+        "No result Decimal arithmetic or additional original call is performed by alias checks."
+      ],
+      "callLedger": {
+        "wrapperCalls": 2,
+        "delegatedOriginalAttempts": 1,
+        "directOriginalAttempts": 1,
+        "totalOriginalAttempts": 2
+      }
+    },
+    {
+      "group": 12,
+      "name": "fixed-capacity-unstored-original-preserves-prior-hit",
+      "bounds": {
+        "max_entries": 1,
+        "max_key_bytes": 16384,
+        "max_encoded_bytes": 16777216,
+        "max_owned_bytes": 67108864,
+        "max_logical_calls": 8640
+      },
+      "freshCache": true,
+      "contextInstances": {
+        "c": "even80"
+      },
+      "baselineCalls": [
+        {
+          "id": "plus",
+          "fixture": "A",
+          "contextTemplate": "even80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        },
+        {
+          "id": "minus",
+          "fixture": "A_negative_zero",
+          "contextTemplate": "even80",
+          "callStyle": "positional",
+          "expectedOutcome": "return"
+        }
+      ],
+      "sequence": [
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "miss-store",
+          "expectedOutcome": "return",
+          "baselineId": "plus",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A_negative_zero",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "capacity-bypass",
+          "expectedOutcome": "return",
+          "baselineId": "minus",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "hit",
+          "expectedOutcome": "return",
+          "baselineId": "plus",
+          "checks": []
+        },
+        {
+          "op": "wrapper_call",
+          "fixture": "A_negative_zero",
+          "contextInstance": "c",
+          "callStyle": "positional",
+          "expectedDisposition": "capacity-bypass",
+          "expectedOutcome": "return",
+          "baselineId": "minus",
+          "checks": []
+        }
+      ],
+      "requiredAssertions": [
+        "Every reached wrapper attempt calls the original at most once.",
+        "Compare returned Decimal as_tuple exactly, not float/numeric equality; compare raised type and complete flags against the stated baseline when present.",
+        "Context precision/rounding/Emin/Emax/capitals/clamp and traps remain unchanged; post-flags are actual original effects.",
+        "Input values/containers are not mutated; no World/full-reference/QP/trig call.",
+        "Final entries=1,hits=1,misses=3,capacity_bypasses=2,original_attempts=original_returns=3.",
+        "No eviction, bound increase, hidden retry, or extra warm arithmetic call.",
+        "For each reached state entries<=1, key<=16384 bytes, retained encoded keys<=16777216 bytes, owned/peak<=67108864 bytes, calls<=8640.",
+        "Stored original entry remains byte-identical and usable after both capacity bypasses."
+      ],
+      "callLedger": {
+        "wrapperCalls": 4,
+        "delegatedOriginalAttempts": 3,
+        "directOriginalAttempts": 2,
+        "totalOriginalAttempts": 5
+      }
+    }
+  ],
+  "plannedOriginalOutcomeLedger": {
+    "originalAttempts": 51,
+    "originalReturns": 46,
+    "originalRaises": 5,
+    "boundary": "planned primitive helper calls only; runtime must record actual reached prefix, not fill this plan"
+  },
+  "futureReceiptSchema": {
+    "statusOnFullPass": "PASS_SUPPORT_RADIUS_PRIMITIVES",
+    "groupsCompleted": 12,
+    "counts": {
+      "wrapperCalls": 43,
+      "delegatedOriginalAttempts": 28,
+      "directOriginalAttempts": 23,
+      "totalOriginalAttempts": 51
+    },
+    "bounds": {
+      "max_entries": 8192,
+      "max_key_bytes": 16384,
+      "max_encoded_bytes": 16777216,
+      "max_owned_bytes": 67108864,
+      "max_logical_calls": 8640
+    },
+    "sources": [
+      "cacheModule",
+      "controlsModule",
+      "recipes",
+      "originalHelper"
+    ],
+    "firstFailure": null
+  },
+  "runtime": {
+    "status": "NOT_RUN",
+    "wrapperCalls": 0,
+    "originalHelperCalls": 0,
+    "fullReferenceCalls": 0,
+    "WorldCalls": 0
+  }
+}
