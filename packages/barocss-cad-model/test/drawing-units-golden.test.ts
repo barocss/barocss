@@ -1,6 +1,6 @@
 // D397's original no-units hashes remain in drawing-units-absent.json. D408's exact-decimal inward limits correct a
 // last tick for resolved geometric nominals such as 12.000000000000002. Keep the original dimension data unchanged;
-// separately record the corrected SVG/DXF baseline (UPDATE_UNITS_GOLDEN=1).
+// D416 also updates collided linear-label positions. Record inspected SVG/DXF changes separately (UPDATE_UNITS_GOLDEN=1).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -68,10 +68,10 @@ function outputs(): Record<string, string> {
   return out;
 }
 const ORIGINAL = join(import.meta.dirname, 'fixtures/drawing-units-absent.json'), GOLDEN = join(import.meta.dirname, 'fixtures/drawing-units-exact-limits.json');
-test('no units setting: original dimension data stays byte-identical; plain, ISO and ASME SVG/DXF use the exact-limit baseline', () => {
+test('no units setting: original dimension data stays byte-identical; plain, ISO and ASME SVG/DXF use the exact-limit and D416 placement baseline', () => {
   const now = outputs();
   if (process.env.UPDATE_UNITS_GOLDEN) writeFileSync(GOLDEN, JSON.stringify(now, null, 2) + '\n');
   const before: Record<string, string> = JSON.parse(readFileSync(ORIGINAL, 'utf8'));
   for (const key of Object.keys(now).filter(key => key.endsWith('.dims'))) assert.equal(now[key], before[key], `${key}: authored/resolved data unchanged`);
-  assert.deepEqual(now, JSON.parse(readFileSync(GOLDEN, 'utf8')), 'exact-decimal tolerance text, with original data and other drawing content');
+  assert.deepEqual(now, JSON.parse(readFileSync(GOLDEN, 'utf8')), 'exact-decimal tolerance text and inspected D416 label positions, with original dimension data');
 });

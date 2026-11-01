@@ -233,7 +233,228 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   // (Tables last: an auto-placed one finds room clear of everything else on the sheet, O49.)
   const tables = tableGroups(layout, settings, groups, meta.tableContent, detailBoxes);
   groups.push(...tables.groups);
+  placeShortLinearText(groups, dimensions, settings, layout, placedViews, p);
   return { size: [W, H], groups, dimensions, ...(settings.standard ? { standard: settings.standard } : {}), ...(hasUnitSettings(p) ? { units: { units: p.units, dual: p.dual, precision: p.precision } } : {}), ...(tables.placed.length ? { tables: tables.placed } : {}), ...(welds ? { welds: { placed: welds.placed, unshown: welds.unshown } } : {}), ...(balloons ? { balloons: { placed: balloons.placed, unclear: balloons.unclear, noEdge: balloons.noEdge } } : {}), ...(onSheet.length ? { sections: onSheet } : {}), ...(drawn.details.length ? { details: drawn.details.map(x => x.detail) } : {}), ...(drawn.missing.length ? { detailsMissing: drawn.missing } : {}), ...(apart.missing.length ? { sectionsMissing: apart.missing } : {}) };
+}
+
+// D416: one local label fallback after all obstacles/attachments exist. Conservative annotation bounds, not glyph ink.
+const LINEAR_LABEL_CLEAR = 1.2, LABEL_NUMERIC_EPS = 1e-8;
+type LabelRect = [number, number, number, number];
+interface LabelObstacle { group?: MarkGroup; box: LabelRect; mark?: Mark; region?: true }
+interface LabelPayload { own: MarkGroup; groups: MarkGroup[]; marks: Mark[]; fixed: Mark[]; box: LabelRect }
+interface LabelInterval { lo: number; hi: number }
+type LabelConnector = Extract<Mark, { kind: 'line' }>;
+const LABEL_CONNECTOR_TERMINAL = 2 * PENS.thin.width;
+function labelRect(points: readonly (readonly number[])[], pad = 0): LabelRect {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const point of points) { x0 = Math.min(x0, point[0]); y0 = Math.min(y0, point[1]); x1 = Math.max(x1, point[0]); y1 = Math.max(y1, point[1]); }
+  return [x0 - pad, y0 - pad, x1 + pad, y1 + pad];
+}
+function labelMarkRect(m: Mark): LabelRect {
+  if (m.kind === 'text') return labelRect(textCorners(m.at, m.text, m.size, m.anchor, m.angle ?? 0, !!m.bold));
+  if (m.kind === 'line') return labelRect([m.a, m.b], PENS[m.pen].width / 2);
+  if (m.kind === 'arc') {
+    // Full ellipse bounds also contain every partial arc; no sampled chord can miss an obstacle.
+    const rx = Math.hypot(m.u[0], m.v[0]), ry = Math.hypot(m.u[1], m.v[1]), half = PENS[m.pen].width / 2;
+    return [m.center[0] - rx - half, m.center[1] - ry - half, m.center[0] + rx + half, m.center[1] + ry + half];
+  }
+  return labelRect(m.kind === 'hatch' ? m.rings.flat() : m.points, m.kind === 'fill' ? 0 : PENS[m.pen].width / 2);
+}
+function labelIsRectangle(m: Mark): m is Extract<Mark, { kind: 'polyline' }> {
+  if (m.kind !== 'polyline' || m.role !== 'frame' || m.points.length !== 5) return false;
+  const q = m.points, a = sub(q[1], q[0]), b = sub(q[3], q[0]), scale = Math.hypot(...a) * Math.hypot(...b);
+  return scale > LABEL_NUMERIC_EPS && Math.abs(dot2(a, b)) <= 1e-10 * scale && Math.hypot(...sub(q[4], q[0])) < LABEL_NUMERIC_EPS && Math.hypot(q[2][0] - q[1][0] - b[0], q[2][1] - q[1][1] - b[1]) < LABEL_NUMERIC_EPS;
+}
+/** Convex bounds retain text orientation and line direction when deciding whether an original is safe. */
+function labelPolygon(m: Mark): readonly XY[] {
+  if (m.kind === 'text') return textCorners(m.at, m.text, m.size, m.anchor, m.angle ?? 0, !!m.bold);
+  if (m.kind === 'fill') return m.points;
+  if (labelIsRectangle(m)) {
+    const q = m.points, ux = unit(sub(q[1], q[0])), uy = unit(sub(q[3], q[0])), half = PENS[m.pen].width / 2;
+    return [add(add(q[0], ux, -half), uy, -half), add(add(q[1], ux, half), uy, -half), add(add(q[2], ux, half), uy, half), add(add(q[3], ux, -half), uy, half)];
+  }
+  if (m.kind === 'line') {
+    const d = sub(m.b, m.a), length = Math.hypot(...d), half = PENS[m.pen].width / 2;
+    if (length > LABEL_NUMERIC_EPS) {
+      const n: XY = [-d[1] * half / length, d[0] * half / length];
+      const e: XY = [d[0] * half / length, d[1] * half / length], a = add(m.a, e, -1), b = add(m.b, e);
+      return [add(a, n), add(b, n), add(b, n, -1), add(a, n, -1)];
+    }
+  }
+  const b = labelMarkRect(m); return [[b[0], b[1]], [b[2], b[1]], [b[2], b[3]], [b[0], b[3]]];
+}
+function labelPolygonsOverlap(a: readonly XY[], b: readonly XY[]): boolean {
+  for (const polygon of [a, b]) for (let i = 0; i < polygon.length; i++) {
+    const p = polygon[i], q = polygon[(i + 1) % polygon.length], n: XY = [p[1] - q[1], q[0] - p[0]], length = Math.hypot(...n);
+    if (length < LABEL_NUMERIC_EPS) continue;
+    let a0 = Infinity, a1 = -Infinity, b0 = Infinity, b1 = -Infinity;
+    for (const point of a) { const t = dot2(point, n); a0 = Math.min(a0, t); a1 = Math.max(a1, t); }
+    for (const point of b) { const t = dot2(point, n); b0 = Math.min(b0, t); b1 = Math.max(b1, t); }
+    if (Math.min(a1, b1) - Math.max(a0, b0) <= LABEL_NUMERIC_EPS * length) return false;
+  }
+  return true;
+}
+function labelOriginalBlocked(payload: LabelPayload, obstacles: readonly LabelObstacle[], frame: readonly number[]): boolean {
+  if (labelOutsideFrame(payload.box, frame, 0)) return true;
+  for (const obstacle of obstacles) {
+    if (obstacle.region || !labelOverlap(payload.box, obstacle.box)) continue;
+    for (const mark of payload.marks) {
+      if (!obstacle.mark) { if (labelOverlap(labelMarkRect(mark), obstacle.box)) return true; }
+      else if (labelPolygonsOverlap(labelPolygon(mark), labelPolygon(obstacle.mark))) return true;
+    }
+  }
+  return false;
+}
+function joinedLabelRect(marks: readonly Mark[]): LabelRect {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const m of marks) { const b = labelMarkRect(m); x0 = Math.min(x0, b[0]); y0 = Math.min(y0, b[1]); x1 = Math.max(x1, b[2]); y1 = Math.max(y1, b[3]); }
+  return [x0, y0, x1, y1];
+}
+function labelOverlap(a: LabelRect, b: LabelRect, clear = 0): boolean {
+  return Math.min(a[2] + clear, b[2]) - Math.max(a[0] - clear, b[0]) > LABEL_NUMERIC_EPS && Math.min(a[3] + clear, b[3]) - Math.max(a[1] - clear, b[1]) > LABEL_NUMERIC_EPS;
+}
+function labelProjection(b: LabelRect, axis: XY): [number, number] {
+  const x0 = b[0] * axis[0], x1 = b[2] * axis[0], y0 = b[1] * axis[1], y1 = b[3] * axis[1];
+  return [Math.min(x0, x1) + Math.min(y0, y1), Math.max(x0, x1) + Math.max(y0, y1)];
+}
+function shiftedLabelRect(b: LabelRect, delta: XY): LabelRect { return [b[0] + delta[0], b[1] + delta[1], b[2] + delta[0], b[3] + delta[1]]; }
+function labelPayload(groups: readonly MarkGroup[], settings: DrawingSettings, r: Extract<Resolved, { ok: true; kind: 'linear' }>): LabelPayload | null {
+  let own: MarkGroup | undefined; for (const g of groups) if (g.role === 'dimension' && g.id === r.dim.id && g.view === r.dim.view) { own = g; break; }
+  if (!own) return null;
+  const marks: Mark[] = [], fixed: Mark[] = [], attached: MarkGroup[] = [];
+  let basic = 0, dimensionLines = 0, heads = 0;
+  for (let i = 0; i < own.marks.length; i++) {
+    const m = own.marks[i];
+    if (m.kind === 'text') marks.push(m);
+    else if (m.kind === 'polyline' && m.role === 'frame' && r.dim.basic && m.points.length === 5) { marks.push(m); basic++; }
+    else if (m.kind === 'line' && (m.role === 'extension' || m.role === 'dimension')) { fixed.push(m); if (m.role === 'dimension') dimensionLines++; }
+    else if (m.kind === 'fill' && m.head) { fixed.push(m); heads++; }
+    else if (labelConnectorSuffix(own, m, i)) fixed.push(m);
+    else return null; // Unknown anchored decoration must not be detached by a text-only move.
+  }
+  // Two dimension segments encode an existing text gap: moving text must not leave that gap behind.
+  if (dimensionLines !== 1 || heads !== 2 || !marks.length || basic !== (r.dim.basic ? 1 : 0)) return null;
+  for (const f of settings.frames ?? []) if (f.dim === r.dim.id) {
+    const matches: MarkGroup[] = []; for (const g of groups) if (g.role === 'control' && !g.standaloneFrame && g.id === f.id) matches.push(g);
+    if (matches.length !== 1) return null;
+    attached.push(matches[0]); marks.push(...matches[0].marks);
+  }
+  return { own, groups: attached, marks, fixed, box: joinedLabelRect(marks) };
+}
+function labelObstacles(groups: readonly MarkGroup[], layout: SheetLayout, placed: Pick<Sheet, 'sections' | 'details'>): LabelObstacle[] {
+  const out: LabelObstacle[] = [{ box: [...layout.title] as LabelRect }];
+  for (const g of groups) {
+    if (g.role === 'frame' || g.role === 'title') continue;
+    if (g.role === 'table') { out.push({ group: g, box: joinedLabelRect(g.marks) }); continue; }
+    for (const m of g.marks) out.push({ group: g, box: labelMarkRect(m), mark: m });
+  }
+  for (const id of VIEW_IDS) if (!layout.views[id].hidden) out.push({ box: [...layout.views[id].box], region: true });
+  for (const s of placed.sections ?? []) out.push({ box: [...s.placement.box], region: true });
+  for (const d of placed.details ?? []) out.push({ box: [...d.placement.box], region: true });
+  return out;
+}
+function labelOutsideFrame(b: LabelRect, frame: readonly number[], clear: number): boolean {
+  return b[0] < frame[0] + clear - LABEL_NUMERIC_EPS || b[1] < frame[1] + clear - LABEL_NUMERIC_EPS || b[2] > frame[2] - clear + LABEL_NUMERIC_EPS || b[3] > frame[3] - clear + LABEL_NUMERIC_EPS;
+}
+function labelBlocked(b: LabelRect, obstacles: readonly LabelObstacle[], frame: readonly number[], candidate: boolean): boolean {
+  const clear = candidate ? LINEAR_LABEL_CLEAR : 0;
+  if (labelOutsideFrame(b, frame, clear)) return true;
+  for (const obstacle of obstacles) if ((candidate || !obstacle.region) && labelOverlap(b, obstacle.box, clear)) return true;
+  return false;
+}
+function compareLabelIntervals(a: LabelInterval, b: LabelInterval): number { return a.lo - b.lo || a.hi - b.hi; }
+/** Nearest allowed translation on one endpoint side in a fixed outward corridor. One sorted interval scan, no 2D search. */
+function labelBoundary(start: number, positive: boolean, box: LabelRect, axis: XY, outward: XY, obstacles: readonly LabelObstacle[]): number {
+  const normal = labelProjection(box, outward), along = labelProjection(box, axis), intervals: LabelInterval[] = [];
+  for (const obstacle of obstacles) {
+    const b = obstacle.box, expanded: LabelRect = [b[0] - LINEAR_LABEL_CLEAR, b[1] - LINEAR_LABEL_CLEAR, b[2] + LINEAR_LABEL_CLEAR, b[3] + LINEAR_LABEL_CLEAR];
+    const n = labelProjection(expanded, outward);
+    if (Math.min(normal[1], n[1]) - Math.max(normal[0], n[0]) <= LABEL_NUMERIC_EPS) continue;
+    const e = labelProjection(expanded, axis), lo = e[0] - along[1], hi = e[1] - along[0];
+    intervals.push(positive ? { lo, hi } : { lo: -hi, hi: -lo });
+  }
+  intervals.sort(compareLabelIntervals);
+  let value = positive ? start : -start;
+  for (const interval of intervals) if (value > interval.lo - LABEL_NUMERIC_EPS && value < interval.hi - LABEL_NUMERIC_EPS) value = interval.hi;
+  return positive ? value : -value;
+}
+function translateLabelMark(m: Mark, delta: XY): Mark {
+  if (m.kind === 'text') return { ...m, at: add(m.at, delta) };
+  if (m.kind === 'line') return { ...m, a: add(m.a, delta), b: add(m.b, delta) };
+  if (m.kind === 'arc') return { ...m, center: add(m.center, delta) };
+  if (m.kind === 'hatch') { const rings: XY[][] = []; for (const ring of m.rings) { const points: XY[] = []; for (const point of ring) points.push(add(point, delta)); rings.push(points); } return { ...m, rings }; }
+  const points: XY[] = []; for (const point of m.points) points.push(add(point, delta));
+  return m.kind === 'fill' && m.head ? { ...m, points, head: { ...m.head, tip: add(m.head.tip, delta) } } : { ...m, points };
+}
+/** A derived suffix is one leader after the original text/basic marks, attached to an exact own head tip. */
+function labelConnectorSuffix(group: MarkGroup, mark: Mark, index: number): boolean {
+  if (index !== group.marks.length - 1 || mark.kind !== 'line' || mark.role !== 'leader' || mark.pen !== 'thin') return false;
+  for (const m of group.marks) if (m.kind === 'fill' && m.head && Math.hypot(...sub(m.head.tip, mark.a)) < LABEL_NUMERIC_EPS) return true;
+  return false;
+}
+function labelIncidentAt(mark: Mark, at: XY): boolean {
+  if (mark.kind === 'fill' && mark.head) return Math.hypot(...sub(mark.head.tip, at)) < LABEL_NUMERIC_EPS;
+  if (mark.kind !== 'line') return false;
+  const d = sub(mark.b, mark.a), q = sub(at, mark.a), squared = dot2(d, d), t = squared > 0 ? dot2(q, d) / squared : -1;
+  return t >= 0 && t <= 1 && Math.hypot(...sub(at, add(mark.a, d, t))) < LABEL_NUMERIC_EPS;
+}
+function labelRectPolygon(b: LabelRect): readonly XY[] { return [[b[0], b[1]], [b[2], b[1]], [b[2], b[3]], [b[0], b[3]]]; }
+/** One finite straight association, never a routing search. Only incident own terminal contact is exempt. */
+function labelConnector(start: XY, box: LabelRect, own: readonly Mark[], obstacles: readonly LabelObstacle[], frame: readonly number[]): LabelConnector | null {
+  const target: XY = [Math.max(box[0], Math.min(box[2], start[0])), Math.max(box[1], Math.min(box[3], start[1]))], d = sub(target, start), distance = Math.hypot(...d), half = PENS.thin.width / 2;
+  const length = distance - GAP - half;
+  if (!Number.isFinite(length) || length <= LABEL_CONNECTOR_TERMINAL + half) return null;
+  const e: XY = [d[0] / distance, d[1] / distance], end = add(start, e, length);
+  const line: LabelConnector = { kind: 'line', a: start, b: end, pen: 'thin', role: 'leader' };
+  if (labelOutsideFrame(labelMarkRect(line), frame, 0)) return null;
+  const polygon = labelPolygon(line), tail = labelPolygon({ ...line, a: add(start, e, LABEL_CONNECTOR_TERMINAL) });
+  for (const obstacle of obstacles) {
+    const shape = obstacle.mark ? labelPolygon(obstacle.mark) : labelRectPolygon(obstacle.box);
+    const incident = obstacle.mark && own.includes(obstacle.mark) && labelIncidentAt(obstacle.mark, start);
+    if (labelPolygonsOverlap(incident ? tail : polygon, shape)) return null;
+  }
+  return line;
+}
+function commitLabelTranslation(payload: LabelPayload, delta: XY): void {
+  const moving = new Set(payload.marks);
+  for (let i = 0; i < payload.own.marks.length; i++) if (moving.has(payload.own.marks[i])) payload.own.marks[i] = translateLabelMark(payload.own.marks[i], delta);
+  for (const group of payload.groups) for (let i = 0; i < group.marks.length; i++) group.marks[i] = translateLabelMark(group.marks[i], delta);
+}
+function placeShortLinearText(groups: MarkGroup[], dimensions: readonly Resolved[], settings: DrawingSettings, layout: SheetLayout, placed: Pick<Sheet, 'sections' | 'details'>, p: StandardPreset): void {
+  for (const r of dimensions) {
+    if (!r?.ok || r.kind !== 'linear') continue;
+    const payload = labelPayload(groups, settings, r), v = placementOf(layout, placed, r.dim.view); if (!payload || !v || v.hidden) continue;
+    const heads: Extract<Mark, { kind: 'fill' }>[] = []; for (const m of payload.fixed) if (m.kind === 'fill' && m.head) heads.push(m);
+    const A2 = heads[0].head!.tip, B2 = heads[1].head!.tip, span = sub(B2, A2), length = Math.hypot(...span); if (length < LABEL_NUMERIC_EPS) continue;
+    const axis: XY = [span[0] / length, span[1] / length], middle = add(A2, span, 0.5), along = labelProjection(payload.box, axis), origin = dot2(middle, axis);
+    const inside = length >= 2 * p.arrowLength + 1, free = inside ? length / 2 - p.arrowLength : length / 2;
+    const fitsSpan = along[0] >= origin - free && along[1] <= origin + free;
+    const A = toSheet(v, r.a), B = toSheet(v, r.b), measured = add(A, sub(B, A), 0.5), normal = sub(middle, measured), distance = Math.hypot(...normal); if (distance < LABEL_NUMERIC_EPS) continue;
+    const outward: XY = [normal[0] / distance, normal[1] / distance], obstacles = labelObstacles(groups, layout, placed), relevant: LabelObstacle[] = [];
+    for (const obstacle of obstacles) {
+      if (obstacle.group && (payload.groups.includes(obstacle.group) || obstacle.group === payload.own)) continue;
+      relevant.push(obstacle);
+    }
+    const ownFixed: LabelObstacle[] = []; for (const m of payload.fixed) { const obstacle = { box: labelMarkRect(m), mark: m }; relevant.push(obstacle); ownFixed.push(obstacle); }
+    // Fitting labels are eligible only for a real own-geometry clash, never for general packing.
+    if (fitsSpan && !labelOriginalBlocked(payload, ownFixed, layout.frame)) continue;
+    if (!labelOriginalBlocked(payload, relevant, layout.frame)) continue;
+    const fixed = joinedLabelRect(payload.fixed), normalClear = LINEAR_LABEL_CLEAR * (Math.abs(outward[0]) + Math.abs(outward[1])), axisClear = LINEAR_LABEL_CLEAR * (Math.abs(axis[0]) + Math.abs(axis[1])), normalAmount = labelProjection(fixed, outward)[1] + normalClear - labelProjection(payload.box, outward)[0];
+    const normalMove: XY = [outward[0] * Math.max(0, normalAmount), outward[1] * Math.max(0, normalAmount)], base = shiftedLabelRect(payload.box, normalMove), e = labelProjection(base, axis), f = labelProjection(fixed, axis);
+    const positive = labelBoundary(Math.max(0, f[1] + axisClear - e[0]), true, base, axis, outward, relevant);
+    const negative = labelBoundary(Math.min(0, f[0] - axisClear - e[1]), false, base, axis, outward, relevant);
+    const candidates: XY[] = [normalMove, add(normalMove, axis, positive), add(normalMove, axis, negative)];
+    let best: XY | null = null, bestConnector: LabelConnector | null = null, bestDistance = Infinity;
+    for (let i = 0; i < candidates.length; i++) {
+      const candidate = candidates[i];
+      const squared = dot2(candidate, candidate);
+      if (!Number.isFinite(squared) || squared >= bestDistance - LABEL_NUMERIC_EPS || labelBlocked(shiftedLabelRect(payload.box, candidate), relevant, layout.frame, true)) continue;
+      const connector = i === 0 ? null : labelConnector(i === 1 ? B2 : A2, shiftedLabelRect(payload.box, candidate), payload.fixed, relevant, layout.frame);
+      if (i !== 0 && !connector) continue;
+      best = candidate; bestConnector = connector; bestDistance = squared;
+    }
+    if (best) { commitLabelTranslation(payload, best); if (bestConnector) payload.own.marks.push(bestConnector); }
+  }
 }
 
 /** The view a revolved section is drawn on (DR-4): a front section's on the top view, a top's or a right's on the front view (both always shown). */
@@ -776,7 +997,7 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
     }
     // Text over the line (the side away from the measured points' middle when the line is beside them).
     if (text) marks.push(...text.marks);
-    else marks.push(...clearOfLine(valueMarks(add(mid, textUp(e), 1.2), readAngle(e), 'middle', r.text, r.dim.tol, '', p, r.alt, r.value), mid, e, inside ? [-len / 2 + p.arrowLength, len / 2 - p.arrowLength] : [-len / 2, len / 2], r.alt !== undefined));
+    else marks.push(...clearOfLine(valueMarks(add(mid, textUp(e), 1.2), readAngle(e), 'middle', r.text, r.dim.tol, '', p, r.alt, r.value), mid, e, inside ? [-len / 2 + p.arrowLength, len / 2 - p.arrowLength] : [-len / 2, len / 2], true));
     return marks;
   }
   const C = toSheet(v, r.center), R = r.radius * v.scale, toPlace = sub(place, C), dist = Math.hypot(toPlace[0], toPlace[1]);
@@ -808,13 +1029,13 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
 }
 
 /**
- * Text along a dimension line (direction `e`, text about `mid`): where its whole width (a dual value, a tolerance) does not
- * fit between the arrowheads (`free`, offsets from `mid`), it is lifted off the line until its box clears the line and the
- * arrowheads, as the ASME text is set beside the line (`unidirectional`).
+ * Aligned linear text, single or dual: where its whole width does not fit between the arrowheads (`free`, offsets
+ * from `mid` along `e`), lift its bounds clear of the line and arrowheads. Inside-circle labels retain their existing
+ * dual-only policy. ASME text is placed separately by `unidirectional`.
  */
-function clearOfLine(marks: Mark[], mid: XY, e: XY, free: [number, number], dual: boolean): Mark[] {
-  // (Only a dual text: a plain short dimension's text over its arrowheads is older than units and its sheets, and the kernel's DXF fixtures, are kept as they were.)
-  if (!dual) return marks;
+function clearOfLine(marks: Mark[], mid: XY, e: XY, free: [number, number], enabled: boolean): Mark[] {
+  // Linear text always uses this bound clearance. Inside-circle single-unit text retains its existing policy.
+  if (!enabled) return marks;
   const quads = marks.flatMap(m => m.kind === 'text' ? [textCorners(m.at, m.text, m.size, m.anchor, m.angle ?? 0, !!m.bold)] : []).flat();
   if (!quads.length) return marks;
   const along = quads.map(q => (q[0] - mid[0]) * e[0] + (q[1] - mid[1]) * e[1]);

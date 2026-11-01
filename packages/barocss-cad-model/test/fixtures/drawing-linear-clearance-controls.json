@@ -1,0 +1,110 @@
+{
+  "plain-mm-single": {
+    "geometry": "ffb2117f1fcf46c15f118ab71e0f718718146b24db46c1b72021eeed2311c61c",
+    "textPayload": "36a0ce2ef659428c4ce50be5cfa445295634ae72e5f9f54bd5674c0e9166b47e",
+    "circleMarks": "f49f53409cb2e95ba2a710ac7068b8f6e9063e5a89a1d10062b6ca9d41347010",
+    "circleDxf": [
+      "86384ab36c1a6ce0eab19de322ec0722ea74be58721141e94121d9c7e943a41f",
+      "5e918accc21eab12e84ea842a9badefb0c621a4b4b7583d4c2065ee5a9e607d5"
+    ]
+  },
+  "plain-mm-dual": {
+    "geometry": "ffb2117f1fcf46c15f118ab71e0f718718146b24db46c1b72021eeed2311c61c",
+    "textPayload": "7b4643e1b1047b90318e1c10ef3427de460e9f915d3def8c618c1045eba496bd",
+    "circleMarks": "2e323f5d82c763c8c2dd91919f0837b29826316f9b8c198ff1dcf07e05881ee8",
+    "circleDxf": [
+      "1539ba14c7b50b9b47962313c304b1de1049383bf6d0fad8794460733f4c3735",
+      "7edbe4f487022e1f36d99be7bb4b0c2dc565d15b274e3d208e187ac2c2b3410b"
+    ]
+  },
+  "plain-inch-single": {
+    "geometry": "ffb2117f1fcf46c15f118ab71e0f718718146b24db46c1b72021eeed2311c61c",
+    "textPayload": "0899397af8e7c86aa441f352f141fe3dacaa0ef1ddae2acc24c2914a80a2d298",
+    "circleMarks": "c81968f99008583d21dd36e248c32c2652131e03fdb0f9ec0fd28bfa708eb455",
+    "circleDxf": [
+      "b28b397e2ed6aa0450defe5e3968472f29a74e0d30a2d052425d138b5f00beaf",
+      "476b2db042af3c5b863c1fcd6e36f4f98eb55e67cd13750a74294d7d420e3ce2"
+    ]
+  },
+  "plain-inch-dual": {
+    "geometry": "ffb2117f1fcf46c15f118ab71e0f718718146b24db46c1b72021eeed2311c61c",
+    "textPayload": "ffd46a951bc560882d798d9107f809e0b9202cc829504e00c684db3a6f1cfadf",
+    "circleMarks": "52a8525b1d7e1c6e4c19a5561d4c33c0bba18da8099ec755d8cd88b63980ed63",
+    "circleDxf": [
+      "182058d42fe0d2cd97d920e6e2e455fdf59f919e5c6853b640094ea57ce137e9",
+      "9dcdb1fb8e27844aeed9ad17471988e300cccfc9cb22f52d8f59485dbc634297"
+    ]
+  },
+  "iso-mm-single": {
+    "geometry": "f8d6675271378275276bffeaebcd157e73047ec4b01e431bdcb11a5173647c30",
+    "textPayload": "36a0ce2ef659428c4ce50be5cfa445295634ae72e5f9f54bd5674c0e9166b47e",
+    "circleMarks": "b870d921f81c52f40a5a28c6067287a514e6061c8af60c877ad8fc3ef3e58a2a",
+    "circleDxf": [
+      "b9b9f639dd43889a48ebe36cff8bcd21aae18ad57b6b62dba4ed05b3b2ba262e",
+      "bfc517382d34347f1ebf8d2c7563c749664c4dab47a813cef78060a46d189502"
+    ]
+  },
+  "iso-mm-dual": {
+    "geometry": "f8d6675271378275276bffeaebcd157e73047ec4b01e431bdcb11a5173647c30",
+    "textPayload": "7b4643e1b1047b90318e1c10ef3427de460e9f915d3def8c618c1045eba496bd",
+    "circleMarks": "f491e41f20261f0a51ef14b46088b9d7a0a7c50001e99574a2b2638a5bed31dc",
+    "circleDxf": [
+      "2c9e2c9906c5154f0aee64ee36f5610e21977fbe7895f1eaa0808591a90b391d",
+      "d548f1941ef916886b76206b9c0b225ee167210a3231338cf62c8a3cd591cb5c"
+    ]
+  },
+  "iso-inch-single": {
+    "geometry": "f8d6675271378275276bffeaebcd157e73047ec4b01e431bdcb11a5173647c30",
+    "textPayload": "0899397af8e7c86aa441f352f141fe3dacaa0ef1ddae2acc24c2914a80a2d298",
+    "circleMarks": "0153eea0cf4aa6654e7e31325fa324d26801cbc4847635274ec96301429ed4c3",
+    "circleDxf": [
+      "30ec21a8800906f167899d9cf6a6d10884da156eb687c796dd354ce29eca44e2",
+      "1ed4f55eb1984cc9d1772783f0bb8072d90bebf110005a96e70e89094eba3683"
+    ]
+  },
+  "iso-inch-dual": {
+    "geometry": "f8d6675271378275276bffeaebcd157e73047ec4b01e431bdcb11a5173647c30",
+    "textPayload": "ffd46a951bc560882d798d9107f809e0b9202cc829504e00c684db3a6f1cfadf",
+    "circleMarks": "cfa1c92e676c952932340257d1f90b9cb6775213d769f99e042026c98db4b892",
+    "circleDxf": [
+      "1ed2811a743584adba6f6684d4ffba3a4ac440acdd86f7febace004673b9a9cb",
+      "728c9a53ac3b9b77b0c3702ff5a88696496bb71dfcfbab8614d44d8642968fff"
+    ]
+  },
+  "asme-mm-single": {
+    "geometry": "d89903ee0f5522c77016122fa7a3ce5a7ba0b8a6f55207b0fb05ac38f5a673e1",
+    "textPayload": "80e2b12c64b41ba3227a4f31045c79268412a28dc9cb25f533443a62fa574a7a",
+    "circleMarks": "6e97a9c98197a3a664f16c3db46e2649bcd61eed96eba12d7e2b50b176bc8604",
+    "circleDxf": [
+      "95139b73b7c14cb42e09df9b404ff4a506beb3f0a7e1d38c75ce263514a29f89",
+      "fc76e0c8682c73e88d51b1fdc1f6df8aa295fead7b22f8d487ff7c8db4eb4dc0"
+    ]
+  },
+  "asme-mm-dual": {
+    "geometry": "d89903ee0f5522c77016122fa7a3ce5a7ba0b8a6f55207b0fb05ac38f5a673e1",
+    "textPayload": "01da5a288b069d5978780b1f9aba6441640cfd37bfee1ac6a444f104ae8425e0",
+    "circleMarks": "d0fd1e097dce553ea4dde4c8fe751c68850dfb7585d7efb713b43e1af0ac5c94",
+    "circleDxf": [
+      "0a37ca3a77b151eb501ef0e0ed51dfa52ebc00a4cf367a7f4013fc4d8306099e",
+      "8d93884cf139594119b17f35199852c7f77b90165bee33484c4665ba0f3906b2"
+    ]
+  },
+  "asme-inch-single": {
+    "geometry": "d89903ee0f5522c77016122fa7a3ce5a7ba0b8a6f55207b0fb05ac38f5a673e1",
+    "textPayload": "d0ff224465ffa491cfa18d576b0e8124b6f88527957e416fad42515586fd9e2f",
+    "circleMarks": "517521845eefe5b38c7c5f69289cef4a552d81a9d24c3b92466439f9c20c1bfc",
+    "circleDxf": [
+      "d2e8cb4447696c99c0f2adfdea3ddf05fa68565071754901cea82290d47fd7b5",
+      "e5747911057854ff3bf1274ecb508b5c43d8cef0c2d88d5fe9be5fb80288d297"
+    ]
+  },
+  "asme-inch-dual": {
+    "geometry": "d89903ee0f5522c77016122fa7a3ce5a7ba0b8a6f55207b0fb05ac38f5a673e1",
+    "textPayload": "aac18ace4601e1e74b99f5410250fdacf5bd535f7010a069b6d1430f7c9f5ed2",
+    "circleMarks": "b200e5cf0dfe06b9659ac1240510e7b99e98a7601e550ee0033114dd101cd8c6",
+    "circleDxf": [
+      "8ad85125a2ad3cea1a34d1e266251f277f5d242e3878911794093390d0e21dba",
+      "2098a89e5dcd69cd7cb7793d1a31d0562c84733a7fc1296a7934340e1e07a699"
+    ]
+  }
+}

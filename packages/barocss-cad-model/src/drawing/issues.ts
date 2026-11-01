@@ -32,7 +32,7 @@ import type { BrepProjection } from '@barocss/cad';
 import { autoDimensions, axisOf, holesOf, levels, type Hole } from './auto';
 import { sameLinearDependency, samePointDependency } from './measurement';
 import { datumTargetConflicts, resolveDatumTarget, type DatumTargetFailureCode } from './datumTargets';
-import { basicBox, buildSheet, datumMarks, dimensionMarks, frameMarks, placementOf, projectionOf, sectionExtents, tableRoom, type Mark, type MarkGroup, type Sheet, type SheetSection } from './sheet';
+import { PENS, basicBox, buildSheet, datumMarks, dimensionMarks, frameMarks, placementOf, projectionOf, sectionExtents, tableRoom, type Mark, type MarkGroup, type Sheet, type SheetSection } from './sheet';
 import { textCorners } from './text';
 import { SCALES, layoutSheet, scaleLabel, sectionDepth, type SheetLayout } from './views';
 import { detailScale } from './detail';
@@ -199,6 +199,65 @@ function placedOf(g: MarkGroup): Placed {
 
 const same = (a: Owner, b: Owner) => a.kind === b.kind && a.id === b.id && a.view === b.view && a.datumTarget === b.datumTarget;
 const ownerKey = (o: Owner) => `${o.datumTarget ? 'datum-target' : o.kind}:${o.id}`;
+/** Payload bounds retain the text/line orientation; decorated frame bounds remain conservative. */
+function linearMarkPolygon(m: Mark): readonly XY[] {
+  if (m.kind === 'text') return textBox(m);
+  if (m.kind === 'fill') return m.points;
+  if (m.kind === 'polyline' && m.role === 'frame' && m.points.length === 5) {
+    const q = m.points, dx = q[1][0] - q[0][0], dy = q[1][1] - q[0][1], ex = q[3][0] - q[0][0], ey = q[3][1] - q[0][1], lx = Math.hypot(dx, dy), ly = Math.hypot(ex, ey), half = PENS[m.pen].width / 2;
+    if (lx > 1e-8 && ly > 1e-8 && Math.abs(dx * ex + dy * ey) <= 1e-10 * lx * ly && Math.hypot(q[4][0] - q[0][0], q[4][1] - q[0][1]) < 1e-8 && Math.hypot(q[2][0] - q[1][0] - ex, q[2][1] - q[1][1] - ey) < 1e-8) {
+      const x = dx * half / lx, y = dy * half / lx, u = ex * half / ly, v = ey * half / ly;
+      return [[q[0][0] - x - u, q[0][1] - y - v], [q[1][0] + x - u, q[1][1] + y - v], [q[2][0] + x + u, q[2][1] + y + v], [q[3][0] - x + u, q[3][1] - y + v]];
+    }
+  }
+  if (m.kind === 'line') {
+    const dx = m.b[0] - m.a[0], dy = m.b[1] - m.a[1], length = Math.hypot(dx, dy), half = PENS[m.pen].width / 2;
+    if (length > 1e-8) {
+      const x = -dy * half / length, y = dx * half / length, u = dx * half / length, v = dy * half / length;
+      return [[m.a[0] - u + x, m.a[1] - v + y], [m.b[0] + u + x, m.b[1] + v + y], [m.b[0] + u - x, m.b[1] + v - y], [m.a[0] - u - x, m.a[1] - v - y]];
+    }
+  }
+  let points: readonly XY[], pad = 0;
+  if (m.kind === 'arc') { const rx = Math.hypot(m.u[0], m.v[0]), ry = Math.hypot(m.u[1], m.v[1]); points = [[m.center[0] - rx, m.center[1] - ry], [m.center[0] + rx, m.center[1] + ry]]; pad = PENS[m.pen].width / 2; }
+  else if (m.kind === 'line') { points = [m.a, m.b]; pad = PENS[m.pen].width / 2; }
+  else { points = m.kind === 'hatch' ? m.rings.flat() : m.points; pad = PENS[m.pen].width / 2; }
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const point of points) { x0 = Math.min(x0, point[0] - pad); y0 = Math.min(y0, point[1] - pad); x1 = Math.max(x1, point[0] + pad); y1 = Math.max(y1, point[1] + pad); }
+  return [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+}
+function linearPolygonsOverlap(a: readonly XY[], b: readonly XY[]): boolean {
+  for (const polygon of [a, b]) for (let i = 0; i < polygon.length; i++) {
+    const p = polygon[i], q = polygon[(i + 1) % polygon.length], nx = p[1] - q[1], ny = q[0] - p[0], length = Math.hypot(nx, ny);
+    if (length < 1e-8) continue;
+    let a0 = Infinity, a1 = -Infinity, b0 = Infinity, b1 = -Infinity;
+    for (const point of a) { const t = point[0] * nx + point[1] * ny; a0 = Math.min(a0, t); a1 = Math.max(a1, t); }
+    for (const point of b) { const t = point[0] * nx + point[1] * ny; b0 = Math.min(b0, t); b1 = Math.max(b1, t); }
+    if (Math.min(a1, b1) - Math.max(a0, b0) <= 1e-8 * length) return false;
+  }
+  return true;
+}
+function linearPayloadGeometryClash(ctx: IssueContext, id: string | undefined, view: DimView | undefined): boolean {
+  let r: Resolved | undefined; for (const d of ctx.sheet.dimensions) if (d.ok && d.kind === 'linear' && d.dim.id === id && d.dim.view === view) { r = d; break; }
+  if (!r?.ok || r.kind !== 'linear') return false;
+  let group: MarkGroup | undefined; for (const g of ctx.sheet.groups) if (g.role === 'dimension' && g.id === id && g.view === view) { group = g; break; }
+  if (!group) return false;
+  const moving: Mark[] = [], fixed: Mark[] = [];
+  for (const m of group.marks) {
+    if (m.kind === 'text' || (m.kind === 'polyline' && m.role === 'frame')) moving.push(m);
+    else if ((m.kind === 'line' && (m.role === 'dimension' || m.role === 'extension' || m.role === 'leader')) || (m.kind === 'fill' && m.head)) fixed.push(m);
+  }
+  const attached = new Set<MarkGroup>();
+  for (const f of ctx.settings.frames ?? []) if (f.dim === id) for (const g of ctx.sheet.groups) if (g.role === 'control' && !g.standaloneFrame && g.id === f.id) { attached.add(g); moving.push(...g.marks); }
+  // A retained no-safe payload may hit a datum leader, control border or view line without any text/text overlap.
+  // Frame/title occupancy retains the existing OFF_SHEET path. Text/text has its existing TEXT_OVERLAP path.
+  for (const g of ctx.sheet.groups) {
+    if (g === group || attached.has(g) || g.role === 'frame' || g.role === 'title') continue;
+    for (const m of g.marks) if (m.kind !== 'text') fixed.push(m);
+  }
+  const polygons: (readonly XY[])[] = []; for (const m of moving) polygons.push(linearMarkPolygon(m));
+  for (const f of fixed) { const polygon = linearMarkPolygon(f); for (const moving of polygons) if (linearPolygonsOverlap(moving, polygon)) return true; }
+  return false;
+}
 const name = (o: Owner, sheet: Sheet) => o.kind === 'frame' ? 'a standalone feature control frame' : o.kind === 'dimension' ? `dimension ${textOf(sheet, o.id!)}` : o.kind === 'note' ? 'a note' : o.kind === 'table' ? `table ${o.id}` : o.kind === 'balloon' ? `balloon ${o.id}` : o.kind === 'weld' ? `weld symbol ${o.id}` : o.kind === 'datum' ? `datum${o.datumTarget ? ' target' : ''} ${datumLetter(sheet, o.id!, o.datumTarget)}` : `the ${o.view ?? 'section'} view’s name`;
 function datumLetter(sheet: Sheet, id: string, target?: true): string { const t = sheet.groups.find(g => g.role === 'datum' && g.id === id && g.datumTarget === target)?.marks.find(m => m.kind === 'text'); return t && t.kind === 'text' ? t.text : id; }
 function textOf(sheet: Sheet, id: string): string { const r = sheet.dimensions.find(d => d.dim.id === id); return r?.ok ? r.text : id; }
@@ -398,11 +457,13 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
       if (!flagged.has(`weld:${p.owner.id}`) && p.boxes.some(b => viewGrid.hits(b) || onOtherView(ctx.layout, ctx.sheet, b, p.owner.view))) { flagged.add(`weld:${p.owner.id}`); out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `${cap(name(p.owner, sheet))} lies over lines of the drawing.`, ...ids([p]), at: center(p.boxes[0]) }); }
       continue;
     }
-    if (p.owner.kind !== 'dimension' || flagged.has(`dimension:${p.owner.id}`)) continue;
+    if (p.owner.kind !== 'dimension') continue;
+    const ownClash = linearPayloadGeometryClash(ctx, p.owner.id, p.owner.view);
+    if (flagged.has(`dimension:${p.owner.id}`) && !ownClash) continue;
     const others = placed.filter(q => q !== p && (q.owner.kind === 'dimension' || q.owner.kind === 'weld' || q.owner.kind === 'balloon')).flatMap(q => q.lines);
-    if (p.boxes.some(b => viewGrid.hits(b) || others.some(([s, t]) => segmentHitsQuad(s, t, b)) || onOtherView(ctx.layout, ctx.sheet, b, p.owner.view))) {
+    if (ownClash || p.boxes.some(b => viewGrid.hits(b) || others.some(([s, t]) => segmentHitsQuad(s, t, b)) || onOtherView(ctx.layout, ctx.sheet, b, p.owner.view))) {
       flagged.add(`dimension:${p.owner.id}`);
-      out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `The text of ${name(p.owner, sheet)} lies over lines of the drawing.`, ...ids([p]), at: center(p.boxes[0]), ...fixFor(ctx, p, placed, viewGrid) });
+      out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `The text of ${name(p.owner, sheet)} lies over lines of the drawing.`, ...ids([p]), at: center(p.boxes[0]), ...(ownClash ? {} : fixFor(ctx, p, placed, viewGrid)) });
     }
   }
   const [fx0, fy0, fx1, fy1] = layout.frame, [tx0, ty0, tx1, ty1] = layout.title;

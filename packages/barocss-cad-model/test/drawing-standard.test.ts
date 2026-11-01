@@ -1,5 +1,5 @@
-// Roadmap 11 ③a: the drawing standard (ISO / ASME presets). Absent, the sheet is byte for byte what it was (golden hashes
-// made from the sources before the setting); each standard sets lettering, arrowheads, dimension text, projection symbol,
+// Roadmap 11 ③a: the drawing standard (ISO / ASME presets). D416 updates only collided linear-label positions
+// in the original golden baseline. Each standard sets lettering, arrowheads, dimension text, projection symbol,
 // datum line targets and the drawing check's GD&T advice from one preset record.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -91,10 +91,10 @@ function plainOutputs(): Record<string, string> {
 }
 const GOLDEN = join(import.meta.dirname, 'fixtures/drawing-standard-plain.json');
 
-test('no standard: the sheets are byte for byte the ones made before the setting (SVG and DXF of seven kinds of dimension, datum, targets, frame)', () => {
+test('no standard: the D416 linear-label placement baseline preserves other drawing content (SVG and DXF of seven kinds of dimension, datum, targets, frame)', () => {
   const now = plainOutputs();
   if (process.env.UPDATE_STANDARD_GOLDEN) writeFileSync(GOLDEN, JSON.stringify(now, null, 2) + '\n');
-  assert.deepEqual(now, JSON.parse(readFileSync(GOLDEN, 'utf8')), 'made by the sources before drawing.standard existed (UPDATE_STANDARD_GOLDEN=1 only from such sources)');
+  assert.deepEqual(now, JSON.parse(readFileSync(GOLDEN, 'utf8')), 'D416 inspected linear-label positions; change only after comparing full SVG/DXF content');
   assert.deepEqual(STANDARDS.iso.number, PLAIN.number); assert.deepEqual(STANDARDS.asme.number, PLAIN.number);
 });
 

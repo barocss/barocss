@@ -117,8 +117,14 @@ and `precision` (`{mm?, inch?}`; `{}` resets); a value outside those is refused.
   final decimal step to keep it inside the authored zone.
 - Dual prints the dimension and its tolerance in both units: `2.5197 ±.0019 [64 ±0.05]`. Deviations that stack
   beside the value print on the line instead (`.3150 +.0039/-.0019 [8 +0.1/-0.05]`). A hole callout prints whole in both
-  units. An angle never converts and never gets brackets. A dual text that does not fit between the arrowheads is
-  lifted off the line until it clears the line and the arrowheads (under ASME it sits beside the line, as before).
+  units. An angle never converts and never gets brackets.
+- A short linear label can use an outside position when its original region overlaps drawing marks.
+  Nearby views, annotations, tables and the sheet/title regions are checked before choosing a position. Stacked
+  deviations, basic boxes and attached control frames move with the label. Existing safe labels stay in place;
+  the original dimension line, arrowheads, value, tolerance and authored placement stay unchanged. A label placed
+  beyond an endpoint gets a connector to its dimension; a blocked connector makes that candidate unavailable. If no safe position is
+  found, the original placement stays and **Drawing issues** reports `TEXT_OVER_LINES` or `OFF_SHEET` as applicable.
+  Existing inline text gaps and radius, diameter, pitch-circle and angle labels keep their placement rules.
 - What converts: linear, radius, diameter and pitch circle values, tolerances, fit deviations, hole callouts
   (diameter, depth, counterbore, countersink), geometric tolerance frame values (a frame is not a dimension, so
   the decimals setting does not apply: in mm as entered; in inch a zone width rounds down and a projected zone height
