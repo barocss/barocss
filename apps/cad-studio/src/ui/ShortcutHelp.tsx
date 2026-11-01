@@ -1,3 +1,4 @@
+import { commandIconName } from './commandIcons';
 // The keyboard and mouse at a glance (? opens it): every command's key by group, the general keys, and
 // how the mouse moves the view and picks.
 import { useEffect } from 'react';
@@ -27,7 +28,7 @@ export function ShortcutHelp({ onClose }: { onClose(): void }) {
         <div className="help-cols">
           <section>{GROUPS.map(([g, name]) => {
             const list = commands.filter(c => c.group === g && c.shortcut);
-            return list.length ? <div key={g}><h4>{name}</h4>{list.map(c => <div key={c.id} className="help-row"><Icon name={c.icon} small /><span>{c.label}</span><Kbd>{c.shortcut}</Kbd></div>)}</div> : null;
+            return list.length ? <div key={g}><h4>{name}</h4>{list.map(c => <div key={c.id} className="help-row"><Icon name={commandIconName(c.id, c.icon)} small /><span>{c.label}</span><Kbd>{c.shortcut}</Kbd></div>)}</div> : null;
           })}</section>
           <section><h4>General</h4>{GENERAL.map(([k, what]) => <div key={k} className="help-row"><span>{what}</span><Kbd>{k}</Kbd></div>)}
             <h4>Mouse</h4>{MOUSE.map(([k, what]) => <div key={k} className="help-row"><span>{what}</span><span className="muted">{k}</span></div>)}</section>

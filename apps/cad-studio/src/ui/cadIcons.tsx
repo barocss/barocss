@@ -108,6 +108,16 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-sketch': <>{face(isoPath([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]]), 0.12)}{ghost(isoPath([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]]))}
     {ac(isoPath([[0.2, 0.25, 0], [0.75, 0.25, 0], [0.75, 0.75, 0], [0.2, 0.75, 0]]))}
     <path d="M13.2 13.8l6.6-6.6 2.2 2.2-6.6 6.6-3 .8z" style={tone(0.34)} /><path d="M18.4 8.6l2.2 2.2" /></>,
+  // A spatial polyline above a quiet three-axis corner: no sketch plane.
+  'cad-sketch3d': <>{ghost('M4 18.5v-7M4 18.5l7 3M4 18.5l-2.5 2')}{ac('M4 12.5l6-6 5 4 5-6')}{dots([[4, 12.5], [10, 6.5], [15, 10.5], [20, 4.5]])}</>,
+  // The highlighted curve follows the front of a cylinder rather than wrapping lines of text.
+  'cad-cylindrical-wrap': <>{cylinder(0.5, 0.5, -0.05, 0.95)}{ac('M5.2 12.2c3 4.4 10.6 4.4 13.6 0')}{head([16, 14.5], [18.8, 12.2], 2.8)}{dots([[5.2, 12.2]])}</>,
+  // A pencil changes an edge of existing solid geometry.
+  'cad-edit': <><g transform="translate(-3 5) scale(.72)">{block(0, 0, 0, 1, 1, 1)}</g>{face('M10.3 14.4l7.9-7.9 3 3-7.9 7.9-4.1 1.1z', 0, true)}{ac('M10.3 14.4l7.9-7.9 3 3-7.9 7.9-4.1 1.1z')}{line('M16.8 7.9l3 3M10.3 14.4l3 3')}</>,
+  // A flat outlined glyph on a baseline, drawn as paths instead of a font.
+  'cad-text': <>{ghost('M3 21h18')}<path d="M5 18.5L10.4 4h3.2L19 18.5h-3.5l-1.1-3.4H9.6l-1.1 3.4zM10.5 12.3h3L12 8z" fillRule="evenodd" style={acTone} className="ac" /></>,
+  // A raised glyph: its top and right extrusion faces distinguish it from flat text.
+  'cad-text-relief': <>{face('M7 17L12.4 3.5h3.2L21 17h-3.5l-1.1-3.5h-4.8L10.5 17z', TONE.top)}{line('M7 17L12.4 3.5h3.2L21 17h-3.5')}{face('M11.6 6.5l4-3L21 17l-4 3z', TONE.right)}{line('M11.6 6.5l4-3L21 17l-4 3z')}<path d="M3 20L8.4 6.5h3.2L17 20h-3.5l-1.1-3.5H7.6L6.5 20zM8.5 13.8h3L10 9.4z" fillRule="evenodd" style={acTone} className="ac" /></>,
   // A profile pulled up into a block: the new block in the accent colour, the pull arrow.
   'cad-extrude': <>{face(isoPath([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]]), 0.1)}{ghost(isoPath([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]]))}
     {prism([[0.15, 0], [0.85, 0], [0.85, 0.55], [0.15, 0.55]], 0.15, 0.85, { accent: () => true, capAccent: true })}

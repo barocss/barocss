@@ -21,9 +21,9 @@ export function FeatureHistoryMenu({ doc, ctx, marker, historyMenu, close, edito
         const i = historyMenu.index, n = doc.nodes[i], sk = n.kind === 'sketch' ? i : 'sketch' in n && typeof n.sketch === 'number' && doc.nodes[n.sketch]?.kind === 'sketch' ? n.sketch : null;
         return <ContextMenu at={historyMenu.at} title={featureLabel(n, i, doc.nodes).toUpperCase()} ctx={ctx} commands={false} onClose={() => close()} onRun={() => {}}
           actions={[
-            { label: 'Edit', icon: 'edit', run: () => { setEditNode(i); setInstanceSel([]); setDirectSel([]); } },
+            { label: 'Edit', icon: 'cad-edit', run: () => { setEditNode(i); setInstanceSel([]); setDirectSel([]); } },
             ...(sk !== null ? [{ label: 'Edit sketch', icon: 'cad-sketch', run: () => editSketch(sk) }, { label: 'Export sketch DXF', icon: 'download', run: () => exportSketchDxf(sk) }] : []),
-            ...(n.kind === 'skeleton' ? [{ label: 'Edit in 3D sketch', icon: 'polyline', run: () => { cancel(); beginSkeleton(i); setSelection(emptySel); setEditNode(null); } }] : []),
+            ...(n.kind === 'skeleton' ? [{ label: 'Edit in 3D sketch', icon: 'cad-sketch3d', run: () => { cancel(); beginSkeleton(i); setSelection(emptySel); setEditNode(null); } }] : []),
             // (A split's halves are separate bodies the model refers to: it stays.)
             ...(n.kind !== 'sketch' && n.kind !== 'split' && n.kind !== 'separate' ? [{ label: n.suppressed ? 'Unsuppress' : 'Suppress', icon: n.suppressed ? 'visibility' : 'visibility_off', run: () => toggleSuppress(i) }] : []),
             { label: 'Move earlier', icon: 'arrow_back', run: () => reorder(i, -1) },

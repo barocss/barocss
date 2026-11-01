@@ -1,3 +1,4 @@
+import { commandIconName } from './commandIcons';
 import { useMemo, useState } from 'react';
 import { commands, type Command as StudioCommand, type Ctx } from '@barocss/cad-model/app/commands';
 import { Command, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -21,7 +22,7 @@ export function Palette({ ctx, onRun, onClose, extra }: { ctx: Ctx; onRun(c: Stu
         <CommandList className="palette-list">
           {list.map(({ c, a }) => (
             <CommandItem key={c.id} value={c.id} className={'pl-item' + (a.ok ? '' : ' off')} onSelect={() => onRun(c)}>
-              <Icon name={c.icon} small /><span className="pl-label">{c.label}</span>
+              <Icon name={commandIconName(c.id, c.icon)} small /><span className="pl-label">{c.label}</span>
               {!a.ok && <span className="pl-reason">{a.reason}</span>}
               <span className="grow" />{c.shortcut && <Kbd>{c.shortcut}</Kbd>}
             </CommandItem>))}

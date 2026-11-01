@@ -1,3 +1,4 @@
+import { commandIconName } from './commandIcons';
 import { shownFields } from '@barocss/cad-model/app/commands';
 import { useEffect, useRef, type ChangeEvent, type ReactNode } from 'react';
 import { useStoreValue, type ValueStore } from '../state/valueStore';
@@ -53,7 +54,7 @@ export function Hud({ store, onChange, onApply, onCancel, onFile }: Props) {
   };
   return (
     <div className="card hud" role="dialog" aria-label={active.cmd.label}>
-      <div className="hud-title"><Icon name={active.cmd.icon} small className="accent" />{active.cmd.label}
+      <div className="hud-title"><Icon name={commandIconName(active.cmd.id, active.cmd.icon)} small className="accent" />{active.cmd.label}
         <span className="grow" /><span className={'status ' + active.preview}>{active.preview === 'busy' ? 'evaluating…' : active.preview === 'ok' ? 'preview' : 'refused'}</span></div>
       {active.cmd.place && <div className="hud-steps"><div className={'hud-step' + (active.placing ? '' : ' done')}>
         <Icon name={active.placing ? 'radio_button_unchecked' : 'check_circle'} small /><b>Place</b><span>{active.placing ? 'click where it goes (on the ground or a top face)' : 'placed — drag its arrows to size it'}</span></div></div>}

@@ -1,6 +1,11 @@
 // Keep command buttons and made.command history aliases on the same semantic glyph.
 // Unlisted commands retain their supplied icon, including ordinary Material Symbols.
 const COMMAND_ICONS: Readonly<Record<string, string>> = {
+  sketch3d: 'cad-sketch3d',
+  'cylindrical-wrap': 'cad-cylindrical-wrap',
+  edit: 'cad-edit',
+  text: 'cad-text',
+  'text-relief': 'cad-text-relief',
   'internal-gear': 'cad-internal-gear',
   'bevel-gear': 'cad-bevel-gear',
   'worm-pair': 'cad-worm-pair',

@@ -1,3 +1,4 @@
+import { commandIconName } from './commandIcons';
 import { useMemo } from 'react';
 import { commands, type Command, type Ctx } from '@barocss/cad-model/app/commands';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -31,7 +32,7 @@ export function ContextMenu({ at, ctx, title, actions, onRun, onClose, commands:
       <DropdownMenuLabel className="ctx-title">{title}</DropdownMenuLabel>
       {usable.map(c => (
         <DropdownMenuItem key={c.id} className="ctx-item" onSelect={() => onRun(c)}>
-          <Icon name={c.icon} small /><span>{c.label}</span><span className="grow" />{c.shortcut && <Kbd>{c.shortcut}</Kbd>}
+          <Icon name={commandIconName(c.id, c.icon)} small /><span>{c.label}</span><span className="grow" />{c.shortcut && <Kbd>{c.shortcut}</Kbd>}
         </DropdownMenuItem>))}
       {usable.length > 0 && <DropdownMenuSeparator className="ctx-sep" />}
       {actions.map(a => (
