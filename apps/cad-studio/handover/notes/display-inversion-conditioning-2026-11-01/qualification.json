@@ -386,7 +386,7 @@
         "root": "Both screenshots inspected",
         "far": "Body adopted and inertia/centroid visible; tiny shape not discernible.",
         "center": "Body adopted; tiny point only.",
-        "numericLabels": "Volume, mass, area and bounds round to zero; next separate UI accuracy item D425.",
+        "numericLabels": "Volume, mass, area and bounds labels display zero. D424 does not capture raw bounds; D425 separately distinguishes rounding from collapsed display-mesh bounds.",
         "acceptance": "Tiny rendering, GPU precision and small-value readability NOT_ACCEPTED"
       },
       "budgets": {

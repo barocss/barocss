@@ -1,0 +1,298 @@
+{
+  "work_id": "D425",
+  "artifact_type": "nonzero-quantity-display-qualification",
+  "status": "QUALIFIED_BOUNDED_DISPLAY_ONLY",
+  "owner_role": "executor",
+  "source_request": "Continue the roadmap and announce task and overall progress",
+  "last_updated": "2026-11-01",
+  "rows": [
+    15,
+    16
+  ],
+  "overallPercent": 43,
+  "tier": "small",
+  "sourceCheckpoint": "72650a11225d3f67026e8cc3c88ac7251d9198de",
+  "model": "GPT-6.1 Sol Medium",
+  "problem": "D424 actual Studio screenshots display nonzero native volume, mass and area as zero. Body/part rounding happens before the shared formatter, and STEP summary has separate volume rounding.",
+  "contract": [
+    "Display-only fallback to three-significant-digit scientific notation when a finite nonzero raw quantity would round to zero.",
+    "Preserve exact zero and ordinary legacy rounding/text.",
+    "Do not change shared Model formatter, authored values, mass/geometry, unit conversion, schema, centroid or existing inertia formatting.",
+    "Raw zero bounds remain zero; no synthetic geometry or GPU precision acceptance."
+  ],
+  "checks": {
+    "focused": {
+      "status": "PASS",
+      "uniquePass": 23,
+      "fail": 0,
+      "initialRun": {
+        "pass": 23,
+        "elapsed": 202.305,
+        "scope": "18 existing import ownership +5 new quantity tests"
+      },
+      "finalRelatedRun": {
+        "pass": 5,
+        "elapsed": 189.19575,
+        "scope": "Only changed quantity tests rerun after exact-zero normalization and cached area; unchanged18 reused, not28 unique."
+      },
+      "coverage": [
+        "positive/negative tiny values and subnormal",
+        "exact positive/negative zero including legacy minus-zero text",
+        "ordinary rounding/ties/grouping/nonfinite text",
+        "actual React body/part rendering with synthetic fields and input immutability",
+        "real STEP handler conversion with stub transport, explicitly not geometry proof"
+      ]
+    },
+    "studioTypes": {
+      "status": "PASS",
+      "finalExit": 0
+    },
+    "modelTypes": {
+      "status": "PASS",
+      "finalExit": 0,
+      "scope": "After last test edit"
+    },
+    "lint": {
+      "status": "PASS",
+      "files": 5,
+      "errors": 0,
+      "warnings": 0
+    },
+    "driverSyntax": {
+      "status": "PASS",
+      "node": "22.19.0"
+    },
+    "diff": "PASS",
+    "independentAudit": "NOT_RUN_SMALL_TIER",
+    "kernelFull": "NOT_RUN_DISPLAY_ONLY_REUSE_D424",
+    "actualStudio": {
+      "status": "PASS_BOUNDED_FOUR_STATES",
+      "receiptSha256": "3dbefb8429ff5cf6bdce9bfb103907a620d29472e042c93a7132f37cd6c2d578",
+      "frozenFiles": 747,
+      "afterFiles": 747,
+      "cleanupFiles": 747,
+      "capsulesEqual": true,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "changes": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "visualReview": "Root inspected all four screenshots; scientific labels fit right dock. Tiny visibility remains unqualified.",
+      "states": [
+        {
+          "label": "ordinary-bracket",
+          "bodyText": {
+            "volume": "15982 mm\u00b3",
+            "mass": "43.2 g",
+            "area": "5733 mm\u00b2",
+            "bounds": "64 \u00d7 32 \u00d7 8"
+          },
+          "partText": {
+            "mass": "43.2 g",
+            "bounds": "64 \u00d7 32 \u00d7 8"
+          },
+          "rawVolume": 15981.876140340513,
+          "rawMass": 43.15106557891939,
+          "rawArea": 5732.530964914883,
+          "displayMeshExtents": [
+            64,
+            32,
+            8
+          ],
+          "positionsType": "Float32Array",
+          "collapsedDisplayBounds": false,
+          "docUnchanged": true,
+          "unchangedD424Fields": "NOT_APPLICABLE_CONTROL"
+        },
+        {
+          "label": "compound-far",
+          "bodyText": {
+            "volume": "4.19e-9 mm\u00b3",
+            "mass": "1.13e-11 g",
+            "area": "1.26e-5 mm\u00b2",
+            "bounds": "0 \u00d7 0 \u00d7 0"
+          },
+          "partText": {
+            "mass": "1.13e-11 g",
+            "bounds": "0 \u00d7 0 \u00d7 0"
+          },
+          "rawVolume": 4.188790288725148e-09,
+          "rawMass": 1.1309733779557902e-11,
+          "rawArea": 1.2566371152558097e-05,
+          "displayMeshExtents": [
+            0,
+            0,
+            0
+          ],
+          "positionsType": "Float32Array",
+          "collapsedDisplayBounds": true,
+          "docUnchanged": true,
+          "unchangedD424Fields": {
+            "volume": true,
+            "mass": true,
+            "area": true,
+            "centroid": true,
+            "inertia": true
+          }
+        },
+        {
+          "label": "compound-centered",
+          "bodyText": {
+            "volume": "4.19e-9 mm\u00b3",
+            "mass": "1.13e-11 g",
+            "area": "1.26e-5 mm\u00b2",
+            "bounds": "1.99e-3 \u00d7 1.99e-3 \u00d7 2.00e-3"
+          },
+          "partText": {
+            "mass": "1.13e-11 g",
+            "bounds": "1.99e-3 \u00d7 1.99e-3 \u00d7 2.00e-3"
+          },
+          "rawVolume": 4.188790204881397e-09,
+          "rawMass": 1.1309733553179772e-11,
+          "rawArea": 1.2566370614470153e-05,
+          "displayMeshExtents": [
+            0.0019925800152122974,
+            0.0019912091083824635,
+            0.0020000000949949026
+          ],
+          "positionsType": "Float32Array",
+          "collapsedDisplayBounds": false,
+          "docUnchanged": true,
+          "unchangedD424Fields": {
+            "volume": true,
+            "mass": true,
+            "area": true,
+            "centroid": true,
+            "inertia": true
+          }
+        },
+        {
+          "label": "metre-centered-control",
+          "bodyText": {
+            "volume": "4 mm\u00b3",
+            "mass": "1.13e-2 g",
+            "area": "13 mm\u00b2",
+            "bounds": "1.99 \u00d7 1.99 \u00d7 2"
+          },
+          "partText": {
+            "mass": "1.13e-2 g",
+            "bounds": "1.99 \u00d7 1.99 \u00d7 2"
+          },
+          "rawVolume": 4.188790204883532,
+          "rawMass": 0.011309733553185538,
+          "rawArea": 12.566370614474573,
+          "displayMeshExtents": [
+            1.9925800561904907,
+            1.9912090301513672,
+            2
+          ],
+          "positionsType": "Float32Array",
+          "collapsedDisplayBounds": false,
+          "docUnchanged": true,
+          "unchangedD424Fields": "NOT_APPLICABLE_CONTROL"
+        }
+      ],
+      "metreScaleNodes": [
+        {
+          "kind": "scale",
+          "parent": {
+            "node": 0,
+            "side": "solid"
+          },
+          "factor": 1000,
+          "pivot": [
+            0,
+            0,
+            0
+          ],
+          "id": "n1"
+        }
+      ],
+      "reads": [
+        {
+          "label": "compound-far",
+          "inputSha256": "55ba8745e35a1b2bdd9db664dc381f9d50d7c07c480ed9bd7eaad5bbdcb551a0",
+          "notice": "STEP opened1 solid, in millimetres; 4.19e-9 mm\u00b3 in all. Only the solids come in (no colours, names or assembly structure)."
+        },
+        {
+          "label": "compound-centered",
+          "inputSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+          "notice": "STEP opened1 solid, in millimetres; 4.19e-9 mm\u00b3 in all. Only the solids come in (no colours, names or assembly structure)."
+        },
+        {
+          "label": "metre-centered-control",
+          "inputSha256": "e898e333b8336bd6f428ee7f462b752426ea0801e13b48194d0e73d76b1cbb98",
+          "notice": "STEP opened1 solid, in metres, scaled \u00d71000 to millimetres; 4 mm\u00b3 in all. Only the solids come in (no colours, names or assembly structure)."
+        }
+      ]
+    },
+    "navigation": {
+      "status": "PASS",
+      "node": "22.19.0",
+      "checkedLocalLinks": 2386,
+      "newBroken": 0,
+      "archivesUnchanged": true
+    },
+    "sourceProof": "All five changed code-file hashes match the final actual frozen capsule; CAD/Model core and shared formatter remain unchanged."
+  },
+  "retainedEvidence": {
+    "D424Actual": "PASS two literal cases with native eager/evaluate/adopted values; small-value label readability not accepted.",
+    "D423HistoricalFullFailure": "UNRESOLVED_NOT_REPRODUCED; not rewritten by D424 current full PASS."
+  },
+  "issues": {
+    "2263": "OPEN broader STEP scope incomplete; do not close.",
+    "2210": "ALREADY_CLOSED research record; no change."
+  },
+  "notRun": [
+    "Kernel full suite: display-only source, reuse compatible D424 current-source receipt.",
+    "Tiny-body rendering/GPU precision acceptance",
+    "Broader exchange, release or further develop integration"
+  ],
+  "artifacts": "All logs, screenshots and raw fixtures stay under /tmp/barocss-d425-*.",
+  "source": {
+    "apps/cad-studio/src/ui/quantityText.ts": "95d14346ecbbdf0c9166ceae451396ab749096bb9b2fbb973676f422a0959d74",
+    "apps/cad-studio/src/ui/SelectionInspector.tsx": "5337987ed10d88f794c38b01cadf6e1ca3f96155ec5bfddec0173ef428f35cca",
+    "apps/cad-studio/src/files/importedFile.ts": "427edb52e88e18d5747e6665210914f5a44b51793ba52b349225a04b799f9cbd",
+    "apps/cad-studio/test/quantity-text.test.ts": "33eb1a192cfa9756a9b4932539ba3bf7c58aae6575def974b32d0839e14bd8c3",
+    "apps/cad-studio/test/tiny-quantity-browser.mjs": "c5d903447c906bccbab34d7b8b37451c0ec85dcfb1cac7ad46431a3e15d56cf4"
+  },
+  "knownAccuracyDefect": {
+    "status": "REPRODUCED_SEPARATE_FROM_FORMATTING",
+    "next": "D426 rows13/16: trace far-coordinate Float32 display-mesh precision and collapsed bounds before further exchange admission.",
+    "farBoundsMin": [
+      999000,
+      -998000,
+      997000
+    ],
+    "farBoundsMax": [
+      999000,
+      -998000,
+      997000
+    ],
+    "farExtents": [
+      0,
+      0,
+      0
+    ],
+    "positionsType": "Float32Array",
+    "limits": "D425 records worker-provided mesh bounds/type; it does not yet localize the first conversion or certify the render/picking path. No synthetic bounds replacement."
+  },
+  "commands": [
+    "TEST_CONCURRENCY=2 node apps/cad-studio/scripts/test.mjs quantity-text imported-file-ownership",
+    "TEST_CONCURRENCY=2 node apps/cad-studio/scripts/test.mjs quantity-text",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm exec eslint --no-warn-ignored apps/cad-studio/src/ui/quantityText.ts apps/cad-studio/src/ui/SelectionInspector.tsx apps/cad-studio/src/files/importedFile.ts apps/cad-studio/test/quantity-text.test.ts apps/cad-studio/test/tiny-quantity-browser.mjs",
+    "node --check apps/cad-studio/test/tiny-quantity-browser.mjs",
+    "TINY_QUANTITY_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' CAD_STUDIO_CHAT_PORT=52391 node apps/cad-studio/test/tiny-quantity-browser.mjs /tmp/barocss-d425-browser-run01 /tmp/barocss-d423-consumer/fixtures",
+    "PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH node apps/cad-studio/handover/scripts/check-navigation.mjs"
+  ],
+  "execution": "Node22.19.0; serial gate.sh heavy30, global idle and start load<40; all worktree writes frozen through actual cleanup. No downloads or paid calls."
+}
