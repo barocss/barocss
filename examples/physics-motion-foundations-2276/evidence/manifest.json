@@ -9,8 +9,8 @@
     },
     {
       "path": "examples/physics-motion-foundations-2276/README.md",
-      "bytes": 14100,
-      "sha256": "293559b6cfbf4570b173c648ffaa7bad54db657513a4716d5a3ce5f9b359460c"
+      "bytes": 14760,
+      "sha256": "d0f75b7871a665a5b00576e1708c2f0de34451f91f59e2724023fec22dad4c86"
     },
     {
       "path": "examples/physics-motion-foundations-2276/baseline.test.ts",
@@ -753,6 +753,16 @@
       "sha256": "387ac7687a6f75e9452fcead13b7b762a20ae86ca84faac2437623d976b5b5ce"
     },
     {
+      "path": "examples/physics-motion-foundations-2276/evidence/final-audit.json",
+      "bytes": 14391,
+      "sha256": "3fdbfd70c3e0f59cf048587b13150aa86ab78f123f273e1567801a21e0e9a622"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/final-raw-whitespace.stdout",
+      "bytes": 3046,
+      "sha256": "705b34074ce002cd54269348ae01a56a0e39a19726cf9aa88813044981530a88"
+    },
+    {
       "path": "examples/physics-motion-foundations-2276/evidence/inputs-before-01/commands.json",
       "bytes": 942,
       "sha256": "4fafb89dbe66be11d84f132321ab9cfab430de47a76fb0e1aad41bf802e74535"
@@ -1124,8 +1134,8 @@
     },
     {
       "path": "examples/physics-motion-foundations-2276/evidence/summary.json",
-      "bytes": 59937,
-      "sha256": "53cd4e203ab2680595194e460a2e49eed6726bad47d95868bb1f59ecf051d0af"
+      "bytes": 74706,
+      "sha256": "33c607a6d6b96b0dfb4c066be50165e81a87db42dab4999c5b61e3d6b968c258"
     },
     {
       "path": "examples/physics-motion-foundations-2276/evidence/types-01/commands.json",
@@ -1249,8 +1259,8 @@
     },
     {
       "path": "examples/physics-motion-foundations-2276/summarize.mjs",
-      "bytes": 4655,
-      "sha256": "a8c7f45f2cd3d827f6a41c6a7d7d66c37ca00757224f9f7f0519ddacd9fb8053"
+      "bytes": 4752,
+      "sha256": "2ce8cbd1a5606557269dc62c02885034cd00202eeefe9bed0ca3155125be1d89"
     },
     {
       "path": "examples/physics-motion-foundations-2276/units-contract.md",

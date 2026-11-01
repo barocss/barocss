@@ -157,6 +157,15 @@ continuous rotations, or motion near the separatrix.
    `7178434a...` is absent from this local object database. The current
    develop public admission refusal was measured instead. No archived
    native numerical campaign was repeated. #1490 live Viewer is NOT_RUN.
+6. The final staged whitespace check reported spaces in unmodified raw TAP
+   failure output and final blank lines in ESLint output. A shell sequencing
+   error allowed local commit `038c2a2fd` after that failure, while its
+   `&&`-guarded identity/scope assertions were skipped. The commit is preserved.
+   A separate data-only audit then verified its exact base, branch, author,
+   owned path set and source whitespace. Raw evidence whitespace remains a
+   recorded FAIL; no log bytes were trimmed. See
+   [final-audit.json](evidence/final-audit.json). This is an orchestration
+   failure and subsequent audit, not a clean precommit gate or a numerical run.
 
 The old two-box probe passes only its original criteria and fixture. It
 does not override the measured three-box failure or the original eight-box

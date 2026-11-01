@@ -36,6 +36,7 @@ for (const dir of ['dynamics-compiled-01', 'contact-compiled-01']) {
 const summary = {
   workId: 'physics-motion-foundations-2276', status: 'BOUNDED_PROFILES_PASS_WITH_RETAINED_NO_GO',
   runs, retainedNonzeroCommands: runs.flatMap(run => run.records.filter(r => r.exit !== 0).map(r => ({ run: run.name, ...r }))),
+  finalOrchestrationAudit: JSON.parse(readFileSync(join(evidence, 'final-audit.json'), 'utf8')),
   compiledGraphs, sourceEmittedMetricEquality: true,
   kinematics: metrics(join(evidence, 'kinematics-metrics-01/kinematics.stdout')),
   units: metrics(join(evidence, 'units-source-01/units.stdout')),
