@@ -1,0 +1,21 @@
+{
+  "profile": "isolated-impulse-audit-v1",
+  "fullWorldQualified": false,
+  "oneBodyNormalImpulseNs": 1,
+  "offCentreNormalImpulseNs": 0.7272727272727273,
+  "offCentreAngularVelocityRadps": [
+    0,
+    0,
+    1.0909090909090908
+  ],
+  "frictionImpulseNs": [
+    0,
+    0,
+    0
+  ],
+  "twoBodyStackImpulseNs": [
+    1.999999999999993,
+    0.9999999999999964
+  ],
+  "status": "PASS"
+}

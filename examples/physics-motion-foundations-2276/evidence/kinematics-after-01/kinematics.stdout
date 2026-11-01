@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: public transforms: fixed quarter turn and translation preserve composition order
+ok 1 - public transforms: fixed quarter turn and translation preserve composition order
+  ---
+  duration_ms: 0.517708
+  type: 'test'
+  ...
+# Subtest: public FK: off-origin mixed RP chain agrees with an analytic point and matrix
+ok 2 - public FK: off-origin mixed RP chain agrees with an analytic point and matrix
+  ---
+  duration_ms: 1.656042
+  type: 'test'
+  ...
+# Subtest: public IK: independently constructed RP targets satisfy residual and joint bounds
+ok 3 - public IK: independently constructed RP targets satisfy residual and joint bounds
+  ---
+  duration_ms: 2.789791
+  type: 'test'
+  ...
+# Subtest: public IK: target beyond slide travel remains unreached with an independent residual
+ok 4 - public IK: target beyond slide travel remains unreached with an independent residual
+  ---
+  duration_ms: 5.865083
+  type: 'test'
+  ...
+# Subtest: saved mixed deg/mm path: analytic simultaneous motion, repeated waypoint and return
+ok 5 - saved mixed deg/mm path: analytic simultaneous motion, repeated waypoint and return
+  ---
+  duration_ms: 2.455042
+  type: 'test'
+  ...
+# Subtest: public trajectory: triangular slide matches both analytic halves over 101 samples
+ok 6 - public trajectory: triangular slide matches both analytic halves over 101 samples
+  ---
+  duration_ms: 0.169375
+  type: 'test'
+  ...
+# Subtest: public path checks distinguish expected typed refusals from valid finite paths
+ok 7 - public path checks distinguish expected typed refusals from valid finite paths
+  ---
+  duration_ms: 0.44175
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 99.781667

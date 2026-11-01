@@ -1,0 +1,101 @@
+{
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "mode": "baseline",
+  "platform": "darwin",
+  "arch": "arm64",
+  "base": "12411c89b9a0f9de7e5066a5ea8f3d292c9476a8",
+  "records": [
+    {
+      "name": "admission",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/baseline-01/admission.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T11:45:25.982Z",
+      "finished": "2026-11-01T11:45:26.570Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "6096ec4b8d57a9c6503038425cb621d2409b13c2e2d2e586f5564452493396ed",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "contact-impulse",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/baseline-01/contact-impulse.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T11:45:26.660Z",
+      "finished": "2026-11-01T11:45:26.946Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "b08a6670d360e28001aa6d6719ee5e048bb281ae90d790cdbe813a5c0f22a134",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "friction-release",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/baseline-01/friction-release.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T11:45:26.956Z",
+      "finished": "2026-11-01T11:45:27.230Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "d4fcd6d6260f02b262f586707ad83ddb473ef30693b5609559b39e02a7fe056d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "gravity-velocity",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/baseline-01/gravity-velocity.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T11:45:27.240Z",
+      "finished": "2026-11-01T11:45:27.589Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "6790447caa31565fb91ff1c6d00f55d414e80fc580e3bd035a0a098153757ccd",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "public-smoke",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/baseline-01/public-smoke.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T11:45:27.606Z",
+      "finished": "2026-11-01T11:45:28.117Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "35855ffe032d22b218af52554e125d405db2782ddfbbe2d18896acbfa3a883c4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "original-mini-stacks",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/baseline-01/original-mini-stacks.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T11:45:28.133Z",
+      "finished": "2026-11-01T11:45:45.475Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "4e8c7989163a58d57418376222c1c0ae0150555ad42b18a75d0f62b4b74eaf79",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

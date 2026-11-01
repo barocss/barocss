@@ -1,0 +1,26 @@
+{
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "mode": "units",
+  "platform": "darwin",
+  "arch": "arm64",
+  "base": "12411c89b9a0f9de7e5066a5ea8f3d292c9476a8",
+  "records": [
+    {
+      "name": "units",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/units-source-01/units.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T12:00:06.147Z",
+      "finished": "2026-11-01T12:00:06.225Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "a2cd1b4cba31f4076c186e566d7be7c11d28ae22a8df6ce594fa4d69afbc4216",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

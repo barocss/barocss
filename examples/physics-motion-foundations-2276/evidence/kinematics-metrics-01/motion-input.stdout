@@ -1,0 +1,160 @@
+TAP version 13
+# Subtest: motion input: NaN waypoint 0 is a VALUE refusal
+ok 1 - motion input: NaN waypoint 0 is a VALUE refusal
+  ---
+  duration_ms: 1.171542
+  type: 'test'
+  ...
+# Subtest: motion input: NaN waypoint 1 is a VALUE refusal
+ok 2 - motion input: NaN waypoint 1 is a VALUE refusal
+  ---
+  duration_ms: 0.138
+  type: 'test'
+  ...
+# Subtest: motion input: NaN query time is a VALUE refusal before and after cache use
+ok 3 - motion input: NaN query time is a VALUE refusal before and after cache use
+  ---
+  duration_ms: 0.286
+  type: 'test'
+  ...
+# Subtest: motion input: supplied v=NaN is a LIMITS_BAD refusal
+ok 4 - motion input: supplied v=NaN is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.207833
+  type: 'test'
+  ...
+# Subtest: motion input: supplied a=NaN is a LIMITS_BAD refusal
+ok 5 - motion input: supplied a=NaN is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.206583
+  type: 'test'
+  ...
+# Subtest: motion input: supplied j=NaN is a LIMITS_BAD refusal
+ok 6 - motion input: supplied j=NaN is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.051292
+  type: 'test'
+  ...
+# Subtest: motion input: Infinity waypoint 0 is a VALUE refusal
+ok 7 - motion input: Infinity waypoint 0 is a VALUE refusal
+  ---
+  duration_ms: 0.097292
+  type: 'test'
+  ...
+# Subtest: motion input: Infinity waypoint 1 is a VALUE refusal
+ok 8 - motion input: Infinity waypoint 1 is a VALUE refusal
+  ---
+  duration_ms: 0.047583
+  type: 'test'
+  ...
+# Subtest: motion input: Infinity query time is a VALUE refusal before and after cache use
+ok 9 - motion input: Infinity query time is a VALUE refusal before and after cache use
+  ---
+  duration_ms: 0.299375
+  type: 'test'
+  ...
+# Subtest: motion input: supplied v=Infinity is a LIMITS_BAD refusal
+ok 10 - motion input: supplied v=Infinity is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.303458
+  type: 'test'
+  ...
+# Subtest: motion input: supplied a=Infinity is a LIMITS_BAD refusal
+ok 11 - motion input: supplied a=Infinity is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.128834
+  type: 'test'
+  ...
+# Subtest: motion input: supplied j=Infinity is a LIMITS_BAD refusal
+ok 12 - motion input: supplied j=Infinity is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.042958
+  type: 'test'
+  ...
+# Subtest: motion input: -Infinity waypoint 0 is a VALUE refusal
+ok 13 - motion input: -Infinity waypoint 0 is a VALUE refusal
+  ---
+  duration_ms: 0.037
+  type: 'test'
+  ...
+# Subtest: motion input: -Infinity waypoint 1 is a VALUE refusal
+ok 14 - motion input: -Infinity waypoint 1 is a VALUE refusal
+  ---
+  duration_ms: 0.031084
+  type: 'test'
+  ...
+# Subtest: motion input: -Infinity query time is a VALUE refusal before and after cache use
+ok 15 - motion input: -Infinity query time is a VALUE refusal before and after cache use
+  ---
+  duration_ms: 0.101667
+  type: 'test'
+  ...
+# Subtest: motion input: supplied v=-Infinity is a LIMITS_BAD refusal
+ok 16 - motion input: supplied v=-Infinity is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.033291
+  type: 'test'
+  ...
+# Subtest: motion input: supplied a=-Infinity is a LIMITS_BAD refusal
+ok 17 - motion input: supplied a=-Infinity is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.031709
+  type: 'test'
+  ...
+# Subtest: motion input: supplied j=-Infinity is a LIMITS_BAD refusal
+ok 18 - motion input: supplied j=-Infinity is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.031541
+  type: 'test'
+  ...
+# Subtest: motion input: unsupported timing profile is a VALUE refusal
+ok 19 - motion input: unsupported timing profile is a VALUE refusal
+  ---
+  duration_ms: 0.042125
+  type: 'test'
+  ...
+# Subtest: motion input: null limits is a LIMITS_BAD refusal
+ok 20 - motion input: null limits is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.042292
+  type: 'test'
+  ...
+# Subtest: motion input: array limits is a LIMITS_BAD refusal
+ok 21 - motion input: array limits is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.02975
+  type: 'test'
+  ...
+# Subtest: motion input: null joint rates is a LIMITS_BAD refusal
+ok 22 - motion input: null joint rates is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.031917
+  type: 'test'
+  ...
+# Subtest: motion input: array joint rates is a LIMITS_BAD refusal
+ok 23 - motion input: array joint rates is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.035916
+  type: 'test'
+  ...
+# Subtest: motion input: scalar joint rates is a LIMITS_BAD refusal
+ok 24 - motion input: scalar joint rates is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.028458
+  type: 'test'
+  ...
+# Subtest: motion input: finite valid and absent/nonpositive required rate behavior remains bounded
+ok 25 - motion input: finite valid and absent/nonpositive required rate behavior remains bounded
+  ---
+  duration_ms: 0.668166
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 100.789083

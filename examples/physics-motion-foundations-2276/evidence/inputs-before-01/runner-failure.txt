@@ -1,0 +1,1 @@
+Error: motion-input failed; raw streams preserved in /Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01

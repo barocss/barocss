@@ -6,7 +6,7 @@
 import { at } from './profile';
 import { timePath, timeSegments, type JointLimits, type TimedPath, type TimedSegment } from './ccd';
 import type { Joint, JointTree } from './joints';
-import { problem, refusal, type Problem } from '../engine/refusal';
+import { problem, refusal, refused, type Problem } from '../engine/refusal';
 
 /** A joint's limits along a saved motion: deg/s, deg/s², deg/s³ for a turning joint; mm/s, mm/s², mm/s³ for a slide. */
 export interface MotionLimits { velocity: number; acceleration: number; jerk?: number }
@@ -20,12 +20,35 @@ const limitsIn = (l: MotionLimits, k: number): JointLimits => ({ v: l.velocity *
 const limitsOut = (l: JointLimits, k: number): MotionLimits => ({ velocity: l.v * k, acceleration: l.a * k, ...(l.j !== undefined ? { jerk: l.j * k } : {}) });
 const turns = (j: Joint | undefined) => j?.type === 'revolute' || j?.type === 'continuous';
 
+// Reject invalid numbers before timing can treat NaN as a stationary joint or propagate it into interpolation.
+// Missing/nonpositive required rates still belong to timePath's existing LIMITS_MISSING check.
+function inputProblem(path: TimedPath): Problem | undefined {
+  if (!path || typeof path !== 'object' || Array.isArray(path) || !Array.isArray(path.waypoints)) return problem('VALUE', 'a timed path needs an array of waypoints');
+  for (const [i, waypoint] of path.waypoints.entries()) {
+    if (!waypoint || typeof waypoint !== 'object' || Array.isArray(waypoint)) return problem('VALUE', `waypoint ${i}: joint values are an object`);
+    for (const [key, value] of Object.entries(waypoint)) if (typeof value !== 'number' || !Number.isFinite(value)) return problem('VALUE', `waypoint ${i}: ${key} is a finite joint value`);
+  }
+  if (path.profile !== 'trapezoid' && path.profile !== 's-curve') return problem('VALUE', 'a timed path profile is trapezoid or s-curve');
+  if (!path.limits || typeof path.limits !== 'object' || Array.isArray(path.limits)) return problem('LIMITS_BAD', 'motion limits are a record of joint rate settings');
+  for (const [key, limits] of Object.entries(path.limits)) {
+    if (limits === undefined) continue;
+    if (!limits || typeof limits !== 'object' || Array.isArray(limits)) return problem('LIMITS_BAD', `${key}: motion rates are an object`);
+    for (const field of ['v', 'a', 'j'] as const) {
+      const value = limits[field];
+      if (value !== undefined && (typeof value !== 'number' || !Number.isFinite(value))) return problem('LIMITS_BAD', `${key}.${field}: a motion limit is a finite number`);
+    }
+  }
+  return undefined;
+}
+
 /** The joint values at time `t` (s, clamped to the path's span) along a timed path: driven joints only (FK adds followers). */
 export function poseAt(tree: JointTree, path: TimedPath, t: number): Record<string, number> {
+  if (typeof t !== 'number' || !Number.isFinite(t)) throw refusal('VALUE', 'a time is a finite number of seconds');
   return valuesAt(segmentsOf(tree, path), t);
 }
 /** How long a timed path takes (s), timed as poseAt and sweepTimed time it, over the joints its waypoints name. */
 export function duration(path: TimedPath): number {
+  const invalid = inputProblem(path); if (invalid) throw refused(invalid);
   const keys = [...new Set(path.waypoints.flatMap(w => Object.keys(w)))], segs = timeSegments(keys, path), last = segs[segs.length - 1];
   return last ? last.t0 + last.duration : 0;
 }
@@ -34,6 +57,7 @@ export function duration(path: TimedPath): number {
 const timed = new WeakMap<TimedPath, { tree: JointTree; segments: TimedSegment[] }>();
 function segmentsOf(tree: JointTree, path: TimedPath): TimedSegment[] {
   const had = timed.get(path); if (had && had.tree === tree) return had.segments;
+  const invalid = inputProblem(path); if (invalid) throw refused(invalid);
   const segments = timePath(tree, path); timed.set(path, { tree, segments }); return segments;
 }
 function valuesAt(segments: readonly TimedSegment[], t: number): Record<string, number> {
@@ -49,8 +73,10 @@ function valuesAt(segments: readonly TimedSegment[], t: number): Record<string, 
  * What is wrong with a timed path on this robot: a key that is no joint (JOINT_UNKNOWN) or a gear follower's
  * (JOINT_MIMIC, it follows its leader), a waypoint past a joint's lower or upper (JOINT_LIMIT: the straight segments
  * between waypoints inside the limits stay inside), or limits missing for a joint that moves (LIMITS_MISSING).
+ * Malformed/nonfinite values or an unsupported profile give VALUE; malformed/nonfinite rates give LIMITS_BAD.
  */
 export function checkPath(tree: JointTree, path: TimedPath): Problem[] {
+  const invalid = inputProblem(path); if (invalid) return [invalid];
   const byKey = new Map(tree.joints.map(j => [j.key, j])), out: Problem[] = [];
   if (path.waypoints.length < 2) return [problem('PATH_TOO_SHORT', 'a path needs at least two waypoints')];
   for (const [i, w] of path.waypoints.entries()) for (const [key, v] of Object.entries(w)) {

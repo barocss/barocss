@@ -1,0 +1,17 @@
+node:internal/modules/esm/resolve:274
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/replay.js' imported from /Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-scene/persistent-box-probe.mjs
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    at moduleResolve (node:internal/modules/esm/resolve:859:10)
+    at defaultResolve (node:internal/modules/esm/resolve:983:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:717:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:694:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:308:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:183:49) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/replay.js'
+}
+
+Node.js v22.19.0

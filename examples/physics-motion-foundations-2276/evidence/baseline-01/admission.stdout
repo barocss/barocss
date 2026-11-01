@@ -1,0 +1,17 @@
+TAP version 13
+# {"metric":"baseline-admission","hinge":"REFUSED","eightBox":"REFUSED","historicalStep77Candidate":"NOT_RUN_ABSENT","physicalQualification":"NO_GO"}
+# Subtest: historical public hinge and eight-box limitations stay explicit
+ok 1 - historical public hinge and eight-box limitations stay explicit
+  ---
+  duration_ms: 1.944875
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 295.078417

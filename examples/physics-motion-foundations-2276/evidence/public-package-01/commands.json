@@ -1,0 +1,51 @@
+{
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "mode": "public-package",
+  "platform": "darwin",
+  "arch": "arm64",
+  "base": "12411c89b9a0f9de7e5066a5ea8f3d292c9476a8",
+  "records": [
+    {
+      "name": "public-consumer-types",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/bin/tsc",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/public-package-01/consumer.ts",
+        "--target",
+        "ES2022",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--skipLibCheck",
+        "--types",
+        "node"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T11:51:33.606Z",
+      "finished": "2026-11-01T11:51:34.000Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "public-consumer-node",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/public-package-01/consumer.js"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T11:51:34.016Z",
+      "finished": "2026-11-01T11:51:34.061Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "bb86299b226e01ddbed486e4fac198c62b5048d7998396b4a18bbfd339245620",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

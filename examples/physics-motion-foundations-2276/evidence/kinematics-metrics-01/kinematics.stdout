@@ -1,0 +1,59 @@
+TAP version 13
+# Subtest: public transforms: fixed quarter turn and translation preserve composition order
+ok 1 - public transforms: fixed quarter turn and translation preserve composition order
+  ---
+  duration_ms: 0.68175
+  type: 'test'
+  ...
+# Subtest: public FK: off-origin mixed RP chain agrees with an analytic point and matrix
+ok 2 - public FK: off-origin mixed RP chain agrees with an analytic point and matrix
+  ---
+  duration_ms: 1.440917
+  type: 'test'
+  ...
+# {"metric":"fk-analytic","poses":20,"maxPointMm":2.842170943040401e-14,"maxRotationEntry":0,"maxInverseMm":3.1776437161565096e-14}
+# Subtest: public IK: independently constructed RP targets satisfy residual and joint bounds
+ok 3 - public IK: independently constructed RP targets satisfy residual and joint bounds
+  ---
+  duration_ms: 2.355834
+  type: 'test'
+  ...
+# {"metric":"ik-analytic-target","targetDegrees":-60,"targetSlideMm":25,"reached":true,"positionErrorM":2.1391561415748716e-14,"angleErrorRad":0,"reportedPositionErrorM":2.141618711182301e-14,"reportedAngleErrorRad":0}
+# {"metric":"ik-analytic-target","targetDegrees":35,"targetSlideMm":60,"reached":true,"positionErrorM":5.793343213243561e-14,"angleErrorRad":0,"reportedPositionErrorM":5.792935831480388e-14,"reportedAngleErrorRad":0}
+# {"metric":"ik-analytic-target","targetDegrees":0,"targetSlideMm":-10,"reached":true,"positionErrorM":1.1368683772161603e-15,"angleErrorRad":6.0838540951061794e-37,"reportedPositionErrorM":1.1368683772161603e-15,"reportedAngleErrorRad":6.0838540951061794e-37}
+# Subtest: public IK: target beyond slide travel remains unreached with an independent residual
+ok 4 - public IK: target beyond slide travel remains unreached with an independent residual
+  ---
+  duration_ms: 5.424375
+  type: 'test'
+  ...
+# {"metric":"ik-unreachable","reached":false,"positionErrorM":0.04000000000000001,"reportedPositionErrorM":0.03999999999999997,"returnedTurnRad":0.5235987755983106,"returnedSlideMm":80}
+# Subtest: saved mixed deg/mm path: analytic simultaneous motion, repeated waypoint and return
+ok 5 - saved mixed deg/mm path: analytic simultaneous motion, repeated waypoint and return
+  ---
+  duration_ms: 2.630583
+  type: 'test'
+  ...
+# {"metric":"trapezoid-analytic","samples":202,"durationS":5,"maxTurnRad":3.3306690738754696e-16,"maxSlideMm":8.881784197001252e-15,"maxPointMm":6.355287432313019e-14}
+# Subtest: public trajectory: triangular slide matches both analytic halves over 101 samples
+ok 6 - public trajectory: triangular slide matches both analytic halves over 101 samples
+  ---
+  duration_ms: 0.294958
+  type: 'test'
+  ...
+# {"metric":"triangular-analytic","samples":101,"durationS":1,"maxSlideMm":1.7763568394002505e-15}
+# Subtest: public path checks distinguish expected typed refusals from valid finite paths
+ok 7 - public path checks distinguish expected typed refusals from valid finite paths
+  ---
+  duration_ms: 0.438667
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 98.39375

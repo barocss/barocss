@@ -1,0 +1,18 @@
+{
+  "compiled": false,
+  "bundleSha256": "41b843278a5a084091152cd1b96bf92bdf72ede4cc04ce6bc1b8caa003522ba9",
+  "inputs": [
+    {
+      "path": "packages/barocss-physics/src/math.ts",
+      "sha256": "6605633830fa7fdf39f9531fbf988b52e306a6835655a318c961eb44c6b05ff8"
+    },
+    {
+      "path": "packages/barocss-physics/src/persistent-box-contact.ts",
+      "sha256": "194f5b1e3517eb65cc265da97bcbc02c7ccbef414c6e1dd7416373567578a6ae"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/gravity-velocity.ts",
+      "sha256": "bd57692455b3702cf74bdd984cc0c52a83fabe6bd494641c75db70c40e99250d"
+    }
+  ]
+}

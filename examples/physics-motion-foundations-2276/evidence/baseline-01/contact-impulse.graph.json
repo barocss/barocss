@@ -1,0 +1,18 @@
+{
+  "compiled": false,
+  "bundleSha256": "4c98ed569bb6843455cdcdc0bb9bfaa3c4e39bf712460183158faa68cbecd6ed",
+  "inputs": [
+    {
+      "path": "packages/barocss-physics/src/math.ts",
+      "sha256": "6605633830fa7fdf39f9531fbf988b52e306a6835655a318c961eb44c6b05ff8"
+    },
+    {
+      "path": "packages/barocss-physics/src/persistent-box-contact.ts",
+      "sha256": "194f5b1e3517eb65cc265da97bcbc02c7ccbef414c6e1dd7416373567578a6ae"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/entry.ts",
+      "sha256": "4664a0c7b966d597d4873417f9bd4ced585b0167869bb1fa3a4d798651c4a335"
+    }
+  ]
+}
