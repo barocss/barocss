@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D452: qualify ordinary Subtract/Intersect editing, refusal retention and project re-edit, with reversed Subtract creation](notes/ordinary-booleans-2026-11-03/README.md).
+
 - [D451: measure current rounded circular Hole placement and qualify edit/refusal/project re-edit](notes/circular-hole-workflow-2026-11-03/README.md).
 
 - [D450: carry accepted selections by existing names before installing preview topology](notes/preview-selection-handoff-2026-11-03/README.md).

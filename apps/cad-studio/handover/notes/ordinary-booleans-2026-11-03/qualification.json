@@ -1,0 +1,657 @@
+{
+  "workId": "D452",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "8369dd600066c918917d91081af3901ed18f6a76",
+  "category": "C2-4 ordinary Subtract/Intersect",
+  "productChanges": "NONE",
+  "declaredFullWorkflows": 2,
+  "qualifiedFullWorkflows": 2,
+  "reverseControl": "ORDERED_CREATE_PASS_EDIT_AND_PERSISTENCE_NOT_RUN",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercent": 43,
+  "preflight": {
+    "status": "PASS",
+    "calls": {
+      "native": 5,
+      "oracle": 5
+    },
+    "receiptSHA256": "4524ca5afd19fe89dff80bd2694452ed44f992832f3455b4b4f65de53b861b3e",
+    "sourceFiles": 468,
+    "sourcePinsEqual": true,
+    "cases": [
+      {
+        "phase": "difference",
+        "minX": 40,
+        "status": "PASS",
+        "nativeSHA": "80b1e557e0b92240089d33242e2cad6a4eff068e2499f56fe908de9005393786",
+        "oracleSHA": "01e10a997d919638cf256bdfd1c0c6eb0304547ad91f3b13bab09cbcf6cc9ff8",
+        "counts": {
+          "bodies": 1,
+          "shells": 1,
+          "faces": 10,
+          "loops": 10,
+          "coedges": 48,
+          "edges": 24,
+          "vertices": 16
+        },
+        "nominal": {
+          "overlapVolume": 4000,
+          "volume": 28000,
+          "centroid": [
+            15.714285714285714,
+            0,
+            5
+          ],
+          "bounds": {
+            "min": [
+              -20,
+              -20,
+              0
+            ],
+            "max": [
+              60,
+              20,
+              10
+            ]
+          },
+          "polygon": [
+            [
+              -20,
+              -20
+            ],
+            [
+              60,
+              -20
+            ],
+            [
+              60,
+              -10
+            ],
+            [
+              40,
+              -10
+            ],
+            [
+              40,
+              10
+            ],
+            [
+              60,
+              10
+            ],
+            [
+              60,
+              20
+            ],
+            [
+              -20,
+              20
+            ]
+          ]
+        },
+        "topFace": {
+          "index": 9,
+          "nativeName": "n1.top",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "world": [
+            0,
+            0,
+            10
+          ],
+          "exact": {
+            "kind": "plane",
+            "o": [
+              -20,
+              -20,
+              10
+            ],
+            "n": [
+              0,
+              0,
+              1
+            ]
+          }
+        },
+        "errors": {
+          "volumeAbsolute": 7.275957614183426e-12,
+          "volumeRelative": 2.598556290779795e-16,
+          "centroidMaximum": 7.105427357601002e-15,
+          "boundsMaximum": 0,
+          "maximumSupportDistance": 0,
+          "maximumNormalComponent": 0
+        }
+      },
+      {
+        "phase": "difference",
+        "minX": 36,
+        "status": "PASS",
+        "nativeSHA": "22ffa4d0bdae74ce0bfd489ee9e5ff7c3fad7ab1d7a9aba38816b3e41352251e",
+        "oracleSHA": "52396cac51572fe95b6bb318777b30a0c6c4ae9f1e29bf9641f51722b9cb5a33",
+        "counts": {
+          "bodies": 1,
+          "shells": 1,
+          "faces": 10,
+          "loops": 10,
+          "coedges": 48,
+          "edges": 24,
+          "vertices": 16
+        },
+        "nominal": {
+          "overlapVolume": 4800,
+          "volume": 27200,
+          "centroid": [
+            15.058823529411764,
+            0,
+            5
+          ],
+          "bounds": {
+            "min": [
+              -20,
+              -20,
+              0
+            ],
+            "max": [
+              60,
+              20,
+              10
+            ]
+          },
+          "polygon": [
+            [
+              -20,
+              -20
+            ],
+            [
+              60,
+              -20
+            ],
+            [
+              60,
+              -10
+            ],
+            [
+              36,
+              -10
+            ],
+            [
+              36,
+              10
+            ],
+            [
+              60,
+              10
+            ],
+            [
+              60,
+              20
+            ],
+            [
+              -20,
+              20
+            ]
+          ]
+        },
+        "topFace": {
+          "index": 9,
+          "nativeName": "n1.top",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "world": [
+            0,
+            0,
+            10
+          ],
+          "exact": {
+            "kind": "plane",
+            "o": [
+              -20,
+              -20,
+              10
+            ],
+            "n": [
+              0,
+              0,
+              1
+            ]
+          }
+        },
+        "errors": {
+          "volumeAbsolute": 7.275957614183426e-12,
+          "volumeRelative": 2.6749844169792005e-16,
+          "centroidMaximum": 3.552713678800501e-15,
+          "boundsMaximum": 0,
+          "maximumSupportDistance": 0,
+          "maximumNormalComponent": 0
+        }
+      },
+      {
+        "phase": "intersect",
+        "minX": 40,
+        "status": "PASS",
+        "nativeSHA": "2ad06cac9918790ea99c81a7eb67a86eafa8665239a8d8806a1e03d8a12b94a6",
+        "oracleSHA": "4c2cd505ab0b4e4cc73b4025e904c7260dda84946c42c663e61138ae4e8f9307",
+        "counts": {
+          "bodies": 1,
+          "shells": 1,
+          "faces": 6,
+          "loops": 6,
+          "coedges": 24,
+          "edges": 12,
+          "vertices": 8
+        },
+        "nominal": {
+          "overlapVolume": 4000,
+          "volume": 4000,
+          "centroid": [
+            50,
+            0,
+            5
+          ],
+          "bounds": {
+            "min": [
+              40,
+              -10,
+              0
+            ],
+            "max": [
+              60,
+              10,
+              10
+            ]
+          },
+          "polygon": [
+            [
+              40,
+              -10
+            ],
+            [
+              60,
+              -10
+            ],
+            [
+              60,
+              10
+            ],
+            [
+              40,
+              10
+            ]
+          ]
+        },
+        "topFace": {
+          "index": 5,
+          "nativeName": "n1.top",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "world": [
+            50,
+            0,
+            10
+          ],
+          "exact": {
+            "kind": "plane",
+            "o": [
+              40,
+              -10,
+              10
+            ],
+            "n": [
+              0,
+              0,
+              1
+            ]
+          }
+        },
+        "errors": {
+          "volumeAbsolute": 2.7284841053187847e-12,
+          "volumeRelative": 6.821210263296962e-16,
+          "centroidMaximum": 4.973799150320701e-14,
+          "boundsMaximum": 0,
+          "maximumSupportDistance": 0,
+          "maximumNormalComponent": 0
+        }
+      },
+      {
+        "phase": "intersect",
+        "minX": 36,
+        "status": "PASS",
+        "nativeSHA": "078535eb3a836b0018c80bc12340a88a4bc83094836017d9a6dbd7215a175d70",
+        "oracleSHA": "b1c0dc2a60d138f592322b15498646752316cb993b7c76ee6a9bdbe59315dc10",
+        "counts": {
+          "bodies": 1,
+          "shells": 1,
+          "faces": 6,
+          "loops": 6,
+          "coedges": 24,
+          "edges": 12,
+          "vertices": 8
+        },
+        "nominal": {
+          "overlapVolume": 4800,
+          "volume": 4800,
+          "centroid": [
+            48,
+            0,
+            5
+          ],
+          "bounds": {
+            "min": [
+              36,
+              -10,
+              0
+            ],
+            "max": [
+              60,
+              10,
+              10
+            ]
+          },
+          "polygon": [
+            [
+              36,
+              -10
+            ],
+            [
+              60,
+              -10
+            ],
+            [
+              60,
+              10
+            ],
+            [
+              36,
+              10
+            ]
+          ]
+        },
+        "topFace": {
+          "index": 5,
+          "nativeName": "n1.top",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "world": [
+            50,
+            0,
+            10
+          ],
+          "exact": {
+            "kind": "plane",
+            "o": [
+              36,
+              -10,
+              10
+            ],
+            "n": [
+              0,
+              0,
+              1
+            ]
+          }
+        },
+        "errors": {
+          "volumeAbsolute": 9.094947017729282e-13,
+          "volumeRelative": 1.8947806286936006e-16,
+          "centroidMaximum": 1.4210854715202004e-14,
+          "boundsMaximum": 0,
+          "maximumSupportDistance": 0,
+          "maximumNormalComponent": 0
+        }
+      },
+      {
+        "phase": "reverse-difference",
+        "minX": 40,
+        "status": "PASS",
+        "nativeSHA": "ac63c229f47d12b807cb1b9493c75724e38318bfd162e8b0c2545749d7c80b01",
+        "oracleSHA": "0d35b93550b68b374a0e43e494820bc51ca2136b21a8bdcc54e50ef960428e2e",
+        "counts": {
+          "bodies": 1,
+          "shells": 1,
+          "faces": 6,
+          "loops": 6,
+          "coedges": 24,
+          "edges": 12,
+          "vertices": 8
+        },
+        "nominal": {
+          "overlapVolume": 4000,
+          "volume": 4000,
+          "centroid": [
+            70,
+            0,
+            5
+          ],
+          "bounds": {
+            "min": [
+              60,
+              -10,
+              0
+            ],
+            "max": [
+              80,
+              10,
+              10
+            ]
+          },
+          "polygon": [
+            [
+              60,
+              -10
+            ],
+            [
+              80,
+              -10
+            ],
+            [
+              80,
+              10
+            ],
+            [
+              60,
+              10
+            ]
+          ]
+        },
+        "topFace": {
+          "index": 5,
+          "nativeName": "n3.top",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "world": [
+            70,
+            0,
+            10
+          ],
+          "exact": {
+            "kind": "plane",
+            "o": [
+              60,
+              -10,
+              10
+            ],
+            "n": [
+              0,
+              0,
+              1
+            ]
+          }
+        },
+        "errors": {
+          "volumeAbsolute": 4.547473508864641e-13,
+          "volumeRelative": 1.1368683772161603e-16,
+          "centroidMaximum": 2.842170943040401e-14,
+          "boundsMaximum": 0,
+          "maximumSupportDistance": 0,
+          "maximumNormalComponent": 0
+        }
+      }
+    ],
+    "command": "bash /tmp/barocss-d452-root/run-preflight.sh"
+  },
+  "relatedEmptyAlgebra": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0,
+    "scope": "Native API empty algebra; not an actual UI empty workflow"
+  },
+  "actual": {
+    "status": "PASS_BY_EXACT_SCOPE_COMPOSITION",
+    "run01": {
+      "status": "FAIL",
+      "receiptSHA256": "0ad78a5b4b30d204ae0b013d925695893b8edbcf4b6bd8489430ae19f574ba61",
+      "command": "bash /tmp/barocss-d452-root/run-studio-workflow.sh",
+      "failure": "Test helper blindly toggled an already open Versions panel before Intersect Save. No product geometry failure.",
+      "coverage": {
+        "difference": {
+          "oneBodyRefusal": "PASS",
+          "orderedCreate": "PASS",
+          "upstreamToolEdit": "PASS",
+          "exactUndo": "PASS",
+          "exactRedo": "PASS",
+          "zeroDistanceRefusal": "PASS",
+          "projectSaveCloseReloadOpen": "PASS",
+          "postOpenToolReedit": "PASS"
+        },
+        "intersect": {
+          "oneBodyRefusal": "PASS",
+          "orderedCreate": "PASS",
+          "upstreamToolEdit": "PASS",
+          "exactUndo": "PASS",
+          "exactRedo": "PASS",
+          "zeroDistanceRefusal": "PASS",
+          "projectSaveCloseReloadOpen": "NOT_RUN",
+          "postOpenToolReedit": "NOT_RUN"
+        }
+      },
+      "states": 23,
+      "nativeReads": 16,
+      "independentOracles": 12,
+      "sourceCapsules": 1192,
+      "sourceBeforeFrozenCleanupCurrentEqual": true,
+      "cleanup": [
+        {
+          "ownedProject": "D452-boolean-difference-run01",
+          "namespace": "REMOVED_AND_ABSENT"
+        },
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "downloads": 0,
+      "pageErrors": 0,
+      "consoleErrors": 0
+    },
+    "run02": {
+      "status": "PASS",
+      "receiptSHA256": "8627a7c72667101ccf9e09f95ba06902496b1b7685902e30d23f4c482f6c9c3d",
+      "command": "bash /tmp/barocss-d452-root/run-studio-workflow02.sh",
+      "scope": "Intersect required antecedents and remaining persistence links; reverse Subtract create-only. Subtract full workflow retained from run01.",
+      "coverage": {
+        "intersect": {
+          "oneBodyRefusal": "PASS",
+          "orderedCreate": "PASS",
+          "upstreamToolEdit": "PASS",
+          "exactUndo": "PASS",
+          "exactRedo": "PASS",
+          "zeroDistanceRefusal": "PASS",
+          "projectSaveCloseReloadOpen": "PASS",
+          "postOpenToolReedit": "PASS"
+        },
+        "reverseSubtract": {
+          "orderedCreateOnly": "PASS",
+          "edit": "NOT_RUN",
+          "projectSaveOpen": "NOT_RUN"
+        }
+      },
+      "states": 14,
+      "nativeReads": 11,
+      "independentOracles": 8,
+      "sourceCapsules": 1193,
+      "sourceBeforeFrozenAfterCleanupCurrentEqual": true,
+      "cleanup": [
+        {
+          "ownedProject": "D452-boolean-intersect-run02",
+          "namespace": "REMOVED_AND_ABSENT"
+        },
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "downloads": 0,
+      "pageErrors": 0,
+      "consoleErrors": 0
+    },
+    "rootVisualReview": {
+      "status": "PASS",
+      "images": 8,
+      "scope": "Original harness failure; both created results, zero-distance refusals, post-Open re-edits and reversed Subtract"
+    },
+    "ownWrappersAbsent": true,
+    "gateLeasesReleased": true,
+    "maximumErrors": {
+      "volumeAbsolute": 7.275957614183426e-12,
+      "volumeRelative": 6.821210263296962e-16,
+      "centroidMaximum": 4.973799150320701e-14,
+      "boundsMaximum": 0,
+      "maximumSupportDistance": 0,
+      "maximumNormalComponent": 0
+    }
+  },
+  "models": {
+    "routine": "GPT-6.1 Sol Medium",
+    "nativeAndIndependentGeometry": "GPT-6.1 Sol High",
+    "actualAndCleanup": "Root"
+  },
+  "checks": {
+    "PASS": [
+      "Five native and five independent Python preflight checks",
+      "Current native empty-operand test: 1 PASS, 0 FAIL, 0 SKIP",
+      "Two full Studio workflows: 8/8 links each",
+      "One reversed-order Subtract create-only control",
+      "Unchanged frozen/current source capsules and owned-resource cleanup"
+    ],
+    "FAIL": [
+      "Original run01 test-helper panel toggle failure retained; corrected outside the repository in driver02"
+    ],
+    "NOT_RUN": [
+      "New package build/types/lint: no product or test source changed; retained D449/D450 checks apply",
+      "Full kernel: no B-rep core change; latest authority D433",
+      "Empty/disjoint actual UI Boolean workflow",
+      "General curved Boolean inputs and all operand orders",
+      "Reverse Subtract edit/persistence"
+    ]
+  },
+  "issueAssessment": {
+    "535": "OPEN: broad intersections/trims/Booleans epic remains unfulfilled",
+    "534": "OPEN: broader part feature acceptance remains unfulfilled"
+  },
+  "independentFinalReview": {
+    "status": "PASS",
+    "sha256": "06b5f644fa8be2a12d13bf411eaaa46da67cee9ee8051feb0930c1fa82337cbf",
+    "scope": "Read-only review of exact native graph, polygon/support geometry, fixed targets, actual scope composition and retained first harness failure; no new SUT execution"
+  },
+  "navigation": {
+    "status": "PASS",
+    "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+    "rows": 34,
+    "newBrokenLinks": 0,
+    "knownHistoricalMissingPaths": 1,
+    "historicalArchivesUnchanged": true
+  }
+}
