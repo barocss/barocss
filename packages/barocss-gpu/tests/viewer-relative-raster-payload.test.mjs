@@ -2,11 +2,10 @@
 // Device writes are observed fake-device bytes, not proof that hardware executed these shaders.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Camera } from '../dist/viewer/camera.js';
-import { Geometry, Mesh, Viewer } from '../dist/viewer/viewer.js';
+import { Geometry, Mesh } from '../dist/viewer/viewer.js';
 import { prepareGeometry, segmentInstances, pointInstances } from '../dist/viewer/geometry.js';
 import { identity, transformPoint } from '../dist/viewer/math.js';
-import { FRAME_BYTES, OBJECT_BYTES, OBJECT_STRIDE, MAX_SHADOWS } from '../dist/viewer/shaders.js';
+import { FRAME_BYTES, OBJECT_BYTES, OBJECT_STRIDE } from '../dist/viewer/shaders.js';
 
 import { C, fixture, prepare } from './fixtures/relative-raster-cpu.mjs';
 const floatBuffer = buffer => new Float32Array(buffer.bytes.buffer);

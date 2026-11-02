@@ -1,0 +1,322 @@
+{
+  "workId": "D446",
+  "status": "QUALIFIED_MERGE_CANDIDATE",
+  "kind": "Owner-authorized develop integration through D445; no new product feature",
+  "mergeProof": {
+    "status": "PASS",
+    "cadParent": "b5decfd9e53b72c8f69094ddd2dd6c1dc7999ab9",
+    "developParent": "8a24d6f778133b460ece7a0220d5db747debe121",
+    "mergedHead": "2b5cf9ef92338ebf7ddae9d10911e7a63123d750",
+    "mergedTree": "bd75bc00592f89342701b194a57781d823cd25db",
+    "unexpectedBlobChanges": [],
+    "cadChanged": 152,
+    "developChanged": 9529,
+    "overlap": 0,
+    "preservedDevelopDeletes": 14,
+    "proofCorrection": "Initial scratch union checker incorrectly expected 14 paths intentionally deleted by develop; corrected against merge-base per-path changes; no merge/product correction."
+  },
+  "models": {
+    "buildTypesTestsLintAndBrowser": "GPT-6.1 Sol Medium",
+    "compatibilitySourceReview": "GPT-6.1 Sol High",
+    "orchestrationAndDocumentation": "root"
+  },
+  "PASS": [
+    "Normal conflict-free merge; exact parent-change preservation including intentional deletions",
+    "11build/type/focused commands",
+    "89unique focused test cases",
+    "Import-only repair: syntax3 andlint88",
+    "Actual6state integration smoke; source equality through cleanup; noerrors/changes",
+    "D4441042frozenpaths equal current",
+    "OCP reader/source/build directories absent"
+  ],
+  "FAIL": [
+    "Initial9unused-importlint errors; repaired",
+    "Initial GPU test invocation lacked required loader; corrected, no product assertion failure"
+  ],
+  "NOT_RUN": [
+    "Full C1-1 acceptance",
+    "Local-project OPFS in this integration smoke",
+    "Full kernel suite (merge changes no B-rep core)",
+    "General Physics dynamics qualification",
+    "New downloads/install",
+    "Release/npm/deployment",
+    "Automatic robot contact check returned existing uncertified budget refusal, not clear/contact PASS",
+    "New runtime module-body capture"
+  ],
+  "publication": {
+    "candidateStatus": "QUALIFIED",
+    "requiredCI": "Must pass on final PR head before merge",
+    "remoteCompletionReceipt": "Final PR comment and owner handoff prompt must record final remote SHA; fetch and verify both refs and ancestor inputs",
+    "method": "normal merge with expected_head_sha; no rebase/squash/force",
+    "release": "NOT_RUN"
+  },
+  "checks": [
+    {
+      "name": "cad-build",
+      "command": [
+        "pnpm",
+        "--dir",
+        "packages/barocss-cad",
+        "run",
+        "build:library"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 8.544
+    },
+    {
+      "name": "cad-type",
+      "command": [
+        "pnpm",
+        "--dir",
+        "packages/barocss-cad",
+        "run",
+        "type-check"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 7.024
+    },
+    {
+      "name": "gpu-build",
+      "command": [
+        "pnpm",
+        "--dir",
+        "packages/barocss-gpu",
+        "run",
+        "build:library"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 9.185
+    },
+    {
+      "name": "gpu-type",
+      "command": [
+        "pnpm",
+        "--dir",
+        "packages/barocss-gpu",
+        "run",
+        "type-check"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 8.23
+    },
+    {
+      "name": "physics-build",
+      "command": [
+        "pnpm",
+        "--dir",
+        "packages/barocss-physics",
+        "run",
+        "build:library"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 8.177
+    },
+    {
+      "name": "model-type",
+      "command": [
+        "pnpm",
+        "--dir",
+        "packages/barocss-cad-model",
+        "run",
+        "type-check"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 20.11
+    },
+    {
+      "name": "studio-build",
+      "command": [
+        "pnpm",
+        "--dir",
+        "apps/cad-studio",
+        "run",
+        "build"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 26.446
+    },
+    {
+      "name": "interop-build",
+      "command": [
+        "pnpm",
+        "--dir",
+        "packages/barocss-cad-interop",
+        "run",
+        "build:library"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 8.851
+    },
+    {
+      "name": "interop-type",
+      "command": [
+        "pnpm",
+        "--dir",
+        "packages/barocss-cad-interop",
+        "run",
+        "type-check"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 8.226
+    },
+    {
+      "name": "model-focused",
+      "command": [
+        "pnpm",
+        "--dir",
+        "packages/barocss-cad-model",
+        "run",
+        "test",
+        "rs2-motion.test.ts",
+        "robot-ccd.test.ts",
+        "api-robot-finite-path.test.ts",
+        "api-robot-path-contract.test.ts",
+        "api-robot-units.test.ts",
+        "api-rs6-loop-motion.test.ts",
+        "step-offset-units.test.ts"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 79.657
+    },
+    {
+      "name": "studio-focused",
+      "command": [
+        "pnpm",
+        "--dir",
+        "apps/cad-studio",
+        "run",
+        "test",
+        "rs6-loop-motion.test.ts"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "seconds": 1.584
+    }
+  ],
+  "focusedTests": {
+    "Model": {
+      "PASS": 42,
+      "FAIL": 0,
+      "SKIP": 0
+    },
+    "Studio": {
+      "PASS": 5,
+      "FAIL": 0,
+      "SKIP": 0
+    },
+    "GPU": {
+      "PASS": 42,
+      "FAIL": 0,
+      "SKIP": 0
+    },
+    "uniqueTotal": 89
+  },
+  "lintRepair": {
+    "initial": "FAIL9unusedimports in3GPUtestfiles",
+    "initialSeconds": 4.349,
+    "repair": "Remove only9unusednamedimports; production and all non-import test text unchanged",
+    "paths": [
+      "packages/barocss-gpu/tests/fixtures/relative-raster-cpu.mjs",
+      "packages/barocss-gpu/tests/viewer-relative-raster-payload.test.mjs",
+      "packages/barocss-gpu/tests/viewer-relative-raster.test.mjs"
+    ],
+    "syntax": "PASS3/3",
+    "targetedLint": "PASS88changedJS/MJS/TS/TSXpaths",
+    "lintSeconds": 2.903,
+    "gpuCorrectedSeconds": 0.582,
+    "harnessFailure": "Initial direct node GPU command omitted --import ./tests/cad-dist.mjs; payload6passed, raster could not load src/types.js; corrected official loader passes42, including6explicitduplicates",
+    "commands": [
+      "pnpm exec eslint --no-warn-ignored -- <88 existing changed JS/MJS/TS/TSX paths from git diff 12411c89..b5decfd9 in Studio/CAD/Model/GPU>",
+      "pnpm --dir packages/barocss-gpu exec node --import ./tests/cad-dist.mjs --test --test-concurrency=1 tests/viewer-relative-raster-payload.test.mjs tests/viewer-relative-raster.test.mjs"
+    ]
+  },
+  "actual": {
+    "status": "PASS",
+    "states": [
+      "01-ordinary-selected",
+      "02-distance-eight",
+      "03-redone",
+      "04-fresh-native-open",
+      "04-fresh-native-fit",
+      "05-robot-finite-seek"
+    ],
+    "errors": [],
+    "consoleErrors": [],
+    "fileChanges": [],
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "frozen": 1345,
+    "fixedPins": 1083,
+    "downloadCount": 1,
+    "receiptSha256": "5a70d26bf6abd3593fe7ede71b7f406d4c848f08e12d8ac74174e35e4f78fa27",
+    "wrapperPID": 39684,
+    "PIDAbsent": true,
+    "observations": [
+      {
+        "status": "PASS",
+        "robot": {
+          "time": 0.0172294546434637,
+          "duration": 1.7229454643463709,
+          "joints": [
+            {
+              "label": "Joint base~a pose (degree)",
+              "value": -0.02671686965800556
+            },
+            {
+              "label": "Joint a~b pose (degree)",
+              "value": 0
+            }
+          ],
+          "readout": "t 0.02 / 1.72 s",
+          "frames": []
+        },
+        "saveScope": "NATIVE_FILE_ONLY_LOCAL_PROJECT_NOT_RUN"
+      }
+    ],
+    "notices": [
+      {
+        "state": "05-robot-finite-seek",
+        "notices": [
+          "Motion contact check not certifiedThe sweep ran out of its sample budget at t 1.294 s: the motion is neither clear nor in contact."
+        ]
+      }
+    ],
+    "runtimeModulesCapture": "NOT_RUN; generic helper has no runtimeModules field",
+    "sourceFrozenEqualsCurrentAfterCleanup": true,
+    "visibleReview": "root viewed ordinary fresh-open and robot finite-seek PNGs; robot sample auto contact-budget refusal is visible and retained",
+    "command": "bash /tmp/barocss-d446-consumer/run-integration-once.sh",
+    "nativeVolumes": {
+      "before": 2160,
+      "afterEdit": 2880
+    },
+    "scopeCorrection": "Saved-motion selection and seek freeze that motion; useJoints.setMotion triggers App effect automatic contact-budget check. It exhausts at1.294s and remains uncertified; no explicit Check path/Play action. Finite seek PASS does not certify clear/contact.",
+    "auditReaderCorrection": "Initial root reader assumed optional runtimeModules field and raised KeyError after source/PID checks; corrected metadata read only, no product or browser retry. Runtime module-body capture NOT_RUN."
+  },
+  "retainedD444Source": {
+    "receiptStatus": "PASS",
+    "frozenPaths": 1042,
+    "currentDifferences": []
+  },
+  "navigation": {
+    "status": "PASS",
+    "links": 2498,
+    "rows": 34,
+    "newBroken": 0,
+    "knownHistoricalMissing": 1,
+    "archiveHashesUnchanged": true
+  }
+}

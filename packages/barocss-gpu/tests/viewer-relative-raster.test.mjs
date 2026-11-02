@@ -1,7 +1,6 @@
 // CPU packet/algebra tests. Actual shader/device/pixel proof is a separate browser qualification.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Camera } from '../dist/viewer/camera.js';
 import { Geometry, Mesh } from '../dist/viewer/viewer.js';
 import { prepareGeometry, rasterOrigin, rasterPositions, setRasterOrigin, contourInstances } from '../dist/viewer/geometry.js';
 import { captureRaster, decodeRasterPoint, packRasterMetadata, rasterInputs, rasterModel, sameRasterInputs } from '../dist/viewer/relative-raster.js';

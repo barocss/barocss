@@ -1,8 +1,7 @@
 import { Camera } from '../../dist/viewer/camera.js';
 import { Geometry, Mesh, Viewer } from '../../dist/viewer/viewer.js';
-import { prepareGeometry, segmentInstances, pointInstances } from '../../dist/viewer/geometry.js';
-import { identity, transformPoint } from '../../dist/viewer/math.js';
-import { FRAME_BYTES, OBJECT_BYTES, OBJECT_STRIDE, MAX_SHADOWS } from '../../dist/viewer/shaders.js';
+import { prepareGeometry } from '../../dist/viewer/geometry.js';
+import { FRAME_BYTES, OBJECT_STRIDE, MAX_SHADOWS } from '../../dist/viewer/shaders.js';
 
 export const C = [999000, -998000, 997000];
 export const triangle = center => Float64Array.from([-.001, -.001, 0, .001, -.001, 0, 0, .001, 0], (x, i) => x + center[i % 3]);

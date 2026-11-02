@@ -21,7 +21,7 @@ Sketch editing, solid modeling, feature history, native files and local-project 
 | C7 | Ecosystem: customer files, formats, catalogs and PDM retain owner gates. | 26, 28, 29 |
 | C8 | Separately held manufacturing, paths, Motion, experiments, release and browser CI. Preserve delivered proofs without automatic activation. | 14, 17, 18, 19, 27, 33 |
 
-**Next: D446 owner-authorized develop integration.** After integration, **D447 / C1-1** is one ordinary bearing-support/bracket acceptance audit. Reuse D349, D377, D380 and valid retained receipts first; map the linked everyday steps, run only uncovered steps, and fix the first reproduced failure. Do not restart implemented features or declare whole-loop PASS before coverage is established. Use the existing local-project save route and approved receipts; no new external or browser downloads are authorized here.
+**D446: [qualified develop integration candidate](notes/develop-integration-2026-11-02/README.md); verify the final PR/remote receipt before continuation.** After integration, **D447 / C1-1** is one ordinary bearing-support/bracket acceptance audit. Reuse D349, D377, D380 and valid retained receipts first; map the linked everyday steps, run only uncovered steps, and fix the first reproduced failure. Do not restart implemented features or declare whole-loop PASS before coverage is established. Use the existing local-project save route and approved receipts; no new external or browser downloads are authorized here.
 
 The provisional nonzero-cone D445 source-only investigation is deferred, with no code change or SUT execution. Published D445 is this priority/handoff decision. D443/D444 proofs and all held tracks remain unchanged.
 
@@ -62,7 +62,7 @@ The provisional nonzero-cone D445 source-only investigation is deferred, with no
 
 ## Current navigation — active lane and next boundary
 
-- D446 is the owner-authorized develop integration. After it, the active product task is **D447 / C1-1 everyday part workflow acceptance audit**, under [D445](notes/core-cad-priority-2026-11-02/README.md).
+- [D446](notes/develop-integration-2026-11-02/README.md) qualifies the owner-authorized develop integration candidate and scoped checks; final publication is verified by PR and remote ancestry. After it, the active product task is **D447 / C1-1 everyday part workflow acceptance audit**, under [D445](notes/core-cad-priority-2026-11-02/README.md).
 - Rows 12 and 16 remain cross-cutting file/acceptance and robustness concerns. Row 30 changes only for concrete core-workflow blockers.
 - Exchange profiles through D444 remain qualified at their recorded scope. General exchange stays open, but another uncommon cone/format variant is not the automatic next task. Preserve public-thicken/fitter/NURBS HOLDs.
 - Follow C1–C8 above. The former row sequence is historical context, not current execution authority. Manufacturing, Motion/Physics and the deferred UI redesign remain held.
