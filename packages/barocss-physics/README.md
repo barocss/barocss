@@ -29,6 +29,8 @@ limits still apply; rotation accuracy alone does not qualify those solvers.
 
 The [desktop Physics Lab](../../examples/physics-lab/README.md) runs box, sphere and capsule rotation with the public World/recorder and existing Viewer. It includes live diagnostics, in-page save/restore and an independent fixed-case three-grid comparison.
 
+The [rounded CCD desktop scene](../../examples/physics-rounded-ccd-2276/README.md) shows the actual sphere/static-box face, edge and vertex boundary, with hit/miss and normal diagnostics. The narrow sweep now uses Euclidean distance instead of an expanded rectangular boundary.
+
 | Entry point | Current result | Example |
 | --- | --- | --- |
 | `@barocss/physics` | One World for selected rigid or fixed visual cloth/fluid model profiles | [3D native-Surface Viewer](../../examples/physics-viewer-scene/README.md) |
@@ -37,7 +39,7 @@ The [desktop Physics Lab](../../examples/physics-lab/README.md) runs box, sphere
 
 Ordinary workspace package imports use `src` through a TypeScript-capable bundler. The complete `publishConfig` map selects compiled `dist` JavaScript/declarations for release. The `barocss-source` condition selects the same current source API and is optional during development. Plain Node does not resolve source internal `.js` imports to `.ts`. CAD Surfaces remain original display geometry; CAD admission creates a separate sphere or box simulation proxy. See the limits below before using any profile.
 
-The rigid public entry is `src/index.ts`. Public model/state types are in `types.ts`; private numerical body records are in `internal-types.ts`; model admission is in `model-admission.ts` and numerical checks are in `validation.ts`; vectors, quaternions and inertia transforms are in `math.ts`; primitive collision and contact response are in `collision.ts`; joint parsing is in `joints.ts`, anchored motor drive is in `joint-motor.ts`, and the two-dynamic-body fixed and hinge profiles are in `dynamic-fixed-joint.ts` and `dynamic-hinge-joint.ts`; CCD admission and sweeps are in `ccd.ts`, `ccd-pair.ts`, `ccd-box.ts` and `ccd-slab.ts`; optional broad-phase bounds are in `broadphase.ts`; large-scene filtering and contact-island sleep rules are in `scene-profile.ts` and `sleep.ts`; and fixed-step world state is in `world.ts`. `limits.ts` holds shared bounds.
+The rigid public entry is `src/index.ts`. Public model/state types are in `types.ts`; private numerical body records are in `internal-types.ts`; model admission is in `model-admission.ts` and numerical checks are in `validation.ts`; vectors, quaternions and inertia transforms are in `math.ts`; primitive collision and contact response are in `collision.ts`; joint parsing is in `joints.ts`, anchored motor drive is in `joint-motor.ts`, and the two-dynamic-body fixed and hinge profiles are in `dynamic-fixed-joint.ts` and `dynamic-hinge-joint.ts`; CCD admission and sweeps are in `ccd.ts`, `ccd-rounded-box.ts`, `ccd-pair.ts`, `ccd-box.ts` and `ccd-slab.ts`; optional broad-phase bounds are in `broadphase.ts`; large-scene filtering and contact-island sleep rules are in `scene-profile.ts` and `sleep.ts`; and fixed-step world state is in `world.ts`. `limits.ts` holds shared bounds.
 
 ## Fixed visual models
 

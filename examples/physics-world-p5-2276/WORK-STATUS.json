@@ -1,12 +1,12 @@
 {
-  "asOf": "2026-11-02",
+  "asOf": "2026-11-03",
   "branch": "codex/physics-world-p5-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "General continuous primitive rotation in common World",
-    "status": "SOURCE_AND_CANONICAL_ROOT_REPLAY_PASS",
-    "scope": "Each graph31Worlds3925accepted;23generality cases;0.1s forced60/120/240grids;30s free3600steps with32 independent invariant samples; transactional recording and actual continuation. Same-runtime parity separate from accuracy.",
-    "results": "examples/physics-general-rotation-2276/RESULTS.md"
+    "profile": "G2 rounded sphere/static-box CCD",
+    "status": "BOUNDED_GEOMETRY_PUBLIC_SOURCE_NATIVE_AND_DESKTOP_PASS",
+    "scope": "16source+16nativeimmediateindependentaudits;eachpublicgraph26World29stepsplusseparateatomic1World1step;9desktopchecksall16boundariesplus5features;existingLab12desktopchecks;originalearlyhitandrenderfailurepreserved",
+    "results": "examples/physics-rounded-ccd-2276/RESULTS.md"
   },
   "mainSlices": {
     "P0": "CONTRACT_COMPLETE_LOCAL",
@@ -33,7 +33,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "General primitive angular flow implemented without G1e whitelist/horizon or legacy path. Next: forced-frame/capsule phase-work oracle, contact/joint composition and G2 exact rounded-corner CCD. P4 eight-box remains NO_GO. Studio/manufacturing/equipment HOLD. No process active.",
+  "active": "Core rounded-box sphere CCD implemented and checked through public World and desktop rendering. Next: G2 restitution/friction transition and projection/work evidence, then remaining P4/coupling dependencies. Studio/manufacturing/equipment HOLD; local previews only, no long numerical job.",
   "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
@@ -45,8 +45,8 @@
   "reportCadence": "milestone,firstfailure,directionchange; report qualified scope,remaining dependency,and revised confidence",
   "invariants": "HOLD, original NO_GO, tolerances and first failures preserved. Owner explicitly authorized current checkpoint develop push on2026-11-02; no deploy/release or held-worker resume; not whole-roadmap completion.",
   "addedGateProgress": {
-    "G1": "BOUNDED_PUBLIC_RANGE_ADOPTED: new exactisolatedone-stepJ/JT with explicitINVALID_CONFIG/INVALID_COMMAND/NUMERIC_LIMIT outsideleaf. Oldcontinuous-torquefullkickbaseline PHYSICAL_NO_GO preserved; correctedmicro+actualcanonicalAPIpassed. G1dK is discrete-map evidence only. Broaderinputs/horizon/contact/control remain open.",
-    "G2": "STATIC19BRANCH_MAP_COMPLETE; ACTUAL_SOURCE_CORNER_EXACT_CONTACT_NO_GO; reference1/World0/nativeNOT_RUN; other numerical gaps open",
+    "G1": "GENERAL_CONTINUOUS_PRIMITIVE_ROTATION_PASS; see physics-general-rotation-2276; old one-step restriction retired with original evidence retained. Wider phase/control/contact qualification remains separate.",
+    "G2": "ROUNDED_SPHERE_STATIC_BOX_REPAIR_AND_DESKTOP_PASS; original C03 early boundary NO_GO preserved. Material switches, near-ties/extreme-scales, projection/work and original8box remain open.",
     "G7": "PER_CAMPAIGN_TRUST_GATE; NO_BLANKET_PASS"
   },
   "sourceCorrection": "G1b/ADMISSION-NORMALIZATION-CORRECTION-01.json: Body constructor already normalizes admitted initialq; prior inferredinitialnormguardmismatch unestablished. Broader boundary qualification stillNOT_RUN.",
@@ -69,5 +69,13 @@
       "8-box qualification"
     ],
     "ownerConstraint": "No further mobile checks; earlier pre-instruction execution preserved."
+  },
+  "latestCcdConsumer": {
+    "status": "PASS_DESKTOP_ONLY",
+    "results": "examples/physics-rounded-ccd-2276/RESULTS.md",
+    "url": "http://127.0.0.1:52900",
+    "checks": 9,
+    "boundaryCases": 16,
+    "existingLabChecks": 12
   }
 }

@@ -364,6 +364,30 @@ published browser SDK, device-loss recovery, contact/joint composition, G2 CCD,
 P4eight-box, Studio, equipment or manufacturing. All HOLDs/NO_GO/old gates and
 first failures remain. No deployment or release.
 
+### G2 rounded sphere/static-box sweep (2026-11-03)
+
+Implemented `ccd-rounded-box.ts` and adopted directly in `ccd.ts`: exact dyadic
+initial/feature/discriminant/domain predicates, stable roots and projection
+normals. No expanded-slab sphere fallback, whitelist or new dependency. Existing
+admission,1e-9 bias, tie order, material laws and contact iterations are unchanged.
+Independent6face/12edge/8vertex oracle certifies all16 original Source then
+16Native controls. Max TOI2.384e-17, normal1.388e-16, squarednorm3.645e-16;
+old1e-12 gates remain. Original C03/public false-entry failure is preserved.
+Current C03TOI0.18899576603592683 produces1 actual contact.
+
+Each public graph passes26World/29steps plus separate1World/1step unknown-error
+atomicity; actual restore/continuation and known refusal retention pass. Original
+CCD/pair/rotation/oriented probes pass. The desktop Viewer scene passes9 checks,
+all16 original boundaries plus5feature scenarios at1280/1440/1920, including actual pixels, accepted poses and physical
+TOI/normal markers. Its first duplicate-display-ID failure remains preserved.
+See `examples/physics-rounded-ccd-2276/RESULTS.md` for bounds, commands and evidence.
+
+G2 is not wholly closed: restitution/friction switches, near-tie/extreme-scale
+coverage and contact/projection work still need selected independent tests.
+Remaining-time integration, rotating-box CCD, original P4eight-box NO_GO,
+P6coupling and full-roadmap acceptance remain separate. Existing HOLDs and all
+first failures remain. No Studio/manufacturing/equipment resume, deploy or release.
+
 Dependency order: close the G1 admitted-rotation boundary and G2 finite coverage
 map before the corresponding general rigid/contact claim. Keep original P4
 work as its own acceptance track. Before a new P6/P7 plant runs, select only

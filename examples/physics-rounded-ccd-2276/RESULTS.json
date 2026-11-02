@@ -1,0 +1,298 @@
+{
+  "status": "PASS_BOUNDED_ROUNDED_SPHERE_BOX_CCD",
+  "sourceBase": "237d4b04d",
+  "branch": "codex/physics-world-p5-2276",
+  "geometry": {
+    "status": "PASS_ROUNDED_GEOMETRY",
+    "counts": {
+      "source": {
+        "calls": 16,
+        "sqrt": 8,
+        "hypot": 10
+      },
+      "native": {
+        "calls": 16,
+        "sqrt": 8,
+        "hypot": 10
+      }
+    },
+    "acceptedAudits": 32,
+    "referenceCounts": {
+      "cases": 16,
+      "decimalOperations": 578,
+      "endpointDecimalSqrtOperations": 16,
+      "featureCandidates": 86,
+      "fractionOperations": 31266,
+      "integerSquareDetectionCalls": 68,
+      "intervalSqrtConstructions": 8
+    },
+    "firstFailure": null,
+    "referenceStdoutBytes": 13676,
+    "WorldCalls": 0,
+    "browser": "NOT_RUN",
+    "publicAPI": "NOT_RUN"
+  },
+  "api": {
+    "status": "PASS_ROUNDED_PUBLIC_API",
+    "counts": {
+      "source": {
+        "worlds": 26,
+        "acceptedSteps": 29,
+        "refusals": 1,
+        "restores": 1
+      },
+      "native": {
+        "worlds": 26,
+        "acceptedSteps": 29,
+        "refusals": 1,
+        "restores": 1
+      }
+    },
+    "measurements": {
+      "source": {
+        "originalCornerTOI": 0.18899576603592683,
+        "normal": [
+          -0.8660254037844386,
+          0.4999999999999997,
+          0
+        ],
+        "contacts": 1,
+        "afterVelocity": [
+          8.999999999999982,
+          15.58845726811989,
+          0
+        ]
+      },
+      "native": {
+        "originalCornerTOI": 0.18899576603592683,
+        "normal": [
+          -0.8660254037844386,
+          0.4999999999999997,
+          0
+        ],
+        "contacts": 1,
+        "afterVelocity": [
+          8.999999999999982,
+          15.58845726811989,
+          0
+        ]
+      }
+    },
+    "firstFailure": null,
+    "strictCompiledRootReplay": "BUILT",
+    "browser": "NOT_RUN"
+  },
+  "atomicity": {
+    "status": "PASS_CCD_UNKNOWN_ATOMICITY",
+    "results": [
+      {
+        "graph": "source",
+        "status": "PASS",
+        "worlds": 1,
+        "acceptedSteps": 1,
+        "unknownRefusals": 1
+      },
+      {
+        "graph": "native",
+        "status": "PASS",
+        "worlds": 1,
+        "acceptedSteps": 1,
+        "unknownRefusals": 1
+      }
+    ]
+  },
+  "measurements": {
+    "status": "PASS_MEASURED_OLD_GATES",
+    "maxima": {
+      "toi": 2.383771087217572e-17,
+      "normal": 1.3877787807814457e-16,
+      "normSquared": 3.6446213480830076e-16,
+      "distanceSquaredExcess": 8.427903502839873e-18
+    },
+    "locations": {
+      "toi": {
+        "graph": "source",
+        "id": "V01-three-outside-vertex"
+      },
+      "normal": {
+        "graph": "source",
+        "id": "C03-original-corner-witness"
+      },
+      "normSquared": {
+        "graph": "source",
+        "id": "C03-original-corner-witness"
+      },
+      "distanceSquaredExcess": {
+        "graph": "source",
+        "id": "V01-three-outside-vertex"
+      }
+    },
+    "geometryEvidenceBytes": 434193,
+    "stagedBuildBytes": 672356,
+    "currentDistBytes": 1002891,
+    "method": "exact Fraction distances from original IEEE results; directed120 endpoint residuals; no candidate/ODE calls"
+  },
+  "desktopRender": {
+    "status": "PASS_BROWSER_ROUNDED_CCD",
+    "checks": 9,
+    "scenarios": [
+      "corner",
+      "face",
+      "vertex",
+      "expanded-corner-miss",
+      "rotated"
+    ],
+    "browserVersion": "156.0.8078.80",
+    "consoleErrors": [],
+    "pageErrors": [],
+    "url": "http://127.0.0.1:52900",
+    "boundaryCases": 16,
+    "featurePresets": 5,
+    "proof": "output/playwright/rounded-ccd/render-03/report.json"
+  },
+  "existingPhysicsLabCurrentKernel": {
+    "status": "PASS_BROWSER_PHYSICS_LAB",
+    "checks": 12,
+    "url": "http://127.0.0.1:52890"
+  },
+  "commands": {
+    "rounded-ccd-api-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 337.041583,
+      "timedOut": false
+    },
+    "rounded-ccd-atomic-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 98.133541,
+      "timedOut": false
+    },
+    "rounded-ccd-baseline-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 79.394042,
+      "timedOut": false
+    },
+    "rounded-ccd-build-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 3696.148084,
+      "timedOut": false
+    },
+    "rounded-ccd-docbuild-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 9614.474958,
+      "timedOut": false
+    },
+    "rounded-ccd-docsamples-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 3957.270791,
+      "timedOut": false
+    },
+    "rounded-ccd-docsite-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 343.179583,
+      "timedOut": false
+    },
+    "rounded-ccd-existing-lab-render-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 8738.486792,
+      "timedOut": false
+    },
+    "rounded-ccd-geometry-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 246.336,
+      "timedOut": false
+    },
+    "rounded-ccd-oriented-regression-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 64.705583,
+      "timedOut": false
+    },
+    "rounded-ccd-pair-regression-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 77.883834,
+      "timedOut": false
+    },
+    "rounded-ccd-regression-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 77.921541,
+      "timedOut": false
+    },
+    "rounded-ccd-render-01": {
+      "status": "FAIL",
+      "exit": 1,
+      "elapsedMs": 22391.969583,
+      "timedOut": false
+    },
+    "rounded-ccd-render-02": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 5637.697292,
+      "timedOut": false
+    },
+    "rounded-ccd-render-build-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 470.051417,
+      "timedOut": false
+    },
+    "rounded-ccd-rotation-regression-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 65.1955,
+      "timedOut": false
+    },
+    "rounded-ccd-render-03": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 6468.893917,
+      "timedOut": false
+    },
+    "rounded-ccd-api-02": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 563.861542,
+      "timedOut": false
+    },
+    "rounded-ccd-docsite-02": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 327.220708,
+      "timedOut": false
+    },
+    "rounded-ccd-docbuild-02": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 9543.928667,
+      "timedOut": false
+    }
+  },
+  "preservedFailures": [
+    "Original source G2 C03 conservative-bound witness",
+    "Additive actual old compiled World false early hit with no contact",
+    "First desktop renderer failed on duplicate surface IDs; fixed only display IDs"
+  ],
+  "notRunOrNoGo": [
+    "G2 full restitution/friction switch coverage",
+    "near-tie/extreme-scale/quaternion-rounding guarantees",
+    "remaining CCD-time integration",
+    "rotating-box CCD",
+    "published browser SDK/full CAD SDK",
+    "GPU device-loss recovery",
+    "original P4 eight-box NO_GO",
+    "P6 coupled dynamics",
+    "machine validation",
+    "deployment",
+    "release"
+  ]
+}

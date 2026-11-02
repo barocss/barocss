@@ -1,0 +1,30 @@
+{
+  "phase": "before actual Source/Native public-World integration",
+  "derivedControls": "rectangular edge preserves exact outside-gap .25-.2=.15-.1, cyclic proper rotation, dyadic translation/scale; fixed32World/1024steps bound",
+  "files": {
+    "examples/physics-rounded-ccd-2276/api-run.mjs": {
+      "bytes": 8346,
+      "sha256": "1d61c8b657294c0338ef7b874776d6347a852d480056bebf563a90b2563722db"
+    },
+    "examples/physics-rounded-ccd-2276/CONTRACT.md": {
+      "bytes": 4256,
+      "sha256": "7cd89e8c19d8d3bc7e9cebb6ee4342cd75a96f3bdb145ef14a2c72ca358a7cbf"
+    },
+    "examples/physics-rounded-ccd-2276/reference.py": {
+      "bytes": 26122,
+      "sha256": "65c3ffc9d1f3a425dfed93d36ee963db3a99f471cf067c0301c24cdef5bf14d7"
+    },
+    "examples/physics-rounded-ccd-2276/cases.json": {
+      "bytes": 6923,
+      "sha256": "49c6844418b5f04fe4ba1476730688af3a7b932b2695e6ee8664ef6819de72e5"
+    },
+    "examples/physics-rounded-ccd-2276/evidence/geometry-01/bank.json": {
+      "bytes": 30697,
+      "sha256": "b6d320bc8a0e7262b8ffc8df56e951984c52e2c1ae1cb3f28b233a47854e9376"
+    },
+    "examples/physics-rounded-ccd-2276/evidence/geometry-01/summary.json": {
+      "bytes": 614,
+      "sha256": "6983733763c2f7a0daf62ee1c74bfc5425757e7f85e696d7eaf317c2e4c58098"
+    }
+  }
+}

@@ -434,3 +434,44 @@ errors and commands are in `examples/physics-general-rotation-2276/RESULTS.md`.
 The original8-box NO_GO and connected-mechanism/contact/CCD limits remain.
 Studio, manufacturing and equipment HOLDs, old tolerances and all first
 failures are preserved. No deployment or equipment-safety claim follows.
+
+## G2 rounded sphere/static-box CCD
+
+The former expanded-box boundary reported C03 atTOI0.16666666666666663
+although squared distance0.0125m² exceeded the radius gate and the public World
+had0 contacts. Both the old helper witness and an additive compiled-World
+baseline remain preserved. The current unreleased kernel replaces this geometry
+with actual Euclidean sphere/box contact; it has no old-sweep fallback.
+
+Exact local dyadic integer predicates decide initial ownership, at most7 plane
+intervals, polynomial discriminants and root-domain membership. Stable roots
+and projection numerators produce floating TOI and normals with NUMERIC_LIMIT
+guards. An independently authored oracle enumerates6faces/12edges/8vertices
+and uses exact Fraction decisions plus directed80/120 enclosures.
+
+All16 original cases pass Source then Native, each with immediate independent
+audit. Maximum TOI error2.384e-17; normal component error1.388e-16; squared-normal
+error3.645e-16. Existing gates stay1e-12 for TOI/normal and1e-12m for contact.
+The original C03 now reportsTOI0.18899576603592683, normal approximately
+[-0.8660254038,0.5,0] and1 actual contact.
+
+Public Source and canonical compiled root/replay each pass26Worlds/29steps,
+plus a separate1World/1step unknown-error rollback check. Rectangular,
+cyclic-frame, translation/scale, earliest/tie, recording restore/continuation
+and numerical/unknown failure retention pass. Four existing compiled probes
+pass unchanged. This does not certify the full CAD SDK or every package subpath.
+
+The dedicated desktop scene (`node examples/physics-rounded-ccd-2276/scene/server.mjs`,
+localhost port52900) passes9 actual Chrome checks across all16 original boundary cases plus five feature scenes and desktop
+widths1280/1440/1920. It verifies accepted positions/XYZW, real GPU pixels,
+TOI distance and normal/contact marker, camera and playback clock. An initial
+renderer duplicate-surface-ID failure is retained separately; distinct display
+IDs fixed it without changing physics or criteria. Screenshots prove presentation.
+
+Existing1e-9 inward bias and remaining-time discard are unchanged. Initial
+penetration remains owned by the existing discrete path; static-box sweep
+qualification does not imply rotating-body CCD, arbitrary scale guarantees,
+all material branches or exact CAD collision. Remaining G2 restitution/friction
+switch evidence, original8-box NO_GO and all HOLDs remain. Source/command/error
+records are in `examples/physics-rounded-ccd-2276/RESULTS.md`. No deployment,
+release or machine/manufacturing acceptance follows.

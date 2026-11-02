@@ -1,0 +1,31 @@
+{
+  "status": "PASS_MEASURED_OLD_GATES",
+  "maxima": {
+    "toi": 2.383771087217572e-17,
+    "normal": 1.3877787807814457e-16,
+    "normSquared": 3.6446213480830076e-16,
+    "distanceSquaredExcess": 8.427903502839873e-18
+  },
+  "locations": {
+    "toi": {
+      "graph": "source",
+      "id": "V01-three-outside-vertex"
+    },
+    "normal": {
+      "graph": "source",
+      "id": "C03-original-corner-witness"
+    },
+    "normSquared": {
+      "graph": "source",
+      "id": "C03-original-corner-witness"
+    },
+    "distanceSquaredExcess": {
+      "graph": "source",
+      "id": "V01-three-outside-vertex"
+    }
+  },
+  "geometryEvidenceBytes": 434193,
+  "stagedBuildBytes": 672356,
+  "currentDistBytes": 1002891,
+  "method": "exact Fraction distances from original IEEE results; directed120 endpoint residuals; no candidate/ODE calls"
+}

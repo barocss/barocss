@@ -1,0 +1,14 @@
+{
+  "phase": "after preserved first Viewer surface-ID failure, before same desktop checks",
+  "change": "Unique ball/box display surface IDs. No physics/tolerance change.",
+  "files": {
+    "examples/physics-rounded-ccd-2276/browser-checks.js": {
+      "bytes": 6966,
+      "sha256": "935e7153760e229f1b1bfff3733e8b02970d98faad5c7fdfdc4b17b7a9460b42"
+    },
+    "examples/physics-rounded-ccd-2276/scene/display.mjs": {
+      "bytes": 7181,
+      "sha256": "03878ca2ce49142ca2ad15eac3fa59fc3c2135b76869ba204b3af96d28530bbf"
+    }
+  }
+}
