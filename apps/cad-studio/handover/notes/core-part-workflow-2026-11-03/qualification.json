@@ -1,0 +1,367 @@
+{
+  "workId": "D448",
+  "status": "QUALIFIED_BOUNDED_CASE",
+  "baseline": "f40a2c3a1ae9fd60f68a6fa04c6b78b333744882",
+  "category": "C1-1 ordinary bearing-support workflow",
+  "relatedRows": [
+    "07",
+    "08",
+    "09",
+    "12",
+    "16",
+    "30"
+  ],
+  "models": {
+    "implementationAndBrowserChecks": "gpt-6.1-sol medium",
+    "nativePhysicalReview": "gpt-6.1-sol high"
+  },
+  "productChanges": "NONE; retained D447 source fix",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercent": 43,
+  "legacyPercentPolicy": "FROZEN_NOT_CORE_COMPLETENESS",
+  "coverage": {
+    "caseCount": 1,
+    "coveredActionGroups": 12,
+    "declaredActionGroups": 12,
+    "denominatorScope": "Only the fixed ordinary bearing-support case, not general C1/CAD readiness",
+    "actions": [
+      {
+        "action": "Fresh constrained dimensions",
+        "status": "PASS",
+        "authority": "D447 retained exact-source actual prefix"
+      },
+      {
+        "action": "Extrude plate",
+        "status": "PASS",
+        "authority": "D447 retained exact-source actual prefix"
+      },
+      {
+        "action": "Revolve boss",
+        "status": "PASS",
+        "authority": "D448 actual campaign"
+      },
+      {
+        "action": "Union",
+        "status": "PASS",
+        "authority": "D448 actual campaign"
+      },
+      {
+        "action": "Through Hole",
+        "status": "PASS",
+        "authority": "D448 actual campaign"
+      },
+      {
+        "action": "Four outer Fillets",
+        "status": "PASS",
+        "authority": "D448 actual campaign"
+      },
+      {
+        "action": "Upstream edit with retained references",
+        "status": "PASS",
+        "authority": "D448 actual campaign"
+      },
+      {
+        "action": "Native quantities and real Measure",
+        "status": "PASS",
+        "authority": "D448 actual campaign"
+      },
+      {
+        "action": "Exact Undo and Redo",
+        "status": "PASS",
+        "authority": "D448 actual campaign"
+      },
+      {
+        "action": "Invalid Fillet preview retention",
+        "status": "PASS",
+        "authority": "D448 actual campaign"
+      },
+      {
+        "action": "Complex local-project Save and fresh Open",
+        "status": "PASS",
+        "authority": "D448 actual campaign"
+      },
+      {
+        "action": "Geometry-changing re-edit after complex Open",
+        "status": "PASS",
+        "authority": "D448 actual campaign"
+      }
+    ]
+  },
+  "limits": {
+    "volumeRelative": 1e-09,
+    "centroidAbsolute": 1e-09,
+    "boundsAbsolute": 1e-09
+  },
+  "ownerCadence": "Bounded category changes/source review, then affected checks and integrated actual flow; preserve failures and repeat only failed/missing links plus necessary antecedents",
+  "runs": [
+    {
+      "name": "stage1-run01",
+      "status": "PASS",
+      "receiptSHA256": "fa2719dbb1ff3b2dd1f832a18aef737b8725144400e263d69d781f22e9e5971e",
+      "states": 10,
+      "frozenFiles": 1179,
+      "frozenEqualThroughCleanup": true,
+      "physicalCheckpoints": [
+        {
+          "label": "01-revolve",
+          "status": "PASS",
+          "width": 80,
+          "volumeActual": 5026.548245743668,
+          "volumeExpected": "5026.54824574366918154022941324720461471547103900016000",
+          "volumeAbsoluteError": "8.7806451419327268679244984603900016000E-13",
+          "centroidMaxAbsoluteError": 2.5987812216795837e-16,
+          "boundsMaxAbsoluteError": 1.7763568394002505e-15
+        },
+        {
+          "label": "02-union",
+          "status": "PASS",
+          "width": 80,
+          "volumeActual": 36712.38898038469,
+          "volumeExpected": "36712.38898038468985769396507491925432629575409906265000",
+          "volumeAbsoluteError": "6.5474340832481524274401674590093735000E-13",
+          "centroidMaxAbsoluteError": 4.8771826085960655e-15,
+          "boundsMaxAbsoluteError": 0.0
+        },
+        {
+          "label": "03-hole",
+          "status": "PASS",
+          "width": 80,
+          "volumeActual": 36005.53063332694,
+          "volumeExpected": "36005.53063332698637903987031368136617735139098420325250",
+          "volumeAbsoluteError": "4.637339471440700412008360139098420325250E-11",
+          "centroidMaxAbsoluteError": 9.900685832428382e-15,
+          "boundsMaxAbsoluteError": 0.0
+        }
+      ],
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "watcherChanges": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "command": "bash /tmp/barocss-d448-root/run-studio-stage1.sh"
+    },
+    {
+      "name": "remaining-run02",
+      "status": "PASS",
+      "receiptSHA256": "2ac5e1d19988fdfad159e0aabb5dba66f9069186e5208806e7fa17574819417b",
+      "states": 19,
+      "frozenFiles": 1179,
+      "frozenEqualThroughCleanup": true,
+      "physicalCheckpoints": [
+        {
+          "label": "04-fillet80",
+          "status": "PASS",
+          "width": 80,
+          "volumeActual": 35971.1943394706,
+          "volumeExpected": "35971.19433947057810857837604901254629271927776017825650",
+          "volumeAbsoluteError": "2.504546249700167715097290572223982174350E-11",
+          "centroidMaxAbsoluteError": 6.319057986380064e-15,
+          "boundsMaxAbsoluteError": 7.105427357601002e-15
+        },
+        {
+          "label": "width60-before-undo",
+          "status": "PASS",
+          "width": 60,
+          "volumeActual": 27971.194339470465,
+          "volumeExpected": "27971.19433947057810857837604901254629271927776017825650",
+          "volumeAbsoluteError": "1.1319773217248341501211303177776017825650E-10",
+          "centroidMaxAbsoluteError": 2.668490441139435e-14,
+          "boundsMaxAbsoluteError": 3.552713678800501e-15
+        },
+        {
+          "label": "width80-undo",
+          "status": "PASS",
+          "width": 80,
+          "volumeActual": 35971.1943394706,
+          "volumeExpected": "35971.19433947057810857837604901254629271927776017825650",
+          "volumeAbsoluteError": "2.504546249700167715097290572223982174350E-11",
+          "centroidMaxAbsoluteError": 6.319057986380064e-15,
+          "boundsMaxAbsoluteError": 7.105427357601002e-15
+        },
+        {
+          "label": "width60-redo",
+          "status": "PASS",
+          "width": 60,
+          "volumeActual": 27971.194339470465,
+          "volumeExpected": "27971.19433947057810857837604901254629271927776017825650",
+          "volumeAbsoluteError": "1.1319773217248341501211303177776017825650E-10",
+          "centroidMaxAbsoluteError": 2.668490441139435e-14,
+          "boundsMaxAbsoluteError": 3.552713678800501e-15
+        },
+        {
+          "label": "invalid-radius1000-after-cancel",
+          "status": "PASS",
+          "width": 60,
+          "volumeActual": 27971.194339470465,
+          "volumeExpected": "27971.19433947057810857837604901254629271927776017825650",
+          "volumeAbsoluteError": "1.1319773217248341501211303177776017825650E-10",
+          "centroidMaxAbsoluteError": 2.668490441139435e-14,
+          "boundsMaxAbsoluteError": 3.552713678800501e-15
+        },
+        {
+          "label": "final-complex-opfs-reopened",
+          "status": "PASS",
+          "width": 60,
+          "volumeActual": 27971.194339470465,
+          "volumeExpected": "27971.19433947057810857837604901254629271927776017825650",
+          "volumeAbsoluteError": "1.1319773217248341501211303177776017825650E-10",
+          "centroidMaxAbsoluteError": 2.668490441139435e-14,
+          "boundsMaxAbsoluteError": 3.552713678800501e-15
+        }
+      ],
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "watcherChanges": 0,
+      "downloads": 0,
+      "cleanup": [
+        {
+          "ownedProject": "D448-9d7e7064-4b52-47e0-8fc4-967f7b1566a4",
+          "namespace": "REMOVED_AND_ABSENT"
+        },
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "command": "bash /tmp/barocss-d448-root/run-studio-remaining-v2.sh"
+    },
+    {
+      "name": "reedit-run01",
+      "status": "PASS",
+      "receiptSHA256": "a0037d9049b75e486dd48fc81d1ed23d58842d4ed9e9822eca37c0e86f315537",
+      "states": 9,
+      "frozenFiles": 1178,
+      "frozenEqualThroughCleanup": true,
+      "physicalCheckpoints": [
+        {
+          "label": "persisted-open60-before-edit",
+          "status": "PASS",
+          "width": 60,
+          "volumeActual": 27971.194339470465,
+          "volumeExpected": "27971.19433947057810857837604901254629271927776017825650",
+          "volumeAbsoluteError": "1.1319773217248341501211303177776017825650E-10",
+          "centroidMaxAbsoluteError": 2.668490441139435e-14,
+          "boundsMaxAbsoluteError": 3.552713678800501e-15
+        },
+        {
+          "label": "postpersist-width80-before-undo",
+          "status": "PASS",
+          "width": 80,
+          "volumeActual": 35971.1943394706,
+          "volumeExpected": "35971.19433947057810857837604901254629271927776017825650",
+          "volumeAbsoluteError": "2.504546249700167715097290572223982174350E-11",
+          "centroidMaxAbsoluteError": 6.319057986380064e-15,
+          "boundsMaxAbsoluteError": 7.105427357601002e-15
+        },
+        {
+          "label": "postpersist-width60-undo",
+          "status": "PASS",
+          "width": 60,
+          "volumeActual": 27971.194339470465,
+          "volumeExpected": "27971.19433947057810857837604901254629271927776017825650",
+          "volumeAbsoluteError": "1.1319773217248341501211303177776017825650E-10",
+          "centroidMaxAbsoluteError": 2.668490441139435e-14,
+          "boundsMaxAbsoluteError": 3.552713678800501e-15
+        },
+        {
+          "label": "postpersist-width80-redo",
+          "status": "PASS",
+          "width": 80,
+          "volumeActual": 35971.1943394706,
+          "volumeExpected": "35971.19433947057810857837604901254629271927776017825650",
+          "volumeAbsoluteError": "2.504546249700167715097290572223982174350E-11",
+          "centroidMaxAbsoluteError": 6.319057986380064e-15,
+          "boundsMaxAbsoluteError": 7.105427357601002e-15
+        }
+      ],
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "watcherChanges": 0,
+      "downloads": 0,
+      "cleanup": [
+        {
+          "ownedProject": "D448-reedit-4eebb537-0c29-404e-895e-703c98a8ca2e",
+          "namespace": "REMOVED_AND_ABSENT"
+        },
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "command": "bash /tmp/barocss-d448-root/run-studio-reedit.sh"
+    }
+  ],
+  "sourceIntegrity": {
+    "crossStageProductPinsEqual": 1173,
+    "ownedWrapperPIDsAbsent": [
+      51112,
+      61207,
+      14111
+    ],
+    "gateReleasedAfterEachRun": true,
+    "rootVisualReview": "PASS; Union/Hole, Measure56, refused Fillet, saved complex and post-persist80x40 screenshots viewed",
+    "sealedInputs": "Prior executed driver versions retained locally; current scratch files are not substituted for historical inputs"
+  },
+  "retainedFailure": {
+    "status": "FAIL_HARNESS",
+    "run": "remaining-run01",
+    "receiptSHA256": "07e2516cc06074f2655c30cefe12937b1549a43de357d834f40e941bae885145",
+    "cause": "After first real corner pick, next projected target overlapped left toolbox",
+    "correction": "Bounded real wheel/orbit framing; no product change, forced click, geometry or tolerance change",
+    "rerun": "Remaining category links only, from exact accepted Hole file"
+  },
+  "proofGapCorrection": {
+    "initial": "remaining-run02 complex Open only reopened constraints and no-op Finished; post-Open geometry-changing edit NOT_RUN then",
+    "supplement": "reedit-run01 actual OPFS Save/Close/reload/Open then60\u219280 geometry edit and exact Undo60/Redo80",
+    "status": "PASS_FIXED_CASE"
+  },
+  "retainedChecks": {
+    "status": "PASS_RETAINED_NOT_RERUN",
+    "decision": "D447",
+    "focusedTests": 63,
+    "lintFiles": 5,
+    "finalModelTypeCheck": "PASS",
+    "condition": "Product and test source unchanged since f40a2c3a"
+  },
+  "newChecks": {
+    "navigation": {
+      "status": "PASS",
+      "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+      "rowPages": 34,
+      "newBroken": 0,
+      "knownHistoricalMissing": 1,
+      "archivesUnchanged": true
+    },
+    "diff": {
+      "status": "PASS",
+      "command": "git diff --check"
+    }
+  },
+  "notRun": [
+    "New production test/lint/type/build runs: verification/docs only; D447 checks retained",
+    "Full kernel: no B-rep core change; latest checkpoint D433",
+    "NodeEditor invalid Apply path: this campaign tests public Fillet HUD refusal/Apply-disabled/Cancel",
+    "Broad Boolean/Fillet/Shell/Draft/general topology qualification",
+    "Cold browser process/profile OPFS persistence; same-context page reload only",
+    "Develop integration, CI browser, release, deployment and downloads"
+  ],
+  "issues": {
+    "532": "OPEN; epic required children not all satisfied",
+    "551": "OPEN; general mixed-feature graph/selective regeneration/reorder/persistent naming scope remains"
+  },
+  "independentReview": {
+    "stage1AndRemaining": {
+      "path": "/tmp/barocss-d448-geometry/final-evidence-review.json",
+      "sha256": "7bf4739d1483117fb671610cc126628fc9f2f1f361fcec6b3560dda69524839a",
+      "status": "PASS_OBSERVED_SCOPE"
+    },
+    "persistedReedit": {
+      "path": "/tmp/barocss-d448-geometry/persisted-reedit-review.json",
+      "sha256": "2b17a689731f4925a2a13523c9c50fda8a2cd40d286064bd9f65b6165e6df7c5",
+      "status": "PASS_FIXED_CASE",
+      "findings": 0
+    }
+  }
+}

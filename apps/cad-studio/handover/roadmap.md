@@ -21,7 +21,7 @@ Sketch editing, solid modeling, feature history, native files and local-project 
 | C7 | Ecosystem: customer files, formats, catalogs and PDM retain owner gates. | 26, 28, 29 |
 | C8 | Separately held manufacturing, paths, Motion, experiments, release and browser CI. Preserve delivered proofs without automatic activation. | 14, 17, 18, 19, 27, 33 |
 
-**Latest C1 checkpoint: [D447 rectangle driving-dimension retention](notes/rectangle-driving-retention-2026-11-02/README.md).** Fresh80x40 authoring, Finish, Extrude, actual local-project Save/reopen, width60 re-edit and exact Undo/Redo pass with both locks and0DOF retained. The combined bracket UI sequence remains open. **Next: D448 / C1-1**, continue from the accepted plate to the uncovered revolve/union/hole/fillet, reference, measurement and invalid-refusal links. Reuse valid receipts and the fixed primitive prefix; do not replay fresh authoring without a source change or unresolved concern. [D446/PR#2281](https://github.com/barocss/barocss/pull/2281) is merged; publication of this new item is limited to local/cad-dev.
+**Latest C1 checkpoint: [D448 ordinary part workflow](notes/core-part-workflow-2026-11-03/README.md).** The declared bearing-support case covers12/12 action groups across the retained [D447 rectangle fix/prefix](notes/rectangle-driving-retention-2026-11-02/README.md) and D448 actual continuations, including complex project Open followed by geometry-changing width re-edit and exact Undo/Redo. This is one bounded profile, not general C1 completeness. **Next: D449 / C2-1**, inventory current ordinary Boolean/fillet/chamfer/hole/pattern/shell/draft scopes and retained proofs, then freeze one bounded robustness category around the first uncovered or reproduced daily-use gap. Reuse accepted features; no automatic kernel widening. [D446/PR#2281](https://github.com/barocss/barocss/pull/2281) remains the latest develop integration; new publication is limited to local/cad-dev.
 
 The provisional nonzero-cone D445 source-only investigation is deferred, with no code change or SUT execution. Published D445 is this priority/handoff decision. D443/D444 proofs and all held tracks remain unchanged.
 
@@ -62,7 +62,7 @@ The provisional nonzero-cone D445 source-only investigation is deferred, with no
 
 ## Current navigation — active lane and next boundary
 
-- D446 is merged in PR#2281. [D447](notes/rectangle-driving-retention-2026-11-02/README.md) qualifies the first reproduced C1-1 blocker: authored rectangle lengths survive Finish/project reopen and width re-edit. **D448 / C1-1** continues the remaining combined-part links under [D445](notes/core-cad-priority-2026-11-02/README.md).
+- D446 is merged in PR#2281. [D447](notes/rectangle-driving-retention-2026-11-02/README.md) fixes authored rectangle length retention; [D448](notes/core-part-workflow-2026-11-03/README.md) qualifies the single declared C1-1 combined-part loop. D449 starts the next bounded C2 category under [D445](notes/core-cad-priority-2026-11-02/README.md); audit existing scope/proofs before implementation.
 - Rows 12 and 16 remain cross-cutting file/acceptance and robustness concerns. Row 30 changes only for concrete core-workflow blockers.
 - Exchange profiles through D444 remain qualified at their recorded scope. General exchange stays open, but another uncommon cone/format variant is not the automatic next task. Preserve public-thicken/fitter/NURBS HOLDs.
 - Follow C1–C8 above. The former row sequence is historical context, not current execution authority. Manufacturing, Motion/Physics and the deferred UI redesign remain held.
@@ -70,10 +70,16 @@ The provisional nonzero-cone D445 source-only investigation is deferred, with no
 ## Current navigation — progress reporting
 
 - **Legacy estimate at D444: 43%, frozen.** The former equal-row heuristic was `(7 + 15 × 0.5) / 34 = 42.65%`: seven bounded closeouts, fifteen partial rows and twelve planned/held rows. It is history, not core CAD readiness; delivered/open rows are not each 50% complete.
-- **Core workflow readiness: NOT_MEASURED.** D447 verifies the declared constrained-plate prefix and fixes its first blocker; the complete combined C1-1 loop still needs coverage. Until then report “legacy 43%; core coverage not measured”; then report real covered/required steps as N/M until a defensible percentage exists. Do not invent zero readiness, weights or scores.
+- **Core workflow readiness: NOT_MEASURED.** D448 covers12/12 declared action groups for one bearing-support case, reusing D447's exact-source prefix. This bounded case coverage is not a whole-CAD percentage. Report the selected category and measured case/action scope; keep legacy43% frozen and do not invent readiness, weights or scores.
 - Announce the selected priority, rows and concrete task. Keep the [owner UX discussion](roadmap-rows/15.md) deferred.
 - Scope labels are not percentages: **Verified scope** means recorded acceptance of the agreed bounded scope; **Delivered; open scope** means delivered profiles with broader acceptance still open; **Planned / held** retains its existing planning/owner boundary. None means whole-family, release or standards acceptance.
 - State reproduced defects separately from unverified breadth. Row 12's open collaboration scope does not mean Save, native versions or local-project Open are missing.
+
+## Current navigation — category validation cadence
+
+- Owner request2026-11-03: work in one bounded roadmap category, collect related changes/source review, then run affected checks and an integrated Studio flow together. C1-1 is the first qualified bounded case; broad row IDs remain scope inventories.
+- Retain the first failure. Repeat only failed steps and necessary antecedents, not successful category prefixes. A reproduced accuracy defect still gets an immediate minimal reproduction.
+- One category milestone gets its decision/qualification and normal branch push. This does not remove independent review, final Model tsc, source freeze, physical oracles or the existing B-rep-core-only full-kernel rule.
 
 ## Current navigation — 34 scope rows
 
