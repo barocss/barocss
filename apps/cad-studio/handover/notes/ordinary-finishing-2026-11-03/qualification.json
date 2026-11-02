@@ -1,0 +1,731 @@
+{
+  "workId": "D449",
+  "status": "QUALIFIED_BOUNDED_GEOMETRY_WORKFLOW; NEXT_SELECTION_DEFECT_OPEN",
+  "baseline": "d73fc05e6c4e7f46b08a2d81cb875d5fcda9cc19",
+  "category": "C2-1 ordinary rectangular finishing",
+  "relatedRows": [
+    "07",
+    "08",
+    "16",
+    "20",
+    "21"
+  ],
+  "coverage": {
+    "qualifiedBranches": 3,
+    "declaredBranches": 3,
+    "scope": "Independent Chamfer/Draft/Shell on one exact original prism; not composed tools or general C2 readiness",
+    "branches": {
+      "chamfer": {
+        "create": "PASS",
+        "parameterEdit": "PASS",
+        "undo": "PASS",
+        "redo": "PASS",
+        "invalidEditorRetention": "PASS",
+        "projectSaveOpen": "NOT_RUN",
+        "postOpenGeometryEdit": "NOT_RUN"
+      },
+      "draft": {
+        "create": "PASS",
+        "parameterEdit": "PASS",
+        "undo": "PASS",
+        "redo": "PASS",
+        "invalidEditorRetention": "PASS",
+        "projectSaveOpen": "NOT_RUN",
+        "postOpenGeometryEdit": "NOT_RUN"
+      },
+      "shell": {
+        "create": "PASS",
+        "parameterEdit": "PASS",
+        "undo": "PASS",
+        "redo": "PASS",
+        "invalidEditorRetention": "PASS",
+        "projectSaveOpen": "PASS",
+        "postOpenGeometryEdit": "PASS"
+      }
+    }
+  },
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercent": 43,
+  "legacyPolicy": "FROZEN_NOT_CORE_COMPLETENESS",
+  "models": {
+    "routine": "GPT-6.1 Sol Medium",
+    "geometryFixAndIndependentReview": "GPT-6.1 Sol High"
+  },
+  "sourcePins": {
+    "packages/barocss-cad/src/part/part-model.ts": "6d4d1d2e70b6c18b3e4b7f60eef3f537a7ea9b09002e6693f9def394e45a1571",
+    "packages/barocss-cad/test/draft-neutral-plane.test.mjs": "ebcf97ff8704fff5f8ab43ef6def32aea80719820b3cb564025f25c64424d688",
+    "packages/barocss-cad/test/part-model.test.mjs": "a9be19c757ca50260807c147d4e5c084b6ea945d201f49b67c6b5ab000635160",
+    "packages/barocss-cad-model/test/api-draft-pull.test.ts": "c878cd478612c9bd65424b508b7a8ed221987d535aadbbac2de99881d2066903"
+  },
+  "productChange": "Private planar Draft cutter representation only; no public API, schema, dependency, global tolerance or shared B-rep core change",
+  "targets": {
+    "volumeRelative": 1e-09,
+    "centroidBoundsSupportAbsolute": 1e-09,
+    "normalComponentAbsolute": 1e-09,
+    "retainedHistoricalDraftVolumeRelative": 1e-06,
+    "noImplementationLiftInReference": true
+  },
+  "originalFailure": {
+    "status": "FAIL",
+    "failureClass": "INDEPENDENT_NOMINAL_DRAFT_PHYSICAL_CHECK",
+    "receiptSHA256": "c32c3c72d4690cb957dc5dd07e6ff3352e7ca0532b3043b9bd3ac5ccaff4e293",
+    "states": 5,
+    "sourceFiles": 1179,
+    "sourceEqualThroughCleanupAndCurrent": true,
+    "coverage": {
+      "draft10PublicCreate": "PASS",
+      "nominalNeutralPhysicalCheck": "FAIL",
+      "draftParameterEdit": "NOT_RUN",
+      "draftUndoRedo": "NOT_RUN",
+      "draftInvalidRetention": "NOT_RUN",
+      "chamfer": "NOT_RUN",
+      "shell": "NOT_RUN",
+      "representativeProject": "NOT_RUN"
+    },
+    "errors": 0,
+    "consoleErrors": 0,
+    "watcherChanges": 0,
+    "downloads": 0,
+    "wrapperPIDAbsent": 77222,
+    "gateEnd": "holder: none\nslots: 0 of 3\nload: { 9.40 8.52 9.62 }\n"
+  },
+  "originalMeasurements": {
+    "status": "FAIL_NOMINAL_CANDIDATE",
+    "errors": {
+      "volumeAbsolute": 0.006488832885224838,
+      "volumeRelative": 2.0503560953622887e-07,
+      "centroidAbsolute": [
+        8.11070539086245e-06,
+        0,
+        3.8079361885934304e-09
+      ],
+      "boundsAbsolute": {
+        "min": [
+          0,
+          0,
+          0
+        ],
+        "max": [
+          1.6222082230399337e-05,
+          0,
+          0
+        ]
+      }
+    },
+    "neutralEdge": {
+      "vertices": [
+        [
+          59.99998377791777,
+          -20,
+          0
+        ],
+        [
+          59.99998377791777,
+          20,
+          0
+        ]
+      ],
+      "maxX": 59.99998377791777,
+      "nominalX": 60,
+      "residualX": -1.6222082230399337e-05
+    },
+    "retainedLegacyVolumeOnly": {
+      "relative": 1e-06,
+      "absolute": 0.03164734603858307,
+      "passes": true,
+      "source": "cad-model/test/api-draft-pull.test.ts7-16; no old nominal C/bbox guarantee claimed"
+    },
+    "checks": {
+      "volume": false,
+      "centroid": false,
+      "bounds": false,
+      "neutralEdge": false,
+      "supportPlane": false,
+      "strictNative": true
+    }
+  },
+  "retainedCandidateFailures": [
+    {
+      "candidate": 1,
+      "sourceSHA256": "24ce92fd8b66070cc14782be6e63894ebe079b6294a7800aa832052c94e04f3c",
+      "change": "Nominal origin only",
+      "primaryNative": "PASS",
+      "newCAD": {
+        "pass": 5,
+        "fail": 1
+      },
+      "firstFailure": "Outward angle-10 non-manifold Boolean; later checks NOT_RUN",
+      "raw": "/tmp/barocss-d449-checks01"
+    },
+    {
+      "candidate": 2,
+      "sourceSHA256": "7fb56bbff62c8b92936dff4f542e7c966316b1a62a4f62f28faab6545c586ecd",
+      "change": "Also exact outward lower extent",
+      "newOutwardRetry": "PASS",
+      "existingDraft": 18,
+      "modelFocused": 17,
+      "independent": {
+        "pass": 21,
+        "fail": 3,
+        "mutants": "NOT_RUN"
+      },
+      "firstFailures": [
+        "-x_-10_0",
+        "-y_10_0",
+        "-y_-10_0"
+      ],
+      "oldSameFixtures": "All3 strict valid; candidate2 introduced slivers/self-touch",
+      "identifiedFirstLoss": "Recovered far half-box plane residual1/140737488355328 in the diagnostic case",
+      "raw": "/tmp/barocss-d449-review/campaign-v2-01"
+    },
+    {
+      "candidate": 3,
+      "sourceSHA256": "47ca98a350798aaa079457b0a358b10eeeceefaf262de4f0f4d0f4c280d1b665",
+      "change": "Direct derived prismatic wedge",
+      "failedProfilesRetry": {
+        "pass": 3,
+        "fail": 0,
+        "guard": "PASS"
+      },
+      "finalRefinement": "Retain original validation-only rectangle separately from actual outward tool extent; final source6d4d1d2..."
+    }
+  ],
+  "finalChecks": {
+    "status": "PASS",
+    "cadBuild": "PASS; includes CAD types",
+    "cadNew": {
+      "pass": 7,
+      "fail": 0,
+      "skip": 0
+    },
+    "cadExistingDraft": {
+      "pass": 18,
+      "fail": 0,
+      "skip": 0
+    },
+    "modelFocused": {
+      "pass": 17,
+      "fail": 0,
+      "skip": 0
+    },
+    "uniqueTests": 42,
+    "lint": "PASS;4changed source/test paths",
+    "inheritedLintRepair": "let b to const in touched existing test; assertions unchanged",
+    "codeShape": "PASS;119/32/269/69 unchanged hot-folder counts",
+    "finalModelTypeCheck": "PASS after last test edit",
+    "sourceEquality": "PASS",
+    "command": "bash /tmp/barocss-d449-root/run-check-final-representation.sh"
+  },
+  "independent": {
+    "status": "PASS",
+    "receiptSHA256": "c4b657d56d4000b2eb3a4085068ce2975deb6927725d507cae59e7c3dcca9be9",
+    "physicalCases": {
+      "pass": 24,
+      "fail": 0
+    },
+    "signedPulls": 6,
+    "angleSigns": 2,
+    "externalNeutralDistances": [
+      0,
+      2
+    ],
+    "typedAdjacencyGuard": "PASS",
+    "nativeRoleReference": [
+      {
+        "status": "PASS",
+        "face": "d.draft.bottom",
+        "splitNames": [
+          "role.lower",
+          "role.upper"
+        ],
+        "phases": [
+          "accepted",
+          "reopened"
+        ]
+      }
+    ],
+    "rolePersistenceBoundary": "Actual saveCadPart/loadCadPart rebuild in same Node process; not Studio OPFS",
+    "mutants": [
+      {
+        "id": "M1",
+        "status": "KILLED",
+        "killer": {
+          "case": "x_10_0",
+          "kind": "ORACLE_ASSERTION",
+          "message": "nominal volume",
+          "details": {
+            "actual": 26357.523639663345,
+            "expected": 26357.53661732912,
+            "absoluteError": 0.012977665774087654,
+            "limit": 2.635753661732912e-05
+          }
+        }
+      },
+      {
+        "id": "M2",
+        "status": "KILLED",
+        "killer": {
+          "case": "x_10_0",
+          "kind": "ORACLE_ASSERTION",
+          "message": "nominal volume",
+          "details": {
+            "actual": 26357.54959498744,
+            "expected": 26357.53661732912,
+            "absoluteError": 0.012977658319869079,
+            "limit": 2.635753661732912e-05
+          }
+        }
+      },
+      {
+        "id": "M4",
+        "status": "KILLED",
+        "killer": {
+          "case": "x_10_2",
+          "kind": "ORACLE_ASSERTION",
+          "message": "nominal volume",
+          "details": {
+            "actual": 26357.53661732912,
+            "expected": 26075.413448195577,
+            "absoluteError": 282.1231691335415,
+            "limit": 2.6075413448195578e-05
+          }
+        }
+      },
+      {
+        "id": "M5",
+        "status": "KILLED",
+        "killer": {
+          "case": "-x_10_2",
+          "kind": "RUNTIME_REFUSAL",
+          "message": "d: e.side[e1]: the neutral plane x = -69 must be at or above the face for pull -x",
+          "details": {
+            "category": "SELECTION"
+          },
+          "code": "SELECTION"
+        }
+      },
+      {
+        "id": "M6",
+        "status": "KILLED",
+        "killer": {
+          "case": "x_-10_0",
+          "kind": "ORACLE_ASSERTION",
+          "message": "nominal volume",
+          "details": {
+            "actual": 32000.80000000001,
+            "expected": 37642.46338267088,
+            "absoluteError": 5641.663382670871,
+            "limit": 3.764246338267088e-05
+          }
+        }
+      },
+      {
+        "id": "M9",
+        "status": "KILLED",
+        "killer": {
+          "case": "x_10_0",
+          "kind": "ORACLE_ASSERTION",
+          "message": "world centroid0",
+          "details": {
+            "actual": -14,
+            "expected": 24.14567995505258,
+            "absoluteError": 38.14567995505258,
+            "limit": 1e-09
+          }
+        }
+      },
+      {
+        "id": "M13",
+        "status": "KILLED",
+        "killer": {
+          "case": "x_-10_0",
+          "kind": "ORACLE_ASSERTION",
+          "message": "strict native topology",
+          "details": {
+            "issues": [
+              "geometry: face d_body0/s0/f12: its loops cross or touch themselves or each other (ring 0 segment 7 and ring 0 segment 2)",
+              "geometry: face d_body0/s0/f13: its loops cross or touch themselves or each other (ring 0 segment 9 and ring 0 segment 3)"
+            ]
+          }
+        }
+      },
+      {
+        "id": "M14",
+        "status": "KILLED",
+        "killer": {
+          "case": "role-reference",
+          "kind": "RUNTIME_REFUSAL",
+          "message": "r: face split: [NO_FACE] no face d.draft.bottom",
+          "details": {
+            "category": "REFERENCE"
+          },
+          "code": "REFERENCE"
+        }
+      },
+      {
+        "id": "M12",
+        "status": "KILLED",
+        "killer": {
+          "case": "touching-admission",
+          "kind": "ORACLE_ASSERTION",
+          "message": "touching selected faces retain typed CAPABILITY",
+          "details": {
+            "accepted": true
+          }
+        }
+      }
+    ],
+    "sourceEquality": {
+      "files": 167,
+      "equal": true,
+      "unequal": []
+    },
+    "maximumVolumeRelativeError": 2.239189176099854e-16,
+    "maximumCentroidAbsoluteError": 1.0658141036401503e-14,
+    "command": "bash /tmp/barocss-d449-root/run-independent-final.sh"
+  },
+  "actual": {
+    "status": "PASS",
+    "receiptSHA256": "84ecfb8daf291964a2ef1048be1e461a0521789a30d6d0ff8d3d9ac432c958c2",
+    "states": 27,
+    "reads": 20,
+    "oracles": [
+      {
+        "label": "chamfer-created-native",
+        "phase": "chamfer",
+        "value": 2,
+        "volumeActual": 31840.000000000004,
+        "volumeExpected": 31840,
+        "errors": {
+          "volumeAbsolute": 3.637978807091713e-12,
+          "volumeRelative": 1.142581283634332e-16,
+          "centroidMaximum": 3.7470027081099033e-16,
+          "boundsMaximum": 0
+        },
+        "maximumNormalError": 0
+      },
+      {
+        "label": "chamfer-edited-native",
+        "phase": "chamfer",
+        "value": 3,
+        "volumeActual": 31640,
+        "volumeExpected": 31640,
+        "errors": {
+          "volumeAbsolute": 0,
+          "volumeRelative": 0,
+          "centroidMaximum": 0,
+          "boundsMaximum": 0
+        },
+        "maximumNormalError": 0
+      },
+      {
+        "label": "chamfer-undo-native",
+        "phase": "chamfer",
+        "value": 2,
+        "volumeActual": 31840.000000000004,
+        "volumeExpected": 31840,
+        "errors": {
+          "volumeAbsolute": 3.637978807091713e-12,
+          "volumeRelative": 1.142581283634332e-16,
+          "centroidMaximum": 3.7470027081099033e-16,
+          "boundsMaximum": 0
+        },
+        "maximumNormalError": 0
+      },
+      {
+        "label": "chamfer-redo-native",
+        "phase": "chamfer",
+        "value": 3,
+        "volumeActual": 31640,
+        "volumeExpected": 31640,
+        "errors": {
+          "volumeAbsolute": 0,
+          "volumeRelative": 0,
+          "centroidMaximum": 0,
+          "boundsMaximum": 0
+        },
+        "maximumNormalError": 0
+      },
+      {
+        "label": "chamfer-invalid-retained-native",
+        "phase": "chamfer",
+        "value": 3,
+        "volumeActual": 31640,
+        "volumeExpected": 31640,
+        "errors": {
+          "volumeAbsolute": 0,
+          "volumeRelative": 0,
+          "centroidMaximum": 0,
+          "boundsMaximum": 0
+        },
+        "maximumNormalError": 0
+      },
+      {
+        "label": "draft-created-native",
+        "phase": "draft",
+        "value": 10,
+        "volumeActual": 31647.346038583066,
+        "volumeExpected": 31647.34603858307,
+        "errors": {
+          "volumeAbsolute": 3.637978807091713e-12,
+          "volumeRelative": 1.1495367740019803e-16,
+          "centroidMaximum": 3.552713678800501e-15,
+          "boundsMaximum": 0
+        },
+        "maximumNormalError": 3.885780586188048e-16
+      },
+      {
+        "label": "draft-edited-native",
+        "phase": "draft",
+        "value": 12,
+        "volumeActual": 31574.886876659955,
+        "volumeExpected": 31574.886876659955,
+        "errors": {
+          "volumeAbsolute": 0,
+          "volumeRelative": 0,
+          "centroidMaximum": 8.881784197001252e-16,
+          "boundsMaximum": 0
+        },
+        "maximumNormalError": 1.1102230246251565e-16
+      },
+      {
+        "label": "draft-undo-native",
+        "phase": "draft",
+        "value": 10,
+        "volumeActual": 31647.346038583066,
+        "volumeExpected": 31647.34603858307,
+        "errors": {
+          "volumeAbsolute": 3.637978807091713e-12,
+          "volumeRelative": 1.1495367740019803e-16,
+          "centroidMaximum": 3.552713678800501e-15,
+          "boundsMaximum": 0
+        },
+        "maximumNormalError": 3.885780586188048e-16
+      },
+      {
+        "label": "draft-redo-native",
+        "phase": "draft",
+        "value": 12,
+        "volumeActual": 31574.886876659955,
+        "volumeExpected": 31574.886876659955,
+        "errors": {
+          "volumeAbsolute": 0,
+          "volumeRelative": 0,
+          "centroidMaximum": 8.881784197001252e-16,
+          "boundsMaximum": 0
+        },
+        "maximumNormalError": 1.1102230246251565e-16
+      },
+      {
+        "label": "draft-invalid-retained-native",
+        "phase": "draft",
+        "value": 12,
+        "volumeActual": 31574.886876659955,
+        "volumeExpected": 31574.886876659955,
+        "errors": {
+          "volumeAbsolute": 0,
+          "volumeRelative": 0,
+          "centroidMaximum": 8.881784197001252e-16,
+          "boundsMaximum": 0
+        },
+        "maximumNormalError": 1.1102230246251565e-16
+      },
+      {
+        "label": "shell-created-native",
+        "phase": "shell",
+        "value": 2,
+        "volumeActual": 10111.999999999985,
+        "volumeExpected": 10112,
+        "errors": {
+          "volumeAbsolute": 1.4551915228366852e-11,
+          "volumeRelative": 1.4390738952103295e-15,
+          "centroidMaximum": 5.3290705182007514e-14,
+          "boundsMaximum": 0
+        },
+        "maximumNormalError": 0
+      },
+      {
+        "label": "shell-edited-native",
+        "phase": "shell",
+        "value": 3,
+        "volumeActual": 14387.999999999985,
+        "volumeExpected": 14388,
+        "errors": {
+          "volumeAbsolute": 1.4551915228366852e-11,
+          "volumeRelative": 1.0113924957163506e-15,
+          "centroidMaximum": 3.552713678800501e-14,
+          "boundsMaximum": 0
+        },
+        "maximumNormalError": 0
+      },
+      {
+        "label": "shell-undo-native",
+        "phase": "shell",
+        "value": 2,
+        "volumeActual": 10111.999999999985,
+        "volumeExpected": 10112,
+        "errors": {
+          "volumeAbsolute": 1.4551915228366852e-11,
+          "volumeRelative": 1.4390738952103295e-15,
+          "centroidMaximum": 5.3290705182007514e-14,
+          "boundsMaximum": 0
+        },
+        "maximumNormalError": 0
+      },
+      {
+        "label": "shell-redo-native",
+        "phase": "shell",
+        "value": 3,
+        "volumeActual": 14387.999999999985,
+        "volumeExpected": 14388,
+        "errors": {
+          "volumeAbsolute": 1.4551915228366852e-11,
+          "volumeRelative": 1.0113924957163506e-15,
+          "centroidMaximum": 3.552713678800501e-14,
+          "boundsMaximum": 0
+        },
+        "maximumNormalError": 0
+      },
+      {
+        "label": "shell-invalid-retained-native",
+        "phase": "shell",
+        "value": 3,
+        "volumeActual": 14387.999999999985,
+        "volumeExpected": 14388,
+        "errors": {
+          "volumeAbsolute": 1.4551915228366852e-11,
+          "volumeRelative": 1.0113924957163506e-15,
+          "centroidMaximum": 3.552713678800501e-14,
+          "boundsMaximum": 0
+        },
+        "maximumNormalError": 0
+      },
+      {
+        "label": "shell-persisted-reopen-native",
+        "phase": "shell",
+        "value": 3,
+        "volumeActual": 14387.999999999985,
+        "volumeExpected": 14388,
+        "errors": {
+          "volumeAbsolute": 1.4551915228366852e-11,
+          "volumeRelative": 1.0113924957163506e-15,
+          "centroidMaximum": 3.552713678800501e-14,
+          "boundsMaximum": 0
+        },
+        "maximumNormalError": 0
+      },
+      {
+        "label": "shell-post-open-reedit-native",
+        "phase": "shell",
+        "value": 2,
+        "volumeActual": 10111.999999999985,
+        "volumeExpected": 10112,
+        "errors": {
+          "volumeAbsolute": 1.4551915228366852e-11,
+          "volumeRelative": 1.4390738952103295e-15,
+          "centroidMaximum": 5.3290705182007514e-14,
+          "boundsMaximum": 0
+        },
+        "maximumNormalError": 0
+      }
+    ],
+    "sourceFiles": 1188,
+    "sourceEqualBeforeAfterCleanupAndCurrent": true,
+    "coverage": {
+      "chamfer": {
+        "create": "PASS",
+        "parameterEdit": "PASS",
+        "undo": "PASS",
+        "redo": "PASS",
+        "invalidEditorRetention": "PASS",
+        "projectSaveOpen": "NOT_RUN",
+        "postOpenGeometryEdit": "NOT_RUN"
+      },
+      "draft": {
+        "create": "PASS",
+        "parameterEdit": "PASS",
+        "undo": "PASS",
+        "redo": "PASS",
+        "invalidEditorRetention": "PASS",
+        "projectSaveOpen": "NOT_RUN",
+        "postOpenGeometryEdit": "NOT_RUN"
+      },
+      "shell": {
+        "create": "PASS",
+        "parameterEdit": "PASS",
+        "undo": "PASS",
+        "redo": "PASS",
+        "invalidEditorRetention": "PASS",
+        "projectSaveOpen": "PASS",
+        "postOpenGeometryEdit": "PASS"
+      }
+    },
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "watcherChanges": 0,
+    "downloads": 0,
+    "cleanup": [
+      {
+        "ownedProject": "D449-category-shell-run01",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "wrapperPIDAbsent": 28681,
+    "gateEnd": "holder: none\nslots: 0 of 3\nload: { 14.57 10.67 10.06 }\n"
+  },
+  "rootVisualReview": {
+    "status": "PASS_BOUNDED_SHAPES_AND_REFUSAL",
+    "imagesViewed": [
+      "chamfer-created",
+      "draft-created",
+      "shell-created",
+      "chamfer-invalid-editor-refused",
+      "draft-invalid-editor-refused",
+      "shell-invalid-editor-refused",
+      "shell-post-open-wall2"
+    ],
+    "selectionIdentity": "FAIL_OUTSIDE_DECLARED_GEOMETRY_ACCEPTANCE; D450 next"
+  },
+  "nextReproducedDefect": {
+    "id": "D450",
+    "scope": "C2-2 selection identity after accepted topology change",
+    "evidence": "D449 actual ordinal2edge/1face/5face survive as unrelated geometry after preview installation",
+    "status": "OPEN",
+    "notRedesign": true,
+    "existingPolicy": "Named surviving Shelltop rim n1.top should remap; missing Draft face/Chamferedge should drop. No new clear policy."
+  },
+  "reviews": {
+    "source": "/tmp/barocss-d449-review/final-source-review.md",
+    "actual": {
+      "status": "PASS_BOUNDED",
+      "path": "/tmp/barocss-d449-review/final-evidence-review.json",
+      "sha256": "ab326fd6bd2de006a5fbe6c747f9b837ee5a24f4a66cf812a65225b7220e166c"
+    },
+    "sourceSHA256": "bf040c09ef4b0ef486ebd45e25216283c25ce16710a9140992debeaac334125e"
+  },
+  "newDocChecks": {
+    "status": "PASS",
+    "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs; git diff --check",
+    "rowPages": 34,
+    "newBroken": 0,
+    "historicalMissing": 1,
+    "archivesUnchanged": true
+  },
+  "issues": {
+    "536": "OPEN epic",
+    "2259": "OPEN general fillet",
+    "2260": "OPEN general/freeform/per-face shell",
+    "2261": "OPEN broader draft generality; bounded neutral correction only"
+  },
+  "notRun": [
+    "Full kernel: no shared B-rep core change; D433 remains checkpoint",
+    "Chamfer/Draft Studio file persistence; Shell alone exercises project Save/Open/reedit",
+    "Cold browser process/profile OPFS persistence; same-context page reload only",
+    "Far outside neutral/extreme scale/general non-cardinal/freeform qualification and historical far-halfbox output identity",
+    "Whole C2/CAD completeness, full inertia tensor accuracy or formal trig interval proof",
+    "Browser CI, new downloads, paid live, develop integration, release and deployment"
+  ]
+}

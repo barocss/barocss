@@ -11,7 +11,7 @@ last_updated: 2026-11-02
 
 Read this document completely, then the [current roadmap](../../roadmap.md), [D445 priority decision](../core-cad-priority-2026-11-02/README.md), and the [previous handoff §5 operating rules](../codex-handoff-2026-11-01/README.md). This handoff and the latest owner directions supersede the previous execution order. Preserve its operating rules and explicit HOLDs. Current status stays only in roadmap.md; this document is a starting procedure.
 
-Continuation update: [D447](../rectangle-driving-retention-2026-11-02/README.md) fixes the first C1-1 rectangle constraint-retention blocker. [D448](../core-part-workflow-2026-11-03/README.md) qualifies the fixed combined-part workflow through persisted geometry re-edit. Read the current roadmap for D449/C2 and later tasks; do not repeat the qualified ordinary-part case.
+Continuation update: [D447](../rectangle-driving-retention-2026-11-02/README.md) fixes the first C1-1 rectangle constraint-retention blocker. [D448](../core-part-workflow-2026-11-03/README.md) qualifies the fixed combined-part workflow through persisted geometry re-edit. [D449](../ordinary-finishing-2026-11-03/README.md) fixes nominal Draft accuracy and qualifies three finishing branches. Read the current roadmap for D450/C2-2 selection identity and later tasks; do not repeat qualified geometry cases.
 
 ## Checkout and integration
 
@@ -23,7 +23,7 @@ The integration actual uses native Save/fresh Open only; local-project OPFS rema
 
 ## Next CAD item
 
-Resume **D449 / C2-1** from the current roadmap after checking decisions.md. Inventory the current ordinary Boolean/fillet/chamfer/hole/pattern/shell/draft scopes and retained proofs, then define one bounded robustness category around the first uncovered or reproduced daily-use gap. Reuse delivered tools; do not widen held kernel scope automatically. Collect related changes and source review, run affected checks and one integrated actual Studio flow, record one decision, then push normally.
+Resume **D450 / C2-2 post-Apply selection identity** from the current roadmap after checking decisions.md. D449's genuine Studio flow found that preview-backed Apply leaves old face/edge ordinals pointing at different new topology (Shell selected top→inner wall instead of named rim; Draft right face→other side; Chamfer removed edge→other edge). Inspect its sealed receipts and current commit/apply selection routing, fix this reproduced functional defect before broader Hole/Boolean cases, then batch affected checks and one actual flow. Reuse qualified native geometry; no UI redesign or kernel widening. One category gets its decision and normal push.
 
 The initial C1-1 audit is now a qualified fixed case across D447/D448: constrained sketch → Extrude/Revolve → Union/Hole/Fillet → upstream width/reference/quantity checks → Measure/UndoRedo/refusal retention → complex local-project Save/fresh Open/geometry re-edit. Retained D349/D377/D380 evidence was inventoried first; D378 remains GPU integration, not Save evidence. Do not repeat accepted construction without source change or an unresolved concern.
 

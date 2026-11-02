@@ -18,7 +18,7 @@
 import { BrepError, checkBrep, isFacetFace, nurbsOf, type Brep, type BrepCheckReport } from '../brep/brep-core.js';
 import { brepFromPrismatic, booleanPrismatic, prismaticFromProfile, prismaticVolume, transformPrismatic, isPrismaticSolidError, type PrismaticSolid } from '../features/prismatic-solid.js';
 import { unitNamedField } from '../document/unit-named.js';
-import { sampleRing, isCurvedArrangementError, type XY } from '../brep/curved-arrangement.js';
+import { sampleRing, isCurvedArrangementError, type CurveSegment2, type XY } from '../brep/curved-arrangement.js';
 import { booleanPolyhedra } from '../brep/polyhedral-boolean.js';
 import { booleanAnalytic, faceGeometry, splitFaceAlongCurve, splitFaceAlongIsocline } from '../brep/analytic-boolean.js';
 import { draftedExtrusion } from '../features/drafted-extrusion.js';
@@ -1812,7 +1812,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         const fromZ: BrepAffine['matrix'] | null = pull === 'x' ? [0, 0, 1, 1, 0, 0, 0, 1, 0] : pull === 'y' ? [0, 1, 0, 0, 0, 1, 1, 0, 0] : pull === '-x' ? [0, 0, -1, 1, 0, 0, 0, -1, 0] : pull === '-y' ? [0, -1, 0, 0, 0, -1, 1, 0, 0] : pull === '-z' ? [1, 0, 0, 0, -1, 0, 0, 0, -1] : null;
         const localSolid = toZ ? affine(target[0].solid, toZ, [0, 0, 0]) : target[0].solid;
         const brep = brepOf(toZ ? { solid: localSolid } : target[0], at), box = bounds(localSolid), zN = negativePull && neutral !== undefined ? -neutral : neutral ?? box.min[2], R = len(sub(box.max, box.min)) + 2, a = (angle as number) * Math.PI / 180;
-        // (The turn's line a hair below the neutral plane, so a wedge does not touch the body's bottom along a line.)
+        // Extend tool coverage beyond the face; keep the turn on the authored neutral plane.
         const lift = 1e-6 * R;
         const coedges = new Map(brep.coedges.map(c => [c.id, c])), edges = new Map(brep.edges.map(e => [e.id, e])), points = new Map(brep.vertices.map(v => [v.id, v.point]));
         // Each face's wedge, from the body as it was: the face pushed in (or out) as deep as the turn takes
@@ -1833,14 +1833,14 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           const m: BrepAffine['matrix'] = [x[0], y[0], along[0], x[1], y[1], along[1], x[2], y[2], along[2]], o = ring[0];
           const uv = ring.map(p => { const d = sub(p, o); return [dot(d, x), dot(d, y)]; });
           // (A little wider and taller than the face, so the wedge's ends do not lie on its neighbours' planes.)
-          const e = 1e-3 * R, wide = a > 0 ? e : 0, u0 = Math.min(...uv.map(q => q[0])) - wide, u1 = Math.max(...uv.map(q => q[0])) + wide, v0 = Math.min(...uv.map(q => q[1])) - 2 * lift, v1 = Math.max(...uv.map(q => q[1])) + wide;
+          const e = 1e-3 * R, wide = a > 0 ? e : 0, u0 = Math.min(...uv.map(q => q[0])) - wide, u1 = Math.max(...uv.map(q => q[0])) + wide, minV = Math.min(...uv.map(q => q[1])), v0 = minV - (a > 0 ? 2 * lift : 0), v1 = Math.max(...uv.map(q => q[1])) + wide;
           const depth = height * Math.tan(Math.abs(a)) + 1;
-          const outline: ProfileSegmentInput[] = [[u0, v0], [u1, v0], [u1, v1], [u0, v1]].map(start => ({ kind: 'line', start: start as XY }));
-          const prism = affine({ kind: 'upright', solid: prismaticFromProfile({ outer: outline, height: depth, from: a > 0 ? 0 : -1e-3, tag: `${at}.draft` }) }, m, o);
-          const n2: Point = [n[0] * Math.cos(a), n[1] * Math.cos(a), Math.sin(a)], side: Point = a > 0 ? n2 : [-n2[0], -n2[1], -n2[2]];
-          const hz = unit(cross(side, Math.abs(side[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0])), hy = cross(side, hz), q0: Point = [ring[0][0], ring[0][1], zN - lift];
-          const half = affine(boxSolid([-R, -R, 0], [R, R, R], `${at}.draft`), [hz[0], hy[0], side[0], hz[1], hy[1], side[1], hz[2], hy[2], side[2]], q0);
-          return boolean(prism, half, 'intersection', at);
+          // Preserve the original profile admission separately from the outward tool's exact extent.
+          const outline: ProfileSegmentInput[] = [[u0, minV - 2 * lift], [u1, minV - 2 * lift], [u1, v1], [u0, v1]].map(start => ({ kind: 'line', start: start as XY }));
+          const prism = prismaticFromProfile({ outer: outline, height: depth, from: a > 0 ? 0 : -1e-3, tag: `${at}.draft` });
+          // Retain the former finite half-box's coordinate admission, not its rounded far-corner plane.
+          boxSolid([-R, -R, 0], [R, R, R], `${at}.draft`);
+          return draftWedge(prism, u0, u1, v0, v1, zN - o[2], a, m, o, `${at}.draft`);
         });
         // Faces that meet would need their wedges mitred where they join: not yet.
         const edgesOf = (name: string) => { const face = brep.faces.find(x => x.name === name || (x.name ?? '').split('#')[0] === name)!; return new Set(face.loops.flatMap(l => brep.loops.find(x => x.id === l)!.coedges.map(c => coedges.get(c)!.edge))); };
@@ -1992,6 +1992,42 @@ function splitFacets(s: Solid, n: Point, d: number, at: string): Solid[] {
   return [{ kind: 'brep', brep: r.below }, { kind: 'brep', brep: r.above }];
 }
 
+
+function draftSectionEdge(outer: CurveSegment2[], a: XY, b: XY, tag: string): void {
+  if (a[0] !== b[0] || a[1] !== b[1]) outer.push({ kind: 'line', a, b, tag });
+}
+
+/** The validated Draft prism clipped by its nominal plane in the existing face frame. */
+function draftWedge(prism: PrismaticSolid, u0: number, u1: number, v0: number, v1: number, neutral: number,
+  angle: number, frame: BrepAffine['matrix'], origin: Point, tag: string): Solid {
+  const slab = prism.slabs[0], none: Solid = { kind: 'upright', solid: { kind: 'prismatic-solid', slabs: [] } };
+  if (!slab) return none;
+  const slope = Math.tan(Math.abs(angle)), bottom = slab.z0, depth = slab.z1;
+  const lowerCross = slope === 0 ? -Infinity : neutral + bottom / slope;
+  const lo = Math.max(v0, lowerCross), high = Math.min(depth, slope * (v1 - neutral));
+  if (!(v1 > lo && high > bottom)) return none;
+  // Copy a known clipping coordinate exactly; do not recover the neutral line from remote corners.
+  const low = lo === lowerCross ? bottom : Math.max(bottom, Math.min(depth, slope * (lo - neutral)));
+  const upperCross = slope === 0 ? Infinity : neutral + depth / slope, capped = slope * (v1 - neutral) > depth;
+  const a: XY = [lo, bottom], b: XY = [v1, bottom], c: XY = [v1, high], d: XY = [lo, low], outer: CurveSegment2[] = [];
+  draftSectionEdge(outer, a, b, `${tag}.overlap`);
+  draftSectionEdge(outer, b, c, `${tag}.side2`);
+  if (capped && upperCross > lo) {
+    const cap: XY = [upperCross, depth];
+    draftSectionEdge(outer, c, cap, `${tag}.top`);
+    draftSectionEdge(outer, cap, d, `${tag}.bottom`);
+  } else draftSectionEdge(outer, c, d, capped ? `${tag}.top` : `${tag}.bottom`);
+  draftSectionEdge(outer, d, a, `${tag}.side0`);
+  let twiceArea = 0;
+  for (const edge of outer) if (edge.kind === 'line') twiceArea += (edge.a[0] - lo) * (edge.b[1] - bottom) - (edge.b[0] - lo) * (edge.a[1] - bottom);
+  if (!(twiceArea > 0)) return none;
+  // This convex section is derived geometry, not a new sketch: retain internal short cap edges.
+  const regions = [{ outer, holes: [] }], section: PrismaticSolid = { kind: 'prismatic-solid',
+    slabs: [{ z0: u0, z1: u1, regions }], caps: [{ z: u0, regions, tag: `${tag}.side3` }, { z: u1, regions, tag: `${tag}.side1` }] };
+  // (faceY, normal, faceX) is a cyclic permutation of the original proper face frame.
+  const matrix: BrepAffine['matrix'] = [frame[1], frame[2], frame[0], frame[4], frame[5], frame[3], frame[7], frame[8], frame[6]];
+  return affine({ kind: 'upright', solid: section }, matrix, origin);
+}
 
 function boxSolid(min: Point, max: Point, tag: string): Solid {
   const ring: ProfileSegmentInput[] = [[min[0], min[1]], [max[0], min[1]], [max[0], max[1]], [min[0], max[1]]].map(start => ({ kind: 'line', start: start as XY }));

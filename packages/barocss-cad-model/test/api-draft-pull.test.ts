@@ -4,14 +4,15 @@ import { part, param, Location, BarocssError, type BodyQuery, type StudioPart } 
 import { evaluateDoc } from '../src/engine/evaluate';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 
-// Frozen oracle.json: nominal X wedge11600; existing lift explains a small source offset.
-// Y is the same wedge with X/Y exchanged. No nominal zero bound or new tolerance is asserted.
+// Independent nominal plane y=(x-N)/20 fixes the declared neutral coordinate N.
+// At N=0 the X wedge volume is 11600; exchanging axes gives the Y/Z controls.
+// Do not compensate for any implementation offset from that neutral plane.
 const angle = Math.atan(1 / 20) * 180 / Math.PI;
 const close = (a: number, b: number) => assert.ok(Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b)), `${a} != ${b}`);
 const nominal = (p: StudioPart, expected: number) => {
   const result = evaluateDoc(p.doc, 1); assert.ok(result.ok, result.ok ? '' : result.error.detail);
   assert.equal(result.bodies.length, 1); assert.ok(result.bodies[0].volume !== null);
-  assert.ok(Math.abs(result.bodies[0].volume - expected) <= 1e-6 * Math.max(1, Math.abs(expected)));
+  assert.ok(Math.abs(result.bodies[0].volume - expected) <= 1e-9 * Math.max(1, Math.abs(expected)));
   return result.bodies[0];
 };
 const yMin = (b: BodyQuery) => b.faces().facing('-y');
@@ -24,6 +25,12 @@ test('public draft: signed principal pull and explicit neutral reach the existin
   assert.ok(node && node.kind === 'draft'); assert.equal(node.pull, 'x'); assert.equal(node.neutral, 0); assert.equal(node.angle, angle);
   assert.deepEqual(node.faces, yMin(base.select()).names()); assert.deepEqual(doc.nodes.slice(0, -1), before.nodes);
   const actual = nominal(made, 11600);
+  // The nominal plane meets y=0 at the declared neutral x=0; the original extents stay fixed.
+  const nominalMaximum = [40, 30, 10];
+  for (let axis = 0; axis < 3; axis++) {
+    close(actual.mesh.bounds.min[axis], 0);
+    close(actual.mesh.bounds.max[axis], nominalMaximum[axis]);
+  }
   const reference = nominal(part('Z reference').box({ w: 30, d: 10, h: 40 }).draft(xMin, { angle, pull: 'z', neutral: 0 }), 11600);
   for (const side of ['min', 'max'] as const) {
     const expected = [reference.mesh.bounds[side][2], reference.mesh.bounds[side][0], reference.mesh.bounds[side][1]];
@@ -51,7 +58,7 @@ test('public draft: omitted Z and neutral retain legacy encoding; translated def
   assert.deepEqual(moved.doc, movedBefore);
   const base = seed().parameter('N', 0), before = base.doc, bound = base.draft(yMin, { angle, pull: 'x', neutral: param('N') });
   const saved = bound.doc, node = saved.nodes.at(-1); assert.ok(node && node.kind === 'draft'); assert.deepEqual(node.neutral, { parameter: 'N' });
-  // Independent face y=(x-N)/20 gives nominal V=11600+20N; original source lift remains unchanged.
+  // Independent face y=(x-N)/20 gives nominal V=11600+20N at the declared neutral.
   const edited = bound.withParameters({ N: -2 }); nominal(edited, 11560);
   const after = edited.doc.nodes.at(-1); assert.ok(after && after.kind === 'draft'); assert.deepEqual(after.neutral, { parameter: 'N' });
   assert.deepEqual(bound.doc, saved); assert.deepEqual(base.doc, before);

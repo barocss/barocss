@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D449: preserve the nominal Draft neutral plane, qualify three ordinary finishing branches and retain the newly found selection-identity gap](notes/ordinary-finishing-2026-11-03/README.md).
+
 - [D448: qualify one ordinary part category through real feature picks, retained references, measurement, refusal and persisted geometry re-edit](notes/core-part-workflow-2026-11-03/README.md).
 
 - [D447: retain authored rectangle driving dimensions through Finish, project Save/reopen and upstream edits](notes/rectangle-driving-retention-2026-11-02/README.md).

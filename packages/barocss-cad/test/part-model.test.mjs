@@ -513,7 +513,8 @@ test('sketch planes: profiles drawn on a face, a vertical plane at any heading o
   // A boss on the +X side face (x = 40): sketch X along +Y, Y up, grown 5 mm outward.
   const side = { origin: [40, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] };
   let snap = evaluateCadPart(D([...box, { ...circle('c', 10, 5, 3), plane: side }, extrude('b', 'c', 5), { id: 'u', kind: 'union', target: 'e', tool: 'b' }]));
-  let out = outputOf(snap, 'u'), b = bounds(out);
+  let out = outputOf(snap, 'u');
+  const b = bounds(out);
   assert.ok(close(volume(out), 8000 + 45 * pi, 1e-4), String(volume(out)));
   assert.ok(close(b.max[0], 45) && close(b.min[1], 0) && close(b.max[2], 10), JSON.stringify(b));
   assert.deepEqual(checkBrep(out.brep).problems ?? [], []);
@@ -670,7 +671,7 @@ function compareDraftPull(c, angle) {
   const box = [rect('s', 0, 0, 20, 20), extrude('e', 's', 10)], before = structuredClone(box);
   const out = outputOf(evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: [c.face], angle, pull: c.pull }])), 'd');
   const reference = outputOf(evaluateCadPart(D([...c.reference, { id: 'd', kind: 'draft', target: 'e', faces: [c.referenceFace], angle }])), 'd');
-  // Independent nominal wedge: pull height20, width10, depth20*tan10. The existing neutral lift remains.
+  // Independent nominal wedge: pull height20, width10, depth20*tan10. This retains the older coarse volume bound.
   const expected = 4000 - Math.sign(angle) * 0.5 * 20 * (20 * Math.tan(10 * pi / 180)) * 10;
   assert.ok(close(volume(out), expected, 1e-6), `${c.pull} ${angle}: ${volume(out)} vs ${expected}`);
   assert.deepEqual(checkBrep(out.brep).issues, []);
@@ -747,7 +748,7 @@ test('draft: pull-normal faces, adjacent faces and a neutral plane above the fac
   }
 });
 
-// Negative pulls use proper signed rotations; these reference boxes retain the same solver lift.
+// Negative pulls use proper signed rotations; these reference boxes test the same signed construction.
 const negativeDraftCases = [
   { pull: '-x', positive: 'x', face: 'e.side0', axis: 0, neutral: 20, height: 20, width: 10,
     reference: [rect('s', 0, -10, 20, 0), extrude('e', 's', 20, -20)], referenceFace: 'e.side3', inverse: [2, 0, 1], signs: [-1, 1, -1], normalFace: 'e.side1', adjacentFace: 'e.bottom' },
@@ -782,7 +783,7 @@ function compareNegativeDraft(c, angle) {
     const expected = c.inverse.map((k, i) => c.signs[i] > 0 ? refBounds[key][k] : -refBounds[key === 'min' ? 'max' : 'min'][k]);
     draftVector(actualBounds[key], expected);
   }
-  // Nominal analytic COM/tensor omit the inherited lift; no 1e-9 nominal assertion is made.
+  // These are permuted-result COM/tensor controls; D449 tests nominal neutral geometry separately.
   assert.deepEqual(authored, before);
 }
 for (const c of negativeDraftCases) test(`draft: negative ${c.positive.toUpperCase()} pull follows its independent world wedge and signed Z reference`, () => {
