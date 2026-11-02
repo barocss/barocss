@@ -33,7 +33,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Record actual G1a errors and immutable compressed evidence; freeze next G1b/general-range and G2 exact-sweep dependencies. G2 first exact-corner witness NO_GO preserved; no production activation.",
+  "active": "G1b PhaseM candidate/independent-reference/2World micro harness authoring underAUTHORING-FREEZE-M01; no G1b runtime yet. G2 exact-sweep numerical design accepted; compact joint evidence budget proof pending.",
   "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
@@ -47,5 +47,6 @@
     "G1": "G1a STAGED_AXISYMMETRIC_PASS; originalproductionbaselinePHYSICAL_NO_GO preserved; G1b/nearunit/axis/frame/downstream/adoption open",
     "G2": "STATIC19BRANCH_MAP_COMPLETE; ACTUAL_SOURCE_CORNER_EXACT_CONTACT_NO_GO; reference1/World0/nativeNOT_RUN; other numerical gaps open",
     "G7": "PER_CAMPAIGN_TRUST_GATE; NO_BLANKET_PASS"
-  }
+  },
+  "sourceCorrection": "G1b/ADMISSION-NORMALIZATION-CORRECTION-01.json: Body constructor already normalizes admitted initialq; prior inferredinitialnormguardmismatch unestablished. Broader boundary qualification stillNOT_RUN."
 }
