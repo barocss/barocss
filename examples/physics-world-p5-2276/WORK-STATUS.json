@@ -3,10 +3,10 @@
   "branch": "codex/physics-world-p5-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "G2 persistent centered box restitution",
-    "status": "BOUNDED_SOURCE_NATIVE_WARM_CACHE_AND_DESKTOP_PASS",
-    "scope": "main28World287steps/graph; separatewarm3World9steps/graph; independent40audits;11desktopchecks6presets;firstignored-restitutionfailurepreserved",
-    "results": "examples/physics-persistent-impact-2276/RESULTS.md"
+    "profile": "G2 finite discrete tangent response",
+    "status": "BOUNDED_SOURCE_NATIVE_INDEPENDENT_AND_DESKTOP_PASS",
+    "scope": "cuboid27World31steps/graph plus separate original22spherecases; independent40audits;9desktopchecks4presets; originalsupport3000+slide240/graph; allfirstfailurespreserved",
+    "results": "examples/physics-tangent-response-2276/RESULTS.md"
   },
   "mainSlices": {
     "P0": "CONTRACT_COMPLETE_LOCAL",
@@ -33,7 +33,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Persistent restitution repaired and numerically/render qualified. Continue G2 finite friction transitions and reproduce anisotropic cuboid sticking candidate before repair. P4 eight-box remains NO_GO; Studio/manufacturing/equipment HOLD; no old-worker resume or deployment.",
+  "active": "G2 centered persistent restitution and finite discrete tangent response implemented/qualified. Continue exact P4 reference-budget audit before full8box; persistentfriction/frame/cache, coupledcontacts and CCDcoverage remain separate. No old-worker resume, Studio/manufacturing/equipment HOLD, no deployment.",
   "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
@@ -46,7 +46,7 @@
   "invariants": "HOLD, original NO_GO, tolerances and first failures preserved. Owner explicitly authorized current checkpoint develop push on2026-11-02; no deploy/release or held-worker resume; not whole-roadmap completion.",
   "addedGateProgress": {
     "G1": "GENERAL_CONTINUOUS_PRIMITIVE_ROTATION_PASS; see physics-general-rotation-2276; old one-step restriction retired with original evidence retained. Wider phase/control/contact qualification remains separate.",
-    "G2": "ROUNDED_CCD_AND_CENTERED_PERSISTENT_RESTITUTION_BOUNDED_PASS; friction/near-ties/extreme scales/projection work and original8box open.",
+    "G2": "ROUNDED_CCD_CENTERED_PERSISTENT_RESTITUTION_AND_DISCRETE_TANGENT_BOUNDED_PASS; persistentfriction/couplednormal-tangent/projection/near-tie-extremeCCD remainopen.",
     "G7": "PER_CAMPAIGN_TRUST_GATE; NO_BLANKET_PASS"
   },
   "sourceCorrection": "G1b/ADMISSION-NORMALIZATION-CORRECTION-01.json: Body constructor already normalizes admitted initialq; prior inferredinitialnormguardmismatch unestablished. Broader boundary qualification stillNOT_RUN.",
@@ -84,5 +84,19 @@
     "url": "http://127.0.0.1:52920",
     "checks": 11,
     "presets": 6
+  },
+  "latestTangentConsumer": {
+    "status": "PASS_DESKTOP_ONLY",
+    "results": "examples/physics-tangent-response-2276/RESULTS.md",
+    "url": "http://127.0.0.1:52940",
+    "checks": 9,
+    "presets": 4
+  },
+  "P4FirstUnfinishedBoundary": {
+    "sourceAttemptAcceptedSteps": 308,
+    "refusedBeforeStep": 309,
+    "reason": "180000ms execution budget; correctedrunner16stepSource/Nativeprefixonly",
+    "physicalSettlingQualification": "NO_GO_NOT_RUN_FULL1200",
+    "next": "new independentreferencebudget strategy, not ended supportcachev3repeat"
   }
 }

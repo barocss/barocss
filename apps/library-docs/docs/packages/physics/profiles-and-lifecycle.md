@@ -33,6 +33,8 @@ is within ±2 rad/s. Its positive motor impulse cap is at most 0.05 N·m·s and 
 is at most 1 N·m·s. It stops pushing outward at a hinge limit. Exceeding the reaction cap gives
 `NUMERIC_LIMIT`; it is not a material break-strength model. The offset profile fixes narrower values.
 
+Discrete static friction now solves both tangent constraints. Centered anisotropic cuboid impacts and original sphere/static-box branch inputs have separate numerical and desktop proof. The persistent manifold friction solver has its own cache/iteration law and is not qualified by those discrete results. General off-center normal/tangent coupling remains unqualified.
+
 The public persistent-box limit remains four bodies. Private nine-body studies do not raise it or
 activate the original eight-box experiment. The disjoint-hinge profile has a separate qualification;
 it does not admit connected two-link mechanisms. Keep historical NO_GO results and unresolved causes alongside later

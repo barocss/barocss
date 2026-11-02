@@ -33,6 +33,8 @@ The [rounded CCD desktop scene](../../examples/physics-rounded-ccd-2276/README.m
 
 The [persistent box impact scene](../../examples/physics-persistent-impact-2276/README.md) exercises minimum restitution and the strict speed switch through the common World, recorder and desktop GPU Viewer. Centered zero-friction impacts and warmed-cache failure recovery are qualified separately from general stacks and friction.
 
+The [tangent response scene](../../examples/physics-tangent-response-2276/README.md) shows discrete anisotropic cuboid sticking and the original sphere static/dynamic boundary inputs. Independent momentum/no-slip audits and desktop rendering are recorded separately; this does not qualify persistent friction or arbitrary coupled impacts.
+
 | Entry point | Current result | Example |
 | --- | --- | --- |
 | `@barocss/physics` | One World for selected rigid or fixed visual cloth/fluid model profiles | [3D native-Surface Viewer](../../examples/physics-viewer-scene/README.md) |

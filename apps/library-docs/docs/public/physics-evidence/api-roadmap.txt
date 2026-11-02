@@ -412,6 +412,34 @@ remain separate. Next: finite friction mixing/stick-slip and independent
 reproduction of the anisotropic cuboid sticking candidate before any repair.
 P4eight-box/public4 limit, P6/P7, all HOLDs and first failures remain. No deploy.
 
+### G2 finite discrete friction response (2026-11-03)
+
+Two actual physical failures are preserved: original sphere nextDown(1.75)
+static impulse0.25Ns vs expected~1Ns, and centered anisotropic cuboid residual
+slip0.31043712344775254m/s vs1e-10. `collision.ts` now uses the geometric
+sphere/static-box tangent lever, a non-unit-normal orthogonal projection and
+private `contact-tangent.ts`2Dstatic solve with finite/SPD guards. No epsilon,
+iteration/admission change, singular fallback or dynamic-law replacement.
+
+Final cuboid public Source and emitted root/replay each pass27Worlds/31steps,
+with20valid finite controls and one separate invalid creation refusal. Original
+sphere table22cases passes unchanged per graph; independent physical scalar
+reference passes40cuboid audits, no candidate/World calls. Max accepted slip
+2.221e-16m/s, old1e-10 gate. Original support3000/sliding240step tests pass both
+graphs after preserving the first candidate projection regression. Invalid
+muStatic4 test remains refused; separate supported upper2case is explicit in
+cases02 and never changes admission. Actual desktop GPU Viewer passes9checks,
+four presets at1280/1440/1920, zeroerrors, no mobile. See
+`examples/physics-tangent-response-2276/RESULTS.md` and original material table.
+
+Persistent friction, sphere-pair finite-overlap lever semantics, coupled
+normal/tangent/off-center impacts and projection work remain open. These fixes
+do not repair original P4. Latest P4 source attempt accepted308steps then hit
+180s before309; corrected runners qualify matched16step prefixes only. Next
+P4 dependency is a new bounded independent-reference strategy, not an unchanged
+full-stack rerun or another ended support-radius-cache iteration. All prior
+failures, HOLDs, four-body public limit and no-deployment policy remain.
+
 Dependency order: close the G1 admitted-rotation boundary and G2 finite coverage
 map before the corresponding general rigid/contact claim. Keep original P4
 work as its own acceptance track. Before a new P6/P7 plant runs, select only

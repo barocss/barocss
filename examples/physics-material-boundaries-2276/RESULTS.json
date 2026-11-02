@@ -1,0 +1,147 @@
+{
+  "status": "PASS_FINAL_FINITE_SPHERE_MATERIAL_TABLE",
+  "firstFailure": {
+    "status": "FAIL_MATERIAL_BOUNDARIES_PUBLIC_API",
+    "pins": {
+      "CONTRACT.md": "7ed2563d64898da07a2d8e551f6d63ce3171b993eb5779ef8231953ca03f9b59",
+      "cases.mjs": "1f590ffe321400c0e9531538b3b1220ff34fdc290004a2c2220df1851724e772",
+      "api-run.mjs": "192665470382ed37d1e5778c111944ae05ce01d07b220073841ad05ed0875988",
+      "README.md": "c246aaec93cb6775847da8c88accf2c5e0ac33085cab9ed29abb396580cf1570"
+    },
+    "counts": {
+      "source": {
+        "worlds": 1,
+        "acceptedSteps": 1
+      }
+    },
+    "maxima": {
+      "source": {
+        "velocity": 0,
+        "omega": 0,
+        "impulse": 0.7499999999999999,
+        "momentum": 0,
+        "angularMomentum": 0,
+        "geometry": 5.551115123125783e-17,
+        "slip": 0,
+        "energy": 0,
+        "tangentPlane": 0
+      }
+    },
+    "firstFailure": {
+      "phase": "source-static-next-down",
+      "name": "AssertionError",
+      "message": "impulse: 0.7499999999999999 exceeds 1e-10",
+      "stack": "AssertionError [ERR_ASSERTION]: impulse: 0.7499999999999999 exceeds 1e-10\n    at gate (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-material-boundaries-2276/api-run.mjs:52:130)\n    at file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-material-boundaries-2276/api-run.mjs:69:48"
+    },
+    "evidenceBytes": 106088,
+    "providerPinFile": "examples/physics-material-boundaries-2276/PROVIDER-PINS-01.json",
+    "providerPinSHA256": "8779270f5df29802fb05cf590c97c4824d651eb2bf7f018f4b22e6c08085b527",
+    "reusedBuild": "Explicit frozen provider manifest checked before graph imports",
+    "browser": "NOT_RUN",
+    "scope": "one-step uniform sphere/finite floor discrete material boundaries"
+  },
+  "repairedV1": {
+    "status": "PASS_MATERIAL_BOUNDARIES_PUBLIC_API",
+    "pins": {
+      "CONTRACT.md": "7ed2563d64898da07a2d8e551f6d63ce3171b993eb5779ef8231953ca03f9b59",
+      "cases.mjs": "1f590ffe321400c0e9531538b3b1220ff34fdc290004a2c2220df1851724e772",
+      "api-run.mjs": "7663a339e7b5a19e0fbce85e5a6620e49faea5f52995518bf168ccb8d89b35e7",
+      "README.md": "c246aaec93cb6775847da8c88accf2c5e0ac33085cab9ed29abb396580cf1570"
+    },
+    "counts": {
+      "source": {
+        "worlds": 22,
+        "acceptedSteps": 22
+      },
+      "native": {
+        "worlds": 22,
+        "acceptedSteps": 22
+      }
+    },
+    "maxima": {
+      "source": {
+        "velocity": 0,
+        "omega": 0,
+        "impulse": 0,
+        "momentum": 1.1102230246251565e-16,
+        "angularMomentum": 0,
+        "geometry": 5.551115123125783e-17,
+        "slip": 0,
+        "energy": 2.220446049250313e-16,
+        "tangentPlane": 0
+      },
+      "native": {
+        "velocity": 0,
+        "omega": 0,
+        "impulse": 0,
+        "momentum": 1.1102230246251565e-16,
+        "angularMomentum": 0,
+        "geometry": 5.551115123125783e-17,
+        "slip": 0,
+        "energy": 2.220446049250313e-16,
+        "tangentPlane": 0
+      }
+    },
+    "firstFailure": null,
+    "evidenceBytes": 1366746,
+    "providerPinFile": "examples/physics-material-boundaries-2276/PROVIDER-PINS-02.json",
+    "providerPinSHA256": "7e21958bfcf8f553f455c74327a87265201bc50721dd7547e66d20fb606c461b",
+    "reusedBuild": "Explicit frozen provider manifest checked before graph imports",
+    "browser": "NOT_RUN",
+    "scope": "one-step uniform sphere/finite floor discrete material boundaries"
+  },
+  "finalProjectionProvider": {
+    "status": "PASS_MATERIAL_BOUNDARIES_PUBLIC_API",
+    "pins": {
+      "CONTRACT.md": "7ed2563d64898da07a2d8e551f6d63ce3171b993eb5779ef8231953ca03f9b59",
+      "cases.mjs": "1f590ffe321400c0e9531538b3b1220ff34fdc290004a2c2220df1851724e772",
+      "api-run.mjs": "7663a339e7b5a19e0fbce85e5a6620e49faea5f52995518bf168ccb8d89b35e7",
+      "README.md": "c246aaec93cb6775847da8c88accf2c5e0ac33085cab9ed29abb396580cf1570"
+    },
+    "counts": {
+      "source": {
+        "worlds": 22,
+        "acceptedSteps": 22
+      },
+      "native": {
+        "worlds": 22,
+        "acceptedSteps": 22
+      }
+    },
+    "maxima": {
+      "source": {
+        "velocity": 0,
+        "omega": 0,
+        "impulse": 0,
+        "momentum": 1.1102230246251565e-16,
+        "angularMomentum": 0,
+        "geometry": 5.551115123125783e-17,
+        "slip": 0,
+        "energy": 2.220446049250313e-16,
+        "tangentPlane": 0
+      },
+      "native": {
+        "velocity": 0,
+        "omega": 0,
+        "impulse": 0,
+        "momentum": 1.1102230246251565e-16,
+        "angularMomentum": 0,
+        "geometry": 5.551115123125783e-17,
+        "slip": 0,
+        "energy": 2.220446049250313e-16,
+        "tangentPlane": 0
+      }
+    },
+    "firstFailure": null,
+    "evidenceBytes": 1366746,
+    "providerPinFile": "examples/physics-material-boundaries-2276/PROVIDER-PINS-03.json",
+    "providerPinSHA256": "ea48a485c28163fdf18840c2c2adfc7eb35fe37cb3e90eb53842a80eaa1c4ba6",
+    "reusedBuild": "Explicit frozen provider manifest checked before graph imports",
+    "browser": "NOT_RUN",
+    "scope": "one-step uniform sphere/finite floor discrete material boundaries"
+  },
+  "expectedCasesChanged": false,
+  "gatesChanged": false,
+  "fullEngine": "NO_GO",
+  "archive": "../physics-tangent-response-2276/EVIDENCE-01.tar.gz"
+}

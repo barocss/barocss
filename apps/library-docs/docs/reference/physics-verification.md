@@ -10,6 +10,29 @@ Read [Physics](/packages/physics/), [Units and frames](/packages/physics/units-a
 motion, use [Robot motion](/guide/robot-motion). A supported input is not a claim that every admitted parameter
 has been verified to the errors below.
 
+## Discrete friction checkpoint
+
+The discrete contact solver now solves both static tangent constraints and uses
+geometric sphere/static-box radius arms. A non-unit normal no longer creates a
+false tangent for axial support. Existing dynamic ray/clamp law, material mixing,
+iterations and thresholds remain. Original wrong-branch/surface-slip failures,
+first candidate regression and invalid test input are preserved separately.
+
+Each actual Source/emitted public API passes27Worlds/31steps with20valid cuboid
+controls and one expected creation refusal. Original22sphere boundary inputs
+pass unchanged per graph. Independent scalar physical constraints audit40cuboid
+impacts; maximum surface-slip residual2.221e-16m/s meets the unchanged1e-10 gate.
+Original3000-step support and240-step sliding/rolling tests pass both graphs.
+The actual GPU Viewer scene passes9desktop checks/four presets at1280/1440/1920,
+including real mesh pixels, accepted poses, contact readings and recorder time.
+No mobile, deployment or real-machine validation follows.
+
+This qualifies centered principal-normal contacts with zero normal/tangent
+coupling. Persistent friction, finite-overlap unequal-mass sphere pairs,
+arbitrary off-center/simultaneous impacts and original eight-box settling remain
+separate. Full commands, numerical errors and preserved failures are in
+`examples/physics-tangent-response-2276/RESULTS.md` on this branch.
+
 ## Persistent box impact checkpoint
 
 The persistent manifold now applies minimum material restitution from point

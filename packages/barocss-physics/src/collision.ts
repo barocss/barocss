@@ -2,6 +2,7 @@ import type { Body, BoxShape, CapsuleShape, Hit, PhysicsContact, SphereShape, Ve
 import { error } from './validation.js';
 import { add, sub, scale, dot, cross, inverse, rotate, localPoint, worldPoint, inverseInertia } from './math.js';
 import { capsuleBox, capsuleCapsule } from './capsule-contact.js';
+import { solveStaticTangent } from './contact-tangent.js';
 
 function capsuleCenter(body: Body, point: Vec3): Vec3 {
   const half = (body.shape as CapsuleShape).halfLengthM;
@@ -199,12 +200,23 @@ export function solve(a: Body, b: Body, hit: Hit): { normalImpulseNs: number; ta
   if (impulse === 0 || staticFriction === 0) {
     return { normalImpulseNs: impulse, tangentImpulseNs: [0, 0, 0] };
   }
-  const frictionArmA = sub(hit.pointM, a.positionM);
-  const frictionArmB = sub(hit.pointM, b.positionM);
+  // A sphere against a fixed box acts at its radial surface. Reconstruct
+  // that lever directly; subtracting projected coordinates can shorten it
+  // by one representable word and change the exact Coulomb boundary.
+  const frictionArmA = a.shape.kind === 'sphere' && b.kind === 'static' && b.shape.kind === 'box'
+    ? scale(hit.normal, a.shape.radiusM) : sub(hit.pointM, a.positionM);
+  const frictionArmB = b.shape.kind === 'sphere' && a.kind === 'static' && a.shape.kind === 'box'
+    ? scale(hit.normal, -b.shape.radiusM) : sub(hit.pointM, b.positionM);
   const afterA = add(a.velocityMps, cross(a.angularVelocityRadps, frictionArmA));
   const afterB = add(b.velocityMps, cross(b.angularVelocityRadps, frictionArmB));
   const relative = sub(afterB, afterA);
-  const tangent = sub(relative, scale(hit.normal, dot(relative, hit.normal)));
+  const normalSquared = dot(hit.normal, hit.normal);
+  if (!(normalSquared > 0) || !Number.isFinite(normalSquared)) {
+    error('NUMERIC_LIMIT', 'unsafe tangent projection');
+  }
+  // Project onto the actual normal plane without assuming exact unit length.
+  // Axial normal-only motion then produces exactly zero tangent.
+  const tangent = scale(cross(cross(hit.normal, relative), hit.normal), 1 / normalSquared);
   const speed = Math.hypot(...tangent);
   if (speed === 0) return { normalImpulseNs: impulse, tangentImpulseNs: [0, 0, 0] };
   const direction = scale(tangent, 1 / speed);
@@ -212,10 +224,11 @@ export function solve(a: Body, b: Body, hit: Hit): { normalImpulseNs: number; ta
   const tangentMass = inverseTotal + dot(tangentAxisA, inverseInertia(a, tangentAxisA))
     + dot(tangentAxisB, inverseInertia(b, tangentAxisB));
   const required = speed / tangentMass;
+  const sticking = solveStaticTangent(a, b, frictionArmA, frictionArmB,
+    hit.normal, direction, speed, tangentMass);
   const dynamicFriction = Math.sqrt(a.frictionDynamic * b.frictionDynamic);
-  const magnitude = required <= staticFriction * impulse
-    ? required : Math.min(required, dynamicFriction * impulse);
-  const tangentImpulse = scale(direction, -magnitude);
+  const tangentImpulse = sticking.magnitudeNs <= staticFriction * impulse
+    ? sticking.impulseNs : scale(direction, -Math.min(required, dynamicFriction * impulse));
   a.velocityMps = sub(a.velocityMps, scale(tangentImpulse, a.inverseMass));
   b.velocityMps = add(b.velocityMps, scale(tangentImpulse, b.inverseMass));
   a.angularVelocityRadps = sub(a.angularVelocityRadps,

@@ -1,0 +1,86 @@
+{
+  "base": "afea04be5",
+  "stage": "before first repaired build/API/audit/render",
+  "inputs": {
+    "examples/physics-tangent-response-2276/browser-run.mjs": {
+      "bytes": 3095,
+      "sha256": "57d89788be010b1e29f3ec7d18fe4ac7b76a2c15846e044332eaff3183338e4c"
+    },
+    "examples/physics-tangent-response-2276/browser-checks.js": {
+      "bytes": 10528,
+      "sha256": "ceb19d1d5dad062bb0b814472c4d4370dc43087b17218b8fcd38a71296ce99d8"
+    },
+    "examples/physics-tangent-response-2276/CONTRACT.md": {
+      "bytes": 4070,
+      "sha256": "6f0312605acbf81ed8271219b8c33d2d054b606fab0e87ba74f6e5dc5c1c49ef"
+    },
+    "examples/physics-tangent-response-2276/cases.mjs": {
+      "bytes": 1671,
+      "sha256": "67d56519fc87fe27adad78efc74c23279dd144b84f723664b6027425a0aa3384"
+    },
+    "examples/physics-tangent-response-2276/reference.py": {
+      "bytes": 6337,
+      "sha256": "4902059da032ea0a4513796fc26ba851b055bd6810b7306f9a24b3bfdf2d6188"
+    },
+    "examples/physics-tangent-response-2276/baseline.mjs": {
+      "bytes": 2289,
+      "sha256": "6f688a7369f165dac256e7e2cfc626464d75d40edaefd8592c5721b4c39c5b2f"
+    },
+    "examples/physics-tangent-response-2276/api-run.mjs": {
+      "bytes": 12683,
+      "sha256": "3b60ecfbc6b6f315fc1f1a70f272a0905684242edc8b2af4c0e72c0c805cea74"
+    },
+    "examples/physics-tangent-response-2276/build/consumer.mts": {
+      "bytes": 947,
+      "sha256": "3401595c6c6c7e3828b9ef92f7cbe7228ab642c7c1301839dccf1a9157191032"
+    },
+    "examples/physics-tangent-response-2276/build/consumer.tsconfig.json": {
+      "bytes": 563,
+      "sha256": "8737990be5236782e91c6aa243b7ffb9a3da5f1f995b3cfd248a6ced47577dd9"
+    },
+    "examples/physics-tangent-response-2276/build/source-entry.ts": {
+      "bytes": 129,
+      "sha256": "c0c46babdfebba4f24d58e2a8c2e20a402124d36776673d67f4cc0738c926c92"
+    },
+    "examples/physics-tangent-response-2276/build/runtime.tsconfig.json": {
+      "bytes": 862,
+      "sha256": "cd231f829ce638176d3be54c2517eaa341fc2f303e730ad8f969c437af0c0a58"
+    },
+    "examples/physics-tangent-response-2276/build/build.mjs": {
+      "bytes": 2488,
+      "sha256": "01ee11735f02a22470ed842e80f2ffb50c7c520920e901e9ac20dff7b066313e"
+    },
+    "examples/physics-tangent-response-2276/scene/index.html": {
+      "bytes": 3436,
+      "sha256": "98eff35967cdbf7b0ed2cddd14853b8bc29db2bfc1f0f33dec058bbab0bd8c34"
+    },
+    "examples/physics-tangent-response-2276/scene/display.mjs": {
+      "bytes": 6055,
+      "sha256": "8d1e34bea081e38b181601670df22a462e151ce96a7103a0f2e346d11ae769ea"
+    },
+    "examples/physics-tangent-response-2276/scene/style.css": {
+      "bytes": 3633,
+      "sha256": "46e0d1125ab2ca7deda612e35b485611282c4d5247af43d75d65966cdfa5f5b4"
+    },
+    "examples/physics-tangent-response-2276/scene/app.mjs": {
+      "bytes": 6421,
+      "sha256": "dd69fdced59efcac9e8074d95b660aad6784a46c4729056df0c474723235b26f"
+    },
+    "examples/physics-tangent-response-2276/scene/server.mjs": {
+      "bytes": 3207,
+      "sha256": "7f8e379535e11fc65b2297b093ae5b486e8c40b814f57a6e00e5a87fbf4d3cf9"
+    },
+    "examples/physics-tangent-response-2276/scene/scenario.mjs": {
+      "bytes": 2050,
+      "sha256": "93cca1d5ff81dde5f6c07891582ccfb7f908443780725d822c20c0d654bc7883"
+    },
+    "packages/barocss-physics/src/collision.ts": {
+      "bytes": 14068,
+      "sha256": "8307d1654a0568c956153fee6b32bf7a8b54450e838806dc6ae9cd0d989a575e"
+    },
+    "packages/barocss-physics/src/contact-tangent.ts": {
+      "bytes": 2729,
+      "sha256": "5e1bddc158f9a6f307fdcc60ce8078ab36a06e372d530e7f5d05466d29bf9673"
+    }
+  }
+}
