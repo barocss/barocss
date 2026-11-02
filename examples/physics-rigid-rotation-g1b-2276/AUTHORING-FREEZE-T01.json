@@ -1,0 +1,74 @@
+{
+  "status": "PARENT_AUTHORIZED_PHASE_T_PLANNING_ONLY",
+  "runtimeAuthorized": false,
+  "implementationAuthorized": false,
+  "productionActivation": false,
+  "basis": "ActualM02one-stepPASS, preservedM01referencefailure and originalfrozenseparateTdependency.",
+  "authorityPins": {
+    "examples/physics-rigid-rotation-g1b-2276/CONTRACT.md": {
+      "bytes": 14376,
+      "sha256": "c1c87c64323836d7ac656ead490380bee82f801de2b67979f9f91309ee73ed31"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/CASES.json": {
+      "bytes": 8881,
+      "sha256": "0fb8b4ebc78044e8984fab83878a42fc5051f8717ce914091246de7098fbc386"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/INTEGRATION-NOTES.md": {
+      "bytes": 4085,
+      "sha256": "2b3c318e2c8d89a9b63d09faf64f53482547ba2513713cc84f9532a387666f9a"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/REFERENCES-CLARIFICATION-01.md": {
+      "bytes": 10318,
+      "sha256": "0d6e8a79f2cbf45f7579291f9b1b947295f28f0cf00eb57053ed581cb8979945"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/MICRO-EXECUTION-FREEZE-M02.json": {
+      "bytes": 109184,
+      "sha256": "d4813a7a39c809950accebe54c38acfe00d20146ded9ed829dd5355f99586bc1"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/MICRO-RESULTS-M02.json": {
+      "bytes": 7898,
+      "sha256": "e7d590810dd19e5ddc93c96370ac9493357fca6142714e6937091e1f365a909f"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/MICRO-ARCHIVE-M02.json": {
+      "bytes": 51774,
+      "sha256": "6e06bbdcfe7f2593d605343f98d7903e3b36e384f1c97738d4833ed4c630edd4"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/summary.json": {
+      "bytes": 12835,
+      "sha256": "a3d3d9856676e4c41a01713e992fd094ffa9b95682bd6a34fbe4bbd1912f3ecc"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/reference/bank.json": {
+      "bytes": 51170,
+      "sha256": "fd5ffef592c5df56b06d4d9931916406b17b748a87ecb5272cce5e1b155c06d9"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/reference-final.json": {
+      "bytes": 1336,
+      "sha256": "ed57e65d24b7a5efdcd8cf9f77610913ec5745b7a20f59cc3e094aec6e96213b"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/rigid-triaxial-free-rotation.ts": {
+      "bytes": 11287,
+      "sha256": "972bb4dbab8ebb8c9604f2c5afb1d1ea324643b37fc4ec2654a2a4508eb0a707"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/micro-overlay.mjs": {
+      "bytes": 6091,
+      "sha256": "e4a10163d06ec9a0ace492cc2a6064c953a15c6f145b22c970259b5a756b8fac"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/micro-campaign.mjs": {
+      "bytes": 42720,
+      "sha256": "279079090463879ea03170d3ff2d781b2c902ccff719fe9433bde4726bf66511"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/reference-micro.py": {
+      "bytes": 47239,
+      "sha256": "90412a7e20b106939c14de7c5f8d619f0cd69d19caa780c91300ce540e3f0c36"
+    }
+  },
+  "allowedNewFiles": [
+    "PHASE-T-PLAN-01.md",
+    "PHASE-T-PLAN-01.json",
+    "REFERENCE-PROTOCOL-T01.md"
+  ],
+  "scope": "Derive exact sharedtime/bank/geometry/coefficientreuse, principalG1abankpropercyclicpermutation, negativeq/zerocontrols, failureatomicity, allobservedcalls, concretecompacttrace/evidence/ownedrootserialization and jointM+TDecimalcost beforecode.",
+  "limits": "OriginalfixedTpopulation/iteration/tolerances/referenceprecision/windoworder/caps unchanged.32MjointDecimalopcap must be proved; no silentquota increase.",
+  "execution": "No module/candidate/math/reference/build/World calls; planning/source/closedDATAonly. Laterparentauthoring andfreshfinalruntimefreeze mandatory.",
+  "invariants": "HOLD/originalNO_GO/firstfailures/tolerances preserved; nodevelopmerge/push/deploy/release."
+}

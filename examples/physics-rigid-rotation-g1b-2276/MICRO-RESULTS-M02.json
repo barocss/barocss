@@ -1,0 +1,196 @@
+{
+  "status": "PASS_STAGED_G1B_MICRO_ONLY",
+  "runId": "g1b-micro-02",
+  "sourceCommit": "3356b2999",
+  "plant": "1kg primitive-COM box halfExtents[0.1,0.2,0.3]m;qidentity;omegaWorld[1,1,1]rad/s;zero gravity/translation;dt1/120s;oneacceptedstep pergraph",
+  "graphs": "Staged common-World source and genuine NodeNext emitted published-root entry; source complete PASS/dispose before Native root evaluation. Actual installed published package/canonicalbuild/productionactivation NOT_RUN.",
+  "counts": {
+    "nativePairConversions": 1,
+    "nativePhysicalScalarConversions": 31,
+    "identityDigestDataCalls": 2,
+    "candidateConstantRootCalls": 6,
+    "constructorAttempts": 2,
+    "constructorReturns": 2,
+    "getStateAttempts": 2,
+    "getStateReturns": 2,
+    "stepAttempts": 2,
+    "acceptedSteps": 2,
+    "disposeAttempts": 2,
+    "disposeReturns": 2,
+    "privateInertiaCacheObservations": 2,
+    "referenceSpawns": 1,
+    "referenceRequestAttempts": 6,
+    "referenceRequestsWritten": 6,
+    "referenceRepliesReceived": 7,
+    "referenceAuditsReceived": 4,
+    "buildChildren": 4,
+    "query": 0,
+    "getModel": 0,
+    "recorder": 0,
+    "faultControls": 0,
+    "knownCandidateConstantRootCalls": 6
+  },
+  "physicalMaxima": {
+    "angularMomentum": {
+      "error": 5.293341777308505e-18,
+      "exactError": {
+        "numerator": "13668731159127233491292798559514128545796525850343557954756813552734334024474235240545069953108785127247",
+        "denominator": "2582249878086909840351382358735314388301975730226539336313560203703063720602877668890820275576178491158487996305908957184"
+      },
+      "bound": 2e-12,
+      "unit": "kg*m^2/s",
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/reference/audit-0002.json"
+    },
+    "rotationalEnergy": {
+      "error": 1.1556978513919807e-17,
+      "exactError": {
+        "numerator": "403202856948922336710240165350518944612627164076944168059303968899211277517615490584746673626533059666148816162173878955",
+        "denominator": "34888258766189147644262408663836703487799530304858871942005767619157971776286567142915434384866864035059983492922572378447526246106529792"
+      },
+      "bound": 2e-12,
+      "unit": "J",
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/reference/audit-0002.json"
+    },
+    "quaternionSquaredNorm": {
+      "error": 2.421716569337831e-16,
+      "exactError": {
+        "numerator": "160950673091002371323",
+        "denominator": "664613997892457936451903530140172288"
+      },
+      "bound": 1e-12,
+      "unit": "dimensionless",
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/reference/audit-0002.json"
+    },
+    "linearMomentum": {
+      "error": 0.0,
+      "exactError": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "bound": 1e-12,
+      "unit": "kg*m/s",
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/reference/audit-0001.json"
+    },
+    "comPosition": {
+      "error": 0.0,
+      "exactError": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "bound": 1e-12,
+      "unit": "m",
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/reference/audit-0001.json"
+    }
+  },
+  "trajectoryMaxima": {
+    "R": {
+      "error": 2.2833535057329648e-17,
+      "exactError": {
+        "numerator": "30350974040938907517493161877001259784857417519700169622357495976008401603142165047165806298933198379",
+        "denominator": "1329227995784916194805153242285087222000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "precision": "80",
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/reference/audit-0002.json"
+    },
+    "q": {
+      "error": 1.2102329362648735e-16,
+      "exactError": {
+        "numerator": "1210232936264873501854279572493690831817310023540685988977313753",
+        "denominator": "10000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "precision": "80",
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/reference/audit-0002.json"
+    },
+    "omega": {
+      "error": 1.5474530951453493e-16,
+      "exactError": {
+        "numerator": "1547453095145349277215197270023417522774526160775082066598853407",
+        "denominator": "10000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "precision": "80",
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/reference/audit-0002.json"
+    }
+  },
+  "trajectoryGate": "Per-component1e-11absolute+1e-12*abs(reference), against both directed80/120 endpoints.",
+  "referenceMaxWidths": {
+    "80": 6e-79,
+    "120": 1.9388280975577694e-86
+  },
+  "referenceWidthGate": 1e-24,
+  "referenceCounts": {
+    "requestsAttempted": 6,
+    "requestsReturned": 6,
+    "bankInitializations": 1,
+    "bodyGeometryCertificatesAttempted": 1,
+    "bodyGeometryCertificatesReturned": 1,
+    "oneDimensionalMonomialMoments": 9,
+    "observedStateAuditsAttempted": 4,
+    "observedStateAuditsReturned": 4,
+    "properRationalRotationAttempts": 4,
+    "properRationalRotationReturns": 4,
+    "privateBodyObservations": 2,
+    "algebraicBisectionDecisions": 1536,
+    "algebraicRootsCertified": 3,
+    "taylorWindowsAttempted": 4,
+    "taylorWindowsReturned": 4,
+    "decimal80Windows": 2,
+    "decimal120Windows": 2,
+    "fractionScalarOperations": 15662,
+    "decimalOperations": 2758004,
+    "decimalConversions": 17168,
+    "decimalToFractionConversions": 164,
+    "endpointDecimalSqrtOperations": 8,
+    "WorldCalls": 0,
+    "candidateCalls": 0,
+    "PhysicsImports": 0,
+    "referenceLinearSolves": 0,
+    "trigEvaluations": 0
+  },
+  "referenceOwnedUpperBytes": 3698344,
+  "solverObservations": {
+    "pivotMinimum": 1.0,
+    "newtonPerturbationMaximum": 0.026180165837947505,
+    "linearResidualMaximum": 1.3552527156068805e-20,
+    "nonlinearResidualMaximum": 5.551115123125783e-17
+  },
+  "solverObservationScope": "Extracted saved raw Source trace; Native full raw trace parity already passed. No new solver or oracle.",
+  "resources": {
+    "peakWorldHarnessOwnedChargeBytes": 4958624,
+    "peakEvidenceChargeBytes": 9722653,
+    "evidenceBytesBeforeSummary": 736432,
+    "buildBytes": 1564138,
+    "wholeLogicalBytes": 67108864,
+    "heapOrRssClaim": false
+  },
+  "timing": {
+    "innerMs": 5524.283334,
+    "outerMs": 7532.620167,
+    "scope": "Whole guarded campaign includes tools/protocol/filesystem. Not performance benchmark."
+  },
+  "rawParity": "All public non-provider words/structure exact; each distinct own provider checked. Actual coefficient and observed-local words exact across source/native.",
+  "firstFailurePreserved": "MICRO-RESULTS-M01.json + MICRO-ARCHIVE-M01.json; original source archive and exact old reference remain.",
+  "guard": {
+    "status": "PASS",
+    "exit": 0,
+    "timedOut": false,
+    "processClosed": true,
+    "ownedGroupPresentAtFinalization": false,
+    "errors": []
+  },
+  "archive": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02.tar.gz",
+    "bytes": 364566,
+    "sha256": "5b48108174fb7aaea8a4e8d681896bdba95b44040241abb96e900571b028c5b5"
+  },
+  "next": "Phase T planning only: fixed0.1s three-grid trajectory/refinement, controls and failure atomicity. Fresh authoring and runtime contracts needed before execution.",
+  "notQualified": [
+    "PhaseT/observedconvergenceorder",
+    "longtime stability",
+    "full admitted triaxial range",
+    "torque/contact/joints/CCD/domain/recorderintegration",
+    "canonicalroot/currentinstalledpublishednative",
+    "productionactivation/developmerge/push/deploy/release",
+    "hardwareprediction/manufacturingsafety"
+  ],
+  "invariants": "Original HOLD/NO_GO/tolerances/firstfailures preserved."
+}

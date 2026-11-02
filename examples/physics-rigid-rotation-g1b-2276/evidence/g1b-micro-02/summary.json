@@ -1,0 +1,396 @@
+{
+  "status": "PASS_STAGED_G1B_MICRO_ONLY",
+  "phase": "M",
+  "phaseT": "NOT_RUN",
+  "productionActivation": "NOT_RUN",
+  "currentPublishedNative": "NOT_RUN",
+  "canonicalBuildRoot": "NOT_RUN",
+  "firstFailure": null,
+  "counts": {
+    "nativePairConversions": 1,
+    "nativePhysicalScalarConversions": 31,
+    "identityDigestDataCalls": 2,
+    "candidateConstantRootCalls": 6,
+    "constructorAttempts": 2,
+    "constructorReturns": 2,
+    "getStateAttempts": 2,
+    "getStateReturns": 2,
+    "stepAttempts": 2,
+    "acceptedSteps": 2,
+    "disposeAttempts": 2,
+    "disposeReturns": 2,
+    "privateInertiaCacheObservations": 2,
+    "referenceSpawns": 1,
+    "referenceRequestAttempts": 6,
+    "referenceRequestsWritten": 6,
+    "referenceRepliesReceived": 7,
+    "referenceAuditsReceived": 4,
+    "buildChildren": 4,
+    "query": 0,
+    "getModel": 0,
+    "recorder": 0,
+    "faultControls": 0,
+    "knownCandidateConstantRootCalls": 6
+  },
+  "graphs": {
+    "source": {
+      "status": "PASS_MICRO_GRAPH",
+      "constantCalls": 3,
+      "constructorOutcome": "WORLD_RETURNED",
+      "disposeOutcome": "RETURNED",
+      "coefficients": {
+        "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/source-coefficients-raw.json",
+        "bytes": 1958,
+        "sha256": "439842c4fa39ddbbf95f0f6cb77af4b75a586982655619882d2897a0c278c62c"
+      },
+      "trace": {
+        "records": 595,
+        "populations": {
+          "initialMomentum": 1,
+          "newtonCondition": 108,
+          "pivot": 324,
+          "newtonUpdate": 108,
+          "midpointResidual": 27,
+          "stageComplete": 27
+        },
+        "artifact": {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/source-observations.jsonl",
+          "bytes": 141414,
+          "sha256": "776b69c20d69783cb7ff8a3472ee332428892d6464d426c202a932161e7c57b9"
+        }
+      },
+      "helperCounts": {
+        "dispatch": 1,
+        "prepare": 1,
+        "null": 0,
+        "eligible": 0,
+        "zero": 0,
+        "nonzero": 0,
+        "validate": 1,
+        "inheritedAdvanceOrientation": 0,
+        "sharedSin": 0,
+        "sharedCos": 0,
+        "bodySin": 0,
+        "bodyCos": 0,
+        "F01Site": 1,
+        "F02Site": 1,
+        "F03Site": 1,
+        "faultThrows": 0,
+        "guardReplacements": 0,
+        "attachments": 1,
+        "releases": 1,
+        "cacheReads": 1
+      },
+      "triaxialHelperCounts": {
+        "coefficientPow": 3,
+        "prepare": 1,
+        "triaxial": 1,
+        "zero": 0,
+        "principal": 0,
+        "general": 1,
+        "initialMomentum": 1,
+        "midpoint": 27,
+        "newtonCondition": 108,
+        "linearSolve": 108,
+        "pivot": 324,
+        "newtonUpdate": 108,
+        "midpointResidual": 27,
+        "stageComplete": 27,
+        "generalReturn": 1,
+        "linearResidualFailure": 0
+      },
+      "WorldCounts": {
+        "constructorAttempts": 1,
+        "constructorReturns": 1,
+        "getStateAttempts": 1,
+        "getStateReturns": 1,
+        "stepAttempts": 1,
+        "acceptedSteps": 1,
+        "disposeAttempts": 1,
+        "disposeReturns": 1
+      }
+    },
+    "native": {
+      "status": "PASS_MICRO_GRAPH",
+      "constantCalls": 3,
+      "constructorOutcome": "WORLD_RETURNED",
+      "disposeOutcome": "RETURNED",
+      "coefficients": {
+        "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/native-coefficients-raw.json",
+        "bytes": 1958,
+        "sha256": "439842c4fa39ddbbf95f0f6cb77af4b75a586982655619882d2897a0c278c62c"
+      },
+      "trace": {
+        "records": 595,
+        "populations": {
+          "initialMomentum": 1,
+          "newtonCondition": 108,
+          "pivot": 324,
+          "newtonUpdate": 108,
+          "midpointResidual": 27,
+          "stageComplete": 27
+        },
+        "artifact": {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/native-observations.jsonl",
+          "bytes": 141414,
+          "sha256": "776b69c20d69783cb7ff8a3472ee332428892d6464d426c202a932161e7c57b9"
+        }
+      },
+      "helperCounts": {
+        "dispatch": 1,
+        "prepare": 1,
+        "null": 0,
+        "eligible": 0,
+        "zero": 0,
+        "nonzero": 0,
+        "validate": 1,
+        "inheritedAdvanceOrientation": 0,
+        "sharedSin": 0,
+        "sharedCos": 0,
+        "bodySin": 0,
+        "bodyCos": 0,
+        "F01Site": 1,
+        "F02Site": 1,
+        "F03Site": 1,
+        "faultThrows": 0,
+        "guardReplacements": 0,
+        "attachments": 1,
+        "releases": 1,
+        "cacheReads": 1
+      },
+      "triaxialHelperCounts": {
+        "coefficientPow": 3,
+        "prepare": 1,
+        "triaxial": 1,
+        "zero": 0,
+        "principal": 0,
+        "general": 1,
+        "initialMomentum": 1,
+        "midpoint": 27,
+        "newtonCondition": 108,
+        "linearSolve": 108,
+        "pivot": 324,
+        "newtonUpdate": 108,
+        "midpointResidual": 27,
+        "stageComplete": 27,
+        "generalReturn": 1,
+        "linearResidualFailure": 0
+      },
+      "WorldCounts": {
+        "constructorAttempts": 1,
+        "constructorReturns": 1,
+        "getStateAttempts": 1,
+        "getStateReturns": 1,
+        "stepAttempts": 1,
+        "acceptedSteps": 1,
+        "disposeAttempts": 1,
+        "disposeReturns": 1
+      }
+    }
+  },
+  "commands": [
+    {
+      "label": "generate-source",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/build/package/src/generate-provider.mjs"
+      ],
+      "pid": 63823,
+      "closed": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exit": 0,
+      "timedOut": false,
+      "signal": null,
+      "logStorage": {
+        "allocatedBytes": 2097152,
+        "decodeUpperBytes": 2097152,
+        "capturedBytes": 34,
+        "stdoutBytes": 34,
+        "stderrBytes": 0,
+        "retainedChunkObjects": 0
+      }
+    },
+    {
+      "label": "tsc-emit",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/tsc.js",
+        "-p",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/build/package/tsconfig.micro.json",
+        "--listFiles",
+        "--listEmittedFiles"
+      ],
+      "pid": 63849,
+      "closed": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exit": 0,
+      "timedOut": false,
+      "signal": null,
+      "logStorage": {
+        "allocatedBytes": 2097152,
+        "decodeUpperBytes": 2097152,
+        "capturedBytes": 66153,
+        "stdoutBytes": 66153,
+        "stderrBytes": 0,
+        "retainedChunkObjects": 0
+      }
+    },
+    {
+      "label": "generate-emitted",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/build/package/src/generate-provider.mjs",
+        "--emitted"
+      ],
+      "pid": 64036,
+      "closed": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exit": 0,
+      "timedOut": false,
+      "signal": null,
+      "logStorage": {
+        "allocatedBytes": 2097152,
+        "decodeUpperBytes": 2097152,
+        "capturedBytes": 35,
+        "stdoutBytes": 35,
+        "stderrBytes": 0,
+        "retainedChunkObjects": 0
+      }
+    },
+    {
+      "label": "source-bundle",
+      "command": [
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/esbuild/bin/esbuild",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/build/source-entry.ts",
+        "--bundle",
+        "--format=esm",
+        "--platform=node",
+        "--target=node22",
+        "--log-level=error",
+        "--outfile=/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/build/source.mjs",
+        "--metafile=/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/build/source-meta.json"
+      ],
+      "pid": 64059,
+      "closed": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exit": 0,
+      "timedOut": false,
+      "signal": null,
+      "logStorage": {
+        "allocatedBytes": 2097152,
+        "decodeUpperBytes": 2097152,
+        "capturedBytes": 0,
+        "stdoutBytes": 0,
+        "stderrBytes": 0,
+        "retainedChunkObjects": 0
+      }
+    },
+    {
+      "label": "persistent-reference",
+      "command": [
+        "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+        "-B",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/reference-micro.py",
+        "--run-id",
+        "g1b-micro-02",
+        "--freeze",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/MICRO-EXECUTION-FREEZE-M02.json",
+        "--token",
+        "d4813a7a39c809950accebe54c38acfe00d20146ded9ed829dd5355f99586bc1",
+        "--out",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/reference"
+      ],
+      "pid": 64075,
+      "closed": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exit": 0,
+      "signal": null
+    }
+  ],
+  "reference": {
+    "started": true,
+    "actual": {
+      "requestsAttempted": 6,
+      "requestsReturned": 6,
+      "bankInitializations": 1,
+      "bodyGeometryCertificatesAttempted": 1,
+      "bodyGeometryCertificatesReturned": 1,
+      "oneDimensionalMonomialMoments": 9,
+      "observedStateAuditsAttempted": 4,
+      "observedStateAuditsReturned": 4,
+      "properRationalRotationAttempts": 4,
+      "properRationalRotationReturns": 4,
+      "privateBodyObservations": 2,
+      "algebraicBisectionDecisions": 1536,
+      "algebraicRootsCertified": 3,
+      "taylorWindowsAttempted": 4,
+      "taylorWindowsReturned": 4,
+      "decimal80Windows": 2,
+      "decimal120Windows": 2,
+      "fractionScalarOperations": 15662,
+      "decimalOperations": 2758004,
+      "decimalConversions": 17168,
+      "decimalToFractionConversions": 164,
+      "endpointDecimalSqrtOperations": 8,
+      "WorldCalls": 0,
+      "candidateCalls": 0,
+      "PhysicsImports": 0,
+      "referenceLinearSolves": 0,
+      "trigEvaluations": 0
+    },
+    "durableLowerBound": {
+      "requestsAttempted": 6,
+      "requestsReturned": 6,
+      "bankInitializations": 1,
+      "bodyGeometryCertificatesAttempted": 1,
+      "bodyGeometryCertificatesReturned": 1,
+      "oneDimensionalMonomialMoments": 9,
+      "observedStateAuditsAttempted": 4,
+      "observedStateAuditsReturned": 4,
+      "properRationalRotationAttempts": 4,
+      "properRationalRotationReturns": 4,
+      "privateBodyObservations": 2,
+      "algebraicBisectionDecisions": 1536,
+      "algebraicRootsCertified": 3,
+      "taylorWindowsAttempted": 4,
+      "taylorWindowsReturned": 4,
+      "decimal80Windows": 2,
+      "decimal120Windows": 2,
+      "fractionScalarOperations": 15662,
+      "decimalOperations": 2758004,
+      "decimalConversions": 17168,
+      "decimalToFractionConversions": 164,
+      "endpointDecimalSqrtOperations": 8,
+      "WorldCalls": 0,
+      "candidateCalls": 0,
+      "PhysicsImports": 0,
+      "referenceLinearSolves": 0,
+      "trigEvaluations": 0
+    },
+    "inFlight": false,
+    "lastReplyWire": {
+      "bytes": 1100,
+      "sha256": "48f043b7d02b848ece62285729fc15993c53d5ffb9a672cd1f4fd7d8aa1b2f62"
+    }
+  },
+  "cleanupErrors": [],
+  "rawParity": "All public non-provider words/structure exact; each distinct own provider checked. Actual coefficient and observed-local words exact across source/native.",
+  "resources": {
+    "peakWorldHarnessOwnedChargeBytes": 4958624,
+    "peakEvidenceChargeBytes": 9722653,
+    "evidenceBytesBeforeSummary": 736432,
+    "buildBytes": 1564138,
+    "wholeLogicalBytes": 67108864,
+    "heapOrRssClaim": false
+  },
+  "timingMs": 5524.283334,
+  "authority": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/MICRO-EXECUTION-FREEZE-M02.json",
+    "sha256": "d4813a7a39c809950accebe54c38acfe00d20146ded9ed829dd5355f99586bc1"
+  }
+}

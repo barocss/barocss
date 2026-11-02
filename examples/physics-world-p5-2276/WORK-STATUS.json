@@ -3,10 +3,10 @@
   "branch": "codex/physics-world-p5-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "G1a staged common-World axisymmetric free rotation plus isotropic controls",
-    "status": "PASS_STAGED_G1A_REPAIR_ONLY",
-    "scope": "20Worlds/1688accepted/1708attempts/20failurecontrols; sourcecomplete before genuineTypeScript-emitted graph. Currentpublishednative/canonicalrootbundle/productionactivation NOT_RUN.",
-    "results": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/summary.json"
+    "profile": "G1b staged one-step triaxial torque-free box",
+    "status": "PASS_STAGED_G1B_MICRO_ONLY",
+    "scope": "2Worlds/2acceptedsteps/4independentaudits; sourcecomplete before genuineNodeNextemittedpublicentry. PhaseT/currentpublishednative/canonicalroot/productionactivation NOT_RUN. Firstreferenceprofilefailure preserved.",
+    "results": "examples/physics-rigid-rotation-g1b-2276/MICRO-RESULTS-M02.json"
   },
   "mainSlices": {
     "P0": "CONTRACT_COMPLETE_LOCAL",
@@ -33,18 +33,18 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "G1b M01 first run stopped BEFORE World: reused axisymmetric reference integral rejected triaxial tensor. First failure/282-file archive preserved. Local general-cuboid reference repair in progress; same numerical gates/iteration/caps. G2 exact-sweep compact evidence budget static authoring only.",
+  "active": "G1b M02 one-step PASS. PhaseT planning only:0.1s threegrids/controls/atomicity, frozenjointDecimal/compactevidenceproof beforeimplementation. G2exact-sweepbudget staticauthoring only.",
   "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
     "nextG1Baseline": "ACHIEVED2026-11-02; actual physical NO_GO preserved",
     "wholeRoadmap": "NO_RELIABLE_DATE_YET; reassess from G1/P4/coupling evidence, no whole-engine date promised",
-    "nextG1Repair": "G1a staged first qualification ACHIEVED2026-11-02. G1 completion date pending G1b and admitted-range/integration evidence."
+    "nextG1Repair": "G1a bounded staged qualification and G1b one-step ACHIEVED2026-11-02. G1 completion pending T/admitted-range/integration; no reliable date."
   },
   "reportCadence": "milestone,firstfailure,directionchange; report qualified scope,remaining dependency,and revised confidence",
   "invariants": "HOLD,originalNO_GO,tolerances,first failures preserved; no partial develop merge,push,deploy,release",
   "addedGateProgress": {
-    "G1": "G1a STAGED_AXISYMMETRIC_PASS; G1b M01 reference-only profile failure beforeWorld, candidatephysicalNOT_RUN; originalproductionNO_GO preserved; G1b trajectory/admitted-range/downstream/adoption open",
+    "G1": "G1a STAGED_AXISYMMETRIC_PASS + G1b STAGED_TRIAXIAL_ONE_STEP_PASS; M01referencefirstfailure and originalproductionPHYSICAL_NO_GO preserved; T/range/frame/downstream/adoptionopen",
     "G2": "STATIC19BRANCH_MAP_COMPLETE; ACTUAL_SOURCE_CORNER_EXACT_CONTACT_NO_GO; reference1/World0/nativeNOT_RUN; other numerical gaps open",
     "G7": "PER_CAMPAIGN_TRUST_GATE; NO_BLANKET_PASS"
   },

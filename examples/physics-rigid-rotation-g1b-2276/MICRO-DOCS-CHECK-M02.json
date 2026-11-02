@@ -1,0 +1,43 @@
+{
+  "status": "PASS_LOCAL_DOCS_STRUCTURE_BUILD_SELECTED_LINKS",
+  "checks": [
+    {
+      "path": "examples/physics-world-p5-2276/evidence/g1b-micro-docs-structure-02/result.json",
+      "bytes": 3004,
+      "sha256": "a7827169e6c70adb8241dadc2ef412a0b6bff43d08955520ada32c8f97ac24a1"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/g1b-micro-docs-build-02/result.json",
+      "bytes": 3026,
+      "sha256": "ba5953c40ee164f50e6c7fc70ac8935dd968d9fb526ca18ef7083bbd7d78498e"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/g1b-micro-docs-links-02/result.json",
+      "bytes": 2986,
+      "sha256": "f1ce30538d1a2cbe5b1b9ee1b38be6acae1b47568475117f74e918269370e362"
+    }
+  ],
+  "files": [
+    {
+      "path": "packages/barocss-physics/ROADMAP.md",
+      "bytes": 55897,
+      "sha256": "160dccb047256e02649ecf580f0a8c6c4bc21b51ec251aec8ee5734cce4ac265"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt",
+      "bytes": 55897,
+      "sha256": "160dccb047256e02649ecf580f0a8c6c4bc21b51ec251aec8ee5734cce4ac265"
+    }
+  ],
+  "numericalResults": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/MICRO-RESULTS-M02.json",
+    "bytes": 7898,
+    "sha256": "e7d590810dd19e5ddc93c96370ac9493357fca6142714e6937091e1f365a909f"
+  },
+  "archiveVerification": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/MICRO-ARCHIVE-M02.json",
+    "bytes": 51774,
+    "sha256": "6e06bbdcfe7f2593d605343f98d7903e3b36e384f1c97738d4833ed4c630edd4"
+  },
+  "scope": "Localcurrentroadmap/publiccopy. Structure/build/selectedphysicslinks ran; no numericalreference/World rerun or network/deployment. Historicalevidencecopies unchanged."
+}
