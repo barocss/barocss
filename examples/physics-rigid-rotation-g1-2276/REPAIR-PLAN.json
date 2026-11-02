@@ -266,7 +266,7 @@
     "scope": "Logical retained/serialization allowance and actual artifact bytes, not process heap or RSS; installed TS/esbuild/Node engine internal memory not measured.",
     "worldChargeDerivation": "At each API/audit boundary charge all retained freeze bytes+decoded freeze, overlay/source/native manifests/metafile/transfer/TSlog, complete staged pins, all ten literal+native pairs and refusal/replacement data, source-offset index, artifact pins, graph/command/progress ledgers and current/previous/initial states. Primitive16B; string32+4UTF16-length; container128B+48Bperentry+4keylength; Map64Bperentry; buffers2byteLength+128. Shared objects counted once. Traversal visitedSet and recursive callable explicitly cleared in finally, no retained self-cycle. Fixed2MiB covers bounded current request/reply strings and parsed versions (262144+65536), stream carry131072, raw/output/clone/cache serialization scratch and traversal records; node caps and measured rooted layout are enforced before calls and after audit. Build/provider code buffers and compiler/service payloads have separate16MiB artifact envelope; no tool heap bound claimed.",
     "evidence": "Track every own append and all unique authenticated reference proof/bank/summary/reply files. Before requests reserve2MiB for init,262144B for each audit/finish. Add1MiB for progress/final/failure/unlisted<=8KiB reference progress; final actual directory byte scan. Build tree separately<=16MiB. No evidence overwrite.",
-    "buildLogOwnership": "Keep at most1MiB per build child across stdout+stderr. Copy only nonempty retained prefix with Buffer.from; never retain source-chunk views or append empty elements after capacity. Overflow still stops the same child and preserves the original cap."
+    "buildLogOwnership": "Two fixed preallocated1MiB buffers per active build child, one per stdout/stderr, with two scalar cursors. Original combined captured-byte cap1MiB. Copy directly into fixed storage, retain0per-chunk objects and no chunk array. Before raw writes assert cursor sum==capturedBytes<=1MiB and individual cursor bounds. Write bounded views after close; decode stdout exactly once, <=2MiB UTF16. Charge2MiB fixed storage+2MiB decode allowance plus actual build-tree bytes within existing16MiB build partition before allocation and after child closure. No Buffer.concat. Node/tool internal heap/RSS remain unmeasured."
   },
   "authorChecks": "Only gated node --check and TypeScript AST parse, static JSON/schema/hash/anchor inspections. Do not import this driver or overlay, construct literals, invoke overlay, build, load candidate, call reference, or construct World during authoring.",
   "runtimeResult": "NOT_RUN",
@@ -275,5 +275,11 @@
     "candidateDelta": "Only erased as Vec3 on zero-return copied omega; removing these8ASCII bytes recovers original9dbc candidate exactly.",
     "unchanged": "Every math expression/order, physical gate, source/native population, reference source/equations, old author/Ready authorities, production source, and build stage order.",
     "next": "Parent High narrow-diff review and fresh g1a-repair-02 execution freeze; no author runtime."
+  },
+  "logStorageRepair03": {
+    "preservedRevision": "commit3df2e7922 preserves Ready02, erased candidate assertion and High NO_GO_LOG_METADATA_BOUND review02.",
+    "onlyRuntimeDelta": "command() fixed log storage/cursors, direct copies and explicit existing build-partition charge; no retained per-chunk containers.",
+    "unchanged": "Original shared1MiB captured-byte cap, raw failure logs, PID/exit/EOF/timeout fields, all numerical equations/criteria/reference/counts/order, World8MiB/raw/evidence/64MiB limits.",
+    "next": "Parent High narrow review03 and fresh runtime freeze; no author build or numerical execution."
   }
 }

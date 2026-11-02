@@ -1,0 +1,89 @@
+{
+  "status": "AUTHOR_READY_03_FIXED_LOG_STORAGE_PARENT_HIGH_REVIEW_REQUIRED",
+  "runtimeAuthorized": false,
+  "productionActivation": false,
+  "sources": {
+    "repair-campaign.mjs": {
+      "path": "examples/physics-rigid-rotation-g1-2276/repair-campaign.mjs",
+      "bytes": 41033,
+      "sha256": "58b316786ea033e35cfdf6cd80a6c5015bac45a51fbc635bd1977af0551df3fc"
+    },
+    "REPAIR-PLAN.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/REPAIR-PLAN.json",
+      "bytes": 16231,
+      "sha256": "328770bf7367b9b8397b5044af775a7338fb958d6d4b830f255e5ec711f2984c"
+    },
+    "LOG-STORAGE-REPAIR-03.md": {
+      "path": "examples/physics-rigid-rotation-g1-2276/LOG-STORAGE-REPAIR-03.md",
+      "bytes": 3001,
+      "sha256": "728d77ebc62b12d6f5ba8247ac1b53331e48dedce5162e6c211e585e7dc73c95"
+    }
+  },
+  "preservedRevision": "3df2e7922",
+  "preservedAuthorities": {
+    "REPAIR-AUTHOR-READY-02.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/REPAIR-AUTHOR-READY-02.json",
+      "bytes": 4399,
+      "sha256": "8107ef1e75ce1d8bc14653aeef576dc9d64cdd9a497f152c16a4b5af529795cf"
+    },
+    "CANDIDATE-READY-02.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/CANDIDATE-READY-02.json",
+      "bytes": 3366,
+      "sha256": "c0230244b3f9dc1a27442086aa931e2e28765a4fb6b920432e49830c2987da94"
+    },
+    "COMPILE-REPAIR-02.md": {
+      "path": "examples/physics-rigid-rotation-g1-2276/COMPILE-REPAIR-02.md",
+      "bytes": 3816,
+      "sha256": "9d058cc2bb1d0bf6f0f7e886f6772437fbbaaa58fc510edb4699d6bc41383d0f"
+    },
+    "REPAIR-EXECUTION-REVIEW-02.md": {
+      "path": "examples/physics-rigid-rotation-g1-2276/REPAIR-EXECUTION-REVIEW-02.md",
+      "bytes": 4661,
+      "sha256": "e26417a9febb957a663adbb637303f6a6ba214ed5d23068f84b372b65e0322a0"
+    },
+    "rigid-free-rotation.ts": {
+      "path": "examples/physics-rigid-rotation-g1-2276/rigid-free-rotation.ts",
+      "bytes": 3901,
+      "sha256": "9037e4fc2d83e20d6a5ed08e05bf0225314fe7efc1dac444cfb2188264ff9f54"
+    },
+    "repair-overlay.mjs": {
+      "path": "examples/physics-rigid-rotation-g1-2276/repair-overlay.mjs",
+      "bytes": 6549,
+      "sha256": "70656ff3c79bdadded9027784c00da8321f337f5b9d22a5e34d0d7e1ca683081"
+    },
+    "repair-reference.py": {
+      "path": "examples/physics-rigid-rotation-g1-2276/repair-reference.py",
+      "bytes": 42638,
+      "sha256": "1115b0e79eb952b0e9ae8a324cf92c17f4e16c8b3e3705ff27306aae08c515d9"
+    },
+    "CONTRACT.md": {
+      "path": "examples/physics-rigid-rotation-g1-2276/CONTRACT.md",
+      "bytes": 16124,
+      "sha256": "29feb5a2d8b9baf1f9508bd13fa5837af61a25c960f400b59aefd6014b914b95"
+    },
+    "CASES.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/CASES.json",
+      "bytes": 16543,
+      "sha256": "2ce857f257ddfabd5feab1f98e78577efe0b4b3ff1b5a77f6288e503a9c8777b"
+    }
+  },
+  "checks": {
+    "gate": "heavy300 g1-log-storage03-author",
+    "node22Syntax": "PASS",
+    "staticSourceAndPlanMetadata": "PASS",
+    "constantStorage": "Two fixed1MiB buffers,2cursors,shared1MiB cap;0retained chunk objects; no Buffer.concat; one stdout decode",
+    "buildCharge": "Actual build bytes+2MiB fixed log storage+2MiB decode allowance<=existing16MiB before allocation/after close",
+    "failedChecks": 0
+  },
+  "actualAuthorCalls": {
+    "providerModuleEvaluation": 0,
+    "commandInvocation": 0,
+    "fixtureConversion": 0,
+    "build": 0,
+    "identityDigest": 0,
+    "reference": 0,
+    "World": 0
+  },
+  "unchanged": "All math/reference/candidate/overlay/gates and20ctors1688accepted1708attempts40reads20dispose;1710reference requests1708audits;4build children1reference2identity DATA calls. No production source edits.",
+  "next": "High narrow review03 and parent fresh runtime freeze. STOP all edits."
+}
