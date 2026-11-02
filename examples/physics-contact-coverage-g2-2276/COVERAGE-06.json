@@ -1,0 +1,263 @@
+{
+  "workId": "physics-contact-coverage-g2-2276",
+  "date": "2026-11-03",
+  "status": "UPDATED_PRIVATE_PRODUCER_SOURCE_PASS_PUBLIC_PERSISTENT_NO_GO",
+  "head": "43f10f7b3",
+  "historicalInventory": {
+    "path": "examples/physics-contact-coverage-g2-2276/COVERAGE-01.json",
+    "sha256": "7d45730a52f5d8d2db99ed1ad9a7ffdf4e7443f918a38c0b446730ca33785240"
+  },
+  "branches": [
+    {
+      "id": "D01",
+      "law": "discrete normal impulse",
+      "scope": "closing/resting/separating; inverse-mass zero",
+      "historicalStatus": "HISTORICAL_PARTIAL",
+      "status": "NEW_BOUNDED_PUBLIC_PASS_NOT_ALL_INTERNAL_BRANCHES",
+      "qualifiedScope": "Discrete sphere/floor closing,resting,separating; centeredcuboid impulse/work pass. Static-static inverseTotal0 leaf not newlyexecuted.",
+      "report": "examples/physics-material-boundaries-2276/RESULTS.md"
+    },
+    {
+      "id": "D02",
+      "law": "restitution switch",
+      "scope": "closing speed below/exactly/above0.5m/s; unequal material minimum",
+      "historicalStatus": "MISSING_BOUNDARY_PROOF",
+      "status": "NEW_FINITE_DISCRETE_UNEQUAL_MINIMUM_AND_SWITCH_PASS",
+      "qualifiedScope": "Actual Source/Native16World16steps each; independent precomputed Fraction constraints, centered fixedsphere/fixedcube/twospheres, unequal material orders,0/1 and threshold neighbors. No generalcoupled impact/CCD claim.",
+      "report": "examples/physics-discrete-restitution-2276/RESULTS.md"
+    },
+    {
+      "id": "D03",
+      "law": "discrete friction admission",
+      "scope": "zero mu / zero normal impulse / zero tangential speed",
+      "historicalStatus": "HISTORICAL_PARTIAL",
+      "status": "NEW_BOUNDED_DISCRETE_PASS",
+      "qualifiedScope": "Original22spherecases cover zero/staticmu,zeroJn,zero/reversedtangent. Noall-shape branch certificate.",
+      "report": "examples/physics-material-boundaries-2276/RESULTS.md"
+    },
+    {
+      "id": "D04",
+      "law": "discrete static/dynamic friction",
+      "scope": "required impulse below/exactly/above muStatic*normal; reverse tangent; unequal mu",
+      "historicalStatus": "HISTORICAL_PARTIAL",
+      "status": "NEW_FINITE_DISCRETE_SPHERE_AND_CUBOID_PASS",
+      "qualifiedScope": "Sphere exactstatic boundaryneighbors and unequalmix pass; cuboidcentered2Dtangent static pass with20validcontrols. Offcenter/couplednormal-tangent remainopen.",
+      "report": "examples/physics-tangent-response-2276/RESULTS.md"
+    },
+    {
+      "id": "D05",
+      "law": "contact position correction",
+      "scope": "geometry before/after projection; force moment and work accounting",
+      "historicalStatus": "HISTORICAL_PARTIAL",
+      "status": "NEW_CENTERED_WORK_PASS_GENERAL_PROJECTION_OPEN",
+      "qualifiedScope": "Centeredimpact impulse/angular/energy/work and selectedsphere support/sliding pass. Generalpenetration/projection/couplingwork unqualified.",
+      "report": "examples/physics-tangent-response-2276/RESULTS.md"
+    },
+    {
+      "id": "P01",
+      "law": "persistent normal accumulation",
+      "scope": "positive/clamped zero and normal-cache reduction",
+      "historicalStatus": "MISSING_BRANCH_PROOF",
+      "status": "NEW_BOUNDED_NORMAL_TARGET_CACHE_PASS_BRANCH_GAPS_OPEN",
+      "qualifiedScope": "Centeredpersistentnormal impact/support/warmedcache/restore/fault pass; notfullnonzero-clamp/reduction matrix proof.",
+      "report": "examples/physics-persistent-impact-2276/RESULTS.md"
+    },
+    {
+      "id": "P02",
+      "law": "persistent friction cache",
+      "scope": "tangent below/exactly/above1e-12m/s; stale tangent reprojected after normal decrease",
+      "historicalStatus": "MISSING_BRANCH_PROOF",
+      "status": "NEW_PUBLIC_TANGENT_PLANE_AND_PAIRED_WITNESS_NO_GO",
+      "qualifiedScope": "Native1World2steps; acceptedaggregate n dot T7.191714e-9Ns>1e-12; accepted pairedgaps8.508678e-6/5.691598e-5m>1e-12. Geometryphase/cache cause investigation; not all applied PREforces audited.",
+      "report": "examples/physics-persistent-friction-plane-2276/RESULTS.md"
+    },
+    {
+      "id": "P03",
+      "law": "persistent Coulomb limit",
+      "scope": "requested norm below/exactly/above static; dynamic cap; zero cache",
+      "historicalStatus": "MISSING_BRANCH_PROOF",
+      "status": "MISSING_BRANCH_PROOF",
+      "qualifiedScope": "No new execution for this branch; historical result preserved."
+    },
+    {
+      "id": "P04",
+      "law": "eight-box long-time exit",
+      "scope": "ALIGNED/OFFSET/YAW1200 and original settle window",
+      "historicalStatus": "EXISTING_NO_GO",
+      "status": "EXISTING_NO_GO",
+      "qualifiedScope": "No new execution for this branch; historical result preserved."
+    },
+    {
+      "id": "C01",
+      "law": "sphere/static-box face CCD",
+      "scope": "orthogonal face crossing, separating, rotated static fixture",
+      "historicalStatus": "HISTORICAL_SELECTED_PASS",
+      "status": "NEW_BOUNDED_ROUNDED_SWEEP_PASS",
+      "qualifiedScope": "Originalface/corner/vertex/rotation controls through actualSource/NativeWorld anddesktopGPU; currentprofile limits remain.",
+      "report": "examples/physics-rounded-ccd-2276/RESULTS.md"
+    },
+    {
+      "id": "C02",
+      "law": "slab CCD boundary",
+      "scope": "initial touching/overlap; stationary/parallel-outside; endpoint; tied axes",
+      "historicalStatus": "MISSING_BOUNDARY_PROOF",
+      "status": "FINITE_SPHERE_BOX_AND_PRINCIPAL_BOX_BOUNDARIES_PASS_TIES_OPEN",
+      "qualifiedScope": "Original16sphere/staticbox controls andnewprincipalaxisbox event/initial/parallel/endpoint controls passed separately; boxcorner/tied-axis andarbitraryscale remainopen.",
+      "report": "examples/physics-box-slab-boundaries-2276/RESULTS.md"
+    },
+    {
+      "id": "C03",
+      "law": "sphere/static-box corner CCD",
+      "scope": "expanded OBB corner versus exact rounded Minkowski boundary",
+      "historicalStatus": "EXACT_CONTACT_WITNESS_NO_GO_CONSERVATIVE_BOUND",
+      "status": "ROUNDED_GEOMETRY_REPAIR_PASS_ORIGINAL_NO_GO_PRESERVED",
+      "qualifiedScope": "Originalfalseentry remainshistorical; newEuclidean roundedkernel passes independent16caseSource/Native/public/desktop gates. Generalremainingtime/extremescale/rotatingbody unsupported.",
+      "report": "examples/physics-rounded-ccd-2276/RESULTS.md"
+    },
+    {
+      "id": "C04",
+      "law": "multiple static fixtures",
+      "scope": "equal TOI sorted ID; near ties and input permutation",
+      "historicalStatus": "MISSING_BRANCH_PROOF",
+      "status": "NEW_EXACT_TIE_PERMUTATION_PASS_NEAR_TIES_OPEN",
+      "qualifiedScope": "Earliestnonlexicalfixture,equalTOI/reversedinput pass; near-tie/extremeworldrounding remainsopen.",
+      "report": "examples/physics-rounded-ccd-2276/RESULTS.md"
+    },
+    {
+      "id": "C05",
+      "law": "sphere/sphere CCD",
+      "scope": "head-on crossing; overlap; separating; reversed input order",
+      "historicalStatus": "HISTORICAL_SELECTED_PASS",
+      "status": "NEW_FINITE_PUBLIC_SOURCE_NATIVE_AND_DESKTOP_PASS",
+      "qualifiedScope": "22fixedcontrols13HIT7MISS2initialowned; exactfalsegraze/genuinegraze/endpoints/zero-relative/markers/orders/translation/scale/unequalradii. Extremes, remainingtime and frictioncoupling unqualified.",
+      "report": "examples/physics-sphere-pair-ccd-2276/RESULTS.md"
+    },
+    {
+      "id": "C06",
+      "law": "sphere/sphere quadratic boundary",
+      "scope": "zero relative travel, discriminant zero/negative, endpoint, near-grazing cancellation",
+      "historicalStatus": "MISSING_BOUNDARY_PROOF",
+      "status": "NEW_FINITE_PUBLIC_SOURCE_NATIVE_AND_DESKTOP_PASS",
+      "qualifiedScope": "22fixedcontrols13HIT7MISS2initialowned; exactfalsegraze/genuinegraze/endpoints/zero-relative/markers/orders/translation/scale/unequalradii. Extremes, remainingtime and frictioncoupling unqualified.",
+      "report": "examples/physics-sphere-pair-ccd-2276/RESULTS.md"
+    },
+    {
+      "id": "C07",
+      "law": "axis-aligned box/static-box CCD",
+      "scope": "linear thin-face hit; initial overlap; no entry; rotated candidate refusal",
+      "historicalStatus": "HISTORICAL_SELECTED_PASS",
+      "status": "NEW_FINITE_PUBLIC_SOURCE_NATIVE_BOX_SLAB_PASS",
+      "qualifiedScope": "20case table; actualSource/Native20World24steps each;16finite principal-axis cases,initialownership,endpoint,MISS andnegativeq,2command and2creationrefusals; exacteventbank numericresidual0. Generalrotation/corners/ties notqualified.",
+      "report": "examples/physics-box-slab-boundaries-2276/RESULTS.md"
+    },
+    {
+      "id": "C08",
+      "law": "box CCD admission boundaries",
+      "scope": "exact current angular tolerance, negative q equivalence, angular command refusal",
+      "historicalStatus": "HISTORICAL_PARTIAL",
+      "status": "NEW_Q_SIGN_AND_COMMAND_BOUNDARIES_PASS_ANGULAR_NEIGHBORS_OPEN",
+      "qualifiedScope": "Quaternion sign-equivalentidentity nowaccepted; originalnegativeq INVALID_CONFIG preserved; angularcommandrefusal state/clock/recorder preserved. Originalangular1e-12 thresholds unchanged; representableangularneighbors notnewlyqualified.",
+      "report": "examples/physics-box-slab-boundaries-2276/RESULTS.md"
+    },
+    {
+      "id": "X01",
+      "law": "capsule/rotating/general mesh CCD",
+      "scope": "outside admitted rigid CCD profile",
+      "historicalStatus": "NOT_SUPPORTED",
+      "status": "NOT_SUPPORTED",
+      "qualifiedScope": "No new execution for this branch; historical result preserved."
+    },
+    {
+      "id": "P05",
+      "law": "persistent material restitution meaning",
+      "scope": "nonzero restitution admitted versus inelastic accumulated-normal law",
+      "historicalStatus": "SOURCE_SEMANTICS_GAP_PENDING",
+      "status": "REPAIRED_BOUNDED_PERSISTENT_RESTITUTION_PASS",
+      "qualifiedScope": "Originalignored-restitutionfailure preserved; minmaterial/strictthreshold/centeredbox/equalmass/warmcache qualified. Tilted/offcenter/simultaneous open.",
+      "report": "examples/physics-persistent-impact-2276/RESULTS.md"
+    }
+  ],
+  "unclosedRequired": [
+    "persistentfriction/cache/frame and Coulomb switches",
+    "generalprojection/coupledcontactwork",
+    "boxslab tiedaxes/corners/angularneighbors and spherepair extremeoutputs stillopen",
+    "near-tie/extremeCCD",
+    "originalP4eightbox1200settling"
+  ],
+  "newExecutionForThisInventory": {
+    "WorldCalls": 0,
+    "geometryCalls": 0,
+    "referenceCalls": 0,
+    "meaning": "Files-only snapshot of actual prior receipts. No new World/reference/geometry calls for inventory."
+  },
+  "invariants": "HOLD, originalNO_GO/firstfailures/numericgates/iterations/publiclimit preserved; no deploy/release.",
+  "previousInventory": "examples/physics-contact-coverage-g2-2276/COVERAGE-05.json",
+  "privateNativeBoxGeometry": {
+    "status": "PASS_INDEPENDENT_FINITE_CELL_GEOMETRY_ONLY",
+    "casesPerGraph": 20,
+    "pointsPerGraph": 62,
+    "anchorChecksPerGraph": 1674,
+    "originalSameRawRowsPerGraph": 32,
+    "originalMovementM": 0,
+    "WorldCalls": 0,
+    "publicPersistentPhysics": "UNCHANGED_NO_GO",
+    "originalP4": "UNCHANGED_NO_GO",
+    "report": "examples/physics-box-quantized-witness-2276/RESULTS.md"
+  },
+  "same32StaticForceBalance": {
+    "status": "PASS_SAME_32_STATIC_FORCE_MOMENT_ONLY",
+    "pointsPerGraph": 32,
+    "equationsPerGraph": 48,
+    "maximumResidualExact": "0",
+    "WorldCalls": 0,
+    "gapComplementarity": "NOT_QUALIFIED",
+    "originalP4": "UNCHANGED_NO_GO",
+    "report": "examples/physics-box-quantized-equilibrium-2276/RESULTS.md"
+  },
+  "privateContactPhaseWrench": {
+    "status": "SOURCE_PRIVATE_REPORT_VECTOR_NO_GO",
+    "worlds": 1,
+    "attempts": 1,
+    "committedSteps": 1,
+    "actualApplications": 168,
+    "firstReportVectorResidualNs": 0.06810993686254845,
+    "gateNs": 1e-10,
+    "warmFrame": "NOT_COVERED",
+    "laterControls": "NOT_RUN_AFTER_FIRST_FAILURE",
+    "publicPromotion": "BLOCKED",
+    "report": "examples/physics-contact-phase-wrench-2276/RESULTS.md"
+  },
+  "privateContactWrenchProducer": {
+    "status": "EXECUTED_PASS_SOURCE_PRIVATE_PRODUCER",
+    "scope": "one fixed persistent unitcube/floor case, geometry/producer/replay atomicity; no current package adoption",
+    "worlds": 3,
+    "attempts": 8,
+    "acceptedSteps": 6,
+    "applications": 800,
+    "observerAcceptedApplications": 798,
+    "queries": 58,
+    "queryPoints": 100,
+    "anchorChecks": 2700,
+    "warmChangedFrame": "NOT_COVERED_ZERO_APPLICATIONS",
+    "maxLinearImpulseReportDifferenceNs": 3.0986497386532196e-17,
+    "maxWorldOriginMomentReportDifferenceNms": 9.14326337620988e-18,
+    "privatePureRecordingCodec": "EXECUTED_PASS",
+    "successfulPublicSerializeDeserialize": "NOT_RUN",
+    "nativePublicDesktopPerformance": "NOT_RUN",
+    "report": "examples/physics-contact-wrench-producer-2276/RESULTS.md"
+  },
+  "authenticatedNewInputs": {
+    "examples/physics-contact-wrench-producer-2276/RESULTS.json": {
+      "bytes": 16066,
+      "sha256": "dae2759ba5a0a2bbefc7856521fb453673d0a5904ba689e40ed0f5b7a1068049"
+    },
+    "examples/physics-contact-wrench-producer-2276/EVIDENCE-ARCHIVE.json": {
+      "bytes": 53495,
+      "sha256": "a72e69a306c61e323b1649ccbb92372357e982597ebb0563b24a0e2657396fbb"
+    },
+    "examples/physics-contact-coverage-g2-2276/COVERAGE-05.json": {
+      "bytes": 12028,
+      "sha256": "1f5cb0daf4a62982b5dbb9613734e107f3a5b6cdacc8f14a656a79d546eeccd5"
+    }
+  }
+}

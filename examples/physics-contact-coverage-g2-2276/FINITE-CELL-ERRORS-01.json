@@ -1,0 +1,16 @@
+{
+  "status": "MEASURED_SAVED_INDEPENDENT_OBJECTIVE_ONLY",
+  "source": "examples/physics-box-quantized-witness-2276/evidence/run-01/independent-cell-geometry.json",
+  "sourceSha256": "37e341b56137f6a812669230372d333d832a5804d203a45c257e671dc86fdfe5",
+  "savedRows": 124,
+  "maximumSelectedAnchorDistanceM": "2.7226048028691642824761340419080325712284090857391507055974108585478864606577083E-17",
+  "maximumSquaredDistanceExact": "1495400455381821119640050816315819459455018745091666727787244019070577955923336823253/2017382717255398546871213013872213584368410503390946539499825621325480527693810699879689012140699658819186369620869120",
+  "case": "failure-pre-1",
+  "point": "FACE:4:2",
+  "method": "sqrt of maximum exact squared-distance certificate; Decimal80 for display only",
+  "WorldCalls": 0,
+  "candidateCalls": 0,
+  "newGeometryCalls": 0,
+  "notMeasured": "endpoint/native-exit maximum is not inferred from the anchor-distance metric",
+  "originalP4": "UNCHANGED_NO_GO"
+}

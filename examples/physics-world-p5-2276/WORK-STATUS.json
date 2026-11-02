@@ -3,10 +3,10 @@
   "branch": "codex/physics-world-p5-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "G2 sphere-pair CCD exact predicates",
+    "profile": "G2 boxCCD identity quaternion sign",
     "status": "BOUNDED_SOURCE_NATIVE_INDEPENDENT_AND_DESKTOP_PASS",
-    "scope": "29World33steps+22directhelpercalls/graph; exactbank22 and independent88audit;8desktopchecks4presets;originalfalsegrazeandrenderfailurepreserved",
-    "results": "examples/physics-sphere-pair-ccd-2276/RESULTS.md"
+    "scope": "20cases/20World24steps pergraph,2creation2commandrefusals,exactface-eventbankzeroresidual;9desktopchecks4presets",
+    "results": "examples/physics-box-slab-boundaries-2276/RESULTS.md"
   },
   "mainSlices": {
     "P0": "CONTRACT_COMPLETE_LOCAL",
@@ -33,8 +33,8 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Spherepairfalsegraze repaired and API/independent/desktop qualified. Continue P4compactV2/fullcoldposition+totalbudget; persistentfriction/generalcoupling/remainingCCD/P6P7 open. HOLD/no deployment.",
-  "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
+  "active": "G2 private contact/wrench producer Source PASS:3Worlds8attempts6accepted. Real native-point-preserving changed-frame warm case next; no actualwarm in qualified producer run. Formalroot/replay/callers unchanged. Original public/P4 NO_GO, HOLD and firstfailures preserved; no deploy.",
+  "progressMethod": "Prior5of9boundedmilestones retained as historicalqualifications; newcontact-schema delta requiresseparateP0/P1/P2/P5outputrequalification. No weightedpercent orwhole-enginePASS.",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
     "nextG1Baseline": "ACHIEVED2026-11-02; actual physical NO_GO preserved",
@@ -46,7 +46,7 @@
   "invariants": "HOLD, original NO_GO, tolerances and first failures preserved. Owner explicitly authorized current checkpoint develop push on2026-11-02; no deploy/release or held-worker resume; not whole-roadmap completion.",
   "addedGateProgress": {
     "G1": "GENERAL_CONTINUOUS_PRIMITIVE_ROTATION_PASS; see physics-general-rotation-2276; old one-step restriction retired with original evidence retained. Wider phase/control/contact qualification remains separate.",
-    "G2": "ROUNDED_CCD_CENTERED_PERSISTENT_RESTITUTION_AND_DISCRETE_TANGENT_BOUNDED_PASS; persistentfriction/couplednormal-tangent/projection/near-tie-extremeCCD remainopen.",
+    "G2": "ROUNDED_CCD_CENTERED_PERSISTENT_RESTITUTION_DISCRETE_TANGENT_AND_SPHERE_PAIR_CCD_BOUNDED_PASS; persistent friction tangent-plane and accepted paired-contact geometry NO_GO; coupled normal-tangent/projection/general CCD remain open.",
     "G7": "PER_CAMPAIGN_TRUST_GATE; NO_BLANKET_PASS"
   },
   "sourceCorrection": "G1b/ADMISSION-NORMALIZATION-CORRECTION-01.json: Body constructor already normalizes admitted initialq; prior inferredinitialnormguardmismatch unestablished. Broader boundary qualification stillNOT_RUN.",
@@ -58,17 +58,16 @@
     "holdReleaseAuthorized": false
   },
   "latestBrowserConsumer": {
-    "profile": "Desktop Physics Lab: public Source World/recorder/Viewer",
+    "profile": "Desktop boxCCD publicSourceWorld/recorder/Viewer",
     "status": "PASS_DESKTOP_ONLY_1280_1440_1920",
-    "scope": "12realdesktopbrowserchecks;4sessiontests;0.1s fixedJ+torque independent3grid18matchedframes;displayproxyonly;512recordcapunchanged",
-    "results": "examples/physics-lab/RESULTS.md",
+    "scope": "9realdesktopchecks4presets,acceptedXYZW/TOI/meshposes/qsignphysicalequivalence,0errors",
+    "results": "examples/physics-box-slab-boundaries-2276/RESULTS.md",
     "notRun": [
-      "published browser SDK",
-      "GPU device-loss recovery",
-      "contact/joint coupling",
-      "8-box qualification"
-    ],
-    "ownerConstraint": "No further mobile checks; earlier pre-instruction execution preserved."
+      "Native GPU browser graph",
+      "device-loss",
+      "privatecontactphase/wrench",
+      "original8boxP4"
+    ]
   },
   "latestCcdConsumer": {
     "status": "PASS_DESKTOP_ONLY",
@@ -97,9 +96,37 @@
     "refusedBeforeStep": 309,
     "reason": "180000ms execution budget; correctedrunner16stepSource/Nativeprefixonly",
     "physicalSettlingQualification": "NO_GO_NOT_RUN_FULL1200",
-    "next": "new independentreferencebudget strategy, not ended supportcachev3repeat"
+    "next": "Independent full32-point line/paired witness, phase ledger/quality and whole-trajectory output/cost strategy; saved cold-positionV2 is subset PASS. Primitive-axis and owned-Node cost candidates NO_GO; do not repeat ended candidates or unchanged full-stack runs."
   },
   "latestOfflineReference": {
+    "profile": "P4 saved full cold-position V2 numeric subset",
+    "status": "PASS_OFFLINE_FULL_COLD_POSITION_V2_FULL_P4_NO_GO",
+    "frames": 6,
+    "coldQpCalls": 6,
+    "compactRecords": 432,
+    "numericWords": 2592,
+    "retainedPayloadLeaves": 17394,
+    "WorldCalls": 0,
+    "completeSavedPhysicalReplyCompatible": true,
+    "independentFeatureGeometry": "NOT_QUALIFIED",
+    "coreCpuNs": 773147000,
+    "totalObserverCpuNs": 1016861000,
+    "wholeTrajectoryCostGO": "NOT_RUN",
+    "full32PointLinePairedWitness": "NOT_RUN",
+    "phaseLedgerQuality": "NOT_RUN",
+    "full1200StepP4": "NOT_RUN",
+    "fullP4": "NO_GO",
+    "results": "examples/physics-p4-position-v2-2276/RESULTS.md"
+  },
+  "g2EvidenceMap": "examples/physics-contact-coverage-g2-2276/COVERAGE-05.json",
+  "latestPairCcdConsumer": {
+    "status": "PASS_DESKTOP_ONLY",
+    "results": "examples/physics-sphere-pair-ccd-2276/RESULTS.md",
+    "url": "http://127.0.0.1:52960",
+    "checks": 8,
+    "presets": 4
+  },
+  "previousOfflineSatReference": {
     "profile": "P4 saved integer SAT numeric subset",
     "status": "PASS_SUBSET_FULL_P4_NO_GO",
     "frames": 6,
@@ -117,12 +144,280 @@
     "costGO": "NOT_RUN",
     "results": "examples/physics-p4-sat-2276/RESULTS.md"
   },
-  "g2EvidenceMap": "examples/physics-contact-coverage-g2-2276/COVERAGE-03.json",
-  "latestPairCcdConsumer": {
-    "status": "PASS_DESKTOP_ONLY",
-    "results": "examples/physics-sphere-pair-ccd-2276/RESULTS.md",
-    "url": "http://127.0.0.1:52960",
-    "checks": 8,
-    "presets": 4
-  }
+  "offlineP4Checkpoints": {
+    "adapterFreeze": {
+      "status": "PASS_P4_ADAPTER_BYTE_EQUIVALENCE",
+      "WorldCalls": 0,
+      "stepCalls": 0,
+      "candidateCalls": 0,
+      "geometryCalls": 0,
+      "buildCalls": 0,
+      "physicalQualification": "NOT_RUN",
+      "results": "examples/physics-p4-adapter-freeze-2276/RESULTS.md"
+    },
+    "compactV2": {
+      "status": "PASS_OFFLINE_COMPACT_V2_PROTOCOL_SUBSET",
+      "frames": 6,
+      "records": 432,
+      "numericWords": 2592,
+      "retainedPayloadLeaves": 13926,
+      "WorldCalls": 0,
+      "QPCalls": 0,
+      "results": "examples/physics-p4-compact-v2-2276/RESULTS.md"
+    },
+    "primitiveAxis": {
+      "status": "NUMERIC_EQ_PASS_COST_NO_GO",
+      "candidateEnded": true,
+      "candidateCoreCpuNs": 798363000,
+      "savedBaselineCoreCpuNs": 773147000,
+      "costGate": "candidate*10 <= baseline*9",
+      "savedBaselineOnePairing": true,
+      "results": "examples/physics-p4-primitive-axis-2276/RESULTS.md"
+    },
+    "ownedNode": {
+      "status": "NUMERIC_EQ_PASS_NODE_COST_NO_GO",
+      "completeSavedPhysicalReplyCompatible": true,
+      "parentCoreCpuNs": 397992000,
+      "entireWait4ChildCpuNs": 686846000,
+      "conservativeAggregateCpuNs": 1084838000,
+      "savedBaselineCoreCpuNs": 773147000,
+      "candidateBoundaryConservativelyWider": true,
+      "savedBaselineOnePairing": true,
+      "universalBenchmarkClaimed": false,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "reaped": true,
+      "exitCode": 0,
+      "furtherTuningAuthorized": false,
+      "results": "examples/physics-p4-node-sat-2276/evidence/node-01/summary.json"
+    }
+  },
+  "persistentFrictionInvestigation": {
+    "status": "NO_GO_GEOMETRY_PHASE_CACHE_UNDER_INVESTIGATION",
+    "graph": "Native public World",
+    "worlds": 1,
+    "acceptedSteps": 2,
+    "tangentPlaneResidualNs": 7.191714115138252e-09,
+    "tangentPlaneGateNs": 1e-12,
+    "acceptedPairedWitnessGapM": [
+      8.508678180235096e-06,
+      5.6915981142408475e-05
+    ],
+    "pairedWitnessGateM": 1e-12,
+    "privateBoxConstruction": {
+      "status": "PASS_PRIVATE_CONSTRUCTION_AND_GRAPH_PARITY",
+      "graphs": [
+        "source",
+        "strict-nodenext"
+      ],
+      "casesPerGraph": 20,
+      "pointsPerGraph": 62,
+      "WorldCalls": 0,
+      "independentGeometry": "NO_GO_INDEPENDENT_PRIVATE_BOX_GEOMETRY",
+      "firstFailureCase": "failure-pre-1",
+      "firstFailurePoint": 3,
+      "firstFailure": "rounded midpoint line misses native box",
+      "productionIntegration": "NOT_RUN",
+      "results": "examples/physics-box-contact-features-2276/evidence/run-01/",
+      "firstIndependentFailurePreserved": "run-01 source case1 point3 rounded midpoint line misses native box",
+      "amendedPresentation": {
+        "status": "PRIVATE_GEOMETRY_NO_GO",
+        "correctRounding": "Exact quotient/remainder nearest ties-to-even",
+        "attemptedCases": 1,
+        "completedCases": 0,
+        "NativeCalls": 0,
+        "WorldCalls": 0,
+        "reason": "FLOAT_PRESENTATION_LINE_MISSES_NATIVE_BOX",
+        "presentationPointId": "FACE:4:2",
+        "run": "examples/physics-box-contact-features-2276/evidence/run-03/result.json",
+        "firstDriftRefusal": "run-02 source drift before imports;0candidatecalls",
+        "independentDiagnostic": {
+          "status": "CONFIRMED_PRESENTATION_NO_GO",
+          "exactCertificatesVerified": 4,
+          "correctlyRoundedCoordinates": 36,
+          "correctlyRoundedNormalCoordinates": 3,
+          "representedLinesHitBoth": 2,
+          "representedLinesMissNativeBox": 2,
+          "maxBoundaryOutsideAtUpperM": 5.295329250875593e-19,
+          "parameterGap": 6.354395108405335e-15,
+          "globalUnrepresentability": "NOT_PROVED",
+          "report": "examples/physics-box-contact-features-2276/evidence/run-03/presentation-audit.json"
+        }
+      }
+    },
+    "results": "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/"
+  },
+  "latestDiscreteRestitution": {
+    "status": "PASS_FINITE_DISCRETE_RESTITUTION",
+    "worldsPerGraph": 16,
+    "stepsPerGraph": 16,
+    "independentReference": "Precomputed Fraction momentum plus relative separation velocity constraints",
+    "maxVelocityResidualMps": 4.440892098500626e-16,
+    "maxImpulseResidualNs": 8.881784197001252e-16,
+    "maxEnergyResidualJ": 1.3322676295501878e-15,
+    "referenceSetupFirstFailurePreserved": true,
+    "browser": "NOT_RUN_NO_PRODUCTION_CHANGE",
+    "results": "examples/physics-discrete-restitution-2276/RESULTS.md"
+  },
+  "documentationCheckpoint": {
+    "status": "PASS_BUILD_AND_SITE",
+    "buildReceipt": "examples/physics-world-p5-2276/evidence/reference-geometry-docbuild-04/result.json",
+    "siteReceipt": "examples/physics-world-p5-2276/evidence/reference-geometry-docsite-04/result.json",
+    "newBrowserRun": "PASS_BOX_SLAB_SOURCE_VIEWER_RENDER_01",
+    "mobile": "NOT_RUN",
+    "deployment": "NOT_RUN"
+  },
+  "latestPrivateContactGeometry": {
+    "status": "PASS_INDEPENDENT_FINITE_CELL_GEOMETRY_ONLY",
+    "casesPerGraph": 20,
+    "pointsPerGraph": 62,
+    "anchorChecksPerGraph": 1674,
+    "originalSameRawRowsPerGraph": 32,
+    "originalMovementM": 0,
+    "WorldCalls": 0,
+    "publicPersistentPhysics": "UNCHANGED_NO_GO",
+    "originalP4": "UNCHANGED_NO_GO",
+    "report": "examples/physics-box-quantized-witness-2276/RESULTS.md"
+  },
+  "latestBoxCcd": {
+    "status": "SOURCE_NATIVE_FINITE_AND_DESKTOP_PASS",
+    "worldsPerGraph": 20,
+    "stepsPerGraph": 24,
+    "creationRefusalsPerGraph": 2,
+    "commandRefusalsPerGraph": 2,
+    "maxNumericResidual": 0,
+    "oldNegativeQuaternionRefusal": "PRESERVED_BASELINE_01",
+    "originalThinBoxRegression": "PASS_NATIVE_WORLD_WITH_BUNDLED_CAD_DATA",
+    "regressionInitialImportAndExternalizationRefusals": "PRESERVED_BEFORE_WORLD_IMPORT",
+    "results": "examples/physics-box-slab-boundaries-2276/RESULTS.md",
+    "desktop": {
+      "status": "PASS_BROWSER_BOX_SLAB",
+      "checks": 9,
+      "presets": 4,
+      "widths": [
+        1280,
+        1440,
+        1920
+      ],
+      "browser": "Chrome156",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "url": "http://127.0.0.1:52980",
+      "mobile": "NOT_RUN"
+    }
+  },
+  "same32StaticBalance": {
+    "status": "PASS_SAME_32_STATIC_FORCE_MOMENT_ONLY",
+    "graphs": [
+      "source",
+      "strict-nodenext"
+    ],
+    "pointsPerGraph": 32,
+    "interfacesPerGraph": 8,
+    "dynamicBodiesPerGraph": 8,
+    "scalarBalanceEquationsPerGraph": 48,
+    "maximumResidualExact": "0",
+    "sameRawPointRowsPerGraph": 32,
+    "WorldCalls": 0,
+    "gapComplementarity": "NOT_QUALIFIED",
+    "dynamicSettling": "NOT_QUALIFIED",
+    "results": "examples/physics-box-quantized-equilibrium-2276/RESULTS.md"
+  },
+  "contactPhaseWrench": {
+    "status": "SOURCE_PRIVATE_EXECUTED_REPORT_VECTOR_NO_GO",
+    "graph": "SOURCE_PRIVATE",
+    "worlds": 1,
+    "attempts": 1,
+    "committedSteps": 1,
+    "actualImpulseApplications": 168,
+    "zeroApplications": 120,
+    "queries": 9,
+    "queryPoints": 20,
+    "corrections": 8,
+    "firstReportVectorResidualNs": 0.06810993686254845,
+    "reportVectorGateNs": 1e-10,
+    "actualImpulseOnBNs": [
+      -0.06810993686254845,
+      0.09728269579179234,
+      -2.174053310893481e-05
+    ],
+    "publishedImpulseOnBNs": [
+      0,
+      0,
+      0
+    ],
+    "checkedPrefix": "native geometry/correction/momentum/angular/work/energy ledger only",
+    "warmFrame": "NOT_COVERED_NO_WARM_APPLICATION",
+    "unreached": [
+      "later report moment gates",
+      "known refusal",
+      "unknown refusal",
+      "retry",
+      "clean control",
+      "restore continuation",
+      "Native",
+      "public promotion",
+      "desktop"
+    ],
+    "rawAstep1ControlLabel": "NOT_RUN means incomplete validation;actual state committed once",
+    "results": "examples/physics-contact-phase-wrench-2276/RESULTS.md"
+  },
+  "previousSpherePairMilestone": {
+    "profile": "G2 sphere-pair CCD exact predicates",
+    "status": "BOUNDED_SOURCE_NATIVE_INDEPENDENT_AND_DESKTOP_PASS",
+    "scope": "29World33steps+22directhelpercalls/graph; exactbank22 and independent88audit;8desktopchecks4presets;originalfalsegrazeandrenderfailurepreserved",
+    "results": "examples/physics-sphere-pair-ccd-2276/RESULTS.md"
+  },
+  "previousPhysicsLabConsumer": {
+    "profile": "Desktop Physics Lab: public Source World/recorder/Viewer",
+    "status": "PASS_DESKTOP_ONLY_1280_1440_1920",
+    "scope": "12realdesktopbrowserchecks;4sessiontests;0.1s fixedJ+torque independent3grid18matchedframes;displayproxyonly;512recordcapunchanged",
+    "results": "examples/physics-lab/RESULTS.md",
+    "notRun": [
+      "published browser SDK",
+      "GPU device-loss recovery",
+      "contact/joint coupling",
+      "8-box qualification"
+    ],
+    "ownerConstraint": "No further mobile checks; earlier pre-instruction execution preserved."
+  },
+  "contactWrenchContract": {
+    "status": "DESIGN_TYPES_PASS_PRIVATE_SOURCE_IMPLEMENTATION_PASS_CANONICAL_NOT_ADOPTED",
+    "contract": "examples/physics-contact-wrench-contract-2276/CONTRACT.md",
+    "typeCheck": "examples/physics-contact-wrench-contract-2276/TYPE-CHECK-01.json",
+    "plannedStateSchemaVersion": 2,
+    "plannedRecordingVersion": 2,
+    "legacyCompatibility": false,
+    "runtimeCanonicalPackage": "UNCHANGED_V1_PENDING_QUALIFICATION",
+    "requalificationRequired": [
+      "P0 output-state delta",
+      "P1 canonical output and all producer paths",
+      "P2 new recording/wire schema",
+      "P5 visual explicit empty arrays",
+      "active callers and documentation",
+      "Native/public/performance"
+    ],
+    "oldBoundedReceipts": "PRESERVED_NOT_AUTOMATIC_NEW_SCHEMA_PASS"
+  },
+  "contactWrenchProducer": {
+    "status": "EXECUTED_PASS_SOURCE_PRIVATE_PRODUCER",
+    "results": "examples/physics-contact-wrench-producer-2276/RESULTS.md",
+    "worlds": 3,
+    "attempts": 8,
+    "acceptedSteps": 6,
+    "applications": 800,
+    "queries": 58,
+    "queryPoints": 100,
+    "anchorChecks": 2700,
+    "warmApplications": 0,
+    "warmChangedFrame": "NOT_COVERED",
+    "knownUnknownRollback": "EXECUTED_PASS",
+    "retryCleanRestoreContinue": "EXECUTED_PASS",
+    "privatePureWireCodec": "EXECUTED_PASS",
+    "successfulPublicSerializeDeserialize": "NOT_RUN",
+    "nativePublicDesktopPerformance": "NOT_RUN",
+    "canonicalPackage": "UNCHANGED",
+    "originalFirstFailure": "PRESERVED_SEPARATE_PHASE_RUN"
+  },
+  "currentG2EvidenceMap": "examples/physics-contact-coverage-g2-2276/COVERAGE-06.json"
 }

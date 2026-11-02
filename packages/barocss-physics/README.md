@@ -4,6 +4,15 @@ The [library design and development roadmap](ROADMAP.md) defines the unreleased 
 its staged verification. The root uses the P0 model/options contract. P5a private cloth/fluid kernels passed their bounded two-step source/native gates; the P5b common-World cutover is implemented with qualification pending. Existing HOLDs,
 public admission limits and original NO_GO receipts remain in force.
 
+The finite box CCD checkpoint accepts both signs of the identity quaternion
+without changing orientation/angular thresholds. Source/compiled20-case checks
+and9desktop GPU checks pass; see
+[`physics-box-slab-boundaries-2276`](../../examples/physics-box-slab-boundaries-2276/RESULTS.md).
+A separate private contact-witness construction passes independent geometry on
+20cases, including all32 original RAW point coordinates without movement.
+It does not qualify the public persistent solver or eight-box dynamics; see
+[`physics-box-quantized-witness-2276`](../../examples/physics-box-quantized-witness-2276/RESULTS.md).
+
 A bounded, renderer-neutral fixed-step 3D Physics package. Its rigid world simulates admitted spheres, oriented boxes and capsules, static/kinematic boxes, limited fixed/hinge joints and narrow opt-in CCD profiles. The same World owns a selected fixed256-particle visual basin or a fixed pinned sheet over a static sphere. The caller owns time and display. The package does not simulate exact CAD Surface or mesh collision, general joint networks, arbitrary cloth meshes or engineering fluid flow.
 
 ## Continuous rigid rotation
@@ -36,6 +45,38 @@ The [persistent box impact scene](../../examples/physics-persistent-impact-2276/
 The [tangent response scene](../../examples/physics-tangent-response-2276/README.md) shows discrete anisotropic cuboid sticking and the original sphere static/dynamic boundary inputs. Independent momentum/no-slip audits and desktop rendering are recorded separately; this does not qualify persistent friction or arbitrary coupled impacts.
 
 The [two-sphere CCD scene](../../examples/physics-sphere-pair-ccd-2276/README.md) shows the corrected near-graze MISS and real head-on/graze cases through the actual World/recorder. Separate endpoint/radius words drive exact predicates; display enlargement is explicitly labelled.
+
+The local tracking checkpoint on 2026-11-03 keeps P4 and persistent friction
+NO_GO. Offline adapter byte equivalence and compact V2 saved numeric/protocol
+checks pass. Position V2 matches the complete saved physical reply on 6 cold
+QPs/432 records/2592 words/17394 retained leaves; its core CPU is773147000 ns.
+Primitive-axis CPU798363000 ns fails the fixed cost gate and that candidate is
+ended. The Node candidate also fails: parent core397992000 ns plus full owned
+wait4 child CPU686846000 ns is1084838000 ns. That conservative wider boundary is
+one saved-baseline pairing; it is not a universal benchmark. The child reaches
+both EOFs and is reaped. Full 32-point line/paired witness, ledger/quality,
+whole-trajectory cost and full 1200-step P4 remain NOT_RUN. See the
+[offline position results](../../examples/physics-p4-position-v2-2276/RESULTS.md),
+[primitive cost result](../../examples/physics-p4-primitive-axis-2276/RESULTS.md)
+and [Node receipt](../../examples/physics-p4-node-sat-2276/evidence/node-01/summary.json).
+
+A separate public Native persistent-friction baseline accepts 2 steps in 1 World
+but fails: tangent-plane residual 7.191714e-9 Ns and accepted paired-contact gaps
+8.508678e-6 m/5.691598e-5 m exceed their unchanged 1e-12 gates. Geometry phase/cache
+handling remains under investigation. Private box construction and
+Source/strict parity pass 20 cases/62 points per graph, but independent geometry
+stops at the third point of the first case because the rounded midpoint line
+misses a native box. That candidate is private and has no production integration.
+These failures do not change the separate finite sphere-pair CCD/API/desktop
+result. See the [roadmap](ROADMAP.md) for evidence paths and proof boundaries.
+HOLDs, first failures and all tolerances remain. No deployment is authorized.
+
+A private replacement separates accepted native geometry from integrated
+pair wrenches. Its first Source execution passes3 Worlds/8 attempts/6 accepted
+steps, independent physical reports, rollback, retry and restore/continue.
+Actual warm-cache reuse is absent. Current public types/recording remain unchanged;
+Native/public/desktop/performance qualification still blocks adoption. See the
+[producer result](../../examples/physics-contact-wrench-producer-2276/RESULTS.md).
 
 | Entry point | Current result | Example |
 | --- | --- | --- |

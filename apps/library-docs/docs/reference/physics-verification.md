@@ -28,6 +28,23 @@ does not qualify extreme outputs, rotating non-spheres, remaining-time flow or
 friction-coupled impacts. See
 `examples/physics-sphere-pair-ccd-2276/RESULTS.md` on this branch.
 
+## Axis-aligned box CCD and quaternion sign
+
+The original public baseline records negative-identity quaternion admission
+refusals. The repaired check accepts q and -q for the same identity rotation;
+all existing1e-12 orientation/angular thresholds remain. Each Source/compiled
+graph passes20Worlds/24steps across20 cases, with two creation and two angular
+command refusals. Independent exact face-event references give zero recorded
+residuals on the fixed dyadic inputs. Refusals preserve state, clock and recorder.
+
+Strict compilation and original thin-box assertions pass. A dedicated actual
+GPU Viewer passes9desktop checks/four presets at1280/1440/1920 in Chrome156,
+with zero page/console errors. This proves accepted-pose display, real mesh
+pixels and controls; screenshots are not the numerical oracle. Setup import
+and module-externalization failures remain preserved separately. General box
+rotation, corner/tied-axis and angular-neighbor boundaries stay unqualified.
+See `examples/physics-box-slab-boundaries-2276/RESULTS.md`. No mobile or deployment.
+
 ## Offline P4 reference checkpoint
 
 An integer SAT observer candidate matches2592saved numeric words exactly over
@@ -36,13 +53,83 @@ authority and a separate Fraction rounding-cell observer are used. No World,
 QP or old-reference computation is rerun. Its measured534.484msCPU is for this
 numeric subset only, and is not a whole-reference speed or stack certificate.
 
-Full feature-selection/output compatibility and total cost remain unqualified;
-original1200-step eight-box settling stays NO_GO. The first experiment's
-rounding-boundary certificate failure is preserved. Production source/API and
-rendering remain at the verified discrete-friction checkpoint. See
+The next explicit compact V2 protocol matches432 records and13926 retained
+physical payload leaves. Full cold-position V2 matches6 fresh cold QPs and
+17394 retained leaves, including selection, points, ties, lambda and KKT.
+These are saved-frame numeric/output checks, not independent feature geometry.
+The baseline core CPU is773147000ns. Primitive-axis and owned-Node candidates
+both fail their predeclared10percent cost improvement gate. The Node comparison
+includes its ENTIRE reaped child CPU and uses a conservatively wider boundary;
+one saved pairing is not a general benchmark. Neither candidate is retried for
+a better timing result. See `examples/physics-p4-position-v2-2276/RESULTS.md`
+and `examples/physics-p4-node-sat-2276/RESULTS.md`.
+
+Full32-point line/paired witnesses, ledger/quality and whole-trajectory cost
+remain unqualified; original1200-step eight-box settling stays NO_GO. The
+first rounding-boundary certificate failure is preserved. Engine/API/desktop
+evidence remains separate from these offline calculations. See
 `examples/physics-p4-sat-2276/RESULTS.md`. The updated19-branch G2 map retains
 explicit gaps, including persistent friction, general projection/coupled work
 and remaining finite CCD cases; it is not a blanket engine PASS.
+
+## Unequal discrete restitution and persistent geometry
+
+Sixteen centered discrete impact cases pass both Source and compiled public
+World paths: fixed box/sphere, fixed box/cube and unequal-mass sphere pairs.
+An independent Fraction bank solves momentum and relative-velocity constraints
+before any World execution. Unequal material minima,0/1 endpoints, orders and
+the strict0.5m/s switch neighbors are covered. Maximum velocity residual is
+4.441e-16m/s, impulse8.882e-16Ns and energy1.333e-15J, below unchanged1e-10
+gates. The reference setup's first zero-pivot failure is preserved separately.
+No engine change or new rendering claim follows from this finite test. See
+`examples/physics-discrete-restitution-2276/RESULTS.md`.
+
+A separate persistent-box public baseline remains NO_GO. One Native World
+accepts two steps, but step2 tangent-plane residual7.192e-9Ns exceeds1e-12Ns.
+Independent native line audits find accepted aggregate paired gaps8.509e-6m
+and5.692e-5m against1e-12m. These audits do not establish every internal PRE
+force point. Geometry, phase correspondence and cache repair must pass before
+this profile can be expanded. A private feature candidate's construction and
+Source/compiled parity passed, but its first independent rounded midpoint-line
+check failed. Private construction is not public physical qualification. A
+separate fixed27-member cell algorithm now passes20cases/62points per graph.
+Independent Hamilton/Fraction calculations verify all3348 cell members and124
+exact certificates across the two graphs. All32 original rows match RAW
+coordinates exactly, with zero movement. The old single-rounded-line failure
+remains. This proves nearest-feasible selection inside that finite cell only.
+Force application phase, cache handling, public persistent physics and full P4
+remain NO_GO/NOT_QUALIFIED. See
+`examples/physics-box-quantized-witness-2276/RESULTS.md` and
+`examples/physics-persistent-friction-plane-2276/RESULTS.md`.
+
+The separate32-point force/moment recheck gives exact ZERO residual for all48
+scalar balances per saved graph, using nonnegative cumulative-weight loads and
+the unchanged RAW coordinates. No World or QP runs. Saved PRE force balance
+does not prove feasible gaps, complementarity or dynamic settling. See
+`examples/physics-box-quantized-equilibrium-2276/RESULTS.md`.
+
+The next SOURCE_PRIVATE phase audit commits one actual step and captures168
+impulse applications. Native geometry, correction, momentum and work prefix
+checks pass, but the old aggregate report fails: its X impulse differs from
+the actual applied sum by0.06810993686254845Ns against1e-10Ns. Final active
+cache rows are zero while earlier applied impulses survive in other rows.
+The first failure is preserved. Later moment/rollback/retry/restore gates and
+Native/public/desktop promotion are NOT_RUN; warm-frame reuse is NOT_COVERED.
+This motivates a separate accepted-geometry and integrated-wrench contract;
+it does not qualify a new public API. See
+`examples/physics-contact-phase-wrench-2276/RESULTS.md`.
+
+A separate SOURCE_PRIVATE producer implementation passes3 Worlds/8 attempts/
+6 accepted steps, with800 actual applications and58 geometry queries. It reports
+both bodies' integrated impulses and world-origin moments independently of
+accepted end-pose geometry. Independent geometry, momentum and work checks,
+known/unknown fault rollback, retry, clean control, prefix restore/continue and
+nested state isolation pass. Recording2 rejects old shapes before World creation.
+Successful wire round-trip is private pure-codec evidence; successful public
+serialization/deserialization, Native, current package integration, desktop and
+performance are NOT_RUN. There are zero actual warm applications. See
+`examples/physics-contact-wrench-producer-2276/RESULTS.md`. The original report
+failure and public persistent-friction failures remain preserved.
 
 ## Discrete friction checkpoint
 

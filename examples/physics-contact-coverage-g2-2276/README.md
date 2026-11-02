@@ -58,3 +58,21 @@ Finish G1a staged rotation qualification. Then freeze a small G2 independent bou
 The current source performed one actual model admission, one CCD-profile admission and one sweepSphere call. The independent files-only observer performed one point audit,41 checked Fraction operations and0sqrt/trig/ODE/helper/World calls. The first geometric failure stops the later biased-stop audit and native graph. No World was constructed or advanced.
 
 The capture guard exits0; the witness guard exits1 for the preserved geometric NO_GO, with normal EOF/process closure. This failure shows that the returned expanded rectangular-box boundary is earlier than an exact rounded sphere/box contact. It does not establish tunnelling, refute an explicitly conservative broad-phase guarantee, or change existing face-aligned CCD receipts. Exact/conservative profile semantics and a bounded feature-aware repair are the next G2 dependency. No numerical limit, material law, public source or original8-box contract was changed.
+
+
+## Current finite checkpoint (2026-11-03)
+
+The table above is the original inventory. [COVERAGE-04.json](./COVERAGE-04.json)
+records later finite proofs without editing inventories01–03. Discrete unequal
+material restitution now has an independent16-case Source/Native proof. The
+persistent changing-normal public baseline has a new tangent-plane and paired
+witness NO_GO. It does not identify all internal PRE force points or prove that
+cache projection alone repairs the physics. A private native box candidate is
+kept separate from public World and full eight-box qualification. Original
+first failures and all numeric/iteration gates remain. No blanket engine PASS.
+
+The source-private contact/wrench producer now passes the bounded one-case
+geometry, actual impulse/moment report and rollback/retry/restore contract.
+`COVERAGE-06.json` records3 Worlds/8 attempts/6 accepted steps. Actual warm
+applications are zero; Native/public/desktop/performance and original P4 remain
+separate and unqualified. The earlier aggregate-report NO_GO is preserved.

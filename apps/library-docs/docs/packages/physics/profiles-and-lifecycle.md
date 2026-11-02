@@ -22,7 +22,7 @@ profile fixes the step, `fixedStepSeconds` is in `[1/240, 1/30]` s. `step(comman
 | Two disjoint dynamic hinges | Exactly four 1 kg spheres of radius 0.1 m, forming the offset pair at Z=0 and Z=1 m | `rigid-discrete-v1`, direct broad phase, zero gravity, exact identity initial quaternions, zero initial motion, restitution 0, friction 1/0.7. Both hinges use the offset limits/motor above. Only empty commands; cross-component contact refuses. See the bounded evidence below. |
 | Sphere/static-box CCD | One CCD dynamic sphere and 1–8 static nonsensor oriented boxes; no joints or other bodies | Euclidean rounded-box sweep with selected independent face/edge/vertex/grazing evidence. Initial touch/overlap remains discrete-owned; arbitrary numerical scales and rotating fixtures are not qualified. |
 | Dynamic-sphere-pair CCD | Exactly two nonsensor dynamic spheres, exactly one with `ccd:true`; zero gravity, no joints | Exact represented endpoint/radius predicates with finite independent head-on/grazing/miss/initial/endpoint evidence. Both 5e-10 m inward biases remain. Extreme output accuracy and remaining-time integration are separate. `colliderId` denotes the other dynamic sphere's collider. |
-| Axis-aligned-box-pair CCD | One CCD dynamic box and one static nonsensor box, both axis-aligned; no joints or persistent boxes | Nonzero angular commands refuse. Contact-induced rotation refuses the candidate. Rotation qualification does not certify this CCD path. |
+| Axis-aligned-box-pair CCD | One CCD dynamic box and one static nonsensor box, both axis-aligned; no joints or persistent boxes | Both signs of the identity quaternion are admitted with the same orientation/angular thresholds. Finite centered face-event boundaries have separate numerical and desktop proof. Nonzero angular commands refuse. Contact-induced rotation refuses the candidate. General rotation and tied-axis/corner events remain unqualified. |
 
 CCD stops at the earliest admitted hit with a `1e-9` m inward offset. It does not integrate the
 remaining fraction of that step. Initial overlap/touch uses the discrete path. Capsule CCD, general
@@ -39,6 +39,12 @@ The public persistent-box limit remains four bodies. Private nine-body studies d
 activate the original eight-box experiment. The disjoint-hinge profile has a separate qualification;
 it does not admit connected two-link mechanisms. Keep historical NO_GO results and unresolved causes alongside later
 bounded results in [Physics verification](/reference/physics-verification).
+
+The changing-normal persistent friction qualification currently has a public
+NO_GO: its accepted aggregate tangent is not in the reported normal plane, and
+the accepted paired contact witness fails independent native geometry. Existing
+centered impact and support results remain bounded proofs. No general tilted
+contact, contact-cache accuracy or stable-stack claim follows from admission.
 
 ### Isolated noncubic rotor
 

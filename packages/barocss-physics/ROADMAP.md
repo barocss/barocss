@@ -4,7 +4,7 @@ artifact_type: architecture-and-development-roadmap
 status: p5_done_bounded_localselected_p4_no_go
 owner_role: independent-physics-algorithm-work
 source_request: redesign the unreleased Physics library and reorganize its roadmap; preserve HOLD, NO_GO and first failures
-last_updated: 2026-11-02
+last_updated: 2026-11-03
 ---
 
 # Physics library design and roadmap
@@ -462,6 +462,44 @@ remain. See `examples/physics-p4-sat-2276/RESULTS.md`. No production/renderer
 change or deployment. G2's current19-branch evidence/gap map is separately in
 `examples/physics-contact-coverage-g2-2276/COVERAGE-02.json`.
 
+### P4 offline adapter and position checkpoint (2026-11-03)
+
+The local adapter-freeze check passes byte equivalence after the same solve-region
+replacement on separately authenticated old/current inputs. It makes zero World,
+step, candidate, geometry and build calls. It does not authorize automatic adapter
+adoption or establish physical accuracy. See
+`examples/physics-p4-adapter-freeze-2276/RESULTS.md`.
+
+Compact V2 passes the saved protocol subset: 6 frames,432 records,2592 numeric words
+and 13926 retained payload leaves, with zero World/QP calls. Cold-position V2 then
+passes 6 fresh cold QPs,432 records,2592 words and17394 retained payload leaves.
+The complete saved physical reply matches, including lambda, KKT, corrections,
+selection, points and ties. These are saved-frame numeric/protocol results;
+independent feature geometry and full P4 acceptance remain separate. Certificates
+stay strictly inside their binary64 rounding cells with width <= exact decimal 1e-25;
+the original represented 1e-12 m physical gate stays fixed. See
+`examples/physics-p4-compact-v2-2276/RESULTS.md` and
+`examples/physics-p4-position-v2-2276/RESULTS.md`.
+
+Position V2 core CPU is773147000 ns; whole observer CPU is 1016861000 ns.
+Primitive-axis numeric equivalence passes, but core CPU798363000 ns fails the
+fixed candidate*10<=baseline*9 cost gate against773147000 ns. That candidate is
+ended. The owned Node candidate also returns the complete compatible saved
+reply, but parent core397992000 ns plus ENTIRE wait4 child CPU686846000 ns totals
+1084838000 ns and fails the same cost gate. Its boundary conservatively includes
+child startup and epilogue and is wider than the saved baseline; it is one
+pairing, not a universal benchmark or equal-boundary speed comparison. Stdout
+and stderr reach EOF, the child exits 0 and is reaped, and no trailing stdout
+remains. Request-only CPU is nested attribution and does not set the gate.
+See `examples/physics-p4-primitive-axis-2276/RESULTS.md` and
+`examples/physics-p4-node-sat-2276/evidence/node-01/summary.json`.
+
+Full 32-point line/paired witnesses, phase ledger/quality, whole-trajectory
+output/cost and full 1200 steps remain NOT_RUN; whole P4 remains NO_GO. These
+local receipts do not change the original 308 accepted/309 budget stop, matched
+16-step prefix evidence, four-body public cap, HOLDs or earlier failures.
+No deployment or numerical rerun accompanies this tracking update.
+
 ### G2 exact sphere-pair CCD (2026-11-03)
 
 The actual compiled min-radius baseline reports falsegraze at0.5 while exact
@@ -484,6 +522,153 @@ bounds intermediates<8410bits; corpusBigIntops notmetered/no2MopsPASSclaim.
 This is finite C06 proof, not arbitraryextremes, rotatingnonsphereCCD, remaining-
 timeflow or friction-coupled impact. P4eightbox, persistentfriction, spherepair
 finiteoverlapfriction, generalcoupledwork and P6/P7 stayopen. HOLD/no deployment.
+
+### G2 discrete unequal-material restitution (2026-11-03)
+
+A separate Source and compiled public API check passes16Worlds/16steps per graph.
+Independent precomputed Fraction momentum and Newton constraints cover centered
+fixed-sphere/fixed-cube and unequal-mass sphere impacts, unequal material minima,
+0/1 endpoints, orders and strict0.5m/s threshold neighbors. Maximum velocity
+residual4.441e-16m/s, impulse8.882e-16Ns and energy1.333e-15J meet the existing
+1e-10 gates. The reference setup zero-pivot failure is preserved; no World was
+called at that failure. No production change or new browser qualification.
+See `examples/physics-discrete-restitution-2276/RESULTS.md` and
+`examples/physics-contact-coverage-g2-2276/COVERAGE-04.json`. Persistent friction,
+general projection/coupling and original P4 remain separate NO_GO dependencies.
+
+### G2 persistent contact geometry and cache investigation (2026-11-03)
+
+A separate actual Native public baseline uses 1 World and 2 accepted steps and
+remains NO_GO. At step 2, the independent Fraction audit confirms tangent-plane
+residual 7.191714115138252e-9 Ns against the unchanged 1e-12 Ns gate. Native
+line/box audits of the accepted aggregate point and normal find paired witness
+gaps 8.508678180235096e-6 m and 5.6915981142408475e-5 m at steps 1/2, both above
+1e-12 m. This is a public accepted-contact defect. Geometry phase correspondence
+and cache handling remain under investigation; a cache-only repair is not yet
+qualified. Original states, provider/source and first failure remain in
+`examples/physics-persistent-friction-plane-2276/evidence/baseline-01/`.
+
+A separate private box feature candidate passes construction and exact
+Source/strict-NodeNext parity on 20 cases/62 returned points per graph, with zero
+World calls. Independent geometry stops in the first case at the third point:
+"rounded midpoint line misses native box". Construction/parity is therefore
+not an independent geometry PASS. This private candidate has no production
+integration. See `examples/physics-box-contact-features-2276/evidence/run-01/`
+for both verdicts. No tolerance or first failure is changed.
+
+The corrected exact quotient/remainder presentation still refuses the first
+Source case at FACE:4:2; Native and the original32 controls are not reached.
+A separate saved-output Hamilton/Fraction audit verifies4 exact certificates,
+all36 nearest-even point coordinates and3 normal coordinates. Two represented
+lines miss a native box: conflicting slab bounds differ by6.354395108e-15,
+with5.295329251e-19m boundary violation at the upper bound. Strict intersection
+has no tolerance, so this remains NO_GO. Global unrepresentability is not proved.
+The first construction retained32 rows but only28 raw coordinate rows matched;
+the maximum movement5.551e-17m is a measurement, not automatic permission.
+
+The separate finite-cell construction now passes Source/strict NodeNext20cases,
+62points and1674anchor checks per graph. An independent Hamilton/Fraction
+observer checks all3348 cell members and124 exact certificates across both
+graphs. All32 original rows now match RAW coordinates exactly, with zero
+movement. The normal stays fixed; the complete27-member cell has a frozen
+exact nearest-feasible/word-lex objective. Empty cells refuse without expansion.
+This qualifies only the named private geometry. It does not retroactively pass
+the old single-rounded-line protocol or claim a global optimum. See
+`examples/physics-box-quantized-witness-2276/RESULTS.md`.
+
+The same32-point static FORCE/MOMENT recheck also passes in both saved graphs:
+8 interfaces,8 dynamic bodies and48 scalar balance equations per graph. Exact
+Fraction residuals are ZERO under nonnegative analytic cumulative-weight loads.
+There are zero World/QP calls. The saved PRE positions do not thereby satisfy
+gap complementarity or dynamic stability; this is not a full static-contact
+solution. See `examples/physics-box-quantized-equilibrium-2276/RESULTS.md`.
+
+Next G2 dependency: per-phase force/wrench correspondence and actual cache-hit
+provenance before public geometry/recorder promotion. Distinguish final accepted
+witnesses from historical impulse application points and position correction.
+Do not project an aggregate tangent merely to hide a report/physics mismatch.
+Full P4 stays separate; recheck independent32-row equilibrium before any new
+original eight-box trajectory. Private geometry or subset cost is not P4 GO.
+
+The finite sphere-pair CCD engine/API/desktop milestone above remains its own
+qualified result. It does not qualify persistent friction, accepted box contact
+geometry, full P4, general coupled impacts or equipment behavior. Existing
+HOLDs and the no-deployment boundary remain.
+
+### G2 contact phase ledger first execution (2026-11-03)
+
+The private staged Source graph commits one step in one World/attempt, with168
+actual impulse applications,9 queries,20 query points and8 pose corrections.
+The native geometry/correction, linear/spin/fixed-origin angular momentum and
+midpoint-work/energy prefix passes the existing gates. Maximum step momentum
+residual6.616e-17Ns and energy-ledger residual2.484e-16J meet1e-10. There are
+zero warm applications: warm-frame reuse is NOT_COVERED.
+
+The first aggregate-report gate fails on X: actual event impulse differs by
+0.06810993686254845Ns against1e-10. The published aggregate is zero while the
+actual event sum is[-0.06810993686254845,0.09728269579179234,-2.174053310893481e-5]Ns.
+The patch changes from4points to2; final active cache rows have zero impulses,
+while two no-longer-active rows retain earlier applied impulses. Files-only
+exact event analysis preserves this diagnosis. It does not run gates skipped
+after the first failure. The raw driver A_step1=NOT_RUN label means validation
+was not completed; the state did execute and commit once.
+
+This is SOURCE_PRIVATE only, not current production geometry adoption or a
+Native/public/desktop PASS. Later report moment, refusal/retry/control/restore
+gates remain NOT_RUN. Geometry support alone cannot promote the old report.
+See `examples/physics-contact-phase-wrench-2276/RESULTS.md`.
+
+The clean breaking contact/wrench contract is now frozen in
+`examples/physics-contact-wrench-contract-2276/CONTRACT.md`, with a positive and
+negative TypeScript consumer check. This is a design/type result only. Proposed
+state schema2 separates accepted Contact.points from mandatory producer onA/onB
+world-origin pairWrenches. Recording2/BCPHREC2 rejects old input without aliases,
+converters, missing-field defaults or dual execution paths.
+
+The new SOURCE_PRIVATE producer implementation passes its first execution:
+3 Worlds,8 attempted and6 accepted steps,800 actual applications,58 queries,
+100 points and2700 finite-cell checks. Each actual application returns both
+bodies' impulses and world-origin moments. A fresh World-owned candidate map
+retains contributions from points that disappear before the accepted pose.
+Independent native geometry, momentum, angular momentum, work and both-side
+report checks pass. Known refusal before application and an unknown fault
+after a nonzero candidate-map update preserve accepted state/cache/time/log.
+Retry, clean control and prefix restore/continue agree in raw values. Nested
+state isolation and Recording2 rejection-before-creation checks pass. Successful
+wire round-trip uses the private pure codec; successful public serializer and
+deserializer execution remains NOT_RUN. See
+`examples/physics-contact-wrench-producer-2276/RESULTS.md`.
+
+Actual warm applications remain zero: this does not qualify cache transport.
+Next: a frozen native-point-preserving changed-frame case, then atomic
+canonical root/replay/caller migration only within the qualified scope. Every current rigid application path and accepted geometry family,
+visual-state empty arrays, Native parity and uninstrumented performance remain
+blocking gates. Original P0/P1/P2/P5 bounded receipts remain history; they do not
+automatically qualify the new state/schema boundary. Do not reconstruct a
+historical wrench from final cache or average geometry. Existing HOLDs and all
+original NO_GO/first failures remain.
+
+### G2 finite box CCD and quaternion sign (2026-11-03)
+
+The original20-case Source/Native baseline passes18Worlds/22steps per graph,
+including actual negative-identity-quaternion INVALID_CONFIG refusals. A unit
+q and -q rotate every vector identically. The one-line admission repair accepts
+both scalar signs and keeps the existing1e-12 orientation/angular thresholds.
+The amended20-case bank passes20Worlds/24steps per graph, two creation refusals
+and two command refusals. Exact face-event references give zero recorded TOI,
+geometry, velocity, impulse, spin and energy residuals on these fixed dyadic
+inputs. Hamilton-matrix physical q/-q comparison passes separately from raw
+Source/Native parity. Refusals preserve accepted state, clock and recorder.
+
+Strict NodeNext/canonical root/Source/consumer builds pass. Original thin-box
+assertions pass against the actual compiled World with bundled existing CAD
+data admission. Initial import and externalization setup refusals remain
+preserved before any World call; no CAD product or Studio work is resumed.
+Actual GPU Viewer checks pass9checks/four presets in Chrome156 at desktop
+1280/1440/1920, with zero page/console errors. No mobile tests or deployment.
+See `examples/physics-box-slab-boundaries-2276/RESULTS.md` and
+`examples/physics-contact-coverage-g2-2276/COVERAGE-05.json`. General box rotation,
+corner/tied-axis and angular-neighbor boundaries remain separate gaps.
 
 Dependency order: close the G1 admitted-rotation boundary and G2 finite coverage
 map before the corresponding general rigid/contact claim. Keep original P4
