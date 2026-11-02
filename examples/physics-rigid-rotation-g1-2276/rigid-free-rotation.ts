@@ -29,7 +29,7 @@ export function prepareAxisymmetricFreeRotation(body: Body, dt: number): FreeRot
   // G1_AXISYMMETRIC_ENTRY: eligible repeated-moment primitive box.
   if (body.angularVelocityRadps.every(value => value === 0)) {
     // G1_ZERO_SPIN_RETURN: retain the actual zero/quaternion word signs.
-    return { orientation: [...body.orientation], angularVelocityRadps: [...body.angularVelocityRadps] };
+    return { orientation: [...body.orientation], angularVelocityRadps: [...body.angularVelocityRadps] as Vec3 };
   }
   // G1_NONZERO_SYMMETRIC_FLOW: exactly two rotation factors, no retry.
   const magnitude = Math.hypot(...body.orientation);

@@ -1,0 +1,81 @@
+{
+  "status": "CANDIDATE_READY_02_ERASED_CAST_STATIC_ONLY",
+  "workId": "physics-rigid-rotation-g1a-repair-2276",
+  "source": {
+    "path": "examples/physics-rigid-rotation-g1-2276/rigid-free-rotation.ts",
+    "bytes": 3901,
+    "sha256": "9037e4fc2d83e20d6a5ed08e05bf0225314fe7efc1dac444cfb2188264ff9f54"
+  },
+  "interface": {
+    "prepare": "prepareAxisymmetricFreeRotation(body:Body,dt:number):FreeRotationResult|null",
+    "validate": "validateFreeRotationResult(result:FreeRotationResult,dt:number):void",
+    "imports": [
+      "./internal-types.js",
+      "./math.js",
+      "./validation.js"
+    ],
+    "placement": "copied to staged actual src root only; no package source edits"
+  },
+  "semantics": {
+    "null": "non-box/non-dynamic, exact numeric isotropy or ineligible geometry; original World branch untouched",
+    "eligible": "equal geometry axes and corresponding exact equal numeric principal moments, no epsilon",
+    "zero": "fresh q/omega arrays preserving actual numeric words",
+    "nonzero": "normalized candidateq; temporary worldL; fixed world-momentum and body-axis rotation factors; recomputed worldomega",
+    "history": "none",
+    "validation": "explicit after test replacement, before assignments; finite/component1000/hypotdt10/qnorm1e-12; canonical NUMERIC_LIMIT",
+    "hooks": "no production hooks or flags; unique comments for external test-only overlay"
+  },
+  "expectedPerGraph": {
+    "prepare": 850,
+    "null": 420,
+    "eligible": 430,
+    "zero": 2,
+    "nonzero": 428,
+    "validate": 430,
+    "newBodySin": 428,
+    "newBodyCos": 428,
+    "inheritedAdvanceOrientation": 848,
+    "inheritedSinCosTotal": 1696,
+    "allSinCosTotal": 2552
+  },
+  "staticChecks": {
+    "syntaxAst": "PASS",
+    "erasedSourceByteReversal": "PASS",
+    "ASTIgnoringTypeAssertion": "PASS",
+    "semanticTypecheck": "NOT_RUN_PARENT_FRESH_STAGED_COMPILER",
+    "moduleEvaluations": 0,
+    "fixtures": 0,
+    "math": 0,
+    "builds": 0,
+    "World": 0
+  },
+  "scope": "staged G1a only; production unchanged; G1b/adoption unresolved",
+  "stop": "Frozen READY. No edits until explicit parent authorization.",
+  "authority": {
+    "REPAIR-DESIGN-01.md": {
+      "bytes": 14716,
+      "sha256": "0469f20a8131075a43d2898a51a3f7d2a297826e5c3fdbd0688b5fd8fa7be2fa"
+    },
+    "REPAIR-CASES-01.json": {
+      "bytes": 11505,
+      "sha256": "843069a1a614cf0a80b82fecc866051321cd992906072e4208831e991a83748a"
+    },
+    "REPAIR-AUTHORING-FREEZE-01.json": {
+      "bytes": 860,
+      "sha256": "ef66ae6ef2825d2d7bafbcc0feb6b43d917908a37ce74cb3a9b36ca58120aa1a"
+    }
+  },
+  "previousAuthority": {
+    "path": "examples/physics-rigid-rotation-g1-2276/CANDIDATE-READY.json",
+    "bytes": 2493,
+    "sha256": "a75541ff547b9d87d5d3f676e1e3678ed317660c6286adfd69748d88d049d6a2"
+  },
+  "repair": {
+    "onlyTextDelta": "angularVelocityRadps: [...body.angularVelocityRadps] as Vec3",
+    "addedAsciiBytes": 8,
+    "reversePatchOriginalSha256": "9dbc7554c87e6eee0850fd1dfb66b2b990e78f8168cab9d0b57da20c51001bab",
+    "AST": "PASS equal after removing AsExpression wrappers; no emit performed",
+    "arithmetic": "All math/value expressions, control flow, arrays and signed-zero behavior unchanged. Type assertion is erased by TypeScript.",
+    "originalFailure": "evidence/g1a-repair-01 TSC before0fixture/identity/reference/World; commit322b837a4 preserved."
+  }
+}

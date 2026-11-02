@@ -1,0 +1,100 @@
+{
+  "status": "AUTHOR_READY_02_STOPPED_PARENT_NARROW_HIGH_REVIEW_AND_RUNTIME_FREEZE_REQUIRED",
+  "runtimeAuthorized": false,
+  "productionActivation": false,
+  "sources": {
+    "rigid-free-rotation.ts": {
+      "path": "examples/physics-rigid-rotation-g1-2276/rigid-free-rotation.ts",
+      "bytes": 3901,
+      "sha256": "9037e4fc2d83e20d6a5ed08e05bf0225314fe7efc1dac444cfb2188264ff9f54"
+    },
+    "repair-campaign.mjs": {
+      "path": "examples/physics-rigid-rotation-g1-2276/repair-campaign.mjs",
+      "bytes": 40468,
+      "sha256": "713a42a20e6f496ba38048236b2e73b008d4f37c1bcfe2444b57ace6b995685a"
+    },
+    "REPAIR-PLAN.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/REPAIR-PLAN.json",
+      "bytes": 15239,
+      "sha256": "f8700f853514affac8be0e3f8a5b0a9e0cf13b633b276f0944d955881ba6eeac"
+    },
+    "CANDIDATE-READY-02.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/CANDIDATE-READY-02.json",
+      "bytes": 3366,
+      "sha256": "c0230244b3f9dc1a27442086aa931e2e28765a4fb6b920432e49830c2987da94"
+    },
+    "COMPILE-REPAIR-02.md": {
+      "path": "examples/physics-rigid-rotation-g1-2276/COMPILE-REPAIR-02.md",
+      "bytes": 3816,
+      "sha256": "9d058cc2bb1d0bf6f0f7e886f6772437fbbaaa58fc510edb4699d6bc41383d0f"
+    }
+  },
+  "toolchain": {
+    "path": "examples/physics-rigid-rotation-g1-2276/TOOLCHAIN-PINS-02.json",
+    "bytes": 88927,
+    "sha256": "f0db4c99e1fcf5df8f238ad7729447f06b58e2177f01e282ea4f555c0802cb90"
+  },
+  "preservedAuthorities": {
+    "CANDIDATE-READY.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/CANDIDATE-READY.json",
+      "bytes": 2493,
+      "sha256": "a75541ff547b9d87d5d3f676e1e3678ed317660c6286adfd69748d88d049d6a2"
+    },
+    "REPAIR-AUTHOR-READY.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/REPAIR-AUTHOR-READY.json",
+      "bytes": 3988,
+      "sha256": "22f621e611165bad4caf1b2c4806d5a72eddd8122a3d4d3d19cb3992afb578f7"
+    },
+    "repair-overlay.mjs": {
+      "path": "examples/physics-rigid-rotation-g1-2276/repair-overlay.mjs",
+      "bytes": 6549,
+      "sha256": "70656ff3c79bdadded9027784c00da8321f337f5b9d22a5e34d0d7e1ca683081"
+    },
+    "repair-reference.py": {
+      "path": "examples/physics-rigid-rotation-g1-2276/repair-reference.py",
+      "bytes": 42638,
+      "sha256": "1115b0e79eb952b0e9ae8a324cf92c17f4e16c8b3e3705ff27306aae08c515d9"
+    },
+    "REFERENCE-PROTOCOL.md": {
+      "path": "examples/physics-rigid-rotation-g1-2276/REFERENCE-PROTOCOL.md",
+      "bytes": 6563,
+      "sha256": "ee8926d948ed0e484c542fc2ee9d0d4a91e8dcf53cddfa9b860c0ed7dc836b28"
+    },
+    "CONTRACT.md": {
+      "path": "examples/physics-rigid-rotation-g1-2276/CONTRACT.md",
+      "bytes": 16124,
+      "sha256": "29feb5a2d8b9baf1f9508bd13fa5837af61a25c960f400b59aefd6014b914b95"
+    },
+    "CASES.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/CASES.json",
+      "bytes": 16543,
+      "sha256": "2ce857f257ddfabd5feab1f98e78577efe0b4b3ff1b5a77f6288e503a9c8777b"
+    },
+    "evidence/g1a-repair-01/summary.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-01/summary.json",
+      "bytes": 2406,
+      "sha256": "dbf7bf92eb4772b0448c3c2aacf8d22661076be9e90a365027334c900cfbf68c"
+    }
+  },
+  "authorCheckResults": {
+    "nodeSyntax": "PASS once",
+    "candidateByteReverse": "PASS old9dbc7554candidate recovered exactly by removing8ASCII bytes",
+    "candidateASTIgnoringAsExpression": "PASS",
+    "firstASTHelperFailure": "Preserved in COMPILE-REPAIR-02.md; included SourceFile.text in signature; no candidate source change required",
+    "correctedASTHelper": "PASS under heavy gate, no emit",
+    "driverAST": "PASS",
+    "toolchainMetadata": "PASS354pins/Node26.6.4/undici8.9.0",
+    "semanticEmit": "NOT_RUN_PARENT_ONLY"
+  },
+  "actualAuthorCounts": {
+    "providerModuleEvaluations": 0,
+    "fixtureConversions": 0,
+    "builds": 0,
+    "identityDigestCalls": 0,
+    "referenceCalls": 0,
+    "WorldCalls": 0,
+    "installedTypeScriptParserLoads": 2
+  },
+  "unchanged": "Math expressions/order, gates,20constructors/1688accepted/1708attempts/40reads/20dispose,1710requests/1708audits,4build children+1reference,2identity DATA calls; no production edits",
+  "requiredNext": "Parent narrow High review and new g1a-repair-02 freeze; keep first g1a-repair-01 strict compiler failure immutable. No more owned edits after READY."
+}
