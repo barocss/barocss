@@ -1,0 +1,10 @@
+{
+  "status": "PASS_STATIC_ARTIFACT_AUTHENTICATION_ONLY",
+  "artifactsAuthenticated": 59,
+  "branchGroups": 19,
+  "kernelHistoricalComparisons": 14,
+  "newModuleEvaluations": 0,
+  "newReferenceOrPhysicsOrWorldCalls": 0,
+  "currentWorldQualification": "NOT_RUN",
+  "coverage": "Manual source/definition/receipt map; not measured branch coverage or complete-law PASS."
+}

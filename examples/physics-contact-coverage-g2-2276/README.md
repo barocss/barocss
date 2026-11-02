@@ -31,11 +31,14 @@ This is source inspection and saved-evidence classification. New physics/geometr
 | C07 | axis-aligned box/static-box CCD | linear thin-face hit; initial overlap; no entry; rotated candidate refusal | HISTORICAL_SELECTED_PASS | TOI0.09541284403669836 within1e-12; CAD-based fixture receipt retained |
 | C08 | box CCD admission boundaries | exact current angular tolerance, negative q equivalence, angular command refusal | HISTORICAL_PARTIAL | do not infer generic rotation support or silently normalize original input |
 | X01 | capsule/rotating/general mesh CCD | outside admitted rigid CCD profile | NOT_SUPPORTED | private upright capsule geometry is a separate API; no rigid world capability claim |
+| P05 | persistent material restitution meaning | nonzero restitution admitted versus inelastic accumulated-normal law | SOURCE_SEMANTICS_GAP_PENDING | Persistent normal stage uses no restitution coefficient; qualify/document selected profile law before assuming shared discrete bounce semantics. No new numerical failure claimed. |
 
 
 ## Reused evidence and limits
 
 [COVERAGE-01.json](./COVERAGE-01.json) pins source laws, current test definitions, original source/emitted stdout and command records. It also compares seven current numerical leaf files to both historical contact and baseline source freezes. Those comparisons cover leaf bytes only. They do not turn old World/provider receipts into a current complete integration PASS.
+
+The original elastic-impact assertions and source/emitted output are pinned explicitly through `world.test.ts` and `world-run.stdout`.
 
 Existing analytic sphere support uses a finite floor, independent surface gap, gravitational impulse and energy balance for3,000 steps. Sliding-to-rolling uses240 steps, physical sphere arm, momentum, angular momentum and midpoint impulse work; its original sliding-position gate remains1mm. Elastic impact and named face-CCD receipts retain their original1e-12 or explicit test gates. We did not rerun them.
 

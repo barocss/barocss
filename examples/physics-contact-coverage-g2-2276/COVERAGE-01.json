@@ -76,6 +76,11 @@
       "path": "examples/physics-rigid-contact-reference/README.md",
       "bytes": 3533,
       "sha256": "07aad03b4c38d27c0202c23a71693b8c250ba5785179dcd283d14b372a4064f9"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/world.test.ts",
+      "bytes": 3918,
+      "sha256": "faa6a6f32b61be46f1292dbc91371cf313c84dbda5ca4d1ad5674db5cf4d16c0"
     }
   ],
   "existingReceiptPins": [
@@ -278,6 +283,26 @@
       "path": "examples/physics-world-p1b-2276/evidence/foundation-source-01/baseline-before-bundle-source-hashes.json",
       "bytes": 11096,
       "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/foundation-source-01/world-run.stdout",
+      "bytes": 1499,
+      "sha256": "d8ba243b9b47367ef32fc0ca48d3b941587a24fb4ffafe008205d80dbc617f04"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/foundation-source-01/world-run.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/foundation-emitted-01/world-run.stdout",
+      "bytes": 1501,
+      "sha256": "407a2e3d78a85f7fa604c90a0b2d6f707919c06ae77a58efab12ab30d3cfa427"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/foundation-emitted-01/world-run.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ],
   "kernelTransferComparisons": [
@@ -506,6 +531,13 @@
       "scope": "outside admitted rigid CCD profile",
       "status": "NOT_SUPPORTED",
       "nextOrEvidence": "private upright capsule geometry is a separate API; no rigid world capability claim"
+    },
+    {
+      "id": "P05",
+      "law": "persistent material restitution meaning",
+      "scope": "nonzero restitution admitted versus inelastic accumulated-normal law",
+      "status": "SOURCE_SEMANTICS_GAP_PENDING",
+      "nextOrEvidence": "Persistent normal stage uses no restitution coefficient; qualify/document selected profile law before assuming shared discrete bounce semantics. No new numerical failure claimed."
     }
   ],
   "scope": "Historical receipts retained at their original providers; unchanged numeric leaf bytes do not certify changed World admission/serialization/ownership. No newly executed physical pass.",
