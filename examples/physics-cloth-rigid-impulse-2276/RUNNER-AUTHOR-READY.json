@@ -1,25 +1,30 @@
 {
   "work_id": "physics-cloth-rigid-impulse-2276",
   "artifact_type": "private-campaign-runner-author-ready",
-  "status": "AUTHOR_READY_STATIC_ONLY_HIGH_REVIEW_AND_EXECUTION_FREEZE_REQUIRED",
+  "status": "AUTHOR_READY_REPAIR02_STATIC_ONLY_HIGH_REVIEW_AND_EXECUTION_FREEZE_REQUIRED",
   "owner_role": "runner-validator-implementation",
   "source_request": "One frozen standalone reduced impulse source/native campaign; no public API or World",
   "last_updated": "2026-11-02",
   "sources": [
     {
       "path": "examples/physics-cloth-rigid-impulse-2276/impulse-run.mjs",
-      "bytes": 29294,
-      "sha256": "f999040ba6a571a0337265fa0ffb275ad4181135f6f9679ff7b815e917d15df7"
+      "bytes": 34645,
+      "sha256": "a0ace9403124294433cbe345ab465c6772dc0649a708d4eb2f13ad8fe2d65585"
     },
     {
       "path": "examples/physics-cloth-rigid-impulse-2276/native-validate.py",
-      "bytes": 22690,
-      "sha256": "c8264b15d67563710091acf16c3adbe829de603dd8ece1de7925fafa21491237"
+      "bytes": 23976,
+      "sha256": "b67f5ae8b6f5b8b9efe389c1dcb72771b68108bc039cba0b2295d1cc63210094"
     },
     {
       "path": "examples/physics-cloth-rigid-impulse-2276/RUNNER-PLAN.json",
-      "bytes": 13903,
-      "sha256": "6c8ff71d777890140a583bce27815a3a1a1d21048037125aa0b1830411674747"
+      "bytes": 16480,
+      "sha256": "baf07b5973eb8daccc475cf494c761151540008649a08b602b859de83705d1d6"
+    },
+    {
+      "path": "examples/physics-cloth-rigid-impulse-2276/RUNNER-REPAIR-02.md",
+      "bytes": 5014,
+      "sha256": "3d006073a7adc32a812ca55169e545b9a87b9deaf1086887ce4e3d7ce31d5949"
     }
   ],
   "immutableAuthority": [
@@ -83,7 +88,18 @@
     "referenceCalls": 0,
     "candidateCalls": 0,
     "WorldCalls": 0,
-    "builds": 0
+    "builds": 0,
+    "repair02": {
+      "status": "PASS_GATED_SYNTAX_AST_EXACT_DIFF",
+      "gate": "heavy impulse-runner-repair02-author",
+      "exitCode": 0,
+      "moduleEvaluations": 0,
+      "fixtureConversions": 0,
+      "referenceCalls": 0,
+      "candidateCalls": 0,
+      "WorldCalls": 0,
+      "builds": 0
+    }
   },
   "futureLedger": {
     "oracleBatches": 1,
@@ -107,7 +123,7 @@
     "extraRecoveryCalls": 0
   },
   "order": "Full source/tool/P5/High auth and literal metadata; source/native compilation with zero module evaluation and zero references; one full oracle PASS;23 one-time native conversions; source25 with immediate13 audits; native25 only after complete sourcePASS with immediate13 audits; postauth/ledger.",
-  "physicalGatePolicy": "Frozen1e-12 absolute+relative exact rational rules unchanged. Each physical validator uses only actualF64 bits+saved ideal Fraction reply, recomputes P/L/energy/work/relative velocity and state-derived reactions, performs0solves, preserves exact first failed error/bound rationals. Fraction gives no computed zero-sign authority.",
+  "physicalGatePolicy": "Frozen1e-12 absolute+relative exact rational rules unchanged. Each physical validator uses only actualF64 bits+saved ideal Fraction reply, recomputes P/L/energy/work/relative velocity and state-derived reactions, performs0solves, preserves exact first failed error/bound rationals. Fraction gives no computed zero-sign authority. R2 report-to-state impulse and energy checks now directly use component gate against the actual state-derived target; all true invariant and ideal gates unchanged.",
   "rawOwnershipPolicy": "Input snapshots after EVERY call incl refusions/faults; detached all output object/array identity checks; unchanged nonvelocity raw bits; unknown markers strict object identity; all source/native output numeric words and structure compared per accepted case.",
   "resourcePolicy": {
     "sourceDerivation": "RUNNER-PLAN.json resourceDerivation; entire explicit root sets and serialization charges, fixed scratch, artifact and log budgets documented",
@@ -122,11 +138,25 @@
     "buildBytes": 16777216,
     "declaredOwnedEnvelopeBytes": 67108864,
     "toolHeapMeasured": false,
-    "RSSClaim": false
+    "RSSClaim": false,
+    "traversalRepair": "R1 explicitly includes live identity-set growth/ID/frame charges within8MiB and releases per-check scratch without cyclic GC."
   },
   "installedToolSourceInspection": {
     "nativeEsbuild": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/esbuild/bin/esbuild; file inspection Mach-O arm64, not JS SDK launcher. Runtime verifies native header+parent hash.",
     "typescript": "installed lib/tsc.js wrapper +lib/_tsc.js +actual ES2022 declaration closure; all --listFiles inputs must be overlay or frozen tool file. No compiler execution during authoring."
   },
-  "scopeBoundary": "No implementation outside these four new files. Candidate/oracle/contract/cases/READY inputs not modified. No public profile/schema/API/World/current provider changes, no P6 trajectory claim. Runtime, physical gates, source/native parity, ownership fault results and resource maxima remain NOT_RUN. Parent must review and freeze actual closure before one run."
+  "scopeBoundary": "No implementation outside these four new files. Candidate/oracle/contract/cases/READY inputs not modified. No public profile/schema/API/World/current provider changes, no P6 trajectory claim. Runtime, physical gates, source/native parity, ownership fault results and resource maxima remain NOT_RUN. Parent must review and freeze actual closure before one run.",
+  "repair02": {
+    "baseCommit": "27736b631",
+    "preservedReviewCommit": "105769198",
+    "scope": [
+      "R1 no recursive closure cycle; explicit releases and bounded live traversal charge",
+      "R2 exact approved component report/state impulse and energy checks",
+      "R3 authenticated raw original summary/progress recovery; durable lower bounds separate from UNKNOWN actual/in-flight counts"
+    ],
+    "codeDiffGate": "PASS: native physical source outside WorkingBound differs only at exactly2 approved gate call sites; candidate call loops/instrumentation/ledger/bounds unchanged",
+    "optionalDataChecks": "NOT_SELECTED_NOT_RUN",
+    "parentTypeOnlyPrerequisite": "Parent separately reports unmodified candidate strict noEmit PASS at typecheck-01; not rerun and not a substitute for the future one instrumented native emit."
+  },
+  "failurePrefixPolicy": "R3 original summary authoritative; otherwise original progress lower bounds with actual/inflight UNKNOWN, exact original/copy byte pins, separate secondary recovery errors. Spawned missing evidence never becomes0."
 }

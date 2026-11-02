@@ -1,0 +1,32 @@
+{
+  "label": "source-05-compatible-moving-state-validate",
+  "command": [
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+    "-B",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/native-validate.py",
+    "--request",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/source-05-compatible-moving-state.validation-request.json",
+    "--request-sha256",
+    "21debc5bbbdd06f367edeebc7a8db5a61bea056ac42c2ad7d99cd6ee4fec482b",
+    "--freeze",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/EXECUTION-FREEZE-01.json",
+    "--token",
+    "511b332d26a4a8875ac785d71076a0111236f71db8d45759474ca05861b89eff",
+    "--out",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/source-05-compatible-moving-state.validation.json"
+  ],
+  "startedElapsedMs": 6732.457166,
+  "detached": false,
+  "pid": 34233,
+  "exit": 0,
+  "signal": null,
+  "stdoutEOF": true,
+  "stderrEOF": true,
+  "closed": true,
+  "timedOut": false,
+  "capturedBytes": 119,
+  "stdoutSha256": "b1633372c702213f2285eb71c7a62a18d0d6e91bbb50959209023f1fc27bba3b",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "observedBytes": 119,
+  "omittedBytes": 0
+}

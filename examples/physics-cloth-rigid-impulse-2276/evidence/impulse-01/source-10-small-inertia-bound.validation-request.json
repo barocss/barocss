@@ -1,0 +1,26 @@
+{
+  "caseId": "10-small-inertia-bound",
+  "graph": "source",
+  "validationOrdinal": 10,
+  "executionFreezeSha256": "511b332d26a4a8875ac785d71076a0111236f71db8d45759474ca05861b89eff",
+  "input": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/10-small-inertia-bound.input-raw.json",
+    "bytes": 2667,
+    "sha256": "6166017dfbc3e21f03cf95cf47044b79d15eb873e47a19095887f446ac1bb9d0"
+  },
+  "output": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/source-10-small-inertia-bound.output-raw.json",
+    "bytes": 4543,
+    "sha256": "d07f4aaa832c45e186d3c9c861ae732fc59ab4ce544aa9e7c11a706349239d60"
+  },
+  "oracleReply": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01-oracle/10-small-inertia-bound.reply.json",
+    "bytes": 54987,
+    "sha256": "4478ab1c13fe86586502127b3acdea94e5d21d650b6b6615e1caa39580dff9e0"
+  },
+  "oracleSummary": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01-oracle/summary.json",
+    "bytes": 5847,
+    "sha256": "a6431f5470518163d42da82ef506a5181ba357855a61ecd700b791f42df3aac0"
+  }
+}

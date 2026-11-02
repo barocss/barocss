@@ -1,0 +1,123 @@
+{
+  "originalCandidateSha256": "7901dc4240098da03bb2dea3f353be37c8d8e34c7d31303f19c8950813721106",
+  "effectiveCandidateSha256": "b227be3d4cff982fe23d699b6e41d6fe40d9716b9f97ed89ae931cfd93bd9d89",
+  "sites": [
+    {
+      "anchor": "export function projectClothRigidImpulse(input: unknown): ImpulseResult {",
+      "method": "entry"
+    },
+    {
+      "anchor": "// IMPULSE_DIRECT_SOLVE_ENTRY: one fixed direct factorization and one RHS.",
+      "method": "solve"
+    },
+    {
+      "anchor": "// IMPULSE_FIRST_SIDE_PREPARED: after point candidate, before rigid candidate.",
+      "method": "first"
+    },
+    {
+      "anchor": "// IMPULSE_PAIR_PREPARED: both candidates and report complete, before pair return.",
+      "method": "pair"
+    }
+  ],
+  "source": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/build/source.mjs",
+    "bytes": 11483,
+    "sha256": "b0bdfca696997b951ea08aa924ba7ca3f5d06a346b47b20c91461666afe3ea96"
+  },
+  "native": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/build/native/candidate.js",
+    "bytes": 12519,
+    "sha256": "b21e583c137a017bd2a8fb4d6e85e1914acf252b58251bf421a27e8c9a6b4576"
+  },
+  "declarations": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/build/native/candidate.d.ts",
+    "bytes": 2113,
+    "sha256": "525a16033b25ad83d48f70a5557468fcc74228bf753cd8ac105616ff6a3796bc"
+  },
+  "sourceMetafile": {
+    "inputs": {
+      "examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/build/overlay/candidate.ts": {
+        "bytes": 14411,
+        "imports": [],
+        "format": "esm"
+      }
+    },
+    "outputs": {
+      "examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/build/source.mjs": {
+        "imports": [],
+        "exports": [
+          "ImpulseInputError",
+          "projectClothRigidImpulse"
+        ],
+        "entryPoint": "examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/build/overlay/candidate.ts",
+        "inputs": {
+          "examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/build/overlay/candidate.ts": {
+            "bytesInOutput": 11331
+          }
+        },
+        "bytes": 11483
+      }
+    }
+  },
+  "actualCompilerInputs": [
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es5.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2016.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2017.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2018.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2019.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2021.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2022.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.core.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.collection.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.generator.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.iterable.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.promise.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.proxy.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.reflect.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.symbol.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2016.array.include.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2016.intl.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2017.arraybuffer.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2017.date.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2017.object.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2017.string.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2017.intl.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2017.typedarrays.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2018.asyncgenerator.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2018.asynciterable.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2018.intl.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2018.promise.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2018.regexp.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2019.array.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2019.object.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2019.string.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2019.symbol.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2019.intl.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.bigint.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.date.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.promise.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.sharedmemory.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.string.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.symbol.wellknown.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.intl.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.number.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2021.promise.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2021.string.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2021.weakref.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2021.intl.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2022.array.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2022.error.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2022.intl.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2022.object.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2022.string.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2022.regexp.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.decorators.d.ts",
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.decorators.legacy.d.ts",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/build/overlay/candidate.ts"
+  ],
+  "sourceFallback": false
+}

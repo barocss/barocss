@@ -52,38 +52,70 @@ class WorkingBound:
     def __init__(self):
         self.peak = 0
 
-    def check(self, *roots):
-        # Conservative live+serialization allocation sum, excluding interpreter/code pages.
-        # Fraction charges cover the live integers plus packed numerator/denominator
-        # strings, dicts and two simultaneous JSON/UTF8 representations.
-        seen = set()
-        nodes = 0
-        def weight(value, depth=0):
-            nonlocal nodes
-            need(depth <= 32, 'working graph depth')
-            if id(value) in seen:
-                return 0
-            seen.add(id(value)); nodes += 1
-            need(nodes <= 50000, 'working graph nodes')
-            if type(value) is Fraction:
-                bits = value.numerator.bit_length() + value.denominator.bit_length()
-                need(max(value.numerator.bit_length(), value.denominator.bit_length()) <= 4096, 'working rational size')
-                return 2048 + 16 * bits
-            if type(value) is dict:
-                return 512 + len(value) * 128 + sum(weight(k, depth + 1) + weight(v, depth + 1) for k, v in value.items())
-            if type(value) in (list, tuple):
-                return 256 + len(value) * 32 + sum(weight(item, depth + 1) for item in value)
-            if type(value) is str:
-                return 256 + len(value) * 24
-            if type(value) is bytes:
-                return 128 + len(value) * 2
-            if type(value) is int:
-                return 128 + value.bit_length()
-            return 128
-        total = 1048576 + sum(weight(root) for root in roots)
-        self.peak = max(self.peak, total)
+    @staticmethod
+    def _visit(value, depth, seen, scratch):
+        # A class-owned function has no recursive closure cell and no self-cycle.
+        need(depth <= 32, 'working graph depth')
+        identity = id(value)
+        if identity in seen:
+            return
+        need(scratch['nodes'] < 50000, 'working graph nodes')
+        # Before adding an identity, charge old+new set tables at their largest
+        # bounded CPython growth (4x new +1x old), owned ID integers and active
+        # traversal frames. The 1MiB physical/encoder scratch reserve is separate.
+        traversal = (5 * sys.getsizeof(seen) + scratch['identityBytes'] +
+                     sys.getsizeof(identity) + 4096 * (depth + 1) + sys.getsizeof(scratch))
+        predicted = 1048576 + scratch['payload'] + traversal
+        scratch['peak'] = max(scratch['peak'], predicted)
+        need(predicted <= 8388608, 'validator8MiB traversal/live working bound')
+        seen.add(identity)
+        scratch['nodes'] += 1
+        scratch['identityBytes'] += sys.getsizeof(identity)
+        if type(value) is Fraction:
+            bits = value.numerator.bit_length() + value.denominator.bit_length()
+            need(max(value.numerator.bit_length(), value.denominator.bit_length()) <= 4096, 'working rational size')
+            charge = 2048 + 16 * bits
+        elif type(value) is dict:
+            charge = 512 + len(value) * 128
+        elif type(value) in (list, tuple):
+            charge = 256 + len(value) * 32
+        elif type(value) is str:
+            charge = 256 + len(value) * 24
+        elif type(value) is bytes:
+            charge = 128 + len(value) * 2
+        elif type(value) is int:
+            charge = 128 + value.bit_length()
+        else:
+            charge = 128
+        scratch['payload'] += charge
+        active = (sys.getsizeof(seen) + scratch['identityBytes'] +
+                  4096 * (depth + 1) + sys.getsizeof(scratch))
+        total = 1048576 + scratch['payload'] + active
+        scratch['peak'] = max(scratch['peak'], total)
         need(total <= 8388608, 'validator8MiB owned live+serialization working bound')
-        return total
+        if type(value) is dict:
+            for key, item in value.items():
+                WorkingBound._visit(key, depth + 1, seen, scratch)
+                WorkingBound._visit(item, depth + 1, seen, scratch)
+        elif type(value) in (list, tuple):
+            for item in value:
+                WorkingBound._visit(item, depth + 1, seen, scratch)
+
+    def check(self, *roots):
+        seen = set()
+        scratch = {'nodes': 0, 'payload': 0, 'identityBytes': 0, 'peak': 0}
+        try:
+            for root in roots:
+                WorkingBound._visit(root, 0, seen, scratch)
+            return scratch['peak']
+        finally:
+            self.peak = max(self.peak, scratch['peak'])
+            # Release on success and exceptions; no cyclic-GC collection needed.
+            seen.clear()
+            scratch.clear()
+            roots = ()
+            root = None
+            del seen, scratch
 
 
 def pairs(items):
@@ -296,13 +328,13 @@ def validate(before, after, ideal, raw_ideal, ideal_arm, memory, owned_roots):
     invariant('workMinusKineticChange', work - delta, Fraction(0), energy_before, energy_after)
     invariant('objectivePlusKineticChange', objective + delta, Fraction(0), energy_before, energy_after)
     for name, actual, reported, key in [('point', point_impulse, after['report']['pointLinearImpulseNs'], 'impulseOnClothNs'), ('rigid', rigid_impulse, after['report']['rigidLinearImpulseNs'], 'linearImpulseOnRigidNs'), ('angular', spin_impulse, after['report']['rigidAngularImpulseNms'], 'angularImpulseOnRigidNms')]:
-        invariant('reportMinusStateImpulse.' + name, vsub(reported, actual), zero, ideal[key], ideal[key])
+        gate('reportMinusStateImpulse.' + name, reported, actual)
     invariant('oppositeLinearReactions', vadd(after['report']['pointLinearImpulseNs'], after['report']['rigidLinearImpulseNs']), zero, ideal['impulseOnClothNs'], ideal['linearImpulseOnRigidNs'])
     invariant('torqueSign', vsub(after['report']['rigidAngularImpulseNms'], vector_product(first['arm'], after['report']['rigidLinearImpulseNs'])), zero, ideal['angularImpulseOnRigidNms'], ideal['angularImpulseOnRigidNms'])
     invariant('reportedRelative.before', vsub(after['report']['relativeVelocityBeforeMps'], first['relative']), zero, ideal['relativeVelocityBeforeMps'], ideal['relativeVelocityBeforeMps'])
     invariant('reportedRelative.after', vsub(after['report']['relativeVelocityAfterMps'], last['relative']), zero, ideal['relativeVelocityBeforeMps'], ideal['relativeVelocityAfterMps'])
     for key, actual in [('kineticEnergyBeforeJ', first['energy']), ('kineticEnergyAfterJ', last['energy']), ('dissipatedEnergyJ', -delta)]:
-        invariant('reportedEnergy.' + key, after['report'][key] - actual, Fraction(0), energy_before, energy_after)
+        gate('reportedEnergy.' + key, after['report'][key], actual)
     gate('worldAnchorArmM.ideal', after['report']['worldAnchorArmM'], ideal_arm)
     gate('worldAnchorArmM.actualInput', after['report']['worldAnchorArmM'], first['arm'])
     need(-delta >= -(epsilon + epsilon * max(Fraction(1), abs(energy_before), abs(energy_after))), 'negative dissipated energy')

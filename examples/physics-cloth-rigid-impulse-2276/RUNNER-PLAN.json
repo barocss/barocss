@@ -148,7 +148,8 @@
     "firstFailure": "Failed physical check retains exact actual/ideal/error/bound rationals and peak ratio in validator artifact; runner propagates that artifact pin before stopping. Failed oracle summary/count prefix remains preserved without reclassification.",
     "extraReportMapping": {
       "report.worldAnchorArmM": "reference.fraction.worldArmM, plus independent consistency with actual-input R*anchor"
-    }
+    },
+    "reportStateConsistency": "Reported impulses and energies/dissipation compare directly to independently recomputed actual state-derived targets with e+e*abs(target), e=1/10^12. These are component checks, separate from unchanged report-to-ideal checks and unchanged true balance/work invariant scales."
   },
   "bounds": {
     "internalMs": 170000,
@@ -183,7 +184,8 @@
     "childCompletion": "close + stdout EOF + stderr EOF required. Internal deadline sends child PID TERM, KILL after500ms, destroys pipes/resolves failed wait after1500ms; missing close/EOF never PASS. Parent180s group guard handles remaining descendants and bounded final cleanup.",
     "durableCounters": "write progress synchronously before every subprocess/candidate invocation; preserve unknown first failure and actual counts",
     "noOverwrite": "fresh campaign+oracle IDs; all artifacts wx except bounded progress file",
-    "actualStarts": "Durable attempt counters increment before commands; PID-observed actual starts counted separately oracle1/esbuild1/tsc1/validator26. Progress includes all command PIDs and EOF/close states."
+    "actualStarts": "Durable attempt counters increment before commands; PID-observed actual starts counted separately oracle1/esbuild1/tsc1/validator26. Progress includes all command PIDs and EOF/close states.",
+    "oracleFailurePrefix": "Before oracle PID start referenceRequests=0/NOT_STARTED. On PID-observed start actual requests become null/UNKNOWN. Failure recovery authenticates frozen oracle authorization/provider; saves original bounded summary/progress raw bytes and SHA without JSON rewrite. A valid final summary is authoritative. If missing/unreadable, original valid progress supplies durable lower bounds only; actual total/in-flight work remain UNKNOWN. Missing progress never becomes0. Secondary read/auth/copy errors are separate and do not replace the original first failure."
   },
   "proofBoundary": "Operator-only; source/native physical results NOT_RUN. Public API/schema/World/current provider unchanged. No broad example/probe evaluation. Source-level resource charge derivation requires High review; actual tool heap and process RSS are NOT_MEASURED.",
   "resourceDerivation": {
@@ -200,9 +202,22 @@
       "formula": "WorkingBound.check whole explicit owned roots <=8MiB, with1MiB fixed scratch reserve; evaluated before decoding/validation growth, on each accumulated check, and before serialization.",
       "roots": "raw request bytes, request pin graph, all original raw input/output/oracle reply/oracle summary JSON dictionaries, decoded before/after input/output, decoded ideal reference values, raw ideal literals, every accumulated exact-rational check, peak ratio, recomputed physical tensors/momenta/metrics and rounding metrics. Main serialization check still includes original artifact roots and result/detail, deduplicated by object identity.",
       "weights": "Fraction:2048+16*(numeratorBits+denominatorBits), max4096bits per numerator/denominator; this charges live integer payload plus packed numerator/denominator string records and simultaneous JSON/UTF8 copies. String:256+24*length charges original text plus worst JSON escape/UTF16/UTF8 duplicates; dict512+128*entries and list256+32*entries charge current and packed containers, child payload charged recursively; bytes128+2*length; integer128+bitLength. Duplicate object IDs charged once. These are explicit fixed-provider logical allocation sums, not measured RSS.",
-      "reserveDerivation": "1MiB covers fixed-size three-vector/3x3 physical recomputation scratch, Fraction arithmetic temporaries, closure/frame and encoder transient metadata. There are no matrices larger than3x3, inversions, solves, retained previous requests or adaptive loops in this validator. <=256 component checks, <=50000 visited nodes, depth<=32; factorization count0.",
-      "serialization": "Charge model includes future packed dictionaries, integer decimal strings, JSON text and UTF8 bytes before pack/dumps. Output is capped256KiB, one physical request only. Failed check detail is retained. Files/tools are hashed in64KiB streams, not loaded wholesale."
+      "reserveDerivation": "1MiB covers fixed-size three-vector/3x3 physical recomputation scratch, Fraction arithmetic temporaries, closure/frame and encoder transient metadata. There are no matrices larger than3x3, inversions, solves, retained previous requests or adaptive loops in this validator. <=256 component checks, <=50000 visited nodes, depth<=32; factorization count0. Traversal identity set/owned ID integers/recursive frames and set-growth overlap are now charged explicitly in addition to this reserve; they are not assumed to fit inside it.",
+      "serialization": "Charge model includes future packed dictionaries, integer decimal strings, JSON text and UTF8 bytes before pack/dumps. Output is capped256KiB, one physical request only. Failed check detail is retained. Files/tools are hashed in64KiB streams, not loaded wholesale.",
+      "traversalLifecycle": "WorkingBound._visit is a class-owned static method, not a recursive nested closure. check finally clears seen/scratch and borrowed roots/last root on success and error; no deferred cyclic GC. Before each new ID allocation into the set, precharge5*current set allocation (old1x+new at most4x), existing ID integer payload plus incoming ID sys.getsizeof, scratch dict and4096bytes per active recursive frame. Actual active set/ID/frame charge remains included with payload and separate1MiB fixed reserve, all under unchanged8MiB bound. Peak includes preflight growth charge. Nodes<=50000 and depth<=32 remain unchanged."
     },
     "artifactEnvelope": "Combined oracle+runner evidence <=8MiB, including oracle raw/reply/progress/summary files, candidate raw inputs/outputs,26 validator request/results, child logs and runner progress/summary. Runner reserves64KiB failure and64KiB progress; actual final evidence tree excluding build is checked before PASS. Build separately<=16MiB. Oracle owns reference working8MiB and its own corrected accounting; candidate/validator working charge8MiB is sequential, not simultaneous with oracle work.24MiB fixed reserve is not an extra allocation permission."
+  },
+  "revision": "RUNNER-REPAIR-02_R1_R2_R3_ONLY",
+  "repairProof": {
+    "scope": "Only R1 lifecycle/traversal charge, R2 approved component consistency, R3 durable oracle prefix recovery. No candidate/oracle/contract/cases/equation/budget edits.",
+    "checksPlanned": [
+      "heavy-gated Node syntax",
+      "heavy-gated Python AST/compile-only",
+      "AST diff gate: validate differs only at exactly2 approved direct component calls; epsilon and all other physical formulas unchanged",
+      "source section/hash checks for unchanged candidate/oracle frozen sources and unchanged runner instrument/invoke numerical-call loop/budgets except prefix bookkeeping"
+    ],
+    "optionalDataChecks": "NOT_SELECTED: no helper/module evaluation or synthetic fixture test. Static proof only; no passed numerical prefix to repeat.",
+    "failedDataChecks": []
   }
 }

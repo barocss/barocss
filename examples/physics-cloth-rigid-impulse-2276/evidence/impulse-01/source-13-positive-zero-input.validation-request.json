@@ -1,0 +1,26 @@
+{
+  "caseId": "13-positive-zero-input",
+  "graph": "source",
+  "validationOrdinal": 13,
+  "executionFreezeSha256": "511b332d26a4a8875ac785d71076a0111236f71db8d45759474ca05861b89eff",
+  "input": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/13-positive-zero-input.input-raw.json",
+    "bytes": 2667,
+    "sha256": "3933c8528d7c2ead4d7d367c17047db5bcc6eaaece029aa89465d85561bdf243"
+  },
+  "output": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/source-13-positive-zero-input.output-raw.json",
+    "bytes": 4543,
+    "sha256": "18bbf68cca582d651bde1919ff2059ef8c0d0427ff93b7a157e4bdb492497d6f"
+  },
+  "oracleReply": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01-oracle/13-positive-zero-input.reply.json",
+    "bytes": 40999,
+    "sha256": "ce07cab21f0d7948c97db149c5d1aa933d74b2eab6d0cc64a5fd2a4653b56ed2"
+  },
+  "oracleSummary": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01-oracle/summary.json",
+    "bytes": 5847,
+    "sha256": "a6431f5470518163d42da82ef506a5181ba357855a61ecd700b791f42df3aac0"
+  }
+}

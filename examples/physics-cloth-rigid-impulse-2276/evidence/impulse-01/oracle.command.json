@@ -1,0 +1,28 @@
+{
+  "label": "oracle",
+  "command": [
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+    "-B",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/oracle.py",
+    "--run-id",
+    "impulse-01-oracle",
+    "--freeze",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/oracle-execution-freeze.json",
+    "--token",
+    "34bfa4e5b88a70a410569df6c6bddf8d498de320f7a65011742650a6e849497c"
+  ],
+  "startedElapsedMs": 754.061916,
+  "detached": false,
+  "pid": 33633,
+  "exit": 0,
+  "signal": null,
+  "stdoutEOF": true,
+  "stderrEOF": true,
+  "closed": true,
+  "timedOut": false,
+  "capturedBytes": 596,
+  "stdoutSha256": "5e3c824315a71c5fc5feffa3c7f1ac6dc747eb4c4fd1e1d291ac154a0f70d069",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "observedBytes": 596,
+  "omittedBytes": 0
+}

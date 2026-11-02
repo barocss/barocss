@@ -1,0 +1,6 @@
+{
+  "status": "PASS_EXPECTED_REFUSAL",
+  "code": "INVALID_INPUT",
+  "reason": "NOT_PROPER_ROTATION",
+  "inputUnchanged": true
+}

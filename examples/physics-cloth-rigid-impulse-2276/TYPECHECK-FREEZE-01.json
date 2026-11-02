@@ -1,0 +1,19 @@
+{
+  "status": "PARENT_AUTHORIZED_TYPE_ONLY_NO_MODULE_EVALUATION",
+  "candidate": {
+    "path": "examples/physics-cloth-rigid-impulse-2276/candidate.ts",
+    "bytes": 14057,
+    "sha256": "7901dc4240098da03bb2dea3f353be37c8d8e34c7d31303f19c8950813721106"
+  },
+  "config": {
+    "path": "examples/physics-cloth-rigid-impulse-2276/typecheck-01.json",
+    "sha256": "3ddf143bb2e16a6fe03c9546d1d3bd7bc768fa68571e1eb345876d516bcefc7b"
+  },
+  "toolchain": "TOOLCHAIN-PINS-01.json",
+  "plannedCompilerCalls": 1,
+  "fixtureConversions": 0,
+  "referenceCalls": 0,
+  "candidateCalls": 0,
+  "WorldCalls": 0,
+  "reason": "First strict semantic type check of actual private candidate; independent from later instrumented source/native emit and math campaign, no numerical budget consumed."
+}

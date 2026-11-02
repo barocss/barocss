@@ -1,0 +1,26 @@
+{
+  "caseId": "02-off-com-parallel",
+  "graph": "source",
+  "validationOrdinal": 2,
+  "executionFreezeSha256": "511b332d26a4a8875ac785d71076a0111236f71db8d45759474ca05861b89eff",
+  "input": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/02-off-com-parallel.input-raw.json",
+    "bytes": 2667,
+    "sha256": "4e3cbfd7e17565023d1a9dd590c743614656d441167ca8308309352482425800"
+  },
+  "output": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/source-02-off-com-parallel.output-raw.json",
+    "bytes": 4543,
+    "sha256": "cd95fbfc7affd947aec089ed0ec98c10c31cb0aba30b2dd3a667d30dc35dec04"
+  },
+  "oracleReply": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01-oracle/02-off-com-parallel.reply.json",
+    "bytes": 41268,
+    "sha256": "df18d61d11d629249dbe4e23243aa5e2aa5560a4e24312084dac3280d2cc26a5"
+  },
+  "oracleSummary": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01-oracle/summary.json",
+    "bytes": 5847,
+    "sha256": "a6431f5470518163d42da82ef506a5181ba357855a61ecd700b791f42df3aac0"
+  }
+}

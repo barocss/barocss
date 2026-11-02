@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {createReadStream} from 'node:fs';
-import {readFile, writeFile, mkdir, readdir, stat, open} from 'node:fs/promises';
+import {readFile, writeFile, mkdir, readdir, stat, open, lstat} from 'node:fs/promises';
 import {writeFileSync} from 'node:fs';
 import {dirname, resolve, relative, isAbsolute} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
@@ -86,8 +86,8 @@ async function main(){
   assert.equal(args.length,7);const runId=args[1],freezePath=resolve(args[3]),token=args[5];
   assert(/^[a-z0-9][a-z0-9-]{0,88}$/.test(runId),'bounded fresh run id with oracle suffix');assert(process.versions.node.startsWith('22.'));
   const start=performance.now(),out=resolve(HERE,'evidence',runId),oracleOut=resolve(HERE,'evidence',runId+'-oracle');
-  const counts={oracleProcesses:0,referenceRequests:0,fixtureConversions:0,candidateAttempts:0,candidateReturns:0,candidateThrows:0,candidateUnexpectedThrows:0,candidateRefusals:0,candidateFaults:0,candidateSolves:0,validatorProcesses:0,validatorReplies:0,validatorPasses:0,typescriptProcesses:0,sourceBuilds:0,WorldCalls:0};
-  let phaseName='authentication',phaseUntil=start+5000,firstFailure=null,graphName=null,caseId=null,stored=0,childCaptured=0,oracleEvidenceBytes=0,oracleSummaryPin=null,oracleObservedPrefix=null;
+  const counts={oracleProcesses:0,referenceRequests:0,referenceRequestsDurableLowerBound:0,referenceRequestsStatus:'NOT_STARTED',fixtureConversions:0,candidateAttempts:0,candidateReturns:0,candidateThrows:0,candidateUnexpectedThrows:0,candidateRefusals:0,candidateFaults:0,candidateSolves:0,validatorProcesses:0,validatorReplies:0,validatorPasses:0,typescriptProcesses:0,sourceBuilds:0,WorldCalls:0};
+  let phaseName='authentication',phaseUntil=start+5000,firstFailure=null,graphName=null,caseId=null,stored=0,childCaptured=0,oracleEvidenceBytes=0,oracleSummaryPin=null,oracleObservedPrefix=null,oracleAuthorization=null;
   const completed=[],graphs={},commands=[],processStarts={oracle:0,esbuild:0,typescript:0,validator:0},resources={RSSClaim:false,processHeapMeasured:false,workingChargeModel:'owned payload/serialization only; High source review required',ownedDataCeilingBytes:64*MIB,evidenceLimitBytes:8*MIB,buildLimitBytes:16*MIB,workingFixedBounds:{referenceBytes:8*MIB,candidateBytes:8*MIB,reserveBytes:24*MIB}};
   await mkdir(out,{recursive:false});
   const progress=()=>{const text=json({status:'IN_PROGRESS',phase:phaseName,graph:graphName,caseId,counts,actualChildProcessStarts:processStarts,commands,completed,elapsedMs:performance.now()-start});assert(Buffer.byteLength(text)<=65536,'bounded durable progress');writeFileSync(resolve(out,'progress.json'),text);};
@@ -111,7 +111,7 @@ async function main(){
   async function command(executable,argv,label,maxMs){
     checkTime();const record={label,command:[executable,...argv],startedElapsedMs:performance.now()-start,detached:false,pid:null,exit:null,signal:null,stdoutEOF:false,stderrEOF:false,closed:false,timedOut:false,capturedBytes:0,stdoutSha256:null,stderrSha256:null};commands.push(record);progress();
     const cp=spawn(executable,argv,{cwd:ROOT,stdio:['ignore','pipe','pipe'],detached:false,env:{...process.env,PYTHONDONTWRITEBYTECODE:'1'}});record.pid=cp.pid??null;
-    if(record.pid){if(label==='oracle')processStarts.oracle++;else if(label==='typescript-emit')processStarts.typescript++;else if(label==='source-esbuild')processStarts.esbuild++;else processStarts.validator++;}progress();
+    if(record.pid){if(label==='oracle'){processStarts.oracle++;counts.referenceRequests=null;counts.referenceRequestsDurableLowerBound=null;counts.referenceRequestsStatus='SPAWNED_UNAVAILABLE';}else if(label==='typescript-emit')processStarts.typescript++;else if(label==='source-esbuild')processStarts.esbuild++;else processStarts.validator++;}progress();
     const chunks={stdout:[],stderr:[]},hashes={stdout:createHash('sha256'),stderr:createHash('sha256')};
     let finish=null,killTimer=null,closeTimer=null,spawnError=null;
     const stop=()=>{
@@ -137,6 +137,57 @@ async function main(){
     for(const name of ['stdout','stderr']){record[name+'Sha256']=hashes[name].digest('hex');await write(label+'.'+name+'.raw',Buffer.concat(chunks[name]));}
     await write(label+'.command.json',record);progress();
     assert(!spawnError,spawnError?.message);assert(!record.timedOut,'child deadline '+label);assert(!record.pipeError&&record.closed&&record.stdoutEOF&&record.stderrEOF,'child pipe EOF and close '+label);assert.equal(record.exit,0,'child nonzero '+label);checkTime();return record;
+  }
+  async function recoverOraclePrefix(){
+    const recoveryErrors=[];
+    const note=(phase,error)=>recoveryErrors.push({phase,code:error?.code??null,message:String(error?.message??error).slice(0,512)});
+    if(processStarts.oracle===0){
+      counts.referenceRequests=0;counts.referenceRequestsDurableLowerBound=0;counts.referenceRequestsStatus='NOT_STARTED';
+      oracleObservedPrefix={status:'ORACLE_NOT_STARTED',actualCountsKnown:true,referenceRequests:0,recoveryErrors};return;
+    }
+    counts.referenceRequests=null;counts.referenceRequestsDurableLowerBound=null;counts.referenceRequestsStatus='SPAWNED_UNAVAILABLE';
+    oracleObservedPrefix={status:'ORACLE_SPAWNED_COUNTS_UNAVAILABLE',actualCounts:'UNKNOWN',inFlight:'UNKNOWN',durableLowerBound:null,recoveryErrors};
+    try{
+      assert(oracleAuthorization,'recorded pre-spawn oracle authorization');
+      await exactPin(oracleAuthorization.freeze.path,oracleAuthorization.freeze);
+      for(const [name,pin]of Object.entries(oracleAuthorization.inputs))await exactPin(resolve(HERE,name),pin);
+    }catch(error){note('oracle-provider-authentication',error);return;}
+    const checkedCounts=value=>{
+      assert(value&&typeof value==='object'&&!Array.isArray(value));
+      for(const [key,count]of Object.entries(value))assert(Number.isSafeInteger(count)&&count>=0,'nonnegative durable oracle count '+key);
+      assert(Number.isSafeInteger(value.requestsAttempted)&&value.requestsAttempted<=23);
+      assert(Number.isSafeInteger(value.requestsReturned)&&value.requestsReturned<=value.requestsAttempted);
+      assert(value.acceptedReferences<=13&&value.expectedRefusals<=10);
+      for(const prefix of ['exactKkt','exactCondition','decimal80','decimal120'])assert(Number.isSafeInteger(value[prefix+'Attempted'])&&value[prefix+'Attempted']<=13&&Number.isSafeInteger(value[prefix+'Returned'])&&value[prefix+'Returned']<=value[prefix+'Attempted']);
+      assert.equal(value.WorldCalls,0);assert.equal(value.candidateCalls,0);assert.equal(value.nativeFixtureConversions,0);
+      return value;
+    };
+    const capture=async(name,limit)=>{
+      const path=resolve(oracleOut,name),info=await lstat(path);assert(info.isFile()&&!info.isSymbolicLink(),'owned ordinary oracle receipt');
+      const raw=await readBound(path,limit),original={path,bytes:raw.length,sha256:sha(raw)};
+      let copy=null;
+      try{copy=await write('oracle-failure-'+name+'.raw',raw);assert.equal(copy.bytes,original.bytes);assert.equal(copy.sha256,original.sha256);}catch(error){note(name+'-copy',error);}
+      const saved={original,copy,authentication:{owner:'fresh owned oracle run directory',oraclePid:commands.find(x=>x.label==='oracle')?.pid??null,oracleFreeze:oracleAuthorization.freeze,sourcePin:oracleAuthorization.inputs['oracle.py']}};
+      oracleObservedPrefix.snapshots??=[];oracleObservedPrefix.snapshots.push(saved);
+      return {saved,value:JSON.parse(raw)};
+    };
+    try{
+      const {saved,value}=await capture('summary.json',MIB);
+      assert.equal(value.runId,runId+'-oracle');assert(['FAIL','PASS_INDEPENDENT_IMPULSE_ORACLE'].includes(value.status));
+      assert.equal(value.provenance.freezeSha256,oracleAuthorization.freeze.sha256);
+      for(const [name,pin]of Object.entries(oracleAuthorization.inputs)){assert.equal(value.provenance.inputs[name].bytes,pin.bytes);assert.equal(value.provenance.inputs[name].sha256,pin.sha256);}
+      const actual=checkedCounts(value.counts);counts.referenceRequests=actual.requestsAttempted;counts.referenceRequestsDurableLowerBound=actual.requestsAttempted;counts.referenceRequestsStatus='AUTHORITATIVE_SUMMARY';
+      oracleSummaryPin=saved.original;
+      Object.assign(oracleObservedPrefix,{status:'ORIGINAL_ORACLE_SUMMARY_AUTHORITATIVE',actualCountsKnown:true,actualCounts:actual,inFlight:'reported by original final summary',durableLowerBound:actual,firstFailure:value.firstFailure??null,summary:saved});return;
+    }catch(error){note('summary-read-or-authentication',error);}
+    try{
+      const {saved,value}=await capture('progress.json',8192);
+      assert(['IN_PROGRESS','FAIL','PASS_INDEPENDENT_IMPULSE_ORACLE'].includes(value.status));assert(typeof value.phase==='string'&&value.phase.length<=256);
+      assert(value.caseId===null||typeof value.caseId==='string'&&/^[A-Za-z0-9-]{1,96}$/.test(value.caseId));
+      const durable=checkedCounts(value.counts);
+      counts.referenceRequestsDurableLowerBound=durable.requestsAttempted;counts.referenceRequestsStatus='DURABLE_LOWER_BOUND_ACTUAL_UNKNOWN';
+      Object.assign(oracleObservedPrefix,{status:'ORIGINAL_ORACLE_PROGRESS_DURABLE_LOWER_BOUND',actualCountsKnown:false,actualCounts:'UNKNOWN',inFlight:'UNKNOWN: progress may precede further work or reply commit',durableLowerBound:durable,atSnapshot:{caseId:value.caseId,phase:value.phase,attemptedMinusReturned:durable.requestsAttempted-durable.requestsReturned},firstFailure:value.firstFailure??null,progress:saved});
+    }catch(error){note('progress-read-or-authentication',error);}
   }
   try{
     let oracleAbsent=false;try{await stat(oracleOut);}catch(error){if(error.code==='ENOENT')oracleAbsent=true;else throw error;}assert(oracleAbsent,'fresh oracle run id');
@@ -166,12 +217,13 @@ async function main(){
     phase('oracle',100000);
     const oracleInputs=Object.fromEntries(['CONTRACT.md','CASES.json','AUTHORING-FREEZE-01.json','oracle.py','ORACLE-AUTHOR-READY.json'].map(name=>[name,freeze.files[relative(ROOT,resolve(HERE,name))]]));
     const oracleFreeze=await write('oracle-execution-freeze.json',{status:'PARENT_AUTHORIZED_IMPULSE_ORACLE_EXECUTION',runtimeAuthorized:true,p5Closed:true,inputs:oracleInputs});
+    oracleAuthorization={freeze:oracleFreeze,inputs:oracleInputs,parentFreezeSha256:token};
     counts.oracleProcesses++;progress();
     await command(freeze.tools.python,['-B',resolve(HERE,'oracle.py'),'--run-id',runId+'-oracle','--freeze',oracleFreeze.path,'--token',oracleFreeze.sha256],'oracle',100000);
     oracleSummaryPin=await filePin(resolve(oracleOut,'summary.json'));const oracleSummary=JSON.parse(await readBound(oracleSummaryPin.path));
     assert.equal(oracleSummary.status,'PASS_INDEPENDENT_IMPULSE_ORACLE');const oc=oracleSummary.counts;
     for(const [key,value]of Object.entries({requestsAttempted:23,requestsReturned:23,acceptedReferences:13,exactKktAttempted:13,exactKktReturned:13,exactConditionAttempted:13,exactConditionReturned:13,decimal80Attempted:13,decimal80Returned:13,decimal120Attempted:13,decimal120Returned:13}))assert.equal(oc[key],value,'oracle counts '+key);
-    assert.equal(oracleSummary.replies.length,23);counts.referenceRequests=23;progress();
+    assert.equal(oracleSummary.replies.length,23);counts.referenceRequests=23;counts.referenceRequestsDurableLowerBound=23;counts.referenceRequestsStatus='AUTHORITATIVE_SUMMARY';progress();
     const replyPins=new Map();
     for(const item of oracleSummary.replies){assert(/^[A-Za-z0-9-]+\.reply\.json$/.test(item.path));const path=resolve(oracleOut,item.path);assert(within(oracleOut,path));await exactPin(path,item);replyPins.set(item.path.slice(0,-11),{...item,path});}
     for(const c of cases.acceptedCases){const reply=JSON.parse(await readBound(replyPins.get(c.id).path));assert.equal(reply.status,'ACCEPTED_REFERENCE');assert.equal(reply.caseId,c.id);}
@@ -228,7 +280,7 @@ async function main(){
     assert(await ownedTreeBytes(out)-await ownedTreeBytes(build)+await ownedTreeBytes(oracleOut)<=8*MIB-65536,'actual combined evidence8MiB with summary reserve');assert(await ownedTreeBytes(out)+await ownedTreeBytes(oracleOut)<=24*MIB,'build16MiB plus combined evidence8MiB');completed.push('post-authentication-and-ledger');
   }catch(error){
     firstFailure={name:error?.name??typeof error,message:String(error?.message??error).slice(0,4096),phase:phaseName,graph:graphName,caseId,code:error?.code??null,reason:error?.reason??null,evidence:error?.evidence??null,assertion:{actual:error?.actual??null,expected:error?.expected??null,operator:error?.operator??null}};
-    try{assert.equal(processStarts.oracle,1);const prefix=JSON.parse(await readBound(resolve(oracleOut,'summary.json')));oracleObservedPrefix={status:prefix.status,counts:prefix.counts,firstFailure:prefix.firstFailure};counts.referenceRequests=prefix.counts.requestsAttempted;oracleSummaryPin=await filePin(resolve(oracleOut,'summary.json'));}catch{}
+    try{await recoverOraclePrefix();}catch(recoveryError){oracleObservedPrefix??={actualCounts:'UNKNOWN',inFlight:'UNKNOWN'};oracleObservedPrefix.recoveryFatal={name:recoveryError?.name??'Error',message:String(recoveryError?.message??recoveryError).slice(0,512)};}
   }
   finally{
     delete globalThis.__impulseObserve;
