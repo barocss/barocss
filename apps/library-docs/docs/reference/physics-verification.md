@@ -315,7 +315,7 @@ additional gates G1–G7. Core work covers already-admitted anisotropic box
 rotation, a finite contact-law/CCD coverage map and trustworthy provider/oracle
 failure-prefix evidence. Selected extensions must first qualify the COM/tensor,
 rank/conditioning, mixed-endpoint/substep and recording capabilities they use.
-Current capsule inertia remains an isotropic proxy; a free-rotation box gap
+At that checkpoint capsule inertia remained an isotropic proxy; a free-rotation box gap
 must not be misreported as a measured capsule or old cubic-stack failure.
 
 These are scoped dependencies, not seven new public features. Existing P3/P5
@@ -349,7 +349,7 @@ HOLD changed; no measured-equipment or manufacturing safety claim follows.
 
 ## G1 nonprincipal loads and public range
 
-G1e adds a later, breaking public input boundary. The earlier G1d principal
+The historical G1e checkpoint added a breaking public input boundary, superseded by the general rotation checkpoint below. The earlier G1d principal
 torque oracle checked a full-kick/free discrete map. Its original PASS is
 preserved, but it is not evidence for the continuous-torque pose. In the new
 paired Source/emitted baseline, nonprincipal J alone passes. J with constant
@@ -375,15 +375,62 @@ observed; hidden cache identity was not directly observed in this canonical grap
 Strict root/replay declaration compilation and the published-map consumer pass.
 This does not claim the full CAD SDK or every package subpath was rebuilt.
 
-Only the [declared one-step rotor](../packages/physics/profiles-and-lifecycle#isolated-noncubic-rotor)
-is newly admitted. Other dynamic noncubic boxes now refuse `INVALID_CONFIG`.
-Historical oriented-contact, thin-box CCD and dynamic CAD-box acceptance probes
-remain preserved as unsupported/expected breaking failures; their shapes and
-physical criteria were not replaced or relaxed. This is not a numerical PASS
-for those earlier cases, nor a full release-gate PASS.
+That checkpoint admitted only the exact one-step rotor. Its rejected-input and
+one-step receipts remain unchanged. The later general implementation removes
+that restriction and rechecks affected callers; it does not reinterpret those
+older failures as passes.
 
 The [roadmap](/physics-evidence/api-roadmap.txt) records source reports and remaining
-dependencies. Longer forced trajectories, three-dt refinement, arbitrary inertia,
-axisymmetry, nonidentity forced frames, contacts, joints and motors remain open.
+dependencies. At that checkpoint longer forced trajectories, three-dt refinement, wider primitive inertia,
+axisymmetry, forced frames, contacts, joints and motors remained open.
 Studio/manufacturing/equipment HOLDs, original eight-box NO_GO, old error gates
 and all first failures remain. No deployment or machine-safety claim follows.
+
+## G1 general continuous rotation
+
+The common World now uses actual mass, dimensions and orientation for free and
+constant-torque primitive rotation. The literal G1e whitelist and one-step
+horizon were removed without a legacy path. The model ranges and existing
+error gates remain. The free map retains27 composition stages and4 Newton
+updates; a priori conditioning subdivisions are capped at64. Forced rotation
+uses modified midpoint2/4/6/8 with eighth-order extrapolation, not a torque kick.
+
+Actual Source and canonical compiled root/replay each pass31 Worlds and3925
+accepted steps, including reconstruction. The23-case matrix includes nine
+mass/length scalings, transported frames, all three box symmetry axes, sphere,
+cube, capsule, zero spin and an arbitrary impulse. Source and Native match at
+every captured endpoint and every frame in the grid/long-run hashes. This is
+same-runtime deterministic evidence, separate from physical accuracy.
+
+| Check | Independent reference | Maximum measured error |
+| --- | --- | --- |
+| Constant world torque,0.1s, dt1/60,1/120,1/240 | Directed80/120 Taylor32 p/R/work ODE, six shared physical times | R entry3.073e-16; omega2.299e-15rad/s; work1.253e-16J |
+| Free axisymmetric primitive endpoints | Closed symmetric-top solution with rational exponential tail | R entry7.142e-16; omega1.018e-15rad/s |
+| Triaxial free rotation,3600steps,30s | Independent volume inertia and E/L,32 retained samples | L component2.039e-14N·m·s; energy2.664e-14J; squared-q norm4.499e-16 |
+
+Trajectory gates remain `1e-11+1e-12*abs(reference)`. E/L/work gates remain
+`1e-12+1e-12*max(1,abs(actual),abs(expected))`; squared-q norm stays1e-12.
+All three forced grids are below the old1e-11 rounding floor. This establishes
+no empirical order from refinement. Long-time phase accuracy is NOT_RUN.
+Large-inertia scale cases use the unchanged relative gate; their absolute
+E/L errors must not be compared with the small body's2e-12 absolute bound.
+
+Capsule validation first preserved a physical failure from the former enclosing
+sphere inertia: L error0.004422625739232428N·m·s against2e-12. The current capsule
+uses uniform-volume cylinder/hemisphere COM moments and passes the analytic
+free-rotation check. Forced capsule checks cover L and norm; its independent
+trajectory and work remain NOT_RUN. The original capsule failure is retained.
+
+Known numerical refusal and an injected unknown forced-solver exception leave
+accepted state and recording unchanged. Recovery, record/restore and actual
+continued execution against a fresh two-step control pass on both graphs.
+Strict root/replay compilation and declaration consumers pass. The existing
+compiled rotation, oriented-collider and broad-phase probes also pass with
+unchanged inputs and physical criteria. Full CAD SDK/subpath closure, browser
+physics proof and release-gate closure are NOT_RUN.
+
+The execution contract, raw observations, reference bank, freezes, numerical
+errors and commands are in `examples/physics-general-rotation-2276/RESULTS.md`.
+The original8-box NO_GO and connected-mechanism/contact/CCD limits remain.
+Studio, manufacturing and equipment HOLDs, old tolerances and all first
+failures are preserved. No deployment or equipment-safety claim follows.

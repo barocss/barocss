@@ -82,13 +82,13 @@ export const providerManifest = {
     "replay-json.ts": "1ab8cf962443edd3be387e5095a9cce3f2071c8b44e47cc165ce82d5c00ac617",
     "replay-validation.ts": "ab9a7b5097515ddd3d6aa9a434d14f2ae2e04fd15c4059b473d0d708a507c82a",
     "replay.ts": "07bafc635620c56c479ed44b0f458cbbb470bf20b3ce2ead7248ceb0973ca408",
-    "rigid-forced-rotation.ts": "9a9bc36bdee55abdea81fc1e3eb7ed11786f880c8ca9080b0e5ea83f90d70c76",
-    "rigid-free-rotation.ts": "eacabe276ccaec2cf0cb7eade73f57320ca69ef287104fc4b71da3e36651f0c5",
-    "rotation-support.ts": "a9bba3019d2fe8ea69a224b45cb1d8977e7179537b890cbc5085d75db78002c9",
+    "rigid-forced-rotation.ts": "52447f9daa9da5c7382bd59d7132e3936ddf667942cbefd3fafeb79274e06d44",
+    "rigid-free-rotation.ts": "63e5fd31e798a7bd85f56d0d0b5b5bad58d61e2c848594328fa74bf1c254dbbf",
+    "rotation-validation.ts": "45281b213700f86af36ea6d1a9189ca54349d13d01c37eeb366f1cdd474c1408",
     "scene-profile.ts": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7",
     "sleep.ts": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2",
     "types.ts": "37fdf1abcc20fd379304213b8c0686f8e0468d285f008aa8ebdb316882efade5",
-    "validation.ts": "651d12754b77f86493f399baf3c02d60d9ad1fe54e0ece664a05a4430e8a0f01",
-    "world.ts": "e4ba184c874489b32e6259b99efa30d390397f281a50c4d7997194f2e0e076b6"
+    "validation.ts": "c5787fdbe5e31a51e52fb6b91634f75b363a629bb4a88248273e85c8ffc948af",
+    "world.ts": "3640c7a53b4f4706b3dad470dbc68e68686eebc0348ffbcedd6616ac3e727d3d"
   }
 } as const;

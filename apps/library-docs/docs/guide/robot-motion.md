@@ -1,10 +1,9 @@
 # Robot motion: from a path to a pose
 
-Physics currently admits a dynamic noncubic box only as the
-[one-step isolated rotor](/packages/physics/profiles-and-lifecycle#isolated-noncubic-rotor).
-General dynamic CAD boxes and anisotropic robot links refuse World creation.
-CAD proxy conversion and kinematic pose calculation remain separate operations;
-neither establishes admitted dynamic motion or control accuracy.
+Physics supports [continuous primitive rotation](/packages/physics/profiles-and-lifecycle#isolated-noncubic-rotor)
+for admitted boxes, spheres and capsules. This does not qualify connected robot
+joint dynamics. CAD proxy conversion, kinematic pose calculation and control
+accuracy require their own evidence.
 
 Use CAD Model to prescribe joint motion, calculate link poses and inspect
 limits. Use Physics to predict motion from initial conditions and applied

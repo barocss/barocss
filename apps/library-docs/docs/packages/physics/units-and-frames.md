@@ -24,21 +24,22 @@ This page describes the current unreleased branch. See the [package overview](./
 | Body rotation | Local-to-world quaternion | `[x, y, z, w]`, right-handed | The input and state field is `orientationXYZW`; identity is `[0,0,0,1]`. Rigid admission requires norm within `1e-6` of one and normalizes it. `cadProxyPose` requires norm within `1e-9`. |
 | Body axes and angular input | Shape dimensions and joint anchors are body-local | Torque and angular velocity are world-frame vectors | A capsule's segment uses its local Y axis. `axisWorld` is a world hinge axis. |
 
-For the [qualified isolated rotor](./profiles-and-lifecycle#isolated-noncubic-rotor),
-angular impulse acts instantaneously at the step start. Torque is constant in
-world coordinates over the interval, then expires. The independent reference
-checks `Lend=Lbefore+J+tau*dt` and integrated torque work, not final momentum
-alone. The historical full-torque kick/free map is a first-order discretization;
-its old G1d PASS does not prove the continuous torque pose. Other existing
-isotropic paths retain their recorded discretization and limits.
 | Contact convention | Pair IDs sorted as A, B | `normalAtoB` points from A to B; `pointM` is world metres | Positive normal impulse acts along the normal on B and against it on A. `tangentImpulseOnBNs` is the accumulated world-vector impulse on B, opposite on A. |
 | Independent pendulum reference inertia | `inertia: {about:'com'|'pivot', kgM2}` | Moment about the +Z axis through the named origin | For COM input, Physics adds `massKg * comDistanceM²` once. For pivot input, include this term yourself. |
 | CAD proxy display | Source points and `sourceCenterMM` in mm; body centre in m | Viewer translation in mm and unchanged XYZW orientation | `translation = 1000 * bodyPositionM - R * sourceCenterMM`. Rotate around the source centre, then place that centre at the body position. |
 
+For continuous primitive rotation, angular impulse acts instantaneously at
+step start. Torque is constant in world coordinates during that step, then
+expires. The independent reference checks `Lend=Lbefore+J+tau*dt` and integrated
+torque work, not final momentum alone. The old full-kick/free G1d PASS remains
+a historical discrete-map result; the current World integrates continuous torque.
+
 The rigid world's sphere inertia is `2*m*r²/5`; a dynamic sphere can declare `inertia:{kind:'sphere-isotropic',about:'com',frame:'body-local',kgM2}` to supply that scalar. Other admitted primitive bodies use explicit `inertia:{kind:'primitive-com',about:'com',frame:'body-local'}`.
-Its box inertia is the local COM diagonal `m/3 * [hy²+hz², hx²+hz², hx²+hy²]`. Capsule inertia is a
-labelled isotropic proxy, `2*m*(radiusM+halfLengthM)²/5`. These shape models do not recover exact CAD
-mass properties. Supply the correct mass and model before interpreting the motion.
+Its box inertia is the local COM diagonal `m/3 * [hy²+hz², hx²+hz², hx²+hy²]`. Capsule inertia integrates a uniform cylinder and two hemispheres.
+For radius `r`, half centreline length `h`, cylinder mass `mc=m*3h/(3h+2r)`
+and cap mass `ms=m-mc`, its local Y moment is `mc*r²/2 + 2*ms*r²/5`.
+The X/Z moments are `mc*(r²/4+h²/3) + ms*(2*r²/5+h²+3*h*r/4)`.
+These primitive models do not recover exact CAD mass properties. Supply the correct mass and model before interpreting the motion.
 
 For the independent pendulum example, `comDistanceM` is the pivot-to-COM distance. Its state angle is zero when the COM
 is below the origin on −Y. Positive angle turns about +Z, and

@@ -1,0 +1,38 @@
+{
+  "files": {
+    "examples/physics-general-rotation-2276/CONTRACT.md": {
+      "bytes": 3124,
+      "sha256": "1eed0e11375608ec11401a39760ed46431c23c68809e38e95e58933dd2fd44e6"
+    },
+    "examples/physics-general-rotation-2276/study.json": {
+      "bytes": 2407,
+      "sha256": "0cdaecf2e9eef55be15806adbad5b452e153fb2818f71899226e56699fb202f6"
+    },
+    "examples/physics-general-rotation-2276/reference-general.py": {
+      "bytes": 30554,
+      "sha256": "66014a44d80be442542f0584497d4e3c6889b4e4b4e6ae53bf76bf2b69fd3e60"
+    },
+    "examples/physics-general-rotation-2276/METHOD-REVIEW.md": {
+      "bytes": 1934,
+      "sha256": "fc27e3d5fdb70f6f45ddf453fd9716956a288c9a755d843a124a30561474eee4"
+    },
+    "examples/physics-rigid-rotation-g1e-2276/reference-force.py": {
+      "bytes": 28963,
+      "sha256": "ff16c66f7b875403c0d330b670b25be79725c89097233fa370a36f1c0b0fb020"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/reference-micro.py": {
+      "bytes": 47239,
+      "sha256": "90412a7e20b106939c14de7c5f8d619f0cd69d19caa780c91300ce540e3f0c36"
+    },
+    "examples/physics-rigid-rotation-g1-2276/baseline-classify.py": {
+      "bytes": 23864,
+      "sha256": "5f5eee9ac2cd8b654eab134823a619254fd0b7c4ab8791419d077a71413a09eb"
+    },
+    "examples/physics-rigid-rotation-g1c-2276/reference-frame.py": {
+      "bytes": 11345,
+      "sha256": "91966d1e3d2fc3cabea2156dd670463faf70af811f05aecbf32d182e20590d19"
+    }
+  },
+  "phase": "before independent reference execution",
+  "candidateSteps": 0
+}

@@ -4,11 +4,10 @@ Physics advances an admitted numerical model from initial state and applied load
 the clock and displays each accepted state. The rigid world uses spheres, boxes and capsules. It does
 not use the exact CAD Surface as its collision shape.
 
-Dynamic noncubic boxes now have a breaking admission boundary. Only the
-[one-step isolated rotor](./profiles-and-lifecycle#isolated-noncubic-rotor) is
-admitted. Other dynamic noncubic models refuse at creation; static boxes and
-dynamic cubes keep their prior paths. A CAD proxy conversion does not itself
-qualify that proxy for dynamic World admission.
+The common World supports [continuous primitive rotation](./profiles-and-lifecycle#isolated-noncubic-rotor)
+within its input and numerical limits. Dynamic noncubic boxes use their COM
+inertia, not constant world angular velocity. Contact, CCD and joint limits
+remain separate. A CAD proxy conversion does not certify its physical accuracy.
 
 This guide describes the current documentation branch. The package version is `0.0.0-experimental`
 and unreleased. Local implementation and numerical evidence do not establish active CAD adoption,

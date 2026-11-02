@@ -58,7 +58,7 @@ const freeModel = (gravityMps2 = [0, -9.81, 0]) => ({
 });
 // #endregion world-fixture
 
-test('the isolated rotor accepts its qualified load and refuses a second step', () => {
+test('a noncubic rotor accepts loads and continues on its configured clock', () => {
   // #region isolated-rotor-step
   const world = createPhysicsWorld(isolatedRotorModel(), worldOptions);
   try {
@@ -67,8 +67,13 @@ test('the isolated rotor accepts its qualified load and refuses a second step', 
       { kind: 'torque', bodyId: 'rotor', torqueNm: [1 / 128, -1 / 256, 1 / 512] },
     ]);
     assert.equal(accepted.stepIndex, 1);
-    assert.throws(() => world.step(), hasCode('NUMERIC_LIMIT'));
-    assert.deepEqual(world.getState(), accepted);
+    const continued = world.step();
+    assert.equal(continued.stepIndex, 2);
+    near(continued.timeSeconds, 2 * dt);
+    assert.notDeepEqual(continued.bodies[0].orientationXYZW, accepted.bodies[0].orientationXYZW);
+    near(continued.bodies[0].orientationXYZW.reduce((sum, x) => sum + x * x, 0), 1);
+    assert.ok(continued.bodies[0].angularVelocityRadps.every(Number.isFinite));
+    assert.deepEqual(world.getState(), continued);
   } finally { world.dispose(); }
   // #endregion isolated-rotor-step
 });

@@ -3,10 +3,10 @@
   "branch": "codex/physics-world-p5-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "G1e exact one-step isolated rotor, nonprincipal angular impulse and continuous world torque",
-    "status": "ADOPTED_BOUNDED_SOURCE_AND_CANONICAL_ROOT_REPLAY",
-    "scope": "Actual16World16accepted incl2internalreplay,6independentendpointaudits,18steprefusals24configrefusals. Wider dynamicnoncubicboxes explicitlyunsupported. Newcontinuous-forcefirstfailurepreserved.",
-    "results": "examples/physics-rigid-rotation-g1e-2276/evidence/g1e-canonical-01/summary.json"
+    "profile": "General continuous primitive rotation in common World",
+    "status": "SOURCE_AND_CANONICAL_ROOT_REPLAY_PASS",
+    "scope": "Each graph31Worlds3925accepted;23generality cases;0.1s forced60/120/240grids;30s free3600steps with32 independent invariant samples; transactional recording and actual continuation. Same-runtime parity separate from accuracy.",
+    "results": "examples/physics-general-rotation-2276/RESULTS.md"
   },
   "mainSlices": {
     "P0": "CONTRACT_COMPLETE_LOCAL",
@@ -33,13 +33,13 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "G1 finite input boundary and J/JT micro adopted in common World after actualSource/canonicalNative checks. Support dt120/one acceptedstep literalisolatedrotor only. Nextdependenciesthree-dtforcedtrajectory/longerhorizon/otherinertia/frames/contact-joint-motor. Originaloriented/thinCCD/dynamicCADacceptance remains breakingunsupported; no releasegate waiver. No runtime active.",
+  "active": "General primitive angular flow implemented without G1e whitelist/horizon or legacy path. Next: forced-frame/capsule phase-work oracle, contact/joint composition and G2 exact rounded-corner CCD. P4 eight-box remains NO_GO. Studio/manufacturing/equipment HOLD. No process active.",
   "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
     "nextG1Baseline": "ACHIEVED2026-11-02; actual physical NO_GO preserved",
     "wholeRoadmap": "NO_RELIABLE_DATE_YET; reassess from G1/P4/coupling evidence, no whole-engine date promised",
-    "nextG1Repair": "ACHIEVED2026-11-02 for exactone-step publicrotor; broaderG1limitsremain. Whole-roadmap dateunknown.",
+    "nextG1Repair": "ACHIEVED2026-11-02 for continuous primitive angular flow; remaining contact/coupling/CCD and whole-roadmap date unknown.",
     "nextG1Trajectory": "ACHIEVED2026-11-02 compositeSource+freshNative; all72refinementchecks beloworiginal1e-11floor, nomeasuredorderclaim."
   },
   "reportCadence": "milestone,firstfailure,directionchange; report qualified scope,remaining dependency,and revised confidence",

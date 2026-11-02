@@ -1,0 +1,107 @@
+{
+  "status": "PASS_GENERAL_ROTATION",
+  "baseCommit": "8a24d6f778133b460ece7a0220d5db747debe121",
+  "source": {
+    "worlds": 31,
+    "acceptedSteps": 3925,
+    "attempts": 3926,
+    "refusals": 2,
+    "restores": 1
+  },
+  "native": {
+    "worlds": 31,
+    "acceptedSteps": 3925,
+    "attempts": 3926,
+    "refusals": 2,
+    "restores": 1
+  },
+  "grids": {
+    "60": {
+      "time": 6.938893903907228e-18,
+      "squaredQNorm": 1.1478336993152157e-16,
+      "worldL": 3.874469741114431e-17,
+      "comPosition": 0.0,
+      "linearMomentum": 0.0,
+      "R": 1.0192389676273351e-16,
+      "omega": 2.293152060380117e-15,
+      "q": 5.672204921889696e-17,
+      "continuousWork": 7.236429027230797e-17,
+      "energy": 7.236429027230797e-17
+    },
+    "120": {
+      "time": 6.938893903907228e-18,
+      "squaredQNorm": 2.999066179875487e-16,
+      "worldL": 5.590189766611497e-17,
+      "comPosition": 0.0,
+      "linearMomentum": 0.0,
+      "R": 1.4177421422513466e-16,
+      "omega": 1.7677975304825666e-15,
+      "q": 7.28316018217249e-17,
+      "continuousWork": 6.06757800673103e-17,
+      "energy": 6.06757800673103e-17
+    },
+    "240": {
+      "time": 6.938893903907228e-18,
+      "squaredQNorm": 4.58325860202603e-16,
+      "worldL": 1.032396251815889e-16,
+      "comPosition": 0.0,
+      "linearMomentum": 0.0,
+      "R": 3.072917619865794e-16,
+      "omega": 2.2981056249741508e-15,
+      "q": 1.5204262344331077e-16,
+      "continuousWork": 1.2529410099940696e-16,
+      "energy": 1.2529410099940696e-16
+    }
+  },
+  "longFree": {
+    "squaredQNorm": 4.498738060363376e-16,
+    "worldL": 2.0380054543513612e-14,
+    "comPosition": 0.0,
+    "linearVelocity": 0.0,
+    "energy": 2.6638946068656046e-14,
+    "time": 4.163336342344337e-16
+  },
+  "refinement": "ROUNDING_FLOOR_AT_ALL_THREE_GRIDS_NOT_EMPIRICAL_ORDER",
+  "receipts": {
+    "general-audit-details-01": "PASS",
+    "general-broadphase-probe-01": "PASS",
+    "general-capsule-baseline-01": "PASS",
+    "general-capsule-exact-baseline-01": "FAIL",
+    "general-capsule-exact-baseline-02": "PASS",
+    "general-docbuild-01": "PASS",
+    "general-doccheck-01": "PASS",
+    "general-docsite-01": "PASS",
+    "general-oriented-probe-01": "PASS",
+    "general-physics-docsamples-01": "PASS",
+    "general-reference-01": "PASS",
+    "general-rotation-build-01": "PASS",
+    "general-rotation-build-02": "FAIL",
+    "general-rotation-build-03": "PASS",
+    "general-rotation-campaign-01": "PASS",
+    "general-rotation-probe-01": "PASS"
+  },
+  "preservedPhysicalFailure": {
+    "path": "evidence/capsule-baseline-01/exact-audit-02.json",
+    "status": "PHYSICAL_NO_GO",
+    "worldL": 0.004422625739232428,
+    "bound": 2e-12
+  },
+  "notRun": [
+    "long-time phase accuracy",
+    "forced capsule independent phase/work",
+    "nonidentity forced-frame trajectory",
+    "contact/joint/motor composition",
+    "full CAD SDK/all subpaths",
+    "original eight-box requalification",
+    "browser/product",
+    "remote CI",
+    "deployment",
+    "release"
+  ],
+  "next": [
+    "nonidentity forced frame and forced capsule independent work/phase",
+    "joint/motor/contact composition with unchanged old fixtures",
+    "G2 exact rounded-corner CCD",
+    "original P4 eight-box NO_GO and P6 coupling"
+  ]
+}

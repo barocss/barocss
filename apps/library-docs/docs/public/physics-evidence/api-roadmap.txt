@@ -270,7 +270,9 @@ prototype across the wider admitted range.
 | G1d command/recorder | Source and genuine emitted root/replay pass principal-axis impulse+torque expiry and two-step general triaxial recording/restore/continue: six actual Worlds, twelve accepted steps, eight independent endpoint audits and six state/log/cache-preserving refusals. Max world-L error 1.600786710055395e-17 kg m²/s; R-entry 2.2833535057329648e-17. | One new combined Source bundle; Native reuses authenticated strict NodeNext modules. No canonical-root adoption. Nonprincipal load, motor/joint/contact/projection, persistent/large angular flow and physical coupled trajectories remain NOT_RUN. See `examples/physics-rigid-rotation-g1d-2276/INTEGRATION-RESULTS-01.md`. |
 | Admission and public adoption | Source audit fixes SI, body-to-world XYZW, world angular vectors, existing initial-q normalization, and kick/motor/free/contact/record commit order. | The fixed momentum-unit triaxial prototype excludes much of the parser's existing mass/extents/spin/dt range. Finite PASS is not authority to apply it to every admitted box, silently narrow admission or retain the incorrect anisotropic law as a compatibility fallback. Explicit supported-range resolution and affected canonical build/caller checks remain required. |
 
-### G1e public input boundary and nonprincipal loads (2026-11-02)
+### G1e historical public boundary and nonprincipal loads (2026-11-02)
+
+This checkpoint is preserved. Its whitelist and one-step horizon are superseded by the general rotation implementation below.
 
 The public Source and canonical bundled emitted root/replay now adopt only the
 explicit one-step isolated-rotor range in
@@ -320,6 +322,31 @@ for G1c/G1d are zero; G1e adds only its eight frozen baseline reference windows.
 Deterministic replay equality and physical error
 checks remain separate. Studio, manufacturing and equipment stay outside this
 independent Work. No partial develop merge, deployment or publication follows.
+
+### General continuous primitive rotation (2026-11-02)
+
+Implemented in the common World without a compatibility route: actual-momentum
+scaling for free S8 rotation, conditioned subdivisions capped64, constant-torque
+order-eight extrapolation, and uniform-volume capsule COM inertia. Removed the
+literal G1e body/load whitelist and one-step horizon; retained model ranges,
+contact iterations, movement limits, transactional recording and all tolerances.
+
+Actual Source and canonical compiled root/replay each PASS31Worlds/3925accepted
+steps,23generality cases,0.1s forced grids60/120/240Hz and30s free rotation.
+Max matched-time R error3.073e-16, omega2.299e-15rad/s, work1.253e-16J.
+Independent32-sample long-run E/L errors2.664e-14J/2.039e-14Nms. Free symmetric
+tops and isotropic forced primitives have separate analytic checks. Source/Native
+frames agree; known/unknown refusal preserves state/log, recovery/restore/actual
+continuation pass. Original compiled rotation/oriented/broadphase probes PASS.
+See `examples/physics-general-rotation-2276/RESULTS.md` for exact proof boundaries,
+commands, three-grid errors and capsule first failure0.004422625739232428Nms.
+
+Remaining: nonidentity forced-frame/anisotropic forced-capsule work and phase
+oracles, wider nonparallel time-varying loads, contact/joint/motor composition,
+G2 exact sphere-corner CCD, G3 arbitrary COM/tensors, original P4 eight-box NO_GO,
+and P6 coupled dynamics. Long-run phase, full CAD SDK/subpath closure and browser
+proof remain NOT_RUN. No engine-wide or release-gate PASS. Existing HOLDs and
+first failures remain. No deployment or release.
 
 Dependency order: close the G1 admitted-rotation boundary and G2 finite coverage
 map before the corresponding general rigid/contact claim. Keep original P4

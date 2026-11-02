@@ -29,9 +29,9 @@ import { initializeFluid, prepareFluid } from './domain/fluid.js';
 import type { ClothCandidate, ClothDefinition, ClothOutput, FluidCandidate, FluidDefinition, FluidOutput } from './domain/types.js';
 import { CLOTH_MAX_STEPS } from './cloth/profile.js';
 import { FLUID_MAX_STEPS } from './fluid/constants.js';
-import { admitRotationSupport, admitRotationCommands, validateRotationResult } from './rotation-support.js';
-import { prepareTriaxialFreeRotation } from './rigid-free-rotation.js';
-import { prepareForcedBoxRotation } from './rigid-forced-rotation.js';
+import { validateRotationResult } from './rotation-validation.js';
+import { prepareFreeRotation } from './rigid-free-rotation.js';
+import { prepareForcedRotation } from './rigid-forced-rotation.js';
 
 function publicState(bodies: Body[], contacts: PhysicsContact[], events: PhysicsEvent[],
   joints: PhysicsJointState[], ccdHits: PhysicsCcdHit[], pairStats: PhysicsPairStats,
@@ -89,7 +89,6 @@ function publicDomainState(runtime: DomainRuntime, model: PhysicsModel, identity
 
 export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): PhysicsWorld {
   const admitted = admitModel(model, options);
-  const isolatedRotor = admitRotationSupport(admitted.model, admitted.options, admitted.bodies);
   const dt = admitted.options.fixedStepSeconds;
   const domainKind = admitted.domain?.kind ?? null;
   const domainId = admitted.domain?.data.id ?? null;
@@ -205,10 +204,6 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
       if (disjointHinges) admitDisjointHingeCommands(disjointHinges, bodies, actions, admittedCommands.length);
       else if (dynamicHinge) admitDynamicHingeCommands(dynamicHinge, bodies, actions);
       if (ccd.kind === 'box-pair') rejectAngularBoxCommand(actions.get(bodies[ccd.boxIndex].id));
-      if (isolatedRotor) {
-        admitRotationCommands(actions, bodies[0].id);
-        if (stepIndex >= 1) error('NUMERIC_LIMIT', 'isolated rotor exceeded its one-step physical horizon');
-      }
       const preparedFrames = owner ? owner.prepareFrames(admittedCommands, stepIndex + 1) : null;
       const next = bodies.map(copyBody);
       const motorImpulses = joints.map(() => 0);
@@ -217,15 +212,8 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
       for (const body of next) {
         if (body.kind !== 'dynamic' || (largeMode && body.sleeping)) continue;
         const action = actions.get(body.id);
-        if (isolatedRotor) {
-          body.angularVelocityRadps = add(body.angularVelocityRadps,
-            inverseInertia(body, add(action?.angularImpulseNms ?? [0, 0, 0],
-              scale([0, 0, 0], dt))));
-        } else {
-          body.angularVelocityRadps = add(body.angularVelocityRadps,
-            inverseInertia(body, add(action?.angularImpulseNms ?? [0, 0, 0],
-              scale(action?.torqueNm ?? [0, 0, 0], dt))));
-        }
+        body.angularVelocityRadps = add(body.angularVelocityRadps,
+          inverseInertia(body, action?.angularImpulseNms ?? [0, 0, 0]));
       }
       if (disjointHinges) driveDisjointHingeMotors(disjointHinges, next, jointStates, motorImpulses);
       else for (let index = 0; index < joints.length; index++) {
@@ -254,16 +242,14 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
             Math.hypot(...body.angularVelocityRadps) * dt > 10) {
             error('NUMERIC_LIMIT', `${body.id} exceeded angular movement limit`);
           }
-          if (isolatedRotor) {
-            const preparedRotation = prepareForcedBoxRotation(body, dt, action?.torqueNm ?? [0, 0, 0]) ??
-              prepareTriaxialFreeRotation(body, dt);
-            if (preparedRotation === null) error('NUMERIC_LIMIT', 'isolated rotor has no qualified rotation result');
-            validateRotationResult(preparedRotation, dt);
-            body.angularVelocityRadps = preparedRotation.angularVelocityRadps;
-            body.orientation = preparedRotation.orientation;
-          } else {
-            body.orientation = advanceOrientation(body.orientation, body.angularVelocityRadps, dt);
-          }
+          const preparedRotation = prepareForcedRotation(body, dt, action?.torqueNm ?? [0, 0, 0]) ??
+            prepareFreeRotation(body, dt) ?? {
+              orientation: advanceOrientation(body.orientation, body.angularVelocityRadps, dt),
+              angularVelocityRadps: [...body.angularVelocityRadps] as Vec3,
+            };
+          validateRotationResult(preparedRotation, dt);
+          body.angularVelocityRadps = preparedRotation.angularVelocityRadps;
+          body.orientation = preparedRotation.orientation;
           for (let i = 0; i < 3; i++) {
             body.velocityMps[i] += (action?.impulseNs?.[i] ?? 0) * body.inverseMass;
             body.velocityMps[i] += (gravity[i] + (action?.forceN?.[i] ?? 0) * body.inverseMass) * dt;
