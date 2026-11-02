@@ -27,11 +27,14 @@
     "Import-only repair: syntax3 andlint88",
     "Actual6state integration smoke; source equality through cleanup; noerrors/changes",
     "D4441042frozenpaths equal current",
-    "OCP reader/source/build directories absent"
+    "OCP reader/source/build directories absent",
+    "Canonical inventory10typevalues synchronized without runtime/checker/policy change",
+    "DocscheckPASS73pages/55shots/940labels andinventorydrift84/84PASS"
   ],
   "FAIL": [
     "Initial9unused-importlint errors; repaired",
-    "Initial GPU test invocation lacked required loader; corrected, no product assertion failure"
+    "Initial GPU test invocation lacked required loader; corrected, no product assertion failure",
+    "First requiredCI: stale public inventory IV001 after all repositorytypes/lint/libraries/apps/docsbuildsPASS; generated inventory correction is recorded separately"
   ],
   "NOT_RUN": [
     "Full C1-1 acceptance",
@@ -48,7 +51,8 @@
     "requiredCI": "Must pass on final PR head before merge",
     "remoteCompletionReceipt": "Final PR comment and owner handoff prompt must record final remote SHA; fetch and verify both refs and ancestor inputs",
     "method": "normal merge with expected_head_sha; no rebase/squash/force",
-    "release": "NOT_RUN"
+    "release": "NOT_RUN",
+    "PR": "https://github.com/barocss/barocss/pull/2281"
   },
   "checks": [
     {
@@ -318,5 +322,173 @@
     "newBroken": 0,
     "knownHistoricalMissing": 1,
     "archiveHashesUnchanged": true
+  },
+  "initialCI": {
+    "head": "5899e6304694cc10dc905cc8306f5daa291ea29b",
+    "run": 41457311423,
+    "job": 125317426575,
+    "result": "FAIL",
+    "commands": [
+      {
+        "command": "pnpm",
+        "args": [
+          "type-check"
+        ],
+        "seconds": 136.768,
+        "status": 0,
+        "signal": null
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "lint"
+        ],
+        "seconds": 39.629,
+        "status": 0,
+        "signal": null
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "exec",
+          "eslint",
+          "--no-warn-ignored",
+          "--",
+          "apps/cad-studio/src/app/bodyResults.ts",
+          "apps/cad-studio/src/files/importedFile.ts",
+          "apps/cad-studio/src/ui/SelectionInspector.tsx",
+          "apps/cad-studio/src/ui/quantityText.ts",
+          "apps/cad-studio/src/viewport/camera.ts",
+          "apps/cad-studio/src/viewport/clearanceAnalysis.ts",
+          "apps/cad-studio/src/viewport/gpuRenderer.ts",
+          "apps/cad-studio/src/viewport/printOverlayGeometry.ts",
+          "apps/cad-studio/src/viewport/renderer.ts",
+          "apps/cad-studio/src/viewport/sectionView.ts",
+          "apps/cad-studio/test/camera-projector.test.ts",
+          "apps/cad-studio/test/camera-relative-query.test.ts",
+          "apps/cad-studio/test/draw-world-buffer-copy.test.ts",
+          "apps/cad-studio/test/flow-helper.mjs",
+          "apps/cad-studio/test/gl-world-buffer-upload.test.ts",
+          "apps/cad-studio/test/native-mesh-precision-browser.mjs",
+          "apps/cad-studio/test/orthographic-depth-browser.mjs",
+          "apps/cad-studio/test/quantity-text.test.ts",
+          "apps/cad-studio/test/small-camera-scale-browser.mjs",
+          "apps/cad-studio/test/small-camera-scale.test.ts",
+          "apps/cad-studio/test/step-mass-translation-browser.mjs",
+          "apps/cad-studio/test/step-name-loss-browser.mjs",
+          "apps/cad-studio/test/step-sphere-hemisphere-browser.mjs",
+          "apps/cad-studio/test/tiny-quantity-browser.mjs"
+        ],
+        "seconds": 2.657,
+        "status": 0,
+        "signal": null
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "build:library"
+        ],
+        "seconds": 84.722,
+        "status": 0,
+        "signal": null
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "--recursive",
+          "--filter",
+          "./apps/**",
+          "--if-present",
+          "run",
+          "build"
+        ],
+        "seconds": 71.427,
+        "status": 0,
+        "signal": null
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "--filter",
+          "@barocss/library-docs",
+          "run",
+          "build"
+        ],
+        "seconds": 20.1,
+        "status": 0,
+        "signal": null
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "--filter",
+          "@barocss/library-docs",
+          "run",
+          "check:docs"
+        ],
+        "seconds": 45.943,
+        "status": 1,
+        "signal": null
+      }
+    ],
+    "firstFailure": {
+      "rule": "IV001",
+      "path": "$.exposures[1980].variants[0].shape.members[2].type",
+      "expected": "Float32Array<ArrayBufferLike> | undefined",
+      "actual": "Float64Array<ArrayBufferLike> | Float32Array<ArrayBufferLike> | undefined"
+    },
+    "loader": {
+      "run": 41457311477,
+      "job": 125317160453,
+      "result": "PASS"
+    },
+    "repair": "Regenerate canonical public inventory from unchanged source; do not weaken checker or product type",
+    "repairResult": {
+      "status": "PASS",
+      "path": "apps/library-docs/scripts/api-inventory.expected.json",
+      "semanticChanges": 10,
+      "meaning": "MeshData lines/positions in4exports and DisplayMesh edgeLines/positions reflect existing Float64Array | Float32Array support",
+      "unrelatedChanges": 0,
+      "generatorCommand": "node apps/library-docs/scripts/api-inventory.mjs --write-expected /tmp/barocss-d446-checks/docs-inventory/api-inventory.generated.json",
+      "generatorSeconds": 19.791,
+      "checks": [
+        {
+          "name": "check-docs",
+          "command": [
+            "pnpm",
+            "--dir",
+            "apps/library-docs",
+            "run",
+            "check:docs"
+          ],
+          "status": "PASS",
+          "seconds": 21.836,
+          "exit_code": 0
+        },
+        {
+          "name": "inventory-drift-fixtures",
+          "command": [
+            "pnpm",
+            "--dir",
+            "apps/library-docs",
+            "exec",
+            "node",
+            "--test",
+            "samples/api-inventory-drift.test.mjs"
+          ],
+          "status": "PASS",
+          "seconds": 11.541,
+          "exit_code": 0
+        }
+      ],
+      "inventoryFixtures": {
+        "PASS": 84,
+        "FAIL": 0,
+        "SKIP": 0
+      },
+      "scratchGuardCorrection": "Initial optional-type-only guard stopped on reviewed non-optional positions before worktree write;10typevalues confirmed against currentsource; canonicalcandidate adopted unchanged",
+      "runtimeSourceChanged": false,
+      "checkerChanged": false
+    }
   }
 }
