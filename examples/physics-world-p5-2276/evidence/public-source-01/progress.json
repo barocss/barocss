@@ -1,0 +1,137 @@
+{
+  "phase": "cohorts",
+  "label": "final",
+  "ledger": {
+    "factoryAttempts": 101,
+    "worlds": 37,
+    "creationRefusals": 64,
+    "stepEntries": 6334,
+    "accepted": 6281,
+    "syntheticFailures": 13,
+    "typedNumericControls": 4,
+    "initializers": 35,
+    "reads": 38,
+    "disposes": 41,
+    "domainQueries": 8,
+    "domainRecorderAttachAttempts": 8,
+    "rigidRecorderAttachAttempts": 3,
+    "rigidRecorderSaveCalls": 3,
+    "disposedReadRefusals": 4,
+    "hostExternalSubmitFailures": 1,
+    "solverReturns": 6289,
+    "refusedSteps": 40
+  },
+  "helpers": {
+    "floorSamples": 5077,
+    "initializeCloth": 13,
+    "clothDiagnostics": 1229,
+    "canonicalEncode": 136,
+    "reads": 38,
+    "prepareCloth": 1217,
+    "ClothSolverConstructions": 1217,
+    "ClothSolverSteps": 1217,
+    "projectDistance": 30468097,
+    "projectSphere": 19456,
+    "solverReturns": 6289,
+    "outputCopies": 6281,
+    "disposes": 41,
+    "initializeFluid": 22,
+    "initialRestDensity": 22,
+    "densities": 20336,
+    "fluidDiagnostics": 5092,
+    "prepareFluid": 5076,
+    "PbfSolverConstructions": 5076,
+    "PbfSolverSteps": 5076,
+    "blendVisualViscosity": 2891,
+    "admitCadFluidStaticData": 5,
+    "admitCadSurfaceProxy": 4,
+    "compileCadModel": 3,
+    "inflatedBoxBounds": 15,
+    "assertCadProxyCurrent": 483
+  },
+  "highestCursor": 720,
+  "armed": null,
+  "events": [
+    {
+      "site": "mid-kernel",
+      "stepEntry": 6245,
+      "identityPreserved": "checked by owning cohort"
+    },
+    {
+      "site": "actual-private-NUMERIC_LIMIT",
+      "stepEntry": 6246
+    },
+    {
+      "site": "post-diagnostic",
+      "stepEntry": 6249,
+      "identityPreserved": "checked by owning cohort"
+    },
+    {
+      "site": "public-copy",
+      "stepEntry": 6252,
+      "identityPreserved": "checked by owning cohort"
+    },
+    {
+      "site": "mid-kernel",
+      "stepEntry": 6265,
+      "identityPreserved": "checked by owning cohort"
+    },
+    {
+      "site": "actual-private-NUMERIC_LIMIT",
+      "stepEntry": 6266
+    },
+    {
+      "site": "post-diagnostic",
+      "stepEntry": 6269,
+      "identityPreserved": "checked by owning cohort"
+    },
+    {
+      "site": "public-copy",
+      "stepEntry": 6272,
+      "identityPreserved": "checked by owning cohort"
+    },
+    {
+      "site": "mid-kernel",
+      "stepEntry": 6285,
+      "identityPreserved": "checked by owning cohort"
+    },
+    {
+      "site": "actual-private-NUMERIC_LIMIT",
+      "stepEntry": 6286
+    },
+    {
+      "site": "post-diagnostic",
+      "stepEntry": 6289,
+      "identityPreserved": "checked by owning cohort"
+    },
+    {
+      "site": "public-copy",
+      "stepEntry": 6292,
+      "identityPreserved": "checked by owning cohort"
+    },
+    {
+      "site": "mid-kernel",
+      "stepEntry": 6305,
+      "identityPreserved": "checked by owning cohort"
+    },
+    {
+      "site": "actual-private-NUMERIC_LIMIT",
+      "stepEntry": 6306
+    },
+    {
+      "site": "post-diagnostic",
+      "stepEntry": 6309,
+      "identityPreserved": "checked by owning cohort"
+    },
+    {
+      "site": "public-copy",
+      "stepEntry": 6312,
+      "identityPreserved": "checked by owning cohort"
+    },
+    {
+      "site": "log-prepare",
+      "stepEntry": 6327,
+      "identityPreserved": "checked by owning cohort"
+    }
+  ]
+}

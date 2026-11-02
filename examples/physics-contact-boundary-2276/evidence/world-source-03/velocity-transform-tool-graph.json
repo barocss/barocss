@@ -1,0 +1,18 @@
+{
+  "emitted": false,
+  "bundleSha256": "0315a0c474992201637f1d4083bb85da0f7677ddb5bc80c1e0d02e5004bc7a64",
+  "inputs": [
+    {
+      "path": "packages/barocss-physics/src/types.ts",
+      "sha256": "e8befc80c94e1b109f5024581f056639acff2c19ed445f2875e20eaf2d3bf240"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/candidate.ts",
+      "sha256": "6380bc290909527fbd196ccafe45378f5fb8d93d3ace91ee6c06015b077c73a0"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/world-adapter.ts",
+      "sha256": "43904b7f32f2ea3c5587c33c77048cd2002f1fa47797daf81e5fc42177e9bbdd"
+    }
+  ]
+}

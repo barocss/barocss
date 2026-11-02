@@ -1,0 +1,12 @@
+{
+  "status": "PASS_OWN_SYNTAX_AND_DOC_OVERLAY_AST_ONLY",
+  "gate": "existingheavygate acquired,releasedbyEXITtrap",
+  "scriptSyntax": 3,
+  "docOverlaySyntax": 2,
+  "bannerSyntax": 1,
+  "applicationImports": 0,
+  "WorldCalls": 0,
+  "actualStaticValidation": "NOT_RUN",
+  "actualDocTests": "NOT_RUN",
+  "preservedFirstAuthorFailure": "VALIDATION-AUTHOR-CHECK-01.json"
+}

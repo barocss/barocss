@@ -1,0 +1,44 @@
+{
+  "scene": "ALIGNED",
+  "selectedSteps": 16,
+  "originalCaseSteps": 1200,
+  "attemptedSteps": 16,
+  "worldAcceptedSteps": 16,
+  "independentlyAcceptedSteps": 16,
+  "normalSolves": 16,
+  "maxQr": 1,
+  "maxOuter": 1,
+  "maxima": {
+    "closingNormalSpeedMps": 1.054392670760619e-15,
+    "negativeNormalImpulseNs": 0,
+    "complementarityJ": 3.016881029213819e-16,
+    "loadedTangentSpeedMps": 3.4947787693191153e-16,
+    "reportedVelocityErrorMps": 2.2898349882893854e-16,
+    "reportedAngularVelocityErrorRadps": 1.11474392752477e-15,
+    "reportedResidualError": 1.0547118733938985e-15,
+    "impulseWorkErrorJ": 1.0408340855860843e-17
+  },
+  "qualityMaxima": {
+    "maxPairPenetrationM": 2.372071271778988e-18,
+    "maxFloorPenetrationM": 5.650540078265928e-17,
+    "maxHalfspaceIntrusionM": 5.650540078265928e-17,
+    "maxQuaternionNormError": 4.368947003158145e-36,
+    "maxHorizontalDriftM": 1.032134797934568e-18,
+    "maxLinearSpeedMps": 5.564532064794592e-17,
+    "maxAngularSpeedRadps": 1.7806090830636305e-16,
+    "nearParallelAxisCount": 108,
+    "overlapWithoutContactCount": 0,
+    "maxTiltRad": 0
+  },
+  "failure": null,
+  "executionFailure": null,
+  "privateTrajectoryGO": false,
+  "selectedPrefixPassed": true,
+  "evidence": {
+    "records": 17,
+    "compressedBytes": 1653668,
+    "decodedRecordSha256": "d67d53de79ee3cc0c924935a8665d38bd5d7831f1b0f60047b07b35d4bd72e62",
+    "rawBytes": 120744,
+    "rawSha256": "9f2df1019e7787309412f146806a4b46945fd3f3a1d9536b7a0d4ca1b0777ea2"
+  }
+}

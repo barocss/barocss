@@ -1,0 +1,91 @@
+{
+  "status": "PASS_CURRENT_DOCS_STRUCTURE_BUILD_LINKS",
+  "physicalReexecution": false,
+  "deployment": "NOT_RUN",
+  "checks": [
+    {
+      "name": "g1cd-docs-structure-01",
+      "result": {
+        "path": "examples/physics-world-p5-2276/evidence/g1cd-docs-structure-01/result.json",
+        "bytes": 2972,
+        "sha256": "2a60d5ba0d7e97d0a028e8f5a20be3511d20b6be30b876511d6db953d1054e7a"
+      },
+      "stdout": {
+        "path": "examples/physics-world-p5-2276/evidence/g1cd-docs-structure-01/stdout.raw",
+        "bytes": 68,
+        "sha256": "f000a55e73987aede01b7568e640b07d755cdcce5c236aa48e52c5e054fda658"
+      },
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "scripts/check-docs.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/apps/library-docs",
+      "elapsedMs": 29307.9315
+    },
+    {
+      "name": "g1cd-docs-build-01",
+      "result": {
+        "path": "examples/physics-world-p5-2276/evidence/g1cd-docs-build-01/result.json",
+        "bytes": 2996,
+        "sha256": "5e47a543e93a5e20b881f5a914530333cb0e496a230e2664626d78d50440b5be"
+      },
+      "stdout": {
+        "path": "examples/physics-world-p5-2276/evidence/g1cd-docs-build-01/stdout.raw",
+        "bytes": 47,
+        "sha256": "438b4846e59f77ff254e4379ec8c5bc95a561be0462d7d5bd951759fed5869c3"
+      },
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "node_modules/vitepress/bin/vitepress.js",
+        "build",
+        "docs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/apps/library-docs",
+      "elapsedMs": 13470.247417
+    },
+    {
+      "name": "g1cd-docs-links-01",
+      "result": {
+        "path": "examples/physics-world-p5-2276/evidence/g1cd-docs-links-01/result.json",
+        "bytes": 2956,
+        "sha256": "b1e6206ac4b30294e62bd1fc8b878a3d846478f4064549960663bb9b5d51106e"
+      },
+      "stdout": {
+        "path": "examples/physics-world-p5-2276/evidence/g1cd-docs-links-01/stdout.raw",
+        "bytes": 146,
+        "sha256": "97f9747d015cceb63b7219b08071a13f0cf1120a152008e1c57d245be47091c7"
+      },
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-motion-docs-2276/check-site.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "elapsedMs": 202.121916
+    }
+  ],
+  "siteCounts": {
+    "pages": 5,
+    "links": 809,
+    "anchors": 216,
+    "snippetRegions": 26,
+    "byteIdenticalHistoricalCopies": 14,
+    "proposedRoadmapCopy": true,
+    "networkChecks": "NOT_RUN"
+  },
+  "roadmap": {
+    "path": "packages/barocss-physics/ROADMAP.md",
+    "bytes": 59172,
+    "sha256": "0eda5ad54aa103a5f2f1fa848c95a0148b83dad796be0ac72190191b38614339"
+  },
+  "siteCopy": {
+    "path": "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt",
+    "bytes": 59172,
+    "sha256": "0eda5ad54aa103a5f2f1fa848c95a0148b83dad796be0ac72190191b38614339"
+  },
+  "page": {
+    "path": "apps/library-docs/docs/reference/physics-verification.md",
+    "bytes": 27704,
+    "sha256": "329cb4564e6507b18db5ccf1def3bc76116a0a55755d46d49d1d61b646f75cfa"
+  },
+  "examples": "No API/example source changed; existing sample receipts retained. Scoped check verifies26snippet regions; no new sample-runtime claim."
+}

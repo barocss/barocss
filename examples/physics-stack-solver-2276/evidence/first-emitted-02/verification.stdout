@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: independent 9-body/32-point witness matches zero states, exact loads and impulse work
+ok 1 - independent 9-body/32-point witness matches zero states, exact loads and impulse work
+  ---
+  duration_ms: 3.136
+  type: 'test'
+  ...
+# Subtest: a distinct valid checkerboard impulse distribution passes without per-point lambda equality
+ok 2 - a distinct valid checkerboard impulse distribution passes without per-point lambda equality
+  ---
+  duration_ms: 0.402958
+  type: 'test'
+  ...
+# Subtest: bad impulse values cannot hide behind reported zero body state and residuals
+ok 3 - bad impulse values cannot hide behind reported zero body state and residuals
+  ---
+  duration_ms: 0.62175
+  type: 'test'
+  ...
+# Subtest: forged linear and angular body outputs are independently detected
+ok 4 - forged linear and angular body outputs are independently detected
+  ---
+  duration_ms: 0.702958
+  type: 'test'
+  ...
+# Subtest: negative normal impulse and incorrect row report are refused separately
+ok 5 - negative normal impulse and incorrect row report are refused separately
+  ---
+  duration_ms: 0.607333
+  type: 'test'
+  ...
+# Subtest: normal complementarity alone cannot qualify zero tangent impulse under loaded slip
+ok 6 - normal complementarity alone cannot qualify zero tangent impulse under loaded slip
+  ---
+  duration_ms: 0.439709
+  type: 'test'
+  ...
+# Subtest: independent torque checks detect wrong geometry or a reversed normal
+ok 7 - independent torque checks detect wrong geometry or a reversed normal
+  ---
+  duration_ms: 0.56025
+  type: 'test'
+  ...
+# Subtest: consistent body/row permutation and opaque ID renaming preserve verification
+ok 8 - consistent body/row permutation and opaque ID renaming preserve verification
+  ---
+  duration_ms: 0.827958
+  type: 'test'
+  ...
+# Subtest: changed fixed model data, failed solve and bad schema cannot yield a pass
+ok 9 - changed fixed model data, failed solve and bad schema cannot yield a pass
+  ---
+  duration_ms: 0.656125
+  type: 'test'
+  ...
+# Subtest: the parent oracle must cover exactly the same bodies with finite independent loads
+ok 10 - the parent oracle must cover exactly the same bodies with finite independent loads
+  ---
+  duration_ms: 0.507375
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 46.653584

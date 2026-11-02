@@ -1,0 +1,12 @@
+{
+  "classification": "HARNESS_COMMAND_ARGUMENT_FAILURE",
+  "requested": "documentation build",
+  "actualCommandOmitted": [
+    "build",
+    "docs"
+  ],
+  "actualMode": "VitePress default dev; not a build",
+  "stoppedOwnedChildPid": 58737,
+  "preservedOriginalReceipt": true,
+  "physicsCalls": 0
+}

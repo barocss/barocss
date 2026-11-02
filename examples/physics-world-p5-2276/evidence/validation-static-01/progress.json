@@ -1,0 +1,20 @@
+{
+  "phase": "static",
+  "completed": [
+    "strict-source",
+    "source:examples/physics-capsule-query-scene/controls.mjs",
+    "source:examples/physics-cloth-viewer/host-controller.mjs",
+    "source:examples/physics-cloth-viewer/numeric-entry.mjs",
+    "source:examples/physics-error-entry/entry.mjs"
+  ],
+  "counts": {
+    "WorldCalls": 0,
+    "factoryAttempts": 0,
+    "WorldReturns": 0,
+    "stepEntries": 0,
+    "acceptedSteps": 0,
+    "recorderAttachAttempts": 0,
+    "failedRecorderAttaches": 0,
+    "WorldDisposals": 0
+  }
+}

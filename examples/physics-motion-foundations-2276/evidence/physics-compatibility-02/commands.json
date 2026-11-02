@@ -1,0 +1,68 @@
+{
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "mode": "compatibility-rest",
+  "platform": "darwin",
+  "arch": "arm64",
+  "base": "12411c89b9a0f9de7e5066a5ea8f3d292c9476a8",
+  "records": [
+    {
+      "name": "emit-public-main",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/bin/tsc",
+        "packages/barocss-physics/src/index.ts",
+        "packages/barocss-physics/src/replay.ts",
+        "--target",
+        "ES2022",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--declaration",
+        "--skipLibCheck",
+        "--outDir",
+        "packages/barocss-physics/dist"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T11:52:02.826Z",
+      "finished": "2026-11-01T11:52:03.912Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "persistent-box-probe",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-scene/persistent-box-probe.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T11:52:03.924Z",
+      "finished": "2026-11-01T11:52:09.384Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "14c705d826af8465b6aec5aa557e0c5491ea6564a0aaf95dbcd9078cfdc0eef9",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "friction-stack-probe",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-scene/friction-stack-probe.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T11:52:09.392Z",
+      "finished": "2026-11-01T11:52:09.475Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "14870000cc40b73c2938a5506ac7d490e1270b29a415765d4b368ac35aa7536e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

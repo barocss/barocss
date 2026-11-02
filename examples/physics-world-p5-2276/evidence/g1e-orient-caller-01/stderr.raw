@@ -1,0 +1,26 @@
+file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/index.js:152
+  throw new PhysicsError2(code, message);
+        ^
+
+PhysicsError: dynamic noncubic box is outside the supported isolated-rotor inputs
+    at error (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/index.js:152:9)
+    at admitRotationSupport (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/index.js:3263:5)
+    at createPhysicsWorld (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/index.js:3625:25)
+    at world (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-scene/oriented-colliders-probe.mjs:11:3)
+    at file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-scene/oriented-colliders-probe.mjs:14:16
+    at ModuleJob.run (node:internal/modules/esm/module_job:345:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:651:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  code: 'INVALID_CONFIG',
+  details: {
+    code: 'INVALID_CONFIG',
+    reason: 'dynamic noncubic box is outside the supported isolated-rotor inputs',
+    operation: 'create',
+    phase: 'admission',
+    domain: 'world',
+    entityIds: [],
+    accepted: null
+  }
+}
+
+Node.js v22.19.0

@@ -1,0 +1,16 @@
+{
+  "status": "FAIL_SOURCE_ONLY_OVERLAY_ANCHOR",
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "examples/physics-world-p5-2276/kernel-source-check.mjs"
+  ],
+  "gate": "existing heavy gate acquired, go after0s; released by EXIT trap",
+  "exit": 1,
+  "firstError": "unique overlay anchor packages/barocss-physics/dist/cloth/solver.js:0 !==1",
+  "reason": "TypeScript emitted loop body is separated by a newline; source-only literal-space overlay anchor was too narrow",
+  "instrumentSourceSha256": "65a1f5d856ee9e7cfc786f511d89d693b46c3c68346d1e7f381cced56802606d",
+  "providerImports": 0,
+  "modelConstructions": 0,
+  "candidateCalls": 0,
+  "numericalCampaign": "NOT_RUN"
+}

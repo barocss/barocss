@@ -1,0 +1,3 @@
+examples/physics-stack-solver-2276/candidate.ts(91,38): error TS7006: Parameter 'row' implicitly has an 'any' type.
+examples/physics-stack-solver-2276/verification.ts(203,41): error TS7006: Parameter 'row' implicitly has an 'any' type.
+examples/physics-stack-solver-2276/verification.ts(203,46): error TS7006: Parameter 'i' implicitly has an 'any' type.

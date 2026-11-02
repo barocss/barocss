@@ -1,0 +1,26 @@
+{
+  "caseId": "06-integer-quarter-turn",
+  "graph": "source",
+  "validationOrdinal": 6,
+  "executionFreezeSha256": "511b332d26a4a8875ac785d71076a0111236f71db8d45759474ca05861b89eff",
+  "input": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/06-integer-quarter-turn.input-raw.json",
+    "bytes": 2667,
+    "sha256": "4d7b8453c332cf41172fd301b580d2410c1b7484c803b154c02da7d493f911eb"
+  },
+  "output": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/source-06-integer-quarter-turn.output-raw.json",
+    "bytes": 4543,
+    "sha256": "1694cc8ea3aa69694b4a171c0263f71d5b9ea90b40f8866380dfa248eb453da7"
+  },
+  "oracleReply": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01-oracle/06-integer-quarter-turn.reply.json",
+    "bytes": 42253,
+    "sha256": "834a713d0aa1ee1f65123cbbdb7b5f1300f53ade781e5a650d09c7175f247d65"
+  },
+  "oracleSummary": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01-oracle/summary.json",
+    "bytes": 5847,
+    "sha256": "a6431f5470518163d42da82ef506a5181ba357855a61ecd700b791f42df3aac0"
+  }
+}

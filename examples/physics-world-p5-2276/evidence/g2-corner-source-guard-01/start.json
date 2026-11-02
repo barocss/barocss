@@ -1,0 +1,43 @@
+{
+  "kind": "P5B_OWNED_COMMAND_GUARD",
+  "receiptId": "g2-corner-source-guard-01",
+  "censusId": "g2-corner-source-guard-01",
+  "status": "SPAWNING",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "examples/physics-contact-coverage-g2-2276/corner-capture.mjs",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-coverage-g2-2276/CORNER-EXECUTION-FREEZE-01.json",
+    "4f946292f482fdcb6dc3c44b5b83925b812c966ec0a27d028fc4b392a5946454"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "inputs": {
+    "command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": "2026-11-02T04:53:05.448Z",
+  "spawnAt": null,
+  "pid": null,
+  "processGroupId": null,
+  "exit": null,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": null,
+  "processClosed": false,
+  "groupSignals": [],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/g2-corner-source-guard-01/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/g2-corner-source-guard-01/progress.json",
+  "errors": []
+}

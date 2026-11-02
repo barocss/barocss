@@ -1,5 +1,5 @@
 import { PhysicsError } from '../capsule-query-error.js';
-import type { Vec3, Quat } from '../types.js';
+import type { Vec3, Quat } from '../internal-types.js';
 import { BOX_CAPACITY, PROFILE } from './profile.js';
 import type { CapsuleQueryBoxV1, CapsuleQuerySceneV1, CapsuleSweepInputV1 } from './types.js';
 
@@ -7,7 +7,7 @@ type AdmissionCode = 'INVALID_CONFIG' | 'INVALID_QUERY';
 function refuse(code: AdmissionCode, message: string): never { throw new PhysicsError(code, message); }
 function metadata<T>(code: AdmissionCode, action: () => T): T {
   try { return action(); }
-  catch (error) {
+  catch {
     throw new PhysicsError(code, 'Input reflection failed');
   }
 }

@@ -1,0 +1,31 @@
+TAP version 13
+# Subtest: public CAD proxy: off-origin 100 mm span becomes 0.1 m with explicit approximation labels
+ok 1 - public CAD proxy: off-origin 100 mm span becomes 0.1 m with explicit approximation labels
+  ---
+  duration_ms: 4.277792
+  type: 'test'
+  ...
+# {"metric":"cad-proxy-unit-admission","sourceSpanMm":100,"admittedSpanM":0.1,"maxAdmissionErrorM":0,"maxIdentityDisplayErrorMm":0,"sphereRadiusErrorM":0,"approximateControlBounds":true}
+# Subtest: public CAD proxy: +pi/2 rad Z pose returns the literal center-pivot display transform
+ok 2 - public CAD proxy: +pi/2 rad Z pose returns the literal center-pivot display transform
+  ---
+  duration_ms: 0.924834
+  type: 'test'
+  ...
+# {"metric":"cad-proxy-pose-round-trip","angleRad":1.5707963267948966,"translationErrorMm":0,"maxDisplayErrorMm":0,"maxInverseErrorMm":0,"sourceCenterMm":[70,-10,70],"displayTranslationMm":[160,-80,0]}
+# Subtest: public CAD proxy: exact source/revision mismatch refuses without changing retained input
+ok 3 - public CAD proxy: exact source/revision mismatch refuses without changing retained input
+  ---
+  duration_ms: 1.615792
+  type: 'test'
+  ...
+# {"metric":"cad-proxy-stale-retention","sourceOnlyRefused":true,"revisionOnlyRefused":true,"inputsRetained":true,"originalBindingReusable":true}
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 57.97475

@@ -1,0 +1,55 @@
+{
+  "work_id": "physics-world-p5b-2276",
+  "artifact_type": "one-time-original-cloth-oracle-recipe",
+  "status": "AUTHOR_READY_NOT_RUN_PENDING_PARENT_FREEZE",
+  "owner_role": "independent-research-oracle-harness",
+  "source_request": "Original research trial240steps once, raw241frames reused source/native",
+  "last_updated": "2026-11-02",
+  "factory": "createClothTrial(CLOTH_FIXTURE,'xpbd',2,8)",
+  "expected": {
+    "researchFactoryAttempts": 1,
+    "researchConstructors": 1,
+    "researchFactoryReturns": 1,
+    "researchCreateSheetCalls": 1,
+    "researchStepCalls": 240,
+    "researchStepReturns": 240,
+    "privateAdvances": 1920,
+    "originalResearchProjectDistanceCalls": 6013440,
+    "originalResearchProjectSphereCalls": 3840,
+    "frames": 241,
+    "rawBytes": 3343152,
+    "PhysicsWorldFactoryCalls": 0,
+    "currentKernelCalls": 0
+  },
+  "fixedSourceClosure": [
+    "examples/physics-cloth-spike/world.mjs",
+    "examples/physics-cloth-spike/topology.mjs",
+    "examples/physics-cloth-spike/constraints.mjs",
+    "examples/physics-cloth-spike/fixture.mjs"
+  ],
+  "numericSourceChanges": "none; isolated copied provider adds entry counters only",
+  "binary": {
+    "frameBytes": 13872,
+    "frameOrder": "0..240 consecutive",
+    "positions": 867,
+    "velocities": 867,
+    "encoding": "finite binary64 LE including signed zero",
+    "triangleBytes": 3072,
+    "dataCap": 4194304
+  },
+  "guard": {
+    "childMs": 180000,
+    "termGraceMs": 1000,
+    "killCloseWaitMs": 2000,
+    "combinedLogs": 4194304,
+    "campaignCap": 67108864,
+    "proof": "require close +stdoutEOF+stderrEOF+owned group absence"
+  },
+  "firstFailure": "stop; preserve partial actual call/frame counts; no retry or second trial",
+  "durableCounts": "frame and original step-entry boundaries; inner leaf count is durable lower bound on forced termination",
+  "comparisonAbsoluteTolerance": 1e-12,
+  "consumer": "oracle-reader.mjs fully authenticates stream/241frames/finite values before any current World call",
+  "executionFreezeSchema": "files map repoRelativePath->{bytes,sha256}, externally frozen fileSHA passed CLI; include this recipe and all listed script/provider sources",
+  "CLI": "NODE22 examples/physics-world-p5-2276/oracle-run.mjs --run-id FRESH --freeze ABS_PATH --freeze-sha256 HEX --authorize-oracle",
+  "researchImportsDuringAuthoring": 0
+}

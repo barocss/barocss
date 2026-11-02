@@ -1,0 +1,68 @@
+{
+  "workId": "physics-world-p3-adoption-2276",
+  "stage": "actual-current-public-execution",
+  "buildAuthorized": true,
+  "referenceSources": {
+    "examples/physics-rigid-hinge-velocity-world-reference/reference-reply.mjs": "e096aef831c3721239226498b5340c62135748526cda8dc5fdae2e4719c8ec5d",
+    "examples/physics-rigid-hinge-velocity-world-reference/world-quality.mjs": "276be2aba8bb0bfee674f4d9d1504f3a4ea413c67b3a92e3c778511943cb6b09",
+    "examples/physics-rigid-hinge-velocity-world-reference/proof-storage.mjs": "de814b38cf7124b81a583681b733f4965e29448a059dd77f8579a4ce368209f6",
+    "examples/physics-rigid-hinge-velocity-world-reference/raw-codec.mjs": "e1d2e9ad987b03bac01a4bd96fe87af30867bf568ec9fd9be1945160e2c2d327",
+    "examples/physics-public-disjoint-hinge-reference/variants.mjs": "a73380742d088e6fa6edacde5b43ca889ececd74b9fd66127cd5fdfa7897c0fc",
+    "examples/physics-public-disjoint-hinge-reference/expected-gates.py": "95d97346e681bfad97a95165a105765e64c83fbb5b533d250ac7b24bcb865f9f",
+    "examples/physics-model-input/model.mjs": "8bbeb3712f27eb3d639dcde806fcf27f8bc5360274feefd051335b3887790baf",
+    "examples/physics-rigid-hinge-velocity-world-reference/world_schema.py": "35ab3d77efff2e284db32bce9d92c5395d47abdf91967ed0d0a4afc74f89264e",
+    "examples/physics-rigid-hinge-velocity-world-reference/world_derivation.py": "c7762592fb6d2830d5c737e16781c4cfdae95b15c14213e1dc416f588f922220",
+    "examples/physics-rigid-hinge-velocity-world-reference/world_observation.py": "b952b48312f8c706c347d0f401d6d52ff97e9b4c5355ba19ffefe41a440f4e66",
+    "examples/physics-rigid-hinge-velocity-world-reference/reference.py": "6df84735b80788ca24574645c56fd100c408e9c126642ef51e675ebfc210c03f",
+    "examples/physics-rigid-hinge-motor-reference/continuation-controller.py": "dc2ac4840d748b0c1820663adc2dff8f8230f04dea4ba8bd935ce551d6ee697c",
+    "examples/physics-rigid-hinge-motor-reference/run-native-gates.py": "5f3a56e086dd481e6747bdc165cf5a5308ec49cfb6c035446a196c88fb1e72d3",
+    "examples/physics-rigid-hinge-motor-reference/reference.py": "c4642fa0f06ca6a11a05fee3de80bb6ad19b5a29d27da423e69715bb706489fc",
+    "examples/physics-rigid-hinge-velocity-reference/reference.py": "2e062eadbaa1283f2626e51cf240f07f6c4e6714f5e409fcc443b58a24e518cc",
+    "examples/physics-rigid-coupled-hinge-reference/reference.py": "713d8aef0bfe972b39791f0c44a7441ccf1f648bf29fd5a4048ec9c3f5bc8ac5",
+    "examples/physics-rigid-hinge-limit-diagnostic/reference.py": "6f4fdc14ac1d2a94ab27829ca42c8f370ada6896545a84106ce5f5bdb72d3464",
+    "examples/physics-world-p3-2276/recorder-integration.mjs": "ce6d5d5052e017fb9d5d51229be2cd727ca9cc3a62b29ec63dcbfbe5ed8bdf97",
+    "examples/physics-world-p3-2276/RECORDER-CONTRACT.md": "d19db8c8a627ef7ae8552b059d24336294ca0501328e21efe0dc54ef9d0b1d5b",
+    "examples/physics-world-p3-2276/bank-auth.mjs": "aa5524892cf1dfd9481d55c8e29410eae06ff35554733c1f94b4e132359e4502",
+    "examples/physics-world-p3-2276/fixture.mjs": "fdc716579550fb4240539dba915c32620f25a6a27d06e7e84d37ffe0f4dedd04",
+    "examples/physics-world-p3-2276/compare.mjs": "7f7a86d77c451acb2fb39e39273128c96dddc6a41abfc2b7f9f47fbb32801f25",
+    "examples/physics-world-p3-2276/CONTRACT.md": "dfc39201372ad63acb1f6230d0d0804eed2d6652a21b01f0f9c4ce1835637731",
+    "examples/physics-world-p3-2276/CONTROLS-ADDENDUM.md": "3f165ccc86f835c780926f38459cc5947028f90cb330d69f7e8829ef337f8fbf",
+    "examples/physics-world-p3-2276/adoption.mjs": "fc186c0f8feee704c5cc56d254cfe007ec8c5fee128faade19c691f4abea6366",
+    "examples/physics-world-p3-2276/adoption.test.mjs": "a93a77de3217899d52f655074e97cc45d3d828814461d10632fa8457c906773b",
+    "examples/physics-world-p3-2276/adoption-positive.mts": "fd618045e7765c1dc37075b128b503394efeeba8537fe7b13723d7e05bf00274",
+    "examples/physics-world-p3-2276/ADOPTION-CONTRACT.md": "69c954b1b2f3818b26be02b1017263eef0bb7e2c2b1c1723c0bfc2a6e7d8c1ea",
+    "examples/physics-world-p3-2276/ADMISSION-HARDENING.md": "53a37c1515cec32b9657113a6e48bc37546e1897313279257374fefc23860069",
+    "examples/physics-world-p3-2276/admission-hardening.patch": "843c48a17efc80760196500bb25c08d2f3b41782d8e68ac46119057351103052",
+    "examples/physics-world-p3-2276/source-transfer.json": "e0a75463d1663b08625f2f9a806c01dbf238faa423654fde9b5d02c4001e7786"
+  },
+  "packageSha256": "2d539cb62ba2f544b62207c15566378306779d18bde55ff3a96818229ca12905",
+  "tsconfigSha256": "8b5c1133167b1ce9b885732d1c13be9a4d75834741d72be9c96894942aeb4747",
+  "sourceTransferSha256": "e0a75463d1663b08625f2f9a806c01dbf238faa423654fde9b5d02c4001e7786",
+  "candidateBuildSha256": "94dbe0f2e67749f1a38b6a76b647e7dd1afddc03fc748d8625a7c5bcf432bf05",
+  "hardeningAdmissionSha256": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d",
+  "hardeningPatchSha256": "843c48a17efc80760196500bb25c08d2f3b41782d8e68ac46119057351103052",
+  "prerequisites": {
+    "source-trial-01": {
+      "summarySha256": "87a61b7ff9518049b35d257afb7ee13dc2e51b3cf5fc00a881fc9a6214c8baf1",
+      "framesSha256": "3af2294836f55bf8a1a90da88d720b4f3006388afccdf40f30b8239322bb5e60"
+    },
+    "repeat-trial-01": {
+      "summarySha256": "b5531b7b1c9613ccd341e6b83627b93a461f180d73cdf7ad83aca32a31964ce6",
+      "framesSha256": "d63a2ab592eaee44cef291339e42dc18b19e7337f57e1cf18517e2e9dbaf723d"
+    },
+    "emitted-trial-01": {
+      "summarySha256": "d9905e4b6d7f24e34c607774b45ceb9285a54ae2602b63b91fc2b4ded0b3dc2c",
+      "framesSha256": "f6f45194f800bffa74cd0226dfe896b9291a2f3edfe4e2a8cef202cb31cb1fad"
+    },
+    "controls-01": {
+      "summarySha256": "098c6d4620982c004a2f090245c237145523648ac530f37a83509b9e9d581b37"
+    },
+    "recorder-01": {
+      "summarySha256": "781848db3fc10f34fdf2d3b0575c7677b9195c796eedac324d4201c5c0e561de"
+    }
+  },
+  "controlsRunId": "controls-01",
+  "recorderRunId": "recorder-01",
+  "executionAuthorized": true,
+  "adoptionProvidersSha256": "d694e4c08583dbe3dc186093221da8fb1b822f3d127c05f1c315717ac1d13a65"
+}

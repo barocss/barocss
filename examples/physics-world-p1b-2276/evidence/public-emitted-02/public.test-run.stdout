@@ -1,0 +1,59 @@
+TAP version 13
+# Subtest: one target creation/step/query API; removed forms fail without fallback
+ok 1 - one target creation/step/query API; removed forms fail without fallback
+  ---
+  duration_ms: 4.6245
+  type: 'test'
+  ...
+# Subtest: model/state copies, identity and typed refused-step continuation
+ok 2 - model/state copies, identity and typed refused-step continuation
+  ---
+  duration_ms: 5.179666
+  type: 'test'
+  ...
+# Subtest: strict units, dense data, entity ownership and unchanged bounded admission
+ok 3 - strict units, dense data, entity ownership and unchanged bounded admission
+  ---
+  duration_ms: 1.031584
+  type: 'test'
+  ...
+# Subtest: ballistic analytical convergence and force/impulse units retain original gates
+ok 4 - ballistic analytical convergence and force/impulse units retain original gates
+  ---
+  duration_ms: 6.780792
+  type: 'test'
+  ...
+# {"metric":"p1b-ballistic","errorsM":[0.08174999999999999,0.04087500000000688,0.020437499999998554],"refinementRatios":[1.9999999999996632,2.000000000000478]}
+# Subtest: canonical typed encoding matches frozen bytes and independent platform SHA-256
+ok 5 - canonical typed encoding matches frozen bytes and independent platform SHA-256
+  ---
+  duration_ms: 2.608792
+  type: 'test'
+  ...
+# Subtest: replay uses the same root model/options and bit-preserving wire without migration
+ok 6 - replay uses the same root model/options and bit-preserving wire without migration
+  ---
+  duration_ms: 21.751833
+  type: 'test'
+  ...
+# Subtest: CAD data composes directly into model and independently preserves off-origin pose
+ok 7 - CAD data composes directly into model and independently preserves off-origin pose
+  ---
+  duration_ms: 3.008041
+  type: 'test'
+  ...
+# Subtest: malformed later source binding produces a typed refusal, never an internal null dereference
+ok 8 - malformed later source binding produces a typed refusal, never an internal null dereference
+  ---
+  duration_ms: 0.212667
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 100.063916

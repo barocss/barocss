@@ -13,16 +13,20 @@ assert.equal(dynamic.bodyId, 'part:native_loader_demo.rational_panel');
 assert.equal(fixture.bodyId, 'fixture:native_loader_demo.flat_panel');
 assert.deepEqual(dynamic.sourceCenterMM, [50, 0, 20]);
 assert.deepEqual(fixture.sourceCenterMM, [50, 70, 20]);
-assert.deepEqual(dynamic.body.positionM, [0.05, 0.28, 0.02]);
-assert.deepEqual(fixture.body.positionM, [0.05, 0.07, 0.02]);
-assert.deepEqual(fixture.body.shape.halfExtentsM, [0.05, 0.01, 0.02]);
-assert.ok(Math.abs(dynamic.body.shape.radiusM - Math.hypot(0.05, 0.02)) < 1e-12);
+assert.deepEqual(dynamic.body.initial.positionM, [0.05, 0.28, 0.02]);
+assert.deepEqual(fixture.body.initial.positionM, [0.05, 0.07, 0.02]);
+assert.deepEqual(fixture.collider.geometry.halfExtentsM, [0.05, 0.01, 0.02]);
+assert.ok(Math.abs(dynamic.collider.geometry.radiusM - Math.hypot(0.05, 0.02)) < 1e-12);
 assert.match(dynamic.lossLabel, /not the collision shape/);
 assert.ok(Object.isFrozen(dynamic) && Object.isFrozen(dynamic.body));
 
 const dt = 1 / 120;
-const world = createPhysicsWorld({ fixedStepSeconds: dt, gravityMps2: [0, -9.81, 0],
-  bodies: [dynamic.body, fixture.body] });
+const world = createPhysicsWorld({ format: 'barocss-physics-model', version: 1,
+  revision: 'cadProbe1', frame: { id: 'cad-world', basis: 'right-handed-xyz', rotation: 'local-to-world-xyzw' },
+  units: { length: 'm', mass: 'kg', time: 's', angle: 'rad' }, gravityMps2: [0, -9.81, 0],
+  bodies: [dynamic.body, fixture.body], colliders: [dynamic.collider, fixture.collider],
+  sourceBindings: [dynamic.binding, fixture.binding], joints: [], cloths: [], fluids: [] },
+{ profile: 'rigid-discrete-v1', fixedStepSeconds: dt, broadPhase: 'direct' });
 const start = world.getState();
 const moving = start.bodies.find((body) => body.id === dynamic.bodyId);
 const fixed = start.bodies.find((body) => body.id === fixture.bodyId);
@@ -31,8 +35,8 @@ assert.deepEqual(cadProxyPose(dynamic, moving, source, sourceRevision),
 assert.deepEqual(cadProxyPose(fixture, fixed, source, sourceRevision).translation, [0, 0, 0]);
 let contactStep = null, contactState;
 for (let step = 1; step <= 120; step++) {
-  const state = world.step(dt);
-  if (state.contacts.some((contact) => contact.aId === fixture.bodyId && contact.bId === dynamic.bodyId)) {
+  const state = world.step();
+  if (state.contacts.some((contact) => contact.bodyAId === fixture.bodyId && contact.bodyBId === dynamic.bodyId)) {
     contactStep = step;
     contactState = state;
     break;
@@ -63,5 +67,5 @@ assert.equal(JSON.stringify(world.getState()), accepted, 'failed admission chang
 world.dispose();
 
 console.log(JSON.stringify({ result: 'ok', dynamicId: dynamic.bodyId, fixtureId: fixture.bodyId,
-  contactStep, firstPositionM: dynamic.body.positionM, contactPositionM: finalBody.positionM,
+  contactStep, firstPositionM: dynamic.body.initial.positionM, contactPositionM: finalBody.positionM,
   staleSourceRefused: true, acceptedWorldRetained: true }));

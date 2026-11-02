@@ -1,0 +1,19 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: missing built anchor: /how/cad-model#2-robots from /guide/robot-motion
+    at checkLink (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-docs-2276/check-site.mjs:33:12)
+    at file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-docs-2276/check-site.mjs:45:62
+    at ModuleJob.run (node:internal/modules/esm/module_job:345:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:651:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.19.0

@@ -1,0 +1,26 @@
+{
+  "status": "PARENT_DRIVER_STATIC_REVIEW_PASS_REFERENCE_COMBINED_REVIEW_PENDING",
+  "runtimeAuthorized": false,
+  "source": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/trajectory-campaign.mjs",
+    "bytes": 44582,
+    "sha256": "fa1098b58515d6b3b8382e647a431d29c7bd4615d618506b8af0871ee69b7453"
+  },
+  "reviewed": [
+    "Exact sevenargumentCLI matchesfrozenTprotocol; futureauthorityT/runtime/phaseT trueandproductionfalse required.",
+    "AllM02transitivestagedPins authenticatedownedbuild preimport/postrun; genuineNativeindexclosedimportschecked;0newbuild/emit/identitydigestcalls.",
+    "Source55immediatephysicalaudits/refinementreply plus localhelper/ownership/countchecksand8disposes beforeNative3Pow/actual39coeffwords.",
+    "16World/36reads/114attempts=94accepted+8commandrefusals+6unknownfaults+6postguards;110audits/112requests. No extrarecovery/read/cache/oraclecall.",
+    "Unknownmarker strictsameobject andactualrootPhysicsError; initial/privatecache reusedasrollbackbaseline;persistentWeakMapserializer tracksMap/content/identity.",
+    "Compact595records/2848words allpreservedpergeneralflow. Nativeframes/tracewordsstreamagainstsourcefromdisk; providerdigestsremainown distinctvalues.",
+    "Pendingreferencebytes/savedreplyhashesequal; malformed/failedwireprefix preserved; complete/inflightunknowncounts separate. Failurefinallydisposes/releases onlyownedWorld.",
+    "T02capture retainsactualalready-returnedstatebeforeguardsandpreservesitfromexistingobject onfailureinsideoriginalreserve;0newAPIcall.",
+    "Allresource/gate/case/iteration/tolerance limitsremain frozen; ownedscratch islogicalDATA allowance, notRSS/heap."
+  ],
+  "notClaimed": [
+    "AnyTnumericalorWorldexecutionPASS",
+    "IndependentreferenceactualresourcePASS",
+    "Fulladmittedrange/downstream/productionadoption"
+  ],
+  "next": "HighreferenceREADY plus combined source/protocol/cost/ownership review; freshparentexecutionfreeze before oneactualTcampaign."
+}

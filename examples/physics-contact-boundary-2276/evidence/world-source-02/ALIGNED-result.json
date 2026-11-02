@@ -1,0 +1,45 @@
+{
+  "scene": "ALIGNED",
+  "attemptedSteps": 308,
+  "worldAcceptedSteps": 308,
+  "independentlyAcceptedSteps": 308,
+  "normalSolves": 308,
+  "maxQr": 1,
+  "maxOuter": 1,
+  "maxima": {
+    "closingNormalSpeedMps": 1.40444532060788e-14,
+    "negativeNormalImpulseNs": 0,
+    "complementarityJ": 4.018469173589285e-15,
+    "loadedTangentSpeedMps": 8.910875787673787e-15,
+    "reportedVelocityErrorMps": 3.5388358909926865e-15,
+    "reportedAngularVelocityErrorRadps": 2.3928889060396576e-14,
+    "reportedResidualError": 1.4070786318854534e-14,
+    "impulseWorkErrorJ": 1.3877787807814457e-17
+  },
+  "qualityMaxima": {
+    "maxPairPenetrationM": 1.0629924776213175e-17,
+    "maxFloorPenetrationM": 6.357019214927823e-17,
+    "maxHalfspaceIntrusionM": 6.357019214927823e-17,
+    "maxQuaternionNormError": 2.9320391330643706e-34,
+    "maxHorizontalDriftM": 2.2420521131046795e-15,
+    "maxLinearSpeedMps": 2.1133933316393334e-15,
+    "maxAngularSpeedRadps": 2.7441997091968336e-16,
+    "nearParallelAxisCount": 108,
+    "overlapWithoutContactCount": 0,
+    "maxTiltRad": 0
+  },
+  "failure": {
+    "kind": "execution-wall-guard",
+    "step": 309,
+    "limitMs": 180000
+  },
+  "executionFailure": null,
+  "privateTrajectoryGO": false,
+  "evidence": {
+    "records": 309,
+    "compressedBytes": 34079222,
+    "decodedRecordSha256": "afd45ead819c3a4cff129a8851d5d75b7cdbd4864d2f5dbdfea87a145032e163",
+    "rawBytes": 2307240,
+    "rawSha256": "2661fbb9f58f4f7fd96f481d680da90172274656c21c8945f0fd6032cc5a8fc2"
+  }
+}

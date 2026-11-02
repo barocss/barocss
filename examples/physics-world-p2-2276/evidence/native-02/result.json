@@ -1,0 +1,23 @@
+{
+  "utc": "2026-11-01T16:47:27.798Z",
+  "result": "PASS",
+  "gates": {
+    "published-map": "PASS",
+    "retired-files": "PASS",
+    "shared-registry-imports": "PASS",
+    "native-types": "PASS",
+    "native-negative-types": "PASS",
+    "native-runtime": "PASS",
+    "cad-release-runtime": "PASS",
+    "readme-types": "PASS",
+    "readme-runtime-0": "PASS",
+    "readme-runtime-1": "PASS",
+    "readme-runtime-2": "PASS",
+    "readme-runtime-3": "PASS"
+  },
+  "firstFailure": null,
+  "installedArtifacts": 919,
+  "publication": false,
+  "network": false,
+  "timeoutMs": 180000
+}

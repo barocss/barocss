@@ -1,0 +1,11 @@
+{
+  "status": "PRESERVED_RAW_EVIDENCE_WHITESPACE_EXCEPTION",
+  "file": {
+    "path": "examples/physics-world-p5-2276/evidence/g2-corner-source-guard-01/stdout.raw",
+    "bytes": 286,
+    "sha256": "21ee22c65940f2e36ea118986ab5c014c548cc174e623665b021bcd858fc958a"
+  },
+  "observedCheck": "git diff --cached --check reported new blank line at EOF before commit2ed02055a. Shell continued to commit; this check was not PASS.",
+  "reason": "The exact observed stdout has a double final newline from console.log(json-with-newline). Raw bytes and original guard hash are immutable evidence.",
+  "action": "No trimming, rehashing of modified bytes, lint disable, failure deletion or numerical rerun. Subsequent authored source/doc changes are checked separately."
+}

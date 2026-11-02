@@ -1,0 +1,361 @@
+{
+  "workId": "physics-world-p2-2276",
+  "mode": "foundation-emitted",
+  "runId": "foundation-emitted-01",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "platform": "darwin",
+  "arch": "arm64",
+  "runnerSha256": "3ea7261852810f1772bf53bc03d4e971545de931ae39524ba5c9b982db08ed87",
+  "records": [
+    {
+      "name": "head",
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T16:40:57.121Z",
+      "finished": "2026-11-01T16:40:57.136Z",
+      "elapsedMs": 14,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "adff6da9a9ee88de225946c501cd1c4e5ab0d641f3825537c781a49202e5f0c4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "working-tree",
+      "command": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T16:40:57.137Z",
+      "finished": "2026-11-01T16:40:57.248Z",
+      "elapsedMs": 111,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "305177d095da7dde5a843e4d41465504d473f1e62c1ddc308770c06b29b8e237",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "provider-source-generation",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/generate-provider.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T16:40:57.253Z",
+      "finished": "2026-11-01T16:40:57.286Z",
+      "elapsedMs": 33,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "03db1a7fb79eb313020a617beaa5ae1cc6b5a3b9095efba43edaf6b59afd9c9d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "package-tsc",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/bin/tsc",
+        "-p",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T16:40:57.310Z",
+      "finished": "2026-11-01T16:41:03.996Z",
+      "elapsedMs": 6686,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "package-root-bundle",
+      "command": [
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/esbuild/bin/esbuild",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/index.ts",
+        "--bundle",
+        "--format=esm",
+        "--platform=browser",
+        "--target=es2022",
+        "--external:./recording-owner.js",
+        "--external:./types.js",
+        "--external:./provider-manifest.generated.js",
+        "--metafile=/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/foundation-emitted-01/package-root.metafile.json",
+        "--outfile=/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/index.js"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T16:41:03.997Z",
+      "finished": "2026-11-01T16:41:04.197Z",
+      "elapsedMs": 200,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "b23c97fcb4c4afdafd6bd0863b4c131084ed7f12483d9c2b6801360537affe93"
+    },
+    {
+      "name": "provider-emitted-generation",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/generate-provider.mjs",
+        "--emitted"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T16:41:04.197Z",
+      "finished": "2026-11-01T16:41:04.485Z",
+      "elapsedMs": 288,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "b71059a1aed60f731fe02277b8be4417d36460847700b02cc03ee8e4d556fe49",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "world-bundle",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/run.mjs",
+        "--bundle-child",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/foundation-emitted-01/world.bundle.json"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T16:41:04.554Z",
+      "finished": "2026-11-01T16:41:05.055Z",
+      "elapsedMs": 501,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "world-run",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/foundation-emitted-01/world.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T16:41:05.058Z",
+      "finished": "2026-11-01T16:41:05.666Z",
+      "elapsedMs": 608,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "a9590faa0606112e5a4cd9a4d4c2896f95a93b28cef24597e22bc0cda2887b92",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "contact-bundle",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/run.mjs",
+        "--bundle-child",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/foundation-emitted-01/contact.bundle.json"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T16:41:05.683Z",
+      "finished": "2026-11-01T16:41:05.751Z",
+      "elapsedMs": 68,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "contact-run",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/foundation-emitted-01/contact.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T16:41:05.753Z",
+      "finished": "2026-11-01T16:41:05.914Z",
+      "elapsedMs": 161,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "330deb6a9e260b9ae9d5ff6a55b2fd918521764efd88e57df502378a694ce886",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "pendulum-bundle",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/run.mjs",
+        "--bundle-child",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/foundation-emitted-01/pendulum.bundle.json"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T16:41:05.931Z",
+      "finished": "2026-11-01T16:41:05.988Z",
+      "elapsedMs": 57,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "pendulum-run",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/foundation-emitted-01/pendulum.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T16:41:05.991Z",
+      "finished": "2026-11-01T16:41:06.109Z",
+      "elapsedMs": 118,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "b827503d30c024a9c00d85404dd20f4b30c7e89ba15a649db18cbec021d3332b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "baseline-bundle",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/run.mjs",
+        "--bundle-child",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/foundation-emitted-01/baseline.bundle.json"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T16:41:06.127Z",
+      "finished": "2026-11-01T16:41:06.184Z",
+      "elapsedMs": 57,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "baseline-run",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/foundation-emitted-01/baseline.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T16:41:06.185Z",
+      "finished": "2026-11-01T16:41:06.258Z",
+      "elapsedMs": 73,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "7c7f64b33c2f2dfad52be5779afc678e66b10e15058a51a00748fb8e5103fad5",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "units-bundle",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/run.mjs",
+        "--bundle-child",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/foundation-emitted-01/units.bundle.json"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T16:41:06.274Z",
+      "finished": "2026-11-01T16:41:06.450Z",
+      "elapsedMs": 176,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "units-run",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/foundation-emitted-01/units.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T16:41:06.573Z",
+      "finished": "2026-11-01T16:41:06.657Z",
+      "elapsedMs": 84,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "f0cd68df7a9dfada3da77f0f659518578848792be01446de466c22913f0e3ff0",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "graphs": [
+    {
+      "name": "world",
+      "graph": "world.graph.json",
+      "bundleSha256": "09f16b0b14c839902056795231033155b03ac99a616027fbe3ee16c5e4f4b066",
+      "cadBoundary": "no CAD TypeScript source",
+      "physicsInputs": 4
+    },
+    {
+      "name": "contact",
+      "graph": "contact.graph.json",
+      "bundleSha256": "feee0c72be729f3d7f772a31d520b1ce31787b3eb412ea271e07c9cf15ff4fe3",
+      "cadBoundary": "no CAD TypeScript source",
+      "physicsInputs": 4
+    },
+    {
+      "name": "pendulum",
+      "graph": "pendulum.graph.json",
+      "bundleSha256": "88e6210d3098c302c031b0eab1015a8bc54dc9425fbdebeb04ffe895c9869b8e",
+      "cadBoundary": "no CAD TypeScript source",
+      "physicsInputs": 4
+    },
+    {
+      "name": "baseline",
+      "graph": "baseline.graph.json",
+      "bundleSha256": "951147379c739a818e438042fb8f47738f1fd7f970287f067185d947c315a7ce",
+      "cadBoundary": "no CAD TypeScript source",
+      "physicsInputs": 4
+    },
+    {
+      "name": "units",
+      "graph": "units.graph.json",
+      "bundleSha256": "68a1fe022719fd46897f422824616e8c9c7ec6f6674d984d8768ef7a36d318ab",
+      "cadBoundary": "no CAD TypeScript source",
+      "physicsInputs": 11
+    }
+  ],
+  "status": "PASS",
+  "firstFailure": null,
+  "proofBoundary": "Selected actual source/emitted consumer graphs only; no stable-stack or two-hinge qualification, install, remote mutation or release.",
+  "cadence": "first failure stops the run; each child timeout180s and output16MiB",
+  "head": "0c8b3be71f10bc9e39f8c8097eeaf0cfba8175ae",
+  "dirty": " M apps/library-docs/docs/packages/physics/index.md\n M apps/library-docs/docs/packages/physics/profiles-and-lifecycle.md\n M apps/library-docs/docs/public/physics-evidence/api-roadmap.txt\n M apps/library-docs/samples/physics-docs.test.mjs\n M examples/physics-scene/README.md\n M examples/physics-scene/dynamic-fixed-pair-probe.mjs\n M examples/physics-scene/persistent-box-probe.mjs\n M examples/physics-scene/release-consumer.mjs\n M examples/physics-scene/replay-probe.mjs\n M examples/physics-scene/source-import-probe.mjs\n M packages/barocss-physics/README.md\n M packages/barocss-physics/ROADMAP.md\n M packages/barocss-physics/package.json\n M packages/barocss-physics/src/generate-provider.mjs\n M packages/barocss-physics/src/provider-manifest.generated.ts\n M packages/barocss-physics/src/replay-json.ts\n D packages/barocss-physics/src/replay-scene.ts\n D packages/barocss-physics/src/replay-session.ts\n D packages/barocss-physics/src/replay-types.ts\n M packages/barocss-physics/src/replay.ts\n M packages/barocss-physics/src/world.ts\n?? examples/physics-world-p2-2276/\n?? packages/barocss-physics/src/recording-owner.ts\n?? packages/barocss-physics/src/replay-validation.ts\n",
+  "resourceInputs": [
+    {
+      "path": "packages/barocss-physics/design/p0/encoding-vectors.json",
+      "sha256": "958a39cb452b42ec3da1f4e90f0ab8499560922ccfde34bdb5676288974c99fd"
+    },
+    {
+      "path": "packages/barocss-physics/design/p0/profiles.json",
+      "sha256": "620d55c0f0394eaf1ed5ff7ddb775a131d627f2793c783430490ca871621ffc7"
+    },
+    {
+      "path": "examples/physics-cad-scene/two-surfaces.barocad",
+      "sha256": "77e456296370b980198c95cd001115f2d1a775b1876b067c8c8841ade24c2fc2"
+    }
+  ],
+  "selectedEntries": [
+    "examples/physics-motion-foundations-2276/world.test.ts",
+    "examples/physics-motion-foundations-2276/contact.test.ts",
+    "examples/physics-motion-foundations-2276/pendulum.test.ts",
+    "examples/physics-motion-foundations-2276/baseline.test.ts",
+    "examples/physics-motion-foundations-2276/units.test.ts"
+  ]
+}

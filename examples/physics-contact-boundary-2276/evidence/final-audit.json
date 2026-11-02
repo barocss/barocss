@@ -1,0 +1,24 @@
+{
+  "status": "BOUNDED_SOURCE_RECEIPT_AND_SCOPE_AUDIT_PASS",
+  "parent": "8d7474ba0b4df5367dbeee93b3a95cb777dcac48",
+  "onlyOwnedPaths": true,
+  "fixtureRows": 192,
+  "historicalResolvedFailuresRepaired": 79,
+  "historicalUnresolvedResolved": 1,
+  "sourceAndActualEmittedGeometryPass": true,
+  "sourceAndActualEmitted16StepParity": true,
+  "original1200StepGO": false,
+  "sourceOnly308StepPrefixThen180sGuard": true,
+  "mathematicalSourceHashStillQualified": true,
+  "publicApiIntegrated": false,
+  "heldWorkersResumed": false,
+  "websiteEdited": false,
+  "hardwareValidated": false,
+  "auditRunsOfGeometryOrWorld": 0,
+  "earlierRunnerClaimCorrection": "Prior8d helper tests existed; actual prior runner wiring absent. Preserved and corrected in current step-observation path.",
+  "preservedExecutionRefusals": [
+    "world-source-01 unresolved reference",
+    "world-source-02 180s guard and supervised stop"
+  ],
+  "changedFilesBeforeThisAudit": 311
+}

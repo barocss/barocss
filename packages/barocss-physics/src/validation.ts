@@ -1,5 +1,5 @@
-import { PhysicsError } from './types.js';
-import type { Body, PhysicsCollisionFilter, PhysicsErrorCode, PhysicsFriction, PhysicsShape, Quat, Vec3 } from './types.js';
+import { PhysicsError } from './internal-types.js';
+import type { Body, PhysicsCollisionFilter, PhysicsErrorCode, PhysicsFriction, PhysicsShape, Quat, Vec3 } from './internal-types.js';
 import { ID, MAX_COMMANDS, MAX_FORCE_N, MAX_IMPULSE_NS, MAX_TORQUE_NM, MAX_ANGULAR_IMPULSE_NMS } from './limits.js';
 
 export function error(code: PhysicsErrorCode, message: string): never { throw new PhysicsError(code, message); }

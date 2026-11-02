@@ -1,0 +1,10 @@
+file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/index.js:2825
+import { flat, immutableCopy, invalid, validateStatic } from "./types.js";
+         ^^^^
+SyntaxError: The requested module './types.js' does not provide an export named 'flat'
+    at ModuleJob._instantiate (node:internal/modules/esm/module_job:228:21)
+    at async ModuleJob.run (node:internal/modules/esm/module_job:337:5)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:651:26)
+    at async file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/native-entry-check.mjs:5:14
+
+Node.js v22.19.0

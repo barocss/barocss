@@ -20,7 +20,9 @@ units, assumptions and a validated operating range. A visual effect, motion play
 not establish physical prediction accuracy. Numerical verification and separate controlled measurements are needed
 before claiming a supported physical range.
 
-The first physical pendulum remains planned. Existing hinge and gravity inputs do not establish a supported CAD
+The first CAD-authored physical pendulum workflow remains planned. The separate
+[reduced pendulum API](/packages/physics/#reduced-planar-pendulum) has bounded numerical checks on this branch;
+it does not implement that CAD workflow. Existing hinge and gravity inputs do not establish a supported CAD
 free-motion experiment. Pivot and centre-of-mass placement, pivot inertia, gravity moments and constraint reactions
 still need a consistent supported path. Model's required torque for prescribed motion is not forward prediction of
 free motion from initial conditions. This support gap is not a confirmed defect in the existing bounded profiles.

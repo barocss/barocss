@@ -1,7 +1,7 @@
 /** #1572: fresh native contact+manifold every step; private diagnostic only.
  * Run: npx tsx examples/physics-contact-impulse-audit-1572/fresh-contact.ts
  */
-import type {Body,Vec3} from '../../packages/barocss-physics/src/types.js';
+import type {Body,Vec3} from '../../packages/barocss-physics/src/internal-types.js';
 import {detect} from '../../packages/barocss-physics/src/collision.js';
 import {boxFaceManifold} from '../../packages/barocss-physics/src/contact-manifold.js';
 import {solvePersistentPoint,type PointImpulse} from '../../packages/barocss-physics/src/persistent-box-contact.js';

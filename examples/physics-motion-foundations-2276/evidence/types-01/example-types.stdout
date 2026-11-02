@@ -1,0 +1,5 @@
+examples/physics-motion-foundations-2276/motion-input.test.ts(71,31): error TS2322: Type '{ slide?: undefined; } | { slide: { v: number; a: number; }; }' is not assignable to type 'Readonly<Record<string, JointLimits>> & { default?: JointLimits | undefined; }'.
+  Type '{ slide?: undefined; }' is not assignable to type 'Readonly<Record<string, JointLimits>> & { default?: JointLimits | undefined; }'.
+    Type '{ slide?: undefined; }' is not assignable to type 'Readonly<Record<string, JointLimits>>'.
+      Property 'slide' is incompatible with index signature.
+        Type 'undefined' is not assignable to type 'JointLimits'.

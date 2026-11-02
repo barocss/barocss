@@ -1,0 +1,15 @@
+{
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "overflow": false,
+  "closed": true,
+  "stdoutEOF": true,
+  "stderrEOF": true,
+  "groupAbsent": true,
+  "signals": [],
+  "status": "PASS_P5A_CLOCK_FREE_CANDIDATE_EXTRACTION",
+  "progressPath": "progress.json",
+  "summaryPath": "summary.json",
+  "end": "2026-11-01T21:23:37.356Z"
+}

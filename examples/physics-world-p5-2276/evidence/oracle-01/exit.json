@@ -1,0 +1,15 @@
+{
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "overflow": false,
+  "closed": true,
+  "stdoutEOF": true,
+  "stderrEOF": true,
+  "groupAbsent": true,
+  "signals": [],
+  "status": "PASS_ORIGINAL_CLOTH_RESEARCH_ORACLE",
+  "progressPath": "progress.json",
+  "summaryPath": "summary.json",
+  "end": "2026-11-01T21:52:17.614Z"
+}

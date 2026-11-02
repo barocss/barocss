@@ -1,0 +1,107 @@
+{
+  "model": {
+    "format": "barocss-physics-model",
+    "version": 1,
+    "revision": "g1a-baseline-2276",
+    "frame": {
+      "id": "g1World",
+      "basis": "right-handed-xyz",
+      "rotation": "local-to-world-xyzw"
+    },
+    "units": {
+      "length": "m",
+      "mass": "kg",
+      "time": "s",
+      "angle": "rad"
+    },
+    "gravityMps2": [
+      "0",
+      "0",
+      "0"
+    ],
+    "bodies": [
+      {
+        "id": "rotor",
+        "kind": "dynamic",
+        "massKg": "1",
+        "inertia": {
+          "kind": "primitive-com",
+          "about": "com",
+          "frame": "body-local"
+        },
+        "initial": {
+          "positionM": [
+            "0",
+            "0",
+            "0"
+          ],
+          "orientationXYZW": [
+            "0",
+            "0",
+            "0",
+            "1"
+          ],
+          "velocityMps": [
+            "0",
+            "0",
+            "0"
+          ],
+          "angularVelocityRadps": [
+            "1",
+            "0",
+            "1"
+          ]
+        }
+      }
+    ],
+    "colliders": [
+      {
+        "id": "rotorCollider",
+        "bodyId": "rotor",
+        "geometry": {
+          "kind": "box",
+          "halfExtentsM": [
+            "1/10",
+            "1/10",
+            "1/5"
+          ]
+        },
+        "local": {
+          "positionM": [
+            "0",
+            "0",
+            "0"
+          ],
+          "orientationXYZW": [
+            "0",
+            "0",
+            "0",
+            "1"
+          ]
+        },
+        "material": {
+          "restitution": "0",
+          "friction": {
+            "static": "0",
+            "dynamic": "0"
+          }
+        },
+        "sensor": false,
+        "ccd": false,
+        "filter": {
+          "categoryBits": 1,
+          "maskBits": 65535
+        }
+      }
+    ],
+    "joints": [],
+    "cloths": [],
+    "fluids": [],
+    "sourceBindings": []
+  },
+  "options": {
+    "profile": "rigid-discrete-v1",
+    "fixedStepSeconds": "1/120",
+    "broadPhase": "direct"
+  }
+}

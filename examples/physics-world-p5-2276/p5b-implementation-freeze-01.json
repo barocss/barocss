@@ -1,0 +1,124 @@
+{
+  "workId": "physics-world-p5b-2276",
+  "status": "parent_implementation_scope_frozen_no_runtime_authorized",
+  "base": "89d208b127c7c42a16b398c5641dcbf588d4a31b",
+  "sources": {
+    "P5B-CONTRACT.md": {
+      "bytes": 22428,
+      "sha256": "1e972155e7d03d3894904e9363e79800a6e2d56273d4112acc8696eec2d89d49"
+    },
+    "P5B-PLAN.json": {
+      "bytes": 35784,
+      "sha256": "06c4a28707c43f929e19a2783ba14666666375e10e7c03f42cd59039273e5518"
+    },
+    "P5B-ADMISSION-REVIEW.md": {
+      "bytes": 16940,
+      "sha256": "7e1d509a36afdffa60c0b08d23e9d2aa4a24b41db17029201de504f2e3422cf3"
+    }
+  },
+  "internalInterface": {
+    "typeName": "DomainModelData",
+    "definition": "{kind:'cloth';data:Cloth;staticData:StaticDomainData} | {kind:'fluid';data:Fluid;staticData:StaticDomainData}",
+    "admitModelReturnAddition": "domain:DomainModelData|null",
+    "rigidReturn": "domain:null; original rigid kernel data unchanged",
+    "domainReturn": {
+      "bodies": [],
+      "joints": [],
+      "disjointHinges": null,
+      "meaning": "Internal rigid kernel data only. Model keeps static owners/colliders; World builds honest copied static public state without fake Body box-interior."
+    },
+    "admissionInitializeCalls": 0,
+    "worldInitializeCallsPerSuccessfulDomainWorld": 1,
+    "HighOwnership": [
+      "src/model-admission.ts",
+      "src/domain/admission.ts",
+      "generated internalclothreference",
+      "optional CADdataadapter and src/cad-proxy.ts export",
+      "src/domain/types.ts DomainModelData addition if needed"
+    ],
+    "MediumOwnership": [
+      "src/world.ts",
+      "replay",
+      "public/legacy typescleanup",
+      "package/export/provider generation",
+      "21callers and computed graphs",
+      "currentdocs"
+    ],
+    "noConcurrentDomainTypesEdit": true,
+    "WorldHolder": "clearable owned definition/accepted/static model refs; one guard/clock/recorder capability"
+  },
+  "perGraphTotals": {
+    "worlds": 37,
+    "creationRefusals": 64,
+    "stepEntries": 6334,
+    "accepted": 6281,
+    "syntheticFailures": 13,
+    "refusedSteps": 40,
+    "factoryAttempts": 101
+  },
+  "dataAuthoring": {
+    "strategy": "One canonical fixed cloth data authority generates internal exact-admission reference and shared example public-model literal assets. Deep-copy helpers return plain public model/options only, no Physics runtime imports/World/scene converter/new package subpath. Docs/isolated consumers reuse hash-linked asset copies.",
+    "generationMax": {
+      "createSheet": 1,
+      "triangleMassAccumulations": 1,
+      "Worlds": 0,
+      "WorldSteps": 0,
+      "CAD": 0,
+      "candidatePrepares": 0,
+      "canonicalEncode": 12,
+      "initialRestDensity": 0,
+      "solverCalls": 0
+    },
+    "runtimeMathOnPresetImport": false,
+    "negativeZero": "literal renderer explicitly preserves -0 and binary64 roundtrip; canonical/raw digests validated",
+    "generationPath": "PARENT_FREEZE_REQUIRED: reuse exact existing complete model artifact if available, otherwise one bounded original helper generation",
+    "codecLedger": "4original public-model targets +4example literal checks +4docs-copy checks. Internal reference uses recursive raw-bit comparison without extra canonicalEncode.",
+    "inputCopies": "Internal reference, public preset asset and every caller clone are detached; module shared tables deeply immutable; verify model/definition/candidate/output copy writes.",
+    "execution": "NOT_RUN_NO_HIDDEN_GENERATION_DURING_AUTHORING"
+  },
+  "oneTimeIndependentOracle": {
+    "status": "NOT_RUN_REQUIRES_SEPARATE_PARENT_FREEZE",
+    "archiveFinding": "Research receipts have0/60/240snapshots, not full240-step position+velocity raw stream",
+    "factory": "createClothTrial(CLOTH_FIXTURE,'xpbd',2,8)",
+    "researchConstructors": 1,
+    "researchCreateSheetCalls": 1,
+    "researchStepCalls": 240,
+    "privateAdvances": 1920,
+    "originalResearchProjectDistanceCalls": 6013440,
+    "originalResearchProjectSphereCalls": 3840,
+    "frames": 241,
+    "positionsPerFrame": 867,
+    "velocitiesPerFrame": 867,
+    "rawBytes": 3343152,
+    "dataCap": 4194304,
+    "childMs": 180000,
+    "PhysicsWorldFactoryCalls": 0,
+    "currentKernelCalls": 0,
+    "reuse": "One authenticated raw stream reused by source/native; no second independent generation",
+    "comparison": "original1e-12 absolute array gate unchanged; rawbit/current historical hash checks remain separate",
+    "providers": [
+      "examples/physics-cloth-spike/world.mjs",
+      "examples/physics-cloth-spike/topology.mjs",
+      "examples/physics-cloth-spike/constraints.mjs",
+      "examples/physics-cloth-spike/fixture.mjs"
+    ],
+    "extraImports": "authenticate full transitive closure before any original module call"
+  },
+  "authoringOutputs": {
+    "internalClothReference": "packages/barocss-physics/src/domain/cloth-reference.generated.ts",
+    "examplePreset": "examples/physics-model-data-2276/model-data.mjs",
+    "docsPreset": "apps/library-docs/docs/public/physics/model-data.mjs"
+  },
+  "runtimePrerequisites": [
+    "separatelyfreeze generator+oracle providers beforeanygeneration",
+    "freeze64literalnegativecases+allcommands/faults+exacttestprovidergraph",
+    "sourcePASSreview beforeactualnative",
+    "separate affected-doc-example runtimecohort counts beforeanysnippetexecution"
+  ],
+  "codeBoundary": "admissionpuredata; Worldownsinitialize/clock/guard/accepted+output/logcommit; no newfactory/subpath/legacybridge",
+  "recording": "clothWORLD_LIMIT;3fluidINVALID_SNAPSHOT explicittestedrefusals; limitsunchanged",
+  "physicalToleranceChanges": false,
+  "HOLD_NO_GO_FirstFailures": "PRESERVED",
+  "developMerge": "PENDING_WHOLE_REQUIRED_ROADMAP",
+  "deploy": false
+}

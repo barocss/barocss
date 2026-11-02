@@ -6,7 +6,8 @@ import {parseBaroCadAssembly,loadBaroCadAssembly} from '@barocss/cad-interop/ass
 import {compileCadModel,evaluateCurve,evaluateSurface,evaluateCurveD1,evaluateSurfaceD1,evaluateCurveCurvature,evaluateCurveD2,evaluateSurfaceCurvature,evaluateSurfaceD2,curveDomain,surfaceDomain,parseBooleanExtrusionFeatureGraph,
   createCadDocument,createCadGeometryReference,queryCadDocumentCurveArcLength,validateCadDocumentCurveArcLength,queryCadDocumentSurfaceArea,validateCadDocumentSurfaceArea,queryCadDocumentPoint,importIGES,validateIGESImport} from '@barocss/cad';
 import {prepareUniformCurvePreview,preparePrimitiveSceneFrame,compileMeshMaterial,validateMeshMaterialIR} from '@barocss/gpu';
-import {createClothWorld} from '@barocss/physics/cloth';
+import {createPhysicsWorld} from '@barocss/physics';
+import {copyPhysicsModelPreset} from '../physics-model-data-2276/model-data.mjs';
 import {readNativeFile,createNativeFileOpen} from './native-file-open.js';
 import {readIGESFile,createIGESFileOpen} from './iges-file-open.js';
 import {readNativePointScope,querySelectedNativePoint} from './selected-native-point.js';
@@ -1119,7 +1120,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=awa
     buildCandidate,makeCandidate:buildCandidate,buildNativeCandidate,initialDisplay,refFor,refs:projection.map(refFor),refsFor:()=>projection.map(refFor),replace,nativeEntries,candidatePoints,transformedPoint,expectedFit,query,inventory,render,
     loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2,parseBaroCadSource,compileCadModel,evaluateCurve,evaluateSurface,curveDomain,
     createCadDocument,createCadGeometryReference,queryCadDocumentCurveArcLength,validateCadDocumentCurveArcLength,queryCadDocumentSurfaceArea,validateCadDocumentSurfaceArea,queryCadDocumentPoint,parseBooleanExtrusionFeatureGraph,prepareUniformCurvePreview,parseBaroCadAssembly,loadBaroCadAssembly,loadBaroCadModelSet,
-    createClothWorld,createPhysicsClothWorld:createClothWorld,pixelInfo,errors,warnings,
+    createPhysicsWorld,copyPhysicsModelPreset,pixelInfo,errors,warnings,
     retained,capture,runProof,dispose,
     get nativeSelectedFitLastError(){return nativeSelectedFitLastError;},get nativeSelectedFitErrorCount(){return nativeSelectedFitErrorCount;},
     get nativeObjectSelectionLastError(){return nativeObjectSelectionLastError;},get nativeObjectSelectionErrorCount(){return nativeObjectSelectionErrorCount;},

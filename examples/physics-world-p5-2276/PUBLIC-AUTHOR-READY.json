@@ -1,0 +1,60 @@
+{
+  "status": "READY_AUTHORING_STOPPED_PENDING_PARENT_FREEZE",
+  "runtime": "NOT_RUN",
+  "sourceNativeNumericalImports": 0,
+  "WorldCalls": 0,
+  "builds": 0,
+  "static": "PUBLIC-AUTHOR-CHECK-03.json PASS_AST_TEXT_ONLY_NOT_RUNTIME",
+  "firstStaticFailure": "PUBLIC-AUTHOR-CHECK-01.json retained; fluid solver.step variable statement anchor corrected in02",
+  "files": {
+    "examples/physics-world-p5-2276/PUBLIC-AUTHOR-CHECK-01.json": {
+      "bytes": 20367,
+      "sha256": "1854ab11bacde7a9d7c24ee6a8c9b520ffbcb4c96ce5bc84a2bc7adf1b60cd35"
+    },
+    "examples/physics-world-p5-2276/PUBLIC-AUTHOR-CHECK-02.json": {
+      "bytes": 20294,
+      "sha256": "d6034fd488f165ea49d94c3de13fd6d3cafbb04b26d8ac0653dde297535b7e58"
+    },
+    "examples/physics-world-p5-2276/PUBLIC-AUTHOR-CHECK-03.json": {
+      "bytes": 20294,
+      "sha256": "688cfa57976d789210094933a501086f5a98cc95d5230192a3260cd697ecbf92"
+    },
+    "examples/physics-world-p5-2276/PUBLIC-IMPLEMENTATION.md": {
+      "bytes": 2881,
+      "sha256": "8ada722f604143c7c97a6e4aeeaeffb1f18cc9c48e5db51f45179b3b31b4a83d"
+    },
+    "examples/physics-world-p5-2276/PUBLIC-RECIPES.json": {
+      "bytes": 5725,
+      "sha256": "f63c86b3f9b9a5a0acc9271ccfec07a87eb1bc490cc68d5c822fcc09c10c761e"
+    },
+    "examples/physics-world-p5-2276/public-cohorts.mjs": {
+      "bytes": 17648,
+      "sha256": "3ec4e5eaa80695cd1a18a01c560e4e601a504092ebdca5c914fba12dc9c5ed70"
+    },
+    "examples/physics-world-p5-2276/public-instrument.mjs": {
+      "bytes": 4386,
+      "sha256": "47f221d0bc0abd4cb4b5829aedb22c8d980e4fbbbea1005ecfde76039140a1bb"
+    },
+    "examples/physics-world-p5-2276/public-provider.mjs": {
+      "bytes": 7620,
+      "sha256": "56263f9a66e3da305a25773305d53ba7577faf65184035fd3c3664d44d5331db"
+    },
+    "examples/physics-world-p5-2276/public-run.mjs": {
+      "bytes": 6297,
+      "sha256": "b2966e02fe86e99dd96e5fd9adc07198356269531ca8e60c7ab39afde08620cc"
+    },
+    "examples/physics-world-p5-2276/public-source-check.mjs": {
+      "bytes": 3582,
+      "sha256": "96f6974ddca25a35bf7fb0a56428121a7edeca2d25d926e08fd1447952fb7d22"
+    },
+    "examples/physics-world-p5-2276/public-trial.mjs": {
+      "bytes": 8868,
+      "sha256": "488077a927f81b5f1360427826fcbd549a33758ddbea24096fedaf629e6941e0"
+    },
+    "examples/physics-world-p5-2276/public-values.mjs": {
+      "bytes": 1835,
+      "sha256": "ef88a4876d6fbbe200618bbdff4e493c28730ef2c963e4b4a88a160fcea5ba1e"
+    }
+  },
+  "handoff": "Parent freezes full current source/provider/data/criteria/command closure and executes source first; sourcePASS review required before native. No automatic continuation or retry."
+}

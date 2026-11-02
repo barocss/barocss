@@ -1,0 +1,85 @@
+{
+  "kind": "P3_SEPARATE_CURRENT_PUBLIC_ADOPTION",
+  "runId": "adoption-01",
+  "status": "PASS",
+  "firstFailure": null,
+  "node": "v22.19.0",
+  "execPath": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "platform": "darwin",
+  "arch": "arm64",
+  "original47ConstructorBudgetChanged": false,
+  "newHardened1200TrajectoryClaim": false,
+  "counts": {
+    "constructors": 14,
+    "constructorRefusals": 10,
+    "attempts": 6,
+    "accepted": 6,
+    "qualified": 4,
+    "getters": 2,
+    "cleanupAttempts": 4,
+    "cleanupCompleted": 4
+  },
+  "graphResults": [
+    {
+      "graph": "source",
+      "status": "PASS",
+      "constructors": 7,
+      "acceptedSteps": 3,
+      "newProfileQualifiedSteps": 2,
+      "negativeConstructors": 5,
+      "phasesObserved": false
+    },
+    {
+      "graph": "native",
+      "status": "PASS",
+      "constructors": 7,
+      "acceptedSteps": 3,
+      "newProfileQualifiedSteps": 2,
+      "negativeConstructors": 5,
+      "phasesObserved": false
+    }
+  ],
+  "records": 16,
+  "recordBytes": 53912,
+  "newColdReferenceCalls": 0,
+  "bankAuthentication": {
+    "nativeHead": "f40123da0eedb19245688557f865e1beb09d47ef",
+    "consumerHead": "a341f2224ac4bd0b1167f4a9059ab32ab331aac2",
+    "receiptSha256": "b28355cac28b45d9c35639968196f386f4b2fe51dc063897bf52c1b9ab8e3cd4",
+    "manifestSha256": "60e389dbce2640f7f28378927f54cd6d2d8af203bcf374d54177a957b91d2191",
+    "expectedSteps": 1200,
+    "graph": "source",
+    "modelsRun": 0,
+    "referencesRun": 0,
+    "compressedAuthentication": "PASS",
+    "fullDecodedAuthentication": "PASS",
+    "completedRows": 1200,
+    "logicalIPC": {
+      "stdin": {
+        "bytes": 131766270,
+        "sha256": "9ca7129a067d0c06d34beb160044a55405589757cbf2d6a6e51b65c46333c616"
+      },
+      "stdout": {
+        "bytes": 118876677,
+        "sha256": "69ad2a37886c9b011af83363e79b1ead9025e0f9a231f751c19bbea4e9fead49"
+      }
+    },
+    "completedAuthenticationPasses": 1,
+    "aliases": [
+      {
+        "graph": "source-repeat",
+        "aliases": 8,
+        "status": "PASS",
+        "newGraphExecution": false
+      },
+      {
+        "graph": "compiled-dependencies",
+        "aliases": 8,
+        "status": "PASS",
+        "newGraphExecution": false
+      }
+    ]
+  },
+  "currentGraph": "native",
+  "elapsedMs": 2693
+}

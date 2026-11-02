@@ -1,0 +1,39 @@
+{
+  "status": "PASS_LOCAL_DOCS_ONLY",
+  "checks": [
+    {
+      "path": "examples/physics-world-p5-2276/evidence/g2-docs-structure-01/result.json",
+      "bytes": 2959,
+      "sha256": "a05fbb4b785414ab40eb338dd08cd525f16f1a45bb06f6aaf2ccad02dcd4f6db"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/g2-docs-build-01/result.json",
+      "bytes": 2984,
+      "sha256": "fb29ebe34c92520c3ff54fba346c5ec3683d1d7027c9c840c23e5759d323de70"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/g2-docs-links-01/result.json",
+      "bytes": 2944,
+      "sha256": "f40bf1fd158f8b0ff313021525a02c274190c662cc4c49e42fe081c1c01bfa27"
+    }
+  ],
+  "sourceChanges": [
+    {
+      "path": "packages/barocss-physics/ROADMAP.md",
+      "bytes": 54537,
+      "sha256": "e1c7b78e851d6453addc13304cee4c3cb7323049f1e592e778d90f28e6173dea"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt",
+      "bytes": 54537,
+      "sha256": "e1c7b78e851d6453addc13304cee4c3cb7323049f1e592e778d90f28e6173dea"
+    },
+    {
+      "path": "apps/library-docs/docs/packages/physics/profiles-and-lifecycle.md",
+      "bytes": 16925,
+      "sha256": "140450a074681e962f7c8cc62243e2b991bddce055bf52122d9e99dc7b849193"
+    }
+  ],
+  "scope": "Structure, local build and selected rendered links; no deployment/network/physics runtime.",
+  "correctedDocumentation": "large-v1 requires empty joints; excludes CCD and persistent-box contact, as actual admission enforces."
+}

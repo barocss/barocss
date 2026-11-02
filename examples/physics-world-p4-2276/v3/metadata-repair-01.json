@@ -1,0 +1,117 @@
+{
+  "workId": "physics-world-p4-accounting-cache-v3-2276",
+  "artifactType": "metadata-only-preflight-repair",
+  "status": "PASS_DATA_ONLY_METADATA_REPAIR",
+  "cause": "Pinned CPython3.13 automatically adds __firstlineno__ and __static_attributes__; the original strict whitelist rejected these noncallable fields before mathematics.",
+  "preservedFailedSource": {
+    "path": "examples/physics-world-p4-2276/v3/diagnostics/preflight-01/accounting-cache.py",
+    "bytes": 14852,
+    "sha256": "a99f3b4a30cbba40fbadf822a19c9fad78ff009eb00670319a878d21a2abcbe1"
+  },
+  "sources": {
+    "accounting-cache.py": {
+      "path": "examples/physics-world-p4-2276/v3/accounting-cache.py",
+      "bytes": 16442,
+      "sha256": "133c51a35338ce950e30bfd5c7d676897b986b1a89caac0eb5d3281df17c0d15"
+    },
+    "controls.py": {
+      "path": "examples/physics-world-p4-2276/v3/controls.py",
+      "bytes": 23088,
+      "sha256": "4c2093c6c1bead610223c66f48dbb36af797b51035016d1de6551f268c124463"
+    },
+    "gate.py": {
+      "path": "examples/physics-world-p4-2276/v3/gate.py",
+      "bytes": 13007,
+      "sha256": "51454c277bce2df656c8f76003dbedb147d42284210c0a925d26cc79cd6dfea8"
+    }
+  },
+  "repairBoundary": {
+    "onlyFunctionChanged": "transfer_proof",
+    "allOtherModuleASTUnchanged": true,
+    "controlsAndGateBytesUnchanged": true,
+    "addedAllowedNames": [
+      "__firstlineno__",
+      "__static_attributes__"
+    ],
+    "metadataTypesAndValuesCheckedAgainstSourceASTAndExact19NameLiteral": true,
+    "unchangedMethodIdentityChecksRetained": true,
+    "originalAllowedCallableNamesUnchanged": true,
+    "commitDelegationASTCheckRetained": true
+  },
+  "python": {
+    "version": "3.13.5 (main, Jun 11 2025, 15:36:57) [Clang 17.0.0 (clang-1700.0.13.3)]",
+    "implementation": "CPython"
+  },
+  "explicitImportlibModuleFiles": [
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/v3/accounting-cache.py",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/v2/scoped-cache.py"
+  ],
+  "counts": {
+    "originalMathModuleImports": 0,
+    "originalSATCalls": 0,
+    "originalSupportCalls": 0,
+    "fullEvaluateCalls": 0,
+    "cacheInstantiations": 0,
+    "WorldCalls": 0
+  },
+  "sourceTransferProof": {
+    "status": "PASS_ACCOUNTING_ONLY_SOURCE_TRANSFER",
+    "basePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/v2/scoped-cache.py",
+    "baseSha256": "c100855cdf88cd00a6716df38447f78caeb099e7459e98fee68517f19a85bc4a",
+    "unchangedMethodBytecodeSha256": {
+      "_key": "d5fe0f9594e49869695d0eed842d717d3357ff536feb3a62ff603c30f3cab91e",
+      "_arguments": "f913425552e5059fe46453b7512d3f4a8e0b7b59468440c512aa0cc4eddddadf",
+      "_identity": "cf7930c40327e52db25593cc0b190b61ed312d8b92ea978e20d876050ebc1e88",
+      "_check_context": "5fb20674d538b93b7fd810911d6da32bc88b0f4954de550f249b916417472383",
+      "_invoke_support": "2f376ba73f77370fd8316b71fa7db0f02fc1c135532635254d81f89855d62b34",
+      "support_radius": "b223de73a2152d6d76309280ee66c399685b759d8f16c95814a72aa47fadd59d",
+      "sat_pair": "147f656a4a66e0432a3f8bbb8d882938637b9d377cb91ceab46a642394e2b90b",
+      "install": "b4bc22947e7ea1a13fb9c39e2d2c957b7adccc3eeec1f285b2fef3c282c71935",
+      "restore": "280df1fb284e6c8d2eba92ed8e99b2e4ff62d5c6cfc2ed5ffa0fd968c5ebe9e9",
+      "_stage_size": "c526cf3660934d2603550a14a3799d14a55f7e04cc6dacbbe5f6bcb2556e4d74"
+    },
+    "flagAndContextFunctionsIdentical": true,
+    "allowedOverrides": [
+      "__init__",
+      "_account",
+      "_commit",
+      "_fixed_measure",
+      "_owned",
+      "_refresh_sizes",
+      "audit",
+      "clear",
+      "stats"
+    ],
+    "geometryFormulaCopies": 0,
+    "compilerMetadata": {
+      "firstLine": 54,
+      "staticAttributes": [
+        "_active_key_bytes",
+        "_audit_busy",
+        "_audit_count",
+        "_audit_lifetime_count",
+        "_audit_mutations",
+        "_bookkeeping_upper",
+        "_initialized",
+        "_last_audit_scratch",
+        "_last_integer",
+        "_last_measured_fixed",
+        "_last_measured_sum",
+        "_last_scope",
+        "_last_static",
+        "_last_walk_keys",
+        "_last_walk_payload",
+        "_last_walk_stages",
+        "_pair_dict_bytes",
+        "_peak_owned",
+        "_pending_dict_bytes"
+      ],
+      "exactBuiltinTypes": true,
+      "sourceStoreAttributesMatch": true
+    },
+    "mathematicalCalls": 0,
+    "bookkeepingUpperBoundBytes": 262144
+  },
+  "numericRerunAuthorized": false,
+  "scope": "DATA module definitions and source-transfer proof only; no cache instance, control case, original mathematical module or evaluate call."
+}

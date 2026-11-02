@@ -1,0 +1,309 @@
+{
+  "status": "PROPOSAL_AUTHOR_ONLY_PARENT_REVIEW_REQUIRED",
+  "workId": "physics-rigid-rotation-g1b-2276",
+  "units": {
+    "length": "m",
+    "mass": "kg",
+    "time": "s",
+    "angle": "rad"
+  },
+  "baseLiteral": {
+    "massKg": "1",
+    "halfExtentsM": [
+      "1/10",
+      "1/5",
+      "3/10"
+    ],
+    "positionM": [
+      "0",
+      "0",
+      "0"
+    ],
+    "qXYZW": [
+      "0",
+      "0",
+      "0",
+      "1"
+    ],
+    "omegaWorldRadps": [
+      "1",
+      "1",
+      "1"
+    ],
+    "velocityMps": [
+      "0",
+      "0",
+      "0"
+    ],
+    "gravityMps2": [
+      "0",
+      "0",
+      "0"
+    ],
+    "dtSeconds": "1/120",
+    "emptyCommands": true,
+    "otherBodies": 0,
+    "joints": 0,
+    "domains": 0,
+    "ccd": false,
+    "profile": "rigid-discrete-v1",
+    "inertia": "primitive-com/body-local/COM"
+  },
+  "nativePolicy": "Convert Phase M pair once; preserve F64 words and actual admitted inertia. Phase T reuses its raw dt120 pair and converts only7 new variants. Intended integral values never replace native geometry.",
+  "intendedMomentsKgM2": [
+    "13/300",
+    "1/30",
+    "1/60"
+  ],
+  "phaseM": {
+    "id": "M01-triaxial-off-axis",
+    "steps": 1,
+    "sourceFirst": true,
+    "nativeOnlyAfterSourcePASS": true,
+    "Worlds": 2,
+    "reads": 2,
+    "stepAttempts": 2,
+    "acceptedSteps": 2,
+    "disposes": 2,
+    "stateAudits": 4,
+    "refWindowsPerPrecision": 2,
+    "automaticExtension": false
+  },
+  "phaseT": {
+    "requires": "Actual Phase M PASS and parent separate execution freeze",
+    "horizonIntendedSeconds": "1/10",
+    "trajectories": [
+      {
+        "id": "T01-dt60",
+        "dtSeconds": "1/60",
+        "steps": 6
+      },
+      {
+        "id": "T02-dt120",
+        "dtSeconds": "1/120",
+        "steps": 12,
+        "rawInputAuthority": "Phase M saved raw pair"
+      },
+      {
+        "id": "T03-dt240",
+        "dtSeconds": "1/240",
+        "steps": 24
+      }
+    ],
+    "matchedTimes": "Actual native coarse step1..6; exact dt sums must match at2x/4x indices.",
+    "oneStepControls": [
+      {
+        "id": "P01-principal-x",
+        "omegaWorldRadps": [
+          "1",
+          "0",
+          "0"
+        ]
+      },
+      {
+        "id": "P02-principal-y",
+        "omegaWorldRadps": [
+          "0",
+          "1",
+          "0"
+        ]
+      },
+      {
+        "id": "P03-principal-z",
+        "omegaWorldRadps": [
+          "0",
+          "0",
+          "1"
+        ]
+      },
+      {
+        "id": "Z01-zero",
+        "omegaWorldRadps": [
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      {
+        "id": "Q01-negative-q-off-axis",
+        "qXYZW": [
+          "0",
+          "0",
+          "0",
+          "-1"
+        ]
+      }
+    ],
+    "controlDtSeconds": "1/120",
+    "failureWorld": "T02-dt120 audited step0",
+    "commandRefusals": [
+      "fixed-dt argument instead of command array:INVALID_COMMAND",
+      "missing body torque target:INVALID_COMMAND",
+      "NaN torque:INVALID_COMMAND",
+      "1e6 torque:NUMERIC_LIMIT before new flow"
+    ],
+    "faults": [
+      "F01-after-next-omega-before-q",
+      "F02-after-next-omega-and-q",
+      "F03-before-common-commit"
+    ],
+    "postResultGuards": [
+      {
+        "id": "N01",
+        "omegaReplacement": [
+          {
+            "ieee754F64LE": "000000000000f87f"
+          },
+          "0",
+          "0"
+        ],
+        "code": "NUMERIC_LIMIT"
+      },
+      {
+        "id": "N02",
+        "omegaReplacement": [
+          "1001",
+          "0",
+          "0"
+        ],
+        "code": "NUMERIC_LIMIT"
+      },
+      {
+        "id": "N03",
+        "omegaReplacement": [
+          "900",
+          "900",
+          "900"
+        ],
+        "code": "NUMERIC_LIMIT"
+      }
+    ],
+    "perGraph": {
+      "constructors": 8,
+      "reads": 18,
+      "acceptedSteps": 47,
+      "stepAttempts": 57,
+      "disposes": 8,
+      "stateAudits": 55,
+      "generalMacroflows": 49,
+      "principalFlows": 3,
+      "zeroFlows": 1,
+      "midpointSubsteps": 1323,
+      "newtonUpdatesAnd3x3Solves": 5292
+    }
+  },
+  "candidate": {
+    "method": "S8 recursive triple-jump composition of coupled midpoint-body-momentum/Cayley-orientation S2",
+    "compositionExponents": [
+      3,
+      5,
+      7
+    ],
+    "a": "1/(2-2^(1/k))",
+    "b": "1-2*a",
+    "nativeConstantCallsPerGraph": 3,
+    "nativeRootRelativeGate": "8*2^-52",
+    "actualWeightSumAbsoluteGate": "64*2^-52",
+    "signedStagesPerGeneralMacro": 27,
+    "newtonUpdatesPerStage": 4,
+    "linearSolvesPerGeneralMacro": 108,
+    "momentumScaleKgM2ps": "1/16",
+    "iteratePInfinityMaximum": "1",
+    "jacobianPerturbationInfinityMaximum": "1/4",
+    "pivotAbsoluteMinimumDimensionless": "1/4",
+    "residualGate": "64*2^-52*max(1,|p0|inf,|p1|inf,|s*f(pm)|inf)",
+    "originalMovementGuards": "finite/component1000/|omega|dt<=10; q result guard remains1e-12",
+    "adaptiveIterations": false,
+    "damping": false,
+    "legacyFallback": false,
+    "epsilonClassifications": false
+  },
+  "reference": {
+    "method": "Independent directed interval Taylor32 for polynomial p,R ODE; complete defect through degree64; Picard tube/Lipschitz remainder eta*h/(1-L*h)",
+    "precisions": [
+      80,
+      120
+    ],
+    "windowSeconds": "Actual native dt1/240",
+    "order": 32,
+    "tubeComponentBound": "17/16",
+    "MperSecondMaximum": "8",
+    "LperSecondMaximum": "16",
+    "tubeStepProductMaximum": "1/16",
+    "lipschitzStepProductMaximum": "1/8",
+    "finalObservableEnclosureWidth": "1e-24",
+    "precisionCheck": "Both certified80/120 enclosures intersect; compare candidate to both",
+    "windowsAcrossPhasesAndPrecisionsMaximum": 48,
+    "quaternionEndpointDecimalSqrtMaximum": 108,
+    "coefficientAuthority": "512 fixed exact rational bisection decisions for each algebraic root3/5/7;1536total; Phase T reuses authenticated authority",
+    "geometryCertificatesPhaseM": 1,
+    "monomialMomentsPhaseM": 9,
+    "newGeometryCertificatesPhaseT": 0,
+    "storedFractionBits": 4096,
+    "operationProductBits": 8192,
+    "temporarySumBits": 8193,
+    "fractionOperationMaximum": 10000000,
+    "decimalOperationMaximum": 32000000,
+    "productionImports": 0,
+    "candidateImports": 0,
+    "trig": 0,
+    "linearSolves": 0,
+    "libraryOdeSolves": 0,
+    "ownValidatedOdeIntegration": "48bounded Taylor windows explicitly counted, not reported as0integration",
+    "windowReuse": "Phase M2windows/precision; T authenticates/reuses both and adds22/precision;48evaluations total."
+  },
+  "gates": {
+    "conservation": "Unchanged e=1e-12; L/E perSIquantity abs(current-initial)<=e+e*max(1,abs(initial),abs(current)); squared-q-norm/COM/linear absolutee",
+    "trajectory": "World omega(rad/s),R/q(dimensionless): <=1e-11+1e-12*abs(reference) against both certified interval endpoints; no relaxing G1aexactflow gate",
+    "refinementRatioMinimum": "9/5",
+    "refinementFloor": "1e-11",
+    "floorMeaning": "All3belowfloor -> ROUNDING_FLOOR; no measured-order8claim",
+    "native": "Complete source physical/refinement/helper/count PASS before native construction; exact repaired source/native physical/state words with own provider identities",
+    "atomicity": "All10failures pergraph preserve accepted/public/cache/clock/caller data and unknown marker identity; no extra recovery attempt"
+  },
+  "combinedCeilings": {
+    "constructors": 18,
+    "reads": 38,
+    "stepAttempts": 116,
+    "acceptedSteps": 96,
+    "disposes": 18,
+    "stateAudits": 114,
+    "midpointNewton3x3Solves": 10800,
+    "nativeConstantRootCalls": 12,
+    "newPairConversions": 8,
+    "savedRawPairReusePhaseT": 1,
+    "WorldQueryGetModelRecorder": 0,
+    "retries": 0,
+    "warmups": 0,
+    "phaseMBuildChildrenMaximum": 4,
+    "phaseMReferenceChildrenMaximum": 1,
+    "phaseTBuildChildren": 0,
+    "phaseTReferenceChildrenMaximum": 1,
+    "directChildrenMaximum": 6,
+    "referenceRequests": 118,
+    "referenceStartupLines": 2,
+    "privateInertiaCacheObservations": 38
+  },
+  "resourcesPerPhase": {
+    "internalSeconds": 170,
+    "cleanupSeconds": 4,
+    "externalSeconds": 180,
+    "logicalCampaignBytes": 67108864,
+    "referenceWorkBytes": 8388608,
+    "worldHarnessWorkBytes": 8388608,
+    "buildBytes": 16777216,
+    "evidenceBytes": 16777216,
+    "reserveBytes": 16777216,
+    "processToolHeapOrRssClaim": false,
+    "toolPolicy": "Existing pinned tools and stdlib only, no downloads/dependency/runtime",
+    "childProtocol": "M init+4state audits+finish=6requests; T init+110audits+finish=112;118total,2READY. No status/warmup; T reuses frozen M build providers."
+  },
+  "outside": [
+    "Production activation or all currently admitted triaxial range",
+    "G1a near-unit q mismatch resolution",
+    "x/y axisymmetric adoption qualification",
+    "torque/contact/joint/CCD/coupled trajectory claims",
+    "general G4 rank/conditioning",
+    "old campaign reruns or old gate changes"
+  ]
+}

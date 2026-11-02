@@ -1,0 +1,474 @@
+{
+  "status": "DRIVER_PLAN_READY_SOURCE_AUTHORING_ALLOWED_BY_PARENT_T02_RUNTIME_NOT_AUTHORIZED",
+  "phase": "T_ONLY",
+  "runtimeAuthorized": false,
+  "productionActivation": false,
+  "authorities": [
+    {
+      "path": "examples/physics-rigid-rotation-g1b-2276/AUTHORING-FREEZE-T01.json",
+      "bytes": 3729,
+      "sha256": "7c33ddbb34f9b98abfa8e787d75f772cd003b26c5fdccc2db3a8d1f0c3450d39"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1b-2276/AUTHORING-FREEZE-T01-ADDENDUM-01.json",
+      "bytes": 964,
+      "sha256": "64b40ec562eae33c5d68596e22ab684a47ef4cda70b5a0e78edc74ec6429f797"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1b-2276/AUTHORING-FREEZE-T02.json",
+      "bytes": 4988,
+      "sha256": "f9303456e312df892e4b772953aaadd797c1cc9920f26daf2d980a914f70b7ac"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1b-2276/CONTRACT.md",
+      "bytes": 14376,
+      "sha256": "c1c87c64323836d7ac656ead490380bee82f801de2b67979f9f91309ee73ed31"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1b-2276/CASES.json",
+      "bytes": 8881,
+      "sha256": "0fb8b4ebc78044e8984fab83878a42fc5051f8717ce914091246de7098fbc386"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1b-2276/REFERENCES-CLARIFICATION-01.md",
+      "bytes": 10318,
+      "sha256": "0d6e8a79f2cbf45f7579291f9b1b947295f28f0cf00eb57053ed581cb8979945"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1b-2276/MICRO-RESULTS-M02.json",
+      "bytes": 7898,
+      "sha256": "e7d590810dd19e5ddc93c96370ac9493357fca6142714e6937091e1f365a909f"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1b-2276/MICRO-EXECUTION-FREEZE-M02.json",
+      "bytes": 109184,
+      "sha256": "d4813a7a39c809950accebe54c38acfe00d20146ded9ed829dd5355f99586bc1"
+    }
+  ],
+  "providers": "Authenticate/reuse every actualM02staged source/emitted file through existing staged-providers.json and execution freeze. No emit/bundle/patch/newhelper; no M driver import. Source is actualM02source.mjs, native actualM02dist/index.js plus sameprivatecontrol/candidate. Preserve actual own providerDigest; full public parity except checked distinct provider fields.",
+  "buildChildren": 0,
+  "inputRecipe": {
+    "caseOrder": [
+      "T01-dt60",
+      "T02-dt120",
+      "T03-dt240",
+      "P01-principal-x",
+      "P02-principal-y",
+      "P03-principal-z",
+      "Z01-zero",
+      "Q01-negative-q-off-axis"
+    ],
+    "steps": [
+      6,
+      12,
+      24,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "base": "Authenticated actualM02rawpair; no ID/revision/layout change. T02 copies it unchanged. Other7variants copy the same native base and replace only frozen dt/omega/q fields.",
+    "newPairVariants": 7,
+    "savedRawPairReuse": 1,
+    "changedFieldNativeConversions": 18,
+    "commandScalarConversions": 9,
+    "guardScalarConversions": 9,
+    "detachedWorldCopies": 16,
+    "sharedTime": "Pure exact F64/BigInt DATA check n*dt60=2n*dt120=4n*dt240 for n1..6 before bank; no floating physics/ref solve.",
+    "noHiddenCalls": "No old model/factory/oracle rerun; copied native geometry/mass/material words must equalM exactly."
+  },
+  "perGraphWorldLedger": {
+    "constructors": 8,
+    "getState": 18,
+    "stepAttempts": 57,
+    "acceptedSteps": 47,
+    "dispose": 8,
+    "stateAudits": 55,
+    "privateInertiaCacheObservations": 18,
+    "commandRefusals": 4,
+    "unknownFaults": 3,
+    "postFlowGuards": 3,
+    "generalFlows": 49,
+    "principalFlows": 3,
+    "zeroFlows": 1
+  },
+  "combinedWorldLedger": {
+    "constructors": 16,
+    "getState": 36,
+    "stepAttempts": 114,
+    "acceptedSteps": 94,
+    "dispose": 16,
+    "stateAudits": 110,
+    "privateInertiaCacheObservations": 36,
+    "commandRefusals": 8,
+    "unknownFaults": 6,
+    "postFlowGuards": 6,
+    "generalFlows": 98,
+    "principalFlows": 6,
+    "zeroFlows": 2
+  },
+  "transport": {
+    "script": "reference-trajectory.py",
+    "ready": "READY_G1B_TRAJECTORY_REFERENCE",
+    "protocol": "G1B_TRAJECTORY_JSONL_V1",
+    "init": "PASS_G1B_TRAJECTORY_BANK; {op:init,authoritySha256,cases:[{caseId,pairRaw,steps}]8,sourceCoefficientsRaw}",
+    "audit": "PASS_G1B_TRAJECTORY_AUDIT; sameMfields, initialPrivateRaw only16step0 states; no duplicatefailureaudits",
+    "finish": "PASS_G1B_TRAJECTORY_FINISH; savedsummarybeforecommit returned111,finalpacket112 authoritative",
+    "failure": "FAIL_G1B_TRAJECTORY_REFERENCE; originalartifact/progress authenticated beforestatusrejection",
+    "requests": 112,
+    "replyLinesIncludingReady": 113,
+    "stateAudits": 110,
+    "savedReplies": "reply-0001.json..reply-0112.json in reference-owned8MiB; authenticate actual bytes/SHA against stdout, do not duplicate normal raw replies/fullproof in harness. Persist <=256B request/reply metadata perordinal plus rolling hashes. Startup/failure raw only in fixedreserve.",
+    "runtimeFreeze": {
+      "status": "PARENT_AUTHORIZED_G1B_TRAJECTORY",
+      "mode": "G1B_T_STAGED_ONLY",
+      "phase": "T",
+      "phaseTAuthorized": true,
+      "runtimeAuthorized": true,
+      "productionActivation": false
+    },
+    "sourceBeforeNative": "After READY loadSourceactual3Pow and compare source39coeffwords to authenticatedM authority; INIT reusesM geometry/coeff/windows. AllSource55audits/refinement,8Worlddisposals,local controls/helper/ownership PASS beforeNative root/3Pow. Compare actualNative39words to certifiedSource beforeanyNativeWorld. No status/warmup requests."
+  },
+  "helperCountsPerGraph": {
+    "g1Control": {
+      "dispatch": 53,
+      "prepare": 53,
+      "null": 0,
+      "eligible": 0,
+      "zero": 0,
+      "nonzero": 0,
+      "validate": 53,
+      "inheritedAdvanceOrientation": 3,
+      "sharedSin": 3,
+      "sharedCos": 3,
+      "bodySin": 0,
+      "bodyCos": 0,
+      "F01Site": 50,
+      "F02Site": 49,
+      "F03Site": 48,
+      "faultThrows": 3,
+      "guardReplacements": 3,
+      "attachments": 8,
+      "releases": 8,
+      "cacheReads": 18
+    },
+    "g1bControl": {
+      "coefficientPow": 3,
+      "prepare": 53,
+      "triaxial": 53,
+      "zero": 1,
+      "principal": 3,
+      "general": 49,
+      "initialMomentum": 49,
+      "midpoint": 1323,
+      "newtonCondition": 5292,
+      "linearSolve": 5292,
+      "pivot": 15876,
+      "newtonUpdate": 5292,
+      "midpointResidual": 1323,
+      "stageComplete": 1323,
+      "generalReturn": 49,
+      "linearResidualFailure": 0
+    }
+  },
+  "counterDerivation": "57attempts-4commandrefusals=53dispatches. 47accepted=43general+3principal+1zero. Add3unknown+3postguard generalflows=>49. ThreeN failinsidevalidator =>F01=50;F01fault removesone=>F02=49;F02fault removesone=>F03=48. Principal3 aloneuseinheritedorientation/sin/cos. Eightinitialcachereads+10postfailure=18; no extra dt120baseline cache call. Verified against frozenactualoverlay/candidate/Worldpreflight/Fsites.",
+  "controls": {
+    "world": "ExistingT02-dt120 at auditedstep0",
+    "order": [
+      "R01",
+      "R02",
+      "R03",
+      "R04",
+      "F01",
+      "F02",
+      "F03",
+      "N01",
+      "N02",
+      "N03"
+    ],
+    "commands": "Same pinnedG1a literals; R01step(dt),unknownbody,NaNtorque,1e6torque. Canonical root PhysicsError/code checks.",
+    "faults": "Per-graph3uniqueError objects; require thrown===marker. No replacementerror normalization.",
+    "postguards": "Same frozenpreparedomega NaN/1001/900,900,900 beforeactualvalidator.",
+    "rollback": "Aftereachfailedattempt exactly1getState+1privatecache observation. Compare complete raw publicstate/clock/callerinputs toS0. Reuse one WeakMap identity serializer perWorld; Mapprototype/size/order/entries and all scalarF64words included. Initialdt120cache observation already suppliesS0; no extra baselinecall. Serialize immediately, no livegraph retained.",
+    "recovery": "Original scheduledstep1 only; no extra accepted/recoveryWorld/audit."
+  },
+  "trace": {
+    "schema": "CompactASCII JSONL [single-digit numeric tag,...quoted16lowerhexwords] withoneLF; no spaces. All actualM02observed numeric fields retained in frozen order; metadata integers insideobservations also encodedF64. No normalization/trig/formula reconstruction.",
+    "recordsPerGeneralFlow": 595,
+    "wordsPerGeneralFlow": 2848,
+    "rows": [
+      {
+        "tag": 0,
+        "kind": "initialMomentum",
+        "records": 1,
+        "wordsPerRecord": 13,
+        "order": [
+          "moments[3]",
+          "diagonal[3]",
+          "localOmega[3]",
+          "p[3]",
+          "momentumNorm"
+        ],
+        "serializedBytesPerRecord": 251,
+        "bytesPerGeneralFlow": 251
+      },
+      {
+        "tag": 1,
+        "kind": "newtonCondition",
+        "records": 108,
+        "wordsPerRecord": 8,
+        "order": [
+          "update",
+          "middle[3]",
+          "residual[3]",
+          "perturbation"
+        ],
+        "serializedBytesPerRecord": 156,
+        "bytesPerGeneralFlow": 16848
+      },
+      {
+        "tag": 2,
+        "kind": "pivot",
+        "records": 324,
+        "wordsPerRecord": 3,
+        "order": [
+          "column",
+          "selectedPivot",
+          "pivotMagnitude"
+        ],
+        "serializedBytesPerRecord": 61,
+        "bytesPerGeneralFlow": 19764
+      },
+      {
+        "tag": 3,
+        "kind": "newtonUpdate",
+        "records": 108,
+        "wordsPerRecord": 6,
+        "order": [
+          "update",
+          "guess[3]",
+          "linearResidualMaximum",
+          "linearResidualBound"
+        ],
+        "serializedBytesPerRecord": 118,
+        "bytesPerGeneralFlow": 12744
+      },
+      {
+        "tag": 4,
+        "kind": "midpointResidual",
+        "records": 27,
+        "wordsPerRecord": 3,
+        "order": [
+          "residualMaximum",
+          "residualBound",
+          "finalPerturbation"
+        ],
+        "serializedBytesPerRecord": 61,
+        "bytesPerGeneralFlow": 1647
+      },
+      {
+        "tag": 5,
+        "kind": "stageComplete",
+        "records": 27,
+        "wordsPerRecord": 10,
+        "order": [
+          "stage",
+          "weight",
+          "signedStep",
+          "p[3]",
+          "orientation[4]"
+        ],
+        "serializedBytesPerRecord": 194,
+        "bytesPerGeneralFlow": 5238
+      }
+    ],
+    "rowByteFormula": "1tag+2brackets+1LF+n*(1comma+2quotes+16hex)=4+19n",
+    "maximumRowBytes": 251,
+    "bytesPerGeneralFlow": 56492,
+    "generalFlows": 98,
+    "rawTraceBytes": 5536216,
+    "headerBytesPerFlowMaximum": 512,
+    "headersTotalMaximum": 50176,
+    "header": "Graph/case/attempt/outcome+595/2848counts+sourceinput/provider/coefficient links; compact<=512B includingLF. Header differences retain own graph identity; raw numeric rows require exact native/source parity.",
+    "writer": "Take existing595plain records, immediately pack/write one row withone8B scratch and<=251Bline; never encode fulltrace orretain perwordchunks. Clear transferredarray afterflow. Native compares source rows via bounded diskstream. Accepted state/reference packet stayssmall and trace excluded fromoracle.",
+    "failurePrefixes": "All plannedF/N occurafter completecandidateflow so each595recordtrace retained. Unexpectedearlierfailure writes boundedactualprefix and stops; no pad/recompute to595, no nextcase. Failed-linear event is permitted onlyas firstunexpectedfailure prefix, using existingreservedmargin/reserve; no nominalrecord/callchange."
+  },
+  "persistedHarness": {
+    "limitBytes": 1572864,
+    "allocatedSectionMaximaBytes": 721920,
+    "unusedWithinPartitionBytes": 850944,
+    "sections": [
+      {
+        "name": "uniqueInputs",
+        "slots": 8,
+        "bytesPerSlotIncludingFraming": 8192,
+        "maximumBytes": 65536
+      },
+      {
+        "name": "publicStateFrames",
+        "slots": 110,
+        "bytesPerSlotIncludingFraming": 2048,
+        "maximumBytes": 225280
+      },
+      {
+        "name": "initialCacheImages",
+        "slots": 16,
+        "bytesPerSlotIncludingFraming": 8192,
+        "maximumBytes": 131072
+      },
+      {
+        "name": "initialPrivateObservations",
+        "slots": 16,
+        "bytesPerSlotIncludingFraming": 1024,
+        "maximumBytes": 16384
+      },
+      {
+        "name": "failureReceipts",
+        "slots": 20,
+        "bytesPerSlotIncludingFraming": 4096,
+        "maximumBytes": 81920
+      },
+      {
+        "name": "commandAndGuardData",
+        "slots": 1,
+        "bytesPerSlotIncludingFraming": 4096,
+        "maximumBytes": 4096
+      },
+      {
+        "name": "actualCoefficientReceipts",
+        "slots": 2,
+        "bytesPerSlotIncludingFraming": 4096,
+        "maximumBytes": 8192
+      },
+      {
+        "name": "attemptLedger",
+        "slots": 114,
+        "bytesPerSlotIncludingFraming": 512,
+        "maximumBytes": 58368
+      },
+      {
+        "name": "protocolMetadataOnly",
+        "slots": 1,
+        "bytesPerSlotIncludingFraming": 32768,
+        "maximumBytes": 32768
+      },
+      {
+        "name": "providerReuseReceipt",
+        "slots": 1,
+        "bytesPerSlotIncludingFraming": 32768,
+        "maximumBytes": 32768
+      },
+      {
+        "name": "helperCountersAndTraceIndex",
+        "slots": 1,
+        "bytesPerSlotIncludingFraming": 32768,
+        "maximumBytes": 32768
+      },
+      {
+        "name": "schemaAndCLI",
+        "slots": 1,
+        "bytesPerSlotIncludingFraming": 32768,
+        "maximumBytes": 32768
+      }
+    ],
+    "frameBoundProof": "M02compactpublicstate1258B includingLF, input1877,private362,coeff1220; existingcache6271. TkeepssameIDs/revision/emptyarrays/fixedstatefields, all numbers raw16hex. Cursormetadata<=24; extra frameheader<=64B, so2048B complete state slot.16private1024 and16initialcache8192 slots includeframing. No expandedfullaftercache copy onfailures; comparefreshimage whilelive andsaveactualdigest/result withcompletefailedstate in4096Breceipt.",
+    "externalPins": "Reference fullartifacts counted onlyreference8MiB; existingMbuild/fullprovider tables/parentfreeze pinnedat originalpaths, not copiedintoToutput. Newproviderreuse receipt iscompact authoritypin/check result.",
+    "noDuplicateTranscript": "Onlyordinal/bytes/streamSHA/status/case metadata; normal raw replies/proofs remainreference-owned once."
+  },
+  "reserve": {
+    "bytes": 1048576,
+    "sections": [
+      {
+        "name": "finalSummaryAndCountBoundary",
+        "maximumBytes": 65536
+      },
+      {
+        "name": "runnerAndReferenceProgressCopies",
+        "maximumBytes": 32768
+      },
+      {
+        "name": "firstFailureAndOriginalReply",
+        "maximumBytes": 262144
+      },
+      {
+        "name": "referenceStderrAndRawStartup",
+        "maximumBytes": 131072
+      },
+      {
+        "name": "cleanupAndInterruptedTransport",
+        "maximumBytes": 65536
+      },
+      {
+        "name": "unexpectedPrefixOrFramingFailure",
+        "maximumBytes": 131072
+      },
+      {
+        "name": "unallocatedReserve",
+        "maximumBytes": 360448
+      }
+    ],
+    "rule": "Fixedinclusive reserve, not newphysics/audit/trace permission. No unbounded Error.stack/tree printing; originalraw bounded beforeencoding; missing counts UNKNOWN."
+  },
+  "jointEvidence": {
+    "referenceMaximum": 8388608,
+    "harnessMaximum": 1572864,
+    "finalProgressReserve": 1048576,
+    "traceMaximum": 5536216,
+    "headersMaximum": 50176,
+    "totalMaximum": 16596440,
+    "limitBytes": 16777216,
+    "marginBytes": 180776,
+    "rule": "Chargeunique actualfiles once beforeeachwrite/encoder overlap; allLF/header bytesincluded. Stop onany bound; neverexpandcap/skipdata ortruncatequalifiedtrace."
+  },
+  "liveWorking": {
+    "limitBytes": 8388608,
+    "sections": [
+      {
+        "name": "authorityAndProviderMetadata",
+        "maximumBytes": 1572864
+      },
+      {
+        "name": "inputsAndCurrentPublicRollbackData",
+        "maximumBytes": 1048576
+      },
+      {
+        "name": "actualObserverRecordsAndPacking",
+        "maximumBytes": 1572864
+      },
+      {
+        "name": "privateCacheIdentityAndSnapshots",
+        "maximumBytes": 524288
+      },
+      {
+        "name": "referenceWireDecodedAndEncoderOverlap",
+        "maximumBytes": 1048576
+      },
+      {
+        "name": "temporaryTraversalAndCopyScratch",
+        "maximumBytes": 1048576
+      },
+      {
+        "name": "boundedStreamsLogsAndIndices",
+        "maximumBytes": 524288
+      },
+      {
+        "name": "unallocatedHeadroom",
+        "maximumBytes": 1048576
+      }
+    ],
+    "rootPolicy": "OneactiveWorld/currentinput/currentpublicbefore/after/rollbackstate;8smallrawpairdefinitions and sourceparity diskindices. No source trajectory orallreferenceproofs inRAM.595plaincurrentrecords measured fully, compact onlyone row atatime; clear ontransfer. CacheWeakMap lifecycle perWorld released afterdispose; temporary identitySet/callable explicitly cleared. Allfreeze/provider/schema/coeffdata and currentprotocol raw+decoded+JSONbuffers registered.",
+    "serialization": "Precharge fixed pendingwire<=262144 input/4096 reply, UTF16/decoded/encoder/copy overlap andboundedstreamcarry. Actualcurrent roots plus full transient allowance<=8MiB beforecall/encoding. Tool/engine heap/RSS excluded aspriorM; no claim of measuredprocessmemory.",
+    "preserveInput": "Rawpair/command/guard andoldreturnedstate before/aftereveryAPI; outputsdetached/noalias; preserveallnonvelocitybits andownproviderfields. CanonicalPhysError identity for refusals; originalunknown objectidentity forF.",
+    "failureCounts": "Counters beforeattempt andafterreturn separated. Source/nativeconstant-loadinterval and childinflight areUNKNOWN withknownlowerbound. Fullreferencefinish authoritative. DisposeowncreatedWorlds, releaseobserver; nonewgetState/query afterfirstfailure."
+  },
+  "authorScope": {
+    "moduleEvaluation": 0,
+    "fixtureConversions": 0,
+    "referenceOrCandidateMath": 0,
+    "World": 0,
+    "builds": 0,
+    "only": "Read/hash/closedsavedDATA andstaticinteger byte/count arithmetic."
+  },
+  "remaining": "Freeze thisdriverplan and protocolagreement before authorizedsourceauthoring. Highownsreference/globalDecimal8MiBproof andjointreview; parentownsallruntime. No globalphysicalreanalysis ornewframework."
+}

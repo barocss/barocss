@@ -1,0 +1,124 @@
+{
+  "work_id": "physics-rigid-rotation-g1a-2276",
+  "artifact_type": "baseline-harness-author-ready",
+  "status": "AUTHOR_READY_NO_EXECUTION_HIGH_REVIEW_REQUIRED",
+  "owner_role": "baseline-capture-and-classifier-author",
+  "source_request": "Only paired unchanged public baseline acquisition followed by saved-data invariant classification",
+  "last_updated": "2026-11-02",
+  "mode": "BASELINE_CHARACTERIZATION_ONLY",
+  "sources": [
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/baseline.mjs",
+      "bytes": 20792,
+      "sha256": "04e41b02d0ce8fd16a42b4cd21a5943187d2857629dfdd0f53644929f32bc977"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/baseline-classify.py",
+      "bytes": 23864,
+      "sha256": "5f5eee9ac2cd8b654eab134823a619254fd0b7c4ab8791419d077a71413a09eb"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/BASELINE-PLAN.json",
+      "bytes": 10635,
+      "sha256": "c06c94ea57b30703045d61a90e5f3b7c1cd01c897cf9e3b1f7b49543be95e7e9"
+    }
+  ],
+  "authority": [
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/CONTRACT.md",
+      "bytes": 16124,
+      "sha256": "29feb5a2d8b9baf1f9508bd13fa5837af61a25c960f400b59aefd6014b914b95"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/CASES.json",
+      "bytes": 16543,
+      "sha256": "2ce857f257ddfabd5feab1f98e78577efe0b4b3ff1b5a77f6288e503a9c8777b"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/AUTHORING-FREEZE-01.json",
+      "bytes": 1545,
+      "sha256": "22abcb5d7a5cf7750db460d8084f6ebcbca5b3a5e6eef9da47e80f924edede79"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/PROVIDER-IDENTITY-CLARIFICATION-01.json",
+      "bytes": 2474,
+      "sha256": "faf2748ea04728d993e5c0a5d251fb309b17ea45bf8b608fedef25609763862d"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/INTEGRATION-AUDIT.md",
+      "bytes": 18659,
+      "sha256": "4c6a793080dd8339cc38638bfbd5ae30a5defd6d370e025c98d1402ffbbd1645"
+    }
+  ],
+  "CLI": "NODE22 examples/physics-world-p5-2276/command-run.mjs FRESH-GUARD-ID . NODE22 examples/physics-rigid-rotation-g1-2276/baseline.mjs --run-id FRESH-ID --freeze ABS --token SHA256 --authorize-baseline",
+  "runtimeFreeze": "PARENT_AUTHORIZED_G1_BASELINE_CHARACTERIZATION, mode BASELINE_CHARACTERIZATION_ONLY, runtimeAuthorized=true, futureRepairAuthorized=false, exact fresh runId, complete project/tool/High-review pins. PLAN specifies closure and commands.",
+  "publicCapture": {
+    "actualSource": "esbuild bundle from owned current src/index.ts; authenticate every actual metafile input; no CAD/SDK import",
+    "actualNative": "actual package.publishConfig.exports[.].import; recursively authenticate literal published imports; no source fallback or package rebuild",
+    "nativePairConversions": 1,
+    "inputClonePairs": 2,
+    "eachGraph": "createPhysicsWorld once -> getState once -> step([]) once -> dispose once",
+    "APIceiling": {
+      "constructors": 2,
+      "getState": 2,
+      "steps": 2,
+      "disposals": 2,
+      "query": 0,
+      "getModel": 0,
+      "recorder": 0,
+      "WorldAPIsAfterClassification": 0
+    },
+    "ownership": "Constructor result assigned to owned holder inside callback before input guard can throw; one finally disposal, attempted/returned and unknown outcomes separate. Input raw snapshots unchanged after every API; detached before/after outputs; fresh paths/exclusive raw artifact writes.",
+    "identity": "Every public identity field saved untouched. Clarified own frozen providerDigest checked exactly/stable; source/native inequality explicit. Every other identity and complete nonidentity raw state field equal; no normalized public field."
+  },
+  "classifier": {
+    "imports": "Python stdlib only; no production/oracle/current solver module import",
+    "processes": 1,
+    "geometry": "9monomial antiderivative moments -> volume/density/mass/COM/full cuboid inertia tensor; one native-geometry certificate shared",
+    "audits": 4,
+    "properRotations": 4,
+    "fractionOperationsMax": 10000,
+    "trig": 0,
+    "sqrt": 0,
+    "odeSolves": 0,
+    "linearSolves": 0,
+    "gates": "Exact frozen e=1/10^12: angular L/E e+e*max(1,abs(before),abs(after)); q squared norm/COM/linear absolute e. No future analytic/refinement phase.",
+    "physicalDisposition": "Complete source physical assessment then native from existing files. Preserve first physical failure and immutable source assessment before native work. CHARACTERIZED_PHYSICAL_NO_GO or CHARACTERIZED_NO_FAILURE_OBSERVED; never whole-baseline physicsPASS. Reference/resource failures distinct; durable lower bounds/inflight UNKNOWN if killed.",
+    "serialization": "All registered raw/decoded/certificate/assessment/metadata roots measured with cleared identity scratch; derived traversal/Fraction/control allowance plus packed-container and JSON/UTF8 overlap preflight <=8MiB; bounded emergency result on final resource failure; exact rational results and original words retained."
+  },
+  "staticChecks": {
+    "status": "PASS_GATED_SYNTAX_AST_METADATA_ONLY",
+    "gate": "heavy g1-baseline-author-check",
+    "node": "Node22 --check plus TypeScript JS AST parse; exactly1lexical public factory/getState/step/dispose site,0query/getModel/recorder sites; closed ledger precedes classification flag",
+    "python": "AST parse+compile(source, filename, exec) only; stdlib import whitelist; no eval/exec/import trampoline",
+    "metadata": "CONTRACT/CASES/integration hashes match AUTHORING-FREEZE; identity clarification matches parent faf2748...; baseline population and helper ceilings only",
+    "moduleEvaluations": 0,
+    "fixtureConversions": 0,
+    "referenceArithmetic": 0,
+    "builds": 0,
+    "constructors": 0,
+    "WorldCalls": 0
+  },
+  "resourceBoundary": {
+    "internalMs": 170000,
+    "outerMs": 180000,
+    "outerCleanupMsMax": 4000,
+    "baselineEvidenceBytes": 2097152,
+    "sourceBuildBytes": 16777216,
+    "referenceWorkBytes": 8388608,
+    "worldHarnessWorkBytes": 8388608,
+    "totalLogicalEnvelopeBytes": 67108864,
+    "RSSClaim": false,
+    "sourceDerivation": "BASELINE-PLAN.json resourceDerivation and fixed one-body schema; runtime peaks NOT_MEASURED; High must review before execution."
+  },
+  "notImplemented": [
+    "G1a candidate repair",
+    "future trajectories/control/refinement/analytic interval reference",
+    "triaxial G1b",
+    "public activation",
+    "production/caller/docs/package edits",
+    "replay of old numerical passes"
+  ],
+  "preservation": "All prior first failures/static NO_GOs, old thresholds, P3sphere/P4cube arithmetic and completed instantaneous impulse PASS remain unchanged. Baseline hypothesis is not a golden value. No numerical baseline outcome is predicted.",
+  "next": "Parent freezes actual unchanged producers/manifests/native closure/harness/tools/High review under fresh token; executes one paired baseline. No automatic run/retry/repair follows AUTHOR_READY."
+}

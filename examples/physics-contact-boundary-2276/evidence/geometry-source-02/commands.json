@@ -1,0 +1,59 @@
+{
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "records": [
+    {
+      "name": "geometry-tests",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/geometry-source-02/geometry-tests.mjs"
+      ],
+      "started": "2026-11-01T13:56:55.974Z",
+      "finished": "2026-11-01T13:56:56.563Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "aa0918d353c2ab3a8f4e29b432fec1e4aebf70667094f65486e636e8923f2ecc",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "geometry-consumer",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/geometry-source-02/geometry-consumer.mjs",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/baseline-02/fixtures.json",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/geometry-source-02",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-feature-geometry/witness-reference.py"
+      ],
+      "started": "2026-11-01T13:56:56.573Z",
+      "finished": "2026-11-01T13:56:58.539Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "3acd0fabe85a5ad7894c952e47537a8227eb491009c0079d593153386c42045d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "independent",
+      "command": [
+        "python3",
+        "-B",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/independent-check.py",
+        "--fixtures",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/baseline-02/fixtures.json",
+        "--generated",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/geometry-source-02/generated.json",
+        "--output",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/geometry-source-02/result.json"
+      ],
+      "started": "2026-11-01T13:56:58.540Z",
+      "finished": "2026-11-01T13:56:58.757Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "246a60f2cea48bea27daa95d7e8cd895bb5930bd7dfa6f8af177dbe742f51bc7",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

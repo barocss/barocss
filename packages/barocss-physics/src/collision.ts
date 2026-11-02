@@ -1,4 +1,4 @@
-import type { Body, BoxShape, CapsuleShape, Hit, PhysicsContact, SphereShape, Vec3 } from './types.js';
+import type { Body, BoxShape, CapsuleShape, Hit, PhysicsContact, SphereShape, Vec3 } from './internal-types.js';
 import { error } from './validation.js';
 import { add, sub, scale, dot, cross, inverse, rotate, localPoint, worldPoint, inverseInertia } from './math.js';
 import { capsuleBox, capsuleCapsule } from './capsule-contact.js';

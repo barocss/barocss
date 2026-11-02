@@ -19,7 +19,7 @@ const metadata = { work_id: 1022, mode, observe, timestamp: new Date().toISOStri
 async function exportTargets() {
   const directory = resolve(root, 'packages/barocss-physics');
   const manifest = JSON.parse(await readFile(resolve(directory, 'package.json'), 'utf8'));
-  const expected = ['.', './cad-proxy', './replay', './fluid', './cloth', './fluid-cad'];
+  const expected = ['.', './cad-proxy', './replay'];
   assert.deepEqual(Object.keys(manifest.publishConfig.exports).sort(), [...expected].sort());
   const checked = [];
   for (const key of expected) {

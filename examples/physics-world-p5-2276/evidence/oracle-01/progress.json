@@ -1,0 +1,18 @@
+{
+  "counts": {
+    "researchFactoryAttempts": 1,
+    "researchConstructors": 1,
+    "researchFactoryReturns": 1,
+    "researchCreateSheetCalls": 1,
+    "researchStepCalls": 240,
+    "researchStepReturns": 240,
+    "privateAdvances": 1920,
+    "originalResearchProjectDistanceCalls": 6013440,
+    "originalResearchProjectSphereCalls": 3840,
+    "frames": 241,
+    "rawBytes": 3343152,
+    "PhysicsWorldFactoryCalls": 0,
+    "currentKernelCalls": 0
+  },
+  "durability": "actual counters at frame/call boundary; inner-loop leaf counts are durable lower bounds if killed"
+}

@@ -1,0 +1,29 @@
+{
+  "mode": "source",
+  "entry": "examples/physics-cloth-viewer/browser-checks.mjs",
+  "platform": "browser",
+  "inputs": {
+    "examples/physics-cloth-viewer/browser-checks.mjs": {
+      "bytes": 2286,
+      "sha256": "34ae06b8121a83c6a933e3c1bd22c3d7bccfdfb913261d26fc0d1d96e0b26ddf",
+      "effectiveSha256": "34ae06b8121a83c6a933e3c1bd22c3d7bccfdfb913261d26fc0d1d96e0b26ddf"
+    },
+    "examples/physics-cloth-viewer/metrics.mjs": {
+      "bytes": 2098,
+      "sha256": "4f9d93e1e4a02b65251ee91ed7dc15269089ecf97079db400bce13f625f5debe",
+      "effectiveSha256": "4f9d93e1e4a02b65251ee91ed7dc15269089ecf97079db400bce13f625f5debe"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 5157,
+  "outputSha256": "0a6917af8033ba245a0a86cc7822b7d5a67e8d5edc9021c29f5aef2c97ffb21c",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [],
+  "moduleEvaluation": false
+}

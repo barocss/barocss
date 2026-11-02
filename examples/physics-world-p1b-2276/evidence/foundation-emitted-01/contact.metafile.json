@@ -1,0 +1,117 @@
+{
+  "inputs": {
+    "packages/barocss-physics/dist/types.js": {
+      "bytes": 418,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/provider-manifest.generated.js": {
+      "bytes": 956,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/index.js": {
+      "bytes": 133217,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/provider-manifest.generated.js",
+          "kind": "import-statement",
+          "original": "./provider-manifest.generated.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-model-input/model.mjs": {
+      "bytes": 2051,
+      "imports": [],
+      "format": "esm"
+    },
+    "examples/physics-motion-foundations-2276/contact.test.ts": {
+      "bytes": 9166,
+      "imports": [
+        {
+          "path": "node:assert/strict",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "node:test",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "packages/barocss-physics/dist/index.js",
+          "kind": "import-statement",
+          "original": "@barocss/physics"
+        },
+        {
+          "path": "examples/physics-model-input/model.mjs",
+          "kind": "import-statement",
+          "original": "../physics-model-input/model.mjs"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "examples/physics-world-p1b-2276/evidence/foundation-emitted-01/contact.mjs": {
+      "imports": [
+        {
+          "path": "node:assert/strict",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "node:test",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "exports": [],
+      "entryPoint": "examples/physics-motion-foundations-2276/contact.test.ts",
+      "inputs": {
+        "examples/physics-motion-foundations-2276/contact.test.ts": {
+          "bytesInOutput": 8440
+        },
+        "packages/barocss-physics/dist/types.js": {
+          "bytesInOutput": 328
+        },
+        "packages/barocss-physics/dist/index.js": {
+          "bytesInOutput": 102942
+        },
+        "packages/barocss-physics/dist/provider-manifest.generated.js": {
+          "bytesInOutput": 881
+        },
+        "examples/physics-model-input/model.mjs": {
+          "bytesInOutput": 1915
+        }
+      },
+      "bytes": 114821
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "mode": "source",
+  "entry": "examples/physics-scene/fluid-cad-shelf-probe.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/physics-scene/fluid-cad-shelf-probe.mjs": {
+      "bytes": 5836,
+      "sha256": "36bb9331b8209afb1605ea38379ca0f8924dbaeb90c53879e45dfb9433782152",
+      "effectiveSha256": "36bb9331b8209afb1605ea38379ca0f8924dbaeb90c53879e45dfb9433782152"
+    },
+    "examples/physics-scene/fluid-viewer/scene.js": {
+      "bytes": 748,
+      "sha256": "93dc46a49b553f425614a630f2956c29c92f194b089fef54f09b6b3d330fc332",
+      "effectiveSha256": "93dc46a49b553f425614a630f2956c29c92f194b089fef54f09b6b3d330fc332"
+    },
+    "examples/physics-model-data-2276/model-data.mjs": {
+      "bytes": 185560,
+      "sha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604",
+      "effectiveSha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 219480,
+  "outputSha256": "803ac9cf5b8f690ea960ca6ad177d1656f6244ac442f8da04da8fa7d4defa2f1",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [
+    "node:path",
+    "node:assert/strict",
+    "node:crypto",
+    "node:fs/promises",
+    "node:perf_hooks"
+  ],
+  "moduleEvaluation": false
+}

@@ -1,4 +1,4 @@
-import type { Body, Joint, PhysicsJointState, Quat, Vec3 } from './types.js';
+import type { Body, Joint, PhysicsJointState, Quat, Vec3 } from './internal-types.js';
 import { error } from './validation.js';
 import { add, inertia, inverse, inverseInertia,
   multiplyQuaternion, scale, sub } from './math.js';

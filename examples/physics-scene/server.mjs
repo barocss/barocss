@@ -3,8 +3,11 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { build } from 'esbuild';
+import { execFileSync } from 'node:child_process';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
+execFileSync(process.execPath, [path.resolve(here, '../../packages/barocss-physics/src/generate-provider.mjs')],
+  { cwd: path.resolve(here, '../..'), encoding: 'utf8' });
 const bundle = await build({
   entryPoints: [path.join(here, 'app.js')],
   bundle: true, write: false, format: 'esm', platform: 'browser', target: 'es2022',

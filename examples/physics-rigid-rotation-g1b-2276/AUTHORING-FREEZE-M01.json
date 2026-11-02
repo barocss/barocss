@@ -1,0 +1,40 @@
+{
+  "workId": "physics-rigid-rotation-g1b-2276",
+  "status": "PARENT_APPROVED_PHASE_M_AUTHORING_ONLY",
+  "head": "f99b500936e8e17ac732ac8bbd2ba9be9370fe98",
+  "phase": "M_ONLY",
+  "authoringAuthorized": true,
+  "runtimeAuthorized": false,
+  "phaseTAuthorized": false,
+  "productionActivation": false,
+  "files": [
+    {
+      "path": "examples/physics-rigid-rotation-g1b-2276/CONTRACT.md",
+      "bytes": 14376,
+      "sha256": "c1c87c64323836d7ac656ead490380bee82f801de2b67979f9f91309ee73ed31"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1b-2276/CASES.json",
+      "bytes": 8881,
+      "sha256": "0fb8b4ebc78044e8984fab83878a42fc5051f8717ce914091246de7098fbc386"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1b-2276/INTEGRATION-NOTES.md",
+      "bytes": 4085,
+      "sha256": "2b3c318e2c8d89a9b63d09faf64f53482547ba2513713cc84f9532a387666f9a"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1b-2276/REFERENCES-CLARIFICATION-01.md",
+      "bytes": 10318,
+      "sha256": "0d6e8a79f2cbf45f7579291f9b1b947295f28f0cf00eb57053ed581cb8979945"
+    }
+  ],
+  "accepted": "Fixed1kg literal triaxial plant; eighth-order27signedmidpoint/Cayley stages,4Newton/3x3updates each; independent certified directedTaylor32 reference; unchanged1e-12conservation/1e-11trajectory criteria. TwoWorlds/twoacceptedsteps/fourimmediateaudits only after later source/tools/runtime freeze.",
+  "conditions": [
+    "No production package edits or old-wrong-triaxial fallback; stage actual common World source+genuine emitted entry only.",
+    "Actual source3coefficientcalls beforeinit; SourcefullPASS+dispose beforeNativeconstantload/bitcompare andNativeWorld. Preserve6requestprotocol and declaredhelpercounts.",
+    "All retained/tmp/serialization/source/tool roots and contiguouslogstorage need bounded source proof before execution; no caps/iterations/tolerance increase.",
+    "Any failed build/reference/guard/resource/physics prefix preserved; phaseT remains separately conditional on actualM PASS.",
+    "No G1a/G2/originalP3/P4 rerun, noHOLDrelease/developmerge/push/deploy/equipmentclaim."
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "workId": "physics-world-p4-sat-scoped-cache-v2-2276",
+  "status": "parent_scope_frozen_before_core_implementation",
+  "base": "9551959c488f3f688846427b408f67036e70096b",
+  "inputs": {
+    "SCOPE-CONTRACT.md": "9bd49605d1e1cb70d8f2ecdff2cc3f4c62dd2f497b679f656cef9ab202c8cbd3",
+    "CONTROL-RECIPES.json": "3fb30d65c4e6f6a9b1158ee5100f02c80be2a08bf7adb4b6c4e4f25be532cfa5"
+  },
+  "approvedPopulation": {
+    "pairedCases": 12,
+    "baselineSatAttempts": 12,
+    "candidateSatAttempts": 12,
+    "totalSatAttempts": 24,
+    "maxOriginalSupportAttempts": 720,
+    "predictedBaselineOriginalSupportAttempts": 273,
+    "predictedCandidateLogicalSupportCalls": 273,
+    "predictedCandidateOriginalSupportAttempts": 221,
+    "predictedCandidateHits": 52,
+    "predictedTotalOriginalSupportAttempts": 494,
+    "fullReferenceCalls": 0,
+    "WorldCalls": 0,
+    "fixtureFunctions": 0,
+    "trigCalls": 0
+  },
+  "approvedBounds": {
+    "max_sat_calls": 288,
+    "max_logical_support_calls": 8640,
+    "max_pair_entries": 288,
+    "max_stage_entries": 8192,
+    "max_stages_per_pair": 30,
+    "max_flag_masks_per_stage": 512,
+    "max_key_bytes": 16384,
+    "max_encoded_bytes": 16777216,
+    "max_owned_bytes": 67108864
+  },
+  "newFullReferenceGate": {
+    "candidateCalls": 6,
+    "currentRawBytesAndSignedNumbersExact": true,
+    "uncachedFullBaselineCalls": 0,
+    "maximumStudyTotal": 38
+  },
+  "preservedV1": {
+    "numericStatus": "NUMERIC_EQ_PASS",
+    "costStatus": "COST_NO_GO",
+    "sha256": "a81159ef7a528763856c6ce9dd79f34e0469fd16028273cd497e6e9d417ba978"
+  },
+  "costBaselineCpuNs": 885643000,
+  "originalPhysicalGateChanges": false,
+  "runtimeDependenciesAdded": false
+}

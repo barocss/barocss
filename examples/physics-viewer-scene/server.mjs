@@ -1,7 +1,13 @@
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { build } from 'esbuild';
 import { basinSource } from '../physics-scene/fluid-viewer/basin-source.mjs';
+
+// Source provider identity must match this startup build's current numerical graph.
+execFileSync(process.execPath, [fileURLToPath(new URL('../../packages/barocss-physics/src/generate-provider.mjs', import.meta.url))],
+  { cwd: fileURLToPath(new URL('../..', import.meta.url)), encoding: 'utf8' });
 
 const bundle = await build({
   entryPoints: [new URL('app.js', import.meta.url).pathname],

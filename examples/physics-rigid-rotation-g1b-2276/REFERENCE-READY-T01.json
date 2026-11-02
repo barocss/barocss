@@ -1,0 +1,157 @@
+{
+  "status": "AUTHOR_READY_T_ONLY_NOT_EXECUTED",
+  "runtimeAuthorized": false,
+  "productionActivation": false,
+  "reference": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/reference-trajectory.py",
+    "bytes": 39887,
+    "sha256": "bcc3e19f90f256631d5366e4a23180649fbacdba6df7d94d1bf48b71c2b908b0"
+  },
+  "protocol": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/REFERENCE-PROTOCOL-T01.md",
+    "bytes": 6574,
+    "sha256": "db7b8323fabee98773e95cf71b1a6e20fa0c030385cf460b71680fc3048cfa0f"
+  },
+  "optimization": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/REFERENCE-OPTIMIZATION-T01.md",
+    "bytes": 4824,
+    "sha256": "114218d96f0b0fb5df1b96084e26f53397842dab66f80233575e45517020d13d"
+  },
+  "plan": {
+    "PHASE-T-PLAN-01.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/PHASE-T-PLAN-01.md",
+      "bytes": 11607,
+      "sha256": "6d7b12af2eef4e40733711ca9dfbdb3edb9e6e81a22bf4eb3cd0de62ef5357ce"
+    },
+    "PHASE-T-PLAN-01.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/PHASE-T-PLAN-01.json",
+      "bytes": 6159,
+      "sha256": "36b8610722396b2968c2768a59b4755c93bd3af84967be902c0bbc92c92b8223"
+    },
+    "AUTHORING-FREEZE-T02.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/AUTHORING-FREEZE-T02.json",
+      "bytes": 4988,
+      "sha256": "f9303456e312df892e4b772953aaadd797c1cc9920f26daf2d980a914f70b7ac"
+    }
+  },
+  "driverDependencies": {
+    "trajectory-campaign.mjs": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/trajectory-campaign.mjs",
+      "bytes": 44582,
+      "sha256": "fa1098b58515d6b3b8382e647a431d29c7bd4615d618506b8af0871ee69b7453"
+    },
+    "TRAJECTORY-READY-T02.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-READY-T02.json",
+      "bytes": 1653,
+      "sha256": "3de558cc820f3a24cf4f34f08634c2d9209d74ab8ddee1d01e6e8b671e25dab6"
+    },
+    "TRAJECTORY-DRIVER-PLAN-01.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-DRIVER-PLAN-01.md",
+      "bytes": 5474,
+      "sha256": "267d5137ec6353beac67123ae4425deb1d2cce66c899f095dad40108ea2e83bd"
+    },
+    "TRAJECTORY-DRIVER-PLAN-01.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-DRIVER-PLAN-01.json",
+      "bytes": 18115,
+      "sha256": "a83f7f85b9e50154fd9abfd4cc87fe2e3eb984d91b452cdc4f60cd8d1da63c12"
+    }
+  },
+  "closedNumericalDefinitions": {
+    "reference-micro.py": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/reference-micro.py",
+      "bytes": 47239,
+      "sha256": "90412a7e20b106939c14de7c5f8d619f0cd69d19caa780c91300ce540e3f0c36"
+    },
+    "baselineSHA": "5f5eee9ac2cd8b654eab134823a619254fd0b7c4ab8791419d077a71413a09eb",
+    "scope": "Imports only authenticated definition modules after complete source/tool/transitive-provider authentication; never calls old M main/auth/init/window or candidate/Physics."
+  },
+  "reusedTruth": {
+    "M02Geometry": 1,
+    "M02RootCertificates": 3,
+    "M02Windows": 4,
+    "generalTargets": "All24fine-gridtimes at80/120, savedwindows1/2 plus44new continuations",
+    "pRestore": "Directed I*R^Tomega/L*, not an invented saved p",
+    "principal": "Actual G1a principal-z80/120 bank; proper cyclic R[i][j]=Rz[perm[i]][perm[j]],qxyz/omega once,wunchanged;actualG1bI audits",
+    "newPrincipalTaylorTrigSqrt": 0
+  },
+  "fixedTWork": {
+    "WorldsDriverOnly": 16,
+    "attemptsDriverOnly": 114,
+    "acceptedDriverOnly": 94,
+    "stateAudits": 110,
+    "privateInitialRecords": 16,
+    "clockRoundings": 110,
+    "requests": 112,
+    "repliesIncludingReady": 113,
+    "newTaylorWindows": 44,
+    "newEndpointDecimalSqrt": 88,
+    "newIntegralMonomialBisectionTrigLinear": 0,
+    "driverGeneralFlows": 98,
+    "driverNewtonSolves": 10584,
+    "driverCompactTraceRows": 58310,
+    "driverCompactTraceWords": 279104
+  },
+  "actualCounterCaps": {
+    "M02DecimalBase": 2758004,
+    "TDecimalSubcap": 21000000,
+    "jointDecimalCap": 32000000,
+    "TPlannedDecimalIncluding100kOverhead": 20975624,
+    "jointPlannedDecimal": 23733628,
+    "historicalFractionBaseM01M02": 28292,
+    "TFractionSubcap": 1000000,
+    "jointFractionCap": 10000000,
+    "jointEndpointSqrtBase": 8,
+    "jointEndpointSqrtCap": 108,
+    "referenceWorkBytes": 8388608,
+    "ownedUniqueIDCap": 8192,
+    "referenceEvidenceSubcap": 8388608,
+    "combinedEvidence": 16777216,
+    "logicalTotal": 67108864,
+    "internalSeconds": 170,
+    "cleanupSeconds": 4,
+    "externalSeconds": 180
+  },
+  "staticProof": {
+    "syntaxAstOnly": "PASS",
+    "windowTransfer": "Same immutable coefficient builder,complete residual0..64/Picard/observable;reuse liveF_n forlowdegree,unchanged eta sum order;fixedContext sticky flags not numeric input. No lowerorder/precision/tolerance/window change.",
+    "exactSourceCensus": "4*(689198+288)+60=2758004 matches actual M02;optimized474158/eachnewwindow;no oldwindow rerun",
+    "clock": "Exact integer ties-even53bit quantization of underlyingpositive dyadic;no float conversion,ODEtime unchanged",
+    "principalMap": "Proper conjugation on bothmatrixindices",
+    "serialization": "Full actual proofs in48KiB artifacts;compact4KiBreplies and exact reference-owned reply authentication;72refinement gates stored once,summary pins4proofs.",
+    "normalization": "Actual admission normalizes before numeric Body; earlier inferred initialnearunit mismatch is not established."
+  },
+  "rootProof": {
+    "phases": "G1a rawbank extracted/released beforecontinuation;8rawcasesreleasedbeforeTaylor;all48targetrows retained;Contextregistry<=8 fullactualreports;thin initialactual5invariantfields withfull initialR/I saved",
+    "currentPolynomial": "Only33x12pairs/current12vectors;no32x12duplicate cache;registeredactivewindow/observable/transport/currentactualproof roots",
+    "separation": "No full initial metrics/private histories coexist with polynomial work; M02transitive provider metadata is hashed/released before numerical modules;driver storesown compact595record traces",
+    "enforcement": "Unchanged baseline working_bound8192uniqueIDs/8MiB,analytic1MiB precharge,serialization overlap;actual checks perappend/write;parent checks actualfreeze metadata before run",
+    "processToolHeapRSSClaim": false
+  },
+  "evidence": {
+    "traceBytes": 5536216,
+    "headers": 50176,
+    "driverPlanAllocated": 721920,
+    "driverEnvelope": 1572864,
+    "referenceEnvelope": 8388608,
+    "reservedEnvelope": 1048576,
+    "globalMaximum": 16596440,
+    "globalCap": 16777216,
+    "margin": 180776,
+    "noNumericWordLoss": true
+  },
+  "authoringActuals": {
+    "moduleEvaluation": 0,
+    "fixtureConversion": 0,
+    "FractionDecimalCalculationCalls": 0,
+    "build": 0,
+    "World": 0,
+    "dataIntegerBudgetArithmeticOnly": true,
+    "notes": "Two wrong authoring filesystem path lookups/patch targets were corrected before any source evaluation; no numerical prefix was run or claimed."
+  },
+  "remaining": [
+    "Combined final High execution review and fresh complete actual runtime freeze.",
+    "Actual T numerical/resource/rollback/source-native PASS remains NOT_RUN.",
+    "No production activation,all-admission range,downstream joint/contact/recorder or genericG4 qualification."
+  ],
+  "stopRule": "Reference/Ready/optimization source frozen after READY; no incidental edit without parent authority."
+}

@@ -1,0 +1,43 @@
+{
+  "status": "PASS_P5B_MODEL_DATA_GENERATION",
+  "runId": "model-data-01",
+  "counts": {
+    "createSheet": 1,
+    "triangleMassAccumulations": 1,
+    "canonicalEncode": 12,
+    "presetCopies": 16,
+    "WorldCalls": 0,
+    "WorldSteps": 0,
+    "CADCalls": 0,
+    "initialRestDensity": 0,
+    "solverCalls": 0
+  },
+  "firstFailure": null,
+  "outputs": [
+    {
+      "path": "packages/barocss-physics/src/domain/cloth-reference.generated.ts",
+      "bytes": 158018,
+      "sha256": "c9ee88af8e25b533c2694433502b28f51dffdeae5cce656b53eb36a187be60bc"
+    },
+    {
+      "path": "examples/physics-model-data-2276/model-data.mjs",
+      "bytes": 185560,
+      "sha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics/model-data.mjs",
+      "bytes": 185560,
+      "sha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604"
+    }
+  ],
+  "freeze": {
+    "path": "examples/physics-world-p5-2276/model-data-execution-freeze-01.json",
+    "bytes": 7042,
+    "sha256": "9d1ccf956ba5aacf00d9a9b35fbeb71f20d086999598bfc97db7e7c01d2b723e"
+  },
+  "elapsedMs": 338.002792,
+  "chargedEvidenceBytes": 190072,
+  "outputState": "Generated files remain for review even after failure; never overwrite/retry automatically",
+  "publicAdmission": "NOT_RUN",
+  "initializerCalls": 0
+}

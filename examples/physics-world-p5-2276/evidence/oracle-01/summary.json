@@ -1,0 +1,68 @@
+{
+  "status": "PASS_ORIGINAL_CLOTH_RESEARCH_ORACLE",
+  "counts": {
+    "researchFactoryAttempts": 1,
+    "researchConstructors": 1,
+    "researchFactoryReturns": 1,
+    "researchCreateSheetCalls": 1,
+    "researchStepCalls": 240,
+    "researchStepReturns": 240,
+    "privateAdvances": 1920,
+    "originalResearchProjectDistanceCalls": 6013440,
+    "originalResearchProjectSphereCalls": 3840,
+    "frames": 241,
+    "rawBytes": 3343152,
+    "PhysicsWorldFactoryCalls": 0,
+    "currentKernelCalls": 0
+  },
+  "artifacts": {
+    "oracle-f64le.bin": {
+      "bytes": 3343152,
+      "sha256": "84afe417169896fd243ad5e0ca0913a845183b4109812cd4561a03806db3558c"
+    },
+    "oracle-triangles-u16le.bin": {
+      "bytes": 3072,
+      "sha256": "a3f72db317e3d3aba24dd161664480e88b709053d80184182806fd1aea8665a0"
+    },
+    "oracle-index.json": {
+      "bytes": 84149,
+      "sha256": "0456e5f8f44f268aa0145085d915351c17d18de865f7a5c9cdba3d94e93ff348"
+    },
+    "provider-graph.json": {
+      "bytes": 1067,
+      "sha256": "a094347f3e39c85c5abe425c6d045e90ecb25bf301e42466a0bee909d3732c05"
+    }
+  },
+  "provider": {
+    "examples/physics-cloth-spike/world.mjs": {
+      "originalSha256": "25551263b87a26debdd802c7f4a2e0b91e16b9b1ade320767d960f91487aae5c",
+      "effectiveSha256": "03e4760ce2e5954f59a4c5264aadec0ebc0285479df4d9b3320a6ea387027325",
+      "counterOnlyOverlay": true
+    },
+    "examples/physics-cloth-spike/topology.mjs": {
+      "originalSha256": "9623e307ff500ab1add9bb94fa2343530bba47f266e519d9849ade4117ac164f",
+      "effectiveSha256": "5a6500f53f104abdc9563074f8d04013da107a85f9a3d0e69d7df1b6c2b52e52",
+      "counterOnlyOverlay": true
+    },
+    "examples/physics-cloth-spike/constraints.mjs": {
+      "originalSha256": "9e1eac17a83fb6fbf987dc6d0ae3fb3791b8b5031edaaca3c9968b8c82a06f64",
+      "effectiveSha256": "0e2a0880b7b46130340db6f8a98b04206a1c08e80648834796856d527760bad1",
+      "counterOnlyOverlay": true
+    },
+    "examples/physics-cloth-spike/fixture.mjs": {
+      "originalSha256": "a1ce782d1ead3059692d74d54555e399f01806b372a5744049c9a0df257526dd",
+      "effectiveSha256": "a1ce782d1ead3059692d74d54555e399f01806b372a5744049c9a0df257526dd",
+      "counterOnlyOverlay": false
+    }
+  },
+  "freezeSha256": "0d6cfaf8e0f2779735c93e50364f5590bd599cbb3d175a39ec80da781b8e78f0",
+  "graph": "independent original research only",
+  "comparisonToleranceAbsolute": 1e-12,
+  "reuse": "same authenticated241frames reused both current source/native; no second generation",
+  "notClaimed": [
+    "currentPhysicsWorld",
+    "currentP5baccuracy",
+    "browser",
+    "cost"
+  ]
+}

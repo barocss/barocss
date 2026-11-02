@@ -1,0 +1,33 @@
+{
+  "mode": "native",
+  "entry": "examples/viewer-qualified-face-scene/server.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/viewer-qualified-face-scene/server.mjs": {
+      "bytes": 7083,
+      "sha256": "3d7132fd188ff5e58d2a5c8510453b27343da14e2c000c01c2fec7d432807653",
+      "effectiveSha256": "3d7132fd188ff5e58d2a5c8510453b27343da14e2c000c01c2fec7d432807653"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 7098,
+  "outputSha256": "a1aa787d98cd682fe72899098e09a32b4d8635fc0e653fc3ccdf5e3550806323",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "missingNativeSDKBoundary": null,
+  "nativeHostSDKIntegration": "NOT_CLAIMED_BY_COMPILE",
+  "externalImports": [
+    "node:http",
+    "node:crypto",
+    "node:fs/promises",
+    "node:path",
+    "node:url",
+    "esbuild"
+  ],
+  "moduleEvaluation": false
+}

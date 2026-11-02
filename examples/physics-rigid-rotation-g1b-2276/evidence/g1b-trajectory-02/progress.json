@@ -1,0 +1,348 @@
+{
+  "phase": "failed",
+  "counts": {
+    "newPairVariants": 7,
+    "savedRawPairReuse": 1,
+    "variantScalarConversions": 18,
+    "commandScalarConversions": 9,
+    "guardScalarConversions": 9,
+    "constructorAttempts": 13,
+    "constructorReturns": 13,
+    "getStateAttempts": 33,
+    "getStateReturns": 33,
+    "stepAttempts": 110,
+    "acceptedSteps": 90,
+    "disposeAttempts": 13,
+    "disposeReturns": 13,
+    "privateInertiaCacheObservations": 33,
+    "commandRefusals": 8,
+    "unknownFaults": 6,
+    "postFlowGuards": 6,
+    "candidateConstantRootCalls": 6,
+    "knownCandidateConstantRootCalls": 6,
+    "generalFlowTraces": 97,
+    "traceRecords": 57715,
+    "traceF64Words": 276256,
+    "referenceSpawns": 1,
+    "referenceRequestAttempts": 104,
+    "referenceRequestsWritten": 104,
+    "referenceRepliesReceived": 105,
+    "referenceAuditsReceived": 102,
+    "buildChildren": 0,
+    "identityDigestDataCalls": 0,
+    "query": 0,
+    "getModel": 0,
+    "recorder": 0
+  },
+  "graphs": {
+    "source": {
+      "status": "PASS_TRAJECTORY_GRAPH",
+      "constantCalls": 3,
+      "cases": [
+        {
+          "caseId": "T01-dt60",
+          "status": "PASS_CASE",
+          "accepted": 6
+        },
+        {
+          "caseId": "T02-dt120",
+          "status": "PASS_CASE",
+          "accepted": 12
+        },
+        {
+          "caseId": "T03-dt240",
+          "status": "PASS_CASE",
+          "accepted": 24
+        },
+        {
+          "caseId": "P01-principal-x",
+          "status": "PASS_CASE",
+          "accepted": 1
+        },
+        {
+          "caseId": "P02-principal-y",
+          "status": "PASS_CASE",
+          "accepted": 1
+        },
+        {
+          "caseId": "P03-principal-z",
+          "status": "PASS_CASE",
+          "accepted": 1
+        },
+        {
+          "caseId": "Z01-zero",
+          "status": "PASS_CASE",
+          "accepted": 1
+        },
+        {
+          "caseId": "Q01-negative-q-off-axis",
+          "status": "PASS_CASE",
+          "accepted": 1
+        }
+      ],
+      "g1Counts": {
+        "dispatch": 53,
+        "prepare": 53,
+        "null": 0,
+        "eligible": 0,
+        "zero": 0,
+        "nonzero": 0,
+        "validate": 53,
+        "inheritedAdvanceOrientation": 3,
+        "sharedSin": 3,
+        "sharedCos": 3,
+        "bodySin": 0,
+        "bodyCos": 0,
+        "F01Site": 50,
+        "F02Site": 49,
+        "F03Site": 48,
+        "faultThrows": 3,
+        "guardReplacements": 3,
+        "attachments": 8,
+        "releases": 8,
+        "cacheReads": 18
+      },
+      "triaxialCounts": {
+        "coefficientPow": 3,
+        "prepare": 53,
+        "triaxial": 53,
+        "zero": 1,
+        "principal": 3,
+        "general": 49,
+        "initialMomentum": 49,
+        "midpoint": 1323,
+        "newtonCondition": 5292,
+        "linearSolve": 5292,
+        "pivot": 15876,
+        "newtonUpdate": 5292,
+        "midpointResidual": 1323,
+        "stageComplete": 1323,
+        "generalReturn": 49,
+        "linearResidualFailure": 0
+      },
+      "counts": {
+        "newPairVariants": 0,
+        "savedRawPairReuse": 0,
+        "variantScalarConversions": 0,
+        "commandScalarConversions": 0,
+        "guardScalarConversions": 0,
+        "constructorAttempts": 8,
+        "constructorReturns": 8,
+        "getStateAttempts": 18,
+        "getStateReturns": 18,
+        "stepAttempts": 57,
+        "acceptedSteps": 47,
+        "disposeAttempts": 8,
+        "disposeReturns": 8,
+        "privateInertiaCacheObservations": 18,
+        "commandRefusals": 4,
+        "unknownFaults": 3,
+        "postFlowGuards": 3,
+        "candidateConstantRootCalls": 0,
+        "knownCandidateConstantRootCalls": 0,
+        "generalFlowTraces": 49,
+        "traceRecords": 29155,
+        "traceF64Words": 139552,
+        "referenceSpawns": 0,
+        "referenceRequestAttempts": 55,
+        "referenceRequestsWritten": 55,
+        "referenceRepliesReceived": 55,
+        "referenceAuditsReceived": 55,
+        "buildChildren": 0,
+        "identityDigestDataCalls": 0,
+        "query": 0,
+        "getModel": 0,
+        "recorder": 0
+      }
+    },
+    "native": {
+      "status": "IN_PROGRESS",
+      "constantCalls": 3,
+      "cases": [
+        {
+          "caseId": "T01-dt60",
+          "status": "PASS_CASE",
+          "accepted": 6
+        },
+        {
+          "caseId": "T02-dt120",
+          "status": "PASS_CASE",
+          "accepted": 12
+        },
+        {
+          "caseId": "T03-dt240",
+          "status": "PASS_CASE",
+          "accepted": 24
+        },
+        {
+          "caseId": "P01-principal-x",
+          "status": "PASS_CASE",
+          "accepted": 1
+        },
+        {
+          "caseId": "P02-principal-y",
+          "status": "FAIL",
+          "accepted": 0,
+          "firstFailure": {
+            "name": "ReferenceFailure",
+            "message": "reference failure {\"type\":\"ReferenceFailure\",\"message\":\"owned graph bound\",\"detail\":null,\"receiptError\":\"owned graph bound\"}"
+          }
+        }
+      ]
+    }
+  },
+  "commands": [
+    {
+      "command": [
+        "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+        "-B",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/reference-trajectory.py",
+        "--run-id",
+        "g1b-trajectory-02",
+        "--freeze",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-EXECUTION-FREEZE-T02.json",
+        "--token",
+        "ee9ad4322bd29d07ef95a7d3d10e0f02bfe603410312675db8bbd3b9ffe0f662",
+        "--out",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference"
+      ],
+      "pid": 19216,
+      "closed": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exit": null,
+      "signal": "SIGTERM"
+    }
+  ],
+  "used": {
+    "inputs": 15016,
+    "states": 132185,
+    "caches": 81523,
+    "private": 4706,
+    "failures": 30160,
+    "controls": 981,
+    "coefficients": 2440,
+    "attempts": 9646,
+    "protocol": 15701,
+    "providers": 1416,
+    "helpers": 0,
+    "schema": 1201
+  },
+  "referenceBytes": 1922848,
+  "traceBytes": 5479724,
+  "headerBytes": 19470,
+  "firstFailure": {
+    "phase": "load-native",
+    "name": "ReferenceFailure",
+    "message": "reference failure {\"type\":\"ReferenceFailure\",\"message\":\"owned graph bound\",\"detail\":null,\"receiptError\":\"owned graph bound\"}",
+    "referenceReply": {
+      "status": "FAIL_G1B_TRAJECTORY_REFERENCE",
+      "op": "audit",
+      "requestOrdinal": 104,
+      "counts": {
+        "requestsAttempted": 104,
+        "requestsReturned": 103,
+        "bankInitializations": 1,
+        "bodyGeometryCertificatesAttempted": 0,
+        "bodyGeometryCertificatesReturned": 0,
+        "oneDimensionalMonomialMoments": 0,
+        "observedStateAuditsAttempted": 103,
+        "observedStateAuditsReturned": 103,
+        "properRationalRotationAttempts": 103,
+        "properRationalRotationReturns": 103,
+        "privateBodyObservations": 13,
+        "algebraicBisectionDecisions": 0,
+        "algebraicRootsCertified": 0,
+        "taylorWindowsAttempted": 0,
+        "taylorWindowsReturned": 0,
+        "decimal80Windows": 0,
+        "decimal120Windows": 0,
+        "fractionScalarOperations": 78080,
+        "decimalOperations": 0,
+        "decimalConversions": 0,
+        "decimalToFractionConversions": 0,
+        "endpointDecimalSqrtOperations": 0,
+        "WorldCalls": 0,
+        "candidateCalls": 0,
+        "PhysicsImports": 0,
+        "referenceLinearSolves": 0,
+        "trigEvaluations": 0,
+        "reusedGeometryCertificates": 1,
+        "reusedAlgebraicRootCertificates": 3,
+        "reusedTaylorWindows": 48,
+        "restored12StateEndpoints": 0,
+        "principalBankCopies": 0,
+        "savedRationalConversions": 2088,
+        "clockRoundings": 103,
+        "reusedClosedT01Banks": 1,
+        "reusedTargetRows": 48,
+        "reusedPrincipalTargets": 6
+      },
+      "firstFailure": {
+        "type": "ReferenceFailure",
+        "message": "owned graph bound",
+        "detail": null,
+        "receiptError": "owned graph bound"
+      }
+    }
+  },
+  "cleanupErrors": [],
+  "reference": {
+    "started": true,
+    "actual": "UNKNOWN",
+    "durableLowerBound": {
+      "counts": {
+        "requestsAttempted": 104,
+        "requestsReturned": 103,
+        "bankInitializations": 1,
+        "bodyGeometryCertificatesAttempted": 0,
+        "bodyGeometryCertificatesReturned": 0,
+        "oneDimensionalMonomialMoments": 0,
+        "observedStateAuditsAttempted": 102,
+        "observedStateAuditsReturned": 102,
+        "properRationalRotationAttempts": 102,
+        "properRationalRotationReturns": 102,
+        "privateBodyObservations": 12,
+        "algebraicBisectionDecisions": 0,
+        "algebraicRootsCertified": 0,
+        "taylorWindowsAttempted": 0,
+        "taylorWindowsReturned": 0,
+        "decimal80Windows": 0,
+        "decimal120Windows": 0,
+        "fractionScalarOperations": 77498,
+        "decimalOperations": 0,
+        "decimalConversions": 0,
+        "decimalToFractionConversions": 0,
+        "endpointDecimalSqrtOperations": 0,
+        "WorldCalls": 0,
+        "candidateCalls": 0,
+        "PhysicsImports": 0,
+        "referenceLinearSolves": 0,
+        "trigEvaluations": 0,
+        "reusedGeometryCertificates": 1,
+        "reusedAlgebraicRootCertificates": 3,
+        "reusedTaylorWindows": 48,
+        "restored12StateEndpoints": 0,
+        "principalBankCopies": 0,
+        "savedRationalConversions": 2088,
+        "clockRoundings": 102,
+        "reusedClosedT01Banks": 1,
+        "reusedTargetRows": 48,
+        "reusedPrincipalTargets": 6
+      },
+      "nextAudit": 0,
+      "sourceGraphComplete": true,
+      "firstFailure": null
+    },
+    "inFlight": "UNKNOWN",
+    "lastWire": {
+      "bytes": 1233,
+      "sha256": "d17695e79432a914b1b9d335e5b74a86d7877739cb1395bd095c2405001921ed"
+    },
+    "originalProgress": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/progress.json",
+      "bytes": 1097,
+      "sha256": "daebe555802571b14179d244dc162a0a3c7096b872d4d578cd1e8888b72ae1a2"
+    }
+  }
+}

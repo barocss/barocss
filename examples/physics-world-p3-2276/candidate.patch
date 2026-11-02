@@ -1,0 +1,232 @@
+diff --git a/packages/barocss-physics/src/model-admission.ts b/packages/barocss-physics/src/model-admission.ts
+--- a/packages/barocss-physics/src/model-admission.ts
++++ b/packages/barocss-physics/src/model-admission.ts
+@@ -4,6 +4,8 @@
+ import { error, finite, parseBody, vector } from './validation.js';
+ import { parseJoints } from './joints.js';
+ import { ID } from './limits.js';
++import { parseDisjointHingeProfile } from './disjoint-hinge/admission.js';
++import type { ParsedPair } from './disjoint-hinge/types.js';
+ 
+ function exact(value: unknown, keys: readonly string[], label: string): Record<string, unknown> {
+   if (value === null || typeof value !== 'object' || Array.isArray(value)) error('INVALID_CONFIG', `${label} must be a record`);
+@@ -28,6 +30,7 @@
+ }
+ export function admitModel(rawModel: PhysicsModel, rawOptions: WorldOptions): {
+   model: PhysicsModel; options: WorldOptions; bodies: Body[]; joints: Joint[];
++  disjointHinges: [ParsedPair, ParsedPair] | null;
+ } {
+   // Copy before dependent reads; getters, custom prototypes and sparse arrays never reach parsers.
+   const model = copyData(rawModel);
+@@ -107,7 +110,8 @@
+     return {id:j.id,kind:j.kind,aId:j.bodyAId,bId:j.bodyBId,anchorALocalM:j.anchorALocalM,anchorBLocalM:j.anchorBLocalM,
+       ...(j.kind==='hinge'?{axisWorld:j.axisWorld,limitRad:j.limitRad,...(j.motor===null?{}:{motor:j.motor})}:{})};
+   });
+-  const joints=parseJoints(numericJoints,bodies);
++  const disjoint = parseDisjointHingeProfile(model, options, numericJoints, bodies);
++  const joints = disjoint ? disjoint.joints : parseJoints(numericJoints, bodies);
+   // Bindings are inert provenance. All references must resolve to declared numerical entities.
+   const numericalIds = new Set(ids);
+   for(const value of bindings){
+@@ -117,5 +121,5 @@
+     const refs=list(s.entityIds,128,'entityIds');if(refs.length===0||new Set(refs).size!==refs.length||refs.some(ref=>typeof ref!=='string'||!numericalIds.has(ref)))error('INVALID_CONFIG','invalid source binding references');
+     const a=exact(s.approximation,['kind','lossLabel'],'approximation');if(a.kind!=='control-net-box'&&a.kind!=='control-net-sphere')error('INVALID_CONFIG','unsupported approximation');text(a.lossLabel,'lossLabel');
+   }
+-  return {model,options,bodies,joints};
++  return {model,options,bodies,joints,disjointHinges:disjoint?.pairs ?? null};
+ }
+diff --git a/packages/barocss-physics/src/world.ts b/packages/barocss-physics/src/world.ts
+--- a/packages/barocss-physics/src/world.ts
++++ b/packages/barocss-physics/src/world.ts
+@@ -23,6 +23,7 @@
+ import { bodyBounds, boundsOverlap } from './broadphase.js';
+ import { dormantPair, filterAllowsPair, wakeOnContact } from './scene-profile.js';
+ import { updateSleeping, wakeForActions } from './sleep.js';
++import { admitDisjointHingeCommands, driveDisjointHingeMotors, applyDisjointHingePostContact } from './disjoint-hinge/stage.js';
+ 
+ function publicState(bodies: Body[], contacts: PhysicsContact[], events: PhysicsEvent[],
+   joints: PhysicsJointState[], ccdHits: PhysicsCcdHit[], pairStats: PhysicsPairStats,
+@@ -56,6 +57,7 @@
+   const largeMode = admitted.options.profile === 'rigid-large-v1';
+   let bodies = admitted.bodies;
+   let joints = admitted.joints;
++  let disjointHinges = admitted.disjointHinges;
+   let modelCopy: PhysicsModel | null = admitted.model;
+   let optionsCopy: WorldOptions | null = admitted.options;
+   const colliderIds = new Map(admitted.model.colliders.map((collider) => [collider.bodyId, collider.id]));
+@@ -65,7 +67,7 @@
+     frameId: admitted.model.frame.id, fixedStepSeconds: dt };
+   let dynamicHinge = joints.find((joint) => joint.kind === 'hinge' &&
+     bodies[joint.aIndex].kind === 'dynamic');
+-  if (dynamicHinge) admitDynamicHingeScene(dynamicHinge, bodies, gravity);
++  if (dynamicHinge && !disjointHinges) admitDynamicHingeScene(dynamicHinge, bodies, gravity);
+   let ccd = admitCcd(bodies, joints.length, gravity);
+   if (ccd.kind === 'box-pair' && usePersistentBox) {
+     error('INVALID_CONFIG', 'box CCD excludes persistent-box-v1');
+@@ -121,7 +123,8 @@
+         error('WORLD_LIMIT', 'recording command limit reached');
+       }
+       const actions = parseCommands(admittedCommands, bodies);
+-      if (dynamicHinge) admitDynamicHingeCommands(dynamicHinge, bodies, actions);
++      if (disjointHinges) admitDisjointHingeCommands(disjointHinges, bodies, actions, admittedCommands.length);
++      else if (dynamicHinge) admitDynamicHingeCommands(dynamicHinge, bodies, actions);
+       if (ccd.kind === 'box-pair') rejectAngularBoxCommand(actions.get(bodies[ccd.boxIndex].id));
+       const preparedFrames = owner ? owner.prepareFrames(admittedCommands, stepIndex + 1) : null;
+       const next = bodies.map(copyBody);
+@@ -135,7 +138,8 @@
+           inverseInertia(body, add(action?.angularImpulseNms ?? [0, 0, 0],
+             scale(action?.torqueNm ?? [0, 0, 0], dt))));
+       }
+-      for (let index = 0; index < joints.length; index++) {
++      if (disjointHinges) driveDisjointHingeMotors(disjointHinges, next, jointStates, motorImpulses);
++      else for (let index = 0; index < joints.length; index++) {
+         const joint = joints[index];
+         if (!joint.motor) continue;
+         motorImpulses[index] = next[joint.aIndex].kind === 'dynamic'
+@@ -261,12 +265,18 @@
+             bounds[bIndex] = bodyBounds(b);
+           }
+         }
+-        for (let index = 0; index < joints.length; index++) {
++        if (!disjointHinges) for (let index = 0; index < joints.length; index++) {
+           const reaction = projectJoint(joints[index], next, bodies, dt);
+           nextJoints[index].linearImpulseNs = add(nextJoints[index].linearImpulseNs, reaction.linearImpulseNs);
+           nextJoints[index].angularImpulseNms = add(nextJoints[index].angularImpulseNms, reaction.angularImpulseNms);
+           if (reaction.angleRad !== undefined) nextJoints[index].angleRad = reaction.angleRad;
+         }
++      }
++      if (disjointHinges) {
++        if (found.size !== 0 || sensed.size !== 0) {
++          error('NUMERIC_LIMIT', 'disjoint hinge contact profile is unsupported');
++        }
++        applyDisjointHingePostContact(disjointHinges, next, nextJoints, motorImpulses, stepIndex, stepIndex * dt);
+       }
+       const nextContacts = [...found.values()];
+       if (largeMode) updateSleeping(next, nextContacts, nextSleepFrames);
+@@ -342,7 +352,7 @@
+       if (owner) { owner.recording = null; owner.commandCount = 0; owner = null; }
+       optionsCopy = null; bodies = []; contacts = []; events = []; ccdHits = [];
+       activePairs.clear(); persistentPoints.clear(); sleepFrames = []; jointStates = [];
+-      joints = []; dynamicHinge = undefined; ccd = { kind: 'none' }; pairs.length = 0;
++      joints = []; dynamicHinge = undefined; disjointHinges = null; ccd = { kind: 'none' }; pairs.length = 0;
+       colliderIds.clear(); modelCopy = null; },
+   };
+   let running = false;
+diff --git a/packages/barocss-physics/src/disjoint-hinge/admission.ts b/packages/barocss-physics/src/disjoint-hinge/admission.ts
+new file mode 100644
+--- /dev/null
++++ b/packages/barocss-physics/src/disjoint-hinge/admission.ts
+@@ -0,0 +1,60 @@
++import type { PhysicsModel, WorldOptions } from '../types.js';
++import type { Body, Joint } from '../internal-types.js';
++import { parseJoints } from '../joints.js';
++import { error } from '../validation.js';
++import type { ParsedPair } from './types.js';
++
++const RESTRICTION = 'dynamic pair supports one joint between two dynamic spheres';
++const equal = (values: readonly number[], wanted: readonly number[]): boolean =>
++  values.length === wanted.length && values.every((value, index) => value === wanted[index]);
++const refuse = (): never => error('INVALID_CONFIG', RESTRICTION);
++
++/** Parsed model data only. All other existing profiles retain their original parser. */
++export function parseDisjointHingeProfile(model: PhysicsModel, options: WorldOptions,
++  inputs: readonly Record<string, unknown>[], bodies: Body[]): {
++    joints: Joint[]; pairs: [ParsedPair, ParsedPair];
++  } | null {
++  if (bodies.length !== 4 || bodies.some(body => body.kind !== 'dynamic') ||
++    inputs.length !== 2 || inputs.some(input => input.kind !== 'hinge')) return null;
++  const byId = new Map(bodies.map((body, index) => [body.id, { body, index }]));
++  const seenB = new Set<string>();
++  // Parse in submitted joint order before testing the narrower physical profile.
++  const joints = inputs.map(input => {
++    const a = typeof input.aId === 'string' ? byId.get(input.aId) : undefined;
++    const b = typeof input.bId === 'string' ? byId.get(input.bId) : undefined;
++    if (!a || !b || a.index === b.index || seenB.has(b.body.id)) {
++      error('INVALID_CONFIG', 'joint needs a distinct A and unique dynamic B');
++    }
++    const local = parseJoints([input], [a.body, b.body])[0];
++    seenB.add(b.body.id);
++    return { ...local, aIndex: a.index, bIndex: b.index };
++  });
++  if (options.profile !== 'rigid-discrete-v1' || options.broadPhase !== 'direct' ||
++    options.fixedStepSeconds !== 1 / 120 || !equal(model.gravityMps2, [0, 0, 0]) ||
++    model.cloths.length !== 0 || model.fluids.length !== 0 ||
++    model.bodies.some(body => body.kind !== 'dynamic' || body.inertia.kind !== 'primitive-com')) refuse();
++  for (const body of bodies) {
++    if (body.shape.kind !== 'sphere' || body.shape.radiusM !== .1 || body.inverseMass !== 1 ||
++      body.inertiaKgM2 !== .4 * .1 ** 2 || body.restitution !== 0 ||
++      body.frictionStatic !== 1 || body.frictionDynamic !== .7 || body.sensor || body.ccd ||
++      body.collisionFilter || !equal(body.velocityMps, [0, 0, 0]) ||
++      !equal(body.angularVelocityRadps, [0, 0, 0]) || !equal(body.orientation, [0, 0, 0, 1])) refuse();
++  }
++  const used = new Set<number>();
++  const pairs: ParsedPair[] = joints.map((joint, jointInputIndex): ParsedPair => {
++    const a = bodies[joint.aIndex], b = bodies[joint.bIndex];
++    if (used.has(joint.aIndex) || used.has(joint.bIndex)) refuse();
++    used.add(joint.aIndex); used.add(joint.bIndex);
++    const z = a.positionM[2];
++    if ((z !== 0 && z !== 1) || !equal(a.positionM, [-.1, 0, z]) ||
++      !equal(b.positionM, [.1, 0, z]) || !equal(joint.anchorALocalM, [.1, 0, 0]) ||
++      !equal(joint.anchorBLocalM, [-.1, 0, 0]) || !equal(joint.axisWorld!, [0, 0, 1]) ||
++      !equal(joint.limitRad!, [-.8, .8]) || joint.motor?.targetSpeedRadps !== .5 ||
++      joint.motor.maxImpulseNms !== .0001 || joint.motor.maxReactionNms !== .01) refuse();
++    return { joint: { ...joint, aIndex: 0, bIndex: 1 }, originM: [0, 0, z],
++      bodyIndices: [joint.aIndex, joint.bIndex], jointInputIndex };
++  });
++  pairs.sort((a, b) => a.originM[2] - b.originM[2]);
++  if (used.size !== 4 || pairs[0].originM[2] !== 0 || pairs[1].originM[2] !== 1) refuse();
++  return { joints, pairs: pairs as [ParsedPair, ParsedPair] };
++}
+diff --git a/packages/barocss-physics/src/disjoint-hinge/stage.ts b/packages/barocss-physics/src/disjoint-hinge/stage.ts
+new file mode 100644
+--- /dev/null
++++ b/packages/barocss-physics/src/disjoint-hinge/stage.ts
+@@ -0,0 +1,48 @@
++import type { Body, PhysicsJointState } from '../internal-types.js';
++import type { AdmittedCommands } from '../validation.js';
++import { error } from '../validation.js';
++import { admitDynamicHingeCommands } from '../dynamic-hinge-joint.js';
++import { driveDynamicHingeMotor } from '../joint-motor.js';
++import { projectDisjointPostContact } from './postcontact.js';
++import type { ParsedPair } from './types.js';
++
++type Pairs = readonly [ParsedPair, ParsedPair];
++
++/** Generic parsing precedes this function. No physical stage runs on refusal. */
++export function admitDisjointHingeCommands(pairs: Pairs, bodies: Body[],
++  actions: Map<string, AdmittedCommands>, commandCount: number): void {
++  for (const pair of pairs) {
++    admitDynamicHingeCommands(pair.joint,
++      [bodies[pair.bodyIndices[0]], bodies[pair.bodyIndices[1]]], actions);
++  }
++  if (commandCount !== 0) error('INVALID_COMMAND', 'disjoint hinge profile supports empty commands only');
++}
++
++/** One motor per component, Z0 then Z1, using previous accepted report memory. */
++export function driveDisjointHingeMotors(pairs: Pairs, bodies: Body[],
++  reports: readonly PhysicsJointState[], impulses: number[]): void {
++  for (const pair of pairs) impulses[pair.jointInputIndex] = driveDynamicHingeMotor(pair.joint,
++    bodies[pair.bodyIndices[0]], bodies[pair.bodyIndices[1]], reports[pair.jointInputIndex].angleRad!);
++}
++
++/** Compose the qualified package phase; never repeat angular, motor, FREE or contact. */
++export function applyDisjointHingePostContact(pairs: Pairs, bodies: Body[],
++  reports: PhysicsJointState[], motorImpulses: readonly number[], sourceStepIndex: number,
++  sourceTimeSeconds: number): void {
++  // The unchanged helper checks caps in report index order. Give it canonical
++  // indices, then map its reports back to submitted order after both pairs pass.
++  const canonical: [ParsedPair, ParsedPair] = [
++    { ...pairs[0], jointInputIndex: 0 }, { ...pairs[1], jointInputIndex: 1 },
++  ];
++  const result = projectDisjointPostContact({ bodies, pairs: canonical,
++    motorImpulsesNms: [motorImpulses[pairs[0].jointInputIndex], motorImpulses[pairs[1].jointInputIndex]],
++    sourceStepIndex, sourceTimeSeconds });
++  for (let index = 0; index < bodies.length; index++) {
++    const target = bodies[index], returned = result.projectedBodies[index];
++    target.positionM = [...returned.positionM];
++    target.velocityMps = [...returned.velocityMps];
++    target.orientation = [...returned.orientation];
++    target.angularVelocityRadps = [...returned.angularVelocityRadps];
++  }
++  for (const index of [0, 1] as const) reports[pairs[index].jointInputIndex] = result.jointReports[index];
++}

@@ -1,0 +1,29 @@
+{
+  "workId": "physics-world-p4-position-profile-2276",
+  "base": "c91c6ef8c51befc6bf5947d408c18a36015aad0f",
+  "status": "frozen_before_two_profile_evaluations",
+  "inputs": {
+    "POSITION-PROFILE-CONTRACT.md": "4c24e6271aaf6748e66c46b3436cd8ce2712c77afe935624c31a3bb7394183e0",
+    "position-profile.py": "991fc602740e077a5788df1d4cdb744caee638534bb35a59f66dc2b77b9c43f8",
+    "position-profile-run.mjs": "149db59425bfdc4e86a1ab70409b6c5a5bac68553644b79bc2051df8be1ffcd7",
+    "cost-census.py": "67c23875efa2836cd2c374794dfb6b942366493e8fbf979ffcd8789ac2c8464f",
+    "observable-census.py": "964241f58710fbc2089a64675df19f50be47c7a74ac32751564559c3f2576ca4"
+  },
+  "authority": {
+    "path": "evidence/observable-census-01/summary.json",
+    "sha256": "be2317e3160da6ac961b7e4ec7e0bbddd20133947bc536c3de955691d9df80cb",
+    "type": "current uncached raw responses, including signed zero"
+  },
+  "maximumNewReferenceEvaluations": 2,
+  "studyActualEvaluationsAfterFullSuccess": 26,
+  "WorldCalls": 0,
+  "fixtureCalls": 0,
+  "trigCalls": 0,
+  "externalDeadlineMs": 180000,
+  "internalDeadlineSeconds": 170,
+  "physicalGateChanges": false,
+  "historicalRawReplyZeroSign": "UNKNOWN",
+  "oldStrictCensusStatus": "FAIL_PRESERVED",
+  "wrapperReceiptId": "position-profile-guard-01",
+  "profileId": "position-profile-01"
+}

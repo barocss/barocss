@@ -1,0 +1,35 @@
+{
+  "mode": "source",
+  "entry": "examples/physics-cloth-viewer/decode.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/physics-cloth-viewer/decode.mjs": {
+      "bytes": 1649,
+      "sha256": "9034b8a5772ab5b3ad7cbccf6dbaee71546d7ba03b1f4b4cfd50d61599507066",
+      "effectiveSha256": "9034b8a5772ab5b3ad7cbccf6dbaee71546d7ba03b1f4b4cfd50d61599507066"
+    },
+    "examples/physics-cloth-viewer/metrics.mjs": {
+      "bytes": 2098,
+      "sha256": "4f9d93e1e4a02b65251ee91ed7dc15269089ecf97079db400bce13f625f5debe",
+      "effectiveSha256": "4f9d93e1e4a02b65251ee91ed7dc15269089ecf97079db400bce13f625f5debe"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 4056,
+  "outputSha256": "22ceaae5a36bdcf1c26b28939fd2de732b26f54d2ba43bf76344374c4017b651",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [
+    "node:assert/strict",
+    "node:fs",
+    "node:zlib",
+    "node:crypto",
+    "node:path"
+  ],
+  "moduleEvaluation": false
+}

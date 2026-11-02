@@ -1,0 +1,87 @@
+TAP version 13
+# Subtest: free flight matches the discrete fixed-step analytic solution
+ok 1 - free flight matches the discrete fixed-step analytic solution
+  ---
+  duration_ms: 2.553209
+  type: 'test'
+  ...
+# Subtest: force lasts one step; impulse changes velocity once
+ok 2 - force lasts one step; impulse changes velocity once
+  ---
+  duration_ms: 0.312375
+  type: 'test'
+  ...
+# Subtest: invalid step retains accepted state; copies and disposal are explicit
+ok 3 - invalid step retains accepted state; copies and disposal are explicit
+  ---
+  duration_ms: 0.724833
+  type: 'test'
+  ...
+# Subtest: off-origin CAD proxy uses literal quarter-turn coordinates
+ok 4 - off-origin CAD proxy uses literal quarter-turn coordinates
+  ---
+  duration_ms: 2.296959
+  type: 'test'
+  ...
+# Subtest: reduced pendulum equilibrium and lifecycle use the local root export
+ok 5 - reduced pendulum equilibrium and lifecycle use the local root export
+  ---
+  duration_ms: 0.268542
+  type: 'test'
+  ...
+# Subtest: robot motion guide: mixed turn/slide timing, saved motion and analytic SCARA FK
+not ok 6 - robot motion guide: mixed turn/slide timing, saved motion and analytic SCARA FK
+  ---
+  duration_ms: 118.424625
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/library-docs-samples-1KySEY/physics-motion.test.mjs:115484:1'
+  failureType: 'testCodeFailure'
+  error: 'false == true'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/library-docs-samples-1KySEY/physics-motion.test.mjs:115500:52
+    Array.forEach (<anonymous>)
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/library-docs-samples-1KySEY/physics-motion.test.mjs:115500:18)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: robot motion guide: jerk-limited path keeps synchronized endpoints and finite samples
+ok 7 - robot motion guide: jerk-limited path keeps synchronized endpoints and finite samples
+  ---
+  duration_ms: 1520.024375
+  type: 'test'
+  ...
+# Subtest: robot motion guide: typed invalid-input and joint-limit refusals
+ok 8 - robot motion guide: typed invalid-input and joint-limit refusals
+  ---
+  duration_ms: 379.826916
+  type: 'test'
+  ...
+# Subtest: robot motion guide: analytic IK targets, independent residuals and joint bounds
+ok 9 - robot motion guide: analytic IK targets, independent residuals and joint bounds
+  ---
+  duration_ms: 2.335875
+  type: 'test'
+  ...
+# Subtest: robot motion guide: IK target outside travel stays unreached with a measured residual
+ok 10 - robot motion guide: IK target outside travel stays unreached with a measured residual
+  ---
+  duration_ms: 5.3095
+  type: 'test'
+  ...
+# {"reached":false,"errorM":0.04,"returnedSlideMm":80}
+1..10
+# tests 10
+# suites 0
+# pass 9
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2410.061292

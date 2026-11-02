@@ -1,0 +1,74 @@
+TAP version 13
+# {"profile":"rigid-persistent-box-v1","frames":24,"continued":20,"sleeping":0,"contacts":1,"scope":"exact continuation; no stable-stack qualification"}
+# {"profile":"rigid-large-v1","frames":180,"continued":20,"sleeping":6,"contacts":6,"scope":"exact continuation; no stable-stack qualification"}
+# {"metric":"ballistic","errorsM":[0.08174999999999999,0.04087500000000688,0.020437499999998554],"ratios":[1.9999999999996632,2.000000000000478]}
+# {"metric":"cad-off-origin","translationMm":[160,-80.00000000000001,0],"gateMm":0.000001,"sourceAndRevisionStaleRefused":true}
+# Subtest: one attached owner; cached direct step cannot bypass; read/query and detached lifecycle
+ok 1 - one attached owner; cached direct step cannot bypass; read/query and detached lifecycle
+  ---
+  duration_ms: 12.259917
+  type: 'test'
+  ...
+# Subtest: accepted log/state are copied; invalid and numerical failures preserve continuation
+ok 2 - accepted log/state are copied; invalid and numerical failures preserve continuation
+  ---
+  duration_ms: 21.4915
+  type: 'test'
+  ...
+# Subtest: command reflection cannot reenter any lifecycle operation or diverge applied and recorded values
+ok 3 - command reflection cannot reenter any lifecycle operation or diverge applied and recorded values
+  ---
+  duration_ms: 6.80475
+  type: 'test'
+  ...
+# Subtest: frame and aggregate command budgets refuse without advancing or changing log
+ok 4 - frame and aggregate command budgets refuse without advancing or changing log
+  ---
+  duration_ms: 1269.039875
+  type: 'test'
+  ...
+# Subtest: recording byte/model budgets fail before ownership or accepted physical commit
+ok 5 - recording byte/model budgets fail before ownership or accepted physical commit
+  ---
+  duration_ms: 10.900292
+  type: 'test'
+  ...
+# Subtest: rigid-persistent-box-v1 restores contact/cache/events/sleep continuation at unchanged gates
+ok 6 - rigid-persistent-box-v1 restores contact/cache/events/sleep continuation at unchanged gates
+  ---
+  duration_ms: 163.583041
+  type: 'test'
+  ...
+# Subtest: rigid-large-v1 restores contact/cache/events/sleep continuation at unchanged gates
+ok 7 - rigid-large-v1 restores contact/cache/events/sleep continuation at unchanged gates
+  ---
+  duration_ms: 438.035583
+  type: 'test'
+  ...
+# Subtest: wire signed zero and frozen canonical bytes match independent SHA; old wire and malformed bytes refuse
+ok 8 - wire signed zero and frozen canonical bytes match independent SHA; old wire and malformed bytes refuse
+  ---
+  duration_ms: 49.040709
+  type: 'test'
+  ...
+# Subtest: complete shape refusal precedes stale identity; damage never mutates the source World/log
+ok 9 - complete shape refusal precedes stale identity; damage never mutates the source World/log
+  ---
+  duration_ms: 15.16125
+  type: 'test'
+  ...
+# Subtest: ballistic independent truth and CAD off-origin/stale source gates remain unchanged
+ok 10 - ballistic independent truth and CAD off-origin/stale source gates remain unchanged
+  ---
+  duration_ms: 167.840167
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2218.32725

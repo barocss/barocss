@@ -2,7 +2,8 @@ import { createViewer } from '@barocss/viewer';
 import { loadBaroCadAssembly } from '@barocss/cad-interop/assembly';
 import { loadBaroCadModelSet } from '@barocss/cad-interop/model-set';
 import { updateCadAssembly, resolveCadGeometryReference, sampleCurveWideAdaptive } from '@barocss/cad';
-import { createClothWorld } from '@barocss/physics/cloth';
+import { createPhysicsWorld } from '@barocss/physics';
+import { copyPhysicsModelPreset } from '../physics-model-data-2276/model-data.mjs';
 
 const check = (condition, message) => { if (!condition) throw new Error(message); };
 const clone = value => structuredClone(value);
@@ -304,13 +305,14 @@ async function witness(assembly) {
 async function startClothScene() {
   nativeSet??=await loadBaroCadModelSet({format:'barocad-model-set',version:0,entries:[{aliasId:'cloth_original',
     url:'/original-panel.barocad',options:{sourceVersion:0,countU:3,countV:3,unitsPerMillimeter:1}}]}, {baseURL:location.href});
-  clothWorld??=createClothWorld({format:'barocss-cloth-scene',version:1,revision:'assemblyClothPrior',
-    basis:'right-handed-xyz-metres',fixedStepSeconds:1/120,profile:'pinned-sheet-sphere-v1'});
+  const clothInput=copyPhysicsModelPreset('cloth-pinned-sphere-visual-v1');
+  clothInput.model.revision='assemblyClothPrior';
+  clothWorld??=createPhysicsWorld(clothInput.model,clothInput.options);
   const state=clothWorld.getState();viewer.loadModelSet(nativeSet);
   viewer.setView({eye:[0,100,0],target:[0,15,0],up:[0,0,-1],fovY:45,near:.01,far:500});
-  const frame={version:0,layerId:'prior_native_cloth',contextId:'prior_world',sceneRevision:state.sceneRevision,
-    stepIndex:state.stepIndex,vertexCount:state.vertexCount,triangleCount:state.triangleCount,
-    positionsM:state.positionsM,triangles:state.triangles};viewer.setClothFrame(frame);return frame;
+  const frame={version:0,layerId:'prior_native_cloth',contextId:'prior_world',sceneRevision:state.identity.modelRevision,
+    stepIndex:state.stepIndex,vertexCount:state.cloths[0].positionsM.length/3,triangleCount:clothInput.model.cloths[0].triangles.length,
+    positionsM:state.cloths[0].positionsM,triangles:Uint16Array.from(clothInput.model.cloths[0].triangles.flat())};viewer.setClothFrame(frame);return frame;
 }
 async function runProof() {
   if(running||disposed||viewer.getState().status!=='ready')throw Error('Proof needs a live ready Viewer');

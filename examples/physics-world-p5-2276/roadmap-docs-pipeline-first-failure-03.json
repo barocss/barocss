@@ -1,0 +1,15 @@
+{
+  "status": "FAIL_SHELL_PATH_BEFORE_LINK_CHECK_PRESERVED",
+  "completedPasses": [
+    "roadmap-docs-structure-03",
+    "roadmap-docs-build-03"
+  ],
+  "exit": 127,
+  "badExecutable": "/Users/user/.volta/tools/image/node22.19.0/bin/node",
+  "correctExecutable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "stderr": "zsh:6: no such file or directory",
+  "linkGuardStarted": false,
+  "linkChecksExecuted": 0,
+  "PhysicsCalls": 0,
+  "repair": "Run only unexecuted roadmap-docs-links-03 using correct installed Node path; do not repeat structure/build."
+}

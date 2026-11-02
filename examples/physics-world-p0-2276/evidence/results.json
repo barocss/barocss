@@ -1,0 +1,44 @@
+{
+  "workId": "physics-world-p0-2276",
+  "base": "66df02f8e7d5a3a7ab7b8ff7a0184bf34d978713",
+  "branch": "codex/physics-world-p0-2276",
+  "status": "P0_CONTRACT_READY",
+  "typeCheck": {
+    "exit": 0,
+    "negativeConsumers": 13,
+    "receipt": "evidence/types-02.txt"
+  },
+  "contractCheck": {
+    "exit": 0,
+    "profiles": 7,
+    "encodingVectors": 7,
+    "requirements": 19,
+    "receipt": "evidence/contract-03.txt"
+  },
+  "inventory": {
+    "exit": 0,
+    "files": 1281,
+    "lexicalRecords": 5071,
+    "unclassifiedLexicalRecords": 0,
+    "runtimeReachabilityProof": false,
+    "receipt": "evidence/inventory-check-02.txt"
+  },
+  "docs": {
+    "buildExit": 0,
+    "pages": 73,
+    "links": 785,
+    "anchors": 201,
+    "p0ByteIdenticalCopies": 3
+  },
+  "runtimeApiChanged": false,
+  "targetRuntime": "NOT_IMPLEMENTED",
+  "newPhysicsExecution": "NOT_RUN",
+  "oldNumericalEvidenceChanged": false,
+  "oldHolds": "UNCHANGED",
+  "twoHinge": "NO_GO",
+  "originalEightBoxSettling": "NO_GO/NOT_RUN",
+  "remoteWrite": false,
+  "deployment": false,
+  "dependencyInstall": false,
+  "next": "P1a internal commit preparation only; public cutover remains P1b"
+}

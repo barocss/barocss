@@ -1,0 +1,35 @@
+{
+  "mode": "source",
+  "entry": "examples/physics-viewer-scene/server.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/physics-viewer-scene/server.mjs": {
+      "bytes": 3790,
+      "sha256": "1f24065ce1286024dae0c01733e7dfc46ffe46bbce77f2a5f094e0b93a7a9d6c",
+      "effectiveSha256": "1f24065ce1286024dae0c01733e7dfc46ffe46bbce77f2a5f094e0b93a7a9d6c"
+    },
+    "examples/physics-scene/fluid-viewer/basin-source.mjs": {
+      "bytes": 287,
+      "sha256": "eb80b048aea04bc8ddabf73d609db0f7e57e9c6203b9cec9c7546b58ae680036",
+      "effectiveSha256": "eb80b048aea04bc8ddabf73d609db0f7e57e9c6203b9cec9c7546b58ae680036"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 4077,
+  "outputSha256": "b537a3015afd9815f0dd431d271fa2df0264dd14b0169b948c2209c2869486e0",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [
+    "node:child_process",
+    "node:url",
+    "node:http",
+    "node:fs/promises",
+    "esbuild"
+  ],
+  "moduleEvaluation": false
+}

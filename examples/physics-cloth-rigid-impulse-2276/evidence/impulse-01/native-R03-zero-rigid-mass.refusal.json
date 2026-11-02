@@ -1,0 +1,6 @@
+{
+  "status": "PASS_EXPECTED_REFUSAL",
+  "code": "INVALID_INPUT",
+  "reason": "RIGID_MASS_RANGE",
+  "inputUnchanged": true
+}

@@ -1,4 +1,5 @@
-import type { PhysicsBodyConfig, PhysicsBodyState, Quat, Vec3 } from './types.js';
+import type { RigidBody, BodyState, Collider, SourceBinding } from './types.js';
+import type { Quat, Vec3 } from './internal-types.js';
 
 export interface CadSurfaceProxyRequest {
   sourceVersion: 0;
@@ -21,7 +22,9 @@ export interface CadSurfaceProxy {
   sourceCenterMM: Vec3;
   sourceBoundsMM: { min: Vec3; max: Vec3 };
   lossLabel: string;
-  body: PhysicsBodyConfig;
+  body: RigidBody;
+  collider: Collider;
+  binding: SourceBinding;
 }
 
 export interface CadProxyPose {
@@ -30,4 +33,4 @@ export interface CadProxyPose {
   rotation: Quat;
 }
 
-export type CadProxyBodyState = Pick<PhysicsBodyState, 'id' | 'positionM' | 'orientation'>;
+export type CadProxyBodyState = Pick<BodyState, 'id' | 'positionM' | 'orientationXYZW'>;

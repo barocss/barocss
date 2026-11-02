@@ -1,0 +1,13 @@
+{
+  "profile": "public-persistent-box-three-body-v1",
+  "accepted": 120,
+  "peakPenetrationM": 0.0006866483709365712,
+  "peakTiltRad": 0.0000013876493843582927,
+  "finalBodyY": [
+    0.499998274063013,
+    1.4999982921607518
+  ],
+  "publicWorldExecuted": true,
+  "stableStackQualified": false,
+  "originalEightBoxQualified": false
+}

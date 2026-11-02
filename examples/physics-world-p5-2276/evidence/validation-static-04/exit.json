@@ -1,0 +1,15 @@
+{
+  "code": 1,
+  "signal": null,
+  "timedOut": false,
+  "overflow": false,
+  "closed": true,
+  "stdoutEOF": true,
+  "stderrEOF": true,
+  "groupAbsent": true,
+  "signals": [],
+  "status": "FAIL",
+  "progressPath": "progress.json",
+  "summaryPath": "summary.json",
+  "end": "2026-11-01T23:41:41.384Z"
+}

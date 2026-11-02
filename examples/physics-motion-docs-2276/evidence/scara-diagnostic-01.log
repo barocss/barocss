@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: robot motion guide: mixed turn/slide timing, saved motion and analytic SCARA FK
+not ok 1 - robot motion guide: mixed turn/slide timing, saved motion and analytic SCARA FK
+  ---
+  duration_ms: 178.379791
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/library-docs-samples-psB35w/physics-motion.test.mjs:115484:1'
+  failureType: 'testCodeFailure'
+  error: 'false == true'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/library-docs-samples-psB35w/physics-motion.test.mjs:115507:52
+    Array.forEach (<anonymous>)
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/library-docs-samples-psB35w/physics-motion.test.mjs:115507:18)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# {"metric":"scara-first-oracle-diagnostic","actual":[207.7147,119.509619,-45],"expected":[192.2243186433546,116.3397459621556,-45],"homeQuill":[225,25,-30],"jointOrigins":[{"key":"base~arm1","origin":[40,40.00000000000001,10],"axis":[0,0,1]},{"key":"arm1~arm2","origin":[129.99999999999991,39.99999999999999,20],"axis":[0,0,1]},{"key":"arm2~quill","origin":[225,25,-30],"axis":[0,0,1]},{"key":"quill~tool","origin":[235,35,-38],"axis":[0,0,1]}]}
+# Subtest: robot motion guide: jerk-limited path keeps synchronized endpoints and finite samples
+ok 2 - robot motion guide: jerk-limited path keeps synchronized endpoints and finite samples
+  ---
+  duration_ms: 1469.483792
+  type: 'test'
+  ...
+# Subtest: robot motion guide: typed invalid-input and joint-limit refusals
+ok 3 - robot motion guide: typed invalid-input and joint-limit refusals
+  ---
+  duration_ms: 368.428
+  type: 'test'
+  ...
+# Subtest: robot motion guide: analytic IK targets, independent residuals and joint bounds
+ok 4 - robot motion guide: analytic IK targets, independent residuals and joint bounds
+  ---
+  duration_ms: 2.242375
+  type: 'test'
+  ...
+# Subtest: robot motion guide: IK target outside travel stays unreached with a measured residual
+ok 5 - robot motion guide: IK target outside travel stays unreached with a measured residual
+  ---
+  duration_ms: 4.836709
+  type: 'test'
+  ...
+# {"reached":false,"errorM":0.04,"returnedSlideMm":80}
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2375.266542

@@ -1,0 +1,277 @@
+{
+  "model": {
+    "format": "barocss-physics-model",
+    "version": {
+      "$f64le": "000000000000f03f"
+    },
+    "revision": "g2-corner-2276",
+    "frame": {
+      "id": "g2World",
+      "basis": "right-handed-xyz",
+      "rotation": "local-to-world-xyzw"
+    },
+    "units": {
+      "length": "m",
+      "mass": "kg",
+      "time": "s",
+      "angle": "rad"
+    },
+    "gravityMps2": [
+      {
+        "$f64le": "0000000000000000"
+      },
+      {
+        "$f64le": "0000000000000000"
+      },
+      {
+        "$f64le": "0000000000000000"
+      }
+    ],
+    "bodies": [
+      {
+        "id": "sphere",
+        "kind": "dynamic",
+        "massKg": {
+          "$f64le": "000000000000f03f"
+        },
+        "inertia": {
+          "kind": "primitive-com",
+          "about": "com",
+          "frame": "body-local"
+        },
+        "initial": {
+          "positionM": [
+            {
+              "$f64le": "333333333333d3bf"
+            },
+            {
+              "$f64le": "333333333333c33f"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ],
+          "orientationXYZW": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "000000000000f03f"
+            }
+          ],
+          "velocityMps": [
+            {
+              "$f64le": "0000000000005240"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ],
+          "angularVelocityRadps": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ]
+        }
+      },
+      {
+        "id": "fixture",
+        "kind": "static",
+        "initial": {
+          "positionM": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ],
+          "orientationXYZW": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "000000000000f03f"
+            }
+          ]
+        }
+      }
+    ],
+    "colliders": [
+      {
+        "id": "sphereCollider",
+        "bodyId": "sphere",
+        "geometry": {
+          "kind": "sphere",
+          "radiusM": {
+            "$f64le": "9a9999999999b93f"
+          }
+        },
+        "local": {
+          "positionM": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ],
+          "orientationXYZW": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "000000000000f03f"
+            }
+          ]
+        },
+        "material": {
+          "restitution": {
+            "$f64le": "0000000000000000"
+          },
+          "friction": {
+            "static": {
+              "$f64le": "0000000000000000"
+            },
+            "dynamic": {
+              "$f64le": "0000000000000000"
+            }
+          }
+        },
+        "sensor": false,
+        "ccd": true,
+        "filter": {
+          "categoryBits": {
+            "$f64le": "000000000000f03f"
+          },
+          "maskBits": {
+            "$f64le": "00000000e0ffef40"
+          }
+        }
+      },
+      {
+        "id": "fixtureCollider",
+        "bodyId": "fixture",
+        "geometry": {
+          "kind": "box",
+          "halfExtentsM": [
+            {
+              "$f64le": "9a9999999999b93f"
+            },
+            {
+              "$f64le": "9a9999999999b93f"
+            },
+            {
+              "$f64le": "9a9999999999b93f"
+            }
+          ]
+        },
+        "local": {
+          "positionM": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ],
+          "orientationXYZW": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "000000000000f03f"
+            }
+          ]
+        },
+        "material": {
+          "restitution": {
+            "$f64le": "0000000000000000"
+          },
+          "friction": {
+            "static": {
+              "$f64le": "0000000000000000"
+            },
+            "dynamic": {
+              "$f64le": "0000000000000000"
+            }
+          }
+        },
+        "sensor": false,
+        "ccd": false,
+        "filter": {
+          "categoryBits": {
+            "$f64le": "000000000000f03f"
+          },
+          "maskBits": {
+            "$f64le": "00000000e0ffef40"
+          }
+        }
+      }
+    ],
+    "joints": [],
+    "cloths": [],
+    "fluids": [],
+    "sourceBindings": []
+  },
+  "options": {
+    "profile": "rigid-discrete-v1",
+    "fixedStepSeconds": {
+      "$f64le": "111111111111813f"
+    },
+    "broadPhase": "direct"
+  },
+  "candidateEndM": [
+    {
+      "$f64le": "333333333333d33f"
+    },
+    {
+      "$f64le": "333333333333c33f"
+    },
+    {
+      "$f64le": "0000000000000000"
+    }
+  ]
+}

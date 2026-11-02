@@ -1,0 +1,30 @@
+{
+  "status": "FAIL",
+  "phase": "static",
+  "completed": [
+    "strict-source",
+    "source:examples/physics-capsule-query-scene/controls.mjs",
+    "source:examples/physics-cloth-viewer/host-controller.mjs",
+    "source:examples/physics-cloth-viewer/numeric-entry.mjs",
+    "source:examples/physics-error-entry/entry.mjs"
+  ],
+  "counts": {
+    "WorldCalls": 0,
+    "factoryAttempts": 0,
+    "WorldReturns": 0,
+    "stepEntries": 0,
+    "acceptedSteps": 0,
+    "recorderAttachAttempts": 0,
+    "failedRecorderAttaches": 0,
+    "WorldDisposals": 0
+  },
+  "firstFailure": {
+    "name": "AssertionError",
+    "message": "expected actual own package input",
+    "stack": "AssertionError [ERR_ASSERTION]: expected actual own package input\n    at bundleStatic (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/validation-provider.mjs:68:88)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async main (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/validation-child.mjs:67:11)\n    at async file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/validation-child.mjs:98:1"
+  },
+  "packageBuild": false,
+  "providerGeneration": false,
+  "moduleEvaluation": false,
+  "browser": "NOT_RUN"
+}

@@ -1,0 +1,17 @@
+TAP version 13
+# {"status":"CURRENT_PUBLIC_REFUSED","physicalQualification":"NO_GO","constructorAttempts":1,"worldSteps":0,"refusal":{"code":"INVALID_CONFIG","message":"dynamic pair supports one joint between two dynamic spheres"}}
+# Subtest: current genuine public World retains original four-sphere/two-hinge refusal
+ok 1 - current genuine public World retains original four-sphere/two-hinge refusal
+  ---
+  duration_ms: 2.732625
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 299.201542

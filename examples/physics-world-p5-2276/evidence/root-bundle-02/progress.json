@@ -1,0 +1,43 @@
+{
+  "kind": "P5B_OWNED_COMMAND_GUARD",
+  "receiptId": "root-bundle-02",
+  "censusId": "root-bundle-02",
+  "status": "RUNNING",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "build-root.mjs"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics",
+  "inputs": {
+    "command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": "2026-11-01T22:52:22.859Z",
+  "spawnAt": "2026-11-01T22:52:22.866Z",
+  "pid": 12951,
+  "processGroupId": 12951,
+  "exit": null,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": null,
+  "processClosed": false,
+  "groupSignals": [],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/root-bundle-02/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/root-bundle-02/progress.json",
+  "errors": [],
+  "elapsedMs": 6.64675,
+  "outputCapturedBytes": 0
+}

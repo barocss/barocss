@@ -1,0 +1,104 @@
+{
+  "mode": "native",
+  "entry": "examples/viewer-cloth-scene/app.js",
+  "platform": "browser",
+  "inputs": {
+    "examples/viewer-cloth-scene/app.js": {
+      "bytes": 18179,
+      "sha256": "5e0663e6e83e6090d0537c996506e40e2e031fe1ba6b889bc94e3e14ef90e057",
+      "effectiveSha256": "5e0663e6e83e6090d0537c996506e40e2e031fe1ba6b889bc94e3e14ef90e057"
+    },
+    "examples/physics-model-data-2276/model-data.mjs": {
+      "bytes": 185560,
+      "sha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604",
+      "effectiveSha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604"
+    },
+    "packages/barocss-physics/dist/index.js": {
+      "bytes": 398311,
+      "sha256": "eb0303e4393102ebf5554b02d3fd20f048fecc368337ceb26c5b266b929c70cf",
+      "effectiveSha256": "eb0303e4393102ebf5554b02d3fd20f048fecc368337ceb26c5b266b929c70cf"
+    },
+    "packages/barocss-physics/dist/provider-manifest.generated.js": {
+      "bytes": 2375,
+      "sha256": "41a7c51c4d725a8aea2a5e54628f28a43811c027870dd3361187f27c66e273df",
+      "effectiveSha256": "41a7c51c4d725a8aea2a5e54628f28a43811c027870dd3361187f27c66e273df"
+    },
+    "packages/barocss-physics/dist/recording-owner.js": {
+      "bytes": 46,
+      "sha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521",
+      "effectiveSha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521"
+    },
+    "packages/barocss-physics/dist/types.js": {
+      "bytes": 418,
+      "sha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b",
+      "effectiveSha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b"
+    }
+  },
+  "resolutions": [
+    {
+      "specifier": "@barocss/physics",
+      "importer": "examples/viewer-cloth-scene/app.js",
+      "target": "packages/barocss-physics/dist/index.js",
+      "kind": "actual-package-map"
+    }
+  ],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 4,
+  "outputBytes": 602375,
+  "outputSha256": "f00773d50ca4e7f7ace8373b3582f29b94e0d616e1cd50cc05c358aea408c770",
+  "expectedOwn": {
+    "kind": "physics",
+    "reason": "actual static own Physics import, directly or through explicit local imports"
+  },
+  "externalRuntime": [],
+  "missingNativeSDKBoundary": {
+    "scope": "native caller compilation with exact missing SDK endpoints external",
+    "implementationClosure": "NOT_RUN",
+    "productIntegration": "NOT_RUN",
+    "sourceFallback": false,
+    "missingEndpoints": [
+      {
+        "specifier": "@barocss/viewer",
+        "path": "packages/barocss-viewer/dist/index.js"
+      },
+      {
+        "specifier": "@barocss/cad-interop/model-set",
+        "path": "packages/barocss-cad-interop/dist/model-set.js"
+      },
+      {
+        "specifier": "@barocss/gpu",
+        "path": "packages/barocss-gpu/dist/index.js"
+      }
+    ],
+    "used": [
+      {
+        "specifier": "@barocss/viewer",
+        "canonicalSpecifier": "@barocss/viewer",
+        "importer": "examples/viewer-cloth-scene/app.js",
+        "sourcePath": "packages/barocss-viewer/src/index.ts",
+        "missingNativePath": "packages/barocss-viewer/dist/index.js"
+      },
+      {
+        "specifier": "@barocss/cad-interop/model-set",
+        "canonicalSpecifier": "@barocss/cad-interop/model-set",
+        "importer": "examples/viewer-cloth-scene/app.js",
+        "sourcePath": "packages/barocss-cad-interop/src/model-set.ts",
+        "missingNativePath": "packages/barocss-cad-interop/dist/model-set.js"
+      },
+      {
+        "specifier": "@barocss/gpu",
+        "canonicalSpecifier": "@barocss/gpu",
+        "importer": "examples/viewer-cloth-scene/app.js",
+        "sourcePath": "packages/barocss-gpu/src/index.ts",
+        "missingNativePath": "packages/barocss-gpu/dist/index.js"
+      }
+    ]
+  },
+  "nativeHostSDKIntegration": "NOT_RUN_MISSING_SDK_IMPLEMENTATION",
+  "externalImports": [
+    "@barocss/viewer",
+    "@barocss/cad-interop/model-set",
+    "@barocss/gpu"
+  ],
+  "moduleEvaluation": false
+}

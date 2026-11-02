@@ -1,3 +1,4 @@
+import {makeModel,dynamicPart,staticPart} from '../physics-model-input/model.mjs';
 /**
  * #1572 — independent quasi-static support polygon reference for the exact
  * #1185 FIRST THREE cubes of ALIGNED / OFFSET / YAW.
@@ -12,7 +13,7 @@
  * force distribution, NOT a stable trajectory or engineering certification.
  */
 import {createPhysicsWorld} from '../../packages/barocss-physics/src/index.js';
-import type {PhysicsBodyConfig,PhysicsWorldConfig} from '../../packages/barocss-physics/src/types.js';
+
 
 type Vec2=[number,number];
 type Mode='ALIGNED'|'OFFSET'|'YAW';
@@ -139,25 +140,20 @@ function witness(mode:Mode){
  }
  return interfaces;
 }
-function worldBody(b:PlanarBox):PhysicsBodyConfig{
- return {id:b.id,kind:'dynamic',shape:{kind:'box',halfExtentsM:[b.halfX,.25,b.halfZ]},
-  positionM:[b.x,.25+parseInt(b.id.slice(1))*.5,b.z],massKg:b.massKg,
-  velocityMps:[0,0,0],orientation:[0,Math.sin(b.yaw/2),0,Math.cos(b.yaw/2)],
-  restitution:0,friction:{static:1,dynamic:.7}};
+function worldBody(b:PlanarBox){
+ return dynamicPart(b.id,{kind:'box',halfExtentsM:[b.halfX,.25,b.halfZ]},{positionM:[b.x,.25+parseInt(b.id.slice(1))*.5,b.z],velocityMps:[0,0,0],orientationXYZW:[0,Math.sin(b.yaw/2),0,Math.cos(b.yaw/2)]},b.massKg,{restitution:0,friction:{static:1,dynamic:.7}});
 }
 function actualWorld(mode:Mode){
- const cfg:PhysicsWorldConfig={fixedStepSeconds:DT,gravityMps2:[0,-GRAVITY,0],
-  contactMode:'persistent-box-v1',bodies:[
-   {id:'floor',kind:'static',shape:{kind:'box',halfExtentsM:[2,.1,2]},
-     positionM:[0,-.1,0],restitution:0,friction:{static:1,dynamic:.7}},
-   ...boxes(mode).map(worldBody)]};
- const world=createPhysicsWorld(cfg);
+ const cfg={model:makeModel({gravityMps2:[0,-GRAVITY,0],parts:[
+   staticPart('floor',{kind:'box',halfExtentsM:[2,.1,2]},{positionM:[0,-.1,0]},{restitution:0,friction:{static:1,dynamic:.7}}),
+   ...boxes(mode).map(worldBody)]}),options:{profile:'rigid-persistent-box-v1',fixedStepSeconds:DT,broadPhase:'direct'} as const};
+ const world=createPhysicsWorld(cfg.model,cfg.options);
  let accepted=0,firstFailure:string|null=null,maxHorizontalFromInitialM=0,maxLinearSpeedMps=0,
   maxAngularSpeedRadps=0,maxReportedPenetrationM=0;
  try{
   for(let step=1;step<=STEPS;step++){
    try{
-    const state=world.step(DT);
+    const state=world.step();
     if(state.stepIndex!==step)throw Error('SUPPORT_WORLD_CURSOR');
     for(const contact of state.contacts){
      if(!Number.isFinite(contact.penetrationM))throw Error('SUPPORT_WORLD_CONTACT_NONFINITE');

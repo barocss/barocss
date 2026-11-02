@@ -1,23 +1,21 @@
+import { makeModel, dynamicPart } from '../physics-model-input/model.mjs';
 import assert from 'node:assert/strict';
 import { performance } from 'node:perf_hooks';
 import { createPhysicsWorld, PhysicsError } from '../../packages/barocss-physics/dist/index.js';
 
 const dt = 1 / 120;
-const body = (id, x) => ({ id, kind: 'dynamic',
-  shape: { kind: 'sphere', radiusM: 0.1 }, positionM: [x, 0, 0],
-  velocityMps: [0, 0, 0], massKg: 1, restitution: 0 });
+const body = (id, x) => (dynamicPart(id, { kind: 'sphere', radiusM: 0.1 }, {positionM: [x, 0, 0], velocityMps: [0, 0, 0]}, 1, {restitution: 0}));
 const bodies = [body('part:a', -0.1), body('part:b', 0.1)];
-const joint = { id: 'joint:pivot', kind: 'hinge', aId: 'part:a', bId: 'part:b',
+const joint = { id: 'joint:pivot', kind: 'hinge', bodyAId: 'part:a', bodyBId: 'part:b',
   anchorALocalM: [0.1, 0, 0], anchorBLocalM: [-0.1, 0, 0],
   axisWorld: [0, 0, 1], limitRad: [-0.8, 0.8],
   motor: { targetSpeedRadps: 0.5, maxImpulseNms: 0.0001, maxReactionNms: 0.01 } };
-const create = (changes = {}) => createPhysicsWorld({ fixedStepSeconds: dt,
-  gravityMps2: [0, 0, 0], bodies, joints: [joint], ...changes });
+const create = (changes = {}) => createPhysicsWorld(makeModel({gravityMps2: [0, 0, 0], parts: bodies, joints: [joint], ...changes}), {profile: 'rigid-discrete-v1', fixedStepSeconds: dt, broadPhase: 'direct'});
 const expectCode = (action, code) => assert.throws(action,
   (cause) => cause instanceof PhysicsError && cause.code === code);
 const rotatedAnchor = (body, localX) => [
-  body.positionM[0] + localX * (1 - 2 * body.orientation[2] ** 2),
-  body.positionM[1] + localX * 2 * body.orientation[2] * body.orientation[3],
+  body.positionM[0] + localX * (1 - 2 * body.orientationXYZW[2] ** 2),
+  body.positionM[1] + localX * 2 * body.orientationXYZW[2] * body.orientationXYZW[3],
   body.positionM[2],
 ];
 const distance = (a, b) => Math.hypot(...a.map((value, i) => value - b[i]));
@@ -37,7 +35,7 @@ const metrics = (state) => {
 };
 
 expectCode(() => create({ joints: [{ ...joint, anchorALocalM: [0.101, 0, 0] }] }), 'INVALID_CONFIG');
-expectCode(() => create({ bodies: [body('part:a', -0.1), body('part:b', 0.101)] }), 'INVALID_CONFIG');
+expectCode(() => create({ parts: [body('part:a', -0.1), body('part:b', 0.101)] }), 'INVALID_CONFIG');
 const world = create();
 const replay = create();
 const times = [];
@@ -45,18 +43,18 @@ const peaks = { gap: 0, com: 0, linear: 0, angular: 0, reaction: 0 };
 const trace = [];
 for (let step = 1; step <= 120; step++) {
   const start = performance.now();
-  const state = world.step(dt);
+  const state = world.step();
   times.push(performance.now() - start);
-  replay.step(dt);
+  replay.step();
   const measurement = metrics(state);
   for (const key of ['gap', 'com', 'linear', 'angular']) {
     peaks[key] = Math.max(peaks[key], measurement[key]);
   }
   peaks.reaction = Math.max(peaks.reaction,
-    Math.hypot(...state.joints[0].angularImpulseNms));
+    Math.hypot(...state.joints[0].angularImpulseOnBNms));
   if ([1, 60, 120].includes(step)) trace.push({ step, angleRad: state.joints[0].angleRad,
     energyJ: measurement.energy, motorImpulseNms: state.joints[0].motorImpulseNms,
-    reactionNms: state.joints[0].angularImpulseNms,
+    reactionNms: state.joints[0].angularImpulseOnBNms,
     anchorGapM: measurement.gap });
 }
 assert.equal(JSON.stringify(world.getState()), JSON.stringify(replay.getState()));
@@ -65,12 +63,12 @@ assert.ok(peaks.com <= 1e-5, `COM drift ${peaks.com}`);
 assert.ok(peaks.linear <= 1e-7, `linear momentum drift ${peaks.linear}`);
 assert.ok(peaks.angular <= 1e-7, `angular momentum drift ${peaks.angular}`);
 const accepted = JSON.stringify(world.getState());
-expectCode(() => world.step(dt, [{ kind: 'impulse', bodyId: 'part:a',
+expectCode(() => world.step([{ kind: 'impulse', bodyId: 'part:a',
   impulseNs: [0.001, 0, 0] }]), 'INVALID_COMMAND');
-expectCode(() => world.step(dt, [{ kind: 'angularImpulse', bodyId: 'part:a',
+expectCode(() => world.step([{ kind: 'angularImpulse', bodyId: 'part:a',
   angularImpulseNms: [0.001, 0, 0] }]), 'INVALID_COMMAND');
 assert.equal(JSON.stringify(world.getState()), accepted);
-expectCode(() => world.step(dt, [{ kind: 'angularImpulse', bodyId: 'part:b',
+expectCode(() => world.step([{ kind: 'angularImpulse', bodyId: 'part:b',
   angularImpulseNms: [0, 0, 0.1] }]), 'NUMERIC_LIMIT');
 assert.equal(JSON.stringify(world.getState()), accepted);
 times.sort((a, b) => a - b);

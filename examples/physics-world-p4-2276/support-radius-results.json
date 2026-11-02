@@ -1,0 +1,131 @@
+{
+  "workId": "physics-world-p4-support-radius-cache-2276",
+  "kind": "SAVED_CACHE_RESULT_AUDIT",
+  "numericStatus": "NUMERIC_EQ_PASS",
+  "costStatus": "COST_NO_GO",
+  "adoption": "NOT_ADOPTED",
+  "originalStackExpansion": "NOT_RUN",
+  "sourceHashes": {
+    "support-radius-cache.py": "464a53b1634a8b6de26a6c5e45c807b664d49637902fc52786ed99fa895968aa",
+    "support-radius-controls.py": "15d0d36f39305500bd07c071cf106d2d1c1279bebd2781f15e77b6ae242c933b",
+    "support-radius-gate.py": "3ef692f14da3e035e14bab90733fd771728dac704dba80dff0b09f43813cd647",
+    "CACHE-CONTRACT.md": "d4f53304f6c1bb11c31c35c695c564970fb8b44c88b7ef6debf28b14f94f3812",
+    "CACHE-CONTROLS.json": "ad6ee93d263ea5cb5ffc0c96011f7808826b564fb589879e96c271de887ff0cb"
+  },
+  "receiptHashes": {
+    "support-radius-controls-01": "a08d5323292853b559aac6fa5b684179ea7c510f38f88b492c96e84a7f07bb78",
+    "support-radius-01": "bbee853d1900ec181669425570035823eea9bac71303b68dbcc34c4af71896d0",
+    "support-radius-02": "a81159ef7a528763856c6ce9dd79f34e0469fd16028273cd497e6e9d417ba978"
+  },
+  "primitiveActualCounts": {
+    "wrapperCalls": 43,
+    "delegatedOriginalAttempts": 28,
+    "directOriginalAttempts": 23,
+    "totalOriginalAttempts": 51
+  },
+  "referenceCounts": {
+    "evaluateAttempted": 6,
+    "evaluateReturned": 6,
+    "currentRawMatched": 6
+  },
+  "studyFullReferenceEvaluations": 32,
+  "newMathCallsInThisDataAudit": 0,
+  "WorldCalls": 0,
+  "pairedCpu": {
+    "uncachedTotalNs": 885643000,
+    "cachedTotalNs": 3176860000,
+    "deltaNs": 2291217000,
+    "observedReductionFraction": -2.5870661203216194,
+    "singlePriorFreshPairing": true,
+    "perFrameNonRegressionClaimed": false
+  },
+  "cases": [
+    {
+      "scene": "ALIGNED",
+      "step": 1,
+      "rawByteEqual": true,
+      "uncachedCpuNs": 112457000,
+      "cachedCpuNs": 411734000,
+      "keyCpuNs": 273581000,
+      "calls": 6912,
+      "hits": 6888,
+      "misses": 24,
+      "peakOwnedBytes": 31460,
+      "encodedKeyBytes": 21036
+    },
+    {
+      "scene": "ALIGNED",
+      "step": 16,
+      "rawByteEqual": true,
+      "uncachedCpuNs": 176826000,
+      "cachedCpuNs": 620087000,
+      "keyCpuNs": 399048000,
+      "calls": 8640,
+      "hits": 5085,
+      "misses": 3555,
+      "peakOwnedBytes": 8296830,
+      "encodedKeyBytes": 6836243
+    },
+    {
+      "scene": "OFFSET",
+      "step": 1,
+      "rawByteEqual": true,
+      "uncachedCpuNs": 111036000,
+      "cachedCpuNs": 414891000,
+      "keyCpuNs": 276290000,
+      "calls": 6912,
+      "hits": 6888,
+      "misses": 24,
+      "peakOwnedBytes": 31444,
+      "encodedKeyBytes": 21036
+    },
+    {
+      "scene": "OFFSET",
+      "step": 16,
+      "rawByteEqual": true,
+      "uncachedCpuNs": 172805000,
+      "cachedCpuNs": 617922000,
+      "keyCpuNs": 398939000,
+      "calls": 8640,
+      "hits": 5088,
+      "misses": 3552,
+      "peakOwnedBytes": 8292635,
+      "encodedKeyBytes": 6833163
+    },
+    {
+      "scene": "YAW",
+      "step": 1,
+      "rawByteEqual": true,
+      "uncachedCpuNs": 134943000,
+      "cachedCpuNs": 487631000,
+      "keyCpuNs": 328324000,
+      "calls": 7680,
+      "hits": 7339,
+      "misses": 341,
+      "peakOwnedBytes": 565357,
+      "encodedKeyBytes": 430616
+    },
+    {
+      "scene": "YAW",
+      "step": 16,
+      "rawByteEqual": true,
+      "uncachedCpuNs": 177576000,
+      "cachedCpuNs": 624595000,
+      "keyCpuNs": 401424000,
+      "calls": 8640,
+      "hits": 5088,
+      "misses": 3552,
+      "peakOwnedBytes": 8287132,
+      "encodedKeyBytes": 6827692
+    }
+  ],
+  "preservedFailures": [
+    "cost-census-01 raw historical reply zero signs unknown",
+    "support-radius-guard-01 wrong caller hash, no Python spawn",
+    "support-radius-01 controls provider changed, zero evaluations"
+  ],
+  "testedControlsProviderRestored": true,
+  "diagnosticAugmentation": "diagnostics/controls-a60ddeb1-unrun.py; not executed",
+  "originalPhysicalGatesChanged": false,
+  "historicalNoGoAndHold": "PRESERVED"
+}

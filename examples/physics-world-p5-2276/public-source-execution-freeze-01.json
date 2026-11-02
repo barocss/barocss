@@ -1,0 +1,2303 @@
+{
+  "workId": "physics-world-p5b-2276",
+  "status": "parent_source_public_qualification_frozen",
+  "graph": "source",
+  "authorization": "PUBLIC_P5B_EXACT_COHORT",
+  "files": {
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node": {
+      "bytes": 110712624,
+      "sha256": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+    },
+    "examples/physics-cloth-viewer/CONTRACT.md": {
+      "bytes": 10362,
+      "sha256": "cd5e71ec6d34e68c6f8a4ff808650c30e0b6a84c747f50549daf1d9a768f7dc9"
+    },
+    "examples/physics-cloth-viewer/README.md": {
+      "bytes": 7881,
+      "sha256": "45fbdf49c9ba328e289a707959bd790d603f2a2e86b92aad3e4376f7b432916e"
+    },
+    "examples/physics-cloth-viewer/app.mjs": {
+      "bytes": 8838,
+      "sha256": "1b7b20f49f2b3488a46242f4d05f0f101057a9fdeede62aa6b6161c7123392e6"
+    },
+    "examples/physics-cloth-viewer/browser-checks.mjs": {
+      "bytes": 2286,
+      "sha256": "34ae06b8121a83c6a933e3c1bd22c3d7bccfdfb913261d26fc0d1d96e0b26ddf"
+    },
+    "examples/physics-cloth-viewer/browser-driver.mjs": {
+      "bytes": 11232,
+      "sha256": "57e22afc53406bdf271224606c005308df3f2861b701cd08f2e37d9b801dea72"
+    },
+    "examples/physics-cloth-viewer/bundle.mjs": {
+      "bytes": 2249,
+      "sha256": "838b57e48810a74f7c25622724a569e0d9a282c8da255a5e31f274d91fc24797"
+    },
+    "examples/physics-cloth-viewer/clock.mjs": {
+      "bytes": 3755,
+      "sha256": "6767cb361e6f0658e8411dd443405bdb08c82360f632bd5365946b33f76d23e3"
+    },
+    "examples/physics-cloth-viewer/decode.mjs": {
+      "bytes": 1649,
+      "sha256": "9034b8a5772ab5b3ad7cbccf6dbaee71546d7ba03b1f4b4cfd50d61599507066"
+    },
+    "examples/physics-cloth-viewer/frame.mjs": {
+      "bytes": 2149,
+      "sha256": "b00a8df08931994296ccaed007f62c732eae668255bb18865aa47143e627fa9d"
+    },
+    "examples/physics-cloth-viewer/host-controller.mjs": {
+      "bytes": 5649,
+      "sha256": "7da62462d6f85e9f08f489bcc00e37f1715acf262e0ce24a08b39b39654d89bd"
+    },
+    "examples/physics-cloth-viewer/metrics.mjs": {
+      "bytes": 2098,
+      "sha256": "4f9d93e1e4a02b65251ee91ed7dc15269089ecf97079db400bce13f625f5debe"
+    },
+    "examples/physics-cloth-viewer/numeric-entry.mjs": {
+      "bytes": 1306,
+      "sha256": "dda189c16e223a0972f759c0e21571a4399cb55434d2b1c0a8b04b1048bd819e"
+    },
+    "examples/physics-cloth-viewer/numeric-probe.mjs": {
+      "bytes": 2455,
+      "sha256": "7186b896019364d2ad0c3f23fdad8e16deaa408dd95d4ad5a63fdada7465ae7d"
+    },
+    "examples/physics-cloth-viewer/package.json": {
+      "bytes": 255,
+      "sha256": "290fd6bce83833b33f95866258faf81580bf3df68e938b2825dc831e7b1b8d8b"
+    },
+    "examples/physics-cloth-viewer/proxy-guide.mjs": {
+      "bytes": 5033,
+      "sha256": "e8323cef73314150ee3e8db37d0dd6f827c8b5d5b63752c9e9a02c69fba54240"
+    },
+    "examples/physics-cloth-viewer/server.mjs": {
+      "bytes": 1379,
+      "sha256": "c8f76a8b56943236f1bfafca83674b73634b75e70cc634b92a17fc39adb8afb2"
+    },
+    "examples/physics-cloth-viewer/setup.mjs": {
+      "bytes": 674,
+      "sha256": "417b2b5abb2cab84ae466a9dbfe34c788ad536dc026519007795546c2a060bc1"
+    },
+    "examples/physics-cloth-viewer/views.mjs": {
+      "bytes": 414,
+      "sha256": "645d35cbaac1d17f1dd1935d7d89322d8450f01a6a2be84499e31573a3de0b26"
+    },
+    "examples/physics-model-data-2276/model-data.mjs": {
+      "bytes": 185560,
+      "sha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604"
+    },
+    "examples/physics-scene/evidence/cloth-978-final-world-2026-10-09.json": {
+      "bytes": 3563,
+      "sha256": "37800a3796e740006a41c92a23b75dca3e5e87a46eec0f61dcb0ae010bf655ae"
+    },
+    "examples/physics-scene/fluid-cad-shelf.barocad": {
+      "bytes": 290,
+      "sha256": "4dda73269426a18ff59241ed14c34e21a3e92c0cd3a39a2dc6321034bbf3c154"
+    },
+    "examples/physics-scene/fluid-release-criteria.mjs": {
+      "bytes": 3355,
+      "sha256": "8b60d3af9725720f61f13dbbc9e08ab3fa4cd910be0a1e9babb6a0d51d82d8e6"
+    },
+    "examples/physics-world-p5-2276/BASELINE-CONTRACT.md": {
+      "bytes": 9654,
+      "sha256": "059a08b9f85d232858041f4439f875d6f84d16a6099be4e1143334c2f91c395b"
+    },
+    "examples/physics-world-p5-2276/BASELINE-PROVIDERS.json": {
+      "bytes": 245686,
+      "sha256": "c2fe348bf7187a7df6181e504ad3b6d64797241168c40e3b39d5aa337b713649"
+    },
+    "examples/physics-world-p5-2276/CALLER-INVENTORY.md": {
+      "bytes": 25952,
+      "sha256": "890999fc5a752a761da0ed7f93d2923e770541d095563b0ba238c036538c3f0c"
+    },
+    "examples/physics-world-p5-2276/KERNEL-AUTHOR-CHECKS.json": {
+      "bytes": 1132,
+      "sha256": "54c9b067b45efc0149188f4ee9e49d31f57306dacad4b3e532e9e0c7c6e6b19a"
+    },
+    "examples/physics-world-p5-2276/KERNEL-CLARIFICATION-01.json": {
+      "bytes": 1556,
+      "sha256": "249394d1c4210fffda7482d1f9838376d5181946f42d4678bddd518810ddfa7b"
+    },
+    "examples/physics-world-p5-2276/KERNEL-CLARIFICATION-02.json": {
+      "bytes": 1868,
+      "sha256": "417355636c711b6fea678cf8866a9b89a5a69e779b056d976491a3e7f8abd7da"
+    },
+    "examples/physics-world-p5-2276/KERNEL-CONTRACT.md": {
+      "bytes": 12110,
+      "sha256": "b076bef80b5b5fa4be9de0d4ca35a3010b4897a92a694ce47719e24e91cbff92"
+    },
+    "examples/physics-world-p5-2276/KERNEL-IMPLEMENTATION-NOTES.md": {
+      "bytes": 4720,
+      "sha256": "ef0b372294ae7f6b0f5cbb5dd966234ca3d40c914dba75e54718cfb4ccdd7a33"
+    },
+    "examples/physics-world-p5-2276/KERNEL-PROVIDER-PINS.json": {
+      "bytes": 273552,
+      "sha256": "00b79252a6ba7d00f2677ffc90c4fe8669b99bf06aea70cefd00a7aacfe0fca3"
+    },
+    "examples/physics-world-p5-2276/KERNEL-RECIPES.json": {
+      "bytes": 19180,
+      "sha256": "f96f010fd612883b7ab18fa5bf5c46a07879ad87bff88b57e3a022e2b2bd43e9"
+    },
+    "examples/physics-world-p5-2276/MIGRATION-PLAN.json": {
+      "bytes": 19231,
+      "sha256": "1d4a4c32186778b3c1d8a865bb0fa97b7fb3fab5970e3d5552bb48b4634b90d1"
+    },
+    "examples/physics-world-p5-2276/ORACLE-RECIPE.json": {
+      "bytes": 2350,
+      "sha256": "2d82b8f10202b7eb4c6ad6543bdf87165028fa7e5ebc2de31fca13b63b299876"
+    },
+    "examples/physics-world-p5-2276/ORACLE-SOURCE-PINS.json": {
+      "bytes": 2110,
+      "sha256": "41a28a18eba6251ed09c8bbdf0fb359100fc0be978fbfd3afccbe1878cdc716a"
+    },
+    "examples/physics-world-p5-2276/P5B-ADMISSION-AUTHOR-CHECKS.json": {
+      "bytes": 2842,
+      "sha256": "1c86f6b908dd55b8cf0de758f18f0363ec265d07332730a84ad6b10363912237"
+    },
+    "examples/physics-world-p5-2276/P5B-ADMISSION-REVIEW.md": {
+      "bytes": 16940,
+      "sha256": "7e1d509a36afdffa60c0b08d23e9d2aa4a24b41db17029201de504f2e3422cf3"
+    },
+    "examples/physics-world-p5-2276/P5B-CONTRACT.md": {
+      "bytes": 22428,
+      "sha256": "1e972155e7d03d3894904e9363e79800a6e2d56273d4112acc8696eec2d89d49"
+    },
+    "examples/physics-world-p5-2276/P5B-CONTROL-RECIPES.json": {
+      "bytes": 42929,
+      "sha256": "3715c34d81c6ceffcfcb0caf696e7e0aaa54b8666f4d189822f186cba4dee278"
+    },
+    "examples/physics-world-p5-2276/P5B-EMIT-PLAN.json": {
+      "bytes": 5507,
+      "sha256": "0e443c6a8d39455497a21955f217720b3998e6b1c578f009217d77aa27d0f61e"
+    },
+    "examples/physics-world-p5-2276/P5B-GENERATION-PROPOSAL.json": {
+      "bytes": 6001,
+      "sha256": "63a999b693714459085f7435b1099bc6d3f5c85e070ed90ac65ef728747c7b0e"
+    },
+    "examples/physics-world-p5-2276/P5B-MEDIUM-READY.json": {
+      "bytes": 10147,
+      "sha256": "04e3c840d8ab04782799b70cdc6a4dd9bb9e894d1b0046a6eea4e5240a080735"
+    },
+    "examples/physics-world-p5-2276/P5B-MEDIUM-SOURCE-AUDIT.json": {
+      "bytes": 4495,
+      "sha256": "0f9574266aee898efa9689630cdbaec21b60d0d3dde7169f5c9c2183559aeea1"
+    },
+    "examples/physics-world-p5-2276/P5B-MEDIUM-SYNTAX-01.json": {
+      "bytes": 5153,
+      "sha256": "ae866de232d1b00494f9526852a9c03fba2f16467737dbc131b1b9f8ea15affb"
+    },
+    "examples/physics-world-p5-2276/P5B-MEDIUM-SYNTAX-02.json": {
+      "bytes": 5291,
+      "sha256": "b189a25aeaa0ab9ffad715e7babc6ae31514d27aca2d0a3169499a28830a0126"
+    },
+    "examples/physics-world-p5-2276/P5B-PLAN.json": {
+      "bytes": 35784,
+      "sha256": "06c4a28707c43f929e19a2783ba14666666375e10e7c03f42cd59039273e5518"
+    },
+    "examples/physics-world-p5-2276/PUBLIC-AUTHOR-CHECK-01.json": {
+      "bytes": 20367,
+      "sha256": "1854ab11bacde7a9d7c24ee6a8c9b520ffbcb4c96ce5bc84a2bc7adf1b60cd35"
+    },
+    "examples/physics-world-p5-2276/PUBLIC-AUTHOR-CHECK-02.json": {
+      "bytes": 20294,
+      "sha256": "d6034fd488f165ea49d94c3de13fd6d3cafbb04b26d8ac0653dde297535b7e58"
+    },
+    "examples/physics-world-p5-2276/PUBLIC-AUTHOR-CHECK-03.json": {
+      "bytes": 20294,
+      "sha256": "688cfa57976d789210094933a501086f5a98cc95d5230192a3260cd697ecbf92"
+    },
+    "examples/physics-world-p5-2276/PUBLIC-AUTHOR-READY.json": {
+      "bytes": 2649,
+      "sha256": "43edb171bfe75f5c04f4c5bc930179469d70ce5af403972828b5541292f7e893"
+    },
+    "examples/physics-world-p5-2276/PUBLIC-IMPLEMENTATION.md": {
+      "bytes": 2881,
+      "sha256": "8ada722f604143c7c97a6e4aeeaeffb1f18cc9c48e5db51f45179b3b31b4a83d"
+    },
+    "examples/physics-world-p5-2276/PUBLIC-RECIPES.json": {
+      "bytes": 5725,
+      "sha256": "f63c86b3f9b9a5a0acc9271ccfec07a87eb1bc490cc68d5c822fcc09c10c761e"
+    },
+    "examples/physics-world-p5-2276/README.md": {
+      "bytes": 15376,
+      "sha256": "3406e50513994a8203b6414943adf4e2d892e2768ce93022720c9d50cd4e787a"
+    },
+    "examples/physics-world-p5-2276/SCOPE-CONTRACT.md": {
+      "bytes": 14945,
+      "sha256": "d9f7ba51b02e1679add38df2ca24e483824c1cd5b85f67176fd9d4b1dad2d40c"
+    },
+    "examples/physics-world-p5-2276/STATIC-INPUT-CONTRACT.json": {
+      "bytes": 1296,
+      "sha256": "283280f147ce6d5ab88c07da644a39515cd1585dd2e481e2f69bcf48b744a561"
+    },
+    "examples/physics-world-p5-2276/STATIC-INPUT-PROVIDERS.json": {
+      "bytes": 217747,
+      "sha256": "e8756be6ca074d12b7e9bef76e42c59fe426e68d48328c4f99ad4230b28052da"
+    },
+    "examples/physics-world-p5-2276/baseline-emitted-freeze-01.json": {
+      "bytes": 2562,
+      "sha256": "742a672070fed01470572484cee9ce6d957612b771d1b8c3357323370d0299ed"
+    },
+    "examples/physics-world-p5-2276/baseline-results.json": {
+      "bytes": 2928,
+      "sha256": "3990f8584f2bc804c5848085a27af024d5132e2149907dbc37fc0461ebd5ab88"
+    },
+    "examples/physics-world-p5-2276/baseline-review.json": {
+      "bytes": 1172,
+      "sha256": "33a21f41cd87c758a7ea5ffe58b1dfc6e0d4fafc6214d742d87d8903139faa3c"
+    },
+    "examples/physics-world-p5-2276/baseline-source-freeze-01.json": {
+      "bytes": 1800,
+      "sha256": "09b3f8bb8cd0b5e6f8f6f3df0a1ee013f74aaacd42c4693bc31b140bd32fd83c"
+    },
+    "examples/physics-world-p5-2276/baseline.mjs": {
+      "bytes": 20907,
+      "sha256": "8d74d3ecea118ed5ebf57dbfebb0c87685dbe01273999525c1c072711b261609"
+    },
+    "examples/physics-world-p5-2276/command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    },
+    "examples/physics-world-p5-2276/core-build-freeze-01.json": {
+      "bytes": 16560,
+      "sha256": "3916d034f6c98dbb504625cbc763b113006efc6471edf5f009712b1407880313"
+    },
+    "examples/physics-world-p5-2276/core-build-freeze-02.json": {
+      "bytes": 15980,
+      "sha256": "55dd2c5a4b422903b63c6eee157c93a18eb4b55932e80037a94f1c1b354aea7c"
+    },
+    "examples/physics-world-p5-2276/evidence/oracle-01/exit.json": {
+      "bytes": 332,
+      "sha256": "0cbb8c96d17586fedf6d06d2fa9169648aec5e335872a1d3033a50720615df16"
+    },
+    "examples/physics-world-p5-2276/evidence/oracle-01/oracle-f64le.bin": {
+      "bytes": 3343152,
+      "sha256": "84afe417169896fd243ad5e0ca0913a845183b4109812cd4561a03806db3558c"
+    },
+    "examples/physics-world-p5-2276/evidence/oracle-01/oracle-index.json": {
+      "bytes": 84149,
+      "sha256": "0456e5f8f44f268aa0145085d915351c17d18de865f7a5c9cdba3d94e93ff348"
+    },
+    "examples/physics-world-p5-2276/evidence/oracle-01/oracle-triangles-u16le.bin": {
+      "bytes": 3072,
+      "sha256": "a3f72db317e3d3aba24dd161664480e88b709053d80184182806fd1aea8665a0"
+    },
+    "examples/physics-world-p5-2276/evidence/oracle-01/progress.json": {
+      "bytes": 571,
+      "sha256": "f20d289d447b3c080ef5ec9049552f4e4dfcb92106c997c8b8e0f306e180379d"
+    },
+    "examples/physics-world-p5-2276/evidence/oracle-01/provider/constraints.mjs": {
+      "bytes": 1890,
+      "sha256": "0e2a0880b7b46130340db6f8a98b04206a1c08e80648834796856d527760bad1"
+    },
+    "examples/physics-world-p5-2276/evidence/oracle-01/provider/fixture.mjs": {
+      "bytes": 514,
+      "sha256": "a1ce782d1ead3059692d74d54555e399f01806b372a5744049c9a0df257526dd"
+    },
+    "examples/physics-world-p5-2276/evidence/oracle-01/provider/topology.mjs": {
+      "bytes": 1764,
+      "sha256": "5a6500f53f104abdc9563074f8d04013da107a85f9a3d0e69d7df1b6c2b52e52"
+    },
+    "examples/physics-world-p5-2276/evidence/oracle-01/provider/world.mjs": {
+      "bytes": 2134,
+      "sha256": "03e4760ce2e5954f59a4c5264aadec0ebc0285479df4d9b3320a6ea387027325"
+    },
+    "examples/physics-world-p5-2276/evidence/oracle-01/provider-graph.json": {
+      "bytes": 1067,
+      "sha256": "a094347f3e39c85c5abe425c6d045e90ecb25bf301e42466a0bee909d3732c05"
+    },
+    "examples/physics-world-p5-2276/evidence/oracle-01/start.json": {
+      "bytes": 1001,
+      "sha256": "a24905fa3f1bd26bdb43248d07b81370ed6b219dea57a9bf88e0f539052a9295"
+    },
+    "examples/physics-world-p5-2276/evidence/oracle-01/stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/oracle-01/stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/oracle-01/summary.json": {
+      "bytes": 2591,
+      "sha256": "42123f80b9a8de4db7d7860fc2ade5642cc8ca9114af9ad36c336e4ab6fb7db4"
+    },
+    "examples/physics-world-p5-2276/generate-model-data.mjs": {
+      "bytes": 13911,
+      "sha256": "91e82ad08f8a951a8cec21fdc7dcf029e9c9a98645e305c74dd43e3e4e6db49c"
+    },
+    "examples/physics-world-p5-2276/kernel-emitted-execution-freeze-01.json": {
+      "bytes": 275368,
+      "sha256": "ae3153ccc5bc01c8472cae3f80a7aeee118f5689dc9919f0d54bbd74d0a74bb1"
+    },
+    "examples/physics-world-p5-2276/kernel-fixture.mjs": {
+      "bytes": 3885,
+      "sha256": "7ae0ae04d90a8e7e7b37d21edf4659305246ed3806d91d7fc6d36b31563c8ff1"
+    },
+    "examples/physics-world-p5-2276/kernel-implementation-freeze-01.json": {
+      "bytes": 2580,
+      "sha256": "14016da8c08647d58748456cae5125122c95c9bc63e5f23ba0102b6d6093dfb0"
+    },
+    "examples/physics-world-p5-2276/kernel-instrument.mjs": {
+      "bytes": 3685,
+      "sha256": "6ee88d446fb72e773ff42b8f2dbfb21ba2601b2cdf87b29ee9d49f56cb569748"
+    },
+    "examples/physics-world-p5-2276/kernel-provider.mjs": {
+      "bytes": 5644,
+      "sha256": "b2a29aa82ec7fc4032ecb920fb4b413abdad692750eb851f14e6799c8296775c"
+    },
+    "examples/physics-world-p5-2276/kernel-results.json": {
+      "bytes": 5696,
+      "sha256": "850b1eec70482105ea1961b06a9a5673db584773dbbefbe2c88faef00ae8df71"
+    },
+    "examples/physics-world-p5-2276/kernel-run.mjs": {
+      "bytes": 5698,
+      "sha256": "71169a0afae6714dc33fa7c582a88a9d89e42639788ca18368c92e08df30a724"
+    },
+    "examples/physics-world-p5-2276/kernel-source-check-01.json": {
+      "bytes": 706,
+      "sha256": "f83d60afad06a52e840f1ea5e6ace49241b581384a3a9e195571dd1ce98cc66c"
+    },
+    "examples/physics-world-p5-2276/kernel-source-check-02.json": {
+      "bytes": 5343,
+      "sha256": "0b90ed84385027a20eb3c03db3faa9ec0602e3b2b5380d8c802b66b3b0312c80"
+    },
+    "examples/physics-world-p5-2276/kernel-source-check.mjs": {
+      "bytes": 1926,
+      "sha256": "223ac0c166b0723fcaa69d832e81a97c2839f14ddcf4c3ca7263a2d947fae334"
+    },
+    "examples/physics-world-p5-2276/kernel-source-execution-freeze-01.json": {
+      "bytes": 275081,
+      "sha256": "87d03dd822b91027848de56469fc069d8b6700ab66f20841c0fbf2e354fac92d"
+    },
+    "examples/physics-world-p5-2276/kernel-trial.mjs": {
+      "bytes": 14181,
+      "sha256": "2c47b2ff6d958534b03e0e3a5831a762c80b9024bb8dfbf9cfec8d70c74de1ca"
+    },
+    "examples/physics-world-p5-2276/model-data-execution-freeze-01.json": {
+      "bytes": 7042,
+      "sha256": "9d1ccf956ba5aacf00d9a9b35fbeb71f20d086999598bfc97db7e7c01d2b723e"
+    },
+    "examples/physics-world-p5-2276/model-data-results.json": {
+      "bytes": 1550,
+      "sha256": "ac8cfed3e77e20024226152c1a54f0a75ef00207f87cfcda49b0a27203416707"
+    },
+    "examples/physics-world-p5-2276/model-data-run.mjs": {
+      "bytes": 11791,
+      "sha256": "00cdb8eaa48746c7fe30d09242b9b68e2659bb7034c75679abb54077aa086c23"
+    },
+    "examples/physics-world-p5-2276/native-entry-check.mjs": {
+      "bytes": 589,
+      "sha256": "974fc4d58ca5ebeea45b9db9b7a373888f3a56f652b8c381cee75dee54d45cd2"
+    },
+    "examples/physics-world-p5-2276/oracle-execution-freeze-01.json": {
+      "bytes": 2781,
+      "sha256": "0d6cfaf8e0f2779735c93e50364f5590bd599cbb3d175a39ec80da781b8e78f0"
+    },
+    "examples/physics-world-p5-2276/oracle-generation.mjs": {
+      "bytes": 7771,
+      "sha256": "52ce3b70beba7902f70cef95c2e09d1a6502519e1444599fba29481955884f15"
+    },
+    "examples/physics-world-p5-2276/oracle-reader.mjs": {
+      "bytes": 2343,
+      "sha256": "0d7bb8a06822e8084c3e0e39d9e2c66bf1440d0b1ad2523fa3b14d93d538026f"
+    },
+    "examples/physics-world-p5-2276/oracle-results.json": {
+      "bytes": 1562,
+      "sha256": "10f72f7a3bb043cf173394d6cf79a33f8de30c8d2021ae3024f6b0a22929c053"
+    },
+    "examples/physics-world-p5-2276/oracle-run.mjs": {
+      "bytes": 5599,
+      "sha256": "07bb814c244a9bfcb19b0a3d4457e416d4a85cba7c1ffc20608299696fd00944"
+    },
+    "examples/physics-world-p5-2276/oracle-source-check-01.json": {
+      "bytes": 1146,
+      "sha256": "02126ca88d0ff4a087783a92c74a20da9b523b46cb578c1e1a13539bcd938faa"
+    },
+    "examples/physics-world-p5-2276/p5b-implementation-freeze-01.json": {
+      "bytes": 5710,
+      "sha256": "ac2ef771742260c7f6106669334ac91213e62001b7cc2aacd8cf18f9bee36fdd"
+    },
+    "examples/physics-world-p5-2276/public-cohorts.mjs": {
+      "bytes": 17648,
+      "sha256": "3ec4e5eaa80695cd1a18a01c560e4e601a504092ebdca5c914fba12dc9c5ed70"
+    },
+    "examples/physics-world-p5-2276/public-instrument.mjs": {
+      "bytes": 4386,
+      "sha256": "47f221d0bc0abd4cb4b5829aedb22c8d980e4fbbbea1005ecfde76039140a1bb"
+    },
+    "examples/physics-world-p5-2276/public-provider.mjs": {
+      "bytes": 7620,
+      "sha256": "56263f9a66e3da305a25773305d53ba7577faf65184035fd3c3664d44d5331db"
+    },
+    "examples/physics-world-p5-2276/public-run.mjs": {
+      "bytes": 6297,
+      "sha256": "b2966e02fe86e99dd96e5fd9adc07198356269531ca8e60c7ab39afde08620cc"
+    },
+    "examples/physics-world-p5-2276/public-source-check.mjs": {
+      "bytes": 3582,
+      "sha256": "96f6974ddca25a35bf7fb0a56428121a7edeca2d25d926e08fd1447952fb7d22"
+    },
+    "examples/physics-world-p5-2276/public-trial.mjs": {
+      "bytes": 8868,
+      "sha256": "488077a927f81b5f1360427826fcbd549a33758ddbea24096fedaf629e6941e0"
+    },
+    "examples/physics-world-p5-2276/public-values.mjs": {
+      "bytes": 1835,
+      "sha256": "ef88a4876d6fbbe200618bbdff4e493c28730ef2c963e4b4a88a160fcea5ba1e"
+    },
+    "examples/physics-world-p5-2276/static-input-freeze-01.json": {
+      "bytes": 1287,
+      "sha256": "792b806b954367e71c2d76f424711c653379c7a844840ace12bb7be7fba6dbb4"
+    },
+    "examples/physics-world-p5-2276/static-input-results.json": {
+      "bytes": 975,
+      "sha256": "bd34c013007731efc2cb50e46d97fa06798c41c693d91b4d60853e54775455e5"
+    },
+    "examples/physics-world-p5-2276/static-input-run.mjs": {
+      "bytes": 11715,
+      "sha256": "58cc96e6a4219c1a7b68dc156727a2a75bcbbe244f16d12e78101ee9e5ef9b18"
+    },
+    "examples/physics-world-p5-2276/static-input.mjs": {
+      "bytes": 2787,
+      "sha256": "336f37ee0ba849a23a3c9a7590efe5ca35b3aca807f0e547efbcc4010e6e1a16"
+    },
+    "node_modules/esbuild/bin/esbuild": {
+      "bytes": 9934834,
+      "sha256": "3e030ee2aa86ad3c33e5e95ae0e53bb03de40e0da35c9b1180a67de4a497cae5"
+    },
+    "node_modules/esbuild/lib/main.js": {
+      "bytes": 88706,
+      "sha256": "0d1241812c443111d39475dfc66836003e9ef8b87e54d990dd67df29d20010e1"
+    },
+    "node_modules/esbuild/package.json": {
+      "bytes": 1490,
+      "sha256": "cb7d5b1fe478f8cbaae566a86031b6fdf5f7d444354f35d1cb3cba9adf6d2935"
+    },
+    "node_modules/typescript/lib/typescript.js": {
+      "bytes": 9112572,
+      "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+    },
+    "node_modules/typescript/package.json": {
+      "bytes": 3620,
+      "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    },
+    "packages/barocss-cad/package.json": {
+      "bytes": 1414,
+      "sha256": "f7173d326ce1c5b8cd3a5b4f01c62e986186c581a8a3f0376ac76af4b4629bdc"
+    },
+    "packages/barocss-cad/src/api/core.ts": {
+      "bytes": 4155,
+      "sha256": "921cdb5fe01cb319d2fbf5ea6090604016e32093e93fe932c53b582916208764"
+    },
+    "packages/barocss-cad/src/api/curve-feature-pattern-plan.ts": {
+      "bytes": 1033,
+      "sha256": "8f0e9a43339a78e6803da7ceb94391213928b2e0d99c17593c177ae27f0d93f4"
+    },
+    "packages/barocss-cad/src/api/index.ts": {
+      "bytes": 2113,
+      "sha256": "46c4e80584ec19603127795e9f28f6cfb5d74d22f815cf27177ddd333b4c5f26"
+    },
+    "packages/barocss-cad/src/api/kernel.ts": {
+      "bytes": 14778,
+      "sha256": "1c7e5ed7ea371feba58b7fccb2f8c05ee87cf9c950ce89b278d0364a1678f00b"
+    },
+    "packages/barocss-cad/src/api/part.ts": {
+      "bytes": 20865,
+      "sha256": "a5e5e7f832e923eabcdea4f6ab637456afa07066a052f8d5eda656cb7638e324"
+    },
+    "packages/barocss-cad/src/api/refusal.ts": {
+      "bytes": 1469,
+      "sha256": "25b6bf4919ef5eb294410d18d74c9e6eb92dc6679709ae4c55f680ba22989795"
+    },
+    "packages/barocss-cad/src/api/select.ts": {
+      "bytes": 12910,
+      "sha256": "e655a1630f2e06b7b73f557bafdc09b5619cba4553a231e8126db16990a4fd7b"
+    },
+    "packages/barocss-cad/src/api/sketch.ts": {
+      "bytes": 11403,
+      "sha256": "7977ed226e180ecb8a651504eb98a57afc0d8437a2f394752e19d14d8605903a"
+    },
+    "packages/barocss-cad/src/api/spec.ts": {
+      "bytes": 23841,
+      "sha256": "43dbb3a4dd43e8bedc9b2e23367ecd081ebcb94be7636d6801714b3f19425aa0"
+    },
+    "packages/barocss-cad/src/api/surface-snapshot.ts": {
+      "bytes": 4363,
+      "sha256": "36dfef04303454f0a5c1e5bdca98dd031f77528e43564ae4c33d26afb957e2ba"
+    },
+    "packages/barocss-cad/src/axis-box-boolean.ts": {
+      "bytes": 43801,
+      "sha256": "2356548fb676fc311e71dec2e989129a4664cb675fbec0083daa6f1a5b90ecd3"
+    },
+    "packages/barocss-cad/src/axis-box-solid-mass.ts": {
+      "bytes": 20052,
+      "sha256": "ef1c3833a9bc92be68604454ab66baec4e9f47dac2e98fba38157563f2a37938"
+    },
+    "packages/barocss-cad/src/blend/edge-finish.ts": {
+      "bytes": 105398,
+      "sha256": "90fb13337ec468e7fe04cf51dd5a5a9bc729ea55950970c2163a5bff65371bc5"
+    },
+    "packages/barocss-cad/src/blend/fillet-section.ts": {
+      "bytes": 9518,
+      "sha256": "b53bd7e378532c7da3338bdc652be4c68e34df8ec105c14c0c3788ac7cb92ed1"
+    },
+    "packages/barocss-cad/src/blend/general-shell.ts": {
+      "bytes": 51779,
+      "sha256": "3cb76d8ff666094c7e93eaf7f27a94610d201908fcff8366b43f856a8bd46fd7"
+    },
+    "packages/barocss-cad/src/blend/offset-cavity.ts": {
+      "bytes": 75586,
+      "sha256": "e4e5b10c7535c381e9f71e755e407525c5f5aa6c75df90901d068015a5d31b47"
+    },
+    "packages/barocss-cad/src/blend/polynomial-face-fillet.ts": {
+      "bytes": 32786,
+      "sha256": "4b0fbfed2e46221ebabb53f7e9863501b0e7d5d4f5194209eb1e4c8ac9ec9c43"
+    },
+    "packages/barocss-cad/src/blend/polynomial-run.ts": {
+      "bytes": 4574,
+      "sha256": "9fb92593e62b15750a5a3e2334f56c012e3266eec0d41574a7be86f458f4ef54"
+    },
+    "packages/barocss-cad/src/blend/region-shell.ts": {
+      "bytes": 16649,
+      "sha256": "017c60a535f086017b1633c1c1d76eef7d5d738a915ba6fd951f1b6533855f63"
+    },
+    "packages/barocss-cad/src/blend/rolling-ball.ts": {
+      "bytes": 121134,
+      "sha256": "7ca8a751828b3727a5b46b340e035d3d718d7a0771e5c87c2df277dfb2b8ed44"
+    },
+    "packages/barocss-cad/src/brep/analytic-boolean.ts": {
+      "bytes": 196073,
+      "sha256": "39c1ea68ed09b578a6064b0893741939b1aeda222da92b9eebadfee6e689465b"
+    },
+    "packages/barocss-cad/src/brep/axis-inertia.ts": {
+      "bytes": 4323,
+      "sha256": "9bdb5c551976a70972cebafad743b40898120fb16abb001f9cbfffee8238e262"
+    },
+    "packages/barocss-cad/src/brep/band-sheet.ts": {
+      "bytes": 3085,
+      "sha256": "0e5430ee1afcc92508be66889c6a2f4e696f30b45483f7f1fa0dfb092f340a71"
+    },
+    "packages/barocss-cad/src/brep/brep-boundary-binding-internal.ts": {
+      "bytes": 9439,
+      "sha256": "fc88e1af859109866af97ddcf65146859d46d2471329b2be593c0bd6845457b8"
+    },
+    "packages/barocss-cad/src/brep/brep-bounds.ts": {
+      "bytes": 6495,
+      "sha256": "bb0eda30921ef8552907d2e52f646ed790fec727f9cc61919d7b95b4499b120c"
+    },
+    "packages/barocss-cad/src/brep/brep-check-geometry.ts": {
+      "bytes": 23713,
+      "sha256": "95d8505809135ba76e71ce71d88e613ed7f28ee8520647122fb6273293b2e6b2"
+    },
+    "packages/barocss-cad/src/brep/brep-core.ts": {
+      "bytes": 32087,
+      "sha256": "e60c9a6ff9a4d3b5b1d68f8ae3bb1113ec2d55a14760fa2b6354037972d876d7"
+    },
+    "packages/barocss-cad/src/brep/brep-euler.ts": {
+      "bytes": 10956,
+      "sha256": "b9585be3a7f3126621d0be3ace61c7086c93c41277ec81840951b49cf0673e33"
+    },
+    "packages/barocss-cad/src/brep/brep-glue.ts": {
+      "bytes": 8268,
+      "sha256": "4eb087e14a70126fd616243ae24f43790cf4dd58522b0f824e535ef343d2e6dc"
+    },
+    "packages/barocss-cad/src/brep/brep-hidden-line.ts": {
+      "bytes": 35053,
+      "sha256": "b763a4adb65c1e9103cf25ee23dd2e7e682b5bf5affa33f291dd80caecaab3bf"
+    },
+    "packages/barocss-cad/src/brep/brep-mass-quadrature.ts": {
+      "bytes": 60633,
+      "sha256": "c96cc97de1bdde2c420f904d143a824082e39e84be4aecdcbae70a6baccf0169"
+    },
+    "packages/barocss-cad/src/brep/brep-sweep.ts": {
+      "bytes": 8152,
+      "sha256": "f391b98a081d1a6f6c68c1c59c1099ef75b68f28a689af5c020ce6a0432617eb"
+    },
+    "packages/barocss-cad/src/brep/brep-tessellate.ts": {
+      "bytes": 93120,
+      "sha256": "4c89491c387bd2ba9539bf659e8f5ae6821c220e6237d8f68c4bd0f2e09a8ddc"
+    },
+    "packages/barocss-cad/src/brep/brep-transform.ts": {
+      "bytes": 3416,
+      "sha256": "c3ce31f53397f5c8d5c86c7ff65581590f6266932046ce8d93101542eec78414"
+    },
+    "packages/barocss-cad/src/brep/convex-distance.ts": {
+      "bytes": 4444,
+      "sha256": "d975850c63ef825148c528dbab9439db190e728c074180ef39b53423743d0527"
+    },
+    "packages/barocss-cad/src/brep/convex-hull.ts": {
+      "bytes": 7366,
+      "sha256": "6a59917cd234d23c2ec1a01d52b90c3fb1be05446960450f41229d5496a9576f"
+    },
+    "packages/barocss-cad/src/brep/curved-arrangement.ts": {
+      "bytes": 59062,
+      "sha256": "e2139a1f6f6c52820c2598a47b25f45ff354bb87e1cf395ced87eeee675792ee"
+    },
+    "packages/barocss-cad/src/brep/planar-arrangement.ts": {
+      "bytes": 24619,
+      "sha256": "7e985f7e9d3b8c0cb17e9828d5ffc5cd83d0bca2ad40ccaf8862dde49bda07fb"
+    },
+    "packages/barocss-cad/src/brep/polyhedral-boolean.ts": {
+      "bytes": 29638,
+      "sha256": "e63a3cb5fa792dc83ae5536d610f13f2d87292564a11b72268870ea02dfaa58b"
+    },
+    "packages/barocss-cad/src/brep/sew-solid.ts": {
+      "bytes": 11650,
+      "sha256": "069a61f6f5ebaca98a70e2b83ff1804f482b128ae3e117d2656bf5a95e80faf9"
+    },
+    "packages/barocss-cad/src/brep/solid-mass.ts": {
+      "bytes": 16872,
+      "sha256": "122ca279aa0e0f3604b84c4fccea8e1e340a67d61ee452d6b004b5b93df16fad"
+    },
+    "packages/barocss-cad/src/brep/sweep-solid.ts": {
+      "bytes": 5539,
+      "sha256": "c499abddf1e3a52755bc8617e9ab3ba8025b2ed08d2c7fc568ff3900d12f036d"
+    },
+    "packages/barocss-cad/src/brep/thicken-solid.ts": {
+      "bytes": 3775,
+      "sha256": "f93dee710e3803f33f3efc5b68a9ea015862c7a5b79593bb7470201e63619a62"
+    },
+    "packages/barocss-cad/src/cad-document.ts": {
+      "bytes": 22851,
+      "sha256": "588cd64a47808344643a2a6c751b08ace79a2dd3ba04ad2df97bc182007ea3e6"
+    },
+    "packages/barocss-cad/src/convex-planar-slab-subtraction.ts": {
+      "bytes": 26126,
+      "sha256": "f34dae9485bada05f0356f80c2f6f4eae62f007b35d0c0df986842eec62527a4"
+    },
+    "packages/barocss-cad/src/convex-planar-solid-proof-internal.ts": {
+      "bytes": 11134,
+      "sha256": "3bff61f83f219df611e4a65243be7286a39e87882414440a50f28a16c2a4b6e4"
+    },
+    "packages/barocss-cad/src/convex-planar-solid.ts": {
+      "bytes": 23787,
+      "sha256": "b3986e02383807f783754a0aa409c617ec2cfb2cd4213a40400c404fe881d83b"
+    },
+    "packages/barocss-cad/src/core/adjacency.ts": {
+      "bytes": 11460,
+      "sha256": "3bcef2d2ee1c58260af7c868d9ddfe90e4790a0243243b111326bf59477d4d67"
+    },
+    "packages/barocss-cad/src/core/barocss-error.ts": {
+      "bytes": 3354,
+      "sha256": "6f4197c848227fffa9df6b4e517a6ee43bbdf6dbec1b332068c35a5f912664f1"
+    },
+    "packages/barocss-cad/src/core/boundary.ts": {
+      "bytes": 3646,
+      "sha256": "72ff10ab9ec69689558c3e8a935f8af8460af0d7c57a18173e2d62cd910e5db0"
+    },
+    "packages/barocss-cad/src/core/box-shell.ts": {
+      "bytes": 12034,
+      "sha256": "31578991a8e8f532ec2a2257fc477be161f04bed4c6da0672cce8020a575483c"
+    },
+    "packages/barocss-cad/src/core/box-solid.ts": {
+      "bytes": 3598,
+      "sha256": "fa333716d463b371929a305a807f349c2048b819db12578fae11e8f9e404cec9"
+    },
+    "packages/barocss-cad/src/core/derivatives.ts": {
+      "bytes": 8208,
+      "sha256": "d9c9ddb0d69ef9f305b5418d3e1f967b730ee8272adf0124fb4b555bdaf70161"
+    },
+    "packages/barocss-cad/src/core/dyadic.ts": {
+      "bytes": 757,
+      "sha256": "f180e7e1ee93b63f8f2ee0c8603f581af1698707d1030d4941a77ca5e486b616"
+    },
+    "packages/barocss-cad/src/core/error-codes.ts": {
+      "bytes": 7538,
+      "sha256": "fd64d9f93df8a6a5f1229e50aabd750d3f362bced691615e277b5417873316b5"
+    },
+    "packages/barocss-cad/src/core/extent.ts": {
+      "bytes": 1299,
+      "sha256": "10f1757f76d1632e32f4b049502f44f5b881cdf19c3ecd88db4ba4f8d3e4351d"
+    },
+    "packages/barocss-cad/src/core/extrusion.ts": {
+      "bytes": 956,
+      "sha256": "0bd74055cf4a4fb4299d9c8ee71c2846d0c6638beb457d148a7038b411469132"
+    },
+    "packages/barocss-cad/src/core/face.ts": {
+      "bytes": 11458,
+      "sha256": "a141ef68186ca1e0f3bbbebdd8e67c0cc7350096e355cb1ba7015c1741624594"
+    },
+    "packages/barocss-cad/src/core/math.ts": {
+      "bytes": 15511,
+      "sha256": "90613a0504b96bd31a0869af1193299b088df99e4ada0f135eaf78c5bff992bf"
+    },
+    "packages/barocss-cad/src/core/native-d0-bound.ts": {
+      "bytes": 30879,
+      "sha256": "cf179874ac6f169ec6f997ade4851ed88da5a755b400688a6e68312e6dbb9208"
+    },
+    "packages/barocss-cad/src/core/orthogonal-adjacency.ts": {
+      "bytes": 11118,
+      "sha256": "8c8a611ad3c2b5a13f5e6ff981d725601ee5e853b11f50b2d1aaeb582f5e8ced"
+    },
+    "packages/barocss-cad/src/core/own-data.ts": {
+      "bytes": 6162,
+      "sha256": "38e06b73083cab7f2bebc9e90c4e74c9dc390de7db549f7985508fb7a42dacc0"
+    },
+    "packages/barocss-cad/src/core/packet.ts": {
+      "bytes": 8440,
+      "sha256": "c03264be4f11103dd05eb96d2f6637cd7a95ee715e650ca3cac775c6d6c99829"
+    },
+    "packages/barocss-cad/src/core/preview.ts": {
+      "bytes": 7211,
+      "sha256": "a3efc4a7e1eb23a1ccac0a7f79c7c2ef54275ed66e7ceb42750044d85151fcb2"
+    },
+    "packages/barocss-cad/src/core/quadrature.ts": {
+      "bytes": 794,
+      "sha256": "7c24591c4c4dd814c0a34cc70fc12fc59912abc91d895586de5f34633f8b57a5"
+    },
+    "packages/barocss-cad/src/core/second-derivatives.ts": {
+      "bytes": 16409,
+      "sha256": "baa5691937e1e4964bc400d4757afe67d03784914391bea293a8afe13a6a2d58"
+    },
+    "packages/barocss-cad/src/core/structural-equality.ts": {
+      "bytes": 883,
+      "sha256": "258ec40020494eea7e103d9f991afa3d8880f04a4c2d6e15c225fa367ca8319f"
+    },
+    "packages/barocss-cad/src/core/vec3.ts": {
+      "bytes": 1066,
+      "sha256": "242c023d51e7a299d4c6123d55afb68de9bd0367c0aa1725d08c58fc52238aef"
+    },
+    "packages/barocss-cad/src/data-copy.ts": {
+      "bytes": 374,
+      "sha256": "b93cfda57b76535a8774b9099a91cba94fb36e427c336b0c709eac9babe52ed3"
+    },
+    "packages/barocss-cad/src/document/cad-assembly-instance-point.ts": {
+      "bytes": 9583,
+      "sha256": "d3d41277f8ade60c21a3692d078c1723d9d4296ad486787278686231a652dbab"
+    },
+    "packages/barocss-cad/src/document/cad-assembly.ts": {
+      "bytes": 27279,
+      "sha256": "77d863b27db04585b686612a5e3d07fcabb91ac0c7e9d4f77ba8888404e45e1b"
+    },
+    "packages/barocss-cad/src/document/cad-document-bounds.ts": {
+      "bytes": 9886,
+      "sha256": "5b9d147544468da4448166dfef3a0a515b21f629d3c385f9b0da48c977f85b35"
+    },
+    "packages/barocss-cad/src/document/cad-document-reference.ts": {
+      "bytes": 23370,
+      "sha256": "b74858499563b9f04a7473c2aac97811d3e585c6f0df30cd55309bef98f7ff7b"
+    },
+    "packages/barocss-cad/src/document/construction-types.ts": {
+      "bytes": 304,
+      "sha256": "6a6440fb1f455f2ad280b8d84d935e687de1e2f43bb8ee8d4b5ec76abad45d63"
+    },
+    "packages/barocss-cad/src/document/function-quantity-semantics.ts": {
+      "bytes": 25482,
+      "sha256": "7914dff55b592745beecf24892b821dfe046e6cfc9a526541f5ba129ae0e43ce"
+    },
+    "packages/barocss-cad/src/document/parameter-semantics.ts": {
+      "bytes": 12112,
+      "sha256": "4cd83b733ce190c670b543185d48c755e61376043f99e4d5fe2735606c1517a0"
+    },
+    "packages/barocss-cad/src/document/side-names.ts": {
+      "bytes": 976,
+      "sha256": "e88f89c5585443da33584f6731145cee79ea600470ae8c17003b458434e5ae4f"
+    },
+    "packages/barocss-cad/src/document/unit-named.ts": {
+      "bytes": 1265,
+      "sha256": "627c6d1eabf7a65a355495f955a9f5a44b1d822103f4fc3fa14d34f7d5a9fcc8"
+    },
+    "packages/barocss-cad/src/exact-proof/exact-affine-plane-internal.ts": {
+      "bytes": 4218,
+      "sha256": "41507a3bea818742fdf70b7896f92a1c3e3e0f7c4ca718e2050d1c26965b7242"
+    },
+    "packages/barocss-cad/src/exact-proof/exact-binary64-orientation-v1.ts": {
+      "bytes": 3626,
+      "sha256": "731ac182e8b48751eb2421f617e70243e6d6cbabf921bfb635f4ede63c7a5480"
+    },
+    "packages/barocss-cad/src/exact-proof/exact-collinear-segment-overlap-v1.ts": {
+      "bytes": 2465,
+      "sha256": "f4487e1c5c741fbbda2b12d4fe9de93cbcd4db3cd7440afbb183f0b04c144485"
+    },
+    "packages/barocss-cad/src/exact-proof/exact-paired-vlinear-polynomial-internal.ts": {
+      "bytes": 14476,
+      "sha256": "e0ba7674c4eee54d09da32b716f174417b2cf6ee3029e8a3ab8bd212224d4adb"
+    },
+    "packages/barocss-cad/src/exact-proof/exact-paired-vlinear-surface-intersection.ts": {
+      "bytes": 36807,
+      "sha256": "d450dc580176832f95f52255904e74dcb205db5745df1106846fa0b1d7f74c5b"
+    },
+    "packages/barocss-cad/src/exact-proof/exact-segment-crossing-v1.ts": {
+      "bytes": 2272,
+      "sha256": "605a279c8cc1bb769cdbe1bd2bc159ba6f92647821b7f546040c2ff081d770f4"
+    },
+    "packages/barocss-cad/src/exact-proof/exact-segment-intersection-point-v1.ts": {
+      "bytes": 3896,
+      "sha256": "c95d451243c2f9cfa1220f1da6f0c2df70555d4b18a108fd2c346507f2b93870"
+    },
+    "packages/barocss-cad/src/exact-proof/exact-segment-snapshot-internal.ts": {
+      "bytes": 2335,
+      "sha256": "95dfd746f99ad11878ee5722fb4eec62bc0db3504862255d7b094b15e4c4cf05"
+    },
+    "packages/barocss-cad/src/exact-proof/exact-straight-edge-split-plan-v1.ts": {
+      "bytes": 4120,
+      "sha256": "bb9d10497400997301266737ec3ddddde204e1d9e0bc6b3223103752e5310ea9"
+    },
+    "packages/barocss-cad/src/exact-proof/exact-surface-band-trim.ts": {
+      "bytes": 36198,
+      "sha256": "a5afdc5d208799d36c32444de8db751cfcb4cbbfe9f583745e0937eafdafa57e"
+    },
+    "packages/barocss-cad/src/exact-proof/exact-surface-lower-trim.ts": {
+      "bytes": 29237,
+      "sha256": "ea227b364c32e72caf926bfd323632d8cbd11cfde1d3b3d2229392d148a224a1"
+    },
+    "packages/barocss-cad/src/exact-proof/native-crossing-incidence-graph-v1.ts": {
+      "bytes": 3202,
+      "sha256": "a4995c83d13b004cf07a7ef7d200abc98daedfc2aad5a4b504310a5fb772781f"
+    },
+    "packages/barocss-cad/src/exact-proof/native-half-edge-twins-v1.ts": {
+      "bytes": 3674,
+      "sha256": "30d5e0a043159b911ea5bd34f95e93af5cd14ac0763c146174983f4d570a8365"
+    },
+    "packages/barocss-cad/src/exact-proof/native-planar-face-boundary-v1.ts": {
+      "bytes": 3164,
+      "sha256": "e016cbe8fa5db377d441ce3abac416eca55e81df8db577fdce53e5f836b6a3a0"
+    },
+    "packages/barocss-cad/src/exact-proof/native-planar-loop-qualification-v1.ts": {
+      "bytes": 5409,
+      "sha256": "ca49d75d87d087f2d06dc0d2eff79238ad469b9d4bb84814b3974b0ebc030f60"
+    },
+    "packages/barocss-cad/src/exact-proof/robust-orientation-v1.ts": {
+      "bytes": 5400,
+      "sha256": "47c9ba62a1e3dc1f7f635b7cc42f2d9678b495709f73b541d35f705de877789f"
+    },
+    "packages/barocss-cad/src/features/affine-geometry-transform.ts": {
+      "bytes": 30515,
+      "sha256": "7eec7ee23fada17767e292c447fc97704d9dbc0c8368edf9d1dbfb1ea3f101f2"
+    },
+    "packages/barocss-cad/src/features/band-surface.ts": {
+      "bytes": 28164,
+      "sha256": "8491b4d05e8fcc8c81b3df5cfb1a8d45b10d4d28aec063f518db3f56fcc97040"
+    },
+    "packages/barocss-cad/src/features/boolean-extrusion-feature-graph-serde.ts": {
+      "bytes": 2913,
+      "sha256": "0db42ef37038039229c6ecd331da7f2b1dd403976f288fe21188d1c04d525d9b"
+    },
+    "packages/barocss-cad/src/features/boolean-extrusion-feature-graph.ts": {
+      "bytes": 45830,
+      "sha256": "650f1762bec53f8a7cf29c1f59261374bb20c101d85b326e3f1fa879b705e82e"
+    },
+    "packages/barocss-cad/src/features/boolean-extrusion-parameter-lifecycle.ts": {
+      "bytes": 12885,
+      "sha256": "861854d27415f932b3016529cc3b978074b035b59cb5a9ecd2045adcb91d42f4"
+    },
+    "packages/barocss-cad/src/features/circular-geometry-pattern.ts": {
+      "bytes": 31694,
+      "sha256": "97991572b1d4373f87531b399c09d895898bc394262781fb73aed7b20d07eeab"
+    },
+    "packages/barocss-cad/src/features/curve-cut-pattern.ts": {
+      "bytes": 13042,
+      "sha256": "aa5a11e8065c516160f6916f8919e233b220f2b2050bf197bf533d4c6fe9f7bd"
+    },
+    "packages/barocss-cad/src/features/curved-loft.ts": {
+      "bytes": 10744,
+      "sha256": "cd2c2e3a53ec5aa4a5cbaba0ec3e6526267e6d9ea1e60ca72a72cb1c311b2888"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-assembly.ts": {
+      "bytes": 76345,
+      "sha256": "daeaa24a3b5b0d08578509f0cdc66e0829ea106180e9acc1ad8489a0f05030bc"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-bound-reference.ts": {
+      "bytes": 14037,
+      "sha256": "e662fd37970404bf8e90ff08a1d35e2298001da0924555438c3a95952f63cc0f"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-chart-component.ts": {
+      "bytes": 11910,
+      "sha256": "2a245a85268a6ed74b2b39f8975e52aeaad7c76c2edad731c1c8096fbadfc3d8"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-chart-cone.ts": {
+      "bytes": 11599,
+      "sha256": "3a5920f514cc4efd432e8ca7bf3909d4c255c2db3587cf6f40c872d9a5004636"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-chart-pair.ts": {
+      "bytes": 8106,
+      "sha256": "13b5c71c1ced5fede5dcbd650b36751732fb5501676b975ca730e4bf4cc65225"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-chart-separation.ts": {
+      "bytes": 10360,
+      "sha256": "7c672380abcff81d033dc0cdc1eb542335170939edb7fcc6ccc25ff1695c3f91"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-chart-winding.ts": {
+      "bytes": 17073,
+      "sha256": "63a3c7ac9cd49cbc8a523183ed05d439a30d852ba83a506619c70dea517fcb57"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-chart.ts": {
+      "bytes": 18437,
+      "sha256": "1f6d2abeb8a0948f44875a074b751da61fbdf43dde502671e5c0af6f6324e124"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-closed-reference.ts": {
+      "bytes": 1868,
+      "sha256": "63238cb072504edd5dce664fbd696c28e49bc5803dfe215132567acb50514d8d"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-curve.ts": {
+      "bytes": 18944,
+      "sha256": "f044e371b05a8361b57b2b1a9507afa80fcf92feae3509d77ffd8009cfeea528"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-feature.ts": {
+      "bytes": 4079,
+      "sha256": "d290ab71b2b0ae9ad6bb9a751476ab7affbb645d12ed692eeb9eaa67c86e4d74"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-formal-mass.ts": {
+      "bytes": 32256,
+      "sha256": "ad7c6b71a2f282ce0f805e3fd147f31ac0739049a23bf21eb58207317d4f003b"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-map.ts": {
+      "bytes": 26812,
+      "sha256": "6f0c486b134bf5c6fc5c16e55b8a08407249533e5fbb2a44c5cf61de7cc01307"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-moments.ts": {
+      "bytes": 20840,
+      "sha256": "3f3679a1a44ce34c24f083e8fa1ffdfa5dbd00cf8c0dc60dac4d5cbe07aeca80"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-native-position.ts": {
+      "bytes": 16018,
+      "sha256": "6c006116c1c035f5a72de253918280ddd8792f176423b143e4c22b75debabe1d"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-reference-closure.ts": {
+      "bytes": 18819,
+      "sha256": "ea23ec6790af8b8b2eabe52811dcfdd9c6d909a262b492921651f29cbaf129e1"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-reference-context.ts": {
+      "bytes": 5162,
+      "sha256": "2c67493ca7eedf428b50c6008130df2f42170ae5f2468ce30b14e062e544905f"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-reference-mass.ts": {
+      "bytes": 8870,
+      "sha256": "447773e20d67b68582c28c0a0737effcb6be5a84a6ad43fa774af7ce4cbcf86b"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-side-family.ts": {
+      "bytes": 10545,
+      "sha256": "39e84298101e74584ddfe7cf92268046322e617b62cc6330c676a4db08bf7a5c"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-source-walls.ts": {
+      "bytes": 12434,
+      "sha256": "837c2bfb75b5d06df47940b85c28648c3f67ce9fb3e763570e32cc5248a65a7a"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-source.ts": {
+      "bytes": 13995,
+      "sha256": "2217a301a9a0a18556f5def88faa011b695b1ea8fec1170e1c1a4c7d8f749be2"
+    },
+    "packages/barocss-cad/src/features/cylindrical-wrap-wall-cycle.ts": {
+      "bytes": 12294,
+      "sha256": "f6296ee6fa020ca88f80586d07ee381a38b2e89f3c0884cc43d9bbc2f5935e6a"
+    },
+    "packages/barocss-cad/src/features/drafted-extrusion.ts": {
+      "bytes": 10634,
+      "sha256": "5e034290e06f62e0ab3eaf956721b0310259f6b077f48c820cf501253d7c2265"
+    },
+    "packages/barocss-cad/src/features/extruded-profile-solid.ts": {
+      "bytes": 26148,
+      "sha256": "f5fa623919f19ff3d4db901bb4f9968e276164d7953f3416de80668f94c00b66"
+    },
+    "packages/barocss-cad/src/features/extrusion-validation.ts": {
+      "bytes": 3553,
+      "sha256": "c6c7ccc0d1ffbacdb21ba33c7782bc2ffa3410bb41a1d230a7bbd2b2242eb982"
+    },
+    "packages/barocss-cad/src/features/fill-cut-pattern.ts": {
+      "bytes": 9292,
+      "sha256": "0fec3fd49214621265507db89229fe957cfa6aef2ad0e1ccf42150ebd1e0684f"
+    },
+    "packages/barocss-cad/src/features/fit-plain.ts": {
+      "bytes": 10645,
+      "sha256": "16ace7812601ba3cb82a2a557ab7b51da234a87fbd4bd85968a19b2058e1ea40"
+    },
+    "packages/barocss-cad/src/features/framed-mixed-loft.ts": {
+      "bytes": 6607,
+      "sha256": "e8291abbefcd2995c10bf2bd3da149ca0e5c0fb7b02527dd011ac39658e54293"
+    },
+    "packages/barocss-cad/src/features/framed-nurbs-loft.ts": {
+      "bytes": 4910,
+      "sha256": "eecac8cc3d992e5edf4b68729ec0f83717bbdadb57e8ada221f24b4d49bf5b66"
+    },
+    "packages/barocss-cad/src/features/library-fit.ts": {
+      "bytes": 7055,
+      "sha256": "e2b0cdc365bf586c6023268ae1145c5f4efda3d12f23eae0164f45b6c3db64a9"
+    },
+    "packages/barocss-cad/src/features/library.ts": {
+      "bytes": 47246,
+      "sha256": "bdab934af380b0e7ba744caf022e3f8e8ec24378ed1f23be212aad85e7113fb8"
+    },
+    "packages/barocss-cad/src/features/linear-geometry-pattern.ts": {
+      "bytes": 24029,
+      "sha256": "e0da31ec757b4290861c614efdbb60b3deea5a5717297057eb26a3ec5ff31577"
+    },
+    "packages/barocss-cad/src/features/loft-common-frame.ts": {
+      "bytes": 4303,
+      "sha256": "bf9a7fe7d2238c21c201b66dd41cb5e02c55b2fdf51ab3b53d5ee28d023e0197"
+    },
+    "packages/barocss-cad/src/features/loft-guide-patches.ts": {
+      "bytes": 6888,
+      "sha256": "7ac400dfc17952a23315741424b3201fdd08eef24508e7b551366871683fb02b"
+    },
+    "packages/barocss-cad/src/features/loft-guide.ts": {
+      "bytes": 4626,
+      "sha256": "cfbe1032c8606014492e13b1e5b375a813af4b80b6a08cd53534612efd48c3fb"
+    },
+    "packages/barocss-cad/src/features/loft-nurbs-guide.ts": {
+      "bytes": 9565,
+      "sha256": "28467889c6adf2b3bdee0f84eea26a9f889942ab2f7b2039923dedd2f6792add"
+    },
+    "packages/barocss-cad/src/features/loft.ts": {
+      "bytes": 26476,
+      "sha256": "51fbaeae17e091101ef078bbf843c5e49bce9268032749aaad47db21f5c31eef"
+    },
+    "packages/barocss-cad/src/features/multi-section-loft.ts": {
+      "bytes": 30523,
+      "sha256": "115199e406faaf674b853efa6f88821bc2a98012ce9b24c08b7348d327fd719e"
+    },
+    "packages/barocss-cad/src/features/nurbs-source-loft-feature-graph.ts": {
+      "bytes": 39677,
+      "sha256": "522e05c6eb9842b4e5f64d8e976c8320b26ecf297a5240bb283e3459405f2512"
+    },
+    "packages/barocss-cad/src/features/oriented-loft.ts": {
+      "bytes": 14590,
+      "sha256": "829c94ee6399de23069a5f624e5f9f728b41b69111f22746633c7d3806cb3c74"
+    },
+    "packages/barocss-cad/src/features/piecewise-rational-loft.ts": {
+      "bytes": 23848,
+      "sha256": "9f8bd8884dee2804fe1eb66ce5dcc2a93753c28a6b92fb59f3013c24dd07f61e"
+    },
+    "packages/barocss-cad/src/features/prismatic-solid.ts": {
+      "bytes": 32109,
+      "sha256": "17f2b70b5ecbe0b1ab7912636d780fa1594469804f4af7fb48365212bc802f5a"
+    },
+    "packages/barocss-cad/src/features/profile-relief.ts": {
+      "bytes": 38275,
+      "sha256": "d22de88dafe909b3196d7b64008519725c706b4f5dfd68bd166e776577730cbb"
+    },
+    "packages/barocss-cad/src/features/quadratic-cut-arithmetic.ts": {
+      "bytes": 9164,
+      "sha256": "47fe4a5f2c9b9853828b3315e3f0cdb5f20867e70c6db1c5a290c6e038563563"
+    },
+    "packages/barocss-cad/src/features/quadratic-cut-plan.ts": {
+      "bytes": 14452,
+      "sha256": "de244b7826e9424d7b121b95c56275ea1b760956801841d1d280a81dd7c7ef5b"
+    },
+    "packages/barocss-cad/src/features/revolve.ts": {
+      "bytes": 27502,
+      "sha256": "fd92f78210e1c23673e4012673d73e965f6204aff7738a2cb3169d305cb2e710"
+    },
+    "packages/barocss-cad/src/features/section-exact-surface-binding.ts": {
+      "bytes": 21304,
+      "sha256": "3c197210351ccddcac56e5d6b94d75cda6f22a696c7b8ae79e890bed9a9fa981"
+    },
+    "packages/barocss-cad/src/features/section-knot-alignment.ts": {
+      "bytes": 24716,
+      "sha256": "3a47d5b7f4d3175ccfa58aaecbd3dee356dde811f226e3ab9f4b15e90e43b3d7"
+    },
+    "packages/barocss-cad/src/features/section-offset.ts": {
+      "bytes": 6205,
+      "sha256": "c951e4583ba93976c459dcf2cc3ab586548f22bb7aca52b9d1bfd9071bdccf26"
+    },
+    "packages/barocss-cad/src/features/section-properties.ts": {
+      "bytes": 6325,
+      "sha256": "bb8339435e6cbffbc26487b696280bab814df259237728c2c7cacd5c6655d3dd"
+    },
+    "packages/barocss-cad/src/features/section-table.ts": {
+      "bytes": 7058,
+      "sha256": "3efaf6c78174fdf8932b64149050650e291097ddb793d9253dd2c531a54cf684"
+    },
+    "packages/barocss-cad/src/features/subd-cage.ts": {
+      "bytes": 27033,
+      "sha256": "f0ac91a644fcadafd233ec5ed6f8be948acb5779d025d99f710f52ffe4f1b82f"
+    },
+    "packages/barocss-cad/src/features/subd-report.ts": {
+      "bytes": 7364,
+      "sha256": "9fb195069f88b74ce1bab0c25ece09162cd8150a58d1b805d7dd0d7f507b258e"
+    },
+    "packages/barocss-cad/src/features/subd-sd2.ts": {
+      "bytes": 45996,
+      "sha256": "1a095841642b25f8150db5e9372a4549f4f6c2262759a64bd2058a193aec113f"
+    },
+    "packages/barocss-cad/src/features/subd.ts": {
+      "bytes": 28027,
+      "sha256": "4ff7eaa78e03ade9756b97f0502ab06591cf40b422f0d5485fc1db9f3d188db8"
+    },
+    "packages/barocss-cad/src/features/three-section-loft.ts": {
+      "bytes": 25163,
+      "sha256": "bcda8152356e97f3aecd368f2210342064f5224868abee6a2d618effac78ce72"
+    },
+    "packages/barocss-cad/src/frame-sheet/frame-cutlist.ts": {
+      "bytes": 12678,
+      "sha256": "7f7ff03c65af3fe180bcfc25b0c37bbaad6b21210d7a51d5b27a9947f1d5175a"
+    },
+    "packages/barocss-cad/src/frame-sheet/frame-section.ts": {
+      "bytes": 29357,
+      "sha256": "2824a2b93f4040e987c1e4971208488ab197d9434bd43df0aec1a345915ea561"
+    },
+    "packages/barocss-cad/src/frame-sheet/frame-weldment.ts": {
+      "bytes": 5873,
+      "sha256": "664814681451047c320b76ac62c98401158afc36b8f9274f9d509aaf0a04fc51"
+    },
+    "packages/barocss-cad/src/frame-sheet/sheet-flat.ts": {
+      "bytes": 42342,
+      "sha256": "5d57b60ac3c31712cf4dd34be43a374574e9aff3df1177505df3fcf9e7ae2e2b"
+    },
+    "packages/barocss-cad/src/frame-sheet/sheet-metal.ts": {
+      "bytes": 22837,
+      "sha256": "b5da7ee0f38ea785c823c2cd08a16a6c59cb88088b4c9c6ce65b47800c77bc44"
+    },
+    "packages/barocss-cad/src/index.ts": {
+      "bytes": 72628,
+      "sha256": "3e6901751dc34bccf4c5e7ae8a30a22c94acb5d691236aabb7e8c60ec3cabbda"
+    },
+    "packages/barocss-cad/src/internal/native-si-mass-state.ts": {
+      "bytes": 2987,
+      "sha256": "c0ddd5a2782318ea24188c302458232362ace0d0dea8d7fffdd6bc577b51cb13"
+    },
+    "packages/barocss-cad/src/internal/native-si-mass.ts": {
+      "bytes": 276,
+      "sha256": "da0b9303d630a31cfa48a480ecbbf95266908d23a9d97864519259b9fc26b19c"
+    },
+    "packages/barocss-cad/src/intersect/multispan-vlinear-plane-section.ts": {
+      "bytes": 41677,
+      "sha256": "0eae826ca0d9f8d5998adef2a068edc6793410b047c0ef7b5f252e563071f83e"
+    },
+    "packages/barocss-cad/src/intersect/multispan-vlinear-plane-trim-classification.ts": {
+      "bytes": 23880,
+      "sha256": "56cec91a29d32b831d5476dcfc4c1db26623bcf1f27a7748e0de98cdc39754c5"
+    },
+    "packages/barocss-cad/src/intersect/multispan-vlinear-plane-trim.ts": {
+      "bytes": 40932,
+      "sha256": "3ab3be77a1901e366c863387a58d481f29b71dc0b2c2bd2bb041ab4f8c2b3651"
+    },
+    "packages/barocss-cad/src/intersect/own-affine-plane-loop-internal.ts": {
+      "bytes": 6942,
+      "sha256": "a03782c377d077e7f49bf4db5fda23690df393e30e8cdb74925fddc84295da6f"
+    },
+    "packages/barocss-cad/src/intersect/own-coincident-plane-clip.ts": {
+      "bytes": 26766,
+      "sha256": "52979b9690a4e57390d6746a45758216debbc8cbf52bf8fc5011517626037d91"
+    },
+    "packages/barocss-cad/src/intersect/own-convex-loop-clip.ts": {
+      "bytes": 29038,
+      "sha256": "15f5d7f3688faf147df85472b59f2c585954bb14037a95ece57ac391d2598031"
+    },
+    "packages/barocss-cad/src/intersect/own-convex-planar-face-holes-preview.ts": {
+      "bytes": 23913,
+      "sha256": "b0213954a8ac7a39900bd7b5fa4999569f50611f705fc288c07152bd0ba6bdc5"
+    },
+    "packages/barocss-cad/src/intersect/own-convex-planar-face-holes.ts": {
+      "bytes": 26034,
+      "sha256": "e38156ba6ad51d4332b4627f620a9c6616c6f6f24e6797c341d53fab218ece91"
+    },
+    "packages/barocss-cad/src/intersect/own-cubic-bernstein-roots.ts": {
+      "bytes": 13785,
+      "sha256": "9c1176abf800905d011ff4d56ee6f21be2e4e364d211e87c1d3c802d2db76071"
+    },
+    "packages/barocss-cad/src/intersect/own-cubic-curve-plane-intersection.ts": {
+      "bytes": 17040,
+      "sha256": "ca59cd5375fff2f631c9c5b7c7dcef4aad47bad4f9ee984053e2da4acd9457c4"
+    },
+    "packages/barocss-cad/src/intersect/own-curve-line-intersection.ts": {
+      "bytes": 34047,
+      "sha256": "709ef9121ad1d8c1e8e41ba04c42e56bf929114e0886509b0a2d2e8ac1c40482"
+    },
+    "packages/barocss-cad/src/intersect/own-curve-plane-intersection.ts": {
+      "bytes": 18045,
+      "sha256": "a6870ac1ee4f528df4d3aa1b552575f2925fedea69eceb56132b517ccd6f12d2"
+    },
+    "packages/barocss-cad/src/intersect/own-homogeneous-bernstein-roots.ts": {
+      "bytes": 4970,
+      "sha256": "d51f257c70bf548bd298566436c4d5d435a971a571966e87f671ca39f056e3ac"
+    },
+    "packages/barocss-cad/src/intersect/own-multispan-curve-plane.ts": {
+      "bytes": 21860,
+      "sha256": "f08ca46e587d401e43bce6c47188a529dfd21601c4ce6d8680c12d84e1e1cc03"
+    },
+    "packages/barocss-cad/src/intersect/own-plane-cylinder-clipped.ts": {
+      "bytes": 19895,
+      "sha256": "da39661a637cb202b7c4193ca51a0ee4e8dd8bbb77311c179a81dc6bb8cb57d6"
+    },
+    "packages/barocss-cad/src/intersect/own-plane-cylinder-intersection-internal.ts": {
+      "bytes": 13637,
+      "sha256": "ba83b39ceff182d29d75ecac30cd1e3993b964d47824d862020a69cc2de2932d"
+    },
+    "packages/barocss-cad/src/intersect/own-plane-cylinder-intersection.ts": {
+      "bytes": 7356,
+      "sha256": "8299fa4e6c63211e59b1d578691edb73165fb62ea341e546c48ab695a0893fe8"
+    },
+    "packages/barocss-cad/src/intersect/own-plate-circular-hole-preview.ts": {
+      "bytes": 19375,
+      "sha256": "1ceeb388a38e6f740f4509775ad2015a058fef2b853562ebd057d44ce9fd0bb7"
+    },
+    "packages/barocss-cad/src/intersect/surface-intersection.ts": {
+      "bytes": 27533,
+      "sha256": "306242e0b27d38c6ecd0fdd1f71af78df0b38e79b1f669821b7d902fb5df4550"
+    },
+    "packages/barocss-cad/src/intersect/vlinear-plane-section.ts": {
+      "bytes": 34223,
+      "sha256": "2489910a3e6c1133b5d1ae09daa2405c3c717f0c8845e74960b191db78110080"
+    },
+    "packages/barocss-cad/src/intersect/vlinear-plane-trim-classification.ts": {
+      "bytes": 20633,
+      "sha256": "deb8a3d6baaf635011a8fb78dfa362f0fa2dc9096d63a7e4db382beac7616c06"
+    },
+    "packages/barocss-cad/src/intersect/vlinear-plane-trim.ts": {
+      "bytes": 35507,
+      "sha256": "6a4e7b7c65b4e22fad1ec79336d68534587a37c560ed6d900c086aafaae1d0d2"
+    },
+    "packages/barocss-cad/src/io/dxf-writer.ts": {
+      "bytes": 55240,
+      "sha256": "c954fa5e845b5a819a1b7a1689db6facf7e8f949e2c772390d8f27870600ee52"
+    },
+    "packages/barocss-cad/src/io/iges-import.ts": {
+      "bytes": 43366,
+      "sha256": "be8debaeb6bbbaa843778ba4123dce34f7ef06093a4e05a6e30b658669193319"
+    },
+    "packages/barocss-cad/src/io/iges.ts": {
+      "bytes": 8345,
+      "sha256": "f03a3ca46499af4f57460e7aa44a43a080a23b7c8dd60f26b0102a727bdfcef2"
+    },
+    "packages/barocss-cad/src/io/step-import.ts": {
+      "bytes": 63450,
+      "sha256": "48bf2436bc6fe84c4b34a5ca02fdc9de0bb2ceb90a7af183157aaf6cd8af21ef"
+    },
+    "packages/barocss-cad/src/io/step-offset-internal.ts": {
+      "bytes": 8154,
+      "sha256": "061dee76cda7c182c4def841e57e4092bcf29886c9c1d7e2f686c6e50fa17fa8"
+    },
+    "packages/barocss-cad/src/io/step.ts": {
+      "bytes": 21100,
+      "sha256": "6679c111ad1fb14d8b38c97a7a9f7d5a3ff21389a05ec5889d2582ee5093a638"
+    },
+    "packages/barocss-cad/src/io/stl.ts": {
+      "bytes": 1376,
+      "sha256": "e845a1f709df7ab2f6be0b4d7b975164d1ab9608d7fa0bbf424352d88c2eaa16"
+    },
+    "packages/barocss-cad/src/language/expression-parser.ts": {
+      "bytes": 8850,
+      "sha256": "8332b91fe2b542f6b995af88375ad84d0f25573d04893fa0f3d071820c572eaf"
+    },
+    "packages/barocss-cad/src/language/lower-model.ts": {
+      "bytes": 1286,
+      "sha256": "01d56ca775918d02a24da8ca863e86cd9a4a69df699e26d5a8261b8e2d8c9fca"
+    },
+    "packages/barocss-cad/src/language/semantic-model.ts": {
+      "bytes": 10675,
+      "sha256": "6f20409021ba7efa0bbab1c2e361151865fb84b3c19e30c6df53af42da5cdf85"
+    },
+    "packages/barocss-cad/src/language/source-ast.ts": {
+      "bytes": 16540,
+      "sha256": "00f50777101b44436eb21b021f44242674876d241fd1bf88d46f6c5c8c9cfac2"
+    },
+    "packages/barocss-cad/src/machine/bearing.ts": {
+      "bytes": 19985,
+      "sha256": "747b57103aace66536c9bc5ef9903f0601f0971a90f0b8051c2d5c69d61d14ec"
+    },
+    "packages/barocss-cad/src/machine/cam.ts": {
+      "bytes": 35287,
+      "sha256": "32fa4f88d1d6c4fbb66f4cc4c92712888f0aba2e61568cd47b25178d2739f97c"
+    },
+    "packages/barocss-cad/src/machine/connector.ts": {
+      "bytes": 15235,
+      "sha256": "1ba7df6cdc383cae8095b4f38d3c40245a9daf1f201f7245fd0414b8c026f6f8"
+    },
+    "packages/barocss-cad/src/machine/drive.ts": {
+      "bytes": 36877,
+      "sha256": "8089b57e7173abd6331c4c8a650fe372637f13b20f02ecce52504be20b3ac7d1"
+    },
+    "packages/barocss-cad/src/machine/fits.ts": {
+      "bytes": 16645,
+      "sha256": "26df0a64b7c847c7b2ec48d75cca73239fa47fae52c8aa170b067eaa50c1f901"
+    },
+    "packages/barocss-cad/src/machine/gear-bevel.ts": {
+      "bytes": 68899,
+      "sha256": "01dd85d32a3922baaac9e517c1e168762c2c6d1e84dac1a9c23221a83179a85d"
+    },
+    "packages/barocss-cad/src/machine/gear-internal.ts": {
+      "bytes": 59117,
+      "sha256": "7889c22072e4512272244d9b81e7681afb3576ceec3a737ec439383042d92e45"
+    },
+    "packages/barocss-cad/src/machine/gear-rack.ts": {
+      "bytes": 28677,
+      "sha256": "b0d9ecb999c674c3c980b3cf316c04f363a282fd05275e1807878f317732cca4"
+    },
+    "packages/barocss-cad/src/machine/gear-worm-wheel.ts": {
+      "bytes": 42045,
+      "sha256": "24e882571ef426f652f04c1dcb11b511afa128949dc953403babac6c3c6a1e23"
+    },
+    "packages/barocss-cad/src/machine/gear-worm.ts": {
+      "bytes": 36025,
+      "sha256": "945ff6deac5874e6a789fdfcb75be6be360a48583eba400b751257a778de62cd"
+    },
+    "packages/barocss-cad/src/machine/gear.ts": {
+      "bytes": 74724,
+      "sha256": "a12f442bb599c33a2d664154cc38919db0f7c9b6d58c6e20321cd85a66ffe301"
+    },
+    "packages/barocss-cad/src/machine/oring.ts": {
+      "bytes": 20220,
+      "sha256": "47e7cbd81b37bfef7994c94436e51b6ce7498586aedb62ba91bd9347542a1c01"
+    },
+    "packages/barocss-cad/src/machine/shaft-parts.ts": {
+      "bytes": 18826,
+      "sha256": "e1906edba85cb03fe58d5ee400af8eb52d6d0809861c9c99f3a8d6731ee8d05c"
+    },
+    "packages/barocss-cad/src/machine/shaft.ts": {
+      "bytes": 20867,
+      "sha256": "4fcd58387ccbbb589563d52ca2e90d8f55b0a5220fd1f340cc6cd6c6478bf1b0"
+    },
+    "packages/barocss-cad/src/machine/spring.ts": {
+      "bytes": 59558,
+      "sha256": "4b187581c00232d3f7a152ee2a7582eda6dfefbe122d6131cd40d51cf49fa37f"
+    },
+    "packages/barocss-cad/src/machine/thread-helical.ts": {
+      "bytes": 17358,
+      "sha256": "e454f74bef7adef2a0b34c5ca7064f7dcb69a5f9d337d16c4797622cb97165d1"
+    },
+    "packages/barocss-cad/src/machine/thread-solid.ts": {
+      "bytes": 7375,
+      "sha256": "94ecab4963db3d9b4dc346d20c9473017c30f16d056d4c30a16fd9ae30ea60ec"
+    },
+    "packages/barocss-cad/src/mesh/facet-boolean.ts": {
+      "bytes": 26231,
+      "sha256": "07f212ce5bda0ffb770a4e522b7c9112ba76753b106c4639422e6992e39bc5b9"
+    },
+    "packages/barocss-cad/src/mesh/facet-brep.ts": {
+      "bytes": 26945,
+      "sha256": "6a8845418154ce30771ebd7f6d98505162a3f0545ef183b286c4432d3cf39f4d"
+    },
+    "packages/barocss-cad/src/mesh/facet-bvh.ts": {
+      "bytes": 6589,
+      "sha256": "6d98117046da6e249aff81a66d48aaa541ca70fd0e5a97c9e49baf39a9dd2988"
+    },
+    "packages/barocss-cad/src/mesh/facet-patch.ts": {
+      "bytes": 5570,
+      "sha256": "f6e401ec896f7eb0b7ca88e30c904467e804965221035c714377a6b7c8d430b6"
+    },
+    "packages/barocss-cad/src/mesh/facet-split.ts": {
+      "bytes": 17103,
+      "sha256": "0f7e8b6b00e1ffb7c2257aab82bc424221f014f74a2000a96856c42d743753b6"
+    },
+    "packages/barocss-cad/src/mesh/mesh-brep.ts": {
+      "bytes": 14701,
+      "sha256": "f5ceebffb9de2be43427f7992efee16d83a97df37a6d7b647d44f9ce2897be8b"
+    },
+    "packages/barocss-cad/src/mesh/mesh-clearance.ts": {
+      "bytes": 11349,
+      "sha256": "0e315a44ecfbb756e36a53ff7c86770844e57fae2becf5ac09251eb8ed194171"
+    },
+    "packages/barocss-cad/src/mesh/mesh-decimate.ts": {
+      "bytes": 30368,
+      "sha256": "11e34fe12c2ae1b3fc5d1a6b7bbb00304daafe69691b29228846de805924a533"
+    },
+    "packages/barocss-cad/src/mesh/mesh-distance.ts": {
+      "bytes": 3397,
+      "sha256": "9a6343c89fff8567d6536c91d93f8f95fd0324b38985abb21a660f52b6874ccc"
+    },
+    "packages/barocss-cad/src/mesh/mesh-offset.ts": {
+      "bytes": 7781,
+      "sha256": "27f7eedb8f0bd293000cd2ef839440b147f593c327452e92e2191e9d43f717df"
+    },
+    "packages/barocss-cad/src/mesh/mesh-repair.ts": {
+      "bytes": 36843,
+      "sha256": "d41b1ece4e95cf6b70ae27d24cc9416158474513d4d65c2d75fd32c4e1b7d66a"
+    },
+    "packages/barocss-cad/src/mesh/triangle-bvh.ts": {
+      "bytes": 12532,
+      "sha256": "e60e935070a8a29fb238296b1bb64f099d4ac6f84ce49910a2cd9e5844d3d8fe"
+    },
+    "packages/barocss-cad/src/mesh/voxel-field.ts": {
+      "bytes": 8459,
+      "sha256": "92f62efb23151f05e9f610a21dfb6ddeac3f8053f3cd30423a4a28d888007c68"
+    },
+    "packages/barocss-cad/src/model-compiler.ts": {
+      "bytes": 6988,
+      "sha256": "58cd1a214702617faafff8b707bc428556b2952f9c53a09e190cb3c64d175fe8"
+    },
+    "packages/barocss-cad/src/numeric-policy.ts": {
+      "bytes": 3318,
+      "sha256": "860ee982f9ac01559a38db48dd7be7e8b550e3c17fa753fa66f4c9e0677335ae"
+    },
+    "packages/barocss-cad/src/nurbs/curves/bezier-curve-degree-elevation.ts": {
+      "bytes": 13867,
+      "sha256": "33b0e06aa1e5de536688fd5461191dda81d9b6e92aa6f4c2d0ec0545491aa6b3"
+    },
+    "packages/barocss-cad/src/nurbs/curves/cad-curve-arc-length.ts": {
+      "bytes": 24690,
+      "sha256": "6f3a806e767c0304b78b542e4c143c95f0f2361a62146ba72f9c608cfc3ff486"
+    },
+    "packages/barocss-cad/src/nurbs/curves/curve-adaptive-sampling.ts": {
+      "bytes": 21239,
+      "sha256": "e5d0b6f79de869a6ffe8363dda647f36be7e0234cd6a44bd1e401aefd066f13c"
+    },
+    "packages/barocss-cad/src/nurbs/curves/curve-bezier-spans.ts": {
+      "bytes": 22317,
+      "sha256": "c9d632695cefe86a0b11d2dd70d5f78bf8f364f1d0a63904667859f5dbd01587"
+    },
+    "packages/barocss-cad/src/nurbs/curves/curve-bezier-subdivision-internal.ts": {
+      "bytes": 9807,
+      "sha256": "e171575f75d4fea1fb7817287f017b82841629762fc995fb5e62c6a4e58910dc"
+    },
+    "packages/barocss-cad/src/nurbs/curves/curve-c0-degree-elevation-internal.ts": {
+      "bytes": 5920,
+      "sha256": "8dace5b6e9693ac41fcb65686540dd225b56d70c469c9fdd33b11866231fdd88"
+    },
+    "packages/barocss-cad/src/nurbs/curves/curve-control-polygon.ts": {
+      "bytes": 13404,
+      "sha256": "323553913fdd328743acc9aea2c7641210851b5229b1158e34ce8c228492d4be"
+    },
+    "packages/barocss-cad/src/nurbs/curves/curve-interpolation-kernel-internal.ts": {
+      "bytes": 19789,
+      "sha256": "c960cc01263e377370fa72363c8b56da4c07cde85699b2b7ee3168bed69b9c9a"
+    },
+    "packages/barocss-cad/src/nurbs/curves/curve-interpolation.ts": {
+      "bytes": 6062,
+      "sha256": "2ab12ad11ccaff3ae0ce0b07d08621fb6f5402a48ad77a02d87cb4bcd195420b"
+    },
+    "packages/barocss-cad/src/nurbs/curves/curve-interval-extraction.ts": {
+      "bytes": 23333,
+      "sha256": "80b963bba508de1c9d36622c48bcadbfd040b58cc75b232299a50bbd5e05c375"
+    },
+    "packages/barocss-cad/src/nurbs/curves/curve-join.ts": {
+      "bytes": 20329,
+      "sha256": "2c5702d432f29dc1556104c738d3ba1a46c150a9519fd91570eeb559f7199612"
+    },
+    "packages/barocss-cad/src/nurbs/curves/curve-knot-insertion.ts": {
+      "bytes": 15356,
+      "sha256": "a9e0bb4e31dfc20edd6f0a901573508efbbb6dd9de997ea47bd681712c24e71d"
+    },
+    "packages/barocss-cad/src/nurbs/curves/curve-parameter-split.ts": {
+      "bytes": 18362,
+      "sha256": "43b902fc9d8ab0fe98240d0d24d8a96658c35b8b80f66a98fd431fb5db996e49"
+    },
+    "packages/barocss-cad/src/nurbs/curves/curve-parameterization.ts": {
+      "bytes": 17469,
+      "sha256": "9a9acb45dae27efdb8550c3eb80d350bfa45c630d544f9389ae7e9ad1fe32375"
+    },
+    "packages/barocss-cad/src/nurbs/curves/curve-planar-face-material.ts": {
+      "bytes": 29520,
+      "sha256": "78954255118cce1f017bb6993fedc0d5cfe34892dd55659f8551a29aee5d336a"
+    },
+    "packages/barocss-cad/src/nurbs/curves/curve-reversal.ts": {
+      "bytes": 22736,
+      "sha256": "d4f1a2cb63d31a127a5a72a84c4681aa23c6a6ea3d7c58bc0621636d6a5106a3"
+    },
+    "packages/barocss-cad/src/nurbs/curves/curve-segment.ts": {
+      "bytes": 2595,
+      "sha256": "3663cc05fbcd96d210f54ee1438f5e6db1a3684b174df1afe2648965b813d837"
+    },
+    "packages/barocss-cad/src/nurbs/curves/curve-source.ts": {
+      "bytes": 5624,
+      "sha256": "bc417ef9ed7cde3a76f137e6154c97ebd4dbe55334bf4484816991326c44bff3"
+    },
+    "packages/barocss-cad/src/nurbs/curves/knot-guard.ts": {
+      "bytes": 464,
+      "sha256": "9cff452e562108dc9ab54caf49fad63a77801e722bc1a12e9cc16d5a5c617675"
+    },
+    "packages/barocss-cad/src/nurbs/curves/weighted-curve-interpolation.ts": {
+      "bytes": 6581,
+      "sha256": "5968c3e7919650c750b094a7734e952a2608b2242071aeffe019c382d861bc43"
+    },
+    "packages/barocss-cad/src/nurbs/source-wide/curve-wide-adaptive-sampling.ts": {
+      "bytes": 37012,
+      "sha256": "3184857ac940ac282c0c56a8f826d84d6079d1fe5f8ab461ad82a52762d8884b"
+    },
+    "packages/barocss-cad/src/nurbs/source-wide/curve-wide-control-polygon.ts": {
+      "bytes": 18763,
+      "sha256": "4948d23b63307aa33a68a9c61ffbfd8c9b417ba2de21c3f76ff8cb9f4b380903"
+    },
+    "packages/barocss-cad/src/nurbs/source-wide/curve-wide-cubic-plane-intersection.ts": {
+      "bytes": 20923,
+      "sha256": "c48e2724946b1eb1f7a2cc6d9f6f813f268245b7874bf7d6c9c275eea597b073"
+    },
+    "packages/barocss-cad/src/nurbs/source-wide/curve-wide-plane-intersection.ts": {
+      "bytes": 18351,
+      "sha256": "bfa06f7d2d054a4ce4b0ba6e73e783f0a9c254d0428d6ac9678032fa176ad58d"
+    },
+    "packages/barocss-cad/src/nurbs/source-wide/curve-wide-refinement.ts": {
+      "bytes": 26623,
+      "sha256": "1ba7c6411488451340a11de7bb6ea5e735d2e2a8b085ab89d98834c3a3779942"
+    },
+    "packages/barocss-cad/src/nurbs/source-wide/curve-wide-reversal.ts": {
+      "bytes": 12809,
+      "sha256": "f1750efaa2b41475885a7c773834ae8cbd50ce8b3f13958ae501c7d81824a2dd"
+    },
+    "packages/barocss-cad/src/nurbs/source-wide/source-curve-adaptive-sampling.ts": {
+      "bytes": 36834,
+      "sha256": "daf732c252242230423051b34d3fb3b986274902fe7dea6f6b1f06bc368f4b91"
+    },
+    "packages/barocss-cad/src/nurbs/source-wide/source-curve-control-polygon.ts": {
+      "bytes": 21984,
+      "sha256": "a2f53ecbf36becb73ce09b1364188684c85a856bea1e5c1767fe8a6a547b2314"
+    },
+    "packages/barocss-cad/src/nurbs/source-wide/source-curve-degree-elevation.ts": {
+      "bytes": 35324,
+      "sha256": "7a8975f9fd36871e5d3cd9190830663f05dd069a9eac485f3bd86f49da548781"
+    },
+    "packages/barocss-cad/src/nurbs/source-wide/source-curve-interval-extraction.ts": {
+      "bytes": 50374,
+      "sha256": "bba45d05b4e3bb87d2b01dcf6617f2b4f408762e25f7bbb8078192c73d2c193f"
+    },
+    "packages/barocss-cad/src/nurbs/source-wide/source-curve-knot-insertion.ts": {
+      "bytes": 31670,
+      "sha256": "776a910b0e84c5b6b6beae4524daf810825cf5f0c3f06c6e7404ea9f0ef6d779"
+    },
+    "packages/barocss-cad/src/nurbs/source-wide/source-knot-aligned-loft.ts": {
+      "bytes": 34498,
+      "sha256": "22d51f1a13382b3a06b44f3a369d147e993a244364621880d8dd4245b3d81b19"
+    },
+    "packages/barocss-cad/src/nurbs/source-wide/source-line-width-face.ts": {
+      "bytes": 31616,
+      "sha256": "12598a8c732c8fbda987c9fd1177e196b04a8b7e2a2df5d5e86de17f6ad1d371"
+    },
+    "packages/barocss-cad/src/nurbs/source-wide/source-surface-control-net-wide.ts": {
+      "bytes": 23789,
+      "sha256": "7b7267d439529253d0da1e475ffbf1468ac8b096d207825b3a6cad4ac6ebba33"
+    },
+    "packages/barocss-cad/src/nurbs/source-wide/source-surface-control-net.ts": {
+      "bytes": 18783,
+      "sha256": "3c76970a38b55584c192eb727ea14f8bcd3ffe6ab4acedba1653da9bb4879037"
+    },
+    "packages/barocss-cad/src/nurbs/source-wide/source-surface-degree-elevation.ts": {
+      "bytes": 44709,
+      "sha256": "2a285d363091953e6f4474333bd6b6a401b92a1db2c200c06254e2c49222fd11"
+    },
+    "packages/barocss-cad/src/nurbs/source-wide/source-surface-knot-insertion.ts": {
+      "bytes": 37920,
+      "sha256": "864666c3e4a4e800d51b1679d0fcf76763aabcbeeba13fedb519da37428dc80a"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/bezier-coons-surface.ts": {
+      "bytes": 8243,
+      "sha256": "ceacb3bc0f91f52980b782d316c0357fe4b74dad2f654bdab81e5bee222957d0"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/cad-surface-area.ts": {
+      "bytes": 29935,
+      "sha256": "f51b5b5f05a0e4953d5c8c5169c896d1129552ffb98177837aaccf6fce01e873"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/compatible-ruled-surface.ts": {
+      "bytes": 11712,
+      "sha256": "77a820981a2b6d1fd50a47d8e15c3b82618a2aa96b57108c66b36224e8d05e58"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/degree-matched-bezier-ruled.ts": {
+      "bytes": 15888,
+      "sha256": "fd5662fcf4630b8ee06f107ce602593f4106dd7947a1f1a0288279a9e577cfa4"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/local-curvature.ts": {
+      "bytes": 8105,
+      "sha256": "bc9207fe23addf2c3c14505562ecc7798e8021691cca2d58d14ed113b7f16011"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/rational-ruled-surface.ts": {
+      "bytes": 17588,
+      "sha256": "3beea2ee650573976f72580a3e499ec4143f7e2f1350e801ac5e95f84a413290"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/surface-axis-reversal.ts": {
+      "bytes": 24936,
+      "sha256": "13656f2f18304982ff5a1eb50e3f1d955b5d7d03bf734f750613c7f0ce0a032a"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/surface-bezier-axis-degree-elevation.ts": {
+      "bytes": 17840,
+      "sha256": "4c893651ae4ee9fb09aa8af4ddf98527db31ef8c230d1cb25cae960cc8afabcd"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/surface-closest.ts": {
+      "bytes": 11185,
+      "sha256": "5036a2951463abcc7b8e6938e84734b15947d64f7056f84a402718280e7b9570"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/surface-control-net.ts": {
+      "bytes": 11796,
+      "sha256": "f5d3c52caaac96f074aaf28b09531d17e69294abae6e20f010718d5e1010c659"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/surface-interpolation.ts": {
+      "bytes": 21986,
+      "sha256": "097f871f4bfabf0f67e4505df5fe82e05e73c36ea2098be2a9f543c32d42ad6c"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/surface-isocline.ts": {
+      "bytes": 12280,
+      "sha256": "53dbd92b520d7501c80f31744e0f2e893ab9269d0d0480fe91f516b0d64f034b"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/surface-isocurve.ts": {
+      "bytes": 14119,
+      "sha256": "d0c21f0869ecd5a77a1a4d5fa2d7dd90ac3df6bf60fcab09b1afd30ec6b2d8e7"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/surface-knot-insertion.ts": {
+      "bytes": 15645,
+      "sha256": "957a9260bc7182f64cc348cce6bd14afe74edd54a318c21fefce8be9f154a8c8"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/surface-parameter-split.ts": {
+      "bytes": 19978,
+      "sha256": "7ba4fc4edbd191797c36324f4f00761ec2dead236efc4e9ca854b520a9168767"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/surface-region.ts": {
+      "bytes": 26685,
+      "sha256": "880363294825dcc5db4387cc38cd9592dfd1e44a998adb69b89a48592ee290b0"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/surface-revolution.ts": {
+      "bytes": 7823,
+      "sha256": "ae3b858ae112b7d956addd0abf7d9bb87187b1be3bb9c58b91533e147045ae62"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/translational-sweep-surface.ts": {
+      "bytes": 25158,
+      "sha256": "275143db0568ef3bd19bdd2528a1c5e2d6e6d7d65452182fed650f1322102cba"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-axis-reversal.ts": {
+      "bytes": 14765,
+      "sha256": "5dec26b81bc0847e656326981213e874726c42f89cc988c6eff4941d6a5a7875"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-parameter-split.ts": {
+      "bytes": 14975,
+      "sha256": "63a002c2c6287b2509e71988c853ac33b64837c63b3e733ed582093b705500e8"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-region.ts": {
+      "bytes": 12987,
+      "sha256": "894de212eca8ff92d893d03ad426fc68aca4194878980adb22c54909f70dfb5f"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-split-binding.ts": {
+      "bytes": 8827,
+      "sha256": "aa83ec0b799f73969ddc7d2ba6e2ffaa5d4bc7581112e5ea3df0fca2ab95bb25"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-split-common.ts": {
+      "bytes": 855,
+      "sha256": "45758063bbe0d132cdcc2428a5d0b836084053d6b108b18f635451d359a678db"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-split-topology.ts": {
+      "bytes": 5935,
+      "sha256": "705d5cc7aa012a26a40dc5d920f104e9c5dd6011b9679b88e3b2418044c5085c"
+    },
+    "packages/barocss-cad/src/nurbs/surfaces/z-axis-revolved-surface.ts": {
+      "bytes": 12249,
+      "sha256": "0a2406d788467019f5d6198100d9a575a4d60173bb8a1558c056dc2b10fab181"
+    },
+    "packages/barocss-cad/src/own-convex-planar-face.ts": {
+      "bytes": 19460,
+      "sha256": "59f37285f4ff38b82f62135d1373d629e00b8c84a586e44d6b1ae6ca4b8eb484"
+    },
+    "packages/barocss-cad/src/own-plate-circular-hole.ts": {
+      "bytes": 18907,
+      "sha256": "e53a5407cff05784825daaa603003c4abac2629b9faf4ae59e7c213ac6b72be3"
+    },
+    "packages/barocss-cad/src/paired/paired-section-plane-cap.ts": {
+      "bytes": 32429,
+      "sha256": "d2e64051afdc3b1a784288fcf86668208e4683cede0a63ecc163840386f8ad0c"
+    },
+    "packages/barocss-cad/src/paired/paired-surface-b-uv-split-faces-proof-internal.ts": {
+      "bytes": 30543,
+      "sha256": "53d01cd9732530aa57e0018a6ef4469a4c5baba80c4b2d1c6908717ae47dfcda"
+    },
+    "packages/barocss-cad/src/paired/paired-surface-b-uv-split-faces.ts": {
+      "bytes": 41930,
+      "sha256": "178a1fc4b059060e6db194ed5f85a0f9296150644f1d256c70047d1dc7c42703"
+    },
+    "packages/barocss-cad/src/paired/paired-surface-intersection-branch.ts": {
+      "bytes": 50865,
+      "sha256": "604166001d19ebcf07589ebcd85a9be428dfc9b7ca54be5af0970aed3f2337cb"
+    },
+    "packages/barocss-cad/src/paired/paired-surface-material-body-proof-internal.ts": {
+      "bytes": 46233,
+      "sha256": "a1b9277e77f268983a5b1b41033f25a82ce8ad8f41964627a63bdb9219a0e862"
+    },
+    "packages/barocss-cad/src/paired/paired-surface-material-body-world-points-internal.ts": {
+      "bytes": 15035,
+      "sha256": "7c8a8dd0c570e22e40359ecefe930a24b8add164a88a5d591f4fbbe62581a81d"
+    },
+    "packages/barocss-cad/src/paired/paired-surface-material-body-world-points.ts": {
+      "bytes": 26657,
+      "sha256": "99cf87b8e6f7d439376be2d3c0dda2e78f4cf61e6210765fc6f4034bbaa82089"
+    },
+    "packages/barocss-cad/src/paired/paired-surface-material-body.ts": {
+      "bytes": 49141,
+      "sha256": "0a40608dcaf1a32e941810944ce27abb2fcb67d7189e45fed6029fc783ebfe2c"
+    },
+    "packages/barocss-cad/src/paired/paired-surface-uv-face-classification-internal.ts": {
+      "bytes": 16319,
+      "sha256": "bf9cc9ec758dfad8742ce75571d5752bbf76d2bf580d409daf41e5ae339925c1"
+    },
+    "packages/barocss-cad/src/paired/paired-surface-uv-face-classification.ts": {
+      "bytes": 26706,
+      "sha256": "4ff3508ddb118ae690ac92c7aedfd5556cfcbe89181e2a10b4c712a910bb907a"
+    },
+    "packages/barocss-cad/src/paired/paired-surface-uv-split-faces-proof-internal.ts": {
+      "bytes": 28166,
+      "sha256": "b4be65057bb4a79223098e0e39a0f3953ecc07b9f5e79111c1842dcfd2f9d5ee"
+    },
+    "packages/barocss-cad/src/paired/paired-surface-uv-split-faces.ts": {
+      "bytes": 40506,
+      "sha256": "78c06340105421cb0c1b5846228c5c77a2c96245795ce14fafb81eea118fd501"
+    },
+    "packages/barocss-cad/src/part/part-band.ts": {
+      "bytes": 3061,
+      "sha256": "a9f5a617d2ae99cd7f7022da80fe00832f95b26f5064a019e4cfc09f6fa1efe8"
+    },
+    "packages/barocss-cad/src/part/part-boundary-refusal-internal.ts": {
+      "bytes": 544,
+      "sha256": "4d7ecb6f420a04d8b2e32419fe28618b7733f0c16cc685e18847581a52f21623"
+    },
+    "packages/barocss-cad/src/part/part-expect.ts": {
+      "bytes": 11337,
+      "sha256": "e129655e3894f75308246139ef766e32e004e812d9c993fdd746e8e6f60ed459"
+    },
+    "packages/barocss-cad/src/part/part-face-fillet.ts": {
+      "bytes": 48921,
+      "sha256": "99b773787ad5a1e0ed9dd76da1032ae08efae8bb5a58fda662eb39a43d888d1d"
+    },
+    "packages/barocss-cad/src/part/part-finish.ts": {
+      "bytes": 21732,
+      "sha256": "b7812605cc8ecdde100a07569bd19bdebc4addb725b47a8343101c1ea25bd5d0"
+    },
+    "packages/barocss-cad/src/part/part-frame.ts": {
+      "bytes": 136637,
+      "sha256": "648a42aca7cf3333748cdc53d34e71d7156386b9f5d27ddcf1d7e7e6a0fb8cd7"
+    },
+    "packages/barocss-cad/src/part/part-gears.ts": {
+      "bytes": 29272,
+      "sha256": "ba02d5ec45d13eebc9371dd013b75ad46bae95fcc1c6bf328eae936549fbf07c"
+    },
+    "packages/barocss-cad/src/part/part-machine.ts": {
+      "bytes": 31916,
+      "sha256": "64352c301e9fed02e05239420cb8d35f667b8e3ae5acc3efa066b680593845cc"
+    },
+    "packages/barocss-cad/src/part/part-mesh.ts": {
+      "bytes": 10890,
+      "sha256": "7c2118455db216b69aa98f6a3e19e1f9a0526c2fd39f118b1dd9ddf6f4e9367c"
+    },
+    "packages/barocss-cad/src/part/part-model.ts": {
+      "bytes": 205871,
+      "sha256": "5f8389e3a6c4f699b6b234e220f64b06efebf8c47afe77497be6947981bb4827"
+    },
+    "packages/barocss-cad/src/part/part-sheet.ts": {
+      "bytes": 24236,
+      "sha256": "ee3ab61b901be779484eb1422ea5caea294e98c3364859afac61153eab9a3cdc"
+    },
+    "packages/barocss-cad/src/part/part-shell.ts": {
+      "bytes": 32167,
+      "sha256": "1c1f62ff6f33ddedd7dc5758e0c746d14327a92470f906ccfce33cd68b6bcc86"
+    },
+    "packages/barocss-cad/src/planar-solids/axis-box-point-classification.ts": {
+      "bytes": 18056,
+      "sha256": "2f819f3d7046d65b3a02ffaf1b277ebde0b5433d681f77a30f32a0ea1d4e1985"
+    },
+    "packages/barocss-cad/src/planar-solids/axis-box-principal-inertia.ts": {
+      "bytes": 23201,
+      "sha256": "37e8e183ff1b00e6d38b97d979154ac37fb63e8ecd99293ccf61d9157cf7a917"
+    },
+    "packages/barocss-cad/src/planar-solids/axis-rectangle-extrusion.ts": {
+      "bytes": 11235,
+      "sha256": "107ea43b108d5ee1dfa019e321ef4abc12417267f4085f2e08478dc1e883862b"
+    },
+    "packages/barocss-cad/src/planar-solids/convex-planar-slab-subtraction-internal.ts": {
+      "bytes": 6768,
+      "sha256": "f72ad2e7af0f3344a8b98c44ccb58cb8628521e28c24c2a0e59b599fb47b125e"
+    },
+    "packages/barocss-cad/src/planar-solids/coplanar-face-boolean-arrangement.ts": {
+      "bytes": 22036,
+      "sha256": "4143470e65fb8234c1d9328f957fdf7df536857b64a9d5e3fa8e24a261fcd61a"
+    },
+    "packages/barocss-cad/src/planar-solids/coplanar-face-boolean-extrusion-geometry.ts": {
+      "bytes": 7797,
+      "sha256": "49c9240414c4ec48408c75bcdcc818195a75ee6af3bcedb227c2f3763680b7ea"
+    },
+    "packages/barocss-cad/src/planar-solids/coplanar-face-boolean-extrusion-mesh.ts": {
+      "bytes": 40343,
+      "sha256": "d0a1568034ef3dda192f1f46fe216d834190388c9439283b4c21be1bea05670d"
+    },
+    "packages/barocss-cad/src/planar-solids/coplanar-face-boolean-extrusion-properties.ts": {
+      "bytes": 20637,
+      "sha256": "d5342979009d3098069eb05d12d218f3cceb4df93ee1280204505d35fced201b"
+    },
+    "packages/barocss-cad/src/planar-solids/coplanar-face-boolean-extrusion.ts": {
+      "bytes": 39021,
+      "sha256": "30eb98dc471eda06006d6b4a3a9846e777c41a21fa9fa67b329150d11949c4af"
+    },
+    "packages/barocss-cad/src/planar-solids/coplanar-face-boolean-mesh-triangulation.ts": {
+      "bytes": 15643,
+      "sha256": "871b92f6b5a288cc6db291c0237b23bd27b7cf5941326e8347a5ffbb6549a708"
+    },
+    "packages/barocss-cad/src/planar-solids/coplanar-face-boolean-mesh.ts": {
+      "bytes": 30600,
+      "sha256": "c4f9a40086b02be55ed43da5dbecba8e72b3cd915a2c8ccb90a2eb3c412a5c97"
+    },
+    "packages/barocss-cad/src/planar-solids/coplanar-face-boolean.ts": {
+      "bytes": 29469,
+      "sha256": "52cbba98801bd8ef80e34ef99b21a649c47a2c398de7d5010594eb902613081c"
+    },
+    "packages/barocss-cad/src/planar-solids/xy-circle-planar-face.ts": {
+      "bytes": 15001,
+      "sha256": "ba92a1e7c660b88aa072b0246edea8bb9a90c50afa5461303c69ebe8fb19de13"
+    },
+    "packages/barocss-cad/src/planar-solids/xy-circle-prism-document.ts": {
+      "bytes": 16791,
+      "sha256": "66f8dda55503fe787881e76217cbd32cdd14bf8fe73630393c6df7738f384b11"
+    },
+    "packages/barocss-cad/src/section-rational-internal.ts": {
+      "bytes": 9787,
+      "sha256": "8ed40c435eec1c242c0ce58c9d9eb4cb3809443b5f7661877445262433765e38"
+    },
+    "packages/barocss-cad/src/sketch/circle-graph-internal.ts": {
+      "bytes": 15158,
+      "sha256": "32fb66940d6971320c7f625dc3c4500864f5f90095940e721ebfc31fb6a8a260"
+    },
+    "packages/barocss-cad/src/sketch/sketch-circle-feature-graph.ts": {
+      "bytes": 22330,
+      "sha256": "9811babc91876ccd0ea61b407b9ec880c4569f7a0733a3981c4f617f7190367f"
+    },
+    "packages/barocss-cad/src/sketch/xy-angle-arc-artifact.ts": {
+      "bytes": 19175,
+      "sha256": "59e2b480846128a6457bb61091a45530d15a7655eb52e2ce7862dfbef44c5d93"
+    },
+    "packages/barocss-cad/src/sketch/xy-angle-arc.ts": {
+      "bytes": 19190,
+      "sha256": "7f7ba8037d706a4547234640f827b93df34951db4a21cc38613ed27b883f6559"
+    },
+    "packages/barocss-cad/src/sketch/xy-arc-sketch-document.ts": {
+      "bytes": 18243,
+      "sha256": "2f82b17e141612e6c1407f817ed4171375bd285c7c2d9b5868959ef5747cde97"
+    },
+    "packages/barocss-cad/src/sketch/xy-circular-numerical-sketch-admission-internal.ts": {
+      "bytes": 12438,
+      "sha256": "e8533ee1ea5e83bfa2816ea9f3be57337d38c8772524bf951be41fb3014ff851"
+    },
+    "packages/barocss-cad/src/sketch/xy-circular-numerical-sketch-native-internal.ts": {
+      "bytes": 2946,
+      "sha256": "d951686b1397e67aa80e20aa3931eb5b0bb4c1048ec4fc312034dcf4bf1c2cef"
+    },
+    "packages/barocss-cad/src/sketch/xy-circular-numerical-sketch-solver-internal.ts": {
+      "bytes": 8944,
+      "sha256": "bde58843bd2d520e87b0a2aa37bd345789b1ff3a1b6855eeca60fe0201001942"
+    },
+    "packages/barocss-cad/src/sketch/xy-circular-numerical-sketch.ts": {
+      "bytes": 5827,
+      "sha256": "1e6323a593a4c65796a13fbd24a9ad7873b483643f3bc54f5a2962f199f07f34"
+    },
+    "packages/barocss-cad/src/sketch/xy-numerical-sketch-admission-internal.ts": {
+      "bytes": 11496,
+      "sha256": "bb47cabe255c42596b1279cda0aacf8c1c7c0a18fcb8aebedbf6485c6a18b0dc"
+    },
+    "packages/barocss-cad/src/sketch/xy-numerical-sketch-solver-internal.ts": {
+      "bytes": 10258,
+      "sha256": "e1189b02f2ab7f28f5b0b6fc80f7ce467df761988a532f6845a7bc0bf82dfbff"
+    },
+    "packages/barocss-cad/src/sketch/xy-numerical-sketch.ts": {
+      "bytes": 8009,
+      "sha256": "4ecaf6f1d00d28ad6e6cb33395861f5b078fb3a7ab30c52ec352a9d6a9617b66"
+    },
+    "packages/barocss-cad/src/sketch/xy-profile.ts": {
+      "bytes": 3962,
+      "sha256": "4dbd14c89fc02187bf826a371e97a12a5c39e2f3a13148b65adc7be0074efd43"
+    },
+    "packages/barocss-cad/src/translated-strip/qualified-translated-strip-body-mesh-domain-internal.ts": {
+      "bytes": 10010,
+      "sha256": "58388ed87ca5929946a86055ada9c3963bcffd6ecc882a04bab146f4730620a9"
+    },
+    "packages/barocss-cad/src/translated-strip/qualified-translated-strip-body-mesh.ts": {
+      "bytes": 44447,
+      "sha256": "368bc72320708ad8284a1719f48e6fbcd6464bdfc86d05622d7a9fad0b4d4850"
+    },
+    "packages/barocss-cad/src/translated-strip/qualified-translated-strip-body.ts": {
+      "bytes": 42579,
+      "sha256": "7b9fca682f647fc229ab90a45725d08d05c227471c92f08319129f1b5a1c39da"
+    },
+    "packages/barocss-cad/src/translated-strip/qualified-translated-strip-material-internal.ts": {
+      "bytes": 34001,
+      "sha256": "63f98461f34422557855b2cfcff27266f527aeed7694390fd8d3d04fc1920c68"
+    },
+    "packages/barocss-cad/src/translated-strip/translated-strip-interval-boolean-construction-internal.ts": {
+      "bytes": 4990,
+      "sha256": "e2a9a1942c78bb682159a05cf9c6e03ef498d1dbb4ff1389bdf17fea53a0d4ba"
+    },
+    "packages/barocss-cad/src/translated-strip/translated-strip-interval-boolean.ts": {
+      "bytes": 44005,
+      "sha256": "32caa46684025a78669a2d7494b770a3a210080bfb5364aa270bd005c5fecdcc"
+    },
+    "packages/barocss-cad/src/translated-strip/translated-strip-plane-split.ts": {
+      "bytes": 69162,
+      "sha256": "228082b9bcf7b377fb56c1f5db1abd215aeeda378fc5325b99cff5d5174e0c54"
+    },
+    "packages/barocss-cad/src/translated-strip/translated-surface-base-face.ts": {
+      "bytes": 35168,
+      "sha256": "64a15bbaf6bbb656f07ed398b07844d6933f588953db49a8b645feed95eae94f"
+    },
+    "packages/barocss-cad/src/translated-strip/translated-surface-end-faces.ts": {
+      "bytes": 33849,
+      "sha256": "58262b6056f727a531f8c75b1c65c0c08547aefd5b286191a45b9042e06899a1"
+    },
+    "packages/barocss-cad/src/translated-strip/translated-surface-strip-volume.ts": {
+      "bytes": 28502,
+      "sha256": "4022ea863283780c45236a256f11b7671aa0342d15cd44ffe617590f3bdbdf46"
+    },
+    "packages/barocss-cad/src/translated-strip/translated-surface-strip-world-points.ts": {
+      "bytes": 36426,
+      "sha256": "c7658ecbbd4f5d25f02f97b0f9e0d660d60d3663d9f773bf9b349e291dfa9a77"
+    },
+    "packages/barocss-cad/src/types.ts": {
+      "bytes": 1399,
+      "sha256": "34dda27f3fd2cf2b7b2504168fe2cdf6c9ad1c68e3cf8a7de57a792c1ca44604"
+    },
+    "packages/barocss-cad/src/xy-arc.ts": {
+      "bytes": 4189,
+      "sha256": "97fc500c5bacdd811ce5eef3c4e06659e5d593539b80101a6f6abb541eb74b12"
+    },
+    "packages/barocss-cad/src/xy-circle-prism-shell.ts": {
+      "bytes": 19427,
+      "sha256": "61e880154c1177f7e32eb93599ed33b4642fd3cb92bc0d5a0fb5e369abf1e891"
+    },
+    "packages/barocss-physics/build-root.mjs": {
+      "bytes": 1794,
+      "sha256": "05d06c81f5d0491acd9dfb131a025064d365d75587411eb1ee0fc1050b1dfcbc"
+    },
+    "packages/barocss-physics/package.json": {
+      "bytes": 1585,
+      "sha256": "4e33b9e01af5adc8191ed491fc66b489350eb3e4d8404f35404db42a7735d18f"
+    },
+    "packages/barocss-physics/src/broadphase.ts": {
+      "bytes": 1371,
+      "sha256": "d93e38d78cc3d202481ceeba83631d528032426d03a8adafb2e461fc72a042a0"
+    },
+    "packages/barocss-physics/src/cad-fluid-data.ts": {
+      "bytes": 2345,
+      "sha256": "5a15e23ba65663433501f07d2f35f323960879218d52a007efeb09ca7934ce10"
+    },
+    "packages/barocss-physics/src/cad-proxy-admission.ts": {
+      "bytes": 7744,
+      "sha256": "898fb55af369727440fef9f4bfadba0ea455b4c800a719909e5311029a663441"
+    },
+    "packages/barocss-physics/src/cad-proxy-pose.ts": {
+      "bytes": 1479,
+      "sha256": "8b5f50642144e335421ee6483f8b016b8a0babdb0c312ddf6ba4afbcf8bda322"
+    },
+    "packages/barocss-physics/src/cad-proxy-types.ts": {
+      "bytes": 887,
+      "sha256": "31bbf6766887913149d6fa2185c173adb0c6b78cdb21d1556ae4ffd055666128"
+    },
+    "packages/barocss-physics/src/cad-proxy-validation.ts": {
+      "bytes": 1598,
+      "sha256": "4429f957bb51ff2604a15478095e35642368dcf91ca0d854561693d3f99f748e"
+    },
+    "packages/barocss-physics/src/cad-proxy.ts": {
+      "bytes": 321,
+      "sha256": "cc7715b4fc974c8ed4511ebf684cdc7c2923f7ab4b8b7f5db45b208f8e6ffa99"
+    },
+    "packages/barocss-physics/src/capsule-contact.ts": {
+      "bytes": 5615,
+      "sha256": "cc29d60423bd9a1883585cf164cca0b0736b9fc72e7feb3575c5208c7d892929"
+    },
+    "packages/barocss-physics/src/capsule-query/admission.ts": {
+      "bytes": 5248,
+      "sha256": "9b67efc7a8824ce49361485eff925afa50017e05bc23d900db5ec7c4e2c8760d"
+    },
+    "packages/barocss-physics/src/capsule-query/geometry.ts": {
+      "bytes": 2570,
+      "sha256": "5fdbe1eb40f46e930161e98244a9e5ec0e00c29297caf6f91d530c98df3df4a7"
+    },
+    "packages/barocss-physics/src/capsule-query/profile.ts": {
+      "bytes": 303,
+      "sha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff"
+    },
+    "packages/barocss-physics/src/capsule-query/snapshot.ts": {
+      "bytes": 2537,
+      "sha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd"
+    },
+    "packages/barocss-physics/src/capsule-query/sweep.ts": {
+      "bytes": 1861,
+      "sha256": "a8f4d16879b2ff88086ceec54cef19d04d58fb063893e7a146382cad59cbaf77"
+    },
+    "packages/barocss-physics/src/capsule-query/types.ts": {
+      "bytes": 979,
+      "sha256": "c22d17887cd8ab889a443c828200310a4c560fd3b4f8ed49f3f1f60e5dd46f44"
+    },
+    "packages/barocss-physics/src/capsule-query-error.ts": {
+      "bytes": 137,
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    "packages/barocss-physics/src/capsule-query.ts": {
+      "bytes": 222,
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+    },
+    "packages/barocss-physics/src/ccd-box.ts": {
+      "bytes": 1978,
+      "sha256": "43667cba73a01782cac3b9fe14828b67885229a6e09bc9f0e68b6a2d27057b43"
+    },
+    "packages/barocss-physics/src/ccd-pair.ts": {
+      "bytes": 2110,
+      "sha256": "570b434c19e432ccc3632bafa2c174df6dac9968e6c38b0f7d4416f75090231f"
+    },
+    "packages/barocss-physics/src/ccd-slab.ts": {
+      "bytes": 1125,
+      "sha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340"
+    },
+    "packages/barocss-physics/src/ccd.ts": {
+      "bytes": 3220,
+      "sha256": "040de88f74673b297164227ff5faada12f0eb190aa14a9471dbeb02f879a57ab"
+    },
+    "packages/barocss-physics/src/character/admission.ts": {
+      "bytes": 4488,
+      "sha256": "d83cdb8231620a18935d4d4d5e19ab7ec5440b043e1df71d49d5fa42f3fecb26"
+    },
+    "packages/barocss-physics/src/character/core.ts": {
+      "bytes": 4057,
+      "sha256": "6c6251e9782baed07be65cce68bfdbca14e2f930ca04a54ee6812cbbfc925a02"
+    },
+    "packages/barocss-physics/src/character/ground.ts": {
+      "bytes": 1242,
+      "sha256": "bd1621641ebc9300943b88c9083710218768454acb0a5e1ba8b330086d68c321"
+    },
+    "packages/barocss-physics/src/character/math.ts": {
+      "bytes": 859,
+      "sha256": "df0e88c320d8a189004991cd5cfc3f8de3d7bb3eecb305bb01830a11191dcdc5"
+    },
+    "packages/barocss-physics/src/character/profile.ts": {
+      "bytes": 334,
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    "packages/barocss-physics/src/character/query.ts": {
+      "bytes": 2733,
+      "sha256": "9ef96eeb1529dc42466445529b100affc2f56913081f0c2fc169079cffe1a8cf"
+    },
+    "packages/barocss-physics/src/character/slide.ts": {
+      "bytes": 2555,
+      "sha256": "587d5512212e68fdc26068646152d2f8c52c3c6119d6c222de91b750c01fcd77"
+    },
+    "packages/barocss-physics/src/character/state.ts": {
+      "bytes": 2181,
+      "sha256": "6eb744c82f24604a8ecadd6e9d86406600119a3fbc7918129f93983df7cbf47e"
+    },
+    "packages/barocss-physics/src/character/step-assist.ts": {
+      "bytes": 3129,
+      "sha256": "9166857ad8509049a56d5b255ed59de17ee03e159581b495de7f1d985780c390"
+    },
+    "packages/barocss-physics/src/character/types.ts": {
+      "bytes": 2552,
+      "sha256": "866c5974fd99ec08b5dc6b5edf165241f4d02a8ed87274faf4cf35b19a3fb938"
+    },
+    "packages/barocss-physics/src/character-controller.ts": {
+      "bytes": 1363,
+      "sha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927"
+    },
+    "packages/barocss-physics/src/cloth/constraints.ts": {
+      "bytes": 1772,
+      "sha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be"
+    },
+    "packages/barocss-physics/src/cloth/metrics.ts": {
+      "bytes": 1805,
+      "sha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd"
+    },
+    "packages/barocss-physics/src/cloth/profile.ts": {
+      "bytes": 655,
+      "sha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f"
+    },
+    "packages/barocss-physics/src/cloth/solver.ts": {
+      "bytes": 1395,
+      "sha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d"
+    },
+    "packages/barocss-physics/src/cloth/topology.ts": {
+      "bytes": 1931,
+      "sha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203"
+    },
+    "packages/barocss-physics/src/cloth/types.ts": {
+      "bytes": 719,
+      "sha256": "bad411f3fa02e4ba7039b5d447de395074342aa207f2eeed251705b15facb6d1"
+    },
+    "packages/barocss-physics/src/collision.ts": {
+      "bytes": 13442,
+      "sha256": "baa1492ee990bb156d4ba10deb45e0ddc31d31ab6555318c5f652043aa1ea501"
+    },
+    "packages/barocss-physics/src/contact-manifold.ts": {
+      "bytes": 4743,
+      "sha256": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/admission.ts": {
+      "bytes": 3764,
+      "sha256": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/errors.ts": {
+      "bytes": 2777,
+      "sha256": "5e51e5662fbce80bee3ccd3aa3694ee986b1492ed816d171774e261ab982bf4f"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/linear-solver.ts": {
+      "bytes": 10615,
+      "sha256": "4009d4d7f171be3a5d79ca309a14b039da54f9201b438a410a6e29ed0f90bfdf"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/measure.ts": {
+      "bytes": 4626,
+      "sha256": "97cbaf697dc8ef5caba0bf2c702699b025bcc6f906f553b623466618bbd77178"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/pose.ts": {
+      "bytes": 3194,
+      "sha256": "ab950c1f9f1a79f9f00cb26e4b3cef0e3dcaea7b16d74e345e711159706b39e4"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/postcontact.ts": {
+      "bytes": 2936,
+      "sha256": "8d07190383a64cb592165772109a4f462099743492f8373794ef7981b1431e38"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/projection.ts": {
+      "bytes": 3538,
+      "sha256": "9d0def632c07f8085e860a2dbf21f26d8073f3265eb57590607d23ea6d333b87"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/report.ts": {
+      "bytes": 5726,
+      "sha256": "d46b3e289c58b289b059928580ff2b89d9bd3ecfb11cb688d8b7a4735143973d"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/rows.ts": {
+      "bytes": 3685,
+      "sha256": "6556f07d1d7d22edb67af1b214c689c5b5c2b30628334abaec67280d7302903f"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/stage.ts": {
+      "bytes": 2648,
+      "sha256": "a66e09b816259c2bb1305fed8f90696585b9fd4b750406b0ce006cbe2c2f33ab"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/types.ts": {
+      "bytes": 1610,
+      "sha256": "89b2708fd9209932084eaa765f93ff6ea00a2d775911e8c9e607a7eb824c8cc1"
+    },
+    "packages/barocss-physics/src/domain/admission.ts": {
+      "bytes": 11327,
+      "sha256": "1182fb21ec319132ac2f16ddec8494e3d1c4c5ac750bbe1ebab4c29817b4423e"
+    },
+    "packages/barocss-physics/src/domain/cloth-reference.generated.ts": {
+      "bytes": 158018,
+      "sha256": "c9ee88af8e25b533c2694433502b28f51dffdeae5cce656b53eb36a187be60bc"
+    },
+    "packages/barocss-physics/src/domain/cloth.ts": {
+      "bytes": 4349,
+      "sha256": "2454474a24928a9f3d92d635a9391c537ef74de77112fdc2f2872536cb447883"
+    },
+    "packages/barocss-physics/src/domain/fluid.ts": {
+      "bytes": 4923,
+      "sha256": "bfcafa7cc2f2bbb4ec6e2c20797f5dc5410d995cd28305272a2c3665d827179a"
+    },
+    "packages/barocss-physics/src/domain/types.ts": {
+      "bytes": 3839,
+      "sha256": "35fcadf07a848d919806955f6c3d934d01217ff1c26ca7d4eb4eb2807eb4ee6f"
+    },
+    "packages/barocss-physics/src/dynamic-anchor-pair.ts": {
+      "bytes": 3072,
+      "sha256": "8ff622a6ce007e5e7fcb43f0b7c08521615ddacbc8195cde1ac4f574304b579d"
+    },
+    "packages/barocss-physics/src/dynamic-fixed-joint.ts": {
+      "bytes": 2051,
+      "sha256": "f5a0fa82c062c7406f6edfeb2aeb169c927ddd8d0965957f630f87e118c52dfa"
+    },
+    "packages/barocss-physics/src/dynamic-hinge-joint.ts": {
+      "bytes": 4835,
+      "sha256": "69c816393446b6e06d66849840ecf88a7d28baf72bd30c792180616f55e455f2"
+    },
+    "packages/barocss-physics/src/fluid/boundary.ts": {
+      "bytes": 1990,
+      "sha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c"
+    },
+    "packages/barocss-physics/src/fluid/constants.ts": {
+      "bytes": 459,
+      "sha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec"
+    },
+    "packages/barocss-physics/src/fluid/diagnostics.ts": {
+      "bytes": 1106,
+      "sha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215"
+    },
+    "packages/barocss-physics/src/fluid/kernel.ts": {
+      "bytes": 1112,
+      "sha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da"
+    },
+    "packages/barocss-physics/src/fluid/neighbors.ts": {
+      "bytes": 2949,
+      "sha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3"
+    },
+    "packages/barocss-physics/src/fluid/pbf.ts": {
+      "bytes": 5161,
+      "sha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50"
+    },
+    "packages/barocss-physics/src/fluid/static-box.ts": {
+      "bytes": 2481,
+      "sha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9"
+    },
+    "packages/barocss-physics/src/fluid/types.ts": {
+      "bytes": 125,
+      "sha256": "c75f020afeb760ec596c3043fc6d2a7166995ce0c3cedbc7e5424a6a83e56a62"
+    },
+    "packages/barocss-physics/src/fluid/visual-viscosity.ts": {
+      "bytes": 1265,
+      "sha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3"
+    },
+    "packages/barocss-physics/src/generate-provider.mjs": {
+      "bytes": 2663,
+      "sha256": "c45a6eb52df5f4840aa30006ac65d15ea0758066f63d815e4a3b394e8eb20557"
+    },
+    "packages/barocss-physics/src/identity.ts": {
+      "bytes": 6081,
+      "sha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be"
+    },
+    "packages/barocss-physics/src/index.ts": {
+      "bytes": 570,
+      "sha256": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30"
+    },
+    "packages/barocss-physics/src/internal-types.ts": {
+      "bytes": 2615,
+      "sha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8"
+    },
+    "packages/barocss-physics/src/joint-motor.ts": {
+      "bytes": 1723,
+      "sha256": "9a50b0d006ca2386cd2d79b8ba162f6850a5d08d3eb1c7d03460d606559b56ea"
+    },
+    "packages/barocss-physics/src/joints.ts": {
+      "bytes": 7231,
+      "sha256": "b6d0ec667a96fc26ec43d9d812c5ffd0a3b7446d135bd9b18713059327c59181"
+    },
+    "packages/barocss-physics/src/limits.ts": {
+      "bytes": 417,
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    "packages/barocss-physics/src/math.ts": {
+      "bytes": 2421,
+      "sha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2"
+    },
+    "packages/barocss-physics/src/model-admission.ts": {
+      "bytes": 10384,
+      "sha256": "7e77f184fed57d51ee1b0599e60c80d83b96045b139d236a37f76a4207689397"
+    },
+    "packages/barocss-physics/src/persistent-box-contact.ts": {
+      "bytes": 3646,
+      "sha256": "2c117202db9bcb0b988b59f9add9cae57e09d175927122a313e7166720a63d9b"
+    },
+    "packages/barocss-physics/src/provider-manifest.generated.ts": {
+      "bytes": 7687,
+      "sha256": "464a69f41b0e3006bdc246e3c6d6d1bf91f679b0aec9616e917f02edd0d8f1df"
+    },
+    "packages/barocss-physics/src/recording-owner.ts": {
+      "bytes": 895,
+      "sha256": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1"
+    },
+    "packages/barocss-physics/src/replay-compare.ts": {
+      "bytes": 1023,
+      "sha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec"
+    },
+    "packages/barocss-physics/src/replay-json.ts": {
+      "bytes": 7760,
+      "sha256": "1ab8cf962443edd3be387e5095a9cce3f2071c8b44e47cc165ce82d5c00ac617"
+    },
+    "packages/barocss-physics/src/replay-validation.ts": {
+      "bytes": 8096,
+      "sha256": "ab9a7b5097515ddd3d6aa9a434d14f2ae2e04fd15c4059b473d0d708a507c82a"
+    },
+    "packages/barocss-physics/src/replay.ts": {
+      "bytes": 7119,
+      "sha256": "07bafc635620c56c479ed44b0f458cbbb470bf20b3ce2ead7248ceb0973ca408"
+    },
+    "packages/barocss-physics/src/scene-profile.ts": {
+      "bytes": 1202,
+      "sha256": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7"
+    },
+    "packages/barocss-physics/src/sleep.ts": {
+      "bytes": 4411,
+      "sha256": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2"
+    },
+    "packages/barocss-physics/src/types.ts": {
+      "bytes": 11884,
+      "sha256": "37fdf1abcc20fd379304213b8c0686f8e0468d285f008aa8ebdb316882efade5"
+    },
+    "packages/barocss-physics/src/validation.ts": {
+      "bytes": 14165,
+      "sha256": "651d12754b77f86493f399baf3c02d60d9ad1fe54e0ece664a05a4430e8a0f01"
+    },
+    "packages/barocss-physics/src/world.ts": {
+      "bytes": 29055,
+      "sha256": "28022bb98fc8cd33d7dc912f8fb562b1ba375c089ebe8618783d95320929a599"
+    }
+  },
+  "factoryAttempts": 101,
+  "successfulWorlds": 37,
+  "stepEntries": 6334,
+  "accepted": 6281,
+  "unknownSyntheticFailures": 13,
+  "refused": 40,
+  "typedCandidateNaNControls": 4,
+  "firstFailure": "stop preserve; nativeNOT_RUN untilsourcePASSreview",
+  "sourceEmitterFix": "native-entry01FAILpreserved; exactsharedSourceBoundaryfixedentry02PASS",
+  "oldHoldsNO_GOTolerancesFirstFailures": "PRESERVED",
+  "deploy": false
+}

@@ -1,0 +1,40 @@
+{
+  "phase": "post-auth",
+  "counts": {
+    "pairConversions": 1,
+    "scalarConversions": 52,
+    "admitModelAttempts": 1,
+    "admitModelReturns": 1,
+    "admitCcdAttempts": 1,
+    "admitCcdReturns": 1,
+    "sweepSphereAttempts": 1,
+    "sweepSphereReturns": 1,
+    "World": 0
+  },
+  "firstFailure": null,
+  "buildObservation": {
+    "executable": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/esbuild/bin/esbuild",
+    "args": [
+      "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-coverage-g2-2276/evidence/g2-corner-source-01/entry.mjs",
+      "--bundle",
+      "--platform=node",
+      "--format=esm",
+      "--target=node22",
+      "--log-level=error",
+      "--outfile=/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-coverage-g2-2276/evidence/g2-corner-source-01/capture-provider.mjs",
+      "--metafile=/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-coverage-g2-2276/evidence/g2-corner-source-01/metafile.json"
+    ],
+    "pid": 16747,
+    "closed": true,
+    "stdoutEOF": true,
+    "stderrEOF": true,
+    "exit": 0,
+    "signal": null,
+    "timedOut": false,
+    "logOverflow": false,
+    "observedBytes": 0,
+    "capturedBytes": 0,
+    "spawnError": null,
+    "pipeError": null
+  }
+}

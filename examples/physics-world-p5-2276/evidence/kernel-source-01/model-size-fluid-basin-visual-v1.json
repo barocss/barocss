@@ -1,0 +1,8 @@
+{
+  "profile": "fluid-basin-visual-v1",
+  "canonicalModelBytes": 17732,
+  "sha256": "11a7fb9b2aebdf6b161d260ead53a33b74a27c2ad2999fd65b2e9912dfcbbc88",
+  "withinRecorderModelCap": true,
+  "recordingAdmission": "NOT_TESTED",
+  "numericInitializationAlreadyDeclared": true
+}

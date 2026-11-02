@@ -1,6 +1,7 @@
 import { createViewer } from '../../packages/barocss-viewer/dist/index.js';
 import { loadBaroCadModelSet } from '../../packages/barocss-cad-interop/dist/model-set.js';
-import { createFluidWorld } from '../../packages/barocss-physics/dist/fluid.js';
+import { createPhysicsWorld } from '../../packages/barocss-physics/dist/index.js';
+import { copyPhysicsModelPreset } from '../physics-model-data-2276/model-data.mjs';
 import { compileMeshMaterial } from '../../packages/barocss-gpu/dist/index.js';
 
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
@@ -127,19 +128,15 @@ try {
   viewer.setView(originalCamera);
   assert(hash(await viewer.readPixels()) === acceptedHash, 'Camera/pose round-trip changed material pixels');
 
-  const initialPositionsM = [];
-  for (let z = 0; z < 4; z++) for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
-    initialPositionsM.push([0.2 + x * 0.05, 0.45 + y * 0.05, 0.3 + z * 0.05]);
-  }
-  world = createFluidWorld({ format: 'barocss-fluid-scene', version: 1,
-    revision: 'waterRev1', basis: 'right-handed-xyz-metres', fixedStepSeconds: 1 / 120,
-    gravityMps2: [0, -9.81, 0], basinM: [0.7, 1.3, 0.5], initialPositionsM });
+  const input = copyPhysicsModelPreset('fluid-basin-visual-v1');
+  input.model.revision = 'waterRev1';
+  world = createPhysicsWorld(input.model, input.options);
   const fluid = world.getState();
-  assert(fluid.particleCount === 256 && fluid.positionsM.length === 768,
+  assert(fluid.fluids[0].positionsM.length / 3 === 256 && fluid.fluids[0].positionsM.length === 768,
     'Actual Physics initial state is not 256 particles');
   viewer.setFluidFrame({ version: 0, contextId: 'material_water',
-    sceneRevision: fluid.sceneRevision, stepIndex: fluid.stepIndex,
-    particleCount: fluid.particleCount, positionsM: fluid.positionsM });
+    sceneRevision: fluid.identity.modelRevision, stepIndex: fluid.stepIndex,
+    particleCount: fluid.fluids[0].positionsM.length / 3, positionsM: fluid.fluids[0].positionsM });
   assert(viewer.getState().surfaceMaterial?.binding.uniforms.timeSeconds === 1
     && viewer.getState().fluidFrame?.particleCount === 256,
     'Material and actual Physics particles did not coexist');
@@ -202,7 +199,7 @@ try {
   assert(errors.length === 0, `Browser errors: ${errors.join(', ')}`);
   const result = { ok: true, colors, defaultHash, materialHash: acceptedHash,
     nativeSourceBytes: source.length, measurementMM: measurement.distanceMM,
-    particleCount: fluid.particleCount,
+    particleCount: fluid.fluids[0].positionsM.length / 3,
     occlusion: { occludedCyanPixels: occluded, exposedCyanPixels: exposed }, errors,
     limits: 'One qualified native Surface, opaque material and actual 256 Physics particles in local Chromium WebGPU. No texture, PBR, overlay, broad performance or publication claim.' };
   window.viewerMaterialProof = result;

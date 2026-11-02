@@ -1,0 +1,6 @@
+examples/physics-world-p1b-2276/evidence/lint-01/stdout.txt:9: new blank line at EOF.
+examples/physics-world-p1b-2276/evidence/lint-02/stdout.txt:6: new blank line at EOF.
+examples/physics-world-p1b-2276/evidence/public-source-02/public.test-run.stdout:54: trailing whitespace.
++    
+examples/physics-world-p1b-2276/evidence/public-source-02/public.test-run.stdout:56: trailing whitespace.
++    

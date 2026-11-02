@@ -1,0 +1,18 @@
+{
+  "emitted": false,
+  "inputs": [
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/archive.mjs",
+      "sha256": "79591e398cf859b7f9348990d39a048392453ac36ea8d805bf5091985ffba40c"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-errors.mjs",
+      "sha256": "8e5b820c495fc439cc9501b258a1390f8b8d7e976b6ed8c7334de38b104c7bbf"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-errors.test.mjs",
+      "sha256": "f6b53bf348fd3ae07d08d513475d1ec5caa9db937afbd08b8166336949e941aa"
+    }
+  ],
+  "bundleSha256": "cfff838d657a00ae8894900032aa0f28f8dcfadf1872584370af59f71d8e7421"
+}

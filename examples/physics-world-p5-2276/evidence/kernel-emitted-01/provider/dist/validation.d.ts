@@ -1,0 +1,21 @@
+import type { Body, PhysicsErrorCode, PhysicsShape, Vec3 } from './internal-types.js';
+export declare function error(code: PhysicsErrorCode, message: string): never;
+export declare function record(value: unknown, label: string): Record<string, unknown>;
+export declare function fields(value: Record<string, unknown>, allowed: readonly string[], label: string): void;
+export declare function finite(value: unknown, min: number, max: number, label: string): number;
+export declare function vector(value: unknown, min: number, max: number, label: string): Vec3;
+export declare function parseBody(value: unknown, largeMode?: boolean): Body;
+export declare function copyShape(value: PhysicsShape): PhysicsShape;
+export declare function copyBody(body: Body): Body;
+export type AdmittedCommands = {
+    forceN?: Vec3;
+    impulseNs?: Vec3;
+    torqueNm?: Vec3;
+    angularImpulseNms?: Vec3;
+    positionM?: Vec3;
+};
+export declare function parseCommands(input: unknown, bodies: Body[]): Map<string, AdmittedCommands>;
+export declare function queryRecord(input: unknown, required: string[], optional: string[]): Record<string, unknown>;
+export declare function queryVector(input: unknown, bound: number, label: string): Vec3;
+export declare function queryNumber(input: unknown, min: number, max: number, label: string): number;
+export declare function includeSensors(query: Record<string, unknown>): boolean;

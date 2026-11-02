@@ -1,0 +1,7 @@
+Error: public.test-run failed; exact streams retained
+    at command (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p1b-2276/run.mjs:125:67)
+    at bundleAndRun (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p1b-2276/run.mjs:167:3)
+    at file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p1b-2276/run.mjs:217:11
+    at ModuleJob.run (node:internal/modules/esm/module_job:345:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:651:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)

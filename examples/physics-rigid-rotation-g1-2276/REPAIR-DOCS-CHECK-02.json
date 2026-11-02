@@ -1,0 +1,44 @@
+{
+  "status": "PASS_LOCAL_DOCS_STRUCTURE_BUILD_SELECTED_LINKS",
+  "checks": [
+    {
+      "path": "examples/physics-world-p5-2276/evidence/g1a-results-docs-structure-01/result.json",
+      "bytes": 3016,
+      "sha256": "306959a73ff0718b666f80a5d5d5d625574205d2372e0c37d3999bcfed8fdeee"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/g1a-results-docs-build-01/result.json",
+      "bytes": 3038,
+      "sha256": "f8adb094d120937ee3881397a8807c83c99bc434736d6634228443976fc688f2"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/g1a-results-docs-links-01/result.json",
+      "bytes": 2997,
+      "sha256": "14b1ee58e005ab50a4786121a2ee683a83952ef09b801055ccf1622dabf56bb2"
+    }
+  ],
+  "files": [
+    {
+      "path": "packages/barocss-physics/ROADMAP.md",
+      "bytes": 55497,
+      "sha256": "feee929b5c5d6ede17808095e6c54d87e99a22a7db7cdd6665e7d062880aad49"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt",
+      "bytes": 55497,
+      "sha256": "feee929b5c5d6ede17808095e6c54d87e99a22a7db7cdd6665e7d062880aad49"
+    }
+  ],
+  "scope": "Current local roadmap/status site source;5rendered physics pages/808links/216anchors/26regions/14byte-identical historical copies. No network/deployment or extra Physics/World calls.",
+  "numericalResults": {
+    "path": "examples/physics-rigid-rotation-g1-2276/REPAIR-RESULTS-02.json",
+    "bytes": 98940,
+    "sha256": "417252e8e450f602fb2918bab6e8aa2bac879efd15f73df7a138a9974a457a40"
+  },
+  "archiveVerification": {
+    "path": "examples/physics-rigid-rotation-g1-2276/REPAIR-ARCHIVE-02.json",
+    "bytes": 1152,
+    "sha256": "84ef4ed8cc5d9c720264458f351fa6d3ec411c72c09092ed919a98da56e4f96e"
+  },
+  "originalNoGoPreserved": true
+}

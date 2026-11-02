@@ -1,0 +1,51 @@
+{
+  "scene": "ALIGNED",
+  "attemptedSteps": 4,
+  "worldAcceptedSteps": 4,
+  "independentlyAcceptedSteps": 3,
+  "normalSolves": 4,
+  "maxQr": 1,
+  "maxOuter": 1,
+  "maxima": {
+    "closingNormalSpeedMps": 8.47419790379977e-16,
+    "negativeNormalImpulseNs": 0,
+    "complementarityJ": 2.4246798752247084e-16,
+    "loadedTangentSpeedMps": 3.96670573158002e-16,
+    "reportedVelocityErrorMps": 1.8735013540549517e-16,
+    "reportedAngularVelocityErrorRadps": 1.3502242421141073e-15,
+    "reportedResidualError": 8.573675934601007e-16,
+    "impulseWorkErrorJ": 1.0408340855860843e-17
+  },
+  "qualityMaxima": {
+    "maxPairPenetrationM": 4.0079749421214486e-19,
+    "maxFloorPenetrationM": 5.595041014507447e-17,
+    "maxHalfspaceIntrusionM": 5.595041014507447e-17,
+    "maxQuaternionNormError": 2.0881218867898543e-37,
+    "maxHorizontalDriftM": 2.01170113374827e-20,
+    "maxLinearSpeedMps": 4.1653311427158725e-17,
+    "maxAngularSpeedRadps": 1.7037360111470682e-16,
+    "nearParallelAxisCount": 108,
+    "overlapWithoutContactCount": 0,
+    "maxTiltRad": 0
+  },
+  "failure": {
+    "kind": "independent-contact-geometry",
+    "step": 4,
+    "violations": [
+      {
+        "pointIndex": 26,
+        "pointId": "face:b5:1:1:b6:1:-1:2",
+        "check": "lineMidpointWithinTolerance"
+      }
+    ]
+  },
+  "executionFailure": null,
+  "privateTrajectoryGO": false,
+  "evidence": {
+    "records": 5,
+    "compressedBytes": 327335,
+    "decodedRecordSha256": "988f3438ac63a74f9fbd7b6ef56b2739455c256e0e6e4fb4ab3d597275328db5",
+    "rawBytes": 30888,
+    "rawSha256": "e784ee225fe7d54d2ad752a451a8b12833d29f0ca7d6cfd4141d90a2d8db702f"
+  }
+}

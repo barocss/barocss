@@ -1,5 +1,5 @@
 import { PhysicsError } from '../capsule-query-error.js';
-import type { Vec3 } from '../types.js';
+import type { Vec3 } from '../internal-types.js';
 import type { CapsuleQueryBoxV1, CapsuleSweepHitV1 } from './types.js';
 import { closestCandidate, RADIUS_M, dot } from './geometry.js';
 

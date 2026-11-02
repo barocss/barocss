@@ -1,4 +1,4 @@
-import type { Vec3 } from '../types.js';
+import type { Vec3 } from '../internal-types.js';
 
 export const FLUID_COUNT = 256;
 export const FLUID_STEP_SECONDS = 1 / 120;

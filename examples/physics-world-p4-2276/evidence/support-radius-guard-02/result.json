@@ -1,0 +1,161 @@
+{
+  "kind": "P4_SUPPORT_RADIUS_GATE_OUTER_GUARD",
+  "receiptId": "support-radius-guard-02",
+  "censusId": "support-radius-01",
+  "status": "FAIL",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "python3",
+    "-B",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/support-radius-gate.py",
+    "--run-id",
+    "support-radius-01",
+    "--controls",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/evidence/support-radius-controls-01/summary.json",
+    "--controls-sha256",
+    "a08d5323292853b559aac6fa5b684179ea7c510f38f88b492c96e84a7f07bb78"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "inputs": {
+    "support-radius-gate-run.mjs": {
+      "bytes": 12756,
+      "sha256": "cbc468f665899af88118c35ace8315da4daa76d76b6b0e17ce0407ab6ac92789"
+    },
+    "support-radius-gate.py": {
+      "bytes": 18514,
+      "sha256": "3ef692f14da3e035e14bab90733fd771728dac704dba80dff0b09f43813cd647"
+    },
+    "support-radius-cache.py": {
+      "bytes": 11008,
+      "sha256": "464a53b1634a8b6de26a6c5e45c807b664d49637902fc52786ed99fa895968aa"
+    },
+    "support-radius-controls.py": {
+      "bytes": 23104,
+      "sha256": "38d55e4c42eb54b2fc37606c5c9914957065f77bedb04250588a1fb12617630e"
+    },
+    "CACHE-CONTRACT.md": {
+      "bytes": 11189,
+      "sha256": "d4f53304f6c1bb11c31c35c695c564970fb8b44c88b7ef6debf28b14f94f3812"
+    },
+    "CACHE-CONTROLS.json": {
+      "bytes": 51441,
+      "sha256": "ad6ee93d263ea5cb5ffc0c96011f7808826b564fb589879e96c271de887ff0cb"
+    },
+    "cache-implementation-freeze-01.json": {
+      "bytes": 1729,
+      "sha256": "5ce630e842017debb8129f90a047867f3da7e011461b0d1b9a3b595e980ee42f"
+    },
+    "cost-census.py": {
+      "bytes": 33990,
+      "sha256": "67c23875efa2836cd2c374794dfb6b942366493e8fbf979ffcd8789ac2c8464f"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": "2026-11-01T19:16:09.026Z",
+  "spawnAt": "2026-11-01T19:16:09.041Z",
+  "pid": 94675,
+  "processGroupId": 94675,
+  "exit": 1,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": "CENSUS_EXIT_FAILURE",
+  "processClosed": true,
+  "groupSignals": [
+    {
+      "signal": "SIGTERM",
+      "elapsedMs": 470.995417,
+      "result": "GROUP_ABSENT",
+      "code": "ESRCH"
+    }
+  ],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/evidence/support-radius-01/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/evidence/support-radius-01/progress.json",
+  "errors": [],
+  "exitAt": "2026-11-01T19:16:09.497Z",
+  "stopRequestedAtMs": 470.902,
+  "finishedAt": "2026-11-01T19:16:09.519Z",
+  "elapsedMs": 493.185708,
+  "ownedGroupPresentAtFinalization": false,
+  "censusElapsedMs": 481.398167,
+  "cleanupElapsedMs": 22.28370799999999,
+  "output": {
+    "stdout": {
+      "observedBytes": 0,
+      "capturedBytes": 0,
+      "omittedBytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "eof": true,
+      "writeError": null
+    },
+    "stderr": {
+      "observedBytes": 0,
+      "capturedBytes": 0,
+      "omittedBytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "eof": true,
+      "writeError": null
+    }
+  },
+  "censusSummary": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/evidence/support-radius-01/summary.json",
+    "present": true,
+    "bytes": 1055,
+    "sha256": "bbee853d1900ec181669425570035823eea9bac71303b68dbcc34c4af71896d0",
+    "status": "FAIL",
+    "counts": {
+      "evaluateAttempted": 0,
+      "evaluateReturned": 0,
+      "currentRawMatched": 0
+    },
+    "numericStatus": "NUMERIC_EQ_INCOMPLETE_OR_FAIL",
+    "costStatus": "NOT_RUN",
+    "referenceCallCounts": null,
+    "firstFailure": {
+      "type": "CensusFailure",
+      "message": "support-radius gate input byte/hash mismatch: /Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/support-radius-controls.py",
+      "reached": null,
+      "counts": {
+        "evaluateAttempted": 0,
+        "evaluateReturned": 0,
+        "currentRawMatched": 0
+      }
+    }
+  },
+  "censusProgress": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/evidence/support-radius-01/progress.json",
+    "present": true,
+    "bytes": 1055,
+    "sha256": "bbee853d1900ec181669425570035823eea9bac71303b68dbcc34c4af71896d0",
+    "status": "FAIL",
+    "counts": {
+      "evaluateAttempted": 0,
+      "evaluateReturned": 0,
+      "currentRawMatched": 0
+    },
+    "numericStatus": "NUMERIC_EQ_INCOMPLETE_OR_FAIL",
+    "costStatus": "NOT_RUN",
+    "referenceCallCounts": null,
+    "firstFailure": {
+      "type": "CensusFailure",
+      "message": "support-radius gate input byte/hash mismatch: /Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/support-radius-controls.py",
+      "reached": null,
+      "counts": {
+        "evaluateAttempted": 0,
+        "evaluateReturned": 0,
+        "currentRawMatched": 0
+      }
+    }
+  },
+  "callCountBoundary": "Only counts present in original census progress/summary/timing receipts are reported; a timeout never implies the six-call cache population completed.",
+  "numericStatus": "NUMERIC_EQ_INCOMPLETE_OR_FAIL",
+  "costStatus": "NOT_RUN"
+}

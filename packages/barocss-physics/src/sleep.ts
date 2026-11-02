@@ -1,5 +1,5 @@
 import type { AdmittedCommands } from './validation.js';
-import type { Body, PhysicsContact } from './types.js';
+import type { Body, PhysicsContact } from './internal-types.js';
 
 const REST_STEPS = 60;
 const LINEAR_REST_MPS = 0.02;

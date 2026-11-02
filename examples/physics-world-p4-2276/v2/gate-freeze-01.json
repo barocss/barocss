@@ -1,0 +1,61 @@
+{
+  "workId": "physics-world-p4-sat-scoped-cache-v2-2276",
+  "status": "parent_full_gate_frozen_after_controls_pass",
+  "sources": {
+    "scoped-cache.py": {
+      "bytes": 17169,
+      "sha256": "c100855cdf88cd00a6716df38447f78caeb099e7459e98fee68517f19a85bc4a"
+    },
+    "controls.py": {
+      "bytes": 20834,
+      "sha256": "611f6cf5ac6fa5a63b72d28420aa2de018692d25709f06cec369d23108a1b6a4"
+    },
+    "gate.py": {
+      "bytes": 12401,
+      "sha256": "1c7af538507ee22be2d547f8bd9acb7e10be2752fd91652e7eadc6a087a0575c"
+    },
+    "controls-run.mjs": {
+      "bytes": 11784,
+      "sha256": "e26e17be802d7913a785a74d6c9b9a1a214cd7fec684e9d89bb27bfeb296ec40"
+    },
+    "gate-run.mjs": {
+      "bytes": 12670,
+      "sha256": "ad940f88f21f23e2a1af588de89bda75f86eadfeb153746d60f990eefa5e69ce"
+    },
+    "SCOPE-CONTRACT.md": {
+      "bytes": 9864,
+      "sha256": "9bd49605d1e1cb70d8f2ecdff2cc3f4c62dd2f497b679f656cef9ab202c8cbd3"
+    },
+    "CONTROL-RECIPES.json": {
+      "bytes": 30310,
+      "sha256": "3fb30d65c4e6f6a9b1158ee5100f02c80be2a08bf7adb4b6c4e4f25be532cfa5"
+    },
+    "implementation-freeze-01.json": {
+      "bytes": 1679,
+      "sha256": "adb409a0b409dcafd213b042e0f95693fce9e2a792926baf0e5c0ffd1285e394"
+    }
+  },
+  "controlReceipt": {
+    "path": "evidence/controls-01/summary.json",
+    "bytes": 227344,
+    "sha256": "cde6d889e992ba8d114a047a5290319c98a5065e770fe8e1c50083ed1b567015",
+    "status": "PASS_SAT_SCOPED_CONTROLS",
+    "counts": {
+      "baselineSatAttempts": 12,
+      "candidateSatAttempts": 12,
+      "baselineOriginalSupportAttempts": 273,
+      "candidateOriginalSupportAttempts": 221,
+      "candidateLogicalSupportCalls": 273,
+      "candidateHits": 52
+    },
+    "totalSatAttempts": 24,
+    "totalOriginalSupportAttempts": 494
+  },
+  "fullCandidateCalls": 6,
+  "fullUncachedCalls": 0,
+  "priorFullCalls": 32,
+  "maxStudyFullCalls": 38,
+  "cpuBaselineNs": 885643000,
+  "originalPhysicalGateChanges": false,
+  "onFirstFailure": "stop preserve; no World expansion"
+}

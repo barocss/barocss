@@ -1,0 +1,915 @@
+{
+  "workId": "physics-world-p4-sat-scoped-cache-v2-2276",
+  "artifactType": "literal-preimplementation-paired-SAT-recipes",
+  "status": "AWAITING_PARENT_FREEZE_NO_IMPLEMENTATION_NO_EXECUTION",
+  "recipeVersion": 1,
+  "authority": {
+    "v1Commit": "9551959c488f3f688846427b408f67036e70096b",
+    "contractPath": "examples/physics-world-p4-2276/v2/SCOPE-CONTRACT.md",
+    "contractSha256": "9bd49605d1e1cb70d8f2ecdff2cc3f4c62dd2f497b679f656cef9ab202c8cbd3",
+    "originalPath": "examples/physics-rigid-feature-penetration-diagnostic/geometry-reference.py",
+    "originalSha256": "9ff4ed05dc2f2f98d32533527b506d4aa0f7799bc6d86a0862ecf24f389b9841",
+    "functions": [
+      "sat_pair",
+      "support_radius"
+    ],
+    "signalOrder": [
+      "Clamped",
+      "InvalidOperation",
+      "DivisionByZero",
+      "Inexact",
+      "Rounded",
+      "Subnormal",
+      "Overflow",
+      "Underflow",
+      "FloatOperation"
+    ],
+    "immutableInputs": [
+      {
+        "path": "examples/physics-world-p4-2276/cost-census.py",
+        "bytes": 33990,
+        "sha256": "67c23875efa2836cd2c374794dfb6b942366493e8fbf979ffcd8789ac2c8464f"
+      },
+      {
+        "path": "examples/physics-world-p4-2276/evidence/cost-census-01/summary.json",
+        "bytes": 8319,
+        "sha256": "bf65e7fadf3b87f6f80cfac4f1f05bd5fb9f4462fcf0947aaa3a19125bf44357"
+      },
+      {
+        "path": "examples/physics-world-p4-2276/evidence/observable-census-01/summary.json",
+        "bytes": 59236,
+        "sha256": "be2317e3160da6ac961b7e4ec7e0bbddd20133947bc536c3de955691d9df80cb"
+      },
+      {
+        "path": "examples/physics-world-p4-2276/evidence/position-profile-01/summary.json",
+        "bytes": 9652,
+        "sha256": "0605970212d39cfc1a6a245cdf5e48b38474e533a57f334902d32d461bfc9a54"
+      },
+      {
+        "path": "examples/physics-world-p4-2276/evidence/support-radius-controls-01/summary.json",
+        "bytes": 174203,
+        "sha256": "a08d5323292853b559aac6fa5b684179ea7c510f38f88b492c96e84a7f07bb78"
+      },
+      {
+        "path": "examples/physics-world-p4-2276/evidence/support-radius-01/summary.json",
+        "bytes": 1055,
+        "sha256": "bbee853d1900ec181669425570035823eea9bac71303b68dbcc34c4af71896d0"
+      },
+      {
+        "path": "examples/physics-world-p4-2276/evidence/support-radius-02/summary.json",
+        "bytes": 19910,
+        "sha256": "a81159ef7a528763856c6ce9dd79f34e0469fd16028273cd497e6e9d417ba978"
+      }
+    ]
+  },
+  "population": {
+    "pairedCases": 12,
+    "baselineSatAttempts": 12,
+    "candidateSatAttempts": 12,
+    "totalSatAttempts": 24,
+    "maxOriginalSupportAttempts": 720,
+    "predictedBaselineOriginalSupportAttempts": 273,
+    "predictedCandidateLogicalSupportCalls": 273,
+    "predictedCandidateOriginalSupportAttempts": 221,
+    "predictedCandidateHits": 52,
+    "predictedTotalOriginalSupportAttempts": 494,
+    "fullReferenceCalls": 0,
+    "WorldCalls": 0,
+    "fixtureFunctions": 0,
+    "trigCalls": 0
+  },
+  "executionRules": [
+    "Authenticate all12 original providers, original archives/raw, committed v1 numerical/cost receipt, contract/recipes and frozen new sources before importing original mathematics.",
+    "Run cases1..12 once in listed order; each baseline is followed by its candidate. Stop on first mismatch/unknown/resource/source failure. No retry.",
+    "Each baseline and candidate receives its own fresh exact builtin Context constructed from the literal template and separate immutable Decimal fixture tuples. Select the actual Context with setcontext, do not copy it at call time; restore prior Context in finally.",
+    "Fixture construction is only exact Decimal(string), tuple and dict construction from these literals. No norm, quaternion, axis, support, projection or expectation formula is implemented. Both quaternionNorm literals are1 because listed quaternions are unit representations; no fixture trig or normalization is calculated.",
+    "Call original sat_pair once in each branch. A forwarding support delegate records actual original return/exception objects and flags without another arithmetic call. Candidate stage hits add no original support call.",
+    "Use stable recording forwarding callables across the whole control population, never a new delegate identity on each case. Key identity is the retained original SAT/support function and authenticated provider, not a per-case recorder. Counters can be detached snapshots without replacing those callables.",
+    "Snapshot and compare COMPLETE reply with Decimal.as_tuple/type and native scalar bits where present; never float-convert Decimal, project through Node or use Decimal numeric equality alone.",
+    "Track helper/SAT totals outside resettable cache counters. Per-case predicted counts are checked against actual calls and are not receipts until execution.",
+    "Main cache persists through cases1..9 except case8 clear-before. Case9 failure discards pending state. Capacity cache is new at case10, persists through12, and clears after12. Separate cache objects may coexist but retain only declared bounded entries.",
+    "After case9 pending-discard and prior-entry assertions, clear and release the main cache before creating capacity cache at10. Keep external actual totals. Aggregate live private cache/pending storage is bounded by67108864bytes, including an empty prior object if it is retained.",
+    "Snapshot all fixture tuples/Decimal representations before and after; verify settings/traps unchanged and actual postflags match baseline. Mutate only a detached report copy to check no cached mutable report alias.",
+    "Restore both SAT module pointers and all scope/context state in finally. No full evaluate/QP/World/fixture function is allowed in controls."
+  ],
+  "contextTemplates": {
+    "even80": {
+      "prec": 80,
+      "rounding": "ROUND_HALF_EVEN",
+      "Emin": -999999,
+      "Emax": 999999,
+      "capitals": 1,
+      "clamp": 0,
+      "traps": [
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false
+      ],
+      "incomingFlags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "even120": {
+      "prec": 120,
+      "rounding": "ROUND_HALF_EVEN",
+      "Emin": -999999,
+      "Emax": 999999,
+      "capitals": 1,
+      "clamp": 0,
+      "traps": [
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false
+      ],
+      "incomingFlags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "floorPreset80": {
+      "prec": 80,
+      "rounding": "ROUND_FLOOR",
+      "Emin": -999999,
+      "Emax": 999999,
+      "capitals": 1,
+      "clamp": 0,
+      "traps": [
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false
+      ],
+      "incomingFlags": [
+        false,
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "trap80": {
+      "prec": 80,
+      "rounding": "ROUND_HALF_EVEN",
+      "Emin": -999999,
+      "Emax": 999999,
+      "capitals": 1,
+      "clamp": 0,
+      "traps": [
+        false,
+        true,
+        true,
+        true,
+        true,
+        false,
+        true,
+        false,
+        false
+      ],
+      "incomingFlags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "defaultBounds": {
+    "max_sat_calls": 288,
+    "max_logical_support_calls": 8640,
+    "max_pair_entries": 288,
+    "max_stage_entries": 8192,
+    "max_stages_per_pair": 30,
+    "max_flag_masks_per_stage": 512,
+    "max_key_bytes": 16384,
+    "max_encoded_bytes": 16777216,
+    "max_owned_bytes": 67108864
+  },
+  "cacheInstances": {
+    "main": {
+      "bounds": {
+        "max_sat_calls": 288,
+        "max_logical_support_calls": 8640,
+        "max_pair_entries": 288,
+        "max_stage_entries": 8192,
+        "max_stages_per_pair": 30,
+        "max_flag_masks_per_stage": 512,
+        "max_key_bytes": 16384,
+        "max_encoded_bytes": 16777216,
+        "max_owned_bytes": 67108864
+      }
+    },
+    "capacity": {
+      "bounds": {
+        "max_sat_calls": 288,
+        "max_logical_support_calls": 8640,
+        "max_pair_entries": 1,
+        "max_stage_entries": 30,
+        "max_stages_per_pair": 30,
+        "max_flag_masks_per_stage": 512,
+        "max_key_bytes": 16384,
+        "max_encoded_bytes": 16777216,
+        "max_owned_bytes": 67108864
+      }
+    }
+  },
+  "fixtures": {
+    "base": {
+      "a": {
+        "id": "A",
+        "center": [
+          "0",
+          "0",
+          "0"
+        ],
+        "extents": [
+          "1",
+          "0.75",
+          "0.5"
+        ],
+        "quaternion": [
+          "0",
+          "0",
+          "0",
+          "1"
+        ],
+        "quaternionNorm": "1",
+        "quaternionNormError": "0"
+      },
+      "b": {
+        "id": "B",
+        "center": [
+          "0",
+          "1.4",
+          "0"
+        ],
+        "extents": [
+          "1",
+          "0.75",
+          "0.5"
+        ],
+        "quaternion": [
+          "0",
+          "0",
+          "0",
+          "1"
+        ],
+        "quaternionNorm": "1",
+        "quaternionNormError": "0"
+      }
+    },
+    "separated_center": {
+      "a": {
+        "id": "A",
+        "center": [
+          "0",
+          "0",
+          "0"
+        ],
+        "extents": [
+          "1",
+          "0.75",
+          "0.5"
+        ],
+        "quaternion": [
+          "0",
+          "0",
+          "0",
+          "1"
+        ],
+        "quaternionNorm": "1",
+        "quaternionNormError": "0"
+      },
+      "b": {
+        "id": "B",
+        "center": [
+          "0",
+          "1.6",
+          "0"
+        ],
+        "extents": [
+          "1",
+          "0.75",
+          "0.5"
+        ],
+        "quaternion": [
+          "0",
+          "0",
+          "0",
+          "1"
+        ],
+        "quaternionNorm": "1",
+        "quaternionNormError": "0"
+      }
+    },
+    "signed_zero": {
+      "a": {
+        "id": "A",
+        "center": [
+          "0",
+          "0",
+          "0"
+        ],
+        "extents": [
+          "1",
+          "0.75",
+          "0.5"
+        ],
+        "quaternion": [
+          "-0",
+          "0",
+          "0",
+          "1"
+        ],
+        "quaternionNorm": "1",
+        "quaternionNormError": "0"
+      },
+      "b": {
+        "id": "B",
+        "center": [
+          "0",
+          "1.4",
+          "0"
+        ],
+        "extents": [
+          "1",
+          "0.75",
+          "0.5"
+        ],
+        "quaternion": [
+          "0",
+          "0",
+          "0",
+          "1"
+        ],
+        "quaternionNorm": "1",
+        "quaternionNormError": "0"
+      }
+    },
+    "exponents": {
+      "a": {
+        "id": "A",
+        "center": [
+          "0",
+          "0",
+          "0"
+        ],
+        "extents": [
+          "1.0",
+          "0.750",
+          "0.50"
+        ],
+        "quaternion": [
+          "0",
+          "0",
+          "0",
+          "1.0"
+        ],
+        "quaternionNorm": "1.0",
+        "quaternionNormError": "0"
+      },
+      "b": {
+        "id": "B",
+        "center": [
+          "0",
+          "1.4",
+          "0"
+        ],
+        "extents": [
+          "1",
+          "0.75",
+          "0.5"
+        ],
+        "quaternion": [
+          "0",
+          "0",
+          "0",
+          "1"
+        ],
+        "quaternionNorm": "1",
+        "quaternionNormError": "0"
+      }
+    },
+    "rounded_extent": {
+      "a": {
+        "id": "A",
+        "center": [
+          "0",
+          "0",
+          "0"
+        ],
+        "extents": [
+          "1.123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789",
+          "0.75",
+          "0.5"
+        ],
+        "quaternion": [
+          "0",
+          "0",
+          "0",
+          "1"
+        ],
+        "quaternionNorm": "1",
+        "quaternionNormError": "0"
+      },
+      "b": {
+        "id": "B",
+        "center": [
+          "0",
+          "1.4",
+          "0"
+        ],
+        "extents": [
+          "1",
+          "0.75",
+          "0.5"
+        ],
+        "quaternion": [
+          "0",
+          "0",
+          "0",
+          "1"
+        ],
+        "quaternionNorm": "1",
+        "quaternionNormError": "0"
+      }
+    },
+    "rotated": {
+      "a": {
+        "id": "A",
+        "center": [
+          "0",
+          "0",
+          "0"
+        ],
+        "extents": [
+          "1",
+          "0.75",
+          "0.5"
+        ],
+        "quaternion": [
+          "0",
+          "0",
+          "0",
+          "1"
+        ],
+        "quaternionNorm": "1",
+        "quaternionNormError": "0"
+      },
+      "b": {
+        "id": "B",
+        "center": [
+          "0",
+          "1.4",
+          "0"
+        ],
+        "extents": [
+          "1",
+          "0.75",
+          "0.5"
+        ],
+        "quaternion": [
+          "0",
+          "0",
+          "0.6",
+          "0.8"
+        ],
+        "quaternionNorm": "1",
+        "quaternionNormError": "0"
+      }
+    },
+    "rotated_center": {
+      "a": {
+        "id": "A",
+        "center": [
+          "0",
+          "0",
+          "0"
+        ],
+        "extents": [
+          "1",
+          "0.75",
+          "0.5"
+        ],
+        "quaternion": [
+          "0",
+          "0",
+          "0",
+          "1"
+        ],
+        "quaternionNorm": "1",
+        "quaternionNormError": "0"
+      },
+      "b": {
+        "id": "B",
+        "center": [
+          "0.2",
+          "1.6",
+          "0.1"
+        ],
+        "extents": [
+          "1",
+          "0.75",
+          "0.5"
+        ],
+        "quaternion": [
+          "0",
+          "0",
+          "0.6",
+          "0.8"
+        ],
+        "quaternionNorm": "1",
+        "quaternionNormError": "0"
+      }
+    }
+  },
+  "cases": [
+    {
+      "case": 1,
+      "name": "initial-raw-miss",
+      "fixture": "base",
+      "context": "even80",
+      "normalizeQuaternion": false,
+      "cache": "main",
+      "cacheAction": "create",
+      "baselineSatCalls": 1,
+      "candidateSatCalls": 1,
+      "expectedCandidateDisposition": "miss",
+      "predictedSupportLedger": {
+        "baselineOriginalAttempts": 24,
+        "candidateLogicalCalls": 24,
+        "candidateOriginalAttempts": 24,
+        "candidateHits": 0
+      },
+      "expectedSatOutcome": "returns",
+      "assertions": [
+        "Complete original/candidate SAT return equality, or recorded original exception identity for a raised call.",
+        "Exact active Context object/settings/traps and full post-flags match original; no caller input mutation.",
+        "Actual stage order/count and helper ledger match this case; no unlisted SAT/helper evaluation.",
+        "No mutable input/report container is retained; all actual owned/pending storage stays within declared bounds."
+      ]
+    },
+    {
+      "case": 2,
+      "name": "fresh-center-original-order",
+      "fixture": "separated_center",
+      "context": "even80",
+      "normalizeQuaternion": false,
+      "cache": "main",
+      "cacheAction": "reuse",
+      "baselineSatCalls": 1,
+      "candidateSatCalls": 1,
+      "expectedCandidateDisposition": "hit",
+      "predictedSupportLedger": {
+        "baselineOriginalAttempts": 24,
+        "candidateLogicalCalls": 24,
+        "candidateOriginalAttempts": 0,
+        "candidateHits": 24
+      },
+      "expectedSatOutcome": "returns",
+      "assertions": [
+        "Complete original/candidate SAT return equality, or recorded original exception identity for a raised call.",
+        "Exact active Context object/settings/traps and full post-flags match original; no caller input mutation.",
+        "Actual stage order/count and helper ledger match this case; no unlisted SAT/helper evaluation.",
+        "No mutable input/report container is retained; all actual owned/pending storage stays within declared bounds.",
+        "Invariant key equals case1 despite changed center; the complete report equals freshly evaluated original and differs from case1 in actual center-dependent fields."
+      ]
+    },
+    {
+      "case": 3,
+      "name": "signed-zero-invariant-key",
+      "fixture": "signed_zero",
+      "context": "even80",
+      "normalizeQuaternion": false,
+      "cache": "main",
+      "cacheAction": "reuse",
+      "baselineSatCalls": 1,
+      "candidateSatCalls": 1,
+      "expectedCandidateDisposition": "miss",
+      "predictedSupportLedger": {
+        "baselineOriginalAttempts": 24,
+        "candidateLogicalCalls": 24,
+        "candidateOriginalAttempts": 24,
+        "candidateHits": 0
+      },
+      "expectedSatOutcome": "returns",
+      "assertions": [
+        "Complete original/candidate SAT return equality, or recorded original exception identity for a raised call.",
+        "Exact active Context object/settings/traps and full post-flags match original; no caller input mutation.",
+        "Actual stage order/count and helper ledger match this case; no unlisted SAT/helper evaluation.",
+        "No mutable input/report container is retained; all actual owned/pending storage stays within declared bounds.",
+        "Complete invariant key differs from case1; inspect typed key dependency receipt without numeric normalization."
+      ]
+    },
+    {
+      "case": 4,
+      "name": "exponent-invariant-key",
+      "fixture": "exponents",
+      "context": "even80",
+      "normalizeQuaternion": false,
+      "cache": "main",
+      "cacheAction": "reuse",
+      "baselineSatCalls": 1,
+      "candidateSatCalls": 1,
+      "expectedCandidateDisposition": "miss",
+      "predictedSupportLedger": {
+        "baselineOriginalAttempts": 24,
+        "candidateLogicalCalls": 24,
+        "candidateOriginalAttempts": 24,
+        "candidateHits": 0
+      },
+      "expectedSatOutcome": "returns",
+      "assertions": [
+        "Complete original/candidate SAT return equality, or recorded original exception identity for a raised call.",
+        "Exact active Context object/settings/traps and full post-flags match original; no caller input mutation.",
+        "Actual stage order/count and helper ledger match this case; no unlisted SAT/helper evaluation.",
+        "No mutable input/report container is retained; all actual owned/pending storage stays within declared bounds.",
+        "Complete invariant key differs from case1; inspect typed key dependency receipt without numeric normalization."
+      ]
+    },
+    {
+      "case": 5,
+      "name": "normalized-convention-key",
+      "fixture": "base",
+      "context": "even80",
+      "normalizeQuaternion": true,
+      "cache": "main",
+      "cacheAction": "reuse",
+      "baselineSatCalls": 1,
+      "candidateSatCalls": 1,
+      "expectedCandidateDisposition": "miss",
+      "predictedSupportLedger": {
+        "baselineOriginalAttempts": 24,
+        "candidateLogicalCalls": 24,
+        "candidateOriginalAttempts": 24,
+        "candidateHits": 0
+      },
+      "expectedSatOutcome": "returns",
+      "assertions": [
+        "Complete original/candidate SAT return equality, or recorded original exception identity for a raised call.",
+        "Exact active Context object/settings/traps and full post-flags match original; no caller input mutation.",
+        "Actual stage order/count and helper ledger match this case; no unlisted SAT/helper evaluation.",
+        "No mutable input/report container is retained; all actual owned/pending storage stays within declared bounds.",
+        "Complete invariant key differs from case1; inspect typed key dependency receipt without numeric normalization."
+      ]
+    },
+    {
+      "case": 6,
+      "name": "precision120-key",
+      "fixture": "base",
+      "context": "even120",
+      "normalizeQuaternion": false,
+      "cache": "main",
+      "cacheAction": "reuse",
+      "baselineSatCalls": 1,
+      "candidateSatCalls": 1,
+      "expectedCandidateDisposition": "miss",
+      "predictedSupportLedger": {
+        "baselineOriginalAttempts": 24,
+        "candidateLogicalCalls": 24,
+        "candidateOriginalAttempts": 24,
+        "candidateHits": 0
+      },
+      "expectedSatOutcome": "returns",
+      "assertions": [
+        "Complete original/candidate SAT return equality, or recorded original exception identity for a raised call.",
+        "Exact active Context object/settings/traps and full post-flags match original; no caller input mutation.",
+        "Actual stage order/count and helper ledger match this case; no unlisted SAT/helper evaluation.",
+        "No mutable input/report container is retained; all actual owned/pending storage stays within declared bounds.",
+        "Complete invariant key differs from case1; inspect typed key dependency receipt without numeric normalization."
+      ]
+    },
+    {
+      "case": 7,
+      "name": "rounding-and-incoming-flags",
+      "fixture": "base",
+      "context": "floorPreset80",
+      "normalizeQuaternion": false,
+      "cache": "main",
+      "cacheAction": "reuse",
+      "baselineSatCalls": 1,
+      "candidateSatCalls": 1,
+      "expectedCandidateDisposition": "miss",
+      "predictedSupportLedger": {
+        "baselineOriginalAttempts": 24,
+        "candidateLogicalCalls": 24,
+        "candidateOriginalAttempts": 24,
+        "candidateHits": 0
+      },
+      "expectedSatOutcome": "returns",
+      "assertions": [
+        "Complete original/candidate SAT return equality, or recorded original exception identity for a raised call.",
+        "Exact active Context object/settings/traps and full post-flags match original; no caller input mutation.",
+        "Actual stage order/count and helper ledger match this case; no unlisted SAT/helper evaluation.",
+        "No mutable input/report container is retained; all actual owned/pending storage stays within declared bounds.",
+        "Complete invariant key differs from case1; inspect typed key dependency receipt without numeric normalization.",
+        "ROUND_FLOOR and initially set Inexact/Rounded flags are literal; wrapper never clears either flag to seek a hit."
+      ]
+    },
+    {
+      "case": 8,
+      "name": "clear-forces-new-miss",
+      "fixture": "base",
+      "context": "even80",
+      "normalizeQuaternion": false,
+      "cache": "main",
+      "cacheAction": "clear-before",
+      "baselineSatCalls": 1,
+      "candidateSatCalls": 1,
+      "expectedCandidateDisposition": "miss",
+      "predictedSupportLedger": {
+        "baselineOriginalAttempts": 24,
+        "candidateLogicalCalls": 24,
+        "candidateOriginalAttempts": 24,
+        "candidateHits": 0
+      },
+      "expectedSatOutcome": "returns",
+      "assertions": [
+        "Complete original/candidate SAT return equality, or recorded original exception identity for a raised call.",
+        "Exact active Context object/settings/traps and full post-flags match original; no caller input mutation.",
+        "Actual stage order/count and helper ledger match this case; no unlisted SAT/helper evaluation.",
+        "No mutable input/report container is retained; all actual owned/pending storage stays within declared bounds.",
+        "Before clear the main memo contains case1; after clear it is empty with reset per-request counters; case8 key equals case1 and nevertheless all24 support calls delegate. External call totals remain cumulative."
+      ]
+    },
+    {
+      "case": 9,
+      "name": "trapped-original-object-and-pending-discard",
+      "fixture": "rounded_extent",
+      "context": "trap80",
+      "normalizeQuaternion": false,
+      "cache": "main",
+      "cacheAction": "reuse",
+      "baselineSatCalls": 1,
+      "candidateSatCalls": 1,
+      "expectedCandidateDisposition": "original-raise",
+      "predictedSupportLedger": {
+        "baselineOriginalAttempts": 1,
+        "candidateLogicalCalls": 1,
+        "candidateOriginalAttempts": 1,
+        "candidateHits": 0
+      },
+      "expectedSatOutcome": "raises",
+      "assertions": [
+        "Complete original/candidate SAT return equality, or recorded original exception identity for a raised call.",
+        "Exact active Context object/settings/traps and full post-flags match original; no caller input mutation.",
+        "Actual stage order/count and helper ledger match this case; no unlisted SAT/helper evaluation.",
+        "No mutable input/report container is retained; all actual owned/pending storage stays within declared bounds.",
+        "Original support forwarding delegate records the actual Inexact exception object; the outer SAT caller catches the SAME object in each branch. Compare type and complete flags across branches, never identity across separate calls.",
+        "The first support call traps Inexact with Inexact and Rounded flags true; no new pair/stage entry commits. Previously committed entries remain exact and active scope is released."
+      ]
+    },
+    {
+      "case": 10,
+      "name": "rotated-traversal-one-pair-capacity",
+      "fixture": "rotated",
+      "context": "even80",
+      "normalizeQuaternion": false,
+      "cache": "capacity",
+      "cacheAction": "create",
+      "baselineSatCalls": 1,
+      "candidateSatCalls": 1,
+      "expectedCandidateDisposition": "miss",
+      "predictedSupportLedger": {
+        "baselineOriginalAttempts": 28,
+        "candidateLogicalCalls": 28,
+        "candidateOriginalAttempts": 28,
+        "candidateHits": 0
+      },
+      "expectedSatOutcome": "returns",
+      "assertions": [
+        "Complete original/candidate SAT return equality, or recorded original exception identity for a raised call.",
+        "Exact active Context object/settings/traps and full post-flags match original; no caller input mutation.",
+        "Actual stage order/count and helper ledger match this case; no unlisted SAT/helper evaluation.",
+        "No mutable input/report container is retained; all actual owned/pending storage stays within declared bounds.",
+        "Exactly28 support calls imply14 nonzero axes in the complete original report; original raw-axis record order is retained. Commit one pair and28 stage variants after original SAT returns."
+      ]
+    },
+    {
+      "case": 11,
+      "name": "new-pair-capacity-bypass",
+      "fixture": "base",
+      "context": "even80",
+      "normalizeQuaternion": false,
+      "cache": "capacity",
+      "cacheAction": "reuse",
+      "baselineSatCalls": 1,
+      "candidateSatCalls": 1,
+      "expectedCandidateDisposition": "capacity-bypass",
+      "predictedSupportLedger": {
+        "baselineOriginalAttempts": 24,
+        "candidateLogicalCalls": 24,
+        "candidateOriginalAttempts": 24,
+        "candidateHits": 0
+      },
+      "expectedSatOutcome": "returns",
+      "assertions": [
+        "Complete original/candidate SAT return equality, or recorded original exception identity for a raised call.",
+        "Exact active Context object/settings/traps and full post-flags match original; no caller input mutation.",
+        "Actual stage order/count and helper ledger match this case; no unlisted SAT/helper evaluation.",
+        "No mutable input/report container is retained; all actual owned/pending storage stays within declared bounds.",
+        "One-pair bound blocks a second pair; all24 support calls use original once without storage. Retained case10 key/stage/result/postflag bytes stay exact and entry count stays1."
+      ]
+    },
+    {
+      "case": 12,
+      "name": "prior-entry-hit-after-capacity",
+      "fixture": "rotated_center",
+      "context": "even80",
+      "normalizeQuaternion": false,
+      "cache": "capacity",
+      "cacheAction": "clear-after",
+      "baselineSatCalls": 1,
+      "candidateSatCalls": 1,
+      "expectedCandidateDisposition": "hit",
+      "predictedSupportLedger": {
+        "baselineOriginalAttempts": 28,
+        "candidateLogicalCalls": 28,
+        "candidateOriginalAttempts": 0,
+        "candidateHits": 28
+      },
+      "expectedSatOutcome": "returns",
+      "assertions": [
+        "Complete original/candidate SAT return equality, or recorded original exception identity for a raised call.",
+        "Exact active Context object/settings/traps and full post-flags match original; no caller input mutation.",
+        "Actual stage order/count and helper ledger match this case; no unlisted SAT/helper evaluation.",
+        "No mutable input/report container is retained; all actual owned/pending storage stays within declared bounds.",
+        "Key equals case10 despite fresh center; all28 support calls hit the retained entry after case11 bypass.",
+        "After return, clear releases every pair/stage/pending/key byte and resets per-request counters. Final pointer/scope restoration is checked separately."
+      ]
+    }
+  ],
+  "fullGateAfterPrimitivePass": {
+    "candidateEvaluateCalls": 6,
+    "newUncachedEvaluateCalls": 0,
+    "priorActualFullEvaluations": 32,
+    "possibleNewFullEvaluations": 38,
+    "rawCurrentAuthority": "unchanged original cost-census A1 plus observable-census other five position-world raw replies",
+    "caseOrder": [
+      "ALIGNED1",
+      "ALIGNED16",
+      "OFFSET1",
+      "OFFSET16",
+      "YAW1",
+      "YAW16"
+    ],
+    "numericEquality": "complete raw bytes and full parsed signed IEEE-number tree, certificates, classifications, counters, Decimal strings and all fields",
+    "costBaselineCpuNs": 885643000,
+    "costGo": "NUMERIC_EQ_PASS and sum six candidate unprofiled process CPU strictly below costBaselineCpuNs; include setup/reset/restore/stats/clear",
+    "internalSeconds": 170,
+    "externalSeconds": 180,
+    "cleanupSecondsMax": 4,
+    "evidenceBytesMax": 33554432
+  },
+  "newImplementationBoundary": {
+    "directory": "examples/physics-world-p4-2276/v2",
+    "plannedFiles": [
+      "scoped-cache.py",
+      "controls.py",
+      "gate.py"
+    ],
+    "controlsCLI": "python3 -B controls.py --run-id FRESH",
+    "gateCLI": "python3 -B gate.py --run-id FRESH --controls ABS_PASS_SUMMARY --controls-sha256 FROZEN_SHA",
+    "authorization": "none until parent exact recipe freeze; no mathematical execution until later source freeze and explicit run"
+  }
+}

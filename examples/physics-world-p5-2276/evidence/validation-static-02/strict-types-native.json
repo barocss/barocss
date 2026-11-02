@@ -1,0 +1,33 @@
+{
+  "mode": "native",
+  "strict": true,
+  "noEmit": true,
+  "skipLibCheck": false,
+  "positiveAndExpectedNegativeDiagnostics": [],
+  "actualOwnTypeFiles": [
+    "packages/barocss-physics/dist/types.d.ts",
+    "packages/barocss-physics/dist/world.d.ts",
+    "packages/barocss-physics/dist/internal-types.d.ts",
+    "packages/barocss-physics/dist/capsule-query/types.d.ts",
+    "packages/barocss-physics/dist/capsule-query/snapshot.d.ts",
+    "packages/barocss-physics/dist/capsule-query.d.ts",
+    "packages/barocss-physics/dist/character/types.d.ts",
+    "packages/barocss-physics/dist/character-controller.d.ts",
+    "packages/barocss-physics/dist/index.d.ts",
+    "packages/barocss-physics/dist/replay.d.ts",
+    "packages/barocss-physics/dist/cad-proxy-types.d.ts",
+    "packages/barocss-physics/dist/cad-proxy-admission.d.ts",
+    "packages/barocss-physics/dist/cad-proxy-pose.d.ts",
+    "packages/barocss-physics/dist/cad-fluid-data.d.ts",
+    "packages/barocss-physics/dist/cad-proxy.d.ts"
+  ],
+  "wrongModeTypes": [],
+  "WorldCalls": 0,
+  "moduleEvaluation": false,
+  "ownResolution": "failclosed actual public maps; missing own specifier never falls through node_modules",
+  "deniedOwnSpecifiers": [
+    "@barocss/physics/cloth",
+    "@barocss/physics/fluid",
+    "@barocss/physics/fluid-cad"
+  ]
+}

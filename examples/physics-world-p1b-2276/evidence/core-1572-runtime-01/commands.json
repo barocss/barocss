@@ -1,0 +1,78 @@
+[
+  {
+    "name": "contact-energy",
+    "command": [
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "examples/physics-contact-impulse-audit-1572/run-contact-energy-ledger.mjs"
+    ],
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 11556
+  },
+  {
+    "name": "original-mini-build",
+    "command": [
+      "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/esbuild/bin/esbuild",
+      "examples/physics-contact-impulse-audit-1572/original-mini-stacks.ts",
+      "--bundle",
+      "--platform=node",
+      "--format=esm",
+      "--target=node22",
+      "--outfile=examples/physics-world-p1b-2276/evidence/core-1572-runtime-01/original-mini.mjs"
+    ],
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 40
+  },
+  {
+    "name": "original-mini",
+    "command": [
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "examples/physics-world-p1b-2276/evidence/core-1572-runtime-01/original-mini.mjs"
+    ],
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 17450
+  },
+  {
+    "name": "total-energy-phase",
+    "command": [
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "examples/physics-contact-impulse-audit-1572/run-total-energy-phase-ledger.mjs"
+    ],
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 11426
+  },
+  {
+    "name": "public-smoke-build",
+    "command": [
+      "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/esbuild/bin/esbuild",
+      "examples/physics-contact-impulse-audit-1572/public-world-smoke.ts",
+      "--bundle",
+      "--platform=node",
+      "--format=esm",
+      "--target=node22",
+      "--outfile=examples/physics-world-p1b-2276/evidence/core-1572-runtime-01/public-smoke.mjs"
+    ],
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 36
+  },
+  {
+    "name": "public-smoke",
+    "command": [
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "examples/physics-world-p1b-2276/evidence/core-1572-runtime-01/public-smoke.mjs"
+    ],
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "elapsedMs": 485
+  }
+]

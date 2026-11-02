@@ -1,0 +1,204 @@
+{
+  "status": "AUTHOR_ONLY_REVISION03_NOT_RUN",
+  "firstFailuresPreserved": [
+    "validation-static-01",
+    "validation-static-02"
+  ],
+  "failure": "native entry7 missing owned Viewer/index and CADInterop/model-set emitted implementations",
+  "decision": "exact missing SDK externals for native caller compilation; no source fallback; no SDK implementation/product claim",
+  "nativePhysics": "actual strict/runtime PASS remains separate",
+  "endpoints": [
+    {
+      "packageName": "@barocss/viewer",
+      "packageDirectory": "packages/barocss-viewer",
+      "manifestPath": "packages/barocss-viewer/package.json",
+      "exportKey": ".",
+      "specifier": "@barocss/viewer",
+      "sourcePath": "packages/barocss-viewer/src/index.ts",
+      "nativePath": "packages/barocss-viewer/dist/index.js"
+    },
+    {
+      "packageName": "@barocss/cad-interop",
+      "packageDirectory": "packages/barocss-cad-interop",
+      "manifestPath": "packages/barocss-cad-interop/package.json",
+      "exportKey": "./model-set",
+      "specifier": "@barocss/cad-interop/model-set",
+      "sourcePath": "packages/barocss-cad-interop/src/model-set.ts",
+      "nativePath": "packages/barocss-cad-interop/dist/model-set.js"
+    },
+    {
+      "packageName": "@barocss/cad-interop",
+      "packageDirectory": "packages/barocss-cad-interop",
+      "manifestPath": "packages/barocss-cad-interop/package.json",
+      "exportKey": "./assembly",
+      "specifier": "@barocss/cad-interop/assembly",
+      "sourcePath": "packages/barocss-cad-interop/src/assembly.ts",
+      "nativePath": "packages/barocss-cad-interop/dist/assembly.js"
+    },
+    {
+      "packageName": "@barocss/cad-interop",
+      "packageDirectory": "packages/barocss-cad-interop",
+      "manifestPath": "packages/barocss-cad-interop/package.json",
+      "exportKey": "./document",
+      "specifier": "@barocss/cad-interop/document",
+      "sourcePath": "packages/barocss-cad-interop/src/document.ts",
+      "nativePath": "packages/barocss-cad-interop/dist/document.js"
+    },
+    {
+      "packageName": "@barocss/cad-interop",
+      "packageDirectory": "packages/barocss-cad-interop",
+      "manifestPath": "packages/barocss-cad-interop/package.json",
+      "exportKey": "./native",
+      "specifier": "@barocss/cad-interop/native",
+      "sourcePath": "packages/barocss-cad-interop/src/native.ts",
+      "nativePath": "packages/barocss-cad-interop/dist/native.js"
+    },
+    {
+      "packageName": "@barocss/cad-interop",
+      "packageDirectory": "packages/barocss-cad-interop",
+      "manifestPath": "packages/barocss-cad-interop/package.json",
+      "exportKey": ".",
+      "specifier": "@barocss/cad-interop",
+      "sourcePath": "packages/barocss-cad-interop/src/index.ts",
+      "nativePath": "packages/barocss-cad-interop/dist/index.js"
+    }
+  ],
+  "hosts": [
+    {
+      "index": 7,
+      "path": "examples/physics-scene/fluid-cad-viewer/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 13,
+      "path": "examples/viewer-assembly-scene/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/assembly",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 14,
+      "path": "examples/viewer-cloth-scene/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 15,
+      "path": "examples/viewer-fluid-scene/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 16,
+      "path": "examples/viewer-native-scene-replacement/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/document",
+        "@barocss/cad-interop/native",
+        "@barocss/cad-interop/model-set",
+        "@barocss/cad-interop/assembly"
+      ]
+    },
+    {
+      "index": 17,
+      "path": "examples/viewer-qualified-face-scene/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/native",
+        "@barocss/cad-interop/model-set",
+        "@barocss/cad-interop/document",
+        "@barocss/cad-interop/assembly"
+      ]
+    },
+    {
+      "index": 18,
+      "path": "examples/viewer-shell-scene/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set",
+        "@barocss/cad-interop/assembly"
+      ]
+    },
+    {
+      "index": 19,
+      "path": "examples/viewer-surface-material/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 20,
+      "path": "examples/workspace-source/flow.mjs",
+      "endpoints": [
+        "@barocss/cad-interop",
+        "@barocss/viewer",
+        "@barocss/cad-interop/native",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 21,
+      "path": "examples/physics-cloth-viewer/app.mjs",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 33,
+      "path": "examples/physics-scene/fluid-viewer/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 49,
+      "path": "examples/workspace-source/cpu-entry.mjs",
+      "endpoints": [
+        "@barocss/cad-interop",
+        "@barocss/viewer",
+        "@barocss/cad-interop/native",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 51,
+      "path": "examples/workspace-source/browser.mjs",
+      "endpoints": [
+        "@barocss/cad-interop",
+        "@barocss/viewer",
+        "@barocss/cad-interop/native",
+        "@barocss/cad-interop/model-set"
+      ]
+    }
+  ],
+  "reuse": {
+    "bundlePasses": 69,
+    "strictPasses": 2
+  },
+  "fresh": {
+    "bundleAttempts": 58,
+    "strictTypeAttempts": 0,
+    "lintAttempts": 1,
+    "WorldCalls": 0
+  },
+  "aggregate": {
+    "bundleAttempts": 129,
+    "priorFailures": 2,
+    "uniqueLogicalBundleChecks": 127
+  },
+  "sourceBundles": "60 PASS authenticated reuse",
+  "runtime": "NOT_RUN",
+  "providersChanged": false
+}

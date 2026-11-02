@@ -1,0 +1,633 @@
+TAP version 13
+# Subtest: motion input: NaN waypoint 0 is a VALUE refusal
+not ok 1 - motion input: NaN waypoint 0 is a VALUE refusal
+  ---
+  duration_ms: 0.875
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54464:32'
+  failureType: 'testCodeFailure'
+  error: 'expected VALUE, got no problems'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54458:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54468:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: motion input: NaN waypoint 1 is a VALUE refusal
+not ok 2 - motion input: NaN waypoint 1 is a VALUE refusal
+  ---
+  duration_ms: 0.065875
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54464:32'
+  failureType: 'testCodeFailure'
+  error: 'expected VALUE, got no problems'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54458:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54468:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: motion input: NaN query time is a VALUE refusal before and after cache use
+not ok 3 - motion input: NaN query time is a VALUE refusal before and after cache use
+  ---
+  duration_ms: 0.270875
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54470:3'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected exception.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54472:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: supplied v=NaN is a LIMITS_BAD refusal
+not ok 4 - motion input: supplied v=NaN is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.420042
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54476:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'LIMITS_MISSING'
+    - 'LIMITS_BAD'
+              ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'LIMITS_BAD'
+  actual: 'LIMITS_MISSING'
+  operator: 'strictEqual'
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54459:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54478:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: supplied a=NaN is a LIMITS_BAD refusal
+not ok 5 - motion input: supplied a=NaN is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.130042
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54476:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'LIMITS_MISSING'
+    - 'LIMITS_BAD'
+              ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'LIMITS_BAD'
+  actual: 'LIMITS_MISSING'
+  operator: 'strictEqual'
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54459:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54478:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: supplied j=NaN is a LIMITS_BAD refusal
+not ok 6 - motion input: supplied j=NaN is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.110625
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54476:40'
+  failureType: 'testCodeFailure'
+  error: 'expected LIMITS_BAD, got no problems'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54458:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54478:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: Infinity waypoint 0 is a VALUE refusal
+not ok 7 - motion input: Infinity waypoint 0 is a VALUE refusal
+  ---
+  duration_ms: 0.064625
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54464:32'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'JOINT_LIMIT'
+    - 'VALUE'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'VALUE'
+  actual: 'JOINT_LIMIT'
+  operator: 'strictEqual'
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54459:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54468:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: Infinity waypoint 1 is a VALUE refusal
+not ok 8 - motion input: Infinity waypoint 1 is a VALUE refusal
+  ---
+  duration_ms: 0.050917
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54464:32'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'JOINT_LIMIT'
+    - 'VALUE'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'VALUE'
+  actual: 'JOINT_LIMIT'
+  operator: 'strictEqual'
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54459:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54468:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: Infinity query time is a VALUE refusal before and after cache use
+not ok 9 - motion input: Infinity query time is a VALUE refusal before and after cache use
+  ---
+  duration_ms: 0.419125
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54470:3'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected exception.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54472:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: supplied v=Infinity is a LIMITS_BAD refusal
+not ok 10 - motion input: supplied v=Infinity is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.260708
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54476:40'
+  failureType: 'testCodeFailure'
+  error: 'expected LIMITS_BAD, got no problems'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54458:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54478:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: supplied a=Infinity is a LIMITS_BAD refusal
+not ok 11 - motion input: supplied a=Infinity is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.125833
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54476:40'
+  failureType: 'testCodeFailure'
+  error: 'expected LIMITS_BAD, got no problems'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54458:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54478:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: supplied j=Infinity is a LIMITS_BAD refusal
+not ok 12 - motion input: supplied j=Infinity is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.059458
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54476:40'
+  failureType: 'testCodeFailure'
+  error: 'expected LIMITS_BAD, got no problems'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54458:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54478:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: -Infinity waypoint 0 is a VALUE refusal
+not ok 13 - motion input: -Infinity waypoint 0 is a VALUE refusal
+  ---
+  duration_ms: 0.102834
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54464:32'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'JOINT_LIMIT'
+    - 'VALUE'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'VALUE'
+  actual: 'JOINT_LIMIT'
+  operator: 'strictEqual'
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54459:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54468:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: -Infinity waypoint 1 is a VALUE refusal
+not ok 14 - motion input: -Infinity waypoint 1 is a VALUE refusal
+  ---
+  duration_ms: 0.092292
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54464:32'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'JOINT_LIMIT'
+    - 'VALUE'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'VALUE'
+  actual: 'JOINT_LIMIT'
+  operator: 'strictEqual'
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54459:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54468:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: -Infinity query time is a VALUE refusal before and after cache use
+not ok 15 - motion input: -Infinity query time is a VALUE refusal before and after cache use
+  ---
+  duration_ms: 0.049625
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54470:3'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected exception.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54472:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: supplied v=-Infinity is a LIMITS_BAD refusal
+not ok 16 - motion input: supplied v=-Infinity is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.064208
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54476:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'LIMITS_MISSING'
+    - 'LIMITS_BAD'
+              ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'LIMITS_BAD'
+  actual: 'LIMITS_MISSING'
+  operator: 'strictEqual'
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54459:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54478:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: supplied a=-Infinity is a LIMITS_BAD refusal
+not ok 17 - motion input: supplied a=-Infinity is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.0965
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54476:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'LIMITS_MISSING'
+    - 'LIMITS_BAD'
+              ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'LIMITS_BAD'
+  actual: 'LIMITS_MISSING'
+  operator: 'strictEqual'
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54459:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54478:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: supplied j=-Infinity is a LIMITS_BAD refusal
+not ok 18 - motion input: supplied j=-Infinity is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.041167
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54476:40'
+  failureType: 'testCodeFailure'
+  error: 'expected LIMITS_BAD, got no problems'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54458:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54478:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: unsupported timing profile is a VALUE refusal
+not ok 19 - motion input: unsupported timing profile is a VALUE refusal
+  ---
+  duration_ms: 0.051625
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54481:1'
+  failureType: 'testCodeFailure'
+  error: 'expected VALUE, got no problems'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54458:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54482:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: null limits is a LIMITS_BAD refusal
+not ok 20 - motion input: null limits is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.072834
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54490:4'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of null (reading 'slide')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    timeSegments (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54365:28)
+    timePath (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54353:10)
+    checkPath (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54422:5)
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54457:20)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54491:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+# Subtest: motion input: array limits is a LIMITS_BAD refusal
+not ok 21 - motion input: array limits is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.119167
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54490:4'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'LIMITS_MISSING'
+    - 'LIMITS_BAD'
+              ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'LIMITS_BAD'
+  actual: 'LIMITS_MISSING'
+  operator: 'strictEqual'
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54459:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54491:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: null joint rates is a LIMITS_BAD refusal
+not ok 22 - motion input: null joint rates is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.062541
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54490:4'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'LIMITS_MISSING'
+    - 'LIMITS_BAD'
+              ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'LIMITS_BAD'
+  actual: 'LIMITS_MISSING'
+  operator: 'strictEqual'
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54459:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54491:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: array joint rates is a LIMITS_BAD refusal
+not ok 23 - motion input: array joint rates is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.054042
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54490:4'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'LIMITS_MISSING'
+    - 'LIMITS_BAD'
+              ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'LIMITS_BAD'
+  actual: 'LIMITS_MISSING'
+  operator: 'strictEqual'
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54459:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54491:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: scalar joint rates is a LIMITS_BAD refusal
+not ok 24 - motion input: scalar joint rates is a LIMITS_BAD refusal
+  ---
+  duration_ms: 0.051833
+  type: 'test'
+  location: '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54490:4'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'LIMITS_MISSING'
+    - 'LIMITS_BAD'
+              ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'LIMITS_BAD'
+  actual: 'LIMITS_MISSING'
+  operator: 'strictEqual'
+  stack: |-
+    refuses (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54459:10)
+    TestContext.<anonymous> (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs:54491:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: motion input: finite valid and absent/nonpositive required rate behavior remains bounded
+ok 25 - motion input: finite valid and absent/nonpositive required rate behavior remains bounded
+  ---
+  duration_ms: 0.872625
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 1
+# fail 24
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 98.106167

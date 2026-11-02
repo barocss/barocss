@@ -1,4 +1,4 @@
-import type { Body, BoxShape, CapsuleShape, Hit, Vec3 } from './types.js';
+import type { Body, BoxShape, CapsuleShape, Hit, Vec3 } from './internal-types.js';
 import { add, dot, localPoint, rotate, scale, sub, worldPoint } from './math.js';
 
 const clamp = (value: number, low: number, high: number): number =>

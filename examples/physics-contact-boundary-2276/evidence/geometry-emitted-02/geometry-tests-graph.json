@@ -1,0 +1,58 @@
+{
+  "emitted": true,
+  "bundleSha256": "1a0a73cc9b06733c487a588e639ab630ba77933bcc801c91e34d473146d5667c",
+  "inputs": [
+    {
+      "path": "packages/barocss-physics/src/types.ts",
+      "sha256": "e8befc80c94e1b109f5024581f056639acff2c19ed445f2875e20eaf2d3bf240"
+    },
+    {
+      "path": "packages/barocss-physics/src/limits.ts",
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    {
+      "path": "packages/barocss-physics/src/validation.ts",
+      "sha256": "5b0a3016c32ef19076984e6b7f529253af581c29eb9dd1adb19cc8dba185479f"
+    },
+    {
+      "path": "examples/physics-contact-boundary-2276/evidence/geometry-emitted-02/modules/packages/barocss-physics/src/limits.js",
+      "sha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219"
+    },
+    {
+      "path": "examples/physics-contact-boundary-2276/evidence/geometry-emitted-02/modules/packages/barocss-physics/src/validation.js",
+      "sha256": "d7bb0ca0e1ac7f0485b60e46d72d4a49a2856473276cf28e56967895f06fe919"
+    },
+    {
+      "path": "examples/physics-contact-boundary-2276/evidence/geometry-emitted-02/modules/packages/barocss-physics/src/math.js",
+      "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028"
+    },
+    {
+      "path": "examples/physics-contact-boundary-2276/evidence/geometry-emitted-02/modules/examples/physics-rigid-feature-geometry/sat-feature.js",
+      "sha256": "33aa7163b124eda00b1fb75ee507aabf4c7f26fe8e9bee5d679606f4f3bc03e6"
+    },
+    {
+      "path": "examples/physics-contact-boundary-2276/evidence/geometry-emitted-02/modules/examples/physics-rigid-feature-geometry/witness.js",
+      "sha256": "dcdf55a960e1c486df7e9e98ef768a7bf20fd958421e5eb1013114010dd482ff"
+    },
+    {
+      "path": "examples/physics-contact-boundary-2276/evidence/geometry-emitted-02/modules/examples/physics-rigid-feature-geometry/strict-line.js",
+      "sha256": "59ef239ae03c7e606bfa31bfa05f7ea99c0152f46b436ff9268b64fc83296be1"
+    },
+    {
+      "path": "examples/physics-contact-boundary-2276/evidence/geometry-emitted-02/modules/examples/physics-rigid-feature-geometry/face-contact.js",
+      "sha256": "566900cf9c699dc31fbfbc8ca43355498705822e096383879a347dc590985dbe"
+    },
+    {
+      "path": "examples/physics-contact-boundary-2276/evidence/geometry-emitted-02/modules/examples/physics-rigid-feature-geometry/edge-contact.js",
+      "sha256": "13dd3dabb7ea07c5dfa117236181e7c2941fa6a59a983a69cd53c3a768460153"
+    },
+    {
+      "path": "examples/physics-contact-boundary-2276/evidence/geometry-emitted-02/modules/examples/physics-rigid-feature-geometry/geometry.js",
+      "sha256": "304fb39a9f97839ad6a019b1774badcc72ac4487482893116c01b568a83988b0"
+    },
+    {
+      "path": "examples/physics-contact-boundary-2276/geometry.test.ts",
+      "sha256": "ebe84255d7c2dc443c44acaeac085458a26d5683633183226460db5cd869a733"
+    }
+  ]
+}

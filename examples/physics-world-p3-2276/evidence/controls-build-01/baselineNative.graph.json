@@ -1,0 +1,28 @@
+{
+  "mode": "native-ESM",
+  "entry": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/index.js",
+  "inputs": [
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/index.js",
+      "bytes": 136009,
+      "sha256": "0698933cbc1f017ead25284412e5dc26de7320c74eb8b8f335dbb5d8023a8ebe"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/types.js",
+      "bytes": 418,
+      "sha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/recording-owner.js",
+      "bytes": 46,
+      "sha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/provider-manifest.generated.js",
+      "bytes": 1785,
+      "sha256": "461a8ffaa53debb282afe07f34630ef7d8dd73aad0c7e41d43e427ea82519767"
+    }
+  ],
+  "sourceFallback": false,
+  "cadBoundary": "NONE"
+}

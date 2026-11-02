@@ -1,7 +1,6 @@
 # Qualified native Surface and public Physics cloth
 
-This bounded example consumes genuine `createClothWorld` states from public
-`@barocss/physics/cloth`, through step240 at the fixed1/120s host step. The
+This bounded example consumes genuine root `createPhysicsWorld(model, options)` states and explicit cloth model data, through step240 at the fixed1/120s host step. The
 explicit Run proof action submits the exact nine-field Viewer cloth DTO beside
 the original authored #979 NURBS panel, compiled from HTTP source by public
 Loader. The host adds layer/context identity and copies the producer arrays.
@@ -62,3 +61,5 @@ inspected before repair.
 Dispose releases the Viewer and the caller-owned Physics worlds and records
 the disposed status and browser errors. Browser execution, native
 author completion, Integration and publication require separate receipts.
+
+P5b caller migration is implemented. Current-source/native and actual browser qualification remain pending; earlier evidence retains its original provider scope.

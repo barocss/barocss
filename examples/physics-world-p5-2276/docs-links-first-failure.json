@@ -1,0 +1,22 @@
+{
+  "status": "FAIL_PRESERVED",
+  "receipt": "docs-links-01",
+  "firstFailure": "check-site.mjs:81: current public api-roadmap.txt bytes differ from package ROADMAP.md",
+  "scope": "Documentation copy drift; no numerical failure or tolerance change",
+  "files": {
+    "examples/physics-world-p5-2276/evidence/docs-links-01/result.json": {
+      "bytes": 3121,
+      "sha256": "005f180bd7088961c3a745d1b6deb37afbe4198b1d6ac0150b23df1be080365b"
+    },
+    "examples/physics-world-p5-2276/evidence/docs-links-01/stderr.raw": {
+      "bytes": 789,
+      "sha256": "eac60e06d32e7c179aac792fca20bea09adb92e04c0ad724ec48ab0223e13340"
+    },
+    "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt": {
+      "bytes": 40059,
+      "sha256": "179b0e00048143d982fc980c5d202c5a816e5fc425e36a45dc6bf54f2e67d524"
+    }
+  },
+  "plannedRepair": "Update mutable current roadmap copy after current checkpoint status and consumer gates. Historical evidence copies and manifest stay unchanged. Rebuild and run fresh link receipt.",
+  "physicsWorldCalls": 0
+}

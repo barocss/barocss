@@ -1,0 +1,124 @@
+TAP version 13
+# Subtest: the isolated rotor accepts its qualified load and refuses a second step
+ok 1 - the isolated rotor accepts its qualified load and refuses a second step
+  ---
+  duration_ms: 8.276625
+  type: 'test'
+  ...
+# Subtest: the selected disjoint hinge API advances two empty command frames
+ok 2 - the selected disjoint hinge API advances two empty command frames
+  ---
+  duration_ms: 15.676583
+  type: 'test'
+  ...
+# Subtest: free flight matches the discrete fixed-step analytic solution
+ok 3 - free flight matches the discrete fixed-step analytic solution
+  ---
+  duration_ms: 5.728125
+  type: 'test'
+  ...
+# Subtest: force lasts one step; impulse changes velocity once
+ok 4 - force lasts one step; impulse changes velocity once
+  ---
+  duration_ms: 3.607291
+  type: 'test'
+  ...
+# Subtest: invalid command argument retains accepted state; copies and disposal are explicit
+ok 5 - invalid command argument retains accepted state; copies and disposal are explicit
+  ---
+  duration_ms: 6.147875
+  type: 'test'
+  ...
+# Subtest: off-origin CAD proxy uses literal quarter-turn coordinates
+ok 6 - off-origin CAD proxy uses literal quarter-turn coordinates
+  ---
+  duration_ms: 2.540083
+  type: 'test'
+  ...
+# Subtest: independent reduced pendulum reference preserves equilibrium and lifecycle
+ok 7 - independent reduced pendulum reference preserves equilibrium and lifecycle
+  ---
+  duration_ms: 0.384417
+  type: 'test'
+  ...
+# Subtest: free flight converges against the continuous ballistic solution at fixed physical time
+ok 8 - free flight converges against the continuous ballistic solution at fixed physical time
+  ---
+  duration_ms: 6.212916
+  type: 'test'
+  ...
+# {"ballisticTimeSeconds":0.1,"positionErrorsM":[0.004087500000000022,0.002043750000000122],"refinementRatio":1.9999999999998914}
+# Subtest: copied rigid recordings use the signed-zero-preserving binary codec
+ok 9 - copied rigid recordings use the signed-zero-preserving binary codec
+  ---
+  duration_ms: 17.133
+  type: 'test'
+  ...
+# Subtest: robot motion guide: mixed turn/slide timing, saved motion and analytic SCARA FK
+ok 10 - robot motion guide: mixed turn/slide timing, saved motion and analytic SCARA FK
+  ---
+  duration_ms: 1630.1905
+  type: 'test'
+  ...
+# {"metric":"scara-analytic","samples":22,"maxReportedFkErrorMm":0,"maxReportingQuantizationMm":4.901169035065323e-7,"maxJointSampleError":7.105427357601002e-15,"durationErrorS":0,"solvedHomeQuillMm":[225,25,-30],"comparisonToleranceMm":1e-9}
+# Subtest: robot motion guide: jerk-limited path keeps synchronized endpoints and finite samples
+ok 11 - robot motion guide: jerk-limited path keeps synchronized endpoints and finite samples
+  ---
+  duration_ms: 1406.544667
+  type: 'test'
+  ...
+# Subtest: robot motion guide: typed invalid-input and joint-limit refusals
+ok 12 - robot motion guide: typed invalid-input and joint-limit refusals
+  ---
+  duration_ms: 353.808917
+  type: 'test'
+  ...
+# Subtest: robot motion guide: analytic IK targets, independent residuals and joint bounds
+ok 13 - robot motion guide: analytic IK targets, independent residuals and joint bounds
+  ---
+  duration_ms: 1.99025
+  type: 'test'
+  ...
+# {"metric":"ik-analytic","targetDegrees":-60,"slideMm":25,"errorM":2.660641766657152e-14,"errorRad":0,"fkErrorMm":0}
+# {"metric":"ik-analytic","targetDegrees":0,"slideMm":-10,"errorM":1.0508927061891882e-14,"errorRad":0,"fkErrorMm":0}
+# {"metric":"ik-analytic","targetDegrees":45,"slideMm":60,"errorM":1.1656366413268348e-15,"errorRad":0,"fkErrorMm":1.4210854715202004e-14}
+# Subtest: robot motion guide: IK target outside travel stays unreached with a measured residual
+ok 14 - robot motion guide: IK target outside travel stays unreached with a measured residual
+  ---
+  duration_ms: 4.585416
+  type: 'test'
+  ...
+# {"reached":false,"errorM":0.04,"returnedSlideMm":80}
+# Subtest: explicit model cloth-pinned-sphere-visual-v1: one accepted step and atomic recorder refusal
+ok 15 - explicit model cloth-pinned-sphere-visual-v1: one accepted step and atomic recorder refusal
+  ---
+  duration_ms: 99.074584
+  type: 'test'
+  ...
+# Subtest: explicit model fluid-basin-visual-v1: one accepted step and atomic recorder refusal
+ok 16 - explicit model fluid-basin-visual-v1: one accepted step and atomic recorder refusal
+  ---
+  duration_ms: 28.393542
+  type: 'test'
+  ...
+# Subtest: explicit model fluid-basin-xsph-visual-v1: one accepted step and atomic recorder refusal
+ok 17 - explicit model fluid-basin-xsph-visual-v1: one accepted step and atomic recorder refusal
+  ---
+  duration_ms: 14.62375
+  type: 'test'
+  ...
+# Subtest: explicit model fluid-static-box-visual-v1: one accepted step and atomic recorder refusal
+ok 18 - explicit model fluid-static-box-visual-v1: one accepted step and atomic recorder refusal
+  ---
+  duration_ms: 13.36375
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3744.93175

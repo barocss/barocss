@@ -1,4 +1,4 @@
-import type { Body, Joint, PhysicsHingeMotorConfig, PhysicsJointState, Quat, Vec3 } from './types.js';
+import type { Body, Joint, PhysicsHingeMotorConfig, PhysicsJointState, Quat, Vec3 } from './internal-types.js';
 import { ID, MAX_STEP_DISPLACEMENT_M } from './limits.js';
 import { error, record, fields, finite, vector } from './validation.js';
 import { sub, worldPoint, multiplyQuaternion, inverse, dot, scale, rotate, inertia } from './math.js';

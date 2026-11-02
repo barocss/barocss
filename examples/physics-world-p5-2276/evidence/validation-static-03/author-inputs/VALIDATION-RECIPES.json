@@ -1,0 +1,1873 @@
+{
+  "work_id": "physics-world-p5b-2276",
+  "artifact_type": "bounded-static-and-separate-doc-example-validation-recipes",
+  "status": "AUTHOR_ONLY_PENDING_PARENT_FREEZE_NOT_RUN",
+  "owner_role": "static-validation-and-selected-doc-runtime",
+  "source_request": "Strict consumers,all21andcomputedentries,no evaluation;selected4Worlddocsnippetseparate",
+  "last_updated": "2026-11-02",
+  "static": {
+    "directCallerCount": 21,
+    "entries": [
+      {
+        "path": "examples/physics-capsule-query-scene/controls.mjs",
+        "platform": "browser",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        }
+      },
+      {
+        "path": "examples/physics-cloth-viewer/host-controller.mjs",
+        "platform": "browser",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        }
+      },
+      {
+        "path": "examples/physics-cloth-viewer/numeric-entry.mjs",
+        "platform": "node",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        }
+      },
+      {
+        "path": "examples/physics-error-entry/entry.mjs",
+        "platform": "node",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        }
+      },
+      {
+        "path": "examples/physics-scene/cloth-source-import-probe.mjs",
+        "platform": "node",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-scene/cloth-world-probe.mjs",
+        "platform": "node",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-scene/fluid-cad-shelf-probe.mjs",
+        "platform": "node",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-scene/fluid-cad-viewer/app.js",
+        "platform": "browser",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        },
+        "nativeSDKBoundary": {
+          "entries": [
+            {
+              "packageName": "@barocss/viewer",
+              "packageDirectory": "packages/barocss-viewer",
+              "manifestPath": "packages/barocss-viewer/package.json",
+              "exportKey": ".",
+              "specifier": "@barocss/viewer",
+              "sourcePath": "packages/barocss-viewer/src/index.ts",
+              "nativePath": "packages/barocss-viewer/dist/index.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./model-set",
+              "specifier": "@barocss/cad-interop/model-set",
+              "sourcePath": "packages/barocss-cad-interop/src/model-set.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/model-set.js"
+            }
+          ],
+          "reviewedImports": [
+            {
+              "specifier": "../../../packages/barocss-viewer/dist/index.js",
+              "importer": "examples/physics-scene/fluid-cad-viewer/app.js",
+              "target": "packages/barocss-viewer/src/index.ts",
+              "kind": "paired-public-caller-entry"
+            },
+            {
+              "specifier": "../../../packages/barocss-cad-interop/dist/model-set.js",
+              "importer": "examples/physics-scene/fluid-cad-viewer/app.js",
+              "target": "packages/barocss-cad-interop/src/model-set.ts",
+              "kind": "paired-public-caller-entry"
+            }
+          ]
+        }
+      },
+      {
+        "path": "examples/physics-scene/fluid-viewer/scene.js",
+        "platform": "browser",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-scene/fluid-visual-profile-probe.mjs",
+        "platform": "node",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-scene/fluid-world-probe.mjs",
+        "platform": "node",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-scene/release-consumer.mjs",
+        "platform": "node",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        }
+      },
+      {
+        "path": "examples/physics-scene/source-import-probe.mjs",
+        "platform": "node",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/viewer-assembly-scene/app.js",
+        "platform": "browser",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        },
+        "nativeSDKBoundary": {
+          "entries": [
+            {
+              "packageName": "@barocss/viewer",
+              "packageDirectory": "packages/barocss-viewer",
+              "manifestPath": "packages/barocss-viewer/package.json",
+              "exportKey": ".",
+              "specifier": "@barocss/viewer",
+              "sourcePath": "packages/barocss-viewer/src/index.ts",
+              "nativePath": "packages/barocss-viewer/dist/index.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./assembly",
+              "specifier": "@barocss/cad-interop/assembly",
+              "sourcePath": "packages/barocss-cad-interop/src/assembly.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/assembly.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./model-set",
+              "specifier": "@barocss/cad-interop/model-set",
+              "sourcePath": "packages/barocss-cad-interop/src/model-set.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/model-set.js"
+            }
+          ],
+          "reviewedImports": [
+            {
+              "specifier": "@barocss/viewer",
+              "importer": "examples/viewer-assembly-scene/app.js",
+              "target": "packages/barocss-viewer/src/index.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/assembly",
+              "importer": "examples/viewer-assembly-scene/app.js",
+              "target": "packages/barocss-cad-interop/src/assembly.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/model-set",
+              "importer": "examples/viewer-assembly-scene/app.js",
+              "target": "packages/barocss-cad-interop/src/model-set.ts",
+              "kind": "actual-package-map"
+            }
+          ]
+        }
+      },
+      {
+        "path": "examples/viewer-cloth-scene/app.js",
+        "platform": "browser",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        },
+        "nativeSDKBoundary": {
+          "entries": [
+            {
+              "packageName": "@barocss/viewer",
+              "packageDirectory": "packages/barocss-viewer",
+              "manifestPath": "packages/barocss-viewer/package.json",
+              "exportKey": ".",
+              "specifier": "@barocss/viewer",
+              "sourcePath": "packages/barocss-viewer/src/index.ts",
+              "nativePath": "packages/barocss-viewer/dist/index.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./model-set",
+              "specifier": "@barocss/cad-interop/model-set",
+              "sourcePath": "packages/barocss-cad-interop/src/model-set.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/model-set.js"
+            }
+          ],
+          "reviewedImports": [
+            {
+              "specifier": "@barocss/viewer",
+              "importer": "examples/viewer-cloth-scene/app.js",
+              "target": "packages/barocss-viewer/src/index.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/model-set",
+              "importer": "examples/viewer-cloth-scene/app.js",
+              "target": "packages/barocss-cad-interop/src/model-set.ts",
+              "kind": "actual-package-map"
+            }
+          ]
+        }
+      },
+      {
+        "path": "examples/viewer-fluid-scene/app.js",
+        "platform": "browser",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        },
+        "nativeSDKBoundary": {
+          "entries": [
+            {
+              "packageName": "@barocss/viewer",
+              "packageDirectory": "packages/barocss-viewer",
+              "manifestPath": "packages/barocss-viewer/package.json",
+              "exportKey": ".",
+              "specifier": "@barocss/viewer",
+              "sourcePath": "packages/barocss-viewer/src/index.ts",
+              "nativePath": "packages/barocss-viewer/dist/index.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./model-set",
+              "specifier": "@barocss/cad-interop/model-set",
+              "sourcePath": "packages/barocss-cad-interop/src/model-set.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/model-set.js"
+            }
+          ],
+          "reviewedImports": [
+            {
+              "specifier": "../../packages/barocss-viewer/dist/index.js",
+              "importer": "examples/viewer-fluid-scene/app.js",
+              "target": "packages/barocss-viewer/src/index.ts",
+              "kind": "paired-public-caller-entry"
+            },
+            {
+              "specifier": "../../packages/barocss-cad-interop/dist/model-set.js",
+              "importer": "examples/viewer-fluid-scene/app.js",
+              "target": "packages/barocss-cad-interop/src/model-set.ts",
+              "kind": "paired-public-caller-entry"
+            }
+          ]
+        }
+      },
+      {
+        "path": "examples/viewer-native-scene-replacement/app.js",
+        "platform": "browser",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        },
+        "nativeSDKBoundary": {
+          "entries": [
+            {
+              "packageName": "@barocss/viewer",
+              "packageDirectory": "packages/barocss-viewer",
+              "manifestPath": "packages/barocss-viewer/package.json",
+              "exportKey": ".",
+              "specifier": "@barocss/viewer",
+              "sourcePath": "packages/barocss-viewer/src/index.ts",
+              "nativePath": "packages/barocss-viewer/dist/index.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./document",
+              "specifier": "@barocss/cad-interop/document",
+              "sourcePath": "packages/barocss-cad-interop/src/document.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/document.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./native",
+              "specifier": "@barocss/cad-interop/native",
+              "sourcePath": "packages/barocss-cad-interop/src/native.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/native.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./model-set",
+              "specifier": "@barocss/cad-interop/model-set",
+              "sourcePath": "packages/barocss-cad-interop/src/model-set.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/model-set.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./assembly",
+              "specifier": "@barocss/cad-interop/assembly",
+              "sourcePath": "packages/barocss-cad-interop/src/assembly.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/assembly.js"
+            }
+          ],
+          "reviewedImports": [
+            {
+              "specifier": "@barocss/viewer",
+              "importer": "examples/viewer-native-scene-replacement/app.js",
+              "target": "packages/barocss-viewer/src/index.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/document",
+              "importer": "examples/viewer-native-scene-replacement/app.js",
+              "target": "packages/barocss-cad-interop/src/document.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/native",
+              "importer": "examples/viewer-native-scene-replacement/app.js",
+              "target": "packages/barocss-cad-interop/src/native.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/model-set",
+              "importer": "examples/viewer-native-scene-replacement/app.js",
+              "target": "packages/barocss-cad-interop/src/model-set.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/assembly",
+              "importer": "examples/viewer-native-scene-replacement/app.js",
+              "target": "packages/barocss-cad-interop/src/assembly.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/native",
+              "importer": "examples/viewer-native-scene-replacement/native-file-open.js",
+              "target": "packages/barocss-cad-interop/src/native.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/native",
+              "importer": "examples/viewer-native-scene-replacement/iges-file-open.js",
+              "target": "packages/barocss-cad-interop/src/native.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/document",
+              "importer": "examples/viewer-native-scene-replacement/mounted-appearance.js",
+              "target": "packages/barocss-cad-interop/src/document.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/native",
+              "importer": "examples/viewer-native-scene-replacement/native-source-download.js",
+              "target": "packages/barocss-cad-interop/src/native.ts",
+              "kind": "actual-package-map"
+            }
+          ]
+        }
+      },
+      {
+        "path": "examples/viewer-qualified-face-scene/app.js",
+        "platform": "browser",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        },
+        "nativeSDKBoundary": {
+          "entries": [
+            {
+              "packageName": "@barocss/viewer",
+              "packageDirectory": "packages/barocss-viewer",
+              "manifestPath": "packages/barocss-viewer/package.json",
+              "exportKey": ".",
+              "specifier": "@barocss/viewer",
+              "sourcePath": "packages/barocss-viewer/src/index.ts",
+              "nativePath": "packages/barocss-viewer/dist/index.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./native",
+              "specifier": "@barocss/cad-interop/native",
+              "sourcePath": "packages/barocss-cad-interop/src/native.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/native.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./model-set",
+              "specifier": "@barocss/cad-interop/model-set",
+              "sourcePath": "packages/barocss-cad-interop/src/model-set.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/model-set.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./document",
+              "specifier": "@barocss/cad-interop/document",
+              "sourcePath": "packages/barocss-cad-interop/src/document.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/document.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./assembly",
+              "specifier": "@barocss/cad-interop/assembly",
+              "sourcePath": "packages/barocss-cad-interop/src/assembly.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/assembly.js"
+            }
+          ],
+          "reviewedImports": [
+            {
+              "specifier": "@barocss/viewer",
+              "importer": "examples/viewer-qualified-face-scene/app.js",
+              "target": "packages/barocss-viewer/src/index.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/native",
+              "importer": "examples/viewer-qualified-face-scene/app.js",
+              "target": "packages/barocss-cad-interop/src/native.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/model-set",
+              "importer": "examples/viewer-qualified-face-scene/app.js",
+              "target": "packages/barocss-cad-interop/src/model-set.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/document",
+              "importer": "examples/viewer-qualified-face-scene/app.js",
+              "target": "packages/barocss-cad-interop/src/document.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/assembly",
+              "importer": "examples/viewer-qualified-face-scene/app.js",
+              "target": "packages/barocss-cad-interop/src/assembly.ts",
+              "kind": "actual-package-map"
+            }
+          ]
+        }
+      },
+      {
+        "path": "examples/viewer-shell-scene/app.js",
+        "platform": "browser",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        },
+        "nativeSDKBoundary": {
+          "entries": [
+            {
+              "packageName": "@barocss/viewer",
+              "packageDirectory": "packages/barocss-viewer",
+              "manifestPath": "packages/barocss-viewer/package.json",
+              "exportKey": ".",
+              "specifier": "@barocss/viewer",
+              "sourcePath": "packages/barocss-viewer/src/index.ts",
+              "nativePath": "packages/barocss-viewer/dist/index.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./model-set",
+              "specifier": "@barocss/cad-interop/model-set",
+              "sourcePath": "packages/barocss-cad-interop/src/model-set.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/model-set.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./assembly",
+              "specifier": "@barocss/cad-interop/assembly",
+              "sourcePath": "packages/barocss-cad-interop/src/assembly.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/assembly.js"
+            }
+          ],
+          "reviewedImports": [
+            {
+              "specifier": "@barocss/viewer",
+              "importer": "examples/viewer-shell-scene/app.js",
+              "target": "packages/barocss-viewer/src/index.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/model-set",
+              "importer": "examples/viewer-shell-scene/app.js",
+              "target": "packages/barocss-cad-interop/src/model-set.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/assembly",
+              "importer": "examples/viewer-shell-scene/app.js",
+              "target": "packages/barocss-cad-interop/src/assembly.ts",
+              "kind": "actual-package-map"
+            }
+          ]
+        }
+      },
+      {
+        "path": "examples/viewer-surface-material/app.js",
+        "platform": "browser",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        },
+        "nativeSDKBoundary": {
+          "entries": [
+            {
+              "packageName": "@barocss/viewer",
+              "packageDirectory": "packages/barocss-viewer",
+              "manifestPath": "packages/barocss-viewer/package.json",
+              "exportKey": ".",
+              "specifier": "@barocss/viewer",
+              "sourcePath": "packages/barocss-viewer/src/index.ts",
+              "nativePath": "packages/barocss-viewer/dist/index.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./model-set",
+              "specifier": "@barocss/cad-interop/model-set",
+              "sourcePath": "packages/barocss-cad-interop/src/model-set.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/model-set.js"
+            }
+          ],
+          "reviewedImports": [
+            {
+              "specifier": "../../packages/barocss-viewer/dist/index.js",
+              "importer": "examples/viewer-surface-material/app.js",
+              "target": "packages/barocss-viewer/src/index.ts",
+              "kind": "paired-public-caller-entry"
+            },
+            {
+              "specifier": "../../packages/barocss-cad-interop/dist/model-set.js",
+              "importer": "examples/viewer-surface-material/app.js",
+              "target": "packages/barocss-cad-interop/src/model-set.ts",
+              "kind": "paired-public-caller-entry"
+            }
+          ]
+        }
+      },
+      {
+        "path": "examples/workspace-source/flow.mjs",
+        "platform": "browser",
+        "origin": "direct-21",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        },
+        "nativeSDKBoundary": {
+          "entries": [
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": ".",
+              "specifier": "@barocss/cad-interop",
+              "sourcePath": "packages/barocss-cad-interop/src/index.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/index.js"
+            },
+            {
+              "packageName": "@barocss/viewer",
+              "packageDirectory": "packages/barocss-viewer",
+              "manifestPath": "packages/barocss-viewer/package.json",
+              "exportKey": ".",
+              "specifier": "@barocss/viewer",
+              "sourcePath": "packages/barocss-viewer/src/index.ts",
+              "nativePath": "packages/barocss-viewer/dist/index.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./native",
+              "specifier": "@barocss/cad-interop/native",
+              "sourcePath": "packages/barocss-cad-interop/src/native.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/native.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./model-set",
+              "specifier": "@barocss/cad-interop/model-set",
+              "sourcePath": "packages/barocss-cad-interop/src/model-set.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/model-set.js"
+            }
+          ],
+          "reviewedImports": [
+            {
+              "specifier": "@barocss/cad-interop",
+              "importer": "examples/workspace-source/flow.mjs",
+              "target": "packages/barocss-cad-interop/src/index.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/viewer",
+              "importer": "examples/workspace-source/flow.mjs",
+              "target": "packages/barocss-viewer/src/index.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/native",
+              "importer": "examples/workspace-source/flow.mjs",
+              "target": "packages/barocss-cad-interop/src/native.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/model-set",
+              "importer": "examples/workspace-source/flow.mjs",
+              "target": "packages/barocss-cad-interop/src/model-set.ts",
+              "kind": "actual-package-map"
+            }
+          ]
+        }
+      },
+      {
+        "path": "examples/physics-cloth-viewer/app.mjs",
+        "platform": "browser",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        },
+        "nativeSDKBoundary": {
+          "entries": [
+            {
+              "packageName": "@barocss/viewer",
+              "packageDirectory": "packages/barocss-viewer",
+              "manifestPath": "packages/barocss-viewer/package.json",
+              "exportKey": ".",
+              "specifier": "@barocss/viewer",
+              "sourcePath": "packages/barocss-viewer/src/index.ts",
+              "nativePath": "packages/barocss-viewer/dist/index.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./model-set",
+              "specifier": "@barocss/cad-interop/model-set",
+              "sourcePath": "packages/barocss-cad-interop/src/model-set.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/model-set.js"
+            }
+          ],
+          "reviewedImports": [
+            {
+              "specifier": "@barocss/viewer",
+              "importer": "examples/physics-cloth-viewer/app.mjs",
+              "target": "packages/barocss-viewer/src/index.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/model-set",
+              "importer": "examples/physics-cloth-viewer/app.mjs",
+              "target": "packages/barocss-cad-interop/src/model-set.ts",
+              "kind": "actual-package-map"
+            }
+          ]
+        }
+      },
+      {
+        "path": "examples/physics-cloth-viewer/server.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-cloth-viewer/browser-driver.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        },
+        "externalRuntime": [
+          "/Users/user/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs"
+        ]
+      },
+      {
+        "path": "examples/physics-cloth-viewer/browser-checks.mjs",
+        "platform": "browser",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-cloth-viewer/frame.mjs",
+        "platform": "browser",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-cloth-viewer/metrics.mjs",
+        "platform": "browser",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-cloth-viewer/views.mjs",
+        "platform": "browser",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-cloth-viewer/clock.mjs",
+        "platform": "browser",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-cloth-viewer/numeric-probe.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-cloth-viewer/bundle.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-cloth-viewer/decode.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-cloth-viewer/setup.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-scene/fluid-viewer/app.js",
+        "platform": "browser",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        },
+        "nativeSDKBoundary": {
+          "entries": [
+            {
+              "packageName": "@barocss/viewer",
+              "packageDirectory": "packages/barocss-viewer",
+              "manifestPath": "packages/barocss-viewer/package.json",
+              "exportKey": ".",
+              "specifier": "@barocss/viewer",
+              "sourcePath": "packages/barocss-viewer/src/index.ts",
+              "nativePath": "packages/barocss-viewer/dist/index.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./model-set",
+              "specifier": "@barocss/cad-interop/model-set",
+              "sourcePath": "packages/barocss-cad-interop/src/model-set.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/model-set.js"
+            }
+          ],
+          "reviewedImports": [
+            {
+              "specifier": "../../../packages/barocss-viewer/dist/index.js",
+              "importer": "examples/physics-scene/fluid-viewer/app.js",
+              "target": "packages/barocss-viewer/src/index.ts",
+              "kind": "paired-public-caller-entry"
+            },
+            {
+              "specifier": "../../../packages/barocss-cad-interop/dist/model-set.js",
+              "importer": "examples/physics-scene/fluid-viewer/app.js",
+              "target": "packages/barocss-cad-interop/src/model-set.ts",
+              "kind": "paired-public-caller-entry"
+            }
+          ]
+        }
+      },
+      {
+        "path": "examples/physics-scene/fluid-viewer/controller.js",
+        "platform": "browser",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        }
+      },
+      {
+        "path": "examples/physics-scene/fluid-viewer/server.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-scene/fluid-cad-viewer/server.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-scene/fluid-cad-viewer/timings.js",
+        "platform": "browser",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-viewer-scene/server.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-cad-scene/server.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/viewer-assembly-scene/server.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/viewer-cloth-scene/server.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/viewer-fluid-scene/server.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/viewer-native-scene-replacement/server.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/viewer-qualified-face-scene/server.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/viewer-shell-scene/server.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/viewer-surface-material/server.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/workspace-source/source-probe.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/workspace-source/compiled-probe.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/workspace-source/cpu-entry.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        },
+        "nativeSDKBoundary": {
+          "entries": [
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": ".",
+              "specifier": "@barocss/cad-interop",
+              "sourcePath": "packages/barocss-cad-interop/src/index.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/index.js"
+            },
+            {
+              "packageName": "@barocss/viewer",
+              "packageDirectory": "packages/barocss-viewer",
+              "manifestPath": "packages/barocss-viewer/package.json",
+              "exportKey": ".",
+              "specifier": "@barocss/viewer",
+              "sourcePath": "packages/barocss-viewer/src/index.ts",
+              "nativePath": "packages/barocss-viewer/dist/index.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./native",
+              "specifier": "@barocss/cad-interop/native",
+              "sourcePath": "packages/barocss-cad-interop/src/native.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/native.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./model-set",
+              "specifier": "@barocss/cad-interop/model-set",
+              "sourcePath": "packages/barocss-cad-interop/src/model-set.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/model-set.js"
+            }
+          ],
+          "reviewedImports": [
+            {
+              "specifier": "@barocss/cad-interop",
+              "importer": "examples/workspace-source/flow.mjs",
+              "target": "packages/barocss-cad-interop/src/index.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/viewer",
+              "importer": "examples/workspace-source/flow.mjs",
+              "target": "packages/barocss-viewer/src/index.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/native",
+              "importer": "examples/workspace-source/flow.mjs",
+              "target": "packages/barocss-cad-interop/src/native.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/model-set",
+              "importer": "examples/workspace-source/flow.mjs",
+              "target": "packages/barocss-cad-interop/src/model-set.ts",
+              "kind": "actual-package-map"
+            }
+          ]
+        }
+      },
+      {
+        "path": "examples/workspace-source/probe.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/workspace-source/browser.mjs",
+        "platform": "browser",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        },
+        "nativeSDKBoundary": {
+          "entries": [
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": ".",
+              "specifier": "@barocss/cad-interop",
+              "sourcePath": "packages/barocss-cad-interop/src/index.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/index.js"
+            },
+            {
+              "packageName": "@barocss/viewer",
+              "packageDirectory": "packages/barocss-viewer",
+              "manifestPath": "packages/barocss-viewer/package.json",
+              "exportKey": ".",
+              "specifier": "@barocss/viewer",
+              "sourcePath": "packages/barocss-viewer/src/index.ts",
+              "nativePath": "packages/barocss-viewer/dist/index.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./native",
+              "specifier": "@barocss/cad-interop/native",
+              "sourcePath": "packages/barocss-cad-interop/src/native.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/native.js"
+            },
+            {
+              "packageName": "@barocss/cad-interop",
+              "packageDirectory": "packages/barocss-cad-interop",
+              "manifestPath": "packages/barocss-cad-interop/package.json",
+              "exportKey": "./model-set",
+              "specifier": "@barocss/cad-interop/model-set",
+              "sourcePath": "packages/barocss-cad-interop/src/model-set.ts",
+              "nativePath": "packages/barocss-cad-interop/dist/model-set.js"
+            }
+          ],
+          "reviewedImports": [
+            {
+              "specifier": "@barocss/cad-interop",
+              "importer": "examples/workspace-source/flow.mjs",
+              "target": "packages/barocss-cad-interop/src/index.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/viewer",
+              "importer": "examples/workspace-source/flow.mjs",
+              "target": "packages/barocss-viewer/src/index.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/native",
+              "importer": "examples/workspace-source/flow.mjs",
+              "target": "packages/barocss-cad-interop/src/native.ts",
+              "kind": "actual-package-map"
+            },
+            {
+              "specifier": "@barocss/cad-interop/model-set",
+              "importer": "examples/workspace-source/flow.mjs",
+              "target": "packages/barocss-cad-interop/src/model-set.ts",
+              "kind": "actual-package-map"
+            }
+          ]
+        }
+      },
+      {
+        "path": "examples/workspace-source/serve.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/workspace-source/setup.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-error-entry/probe.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-error-entry/setup.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-scene/release-gate-packed-consumer.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-scene/release-gate-criteria.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "examples/physics-scene/fluid-release-criteria.mjs",
+        "platform": "node",
+        "origin": "computed-or-indirect-inventory",
+        "expectedOwn": {
+          "kind": "none",
+          "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+        }
+      },
+      {
+        "path": "apps/library-docs/samples/physics-visual-docs.test.mjs",
+        "platform": "node",
+        "origin": "selected-doc-example-compile-only",
+        "expectedOwn": {
+          "kind": "physics",
+          "reason": "actual static own Physics import, directly or through explicit local imports"
+        }
+      }
+    ],
+    "modes": [
+      "source",
+      "native"
+    ],
+    "generatedConsumers": [
+      {
+        "path": "examples/physics-scene/source-import-probe.mjs",
+        "variable": "contents",
+        "modes": [
+          "source",
+          "native"
+        ]
+      },
+      {
+        "path": "examples/physics-scene/cloth-source-import-probe.mjs",
+        "variable": "contents",
+        "modes": [
+          "source",
+          "native"
+        ]
+      },
+      {
+        "path": "examples/physics-scene/cloth-source-import-probe.mjs",
+        "variable": "program",
+        "modes": [
+          "native"
+        ],
+        "templateSlots": [
+          "actualpublishedPhysicsrootfileURL",
+          "frozenexamplemodelassetfileURL"
+        ]
+      }
+    ],
+    "typeConsumers": [
+      "strict-positive.mts",
+      "strict-negative.mts"
+    ],
+    "actualTypes": "sourceactualexports.types or genuinepublishConfig.exports.types,includingtransitiveownfamilies",
+    "WorldCalls": 0,
+    "moduleEvaluation": false,
+    "sampleRunnerExecution": false,
+    "providerGeneration": false,
+    "packageBuild": false,
+    "bundleRetention": "metafile/inputhash/outputhash/bytecounts only;dropcodeaftercheck",
+    "lint": "explicitactualaffectedproductionfilesonly;no--fix",
+    "bundleChecks": 127,
+    "lintFiles": [
+      "packages/barocss-physics/src/world.ts",
+      "packages/barocss-physics/src/replay.ts",
+      "packages/barocss-physics/src/replay-validation.ts",
+      "packages/barocss-physics/src/types.ts",
+      "packages/barocss-physics/src/model-admission.ts",
+      "packages/barocss-physics/src/domain/admission.ts",
+      "packages/barocss-physics/src/domain/types.ts",
+      "packages/barocss-physics/src/cad-fluid-data.ts",
+      "packages/barocss-physics/src/cad-proxy.ts",
+      "packages/barocss-physics/src/cloth/types.ts",
+      "packages/barocss-physics/src/fluid/types.ts",
+      "packages/barocss-physics/build-root.mjs"
+    ],
+    "ownTypeResolution": "CompilerHost failclosed actual public type maps; unknown/removed @barocss specifiers denied, no node_modules own fallback. Assert every own sourcefile belongs to current worktree and mode.",
+    "continuation": {
+      "attempts": [
+        {
+          "freeze": {
+            "path": "examples/physics-world-p5-2276/validation-execution-freeze-01.json",
+            "bytes": 1324062,
+            "sha256": "8ea90d6fb72013a4043ff2335bb9d96128fc7972b13ca89fed5f951fd0703c08"
+          },
+          "summary": {
+            "path": "examples/physics-world-p5-2276/evidence/validation-static-01/summary.json",
+            "bytes": 1364,
+            "sha256": "51f9a9971e95c7ca7d07a7e2f3d26d0ceb5dd65f0305d9018df839cdeb78b3ba"
+          },
+          "provider": {
+            "path": "examples/physics-world-p5-2276/evidence/validation-static-01/author-inputs/validation-provider.mjs",
+            "bytes": 13269,
+            "sha256": "2f337360eab5d57a3f8671d45f6d8e5ef8b6a1fc7d8a2f56da52a50fc7637712"
+          },
+          "preservation": {
+            "path": "examples/physics-world-p5-2276/evidence/validation-static-01/author-inputs/preservation.json",
+            "bytes": 677,
+            "sha256": "0454dcfc9ac6d0c55f0a6dfbaed17f3f7379fb6b80273dca5ed16b85e520a765"
+          },
+          "reusedReports": [
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-01/strict-types-source.json",
+              "bytes": 27644,
+              "sha256": "ee75eb7202cb7bba87290d4732f19577494b2c2af4424d74294187f3a0091da4",
+              "kind": "strict-source"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-01/numeric-root-source.json",
+              "bytes": 19087,
+              "sha256": "2d111b26494dd853f1dceff24fe38be9fe41bebc6e77080570e09e2773bddf7a",
+              "kind": "numeric-root-source"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-01/bundle-source-00.json",
+              "bytes": 20950,
+              "sha256": "7c1b3136bf840c3f5ddd1c4c21003a9362191d5a3f333713938d8789be83ae06",
+              "kind": "source-entry-0"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-01/bundle-source-01.json",
+              "bytes": 19915,
+              "sha256": "f1b41c85f98df33ee76745ee3c3abb6074dff9d6415fb30bba660191a20db792",
+              "kind": "source-entry-1"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-01/bundle-source-02.json",
+              "bytes": 20161,
+              "sha256": "34839b5c3fad42637320c092c9f6bff1bdfca70e26b2c85198714b3372bda2cb",
+              "kind": "source-entry-2"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-01/bundle-source-03.json",
+              "bytes": 115525,
+              "sha256": "77c57b5e650ddc64092ccdb9a343fe2bde11d94d0238042063a77f9c20fea4b9",
+              "kind": "source-entry-3"
+            }
+          ]
+        },
+        {
+          "freeze": {
+            "path": "examples/physics-world-p5-2276/validation-execution-freeze-02.json",
+            "bytes": 1329157,
+            "sha256": "0b40b21df197810ea11ab2478ec67f6394cd29330a58a2498b3c8c0f5cbd97ee"
+          },
+          "summary": {
+            "path": "examples/physics-world-p5-2276/evidence/validation-static-02/summary.json",
+            "bytes": 9057,
+            "sha256": "b786b508082727335ab5b9258903f01492cbe38539163eacaec3c0ce390e889f"
+          },
+          "provider": {
+            "path": "examples/physics-world-p5-2276/evidence/validation-static-02/author-inputs/validation-provider.mjs",
+            "bytes": 13654,
+            "sha256": "23c901ef6ff0003ee26dfa72c8bd10ca638fae3c10601c1500d119cf2bafd8fd"
+          },
+          "preservation": {
+            "path": "examples/physics-world-p5-2276/evidence/validation-static-02/author-inputs/preservation.json",
+            "bytes": 1045,
+            "sha256": "154a3490fcb9ca5ec12bf8232ab90be76136831b5f69caffda9f7edf3657fe64"
+          },
+          "reusedReports": [
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/strict-types-native.json",
+              "bytes": 1307,
+              "sha256": "276aeeb3ecedb6dc889406fad11741bce303584bfd28b885c05512cd0fd31086",
+              "kind": "strict-native"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-04.json",
+              "bytes": 925,
+              "sha256": "9824035e2998d84e22707a6d3165d375a9dca0d93247221b7814334f517b41c1",
+              "kind": "source-entry-4"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-05.json",
+              "bytes": 1701,
+              "sha256": "4b9d062f4953245fdc7f0c8ffce9f1b878d6fcd550978aaea07ac7d17bc5073b",
+              "kind": "source-entry-5"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-06.json",
+              "bytes": 1433,
+              "sha256": "364ee073c486ad518a52347096cdf885d4abee2358e74df4d780ddec9e3dac62",
+              "kind": "source-entry-6"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-07.json",
+              "bytes": 170485,
+              "sha256": "25c526e623cff443d04f3b2d923eff017701127123be4fad6fc2d0ac861014d8",
+              "kind": "source-entry-7"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-08.json",
+              "bytes": 1059,
+              "sha256": "3d0bd5cbc4540c506d30df1209deab931421f338a745e242557c80923b3b6248",
+              "kind": "source-entry-8"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-09.json",
+              "bytes": 1419,
+              "sha256": "0c9f2198787825e6379a3b426f589539d9f4b5a8a83eb60e563a303824a58bea",
+              "kind": "source-entry-9"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-10.json",
+              "bytes": 1401,
+              "sha256": "e5047db2fbe016bd2fb373f3bdd3d0bc8dfb09d21d203039a5701ea0cf67f3ed",
+              "kind": "source-entry-10"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-11.json",
+              "bytes": 115842,
+              "sha256": "26bee1710aa88f9913ec83fb34d4abc5517eac38b366347e6c7931b54ee44233",
+              "kind": "source-entry-11"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-12.json",
+              "bytes": 887,
+              "sha256": "6a80affd54281959a33fb4f5bf0993c5cac7d1f145a60fe5886e6ef9743a2a9d",
+              "kind": "source-entry-12"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-13.json",
+              "bytes": 168401,
+              "sha256": "e5254dbe90f48b84acbbe21e8e85aa51852b84479ae01715f1376b3e9190bf7e",
+              "kind": "source-entry-13"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-14.json",
+              "bytes": 167700,
+              "sha256": "9a0814c16a44f358cfa51bfc2e33c86191e1624024f6fa1623652281091b7605",
+              "kind": "source-entry-14"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-15.json",
+              "bytes": 167610,
+              "sha256": "6604767af55c6a328473fe4c01541eda9626a454163dd2c88df44ea68c3d55e7",
+              "kind": "source-entry-15"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-16.json",
+              "bytes": 175770,
+              "sha256": "9c94e9e0091d996ca61c33f1350dd133d709c225f396d0d56a2849c63457a951",
+              "kind": "source-entry-16"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-17.json",
+              "bytes": 177042,
+              "sha256": "5bfd6a6c82d2b1a050c59c8b046bc87bdb0d90592442a2e0db01b4e98cbec390",
+              "kind": "source-entry-17"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-18.json",
+              "bytes": 168572,
+              "sha256": "5efd1ef284f3dbaabfc8883b3b4d74a3ee872e5c9e9b6ca8bbf85bef5bfeeab3",
+              "kind": "source-entry-18"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-19.json",
+              "bytes": 167868,
+              "sha256": "fe603754d4275634fae25b6e770dfeb9a72c971e2cf845d9f42c408a0c5859c1",
+              "kind": "source-entry-19"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-20.json",
+              "bytes": 169020,
+              "sha256": "1cbb1f012bb30fd8aab3775a0cc5a273d28664c8de51a78baa3ffb9160f79ce7",
+              "kind": "source-entry-20"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-21.json",
+              "bytes": 169264,
+              "sha256": "02c9b10338b9b153699dda6237b4e7eb1812c18f64046a29163f017e5fd0d392",
+              "kind": "source-entry-21"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-22.json",
+              "bytes": 1155,
+              "sha256": "62ca0643ed119a714c93e0946e4a730db6aa684539008cd1ee876668f4a25364",
+              "kind": "source-entry-22"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-23.json",
+              "bytes": 1721,
+              "sha256": "249c4dc10590b835c7da0b90db369150de24420dbc64c9471e92cfce65ef596d",
+              "kind": "source-entry-23"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-24.json",
+              "bytes": 1058,
+              "sha256": "546953b5eddcced254ad1494b9d2e18a365565f42d39876cebbf6f74adc88191",
+              "kind": "source-entry-24"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-25.json",
+              "bytes": 1050,
+              "sha256": "d99a21ee17f18c8b1cee7603b90f70bffd46b3ce48138a0e39a8aa19e884bb5e",
+              "kind": "source-entry-25"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-26.json",
+              "bytes": 789,
+              "sha256": "d70b3f154fb11f5cf38c0832e9a07b18c7c21be0f21cf1f38cd9abb1e2fccce9",
+              "kind": "source-entry-26"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-27.json",
+              "bytes": 783,
+              "sha256": "d06b47f12d23859eb1cb77951250dd565b3cc14e275e13d7b57981ada8a2f3db",
+              "kind": "source-entry-27"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-28.json",
+              "bytes": 1303,
+              "sha256": "99ee2213a5d03831d0cd96f0df604c17d54e3a863874dd350f0235f508bf3146",
+              "kind": "source-entry-28"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-29.json",
+              "bytes": 1214,
+              "sha256": "28c8f874a281b320bb76984a75637e110fd63160d9a497fcb72a2619abaec4bb",
+              "kind": "source-entry-29"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-30.json",
+              "bytes": 884,
+              "sha256": "5b5de1aabbd16493378e037c905f81e3df930d57598161615c06e5b1f1dad059",
+              "kind": "source-entry-30"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-31.json",
+              "bytes": 1135,
+              "sha256": "cb447bfba5206aafb100738ed6e38e88c850d52c9e6e5733c0d3983da9b1f0a3",
+              "kind": "source-entry-31"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-32.json",
+              "bytes": 839,
+              "sha256": "340dc9cf98540bf973af51654849a2681737fb937d2c51ccdefda0ba737fc144",
+              "kind": "source-entry-32"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-33.json",
+              "bytes": 168688,
+              "sha256": "83d2c4d1ef151cbce33e145c57c14fd133bfffd39e84ee694185c98adc54e517",
+              "kind": "source-entry-33"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-34.json",
+              "bytes": 20122,
+              "sha256": "d56424a29bf80445314cc85bcd4bdae51f1d320f113bd6bb605c63ff5249bb79",
+              "kind": "source-entry-34"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-35.json",
+              "bytes": 1119,
+              "sha256": "cdc645426c355cd1b6a26e4b62e035d54bbbad2a76110b0f078677e11ffc2b43",
+              "kind": "source-entry-35"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-36.json",
+              "bytes": 862,
+              "sha256": "2ee7e9cb09e52cfc2f88adbd59f3c868934937c9a91dece68e582f83eeb21265",
+              "kind": "source-entry-36"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-37.json",
+              "bytes": 805,
+              "sha256": "d7733ec873e7a4f5b9ec7c5c06002ca8254066a0903229d6249a2298ec20ffdb",
+              "kind": "source-entry-37"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-38.json",
+              "bytes": 1149,
+              "sha256": "feabb26665433694a5319e28003ade9520664d2c5ba0770146160dec863b224e",
+              "kind": "source-entry-38"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-39.json",
+              "bytes": 878,
+              "sha256": "389ac71978b3fce18a41160ce207253a1f646aafff96545d7ff481cedbabbc94",
+              "kind": "source-entry-39"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-40.json",
+              "bytes": 896,
+              "sha256": "c7a285d2bf8ad5f59ebeccc1bfc207b72c138530cfdef2cfa11c2228b165fc98",
+              "kind": "source-entry-40"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-41.json",
+              "bytes": 871,
+              "sha256": "f4a4a4f9dc80aee0f19559269ab7588add0af446c25d653bece7c97810b88bb9",
+              "kind": "source-entry-41"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-42.json",
+              "bytes": 855,
+              "sha256": "85f627c59e55e1aca05035c2780b0551209cadbbda65501daf6f86e681ef8750",
+              "kind": "source-entry-42"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-43.json",
+              "bytes": 916,
+              "sha256": "2694fa2b54edecef84ea7241dc490eaed3295ba7c76ed15a41448a4a7c52c4bc",
+              "kind": "source-entry-43"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-44.json",
+              "bytes": 908,
+              "sha256": "8a499ac2d72e5a708d4e7982bb61c3e2e9f53d8bfeaeb3ca5252caaaa50028a0",
+              "kind": "source-entry-44"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-45.json",
+              "bytes": 890,
+              "sha256": "da79c54f5c7ae529ebf9f60bfa3a01dee1314dd2d48d13bedeab8d36a3f358a5",
+              "kind": "source-entry-45"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-46.json",
+              "bytes": 865,
+              "sha256": "7b7b4d4ed32ff63db143b24e6d1b0ff760ee340b5add602ecd27eed430bf128e",
+              "kind": "source-entry-46"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-47.json",
+              "bytes": 1161,
+              "sha256": "a70dbe53bc751e7e3ff16a1558b386f7b8b0ae0ac38e46c10e19556e2deb7c0c",
+              "kind": "source-entry-47"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-48.json",
+              "bytes": 1165,
+              "sha256": "99e2a779d86072bca88de9bbd91f87d513d1e20518e163b02ecd69fb1adceb50",
+              "kind": "source-entry-48"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-49.json",
+              "bytes": 169273,
+              "sha256": "0b0d42e57eb627e3fbb5f24938b927b4cbf9939b31c5e0ddb4a07a14ed05c504",
+              "kind": "source-entry-49"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-50.json",
+              "bytes": 900,
+              "sha256": "b9e7f5bbc39b4c879c65fda37260c089ab751e3069ab3b4e330d8ef6d271daff",
+              "kind": "source-entry-50"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-51.json",
+              "bytes": 169274,
+              "sha256": "29d54ac81b150d74ace62b9d974326a7c3ff51b7673e9549fb89a4bac7214928",
+              "kind": "source-entry-51"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-52.json",
+              "bytes": 1185,
+              "sha256": "8fcc075d9403ef953b46bf5c154146025b481ac497fc227e7124de2640181e65",
+              "kind": "source-entry-52"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-53.json",
+              "bytes": 831,
+              "sha256": "ecb69c591d048455bb55c57ed1e1eb02b83d9310c181d695b3033a82473c937c",
+              "kind": "source-entry-53"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-54.json",
+              "bytes": 1155,
+              "sha256": "10a18a8871d79e506f629391e52514102f05d4bd85e1eb803e1169677f8ad921",
+              "kind": "source-entry-54"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-55.json",
+              "bytes": 837,
+              "sha256": "7e0f56c696c9d98a067b44e910ae5689bf711e142e6525a1851c2da3cf76467b",
+              "kind": "source-entry-55"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-56.json",
+              "bytes": 889,
+              "sha256": "e62cb42ea00fc3b0471d85559092c5889a00db8f8ab42e06e59fc90b08fd054f",
+              "kind": "source-entry-56"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-57.json",
+              "bytes": 828,
+              "sha256": "989f5a99ab3980f9ace1989348563c132d17c2d8b63629bf42122b8ff6a12b2e",
+              "kind": "source-entry-57"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-58.json",
+              "bytes": 830,
+              "sha256": "c156f17ebaa29ddf61a5d1b593f24f218e79f6e59b20b0ce31f065e1db1b9153",
+              "kind": "source-entry-58"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-59.json",
+              "bytes": 21149,
+              "sha256": "d865b4a31d78f10fb00f64c2ab0d6c30079317ba9c971a1b4669ed9327fbe832",
+              "kind": "source-entry-59"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/numeric-root-native.json",
+              "bytes": 1676,
+              "sha256": "49ad180232082a714bdc9fc126c30e75195745c8f5284d8266bac2358ec4062a",
+              "kind": "numeric-root-native"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-native-00.json",
+              "bytes": 3597,
+              "sha256": "bb694589f33a3c797edc339f0055e3260bdcc10c20c83cbd1bdd6807a52d2d61",
+              "kind": "native-entry-0"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-native-01.json",
+              "bytes": 2561,
+              "sha256": "fb22604e6389f27720a29cac162999c6a5b9f9f2d4d4ddbef16fd31941b0a88c",
+              "kind": "native-entry-1"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-native-02.json",
+              "bytes": 2807,
+              "sha256": "72c30e9178d73bab37319cc40bd9b6da4cc5942890d8acb3e05f1ed11b195799",
+              "kind": "native-entry-2"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-native-03.json",
+              "bytes": 102698,
+              "sha256": "c4dded271fa3dc28fb378124c79685de7fbbe179a0fb3abf8221263a40a8b7df",
+              "kind": "native-entry-3"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-native-04.json",
+              "bytes": 925,
+              "sha256": "89ef24313a7cba7a2440779b587e0015cfb05907b484de6c81da2bc343756fd8",
+              "kind": "native-entry-4"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-native-05.json",
+              "bytes": 1701,
+              "sha256": "6d12c8f54116de123b463f074dfe72f56aa762a00ab3f07e67fed0fcb105b83a",
+              "kind": "native-entry-5"
+            },
+            {
+              "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-native-06.json",
+              "bytes": 1433,
+              "sha256": "52d292b22e8d33322bdb2683348b6853333df7e4d3ed0c4500c120f2b8d9f5a8",
+              "kind": "native-entry-6"
+            }
+          ]
+        }
+      ],
+      "authorizedChangedOldInputs": [
+        "examples/physics-world-p5-2276/validation-provider.mjs",
+        "examples/physics-world-p5-2276/validation-child.mjs",
+        "examples/physics-world-p5-2276/validation-run.mjs",
+        "examples/physics-world-p5-2276/VALIDATION-RECIPES.json"
+      ],
+      "freshBudget": {
+        "bundleAttempts": 58,
+        "strictTypeAttempts": 0,
+        "lintAttempts": 1,
+        "WorldCalls": 0
+      },
+      "reusedBundlePasses": 69,
+      "reusedStrictPasses": 2,
+      "aggregateBundleAttemptsIncludingFailures": 129,
+      "uniqueLogicalBundleChecks": 127
+    },
+    "freshAttemptBundleChecks": 58,
+    "freshStrictModes": [],
+    "historicalBundleAttempts": 71,
+    "historicalBundlePasses": 69,
+    "historicalBundleFailures": 2,
+    "aggregateBundleAttemptsIfContinuationPasses": 129,
+    "nativeHostSDKIntegration": "NOT_RUN: exact missing SDK endpoints external for compilation only"
+  },
+  "docExample": {
+    "mode": "source-only",
+    "entry": "apps/library-docs/samples/physics-visual-docs.test.mjs",
+    "actualTests": 4,
+    "factoryAttempts": 4,
+    "WorldReturns": 4,
+    "stepEntries": 4,
+    "acceptedSteps": 4,
+    "recorderAttachAttempts": 4,
+    "recorderAttachReturns": 0,
+    "failedRecorderAttaches": 4,
+    "attachCodes": {
+      "WORLD_LIMIT": 1,
+      "INVALID_SNAPSHOT": 3
+    },
+    "WorldDisposals": 4,
+    "hiddenRestoreWorlds": 0,
+    "otherSamples": 0,
+    "originalSampleRunScript": "NOT_CALLED(generator+wholefilediscovery avoided)",
+    "runtime": "bundleonlythisfilethenNode--testonlyitsbundle;originalsnippetfunctionexecutesunchanged",
+    "dependencyClosure": "actualsourcePhysicsroot/replay+theirtransitivemodules,generateddocsmodelasset,node:test,node:assert;recordactualgraphbeforeexecution",
+    "noCAD": true,
+    "noCurrentNativeRerun": "native6334alreadyqualified;strictnativeconsumerseparate",
+    "testProcesses": 4,
+    "processPolicy": "One filtered exact test perNode--test process, same single sourcebundle;3other callbacks skipped ineach. Stop afterfirst failure before nextprofile.",
+    "sourcePackageModuleLoads": 4,
+    "implicitWorlds": 0
+  },
+  "packageMaps": [
+    ".",
+    "./cad-proxy",
+    "./replay"
+  ],
+  "obsoleteFilesPlan": "P5B-EMIT-PLAN.json",
+  "bounds": {
+    "childMs": 180000,
+    "termMs": 1000,
+    "postKillMs": 2000,
+    "stdoutStderrBytes": 4194304,
+    "campaignEvidenceBytes": 67108864,
+    "normalEvidenceBytes": 58720256,
+    "emergencyReserveBytes": 8388608,
+    "oneOutputBundleBytes": 20971520
+  },
+  "firstFailure": "preservefirstfailureandcounts;stop;noautomaticnextphase/retry;parentauthorizationrequiredforsourcefix",
+  "notClaimed": [
+    "browserproduct",
+    "GPUcompletion",
+    "CADStudioUI",
+    "newphysicalaccuracy",
+    "release"
+  ],
+  "revision": 2
+}

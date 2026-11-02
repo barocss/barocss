@@ -1,0 +1,24 @@
+{
+  "mode": "source-first",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "records": [
+    {
+      "name": "first-frame",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/evidence/first-source-02/first-frame.mjs",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/evidence/fixture-01/fixture.json",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/evidence/first-source-02/result.json",
+        "2"
+      ],
+      "started": "2026-11-01T13:03:26.412Z",
+      "finished": "2026-11-01T13:03:26.473Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "113c191aedb47399319c6dba3f1f53e79e395cfcef7b83ed948b5e23234df8c9",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

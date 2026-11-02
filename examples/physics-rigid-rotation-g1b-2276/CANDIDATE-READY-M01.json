@@ -1,0 +1,110 @@
+{
+  "status": "AUTHOR_READY_M_ONLY_NOT_EXECUTED",
+  "runtimeAuthorized": false,
+  "phaseTAuthorized": false,
+  "productionActivation": false,
+  "candidate": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/rigid-triaxial-free-rotation.ts",
+    "bytes": 10240,
+    "sha256": "04dd5892249ff5f9b7202ad6e73e41b4bf0a15bf3917d17f5619a521a4bbba8c"
+  },
+  "authoringFreeze": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/AUTHORING-FREEZE-M01.json",
+    "bytes": 2123,
+    "sha256": "a0c9ee98f49a69e5dde8fdd4855cfaea337ed2056adf89a4a9d254826d22d919"
+  },
+  "frozenAuthorities": {
+    "CONTRACT.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/CONTRACT.md",
+      "bytes": 14376,
+      "sha256": "c1c87c64323836d7ac656ead490380bee82f801de2b67979f9f91309ee73ed31"
+    },
+    "CASES.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/CASES.json",
+      "bytes": 8881,
+      "sha256": "0fb8b4ebc78044e8984fab83878a42fc5051f8717ce914091246de7098fbc386"
+    },
+    "INTEGRATION-NOTES.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/INTEGRATION-NOTES.md",
+      "bytes": 4085,
+      "sha256": "2b3c318e2c8d89a9b63d09faf64f53482547ba2513713cc84f9532a387666f9a"
+    },
+    "REFERENCES-CLARIFICATION-01.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/REFERENCES-CLARIFICATION-01.md",
+      "bytes": 10318,
+      "sha256": "0d6e8a79f2cbf45f7579291f9b1b947295f28f0cf00eb57053ed581cb8979945"
+    }
+  },
+  "interface": {
+    "prepare": "prepareTriaxialFreeRotation(body:Body,dt:number): {orientation:Quat,angularVelocityRadps:Vec3}|null",
+    "coefficients": "triaxialFreeRotationCoefficients deeply frozen exponents/roots/a/b/weights arrays;3 actual Math.pow calls per graph load",
+    "validator": "Use unchanged qualified G1a validateFreeRotationResult before World candidate writes.",
+    "imports": [
+      "./internal-types.js",
+      "./math.js",
+      "./validation.js"
+    ]
+  },
+  "MPerGraph": {
+    "coefficientPow": 3,
+    "prepare": 1,
+    "triaxial": 1,
+    "general": 1,
+    "initialMomentum": 1,
+    "midpoint": 27,
+    "newtonCondition": 108,
+    "linearSolve": 108,
+    "linearPivots": 324,
+    "newtonUpdates": 108,
+    "midpointResidual": 27,
+    "stageComplete": 27,
+    "generalReturn": 1,
+    "zero": 0,
+    "principal": 0,
+    "candidateHypot": 56,
+    "candidateSinCos": 0
+  },
+  "testOnlyMarkers": [
+    "G1B_COEFFICIENT_POW",
+    "G1B_PREPARE_ENTRY",
+    "G1B_TRIAXIAL_ENTRY",
+    "G1B_ZERO_RETURN",
+    "G1B_PRINCIPAL_RETURN",
+    "G1B_GENERAL_ENTRY",
+    "G1B_INITIAL_MOMENTUM",
+    "G1B_MIDPOINT_ENTRY",
+    "G1B_NEWTON_CONDITION",
+    "G1B_LINEAR_SOLVE_ENTRY",
+    "G1B_LINEAR_PIVOT",
+    "G1B_NEWTON_UPDATE",
+    "G1B_MIDPOINT_RESIDUAL",
+    "G1B_STAGE_COMPLETE",
+    "G1B_GENERAL_RETURN"
+  ],
+  "sourceProof": {
+    "fixedWork": "27signedmaps,4Newtonupdates/map,one3x3solve/update;no retries/damping/line search/retained momentum",
+    "signFrame": "ldot=l cross D*l; right Cayley body rotation coupled to the same midpoint; final world omega from actual final q and body p",
+    "coefficientOrder": "k3then5then7 recursive triple expansion;39 native weight multiplications per load,27 final weights",
+    "immutability": "No Body/caller writes; result arrays detached; only immutable coefficient data retained globally. Test observers exist only in staged overlays.",
+    "rank": "Checks actual dimensionless perturbation<=1/4 and pivots>=1/4; selected derivative bound<5 and pnorm<15/16; no universal G4 claim.",
+    "candidateMemory": "39 globally retained coefficient scalars plus constant containers. Macrostate Vec3/Quat only; one substage/one3x3 augmented matrix at a time; no trace retained by this candidate. Staged collector has separate fixed recipe bounds.",
+    "failure": "Canonical NUMERIC_LIMIT before returning invalid staged result; World wrapper owns separate validation/assignments/atomic commit."
+  },
+  "authorChecks": {
+    "typescriptSyntaxAst": "PASS via installed TS createSourceFile only",
+    "semanticCompile": "NOT_RUN_PARENT_BUILD",
+    "candidateModuleEvaluation": 0,
+    "coefficientCalls": 0,
+    "fixtureConversion": 0,
+    "matrixOrNewtonCalls": 0,
+    "WorldCalls": 0
+  },
+  "remainingLimits": [
+    "Phase M literal plant only; no runtime PASS yet.",
+    "T controls/extended trajectory not authorized.",
+    "Actual admission quaternion() normalizes before numeric Body. The earlier claimed raw near-unit-model to zero-flow result-guard mismatch is NOT an established bug. Near-unit/frame boundaries remain unqualified coverage; no inferred API-semantics change is required by M.",
+    "x/y axisymmetry, near-equal/all admitted triaxial range, torques/contact/joint/downstream/recorder integration and canonical production adoption remain unqualified.",
+    "Other mathematical inertia classes return null for the correct dedicated flow; no old-wrong-triaxial fallback is permitted in the staged World."
+  ],
+  "stopRule": "Candidate source frozen after READY; no incidental edits without parent authorization."
+}

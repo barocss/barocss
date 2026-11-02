@@ -1,0 +1,275 @@
+{
+  "kind": "P4_SAVED_REPLY_OBSERVATION_AUDIT",
+  "id": "reply-audit-01",
+  "status": "PASS_DATA_OBSERVATION_CLASSIFICATION",
+  "node": "v22.19.0",
+  "execPath": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "platform": "darwin",
+  "arch": "arm64",
+  "auditSourceSha256": "8577371ad7a562cd2e9d0a505d8300b4fdc54168ee53d38460a29f4f7eda8b5f",
+  "calls": {
+    "reference": 0,
+    "fixture": 0,
+    "World": 0,
+    "solver": 0,
+    "trig": 0
+  },
+  "firstFailure": null,
+  "preservedCensusStatus": "FAIL",
+  "historicalPreArchiveReplyZeroSigns": "UNKNOWN",
+  "historicalBinaryReplyEquality": "NOT_ESTABLISHED",
+  "observationSemantics": "A separate actual Node JSON.parse -> JSON.stringify -> JSON.parse observation of the saved fresh reply. It does not replace any physical output or change any physical tolerance/raw-body gate.",
+  "provenance": {
+    "originalManifest": {
+      "path": "examples/physics-contact-boundary-2276/manifest.json",
+      "bytes": 73147,
+      "sha256": "824cde0637a1cf033f77f673b1b4e12caf478c6b0aea6dbe9fc185b8a3f653c3"
+    },
+    "originalProviderReceipt": {
+      "path": "examples/physics-contact-boundary-2276/evidence/world-source-03/source.json",
+      "bytes": 22058,
+      "sha256": "a0303307e46dcadc50f391623ce26a305819c2d7c63c58edc3a4008d31556464"
+    },
+    "originalArchive": {
+      "archive": "examples/physics-contact-boundary-2276/evidence/world-source-03/ALIGNED.jsonl.gz",
+      "compressedBytes": 1629151,
+      "compressedSha256": "3e8893b1e4b40e3bbaa3d55b39f5088df370d48c5963e61f5bd7c361d1241141",
+      "decodedBytes": 11352986,
+      "decodedSha256": "d67d53de79ee3cc0c924935a8665d38bd5d7831f1b0f60047b07b35d4bd72e62",
+      "completeDecodedEOF": true,
+      "selectedRow": {
+        "decodedByteOffset": 3307,
+        "bytes": 348468,
+        "sha256": "72618b815d8b30c3a4dd4def57f928324dfd0ff39e45bce66c32e5ea92bbce48"
+      }
+    },
+    "preservedFailedCensusReceipts": {
+      "summary.json": {
+        "bytes": 8319,
+        "sha256": "bf65e7fadf3b87f6f80cfac4f1f05bd5fb9f4462fcf0947aaa3a19125bf44357"
+      },
+      "ALIGNED-1.authentication.json": {
+        "bytes": 74420,
+        "sha256": "f4c15f55994e0a474185ce0b477ef05dc21dba64a4de88c44ed6d4c098c8a80d"
+      },
+      "ALIGNED-1-position-world.comparison.json": {
+        "bytes": 1488,
+        "sha256": "1d36aa76322046fe8f143ea720ad406dc9fe1f4f988a2fa5c595a25ca9656084"
+      },
+      "ALIGNED-1-contacts.comparison.json": {
+        "bytes": 1167,
+        "sha256": "23df285555f0402f37ede1ed221bb17c993ab47d5866bc059097b5cc716778b2"
+      }
+    },
+    "preservedOuterReceipt": {
+      "bytes": 6122,
+      "sha256": "5ba5ee744b1a99fc2a35363ddac6d8ad3078f0c7d909845ee8f4157337c36d34"
+    },
+    "censusSources": {
+      "run.mjs": {
+        "bytes": 11633,
+        "sha256": "c614affc65ade8363d1c0d0643dabc333524d5fc0c7449b096f2dcd5581ccb06"
+      },
+      "cost-census.py": {
+        "bytes": 33990,
+        "sha256": "67c23875efa2836cd2c374794dfb6b942366493e8fbf979ffcd8789ac2c8464f"
+      },
+      "fixture-data.mjs": {
+        "bytes": 675,
+        "sha256": "de953d847b5627b372ab96c20b18dd7e5f20f3a52ca871582a36d3c906962a23"
+      },
+      "CONTRACT.md": {
+        "bytes": 9553,
+        "sha256": "d8baef877fa39cdf8e974b26da12fc4f2f46ae01e4457c2568a7d7eadb2231ae"
+      }
+    },
+    "immutableReferenceSources": {
+      "examples/physics-stack-solver-2276/trajectory-reference.py": {
+        "bytes": 6575,
+        "sha256": "f2c1850b193a14944de657848d065c461e3ff2440e9e9bf452b6d24519af0ea0"
+      },
+      "examples/physics-motion-nogo-2276/stack-study.py": {
+        "bytes": 22180,
+        "sha256": "70a34672ef53f034fa714bcd54a120a60c672fea3fd740841064dc8ac43263e2"
+      },
+      "examples/physics-rigid-contact-reference/geometry-reference.py": {
+        "bytes": 23429,
+        "sha256": "2c8bc7f6cd809e865c986a859b8614c963c4862296920555eb31c9487411af26"
+      },
+      "examples/physics-rigid-full-pair-position-world/reference.py": {
+        "bytes": 23351,
+        "sha256": "89caf6850b49a77713c7776df9fedd200ecbe1f426ec3cdae6165cc9bf48b58c"
+      },
+      "examples/physics-rigid-full-pair-position-world/full-pair-reference.py": {
+        "bytes": 17313,
+        "sha256": "e8ca75e85b77eff3bce8be411ad108115d150406af087a5bf650be9034b3c46b"
+      },
+      "examples/physics-rigid-full-pair-position-world/nine-row-reference.py": {
+        "bytes": 2239,
+        "sha256": "9497027e8abc11c82955d06c35f0f9d9c5392c1b97b8cef0e6ccee86aa3bcbdf"
+      },
+      "examples/physics-rigid-signed-closure-world/reference.py": {
+        "bytes": 38960,
+        "sha256": "46f184b22679d928fef6fdb2f90ce219448a51af08803ad2e68680bf9f68c056"
+      },
+      "examples/physics-rigid-signed-separation-reference/reference.py": {
+        "bytes": 22829,
+        "sha256": "5e820f2b03d20007a0f74bedc4f122edcc6cf9b80cda7f794cba5837f142cdda"
+      },
+      "examples/physics-rigid-signed-separation-reference/signed-linear-reference.py": {
+        "bytes": 12426,
+        "sha256": "902b9b95d5f03e42de6e02b7e4cd51712eea7c9218d5096fc92fc64d82a72d93"
+      },
+      "examples/physics-rigid-coupled-position-diagnostic/coverage-reference.py": {
+        "bytes": 13825,
+        "sha256": "8cdc81967b2484be55deb0c2df9c1b9191d739653347682538429186ac940b7a"
+      },
+      "examples/physics-rigid-feature-penetration-diagnostic/geometry-reference.py": {
+        "bytes": 13283,
+        "sha256": "9ff4ed05dc2f2f98d32533527b506d4aa0f7799bc6d86a0862ecf24f389b9841"
+      },
+      "examples/physics-rigid-coupled-position-reference/linear-reference.py": {
+        "bytes": 12233,
+        "sha256": "be4184012775a98747ba643d87b1e795cdb781e2b14a295405805a62cfe3feac"
+      },
+      "examples/physics-rigid-contact-reference/fixtures.mjs": {
+        "bytes": 909,
+        "sha256": "ca760b2945d246de1e2f32cb4763ef58bf95e87422b6d4545682c20abb3a1ac0"
+      }
+    },
+    "capturedFreshReply": {
+      "path": "examples/physics-world-p4-2276/evidence/cost-census-01/ALIGNED-1-position-world.stdout.raw",
+      "bytes": 52515,
+      "sha256": "a654b24cd6d0008fe56422ef551c2701d2904b6100758dd1a9b1f204ccfb8dcf"
+    },
+    "archivePositionCheckNodeJSONSha256": "c3c75fab6a54b21eea0ae6a8e266a40c98adf558b3c3fceaa6bed3cccb64bc96",
+    "separateNodeObservableArtifact": {
+      "path": "fresh-reply-node-json-observable.json",
+      "bytes": 50296,
+      "sha256": "c3c75fab6a54b21eea0ae6a8e266a40c98adf558b3c3fceaa6bed3cccb64bc96"
+    }
+  },
+  "originalCensusCounts": {
+    "framesCompleted": 0,
+    "referenceIpcAttempted": 2,
+    "referenceRepliesCompleted": 2,
+    "fullReplyEqual": 1
+  },
+  "originalChildCallCounts": {
+    "geometry": {
+      "attempted": 1,
+      "completed": 1,
+      "returned": 1,
+      "trailingTimingFragmentBytes": 0
+    },
+    "position": {
+      "attempted": 1,
+      "completed": 1,
+      "returned": 1,
+      "trailingTimingFragmentBytes": 0
+    }
+  },
+  "strictComparison": {
+    "status": "FAIL_PRESERVED",
+    "totalDifferences": 32,
+    "zeroSignOnlyCount": 32,
+    "nonZeroSignDifferenceCount": 0,
+    "archiveZeroCount": 868,
+    "freshZeroCount": 868,
+    "freshNegativeZeroCount": 32
+  },
+  "separateNodeObservableComparison": {
+    "status": "PASS",
+    "totalDifferences": 0,
+    "zeroSignOnlyCount": 0,
+    "nonZeroSignDifferenceCount": 0,
+    "remainingNegativeZeroCount": 0,
+    "completeStructureStringAndNumberBitComparison": true
+  },
+  "prefixReplies": [
+    {
+      "operation": "contacts",
+      "archiveField": "contactGeometry",
+      "recordLocator": {
+        "decodedByteOffset": 3307,
+        "bytes": 348468,
+        "sha256": "72618b815d8b30c3a4dd4def57f928324dfd0ff39e45bce66c32e5ea92bbce48"
+      },
+      "request": {
+        "repoPath": "examples/physics-world-p4-2276/evidence/cost-census-01/ALIGNED-1-contacts.stdin.jsonl",
+        "bytes": 14048,
+        "sha256": "632266a773752fbc255dbd7c54cfe773e6157195e436058903316fee5ec7523f"
+      },
+      "reply": {
+        "repoPath": "examples/physics-world-p4-2276/evidence/cost-census-01/ALIGNED-1-contacts.stdout.raw",
+        "bytes": 82356,
+        "sha256": "b4b1277c37f54fce6ca9e7c13d94203a9995131588a7e56be8742e37a2661689"
+      },
+      "observableArtifact": {
+        "auditRelativePath": "contacts-fresh-reply-node-json-observable.json",
+        "bytes": 78867,
+        "sha256": "ebe6a5c3f262f91fa68491082c12c81f583811d8a1de5642768c193b7e2225c6"
+      },
+      "strictComparison": {
+        "status": "PASS",
+        "totalDifferences": 0,
+        "zeroSignOnlyCount": 0,
+        "nonZeroSignDifferenceCount": 0,
+        "archiveZeroCount": 2,
+        "freshZeroCount": 2,
+        "freshNegativeZeroCount": 0
+      },
+      "observableComparison": {
+        "status": "PASS",
+        "totalDifferences": 0,
+        "zeroSignOnlyCount": 0,
+        "nonZeroSignDifferenceCount": 0,
+        "remainingNegativeZeroCount": 0,
+        "completeStructureStringAndNumberBitComparison": true
+      },
+      "archiveReplyNodeJSONSha256": "ebe6a5c3f262f91fa68491082c12c81f583811d8a1de5642768c193b7e2225c6"
+    },
+    {
+      "operation": "position-world",
+      "archiveField": "positionCheck",
+      "recordLocator": {
+        "decodedByteOffset": 3307,
+        "bytes": 348468,
+        "sha256": "72618b815d8b30c3a4dd4def57f928324dfd0ff39e45bce66c32e5ea92bbce48"
+      },
+      "request": {
+        "repoPath": "examples/physics-world-p4-2276/evidence/cost-census-01/ALIGNED-1-position-world.stdin.jsonl",
+        "bytes": 27751,
+        "sha256": "724ffd6804f3203a9753a29583e3f0777a4fcb54f70932eb397095092e4e79b4"
+      },
+      "reply": {
+        "repoPath": "examples/physics-world-p4-2276/evidence/cost-census-01/ALIGNED-1-position-world.stdout.raw",
+        "bytes": 52515,
+        "sha256": "a654b24cd6d0008fe56422ef551c2701d2904b6100758dd1a9b1f204ccfb8dcf"
+      },
+      "observableArtifact": {
+        "auditRelativePath": "fresh-reply-node-json-observable.json",
+        "bytes": 50296,
+        "sha256": "c3c75fab6a54b21eea0ae6a8e266a40c98adf558b3c3fceaa6bed3cccb64bc96"
+      },
+      "strictComparison": {
+        "status": "FAIL_PRESERVED",
+        "totalDifferences": 32,
+        "zeroSignOnlyCount": 32,
+        "nonZeroSignDifferenceCount": 0,
+        "archiveZeroCount": 868,
+        "freshZeroCount": 868,
+        "freshNegativeZeroCount": 32
+      },
+      "observableComparison": {
+        "status": "PASS",
+        "totalDifferences": 0,
+        "zeroSignOnlyCount": 0,
+        "nonZeroSignDifferenceCount": 0,
+        "remainingNegativeZeroCount": 0,
+        "completeStructureStringAndNumberBitComparison": true
+      },
+      "archiveReplyNodeJSONSha256": "c3c75fab6a54b21eea0ae6a8e266a40c98adf558b3c3fceaa6bed3cccb64bc96"
+    }
+  ]
+}

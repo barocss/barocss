@@ -1,0 +1,111 @@
+{
+  "work_id": "physics-world-p5b-2276",
+  "status": "PASS_SOURCE_ONLY_MEDIUM_AUTHOR_AUDIT_RUNTIME_NOT_RUN",
+  "protectedOriginalDomainMath": {
+    "packages/barocss-physics/src/cloth/profile.ts": {
+      "bytes": 655,
+      "sha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f"
+    },
+    "packages/barocss-physics/src/cloth/topology.ts": {
+      "bytes": 1931,
+      "sha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203"
+    },
+    "packages/barocss-physics/src/cloth/constraints.ts": {
+      "bytes": 1772,
+      "sha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be"
+    },
+    "packages/barocss-physics/src/cloth/solver.ts": {
+      "bytes": 1395,
+      "sha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d"
+    },
+    "packages/barocss-physics/src/cloth/metrics.ts": {
+      "bytes": 1805,
+      "sha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd"
+    },
+    "packages/barocss-physics/src/fluid/constants.ts": {
+      "bytes": 459,
+      "sha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec"
+    },
+    "packages/barocss-physics/src/fluid/kernel.ts": {
+      "bytes": 1112,
+      "sha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da"
+    },
+    "packages/barocss-physics/src/fluid/boundary.ts": {
+      "bytes": 1990,
+      "sha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c"
+    },
+    "packages/barocss-physics/src/fluid/static-box.ts": {
+      "bytes": 2481,
+      "sha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9"
+    },
+    "packages/barocss-physics/src/fluid/neighbors.ts": {
+      "bytes": 2949,
+      "sha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3"
+    },
+    "packages/barocss-physics/src/fluid/pbf.ts": {
+      "bytes": 5161,
+      "sha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50"
+    },
+    "packages/barocss-physics/src/fluid/visual-viscosity.ts": {
+      "bytes": 1265,
+      "sha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3"
+    },
+    "packages/barocss-physics/src/fluid/diagnostics.ts": {
+      "bytes": 1106,
+      "sha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215"
+    }
+  },
+  "unchangedOriginalRigidWorldRegions": {
+    "rigid-public-state": {
+      "bytes": 1737,
+      "sha256": "819ee6ecb7a197f455133f5a724f89a8b3d0a6c6192e97771675fbe994f53a18"
+    },
+    "rigid-numerical-step": {
+      "bytes": 10790,
+      "sha256": "14396fd4e7b66b360f8e72b560a04262a7ecb30bf6f2bbd4e9dabc0058ff9e48"
+    }
+  },
+  "activeDirectCallerFiles": [
+    "examples/physics-capsule-query-scene/controls.mjs",
+    "examples/physics-cloth-viewer/host-controller.mjs",
+    "examples/physics-cloth-viewer/numeric-entry.mjs",
+    "examples/physics-error-entry/entry.mjs",
+    "examples/physics-scene/cloth-source-import-probe.mjs",
+    "examples/physics-scene/cloth-world-probe.mjs",
+    "examples/physics-scene/fluid-cad-shelf-probe.mjs",
+    "examples/physics-scene/fluid-cad-viewer/app.js",
+    "examples/physics-scene/fluid-viewer/scene.js",
+    "examples/physics-scene/fluid-visual-profile-probe.mjs",
+    "examples/physics-scene/fluid-world-probe.mjs",
+    "examples/physics-scene/release-consumer.mjs",
+    "examples/physics-scene/source-import-probe.mjs",
+    "examples/viewer-assembly-scene/app.js",
+    "examples/viewer-cloth-scene/app.js",
+    "examples/viewer-fluid-scene/app.js",
+    "examples/viewer-native-scene-replacement/app.js",
+    "examples/viewer-qualified-face-scene/app.js",
+    "examples/viewer-shell-scene/app.js",
+    "examples/viewer-surface-material/app.js",
+    "examples/workspace-source/flow.mjs"
+  ],
+  "oldFactorySceneTokensInThoseFiles": 0,
+  "methodClosureCapturesWholeAdmitted": false,
+  "exports": [
+    ".",
+    "./cad-proxy",
+    "./replay"
+  ],
+  "actualCurrentAPIQualification": "NOT_RUN",
+  "currentPackageBuild": "NOT_RUN",
+  "sourceNativeCanonicalError": "NOT_RUN_ACTUAL_GATE_REQUIRED",
+  "affectedDocsRuntime": {
+    "status": "PENDING_SEPARATE_PARENT_FREEZE",
+    "entry": "apps/library-docs/samples/physics-visual-docs.test.mjs",
+    "Worlds": 4,
+    "acceptedSteps": 4,
+    "failedRecorderAttaches": 4,
+    "hiddenRestoreWorlds": 0,
+    "runOnlySelectedFileNotWholeSamples": true
+  },
+  "firstFailures": "All historical P5baseline/anchor/precision/ungatedcompile receipts preserved; no new numerical run in authoring."
+}

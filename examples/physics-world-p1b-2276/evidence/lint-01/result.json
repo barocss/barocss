@@ -1,0 +1,15 @@
+{
+  "start": "2026-11-01T16:12:27.206Z",
+  "end": "2026-11-01T16:12:28.658Z",
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "node_modules/eslint/bin/eslint.js",
+    "packages/barocss-physics/src",
+    "--ignore-pattern",
+    "**/provider-manifest.generated.ts"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "exit": 1,
+  "signal": null,
+  "error": null
+}

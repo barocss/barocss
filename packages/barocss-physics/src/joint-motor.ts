@@ -1,4 +1,4 @@
-import type { Body, Joint } from './types.js';
+import type { Body, Joint } from './internal-types.js';
 import { add, dot, inverseInertia, scale, sub } from './math.js';
 
 export function driveHingeMotor(joint: Joint, body: Body, angleRad: number): number {

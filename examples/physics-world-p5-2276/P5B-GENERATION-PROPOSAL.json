@@ -1,0 +1,127 @@
+{
+  "workId": "physics-world-p5b-model-data-generation-2276",
+  "status": "AUTHOR_READY_PROPOSAL_NO_EXECUTION",
+  "parentFreezeRequired": true,
+  "requiredExecutionFreezeStatus": "parent_frozen_model_data_generation",
+  "generator": "examples/physics-world-p5-2276/generate-model-data.mjs",
+  "CLI": "PINNED_NODE22 generate-model-data.mjs --run-id FRESH --freeze ABS_PARENT_FREEZE_JSON",
+  "files": {
+    "examples/physics-world-p5-2276/generate-model-data.mjs": {
+      "bytes": 13911,
+      "sha256": "91e82ad08f8a951a8cec21fdc7dcf029e9c9a98645e305c74dd43e3e4e6db49c"
+    },
+    "examples/physics-world-p5-2276/kernel-fixture.mjs": {
+      "bytes": 3885,
+      "sha256": "7ae0ae04d90a8e7e7b37d21edf4659305246ed3806d91d7fc6d36b31563c8ff1"
+    },
+    "examples/physics-world-p5-2276/evidence/static-input-01/summary.json": {
+      "bytes": 2269,
+      "sha256": "4190918359117b309675a45b7ec45f1e1b876133af079aaf42ccd654a8081633"
+    },
+    "examples/physics-world-p5-2276/p5b-implementation-freeze-01.json": {
+      "bytes": 5710,
+      "sha256": "ac2ef771742260c7f6106669334ac91213e62001b7cc2aacd8cf18f9bee36fdd"
+    },
+    "packages/barocss-physics/src/cloth/topology.ts": {
+      "bytes": 1931,
+      "sha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203"
+    },
+    "packages/barocss-physics/src/cloth/profile.ts": {
+      "bytes": 655,
+      "sha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f"
+    },
+    "packages/barocss-physics/src/cloth/types.ts": {
+      "bytes": 1701,
+      "sha256": "6fa716f52e0a31e1821ce11e0528ac3fe07ba79ce0daaa443b799c8b56f43446"
+    },
+    "packages/barocss-physics/src/fluid/constants.ts": {
+      "bytes": 459,
+      "sha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec"
+    },
+    "packages/barocss-physics/src/identity.ts": {
+      "bytes": 6081,
+      "sha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be"
+    },
+    "packages/barocss-physics/src/types.ts": {
+      "bytes": 11905,
+      "sha256": "c7239aee629e9e331949c67bf49e43315cae50df1a8f90730b7d634b185ca182"
+    },
+    "node_modules/esbuild/lib/main.js": {
+      "bytes": 88706,
+      "sha256": "0d1241812c443111d39475dfc66836003e9ef8b87e54d990dd67df29d20010e1"
+    },
+    "node_modules/esbuild/package.json": {
+      "bytes": 1490,
+      "sha256": "cb7d5b1fe478f8cbaae566a86031b6fdf5f7d444354f35d1cb3cba9adf6d2935"
+    },
+    "node_modules/esbuild/bin/esbuild": {
+      "bytes": 9934834,
+      "sha256": "3e030ee2aa86ad3c33e5e95ae0e53bb03de40e0da35c9b1180a67de4a497cae5"
+    },
+    "examples/physics-world-p5-2276/evidence/kernel-source-01/model-size-cloth-pinned-sphere-visual-v1.json": {
+      "bytes": 283,
+      "sha256": "2f70bc8c75664d05f7f70ec9326b7e27cd0e96bb2b9229a83aa67e363902c9e8"
+    },
+    "examples/physics-world-p5-2276/evidence/kernel-source-01/model-size-fluid-basin-visual-v1.json": {
+      "bytes": 273,
+      "sha256": "bd191c1ef06d2389f8ac54e0514377ac75adaea0bc6fd583c0e2b6ece3a6bde2"
+    },
+    "examples/physics-world-p5-2276/evidence/kernel-source-01/model-size-fluid-basin-xsph-visual-v1.json": {
+      "bytes": 278,
+      "sha256": "db7471e9034f8457019d43bc7da95734e5c1d628d0bf58cb8f2b68315b38aa72"
+    },
+    "examples/physics-world-p5-2276/evidence/kernel-source-01/model-size-fluid-static-box-visual-v1.json": {
+      "bytes": 278,
+      "sha256": "81f1ea2f7e68f0e72d6e7e08f0d5baf5d0814df6ac3d1125b8874739e60e4ad5"
+    }
+  },
+  "toolBinary": {
+    "alias": "node_modules/esbuild/bin/esbuild",
+    "resolvedActual": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/@esbuild/darwin-arm64/bin/esbuild",
+    "bytes": 9934834,
+    "sha256": "3e030ee2aa86ad3c33e5e95ae0e53bb03de40e0da35c9b1180a67de4a497cae5",
+    "aliasEqualsActualBytes": true
+  },
+  "outputs": [
+    "packages/barocss-physics/src/domain/cloth-reference.generated.ts",
+    "examples/physics-model-data-2276/model-data.mjs",
+    "apps/library-docs/docs/public/physics/model-data.mjs"
+  ],
+  "maximums": {
+    "createSheet": 1,
+    "triangleMassAccumulations": 1,
+    "canonicalEncode": 12,
+    "presetCopies": 16,
+    "WorldCalls": 0,
+    "WorldSteps": 0,
+    "CADCalls": 0,
+    "initialRestDensity": 0,
+    "solverCalls": 0,
+    "initializerCalls": 0
+  },
+  "codecLedger": "4original P5a complete model encodes +4example literal checks +4docs literal checks; internal reference recursive Object.is only",
+  "massLedger": "createSheet1 includes the original internal mass accumulation; triangleMassAccumulations1 is the single additional existing fixture accumulation of explicit per-vertex masses",
+  "presetProtocol": {
+    "physicsModelPresets": "deeply immutable4profile table of {model,options}",
+    "copyPhysicsModelPreset(profile)": "detached ordinary model/options; no runtime Physics imports or math",
+    "internalReference": "export deeply immutable nativeClothReference:Cloth; raw recursive equality to original leaf, caller IDs matched by role in admission"
+  },
+  "rawValidation": "explicit -0 literal and Number(text) Object.is roundtrip; frozen/detached object graphs; actual exported fluid radii; captured CAD scalar F64LE authority",
+  "runtimeDependencies": "installed esbuild only for source helper bundle and TS reference erasure; no install/download/global compiler",
+  "resourceBounds": {
+    "internalMs": 170000,
+    "requiredParentOwnedGroupOuterMs": 180000,
+    "cleanupMsMax": 4000,
+    "evidenceBytesMax": 8388608,
+    "oneOutputBytesMax": 2097152
+  },
+  "overwritePolicy": "all3targets absent; wx writes only, retain any partial output and failure receipt; no automatic retry",
+  "originalHelperExecutionAtAuthoring": false,
+  "publicAdmission": "NOT_RUN",
+  "guardRequirements": [
+    "pin exactNode22 executable and guard",
+    "approve source closure/preset destinations before generator execution",
+    "preserve any first failure; one generation only",
+    "no caller/preset import executes Physics or geometry arithmetic"
+  ]
+}

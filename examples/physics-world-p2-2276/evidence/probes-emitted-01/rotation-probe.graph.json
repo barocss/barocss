@@ -1,0 +1,57 @@
+{
+  "emitted": true,
+  "entry": "examples/physics-scene/rotation-probe.mjs",
+  "bundleSha256": "191a5b89844ce5188f2c3d6825bd1587874e715b8e6ab86f5240db11981bb98c",
+  "inputs": [
+    {
+      "path": "examples/physics-model-input/model.mjs",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-model-input/model.mjs",
+      "sha256": "8bbeb3712f27eb3d639dcde806fcf27f8bc5360274feefd051335b3887790baf",
+      "effectiveSha256": "8bbeb3712f27eb3d639dcde806fcf27f8bc5360274feefd051335b3887790baf",
+      "physicsProvider": false,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/types.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/types.js",
+      "sha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b",
+      "effectiveSha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/recording-owner.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/recording-owner.js",
+      "sha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521",
+      "effectiveSha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/provider-manifest.generated.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/provider-manifest.generated.js",
+      "sha256": "2903787ac122a63219fbf0b6d1124ffa1629789336f36b36b36036b4bf29b066",
+      "effectiveSha256": "2903787ac122a63219fbf0b6d1124ffa1629789336f36b36b36036b4bf29b066",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/index.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/index.js",
+      "sha256": "b9c4c11eca7aa7a70a70e388771ab5e5f3599aa6d60292d30ff511b239461f38",
+      "effectiveSha256": "b9c4c11eca7aa7a70a70e388771ab5e5f3599aa6d60292d30ff511b239461f38",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "examples/physics-scene/rotation-probe.mjs",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-scene/rotation-probe.mjs",
+      "sha256": "1c1a5ed5fa56475cb65c962e28c0b7a3eb2fc98f54a7dd22a46c555f2848aab4",
+      "effectiveSha256": "1c1a5ed5fa56475cb65c962e28c0b7a3eb2fc98f54a7dd22a46c555f2848aab4",
+      "physicsProvider": false,
+      "cadSourceBoundary": false
+    }
+  ],
+  "effective": [],
+  "cadBoundary": "no CAD TypeScript source"
+}

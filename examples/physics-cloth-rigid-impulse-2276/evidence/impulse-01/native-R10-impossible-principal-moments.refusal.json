@@ -1,0 +1,6 @@
+{
+  "status": "PASS_EXPECTED_REFUSAL",
+  "code": "INVALID_INPUT",
+  "reason": "NONPHYSICAL_INERTIA",
+  "inputUnchanged": true
+}

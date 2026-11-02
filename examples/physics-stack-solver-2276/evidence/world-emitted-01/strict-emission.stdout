@@ -1,0 +1,9 @@
+examples/physics-rigid-full-pair-position-world/full-pair-apply.ts(4,40): error TS7016: Could not find a declaration file for module './full-pair-solver.mjs'. '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-full-pair-position-world/full-pair-solver.mjs' implicitly has an 'any' type.
+examples/physics-rigid-full-pair-position-world/full-pair-phase.ts(3,88): error TS7016: Could not find a declaration file for module './full-pair-solver.mjs'. '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-full-pair-position-world/full-pair-solver.mjs' implicitly has an 'any' type.
+examples/physics-rigid-full-pair-position-world/full-pair-rows.ts(5,58): error TS7016: Could not find a declaration file for module './full-pair-solver.mjs'. '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-full-pair-position-world/full-pair-solver.mjs' implicitly has an 'any' type.
+examples/physics-rigid-full-pair-position-world/full-pair-rows.ts(28,11): error TS18046: 'error' is of type 'unknown'.
+examples/physics-rigid-full-pair-position-world/full-pair-rows.ts(28,45): error TS18046: 'error' is of type 'unknown'.
+examples/physics-rigid-full-pair-position-world/full-pair-rows.ts(31,11): error TS18046: 'error' is of type 'unknown'.
+examples/physics-rigid-full-pair-position-world/full-pair-rows.ts(33,61): error TS18046: 'error' is of type 'unknown'.
+examples/physics-rigid-full-pair-position-world/full-pair-rows.ts(36,11): error TS18046: 'error' is of type 'unknown'.
+examples/physics-rigid-full-pair-position-world/full-pair-rows.ts(36,45): error TS18046: 'error' is of type 'unknown'.

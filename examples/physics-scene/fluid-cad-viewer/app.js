@@ -1,7 +1,8 @@
 import { createViewer } from '../../../packages/barocss-viewer/dist/index.js';
 import { loadBaroCadModelSet } from '../../../packages/barocss-cad-interop/dist/model-set.js';
-import { createCadFluidWorld } from '../../../packages/barocss-physics/src/fluid-cad.ts';
-import { createWaterWorld, waterScene } from '../fluid-viewer/scene.js';
+import { createPhysicsWorld } from '../../../packages/barocss-physics/src/index.ts';
+import { admitCadFluidStaticData, assertCadProxyCurrent } from '../../../packages/barocss-physics/src/cad-proxy.ts';
+import { waterModelData } from '../fluid-viewer/scene.js';
 import { createFluidController } from '../fluid-viewer/controller.js';
 import { createTimingRecorder } from './timings.js';
 
@@ -14,7 +15,7 @@ const sha256 = async positions => [...new Uint8Array(await crypto.subtle.digest(
 const pixelHash = pixels => pixels.reduce((hash, value) =>
   Math.imul(hash ^ value, 16777619) >>> 0, 2166136261);
 
-let viewer, controller, cadWorld;
+let viewer, controller, cadProxy;
 let generation = 0, renderVersion = 0;
 const solverTiming = createTimingRecorder(), renderTiming = createTimingRecorder();
 
@@ -39,23 +40,23 @@ try {
       solverTiming.clear(); renderTiming.clear();
     }
     renderTiming.run(() => viewer.setFluidFrame({ version: 0, contextId: `shelf_generation_${generation}`,
-      sceneRevision: state.sceneRevision, stepIndex: state.stepIndex,
-      particleCount: state.particleCount, positionsM: state.positionsM }));
+      sceneRevision: state.identity.modelRevision, stepIndex: state.stepIndex,
+      particleCount: state.fluids[0].positionsM.length / 3, positionsM: state.fluids[0].positionsM }));
     const accepted = viewer.getState().fluidFrame;
     if (accepted?.stepIndex !== state.stepIndex || accepted.particleCount !== 256) {
       throw new Error('Viewer did not accept the CAD fluid frame');
     }
     toggle.textContent = running ? '일시 정지' : '재생';
     const version = ++renderVersion;
-    sha256(state.positionsM).then(sha => {
+    sha256(state.fluids[0].positionsM).then(sha => {
       if (version !== renderVersion) return;
-      const obstacle = cadWorld?.getObstacle();
+      const obstacle = cadProxy ? { bodyId:cadProxy.bodyId, lossLabel:cadProxy.lossLabel, sourceRevision:cadProxy.sourceRevision } : null;
       const timing = { solver: solverTiming.summary(), renderSubmit: renderTiming.summary() };
-      status.textContent = `모드: ${mode.selectedOptions[0].textContent}\n단계: ${state.stepIndex}\n입자: ${state.particleCount}\n선반 접촉: ${state.obstacleHits ?? 0}\n밀도 오차: ${state.diagnostics.meanAbsoluteDensityError.toFixed(4)}\nSolver p95: ${timing.solver.p95Ms?.toFixed(2) ?? '-'} ms\nViewer 제출 p95: ${timing.renderSubmit.p95Ms?.toFixed(2) ?? '-'} ms\n원본 리비전: shelfRev1\n충돌 ID: ${obstacle?.bodyId ?? '없음'}\n근사: ${obstacle?.lossLabel ?? '충돌 없음'}\n위치 SHA-256: ${sha}`;
-      window.fluidCadState = { running, mode: mode.value, sceneRevision: state.sceneRevision,
+      status.textContent = `모드: ${mode.selectedOptions[0].textContent}\n단계: ${state.stepIndex}\n입자: ${state.fluids[0].positionsM.length / 3}\n선반 접촉: ${state.fluids[0].diagnostics.obstacleHits ?? 0}\n밀도 오차: ${state.fluids[0].diagnostics.meanAbsoluteDensityError.toFixed(4)}\nSolver p95: ${timing.solver.p95Ms?.toFixed(2) ?? '-'} ms\nViewer 제출 p95: ${timing.renderSubmit.p95Ms?.toFixed(2) ?? '-'} ms\n원본 리비전: shelfRev1\n충돌 ID: ${obstacle?.bodyId ?? '없음'}\n근사: ${obstacle?.lossLabel ?? '충돌 없음'}\n위치 SHA-256: ${sha}`;
+      window.fluidCadState = { running, mode: mode.value, sceneRevision: state.identity.modelRevision,
         stepIndex: state.stepIndex, displayStep: accepted.stepIndex,
-        particleCount: state.particleCount, obstacleHits: state.obstacleHits ?? 0,
-        density: { ...state.diagnostics }, sha256: sha,
+        particleCount: state.fluids[0].positionsM.length / 3, obstacleHits: state.fluids[0].diagnostics.obstacleHits ?? 0,
+        density: { ...state.fluids[0].diagnostics }, sha256: sha,
         bodyId: obstacle?.bodyId ?? null, lossLabel: obstacle?.lossLabel ?? null,
         sourceRevision: obstacle?.sourceRevision ?? null,
         timing };
@@ -67,16 +68,19 @@ try {
     viewer.setFluidFrame(null);
     solverTiming.clear(); renderTiming.clear();
     generation++;
-    cadWorld = mode.value === 'shelf' ? createCadFluidWorld(waterScene(), source, request) : null;
-    const world = cadWorld ?? createWaterWorld();
-    controller = createFluidController(cadWorld ? {
-      getState: () => world.getState(), step: dt => solverTiming.run(() => world.step(dt, current)),
-      reset: () => world.reset(current), dispose: () => world.dispose(),
-    } : {
-      getState: () => world.getState(), step: dt => solverTiming.run(() => world.step(dt)),
-      reset: () => world.reset(), dispose: () => world.dispose(),
-    }, present);
-    stale.disabled = !cadWorld;
+    let input = waterModelData();
+    cadProxy = null;
+    if (mode.value === 'shelf') {
+      const targetOptions = { ...input.options, profile:'fluid-static-box-visual-v1' };
+      const admitted = admitCadFluidStaticData(input.model, targetOptions, source, request);
+      input = { model:admitted.model, options:targetOptions }; cadProxy = admitted.proxy;
+    }
+    const world = createPhysicsWorld(input.model, input.options);
+    controller = createFluidController(world, input, present, {
+      beforeAdvance: () => { if (cadProxy) assertCadProxyCurrent(cadProxy, current.sourceText, current.currentRevision); },
+      measureStep: action => solverTiming.run(action),
+    });
+    stale.disabled = !cadProxy;
   };
   start();
   mode.addEventListener('change', start);
@@ -84,17 +88,17 @@ try {
   step.addEventListener('click', () => controller.step());
   reset.addEventListener('click', () => controller.reset());
   stale.addEventListener('click', async () => {
-    if (!cadWorld) return;
+    if (!cadProxy) return;
     // readPixels waits for a frame, so hold playback while the check compares two captures.
     if (controller.isRunning()) controller.pause();
-    const previous = cadWorld.getState();
+    const previous = controller.current();
     const beforePixels = pixelHash(await viewer.readPixels());
     let refused = false;
-    try { cadWorld.step(1 / 120, { sourceText: source, currentRevision: 'shelfRev2' }); }
+    try { assertCadProxyCurrent(cadProxy, source, 'shelfRev2'); }
     catch (error) { refused = error.code === 'STALE_SOURCE'; }
-    const next = cadWorld.getState();
+    const next = controller.current();
     if (!refused || next.stepIndex !== previous.stepIndex
-      || next.positionsM.some((value, index) => value !== previous.positionsM[index])
+      || next.fluids[0].positionsM.some((value, index) => value !== previous.fluids[0].positionsM[index])
       || pixelHash(await viewer.readPixels()) !== beforePixels) {
       throw new Error('Stale CAD source changed the accepted scene');
     }

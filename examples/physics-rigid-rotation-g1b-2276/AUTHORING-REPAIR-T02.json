@@ -1,0 +1,43 @@
+{
+  "status": "PARENT_AUTHORIZED_NARROW_T_REPAIR_SOURCE_ONLY",
+  "runtimeAuthorized": false,
+  "productionActivation": false,
+  "authorityPins": {
+    "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-RESULTS-T01.json": {
+      "bytes": 3500,
+      "sha256": "32737ed21794f6b91126dc9a9635f2e17c41f481aebe7e27d39e453a40f2254b"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-ARCHIVE-T01.json": {
+      "bytes": 4408,
+      "sha256": "6dec48a2e7aa877be68c78336edf7fc6b04413cab1e66d099eb99671f5dc5292"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/REFERENCE-BANK-REUSE-T02.json": {
+      "bytes": 21068,
+      "sha256": "aaffbe967d97a44ce2c5c4ceb9fd1e12258d41adba087b1dfcdd1d281601c4df"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/extract-t01-bank-rows.py": {
+      "bytes": 3746,
+      "sha256": "dd3f77ed25f98b92db39d418c46ee8a7be1236ff18e900448e53170a2cbb4a35"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-READY-T03.json": {
+      "bytes": 3935,
+      "sha256": "cb12ff3d29a80a89ff75335783fa3ecad2fb367bff6828e97829f969b6950b37"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-SELF-ALIAS-REPAIR-T03.md": {
+      "bytes": 2908,
+      "sha256": "4b5aa7c4c52e074f44a1f54ec27675dc4b35b84df34632a754e2af0973f18541"
+    }
+  },
+  "scope": "Fix only initialstate selfalias testoperand; preserve bothinputpairalias/previousdistinctoutputchecks. ReferenceINIT reusesauthenticatedT01bankrows only, withidentical110audit/refinement/clock/physicalgates.0newTaylor/sqrt/integral/root orfallback.",
+  "successfulReferenceWorkPreserved": {
+    "newT01Windows": 44,
+    "plusSavedM02Windows": 4,
+    "T01Decimal": 20876116,
+    "M02plusT01Decimal": 23634120,
+    "M01plusM02plusT01Fraction": 31362,
+    "totalEndpointSqrt": 96
+  },
+  "limits": "Original32MjointDecimal/10MjointFraction/8MiBreference/8MiBharness/16MiBevidence/170sinternal/180sexternal andalloriginaltolerances/solveriterations remain. No resimulation ofcompletedreferenceprefix.",
+  "population": "Freshsame16World/36reads/114attempts94accepted/110audits/112requests, Sourcecompletechecks/disposal beforeNative. T01disposed0steps cannotcontinueitsWorld.",
+  "required": "NewreferenceReadyT02/protocoladdendum/reviewT02 anddriverReadyT03, thenfreshparentexecutionfreeze. Allfirstfailure/readys/source snapshots/archives retained."
+}

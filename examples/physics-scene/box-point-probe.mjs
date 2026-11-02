@@ -1,22 +1,18 @@
+import { makeModel, dynamicPart, staticPart } from '../physics-model-input/model.mjs';
 import assert from 'node:assert/strict';
 import { createPhysicsWorld } from '../../packages/barocss-physics/dist/index.js';
 
 const dt = 1 / 120;
 const friction = { static: 1, dynamic: 0.7 };
-const dynamicBox = (id, positionM, options = {}) => ({ id, kind: 'dynamic',
-  shape: { kind: 'box', halfExtentsM: [0.25, 0.25, 0.25] }, positionM,
-  velocityMps: [0, 0, 0], massKg: 1, restitution: 0, friction, ...options });
-const floor = { id: 'fixture:floor', kind: 'static',
-  shape: { kind: 'box', halfExtentsM: [2, 0.1, 2] },
-  positionM: [0, -0.1, 0], restitution: 0, friction };
-const makeWorld = (bodies, broadPhase) => createPhysicsWorld({ fixedStepSeconds: dt,
-  gravityMps2: [0, -9.81, 0], bodies, ...(broadPhase ? { broadPhase } : {}) });
+const dynamicBox = (id, positionM, initial = {}) => dynamicPart(id, {kind:'box',halfExtentsM:[0.25,0.25,0.25]}, {positionM,velocityMps:[0,0,0],...initial}, 1, {restitution:0,friction});
+const floor = staticPart('fixture:floor', { kind: 'box', halfExtentsM: [2, 0.1, 2] }, {positionM: [0, -0.1, 0]}, {restitution: 0, friction: friction});
+const makeWorld = (bodies, broadPhase) => createPhysicsWorld(makeModel({gravityMps2: [0, -9.81, 0], parts: bodies}), {profile: 'rigid-discrete-v1', fixedStepSeconds: dt, broadPhase: broadPhase ?? 'direct'});
 const near = (actual, expected, label, tolerance = 1e-9) =>
   assert.ok(Math.abs(actual - expected) <= tolerance, `${label}: ${actual} != ${expected}`);
 
 function firstContact(bodies, broadPhase) {
   const world = makeWorld(bodies, broadPhase);
-  const state = world.step(dt);
+  const state = world.step();
   world.dispose();
   assert.equal(state.contacts.length, 1);
   const contact = state.contacts[0];
@@ -35,8 +31,8 @@ assert.deepEqual(firstContact([floor, centered]).contact, direct.contact);
 assert.deepEqual(firstContact([centered, floor], 'aabb').contact, direct.contact);
 
 const rotated = makeWorld([dynamicBox('part:box', [0.16, 0.3, 0],
-  { orientation: [0, 0, Math.sin(Math.PI / 12), Math.cos(Math.PI / 12)] }), floor]);
-const rotatedState = rotated.step(dt);
+  { orientationXYZW: [0, 0, Math.sin(Math.PI / 12), Math.cos(Math.PI / 12)] }), floor]);
+const rotatedState = rotated.step();
 assert.equal(rotatedState.contacts.length, 1);
 const rotatedContact = rotatedState.contacts[0];
 near(Math.hypot(...rotatedContact.normalAtoB), 1, 'rotated normal length');
@@ -48,7 +44,7 @@ const stack = makeWorld([dynamicBox('part:lower', [0, 0.25, 0]),
   dynamicBox('part:upper', [0, 0.75, 0]), floor]);
 let maxPenetrationM = 0;
 for (let index = 0; index < 480; index++) {
-  const state = stack.step(dt);
+  const state = stack.step();
   maxPenetrationM = Math.max(maxPenetrationM,
     ...state.contacts.map((contact) => contact.penetrationM));
 }

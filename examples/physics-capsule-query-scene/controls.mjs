@@ -1,7 +1,4 @@
 import { createUprightCapsuleQuery,PhysicsError } from '@barocss/physics';
-import { PhysicsError as ClothError } from '@barocss/physics/cloth';
-import { PhysicsError as FluidError } from '@barocss/physics/fluid';
-import { PhysicsError as CadFluidError } from '@barocss/physics/fluid-cad';
 import { CASES } from './fixture.mjs';
 import { publicScene } from './public-snapshot.mjs';
 import { encodeF64 } from '../physics-capsule-sweep-reference/binary.mjs';
@@ -12,7 +9,7 @@ const bits=values=>Array.from(encodeF64(Float64Array.from(values))).join(',');
 const hitBits=hit=>hit?bits([hit.toiFraction,...hit.normalFixtureToCapsule,...hit.pointM,...hit.segmentPointM,hit.iterations]):'';
 const sceneBits=scene=>bits(scene.boxes.flatMap(box=>[...box.centerM,...box.halfExtentsM,...box.orientationXYZW]));
 export function runControls(){
- const constructors=[PhysicsError,ClothError,FluidError,CadFluidError],errors=[];
+ const constructors=[PhysicsError],errors=[];
  ensure(constructors.every(c=>c===PhysicsError),'Canonical constructor inside this provider graph');
  const wall=CASES.find(c=>c.name==='WALL'),input=clone(publicScene(wall.scene)),query=clone(wall.query);
  const world=createUprightCapsuleQuery(input),other=createUprightCapsuleQuery(clone(input)),accepted=world.getSnapshot(),first=world.sweep(query),originalBits=hitBits(first);

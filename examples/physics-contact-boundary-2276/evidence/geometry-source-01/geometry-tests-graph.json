@@ -1,0 +1,50 @@
+{
+  "emitted": false,
+  "bundleSha256": "703591efce6aca33a03b6087268bb00e8ab6e3bd504c36134b7831ec693dbe9f",
+  "inputs": [
+    {
+      "path": "packages/barocss-physics/src/types.ts",
+      "sha256": "e8befc80c94e1b109f5024581f056639acff2c19ed445f2875e20eaf2d3bf240"
+    },
+    {
+      "path": "packages/barocss-physics/src/limits.ts",
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    {
+      "path": "packages/barocss-physics/src/validation.ts",
+      "sha256": "5b0a3016c32ef19076984e6b7f529253af581c29eb9dd1adb19cc8dba185479f"
+    },
+    {
+      "path": "packages/barocss-physics/src/math.ts",
+      "sha256": "6605633830fa7fdf39f9531fbf988b52e306a6835655a318c961eb44c6b05ff8"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/sat-feature.ts",
+      "sha256": "5c84e0327d621a0bdcf1ca85d73244147fd2b05ae29fa6dfc25ded7d3af460af"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/witness.ts",
+      "sha256": "d1a9e4356f250cfe5203320da3d05b094fe294342ed05bed1de9daab5d09073e"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/strict-line.ts",
+      "sha256": "972b48005563fb4815aa54a86eab8356a4a52952b6dfaec1990f72e610ba5bee"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/face-contact.ts",
+      "sha256": "63a9fead6d88a25d07afc005d3fbd2cebb5fdb88c949123e84fb5681f2f4d3dc"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/edge-contact.ts",
+      "sha256": "09d60f75a3c699cfb9cf587e40d4b809fe42cc63221292bc5693deb25950220b"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/geometry.ts",
+      "sha256": "c581fd7eef4d615eb2c9fbee4fea7f13918548261fe404fde6b7e4432865d694"
+    },
+    {
+      "path": "examples/physics-contact-boundary-2276/geometry.test.ts",
+      "sha256": "51b1709a240dcbec8f10eef2295d6ea05b55c49436b8fed86bb36f2b6c0f707b"
+    }
+  ]
+}

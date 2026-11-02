@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: free flight matches the discrete fixed-step analytic solution
+ok 1 - free flight matches the discrete fixed-step analytic solution
+  ---
+  duration_ms: 1.934166
+  type: 'test'
+  ...
+# Subtest: force lasts one step; impulse changes velocity once
+ok 2 - force lasts one step; impulse changes velocity once
+  ---
+  duration_ms: 0.255459
+  type: 'test'
+  ...
+# Subtest: invalid step retains accepted state; copies and disposal are explicit
+ok 3 - invalid step retains accepted state; copies and disposal are explicit
+  ---
+  duration_ms: 0.6225
+  type: 'test'
+  ...
+# Subtest: off-origin CAD proxy uses literal quarter-turn coordinates
+ok 4 - off-origin CAD proxy uses literal quarter-turn coordinates
+  ---
+  duration_ms: 2.089625
+  type: 'test'
+  ...
+# Subtest: reduced pendulum equilibrium and lifecycle use the local root export
+ok 5 - reduced pendulum equilibrium and lifecycle use the local root export
+  ---
+  duration_ms: 0.242375
+  type: 'test'
+  ...
+# Subtest: free flight converges against the continuous ballistic solution at fixed physical time
+ok 6 - free flight converges against the continuous ballistic solution at fixed physical time
+  ---
+  duration_ms: 0.389333
+  type: 'test'
+  ...
+# {"ballisticTimeSeconds":0.1,"positionErrorsM":[0.004087500000000022,0.002043750000000122],"refinementRatio":1.9999999999998914}
+# Subtest: robot motion guide: mixed turn/slide timing, saved motion and analytic SCARA FK
+ok 7 - robot motion guide: mixed turn/slide timing, saved motion and analytic SCARA FK
+  ---
+  duration_ms: 1601.030917
+  type: 'test'
+  ...
+# {"metric":"scara-analytic","samples":22,"maxReportedFkErrorMm":0,"maxReportingQuantizationMm":4.901169035065323e-7,"maxJointSampleError":7.105427357601002e-15,"durationErrorS":0,"solvedHomeQuillMm":[225,25,-30],"comparisonToleranceMm":1e-9}
+# Subtest: robot motion guide: jerk-limited path keeps synchronized endpoints and finite samples
+ok 8 - robot motion guide: jerk-limited path keeps synchronized endpoints and finite samples
+  ---
+  duration_ms: 1406.45
+  type: 'test'
+  ...
+# Subtest: robot motion guide: typed invalid-input and joint-limit refusals
+ok 9 - robot motion guide: typed invalid-input and joint-limit refusals
+  ---
+  duration_ms: 360.699917
+  type: 'test'
+  ...
+# Subtest: robot motion guide: analytic IK targets, independent residuals and joint bounds
+ok 10 - robot motion guide: analytic IK targets, independent residuals and joint bounds
+  ---
+  duration_ms: 2.078792
+  type: 'test'
+  ...
+# {"metric":"ik-analytic","targetDegrees":-60,"slideMm":25,"errorM":2.660641766657152e-14,"errorRad":0,"fkErrorMm":0}
+# {"metric":"ik-analytic","targetDegrees":0,"slideMm":-10,"errorM":1.0508927061891882e-14,"errorRad":0,"fkErrorMm":0}
+# {"metric":"ik-analytic","targetDegrees":45,"slideMm":60,"errorM":1.1656366413268348e-15,"errorRad":0,"fkErrorMm":1.4210854715202004e-14}
+# Subtest: robot motion guide: IK target outside travel stays unreached with a measured residual
+ok 11 - robot motion guide: IK target outside travel stays unreached with a measured residual
+  ---
+  duration_ms: 4.64875
+  type: 'test'
+  ...
+# {"reached":false,"errorM":0.04,"returnedSlideMm":80}
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3714.737792

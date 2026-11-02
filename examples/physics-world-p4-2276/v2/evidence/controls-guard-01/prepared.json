@@ -1,0 +1,72 @@
+{
+  "kind": "P4_SAT_SCOPED_V2_PRIMITIVES_OUTER_GUARD",
+  "receiptId": "controls-guard-01",
+  "censusId": "controls-01",
+  "status": "PREPARED",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "python3",
+    "-B",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/v2/controls.py",
+    "--run-id",
+    "controls-01"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "inputs": {
+    "controls-run.mjs": {
+      "bytes": 11784,
+      "sha256": "e26e17be802d7913a785a74d6c9b9a1a214cd7fec684e9d89bb27bfeb296ec40"
+    },
+    "controls.py": {
+      "bytes": 20834,
+      "sha256": "611f6cf5ac6fa5a63b72d28420aa2de018692d25709f06cec369d23108a1b6a4"
+    },
+    "gate.py": {
+      "bytes": 12401,
+      "sha256": "1c7af538507ee22be2d547f8bd9acb7e10be2752fd91652e7eadc6a087a0575c"
+    },
+    "scoped-cache.py": {
+      "bytes": 17169,
+      "sha256": "c100855cdf88cd00a6716df38447f78caeb099e7459e98fee68517f19a85bc4a"
+    },
+    "SCOPE-CONTRACT.md": {
+      "bytes": 9864,
+      "sha256": "9bd49605d1e1cb70d8f2ecdff2cc3f4c62dd2f497b679f656cef9ab202c8cbd3"
+    },
+    "CONTROL-RECIPES.json": {
+      "bytes": 30310,
+      "sha256": "3fb30d65c4e6f6a9b1158ee5100f02c80be2a08bf7adb4b6c4e4f25be532cfa5"
+    },
+    "implementation-freeze-01.json": {
+      "bytes": 1679,
+      "sha256": "adb409a0b409dcafd213b042e0f95693fce9e2a792926baf0e5c0ffd1285e394"
+    },
+    "execution-freeze-01.json": {
+      "bytes": 1870,
+      "sha256": "fb8449c704f64c47d649a8b4eafdd5b7d3c558570e81e6a63900c8d2628b5726"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": null,
+  "spawnAt": null,
+  "pid": null,
+  "processGroupId": null,
+  "exit": null,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": null,
+  "processClosed": false,
+  "groupSignals": [],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/v2/evidence/controls-01/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/v2/evidence/controls-01/progress.json",
+  "errors": []
+}

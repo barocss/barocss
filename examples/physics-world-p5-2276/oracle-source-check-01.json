@@ -1,0 +1,30 @@
+{
+  "status": "PASS_SOURCE_ONLY_SYNTAX_AND_OVERLAY_ANCHORS",
+  "gate": "existing heavy gate acquired/released by EXIT trap",
+  "checked": [
+    {
+      "name": "world.mjs",
+      "originalSha256": "25551263b87a26debdd802c7f4a2e0b91e16b9b1ade320767d960f91487aae5c",
+      "effectiveSha256": "03e4760ce2e5954f59a4c5264aadec0ebc0285479df4d9b3320a6ea387027325"
+    },
+    {
+      "name": "topology.mjs",
+      "originalSha256": "9623e307ff500ab1add9bb94fa2343530bba47f266e519d9849ade4117ac164f",
+      "effectiveSha256": "5a6500f53f104abdc9563074f8d04013da107a85f9a3d0e69d7df1b6c2b52e52"
+    },
+    {
+      "name": "constraints.mjs",
+      "originalSha256": "9e1eac17a83fb6fbf987dc6d0ae3fb3791b8b5031edaaca3c9968b8c82a06f64",
+      "effectiveSha256": "0e2a0880b7b46130340db6f8a98b04206a1c08e80648834796856d527760bad1"
+    },
+    {
+      "name": "fixture.mjs",
+      "originalSha256": "a1ce782d1ead3059692d74d54555e399f01806b372a5744049c9a0df257526dd",
+      "effectiveSha256": "a1ce782d1ead3059692d74d54555e399f01806b372a5744049c9a0df257526dd"
+    }
+  ],
+  "providerImports": 0,
+  "researchConstructors": 0,
+  "researchSteps": 0,
+  "WorldCalls": 0
+}

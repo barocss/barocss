@@ -1,4 +1,4 @@
-import type {Vec3} from '../types.js';
+import type {Vec3} from '../internal-types.js';
 import type {PairInput} from './types.js';
 import {copyBody} from '../validation.js';
 import {validateResult} from '../collision.js';

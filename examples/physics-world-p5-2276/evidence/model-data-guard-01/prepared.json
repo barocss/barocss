@@ -1,0 +1,57 @@
+{
+  "kind": "P5B_MODEL_DATA_OUTER_GUARD",
+  "receiptId": "model-data-guard-01",
+  "censusId": "model-data-01",
+  "status": "PREPARED",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/generate-model-data.mjs",
+    "--run-id",
+    "model-data-01",
+    "--freeze",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/model-data-execution-freeze-01.json"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "inputs": {
+    "model-data-run.mjs": {
+      "bytes": 11791,
+      "sha256": "00cdb8eaa48746c7fe30d09242b9b68e2659bb7034c75679abb54077aa086c23"
+    },
+    "generate-model-data.mjs": {
+      "bytes": 13911,
+      "sha256": "91e82ad08f8a951a8cec21fdc7dcf029e9c9a98645e305c74dd43e3e4e6db49c"
+    },
+    "P5B-GENERATION-PROPOSAL.json": {
+      "bytes": 6001,
+      "sha256": "63a999b693714459085f7435b1099bc6d3f5c85e070ed90ac65ef728747c7b0e"
+    },
+    "model-data-execution-freeze-01.json": {
+      "bytes": 7042,
+      "sha256": "9d1ccf956ba5aacf00d9a9b35fbeb71f20d086999598bfc97db7e7c01d2b723e"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": null,
+  "spawnAt": null,
+  "pid": null,
+  "processGroupId": null,
+  "exit": null,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": null,
+  "processClosed": false,
+  "groupSignals": [],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/model-data-01/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/model-data-01/progress.json",
+  "errors": []
+}

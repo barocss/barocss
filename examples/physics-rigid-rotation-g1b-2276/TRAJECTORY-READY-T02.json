@@ -1,0 +1,29 @@
+{
+  "status": "PARENT_AUTHOR_READY_T02_FIRST_RETURNED_STATE_EVIDENCE_REPAIR_NOT_EXECUTED",
+  "runtimeAuthorized": false,
+  "source": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/trajectory-campaign.mjs",
+    "bytes": 44582,
+    "sha256": "fa1098b58515d6b3b8382e647a431d29c7bd4615d618506b8af0871ee69b7453"
+  },
+  "preservedT01": {
+    "commit": "ff21454e0",
+    "sourceSha256": "6859278f005288f630690b1bd7ef548a8b9cdfc131a2194d0d6a9c8938927b15",
+    "Ready": "TRAJECTORY-READY-T01.json"
+  },
+  "scope": "Retain latest already-returned publicstate in registered currentcontext before intact/stateGuard checks. On first case failure save existing rawstate before dispose; preserveprimaryerror ifcapturefails. No API/cache/oracle/constructor/step/recovery call is added. This covers unexpectedacceptedresponse on an expectedfailure and pre-audit validation failures.",
+  "storage": "At most8192B once onfailedprefix, inside original1MiBfinal/progress/failure reserve. Existinglateststate shares rootdata via alias; ownership traversal deduplicates it. No normalartifact/count/trace/physicalgate changes.",
+  "checks": [
+    {
+      "kind": "Node22--check",
+      "result": "PASS",
+      "scope": "Syntaxonly,0module/provider/fixture/math/reference/build/World execution"
+    },
+    {
+      "kind": "gitdiff--check",
+      "result": "PASS"
+    }
+  ],
+  "unchanged": "Original94accepted/114attempts/16World/36reads/110audits/112requests/maxiterations/tolerances/source-beforeNative/8MiBowned/16MiBevidence/32MDecimal/T21Msubcap/providerclosure and allfirstfailures.",
+  "pending": "Highfinalcombinedreview andfreshparentruntimefreeze mandatory."
+}

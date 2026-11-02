@@ -1,0 +1,99 @@
+{
+  "workId": "physics-rigid-rotation-g1d-2276",
+  "runId": "g1d-integration-01",
+  "authority": "Parent approves finite CONTRACT.md K/R integration: source build1, 6World12accepted8independentendpointaudits; no public adoption or HOLD change.",
+  "files": {
+    "examples/physics-rigid-rotation-g1b-2276/REFERENCE-BANK-REUSE-T02.json": {
+      "bytes": 21068,
+      "sha256": "aaffbe967d97a44ce2c5c4ceb9fd1e12258d41adba087b1dfcdd1d281601c4df"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/staged-providers.json": {
+      "bytes": 210540,
+      "sha256": "5765e301315fe8381350d8d18402987477f5f63c1f5096fa4d3312e6ee099e14"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/summary.json": {
+      "bytes": 12835,
+      "sha256": "a3d3d9856676e4c41a01713e992fd094ffa9b95682bd6a34fbe4bbd1912f3ecc"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-native-completion-02/input-1.json": {
+      "bytes": 1877,
+      "sha256": "ffa90f765d6b060b427607cdc5c447fed12efe3e55fe9f3ae4276f581914207b"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-01/reference/bank.json": {
+      "bytes": 504772,
+      "sha256": "53d94c22d5f0f6a803d8c430ff121facbad57287e25f8ef906e1fddfe18c9e2b"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-01-reference-rows/bank-120-02.json": {
+      "bytes": 11400,
+      "sha256": "5c165d124a14c8ff11ce891ab34e01d43bcd2165bef321e892028a7bc2942e68"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-01-reference-rows/bank-120-04.json": {
+      "bytes": 11393,
+      "sha256": "a85f141b6d059c4b617ace8e947d8986d7328406b7aff674c98dcae35f6837f7"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-01-reference-rows/bank-80-02.json": {
+      "bytes": 8374,
+      "sha256": "218a20204896a3d1940d71b652156b7410de413ad5c3ae0949d9d4022c163a35"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-01-reference-rows/bank-80-04.json": {
+      "bytes": 8359,
+      "sha256": "ea6c4c2c118da7222a782fe62c31885cd2176b9c2c2130be748e99ecabd28b48"
+    },
+    "examples/physics-rigid-rotation-g1c-2276/FRAME-RESULTS-02.json": {
+      "bytes": 5834,
+      "sha256": "82793578ca3cf71a207488fd28cf8252e8620505747101b09152a64b670b5f76"
+    },
+    "examples/physics-rigid-rotation-g1c-2276/evidence/g1c-frame-02/summary.json": {
+      "bytes": 3909,
+      "sha256": "0d69ce1b2c8d9b81603a840d6ec641db19703a44a1855d0bd99ac6a9a890a9cf"
+    },
+    "examples/physics-rigid-rotation-g1c-2276/reference-frame.py": {
+      "bytes": 11345,
+      "sha256": "91966d1e3d2fc3cabea2156dd670463faf70af811f05aecbf32d182e20590d19"
+    },
+    "examples/physics-rigid-rotation-g1d-2276/CONTRACT.md": {
+      "bytes": 6112,
+      "sha256": "36c1c1ca616d652419a524296412afe337849323c4f989adb704d532898e1e3a"
+    },
+    "examples/physics-rigid-rotation-g1d-2276/REFERENCE-REVIEW.md": {
+      "bytes": 5451,
+      "sha256": "60fdf8c69f2cb2a9e5f3c88228851ea2e078ba86116b011585158f0e4c3c9d37"
+    },
+    "examples/physics-rigid-rotation-g1d-2276/integration-campaign.mjs": {
+      "bytes": 24285,
+      "sha256": "47366c9db088297ba1c62615e4ecc151712311828160087e1c2c1c9565218cac"
+    },
+    "examples/physics-rigid-rotation-g1d-2276/reference-integration.py": {
+      "bytes": 11618,
+      "sha256": "8c99eba97ef421fee676b12ec55d453d746b0a6f024ea74c882c27c4ccce7762"
+    },
+    "examples/physics-world-p5-2276/command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    }
+  },
+  "tools": {
+    "node": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "python": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+    "esbuild": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/esbuild/bin/esbuild",
+    "nodePin": {
+      "path": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "bytes": 110712624,
+      "sha256": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+    },
+    "pythonPin": {
+      "path": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+      "bytes": 52640,
+      "sha256": "a1f6d9dc20d4787a84dc2fe782094a7bac5946f49a962aa0af48a02f0e8d5bc5"
+    },
+    "esbuildPin": {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/esbuild/bin/esbuild",
+      "bytes": 9934834,
+      "sha256": "3e030ee2aa86ad3c33e5e95ae0e53bb03de40e0da35c9b1180a67de4a497cae5"
+    }
+  },
+  "sourceEntry": {
+    "bytes": 530,
+    "sha256": "bcdfea186236c191d8e163d09a7b024a9a9fc03aab3b25c9d9f520151ed784c6"
+  }
+}

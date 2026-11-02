@@ -1,0 +1,124 @@
+{
+  "status": "PASS_BOUNDED_G1C_FRAME_COMPOSITE",
+  "source": "Saved Source b01 independent physical PASS from cleanup-failed run plus seven new Source cases. Eight new Native cases.",
+  "productionAPIAdoption": "NOT_RUN",
+  "canonicalBuild": "NOT_RUN",
+  "newBuilds": 0,
+  "profile": "Eight named one-step triaxial input/frame cases at dt120; not general range qualification.",
+  "currentCalls": {
+    "moduleEvaluations": 3,
+    "constructors": 15,
+    "reads": 15,
+    "steps": 15,
+    "disposals": 15,
+    "referenceSpawns": 15,
+    "privateObservations": 15
+  },
+  "reusedPhysicalSourceCases": 1,
+  "wholePhysicalPopulation": {
+    "Source": 8,
+    "Native": 8
+  },
+  "maxErrors": {
+    "worldL": {
+      "decimal": "2.1876288451716093e-17",
+      "numerator": "4236753239057846814759974937712918857732900677922296848842886832240545446738331268934822954610017845177",
+      "denominator": "193668740856518237987115730199935337426350800282162248051751340487715156585099803069619561095838319294761316496839802880",
+      "graph": "native",
+      "case": "w03-half-turn-z",
+      "artifact": "examples/physics-rigid-rotation-g1c-2276/evidence/g1c-frame-02/native-w03-half-turn-z-reference.json"
+    },
+    "energy": {
+      "decimal": "3.3372206629316676e-17",
+      "numerator": "582149090241166519097492082628137373614814131040958292522842678706625724648078988684852616645413468842150899156031970941",
+      "denominator": "17444129383094573818596964288710717012671756937940213223613775959428112838484771630325304940424058698719153639492571432918693707356569600",
+      "graph": "native",
+      "case": "w03-half-turn-z",
+      "artifact": "examples/physics-rigid-rotation-g1c-2276/evidence/g1c-frame-02/native-w03-half-turn-z-reference.json"
+    },
+    "qSquaredNorm": {
+      "decimal": "2.421861488355989e-16",
+      "numerator": "160960304611805238431",
+      "denominator": "664613997892457936451903530140172288",
+      "graph": "native",
+      "case": "w01-half-turn-x",
+      "artifact": "examples/physics-rigid-rotation-g1c-2276/evidence/g1c-frame-02/native-w01-half-turn-x-reference.json"
+    },
+    "R": {
+      "decimal": "3.1553385712938211e-17",
+      "numerator": "209708218257186313864981475986191777510706305526707338393914220905608832349308973653388224466862824397",
+      "denominator": "6646139978924580973639484787471429790000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "graph": "source",
+      "case": "b01-cycle-yzx",
+      "artifact": "examples/physics-rigid-rotation-g1c-2276/evidence/g1c-frame-01/source-b01-cycle-yzx-reference.json"
+    },
+    "omega": {
+      "decimal": "7.3343311018559028e-16",
+      "numerator": "7334331101855903046173856074703144977225473839224917933401146599",
+      "denominator": "10000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "graph": "native",
+      "case": "w01-half-turn-x",
+      "artifact": "examples/physics-rigid-rotation-g1c-2276/evidence/g1c-frame-02/native-w01-half-turn-x-reference.json"
+    },
+    "q": {
+      "decimal": "1.2102329362648735e-16",
+      "numerator": "1210232936264873501854279572493690831817310023540685988977313753",
+      "denominator": "10000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "graph": "source",
+      "case": "b01-cycle-yzx",
+      "artifact": "examples/physics-rigid-rotation-g1c-2276/evidence/g1c-frame-01/source-b01-cycle-yzx-reference.json"
+    }
+  },
+  "fractionArithmeticOperations": 13056,
+  "newMonomialIntegrals": 144,
+  "newODEWindows": 0,
+  "newDecimalOperations": 0,
+  "newSqrtOrTrigCalls": 0,
+  "referenceResources": {
+    "peakLogicalBytes": 85892,
+    "maximumUniqueObjects": 326
+  },
+  "harnessPeakLogicalBytes": 7330490,
+  "elapsedCurrentInnerMs": 1494.5539999999999,
+  "firstFailure": {
+    "status": "FAIL_PRESERVED",
+    "summary": {
+      "path": "examples/physics-rigid-rotation-g1c-2276/evidence/g1c-frame-01/summary.json",
+      "bytes": 845,
+      "sha256": "a27758025f66f411efafd4e9e11b8aa759981ede284871a997d7563ffbc3882a"
+    },
+    "sourceSnapshot": {
+      "path": "examples/physics-rigid-rotation-g1c-2276/first-failure-inputs/frame-campaign-01.mjs",
+      "bytes": 16756,
+      "sha256": "1eff22ff9da36aeb8d73b2e86afbbf5b0ce08fceb01cabb8a634afcdd20d59e9"
+    },
+    "cause": "Private test observer release omitted after returned World.dispose(); independent b01 physical audit passed.",
+    "corrected": "Explicit cancel/release in finally; all15 current lifecycle paths returned; no cleanup errors."
+  },
+  "actualResult": {
+    "path": "examples/physics-rigid-rotation-g1c-2276/evidence/g1c-frame-02/summary.json",
+    "bytes": 3909,
+    "sha256": "0d69ce1b2c8d9b81603a840d6ec641db19703a44a1855d0bd99ac6a9a890a9cf"
+  },
+  "gates": {
+    "worldLAndEnergy": "1e-12 +1e-12*max(1,abs(initial),abs(current))",
+    "qSquaredNorm": "1e-12",
+    "trajectoryEachEndpoint": "1e-11 +1e-12*abs(reference)",
+    "referenceWidth": "1e-24",
+    "changed": false
+  },
+  "remaining": [
+    "G1a x/y symmetry and general near-unit directions/zero spin",
+    "Wider inertia/spin/dt and near-equality admission",
+    "Off-axis angular kick, motor/joint/contact/projection and coupling",
+    "Recorder/current canonical-root adoption (next G1d finite gate)",
+    "Original P4 eight-box NO_GO and other independent required roadmap gates"
+  ],
+  "scopeLimits": [
+    "One step per input; no new dt refinement, long duration or measured order.",
+    "Scale input preserves inertia; no general scale/range theorem.",
+    "Physical accuracy and Source/Native deterministic word equality assessed separately.",
+    "No equipment measurement or manufacturing safety claim."
+  ],
+  "invariants": "Existing HOLD, original NO_GO, tolerance and first-failure records preserved. No publish/deploy/merge."
+}

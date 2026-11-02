@@ -1,0 +1,139 @@
+{
+  "status": "PASS_COMPLETE_SOURCE_MAPPING_MISSING_NATIVE_INVENTORY",
+  "sourceReports": 60,
+  "missingPublishedEndpointIdentities": [
+    "@barocss/cad-interop",
+    "@barocss/cad-interop/assembly",
+    "@barocss/cad-interop/boolean-extrusion-feature-mesh",
+    "@barocss/cad-interop/document",
+    "@barocss/cad-interop/model-set",
+    "@barocss/cad-interop/native",
+    "@barocss/gpu",
+    "@barocss/gpu/source",
+    "@barocss/gpu/viewer",
+    "@barocss/viewer"
+  ],
+  "minimalFrontier": [
+    {
+      "index": 7,
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 13,
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/assembly",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 14,
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set",
+        "@barocss/gpu"
+      ]
+    },
+    {
+      "index": 15,
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 16,
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/document",
+        "@barocss/cad-interop/native",
+        "@barocss/cad-interop/model-set",
+        "@barocss/cad-interop/assembly",
+        "@barocss/gpu"
+      ]
+    },
+    {
+      "index": 17,
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/gpu",
+        "@barocss/cad-interop/native",
+        "@barocss/cad-interop/model-set",
+        "@barocss/cad-interop/document",
+        "@barocss/cad-interop/assembly"
+      ]
+    },
+    {
+      "index": 18,
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set",
+        "@barocss/cad-interop/assembly",
+        "@barocss/gpu"
+      ]
+    },
+    {
+      "index": 19,
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set",
+        "@barocss/gpu"
+      ]
+    },
+    {
+      "index": 20,
+      "endpoints": [
+        "@barocss/cad-interop",
+        "@barocss/gpu",
+        "@barocss/gpu/source",
+        "@barocss/viewer",
+        "@barocss/cad-interop/native",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 21,
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set",
+        "@barocss/gpu"
+      ]
+    },
+    {
+      "index": 33,
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 49,
+      "endpoints": [
+        "@barocss/cad-interop",
+        "@barocss/gpu",
+        "@barocss/gpu/source",
+        "@barocss/viewer",
+        "@barocss/cad-interop/native",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 51,
+      "endpoints": [
+        "@barocss/cad-interop",
+        "@barocss/gpu",
+        "@barocss/gpu/source",
+        "@barocss/viewer",
+        "@barocss/cad-interop/native",
+        "@barocss/cad-interop/model-set"
+      ]
+    }
+  ],
+  "implementationClosure": "NOT_RUN",
+  "productIntegration": "NOT_RUN",
+  "sourceFallback": false,
+  "WorldCalls": 0
+}

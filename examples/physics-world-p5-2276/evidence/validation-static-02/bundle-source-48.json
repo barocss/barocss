@@ -1,0 +1,36 @@
+{
+  "mode": "source",
+  "entry": "examples/workspace-source/compiled-probe.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/workspace-source/compiled-probe.mjs": {
+      "bytes": 68,
+      "sha256": "a5d4b0f4b8e82b65dcb98ccbbb782d9d763b4149dcf56d5ce1aafea5a8d0b4a1",
+      "effectiveSha256": "a5d4b0f4b8e82b65dcb98ccbbb782d9d763b4149dcf56d5ce1aafea5a8d0b4a1"
+    },
+    "examples/workspace-source/probe.mjs": {
+      "bytes": 5767,
+      "sha256": "e077c98279d08e83f9839d2a47a042ba4d77fed328a8b87af60f70ca4d54810e",
+      "effectiveSha256": "e077c98279d08e83f9839d2a47a042ba4d77fed328a8b87af60f70ca4d54810e"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 5912,
+  "outputSha256": "0327547cb40f2d24f8aa002ff7b211704d0eb06b23bd003f8f95612a1c2e871d",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [
+    "node:assert/strict",
+    "node:child_process",
+    "node:fs/promises",
+    "node:path",
+    "node:url",
+    "esbuild"
+  ],
+  "moduleEvaluation": false
+}

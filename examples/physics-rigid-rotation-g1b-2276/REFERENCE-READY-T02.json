@@ -1,0 +1,127 @@
+{
+  "status": "AUTHOR_READY_T02_CLOSED_BANK_REUSE_ONLY_NOT_EXECUTED",
+  "runtimeAuthorized": false,
+  "productionActivation": false,
+  "reference": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/reference-trajectory.py",
+    "bytes": 35076,
+    "sha256": "4597ad8a4d8ee710ff18c060f3dd2cf121efaa630e2ef187763126c17053e547"
+  },
+  "protocolAddendum": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/REFERENCE-PROTOCOL-T02.md",
+    "bytes": 2052,
+    "sha256": "c701f3a7a3c4be38097b23b06f48c560ba144df0c95d41fbb7ed4078bcde77f6"
+  },
+  "reuseNotes": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/REUSE-NOTES-T02.md",
+    "bytes": 2755,
+    "sha256": "50d425db67ec80692877dfbaf83accb8362741fc495cac742c6b38383fd5f866"
+  },
+  "closedRowManifest": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/REFERENCE-BANK-REUSE-T02.json",
+    "bytes": 21068,
+    "sha256": "aaffbe967d97a44ce2c5c4ceb9fd1e12258d41adba087b1dfcdd1d281601c4df"
+  },
+  "preservedT01Ready": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/REFERENCE-READY-T01.json",
+    "bytes": 7336,
+    "sha256": "4f5ad4638a46aa806b5de768a5101efa5c7f0f66ff3676648f636ad62a7bc74b"
+  },
+  "unchangedProtocol": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/REFERENCE-PROTOCOL-T01.md",
+    "bytes": 6574,
+    "sha256": "db7b8323fabee98773e95cf71b1a6e20fa0c030385cf460b71680fc3048cfa0f"
+  },
+  "driver": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/trajectory-campaign.mjs",
+    "bytes": 44847,
+    "sha256": "20fe9c961965054489260468a4d100795b24c6bdd721cb1e9176ed69ac6ca23b"
+  },
+  "driverReady": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-READY-T03.json",
+    "bytes": 3935,
+    "sha256": "cb12ff3d29a80a89ff75335783fa3ecad2fb367bff6828e97829f969b6950b37"
+  },
+  "preservedFailure": {
+    "commits": [
+      "0af158c34",
+      "fc52ffb05",
+      "7e16a58b5"
+    ],
+    "referenceSourceSHA": "bcc3e19f90f256631d5366e4a23180649fbacdba6df7d94d1bf48b71c2b908b0",
+    "originalBankSHA": "53d94c22d5f0f6a803d8c430ff121facbad57287e25f8ef906e1fddfe18c9e2b",
+    "classification": "Harness self-alias check before first reference state audit/step; not a physical failure",
+    "Worlds": 1,
+    "reads": 1,
+    "cache": 1,
+    "dispose": 1,
+    "steps": 0,
+    "audits": 0,
+    "native": "NOT_LOADED",
+    "referenceInitPassed": true,
+    "completedNewTaylorWindows": 44,
+    "actualDecimal": 20876116,
+    "actualFraction": 3070,
+    "actualEndpointSqrt": 88
+  },
+  "reuseProof": {
+    "authority": "PASS initreply0001 +matching durable progress/counters/request proof; exact current8inputs andSource39words match closedT01 andM",
+    "rowTransfer": "Allmanifestreferencesrequiredinfreshfreeze withsamebytes/SHA;parentexactJSONtree extraction/floatnode rejection; one rawrow live at a time; no fullbank parse",
+    "rows": 48,
+    "principals": 6,
+    "newTaylorDecimalSqrtIntegralMonomialBisection": 0,
+    "freshFallback": "Explicitlyforbidden interval-engine construction andwindow entry",
+    "auditUnchangedAST": [
+      "targets",
+      "trajectory",
+      "refinement",
+      "observe_private_t",
+      "audit",
+      "rounded_clock"
+    ],
+    "newMath": "Only unchangedactualstate/invariant/trajectory/refinement/clock audits;nonebeforeINITreturn; savedFractiondecodingismetadataconversion"
+  },
+  "budgets": {
+    "jointActualDecimalBase": 23634120,
+    "newDecimalExpected": 0,
+    "jointDecimalCap": 32000000,
+    "jointFractionBase": 31362,
+    "newFractionSubcap": 1000000,
+    "jointFractionCap": 10000000,
+    "jointEndpointBase": 96,
+    "newEndpointSqrtExpected": 0,
+    "referenceWorkBytes": 8388608,
+    "uniqueIDCap": 8192,
+    "referenceEvidenceBytes": 8388608,
+    "combinedEvidenceBytes": 16777216,
+    "logicalBytes": 67108864,
+    "internalSeconds": 170,
+    "cleanupSeconds": 4,
+    "outerSeconds": 180
+  },
+  "T02ExecutionLedgerUnchanged": {
+    "Worlds": 16,
+    "getState": 36,
+    "stepAttempts": 114,
+    "acceptedSteps": 94,
+    "dispose": 16,
+    "stateAudits": 110,
+    "privateInitialRecords": 16,
+    "cacheObservations": 36,
+    "requests": 112,
+    "repliesIncludingReady": 113,
+    "refinementChecks": 72,
+    "sourceBeforeNative": true,
+    "productionActivation": false
+  },
+  "authorChecks": {
+    "pythonSyntaxAst": "PASS",
+    "unchangedAuditAST": "PASS againstpreservedbcc3source",
+    "moduleEvaluation": 0,
+    "fixtureConversion": 0,
+    "FractionDecimalCalculations": 0,
+    "build": 0,
+    "World": 0
+  },
+  "next": "FreshparentfreezeandcombinedT02review beforeoneactualT02campaign. Alloldsource/firstfailure/closedbank/protocol/data preserved; no more incidental edits."
+}

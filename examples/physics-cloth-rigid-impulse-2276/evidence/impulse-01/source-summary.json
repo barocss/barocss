@@ -1,0 +1,13 @@
+{
+  "status": "PASS_PRIVATE_CANDIDATE_GRAPH",
+  "counts": {
+    "attempts": 25,
+    "returns": 13,
+    "refusals": 10,
+    "faultThrows": 2,
+    "solveEntries": 15,
+    "firstSideVisits": 15,
+    "pairVisits": 14,
+    "validatorProcesses": 13
+  }
+}

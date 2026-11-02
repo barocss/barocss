@@ -1,0 +1,3854 @@
+{
+  "labels": {
+    "source": "STAGED_COMMON_WORLD_SOURCE",
+    "native": "STAGED_EMITTED_PUBLIC_ENTRY"
+  },
+  "productionActivation": "NOT_RUN",
+  "canonicalBuildRootBundling": "NOT_RUN",
+  "transfer": [
+    {
+      "name": "broadphase.ts",
+      "original": {
+        "bytes": 1371,
+        "sha256": "d93e38d78cc3d202481ceeba83631d528032426d03a8adafb2e461fc72a042a0"
+      }
+    },
+    {
+      "name": "cad-fluid-data.ts",
+      "original": {
+        "bytes": 2345,
+        "sha256": "5a15e23ba65663433501f07d2f35f323960879218d52a007efeb09ca7934ce10"
+      }
+    },
+    {
+      "name": "cad-proxy-admission.ts",
+      "original": {
+        "bytes": 7744,
+        "sha256": "898fb55af369727440fef9f4bfadba0ea455b4c800a719909e5311029a663441"
+      }
+    },
+    {
+      "name": "cad-proxy-pose.ts",
+      "original": {
+        "bytes": 1479,
+        "sha256": "8b5f50642144e335421ee6483f8b016b8a0babdb0c312ddf6ba4afbcf8bda322"
+      }
+    },
+    {
+      "name": "cad-proxy-types.ts",
+      "original": {
+        "bytes": 887,
+        "sha256": "31bbf6766887913149d6fa2185c173adb0c6b78cdb21d1556ae4ffd055666128"
+      }
+    },
+    {
+      "name": "cad-proxy-validation.ts",
+      "original": {
+        "bytes": 1598,
+        "sha256": "4429f957bb51ff2604a15478095e35642368dcf91ca0d854561693d3f99f748e"
+      }
+    },
+    {
+      "name": "cad-proxy.ts",
+      "original": {
+        "bytes": 321,
+        "sha256": "cc7715b4fc974c8ed4511ebf684cdc7c2923f7ab4b8b7f5db45b208f8e6ffa99"
+      }
+    },
+    {
+      "name": "capsule-contact.ts",
+      "original": {
+        "bytes": 5615,
+        "sha256": "cc29d60423bd9a1883585cf164cca0b0736b9fc72e7feb3575c5208c7d892929"
+      }
+    },
+    {
+      "name": "capsule-query-error.ts",
+      "original": {
+        "bytes": 137,
+        "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+      }
+    },
+    {
+      "name": "capsule-query.ts",
+      "original": {
+        "bytes": 222,
+        "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+      }
+    },
+    {
+      "name": "capsule-query/admission.ts",
+      "original": {
+        "bytes": 5248,
+        "sha256": "9b67efc7a8824ce49361485eff925afa50017e05bc23d900db5ec7c4e2c8760d"
+      }
+    },
+    {
+      "name": "capsule-query/geometry.ts",
+      "original": {
+        "bytes": 2570,
+        "sha256": "5fdbe1eb40f46e930161e98244a9e5ec0e00c29297caf6f91d530c98df3df4a7"
+      }
+    },
+    {
+      "name": "capsule-query/profile.ts",
+      "original": {
+        "bytes": 303,
+        "sha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff"
+      }
+    },
+    {
+      "name": "capsule-query/snapshot.ts",
+      "original": {
+        "bytes": 2537,
+        "sha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd"
+      }
+    },
+    {
+      "name": "capsule-query/sweep.ts",
+      "original": {
+        "bytes": 1861,
+        "sha256": "a8f4d16879b2ff88086ceec54cef19d04d58fb063893e7a146382cad59cbaf77"
+      }
+    },
+    {
+      "name": "capsule-query/types.ts",
+      "original": {
+        "bytes": 979,
+        "sha256": "c22d17887cd8ab889a443c828200310a4c560fd3b4f8ed49f3f1f60e5dd46f44"
+      }
+    },
+    {
+      "name": "ccd-box.ts",
+      "original": {
+        "bytes": 1978,
+        "sha256": "43667cba73a01782cac3b9fe14828b67885229a6e09bc9f0e68b6a2d27057b43"
+      }
+    },
+    {
+      "name": "ccd-pair.ts",
+      "original": {
+        "bytes": 2110,
+        "sha256": "570b434c19e432ccc3632bafa2c174df6dac9968e6c38b0f7d4416f75090231f"
+      }
+    },
+    {
+      "name": "ccd-slab.ts",
+      "original": {
+        "bytes": 1125,
+        "sha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340"
+      }
+    },
+    {
+      "name": "ccd.ts",
+      "original": {
+        "bytes": 3220,
+        "sha256": "040de88f74673b297164227ff5faada12f0eb190aa14a9471dbeb02f879a57ab"
+      }
+    },
+    {
+      "name": "character-controller.ts",
+      "original": {
+        "bytes": 1363,
+        "sha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927"
+      }
+    },
+    {
+      "name": "character/admission.ts",
+      "original": {
+        "bytes": 4488,
+        "sha256": "d83cdb8231620a18935d4d4d5e19ab7ec5440b043e1df71d49d5fa42f3fecb26"
+      }
+    },
+    {
+      "name": "character/core.ts",
+      "original": {
+        "bytes": 4057,
+        "sha256": "6c6251e9782baed07be65cce68bfdbca14e2f930ca04a54ee6812cbbfc925a02"
+      }
+    },
+    {
+      "name": "character/ground.ts",
+      "original": {
+        "bytes": 1242,
+        "sha256": "bd1621641ebc9300943b88c9083710218768454acb0a5e1ba8b330086d68c321"
+      }
+    },
+    {
+      "name": "character/math.ts",
+      "original": {
+        "bytes": 859,
+        "sha256": "df0e88c320d8a189004991cd5cfc3f8de3d7bb3eecb305bb01830a11191dcdc5"
+      }
+    },
+    {
+      "name": "character/profile.ts",
+      "original": {
+        "bytes": 334,
+        "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+      }
+    },
+    {
+      "name": "character/query.ts",
+      "original": {
+        "bytes": 2733,
+        "sha256": "9ef96eeb1529dc42466445529b100affc2f56913081f0c2fc169079cffe1a8cf"
+      }
+    },
+    {
+      "name": "character/slide.ts",
+      "original": {
+        "bytes": 2555,
+        "sha256": "587d5512212e68fdc26068646152d2f8c52c3c6119d6c222de91b750c01fcd77"
+      }
+    },
+    {
+      "name": "character/state.ts",
+      "original": {
+        "bytes": 2181,
+        "sha256": "6eb744c82f24604a8ecadd6e9d86406600119a3fbc7918129f93983df7cbf47e"
+      }
+    },
+    {
+      "name": "character/step-assist.ts",
+      "original": {
+        "bytes": 3129,
+        "sha256": "9166857ad8509049a56d5b255ed59de17ee03e159581b495de7f1d985780c390"
+      }
+    },
+    {
+      "name": "character/types.ts",
+      "original": {
+        "bytes": 2552,
+        "sha256": "866c5974fd99ec08b5dc6b5edf165241f4d02a8ed87274faf4cf35b19a3fb938"
+      }
+    },
+    {
+      "name": "cloth/constraints.ts",
+      "original": {
+        "bytes": 1772,
+        "sha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be"
+      }
+    },
+    {
+      "name": "cloth/metrics.ts",
+      "original": {
+        "bytes": 1805,
+        "sha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd"
+      }
+    },
+    {
+      "name": "cloth/profile.ts",
+      "original": {
+        "bytes": 655,
+        "sha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f"
+      }
+    },
+    {
+      "name": "cloth/solver.ts",
+      "original": {
+        "bytes": 1395,
+        "sha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d"
+      }
+    },
+    {
+      "name": "cloth/topology.ts",
+      "original": {
+        "bytes": 1931,
+        "sha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203"
+      }
+    },
+    {
+      "name": "cloth/types.ts",
+      "original": {
+        "bytes": 719,
+        "sha256": "bad411f3fa02e4ba7039b5d447de395074342aa207f2eeed251705b15facb6d1"
+      }
+    },
+    {
+      "name": "collision.ts",
+      "original": {
+        "bytes": 13442,
+        "sha256": "baa1492ee990bb156d4ba10deb45e0ddc31d31ab6555318c5f652043aa1ea501"
+      }
+    },
+    {
+      "name": "contact-manifold.ts",
+      "original": {
+        "bytes": 4743,
+        "sha256": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428"
+      }
+    },
+    {
+      "name": "disjoint-hinge/admission.ts",
+      "original": {
+        "bytes": 3764,
+        "sha256": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d"
+      }
+    },
+    {
+      "name": "disjoint-hinge/errors.ts",
+      "original": {
+        "bytes": 2777,
+        "sha256": "5e51e5662fbce80bee3ccd3aa3694ee986b1492ed816d171774e261ab982bf4f"
+      }
+    },
+    {
+      "name": "disjoint-hinge/linear-solver.ts",
+      "original": {
+        "bytes": 10615,
+        "sha256": "4009d4d7f171be3a5d79ca309a14b039da54f9201b438a410a6e29ed0f90bfdf"
+      }
+    },
+    {
+      "name": "disjoint-hinge/measure.ts",
+      "original": {
+        "bytes": 4626,
+        "sha256": "97cbaf697dc8ef5caba0bf2c702699b025bcc6f906f553b623466618bbd77178"
+      }
+    },
+    {
+      "name": "disjoint-hinge/pose.ts",
+      "original": {
+        "bytes": 3194,
+        "sha256": "ab950c1f9f1a79f9f00cb26e4b3cef0e3dcaea7b16d74e345e711159706b39e4"
+      }
+    },
+    {
+      "name": "disjoint-hinge/postcontact.ts",
+      "original": {
+        "bytes": 2936,
+        "sha256": "8d07190383a64cb592165772109a4f462099743492f8373794ef7981b1431e38"
+      }
+    },
+    {
+      "name": "disjoint-hinge/projection.ts",
+      "original": {
+        "bytes": 3538,
+        "sha256": "9d0def632c07f8085e860a2dbf21f26d8073f3265eb57590607d23ea6d333b87"
+      }
+    },
+    {
+      "name": "disjoint-hinge/report.ts",
+      "original": {
+        "bytes": 5726,
+        "sha256": "d46b3e289c58b289b059928580ff2b89d9bd3ecfb11cb688d8b7a4735143973d"
+      }
+    },
+    {
+      "name": "disjoint-hinge/rows.ts",
+      "original": {
+        "bytes": 3685,
+        "sha256": "6556f07d1d7d22edb67af1b214c689c5b5c2b30628334abaec67280d7302903f"
+      }
+    },
+    {
+      "name": "disjoint-hinge/stage.ts",
+      "original": {
+        "bytes": 2648,
+        "sha256": "a66e09b816259c2bb1305fed8f90696585b9fd4b750406b0ce006cbe2c2f33ab"
+      }
+    },
+    {
+      "name": "disjoint-hinge/types.ts",
+      "original": {
+        "bytes": 1610,
+        "sha256": "89b2708fd9209932084eaa765f93ff6ea00a2d775911e8c9e607a7eb824c8cc1"
+      }
+    },
+    {
+      "name": "domain/admission.ts",
+      "original": {
+        "bytes": 11327,
+        "sha256": "1182fb21ec319132ac2f16ddec8494e3d1c4c5ac750bbe1ebab4c29817b4423e"
+      }
+    },
+    {
+      "name": "domain/cloth-reference.generated.ts",
+      "original": {
+        "bytes": 158018,
+        "sha256": "c9ee88af8e25b533c2694433502b28f51dffdeae5cce656b53eb36a187be60bc"
+      }
+    },
+    {
+      "name": "domain/cloth.ts",
+      "original": {
+        "bytes": 4349,
+        "sha256": "2454474a24928a9f3d92d635a9391c537ef74de77112fdc2f2872536cb447883"
+      }
+    },
+    {
+      "name": "domain/fluid.ts",
+      "original": {
+        "bytes": 4923,
+        "sha256": "bfcafa7cc2f2bbb4ec6e2c20797f5dc5410d995cd28305272a2c3665d827179a"
+      }
+    },
+    {
+      "name": "domain/types.ts",
+      "original": {
+        "bytes": 3839,
+        "sha256": "35fcadf07a848d919806955f6c3d934d01217ff1c26ca7d4eb4eb2807eb4ee6f"
+      }
+    },
+    {
+      "name": "dynamic-anchor-pair.ts",
+      "original": {
+        "bytes": 3072,
+        "sha256": "8ff622a6ce007e5e7fcb43f0b7c08521615ddacbc8195cde1ac4f574304b579d"
+      }
+    },
+    {
+      "name": "dynamic-fixed-joint.ts",
+      "original": {
+        "bytes": 2051,
+        "sha256": "f5a0fa82c062c7406f6edfeb2aeb169c927ddd8d0965957f630f87e118c52dfa"
+      }
+    },
+    {
+      "name": "dynamic-hinge-joint.ts",
+      "original": {
+        "bytes": 4835,
+        "sha256": "69c816393446b6e06d66849840ecf88a7d28baf72bd30c792180616f55e455f2"
+      }
+    },
+    {
+      "name": "fluid/boundary.ts",
+      "original": {
+        "bytes": 1990,
+        "sha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c"
+      }
+    },
+    {
+      "name": "fluid/constants.ts",
+      "original": {
+        "bytes": 459,
+        "sha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec"
+      }
+    },
+    {
+      "name": "fluid/diagnostics.ts",
+      "original": {
+        "bytes": 1106,
+        "sha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215"
+      }
+    },
+    {
+      "name": "fluid/kernel.ts",
+      "original": {
+        "bytes": 1112,
+        "sha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da"
+      }
+    },
+    {
+      "name": "fluid/neighbors.ts",
+      "original": {
+        "bytes": 2949,
+        "sha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3"
+      }
+    },
+    {
+      "name": "fluid/pbf.ts",
+      "original": {
+        "bytes": 5161,
+        "sha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50"
+      }
+    },
+    {
+      "name": "fluid/static-box.ts",
+      "original": {
+        "bytes": 2481,
+        "sha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9"
+      }
+    },
+    {
+      "name": "fluid/types.ts",
+      "original": {
+        "bytes": 125,
+        "sha256": "c75f020afeb760ec596c3043fc6d2a7166995ce0c3cedbc7e5424a6a83e56a62"
+      }
+    },
+    {
+      "name": "fluid/visual-viscosity.ts",
+      "original": {
+        "bytes": 1265,
+        "sha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3"
+      }
+    },
+    {
+      "name": "generate-provider.mjs",
+      "original": {
+        "bytes": 2663,
+        "sha256": "c45a6eb52df5f4840aa30006ac65d15ea0758066f63d815e4a3b394e8eb20557"
+      }
+    },
+    {
+      "name": "identity.ts",
+      "original": {
+        "bytes": 6081,
+        "sha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be"
+      }
+    },
+    {
+      "name": "index.ts",
+      "original": {
+        "bytes": 570,
+        "sha256": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30"
+      }
+    },
+    {
+      "name": "internal-types.ts",
+      "original": {
+        "bytes": 2615,
+        "sha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8"
+      }
+    },
+    {
+      "name": "joint-motor.ts",
+      "original": {
+        "bytes": 1723,
+        "sha256": "9a50b0d006ca2386cd2d79b8ba162f6850a5d08d3eb1c7d03460d606559b56ea"
+      }
+    },
+    {
+      "name": "joints.ts",
+      "original": {
+        "bytes": 7231,
+        "sha256": "b6d0ec667a96fc26ec43d9d812c5ffd0a3b7446d135bd9b18713059327c59181"
+      }
+    },
+    {
+      "name": "limits.ts",
+      "original": {
+        "bytes": 417,
+        "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+      }
+    },
+    {
+      "name": "math.ts",
+      "original": {
+        "bytes": 2421,
+        "sha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2"
+      }
+    },
+    {
+      "name": "model-admission.ts",
+      "original": {
+        "bytes": 10384,
+        "sha256": "7e77f184fed57d51ee1b0599e60c80d83b96045b139d236a37f76a4207689397"
+      }
+    },
+    {
+      "name": "persistent-box-contact.ts",
+      "original": {
+        "bytes": 3646,
+        "sha256": "2c117202db9bcb0b988b59f9add9cae57e09d175927122a313e7166720a63d9b"
+      }
+    },
+    {
+      "name": "provider-manifest.generated.ts",
+      "original": {
+        "bytes": 7687,
+        "sha256": "464a69f41b0e3006bdc246e3c6d6d1bf91f679b0aec9616e917f02edd0d8f1df"
+      }
+    },
+    {
+      "name": "recording-owner.ts",
+      "original": {
+        "bytes": 895,
+        "sha256": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1"
+      }
+    },
+    {
+      "name": "replay-compare.ts",
+      "original": {
+        "bytes": 1023,
+        "sha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec"
+      }
+    },
+    {
+      "name": "replay-json.ts",
+      "original": {
+        "bytes": 7760,
+        "sha256": "1ab8cf962443edd3be387e5095a9cce3f2071c8b44e47cc165ce82d5c00ac617"
+      }
+    },
+    {
+      "name": "replay-validation.ts",
+      "original": {
+        "bytes": 8096,
+        "sha256": "ab9a7b5097515ddd3d6aa9a434d14f2ae2e04fd15c4059b473d0d708a507c82a"
+      }
+    },
+    {
+      "name": "replay.ts",
+      "original": {
+        "bytes": 7119,
+        "sha256": "07bafc635620c56c479ed44b0f458cbbb470bf20b3ce2ead7248ceb0973ca408"
+      }
+    },
+    {
+      "name": "scene-profile.ts",
+      "original": {
+        "bytes": 1202,
+        "sha256": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7"
+      }
+    },
+    {
+      "name": "sleep.ts",
+      "original": {
+        "bytes": 4411,
+        "sha256": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2"
+      }
+    },
+    {
+      "name": "types.ts",
+      "original": {
+        "bytes": 11884,
+        "sha256": "37fdf1abcc20fd379304213b8c0686f8e0468d285f008aa8ebdb316882efade5"
+      }
+    },
+    {
+      "name": "validation.ts",
+      "original": {
+        "bytes": 14165,
+        "sha256": "651d12754b77f86493f399baf3c02d60d9ad1fe54e0ece664a05a4430e8a0f01"
+      }
+    },
+    {
+      "name": "world.ts",
+      "original": {
+        "bytes": 29055,
+        "sha256": "28022bb98fc8cd33d7dc912f8fb562b1ba375c089ebe8618783d95320929a599"
+      }
+    }
+  ],
+  "overlay": {
+    "originalSha256": {
+      "world": "28022bb98fc8cd33d7dc912f8fb562b1ba375c089ebe8618783d95320929a599",
+      "math": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2",
+      "candidate": "9037e4fc2d83e20d6a5ed08e05bf0225314fe7efc1dac444cfb2188264ff9f54"
+    },
+    "effectiveSha256": {
+      "world": "bc5cbb3261bd59a063a189348352f11a1f1f078a898175c2a878cea1bf2108bd",
+      "math": "5a649cc80f58928732141d5813a4165ebf15e30d3d76f5906f10bb87da99c1c9",
+      "candidate": "20f8eb17a9d8b0e73b26985a787f3f6b0b20671551185aa260ead039b990fe4c",
+      "control": "0c20dc862992391e3fae3b8b7e3c83051065e9b4dd8aefe037e358470047f471"
+    },
+    "isotropicFallbackStatement": "          body.orientation = advanceOrientation(body.orientation, body.angularVelocityRadps, dt);",
+    "policy": "Only world dispatch and private observation/counter imports/wrappers differ. Trig wrappers return the already evaluated original Math result, no extra math. All other package src bytes copied exact.",
+    "labels": [
+      "STAGED_COMMON_WORLD_SOURCE",
+      "STAGED_EMITTED_PUBLIC_ENTRY"
+    ],
+    "nativeCanonicalRootBundling": "NOT_RUN",
+    "productionActivation": "NOT_RUN"
+  },
+  "sourceManifest": {
+    "format": "barocss-physics-provider",
+    "version": 1,
+    "graph": "source",
+    "entries": [
+      "index.ts",
+      "replay.ts"
+    ],
+    "files": {
+      "broadphase.ts": "d93e38d78cc3d202481ceeba83631d528032426d03a8adafb2e461fc72a042a0",
+      "capsule-contact.ts": "cc29d60423bd9a1883585cf164cca0b0736b9fc72e7feb3575c5208c7d892929",
+      "capsule-query-error.ts": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f",
+      "capsule-query.ts": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1",
+      "capsule-query/admission.ts": "9b67efc7a8824ce49361485eff925afa50017e05bc23d900db5ec7c4e2c8760d",
+      "capsule-query/geometry.ts": "5fdbe1eb40f46e930161e98244a9e5ec0e00c29297caf6f91d530c98df3df4a7",
+      "capsule-query/profile.ts": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff",
+      "capsule-query/snapshot.ts": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd",
+      "capsule-query/sweep.ts": "a8f4d16879b2ff88086ceec54cef19d04d58fb063893e7a146382cad59cbaf77",
+      "capsule-query/types.ts": "c22d17887cd8ab889a443c828200310a4c560fd3b4f8ed49f3f1f60e5dd46f44",
+      "ccd-box.ts": "43667cba73a01782cac3b9fe14828b67885229a6e09bc9f0e68b6a2d27057b43",
+      "ccd-pair.ts": "570b434c19e432ccc3632bafa2c174df6dac9968e6c38b0f7d4416f75090231f",
+      "ccd-slab.ts": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340",
+      "ccd.ts": "040de88f74673b297164227ff5faada12f0eb190aa14a9471dbeb02f879a57ab",
+      "character-controller.ts": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927",
+      "character/admission.ts": "d83cdb8231620a18935d4d4d5e19ab7ec5440b043e1df71d49d5fa42f3fecb26",
+      "character/core.ts": "6c6251e9782baed07be65cce68bfdbca14e2f930ca04a54ee6812cbbfc925a02",
+      "character/ground.ts": "bd1621641ebc9300943b88c9083710218768454acb0a5e1ba8b330086d68c321",
+      "character/math.ts": "df0e88c320d8a189004991cd5cfc3f8de3d7bb3eecb305bb01830a11191dcdc5",
+      "character/profile.ts": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82",
+      "character/query.ts": "9ef96eeb1529dc42466445529b100affc2f56913081f0c2fc169079cffe1a8cf",
+      "character/slide.ts": "587d5512212e68fdc26068646152d2f8c52c3c6119d6c222de91b750c01fcd77",
+      "character/state.ts": "6eb744c82f24604a8ecadd6e9d86406600119a3fbc7918129f93983df7cbf47e",
+      "character/step-assist.ts": "9166857ad8509049a56d5b255ed59de17ee03e159581b495de7f1d985780c390",
+      "character/types.ts": "866c5974fd99ec08b5dc6b5edf165241f4d02a8ed87274faf4cf35b19a3fb938",
+      "cloth/constraints.ts": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be",
+      "cloth/metrics.ts": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd",
+      "cloth/profile.ts": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f",
+      "cloth/solver.ts": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d",
+      "cloth/types.ts": "bad411f3fa02e4ba7039b5d447de395074342aa207f2eeed251705b15facb6d1",
+      "collision.ts": "baa1492ee990bb156d4ba10deb45e0ddc31d31ab6555318c5f652043aa1ea501",
+      "contact-manifold.ts": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428",
+      "disjoint-hinge/admission.ts": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d",
+      "disjoint-hinge/errors.ts": "5e51e5662fbce80bee3ccd3aa3694ee986b1492ed816d171774e261ab982bf4f",
+      "disjoint-hinge/linear-solver.ts": "4009d4d7f171be3a5d79ca309a14b039da54f9201b438a410a6e29ed0f90bfdf",
+      "disjoint-hinge/measure.ts": "97cbaf697dc8ef5caba0bf2c702699b025bcc6f906f553b623466618bbd77178",
+      "disjoint-hinge/pose.ts": "ab950c1f9f1a79f9f00cb26e4b3cef0e3dcaea7b16d74e345e711159706b39e4",
+      "disjoint-hinge/postcontact.ts": "8d07190383a64cb592165772109a4f462099743492f8373794ef7981b1431e38",
+      "disjoint-hinge/projection.ts": "9d0def632c07f8085e860a2dbf21f26d8073f3265eb57590607d23ea6d333b87",
+      "disjoint-hinge/report.ts": "d46b3e289c58b289b059928580ff2b89d9bd3ecfb11cb688d8b7a4735143973d",
+      "disjoint-hinge/rows.ts": "6556f07d1d7d22edb67af1b214c689c5b5c2b30628334abaec67280d7302903f",
+      "disjoint-hinge/stage.ts": "a66e09b816259c2bb1305fed8f90696585b9fd4b750406b0ce006cbe2c2f33ab",
+      "disjoint-hinge/types.ts": "89b2708fd9209932084eaa765f93ff6ea00a2d775911e8c9e607a7eb824c8cc1",
+      "domain/admission.ts": "1182fb21ec319132ac2f16ddec8494e3d1c4c5ac750bbe1ebab4c29817b4423e",
+      "domain/cloth-reference.generated.ts": "c9ee88af8e25b533c2694433502b28f51dffdeae5cce656b53eb36a187be60bc",
+      "domain/cloth.ts": "2454474a24928a9f3d92d635a9391c537ef74de77112fdc2f2872536cb447883",
+      "domain/fluid.ts": "bfcafa7cc2f2bbb4ec6e2c20797f5dc5410d995cd28305272a2c3665d827179a",
+      "domain/types.ts": "35fcadf07a848d919806955f6c3d934d01217ff1c26ca7d4eb4eb2807eb4ee6f",
+      "dynamic-anchor-pair.ts": "8ff622a6ce007e5e7fcb43f0b7c08521615ddacbc8195cde1ac4f574304b579d",
+      "dynamic-fixed-joint.ts": "f5a0fa82c062c7406f6edfeb2aeb169c927ddd8d0965957f630f87e118c52dfa",
+      "dynamic-hinge-joint.ts": "69c816393446b6e06d66849840ecf88a7d28baf72bd30c792180616f55e455f2",
+      "fluid/boundary.ts": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c",
+      "fluid/constants.ts": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec",
+      "fluid/diagnostics.ts": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215",
+      "fluid/kernel.ts": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da",
+      "fluid/neighbors.ts": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3",
+      "fluid/pbf.ts": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50",
+      "fluid/static-box.ts": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9",
+      "fluid/types.ts": "c75f020afeb760ec596c3043fc6d2a7166995ce0c3cedbc7e5424a6a83e56a62",
+      "fluid/visual-viscosity.ts": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3",
+      "g1-test-control.ts": "0c20dc862992391e3fae3b8b7e3c83051065e9b4dd8aefe037e358470047f471",
+      "identity.ts": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be",
+      "index.ts": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30",
+      "internal-types.ts": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8",
+      "joint-motor.ts": "9a50b0d006ca2386cd2d79b8ba162f6850a5d08d3eb1c7d03460d606559b56ea",
+      "joints.ts": "b6d0ec667a96fc26ec43d9d812c5ffd0a3b7446d135bd9b18713059327c59181",
+      "limits.ts": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3",
+      "math.ts": "5a649cc80f58928732141d5813a4165ebf15e30d3d76f5906f10bb87da99c1c9",
+      "model-admission.ts": "7e77f184fed57d51ee1b0599e60c80d83b96045b139d236a37f76a4207689397",
+      "persistent-box-contact.ts": "2c117202db9bcb0b988b59f9add9cae57e09d175927122a313e7166720a63d9b",
+      "recording-owner.ts": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1",
+      "replay-compare.ts": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec",
+      "replay-json.ts": "1ab8cf962443edd3be387e5095a9cce3f2071c8b44e47cc165ce82d5c00ac617",
+      "replay-validation.ts": "ab9a7b5097515ddd3d6aa9a434d14f2ae2e04fd15c4059b473d0d708a507c82a",
+      "replay.ts": "07bafc635620c56c479ed44b0f458cbbb470bf20b3ce2ead7248ceb0973ca408",
+      "rigid-free-rotation.ts": "20f8eb17a9d8b0e73b26985a787f3f6b0b20671551185aa260ead039b990fe4c",
+      "scene-profile.ts": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7",
+      "sleep.ts": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2",
+      "types.ts": "37fdf1abcc20fd379304213b8c0686f8e0468d285f008aa8ebdb316882efade5",
+      "validation.ts": "651d12754b77f86493f399baf3c02d60d9ad1fe54e0ece664a05a4430e8a0f01",
+      "world.ts": "bc5cbb3261bd59a063a189348352f11a1f1f078a898175c2a878cea1bf2108bd"
+    }
+  },
+  "nativeManifest": {
+    "format": "barocss-physics-provider",
+    "version": 1,
+    "graph": "emitted",
+    "entries": [
+      "index.js",
+      "replay.js"
+    ],
+    "files": {
+      "broadphase.js": "f35e7453719dc2b44668bb20d6fad51a739c6b2cdb9797fe875fc81187400db3",
+      "capsule-contact.js": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1",
+      "capsule-query-error.js": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f",
+      "capsule-query.js": "f44c04d06c851b807add8096cc26bf893945f53b49ab6c671148491b88e781fc",
+      "capsule-query/admission.js": "547d9202b0db4be3d8a4fd5266b136f750d3e015151d60e679df26ecf51da7fe",
+      "capsule-query/geometry.js": "4c9034c23c2137d54e4d2e1554b9015ff2cc6bc7776d62d8e1f3c8b905b67d04",
+      "capsule-query/profile.js": "acfab32b60a91c29bec4b89a803902aa9b944eb2ebb6cd0d129b60e039e13210",
+      "capsule-query/snapshot.js": "5ee1b97dc58a872a9cd6c56121eca158ac5f746d543729e5f197b24d08f9d55f",
+      "capsule-query/sweep.js": "f04e6a548504cad0bb838862f7813225592c9549fb0233e026bc6276f7b4929e",
+      "ccd-box.js": "28dc449fe8f07f1d95245017299e64d3fc350fd7982819c93565999130290595",
+      "ccd-pair.js": "6c89cf6f2fc9e9eeb3f83959be8ef23ed614cba42e91e48cb0e4706777234fd2",
+      "ccd-slab.js": "cf85c1dce1ebaa899cc2fc9eead7b0c25f7096caeb3a652476beb93c5f02843f",
+      "ccd.js": "c2c54c3dedf0df98c8888107457dbd87041eb7f52b8f689484b18abdfbc5b54a",
+      "character-controller.js": "7a68a578b18b42e02dcacba24011b41208fa9af3b5c1b6991dd8efbae29d75b8",
+      "character/admission.js": "07cf9fb6af74299fce3e8fba82ca65871ea7e0cc67e4e73c837606be9f30e43c",
+      "character/core.js": "80a53992b06c75c9216a671c52bad2f3a01b6192bbd6002458ecfe077c3a4eb4",
+      "character/ground.js": "96298ab6534e5e9e7f3da6b0850bbbb7acd73ac11534f6047617ac2bdcd2eb16",
+      "character/math.js": "1afbd07dcb7940e9808e9017d665d781b5e7442bebc290c8327d0d4fb7a79174",
+      "character/profile.js": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82",
+      "character/query.js": "3b22d2772d3724bdb3974f1d88f5298054e577286a9f73aa67e62684efca1184",
+      "character/slide.js": "10c7d825c4640a7837a0b69885bb422ea5a343c921430675c11955acafce3c57",
+      "character/state.js": "1600bb81b883944f36c687305bcb5f7134dbf6c0751e92d9206b03622eaf9633",
+      "character/step-assist.js": "aacc69468b9db7a62a14fbb2628a4494cab01a82640c682ad72f098fcbe7c8e5",
+      "cloth/constraints.js": "6e2e0b09734222a87abdefd745540e3ff5f4f24414cfae51f85c1b96d15225d7",
+      "cloth/metrics.js": "78e03ac4e69c35a7be6a614e4d7aedff4e4390d64c103a28543c0f6ee056eb27",
+      "cloth/profile.js": "0dc385cac798bcfde6ad9cf479b8c51cf55bfc42b478370534ccb2de1e66f807",
+      "cloth/solver.js": "1f7178354cc026a41996d32502ac54d888ddf83f6b955059bb43f45cc6d9453b",
+      "collision.js": "404bbb24c4552828f8bd943481a15b11af7d93333c5651c4c8f8cae88e3dd28a",
+      "contact-manifold.js": "52fcb4accfbfd3251aa977f519983c7334f0d1663bfb2424ca82bfaaec1c8fae",
+      "disjoint-hinge/admission.js": "4a72dbe445a74c4d1e7081e07a27c9c3cab46d823d0ab9568781a1ac54ffc587",
+      "disjoint-hinge/errors.js": "9195a428dd9c96e0344b8eeb1eb7c66a7197a8e152b85d5fb5aed5038256d173",
+      "disjoint-hinge/linear-solver.js": "123d3abb62b3a9f4f5ce3807463f070194e2d528f5cec841da5e623ee6b52e8e",
+      "disjoint-hinge/measure.js": "e576367851b0ea5ba37e9684e867aa28ae51cb6a585ad2c40f479341dc5f95f8",
+      "disjoint-hinge/pose.js": "ee53440b0433e7be5b1f00027aca708bb567da46f9edd193de0bab2a282c02b9",
+      "disjoint-hinge/postcontact.js": "32a4a1907a4540a550e67cee03a2817d9519d77a53212b160d018c2f484b2e1a",
+      "disjoint-hinge/projection.js": "30e04425020bff49e75c02f1d7abf15f82fe375dd1e07a0938a4a69aa03d159a",
+      "disjoint-hinge/report.js": "7ee0b7d17e70247ce4c2dff953593e82091efabdd2932e0f4272931c69843a2f",
+      "disjoint-hinge/rows.js": "e19d8d9c3ef835e98f796b3dc9b5785473e8aaef41af34d77c49200b446d3f55",
+      "disjoint-hinge/stage.js": "bfa6d3528889d89da9d355a4bed753ed7287fd5979735f1158c7c009de94cafd",
+      "domain/admission.js": "8d4a14d764742a9989a760ce27a0cc395ff818f879a9faa32f86fdaba7600960",
+      "domain/cloth-reference.generated.js": "3c8e21d9612bf232074268c50bf7151290167391692a132e0619f5aedb4b75b9",
+      "domain/cloth.js": "a97392c690610d642eb7b6282385e362ee4ebe7b661319d3b70ea48fa95b6205",
+      "domain/fluid.js": "c0ce5f1f97b1d19b2f6fa2bc892b5bc5bed445c3e1c56d5f4a1cd97c2ecd456f",
+      "domain/types.js": "76eb7d0fc14a3ba6897ba0d649beeaba4a28172b2458782b64029af6ef5f6666",
+      "dynamic-anchor-pair.js": "8e20e96a9a3c803f65d78dfa21aaf530744b2c37e4f3507fd87e828190c800be",
+      "dynamic-fixed-joint.js": "c637c4b13cdf432103202f895e50fae7e05c88920cf0889a67f2c16e565bfb5a",
+      "dynamic-hinge-joint.js": "8780a6887f0c7cbec6ec2f059b2ada64d0e28d0224279d7ada42e4b79e84baac",
+      "fluid/boundary.js": "0411aee849b18145f75e2a602a23aab5b5e6a644bc44a47cc2944ab532d0ea18",
+      "fluid/constants.js": "48cb2507298e158c9d711a3a08e36a521ccab101a26b55217d00247a9b844072",
+      "fluid/diagnostics.js": "b87d7b27266ca4b014d4b84b24b57216b12d4b0345088282b6ecd5270fa46c29",
+      "fluid/kernel.js": "264a62a2ed0aeee0c77bd5ba44a60a6d0522654ecc8f07117174c6fe328c123b",
+      "fluid/neighbors.js": "e857766d44372269a19fb83d4bdeeabbc1816b9792230e6a9aac8cf1ea6249e5",
+      "fluid/pbf.js": "93ba3d6c2db8aee07c7307d74300888b9e48279279f6f060e157ea08b847241d",
+      "fluid/static-box.js": "120ee59f2212e86846bce3a73425b493d2bc98971dc230419a394a1235196b7c",
+      "fluid/visual-viscosity.js": "0d01bcbd68f126c9d8954b46afe523f6e7f879f129817f40fc9300c297041205",
+      "g1-test-control.js": "358e7565dc3ae9cd6050bb8feb83c782c7616ffe96834bf526727eb6f66ecc89",
+      "identity.js": "7f7243fcc617a32f77d517d029cb90bd99584f518ece49a7d7a4e35ae54d7791",
+      "index.js": "560813197ed96657e44ebd195ea1be17cf3aff51aa0bc08ec9fb1622057db2e1",
+      "internal-types.js": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e",
+      "joint-motor.js": "43010c0e319717622727666e1e23f7288fdf500f1731f6fd52a443f36055c724",
+      "joints.js": "f2893b2f8684f338a8d4832b9fa91c356fd360bf70ebf423062e21911d433ce0",
+      "limits.js": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219",
+      "math.js": "efbe1c10ed1c95705711e64a15368361b13f7fab411cd6002ff9d00c4edadc5f",
+      "model-admission.js": "29a8cbe82623ce8c592da4dd7693daa625403d665e4f0a029c23b4bde0468fe7",
+      "persistent-box-contact.js": "c45006197178d3a50cd4bbc6b038e286ceadf230e3e459f86882ffc29a96d861",
+      "recording-owner.js": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521",
+      "replay-compare.js": "46e92b237a3b74725e1f973bc195f3fb3c7d182ea4978f5092608706d1400875",
+      "replay-json.js": "742249b1dd48de51d76dcf266dce19b2f85da400c5bc2b1043543d43c5593d0f",
+      "replay-validation.js": "381aa19fa30f78cc6f5808aad541a42f0ca90bc673b3bc643c2eca4e5a01d298",
+      "replay.js": "d352fcab204a7e5291a3a5f1e17d2856a5628a9179de2becf7f520676a471036",
+      "rigid-free-rotation.js": "9b24296936cc311ee0744291a0c78ae8e7af38c328feff5b1ff4803cfae5fe8f",
+      "scene-profile.js": "7a1198598bfaf64647f9ed89d76cb4f1035bd77e602d8b8c0b8a7914911b6e9f",
+      "sleep.js": "681f3820fb08a61cd7f367b049f9b7bb3d2eb1a4e8f81975aec014fdefdb8250",
+      "types.js": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b",
+      "validation.js": "dd5873f30ed65451e5b3abe72ab140e1b4aa2de0b5c75db6b86722a5145b5ec6",
+      "world.js": "0e79e8e9944e0711a40d1ca5c7edaa170c2bd0eda7584ddfcb0730134a09f3cb"
+    }
+  },
+  "expectedProviderDigests": {
+    "source": "sha256:4b8c7cb4ac159854d447665302c0179850ce4713c80fcb429c542bff82a4a534",
+    "native": "sha256:896ad61f00918ac49ecd51a4acaaba039511d095de7bbe2ec77f1d819f3231c4"
+  },
+  "stagedPins": [
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/broadphase.d.ts",
+      "bytes": 239,
+      "sha256": "9231cd9d0f59808f02ab39305893cd5a48c30774f2bacd7ffd0fcab1f8767f13"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/broadphase.js",
+      "bytes": 1253,
+      "sha256": "f35e7453719dc2b44668bb20d6fad51a739c6b2cdb9797fe875fc81187400db3"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-contact.d.ts",
+      "bytes": 198,
+      "sha256": "e3c1d147fbc7b1f30e8e97a6067e6750a56f0f6ccf7659a9d211f65e24e4a178"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-contact.js",
+      "bytes": 5708,
+      "sha256": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query-error.d.ts",
+      "bytes": 43,
+      "sha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query-error.js",
+      "bytes": 137,
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query.d.ts",
+      "bytes": 222,
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query.js",
+      "bytes": 73,
+      "sha256": "f44c04d06c851b807add8096cc26bf893945f53b49ab6c671148491b88e781fc"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query/admission.d.ts",
+      "bytes": 250,
+      "sha256": "779417df1dbf3f0f697de4a04f918007954b13fc9f301b991105bbfc0a9cefe6"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query/admission.js",
+      "bytes": 4867,
+      "sha256": "547d9202b0db4be3d8a4fd5266b136f750d3e015151d60e679df26ecf51da7fe"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query/geometry.d.ts",
+      "bytes": 536,
+      "sha256": "efb0588d7b8808333836dcc927eb7523c5a7c516467294e3743cccf056ba736b"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query/geometry.js",
+      "bytes": 2319,
+      "sha256": "4c9034c23c2137d54e4d2e1554b9015ff2cc6bc7776d62d8e1f3c8b905b67d04"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query/profile.d.ts",
+      "bytes": 357,
+      "sha256": "2b1626e82c8677593940e8100247b6fbb33e9ab53e80d9de001ec1f9a7411300"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query/profile.js",
+      "bytes": 294,
+      "sha256": "acfab32b60a91c29bec4b89a803902aa9b944eb2ebb6cd0d129b60e039e13210"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query/snapshot.d.ts",
+      "bytes": 176,
+      "sha256": "64340b99b9b456f3586ed545d7e99a570675df7972374c3ec76ecd9d73a515ea"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query/snapshot.js",
+      "bytes": 2468,
+      "sha256": "5ee1b97dc58a872a9cd6c56121eca158ac5f746d543729e5f197b24d08f9d55f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query/sweep.d.ts",
+      "bytes": 240,
+      "sha256": "c99f678a450aa0db3d677c57c97ef5990544effca96e35196e8f3bbca073ecf3"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query/sweep.js",
+      "bytes": 1833,
+      "sha256": "f04e6a548504cad0bb838862f7813225592c9549fb0233e026bc6276f7b4929e"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query/types.d.ts",
+      "bytes": 1026,
+      "sha256": "6f1c259f0b05ffe866b493569a8d939f3493ad263381bfc5ac943705c8c31522"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query/types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/ccd-box.d.ts",
+      "bytes": 375,
+      "sha256": "e8c009659fab23be3f36024b61c7f693aad60e8df99cc36ea8c94c2e1d88efee"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/ccd-box.js",
+      "bytes": 1825,
+      "sha256": "28dc449fe8f07f1d95245017299e64d3fc350fd7982819c93565999130290595"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/ccd-pair.d.ts",
+      "bytes": 275,
+      "sha256": "62e7a116e62e543ffd85cbdc138788f73dddd56d81ab9ec681f277ea75d40829"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/ccd-pair.js",
+      "bytes": 2103,
+      "sha256": "6c89cf6f2fc9e9eeb3f83959be8ef23ed614cba42e91e48cb0e4706777234fd2"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/ccd-slab.d.ts",
+      "bytes": 216,
+      "sha256": "4adde0cfe2c336ea862ff7d61b3001503235d8b9e6761e73d310221a691e3646"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/ccd-slab.js",
+      "bytes": 1088,
+      "sha256": "cf85c1dce1ebaa899cc2fc9eead7b0c25f7096caeb3a652476beb93c5f02843f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/ccd.d.ts",
+      "bytes": 560,
+      "sha256": "ef17952c90ff59495d3120e697ae83fbc4eee9e28ae1050b25a21ceccc7069f4"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/ccd.js",
+      "bytes": 2966,
+      "sha256": "c2c54c3dedf0df98c8888107457dbd87041eb7f52b8f689484b18abdfbc5b54a"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character-controller.d.ts",
+      "bytes": 505,
+      "sha256": "58081e98e53b7c4a256dd00eac153992c61dfdbfcdbb2f15b9da8aa88df092e8"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character-controller.js",
+      "bytes": 1083,
+      "sha256": "7a68a578b18b42e02dcacba24011b41208fa9af3b5c1b6991dd8efbae29d75b8"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/admission.d.ts",
+      "bytes": 499,
+      "sha256": "49b1094be17da78b2a3b8cff6756f6191ddd0422886cd1985ff89c0337cfa6aa"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/admission.js",
+      "bytes": 4100,
+      "sha256": "07cf9fb6af74299fce3e8fba82ca65871ea7e0cc67e4e73c837606be9f30e43c"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/core.d.ts",
+      "bytes": 461,
+      "sha256": "403a8ef448bcab99937f5bdbaa5c5d49f2d0c2dbd9ea06faac8c4beb9d488287"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/core.js",
+      "bytes": 4194,
+      "sha256": "80a53992b06c75c9216a671c52bad2f3a01b6192bbd6002458ecfe077c3a4eb4"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/ground.d.ts",
+      "bytes": 250,
+      "sha256": "6fb19efbd8bb96956188dd9471a510686b3fd6a841b1656a4102435a4f2fdd8a"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/ground.js",
+      "bytes": 1117,
+      "sha256": "96298ab6534e5e9e7f3da6b0850bbbb7acd73ac11534f6047617ac2bdcd2eb16"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/math.d.ts",
+      "bytes": 400,
+      "sha256": "080a0c2c1d9a808d658028024dae011eda1fad85c72eadee8af62dfb06f5854d"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/math.js",
+      "bytes": 686,
+      "sha256": "1afbd07dcb7940e9808e9017d665d781b5e7442bebc290c8327d0d4fb7a79174"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/profile.d.ts",
+      "bytes": 355,
+      "sha256": "30d583b24f52cf743763b6d877a8d4d1f742a9646d000c43a64065f1836019ce"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/profile.js",
+      "bytes": 334,
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/query.d.ts",
+      "bytes": 655,
+      "sha256": "3849ff4e235063452e740ddf26f9352c3da945e000233a6f1763f7ebd69fe68f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/query.js",
+      "bytes": 2186,
+      "sha256": "3b22d2772d3724bdb3974f1d88f5298054e577286a9f73aa67e62684efca1184"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/slide.d.ts",
+      "bytes": 319,
+      "sha256": "ccf68ac00496f485887d10f5f441ecf7b74e1ef2575ddb3432952da5daabd354"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/slide.js",
+      "bytes": 2636,
+      "sha256": "10c7d825c4640a7837a0b69885bb422ea5a343c921430675c11955acafce3c57"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/state.d.ts",
+      "bytes": 504,
+      "sha256": "26784670cee2b09570f457a21d1fe7a60aa2446bf67f04882fc692c0c52fa4fc"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/state.js",
+      "bytes": 1923,
+      "sha256": "1600bb81b883944f36c687305bcb5f7134dbf6c0751e92d9206b03622eaf9633"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/step-assist.d.ts",
+      "bytes": 445,
+      "sha256": "23f5de885452721fb565a167cdcf3eab995f71643a46569faa3b7f905cb71e79"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/step-assist.js",
+      "bytes": 2969,
+      "sha256": "aacc69468b9db7a62a14fbb2628a4494cab01a82640c682ad72f098fcbe7c8e5"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/types.d.ts",
+      "bytes": 2684,
+      "sha256": "1a0f85fdcf124f38bbbfeb2e99ba5896d5303281ba44f7a80f116dff1a753153"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/cloth/constraints.d.ts",
+      "bytes": 222,
+      "sha256": "d73f6b43a6276c83a5393ad8f5888833f6e2e91289f90d8176fe4d8cdb6f6296"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/cloth/constraints.js",
+      "bytes": 1836,
+      "sha256": "6e2e0b09734222a87abdefd745540e3ff5f4f24414cfae51f85c1b96d15225d7"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/cloth/metrics.d.ts",
+      "bytes": 277,
+      "sha256": "5fb418be30e84af69659615f0c87a66d0907d9422087f8fb40ca1f03379e29b0"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/cloth/metrics.js",
+      "bytes": 1730,
+      "sha256": "78e03ac4e69c35a7be6a614e4d7aedff4e4390d64c103a28543c0f6ee056eb27"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/cloth/profile.d.ts",
+      "bytes": 604,
+      "sha256": "8f1d860e70cc6e12faa7d35c38bb116298f0ee6345e18aa53119294e531e0fa1"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/cloth/profile.js",
+      "bytes": 664,
+      "sha256": "0dc385cac798bcfde6ad9cf479b8c51cf55bfc42b478370534ccb2de1e66f807"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/cloth/solver.d.ts",
+      "bytes": 309,
+      "sha256": "02eae9d5e0564304417dcb5afc5994dc808ee261ad05c16453c36ee58a6607f0"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/cloth/solver.js",
+      "bytes": 1471,
+      "sha256": "1f7178354cc026a41996d32502ac54d888ddf83f6b955059bb43f45cc6d9453b"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/cloth/types.d.ts",
+      "bytes": 752,
+      "sha256": "482dbddb4b66efa7aa47e689cb8759d2c9d7b7e3e5b870e5aa500ced152bffa2"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/cloth/types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/collision.d.ts",
+      "bytes": 535,
+      "sha256": "9d0eba9d2a95e584a98cce909b1a1206411eb2362c15425813b9b4adf056d15f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/collision.js",
+      "bytes": 13712,
+      "sha256": "404bbb24c4552828f8bd943481a15b11af7d93333c5651c4c8f8cae88e3dd28a"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/contact-manifold.d.ts",
+      "bytes": 320,
+      "sha256": "92763debd17ad80b2a55394adc00214c3e127cadd51cb969f496ec45100b496b"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/contact-manifold.js",
+      "bytes": 4576,
+      "sha256": "52fcb4accfbfd3251aa977f519983c7334f0d1663bfb2424ca82bfaaec1c8fae"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/admission.d.ts",
+      "bytes": 480,
+      "sha256": "bc64cf951244b1fc444f2800c4ecb99892a4a93ea47375bd855a06317a9f8cb4"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/admission.js",
+      "bytes": 3562,
+      "sha256": "4a72dbe445a74c4d1e7081e07a27c9c3cab46d823d0ab9568781a1ac54ffc587"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/errors.d.ts",
+      "bytes": 941,
+      "sha256": "9e67f3825d9fa4cb31e69bfad57a2e66ba3ae592d944e94b04c30e0791242c3e"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/errors.js",
+      "bytes": 2793,
+      "sha256": "9195a428dd9c96e0344b8eeb1eb7c66a7197a8e152b85d5fb5aed5038256d173"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/linear-solver.d.ts",
+      "bytes": 254,
+      "sha256": "19623809b43cc41bc5ec39fd78094543243a57f7c2bdfe0b0acde011e2975680"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/linear-solver.js",
+      "bytes": 12015,
+      "sha256": "123d3abb62b3a9f4f5ce3807463f070194e2d528f5cec841da5e623ee6b52e8e"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/measure.d.ts",
+      "bytes": 1226,
+      "sha256": "2b9980af657dbe8735b4473393344073d6835103c5f3b5dba98cba9811f1bf53"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/measure.js",
+      "bytes": 4860,
+      "sha256": "e576367851b0ea5ba37e9684e867aa28ae51cb6a585ad2c40f479341dc5f95f8"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/pose.d.ts",
+      "bytes": 1787,
+      "sha256": "e91ee521eec25fabac02cfabacb9b76371696ab206bbbe47972c7cc486fcbbb0"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/pose.js",
+      "bytes": 3352,
+      "sha256": "ee53440b0433e7be5b1f00027aca708bb567da46f9edd193de0bab2a282c02b9"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/postcontact.d.ts",
+      "bytes": 793,
+      "sha256": "34c797517114767513a1edf7f161ffae4da85de440d1bdff3dcd2dba42d67dde"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/postcontact.js",
+      "bytes": 2568,
+      "sha256": "32a4a1907a4540a550e67cee03a2817d9519d77a53212b160d018c2f484b2e1a"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/projection.d.ts",
+      "bytes": 4433,
+      "sha256": "ce03195c1d5550114fe5589106edc6a423f40e62e9468ad65debcce7fabc0753"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/projection.js",
+      "bytes": 3825,
+      "sha256": "30e04425020bff49e75c02f1d7abf15f82fe375dd1e07a0938a4a69aa03d159a"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/report.d.ts",
+      "bytes": 1402,
+      "sha256": "791d2f931d8f24edc833a9ff2f18df5239ed73971b7228a906fe0e6bbce522fa"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/report.js",
+      "bytes": 5257,
+      "sha256": "7ee0b7d17e70247ce4c2dff953593e82091efabdd2932e0f4272931c69843a2f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/rows.d.ts",
+      "bytes": 946,
+      "sha256": "fdabe8b245fd133a9312ebcec16466b0b7981a02df88cd3e5d85e91862b173ca"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/rows.js",
+      "bytes": 4059,
+      "sha256": "e19d8d9c3ef835e98f796b3dc9b5785473e8aaef41af34d77c49200b446d3f55"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/stage.d.ts",
+      "bytes": 989,
+      "sha256": "167a0fbdd4e34bc5a2dc504d795c53bd14c4e6cf6e93ae61bbe1d4798c0cbd7d"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/stage.js",
+      "bytes": 2255,
+      "sha256": "bfa6d3528889d89da9d355a4bed753ed7287fd5979735f1158c7c009de94cafd"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/types.d.ts",
+      "bytes": 1887,
+      "sha256": "50410e8dee0bd496114f1dfa72eff31603b5bd36d76dcf609352b1f25d5607a3"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/domain/admission.d.ts",
+      "bytes": 403,
+      "sha256": "21e43ead4806bbbc2ca4518cb481698090abdd91520fa6340a7e971427944c01"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/domain/admission.js",
+      "bytes": 11163,
+      "sha256": "8d4a14d764742a9989a760ce27a0cc395ff818f879a9faa32f86fdaba7600960"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/domain/cloth-reference.generated.d.ts",
+      "bytes": 92,
+      "sha256": "f13ae964106fdfa5b0464ba945640467d79b497cba1ce2b2a5c02cbf8a331490"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/domain/cloth-reference.generated.js",
+      "bytes": 181057,
+      "sha256": "3c8e21d9612bf232074268c50bf7151290167391692a132e0619f5aedb4b75b9"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/domain/cloth.d.ts",
+      "bytes": 434,
+      "sha256": "f24352d6ca040d469cf484ab74864764fbc7121a824469f07cf43e9ae1a5aa02"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/domain/cloth.js",
+      "bytes": 4041,
+      "sha256": "a97392c690610d642eb7b6282385e362ee4ebe7b661319d3b70ea48fa95b6205"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/domain/fluid.d.ts",
+      "bytes": 434,
+      "sha256": "e5a257935af3d1b8dce16da0a439bf853639ff3676eade2eb4fe6a9f1774cfa3"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/domain/fluid.js",
+      "bytes": 4875,
+      "sha256": "c0ce5f1f97b1d19b2f6fa2bc892b5bc5bed445c3e1c56d5f4a1cd97c2ecd456f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/domain/types.d.ts",
+      "bytes": 2142,
+      "sha256": "cb3c90cfaee8a1bd20b48bbf4d6c2d2bea631574361cc389f3d4d7d1ccf80de5"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/domain/types.js",
+      "bytes": 2151,
+      "sha256": "76eb7d0fc14a3ba6897ba0d649beeaba4a28172b2458782b64029af6ef5f6666"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/dynamic-anchor-pair.d.ts",
+      "bytes": 420,
+      "sha256": "9253386fe2c10c4a5c3b8a74930e9afc5c701d13c7310a6f7ad716e8ab76ec03"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/dynamic-anchor-pair.js",
+      "bytes": 3099,
+      "sha256": "8e20e96a9a3c803f65d78dfa21aaf530744b2c37e4f3507fd87e828190c800be"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/dynamic-fixed-joint.d.ts",
+      "bytes": 267,
+      "sha256": "c1af834c67ae4e82753fa5f949313ec9a1686c89193f1b368e37541753b478ca"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/dynamic-fixed-joint.js",
+      "bytes": 1935,
+      "sha256": "c637c4b13cdf432103202f895e50fae7e05c88920cf0889a67f2c16e565bfb5a"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/dynamic-hinge-joint.d.ts",
+      "bytes": 475,
+      "sha256": "c08e405d3b85f5967e12c29b30be360b47e2e015fe72132a34788a908cea41c1"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/dynamic-hinge-joint.js",
+      "bytes": 4671,
+      "sha256": "8780a6887f0c7cbec6ec2f059b2ada64d0e28d0224279d7ada42e4b79e84baac"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/boundary.d.ts",
+      "bytes": 349,
+      "sha256": "fdc60e3e6b43b551c74fee3eb888476213132987c2b6f80e9a2a515041076b91"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/boundary.js",
+      "bytes": 2027,
+      "sha256": "0411aee849b18145f75e2a602a23aab5b5e6a644bc44a47cc2944ab532d0ea18"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/constants.d.ts",
+      "bytes": 478,
+      "sha256": "b145eaa09c8094a630d0073564d79c13e9f9623ee98d49bf291afc743f42f2bc"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/constants.js",
+      "bytes": 396,
+      "sha256": "48cb2507298e158c9d711a3a08e36a521ccab101a26b55217d00247a9b844072"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/diagnostics.d.ts",
+      "bytes": 180,
+      "sha256": "2e528c38ac59e450feb510f421228cba10843df87d4f1b476582eb8a814f2e47"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/diagnostics.js",
+      "bytes": 1032,
+      "sha256": "b87d7b27266ca4b014d4b84b24b57216b12d4b0345088282b6ecd5270fa46c29"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/kernel.d.ts",
+      "bytes": 376,
+      "sha256": "4430b3611c7ea86ba71ca51f93e02b800f11a44986182059a219f2a5ab3da157"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/kernel.js",
+      "bytes": 1047,
+      "sha256": "264a62a2ed0aeee0c77bd5ba44a60a6d0522654ecc8f07117174c6fe328c123b"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/neighbors.d.ts",
+      "bytes": 384,
+      "sha256": "f81f41caadaccc5b3150f144b0687a5a2910e456ac707114b927ba2ef18869fd"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/neighbors.js",
+      "bytes": 3065,
+      "sha256": "e857766d44372269a19fb83d4bdeeabbc1816b9792230e6a9aac8cf1ea6249e5"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/pbf.d.ts",
+      "bytes": 722,
+      "sha256": "0475a847a3b98aadce70713913ac39d7d3c03e07a261c51e20ae86231c65e19c"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/pbf.js",
+      "bytes": 5606,
+      "sha256": "93ba3d6c2db8aee07c7307d74300888b9e48279279f6f060e157ea08b847241d"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/static-box.d.ts",
+      "bytes": 628,
+      "sha256": "5e643a758a5988858b624b26af6ac15c94b533977421688509597490b9789ce8"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/static-box.js",
+      "bytes": 2238,
+      "sha256": "120ee59f2212e86846bce3a73425b493d2bc98971dc230419a394a1235196b7c"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/types.d.ts",
+      "bytes": 130,
+      "sha256": "ff8120a184ec3b4139c14031e106c41ab0ea2569747d1bd2b34bca415e69b064"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/visual-viscosity.d.ts",
+      "bytes": 289,
+      "sha256": "f7917414df0b746457c9dc5fb9cd12e48dc2bc2ab6d4cc30f0a31a9c6e3a6b26"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/visual-viscosity.js",
+      "bytes": 1225,
+      "sha256": "0d01bcbd68f126c9d8954b46afe523f6e7f879f129817f40fc9300c297041205"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/g1-test-control.d.ts",
+      "bytes": 1051,
+      "sha256": "74a7c27141347e0c2144400adb6f4bebc5b0d3650c22952305e0dc4a8ebf5860"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/g1-test-control.js",
+      "bytes": 1868,
+      "sha256": "358e7565dc3ae9cd6050bb8feb83c782c7616ffe96834bf526727eb6f66ecc89"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/identity.d.ts",
+      "bytes": 523,
+      "sha256": "bef1a44ab8fd4245d47a5cdeb09b56f7d703ad2c5ab20768350a9a1c44621330"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/identity.js",
+      "bytes": 6977,
+      "sha256": "7f7243fcc617a32f77d517d029cb90bd99584f518ece49a7d7a4e35ae54d7791"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/index.d.ts",
+      "bytes": 568,
+      "sha256": "b564302ed188eb8a22eaa3837ed7a69086b29bdd5c62fe6258048690e6a33277"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/index.js",
+      "bytes": 217,
+      "sha256": "560813197ed96657e44ebd195ea1be17cf3aff51aa0bc08ec9fb1622057db2e1"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/internal-types.d.ts",
+      "bytes": 2800,
+      "sha256": "288c355766cb51ea6e888d9ef38ea10c79600c44688d536a203b95dbca3f5c61"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/internal-types.js",
+      "bytes": 43,
+      "sha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/joint-motor.d.ts",
+      "bytes": 255,
+      "sha256": "fdcf91647efdad5905cf989de7d9634cb7878f9b2299c20f13b5557eef958ed4"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/joint-motor.js",
+      "bytes": 1651,
+      "sha256": "43010c0e319717622727666e1e23f7288fdf500f1731f6fd52a443f36055c724"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/joints.d.ts",
+      "bytes": 268,
+      "sha256": "7ed4f0eb1cf54f665d75d42ac5c49211838a2480b33ffede327a3e3460da550b"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/joints.js",
+      "bytes": 7382,
+      "sha256": "f2893b2f8684f338a8d4832b9fa91c356fd360bf70ebf423062e21911d433ce0"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/limits.d.ts",
+      "bytes": 476,
+      "sha256": "9389e2dca0a552e1173fd3be829ea8f2cc698a86f6e7d92ddf305404192f0b6b"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/limits.js",
+      "bytes": 416,
+      "sha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/math.d.ts",
+      "bytes": 893,
+      "sha256": "bdbe8b8906433f0aa9eeb9c3d6dc2016115712f7b749bd11ca135afb58b58443"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/math.js",
+      "bytes": 2274,
+      "sha256": "efbe1c10ed1c95705711e64a15368361b13f7fab411cd6002ff9d00c4edadc5f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/model-admission.d.ts",
+      "bytes": 510,
+      "sha256": "9fa8004b2021ad8f9e38209ef093180e845bbd341c3f9e8281660110ff787289"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/model-admission.js",
+      "bytes": 10761,
+      "sha256": "29a8cbe82623ce8c592da4dd7693daa625403d665e4f0a029c23b4bde0468fe7"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/persistent-box-contact.d.ts",
+      "bytes": 474,
+      "sha256": "8834bedc48e26774ab6c239b459372a3305aa5967f5c1e58b9abeca71fc0d71d"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/persistent-box-contact.js",
+      "bytes": 3405,
+      "sha256": "c45006197178d3a50cd4bbc6b038e286ceadf230e3e459f86882ffc29a96d861"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/provider-manifest.generated.d.ts",
+      "bytes": 8911,
+      "sha256": "76f73d0140ab2a9c59cfbcbfcc0e329320456ca2002d4abd01750aa7020f02f0"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/provider-manifest.generated.js",
+      "bytes": 7401,
+      "sha256": "ba21770f1337dc47ec7ca86d8c9f89f612e4a3f2cfdbc397141c3e474d9d5fb2"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/recording-owner.d.ts",
+      "bytes": 940,
+      "sha256": "e904a930ad3132e81fb3587df42b0cf71b62ca04910fa6f273bfa58ed6e12bd5"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/recording-owner.js",
+      "bytes": 46,
+      "sha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/replay-compare.d.ts",
+      "bytes": 87,
+      "sha256": "9f0c2c538a56c78cb7fbfe9fe5131de4ce3dbe89792b7192da0b003e36021195"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/replay-compare.js",
+      "bytes": 974,
+      "sha256": "46e92b237a3b74725e1f973bc195f3fb3c7d182ea4978f5092608706d1400875"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/replay-json.d.ts",
+      "bytes": 695,
+      "sha256": "976f19331efa162c1043ca0c5d5febb0f64af5cb8989a8cf7028c3d92d6ca271"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/replay-json.js",
+      "bytes": 8011,
+      "sha256": "742249b1dd48de51d76dcf266dce19b2f85da400c5bc2b1043543d43c5593d0f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/replay-validation.d.ts",
+      "bytes": 218,
+      "sha256": "a876f6e56327b9c7210c927421e7d547225f4961eb2147ac1429182dbd6501e0"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/replay-validation.js",
+      "bytes": 8287,
+      "sha256": "381aa19fa30f78cc6f5808aad541a42f0ca90bc673b3bc643c2eca4e5a01d298"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/replay.d.ts",
+      "bytes": 796,
+      "sha256": "126d9a849ec1dc0d8d8064e64a8b4a51cfba742eecba19bfecd4b453bb4168da"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/replay.js",
+      "bytes": 6623,
+      "sha256": "d352fcab204a7e5291a3a5f1e17d2856a5628a9179de2becf7f520676a471036"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/rigid-free-rotation.d.ts",
+      "bytes": 443,
+      "sha256": "3cfe0e3c5b9842c6cc8a4b8a395250fb1ab948a4b25dffc9f106582dcf906952"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/rigid-free-rotation.js",
+      "bytes": 4011,
+      "sha256": "9b24296936cc311ee0744291a0c78ae8e7af38c328feff5b1ff4803cfae5fe8f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/scene-profile.d.ts",
+      "bytes": 300,
+      "sha256": "c96672aaa6baeb8cb59c16e61ab561e0cf9554214b0c8eb2fe458366bff57ae7"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/scene-profile.js",
+      "bytes": 1138,
+      "sha256": "7a1198598bfaf64647f9ed89d76cb4f1035bd77e602d8b8c0b8a7914911b6e9f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/sleep.d.ts",
+      "bytes": 396,
+      "sha256": "bc4940a234b4b29d6dae5554d7c7d05fe7d8a7eadb9110afc25cf702e7bfcef2"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/sleep.js",
+      "bytes": 4621,
+      "sha256": "681f3820fb08a61cd7f367b049f9b7bb3d2eb1a4e8f81975aec014fdefdb8250"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/types.d.ts",
+      "bytes": 12676,
+      "sha256": "e286c28700179075e347c13c70bc459caecbd55eb0507229a0117f008fa2bd62"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/types.js",
+      "bytes": 418,
+      "sha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/validation.d.ts",
+      "bytes": 1401,
+      "sha256": "ac6326806207337984fa1e442913f7984710e261447daa819cc9a86d0077651a"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/validation.js",
+      "bytes": 13796,
+      "sha256": "dd5873f30ed65451e5b3abe72ab140e1b4aa2de0b5c75db6b86722a5145b5ec6"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/world.d.ts",
+      "bytes": 178,
+      "sha256": "8d0c9906f7c25b589ef9a4db96adcc961fa99950ac64fd79007a9aff306af2a0"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/world.js",
+      "bytes": 32688,
+      "sha256": "0e79e8e9944e0711a40d1ca5c7edaa170c2bd0eda7584ddfcb0730134a09f3cb"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/package.json",
+      "bytes": 1585,
+      "sha256": "4e33b9e01af5adc8191ed491fc66b489350eb3e4d8404f35404db42a7735d18f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/broadphase.ts",
+      "bytes": 1371,
+      "sha256": "d93e38d78cc3d202481ceeba83631d528032426d03a8adafb2e461fc72a042a0"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cad-fluid-data.ts",
+      "bytes": 2345,
+      "sha256": "5a15e23ba65663433501f07d2f35f323960879218d52a007efeb09ca7934ce10"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cad-proxy-admission.ts",
+      "bytes": 7744,
+      "sha256": "898fb55af369727440fef9f4bfadba0ea455b4c800a719909e5311029a663441"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cad-proxy-pose.ts",
+      "bytes": 1479,
+      "sha256": "8b5f50642144e335421ee6483f8b016b8a0babdb0c312ddf6ba4afbcf8bda322"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cad-proxy-types.ts",
+      "bytes": 887,
+      "sha256": "31bbf6766887913149d6fa2185c173adb0c6b78cdb21d1556ae4ffd055666128"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cad-proxy-validation.ts",
+      "bytes": 1598,
+      "sha256": "4429f957bb51ff2604a15478095e35642368dcf91ca0d854561693d3f99f748e"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cad-proxy.ts",
+      "bytes": 321,
+      "sha256": "cc7715b4fc974c8ed4511ebf684cdc7c2923f7ab4b8b7f5db45b208f8e6ffa99"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-contact.ts",
+      "bytes": 5615,
+      "sha256": "cc29d60423bd9a1883585cf164cca0b0736b9fc72e7feb3575c5208c7d892929"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query-error.ts",
+      "bytes": 137,
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query.ts",
+      "bytes": 222,
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/admission.ts",
+      "bytes": 5248,
+      "sha256": "9b67efc7a8824ce49361485eff925afa50017e05bc23d900db5ec7c4e2c8760d"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/geometry.ts",
+      "bytes": 2570,
+      "sha256": "5fdbe1eb40f46e930161e98244a9e5ec0e00c29297caf6f91d530c98df3df4a7"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/profile.ts",
+      "bytes": 303,
+      "sha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/snapshot.ts",
+      "bytes": 2537,
+      "sha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/sweep.ts",
+      "bytes": 1861,
+      "sha256": "a8f4d16879b2ff88086ceec54cef19d04d58fb063893e7a146382cad59cbaf77"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/types.ts",
+      "bytes": 979,
+      "sha256": "c22d17887cd8ab889a443c828200310a4c560fd3b4f8ed49f3f1f60e5dd46f44"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd-box.ts",
+      "bytes": 1978,
+      "sha256": "43667cba73a01782cac3b9fe14828b67885229a6e09bc9f0e68b6a2d27057b43"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd-pair.ts",
+      "bytes": 2110,
+      "sha256": "570b434c19e432ccc3632bafa2c174df6dac9968e6c38b0f7d4416f75090231f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd-slab.ts",
+      "bytes": 1125,
+      "sha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd.ts",
+      "bytes": 3220,
+      "sha256": "040de88f74673b297164227ff5faada12f0eb190aa14a9471dbeb02f879a57ab"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character-controller.ts",
+      "bytes": 1363,
+      "sha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/admission.ts",
+      "bytes": 4488,
+      "sha256": "d83cdb8231620a18935d4d4d5e19ab7ec5440b043e1df71d49d5fa42f3fecb26"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/core.ts",
+      "bytes": 4057,
+      "sha256": "6c6251e9782baed07be65cce68bfdbca14e2f930ca04a54ee6812cbbfc925a02"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/ground.ts",
+      "bytes": 1242,
+      "sha256": "bd1621641ebc9300943b88c9083710218768454acb0a5e1ba8b330086d68c321"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/math.ts",
+      "bytes": 859,
+      "sha256": "df0e88c320d8a189004991cd5cfc3f8de3d7bb3eecb305bb01830a11191dcdc5"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/profile.ts",
+      "bytes": 334,
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/query.ts",
+      "bytes": 2733,
+      "sha256": "9ef96eeb1529dc42466445529b100affc2f56913081f0c2fc169079cffe1a8cf"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/slide.ts",
+      "bytes": 2555,
+      "sha256": "587d5512212e68fdc26068646152d2f8c52c3c6119d6c222de91b750c01fcd77"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/state.ts",
+      "bytes": 2181,
+      "sha256": "6eb744c82f24604a8ecadd6e9d86406600119a3fbc7918129f93983df7cbf47e"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/step-assist.ts",
+      "bytes": 3129,
+      "sha256": "9166857ad8509049a56d5b255ed59de17ee03e159581b495de7f1d985780c390"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/types.ts",
+      "bytes": 2552,
+      "sha256": "866c5974fd99ec08b5dc6b5edf165241f4d02a8ed87274faf4cf35b19a3fb938"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/constraints.ts",
+      "bytes": 1772,
+      "sha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/metrics.ts",
+      "bytes": 1805,
+      "sha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/profile.ts",
+      "bytes": 655,
+      "sha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/solver.ts",
+      "bytes": 1395,
+      "sha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/topology.ts",
+      "bytes": 1931,
+      "sha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/types.ts",
+      "bytes": 719,
+      "sha256": "bad411f3fa02e4ba7039b5d447de395074342aa207f2eeed251705b15facb6d1"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/collision.ts",
+      "bytes": 13442,
+      "sha256": "baa1492ee990bb156d4ba10deb45e0ddc31d31ab6555318c5f652043aa1ea501"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/contact-manifold.ts",
+      "bytes": 4743,
+      "sha256": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/admission.ts",
+      "bytes": 3764,
+      "sha256": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/errors.ts",
+      "bytes": 2777,
+      "sha256": "5e51e5662fbce80bee3ccd3aa3694ee986b1492ed816d171774e261ab982bf4f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/linear-solver.ts",
+      "bytes": 10615,
+      "sha256": "4009d4d7f171be3a5d79ca309a14b039da54f9201b438a410a6e29ed0f90bfdf"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/measure.ts",
+      "bytes": 4626,
+      "sha256": "97cbaf697dc8ef5caba0bf2c702699b025bcc6f906f553b623466618bbd77178"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/pose.ts",
+      "bytes": 3194,
+      "sha256": "ab950c1f9f1a79f9f00cb26e4b3cef0e3dcaea7b16d74e345e711159706b39e4"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/postcontact.ts",
+      "bytes": 2936,
+      "sha256": "8d07190383a64cb592165772109a4f462099743492f8373794ef7981b1431e38"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/projection.ts",
+      "bytes": 3538,
+      "sha256": "9d0def632c07f8085e860a2dbf21f26d8073f3265eb57590607d23ea6d333b87"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/report.ts",
+      "bytes": 5726,
+      "sha256": "d46b3e289c58b289b059928580ff2b89d9bd3ecfb11cb688d8b7a4735143973d"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/rows.ts",
+      "bytes": 3685,
+      "sha256": "6556f07d1d7d22edb67af1b214c689c5b5c2b30628334abaec67280d7302903f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/stage.ts",
+      "bytes": 2648,
+      "sha256": "a66e09b816259c2bb1305fed8f90696585b9fd4b750406b0ce006cbe2c2f33ab"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/types.ts",
+      "bytes": 1610,
+      "sha256": "89b2708fd9209932084eaa765f93ff6ea00a2d775911e8c9e607a7eb824c8cc1"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/admission.ts",
+      "bytes": 11327,
+      "sha256": "1182fb21ec319132ac2f16ddec8494e3d1c4c5ac750bbe1ebab4c29817b4423e"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/cloth-reference.generated.ts",
+      "bytes": 158018,
+      "sha256": "c9ee88af8e25b533c2694433502b28f51dffdeae5cce656b53eb36a187be60bc"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/cloth.ts",
+      "bytes": 4349,
+      "sha256": "2454474a24928a9f3d92d635a9391c537ef74de77112fdc2f2872536cb447883"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/fluid.ts",
+      "bytes": 4923,
+      "sha256": "bfcafa7cc2f2bbb4ec6e2c20797f5dc5410d995cd28305272a2c3665d827179a"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/types.ts",
+      "bytes": 3839,
+      "sha256": "35fcadf07a848d919806955f6c3d934d01217ff1c26ca7d4eb4eb2807eb4ee6f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/dynamic-anchor-pair.ts",
+      "bytes": 3072,
+      "sha256": "8ff622a6ce007e5e7fcb43f0b7c08521615ddacbc8195cde1ac4f574304b579d"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/dynamic-fixed-joint.ts",
+      "bytes": 2051,
+      "sha256": "f5a0fa82c062c7406f6edfeb2aeb169c927ddd8d0965957f630f87e118c52dfa"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/dynamic-hinge-joint.ts",
+      "bytes": 4835,
+      "sha256": "69c816393446b6e06d66849840ecf88a7d28baf72bd30c792180616f55e455f2"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/boundary.ts",
+      "bytes": 1990,
+      "sha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/constants.ts",
+      "bytes": 459,
+      "sha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/diagnostics.ts",
+      "bytes": 1106,
+      "sha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/kernel.ts",
+      "bytes": 1112,
+      "sha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/neighbors.ts",
+      "bytes": 2949,
+      "sha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/pbf.ts",
+      "bytes": 5161,
+      "sha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/static-box.ts",
+      "bytes": 2481,
+      "sha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/types.ts",
+      "bytes": 125,
+      "sha256": "c75f020afeb760ec596c3043fc6d2a7166995ce0c3cedbc7e5424a6a83e56a62"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/visual-viscosity.ts",
+      "bytes": 1265,
+      "sha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/g1-test-control.ts",
+      "bytes": 2465,
+      "sha256": "0c20dc862992391e3fae3b8b7e3c83051065e9b4dd8aefe037e358470047f471"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/generate-provider.mjs",
+      "bytes": 2663,
+      "sha256": "c45a6eb52df5f4840aa30006ac65d15ea0758066f63d815e4a3b394e8eb20557"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/identity.ts",
+      "bytes": 6081,
+      "sha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/index.ts",
+      "bytes": 570,
+      "sha256": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/internal-types.ts",
+      "bytes": 2615,
+      "sha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/joint-motor.ts",
+      "bytes": 1723,
+      "sha256": "9a50b0d006ca2386cd2d79b8ba162f6850a5d08d3eb1c7d03460d606559b56ea"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/joints.ts",
+      "bytes": 7231,
+      "sha256": "b6d0ec667a96fc26ec43d9d812c5ffd0a3b7446d135bd9b18713059327c59181"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/limits.ts",
+      "bytes": 417,
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+      "bytes": 2579,
+      "sha256": "5a649cc80f58928732141d5813a4165ebf15e30d3d76f5906f10bb87da99c1c9"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/model-admission.ts",
+      "bytes": 10384,
+      "sha256": "7e77f184fed57d51ee1b0599e60c80d83b96045b139d236a37f76a4207689397"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/persistent-box-contact.ts",
+      "bytes": 3646,
+      "sha256": "2c117202db9bcb0b988b59f9add9cae57e09d175927122a313e7166720a63d9b"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/provider-manifest.generated.ts",
+      "bytes": 7879,
+      "sha256": "8ba90b7a45c2d22c60b65ee3fa7c0238011a5798b728c6089216480c1e6cfc05"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/recording-owner.ts",
+      "bytes": 895,
+      "sha256": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/replay-compare.ts",
+      "bytes": 1023,
+      "sha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/replay-json.ts",
+      "bytes": 7760,
+      "sha256": "1ab8cf962443edd3be387e5095a9cce3f2071c8b44e47cc165ce82d5c00ac617"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/replay-validation.ts",
+      "bytes": 8096,
+      "sha256": "ab9a7b5097515ddd3d6aa9a434d14f2ae2e04fd15c4059b473d0d708a507c82a"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/replay.ts",
+      "bytes": 7119,
+      "sha256": "07bafc635620c56c479ed44b0f458cbbb470bf20b3ce2ead7248ceb0973ca408"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/rigid-free-rotation.ts",
+      "bytes": 4154,
+      "sha256": "20f8eb17a9d8b0e73b26985a787f3f6b0b20671551185aa260ead039b990fe4c"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/scene-profile.ts",
+      "bytes": 1202,
+      "sha256": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/sleep.ts",
+      "bytes": 4411,
+      "sha256": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/types.ts",
+      "bytes": 11884,
+      "sha256": "37fdf1abcc20fd379304213b8c0686f8e0468d285f008aa8ebdb316882efade5"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+      "bytes": 14165,
+      "sha256": "651d12754b77f86493f399baf3c02d60d9ad1fe54e0ece664a05a4430e8a0f01"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/world.ts",
+      "bytes": 30021,
+      "sha256": "bc5cbb3261bd59a063a189348352f11a1f1f078a898175c2a878cea1bf2108bd"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/tsconfig.g1.json",
+      "bytes": 530,
+      "sha256": "9dd588ca61ef49676060980260d810830445a3077a61ce3cea78d000ee20877d"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/source-entry.ts",
+      "bytes": 102,
+      "sha256": "04a44d5f396c5b7a287c93a7a261acd11f8e63ac25bffe1d715207db769b4aeb"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/source-meta.json",
+      "bytes": 68215,
+      "sha256": "2dab3ec72503245ffac67f4670020f41baa270287ed98fabace549516d0066d7"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/source.mjs",
+      "bytes": 417220,
+      "sha256": "5d48b1a1158fea391f0f951446cb32e3afc1a280eaf3800daf211e3a5ba0155e"
+    }
+  ],
+  "nativeRootClosure": [
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/index.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/types.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/world.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/g1-test-control.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/rigid-free-rotation.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/math.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/validation.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/internal-types.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/limits.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/model-admission.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/identity.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/joints.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/dynamic-fixed-joint.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/dynamic-anchor-pair.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/dynamic-hinge-joint.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/admission.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/domain/admission.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/cloth/profile.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/constants.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/static-box.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/domain/cloth-reference.generated.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/recording-owner.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/provider-manifest.generated.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/joint-motor.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/collision.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-contact.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/contact-manifold.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/persistent-box-contact.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/ccd.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/ccd-slab.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/ccd-box.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/ccd-pair.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/broadphase.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/scene-profile.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/sleep.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/stage.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/postcontact.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/projection.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/pose.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/measure.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/errors.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/rows.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/linear-solver.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/disjoint-hinge/report.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/domain/cloth.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/cloth/solver.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/cloth/constraints.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/cloth/metrics.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/domain/types.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/domain/fluid.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/pbf.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/boundary.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/kernel.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/neighbors.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/visual-viscosity.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/fluid/diagnostics.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query/snapshot.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query-error.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query/admission.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query/profile.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query/sweep.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/capsule-query/geometry.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character-controller.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/admission.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/profile.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/core.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/math.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/state.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/query.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/slide.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/step-assist.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/character/ground.js"
+  ],
+  "identityDataClosure": [
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/identity.js",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/dist/types.js"
+  ],
+  "sourceMetafile": {
+    "inputs": {
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/types.ts": {
+        "bytes": 11884,
+        "imports": [],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/g1-test-control.ts": {
+        "bytes": 2465,
+        "imports": [],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts": {
+        "bytes": 2579,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/g1-test-control.ts",
+            "kind": "import-statement",
+            "original": "./g1-test-control.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/internal-types.ts": {
+        "bytes": 2615,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/types.ts",
+            "kind": "import-statement",
+            "original": "./types.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/limits.ts": {
+        "bytes": 417,
+        "imports": [],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts": {
+        "bytes": 14165,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/internal-types.ts",
+            "kind": "import-statement",
+            "original": "./internal-types.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/limits.ts",
+            "kind": "import-statement",
+            "original": "./limits.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/rigid-free-rotation.ts": {
+        "bytes": 4154,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/g1-test-control.ts",
+            "kind": "import-statement",
+            "original": "./g1-test-control.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/identity.ts": {
+        "bytes": 6081,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/types.ts",
+            "kind": "import-statement",
+            "original": "./types.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/dynamic-anchor-pair.ts": {
+        "bytes": 3072,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/limits.ts",
+            "kind": "import-statement",
+            "original": "./limits.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/dynamic-fixed-joint.ts": {
+        "bytes": 2051,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/dynamic-anchor-pair.ts",
+            "kind": "import-statement",
+            "original": "./dynamic-anchor-pair.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/dynamic-hinge-joint.ts": {
+        "bytes": 4835,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/dynamic-anchor-pair.ts",
+            "kind": "import-statement",
+            "original": "./dynamic-anchor-pair.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/joints.ts": {
+        "bytes": 7231,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/limits.ts",
+            "kind": "import-statement",
+            "original": "./limits.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/dynamic-fixed-joint.ts",
+            "kind": "import-statement",
+            "original": "./dynamic-fixed-joint.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/dynamic-hinge-joint.ts",
+            "kind": "import-statement",
+            "original": "./dynamic-hinge-joint.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/admission.ts": {
+        "bytes": 3764,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/joints.ts",
+            "kind": "import-statement",
+            "original": "../joints.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../validation.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/profile.ts": {
+        "bytes": 655,
+        "imports": [],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/constants.ts": {
+        "bytes": 459,
+        "imports": [],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/static-box.ts": {
+        "bytes": 2481,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/constants.ts",
+            "kind": "import-statement",
+            "original": "./constants.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/cloth-reference.generated.ts": {
+        "bytes": 158018,
+        "imports": [],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/admission.ts": {
+        "bytes": 11327,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../validation.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/limits.ts",
+            "kind": "import-statement",
+            "original": "../limits.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/profile.ts",
+            "kind": "import-statement",
+            "original": "../cloth/profile.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/constants.ts",
+            "kind": "import-statement",
+            "original": "../fluid/constants.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/static-box.ts",
+            "kind": "import-statement",
+            "original": "../fluid/static-box.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/cloth-reference.generated.ts",
+            "kind": "import-statement",
+            "original": "./cloth-reference.generated.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/model-admission.ts": {
+        "bytes": 10384,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/identity.ts",
+            "kind": "import-statement",
+            "original": "./identity.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/joints.ts",
+            "kind": "import-statement",
+            "original": "./joints.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/limits.ts",
+            "kind": "import-statement",
+            "original": "./limits.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/admission.ts",
+            "kind": "import-statement",
+            "original": "./disjoint-hinge/admission.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/admission.ts",
+            "kind": "import-statement",
+            "original": "./domain/admission.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/recording-owner.ts": {
+        "bytes": 895,
+        "imports": [],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/provider-manifest.generated.ts": {
+        "bytes": 7879,
+        "imports": [],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/joint-motor.ts": {
+        "bytes": 1723,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-contact.ts": {
+        "bytes": 5615,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/collision.ts": {
+        "bytes": 13442,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-contact.ts",
+            "kind": "import-statement",
+            "original": "./capsule-contact.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/contact-manifold.ts": {
+        "bytes": 4743,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/persistent-box-contact.ts": {
+        "bytes": 3646,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd-slab.ts": {
+        "bytes": 1125,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd-box.ts": {
+        "bytes": 1978,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd-slab.ts",
+            "kind": "import-statement",
+            "original": "./ccd-slab.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd.ts": {
+        "bytes": 3220,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd-slab.ts",
+            "kind": "import-statement",
+            "original": "./ccd-slab.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd-box.ts",
+            "kind": "import-statement",
+            "original": "./ccd-box.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd-pair.ts": {
+        "bytes": 2110,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/broadphase.ts": {
+        "bytes": 1371,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/scene-profile.ts": {
+        "bytes": 1202,
+        "imports": [],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/sleep.ts": {
+        "bytes": 4411,
+        "imports": [],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/measure.ts": {
+        "bytes": 4626,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "../math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/errors.ts": {
+        "bytes": 2777,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../validation.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/pose.ts": {
+        "bytes": 3194,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../validation.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/collision.ts",
+            "kind": "import-statement",
+            "original": "../collision.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "../math.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/measure.ts",
+            "kind": "import-statement",
+            "original": "./measure.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/errors.ts",
+            "kind": "import-statement",
+            "original": "./errors.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/rows.ts": {
+        "bytes": 3685,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "../math.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/errors.ts",
+            "kind": "import-statement",
+            "original": "./errors.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/linear-solver.ts": {
+        "bytes": 10615,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/errors.ts",
+            "kind": "import-statement",
+            "original": "./errors.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/projection.ts": {
+        "bytes": 3538,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../validation.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/collision.ts",
+            "kind": "import-statement",
+            "original": "../collision.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "../math.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/pose.ts",
+            "kind": "import-statement",
+            "original": "./pose.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/errors.ts",
+            "kind": "import-statement",
+            "original": "./errors.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/measure.ts",
+            "kind": "import-statement",
+            "original": "./measure.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/rows.ts",
+            "kind": "import-statement",
+            "original": "./rows.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/linear-solver.ts",
+            "kind": "import-statement",
+            "original": "./linear-solver.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/report.ts": {
+        "bytes": 5726,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/internal-types.ts",
+            "kind": "import-statement",
+            "original": "../internal-types.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "../math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/postcontact.ts": {
+        "bytes": 2936,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../validation.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/projection.ts",
+            "kind": "import-statement",
+            "original": "./projection.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/report.ts",
+            "kind": "import-statement",
+            "original": "./report.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/stage.ts": {
+        "bytes": 2648,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../validation.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/dynamic-hinge-joint.ts",
+            "kind": "import-statement",
+            "original": "../dynamic-hinge-joint.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/joint-motor.ts",
+            "kind": "import-statement",
+            "original": "../joint-motor.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/postcontact.ts",
+            "kind": "import-statement",
+            "original": "./postcontact.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/constraints.ts": {
+        "bytes": 1772,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/solver.ts": {
+        "bytes": 1395,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/constraints.ts",
+            "kind": "import-statement",
+            "original": "./constraints.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/metrics.ts": {
+        "bytes": 1805,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/types.ts": {
+        "bytes": 3839,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/identity.ts",
+            "kind": "import-statement",
+            "original": "../identity.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/types.ts",
+            "kind": "import-statement",
+            "original": "../types.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/cloth.ts": {
+        "bytes": 4349,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/types.ts",
+            "kind": "import-statement",
+            "original": "../types.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/solver.ts",
+            "kind": "import-statement",
+            "original": "../cloth/solver.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/metrics.ts",
+            "kind": "import-statement",
+            "original": "../cloth/metrics.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/profile.ts",
+            "kind": "import-statement",
+            "original": "../cloth/profile.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/types.ts",
+            "kind": "import-statement",
+            "original": "./types.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/boundary.ts": {
+        "bytes": 1990,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/constants.ts",
+            "kind": "import-statement",
+            "original": "./constants.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/neighbors.ts": {
+        "bytes": 2949,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/constants.ts",
+            "kind": "import-statement",
+            "original": "./constants.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/kernel.ts": {
+        "bytes": 1112,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/constants.ts",
+            "kind": "import-statement",
+            "original": "./constants.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/neighbors.ts",
+            "kind": "import-statement",
+            "original": "./neighbors.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/visual-viscosity.ts": {
+        "bytes": 1265,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/constants.ts",
+            "kind": "import-statement",
+            "original": "./constants.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/kernel.ts",
+            "kind": "import-statement",
+            "original": "./kernel.js"
+          },
+          {
+            "path": "./neighbors.js",
+            "kind": "import-statement",
+            "external": true
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/pbf.ts": {
+        "bytes": 5161,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/boundary.ts",
+            "kind": "import-statement",
+            "original": "./boundary.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/constants.ts",
+            "kind": "import-statement",
+            "original": "./constants.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/kernel.ts",
+            "kind": "import-statement",
+            "original": "./kernel.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/neighbors.ts",
+            "kind": "import-statement",
+            "original": "./neighbors.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/static-box.ts",
+            "kind": "import-statement",
+            "original": "./static-box.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/visual-viscosity.ts",
+            "kind": "import-statement",
+            "original": "./visual-viscosity.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/diagnostics.ts": {
+        "bytes": 1106,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/boundary.ts",
+            "kind": "import-statement",
+            "original": "./boundary.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/constants.ts",
+            "kind": "import-statement",
+            "original": "./constants.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/kernel.ts",
+            "kind": "import-statement",
+            "original": "./kernel.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/neighbors.ts",
+            "kind": "import-statement",
+            "original": "./neighbors.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/fluid.ts": {
+        "bytes": 4923,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/types.ts",
+            "kind": "import-statement",
+            "original": "../types.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/pbf.ts",
+            "kind": "import-statement",
+            "original": "../fluid/pbf.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/kernel.ts",
+            "kind": "import-statement",
+            "original": "../fluid/kernel.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/diagnostics.ts",
+            "kind": "import-statement",
+            "original": "../fluid/diagnostics.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/boundary.ts",
+            "kind": "import-statement",
+            "original": "../fluid/boundary.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/static-box.ts",
+            "kind": "import-statement",
+            "original": "../fluid/static-box.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/constants.ts",
+            "kind": "import-statement",
+            "original": "../fluid/constants.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/types.ts",
+            "kind": "import-statement",
+            "original": "./types.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/world.ts": {
+        "bytes": 30021,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/g1-test-control.ts",
+            "kind": "import-statement",
+            "original": "./g1-test-control.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/rigid-free-rotation.ts",
+            "kind": "import-statement",
+            "original": "./rigid-free-rotation.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/types.ts",
+            "kind": "import-statement",
+            "original": "./types.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/model-admission.ts",
+            "kind": "import-statement",
+            "original": "./model-admission.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/identity.ts",
+            "kind": "import-statement",
+            "original": "./identity.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/recording-owner.ts",
+            "kind": "import-statement",
+            "original": "./recording-owner.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/provider-manifest.generated.ts",
+            "kind": "import-statement",
+            "original": "./provider-manifest.generated.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/limits.ts",
+            "kind": "import-statement",
+            "original": "./limits.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/joints.ts",
+            "kind": "import-statement",
+            "original": "./joints.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/joint-motor.ts",
+            "kind": "import-statement",
+            "original": "./joint-motor.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/dynamic-hinge-joint.ts",
+            "kind": "import-statement",
+            "original": "./dynamic-hinge-joint.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/collision.ts",
+            "kind": "import-statement",
+            "original": "./collision.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/contact-manifold.ts",
+            "kind": "import-statement",
+            "original": "./contact-manifold.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/persistent-box-contact.ts",
+            "kind": "import-statement",
+            "original": "./persistent-box-contact.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd.ts",
+            "kind": "import-statement",
+            "original": "./ccd.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd-pair.ts",
+            "kind": "import-statement",
+            "original": "./ccd-pair.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd-box.ts",
+            "kind": "import-statement",
+            "original": "./ccd-box.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/broadphase.ts",
+            "kind": "import-statement",
+            "original": "./broadphase.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/scene-profile.ts",
+            "kind": "import-statement",
+            "original": "./scene-profile.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/sleep.ts",
+            "kind": "import-statement",
+            "original": "./sleep.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/stage.ts",
+            "kind": "import-statement",
+            "original": "./disjoint-hinge/stage.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/cloth.ts",
+            "kind": "import-statement",
+            "original": "./domain/cloth.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/fluid.ts",
+            "kind": "import-statement",
+            "original": "./domain/fluid.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/profile.ts",
+            "kind": "import-statement",
+            "original": "./cloth/profile.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/constants.ts",
+            "kind": "import-statement",
+            "original": "./fluid/constants.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query-error.ts": {
+        "bytes": 137,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/types.ts",
+            "kind": "import-statement",
+            "original": "./types.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/profile.ts": {
+        "bytes": 303,
+        "imports": [],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/admission.ts": {
+        "bytes": 5248,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query-error.ts",
+            "kind": "import-statement",
+            "original": "../capsule-query-error.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/geometry.ts": {
+        "bytes": 2570,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/sweep.ts": {
+        "bytes": 1861,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query-error.ts",
+            "kind": "import-statement",
+            "original": "../capsule-query-error.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/geometry.ts",
+            "kind": "import-statement",
+            "original": "./geometry.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/snapshot.ts": {
+        "bytes": 2537,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query-error.ts",
+            "kind": "import-statement",
+            "original": "../capsule-query-error.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/admission.ts",
+            "kind": "import-statement",
+            "original": "./admission.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/sweep.ts",
+            "kind": "import-statement",
+            "original": "./sweep.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query.ts": {
+        "bytes": 222,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/snapshot.ts",
+            "kind": "import-statement",
+            "original": "./capsule-query/snapshot.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/profile.ts": {
+        "bytes": 334,
+        "imports": [],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/admission.ts": {
+        "bytes": 4488,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query-error.ts",
+            "kind": "import-statement",
+            "original": "../capsule-query-error.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/math.ts": {
+        "bytes": 859,
+        "imports": [],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/state.ts": {
+        "bytes": 2181,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query-error.ts",
+            "kind": "import-statement",
+            "original": "../capsule-query-error.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/query.ts": {
+        "bytes": 2733,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query-error.ts",
+            "kind": "import-statement",
+            "original": "../capsule-query-error.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/state.ts",
+            "kind": "import-statement",
+            "original": "./state.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/step-assist.ts": {
+        "bytes": 3129,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query-error.ts",
+            "kind": "import-statement",
+            "original": "../capsule-query-error.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/slide.ts": {
+        "bytes": 2555,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query-error.ts",
+            "kind": "import-statement",
+            "original": "../capsule-query-error.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/step-assist.ts",
+            "kind": "import-statement",
+            "original": "./step-assist.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/ground.ts": {
+        "bytes": 1242,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query-error.ts",
+            "kind": "import-statement",
+            "original": "../capsule-query-error.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/core.ts": {
+        "bytes": 4057,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query.ts",
+            "kind": "import-statement",
+            "original": "../capsule-query.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query-error.ts",
+            "kind": "import-statement",
+            "original": "../capsule-query-error.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/admission.ts",
+            "kind": "import-statement",
+            "original": "./admission.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/state.ts",
+            "kind": "import-statement",
+            "original": "./state.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/query.ts",
+            "kind": "import-statement",
+            "original": "./query.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/slide.ts",
+            "kind": "import-statement",
+            "original": "./slide.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/ground.ts",
+            "kind": "import-statement",
+            "original": "./ground.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/step-assist.ts",
+            "kind": "import-statement",
+            "original": "./step-assist.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character-controller.ts": {
+        "bytes": 1363,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/admission.ts",
+            "kind": "import-statement",
+            "original": "./character/admission.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/core.ts",
+            "kind": "import-statement",
+            "original": "./character/core.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/state.ts",
+            "kind": "import-statement",
+            "original": "./character/state.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query-error.ts",
+            "kind": "import-statement",
+            "original": "./capsule-query-error.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/index.ts": {
+        "bytes": 570,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/types.ts",
+            "kind": "import-statement",
+            "original": "./types.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/world.ts",
+            "kind": "import-statement",
+            "original": "./world.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query.ts",
+            "kind": "import-statement",
+            "original": "./capsule-query.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character-controller.ts",
+            "kind": "import-statement",
+            "original": "./character-controller.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/source-entry.ts": {
+        "bytes": 102,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/index.ts",
+            "kind": "import-statement",
+            "original": "./package/src/index.js"
+          },
+          {
+            "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/g1-test-control.ts",
+            "kind": "import-statement",
+            "original": "./package/src/g1-test-control.js"
+          }
+        ],
+        "format": "esm"
+      }
+    },
+    "outputs": {
+      "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/source.mjs": {
+        "imports": [],
+        "exports": [
+          "PhysicsError",
+          "createPhysicsWorld",
+          "createUprightCapsuleController",
+          "createUprightCapsuleQuery",
+          "g1Control"
+        ],
+        "entryPoint": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/source-entry.ts",
+        "inputs": {
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/types.ts": {
+            "bytesInOutput": 320
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/index.ts": {
+            "bytesInOutput": 0
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/g1-test-control.ts": {
+            "bytesInOutput": 1905
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/math.ts": {
+            "bytesInOutput": 2091
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/internal-types.ts": {
+            "bytesInOutput": 0
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/limits.ts": {
+            "bytesInOutput": 255
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/validation.ts": {
+            "bytesInOutput": 12865
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/rigid-free-rotation.ts": {
+            "bytesInOutput": 3128
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/identity.ts": {
+            "bytesInOutput": 5827
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/dynamic-anchor-pair.ts": {
+            "bytesInOutput": 2637
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/dynamic-fixed-joint.ts": {
+            "bytesInOutput": 1568
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/dynamic-hinge-joint.ts": {
+            "bytesInOutput": 4173
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/joints.ts": {
+            "bytesInOutput": 6490
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/admission.ts": {
+            "bytesInOutput": 3048
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/profile.ts": {
+            "bytesInOutput": 481
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/constants.ts": {
+            "bytesInOutput": 315
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/static-box.ts": {
+            "bytesInOutput": 1954
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/cloth-reference.generated.ts": {
+            "bytesInOutput": 179641
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/admission.ts": {
+            "bytesInOutput": 9841
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/model-admission.ts": {
+            "bytesInOutput": 9624
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/recording-owner.ts": {
+            "bytesInOutput": 53
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/provider-manifest.generated.ts": {
+            "bytesInOutput": 7796
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/joint-motor.ts": {
+            "bytesInOutput": 1517
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-contact.ts": {
+            "bytesInOutput": 5148
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/collision.ts": {
+            "bytesInOutput": 12488
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/contact-manifold.ts": {
+            "bytesInOutput": 3925
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/persistent-box-contact.ts": {
+            "bytesInOutput": 3021
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd-slab.ts": {
+            "bytesInOutput": 925
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd-box.ts": {
+            "bytesInOutput": 1610
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd.ts": {
+            "bytesInOutput": 2602
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/ccd-pair.ts": {
+            "bytesInOutput": 1821
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/broadphase.ts": {
+            "bytesInOutput": 1082
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/scene-profile.ts": {
+            "bytesInOutput": 1019
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/sleep.ts": {
+            "bytesInOutput": 4041
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/measure.ts": {
+            "bytesInOutput": 4785
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/errors.ts": {
+            "bytesInOutput": 2592
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/pose.ts": {
+            "bytesInOutput": 2791
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/rows.ts": {
+            "bytesInOutput": 3854
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/linear-solver.ts": {
+            "bytesInOutput": 11190
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/projection.ts": {
+            "bytesInOutput": 3265
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/report.ts": {
+            "bytesInOutput": 4547
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/postcontact.ts": {
+            "bytesInOutput": 2215
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/disjoint-hinge/stage.ts": {
+            "bytesInOutput": 1561
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/constraints.ts": {
+            "bytesInOutput": 1624
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/solver.ts": {
+            "bytesInOutput": 1044
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/cloth/metrics.ts": {
+            "bytesInOutput": 1628
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/types.ts": {
+            "bytesInOutput": 1884
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/cloth.ts": {
+            "bytesInOutput": 3650
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/boundary.ts": {
+            "bytesInOutput": 1715
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/neighbors.ts": {
+            "bytesInOutput": 2575
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/kernel.ts": {
+            "bytesInOutput": 867
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/visual-viscosity.ts": {
+            "bytesInOutput": 971
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/pbf.ts": {
+            "bytesInOutput": 4520
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/fluid/diagnostics.ts": {
+            "bytesInOutput": 815
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/domain/fluid.ts": {
+            "bytesInOutput": 4183
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/world.ts": {
+            "bytesInOutput": 26565
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query-error.ts": {
+            "bytesInOutput": 0
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/profile.ts": {
+            "bytesInOutput": 135
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/admission.ts": {
+            "bytesInOutput": 4495
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/geometry.ts": {
+            "bytesInOutput": 1974
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/sweep.ts": {
+            "bytesInOutput": 1493
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query/snapshot.ts": {
+            "bytesInOutput": 2033
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/capsule-query.ts": {
+            "bytesInOutput": 0
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/profile.ts": {
+            "bytesInOutput": 331
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/admission.ts": {
+            "bytesInOutput": 3702
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/math.ts": {
+            "bytesInOutput": 528
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/state.ts": {
+            "bytesInOutput": 1763
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/query.ts": {
+            "bytesInOutput": 1821
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/step-assist.ts": {
+            "bytesInOutput": 2616
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/slide.ts": {
+            "bytesInOutput": 2094
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/ground.ts": {
+            "bytesInOutput": 935
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character/core.ts": {
+            "bytesInOutput": 3190
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/character-controller.ts": {
+            "bytesInOutput": 717
+          },
+          "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/source-entry.ts": {
+            "bytesInOutput": 0
+          }
+        },
+        "bytes": 417220
+      }
+    }
+  }
+}

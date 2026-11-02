@@ -1,0 +1,47 @@
+{
+  "mode": "source",
+  "entry": "examples/physics-cloth-viewer/browser-driver.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/physics-cloth-viewer/browser-driver.mjs": {
+      "bytes": 11232,
+      "sha256": "57e22afc53406bdf271224606c005308df3f2861b701cd08f2e37d9b801dea72",
+      "effectiveSha256": "57e22afc53406bdf271224606c005308df3f2861b701cd08f2e37d9b801dea72"
+    },
+    "examples/physics-cloth-viewer/bundle.mjs": {
+      "bytes": 2249,
+      "sha256": "838b57e48810a74f7c25622724a569e0d9a282c8da255a5e31f274d91fc24797",
+      "effectiveSha256": "838b57e48810a74f7c25622724a569e0d9a282c8da255a5e31f274d91fc24797"
+    },
+    "examples/physics-cloth-viewer/server.mjs": {
+      "bytes": 1379,
+      "sha256": "c8f76a8b56943236f1bfafca83674b73634b75e70cc634b92a17fc39adb8afb2",
+      "effectiveSha256": "c8f76a8b56943236f1bfafca83674b73634b75e70cc634b92a17fc39adb8afb2"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 18054,
+  "outputSha256": "7971773fe931bf38d5605c3bf71a400d305d7c814684b48c9aead388bda52a9f",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [
+    "/Users/user/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs"
+  ],
+  "externalImports": [
+    "node:assert/strict",
+    "node:fs/promises",
+    "node:zlib",
+    "node:crypto",
+    "node:child_process",
+    "node:path",
+    "esbuild",
+    "node:http",
+    "node:url",
+    "/Users/user/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs"
+  ],
+  "moduleEvaluation": false
+}

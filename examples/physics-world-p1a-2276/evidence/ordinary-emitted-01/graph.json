@@ -1,0 +1,197 @@
+{
+  "mode": "ordinary-emitted",
+  "injected": false,
+  "emitted": true,
+  "bundleSha256": "308486feb8516dc6aed060c883234ea3a7d43f3f9276ec1804824767dbad9fa3",
+  "inputs": [
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/types.js",
+      "sha256": "932dad524c2e342e7335203e1e47aafb4025b3da32339385d79847c51283be1e"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/limits.js",
+      "sha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/validation.js",
+      "sha256": "d7bb0ca0e1ac7f0485b60e46d72d4a49a2856473276cf28e56967895f06fe919"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/math.js",
+      "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/dynamic-anchor-pair.js",
+      "sha256": "8e20e96a9a3c803f65d78dfa21aaf530744b2c37e4f3507fd87e828190c800be"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/dynamic-fixed-joint.js",
+      "sha256": "c637c4b13cdf432103202f895e50fae7e05c88920cf0889a67f2c16e565bfb5a"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/dynamic-hinge-joint.js",
+      "sha256": "8780a6887f0c7cbec6ec2f059b2ada64d0e28d0224279d7ada42e4b79e84baac"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/joints.js",
+      "sha256": "f2893b2f8684f338a8d4832b9fa91c356fd360bf70ebf423062e21911d433ce0"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/joint-motor.js",
+      "sha256": "43010c0e319717622727666e1e23f7288fdf500f1731f6fd52a443f36055c724"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/capsule-contact.js",
+      "sha256": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/collision.js",
+      "sha256": "404bbb24c4552828f8bd943481a15b11af7d93333c5651c4c8f8cae88e3dd28a"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/contact-manifold.js",
+      "sha256": "52fcb4accfbfd3251aa977f519983c7334f0d1663bfb2424ca82bfaaec1c8fae"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/persistent-box-contact.js",
+      "sha256": "c45006197178d3a50cd4bbc6b038e286ceadf230e3e459f86882ffc29a96d861"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/ccd-slab.js",
+      "sha256": "cf85c1dce1ebaa899cc2fc9eead7b0c25f7096caeb3a652476beb93c5f02843f"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/ccd-box.js",
+      "sha256": "28dc449fe8f07f1d95245017299e64d3fc350fd7982819c93565999130290595"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/ccd.js",
+      "sha256": "c2c54c3dedf0df98c8888107457dbd87041eb7f52b8f689484b18abdfbc5b54a"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/ccd-pair.js",
+      "sha256": "6c89cf6f2fc9e9eeb3f83959be8ef23ed614cba42e91e48cb0e4706777234fd2"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/broadphase.js",
+      "sha256": "f35e7453719dc2b44668bb20d6fad51a739c6b2cdb9797fe875fc81187400db3"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/scene-profile.js",
+      "sha256": "7a1198598bfaf64647f9ed89d76cb4f1035bd77e602d8b8c0b8a7914911b6e9f"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/sleep.js",
+      "sha256": "681f3820fb08a61cd7f367b049f9b7bb3d2eb1a4e8f81975aec014fdefdb8250"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/world.js",
+      "sha256": "524dd7513937cc20b3e13b7595798ffba961b8e72ea339b43517aa498cee0c6b"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/pendulum.js",
+      "sha256": "86ae37d06196b0c93109828893357acadf25270374b708f4d7fe37a6cfd4ce8b"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/capsule-query-error.js",
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/capsule-query/profile.js",
+      "sha256": "acfab32b60a91c29bec4b89a803902aa9b944eb2ebb6cd0d129b60e039e13210"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/capsule-query/admission.js",
+      "sha256": "4ec507e0c2165af9bea0091666126abf6335662f81fa736821b3978f0293ab20"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/capsule-query/geometry.js",
+      "sha256": "4c9034c23c2137d54e4d2e1554b9015ff2cc6bc7776d62d8e1f3c8b905b67d04"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/capsule-query/sweep.js",
+      "sha256": "f04e6a548504cad0bb838862f7813225592c9549fb0233e026bc6276f7b4929e"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/capsule-query/snapshot.js",
+      "sha256": "5ee1b97dc58a872a9cd6c56121eca158ac5f746d543729e5f197b24d08f9d55f"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/capsule-query.js",
+      "sha256": "f44c04d06c851b807add8096cc26bf893945f53b49ab6c671148491b88e781fc"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/character/profile.js",
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/character/admission.js",
+      "sha256": "07cf9fb6af74299fce3e8fba82ca65871ea7e0cc67e4e73c837606be9f30e43c"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/character/math.js",
+      "sha256": "1afbd07dcb7940e9808e9017d665d781b5e7442bebc290c8327d0d4fb7a79174"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/character/state.js",
+      "sha256": "1600bb81b883944f36c687305bcb5f7134dbf6c0751e92d9206b03622eaf9633"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/character/query.js",
+      "sha256": "3b22d2772d3724bdb3974f1d88f5298054e577286a9f73aa67e62684efca1184"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/character/step-assist.js",
+      "sha256": "aacc69468b9db7a62a14fbb2628a4494cab01a82640c682ad72f098fcbe7c8e5"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/character/slide.js",
+      "sha256": "10c7d825c4640a7837a0b69885bb422ea5a343c921430675c11955acafce3c57"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/character/ground.js",
+      "sha256": "96298ab6534e5e9e7f3da6b0850bbbb7acd73ac11534f6047617ac2bdcd2eb16"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/character/core.js",
+      "sha256": "80a53992b06c75c9216a671c52bad2f3a01b6192bbd6002458ecfe077c3a4eb4"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/character-controller.js",
+      "sha256": "7a68a578b18b42e02dcacba24011b41208fa9af3b5c1b6991dd8efbae29d75b8"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/index.js",
+      "sha256": "08aff800cf0f4213485776e3606994fdf1c9e74c9aceed8dbde196379d9502d9"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/replay-json.js",
+      "sha256": "d5eac609d76c3d8c86b60545493fb9e6833a775da8c4a9fd3f0d5d98d37bde97"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/replay-scene.js",
+      "sha256": "d79ab9e2fbaaf6157469608b664525b5f80484f6258f2b9e9b81dde686b71423"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/replay-compare.js",
+      "sha256": "46e92b237a3b74725e1f973bc195f3fb3c7d182ea4978f5092608706d1400875"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/replay-session.js",
+      "sha256": "4ad2a6ac0477ae29968554951d402eb2ce94874608af20482d34e54b09fe6c84"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/evidence/ordinary-emitted-01/physics/replay.js",
+      "sha256": "40d75176926d3b1425549cded722c17c391f0a3df4c0b1b59d8021fbd6bb516e"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/fixtures.mjs",
+      "sha256": "f59905e181169c1aa791402115f9f00edebedd9d825d0a9ea1d9923581efe730"
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/transaction.test.mjs",
+      "sha256": "be06ca1289685c9e542c62a7add8ceb33c7ff7fbaf04f16347d0fe1088315e6a"
+    }
+  ],
+  "transformations": []
+}

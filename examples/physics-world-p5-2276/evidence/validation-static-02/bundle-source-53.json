@@ -1,0 +1,28 @@
+{
+  "mode": "source",
+  "entry": "examples/workspace-source/setup.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/workspace-source/setup.mjs": {
+      "bytes": 781,
+      "sha256": "38004784bdbb0d2a97b70eac51768b22c03c500c252c49fa4e849b2651cac6cc",
+      "effectiveSha256": "38004784bdbb0d2a97b70eac51768b22c03c500c252c49fa4e849b2651cac6cc"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 815,
+  "outputSha256": "a392fafe7aee97a1fad70e941c242850ceadd55052e867deca54e92419e637f0",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [
+    "node:fs/promises",
+    "node:path",
+    "node:url"
+  ],
+  "moduleEvaluation": false
+}

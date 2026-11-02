@@ -1,0 +1,212 @@
+{
+  "inputs": {
+    "packages/barocss-physics/dist/types.js": {
+      "bytes": 418,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/provider-manifest.generated.js": {
+      "bytes": 956,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/index.js": {
+      "bytes": 133217,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/provider-manifest.generated.js",
+          "kind": "import-statement",
+          "original": "./provider-manifest.generated.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/identity.js": {
+      "bytes": 6977,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/replay-json.js": {
+      "bytes": 6947,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/identity.js",
+          "kind": "import-statement",
+          "original": "./identity.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/index.js",
+          "kind": "import-statement",
+          "original": "./index.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/replay-scene.js": {
+      "bytes": 1952,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/identity.js",
+          "kind": "import-statement",
+          "original": "./identity.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/index.js",
+          "kind": "import-statement",
+          "original": "./index.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/replay-json.js",
+          "kind": "import-statement",
+          "original": "./replay-json.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/replay-compare.js": {
+      "bytes": 974,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/replay-session.js": {
+      "bytes": 5143,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/index.js",
+          "kind": "import-statement",
+          "original": "./index.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/replay-scene.js",
+          "kind": "import-statement",
+          "original": "./replay-scene.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/replay-json.js",
+          "kind": "import-statement",
+          "original": "./replay-json.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/replay-compare.js",
+          "kind": "import-statement",
+          "original": "./replay-compare.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/replay.js": {
+      "bytes": 205,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/replay-scene.js",
+          "kind": "import-statement",
+          "original": "./replay-scene.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/replay-session.js",
+          "kind": "import-statement",
+          "original": "./replay-session.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-scene/replay-probe.mjs": {
+      "bytes": 7840,
+      "imports": [
+        {
+          "path": "node:assert/strict",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "packages/barocss-physics/dist/index.js",
+          "kind": "import-statement",
+          "original": "../../packages/barocss-physics/dist/index.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/replay.js",
+          "kind": "import-statement",
+          "original": "../../packages/barocss-physics/dist/replay.js"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "examples/physics-world-p1b-2276/evidence/probes-emitted-01/replay-probe.mjs": {
+      "imports": [
+        {
+          "path": "node:assert/strict",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "exports": [],
+      "entryPoint": "examples/physics-scene/replay-probe.mjs",
+      "inputs": {
+        "examples/physics-scene/replay-probe.mjs": {
+          "bytesInOutput": 7695
+        },
+        "packages/barocss-physics/dist/types.js": {
+          "bytesInOutput": 328
+        },
+        "packages/barocss-physics/dist/index.js": {
+          "bytesInOutput": 103204
+        },
+        "packages/barocss-physics/dist/provider-manifest.generated.js": {
+          "bytesInOutput": 881
+        },
+        "packages/barocss-physics/dist/identity.js": {
+          "bytesInOutput": 3625
+        },
+        "packages/barocss-physics/dist/replay-json.js": {
+          "bytesInOutput": 6031
+        },
+        "packages/barocss-physics/dist/replay-scene.js": {
+          "bytesInOutput": 1675
+        },
+        "packages/barocss-physics/dist/replay.js": {
+          "bytesInOutput": 0
+        },
+        "packages/barocss-physics/dist/replay-compare.js": {
+          "bytesInOutput": 903
+        },
+        "packages/barocss-physics/dist/replay-session.js": {
+          "bytesInOutput": 4509
+        }
+      },
+      "bytes": 129338
+    }
+  }
+}

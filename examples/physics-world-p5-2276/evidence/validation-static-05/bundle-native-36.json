@@ -1,0 +1,30 @@
+{
+  "mode": "native",
+  "entry": "examples/physics-scene/fluid-cad-viewer/server.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/physics-scene/fluid-cad-viewer/server.mjs": {
+      "bytes": 1231,
+      "sha256": "ff4124dd725b460e9a9d8bef2e6fffddf8afb7dfa56a4e0bd506b4fd930554aa",
+      "effectiveSha256": "ff4124dd725b460e9a9d8bef2e6fffddf8afb7dfa56a4e0bd506b4fd930554aa"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 1323,
+  "outputSha256": "34668769ec4723549f62fa41df45c4b5c975ef2a2bbe3226556d345aabdadca4",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "missingNativeSDKBoundary": null,
+  "nativeHostSDKIntegration": "NOT_CLAIMED_BY_COMPILE",
+  "externalImports": [
+    "node:http",
+    "node:fs/promises",
+    "esbuild"
+  ],
+  "moduleEvaluation": false
+}

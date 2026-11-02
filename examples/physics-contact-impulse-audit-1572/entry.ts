@@ -3,7 +3,7 @@
  * Run (from repo root): npx tsx examples/physics-contact-impulse-audit-1572/entry.ts
  * This is NOT a full-world stable-stack qualification.
  */
-import type { Body, Vec3 } from '../../packages/barocss-physics/src/types.js';
+import type { Body, Vec3 } from '../../packages/barocss-physics/src/internal-types.js';
 import { solvePersistentPoint, warmStartPoint, type PointImpulse } from '../../packages/barocss-physics/src/persistent-box-contact.js';
 
 const V = (x=0,y=0,z=0): Vec3 => [x,y,z];

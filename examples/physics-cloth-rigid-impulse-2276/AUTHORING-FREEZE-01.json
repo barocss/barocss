@@ -1,0 +1,30 @@
+{
+  "status": "PARENT_APPROVED_AUTHORING_ONLY_NO_NUMERICAL_EXECUTION",
+  "inputs": {
+    "CONTRACT.md": {
+      "bytes": 13569,
+      "sha256": "7e11f247a8287d5713bdba8f18a3a36fba2abf3602a39cfcd5663461974a05a6"
+    },
+    "CASES.json": {
+      "bytes": 31141,
+      "sha256": "f2de2962270fc9fc4910844325d52eb7a2b373f9c3ac884455a53340b4d87d90"
+    }
+  },
+  "scope": "Private instantaneous contact-free operator; no public API/schema/World",
+  "authoringGraph": {
+    "independentOracle": [
+      "oracle.py",
+      "ORACLE-AUTHOR-READY.json"
+    ],
+    "candidateLater": [
+      "candidate.ts",
+      "candidate fixture/driver after separate parent review"
+    ],
+    "dependencies": "existing Python stdlib for oracle; no Physics/current solver imports; candidate has no runtime dependency"
+  },
+  "gates": "All CONTRACT/CASES criteria accepted unchanged for this reduced plant; original gates/HOLD/NO_GO unaffected",
+  "execution": "NOT_AUTHORIZED. Actual source/native candidate, ideal fixture construction, Fraction/Decimal references require P5 remaining gates closed plus fresh actual-source/call-budget execution freeze. Syntax/AST and literal metadata/hash checks only during authoring.",
+  "counts": "Future50candidateattempts/30candidate3x3solves; reference23requests/26exactfactorizations/26DecimalKKT;0World. Not executed.",
+  "sourceGraphRule": "No project numerical module import or shared reference/candidate coefficient/solver; only declared standalone oracle Python stdlib imports. Actual authored files must be hashed/inspected before any run.",
+  "immutable": "CONTRACT.md and CASES.json remain byte unchanged; author failure or infeasibility is a new report, never relaxed criteria."
+}

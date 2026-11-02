@@ -1,4 +1,4 @@
-import type {Body,Joint,Vec3} from '../types.js';
+import type {Body,Joint,Vec3} from '../internal-types.js';
 import {add,sub,scale,dot,cross,rotate,worldPoint,inverse,multiplyQuaternion} from '../math.js';
 
 export function measureBodies(bodies:Body[],joint:Joint,origin:Vec3){

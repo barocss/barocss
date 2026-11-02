@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: rigid-discrete-v1 injected before-output preserves state,log and next20steps
+ok 1 - rigid-discrete-v1 injected before-output preserves state,log and next20steps
+  ---
+  duration_ms: 68.918083
+  type: 'test'
+  ...
+# Subtest: rigid-discrete-v1 injected log-encoding preserves state,log and next20steps
+ok 2 - rigid-discrete-v1 injected log-encoding preserves state,log and next20steps
+  ---
+  duration_ms: 51.938125
+  type: 'test'
+  ...
+# Subtest: rigid-discrete-v1 injected before-commit preserves state,log and next20steps
+ok 3 - rigid-discrete-v1 injected before-commit preserves state,log and next20steps
+  ---
+  duration_ms: 46.548583
+  type: 'test'
+  ...
+# Subtest: rigid-persistent-box-v1 injected before-output preserves state,log and next20steps
+ok 4 - rigid-persistent-box-v1 injected before-output preserves state,log and next20steps
+  ---
+  duration_ms: 235.263125
+  type: 'test'
+  ...
+# Subtest: rigid-persistent-box-v1 injected log-encoding preserves state,log and next20steps
+ok 5 - rigid-persistent-box-v1 injected log-encoding preserves state,log and next20steps
+  ---
+  duration_ms: 236.452125
+  type: 'test'
+  ...
+# Subtest: rigid-persistent-box-v1 injected before-commit preserves state,log and next20steps
+ok 6 - rigid-persistent-box-v1 injected before-commit preserves state,log and next20steps
+  ---
+  duration_ms: 232.198958
+  type: 'test'
+  ...
+# Subtest: rigid-large-v1 injected before-output preserves state,log and next20steps
+ok 7 - rigid-large-v1 injected before-output preserves state,log and next20steps
+  ---
+  duration_ms: 314.1595
+  type: 'test'
+  ...
+# Subtest: rigid-large-v1 injected log-encoding preserves state,log and next20steps
+ok 8 - rigid-large-v1 injected log-encoding preserves state,log and next20steps
+  ---
+  duration_ms: 301.004041
+  type: 'test'
+  ...
+# Subtest: rigid-large-v1 injected before-commit preserves state,log and next20steps
+ok 9 - rigid-large-v1 injected before-commit preserves state,log and next20steps
+  ---
+  duration_ms: 297.371291
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1843.196084

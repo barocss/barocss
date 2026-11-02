@@ -1,0 +1,15 @@
+{
+  "counts": {
+    "pairConversions": 1,
+    "scalarConversions": 52,
+    "admitModelAttempts": 1,
+    "admitModelReturns": 1,
+    "admitCcdAttempts": 1,
+    "admitCcdReturns": 1,
+    "sweepSphereAttempts": 1,
+    "sweepSphereReturns": 1,
+    "World": 0
+  },
+  "firstFailure": null
+}
+

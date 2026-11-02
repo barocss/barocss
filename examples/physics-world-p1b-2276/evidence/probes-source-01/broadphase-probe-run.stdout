@@ -1,0 +1,1 @@
+{"result":"ok","machine":"darwin/arm64/node-v22.19.0","direct":{"eligiblePairs":29760,"candidatePairs":29760,"wallMs":33.118708999999996,"heapDeltaBytes":1483696},"aabb":{"eligiblePairs":29760,"candidatePairs":960,"aabbTests":29760,"wallMs":22.997,"heapDeltaBytes":2154640},"contactStatesMatch":true,"ccdContact":true,"invalidRetainsState":true}

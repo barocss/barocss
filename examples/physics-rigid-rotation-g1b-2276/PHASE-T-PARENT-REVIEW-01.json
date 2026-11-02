@@ -1,0 +1,40 @@
+{
+  "status": "PARENT_ACCEPTS_T_SOURCE_PLANS_RUNTIME_NOT_AUTHORIZED",
+  "runtimeAuthorized": false,
+  "productionActivation": false,
+  "pins": {
+    "examples/physics-rigid-rotation-g1b-2276/PHASE-T-PLAN-01.md": {
+      "bytes": 11607,
+      "sha256": "6d7b12af2eef4e40733711ca9dfbdb3edb9e6e81a22bf4eb3cd0de62ef5357ce"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/PHASE-T-PLAN-01.json": {
+      "bytes": 6159,
+      "sha256": "36b8610722396b2968c2768a59b4755c93bd3af84967be902c0bbc92c92b8223"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/REFERENCE-PROTOCOL-T01.md": {
+      "bytes": 6574,
+      "sha256": "db7b8323fabee98773e95cf71b1a6e20fa0c030385cf460b71680fc3048cfa0f"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-DRIVER-PLAN-01.md": {
+      "bytes": 5474,
+      "sha256": "267d5137ec6353beac67123ae4425deb1d2cce66c899f095dad40108ea2e83bd"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-DRIVER-PLAN-01.json": {
+      "bytes": 18115,
+      "sha256": "a83f7f85b9e50154fd9abfd4cc87fe2e3eb984d91b452cdc4f60cd8d1da63c12"
+    }
+  },
+  "accepted": [
+    "FrozenTpopulation/threegrids/controls/refusal/fault/guard/ownership and original per-phase budgets remain perCONTRACT.",
+    "ExactsourcecensusreproducesM02Decimal2,758,004; algebraicallyequivalentstreamedresidualremovesduplicateF_nwork withoutdiscardedresiduals/changedprecision/order/tolerance. Tsubcap21M/joint32M remain stricterthanoriginal.",
+    "All2,848F64wordspergeneralflow preserved in compact595row trace; exactsource/nativewordparity staysrequired.",
+    "Global16,596,440Bmaximum below16MiB; driver721,920Ballocated inside1.5MiB; node/encoder/temporaryproofs remainbeforeREADY.",
+    "ReferenceR/omega-to-p bootstrap is directedandusestheproperorthogonalODEinvariant, notcandidatep orrerunfirst2windows. PrincipalG1abankreuseandnegativeqsignremainmethodindependent."
+  ],
+  "pendingBeforeRuntime": [
+    "Finalactualsource/AST/transferwhitelist/ownedrootproof, including8192referenceobjectcap withoutincrease.",
+    "Fullfrozenruntime/provider/tool/reference/driverclosureandcombinedHighreview.",
+    "Parentfreshsingletrajectoryexecutionfreeze."
+  ],
+  "invariants": "AllM02source/evidence andfirstM01failure remainimmutable. Nolegacyfallback/currentpackageactivation/developmerge/push/deploy/release. No newdependency/download/securitychange/cost."
+}

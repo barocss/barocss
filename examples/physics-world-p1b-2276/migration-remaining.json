@@ -1,0 +1,510 @@
+{
+  "format": "barocss-physics-p1b-remaining-root-audit",
+  "version": 1,
+  "parent": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+  "method": {
+    "kind": "TypeScript AST static import/export/call audit plus explicit generated-consumer inspection",
+    "parsedSourceFiles": 4928,
+    "extensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "mjs",
+      "mts",
+      "cts"
+    ],
+    "excluded": [
+      "evidence directories",
+      "dist directories",
+      "node_modules"
+    ],
+    "rootBindings": "Named or namespace imports and named reexports of createPhysicsWorld from literal @barocss/physics or package src/dist index/world. Direct calls recorded by actual imported local binding. Private same-name World definitions are not public imports.",
+    "generatedConsumer": "rigid-engine-reference/run.mjs generated import template and factory-parameter admission-flow manually traced",
+    "completenessBoundary": "Bounded checked lexical corpus only. Arbitrary computed import strings, eval, aliases through unanalysed modules and external consumers are not proved complete. Existing changed/migrated groups are excluded from remaining rows.",
+    "privateWorldDefinitions": "Excluded from public-root-migration debt; historical-root reexports within private harness entries are listed separately."
+  },
+  "entries": [
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/entry.mjs",
+      "changed": false,
+      "imports": [],
+      "exports": [
+        {
+          "specifier": "../../packages/barocss-physics/src/index.js",
+          "line": 2,
+          "exported": "createOriginalWorld"
+        }
+      ],
+      "calls": [],
+      "delegated": [],
+      "dynamic": [],
+      "action": "historical-original-control-requires-explicit-owner-disposition-before-current-execution",
+      "detail": "This entry forwards the moving public root into a frozen research harness. Its private candidate World is separate. Preserve historical source; the old original-control arm is not qualified against P1b.",
+      "currentSha256": "26f1cc206ccfd0d5d9b987b61581085805961532d62fa631e9bf2622fc8b3d0f",
+      "historicalCheckpoint": {
+        "git": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "path": "examples/physics-rigid-full-pair-position-world/entry.mjs",
+        "sha256": "26f1cc206ccfd0d5d9b987b61581085805961532d62fa631e9bf2622fc8b3d0f"
+      },
+      "pinnedProviderGraph": {
+        "root": "packages/barocss-physics/src/index.ts",
+        "checkpoint": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "signature": "createPhysicsWorld(config); step(dt,commands)",
+        "currentExecution": "NOT_QUALIFIED; use checkpoint only for historical reproduction"
+      }
+    },
+    {
+      "path": "examples/physics-rigid-global-contact-reference/entry.mjs",
+      "changed": false,
+      "imports": [],
+      "exports": [
+        {
+          "specifier": "../../packages/barocss-physics/src/index.js",
+          "line": 2,
+          "exported": "createOriginalWorld"
+        }
+      ],
+      "calls": [],
+      "delegated": [],
+      "dynamic": [],
+      "action": "historical-original-control-requires-explicit-owner-disposition-before-current-execution",
+      "detail": "This entry forwards the moving public root into a frozen research harness. Its private candidate World is separate. Preserve historical source; the old original-control arm is not qualified against P1b.",
+      "currentSha256": "f0e031a77a716922fb6efda43009c5f83bee9bda72a751d6838c5593636b54e1",
+      "historicalCheckpoint": {
+        "git": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "path": "examples/physics-rigid-global-contact-reference/entry.mjs",
+        "sha256": "f0e031a77a716922fb6efda43009c5f83bee9bda72a751d6838c5593636b54e1"
+      },
+      "pinnedProviderGraph": {
+        "root": "packages/barocss-physics/src/index.ts",
+        "checkpoint": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "signature": "createPhysicsWorld(config); step(dt,commands)",
+        "currentExecution": "NOT_QUALIFIED; use checkpoint only for historical reproduction"
+      }
+    },
+    {
+      "path": "examples/physics-scene/app.js",
+      "changed": false,
+      "imports": [
+        {
+          "specifier": "../../packages/barocss-physics/src/index.ts",
+          "line": 1,
+          "binding": "createPhysicsWorld"
+        }
+      ],
+      "exports": [],
+      "calls": [
+        {
+          "line": 4,
+          "arguments": 1,
+          "argumentKinds": [
+            "ObjectLiteralExpression"
+          ]
+        }
+      ],
+      "delegated": [],
+      "dynamic": [],
+      "action": "current-owner-migration-required",
+      "detail": "Current static root constructor still has one old-config argument.",
+      "currentSha256": "9cb3e9f0a6d572d7aeb1dd57eb9a6fda2f763284919e0503aad12ba49c1162f6",
+      "historicalCheckpoint": {
+        "git": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "path": "examples/physics-scene/app.js",
+        "sha256": "9cb3e9f0a6d572d7aeb1dd57eb9a6fda2f763284919e0503aad12ba49c1162f6"
+      }
+    },
+    {
+      "path": "examples/physics-rigid-position-reference/entry.mjs",
+      "changed": false,
+      "imports": [],
+      "exports": [
+        {
+          "specifier": "../../packages/barocss-physics/src/index.js",
+          "line": 2,
+          "exported": "createOriginalWorld"
+        }
+      ],
+      "calls": [],
+      "delegated": [],
+      "dynamic": [],
+      "action": "historical-original-control-requires-explicit-owner-disposition-before-current-execution",
+      "detail": "This entry forwards the moving public root into a frozen research harness. Its private candidate World is separate. Preserve historical source; the old original-control arm is not qualified against P1b.",
+      "currentSha256": "f0e031a77a716922fb6efda43009c5f83bee9bda72a751d6838c5593636b54e1",
+      "historicalCheckpoint": {
+        "git": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "path": "examples/physics-rigid-position-reference/entry.mjs",
+        "sha256": "f0e031a77a716922fb6efda43009c5f83bee9bda72a751d6838c5593636b54e1"
+      },
+      "pinnedProviderGraph": {
+        "root": "packages/barocss-physics/src/index.ts",
+        "checkpoint": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "signature": "createPhysicsWorld(config); step(dt,commands)",
+        "currentExecution": "NOT_QUALIFIED; use checkpoint only for historical reproduction"
+      }
+    },
+    {
+      "path": "examples/physics-rigid-coupled-position-world/entry.mjs",
+      "changed": false,
+      "imports": [],
+      "exports": [
+        {
+          "specifier": "../../packages/barocss-physics/src/index.js",
+          "line": 2,
+          "exported": "createOriginalWorld"
+        }
+      ],
+      "calls": [],
+      "delegated": [],
+      "dynamic": [],
+      "action": "historical-original-control-requires-explicit-owner-disposition-before-current-execution",
+      "detail": "This entry forwards the moving public root into a frozen research harness. Its private candidate World is separate. Preserve historical source; the old original-control arm is not qualified against P1b.",
+      "currentSha256": "508e16a04967b46ab5fb851021f8996d58129b411ad2fd6bf6c2b880412290d8",
+      "historicalCheckpoint": {
+        "git": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "path": "examples/physics-rigid-coupled-position-world/entry.mjs",
+        "sha256": "508e16a04967b46ab5fb851021f8996d58129b411ad2fd6bf6c2b880412290d8"
+      },
+      "pinnedProviderGraph": {
+        "root": "packages/barocss-physics/src/index.ts",
+        "checkpoint": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "signature": "createPhysicsWorld(config); step(dt,commands)",
+        "currentExecution": "NOT_QUALIFIED; use checkpoint only for historical reproduction"
+      }
+    },
+    {
+      "path": "examples/physics-rigid-capsule-face-world-reference/entry.ts",
+      "changed": false,
+      "imports": [],
+      "exports": [
+        {
+          "specifier": "../../packages/barocss-physics/src/world.js",
+          "line": 7,
+          "exported": "createOriginalWorld"
+        }
+      ],
+      "calls": [],
+      "delegated": [],
+      "dynamic": [],
+      "action": "historical-original-control-requires-explicit-owner-disposition-before-current-execution",
+      "detail": "This entry forwards the moving public root into a frozen research harness. Its private candidate World is separate. Preserve historical source; the old original-control arm is not qualified against P1b.",
+      "currentSha256": "12d7f84be623a34835a60cf02ffe050643829749671b949a95de814bfebac5ce",
+      "historicalCheckpoint": {
+        "git": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "path": "examples/physics-rigid-capsule-face-world-reference/entry.ts",
+        "sha256": "12d7f84be623a34835a60cf02ffe050643829749671b949a95de814bfebac5ce"
+      },
+      "pinnedProviderGraph": {
+        "root": "packages/barocss-physics/src/index.ts",
+        "checkpoint": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "signature": "createPhysicsWorld(config); step(dt,commands)",
+        "currentExecution": "NOT_QUALIFIED; use checkpoint only for historical reproduction"
+      }
+    },
+    {
+      "path": "examples/physics-rigid-contact-reference/consumer-entry.mjs",
+      "changed": false,
+      "imports": [],
+      "exports": [
+        {
+          "specifier": "../../packages/barocss-physics/src/index.js",
+          "line": 2,
+          "exported": "createOriginalWorld"
+        }
+      ],
+      "calls": [],
+      "delegated": [],
+      "dynamic": [],
+      "action": "historical-original-control-requires-explicit-owner-disposition-before-current-execution",
+      "detail": "This entry forwards the moving public root into a frozen research harness. Its private candidate World is separate. Preserve historical source; the old original-control arm is not qualified against P1b.",
+      "currentSha256": "f0e031a77a716922fb6efda43009c5f83bee9bda72a751d6838c5593636b54e1",
+      "historicalCheckpoint": {
+        "git": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "path": "examples/physics-rigid-contact-reference/consumer-entry.mjs",
+        "sha256": "f0e031a77a716922fb6efda43009c5f83bee9bda72a751d6838c5593636b54e1"
+      },
+      "pinnedProviderGraph": {
+        "root": "packages/barocss-physics/src/index.ts",
+        "checkpoint": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "signature": "createPhysicsWorld(config); step(dt,commands)",
+        "currentExecution": "NOT_QUALIFIED; use checkpoint only for historical reproduction"
+      }
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/harness-entry.mjs",
+      "changed": false,
+      "imports": [],
+      "exports": [
+        {
+          "specifier": "../../packages/barocss-physics/src/index.ts",
+          "line": 2,
+          "exported": "createPhysicsWorld"
+        }
+      ],
+      "calls": [],
+      "delegated": [],
+      "dynamic": [],
+      "action": "historical-original-control-requires-explicit-owner-disposition-before-current-execution",
+      "detail": "This entry forwards the moving public root into a frozen research harness. Its private candidate World is separate. Preserve historical source; the old original-control arm is not qualified against P1b.",
+      "currentSha256": "1a7bdaa0be79b7a3801f8fbbc1feb8bd0a8f4861347c15d96d36dea57683fc49",
+      "historicalCheckpoint": {
+        "git": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "path": "examples/physics-rigid-hinge-velocity-world-reference/harness-entry.mjs",
+        "sha256": "1a7bdaa0be79b7a3801f8fbbc1feb8bd0a8f4861347c15d96d36dea57683fc49"
+      },
+      "pinnedProviderGraph": {
+        "root": "packages/barocss-physics/src/index.ts",
+        "checkpoint": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "signature": "createPhysicsWorld(config); step(dt,commands)",
+        "currentExecution": "NOT_QUALIFIED; use checkpoint only for historical reproduction"
+      }
+    },
+    {
+      "path": "examples/physics-rigid-feature-contact-reference/entry.mjs",
+      "changed": false,
+      "imports": [],
+      "exports": [
+        {
+          "specifier": "../../packages/barocss-physics/src/index.js",
+          "line": 2,
+          "exported": "createOriginalWorld"
+        }
+      ],
+      "calls": [],
+      "delegated": [],
+      "dynamic": [],
+      "action": "historical-original-control-requires-explicit-owner-disposition-before-current-execution",
+      "detail": "This entry forwards the moving public root into a frozen research harness. Its private candidate World is separate. Preserve historical source; the old original-control arm is not qualified against P1b.",
+      "currentSha256": "ec0d2b669498d8747526d684591e769c4f61f4c0a37672ed0088747c78c7e13e",
+      "historicalCheckpoint": {
+        "git": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "path": "examples/physics-rigid-feature-contact-reference/entry.mjs",
+        "sha256": "ec0d2b669498d8747526d684591e769c4f61f4c0a37672ed0088747c78c7e13e"
+      },
+      "pinnedProviderGraph": {
+        "root": "packages/barocss-physics/src/index.ts",
+        "checkpoint": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "signature": "createPhysicsWorld(config); step(dt,commands)",
+        "currentExecution": "NOT_QUALIFIED; use checkpoint only for historical reproduction"
+      }
+    },
+    {
+      "path": "examples/physics-rigid-velocity-diagnostic/entry.mjs",
+      "changed": false,
+      "imports": [],
+      "exports": [
+        {
+          "specifier": "../../packages/barocss-physics/src/index.js",
+          "line": 3,
+          "exported": "createOriginalWorld"
+        }
+      ],
+      "calls": [],
+      "delegated": [],
+      "dynamic": [],
+      "action": "historical-original-control-requires-explicit-owner-disposition-before-current-execution",
+      "detail": "This entry forwards the moving public root into a frozen research harness. Its private candidate World is separate. Preserve historical source; the old original-control arm is not qualified against P1b.",
+      "currentSha256": "e195ff749ab55bf6f6f5ef29853cd8863d27cc07573bf0d67f907eca77cb871d",
+      "historicalCheckpoint": {
+        "git": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "path": "examples/physics-rigid-velocity-diagnostic/entry.mjs",
+        "sha256": "e195ff749ab55bf6f6f5ef29853cd8863d27cc07573bf0d67f907eca77cb871d"
+      },
+      "pinnedProviderGraph": {
+        "root": "packages/barocss-physics/src/index.ts",
+        "checkpoint": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "signature": "createPhysicsWorld(config); step(dt,commands)",
+        "currentExecution": "NOT_QUALIFIED; use checkpoint only for historical reproduction"
+      }
+    },
+    {
+      "path": "examples/physics-rigid-signed-closure-world/entry.mjs",
+      "changed": false,
+      "imports": [],
+      "exports": [
+        {
+          "specifier": "../../packages/barocss-physics/src/index.js",
+          "line": 2,
+          "exported": "createOriginalWorld"
+        }
+      ],
+      "calls": [],
+      "delegated": [],
+      "dynamic": [],
+      "action": "historical-original-control-requires-explicit-owner-disposition-before-current-execution",
+      "detail": "This entry forwards the moving public root into a frozen research harness. Its private candidate World is separate. Preserve historical source; the old original-control arm is not qualified against P1b.",
+      "currentSha256": "3447ff10e61e3b755fed249540791e0cc2713291868b2f5f962c655560f03108",
+      "historicalCheckpoint": {
+        "git": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "path": "examples/physics-rigid-signed-closure-world/entry.mjs",
+        "sha256": "3447ff10e61e3b755fed249540791e0cc2713291868b2f5f962c655560f03108"
+      },
+      "pinnedProviderGraph": {
+        "root": "packages/barocss-physics/src/index.ts",
+        "checkpoint": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "signature": "createPhysicsWorld(config); step(dt,commands)",
+        "currentExecution": "NOT_QUALIFIED; use checkpoint only for historical reproduction"
+      }
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/transaction.test.mjs",
+      "changed": false,
+      "imports": [
+        {
+          "specifier": "@barocss/physics",
+          "line": 3,
+          "binding": "createPhysicsWorld"
+        }
+      ],
+      "exports": [],
+      "calls": [
+        {
+          "line": 34,
+          "arguments": 1,
+          "argumentKinds": [
+            "CallExpression"
+          ]
+        },
+        {
+          "line": 35,
+          "arguments": 1,
+          "argumentKinds": [
+            "CallExpression"
+          ]
+        },
+        {
+          "line": 109,
+          "arguments": 1,
+          "argumentKinds": [
+            "CallExpression"
+          ]
+        }
+      ],
+      "delegated": [],
+      "dynamic": [],
+      "action": "historical-checkpoint-only",
+      "detail": "P1a transaction regression intentionally targets the old canonical signature at the preserved checkpoint. Not a P1b runner.",
+      "currentSha256": "be06ca1289685c9e542c62a7add8ceb33c7ff7fbaf04f16347d0fe1088315e6a",
+      "historicalCheckpoint": {
+        "git": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "path": "examples/physics-world-p1a-2276/transaction.test.mjs",
+        "sha256": "be06ca1289685c9e542c62a7add8ceb33c7ff7fbaf04f16347d0fe1088315e6a"
+      }
+    },
+    {
+      "path": "examples/physics-rigid-cache-reference/entry.mjs",
+      "changed": false,
+      "imports": [],
+      "exports": [
+        {
+          "specifier": "../../packages/barocss-physics/src/index.js",
+          "line": 2,
+          "exported": "createOriginalWorld"
+        }
+      ],
+      "calls": [],
+      "delegated": [],
+      "dynamic": [],
+      "action": "historical-original-control-requires-explicit-owner-disposition-before-current-execution",
+      "detail": "This entry forwards the moving public root into a frozen research harness. Its private candidate World is separate. Preserve historical source; the old original-control arm is not qualified against P1b.",
+      "currentSha256": "f0e031a77a716922fb6efda43009c5f83bee9bda72a751d6838c5593636b54e1",
+      "historicalCheckpoint": {
+        "git": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "path": "examples/physics-rigid-cache-reference/entry.mjs",
+        "sha256": "f0e031a77a716922fb6efda43009c5f83bee9bda72a751d6838c5593636b54e1"
+      },
+      "pinnedProviderGraph": {
+        "root": "packages/barocss-physics/src/index.ts",
+        "checkpoint": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "signature": "createPhysicsWorld(config); step(dt,commands)",
+        "currentExecution": "NOT_QUALIFIED; use checkpoint only for historical reproduction"
+      }
+    },
+    {
+      "path": "examples/physics-world-p0-2276/inventory.mjs",
+      "action": "historical-checkpoint-only",
+      "historicalCheckpoint": {
+        "git": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "path": "examples/physics-world-p0-2276/inventory.mjs",
+        "sha256": "5d4a42705ab88f737ebed11787b0c83c585da6e03b75643818523fe125ba1c8d"
+      },
+      "detail": "Frozen inventory or original P1a proof runner. Not an active P1b root consumer. No source edited."
+    },
+    {
+      "path": "examples/physics-world-p1a-2276/run.mjs",
+      "action": "historical-checkpoint-only",
+      "historicalCheckpoint": {
+        "git": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "path": "examples/physics-world-p1a-2276/run.mjs",
+        "sha256": "8ee79a0c97b9b4dd4c35445bc98fed08ef6451c4b169c77691029ecc3adc91fa"
+      },
+      "detail": "Frozen inventory or original P1a proof runner. Not an active P1b root consumer. No source edited."
+    },
+    {
+      "path": "examples/physics-rigid-engine-reference/run.mjs",
+      "action": "migrated-current-generated-consumer-and-delegated-constructor",
+      "currentSha256": "9c674d8d2da8e0fd6de94f98d3d6f04f6f23107b280531455176cf388873e7df",
+      "historicalCheckpoint": {
+        "git": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "path": "examples/physics-rigid-engine-reference/run.mjs",
+        "sha256": "bccb4757d50c5d6914bd2d7e17501a94661614e5adfebb451403694af69ce7e4"
+      },
+      "detail": "run.mjs emits source/emitted root imports and passes the factory to runAdmission. admission-flow directly authors nine P0 input fixtures by immutable fixture ID; no old-config converter. Original fixtures.mjs unchanged. Current source/emitted nine-case admission and one-step parity PASS; provider digest compared separately."
+    },
+    {
+      "path": "examples/physics-rigid-engine-reference/admission-flow.mjs",
+      "action": "migrated-current-generated-consumer-and-delegated-constructor",
+      "currentSha256": "28d30bde5d99afc534199f7a9e83d51051f0604bd7e7cfb954481784659d7399",
+      "historicalCheckpoint": {
+        "git": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+        "path": "examples/physics-rigid-engine-reference/admission-flow.mjs",
+        "sha256": "044b231fa18c86678331d8911898829af73526490ff86e0ef12b518c09a189c7"
+      },
+      "detail": "run.mjs emits source/emitted root imports and passes the factory to runAdmission. admission-flow directly authors nine P0 input fixtures by immutable fixture ID; no old-config converter. Original fixtures.mjs unchanged. Current source/emitted nine-case admission and one-step parity PASS; provider digest compared separately."
+    }
+  ],
+  "counts": {
+    "remainingRows": 17,
+    "historicalRootReexports": 11,
+    "currentOwnerMigrationRequired": 1
+  },
+  "verification": {
+    "selected1572Commands": {
+      "status": "PASS",
+      "receipt": "examples/physics-world-p1b-2276/evidence/core-1572-runtime-01/commands.json",
+      "cases": [
+        "run-contact-energy-ledger.mjs",
+        "original-mini-stacks.ts workflow bundle+node",
+        "run-total-energy-phase-ledger.mjs",
+        "public-world-smoke.ts bundle+node"
+      ]
+    },
+    "engineAdmission": {
+      "status": "PASS",
+      "receipt": "examples/physics-world-p1b-2276/evidence/core-admission-reference-01/summary.json",
+      "scope": "nine explicit fixtures; admission and one accepted step only; no numerical campaign"
+    }
+  },
+  "historicalExecutionRule": "The eleven old public-root forward arms belong to the immutable baseline0be1dffb8 graph. They are historical-only at that checkpoint until an owner authors new current API controls. The P1b root has no old/new selector or archive engine fallback.",
+  "solverPhaseStatic": {
+    "kind": "static-byte-comparison",
+    "baseline": "0be1dffb8b7dce2be2571990d895c7e8301f9349",
+    "path": "packages/barocss-physics/src/world.ts",
+    "startAnchor": "const actions = parseCommands",
+    "endExclusiveAnchor": "const state = publicState",
+    "equal": true,
+    "baselineSha256": "89bdece7bf2c4293f4764710fedad54ca70a21d88d2182aa17e8484b4770eaf7",
+    "currentSha256": "89bdece7bf2c4293f4764710fedad54ca70a21d88d2182aa17e8484b4770eaf7",
+    "bytes": 9682,
+    "proofBoundary": "Exact candidate solver source phase only. Constructor, metadata, serialization, query and public state mapping are outside this slice; no broad numerical qualification inferred."
+  },
+  "filenameCounts": {
+    "auditEntries": 17,
+    "historicalRootForwardEntries": 11,
+    "historicalP0P1aFiles": 3,
+    "migratedEngineHarnessFiles": 2,
+    "currentOwnerMigrationFiles": 1,
+    "migratedAudit1572TsFiles": 36,
+    "selected1572RuntimeCases": 4
+  }
+}

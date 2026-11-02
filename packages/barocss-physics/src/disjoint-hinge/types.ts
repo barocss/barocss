@@ -1,4 +1,4 @@
-import type { Body, Joint, Vec3 } from '../types.js';
+import type { Body, Joint, Vec3 } from '../internal-types.js';
 
 /** Package-internal, already parsed input. A/B are directed local indices 0/1. */
 export type PairBodies = [Body, Body];

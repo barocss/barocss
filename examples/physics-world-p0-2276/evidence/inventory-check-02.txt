@@ -1,0 +1,1 @@
+{"result":"PASS","mode":"check","files":1281,"lines":5071,"excluded":{"immutable-evidence-directory":7540,"emitted-artifact":30,"binary":2211},"unclassified":0,"seedMissing":[]}

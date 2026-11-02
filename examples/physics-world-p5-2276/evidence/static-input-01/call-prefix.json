@@ -1,0 +1,17 @@
+{
+  "counts": {
+    "admissionAttempts": 1,
+    "admissionReturns": 0,
+    "WorldCalls": 0,
+    "candidateCalls": 0
+  },
+  "request": {
+    "sourceVersion": 0,
+    "sourceRevision": "shelfRev1",
+    "modelId": "fluid_shelf",
+    "surfaceId": "shelf",
+    "kind": "static",
+    "proxy": "box",
+    "minimumHalfExtentM": 0.01
+  }
+}

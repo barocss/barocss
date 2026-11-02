@@ -1,0 +1,77 @@
+{
+  "workId": "physics-world-p2-2276",
+  "status": "P2_DONE_LOCALSELECTED",
+  "base": "0c8b3be71f10bc9e39f8c8097eeaf0cfba8175ae",
+  "public": {
+    "source": {
+      "run": "public-source-05",
+      "pass": 11,
+      "fail": 0
+    },
+    "emitted": {
+      "run": "public-emitted-05",
+      "pass": 11,
+      "fail": 0
+    }
+  },
+  "testOnlyFaultInjection": {
+    "source": {
+      "run": "faults-source-04",
+      "pass": 15,
+      "fail": 0
+    },
+    "emitted": {
+      "run": "faults-emitted-04",
+      "pass": 15,
+      "fail": 0
+    }
+  },
+  "native": "native-03",
+  "ordinaryProbesPerGraph": 21,
+  "finalRecordingCallersPerGraph": 3,
+  "foundationTestsPerGraph": 21,
+  "docsSamples": {
+    "run": "docs-samples-03",
+    "pass": 174,
+    "fail": 0
+  },
+  "docs": [
+    "docs-check-01",
+    "docs-build-01",
+    "docs-links-01"
+  ],
+  "firstFailuresPreserved": [
+    {
+      "run": "wire-boundary-source-01",
+      "pass": 10,
+      "fail": 1,
+      "reason": "leading BOM lost by decoder"
+    },
+    {
+      "run": "attach-boundary-source-01",
+      "pass": 12,
+      "fail": 3,
+      "reason": "owner assigned before public recorder output preparation"
+    }
+  ],
+  "sleepingContinuation": {
+    "sourceAndEmitted": true,
+    "sleepingBodies": 6,
+    "historySteps": 180,
+    "continuationSteps": 20
+  },
+  "tolerancesUnchanged": true,
+  "holdsUnchanged": [
+    "Physics",
+    "Studio",
+    "manufacturing"
+  ],
+  "remainingNO_GO": [
+    "public two-hinge",
+    "original eight-box full settling",
+    "historical three-box OFFSET/YAW settling"
+  ],
+  "fullViewerStudio": "NOT_RUN",
+  "hardwareAgreement": "NOT_RUN",
+  "deployment": false
+}

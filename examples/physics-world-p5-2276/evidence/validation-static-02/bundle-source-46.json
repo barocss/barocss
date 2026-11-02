@@ -1,0 +1,29 @@
+{
+  "mode": "source",
+  "entry": "examples/viewer-surface-material/server.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/viewer-surface-material/server.mjs": {
+      "bytes": 2375,
+      "sha256": "d295b991085847052d651a2e551483b5495ef579f23979872e45abfb777823bf",
+      "effectiveSha256": "d295b991085847052d651a2e551483b5495ef579f23979872e45abfb777823bf"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 2452,
+  "outputSha256": "3fea6521b70cc0ea9e2bd111bb02744e17c4a2031bc38df15c9ebff70b9b4ea0",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [
+    "node:http",
+    "node:fs/promises",
+    "node:path",
+    "esbuild"
+  ],
+  "moduleEvaluation": false
+}

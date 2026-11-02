@@ -1,65 +1,52 @@
+import { basename } from 'node:path';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
-import { createFluidWorld, PhysicsError } from '../../packages/barocss-physics/dist/fluid.js';
+import { waterModelData } from './fluid-viewer/scene.js';
 
-function waterScene() {
-  const initialPositionsM = [];
-  for (let z = 0; z < 4; z++) {
-    for (let y = 0; y < 8; y++) {
-      for (let x = 0; x < 8; x++) {
-        initialPositionsM.push([0.2 + x * 0.05, 0.45 + y * 0.05, 0.3 + z * 0.05]);
-      }
-    }
-  }
-  return { format: 'barocss-fluid-scene', version: 1, revision: 'waterRev1',
-    basis: 'right-handed-xyz-metres', fixedStepSeconds: 1 / 120,
-    gravityMps2: [0, -9.81, 0], basinM: [0.7, 1.3, 0.5], initialPositionsM };
-}
 
 function hash(positions) {
   return createHash('sha256').update(Buffer.from(positions.buffer,
     positions.byteOffset, positions.byteLength)).digest('hex');
 }
 
+export function qualifyFluidWorld(provider) {
+
 function refused(action, code) {
-  assert.throws(action, (error) => error instanceof PhysicsError && error.code === code);
+  assert.throws(action, (error) => error instanceof provider.PhysicsError && error.code === code);
 }
 
-const scene = waterScene();
-const world = createFluidWorld(scene);
+const input = waterModelData();
+let world = provider.createPhysicsWorld(input.model,input.options);
 const initial = world.getState();
-assert.equal(initial.particleCount, 256);
+assert.equal(initial.fluids[0].positionsM.length / 3, 256);
 assert.equal(initial.stepIndex, 0);
-scene.initialPositionsM[0][0] = 0.6;
-initial.positionsM[0] = -1;
-initial.velocitiesMps[0] = 900;
-initial.basinM[0] = 9;
-initial.diagnostics.meanAbsoluteDensityError = 900;
-assert.equal(world.getState().positionsM[0], 0.2);
-assert.equal(world.getState().basinM[0], 0.7);
+input.model.fluids[0].initialPositionsM[0][0] = 0.6;
+initial.fluids[0].positionsM[0] = -1;
+initial.fluids[0].velocitiesMps[0] = 900;
+const returnedModel = world.getModel(); returnedModel.colliders[0].geometry.halfExtentsM[0] = 9;
+initial.fluids[0].diagnostics.meanAbsoluteDensityError = 900;
+assert.equal(world.getState().fluids[0].positionsM[0], 0.2);
+assert.equal(world.getModel().colliders[0].geometry.halfExtentsM[0], 0.35);
 const beforeInvalid = world.getState();
-refused(() => world.step(1 / 60), 'INVALID_STEP');
+refused(() => world.step(1 / 60), 'INVALID_COMMAND');
 assert.deepEqual(world.getState(), beforeInvalid);
 
-const fixture = waterScene();
-for (const damaged of [
-  { ...fixture, basis: 'left-handed-xyz-metres' },
-  { ...fixture, initialPositionsM: fixture.initialPositionsM.slice(1) },
-  { ...fixture, initialPositionsM: fixture.initialPositionsM.map((point, i) =>
-    i === 1 ? fixture.initialPositionsM[0] : point) },
-  { ...fixture, initialPositionsM: fixture.initialPositionsM.map((point, i) =>
-    i === 0 ? [Number.NaN, point[1], point[2]] : point) },
-  { ...fixture, basinM: [0.8, 1.3, 0.5] },
-  { ...fixture, extra: true },
-]) refused(() => createFluidWorld(damaged), 'INVALID_CONFIG');
-const shiftedScene = waterScene();
-shiftedScene.initialPositionsM[0][0] += 0.005;
-const shifted = createFluidWorld(shiftedScene);
-assert.equal(shifted.getState().positionsM[0], 0.2 + 0.005);
-shifted.dispose();
+const fixture = waterModelData();
+for (const mutate of [
+  x => { x.model.frame.basis = 'left-handed-xyz'; },
+  x => { x.model.fluids[0].initialPositionsM.pop(); },
+  x => { x.model.fluids[0].initialPositionsM[1] = [...x.model.fluids[0].initialPositionsM[0]]; },
+  x => { x.model.fluids[0].initialPositionsM[0] = [NaN,.45,.3]; },
+  x => { x.model.colliders[0].geometry.halfExtentsM[0] = .4; },
+  x => { x.model.extra = true; },
+]) { const damaged=structuredClone(fixture); mutate(damaged); refused(()=>provider.createPhysicsWorld(damaged.model,damaged.options),'INVALID_CONFIG'); }
+const shiftedInput = waterModelData();
+shiftedInput.model.fluids[0].initialPositionsM[0][0] += .005;
+const shifted = provider.createPhysicsWorld(shiftedInput.model,shiftedInput.options);
+assert.equal(shifted.getState().fluids[0].positionsM[0],.2+.005);shifted.dispose();
 for (const invalidStep of [Number.NaN, 0, 1 / 60, '1/120']) {
-  refused(() => world.step(invalidStep), 'INVALID_STEP');
+  refused(() => world.step(invalidStep), 'INVALID_COMMAND');
   assert.deepEqual(world.getState(), beforeInvalid);
 }
 
@@ -69,48 +56,56 @@ const times = [];
 let at60, at240;
 for (let step = 1; step <= 240; step++) {
   const start = performance.now();
-  const state = world.step(1 / 120);
+  const state = world.step([]);
   times.push(performance.now() - start);
   if (step === 60) at60 = state;
   if (step === 240) at240 = state;
 }
 assert.equal(at60.stepIndex, 60);
 assert.equal(at240.stepIndex, 240);
-assert.ok(at60.diagnostics.meanAbsoluteDensityError <= 0.35);
-assert.ok(at240.diagnostics.meanAbsoluteDensityError <= 0.10);
-assert.ok(at60.diagnostics.p95Compression <= 0.05);
-assert.ok(at240.diagnostics.p95Compression <= 0.05);
-assert.ok([...at240.positionsM, ...at240.velocitiesMps].every(Number.isFinite));
+assert.ok(at60.fluids[0].diagnostics.meanAbsoluteDensityError <= 0.35);
+assert.ok(at240.fluids[0].diagnostics.meanAbsoluteDensityError <= 0.10);
+assert.ok(at60.fluids[0].diagnostics.p95Compression <= 0.05);
+assert.ok(at240.fluids[0].diagnostics.p95Compression <= 0.05);
+assert.ok([...at240.fluids[0].positionsM, ...at240.fluids[0].velocitiesMps].every(Number.isFinite));
 for (let index = 0; index < 256; index++) {
   for (let axis = 0; axis < 3; axis++) {
-    const value = at240.positionsM[index * 3 + axis];
-    assert.ok(value >= 0.0125 - 1e-9 && value <= at240.basinM[axis] - 0.0125 + 1e-9);
+    const value = at240.fluids[0].positionsM[index * 3 + axis];
+    assert.ok(value >= 0.0125 - 1e-9 && value <= [0.7,1.3,0.5][axis] - 0.0125 + 1e-9);
   }
 }
-const repeat = createFluidWorld(waterScene());
-for (let step = 0; step < 240; step++) repeat.step(1 / 120);
-assert.equal(hash(repeat.getState().positionsM), hash(at240.positionsM));
+const repeatInput = waterModelData();
+const repeat = provider.createPhysicsWorld(repeatInput.model,repeatInput.options);
+for (let step = 0; step < 240; step++) repeat.step([]);
+assert.equal(hash(repeat.getState().fluids[0].positionsM), hash(at240.fluids[0].positionsM));
 repeat.dispose();
 
-const reset = world.reset();
+world.dispose();
+world = provider.createPhysicsWorld(fixture.model,fixture.options);
+const reset = world.getState();
 assert.equal(reset.stepIndex, 0);
-const fresh = createFluidWorld(waterScene());
-assert.deepEqual(reset.positionsM, fresh.getState().positionsM);
+const fresh = provider.createPhysicsWorld(fixture.model,fixture.options);
+assert.deepEqual(reset.fluids[0].positionsM, fresh.getState().fluids[0].positionsM);
 fresh.dispose();
 world.dispose();
 refused(() => world.getState(), 'DISPOSED');
-refused(() => world.step(1 / 120), 'DISPOSED');
-refused(() => world.reset(), 'DISPOSED');
+refused(() => world.step([]), 'DISPOSED');
+assert.equal('reset' in world, false);
 if (global.gc) global.gc();
 const retainedHeapDeltaBytes = global.gc
   ? process.memoryUsage().heapUsed - baselineHeapBytes : null;
 const sorted = times.sort((a, b) => a - b);
-console.log(JSON.stringify({ result: 'ok', count: 256, steps: 240,
-  densityError60: at60.diagnostics.meanAbsoluteDensityError,
-  densityError240: at240.diagnostics.meanAbsoluteDensityError,
-  compression60: at60.diagnostics.p95Compression,
-  compression240: at240.diagnostics.p95Compression,
+return { result: 'ok', count: 256, steps: 240,
+  densityError60: at60.fluids[0].diagnostics.meanAbsoluteDensityError,
+  densityError240: at240.fluids[0].diagnostics.meanAbsoluteDensityError,
+  compression60: at60.fluids[0].diagnostics.p95Compression,
+  compression240: at240.fluids[0].diagnostics.p95Compression,
   medianStepMs: sorted[Math.ceil(sorted.length * 0.5) - 1],
   p95StepMs: sorted[Math.ceil(sorted.length * 0.95) - 1],
   retainedHeapDeltaBytes,
-  finalPositionSha256: hash(at240.positionsM), copiedAndInvalidRetained: true }));
+  finalPositionSha256: hash(at240.fluids[0].positionsM), copiedAndInvalidRetained: true };
+}
+if(typeof process!=='undefined'&&basename(process.argv[1]??'')==='fluid-world-probe.mjs'){
+ const nativeEntry=new URL('../../packages/barocss-physics/dist/index.js',import.meta.url).href;
+ console.log(JSON.stringify(qualifyFluidWorld(await import(nativeEntry))));
+}

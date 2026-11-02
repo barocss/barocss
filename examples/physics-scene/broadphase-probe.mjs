@@ -1,17 +1,14 @@
+import { makeModel, dynamicPart, staticPart, kinematicPart } from '../physics-model-input/model.mjs';
 import assert from 'node:assert/strict';
 import { performance } from 'node:perf_hooks';
 import { createPhysicsWorld, PhysicsError } from '../../packages/barocss-physics/dist/index.js';
 
 const dt = 1 / 120;
-const ball = (overrides = {}) => ({ id: 'part:ball', kind: 'dynamic',
-  shape: { kind: 'sphere', radiusM: 0.1 }, positionM: [0, 0.6, 0],
-  velocityMps: [0, 0, 0], massKg: 1, restitution: 0, ...overrides });
-const box = (id, positionM, halfExtentsM = [0.5, 0.5, 0.5]) => ({
-  id, kind: 'static', shape: { kind: 'box', halfExtentsM }, positionM, restitution: 0 });
-const config = (bodies, extras = {}) => ({ fixedStepSeconds: dt,
-  gravityMps2: [0, -9.81, 0], bodies, ...extras });
-const bodyPose = (state) => state.bodies.map(({ id, positionM, velocityMps, orientation, angularVelocityRadps }) =>
-  ({ id, positionM, velocityMps, orientation, angularVelocityRadps }));
+const ball = ({id='part:ball',geometry={kind:'sphere',radiusM:0.1},initial={},ccd=false}={}) => dynamicPart(id,geometry,{positionM:[0,0.6,0],velocityMps:[0,0,0],...initial},1,{restitution:0,ccd});
+const box = (id, positionM, halfExtentsM = [0.5, 0.5, 0.5]) => (staticPart(id, { kind: 'box', halfExtentsM }, {positionM: positionM}, {restitution: 0}));
+const config=(parts,{gravityMps2=[0,-9.81,0],fixedStepSeconds=dt,broadPhase='direct'}={})=>({model:makeModel({gravityMps2,parts}),options:{profile:'rigid-discrete-v1',fixedStepSeconds,broadPhase}});
+const bodyPose = (state) => state.bodies.map(({ id, positionM, velocityMps, orientationXYZW, angularVelocityRadps }) =>
+  ({ id, positionM, velocityMps, orientationXYZW, angularVelocityRadps }));
 const equivalent = (left, right) => {
   assert.deepEqual(bodyPose(left), bodyPose(right));
   assert.deepEqual(left.contacts, right.contacts);
@@ -20,10 +17,10 @@ const equivalent = (left, right) => {
   assert.deepEqual(left.ccdHits, right.ccdHits);
 };
 const compare = (source, commands = []) => {
-  const direct = createPhysicsWorld(source);
-  const broad = createPhysicsWorld({ ...source, broadPhase: 'aabb' });
-  const expected = direct.step(source.fixedStepSeconds, commands);
-  const actual = broad.step(source.fixedStepSeconds, commands);
+  const direct = createPhysicsWorld(source.model, source.options);
+  const broad = createPhysicsWorld(source.model, {...source.options,broadPhase:'aabb'});
+  const expected = direct.step(commands);
+  const actual = broad.step(commands);
   equivalent(expected, actual);
   direct.dispose(); broad.dispose();
   return actual;
@@ -33,13 +30,13 @@ const crowded = [ball(), box('fixture:floor', [0, 0, 0]),
   ...Array.from({ length: 30 }, (_, index) => box(`fixture:far:${index}`, [20 * (index + 1), 0, 0]))];
 const scene = config(crowded);
 function run(extra = {}) {
-  const world = createPhysicsWorld({ ...scene, ...extra });
+  const world = createPhysicsWorld(scene.model,{...scene.options,...extra});
   const states = [];
   const startHeap = process.memoryUsage().heapUsed;
   const start = performance.now();
   let eligiblePairs = 0, candidatePairs = 0, aabbTests = 0;
   for (let step = 0; step < 120; step++) {
-    const state = world.step(dt);
+    const state = world.step();
     states.push(state);
     eligiblePairs += state.pairStats.eligiblePairs;
     candidatePairs += state.pairStats.candidatePairs;
@@ -62,48 +59,44 @@ for (let index = 0; index < direct.states.length; index++) equivalent(direct.sta
 assert.ok(broad.states.some((state) => state.contacts.length > 0));
 
 const angle = Math.PI / 8;
-const oriented = compare(config([ball({ positionM: [0, 0.82, 0], velocityMps: [0, -2, 0] }),
-  { ...box('fixture:rotated', [0, 0.4, 0], [0.5, 0.02, 0.5]),
-    orientation: [0, 0, Math.sin(angle), Math.cos(angle)] }]));
+const oriented = compare(config([ball({initial:{positionM:[0,0.82,0],velocityMps:[0,-2,0]}}),
+  {...(box('fixture:rotated', [0, 0.4, 0], [0.5, 0.02, 0.5])), body: {...(box('fixture:rotated', [0, 0.4, 0], [0.5, 0.02, 0.5])).body, initial: {...(box('fixture:rotated', [0, 0.4, 0], [0.5, 0.02, 0.5])).body.initial, orientationXYZW: [0, 0, Math.sin(angle), Math.cos(angle)]}}}]));
 assert.ok(oriented.pairStats.candidatePairs > 0);
-const capsule = compare(config([ball({ positionM: [0, 0.52, 0] }),
-  { id: 'fixture:capsule', kind: 'static', shape: { kind: 'capsule', radiusM: 0.2, halfLengthM: 0.3 },
-    positionM: [0, 0.3, 0], orientation: [0, 0, Math.sin(angle), Math.cos(angle)], restitution: 0 }]));
+const capsule = compare(config([ball({initial:{positionM:[0,0.52,0]}}),
+  staticPart('fixture:capsule', { kind: 'capsule', radiusM: 0.2, halfLengthM: 0.3 }, {positionM: [0, 0.3, 0], orientationXYZW: [0, 0, Math.sin(angle), Math.cos(angle)]}, {restitution: 0})]));
 assert.ok(capsule.pairStats.candidatePairs > 0);
 const cascade = compare(config([
-  ball({ id: 'part:a', positionM: [0, 0, 0] }),
-  ball({ id: 'part:b', positionM: [0.15, 0, 0] }),
-  { id: 'part:c', kind: 'static', shape: { kind: 'sphere', radiusM: 0.1 },
-    positionM: [0.36, 0, 0], restitution: 0 },
+  ball({id:'part:a',initial:{positionM:[0,0,0]}}),
+  ball({id:'part:b',initial:{positionM:[0.15,0,0]}}),
+  staticPart('part:c', { kind: 'sphere', radiusM: 0.1 }, {positionM: [0.36, 0, 0]}, {restitution: 0}),
 ], { gravityMps2: [0, 0, 0] }));
-assert.ok(cascade.contacts.some((contact) => contact.aId === 'part:b' && contact.bId === 'part:c'));
-compare(config([ball({ positionM: [0, 0, 0] }),
-  { ...box('fixture:moving', [1, 0, 0], [0.2, 0.2, 0.2]), kind: 'kinematic' }],
+assert.ok(cascade.contacts.some((contact) => contact.bodyAId === 'part:b' && contact.bodyBId === 'part:c'));
+compare(config([ball({initial:{positionM:[0,0,0]}}),
+  kinematicPart('fixture:moving',{kind:'box',halfExtentsM:[0.2,0.2,0.2]},{positionM:[1,0,0]},{restitution:0})],
 { gravityMps2: [0, 0, 0] }), [{ kind: 'kinematicTarget', bodyId: 'fixture:moving', positionM: [0.3, 0, 0] }]);
 const ccdDt = 1 / 30;
-const ccd = compare(config([ball({ ccd: true, shape: { kind: 'sphere', radiusM: 0.05 },
-  positionM: [0, 1, 0], velocityMps: [0, -100, 0] }),
+const ccd = compare(config([ball({ccd:true,geometry:{kind:'sphere',radiusM:0.05},initial:{positionM:[0,1,0],velocityMps:[0,-100,0]}}),
   box('fixture:thin', [0, 0, 0], [0.5, 0.01, 0.5])],
 { fixedStepSeconds: ccdDt, gravityMps2: [0, 0, 0] }));
 assert.equal(ccd.ccdHits.length, 1);
 
 const refuses = (action, code) => assert.throws(action,
   (error) => error instanceof PhysicsError && error.code === code);
-refuses(() => createPhysicsWorld({ ...scene, broadPhase: 'grid' }), 'INVALID_CONFIG');
-refuses(() => createPhysicsWorld({ ...scene, broadPhase: undefined }), 'INVALID_CONFIG');
-refuses(() => createPhysicsWorld(config([ball(), box('fixture:bad', [0, 0, 0], [NaN, 1, 1])],
-  { broadPhase: 'aabb' })), 'INVALID_CONFIG');
-const guarded = createPhysicsWorld({ ...scene, broadPhase: 'aabb' });
+refuses(() => createPhysicsWorld(scene.model,{...scene.options,broadPhase:'grid'}), 'INVALID_CONFIG');
+refuses(() => createPhysicsWorld(scene.model,{...scene.options,broadPhase:undefined}), 'INVALID_CONFIG');
+const invalidGeometry=config([ball(),box('fixture:bad',[0,0,0],[NaN,1,1])],{broadPhase:'aabb'});
+refuses(()=>createPhysicsWorld(invalidGeometry.model,invalidGeometry.options),'INVALID_CONFIG');
+const guarded = createPhysicsWorld(scene.model,{...scene.options,broadPhase:'aabb'});
 assert.deepEqual(guarded.getState().pairStats, { eligiblePairs: 0, candidatePairs: 0, aabbTests: 0 });
-const accepted = guarded.step(dt);
+const accepted = guarded.step();
 accepted.pairStats.candidatePairs = 99;
 assert.notEqual(guarded.getState().pairStats.candidatePairs, 99);
 const before = JSON.stringify(guarded.getState());
-refuses(() => guarded.step(dt, [{ kind: 'impulse', bodyId: 'part:ball',
+refuses(() => guarded.step([{ kind: 'impulse', bodyId: 'part:ball',
   impulseNs: [0, -10_000, 0] }]), 'NUMERIC_LIMIT');
 assert.equal(JSON.stringify(guarded.getState()), before);
 guarded.dispose();
-refuses(() => guarded.step(dt), 'DISPOSED');
+refuses(() => guarded.step(), 'DISPOSED');
 
 console.log(JSON.stringify({ result: 'ok', machine: `${process.platform}/${process.arch}/node-${process.version}`,
   direct: { eligiblePairs: direct.eligiblePairs, candidatePairs: direct.candidatePairs,

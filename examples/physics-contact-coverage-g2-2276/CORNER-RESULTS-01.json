@@ -1,0 +1,118 @@
+{
+  "status": "EXACT_CONTACT_WITNESS_NO_GO_CONSERVATIVE_BOUND",
+  "firstFailure": {
+    "path": "examples/physics-contact-coverage-g2-2276/evidence/g2-corner-witness-01/witness.json",
+    "bytes": 2767,
+    "sha256": "7f496b6a0bb1926122e00e1f288fe4741ed3b21e569431e68a5764a3705f2792"
+  },
+  "captures": [
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/evidence/g2-corner-source-01/before-raw.json",
+      "bytes": 4895,
+      "sha256": "4058799c487364afd42f1326bd4f13ba261b84aefd2742290986faef6eb31379"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/evidence/g2-corner-source-01/build-command.json",
+      "bytes": 965,
+      "sha256": "358d3dc3cf86322f8ca94c32e66992d7420a2f86cc20177642fbff3adc167377"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/evidence/g2-corner-source-01/capture-provider.mjs",
+      "bytes": 222867,
+      "sha256": "f67e1566662c31da960d0acd5297cf10997fda233387ef0a4c13f23f1a153ca0"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/evidence/g2-corner-source-01/capture-raw.json",
+      "bytes": 2729,
+      "sha256": "6b321da37589a9ac3b40526d876ba49951472c998d490e9d2264cbb606da2c5c"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/evidence/g2-corner-source-01/entry.mjs",
+      "bytes": 271,
+      "sha256": "3aea4dd90a8e7c528cf5219faecc1ea414ed9959ecc069abd77b2e8f21e15355"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/evidence/g2-corner-source-01/input-raw.json",
+      "bytes": 6020,
+      "sha256": "61c7264917dbf2ad9ea2daba7c736afdec3e6685b7ba899e8bbbe778b2558a9c"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/evidence/g2-corner-source-01/metafile.json",
+      "bytes": 12217,
+      "sha256": "643570a54f003b583436e45d222cd2d3444b833a08aa4545e310733997da5796"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/evidence/g2-corner-source-01/progress.json",
+      "bytes": 1329,
+      "sha256": "7f3b7a3a009bf80d097b2c468edf7891c5581020579b876b3d6c09308158e8b2"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/evidence/g2-corner-source-01/summary.json",
+      "bytes": 1915,
+      "sha256": "91bf2c3082b11da78e804cb6e9ff0bd2cf48c71292c97e476db9fcf9d668b43f"
+    }
+  ],
+  "captureCounts": {
+    "pairConversions": 1,
+    "scalarConversions": 52,
+    "admitModelAttempts": 1,
+    "admitModelReturns": 1,
+    "admitCcdAttempts": 1,
+    "admitCcdReturns": 1,
+    "sweepSphereAttempts": 1,
+    "sweepSphereReturns": 1,
+    "World": 0
+  },
+  "referenceCounts": {
+    "witnessAuditsAttempted": 1,
+    "witnessAuditsReturned": 1,
+    "fractionOperations": 41,
+    "rawNumberDecodes": 61,
+    "World": 0,
+    "PhysicsImports": 0,
+    "helperCalls": 0,
+    "sqrt": 0,
+    "trig": 0,
+    "odeOrLinearSolve": 0
+  },
+  "displayOnly": {
+    "toiFraction": 0.16666666666666663,
+    "distanceSquaredM2": 0.0125,
+    "necessaryContactSquaredBoundM2": 0.010000000000200002
+  },
+  "authority": [
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/CORNER-EXECUTION-FREEZE-01.json",
+      "bytes": 101931,
+      "sha256": "4f946292f482fdcb6dc3c44b5b83925b812c966ec0a27d028fc4b392a5946454"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/CORNER-WITNESS-FREEZE-01.json",
+      "bytes": 102371,
+      "sha256": "fa9228acdfc676bad46fb76e7b6667f173c365975be5897320bb59d02e4322f8"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/CORNER-EXECUTION-REVIEW-02.md",
+      "bytes": 3831,
+      "sha256": "036f2ecd4a0af0666493e9b203d56437f30c914316af753cda5dbc0b76d81ad5"
+    }
+  ],
+  "commandReceipts": [
+    {
+      "path": "examples/physics-world-p5-2276/evidence/g2-corner-source-guard-01/result.json",
+      "bytes": 3220,
+      "sha256": "6ee2bc5a6a4119899e9d7b667abaf7212a02690e3c2277f5e307d628b4acd9e0"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/g2-corner-witness-guard-01/result.json",
+      "bytes": 3661,
+      "sha256": "7011d19a5d063132c6f1c5dfbe2446391c0b5a7b2e16bfbd159665a5600fa745"
+    }
+  ],
+  "native": "NOT_RUN_AFTER_FIRST_SOURCE_GEOMETRIC_FAILURE",
+  "biasedStop": "NOT_RUN_AFTER_FIRST_SOURCE_GEOMETRIC_FAILURE",
+  "WorldCalls": 0,
+  "meaning": "Exact rounded sphere/box contact witness failed. Source returns conservative expanded-box boundary. This does not prove tunnelling or violate an explicitly conservative broad-phase guarantee. It does not qualify World integration, impulse response, CCD generally, or original eight-box stacking.",
+  "next": "Freeze exact versus conservative profile semantics and bounded feature-aware corner/edge/face reference before a repair; preserve first failure and all original laws/tolerances/stack NO_GO.",
+  "oldTrials": "No baseline, original P3/P4, or successful foundation campaign rerun; production files untouched."
+}

@@ -1,0 +1,26 @@
+{
+  "caseId": "05-compatible-moving-state",
+  "graph": "source",
+  "validationOrdinal": 5,
+  "executionFreezeSha256": "511b332d26a4a8875ac785d71076a0111236f71db8d45759474ca05861b89eff",
+  "input": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/05-compatible-moving-state.input-raw.json",
+    "bytes": 2667,
+    "sha256": "2c142f3ca19df400e9793d341f278ace25cac60ae541696f670fa39906c41cf9"
+  },
+  "output": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/source-05-compatible-moving-state.output-raw.json",
+    "bytes": 4543,
+    "sha256": "e124541f3c8234fd41066f9ae81ac27560352e2834a70e75a4cb7b3f240b7b0b"
+  },
+  "oracleReply": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01-oracle/05-compatible-moving-state.reply.json",
+    "bytes": 41623,
+    "sha256": "f89b7d045bda2a709784cb0d05452541ceec31c736622f19d658971dca975fe7"
+  },
+  "oracleSummary": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01-oracle/summary.json",
+    "bytes": 5847,
+    "sha256": "a6431f5470518163d42da82ef506a5181ba357855a61ecd700b791f42df3aac0"
+  }
+}

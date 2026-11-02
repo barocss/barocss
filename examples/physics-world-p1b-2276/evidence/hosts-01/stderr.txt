@@ -1,0 +1,21 @@
+/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/esbuild/lib/main.js:1467
+  let error = new Error(text);
+              ^
+
+Error: Build failed with 1 error:
+examples/physics-cad-scene/model.js:3:29: ERROR: Could not resolve "../../packages/barocss-viewer/dist/index.js"
+    at failureErrorWithLog (/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/esbuild/lib/main.js:1467:15)
+    at /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/esbuild/lib/main.js:926:25
+    at runOnEndCallbacks (/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/esbuild/lib/main.js:1307:45)
+    at buildResponseToResult (/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/esbuild/lib/main.js:924:7)
+    at /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/esbuild/lib/main.js:951:16
+    at responseCallbacks.<computed> (/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/esbuild/lib/main.js:603:9)
+    at handleIncomingPacket (/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/esbuild/lib/main.js:658:12)
+    at Socket.readFromStdout (/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/esbuild/lib/main.js:581:7)
+    at Socket.emit (node:events:519:28)
+    at addChunk (node:internal/streams/readable:561:12) {
+  errors: [Getter/Setter],
+  warnings: [Getter/Setter]
+}
+
+Node.js v22.19.0

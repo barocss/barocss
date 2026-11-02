@@ -1,0 +1,145 @@
+{
+  "status": "PASS_SOURCE_TEXT_OVERLAY_COMPILE_ONLY",
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/kernel-source-check.mjs"
+  ],
+  "checked": [
+    {
+      "path": "packages/barocss-physics/src/cloth/topology.ts",
+      "sha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/src/cloth/solver.ts",
+      "sha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/src/cloth/constraints.ts",
+      "sha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/src/cloth/metrics.ts",
+      "sha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/pbf.ts",
+      "sha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/diagnostics.ts",
+      "sha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/kernel.ts",
+      "sha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/boundary.ts",
+      "sha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/static-box.ts",
+      "sha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/visual-viscosity.ts",
+      "sha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/src/identity.ts",
+      "sha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/src/domain/cloth.ts",
+      "sha256": "2454474a24928a9f3d92d635a9391c537ef74de77112fdc2f2872536cb447883",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/src/domain/fluid.ts",
+      "sha256": "bfcafa7cc2f2bbb4ec6e2c20797f5dc5410d995cd28305272a2c3665d827179a",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/topology.js",
+      "sha256": "403cf1b19b85a3a6dd177ae8bb130b19895670e679452533df22dce26d558050",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/solver.js",
+      "sha256": "1f7178354cc026a41996d32502ac54d888ddf83f6b955059bb43f45cc6d9453b",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/constraints.js",
+      "sha256": "6e2e0b09734222a87abdefd745540e3ff5f4f24414cfae51f85c1b96d15225d7",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/metrics.js",
+      "sha256": "78e03ac4e69c35a7be6a614e4d7aedff4e4390d64c103a28543c0f6ee056eb27",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/pbf.js",
+      "sha256": "93ba3d6c2db8aee07c7307d74300888b9e48279279f6f060e157ea08b847241d",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/diagnostics.js",
+      "sha256": "b87d7b27266ca4b014d4b84b24b57216b12d4b0345088282b6ecd5270fa46c29",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/kernel.js",
+      "sha256": "264a62a2ed0aeee0c77bd5ba44a60a6d0522654ecc8f07117174c6fe328c123b",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/boundary.js",
+      "sha256": "0411aee849b18145f75e2a602a23aab5b5e6a644bc44a47cc2944ab532d0ea18",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/static-box.js",
+      "sha256": "120ee59f2212e86846bce3a73425b493d2bc98971dc230419a394a1235196b7c",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/visual-viscosity.js",
+      "sha256": "0d01bcbd68f126c9d8954b46afe523f6e7f879f129817f40fc9300c297041205",
+      "overlaySyntax": "PASS"
+    },
+    {
+      "path": "packages/barocss-physics/dist/identity.js",
+      "sha256": "7f7243fcc617a32f77d517d029cb90bd99584f518ece49a7d7a4e35ae54d7791",
+      "overlaySyntax": "PASS"
+    }
+  ],
+  "providerImports": 0,
+  "modelConstructions": 0,
+  "kernelCalls": 0,
+  "baselineCalls": 0,
+  "nativeNewStageEmission": "NOT_RUN",
+  "existingTypeCheck": {
+    "command": [
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "node_modules/typescript/bin/tsc",
+      "-p",
+      "packages/barocss-physics/tsconfig.json",
+      "--noEmit"
+    ],
+    "exit": 0,
+    "gate": "NOT_ACQUIRED_PROCESS_POLICY_MISS_REPORTED_TO_PARENT; not rerun for acknowledgement"
+  }
+}

@@ -1,0 +1,159 @@
+import { validateCurve, validateSurface, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface, basis } from '../core/math.js';
+import { evaluateSurfaceD1 } from '../core/derivatives.js';
+import { compileCadModel } from '../model-compiler.js';
+import { curveDecimal } from '../nurbs/curves/curve-source.js';
+import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
+import { EXACT_OWN_FIELDS_REQUIRED, OWN_RECORD_REQUIRED, SPARSE_OWN_ARRAY_FIELDS_REFUSED, hasExactOwnFields, isOwnRecord, ownSnapshot } from '../core/own-data.js';
+export const PiecewiseRationalLoftDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', BASIS: 'BASIS', STATIONS: 'STATIONS', NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY', SOURCE: 'SOURCE', OWNED: 'OWNED' });
+export class PiecewiseRationalLoftError extends KernelError {
+    code;
+    constructor(code, detail, cause) { super(('Piecewise rational loft: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'PiecewiseRationalLoftError'; this.code = code; }
+}
+const CODE = PiecewiseRationalLoftDiagnosticCode;
+function check(condition, code, detail) { if (!condition)
+    throw new PiecewiseRationalLoftError(code, detail); }
+function child(action, detail) { try {
+    return action();
+}
+catch (cause) {
+    throw new PiecewiseRationalLoftError(CODE.NATIVE, detail, cause);
+} }
+function record(input, fields, code = CODE.INPUT) { check(isOwnRecord(input), code, OWN_RECORD_REQUIRED); check(hasExactOwnFields(input, fields), code, EXACT_OWN_FIELDS_REQUIRED); return input; }
+function id(input) { check(typeof input === 'string' && input.length <= 48 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(input), CODE.IDENTITY, 'ASCII ID1..48 is required'); return input; }
+const OWN = { input: CODE.INPUT, owned: CODE.OWNED, budget: CODE.BUDGET, fail: (code, detail) => { throw new PiecewiseRationalLoftError(code, detail); }, wrap: (code, detail, cause) => { throw new PiecewiseRationalLoftError(code, detail, cause); }, isRefusal: e => e instanceof PiecewiseRationalLoftError, sparse: SPARSE_OWN_ARRAY_FIELDS_REFUSED };
+function snapshot(input, owned = false) { return ownSnapshot(input, owned, OWN); }
+function finite(value) { check(Number.isFinite(value), CODE.REPRESENTABILITY, 'Finite native homogeneous observation arithmetic is required'); return value; }
+function distance(a, b) { return finite(Math.hypot(...a.map((value, axis) => finite(value - b[axis])))); }
+/** Copy ordered independent-weight section columns into a real piecewise-linear-V native construction Surface. */
+export function buildPiecewiseRationalLoftSurface(sectionsInput, parametersInput, optionsInput) {
+    const data = record(snapshot({ sections: sectionsInput, parametersV: parametersInput, options: optionsInput }), ['sections', 'parametersV', 'options']), settings = record(data.options, ['surfaceId', 'modelName', 'maximumSections', 'maximumUPoles', 'maximumPointObservations', 'maximumDerivativeObservations']);
+    check(settings.maximumSections === 15 && settings.maximumUPoles === 16 && settings.maximumPointObservations === 87 && settings.maximumDerivativeObservations === 87, CODE.BUDGET, 'Complete fixed construction limits15/16/87/87 are required before native calls');
+    const options = settings;
+    id(options.surfaceId);
+    id(options.modelName);
+    check(Array.isArray(data.sections) && data.sections.length >= 2 && data.sections.length <= 15, CODE.BUDGET, 'Exactly2..15 ordered original sections are required');
+    const sections = data.sections.map(value => { const section = record(value, ['kind', 'id', 'degree', 'knots', 'controlPoints', 'weights']); check(section.kind === 'curve', CODE.INPUT, 'Original native Curve sections are required'); id(section.id); check(Array.isArray(section.controlPoints) && section.controlPoints.length >= 2 && section.controlPoints.length <= 16, CODE.BUDGET, 'Section U poles must fit the unchanged Surface axis budget2..16'); return section; });
+    check(new Set([...sections.map(section => section.id), options.surfaceId]).size === sections.length + 1, CODE.IDENTITY, 'Original section and output Surface IDs must be distinct');
+    for (const section of sections)
+        child(() => validateCurve(section), 'Actual original Curve validation refused');
+    const first = sections[0], count = first.controlPoints.length;
+    check(sections.every(section => Object.is(section.degree, first.degree) && section.controlPoints.length === count && same(section.knots, first.knots)), CODE.BASIS, 'All original sections must have exact common U degree/count/knot bits');
+    const uDomain = child(() => curveDomain(first), 'Actual original common U domain query refused');
+    check(Number.isFinite(uDomain[1] - uDomain[0]) && uDomain[1] > uDomain[0], CODE.BASIS, 'The represented full original U span must be finite and positive');
+    check(Array.isArray(data.parametersV) && data.parametersV.length === sections.length && data.parametersV.every(value => typeof value === 'number' && Number.isFinite(value)), CODE.STATIONS, 'Explicit finite V stations must match the ordered section count');
+    const parametersV = data.parametersV;
+    check(parametersV.every((value, index) => index === 0 || value > parametersV[index - 1] && Number.isFinite(value - parametersV[index - 1])) && Number.isFinite(parametersV.at(-1) - parametersV[0]) && parametersV.at(-1) > parametersV[0], CODE.STATIONS, 'Every adjacent and full represented V span must be finite and strictly positive without sorting');
+    const candidate = { kind: 'surface', id: options.surfaceId, degreeU: first.degree, degreeV: 1, knotsU: [...first.knots], knotsV: [parametersV[0], ...parametersV, parametersV.at(-1)], controlPoints: Array.from({ length: count }, (_, row) => sections.map(section => [...section.controlPoints[row]])), weights: Array.from({ length: count }, (_, row) => sections.map(section => section.weights[row])) };
+    child(() => validateSurface(candidate), 'Actual complete native loft Surface validation refused');
+    let source = '', decimalEmissionCount = 0;
+    const append = (part) => { check(source.length + part.length <= 262144, CODE.BUDGET, 'New ASCII construction Source0 exceeds its UTF-16/UTF-8 bound'); source += part; };
+    const decimal = (value) => { check(++decimalEmissionCount <= 2306, CODE.BUDGET, 'Actual decimal emission budget2306 exceeded'); const literal = child(() => curveDecimal(value, 'Piecewise rational loft'), 'Actual CAD decimal emitter refused'); check(literal.length <= 512 && Object.is(Number(literal), value), CODE.REPRESENTABILITY, 'Every construction literal must retain its exact represented bits within512characters'); append(literal); };
+    const list = (values) => { append('['); values.forEach((value, index) => { if (index)
+        append(','); decimal(value); }); append(']'); };
+    const points = (values) => { append('['); values.forEach((value, index) => { if (index)
+        append(','); list(value); }); append(']'); };
+    append('@model ' + options.modelName + ' { version:0; length-unit:mm; ');
+    for (const section of sections) {
+        append('@curve #' + section.id + ' { type:nurbs; degree:');
+        decimal(section.degree);
+        append('; knots:');
+        list(section.knots);
+        append('; control-points:');
+        points(section.controlPoints);
+        append('; weights:');
+        list(section.weights);
+        append('; } ');
+    }
+    append('@surface #' + candidate.id + ' { type:nurbs; degree-u:');
+    decimal(candidate.degreeU);
+    append('; degree-v:');
+    decimal(candidate.degreeV);
+    append('; knots-u:');
+    list(candidate.knotsU);
+    append('; knots-v:');
+    list(candidate.knotsV);
+    append('; control-points:[');
+    candidate.controlPoints.forEach((row, index) => { if (index)
+        append(','); points(row); });
+    append(']; weights:[');
+    candidate.weights.forEach((row, index) => { if (index)
+        append(','); list(row); });
+    append(']; } }\n');
+    let compiled;
+    try {
+        compiled = compileCadModel(source, { sourceVersion: 0 });
+    }
+    catch (cause) {
+        throw new PiecewiseRationalLoftError(CODE.SOURCE, 'Actual new construction Source0 compiler failed', cause);
+    }
+    if (!compiled.ok)
+        throw new PiecewiseRationalLoftError(CODE.SOURCE, 'Actual new construction Source0 compilation refused', compiled);
+    check(same(compiled.model, { name: options.modelName, version: 0, lengthUnit: 'mm', objects: [...sections, candidate] }), CODE.SOURCE, 'Actual construction Model must retain complete original sections then Surface bits/order/IDs');
+    const surface = compiled.model.objects.at(-1);
+    check(surface?.kind === 'surface', CODE.SOURCE, 'Actual compiled construction must adopt the native Surface');
+    const adopted = compiled.model.objects.slice(0, -1), domains = child(() => surfaceDomain(surface), 'Actual native Surface domain query refused');
+    check(same(domains.u, uDomain) && same(domains.v, [parametersV[0], parametersV.at(-1)]), CODE.BASIS, 'Actual Surface domains must retain the original U and station endpoint bits');
+    const parametersU = [uDomain[0], uDomain[0] / 2 + uDomain[1] / 2, uDomain[1]];
+    check(parametersU.every(value => Number.isFinite(value) && value >= uDomain[0] && value <= uDomain[1]), CODE.REPRESENTABILITY, 'Three represented original U parameters must be finite/in-domain; duplicate observations are retained');
+    const pointObservations = [];
+    for (let index = 0; index < adopted.length; index++)
+        for (const u of parametersU) {
+            const v = parametersV[index], sectionPointMM = child(() => evaluateCurve(adopted[index], u), 'Actual original station Curve D0 refused'), surfacePointMM = child(() => evaluateSurface(surface, u, v), 'Actual station Surface D0 refused'), comparisonErrorMM = distance(sectionPointMM, surfacePointMM);
+            check(comparisonErrorMM <= 1e-7, CODE.REPRESENTABILITY, 'Actual station interpolation exceeds the1e-7mm observed comparison');
+            pointObservations.push({ kind: 'station', sectionIndex: index, u, v, sectionPointMM, surfacePointMM, comparisonErrorMM });
+        }
+    const denominator = (section, u) => { const local = child(() => basis(section.knots, section.degree, section.controlPoints.length, u), 'Actual original native U basis evaluation refused'); let sum = 0; for (let i = 0; i < local.values.length; i++)
+        sum = finite(sum + finite(local.values[i] * section.weights[local.start + i])); check(sum > 0, CODE.REPRESENTABILITY, 'Actual native original Curve denominator must be positive'); return sum; };
+    for (let index = 0; index + 1 < adopted.length; index++)
+        for (const u of parametersU) {
+            const lo = parametersV[index], hi = parametersV[index + 1], v = lo / 2 + hi / 2;
+            check(Number.isFinite(v) && v >= lo && v <= hi, CODE.REPRESENTABILITY, 'Each represented V midpoint must remain in its original interval; endpoint coincidences are retained');
+            const alpha = finite((v - lo) / (hi - lo));
+            const firstPointMM = child(() => evaluateCurve(adopted[index], u), 'Actual first interval Curve D0 refused'), secondPointMM = child(() => evaluateCurve(adopted[index + 1], u), 'Actual second interval Curve D0 refused'), firstDenominator = denominator(adopted[index], u), secondDenominator = denominator(adopted[index + 1], u);
+            const f0 = finite((1 - alpha) * firstDenominator), f1 = finite(alpha * secondDenominator), weight = finite(f0 + f1);
+            check(weight > 0, CODE.REPRESENTABILITY, 'Native homogeneous interval blend denominator must be positive');
+            const rationalSecondFraction = finite(f1 / weight);
+            const expectedPointMM = firstPointMM.map((value, axis) => finite(finite(finite(f0 * value) + finite(f1 * secondPointMM[axis])) / weight)), surfacePointMM = child(() => evaluateSurface(surface, u, v), 'Actual interval Surface D0 refused'), comparisonErrorMM = distance(expectedPointMM, surfacePointMM);
+            const naiveCartesianPointMM = firstPointMM.map((value, axis) => finite(finite((1 - alpha) * value) + finite(alpha * secondPointMM[axis]))), naiveCartesianDifferenceMM = distance(naiveCartesianPointMM, surfacePointMM);
+            check(comparisonErrorMM <= 1e-7, CODE.REPRESENTABILITY, 'Actual native rational interval interpolation exceeds the1e-7mm observed comparison');
+            pointObservations.push({ kind: 'interval', sectionPairIndices: [index, index + 1], u, v, alpha, firstPointMM, secondPointMM, firstDenominator, secondDenominator, rationalSecondFraction, expectedPointMM, surfacePointMM, comparisonErrorMM, naiveCartesianPointMM, naiveCartesianDifferenceMM });
+        }
+    let derivativeSuccessCount = 0, derivativeRefusalCount = 0;
+    const derivativeObservations = pointObservations.map(({ u, v }) => { try {
+        const result = evaluateSurfaceD1(surface, u, v);
+        derivativeSuccessCount++;
+        return { u, v, result: { kind: 'evaluated', result } };
+    }
+    catch (cause) {
+        if (!(cause instanceof Error))
+            throw new PiecewiseRationalLoftError(CODE.NATIVE, 'Actual native Surface D1 attempt did not provide an Error', cause);
+        derivativeRefusalCount++;
+        return { u, v, result: { kind: 'refused', message: cause.message.slice(0, 512) } };
+    } });
+    const queries = 3 * (2 * adopted.length - 1);
+    check(pointObservations.length === queries && derivativeObservations.length === queries && derivativeSuccessCount + derivativeRefusalCount === queries && queries <= 87, CODE.BUDGET, 'Complete actual point/derivative work must fit the fixed observation profile');
+    const provenance = { kind: 'piecewise-rational-loft', sectionIds: adopted.map(section => section.id), surfaceId: surface.id, modelName: options.modelName, uRole: 'original-common-section-parameter', vRole: 'explicit-piecewise-rational-stations', rows: surface.controlPoints.map((row, surfaceUIndex) => ({ surfaceUIndex, columns: row.map((pointMM, sectionIndex) => ({ sectionIndex, curveId: adopted[sectionIndex].id, curvePoleIndex: surfaceUIndex, stationV: parametersV[sectionIndex], pointMM, weight: surface.weights[surfaceUIndex][sectionIndex] })) })), degreeU: surface.degreeU, degreeV: 1, knotsU: surface.knotsU, knotsV: surface.knotsV, unchangedOriginalSections: true, sourceMeaning: 'new-construction-model-not-unseen-original-file' };
+    const report = {
+        schema: 'barocss-piecewise-rational-loft', version: 0, surfaceId: surface.id, modelName: options.modelName, sectionIds: adopted.map(section => section.id), sectionCount: adopted.length, controlPointGrid: [count, adopted.length], degreeU: surface.degreeU, degreeV: 1, domains, parametersU, parametersV, pointObservations, derivativeObservations, maximumComparisonErrorMM: Math.max(...pointObservations.map(observation => observation.comparisonErrorMM)), maximumNaiveCartesianDifferenceMM: Math.max(0, ...pointObservations.flatMap(observation => observation.kind === 'interval' ? [observation.naiveCartesianDifferenceMM] : [])), sourceUTF16: source.length, sourceUTF8: source.length, options,
+        directCounts: { curveValidationCount: adopted.length, surfaceValidationCount: 1, curveDomainQueryCount: 1, surfaceDomainQueryCount: 1, sourceCompilationCount: 1, curvePointEvaluationCount: 9 * adopted.length - 6, surfacePointEvaluationCount: queries, basisEvaluationCount: 6 * (adopted.length - 1), surfaceDerivativeEvaluationCount: queries, derivativeSuccessCount, derivativeRefusalCount, decimalEmissionCount },
+        numericPolicy: { authority: 'copied-original-cartesian-poles-and-independent-positive-weights', uBasis: 'exact-original-degree-count-knot-domain-bits', stationOrder: 'caller-order-no-sort', vBasis: 'clamped-linear-c0', betweenStations: 'native-homogeneous-rational-blend', pointComparisonMM: 1e-7, d1: 'actual-native-evaluated-refused-union', observation: 'three-represented-original-u-parameters-stations-and-midpoints-not-global-bound', zeroBits: 'original-coefficient-and-station-bits-retained', source: 'new-model-original-sections-plus-native-surface', counters: 'direct-wrapper-calls-inherited-validations-excluded' },
+        quality: { nativeCurveAndSurfaceAdmission: true, coefficientLayoutAndSourceBitsRetained: true, pointObservationsPassed: true, topologyCertified: false, solid: false, globalBinary64ErrorCertified: false, manufacturingToleranceCertified: false, editorDisplayCertified: false, smoothLoftCertified: false, G1Certified: false, G2Certified: false, originalMixedSourcePreservationCertified: false, ownership: 'independent-copied-cpu-data-gc' },
+        limits: { maximumSections: 15, maximumUPoles: 16, maximumDegreeU: 5, degreeV: 1, maximumModelObjects: 16, maximumPointObservations: 87, maximumDerivativeObservations: 87, maximumCurvePointEvaluations: 129, maximumSurfacePointEvaluations: 87, maximumBasisEvaluations: 84, maximumDecimalEmissions: 2306, sourceUTF16: 262144, sourceUTF8: 262144, maximumLiteralCharacters: 512, coordinateAbsMM: 1000000, minimumWeight: 0.000001, maximumWeight: 1000000, ownValues: 1048576, ownDepth: 64, arrayElements: 8192, recordFields: 64, stringCharacters: 262144 }, workScope: 'direct-native-construction-source-and-observation-calls-inherited-validation-excluded', budgetFailure: 'atomic-no-partial-loft-or-source',
+    };
+    return snapshot({ request: { sections, parametersV, options }, sections: adopted, parametersV, surface, source, sourceVersion: 0, model: compiled.model, provenance, report }, true);
+}
+/** Rebuild one complete native construction and all actual observations, preserving every original/source/count bit. */
+export function validatePiecewiseRationalLoftSurface(input) {
+    const owned = record(snapshot(input, true), ['request', 'sections', 'parametersV', 'surface', 'source', 'sourceVersion', 'model', 'provenance', 'report'], CODE.OWNED);
+    record(owned.request, ['sections', 'parametersV', 'options'], CODE.OWNED);
+    let expected;
+    try {
+        expected = buildPiecewiseRationalLoftSurface(owned.request.sections, owned.request.parametersV, owned.request.options);
+    }
+    catch (cause) {
+        throw new PiecewiseRationalLoftError(CODE.OWNED, 'Whole owned piecewise loft reconstruction refused', cause);
+    }
+    check(same(owned, expected), CODE.OWNED, 'Owned request/originals/stations/native Surface/new source/provenance/observations/refusals/counters changed');
+    return snapshot(expected.report, true);
+}

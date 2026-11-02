@@ -1,0 +1,8 @@
+# Local generated code stays available for inspection. Retain raw streams,
+# command records, provider graphs, source/output hashes and all failures in git.
+**/*.mjs
+**/physics/
+**/node_modules/
+**/consumer.ts
+**/consumer.js
+**/package.json

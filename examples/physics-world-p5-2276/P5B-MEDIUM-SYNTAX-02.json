@@ -1,0 +1,138 @@
+{
+  "status": "PASS_JS_SYNTAX_ONLY",
+  "gate": "existingheavygate acquired/released by EXIT trap",
+  "checked": [
+    {
+      "path": "examples/physics-capsule-query-scene/controls.mjs",
+      "sha256": "3b7a8933bfc890842a93fe5aa8eed00773945b841616d273af469ef7871ce51e"
+    },
+    {
+      "path": "examples/physics-cloth-viewer/host-controller.mjs",
+      "sha256": "7da62462d6f85e9f08f489bcc00e37f1715acf262e0ce24a08b39b39654d89bd"
+    },
+    {
+      "path": "examples/physics-cloth-viewer/numeric-entry.mjs",
+      "sha256": "dda189c16e223a0972f759c0e21571a4399cb55434d2b1c0a8b04b1048bd819e"
+    },
+    {
+      "path": "examples/physics-error-entry/entry.mjs",
+      "sha256": "4f7469f05f0c605b87292505f913c35b4b326a96825aa4512ee188aa77a2c60f"
+    },
+    {
+      "path": "examples/physics-scene/cloth-source-import-probe.mjs",
+      "sha256": "f2569e97667c00fd7171306ad3dd441335a2e798a147f4504c00b26a5616dc7d"
+    },
+    {
+      "path": "examples/physics-scene/cloth-world-probe.mjs",
+      "sha256": "a15d37cde19e50b72546261ee5a3d3626c34a9deed2e6a91d22c4adcd29dd9ad"
+    },
+    {
+      "path": "examples/physics-scene/fluid-cad-shelf-probe.mjs",
+      "sha256": "36bb9331b8209afb1605ea38379ca0f8924dbaeb90c53879e45dfb9433782152"
+    },
+    {
+      "path": "examples/physics-scene/fluid-cad-viewer/app.js",
+      "sha256": "f03257e83f627a11c8f3f23f50f325d399c18f4ec9694ae440e7e332ed519098"
+    },
+    {
+      "path": "examples/physics-scene/fluid-viewer/scene.js",
+      "sha256": "93dc46a49b553f425614a630f2956c29c92f194b089fef54f09b6b3d330fc332"
+    },
+    {
+      "path": "examples/physics-scene/fluid-visual-profile-probe.mjs",
+      "sha256": "b757ebd53afc1779665d2f34a62592c5159be8bb88a8ad49c6a8939dbcf532d1"
+    },
+    {
+      "path": "examples/physics-scene/fluid-world-probe.mjs",
+      "sha256": "125b8e11dca3efe3f3f65c13514846c9b0200763d9c88defc0d376c2400beceb"
+    },
+    {
+      "path": "examples/physics-scene/release-consumer.mjs",
+      "sha256": "0956788d969fed0737d95727f0424d49896e7128cb0c72c7939f72ffd03fb432"
+    },
+    {
+      "path": "examples/physics-scene/source-import-probe.mjs",
+      "sha256": "b7b66ef5a7c5adc5fd88396389fce4b0b9ac631098de8dd70cc90ec93a7fbe8e"
+    },
+    {
+      "path": "examples/viewer-assembly-scene/app.js",
+      "sha256": "9f46a44a1e8745ada84ffb72165cc85af250419ad065bfaf081ea1266b60924f"
+    },
+    {
+      "path": "examples/viewer-cloth-scene/app.js",
+      "sha256": "5e0663e6e83e6090d0537c996506e40e2e031fe1ba6b889bc94e3e14ef90e057"
+    },
+    {
+      "path": "examples/viewer-fluid-scene/app.js",
+      "sha256": "20fef202b1e01375022fdd15d3cc1965ac6f6a41062b06f2773449897d2cf8d9"
+    },
+    {
+      "path": "examples/viewer-native-scene-replacement/app.js",
+      "sha256": "29c3e319ae18d11db2097d1d5ba121844296ae51396973ecaaecf3718d75f75c"
+    },
+    {
+      "path": "examples/viewer-qualified-face-scene/app.js",
+      "sha256": "83de9b363f449d92c9b4a18353dca5e09cf28e479039fe4a87504fd1cb83565f"
+    },
+    {
+      "path": "examples/viewer-shell-scene/app.js",
+      "sha256": "0d209e99560cf0cd097c7d180037bdef9f818c2586493593cfef852431e1fb44"
+    },
+    {
+      "path": "examples/viewer-surface-material/app.js",
+      "sha256": "ff6a842bab52b93624829aa011935bd14466f9bcb50e52a89212dab803cbd9be"
+    },
+    {
+      "path": "examples/workspace-source/flow.mjs",
+      "sha256": "86d42d174dee448e8973a0a1d7caeb1e203df81376176047ffb3d0662b740560"
+    },
+    {
+      "path": "examples/physics-cloth-viewer/frame.mjs",
+      "sha256": "b00a8df08931994296ccaed007f62c732eae668255bb18865aa47143e627fa9d"
+    },
+    {
+      "path": "examples/physics-cloth-viewer/metrics.mjs",
+      "sha256": "4f9d93e1e4a02b65251ee91ed7dc15269089ecf97079db400bce13f625f5debe"
+    },
+    {
+      "path": "examples/physics-cloth-viewer/app.mjs",
+      "sha256": "1b7b20f49f2b3488a46242f4d05f0f101057a9fdeede62aa6b6161c7123392e6"
+    },
+    {
+      "path": "examples/physics-cloth-viewer/numeric-probe.mjs",
+      "sha256": "7186b896019364d2ad0c3f23fdad8e16deaa408dd95d4ad5a63fdada7465ae7d"
+    },
+    {
+      "path": "examples/physics-cloth-viewer/browser-checks.mjs",
+      "sha256": "34ae06b8121a83c6a933e3c1bd22c3d7bccfdfb913261d26fc0d1d96e0b26ddf"
+    },
+    {
+      "path": "examples/physics-cloth-viewer/decode.mjs",
+      "sha256": "9034b8a5772ab5b3ad7cbccf6dbaee71546d7ba03b1f4b4cfd50d61599507066"
+    },
+    {
+      "path": "examples/physics-scene/fluid-viewer/controller.js",
+      "sha256": "d75586a11200685a6c34c6729f1a074a9cbeafb56f61459d67ab714aef7c9161"
+    },
+    {
+      "path": "examples/physics-scene/fluid-viewer/app.js",
+      "sha256": "8b615a3fd0a774e59708f8a38f57254bf087175665f470747c6ccf0030671d65"
+    },
+    {
+      "path": "examples/physics-error-entry/probe.mjs",
+      "sha256": "ff9bbdf5afd89068aff50c963af224b69540b1a566d250b526095b308e5cd988"
+    },
+    {
+      "path": "examples/physics-scene/release-gate-packed-consumer.mjs",
+      "sha256": "f8ac3380a7f9b8f9fdbd4ddbda6e053cb4790047d709d6020eacb64acdef65d6"
+    },
+    {
+      "path": "apps/library-docs/samples/physics-visual-docs.test.mjs",
+      "sha256": "21fcd7c30fe9e19279de228212b737da731d4ee953f1b643d86fb3d0e5ffabf2"
+    }
+  ],
+  "providerImports": 0,
+  "WorldCalls": 0,
+  "modelConstruction": 0,
+  "tscCompile": "Parentpending; no build/API/runtime here"
+}

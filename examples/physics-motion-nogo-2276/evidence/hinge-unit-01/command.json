@@ -1,0 +1,17 @@
+{
+  "mode": "hinge-unit",
+  "command": [
+    "python3",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-nogo-2276/hinge-unit.test.py"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "started": "2026-11-01T12:17:47.142Z",
+  "finished": "2026-11-01T12:17:47.255Z",
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "a30fdce33ff749ac2a5d48938b3d52e97adbd9cd8ac3209721dfe5930cfe4861",
+  "numericalWorldCalls": 0,
+  "oldSolverCalls": 0
+}

@@ -1,0 +1,38 @@
+# G1b trajectory execution review T01
+
+APPROVED_FOR_FROZEN_PHASE_T_EXECUTION. No concrete blocker remains in the source/protocol/cost/root closure below. This approves one fresh fixed T campaign under the stated caps, not an actual numerical/resource PASS or production activation. Actual T remains NOT_RUN.
+
+The reference continues the authenticated M02 solution by outward p=(I/L*)R^Tomega. It does not invent a saved p or rerun windows1/2. Only44new order32 windows run; all24observable times at both precisions remain. General geometry/root authority is reused, not reintegrated. Principal truth uses the authenticated G1a row: proper cyclic conjugation on both R indices, one permutation of q.xyz/omega and unchanged q.w; G1b inertia remains its own. Zero/t0 and negative-q use exact reductions without hidden Taylor/trig/sqrt work.
+
+The static optimization preserves each original F_n's input coefficients, convolution order and output interval. Low residual D_n is formed from its live recurrence result; high degrees32..64 and the complete Picard/tube/polynomial/error proof remain. Eta/power contributions retain degree0..64 order. Context settings are fixed, flags sticky and never numerical inputs. No precision/order/window/physical tolerance changes. The exact DATA census reproduces measured M02 2758004 operations; optimized new window474158 plus observable288 gives20875624 for44, with100000setupreserve. Tsubcap21M and joint32M/base2758004 are both enforced. Fraction1M/joint10M/base28292 and joint108endpoint-root caps remain. Native clock labels are checked by separately counted integer IEEE-nearest-ties-even conversion; exact dyadic ODE time is unchanged. This avoids incorrectly applying M's unrounded Fraction label check to longer grids.
+
+All110initial/accepted audits keep unchanged1e-12 invariant and1e-11+1e-12*abs(reference) endpoint gates. Matched-time1.8/floor refinement is checked once per required tuple:72gates in4full audit proofs, referenced compactly at finish. The55th Source audit reports complete only after all36Source refinement checks. The driver additionally checks all actual helper/fault/guard/ownership/rollback/count gates and disposes8Source Worlds before Native root/3Pow evaluation. Native actual39words must equal Source and M authority before a Native constructor. No unobserved coefficient or finest run is truth.
+
+M02 source/emitted providers are reused exactly, with every transitive stagedPins byte/SHA authenticated before import and after execution. There is0new build and1reference child. Parent's PARENT-DRIVER-REVIEW-T02 covers actual driverfa1098b5, including the retained latest already-returned state and failed-prefix raw capture before disposal without another API call. That narrow repair preserves T01 failure-review history and normal counts. No44k driver re-audit or passed syntax rerun was performed here.
+
+Exact T counts stay16constructors/36reads/114attempts=94accepted+8command refusals+6unknown faults+6postguards/16disposes;110audits/16reference-private initial records/36localcache observations;112requests/113replies;98general flows/10584Newton3x3solves;6observed coefficient Pow calls. No extra unchanged rollback audit, recovery step, World, old M campaign or geometry/bisection is present. Protocol/CLI/freeze flags, case order, zero-padded saved replies, Source55/Native55 boundary and finish-return111/112 semantics match. Actual complete successful wire replies remain reference-owned and byte-authenticated; driver transport metadata/rolling hashes do not replace full proof files.
+
+Every595-record general trace retains all2848actual F64 words, including linear/nonlinear residuals, bounds, pivots, iterates and orientations. Numeric-tag/hex rows preserve exact bits/negative zero; no expected-value reconstruction or floating normalization occurs. Source/native equality is on actual compact rows.The frozen population is exactly98general traces,5536216normal bytes and<=50176headers. A failing prefix retains its actual words. Global reference8MiB+harness1.5MiB+reserve1MiB+trace/headers=16596440<16MiB; driver allocated inventory721920B remains within its1.5MiB envelope. Child bank/proof/reply/summary subcaps total8093696<8MiB. No resource cap is raised; a cap failure stays a failure.
+
+Live-root phases keep the original8192unique-ID/8MiB reference limit. Whole G1a JSON is extracted/released before continuation;8parsed full cases are released; Context reports are losslessly shared through a bounded registry; thin initial actual invariants avoid retaining unused R/tensors, which remain in full initial proofs. Polynomial data is absent during audits; no duplicate32x12 cache exists. Full bank/current/transport/encoder overlap checks remain per append/write. Final parent freeze metadata must pass the same actual bound before mathematical calls. Source-derived logical partitions64MiB,170s/4s/180s and whole owned process-group cleanup remain; no process/tool-heap/RSS claim.
+
+Counters distinguish new work, reused authorities, actual attempts/returns and historical M01/M02 prefixes. Unknown spawned/module-load work is never fabricated0. First reference/driver/physical/resource failure is preserved before cleanup; no later graph/advance/audit runs. Full mathematical failure artifact precedes compact wire trimming. Actual admitted q normalization is respected; the previously inferred raw-nearunit initial mismatch is not an established bug. Broader boundaries remain unqualified coverage.
+
+This review and author checks used only source, syntax/AST, saved DATA and integer byte/operation ledgers. Module evaluation, fixture conversion, Fraction/Decimal/ODE/root/linear calculations, build and World calls are0. All prior M/G1a/G2 sources/results/first failures remain immutable. This review is the sole new final-review edit.
+
+| File | Bytes | SHA256 |
+| --- | ---: | --- |
+| reference-trajectory.py | 39887 | `bcc3e19f90f256631d5366e4a23180649fbacdba6df7d94d1bf48b71c2b908b0` |
+| REFERENCE-READY-T01.json | 7336 | `4f5ad4638a46aa806b5de768a5101efa5c7f0f66ff3676648f636ad62a7bc74b` |
+| REFERENCE-OPTIMIZATION-T01.md | 4824 | `114218d96f0b0fb5df1b96084e26f53397842dab66f80233575e45517020d13d` |
+| REFERENCE-PROTOCOL-T01.md | 6574 | `db7b8323fabee98773e95cf71b1a6e20fa0c030385cf460b71680fc3048cfa0f` |
+| PHASE-T-PLAN-01.md | 11607 | `6d7b12af2eef4e40733711ca9dfbdb3edb9e6e81a22bf4eb3cd0de62ef5357ce` |
+| PHASE-T-PLAN-01.json | 6159 | `36b8610722396b2968c2768a59b4755c93bd3af84967be902c0bbc92c92b8223` |
+| trajectory-campaign.mjs | 44582 | `fa1098b58515d6b3b8382e647a431d29c7bd4615d618506b8af0871ee69b7453` |
+| TRAJECTORY-READY-T02.json | 1653 | `3de558cc820f3a24cf4f34f08634c2d9209d74ab8ddee1d01e6e8b671e25dab6` |
+| TRAJECTORY-DRIVER-PLAN-01.md | 5474 | `267d5137ec6353beac67123ae4425deb1d2cce66c899f095dad40108ea2e83bd` |
+| TRAJECTORY-DRIVER-PLAN-01.json | 18115 | `a83f7f85b9e50154fd9abfd4cc87fe2e3eb984d91b452cdc4f60cd8d1da63c12` |
+| reference-micro.py | 47239 | `90412a7e20b106939c14de7c5f8d619f0cd69d19caa780c91300ce540e3f0c36` |
+| rigid-triaxial-free-rotation.ts | 11287 | `972bb4dbab8ebb8c9604f2c5afb1d1ea324643b37fc4ec2654a2a4508eb0a707` |
+
+Parent must pin this review, exact current T source/Ready/driverT02/plans, all M02/G1a reference authorities, the transitive M02 provider manifest/actual staged files, unchanged numerical helpers,354actual tool pins and the180s guard in a fresh runtime freeze. Source/fullT PASS is required before Native; no production activation or whole-roadmap merge follows. Wider admission/frame/torque/contact/joint/recorder/generalG4 work remains HOLD or unsupported. READY and STOP; no source edits after freeze without explicit repair authority.

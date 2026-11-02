@@ -1,0 +1,12 @@
+
+/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p1a-2276/reference-run.mjs
+  71:3  warning  Unexpected console statement  no-console
+
+/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p1a-2276/run.mjs
+  46:3  warning  Unexpected console statement  no-console
+
+/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p1a-2276/transaction.test.mjs
+  27:25  warning  Unexpected console statement  no-console
+
+✖ 3 problems (0 errors, 3 warnings)
+

@@ -1,0 +1,48 @@
+{
+  "mode": "native",
+  "entry": "generated:generated-3",
+  "platform": "node",
+  "inputs": {
+    "packages/barocss-physics/dist/index.js": {
+      "bytes": 398311,
+      "sha256": "eb0303e4393102ebf5554b02d3fd20f048fecc368337ceb26c5b266b929c70cf",
+      "effectiveSha256": "eb0303e4393102ebf5554b02d3fd20f048fecc368337ceb26c5b266b929c70cf"
+    },
+    "packages/barocss-physics/dist/provider-manifest.generated.js": {
+      "bytes": 2375,
+      "sha256": "41a7c51c4d725a8aea2a5e54628f28a43811c027870dd3361187f27c66e273df",
+      "effectiveSha256": "41a7c51c4d725a8aea2a5e54628f28a43811c027870dd3361187f27c66e273df"
+    },
+    "packages/barocss-physics/dist/types.js": {
+      "bytes": 418,
+      "sha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b",
+      "effectiveSha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b"
+    },
+    "packages/barocss-physics/dist/recording-owner.js": {
+      "bytes": 46,
+      "sha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521",
+      "effectiveSha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521"
+    }
+  },
+  "resolutions": [
+    {
+      "specifier": "@barocss/physics",
+      "importer": "generated-3.mjs",
+      "target": "packages/barocss-physics/dist/index.js",
+      "kind": "actual-package-map"
+    }
+  ],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 4,
+  "outputBytes": 370886,
+  "outputSha256": "711fdffab00cd5e901b17748910f0e479b4bf442f927bb70ebe94d5cc613e5f5",
+  "expectedOwn": {
+    "kind": "physics",
+    "reason": "actual generated consumer program"
+  },
+  "externalRuntime": [],
+  "missingNativeSDKBoundary": null,
+  "nativeHostSDKIntegration": "NOT_CLAIMED_BY_COMPILE",
+  "externalImports": [],
+  "moduleEvaluation": false
+}

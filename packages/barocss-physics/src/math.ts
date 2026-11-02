@@ -1,4 +1,4 @@
-import type { Body, Quat, Vec3 } from './types.js';
+import type { Body, Quat, Vec3 } from './internal-types.js';
 
 export function multiplyQuaternion(a: Quat, b: Quat): Quat {
   const [ax, ay, az, aw] = a, [bx, by, bz, bw] = b;

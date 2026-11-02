@@ -1,0 +1,9 @@
+file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/world-source-01/world-consumer.mjs:4162
+  if (outcome.executionFailure) throw new Error("contact trajectory execution failure; both failure records retained");
+                                      ^
+
+Error: contact trajectory execution failure; both failure records retained
+    at throwIfExecutionFailed (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/world-source-01/world-consumer.mjs:4162:39)
+    at file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/world-source-01/world-consumer.mjs:4373:5
+
+Node.js v22.19.0

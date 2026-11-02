@@ -1,0 +1,40 @@
+{
+  "mode": "native",
+  "entry": "examples/physics-cloth-viewer/numeric-probe.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/physics-cloth-viewer/numeric-probe.mjs": {
+      "bytes": 2455,
+      "sha256": "7186b896019364d2ad0c3f23fdad8e16deaa408dd95d4ad5a63fdada7465ae7d",
+      "effectiveSha256": "7186b896019364d2ad0c3f23fdad8e16deaa408dd95d4ad5a63fdada7465ae7d"
+    },
+    "examples/physics-cloth-viewer/bundle.mjs": {
+      "bytes": 2249,
+      "sha256": "838b57e48810a74f7c25622724a569e0d9a282c8da255a5e31f274d91fc24797",
+      "effectiveSha256": "838b57e48810a74f7c25622724a569e0d9a282c8da255a5e31f274d91fc24797"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 5472,
+  "outputSha256": "f2ce543869712384acb73ba9eb6733fd61d6dde9eba99e19d795ffda17d09bc1",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "missingNativeSDKBoundary": null,
+  "nativeHostSDKIntegration": "NOT_CLAIMED_BY_COMPILE",
+  "externalImports": [
+    "node:assert/strict",
+    "node:child_process",
+    "node:fs/promises",
+    "node:zlib",
+    "node:path",
+    "node:crypto",
+    "esbuild",
+    "node:url"
+  ],
+  "moduleEvaluation": false
+}

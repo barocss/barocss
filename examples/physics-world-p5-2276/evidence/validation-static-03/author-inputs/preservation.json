@@ -1,0 +1,26 @@
+{
+  "status": "ORIGINAL_THIRD_STATIC_FAILURE_INPUTS_PRESERVED_BEFORE_FIX",
+  "WorldCalls": 0,
+  "files": {
+    "validation-provider.mjs": {
+      "bytes": 16310,
+      "sha256": "7d65b23eb22c00b8960332f96fa54bc50f358eeaad0a2dd5bcabe068d20f166f"
+    },
+    "validation-child.mjs": {
+      "bytes": 15849,
+      "sha256": "be4bee3b02f5083589c77da59e805fd83655fcd6bfd0991587c389d1b1a24df0"
+    },
+    "validation-run.mjs": {
+      "bytes": 5758,
+      "sha256": "95a06b181d3c74d6ead6b9131fae9d34ced523762c650ee011487e62350c9e70"
+    },
+    "VALIDATION-RECIPES.json": {
+      "bytes": 80597,
+      "sha256": "81c147e5009f4ec7abc5de6d2e99a76937b8ac6ec51d5612c8b289302dbb600b"
+    },
+    "VALIDATION-FAILURE-REVIEW-03.json": {
+      "bytes": 6166,
+      "sha256": "a71472ed1c2e4ac5d91c778799cef0533f199984afc2f1d9762366e81fc4178a"
+    }
+  }
+}

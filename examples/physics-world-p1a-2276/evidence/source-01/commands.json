@@ -1,0 +1,48 @@
+{
+  "workId": "physics-world-p1a-2276",
+  "mode": "source",
+  "runId": "source-01",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "platform": "darwin",
+  "arch": "arm64",
+  "head": "a81748a54c7e1ecf0915015575256e81d989f43a",
+  "baselineSha": "66df02f8e7d5a3a7ab7b8ff7a0184bf34d978713",
+  "proofBoundary": "instrumented transaction proof; not an ordinary package proof",
+  "records": [
+    {
+      "name": "transaction-tests",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p1a-2276/evidence/source-01/transaction.test.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T15:12:38.948Z",
+      "finished": "2026-11-01T15:12:40.183Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e6b6715d187bb80bc9cb37f7cca29f53823053c11a73dd8eb934837c931ae97c",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "transformations": [
+    {
+      "path": "packages/barocss-physics/src/replay-session.ts",
+      "source": "working-tree",
+      "originalSha256": "93f24d3e6372a8615fd123d8047eb40b8e4cdb95a88c0c7511ea79f9934d585c",
+      "transformedSha256": "61b41d287ec1d0d65f78e5c9adcea766583f2f9da657d9f1df1698ac42b721a4",
+      "frozen": "examples/physics-world-p1a-2276/evidence/source-01/instrumented/replay-session.ts",
+      "injection": "before-replay-log-preparation"
+    },
+    {
+      "path": "packages/barocss-physics/src/world.ts",
+      "source": "working-tree",
+      "originalSha256": "784cdf407565cf67257d08873008f58b95b1c9ba890c32f7948ef6bf57d7f782",
+      "transformedSha256": "55f4071d8ab946e3fdae2c5225d30ed2d76bf47cde0d4dea99913c983f83302a",
+      "frozen": "examples/physics-world-p1a-2276/evidence/source-01/instrumented/world.ts",
+      "injection": "before-publicState-return"
+    }
+  ]
+}

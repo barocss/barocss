@@ -1,0 +1,166 @@
+{
+  "status": "AUTHORED_LITERAL_ONLY_NO_CONVERSION_OR_EXECUTION",
+  "model": {
+    "format": "barocss-physics-model",
+    "version": 1,
+    "revision": "g2-corner-2276",
+    "frame": {
+      "id": "g2World",
+      "basis": "right-handed-xyz",
+      "rotation": "local-to-world-xyzw"
+    },
+    "units": {
+      "length": "m",
+      "mass": "kg",
+      "time": "s",
+      "angle": "rad"
+    },
+    "gravityMps2": [
+      "0",
+      "0",
+      "0"
+    ],
+    "bodies": [
+      {
+        "id": "sphere",
+        "kind": "dynamic",
+        "massKg": "1",
+        "inertia": {
+          "kind": "primitive-com",
+          "about": "com",
+          "frame": "body-local"
+        },
+        "initial": {
+          "positionM": [
+            "-3/10",
+            "3/20",
+            "0"
+          ],
+          "orientationXYZW": [
+            "0",
+            "0",
+            "0",
+            "1"
+          ],
+          "velocityMps": [
+            "72",
+            "0",
+            "0"
+          ],
+          "angularVelocityRadps": [
+            "0",
+            "0",
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "fixture",
+        "kind": "static",
+        "initial": {
+          "positionM": [
+            "0",
+            "0",
+            "0"
+          ],
+          "orientationXYZW": [
+            "0",
+            "0",
+            "0",
+            "1"
+          ]
+        }
+      }
+    ],
+    "colliders": [
+      {
+        "id": "sphereCollider",
+        "bodyId": "sphere",
+        "geometry": {
+          "kind": "sphere",
+          "radiusM": "1/10"
+        },
+        "local": {
+          "positionM": [
+            "0",
+            "0",
+            "0"
+          ],
+          "orientationXYZW": [
+            "0",
+            "0",
+            "0",
+            "1"
+          ]
+        },
+        "material": {
+          "restitution": "0",
+          "friction": {
+            "static": "0",
+            "dynamic": "0"
+          }
+        },
+        "sensor": false,
+        "ccd": true,
+        "filter": {
+          "categoryBits": 1,
+          "maskBits": 65535
+        }
+      },
+      {
+        "id": "fixtureCollider",
+        "bodyId": "fixture",
+        "geometry": {
+          "kind": "box",
+          "halfExtentsM": [
+            "1/10",
+            "1/10",
+            "1/10"
+          ]
+        },
+        "local": {
+          "positionM": [
+            "0",
+            "0",
+            "0"
+          ],
+          "orientationXYZW": [
+            "0",
+            "0",
+            "0",
+            "1"
+          ]
+        },
+        "material": {
+          "restitution": "0",
+          "friction": {
+            "static": "0",
+            "dynamic": "0"
+          }
+        },
+        "sensor": false,
+        "ccd": false,
+        "filter": {
+          "categoryBits": 1,
+          "maskBits": 65535
+        }
+      }
+    ],
+    "joints": [],
+    "cloths": [],
+    "fluids": [],
+    "sourceBindings": []
+  },
+  "options": {
+    "profile": "rigid-discrete-v1",
+    "fixedStepSeconds": "1/120",
+    "broadPhase": "direct"
+  },
+  "candidateEndM": [
+    "3/10",
+    "3/20",
+    "0"
+  ],
+  "scope": "Endpoint is prescribed for an internal sweep geometry witness, not an accepted World integration. Source/native Body values come from actual admitModel, then admitCcd, then one sweepSphere.",
+  "counts": "One global native conversion only after reviewed execution freeze;0World."
+}

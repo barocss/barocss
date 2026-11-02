@@ -1,0 +1,107 @@
+{
+  "inputs": {
+    "examples/physics-model-input/model.mjs": {
+      "bytes": 2051,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/types.js": {
+      "bytes": 418,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/provider-manifest.generated.js": {
+      "bytes": 956,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/index.js": {
+      "bytes": 133217,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/provider-manifest.generated.js",
+          "kind": "import-statement",
+          "original": "./provider-manifest.generated.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-scene/probe.mjs": {
+      "bytes": 4975,
+      "imports": [
+        {
+          "path": "examples/physics-model-input/model.mjs",
+          "kind": "import-statement",
+          "original": "../physics-model-input/model.mjs"
+        },
+        {
+          "path": "node:assert/strict",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "packages/barocss-physics/dist/index.js",
+          "kind": "import-statement",
+          "original": "../../packages/barocss-physics/dist/index.js"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "examples/physics-world-p1b-2276/evidence/probes-emitted-01/probe.mjs": {
+      "imports": [
+        {
+          "path": "node:assert/strict",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "exports": [],
+      "entryPoint": "examples/physics-scene/probe.mjs",
+      "inputs": {
+        "examples/physics-model-input/model.mjs": {
+          "bytesInOutput": 1888
+        },
+        "examples/physics-scene/probe.mjs": {
+          "bytesInOutput": 4766
+        },
+        "packages/barocss-physics/dist/types.js": {
+          "bytesInOutput": 328
+        },
+        "packages/barocss-physics/dist/index.js": {
+          "bytesInOutput": 102988
+        },
+        "packages/barocss-physics/dist/provider-manifest.generated.js": {
+          "bytesInOutput": 881
+        }
+      },
+      "bytes": 111118
+    }
+  }
+}

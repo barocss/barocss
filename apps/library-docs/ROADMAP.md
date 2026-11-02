@@ -10,7 +10,7 @@ resolve required engineering inputs, or replace recorded FAIL, HOLD or incomplet
 ## Numbered documentation work (2026-10-27)
 
 The order below is the current documentation queue. Each item records its own source and checks.
-The site keeps the order CAD, CAD Model, GPU, Studio and Viewer. Existing page URLs and anchors stay valid.
+The site keeps CAD, CAD Model, Physics, GPU, Studio and Viewer as distinct sections. Existing page URLs and anchors stay valid.
 
 | No. | Work | Completion condition | State |
 | --- | --- | --- | --- |
@@ -568,3 +568,18 @@ and its SHA is reported to the coordinator.
    tables, the running samples, the label check and the merge notices.
 3. **The Render tab:** its own Rendering page, under Studio after Display (owner, 2026-10-23). It is the studio's
    own rendering workspace, in scope, not the render package.
+
+
+## Independent Physics/Motion documentation (2026-11-01)
+
+The owner authorized five bundles on the isolated `codex/physics-motion-docs-2276` branch:
+Physics overview, units/frames, profiles/lifecycle, Robot Motion and Physics verification.
+They describe the actual current public API. Existing Physics/Studio/manufacturing HOLDs, public two-hinge NO_GO,
+original eight-box NO_GO and all first failures remain. This is separate from the CAD-bound experiment workflow
+in items11–12, which remains on hold. The new reduced pendulum does not complete that workflow.
+
+The [Physics package roadmap](../../packages/barocss-physics/ROADMAP.md) now defines a proposed common World above
+separate solvers, recording and CAD adapters. The target API is not implemented. It adds no compatibility engine
+or replacement Motion package. Source examples, local links/anchors, evidence copies and VitePress build are checked
+in `examples/physics-motion-docs-2276/`; each receipt retains its outcome. No deployment or remote publication is part
+of this work. A future API transition must update these pages and their source/emitted examples in the same slice.

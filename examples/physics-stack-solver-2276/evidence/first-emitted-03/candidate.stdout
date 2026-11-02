@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: one normal constraint cancels a closing translational velocity
+ok 1 - one normal constraint cancels a closing translational velocity
+  ---
+  duration_ms: 1.677791
+  type: 'test'
+  ...
+# Subtest: separating inactive contact keeps its free velocity and zero impulse
+ok 2 - separating inactive contact keeps its free velocity and zero impulse
+  ---
+  duration_ms: 0.215167
+  type: 'test'
+  ...
+# Subtest: duplicate rows retain every row while using an independent basis
+ok 3 - duplicate rows retain every row while using an independent basis
+  ---
+  duration_ms: 0.498583
+  type: 'test'
+  ...
+# Subtest: opposed homogeneous constraints are feasible with a rank-deficient row set
+ok 4 - opposed homogeneous constraints are feasible with a rank-deficient row set
+  ---
+  duration_ms: 0.169792
+  type: 'test'
+  ...
+# Subtest: off-centre contact changes both translation and rotation by its impulse
+ok 5 - off-centre contact changes both translation and rotation by its impulse
+  ---
+  duration_ms: 0.218208
+  type: 'test'
+  ...
+# Subtest: unequal masses split a dynamic pair reaction without a static root
+ok 6 - unequal masses split a dynamic pair reaction without a static root
+  ---
+  duration_ms: 0.174542
+  type: 'test'
+  ...
+# Subtest: normal solve records loaded tangential slip without claiming a friction solve
+ok 7 - normal solve records loaded tangential slip without claiming a friction solve
+  ---
+  duration_ms: 0.091416
+  type: 'test'
+  ...
+# Subtest: zero-point problem returns free body motion without a contact oracle
+ok 8 - zero-point problem returns free body motion without a contact oracle
+  ---
+  duration_ms: 0.306708
+  type: 'test'
+  ...
+# Subtest: non-diagonal world inverse inertia uses its full physical tensor
+ok 9 - non-diagonal world inverse inertia uses its full physical tensor
+  ---
+  duration_ms: 0.775792
+  type: 'test'
+  ...
+# Subtest: nonzero static input motion refuses without returning a solved impulse
+ok 10 - nonzero static input motion refuses without returning a solved impulse
+  ---
+  duration_ms: 0.356167
+  type: 'test'
+  ...
+# Subtest: singular inertia refusal retains copied admitted input motion
+ok 11 - singular inertia refusal retains copied admitted input motion
+  ---
+  duration_ms: 0.27375
+  type: 'test'
+  ...
+# Subtest: returned copies cannot mutate input or a later solve
+ok 12 - returned copies cannot mutate input or a later solve
+  ---
+  duration_ms: 0.329875
+  type: 'test'
+  ...
+# Subtest: opaque identifier renaming cannot select a different mathematical path
+ok 13 - opaque identifier renaming cannot select a different mathematical path
+  ---
+  duration_ms: 0.267958
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 45.989375

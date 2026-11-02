@@ -1,0 +1,154 @@
+{
+  "phase": "post-auth",
+  "counts": {
+    "nativePairConversions": 1,
+    "nativeScalarConversions": 31,
+    "constructorAttempts": 2,
+    "constructorReturns": 2,
+    "getStateAttempts": 2,
+    "getStateReturns": 2,
+    "stepAttempts": 2,
+    "stepReturns": 2,
+    "disposeAttempts": 2,
+    "disposeReturns": 2,
+    "getModel": 0,
+    "query": 0,
+    "recorder": 0,
+    "WorldApisAfterClassificationStarts": 0,
+    "sourceBuildStarts": 1,
+    "classifierStarts": 1
+  },
+  "graphs": {
+    "source": {
+      "status": "CAPTURE_GUARDS_PASSED",
+      "constructorOutcome": "WORLD_RETURNED",
+      "disposeOutcome": "RETURNED"
+    },
+    "native": {
+      "status": "CAPTURE_GUARDS_PASSED",
+      "constructorOutcome": "WORLD_RETURNED",
+      "disposeOutcome": "RETURNED"
+    }
+  },
+  "commands": [
+    {
+      "label": "source-build",
+      "command": [
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/esbuild/bin/esbuild",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/index.ts",
+        "--bundle",
+        "--platform=node",
+        "--format=esm",
+        "--target=node22",
+        "--log-level=error",
+        "--outfile=/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/build/source.mjs",
+        "--metafile=/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/build/source-meta.json"
+      ],
+      "pid": 7175,
+      "closed": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exit": 0,
+      "timedOut": false,
+      "signal": null
+    },
+    {
+      "label": "classifier",
+      "command": [
+        "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+        "-B",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/baseline-classify.py",
+        "--request",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/classification-request.json",
+        "--request-sha256",
+        "c4c38147d23bac9ca3108e342fb5c3f6cbb0069b6957465736606db9ff0fe883",
+        "--freeze",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/EXECUTION-FREEZE-01.json",
+        "--token",
+        "6a04602e299bb6950775205be5a7d8748ac9e9b35d28ff92e779b00b4cc2b055",
+        "--out",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/classification.json"
+      ],
+      "pid": 7179,
+      "closed": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exit": 0,
+      "timedOut": false,
+      "signal": null
+    }
+  ],
+  "classificationStarted": true,
+  "firstFailure": null,
+  "classifierObservation": {
+    "status": "CHARACTERIZED_PHYSICAL_NO_GO",
+    "counts": {
+      "bodyGeometryCertificatesAttempted": 1,
+      "bodyGeometryCertificatesReturned": 1,
+      "oneDimensionalMonomialMoments": 9,
+      "observedStateAuditsAttempted": 4,
+      "observedStateAuditsReturned": 4,
+      "properRationalRotationAttempts": 4,
+      "properRationalRotationReturns": 4,
+      "fractionScalarOperations": 1403,
+      "WorldCalls": 0,
+      "trig": 0,
+      "sqrt": 0,
+      "odeSolves": 0,
+      "linearSolves": 0
+    },
+    "firstPhysicalFailure": {
+      "graph": "source",
+      "check": {
+        "quantity": "angularMomentum",
+        "component": 0,
+        "unit": "kg*m^2/s",
+        "before": {
+          "numerator": "64903710731685352562390607908045",
+          "denominator": "3894222643901120721397872246915072"
+        },
+        "after": {
+          "numerator": "7189169335492216600966102867197121191111563433176274205443025156747",
+          "denominator": "431359146674410339998320097924393362916336294763761585888499637157888"
+        },
+        "residual": {
+          "numerator": "-299551495913061027985931720190372145821066588539236101875982241",
+          "denominator": "862718293348820679996640195848786725832672589527523171776999274315776"
+        },
+        "bound": {
+          "numerator": "1",
+          "denominator": "500000000000"
+        },
+        "pass": false
+      },
+      "meaning": "first physical failure from immutable saved states; later native assessment uses files only"
+    },
+    "executionFailure": null,
+    "graphArtifacts": [
+      {
+        "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/source-assessment.json",
+        "bytes": 12315,
+        "sha256": "a96374d09b9be6f98d5a77ec3c9469f332e340a9c454fd8279a8f9c2bffb344e"
+      },
+      {
+        "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/native-assessment.json",
+        "bytes": 12315,
+        "sha256": "0df0b1131a1981bff385b04991da857545ad63e368de233c425f52687750f02a"
+      }
+    ],
+    "workingData": {
+      "measuredReachableOwnedBytes": 417644,
+      "derivedScratchBytes": 2097152,
+      "packedAllocationChargeBytes": 449269,
+      "asciiJsonSizeUpperBytes": 79839,
+      "ownedUpperBytes": 3123743,
+      "limitBytes": 8388608,
+      "RSSClaim": false
+    },
+    "artifact": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/classification.json",
+      "bytes": 33799,
+      "sha256": "95973a8a801d6c995164e5954040665a07c92802ee5b98f5ec03b39df6e47dcf"
+    }
+  }
+}

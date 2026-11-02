@@ -1,0 +1,127 @@
+{
+  "graph": "source",
+  "input": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-coverage-g2-2276/evidence/g2-corner-source-01/input-raw.json",
+    "bytes": 6020,
+    "sha256": "61c7264917dbf2ad9ea2daba7c736afdec3e6685b7ba899e8bbbe778b2558a9c"
+  },
+  "hit": {
+    "bodyId": "sphere",
+    "fixtureId": "fixture",
+    "toiFraction": {
+      "$f64le": "545555555555c53f"
+    },
+    "normalFixtureToBody": [
+      {
+        "$f64le": "000000000000f0bf"
+      },
+      {
+        "$f64le": "0000000000000000"
+      },
+      {
+        "$f64le": "0000000000000000"
+      }
+    ]
+  },
+  "stoppedCandidate": {
+    "id": "sphere",
+    "kind": "dynamic",
+    "shape": {
+      "kind": "sphere",
+      "radiusM": {
+        "$f64le": "9a9999999999b93f"
+      }
+    },
+    "positionM": [
+      {
+        "$f64le": "1dd873979999c9bf"
+      },
+      {
+        "$f64le": "333333333333c33f"
+      },
+      {
+        "$f64le": "0000000000000000"
+      }
+    ],
+    "sensor": false,
+    "ccd": true,
+    "velocityMps": [
+      {
+        "$f64le": "0000000000005240"
+      },
+      {
+        "$f64le": "0000000000000000"
+      },
+      {
+        "$f64le": "0000000000000000"
+      }
+    ],
+    "orientation": [
+      {
+        "$f64le": "0000000000000000"
+      },
+      {
+        "$f64le": "0000000000000000"
+      },
+      {
+        "$f64le": "0000000000000000"
+      },
+      {
+        "$f64le": "000000000000f03f"
+      }
+    ],
+    "angularVelocityRadps": [
+      {
+        "$f64le": "0000000000000000"
+      },
+      {
+        "$f64le": "0000000000000000"
+      },
+      {
+        "$f64le": "0000000000000000"
+      }
+    ],
+    "inertiaKgM2": {
+      "$f64le": "fda9f1d24d62703f"
+    },
+    "inverseInertiaLocal": [
+      {
+        "$f64le": "feffffffff3f6f40"
+      },
+      {
+        "$f64le": "feffffffff3f6f40"
+      },
+      {
+        "$f64le": "feffffffff3f6f40"
+      }
+    ],
+    "inverseMass": {
+      "$f64le": "000000000000f03f"
+    },
+    "restitution": {
+      "$f64le": "0000000000000000"
+    },
+    "frictionStatic": {
+      "$f64le": "0000000000000000"
+    },
+    "frictionDynamic": {
+      "$f64le": "0000000000000000"
+    }
+  },
+  "counts": {
+    "pairConversions": 1,
+    "scalarConversions": 52,
+    "admitModelAttempts": 1,
+    "admitModelReturns": 1,
+    "admitCcdAttempts": 1,
+    "admitCcdReturns": 1,
+    "sweepSphereAttempts": 1,
+    "sweepSphereReturns": 1,
+    "World": 0
+  },
+  "provider": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-coverage-g2-2276/evidence/g2-corner-source-01/capture-provider.mjs",
+    "bytes": 222867,
+    "sha256": "f67e1566662c31da960d0acd5297cf10997fda233387ef0a4c13f23f1a153ca0"
+  }
+}

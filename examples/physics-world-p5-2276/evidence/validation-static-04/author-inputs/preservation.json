@@ -1,0 +1,27 @@
+{
+  "status": "ORIGINAL_FOURTH_STATIC_STARTUP_FAILURE_PRESERVED_BEFORE_FIX",
+  "files": {
+    "validation-provider.mjs": {
+      "bytes": 16352,
+      "sha256": "199df9c6c4450e08922f41cd6ddef2e1bca37814ab5ff2815d25f1a7a989bcb0"
+    },
+    "validation-child.mjs": {
+      "bytes": 19516,
+      "sha256": "3e81e0e5c64424db87a4ba09619dc0961abd30561863bea95529267d905c82fd"
+    },
+    "validation-run.mjs": {
+      "bytes": 5758,
+      "sha256": "95a06b181d3c74d6ead6b9131fae9d34ced523762c650ee011487e62350c9e70"
+    },
+    "VALIDATION-RECIPES.json": {
+      "bytes": 92012,
+      "sha256": "98112b9d2eeedd14236ee92a5b06298d688b8044f1f907daa67b2dd04bfe047e"
+    },
+    "VALIDATION-FAILURE-REVIEW-04.json": {
+      "bytes": 110827,
+      "sha256": "b3c11e96f2d8c1f53cdc6ce70d4c3e078c2ac89e2bf9e07f897f35531acf9b04"
+    }
+  },
+  "bundleAttempts": 0,
+  "WorldCalls": 0
+}

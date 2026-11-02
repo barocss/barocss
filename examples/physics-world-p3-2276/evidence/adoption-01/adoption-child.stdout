@@ -1,0 +1,1 @@
+{"runId":"adoption-01","status":"PASS","counts":{"constructors":14,"constructorRefusals":10,"attempts":6,"accepted":6,"qualified":4,"getters":2,"cleanupAttempts":4,"cleanupCompleted":4},"firstFailure":null}

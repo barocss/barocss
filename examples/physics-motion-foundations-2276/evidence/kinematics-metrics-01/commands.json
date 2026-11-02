@@ -1,0 +1,42 @@
+{
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "mode": "kinematics",
+  "platform": "darwin",
+  "arch": "arm64",
+  "base": "12411c89b9a0f9de7e5066a5ea8f3d292c9476a8",
+  "records": [
+    {
+      "name": "kinematics",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/kinematics-metrics-01/kinematics.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T11:52:24.089Z",
+      "finished": "2026-11-01T11:52:24.222Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "da11843682d3722de1e038ec57af0715335655b6ef5affba13c52ea5ee89b559",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "motion-input",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-foundations-2276/evidence/kinematics-metrics-01/motion-input.mjs"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T11:52:24.359Z",
+      "finished": "2026-11-01T11:52:24.486Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "89c3c58272665f00f16a07f531f4fe187ff0f6801483f23f9e874e6919bb81f6",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

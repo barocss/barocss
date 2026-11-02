@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: independent 9-body/32-point witness matches zero states, exact loads and impulse work
+ok 1 - independent 9-body/32-point witness matches zero states, exact loads and impulse work
+  ---
+  duration_ms: 3.241791
+  type: 'test'
+  ...
+# Subtest: a distinct valid checkerboard impulse distribution passes without per-point lambda equality
+ok 2 - a distinct valid checkerboard impulse distribution passes without per-point lambda equality
+  ---
+  duration_ms: 0.404625
+  type: 'test'
+  ...
+# Subtest: bad impulse values cannot hide behind reported zero body state and residuals
+ok 3 - bad impulse values cannot hide behind reported zero body state and residuals
+  ---
+  duration_ms: 0.599209
+  type: 'test'
+  ...
+# Subtest: forged linear and angular body outputs are independently detected
+ok 4 - forged linear and angular body outputs are independently detected
+  ---
+  duration_ms: 0.65325
+  type: 'test'
+  ...
+# Subtest: negative normal impulse and incorrect row report are refused separately
+ok 5 - negative normal impulse and incorrect row report are refused separately
+  ---
+  duration_ms: 0.697625
+  type: 'test'
+  ...
+# Subtest: normal complementarity alone cannot qualify zero tangent impulse under loaded slip
+ok 6 - normal complementarity alone cannot qualify zero tangent impulse under loaded slip
+  ---
+  duration_ms: 0.33525
+  type: 'test'
+  ...
+# Subtest: independent torque checks detect wrong geometry or a reversed normal
+ok 7 - independent torque checks detect wrong geometry or a reversed normal
+  ---
+  duration_ms: 0.546125
+  type: 'test'
+  ...
+# Subtest: consistent body/row permutation and opaque ID renaming preserve verification
+ok 8 - consistent body/row permutation and opaque ID renaming preserve verification
+  ---
+  duration_ms: 0.745542
+  type: 'test'
+  ...
+# Subtest: changed fixed model data, failed solve and bad schema cannot yield a pass
+ok 9 - changed fixed model data, failed solve and bad schema cannot yield a pass
+  ---
+  duration_ms: 0.582583
+  type: 'test'
+  ...
+# Subtest: the parent oracle must cover exactly the same bodies with finite independent loads
+ok 10 - the parent oracle must cover exactly the same bodies with finite independent loads
+  ---
+  duration_ms: 0.471792
+  type: 'test'
+  ...
+# Subtest: KKT-only verification explicitly omits unevaluated oracle qualification and zero error placeholders
+ok 11 - KKT-only verification explicitly omits unevaluated oracle qualification and zero error placeholders
+  ---
+  duration_ms: 0.33425
+  type: 'test'
+  ...
+# Subtest: a valid separating state passes KKT checks without being compared to a fake equilibrium oracle
+ok 12 - a valid separating state passes KKT checks without being compared to a fake equilibrium oracle
+  ---
+  duration_ms: 0.603708
+  type: 'test'
+  ...
+# Subtest: KKT-only verification keeps impulse, body, and residual consistency gates
+ok 13 - KKT-only verification keeps impulse, body, and residual consistency gates
+  ---
+  duration_ms: 0.314708
+  type: 'test'
+  ...
+# Subtest: KKT-only normal success does not qualify loaded sliding friction
+ok 14 - KKT-only normal success does not qualify loaded sliding friction
+  ---
+  duration_ms: 0.177166
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 47.992917

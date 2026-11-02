@@ -1,5 +1,5 @@
 import { PhysicsError } from '../capsule-query-error.js';
-import type { Vec3 } from '../types.js';
+import type { Vec3 } from '../internal-types.js';
 import type { UprightCapsuleQuery, CapsuleSweepInputV1, CapsuleSweepHitV1 } from '../capsule-query.js';
 import { QUERY_CAP } from './profile.js';
 import { clone, dot } from './math.js';

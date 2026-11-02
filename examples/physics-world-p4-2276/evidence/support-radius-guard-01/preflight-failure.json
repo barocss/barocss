@@ -1,0 +1,10 @@
+{
+  "classification": "CALLER_PREFLIGHT_HASH_ARGUMENT_MISMATCH",
+  "phase": "BEFORE_PYTHON_SPAWN",
+  "message": "primitive receipt hash changed",
+  "providedSha256": "0fbe3c7c6ab338fba51fe7731d2f75e1068f3db428832346a45bcc5cafbaf661",
+  "actualPinnedSha256": "a08d5323292853b559aac6fa5b684179ea7c510f38f88b492c96e84a7f07bb78",
+  "newReferenceCalls": 0,
+  "WorldCalls": 0,
+  "sourceChanged": false
+}

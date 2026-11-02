@@ -1,0 +1,90 @@
+{
+  "mode": "world-source",
+  "base": "7105c4755fcbf4f0cbc764b864a55bf550f741b3",
+  "files": [
+    {
+      "path": "examples/physics-stack-solver-2276/CONTRACT.md",
+      "sha256": "7bab1a3f684eed91ec467633c9118d947f7b910e807d67291cd62c6f522427b7"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/adapter-contract.md",
+      "sha256": "5e13db9a226abf266559c3789d1f8b01795d96a1b585ea05788713d3f9a49309"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/candidate-contract.md",
+      "sha256": "eef7ecf23b9366a989e7eb198871fba5d8ec365d041c835d8f41fee7c61a276e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/candidate.test.ts",
+      "sha256": "c88843020be2cb5bfb3043926eae3e25de8aefd6eab19680b56b4726b1a11d85"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/candidate.ts",
+      "sha256": "6380bc290909527fbd196ccafe45378f5fb8d93d3ace91ee6c06015b077c73a0"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/extract-fixture.py",
+      "sha256": "a06acad9037eb0244d83d756deb4e1e6056fe1af2291d91c13fdc185ee9e5ee3"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/first-frame.ts",
+      "sha256": "081e6e30a1b0db23e83355f141075deb6be87350718832fe376017b8a62d88b8"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/fixture-contract.md",
+      "sha256": "acaf948df777b73e71d2cfda0dc8e1fede7db5e005dcdb13e6641b90607b7939"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/newgeometry-nogo-analysis.md",
+      "sha256": "7927ee0c5bb387ac68f148f05c365a9f3fc2365989f854ec440fb55a6afff7ac"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/run.mjs",
+      "sha256": "e335c185b3a10e22eb35cf60ac2dedd21676d70f46c8a0f02354299823efeca5"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-contract.md",
+      "sha256": "efb1f3b48e435fed3ca0a4d9dabd131eb9841fc7ae2196ce6002d1a119d898ca"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-entry.ts",
+      "sha256": "3587613cf00b6a179b10750b7816b2aab5f77750b3bc1c820018a6563dc72621"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-errors.mjs",
+      "sha256": "8e5b820c495fc439cc9501b258a1390f8b8d7e976b6ed8c7334de38b104c7bbf"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-errors.test.mjs",
+      "sha256": "f6b53bf348fd3ae07d08d513475d1ec5caa9db937afbd08b8166336949e941aa"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-reference-contract.md",
+      "sha256": "af8ccc9ce4459ddb90db29958e288c25fa702d680bef6fcaddc4bfa7d0dc1301"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-reference.py",
+      "sha256": "f2c1850b193a14944de657848d065c461e3ff2440e9e9bf452b6d24519af0ea0"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-run.mjs",
+      "sha256": "60aa244ec567d47af6d4994b67133e3e8518ca3681d25b87634b7393a2d7b897"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/verification-contract.md",
+      "sha256": "fa0bc4bf67388f426fb1596489a54f5dbd92f73cdc3a1179897cbb11ed3b5e13"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/verification.test.ts",
+      "sha256": "b1bc3da25251afef12936ac1ef768eee7f9fccebcd1eb8e88a0be2b2b8075d7e"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/verification.ts",
+      "sha256": "cc9ee1f949af20472e8c733a3fe57abb61683712d388af8f76adaf8d8d62b7c8"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/world-adapter.ts",
+      "sha256": "43904b7f32f2ea3c5587c33c77048cd2002f1fa47797daf81e5fc42177e9bbdd"
+    }
+  ]
+}

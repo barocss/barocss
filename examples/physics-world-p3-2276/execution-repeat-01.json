@@ -1,0 +1,41 @@
+{
+  "workId": "physics-world-p3-2276",
+  "executionAuthorized": true,
+  "authorization": "current user P3 implementation+verification and autonomous continuation; no HOLD release",
+  "graph": "sourceRepeat",
+  "buildSha256": "94dbe0f2e67749f1a38b6a76b647e7dd1afddc03fc748d8625a7c5bcf432bf05",
+  "graphSha256": "b3b3bff8b60aa93312df0af4d66b4c1a291aeb106f03a4dfd5b523346417f697",
+  "trialSha256": "f3a82df8a9855da819c244d5204841c37095e52e3ffae824f15773ce2bf3a9ba",
+  "bankAuthSha256": "aa5524892cf1dfd9481d55c8e29410eae06ff35554733c1f94b4e132359e4502",
+  "compareSha256": "7f7a86d77c451acb2fb39e39273128c96dddc6a41abfc2b7f9f47fbb32801f25",
+  "observeSha256": "5dcb40f6b67846fa1a98bd4a476370694cd8bc1165f14a4f048f4e02fa5baa91",
+  "fixtureSha256": "fdc716579550fb4240539dba915c32620f25a6a27d06e7e84d37ffe0f4dedd04",
+  "contractSha256": "dfc39201372ad63acb1f6230d0d0804eed2d6652a21b01f0f9c4ce1835637731",
+  "referenceSources": {
+    "examples/physics-rigid-hinge-velocity-world-reference/reference-reply.mjs": "e096aef831c3721239226498b5340c62135748526cda8dc5fdae2e4719c8ec5d",
+    "examples/physics-rigid-hinge-velocity-world-reference/world-quality.mjs": "276be2aba8bb0bfee674f4d9d1504f3a4ea413c67b3a92e3c778511943cb6b09",
+    "examples/physics-rigid-hinge-velocity-world-reference/proof-storage.mjs": "de814b38cf7124b81a583681b733f4965e29448a059dd77f8579a4ce368209f6",
+    "examples/physics-rigid-hinge-velocity-world-reference/raw-codec.mjs": "e1d2e9ad987b03bac01a4bd96fe87af30867bf568ec9fd9be1945160e2c2d327",
+    "examples/physics-public-disjoint-hinge-reference/variants.mjs": "a73380742d088e6fa6edacde5b43ca889ececd74b9fd66127cd5fdfa7897c0fc",
+    "examples/physics-public-disjoint-hinge-reference/expected-gates.py": "95d97346e681bfad97a95165a105765e64c83fbb5b533d250ac7b24bcb865f9f",
+    "examples/physics-model-input/model.mjs": "8bbeb3712f27eb3d639dcde806fcf27f8bc5360274feefd051335b3887790baf",
+    "examples/physics-rigid-hinge-velocity-world-reference/world_schema.py": "35ab3d77efff2e284db32bce9d92c5395d47abdf91967ed0d0a4afc74f89264e",
+    "examples/physics-rigid-hinge-velocity-world-reference/world_derivation.py": "c7762592fb6d2830d5c737e16781c4cfdae95b15c14213e1dc416f588f922220",
+    "examples/physics-rigid-hinge-velocity-world-reference/world_observation.py": "b952b48312f8c706c347d0f401d6d52ff97e9b4c5355ba19ffefe41a440f4e66",
+    "examples/physics-rigid-hinge-velocity-world-reference/reference.py": "6df84735b80788ca24574645c56fd100c408e9c126642ef51e675ebfc210c03f",
+    "examples/physics-rigid-hinge-motor-reference/continuation-controller.py": "dc2ac4840d748b0c1820663adc2dff8f8230f04dea4ba8bd935ce551d6ee697c",
+    "examples/physics-rigid-hinge-motor-reference/run-native-gates.py": "5f3a56e086dd481e6747bdc165cf5a5308ec49cfb6c035446a196c88fb1e72d3",
+    "examples/physics-rigid-hinge-motor-reference/reference.py": "c4642fa0f06ca6a11a05fee3de80bb6ad19b5a29d27da423e69715bb706489fc",
+    "examples/physics-rigid-hinge-velocity-reference/reference.py": "2e062eadbaa1283f2626e51cf240f07f6c4e6714f5e409fcc443b58a24e518cc",
+    "examples/physics-rigid-coupled-hinge-reference/reference.py": "713d8aef0bfe972b39791f0c44a7441ccf1f648bf29fd5a4048ec9c3f5bc8ac5",
+    "examples/physics-rigid-hinge-limit-diagnostic/reference.py": "6f4fdc14ac1d2a94ab27829ca42c8f370ada6896545a84106ce5f5bdb72d3464"
+  },
+  "baselineSummaryHashes": {
+    "examples/physics-world-p3-2276/evidence/baseline-source-01/commands.json": "1cc1b269ab939d6a507641dca91c32c50991d3b07994c41e5859c982f7b2cfbc",
+    "examples/physics-world-p3-2276/evidence/baseline-emitted-01/commands.json": "9690da7a68fefec9474b2dda56ebaebe041840a4757e706cc8170e8fe8a0ed7c"
+  },
+  "numericalGateChanges": false,
+  "originalBodyStep77FailurePreserved": true,
+  "firstFailureStopsLaterGraphs": true,
+  "sourceTrialSummarySha256": "87a61b7ff9518049b35d257afb7ee13dc2e51b3cf5fc00a881fc9a6214c8baf1"
+}

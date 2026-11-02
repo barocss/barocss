@@ -1,0 +1,123 @@
+{
+  "work_id": "physics-cloth-rigid-impulse-2276",
+  "artifact_type": "private-candidate-author-ready",
+  "status": "AUTHOR_READY_NO_NUMERICAL_EXECUTION",
+  "owner_role": "candidate-implementation",
+  "source_request": "Parent-frozen reduced finite-point/off-COM rigid impulse operator",
+  "last_updated": "2026-11-02",
+  "provider": {
+    "path": "examples/physics-cloth-rigid-impulse-2276/candidate.ts",
+    "bytes": 14057,
+    "sha256": "7901dc4240098da03bb2dea3f353be37c8d8e34c7d31303f19c8950813721106"
+  },
+  "authority": [
+    {
+      "path": "examples/physics-cloth-rigid-impulse-2276/CONTRACT.md",
+      "bytes": 13569,
+      "sha256": "7e11f247a8287d5713bdba8f18a3a36fba2abf3602a39cfcd5663461974a05a6"
+    },
+    {
+      "path": "examples/physics-cloth-rigid-impulse-2276/CASES.json",
+      "bytes": 31141,
+      "sha256": "f2de2962270fc9fc4910844325d52eb7a2b373f9c3ac884455a53340b4d87d90"
+    },
+    {
+      "path": "examples/physics-cloth-rigid-impulse-2276/AUTHORING-FREEZE-01.json",
+      "bytes": 1705,
+      "sha256": "77631e8fadcf0ab61e3f57e810ad81e14a029cad69a8961c683cc9ff546615f7"
+    }
+  ],
+  "interface": {
+    "entry": "projectClothRigidImpulse(input: unknown): ImpulseResult",
+    "acceptedInput": "Exact CASES literalBases record after separately authorized one-time native numeric conversion; no conversion in candidate",
+    "result": "Detached {clothContext,rigidContext,point,rigid,report}; all nonvelocity values copied without numeric normalization",
+    "privateError": {
+      "className": "ImpulseInputError",
+      "code": "INVALID_INPUT",
+      "reasonProperty": "reason"
+    },
+    "refusalCaseReasons": {
+      "R01-zero-point-mass": "POINT_MASS_RANGE",
+      "R02-pinned-cloth-endpoint": "PINNED_ENDPOINT",
+      "R03-zero-rigid-mass": "RIGID_MASS_RANGE",
+      "R04-singular-inertia": "INERTIA_RANGE",
+      "R05-reflection": "NOT_PROPER_ROTATION",
+      "R06-separated-endpoints": "ANCHOR_MISMATCH",
+      "R07-wrong-cloth-owner": "ENDPOINT_OWNER_MISMATCH",
+      "R08-negative-zero-mass": "POINT_MASS_RANGE",
+      "R09-nonfinite-velocity": "NONFINITE_STATE",
+      "R10-impossible-principal-moments": "NONPHYSICAL_INERTIA"
+    },
+    "otherPreflightReasons": [
+      "SCHEMA_INVALID",
+      "ENDPOINT_INDEX_RANGE",
+      "COMPONENT_RANGE"
+    ]
+  },
+  "reportToOracleMapping": {
+    "point.velocityMps": "reference.fraction.values.velocityPointMps",
+    "rigid.velocityMps": "reference.fraction.values.velocityRigidMps",
+    "rigid.angularVelocityRadps": "reference.fraction.values.angularVelocityRigidRadps",
+    "report.pointLinearImpulseNs": "reference.fraction.values.impulseOnClothNs",
+    "report.rigidLinearImpulseNs": "reference.fraction.values.linearImpulseOnRigidNs",
+    "report.rigidAngularImpulseNms": "reference.fraction.values.angularImpulseOnRigidNms",
+    "report.relativeVelocityBeforeMps": "reference.fraction.values.relativeVelocityBeforeMps",
+    "report.relativeVelocityAfterMps": "reference.fraction.values.relativeVelocityAfterMps",
+    "report.kineticEnergyBeforeJ": "reference.fraction.values.kineticEnergyBeforeJ",
+    "report.kineticEnergyAfterJ": "reference.fraction.values.kineticEnergyAfterJ",
+    "report.dissipatedEnergyJ": "reference.fraction.values.dissipatedEnergyJ"
+  },
+  "additionalReportFields": {
+    "pointEndpoint": "Independent detached copy of cloth-vertex endpoint",
+    "rigidEndpoint": "Independent detached copy of rigid-anchor endpoint",
+    "worldAnchorArmM": "RotationBodyToWorld * anchorLocalM, metres; no position repair"
+  },
+  "algorithm": {
+    "effectiveMass": "(1/mp+1/mb) I - [r]x Iworld^-1 [r]x",
+    "rhs": "negative point-minus-anchor relative velocity",
+    "factorization": "One 3x3 Gaussian elimination with deterministic maximum-absolute partial pivot, first row on ties; no epsilon, iteration, regularization, fallback, or zero-relative shortcut",
+    "rigidAngularImpulse": "worldArmM cross rigidLinearImpulseNs",
+    "worldInverseInertia": "R diag(1/Iprincipal) R-transpose",
+    "nativeAdmissionResidual": "64 * 2^-52 only for proper rotation and scaled coincidence, as frozen; all other preflight comparisons exact",
+    "anchors": {
+      "directSolveEntry": "IMPULSE_DIRECT_SOLVE_ENTRY",
+      "oneSolveCall": "IMPULSE_SOLVE_CALL",
+      "faultFirstSide": "IMPULSE_FIRST_SIDE_PREPARED",
+      "faultPair": "IMPULSE_PAIR_PREPARED"
+    }
+  },
+  "ownership": {
+    "inputWrites": 0,
+    "retainedState": false,
+    "runtimeCallbacks": false,
+    "testHooks": false,
+    "clocks": false,
+    "outputArrays": "Fresh for every field, including duplicate endpoint report copies; no input or output field aliases",
+    "unknownThrows": "No catch/wrapping; injected marker propagates by identity; no output returned before complete pair"
+  },
+  "sourceOnlyChecks": {
+    "status": "PASS_TS_SYNTAX_AST_ONLY",
+    "gate": "heavy acquired impulse-candidate-author and released by EXIT trap",
+    "node": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "typescript": "5.9.3",
+    "method": "TypeScript createSourceFile parse diagnostics and AST-only import/solve-call/unique-anchor inspection; no candidate import/transpile/emission/typecheck",
+    "exitCode": 0,
+    "imports": 0,
+    "solveCallSites": 1
+  },
+  "execution": {
+    "status": "NOT_RUN_NOT_AUTHORIZED",
+    "fixtureConversionCalls": 0,
+    "candidateCalls": 0,
+    "linearSolves": 0,
+    "referenceCalls": 0,
+    "WorldCalls": 0,
+    "CADCalls": 0,
+    "recordingCalls": 0,
+    "packageChanges": 0,
+    "futureFrozenCandidateAttempts": 50,
+    "futureFrozenCondensedSolves": 30
+  },
+  "proofBoundary": "Private reduced operator only; source/native parity, physical gates, ownership injection and complete numerical results remain NOT_RUN; no public coupling/trajectory/material/merge claim",
+  "sharedOracleBoundary": "Only endpoint/schema reason tokens and output field names coordinated; no oracle coefficients, matrix builder or elimination imported/reused"
+}

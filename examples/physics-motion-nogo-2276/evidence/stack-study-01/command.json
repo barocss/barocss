@@ -1,0 +1,19 @@
+{
+  "mode": "stack",
+  "command": [
+    "python3",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-nogo-2276/stack-study.py",
+    "--output",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-nogo-2276/evidence/stack-study-01/result.json"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "started": "2026-11-01T12:18:22.756Z",
+  "finished": "2026-11-01T12:18:23.520Z",
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "stdoutSha256": "d0074c7d686d3d7bdf320f33be83df099019a62ee5806e02870b44f74779c020",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "numericalWorldCalls": 0,
+  "oldSolverCalls": 0
+}

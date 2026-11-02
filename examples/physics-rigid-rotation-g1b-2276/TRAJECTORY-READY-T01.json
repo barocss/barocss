@@ -1,0 +1,154 @@
+{
+  "status": "TRAJECTORY_DRIVER_READY_T01_STOPPED_PARENT_COMBINED_REVIEW_AND_RUNTIME_FREEZE_REQUIRED",
+  "phase": "T_ONLY",
+  "runtimeAuthorized": false,
+  "productionActivation": false,
+  "sources": {
+    "trajectory-campaign.mjs": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/trajectory-campaign.mjs",
+      "bytes": 44047,
+      "sha256": "6859278f005288f630690b1bd7ef548a8b9cdfc131a2194d0d6a9c8938927b15"
+    },
+    "TRAJECTORY-DRIVER-PLAN-01.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-DRIVER-PLAN-01.json",
+      "bytes": 18115,
+      "sha256": "a83f7f85b9e50154fd9abfd4cc87fe2e3eb984d91b452cdc4f60cd8d1da63c12"
+    },
+    "TRAJECTORY-DRIVER-PLAN-01.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-DRIVER-PLAN-01.md",
+      "bytes": 5474,
+      "sha256": "267d5137ec6353beac67123ae4425deb1d2cce66c899f095dad40108ea2e83bd"
+    }
+  },
+  "authorities": {
+    "AUTHORING-FREEZE-T01.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/AUTHORING-FREEZE-T01.json",
+      "bytes": 3729,
+      "sha256": "7c33ddbb34f9b98abfa8e787d75f772cd003b26c5fdccc2db3a8d1f0c3450d39"
+    },
+    "AUTHORING-FREEZE-T02.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/AUTHORING-FREEZE-T02.json",
+      "bytes": 4988,
+      "sha256": "f9303456e312df892e4b772953aaadd797c1cc9920f26daf2d980a914f70b7ac"
+    },
+    "CONTRACT.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/CONTRACT.md",
+      "bytes": 14376,
+      "sha256": "c1c87c64323836d7ac656ead490380bee82f801de2b67979f9f91309ee73ed31"
+    },
+    "CASES.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/CASES.json",
+      "bytes": 8881,
+      "sha256": "0fb8b4ebc78044e8984fab83878a42fc5051f8717ce914091246de7098fbc386"
+    },
+    "REFERENCES-CLARIFICATION-01.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/REFERENCES-CLARIFICATION-01.md",
+      "bytes": 10318,
+      "sha256": "0d6e8a79f2cbf45f7579291f9b1b947295f28f0cf00eb57053ed581cb8979945"
+    },
+    "MICRO-RESULTS-M02.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/MICRO-RESULTS-M02.json",
+      "bytes": 7898,
+      "sha256": "e7d590810dd19e5ddc93c96370ac9493357fca6142714e6937091e1f365a909f"
+    },
+    "MICRO-EXECUTION-FREEZE-M02.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/MICRO-EXECUTION-FREEZE-M02.json",
+      "bytes": 109184,
+      "sha256": "d4813a7a39c809950accebe54c38acfe00d20146ded9ed829dd5355f99586bc1"
+    },
+    "staged-providers.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/staged-providers.json",
+      "bytes": 210540,
+      "sha256": "5765e301315fe8381350d8d18402987477f5f63c1f5096fa4d3312e6ee099e14"
+    }
+  },
+  "referenceDependency": {
+    "protocol": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/REFERENCE-PROTOCOL-T01.md",
+      "bytes": 6574,
+      "sha256": "db7b8323fabee98773e95cf71b1a6e20fa0c030385cf460b71680fc3048cfa0f"
+    },
+    "implementation": "reference-trajectory.py",
+    "Ready": "REFERENCE-READY-T01.json",
+    "finalAuthority": "High owns final reference source/Ready/globalcost/full8MiBproof; parent must pin actual final versions and approved joint review before runtime."
+  },
+  "providerReuse": "Authenticates every actualM02stagedPin inside this owned worktreeM02build before imports and postrun; actual sourcebundle+genuine NodeNextdist entry, no graph/source fallback. Complete provider metadata retained in registered root set.0newemit/build/identityDigestDATAcalls; actual World identity provider values checked against authenticatedMexpectedDigest.",
+  "countsPerGraph": {
+    "constructors": 8,
+    "getState": 18,
+    "stepAttempts": 57,
+    "acceptedSteps": 47,
+    "dispose": 8,
+    "stateAudits": 55,
+    "privateCacheObservations": 18,
+    "commandRefusals": 4,
+    "unknownFaults": 3,
+    "postFlowGuards": 3,
+    "generalFlows": 49,
+    "principalFlows": 3,
+    "zeroFlows": 1
+  },
+  "combinedCounts": {
+    "constructors": 16,
+    "getState": 36,
+    "stepAttempts": 114,
+    "acceptedSteps": 94,
+    "dispose": 16,
+    "stateAudits": 110,
+    "privateCacheObservations": 36,
+    "referenceRequests": 112,
+    "replyLinesIncludingReady": 113,
+    "buildChildren": 0,
+    "identityDigestDATA": 0,
+    "referenceChildren": 1,
+    "newPairVariants": 7,
+    "savedRawPairReuse": 1,
+    "changedFieldConversions": 18,
+    "commandAndGuardScalars": 18,
+    "candidateMathPow": 6,
+    "generalFlowTraces": 98,
+    "traceRecords": 58310,
+    "traceF64Words": 279104,
+    "traceBytes": 5536216,
+    "maximumHeaderBytes": 50176,
+    "query": 0,
+    "getModel": 0,
+    "recorder": 0,
+    "retries": 0,
+    "warmups": 0
+  },
+  "ownership": "Same-instance unknown marker check; actualcanonicalrootPhysicsError; fullraw caller/previous/initialoutput retention; onepersistentWeakMap serializer perWorld; fresh detached cache snapshots/Mapidentity after10failures/graph, no extra baseline/cache/read/audit. Scheduledstep1 only recovery. Source full55audits/refinement/localchecks/8disposals beforeNativeconstant evaluation. Actual39coefficientwords equalM+Source beforeNativeWorld.",
+  "packing": "Numeric tags0..5, exact frozen scalarorder,4+19n bytes/row;595records/2848words/56492B percomplete generalflow. One8Bscratch, one<=251Bpackedrow; wholetrace never encoded. Native streams source numeric rows by bounded offset. Tag6 is reserved only for existingunexpected linear-residual failure record, twoactualscalarwords; actualprefix persisted andSTOP, no nominalextra event/math.",
+  "evidence": "Exact persection limits in frozen driverplan; normal successful fullreplies remain reference-owned once, metadata only in harness; original malformed/failure wire bytes preserved separately. Reference final file copies actual authenticated reply-0112 bytes without pretty-print growth. Final/progress/failure reserved1MiB; full logicaljoint16,596,440B<16MiB. No processheap/RSSclaim.",
+  "authorChecks": [
+    {
+      "gate": "g1b-t-driver-syntax heavy300",
+      "result": "PASS Node22 --check",
+      "actualOutput": "go after0s load15.32 slot1of2"
+    },
+    {
+      "gate": "g1b-t-driver-final-static heavy300",
+      "result": "PASS current syntax/installedTSAST/frozenledger+trace integer metadata/no-build anchors; no source function invoked",
+      "actualOutput": "go after0s load13.32 slot1of3"
+    },
+    {
+      "gate": "g1b-t-driver-final-pin heavy300",
+      "result": "PASS Node22 --check after exact finalreply byte-copy boundary correction",
+      "actualOutput": "go after0s load14.83 slot2of3"
+    }
+  ],
+  "failedAuthorChecks": 0,
+  "actualAuthorCounts": {
+    "driverModuleEvaluation": 0,
+    "providerModuleEvaluation": 0,
+    "fixtureConversion": 0,
+    "coefficientMath": 0,
+    "referenceMath": 0,
+    "linearSolve": 0,
+    "World": 0,
+    "buildOrEmit": 0,
+    "installedTypeScriptASTToolLoads": 1
+  },
+  "preservation": "No M01/M02/provider/candidate/overlay/reference/oldG1a/G2/package/docs source changed. All new work restricted to the4authorized Tdriver plan/source/Ready files.",
+  "stop": "READY. All owned files frozen until explicit parent instruction. Parent owns runtime and result classification."
+}

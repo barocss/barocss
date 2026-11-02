@@ -1,0 +1,67 @@
+{
+  "baseline": "031f66c3ea572c3a496cfa319a4c542e7b19fc3a",
+  "head": "031f66c3ea572c3a496cfa319a4c542e7b19fc3a",
+  "branch": "codex/physics-motion-nogo-2276",
+  "sourceFiles": [
+    {
+      "path": "examples/physics-motion-nogo-2276/CONTRACT.md",
+      "bytes": 8330,
+      "sha256": "ba29edd2c27e7b216369293a5905fad4d4538227d145f389f9f568615547d748"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/hinge-contract.md",
+      "bytes": 7438,
+      "sha256": "3ac9355834e97608c99073175ad5debcc8ac6b61e67c34e5c5dfab29c82c1f29"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/hinge-runtime.mjs",
+      "bytes": 2927,
+      "sha256": "ca2d999771f0dc532b499b81bbdc5232191fadfacc9462c11e891c18b2e5855b"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/hinge-study.py",
+      "bytes": 18740,
+      "sha256": "a8e9e39f18e562886e650645a487a1bf41e3f2978d00904adeb3cc7f351eef80"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/hinge-unit.test.py",
+      "bytes": 4402,
+      "sha256": "436d3ff69f925d3c01fcd444d900e2e2dcdb8c9e03a48048edfae2c5f1426a48"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/run.mjs",
+      "bytes": 3086,
+      "sha256": "2d32d377b9e6f29e7b19f65ba2683b0228c299a169ebd6f028f01aa974b3a5d0"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/stack-contract.md",
+      "bytes": 5629,
+      "sha256": "fd64d8cca030ec25cb1d7cf9121eb6753b026f1afe6985232686e68b68e89b71"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/stack-equilibrium-contract.md",
+      "bytes": 5449,
+      "sha256": "af636b7ac18ecef99a4135837fc0dd663267190efb8f60686d4b6a5870dac324"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/stack-equilibrium-unit.test.py",
+      "bytes": 6123,
+      "sha256": "474667a7ebef3c2663f43c88086ea5dfdc5c683c2ba4d13aff0a56e4e0bde7f2"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/stack-equilibrium.py",
+      "bytes": 17129,
+      "sha256": "43918b579209d55d52991bb2f20da9612e8a7f97d5bbb735711bfb2c3b91dc8c"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/stack-study.py",
+      "bytes": 22180,
+      "sha256": "70a34672ef53f034fa714bcd54a120a60c672fea3fd740841064dc8ac43263e2"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/stack-unit.test.py",
+      "bytes": 6984,
+      "sha256": "20d0d6fc90e34afbd9a5c5b7eb3e39f386fac3f4e6a778de7de7fc84d73fda53"
+    }
+  ]
+}

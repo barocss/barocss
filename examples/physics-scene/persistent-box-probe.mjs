@@ -1,33 +1,28 @@
+import { makeModel, dynamicPart, staticPart } from '../physics-model-input/model.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 import { createPhysicsWorld, PhysicsError } from '../../packages/barocss-physics/dist/index.js';
-import { createPhysicsScene, createPhysicsReplaySession,
-  restorePhysicsReplaySession } from '../../packages/barocss-physics/dist/replay.js';
+import { createPhysicsRecorder,
+  restorePhysicsRecording } from '../../packages/barocss-physics/dist/replay.js';
 
 const dt = 1 / 120;
 const material = { static: 1, dynamic: 0.7 };
-const box = (id, x, y) => ({ id, kind: 'dynamic',
-  shape: { kind: 'box', halfExtentsM: [0.25, 0.25, 0.25] },
-  positionM: [x, y, 0], velocityMps: [0, 0, 0], massKg: 1,
-  restitution: 0, friction: material });
-const floor = { id: 'fixture:floor', kind: 'static',
-  shape: { kind: 'box', halfExtentsM: [2, 0.1, 2] },
-  positionM: [0, -0.1, 0], restitution: 0, friction: material };
-const config = (offset) => ({ fixedStepSeconds: dt, gravityMps2: [0, -9.81, 0],
-  bodies: [box('part:lower', 0, 0.25), box('part:upper', offset, 0.75), floor],
-  contactMode: 'persistent-box-v1' });
+const box = (id, x, y) => (dynamicPart(id, { kind: 'box', halfExtentsM: [0.25, 0.25, 0.25] }, {positionM: [x, y, 0], velocityMps: [0, 0, 0]}, 1, {restitution: 0, friction: material}));
+const floor = staticPart('fixture:floor', { kind: 'box', halfExtentsM: [2, 0.1, 2] }, {positionM: [0, -0.1, 0]}, {restitution: 0, friction: material});
+const options={profile:'rigid-persistent-box-v1',fixedStepSeconds:dt,broadPhase:'direct'};
+const config=offset=>makeModel({gravityMps2:[0,-9.81,0],parts:[box('part:lower',0,0.25),box('part:upper',offset,0.75),floor]});
 const near = (actual, expected, tolerance, label) =>
   assert.ok(Math.abs(actual - expected) <= tolerance, `${label}: ${actual} != ${expected}`);
 
 function run(offset) {
-  const world = createPhysicsWorld(config(offset));
+  const world = createPhysicsWorld(config(offset), options);
   const log = createHash('sha256');
   const times = [];
   let maxPenetrationM = 0;
   for (let index = 0; index < 480; index++) {
     const start = performance.now();
-    const state = world.step(dt);
+    const state = world.step();
     times.push(performance.now() - start);
     log.update(JSON.stringify([state.contacts, state.events]));
     maxPenetrationM = Math.max(maxPenetrationM,
@@ -64,40 +59,38 @@ const offsetState = checkRest(offset, 0.05);
 assert.deepEqual(offsetRepeat.state, offset.state, 'repeated final state changed');
 assert.equal(offsetRepeat.logSha256, offset.logSha256, 'contact/event order changed');
 for (const damaged of [
-  { ...config(0.05), contactMode: 'unsupported' },
-  { ...config(0.05), bodies: [...config(0.05).bodies,
-    box('part:extra1', 2, 0.25), box('part:extra2', 3, 0.25)] },
-]) assert.throws(() => createPhysicsWorld(damaged),
+  {...config(0.05),unsupported: true},
+  { ...config(0.05), bodies: [...config(0.05).bodies,box('part:extra1',2,0.25).body,box('part:extra2',3,0.25).body],colliders:[...config(0.05).colliders,box('part:extra1',2,0.25).collider,box('part:extra2',3,0.25).collider] },
+]) assert.throws(() => createPhysicsWorld(damaged, options),
   (error) => error instanceof PhysicsError && error.code === 'INVALID_CONFIG');
 
-const accepted = createPhysicsWorld(config(0.05));
-const control = createPhysicsWorld(config(0.05));
-accepted.step(dt); control.step(dt);
+const accepted = createPhysicsWorld(config(0.05), options);
+const control = createPhysicsWorld(config(0.05), options);
+accepted.step(); control.step();
 const beforeInvalid = accepted.getState();
-assert.throws(() => accepted.step(dt, [{ kind: 'impulse', bodyId: 'part:upper',
+assert.throws(() => accepted.step([{ kind: 'impulse', bodyId: 'part:upper',
   impulseNs: [Number.NaN, 0, 0] }]),
 (error) => error instanceof PhysicsError && error.code === 'INVALID_COMMAND');
 assert.deepEqual(accepted.getState(), beforeInvalid);
-assert.deepEqual(accepted.step(dt), control.step(dt), 'failed step changed warm-start state');
+assert.deepEqual(accepted.step(), control.step(), 'failed step changed warm-start state');
 const copied = accepted.getState();
 copied.contacts[0].pointM[0] = 99;
 assert.notEqual(accepted.getState().contacts[0].pointM[0], 99);
 accepted.dispose(); control.dispose();
 
-const scene = createPhysicsScene(config(0.05), { revision: 'offsetStackRev1', sourceRevision: null });
-const replay = createPhysicsReplaySession(scene);
+const replayModel = config(0.05);
+const replayWorld = createPhysicsWorld(replayModel, options);
+const replay = createPhysicsRecorder(replayWorld);
 for (let index = 0; index < 120; index++) replay.step();
-const snapshot = replay.saveSnapshot();
-const restored = restorePhysicsReplaySession(snapshot, scene);
-assert.deepEqual(restored.getState(), replay.getState());
-assert.deepEqual(restored.step(), replay.step());
-replay.dispose(); restored.dispose();
+const recording = replay.saveRecording();
+const restored = restorePhysicsRecording(recording,
+  { model: replayModel, options, providerDigest: replayWorld.getState().identity.providerDigest });
+assert.deepEqual(restored.recorder.getState(), replay.getState());
+assert.deepEqual(restored.recorder.step(), replay.step());
+replay.dispose(); restored.recorder.dispose(); replayWorld.dispose(); restored.world.dispose();
 
-const rotated = createPhysicsWorld({ fixedStepSeconds: dt, gravityMps2: [0, 0, 0],
-  bodies: [box('part:lower', 0, 0.25), { ...box('part:upper', 0.2, 0.68),
-    orientation: [0, 0, Math.sin(Math.PI / 12), Math.cos(Math.PI / 12)] }, floor],
-  contactMode: 'persistent-box-v1' });
-const rotatedState = rotated.step(dt);
+const rotated = createPhysicsWorld(makeModel({gravityMps2: [0, 0, 0], parts: [box('part:lower', 0, 0.25), {...(box('part:upper', 0.2, 0.68)), body: {...(box('part:upper', 0.2, 0.68)).body, initial: {...(box('part:upper', 0.2, 0.68)).body.initial, orientationXYZW: [0, 0, Math.sin(Math.PI / 12), Math.cos(Math.PI / 12)]}}}, floor]}), {profile: 'rigid-persistent-box-v1', fixedStepSeconds: dt, broadPhase: 'direct'});
+const rotatedState = rotated.step();
 assert.ok(rotatedState.contacts.length > 0);
 assert.ok(rotatedState.contacts.every((contact) =>
   [...contact.normalAtoB, ...contact.pointM, contact.penetrationM].every(Number.isFinite)));

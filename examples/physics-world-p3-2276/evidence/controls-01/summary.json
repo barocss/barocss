@@ -1,0 +1,180 @@
+{
+  "kind": "P3_BOUNDED_CONTROLS",
+  "runId": "controls-01",
+  "status": "PASS",
+  "node": "v22.19.0",
+  "execPath": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "platform": "darwin",
+  "arch": "arm64",
+  "firstFailure": null,
+  "freezeSha256": "6dcf11eb247cd37ce1d48f8778542d237052da5061f062d09c86fdee686e7dbb",
+  "graphResults": [
+    {
+      "graph": "sourceObserved",
+      "variants": "PASS",
+      "countsAfterVariants": {
+        "constructors": 7,
+        "attempts": 3602,
+        "accepted": 3602,
+        "refused": 0,
+        "getters": 7,
+        "queries": 0,
+        "explicitDisposals": 0,
+        "cleanupAttempts": 4,
+        "cleanupCompleted": 4,
+        "internalCapCases": 0,
+        "internalCapLeafCalls": 0,
+        "independentStepsQualified": 3602
+      },
+      "compatibility": {
+        "status": "PASS",
+        "counts": {
+          "constructors": 25,
+          "attempts": 3889,
+          "accepted": 3863,
+          "refused": 26,
+          "getters": 319,
+          "queries": 9,
+          "explicitDisposals": 2,
+          "cleanupAttempts": 16,
+          "cleanupCompleted": 16,
+          "internalCapCases": 6,
+          "internalCapLeafCalls": 7,
+          "independentStepsQualified": 3603
+        },
+        "proofBoundary": "current-P0 implementation compatibility; selected RENAME first-step/recovery only; historical unknown getter identity not applicable"
+      }
+    },
+    {
+      "graph": "sourceRepeat",
+      "variants": "PASS",
+      "countsAfterVariants": {
+        "constructors": 27,
+        "attempts": 3891,
+        "accepted": 3865,
+        "refused": 26,
+        "getters": 323,
+        "queries": 9,
+        "explicitDisposals": 2,
+        "cleanupAttempts": 18,
+        "cleanupCompleted": 18,
+        "internalCapCases": 6,
+        "internalCapLeafCalls": 7,
+        "independentStepsQualified": 3605
+      }
+    },
+    {
+      "graph": "emittedNative",
+      "variants": "PASS",
+      "countsAfterVariants": {
+        "constructors": 29,
+        "attempts": 3893,
+        "accepted": 3867,
+        "refused": 26,
+        "getters": 327,
+        "queries": 9,
+        "explicitDisposals": 2,
+        "cleanupAttempts": 19,
+        "cleanupCompleted": 19,
+        "internalCapCases": 6,
+        "internalCapLeafCalls": 7,
+        "independentStepsQualified": 3607
+      },
+      "compatibility": {
+        "status": "PASS",
+        "counts": {
+          "constructors": 47,
+          "attempts": 4180,
+          "accepted": 4128,
+          "refused": 52,
+          "getters": 639,
+          "queries": 18,
+          "explicitDisposals": 4,
+          "cleanupAttempts": 31,
+          "cleanupCompleted": 31,
+          "internalCapCases": 12,
+          "internalCapLeafCalls": 14,
+          "independentStepsQualified": 3608
+        },
+        "proofBoundary": "current-P0 implementation compatibility; selected RENAME first-step/recovery only; historical unknown getter identity not applicable"
+      }
+    }
+  ],
+  "records": 354,
+  "recordBytes": 1771891,
+  "newColdReferenceCalls": 0,
+  "currentGraph": "emittedNative",
+  "counts": {
+    "constructors": 47,
+    "attempts": 4180,
+    "accepted": 4128,
+    "refused": 52,
+    "getters": 639,
+    "queries": 18,
+    "explicitDisposals": 4,
+    "cleanupAttempts": 31,
+    "cleanupCompleted": 31,
+    "internalCapCases": 12,
+    "internalCapLeafCalls": 14,
+    "independentStepsQualified": 3608
+  },
+  "bankAuthentication": {
+    "nativeHead": "f40123da0eedb19245688557f865e1beb09d47ef",
+    "consumerHead": "a341f2224ac4bd0b1167f4a9059ab32ab331aac2",
+    "receiptSha256": "b28355cac28b45d9c35639968196f386f4b2fe51dc063897bf52c1b9ab8e3cd4",
+    "manifestSha256": "60e389dbce2640f7f28378927f54cd6d2d8af203bcf374d54177a957b91d2191",
+    "expectedSteps": 1200,
+    "graph": "source",
+    "modelsRun": 0,
+    "referencesRun": 0,
+    "compressedAuthentication": "PASS",
+    "fullDecodedAuthentication": "PASS",
+    "completedRows": 1200,
+    "logicalIPC": {
+      "stdin": {
+        "bytes": 131766270,
+        "sha256": "9ca7129a067d0c06d34beb160044a55405589757cbf2d6a6e51b65c46333c616"
+      },
+      "stdout": {
+        "bytes": 118876677,
+        "sha256": "69ad2a37886c9b011af83363e79b1ead9025e0f9a231f751c19bbea4e9fead49"
+      }
+    },
+    "completedAuthenticationPasses": 1,
+    "aliases": [
+      {
+        "graph": "source-repeat",
+        "aliases": 8,
+        "status": "PASS",
+        "newGraphExecution": false
+      },
+      {
+        "graph": "compiled-dependencies",
+        "aliases": 8,
+        "status": "PASS",
+        "newGraphExecution": false
+      }
+    ]
+  },
+  "priorCounts": {
+    "constructors": 5,
+    "attempts": 3600,
+    "accepted": 3600,
+    "refused": 0,
+    "getters": 3,
+    "queries": 0,
+    "explicitDisposals": 0,
+    "cleanupAttempts": 3,
+    "cleanupCompleted": 3,
+    "internalCapCases": 0,
+    "internalCapLeafCalls": 0,
+    "independentStepsQualified": 3600
+  },
+  "lastSavedControl": {
+    "graph": "emittedNative",
+    "name": "ordered-second-above"
+  },
+  "activeWorldsAfterCleanup": 0,
+  "recordSha256": "4506f34be7efb3a20411726af41433173b43e717ec411ccf0fc158f696537558",
+  "elapsedMs": 3395
+}

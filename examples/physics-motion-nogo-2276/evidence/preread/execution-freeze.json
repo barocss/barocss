@@ -1,0 +1,53 @@
+{
+  "base": "031f66c3ea572c3a496cfa319a4c542e7b19fc3a",
+  "branch": "codex/physics-motion-nogo-2276",
+  "files": [
+    {
+      "path": "examples/physics-motion-nogo-2276/CONTRACT.md",
+      "bytes": 7075,
+      "sha256": "caf921054fe7505d4c0ddf89c457f75a483453b5ac22ff44cb6621c14815a499"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/hinge-contract.md",
+      "bytes": 7349,
+      "sha256": "5d65b0d441983ebad3fd96a09ae3c9c214dcaec00066762074211a1dcadeaf62"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/hinge-runtime.mjs",
+      "bytes": 2815,
+      "sha256": "e24ed52cd0c096fc9e59824fd1327016f446188b0738087c20d004859d6032c2"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/hinge-study.py",
+      "bytes": 18584,
+      "sha256": "0cb9beeaa350f9f79e0b2831a3cbd0ec09c0d16717ee3fb891645e98252117be"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/hinge-unit.test.py",
+      "bytes": 4402,
+      "sha256": "436d3ff69f925d3c01fcd444d900e2e2dcdb8c9e03a48048edfae2c5f1426a48"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/run.mjs",
+      "bytes": 2888,
+      "sha256": "a1ecd79ba3fecfe79bcf67437d98044d7e73c3e0bb0300106fcbda55874e7cff"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/stack-contract.md",
+      "bytes": 5373,
+      "sha256": "5108d58284fde0c0628a43cf7223db985d3d1913c95bc983eec6ae4ed1da5c88"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/stack-study.py",
+      "bytes": 22180,
+      "sha256": "70a34672ef53f034fa714bcd54a120a60c672fea3fd740841064dc8ac43263e2"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/stack-unit.test.py",
+      "bytes": 6984,
+      "sha256": "20d0d6fc90e34afbd9a5c5b7eb3e39f386fac3f4e6a778de7de7fc84d73fda53"
+    }
+  ],
+  "worldCallsBeforeExecution": 0,
+  "existingFilesModified": []
+}

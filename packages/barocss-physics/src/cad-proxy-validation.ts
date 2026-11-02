@@ -1,7 +1,8 @@
 import { PhysicsError } from './index.js';
-import type { PhysicsErrorCode, Vec3 } from './types.js';
+import type { FailureCode } from './types.js';
+import type { Vec3 } from './internal-types.js';
 
-export function proxyError(code: PhysicsErrorCode, message: string): never {
+export function proxyError(code: FailureCode, message: string): never {
   throw new PhysicsError(code, message);
 }
 

@@ -1,0 +1,33 @@
+{
+  "status": "PASS_REPRODUCED_P5A_CURRENT_ATOMICITY_NO_GO",
+  "graph": "source",
+  "counts": {
+    "constructors": 14,
+    "constructorKinds": {
+      "cloth": 2,
+      "fluid": 8,
+      "cad": 4
+    },
+    "stepEntries": 28,
+    "stepKinds": {
+      "cloth": 4,
+      "fluid": 16,
+      "cad": 8
+    },
+    "kernelCommits": 20,
+    "clothSolverCalls": 4,
+    "pbfCalls": 16,
+    "publicCreationAttempts": 10,
+    "commonCreationAttempts": 4,
+    "commonReturnedWorlds": 0,
+    "publicStepAttempts": 20,
+    "publicStepReturns": 15,
+    "injectedThrows": 5,
+    "cleanupAttempts": 10,
+    "cleanupCompleted": 10
+  },
+  "firstUnexpected": null,
+  "accuracyClaim": false,
+  "recorderModelSize": "NOT_MEASURED",
+  "browser": "NOT_RUN"
+}

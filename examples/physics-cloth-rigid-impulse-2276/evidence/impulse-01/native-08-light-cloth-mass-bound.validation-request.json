@@ -1,0 +1,26 @@
+{
+  "caseId": "08-light-cloth-mass-bound",
+  "graph": "native",
+  "validationOrdinal": 21,
+  "executionFreezeSha256": "511b332d26a4a8875ac785d71076a0111236f71db8d45759474ca05861b89eff",
+  "input": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/08-light-cloth-mass-bound.input-raw.json",
+    "bytes": 2667,
+    "sha256": "8f8a037ecf3638706d8e49881bff740fcab6cf6b0d0057e856c6890c0b27c666"
+  },
+  "output": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/native-08-light-cloth-mass-bound.output-raw.json",
+    "bytes": 4543,
+    "sha256": "b5cde1044cb0710011dfe2277e24841dc5dd47b820c0e35a65d3c4e7f6cc8d3d"
+  },
+  "oracleReply": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01-oracle/08-light-cloth-mass-bound.reply.json",
+    "bytes": 47629,
+    "sha256": "b5f6dbe63d3c8a6dd416254e3b095dc1f009c10869ec293c60c5256eabe5c358"
+  },
+  "oracleSummary": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01-oracle/summary.json",
+    "bytes": 5847,
+    "sha256": "a6431f5470518163d42da82ef506a5181ba357855a61ecd700b791f42df3aac0"
+  }
+}

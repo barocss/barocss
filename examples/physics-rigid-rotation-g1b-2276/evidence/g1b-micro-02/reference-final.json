@@ -1,0 +1,45 @@
+{
+  "status": "PASS_G1B_MICRO_FINISH",
+  "sourceGraphComplete": true,
+  "bank": {
+    "path": "bank.json",
+    "bytes": 51170,
+    "sha256": "fd5ffef592c5df56b06d4d9931916406b17b748a87ecb5272cce5e1b155c06d9"
+  },
+  "summary": {
+    "path": "summary.json",
+    "bytes": 4490,
+    "sha256": "1c1b29b04ba8f8b0554164a3aa47fd65be3e89727d8195063fb2e2f24f043703"
+  },
+  "op": "finish",
+  "requestOrdinal": 6,
+  "counts": {
+    "requestsAttempted": 6,
+    "requestsReturned": 6,
+    "bankInitializations": 1,
+    "bodyGeometryCertificatesAttempted": 1,
+    "bodyGeometryCertificatesReturned": 1,
+    "oneDimensionalMonomialMoments": 9,
+    "observedStateAuditsAttempted": 4,
+    "observedStateAuditsReturned": 4,
+    "properRationalRotationAttempts": 4,
+    "properRationalRotationReturns": 4,
+    "privateBodyObservations": 2,
+    "algebraicBisectionDecisions": 1536,
+    "algebraicRootsCertified": 3,
+    "taylorWindowsAttempted": 4,
+    "taylorWindowsReturned": 4,
+    "decimal80Windows": 2,
+    "decimal120Windows": 2,
+    "fractionScalarOperations": 15662,
+    "decimalOperations": 2758004,
+    "decimalConversions": 17168,
+    "decimalToFractionConversions": 164,
+    "endpointDecimalSqrtOperations": 8,
+    "WorldCalls": 0,
+    "candidateCalls": 0,
+    "PhysicsImports": 0,
+    "referenceLinearSolves": 0,
+    "trigEvaluations": 0
+  }
+}

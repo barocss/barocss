@@ -1,0 +1,25 @@
+{
+  "status": "NATIVE_IMPORT_FAILURE_PRESERVED_BEFORE_REPAIR",
+  "files": {
+    "index.js": {
+      "bytes": 396736,
+      "sha256": "b78097d07a7fe4a05c9d00838a547c5564e742e7c5af7587216829771ff920ef"
+    },
+    "types.js": {
+      "bytes": 418,
+      "sha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b"
+    },
+    "provider-manifest.generated.js": {
+      "bytes": 2375,
+      "sha256": "4e19d160373ea2ea156e2a88858973dffabfc6ce0f2af8153db2263ae71fcf53"
+    },
+    "domain/types.js": {
+      "bytes": 2151,
+      "sha256": "76eb7d0fc14a3ba6897ba0d649beeaba4a28172b2458782b64029af6ef5f6666"
+    }
+  },
+  "cause": "esbuild relative ./types.js external pattern also matched domain/types.js and rebased its functions to root ./types.js",
+  "WorldFactoryCalls": 0,
+  "physicsSteps": 0,
+  "repairScope": "canonical resolved source-file externalization only; no numeric source/threshold changes"
+}

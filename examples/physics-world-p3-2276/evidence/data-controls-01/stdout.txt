@@ -1,0 +1,35 @@
+TAP version 13
+# {"scope":"DATA_CONTROLS_ONLY","newWorldCalls":0,"newProjectionCalls":0,"newIndependentDerivationCalls":0,"authenticatedRows":1200}
+# Subtest: selected five authenticated old certificates pass the original DATA gate reader
+ok 1 - selected five authenticated old certificates pass the original DATA gate reader
+  ---
+  duration_ms: 2.035583
+  type: 'test'
+  ...
+# Subtest: original DATA gates reject altered numerical flags and incomplete certificates
+ok 2 - original DATA gates reject altered numerical flags and incomplete certificates
+  ---
+  duration_ms: 1.666208
+  type: 'test'
+  ...
+# Subtest: exact comparator retains signed zero, historical one-ULP difference and structural IDs
+ok 3 - exact comparator retains signed zero, historical one-ULP difference and structural IDs
+  ---
+  duration_ms: 0.233583
+  type: 'test'
+  ...
+# Subtest: TESTONLY observers transform exactly frozen anchors and fail closed on missing anchors
+ok 4 - TESTONLY observers transform exactly frozen anchors and fail closed on missing anchors
+  ---
+  duration_ms: 7.343959
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2588.304833

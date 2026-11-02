@@ -1,0 +1,272 @@
+{
+  "status": "ADOPTED_BOUNDED",
+  "scope": "Exact isolated 1kg box h[.1,.2,.3], normalizedidentityq,w111,zero linearstate/gravity,discrete/direct,dt120,one acceptedstep. Empty/J/JT only; seePUBLIC-SUPPORT-CONTRACT.md.",
+  "canonical": {
+    "path": "examples/physics-rigid-rotation-g1e-2276/evidence/g1e-canonical-01/summary.json",
+    "bytes": 8311,
+    "sha256": "ff328c651afe3afa62b39c9b9aadcdeeceab273e1b67e4ecd8da0815593801db"
+  },
+  "actualWorlds": 16,
+  "actualAcceptedSteps": 16,
+  "internalReplaySteps": 2,
+  "independentEndpointAudits": 6,
+  "refusedSteps": 18,
+  "configurationRefusals": 24,
+  "maxJTerrors": {
+    "R": {
+      "measured": {
+        "numerator": "1210226404650566628397738529134856624421314028669575537817927800011547772941417736462431648510157437305053",
+        "denominator": "3323069989462290418503784900576189445000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "bound": {
+        "numerator": "50042575288220006865033831115529927875351575911542382030361011125044398706411488477",
+        "denominator": "5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "location": {
+        "precision": "80",
+        "component": 3,
+        "endpoint": "hi"
+      },
+      "decimal": "3.641892612819734e-13"
+    },
+    "omega": {
+      "measured": {
+        "numerator": "6480688787376483590778737439050520158296913751723539905006663530613",
+        "denominator": "50000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "bound": {
+        "numerator": "548870502745927277515301427239106997073517904435896390586248276460094993336469387",
+        "denominator": "50000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "location": {
+        "precision": "80",
+        "component": 1,
+        "endpoint": "lo"
+      },
+      "decimal": "1.2961377574752967e-13"
+    },
+    "q": {
+      "measured": {
+        "numerator": "364040863346051715060502722746480654824185571473387988460658024461959",
+        "denominator": "2000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "bound": {
+        "numerator": "20008480358315138613930275848708978492034486283015358853540223387988460658024461959",
+        "denominator": "2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "location": {
+        "precision": "80",
+        "component": 2,
+        "endpoint": "hi"
+      },
+      "decimal": "1.8202043167302585e-13"
+    },
+    "worldL": {
+      "measured": {
+        "numerator": "61221043847106326490855292931948083863172717449191273016000199663446197398815271098399772619659537230269",
+        "denominator": "3873374817130364600818480837035417954782359425234184906581120086032233190761515238885703968841806255033553000436676427776"
+      },
+      "bound": {
+        "numerator": "1",
+        "denominator": "500000000000"
+      },
+      "location": {
+        "component": 0
+      },
+      "decimal": "1.5805607961395965e-17"
+    },
+    "continuousWork": {
+      "measured": {
+        "numerator": "412511365000262217211990688744169070270339002803566765877883731425961641382983832771609365017661913360928189369144442959176084916528330400020514339010481037151454264566983263328225181303183309195555147169854365257383646858509046904087709536478397068565145910428246591639632013",
+        "denominator": "102572650080193332784207310557105837413575835962991065422906506949190220775688795568298947673757628500110326768116350012487402551876175932763833059133367733179869938692944404713819817279512373276521265522278400000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "bound": {
+        "numerator": "1",
+        "denominator": "500000000000"
+      },
+      "location": {
+        "precision": "80",
+        "endpoint": "lo"
+      },
+      "decimal": "4.0216506512969355e-15"
+    },
+    "energy": {
+      "measured": {
+        "numerator": "412511365000262217211990688744169070270339002803566765877883731425961641382983832771609365017661913360928189369144442959176084916528330400020514339010481037151454264566983263328225181303183309195555147169854365257383646858509046904087709536478397068565145910428246591639632013",
+        "denominator": "102572650080193332784207310557105837413575835962991065422906506949190220775688795568298947673757628500110326768116350012487402551876175932763833059133367733179869938692944404713819817279512373276521265522278400000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "bound": {
+        "numerator": "1",
+        "denominator": "500000000000"
+      },
+      "location": {
+        "precision": "80",
+        "endpoint": "lo"
+      },
+      "decimal": "4.0216506512969355e-15"
+    }
+  },
+  "hiddenCacheIdentity": "NOT_DIRECTLY_OBSERVED incanonicalgraph;publicstate/log/recoveryobserved.",
+  "baseline": {
+    "status": "CHARACTERIZED_PHYSICAL_NO_GO",
+    "summary": {
+      "path": "examples/physics-rigid-rotation-g1e-2276/evidence/g1e-baseline-01/summary.json",
+      "bytes": 21309,
+      "sha256": "85df49f1b4a15d62239df2a1f16732f3c322597b84e9619ece468b7ca414be7f"
+    },
+    "J": "PASS",
+    "JT": "PHYSICAL_NO_GO",
+    "maxR": 6.261993963206803e-06,
+    "workResidualJ": 2.592920627392333e-07
+  },
+  "repair": {
+    "status": "PASS_STAGED_G1E_FORCED_MICRO_ONLY",
+    "summary": {
+      "path": "examples/physics-rigid-rotation-g1e-2276/evidence/g1e-repair-03/summary.json",
+      "bytes": 8310,
+      "sha256": "8b2ad4d34deec3fed8a1ddf7c584ccf3b1d436af3e62b0ba5fc223f835bd260e"
+    },
+    "newODEWindows": 0,
+    "bankReused": {
+      "path": "examples/physics-rigid-rotation-g1e-2276/evidence/g1e-baseline-01/bank.json",
+      "bytes": 61798,
+      "sha256": "6c5718a62d307dd897db85a4599900e0683cfb98d92414460ad8d5a2f2ccfb1e"
+    }
+  },
+  "preservedOperationalFailures": [
+    "repair01 toolaliasauth:0build/0World; source snapshot retained",
+    "repair02 redundantTSCemittedlist exceeds64KiB:2buildstarts/0World; source snapshot retained; same cap, inputlist+emittedtreepins retained"
+  ],
+  "breakingCaller": {
+    "status": "FAIL_EXPECTED_BREAKING_ADMISSION",
+    "receipt": {
+      "path": "examples/physics-world-p5-2276/evidence/g1e-orient-caller-01/result.json",
+      "bytes": 3169,
+      "sha256": "a1918bd49ad599fcbfb9defbf86405c09903f1a97e08ba1455fe7f6cf735e586"
+    },
+    "meaning": "Originaloriented-collidersprobeunchanged,nowINVALID_CONFIG; notphysicalPASS,releasecriterionnotwaived."
+  },
+  "checks": {
+    "g1e-canonical-tsc-01": {
+      "status": "PASS",
+      "receipt": {
+        "path": "examples/physics-world-p5-2276/evidence/g1e-canonical-tsc-01/result.json",
+        "bytes": 3091,
+        "sha256": "e89651753fe4f741256fb23c3e4548376e564bcbc1c2391b82a1a00947a06c42"
+      },
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "node_modules/typescript/lib/tsc.js",
+        "-p",
+        "examples/physics-rigid-rotation-g1e-2276/evidence/g1e-canonical-build-01/runtime.tsconfig.json",
+        "--listFiles"
+      ],
+      "elapsedMs": 1249.908125
+    },
+    "g1e-canonical-root-build-01": {
+      "status": "PASS",
+      "receipt": {
+        "path": "examples/physics-world-p5-2276/evidence/g1e-canonical-root-build-01/result.json",
+        "bytes": 2997,
+        "sha256": "410c62d46aaa1780f7419e2312b5d128f3b9a5f36c1ab44bbe06f7dc5c1352b2"
+      },
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "build-root.mjs"
+      ],
+      "elapsedMs": 535.485833
+    },
+    "g1e-canonical-types-01": {
+      "status": "PASS",
+      "receipt": {
+        "path": "examples/physics-world-p5-2276/evidence/g1e-canonical-types-01/result.json",
+        "bytes": 3075,
+        "sha256": "086d1aaffa965d0ed50c36d144a698061d177a25e94f92a7259bf84aeb1d0938"
+      },
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "node_modules/typescript/lib/tsc.js",
+        "-p",
+        "examples/physics-rigid-rotation-g1e-2276/evidence/g1e-canonical-build-01/consumer.tsconfig.json"
+      ],
+      "elapsedMs": 296.034208
+    },
+    "g1e-docs-samples-01": {
+      "status": "PASS",
+      "receipt": {
+        "path": "examples/physics-world-p5-2276/evidence/g1e-docs-samples-01/result.json",
+        "bytes": 2964,
+        "sha256": "04a698ee175477b77e8904a825f355adad561832196ab23911cc37d79cc7bf33"
+      },
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "samples/run.mjs",
+        "physics"
+      ],
+      "elapsedMs": 4760.2355
+    },
+    "g1e-docs-structure-01": {
+      "status": "PASS",
+      "receipt": {
+        "path": "examples/physics-world-p5-2276/evidence/g1e-docs-structure-01/result.json",
+        "bytes": 2965,
+        "sha256": "3ab16dc995d6b42b5d06af6cf6ce7f14257322961d7c2deae975a309eb87dd71"
+      },
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "scripts/check-docs.mjs"
+      ],
+      "elapsedMs": 21348.997375
+    },
+    "g1e-docs-build-01": {
+      "status": "PASS",
+      "receipt": {
+        "path": "examples/physics-world-p5-2276/evidence/g1e-docs-build-01/result.json",
+        "bytes": 2988,
+        "sha256": "0e0c45e66b46042781ef91f2b3cc9eb4a6097be07f43c0e4b7090105819eac88"
+      },
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "node_modules/vitepress/bin/vitepress.js",
+        "build",
+        "docs"
+      ],
+      "elapsedMs": 9719.929125
+    },
+    "g1e-docs-links-01": {
+      "status": "PASS",
+      "receipt": {
+        "path": "examples/physics-world-p5-2276/evidence/g1e-docs-links-01/result.json",
+        "bytes": 2949,
+        "sha256": "fd781ec8f3aee7e75d611b6121e876bd2189b38d0a237ec1b6396966ba14fb8f"
+      },
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-motion-docs-2276/check-site.mjs"
+      ],
+      "elapsedMs": 114.81675
+    }
+  },
+  "docsSamples": {
+    "status": "PASS",
+    "filter": "physics",
+    "tests": 18
+  },
+  "docsSite": {
+    "pages": 5,
+    "links": 818,
+    "anchors": 223,
+    "snippetRegions": 28,
+    "byteIdenticalHistoricalCopies": 14,
+    "proposedRoadmapCopy": true,
+    "networkChecks": "NOT_RUN"
+  },
+  "compileScope": "Actualroot/replaystrictNodeNext,canonicalrootbundle,published-mapdeclarationconsumer. FullCADSDK/allsubpathsNOT_RUN.",
+  "remaining": [
+    "Three-dtmatchedforcedtrajectories,longhorizonandstability",
+    "Widerinertia/shape/mass/frames/loadhistories",
+    "Generalnoncubiccontact/CCD/dynamicCAD/joints/motors",
+    "OriginalP4eight-boxNO_GO,G2,P6/P7andwhole-releasegates"
+  ],
+  "preservation": "HOLD,oldNO_GO,tolerances,firstfailureunchanged. No deployment. User separately authorizes develop push on2026-11-02."
+}

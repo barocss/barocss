@@ -1,0 +1,92 @@
+{
+  "status": "PARENT_AUTHORIZED_PHASE_T_SOURCE_AUTHORING_ONLY",
+  "runtimeAuthorized": false,
+  "implementationAuthorized": true,
+  "productionActivation": false,
+  "authorityPins": {
+    "examples/physics-rigid-rotation-g1b-2276/AUTHORING-FREEZE-T01.json": {
+      "bytes": 3729,
+      "sha256": "7c33ddbb34f9b98abfa8e787d75f772cd003b26c5fdccc2db3a8d1f0c3450d39"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/AUTHORING-FREEZE-T01-ADDENDUM-01.json": {
+      "bytes": 964,
+      "sha256": "64b40ec562eae33c5d68596e22ab684a47ef4cda70b5a0e78edc74ec6429f797"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/CONTRACT.md": {
+      "bytes": 14376,
+      "sha256": "c1c87c64323836d7ac656ead490380bee82f801de2b67979f9f91309ee73ed31"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/CASES.json": {
+      "bytes": 8881,
+      "sha256": "0fb8b4ebc78044e8984fab83878a42fc5051f8717ce914091246de7098fbc386"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/REFERENCES-CLARIFICATION-01.md": {
+      "bytes": 10318,
+      "sha256": "0d6e8a79f2cbf45f7579291f9b1b947295f28f0cf00eb57053ed581cb8979945"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/MICRO-RESULTS-M02.json": {
+      "bytes": 7898,
+      "sha256": "e7d590810dd19e5ddc93c96370ac9493357fca6142714e6937091e1f365a909f"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/MICRO-EXECUTION-FREEZE-M02.json": {
+      "bytes": 109184,
+      "sha256": "d4813a7a39c809950accebe54c38acfe00d20146ded9ed829dd5355f99586bc1"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/reference-micro.py": {
+      "bytes": 47239,
+      "sha256": "90412a7e20b106939c14de7c5f8d619f0cd69d19caa780c91300ce540e3f0c36"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/micro-campaign.mjs": {
+      "bytes": 42720,
+      "sha256": "279079090463879ea03170d3ff2d781b2c902ccff719fe9433bde4726bf66511"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/micro-overlay.mjs": {
+      "bytes": 6091,
+      "sha256": "e4a10163d06ec9a0ace492cc2a6064c953a15c6f145b22c970259b5a756b8fac"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/rigid-triaxial-free-rotation.ts": {
+      "bytes": 11287,
+      "sha256": "972bb4dbab8ebb8c9604f2c5afb1d1ea324643b37fc4ec2654a2a4508eb0a707"
+    }
+  },
+  "parentReview": "ActualM02PASS plus original frozenTpopulation/gates and source-only cost census. The proposed streaming reuse of recurrence F_n removes duplicate operations without changing coefficient/residual/eta arithmetic order or final stickyflags. Driver compacttrace stores every original observedF64word; no physicalcriterion is discarded.",
+  "allowedNewFiles": {
+    "SolHigh": [
+      "PHASE-T-PLAN-01.md",
+      "PHASE-T-PLAN-01.json",
+      "REFERENCE-PROTOCOL-T01.md",
+      "reference-trajectory.py",
+      "REFERENCE-READY-T01.json",
+      "REFERENCE-OPTIMIZATION-T01.md",
+      "TRAJECTORY-EXECUTION-REVIEW-T01.md"
+    ],
+    "SolMedium": [
+      "TRAJECTORY-DRIVER-PLAN-01.md",
+      "TRAJECTORY-DRIVER-PLAN-01.json",
+      "trajectory-campaign.mjs",
+      "TRAJECTORY-READY-T01.json"
+    ]
+  },
+  "forbiddenEdits": "Every M01/M02 candidate/overlay/reference/runner/source/provider/firstfailure remains frozen. No package/publicAPI/currentroadmap edit by helpers. Separate newTfiles only.",
+  "population": "Original T16World/36reads/114attempts=94accepted+8commandrefusals+6unknownfaults+6numericguards;16disposals/110immediateaudits/112reference requests. Sourcecompletephysical/refinement/helper/ownership/disposal beforeNative root/constant evaluation.",
+  "existingLimits": {
+    "logicalBytes": 67108864,
+    "worldHarnessBytes": 8388608,
+    "referenceBytes": 8388608,
+    "buildBytes": 16777216,
+    "evidenceBytes": 16777216,
+    "jointMplusTDecimalOperations": 32000000,
+    "internalMs": 170000,
+    "externalMs": 180000,
+    "cleanupMs": 4000
+  },
+  "plannedProofsBeforeREADY": [
+    "Exact source-derived optimizedwindow474158ops versus old689198; no executable numerical census. Reuse M02geometry/coeff/windowbank and directedp reconstruction; no first2window rerun.",
+    "T44newwindows plus4savedM02 windows; <=108endpoint sqrt shared count; reuseG1aprincipalbank cyclicpermutations. No hidden new referenceflow.",
+    "Concrete driver1.5MiB persistedharness +ref8MiB +reserved1MiB +trace5,536,216B +headers50,176B <16MiB, or a stricter proved allocation without totalcapincrease. Complete8MiB live-root/encoding/tmp proofs.",
+    "Exact frozen source/tool/provider/protocol closure and combined final static review before parent runtime freeze."
+  ],
+  "authorChecks": "Syntax/AST/DATA/hash/integer metadata only. No candidate/reference/module evaluation, fixtureconversion, floatingphysics/root/Taylor/linear calculations, emit/build orWorldcalls.",
+  "stop": "Each author reports READY thenSTOP; no runtime without laterparentexecutionfreeze. No new dependency/download/securitychange/cost.",
+  "invariants": "OriginalHOLD/NO_GO/tolerances/firstfailures preserved; nopublicactivation/developmerge/push/deploy/release."
+}

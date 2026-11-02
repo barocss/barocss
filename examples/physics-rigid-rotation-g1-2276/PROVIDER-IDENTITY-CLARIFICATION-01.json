@@ -1,0 +1,41 @@
+{
+  "status": "PARENT_PRE_EXECUTION_IDENTITY_CONTRACT_CLARIFICATION",
+  "scope": "G1baselineonly,beforeanyWorld/fixture/mathcall",
+  "supersedesOnly": "CONTRACT.md line80 and CASES baseline exact-state identity-equality sentence for providerDigest ONLY; originalfilesunchanged",
+  "reason": "World.ts113-114 hashes model/options/provider separately. Source and actual emitted provider manifests intentionally differ; prior actual P5receipts already prove distinct public providerDigest. Full identity equality would be a false harness failure.",
+  "requiredChecks": [
+    "Preserve ALLpublicidentityfields/rawbytes untouched in saved snapshots.",
+    "Each providerDigest must exactly equal its OWN frozen expected value below and remain unchanged before/after within its graph.",
+    "All OTHER publicidentityfields and full nonidentity state structure/numericwords must match source/native exactly.",
+    "Explicitly record source/native providerDigest inequality as provenance distinction, not physical divergence; do not normalize,replace,drop or omit the public fields."
+  ],
+  "producers": {
+    "source": {
+      "expectedProviderDigest": "sha256:2038bba8526717b52b44a57d13d4e3b7951dcfad6e0305179bfedd7e740b663d",
+      "priorActualReceipt": {
+        "path": "examples/physics-world-p5-2276/evidence/public-source-01/summary.json",
+        "bytes": 27173,
+        "sha256": "501758069a42233aa3890348987ae2ffddf220745e8294b876f0e08744b9ba4e"
+      },
+      "unchangedCurrentManifest": {
+        "path": "packages/barocss-physics/src/provider-manifest.generated.ts",
+        "bytes": 7687,
+        "sha256": "464a69f41b0e3006bdc246e3c6d6d1bf91f679b0aec9616e917f02edd0d8f1df"
+      }
+    },
+    "native": {
+      "expectedProviderDigest": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+      "priorActualReceipt": {
+        "path": "examples/physics-world-p5-2276/evidence/public-native-01/summary.json",
+        "bytes": 27173,
+        "sha256": "a94608330959e4084a4d79a3ed796116f415a3338640973b3dddb114dc34f7d8"
+      },
+      "unchangedCurrentManifest": {
+        "path": "packages/barocss-physics/dist/provider-manifest.generated.js",
+        "bytes": 2375,
+        "sha256": "41a7c51c4d725a8aea2a5e54628f28a43811c027870dd3361187f27c66e273df"
+      }
+    }
+  },
+  "unchanged": "Allphysical1e-12gates,construct/read/step/disposecounts,body/physicsrawcomparisons,first-failure/known-UNKNOWNrules,oldCONTRACT/CASES hashes;0G1callssofar."
+}

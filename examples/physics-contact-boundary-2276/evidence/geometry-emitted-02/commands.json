@@ -1,0 +1,90 @@
+{
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "records": [
+    {
+      "name": "strict-emission",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/bin/tsc",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/geometry-entry.ts",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/candidate.ts",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/verification.ts",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/world-adapter.ts",
+        "--target",
+        "ES2022",
+        "--module",
+        "ES2022",
+        "--moduleResolution",
+        "Bundler",
+        "--strict",
+        "--skipLibCheck",
+        "--declaration",
+        "--rootDir",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+        "--outDir",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/geometry-emitted-02/modules"
+      ],
+      "started": "2026-11-01T13:56:58.806Z",
+      "finished": "2026-11-01T13:57:00.034Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "geometry-tests",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/geometry-emitted-02/geometry-tests.mjs"
+      ],
+      "started": "2026-11-01T13:57:00.077Z",
+      "finished": "2026-11-01T13:57:00.158Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "84c9b9b07eb2b9597011292aa17ab12f65e1c02aea9155a695fd6d2346118368",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "geometry-consumer",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/geometry-emitted-02/geometry-consumer.mjs",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/baseline-02/fixtures.json",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/geometry-emitted-02",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-feature-geometry/witness-reference.py"
+      ],
+      "started": "2026-11-01T13:57:00.169Z",
+      "finished": "2026-11-01T13:57:01.865Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "3acd0fabe85a5ad7894c952e47537a8227eb491009c0079d593153386c42045d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "independent",
+      "command": [
+        "python3",
+        "-B",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/independent-check.py",
+        "--fixtures",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/baseline-02/fixtures.json",
+        "--generated",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/geometry-emitted-02/generated.json",
+        "--output",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/geometry-emitted-02/result.json"
+      ],
+      "started": "2026-11-01T13:57:01.866Z",
+      "finished": "2026-11-01T13:57:02.076Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "246a60f2cea48bea27daa95d7e8cd895bb5930bd7dfa6f8af177dbe742f51bc7",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

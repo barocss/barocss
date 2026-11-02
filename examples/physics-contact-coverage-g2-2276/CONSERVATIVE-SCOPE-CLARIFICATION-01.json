@@ -1,0 +1,26 @@
+{
+  "status": "SOURCE_SCOPE_CLARIFICATION_NO_NEW_RUNTIME",
+  "sources": [
+    {
+      "path": "apps/library-docs/docs/packages/physics/profiles-and-lifecycle.md",
+      "bytes": 16925,
+      "sha256": "140450a074681e962f7c8cc62243e2b991bddce055bf52122d9e99dc7b849193"
+    },
+    {
+      "path": "packages/barocss-physics/src/ccd.ts",
+      "bytes": 3220,
+      "sha256": "040de88f74673b297164227ff5faada12f0eb190aa14a9471dbeb02f879a57ab"
+    },
+    {
+      "path": "packages/barocss-physics/src/ccd-slab.ts",
+      "bytes": 1125,
+      "sha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340"
+    }
+  ],
+  "fact": "The existing public profile table already calls sphere/static-box CCD a conservative expanded-box sweep and warns that rounded corners can produce early hits. C03 is a new quantitative witness of that declared limit, not proof of a newly introduced regression.",
+  "preservedResult": "CORNER-RESULTS-01.json remains EXACT_CONTACT_WITNESS_NO_GO_CONSERVATIVE_BOUND: it fails the separately frozen necessary exact-rounded-contact gate. The source and reference artifacts are unchanged. No World/tunnelling/response claim is added.",
+  "roadmapBoundary": "G2 core requires finite coverage and explicit supported/refused/unknown semantics for current laws. An exact-rounded sweep implementation is a proposed bounded upgrade/dependency when the selected profile needs it; it must not silently become a universal new merge requirement for every conservative use. Full response/nontunnelling claims need their own World evidence.",
+  "exactProposal": "EXACT-SWEEP-DESIGN/CASES are author-only. Normal/TOI/witness budgets accepted for that separate16-case proposal; compact joint payload proof and explicit authoring release remain before implementation.",
+  "unchanged": "OriginalHOLD/P4eightboxNO_GO/firstfailures/tolerances remain; no public API, source law or old-helper rerun.",
+  "newRuntimeCalls": 0
+}

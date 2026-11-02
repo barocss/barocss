@@ -1,0 +1,3 @@
+{"type":"ready","kind":"geometry","importWallNs":24017959,"originalHelperImports":2}
+{"type":"start","ordinal":1,"op":"contacts"}
+{"type":"call","ordinal":1,"op":"contacts","computeWallNs":9007541,"computeCpuNs":8996000,"outcome":"returned"}

@@ -1,0 +1,60 @@
+{
+  "asOf": "2026-11-02",
+  "branch": "codex/physics-world-p5-2276",
+  "roadmapCommit": "357caa03f",
+  "lastNumericalMilestone": {
+    "profile": "G1e exact one-step isolated rotor, nonprincipal angular impulse and continuous world torque",
+    "status": "ADOPTED_BOUNDED_SOURCE_AND_CANONICAL_ROOT_REPLAY",
+    "scope": "Actual16World16accepted incl2internalreplay,6independentendpointaudits,18steprefusals24configrefusals. Wider dynamicnoncubicboxes explicitlyunsupported. Newcontinuous-forcefirstfailurepreserved.",
+    "results": "examples/physics-rigid-rotation-g1e-2276/evidence/g1e-canonical-01/summary.json"
+  },
+  "mainSlices": {
+    "P0": "CONTRACT_COMPLETE_LOCAL",
+    "P1": "COMMON_WORLD_BOUNDED_LOCAL_PASS",
+    "P2": "RIGID_RECORDING_BOUNDED_LOCAL_PASS",
+    "P3": "SELECTED_DISJOINT_HINGE_PASS_NOT_GENERAL_MECHANISMS",
+    "P4": "ORIGINAL_EIGHT_BOX_NO_GO",
+    "P5": "DONE_BOUNDED_LOCALSELECTED_RENDER_SDK_IMPLEMENTATION_NOT_RUN",
+    "P6a": "PRIVATE_IMPULSE_LEAF_PASS_FULL_COUPLING_NOT_SUPPORTED",
+    "P6b": "NOT_STARTED",
+    "P7": "NOT_STARTED",
+    "P8": "OUTSIDE_CURRENT_WORK_HOLD"
+  },
+  "addedGates": {
+    "coreRequired": [
+      "G1 anisotropic-box free rotation",
+      "G2 finite contact/CCD coverage",
+      "G7 evidence-provider/failure-prefix trust"
+    ],
+    "conditional": [
+      "G3 COM/tensor extension",
+      "G4 rank/condition/frame-scale",
+      "G5 mixed endpoints/substeps",
+      "G6 recording if enabled"
+    ]
+  },
+  "active": "G1 finite input boundary and J/JT micro adopted in common World after actualSource/canonicalNative checks. Support dt120/one acceptedstep literalisolatedrotor only. Nextdependenciesthree-dtforcedtrajectory/longerhorizon/otherinertia/frames/contact-joint-motor. Originaloriented/thinCCD/dynamicCADacceptance remains breakingunsupported; no releasegate waiver. No runtime active.",
+  "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
+  "forecasts": {
+    "firstImpulseResult": "ACHIEVED2026-11-02",
+    "nextG1Baseline": "ACHIEVED2026-11-02; actual physical NO_GO preserved",
+    "wholeRoadmap": "NO_RELIABLE_DATE_YET; reassess from G1/P4/coupling evidence, no whole-engine date promised",
+    "nextG1Repair": "ACHIEVED2026-11-02 for exactone-step publicrotor; broaderG1limitsremain. Whole-roadmap dateunknown.",
+    "nextG1Trajectory": "ACHIEVED2026-11-02 compositeSource+freshNative; all72refinementchecks beloworiginal1e-11floor, nomeasuredorderclaim."
+  },
+  "reportCadence": "milestone,firstfailure,directionchange; report qualified scope,remaining dependency,and revised confidence",
+  "invariants": "HOLD, original NO_GO, tolerances and first failures preserved. Owner explicitly authorized current checkpoint develop push on2026-11-02; no deploy/release or held-worker resume; not whole-roadmap completion.",
+  "addedGateProgress": {
+    "G1": "BOUNDED_PUBLIC_RANGE_ADOPTED: new exactisolatedone-stepJ/JT with explicitINVALID_CONFIG/INVALID_COMMAND/NUMERIC_LIMIT outsideleaf. Oldcontinuous-torquefullkickbaseline PHYSICAL_NO_GO preserved; correctedmicro+actualcanonicalAPIpassed. G1dK is discrete-map evidence only. Broaderinputs/horizon/contact/control remain open.",
+    "G2": "STATIC19BRANCH_MAP_COMPLETE; ACTUAL_SOURCE_CORNER_EXACT_CONTACT_NO_GO; reference1/World0/nativeNOT_RUN; other numerical gaps open",
+    "G7": "PER_CAMPAIGN_TRUST_GATE; NO_BLANKET_PASS"
+  },
+  "sourceCorrection": "G1b/ADMISSION-NORMALIZATION-CORRECTION-01.json: Body constructor already normalizes admitted initialq; prior inferredinitialnormguardmismatch unestablished. Broader boundary qualification stillNOT_RUN.",
+  "ownerPublicationDecision": {
+    "date": "2026-11-02",
+    "scope": "Push work completed so far to develop",
+    "wholeRoadmapComplete": false,
+    "deploymentAuthorized": false,
+    "holdReleaseAuthorized": false
+  }
+}

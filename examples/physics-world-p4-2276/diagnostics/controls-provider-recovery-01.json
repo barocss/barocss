@@ -1,0 +1,23 @@
+{
+  "kind": "P4_CONTROLS_PROVIDER_RECOVERY",
+  "createdAtUtc": "2026-11-01T19:17:50.685099+00:00",
+  "authorization": "Parent requested preserve unrun diagnostic draft and restore exact tested15d0 provider bytes. No helper/reference execution.",
+  "diagnosticDraft": {
+    "path": "examples/physics-world-p4-2276/diagnostics/controls-a60ddeb1-unrun.py",
+    "bytes": 23211,
+    "sha256": "a60ddeb11b4df16fe1a1401ffc08f7e8517a98e0bdbb7fa7ff33713f3dd45876",
+    "executionStatus": "NOT_RUN_DIAGNOSTIC_DRAFT"
+  },
+  "restoreTargetSha256": "15d0d36f39305500bd07c071cf106d2d1c1279bebd2781f15e77b6ae242c933b",
+  "coreExpectedSha256": "464a53b1634a8b6de26a6c5e45c807b664d49637902fc52786ed99fa895968aa",
+  "mathematicalCalls": 0,
+  "status": "EXACT_TESTED_PROVIDER_RESTORED",
+  "restoredProvider": {
+    "path": "examples/physics-world-p4-2276/support-radius-controls.py",
+    "bytes": 22053,
+    "sha256": "15d0d36f39305500bd07c071cf106d2d1c1279bebd2781f15e77b6ae242c933b",
+    "executionEvidence": "Parent-reported prior primitive PASS43wrapper/51original on exact15d0 provider; no new execution."
+  },
+  "coreActualSha256": "464a53b1634a8b6de26a6c5e45c807b664d49637902fc52786ed99fa895968aa",
+  "allSourceEditsStopped": true
+}

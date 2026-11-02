@@ -1,0 +1,56 @@
+{
+  "workId": "physics-world-p5-2276",
+  "status": "parent_source_geometry_authority_accepted_no_new_admission_run",
+  "inputs": {
+    "packages/barocss-physics/src/cad-proxy-admission.ts": {
+      "bytes": 7744,
+      "sha256": "898fb55af369727440fef9f4bfadba0ea455b4c800a719909e5311029a663441"
+    },
+    "examples/physics-scene/fluid-cad-shelf-probe.mjs": {
+      "bytes": 5127,
+      "sha256": "398c5f0fa4482e77e7e941ff2b93d8186d076e930d79820609ae26744aa6c0c8"
+    },
+    "examples/physics-scene/fluid-cad-shelf.barocad": {
+      "bytes": 290,
+      "sha256": "4dda73269426a18ff59241ed14c34e21a3e92c0cd3a39a2dc6321034bbf3c154"
+    }
+  },
+  "reviewer": "GPT-6.1 Sol High geometry helper",
+  "originalAdapterPath": "cad-proxy-admission.ts:67-76",
+  "algorithm": "halfSpanM=(maxMM-lowMM)/2000; centerM=(lowMM+maxMM)/2/1000, then explicit minimumHalfExtentM",
+  "integerControlBoundsMm": {
+    "low": [
+      200,
+      200,
+      100
+    ],
+    "high": [
+      500,
+      200,
+      400
+    ]
+  },
+  "effectiveStaticFixture": {
+    "centerM": [
+      0.35,
+      0.2,
+      0.25
+    ],
+    "halfExtentsM": [
+      0.15,
+      0.01,
+      0.15
+    ],
+    "minimumHalfExtentM": 0.01
+  },
+  "finding": "Original adapter subtracts integer millimetres before conversion, so the suspected metre-subtraction rounding path is absent",
+  "independentGeometryBasis": "control-net integer bounds and direct scale; old probe exact literals agree",
+  "oldProbeExactAssertions": "fluid-cad-shelf-probe.mjs:46-47, not rerun here",
+  "recipeChanged": false,
+  "supersedes": "KERNEL-CLARIFICATION-01.json staticShelfOperands pending marker only",
+  "newCADAdmissionOrCompilerCalls": 0,
+  "newWorldCalls": 0,
+  "newCandidateCalls": 0,
+  "limits": "source geometric operand proof only; captured first2states do not demonstrate active box contact",
+  "physicalToleranceChanges": false
+}

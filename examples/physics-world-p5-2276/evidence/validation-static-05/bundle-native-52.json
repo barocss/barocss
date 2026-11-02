@@ -1,0 +1,40 @@
+{
+  "mode": "native",
+  "entry": "examples/workspace-source/serve.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/workspace-source/serve.mjs": {
+      "bytes": 5362,
+      "sha256": "6716a8662d245a35d793a111cac7d408f96bb5eb1331ae050f27400c9130211a",
+      "effectiveSha256": "6716a8662d245a35d793a111cac7d408f96bb5eb1331ae050f27400c9130211a"
+    },
+    "examples/workspace-source/probe.mjs": {
+      "bytes": 5767,
+      "sha256": "e077c98279d08e83f9839d2a47a042ba4d77fed328a8b87af60f70ca4d54810e",
+      "effectiveSha256": "e077c98279d08e83f9839d2a47a042ba4d77fed328a8b87af60f70ca4d54810e"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 7971,
+  "outputSha256": "66159fd5d8cc153429aadd70919ee6744539a344fbf7f6081448273d93fa2c92",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "missingNativeSDKBoundary": null,
+  "nativeHostSDKIntegration": "NOT_CLAIMED_BY_COMPILE",
+  "externalImports": [
+    "node:crypto",
+    "node:fs/promises",
+    "node:http",
+    "node:path",
+    "esbuild",
+    "node:assert/strict",
+    "node:child_process",
+    "node:url"
+  ],
+  "moduleEvaluation": false
+}

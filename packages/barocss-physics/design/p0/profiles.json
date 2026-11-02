@@ -1,0 +1,247 @@
+{
+  "workId": "physics-world-p0-2276",
+  "kind": "target-admission-catalogue_not-runtime-implementation",
+  "schema": 1,
+  "base": "66df02f8e7d5a3a7ab7b8ff7a0184bf34d978713",
+  "existingHolds": "UNCHANGED",
+  "defaultAllowNewCombinations": false,
+  "rigidShared": {
+    "steps": 3600,
+    "fixedStepSeconds": [
+      0.004166666666666667,
+      0.03333333333333333
+    ],
+    "solverPasses": 8,
+    "commandCount": 64,
+    "positionComponentM": 10000,
+    "velocityComponentMps": 1000,
+    "gravityComponentMps2": 1000,
+    "massKg": [
+      1e-06,
+      1000000.0
+    ],
+    "shapeLengthM": [
+      0.0001,
+      1000
+    ],
+    "forceComponentN": 1000000.0,
+    "torqueComponentNm": 1000000.0,
+    "linearImpulseComponentNs": 100000.0,
+    "angularImpulseComponentNms": 100000.0,
+    "displacementPerStepM": 10,
+    "angularDisplacementPerStepRad": 10,
+    "quaternionNormGate": 1e-06,
+    "collidersPerBody": 1,
+    "colliderLocalTransform": "identity only",
+    "reference": "src/{world,limits,validation,joints,ccd,dynamic-hinge-joint}.ts",
+    "maximumJoints": 8
+  },
+  "profiles": [
+    {
+      "id": "rigid-discrete-v1",
+      "phase": "P1b",
+      "currentMapping": "default world; direct or aabb",
+      "maximumBodies": 32,
+      "contact": "one point per pair",
+      "joints": "current anchored or exactly-two-dynamic-sphere fixed/hinge profiles only; no new combinations",
+      "ccd": "current sphere/static-box, sphere-pair or axis-aligned-box-pair admitted configurations only",
+      "broadPhase": [
+        "direct",
+        "aabb"
+      ],
+      "runtimeTarget": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "rigid-persistent-box-v1",
+      "phase": "P1b",
+      "currentMapping": "contactMode:persistent-box-v1",
+      "maximumBodies": 4,
+      "contact": "current face manifold plus existing non-face fallback",
+      "pointIterations": 8,
+      "joints": "current combinations only",
+      "ccd": "box-pair excluded; remaining combinations require current admission",
+      "broadPhase": [
+        "direct",
+        "aabb"
+      ],
+      "originalEightBox": "NO_GO",
+      "runtimeTarget": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "rigid-large-v1",
+      "phase": "P1b",
+      "currentMapping": "sceneMode:large-v1; broadPhase:aabb",
+      "maximumBodies": 64,
+      "joints": false,
+      "ccd": false,
+      "persistentBox": false,
+      "broadPhase": [
+        "aabb"
+      ],
+      "sleep": "existing contact-island algorithm and thresholds unchanged",
+      "runtimeTarget": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "cloth-pinned-sphere-visual-v1",
+      "phase": "P5",
+      "vertices": 289,
+      "triangles": 512,
+      "pinnedIndices": [
+        0,
+        16
+      ],
+      "fixedStepSeconds": 0.008333333333333333,
+      "steps": 240,
+      "substeps": 8,
+      "iterationsPerSubstep": 2,
+      "gravityMps2": [
+        0,
+        -9.81,
+        0
+      ],
+      "selfCollision": false,
+      "dynamicCoupling": false,
+      "runtimeTarget": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "fluid-basin-visual-v1",
+      "phase": "P5",
+      "particles": 256,
+      "fixedStepSeconds": 0.008333333333333333,
+      "steps": 3600,
+      "basinM": [
+        0.7,
+        1.3,
+        0.5
+      ],
+      "gravityMps2": [
+        0,
+        -9.81,
+        0
+      ],
+      "minimumSpacingM": 0.025,
+      "particleRadiusM": 0.0125,
+      "visualSmoothing": "none",
+      "dynamicCoupling": false,
+      "runtimeTarget": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "fluid-basin-xsph-visual-v1",
+      "phase": "P5",
+      "particles": 256,
+      "fixedStepSeconds": 0.008333333333333333,
+      "steps": 3600,
+      "basinM": [
+        0.7,
+        1.3,
+        0.5
+      ],
+      "gravityMps2": [
+        0,
+        -9.81,
+        0
+      ],
+      "visualSmoothing": {
+        "kind": "xsph",
+        "coefficient": 0.15
+      },
+      "dynamicCoupling": false,
+      "runtimeTarget": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "fluid-static-box-visual-v1",
+      "phase": "P5",
+      "particles": 256,
+      "fixedStepSeconds": 0.008333333333333333,
+      "steps": 3600,
+      "basinM": [
+        0.7,
+        1.3,
+        0.5
+      ],
+      "gravityMps2": [
+        0,
+        -9.81,
+        0
+      ],
+      "staticObstacles": "one existing admitted axis-aligned box, no initial particle overlap",
+      "visualSmoothing": "none",
+      "dynamicCoupling": false,
+      "runtimeTarget": "NOT_IMPLEMENTED"
+    }
+  ],
+  "incompatible": [
+    "P1 any nonempty cloths or fluids",
+    "any mixed physical domains until a separately verified combination profile",
+    "compound/offset rigid colliders",
+    "arbitrary tensor inertia or nonzero COM-local offset",
+    "public four-sphere two-hinge original fixture",
+    "persistent nine-body original stack",
+    "cloth self-contact/tearing/moving obstacles",
+    "fluid emitters/moving obstacles/calibrated viscosity",
+    "fluid-cad xsph combination"
+  ],
+  "originalStackGates": {
+    "steps": 1200,
+    "dtSeconds": 0.008333333333333333,
+    "penetrationM": 0.002,
+    "terminalWindowSeconds": 2,
+    "verticalDriftM": 0.005,
+    "horizontalDriftM": 0.01,
+    "linearSpeedMps": 0.02,
+    "angularSpeedRadps": 0.02,
+    "tiltDegrees": 1,
+    "finiteFloorEscape": 0,
+    "source": "original #1572/#1399 contracts; no replacement of exact original definitions"
+  },
+  "existingResearchGates": {
+    "normalResidualSI": 1e-10,
+    "strictGeometryDistanceM": 1e-09,
+    "pairedWitnessMovementM": 1e-12,
+    "decimalPrecisionAgreement": 1e-60,
+    "normalQrCap": 64,
+    "normalOuterCap": 64,
+    "referenceTimeBudgetSeconds": 180,
+    "witnessStrictBoolean": "no inflation",
+    "originalHingeRawBits": "unchanged; step77 failure retained"
+  },
+  "admissionIsNotQualification": true,
+  "ancillaryEntries": [
+    {
+      "entry": "createUprightCapsuleQuery",
+      "role": "independent static geometric query; no physical World/clock",
+      "existingProfile": "upright-capsule-box-v1",
+      "staticBoxes": [
+        0,
+        32
+      ],
+      "radiusM": 0.15,
+      "halfSegmentM": 0.35,
+      "maxDisplacementM": 2,
+      "transition": "keep canonical geometric export; affected shared types only"
+    },
+    {
+      "entry": "createUprightCapsuleController",
+      "role": "independent bounded kinematic query controller; no commonWorld body/force exchange",
+      "existingProfile": "upright-capsule-controller-v1",
+      "steps": 240,
+      "fixedStepSeconds": 0.008333333333333333,
+      "transition": "keep canonical geometric utility; no physical-domain World"
+    },
+    {
+      "entry": "createPlanarPendulum",
+      "role": "verified reduced reference model, not rigid hinge dynamics",
+      "transition": "move canonical reduced model and consumers to independent reference at root cutover; preserve old numerical receipts"
+    }
+  ],
+  "evidenceBoundaries": {
+    "foundation": "named bounded independent tests at original commits; no new run by P0",
+    "same32ContactPatch": "PASS fixed-pose candidate only",
+    "strict192Rows": "PASS six saved poses source/emitted geometry only",
+    "originalStackMatched16StepPrefix": "PASS selected prefix only",
+    "originalStack1200Steps": "NO_GO/NOT_RUN; fixed180s guard unchanged",
+    "publicTwoHinge": "NO_GO; historical step77 discrepancy retained",
+    "dynamicCrossDomainCoupling": "NOT_SUPPORTED",
+    "measurement": "NOT_RUN"
+  }
+}

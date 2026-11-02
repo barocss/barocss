@@ -1,0 +1,46 @@
+{
+  "status": "PASS_AUTHENTICATED_PRIOR_CHECK_REUSE",
+  "originalReceiptStatus": "FAIL_PRESERVED",
+  "originalFreezeSha256": "8ea90d6fb72013a4043ff2335bb9d96128fc7972b13ca89fed5f951fd0703c08",
+  "unchangedOriginalInputs": 7210,
+  "reusedBundlePasses": 5,
+  "reusedStrictPasses": 1,
+  "reports": [
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-01/strict-types-source.json",
+      "sha256": "ee75eb7202cb7bba87290d4732f19577494b2c2af4424d74294187f3a0091da4",
+      "kind": "strict-source"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-01/numeric-root-source.json",
+      "sha256": "2d111b26494dd853f1dceff24fe38be9fe41bebc6e77080570e09e2773bddf7a",
+      "kind": "numeric-root-source"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-01/bundle-source-00.json",
+      "sha256": "7c1b3136bf840c3f5ddd1c4c21003a9362191d5a3f333713938d8789be83ae06",
+      "kind": "source-entry-0"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-01/bundle-source-01.json",
+      "sha256": "f1b41c85f98df33ee76745ee3c3abb6074dff9d6415fb30bba660191a20db792",
+      "kind": "source-entry-1"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-01/bundle-source-02.json",
+      "sha256": "34839b5c3fad42637320c092c9f6bff1bdfca70e26b2c85198714b3372bda2cb",
+      "kind": "source-entry-2"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-01/bundle-source-03.json",
+      "sha256": "77c57b5e650ddc64092ccdb9a343fe2bde11d94d0238042063a77f9c20fea4b9",
+      "kind": "source-entry-3"
+    }
+  ],
+  "newAttemptBundleBudget": 122,
+  "newAttemptStrictTypeBudget": 1,
+  "newAttemptLintBudget": 1,
+  "aggregateBundleAttemptsIncludingOriginalFailure": 128,
+  "uniqueLogicalBundleChecks": 127,
+  "WorldCalls": 0
+}

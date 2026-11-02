@@ -1,9 +1,10 @@
+import {makeModel,dynamicPart,staticPart} from '../physics-model-input/model.mjs';
 /** #1572 independent arithmetic audit of the actual fallback solve call.
  * Test-only temporary World probe; original OFFSET/YAW floor + 3 boxes.
  * Samples b0/b1 during step 600 and validates applied impulse and torque.
  */
 import {createPhysicsWorld} from '../../packages/barocss-physics/src/index.js';
-import type {PhysicsBodyConfig,PhysicsWorldConfig} from '../../packages/barocss-physics/src/types.js';
+
 type V=[number,number,number];type Q=[number,number,number,number];
 type Body={pos:V,v:V,w:V,q:Q,invMass:number,invInertia:V};
 type Event={step:number,pair:string,point:V,normal:V,
@@ -23,12 +24,10 @@ function inertiaApply(b:Body,j:V,sign:number,point:V):V{
  return rotate(q,[local[0]*b.invInertia[0],local[1]*b.invInertia[1],local[2]*b.invInertia[2]]);
 }
 const dt=1/120,steps=1200;
-const floor:PhysicsBodyConfig={id:'floor',kind:'static',shape:{kind:'box',halfExtentsM:[2,.1,2]},positionM:[0,-.1,0],restitution:0,friction:{static:1,dynamic:.7}};
-function cube(i:number,mode:'OFFSET'|'YAW'):PhysicsBodyConfig{
+const floor=staticPart('floor',{kind:'box',halfExtentsM:[2,.1,2]},{positionM:[0,-.1,0]},{restitution:0,friction:{static:1,dynamic:.7}});
+function cube(i:number,mode:'OFFSET'|'YAW'){
  const yaw=mode==='YAW'?(i%2===0?.05:-.05):0;
- return {id:'b'+i,kind:'dynamic',shape:{kind:'box',halfExtentsM:[.25,.25,.25]},
- positionM:[(i%2)*.05,.25+.5*i,0],massKg:1,velocityMps:[0,0,0],
- orientation:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)],restitution:0,friction:{static:1,dynamic:.7}};
+ return dynamicPart('b'+i,{kind:'box',halfExtentsM:[.25,.25,.25]},{positionM:[(i%2)*.05,.25+.5*i,0],velocityMps:[0,0,0],orientationXYZW:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)]},1,{restitution:0,friction:{static:1,dynamic:.7}});
 }
 const host=globalThis as typeof globalThis&{__p1572FallbackTorqueProbe?:(event:Event)=>void};
 for(const mode of ['OFFSET','YAW'] as const){
@@ -56,11 +55,10 @@ for(const mode of ['OFFSET','YAW'] as const){
   if(samples.length<8)samples.push({point:e.point,normal:e.normal,appliedJ:j,
     deltaOmegaB:minus(e.afterB.w,b.w),linearResidual:linear,angularResidual:angular});
  };
- const world=createPhysicsWorld({fixedStepSeconds:dt,gravityMps2:[0,-9.81,0],
- contactMode:'persistent-box-v1',bodies:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]});
+ const world=createPhysicsWorld(makeModel({gravityMps2:[0,-9.81,0],parts:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]}),{profile:'rigid-persistent-box-v1',fixedStepSeconds:dt,broadPhase:'direct'});
  let accepted=0,firstFailure:string|null=null;
  try{for(let step=1;step<=steps;step++){
-  try{world.step(dt);accepted=step;}catch(err){firstFailure=String(err);break;}
+  try{world.step();accepted=step;}catch(err){firstFailure=String(err);break;}
  }}finally{world.dispose();delete host.__p1572FallbackTorqueProbe;}
  console.log(JSON.stringify({mode,accepted,firstFailure,observations,maxLinearResidual,maxAngularResidual,
  totalFallbackJxNs:totalJx,totalFallbackJyNs:totalJy,samples,productionSolverChanged:false,

@@ -1,0 +1,526 @@
+{
+  "workId": "physics-rigid-rotation-g1a-2276",
+  "status": "PROPOSAL_PARENT_REVIEW_REQUIRED_NO_IMPLEMENTATION_OR_EXECUTION",
+  "sourceBaseline": {
+    "commit": "357caa03fe3db1d1fe4939c979c9429314f6fa5f",
+    "publicRoot": "packages/barocss-physics/src/index.ts",
+    "producerPins": {
+      "packages/barocss-physics/src/index.ts": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30",
+      "packages/barocss-physics/src/world.ts": "28022bb98fc8cd33d7dc912f8fb562b1ba375c089ebe8618783d95320929a599",
+      "packages/barocss-physics/src/math.ts": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2",
+      "packages/barocss-physics/src/validation.ts": "651d12754b77f86493f399baf3c02d60d9ad1fe54e0ece664a05a4430e8a0f01",
+      "packages/barocss-physics/src/model-admission.ts": "7e77f184fed57d51ee1b0599e60c80d83b96045b139d236a37f76a4207689397",
+      "packages/barocss-physics/src/types.ts": "37fdf1abcc20fd379304213b8c0686f8e0468d285f008aa8ebdb316882efade5"
+    },
+    "fullClosure": "Parent freezes every actual source, native emit, manifest and installed tool input before execution; these anchor pins do not substitute for the complete graph."
+  },
+  "representation": {
+    "numericalLiterals": "Rational strings; schema-directed numerator/denominator conversion to native binary64 once per unique model/options pair, no fixture execution during authoring.",
+    "metadataIntegers": "JSON integer counts, version and filter bits are ordinary metadata.",
+    "signedZero": "Literal -0 maps to native negative zero; retain all raw input/observed words. Fraction predicts no computed zero sign.",
+    "referenceInputs": "Exact rational decoding of the actual native physical inputs and observed quaternion/omega words; intended rational values remain separate.",
+    "noCompatibility": "Actual current public root World in each graph; no legacy config translator, diagnostic World, runtime mode or alternative factory."
+  },
+  "literalModel": {
+    "format": "barocss-physics-model",
+    "version": 1,
+    "revision": "g1a-baseline-2276",
+    "frame": {
+      "id": "g1World",
+      "basis": "right-handed-xyz",
+      "rotation": "local-to-world-xyzw"
+    },
+    "units": {
+      "length": "m",
+      "mass": "kg",
+      "time": "s",
+      "angle": "rad"
+    },
+    "gravityMps2": [
+      "0",
+      "0",
+      "0"
+    ],
+    "bodies": [
+      {
+        "id": "rotor",
+        "kind": "dynamic",
+        "massKg": "1",
+        "inertia": {
+          "kind": "primitive-com",
+          "about": "com",
+          "frame": "body-local"
+        },
+        "initial": {
+          "positionM": [
+            "0",
+            "0",
+            "0"
+          ],
+          "orientationXYZW": [
+            "0",
+            "0",
+            "0",
+            "1"
+          ],
+          "velocityMps": [
+            "0",
+            "0",
+            "0"
+          ],
+          "angularVelocityRadps": [
+            "1",
+            "0",
+            "1"
+          ]
+        }
+      }
+    ],
+    "colliders": [
+      {
+        "id": "rotorCollider",
+        "bodyId": "rotor",
+        "geometry": {
+          "kind": "box",
+          "halfExtentsM": [
+            "1/10",
+            "1/10",
+            "1/5"
+          ]
+        },
+        "local": {
+          "positionM": [
+            "0",
+            "0",
+            "0"
+          ],
+          "orientationXYZW": [
+            "0",
+            "0",
+            "0",
+            "1"
+          ]
+        },
+        "material": {
+          "restitution": "0",
+          "friction": {
+            "static": "0",
+            "dynamic": "0"
+          }
+        },
+        "sensor": false,
+        "ccd": false,
+        "filter": {
+          "categoryBits": 1,
+          "maskBits": 65535
+        }
+      }
+    ],
+    "joints": [],
+    "cloths": [],
+    "fluids": [],
+    "sourceBindings": []
+  },
+  "literalOptions": {
+    "profile": "rigid-discrete-v1",
+    "fixedStepSeconds": "1/120",
+    "broadPhase": "direct"
+  },
+  "commands": [],
+  "baseline": {
+    "scope": "BASELINE_CHARACTERIZATION_CURRENT_UNMODIFIED_PUBLIC_SOURCE_AND_NATIVE",
+    "physicalResultBeforeExecution": "NOT_RUN_NO_ASSUMED_PASS_OR_FAIL",
+    "inputPairsConvertedGlobal": 1,
+    "detachedWorldInputCopies": 2,
+    "order": [
+      "authenticate/build both actual roots before any World construction",
+      "source createPhysicsWorld -> getState(before) -> step([])(after) -> dispose",
+      "native createPhysicsWorld -> getState(before) -> step([])(after) -> dispose",
+      "close acquisition; no later World API calls including disposal",
+      "Fraction classification source then native from already saved bytes only"
+    ],
+    "captureGuards": [
+      "ordinary canonical input and complete actual provider closure",
+      "finite one-body/no-contact/no-joint state and expected API cursor",
+      "raw unchanged input/options; detached before/after output arrays",
+      "Source/native exact public-state words/structure including public identity; graph-specific external provenance separate, no public field normalized out."
+    ],
+    "captureFailure": "Stop before later capture; record actual attempted/completed API counts and NOT_RUN later graph. Dispose owned Worlds before any classification.",
+    "physicalFailure": "Record first source physical NO_GO; separately assess already saved native data. No World calls, repair calls, rerun or whole-baseline physical PASS.",
+    "resultNames": [
+      "CHARACTERIZED_PHYSICAL_NO_GO",
+      "CHARACTERIZED_NO_FAILURE_OBSERVED",
+      "BASELINE_CAPTURE_FAILURE",
+      "REFERENCE_OR_RESOURCE_FAILURE"
+    ],
+    "apiCeilings": {
+      "constructors": 2,
+      "getState": 2,
+      "stepAttempts": 2,
+      "acceptedSteps": 2,
+      "disposeAttempts": 2,
+      "getModel": 0,
+      "query": 0,
+      "recorder": 0,
+      "WorldApisAfterClassificationStarts": 0
+    },
+    "referenceCeilings": {
+      "bodyGeometryCertificates": 1,
+      "oneDimensionalMonomialMoments": 9,
+      "observedStateAudits": 4,
+      "properRationalRotationConstructions": 4,
+      "fractionScalarOperations": 10000,
+      "trigonometricEvaluations": 0,
+      "squareRoots": 0,
+      "odeSolves": 0,
+      "linearSolves": 0,
+      "referenceProcessesMax": 1
+    },
+    "evidenceBytesMax": 2097152
+  },
+  "invariantGates": {
+    "epsilon": "1/1000000000000",
+    "angularMomentum": "Per component abs(L_after-L_before)<=e+e*max(1 SI unit,abs(L_before),abs(L_after)); kg m^2/s",
+    "rotationalEnergy": "abs(E_after-E_before)<=e+e*max(1 J,abs(E_before),abs(E_after)); J",
+    "quaternionSquaredNorm": "abs(q dot q-1)<=1/1000000000000",
+    "linearMomentumAbsoluteKgMps": "1/1000000000000",
+    "comPositionAbsoluteM": "1/1000000000000",
+    "rawInputOutputOwnership": "Exact bits/structure; no numerical tolerance",
+    "referenceOperationError": "Exact Fraction0 for geometric integral and observed-state invariants; resource limits separate"
+  },
+  "independentReference": {
+    "geometry": "Density m/volume from nine exact monomial integrals; integrate mass, COM and rho*((r dot r)*delta_ij-r_i*r_j) tensor. Never import/copy production shortcut.",
+    "observedRotation": "Exact proper R represented by observed F64 q: denominator s=q dot q; rational normalized-quaternion rotation, no sqrt/trig or producer-state normalization.",
+    "momentum": "L=R*I_integral*R^T*omega_world; energy=omega dot L/2; actual input geometry and observed state",
+    "futureAnalytic": "Axisymmetric Euler top only; independent factorized attitude plus body-Euler solution/derivative residual. No finest numerical run or candidate update as oracle.",
+    "futurePrecisionDigits": [
+      80,
+      120
+    ],
+    "futureDirectedRounding": [
+      "ROUND_FLOOR",
+      "ROUND_CEILING"
+    ],
+    "futureExponentBounds": [
+      -999999,
+      999999
+    ],
+    "futureCapitals": 1,
+    "futureClamp": 0,
+    "futureTraps": [
+      "InvalidOperation",
+      "DivisionByZero",
+      "Overflow",
+      "FloatOperation"
+    ],
+    "futureTaylorTermsFixed": 128,
+    "futureHalfAngleRange": [
+      "-2",
+      "2"
+    ],
+    "futureWidth80Power10": -65,
+    "futureWidth120Power10": -105,
+    "futureIntervalConsistency": "120 enclosure contained in80 enclosure; analytic derivative/Euler residual interval contains0 with same width gates",
+    "candidateComparison": "Worst distance to reference interval endpoints; no dropped reference uncertainty"
+  },
+  "futureRepairProposal": {
+    "status": "NEXT_PHASE_PROPOSAL_SEPARATE_REVIEW_SOURCE_FREEZE_AND_EXECUTION_TOKEN_REQUIRED",
+    "runAfterBaseline": "Only after immutable actual baseline is reviewed; no automatic repair or run.",
+    "nativeOnlyAfterSourceCompletePass": true,
+    "intendedDurationSeconds": "1",
+    "referenceTime": "Exact n*recorded native dt; equal elapsed sum between grids proven by raw power-of-two relation before math",
+    "trajectoryFamilies": [
+      {
+        "id": "T01-isotropic-cube",
+        "halfExtentsM": [
+          "1/10",
+          "1/10",
+          "1/10"
+        ],
+        "omegaWorldRadps": [
+          "1",
+          "0",
+          "1"
+        ]
+      },
+      {
+        "id": "T02-axisymmetric-off-axis",
+        "halfExtentsM": [
+          "1/10",
+          "1/10",
+          "1/5"
+        ],
+        "omegaWorldRadps": [
+          "1",
+          "0",
+          "1"
+        ]
+      }
+    ],
+    "grids": [
+      {
+        "id": "dt60",
+        "dtSeconds": "1/60",
+        "steps": 60,
+        "matchedSteps": [
+          0,
+          15,
+          30,
+          45,
+          60
+        ],
+        "omegaAbsoluteRadps": "1/1000",
+        "rotationEntryAbsolute": "1/1000"
+      },
+      {
+        "id": "dt120",
+        "dtSeconds": "1/120",
+        "steps": 120,
+        "matchedSteps": [
+          0,
+          30,
+          60,
+          90,
+          120
+        ],
+        "omegaAbsoluteRadps": "1/2000",
+        "rotationEntryAbsolute": "1/2000"
+      },
+      {
+        "id": "dt240",
+        "dtSeconds": "1/240",
+        "steps": 240,
+        "matchedSteps": [
+          0,
+          60,
+          120,
+          180,
+          240
+        ],
+        "omegaAbsoluteRadps": "1/4000",
+        "rotationEntryAbsolute": "1/4000"
+      }
+    ],
+    "relativeReferenceCoefficient": "1/1000000000000",
+    "refinement": {
+      "minimumErrorRatio": "9/5",
+      "roundingFloor": "1/100000000000",
+      "rule": "next<=max(previous/(9/5),floor); all below floor -> ROUNDING_FLOOR, no measured-order claim"
+    },
+    "oneStepControlsDtSeconds": "1/120",
+    "oneStepControls": [
+      {
+        "id": "C01-principal-axis",
+        "qXYZW": [
+          "0",
+          "0",
+          "0",
+          "1"
+        ],
+        "omegaWorldRadps": [
+          "0",
+          "0",
+          "1"
+        ]
+      },
+      {
+        "id": "C02-zero-positive",
+        "qXYZW": [
+          "0",
+          "0",
+          "0",
+          "1"
+        ],
+        "omegaWorldRadps": [
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      {
+        "id": "C03-zero-signed-negative-q",
+        "qXYZW": [
+          "-0",
+          "0",
+          "-0",
+          "-1"
+        ],
+        "omegaWorldRadps": [
+          "-0",
+          "0",
+          "-0"
+        ]
+      },
+      {
+        "id": "C04-off-axis-negative-q",
+        "qXYZW": [
+          "0",
+          "0",
+          "0",
+          "-1"
+        ],
+        "omegaWorldRadps": [
+          "1",
+          "0",
+          "1"
+        ]
+      }
+    ],
+    "controlsBase": "Axisymmetric literalModel; only listed q/omega fields change, all nonnegative geometry/mass values retained.",
+    "failureWorld": "Existing T02-axisymmetric-off-axis dt120 World at step0; no extra constructor or accepted recovery call.",
+    "refusalAttempts": [
+      {
+        "id": "R01-dt-as-step-input",
+        "call": "Reflect.apply(world.step,world,[native dt])",
+        "code": "INVALID_COMMAND"
+      },
+      {
+        "id": "R02-unknown-body",
+        "commands": [
+          {
+            "kind": "torque",
+            "bodyId": "missingRotor",
+            "torqueNm": [
+              "0",
+              "0",
+              "0"
+            ]
+          }
+        ],
+        "code": "INVALID_COMMAND"
+      },
+      {
+        "id": "R03-nonfinite-torque",
+        "commands": [
+          {
+            "kind": "torque",
+            "bodyId": "rotor",
+            "torqueNm": [
+              {
+                "ieee754F64LE": "000000000000f87f"
+              },
+              "0",
+              "0"
+            ]
+          }
+        ],
+        "code": "INVALID_COMMAND"
+      },
+      {
+        "id": "R04-angular-movement-guard",
+        "commands": [
+          {
+            "kind": "torque",
+            "bodyId": "rotor",
+            "torqueNm": [
+              "0",
+              "0",
+              "1000000"
+            ]
+          }
+        ],
+        "code": "NUMERIC_LIMIT",
+        "supportClaim": "Refused guard only; no successful torque dynamics qualification"
+      }
+    ],
+    "faultAttempts": [
+      {
+        "id": "F01-angular-candidate",
+        "site": "After selected free angular candidate, before orientation candidate",
+        "marker": "g1AngularMarker"
+      },
+      {
+        "id": "F02-pose-candidate",
+        "site": "After orientation candidate, before public output preparation",
+        "marker": "g1PoseMarker"
+      },
+      {
+        "id": "F03-before-shared-commit",
+        "site": "After complete candidate/output preparation, before any accepted assignment",
+        "marker": "g1CommitMarker"
+      }
+    ],
+    "failureChecks": "Each failure -> getState once -> complete accepted/cache/clock raw equality to step0; same marker identity, no half update. Next originally scheduled accepted step checks recovery against analytic reference.",
+    "ledgerPerGraph": {
+      "constructors": 10,
+      "trajectoryAcceptedSteps": 840,
+      "controlAcceptedSteps": 4,
+      "acceptedSteps": 844,
+      "refusals": 4,
+      "unknownFaults": 3,
+      "stepAttempts": 851,
+      "getState": 17,
+      "disposeAttempts": 10,
+      "rotationStageEntriesMax": 847,
+      "query": 0,
+      "getModel": 0,
+      "recorder": 0
+    },
+    "ledgerBothGraphs": {
+      "constructors": 20,
+      "acceptedSteps": 1688,
+      "refusals": 8,
+      "unknownFaults": 6,
+      "stepAttempts": 1702,
+      "getState": 34,
+      "disposeAttempts": 20,
+      "rotationStageEntriesMax": 1694,
+      "nativeModelOptionsConversionsGlobal": 10
+    },
+    "referenceCeilings": {
+      "geometryCertificates": 2,
+      "uniqueNonzeroAnalyticSamples": 9,
+      "decimal80Evaluations": 9,
+      "decimal120Evaluations": 9,
+      "sinCosEvaluationsTotalMax": 72,
+      "sqrtEvaluationsTotalMax": 18,
+      "taylorTermsPerEvaluation": 128,
+      "observedStateAudits": 1708,
+      "fractionScalarOperations": 10000000,
+      "odeSolves": 0,
+      "linearSolves": 0,
+      "referenceProcessesMax": 1
+    },
+    "referenceReuse": "Two trajectories x4nonzero matched times=8 plus principal-axis one-step=1. Negative-q off-axis control reuses identical physical input/time with exact sign mapping; zero states exact. Initial/accepted invariant audits remain immediate per state.",
+    "notQualified": [
+      "triaxial G1b",
+      "successful torque response",
+      "contact/joint/mixed trajectory",
+      "generic rotation accuracy",
+      "public activation",
+      "changed P3/P4 old contracts"
+    ]
+  },
+  "resourceCeilingsEachSeparateCampaign": {
+    "internalWorkMs": 170000,
+    "externalOwnedGroupMs": 180000,
+    "cleanupMsMax": 4000,
+    "ownedLogicalDataBytes": 67108864,
+    "referenceWorkBytes": 8388608,
+    "worldHarnessWorkBytes": 8388608,
+    "sourceBuildBytes": 16777216,
+    "evidenceBytes": 16777216,
+    "reserveBytes": 16777216,
+    "storedFractionBits": 4096,
+    "intermediateProductBits": 8192,
+    "intermediateSumBits": 8193,
+    "serializedRationalFieldCharacters": 1300,
+    "retries": 0,
+    "downloads": 0,
+    "externalRuntimeDependencies": 0,
+    "processHeapOrRssClaim": false
+  },
+  "authoringActuals": {
+    "moduleEvaluations": 0,
+    "fixtureConversions": 0,
+    "referenceArithmetic": 0,
+    "builds": 0,
+    "WorldCalls": 0
+  },
+  "stop": "Parent review and fresh authoring/execution freezes required. No source repair, API activation, baseline run or future qualification is authorized by these files alone.",
+  "contract": {
+    "path": "examples/physics-rigid-rotation-g1-2276/CONTRACT.md",
+    "bytes": 16124,
+    "sha256": "29feb5a2d8b9baf1f9508bd13fa5837af61a25c960f400b59aefd6014b914b95"
+  }
+}

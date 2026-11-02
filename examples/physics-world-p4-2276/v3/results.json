@@ -1,0 +1,141 @@
+{
+  "workId": "physics-world-p4-accounting-cache-v3-2276",
+  "status": "NUMERIC_EQ_PASS_COST_NO_GO_CACHE_SLICE_ENDED",
+  "evidence": {
+    "evidence/controls-01/summary.json": {
+      "bytes": 5122,
+      "sha256": "6ba3af8ef781c697b3fd31f18a006d11735c3360c4ca1005d6e39af530208980"
+    },
+    "evidence/controls-02/summary.json": {
+      "bytes": 243135,
+      "sha256": "747252c1e6a604128db737f1bd54b413eab9b1d6dc8ec525492013389b415598"
+    },
+    "evidence/gate-01/summary.json": {
+      "bytes": 31282,
+      "sha256": "296cb6118a8351c7dec52c66d9792e852ed6aa3bd022ef38fe6f0e85a878618f"
+    },
+    "evidence/gate-guard-01/result.json": {
+      "bytes": 4853,
+      "sha256": "8767548c7643198e9188daca14618290267f044bab5cb916630ba8dc9e21364b"
+    },
+    "diagnostics/preflight-01/preservation.json": {
+      "bytes": 975,
+      "sha256": "965c9df5273bac8ec607521cb3dee250b2b56b0383b17568f69510692b8badcc"
+    },
+    "metadata-repair-01.json": {
+      "bytes": 4697,
+      "sha256": "011547f3a69a8f58ff43c2a14e7f4f6513c6fcae9ad5b8215590f753ebd26d88"
+    }
+  },
+  "controls": {
+    "baselineSatAttempts": 12,
+    "candidateSatAttempts": 12,
+    "baselineOriginalSupportAttempts": 273,
+    "candidateOriginalSupportAttempts": 221,
+    "candidateLogicalSupportCalls": 273,
+    "candidateHits": 52
+  },
+  "controlSATs": 24,
+  "controlOriginalHelperAttempts": 494,
+  "fullCounts": {
+    "evaluateAttempted": 6,
+    "evaluateReturned": 6,
+    "currentRawMatched": 6
+  },
+  "studyFullEvaluations": 44,
+  "pairedCpu": {
+    "uncachedTotalNs": 885643000,
+    "candidateTotalNs": 1078494000,
+    "deltaNs": 192851000,
+    "observedReductionFraction": -0.21775252556617053,
+    "singlePriorFreshPairing": true,
+    "perFrameNonRegressionClaimed": false
+  },
+  "maximumOwnedUpperBoundBytes": 2537394,
+  "maximumMeasuredAllocationSumBytes": 2264294,
+  "memoryMeaning": {
+    "owned_bytes": "conservative owned upper bound",
+    "peak_owned_bytes": "peak conservative upper bound",
+    "measuredAllocationSumBytes": "actual sizeof observations; shared immutable objects may count twice; not unique heap/RSS",
+    "bookkeepingUpperBoundBytes": 262144
+  },
+  "frames": [
+    {
+      "scene": "ALIGNED",
+      "step": 1,
+      "uncachedCpuNs": 112457000,
+      "candidateCpuNs": 134875000,
+      "hits": 6720,
+      "supportCalls": 6912,
+      "ownedUpperBoundBytes": 355588,
+      "measuredAllocationSumBytes": 97898
+    },
+    {
+      "scene": "ALIGNED",
+      "step": 16,
+      "uncachedCpuNs": 176826000,
+      "candidateCpuNs": 218534000,
+      "hits": 4320,
+      "supportCalls": 8640,
+      "ownedUpperBoundBytes": 2521984,
+      "measuredAllocationSumBytes": 2264294
+    },
+    {
+      "scene": "OFFSET",
+      "step": 1,
+      "uncachedCpuNs": 111036000,
+      "candidateCpuNs": 134923000,
+      "hits": 6720,
+      "supportCalls": 6912,
+      "ownedUpperBoundBytes": 355588,
+      "measuredAllocationSumBytes": 97898
+    },
+    {
+      "scene": "OFFSET",
+      "step": 16,
+      "uncachedCpuNs": 172805000,
+      "candidateCpuNs": 219639000,
+      "hits": 4320,
+      "supportCalls": 8640,
+      "ownedUpperBoundBytes": 2515264,
+      "measuredAllocationSumBytes": 2257574
+    },
+    {
+      "scene": "YAW",
+      "step": 1,
+      "uncachedCpuNs": 134943000,
+      "candidateCpuNs": 153212000,
+      "hits": 7040,
+      "supportCalls": 7680,
+      "ownedUpperBoundBytes": 597624,
+      "measuredAllocationSumBytes": 339934
+    },
+    {
+      "scene": "YAW",
+      "step": 16,
+      "uncachedCpuNs": 177576000,
+      "candidateCpuNs": 217311000,
+      "hits": 4320,
+      "supportCalls": 8640,
+      "ownedUpperBoundBytes": 2516576,
+      "measuredAllocationSumBytes": 2258886
+    }
+  ],
+  "firstPreflightFailure": {
+    "cause": "CPython3.13 automaticclassmetadata outsideauthorwhitelist",
+    "SATCalls": 0,
+    "supportCalls": 0,
+    "fullReferences": 0,
+    "originalSourcePreserved": true,
+    "repair": "exactmetadataASTvalidation; numericalmethodwhitelist unchanged"
+  },
+  "originalWorldCalls": 0,
+  "productionAdopted": false,
+  "furtherCacheIterationAuthorized": false,
+  "original8BoxFullExit": "NO_GO",
+  "historicalReplySigns": "UNKNOWN_PRESERVED",
+  "oldRawCensusFailure": "PRESERVED",
+  "originalTolerancesOrBudgetChanges": false,
+  "developMerge": "PENDING_WHOLE_REQUIRED_ROADMAP",
+  "deployment": "NOT_RUN"
+}

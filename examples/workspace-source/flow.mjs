@@ -1,3 +1,4 @@
+import { makeModel, dynamicPart } from '../physics-model-input/model.mjs';
 import * as CAD from '@barocss/cad';
 import * as Interop from '@barocss/cad-interop';
 import * as GPU from '@barocss/gpu';
@@ -6,7 +7,7 @@ import * as Physics from '@barocss/physics';
 import * as Viewer from '@barocss/viewer';
 import { parseBaroCadSource } from '@barocss/cad-interop/native';
 import { prepareBaroCadModelSetDisplay } from '@barocss/cad-interop/model-set';
-import { createClothWorld, PhysicsError as ClothPhysicsError } from '@barocss/physics/cloth';
+import { copyPhysicsModelPreset } from '../physics-model-data-2276/model-data.mjs';
 
 export { Viewer };
 export const nativeSource = `@model source_model {
@@ -45,22 +46,39 @@ export function runCPUFlow() {
   requireValue(material.ok, 'GPU material source compilation failed');
   requireValue(compileGpuCompatibility === GPU.compileGpu, 'GPU compatibility subpath changed compiler identity');
 
-  const world = createClothWorld({ format: 'barocss-cloth-scene', version: 1,
-    revision: 'sourceConsumer1', basis: 'right-handed-xyz-metres',
-    fixedStepSeconds: 1 / 120, profile: 'pinned-sheet-sphere-v1' });
+  const rigid = Physics.createPhysicsWorld(makeModel({ revision: 'sourceRigid1', gravityMps2: [0, 0, 0],
+    parts: [dynamicPart('part:source', { kind: 'sphere', radiusM: 0.1 },
+      { positionM: [0, 0, 0], velocityMps: [1, 0, 0] })] }),
+  { profile: 'rigid-discrete-v1', fixedStepSeconds: 1 / 120, broadPhase: 'direct' });
+  let rigidState, rigidQuery;
+  try {
+    rigidState = rigid.step();
+    rigidQuery = rigid.query({ kind: 'overlap-sphere', centerM: [1 / 120, 0, 0],
+      radiusM: 0.01, includeSensors: false });
+    requireValue(rigid.getModel().revision === 'sourceRigid1' && rigidState.stepIndex === 1 &&
+      rigidState.bodies[0].orientationXYZW.length === 4 &&
+      rigidQuery.kind === 'overlap-sphere' && rigidQuery.colliderIds[0] === 'part:source.shape',
+    'Physics model, accepted rigid state or collider query differs');
+    requireValue(/^sha256:[0-9a-f]{64}$/.test(rigidState.identity.providerDigest),
+      'Physics provider identity is missing');
+  } finally { rigid.dispose(); }
+
+  const clothInput = copyPhysicsModelPreset('cloth-pinned-sphere-visual-v1');
+  clothInput.model.revision = 'sourceConsumer1';
+  const world = Physics.createPhysicsWorld(clothInput.model, clothInput.options);
   let cloth;
   try {
-    cloth = world.step(1 / 120);
-    requireValue(cloth.stepIndex === 1 && cloth.vertexCount === 289,
+    cloth = world.step([]);
+    requireValue(cloth.stepIndex === 1 && cloth.cloths[0].positionsM.length / 3 === 289,
       'Physics cloth API did not perform one step');
   } finally { world.dispose(); }
   let disposedRefused = false;
   let rootErrorIdentity = false;
   try { world.getState(); } catch (error) {
-    disposedRefused = error instanceof ClothPhysicsError && error.code === 'DISPOSED';
+    disposedRefused = error instanceof Physics.PhysicsError && error.code === 'DISPOSED';
     rootErrorIdentity = error instanceof Physics.PhysicsError;
   }
-  requireValue(disposedRefused, 'Disposed cloth accepted getState or lost its subpath error identity');
+  requireValue(disposedRefused, 'Disposed cloth accepted getState or lost its canonical root error identity');
   requireValue(typeof Viewer.Viewer === 'function' && typeof Viewer.createViewer === 'function',
     'Viewer public class or factory is missing');
   const familyExports = Object.fromEntries(Object.entries({ CAD, Interop, GPU, Physics, Viewer })
@@ -68,6 +86,7 @@ export function runCPUFlow() {
   return { ok: true, familyExports, nativeModel: native.model.name, nativeSurface: packet.surfaceId,
     vertices: mesh.positions.length / 3, triangles: gpuMesh.indices.length / 3,
     modelSetBinding: display[0].binding, materialCompiled: material.ok, gpuSourceCompatibility: true,
+    rigid: { stepIndex: rigidState.stepIndex, identity: rigidState.identity, query: rigidQuery },
     cloth: { stepIndex: cloth.stepIndex, vertexCount: cloth.vertexCount,
       disposedRefused, rootErrorIdentity }, viewerClass: typeof Viewer.Viewer };
 }

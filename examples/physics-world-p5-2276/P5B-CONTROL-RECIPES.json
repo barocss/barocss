@@ -1,0 +1,1973 @@
+{
+  "work_id": "physics-world-p5b-2276",
+  "artifact_type": "literal-public-model-command-fault-controls",
+  "status": "AUTHOR_NOT_RUN_PENDING_PARENT_FREEZE",
+  "owner_role": "public-control-recipe-author",
+  "source_request": "Exactly64preinitrejections and frozen6334entrycohort",
+  "last_updated": "2026-11-02",
+  "fixtureSource": "examples/physics-model-data-2276/model-data.mjs",
+  "negativeModels": [
+    {
+      "id": "N011",
+      "group": "inert-data",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "setPrototype",
+          "path": [
+            "model"
+          ],
+          "value": "null"
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N012",
+      "group": "inert-data",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "accessor",
+          "path": [
+            "model",
+            "gravityMps2"
+          ],
+          "value": [
+            0,
+            -9.81,
+            0
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N013",
+      "group": "inert-data",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "delete",
+          "path": [
+            "model",
+            "fluids",
+            0,
+            "initialPositionsM",
+            0
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N014",
+      "group": "inert-data",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "typedArray",
+          "path": [
+            "model",
+            "gravityMps2"
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N021",
+      "group": "model-header",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "format"
+          ],
+          "value": "unknown"
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N022",
+      "group": "model-header",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "version"
+          ],
+          "value": 2
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N023",
+      "group": "model-header",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "frame",
+            "basis"
+          ],
+          "value": "left-handed-xyz"
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N024",
+      "group": "model-header",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "units",
+            "length"
+          ],
+          "value": "mm"
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N031",
+      "group": "global-identities",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "id"
+          ],
+          "value": "p5SphereBody"
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N032",
+      "group": "global-identities",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "colliders",
+            0,
+            "bodyId"
+          ],
+          "value": "missingBody"
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N033",
+      "group": "global-identities",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "colliders",
+            0,
+            "id"
+          ],
+          "value": "p5Fluid"
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N034",
+      "group": "global-identities",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "sourceBindings"
+          ],
+          "value": [
+            {
+              "id": "badBinding",
+              "sourceRevision": "r1",
+              "sourceDigest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+              "modelId": "m",
+              "occurrenceId": "s",
+              "entityIds": [
+                "missingEntity"
+              ],
+              "approximation": {
+                "kind": "control-net-box",
+                "lossLabel": "control fixture"
+              }
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N041",
+      "group": "static-owner-roles",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "bodies",
+            0,
+            "kind"
+          ],
+          "value": "dynamic"
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N042",
+      "group": "static-owner-roles",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "bodies",
+            0,
+            "kind"
+          ],
+          "value": "kinematic"
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N043",
+      "group": "static-owner-roles",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "bodies"
+          ],
+          "value": []
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N044",
+      "group": "static-owner-roles",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "appendCopy",
+          "path": [
+            "model",
+            "bodies"
+          ],
+          "from": [
+            "model",
+            "bodies",
+            0
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N051",
+      "group": "vectors",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "bodies",
+            0,
+            "initial",
+            "positionM"
+          ],
+          "value": [
+            0,
+            0.1
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N052",
+      "group": "vectors",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "colliders",
+            0,
+            "local",
+            "positionM"
+          ],
+          "value": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N053",
+      "group": "vectors",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "setNumber",
+          "path": [
+            "model",
+            "gravityMps2",
+            1
+          ],
+          "numberTag": "NaN"
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N054",
+      "group": "vectors",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "fluids",
+            0,
+            "initialPositionsM",
+            0
+          ],
+          "value": [
+            0.2,
+            0.45,
+            "bad"
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N061",
+      "group": "identity-rotation",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "bodies",
+            0,
+            "initial",
+            "orientationXYZW"
+          ],
+          "value": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N062",
+      "group": "identity-rotation",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "bodies",
+            0,
+            "initial",
+            "orientationXYZW"
+          ],
+          "value": [
+            0,
+            0,
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N063",
+      "group": "identity-rotation",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "colliders",
+            0,
+            "local",
+            "orientationXYZW"
+          ],
+          "value": [
+            0.1,
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N064",
+      "group": "identity-rotation",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "setNumber",
+          "path": [
+            "model",
+            "bodies",
+            0,
+            "initial",
+            "orientationXYZW",
+            0
+          ],
+          "numberTag": "negativeZero"
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N071",
+      "group": "material",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "colliders",
+            0,
+            "material",
+            "restitution"
+          ],
+          "value": 0.2
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N072",
+      "group": "material",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "colliders",
+            0,
+            "material",
+            "friction",
+            "static"
+          ],
+          "value": 0.3
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N073",
+      "group": "material",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "colliders",
+            0,
+            "material",
+            "friction",
+            "dynamic"
+          ],
+          "value": -0.1
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N074",
+      "group": "material",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "setNumber",
+          "path": [
+            "model",
+            "colliders",
+            0,
+            "material",
+            "restitution"
+          ],
+          "numberTag": "negativeZero"
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N081",
+      "group": "filter-and-flags",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "colliders",
+            0,
+            "filter",
+            "categoryBits"
+          ],
+          "value": 0
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N082",
+      "group": "filter-and-flags",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "colliders",
+            0,
+            "filter",
+            "maskBits"
+          ],
+          "value": 0
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N083",
+      "group": "filter-and-flags",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "colliders",
+            0,
+            "sensor"
+          ],
+          "value": true
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N084",
+      "group": "filter-and-flags",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "colliders",
+            0,
+            "ccd"
+          ],
+          "value": true
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N091",
+      "group": "geometry",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "colliders",
+            0,
+            "geometry",
+            "radiusM"
+          ],
+          "value": 0
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N092",
+      "group": "geometry",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "colliders",
+            0,
+            "geometry",
+            "halfExtentsM",
+            0
+          ],
+          "value": -0.35
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N093",
+      "group": "geometry",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "colliders",
+            0,
+            "geometry",
+            "halfExtentsM",
+            1
+          ],
+          "value": 0
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N094",
+      "group": "geometry",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "bodies",
+            0,
+            "initial",
+            "positionM",
+            0
+          ],
+          "value": 0.351
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N101",
+      "group": "cloth-rest-and-initial",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "restPositionsM",
+            0,
+            0
+          ],
+          "value": -0.49
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N102",
+      "group": "cloth-rest-and-initial",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "initialPositionsM",
+            0,
+            0
+          ],
+          "value": -0.49
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N103",
+      "group": "cloth-rest-and-initial",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "initialVelocitiesMps",
+            0,
+            0
+          ],
+          "value": 0.001
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N104",
+      "group": "cloth-rest-and-initial",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "reverse",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "restPositionsM"
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N111",
+      "group": "cloth-triangle-and-pins",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "triangles",
+            0
+          ],
+          "value": [
+            0,
+            1,
+            17
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N112",
+      "group": "cloth-triangle-and-pins",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "pinnedVertexIndices"
+          ],
+          "value": [
+            0,
+            15
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N113",
+      "group": "cloth-triangle-and-pins",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "delete",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "triangles",
+            0
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N114",
+      "group": "cloth-triangle-and-pins",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "triangles",
+            0
+          ],
+          "value": [
+            0,
+            17,
+            289
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N121",
+      "group": "cloth-mass-and-order",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "vertexMassesKg",
+            0
+          ],
+          "value": 0.001
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N122",
+      "group": "cloth-mass-and-order",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "vertexMassesKg",
+            0
+          ],
+          "value": 0
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N123",
+      "group": "cloth-mass-and-order",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "reverse",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "constraints"
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N124",
+      "group": "cloth-mass-and-order",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "constraints",
+            0,
+            "a"
+          ],
+          "value": 1
+        },
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "constraints",
+            0,
+            "b"
+          ],
+          "value": 0
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N131",
+      "group": "cloth-constraint-fields",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "constraints",
+            0,
+            "restLengthM"
+          ],
+          "value": 0.06250000001
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N132",
+      "group": "cloth-constraint-fields",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "constraints",
+            0,
+            "complianceMPerN"
+          ],
+          "value": 0.002
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N133",
+      "group": "cloth-constraint-fields",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "constraints",
+            0,
+            "kind"
+          ],
+          "value": "shear"
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N134",
+      "group": "cloth-constraint-fields",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "cloths",
+            0,
+            "initialVelocitiesMps",
+            0
+          ],
+          "value": [
+            0,
+            0
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N141",
+      "group": "fluid-fields",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "delete",
+          "path": [
+            "model",
+            "fluids",
+            0,
+            "initialPositionsM",
+            255
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N142",
+      "group": "fluid-fields",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "fluids",
+            0,
+            "initialVelocitiesMps",
+            0,
+            0
+          ],
+          "value": 0.001
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N143",
+      "group": "fluid-fields",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "fluids",
+            0,
+            "massModel",
+            "kind"
+          ],
+          "value": "kg"
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N144",
+      "group": "fluid-fields",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "fluids",
+            0,
+            "smoothingRadiusM"
+          ],
+          "value": 0.09
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N151",
+      "group": "fluid-strict-bounds-spacing",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "fluids",
+            0,
+            "initialPositionsM",
+            0,
+            0
+          ],
+          "value": 0.0124999999
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N152",
+      "group": "fluid-strict-bounds-spacing",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "fluids",
+            0,
+            "initialPositionsM",
+            0,
+            0
+          ],
+          "value": 0.6875000001
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N153",
+      "group": "fluid-strict-bounds-spacing",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "copy",
+          "path": [
+            "model",
+            "fluids",
+            0,
+            "initialPositionsM",
+            1
+          ],
+          "from": [
+            "model",
+            "fluids",
+            0,
+            "initialPositionsM",
+            0
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N154",
+      "group": "fluid-strict-bounds-spacing",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "fluids",
+            0,
+            "initialPositionsM",
+            1,
+            0
+          ],
+          "value": 0.224999
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N161",
+      "group": "unsupported-populations-options",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "copyFromPreset",
+          "path": [
+            "model",
+            "cloths"
+          ],
+          "presetProfile": "cloth-pinned-sphere-visual-v1",
+          "from": [
+            "model",
+            "cloths"
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N162",
+      "group": "unsupported-populations-options",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "joints"
+          ],
+          "value": [
+            {
+              "id": "unsupportedJoint"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N163",
+      "group": "unsupported-populations-options",
+      "profile": "fluid-basin-xsph-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "model",
+            "fluids",
+            0,
+            "visualSmoothing",
+            "coefficient"
+          ],
+          "value": 0.2
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "N164",
+      "group": "unsupported-populations-options",
+      "profile": "fluid-basin-visual-v1",
+      "operations": [
+        {
+          "kind": "set",
+          "path": [
+            "options",
+            "unexpected"
+          ],
+          "value": true
+        }
+      ],
+      "expected": {
+        "code": "INVALID_CONFIG",
+        "returnedWorlds": 0,
+        "domainInitializerCalls": 0,
+        "getterReads": 0
+      }
+    }
+  ],
+  "operationSemantics": {
+    "set": "set detached value at path; clone operation.value without losing -0",
+    "setNumber": "NaN=Number.NaN;negativeZero=-0 (never JSON stringify as authority)",
+    "delete": "delete ownproperty without compacting arrays",
+    "accessor": "install enumerable own getter that increments getterReads; MUST NOT invoke",
+    "setPrototype": "Object.setPrototypeOf(target,null)",
+    "typedArray": "replace ordinary numeric array with Float64Array copy",
+    "copy": "deepcopy sibling from path",
+    "reverse": "reverse selected clonedarray only",
+    "appendCopy": "push deepcopy frompath to array",
+    "copyFromPreset": "deepcopy from another detached publicpreset, no World/helpercalls"
+  },
+  "commands": [
+    {
+      "id": "force-static",
+      "argument": [
+        {
+          "kind": "force",
+          "bodyId": "$staticBodyId",
+          "forceN": [
+            1,
+            0,
+            0
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_COMMAND",
+        "kernelCalls": 0,
+        "acceptedUnchanged": true,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "impulse-static",
+      "argument": [
+        {
+          "kind": "impulse",
+          "bodyId": "$staticBodyId",
+          "impulseNs": [
+            1,
+            0,
+            0
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_COMMAND",
+        "kernelCalls": 0,
+        "acceptedUnchanged": true,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "torque-static",
+      "argument": [
+        {
+          "kind": "torque",
+          "bodyId": "$staticBodyId",
+          "torqueNm": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_COMMAND",
+        "kernelCalls": 0,
+        "acceptedUnchanged": true,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "angular-impulse-static",
+      "argument": [
+        {
+          "kind": "angularImpulse",
+          "bodyId": "$staticBodyId",
+          "angularImpulseNms": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_COMMAND",
+        "kernelCalls": 0,
+        "acceptedUnchanged": true,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "kinematic-target-static",
+      "argument": [
+        {
+          "kind": "kinematicTarget",
+          "bodyId": "$staticBodyId",
+          "positionM": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_COMMAND",
+        "kernelCalls": 0,
+        "acceptedUnchanged": true,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "numeric-old-dt",
+      "argument": 0.008333333333333333,
+      "expected": {
+        "code": "INVALID_COMMAND",
+        "kernelCalls": 0,
+        "acceptedUnchanged": true,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "accessor-command",
+      "argument": [
+        {
+          "kind": "force",
+          "bodyId": "$staticBodyId",
+          "forceN": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "kind": "accessor",
+          "path": [
+            0,
+            "forceN"
+          ],
+          "value": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "expected": {
+        "code": "INVALID_COMMAND",
+        "kernelCalls": 0,
+        "acceptedUnchanged": true,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "unknown-kind",
+      "argument": [
+        {
+          "kind": "unknown",
+          "bodyId": "$staticBodyId"
+        }
+      ],
+      "expected": {
+        "code": "INVALID_COMMAND",
+        "kernelCalls": 0,
+        "acceptedUnchanged": true,
+        "getterReads": 0
+      }
+    }
+  ],
+  "queryArguments": [
+    {
+      "kind": "overlap-sphere",
+      "centerM": [
+        0,
+        0,
+        0
+      ],
+      "radiusM": 0.1,
+      "includeSensors": false
+    },
+    {
+      "kind": "raycast",
+      "originM": [
+        0,
+        0,
+        0
+      ],
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "maxDistanceM": 1,
+      "includeSensors": false
+    }
+  ],
+  "queryExpected": "INVALID_QUERY after complete genericshape;2perprofile=8",
+  "faults": [
+    {
+      "id": "mid-kernel",
+      "kind": "unknown-synthetic",
+      "site": "after first original cloth projectDistance return or first original PBF projectDensity return",
+      "identity": "preallocated thrown sentinel escapes unchanged",
+      "perGraph": 4
+    },
+    {
+      "id": "post-diagnostic",
+      "kind": "unknown-synthetic",
+      "site": "after original private candidate diagnostics return",
+      "identity": "preallocated thrown sentinel escapes unchanged",
+      "perGraph": 4
+    },
+    {
+      "id": "public-copy",
+      "kind": "unknown-synthetic",
+      "site": "publicDomainState before first static/public output copy completes, after privateprepare returns",
+      "identity": "preallocated thrown sentinel escapes unchanged",
+      "perGraph": 4
+    },
+    {
+      "id": "typed-numeric-validation",
+      "kind": "candidate-only NaN validator control",
+      "site": "after originalsolver return before private validation; positions[0]=NaN on freshcandidate only",
+      "expected": "actual root.PhysicsError NUMERIC_LIMIT with acceptedS1 details; recovery is already-planned S2",
+      "perGraph": 4,
+      "notNaturalPhysicalNoGo": true
+    },
+    {
+      "id": "rigid-owner-log",
+      "kind": "unknown-synthetic",
+      "site": "existing owner.prepare after publicstate before commit",
+      "identity": "preallocated thrown sentinel escapes unchanged",
+      "perGraph": 1
+    }
+  ],
+  "rigidFixture": {
+    "model": {
+      "format": "barocss-physics-model",
+      "version": 1,
+      "revision": "p5bOwnerControl1",
+      "frame": {
+        "id": "world",
+        "basis": "right-handed-xyz",
+        "rotation": "local-to-world-xyzw"
+      },
+      "units": {
+        "length": "m",
+        "mass": "kg",
+        "time": "s",
+        "angle": "rad"
+      },
+      "gravityMps2": [
+        0,
+        0,
+        0
+      ],
+      "bodies": [
+        {
+          "id": "ownerBody",
+          "kind": "dynamic",
+          "massKg": 1,
+          "inertia": {
+            "kind": "primitive-com",
+            "about": "com",
+            "frame": "body-local"
+          },
+          "initial": {
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "colliders": [
+        {
+          "id": "ownerCollider",
+          "bodyId": "ownerBody",
+          "geometry": {
+            "kind": "sphere",
+            "radiusM": 0.1
+          },
+          "local": {
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "material": {
+            "restitution": 0,
+            "friction": {
+              "static": 0,
+              "dynamic": 0
+            }
+          },
+          "sensor": false,
+          "ccd": false,
+          "filter": {
+            "categoryBits": 1,
+            "maskBits": 65535
+          }
+        }
+      ],
+      "joints": [],
+      "cloths": [],
+      "fluids": [],
+      "sourceBindings": []
+    },
+    "options": {
+      "profile": "rigid-discrete-v1",
+      "fixedStepSeconds": 0.008333333333333333,
+      "broadPhase": "direct"
+    }
+  },
+  "host": {
+    "entry": "examples/physics-cloth-viewer/host-controller.mjs",
+    "rootAlias": "actual rootprovider in same observed/native graph",
+    "getSnapshot": "{state:fullPhysicsState,model:PhysicsModel,frame,generation,...}",
+    "sequence": [
+      "constructpair2Worlds",
+      "normalhostadvance2Worldsteps",
+      "Viewer-submit fixturefailure after1shadowWorldstep",
+      "hostresetconstructs2Worlds anddisposesoldpair",
+      "normaladvance2Worldsteps",
+      "disposepair2Worlds"
+    ],
+    "Worlds": 4,
+    "WorldSteps": 5,
+    "externalSubmitFailures": 1,
+    "actualBrowser": false
+  },
+  "counts": {
+    "negativeModelFactoryAttempts": 64,
+    "negativeModelWorldReturns": 0,
+    "negativeModelInitializers": 0,
+    "perGraphFactoryAttempts": 101,
+    "perGraphWorldReturns": 37,
+    "perGraphWorldSteps": 6334,
+    "perGraphAccepted": 6281,
+    "perGraphUnknownOrLogSynthetic": 13,
+    "perGraphRefused": 40,
+    "typedNumericControlsWithinRefused": 4,
+    "perGraphInjectedWorldEvents": 17,
+    "perGraphExternalHostEvents": 1,
+    "perGraphAllInjectedEvents": 18,
+    "hiddenRestoreWorlds": 0
+  },
+  "runtime": "NOT_RUN; parent must freeze actual harness/helper hashes and recipe before calls"
+}

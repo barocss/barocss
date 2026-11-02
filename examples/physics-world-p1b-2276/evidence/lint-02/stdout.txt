@@ -1,0 +1,6 @@
+
+/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/generate-provider.mjs
+  38:1  warning  Unexpected console statement  no-console
+
+✖ 1 problem (0 errors, 1 warning)
+

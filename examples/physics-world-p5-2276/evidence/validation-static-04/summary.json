@@ -1,0 +1,35 @@
+{
+  "status": "FAIL",
+  "phase": "static",
+  "completed": [],
+  "counts": {
+    "WorldCalls": 0,
+    "factoryAttempts": 0,
+    "WorldReturns": 0,
+    "stepEntries": 0,
+    "acceptedSteps": 0,
+    "recorderAttachAttempts": 0,
+    "failedRecorderAttaches": 0,
+    "WorldDisposals": 0
+  },
+  "census": {
+    "bundleAttempts": 0,
+    "bundlePasses": 0,
+    "strictTypeAttempts": 0,
+    "strictTypePasses": 0,
+    "lintAttempts": 0,
+    "lintPasses": 0
+  },
+  "continuation": null,
+  "firstFailure": {
+    "name": "AssertionError",
+    "message": "unfrozen reused compiler input examples/physics-world-p5-2276/evidence/validation-static-03/packed-consumer-native/release-consumer.mjs",
+    "stack": "AssertionError [ERR_ASSERTION]: unfrozen reused compiler input examples/physics-world-p5-2276/evidence/validation-static-03/packed-consumer-native/release-consumer.mjs\n    at authenticateContinuation (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/validation-child.mjs:76:11)\n    at async main (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/validation-child.mjs:153:20)\n    at async file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/validation-child.mjs:200:1"
+  },
+  "packageBuild": false,
+  "providerGeneration": false,
+  "moduleEvaluation": false,
+  "browser": "NOT_RUN",
+  "nativeHostSDKImplementationClosure": "NOT_RUN",
+  "nativeHostProductIntegration": "NOT_RUN"
+}

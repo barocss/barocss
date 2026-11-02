@@ -1,0 +1,182 @@
+{
+  "workId": "physics-world-p4-observable-cost-2276",
+  "kind": "DATA_ONLY_COST_PROFILE",
+  "status": "PASS",
+  "sourceSummaries": {
+    "evidence/cost-census-01/summary.json": "bf65e7fadf3b87f6f80cfac4f1f05bd5fb9f4462fcf0947aaa3a19125bf44357",
+    "evidence/observable-census-01/summary.json": "be2317e3160da6ac961b7e4ec7e0bbddd20133947bc536c3de955691d9df80cb"
+  },
+  "twoSessionsNotOneContinuousBenchmark": true,
+  "historicalRawReplyZeroSigns": "UNKNOWN",
+  "oldStrictCensusStatus": "FAIL_PRESERVED",
+  "operations": [
+    {
+      "operation": "contacts",
+      "samples": 6,
+      "totalComputeMs": 68.094541,
+      "meanComputeMs": 11.349090166666667,
+      "medianComputeMs": 11.7079165,
+      "maximumComputeMs": 13.533584,
+      "totalParentIpcMs": 108.113916,
+      "byFrame": [
+        {
+          "scene": "ALIGNED",
+          "step": 1,
+          "computeMs": 9.007541
+        },
+        {
+          "scene": "ALIGNED",
+          "step": 16,
+          "computeMs": 13.32075
+        },
+        {
+          "scene": "OFFSET",
+          "step": 1,
+          "computeMs": 8.816833
+        },
+        {
+          "scene": "OFFSET",
+          "step": 16,
+          "computeMs": 13.533584
+        },
+        {
+          "scene": "YAW",
+          "step": 1,
+          "computeMs": 10.149708
+        },
+        {
+          "scene": "YAW",
+          "step": 16,
+          "computeMs": 13.266125
+        }
+      ]
+    },
+    {
+      "operation": "position-world",
+      "samples": 6,
+      "totalComputeMs": 886.493543,
+      "meanComputeMs": 147.74892383333332,
+      "medianComputeMs": 154.0446255,
+      "maximumComputeMs": 177.70125,
+      "totalParentIpcMs": 921.9388759999999,
+      "byFrame": [
+        {
+          "scene": "ALIGNED",
+          "step": 1,
+          "computeMs": 112.581625
+        },
+        {
+          "scene": "ALIGNED",
+          "step": 16,
+          "computeMs": 177.01075
+        },
+        {
+          "scene": "OFFSET",
+          "step": 1,
+          "computeMs": 111.110667
+        },
+        {
+          "scene": "OFFSET",
+          "step": 16,
+          "computeMs": 173.016584
+        },
+        {
+          "scene": "YAW",
+          "step": 1,
+          "computeMs": 135.072667
+        },
+        {
+          "scene": "YAW",
+          "step": 16,
+          "computeMs": 177.70125
+        }
+      ]
+    },
+    {
+      "operation": "step-ledger",
+      "samples": 6,
+      "totalComputeMs": 89.582542,
+      "meanComputeMs": 14.930423666666666,
+      "medianComputeMs": 15.0979375,
+      "maximumComputeMs": 17.303542,
+      "totalParentIpcMs": 111.004417,
+      "byFrame": [
+        {
+          "scene": "ALIGNED",
+          "step": 1,
+          "computeMs": 12.712959
+        },
+        {
+          "scene": "ALIGNED",
+          "step": 16,
+          "computeMs": 17.055083
+        },
+        {
+          "scene": "OFFSET",
+          "step": 1,
+          "computeMs": 12.315083
+        },
+        {
+          "scene": "OFFSET",
+          "step": 16,
+          "computeMs": 16.873292
+        },
+        {
+          "scene": "YAW",
+          "step": 1,
+          "computeMs": 13.322583
+        },
+        {
+          "scene": "YAW",
+          "step": 16,
+          "computeMs": 17.303542
+        }
+      ]
+    },
+    {
+      "operation": "quality",
+      "samples": 6,
+      "totalComputeMs": 129.545416,
+      "meanComputeMs": 21.59090266666667,
+      "medianComputeMs": 22.616854,
+      "maximumComputeMs": 27.190542,
+      "totalParentIpcMs": 146.533709,
+      "byFrame": [
+        {
+          "scene": "ALIGNED",
+          "step": 1,
+          "computeMs": 16.094083
+        },
+        {
+          "scene": "ALIGNED",
+          "step": 16,
+          "computeMs": 25.065125
+        },
+        {
+          "scene": "OFFSET",
+          "step": 1,
+          "computeMs": 15.511208
+        },
+        {
+          "scene": "OFFSET",
+          "step": 16,
+          "computeMs": 27.190542
+        },
+        {
+          "scene": "YAW",
+          "step": 1,
+          "computeMs": 20.168583
+        },
+        {
+          "scene": "YAW",
+          "step": 16,
+          "computeMs": 25.515875
+        }
+      ]
+    }
+  ],
+  "newNodeObservationTotalMs": 723.242708,
+  "newReferenceCallsInThisExtraction": 0,
+  "WorldCalls": 0,
+  "supports1200StepTimingClaim": false
+}

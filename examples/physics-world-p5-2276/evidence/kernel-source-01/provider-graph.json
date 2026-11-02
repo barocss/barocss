@@ -1,0 +1,96 @@
+{
+  "mode": "source-private-stage-bundle",
+  "inputs": {
+    "packages/barocss-physics/src/cloth/topology.ts": {
+      "originalSha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203",
+      "effectiveSha256": "34c9d84028acfec95827bc9828f198323421476aef723283b2a051b2bc6cd55b",
+      "observed": true
+    },
+    "packages/barocss-physics/src/identity.ts": {
+      "originalSha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be",
+      "effectiveSha256": "ef548e9e6359c272dea8df94f0fc8cd488ab3fef354312a5fced33c966eed6f6",
+      "observed": true
+    },
+    "packages/barocss-physics/src/fluid/constants.ts": {
+      "originalSha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec",
+      "effectiveSha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec",
+      "observed": false
+    },
+    "packages/barocss-physics/src/cloth/profile.ts": {
+      "originalSha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f",
+      "effectiveSha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f",
+      "observed": false
+    },
+    "packages/barocss-physics/src/domain/cloth.ts": {
+      "originalSha256": "2454474a24928a9f3d92d635a9391c537ef74de77112fdc2f2872536cb447883",
+      "effectiveSha256": "26137a577383b080078c8841612328b47194ef95fe843f5789eb967ad8bc1f77",
+      "observed": true
+    },
+    "packages/barocss-physics/src/domain/fluid.ts": {
+      "originalSha256": "bfcafa7cc2f2bbb4ec6e2c20797f5dc5410d995cd28305272a2c3665d827179a",
+      "effectiveSha256": "7d2b989aa77e5b0690177fb85bcc233ccbdd67394a26fe8a0ef42cb11799f519",
+      "observed": true
+    },
+    "packages/barocss-physics/src/types.ts": {
+      "originalSha256": "c7239aee629e9e331949c67bf49e43315cae50df1a8f90730b7d634b185ca182",
+      "effectiveSha256": "c7239aee629e9e331949c67bf49e43315cae50df1a8f90730b7d634b185ca182",
+      "observed": false
+    },
+    "packages/barocss-physics/src/cloth/metrics.ts": {
+      "originalSha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd",
+      "effectiveSha256": "2138ad824eb8def6f3122a6f8924c90b11328815b07eb23bf54e9ebb6ce74770",
+      "observed": true
+    },
+    "packages/barocss-physics/src/cloth/solver.ts": {
+      "originalSha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d",
+      "effectiveSha256": "43eebe6af5711f1fc13132b61eabf5e5d1cc825d50f1d30ee219c2170ab18f20",
+      "observed": true
+    },
+    "packages/barocss-physics/src/domain/types.ts": {
+      "originalSha256": "520bc0066d644c41d71af4c8c22c78061661460fe49e499cf8a2b29e292c1638",
+      "effectiveSha256": "520bc0066d644c41d71af4c8c22c78061661460fe49e499cf8a2b29e292c1638",
+      "observed": false
+    },
+    "packages/barocss-physics/src/fluid/pbf.ts": {
+      "originalSha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50",
+      "effectiveSha256": "83e493a580521133e124430e642258f7605caf716497ca0c6bfbdba467d99b98",
+      "observed": true
+    },
+    "packages/barocss-physics/src/fluid/static-box.ts": {
+      "originalSha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9",
+      "effectiveSha256": "a9133ebb697e7662c3450ac1627d0e809c6c0b2c1d13ad6644a3cce361a232e2",
+      "observed": true
+    },
+    "packages/barocss-physics/src/fluid/boundary.ts": {
+      "originalSha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c",
+      "effectiveSha256": "d4d7a2c8250c166d2ec5450aa0283a6ccc584fad5ad1b501ac4be41e1a540575",
+      "observed": true
+    },
+    "packages/barocss-physics/src/fluid/diagnostics.ts": {
+      "originalSha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215",
+      "effectiveSha256": "ec225e4e01b21daad25cecc08ca8333e80cf1491f41c908fc4df691f25bc6715",
+      "observed": true
+    },
+    "packages/barocss-physics/src/fluid/kernel.ts": {
+      "originalSha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da",
+      "effectiveSha256": "a7e43c805afb1996e293459ea89f9c6d549f2490de3635261414db3ab8e65080",
+      "observed": true
+    },
+    "packages/barocss-physics/src/cloth/constraints.ts": {
+      "originalSha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be",
+      "effectiveSha256": "0255e9494dbb799bfca93e0e46f107bb80b5a2329baeb20d44aaf945872454b8",
+      "observed": true
+    },
+    "packages/barocss-physics/src/fluid/neighbors.ts": {
+      "originalSha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3",
+      "effectiveSha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3",
+      "observed": false
+    },
+    "packages/barocss-physics/src/fluid/visual-viscosity.ts": {
+      "originalSha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3",
+      "effectiveSha256": "ceafb65d9d7d4ea8589e6e43c660e01c7e2213f827adaab3f461986134e04c56",
+      "observed": true
+    }
+  },
+  "bundleSha256": "93ef14771121ed950b470e9ed2b25c3a4a4e3ec088f2a9e7711a3bd010573251"
+}

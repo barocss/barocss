@@ -1,0 +1,285 @@
+{
+  "status": "AUTHOR_READY_PARENT_RUNTIME_FREEZE_AND_HIGH_REVIEW_REQUIRED",
+  "workId": "physics-rigid-rotation-g1a-repair-2276",
+  "runtimeAuthorized": false,
+  "productionActivation": false,
+  "scope": {
+    "source": "STAGED_COMMON_WORLD_SOURCE",
+    "native": "STAGED_EMITTED_PUBLIC_ENTRY",
+    "notRun": [
+      "current published native qualification",
+      "canonical build-root bundle",
+      "production activation",
+      "G1b triaxial",
+      "contact/joint/recorder integration"
+    ],
+    "baseline": "Original CHARACTERIZED_PHYSICAL_NO_GO and all original receipts remain immutable."
+  },
+  "cli": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "examples/physics-rigid-rotation-g1-2276/repair-campaign.mjs",
+    "--run-id",
+    "FRESH",
+    "--freeze",
+    "ABS_PARENT_FREEZE",
+    "--token",
+    "SHA256",
+    "--authorize-repair"
+  ],
+  "outerGuard": {
+    "module": "examples/physics-world-p5-2276/command-run.mjs",
+    "owner": "parent",
+    "processGroup": "All four build children and the persistent Python child inherit the parent-owned process group. No detached child.",
+    "externalMs": 180000,
+    "internalMs": 170000,
+    "failureCleanupMsMax": 4000,
+    "childWait": "close plus stdout/stderr EOF; bounded TERM/KILL on internal failure; outer guard owns complete group absence."
+  },
+  "runtimeFreeze": {
+    "status": "PARENT_AUTHORIZED_G1A_REPAIR_QUALIFICATION",
+    "mode": "G1A_STAGED_REPAIR_ONLY",
+    "runtimeAuthorized": true,
+    "productionActivation": false,
+    "runId": "exact CLI id",
+    "files": "Every actual owned src file (including unused copied files), package.json, all four runner files, candidate/Ready, reference/Ready/protocol, design/cases/authoring authority, baseline classifier and every referenced baseline artifact, parent highReview and current clarification authorities. Repo-relative byte/SHA records.",
+    "toolFiles": "All354 exact TOOLCHAIN-PINS-02.json entries: original218 plus136 canonical installed Node26.6.4/undici8.9.0 declaration/package files. Actual TSC --listFiles subset must match absolute byte/SHA pins. No numerical implementation source outside owned staged src.",
+    "highReview": {
+      "approved": true,
+      "path": "pinned parent-approved actual High review"
+    },
+    "maxFreezeBytes": 262144
+  },
+  "phases": [
+    "Authenticate entire parent freeze and tool pins; no math.",
+    "Copy actual package source, apply frozen exact overlay, generate SOURCE provider.",
+    "Strict NodeNext TSC emit index/replay roots into fresh staged dist, then generate EMITTED provider.",
+    "Bundle actual staged root and private control for source with installed Go esbuild; verify source/native own closures and exact untouched source transfer.",
+    "Import emitted identity/types DATA closure only; exactly two actual digest calls for generated source/native manifest objects. Save untouched manifest inputs/digests.",
+    "Convert ten unique literal model/options pairs once globally; save every F64 word. Convert nine refusal-command scalars and nine post-flow replacement scalars once. Prove native elapsed grid equivalence by exact BigInt F64 decoding.",
+    "Start one Python reference. Wait READY. Init bank once and require PASS before any World constructor or World-root module evaluation.",
+    "SOURCE all ten Worlds and every immediate initial/accepted audit; require sourceGraphComplete on source audit854.",
+    "Only then NATIVE all ten Worlds with immediate audits and exact saved source-frame raw parity, preserving distinct own providerDigest.",
+    "All Worlds disposed and private readers released; finish reference once, close stdin, require EOF+close exit0; postauthenticate actual providers and original inputs."
+  ],
+  "build": {
+    "sourceRoots": [
+      "src/index.ts",
+      "src/replay.ts"
+    ],
+    "sourceOriginalAuthorityCount": 79,
+    "newLeaves": [
+      "rigid-free-rotation.ts",
+      "g1-test-control.ts"
+    ],
+    "counts": "Discover and save actual generated/source/runtime/TSC/emit counts, not assumed caps. Generated manifest itself is separate.",
+    "copiedSource": "Every actual src file copied exact. Only staged world.ts/math.ts/provider-manifest.generated.ts differ; new leaf/control added. Parent overlay hashes and transfer list prove the delta.",
+    "sourceGenerator": [
+      "NODE",
+      "STAGED/src/generate-provider.mjs"
+    ],
+    "tsc": [
+      "NODE",
+      "PINNED/typescript/lib/tsc.js",
+      "-p",
+      "STAGED/tsconfig.g1.json",
+      "--listFiles",
+      "--listEmittedFiles"
+    ],
+    "tsconfig": {
+      "target": "ES2022",
+      "module": "NodeNext",
+      "moduleResolution": "NodeNext",
+      "lib": [
+        "ES2022"
+      ],
+      "strict": true,
+      "types": [
+        "node"
+      ],
+      "noEmitOnError": true,
+      "declaration": true,
+      "rootDir": "src",
+      "outDir": "dist",
+      "skipLibCheck": true,
+      "files": [
+        "src/index.ts",
+        "src/replay.ts"
+      ],
+      "typeRoots": [
+        "freeze.tools.nodeTypeRoot (canonical existing installed @types)"
+      ]
+    },
+    "emittedGenerator": [
+      "NODE",
+      "STAGED/src/generate-provider.mjs",
+      "--emitted"
+    ],
+    "sourceBundle": [
+      "PINNED_GO_ESBUILD",
+      "BUILD/source-entry.ts",
+      "--bundle",
+      "--format=esm",
+      "--platform=node",
+      "--target=node22",
+      "--log-level=error",
+      "--outfile=BUILD/source.mjs",
+      "--metafile=BUILD/source-meta.json"
+    ],
+    "nativeEntry": "Actual copied package publishConfig.exports[\".\"].import => STAGED/dist/index.js; control from same STAGED/dist/g1-test-control.js. No source fallback or duplicate bundle.",
+    "sourceEntry": "Actual src/index reexports plus same private control. No public package source export edit.",
+    "providerClarification": "Parent message approval:79 original index/replay source graph plus leaf/control; unbundled genuine staged NodeNext published entry. This does not claim current published package or canonical root bundle PASS.",
+    "identityClarification": "Parent separately approved exactly2 DATA digest calls using staged emitted identity.js and its canonical types.js closure; source generation precedes source bundle, emitted generation follows final TSC and is never overwritten.",
+    "declarationRepair": {
+      "authority": "TOOLCHAIN-PINS-02.json",
+      "root": "Exact freeze.tools.nodeTypeRoot equals pinned toolchain02 root and its realpath; node/package.json mandatory. types[node] only; ES2022 lib remains, no DOM or stub.",
+      "runtime": "Frozen Node22 remains. Node26 declaration version is not a runtime Node26 qualification.",
+      "TSCaudit": "Each actual outside-staged --listFiles input must have exact freeze.toolFiles pin, including Node and undici. No source fallback."
+    }
+  },
+  "population": {
+    "authority": "CASES.json literalModel/literalOptions/futureRepairProposal; REPAIR-CASES-01 supersedes old proposal counts/gates. No legacy conversion.",
+    "families": [
+      "T01-isotropic-cube",
+      "T02-axisymmetric-off-axis"
+    ],
+    "grids": {
+      "dt60": 60,
+      "dt120": 120,
+      "dt240": 240
+    },
+    "controls": [
+      "C01-principal-axis",
+      "C02-zero-positive",
+      "C03-zero-signed-negative-q",
+      "C04-off-axis-negative-q"
+    ],
+    "modelOptionsConversionsGlobal": 10,
+    "copiesPerPair": 2,
+    "refusalCommandScalarConversions": 9,
+    "postFlowReplacementScalarConversions": 9,
+    "signedZero": "Keep every F64LE word. No normalization for comparison or input. Intended rationals remain separate.",
+    "failureWorld": "Existing T02-axisymmetric-off-axis-dt120 at audited step0. Order R01..R04, F01..F03, N01..N03, then original scheduled trajectory step1. No extra recovery World or step."
+  },
+  "perGraph": {
+    "constructors": 10,
+    "acceptedSteps": 844,
+    "stepAttempts": 854,
+    "getState": 20,
+    "dispose": 10,
+    "commandRefusals": 4,
+    "unknownFaults": 3,
+    "postFlowGuardRefusals": 3,
+    "query": 0,
+    "getModel": 0,
+    "recorder": 0,
+    "cacheReads": 11
+  },
+  "combined": {
+    "constructors": 20,
+    "acceptedSteps": 1688,
+    "stepAttempts": 1708,
+    "getState": 40,
+    "dispose": 20,
+    "commandRefusals": 8,
+    "unknownFaults": 6,
+    "postFlowGuardRefusals": 6,
+    "identityDigestDataCalls": 2,
+    "buildChildren": 4,
+    "referenceChildren": 1,
+    "directChildren": 5,
+    "referenceRequests": 1710,
+    "referenceAudits": 1708,
+    "referenceRepliesIncludingReady": 1711,
+    "referenceInit": 1,
+    "referenceFinish": 1,
+    "retries": 0,
+    "warmups": 0,
+    "extraRecoverySteps": 0
+  },
+  "helperPerGraph": {
+    "dispatch": 850,
+    "prepare": 850,
+    "null": 420,
+    "eligible": 430,
+    "zero": 2,
+    "nonzero": 428,
+    "validate": 430,
+    "inheritedAdvanceOrientation": 848,
+    "sharedSin": 848,
+    "sharedCos": 848,
+    "bodySin": 428,
+    "bodyCos": 428,
+    "F01Site": 427,
+    "F02Site": 426,
+    "F03Site": 845,
+    "faultThrows": 3,
+    "guardReplacements": 3,
+    "attachments": 10,
+    "releases": 10,
+    "cacheReads": 11
+  },
+  "reference": {
+    "protocol": "REFERENCE-PROTOCOL.md exact schema",
+    "cli": [
+      "PYTHON",
+      "-B",
+      "repair-reference.py",
+      "--run-id",
+      "SAME_CAMPAIGN_ID",
+      "--freeze",
+      "ABS_PARENT_FREEZE",
+      "--token",
+      "SHA256",
+      "--out",
+      "FRESH_CAMPAIGN/reference"
+    ],
+    "maximumInputLineBytes": 262144,
+    "maximumOutputLineBytes": 65536,
+    "onePendingRequest": true,
+    "artifactAuthority": "Every bank/artifact/summary path is relative beneath fresh reference directory; authenticate bytes/SHA immediately. Metrics are opaque; reference owns exact physical/refinement gates. Also authenticate each saved reply-NNNN.json against the exact received stdout line bytes/SHA; charge both proof and reply files, with progress kept in the fixed reserve.",
+    "gates": "All frozen original conservation gates and approved trajectory/refinement gates unchanged. No runner oracle or alternate formula.",
+    "failurePrefix": "Count spawn/request attempts before calls and successful writes/replies separately. Any missing child count is UNKNOWN with last authenticated reply/progress lower bound. Preserve original progress bytes and hash when child fails; never report spawned unavailable arithmetic as0. On a FAIL reply, authenticate any supplied first-failure artifact before rejecting status; preserve the original reply as primary and record receipt-authentication failure separately. Before the reference API object is assigned, referenceSpawns>0 means spawnAttempted plus observed PID/UNKNOWN and UNKNOWN actual/in-flight counts; only referenceSpawns==0 permits actual0."
+  },
+  "ownership": {
+    "inputs": "Before/after every API call, raw snapshots of both caller copy and unique converted pair must match. Each public output is acyclic plain detached data; current/previous output containers cannot alias inputs/one another.",
+    "cache": "Serialize initial live cache graph immediately into bounded raw word/identity/prototype snapshot; retain no live graph as target. After each failed attempt get fresh cache, check running=false, serialize with per-world weak object identity IDs, include Map size/order/entries even empty, compare exact snapshot. One initial plus10after =11reads. WeakMap keys do not retain accepted objects. Serializer traversal Set explicitly cleared.",
+    "unknownFaults": "Throw exact per-graph marker object at F01/F02/F03; strict same-object identity. N01..N03 replace prepared omega before actual canonical validation. All ten failures preserve accepted state/cache/clock; original scheduled step1 proves recovery.",
+    "nativeParity": "Append source raw states once; retain only854 bounded offset/length/SHA index records. Native reads one bounded source frame at a time and compares every word/structure except providerDigest, which must equal each actual frozen own manifest digest and remain unequal/preserved."
+  },
+  "resources": {
+    "logicalOwnedBytes": 67108864,
+    "referenceWorkBytes": 8388608,
+    "worldHarnessWorkBytes": 8388608,
+    "sourceBuildBytes": 16777216,
+    "evidenceBytes": 16777216,
+    "reserveBytes": 16777216,
+    "maxOrdinaryRawNodes": 8192,
+    "maxRawDepth": 24,
+    "cacheNodes": 16384,
+    "cacheDepth": 32,
+    "cacheSnapshotBytes": 262144,
+    "stateFrameBytes": 65536,
+    "buildLogBytesPerChild": 1048576,
+    "referenceStderrBytes": 131072,
+    "failureSummaryReserveBytes": 524288,
+    "progressAndUnlistedReferenceReserveBytes": 1048576,
+    "scope": "Logical retained/serialization allowance and actual artifact bytes, not process heap or RSS; installed TS/esbuild/Node engine internal memory not measured.",
+    "worldChargeDerivation": "At each API/audit boundary charge all retained freeze bytes+decoded freeze, overlay/source/native manifests/metafile/transfer/TSlog, complete staged pins, all ten literal+native pairs and refusal/replacement data, source-offset index, artifact pins, graph/command/progress ledgers and current/previous/initial states. Primitive16B; string32+4UTF16-length; container128B+48Bperentry+4keylength; Map64Bperentry; buffers2byteLength+128. Shared objects counted once. Traversal visitedSet and recursive callable explicitly cleared in finally, no retained self-cycle. Fixed2MiB covers bounded current request/reply strings and parsed versions (262144+65536), stream carry131072, raw/output/clone/cache serialization scratch and traversal records; node caps and measured rooted layout are enforced before calls and after audit. Build/provider code buffers and compiler/service payloads have separate16MiB artifact envelope; no tool heap bound claimed.",
+    "evidence": "Track every own append and all unique authenticated reference proof/bank/summary/reply files. Before requests reserve2MiB for init,262144B for each audit/finish. Add1MiB for progress/final/failure/unlisted<=8KiB reference progress; final actual directory byte scan. Build tree separately<=16MiB. No evidence overwrite.",
+    "buildLogOwnership": "Two fixed preallocated1MiB buffers per active build child, one per stdout/stderr, with two scalar cursors. Original combined captured-byte cap1MiB. Copy directly into fixed storage, retain0per-chunk objects and no chunk array. Before raw writes assert cursor sum==capturedBytes<=1MiB and individual cursor bounds. Write bounded views after close; decode stdout exactly once, <=2MiB UTF16. Charge2MiB fixed storage+2MiB decode allowance plus actual build-tree bytes within existing16MiB build partition before allocation and after child closure. No Buffer.concat. Node/tool internal heap/RSS remain unmeasured."
+  },
+  "authorChecks": "Only gated node --check and TypeScript AST parse, static JSON/schema/hash/anchor inspections. Do not import this driver or overlay, construct literals, invoke overlay, build, load candidate, call reference, or construct World during authoring.",
+  "runtimeResult": "NOT_RUN",
+  "compileRepair02": {
+    "preservedFirstFailure": "evidence/g1a-repair-01; commit322b837a4; strict TSC failed before0fixture/identity/reference/World calls. No failed prefix overwritten.",
+    "candidateDelta": "Only erased as Vec3 on zero-return copied omega; removing these8ASCII bytes recovers original9dbc candidate exactly.",
+    "unchanged": "Every math expression/order, physical gate, source/native population, reference source/equations, old author/Ready authorities, production source, and build stage order.",
+    "next": "Parent High narrow-diff review and fresh g1a-repair-02 execution freeze; no author runtime."
+  },
+  "logStorageRepair03": {
+    "preservedRevision": "commit3df2e7922 preserves Ready02, erased candidate assertion and High NO_GO_LOG_METADATA_BOUND review02.",
+    "onlyRuntimeDelta": "command() fixed log storage/cursors, direct copies and explicit existing build-partition charge; no retained per-chunk containers.",
+    "unchanged": "Original shared1MiB captured-byte cap, raw failure logs, PID/exit/EOF/timeout fields, all numerical equations/criteria/reference/counts/order, World8MiB/raw/evidence/64MiB limits.",
+    "next": "Parent High narrow review03 and fresh runtime freeze; no author build or numerical execution."
+  }
+}

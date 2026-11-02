@@ -1,0 +1,39 @@
+{
+  "runId": "impulse-01",
+  "freezeSha256": "511b332d26a4a8875ac785d71076a0111236f71db8d45759474ca05861b89eff",
+  "freezePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/EXECUTION-FREEZE-01.json",
+  "counts": {
+    "oracleProcesses": 0,
+    "referenceRequests": 0,
+    "referenceRequestsDurableLowerBound": 0,
+    "referenceRequestsStatus": "NOT_STARTED",
+    "fixtureConversions": 0,
+    "candidateAttempts": 0,
+    "candidateReturns": 0,
+    "candidateThrows": 0,
+    "candidateUnexpectedThrows": 0,
+    "candidateRefusals": 0,
+    "candidateFaults": 0,
+    "candidateSolves": 0,
+    "validatorProcesses": 0,
+    "validatorReplies": 0,
+    "validatorPasses": 0,
+    "typescriptProcesses": 0,
+    "sourceBuilds": 0,
+    "WorldCalls": 0
+  },
+  "resources": {
+    "RSSClaim": false,
+    "processHeapMeasured": false,
+    "workingChargeModel": "owned payload/serialization only; High source review required",
+    "ownedDataCeilingBytes": 67108864,
+    "evidenceLimitBytes": 8388608,
+    "buildLimitBytes": 16777216,
+    "workingFixedBounds": {
+      "referenceBytes": 8388608,
+      "candidateBytes": 8388608,
+      "reserveBytes": 25165824
+    }
+  },
+  "planSha256": "baf07b5973eb8daccc475cf494c761151540008649a08b602b859de83705d1d6"
+}

@@ -1,0 +1,20 @@
+test_closing_inactive_contact (__main__.ContactTests.test_closing_inactive_contact) ... ok
+test_endpoint_layout_and_duplicate_refuse (__main__.ContactTests.test_endpoint_layout_and_duplicate_refuse) ... ok
+test_exact_gate_equality_and_adjacent_decimal (__main__.ContactTests.test_exact_gate_equality_and_adjacent_decimal) ... ok
+test_negative_impulse (__main__.ContactTests.test_negative_impulse) ... ok
+test_precision_classification_disagreement_refuses (__main__.ContactTests.test_precision_classification_disagreement_refuses) ... ok
+test_precision_numeric_disagreement_refuses (__main__.ContactTests.test_precision_numeric_disagreement_refuses) ... ok
+test_rotational_point_velocity_at_fixed_pose (__main__.ContactTests.test_rotational_point_velocity_at_fixed_pose) ... ok
+test_separating_active_contact (__main__.ContactTests.test_separating_active_contact) ... ok
+test_separating_inactive_contact (__main__.ContactTests.test_separating_inactive_contact) ... ok
+test_supported_zero_speed_uses_final_impulse_without_warm_subtraction (__main__.ContactTests.test_supported_zero_speed_uses_final_impulse_without_warm_subtraction) ... ok
+test_axis_aligned_touching_support_witness (__main__.LayoutAndGeometryTests.test_axis_aligned_touching_support_witness) ... ok
+test_point_line_outside_obb (__main__.LayoutAndGeometryTests.test_point_line_outside_obb) ... ok
+test_raw_layout_preserves_negative_zero (__main__.LayoutAndGeometryTests.test_raw_layout_preserves_negative_zero) ... ok
+test_separated_box_plane_gap (__main__.LayoutAndGeometryTests.test_separated_box_plane_gap) ... ok
+test_ten_frame_record_layout (__main__.LayoutAndGeometryTests.test_ten_frame_record_layout) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.002s
+
+OK

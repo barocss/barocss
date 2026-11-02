@@ -1,0 +1,87 @@
+{
+  "kind": "P5B_OWNED_COMMAND_GUARD",
+  "receiptId": "g1-baseline-guard-01",
+  "censusId": "g1-baseline-guard-01",
+  "status": "PASS",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "examples/physics-rigid-rotation-g1-2276/baseline.mjs",
+    "--run-id",
+    "g1-baseline-01",
+    "--freeze",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/EXECUTION-FREEZE-01.json",
+    "--token",
+    "6a04602e299bb6950775205be5a7d8748ac9e9b35d28ff92e779b00b4cc2b055",
+    "--authorize-baseline"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "inputs": {
+    "command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": "2026-11-02T03:24:15.925Z",
+  "spawnAt": "2026-11-02T03:24:15.965Z",
+  "pid": 7168,
+  "processGroupId": 7168,
+  "exit": 0,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": null,
+  "processClosed": true,
+  "groupSignals": [],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/g1-baseline-guard-01/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/g1-baseline-guard-01/progress.json",
+  "errors": [],
+  "exitAt": "2026-11-02T03:24:16.682Z",
+  "finishedAt": "2026-11-02T03:24:16.682Z",
+  "elapsedMs": 756.990625,
+  "ownedGroupPresentAtFinalization": false,
+  "censusElapsedMs": 719.1665,
+  "cleanupElapsedMs": 0,
+  "output": {
+    "stdout": {
+      "observedBytes": 1156,
+      "capturedBytes": 1156,
+      "omittedBytes": 0,
+      "sha256": "98db9c59d4e1de4c4ced57815081930ac4a2c2dfb4ad474830c7fb5f877cfa7d",
+      "eof": true,
+      "writeError": null
+    },
+    "stderr": {
+      "observedBytes": 0,
+      "capturedBytes": 0,
+      "omittedBytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "eof": true,
+      "writeError": null
+    }
+  },
+  "censusSummary": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/g1-baseline-guard-01/summary.json",
+    "present": false
+  },
+  "censusProgress": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/g1-baseline-guard-01/progress.json",
+    "present": true,
+    "bytes": 1868,
+    "sha256": "09830380a3c99d409e712b55032dfc9281856c921f4b6f0a6aafff0e0f62b95d",
+    "status": "RUNNING",
+    "counts": null,
+    "referenceCallCounts": null,
+    "firstFailure": null
+  },
+  "callCountBoundary": "Only counts present in original census progress/summary/timing receipts are reported; a timeout never implies the primitive call population completed."
+}

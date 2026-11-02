@@ -1,0 +1,226 @@
+{
+  "work_id": "physics-motion-nogo-2276",
+  "artifact_type": "verified-diagnostic-summary",
+  "status": "BOUNDED_DIAGNOSTICS_COMPLETE_PUBLIC_NO_GO_PRESERVED",
+  "runs": [
+    {
+      "name": "hinge-unit-01",
+      "mode": "hinge-unit",
+      "command": [
+        "python3",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-nogo-2276/hinge-unit.test.py"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T12:17:47.142Z",
+      "finished": "2026-11-01T12:17:47.255Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "a30fdce33ff749ac2a5d48938b3d52e97adbd9cd8ac3209721dfe5930cfe4861",
+      "numericalWorldCalls": 0,
+      "oldSolverCalls": 0
+    },
+    {
+      "name": "stack-unit-01",
+      "mode": "stack-unit",
+      "command": [
+        "python3",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-nogo-2276/stack-unit.test.py"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T12:17:57.266Z",
+      "finished": "2026-11-01T12:17:57.357Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "8e6c6bcc86380f64814b32fe6f5fb67a2478282aff2e544c154c77db5697c938",
+      "numericalWorldCalls": 0,
+      "oldSolverCalls": 0
+    },
+    {
+      "name": "hinge-study-01",
+      "mode": "hinge",
+      "command": [
+        "python3",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-nogo-2276/hinge-study.py",
+        "--output",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-nogo-2276/evidence/hinge-study-01/result.json",
+        "--node",
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--node",
+        "/Users/user/.volta/tools/image/node/24.22.1/bin/node"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T12:18:32.709Z",
+      "finished": "2026-11-01T12:18:33.336Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "numericalWorldCalls": 0,
+      "oldSolverCalls": 0
+    },
+    {
+      "name": "stack-study-01",
+      "mode": "stack",
+      "command": [
+        "python3",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-nogo-2276/stack-study.py",
+        "--output",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-nogo-2276/evidence/stack-study-01/result.json"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T12:18:22.756Z",
+      "finished": "2026-11-01T12:18:23.520Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "d0074c7d686d3d7bdf320f33be83df099019a62ee5806e02870b44f74779c020",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "numericalWorldCalls": 0,
+      "oldSolverCalls": 0
+    },
+    {
+      "name": "equilibrium-unit-01",
+      "mode": "stack-equilibrium-unit",
+      "command": [
+        "python3",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-nogo-2276/stack-equilibrium-unit.test.py"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T12:28:17.763Z",
+      "finished": "2026-11-01T12:28:17.872Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "574c5ff5efc765cad540a4cf52542cca94e22dc7810f737b03febfc6235c5364",
+      "numericalWorldCalls": 0,
+      "oldSolverCalls": 0
+    },
+    {
+      "name": "equilibrium-study-01",
+      "mode": "stack-equilibrium",
+      "command": [
+        "python3",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-nogo-2276/stack-equilibrium.py",
+        "--output",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-nogo-2276/evidence/equilibrium-study-01/result.json"
+      ],
+      "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+      "started": "2026-11-01T12:28:23.329Z",
+      "finished": "2026-11-01T12:28:23.427Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "7a03e65db8579a6f0b54bb2ae5431da21071cd1d97bdb3e5c276def6bf2f44a2",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "numericalWorldCalls": 0,
+      "oldSolverCalls": 0
+    }
+  ],
+  "newSyntheticTestsPassed": 37,
+  "originalFilesUnchanged": true,
+  "preservedReceipts": [
+    {
+      "path": "examples/physics-motion-foundations-2276/CONTRACT.md",
+      "sha256": "07c610210446a6af3906d776f1c59eb5c49fabc705cf8b0d18bd6a9cd8011e7b"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.stdout",
+      "sha256": "431e7542613591ec60d4be164511a32e2081afc1aa4722f0b698b43187b25d64"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/final-audit.json",
+      "sha256": "3fdbfd70c3e0f59cf048587b13150aa86ab78f123f273e1567801a21e0e9a622"
+    },
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/RESULT.md",
+      "sha256": "5753de3d16aecf2d888d59f28454276fdbaa1a54c159d41c187024849f52f254"
+    },
+    {
+      "path": "examples/physics-public-disjoint-hinge-reference/RESULT.md",
+      "sha256": "3e5ee142293db4772371f3adfa2729fa513d8da1dc9841a1d0abbf08c2c09156"
+    }
+  ],
+  "worldCalls": 0,
+  "nativeSolverCalls": 0,
+  "publicActivation": "NO_GO",
+  "hinge": {
+    "certifiedHistoricalReportBits": "a3ddc9485055d33f",
+    "runtimeVersions": [
+      "v22.19.0",
+      "v24.22.1"
+    ],
+    "candidateOperandsObserved": false,
+    "historicalBankCorrectlyRoundedAtReconstructedOperands": true
+  },
+  "stack": {
+    "firstDiagnosticStep": 1,
+    "firstPoint": "face:b0:1:1:b1:1:-1:0",
+    "finalNormalSpeedMps": "-0.004063911953617717418962146380678746027115266770124435424804687500000000000000000000000000000000000000000000000000000",
+    "complementarityJ": "0.000537397808961402423000777362928531038945857634560451751598962852413457063098164989689564663422061130404472351074218750000",
+    "allOriginalRecordsAuthenticated": 961,
+    "sameFirstFrameFixedPointExists": true,
+    "exactCertifiedRows": 32,
+    "causalLawDefect": "UNKNOWN",
+    "originalEightBoxPhysicalGO": false
+  },
+  "sourceVersionAudit": {
+    "work_id": "physics-motion-nogo-2276",
+    "artifact_type": "source-version-audit",
+    "status": "STUDY_SOURCE_STABLE_WITH_DECLARED_POST_UNIT_GUARD_UPDATES",
+    "changesBetweenUnitAndStudy": [
+      {
+        "path": "examples/physics-motion-nogo-2276/hinge-contract.md",
+        "unitSha256": "5d65b0d441983ebad3fd96a09ae3c9c214dcaec00066762074211a1dcadeaf62",
+        "studySha256": "3ac9355834e97608c99073175ad5debcc8ac6b61e67c34e5c5dfab29c82c1f29",
+        "description": "parent metadata-only contract header update"
+      },
+      {
+        "path": "examples/physics-motion-nogo-2276/hinge-runtime.mjs",
+        "unitSha256": "e24ed52cd0c096fc9e59824fd1327016f446188b0738087c20d004859d6032c2",
+        "studySha256": "ca2d999771f0dc532b499b81bbdc5232191fadfacc9462c11e891c18b2e5855b",
+        "description": "bounded stdout serialization; arithmetic expression unchanged"
+      },
+      {
+        "path": "examples/physics-motion-nogo-2276/hinge-study.py",
+        "unitSha256": "0cb9beeaa350f9f79e0b2831a3cbd0ec09c0d16717ee3fb891645e98252117be",
+        "studySha256": "a8e9e39f18e562886e650645a487a1bf41e3f2978d00904adeb3cc7f351eef80",
+        "description": "remaining-time check after executable hash; arithmetic helpers unchanged"
+      },
+      {
+        "path": "examples/physics-motion-nogo-2276/stack-contract.md",
+        "unitSha256": "5108d58284fde0c0628a43cf7223db985d3d1913c95bc983eec6ae4ed1da5c88",
+        "studySha256": "fd64d8cca030ec25cb1d7cf9121eb6753b026f1afe6985232686e68b68e89b71",
+        "description": "parent metadata-only contract header update"
+      }
+    ],
+    "hingeUnitTestFileUnchanged": true,
+    "studyHashesStillMatch": true,
+    "unitMathCoverage": "11 synthetic helper tests; subsequent changes affect timeout and output bounding only",
+    "worldCalls": 0,
+    "postUnitGuardOnlyChangesIndependentlyReconstructedToPriorHashes": true,
+    "firstDataAuditFailure": {
+      "kind": "AssertionError",
+      "cause": "reconstruction script assumed an incorrect diagnostic error-message literal",
+      "filesChanged": false,
+      "numericalCalls": 0,
+      "failureTime": "NOT_RECORDED"
+    }
+  },
+  "notRun": [
+    "candidate7178434World",
+    "oldWorldReplay",
+    "newNativeLaw",
+    "publicAdmissionChange",
+    "original1200StepNewCampaign",
+    "Studio",
+    "Integration",
+    "hardware",
+    "release"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "status": "ORIGINAL_SECOND_STATIC_FAILURE_INPUTS_PRESERVED_BEFORE_FIX",
+  "WorldCalls": 0,
+  "files": {
+    "validation-provider.mjs": {
+      "bytes": 13654,
+      "sha256": "23c901ef6ff0003ee26dfa72c8bd10ca638fae3c10601c1500d119cf2bafd8fd"
+    },
+    "validation-child.mjs": {
+      "bytes": 15129,
+      "sha256": "2561620ec4aa6b859283836354205acff033760ca4cbb185b9d1b27c29eb44f6"
+    },
+    "validation-run.mjs": {
+      "bytes": 5731,
+      "sha256": "de42b29673e08897a1a779c459905dd4d199496dee3cea1a0b2e15bb3e0aa2fb"
+    },
+    "VALIDATION-RECIPES.json": {
+      "bytes": 28205,
+      "sha256": "ff3faf844cdcfafa3f2f6e55403a90f5ebedf7b2e8ef5831c194ecda8714ed3c"
+    },
+    "VALIDATION-FAILURE-REVIEW-02.json": {
+      "bytes": 23760,
+      "sha256": "3ef7701757e59fbd42f4b264d41b8bb2017848f07d3c8e15c3aa49f37ba3a85d"
+    }
+  },
+  "archivePreparationNote": "First copy pass stopped on absent transient CLASSIFICATION-REVIEW filename after copying all5readyfiles. These5bytes authenticated before finalizing; no original overwritten."
+}

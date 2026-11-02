@@ -1,0 +1,18 @@
+{
+  "compiled": false,
+  "bundleSha256": "98af4ff9f3c8ee3bcc0f6193931de79afdef9c60739061247b6fcc693e048398",
+  "inputs": [
+    {
+      "path": "packages/barocss-physics/src/math.ts",
+      "sha256": "6605633830fa7fdf39f9531fbf988b52e306a6835655a318c961eb44c6b05ff8"
+    },
+    {
+      "path": "packages/barocss-physics/src/persistent-box-contact.ts",
+      "sha256": "194f5b1e3517eb65cc265da97bcbc02c7ccbef414c6e1dd7416373567578a6ae"
+    },
+    {
+      "path": "examples/physics-contact-impulse-audit-1572/friction-release.ts",
+      "sha256": "07b1f85b8772cd392aa2fbb885309694e39f2530b817bf5ad8a761fd9d96e99d"
+    }
+  ]
+}

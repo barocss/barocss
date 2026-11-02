@@ -1,0 +1,20 @@
+# G1b integration boundary
+
+PROPOSAL_ONLY. No source/API change or runtime call is authorized. G1a staged source/emitted PASS is current accepted evidence; its original gyro baseline NO_GO remains historical evidence, and this task does not rerun it.
+
+The proposed private dispatch is one actual common-World free-rotation stage after the existing angular torque/impulse/motor preparation and original movement preflight. Isotropic bodies keep their correct uniform-spin mathematics; exact axisymmetric boxes keep G1a's symmetric-top mathematics; true unequal moments use the coupled midpoint/Cayley composition. There is no legacy world, compatibility engine, public runtime flag, epsilon class or old omega-constant triaxial fallback. Candidate state stays in the existing next-body scratch and common commit. Public clock advances once; internal signed composition stages cannot produce substep commands, contacts or recorder frames.
+
+This plant is torque-free, one box, identity/negative-identity q, no contact/joint/CCD/domain and fixed small duration. Reconstruct body momentum from actual current q/world omega, never from a cached initial authority. On exit expose only orientation/world omega through the existing accepted body fields. The q/omega pair must be validated together before assignment; existing state/clock/cache/owner rollback remains mandatory. Stage observer/counters/fault injection are test-only and never become public diagnostics.
+
+The general map's internal negative stages are safe only for its isolated reversible free flow. Do not reverse a contact projection, dissipation, motor, command, external clock or recorder during those stages. A future split integration must explicitly own kick/free/contact/projection order and repeated angular impulses. This contract proves no contact accuracy, torque splitting order, joint reaction, G2 CCD, connected mechanism or P6 coupling.
+
+Required pre-adoption work remains separate:
+
+- Current admission accepts a wider near-unit initial q than the new1e-12 result norm guard. Resolve the accepted model/state semantics and qualify that full relevant range, including zero spin, before activation. Exact-unit G1a/G1b cases do not authorize a silent new refusal. Record actual normalization interpretation and nonvelocity word policy; do not tighten admission incidentally.
+- Qualify x- and y-axis symmetry/permutation frames and sign/zero controls in a new bounded G1a adoption gate. Existing G1a z-axis success is not a proof of those code branches, and G1b adds no calls to the old campaign.
+- Qualify general triaxial admission/range: mass/extents/near-equality, orientation, spin/step bounds, conditioning and failures. The prototype supports only its named literal plant/horizon. There is no claim that all currently admitted triaxial boxes are fixed. Activating a partial repair over a previously broad admission needs an explicit API/range decision, not an undocumented fallback or new rejection.
+- Validate downstream phase order, once-per-step command/motor semantics, collisions/projections, state/recorder/checkpoint ownership and atomicity on source and genuine current published-native/root builds. Staged internal/public-entry labels must match the actual graph. A private phase PASS is not canonical build-root adoption.
+- Preserve old isotropic sphere/cubic box/disjoint-hinge laws and named receipts at their actual boundaries. Do not rerun old entire campaigns as an acknowledgment, or demand failed anisotropic output bits stay unchanged. Numerical parity applies to source/native implementations of the same repaired map, with own provider identities.
+- Keep G4 conditioning/scale-frame gates separate. The selected dimensionless Jacobian/pivot proof is a local plant fact and cannot be published as a universal rank threshold.
+
+If M fails, no T run occurs. If T fails, preserve the first failure and stop this frozen proposal. Any later method/population change needs new immutable scope and retains these results. Neither case can be described as production activation or whole-roadmap GO.

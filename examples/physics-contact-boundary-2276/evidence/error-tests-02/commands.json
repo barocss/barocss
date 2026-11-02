@@ -1,0 +1,21 @@
+{
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "records": [
+    {
+      "name": "trajectory-errors",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "--test",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/error-tests-02/trajectory-errors.mjs"
+      ],
+      "started": "2026-11-01T14:03:30.030Z",
+      "finished": "2026-11-01T14:03:30.111Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "bca7ff5d439c91f204293e96b997c89f5d33c423ce0dd60350f7c89c1fd5dece",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

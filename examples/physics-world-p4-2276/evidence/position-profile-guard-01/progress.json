@@ -1,0 +1,70 @@
+{
+  "kind": "P4_POSITION_REFERENCE_PROFILE_OUTER_GUARD",
+  "receiptId": "position-profile-guard-01",
+  "censusId": "position-profile-01",
+  "status": "RUNNING",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "python3",
+    "-B",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/position-profile.py",
+    "--run-id",
+    "position-profile-01"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "inputs": {
+    "position-profile-run.mjs": {
+      "bytes": 11804,
+      "sha256": "149db59425bfdc4e86a1ab70409b6c5a5bac68553644b79bc2051df8be1ffcd7"
+    },
+    "position-profile.py": {
+      "bytes": 12554,
+      "sha256": "991fc602740e077a5788df1d4cdb744caee638534bb35a59f66dc2b77b9c43f8"
+    },
+    "POSITION-PROFILE-CONTRACT.md": {
+      "bytes": 5620,
+      "sha256": "4c24e6271aaf6748e66c46b3436cd8ce2712c77afe935624c31a3bb7394183e0"
+    },
+    "cost-census.py": {
+      "bytes": 33990,
+      "sha256": "67c23875efa2836cd2c374794dfb6b942366493e8fbf979ffcd8789ac2c8464f"
+    },
+    "observable-census.py": {
+      "bytes": 21194,
+      "sha256": "964241f58710fbc2089a64675df19f50be47c7a74ac32751564559c3f2576ca4"
+    },
+    "CONTRACT.md": {
+      "bytes": 9553,
+      "sha256": "d8baef877fa39cdf8e974b26da12fc4f2f46ae01e4457c2568a7d7eadb2231ae"
+    },
+    "OBSERVABLE-CONTRACT.md": {
+      "bytes": 6426,
+      "sha256": "1f8d4107d4154b33ae1da21dd4d23b65f355a9ef8e19296261b374915805078a"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": "2026-11-01T18:39:54.817Z",
+  "spawnAt": "2026-11-01T18:39:54.833Z",
+  "pid": 38878,
+  "processGroupId": 38878,
+  "exit": null,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": null,
+  "processClosed": false,
+  "groupSignals": [],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/evidence/position-profile-01/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p4-2276/evidence/position-profile-01/progress.json",
+  "errors": [],
+  "elapsedMs": 15.16525,
+  "outputCapturedBytes": 0
+}

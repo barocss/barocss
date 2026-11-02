@@ -1,0 +1,75 @@
+{
+  "phase": "failed",
+  "counts": {
+    "nativePairConversions": 0,
+    "nativePhysicalScalarConversions": 0,
+    "commandScalarConversions": 0,
+    "guardScalarConversions": 0,
+    "identityDigestDataCalls": 0,
+    "constructorAttempts": 0,
+    "constructorReturns": 0,
+    "stepAttempts": 0,
+    "acceptedSteps": 0,
+    "getStateAttempts": 0,
+    "getStateReturns": 0,
+    "disposeAttempts": 0,
+    "disposeReturns": 0,
+    "commandRefusals": 0,
+    "unknownFaults": 0,
+    "postFlowGuardRefusals": 0,
+    "referenceSpawns": 0,
+    "referenceRequestAttempts": 0,
+    "referenceRequestsWritten": 0,
+    "referenceRepliesReceived": 0,
+    "referenceAuditsReceived": 0,
+    "buildChildren": 2,
+    "query": 0,
+    "getModel": 0,
+    "recorder": 0
+  },
+  "graphs": {},
+  "commands": [
+    {
+      "label": "generate-source",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-01/build/package/src/generate-provider.mjs"
+      ],
+      "pid": 5470,
+      "closed": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exit": 0,
+      "timedOut": false,
+      "signal": null
+    },
+    {
+      "label": "tsc-emit",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/tsc.js",
+        "-p",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-01/build/package/tsconfig.g1.json",
+        "--listFiles",
+        "--listEmittedFiles"
+      ],
+      "pid": 5472,
+      "closed": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exit": 1,
+      "timedOut": false,
+      "signal": null
+    }
+  ],
+  "firstFailure": {
+    "phase": "stage-build",
+    "name": "AssertionError",
+    "message": "tsc-emit\n\n1 !== 0\n"
+  },
+  "referenceObservation": {
+    "started": false,
+    "actual": 0
+  },
+  "cleanupErrors": []
+}

@@ -1,0 +1,121 @@
+{
+  "status": "P5_DONE_BOUNDED_LOCALSELECTED_WITH_RENDERING_SDK_BOUNDARY",
+  "evidence": [
+    {
+      "path": "examples/physics-world-p5-2276/public-runtime-results.json",
+      "bytes": 6392,
+      "sha256": "0584737534d4c349f2191aadec1aa8707efa013786886eac5c6cdf1275e26fcd"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-05/summary.json",
+      "bytes": 28701,
+      "sha256": "8cac668e62cb24f9a7138e93fafb004c404db4eec1eefe2c33666e7fbd49797c"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-05/exit.json",
+      "bytes": 350,
+      "sha256": "69cd917284853cdf9ed7715ebdd8e71377ff9739d81d7378ef1a9b39d01af2e0"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/docs-example-source-01/summary.json",
+      "bytes": 905,
+      "sha256": "cc512be48097291bdfb5512e4c55f455d4e57ab2efb9d048cf961a4aaf01b342"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/docs-example-source-01/exit.json",
+      "bytes": 327,
+      "sha256": "63477f3acef85ef54720f4918f8145844132ec21746a9ce9068af138e06597b5"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/docs-structure-02/result.json",
+      "bytes": 2944,
+      "sha256": "2a07ed6bc0b4f693bfd66f5c520d000e45a13cf39c7f1f27104bb526a084db76"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/docs-build-02/result.json",
+      "bytes": 2964,
+      "sha256": "30a7d69f0b1f46551035f4aedf8f93d185947601222258d1928ac81cd752ac7d"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/docs-links-02/result.json",
+      "bytes": 2926,
+      "sha256": "94f0774c1a6e7dbd5e301421476e27f8f3b43a8d6d37b2144f6b47f0e3b5042e"
+    }
+  ],
+  "publicRuntime": "Original source/native101factory37World6334step cohorts each PASS; prior runtime result unchanged, no extra numeric rerun.",
+  "static": {
+    "logicalBundleChecks": 127,
+    "actualBundleAttemptsAcrossRuns": 130,
+    "buildFailuresPreserved": 3,
+    "additionalZeroBuildStartupFailures": 1,
+    "strictSourceAndNativePasses": 2,
+    "reusedBundlePassesInFinalAttempt": 76,
+    "finalBundleAttempts": 51,
+    "finalBundlePasses": 51,
+    "finalLintAttempts": 1,
+    "finalLintPasses": 1,
+    "WorldCalls": 0
+  },
+  "docsExample": {
+    "graph": "source only",
+    "factoryAttempts": 4,
+    "returnedWorlds": 4,
+    "acceptedSteps": 4,
+    "recorderRefusals": 4,
+    "disposals": 4,
+    "restores": 0,
+    "wholeOldSampleSuite": "NOT_RERUN"
+  },
+  "site": {
+    "structurePages": 73,
+    "selectedRenderedPages": 5,
+    "linkOccurrences": 806,
+    "anchorOccurrences": 215,
+    "snippetRegions": 26,
+    "unchangedHistoricalReceiptCopies": 14,
+    "currentRoadmapCopy": "BYTE_IDENTICAL_TO_PACKAGE_SOURCE",
+    "networkChecks": "NOT_RUN"
+  },
+  "inertModelAsset": [
+    {
+      "path": "examples/physics-model-data-2276/model-data.mjs",
+      "bytes": 185560,
+      "sha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics/model-data.mjs",
+      "bytes": 185560,
+      "sha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604"
+    },
+    {
+      "path": "apps/library-docs/docs/.vitepress/dist/physics/model-data.mjs",
+      "bytes": 185560,
+      "sha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604"
+    }
+  ],
+  "nativeHostBoundary": {
+    "missingEndpointIdentitiesInventoried": 10,
+    "minimalExternalEndpointIdentities": 8,
+    "hostEntryClosures": 13,
+    "sourceFallback": false,
+    "actualPhysicsCadAdapterReplayNativeClosure": "PASS",
+    "renderingSDKImplementationClosure": "NOT_RUN",
+    "productBrowserIntegration": "NOT_RUN"
+  },
+  "firstFailuresPreserved": [
+    "native-entry-01 (prior commit)",
+    "docs-links-01",
+    "validation-static-01",
+    "validation-static-02",
+    "validation-static-03",
+    "validation-static-04"
+  ],
+  "remaining": [
+    "P4 original8box NO_GO; support-radius cache slice ended after3cost failures",
+    "P6a/P6b coupling NOT_SUPPORTED; private impulse precursor authored only",
+    "P7 connected mechanism/control BACKLOG",
+    "P8 product/measurement/manufacturing OUTSIDE_CURRENT_WORK"
+  ],
+  "hold": "All existing HOLDs, original numerical gates and first failures remain",
+  "merge": "Conditional whole-roadmap develop merge pending; no push/deploy/release"
+}

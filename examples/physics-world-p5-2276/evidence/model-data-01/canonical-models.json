@@ -1,0 +1,76 @@
+{
+  "originalTargets": [
+    {
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "bytes": 222324,
+      "sha256": "27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f"
+    },
+    {
+      "profile": "fluid-basin-visual-v1",
+      "bytes": 17732,
+      "sha256": "11a7fb9b2aebdf6b161d260ead53a33b74a27c2ad2999fd65b2e9912dfcbbc88"
+    },
+    {
+      "profile": "fluid-basin-xsph-visual-v1",
+      "bytes": 17757,
+      "sha256": "5b8461ce9d48903c5132a17054ab3940af7d8b2514b7f7247d2d2a0c39376523"
+    },
+    {
+      "profile": "fluid-static-box-visual-v1",
+      "bytes": 18376,
+      "sha256": "fc07548eb393592733908b87f168d8d19a482ab693af0b01db0792562d7d4f11"
+    }
+  ],
+  "literalChecks": [
+    {
+      "path": "examples/physics-model-data-2276/model-data.mjs",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "bytes": 222324,
+      "sha256": "27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f"
+    },
+    {
+      "path": "examples/physics-model-data-2276/model-data.mjs",
+      "profile": "fluid-basin-visual-v1",
+      "bytes": 17732,
+      "sha256": "11a7fb9b2aebdf6b161d260ead53a33b74a27c2ad2999fd65b2e9912dfcbbc88"
+    },
+    {
+      "path": "examples/physics-model-data-2276/model-data.mjs",
+      "profile": "fluid-basin-xsph-visual-v1",
+      "bytes": 17757,
+      "sha256": "5b8461ce9d48903c5132a17054ab3940af7d8b2514b7f7247d2d2a0c39376523"
+    },
+    {
+      "path": "examples/physics-model-data-2276/model-data.mjs",
+      "profile": "fluid-static-box-visual-v1",
+      "bytes": 18376,
+      "sha256": "fc07548eb393592733908b87f168d8d19a482ab693af0b01db0792562d7d4f11"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics/model-data.mjs",
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "bytes": 222324,
+      "sha256": "27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics/model-data.mjs",
+      "profile": "fluid-basin-visual-v1",
+      "bytes": 17732,
+      "sha256": "11a7fb9b2aebdf6b161d260ead53a33b74a27c2ad2999fd65b2e9912dfcbbc88"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics/model-data.mjs",
+      "profile": "fluid-basin-xsph-visual-v1",
+      "bytes": 17757,
+      "sha256": "5b8461ce9d48903c5132a17054ab3940af7d8b2514b7f7247d2d2a0c39376523"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics/model-data.mjs",
+      "profile": "fluid-static-box-visual-v1",
+      "bytes": 18376,
+      "sha256": "fc07548eb393592733908b87f168d8d19a482ab693af0b01db0792562d7d4f11"
+    }
+  ],
+  "negativeZeroRenderer": "Object.is(-0) literal; binary64 Number(text) roundtrip; all recursive comparisons use Object.is",
+  "massAccounting": "createSheet includes its own original local mass accumulation; triangleMassAccumulations counts the single additional fixture accumulation of explicit physical vertex masses"
+}

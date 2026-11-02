@@ -1,0 +1,45 @@
+TAP version 13
+# Subtest: robot motion guide: mixed turn/slide timing, saved motion and analytic SCARA FK
+ok 1 - robot motion guide: mixed turn/slide timing, saved motion and analytic SCARA FK
+  ---
+  duration_ms: 1800.963084
+  type: 'test'
+  ...
+# {"metric":"scara-analytic","samples":22,"maxReportedFkErrorMm":0,"maxReportingQuantizationMm":4.901169035065323e-7,"maxJointSampleError":7.105427357601002e-15,"durationErrorS":0,"solvedHomeQuillMm":[225,25,-30],"comparisonToleranceMm":1e-9}
+# Subtest: robot motion guide: jerk-limited path keeps synchronized endpoints and finite samples
+ok 2 - robot motion guide: jerk-limited path keeps synchronized endpoints and finite samples
+  ---
+  duration_ms: 1682.744625
+  type: 'test'
+  ...
+# Subtest: robot motion guide: typed invalid-input and joint-limit refusals
+ok 3 - robot motion guide: typed invalid-input and joint-limit refusals
+  ---
+  duration_ms: 424.611709
+  type: 'test'
+  ...
+# Subtest: robot motion guide: analytic IK targets, independent residuals and joint bounds
+ok 4 - robot motion guide: analytic IK targets, independent residuals and joint bounds
+  ---
+  duration_ms: 2.0655
+  type: 'test'
+  ...
+# {"metric":"ik-analytic","targetDegrees":-60,"slideMm":25,"errorM":2.660641766657152e-14,"errorRad":0,"fkErrorMm":0}
+# {"metric":"ik-analytic","targetDegrees":0,"slideMm":-10,"errorM":1.0508927061891882e-14,"errorRad":0,"fkErrorMm":0}
+# {"metric":"ik-analytic","targetDegrees":45,"slideMm":60,"errorM":1.1656366413268348e-15,"errorRad":0,"fkErrorMm":1.4210854715202004e-14}
+# Subtest: robot motion guide: IK target outside travel stays unreached with a measured residual
+ok 5 - robot motion guide: IK target outside travel stays unreached with a measured residual
+  ---
+  duration_ms: 11.504
+  type: 'test'
+  ...
+# {"reached":false,"errorM":0.04,"returnedSlideMm":80}
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4335.4045

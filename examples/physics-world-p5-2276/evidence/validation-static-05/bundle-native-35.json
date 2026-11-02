@@ -1,0 +1,35 @@
+{
+  "mode": "native",
+  "entry": "examples/physics-scene/fluid-viewer/server.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/physics-scene/fluid-viewer/server.mjs": {
+      "bytes": 1214,
+      "sha256": "ca273ad4a0a2709a1f8874f04eafacf2e563be6c91f8e478c78f8a8d6592d1d0",
+      "effectiveSha256": "ca273ad4a0a2709a1f8874f04eafacf2e563be6c91f8e478c78f8a8d6592d1d0"
+    },
+    "examples/physics-scene/fluid-viewer/basin-source.mjs": {
+      "bytes": 287,
+      "sha256": "eb80b048aea04bc8ddabf73d609db0f7e57e9c6203b9cec9c7546b58ae680036",
+      "effectiveSha256": "eb80b048aea04bc8ddabf73d609db0f7e57e9c6203b9cec9c7546b58ae680036"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 1604,
+  "outputSha256": "a2f096da704f209d1327ae704da0f74cc0972bfdbfccde863e17e7123450bbe7",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "missingNativeSDKBoundary": null,
+  "nativeHostSDKIntegration": "NOT_CLAIMED_BY_COMPILE",
+  "externalImports": [
+    "node:http",
+    "node:fs/promises",
+    "esbuild"
+  ],
+  "moduleEvaluation": false
+}

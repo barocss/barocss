@@ -1,0 +1,32 @@
+{
+  "status": "SOURCE_FACT_CORRECTION_NO_NEW_RUNTIME",
+  "scope": "Correct prior parent interpretation of initial near-unit quaternion handling; no numerical/gate/API change.",
+  "actualSources": [
+    {
+      "path": "packages/barocss-physics/src/model-admission.ts",
+      "bytes": 10384,
+      "sha256": "7e77f184fed57d51ee1b0599e60c80d83b96045b139d236a37f76a4207689397"
+    },
+    {
+      "path": "packages/barocss-physics/src/validation.ts",
+      "bytes": 14165,
+      "sha256": "651d12754b77f86493f399baf3c02d60d9ad1fe54e0ece664a05a4430e8a0f01"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/INTEGRATION-AUDIT.md",
+      "bytes": 18659,
+      "sha256": "4c6a793080dd8339cc38638bfbd5ae30a5defd6d370e025c98d1402ffbbd1645"
+    }
+  ],
+  "facts": [
+    "model-admission.transform checks each component in[-1,1] and norm within1e-6.",
+    "parseBody calls quaternion(), repeats admission checks and returns components divided by their magnitude before constructing the numeric Body.",
+    "getModel retains copied authored model data; current numeric Body orientation can differ through this already-declared normalization. The original G1a integration audit correctly documented this.",
+    "A zero-spin free-flow result receives the admitted normalized Body quaternion. Raw model tolerance alone does not establish a new result-norm refusal."
+  ],
+  "correctedInterpretation": "The previously inferred INITIAL near-unit q mismatch is NOT an established bug or an API/admission-semantics blocker. Do not tighten admission or add a compatibility path on that premise.",
+  "stillUnqualified": "Actual broad near-unit/scale/frame/multiple-body/downstream controls remain NOT_RUN. Post-contact/projection candidate guards are a separate integration question, not proof of initial-admission failure.",
+  "preservation": "Original G1a/G1b reports/proposals/review hashes remain immutable historical statements. This additive correction supersedes the mistaken inference only; it changes no executed physical result, tolerance, input population or first failure.",
+  "runtimeCalls": 0,
+  "phaseM": "Unaffected: exact identity input, actual admitted numeric q/inertia observed before step."
+}

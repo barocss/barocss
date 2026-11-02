@@ -1,6 +1,7 @@
+import {makeModel,dynamicPart,staticPart} from '../physics-model-input/model.mjs';
 /** #1572 test-only full-pass velocity-impulse ledger including manifold fallback. */
 import {createPhysicsWorld} from '../../packages/barocss-physics/src/index.js';
-import type {PhysicsBodyConfig,PhysicsWorldConfig} from '../../packages/barocss-physics/src/types.js';
+
 type Event={step:number,pass:number,pair:string,fallback:boolean,pointCount:number,
   impulseOnB:[number,number,number],deltaAV:[number,number,number],deltaBV:[number,number,number]};
 type Row={calls:number,fallbacks:number,manifolds:number,netImpulseX:number,netImpulseY:number,
@@ -8,14 +9,10 @@ type Row={calls:number,fallbacks:number,manifolds:number,netImpulseX:number,netI
 const zero=():Row=>({calls:0,fallbacks:0,manifolds:0,netImpulseX:0,netImpulseY:0,
  sumAbsImpulseX:0,netDeltaBVX:0,maxMomentumError:0});
 const gravity:[number,number,number]=[0,-9.81,0],dt=1/120;
-const floor:PhysicsBodyConfig={id:'floor',kind:'static',shape:{kind:'box',halfExtentsM:[2,.1,2]},
- positionM:[0,-.1,0],restitution:0,friction:{static:1,dynamic:.7}};
-function cube(i:number,mode:'OFFSET'|'YAW'):PhysicsBodyConfig{
+const floor=staticPart('floor',{kind:'box',halfExtentsM:[2,.1,2]},{positionM:[0,-.1,0]},{restitution:0,friction:{static:1,dynamic:.7}});
+function cube(i:number,mode:'OFFSET'|'YAW'){
  const yaw=mode==='YAW'?(i%2===0?.05:-.05):0;
- return {id:'b'+i,kind:'dynamic',shape:{kind:'box',halfExtentsM:[.25,.25,.25]},
- positionM:[(i%2)*.05,.25+.5*i,0],velocityMps:[0,0,0],massKg:1,
- orientation:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)],restitution:0,
- friction:{static:1,dynamic:.7}};
+ return dynamicPart('b'+i,{kind:'box',halfExtentsM:[.25,.25,.25]},{positionM:[(i%2)*.05,.25+.5*i,0],velocityMps:[0,0,0],orientationXYZW:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)]},1,{restitution:0,friction:{static:1,dynamic:.7}});
 }
 const host=globalThis as typeof globalThis&{__physics1572FallbackProbe?:(event:Event)=>void};
 for(const mode of ['OFFSET','YAW'] as const){
@@ -39,11 +36,10 @@ for(const mode of ['OFFSET','YAW'] as const){
    }
    if([1,600,1200].includes(e.step)&&e.pass===7)checkpoints.push(e);
  };
- const world=createPhysicsWorld({fixedStepSeconds:dt,gravityMps2:gravity,
-   contactMode:'persistent-box-v1',bodies:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]});
+ const world=createPhysicsWorld(makeModel({gravityMps2:gravity,parts:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]}),{profile:'rigid-persistent-box-v1',fixedStepSeconds:dt,broadPhase:'direct'});
  let accepted=0,firstFailure:string|null=null;
  try{for(let i=1;i<=1200;i++){
-   try{world.step(dt);accepted=i;}catch(e){firstFailure=String(e);break;}
+   try{world.step();accepted=i;}catch(e){firstFailure=String(e);break;}
  }}finally{world.dispose();delete host.__physics1572FallbackProbe;}
  console.log(JSON.stringify({mode,accepted,firstFailure,totals:Object.fromEntries(totals),
    lastTwoSeconds:Object.fromEntries(lastTwo),checkpoints,

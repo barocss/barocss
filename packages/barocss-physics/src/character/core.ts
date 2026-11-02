@@ -1,6 +1,6 @@
 import { createUprightCapsuleQuery } from '../capsule-query.js';
 import { PhysicsError } from '../capsule-query-error.js';
-import type { Vec3 } from '../types.js';
+import type { Vec3 } from '../internal-types.js';
 import type { CapsuleQuerySceneV1 } from '../capsule-query.js';
 import { DT, GRAVITY, PROFILE } from './profile.js';
 import { clone } from './math.js';

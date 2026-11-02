@@ -1,0 +1,32 @@
+{
+  "label": "source-12-negative-zero-input-validate",
+  "command": [
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+    "-B",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/native-validate.py",
+    "--request",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/source-12-negative-zero-input.validation-request.json",
+    "--request-sha256",
+    "0c569cbbf744214951e3c4e7d629ddfcb2e75498a8c1e267f68bc7b4e929cfe2",
+    "--freeze",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/EXECUTION-FREEZE-01.json",
+    "--token",
+    "511b332d26a4a8875ac785d71076a0111236f71db8d45759474ca05861b89eff",
+    "--out",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/source-12-negative-zero-input.validation.json"
+  ],
+  "startedElapsedMs": 11115.841541000002,
+  "detached": false,
+  "pid": 34299,
+  "exit": 0,
+  "signal": null,
+  "stdoutEOF": true,
+  "stderrEOF": true,
+  "closed": true,
+  "timedOut": false,
+  "capturedBytes": 115,
+  "stdoutSha256": "22900d4cdc517eb1f7c0f8d9493eb245d07a92353fa4684ee2b670e1065f060f",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "observedBytes": 115,
+  "omittedBytes": 0
+}

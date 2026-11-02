@@ -1,0 +1,1777 @@
+{
+  "inputs": {
+    "packages/barocss-physics/src/types.ts": {
+      "bytes": 11884,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/identity.ts": {
+      "bytes": 6081,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/types.ts",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/internal-types.ts": {
+      "bytes": 2615,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/types.ts",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/limits.ts": {
+      "bytes": 417,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/validation.ts": {
+      "bytes": 14165,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/internal-types.ts",
+          "kind": "import-statement",
+          "original": "./internal-types.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/limits.ts",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/math.ts": {
+      "bytes": 2421,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/dynamic-anchor-pair.ts": {
+      "bytes": 3072,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/limits.ts",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/dynamic-fixed-joint.ts": {
+      "bytes": 2051,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/dynamic-anchor-pair.ts",
+          "kind": "import-statement",
+          "original": "./dynamic-anchor-pair.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/dynamic-hinge-joint.ts": {
+      "bytes": 4835,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/dynamic-anchor-pair.ts",
+          "kind": "import-statement",
+          "original": "./dynamic-anchor-pair.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/joints.ts": {
+      "bytes": 7231,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/limits.ts",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/dynamic-fixed-joint.ts",
+          "kind": "import-statement",
+          "original": "./dynamic-fixed-joint.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+          "kind": "import-statement",
+          "original": "./dynamic-hinge-joint.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/admission.ts": {
+      "bytes": 3764,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/joints.ts",
+          "kind": "import-statement",
+          "original": "../joints.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "../validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/cloth/profile.ts": {
+      "bytes": 655,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/fluid/constants.ts": {
+      "bytes": 459,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/fluid/static-box.ts": {
+      "bytes": 2481,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/fluid/constants.ts",
+          "kind": "import-statement",
+          "original": "./constants.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/domain/cloth-reference.generated.ts": {
+      "bytes": 158018,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/domain/admission.ts": {
+      "bytes": 11327,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "../validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/limits.ts",
+          "kind": "import-statement",
+          "original": "../limits.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/cloth/profile.ts",
+          "kind": "import-statement",
+          "original": "../cloth/profile.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/constants.ts",
+          "kind": "import-statement",
+          "original": "../fluid/constants.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/static-box.ts",
+          "kind": "import-statement",
+          "original": "../fluid/static-box.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/domain/cloth-reference.generated.ts",
+          "kind": "import-statement",
+          "original": "./cloth-reference.generated.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/model-admission.ts": {
+      "bytes": 10384,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/identity.ts",
+          "kind": "import-statement",
+          "original": "./identity.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/joints.ts",
+          "kind": "import-statement",
+          "original": "./joints.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/limits.ts",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/disjoint-hinge/admission.ts",
+          "kind": "import-statement",
+          "original": "./disjoint-hinge/admission.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/domain/admission.ts",
+          "kind": "import-statement",
+          "original": "./domain/admission.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/recording-owner.ts": {
+      "bytes": 895,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/provider-manifest.generated.ts": {
+      "bytes": 7980,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/joint-motor.ts": {
+      "bytes": 1723,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/capsule-contact.ts": {
+      "bytes": 5615,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/collision.ts": {
+      "bytes": 13442,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/capsule-contact.ts",
+          "kind": "import-statement",
+          "original": "./capsule-contact.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/contact-manifold.ts": {
+      "bytes": 4743,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/persistent-box-contact.ts": {
+      "bytes": 3646,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/ccd-slab.ts": {
+      "bytes": 1125,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/ccd-box.ts": {
+      "bytes": 1978,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/ccd-slab.ts",
+          "kind": "import-statement",
+          "original": "./ccd-slab.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/ccd.ts": {
+      "bytes": 3220,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/ccd-slab.ts",
+          "kind": "import-statement",
+          "original": "./ccd-slab.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/ccd-box.ts",
+          "kind": "import-statement",
+          "original": "./ccd-box.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/ccd-pair.ts": {
+      "bytes": 2110,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/broadphase.ts": {
+      "bytes": 1371,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/scene-profile.ts": {
+      "bytes": 1202,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/sleep.ts": {
+      "bytes": 4411,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/measure.ts": {
+      "bytes": 4626,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "../math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/errors.ts": {
+      "bytes": 2777,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "../validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/pose.ts": {
+      "bytes": 3194,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "../validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/collision.ts",
+          "kind": "import-statement",
+          "original": "../collision.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "../math.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/disjoint-hinge/measure.ts",
+          "kind": "import-statement",
+          "original": "./measure.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/disjoint-hinge/errors.ts",
+          "kind": "import-statement",
+          "original": "./errors.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/rows.ts": {
+      "bytes": 3685,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "../math.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/disjoint-hinge/errors.ts",
+          "kind": "import-statement",
+          "original": "./errors.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/linear-solver.ts": {
+      "bytes": 10615,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/disjoint-hinge/errors.ts",
+          "kind": "import-statement",
+          "original": "./errors.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/projection.ts": {
+      "bytes": 3538,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "../validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/collision.ts",
+          "kind": "import-statement",
+          "original": "../collision.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "../math.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/disjoint-hinge/pose.ts",
+          "kind": "import-statement",
+          "original": "./pose.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/disjoint-hinge/errors.ts",
+          "kind": "import-statement",
+          "original": "./errors.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/disjoint-hinge/measure.ts",
+          "kind": "import-statement",
+          "original": "./measure.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/disjoint-hinge/rows.ts",
+          "kind": "import-statement",
+          "original": "./rows.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/disjoint-hinge/linear-solver.ts",
+          "kind": "import-statement",
+          "original": "./linear-solver.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/report.ts": {
+      "bytes": 5726,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/internal-types.ts",
+          "kind": "import-statement",
+          "original": "../internal-types.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "../math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/postcontact.ts": {
+      "bytes": 2936,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "../validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/disjoint-hinge/projection.ts",
+          "kind": "import-statement",
+          "original": "./projection.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/disjoint-hinge/report.ts",
+          "kind": "import-statement",
+          "original": "./report.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/stage.ts": {
+      "bytes": 2648,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "../validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+          "kind": "import-statement",
+          "original": "../dynamic-hinge-joint.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/joint-motor.ts",
+          "kind": "import-statement",
+          "original": "../joint-motor.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/disjoint-hinge/postcontact.ts",
+          "kind": "import-statement",
+          "original": "./postcontact.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/cloth/constraints.ts": {
+      "bytes": 1772,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/cloth/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/cloth/solver.ts": {
+      "bytes": 1395,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/cloth/constraints.ts",
+          "kind": "import-statement",
+          "original": "./constraints.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/cloth/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/cloth/metrics.ts": {
+      "bytes": 1805,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/cloth/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/domain/types.ts": {
+      "bytes": 3839,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/identity.ts",
+          "kind": "import-statement",
+          "original": "../identity.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/types.ts",
+          "kind": "import-statement",
+          "original": "../types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/domain/cloth.ts": {
+      "bytes": 4349,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/types.ts",
+          "kind": "import-statement",
+          "original": "../types.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/cloth/solver.ts",
+          "kind": "import-statement",
+          "original": "../cloth/solver.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/cloth/metrics.ts",
+          "kind": "import-statement",
+          "original": "../cloth/metrics.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/cloth/profile.ts",
+          "kind": "import-statement",
+          "original": "../cloth/profile.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/domain/types.ts",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/fluid/boundary.ts": {
+      "bytes": 1990,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/fluid/constants.ts",
+          "kind": "import-statement",
+          "original": "./constants.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/fluid/neighbors.ts": {
+      "bytes": 2949,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/fluid/constants.ts",
+          "kind": "import-statement",
+          "original": "./constants.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/fluid/kernel.ts": {
+      "bytes": 1112,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/fluid/constants.ts",
+          "kind": "import-statement",
+          "original": "./constants.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/neighbors.ts",
+          "kind": "import-statement",
+          "original": "./neighbors.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/fluid/visual-viscosity.ts": {
+      "bytes": 1265,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/fluid/constants.ts",
+          "kind": "import-statement",
+          "original": "./constants.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/kernel.ts",
+          "kind": "import-statement",
+          "original": "./kernel.js"
+        },
+        {
+          "path": "./neighbors.js",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/fluid/pbf.ts": {
+      "bytes": 5161,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/fluid/boundary.ts",
+          "kind": "import-statement",
+          "original": "./boundary.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/constants.ts",
+          "kind": "import-statement",
+          "original": "./constants.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/kernel.ts",
+          "kind": "import-statement",
+          "original": "./kernel.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/neighbors.ts",
+          "kind": "import-statement",
+          "original": "./neighbors.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/static-box.ts",
+          "kind": "import-statement",
+          "original": "./static-box.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/visual-viscosity.ts",
+          "kind": "import-statement",
+          "original": "./visual-viscosity.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/fluid/diagnostics.ts": {
+      "bytes": 1106,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/fluid/boundary.ts",
+          "kind": "import-statement",
+          "original": "./boundary.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/constants.ts",
+          "kind": "import-statement",
+          "original": "./constants.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/kernel.ts",
+          "kind": "import-statement",
+          "original": "./kernel.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/neighbors.ts",
+          "kind": "import-statement",
+          "original": "./neighbors.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/domain/fluid.ts": {
+      "bytes": 4923,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/types.ts",
+          "kind": "import-statement",
+          "original": "../types.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/pbf.ts",
+          "kind": "import-statement",
+          "original": "../fluid/pbf.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/kernel.ts",
+          "kind": "import-statement",
+          "original": "../fluid/kernel.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/diagnostics.ts",
+          "kind": "import-statement",
+          "original": "../fluid/diagnostics.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/boundary.ts",
+          "kind": "import-statement",
+          "original": "../fluid/boundary.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/static-box.ts",
+          "kind": "import-statement",
+          "original": "../fluid/static-box.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/constants.ts",
+          "kind": "import-statement",
+          "original": "../fluid/constants.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/domain/types.ts",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/rotation-support.ts": {
+      "bytes": 3417,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/rigid-free-rotation.ts": {
+      "bytes": 11290,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/rigid-forced-rotation.ts": {
+      "bytes": 4178,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/world.ts": {
+      "bytes": 30388,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/types.ts",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/model-admission.ts",
+          "kind": "import-statement",
+          "original": "./model-admission.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/identity.ts",
+          "kind": "import-statement",
+          "original": "./identity.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/recording-owner.ts",
+          "kind": "import-statement",
+          "original": "./recording-owner.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/provider-manifest.generated.ts",
+          "kind": "import-statement",
+          "original": "./provider-manifest.generated.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/limits.ts",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/joints.ts",
+          "kind": "import-statement",
+          "original": "./joints.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/joint-motor.ts",
+          "kind": "import-statement",
+          "original": "./joint-motor.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+          "kind": "import-statement",
+          "original": "./dynamic-hinge-joint.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/collision.ts",
+          "kind": "import-statement",
+          "original": "./collision.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/contact-manifold.ts",
+          "kind": "import-statement",
+          "original": "./contact-manifold.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/persistent-box-contact.ts",
+          "kind": "import-statement",
+          "original": "./persistent-box-contact.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/ccd.ts",
+          "kind": "import-statement",
+          "original": "./ccd.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/ccd-pair.ts",
+          "kind": "import-statement",
+          "original": "./ccd-pair.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/ccd-box.ts",
+          "kind": "import-statement",
+          "original": "./ccd-box.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/broadphase.ts",
+          "kind": "import-statement",
+          "original": "./broadphase.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/scene-profile.ts",
+          "kind": "import-statement",
+          "original": "./scene-profile.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/sleep.ts",
+          "kind": "import-statement",
+          "original": "./sleep.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/disjoint-hinge/stage.ts",
+          "kind": "import-statement",
+          "original": "./disjoint-hinge/stage.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/domain/cloth.ts",
+          "kind": "import-statement",
+          "original": "./domain/cloth.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/domain/fluid.ts",
+          "kind": "import-statement",
+          "original": "./domain/fluid.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/cloth/profile.ts",
+          "kind": "import-statement",
+          "original": "./cloth/profile.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/fluid/constants.ts",
+          "kind": "import-statement",
+          "original": "./fluid/constants.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/rotation-support.ts",
+          "kind": "import-statement",
+          "original": "./rotation-support.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/rigid-free-rotation.ts",
+          "kind": "import-statement",
+          "original": "./rigid-free-rotation.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/rigid-forced-rotation.ts",
+          "kind": "import-statement",
+          "original": "./rigid-forced-rotation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/capsule-query-error.ts": {
+      "bytes": 137,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/types.ts",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/capsule-query/profile.ts": {
+      "bytes": 303,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/capsule-query/admission.ts": {
+      "bytes": 5248,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/capsule-query/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/capsule-query/geometry.ts": {
+      "bytes": 2570,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/capsule-query/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/capsule-query/sweep.ts": {
+      "bytes": 1861,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/capsule-query/geometry.ts",
+          "kind": "import-statement",
+          "original": "./geometry.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/capsule-query/snapshot.ts": {
+      "bytes": 2537,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/capsule-query/admission.ts",
+          "kind": "import-statement",
+          "original": "./admission.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/capsule-query/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/capsule-query/sweep.ts",
+          "kind": "import-statement",
+          "original": "./sweep.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/capsule-query.ts": {
+      "bytes": 222,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/capsule-query/snapshot.ts",
+          "kind": "import-statement",
+          "original": "./capsule-query/snapshot.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/character/profile.ts": {
+      "bytes": 334,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/character/admission.ts": {
+      "bytes": 4488,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/character/math.ts": {
+      "bytes": 859,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/character/state.ts": {
+      "bytes": 2181,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/character/query.ts": {
+      "bytes": 2733,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/state.ts",
+          "kind": "import-statement",
+          "original": "./state.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/character/step-assist.ts": {
+      "bytes": 3129,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/character/slide.ts": {
+      "bytes": 2555,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/step-assist.ts",
+          "kind": "import-statement",
+          "original": "./step-assist.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/character/ground.ts": {
+      "bytes": 1242,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/character/core.ts": {
+      "bytes": 4057,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/capsule-query.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "../capsule-query-error.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/profile.ts",
+          "kind": "import-statement",
+          "original": "./profile.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/admission.ts",
+          "kind": "import-statement",
+          "original": "./admission.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/state.ts",
+          "kind": "import-statement",
+          "original": "./state.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/query.ts",
+          "kind": "import-statement",
+          "original": "./query.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/slide.ts",
+          "kind": "import-statement",
+          "original": "./slide.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/ground.ts",
+          "kind": "import-statement",
+          "original": "./ground.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/step-assist.ts",
+          "kind": "import-statement",
+          "original": "./step-assist.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/character-controller.ts": {
+      "bytes": 1363,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/character/admission.ts",
+          "kind": "import-statement",
+          "original": "./character/admission.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/core.ts",
+          "kind": "import-statement",
+          "original": "./character/core.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character/state.ts",
+          "kind": "import-statement",
+          "original": "./character/state.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/capsule-query-error.ts",
+          "kind": "import-statement",
+          "original": "./capsule-query-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/index.ts": {
+      "bytes": 570,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/types.ts",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/world.ts",
+          "kind": "import-statement",
+          "original": "./world.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/capsule-query.ts",
+          "kind": "import-statement",
+          "original": "./capsule-query.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/character-controller.ts",
+          "kind": "import-statement",
+          "original": "./character-controller.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/replay-json.ts": {
+      "bytes": 7760,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/identity.ts",
+          "kind": "import-statement",
+          "original": "./identity.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/types.ts",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/replay-compare.ts": {
+      "bytes": 1023,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/replay-validation.ts": {
+      "bytes": 8096,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/model-admission.ts",
+          "kind": "import-statement",
+          "original": "./model-admission.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/validation.ts",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/identity.ts",
+          "kind": "import-statement",
+          "original": "./identity.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/replay-json.ts",
+          "kind": "import-statement",
+          "original": "./replay-json.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/src/replay.ts": {
+      "bytes": 7119,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/index.ts",
+          "kind": "import-statement",
+          "original": "./index.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/types.ts",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/recording-owner.ts",
+          "kind": "import-statement",
+          "original": "./recording-owner.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/identity.ts",
+          "kind": "import-statement",
+          "original": "./identity.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/replay-json.ts",
+          "kind": "import-statement",
+          "original": "./replay-json.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/replay-compare.ts",
+          "kind": "import-statement",
+          "original": "./replay-compare.js"
+        },
+        {
+          "path": "packages/barocss-physics/src/replay-validation.ts",
+          "kind": "import-statement",
+          "original": "./replay-validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-rigid-rotation-g1e-2276/evidence/g1e-canonical-build-01/source-entry.ts": {
+      "bytes": 506,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/src/index.ts",
+          "kind": "import-statement",
+          "original": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/index.ts"
+        },
+        {
+          "path": "packages/barocss-physics/src/replay.ts",
+          "kind": "import-statement",
+          "original": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/replay.ts"
+        },
+        {
+          "path": "packages/barocss-physics/src/identity.ts",
+          "kind": "import-statement",
+          "original": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/identity.ts"
+        },
+        {
+          "path": "packages/barocss-physics/src/provider-manifest.generated.ts",
+          "kind": "import-statement",
+          "original": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/provider-manifest.generated.ts"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "examples/physics-rigid-rotation-g1e-2276/evidence/g1e-canonical-build-01/source.mjs": {
+      "imports": [],
+      "exports": [
+        "PhysicsError",
+        "createPhysicsRecorder",
+        "createPhysicsWorld",
+        "createUprightCapsuleController",
+        "createUprightCapsuleQuery",
+        "deserializePhysicsRecording",
+        "digest",
+        "providerManifest",
+        "restorePhysicsRecording",
+        "serializePhysicsRecording"
+      ],
+      "entryPoint": "examples/physics-rigid-rotation-g1e-2276/evidence/g1e-canonical-build-01/source-entry.ts",
+      "inputs": {
+        "packages/barocss-physics/src/types.ts": {
+          "bytesInOutput": 320
+        },
+        "packages/barocss-physics/src/index.ts": {
+          "bytesInOutput": 0
+        },
+        "packages/barocss-physics/src/identity.ts": {
+          "bytesInOutput": 5833
+        },
+        "packages/barocss-physics/src/internal-types.ts": {
+          "bytesInOutput": 0
+        },
+        "packages/barocss-physics/src/limits.ts": {
+          "bytesInOutput": 255
+        },
+        "packages/barocss-physics/src/validation.ts": {
+          "bytesInOutput": 12865
+        },
+        "packages/barocss-physics/src/math.ts": {
+          "bytesInOutput": 2022
+        },
+        "packages/barocss-physics/src/dynamic-anchor-pair.ts": {
+          "bytesInOutput": 2663
+        },
+        "packages/barocss-physics/src/dynamic-fixed-joint.ts": {
+          "bytesInOutput": 1588
+        },
+        "packages/barocss-physics/src/dynamic-hinge-joint.ts": {
+          "bytesInOutput": 4227
+        },
+        "packages/barocss-physics/src/joints.ts": {
+          "bytesInOutput": 6532
+        },
+        "packages/barocss-physics/src/disjoint-hinge/admission.ts": {
+          "bytesInOutput": 3069
+        },
+        "packages/barocss-physics/src/cloth/profile.ts": {
+          "bytesInOutput": 481
+        },
+        "packages/barocss-physics/src/fluid/constants.ts": {
+          "bytesInOutput": 315
+        },
+        "packages/barocss-physics/src/fluid/static-box.ts": {
+          "bytesInOutput": 1954
+        },
+        "packages/barocss-physics/src/domain/cloth-reference.generated.ts": {
+          "bytesInOutput": 179641
+        },
+        "packages/barocss-physics/src/domain/admission.ts": {
+          "bytesInOutput": 9845
+        },
+        "packages/barocss-physics/src/model-admission.ts": {
+          "bytesInOutput": 9653
+        },
+        "packages/barocss-physics/src/recording-owner.ts": {
+          "bytesInOutput": 53
+        },
+        "packages/barocss-physics/src/provider-manifest.generated.ts": {
+          "bytesInOutput": 7897
+        },
+        "packages/barocss-physics/src/joint-motor.ts": {
+          "bytesInOutput": 1529
+        },
+        "packages/barocss-physics/src/capsule-contact.ts": {
+          "bytesInOutput": 5166
+        },
+        "packages/barocss-physics/src/collision.ts": {
+          "bytesInOutput": 12607
+        },
+        "packages/barocss-physics/src/contact-manifold.ts": {
+          "bytesInOutput": 3950
+        },
+        "packages/barocss-physics/src/persistent-box-contact.ts": {
+          "bytesInOutput": 3085
+        },
+        "packages/barocss-physics/src/ccd-slab.ts": {
+          "bytesInOutput": 925
+        },
+        "packages/barocss-physics/src/ccd-box.ts": {
+          "bytesInOutput": 1612
+        },
+        "packages/barocss-physics/src/ccd.ts": {
+          "bytesInOutput": 2611
+        },
+        "packages/barocss-physics/src/ccd-pair.ts": {
+          "bytesInOutput": 1830
+        },
+        "packages/barocss-physics/src/broadphase.ts": {
+          "bytesInOutput": 1090
+        },
+        "packages/barocss-physics/src/scene-profile.ts": {
+          "bytesInOutput": 1047
+        },
+        "packages/barocss-physics/src/sleep.ts": {
+          "bytesInOutput": 4059
+        },
+        "packages/barocss-physics/src/disjoint-hinge/measure.ts": {
+          "bytesInOutput": 4829
+        },
+        "packages/barocss-physics/src/disjoint-hinge/errors.ts": {
+          "bytesInOutput": 2592
+        },
+        "packages/barocss-physics/src/disjoint-hinge/pose.ts": {
+          "bytesInOutput": 2807
+        },
+        "packages/barocss-physics/src/disjoint-hinge/rows.ts": {
+          "bytesInOutput": 3856
+        },
+        "packages/barocss-physics/src/disjoint-hinge/linear-solver.ts": {
+          "bytesInOutput": 11217
+        },
+        "packages/barocss-physics/src/disjoint-hinge/projection.ts": {
+          "bytesInOutput": 3265
+        },
+        "packages/barocss-physics/src/disjoint-hinge/report.ts": {
+          "bytesInOutput": 4562
+        },
+        "packages/barocss-physics/src/disjoint-hinge/postcontact.ts": {
+          "bytesInOutput": 2215
+        },
+        "packages/barocss-physics/src/disjoint-hinge/stage.ts": {
+          "bytesInOutput": 1561
+        },
+        "packages/barocss-physics/src/cloth/constraints.ts": {
+          "bytesInOutput": 1638
+        },
+        "packages/barocss-physics/src/cloth/solver.ts": {
+          "bytesInOutput": 1044
+        },
+        "packages/barocss-physics/src/cloth/metrics.ts": {
+          "bytesInOutput": 1628
+        },
+        "packages/barocss-physics/src/domain/types.ts": {
+          "bytesInOutput": 1890
+        },
+        "packages/barocss-physics/src/domain/cloth.ts": {
+          "bytesInOutput": 3650
+        },
+        "packages/barocss-physics/src/fluid/boundary.ts": {
+          "bytesInOutput": 1715
+        },
+        "packages/barocss-physics/src/fluid/neighbors.ts": {
+          "bytesInOutput": 2575
+        },
+        "packages/barocss-physics/src/fluid/kernel.ts": {
+          "bytesInOutput": 867
+        },
+        "packages/barocss-physics/src/fluid/visual-viscosity.ts": {
+          "bytesInOutput": 971
+        },
+        "packages/barocss-physics/src/fluid/pbf.ts": {
+          "bytesInOutput": 4520
+        },
+        "packages/barocss-physics/src/fluid/diagnostics.ts": {
+          "bytesInOutput": 819
+        },
+        "packages/barocss-physics/src/domain/fluid.ts": {
+          "bytesInOutput": 4187
+        },
+        "packages/barocss-physics/src/rotation-support.ts": {
+          "bytesInOutput": 2578
+        },
+        "packages/barocss-physics/src/rigid-free-rotation.ts": {
+          "bytesInOutput": 9129
+        },
+        "packages/barocss-physics/src/rigid-forced-rotation.ts": {
+          "bytesInOutput": 3493
+        },
+        "packages/barocss-physics/src/world.ts": {
+          "bytesInOutput": 26852
+        },
+        "packages/barocss-physics/src/capsule-query-error.ts": {
+          "bytesInOutput": 0
+        },
+        "packages/barocss-physics/src/capsule-query/profile.ts": {
+          "bytesInOutput": 135
+        },
+        "packages/barocss-physics/src/capsule-query/admission.ts": {
+          "bytesInOutput": 4495
+        },
+        "packages/barocss-physics/src/capsule-query/geometry.ts": {
+          "bytesInOutput": 1988
+        },
+        "packages/barocss-physics/src/capsule-query/sweep.ts": {
+          "bytesInOutput": 1493
+        },
+        "packages/barocss-physics/src/capsule-query/snapshot.ts": {
+          "bytesInOutput": 2039
+        },
+        "packages/barocss-physics/src/capsule-query.ts": {
+          "bytesInOutput": 0
+        },
+        "packages/barocss-physics/src/character/profile.ts": {
+          "bytesInOutput": 331
+        },
+        "packages/barocss-physics/src/character/admission.ts": {
+          "bytesInOutput": 3702
+        },
+        "packages/barocss-physics/src/character/math.ts": {
+          "bytesInOutput": 540
+        },
+        "packages/barocss-physics/src/character/state.ts": {
+          "bytesInOutput": 1763
+        },
+        "packages/barocss-physics/src/character/query.ts": {
+          "bytesInOutput": 1821
+        },
+        "packages/barocss-physics/src/character/step-assist.ts": {
+          "bytesInOutput": 2616
+        },
+        "packages/barocss-physics/src/character/slide.ts": {
+          "bytesInOutput": 2094
+        },
+        "packages/barocss-physics/src/character/ground.ts": {
+          "bytesInOutput": 935
+        },
+        "packages/barocss-physics/src/character/core.ts": {
+          "bytesInOutput": 3190
+        },
+        "packages/barocss-physics/src/character-controller.ts": {
+          "bytesInOutput": 717
+        },
+        "examples/physics-rigid-rotation-g1e-2276/evidence/g1e-canonical-build-01/source-entry.ts": {
+          "bytesInOutput": 0
+        },
+        "packages/barocss-physics/src/replay-json.ts": {
+          "bytesInOutput": 6899
+        },
+        "packages/barocss-physics/src/replay-compare.ts": {
+          "bytesInOutput": 915
+        },
+        "packages/barocss-physics/src/replay-validation.ts": {
+          "bytesInOutput": 7438
+        },
+        "packages/barocss-physics/src/replay.ts": {
+          "bytesInOutput": 5622
+        }
+      },
+      "bytes": 446054
+    }
+  }
+}

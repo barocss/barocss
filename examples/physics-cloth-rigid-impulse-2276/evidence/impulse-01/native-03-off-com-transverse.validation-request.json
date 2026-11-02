@@ -1,0 +1,26 @@
+{
+  "caseId": "03-off-com-transverse",
+  "graph": "native",
+  "validationOrdinal": 16,
+  "executionFreezeSha256": "511b332d26a4a8875ac785d71076a0111236f71db8d45759474ca05861b89eff",
+  "input": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/03-off-com-transverse.input-raw.json",
+    "bytes": 2667,
+    "sha256": "66d566872fde8d43462aeaa661a983b483378a986184467485ff31bf2c390e64"
+  },
+  "output": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/native-03-off-com-transverse.output-raw.json",
+    "bytes": 4543,
+    "sha256": "f603f8386589051a0fe8725918e175c253a5536403876f40a12d4361d6fa692c"
+  },
+  "oracleReply": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01-oracle/03-off-com-transverse.reply.json",
+    "bytes": 41359,
+    "sha256": "1048d5f950cba236dd6360db2443a0f1235c43a944be9cb4a4331d4149d4446c"
+  },
+  "oracleSummary": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01-oracle/summary.json",
+    "bytes": 5847,
+    "sha256": "a6431f5470518163d42da82ef506a5181ba357855a61ecd700b791f42df3aac0"
+  }
+}

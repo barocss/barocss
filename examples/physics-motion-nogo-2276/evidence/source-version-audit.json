@@ -1,0 +1,43 @@
+{
+  "work_id": "physics-motion-nogo-2276",
+  "artifact_type": "source-version-audit",
+  "status": "STUDY_SOURCE_STABLE_WITH_DECLARED_POST_UNIT_GUARD_UPDATES",
+  "changesBetweenUnitAndStudy": [
+    {
+      "path": "examples/physics-motion-nogo-2276/hinge-contract.md",
+      "unitSha256": "5d65b0d441983ebad3fd96a09ae3c9c214dcaec00066762074211a1dcadeaf62",
+      "studySha256": "3ac9355834e97608c99073175ad5debcc8ac6b61e67c34e5c5dfab29c82c1f29",
+      "description": "parent metadata-only contract header update"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/hinge-runtime.mjs",
+      "unitSha256": "e24ed52cd0c096fc9e59824fd1327016f446188b0738087c20d004859d6032c2",
+      "studySha256": "ca2d999771f0dc532b499b81bbdc5232191fadfacc9462c11e891c18b2e5855b",
+      "description": "bounded stdout serialization; arithmetic expression unchanged"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/hinge-study.py",
+      "unitSha256": "0cb9beeaa350f9f79e0b2831a3cbd0ec09c0d16717ee3fb891645e98252117be",
+      "studySha256": "a8e9e39f18e562886e650645a487a1bf41e3f2978d00904adeb3cc7f351eef80",
+      "description": "remaining-time check after executable hash; arithmetic helpers unchanged"
+    },
+    {
+      "path": "examples/physics-motion-nogo-2276/stack-contract.md",
+      "unitSha256": "5108d58284fde0c0628a43cf7223db985d3d1913c95bc983eec6ae4ed1da5c88",
+      "studySha256": "fd64d8cca030ec25cb1d7cf9121eb6753b026f1afe6985232686e68b68e89b71",
+      "description": "parent metadata-only contract header update"
+    }
+  ],
+  "hingeUnitTestFileUnchanged": true,
+  "studyHashesStillMatch": true,
+  "unitMathCoverage": "11 synthetic helper tests; subsequent changes affect timeout and output bounding only",
+  "worldCalls": 0,
+  "postUnitGuardOnlyChangesIndependentlyReconstructedToPriorHashes": true,
+  "firstDataAuditFailure": {
+    "kind": "AssertionError",
+    "cause": "reconstruction script assumed an incorrect diagnostic error-message literal",
+    "filesChanged": false,
+    "numericalCalls": 0,
+    "failureTime": "NOT_RECORDED"
+  }
+}

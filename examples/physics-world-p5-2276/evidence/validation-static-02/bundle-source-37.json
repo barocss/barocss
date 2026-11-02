@@ -1,0 +1,24 @@
+{
+  "mode": "source",
+  "entry": "examples/physics-scene/fluid-cad-viewer/timings.js",
+  "platform": "browser",
+  "inputs": {
+    "examples/physics-scene/fluid-cad-viewer/timings.js": {
+      "bytes": 539,
+      "sha256": "02cb9cb6f7fa6a3ffec72e24818490b6acdb3207df1df82a6cefc220eff20d36",
+      "effectiveSha256": "02cb9cb6f7fa6a3ffec72e24818490b6acdb3207df1df82a6cefc220eff20d36"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 630,
+  "outputSha256": "34abed4c6a49e04dcb12e212833b36042b91e7bffc24583d34a6ce9fc52344f3",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [],
+  "moduleEvaluation": false
+}

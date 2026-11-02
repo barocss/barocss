@@ -1,0 +1,1 @@
+{"id":"main-data-audit-01","status":"PASS","rows":1200,"elapsedMs":384,"summaryBytes":22256,"summarySha256":"efaeb60ab5a25f55c57232e08ada1f29b4ba6780f402d3dcba26bb93b7773e4d","firstFailure":null}

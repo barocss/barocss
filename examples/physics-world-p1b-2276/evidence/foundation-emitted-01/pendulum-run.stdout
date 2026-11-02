@@ -1,0 +1,90 @@
+TAP version 13
+# Subtest: AGM and independent quadrature period references agree before measuring the solver
+ok 1 - AGM and independent quadrature period references agree before measuring the solver
+  ---
+  duration_ms: 2.902625
+  type: 'test'
+  ...
+# Subtest: ten cycles meet fixed period and energy gates at four libration amplitudes
+ok 2 - ten cycles meet fixed period and energy gates at four libration amplitudes
+  ---
+  duration_ms: 8.564458
+  type: 'test'
+  ...
+# {"angleRad":0.0001,"expectedPeriod":1.7568020174135945,"measuredPeriod":1.7567369894535254,"initialEnergyJ":5.8839899642402215e-8,"maxEnergyError":1.3067522768935353e-11,"periodRelativeError":0.00003701496208711457}
+# {"angleRad":0.5,"expectedPeriod":1.784651774918303,"measuredPeriod":1.7845877941720265,"initialEnergyJ":1.4406059633253312,"maxEnergyError":0.00031338943837710964,"periodRelativeError":0.000035850549208395834}
+# {"angleRad":1.5,"expectedPeriod":2.041349033034204,"measuredPeriod":2.041295097653647,"initialEnergyJ":10.935546025518505,"maxEnergyError":0.0020523825960463427,"periodRelativeError":0.000026421439785407398}
+# {"angleRad":2.5,"expectedPeriod":2.886394790360551,"measuredPeriod":2.8863751237164825,"initialEnergyJ":21.195822044884004,"maxEnergyError":0.0032941993628305966,"periodRelativeError":0.000006813566922329027}
+# Subtest: halving dt gives second-order period and energy convergence against analytic periods
+ok 3 - halving dt gives second-order period and energy convergence against analytic periods
+  ---
+  duration_ms: 6.359292
+  type: 'test'
+  ...
+# {"stepsSeconds":[0.008333333333333333,0.004166666666666667,0.0020833333333333333],"results":[{"expectedPeriod":2.041349033034204,"measuredPeriod":2.041295097653647,"initialEnergyJ":10.935546025518505,"maxEnergyError":0.0020523825960463427,"periodRelativeError":0.000026421439785407398},{"expectedPeriod":2.041349033034204,"measuredPeriod":2.041335554063708,"initialEnergyJ":10.935546025518505,"maxEnergyError":0.0005130900418848228,"periodRelativeError":0.000006602971994534347},{"expectedPeriod":2.041349033034204,"measuredPeriod":2.0413456638013754,"initialEnergyJ":10.935546025518505,"maxEnergyError":0.000128272128234741,"periodRelativeError":0.0000016504932641154705}]}
+# Subtest: angle and angular speed converge at identical times against elliptic time-of-flight inversion
+ok 4 - angle and angular speed converge at identical times against elliptic time-of-flight inversion
+  ---
+  duration_ms: 9.152334
+  type: 'test'
+  ...
+# {"timesSeconds":[0.1,0.2,0.3],"reference":[{"angleRad":1.4362605252956588,"angularVelocityRadps":-1.273482871999746,"quadratureErrorSeconds":3.885780586188048e-16,"inversionResidualSeconds":4.163336342344337e-17},{"angleRad":1.246132137321216,"angularVelocityRadps":-2.520110540369851,"quadratureErrorSeconds":3.885780586188048e-16,"inversionResidualSeconds":5.551115123125783e-17},{"angleRad":0.935830083619117,"angularVelocityRadps":-3.655771890328948,"quadratureErrorSeconds":7.771561172376096e-16,"inversionResidualSeconds":5.551115123125783e-17}]}
+# {"results":[{"dt":0.008333333333333333,"samples":[{"timeSeconds":0.1,"angleRad":1.4362600428479837,"angularVelocityRadps":-1.2734702118180787,"angleErrorRad":4.824476751430495e-7,"speedErrorRadps":0.000012660181667234482},{"timeSeconds":0.2,"angleRad":1.2461284758443942,"angularVelocityRadps":-2.520050487042497,"angleErrorRad":0.0000036614768217368976,"speedErrorRadps":0.00006005332735403712},{"timeSeconds":0.3,"angleRad":0.9358160904404549,"angularVelocityRadps":-3.655605885438256,"angleErrorRad":0.000013993178662130568,"speedErrorRadps":0.000166004890691962}],"maxAngleErrorRad":0.000013993178662130568,"maxSpeedErrorRadps":0.000166004890691962},{"dt":0.004166666666666667,"samples":[{"timeSeconds":0.1,"angleRad":1.4362604045688552,"angularVelocityRadps":-1.2734797062190555,"angleErrorRad":1.2072680366514987e-7,"speedErrorRadps":0.000003165780690483899},{"timeSeconds":0.2,"angleRad":1.2461312215384328,"angularVelocityRadps":-2.5200955260774913,"angleErrorRad":9.157827831618448e-7,"speedErrorRadps":0.000015014292359616377},{"timeSeconds":0.3,"angleRad":0.935826584694614,"angularVelocityRadps":-3.65573038982477,"angleErrorRad":0.000003498924503020362,"speedErrorRadps":0.00004150050417806028}],"maxAngleErrorRad":0.000003498924503020362,"maxSpeedErrorRadps":0.00004150050417806028},{"dt":0.0020833333333333333,"samples":[{"timeSeconds":0.1,"angleRad":1.4362604951067792,"angularVelocityRadps":-1.2734820805086213,"angleErrorRad":3.0188879618364695e-8,"speedErrorRadps":7.914911246409417e-7},{"timeSeconds":0.2,"angleRad":1.2461319083496782,"angularVelocityRadps":-2.5201067867367533,"angleErrorRad":2.2897153773016043e-7,"speedErrorRadps":0.00000375363309768062},{"timeSeconds":0.3,"angleRad":0.9358292088486411,"angularVelocityRadps":-3.655761515247857,"angleErrorRad":8.747704759448638e-7,"speedErrorRadps":0.000010375081091140714}],"maxAngleErrorRad":8.747704759448638e-7,"maxSpeedErrorRadps":0.000010375081091140714}]}
+# Subtest: 100 cycles keep the energy envelope bounded and retain the period gate
+ok 5 - 100 cycles keep the energy envelope bounded and retain the period gate
+  ---
+  duration_ms: 10.341125
+  type: 'test'
+  ...
+# {"expectedPeriod":2.886394790360551,"measuredPeriod":2.88637510797377,"initialEnergyJ":21.195822044884004,"maxEnergyError":0.003294211374374356,"periodRelativeError":0.00000681902103155883}
+# Subtest: zero and near-zero energy use an absolute threshold
+ok 6 - zero and near-zero energy use an absolute threshold
+  ---
+  duration_ms: 1.937417
+  type: 'test'
+  ...
+# Subtest: COM and pivot inertia agree, gravity sign and right-hand axes are explicit
+ok 7 - COM and pivot inertia agree, gravity sign and right-hand axes are explicit
+  ---
+  duration_ms: 1.148792
+  type: 'test'
+  ...
+# Subtest: zero gravity admits a free rotor and copied config/output cannot alter it
+ok 8 - zero gravity admits a free rotor and copied config/output cannot alter it
+  ---
+  duration_ms: 0.195709
+  type: 'test'
+  ...
+# Subtest: separate instances replay exactly for the same input and fixed-step order
+ok 9 - separate instances replay exactly for the same input and fixed-step order
+  ---
+  duration_ms: 2.129375
+  type: 'test'
+  ...
+# Subtest: invalid finite bounds, inertia, dt, and work budgets are refused
+ok 10 - invalid finite bounds, inertia, dt, and work budgets are refused
+  ---
+  duration_ms: 0.9225
+  type: 'test'
+  ...
+# Subtest: bad steps, numeric failure, and exhausted work retain the complete accepted state
+ok 11 - bad steps, numeric failure, and exhausted work retain the complete accepted state
+  ---
+  duration_ms: 0.233708
+  type: 'test'
+  ...
+# Subtest: disposed instances refuse reads and steps with the existing PhysicsError code
+ok 12 - disposed instances refuse reads and steps with the existing PhysicsError code
+  ---
+  duration_ms: 0.11475
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 89.058959

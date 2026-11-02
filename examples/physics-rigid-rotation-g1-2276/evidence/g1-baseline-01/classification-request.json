@@ -1,0 +1,36 @@
+{
+  "mode": "BASELINE_CHARACTERIZATION_ONLY",
+  "freezeSha256": "6a04602e299bb6950775205be5a7d8748ac9e9b35d28ff92e779b00b4cc2b055",
+  "artifacts": {
+    "closed": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/capture-closed.json",
+      "bytes": 2649,
+      "sha256": "16f10e3a4a08c3a857eaf169a982838f670ebf75816600a8af764ae8344d916a"
+    },
+    "input": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/input-raw.json",
+      "bytes": 3791,
+      "sha256": "7bd4490b2cc3b0cc0b3fc60850f0a13d76475547f170437bbdda7a3a8ab0c9d7"
+    },
+    "sourceBefore": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/source-before-raw.json",
+      "bytes": 1928,
+      "sha256": "8cf233e124267d8816d51de031d866ac35dd2769e174f02da02e8431f23e4904"
+    },
+    "sourceAfter": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/source-after-raw.json",
+      "bytes": 1928,
+      "sha256": "a56a0bd723a8e01d2daac41be1b3018e24a0d71844d1a69d1c8433db7cf70545"
+    },
+    "nativeBefore": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/native-before-raw.json",
+      "bytes": 1928,
+      "sha256": "40fc317393c5c77648e30578fc2fa9b576590b15450a90f47d6cea4fde1cc249"
+    },
+    "nativeAfter": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/native-after-raw.json",
+      "bytes": 1928,
+      "sha256": "dc181b76cad96a40c531d67bc83891d36ee486860d27360f7d9efe0d77e43a66"
+    }
+  }
+}

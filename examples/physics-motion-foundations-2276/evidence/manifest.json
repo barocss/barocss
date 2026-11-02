@@ -1,0 +1,1301 @@
+{
+  "workId": "physics-motion-foundations-2276",
+  "base": "12411c89b9a0f9de7e5066a5ea8f3d292c9476a8",
+  "files": [
+    {
+      "path": "examples/physics-motion-foundations-2276/CONTRACT.md",
+      "bytes": 5175,
+      "sha256": "07c610210446a6af3906d776f1c59eb5c49fabc705cf8b0d18bd6a9cd8011e7b"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/README.md",
+      "bytes": 14760,
+      "sha256": "d0f75b7871a665a5b00576e1708c2f0de34451f91f59e2724023fec22dad4c86"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/baseline.test.ts",
+      "bytes": 2193,
+      "sha256": "cfdd5704a513f89d9a4963f6a54e8b27d9145bac2d2ad52d024ef025fedaded9"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/contact-contract.md",
+      "bytes": 4907,
+      "sha256": "59a11fc14885b04f9b1967fa507a2c5eda02a9c4afeb8799a083e8ecf3ad7fcd"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/contact.test.ts",
+      "bytes": 8955,
+      "sha256": "4b030e19f75f42be3a12f2a8241a8b94b5d815534ab6def00fc5932b9ac4a579"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/.gitignore",
+      "bytes": 241,
+      "sha256": "5bda38f1f449b5581ef4d5d14b4ef429cb4596cbdccb622b42d912e0adcf3e95"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/admission.graph.json",
+      "bytes": 6523,
+      "sha256": "8cb59794cd793ceb5192dd8d52e8d0eb4f356e58483b8c19cd42b0492365051f"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/admission.mjs",
+      "bytes": 90238,
+      "sha256": "82b3b5e547bd7383ab103717a0486dfa5949409b0ea5a213071a3b215ad51a79"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/admission.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/admission.stdout",
+      "bytes": 466,
+      "sha256": "6096ec4b8d57a9c6503038425cb621d2409b13c2e2d2e586f5564452493396ed"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/commands.json",
+      "bytes": 4401,
+      "sha256": "facdf7885676af6615d6a84d5b374ac4e207cc57072a681055e4a1c224b6c495"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/contact-impulse.graph.json",
+      "bytes": 612,
+      "sha256": "d90dde1c42c437fd47d6f0ffa2e7174a7c9f6b7b67c3b54f44af48794a8b1c7d"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/contact-impulse.mjs",
+      "bytes": 7472,
+      "sha256": "4c98ed569bb6843455cdcdc0bb9bfaa3c4e39bf712460183158faa68cbecd6ed"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/contact-impulse.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/contact-impulse.stdout",
+      "bytes": 386,
+      "sha256": "b08a6670d360e28001aa6d6719ee5e048bb281ae90d790cdbe813a5c0f22a134"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/friction-release.graph.json",
+      "bytes": 623,
+      "sha256": "e88071a1690fcd5a37c850c0376efbc531828ad813cf01c6e8b37839ac85c2dc"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/friction-release.mjs",
+      "bytes": 4624,
+      "sha256": "98af4ff9f3c8ee3bcc0f6193931de79afdef9c60739061247b6fcc693e048398"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/friction-release.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/friction-release.stdout",
+      "bytes": 28,
+      "sha256": "d4fcd6d6260f02b262f586707ad83ddb473ef30693b5609559b39e02a7fe056d"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/gravity-velocity.graph.json",
+      "bytes": 623,
+      "sha256": "16f8f906cef39b1fcb6353f8ce08d8fec1d99b5c8143b97b9b10e0627f9632f8"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/gravity-velocity.mjs",
+      "bytes": 5644,
+      "sha256": "41b843278a5a084091152cd1b96bf92bdf72ede4cc04ce6bc1b8caa003522ba9"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/gravity-velocity.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/gravity-velocity.stdout",
+      "bytes": 262,
+      "sha256": "6790447caa31565fb91ff1c6d00f55d414e80fc580e3bd035a0a098153757ccd"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/original-mini-stacks.graph.json",
+      "bytes": 6533,
+      "sha256": "4a3e0a1ee5c04cdca1251a9f03bd3f80db8e6a1f2385a9d7ded41309c82bcecd"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/original-mini-stacks.mjs",
+      "bytes": 93118,
+      "sha256": "659a597cd6a7833a6f67e81a8393e7380efc7138fb3ce28c984037c5b26abfda"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/original-mini-stacks.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/original-mini-stacks.stdout",
+      "bytes": 3411,
+      "sha256": "4e8c7989163a58d57418376222c1c0ae0150555ad42b18a75d0f62b4b74eaf79"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/public-smoke.graph.json",
+      "bytes": 6531,
+      "sha256": "f0d919686dbe2299ffd9545e14587576cd68b5d746ca3fddd71351a7924ce7a2"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/public-smoke.mjs",
+      "bytes": 90565,
+      "sha256": "389d91083e26754aebc78562735c97f0f77f379ab4cf77114e229c187140cb0f"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/public-smoke.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/baseline-01/public-smoke.stdout",
+      "bytes": 333,
+      "sha256": "35855ffe032d22b218af52554e125d405db2782ddfbbe2d18896acbfa3a883c4"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/contact-compiled-01/commands.json",
+      "bytes": 945,
+      "sha256": "d3a98a512e45b1a56745651e196a78cff5f3aa9395d5111f7246744ef1a484dc"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/contact-compiled-01/contact.graph.json",
+      "bytes": 8675,
+      "sha256": "992f8c2ce3e84936c7719ad648a9c6b6a7181c67cd8f82d53468d463d7168cd2"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/contact-compiled-01/contact.mjs",
+      "bytes": 98004,
+      "sha256": "7269c8fa9ea0dabcf3eee96c78b72a97d27853d789c4e7eed5cdc6617e5912c9"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/contact-compiled-01/contact.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/contact-compiled-01/contact.stdout",
+      "bytes": 1134,
+      "sha256": "a8dcc834cc54638fef9942d0b8e8c68d2fada3367e6968252ba0dafa261fb720"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/contact-source-01/commands.json",
+      "bytes": 934,
+      "sha256": "dc6813d6f6833b8f15a4780562d49f970a105c74faae1137a3b3c9349ba08c90"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/contact-source-01/contact.graph.json",
+      "bytes": 6676,
+      "sha256": "ce2499f57ecf3741b24c1aeeb271ec9a5351557c47a8ce2232a04be0ac33add6"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/contact-source-01/contact.mjs",
+      "bytes": 96520,
+      "sha256": "2433e4b25e13bfe6ea8835614c59368553894d20886c2684c05bff3e7f39d6d7"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/contact-source-01/contact.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/contact-source-01/contact.stdout",
+      "bytes": 1134,
+      "sha256": "d58cef4fe212cb2cda40e18cd187b4c4ff74e5d4a2b6ac6ba3f57d5a8c091c5f"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/baseline.graph.json",
+      "bytes": 8676,
+      "sha256": "9532b480429d6fe531c3e8bb32048ebd09352e02d7b46f2b004b715d19e96531"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/baseline.mjs",
+      "bytes": 91722,
+      "sha256": "dab0c4dd7a73d4463009d745215c84812ef01b41cd2dc0c635114cb85af5481e"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/baseline.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/baseline.stdout",
+      "bytes": 465,
+      "sha256": "75c8ad5d322c91939ef0cedb024d31fb325e20c2be25acd87172531a869be31b"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/commands.json",
+      "bytes": 3403,
+      "sha256": "04143f315851c364c6ab515eb5cc3f4030a690446b0ecc07e1960ccc1601d034"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/emit-public-main.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/emit-public-main.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/package.json",
+      "bytes": 18,
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/pendulum.graph.json",
+      "bytes": 8676,
+      "sha256": "4827a5c843e443f3b8c9f044f951ea38f1dcc8df2f35f7f2d101596359e78c53"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/pendulum.mjs",
+      "bytes": 20572,
+      "sha256": "f7148df40271ac53fe08e6f3251bfac59e5096db5f6f01e966a958db41a9fad4"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/pendulum.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/pendulum.stdout",
+      "bytes": 6978,
+      "sha256": "927a98005b8588586bbfc1936b22935735780a01141e42d4a627d607933d65c7"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/broadphase.d.ts",
+      "bytes": 230,
+      "sha256": "ed4c7e05294e99d439f238eb5c0bb3da5c6acb90ea0b846250a399b87ca1169b"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/broadphase.js",
+      "bytes": 1253,
+      "sha256": "f35e7453719dc2b44668bb20d6fad51a739c6b2cdb9797fe875fc81187400db3"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-contact.d.ts",
+      "bytes": 189,
+      "sha256": "6886362e762a3bd07d1594de24c128d461cd7819e822d684b154b334de6160b5"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-contact.js",
+      "bytes": 5708,
+      "sha256": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-query/admission.d.ts",
+      "bytes": 250,
+      "sha256": "779417df1dbf3f0f697de4a04f918007954b13fc9f301b991105bbfc0a9cefe6"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-query/admission.js",
+      "bytes": 4875,
+      "sha256": "4ec507e0c2165af9bea0091666126abf6335662f81fa736821b3978f0293ab20"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-query/geometry.d.ts",
+      "bytes": 527,
+      "sha256": "a3eb6a92d9a8647dbfd88f129e29a167ac00a1ff78ab5b0dd9fe1101ad78edc8"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-query/geometry.js",
+      "bytes": 2319,
+      "sha256": "4c9034c23c2137d54e4d2e1554b9015ff2cc6bc7776d62d8e1f3c8b905b67d04"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-query/profile.d.ts",
+      "bytes": 357,
+      "sha256": "2b1626e82c8677593940e8100247b6fbb33e9ab53e80d9de001ec1f9a7411300"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-query/profile.js",
+      "bytes": 294,
+      "sha256": "acfab32b60a91c29bec4b89a803902aa9b944eb2ebb6cd0d129b60e039e13210"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-query/snapshot.d.ts",
+      "bytes": 176,
+      "sha256": "64340b99b9b456f3586ed545d7e99a570675df7972374c3ec76ecd9d73a515ea"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-query/snapshot.js",
+      "bytes": 2468,
+      "sha256": "5ee1b97dc58a872a9cd6c56121eca158ac5f746d543729e5f197b24d08f9d55f"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-query/sweep.d.ts",
+      "bytes": 231,
+      "sha256": "e4faea63d9f9446ef0a8b5b3dee919dfcfe8be91a982b073c5f31eaff5537853"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-query/sweep.js",
+      "bytes": 1833,
+      "sha256": "f04e6a548504cad0bb838862f7813225592c9549fb0233e026bc6276f7b4929e"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-query/types.d.ts",
+      "bytes": 1017,
+      "sha256": "59417b6c5aac6a49b48675b7730e77bdacd1c4a6b5962a8a43f729d98ebafc4e"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-query/types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-query-error.d.ts",
+      "bytes": 43,
+      "sha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-query-error.js",
+      "bytes": 137,
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-query.d.ts",
+      "bytes": 222,
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/capsule-query.js",
+      "bytes": 73,
+      "sha256": "f44c04d06c851b807add8096cc26bf893945f53b49ab6c671148491b88e781fc"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/ccd-box.d.ts",
+      "bytes": 366,
+      "sha256": "b7944a4858362550851ea69ebcfd73f749c3416cad673633086a788fe5a2e5d6"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/ccd-box.js",
+      "bytes": 1825,
+      "sha256": "28dc449fe8f07f1d95245017299e64d3fc350fd7982819c93565999130290595"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/ccd-pair.d.ts",
+      "bytes": 266,
+      "sha256": "a00ec5667f35a40f48a83443b5a75eb67853143ba14251f588f2952d63ec54e5"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/ccd-pair.js",
+      "bytes": 2103,
+      "sha256": "6c89cf6f2fc9e9eeb3f83959be8ef23ed614cba42e91e48cb0e4706777234fd2"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/ccd-slab.d.ts",
+      "bytes": 207,
+      "sha256": "78d5b2d258732868c2ce469e3179cbfce52f07288205b933a6f43f6eeff3eeb0"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/ccd-slab.js",
+      "bytes": 1088,
+      "sha256": "cf85c1dce1ebaa899cc2fc9eead7b0c25f7096caeb3a652476beb93c5f02843f"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/ccd.d.ts",
+      "bytes": 551,
+      "sha256": "aa03547eeb32ee459ed5393a8901a61b21e63edefef91517e8a5f727e35e945a"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/ccd.js",
+      "bytes": 2966,
+      "sha256": "c2c54c3dedf0df98c8888107457dbd87041eb7f52b8f689484b18abdfbc5b54a"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/admission.d.ts",
+      "bytes": 490,
+      "sha256": "137ef95a98e9aee44998854fe08de0aa5e2806854f05c0757ef12921d769d64e"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/admission.js",
+      "bytes": 4100,
+      "sha256": "07cf9fb6af74299fce3e8fba82ca65871ea7e0cc67e4e73c837606be9f30e43c"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/core.d.ts",
+      "bytes": 452,
+      "sha256": "1d5e52b2e48111ab4874ab09fe6fc21bc4c9022b31f5baa0d939db67ff80e04a"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/core.js",
+      "bytes": 4194,
+      "sha256": "80a53992b06c75c9216a671c52bad2f3a01b6192bbd6002458ecfe077c3a4eb4"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/ground.d.ts",
+      "bytes": 241,
+      "sha256": "59f59e04ae3e36883940a4c44845f3864d4a0b0deda266427198a1ff876b8e75"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/ground.js",
+      "bytes": 1117,
+      "sha256": "96298ab6534e5e9e7f3da6b0850bbbb7acd73ac11534f6047617ac2bdcd2eb16"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/math.d.ts",
+      "bytes": 391,
+      "sha256": "433867ff46514494522dcf86c0c2412e405df55db2c8dcac593ce729ae070af9"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/math.js",
+      "bytes": 686,
+      "sha256": "1afbd07dcb7940e9808e9017d665d781b5e7442bebc290c8327d0d4fb7a79174"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/profile.d.ts",
+      "bytes": 355,
+      "sha256": "30d583b24f52cf743763b6d877a8d4d1f742a9646d000c43a64065f1836019ce"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/profile.js",
+      "bytes": 334,
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/query.d.ts",
+      "bytes": 646,
+      "sha256": "0303d68278a5d907ded763e36c97b923fe1c717d06eed1666b4124cdd7c4b215"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/query.js",
+      "bytes": 2186,
+      "sha256": "3b22d2772d3724bdb3974f1d88f5298054e577286a9f73aa67e62684efca1184"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/slide.d.ts",
+      "bytes": 310,
+      "sha256": "d16855cd67d77b97846e60f3d5f6938e0445f1011fc191c30d5af60023f64d02"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/slide.js",
+      "bytes": 2636,
+      "sha256": "10c7d825c4640a7837a0b69885bb422ea5a343c921430675c11955acafce3c57"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/state.d.ts",
+      "bytes": 495,
+      "sha256": "60a986a611ac2b2ce7fdb14c97a8ab7caa63351169b51e9a2dfc35014ef2fcbe"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/state.js",
+      "bytes": 1923,
+      "sha256": "1600bb81b883944f36c687305bcb5f7134dbf6c0751e92d9206b03622eaf9633"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/step-assist.d.ts",
+      "bytes": 436,
+      "sha256": "82537d8b381418ee66fc91e3e7b527090b20220c36ff147917b17dd3237740e3"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/step-assist.js",
+      "bytes": 2969,
+      "sha256": "aacc69468b9db7a62a14fbb2628a4494cab01a82640c682ad72f098fcbe7c8e5"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/types.d.ts",
+      "bytes": 2675,
+      "sha256": "1cd3915834a0ba2417658533099aecb869305eeecfc2a3a3f3a40fca677e6a24"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character/types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character-controller.d.ts",
+      "bytes": 505,
+      "sha256": "58081e98e53b7c4a256dd00eac153992c61dfdbfcdbb2f15b9da8aa88df092e8"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/character-controller.js",
+      "bytes": 1083,
+      "sha256": "7a68a578b18b42e02dcacba24011b41208fa9af3b5c1b6991dd8efbae29d75b8"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/collision.d.ts",
+      "bytes": 526,
+      "sha256": "822b6148463875531facd48ee80876ff5d1946cfc7c20c7d116d39cbf20fe49a"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/collision.js",
+      "bytes": 13712,
+      "sha256": "404bbb24c4552828f8bd943481a15b11af7d93333c5651c4c8f8cae88e3dd28a"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/contact-manifold.d.ts",
+      "bytes": 311,
+      "sha256": "81615ac8c95f2a475fcf525f409cbd643ec96fb261f69ad7cf7c5b087f3e725d"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/contact-manifold.js",
+      "bytes": 4576,
+      "sha256": "52fcb4accfbfd3251aa977f519983c7334f0d1663bfb2424ca82bfaaec1c8fae"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/dynamic-anchor-pair.d.ts",
+      "bytes": 411,
+      "sha256": "7e8071f43912e7471bc0de57caecd7035290149b43cb94d869f42f301a34aa58"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/dynamic-anchor-pair.js",
+      "bytes": 3099,
+      "sha256": "8e20e96a9a3c803f65d78dfa21aaf530744b2c37e4f3507fd87e828190c800be"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/dynamic-fixed-joint.d.ts",
+      "bytes": 258,
+      "sha256": "0b6b35d2e6f08719b08ea1aec579868ed82ecbb78e6b9a6f5ee38ebd0db17d83"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/dynamic-fixed-joint.js",
+      "bytes": 1935,
+      "sha256": "c637c4b13cdf432103202f895e50fae7e05c88920cf0889a67f2c16e565bfb5a"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/dynamic-hinge-joint.d.ts",
+      "bytes": 466,
+      "sha256": "4b549062503ddea59e7bb511845a17e9bd7e3b374b4228369ba377a216ed4221"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/dynamic-hinge-joint.js",
+      "bytes": 4671,
+      "sha256": "8780a6887f0c7cbec6ec2f059b2ada64d0e28d0224279d7ada42e4b79e84baac"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/index.d.ts",
+      "bytes": 1203,
+      "sha256": "1a353f5f155eb529b4c11ff7d131969cbaddd2ed3ea0701788f5ebe1272abe81"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/index.js",
+      "bytes": 286,
+      "sha256": "08aff800cf0f4213485776e3606994fdf1c9e74c9aceed8dbde196379d9502d9"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/joint-motor.d.ts",
+      "bytes": 246,
+      "sha256": "b3b1929f61770ea54400899a9cc5fcbdbfc42f7cdb6251c39027aa3365f4026e"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/joint-motor.js",
+      "bytes": 1651,
+      "sha256": "43010c0e319717622727666e1e23f7288fdf500f1731f6fd52a443f36055c724"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/joints.d.ts",
+      "bytes": 259,
+      "sha256": "39592ccaec850a2d8056721c31d2b1e4e94e8c7231c1f4a673d9a7d48a982678"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/joints.js",
+      "bytes": 7382,
+      "sha256": "f2893b2f8684f338a8d4832b9fa91c356fd360bf70ebf423062e21911d433ce0"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/limits.d.ts",
+      "bytes": 476,
+      "sha256": "9389e2dca0a552e1173fd3be829ea8f2cc698a86f6e7d92ddf305404192f0b6b"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/limits.js",
+      "bytes": 416,
+      "sha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/math.d.ts",
+      "bytes": 884,
+      "sha256": "36a9fd9c465be2439f3cbbf444aaeab64d3cea2bbd585a51d0107b497ec90066"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/math.js",
+      "bytes": 2114,
+      "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/pendulum.d.ts",
+      "bytes": 1452,
+      "sha256": "c1d3a9ee37e2e9a06ea1860204970e7bed57a4347c669ba26f8032fe119d7fed"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/pendulum.js",
+      "bytes": 5390,
+      "sha256": "86ae37d06196b0c93109828893357acadf25270374b708f4d7fe37a6cfd4ce8b"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/persistent-box-contact.d.ts",
+      "bytes": 465,
+      "sha256": "f2088fef66e7ca221d679d544f596a3224f3244cd7ce05ef92566475b0132c79"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/persistent-box-contact.js",
+      "bytes": 3405,
+      "sha256": "c45006197178d3a50cd4bbc6b038e286ceadf230e3e459f86882ffc29a96d861"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/scene-profile.d.ts",
+      "bytes": 291,
+      "sha256": "8f7b1a3e8ac115a331f7c42be851baefd36ee3ec834bce2472215ff3367eb13a"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/scene-profile.js",
+      "bytes": 1138,
+      "sha256": "7a1198598bfaf64647f9ed89d76cb4f1035bd77e602d8b8c0b8a7914911b6e9f"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/sleep.d.ts",
+      "bytes": 387,
+      "sha256": "3a33f68d970f05e974f90ab187b74cafe6ad445555a10a8628acef1ee93be541"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/sleep.js",
+      "bytes": 4621,
+      "sha256": "681f3820fb08a61cd7f367b049f9b7bb3d2eb1a4e8f81975aec014fdefdb8250"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/types.d.ts",
+      "bytes": 5521,
+      "sha256": "27bcd9ef96a169602c056de1f7ee5f42f36dea951f1912d40511f32d8e87ac7f"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/types.js",
+      "bytes": 179,
+      "sha256": "932dad524c2e342e7335203e1e47aafb4025b3da32339385d79847c51283be1e"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/validation.d.ts",
+      "bytes": 1392,
+      "sha256": "ff010dba91c4bacc1df2f5109611c3615933af84cc58127ef1ce8e440f5fc470"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/validation.js",
+      "bytes": 13787,
+      "sha256": "d7bb0ca0e1ac7f0485b60e46d72d4a49a2856473276cf28e56967895f06fe919"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/world.d.ts",
+      "bytes": 154,
+      "sha256": "d884aa389a62515cdaa8f89d6d6fb2374ef7747ebdee99cb85bea2b6c6f87e13"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/physics/world.js",
+      "bytes": 21328,
+      "sha256": "4a02377609640f6d184e0d56bb6df8a696f9ec07114938e8fe1e7877e55b2544"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/world.graph.json",
+      "bytes": 8673,
+      "sha256": "7595d28ac16d128b7976692e3b35f865c7914bb893dc7c8d62a05e7b597b18b4"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/world.mjs",
+      "bytes": 93080,
+      "sha256": "8832cae3ae88c938596ea2db1195af86e435d19fd0170025745880162ad1dcad"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/world.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-compiled-01/world.stdout",
+      "bytes": 1499,
+      "sha256": "bac9018a0991fe8271aedf4f85ef8488ba30e5295de6f7f9412913569d254565"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-source-01/commands.json",
+      "bytes": 1632,
+      "sha256": "180642d866fa1b2c8f3b5734d7c8d2f652d024d512855b0727d4a177aa7802d8"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-source-01/pendulum.graph.json",
+      "bytes": 6677,
+      "sha256": "95aa0befce6fb407b81bd5fc2c2eb3d292a30ee343257817be4eef54b85e1f41"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-source-01/pendulum.mjs",
+      "bytes": 20382,
+      "sha256": "078695103ce2e4be38899b2611a1374c9fd2dcfeb7a70fad8dd8169591c18cbf"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-source-01/pendulum.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-source-01/pendulum.stdout",
+      "bytes": 6982,
+      "sha256": "b4b2c67d75a5c463e4c4cba9736d3a0126b6e30ca4e01414070e219f34ec9a7c"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-source-01/world.graph.json",
+      "bytes": 6674,
+      "sha256": "27808cfe83e11ee89aad97a79e76648d6e6bfb80329f8a7c42e0fe237a6eccce"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-source-01/world.mjs",
+      "bytes": 91596,
+      "sha256": "ba09b147f8e37d5c987f86042a0fa53549d3c49f4435d362fb7e5a4e246296e5"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-source-01/world.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/dynamics-source-01/world.stdout",
+      "bytes": 1497,
+      "sha256": "387ac7687a6f75e9452fcead13b7b762a20ae86ca84faac2437623d976b5b5ce"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/final-audit.json",
+      "bytes": 14391,
+      "sha256": "3fdbfd70c3e0f59cf048587b13150aa86ab78f123f273e1567801a21e0e9a622"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/final-raw-whitespace.stdout",
+      "bytes": 3046,
+      "sha256": "705b34074ce002cd54269348ae01a56a0e39a19726cf9aa88813044981530a88"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/inputs-before-01/commands.json",
+      "bytes": 942,
+      "sha256": "4fafb89dbe66be11d84f132321ab9cfab430de47a76fb0e1aad41bf802e74535"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.graph.json",
+      "bytes": 77680,
+      "sha256": "d311cc876105f65b8c15795c704136a60a4cb4b0f10be3739578dbfaa6bb7c31"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.mjs",
+      "bytes": 2983424,
+      "sha256": "30a92aa27445461adb8dae0c01a6b2ca8faa1f2aba379c856a8c8cbf50a14bf6"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.stdout",
+      "bytes": 31815,
+      "sha256": "431e7542613591ec60d4be164511a32e2081afc1aa4722f0b698b43187b25d64"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/inputs-before-01/runner-failure.txt",
+      "bytes": 178,
+      "sha256": "2d849f20f36e44ac35d0abdcc5f0b2ae98db4ba8b929a0087741890455d35db0"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/inputs-final-01/commands.json",
+      "bytes": 941,
+      "sha256": "9e167bb80ca09a566abcc7c14c63b131385552812d82580f7e739452eb3eea0e"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/inputs-final-01/motion-input.graph.json",
+      "bytes": 77680,
+      "sha256": "15b8411a363801112c6f3519c68f90272ca540aaba66178d5f9dd10296f2e04e"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/inputs-final-01/motion-input.mjs",
+      "bytes": 2985229,
+      "sha256": "d807bc321647d9cd5f370109ad8abff375f6b969fb85b2d85c93e62f11e89716"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/inputs-final-01/motion-input.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/inputs-final-01/motion-input.stdout",
+      "bytes": 4798,
+      "sha256": "16d10d7160c7d8931409a02eedd43661207ce2e0a22abe6252fd6dce2e421022"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-after-01/commands.json",
+      "bytes": 1657,
+      "sha256": "1a88fccc1fbde653d0c87aea5239ade2c6bf029698b23b76c0113d79ea4d1bd5"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-after-01/kinematics.graph.json",
+      "bytes": 77834,
+      "sha256": "3ddae3773f39d80e4495b2a0337ec3b887ea0edbdd718ac99f75979853d98b10"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-after-01/kinematics.mjs",
+      "bytes": 3009090,
+      "sha256": "5950626d56c9f9a0173c49c110987101d74b8dfc0f62ad20727b2b47a57c66db"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-after-01/kinematics.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-after-01/kinematics.stdout",
+      "bytes": 1742,
+      "sha256": "a62dac889c708da2df25e0ec7cc4571e298ac6314b7fa73a2b11d4b0209f1616"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-after-01/motion-input.graph.json",
+      "bytes": 77680,
+      "sha256": "c55d9fe165d0d7d7e0a8aa3ac01e75fd8bd86cec633b3c3d9eb6f16a38f7bbff"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-after-01/motion-input.mjs",
+      "bytes": 2985196,
+      "sha256": "b5c421485fbb1a2b97ecba97cc9ebda27deb91b0ab6e5e3dd84e89d0db7872f1"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-after-01/motion-input.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-after-01/motion-input.stdout",
+      "bytes": 4810,
+      "sha256": "6700d77495a463d2fb0b6228abfb0cf3d81b1ad98f4ca2c7708de3cade546ab6"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-metrics-01/commands.json",
+      "bytes": 1661,
+      "sha256": "ebf7ededa519e241c093a63d307376a5659319b2284c0e4555cad11fcbcc7f31"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-metrics-01/kinematics.graph.json",
+      "bytes": 77834,
+      "sha256": "832690659e4165eef56d0869723f8d516afca90ec2a4799b77b7ae881572e477"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-metrics-01/kinematics.mjs",
+      "bytes": 3010861,
+      "sha256": "069c7b0cf929cb9c80a868d3c5c111ed8e50a0570d8cded70c853ee9200c1adc"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-metrics-01/kinematics.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-metrics-01/kinematics.stdout",
+      "bytes": 3023,
+      "sha256": "da11843682d3722de1e038ec57af0715335655b6ef5affba13c52ea5ee89b559"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-metrics-01/motion-input.graph.json",
+      "bytes": 77680,
+      "sha256": "c55d9fe165d0d7d7e0a8aa3ac01e75fd8bd86cec633b3c3d9eb6f16a38f7bbff"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-metrics-01/motion-input.mjs",
+      "bytes": 2985196,
+      "sha256": "b5c421485fbb1a2b97ecba97cc9ebda27deb91b0ab6e5e3dd84e89d0db7872f1"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-metrics-01/motion-input.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/kinematics-metrics-01/motion-input.stdout",
+      "bytes": 4801,
+      "sha256": "89c3c58272665f00f16a07f531f4fe187ff0f6801483f23f9e874e6919bb81f6"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/lint-01/commands.json",
+      "bytes": 1570,
+      "sha256": "6918aecdc164b21aefc53056e4505da90f8670d916013e3bb472ae4e5326fa76"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/lint-01/lint.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/lint-01/lint.stdout",
+      "bytes": 383,
+      "sha256": "3d8378c6719e86408efa71d7804ffc60924fc32e8609f858341b02f495cab391"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/lint-02/commands.json",
+      "bytes": 1702,
+      "sha256": "21f8ab7103966373a64a89eb521033f8e2e70afad1a35ad2e7baad355d6a034a"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/lint-02/lint.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/lint-02/lint.stdout",
+      "bytes": 383,
+      "sha256": "3d8378c6719e86408efa71d7804ffc60924fc32e8609f858341b02f495cab391"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-01/commands.json",
+      "bytes": 5118,
+      "sha256": "1cb11216d8912fbfa0d1ef8fc4568efa0f30d8a44a3cde6735889407813def9e"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-01/dynamic-hinge-motor-probe.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-01/dynamic-hinge-motor-probe.stdout",
+      "bytes": 102,
+      "sha256": "d66ed28fda493ac88bf37d2dc5d44fe3ed4aca18e1b852a3df240faf44150110"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-01/emit-public-main.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-01/emit-public-main.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-01/joints-probe.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-01/joints-probe.stdout",
+      "bytes": 140,
+      "sha256": "a7d1f45f444bc0b50f6ba6ce0be4648100388356aa06143d1ea6b55076db5291"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-01/offset-hinge-probe.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-01/offset-hinge-probe.stdout",
+      "bytes": 700,
+      "sha256": "5b93e8bdf903947ee0325a4403afbeafdf12f377be7adb89ce5e8dc0ca9bc593"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-01/persistent-box-probe.stderr",
+      "bytes": 1016,
+      "sha256": "9061cf6f0e9f02a6c524a1ee2f5de2211114dcad6e96f9b10248f3e78a6b1ff1"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-01/persistent-box-probe.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-01/probe.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-01/probe.stdout",
+      "bytes": 155,
+      "sha256": "b38f577f5ac79d3741bd1e1035ea3ff21b0f86fbc7d72e5a1e6cb5b34b08be41"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-01/rotation-probe.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-01/rotation-probe.stdout",
+      "bytes": 169,
+      "sha256": "fafcb119170eaed437a3bdcd857b70cb6d075feb718bdafd98eb66bc830df76d"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-01/runner-failure.txt",
+      "bytes": 194,
+      "sha256": "43a5e9220d209a755c5c364b57b4c57e118aaf6513989bcf5817b141e913367f"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-02/commands.json",
+      "bytes": 2573,
+      "sha256": "7ac86c9ad878b60f1b49ba0d9d94f82019cda86a68093131c5b1532f30801af0"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-02/emit-public-main.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-02/emit-public-main.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-02/friction-stack-probe.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-02/friction-stack-probe.stdout",
+      "bytes": 273,
+      "sha256": "14870000cc40b73c2938a5506ac7d490e1270b29a415765d4b368ac35aa7536e"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-02/persistent-box-probe.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/physics-compatibility-02/persistent-box-probe.stdout",
+      "bytes": 721,
+      "sha256": "14c705d826af8465b6aec5aa557e0c5491ea6564a0aaf95dbcd9078cfdc0eef9"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/preread/issue-1489.json",
+      "bytes": 8841,
+      "sha256": "c7879006a792ccc1abd012979ec5b25856435783699380c1cb468c5222141d0d"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/preread/issue-1490.json",
+      "bytes": 7338,
+      "sha256": "5d4cbaaab01219c1891252ba9c149936919eb21b1ae1a65614277dd29c1f6b72"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/preread/issue-1572.json",
+      "bytes": 113939,
+      "sha256": "51402f4c5780a307b49fe46f89b49e0537114d1f54b8a1421f43509b6e12810b"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/preread/issue-2276.json",
+      "bytes": 16253,
+      "sha256": "947da23125cd508b3d77cbc00e5e39e834d1e74a1750658c7d2b88b165d73180"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/preread/source-before.json",
+      "bytes": 15504,
+      "sha256": "fa2b3d76bc477528fb69df58f12152aa0539b5a187f20fbd47965bc3dd89d7b3"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/public-package-01/commands.json",
+      "bytes": 1942,
+      "sha256": "d807516960b6fe2f79ae1e4ede75202742e3b4e43dae0efb68a89a06a3c34337"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/public-package-01/consumer.js",
+      "bytes": 1224,
+      "sha256": "19e0af5533032f065568d203c80ea4192e990c600ef886957559b3ef0ae2fe15"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/public-package-01/consumer.ts",
+      "bytes": 1404,
+      "sha256": "31ba437bc6404db7bce6664b36b44425b1f3a99571fdb819b4f9bc118defd594"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/public-package-01/package.json",
+      "bytes": 18,
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/public-package-01/public-consumer-node.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/public-package-01/public-consumer-node.stdout",
+      "bytes": 133,
+      "sha256": "bb86299b226e01ddbed486e4fac198c62b5048d7998396b4a18bbfd339245620"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/public-package-01/public-consumer-types.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/public-package-01/public-consumer-types.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/robot-compatibility-01/commands.json",
+      "bytes": 962,
+      "sha256": "902542c81ad8e6c225f0b63125687614567c680cd6671d5fbb0e7a1e9f1109c0"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/robot-compatibility-01/robot-existing-tests.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/robot-compatibility-01/robot-existing-tests.stdout",
+      "bytes": 3946,
+      "sha256": "0053a016df1563538da79ae748c0a08685d0944823826b7bf75ec967adb2e4f4"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/summary.json",
+      "bytes": 74706,
+      "sha256": "33c607a6d6b96b0dfb4c066be50165e81a87db42dab4999c5b61e3d6b968c258"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/types-01/commands.json",
+      "bytes": 2224,
+      "sha256": "b876272974bd424c08ab7a386cd301e1a66d1aebe232bf0b84624660a3aad0f6"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/types-01/example-types.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/types-01/example-types.stdout",
+      "bytes": 630,
+      "sha256": "6c3528304304d3fb9d86c500fdf7f99f83bbcb7808af802489cfca3539c46556"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/types-01/model-types.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/types-01/model-types.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/types-01/runner-failure.txt",
+      "bytes": 171,
+      "sha256": "0f73045c45327669504abbc8966e0249d7e268c8688c5411bb32274501f7388f"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/types-02/commands.json",
+      "bytes": 1522,
+      "sha256": "9b154d38ea8f3d243e81153dea18aec0118a681f1a6513e8ff02517e832d484c"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/types-02/example-types.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/types-02/example-types.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/types-03/commands.json",
+      "bytes": 1588,
+      "sha256": "fd603f545a89d28327b350ae384d5e60c5b87a1494bfc6161b1f7cd2ea526048"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/types-03/example-types.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/types-03/example-types.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/units-source-01/commands.json",
+      "bytes": 926,
+      "sha256": "ed3276ece4c616194a9155c9c6cb7adf05a04f875f6e41a3ddfc66a638a9d289"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/units-source-01/units.graph.json",
+      "bytes": 65726,
+      "sha256": "9549b8cc8ec6c52008327c133b7c949b8a68fc52f978eca94512584d05be161f"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/units-source-01/units.mjs",
+      "bytes": 230117,
+      "sha256": "1747b5088ba8efa6aa71f3e1ed01f37ece946be95439fec67682e95edb5f6e95"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/units-source-01/units.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/evidence/units-source-01/units.stdout",
+      "bytes": 1390,
+      "sha256": "a2cd1b4cba31f4076c186e566d7be7c11d28ae22a8df6ce594fa4d69afbc4216"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/kinematics-contract.md",
+      "bytes": 6045,
+      "sha256": "d54dfe10f085cf78181d9fb56cb3312c9a877f95a738c21b6fa2e81274e70d90"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/kinematics.test.ts",
+      "bytes": 10564,
+      "sha256": "cfd0f67441d1e241248c8b8222509789b28e8e8e9662d7b0250bf10b1b700da7"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/motion-input.test.ts",
+      "bytes": 3790,
+      "sha256": "6bf1996d8b45d76f7a4fb42dc37ebec7927f2dec61ae01a00c6710e8b02ea404"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/pendulum-contract.md",
+      "bytes": 9314,
+      "sha256": "49fbcf54692e4835019334e2ed07885750580644db37b9807d7d67f03c7d5b9d"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/pendulum.test.ts",
+      "bytes": 16721,
+      "sha256": "4b40d8b9e8a13fc506f6e7b53d086d9c4508eebe43cc873f24f6ed97d14874d5"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/public-consumer.ts",
+      "bytes": 1404,
+      "sha256": "31ba437bc6404db7bce6664b36b44425b1f3a99571fdb819b4f9bc118defd594"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/run.mjs",
+      "bytes": 9082,
+      "sha256": "d09eaacb1904ca2cb4f39d1a1b548915caca7aa2d38bd7caa80f1b40a0f12608"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/summarize.mjs",
+      "bytes": 4752,
+      "sha256": "2ce8cbd1a5606557269dc62c02885034cd00202eeefe9bed0ca3155125be1d89"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/units-contract.md",
+      "bytes": 2930,
+      "sha256": "a8a34fa8f7a1ac063353f3f78c7dc3235052dacc6255b569190ec9efd9a1ced2"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/units.test.ts",
+      "bytes": 6583,
+      "sha256": "b88dc4bc2548d9e7dfbe4e5dccee4a91f11d41740e0f912fea99353ed53554cb"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/world.test.ts",
+      "bytes": 3630,
+      "sha256": "c64be9b6319e9f018ac8cb9a618c570c32b255d092a7f850d0bf566cdad71d98"
+    },
+    {
+      "path": "packages/barocss-physics/src/pendulum.ts",
+      "bytes": 6442,
+      "sha256": "ffbe2413ed129694f0bdbcfaa2c5564363121edf3d63da2cef01d4cd5f276a25"
+    },
+    {
+      "path": "packages/barocss-physics/src/index.ts",
+      "bytes": 1206,
+      "sha256": "363ccc9b0ca0a16f7de00a62729f166a5b4c36133b543df986aab5aaab8b483c"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/robot/motion.ts",
+      "bytes": 11089,
+      "sha256": "0c516dcde97228bdb0b6eef7e00f212c451603371a86c5dd4e4bdb6d2a3e945b"
+    },
+    {
+      "path": ".changeset/physics-motion-foundations-2276.md",
+      "bytes": 304,
+      "sha256": "3974800193addfb1e0aeb9b8036d4b422509f3c5571753c1742580f598ce0157"
+    }
+  ]
+}

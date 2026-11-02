@@ -20,28 +20,18 @@
       "barocss-source": "./src/replay.ts",
       "types": "./src/replay.ts",
       "import": "./src/replay.ts"
-    },
-    "./fluid": {
-      "barocss-source": "./src/fluid.ts",
-      "types": "./src/fluid.ts",
-      "import": "./src/fluid.ts"
-    },
-    "./cloth": {
-      "barocss-source": "./src/cloth.ts",
-      "types": "./src/cloth.ts",
-      "import": "./src/cloth.ts"
-    },
-    "./fluid-cad": {
-      "barocss-source": "./src/fluid-cad.ts",
-      "types": "./src/fluid-cad.ts",
-      "import": "./src/fluid-cad.ts"
     }
   },
   "main": "./src/index.ts",
   "types": "./src/index.ts",
-  "files": ["src", "dist", "README.md", "LICENSE"],
+  "files": [
+    "src",
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --external:./types.js --outfile=dist/index.js"
+    "build:library": "node src/generate-provider.mjs && tsc && node build-root.mjs && node src/generate-provider.mjs --emitted"
   },
   "dependencies": {
     "@barocss/cad": "workspace:*"
@@ -65,21 +55,6 @@
         "barocss-source": "./dist/replay.js",
         "types": "./dist/replay.d.ts",
         "import": "./dist/replay.js"
-      },
-      "./fluid": {
-        "barocss-source": "./dist/fluid.js",
-        "types": "./dist/fluid.d.ts",
-        "import": "./dist/fluid.js"
-      },
-      "./cloth": {
-        "barocss-source": "./dist/cloth.js",
-        "types": "./dist/cloth.d.ts",
-        "import": "./dist/cloth.js"
-      },
-      "./fluid-cad": {
-        "barocss-source": "./dist/fluid-cad.js",
-        "types": "./dist/fluid-cad.d.ts",
-        "import": "./dist/fluid-cad.js"
       }
     }
   }

@@ -8,6 +8,7 @@ export const sidebar = [
       { text: 'What BaroCSS CAD is', link: '/', lane: 'coordinator' },
       { text: 'Getting started', link: '/guide/getting-started', lane: 'outer' },
       { text: 'Concepts', link: '/guide/concepts', lane: 'coordinator' },
+      { text: 'Robot motion', link: '/guide/robot-motion', lane: 'physics-motion-2276' },
     ],
   },
   {
@@ -51,6 +52,16 @@ export const sidebar = [
       { text: 'Route bundles', link: '/packages/cad-model/#route-bundles-in-code', lane: 'outer' },
       { text: 'Assembly and robot motions', link: '/packages/cad-model/#assembly-and-robot-motions', lane: 'outer' },
       { text: 'Studio document', link: '/packages/cad-model/#the-studio-document', lane: 'outer' },
+    ],
+  },
+  {
+    text: 'Physics',
+    link: '/packages/physics/',
+    lane: 'physics-motion-2276',
+    collapsed: true,
+    items: [
+      { text: 'Units and frames', link: '/packages/physics/units-and-frames', lane: 'physics-motion-2276' },
+      { text: 'Profiles and lifecycle', link: '/packages/physics/profiles-and-lifecycle', lane: 'physics-motion-2276' },
     ],
   },
   {
@@ -194,6 +205,7 @@ export const sidebar = [
       { text: 'Rows file formats', link: '/reference/rows', lane: 'outer' },
       { text: 'Limits', link: '/reference/limits', lane: 'coordinator' },
       { text: 'How it is verified', link: '/reference/verification', lane: 'coordinator' },
+      { text: 'Physics verification', link: '/reference/physics-verification', lane: 'physics-motion-2276' },
     ],
   },
 ];

@@ -1,0 +1,143 @@
+{
+  "status": "AUTHOR_READY_M_ONLY_NOT_EXECUTED",
+  "runtimeAuthorized": false,
+  "phaseTAuthorized": false,
+  "productionActivation": false,
+  "sources": {
+    "reference-micro.py": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/reference-micro.py",
+      "bytes": 43798,
+      "sha256": "e9c9e511c4f88ee7ba8360ccdfa1e002108afbf3b20d660b0e88f7c0aabb4c87"
+    },
+    "REFERENCE-PROTOCOL-M01.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/REFERENCE-PROTOCOL-M01.md",
+      "bytes": 8222,
+      "sha256": "51c5b44cd86cf665cca34b8fde78a2413ef12758cca242560054a8ef9866f857"
+    },
+    "AUTHORING-FREEZE-M01.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/AUTHORING-FREEZE-M01.json",
+      "bytes": 2123,
+      "sha256": "a0c9ee98f49a69e5dde8fdd4855cfaea337ed2056adf89a4a9d254826d22d919"
+    },
+    "CONTRACT.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/CONTRACT.md",
+      "bytes": 14376,
+      "sha256": "c1c87c64323836d7ac656ead490380bee82f801de2b67979f9f91309ee73ed31"
+    },
+    "CASES.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/CASES.json",
+      "bytes": 8881,
+      "sha256": "0fb8b4ebc78044e8984fab83878a42fc5051f8717ce914091246de7098fbc386"
+    },
+    "REFERENCES-CLARIFICATION-01.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/REFERENCES-CLARIFICATION-01.md",
+      "bytes": 10318,
+      "sha256": "0d6e8a79f2cbf45f7579291f9b1b947295f28f0cf00eb57053ed581cb8979945"
+    },
+    "rigid-triaxial-free-rotation.ts": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/rigid-triaxial-free-rotation.ts",
+      "bytes": 11287,
+      "sha256": "972bb4dbab8ebb8c9604f2c5afb1d1ea324643b37fc4ec2654a2a4508eb0a707"
+    },
+    "CANDIDATE-READY-M02.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/CANDIDATE-READY-M02.json",
+      "bytes": 6364,
+      "sha256": "952878418887c832b56644a21c28d0b1663e8ef1225f1915542a3de8e7ebbe25"
+    },
+    "LINEAR-CHECK-REPAIR-M02.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/LINEAR-CHECK-REPAIR-M02.md",
+      "bytes": 2004,
+      "sha256": "7a45e60e53efdc6efbb3d42c027fb78406d4a23257f4ac185d7e5fee3d5e0a89"
+    },
+    "ADMISSION-NORMALIZATION-CORRECTION-01.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/ADMISSION-NORMALIZATION-CORRECTION-01.json",
+      "bytes": 2208,
+      "sha256": "4388918c5562d20ff73fb87d82de6fe1dde156d061a75b12f57eb0ec4ec3f713"
+    }
+  },
+  "baselineHelper": {
+    "path": "examples/physics-rigid-rotation-g1-2276/baseline-classify.py",
+    "bytes": 23864,
+    "sha256": "5f5eee9ac2cd8b654eab134823a619254fd0b7c4ab8791419d077a71413a09eb",
+    "reuse": "Authenticated unchanged integral_certificate/proper_rotation/observed_audit/assessment/working_bound/decode; only Arithmetic.operation ceiling adapter changes. No candidate/Physics import."
+  },
+  "protocol": {
+    "name": "G1B_MICRO_JSONL_V1",
+    "cli": "python3 -B reference-micro.py --run-id FRESH --freeze ABS --token SHA256 --out ABS_FRESH_REFERENCE_DIR",
+    "ready": "READY_G1B_MICRO_REFERENCE",
+    "init": "PASS_G1B_MICRO_BANK",
+    "audit": "PASS_G1B_MICRO_AUDIT",
+    "finish": "PASS_G1B_MICRO_FINISH",
+    "failure": "FAIL_G1B_MICRO_REFERENCE",
+    "savedReplies": "reply-0001.json through reply-0006.json",
+    "paths": "All new artifact paths output-directory-relative",
+    "requestCount": 6,
+    "replyCountIncludingReady": 7,
+    "caseId": "M01-triaxial-off-axis",
+    "privateObservation": "Only step0; bodyId/inertiaDiagonalKgM2/orientationXYZW/cacheSnapshotSha256;2actual observations"
+  },
+  "referenceLedger": {
+    "geometryCertificates": 1,
+    "monomialMoments": 9,
+    "algebraicRootCertificates": 3,
+    "fixedBisectionDecisions": 1536,
+    "order": 32,
+    "fullDefectDegree": 64,
+    "decimal80Windows": 2,
+    "decimal120Windows": 2,
+    "totalValidatedTaylorWindows": 4,
+    "endpointDecimalSqrtOperations": 8,
+    "stateAudits": 4,
+    "properRationalRotations": 4,
+    "fractionOperationsMaximum": 10000000,
+    "decimalOperationsMaximum": 32000000,
+    "referenceLinearSolves": 0,
+    "trig": 0,
+    "candidateCalls": 0,
+    "PhysicsImports": 0,
+    "World": 0,
+    "referenceIntegration": "Four validated Taylor windows; explicitly not reported as0ODEwork."
+  },
+  "proof": {
+    "ODEIndependence": "12-state p/R ODE built with alternating tensor indices from independent volume-integral inertia; explicit Taylor recurrence, no midpoint/Cayley/Newton/shared candidate coefficient builder.",
+    "rigor": "Directed80/120 contexts; every fixed initial z has exact polynomial coefficients inside computed intervals; all degree0..64 residual coefficients bounded, including low-order rounding/dependency intervals. Full prior uncertainty enters C0. Picard/tube/Lipschitz gives eta*h/(1-L*h); both precision outputs independently proved and intersect.",
+    "gates": "Unchanged1e-12conservation/norm/COM/linear and1e-11+1e-12*abs(ref) perq/R/omega endpoint; reference width1e-24.",
+    "coefficients": "Certifies actualSOURCE values only;512exact rational bisections perroot,8*2^-52relative root bound and64*2^-52weight-sum bound. Native actual words must be observed/compared by runner only afterSourcePASS/dispose, beforeNativeWorld.",
+    "actualBodyI": "Observe actual admitted native moments/pose and parameter-range proof. Report native moment minus independent integral separately; do not fabricate actual data from expected bank.",
+    "normalizationCorrection": "Actual admission normalizes q before numeric Body; the earlier inferred initial near-unit-q zero-flow refusal mismatch is not established. Boundary coverage remains NOT_RUN."
+  },
+  "resources": {
+    "internalSeconds": 170,
+    "failureReceiptSeconds": 4,
+    "externalSeconds": 180,
+    "referenceWorkBytes": 8388608,
+    "referenceEvidenceSubcapBytes": 8388608,
+    "combinedCampaignEvidenceBytes": 16777216,
+    "logicalCampaignBytes": 67108864,
+    "fractionStoredBits": 4096,
+    "productBits": 8192,
+    "temporarySumBits": 8193,
+    "ownedRoots": "Freeze; canonical raw/decoded pair; source coefficient data/certificates; geometry/initial/diagonal; bank; initial/private observations; active transport roots; interval coefficients/terms/current degree/poly range/endpoints/certificate; observable extraction; complete current physical proof.",
+    "derivedTransient": "Baseline2MiB traversal/scalar/ASCII encoding; init-only1MiB for<=2048Decimal endpoints*384B+1024small containers/references*128B+131072B Context/scalar/frame/hash scratch. Streaming degree64 residual retains one12-vector only. JSON lexical allocation precharged before decode.",
+    "serialization": "Full reachable result plus packed-object/ASCII/UTF8 overlap charged before write; previous transport roots released each iteration; bank stores compact coefficient SHA and complete residual/tube/error/width/Context certificates.",
+    "heapOrRssClaim": false
+  },
+  "authorChecks": {
+    "pythonSyntaxAstOnly": "PASS",
+    "moduleEvaluation": false,
+    "fixtureConversion": 0,
+    "FractionDecimalComputations": 0,
+    "candidateCalls": 0,
+    "build": 0,
+    "World": 0
+  },
+  "remaining": [
+    "Parent combined static execution review and fresh complete runtime/source/tool freeze.",
+    "No actual numerical/resource/physical PASS yet.",
+    "M only; no T/principal extra calculation.",
+    "Reference does not directly observe Native coefficient calculation; runner exact-word transfer is a separate required proof.",
+    "Source before Native construction, full local helper/ownership/dispose PASS mandatory.",
+    "Production/all admitted triaxial range/downstream/contact/joint/adoption and generic G4 remain unqualified."
+  ],
+  "stopRule": "Reference/protocol/Ready frozen after READY; no incidental edits without explicit parent authorization."
+}

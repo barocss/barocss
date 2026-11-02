@@ -4,6 +4,8 @@ import { error } from '../../packages/barocss-physics/src/validation.js';
 import type { SATFeatureSelection } from './sat-feature.js';
 import type { ContactGeometry } from './contact-types.js';
 import { basis,extents,unit,point,WITNESS_MESSAGE,WITNESS_TOLERANCE_M,DUPLICATE_TOLERANCE_M } from './witness.js';
+import { StrictLineContext,StrictLineFailure,nextAfterToward,STRICT_LINE_LIMITS } from './strict-line.js';
+import type { FacePlane } from './strict-line.js';
 /** Exact halfspace classification; no original near-face alignment or 1e-6 separation filter. */
 export function clipFace(polygon: Vec3[],centre: Vec3,axis: Vec3,limit: number): Vec3[] {
   const out: Vec3[]=[];
@@ -43,8 +45,42 @@ export function faceContact(a: Body,b: Body,selection: SATFeatureSelection): Con
   const unique=selected.filter((p,i)=>selected.findIndex(q=>Math.hypot(...sub(p.r,q.r))<=DUPLICATE_TOLERANCE_M)===i);
   unique.sort((p,q)=>p.u-q.u||p.v-q.v);
   const prefix=`face:${ref.id}:${axis}:${side}:${inc.id}:${incidentAxis}:${incidentSide}`;
-  const points=unique.map((p,i)=>point(`${prefix}:${i}`,isA?p.r:p.p,isA?p.p:p.r,planeNormalAtoB));
+  // Keep the selected rows/keys/order. Only representable final witness placement changes.
+  const referencePlane:FacePlane={axis,side},incidentPlane:FacePlane={axis:incidentAxis,side:incidentSide};
+  const faceA=isA?referencePlane:incidentPlane,faceB=isA?incidentPlane:referencePlane;
+  const interior=scale(candidates.reduce((sum,p)=>add(sum,scale(add(p.r,p.p),.5)),[0,0,0] as Vec3),1/candidates.length);
+  let movedPoints=0,maximumSteps=0;
+  let exact:StrictLineContext;
+  let points:ReturnType<typeof point>[];
+  try {
+    exact=new StrictLineContext(a,b,planeNormalAtoB);
+    points=unique.map((p,i)=>{
+      const original=point(`${prefix}:${i}`,isA?p.r:p.p,isA?p.p:p.r,planeNormalAtoB);
+      const certified=(candidate:ReturnType<typeof point>)=>exact.check(candidate.midpointM)
+        &&exact.selectedFaceBounds(candidate.midpointM,faceA,faceB)
+        &&exact.onFace(0,faceA,candidate.witnessAM)&&exact.onFace(1,faceB,candidate.witnessBM);
+      if(certified(original)) return original;
+      let seed=[...original.midpointM] as Vec3;
+      for(let step=1;step<=STRICT_LINE_LIMITS.roundingSteps;step++) {
+        seed=seed.map((value,k)=>nextAfterToward(value,interior[k])) as Vec3;
+        const [witnessA,witnessB]=exact.projectedPair(seed,faceA,faceB);
+        const candidate=point(original.key,witnessA,witnessB,planeNormalAtoB);
+        if(!exact.movementWithin(original.witnessAM,candidate.witnessAM)
+          ||!exact.movementWithin(original.witnessBM,candidate.witnessBM)
+          ||!exact.movementWithin(original.midpointM,candidate.midpointM)) error('NUMERIC_LIMIT',WITNESS_MESSAGE);
+        if(certified(candidate)) { movedPoints++;maximumSteps=Math.max(maximumSteps,step);return candidate; }
+      }
+      error('NUMERIC_LIMIT',WITNESS_MESSAGE);
+    });
+  } catch(caught) {
+    if(caught instanceof StrictLineFailure) error('NUMERIC_LIMIT',WITNESS_MESSAGE);
+    throw caught;
+  }
+  const exactWork=exact.stats();
   return {selection:structuredClone(selection),family:'face',planeNormalAtoB,reference:{body:isA?'a':'b',axis,side,incidentAxis,incidentSide},points,
     conditioning:{clippedVertices:poly.length,candidates:candidates.length,retainedPoints:points.length,
-      rawAxisLength:selection.rawAxisLength,uniquePhysicalFeatureClaimed:false}};
+      rawAxisLength:selection.rawAxisLength,uniquePhysicalFeatureClaimed:false,strictLineCertified:true,
+      boundaryRoundingMovedPoints:movedPoints,boundaryRoundingMaximumSteps:maximumSteps,
+      exactRationalOperations:exactWork.rationalOperations,exactIntegerOperations:exactWork.integerOperations,
+      exactPeakIntegerBits:exactWork.peakIntegerBits}};
 }

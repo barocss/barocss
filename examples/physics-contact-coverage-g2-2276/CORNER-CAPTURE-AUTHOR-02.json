@@ -1,0 +1,34 @@
+{
+  "status": "AUTHOR_READY_STATIC_REPAIRS_HIGH_AND_ORDINARY_REVIEW_PENDING",
+  "source": {
+    "path": "examples/physics-contact-coverage-g2-2276/corner-capture.mjs",
+    "bytes": 12988,
+    "sha256": "5307d781076d0d5993bbab9d9cd25d01523494c375b8960993b08cdf2069cb2a"
+  },
+  "preservedFirstReview": {
+    "path": "examples/physics-contact-coverage-g2-2276/CORNER-CAPTURE-REVIEW-01.md",
+    "bytes": 5633,
+    "sha256": "dd053c271b8a1543d27014a5a4e9c11c0a9bdb8f79b789a357113043e09e2b4e"
+  },
+  "preservedOriginalCommit": "3a825212f",
+  "repairs": [
+    "Require native PASS witness graph=source and exact input/sourceCapture pin binding; authenticate source capture.",
+    "Preserve child command/PID/exit/signal/EOF/timeouts/truncated logs on failure as well as success; TERM500ms/KILL with1500ms bounded close fallback. Outer group guard remains owner.",
+    "Check phase time immediately before each model/CCD/sweep helper.",
+    "Require absolute pinned actual Node and esbuild tool entries."
+  ],
+  "unchanged": "Literal profile,1e-12m witness gate,all physical/resource caps,production source/World/no-runtime scope. No actual build/helper/reference/World calls yet.",
+  "check": {
+    "nodeSyntax": "PASS",
+    "providerModuleEvaluations": 0,
+    "fixtureConversions": 0,
+    "mathOrGeometry": 0,
+    "World": 0
+  },
+  "requiredWitnessReceipt": {
+    "graph": "source",
+    "input": "Exact {path,bytes,sha256} equal native freeze.input",
+    "capture": "Exact {path,bytes,sha256} equal native freeze.sourceCapture",
+    "statusForNativeAdmission": "NECESSARY_CONTACT_WITNESS_PASS_ONLY"
+  }
+}

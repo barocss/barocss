@@ -1,0 +1,717 @@
+{
+  "status": "AUTHOR_READY_STATIC_FAILURE_REVIEW_AND_NARROW_CONTINUATION",
+  "reviewedEntries": 60,
+  "requiresPhysics": 20,
+  "exactZeroOwn": 40,
+  "reviewed": [
+    {
+      "index": 0,
+      "path": "examples/physics-capsule-query-scene/controls.mjs",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/physics"
+      ],
+      "sourceSha256": "3b7a8933bfc890842a93fe5aa8eed00773945b841616d273af469ef7871ce51e",
+      "externalRuntime": []
+    },
+    {
+      "index": 1,
+      "path": "examples/physics-cloth-viewer/host-controller.mjs",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/physics"
+      ],
+      "sourceSha256": "7da62462d6f85e9f08f489bcc00e37f1715acf262e0ce24a08b39b39654d89bd",
+      "externalRuntime": []
+    },
+    {
+      "index": 2,
+      "path": "examples/physics-cloth-viewer/numeric-entry.mjs",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/physics"
+      ],
+      "sourceSha256": "dda189c16e223a0972f759c0e21571a4399cb55434d2b1c0a8b04b1048bd819e",
+      "externalRuntime": []
+    },
+    {
+      "index": 3,
+      "path": "examples/physics-error-entry/entry.mjs",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/physics"
+      ],
+      "sourceSha256": "4f7469f05f0c605b87292505f913c35b4b326a96825aa4512ee188aa77a2c60f",
+      "externalRuntime": []
+    },
+    {
+      "index": 4,
+      "path": "examples/physics-scene/cloth-source-import-probe.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "f2569e97667c00fd7171306ad3dd441335a2e798a147f4504c00b26a5616dc7d",
+      "externalRuntime": []
+    },
+    {
+      "index": 5,
+      "path": "examples/physics-scene/cloth-world-probe.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "a15d37cde19e50b72546261ee5a3d3626c34a9deed2e6a91d22c4adcd29dd9ad",
+      "externalRuntime": []
+    },
+    {
+      "index": 6,
+      "path": "examples/physics-scene/fluid-cad-shelf-probe.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "36bb9331b8209afb1605ea38379ca0f8924dbaeb90c53879e45dfb9433782152",
+      "externalRuntime": []
+    },
+    {
+      "index": 7,
+      "path": "examples/physics-scene/fluid-cad-viewer/app.js",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/cad-interop",
+        "@barocss/physics",
+        "@barocss/viewer"
+      ],
+      "sourceSha256": "f03257e83f627a11c8f3f23f50f325d399c18f4ec9694ae440e7e332ed519098",
+      "externalRuntime": []
+    },
+    {
+      "index": 8,
+      "path": "examples/physics-scene/fluid-viewer/scene.js",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "93dc46a49b553f425614a630f2956c29c92f194b089fef54f09b6b3d330fc332",
+      "externalRuntime": []
+    },
+    {
+      "index": 9,
+      "path": "examples/physics-scene/fluid-visual-profile-probe.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "b757ebd53afc1779665d2f34a62592c5159be8bb88a8ad49c6a8939dbcf532d1",
+      "externalRuntime": []
+    },
+    {
+      "index": 10,
+      "path": "examples/physics-scene/fluid-world-probe.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "125b8e11dca3efe3f3f65c13514846c9b0200763d9c88defc0d376c2400beceb",
+      "externalRuntime": []
+    },
+    {
+      "index": 11,
+      "path": "examples/physics-scene/release-consumer.mjs",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/physics"
+      ],
+      "sourceSha256": "0956788d969fed0737d95727f0424d49896e7128cb0c72c7939f72ffd03fb432",
+      "externalRuntime": []
+    },
+    {
+      "index": 12,
+      "path": "examples/physics-scene/source-import-probe.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "b7b66ef5a7c5adc5fd88396389fce4b0b9ac631098de8dd70cc90ec93a7fbe8e",
+      "externalRuntime": []
+    },
+    {
+      "index": 13,
+      "path": "examples/viewer-assembly-scene/app.js",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/cad",
+        "@barocss/cad-interop",
+        "@barocss/physics",
+        "@barocss/viewer"
+      ],
+      "sourceSha256": "9f46a44a1e8745ada84ffb72165cc85af250419ad065bfaf081ea1266b60924f",
+      "externalRuntime": []
+    },
+    {
+      "index": 14,
+      "path": "examples/viewer-cloth-scene/app.js",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/cad-interop",
+        "@barocss/gpu",
+        "@barocss/physics",
+        "@barocss/viewer"
+      ],
+      "sourceSha256": "5e0663e6e83e6090d0537c996506e40e2e031fe1ba6b889bc94e3e14ef90e057",
+      "externalRuntime": []
+    },
+    {
+      "index": 15,
+      "path": "examples/viewer-fluid-scene/app.js",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/cad-interop",
+        "@barocss/physics",
+        "@barocss/viewer"
+      ],
+      "sourceSha256": "20fef202b1e01375022fdd15d3cc1965ac6f6a41062b06f2773449897d2cf8d9",
+      "externalRuntime": []
+    },
+    {
+      "index": 16,
+      "path": "examples/viewer-native-scene-replacement/app.js",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/cad",
+        "@barocss/cad-interop",
+        "@barocss/gpu",
+        "@barocss/physics",
+        "@barocss/viewer"
+      ],
+      "sourceSha256": "29c3e319ae18d11db2097d1d5ba121844296ae51396973ecaaecf3718d75f75c",
+      "externalRuntime": []
+    },
+    {
+      "index": 17,
+      "path": "examples/viewer-qualified-face-scene/app.js",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/cad",
+        "@barocss/cad-interop",
+        "@barocss/gpu",
+        "@barocss/physics",
+        "@barocss/viewer"
+      ],
+      "sourceSha256": "83de9b363f449d92c9b4a18353dca5e09cf28e479039fe4a87504fd1cb83565f",
+      "externalRuntime": []
+    },
+    {
+      "index": 18,
+      "path": "examples/viewer-shell-scene/app.js",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/cad",
+        "@barocss/cad-interop",
+        "@barocss/gpu",
+        "@barocss/physics",
+        "@barocss/viewer"
+      ],
+      "sourceSha256": "0d209e99560cf0cd097c7d180037bdef9f818c2586493593cfef852431e1fb44",
+      "externalRuntime": []
+    },
+    {
+      "index": 19,
+      "path": "examples/viewer-surface-material/app.js",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/cad-interop",
+        "@barocss/gpu",
+        "@barocss/physics",
+        "@barocss/viewer"
+      ],
+      "sourceSha256": "ff6a842bab52b93624829aa011935bd14466f9bcb50e52a89212dab803cbd9be",
+      "externalRuntime": []
+    },
+    {
+      "index": 20,
+      "path": "examples/workspace-source/flow.mjs",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/cad",
+        "@barocss/cad-interop",
+        "@barocss/gpu",
+        "@barocss/physics",
+        "@barocss/viewer"
+      ],
+      "sourceSha256": "86d42d174dee448e8973a0a1d7caeb1e203df81376176047ffb3d0662b740560",
+      "externalRuntime": []
+    },
+    {
+      "index": 21,
+      "path": "examples/physics-cloth-viewer/app.mjs",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/cad-interop",
+        "@barocss/gpu",
+        "@barocss/physics",
+        "@barocss/viewer"
+      ],
+      "sourceSha256": "1b7b20f49f2b3488a46242f4d05f0f101057a9fdeede62aa6b6161c7123392e6",
+      "externalRuntime": []
+    },
+    {
+      "index": 22,
+      "path": "examples/physics-cloth-viewer/server.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "c8f76a8b56943236f1bfafca83674b73634b75e70cc634b92a17fc39adb8afb2",
+      "externalRuntime": []
+    },
+    {
+      "index": 23,
+      "path": "examples/physics-cloth-viewer/browser-driver.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "57e22afc53406bdf271224606c005308df3f2861b701cd08f2e37d9b801dea72",
+      "externalRuntime": [
+        "/Users/user/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs"
+      ]
+    },
+    {
+      "index": 24,
+      "path": "examples/physics-cloth-viewer/browser-checks.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "34ae06b8121a83c6a933e3c1bd22c3d7bccfdfb913261d26fc0d1d96e0b26ddf",
+      "externalRuntime": []
+    },
+    {
+      "index": 25,
+      "path": "examples/physics-cloth-viewer/frame.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "b00a8df08931994296ccaed007f62c732eae668255bb18865aa47143e627fa9d",
+      "externalRuntime": []
+    },
+    {
+      "index": 26,
+      "path": "examples/physics-cloth-viewer/metrics.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "4f9d93e1e4a02b65251ee91ed7dc15269089ecf97079db400bce13f625f5debe",
+      "externalRuntime": []
+    },
+    {
+      "index": 27,
+      "path": "examples/physics-cloth-viewer/views.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "645d35cbaac1d17f1dd1935d7d89322d8450f01a6a2be84499e31573a3de0b26",
+      "externalRuntime": []
+    },
+    {
+      "index": 28,
+      "path": "examples/physics-cloth-viewer/clock.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "6767cb361e6f0658e8411dd443405bdb08c82360f632bd5365946b33f76d23e3",
+      "externalRuntime": []
+    },
+    {
+      "index": 29,
+      "path": "examples/physics-cloth-viewer/numeric-probe.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "7186b896019364d2ad0c3f23fdad8e16deaa408dd95d4ad5a63fdada7465ae7d",
+      "externalRuntime": []
+    },
+    {
+      "index": 30,
+      "path": "examples/physics-cloth-viewer/bundle.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "838b57e48810a74f7c25622724a569e0d9a282c8da255a5e31f274d91fc24797",
+      "externalRuntime": []
+    },
+    {
+      "index": 31,
+      "path": "examples/physics-cloth-viewer/decode.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "9034b8a5772ab5b3ad7cbccf6dbaee71546d7ba03b1f4b4cfd50d61599507066",
+      "externalRuntime": []
+    },
+    {
+      "index": 32,
+      "path": "examples/physics-cloth-viewer/setup.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "417b2b5abb2cab84ae466a9dbfe34c788ad536dc026519007795546c2a060bc1",
+      "externalRuntime": []
+    },
+    {
+      "index": 33,
+      "path": "examples/physics-scene/fluid-viewer/app.js",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/cad-interop",
+        "@barocss/physics",
+        "@barocss/viewer"
+      ],
+      "sourceSha256": "8b615a3fd0a774e59708f8a38f57254bf087175665f470747c6ccf0030671d65",
+      "externalRuntime": []
+    },
+    {
+      "index": 34,
+      "path": "examples/physics-scene/fluid-viewer/controller.js",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/physics"
+      ],
+      "sourceSha256": "d75586a11200685a6c34c6729f1a074a9cbeafb56f61459d67ab714aef7c9161",
+      "externalRuntime": []
+    },
+    {
+      "index": 35,
+      "path": "examples/physics-scene/fluid-viewer/server.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "ca273ad4a0a2709a1f8874f04eafacf2e563be6c91f8e478c78f8a8d6592d1d0",
+      "externalRuntime": []
+    },
+    {
+      "index": 36,
+      "path": "examples/physics-scene/fluid-cad-viewer/server.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "ff4124dd725b460e9a9d8bef2e6fffddf8afb7dfa56a4e0bd506b4fd930554aa",
+      "externalRuntime": []
+    },
+    {
+      "index": 37,
+      "path": "examples/physics-scene/fluid-cad-viewer/timings.js",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "02cb9cb6f7fa6a3ffec72e24818490b6acdb3207df1df82a6cefc220eff20d36",
+      "externalRuntime": []
+    },
+    {
+      "index": 38,
+      "path": "examples/physics-viewer-scene/server.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "1f24065ce1286024dae0c01733e7dfc46ffe46bbce77f2a5f094e0b93a7a9d6c",
+      "externalRuntime": []
+    },
+    {
+      "index": 39,
+      "path": "examples/physics-cad-scene/server.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "a87166977513a81a22f8ff6d6ab5cccb6a28e2305389f13dcd7c3db4b67f92b3",
+      "externalRuntime": []
+    },
+    {
+      "index": 40,
+      "path": "examples/viewer-assembly-scene/server.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "a4a5f3d5ee1ef41ec19c2b35be55b72554a74db2d7ed3690dab6c945f6b02da0",
+      "externalRuntime": []
+    },
+    {
+      "index": 41,
+      "path": "examples/viewer-cloth-scene/server.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "23ee5e2c204867d10eb4130c6c7ac24dc8de358b2a676b53510a88fd35c06451",
+      "externalRuntime": []
+    },
+    {
+      "index": 42,
+      "path": "examples/viewer-fluid-scene/server.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "53532dee7f14eb584a2e3c6a8e1fd9d872e18c1d7186dcab8181dc9086b9f647",
+      "externalRuntime": []
+    },
+    {
+      "index": 43,
+      "path": "examples/viewer-native-scene-replacement/server.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "cde97ed2994912667da65aa48160776fc3cf07051bda5804641c7477e9cf2367",
+      "externalRuntime": []
+    },
+    {
+      "index": 44,
+      "path": "examples/viewer-qualified-face-scene/server.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "3d7132fd188ff5e58d2a5c8510453b27343da14e2c000c01c2fec7d432807653",
+      "externalRuntime": []
+    },
+    {
+      "index": 45,
+      "path": "examples/viewer-shell-scene/server.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "e07ebdbca7df3d8f1549776dea557034a3443050a80cc02393ba1c48f3dbb718",
+      "externalRuntime": []
+    },
+    {
+      "index": 46,
+      "path": "examples/viewer-surface-material/server.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "d295b991085847052d651a2e551483b5495ef579f23979872e45abfb777823bf",
+      "externalRuntime": []
+    },
+    {
+      "index": 47,
+      "path": "examples/workspace-source/source-probe.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "dc5a6f932890e2ef1d7d0d007b70c9060d5e946c1b3b86226ee8f4608748358a",
+      "externalRuntime": []
+    },
+    {
+      "index": 48,
+      "path": "examples/workspace-source/compiled-probe.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "a5d4b0f4b8e82b65dcb98ccbbb782d9d763b4149dcf56d5ce1aafea5a8d0b4a1",
+      "externalRuntime": []
+    },
+    {
+      "index": 49,
+      "path": "examples/workspace-source/cpu-entry.mjs",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/cad",
+        "@barocss/cad-interop",
+        "@barocss/gpu",
+        "@barocss/physics",
+        "@barocss/viewer"
+      ],
+      "sourceSha256": "a9a3963de23e192268034e0ee6b0bb0eec6aad46d833a42f4ba8d989883073ff",
+      "externalRuntime": []
+    },
+    {
+      "index": 50,
+      "path": "examples/workspace-source/probe.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "e077c98279d08e83f9839d2a47a042ba4d77fed328a8b87af60f70ca4d54810e",
+      "externalRuntime": []
+    },
+    {
+      "index": 51,
+      "path": "examples/workspace-source/browser.mjs",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/cad",
+        "@barocss/cad-interop",
+        "@barocss/gpu",
+        "@barocss/physics",
+        "@barocss/viewer"
+      ],
+      "sourceSha256": "cd1f24e88bc0ce7fd95e598c33eb4bfe46e7cb1015d27e45afe1d40b554e6ce2",
+      "externalRuntime": []
+    },
+    {
+      "index": 52,
+      "path": "examples/workspace-source/serve.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "6716a8662d245a35d793a111cac7d408f96bb5eb1331ae050f27400c9130211a",
+      "externalRuntime": []
+    },
+    {
+      "index": 53,
+      "path": "examples/workspace-source/setup.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "38004784bdbb0d2a97b70eac51768b22c03c500c252c49fa4e849b2651cac6cc",
+      "externalRuntime": []
+    },
+    {
+      "index": 54,
+      "path": "examples/physics-error-entry/probe.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "ff9bbdf5afd89068aff50c963af224b69540b1a566d250b526095b308e5cd988",
+      "externalRuntime": []
+    },
+    {
+      "index": 55,
+      "path": "examples/physics-error-entry/setup.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "273ca7b9bce689dd1f86acccbd5c295f947f2e97b7a56e5678990b5b5d56fd9c",
+      "externalRuntime": []
+    },
+    {
+      "index": 56,
+      "path": "examples/physics-scene/release-gate-packed-consumer.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "f8ac3380a7f9b8f9fdbd4ddbda6e053cb4790047d709d6020eacb64acdef65d6",
+      "externalRuntime": []
+    },
+    {
+      "index": 57,
+      "path": "examples/physics-scene/release-gate-criteria.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "83c26dd78a998b5fdf25e8362fadd9e19ea2c9ad0a348cd3e6fca18dda27f4a6",
+      "externalRuntime": []
+    },
+    {
+      "index": 58,
+      "path": "examples/physics-scene/fluid-release-criteria.mjs",
+      "expectedOwn": "none",
+      "staticOwnPackages": [],
+      "sourceSha256": "8b60d3af9725720f61f13dbbc9e08ab3fa4cd910be0a1e9babb6a0d51d82d8e6",
+      "externalRuntime": []
+    },
+    {
+      "index": 59,
+      "path": "apps/library-docs/samples/physics-visual-docs.test.mjs",
+      "expectedOwn": "physics",
+      "staticOwnPackages": [
+        "@barocss/physics"
+      ],
+      "sourceSha256": "21fcd7c30fe9e19279de228212b737da731d4ee953f1b643d86fb3d0e5ffabf2",
+      "externalRuntime": []
+    }
+  ],
+  "applicationImports": 0,
+  "WorldCalls": 0,
+  "actualBundleChecks": 0,
+  "firstFailure": {
+    "path": "examples/physics-world-p5-2276/evidence/validation-static-01/summary.json",
+    "bytes": 1364,
+    "sha256": "51f9a9971e95c7ca7d07a7e2f3d26d0ceb5dd65f0305d9018df839cdeb78b3ba"
+  },
+  "oldReceiptRemains": "FAIL",
+  "failureKind": "QA own-closure assumption, not source/provider/physics failure",
+  "actualOldAttempt": {
+    "bundleBuildAttempts": 6,
+    "bundlePasses": 5,
+    "bundleFailures": 1,
+    "strictSourcePasses": 1,
+    "WorldCalls": 0
+  },
+  "classificationPolicy": "20actualPhysicsrequired;40exact-zero;noalloweither;generated5androot2stillrequirePhysics",
+  "preservedAuthorInputs": {
+    "path": "examples/physics-world-p5-2276/evidence/validation-static-01/author-inputs/preservation.json",
+    "bytes": 677,
+    "sha256": "0454dcfc9ac6d0c55f0a6dfbaed17f3f7379fb6b80273dca5ed16b85e520a765"
+  },
+  "continuation": {
+    "originalFreeze": {
+      "path": "examples/physics-world-p5-2276/validation-execution-freeze-01.json",
+      "bytes": 1324062,
+      "sha256": "8ea90d6fb72013a4043ff2335bb9d96128fc7972b13ca89fed5f951fd0703c08"
+    },
+    "originalSummary": {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-01/summary.json",
+      "bytes": 1364,
+      "sha256": "51f9a9971e95c7ca7d07a7e2f3d26d0ceb5dd65f0305d9018df839cdeb78b3ba"
+    },
+    "preservedProvider": {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-01/author-inputs/validation-provider.mjs",
+      "bytes": 13269,
+      "sha256": "2f337360eab5d57a3f8671d45f6d8e5ef8b6a1fc7d8a2f56da52a50fc7637712"
+    },
+    "preservation": {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-01/author-inputs/preservation.json",
+      "bytes": 677,
+      "sha256": "0454dcfc9ac6d0c55f0a6dfbaed17f3f7379fb6b80273dca5ed16b85e520a765"
+    },
+    "reusedReports": [
+      {
+        "path": "examples/physics-world-p5-2276/evidence/validation-static-01/strict-types-source.json",
+        "bytes": 27644,
+        "sha256": "ee75eb7202cb7bba87290d4732f19577494b2c2af4424d74294187f3a0091da4",
+        "kind": "strict-source"
+      },
+      {
+        "path": "examples/physics-world-p5-2276/evidence/validation-static-01/numeric-root-source.json",
+        "bytes": 19087,
+        "sha256": "2d111b26494dd853f1dceff24fe38be9fe41bebc6e77080570e09e2773bddf7a",
+        "kind": "numeric-root-source"
+      },
+      {
+        "path": "examples/physics-world-p5-2276/evidence/validation-static-01/bundle-source-00.json",
+        "bytes": 20950,
+        "sha256": "7c1b3136bf840c3f5ddd1c4c21003a9362191d5a3f333713938d8789be83ae06",
+        "kind": "source-entry-0"
+      },
+      {
+        "path": "examples/physics-world-p5-2276/evidence/validation-static-01/bundle-source-01.json",
+        "bytes": 19915,
+        "sha256": "f1b41c85f98df33ee76745ee3c3abb6074dff9d6415fb30bba660191a20db792",
+        "kind": "source-entry-1"
+      },
+      {
+        "path": "examples/physics-world-p5-2276/evidence/validation-static-01/bundle-source-02.json",
+        "bytes": 20161,
+        "sha256": "34839b5c3fad42637320c092c9f6bff1bdfca70e26b2c85198714b3372bda2cb",
+        "kind": "source-entry-2"
+      },
+      {
+        "path": "examples/physics-world-p5-2276/evidence/validation-static-01/bundle-source-03.json",
+        "bytes": 115525,
+        "sha256": "77c57b5e650ddc64092ccdb9a343fe2bde11d94d0238042063a77f9c20fea4b9",
+        "kind": "source-entry-3"
+      }
+    ],
+    "authorizedChangedOldInputs": [
+      "examples/physics-world-p5-2276/validation-provider.mjs",
+      "examples/physics-world-p5-2276/validation-child.mjs",
+      "examples/physics-world-p5-2276/VALIDATION-RECIPES.json"
+    ],
+    "skipOnly": {
+      "strictModes": [
+        "source"
+      ],
+      "rootModes": [
+        "source"
+      ],
+      "sourceEntryIndices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    "freshBudget": {
+      "bundleAttempts": 122,
+      "strictNativeAttempts": 1,
+      "lintAttempts": 1,
+      "WorldCalls": 0
+    },
+    "failedOriginalBuildRetained": {
+      "sourceEntryIndex": 4,
+      "buildCompleted": true,
+      "assertionFailed": "blanket expectedactualownpackageinput",
+      "countsAsAttempt": true,
+      "mayRelabelOriginalReceiptPass": false
+    }
+  },
+  "reusedAlgorithmSourceEquality": {
+    "publicMapResolver": {
+      "bytes": 3275,
+      "sha256": "8a9629086ad7522345ddc05338c4aeb839c2c21b3319411b069cd0c460b2bfe6",
+      "originalIdentical": true
+    },
+    "strictConsumerCompiler": {
+      "bytes": 4956,
+      "sha256": "1a6dfb0c38e20a05eb1d234bf57a7f274c4251d649d5bc84faa695acdacd331e",
+      "originalIdentical": true
+    }
+  },
+  "absoluteExternalReview": {
+    "entryIndex": 23,
+    "path": "/Users/user/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+    "scope": "explicitexternalvendorforonlythisdriver;notcompiledorevaluated;notanownpackagefallback"
+  },
+  "newRevisionExecution": "NOT_RUN",
+  "syntax": {
+    "status": "PASS_OWN_SYNTAX_ONLY",
+    "gate": "existingheavygate acquired and releasedbyEXITtrap",
+    "files": [
+      "validation-provider.mjs",
+      "validation-child.mjs",
+      "validation-run.mjs"
+    ],
+    "applicationImports": 0,
+    "WorldCalls": 0,
+    "actualStaticRevision02": "NOT_RUN"
+  }
+}

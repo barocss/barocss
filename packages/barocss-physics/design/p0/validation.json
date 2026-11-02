@@ -1,0 +1,141 @@
+{
+  "workId": "physics-world-p0-2276",
+  "schema": 1,
+  "cases": [
+    {
+      "id": "T01",
+      "phase": "P0",
+      "kind": "compile",
+      "required": "positive model/options/commands/query/record consumers type-check; no implementation supplied",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "T02",
+      "phase": "P0",
+      "kind": "compile",
+      "required": "negative old config, dt step, reset, setState, per-domain clock, wrong units/command/query and large-direct inputs rejected",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "I01",
+      "phase": "P0",
+      "kind": "inventory",
+      "required": "bounded tracked-text corpus and computed-path cases reproducible; every match classified; frozen evidence excluded",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "M01",
+      "phase": "P1b",
+      "kind": "runtime admission",
+      "required": "dense/exact plain data; finite/range/IDs/references/quaternion and default-free required fields; impossible and unsupported-domain cases refuse before allocation",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "M02",
+      "phase": "P1b",
+      "kind": "independent encoding",
+      "required": "canonical number bits/order/key ordering/signed-zero/UTF8 and SHA-256 known vectors; source and emitted identities name actual graphs",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "S01",
+      "phase": "P1a/P1b",
+      "kind": "continuation",
+      "required": "refused invalid/numeric step after persistent warm state preserves snapshots, events, caches, joint angles and sleep counters; next valid step equals untouched control",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "S02",
+      "phase": "P1a",
+      "kind": "injected failure",
+      "required": "precommit return-copy failure does not commit rigid state; independent accepted next step matches control",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "S03",
+      "phase": "P5",
+      "kind": "continuation",
+      "required": "cloth lambdas/grid scratch ownership audited; failed candidates do not affect next valid step or retain mutable accepted aliases",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "R01",
+      "phase": "P1a/P2",
+      "kind": "injected failure",
+      "required": "prepare log entry before physical advancement; failed preparation/numerical solve leaves physical state, log and counts aligned",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "R02",
+      "phase": "P2",
+      "kind": "ownership",
+      "required": "only step0 attachment; second owner and direct unrecorded steps refuse; reads/queries allowed; detach/dispose ownership tested",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "R03",
+      "phase": "P2",
+      "kind": "actual consumer",
+      "required": "record/serialize/restore/continue actual source and emitted graph; stale model/config/provider refused; final tolerance remains1e-12 absolute/relative",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "F01",
+      "phase": "P1b/P2/P5",
+      "kind": "precedence",
+      "required": "combined-invalid inputs establish DISPOSED/reentrant/owner/budget/admission/candidate precedence; unexpected execution exception distinct from numerical refusal",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "L01",
+      "phase": "P1b/P2/P5",
+      "kind": "lifetime",
+      "required": "mutating nested returned data cannot affect runtime; double disposal succeeds; disposed reads/queries/steps refuse; detached recorder does not dispose World",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "N01",
+      "phase": "P1a/P1b",
+      "kind": "regression",
+      "required": "reused analytic ballistic/rotation/contact fixtures retain gates and phase law; no retuning, new iterations or point reduction",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "N02",
+      "phase": "P3/P4",
+      "kind": "original qualification",
+      "required": "original hinge1200step/rawbit and stackALIGNED/OFFSET/YAW1200step/settling gates remain independently NO_GO until full original qualification",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "D01",
+      "phase": "P1b/P2/P5",
+      "kind": "consumer graph",
+      "required": "all affected active source/emitted consumers and imported snippets updated at signature/export cutover; no any-cast/source alias compatibility workaround",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "C01",
+      "phase": "P2",
+      "kind": "adapter",
+      "required": "100mm->0.1m/offorigin90degree/stale text+revision/occurrence mismatch independently checked; core has no native CAD parser",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "P01",
+      "phase": "P6a/P6b",
+      "kind": "coupling",
+      "required": "explicit exchange phase/substeps/units/equal-opposite reactions/work/convergence; schema/sharedtime alone supplies no coupling PASS",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "R04",
+      "phase": "P2",
+      "kind": "bit-preserving wire codec",
+      "required": "BCPHREC1 + canonical typed encoding roundtrip preserves signed zero in model/options/commands/finalState and their digests; reject raw JSON, trailing/duplicate/truncated/oversized/deep data; byte limits distinct from old JSON code-unit limits",
+      "execution": "NOT_RUN"
+    }
+  ],
+  "executionMeaning": "Update a new report per actual run; this matrix remains requirement definitions, not a pass record.",
+  "preservation": "Original tolerances, failures, HOLD and NO_GO unchanged."
+}

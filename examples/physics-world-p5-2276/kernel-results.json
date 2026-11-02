@@ -1,0 +1,155 @@
+{
+  "workId": "physics-world-p5-2276",
+  "status": "PASS_P5A_PRIVATE_CLOCK_FREE_EXTRACTION_ONLY",
+  "sourceAndNative": [
+    {
+      "graph": "source",
+      "counts": {
+        "initializations": 4,
+        "prepareAttempts": 32,
+        "prepareReturns": 20,
+        "injectedThrows": 12,
+        "nominalOutputs": 8,
+        "recoveryOutputs": 12,
+        "completeKernelReturns": 28,
+        "clothSolverConstructions": 8,
+        "clothSolverCalls": 8,
+        "pbfSolverConstructions": 24,
+        "pbfSolverCalls": 24,
+        "clothInitialDiagnostics": 1,
+        "clothPrepareDiagnostics": 7,
+        "fluidInitialDiagnostics": 3,
+        "fluidPrepareDiagnostics": 21,
+        "createSheet": 1,
+        "triangleMassAccumulations": 1,
+        "initialRestDensity": 3,
+        "inflatedBoxBounds": 1,
+        "canonicalEncode": 4,
+        "WorldConstructors": 0,
+        "WorldFactoryAttempts": 0,
+        "WorldStepCalls": 0,
+        "recordingCalls": 0,
+        "restoreCalls": 0,
+        "cadCompilerCalls": 0,
+        "clothProjectDistance": 175393,
+        "clothProjectSphere": 112,
+        "pbfProjectDensity": 66,
+        "xsphBlend": 7,
+        "floorSamples": 25,
+        "densities": 93,
+        "outputCopies": 20
+      },
+      "summary": {
+        "path": "examples/physics-world-p5-2276/evidence/kernel-source-01/summary.json",
+        "bytes": 1524,
+        "sha256": "95b6ff9bb181c0cefe5f15ea82c306e85abb10bca91db451e050e7d23c5f191f"
+      },
+      "exit": {
+        "path": "examples/physics-world-p5-2276/evidence/kernel-source-01/exit.json",
+        "sha256": "0778eaf14000efa310ae8aeb8e355cbb1d358f6f3a31e6122fd63b1022e3f229"
+      }
+    },
+    {
+      "graph": "emitted",
+      "counts": {
+        "initializations": 4,
+        "prepareAttempts": 32,
+        "prepareReturns": 20,
+        "injectedThrows": 12,
+        "nominalOutputs": 8,
+        "recoveryOutputs": 12,
+        "completeKernelReturns": 28,
+        "clothSolverConstructions": 8,
+        "clothSolverCalls": 8,
+        "pbfSolverConstructions": 24,
+        "pbfSolverCalls": 24,
+        "clothInitialDiagnostics": 1,
+        "clothPrepareDiagnostics": 7,
+        "fluidInitialDiagnostics": 3,
+        "fluidPrepareDiagnostics": 21,
+        "createSheet": 1,
+        "triangleMassAccumulations": 1,
+        "initialRestDensity": 3,
+        "inflatedBoxBounds": 1,
+        "canonicalEncode": 4,
+        "WorldConstructors": 0,
+        "WorldFactoryAttempts": 0,
+        "WorldStepCalls": 0,
+        "recordingCalls": 0,
+        "restoreCalls": 0,
+        "cadCompilerCalls": 0,
+        "clothProjectDistance": 175393,
+        "clothProjectSphere": 112,
+        "pbfProjectDensity": 66,
+        "xsphBlend": 7,
+        "floorSamples": 25,
+        "densities": 93,
+        "outputCopies": 20
+      },
+      "summary": {
+        "path": "examples/physics-world-p5-2276/evidence/kernel-emitted-01/summary.json",
+        "bytes": 1525,
+        "sha256": "70455d43c5a8c4da251aae0f6fccbe7df9ce04a636c55f4802e34fcd416f38ae"
+      },
+      "exit": {
+        "path": "examples/physics-world-p5-2276/evidence/kernel-emitted-01/exit.json",
+        "sha256": "8aa3f66bb50298704f96ccc8904bb90e95da17dd4486e28e6730de7416022232"
+      }
+    }
+  ],
+  "totalPrepareAttempts": 64,
+  "totalPrepareReturns": 40,
+  "totalSyntheticThrows": 24,
+  "totalWorldCalls": 0,
+  "arrayMaxAbsoluteDifferenceM": 0,
+  "velocityMaxAbsoluteDifferenceMps": 0,
+  "differenceBasis": "exact raw F64LE byte equality at2capturedsteps and recovery; historical diagnosticJSONzero signs unknown",
+  "crossGraphNominalAndSizeReceipts": "byte-exact",
+  "canonicalModelSizes": [
+    {
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "canonicalModelBytes": 222324,
+      "sha256": "27905e7d51ea639737b0cce4e9fbe4b741e0458425d28b5aa6b3382851f23f2f",
+      "withinRecorderModelCap": false,
+      "recordingAdmission": "NOT_TESTED",
+      "numericInitializationAlreadyDeclared": true
+    },
+    {
+      "profile": "fluid-basin-visual-v1",
+      "canonicalModelBytes": 17732,
+      "sha256": "11a7fb9b2aebdf6b161d260ead53a33b74a27c2ad2999fd65b2e9912dfcbbc88",
+      "withinRecorderModelCap": true,
+      "recordingAdmission": "NOT_TESTED",
+      "numericInitializationAlreadyDeclared": true
+    },
+    {
+      "profile": "fluid-basin-xsph-visual-v1",
+      "canonicalModelBytes": 17757,
+      "sha256": "5b8461ce9d48903c5132a17054ab3940af7d8b2514b7f7247d2d2a0c39376523",
+      "withinRecorderModelCap": true,
+      "recordingAdmission": "NOT_TESTED",
+      "numericInitializationAlreadyDeclared": true
+    },
+    {
+      "profile": "fluid-static-box-visual-v1",
+      "canonicalModelBytes": 18376,
+      "sha256": "fc07548eb393592733908b87f168d8d19a482ab693af0b01db0792562d7d4f11",
+      "withinRecorderModelCap": true,
+      "recordingAdmission": "NOT_TESTED",
+      "numericInitializationAlreadyDeclared": true
+    }
+  ],
+  "recordingDecision": "cloth exceedsunchangedmodelcap;fluid sizeonly isnotrecordadmission;P5b testedrefusal/support pending",
+  "old1376ProviderFiles": "BYTE_UNCHANGED",
+  "sourceOnlyFailure": "kernel-source-check-01 preserved, whitespaceanchor repair source-only02PASS beforemath",
+  "initialTypeCheck": "ungated0 explicitlydisclosed; actualnativeemission gated0",
+  "privateChecks": "trusted internal4fixtures only, not completepublicadmission",
+  "WorldPublicDomainAPI": "NOT_ADMITTED",
+  "legacyRemoval": "PENDING_ATOMIC_P5B, no newcompatibility path",
+  "fullHorizonAndActiveContact": "NOT_RUN",
+  "performance": "NOT_MEASURED_FOR_FRESH_SCRATCH",
+  "P4Original8Box": "NO_GO_PRESERVED",
+  "oldHoldsTolerancesFirstFailures": "PRESERVED",
+  "developMerge": "PENDING_WHOLE_REQUIRED_ROADMAP",
+  "deployment": "NOT_RUN"
+}

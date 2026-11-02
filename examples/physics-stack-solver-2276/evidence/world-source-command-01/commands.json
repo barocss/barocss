@@ -1,0 +1,23 @@
+{
+  "mode": "world-source",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "records": [
+    {
+      "name": "trajectory",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/trajectory-run.mjs",
+        "source",
+        "world-source-01"
+      ],
+      "started": "2026-11-01T13:07:55.705Z",
+      "finished": "2026-11-01T13:07:56.195Z",
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "5849b9c1a933705db8ae7b0ae3cc024eccf68c8754fb17cbc7f486d6abd3e911",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

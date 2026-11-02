@@ -1,0 +1,184 @@
+{
+  "emitted": true,
+  "entry": "examples/physics-world-p2-2276/fault.test.mjs",
+  "bundleSha256": "f00bdd82d2e0628c8b0f81896ce1c240ffc1430d887f1a9b5a8991301a7c7bdb",
+  "inputs": [
+    {
+      "path": "packages/barocss-physics/dist/types.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/types.js",
+      "sha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b",
+      "effectiveSha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/recording-owner.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/recording-owner.js",
+      "sha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521",
+      "effectiveSha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/provider-manifest.generated.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/provider-manifest.generated.js",
+      "sha256": "520cce6e49af23d7886ee2c8d99d8144aafced49638f9532e7a1180ff12098ea",
+      "effectiveSha256": "520cce6e49af23d7886ee2c8d99d8144aafced49638f9532e7a1180ff12098ea",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/index.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/index.js",
+      "sha256": "0698933cbc1f017ead25284412e5dc26de7320c74eb8b8f335dbb5d8023a8ebe",
+      "effectiveSha256": "fcf2445ce2e11628f469feb4447cbac5a8fc563715f551c12803e4e04362168e",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/identity.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/identity.js",
+      "sha256": "7f7243fcc617a32f77d517d029cb90bd99584f518ece49a7d7a4e35ae54d7791",
+      "effectiveSha256": "7f7243fcc617a32f77d517d029cb90bd99584f518ece49a7d7a4e35ae54d7791",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/replay-json.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/replay-json.js",
+      "sha256": "02f25563d19011ae80ff0a30127f5af1cd586c7824999ecd3d54cbb1ded25541",
+      "effectiveSha256": "02f25563d19011ae80ff0a30127f5af1cd586c7824999ecd3d54cbb1ded25541",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/replay-compare.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/replay-compare.js",
+      "sha256": "46e92b237a3b74725e1f973bc195f3fb3c7d182ea4978f5092608706d1400875",
+      "effectiveSha256": "46e92b237a3b74725e1f973bc195f3fb3c7d182ea4978f5092608706d1400875",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/internal-types.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/internal-types.js",
+      "sha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e",
+      "effectiveSha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/limits.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/limits.js",
+      "sha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219",
+      "effectiveSha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/validation.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/validation.js",
+      "sha256": "dd5873f30ed65451e5b3abe72ab140e1b4aa2de0b5c75db6b86722a5145b5ec6",
+      "effectiveSha256": "dd5873f30ed65451e5b3abe72ab140e1b4aa2de0b5c75db6b86722a5145b5ec6",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/math.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/math.js",
+      "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028",
+      "effectiveSha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/dynamic-anchor-pair.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/dynamic-anchor-pair.js",
+      "sha256": "8e20e96a9a3c803f65d78dfa21aaf530744b2c37e4f3507fd87e828190c800be",
+      "effectiveSha256": "8e20e96a9a3c803f65d78dfa21aaf530744b2c37e4f3507fd87e828190c800be",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/dynamic-fixed-joint.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/dynamic-fixed-joint.js",
+      "sha256": "c637c4b13cdf432103202f895e50fae7e05c88920cf0889a67f2c16e565bfb5a",
+      "effectiveSha256": "c637c4b13cdf432103202f895e50fae7e05c88920cf0889a67f2c16e565bfb5a",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/dynamic-hinge-joint.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/dynamic-hinge-joint.js",
+      "sha256": "8780a6887f0c7cbec6ec2f059b2ada64d0e28d0224279d7ada42e4b79e84baac",
+      "effectiveSha256": "8780a6887f0c7cbec6ec2f059b2ada64d0e28d0224279d7ada42e4b79e84baac",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/joints.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/joints.js",
+      "sha256": "f2893b2f8684f338a8d4832b9fa91c356fd360bf70ebf423062e21911d433ce0",
+      "effectiveSha256": "f2893b2f8684f338a8d4832b9fa91c356fd360bf70ebf423062e21911d433ce0",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/model-admission.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/model-admission.js",
+      "sha256": "0fbd3522138871a4f844fbb1e803b5f3e288368c62db7f764195d10b76d3b310",
+      "effectiveSha256": "0fbd3522138871a4f844fbb1e803b5f3e288368c62db7f764195d10b76d3b310",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/replay-validation.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/replay-validation.js",
+      "sha256": "cbf265559a7c480a2b9aa4f64cb945b3fd046959d653e7d54fba16281898c980",
+      "effectiveSha256": "cbf265559a7c480a2b9aa4f64cb945b3fd046959d653e7d54fba16281898c980",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/replay.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/replay.js",
+      "sha256": "b5ac58345b65507e45798d3f60ae9f773d41b7fee79e4fefef647ed2c70d74d8",
+      "effectiveSha256": "cc78dafa07a528c23f212706b9ab6a96b83795ad6a2b8cbd818e86e0b1d858f0",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "examples/physics-model-input/model.mjs",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-model-input/model.mjs",
+      "sha256": "8bbeb3712f27eb3d639dcde806fcf27f8bc5360274feefd051335b3887790baf",
+      "effectiveSha256": "8bbeb3712f27eb3d639dcde806fcf27f8bc5360274feefd051335b3887790baf",
+      "physicsProvider": false,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "examples/physics-world-p2-2276/fault.test.mjs",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/fault.test.mjs",
+      "sha256": "e8bf4aea0ca24617adf7bc06a9f0c68df405d537395c8cf57519560527a9a82a",
+      "effectiveSha256": "e8bf4aea0ca24617adf7bc06a9f0c68df405d537395c8cf57519560527a9a82a",
+      "physicsProvider": false,
+      "cadSourceBoundary": false
+    }
+  ],
+  "effective": [
+    {
+      "path": "packages/barocss-physics/dist/index.js",
+      "originalSha256": "0698933cbc1f017ead25284412e5dc26de7320c74eb8b8f335dbb5d8023a8ebe",
+      "effectiveSha256": "fcf2445ce2e11628f469feb4447cbac5a8fc563715f551c12803e4e04362168e",
+      "injectedAnchors": 2,
+      "change": "TEST ONLY preparation failures; ordinary provider identity does not qualify instrumented bytes"
+    },
+    {
+      "path": "packages/barocss-physics/dist/replay.js",
+      "originalSha256": "b5ac58345b65507e45798d3f60ae9f773d41b7fee79e4fefef647ed2c70d74d8",
+      "effectiveSha256": "cc78dafa07a528c23f212706b9ab6a96b83795ad6a2b8cbd818e86e0b1d858f0",
+      "injectedAnchors": 2,
+      "change": "TEST ONLY preparation failures; ordinary provider identity does not qualify instrumented bytes"
+    }
+  ],
+  "cadBoundary": "no CAD TypeScript source"
+}

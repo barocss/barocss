@@ -1,0 +1,30 @@
+{
+  "mode": "source",
+  "entry": "examples/physics-scene/source-import-probe.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/physics-scene/source-import-probe.mjs": {
+      "bytes": 2193,
+      "sha256": "b7b66ef5a7c5adc5fd88396389fce4b0b9ac631098de8dd70cc90ec93a7fbe8e",
+      "effectiveSha256": "b7b66ef5a7c5adc5fd88396389fce4b0b9ac631098de8dd70cc90ec93a7fbe8e"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 2281,
+  "outputSha256": "5235aa15486490a99e94ba0b855581f82832d03465da78fa9822836c5a7b5b20",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [
+    "node:assert/strict",
+    "node:path",
+    "node:fs",
+    "node:url",
+    "esbuild"
+  ],
+  "moduleEvaluation": false
+}

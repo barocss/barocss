@@ -1,0 +1,14 @@
+{
+  "emitted": false,
+  "inputs": [
+    {
+      "path": "examples/physics-stack-solver-2276/verification.ts",
+      "sha256": "cc9ee1f949af20472e8c733a3fe57abb61683712d388af8f76adaf8d8d62b7c8"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/verification.test.ts",
+      "sha256": "b1bc3da25251afef12936ac1ef768eee7f9fccebcd1eb8e88a0be2b2b8075d7e"
+    }
+  ],
+  "bundleSha256": "e333ea8c0f13956cfc0f8458983065e90e572da769e7b4d358aac6df19f73ba9"
+}

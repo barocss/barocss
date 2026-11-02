@@ -1,0 +1,144 @@
+{
+  "scope": "P1b selected API cutover; not whole-engine qualification",
+  "publicSource": {
+    "run": "public-source-04",
+    "tests": 8,
+    "pass": 8
+  },
+  "publicEmitted": {
+    "run": "public-emitted-03",
+    "tests": 8,
+    "pass": 8
+  },
+  "probesPerGraph": 21,
+  "foundationTestsPerGraph": 21,
+  "docsSamples": {
+    "pass": 174,
+    "fail": 0
+  },
+  "nativeRuntimeTypesAndReadme": "native-05",
+  "hostBoundary": "hosts-03 callsite compilation only; Viewer SDK external and NOT_BUILT; DOM NOT_RUN",
+  "diagnosticCommands": {
+    "run": "core-1572-runtime-01",
+    "normalExitCases": 4,
+    "physicalResults": {
+      "threeBoxALIGNED": "BOUNDED_THRESHOLDS_MET_ONLY",
+      "threeBoxOFFSET": "BOUNDED_SETTLING_NO_GO",
+      "threeBoxYAW": "BOUNDED_SETTLING_NO_GO"
+    }
+  },
+  "unchangedNO_GO": [
+    "public two-hinge network",
+    "original eight-box full settling"
+  ],
+  "unchangedHOLD": [
+    "Physics",
+    "Studio",
+    "manufacturing"
+  ],
+  "hardwareAgreement": "NOT_RUN",
+  "deployment": false,
+  "failedReceiptsRetained": true,
+  "singleCommandReceiptIndex": [
+    {
+      "run": "cad-build-01",
+      "result": "examples/physics-world-p1b-2276/evidence/cad-build-01/result.json"
+    },
+    {
+      "run": "docs-build-01",
+      "result": "examples/physics-world-p1b-2276/evidence/docs-build-01/result.json"
+    },
+    {
+      "run": "docs-build-02",
+      "result": "examples/physics-world-p1b-2276/evidence/docs-build-02/result.json"
+    },
+    {
+      "run": "docs-build-03",
+      "result": "examples/physics-world-p1b-2276/evidence/docs-build-03/result.json"
+    },
+    {
+      "run": "docs-check-01",
+      "result": "examples/physics-world-p1b-2276/evidence/docs-check-01/result.json"
+    },
+    {
+      "run": "docs-check-02",
+      "result": "examples/physics-world-p1b-2276/evidence/docs-check-02/result.json"
+    },
+    {
+      "run": "docs-check-03",
+      "result": "examples/physics-world-p1b-2276/evidence/docs-check-03/result.json"
+    },
+    {
+      "run": "docs-gate-01",
+      "result": "examples/physics-world-p1b-2276/evidence/docs-gate-01/result.json"
+    },
+    {
+      "run": "docs-links-01",
+      "result": "examples/physics-world-p1b-2276/evidence/docs-links-01/result.json"
+    },
+    {
+      "run": "docs-links-02",
+      "result": "examples/physics-world-p1b-2276/evidence/docs-links-02/result.json"
+    },
+    {
+      "run": "docs-links-03",
+      "result": "examples/physics-world-p1b-2276/evidence/docs-links-03/result.json"
+    },
+    {
+      "run": "docs-samples-01",
+      "result": "examples/physics-world-p1b-2276/evidence/docs-samples-01/result.json"
+    },
+    {
+      "run": "hosts-01",
+      "result": "examples/physics-world-p1b-2276/evidence/hosts-01/result.json"
+    },
+    {
+      "run": "hosts-02",
+      "result": "examples/physics-world-p1b-2276/evidence/hosts-02/result.json"
+    },
+    {
+      "run": "hosts-03",
+      "result": "examples/physics-world-p1b-2276/evidence/hosts-03/result.json"
+    },
+    {
+      "run": "lint-01",
+      "result": "examples/physics-world-p1b-2276/evidence/lint-01/result.json"
+    },
+    {
+      "run": "lint-02",
+      "result": "examples/physics-world-p1b-2276/evidence/lint-02/result.json"
+    },
+    {
+      "run": "mapping-02",
+      "result": "examples/physics-world-p1b-2276/evidence/mapping-02/result.json"
+    },
+    {
+      "run": "native-01",
+      "result": "examples/physics-world-p1b-2276/evidence/native-01/result.json"
+    },
+    {
+      "run": "native-02",
+      "result": "examples/physics-world-p1b-2276/evidence/native-02/result.json"
+    },
+    {
+      "run": "native-03",
+      "result": "examples/physics-world-p1b-2276/evidence/native-03/result.json"
+    },
+    {
+      "run": "native-04",
+      "result": "examples/physics-world-p1b-2276/evidence/native-04/result.json"
+    },
+    {
+      "run": "native-05",
+      "result": "examples/physics-world-p1b-2276/evidence/native-05/result.json"
+    },
+    {
+      "run": "server-01",
+      "result": "examples/physics-world-p1b-2276/evidence/server-01/result.json"
+    },
+    {
+      "run": "whitespace-01",
+      "result": "examples/physics-world-p1b-2276/evidence/whitespace-01/result.json"
+    }
+  ]
+}

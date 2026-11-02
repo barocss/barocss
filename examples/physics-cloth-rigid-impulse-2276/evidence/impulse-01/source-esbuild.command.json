@@ -1,0 +1,28 @@
+{
+  "label": "source-esbuild",
+  "command": [
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/esbuild/bin/esbuild",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/build/overlay/candidate.ts",
+    "--bundle",
+    "--platform=node",
+    "--format=esm",
+    "--target=node22",
+    "--log-level=error",
+    "--outfile=/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/build/source.mjs",
+    "--metafile=/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-cloth-rigid-impulse-2276/evidence/impulse-01/build/source-metafile.json"
+  ],
+  "startedElapsedMs": 186.173208,
+  "detached": false,
+  "pid": 33618,
+  "exit": 0,
+  "signal": null,
+  "stdoutEOF": true,
+  "stderrEOF": true,
+  "closed": true,
+  "timedOut": false,
+  "capturedBytes": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "observedBytes": 0,
+  "omittedBytes": 0
+}

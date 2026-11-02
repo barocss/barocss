@@ -1,0 +1,46 @@
+{
+  "mode": "native",
+  "entry": "examples/physics-scene/cloth-world-probe.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/physics-scene/cloth-world-probe.mjs": {
+      "bytes": 4570,
+      "sha256": "a15d37cde19e50b72546261ee5a3d3626c34a9deed2e6a91d22c4adcd29dd9ad",
+      "effectiveSha256": "a15d37cde19e50b72546261ee5a3d3626c34a9deed2e6a91d22c4adcd29dd9ad"
+    },
+    "examples/physics-cloth-viewer/metrics.mjs": {
+      "bytes": 2098,
+      "sha256": "4f9d93e1e4a02b65251ee91ed7dc15269089ecf97079db400bce13f625f5debe",
+      "effectiveSha256": "4f9d93e1e4a02b65251ee91ed7dc15269089ecf97079db400bce13f625f5debe"
+    },
+    "examples/physics-world-p5-2276/oracle-reader.mjs": {
+      "bytes": 2343,
+      "sha256": "0d7bb8a06822e8084c3e0e39d9e2c66bf1440d0b1ad2523fa3b14d93d538026f",
+      "effectiveSha256": "0d7bb8a06822e8084c3e0e39d9e2c66bf1440d0b1ad2523fa3b14d93d538026f"
+    },
+    "examples/physics-model-data-2276/model-data.mjs": {
+      "bytes": 185560,
+      "sha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604",
+      "effectiveSha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 222310,
+  "outputSha256": "17135af981948b6542ac9b83d004715805242d9eef8a2bcb6634d855f1bf3acd",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [
+    "node:assert/strict",
+    "node:fs/promises",
+    "node:crypto",
+    "node:perf_hooks",
+    "node:path",
+    "node:url"
+  ],
+  "moduleEvaluation": false
+}

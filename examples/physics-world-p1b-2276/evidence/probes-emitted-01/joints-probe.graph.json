@@ -1,0 +1,49 @@
+{
+  "emitted": true,
+  "entry": "examples/physics-scene/joints-probe.mjs",
+  "bundleSha256": "c40dc0299513a211bcf50a0ee1dd12f0ed5921934bafa4fe5bd2e2e5b7182410",
+  "inputs": [
+    {
+      "path": "examples/physics-model-input/model.mjs",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-model-input/model.mjs",
+      "sha256": "8bbeb3712f27eb3d639dcde806fcf27f8bc5360274feefd051335b3887790baf",
+      "effectiveSha256": "8bbeb3712f27eb3d639dcde806fcf27f8bc5360274feefd051335b3887790baf",
+      "physicsProvider": false,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/types.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/types.js",
+      "sha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b",
+      "effectiveSha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/provider-manifest.generated.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/provider-manifest.generated.js",
+      "sha256": "35e75ce1af9d3823ef5a882980c0aa040b4f813ec0decc74240701b716b32194",
+      "effectiveSha256": "35e75ce1af9d3823ef5a882980c0aa040b4f813ec0decc74240701b716b32194",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/index.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/index.js",
+      "sha256": "2ee10b0fa44a2629ad2d2bf83783ad244b0655c541bd8c0ee6479929c8d4b5a9",
+      "effectiveSha256": "2ee10b0fa44a2629ad2d2bf83783ad244b0655c541bd8c0ee6479929c8d4b5a9",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "examples/physics-scene/joints-probe.mjs",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-scene/joints-probe.mjs",
+      "sha256": "4ab287c6397dad420c7849caf20658f29c407b3db7d98f5434aabf5c9b4b24e3",
+      "effectiveSha256": "4ab287c6397dad420c7849caf20658f29c407b3db7d98f5434aabf5c9b4b24e3",
+      "physicsProvider": false,
+      "cadSourceBoundary": false
+    }
+  ],
+  "effective": [],
+  "cadBoundary": "no CAD TypeScript source"
+}

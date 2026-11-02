@@ -1,0 +1,1 @@
+{"entry":"physics-scene/app.js","bytes":115012,"inputs":45,"execution":"NOT_RUN","kind":"source-bundle-only"}

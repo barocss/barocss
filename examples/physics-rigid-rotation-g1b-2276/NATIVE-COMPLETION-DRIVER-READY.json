@@ -1,0 +1,117 @@
+{
+  "status": "NATIVE_COMPLETION_DRIVER_READY_PARENT_REVIEW_RUNTIME_FREEZE_REQUIRED",
+  "runtimeAuthorized": false,
+  "productionActivation": false,
+  "source": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/native-completion.mjs",
+    "bytes": 45379,
+    "sha256": "44cebacca10ecd1485df64e276ac1af8f950de50913825f18027edb5ce4fcc87"
+  },
+  "plan": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/NATIVE-COMPLETION-DRIVER-PLAN.json",
+    "bytes": 6870,
+    "sha256": "73546d0b11d4f656d454c5ac4537d3fe281832a8b9d406d500e2af156eeb9a60"
+  },
+  "closedSourceAuthority": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/T02-SOURCE-COMPLETE-PROOF.json",
+    "bytes": 20751,
+    "sha256": "4db883cb120da10249f8233388b0eb9e56424f8c82d9bbf5f350989a182ae7a3"
+  },
+  "referenceSource": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/reference-native-completion.py",
+    "bytes": 17978,
+    "sha256": "e49fd0499eddd7267cc535447d9733f7797d05d6f80bdedf1d30a2aca7500d5a"
+  },
+  "referenceReady": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/NATIVE-COMPLETION-READY.json",
+    "bytes": 4441,
+    "sha256": "defbef31dfbb495c6fcc1c9b4122b69d971976275ab9b7ac69d73778aa7b3fd9"
+  },
+  "protocol": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/NATIVE-COMPLETION-PROTOCOL.md",
+    "bytes": 2928,
+    "sha256": "0c4e47e0d566e72ac7cc4b30a270996412a38b0c581414d49c5ab4aea64cc38d"
+  },
+  "scope": "CurrentNative-only8World/47accepted/55audits, composite with authenticatedT02SourcefullPASS.0newSource module/World/math. OriginalT02overallresourceNO_GO and incompleteNativeprefix preserved. Neverone16WorldrunPASS.",
+  "preserved": {
+    "evidence/g1b-trajectory-02/summary.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/summary.json",
+      "bytes": 10482,
+      "sha256": "f93b0d54c29ce214562c9a91b6502b54c2d00c94274c5947f389cade67b2a7be"
+    },
+    "trajectory-campaign.mjs": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/trajectory-campaign.mjs",
+      "bytes": 44847,
+      "sha256": "20fe9c961965054489260468a4d100795b24c6bdd721cb1e9176ed69ac6ca23b"
+    },
+    "TRAJECTORY-READY-T03.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-READY-T03.json",
+      "bytes": 3935,
+      "sha256": "cb12ff3d29a80a89ff75335783fa3ecad2fb367bff6828e97829f969b6950b37"
+    },
+    "MICRO-RESULTS-M02.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/MICRO-RESULTS-M02.json",
+      "bytes": 7898,
+      "sha256": "e7d590810dd19e5ddc93c96370ac9493357fca6142714e6937091e1f365a909f"
+    },
+    "evidence/g1b-micro-02/staged-providers.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/staged-providers.json",
+      "bytes": 210540,
+      "sha256": "5765e301315fe8381350d8d18402987477f5f63c1f5096fa4d3312e6ee099e14"
+    }
+  },
+  "flow": "AuthallMactualstagedPins+Sourceproofrefs beforeNative module. ReadclosedSourcecoefficients/8rawinputs;0literalconversions. AfterreferenceREADY loadactualM02native root only,3Pow/39wordparity againstM+closedSource,INIT reusebankPASS beforeNativeWorld.8Worldssequential;Source55frames/49flowheaders+rowsparitystreaming;EOFbothSourcefiles;dispose8/helpercountPASS;FINISH57;normalreferenceEOF+close0;postauthproviders/authorities.",
+  "actualFreshLedger": {
+    "sourceModuleEvaluations": 0,
+    "sourceWorlds": 0,
+    "sourceMath": 0,
+    "constructors": 8,
+    "getState": 18,
+    "stepAttempts": 57,
+    "acceptedSteps": 47,
+    "dispose": 8,
+    "privateCacheObservations": 18,
+    "commandRefusals": 4,
+    "sameObjectUnknownFaults": 3,
+    "postFlowGuards": 3,
+    "stateAudits": 55,
+    "referenceRequests": 57,
+    "referenceReplyLinesIncludingReady": 58,
+    "generalFlows": 49,
+    "traceRecords": 29155,
+    "traceF64Words": 139552,
+    "traceBytes": 2768108,
+    "maximumHeaderBytes": 25088,
+    "NativeMathPow": 3,
+    "buildChildren": 0,
+    "identityDigestDATA": 0,
+    "referenceChildren": 1,
+    "newReferenceODEOrSqrt": 0,
+    "query": 0,
+    "getModel": 0,
+    "recorder": 0,
+    "warmups": 0,
+    "retries": 0
+  },
+  "proofChecks": "Oldsummary.source exactclosedgraph equality, all8PASS/acceptedcounts, fullSourceglobalhelpercounts,dispose8,lastSource0056complete;55uniqueorderedSourceauditpins and allnestedbyte/SHA references authenticated. Nativeheadercompare preservesallfields exceptg0\u21921; numerictracewords exact. Wholepublicstateword parity onlyownproviderDigest checkedseparately. Runtime newreferenceactualNativeAudits/reusedSourceAudits/logicalCursor asserted0/55/55\u219255/55/110, no relabelledfresh110audits.",
+  "ownership": "Samecanonicalerrorclass/refusals, originalmarker objectidentity, completecaller/previous/initialoutput bitretention; persistentWeakMap serializer forfullcacheidentity/Mapcontents atS0;10extraexactgetState+cachechecks,initialobservationalreadybaseline. No extra recovery/audit/World.",
+  "resources": "Unchanged8MiBharness/ref/1.5MiBharnesspersistence/1MiBreserve/16MiBcombined/64MiBlogical,170sinternal/4scleanup/180sownedguard. Freshtracehalf yields13,803,244B worstcombined<=16MiB; everyrawrow<=251B,full595recordsneverencoded;sourcefilesstreamed. Refproof/normalrepliesnotduplicated;originalmalformed/failedwire/progress retained andmissingprefixUNKNOWN. Tool/engineheap/RSSnotclaimed.",
+  "checks": {
+    "gate": "g1b-native-completion-author heavy300",
+    "node22Syntax": "PASS",
+    "installedTypeScriptASTAndStaticNativeOnlyLedgerAnchors": "PASS",
+    "actualOutput": "go after0s,load12.30,slot1of3",
+    "failedChecks": 0
+  },
+  "actualAuthorCalls": {
+    "driverModuleEvaluation": 0,
+    "providerEvaluation": 0,
+    "fixtureConversion": 0,
+    "coefficientOrCandidateMath": 0,
+    "referenceOrBankReplay": 0,
+    "World": 0,
+    "buildOrEmit": 0,
+    "installedTypeScriptASTToolLoads": 1
+  },
+  "stop": "READY. All3ownednewfilesfrozenuntilparentinstruction. Highcombinedreview/freshparentruntimefreeze remainmandatory."
+}

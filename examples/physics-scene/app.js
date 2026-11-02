@@ -1,16 +1,13 @@
+import { makeModel, dynamicPart, staticPart } from '../physics-model-input/model.mjs';
 import { createPhysicsWorld } from '../../packages/barocss-physics/src/index.ts';
 
 const dt = 1 / 120;
-const start = () => createPhysicsWorld({
-  fixedStepSeconds: dt,
-  gravityMps2: [0, -9.81, 0],
-  bodies: [
-    { id: 'part:ball', kind: 'dynamic', shape: { kind: 'sphere', radiusM: 0.16 },
-      positionM: [0, 2.2, 0], velocityMps: [0, 0, 0], massKg: 1, restitution: 0.24 },
-    { id: 'fixture:box', kind: 'static', shape: { kind: 'box', halfExtentsM: [1.1, 0.2, 0.5] },
-      positionM: [0, 0.2, 0], restitution: 0.24 },
-  ],
-});
+const start = () => createPhysicsWorld(makeModel({ parts: [
+  dynamicPart('part:ball', { kind: 'sphere', radiusM: 0.16 }, { positionM: [0, 2.2, 0] },
+    1, { restitution: 0.24 }),
+  staticPart('fixture:box', { kind: 'box', halfExtentsM: [1.1, 0.2, 0.5] },
+    { positionM: [0, 0.2, 0] }, { restitution: 0.24 }),
+] }), { profile: 'rigid-discrete-v1', fixedStepSeconds: dt, broadPhase: 'direct' });
 const $ = (id) => document.getElementById(id);
 const ball = $('ball');
 const glint = $('ball-glint');
@@ -35,13 +32,13 @@ function render(state) {
   $('velocity').textContent = body.velocityMps[1].toFixed(3);
   $('time').textContent = state.timeSeconds.toFixed(3);
   $('step-index').textContent = String(state.stepIndex);
-  const contact = state.contacts.find(({ aId, bId }) => aId === 'fixture:box' && bId === 'part:ball');
+  const contact = state.contacts.find(({ bodyAId, bodyBId }) => bodyAId === 'fixture:box' && bodyBId === 'part:ball');
   document.querySelector('.contact-panel').classList.toggle('active', Boolean(contact));
   $('contact-state').textContent = contact ? '받침과 접촉' : '접촉 없음';
   $('contact-detail').textContent = contact
-    ? `fixture:box ↔ part:ball · 충격량 ${contact.impulseNs.toFixed(3)} N·s`
+    ? `fixture:box ↔ part:ball · 충격량 ${contact.normalImpulseNs.toFixed(3)} N·s`
     : '구와 받침 사이에 현재 접촉이 없습니다.';
-  if (contact && lastContactStep !== state.stepIndex && contact.impulseNs > 0.2) flashUntil = performance.now() + 450;
+  if (contact && lastContactStep !== state.stepIndex && contact.normalImpulseNs > 0.2) flashUntil = performance.now() + 450;
   if (contact) lastContactStep = state.stepIndex;
   flash.classList.toggle('active', performance.now() < flashUntil);
   $('run-state').textContent = running ? 'RUNNING' : 'PAUSED';
@@ -60,7 +57,7 @@ function reset() {
 }
 function singleStep() {
   running = false;
-  if (world.getState().stepIndex < 3600) render(world.step(dt));
+  if (world.getState().stepIndex < 3600) render(world.step());
   else render(world.getState());
 }
 function toggle() { running = !running; accumulator = 0; render(world.getState()); }
@@ -78,7 +75,7 @@ function frame(now) {
     accumulator += Math.min((now - previousTime) / 1000, 0.05);
     while (accumulator >= dt && running) {
       if (world.getState().stepIndex >= 3600) { running = false; break; }
-      world.step(dt);
+      world.step();
       accumulator -= dt;
     }
     render(world.getState());

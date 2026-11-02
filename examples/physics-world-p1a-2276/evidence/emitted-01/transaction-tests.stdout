@@ -1,0 +1,38 @@
+TAP version 13
+# {"proofKind":"emitted","case":"persistent-warm","sourceFixture":"examples/physics-scene/persistent-box-probe.mjs:8-19","baselineBugReproduced":false,"snapshotRetained":true,"continuationSteps":20,"continuationMatchesControl":true,"mismatchSteps":0}
+# {"proofKind":"emitted","case":"sleeping-impulse-wake","sourceFixture":"examples/physics-scene/large-scene-probe.mjs:115-121","baselineBugReproduced":false,"snapshotRetained":true,"continuationSteps":20,"continuationMatchesControl":true,"mismatchSteps":0}
+# {"proofKind":"emitted","case":"dynamic-hinge-history","sourceFixture":"examples/physics-scene/dynamic-hinge-motor-probe.mjs:5-14","baselineBugReproduced":false,"snapshotRetained":true,"continuationSteps":20,"continuationMatchesControl":true,"mismatchSteps":0}
+# {"proofKind":"emitted","case":"replay-log","baselineBugReproduced":false,"physicalAndLogAligned":true,"restoreAndContinue":true,"aggregateBudgetRetained":true}
+# Subtest: persistent-warm: output preparation and continuation
+ok 1 - persistent-warm: output preparation and continuation
+  ---
+  duration_ms: 1011.934166
+  type: 'test'
+  ...
+# Subtest: sleeping-impulse-wake: output preparation and continuation
+ok 2 - sleeping-impulse-wake: output preparation and continuation
+  ---
+  duration_ms: 30.993209
+  type: 'test'
+  ...
+# Subtest: dynamic-hinge-history: output preparation and continuation
+ok 3 - dynamic-hinge-history: output preparation and continuation
+  ---
+  duration_ms: 13.790875
+  type: 'test'
+  ...
+# Subtest: replay log preparation retains state, log and aggregate command budget
+ok 4 - replay log preparation retains state, log and aggregate command budget
+  ---
+  duration_ms: 73.932584
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1181.917792

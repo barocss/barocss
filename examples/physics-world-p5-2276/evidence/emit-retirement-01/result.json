@@ -1,0 +1,8 @@
+{
+  "status": "PASS_EXACT_OBSOLETE_RUNTIME_RETIREMENT",
+  "retired": 22,
+  "preservedOriginalBytes": true,
+  "newRuntimeFilesCreated": 0,
+  "activeLegacyCompatibility": false,
+  "history": "originalproviderfilesarchivedunchanged"
+}

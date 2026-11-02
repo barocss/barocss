@@ -1,5 +1,7 @@
 import { compileCadModel } from '@barocss/cad';
-import type { PhysicsBodyConfig, Vec3 } from './types.js';
+import type { RigidBody, Collider, SourceBinding } from './types.js';
+import type { Vec3 } from './internal-types.js';
+import { digest } from './identity.js';
 import type { CadSurfaceProxy, CadSurfaceProxyRequest } from './cad-proxy-types.js';
 import { ID } from './limits.js';
 import { add } from './math.js';
@@ -75,26 +77,52 @@ export function admitCadSurfaceProxy(source: string, request: CadSurfaceProxyReq
   if (shape.kind === 'sphere') proxyFinite(shape.radiusM, 0.0001, 1000, 'proxy radiusM');
   else shape.halfExtentsM.forEach((value, axis) =>
     proxyFinite(value, 0.0001, 1000, `proxy halfExtentsM[${axis}]`));
-  const body: PhysicsBodyConfig = input.kind === 'dynamic'
-    ? { id: bodyId, kind: 'dynamic', shape, positionM, velocityMps: [0, 0, 0],
-      massKg: input.massKg!, restitution: 0 }
-    : { id: bodyId, kind: 'static', shape, positionM, restitution: 0 };
+  const initial = { positionM, orientationXYZW: [0, 0, 0, 1] as const };
+  const body: RigidBody = input.kind === 'dynamic'
+    ? { id: bodyId, kind: 'dynamic', initial: { ...initial, velocityMps: [0, 0, 0],
+      angularVelocityRadps: [0, 0, 0] }, massKg: input.massKg!,
+      inertia: { kind: 'primitive-com', about: 'com', frame: 'body-local' } }
+    : { id: bodyId, kind: 'static', initial };
+  const collider: Collider = { id: `collider:${digest(bodyId).slice(7, 55)}`, bodyId, geometry: shape,
+    local: { positionM: [0, 0, 0], orientationXYZW: [0, 0, 0, 1] },
+    material: { restitution: 0, friction: { static: 0, dynamic: 0 } }, sensor: false, ccd: false,
+    filter: { categoryBits: 1, maskBits: 65535 } };
   const lossLabel = input.proxy === 'sphere'
     ? 'Control-net enclosing sphere; native Surface geometry is not the collision shape.'
     : 'Control-net axis-aligned box with minimum thickness; native Surface geometry is not the collision shape.';
+  const binding: SourceBinding = { id: `source:${digest(bodyId).slice(7, 55)}`, sourceRevision: input.sourceRevision,
+    sourceDigest: digest(source), modelId: input.modelId, occurrenceId: input.surfaceId,
+    entityIds: [bodyId, collider.id],
+    approximation: { kind: input.proxy === 'sphere' ? 'control-net-sphere' : 'control-net-box', lossLabel } };
   const admitted: CadSurfaceProxy = { sourceSnapshot: source, sourceRevision: input.sourceRevision,
     modelId: input.modelId, surfaceId: input.surfaceId, bodyId,
     sourceCenterMM: [...sourceCenterMM],
     sourceBoundsMM: { min: [...sourceBoundsMM.min], max: [...sourceBoundsMM.max] },
-    lossLabel, body };
+    lossLabel, body, collider, binding };
   Object.freeze(admitted.sourceCenterMM);
   Object.freeze(admitted.sourceBoundsMM.min);
   Object.freeze(admitted.sourceBoundsMM.max);
   Object.freeze(admitted.sourceBoundsMM);
-  Object.freeze(body.positionM);
-  if (body.kind === 'dynamic') Object.freeze(body.velocityMps);
-  if (body.shape.kind === 'box') Object.freeze(body.shape.halfExtentsM);
-  Object.freeze(body.shape);
+  Object.freeze(body.initial.positionM);
+  Object.freeze(body.initial.orientationXYZW);
+  if (body.kind === 'dynamic') {
+    Object.freeze(body.initial.velocityMps);
+    Object.freeze(body.initial.angularVelocityRadps);
+    Object.freeze(body.inertia);
+  }
+  Object.freeze(body.initial);
+  if (collider.geometry.kind === 'box') Object.freeze(collider.geometry.halfExtentsM);
+  Object.freeze(collider.geometry);
+  Object.freeze(collider.local.positionM);
+  Object.freeze(collider.local.orientationXYZW);
+  Object.freeze(collider.local);
+  Object.freeze(collider.material.friction);
+  Object.freeze(collider.material);
+  Object.freeze(collider.filter);
+  Object.freeze(collider);
+  Object.freeze(binding.entityIds);
+  Object.freeze(binding.approximation);
+  Object.freeze(binding);
   Object.freeze(body);
   return Object.freeze(admitted);
 }

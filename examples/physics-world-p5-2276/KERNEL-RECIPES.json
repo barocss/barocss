@@ -1,0 +1,630 @@
+{
+  "work_id": "physics-world-p5-2276",
+  "artifact_type": "clock-free-candidate-stage-finite-recipes",
+  "status": "AUTHOR_ONLY_PENDING_PARENT_FREEZE_NOT_RUN",
+  "owner_role": "p5a-kernel-recipe-author",
+  "source_request": "Freeze candidate stage recipes before implementation",
+  "last_updated": "2026-11-02",
+  "baseHead": "abc9bd5b87c0b389d92d4ad5e1bbaf4ee272c5cb",
+  "contract": "examples/physics-world-p5-2276/KERNEL-CONTRACT.md",
+  "authorityPins": {
+    "examples/physics-world-p5-2276/BASELINE-PROVIDERS.json": {
+      "bytes": 245686,
+      "sha256": "c2fe348bf7187a7df6181e504ad3b6d64797241168c40e3b39d5aa337b713649"
+    },
+    "examples/physics-world-p5-2276/baseline-source-freeze-01.json": {
+      "bytes": 1800,
+      "sha256": "09b3f8bb8cd0b5e6f8f6f3df0a1ee013f74aaacd42c4693bc31b140bd32fd83c"
+    },
+    "examples/physics-world-p5-2276/CALLER-INVENTORY.md": {
+      "bytes": 25952,
+      "sha256": "890999fc5a752a761da0ed7f93d2923e770541d095563b0ba238c036538c3f0c"
+    },
+    "examples/physics-world-p5-2276/SCOPE-CONTRACT.md": {
+      "bytes": 14945,
+      "sha256": "d9f7ba51b02e1679add38df2ca24e483824c1cd5b85f67176fd9d4b1dad2d40c"
+    },
+    "examples/physics-world-p5-2276/MIGRATION-PLAN.json": {
+      "bytes": 19231,
+      "sha256": "1d4a4c32186778b3c1d8a865bb0fa97b7fb3fab5970e3d5552bb48b4634b90d1"
+    }
+  },
+  "capturedBaselinePins": {
+    "examples/physics-world-p5-2276/evidence/baseline-source-01/start.json": {
+      "bytes": 245140,
+      "sha256": "c534ad2a5243196597bace552fe0aa7bbd4224b5a520013250aed46a53fc44fc"
+    },
+    "examples/physics-world-p5-2276/evidence/baseline-source-01/exit.json": {
+      "bytes": 334,
+      "sha256": "287682b559257b8e17097c6a855c54b8fd6ac472c0ca727b1a9dbed72d4cf09a"
+    },
+    "examples/physics-world-p5-2276/evidence/baseline-source-01/summary.json": {
+      "bytes": 735,
+      "sha256": "a2293f423fa547ffd3b0567863690df4c46c2a66fc7a01ded6783ba6c9d81209"
+    },
+    "examples/physics-world-p5-2276/evidence/baseline-source-01/case-cloth.json": {
+      "bytes": 113822,
+      "sha256": "2b56c0d18ea95f20bb5dd6c6c52d84efa52edae864de07c453226b0f1fc0c768"
+    },
+    "examples/physics-world-p5-2276/evidence/baseline-source-01/case-fluid.json": {
+      "bytes": 100775,
+      "sha256": "fb1d66e53e534b9c0eca7ac138066e519c00a94481cb062189901ec2bf2f60ce"
+    },
+    "examples/physics-world-p5-2276/evidence/baseline-source-01/case-fluid-xsph.json": {
+      "bytes": 100785,
+      "sha256": "5f4b0c6ac5857d50fd2337c83bbcc5ed9a932e015761c680c45beb1182ad8876"
+    },
+    "examples/physics-world-p5-2276/evidence/baseline-source-01/case-cad-inner.json": {
+      "bytes": 100771,
+      "sha256": "71155c77e1807e38f896ff5717622fab321c5ee1a1abb0576b9ea9476171e385"
+    },
+    "examples/physics-world-p5-2276/evidence/baseline-source-01/case-cad-outer.json": {
+      "bytes": 100775,
+      "sha256": "45b2b743012da107e849290ae35fdd32d713d02710e4129a72f693c034723267"
+    },
+    "examples/physics-world-p5-2276/evidence/baseline-emitted-01/start.json": {
+      "bytes": 245142,
+      "sha256": "b2a8e08538e3542c22e952a3c6de987fdb05b13b2ac3d6fe82bc304723abde72"
+    },
+    "examples/physics-world-p5-2276/evidence/baseline-emitted-01/exit.json": {
+      "bytes": 334,
+      "sha256": "dc938a6e7cb51cfce6ebc5c16d904fb013dc36c8e78a9917ca1cbb9224383a4e"
+    },
+    "examples/physics-world-p5-2276/evidence/baseline-emitted-01/summary.json": {
+      "bytes": 736,
+      "sha256": "4b5f205736e8168f88693d6fab0ed522ade7aa23feb9c216e703435beb9a16b4"
+    },
+    "examples/physics-world-p5-2276/evidence/baseline-emitted-01/case-cloth.json": {
+      "bytes": 113822,
+      "sha256": "2b56c0d18ea95f20bb5dd6c6c52d84efa52edae864de07c453226b0f1fc0c768"
+    },
+    "examples/physics-world-p5-2276/evidence/baseline-emitted-01/case-fluid.json": {
+      "bytes": 100775,
+      "sha256": "fb1d66e53e534b9c0eca7ac138066e519c00a94481cb062189901ec2bf2f60ce"
+    },
+    "examples/physics-world-p5-2276/evidence/baseline-emitted-01/case-fluid-xsph.json": {
+      "bytes": 100785,
+      "sha256": "5f4b0c6ac5857d50fd2337c83bbcc5ed9a932e015761c680c45beb1182ad8876"
+    },
+    "examples/physics-world-p5-2276/evidence/baseline-emitted-01/case-cad-inner.json": {
+      "bytes": 100771,
+      "sha256": "71155c77e1807e38f896ff5717622fab321c5ee1a1abb0576b9ea9476171e385"
+    },
+    "examples/physics-world-p5-2276/evidence/baseline-emitted-01/case-cad-outer.json": {
+      "bytes": 100775,
+      "sha256": "45b2b743012da107e849290ae35fdd32d713d02710e4129a72f693c034723267"
+    }
+  },
+  "productionAdditionsOnly": [
+    "packages/barocss-physics/src/domain/types.ts",
+    "packages/barocss-physics/src/domain/cloth.ts",
+    "packages/barocss-physics/src/domain/fluid.ts"
+  ],
+  "existingProductionEditsAllowed": false,
+  "profiles": [
+    {
+      "profile": "cloth-pinned-sphere-visual-v1",
+      "baselineCase": "cloth",
+      "additionalDataAliasCase": null,
+      "hostDt": "1/120",
+      "externalLabelsOnly": [
+        1,
+        2
+      ],
+      "sequence": [
+        {
+          "operation": "initialize",
+          "count": 1
+        },
+        {
+          "operation": "prepare-nominal",
+          "from": "initial",
+          "expected": "baseline.after",
+          "count": 1
+        },
+        {
+          "operation": "prepare-nominal",
+          "from": "S1",
+          "expected": "baseline.next",
+          "count": 1
+        },
+        {
+          "operation": "injected-prepare-then-recovery",
+          "from": "same immutable S1",
+          "fault": "mid-kernel",
+          "failedAttempts": 1,
+          "recoveryAttempts": 1,
+          "expectedRecovery": "never-failed nominal S2 and baseline.next",
+          "acceptedMutationAllowed": false
+        },
+        {
+          "operation": "injected-prepare-then-recovery",
+          "from": "same immutable S1",
+          "fault": "post-diagnostic",
+          "failedAttempts": 1,
+          "recoveryAttempts": 1,
+          "expectedRecovery": "never-failed nominal S2 and baseline.next",
+          "acceptedMutationAllowed": false
+        },
+        {
+          "operation": "injected-prepare-then-recovery",
+          "from": "same immutable S1",
+          "fault": "prepare-position-copy",
+          "failedAttempts": 1,
+          "recoveryAttempts": 1,
+          "expectedRecovery": "never-failed nominal S2 and baseline.next",
+          "acceptedMutationAllowed": false
+        }
+      ]
+    },
+    {
+      "profile": "fluid-basin-visual-v1",
+      "baselineCase": "fluid",
+      "additionalDataAliasCase": null,
+      "hostDt": "1/120",
+      "externalLabelsOnly": [
+        1,
+        2
+      ],
+      "sequence": [
+        {
+          "operation": "initialize",
+          "count": 1
+        },
+        {
+          "operation": "prepare-nominal",
+          "from": "initial",
+          "expected": "baseline.after",
+          "count": 1
+        },
+        {
+          "operation": "prepare-nominal",
+          "from": "S1",
+          "expected": "baseline.next",
+          "count": 1
+        },
+        {
+          "operation": "injected-prepare-then-recovery",
+          "from": "same immutable S1",
+          "fault": "mid-kernel",
+          "failedAttempts": 1,
+          "recoveryAttempts": 1,
+          "expectedRecovery": "never-failed nominal S2 and baseline.next",
+          "acceptedMutationAllowed": false
+        },
+        {
+          "operation": "injected-prepare-then-recovery",
+          "from": "same immutable S1",
+          "fault": "post-diagnostic",
+          "failedAttempts": 1,
+          "recoveryAttempts": 1,
+          "expectedRecovery": "never-failed nominal S2 and baseline.next",
+          "acceptedMutationAllowed": false
+        },
+        {
+          "operation": "injected-prepare-then-recovery",
+          "from": "same immutable S1",
+          "fault": "prepare-position-copy",
+          "failedAttempts": 1,
+          "recoveryAttempts": 1,
+          "expectedRecovery": "never-failed nominal S2 and baseline.next",
+          "acceptedMutationAllowed": false
+        }
+      ]
+    },
+    {
+      "profile": "fluid-basin-xsph-visual-v1",
+      "baselineCase": "fluid-xsph",
+      "additionalDataAliasCase": null,
+      "hostDt": "1/120",
+      "externalLabelsOnly": [
+        1,
+        2
+      ],
+      "sequence": [
+        {
+          "operation": "initialize",
+          "count": 1
+        },
+        {
+          "operation": "prepare-nominal",
+          "from": "initial",
+          "expected": "baseline.after",
+          "count": 1
+        },
+        {
+          "operation": "prepare-nominal",
+          "from": "S1",
+          "expected": "baseline.next",
+          "count": 1
+        },
+        {
+          "operation": "injected-prepare-then-recovery",
+          "from": "same immutable S1",
+          "fault": "mid-kernel",
+          "failedAttempts": 1,
+          "recoveryAttempts": 1,
+          "expectedRecovery": "never-failed nominal S2 and baseline.next",
+          "acceptedMutationAllowed": false
+        },
+        {
+          "operation": "injected-prepare-then-recovery",
+          "from": "same immutable S1",
+          "fault": "post-diagnostic",
+          "failedAttempts": 1,
+          "recoveryAttempts": 1,
+          "expectedRecovery": "never-failed nominal S2 and baseline.next",
+          "acceptedMutationAllowed": false
+        },
+        {
+          "operation": "injected-prepare-then-recovery",
+          "from": "same immutable S1",
+          "fault": "prepare-position-copy",
+          "failedAttempts": 1,
+          "recoveryAttempts": 1,
+          "expectedRecovery": "never-failed nominal S2 and baseline.next",
+          "acceptedMutationAllowed": false
+        }
+      ]
+    },
+    {
+      "profile": "fluid-static-box-visual-v1",
+      "baselineCase": "cad-inner",
+      "additionalDataAliasCase": "cad-outer",
+      "hostDt": "1/120",
+      "externalLabelsOnly": [
+        1,
+        2
+      ],
+      "sequence": [
+        {
+          "operation": "initialize",
+          "count": 1
+        },
+        {
+          "operation": "prepare-nominal",
+          "from": "initial",
+          "expected": "baseline.after",
+          "count": 1
+        },
+        {
+          "operation": "prepare-nominal",
+          "from": "S1",
+          "expected": "baseline.next",
+          "count": 1
+        },
+        {
+          "operation": "injected-prepare-then-recovery",
+          "from": "same immutable S1",
+          "fault": "mid-kernel",
+          "failedAttempts": 1,
+          "recoveryAttempts": 1,
+          "expectedRecovery": "never-failed nominal S2 and baseline.next",
+          "acceptedMutationAllowed": false
+        },
+        {
+          "operation": "injected-prepare-then-recovery",
+          "from": "same immutable S1",
+          "fault": "post-diagnostic",
+          "failedAttempts": 1,
+          "recoveryAttempts": 1,
+          "expectedRecovery": "never-failed nominal S2 and baseline.next",
+          "acceptedMutationAllowed": false
+        },
+        {
+          "operation": "injected-prepare-then-recovery",
+          "from": "same immutable S1",
+          "fault": "prepare-position-copy",
+          "failedAttempts": 1,
+          "recoveryAttempts": 1,
+          "expectedRecovery": "never-failed nominal S2 and baseline.next",
+          "acceptedMutationAllowed": false
+        }
+      ]
+    }
+  ],
+  "perGraphCounts": {
+    "initializations": 4,
+    "prepareAttempts": 32,
+    "prepareReturns": 20,
+    "injectedThrows": 12,
+    "nominalOutputs": 8,
+    "recoveryOutputs": 12,
+    "completeKernelReturns": 28,
+    "clothSolverConstructions": 8,
+    "clothSolverCalls": 8,
+    "pbfSolverConstructions": 24,
+    "pbfSolverCalls": 24,
+    "clothInitialDiagnostics": 1,
+    "clothPrepareDiagnostics": 7,
+    "fluidInitialDiagnostics": 3,
+    "fluidPrepareDiagnostics": 21,
+    "createSheet": 1,
+    "triangleMassAccumulations": 1,
+    "initialRestDensity": 3,
+    "inflatedBoxBounds": 1,
+    "canonicalEncode": 4,
+    "WorldConstructors": 0,
+    "WorldFactoryAttempts": 0,
+    "WorldStepCalls": 0,
+    "recordingCalls": 0,
+    "restoreCalls": 0,
+    "cadCompilerCalls": 0
+  },
+  "combinedTwoGraphCounts": {
+    "initializations": 8,
+    "prepareAttempts": 64,
+    "prepareReturns": 40,
+    "injectedThrows": 24,
+    "nominalOutputs": 16,
+    "recoveryOutputs": 24,
+    "completeKernelReturns": 56,
+    "clothSolverConstructions": 16,
+    "clothSolverCalls": 16,
+    "pbfSolverConstructions": 48,
+    "pbfSolverCalls": 48,
+    "clothInitialDiagnostics": 2,
+    "clothPrepareDiagnostics": 14,
+    "fluidInitialDiagnostics": 6,
+    "fluidPrepareDiagnostics": 42,
+    "createSheet": 2,
+    "triangleMassAccumulations": 2,
+    "initialRestDensity": 6,
+    "inflatedBoxBounds": 2,
+    "canonicalEncode": 8,
+    "WorldConstructors": 0,
+    "WorldFactoryAttempts": 0,
+    "WorldStepCalls": 0,
+    "recordingCalls": 0,
+    "restoreCalls": 0,
+    "cadCompilerCalls": 0
+  },
+  "furtherHelperCountsPerGraph": {
+    "clothProjectDistance": 175393,
+    "clothProjectSphere": 112,
+    "pbfProjectDensity": 66,
+    "xsphBlend": 7,
+    "floorSamples": 25,
+    "densities": 93,
+    "note": "7 complete cloth solves*8*2*1566 plus one completed projection;7 complete PBF solves plus1 first-pass fault per fluid profile;fluid diagnostic module floor initialized once,24 freshPBF constructors. Counters must confirm these actual counts; no extra calls to compute counters."
+  },
+  "modelRecipe": {
+    "format": "barocss-physics-model",
+    "version": 1,
+    "revision": "p5KernelFixture1",
+    "frame": {
+      "id": "world",
+      "basis": "right-handed-xyz",
+      "rotation": "local-to-world-xyzw"
+    },
+    "units": {
+      "length": "m",
+      "mass": "kg",
+      "time": "s",
+      "angle": "rad"
+    },
+    "gravityMps2": [
+      0,
+      -9.81,
+      0
+    ],
+    "joints": [],
+    "sourceBindings": [],
+    "staticBodyIds": {
+      "sphere": "p5SphereBody",
+      "basin": "p5BasinBody",
+      "shelf": "p5ShelfBody"
+    },
+    "colliderIds": {
+      "sphere": "p5SphereCollider",
+      "basin": "p5BasinCollider",
+      "shelf": "p5ShelfCollider"
+    },
+    "domainIds": {
+      "cloth": "p5Cloth",
+      "fluid": "p5Fluid"
+    },
+    "staticInitial": {
+      "orientationXYZW": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "colliderLocal": {
+      "positionM": [
+        0,
+        0,
+        0
+      ],
+      "orientationXYZW": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "colliderMaterial": {
+      "restitution": 0,
+      "friction": {
+        "static": 0,
+        "dynamic": 0
+      }
+    },
+    "sensor": false,
+    "ccd": false,
+    "filter": {
+      "categoryBits": 1,
+      "maskBits": 65535
+    },
+    "sphere": {
+      "positionM": [
+        0,
+        0.1,
+        0
+      ],
+      "geometry": {
+        "kind": "sphere",
+        "radiusM": 0.3
+      },
+      "profileCollisionOffsetM": 0.002
+    },
+    "basin": {
+      "positionM": [
+        0.35,
+        0.65,
+        0.25
+      ],
+      "geometry": {
+        "kind": "box-interior",
+        "halfExtentsM": [
+          0.35,
+          0.65,
+          0.25
+        ]
+      }
+    },
+    "shelf": {
+      "positionM": [
+        0.35,
+        0.2,
+        0.25
+      ],
+      "geometry": {
+        "kind": "box",
+        "halfExtentsM": [
+          0.15,
+          0.01,
+          0.15
+        ]
+      }
+    },
+    "cloth": {
+      "createSheetCallsPerGraph": 1,
+      "positionsAndRest": "exact topology arrays copied into dense Vec3 records",
+      "velocities": "289 zero Vec3 records",
+      "triangleCount": 512,
+      "pinnedVertexIndices": [
+        0,
+        16
+      ],
+      "constraintCount": 1566,
+      "masses": "original triangle area accumulation in original index order, including physical pinned mass",
+      "constraints": "ordered original a,b,kind,rest; compliance bend-distance0.1,other0.001",
+      "staticColliderIds": [
+        "p5SphereCollider"
+      ]
+    },
+    "fluid": {
+      "lattice": "z=0..3,y=0..7,x=0..7; [0.2+x*0.05,0.45+y*0.05,0.3+z*0.05]",
+      "velocities": "256 zero Vec3 records",
+      "massModel": {
+        "kind": "visual-unit-weights"
+      },
+      "particleRadiusM": 0.0125,
+      "smoothingRadiusM": 0.09,
+      "ordinarySmoothing": {
+        "kind": "none"
+      },
+      "xsphSmoothing": {
+        "kind": "xsph",
+        "coefficient": 0.15
+      },
+      "basinStaticColliderIds": [
+        "p5BasinCollider"
+      ],
+      "shelfStaticColliderIds": [
+        "p5BasinCollider",
+        "p5ShelfCollider"
+      ]
+    },
+    "composition": {
+      "cloth-pinned-sphere-visual-v1": {
+        "bodies": [
+          "sphere"
+        ],
+        "colliders": [
+          "sphere"
+        ],
+        "cloths": [
+          "cloth"
+        ],
+        "fluids": []
+      },
+      "fluid-basin-visual-v1": {
+        "bodies": [
+          "basin"
+        ],
+        "colliders": [
+          "basin"
+        ],
+        "cloths": [],
+        "fluids": [
+          "ordinary"
+        ]
+      },
+      "fluid-basin-xsph-visual-v1": {
+        "bodies": [
+          "basin"
+        ],
+        "colliders": [
+          "basin"
+        ],
+        "cloths": [],
+        "fluids": [
+          "xsph"
+        ]
+      },
+      "fluid-static-box-visual-v1": {
+        "bodies": [
+          "basin",
+          "shelf"
+        ],
+        "colliders": [
+          "basin",
+          "shelf"
+        ],
+        "cloths": [],
+        "fluids": [
+          "ordinary-with-shelf"
+        ]
+      }
+    }
+  },
+  "bounds": {
+    "childTimeoutMs": 180000,
+    "campaignEvidenceBytes": 67108864,
+    "emergencyReserveWithinCampaignBytes": 8388608,
+    "recorderModelBytesUnchanged": 131072,
+    "recordingBytesUnchanged": 1048576,
+    "recordingFramesUnchanged": 512,
+    "recordingCommandsUnchanged": 4096
+  },
+  "recordingSizeGate": {
+    "status": "NOT_MEASURED",
+    "calls": 4,
+    "operation": "existing identity.canonicalEncode(complete plain PhysicsModel)",
+    "save": "actual bytecount and encoded SHA256, not recording admission",
+    "topologyBuilderIsNumericalExecution": true
+  },
+  "comparison": {
+    "arrays": "exact authenticated F64LE bytes, no zero normalization",
+    "diagnostics": "exact old fields; map separate legacy obstacleHits into common fluid diagnostics",
+    "IDs": "exact recipe IDs; baseline legacy has no common domain IDs",
+    "clock": "none in stages; external test labels only",
+    "toleranceChanges": false,
+    "accuracyClaim": false,
+    "staticBoxPrefixLimit": "Captured first two steps have zero obstacleHits and match bare-fluid raw arrays; no active static-box contact proof from this prefix."
+  },
+  "build": {
+    "source": "one private-stage/helper graph; reject World/recorder/CAD/legacy factory imports",
+    "native": "installed tsc -p packages/barocss-physics/tsconfig.json --outDir FRESH/provider/dist; native ESM imports emitted domain modules and dependencies, no bundling",
+    "overwriteProductionDist": false,
+    "runProviderGenerator": false,
+    "newDependencies": false
+  },
+  "stop": "First unexpected failure stops campaign; source PASS reviewed before native. Fresh freeze and IDs required for repair. No automatic trials.",
+  "implementation": "NOT_STARTED",
+  "execution": "NOT_RUN"
+}

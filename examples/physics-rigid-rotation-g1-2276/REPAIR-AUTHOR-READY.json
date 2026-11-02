@@ -1,0 +1,93 @@
+{
+  "status": "AUTHOR_READY_STOPPED_PARENT_REVIEW_AND_RUNTIME_FREEZE_REQUIRED",
+  "runtimeAuthorized": false,
+  "productionActivation": false,
+  "ownedSources": {
+    "repair-campaign.mjs": {
+      "path": "examples/physics-rigid-rotation-g1-2276/repair-campaign.mjs",
+      "bytes": 39372,
+      "sha256": "445ae75fd40dda85fba0c3e4cc089181b66d62ef2224d7af89064a86dfa33666"
+    },
+    "repair-overlay.mjs": {
+      "path": "examples/physics-rigid-rotation-g1-2276/repair-overlay.mjs",
+      "bytes": 6549,
+      "sha256": "70656ff3c79bdadded9027784c00da8321f337f5b9d22a5e34d0d7e1ca683081"
+    },
+    "REPAIR-PLAN.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/REPAIR-PLAN.json",
+      "bytes": 13550,
+      "sha256": "161525000821d3e19d13935cd2c0884e86cdac10ffa6a7af815d626526af0b08"
+    }
+  },
+  "immutableCandidate": {
+    "path": "examples/physics-rigid-rotation-g1-2276/rigid-free-rotation.ts",
+    "bytes": 3893,
+    "sha256": "9dbc7554c87e6eee0850fd1dfb66b2b990e78f8168cab9d0b57da20c51001bab"
+  },
+  "candidateReady": {
+    "path": "examples/physics-rigid-rotation-g1-2276/CANDIDATE-READY.json",
+    "bytes": 2493,
+    "sha256": "a75541ff547b9d87d5d3f676e1e3678ed317660c6286adfd69748d88d049d6a2"
+  },
+  "parentAuthoringAuthority": {
+    "path": "examples/physics-rigid-rotation-g1-2276/REPAIR-AUTHORING-FREEZE-01.json",
+    "bytes": 860,
+    "sha256": "ef66ae6ef2825d2d7bafbcc0feb6b43d917908a37ce74cb3a9b36ca58120aa1a"
+  },
+  "interface": {
+    "source": "actual staged src/index plus same private g1Control",
+    "native": "actual NodeNext emitted staged dist/index and canonical same dist/g1-test-control.js",
+    "reference": "REFERENCE-PROTOCOL.md; parent pins final actual reference/Ready/high review before execution",
+    "twoDigestDataCalls": "actual emitted identity.js digest applied to generated SOURCE and EMITTED manifest objects, separately counted before Worlds"
+  },
+  "authorChecks": [
+    {
+      "gate": "heavy 300 g1-repair-author-syntax",
+      "commands": [
+        "NODE22 --check repair-campaign.mjs",
+        "NODE22 --check repair-overlay.mjs"
+      ],
+      "exit": 0,
+      "toolOutput": "GATE: go after 0 s (load11.33, slot1of3)"
+    },
+    {
+      "gate": "heavy 300 g1-repair-author-final",
+      "commands": [
+        "NODE22 --check repair-campaign.mjs",
+        "NODE22 --check repair-overlay.mjs",
+        "NODE22 installed TypeScript createSourceFile parseDiagnostics and JSON plan scalar/counter assertions only"
+      ],
+      "exit": 0,
+      "result": "PASS syntax/AST/plan metadata only",
+      "toolOutput": "GATE: go after 0 s (load11.65, slot1of3)"
+    }
+  ],
+  "actuals": {
+    "providerModuleEvaluations": 0,
+    "overlayFunctionInvocations": 0,
+    "fixtureConversions": 0,
+    "builds": 0,
+    "referenceCalls": 0,
+    "candidateCalls": 0,
+    "WorldCalls": 0,
+    "installedTypeScriptParserLoad": 1
+  },
+  "staticRepairNotes": [
+    "Before READY, fixed schema-directed pair conversion root path, source-build symlink traversal, finish-reply/EOF ordering, complete reference proof+savedreply accounting, recursive temporary identity traversal cleanup, FAIL artifact authentication before status rejection, and UNKNOWN spawn-prefix metadata. No observed runtime prefix exists and no numerical gate/count changed."
+  ],
+  "requiredRuntimeLedger": {
+    "constructors": 20,
+    "acceptedSteps": 1688,
+    "stepAttempts": 1708,
+    "getState": 40,
+    "dispose": 20,
+    "referenceProcesses": 1,
+    "referenceRequests": 1710,
+    "referenceAudits": 1708,
+    "referenceRepliesIncludingReady": 1711,
+    "buildChildren": 4,
+    "identityDigestDataCalls": 2
+  },
+  "resourceScope": "64MiB logical owned/serialization and owned artifact envelope; no process heap/RSS claim. All source/provider/tool/High closure frozen and authenticated before actual builds or math.",
+  "remaining": "High static review and parent actual execution freeze; all runtime and production adoption NOT_RUN. Stop all owned edits after READY."
+}

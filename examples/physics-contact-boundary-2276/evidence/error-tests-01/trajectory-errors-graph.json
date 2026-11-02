@@ -1,0 +1,22 @@
+{
+  "emitted": false,
+  "bundleSha256": "c6011325974f401e1f5c9f9d7e5148044f0d28d0218758d6987c67217c6a0cd3",
+  "inputs": [
+    {
+      "path": "examples/physics-rigid-full-pair-position-world/archive.mjs",
+      "sha256": "79591e398cf859b7f9348990d39a048392453ac36ea8d805bf5091985ffba40c"
+    },
+    {
+      "path": "examples/physics-stack-solver-2276/trajectory-errors.mjs",
+      "sha256": "8e5b820c495fc439cc9501b258a1390f8b8d7e976b6ed8c7334de38b104c7bbf"
+    },
+    {
+      "path": "examples/physics-contact-boundary-2276/step-observation.mjs",
+      "sha256": "59168bcb1eee667328abbeb90011d0ad190615624b28c6743ddb85edccd79dba"
+    },
+    {
+      "path": "examples/physics-contact-boundary-2276/runner-errors.test.mjs",
+      "sha256": "1e5b65e2e4623e053b8ddedde084707711971292ac6cd09f0e2dbd9a62ca2590"
+    }
+  ]
+}

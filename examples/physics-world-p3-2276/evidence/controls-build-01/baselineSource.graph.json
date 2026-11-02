@@ -1,0 +1,187 @@
+{
+  "entry": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/index.ts",
+  "outfile": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/controls-build-01/baselineSource.mjs",
+  "sha256": "2dd127aeb65732627bb8ba9ca405302653cb41f30766163054aafafad93b3732",
+  "inputs": [
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/types.ts",
+      "sha256": "c7239aee629e9e331949c67bf49e43315cae50df1a8f90730b7d634b185ca182"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/identity.ts",
+      "sha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/internal-types.ts",
+      "sha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/limits.ts",
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/validation.ts",
+      "sha256": "651d12754b77f86493f399baf3c02d60d9ad1fe54e0ece664a05a4430e8a0f01"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/math.ts",
+      "sha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/dynamic-anchor-pair.ts",
+      "sha256": "8ff622a6ce007e5e7fcb43f0b7c08521615ddacbc8195cde1ac4f574304b579d"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/dynamic-fixed-joint.ts",
+      "sha256": "f5a0fa82c062c7406f6edfeb2aeb169c927ddd8d0965957f630f87e118c52dfa"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/dynamic-hinge-joint.ts",
+      "sha256": "69c816393446b6e06d66849840ecf88a7d28baf72bd30c792180616f55e455f2"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/joints.ts",
+      "sha256": "b6d0ec667a96fc26ec43d9d812c5ffd0a3b7446d135bd9b18713059327c59181"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/model-admission.ts",
+      "sha256": "75ed6d033f6c76b90bb753458ea3464ad9126dd9ba7af82ca1fbe4f01bf8fdd9"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/recording-owner.ts",
+      "sha256": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/provider-manifest.generated.ts",
+      "sha256": "fe9cb65cde1fc332d6bd5118f6d7491c3f2a53a2481f513f31818cdecb446214"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/joint-motor.ts",
+      "sha256": "9a50b0d006ca2386cd2d79b8ba162f6850a5d08d3eb1c7d03460d606559b56ea"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/capsule-contact.ts",
+      "sha256": "cc29d60423bd9a1883585cf164cca0b0736b9fc72e7feb3575c5208c7d892929"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/collision.ts",
+      "sha256": "baa1492ee990bb156d4ba10deb45e0ddc31d31ab6555318c5f652043aa1ea501"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/contact-manifold.ts",
+      "sha256": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/persistent-box-contact.ts",
+      "sha256": "2c117202db9bcb0b988b59f9add9cae57e09d175927122a313e7166720a63d9b"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/ccd-slab.ts",
+      "sha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/ccd-box.ts",
+      "sha256": "43667cba73a01782cac3b9fe14828b67885229a6e09bc9f0e68b6a2d27057b43"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/ccd.ts",
+      "sha256": "040de88f74673b297164227ff5faada12f0eb190aa14a9471dbeb02f879a57ab"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/ccd-pair.ts",
+      "sha256": "570b434c19e432ccc3632bafa2c174df6dac9968e6c38b0f7d4416f75090231f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/broadphase.ts",
+      "sha256": "d93e38d78cc3d202481ceeba83631d528032426d03a8adafb2e461fc72a042a0"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/scene-profile.ts",
+      "sha256": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/sleep.ts",
+      "sha256": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/world.ts",
+      "sha256": "781c7a9ade917c49833d506b884d27df0f92c81e8c0539f07b15c3c7d9fda243"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/capsule-query-error.ts",
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/capsule-query/profile.ts",
+      "sha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/capsule-query/admission.ts",
+      "sha256": "9b67efc7a8824ce49361485eff925afa50017e05bc23d900db5ec7c4e2c8760d"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/capsule-query/geometry.ts",
+      "sha256": "5fdbe1eb40f46e930161e98244a9e5ec0e00c29297caf6f91d530c98df3df4a7"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/capsule-query/sweep.ts",
+      "sha256": "a8f4d16879b2ff88086ceec54cef19d04d58fb063893e7a146382cad59cbaf77"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/capsule-query/snapshot.ts",
+      "sha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/capsule-query.ts",
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/character/profile.ts",
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/character/admission.ts",
+      "sha256": "d83cdb8231620a18935d4d4d5e19ab7ec5440b043e1df71d49d5fa42f3fecb26"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/character/math.ts",
+      "sha256": "df0e88c320d8a189004991cd5cfc3f8de3d7bb3eecb305bb01830a11191dcdc5"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/character/state.ts",
+      "sha256": "6eb744c82f24604a8ecadd6e9d86406600119a3fbc7918129f93983df7cbf47e"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/character/query.ts",
+      "sha256": "9ef96eeb1529dc42466445529b100affc2f56913081f0c2fc169079cffe1a8cf"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/character/step-assist.ts",
+      "sha256": "9166857ad8509049a56d5b255ed59de17ee03e159581b495de7f1d985780c390"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/character/slide.ts",
+      "sha256": "587d5512212e68fdc26068646152d2f8c52c3c6119d6c222de91b750c01fcd77"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/character/ground.ts",
+      "sha256": "bd1621641ebc9300943b88c9083710218768454acb0a5e1ba8b330086d68c321"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/character/core.ts",
+      "sha256": "6c6251e9782baed07be65cce68bfdbca14e2f930ca04a54ee6812cbbfc925a02"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/character-controller.ts",
+      "sha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927"
+    },
+    {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/index.ts",
+      "sha256": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30"
+    }
+  ],
+  "cadence": "build only; zero World/guard/model calls",
+  "modelsRun": 0,
+  "guardCalls": 0,
+  "cadBoundary": "NONE"
+}

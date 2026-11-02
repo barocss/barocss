@@ -1,0 +1,434 @@
+{
+  "status": "DIAGNOSTIC_NORMAL_CONTACT_NO_GO",
+  "authentication": {
+    "source-ALIGNED.jsonl.gz": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-ALIGNED.jsonl.gz",
+      "compressedBytes": 54063016,
+      "compressedSha256": "daea697b1a04c1e3bb00189e76db69ebadfbedbec9bc5dad4590a42a0bb80959",
+      "decodedBytes": 420695755,
+      "decodedSha256": "a4e96c868909477d498eb66194b5ff350437b3e484c36c8d64b0b2882f7b526b"
+    },
+    "source-ALIGNED.f64le.gz": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-full-pair-position-world/evidence/native-final-a1b9e0a5/source-ALIGNED.f64le.gz",
+      "compressedBytes": 1581367,
+      "compressedSha256": "8434ef44711481fddedf0583af23f4cf48257dcc9c37824365b080d259dfd15b",
+      "decodedBytes": 8986536,
+      "decodedSha256": "3749440ec8567ffe4384443d83e58927721eacb1f858c4ec5d1aef4d44cbec49"
+    }
+  },
+  "manifestSha256": "b9f3a446022d8bedf65070f5ea43694fedcc7208b7de408c5067a6ce608cd42d",
+  "decodedAuthenticationComplete": true,
+  "authenticationOrder": [
+    "manifest and complete compressed hashes before arithmetic",
+    "complete decoded raw hash before arithmetic",
+    "complete decoded JSON hash after stopped diagnostic, before result delivery"
+  ],
+  "arithmeticPrecisionDigits": [
+    80,
+    120
+  ],
+  "gateEachStatedSIUnit": "1E-10",
+  "archiveRecordsHashed": 961,
+  "decodedJsonBytesHashed": 420695755,
+  "recordsParsedBeforeStop": 2,
+  "stepsExamined": 1,
+  "pointChecks": 1,
+  "parsedPrefixSha256": "8baa427389467ee60d6fe0d319a5597ca61dec427cef44e2754782057a12fef8",
+  "maxResidualsInExaminedPrefix": {
+    "negativeNormalImpulseNs": "0",
+    "closingNormalSpeedMps": "0.004063911953617717418962146380678746027115266770124435424804687500000000000000000000000000000000000000000000000000000",
+    "complementarityJ": "0.000537397808961402423000777362928531038945857634560451751598962852413457063098164989689564663422061130404472351074218750000"
+  },
+  "firstViolation": {
+    "step": 1,
+    "pointIndex": 0,
+    "pointId": "face:b0:1:1:b1:1:-1:0",
+    "pairKey": "b0\u0000b1",
+    "pointFamily": "face",
+    "recordSha256": "f588b8d940c75dc246b164b7ab0b0182e6cf32604672986bcdabbe81b2108840",
+    "recordRawOffsetBytes": 936,
+    "recordRawBytes": 9360,
+    "recordRawSha256": "b156e035caaa3c94f5885a24a2541b9913869221a22311a416af64d58121ecc2",
+    "decimal80": {
+      "normalSpeedMps": "-0.0040639119536177174189621463806787460271152667701244354248046875000000000000000000",
+      "normalImpulseNs": "0.1322365777346647119916411838858039118349552154541015625",
+      "residuals": {
+        "negativeNormalImpulseNs": "0",
+        "closingNormalSpeedMps": "0.0040639119536177174189621463806787460271152667701244354248046875000000000000000000",
+        "complementarityJ": "0.00053739780896140242300077736292853103894585763456045175159896285241345706309816499"
+      },
+      "violations": [
+        "closingNormalSpeedMps",
+        "complementarityJ"
+      ]
+    },
+    "decimal120": {
+      "normalSpeedMps": "-0.004063911953617717418962146380678746027115266770124435424804687500000000000000000000000000000000000000000000000000000",
+      "normalImpulseNs": "0.1322365777346647119916411838858039118349552154541015625",
+      "residuals": {
+        "negativeNormalImpulseNs": "0",
+        "closingNormalSpeedMps": "0.004063911953617717418962146380678746027115266770124435424804687500000000000000000000000000000000000000000000000000000",
+        "complementarityJ": "0.000537397808961402423000777362928531038945857634560451751598962852413457063098164989689564663422061130404472351074218750000"
+      },
+      "violations": [
+        "closingNormalSpeedMps",
+        "complementarityJ"
+      ]
+    },
+    "precisionDifferences": {
+      "negativeNormalImpulseNs": "0",
+      "closingNormalSpeedMps": "0E-117",
+      "complementarityJ": "3.104353365779388695955276489E-85",
+      "normalSpeedMps": "0E-117"
+    },
+    "independentGeometry": {
+      "toleranceM": "1E-9",
+      "normalizedProjectionNormal": [
+        "0",
+        "1",
+        "0"
+      ],
+      "a": {
+        "supportPlaneM": "0.4993187500000000056399329650957952253520488739013671875",
+        "supportCornersM": [
+          [
+            "-0.25",
+            "0.4993187500000000056399329650957952253520488739013671875",
+            "-0.25"
+          ],
+          [
+            "-0.25",
+            "0.4993187500000000056399329650957952253520488739013671875",
+            "0.25"
+          ],
+          [
+            "0.25",
+            "0.4993187500000000056399329650957952253520488739013671875",
+            "-0.25"
+          ],
+          [
+            "0.25",
+            "0.4993187500000000056399329650957952253520488739013671875",
+            "0.25"
+          ]
+        ],
+        "localPointM": [
+          "-0.2500000000000000000000000000000000000000000000000000000",
+          "0.2500000000000000277555756156289135105907917022705078125",
+          "-0.2500000000000000000000000000000000000000000000000000000"
+        ],
+        "maxLocalSlabViolationM": "2.77555756156289135105907917022705078125E-17",
+        "pointInsideTolerance": true,
+        "lineIntersects": true,
+        "surfaceLineParameterM": "-2.77555756156289135105907917022705078125E-17",
+        "surfaceWitnessM": [
+          "-0.2500000000000000000000000000000000000000000000000000000",
+          "0.4993187500000000056399329650957952253520488739013671875",
+          "-0.2500000000000000000000000000000000000000000000000000000"
+        ]
+      },
+      "b": {
+        "supportPlaneM": "0.499318750000000033395508580724708735942840576171875",
+        "supportCornersM": [
+          [
+            "-0.25",
+            "0.499318750000000033395508580724708735942840576171875",
+            "-0.25"
+          ],
+          [
+            "-0.25",
+            "0.499318750000000033395508580724708735942840576171875",
+            "0.25"
+          ],
+          [
+            "0.25",
+            "0.499318750000000033395508580724708735942840576171875",
+            "-0.25"
+          ],
+          [
+            "0.25",
+            "0.499318750000000033395508580724708735942840576171875",
+            "0.25"
+          ]
+        ],
+        "localPointM": [
+          "-0.250000000000000000000000000000000000000000000000000",
+          "-0.250000000000000000000000000000000000000000000000000",
+          "-0.250000000000000000000000000000000000000000000000000"
+        ],
+        "maxLocalSlabViolationM": "0",
+        "pointInsideTolerance": true,
+        "lineIntersects": true,
+        "surfaceLineParameterM": "0E-51",
+        "surfaceWitnessM": [
+          "-0.250000000000000000000000000000000000000000000000000",
+          "0.499318750000000033395508580724708735942840576171875",
+          "-0.250000000000000000000000000000000000000000000000000"
+        ]
+      },
+      "supportPlaneGapM": "2.77555756156289135105907917022705078125E-17",
+      "lineIntersectsBoth": true,
+      "lineWitnessGapM": "2.77555756156289135105907917022705078125E-17",
+      "pointToLineWitnessMidpointM": "1.387778780781445675529539585113525390625E-17",
+      "lineMidpointWithinTolerance": true,
+      "causalLawDefect": "UNKNOWN",
+      "contactPatchSufficiency": "UNKNOWN"
+    },
+    "geometryPrecisionMaxDifference": "0"
+  },
+  "selectedSnapshot": {
+    "point": {
+      "aId": "b0",
+      "bId": "b1",
+      "aIndex": 0,
+      "bIndex": 1,
+      "pairKey": "b0\u0000b1",
+      "pointId": "face:b0:1:1:b1:1:-1:0",
+      "family": "face",
+      "pointM": [
+        -0.25,
+        0.49931875000000003,
+        -0.25
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "aPositionM": [
+        0,
+        0.24931875,
+        0
+      ],
+      "bPositionM": [
+        0,
+        0.74931875,
+        0
+      ],
+      "warm": {
+        "normalNs": 0,
+        "tangentNs": [
+          0,
+          0,
+          0
+        ]
+      },
+      "final": {
+        "normalNs": 0.1322365777346647,
+        "tangentNs": [
+          -0.008931803305973653,
+          0,
+          -0.002464955237177744
+        ]
+      }
+    },
+    "freeEndpoints": [
+      {
+        "id": "b0",
+        "kind": "dynamic",
+        "shape": {
+          "kind": "box",
+          "halfExtentsM": [
+            0.25,
+            0.25,
+            0.25
+          ]
+        },
+        "positionM": [
+          0.0,
+          0.24931875,
+          0.0
+        ],
+        "sensor": false,
+        "velocityMps": [
+          0.0,
+          -0.08175,
+          0.0
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "angularVelocityRadps": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "inertiaDiagonalKgM2": [
+          0.041666666666666664,
+          0.041666666666666664,
+          0.041666666666666664
+        ],
+        "inverseInertiaLocal": [
+          24,
+          24,
+          24
+        ],
+        "inverseMass": 1,
+        "restitution": 0,
+        "frictionStatic": 1,
+        "frictionDynamic": 0.7
+      },
+      {
+        "id": "b1",
+        "kind": "dynamic",
+        "shape": {
+          "kind": "box",
+          "halfExtentsM": [
+            0.25,
+            0.25,
+            0.25
+          ]
+        },
+        "positionM": [
+          0.0,
+          0.74931875,
+          0.0
+        ],
+        "sensor": false,
+        "velocityMps": [
+          0.0,
+          -0.08175,
+          0.0
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "angularVelocityRadps": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "inertiaDiagonalKgM2": [
+          0.041666666666666664,
+          0.041666666666666664,
+          0.041666666666666664
+        ],
+        "inverseInertiaLocal": [
+          24,
+          24,
+          24
+        ],
+        "inverseMass": 1,
+        "restitution": 0,
+        "frictionStatic": 1,
+        "frictionDynamic": 0.7
+      }
+    ],
+    "velocityEndpoints": [
+      {
+        "id": "b0",
+        "kind": "dynamic",
+        "shape": {
+          "kind": "box",
+          "halfExtentsM": [
+            0.25,
+            0.25,
+            0.25
+          ]
+        },
+        "positionM": [
+          0.0,
+          0.24931875,
+          0.0
+        ],
+        "sensor": false,
+        "velocityMps": [
+          -8.349619433260791e-05,
+          -0.0006020626012276098,
+          -0.00015936659147008816
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "angularVelocityRadps": [
+          8.344669988716194e-05,
+          -0.0001432761056209663,
+          0.0007194672893281349
+        ],
+        "inertiaDiagonalKgM2": [
+          0.041666666666666664,
+          0.041666666666666664,
+          0.041666666666666664
+        ],
+        "inverseInertiaLocal": [
+          24,
+          24,
+          24
+        ],
+        "inverseMass": 1,
+        "restitution": 0,
+        "frictionStatic": 1,
+        "frictionDynamic": 0.7
+      },
+      {
+        "id": "b1",
+        "kind": "dynamic",
+        "shape": {
+          "kind": "box",
+          "halfExtentsM": [
+            0.25,
+            0.25,
+            0.25
+          ]
+        },
+        "positionM": [
+          0.0,
+          0.74931875,
+          0.0
+        ],
+        "sensor": false,
+        "velocityMps": [
+          7.970057620306252e-06,
+          -0.004766365812801647,
+          7.897887069809105e-05
+        ],
+        "orientation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "angularVelocityRadps": [
+          0.0006244746466962476,
+          -0.0007374527494428728,
+          0.0008589302043119414
+        ],
+        "inertiaDiagonalKgM2": [
+          0.041666666666666664,
+          0.041666666666666664,
+          0.041666666666666664
+        ],
+        "inverseInertiaLocal": [
+          24,
+          24,
+          24
+        ],
+        "inverseMass": 1,
+        "restitution": 0,
+        "frictionStatic": 1,
+        "frictionDynamic": 0.7
+      }
+    ],
+    "freeFrameRawHex": "0000000000000000efc9c342ade9cf3f0000000000000000000000000000000021b0726891edb4bf0000000000000000000000000000000000000000000000000000000000000000000000000000f03f00000000000000000000000000000000000000000000000000000000000000007cf2b0506bfae73f0000000000000000000000000000000021b0726891edb4bf0000000000000000000000000000000000000000000000000000000000000000000000000000f03f00000000000000000000000000000000000000000000000000000000000000003e7958a835fdf33f0000000000000000000000000000000021b0726891edb4bf0000000000000000000000000000000000000000000000000000000000000000000000000000f03f00000000000000000000000000000000000000000000000000000000000000003e7958a835fdfb3f0000000000000000000000000000000021b0726891edb4bf0000000000000000000000000000000000000000000000000000000000000000000000000000f03f00000000000000000000000000000000000000000000000000000000000000009f3c2cd49afe01400000000000000000000000000000000021b0726891edb4bf0000000000000000000000000000000000000000000000000000000000000000000000000000f03f00000000000000000000000000000000000000000000000000000000000000009f3c2cd49afe05400000000000000000000000000000000021b0726891edb4bf0000000000000000000000000000000000000000000000000000000000000000000000000000f03f00000000000000000000000000000000000000000000000000000000000000009f3c2cd49afe09400000000000000000000000000000000021b0726891edb4bf0000000000000000000000000000000000000000000000000000000000000000000000000000f03f00000000000000000000000000000000000000000000000000000000000000009f3c2cd49afe0d400000000000000000000000000000000021b0726891edb4bf0000000000000000000000000000000000000000000000000000000000000000000000000000f03f00000000000000000000000000000000000000000000000000000000000000009a9999999999b9bf0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f03f000000000000000000000000000000000000000000000000",
+    "velocityFrameRawHex": "0000000000000000efc9c342ade9cf3f000000000000000000cc2cb255e315bf0073599777ba43bfd8ffcc9874e324bf000000000000000000000000000000000000000000000000000000000000f03fb0474d6303e0153fc0b539608cc722bf98db353d5493473f00000000000000007cf2b0506bfae73f000000000000000080dde160e4b6e03ef88c9694e58573bf3084b9aa2eb4143f000000000000000000000000000000000000000000000000000000000000f03f589ca5177976443f285279b8332a48bf30648b913a254c3f00000000000000003e7958a835fdf33f00000000000000002051c2351dca043f9001b3496a187bbf2098d1b12f9c093f000000000000000000000000000000000000000000000000000000000000f03f40b9800e1e47433ff4894052be9e53bfe0ac9e9a681d493f00000000000000003e7958a835fdfb3f000000000000000080a05e455b05113ff0c45cbb22bf80bf605e10eff55c093f000000000000000000000000000000000000000000000000000000000000f03f60a28b7945853f3f782898aa41eb5abf60f85512500f463f00000000000000009f3c2cd49afe01400000000000000000c858d5d1b07a143fcc59bf18643e83bf20e4d7f63bed043f000000000000000000000000000000000000000000000000000000000000f03f9059953e6264363f4a933606518e60bf7027220b6b1b423f00000000000000009f3c2cd49afe0540000000000000000080eef96bb923123f8827ebea9ff884bff03a929b53a3f53e000000000000000000000000000000000000000000000000000000000000f03fa0f98046f87a273f6c4a05433de162bf30d6a57c8efa383f00000000000000009f3c2cd49afe0940000000000000000058da0e5d3a9d153ff0fb870d6ce085bfb0677222318df9be000000000000000000000000000000000000000000000000000000000000f03f40f87bc7737c213fff706dd0588e64bf687136aac05b393f00000000000000009f3c2cd49afe0d400000000000000000c0ac18df3a8c0d3f4d2d6933c00286bfa03cbbc00f740dbf000000000000000000000000000000000000000000000000000000000000f03ff04fb8fa039935bfb95ba51e7bf264bf0086d824902536bf00000000000000009a9999999999b9bf0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f03f000000000000000000000000000000000000000000000000"
+  },
+  "stoppedPointArithmeticAtFirstViolation": true,
+  "worldCalls": 0,
+  "solverCalls": 0,
+  "sourceGeometryCalls": 0,
+  "causalLawDefect": "UNKNOWN",
+  "contactPatchSufficiency": "UNKNOWN",
+  "nativeLawFixAuthorized": false,
+  "originalEightBoxPhysicalGO": false,
+  "limitation": "The saved frozen constraint is examined. A residual and one support witness do not prove the cause of long-term instability.",
+  "elapsedSeconds": 0.7020206667948514
+}

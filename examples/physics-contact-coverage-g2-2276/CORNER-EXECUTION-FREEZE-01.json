@@ -1,0 +1,2022 @@
+{
+  "status": "PARENT_AUTHORIZED_G2_CORNER_CAPTURE",
+  "runtimeAuthorized": true,
+  "WorldAuthorized": false,
+  "graph": "source",
+  "runId": "g2-corner-source-01",
+  "files": {
+    "examples/physics-cloth-rigid-impulse-2276/TOOLCHAIN-PINS-01.json": {
+      "bytes": 54073,
+      "sha256": "58a817574356fbdd448ae79b60273cc4f4e290bfad93feacfdb72f332d628383"
+    },
+    "examples/physics-contact-coverage-g2-2276/CORNER-CAPTURE-AUTHOR-01.json": {
+      "bytes": 1289,
+      "sha256": "5266469249c201ca6c2004fa3694e4b60836d061b4d2b0d3e3558a0d138a6d2e"
+    },
+    "examples/physics-contact-coverage-g2-2276/CORNER-CAPTURE-AUTHOR-02.json": {
+      "bytes": 1599,
+      "sha256": "ced77e2b5f82596f13c9ec652b58bc9fdaf884c690c57a0a02ec0b68f51a7c79"
+    },
+    "examples/physics-contact-coverage-g2-2276/CORNER-CAPTURE-AUTHOR-03.json": {
+      "bytes": 1093,
+      "sha256": "ad6405810b9aca3c35d160bb2e24b68fb02a567df52d3a8419d9e6211d106bbd"
+    },
+    "examples/physics-contact-coverage-g2-2276/CORNER-CAPTURE-REVIEW-01.md": {
+      "bytes": 5633,
+      "sha256": "dd053c271b8a1543d27014a5a4e9c11c0a9bdb8f79b789a357113043e09e2b4e"
+    },
+    "examples/physics-contact-coverage-g2-2276/CORNER-CAPTURE-REVIEW-02.md": {
+      "bytes": 2905,
+      "sha256": "b54afffeb4dc4b6179c09da0a08b5e14bd87f05649cfb2ce5f62128e591f4d2a"
+    },
+    "examples/physics-contact-coverage-g2-2276/CORNER-EXECUTION-REVIEW-02.md": {
+      "bytes": 3831,
+      "sha256": "036f2ecd4a0af0666493e9b203d56437f30c914316af753cda5dbc0b76d81ad5"
+    },
+    "examples/physics-contact-coverage-g2-2276/CORNER-INPUT-01.json": {
+      "bytes": 3422,
+      "sha256": "65e82b0165c0c09ebbb435a99d0b1fe877d0dd7c75d7cd99b19ed61bd25d618f"
+    },
+    "examples/physics-contact-coverage-g2-2276/CORNER-PROPOSAL-01.json": {
+      "bytes": 3779,
+      "sha256": "fbb9af67a436c93777077e2e30dc5f47117d030c6470bddde1f91f9d390cdf95"
+    },
+    "examples/physics-contact-coverage-g2-2276/CORNER-REVIEW-01.md": {
+      "bytes": 8213,
+      "sha256": "dbbd2749d7d28838629dcd1bdad0913df072e2d4f3035d7089553abe9238a131"
+    },
+    "examples/physics-contact-coverage-g2-2276/COVERAGE-01.json": {
+      "bytes": 24987,
+      "sha256": "e75bdfff939bc1fbe4a333d0a28119ea861e867a74dd89019d2ec3638b81e375"
+    },
+    "examples/physics-contact-coverage-g2-2276/DOCS-CHECK-01.json": {
+      "bytes": 1504,
+      "sha256": "204c24975d4169bb0b93d230495e19f1b5b75632253975a5e91847f4da6c9d43"
+    },
+    "examples/physics-contact-coverage-g2-2276/README.md": {
+      "bytes": 6789,
+      "sha256": "07de37a595eb30762a0036b97d3f20fdf6b2cd6d1bfccc1834c0c32638fffe04"
+    },
+    "examples/physics-contact-coverage-g2-2276/STATIC-CHECK-01.json": {
+      "bytes": 369,
+      "sha256": "e9143b89dd57d5900be9400e1e8d79181ece2a4e8010c4e6b25276c5d7ad70e5"
+    },
+    "examples/physics-contact-coverage-g2-2276/corner-capture.mjs": {
+      "bytes": 13043,
+      "sha256": "7f5523623a28f29eef90496c655d6e8964aa340db23a4fafdca25835c48184d9"
+    },
+    "examples/physics-contact-coverage-g2-2276/corner-reference.py": {
+      "bytes": 16735,
+      "sha256": "45a6f276d23630eb68b536d90414499dccbac325bd2bf0a71c8f7a0a59c27f5a"
+    },
+    "examples/physics-world-p5-2276/command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    },
+    "packages/barocss-physics/dist/broadphase.d.ts": {
+      "bytes": 239,
+      "sha256": "9231cd9d0f59808f02ab39305893cd5a48c30774f2bacd7ffd0fcab1f8767f13"
+    },
+    "packages/barocss-physics/dist/broadphase.js": {
+      "bytes": 1253,
+      "sha256": "f35e7453719dc2b44668bb20d6fad51a739c6b2cdb9797fe875fc81187400db3"
+    },
+    "packages/barocss-physics/dist/cad-fluid-data.d.ts": {
+      "bytes": 440,
+      "sha256": "b13135d255653f45cdd083ad7e9a3fb2877340e6c53b273674c282bc0f702a59"
+    },
+    "packages/barocss-physics/dist/cad-fluid-data.js": {
+      "bytes": 2123,
+      "sha256": "854603f2171481ec0bf8d795908eac35718518686532fb9c91a7ccd42a35feb9"
+    },
+    "packages/barocss-physics/dist/cad-proxy-admission.d.ts": {
+      "bytes": 322,
+      "sha256": "e571a8936bc6df9bfa2dfd9ba0464709947026528be2b5028fb0d7964aa5ca78"
+    },
+    "packages/barocss-physics/dist/cad-proxy-admission.js": {
+      "bytes": 7628,
+      "sha256": "ee51b4fc7e9f3c193bd993fa3f850f381142e58b48bca2b5b7ab992d9157548d"
+    },
+    "packages/barocss-physics/dist/cad-proxy-pose.d.ts": {
+      "bytes": 243,
+      "sha256": "8ed62f953840b9ed6319d507e080f771d05c48b1d3125849bbbbdde52beda981"
+    },
+    "packages/barocss-physics/dist/cad-proxy-pose.js": {
+      "bytes": 1287,
+      "sha256": "ca965a4d587c8b208c064f0d0d3a65b2b31c41c2f692f60b086e6eb2fce8b46d"
+    },
+    "packages/barocss-physics/dist/cad-proxy-types.d.ts": {
+      "bytes": 950,
+      "sha256": "4ba2ad188a191a5465bf422ee6e79b631caed56a1c7333d96ab7daa96b605d29"
+    },
+    "packages/barocss-physics/dist/cad-proxy-types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "packages/barocss-physics/dist/cad-proxy-validation.d.ts": {
+      "bytes": 549,
+      "sha256": "daa38774bf8e5a9bf5953ead96f9851bb5be1aa526fa6519b5d3bf0cb155343c"
+    },
+    "packages/barocss-physics/dist/cad-proxy-validation.js": {
+      "bytes": 1327,
+      "sha256": "30ff7c4b15b218924f4b6a8df561830ed254365a3b474f4e718b486fd7be5155"
+    },
+    "packages/barocss-physics/dist/cad-proxy.d.ts": {
+      "bytes": 321,
+      "sha256": "cc7715b4fc974c8ed4511ebf684cdc7c2923f7ab4b8b7f5db45b208f8e6ffa99"
+    },
+    "packages/barocss-physics/dist/cad-proxy.js": {
+      "bytes": 203,
+      "sha256": "457a52444143aee357e2be5e6673b95de67b918da30d3242747890af55a35fba"
+    },
+    "packages/barocss-physics/dist/capsule-contact.d.ts": {
+      "bytes": 198,
+      "sha256": "e3c1d147fbc7b1f30e8e97a6067e6750a56f0f6ccf7659a9d211f65e24e4a178"
+    },
+    "packages/barocss-physics/dist/capsule-contact.js": {
+      "bytes": 5708,
+      "sha256": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1"
+    },
+    "packages/barocss-physics/dist/capsule-query/admission.d.ts": {
+      "bytes": 250,
+      "sha256": "779417df1dbf3f0f697de4a04f918007954b13fc9f301b991105bbfc0a9cefe6"
+    },
+    "packages/barocss-physics/dist/capsule-query/admission.js": {
+      "bytes": 4867,
+      "sha256": "547d9202b0db4be3d8a4fd5266b136f750d3e015151d60e679df26ecf51da7fe"
+    },
+    "packages/barocss-physics/dist/capsule-query/geometry.d.ts": {
+      "bytes": 536,
+      "sha256": "efb0588d7b8808333836dcc927eb7523c5a7c516467294e3743cccf056ba736b"
+    },
+    "packages/barocss-physics/dist/capsule-query/geometry.js": {
+      "bytes": 2319,
+      "sha256": "4c9034c23c2137d54e4d2e1554b9015ff2cc6bc7776d62d8e1f3c8b905b67d04"
+    },
+    "packages/barocss-physics/dist/capsule-query/profile.d.ts": {
+      "bytes": 357,
+      "sha256": "2b1626e82c8677593940e8100247b6fbb33e9ab53e80d9de001ec1f9a7411300"
+    },
+    "packages/barocss-physics/dist/capsule-query/profile.js": {
+      "bytes": 294,
+      "sha256": "acfab32b60a91c29bec4b89a803902aa9b944eb2ebb6cd0d129b60e039e13210"
+    },
+    "packages/barocss-physics/dist/capsule-query/snapshot.d.ts": {
+      "bytes": 176,
+      "sha256": "64340b99b9b456f3586ed545d7e99a570675df7972374c3ec76ecd9d73a515ea"
+    },
+    "packages/barocss-physics/dist/capsule-query/snapshot.js": {
+      "bytes": 2468,
+      "sha256": "5ee1b97dc58a872a9cd6c56121eca158ac5f746d543729e5f197b24d08f9d55f"
+    },
+    "packages/barocss-physics/dist/capsule-query/sweep.d.ts": {
+      "bytes": 240,
+      "sha256": "c99f678a450aa0db3d677c57c97ef5990544effca96e35196e8f3bbca073ecf3"
+    },
+    "packages/barocss-physics/dist/capsule-query/sweep.js": {
+      "bytes": 1833,
+      "sha256": "f04e6a548504cad0bb838862f7813225592c9549fb0233e026bc6276f7b4929e"
+    },
+    "packages/barocss-physics/dist/capsule-query/types.d.ts": {
+      "bytes": 1026,
+      "sha256": "6f1c259f0b05ffe866b493569a8d939f3493ad263381bfc5ac943705c8c31522"
+    },
+    "packages/barocss-physics/dist/capsule-query/types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "packages/barocss-physics/dist/capsule-query-error.d.ts": {
+      "bytes": 43,
+      "sha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e"
+    },
+    "packages/barocss-physics/dist/capsule-query-error.js": {
+      "bytes": 137,
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    "packages/barocss-physics/dist/capsule-query.d.ts": {
+      "bytes": 222,
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+    },
+    "packages/barocss-physics/dist/capsule-query.js": {
+      "bytes": 73,
+      "sha256": "f44c04d06c851b807add8096cc26bf893945f53b49ab6c671148491b88e781fc"
+    },
+    "packages/barocss-physics/dist/ccd-box.d.ts": {
+      "bytes": 375,
+      "sha256": "e8c009659fab23be3f36024b61c7f693aad60e8df99cc36ea8c94c2e1d88efee"
+    },
+    "packages/barocss-physics/dist/ccd-box.js": {
+      "bytes": 1825,
+      "sha256": "28dc449fe8f07f1d95245017299e64d3fc350fd7982819c93565999130290595"
+    },
+    "packages/barocss-physics/dist/ccd-pair.d.ts": {
+      "bytes": 275,
+      "sha256": "62e7a116e62e543ffd85cbdc138788f73dddd56d81ab9ec681f277ea75d40829"
+    },
+    "packages/barocss-physics/dist/ccd-pair.js": {
+      "bytes": 2103,
+      "sha256": "6c89cf6f2fc9e9eeb3f83959be8ef23ed614cba42e91e48cb0e4706777234fd2"
+    },
+    "packages/barocss-physics/dist/ccd-slab.d.ts": {
+      "bytes": 216,
+      "sha256": "4adde0cfe2c336ea862ff7d61b3001503235d8b9e6761e73d310221a691e3646"
+    },
+    "packages/barocss-physics/dist/ccd-slab.js": {
+      "bytes": 1088,
+      "sha256": "cf85c1dce1ebaa899cc2fc9eead7b0c25f7096caeb3a652476beb93c5f02843f"
+    },
+    "packages/barocss-physics/dist/ccd.d.ts": {
+      "bytes": 560,
+      "sha256": "ef17952c90ff59495d3120e697ae83fbc4eee9e28ae1050b25a21ceccc7069f4"
+    },
+    "packages/barocss-physics/dist/ccd.js": {
+      "bytes": 2966,
+      "sha256": "c2c54c3dedf0df98c8888107457dbd87041eb7f52b8f689484b18abdfbc5b54a"
+    },
+    "packages/barocss-physics/dist/character/admission.d.ts": {
+      "bytes": 499,
+      "sha256": "49b1094be17da78b2a3b8cff6756f6191ddd0422886cd1985ff89c0337cfa6aa"
+    },
+    "packages/barocss-physics/dist/character/admission.js": {
+      "bytes": 4100,
+      "sha256": "07cf9fb6af74299fce3e8fba82ca65871ea7e0cc67e4e73c837606be9f30e43c"
+    },
+    "packages/barocss-physics/dist/character/core.d.ts": {
+      "bytes": 461,
+      "sha256": "403a8ef448bcab99937f5bdbaa5c5d49f2d0c2dbd9ea06faac8c4beb9d488287"
+    },
+    "packages/barocss-physics/dist/character/core.js": {
+      "bytes": 4194,
+      "sha256": "80a53992b06c75c9216a671c52bad2f3a01b6192bbd6002458ecfe077c3a4eb4"
+    },
+    "packages/barocss-physics/dist/character/ground.d.ts": {
+      "bytes": 250,
+      "sha256": "6fb19efbd8bb96956188dd9471a510686b3fd6a841b1656a4102435a4f2fdd8a"
+    },
+    "packages/barocss-physics/dist/character/ground.js": {
+      "bytes": 1117,
+      "sha256": "96298ab6534e5e9e7f3da6b0850bbbb7acd73ac11534f6047617ac2bdcd2eb16"
+    },
+    "packages/barocss-physics/dist/character/math.d.ts": {
+      "bytes": 400,
+      "sha256": "080a0c2c1d9a808d658028024dae011eda1fad85c72eadee8af62dfb06f5854d"
+    },
+    "packages/barocss-physics/dist/character/math.js": {
+      "bytes": 686,
+      "sha256": "1afbd07dcb7940e9808e9017d665d781b5e7442bebc290c8327d0d4fb7a79174"
+    },
+    "packages/barocss-physics/dist/character/profile.d.ts": {
+      "bytes": 355,
+      "sha256": "30d583b24f52cf743763b6d877a8d4d1f742a9646d000c43a64065f1836019ce"
+    },
+    "packages/barocss-physics/dist/character/profile.js": {
+      "bytes": 334,
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    "packages/barocss-physics/dist/character/query.d.ts": {
+      "bytes": 655,
+      "sha256": "3849ff4e235063452e740ddf26f9352c3da945e000233a6f1763f7ebd69fe68f"
+    },
+    "packages/barocss-physics/dist/character/query.js": {
+      "bytes": 2186,
+      "sha256": "3b22d2772d3724bdb3974f1d88f5298054e577286a9f73aa67e62684efca1184"
+    },
+    "packages/barocss-physics/dist/character/slide.d.ts": {
+      "bytes": 319,
+      "sha256": "ccf68ac00496f485887d10f5f441ecf7b74e1ef2575ddb3432952da5daabd354"
+    },
+    "packages/barocss-physics/dist/character/slide.js": {
+      "bytes": 2636,
+      "sha256": "10c7d825c4640a7837a0b69885bb422ea5a343c921430675c11955acafce3c57"
+    },
+    "packages/barocss-physics/dist/character/state.d.ts": {
+      "bytes": 504,
+      "sha256": "26784670cee2b09570f457a21d1fe7a60aa2446bf67f04882fc692c0c52fa4fc"
+    },
+    "packages/barocss-physics/dist/character/state.js": {
+      "bytes": 1923,
+      "sha256": "1600bb81b883944f36c687305bcb5f7134dbf6c0751e92d9206b03622eaf9633"
+    },
+    "packages/barocss-physics/dist/character/step-assist.d.ts": {
+      "bytes": 445,
+      "sha256": "23f5de885452721fb565a167cdcf3eab995f71643a46569faa3b7f905cb71e79"
+    },
+    "packages/barocss-physics/dist/character/step-assist.js": {
+      "bytes": 2969,
+      "sha256": "aacc69468b9db7a62a14fbb2628a4494cab01a82640c682ad72f098fcbe7c8e5"
+    },
+    "packages/barocss-physics/dist/character/types.d.ts": {
+      "bytes": 2684,
+      "sha256": "1a0f85fdcf124f38bbbfeb2e99ba5896d5303281ba44f7a80f116dff1a753153"
+    },
+    "packages/barocss-physics/dist/character/types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "packages/barocss-physics/dist/character-controller.d.ts": {
+      "bytes": 505,
+      "sha256": "58081e98e53b7c4a256dd00eac153992c61dfdbfcdbb2f15b9da8aa88df092e8"
+    },
+    "packages/barocss-physics/dist/character-controller.js": {
+      "bytes": 1083,
+      "sha256": "7a68a578b18b42e02dcacba24011b41208fa9af3b5c1b6991dd8efbae29d75b8"
+    },
+    "packages/barocss-physics/dist/cloth/constraints.d.ts": {
+      "bytes": 222,
+      "sha256": "d73f6b43a6276c83a5393ad8f5888833f6e2e91289f90d8176fe4d8cdb6f6296"
+    },
+    "packages/barocss-physics/dist/cloth/constraints.js": {
+      "bytes": 1836,
+      "sha256": "6e2e0b09734222a87abdefd745540e3ff5f4f24414cfae51f85c1b96d15225d7"
+    },
+    "packages/barocss-physics/dist/cloth/metrics.d.ts": {
+      "bytes": 277,
+      "sha256": "5fb418be30e84af69659615f0c87a66d0907d9422087f8fb40ca1f03379e29b0"
+    },
+    "packages/barocss-physics/dist/cloth/metrics.js": {
+      "bytes": 1730,
+      "sha256": "78e03ac4e69c35a7be6a614e4d7aedff4e4390d64c103a28543c0f6ee056eb27"
+    },
+    "packages/barocss-physics/dist/cloth/profile.d.ts": {
+      "bytes": 604,
+      "sha256": "8f1d860e70cc6e12faa7d35c38bb116298f0ee6345e18aa53119294e531e0fa1"
+    },
+    "packages/barocss-physics/dist/cloth/profile.js": {
+      "bytes": 664,
+      "sha256": "0dc385cac798bcfde6ad9cf479b8c51cf55bfc42b478370534ccb2de1e66f807"
+    },
+    "packages/barocss-physics/dist/cloth/solver.d.ts": {
+      "bytes": 309,
+      "sha256": "02eae9d5e0564304417dcb5afc5994dc808ee261ad05c16453c36ee58a6607f0"
+    },
+    "packages/barocss-physics/dist/cloth/solver.js": {
+      "bytes": 1471,
+      "sha256": "1f7178354cc026a41996d32502ac54d888ddf83f6b955059bb43f45cc6d9453b"
+    },
+    "packages/barocss-physics/dist/cloth/topology.d.ts": {
+      "bytes": 97,
+      "sha256": "96f70c7b8084190711c77cde7e7c54ba1f549f58c0af1a92060e25d5198e8047"
+    },
+    "packages/barocss-physics/dist/cloth/topology.js": {
+      "bytes": 2033,
+      "sha256": "403cf1b19b85a3a6dd177ae8bb130b19895670e679452533df22dce26d558050"
+    },
+    "packages/barocss-physics/dist/cloth/types.d.ts": {
+      "bytes": 752,
+      "sha256": "482dbddb4b66efa7aa47e689cb8759d2c9d7b7e3e5b870e5aa500ced152bffa2"
+    },
+    "packages/barocss-physics/dist/cloth/types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "packages/barocss-physics/dist/collision.d.ts": {
+      "bytes": 535,
+      "sha256": "9d0eba9d2a95e584a98cce909b1a1206411eb2362c15425813b9b4adf056d15f"
+    },
+    "packages/barocss-physics/dist/collision.js": {
+      "bytes": 13712,
+      "sha256": "404bbb24c4552828f8bd943481a15b11af7d93333c5651c4c8f8cae88e3dd28a"
+    },
+    "packages/barocss-physics/dist/contact-manifold.d.ts": {
+      "bytes": 320,
+      "sha256": "92763debd17ad80b2a55394adc00214c3e127cadd51cb969f496ec45100b496b"
+    },
+    "packages/barocss-physics/dist/contact-manifold.js": {
+      "bytes": 4576,
+      "sha256": "52fcb4accfbfd3251aa977f519983c7334f0d1663bfb2424ca82bfaaec1c8fae"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/admission.d.ts": {
+      "bytes": 480,
+      "sha256": "bc64cf951244b1fc444f2800c4ecb99892a4a93ea47375bd855a06317a9f8cb4"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/admission.js": {
+      "bytes": 3562,
+      "sha256": "4a72dbe445a74c4d1e7081e07a27c9c3cab46d823d0ab9568781a1ac54ffc587"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/errors.d.ts": {
+      "bytes": 941,
+      "sha256": "9e67f3825d9fa4cb31e69bfad57a2e66ba3ae592d944e94b04c30e0791242c3e"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/errors.js": {
+      "bytes": 2793,
+      "sha256": "9195a428dd9c96e0344b8eeb1eb7c66a7197a8e152b85d5fb5aed5038256d173"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/linear-solver.d.ts": {
+      "bytes": 254,
+      "sha256": "19623809b43cc41bc5ec39fd78094543243a57f7c2bdfe0b0acde011e2975680"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/linear-solver.js": {
+      "bytes": 12015,
+      "sha256": "123d3abb62b3a9f4f5ce3807463f070194e2d528f5cec841da5e623ee6b52e8e"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/measure.d.ts": {
+      "bytes": 1226,
+      "sha256": "2b9980af657dbe8735b4473393344073d6835103c5f3b5dba98cba9811f1bf53"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/measure.js": {
+      "bytes": 4860,
+      "sha256": "e576367851b0ea5ba37e9684e867aa28ae51cb6a585ad2c40f479341dc5f95f8"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/pose.d.ts": {
+      "bytes": 1787,
+      "sha256": "e91ee521eec25fabac02cfabacb9b76371696ab206bbbe47972c7cc486fcbbb0"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/pose.js": {
+      "bytes": 3352,
+      "sha256": "ee53440b0433e7be5b1f00027aca708bb567da46f9edd193de0bab2a282c02b9"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/postcontact.d.ts": {
+      "bytes": 793,
+      "sha256": "34c797517114767513a1edf7f161ffae4da85de440d1bdff3dcd2dba42d67dde"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/postcontact.js": {
+      "bytes": 2568,
+      "sha256": "32a4a1907a4540a550e67cee03a2817d9519d77a53212b160d018c2f484b2e1a"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/projection.d.ts": {
+      "bytes": 4433,
+      "sha256": "ce03195c1d5550114fe5589106edc6a423f40e62e9468ad65debcce7fabc0753"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/projection.js": {
+      "bytes": 3825,
+      "sha256": "30e04425020bff49e75c02f1d7abf15f82fe375dd1e07a0938a4a69aa03d159a"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/report.d.ts": {
+      "bytes": 1402,
+      "sha256": "791d2f931d8f24edc833a9ff2f18df5239ed73971b7228a906fe0e6bbce522fa"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/report.js": {
+      "bytes": 5257,
+      "sha256": "7ee0b7d17e70247ce4c2dff953593e82091efabdd2932e0f4272931c69843a2f"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/rows.d.ts": {
+      "bytes": 946,
+      "sha256": "fdabe8b245fd133a9312ebcec16466b0b7981a02df88cd3e5d85e91862b173ca"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/rows.js": {
+      "bytes": 4059,
+      "sha256": "e19d8d9c3ef835e98f796b3dc9b5785473e8aaef41af34d77c49200b446d3f55"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/stage.d.ts": {
+      "bytes": 989,
+      "sha256": "167a0fbdd4e34bc5a2dc504d795c53bd14c4e6cf6e93ae61bbe1d4798c0cbd7d"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/stage.js": {
+      "bytes": 2255,
+      "sha256": "bfa6d3528889d89da9d355a4bed753ed7287fd5979735f1158c7c009de94cafd"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/types.d.ts": {
+      "bytes": 1887,
+      "sha256": "50410e8dee0bd496114f1dfa72eff31603b5bd36d76dcf609352b1f25d5607a3"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "packages/barocss-physics/dist/domain/admission.d.ts": {
+      "bytes": 403,
+      "sha256": "21e43ead4806bbbc2ca4518cb481698090abdd91520fa6340a7e971427944c01"
+    },
+    "packages/barocss-physics/dist/domain/admission.js": {
+      "bytes": 11163,
+      "sha256": "8d4a14d764742a9989a760ce27a0cc395ff818f879a9faa32f86fdaba7600960"
+    },
+    "packages/barocss-physics/dist/domain/cloth-reference.generated.d.ts": {
+      "bytes": 92,
+      "sha256": "f13ae964106fdfa5b0464ba945640467d79b497cba1ce2b2a5c02cbf8a331490"
+    },
+    "packages/barocss-physics/dist/domain/cloth-reference.generated.js": {
+      "bytes": 181057,
+      "sha256": "3c8e21d9612bf232074268c50bf7151290167391692a132e0619f5aedb4b75b9"
+    },
+    "packages/barocss-physics/dist/domain/cloth.d.ts": {
+      "bytes": 434,
+      "sha256": "f24352d6ca040d469cf484ab74864764fbc7121a824469f07cf43e9ae1a5aa02"
+    },
+    "packages/barocss-physics/dist/domain/cloth.js": {
+      "bytes": 4041,
+      "sha256": "a97392c690610d642eb7b6282385e362ee4ebe7b661319d3b70ea48fa95b6205"
+    },
+    "packages/barocss-physics/dist/domain/fluid.d.ts": {
+      "bytes": 434,
+      "sha256": "e5a257935af3d1b8dce16da0a439bf853639ff3676eade2eb4fe6a9f1774cfa3"
+    },
+    "packages/barocss-physics/dist/domain/fluid.js": {
+      "bytes": 4875,
+      "sha256": "c0ce5f1f97b1d19b2f6fa2bc892b5bc5bed445c3e1c56d5f4a1cd97c2ecd456f"
+    },
+    "packages/barocss-physics/dist/domain/types.d.ts": {
+      "bytes": 2142,
+      "sha256": "cb3c90cfaee8a1bd20b48bbf4d6c2d2bea631574361cc389f3d4d7d1ccf80de5"
+    },
+    "packages/barocss-physics/dist/domain/types.js": {
+      "bytes": 2151,
+      "sha256": "76eb7d0fc14a3ba6897ba0d649beeaba4a28172b2458782b64029af6ef5f6666"
+    },
+    "packages/barocss-physics/dist/dynamic-anchor-pair.d.ts": {
+      "bytes": 420,
+      "sha256": "9253386fe2c10c4a5c3b8a74930e9afc5c701d13c7310a6f7ad716e8ab76ec03"
+    },
+    "packages/barocss-physics/dist/dynamic-anchor-pair.js": {
+      "bytes": 3099,
+      "sha256": "8e20e96a9a3c803f65d78dfa21aaf530744b2c37e4f3507fd87e828190c800be"
+    },
+    "packages/barocss-physics/dist/dynamic-fixed-joint.d.ts": {
+      "bytes": 267,
+      "sha256": "c1af834c67ae4e82753fa5f949313ec9a1686c89193f1b368e37541753b478ca"
+    },
+    "packages/barocss-physics/dist/dynamic-fixed-joint.js": {
+      "bytes": 1935,
+      "sha256": "c637c4b13cdf432103202f895e50fae7e05c88920cf0889a67f2c16e565bfb5a"
+    },
+    "packages/barocss-physics/dist/dynamic-hinge-joint.d.ts": {
+      "bytes": 475,
+      "sha256": "c08e405d3b85f5967e12c29b30be360b47e2e015fe72132a34788a908cea41c1"
+    },
+    "packages/barocss-physics/dist/dynamic-hinge-joint.js": {
+      "bytes": 4671,
+      "sha256": "8780a6887f0c7cbec6ec2f059b2ada64d0e28d0224279d7ada42e4b79e84baac"
+    },
+    "packages/barocss-physics/dist/fluid/boundary.d.ts": {
+      "bytes": 349,
+      "sha256": "fdc60e3e6b43b551c74fee3eb888476213132987c2b6f80e9a2a515041076b91"
+    },
+    "packages/barocss-physics/dist/fluid/boundary.js": {
+      "bytes": 2027,
+      "sha256": "0411aee849b18145f75e2a602a23aab5b5e6a644bc44a47cc2944ab532d0ea18"
+    },
+    "packages/barocss-physics/dist/fluid/constants.d.ts": {
+      "bytes": 478,
+      "sha256": "b145eaa09c8094a630d0073564d79c13e9f9623ee98d49bf291afc743f42f2bc"
+    },
+    "packages/barocss-physics/dist/fluid/constants.js": {
+      "bytes": 396,
+      "sha256": "48cb2507298e158c9d711a3a08e36a521ccab101a26b55217d00247a9b844072"
+    },
+    "packages/barocss-physics/dist/fluid/diagnostics.d.ts": {
+      "bytes": 180,
+      "sha256": "2e528c38ac59e450feb510f421228cba10843df87d4f1b476582eb8a814f2e47"
+    },
+    "packages/barocss-physics/dist/fluid/diagnostics.js": {
+      "bytes": 1032,
+      "sha256": "b87d7b27266ca4b014d4b84b24b57216b12d4b0345088282b6ecd5270fa46c29"
+    },
+    "packages/barocss-physics/dist/fluid/kernel.d.ts": {
+      "bytes": 376,
+      "sha256": "4430b3611c7ea86ba71ca51f93e02b800f11a44986182059a219f2a5ab3da157"
+    },
+    "packages/barocss-physics/dist/fluid/kernel.js": {
+      "bytes": 1047,
+      "sha256": "264a62a2ed0aeee0c77bd5ba44a60a6d0522654ecc8f07117174c6fe328c123b"
+    },
+    "packages/barocss-physics/dist/fluid/neighbors.d.ts": {
+      "bytes": 384,
+      "sha256": "f81f41caadaccc5b3150f144b0687a5a2910e456ac707114b927ba2ef18869fd"
+    },
+    "packages/barocss-physics/dist/fluid/neighbors.js": {
+      "bytes": 3065,
+      "sha256": "e857766d44372269a19fb83d4bdeeabbc1816b9792230e6a9aac8cf1ea6249e5"
+    },
+    "packages/barocss-physics/dist/fluid/pbf.d.ts": {
+      "bytes": 722,
+      "sha256": "0475a847a3b98aadce70713913ac39d7d3c03e07a261c51e20ae86231c65e19c"
+    },
+    "packages/barocss-physics/dist/fluid/pbf.js": {
+      "bytes": 5606,
+      "sha256": "93ba3d6c2db8aee07c7307d74300888b9e48279279f6f060e157ea08b847241d"
+    },
+    "packages/barocss-physics/dist/fluid/static-box.d.ts": {
+      "bytes": 628,
+      "sha256": "5e643a758a5988858b624b26af6ac15c94b533977421688509597490b9789ce8"
+    },
+    "packages/barocss-physics/dist/fluid/static-box.js": {
+      "bytes": 2238,
+      "sha256": "120ee59f2212e86846bce3a73425b493d2bc98971dc230419a394a1235196b7c"
+    },
+    "packages/barocss-physics/dist/fluid/types.d.ts": {
+      "bytes": 130,
+      "sha256": "ff8120a184ec3b4139c14031e106c41ab0ea2569747d1bd2b34bca415e69b064"
+    },
+    "packages/barocss-physics/dist/fluid/types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "packages/barocss-physics/dist/fluid/visual-viscosity.d.ts": {
+      "bytes": 289,
+      "sha256": "f7917414df0b746457c9dc5fb9cd12e48dc2bc2ab6d4cc30f0a31a9c6e3a6b26"
+    },
+    "packages/barocss-physics/dist/fluid/visual-viscosity.js": {
+      "bytes": 1225,
+      "sha256": "0d01bcbd68f126c9d8954b46afe523f6e7f879f129817f40fc9300c297041205"
+    },
+    "packages/barocss-physics/dist/identity.d.ts": {
+      "bytes": 523,
+      "sha256": "bef1a44ab8fd4245d47a5cdeb09b56f7d703ad2c5ab20768350a9a1c44621330"
+    },
+    "packages/barocss-physics/dist/identity.js": {
+      "bytes": 6977,
+      "sha256": "7f7243fcc617a32f77d517d029cb90bd99584f518ece49a7d7a4e35ae54d7791"
+    },
+    "packages/barocss-physics/dist/index.d.ts": {
+      "bytes": 568,
+      "sha256": "b564302ed188eb8a22eaa3837ed7a69086b29bdd5c62fe6258048690e6a33277"
+    },
+    "packages/barocss-physics/dist/index.js": {
+      "bytes": 398311,
+      "sha256": "eb0303e4393102ebf5554b02d3fd20f048fecc368337ceb26c5b266b929c70cf"
+    },
+    "packages/barocss-physics/dist/internal-types.d.ts": {
+      "bytes": 2800,
+      "sha256": "288c355766cb51ea6e888d9ef38ea10c79600c44688d536a203b95dbca3f5c61"
+    },
+    "packages/barocss-physics/dist/internal-types.js": {
+      "bytes": 43,
+      "sha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e"
+    },
+    "packages/barocss-physics/dist/joint-motor.d.ts": {
+      "bytes": 255,
+      "sha256": "fdcf91647efdad5905cf989de7d9634cb7878f9b2299c20f13b5557eef958ed4"
+    },
+    "packages/barocss-physics/dist/joint-motor.js": {
+      "bytes": 1651,
+      "sha256": "43010c0e319717622727666e1e23f7288fdf500f1731f6fd52a443f36055c724"
+    },
+    "packages/barocss-physics/dist/joints.d.ts": {
+      "bytes": 268,
+      "sha256": "7ed4f0eb1cf54f665d75d42ac5c49211838a2480b33ffede327a3e3460da550b"
+    },
+    "packages/barocss-physics/dist/joints.js": {
+      "bytes": 7382,
+      "sha256": "f2893b2f8684f338a8d4832b9fa91c356fd360bf70ebf423062e21911d433ce0"
+    },
+    "packages/barocss-physics/dist/limits.d.ts": {
+      "bytes": 476,
+      "sha256": "9389e2dca0a552e1173fd3be829ea8f2cc698a86f6e7d92ddf305404192f0b6b"
+    },
+    "packages/barocss-physics/dist/limits.js": {
+      "bytes": 416,
+      "sha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219"
+    },
+    "packages/barocss-physics/dist/math.d.ts": {
+      "bytes": 893,
+      "sha256": "bdbe8b8906433f0aa9eeb9c3d6dc2016115712f7b749bd11ca135afb58b58443"
+    },
+    "packages/barocss-physics/dist/math.js": {
+      "bytes": 2114,
+      "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028"
+    },
+    "packages/barocss-physics/dist/model-admission.d.ts": {
+      "bytes": 510,
+      "sha256": "9fa8004b2021ad8f9e38209ef093180e845bbd341c3f9e8281660110ff787289"
+    },
+    "packages/barocss-physics/dist/model-admission.js": {
+      "bytes": 10761,
+      "sha256": "29a8cbe82623ce8c592da4dd7693daa625403d665e4f0a029c23b4bde0468fe7"
+    },
+    "packages/barocss-physics/dist/pendulum.d.ts": {
+      "bytes": 1452,
+      "sha256": "c1d3a9ee37e2e9a06ea1860204970e7bed57a4347c669ba26f8032fe119d7fed"
+    },
+    "packages/barocss-physics/dist/pendulum.js": {
+      "bytes": 5390,
+      "sha256": "86ae37d06196b0c93109828893357acadf25270374b708f4d7fe37a6cfd4ce8b"
+    },
+    "packages/barocss-physics/dist/persistent-box-contact.d.ts": {
+      "bytes": 474,
+      "sha256": "8834bedc48e26774ab6c239b459372a3305aa5967f5c1e58b9abeca71fc0d71d"
+    },
+    "packages/barocss-physics/dist/persistent-box-contact.js": {
+      "bytes": 3405,
+      "sha256": "c45006197178d3a50cd4bbc6b038e286ceadf230e3e459f86882ffc29a96d861"
+    },
+    "packages/barocss-physics/dist/provider-manifest.generated.d.ts": {
+      "bytes": 8693,
+      "sha256": "0ffc7de8957f00a925398955d8e58e9da55f5bc96a7951a314a92da55df31f27"
+    },
+    "packages/barocss-physics/dist/provider-manifest.generated.js": {
+      "bytes": 2375,
+      "sha256": "41a7c51c4d725a8aea2a5e54628f28a43811c027870dd3361187f27c66e273df"
+    },
+    "packages/barocss-physics/dist/recording-owner.d.ts": {
+      "bytes": 940,
+      "sha256": "e904a930ad3132e81fb3587df42b0cf71b62ca04910fa6f273bfa58ed6e12bd5"
+    },
+    "packages/barocss-physics/dist/recording-owner.js": {
+      "bytes": 46,
+      "sha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521"
+    },
+    "packages/barocss-physics/dist/replay-compare.d.ts": {
+      "bytes": 87,
+      "sha256": "9f0c2c538a56c78cb7fbfe9fe5131de4ce3dbe89792b7192da0b003e36021195"
+    },
+    "packages/barocss-physics/dist/replay-compare.js": {
+      "bytes": 974,
+      "sha256": "46e92b237a3b74725e1f973bc195f3fb3c7d182ea4978f5092608706d1400875"
+    },
+    "packages/barocss-physics/dist/replay-json.d.ts": {
+      "bytes": 695,
+      "sha256": "976f19331efa162c1043ca0c5d5febb0f64af5cb8989a8cf7028c3d92d6ca271"
+    },
+    "packages/barocss-physics/dist/replay-json.js": {
+      "bytes": 8011,
+      "sha256": "742249b1dd48de51d76dcf266dce19b2f85da400c5bc2b1043543d43c5593d0f"
+    },
+    "packages/barocss-physics/dist/replay-validation.d.ts": {
+      "bytes": 218,
+      "sha256": "a876f6e56327b9c7210c927421e7d547225f4961eb2147ac1429182dbd6501e0"
+    },
+    "packages/barocss-physics/dist/replay-validation.js": {
+      "bytes": 8287,
+      "sha256": "381aa19fa30f78cc6f5808aad541a42f0ca90bc673b3bc643c2eca4e5a01d298"
+    },
+    "packages/barocss-physics/dist/replay.d.ts": {
+      "bytes": 796,
+      "sha256": "126d9a849ec1dc0d8d8064e64a8b4a51cfba742eecba19bfecd4b453bb4168da"
+    },
+    "packages/barocss-physics/dist/replay.js": {
+      "bytes": 6623,
+      "sha256": "d352fcab204a7e5291a3a5f1e17d2856a5628a9179de2becf7f520676a471036"
+    },
+    "packages/barocss-physics/dist/scene-profile.d.ts": {
+      "bytes": 300,
+      "sha256": "c96672aaa6baeb8cb59c16e61ab561e0cf9554214b0c8eb2fe458366bff57ae7"
+    },
+    "packages/barocss-physics/dist/scene-profile.js": {
+      "bytes": 1138,
+      "sha256": "7a1198598bfaf64647f9ed89d76cb4f1035bd77e602d8b8c0b8a7914911b6e9f"
+    },
+    "packages/barocss-physics/dist/sleep.d.ts": {
+      "bytes": 396,
+      "sha256": "bc4940a234b4b29d6dae5554d7c7d05fe7d8a7eadb9110afc25cf702e7bfcef2"
+    },
+    "packages/barocss-physics/dist/sleep.js": {
+      "bytes": 4621,
+      "sha256": "681f3820fb08a61cd7f367b049f9b7bb3d2eb1a4e8f81975aec014fdefdb8250"
+    },
+    "packages/barocss-physics/dist/types.d.ts": {
+      "bytes": 12676,
+      "sha256": "e286c28700179075e347c13c70bc459caecbd55eb0507229a0117f008fa2bd62"
+    },
+    "packages/barocss-physics/dist/types.js": {
+      "bytes": 418,
+      "sha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b"
+    },
+    "packages/barocss-physics/dist/validation.d.ts": {
+      "bytes": 1401,
+      "sha256": "ac6326806207337984fa1e442913f7984710e261447daa819cc9a86d0077651a"
+    },
+    "packages/barocss-physics/dist/validation.js": {
+      "bytes": 13796,
+      "sha256": "dd5873f30ed65451e5b3abe72ab140e1b4aa2de0b5c75db6b86722a5145b5ec6"
+    },
+    "packages/barocss-physics/dist/world.d.ts": {
+      "bytes": 178,
+      "sha256": "8d0c9906f7c25b589ef9a4db96adcc961fa99950ac64fd79007a9aff306af2a0"
+    },
+    "packages/barocss-physics/dist/world.js": {
+      "bytes": 31548,
+      "sha256": "b6f99e9b67748a4a6550618071ffbaba3de0515d14d0dadc0f19ed0b3d9b0329"
+    },
+    "packages/barocss-physics/package.json": {
+      "bytes": 1585,
+      "sha256": "4e33b9e01af5adc8191ed491fc66b489350eb3e4d8404f35404db42a7735d18f"
+    },
+    "packages/barocss-physics/src/broadphase.ts": {
+      "bytes": 1371,
+      "sha256": "d93e38d78cc3d202481ceeba83631d528032426d03a8adafb2e461fc72a042a0"
+    },
+    "packages/barocss-physics/src/cad-fluid-data.ts": {
+      "bytes": 2345,
+      "sha256": "5a15e23ba65663433501f07d2f35f323960879218d52a007efeb09ca7934ce10"
+    },
+    "packages/barocss-physics/src/cad-proxy-admission.ts": {
+      "bytes": 7744,
+      "sha256": "898fb55af369727440fef9f4bfadba0ea455b4c800a719909e5311029a663441"
+    },
+    "packages/barocss-physics/src/cad-proxy-pose.ts": {
+      "bytes": 1479,
+      "sha256": "8b5f50642144e335421ee6483f8b016b8a0babdb0c312ddf6ba4afbcf8bda322"
+    },
+    "packages/barocss-physics/src/cad-proxy-types.ts": {
+      "bytes": 887,
+      "sha256": "31bbf6766887913149d6fa2185c173adb0c6b78cdb21d1556ae4ffd055666128"
+    },
+    "packages/barocss-physics/src/cad-proxy-validation.ts": {
+      "bytes": 1598,
+      "sha256": "4429f957bb51ff2604a15478095e35642368dcf91ca0d854561693d3f99f748e"
+    },
+    "packages/barocss-physics/src/cad-proxy.ts": {
+      "bytes": 321,
+      "sha256": "cc7715b4fc974c8ed4511ebf684cdc7c2923f7ab4b8b7f5db45b208f8e6ffa99"
+    },
+    "packages/barocss-physics/src/capsule-contact.ts": {
+      "bytes": 5615,
+      "sha256": "cc29d60423bd9a1883585cf164cca0b0736b9fc72e7feb3575c5208c7d892929"
+    },
+    "packages/barocss-physics/src/capsule-query/admission.ts": {
+      "bytes": 5248,
+      "sha256": "9b67efc7a8824ce49361485eff925afa50017e05bc23d900db5ec7c4e2c8760d"
+    },
+    "packages/barocss-physics/src/capsule-query/geometry.ts": {
+      "bytes": 2570,
+      "sha256": "5fdbe1eb40f46e930161e98244a9e5ec0e00c29297caf6f91d530c98df3df4a7"
+    },
+    "packages/barocss-physics/src/capsule-query/profile.ts": {
+      "bytes": 303,
+      "sha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff"
+    },
+    "packages/barocss-physics/src/capsule-query/snapshot.ts": {
+      "bytes": 2537,
+      "sha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd"
+    },
+    "packages/barocss-physics/src/capsule-query/sweep.ts": {
+      "bytes": 1861,
+      "sha256": "a8f4d16879b2ff88086ceec54cef19d04d58fb063893e7a146382cad59cbaf77"
+    },
+    "packages/barocss-physics/src/capsule-query/types.ts": {
+      "bytes": 979,
+      "sha256": "c22d17887cd8ab889a443c828200310a4c560fd3b4f8ed49f3f1f60e5dd46f44"
+    },
+    "packages/barocss-physics/src/capsule-query-error.ts": {
+      "bytes": 137,
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    "packages/barocss-physics/src/capsule-query.ts": {
+      "bytes": 222,
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+    },
+    "packages/barocss-physics/src/ccd-box.ts": {
+      "bytes": 1978,
+      "sha256": "43667cba73a01782cac3b9fe14828b67885229a6e09bc9f0e68b6a2d27057b43"
+    },
+    "packages/barocss-physics/src/ccd-pair.ts": {
+      "bytes": 2110,
+      "sha256": "570b434c19e432ccc3632bafa2c174df6dac9968e6c38b0f7d4416f75090231f"
+    },
+    "packages/barocss-physics/src/ccd-slab.ts": {
+      "bytes": 1125,
+      "sha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340"
+    },
+    "packages/barocss-physics/src/ccd.ts": {
+      "bytes": 3220,
+      "sha256": "040de88f74673b297164227ff5faada12f0eb190aa14a9471dbeb02f879a57ab"
+    },
+    "packages/barocss-physics/src/character/admission.ts": {
+      "bytes": 4488,
+      "sha256": "d83cdb8231620a18935d4d4d5e19ab7ec5440b043e1df71d49d5fa42f3fecb26"
+    },
+    "packages/barocss-physics/src/character/core.ts": {
+      "bytes": 4057,
+      "sha256": "6c6251e9782baed07be65cce68bfdbca14e2f930ca04a54ee6812cbbfc925a02"
+    },
+    "packages/barocss-physics/src/character/ground.ts": {
+      "bytes": 1242,
+      "sha256": "bd1621641ebc9300943b88c9083710218768454acb0a5e1ba8b330086d68c321"
+    },
+    "packages/barocss-physics/src/character/math.ts": {
+      "bytes": 859,
+      "sha256": "df0e88c320d8a189004991cd5cfc3f8de3d7bb3eecb305bb01830a11191dcdc5"
+    },
+    "packages/barocss-physics/src/character/profile.ts": {
+      "bytes": 334,
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    "packages/barocss-physics/src/character/query.ts": {
+      "bytes": 2733,
+      "sha256": "9ef96eeb1529dc42466445529b100affc2f56913081f0c2fc169079cffe1a8cf"
+    },
+    "packages/barocss-physics/src/character/slide.ts": {
+      "bytes": 2555,
+      "sha256": "587d5512212e68fdc26068646152d2f8c52c3c6119d6c222de91b750c01fcd77"
+    },
+    "packages/barocss-physics/src/character/state.ts": {
+      "bytes": 2181,
+      "sha256": "6eb744c82f24604a8ecadd6e9d86406600119a3fbc7918129f93983df7cbf47e"
+    },
+    "packages/barocss-physics/src/character/step-assist.ts": {
+      "bytes": 3129,
+      "sha256": "9166857ad8509049a56d5b255ed59de17ee03e159581b495de7f1d985780c390"
+    },
+    "packages/barocss-physics/src/character/types.ts": {
+      "bytes": 2552,
+      "sha256": "866c5974fd99ec08b5dc6b5edf165241f4d02a8ed87274faf4cf35b19a3fb938"
+    },
+    "packages/barocss-physics/src/character-controller.ts": {
+      "bytes": 1363,
+      "sha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927"
+    },
+    "packages/barocss-physics/src/cloth/constraints.ts": {
+      "bytes": 1772,
+      "sha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be"
+    },
+    "packages/barocss-physics/src/cloth/metrics.ts": {
+      "bytes": 1805,
+      "sha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd"
+    },
+    "packages/barocss-physics/src/cloth/profile.ts": {
+      "bytes": 655,
+      "sha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f"
+    },
+    "packages/barocss-physics/src/cloth/solver.ts": {
+      "bytes": 1395,
+      "sha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d"
+    },
+    "packages/barocss-physics/src/cloth/topology.ts": {
+      "bytes": 1931,
+      "sha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203"
+    },
+    "packages/barocss-physics/src/cloth/types.ts": {
+      "bytes": 719,
+      "sha256": "bad411f3fa02e4ba7039b5d447de395074342aa207f2eeed251705b15facb6d1"
+    },
+    "packages/barocss-physics/src/collision.ts": {
+      "bytes": 13442,
+      "sha256": "baa1492ee990bb156d4ba10deb45e0ddc31d31ab6555318c5f652043aa1ea501"
+    },
+    "packages/barocss-physics/src/contact-manifold.ts": {
+      "bytes": 4743,
+      "sha256": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/admission.ts": {
+      "bytes": 3764,
+      "sha256": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/errors.ts": {
+      "bytes": 2777,
+      "sha256": "5e51e5662fbce80bee3ccd3aa3694ee986b1492ed816d171774e261ab982bf4f"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/linear-solver.ts": {
+      "bytes": 10615,
+      "sha256": "4009d4d7f171be3a5d79ca309a14b039da54f9201b438a410a6e29ed0f90bfdf"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/measure.ts": {
+      "bytes": 4626,
+      "sha256": "97cbaf697dc8ef5caba0bf2c702699b025bcc6f906f553b623466618bbd77178"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/pose.ts": {
+      "bytes": 3194,
+      "sha256": "ab950c1f9f1a79f9f00cb26e4b3cef0e3dcaea7b16d74e345e711159706b39e4"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/postcontact.ts": {
+      "bytes": 2936,
+      "sha256": "8d07190383a64cb592165772109a4f462099743492f8373794ef7981b1431e38"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/projection.ts": {
+      "bytes": 3538,
+      "sha256": "9d0def632c07f8085e860a2dbf21f26d8073f3265eb57590607d23ea6d333b87"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/report.ts": {
+      "bytes": 5726,
+      "sha256": "d46b3e289c58b289b059928580ff2b89d9bd3ecfb11cb688d8b7a4735143973d"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/rows.ts": {
+      "bytes": 3685,
+      "sha256": "6556f07d1d7d22edb67af1b214c689c5b5c2b30628334abaec67280d7302903f"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/stage.ts": {
+      "bytes": 2648,
+      "sha256": "a66e09b816259c2bb1305fed8f90696585b9fd4b750406b0ce006cbe2c2f33ab"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/types.ts": {
+      "bytes": 1610,
+      "sha256": "89b2708fd9209932084eaa765f93ff6ea00a2d775911e8c9e607a7eb824c8cc1"
+    },
+    "packages/barocss-physics/src/domain/admission.ts": {
+      "bytes": 11327,
+      "sha256": "1182fb21ec319132ac2f16ddec8494e3d1c4c5ac750bbe1ebab4c29817b4423e"
+    },
+    "packages/barocss-physics/src/domain/cloth-reference.generated.ts": {
+      "bytes": 158018,
+      "sha256": "c9ee88af8e25b533c2694433502b28f51dffdeae5cce656b53eb36a187be60bc"
+    },
+    "packages/barocss-physics/src/domain/cloth.ts": {
+      "bytes": 4349,
+      "sha256": "2454474a24928a9f3d92d635a9391c537ef74de77112fdc2f2872536cb447883"
+    },
+    "packages/barocss-physics/src/domain/fluid.ts": {
+      "bytes": 4923,
+      "sha256": "bfcafa7cc2f2bbb4ec6e2c20797f5dc5410d995cd28305272a2c3665d827179a"
+    },
+    "packages/barocss-physics/src/domain/types.ts": {
+      "bytes": 3839,
+      "sha256": "35fcadf07a848d919806955f6c3d934d01217ff1c26ca7d4eb4eb2807eb4ee6f"
+    },
+    "packages/barocss-physics/src/dynamic-anchor-pair.ts": {
+      "bytes": 3072,
+      "sha256": "8ff622a6ce007e5e7fcb43f0b7c08521615ddacbc8195cde1ac4f574304b579d"
+    },
+    "packages/barocss-physics/src/dynamic-fixed-joint.ts": {
+      "bytes": 2051,
+      "sha256": "f5a0fa82c062c7406f6edfeb2aeb169c927ddd8d0965957f630f87e118c52dfa"
+    },
+    "packages/barocss-physics/src/dynamic-hinge-joint.ts": {
+      "bytes": 4835,
+      "sha256": "69c816393446b6e06d66849840ecf88a7d28baf72bd30c792180616f55e455f2"
+    },
+    "packages/barocss-physics/src/fluid/boundary.ts": {
+      "bytes": 1990,
+      "sha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c"
+    },
+    "packages/barocss-physics/src/fluid/constants.ts": {
+      "bytes": 459,
+      "sha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec"
+    },
+    "packages/barocss-physics/src/fluid/diagnostics.ts": {
+      "bytes": 1106,
+      "sha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215"
+    },
+    "packages/barocss-physics/src/fluid/kernel.ts": {
+      "bytes": 1112,
+      "sha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da"
+    },
+    "packages/barocss-physics/src/fluid/neighbors.ts": {
+      "bytes": 2949,
+      "sha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3"
+    },
+    "packages/barocss-physics/src/fluid/pbf.ts": {
+      "bytes": 5161,
+      "sha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50"
+    },
+    "packages/barocss-physics/src/fluid/static-box.ts": {
+      "bytes": 2481,
+      "sha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9"
+    },
+    "packages/barocss-physics/src/fluid/types.ts": {
+      "bytes": 125,
+      "sha256": "c75f020afeb760ec596c3043fc6d2a7166995ce0c3cedbc7e5424a6a83e56a62"
+    },
+    "packages/barocss-physics/src/fluid/visual-viscosity.ts": {
+      "bytes": 1265,
+      "sha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3"
+    },
+    "packages/barocss-physics/src/generate-provider.mjs": {
+      "bytes": 2663,
+      "sha256": "c45a6eb52df5f4840aa30006ac65d15ea0758066f63d815e4a3b394e8eb20557"
+    },
+    "packages/barocss-physics/src/identity.ts": {
+      "bytes": 6081,
+      "sha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be"
+    },
+    "packages/barocss-physics/src/index.ts": {
+      "bytes": 570,
+      "sha256": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30"
+    },
+    "packages/barocss-physics/src/internal-types.ts": {
+      "bytes": 2615,
+      "sha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8"
+    },
+    "packages/barocss-physics/src/joint-motor.ts": {
+      "bytes": 1723,
+      "sha256": "9a50b0d006ca2386cd2d79b8ba162f6850a5d08d3eb1c7d03460d606559b56ea"
+    },
+    "packages/barocss-physics/src/joints.ts": {
+      "bytes": 7231,
+      "sha256": "b6d0ec667a96fc26ec43d9d812c5ffd0a3b7446d135bd9b18713059327c59181"
+    },
+    "packages/barocss-physics/src/limits.ts": {
+      "bytes": 417,
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    "packages/barocss-physics/src/math.ts": {
+      "bytes": 2421,
+      "sha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2"
+    },
+    "packages/barocss-physics/src/model-admission.ts": {
+      "bytes": 10384,
+      "sha256": "7e77f184fed57d51ee1b0599e60c80d83b96045b139d236a37f76a4207689397"
+    },
+    "packages/barocss-physics/src/persistent-box-contact.ts": {
+      "bytes": 3646,
+      "sha256": "2c117202db9bcb0b988b59f9add9cae57e09d175927122a313e7166720a63d9b"
+    },
+    "packages/barocss-physics/src/provider-manifest.generated.ts": {
+      "bytes": 7687,
+      "sha256": "464a69f41b0e3006bdc246e3c6d6d1bf91f679b0aec9616e917f02edd0d8f1df"
+    },
+    "packages/barocss-physics/src/recording-owner.ts": {
+      "bytes": 895,
+      "sha256": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1"
+    },
+    "packages/barocss-physics/src/replay-compare.ts": {
+      "bytes": 1023,
+      "sha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec"
+    },
+    "packages/barocss-physics/src/replay-json.ts": {
+      "bytes": 7760,
+      "sha256": "1ab8cf962443edd3be387e5095a9cce3f2071c8b44e47cc165ce82d5c00ac617"
+    },
+    "packages/barocss-physics/src/replay-validation.ts": {
+      "bytes": 8096,
+      "sha256": "ab9a7b5097515ddd3d6aa9a434d14f2ae2e04fd15c4059b473d0d708a507c82a"
+    },
+    "packages/barocss-physics/src/replay.ts": {
+      "bytes": 7119,
+      "sha256": "07bafc635620c56c479ed44b0f458cbbb470bf20b3ce2ead7248ceb0973ca408"
+    },
+    "packages/barocss-physics/src/scene-profile.ts": {
+      "bytes": 1202,
+      "sha256": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7"
+    },
+    "packages/barocss-physics/src/sleep.ts": {
+      "bytes": 4411,
+      "sha256": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2"
+    },
+    "packages/barocss-physics/src/types.ts": {
+      "bytes": 11884,
+      "sha256": "37fdf1abcc20fd379304213b8c0686f8e0468d285f008aa8ebdb316882efade5"
+    },
+    "packages/barocss-physics/src/validation.ts": {
+      "bytes": 14165,
+      "sha256": "651d12754b77f86493f399baf3c02d60d9ad1fe54e0ece664a05a4430e8a0f01"
+    },
+    "packages/barocss-physics/src/world.ts": {
+      "bytes": 29055,
+      "sha256": "28022bb98fc8cd33d7dc912f8fb562b1ba375c089ebe8618783d95320929a599"
+    }
+  },
+  "tools": {
+    "node": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "python": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+    "esbuildBinary": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/esbuild/bin/esbuild",
+    "typescriptCLI": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/tsc.js"
+  },
+  "toolFiles": {
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node": {
+      "bytes": 110712624,
+      "sha256": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/esbuild/bin/esbuild": {
+      "bytes": 9934834,
+      "sha256": "3e030ee2aa86ad3c33e5e95ae0e53bb03de40e0da35c9b1180a67de4a497cae5"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/esbuild/package.json": {
+      "bytes": 1490,
+      "sha256": "cb7d5b1fe478f8cbaae566a86031b6fdf5f7d444354f35d1cb3cba9adf6d2935"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/_tsc.js": {
+      "bytes": 6213092,
+      "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.decorators.d.ts": {
+      "bytes": 13192,
+      "sha256": "8e7f8264d0fb4c5339605a15daadb037bf238c10b654bb3eee14208f860a32ea"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.decorators.legacy.d.ts": {
+      "bytes": 1326,
+      "sha256": "782dec38049b92d4e85c1585fbea5474a219c6984a35b004963b00beb1aab538"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.dom.asynciterable.d.ts": {
+      "bytes": 1887,
+      "sha256": "d7a3c8b952931daebdfc7a2897c53c0a1c73624593fa070e46bd537e64dcd20a"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.dom.d.ts": {
+      "bytes": 1874901,
+      "sha256": "080941d9f9ff9307f7e27a83bcd888b7c8270716c39af943532438932ec1d0b9"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.dom.iterable.d.ts": {
+      "bytes": 29802,
+      "sha256": "2e80ee7a49e8ac312cc11b77f1475804bee36b3b2bc896bead8b6e1266befb43"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2015.collection.d.ts": {
+      "bytes": 5229,
+      "sha256": "dc2df20b1bcdc8c2d34af4926e2c3ab15ffe1160a63e58b7e09833f616efff44"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2015.core.d.ts": {
+      "bytes": 22866,
+      "sha256": "c57796738e7f83dbc4b8e65132f11a377649c00dd3eee333f672b8f0a6bea671"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2015.d.ts": {
+      "bytes": 1241,
+      "sha256": "45b7ab580deca34ae9729e97c13cfd999df04416a79116c3bfb483804f85ded4"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2015.generator.d.ts": {
+      "bytes": 2557,
+      "sha256": "515d0b7b9bea2e31ea4ec968e9edd2c39d3eebf4a2d5cbd04e88639819ae3b71"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2015.iterable.d.ts": {
+      "bytes": 18200,
+      "sha256": "0559b1f683ac7505ae451f9a96ce4c3c92bdc71411651ca6ddb0e88baaaad6a3"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2015.promise.d.ts": {
+      "bytes": 3200,
+      "sha256": "0dc1e7ceda9b8b9b455c3a2d67b0412feab00bd2f66656cd8850e8831b08b537"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2015.proxy.d.ts": {
+      "bytes": 5251,
+      "sha256": "ce691fb9e5c64efb9547083e4a34091bcbe5bdb41027e310ebba8f7d96a98671"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2015.reflect.d.ts": {
+      "bytes": 6493,
+      "sha256": "8d697a2a929a5fcb38b7a65594020fcef05ec1630804a33748829c5ff53640d0"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2015.symbol.d.ts": {
+      "bytes": 1649,
+      "sha256": "4ff2a353abf8a80ee399af572debb8faab2d33ad38c4b4474cff7f26e7653b8d"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts": {
+      "bytes": 11010,
+      "sha256": "fb0f136d372979348d59b3f5020b4cdb81b5504192b1cacff5d1fbba29378aa1"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2016.array.include.d.ts": {
+      "bytes": 5204,
+      "sha256": "d15bea3d62cbbdb9797079416b8ac375ae99162a7fba5de2c6c505446486ac0a"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2016.d.ts": {
+      "bytes": 965,
+      "sha256": "3facaf05f0c5fc569c5649dd359892c98a85557e3e0c847964caeb67076f4d75"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2016.full.d.ts": {
+      "bytes": 1032,
+      "sha256": "807e0e0bdc67605dd28efe18f20ab5fcd75d944ef95936120702335f9379094b"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2016.intl.d.ts": {
+      "bytes": 1484,
+      "sha256": "68d18b664c9d32a7336a70235958b8997ebc1c3b8505f4f1ae2b7e7753b87618"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2017.arraybuffer.d.ts": {
+      "bytes": 915,
+      "sha256": "eb3d66c8327153d8fa7dd03f9c58d351107fe824c79e9b56b462935176cdf12a"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2017.d.ts": {
+      "bytes": 1162,
+      "sha256": "e44bb8bbac7f10ecc786703fe0a6a4b952189f908707980ba8f3c8975a760962"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2017.date.d.ts": {
+      "bytes": 1916,
+      "sha256": "38f0219c9e23c915ef9790ab1d680440d95419ad264816fa15009a8851e79119"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2017.full.d.ts": {
+      "bytes": 1032,
+      "sha256": "1d242d5c24cf285c88bc4fb93c5ff903de8319064e282986edeb6247ba028d5e"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2017.intl.d.ts": {
+      "bytes": 1449,
+      "sha256": "4de680d5bb41c17f7f68e0419412ca23c98d5749dcaaea1896172f06435891fc"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2017.object.d.ts": {
+      "bytes": 2473,
+      "sha256": "69ab18c3b76cd9b1be3d188eaf8bba06112ebbe2f47f6c322b5105a6fbc45a2e"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts": {
+      "bytes": 7209,
+      "sha256": "a680117f487a4d2f30ea46f1b4b7f58bef1480456e18ba53ee85c2746eeca012"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2017.string.d.ts": {
+      "bytes": 2378,
+      "sha256": "2f11ff796926e0832f9ae148008138ad583bd181899ab7dd768a2666700b1893"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2017.typedarrays.d.ts": {
+      "bytes": 1542,
+      "sha256": "954296b30da6d508a104a3a0b5d96b76495c709785c1d11610908e63481ee667"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2018.asyncgenerator.d.ts": {
+      "bytes": 2692,
+      "sha256": "ac9538681b19688c8eae65811b329d3744af679e0bdfa5d842d0e32524c73e1c"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2018.asynciterable.d.ts": {
+      "bytes": 2257,
+      "sha256": "0a969edff4bd52585473d24995c5ef223f6652d6ef46193309b3921d65dd4376"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2018.d.ts": {
+      "bytes": 1088,
+      "sha256": "5e1c4c362065a6b95ff952c0eab010f04dcd2c3494e813b493ecfd4fcb9fc0d8"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2018.full.d.ts": {
+      "bytes": 1074,
+      "sha256": "95f1023b824c2c511c48f1201e2d1188bcb0ca1138a309a870b956d2e92e44ab"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2018.intl.d.ts": {
+      "bytes": 3021,
+      "sha256": "9e9fbd7030c440b33d021da145d3232984c8bb7916f277e8ffd3dc2e3eae2bdb"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2018.promise.d.ts": {
+      "bytes": 1353,
+      "sha256": "811ec78f7fefcabbda4bfa93b3eb67d9ae166ef95f9bff989d964061cbf81a0c"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2018.regexp.d.ts": {
+      "bytes": 1232,
+      "sha256": "717937616a17072082152a2ef351cb51f98802fb4b2fdabd32399843875974ca"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2019.array.d.ts": {
+      "bytes": 3163,
+      "sha256": "d7e7d9b7b50e5f22c915b525acc5a49a7a6584cf8f62d0569e557c5cfc4b2ac2"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2019.d.ts": {
+      "bytes": 1071,
+      "sha256": "68d73b4a11549f9c0b7d352d10e91e5dca8faa3322bfb77b661839c42b1ddec7"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2019.full.d.ts": {
+      "bytes": 1074,
+      "sha256": "08f6861df84fba9719c14d5adc3ba40be9f0c687639e6c4df3c05b9301b8ff94"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2019.intl.d.ts": {
+      "bytes": 958,
+      "sha256": "74f7fa2d027d5b33eb0471c8e82a6c87216223181ec31247c357a3e8e2fddc5b"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2019.object.d.ts": {
+      "bytes": 1473,
+      "sha256": "71c37f4c9543f31dfced6c7840e068c5a5aacb7b89111a4364b1d5276b852557"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2019.string.d.ts": {
+      "bytes": 1528,
+      "sha256": "576711e016cf4f1804676043e6a0a5414252560eb57de9faceee34d79798c850"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2019.symbol.d.ts": {
+      "bytes": 1006,
+      "sha256": "89c1b1281ba7b8a96efc676b11b264de7a8374c5ea1e6617f11880a13fc56dc6"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2020.bigint.d.ts": {
+      "bytes": 38185,
+      "sha256": "d6d7ae4d1f1f3772e2a3cde568ed08991a8ae34a080ff1151af28b7f798e22ca"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2020.d.ts": {
+      "bytes": 1201,
+      "sha256": "5efce4fc3c29ea84e8928f97adec086e3dc876365e0982cc8479a07954a3efd4"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2020.date.d.ts": {
+      "bytes": 2956,
+      "sha256": "063600664504610fe3e99b717a1223f8b1900087fab0b4cad1496a114744f8df"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2020.full.d.ts": {
+      "bytes": 1074,
+      "sha256": "1305d1e76ca44e30fb8b2b8075fa522b83f60c0bcf5d4326a9d2cf79b53724f8"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2020.intl.d.ts": {
+      "bytes": 22438,
+      "sha256": "639e512c0dfc3fad96a84caad71b8834d66329a1f28dc95e3946c9b58176c73a"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2020.number.d.ts": {
+      "bytes": 1587,
+      "sha256": "368af93f74c9c932edd84c58883e736c9e3d53cec1fe24c0b0ff451f529ceab1"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2020.promise.d.ts": {
+      "bytes": 1803,
+      "sha256": "934019d7e3c81950f9a8426d093458b65d5aff2c7c1511233c0fd5b941e608ab"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2020.sharedmemory.d.ts": {
+      "bytes": 5128,
+      "sha256": "52ada8e0b6e0482b728070b7639ee42e83a9b1c22d205992756fe020fd9f4a47"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2020.string.d.ts": {
+      "bytes": 2556,
+      "sha256": "3bdefe1bfd4d6dee0e26f928f93ccc128f1b64d5d501ff4a8cf3c6371200e5e6"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2020.symbol.wellknown.d.ts": {
+      "bytes": 1606,
+      "sha256": "59fb2c069260b4ba00b5643b907ef5d5341b167e7d1dbf58dfd895658bda2867"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2021.d.ts": {
+      "bytes": 1036,
+      "sha256": "feecb1be483ed332fad555aff858affd90a48ab19ba7272ee084704eb7167569"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2021.full.d.ts": {
+      "bytes": 1074,
+      "sha256": "4a66df3ab5de5cfcda11538cffddd67ff6a174e003788e270914c1e0248483cf"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2021.intl.d.ts": {
+      "bytes": 8245,
+      "sha256": "965f36eae237dd74e6cca203a43e9ca801ce38824ead814728a2807b1910117d"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2021.promise.d.ts": {
+      "bytes": 2262,
+      "sha256": "af3dd424cf267428f30ccfc376f47a2c0114546b55c44d8c0f1d57d841e28d74"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2021.string.d.ts": {
+      "bytes": 1592,
+      "sha256": "995c005ab91a498455ea8dfb63aa9f83fa2ea793c3d8aa344be4a1678d06d399"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2021.weakref.d.ts": {
+      "bytes": 3171,
+      "sha256": "959d36cddf5e7d572a65045b876f2956c973a586da58e5d26cde519184fd9b8a"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2022.array.d.ts": {
+      "bytes": 4676,
+      "sha256": "3925a6c820dcb1a06506c90b1577db1fdbf7705d65b62b99dce4be75c637e26b"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2022.d.ts": {
+      "bytes": 1108,
+      "sha256": "ee7bad0c15b58988daa84371e0b89d313b762ab83cb5b31b8a2d1162e8eb41c2"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2022.error.d.ts": {
+      "bytes": 2379,
+      "sha256": "0a3d63ef2b853447ec4f749d3f368ce642264246e02911fcb1590d8c161b8005"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2022.full.d.ts": {
+      "bytes": 1074,
+      "sha256": "3cbad9a1ba4453443026ed38e4b8be018abb26565fa7c944376463ad9df07c41"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2022.intl.d.ts": {
+      "bytes": 7692,
+      "sha256": "8cdf8847677ac7d20486e54dd3fcf09eda95812ac8ace44b4418da1bbbab6eb8"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2022.object.d.ts": {
+      "bytes": 1085,
+      "sha256": "8444af78980e3b20b49324f4a16ba35024fef3ee069a0eb67616ea6ca821c47a"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2022.regexp.d.ts": {
+      "bytes": 1331,
+      "sha256": "b4b67b1a91182421f5df999988c690f14d813b9850b40acd06ed44691f6727ad"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2022.string.d.ts": {
+      "bytes": 1155,
+      "sha256": "3287d9d085fbd618c3971944b65b4be57859f5415f495b33a6adc994edd2f004"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2023.array.d.ts": {
+      "bytes": 40236,
+      "sha256": "df83c2a6c73228b625b0beb6669c7ee2a09c914637e2d35170723ad49c0f5cd4"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2023.collection.d.ts": {
+      "bytes": 900,
+      "sha256": "436aaf437562f276ec2ddbee2f2cdedac7664c1e4c1d2c36839ddd582eeb3d0a"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2023.d.ts": {
+      "bytes": 999,
+      "sha256": "27bdc30a0e32783366a5abeda841bc22757c1797de8681bbe81fbc735eeb1c10"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2023.full.d.ts": {
+      "bytes": 1074,
+      "sha256": "785921608325fa246b450f05b238f4b3ed659f1099af278ce9ebbc9416a13f1d"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2023.intl.d.ts": {
+      "bytes": 2645,
+      "sha256": "8e3c06ea092138bf9fa5e874a1fdbc9d54805d074bee1de31b99a11e2fec239d"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2024.arraybuffer.d.ts": {
+      "bytes": 2637,
+      "sha256": "87dc0f382502f5bbce5129bdc0aea21e19a3abbc19259e0b43ae038a9fc4e326"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2024.collection.d.ts": {
+      "bytes": 1224,
+      "sha256": "b1cb28af0c891c8c96b2d6b7be76bd394fddcfdb4709a20ba05a7c1605eea0f9"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2024.d.ts": {
+      "bytes": 1166,
+      "sha256": "8fd575e12870e9944c7e1d62e1f5a73fcf23dd8d3a321f2a2c74c20d022283fe"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2024.full.d.ts": {
+      "bytes": 1074,
+      "sha256": "b3e9cef4eed59f8a2249ed834ba4aabe9d0d4e9037d4679487fa17dad99004a3"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2024.object.d.ts": {
+      "bytes": 1259,
+      "sha256": "2fef54945a13095fdb9b84f705f2b5994597640c46afeb2ce78352fab4cb3279"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2024.promise.d.ts": {
+      "bytes": 1389,
+      "sha256": "ac77cb3e8c6d3565793eb90a8373ee8033146315a3dbead3bde8db5eaf5e5ec6"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2024.regexp.d.ts": {
+      "bytes": 1073,
+      "sha256": "56e4ed5aab5f5920980066a9409bfaf53e6d21d3f8d020c17e4de584d29600ad"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2024.sharedmemory.d.ts": {
+      "bytes": 3077,
+      "sha256": "4ece9f17b3866cc077099c73f4983bddbcb1dc7ddb943227f1ec070f529dedd1"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es2024.string.d.ts": {
+      "bytes": 1194,
+      "sha256": "0a6282c8827e4b9a95f4bf4f5c205673ada31b982f50572d27103df8ceb8013c"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es5.d.ts": {
+      "bytes": 218439,
+      "sha256": "c430d44666289dae81f30fa7b2edebf186ecc91a2d4c71266ea6ae76388792e1"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.es6.d.ts": {
+      "bytes": 1032,
+      "sha256": "df039a67536fe2acc3affdcbfb645892f842db36fe599e8e652e2f0c640a90d1"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.esnext.array.d.ts": {
+      "bytes": 1791,
+      "sha256": "1c9319a09485199c1f7b0498f2988d6d2249793ef67edda49d1e584746be9032"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.esnext.collection.d.ts": {
+      "bytes": 3878,
+      "sha256": "e3a2a0cee0f03ffdde24d89660eba2685bfbdeae955a6c67e8c4c9fd28928eeb"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.esnext.d.ts": {
+      "bytes": 1282,
+      "sha256": "2ab096661c711e4a81cc464fa1e6feb929a54f5340b46b0a07ac6bbf857471f0"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.esnext.decorators.d.ts": {
+      "bytes": 1070,
+      "sha256": "d4b1d2c51d058fc21ec2629fff7a76249dec2e36e12960ea056e3ef89174080f"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.esnext.disposable.d.ts": {
+      "bytes": 6806,
+      "sha256": "51ad4c928303041605b4d7ae32e0c1ee387d43a24cd6f1ebf4a2699e1076d4fa"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.esnext.error.d.ts": {
+      "bytes": 1029,
+      "sha256": "73f78680d4c08509933daf80947902f6ff41b6230f94dd002ae372620adb0f60"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.esnext.float16.d.ts": {
+      "bytes": 20528,
+      "sha256": "196cb558a13d4533a5163286f30b0509ce0210e4b316c56c38d4c0fd2fb38405"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.esnext.full.d.ts": {
+      "bytes": 1074,
+      "sha256": "bde31fd423cd93b0eff97197a3f66df7c93e8c0c335cbeb113b7ff1ac35c23f4"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.esnext.intl.d.ts": {
+      "bytes": 893,
+      "sha256": "811c71eee4aa0ac5f7adf713323a5c41b0cf6c4e17367a34fbce379e12bbf0a4"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.esnext.iterator.d.ts": {
+      "bytes": 8676,
+      "sha256": "22adec94ef7047a6c9d1af3cb96be87a335908bf9ef386ae9fd50eeb37f44c47"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.esnext.promise.d.ts": {
+      "bytes": 1658,
+      "sha256": "60037901da1a425516449b9a20073aa03386cce92f7a1fd902d7602be3a7c2e9"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.esnext.sharedmemory.d.ts": {
+      "bytes": 1067,
+      "sha256": "c5239f5c01bcfa9cd32f37c496cf19c61d69d37e48be9de612b541aac915805b"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.scripthost.d.ts": {
+      "bytes": 9451,
+      "sha256": "cd034f499c6cdca722b60c04b5b1b78e058487a7085a8e0d6fb50809947ee573"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.webworker.asynciterable.d.ts": {
+      "bytes": 1887,
+      "sha256": "ca417afee74054e99d5a8252b35bef26ca6e2942d67d343fce6b42fc9f432993"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.webworker.d.ts": {
+      "bytes": 609557,
+      "sha256": "6d08cde2bfb6ff909efbf7cb7d6d55be412cf4b9f48fd0430185986973fa91f5"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.webworker.importscripts.d.ts": {
+      "bytes": 1041,
+      "sha256": "80e18897e5884b6723488d4f5652167e7bb5024f946743134ecc4aa4ee731f89"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/lib.webworker.iterable.d.ts": {
+      "bytes": 22768,
+      "sha256": "d6c6331ce67c41b2ad5bfb0c8c022403980b479a377a44da8f16b61120418f66"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/tsc.js": {
+      "bytes": 267,
+      "sha256": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983"
+    },
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/package.json": {
+      "bytes": 3620,
+      "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/esbuild/bin/esbuild": {
+      "bytes": 9934834,
+      "sha256": "3e030ee2aa86ad3c33e5e95ae0e53bb03de40e0da35c9b1180a67de4a497cae5"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/_tsc.js": {
+      "bytes": 6213092,
+      "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.decorators.d.ts": {
+      "bytes": 13192,
+      "sha256": "8e7f8264d0fb4c5339605a15daadb037bf238c10b654bb3eee14208f860a32ea"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.decorators.legacy.d.ts": {
+      "bytes": 1326,
+      "sha256": "782dec38049b92d4e85c1585fbea5474a219c6984a35b004963b00beb1aab538"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.dom.asynciterable.d.ts": {
+      "bytes": 1887,
+      "sha256": "d7a3c8b952931daebdfc7a2897c53c0a1c73624593fa070e46bd537e64dcd20a"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.dom.d.ts": {
+      "bytes": 1874901,
+      "sha256": "080941d9f9ff9307f7e27a83bcd888b7c8270716c39af943532438932ec1d0b9"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.dom.iterable.d.ts": {
+      "bytes": 29802,
+      "sha256": "2e80ee7a49e8ac312cc11b77f1475804bee36b3b2bc896bead8b6e1266befb43"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.collection.d.ts": {
+      "bytes": 5229,
+      "sha256": "dc2df20b1bcdc8c2d34af4926e2c3ab15ffe1160a63e58b7e09833f616efff44"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.core.d.ts": {
+      "bytes": 22866,
+      "sha256": "c57796738e7f83dbc4b8e65132f11a377649c00dd3eee333f672b8f0a6bea671"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.d.ts": {
+      "bytes": 1241,
+      "sha256": "45b7ab580deca34ae9729e97c13cfd999df04416a79116c3bfb483804f85ded4"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.generator.d.ts": {
+      "bytes": 2557,
+      "sha256": "515d0b7b9bea2e31ea4ec968e9edd2c39d3eebf4a2d5cbd04e88639819ae3b71"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.iterable.d.ts": {
+      "bytes": 18200,
+      "sha256": "0559b1f683ac7505ae451f9a96ce4c3c92bdc71411651ca6ddb0e88baaaad6a3"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.promise.d.ts": {
+      "bytes": 3200,
+      "sha256": "0dc1e7ceda9b8b9b455c3a2d67b0412feab00bd2f66656cd8850e8831b08b537"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.proxy.d.ts": {
+      "bytes": 5251,
+      "sha256": "ce691fb9e5c64efb9547083e4a34091bcbe5bdb41027e310ebba8f7d96a98671"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.reflect.d.ts": {
+      "bytes": 6493,
+      "sha256": "8d697a2a929a5fcb38b7a65594020fcef05ec1630804a33748829c5ff53640d0"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.symbol.d.ts": {
+      "bytes": 1649,
+      "sha256": "4ff2a353abf8a80ee399af572debb8faab2d33ad38c4b4474cff7f26e7653b8d"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts": {
+      "bytes": 11010,
+      "sha256": "fb0f136d372979348d59b3f5020b4cdb81b5504192b1cacff5d1fbba29378aa1"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2016.array.include.d.ts": {
+      "bytes": 5204,
+      "sha256": "d15bea3d62cbbdb9797079416b8ac375ae99162a7fba5de2c6c505446486ac0a"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2016.d.ts": {
+      "bytes": 965,
+      "sha256": "3facaf05f0c5fc569c5649dd359892c98a85557e3e0c847964caeb67076f4d75"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2016.full.d.ts": {
+      "bytes": 1032,
+      "sha256": "807e0e0bdc67605dd28efe18f20ab5fcd75d944ef95936120702335f9379094b"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2016.intl.d.ts": {
+      "bytes": 1484,
+      "sha256": "68d18b664c9d32a7336a70235958b8997ebc1c3b8505f4f1ae2b7e7753b87618"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2017.arraybuffer.d.ts": {
+      "bytes": 915,
+      "sha256": "eb3d66c8327153d8fa7dd03f9c58d351107fe824c79e9b56b462935176cdf12a"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2017.d.ts": {
+      "bytes": 1162,
+      "sha256": "e44bb8bbac7f10ecc786703fe0a6a4b952189f908707980ba8f3c8975a760962"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2017.date.d.ts": {
+      "bytes": 1916,
+      "sha256": "38f0219c9e23c915ef9790ab1d680440d95419ad264816fa15009a8851e79119"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2017.full.d.ts": {
+      "bytes": 1032,
+      "sha256": "1d242d5c24cf285c88bc4fb93c5ff903de8319064e282986edeb6247ba028d5e"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2017.intl.d.ts": {
+      "bytes": 1449,
+      "sha256": "4de680d5bb41c17f7f68e0419412ca23c98d5749dcaaea1896172f06435891fc"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2017.object.d.ts": {
+      "bytes": 2473,
+      "sha256": "69ab18c3b76cd9b1be3d188eaf8bba06112ebbe2f47f6c322b5105a6fbc45a2e"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts": {
+      "bytes": 7209,
+      "sha256": "a680117f487a4d2f30ea46f1b4b7f58bef1480456e18ba53ee85c2746eeca012"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2017.string.d.ts": {
+      "bytes": 2378,
+      "sha256": "2f11ff796926e0832f9ae148008138ad583bd181899ab7dd768a2666700b1893"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2017.typedarrays.d.ts": {
+      "bytes": 1542,
+      "sha256": "954296b30da6d508a104a3a0b5d96b76495c709785c1d11610908e63481ee667"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2018.asyncgenerator.d.ts": {
+      "bytes": 2692,
+      "sha256": "ac9538681b19688c8eae65811b329d3744af679e0bdfa5d842d0e32524c73e1c"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2018.asynciterable.d.ts": {
+      "bytes": 2257,
+      "sha256": "0a969edff4bd52585473d24995c5ef223f6652d6ef46193309b3921d65dd4376"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2018.d.ts": {
+      "bytes": 1088,
+      "sha256": "5e1c4c362065a6b95ff952c0eab010f04dcd2c3494e813b493ecfd4fcb9fc0d8"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2018.full.d.ts": {
+      "bytes": 1074,
+      "sha256": "95f1023b824c2c511c48f1201e2d1188bcb0ca1138a309a870b956d2e92e44ab"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2018.intl.d.ts": {
+      "bytes": 3021,
+      "sha256": "9e9fbd7030c440b33d021da145d3232984c8bb7916f277e8ffd3dc2e3eae2bdb"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2018.promise.d.ts": {
+      "bytes": 1353,
+      "sha256": "811ec78f7fefcabbda4bfa93b3eb67d9ae166ef95f9bff989d964061cbf81a0c"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2018.regexp.d.ts": {
+      "bytes": 1232,
+      "sha256": "717937616a17072082152a2ef351cb51f98802fb4b2fdabd32399843875974ca"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2019.array.d.ts": {
+      "bytes": 3163,
+      "sha256": "d7e7d9b7b50e5f22c915b525acc5a49a7a6584cf8f62d0569e557c5cfc4b2ac2"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2019.d.ts": {
+      "bytes": 1071,
+      "sha256": "68d73b4a11549f9c0b7d352d10e91e5dca8faa3322bfb77b661839c42b1ddec7"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2019.full.d.ts": {
+      "bytes": 1074,
+      "sha256": "08f6861df84fba9719c14d5adc3ba40be9f0c687639e6c4df3c05b9301b8ff94"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2019.intl.d.ts": {
+      "bytes": 958,
+      "sha256": "74f7fa2d027d5b33eb0471c8e82a6c87216223181ec31247c357a3e8e2fddc5b"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2019.object.d.ts": {
+      "bytes": 1473,
+      "sha256": "71c37f4c9543f31dfced6c7840e068c5a5aacb7b89111a4364b1d5276b852557"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2019.string.d.ts": {
+      "bytes": 1528,
+      "sha256": "576711e016cf4f1804676043e6a0a5414252560eb57de9faceee34d79798c850"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2019.symbol.d.ts": {
+      "bytes": 1006,
+      "sha256": "89c1b1281ba7b8a96efc676b11b264de7a8374c5ea1e6617f11880a13fc56dc6"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.bigint.d.ts": {
+      "bytes": 38185,
+      "sha256": "d6d7ae4d1f1f3772e2a3cde568ed08991a8ae34a080ff1151af28b7f798e22ca"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.d.ts": {
+      "bytes": 1201,
+      "sha256": "5efce4fc3c29ea84e8928f97adec086e3dc876365e0982cc8479a07954a3efd4"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.date.d.ts": {
+      "bytes": 2956,
+      "sha256": "063600664504610fe3e99b717a1223f8b1900087fab0b4cad1496a114744f8df"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.full.d.ts": {
+      "bytes": 1074,
+      "sha256": "1305d1e76ca44e30fb8b2b8075fa522b83f60c0bcf5d4326a9d2cf79b53724f8"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.intl.d.ts": {
+      "bytes": 22438,
+      "sha256": "639e512c0dfc3fad96a84caad71b8834d66329a1f28dc95e3946c9b58176c73a"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.number.d.ts": {
+      "bytes": 1587,
+      "sha256": "368af93f74c9c932edd84c58883e736c9e3d53cec1fe24c0b0ff451f529ceab1"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.promise.d.ts": {
+      "bytes": 1803,
+      "sha256": "934019d7e3c81950f9a8426d093458b65d5aff2c7c1511233c0fd5b941e608ab"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.sharedmemory.d.ts": {
+      "bytes": 5128,
+      "sha256": "52ada8e0b6e0482b728070b7639ee42e83a9b1c22d205992756fe020fd9f4a47"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.string.d.ts": {
+      "bytes": 2556,
+      "sha256": "3bdefe1bfd4d6dee0e26f928f93ccc128f1b64d5d501ff4a8cf3c6371200e5e6"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2020.symbol.wellknown.d.ts": {
+      "bytes": 1606,
+      "sha256": "59fb2c069260b4ba00b5643b907ef5d5341b167e7d1dbf58dfd895658bda2867"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2021.d.ts": {
+      "bytes": 1036,
+      "sha256": "feecb1be483ed332fad555aff858affd90a48ab19ba7272ee084704eb7167569"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2021.full.d.ts": {
+      "bytes": 1074,
+      "sha256": "4a66df3ab5de5cfcda11538cffddd67ff6a174e003788e270914c1e0248483cf"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2021.intl.d.ts": {
+      "bytes": 8245,
+      "sha256": "965f36eae237dd74e6cca203a43e9ca801ce38824ead814728a2807b1910117d"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2021.promise.d.ts": {
+      "bytes": 2262,
+      "sha256": "af3dd424cf267428f30ccfc376f47a2c0114546b55c44d8c0f1d57d841e28d74"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2021.string.d.ts": {
+      "bytes": 1592,
+      "sha256": "995c005ab91a498455ea8dfb63aa9f83fa2ea793c3d8aa344be4a1678d06d399"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2021.weakref.d.ts": {
+      "bytes": 3171,
+      "sha256": "959d36cddf5e7d572a65045b876f2956c973a586da58e5d26cde519184fd9b8a"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2022.array.d.ts": {
+      "bytes": 4676,
+      "sha256": "3925a6c820dcb1a06506c90b1577db1fdbf7705d65b62b99dce4be75c637e26b"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2022.d.ts": {
+      "bytes": 1108,
+      "sha256": "ee7bad0c15b58988daa84371e0b89d313b762ab83cb5b31b8a2d1162e8eb41c2"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2022.error.d.ts": {
+      "bytes": 2379,
+      "sha256": "0a3d63ef2b853447ec4f749d3f368ce642264246e02911fcb1590d8c161b8005"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2022.full.d.ts": {
+      "bytes": 1074,
+      "sha256": "3cbad9a1ba4453443026ed38e4b8be018abb26565fa7c944376463ad9df07c41"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2022.intl.d.ts": {
+      "bytes": 7692,
+      "sha256": "8cdf8847677ac7d20486e54dd3fcf09eda95812ac8ace44b4418da1bbbab6eb8"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2022.object.d.ts": {
+      "bytes": 1085,
+      "sha256": "8444af78980e3b20b49324f4a16ba35024fef3ee069a0eb67616ea6ca821c47a"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2022.regexp.d.ts": {
+      "bytes": 1331,
+      "sha256": "b4b67b1a91182421f5df999988c690f14d813b9850b40acd06ed44691f6727ad"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2022.string.d.ts": {
+      "bytes": 1155,
+      "sha256": "3287d9d085fbd618c3971944b65b4be57859f5415f495b33a6adc994edd2f004"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2023.array.d.ts": {
+      "bytes": 40236,
+      "sha256": "df83c2a6c73228b625b0beb6669c7ee2a09c914637e2d35170723ad49c0f5cd4"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2023.collection.d.ts": {
+      "bytes": 900,
+      "sha256": "436aaf437562f276ec2ddbee2f2cdedac7664c1e4c1d2c36839ddd582eeb3d0a"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2023.d.ts": {
+      "bytes": 999,
+      "sha256": "27bdc30a0e32783366a5abeda841bc22757c1797de8681bbe81fbc735eeb1c10"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2023.full.d.ts": {
+      "bytes": 1074,
+      "sha256": "785921608325fa246b450f05b238f4b3ed659f1099af278ce9ebbc9416a13f1d"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2023.intl.d.ts": {
+      "bytes": 2645,
+      "sha256": "8e3c06ea092138bf9fa5e874a1fdbc9d54805d074bee1de31b99a11e2fec239d"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2024.arraybuffer.d.ts": {
+      "bytes": 2637,
+      "sha256": "87dc0f382502f5bbce5129bdc0aea21e19a3abbc19259e0b43ae038a9fc4e326"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2024.collection.d.ts": {
+      "bytes": 1224,
+      "sha256": "b1cb28af0c891c8c96b2d6b7be76bd394fddcfdb4709a20ba05a7c1605eea0f9"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2024.d.ts": {
+      "bytes": 1166,
+      "sha256": "8fd575e12870e9944c7e1d62e1f5a73fcf23dd8d3a321f2a2c74c20d022283fe"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2024.full.d.ts": {
+      "bytes": 1074,
+      "sha256": "b3e9cef4eed59f8a2249ed834ba4aabe9d0d4e9037d4679487fa17dad99004a3"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2024.object.d.ts": {
+      "bytes": 1259,
+      "sha256": "2fef54945a13095fdb9b84f705f2b5994597640c46afeb2ce78352fab4cb3279"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2024.promise.d.ts": {
+      "bytes": 1389,
+      "sha256": "ac77cb3e8c6d3565793eb90a8373ee8033146315a3dbead3bde8db5eaf5e5ec6"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2024.regexp.d.ts": {
+      "bytes": 1073,
+      "sha256": "56e4ed5aab5f5920980066a9409bfaf53e6d21d3f8d020c17e4de584d29600ad"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2024.sharedmemory.d.ts": {
+      "bytes": 3077,
+      "sha256": "4ece9f17b3866cc077099c73f4983bddbcb1dc7ddb943227f1ec070f529dedd1"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es2024.string.d.ts": {
+      "bytes": 1194,
+      "sha256": "0a6282c8827e4b9a95f4bf4f5c205673ada31b982f50572d27103df8ceb8013c"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es5.d.ts": {
+      "bytes": 218439,
+      "sha256": "c430d44666289dae81f30fa7b2edebf186ecc91a2d4c71266ea6ae76388792e1"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.es6.d.ts": {
+      "bytes": 1032,
+      "sha256": "df039a67536fe2acc3affdcbfb645892f842db36fe599e8e652e2f0c640a90d1"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.esnext.array.d.ts": {
+      "bytes": 1791,
+      "sha256": "1c9319a09485199c1f7b0498f2988d6d2249793ef67edda49d1e584746be9032"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.esnext.collection.d.ts": {
+      "bytes": 3878,
+      "sha256": "e3a2a0cee0f03ffdde24d89660eba2685bfbdeae955a6c67e8c4c9fd28928eeb"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.esnext.d.ts": {
+      "bytes": 1282,
+      "sha256": "2ab096661c711e4a81cc464fa1e6feb929a54f5340b46b0a07ac6bbf857471f0"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.esnext.decorators.d.ts": {
+      "bytes": 1070,
+      "sha256": "d4b1d2c51d058fc21ec2629fff7a76249dec2e36e12960ea056e3ef89174080f"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.esnext.disposable.d.ts": {
+      "bytes": 6806,
+      "sha256": "51ad4c928303041605b4d7ae32e0c1ee387d43a24cd6f1ebf4a2699e1076d4fa"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.esnext.error.d.ts": {
+      "bytes": 1029,
+      "sha256": "73f78680d4c08509933daf80947902f6ff41b6230f94dd002ae372620adb0f60"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.esnext.float16.d.ts": {
+      "bytes": 20528,
+      "sha256": "196cb558a13d4533a5163286f30b0509ce0210e4b316c56c38d4c0fd2fb38405"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.esnext.full.d.ts": {
+      "bytes": 1074,
+      "sha256": "bde31fd423cd93b0eff97197a3f66df7c93e8c0c335cbeb113b7ff1ac35c23f4"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.esnext.intl.d.ts": {
+      "bytes": 893,
+      "sha256": "811c71eee4aa0ac5f7adf713323a5c41b0cf6c4e17367a34fbce379e12bbf0a4"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.esnext.iterator.d.ts": {
+      "bytes": 8676,
+      "sha256": "22adec94ef7047a6c9d1af3cb96be87a335908bf9ef386ae9fd50eeb37f44c47"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.esnext.promise.d.ts": {
+      "bytes": 1658,
+      "sha256": "60037901da1a425516449b9a20073aa03386cce92f7a1fd902d7602be3a7c2e9"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.esnext.sharedmemory.d.ts": {
+      "bytes": 1067,
+      "sha256": "c5239f5c01bcfa9cd32f37c496cf19c61d69d37e48be9de612b541aac915805b"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.scripthost.d.ts": {
+      "bytes": 9451,
+      "sha256": "cd034f499c6cdca722b60c04b5b1b78e058487a7085a8e0d6fb50809947ee573"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.webworker.asynciterable.d.ts": {
+      "bytes": 1887,
+      "sha256": "ca417afee74054e99d5a8252b35bef26ca6e2942d67d343fce6b42fc9f432993"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.webworker.d.ts": {
+      "bytes": 609557,
+      "sha256": "6d08cde2bfb6ff909efbf7cb7d6d55be412cf4b9f48fd0430185986973fa91f5"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.webworker.importscripts.d.ts": {
+      "bytes": 1041,
+      "sha256": "80e18897e5884b6723488d4f5652167e7bb5024f946743134ecc4aa4ee731f89"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/lib.webworker.iterable.d.ts": {
+      "bytes": 22768,
+      "sha256": "d6c6331ce67c41b2ad5bfb0c8c022403980b479a377a44da8f16b61120418f66"
+    },
+    "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/tsc.js": {
+      "bytes": 267,
+      "sha256": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13": {
+      "bytes": 52640,
+      "sha256": "a1f6d9dc20d4787a84dc2fe782094a7bac5946f49a962aa0af48a02f0e8d5bc5"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/_pydecimal.py": {
+      "bytes": 227283,
+      "sha256": "87a3372df4c4269adcdac5725e04675d306abcfa8d65e8dda59c1846e3d202ac"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/argparse.py": {
+      "bytes": 101661,
+      "sha256": "3f9d1478513251602ca62b935f9f8c8513ac8ec9508a827b29d1aedaac19ffe5"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/copy.py": {
+      "bytes": 8975,
+      "sha256": "d6b858961b91b48a4bf5a115b0420c890d677bdf058ab2323a8a75298eed47db"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/decimal.py": {
+      "bytes": 2798,
+      "sha256": "ed070025c9742f71f7ea92ec1a3d24f85b3199dd79b9d15a141716154e647989"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/fractions.py": {
+      "bytes": 40021,
+      "sha256": "58f7750133f2e23999ba3f634d1b14edfec6dc48bf8bb00a9911262cd7198f63"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/__init__.py": {
+      "bytes": 14020,
+      "sha256": "d5d41e2c29049515d295d81a6d40b4890fbec8d8482cfb401630f8ef2f77e4d5"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/decoder.py": {
+      "bytes": 12872,
+      "sha256": "6d95679fccf178f2af9e9eead42f8efb084c58735951dc47fce89aec11d44955"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/json/encoder.py": {
+      "bytes": 16148,
+      "sha256": "4b24ae9c0efbe73272f6a891054b2f40cc6e07c3c9957b33a2ebc8da130e671e"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/lib-dynload/_decimal.cpython-313-darwin.so": {
+      "bytes": 195120,
+      "sha256": "012ccc5fc549ca1da531e00957e6f1807e364971fcd55209f51d5545d788e585"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/signal.py": {
+      "bytes": 2495,
+      "sha256": "0363c964c90ac0b3e515de5749205e6e6454051a1211058375d84d91eab6071a"
+    }
+  },
+  "highReview": {
+    "path": "examples/physics-contact-coverage-g2-2276/CORNER-EXECUTION-REVIEW-02.md",
+    "approved": true
+  },
+  "scope": "Actual unchanged internal source sweep helper, then files-only necessary exact-contact witness; native only if source witness PASS. No World/publicroot/integration claim."
+}

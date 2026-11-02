@@ -1,0 +1,501 @@
+{
+  "mode": "native-unbundled-separate-tsc-outDir",
+  "storage": 369305,
+  "inputs": {
+    "provider/dist/broadphase.js": {
+      "originalSha256": "f35e7453719dc2b44668bb20d6fad51a739c6b2cdb9797fe875fc81187400db3",
+      "effectiveSha256": "f35e7453719dc2b44668bb20d6fad51a739c6b2cdb9797fe875fc81187400db3",
+      "observed": false
+    },
+    "provider/dist/cad-proxy-admission.js": {
+      "originalSha256": "ee51b4fc7e9f3c193bd993fa3f850f381142e58b48bca2b5b7ab992d9157548d",
+      "effectiveSha256": "ee51b4fc7e9f3c193bd993fa3f850f381142e58b48bca2b5b7ab992d9157548d",
+      "observed": false
+    },
+    "provider/dist/cad-proxy-pose.js": {
+      "originalSha256": "ca965a4d587c8b208c064f0d0d3a65b2b31c41c2f692f60b086e6eb2fce8b46d",
+      "effectiveSha256": "ca965a4d587c8b208c064f0d0d3a65b2b31c41c2f692f60b086e6eb2fce8b46d",
+      "observed": false
+    },
+    "provider/dist/cad-proxy-types.js": {
+      "originalSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "effectiveSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "observed": false
+    },
+    "provider/dist/cad-proxy-validation.js": {
+      "originalSha256": "30ff7c4b15b218924f4b6a8df561830ed254365a3b474f4e718b486fd7be5155",
+      "effectiveSha256": "30ff7c4b15b218924f4b6a8df561830ed254365a3b474f4e718b486fd7be5155",
+      "observed": false
+    },
+    "provider/dist/cad-proxy.js": {
+      "originalSha256": "775493e3d68ab03d91efa837def347ed4c85cc556e2702b51e63c9e2562c5637",
+      "effectiveSha256": "775493e3d68ab03d91efa837def347ed4c85cc556e2702b51e63c9e2562c5637",
+      "observed": false
+    },
+    "provider/dist/capsule-contact.js": {
+      "originalSha256": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1",
+      "effectiveSha256": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1",
+      "observed": false
+    },
+    "provider/dist/capsule-query-error.js": {
+      "originalSha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f",
+      "effectiveSha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f",
+      "observed": false
+    },
+    "provider/dist/capsule-query.js": {
+      "originalSha256": "f44c04d06c851b807add8096cc26bf893945f53b49ab6c671148491b88e781fc",
+      "effectiveSha256": "f44c04d06c851b807add8096cc26bf893945f53b49ab6c671148491b88e781fc",
+      "observed": false
+    },
+    "provider/dist/capsule-query/admission.js": {
+      "originalSha256": "547d9202b0db4be3d8a4fd5266b136f750d3e015151d60e679df26ecf51da7fe",
+      "effectiveSha256": "547d9202b0db4be3d8a4fd5266b136f750d3e015151d60e679df26ecf51da7fe",
+      "observed": false
+    },
+    "provider/dist/capsule-query/geometry.js": {
+      "originalSha256": "4c9034c23c2137d54e4d2e1554b9015ff2cc6bc7776d62d8e1f3c8b905b67d04",
+      "effectiveSha256": "4c9034c23c2137d54e4d2e1554b9015ff2cc6bc7776d62d8e1f3c8b905b67d04",
+      "observed": false
+    },
+    "provider/dist/capsule-query/profile.js": {
+      "originalSha256": "acfab32b60a91c29bec4b89a803902aa9b944eb2ebb6cd0d129b60e039e13210",
+      "effectiveSha256": "acfab32b60a91c29bec4b89a803902aa9b944eb2ebb6cd0d129b60e039e13210",
+      "observed": false
+    },
+    "provider/dist/capsule-query/snapshot.js": {
+      "originalSha256": "5ee1b97dc58a872a9cd6c56121eca158ac5f746d543729e5f197b24d08f9d55f",
+      "effectiveSha256": "5ee1b97dc58a872a9cd6c56121eca158ac5f746d543729e5f197b24d08f9d55f",
+      "observed": false
+    },
+    "provider/dist/capsule-query/sweep.js": {
+      "originalSha256": "f04e6a548504cad0bb838862f7813225592c9549fb0233e026bc6276f7b4929e",
+      "effectiveSha256": "f04e6a548504cad0bb838862f7813225592c9549fb0233e026bc6276f7b4929e",
+      "observed": false
+    },
+    "provider/dist/capsule-query/types.js": {
+      "originalSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "effectiveSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "observed": false
+    },
+    "provider/dist/ccd-box.js": {
+      "originalSha256": "28dc449fe8f07f1d95245017299e64d3fc350fd7982819c93565999130290595",
+      "effectiveSha256": "28dc449fe8f07f1d95245017299e64d3fc350fd7982819c93565999130290595",
+      "observed": false
+    },
+    "provider/dist/ccd-pair.js": {
+      "originalSha256": "6c89cf6f2fc9e9eeb3f83959be8ef23ed614cba42e91e48cb0e4706777234fd2",
+      "effectiveSha256": "6c89cf6f2fc9e9eeb3f83959be8ef23ed614cba42e91e48cb0e4706777234fd2",
+      "observed": false
+    },
+    "provider/dist/ccd-slab.js": {
+      "originalSha256": "cf85c1dce1ebaa899cc2fc9eead7b0c25f7096caeb3a652476beb93c5f02843f",
+      "effectiveSha256": "cf85c1dce1ebaa899cc2fc9eead7b0c25f7096caeb3a652476beb93c5f02843f",
+      "observed": false
+    },
+    "provider/dist/ccd.js": {
+      "originalSha256": "c2c54c3dedf0df98c8888107457dbd87041eb7f52b8f689484b18abdfbc5b54a",
+      "effectiveSha256": "c2c54c3dedf0df98c8888107457dbd87041eb7f52b8f689484b18abdfbc5b54a",
+      "observed": false
+    },
+    "provider/dist/character-controller.js": {
+      "originalSha256": "7a68a578b18b42e02dcacba24011b41208fa9af3b5c1b6991dd8efbae29d75b8",
+      "effectiveSha256": "7a68a578b18b42e02dcacba24011b41208fa9af3b5c1b6991dd8efbae29d75b8",
+      "observed": false
+    },
+    "provider/dist/character/admission.js": {
+      "originalSha256": "07cf9fb6af74299fce3e8fba82ca65871ea7e0cc67e4e73c837606be9f30e43c",
+      "effectiveSha256": "07cf9fb6af74299fce3e8fba82ca65871ea7e0cc67e4e73c837606be9f30e43c",
+      "observed": false
+    },
+    "provider/dist/character/core.js": {
+      "originalSha256": "80a53992b06c75c9216a671c52bad2f3a01b6192bbd6002458ecfe077c3a4eb4",
+      "effectiveSha256": "80a53992b06c75c9216a671c52bad2f3a01b6192bbd6002458ecfe077c3a4eb4",
+      "observed": false
+    },
+    "provider/dist/character/ground.js": {
+      "originalSha256": "96298ab6534e5e9e7f3da6b0850bbbb7acd73ac11534f6047617ac2bdcd2eb16",
+      "effectiveSha256": "96298ab6534e5e9e7f3da6b0850bbbb7acd73ac11534f6047617ac2bdcd2eb16",
+      "observed": false
+    },
+    "provider/dist/character/math.js": {
+      "originalSha256": "1afbd07dcb7940e9808e9017d665d781b5e7442bebc290c8327d0d4fb7a79174",
+      "effectiveSha256": "1afbd07dcb7940e9808e9017d665d781b5e7442bebc290c8327d0d4fb7a79174",
+      "observed": false
+    },
+    "provider/dist/character/profile.js": {
+      "originalSha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82",
+      "effectiveSha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82",
+      "observed": false
+    },
+    "provider/dist/character/query.js": {
+      "originalSha256": "3b22d2772d3724bdb3974f1d88f5298054e577286a9f73aa67e62684efca1184",
+      "effectiveSha256": "3b22d2772d3724bdb3974f1d88f5298054e577286a9f73aa67e62684efca1184",
+      "observed": false
+    },
+    "provider/dist/character/slide.js": {
+      "originalSha256": "10c7d825c4640a7837a0b69885bb422ea5a343c921430675c11955acafce3c57",
+      "effectiveSha256": "10c7d825c4640a7837a0b69885bb422ea5a343c921430675c11955acafce3c57",
+      "observed": false
+    },
+    "provider/dist/character/state.js": {
+      "originalSha256": "1600bb81b883944f36c687305bcb5f7134dbf6c0751e92d9206b03622eaf9633",
+      "effectiveSha256": "1600bb81b883944f36c687305bcb5f7134dbf6c0751e92d9206b03622eaf9633",
+      "observed": false
+    },
+    "provider/dist/character/step-assist.js": {
+      "originalSha256": "aacc69468b9db7a62a14fbb2628a4494cab01a82640c682ad72f098fcbe7c8e5",
+      "effectiveSha256": "aacc69468b9db7a62a14fbb2628a4494cab01a82640c682ad72f098fcbe7c8e5",
+      "observed": false
+    },
+    "provider/dist/character/types.js": {
+      "originalSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "effectiveSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "observed": false
+    },
+    "provider/dist/cloth.js": {
+      "originalSha256": "9952183db070274b3a8db0f99cc589bdd31729eeaefc70f4ee6d05253a318960",
+      "effectiveSha256": "9952183db070274b3a8db0f99cc589bdd31729eeaefc70f4ee6d05253a318960",
+      "observed": false
+    },
+    "provider/dist/cloth/admission.js": {
+      "originalSha256": "8d1837695f375cdd4a1a2b7eecdc08d386b2f973dcd9c1343791ba14aece8e87",
+      "effectiveSha256": "8d1837695f375cdd4a1a2b7eecdc08d386b2f973dcd9c1343791ba14aece8e87",
+      "observed": false
+    },
+    "provider/dist/cloth/constraints.js": {
+      "originalSha256": "6e2e0b09734222a87abdefd745540e3ff5f4f24414cfae51f85c1b96d15225d7",
+      "effectiveSha256": "329543918362376ea2fc5eb0ce17f36117836c16fe4ca8cb7966c91b4f3d8463",
+      "observed": true
+    },
+    "provider/dist/cloth/metrics.js": {
+      "originalSha256": "78e03ac4e69c35a7be6a614e4d7aedff4e4390d64c103a28543c0f6ee056eb27",
+      "effectiveSha256": "e68e61e3ca483238f383740ec47b2233e6d686ca9ae04ce97a03826b4e61b4fd",
+      "observed": true
+    },
+    "provider/dist/cloth/profile.js": {
+      "originalSha256": "0dc385cac798bcfde6ad9cf479b8c51cf55bfc42b478370534ccb2de1e66f807",
+      "effectiveSha256": "0dc385cac798bcfde6ad9cf479b8c51cf55bfc42b478370534ccb2de1e66f807",
+      "observed": false
+    },
+    "provider/dist/cloth/solver.js": {
+      "originalSha256": "1f7178354cc026a41996d32502ac54d888ddf83f6b955059bb43f45cc6d9453b",
+      "effectiveSha256": "3f4ebf7eb553a045f4729385cc780c1cf56bcc9c7dd0a058c83de18be16405f4",
+      "observed": true
+    },
+    "provider/dist/cloth/topology.js": {
+      "originalSha256": "403cf1b19b85a3a6dd177ae8bb130b19895670e679452533df22dce26d558050",
+      "effectiveSha256": "eb8ee1fb55d6e53541e4358065af719a4a6673a682620b91deeb5c82d757b6ed",
+      "observed": true
+    },
+    "provider/dist/cloth/types.js": {
+      "originalSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "effectiveSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "observed": false
+    },
+    "provider/dist/cloth/world.js": {
+      "originalSha256": "c5e64d36a869e3ee689d949741ad15a1cfe8e2c78d538d8c3f0b6e7cd034caaa",
+      "effectiveSha256": "c5e64d36a869e3ee689d949741ad15a1cfe8e2c78d538d8c3f0b6e7cd034caaa",
+      "observed": false
+    },
+    "provider/dist/collision.js": {
+      "originalSha256": "404bbb24c4552828f8bd943481a15b11af7d93333c5651c4c8f8cae88e3dd28a",
+      "effectiveSha256": "404bbb24c4552828f8bd943481a15b11af7d93333c5651c4c8f8cae88e3dd28a",
+      "observed": false
+    },
+    "provider/dist/contact-manifold.js": {
+      "originalSha256": "52fcb4accfbfd3251aa977f519983c7334f0d1663bfb2424ca82bfaaec1c8fae",
+      "effectiveSha256": "52fcb4accfbfd3251aa977f519983c7334f0d1663bfb2424ca82bfaaec1c8fae",
+      "observed": false
+    },
+    "provider/dist/disjoint-hinge/admission.js": {
+      "originalSha256": "4a72dbe445a74c4d1e7081e07a27c9c3cab46d823d0ab9568781a1ac54ffc587",
+      "effectiveSha256": "4a72dbe445a74c4d1e7081e07a27c9c3cab46d823d0ab9568781a1ac54ffc587",
+      "observed": false
+    },
+    "provider/dist/disjoint-hinge/errors.js": {
+      "originalSha256": "9195a428dd9c96e0344b8eeb1eb7c66a7197a8e152b85d5fb5aed5038256d173",
+      "effectiveSha256": "9195a428dd9c96e0344b8eeb1eb7c66a7197a8e152b85d5fb5aed5038256d173",
+      "observed": false
+    },
+    "provider/dist/disjoint-hinge/linear-solver.js": {
+      "originalSha256": "123d3abb62b3a9f4f5ce3807463f070194e2d528f5cec841da5e623ee6b52e8e",
+      "effectiveSha256": "123d3abb62b3a9f4f5ce3807463f070194e2d528f5cec841da5e623ee6b52e8e",
+      "observed": false
+    },
+    "provider/dist/disjoint-hinge/measure.js": {
+      "originalSha256": "e576367851b0ea5ba37e9684e867aa28ae51cb6a585ad2c40f479341dc5f95f8",
+      "effectiveSha256": "e576367851b0ea5ba37e9684e867aa28ae51cb6a585ad2c40f479341dc5f95f8",
+      "observed": false
+    },
+    "provider/dist/disjoint-hinge/pose.js": {
+      "originalSha256": "ee53440b0433e7be5b1f00027aca708bb567da46f9edd193de0bab2a282c02b9",
+      "effectiveSha256": "ee53440b0433e7be5b1f00027aca708bb567da46f9edd193de0bab2a282c02b9",
+      "observed": false
+    },
+    "provider/dist/disjoint-hinge/postcontact.js": {
+      "originalSha256": "32a4a1907a4540a550e67cee03a2817d9519d77a53212b160d018c2f484b2e1a",
+      "effectiveSha256": "32a4a1907a4540a550e67cee03a2817d9519d77a53212b160d018c2f484b2e1a",
+      "observed": false
+    },
+    "provider/dist/disjoint-hinge/projection.js": {
+      "originalSha256": "30e04425020bff49e75c02f1d7abf15f82fe375dd1e07a0938a4a69aa03d159a",
+      "effectiveSha256": "30e04425020bff49e75c02f1d7abf15f82fe375dd1e07a0938a4a69aa03d159a",
+      "observed": false
+    },
+    "provider/dist/disjoint-hinge/report.js": {
+      "originalSha256": "7ee0b7d17e70247ce4c2dff953593e82091efabdd2932e0f4272931c69843a2f",
+      "effectiveSha256": "7ee0b7d17e70247ce4c2dff953593e82091efabdd2932e0f4272931c69843a2f",
+      "observed": false
+    },
+    "provider/dist/disjoint-hinge/rows.js": {
+      "originalSha256": "e19d8d9c3ef835e98f796b3dc9b5785473e8aaef41af34d77c49200b446d3f55",
+      "effectiveSha256": "e19d8d9c3ef835e98f796b3dc9b5785473e8aaef41af34d77c49200b446d3f55",
+      "observed": false
+    },
+    "provider/dist/disjoint-hinge/stage.js": {
+      "originalSha256": "bfa6d3528889d89da9d355a4bed753ed7287fd5979735f1158c7c009de94cafd",
+      "effectiveSha256": "bfa6d3528889d89da9d355a4bed753ed7287fd5979735f1158c7c009de94cafd",
+      "observed": false
+    },
+    "provider/dist/disjoint-hinge/types.js": {
+      "originalSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "effectiveSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "observed": false
+    },
+    "provider/dist/domain/cloth.js": {
+      "originalSha256": "a97392c690610d642eb7b6282385e362ee4ebe7b661319d3b70ea48fa95b6205",
+      "effectiveSha256": "f9920f502ca8caffd4a8c6b5711e7a65937f9183752890062df5c30950045cd1",
+      "observed": true
+    },
+    "provider/dist/domain/fluid.js": {
+      "originalSha256": "c0ce5f1f97b1d19b2f6fa2bc892b5bc5bed445c3e1c56d5f4a1cd97c2ecd456f",
+      "effectiveSha256": "5d56436b9c09f8c959bc5449b1d879e5ee4a681c7f8fc1e0c94744ad2490dd7f",
+      "observed": true
+    },
+    "provider/dist/domain/types.js": {
+      "originalSha256": "76eb7d0fc14a3ba6897ba0d649beeaba4a28172b2458782b64029af6ef5f6666",
+      "effectiveSha256": "76eb7d0fc14a3ba6897ba0d649beeaba4a28172b2458782b64029af6ef5f6666",
+      "observed": false
+    },
+    "provider/dist/dynamic-anchor-pair.js": {
+      "originalSha256": "8e20e96a9a3c803f65d78dfa21aaf530744b2c37e4f3507fd87e828190c800be",
+      "effectiveSha256": "8e20e96a9a3c803f65d78dfa21aaf530744b2c37e4f3507fd87e828190c800be",
+      "observed": false
+    },
+    "provider/dist/dynamic-fixed-joint.js": {
+      "originalSha256": "c637c4b13cdf432103202f895e50fae7e05c88920cf0889a67f2c16e565bfb5a",
+      "effectiveSha256": "c637c4b13cdf432103202f895e50fae7e05c88920cf0889a67f2c16e565bfb5a",
+      "observed": false
+    },
+    "provider/dist/dynamic-hinge-joint.js": {
+      "originalSha256": "8780a6887f0c7cbec6ec2f059b2ada64d0e28d0224279d7ada42e4b79e84baac",
+      "effectiveSha256": "8780a6887f0c7cbec6ec2f059b2ada64d0e28d0224279d7ada42e4b79e84baac",
+      "observed": false
+    },
+    "provider/dist/fluid-cad.js": {
+      "originalSha256": "de55c9a5902562e3a52dcf59ee6a9d0575ebf91ec008fb8354c1640d224f2dc8",
+      "effectiveSha256": "de55c9a5902562e3a52dcf59ee6a9d0575ebf91ec008fb8354c1640d224f2dc8",
+      "observed": false
+    },
+    "provider/dist/fluid.js": {
+      "originalSha256": "bb20b7d945c005c508b1c7fad4de60743be20a26758adf634112ced218d136fa",
+      "effectiveSha256": "bb20b7d945c005c508b1c7fad4de60743be20a26758adf634112ced218d136fa",
+      "observed": false
+    },
+    "provider/dist/fluid/boundary.js": {
+      "originalSha256": "0411aee849b18145f75e2a602a23aab5b5e6a644bc44a47cc2944ab532d0ea18",
+      "effectiveSha256": "38c7adf6dccd2591c641b37fe309fbb1fbcef68a8fcd35ec745669e754155b23",
+      "observed": true
+    },
+    "provider/dist/fluid/cad-admission.js": {
+      "originalSha256": "511a888250188935146b1b3542aa3afb4b39907c04199e23aadfb165896d9c67",
+      "effectiveSha256": "511a888250188935146b1b3542aa3afb4b39907c04199e23aadfb165896d9c67",
+      "observed": false
+    },
+    "provider/dist/fluid/cad-errors.js": {
+      "originalSha256": "28eb00a5b8d0aba227910d7c0fc93655f92d399c4b64e6effe5aac24a75b0680",
+      "effectiveSha256": "28eb00a5b8d0aba227910d7c0fc93655f92d399c4b64e6effe5aac24a75b0680",
+      "observed": false
+    },
+    "provider/dist/fluid/cad-types.js": {
+      "originalSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "effectiveSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "observed": false
+    },
+    "provider/dist/fluid/cad-world.js": {
+      "originalSha256": "de3c70767df904eb4ea00b90d0755ab686a6dcc2eded6edc4c2b72ec1406a9f8",
+      "effectiveSha256": "de3c70767df904eb4ea00b90d0755ab686a6dcc2eded6edc4c2b72ec1406a9f8",
+      "observed": false
+    },
+    "provider/dist/fluid/constants.js": {
+      "originalSha256": "48cb2507298e158c9d711a3a08e36a521ccab101a26b55217d00247a9b844072",
+      "effectiveSha256": "48cb2507298e158c9d711a3a08e36a521ccab101a26b55217d00247a9b844072",
+      "observed": false
+    },
+    "provider/dist/fluid/diagnostics.js": {
+      "originalSha256": "b87d7b27266ca4b014d4b84b24b57216b12d4b0345088282b6ecd5270fa46c29",
+      "effectiveSha256": "a0bdc90352178a047683ace7df27d84cf4a03153739bc93fc70374919128fd09",
+      "observed": true
+    },
+    "provider/dist/fluid/kernel.js": {
+      "originalSha256": "264a62a2ed0aeee0c77bd5ba44a60a6d0522654ecc8f07117174c6fe328c123b",
+      "effectiveSha256": "520b1414eba9b102c92c3ba3bbc9b1f3490c688ce867ad50580caf37910a06da",
+      "observed": true
+    },
+    "provider/dist/fluid/neighbors.js": {
+      "originalSha256": "e857766d44372269a19fb83d4bdeeabbc1816b9792230e6a9aac8cf1ea6249e5",
+      "effectiveSha256": "e857766d44372269a19fb83d4bdeeabbc1816b9792230e6a9aac8cf1ea6249e5",
+      "observed": false
+    },
+    "provider/dist/fluid/pbf.js": {
+      "originalSha256": "93ba3d6c2db8aee07c7307d74300888b9e48279279f6f060e157ea08b847241d",
+      "effectiveSha256": "7f7b03268a5a18e3ae25baa961c7d54f0ce98f9d609dccdfd692cf60f0ac6942",
+      "observed": true
+    },
+    "provider/dist/fluid/static-box.js": {
+      "originalSha256": "120ee59f2212e86846bce3a73425b493d2bc98971dc230419a394a1235196b7c",
+      "effectiveSha256": "e1173532ccb6c6a3a9bbafa41097b120947043504b1e66827e24e48587af651e",
+      "observed": true
+    },
+    "provider/dist/fluid/types.js": {
+      "originalSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "effectiveSha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+      "observed": false
+    },
+    "provider/dist/fluid/validation.js": {
+      "originalSha256": "66993795c3eba7e53214c5b3bc6f77ae2293c7ab3c35be77efbada996bce01a9",
+      "effectiveSha256": "66993795c3eba7e53214c5b3bc6f77ae2293c7ab3c35be77efbada996bce01a9",
+      "observed": false
+    },
+    "provider/dist/fluid/visual-viscosity.js": {
+      "originalSha256": "0d01bcbd68f126c9d8954b46afe523f6e7f879f129817f40fc9300c297041205",
+      "effectiveSha256": "512423735c5d1e5290bfe940f50d1d6386acfe665cb0e72949a853329fc7ed49",
+      "observed": true
+    },
+    "provider/dist/fluid/world.js": {
+      "originalSha256": "a84e6b31b065e77a26f7a70c9c162da56293854a4605ecbdf2d3639a867e172d",
+      "effectiveSha256": "a84e6b31b065e77a26f7a70c9c162da56293854a4605ecbdf2d3639a867e172d",
+      "observed": false
+    },
+    "provider/dist/identity.js": {
+      "originalSha256": "7f7243fcc617a32f77d517d029cb90bd99584f518ece49a7d7a4e35ae54d7791",
+      "effectiveSha256": "5eacd4badc641dce784928edf1357f693226ab7c4701b854905157e5a1aa0ef8",
+      "observed": true
+    },
+    "provider/dist/index.js": {
+      "originalSha256": "560813197ed96657e44ebd195ea1be17cf3aff51aa0bc08ec9fb1622057db2e1",
+      "effectiveSha256": "560813197ed96657e44ebd195ea1be17cf3aff51aa0bc08ec9fb1622057db2e1",
+      "observed": false
+    },
+    "provider/dist/internal-types.js": {
+      "originalSha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e",
+      "effectiveSha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e",
+      "observed": false
+    },
+    "provider/dist/joint-motor.js": {
+      "originalSha256": "43010c0e319717622727666e1e23f7288fdf500f1731f6fd52a443f36055c724",
+      "effectiveSha256": "43010c0e319717622727666e1e23f7288fdf500f1731f6fd52a443f36055c724",
+      "observed": false
+    },
+    "provider/dist/joints.js": {
+      "originalSha256": "f2893b2f8684f338a8d4832b9fa91c356fd360bf70ebf423062e21911d433ce0",
+      "effectiveSha256": "f2893b2f8684f338a8d4832b9fa91c356fd360bf70ebf423062e21911d433ce0",
+      "observed": false
+    },
+    "provider/dist/limits.js": {
+      "originalSha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219",
+      "effectiveSha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219",
+      "observed": false
+    },
+    "provider/dist/math.js": {
+      "originalSha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028",
+      "effectiveSha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028",
+      "observed": false
+    },
+    "provider/dist/model-admission.js": {
+      "originalSha256": "09bc5db1cffd5a2fd1289d4e1df1be0408c32aea74041437001e9d240593a82a",
+      "effectiveSha256": "09bc5db1cffd5a2fd1289d4e1df1be0408c32aea74041437001e9d240593a82a",
+      "observed": false
+    },
+    "provider/dist/persistent-box-contact.js": {
+      "originalSha256": "c45006197178d3a50cd4bbc6b038e286ceadf230e3e459f86882ffc29a96d861",
+      "effectiveSha256": "c45006197178d3a50cd4bbc6b038e286ceadf230e3e459f86882ffc29a96d861",
+      "observed": false
+    },
+    "provider/dist/provider-manifest.generated.js": {
+      "originalSha256": "13e4cc10630248c4c9167bf7b193e47d5496d40860b837c8e739a7adfa630d94",
+      "effectiveSha256": "13e4cc10630248c4c9167bf7b193e47d5496d40860b837c8e739a7adfa630d94",
+      "observed": false
+    },
+    "provider/dist/recording-owner.js": {
+      "originalSha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521",
+      "effectiveSha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521",
+      "observed": false
+    },
+    "provider/dist/replay-compare.js": {
+      "originalSha256": "46e92b237a3b74725e1f973bc195f3fb3c7d182ea4978f5092608706d1400875",
+      "effectiveSha256": "46e92b237a3b74725e1f973bc195f3fb3c7d182ea4978f5092608706d1400875",
+      "observed": false
+    },
+    "provider/dist/replay-json.js": {
+      "originalSha256": "742249b1dd48de51d76dcf266dce19b2f85da400c5bc2b1043543d43c5593d0f",
+      "effectiveSha256": "742249b1dd48de51d76dcf266dce19b2f85da400c5bc2b1043543d43c5593d0f",
+      "observed": false
+    },
+    "provider/dist/replay-validation.js": {
+      "originalSha256": "cbf265559a7c480a2b9aa4f64cb945b3fd046959d653e7d54fba16281898c980",
+      "effectiveSha256": "cbf265559a7c480a2b9aa4f64cb945b3fd046959d653e7d54fba16281898c980",
+      "observed": false
+    },
+    "provider/dist/replay.js": {
+      "originalSha256": "859089183eebe1e59ca94cba483ea521863bfe999a55e5e3708526b31ecde394",
+      "effectiveSha256": "859089183eebe1e59ca94cba483ea521863bfe999a55e5e3708526b31ecde394",
+      "observed": false
+    },
+    "provider/dist/scene-profile.js": {
+      "originalSha256": "7a1198598bfaf64647f9ed89d76cb4f1035bd77e602d8b8c0b8a7914911b6e9f",
+      "effectiveSha256": "7a1198598bfaf64647f9ed89d76cb4f1035bd77e602d8b8c0b8a7914911b6e9f",
+      "observed": false
+    },
+    "provider/dist/sleep.js": {
+      "originalSha256": "681f3820fb08a61cd7f367b049f9b7bb3d2eb1a4e8f81975aec014fdefdb8250",
+      "effectiveSha256": "681f3820fb08a61cd7f367b049f9b7bb3d2eb1a4e8f81975aec014fdefdb8250",
+      "observed": false
+    },
+    "provider/dist/types.js": {
+      "originalSha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b",
+      "effectiveSha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b",
+      "observed": false
+    },
+    "provider/dist/validation.js": {
+      "originalSha256": "dd5873f30ed65451e5b3abe72ab140e1b4aa2de0b5c75db6b86722a5145b5ec6",
+      "effectiveSha256": "dd5873f30ed65451e5b3abe72ab140e1b4aa2de0b5c75db6b86722a5145b5ec6",
+      "observed": false
+    },
+    "provider/dist/world.js": {
+      "originalSha256": "65d3f773845a0f9e5ba29f99a4a0400237c8e225965be41f03285b2acb0abcf4",
+      "effectiveSha256": "65d3f773845a0f9e5ba29f99a4a0400237c8e225965be41f03285b2acb0abcf4",
+      "observed": false
+    }
+  },
+  "actualClosure": [
+    "provider/dist/cloth/constraints.js",
+    "provider/dist/cloth/metrics.js",
+    "provider/dist/cloth/profile.js",
+    "provider/dist/cloth/solver.js",
+    "provider/dist/cloth/topology.js",
+    "provider/dist/domain/cloth.js",
+    "provider/dist/domain/fluid.js",
+    "provider/dist/domain/types.js",
+    "provider/dist/fluid/boundary.js",
+    "provider/dist/fluid/constants.js",
+    "provider/dist/fluid/diagnostics.js",
+    "provider/dist/fluid/kernel.js",
+    "provider/dist/fluid/neighbors.js",
+    "provider/dist/fluid/pbf.js",
+    "provider/dist/fluid/static-box.js",
+    "provider/dist/fluid/visual-viscosity.js",
+    "provider/dist/identity.js",
+    "provider/dist/types.js"
+  ]
+}

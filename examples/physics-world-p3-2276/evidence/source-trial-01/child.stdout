@@ -1,0 +1,1 @@
+{"runId":"source-trial-01","graph":"sourceObserved","status":"PASS","counts":{"constructors":1,"attempts":1200,"accepted":1200,"qualified":1200,"getters":1,"references":0,"cleanupAttempts":1,"cleanupCompleted":1},"firstFailure":null}

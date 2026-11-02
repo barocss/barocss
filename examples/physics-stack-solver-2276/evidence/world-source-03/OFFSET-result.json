@@ -1,0 +1,173 @@
+{
+  "scene": "OFFSET",
+  "attemptedSteps": 1,
+  "worldAcceptedSteps": 1,
+  "independentlyAcceptedSteps": 0,
+  "normalSolves": 1,
+  "maxQr": 7,
+  "maxOuter": 7,
+  "maxima": {
+    "closingNormalSpeedMps": 5.367026518441012e-16,
+    "negativeNormalImpulseNs": 0,
+    "complementarityJ": 1.5356404625889343e-16,
+    "loadedTangentSpeedMps": 2.8992514802678454e-16,
+    "reportedVelocityErrorMps": 1.3183898417423734e-16,
+    "reportedAngularVelocityErrorRadps": 9.992007221626409e-16,
+    "reportedResidualError": 5.181386269667407e-16,
+    "impulseWorkErrorJ": 3.469446951953614e-18
+  },
+  "failure": {
+    "kind": "independent-contact-geometry",
+    "step": 1,
+    "violations": [
+      {
+        "pointIndex": 0,
+        "pointId": "face:b0:1:1:b1:1:-1:0",
+        "check": "lineIntersectsBoth"
+      },
+      {
+        "pointIndex": 0,
+        "pointId": "face:b0:1:1:b1:1:-1:0",
+        "check": "lineMidpointWithinTolerance"
+      },
+      {
+        "pointIndex": 1,
+        "pointId": "face:b0:1:1:b1:1:-1:1",
+        "check": "lineIntersectsBoth"
+      },
+      {
+        "pointIndex": 1,
+        "pointId": "face:b0:1:1:b1:1:-1:1",
+        "check": "lineMidpointWithinTolerance"
+      },
+      {
+        "pointIndex": 8,
+        "pointId": "face:b1:1:1:b2:1:-1:0",
+        "check": "lineIntersectsBoth"
+      },
+      {
+        "pointIndex": 8,
+        "pointId": "face:b1:1:1:b2:1:-1:0",
+        "check": "lineMidpointWithinTolerance"
+      },
+      {
+        "pointIndex": 9,
+        "pointId": "face:b1:1:1:b2:1:-1:1",
+        "check": "lineIntersectsBoth"
+      },
+      {
+        "pointIndex": 9,
+        "pointId": "face:b1:1:1:b2:1:-1:1",
+        "check": "lineMidpointWithinTolerance"
+      },
+      {
+        "pointIndex": 12,
+        "pointId": "face:b2:1:1:b3:1:-1:0",
+        "check": "lineIntersectsBoth"
+      },
+      {
+        "pointIndex": 12,
+        "pointId": "face:b2:1:1:b3:1:-1:0",
+        "check": "lineMidpointWithinTolerance"
+      },
+      {
+        "pointIndex": 13,
+        "pointId": "face:b2:1:1:b3:1:-1:1",
+        "check": "lineIntersectsBoth"
+      },
+      {
+        "pointIndex": 13,
+        "pointId": "face:b2:1:1:b3:1:-1:1",
+        "check": "lineMidpointWithinTolerance"
+      },
+      {
+        "pointIndex": 16,
+        "pointId": "face:b3:1:1:b4:1:-1:0",
+        "check": "lineIntersectsBoth"
+      },
+      {
+        "pointIndex": 16,
+        "pointId": "face:b3:1:1:b4:1:-1:0",
+        "check": "lineMidpointWithinTolerance"
+      },
+      {
+        "pointIndex": 17,
+        "pointId": "face:b3:1:1:b4:1:-1:1",
+        "check": "lineIntersectsBoth"
+      },
+      {
+        "pointIndex": 17,
+        "pointId": "face:b3:1:1:b4:1:-1:1",
+        "check": "lineMidpointWithinTolerance"
+      },
+      {
+        "pointIndex": 20,
+        "pointId": "face:b4:1:1:b5:1:-1:0",
+        "check": "lineIntersectsBoth"
+      },
+      {
+        "pointIndex": 20,
+        "pointId": "face:b4:1:1:b5:1:-1:0",
+        "check": "lineMidpointWithinTolerance"
+      },
+      {
+        "pointIndex": 21,
+        "pointId": "face:b4:1:1:b5:1:-1:1",
+        "check": "lineIntersectsBoth"
+      },
+      {
+        "pointIndex": 21,
+        "pointId": "face:b4:1:1:b5:1:-1:1",
+        "check": "lineMidpointWithinTolerance"
+      },
+      {
+        "pointIndex": 24,
+        "pointId": "face:b5:1:1:b6:1:-1:0",
+        "check": "lineIntersectsBoth"
+      },
+      {
+        "pointIndex": 24,
+        "pointId": "face:b5:1:1:b6:1:-1:0",
+        "check": "lineMidpointWithinTolerance"
+      },
+      {
+        "pointIndex": 25,
+        "pointId": "face:b5:1:1:b6:1:-1:1",
+        "check": "lineIntersectsBoth"
+      },
+      {
+        "pointIndex": 25,
+        "pointId": "face:b5:1:1:b6:1:-1:1",
+        "check": "lineMidpointWithinTolerance"
+      },
+      {
+        "pointIndex": 28,
+        "pointId": "face:b6:1:1:b7:1:-1:0",
+        "check": "lineIntersectsBoth"
+      },
+      {
+        "pointIndex": 28,
+        "pointId": "face:b6:1:1:b7:1:-1:0",
+        "check": "lineMidpointWithinTolerance"
+      },
+      {
+        "pointIndex": 29,
+        "pointId": "face:b6:1:1:b7:1:-1:1",
+        "check": "lineIntersectsBoth"
+      },
+      {
+        "pointIndex": 29,
+        "pointId": "face:b6:1:1:b7:1:-1:1",
+        "check": "lineMidpointWithinTolerance"
+      }
+    ]
+  },
+  "privateTrajectoryGO": false,
+  "evidence": {
+    "records": 2,
+    "compressedBytes": 23774,
+    "decodedRecordSha256": "e613eb54ee91734fa20a03c9e05f6d847ffc63f897fc145d709dc585b20f6f9b",
+    "rawBytes": 8424,
+    "rawSha256": "6a22ebe2cc0ea930956624ce4751e516f79dff2ad09f217b3447ae739b2694f6"
+  }
+}

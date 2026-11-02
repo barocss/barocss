@@ -1,4 +1,4 @@
-import type { Body, PhysicsCcdHit, Vec3 } from './types.js';
+import type { Body, PhysicsCcdHit, Vec3 } from './internal-types.js';
 import type { AdmittedCommands } from './validation.js';
 import { add, scale, sub } from './math.js';
 import { sweepBox } from './ccd-slab.js';

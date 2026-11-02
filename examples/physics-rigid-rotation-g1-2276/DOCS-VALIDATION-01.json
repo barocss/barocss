@@ -1,0 +1,39 @@
+{
+  "status": "UPDATED_G1_BASELINE_ROADMAP_SITE_PASS",
+  "checks": [
+    {
+      "path": "examples/physics-world-p5-2276/evidence/g1-roadmap-docs-structure-05/result.json",
+      "bytes": 3010,
+      "sha256": "9a7a9878eab16fbd7e334fbe4367c9599dab2a1ab5ba6422c6f7ea03e2fb5ec0"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/g1-roadmap-docs-build-04/result.json",
+      "bytes": 3030,
+      "sha256": "cacc8eb30eb313f3fa40483a1743055cf33a4854f9fe9f720773275d275179fe"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/g1-roadmap-docs-links-04/result.json",
+      "bytes": 2991,
+      "sha256": "de82457e216890a36cce3b9f032aeb28b536ed33aecf9cc6ef11cd9de9276964"
+    }
+  ],
+  "firstFailure": {
+    "path": "examples/physics-world-p5-2276/evidence/g1-roadmap-docs-structure-04/result.json",
+    "bytes": 3180,
+    "sha256": "c0d9df21c307bae11aee90d2a7adabac22766789b7afac157889bbd29d29085d"
+  },
+  "firstFailureCause": "Parent selected repository cwd instead of apps/library-docs; MODULE_NOT_FOUND before checker execution. Original failure retained. Corrected cwd in fresh structure05; build04 and links04 had not run before that failure. No numerical rerun.",
+  "files": [
+    {
+      "path": "packages/barocss-physics/ROADMAP.md",
+      "bytes": 54175,
+      "sha256": "474a0b0a458e90aeacac13342e6a4c40f51e8541e0e917de1f987eb3cb51994b"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt",
+      "bytes": 54175,
+      "sha256": "474a0b0a458e90aeacac13342e6a4c40f51e8541e0e917de1f987eb3cb51994b"
+    }
+  ],
+  "scope": "Local structure/build/selected rendered-link validation; no deploy or network checks."
+}

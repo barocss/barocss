@@ -1,0 +1,551 @@
+{
+  "status": "AUTHENTICATED_T02_SOURCE_COMPLETE",
+  "originSummary": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/summary.json",
+    "bytes": 10482,
+    "sha256": "f93b0d54c29ce214562c9a91b6502b54c2d00c94274c5947f389cade67b2a7be"
+  },
+  "sourceGraph": {
+    "status": "PASS_TRAJECTORY_GRAPH",
+    "constantCalls": 3,
+    "cases": [
+      {
+        "caseId": "T01-dt60",
+        "status": "PASS_CASE",
+        "accepted": 6
+      },
+      {
+        "caseId": "T02-dt120",
+        "status": "PASS_CASE",
+        "accepted": 12
+      },
+      {
+        "caseId": "T03-dt240",
+        "status": "PASS_CASE",
+        "accepted": 24
+      },
+      {
+        "caseId": "P01-principal-x",
+        "status": "PASS_CASE",
+        "accepted": 1
+      },
+      {
+        "caseId": "P02-principal-y",
+        "status": "PASS_CASE",
+        "accepted": 1
+      },
+      {
+        "caseId": "P03-principal-z",
+        "status": "PASS_CASE",
+        "accepted": 1
+      },
+      {
+        "caseId": "Z01-zero",
+        "status": "PASS_CASE",
+        "accepted": 1
+      },
+      {
+        "caseId": "Q01-negative-q-off-axis",
+        "status": "PASS_CASE",
+        "accepted": 1
+      }
+    ],
+    "g1Counts": {
+      "dispatch": 53,
+      "prepare": 53,
+      "null": 0,
+      "eligible": 0,
+      "zero": 0,
+      "nonzero": 0,
+      "validate": 53,
+      "inheritedAdvanceOrientation": 3,
+      "sharedSin": 3,
+      "sharedCos": 3,
+      "bodySin": 0,
+      "bodyCos": 0,
+      "F01Site": 50,
+      "F02Site": 49,
+      "F03Site": 48,
+      "faultThrows": 3,
+      "guardReplacements": 3,
+      "attachments": 8,
+      "releases": 8,
+      "cacheReads": 18
+    },
+    "triaxialCounts": {
+      "coefficientPow": 3,
+      "prepare": 53,
+      "triaxial": 53,
+      "zero": 1,
+      "principal": 3,
+      "general": 49,
+      "initialMomentum": 49,
+      "midpoint": 1323,
+      "newtonCondition": 5292,
+      "linearSolve": 5292,
+      "pivot": 15876,
+      "newtonUpdate": 5292,
+      "midpointResidual": 1323,
+      "stageComplete": 1323,
+      "generalReturn": 49,
+      "linearResidualFailure": 0
+    },
+    "counts": {
+      "newPairVariants": 0,
+      "savedRawPairReuse": 0,
+      "variantScalarConversions": 0,
+      "commandScalarConversions": 0,
+      "guardScalarConversions": 0,
+      "constructorAttempts": 8,
+      "constructorReturns": 8,
+      "getStateAttempts": 18,
+      "getStateReturns": 18,
+      "stepAttempts": 57,
+      "acceptedSteps": 47,
+      "disposeAttempts": 8,
+      "disposeReturns": 8,
+      "privateInertiaCacheObservations": 18,
+      "commandRefusals": 4,
+      "unknownFaults": 3,
+      "postFlowGuards": 3,
+      "candidateConstantRootCalls": 0,
+      "knownCandidateConstantRootCalls": 0,
+      "generalFlowTraces": 49,
+      "traceRecords": 29155,
+      "traceF64Words": 139552,
+      "referenceSpawns": 0,
+      "referenceRequestAttempts": 55,
+      "referenceRequestsWritten": 55,
+      "referenceRepliesReceived": 55,
+      "referenceAuditsReceived": 55,
+      "buildChildren": 0,
+      "identityDigestDataCalls": 0,
+      "query": 0,
+      "getModel": 0,
+      "recorder": 0
+    }
+  },
+  "lastSourceReply": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/reply-0056.json",
+    "bytes": 1424,
+    "sha256": "ee3626018540e222ca0d2ed1dd80943e39ee88c256841d50ca5811e7c12e19ad"
+  },
+  "sourceFrames": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/source-states.jsonl",
+    "bytes": 70583,
+    "sha256": "e864688dfa878d3c8204abbab84208941d2d60c6f271dee978c0fd641d0c5bf0"
+  },
+  "sourceTrace": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/source-trace.jsonl",
+    "bytes": 2777935,
+    "sha256": "b0a833b30dd45df92c5870ce2e353f47eef33db6da5dfb9a401c3ca9c7390335"
+  },
+  "sourceCoefficients": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/source-coefficients.json",
+    "bytes": 1220,
+    "sha256": "743a15db76e79fd35f7b12f33fb1a8435aa73be630eceb4586d55f3f4dbf5f11"
+  },
+  "sourceAuditProofs": [
+    {
+      "ordinal": 1,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0001.json",
+      "bytes": 7030,
+      "sha256": "1c5ffcbcccf94f9cbb3fe1dfe4903fc24a802a94240c6504e26b1cc8e76f3e4b"
+    },
+    {
+      "ordinal": 2,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0002.json",
+      "bytes": 13148,
+      "sha256": "4d297f22dab616530d2fa135292614ee54a735aef4367305065d0227898f0070"
+    },
+    {
+      "ordinal": 3,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0003.json",
+      "bytes": 13072,
+      "sha256": "0bcff8a13e7a6c1228c40d3c1b610fa155ad86cdc52cd56c042fd3cdc96b90e3"
+    },
+    {
+      "ordinal": 4,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0004.json",
+      "bytes": 13076,
+      "sha256": "6921cda17db3f9806b7f5bd9763741481620307568ddf793eb5c0a42be74b176"
+    },
+    {
+      "ordinal": 5,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0005.json",
+      "bytes": 12871,
+      "sha256": "3a3c349b68d88b356c3cbe80124ea46ec7536b27229352b8ecd9fd8d389cd2ff"
+    },
+    {
+      "ordinal": 6,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0006.json",
+      "bytes": 13036,
+      "sha256": "08b9abbfee31a30acf4a9b236d03914a926ce7b4af286234fd63e8221a0589cc"
+    },
+    {
+      "ordinal": 7,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0007.json",
+      "bytes": 13028,
+      "sha256": "2a1662c065c7ecafdd100dcb8c89d006706750a6e485a895849da411dad09073"
+    },
+    {
+      "ordinal": 8,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0008.json",
+      "bytes": 7032,
+      "sha256": "e1ab9618edf15a195b6c22ca53856305a07b91afe13f1f26b671afe20b54c417"
+    },
+    {
+      "ordinal": 9,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0009.json",
+      "bytes": 13186,
+      "sha256": "d8dc556ead61b610e0ee26c7093d1e961e9b5b7da0b43202120fd43699a1c609"
+    },
+    {
+      "ordinal": 10,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0010.json",
+      "bytes": 13057,
+      "sha256": "1879e86bd51d6d581d840f1faf33c17adcd13336e934b359006e4a959c1de51b"
+    },
+    {
+      "ordinal": 11,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0011.json",
+      "bytes": 13129,
+      "sha256": "f88d8bdaf5b8921b5fd0fc1fc1d49bf4d18d37f4faa7cd53bd075e283e078fbf"
+    },
+    {
+      "ordinal": 12,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0012.json",
+      "bytes": 12928,
+      "sha256": "a6bee32eadc818b7f209a08d299499eff3afd4a95d2f89af6d43975287811349"
+    },
+    {
+      "ordinal": 13,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0013.json",
+      "bytes": 13070,
+      "sha256": "1a4fa244f97e121224cb4f1c6604a1b7b1458acc4a4308793e9b0d9ec102a956"
+    },
+    {
+      "ordinal": 14,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0014.json",
+      "bytes": 13037,
+      "sha256": "1ac75394953371ec41e6ba30b8191150d21d65b1fe5c8f70ed057c00ebf6384f"
+    },
+    {
+      "ordinal": 15,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0015.json",
+      "bytes": 13072,
+      "sha256": "88511ff70a82ca7f9f6ec8878240f42f933911aad006709808ab595f3c5e8c00"
+    },
+    {
+      "ordinal": 16,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0016.json",
+      "bytes": 13006,
+      "sha256": "be2004136233cfff77f835f799707c8870bd06804a5c3f5c4242f189ff8eb9e7"
+    },
+    {
+      "ordinal": 17,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0017.json",
+      "bytes": 12976,
+      "sha256": "4b0d3d6475ef5c9cf9d30c4423b49e8ee4d99e84232322abc0f9df163e5025ee"
+    },
+    {
+      "ordinal": 18,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0018.json",
+      "bytes": 13053,
+      "sha256": "b3830d07bd390cd32198f4316266f4fb0391c5d222cab6cf8cf11f74dbb2b5a7"
+    },
+    {
+      "ordinal": 19,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0019.json",
+      "bytes": 13040,
+      "sha256": "93e6c25e15cf4421f1f5c520a67f2a647ad1b74622d97bf646a54a483fa71b4b"
+    },
+    {
+      "ordinal": 20,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0020.json",
+      "bytes": 23473,
+      "sha256": "b49a9b6cb195b86c4efc6a9ed20342c06527778973f4bf39bd1b5ef1488c4c3a"
+    },
+    {
+      "ordinal": 21,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0021.json",
+      "bytes": 7032,
+      "sha256": "702804e7226af1adb3affe140c93c30dd3856b10ef253a8c8629c3cc1b155f86"
+    },
+    {
+      "ordinal": 22,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0022.json",
+      "bytes": 13115,
+      "sha256": "4fee6a63416ae0b766d85702bb663cd410516ed17704002d073c690f0b25bb96"
+    },
+    {
+      "ordinal": 23,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0023.json",
+      "bytes": 13183,
+      "sha256": "130bc1aa85b00a9752bfc30cbb7a572293d7b44022894747710edd434f6aad1e"
+    },
+    {
+      "ordinal": 24,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0024.json",
+      "bytes": 13222,
+      "sha256": "06a8e9e5e25d51d1878af41776c180d5249be0995143b92707dd19b5f54d8907"
+    },
+    {
+      "ordinal": 25,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0025.json",
+      "bytes": 13078,
+      "sha256": "5d8fd90a01d5feaef8173c9831e6569266c6c791d41af5ad835dc80aa6a3ad22"
+    },
+    {
+      "ordinal": 26,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0026.json",
+      "bytes": 13055,
+      "sha256": "a6d6180d0a67a0612010cfd2eacc6cd40042f91210198a43eda3478a92da7d02"
+    },
+    {
+      "ordinal": 27,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0027.json",
+      "bytes": 13152,
+      "sha256": "8e7cfcbc17f78289de156724128058bdac4be58ce847f8977012a108bd8b4142"
+    },
+    {
+      "ordinal": 28,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0028.json",
+      "bytes": 13079,
+      "sha256": "f25a271bc1512c686dc4e6ff742b7327c178b278aedbe96ce1d18a9a0483b349"
+    },
+    {
+      "ordinal": 29,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0029.json",
+      "bytes": 13013,
+      "sha256": "66930aba2696de9aa0ce66ed166e99a4160a949e33456423caf00dca444649c6"
+    },
+    {
+      "ordinal": 30,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0030.json",
+      "bytes": 12983,
+      "sha256": "44c4fa7fe4d74ff04f4a969ad28092d3a9e24f5c83cd430061ff3d9cc6d2ec11"
+    },
+    {
+      "ordinal": 31,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0031.json",
+      "bytes": 13052,
+      "sha256": "7d81b1337f24614b9e6b30cd1523c00878c6e6dedd72e7688d53993588598f37"
+    },
+    {
+      "ordinal": 32,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0032.json",
+      "bytes": 13023,
+      "sha256": "008ae9c604511d248d21484c4c3b1f003dd46928e9c986ef3fe021a88bfc0408"
+    },
+    {
+      "ordinal": 33,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0033.json",
+      "bytes": 13112,
+      "sha256": "1b63399d9f5ffdd6aeb42bdda4032420658dd60a9761356851231633ab1a0636"
+    },
+    {
+      "ordinal": 34,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0034.json",
+      "bytes": 13071,
+      "sha256": "8915b63c7cef054a145a3d118a1a5ce4e88ee96d65ec5650a75f7f71ee46273b"
+    },
+    {
+      "ordinal": 35,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0035.json",
+      "bytes": 12999,
+      "sha256": "bdbc404ff80aec4d1243772996a64b5c49b655aacdfb1e9fc29670975e0b595b"
+    },
+    {
+      "ordinal": 36,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0036.json",
+      "bytes": 13009,
+      "sha256": "b838389a8e5bfc50c3835680d0ea8fe4b134c40ebc1f84e5339185adcf822020"
+    },
+    {
+      "ordinal": 37,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0037.json",
+      "bytes": 13043,
+      "sha256": "e7042922e84f5bd103b4d06d753c6132aa414fff42f484a2fe45c2c6711073a2"
+    },
+    {
+      "ordinal": 38,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0038.json",
+      "bytes": 13027,
+      "sha256": "c47f7f756108aed33be48380bf2514ed8533e90046193d680e87e65596a40406"
+    },
+    {
+      "ordinal": 39,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0039.json",
+      "bytes": 13006,
+      "sha256": "25a9d35da9e8eb2e1770c02ef56a529fecbe91e3579e5b0ca2347a3d2f9a9e86"
+    },
+    {
+      "ordinal": 40,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0040.json",
+      "bytes": 12986,
+      "sha256": "d9cb1fd8c3ea4cda730a67ec6847ce2634070d739213a19961114e7b83ff6d03"
+    },
+    {
+      "ordinal": 41,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0041.json",
+      "bytes": 12988,
+      "sha256": "71d542059e6790bd3a52c0ac3f61e6b3df46ecc15e7530255c5cf97a69ec27ba"
+    },
+    {
+      "ordinal": 42,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0042.json",
+      "bytes": 13014,
+      "sha256": "7fc69d98280843aadc75ef37e6e53ad388946c9e3ebcbbd931d6c62e5cb88bac"
+    },
+    {
+      "ordinal": 43,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0043.json",
+      "bytes": 13005,
+      "sha256": "751c25e5e845a72668a43ac94c1f33ab9be16ef84f778f0e14514431b86ce1a3"
+    },
+    {
+      "ordinal": 44,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0044.json",
+      "bytes": 12992,
+      "sha256": "e68856b21f4097d17430c5acc26ccae702a7f61ecc6c509c2d99ffc5169f727c"
+    },
+    {
+      "ordinal": 45,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0045.json",
+      "bytes": 23441,
+      "sha256": "2dabb0a7b9be446b7cf4f7454c4a1dc872b816db762d409ce9aebadbd5722e60"
+    },
+    {
+      "ordinal": 46,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0046.json",
+      "bytes": 6524,
+      "sha256": "39da7c0216f67029e8d97c78df57c14561ef6c7b899ccd1dc0a04e1f959f96af"
+    },
+    {
+      "ordinal": 47,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0047.json",
+      "bytes": 8539,
+      "sha256": "63e8fa43492c02a8f2591f13a597a28d835a80b7e388cc8ef387fe0125fb92f2"
+    },
+    {
+      "ordinal": 48,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0048.json",
+      "bytes": 6540,
+      "sha256": "1fdacd77657b660d2e5c05c324c3673431b75e69bc79e1b1fd806f6d7250cbfb"
+    },
+    {
+      "ordinal": 49,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0049.json",
+      "bytes": 8625,
+      "sha256": "4ba55c690e24d8d5d6c2e42769ce9f8df16d5d59859aaa8ccf0ed888e20a28e6"
+    },
+    {
+      "ordinal": 50,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0050.json",
+      "bytes": 6532,
+      "sha256": "fc83c3f9d6ffeeaea6b3263919e3468b9749a292e79d3bbb98326a3b4ab0011a"
+    },
+    {
+      "ordinal": 51,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0051.json",
+      "bytes": 8613,
+      "sha256": "7f6ea3b48cc1109cbd0373ca6db03c085e643ef641d88a86790643fbc974f732"
+    },
+    {
+      "ordinal": 52,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0052.json",
+      "bytes": 6006,
+      "sha256": "c2dda4215066efd99146eb9edbe9623c554f9942d90fb19c90b80f7d373f0a3c"
+    },
+    {
+      "ordinal": 53,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0053.json",
+      "bytes": 6006,
+      "sha256": "2fce16916acdb9d34d406a6a875b4a3af5bdb0ae865be765efe77eb73a56f39f"
+    },
+    {
+      "ordinal": 54,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0054.json",
+      "bytes": 7060,
+      "sha256": "adfb1fa2525ad2254413db241fe00f4cbdf29f7c21188bd9bffeedfe1b6d4070"
+    },
+    {
+      "ordinal": 55,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0055.json",
+      "bytes": 13214,
+      "sha256": "b606feb17e8230a4a5f8fd4105ae8dbbef58b680e71f81178b79da3944c9301e"
+    }
+  ],
+  "inputs": [
+    {
+      "index": 0,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/input-0.json",
+      "bytes": 1877,
+      "sha256": "edf777a0c45a0849c4ec391de85e5fa0d5557c9e78c1407a07951f2c22a1ce71"
+    },
+    {
+      "index": 1,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/input-1.json",
+      "bytes": 1877,
+      "sha256": "ffa90f765d6b060b427607cdc5c447fed12efe3e55fe9f3ae4276f581914207b"
+    },
+    {
+      "index": 2,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/input-2.json",
+      "bytes": 1877,
+      "sha256": "26bee259ba4f37c4897cc3ac371beadfa8e2a37268f3c56b362c7785bf5faaf9"
+    },
+    {
+      "index": 3,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/input-3.json",
+      "bytes": 1877,
+      "sha256": "27e6bbec7671b7ed20cc259588b724b886d69c6a07c30ceaa593503ac3b35677"
+    },
+    {
+      "index": 4,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/input-4.json",
+      "bytes": 1877,
+      "sha256": "b4ebd23a0090615417385c00feb8bd6e8b16fbc8831feaef3d53a002a55ac303"
+    },
+    {
+      "index": 5,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/input-5.json",
+      "bytes": 1877,
+      "sha256": "4514c50165e9fcc27e5a6ed33f858088b25b150397b2873549deb2c21d77776d"
+    },
+    {
+      "index": 6,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/input-6.json",
+      "bytes": 1877,
+      "sha256": "9f781679aca6f5050882f6a91da0631dbb4dbcb11184686de085ba86de5bd81a"
+    },
+    {
+      "index": 7,
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/input-7.json",
+      "bytes": 1877,
+      "sha256": "8e3fe9d070422b055f9eb4828ee6e0930258b078c3c96c40f2dee4c2bae7e464"
+    }
+  ],
+  "sourceAlgorithmProvider": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/staged-providers.json",
+    "bytes": 210540,
+    "sha256": "5765e301315fe8381350d8d18402987477f5f63c1f5096fa4d3312e6ee099e14"
+  },
+  "sourceCompletion": "ActualT02Source55audits/all3grids/refinement/10failurecontrols/fullhelpers/ownership/8disposes PASSED beforeNative root. NoSourceWorld/module/physicsrerun required.",
+  "overallT02": "FAILED_LATER_NATIVE_REFERENCE_8192_ID_LIMIT; preserved as resourceNO_GO, not wholecampaignPASS.",
+  "actualNativePrefix": {
+    "T01-dt60": "PASS_CASE",
+    "T02-dt120": "PASS_CASE",
+    "T03-dt240": "PASS_CASE",
+    "P01-principal-x": "PASS_CASE",
+    "P02-principal-y": "FAIL"
+  },
+  "nativeUnresolved": "Remainingcontrols and final aggregatehelper/resourcegates requirefreshNative8Worldscope; nativeprefixcounterswerenotobservedatfinalgraph boundary.",
+  "actualExtractionCalls": {
+    "World": 0,
+    "referenceIntegration": 0,
+    "Decimal": 0,
+    "Fraction": 0
+  }
+}

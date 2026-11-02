@@ -1,4 +1,4 @@
-import type { Vec3, Quat } from '../types.js';
+import type { Vec3, Quat } from '../internal-types.js';
 import type { CapsuleQueryBoxV1 } from './types.js';
 import { RADIUS_M, HALF_LENGTH_M } from './profile.js';
 

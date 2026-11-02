@@ -1,19 +1,20 @@
+import {makeModel,dynamicPart,staticPart} from '../physics-model-input/model.mjs';
 /** #1572: actual fallback-inclusive applied impulse distribution.
  * Production World remains unchanged; observer uses exact test-only esbuild patch.
  * Delta-v of upper 1kg dynamic body yields applied vector impulse per pair block.
  */
 import {createPhysicsWorld} from '../../packages/barocss-physics/src/index.js';
-import type {PhysicsBodyConfig,PhysicsWorldConfig} from '../../packages/barocss-physics/src/types.js';
+
 type Mode='OFFSET'|'YAW';
 type Event={step:number,pass:number,pair:string,fallback:boolean,pointCount:number,
  pointM:[number,number,number],normal:[number,number,number],
  deltaBV:[number,number,number],deltaAV:[number,number,number],
  impulseNs:number,tangentImpulseNs:[number,number,number]};
 const dt=1/120,steps=1200;
-const floor:PhysicsBodyConfig={id:'floor',kind:'static',shape:{kind:'box',halfExtentsM:[2,.1,2]},positionM:[0,-.1,0],restitution:0,friction:{static:1,dynamic:.7}};
-function cube(i:number,mode:Mode):PhysicsBodyConfig{
+const floor=staticPart('floor',{kind:'box',halfExtentsM:[2,.1,2]},{positionM:[0,-.1,0]},{restitution:0,friction:{static:1,dynamic:.7}});
+function cube(i:number,mode:Mode){
  const yaw=mode==='YAW'?(i%2===0?.05:-.05):0;
- return {id:'b'+i,kind:'dynamic',shape:{kind:'box',halfExtentsM:[.25,.25,.25]},positionM:[(i%2)*.05,.25+i*.5,0],velocityMps:[0,0,0],massKg:1,orientation:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)],restitution:0,friction:{static:1,dynamic:.7}};
+ return dynamicPart('b'+i,{kind:'box',halfExtentsM:[.25,.25,.25]},{positionM:[(i%2)*.05,.25+i*.5,0],velocityMps:[0,0,0],orientationXYZW:[0,Math.sin(yaw/2),0,Math.cos(yaw/2)]},1,{restitution:0,friction:{static:1,dynamic:.7}});
 }
 const host=globalThis as typeof globalThis & {__p1572FallbackProbe?:(e:Event)=>void};
 for(const mode of ['OFFSET','YAW'] as const){
@@ -52,11 +53,10 @@ for(const mode of ['OFFSET','YAW'] as const){
       appliedImpulseNs:e.deltaBV,reportedNormalNs:e.impulseNs,
       producerPointM:e.pointM,pointCount:e.pointCount});
  };
- const world=createPhysicsWorld({fixedStepSeconds:dt,gravityMps2:[0,-9.81,0],
-   contactMode:'persistent-box-v1',bodies:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]});
+ const world=createPhysicsWorld(makeModel({gravityMps2:[0,-9.81,0],parts:[floor,cube(0,mode),cube(1,mode),cube(2,mode)]}),{profile:'rigid-persistent-box-v1',fixedStepSeconds:dt,broadPhase:'direct'});
  let accepted=0,firstFailure:string|null=null;
  try{for(let step=1;step<=steps;step++){
-  try{world.step(dt);accepted=step;}
+  try{world.step();accepted=step;}
   catch(err){firstFailure=err instanceof Error?err.message:String(err);break;}
  }}finally{world.dispose();delete host.__p1572FallbackProbe;}
  const result=Object.fromEntries([...stats].sort(([a],[b])=>a.localeCompare(b)).map(([key,s])=>

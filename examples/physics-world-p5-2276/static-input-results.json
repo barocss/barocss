@@ -1,0 +1,40 @@
+{
+  "workId": "physics-world-p5-2276",
+  "status": "parent_accepts_actual_native_static_operands",
+  "receipt": {
+    "path": "examples/physics-world-p5-2276/evidence/static-input-01/summary.json",
+    "bytes": 2269,
+    "sha256": "4190918359117b309675a45b7ec45f1e1b876133af079aaf42ccd654a8081633"
+  },
+  "counts": {
+    "admissionAttempts": 1,
+    "admissionReturns": 1,
+    "WorldCalls": 0,
+    "candidateCalls": 0
+  },
+  "effectiveShelf": {
+    "centerM": [
+      0.35,
+      0.2,
+      0.25
+    ],
+    "halfExtentsM": [
+      0.15,
+      0.01,
+      0.15
+    ],
+    "positionF64LE": [
+      "666666666666d63f",
+      "9a9999999999c93f",
+      "000000000000d03f"
+    ],
+    "halfExtentsF64LE": [
+      "333333333333c33f",
+      "7b14ae47e17a843f",
+      "333333333333c33f"
+    ]
+  },
+  "claims": "actual geometry operand provenance only; candidate count0, active contact not qualified",
+  "separateFromKernelCampaign": true,
+  "unchangedKernelRecipeNumericCounts": true
+}

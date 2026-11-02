@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "maps": [
+    ".",
+    "./cad-proxy",
+    "./replay"
+  ],
+  "obsoleteAbsent": [
+    "packages/barocss-physics/dist/cloth.js",
+    "packages/barocss-physics/dist/cloth.d.ts",
+    "packages/barocss-physics/dist/fluid.js",
+    "packages/barocss-physics/dist/fluid.d.ts",
+    "packages/barocss-physics/dist/fluid-cad.js",
+    "packages/barocss-physics/dist/fluid-cad.d.ts",
+    "packages/barocss-physics/dist/cloth/world.js",
+    "packages/barocss-physics/dist/cloth/world.d.ts",
+    "packages/barocss-physics/dist/cloth/admission.js",
+    "packages/barocss-physics/dist/cloth/admission.d.ts",
+    "packages/barocss-physics/dist/fluid/world.js",
+    "packages/barocss-physics/dist/fluid/world.d.ts",
+    "packages/barocss-physics/dist/fluid/validation.js",
+    "packages/barocss-physics/dist/fluid/validation.d.ts",
+    "packages/barocss-physics/dist/fluid/cad-world.js",
+    "packages/barocss-physics/dist/fluid/cad-world.d.ts",
+    "packages/barocss-physics/dist/fluid/cad-types.js",
+    "packages/barocss-physics/dist/fluid/cad-types.d.ts",
+    "packages/barocss-physics/dist/fluid/cad-errors.js",
+    "packages/barocss-physics/dist/fluid/cad-errors.d.ts",
+    "packages/barocss-physics/dist/fluid/cad-admission.js",
+    "packages/barocss-physics/dist/fluid/cad-admission.d.ts"
+  ]
+}

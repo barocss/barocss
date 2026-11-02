@@ -1,0 +1,34 @@
+{
+  "mode": "emitted",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "records": [
+    {
+      "name": "strict-emission",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/bin/tsc",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/candidate.ts",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/verification.ts",
+        "--target",
+        "ES2022",
+        "--module",
+        "ES2022",
+        "--moduleResolution",
+        "Bundler",
+        "--strict",
+        "--skipLibCheck",
+        "--declaration",
+        "--outDir",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/evidence/first-emitted-01/modules"
+      ],
+      "started": "2026-11-01T12:58:49.504Z",
+      "finished": "2026-11-01T12:58:50.361Z",
+      "exit": 2,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "0999090d5c6c6d9e2ddd9c76bf98bcfc95e1f257b7c37b375ec11c7b4b82353f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

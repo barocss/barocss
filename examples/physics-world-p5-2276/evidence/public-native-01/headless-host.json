@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "actualHostController": true,
+  "externalSubmitFailure": true,
+  "Worlds": 4,
+  "steps": 5,
+  "browser": "NOT_RUN"
+}

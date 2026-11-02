@@ -1,0 +1,1 @@
+{"result":"PASS","targetProfiles":7,"frozenEncodingVectors":7,"validationRequirements":19,"targetApiRuntime":"NOT_IMPLEMENTED","numericalTests":"NOT_RUN","publishedTypes":false}

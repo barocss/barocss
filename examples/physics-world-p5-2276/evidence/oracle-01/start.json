@@ -1,0 +1,19 @@
+{
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/oracle-generation.mjs",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/oracle-01",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/oracle-execution-freeze-01.json",
+    "0d6cfaf8e0f2779735c93e50364f5590bd599cbb3d175a39ec80da781b8e78f0",
+    "--authorized-oracle-child"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "freezePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/oracle-execution-freeze-01.json",
+  "freezeSha": "0d6cfaf8e0f2779735c93e50364f5590bd599cbb3d175a39ec80da781b8e78f0",
+  "startedAt": "2026-11-01T21:52:17.087Z",
+  "childMs": 180000,
+  "termMs": 1000,
+  "postKillMs": 2000,
+  "combinedLogCap": 4194304,
+  "evidenceCap": 67108864
+}

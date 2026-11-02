@@ -1,0 +1,107 @@
+[
+  {
+    "label": "native-types",
+    "command": [
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/bin/tsc",
+      "-p",
+      "tsconfig.json"
+    ],
+    "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/native-03/stage",
+    "exit": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "label": "native-negative-types",
+    "command": [
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/bin/tsc",
+      "-p",
+      "negative-tsconfig.json"
+    ],
+    "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/native-03/stage",
+    "exit": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "label": "native-runtime",
+    "command": [
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "compiled/native-consumer.mjs"
+    ],
+    "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/native-03/stage",
+    "exit": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "label": "cad-release-runtime",
+    "command": [
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "cad-release-consumer.mjs"
+    ],
+    "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/native-03/stage",
+    "exit": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "label": "readme-types",
+    "command": [
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/bin/tsc",
+      "-p",
+      "readme-tsconfig.json"
+    ],
+    "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/native-03/stage",
+    "exit": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "label": "readme-runtime-0",
+    "command": [
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "compiled-readme/readme-0.mjs"
+    ],
+    "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/native-03/stage",
+    "exit": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "label": "readme-runtime-1",
+    "command": [
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "compiled-readme/readme-1.mjs"
+    ],
+    "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/native-03/stage",
+    "exit": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "label": "readme-runtime-2",
+    "command": [
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "compiled-readme/readme-2.mjs"
+    ],
+    "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/native-03/stage",
+    "exit": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "label": "readme-runtime-3",
+    "command": [
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "compiled-readme/readme-3.mjs"
+    ],
+    "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p2-2276/evidence/native-03/stage",
+    "exit": 0,
+    "signal": null,
+    "error": null
+  }
+]

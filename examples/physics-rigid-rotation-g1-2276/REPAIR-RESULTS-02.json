@@ -1,0 +1,2219 @@
+{
+  "status": "PASS_STAGED_G1A_REPAIR_ONLY",
+  "runId": "g1a-repair-02",
+  "firstFailure": null,
+  "scope": {
+    "source": "STAGED_COMMON_WORLD_SOURCE",
+    "native": "STAGED_EMITTED_PUBLIC_ENTRY; genuine isolated NodeNext emitted dist/index.js",
+    "currentPublishedNative": "NOT_RUN",
+    "canonicalBuildRootBundle": "NOT_RUN",
+    "productionActivation": "NOT_RUN",
+    "equipmentValidation": "NOT_RUN",
+    "notQualified": [
+      "G1b triaxial/admitted-range resolution",
+      "contact/joint/mixed trajectory",
+      "successful torque-response trajectory",
+      "later-body failure",
+      "recorder/reconstruction integration",
+      "general rigid rotation accuracy or whole-roadmap completion"
+    ]
+  },
+  "authority": {
+    "path": "examples/physics-rigid-rotation-g1-2276/REPAIR-EXECUTION-FREEZE-02.json",
+    "bytes": 117407,
+    "sha256": "e9a8f911970893289d8b1b793a0583ba9fc69474cc4719c717bb573f374c9ce9"
+  },
+  "primaryArtifacts": {
+    "summary.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/summary.json",
+      "bytes": 13796,
+      "sha256": "a5de3e5a74b50404b9499744731cf15e2dfbeba1f60d873df76e55d80cb13e1d"
+    },
+    "reference-final.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference-final.json",
+      "bytes": 21551,
+      "sha256": "581d0645a4907d026be49f166bee3f0a0e6cb23903b188b9ff91d3a4cf49005f"
+    },
+    "reference/summary.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/summary.json",
+      "bytes": 16912,
+      "sha256": "b1dcfbf24f7894dbba51647b5aa695f647e39efd6def41a62db58bf81a633f42"
+    },
+    "reference/analytic-bank.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/analytic-bank.json",
+      "bytes": 174532,
+      "sha256": "d237da7777cb95ce1a1fc7d2e974a8da9262976f0137b35c7a385ab62fa0f99a"
+    },
+    "input-raw.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/input-raw.json",
+      "bytes": 51725,
+      "sha256": "c4f477062679febde74f01c178eaa4df5c105e9623f56c99ef237d72b18e978d"
+    },
+    "staged-providers.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/staged-providers.json",
+      "bytes": 193327,
+      "sha256": "725492dc388c159c8f3302b6c6ccb3c8bde596d7d7bfd07e65c90f1f6055d8db"
+    },
+    "source-frames.jsonl": {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/source-frames.jsonl",
+      "bytes": 1133767,
+      "sha256": "9e5188f8b5053ec4aaa87c02153a192158d30e73398448c5c07aa32289820f5c"
+    },
+    "native-frames.jsonl": {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/native-frames.jsonl",
+      "bytes": 1133767,
+      "sha256": "bcb2bd793089f5413e4c13dad4dda9f34ba4cc903e44df36296130aa86ce87ec"
+    },
+    "reference-requests.jsonl": {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference-requests.jsonl",
+      "bytes": 2338176,
+      "sha256": "7fa27afe60383878971da767859a596ad201d561a64902fb3a0b3899b32d06e9"
+    },
+    "reference-replies.jsonl": {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference-replies.jsonl",
+      "bytes": 1722024,
+      "sha256": "a38166e1d82d5bf4d4019b4e02103d684c7ddfaa4745b5c3f3461cabe507bab4"
+    },
+    "failure-controls.jsonl": {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/failure-controls.jsonl",
+      "bytes": 7306,
+      "sha256": "235b77da5770b3ed114e47caf96770e4d600c761d3aa7620f2265bab7312e4c7"
+    }
+  },
+  "outerGuard": {
+    "path": "examples/physics-world-p5-2276/evidence/g1a-repair-guard-02/result.json",
+    "bytes": 3275,
+    "sha256": "b2dd9fc2e0c98b57a3c93d7f20eea56ac9572e37470bae7a79fd9babe5d16c7d"
+  },
+  "inventory": {
+    "path": "examples/physics-rigid-rotation-g1-2276/REPAIR-INVENTORY-02.json",
+    "bytes": 379245,
+    "sha256": "6c81b320c4453a895331b3638d285d6e9cade8b802fab2c420667ce4126d6564"
+  },
+  "WorldActuals": {
+    "nativePairConversions": 10,
+    "nativePhysicalScalarConversions": 310,
+    "commandScalarConversions": 9,
+    "guardScalarConversions": 9,
+    "identityDigestDataCalls": 2,
+    "constructorAttempts": 20,
+    "constructorReturns": 20,
+    "stepAttempts": 1708,
+    "acceptedSteps": 1688,
+    "getStateAttempts": 40,
+    "getStateReturns": 40,
+    "disposeAttempts": 20,
+    "disposeReturns": 20,
+    "commandRefusals": 8,
+    "unknownFaults": 6,
+    "postFlowGuardRefusals": 6,
+    "referenceSpawns": 1,
+    "referenceRequestAttempts": 1710,
+    "referenceRequestsWritten": 1710,
+    "referenceRepliesReceived": 1711,
+    "referenceAuditsReceived": 1708,
+    "buildChildren": 4,
+    "query": 0,
+    "getModel": 0,
+    "recorder": 0
+  },
+  "perGraphActuals": {
+    "source": {
+      "status": "PASS_STAGED_GRAPH",
+      "counts": {
+        "nativePairConversions": 0,
+        "nativePhysicalScalarConversions": 0,
+        "commandScalarConversions": 0,
+        "guardScalarConversions": 0,
+        "identityDigestDataCalls": 0,
+        "constructorAttempts": 10,
+        "constructorReturns": 10,
+        "stepAttempts": 854,
+        "acceptedSteps": 844,
+        "getStateAttempts": 20,
+        "getStateReturns": 20,
+        "disposeAttempts": 10,
+        "disposeReturns": 10,
+        "commandRefusals": 4,
+        "unknownFaults": 3,
+        "postFlowGuardRefusals": 3,
+        "referenceSpawns": 0,
+        "referenceRequestAttempts": 854,
+        "referenceRequestsWritten": 854,
+        "referenceRepliesReceived": 854,
+        "referenceAuditsReceived": 854,
+        "buildChildren": 0,
+        "query": 0,
+        "getModel": 0,
+        "recorder": 0
+      },
+      "helperCounts": {
+        "dispatch": 850,
+        "prepare": 850,
+        "null": 420,
+        "eligible": 430,
+        "zero": 2,
+        "nonzero": 428,
+        "validate": 430,
+        "inheritedAdvanceOrientation": 848,
+        "sharedSin": 848,
+        "sharedCos": 848,
+        "bodySin": 428,
+        "bodyCos": 428,
+        "F01Site": 427,
+        "F02Site": 426,
+        "F03Site": 845,
+        "faultThrows": 3,
+        "guardReplacements": 3,
+        "attachments": 10,
+        "releases": 10,
+        "cacheReads": 11
+      }
+    },
+    "native": {
+      "status": "PASS_STAGED_GRAPH",
+      "counts": {
+        "nativePairConversions": 0,
+        "nativePhysicalScalarConversions": 0,
+        "commandScalarConversions": 0,
+        "guardScalarConversions": 0,
+        "identityDigestDataCalls": 0,
+        "constructorAttempts": 10,
+        "constructorReturns": 10,
+        "stepAttempts": 854,
+        "acceptedSteps": 844,
+        "getStateAttempts": 20,
+        "getStateReturns": 20,
+        "disposeAttempts": 10,
+        "disposeReturns": 10,
+        "commandRefusals": 4,
+        "unknownFaults": 3,
+        "postFlowGuardRefusals": 3,
+        "referenceSpawns": 0,
+        "referenceRequestAttempts": 854,
+        "referenceRequestsWritten": 854,
+        "referenceRepliesReceived": 854,
+        "referenceAuditsReceived": 854,
+        "buildChildren": 0,
+        "query": 0,
+        "getModel": 0,
+        "recorder": 0
+      },
+      "helperCounts": {
+        "dispatch": 850,
+        "prepare": 850,
+        "null": 420,
+        "eligible": 430,
+        "zero": 2,
+        "nonzero": 428,
+        "validate": 430,
+        "inheritedAdvanceOrientation": 848,
+        "sharedSin": 848,
+        "sharedCos": 848,
+        "bodySin": 428,
+        "bodyCos": 428,
+        "F01Site": 427,
+        "F02Site": 426,
+        "F03Site": 845,
+        "faultThrows": 3,
+        "guardReplacements": 3,
+        "attachments": 10,
+        "releases": 10,
+        "cacheReads": 11
+      }
+    }
+  },
+  "failureControls": {
+    "total": 20,
+    "perGraph": 10,
+    "commandRefusalsPerGraph": 4,
+    "unknownMarkerIdentityFaultsPerGraph": 3,
+    "postFlowNumericLimitRefusalsPerGraph": 3,
+    "noExtraRecoveryStep": true,
+    "cleanupErrors": []
+  },
+  "referenceActuals": {
+    "requestsAttempted": 1710,
+    "requestsReturned": 1710,
+    "bankInitializations": 1,
+    "bodyGeometryCertificatesAttempted": 2,
+    "bodyGeometryCertificatesReturned": 2,
+    "oneDimensionalMonomialMoments": 18,
+    "observedStateAuditsAttempted": 1708,
+    "observedStateAuditsReturned": 1708,
+    "properRationalRotationAttempts": 1708,
+    "properRationalRotationReturns": 1708,
+    "fractionScalarOperations": 603038,
+    "decimalOperations": 215016,
+    "sinCosEvaluations": 60,
+    "sqrtEvaluations": 24,
+    "taylorRecurrences": 7620,
+    "decimal80Evaluations": 10,
+    "decimal120Evaluations": 10,
+    "WorldCalls": 0,
+    "candidateCalls": 0,
+    "nativeFixtureConversions": 0,
+    "odeSolves": 0,
+    "linearSolves": 0
+  },
+  "referenceCountBoundary": {
+    "authoritativeFinalReturned": 1710,
+    "savedBeforeFinishReplyReturned": 1709,
+    "explanation": "Math/audits complete; counts before committing finish response; final packet gives durable returned count1710",
+    "requestsOnWire": 1710,
+    "replyLinesIncludingReady": 1711
+  },
+  "auditPopulation": {
+    "perGraph": {
+      "source": 854,
+      "native": 854
+    },
+    "total": 1708,
+    "savedCheckedComponentsTotal": 30744,
+    "initialStates": 20,
+    "acceptedStates": 1688
+  },
+  "conservationMaxima": {
+    "source": {
+      "angularMomentum": {
+        "absoluteResidual": {
+          "numerator": "700276205630198509955819842003137406331445741791512339148456266936100270593737792746392138267920865",
+          "denominator": "4925250774549308369077453094312498703201708049702531423943547104607133529000924774435075338927686491491004854566912"
+        },
+        "absoluteResidualDisplay": 1.4218082239564305e-16,
+        "savedSignedResidual": {
+          "numerator": "-700276205630198509955819842003137406331445741791512339148456266936100270593737792746392138267920865",
+          "denominator": "4925250774549308369077453094312498703201708049702531423943547104607133529000924774435075338927686491491004854566912"
+        },
+        "savedBound": {
+          "numerator": "1",
+          "denominator": "500000000000"
+        },
+        "boundDisplay": 2e-12,
+        "gateRatio": {
+          "numerator": "170965870515185183094682578614047218342638120554568442174916080794946355125424265807224643131816617431640625",
+          "denominator": "2404907604760404477088600143707274757422709008643814171847435109671451918457482800017126630335784419673342214144"
+        },
+        "gateRatioDisplay": 7.109041119782152e-05,
+        "unit": "kg m^2/s",
+        "location": {
+          "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0846.json",
+          "graph": "source",
+          "caseId": "T02-axisymmetric-off-axis-dt240",
+          "stepIndex": 240,
+          "component": 0
+        }
+      },
+      "rotationalEnergy": {
+        "absoluteResidual": {
+          "numerator": "13755602907043716467170912588791495957477671114014733383963068206075180584535860022765204979254940938270721032366581",
+          "denominator": "88725430211866047900210466572661940171230398391778552029642106767244019883265132163046364229362900543292721084936741857357786513408"
+        },
+        "absoluteResidualDisplay": 1.5503562929136472e-16,
+        "savedSignedResidual": {
+          "numerator": "-13755602907043716467170912588791495957477671114014733383963068206075180584535860022765204979254940938270721032366581",
+          "denominator": "88725430211866047900210466572661940171230398391778552029642106767244019883265132163046364229362900543292721084936741857357786513408"
+        },
+        "savedBound": {
+          "numerator": "1",
+          "denominator": "500000000000"
+        },
+        "boundDisplay": 2e-12,
+        "gateRatio": {
+          "numerator": "3358301490977469840617898581247923817743572049320003267569108448748823384896450200870411371888413315007500252042622314453125",
+          "denominator": "43322963970637718701274641881182587974233592964735621108223684944943369083625552813987482533868603780904648967254268485037981696"
+        },
+        "gateRatioDisplay": 7.751781464568236e-05,
+        "unit": "J",
+        "location": {
+          "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0846.json",
+          "graph": "source",
+          "caseId": "T02-axisymmetric-off-axis-dt240",
+          "stepIndex": 240
+        }
+      },
+      "quaternionSquaredNorm": {
+        "absoluteResidual": {
+          "numerator": "80644548782498389",
+          "denominator": "162259276829213363391578010288128"
+        },
+        "absoluteResidualDisplay": 4.970104043257947e-16,
+        "savedSignedResidual": {
+          "numerator": "-80644548782498389",
+          "denominator": "162259276829213363391578010288128"
+        },
+        "savedBound": {
+          "numerator": "1",
+          "denominator": "1000000000000"
+        },
+        "boundDisplay": 1e-12,
+        "gateRatio": {
+          "numerator": "19688610542602145751953125",
+          "denominator": "39614081257132168796771975168"
+        },
+        "gateRatioDisplay": 0.0004970104043257947,
+        "unit": "dimensionless",
+        "location": {
+          "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0584.json",
+          "graph": "source",
+          "caseId": "T02-axisymmetric-off-axis-dt120",
+          "stepIndex": 99
+        }
+      },
+      "maxLinearMomentum": {
+        "absoluteResidual": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "absoluteResidualDisplay": 0.0,
+        "savedSignedResidual": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "savedBound": {
+          "numerator": "1",
+          "denominator": "1000000000000"
+        },
+        "boundDisplay": 1e-12,
+        "gateRatio": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "gateRatioDisplay": 0.0,
+        "unit": "kg m/s",
+        "location": {
+          "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0001.json",
+          "graph": "source",
+          "caseId": "T01-isotropic-cube-dt60",
+          "stepIndex": 0
+        }
+      },
+      "maxComPosition": {
+        "absoluteResidual": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "absoluteResidualDisplay": 0.0,
+        "savedSignedResidual": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "savedBound": {
+          "numerator": "1",
+          "denominator": "1000000000000"
+        },
+        "boundDisplay": 1e-12,
+        "gateRatio": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "gateRatioDisplay": 0.0,
+        "unit": "m",
+        "location": {
+          "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0001.json",
+          "graph": "source",
+          "caseId": "T01-isotropic-cube-dt60",
+          "stepIndex": 0
+        }
+      }
+    },
+    "native": {
+      "angularMomentum": {
+        "absoluteResidual": {
+          "numerator": "700276205630198509955819842003137406331445741791512339148456266936100270593737792746392138267920865",
+          "denominator": "4925250774549308369077453094312498703201708049702531423943547104607133529000924774435075338927686491491004854566912"
+        },
+        "absoluteResidualDisplay": 1.4218082239564305e-16,
+        "savedSignedResidual": {
+          "numerator": "-700276205630198509955819842003137406331445741791512339148456266936100270593737792746392138267920865",
+          "denominator": "4925250774549308369077453094312498703201708049702531423943547104607133529000924774435075338927686491491004854566912"
+        },
+        "savedBound": {
+          "numerator": "1",
+          "denominator": "500000000000"
+        },
+        "boundDisplay": 2e-12,
+        "gateRatio": {
+          "numerator": "170965870515185183094682578614047218342638120554568442174916080794946355125424265807224643131816617431640625",
+          "denominator": "2404907604760404477088600143707274757422709008643814171847435109671451918457482800017126630335784419673342214144"
+        },
+        "gateRatioDisplay": 7.109041119782152e-05,
+        "unit": "kg m^2/s",
+        "location": {
+          "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1700.json",
+          "graph": "native",
+          "caseId": "T02-axisymmetric-off-axis-dt240",
+          "stepIndex": 240,
+          "component": 0
+        }
+      },
+      "rotationalEnergy": {
+        "absoluteResidual": {
+          "numerator": "13755602907043716467170912588791495957477671114014733383963068206075180584535860022765204979254940938270721032366581",
+          "denominator": "88725430211866047900210466572661940171230398391778552029642106767244019883265132163046364229362900543292721084936741857357786513408"
+        },
+        "absoluteResidualDisplay": 1.5503562929136472e-16,
+        "savedSignedResidual": {
+          "numerator": "-13755602907043716467170912588791495957477671114014733383963068206075180584535860022765204979254940938270721032366581",
+          "denominator": "88725430211866047900210466572661940171230398391778552029642106767244019883265132163046364229362900543292721084936741857357786513408"
+        },
+        "savedBound": {
+          "numerator": "1",
+          "denominator": "500000000000"
+        },
+        "boundDisplay": 2e-12,
+        "gateRatio": {
+          "numerator": "3358301490977469840617898581247923817743572049320003267569108448748823384896450200870411371888413315007500252042622314453125",
+          "denominator": "43322963970637718701274641881182587974233592964735621108223684944943369083625552813987482533868603780904648967254268485037981696"
+        },
+        "gateRatioDisplay": 7.751781464568236e-05,
+        "unit": "J",
+        "location": {
+          "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1700.json",
+          "graph": "native",
+          "caseId": "T02-axisymmetric-off-axis-dt240",
+          "stepIndex": 240
+        }
+      },
+      "quaternionSquaredNorm": {
+        "absoluteResidual": {
+          "numerator": "80644548782498389",
+          "denominator": "162259276829213363391578010288128"
+        },
+        "absoluteResidualDisplay": 4.970104043257947e-16,
+        "savedSignedResidual": {
+          "numerator": "-80644548782498389",
+          "denominator": "162259276829213363391578010288128"
+        },
+        "savedBound": {
+          "numerator": "1",
+          "denominator": "1000000000000"
+        },
+        "boundDisplay": 1e-12,
+        "gateRatio": {
+          "numerator": "19688610542602145751953125",
+          "denominator": "39614081257132168796771975168"
+        },
+        "gateRatioDisplay": 0.0004970104043257947,
+        "unit": "dimensionless",
+        "location": {
+          "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1438.json",
+          "graph": "native",
+          "caseId": "T02-axisymmetric-off-axis-dt120",
+          "stepIndex": 99
+        }
+      },
+      "maxLinearMomentum": {
+        "absoluteResidual": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "absoluteResidualDisplay": 0.0,
+        "savedSignedResidual": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "savedBound": {
+          "numerator": "1",
+          "denominator": "1000000000000"
+        },
+        "boundDisplay": 1e-12,
+        "gateRatio": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "gateRatioDisplay": 0.0,
+        "unit": "kg m/s",
+        "location": {
+          "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0855.json",
+          "graph": "native",
+          "caseId": "T01-isotropic-cube-dt60",
+          "stepIndex": 0
+        }
+      },
+      "maxComPosition": {
+        "absoluteResidual": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "absoluteResidualDisplay": 0.0,
+        "savedSignedResidual": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "savedBound": {
+          "numerator": "1",
+          "denominator": "1000000000000"
+        },
+        "boundDisplay": 1e-12,
+        "gateRatio": {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        "gateRatioDisplay": 0.0,
+        "unit": "m",
+        "location": {
+          "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0855.json",
+          "graph": "native",
+          "caseId": "T01-isotropic-cube-dt60",
+          "stepIndex": 0
+        }
+      }
+    }
+  },
+  "conservationGates": {
+    "angularMomentumAndEnergy": "e+e*max(1,abs(initial),abs(after)), e=1e-12; saved exact bound at each displayed maximum retained",
+    "quaternionSquaredNorm": "abs(q dot q-1)<=1e-12",
+    "COMAndLinear": "absolute component<=1e-12 in m and kg m/s respectively",
+    "zeroSigns": "Fraction does not establish computed-zero signs; raw state words are retained separately."
+  },
+  "trajectoryMaxima": {
+    "source": {
+      "R": {
+        "maximumSavedComponentError": {
+          "numerator": "480317812685943375778301209213896120674469971400373170472654358005060443369065445124954680060738586361312108095629487082473162464925106323",
+          "denominator": "129807421463370670518925490548694100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "display": 3.700233833097752e-15,
+        "unit": "dimensionless",
+        "location": {
+          "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0846.json",
+          "graph": "source",
+          "caseId": "T02-axisymmetric-off-axis-dt240",
+          "stepIndex": 240
+        },
+        "ratioToAbsoluteGateFloor": {
+          "numerator": "480317812685943375778301209213896120674469971400373170472654358005060443369065445124954680060738586361312108095629487082473162464925106323",
+          "denominator": "1298074214633706705189254905486941000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "ratioToAbsoluteGateFloorDisplay": 0.0003700233833097751
+      },
+      "omega": {
+        "maximumSavedComponentError": {
+          "numerator": "11298518869235094038552528687125117953089816334698451229028116373207980737266050210750064016142495742027",
+          "denominator": "1250000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "display": 9.038815095388075e-15,
+        "unit": "rad/s",
+        "location": {
+          "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0846.json",
+          "graph": "source",
+          "caseId": "T02-axisymmetric-off-axis-dt240",
+          "stepIndex": 240
+        },
+        "ratioToAbsoluteGateFloor": {
+          "numerator": "11298518869235094038552528687125117953089816334698451229028116373207980737266050210750064016142495742027",
+          "denominator": "12500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "ratioToAbsoluteGateFloorDisplay": 0.0009038815095388076
+      },
+      "q": {
+        "maximumSavedComponentError": {
+          "numerator": "988101036733133965592153265461075235512467779223105897865483907485085886454220700468604195477965718905487",
+          "denominator": "500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "display": 1.976202073466268e-15,
+        "unit": "dimensionless",
+        "location": {
+          "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0846.json",
+          "graph": "source",
+          "caseId": "T02-axisymmetric-off-axis-dt240",
+          "stepIndex": 240
+        },
+        "ratioToAbsoluteGateFloor": {
+          "numerator": "988101036733133965592153265461075235512467779223105897865483907485085886454220700468604195477965718905487",
+          "denominator": "5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "ratioToAbsoluteGateFloorDisplay": 0.0001976202073466268
+      }
+    },
+    "native": {
+      "R": {
+        "maximumSavedComponentError": {
+          "numerator": "480317812685943375778301209213896120674469971400373170472654358005060443369065445124954680060738586361312108095629487082473162464925106323",
+          "denominator": "129807421463370670518925490548694100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "display": 3.700233833097752e-15,
+        "unit": "dimensionless",
+        "location": {
+          "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1700.json",
+          "graph": "native",
+          "caseId": "T02-axisymmetric-off-axis-dt240",
+          "stepIndex": 240
+        },
+        "ratioToAbsoluteGateFloor": {
+          "numerator": "480317812685943375778301209213896120674469971400373170472654358005060443369065445124954680060738586361312108095629487082473162464925106323",
+          "denominator": "1298074214633706705189254905486941000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "ratioToAbsoluteGateFloorDisplay": 0.0003700233833097751
+      },
+      "omega": {
+        "maximumSavedComponentError": {
+          "numerator": "11298518869235094038552528687125117953089816334698451229028116373207980737266050210750064016142495742027",
+          "denominator": "1250000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "display": 9.038815095388075e-15,
+        "unit": "rad/s",
+        "location": {
+          "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1700.json",
+          "graph": "native",
+          "caseId": "T02-axisymmetric-off-axis-dt240",
+          "stepIndex": 240
+        },
+        "ratioToAbsoluteGateFloor": {
+          "numerator": "11298518869235094038552528687125117953089816334698451229028116373207980737266050210750064016142495742027",
+          "denominator": "12500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "ratioToAbsoluteGateFloorDisplay": 0.0009038815095388076
+      },
+      "q": {
+        "maximumSavedComponentError": {
+          "numerator": "988101036733133965592153265461075235512467779223105897865483907485085886454220700468604195477965718905487",
+          "denominator": "500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "display": 1.976202073466268e-15,
+        "unit": "dimensionless",
+        "location": {
+          "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1700.json",
+          "graph": "native",
+          "caseId": "T02-axisymmetric-off-axis-dt240",
+          "stepIndex": 240
+        },
+        "ratioToAbsoluteGateFloor": {
+          "numerator": "988101036733133965592153265461075235512467779223105897865483907485085886454220700468604195477965718905487",
+          "denominator": "5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "ratioToAbsoluteGateFloorDisplay": 0.0001976202073466268
+      }
+    }
+  },
+  "trajectoryByCase": [
+    {
+      "graph": "source",
+      "caseId": "T01-isotropic-cube-dt60",
+      "auditCount": 61,
+      "initialStates": 1,
+      "acceptedStates": 60,
+      "maxStepIndex": 60,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "6538072884150193739823406060326180686557527785079148740188735311589429492168651478749433029793053494061194341452473667244812114328897237",
+            "denominator": "16225927682921340220146562149051800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 4.0293985107747437e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0046.json",
+            "graph": "source",
+            "caseId": "T01-isotropic-cube-dt60",
+            "stepIndex": 45
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "6538072884150193739823406060326180686557527785079148740188735311589429492168651478749433029793053494061194341452473667244812114328897237",
+            "denominator": "162259276829213402201465621490518000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 4.029398510774744e-05
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0001.json",
+            "graph": "source",
+            "caseId": "T01-isotropic-cube-dt60",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "183596345591122453904822048169642049596660214689346546392617696739918399096315622816217733106872641415401",
+            "denominator": "1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 1.8359634559112245e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0046.json",
+            "graph": "source",
+            "caseId": "T01-isotropic-cube-dt60",
+            "stepIndex": 45
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "183596345591122453904822048169642049596660214689346546392617696739918399096315622816217733106872641415401",
+            "denominator": "10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 1.8359634559112245e-05
+        }
+      }
+    },
+    {
+      "graph": "source",
+      "caseId": "T01-isotropic-cube-dt120",
+      "auditCount": 121,
+      "initialStates": 1,
+      "acceptedStates": 120,
+      "maxStepIndex": 120,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "224277382223584810726946270114277759025821673910457901716892543561156416884440458498478820174552131768266426953652030498973725694541403239",
+            "denominator": "162259276829213287196011704645177000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 1.382216084074188e-15,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0182.json",
+            "graph": "source",
+            "caseId": "T01-isotropic-cube-dt120",
+            "stepIndex": 120
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "224277382223584810726946270114277759025821673910457901716892543561156416884440458498478820174552131768266426953652030498973725694541403239",
+            "denominator": "1622592768292132871960117046451770000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0001382216084074188
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0062.json",
+            "graph": "source",
+            "caseId": "T01-isotropic-cube-dt120",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "126606446625342018262468934673024746706181172927544458604711600654498541887314437825478026964056861492801",
+            "denominator": "200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 6.330322331267101e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0182.json",
+            "graph": "source",
+            "caseId": "T01-isotropic-cube-dt120",
+            "stepIndex": 120
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "126606446625342018262468934673024746706181172927544458604711600654498541887314437825478026964056861492801",
+            "denominator": "2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 6.330322331267101e-05
+        }
+      }
+    },
+    {
+      "graph": "source",
+      "caseId": "T01-isotropic-cube-dt240",
+      "auditCount": 241,
+      "initialStates": 1,
+      "acceptedStates": 240,
+      "maxStepIndex": 240,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "20571020835426080423934511540515497431988612701806401910655579679773980387056999738513365509118072558845789866578398691813199442119996957",
+            "denominator": "16225927682921332942722486243859800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 1.2677870404339464e-15,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0363.json",
+            "graph": "source",
+            "caseId": "T01-isotropic-cube-dt240",
+            "stepIndex": 180
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "20571020835426080423934511540515497431988612701806401910655579679773980387056999738513365509118072558845789866578398691813199442119996957",
+            "denominator": "162259276829213329427224862438598000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.00012677870404339465
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0183.json",
+            "graph": "source",
+            "caseId": "T01-isotropic-cube-dt240",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "45769936050120455283820912912497331029440779302489599370701935278502749352239243293868753521918719160329",
+            "denominator": "100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 4.576993605012046e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0363.json",
+            "graph": "source",
+            "caseId": "T01-isotropic-cube-dt240",
+            "stepIndex": 180
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "45769936050120455283820912912497331029440779302489599370701935278502749352239243293868753521918719160329",
+            "denominator": "1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 4.576993605012045e-05
+        }
+      }
+    },
+    {
+      "graph": "source",
+      "caseId": "T02-axisymmetric-off-axis-dt60",
+      "auditCount": 61,
+      "initialStates": 1,
+      "acceptedStates": 60,
+      "maxStepIndex": 60,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "1115277480834629358499956266433251030624255982054208874776622417251934172129547098794443850115407985107224941567511272970289009763821931477",
+            "denominator": "1298074214633707063194895564036409000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 8.591785186560696e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0469.json",
+            "graph": "source",
+            "caseId": "T02-axisymmetric-off-axis-dt60",
+            "stepIndex": 45
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "1115277480834629358499956266433251030624255982054208874776622417251934172129547098794443850115407985107224941567511272970289009763821931477",
+            "denominator": "12980742146337070631948955640364090000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 8.591785186560696e-05
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "1584067403764974309845751591330440218714816334698451229028116373207980737266050210750064016142495742027",
+            "denominator": "1250000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 1.2672539230119795e-15,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0484.json",
+            "graph": "source",
+            "caseId": "T02-axisymmetric-off-axis-dt60",
+            "stepIndex": 60
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "1584067403764974309845751591330440218714816334698451229028116373207980737266050210750064016142495742027",
+            "denominator": "12500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.00012672539230119793
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "27356094978530267097552451501322773088984802940499845526029229921196664339378865706683452845138328571769",
+            "denominator": "50000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 5.471218995706053e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0469.json",
+            "graph": "source",
+            "caseId": "T02-axisymmetric-off-axis-dt60",
+            "stepIndex": 45
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "27356094978530267097552451501322773088984802940499845526029229921196664339378865706683452845138328571769",
+            "denominator": "500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 5.471218995706053e-05
+        }
+      }
+    },
+    {
+      "graph": "source",
+      "caseId": "T02-axisymmetric-off-axis-dt120",
+      "auditCount": 121,
+      "initialStates": 1,
+      "acceptedStates": 120,
+      "maxStepIndex": 120,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "887761121495689391331344580878334753704360775805154340218465634218163606351683530352762458259114607980712760117362861066806429554256026289",
+            "denominator": "1298074214633706896491353755411013000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 6.839062909405372e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0575.json",
+            "graph": "source",
+            "caseId": "T02-axisymmetric-off-axis-dt120",
+            "stepIndex": 90
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "887761121495689391331344580878334753704360775805154340218465634218163606351683530352762458259114607980712760117362861066806429554256026289",
+            "denominator": "12980742146337068964913537554110130000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 6.839062909405373e-05
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "4359624965327865660904830761557490999964816334698451229028116373207980737266050210750064016142495742027",
+            "denominator": "1250000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 3.4876999722622924e-15,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0605.json",
+            "graph": "source",
+            "caseId": "T02-axisymmetric-off-axis-dt120",
+            "stepIndex": 120
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "4359624965327865660904830761557490999964816334698451229028116373207980737266050210750064016142495742027",
+            "denominator": "12500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.00034876999722622924
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "16253864732278701693316134820414569963984802940499845526029229921196664339378865706683452845138328571769",
+            "denominator": "50000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 3.2507729464557406e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0575.json",
+            "graph": "source",
+            "caseId": "T02-axisymmetric-off-axis-dt120",
+            "stepIndex": 90
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "16253864732278701693316134820414569963984802940499845526029229921196664339378865706683452845138328571769",
+            "denominator": "500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 3.25077294645574e-05
+        }
+      }
+    },
+    {
+      "graph": "source",
+      "caseId": "T02-axisymmetric-off-axis-dt240",
+      "auditCount": 241,
+      "initialStates": 1,
+      "acceptedStates": 240,
+      "maxStepIndex": 240,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "480317812685943375778301209213896120674469971400373170472654358005060443369065445124954680060738586361312108095629487082473162464925106323",
+            "denominator": "129807421463370670518925490548694100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 3.700233833097752e-15,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0846.json",
+            "graph": "source",
+            "caseId": "T02-axisymmetric-off-axis-dt240",
+            "stepIndex": 240
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "480317812685943375778301209213896120674469971400373170472654358005060443369065445124954680060738586361312108095629487082473162464925106323",
+            "denominator": "1298074214633706705189254905486941000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0003700233833097751
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "11298518869235094038552528687125117953089816334698451229028116373207980737266050210750064016142495742027",
+            "denominator": "1250000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 9.038815095388075e-15,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0846.json",
+            "graph": "source",
+            "caseId": "T02-axisymmetric-off-axis-dt240",
+            "stepIndex": 240
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "11298518869235094038552528687125117953089816334698451229028116373207980737266050210750064016142495742027",
+            "denominator": "12500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0009038815095388076
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "988101036733133965592153265461075235512467779223105897865483907485085886454220700468604195477965718905487",
+            "denominator": "500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 1.976202073466268e-15,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0846.json",
+            "graph": "source",
+            "caseId": "T02-axisymmetric-off-axis-dt240",
+            "stepIndex": 240
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "988101036733133965592153265461075235512467779223105897865483907485085886454220700468604195477965718905487",
+            "denominator": "5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0001976202073466268
+        }
+      }
+    },
+    {
+      "graph": "source",
+      "caseId": "C01-principal-axis",
+      "auditCount": 2,
+      "initialStates": 1,
+      "acceptedStates": 1,
+      "maxStepIndex": 1,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "2733342437902040051996949565594888860225316950419903896475156982055700087211453953596869021658356716236402065265275377318533925083007538381",
+            "denominator": "6646139978924581316971134592471039700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 4.112676601109333e-19,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0848.json",
+            "graph": "source",
+            "caseId": "C01-principal-axis",
+            "stepIndex": 1
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "2733342437902040051996949565594888860225316950419903896475156982055700087211453953596869021658356716236402065265275377318533925083007538381",
+            "denominator": "66461399789245813169711345924710397000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 4.112676601109333e-08
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0847.json",
+            "graph": "source",
+            "caseId": "C01-principal-axis",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "1836050481791524863772120617943356923822094490953084391232942606424570508655337395210455121404669127241",
+            "denominator": "12500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 1.46884038543322e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0848.json",
+            "graph": "source",
+            "caseId": "C01-principal-axis",
+            "stepIndex": 1
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "1836050481791524863772120617943356923822094490953084391232942606424570508655337395210455121404669127241",
+            "denominator": "125000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 1.46884038543322e-05
+        }
+      }
+    },
+    {
+      "graph": "source",
+      "caseId": "C02-zero-positive",
+      "auditCount": 2,
+      "initialStates": 1,
+      "acceptedStates": 1,
+      "maxStepIndex": 1,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0849.json",
+            "graph": "source",
+            "caseId": "C02-zero-positive",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0849.json",
+            "graph": "source",
+            "caseId": "C02-zero-positive",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0849.json",
+            "graph": "source",
+            "caseId": "C02-zero-positive",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        }
+      }
+    },
+    {
+      "graph": "source",
+      "caseId": "C03-zero-signed-negative-q",
+      "auditCount": 2,
+      "initialStates": 1,
+      "acceptedStates": 1,
+      "maxStepIndex": 1,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0851.json",
+            "graph": "source",
+            "caseId": "C03-zero-signed-negative-q",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0851.json",
+            "graph": "source",
+            "caseId": "C03-zero-signed-negative-q",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0851.json",
+            "graph": "source",
+            "caseId": "C03-zero-signed-negative-q",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        }
+      }
+    },
+    {
+      "graph": "source",
+      "caseId": "C04-off-axis-negative-q",
+      "auditCount": 2,
+      "initialStates": 1,
+      "acceptedStates": 1,
+      "maxStepIndex": 1,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "160686561871272584377000820172636153346073555453049504124209476341682634811256335378142791738640343970294903157215611245411569342237125262256077",
+            "denominator": "435561429658801324332116734081168243487525000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 3.6891825338425167e-19,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0854.json",
+            "graph": "source",
+            "caseId": "C04-off-axis-negative-q",
+            "stepIndex": 1
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "160686561871272584377000820172636153346073555453049504124209476341682634811256335378142791738640343970294903157215611245411569342237125262256077",
+            "denominator": "4355614296588013243321167340811682434875250000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 3.689182533842517e-08
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "6734126359868777469674963889685627191232480934322905500268879256564940115187241826334864954778402504373",
+            "denominator": "250000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 2.693650543947511e-17,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0854.json",
+            "graph": "source",
+            "caseId": "C04-off-axis-negative-q",
+            "stepIndex": 1
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "6734126359868777469674963889685627191232480934322905500268879256564940115187241826334864954778402504373",
+            "denominator": "2500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 2.693650543947511e-06
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "10457488049596227943160812534396491411881298899222127363144595033325626491305157181268187073572985108341",
+            "denominator": "100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 1.0457488049596227e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0854.json",
+            "graph": "source",
+            "caseId": "C04-off-axis-negative-q",
+            "stepIndex": 1
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "10457488049596227943160812534396491411881298899222127363144595033325626491305157181268187073572985108341",
+            "denominator": "1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 1.0457488049596229e-05
+        }
+      }
+    },
+    {
+      "graph": "native",
+      "caseId": "T01-isotropic-cube-dt60",
+      "auditCount": 61,
+      "initialStates": 1,
+      "acceptedStates": 60,
+      "maxStepIndex": 60,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "6538072884150193739823406060326180686557527785079148740188735311589429492168651478749433029793053494061194341452473667244812114328897237",
+            "denominator": "16225927682921340220146562149051800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 4.0293985107747437e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0900.json",
+            "graph": "native",
+            "caseId": "T01-isotropic-cube-dt60",
+            "stepIndex": 45
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "6538072884150193739823406060326180686557527785079148740188735311589429492168651478749433029793053494061194341452473667244812114328897237",
+            "denominator": "162259276829213402201465621490518000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 4.029398510774744e-05
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0855.json",
+            "graph": "native",
+            "caseId": "T01-isotropic-cube-dt60",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "183596345591122453904822048169642049596660214689346546392617696739918399096315622816217733106872641415401",
+            "denominator": "1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 1.8359634559112245e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0900.json",
+            "graph": "native",
+            "caseId": "T01-isotropic-cube-dt60",
+            "stepIndex": 45
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "183596345591122453904822048169642049596660214689346546392617696739918399096315622816217733106872641415401",
+            "denominator": "10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 1.8359634559112245e-05
+        }
+      }
+    },
+    {
+      "graph": "native",
+      "caseId": "T01-isotropic-cube-dt120",
+      "auditCount": 121,
+      "initialStates": 1,
+      "acceptedStates": 120,
+      "maxStepIndex": 120,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "224277382223584810726946270114277759025821673910457901716892543561156416884440458498478820174552131768266426953652030498973725694541403239",
+            "denominator": "162259276829213287196011704645177000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 1.382216084074188e-15,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1036.json",
+            "graph": "native",
+            "caseId": "T01-isotropic-cube-dt120",
+            "stepIndex": 120
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "224277382223584810726946270114277759025821673910457901716892543561156416884440458498478820174552131768266426953652030498973725694541403239",
+            "denominator": "1622592768292132871960117046451770000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0001382216084074188
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-0916.json",
+            "graph": "native",
+            "caseId": "T01-isotropic-cube-dt120",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "126606446625342018262468934673024746706181172927544458604711600654498541887314437825478026964056861492801",
+            "denominator": "200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 6.330322331267101e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1036.json",
+            "graph": "native",
+            "caseId": "T01-isotropic-cube-dt120",
+            "stepIndex": 120
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "126606446625342018262468934673024746706181172927544458604711600654498541887314437825478026964056861492801",
+            "denominator": "2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 6.330322331267101e-05
+        }
+      }
+    },
+    {
+      "graph": "native",
+      "caseId": "T01-isotropic-cube-dt240",
+      "auditCount": 241,
+      "initialStates": 1,
+      "acceptedStates": 240,
+      "maxStepIndex": 240,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "20571020835426080423934511540515497431988612701806401910655579679773980387056999738513365509118072558845789866578398691813199442119996957",
+            "denominator": "16225927682921332942722486243859800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 1.2677870404339464e-15,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1217.json",
+            "graph": "native",
+            "caseId": "T01-isotropic-cube-dt240",
+            "stepIndex": 180
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "20571020835426080423934511540515497431988612701806401910655579679773980387056999738513365509118072558845789866578398691813199442119996957",
+            "denominator": "162259276829213329427224862438598000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.00012677870404339465
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1037.json",
+            "graph": "native",
+            "caseId": "T01-isotropic-cube-dt240",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "45769936050120455283820912912497331029440779302489599370701935278502749352239243293868753521918719160329",
+            "denominator": "100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 4.576993605012046e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1217.json",
+            "graph": "native",
+            "caseId": "T01-isotropic-cube-dt240",
+            "stepIndex": 180
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "45769936050120455283820912912497331029440779302489599370701935278502749352239243293868753521918719160329",
+            "denominator": "1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 4.576993605012045e-05
+        }
+      }
+    },
+    {
+      "graph": "native",
+      "caseId": "T02-axisymmetric-off-axis-dt60",
+      "auditCount": 61,
+      "initialStates": 1,
+      "acceptedStates": 60,
+      "maxStepIndex": 60,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "1115277480834629358499956266433251030624255982054208874776622417251934172129547098794443850115407985107224941567511272970289009763821931477",
+            "denominator": "1298074214633707063194895564036409000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 8.591785186560696e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1323.json",
+            "graph": "native",
+            "caseId": "T02-axisymmetric-off-axis-dt60",
+            "stepIndex": 45
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "1115277480834629358499956266433251030624255982054208874776622417251934172129547098794443850115407985107224941567511272970289009763821931477",
+            "denominator": "12980742146337070631948955640364090000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 8.591785186560696e-05
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "1584067403764974309845751591330440218714816334698451229028116373207980737266050210750064016142495742027",
+            "denominator": "1250000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 1.2672539230119795e-15,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1338.json",
+            "graph": "native",
+            "caseId": "T02-axisymmetric-off-axis-dt60",
+            "stepIndex": 60
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "1584067403764974309845751591330440218714816334698451229028116373207980737266050210750064016142495742027",
+            "denominator": "12500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.00012672539230119793
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "27356094978530267097552451501322773088984802940499845526029229921196664339378865706683452845138328571769",
+            "denominator": "50000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 5.471218995706053e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1323.json",
+            "graph": "native",
+            "caseId": "T02-axisymmetric-off-axis-dt60",
+            "stepIndex": 45
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "27356094978530267097552451501322773088984802940499845526029229921196664339378865706683452845138328571769",
+            "denominator": "500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 5.471218995706053e-05
+        }
+      }
+    },
+    {
+      "graph": "native",
+      "caseId": "T02-axisymmetric-off-axis-dt120",
+      "auditCount": 121,
+      "initialStates": 1,
+      "acceptedStates": 120,
+      "maxStepIndex": 120,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "887761121495689391331344580878334753704360775805154340218465634218163606351683530352762458259114607980712760117362861066806429554256026289",
+            "denominator": "1298074214633706896491353755411013000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 6.839062909405372e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1429.json",
+            "graph": "native",
+            "caseId": "T02-axisymmetric-off-axis-dt120",
+            "stepIndex": 90
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "887761121495689391331344580878334753704360775805154340218465634218163606351683530352762458259114607980712760117362861066806429554256026289",
+            "denominator": "12980742146337068964913537554110130000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 6.839062909405373e-05
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "4359624965327865660904830761557490999964816334698451229028116373207980737266050210750064016142495742027",
+            "denominator": "1250000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 3.4876999722622924e-15,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1459.json",
+            "graph": "native",
+            "caseId": "T02-axisymmetric-off-axis-dt120",
+            "stepIndex": 120
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "4359624965327865660904830761557490999964816334698451229028116373207980737266050210750064016142495742027",
+            "denominator": "12500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.00034876999722622924
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "16253864732278701693316134820414569963984802940499845526029229921196664339378865706683452845138328571769",
+            "denominator": "50000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 3.2507729464557406e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1429.json",
+            "graph": "native",
+            "caseId": "T02-axisymmetric-off-axis-dt120",
+            "stepIndex": 90
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "16253864732278701693316134820414569963984802940499845526029229921196664339378865706683452845138328571769",
+            "denominator": "500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 3.25077294645574e-05
+        }
+      }
+    },
+    {
+      "graph": "native",
+      "caseId": "T02-axisymmetric-off-axis-dt240",
+      "auditCount": 241,
+      "initialStates": 1,
+      "acceptedStates": 240,
+      "maxStepIndex": 240,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "480317812685943375778301209213896120674469971400373170472654358005060443369065445124954680060738586361312108095629487082473162464925106323",
+            "denominator": "129807421463370670518925490548694100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 3.700233833097752e-15,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1700.json",
+            "graph": "native",
+            "caseId": "T02-axisymmetric-off-axis-dt240",
+            "stepIndex": 240
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "480317812685943375778301209213896120674469971400373170472654358005060443369065445124954680060738586361312108095629487082473162464925106323",
+            "denominator": "1298074214633706705189254905486941000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0003700233833097751
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "11298518869235094038552528687125117953089816334698451229028116373207980737266050210750064016142495742027",
+            "denominator": "1250000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 9.038815095388075e-15,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1700.json",
+            "graph": "native",
+            "caseId": "T02-axisymmetric-off-axis-dt240",
+            "stepIndex": 240
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "11298518869235094038552528687125117953089816334698451229028116373207980737266050210750064016142495742027",
+            "denominator": "12500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0009038815095388076
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "988101036733133965592153265461075235512467779223105897865483907485085886454220700468604195477965718905487",
+            "denominator": "500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 1.976202073466268e-15,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1700.json",
+            "graph": "native",
+            "caseId": "T02-axisymmetric-off-axis-dt240",
+            "stepIndex": 240
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "988101036733133965592153265461075235512467779223105897865483907485085886454220700468604195477965718905487",
+            "denominator": "5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0001976202073466268
+        }
+      }
+    },
+    {
+      "graph": "native",
+      "caseId": "C01-principal-axis",
+      "auditCount": 2,
+      "initialStates": 1,
+      "acceptedStates": 1,
+      "maxStepIndex": 1,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "2733342437902040051996949565594888860225316950419903896475156982055700087211453953596869021658356716236402065265275377318533925083007538381",
+            "denominator": "6646139978924581316971134592471039700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 4.112676601109333e-19,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1702.json",
+            "graph": "native",
+            "caseId": "C01-principal-axis",
+            "stepIndex": 1
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "2733342437902040051996949565594888860225316950419903896475156982055700087211453953596869021658356716236402065265275377318533925083007538381",
+            "denominator": "66461399789245813169711345924710397000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 4.112676601109333e-08
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1701.json",
+            "graph": "native",
+            "caseId": "C01-principal-axis",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "1836050481791524863772120617943356923822094490953084391232942606424570508655337395210455121404669127241",
+            "denominator": "12500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 1.46884038543322e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1702.json",
+            "graph": "native",
+            "caseId": "C01-principal-axis",
+            "stepIndex": 1
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "1836050481791524863772120617943356923822094490953084391232942606424570508655337395210455121404669127241",
+            "denominator": "125000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 1.46884038543322e-05
+        }
+      }
+    },
+    {
+      "graph": "native",
+      "caseId": "C02-zero-positive",
+      "auditCount": 2,
+      "initialStates": 1,
+      "acceptedStates": 1,
+      "maxStepIndex": 1,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1703.json",
+            "graph": "native",
+            "caseId": "C02-zero-positive",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1703.json",
+            "graph": "native",
+            "caseId": "C02-zero-positive",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1703.json",
+            "graph": "native",
+            "caseId": "C02-zero-positive",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        }
+      }
+    },
+    {
+      "graph": "native",
+      "caseId": "C03-zero-signed-negative-q",
+      "auditCount": 2,
+      "initialStates": 1,
+      "acceptedStates": 1,
+      "maxStepIndex": 1,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1705.json",
+            "graph": "native",
+            "caseId": "C03-zero-signed-negative-q",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1705.json",
+            "graph": "native",
+            "caseId": "C03-zero-signed-negative-q",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "display": 0.0,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1705.json",
+            "graph": "native",
+            "caseId": "C03-zero-signed-negative-q",
+            "stepIndex": 0
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "0",
+            "denominator": "1"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 0.0
+        }
+      }
+    },
+    {
+      "graph": "native",
+      "caseId": "C04-off-axis-negative-q",
+      "auditCount": 2,
+      "initialStates": 1,
+      "acceptedStates": 1,
+      "maxStepIndex": 1,
+      "trajectory": {
+        "R": {
+          "maximumSavedComponentError": {
+            "numerator": "160686561871272584377000820172636153346073555453049504124209476341682634811256335378142791738640343970294903157215611245411569342237125262256077",
+            "denominator": "435561429658801324332116734081168243487525000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 3.6891825338425167e-19,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1708.json",
+            "graph": "native",
+            "caseId": "C04-off-axis-negative-q",
+            "stepIndex": 1
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "160686561871272584377000820172636153346073555453049504124209476341682634811256335378142791738640343970294903157215611245411569342237125262256077",
+            "denominator": "4355614296588013243321167340811682434875250000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 3.689182533842517e-08
+        },
+        "omega": {
+          "maximumSavedComponentError": {
+            "numerator": "6734126359868777469674963889685627191232480934322905500268879256564940115187241826334864954778402504373",
+            "denominator": "250000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 2.693650543947511e-17,
+          "unit": "rad/s",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1708.json",
+            "graph": "native",
+            "caseId": "C04-off-axis-negative-q",
+            "stepIndex": 1
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "6734126359868777469674963889685627191232480934322905500268879256564940115187241826334864954778402504373",
+            "denominator": "2500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 2.693650543947511e-06
+        },
+        "q": {
+          "maximumSavedComponentError": {
+            "numerator": "10457488049596227943160812534396491411881298899222127363144595033325626491305157181268187073572985108341",
+            "denominator": "100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "display": 1.0457488049596227e-16,
+          "unit": "dimensionless",
+          "location": {
+            "artifact": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/audit-1708.json",
+            "graph": "native",
+            "caseId": "C04-off-axis-negative-q",
+            "stepIndex": 1
+          },
+          "ratioToAbsoluteGateFloor": {
+            "numerator": "10457488049596227943160812534396491411881298899222127363144595033325626491305157181268187073572985108341",
+            "denominator": "1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "ratioToAbsoluteGateFloorDisplay": 1.0457488049596229e-05
+        }
+      }
+    }
+  ],
+  "trajectoryGate": "Worst distance to saved ideal interval endpoints <=1e-11+1e-12*abs(reference) per omega/R/q component. Compact saved audit keeps per-quantity maximum, not the maximizing component; ratioToAbsoluteGateFloor is a conservative error/1e-11 diagnostic, not an invented exact component gate ratio.",
+  "analyticBank": {
+    "samples": 10,
+    "precisionMaxima": {
+      "80": {
+        "maximumSavedComponentWidth": {
+          "numerator": "929",
+          "denominator": "100000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "display": 9.29e-78,
+        "limit": {
+          "numerator": "1",
+          "denominator": "100000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "gateRatio": {
+          "numerator": "929",
+          "denominator": "1000000000000000"
+        },
+        "sample": "axial:72057594037927935/72057594037927936",
+        "samples": 10,
+        "savedResidualChecks": 260,
+        "allSavedResidualEnclosuresIncludeZero": true
+      },
+      "120": {
+        "maximumSavedComponentWidth": {
+          "numerator": "197",
+          "denominator": "200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "display": 9.85e-118,
+        "limit": {
+          "numerator": "1",
+          "denominator": "1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "gateRatio": {
+          "numerator": "197",
+          "denominator": "200000000000000"
+        },
+        "sample": "axial:72057594037927935/72057594037927936",
+        "samples": 10,
+        "savedResidualChecks": 260,
+        "allSavedResidualEnclosuresIncludeZero": true
+      }
+    },
+    "crossPrecision": "Original reference PASS required120 enclosed by80; no new reference evaluation performed by reporter."
+  },
+  "refinement": {
+    "source": {
+      "records": 12,
+      "allRoundingFloor": true,
+      "classification": "ROUNDING_FLOOR",
+      "measuredOrderClaim": false,
+      "floor": {
+        "numerator": "1",
+        "denominator": "100000000000"
+      },
+      "minimumRatioRule": "next <= max(previous/(9/5),1e-11)"
+    },
+    "native": {
+      "records": 12,
+      "allRoundingFloor": true,
+      "classification": "ROUNDING_FLOOR",
+      "measuredOrderClaim": false,
+      "floor": {
+        "numerator": "1",
+        "denominator": "100000000000"
+      },
+      "minimumRatioRule": "next <= max(previous/(9/5),1e-11)"
+    }
+  },
+  "rawStateCensus": {
+    "source": {
+      "states": 854,
+      "actualF64WordFields": 16226,
+      "negativeZeroWordFields": 6,
+      "perCaseStates": {
+        "T01-isotropic-cube-dt60": 61,
+        "T01-isotropic-cube-dt120": 121,
+        "T01-isotropic-cube-dt240": 241,
+        "T02-axisymmetric-off-axis-dt60": 61,
+        "T02-axisymmetric-off-axis-dt120": 121,
+        "T02-axisymmetric-off-axis-dt240": 241,
+        "C01-principal-axis": 2,
+        "C02-zero-positive": 2,
+        "C03-zero-signed-negative-q": 2,
+        "C04-off-axis-negative-q": 2
+      },
+      "wordScope": "Every {$f64le} numeric field in complete stateRaw, including cursor/options identity and pair counters; ordinary outer frame stepIndex is not counted."
+    },
+    "native": {
+      "states": 854,
+      "actualF64WordFields": 16226,
+      "negativeZeroWordFields": 6,
+      "perCaseStates": {
+        "T01-isotropic-cube-dt60": 61,
+        "T01-isotropic-cube-dt120": 121,
+        "T01-isotropic-cube-dt240": 241,
+        "T02-axisymmetric-off-axis-dt60": 61,
+        "T02-axisymmetric-off-axis-dt120": 121,
+        "T02-axisymmetric-off-axis-dt240": 241,
+        "C01-principal-axis": 2,
+        "C02-zero-positive": 2,
+        "C03-zero-signed-negative-q": 2,
+        "C04-off-axis-negative-q": 2
+      },
+      "wordScope": "Every {$f64le} numeric field in complete stateRaw, including cursor/options identity and pair counters; ordinary outer frame stepIndex is not counted."
+    }
+  },
+  "rawParity": {
+    "driverStatus": "PASS_ALL_NON_PROVIDER_FIELDS; graph-specific providerDigest exact and preserved",
+    "comparisonScope": "All public non-provider fields/number words exact; each distinct providerDigest preserved and checked against its own actual manifest. Reporter counts saved words without re-running physics.",
+    "expectedProviderDigests": {
+      "source": "sha256:4b8c7cb4ac159854d447665302c0179850ce4713c80fcb429c542bff82a4a534",
+      "native": "sha256:896ad61f00918ac49ecd51a4acaaba039511d095de7bbe2ec77f1d819f3231c4"
+    },
+    "sourceManifestFiles": 81,
+    "emittedManifestFiles": 76,
+    "nativeRootRuntimeClosureFiles": 73
+  },
+  "timing": {
+    "gateWaitSeconds": 153,
+    "gateWaitAuthority": "Parent observed heavy-gate transcript; outside the guard timing boundary",
+    "guardElapsedMs": 53614.40725,
+    "guardCensusElapsedMs": 53582.114333,
+    "innerElapsedMs": 51741.878417,
+    "interpretation": "Whole finite campaign including build/reference/I/O; not a solver/performance benchmark.",
+    "normalEOF": true,
+    "ownedGroupPresentAtFinalization": false,
+    "timedOut": false
+  },
+  "resources": {
+    "actualEvidenceBytesBeforeSummary": 11301761,
+    "peakEvidenceChargeBytes": 12527337,
+    "peakWorldHarnessOwnedChargeBytes": 7738774,
+    "ownedChargeScope": "source-derived layout allowance for retained plain DATA plus2MiB transient allowance; not measured heap/RSS",
+    "buildBytes": 1518818,
+    "logicalOwnedLimitBytes": 67108864,
+    "heapOrRssClaim": false,
+    "referencePeakOwnedUpperBytes": 4720093,
+    "inventoryFinalBuildBytes": 1518818,
+    "inventoryFinalNonBuildEvidenceBytes": 11316344,
+    "inventoryTotalBytes": 12835162,
+    "limits": {
+      "WorldHarnessBytes": 8388608,
+      "referenceBytes": 8388608,
+      "buildPartitionBytes": 16777216,
+      "evidenceBytes": 16777216,
+      "wholeLogicalBytes": 67108864
+    },
+    "interpretation": "Actual artifact bytes and source-derived owned layout allowances; not measured process heap/RSS."
+  },
+  "preservedFailures": {
+    "evidence/g1-baseline-01/summary.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/summary.json",
+      "bytes": 6173,
+      "sha256": "9bfcb15f6dab6c30ca236f086322ba4e18327634cd1ad1c314c514ee5be13d5d"
+    },
+    "evidence/g1-baseline-01/classification.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/classification.json",
+      "bytes": 33799,
+      "sha256": "95973a8a801d6c995164e5954040665a07c92802ee5b98f5ec03b39df6e47dcf"
+    },
+    "evidence/g1a-repair-01/summary.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-01/summary.json",
+      "bytes": 2406,
+      "sha256": "dbf7bf92eb4772b0448c3c2aacf8d22661076be9e90a365027334c900cfbf68c"
+    },
+    "REPAIR-EXECUTION-REVIEW-02.md": {
+      "path": "examples/physics-rigid-rotation-g1-2276/REPAIR-EXECUTION-REVIEW-02.md",
+      "bytes": 4661,
+      "sha256": "e26417a9febb957a663adbb637303f6a6ba214ed5d23068f84b372b65e0322a0"
+    },
+    "COMPILE-REPAIR-02.md": {
+      "path": "examples/physics-rigid-rotation-g1-2276/COMPILE-REPAIR-02.md",
+      "bytes": 3816,
+      "sha256": "9d058cc2bb1d0bf6f0f7e886f6772437fbbaaa58fc510edb4699d6bc41383d0f"
+    },
+    "LOG-STORAGE-REPAIR-03.md": {
+      "path": "examples/physics-rigid-rotation-g1-2276/LOG-STORAGE-REPAIR-03.md",
+      "bytes": 3001,
+      "sha256": "728d77ebc62b12d6f5ba8247ac1b53331e48dedce5162e6c211e585e7dc73c95"
+    }
+  },
+  "reporterScope": {
+    "operation": "Read/hash/count and exact Fraction comparisons of saved scalar residual/width data only. No physical formulas, new geometry/ODE/linear solve, candidate/reference import, module evaluation, build, fixture conversion or World call.",
+    "newPhysicalCalls": 0,
+    "rawWhitespace": "Original bytes hashed as-is; no trim/normalization/rewrite. Parent owns any whitespace-check exception and archive metadata."
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "status": "PASS_LITERAL_METADATA_ONLY",
+  "accepted": 13,
+  "refusals": 10,
+  "faults": 2,
+  "literalInstantiations": 0,
+  "nativeConversions": 0,
+  "mathCalls": 0
+}

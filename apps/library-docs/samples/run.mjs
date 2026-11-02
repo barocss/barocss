@@ -1,5 +1,5 @@
 // Runs the site's samples (pnpm test:samples): each samples/*.test.mjs bundled with esbuild, the packages it imports as a
-// user would — `@barocss/cad`, `@barocss/cad-model/<module>`, `@barocss/gpu` — taken from their TypeScript sources,
+// user would — `@barocss/cad`, `@barocss/cad-model/<module>`, `@barocss/gpu`, `@barocss/physics` — taken from their TypeScript sources,
 // then node --test on the bundles. The pages include the samples' #region blocks, so what a page shows is code that ran.
 //   node samples/run.mjs [name-filter]
 import { spawnSync } from 'node:child_process';
@@ -12,13 +12,15 @@ const here = import.meta.dirname, repo = resolve(here, '../../..');
 const { build } = createRequire(join(repo, 'apps/cad-studio/package.json'))('esbuild');
 const filter = process.argv[2] ?? '';
 const tests = readdirSync(here).filter(f => f.endsWith('.test.mjs') && f.includes(filter)).sort();
+const provider = spawnSync(process.execPath, [join(repo, 'packages/barocss-physics/src/generate-provider.mjs')], { stdio: 'pipe' });
+if (provider.status !== 0) throw new Error(provider.stderr?.toString() || 'Physics provider generation failed');
 const out = mkdtempSync(join(tmpdir(), 'library-docs-samples-'));
 try {
   await build({
     entryPoints: tests.map(f => join(here, f)), outdir: out, bundle: true, platform: 'node', format: 'esm', target: 'node22',
     // (The samples' own paths, import.meta.dirname among them, stay as written: the bundles are told where they came from.)
     define: { 'import.meta.dirname': JSON.stringify(here) },
-    alias: { '@barocss/cad': join(repo, 'packages/barocss-cad/src'), '@barocss/cad-model': join(repo, 'packages/barocss-cad-model/src'), '@barocss/gpu': join(repo, 'packages/barocss-gpu/src') },
+    alias: { '@barocss/physics': join(repo, 'packages/barocss-physics/src'), '@barocss/cad': join(repo, 'packages/barocss-cad/src'), '@barocss/cad-model': join(repo, 'packages/barocss-cad-model/src'), '@barocss/gpu': join(repo, 'packages/barocss-gpu/src') },
     outExtension: { '.js': '.mjs' }, logLevel: 'warning',
     banner: { js: "import { createRequire as __cr } from 'node:module'; const require = __cr(import.meta.url);" },
   });

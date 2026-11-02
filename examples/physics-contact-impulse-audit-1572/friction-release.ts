@@ -2,7 +2,7 @@
  * Expected to FAIL against the current persistent-box-contact.ts until fixed.
  * From root: npx tsx examples/physics-contact-impulse-audit-1572/friction-release.ts
  */
-import type { Body, Vec3 } from '../../packages/barocss-physics/src/types.js';
+import type { Body, Vec3 } from '../../packages/barocss-physics/src/internal-types.js';
 import { solvePersistentPoint, type PointImpulse } from '../../packages/barocss-physics/src/persistent-box-contact.js';
 const vec=(x=0,y=0,z=0):Vec3=>[x,y,z];
 function make(id:string, dynamic:boolean,vy:number):Body {

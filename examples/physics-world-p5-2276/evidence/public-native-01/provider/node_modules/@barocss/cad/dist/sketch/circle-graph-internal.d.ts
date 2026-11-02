@@ -1,0 +1,15 @@
+import type { SketchCircleLengthDefinition, SketchCircleLengthParameter, SketchCircleGraphFeature, SketchCircleResolvedParameter, SketchCircleFeatureGraphV0 } from './sketch-circle-feature-graph.js';
+export declare function check(condition: boolean, label: string, path: string, detail: string): asserts condition;
+export declare function guard<T>(label: string, work: () => T): T;
+export declare function snapshot(input: unknown, label: string, rootPath: string): unknown;
+export declare function record(value: unknown, fields: string[], label: string, path: string): Record<string, unknown>;
+export declare function identifier(value: unknown, label: string, path: string): string;
+export declare function length(value: unknown, label: string, path: string): number;
+export declare function definition(input: unknown, label: string, path: string): SketchCircleLengthDefinition;
+export declare function admitParameter(input: unknown, label: string, path: string): SketchCircleLengthParameter;
+export declare function admitFeature(input: unknown, label: string, path: string): SketchCircleGraphFeature;
+export declare function resolve(parameters: SketchCircleLengthParameter[], label: string): SketchCircleResolvedParameter[];
+export declare function admitJSONText(text: string, label: string): void;
+export declare function authoredRoles(document: SketchCircleFeatureGraphV0, label: string): Map<string, string>;
+export declare function applyFeatureOperations(candidate: Pick<SketchCircleFeatureGraphV0, 'features'>, operations: unknown[], startingFeatures: Map<string, SketchCircleGraphFeature>, reserved: Set<string>, label: string): void;
+export declare function applyParameterOperations(candidate: Pick<SketchCircleFeatureGraphV0, 'parameters'>, operations: unknown[], startingParameters: Map<string, SketchCircleLengthParameter>, reserved: Set<string>, label: string): void;

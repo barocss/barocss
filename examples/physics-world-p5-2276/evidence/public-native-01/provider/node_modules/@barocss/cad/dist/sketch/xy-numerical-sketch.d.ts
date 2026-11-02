@@ -1,0 +1,168 @@
+import type { CadModelIR1 } from '../model-compiler.js';
+import type { Model } from '../types.js';
+import type { XYPoint } from './xy-profile.js';
+export { XYNumericalSketchError, XYNumericalSketchDiagnosticCode } from './xy-numerical-sketch-admission-internal.js';
+import type { XYNumericalSketchDiagnosticCode } from './xy-numerical-sketch-admission-internal.js';
+export interface XYNumericalSketchPoint {
+    id: string;
+    position: XYPoint;
+}
+export interface XYNumericalSketchSegment {
+    id: string;
+    startPointId: string;
+    endPointId: string;
+}
+export type XYNumericalSketchConstraint = {
+    id: string;
+    kind: 'fixed';
+    pointId: string;
+    target: XYPoint;
+} | {
+    id: string;
+    kind: 'coincident';
+    pointA: string;
+    pointB: string;
+} | {
+    id: string;
+    kind: 'horizontal' | 'vertical';
+    segmentId: string;
+} | {
+    id: string;
+    kind: 'length';
+    segmentId: string;
+    length: number;
+} | {
+    id: string;
+    kind: 'signed-angle';
+    segmentA: string;
+    segmentB: string;
+    angle: number;
+}
+/** |segmentA| − |segmentB| = 0: arc radii, equal sides. */
+ | {
+    id: string;
+    kind: 'equal-length';
+    segmentA: string;
+    segmentB: string;
+};
+export type XYNumericalSketchBranchGuard = {
+    id: string;
+    kind: 'positive-projection';
+    segmentId: string;
+    direction: XYPoint;
+} | {
+    id: string;
+    kind: 'oriented-triplet';
+    pointA: string;
+    pointB: string;
+    pointC: string;
+    orientation: 'ccw' | 'cw';
+};
+export interface XYNumericalSketchDocumentV0 {
+    /** `bounded-length-angle-v1`: the same, over larger sketches (64 points, 64 segments, 128 constraints, 256 residuals). */
+    format: 'barocss-xy-numerical-sketch';
+    version: 0;
+    profile: 'bounded-length-angle-v0' | 'bounded-length-angle-v1';
+    id: string;
+    lengthUnit: 'mm';
+    angleUnit: 'rad';
+    points: XYNumericalSketchPoint[];
+    segments: XYNumericalSketchSegment[];
+    constraints: XYNumericalSketchConstraint[];
+    /** Required array; empty means no authored branch guards. */
+    branchGuards: XYNumericalSketchBranchGuard[];
+}
+export interface XYNumericalSketchResidual {
+    constraintId: string;
+    component: string;
+    actual: number;
+    target: number;
+    residual: number;
+    unit: 'mm' | 'rad';
+    tolerance: number;
+}
+export interface XYNumericalSketchReport {
+    numericalRank: number;
+    rankThreshold: number;
+    localDegreesOfFreedom: number;
+    fullyConstrainedLocally: boolean;
+    unknownCount: number;
+    scalarResidualCount: number;
+    residuals: XYNumericalSketchResidual[];
+    objective: number;
+    iterations: number;
+    evaluations: number;
+    termination: 'residual-tolerances-met';
+    tolerances: {
+        linear: number;
+        angular: number;
+        rankRelative: number;
+    };
+    limits: {
+        points: number;
+        segments: number;
+        constraints: number;
+        scalarResiduals: number;
+        unknowns: number;
+        branchGuards: number;
+        coordinateAbs: number;
+        minimumSegment: number;
+        iterations: number;
+        evaluations: number;
+    };
+    quality: {
+        arithmetic: 'binary64-local-numerical';
+        objectiveNormalization: 'linear/1mm-angular/1rad-sum-squares';
+        rank: 'column-pivoted-householder-qr-local-not-exact-or-global';
+        branch: 'authored-guards-on-seed-and-accepted-iterates';
+        rootSelection: 'seed-dependent-no-global-closest-root-guarantee';
+        constraints: 'authored-order-points-xy-order';
+        damping: 'initial1e-3-accept/3-floor1e-12-reject*10-ceiling1e12';
+        nativeGeometry: 'degree1-xy-z-zero';
+        ownership: 'copied-cpu-data-gc-no-renderer-resources';
+        topologyCertified: false;
+        manufacturingToleranceCertified: false;
+    };
+}
+export interface XYNumericalSketchSuccess {
+    ok: true;
+    document: XYNumericalSketchDocumentV0;
+    solution: {
+        points: XYNumericalSketchPoint[];
+        source: string;
+        sourceVersion: 0;
+        model: Model;
+        ir: CadModelIR1;
+    };
+    report: XYNumericalSketchReport;
+}
+export interface XYNumericalSketchDiagnostic {
+    code: XYNumericalSketchDiagnosticCode;
+    message: string;
+    path: string;
+}
+export type XYNumericalSketchResult = XYNumericalSketchSuccess | {
+    ok: false;
+    diagnostics: XYNumericalSketchDiagnostic[];
+};
+/** Atomic native construction after independently re-evaluating final solved coefficients. */
+export declare function buildXYNumericalSketch(input: XYNumericalSketchDocumentV0): XYNumericalSketchSuccess;
+export declare function solveXYNumericalSketch(document: XYNumericalSketchDocumentV0): XYNumericalSketchResult;
+/**
+ * The solved points and the solver's report only — no native curve model (whose source is bounded to 16
+ * geometry declarations) — for sketchers that need positions, including -v1 sketches of up to 64 points.
+ */
+export interface XYNumericalSketchPointsSuccess {
+    ok: true;
+    document: XYNumericalSketchDocumentV0;
+    solution: {
+        points: XYNumericalSketchPoint[];
+    };
+    report: XYNumericalSketchReport;
+}
+export declare function solveXYNumericalSketchPoints(document: XYNumericalSketchDocumentV0): XYNumericalSketchPointsSuccess | {
+    ok: false;
+    diagnostics: XYNumericalSketchDiagnostic[];
+};
+/** Complete deterministic reconstruction proves self-consistency only, never provenance/authenticity. */
+export declare function validateXYNumericalSketch(input: XYNumericalSketchSuccess): XYNumericalSketchReport;

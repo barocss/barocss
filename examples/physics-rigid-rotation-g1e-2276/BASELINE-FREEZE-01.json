@@ -1,0 +1,90 @@
+{
+  "workId": "physics-rigid-rotation-g1e-2276",
+  "runId": "g1e-baseline-01",
+  "mode": "baseline",
+  "authority": "Parent approves paired capture before physical classification, J and JT xSource/Native, 4World4steps8stateaudits, independent13d8Taylorwindows. No candidate evaluation/production adoption.",
+  "files": {
+    "examples/physics-rigid-rotation-g1-2276/baseline-classify.py": {
+      "bytes": 23864,
+      "sha256": "5f5eee9ac2cd8b654eab134823a619254fd0b7c4ab8791419d077a71413a09eb"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/CASES.json": {
+      "bytes": 8881,
+      "sha256": "0fb8b4ebc78044e8984fab83878a42fc5051f8717ce914091246de7098fbc386"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/CONTRACT.md": {
+      "bytes": 14376,
+      "sha256": "c1c87c64323836d7ac656ead490380bee82f801de2b67979f9f91309ee73ed31"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/REFERENCES-CLARIFICATION-01.md": {
+      "bytes": 10318,
+      "sha256": "0d6e8a79f2cbf45f7579291f9b1b947295f28f0cf00eb57053ed581cb8979945"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/staged-providers.json": {
+      "bytes": 210540,
+      "sha256": "5765e301315fe8381350d8d18402987477f5f63c1f5096fa4d3312e6ee099e14"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/summary.json": {
+      "bytes": 12835,
+      "sha256": "a3d3d9856676e4c41a01713e992fd094ffa9b95682bd6a34fbe4bbd1912f3ecc"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-native-completion-02/input-1.json": {
+      "bytes": 1877,
+      "sha256": "ffa90f765d6b060b427607cdc5c447fed12efe3e55fe9f3ae4276f581914207b"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/reference-micro.py": {
+      "bytes": 47239,
+      "sha256": "90412a7e20b106939c14de7c5f8d619f0cd69d19caa780c91300ce540e3f0c36"
+    },
+    "examples/physics-rigid-rotation-g1c-2276/reference-frame.py": {
+      "bytes": 11345,
+      "sha256": "91966d1e3d2fc3cabea2156dd670463faf70af811f05aecbf32d182e20590d19"
+    },
+    "examples/physics-rigid-rotation-g1e-2276/API-RANGE-AUDIT.md": {
+      "bytes": 10031,
+      "sha256": "6e5b49a388b6b9ecd919dcd7bc09b807c9e36f6e1f2730c0fe837397380eed4e"
+    },
+    "examples/physics-rigid-rotation-g1e-2276/CONTRACT.md": {
+      "bytes": 6207,
+      "sha256": "f5dd1d5a898e0c0a9d757ac4f1b1590bac74124c93676a1ee99519ca668aa415"
+    },
+    "examples/physics-rigid-rotation-g1e-2276/FORCE-DESIGN.md": {
+      "bytes": 9989,
+      "sha256": "dd9f767f764be99f7287bf15f88f58d9add132227227a67c0d2a4926a7bcd81e"
+    },
+    "examples/physics-rigid-rotation-g1e-2276/TORQUE-SEMANTICS-CORRECTION-01.md": {
+      "bytes": 1592,
+      "sha256": "bb95a242beea8dd0b72b4969e506616e08db76c9cddf4908698de4ae72c52b12"
+    },
+    "examples/physics-rigid-rotation-g1e-2276/force-campaign.mjs": {
+      "bytes": 19558,
+      "sha256": "8544407567351adc4274ee581ca257f8a40eddc18d00df5d6ffab3f7e0e5427a"
+    },
+    "examples/physics-rigid-rotation-g1e-2276/reference-force.py": {
+      "bytes": 28963,
+      "sha256": "ff16c66f7b875403c0d330b670b25be79725c89097233fa370a36f1c0b0fb020"
+    },
+    "examples/physics-rigid-rotation-g1e-2276/rigid-forced-rotation.ts": {
+      "bytes": 4197,
+      "sha256": "3026c0392cf81afe59efb0c983ad4f4b0b20d58bc0693c01f496671c06dc678d"
+    },
+    "examples/physics-world-p5-2276/command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    }
+  },
+  "tools": {
+    "node": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "python": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+    "nodePin": {
+      "path": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "bytes": 110712624,
+      "sha256": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+    },
+    "pythonPin": {
+      "path": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+      "bytes": 52640,
+      "sha256": "a1f6d9dc20d4787a84dc2fe782094a7bac5946f49a962aa0af48a02f0e8d5bc5"
+    }
+  }
+}

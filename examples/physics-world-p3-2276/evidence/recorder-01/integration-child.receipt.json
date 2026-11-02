@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/recorder-integration.mjs",
+    "--run-child",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/recorder-01/integration-spec.json"
+  ],
+  "timeoutMs": 180000,
+  "elapsedMs": 2899,
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "stdoutSha256": "c83af8a5817a28e4fc3bde92722b66ca217358d7bfcf4ef537a0dd98ea968c05",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

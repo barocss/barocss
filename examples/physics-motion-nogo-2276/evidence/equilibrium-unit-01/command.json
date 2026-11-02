@@ -1,0 +1,17 @@
+{
+  "mode": "stack-equilibrium-unit",
+  "command": [
+    "python3",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-motion-nogo-2276/stack-equilibrium-unit.test.py"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "started": "2026-11-01T12:28:17.763Z",
+  "finished": "2026-11-01T12:28:17.872Z",
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "574c5ff5efc765cad540a4cf52542cca94e22dc7810f737b03febfc6235c5364",
+  "numericalWorldCalls": 0,
+  "oldSolverCalls": 0
+}

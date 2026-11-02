@@ -1,0 +1,414 @@
+{
+  "inputs": {
+    "examples/physics-model-input/model.mjs": {
+      "bytes": 2051,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/types.js": {
+      "bytes": 418,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/recording-owner.js": {
+      "bytes": 46,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/provider-manifest.generated.js": {
+      "bytes": 1785,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/index.js": {
+      "bytes": 136009,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/recording-owner.js",
+          "kind": "import-statement",
+          "original": "./recording-owner.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/provider-manifest.generated.js",
+          "kind": "import-statement",
+          "original": "./provider-manifest.generated.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/identity.js": {
+      "bytes": 6977,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/replay-json.js": {
+      "bytes": 8011,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/identity.js",
+          "kind": "import-statement",
+          "original": "./identity.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/replay-compare.js": {
+      "bytes": 974,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/internal-types.js": {
+      "bytes": 43,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/limits.js": {
+      "bytes": 416,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/validation.js": {
+      "bytes": 13796,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/internal-types.js",
+          "kind": "import-statement",
+          "original": "./internal-types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/limits.js",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/math.js": {
+      "bytes": 2114,
+      "imports": [],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/dynamic-anchor-pair.js": {
+      "bytes": 3099,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/limits.js",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/validation.js",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/dynamic-fixed-joint.js": {
+      "bytes": 1935,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/validation.js",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/dynamic-anchor-pair.js",
+          "kind": "import-statement",
+          "original": "./dynamic-anchor-pair.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/dynamic-hinge-joint.js": {
+      "bytes": 4671,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/validation.js",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/dynamic-anchor-pair.js",
+          "kind": "import-statement",
+          "original": "./dynamic-anchor-pair.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/joints.js": {
+      "bytes": 7382,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/limits.js",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/validation.js",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/math.js",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/dynamic-fixed-joint.js",
+          "kind": "import-statement",
+          "original": "./dynamic-fixed-joint.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/dynamic-hinge-joint.js",
+          "kind": "import-statement",
+          "original": "./dynamic-hinge-joint.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/model-admission.js": {
+      "bytes": 10299,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/identity.js",
+          "kind": "import-statement",
+          "original": "./identity.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/validation.js",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/joints.js",
+          "kind": "import-statement",
+          "original": "./joints.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/limits.js",
+          "kind": "import-statement",
+          "original": "./limits.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/replay-validation.js": {
+      "bytes": 8179,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/model-admission.js",
+          "kind": "import-statement",
+          "original": "./model-admission.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/validation.js",
+          "kind": "import-statement",
+          "original": "./validation.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/identity.js",
+          "kind": "import-statement",
+          "original": "./identity.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/replay-json.js",
+          "kind": "import-statement",
+          "original": "./replay-json.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "packages/barocss-physics/dist/replay.js": {
+      "bytes": 6496,
+      "imports": [
+        {
+          "path": "packages/barocss-physics/dist/index.js",
+          "kind": "import-statement",
+          "original": "./index.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/types.js",
+          "kind": "import-statement",
+          "original": "./types.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/recording-owner.js",
+          "kind": "import-statement",
+          "original": "./recording-owner.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/identity.js",
+          "kind": "import-statement",
+          "original": "./identity.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/replay-json.js",
+          "kind": "import-statement",
+          "original": "./replay-json.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/replay-compare.js",
+          "kind": "import-statement",
+          "original": "./replay-compare.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/replay-validation.js",
+          "kind": "import-statement",
+          "original": "./replay-validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "examples/physics-scene/dynamic-fixed-pair-probe.mjs": {
+      "bytes": 5275,
+      "imports": [
+        {
+          "path": "examples/physics-model-input/model.mjs",
+          "kind": "import-statement",
+          "original": "../physics-model-input/model.mjs"
+        },
+        {
+          "path": "node:assert/strict",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "packages/barocss-physics/dist/index.js",
+          "kind": "import-statement",
+          "original": "../../packages/barocss-physics/dist/index.js"
+        },
+        {
+          "path": "packages/barocss-physics/dist/replay.js",
+          "kind": "import-statement",
+          "original": "../../packages/barocss-physics/dist/replay.js"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "examples/physics-world-p2-2276/evidence/records-emitted-01/dynamic-fixed-pair-probe.mjs": {
+      "imports": [
+        {
+          "path": "node:assert/strict",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "exports": [],
+      "entryPoint": "examples/physics-scene/dynamic-fixed-pair-probe.mjs",
+      "inputs": {
+        "examples/physics-model-input/model.mjs": {
+          "bytesInOutput": 1639
+        },
+        "examples/physics-scene/dynamic-fixed-pair-probe.mjs": {
+          "bytesInOutput": 5051
+        },
+        "packages/barocss-physics/dist/types.js": {
+          "bytesInOutput": 328
+        },
+        "packages/barocss-physics/dist/index.js": {
+          "bytesInOutput": 106607
+        },
+        "packages/barocss-physics/dist/recording-owner.js": {
+          "bytesInOutput": 53
+        },
+        "packages/barocss-physics/dist/provider-manifest.generated.js": {
+          "bytesInOutput": 1710
+        },
+        "packages/barocss-physics/dist/identity.js": {
+          "bytesInOutput": 5969
+        },
+        "packages/barocss-physics/dist/replay-json.js": {
+          "bytesInOutput": 7015
+        },
+        "packages/barocss-physics/dist/replay-compare.js": {
+          "bytesInOutput": 903
+        },
+        "packages/barocss-physics/dist/internal-types.js": {
+          "bytesInOutput": 0
+        },
+        "packages/barocss-physics/dist/limits.js": {
+          "bytesInOutput": 182
+        },
+        "packages/barocss-physics/dist/validation.js": {
+          "bytesInOutput": 10420
+        },
+        "packages/barocss-physics/dist/math.js": {
+          "bytesInOutput": 913
+        },
+        "packages/barocss-physics/dist/joints.js": {
+          "bytesInOutput": 4337
+        },
+        "packages/barocss-physics/dist/model-admission.js": {
+          "bytesInOutput": 9572
+        },
+        "packages/barocss-physics/dist/replay-validation.js": {
+          "bytesInOutput": 7505
+        },
+        "packages/barocss-physics/dist/replay.js": {
+          "bytesInOutput": 5645
+        }
+      },
+      "bytes": 168684
+    }
+  }
+}

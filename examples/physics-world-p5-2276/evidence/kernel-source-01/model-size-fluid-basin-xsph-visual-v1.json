@@ -1,0 +1,8 @@
+{
+  "profile": "fluid-basin-xsph-visual-v1",
+  "canonicalModelBytes": 17757,
+  "sha256": "5b8461ce9d48903c5132a17054ab3940af7d8b2514b7f7247d2d2a0c39376523",
+  "withinRecorderModelCap": true,
+  "recordingAdmission": "NOT_TESTED",
+  "numericInitializationAlreadyDeclared": true
+}

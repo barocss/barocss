@@ -1,0 +1,90 @@
+{
+  "sourceCommit": "db84f1e17833fbdb140de953e1efb538da7ed865",
+  "copiesAreByteIdentical": true,
+  "files": [
+    {
+      "asset": "foundation-report.txt",
+      "source": "examples/physics-motion-foundations-2276/README.md",
+      "bytes": 14760,
+      "sha256": "d0f75b7871a665a5b00576e1708c2f0de34451f91f59e2724023fec22dad4c86"
+    },
+    {
+      "asset": "nogo-report.txt",
+      "source": "examples/physics-motion-nogo-2276/README.md",
+      "bytes": 14399,
+      "sha256": "3464490873bc39c7d6e21c32331d13e6343a3b4df60a41331bd02ed926ecc9a2"
+    },
+    {
+      "asset": "solver-report.txt",
+      "source": "examples/physics-stack-solver-2276/README.md",
+      "bytes": 12354,
+      "sha256": "62d263262c1af9aa1a7e660b56f9252f3c6109be26f2f5a9b8a7d0bdc9b9a9df"
+    },
+    {
+      "asset": "boundary-report.txt",
+      "source": "examples/physics-contact-boundary-2276/README.md",
+      "bytes": 9159,
+      "sha256": "9f86b4077cdd67049ac045b33639287872d30efb028a5309d76fdd1bedd40321"
+    },
+    {
+      "asset": "geometry-source.json",
+      "source": "examples/physics-contact-boundary-2276/evidence/geometry-source-02/result.json",
+      "bytes": 1371647,
+      "sha256": "07461105327f8177195ec33ee6c94324754710d228c743434294dda22d036648"
+    },
+    {
+      "asset": "geometry-emitted.json",
+      "source": "examples/physics-contact-boundary-2276/evidence/geometry-emitted-02/result.json",
+      "bytes": 1371647,
+      "sha256": "5f4d89f053b2b441227755cc83e12ea670e2eb54c2c20b8945d00429fcf642d1"
+    },
+    {
+      "asset": "world-source.json",
+      "source": "examples/physics-contact-boundary-2276/evidence/world-source-03/world-result.json",
+      "bytes": 5301,
+      "sha256": "ab4bfbd942b2432b0a207559f493fba61c567476e9b565871cb8fff72edff0f0"
+    },
+    {
+      "asset": "world-emitted.json",
+      "source": "examples/physics-contact-boundary-2276/evidence/world-emitted-01/world-result.json",
+      "bytes": 5301,
+      "sha256": "d254c76f7c833dd0b15efa647a7e00a6d04d2675b918c5bc0663d4662a26d356"
+    },
+    {
+      "asset": "world-time-guard.json",
+      "source": "examples/physics-contact-boundary-2276/evidence/world-source-02/ALIGNED-result.json",
+      "bytes": 1506,
+      "sha256": "19170615b2d5e7a6d26f087ea50db4b5606aa02d0275da02b72e32cefbd98ebb"
+    },
+    {
+      "asset": "first-stack-failure.json",
+      "source": "examples/physics-motion-nogo-2276/evidence/stack-study-01/result.json",
+      "bytes": 16407,
+      "sha256": "f8941733862d59a49730c5f5624d99186e7d9f8a1f307dda3026371efc2b89db"
+    },
+    {
+      "asset": "first-motion-input-failure.txt",
+      "source": "examples/physics-motion-foundations-2276/evidence/inputs-before-01/motion-input.stdout",
+      "bytes": 31815,
+      "sha256": "431e7542613591ec60d4be164511a32e2081afc1aa4722f0b698b43187b25d64"
+    },
+    {
+      "asset": "first-equilibrium-source.json",
+      "source": "examples/physics-stack-solver-2276/evidence/first-source-02/result.json",
+      "bytes": 93472,
+      "sha256": "07c7ec9b5f444433c97c49bcecd88624ab675d29f0c197d9586a4d5df086910e"
+    },
+    {
+      "asset": "foundation-contract.txt",
+      "source": "examples/physics-motion-foundations-2276/CONTRACT.md",
+      "bytes": 5175,
+      "sha256": "07c610210446a6af3906d776f1c59eb5c49fabc705cf8b0d18bd6a9cd8011e7b"
+    },
+    {
+      "asset": "boundary-contract.txt",
+      "source": "examples/physics-contact-boundary-2276/CONTRACT.md",
+      "bytes": 8515,
+      "sha256": "7747762590f712b1d57b048d96f86dc8c3841b0e9e8b567a2d1817a47eb94625"
+    }
+  ]
+}

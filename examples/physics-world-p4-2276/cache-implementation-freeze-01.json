@@ -1,0 +1,57 @@
+{
+  "workId": "physics-world-p4-support-radius-cache-2276",
+  "status": "parent_scope_frozen_before_core_implementation",
+  "base": "db963ecc506522de151aa0caffa527a6bde35a75",
+  "inputs": {
+    "CACHE-CONTRACT.md": "d4f53304f6c1bb11c31c35c695c564970fb8b44c88b7ef6debf28b14f94f3812",
+    "CACHE-CONTROLS.json": "ad6ee93d263ea5cb5ffc0c96011f7808826b564fb589879e96c271de887ff0cb"
+  },
+  "approvedPrimitiveLedger": {
+    "wrapperCalls": 43,
+    "directOriginalAttempts": 23,
+    "delegatedOriginalAttempts": 28,
+    "totalOriginalAttempts": 51
+  },
+  "approvedBounds": {
+    "max_entries": 8192,
+    "max_key_bytes": 16384,
+    "max_encoded_bytes": 16777216,
+    "max_owned_bytes": 67108864,
+    "max_logical_calls": 8640
+  },
+  "approvedCoreAPI": {
+    "constructor": "SupportRadiusCache(original, bounds)",
+    "methods": [
+      "call(*args, **kwargs)",
+      "clear()",
+      "stats()"
+    ],
+    "statsNames": [
+      "calls",
+      "eligible",
+      "hits",
+      "misses",
+      "type_bypasses",
+      "context_bypasses",
+      "capacity_bypasses",
+      "original_attempts",
+      "original_returns",
+      "original_raises",
+      "entries",
+      "encoded_key_bytes",
+      "owned_bytes",
+      "peak_owned_bytes",
+      "key_build_cpu_ns",
+      "key_build_wall_ns"
+    ]
+  },
+  "fullReferenceGate": {
+    "freshOptimizedEvaluateCalls": 6,
+    "currentRawByteAndSignedNumberEqualityRequired": true,
+    "newUncachedBaselineCalls": 0,
+    "originalPhysicsGateChanges": false
+  },
+  "costRule": "NUMERIC_EQ_PASS and sum six optimized process CPU samples strictly lower than the six paired prior unprofiled samples; otherwise COST_NO_GO",
+  "newRuntimeDependencies": false,
+  "originalHistoricalFailureStatus": "PRESERVED"
+}

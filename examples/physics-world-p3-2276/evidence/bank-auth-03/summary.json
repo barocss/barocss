@@ -1,0 +1,821 @@
+{
+  "kind": "P3_DATA_ONLY_BANK_AUTHENTICATION",
+  "runId": "bank-auth-03",
+  "status": "FAIL",
+  "runtime": "v22.19.0",
+  "execPath": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "modelsRun": 0,
+  "referencesRun": 0,
+  "projectionsRun": 0,
+  "rows": 1200,
+  "samples": [
+    {
+      "stepIndex": 1,
+      "timeSeconds": 0.008333333333333333,
+      "nativeKeys": [
+        "request",
+        "acceptedStoreBefore",
+        "acceptedStoreAfter"
+      ],
+      "requestKeys": [
+        "op",
+        "config",
+        "sourceState",
+        "dt",
+        "commands",
+        "commandsRawHex",
+        "outcome",
+        "attempt",
+        "output",
+        "error",
+        "rawFrames",
+        "negativeZeroPaths"
+      ],
+      "stateKeys": [
+        "stepIndex",
+        "timeSeconds",
+        "bodies",
+        "contacts",
+        "events",
+        "joints",
+        "ccdHits",
+        "pairStats"
+      ],
+      "attemptKeys": [
+        "stage",
+        "sourceStepIndex",
+        "sourceTimeSeconds",
+        "attemptedStepIndex",
+        "attemptedTimeSeconds",
+        "acceptedReportAnglesRad",
+        "parsedActions",
+        "frames",
+        "pairs",
+        "pairProgress",
+        "contactPasses",
+        "pairStats",
+        "calls",
+        "contactChecks",
+        "error"
+      ],
+      "frameKeys": [
+        "sourceBodies",
+        "angularBodies",
+        "motorBodies",
+        "freeBodies",
+        "postContactBodies",
+        "projectedBodies"
+      ],
+      "diagnosticsKeys": [
+        "sourceStepIndex",
+        "sourceTimeSeconds",
+        "acceptedStepIndex",
+        "acceptedTimeSeconds",
+        "fixedStepSeconds",
+        "frames",
+        "pairs",
+        "contactPasses",
+        "pairStats",
+        "calls",
+        "contactChecks"
+      ],
+      "replyKeys": [
+        "ok",
+        "resolved",
+        "executionFailure",
+        "referenceStatus",
+        "metrics",
+        "reference",
+        "violations",
+        "error"
+      ],
+      "locators": {
+        "native": {
+          "stream": "main.native.jsonl",
+          "offset": 0,
+          "bytes": 156089,
+          "sha256": "bb7531eafc8f92fe92e3cd675a61f0e13f4679a1156369dcaeee6b23bdacce09"
+        },
+        "request": {
+          "stream": "reference.stdin.raw",
+          "offset": 3299642,
+          "bytes": 110690,
+          "sha256": "78253dde11a8dafb60a13162ca8de6a1a23f0d7545a1a672bbe1833c2aa3b6e1"
+        },
+        "reply": {
+          "stream": "reference.stdout.raw",
+          "offset": 1906887,
+          "bytes": 94314,
+          "requestIndex": 44,
+          "sha256": "b9654dbf25c1fc8835c3d41868f90fefbf48b592564e54d717a1b154483e2040"
+        },
+        "requestPhysicalOffset": 3296106,
+        "replyPhysicalOffset": 1895601,
+        "record": {
+          "offset": 112,
+          "bytes": 1610,
+          "sha256": "3f1659ede018db6329bdc23730ffb5299ea5e05552e49ae1b0c6bb405a641540"
+        }
+      },
+      "rawPhases": {
+        "source": {
+          "bytes": 416,
+          "sha256": "336909b78c32a1bd17ece87634ed11767de4eaf9fc952aa5d9077ff91a0ad5e0"
+        },
+        "angular": {
+          "bytes": 416,
+          "sha256": "336909b78c32a1bd17ece87634ed11767de4eaf9fc952aa5d9077ff91a0ad5e0"
+        },
+        "motor": {
+          "bytes": 416,
+          "sha256": "a24d7801c54adae4693db40ca5223d3e93571d2f771b3e0291138b1c5db58d5a"
+        },
+        "free": {
+          "bytes": 416,
+          "sha256": "2abe87a08b1ac21a619ab95d037ea9b3c917b2516118a9baa204cc3b3624a188"
+        },
+        "postContact": {
+          "bytes": 416,
+          "sha256": "2abe87a08b1ac21a619ab95d037ea9b3c917b2516118a9baa204cc3b3624a188"
+        },
+        "projected": {
+          "bytes": 416,
+          "sha256": "079700aedf8289e66f5d6433fc3ac83e207d8f02a4e60b309b287779fca8d7e9"
+        }
+      },
+      "negativeZeroPaths": {
+        "sourceState": [],
+        "commands": [],
+        "attempt": [
+          "/pairs/0/projection/diagnostics/poseStage/angleCorrectionsRad/1",
+          "/pairs/1/projection/diagnostics/poseStage/angleCorrectionsRad/1",
+          "/pairProgress/0/projection/diagnostics/poseStage/angleCorrectionsRad/1",
+          "/pairProgress/1/projection/diagnostics/poseStage/angleCorrectionsRad/1"
+        ],
+        "output": [
+          "/diagnostics/pairs/0/projection/diagnostics/poseStage/angleCorrectionsRad/1",
+          "/diagnostics/pairs/1/projection/diagnostics/poseStage/angleCorrectionsRad/1"
+        ]
+      },
+      "joints": [
+        {
+          "id": "hinge0",
+          "angleRad": 0.0004166666666666666,
+          "angleF64LE": "4d1be8b4814e3b3f"
+        },
+        {
+          "id": "hinge1",
+          "angleRad": 0.0004166666666666666,
+          "angleF64LE": "4d1be8b4814e3b3f"
+        }
+      ]
+    },
+    {
+      "stepIndex": 76,
+      "timeSeconds": 0.6333333333333333,
+      "nativeKeys": [
+        "request",
+        "acceptedStoreBefore",
+        "acceptedStoreAfter"
+      ],
+      "requestKeys": [
+        "op",
+        "config",
+        "sourceState",
+        "dt",
+        "commands",
+        "commandsRawHex",
+        "outcome",
+        "attempt",
+        "output",
+        "error",
+        "rawFrames",
+        "negativeZeroPaths"
+      ],
+      "stateKeys": [
+        "stepIndex",
+        "timeSeconds",
+        "bodies",
+        "contacts",
+        "events",
+        "joints",
+        "ccdHits",
+        "pairStats"
+      ],
+      "attemptKeys": [
+        "stage",
+        "sourceStepIndex",
+        "sourceTimeSeconds",
+        "attemptedStepIndex",
+        "attemptedTimeSeconds",
+        "acceptedReportAnglesRad",
+        "parsedActions",
+        "frames",
+        "pairs",
+        "pairProgress",
+        "contactPasses",
+        "pairStats",
+        "calls",
+        "contactChecks",
+        "error"
+      ],
+      "frameKeys": [
+        "sourceBodies",
+        "angularBodies",
+        "motorBodies",
+        "freeBodies",
+        "postContactBodies",
+        "projectedBodies"
+      ],
+      "diagnosticsKeys": [
+        "sourceStepIndex",
+        "sourceTimeSeconds",
+        "acceptedStepIndex",
+        "acceptedTimeSeconds",
+        "fixedStepSeconds",
+        "frames",
+        "pairs",
+        "contactPasses",
+        "pairStats",
+        "calls",
+        "contactChecks"
+      ],
+      "replyKeys": [
+        "ok",
+        "resolved",
+        "executionFailure",
+        "referenceStatus",
+        "metrics",
+        "reference",
+        "violations",
+        "error"
+      ],
+      "locators": {
+        "native": {
+          "stream": "main.native.jsonl",
+          "offset": 15651513,
+          "bytes": 209080,
+          "sha256": "cce4e0f849f53cc1a470ed4e5bd934186272d36212d3c83220a21b786cdc585b"
+        },
+        "request": {
+          "stream": "reference.stdin.raw",
+          "offset": 12068416,
+          "bytes": 117024,
+          "sha256": "1664eddce0e663ff6cace04c15c1cddc6dfebb3dc7cc1d0692cbe1658797ae48"
+        },
+        "reply": {
+          "stream": "reference.stdout.raw",
+          "offset": 9283709,
+          "bytes": 98553,
+          "requestIndex": 119,
+          "sha256": "18c7c914fedc0af829df0ec6f904ced4c57e7f418278b6d8771fd60418defd07"
+        },
+        "requestPhysicalOffset": 12064880,
+        "replyPhysicalOffset": 9272423,
+        "record": {
+          "offset": 122281,
+          "bytes": 1635,
+          "sha256": "ed077171f512049160a6243fb1c8529e6d1abfce3979446140ebbcd24f64a1f5"
+        }
+      },
+      "rawPhases": {
+        "source": {
+          "bytes": 416,
+          "sha256": "7f7fda7514ac88f804bb80adcf767fe3d7a61c6ea056b44c7c3ec326be4999b3"
+        },
+        "angular": {
+          "bytes": 416,
+          "sha256": "7f7fda7514ac88f804bb80adcf767fe3d7a61c6ea056b44c7c3ec326be4999b3"
+        },
+        "motor": {
+          "bytes": 416,
+          "sha256": "4f5c24c9c3ca1b8fb0378a163e90bb99bd2d3a07d226bb1ebddcf35cdb8e017e"
+        },
+        "free": {
+          "bytes": 416,
+          "sha256": "8246e933694ffee79d6b38d451f516fd36111eabd104f6ca0fda761dbee0cc2c"
+        },
+        "postContact": {
+          "bytes": 416,
+          "sha256": "8246e933694ffee79d6b38d451f516fd36111eabd104f6ca0fda761dbee0cc2c"
+        },
+        "projected": {
+          "bytes": 416,
+          "sha256": "82166c7a47e4ac55e8cc7bca4f497311012693ffb57ea2216134b99632474428"
+        }
+      },
+      "negativeZeroPaths": {
+        "sourceState": [],
+        "commands": [],
+        "attempt": [
+          "/pairs/0/projection/diagnostics/poseStage/angleCorrectionsRad/1",
+          "/pairs/1/projection/diagnostics/poseStage/angleCorrectionsRad/1",
+          "/pairProgress/0/projection/diagnostics/poseStage/angleCorrectionsRad/1",
+          "/pairProgress/1/projection/diagnostics/poseStage/angleCorrectionsRad/1"
+        ],
+        "output": [
+          "/diagnostics/pairs/0/projection/diagnostics/poseStage/angleCorrectionsRad/1",
+          "/diagnostics/pairs/1/projection/diagnostics/poseStage/angleCorrectionsRad/1"
+        ]
+      },
+      "joints": [
+        {
+          "id": "hinge0",
+          "angleRad": 0.29791546289052023,
+          "angleF64LE": "5f9985040c11d33f"
+        },
+        {
+          "id": "hinge1",
+          "angleRad": 0.29791546289052023,
+          "angleF64LE": "5f9985040c11d33f"
+        }
+      ]
+    },
+    {
+      "stepIndex": 77,
+      "timeSeconds": 0.6416666666666666,
+      "nativeKeys": [
+        "request",
+        "acceptedStoreBefore",
+        "acceptedStoreAfter"
+      ],
+      "requestKeys": [
+        "op",
+        "config",
+        "sourceState",
+        "dt",
+        "commands",
+        "commandsRawHex",
+        "outcome",
+        "attempt",
+        "output",
+        "error",
+        "rawFrames",
+        "negativeZeroPaths"
+      ],
+      "stateKeys": [
+        "stepIndex",
+        "timeSeconds",
+        "bodies",
+        "contacts",
+        "events",
+        "joints",
+        "ccdHits",
+        "pairStats"
+      ],
+      "attemptKeys": [
+        "stage",
+        "sourceStepIndex",
+        "sourceTimeSeconds",
+        "attemptedStepIndex",
+        "attemptedTimeSeconds",
+        "acceptedReportAnglesRad",
+        "parsedActions",
+        "frames",
+        "pairs",
+        "pairProgress",
+        "contactPasses",
+        "pairStats",
+        "calls",
+        "contactChecks",
+        "error"
+      ],
+      "frameKeys": [
+        "sourceBodies",
+        "angularBodies",
+        "motorBodies",
+        "freeBodies",
+        "postContactBodies",
+        "projectedBodies"
+      ],
+      "diagnosticsKeys": [
+        "sourceStepIndex",
+        "sourceTimeSeconds",
+        "acceptedStepIndex",
+        "acceptedTimeSeconds",
+        "fixedStepSeconds",
+        "frames",
+        "pairs",
+        "contactPasses",
+        "pairStats",
+        "calls",
+        "contactChecks"
+      ],
+      "replyKeys": [
+        "ok",
+        "resolved",
+        "executionFailure",
+        "referenceStatus",
+        "metrics",
+        "reference",
+        "violations",
+        "error"
+      ],
+      "locators": {
+        "native": {
+          "stream": "main.native.jsonl",
+          "offset": 15860593,
+          "bytes": 208605,
+          "sha256": "88b2800cb2c56052ab82ff607509f13ce4a4e50c958ce92cea3630621e0e1444"
+        },
+        "request": {
+          "stream": "reference.stdin.raw",
+          "offset": 12185440,
+          "bytes": 116373,
+          "sha256": "438e630a0d86388d72552a19c18b50c00002e4bf499d0917373cd2e8ac1b8c95"
+        },
+        "reply": {
+          "stream": "reference.stdout.raw",
+          "offset": 9382262,
+          "bytes": 98249,
+          "requestIndex": 120,
+          "sha256": "ffb009213e6d1749ba724d64fdfa4b91510f5fda4b404344bf4b4b9096968c3a"
+        },
+        "requestPhysicalOffset": 12181904,
+        "replyPhysicalOffset": 9370976,
+        "record": {
+          "offset": 123916,
+          "bytes": 1635,
+          "sha256": "1119026b4d21f2828438800b1cf31166efce29874b26e1a0557fafcca82e654a"
+        }
+      },
+      "rawPhases": {
+        "source": {
+          "bytes": 416,
+          "sha256": "82166c7a47e4ac55e8cc7bca4f497311012693ffb57ea2216134b99632474428"
+        },
+        "angular": {
+          "bytes": 416,
+          "sha256": "82166c7a47e4ac55e8cc7bca4f497311012693ffb57ea2216134b99632474428"
+        },
+        "motor": {
+          "bytes": 416,
+          "sha256": "64d0510d51bd7873d847b72aca75ac4557f020dae54286b19a3c7cfa06f61c3c"
+        },
+        "free": {
+          "bytes": 416,
+          "sha256": "bc860dd78f5c6e8bb9bb2fe25618f15d04cca481bebc59a5f9df52b9f8d20b08"
+        },
+        "postContact": {
+          "bytes": 416,
+          "sha256": "bc860dd78f5c6e8bb9bb2fe25618f15d04cca481bebc59a5f9df52b9f8d20b08"
+        },
+        "projected": {
+          "bytes": 416,
+          "sha256": "0ac9fd68b1ae6f81f327899549ab41c8170b100b66d5f6319cf70c62085d6e7d"
+        }
+      },
+      "negativeZeroPaths": {
+        "sourceState": [],
+        "commands": [],
+        "attempt": [
+          "/pairs/0/projection/diagnostics/poseStage/angleCorrectionsRad/1",
+          "/pairs/1/projection/diagnostics/poseStage/angleCorrectionsRad/1",
+          "/pairProgress/0/projection/diagnostics/poseStage/angleCorrectionsRad/1",
+          "/pairProgress/1/projection/diagnostics/poseStage/angleCorrectionsRad/1"
+        ],
+        "output": [
+          "/diagnostics/pairs/0/projection/diagnostics/poseStage/angleCorrectionsRad/1",
+          "/diagnostics/pairs/1/projection/diagnostics/poseStage/angleCorrectionsRad/1"
+        ]
+      },
+      "joints": [
+        {
+          "id": "hinge0",
+          "angleRad": 0.3020821295571869,
+          "angleF64LE": "a3ddc9485055d33f"
+        },
+        {
+          "id": "hinge1",
+          "angleRad": 0.3020821295571869,
+          "angleF64LE": "a3ddc9485055d33f"
+        }
+      ]
+    },
+    {
+      "stepIndex": 197,
+      "timeSeconds": 1.6416666666666666,
+      "nativeKeys": [
+        "request",
+        "acceptedStoreBefore",
+        "acceptedStoreAfter"
+      ],
+      "requestKeys": [
+        "op",
+        "config",
+        "sourceState",
+        "dt",
+        "commands",
+        "commandsRawHex",
+        "outcome",
+        "attempt",
+        "output",
+        "error",
+        "rawFrames",
+        "negativeZeroPaths"
+      ],
+      "stateKeys": [
+        "stepIndex",
+        "timeSeconds",
+        "bodies",
+        "contacts",
+        "events",
+        "joints",
+        "ccdHits",
+        "pairStats"
+      ],
+      "attemptKeys": [
+        "stage",
+        "sourceStepIndex",
+        "sourceTimeSeconds",
+        "attemptedStepIndex",
+        "attemptedTimeSeconds",
+        "acceptedReportAnglesRad",
+        "parsedActions",
+        "frames",
+        "pairs",
+        "pairProgress",
+        "contactPasses",
+        "pairStats",
+        "calls",
+        "contactChecks",
+        "error"
+      ],
+      "frameKeys": [
+        "sourceBodies",
+        "angularBodies",
+        "motorBodies",
+        "freeBodies",
+        "postContactBodies",
+        "projectedBodies"
+      ],
+      "diagnosticsKeys": [
+        "sourceStepIndex",
+        "sourceTimeSeconds",
+        "acceptedStepIndex",
+        "acceptedTimeSeconds",
+        "fixedStepSeconds",
+        "frames",
+        "pairs",
+        "contactPasses",
+        "pairStats",
+        "calls",
+        "contactChecks"
+      ],
+      "replyKeys": [
+        "ok",
+        "resolved",
+        "executionFailure",
+        "referenceStatus",
+        "metrics",
+        "reference",
+        "violations",
+        "error"
+      ],
+      "locators": {
+        "native": {
+          "stream": "main.native.jsonl",
+          "offset": 40904361,
+          "bytes": 216955,
+          "sha256": "86fbe06fd28ca5788a51c0716ede122bb03f324ae4ad7a6be5d6d0e9324d3094"
+        },
+        "request": {
+          "stream": "reference.stdin.raw",
+          "offset": 26176543,
+          "bytes": 122903,
+          "sha256": "523e4f9f49d18aacca0b06b5c59293f78c826372930fb86b8f2d70e492fff4e2"
+        },
+        "reply": {
+          "stream": "reference.stdout.raw",
+          "offset": 21156566,
+          "bytes": 95227,
+          "requestIndex": 240,
+          "sha256": "bd6baade445c9c4e902fdfd5561750ceb32bcac3db556fa52377d4c91a87a276"
+        },
+        "requestPhysicalOffset": 26173007,
+        "replyPhysicalOffset": 21145280,
+        "record": {
+          "offset": 320423,
+          "bytes": 1638,
+          "sha256": "060bb66099d59eb605d16f9256c1675d271e054ad919af6f24e17b9074a51e7e"
+        }
+      },
+      "rawPhases": {
+        "source": {
+          "bytes": 416,
+          "sha256": "db789e785eb6c3cb34cc32e318a88818759e847b6b7be0afab075c9b599a7b96"
+        },
+        "angular": {
+          "bytes": 416,
+          "sha256": "db789e785eb6c3cb34cc32e318a88818759e847b6b7be0afab075c9b599a7b96"
+        },
+        "motor": {
+          "bytes": 416,
+          "sha256": "9d4e3a04777b631f261970fab1573f6ac381db6399190e3c2bcaa81a9fce9ea2"
+        },
+        "free": {
+          "bytes": 416,
+          "sha256": "23b7035bbdde6210b8759df0e35b2aad7d411729e783ed0e9e177412c021247a"
+        },
+        "postContact": {
+          "bytes": 416,
+          "sha256": "23b7035bbdde6210b8759df0e35b2aad7d411729e783ed0e9e177412c021247a"
+        },
+        "projected": {
+          "bytes": 416,
+          "sha256": "5e49921ebc7cc07307ac5da89ac44cf8b544ec5d0699df83e979499374c87867"
+        }
+      },
+      "negativeZeroPaths": {
+        "sourceState": [],
+        "commands": [],
+        "attempt": [],
+        "output": []
+      },
+      "joints": [
+        {
+          "id": "hinge0",
+          "angleRad": 0.8,
+          "angleF64LE": "9a9999999999e93f"
+        },
+        {
+          "id": "hinge1",
+          "angleRad": 0.8,
+          "angleF64LE": "9a9999999999e93f"
+        }
+      ]
+    },
+    {
+      "stepIndex": 1200,
+      "timeSeconds": 10,
+      "nativeKeys": [
+        "request",
+        "acceptedStoreBefore",
+        "acceptedStoreAfter"
+      ],
+      "requestKeys": [
+        "op",
+        "config",
+        "sourceState",
+        "dt",
+        "commands",
+        "commandsRawHex",
+        "outcome",
+        "attempt",
+        "output",
+        "error",
+        "rawFrames",
+        "negativeZeroPaths"
+      ],
+      "stateKeys": [
+        "stepIndex",
+        "timeSeconds",
+        "bodies",
+        "contacts",
+        "events",
+        "joints",
+        "ccdHits",
+        "pairStats"
+      ],
+      "attemptKeys": [
+        "stage",
+        "sourceStepIndex",
+        "sourceTimeSeconds",
+        "attemptedStepIndex",
+        "attemptedTimeSeconds",
+        "acceptedReportAnglesRad",
+        "parsedActions",
+        "frames",
+        "pairs",
+        "pairProgress",
+        "contactPasses",
+        "pairStats",
+        "calls",
+        "contactChecks",
+        "error"
+      ],
+      "frameKeys": [
+        "sourceBodies",
+        "angularBodies",
+        "motorBodies",
+        "freeBodies",
+        "postContactBodies",
+        "projectedBodies"
+      ],
+      "diagnosticsKeys": [
+        "sourceStepIndex",
+        "sourceTimeSeconds",
+        "acceptedStepIndex",
+        "acceptedTimeSeconds",
+        "fixedStepSeconds",
+        "frames",
+        "pairs",
+        "contactPasses",
+        "pairStats",
+        "calls",
+        "contactChecks"
+      ],
+      "replyKeys": [
+        "ok",
+        "resolved",
+        "executionFailure",
+        "referenceStatus",
+        "metrics",
+        "reference",
+        "violations",
+        "error"
+      ],
+      "locators": {
+        "native": {
+          "stream": "main.native.jsonl",
+          "offset": 230381108,
+          "bytes": 188919,
+          "sha256": "a2b72c77bd2a8485f0dbdb6fa3e0ed81dbb6154c0de864fc03b6e706bbd438b8"
+        },
+        "request": {
+          "stream": "reference.stdin.raw",
+          "offset": 131661098,
+          "bytes": 105172,
+          "sha256": "1e22ffbf62b7df4332ee628cb52e36043e5bac9d0327cab526aa78b7d0acf5a5"
+        },
+        "reply": {
+          "stream": "reference.stdout.raw",
+          "offset": 118779347,
+          "bytes": 97330,
+          "requestIndex": 1243,
+          "sha256": "10f6eb727fe9221636be83dbee2e734f10bdaaff8d4b57c923e2d417d52cb880"
+        },
+        "requestPhysicalOffset": 131657562,
+        "replyPhysicalOffset": 118768061,
+        "record": {
+          "offset": 1969954,
+          "bytes": 1650,
+          "sha256": "28336659e11913e03c190fd6c6c1c936c2c95e0d9a360253d60006aec2e6f7b7"
+        }
+      },
+      "rawPhases": {
+        "source": {
+          "bytes": 416,
+          "sha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15"
+        },
+        "angular": {
+          "bytes": 416,
+          "sha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15"
+        },
+        "motor": {
+          "bytes": 416,
+          "sha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15"
+        },
+        "free": {
+          "bytes": 416,
+          "sha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15"
+        },
+        "postContact": {
+          "bytes": 416,
+          "sha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15"
+        },
+        "projected": {
+          "bytes": 416,
+          "sha256": "fde19c2551b09b544b3f1576c569b12aae43a064d9e0581fa07db7e293a19d15"
+        }
+      },
+      "negativeZeroPaths": {
+        "sourceState": [],
+        "commands": [],
+        "attempt": [
+          "/pairs/0/projection/diagnostics/poseStage/angleCorrectionsRad/1",
+          "/pairs/0/work/motorMidpointJ",
+          "/pairs/1/projection/diagnostics/poseStage/angleCorrectionsRad/1",
+          "/pairs/1/work/motorMidpointJ",
+          "/pairProgress/0/projection/diagnostics/poseStage/angleCorrectionsRad/1",
+          "/pairProgress/1/projection/diagnostics/poseStage/angleCorrectionsRad/1"
+        ],
+        "output": [
+          "/diagnostics/pairs/0/projection/diagnostics/poseStage/angleCorrectionsRad/1",
+          "/diagnostics/pairs/0/work/motorMidpointJ",
+          "/diagnostics/pairs/1/projection/diagnostics/poseStage/angleCorrectionsRad/1",
+          "/diagnostics/pairs/1/work/motorMidpointJ"
+        ]
+      },
+      "joints": [
+        {
+          "id": "hinge0",
+          "angleRad": 0.8,
+          "angleF64LE": "9a9999999999e93f"
+        },
+        {
+          "id": "hinge1",
+          "angleRad": 0.8,
+          "angleF64LE": "9a9999999999e93f"
+        }
+      ]
+    }
+  ],
+  "firstFailure": {
+    "name": "BankAuthenticationError",
+    "code": "BANK_AUTHENTICATION_FAILED",
+    "message": "alias differs from pinned original stream",
+    "stack": "BankAuthenticationError: alias differs from pinned original stream\n    at need (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/bank-auth.mjs:23:51)\n    at authenticateOriginalAliases (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/bank-auth.mjs:231:9)\n    at async file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p3-2276/evidence/bank-auth-03/run.mjs:25:3"
+  },
+  "elapsedMs": 2579
+}

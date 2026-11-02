@@ -1,0 +1,59 @@
+{
+  "status": "PARENT_AUTHORIZED_NATIVE_COMPLETION_SOURCE_ONLY",
+  "runtimeAuthorized": false,
+  "productionActivation": false,
+  "authorityPins": {
+    "examples/physics-rigid-rotation-g1b-2276/T02-SOURCE-COMPLETE-PROOF.json": {
+      "bytes": 20751,
+      "sha256": "4db883cb120da10249f8233388b0eb9e56424f8c82d9bbf5f350989a182ae7a3"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/SOURCE-RESULTS-T02.json": {
+      "bytes": 4523,
+      "sha256": "5bad93b6bc70e4188d11d7076b6f0274b027f88538c1f93b70e133b428570f6f"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-RESULTS-T02.json": {
+      "bytes": 9226,
+      "sha256": "0a2836c79d4babc066a60e39adbe1f6c5ca6ac2b486b28d059481212171a065a"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-ARCHIVE-T02.json": {
+      "bytes": 46294,
+      "sha256": "e7f28014114b9364fb8052b63d3ded72295a856ef9141d1784933bc58dced0b9"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/REFERENCE-BANK-REUSE-T02.json": {
+      "bytes": 21068,
+      "sha256": "aaffbe967d97a44ce2c5c4ceb9fd1e12258d41adba087b1dfcdd1d281601c4df"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/reference-trajectory.py": {
+      "bytes": 35076,
+      "sha256": "4597ad8a4d8ee710ff18c060f3dd2cf121efaa630e2ef187763126c17053e547"
+    },
+    "examples/physics-rigid-rotation-g1b-2276/trajectory-campaign.mjs": {
+      "bytes": 44847,
+      "sha256": "20fe9c961965054489260468a4d100795b24c6bdd721cb1e9176ed69ac6ca23b"
+    }
+  },
+  "scope": "NewNative-only8World/18reads/57attempts=47accepted+4commandrefusals+3unknownfaults+3postguards/8dispose/55newaudits/57requests. ReuseclosedT02SourcefullPASS/55auditproofs/49traces/55frames;0newSourceWorld/module/math. RepeatNativeprefix justifiedbyunobservedfinalaggregatehelpercounts andfailedreference-resourcecompletion.",
+  "reference": "ReuseexactT01bankrows;0newODE/Decimal/sqrt/integral/root. LoadnoSourceinitial/private/errors/refinement roots; preservelogicalSourcecomplete cursor onlyafterauthenticatingSourceproof. Retain55Nativeactualauditsandnormalphysical/refinement/clockpredicates.",
+  "bounds": "Alloriginal8192-ID/8MiBreference/8MiBharness/64MiBwhole/16MiBevidence/170sinner/180souter andtolerances/iterations unchanged. Reduceunneededretainedroots, neverraisebound.",
+  "studyBase": {
+    "Decimal": 23634120,
+    "Fraction": 109442
+  },
+  "owners": {
+    "SolMedium": [
+      "native-completion.mjs",
+      "NATIVE-COMPLETION-DRIVER-PLAN.json",
+      "NATIVE-COMPLETION-DRIVER-READY.json"
+    ],
+    "SolHigh": [
+      "reference-native-completion.py",
+      "NATIVE-COMPLETION-PLAN.json",
+      "NATIVE-COMPLETION-PROTOCOL.md",
+      "NATIVE-COMPLETION-READY.json",
+      "NATIVE-COMPLETION-REVIEW.md"
+    ]
+  },
+  "existingFiles": "AllT01/T02/Msources/readys/archives/firstfailures frozen; newfilesonly.",
+  "completionClaim": "Compositequalifiedscope fromactualclosedSourcePASS andnewNativePASS ifsuccessful. OriginalT02campaignremainsresourceFAIL; neverrewriteasone16WorldPASS.",
+  "next": "Frozennewplan/sourceReady/Highreview andfreshparentruntimefreeze before execution; authorchecksAST/syntax/DATAonly. Noexternaldownload/dependency/securitychange/deploy/merge/release."
+}

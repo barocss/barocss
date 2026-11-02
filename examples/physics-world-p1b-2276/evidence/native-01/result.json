@@ -1,0 +1,7 @@
+{
+  "status": "SETUP_FAIL",
+  "runtime": "NOT_RUN",
+  "types": "NOT_RUN",
+  "reason": "wrong two-surfaces fixture path in new native harness; ENOENT examples/physics-scene/two-surfaces.barocad",
+  "correction": "use existing examples/physics-cad-scene/two-surfaces.barocad; fresh native-02"
+}

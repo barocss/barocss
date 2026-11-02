@@ -1,0 +1,18 @@
+{
+  "code": 0,
+  "signal": null,
+  "evidenceBytesWithOracleReserve": 5436534,
+  "evidenceWithinCap": true,
+  "emergencyReserveBytes": 8388608,
+  "timedOut": false,
+  "overflow": false,
+  "closed": true,
+  "stdoutEOF": true,
+  "stderrEOF": true,
+  "groupAbsent": true,
+  "signals": [],
+  "status": "PASS_PUBLIC_P5B_BOUNDED_QUALIFICATION",
+  "progressPath": "progress.json",
+  "summaryPath": "summary.json",
+  "end": "2026-11-01T22:53:30.000Z"
+}

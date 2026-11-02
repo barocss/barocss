@@ -1,17 +1,12 @@
+import { makeModel, dynamicPart, staticPart } from '../physics-model-input/model.mjs';
 import assert from 'node:assert/strict';
 import { createPhysicsWorld, PhysicsError } from '../../packages/barocss-physics/dist/index.js';
 
 const dt = 1 / 120;
 const material = { static: 1, dynamic: 0.7 };
-const ball = (id, y, velocityMps = [0, 0, 0], friction) => ({
-  id, kind: 'dynamic', shape: { kind: 'sphere', radiusM: 0.25 },
-  positionM: [0, y, 0], velocityMps, massKg: 1, restitution: 0,
-  ...(friction ? { friction } : {}),
-});
-const floor = friction => ({ id: 'fixture:floor', kind: 'static',
-  shape: { kind: 'box', halfExtentsM: [2, 0.1, 2] },
-  positionM: [0, -0.1, 0], restitution: 0, ...(friction ? { friction } : {}) });
-const create = bodies => createPhysicsWorld({ fixedStepSeconds: dt, gravityMps2: [0, -9.81, 0], bodies });
+const ball = (id, y, velocityMps = [0,0,0], friction) => dynamicPart(id, {kind:'sphere',radiusM:0.25}, {positionM:[0,y,0],velocityMps}, 1, {restitution:0, ...(friction ? {friction} : {})});
+const floor = friction => staticPart('fixture:floor', {kind:'box',halfExtentsM:[2,0.1,2]}, {positionM:[0,-0.1,0]}, {restitution:0,...(friction?{friction}:{})});
+const create = bodies => createPhysicsWorld(makeModel({gravityMps2: [0, -9.81, 0], parts: bodies}), {profile: 'rigid-discrete-v1', fixedStepSeconds: dt, broadPhase: 'direct'});
 const code = (action, expected) => assert.throws(action,
   error => error instanceof PhysicsError && error.code === expected);
 
@@ -19,17 +14,17 @@ function slide(friction) {
   const simulation = create([ball('part:slide', 0.25, [1, 0, 0], friction), floor(friction)]);
   let tangentTotal = 0;
   for (let index = 0; index < 120; index++) {
-    const state = simulation.step(dt);
+    const state = simulation.step();
     tangentTotal += state.contacts.reduce((sum, contact) =>
-      sum + Math.hypot(...contact.tangentImpulseNs), 0);
+      sum + Math.hypot(...contact.tangentImpulseOnBNs), 0);
   }
   const state = simulation.getState();
   const result = { speedX: state.bodies[0].velocityMps[0],
     angularZ: state.bodies[0].angularVelocityRadps[2], tangentTotal };
   if (friction) {
-    const before = simulation.getState().contacts[0].tangentImpulseNs[0];
-    state.contacts[0].tangentImpulseNs[0] = 99;
-    assert.equal(simulation.getState().contacts[0].tangentImpulseNs[0], before,
+    const before = simulation.getState().contacts[0].tangentImpulseOnBNs[0];
+    state.contacts[0].tangentImpulseOnBNs[0] = 99;
+    assert.equal(simulation.getState().contacts[0].tangentImpulseOnBNs[0], before,
       'returned tangent impulse changed accepted state');
   }
   simulation.dispose();
@@ -46,7 +41,7 @@ assert.ok(Math.abs(frictional.angularZ) > 0.1, 'friction did not rotate the sphe
 const stack = create([ball('part:lower', 0.25), ball('part:upper', 0.75), floor()]);
 let maxPenetrationM = 0;
 for (let index = 0; index < 240; index++) {
-  const state = stack.step(dt);
+  const state = stack.step();
   maxPenetrationM = Math.max(maxPenetrationM,
     ...state.contacts.map(contact => contact.penetrationM));
 }
@@ -62,7 +57,7 @@ code(() => create([ball('part:bad', 0.25, [0, 0, 0], { static: NaN, dynamic: 0 }
 code(() => create([ball('part:bad', 0.25, [0, 0, 0], { static: 1 })]), 'INVALID_CONFIG');
 code(() => create([ball('part:bad', 0.25, [0, 0, 0], { ...material, extra: 1 })]), 'INVALID_CONFIG');
 const before = JSON.stringify(stack.getState());
-code(() => stack.step(dt, [{ kind: 'angularImpulse', bodyId: 'part:lower',
+code(() => stack.step([{ kind: 'angularImpulse', bodyId: 'part:lower',
   angularImpulseNms: [100000, 0, 0] }]), 'NUMERIC_LIMIT');
 assert.equal(JSON.stringify(stack.getState()), before, 'failed numeric step changed accepted stack');
 stack.dispose();

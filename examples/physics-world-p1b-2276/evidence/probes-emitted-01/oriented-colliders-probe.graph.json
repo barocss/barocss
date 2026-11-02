@@ -1,0 +1,49 @@
+{
+  "emitted": true,
+  "entry": "examples/physics-scene/oriented-colliders-probe.mjs",
+  "bundleSha256": "3a22f267fca9a13319a7ccca125adf139097ed1c26311c58d8752db70bac6c37",
+  "inputs": [
+    {
+      "path": "examples/physics-model-input/model.mjs",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-model-input/model.mjs",
+      "sha256": "8bbeb3712f27eb3d639dcde806fcf27f8bc5360274feefd051335b3887790baf",
+      "effectiveSha256": "8bbeb3712f27eb3d639dcde806fcf27f8bc5360274feefd051335b3887790baf",
+      "physicsProvider": false,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/types.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/types.js",
+      "sha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b",
+      "effectiveSha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/provider-manifest.generated.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/provider-manifest.generated.js",
+      "sha256": "35e75ce1af9d3823ef5a882980c0aa040b4f813ec0decc74240701b716b32194",
+      "effectiveSha256": "35e75ce1af9d3823ef5a882980c0aa040b4f813ec0decc74240701b716b32194",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "packages/barocss-physics/dist/index.js",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/index.js",
+      "sha256": "2ee10b0fa44a2629ad2d2bf83783ad244b0655c541bd8c0ee6479929c8d4b5a9",
+      "effectiveSha256": "2ee10b0fa44a2629ad2d2bf83783ad244b0655c541bd8c0ee6479929c8d4b5a9",
+      "physicsProvider": true,
+      "cadSourceBoundary": false
+    },
+    {
+      "path": "examples/physics-scene/oriented-colliders-probe.mjs",
+      "absolutePath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-scene/oriented-colliders-probe.mjs",
+      "sha256": "a99f868513883de53c2837e1e11840041f7086ecff8ee2524096b9b5de92d87c",
+      "effectiveSha256": "a99f868513883de53c2837e1e11840041f7086ecff8ee2524096b9b5de92d87c",
+      "physicsProvider": false,
+      "cadSourceBoundary": false
+    }
+  ],
+  "effective": [],
+  "cadBoundary": "no CAD TypeScript source"
+}

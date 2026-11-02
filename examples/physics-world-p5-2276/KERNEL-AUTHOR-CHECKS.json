@@ -1,0 +1,38 @@
+{
+  "status": "AUTHOR_SOURCE_ONLY_CHECKS_COMPLETE_RUNTIME_NOT_RUN",
+  "oldProviderFilesVerified": 1376,
+  "oldProviderChanges": [],
+  "typeCheck": {
+    "command": [
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "node_modules/typescript/bin/tsc",
+      "-p",
+      "packages/barocss-physics/tsconfig.json",
+      "--noEmit"
+    ],
+    "exit": 0,
+    "gate": "NOT_ACQUIRED_PROCESS_POLICY_MISS_REPORTED",
+    "acknowledgementRerun": false
+  },
+  "overlay01": {
+    "path": "examples/physics-world-p5-2276/kernel-source-check-01.json",
+    "status": "FAIL_SOURCE_ONLY_OVERLAY_ANCHOR"
+  },
+  "overlay02": {
+    "path": "examples/physics-world-p5-2276/kernel-source-check-02.json",
+    "status": "PASS_SOURCE_TEXT_OVERLAY_COMPILE_ONLY",
+    "gate": "heavy acquired after0s; EXIT released",
+    "exit": 0
+  },
+  "finalOwnMjsSyntax": {
+    "gate": "heavy acquired after0s; EXIT released",
+    "exit": 0,
+    "files": 6
+  },
+  "providerImports": 0,
+  "modelConstructions": 0,
+  "candidateCalls": 0,
+  "baselineWorldReruns": 0,
+  "recordingSizes": "NOT_MEASURED",
+  "head": "c96ea1401264a38d6f2192b28ca5aabcad6c6730"
+}

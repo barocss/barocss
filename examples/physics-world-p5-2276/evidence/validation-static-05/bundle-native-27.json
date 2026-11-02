@@ -1,0 +1,26 @@
+{
+  "mode": "native",
+  "entry": "examples/physics-cloth-viewer/views.mjs",
+  "platform": "browser",
+  "inputs": {
+    "examples/physics-cloth-viewer/views.mjs": {
+      "bytes": 414,
+      "sha256": "645d35cbaac1d17f1dd1935d7d89322d8450f01a6a2be84499e31573a3de0b26",
+      "effectiveSha256": "645d35cbaac1d17f1dd1935d7d89322d8450f01a6a2be84499e31573a3de0b26"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 584,
+  "outputSha256": "ef7e75fb8128a790119865b6f23942389c60ad0533a2c70e6c1efab3ed614906",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "missingNativeSDKBoundary": null,
+  "nativeHostSDKIntegration": "NOT_CLAIMED_BY_COMPILE",
+  "externalImports": [],
+  "moduleEvaluation": false
+}

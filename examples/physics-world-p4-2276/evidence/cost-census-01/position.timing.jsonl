@@ -1,0 +1,3 @@
+{"type":"ready","kind":"position","importWallNs":29274708}
+{"type":"start","ordinal":1,"op":"world"}
+{"type":"call","ordinal":1,"op":"world","computeWallNs":112581625,"computeCpuNs":112457000,"outcome":"returned"}

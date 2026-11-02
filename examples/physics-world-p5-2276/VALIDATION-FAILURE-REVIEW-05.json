@@ -1,0 +1,8 @@
+{
+  "status": "PARENT_NARROW_COPY_PROVENANCE_FIX_NO_EXECUTION",
+  "firstFailureReceipt": "validation-static-04",
+  "firstFailure": "Unfrozen reused compiler input:03packed-consumer-native/release-consumer.mjs",
+  "scope": "Exactfourstagedcopyorigins(02source,03native),matchingoriginalpreexecutionbytes/hashandcurrentfrozenbytes/hash; allotherpolicies/limitsunchanged.",
+  "budgets": "remaining51bundles+lint1;0strict/World. Previous76bundle/2strictPASSreused. Aggregate130buildattempts including3buildfailures;04startupfailed0builds separatelypreserved.",
+  "childSha256": "00ee4c509e276ad19d261a19654948be69d96e044acfe0b1ef6c5ab824b11f77"
+}

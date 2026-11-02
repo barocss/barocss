@@ -1,0 +1,212 @@
+{
+  "workId": "physics-world-p1a-2276",
+  "base": "a81748a54c7e1ecf0915015575256e81d989f43a",
+  "diagnosticBaseline": {
+    "originalBugReproduced": true,
+    "cases": 4,
+    "retentionPass": false,
+    "exitMeansObserverCompleted": true
+  },
+  "fixedInstrumentedSource": {
+    "tests": 4,
+    "pass": 4
+  },
+  "fixedInstrumentedEmitted": {
+    "tests": 4,
+    "pass": 4
+  },
+  "ordinarySource": {
+    "tests": 2,
+    "pass": 2,
+    "instrumented": false
+  },
+  "ordinaryEmitted": {
+    "tests": 2,
+    "pass": 2,
+    "instrumented": false,
+    "actualRootAndReplayJs": true,
+    "nativePublishedMapTest": "NOT_RUN"
+  },
+  "independentExistingReference": {
+    "testsPerGraph": 5,
+    "sourcePass": 5,
+    "emittedPass": 5,
+    "diagnosticObjectsEqual": true,
+    "diagnostics": [
+      {
+        "metric": "ballistic",
+        "samples": [
+          {
+            "dt": 0.016666666666666666,
+            "errorM": 0.08175000000000043,
+            "velocityErrorMps": 8.881784197001252e-15,
+            "energyErrorJ": -0.8019674999999182
+          },
+          {
+            "dt": 0.008333333333333333,
+            "errorM": 0.04087500000000688,
+            "velocityErrorMps": 1.0658141036401503e-14,
+            "energyErrorJ": -0.4009837499999591
+          },
+          {
+            "dt": 0.004166666666666667,
+            "errorM": 0.020437499999997222,
+            "velocityErrorMps": 2.1316282072803006e-14,
+            "energyErrorJ": -0.20049187500018206
+          }
+        ],
+        "ratios": [
+          1.999999999999674,
+          2.0000000000006084
+        ],
+        "order": 1,
+        "deterministicRepeat": true
+      },
+      {
+        "metric": "elastic-impact",
+        "maxMomentumError": 0,
+        "maxEnergyError": 2.220446049250313e-16
+      },
+      {
+        "metric": "uniform-sphere-spin",
+        "rotationError": 2.220446049250313e-16,
+        "angularMomentumNms": 0.031999999999999994
+      },
+      {
+        "metric": "finite-floor-sphere-support",
+        "steps": 3000,
+        "maxGapM": 0,
+        "maxSupportErrorNs": 5.551115123125783e-17,
+        "cumulativeBalanceNs": 2.5579538487363607e-12,
+        "maxEnergyErrorJ": 7.70371977754894e-34
+      },
+      {
+        "metric": "sphere-sliding-to-rolling",
+        "steps": 240,
+        "maxGapM": 0,
+        "maxMomentumErrorNs": 5.551115123125783e-17,
+        "maxAngularErrorNms": 6.938893903907228e-18,
+        "maxWorkErrorJ": 1.5265566588595902e-16,
+        "maxEnergyGrowthJ": 0,
+        "maxSlidingPositionErrorM": 0.0008174999999999988,
+        "finalSpeedMps": 0.7142857142857146,
+        "finalSpinRadps": -3.571428571428573,
+        "finalEnergyJ": 0.714285714285715
+      }
+    ]
+  },
+  "commands": {
+    "baseline-01": [
+      {
+        "name": "baseline-replay-session",
+        "exit": 0,
+        "signal": null
+      },
+      {
+        "name": "baseline-world",
+        "exit": 0,
+        "signal": null
+      },
+      {
+        "name": "transaction-tests",
+        "exit": 0,
+        "signal": null
+      }
+    ],
+    "source-01": [
+      {
+        "name": "transaction-tests",
+        "exit": 0,
+        "signal": null
+      }
+    ],
+    "emitted-01": [
+      {
+        "name": "emit-root-replay",
+        "exit": 0,
+        "signal": null
+      },
+      {
+        "name": "transaction-tests",
+        "exit": 0,
+        "signal": null
+      }
+    ],
+    "ordinary-source-01": [
+      {
+        "name": "transaction-tests",
+        "exit": 0,
+        "signal": null
+      }
+    ],
+    "ordinary-emitted-01": [
+      {
+        "name": "emit-root-replay",
+        "exit": 0,
+        "signal": null
+      },
+      {
+        "name": "transaction-tests",
+        "exit": 0,
+        "signal": null
+      }
+    ],
+    "reference-source-01": [
+      {
+        "name": "world",
+        "exit": 0,
+        "signal": null
+      },
+      {
+        "name": "contact",
+        "exit": 0,
+        "signal": null
+      }
+    ],
+    "reference-emitted-01": [
+      {
+        "name": "emit",
+        "exit": 0,
+        "signal": null
+      },
+      {
+        "name": "world",
+        "exit": 0,
+        "signal": null
+      },
+      {
+        "name": "contact",
+        "exit": 0,
+        "signal": null
+      }
+    ]
+  },
+  "runtimeSignatureChanged": false,
+  "modelContractRuntime": "NOT_IMPLEMENTED; P1b remains",
+  "oldHolds": "UNCHANGED",
+  "publicTwoHinge": "NO_GO",
+  "originalEightBoxSettling": "NO_GO/NOT_RUN",
+  "wholeEngineQualified": false,
+  "hardwareValidated": false,
+  "dependenciesInstalled": false,
+  "remoteWrites": false,
+  "deployed": false,
+  "staticChecks": {
+    "eslintErrors": 0,
+    "eslintWarnings": 3
+  },
+  "docs": {
+    "sourceExamplesPass": 11,
+    "sourceExamplesFail": 0,
+    "buildExit": 0,
+    "pages": 73,
+    "links": 787,
+    "anchors": 202,
+    "deployment": false
+  },
+  "stagedWhitespace": {
+    "fullDiff": "FAIL one raw ESLint blank EOF; preserved",
+    "authorSourceOnly": "PASS",
+    "commitOnFailedAudit": false
+  }
+}
