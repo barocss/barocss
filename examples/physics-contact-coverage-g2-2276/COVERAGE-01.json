@@ -1,0 +1,514 @@
+{
+  "workId": "physics-contact-coverage-g2-2276",
+  "status": "STATIC_EVIDENCE_MAP_COMPLETE_QUALIFICATION_OPEN",
+  "date": "2026-11-02",
+  "newRuntimeCalls": 0,
+  "newGeometryOrReferenceCalls": 0,
+  "sourcePins": [
+    {
+      "path": "packages/barocss-physics/src/collision.ts",
+      "bytes": 13442,
+      "sha256": "baa1492ee990bb156d4ba10deb45e0ddc31d31ab6555318c5f652043aa1ea501"
+    },
+    {
+      "path": "packages/barocss-physics/src/persistent-box-contact.ts",
+      "bytes": 3646,
+      "sha256": "2c117202db9bcb0b988b59f9add9cae57e09d175927122a313e7166720a63d9b"
+    },
+    {
+      "path": "packages/barocss-physics/src/ccd.ts",
+      "bytes": 3220,
+      "sha256": "040de88f74673b297164227ff5faada12f0eb190aa14a9471dbeb02f879a57ab"
+    },
+    {
+      "path": "packages/barocss-physics/src/ccd-slab.ts",
+      "bytes": 1125,
+      "sha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340"
+    },
+    {
+      "path": "packages/barocss-physics/src/ccd-pair.ts",
+      "bytes": 2110,
+      "sha256": "570b434c19e432ccc3632bafa2c174df6dac9968e6c38b0f7d4416f75090231f"
+    },
+    {
+      "path": "packages/barocss-physics/src/ccd-box.ts",
+      "bytes": 1978,
+      "sha256": "43667cba73a01782cac3b9fe14828b67885229a6e09bc9f0e68b6a2d27057b43"
+    },
+    {
+      "path": "packages/barocss-physics/src/math.ts",
+      "bytes": 2421,
+      "sha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2"
+    }
+  ],
+  "testDefinitionPins": [
+    {
+      "path": "examples/physics-motion-foundations-2276/contact.test.ts",
+      "bytes": 9166,
+      "sha256": "f9fbdc4aac3973009de1355832b215f57f165344b2d1c1d86745db6c3501be73"
+    },
+    {
+      "path": "examples/physics-motion-foundations-2276/baseline.test.ts",
+      "bytes": 2091,
+      "sha256": "6438a4f649a49f71013c5f8ca1e2b897154c41e793cc21107ad15581bf0838f1"
+    },
+    {
+      "path": "examples/physics-scene/ccd-probe.mjs",
+      "bytes": 3941,
+      "sha256": "46e51a5f5bab554ef4bc82d6b56423861e09ae4f9e0db5992f79d1563f9e627d"
+    },
+    {
+      "path": "examples/physics-scene/ccd-pair-probe.mjs",
+      "bytes": 4012,
+      "sha256": "3ad2cd7a2af87753bdd67a2cd5b0c576b61782eab3d0541a8e9998cb9dfc30ba"
+    },
+    {
+      "path": "examples/physics-scene/thin-box-ccd-probe.mjs",
+      "bytes": 5805,
+      "sha256": "7931f845ac23ebcd2e82482219da2b09df1095be34f0b7d26009157b99684431"
+    },
+    {
+      "path": "examples/physics-scene/friction-stack-probe.mjs",
+      "bytes": 3874,
+      "sha256": "47ceb1b11128dfeb771c0eaf637753a6e556ad96fc76dafe631f712be419a1a7"
+    },
+    {
+      "path": "examples/physics-rigid-contact-reference/README.md",
+      "bytes": 3533,
+      "sha256": "07aad03b4c38d27c0202c23a71693b8c250ba5785179dcd283d14b372a4064f9"
+    }
+  ],
+  "existingReceiptPins": [
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/foundation-source-01/contact-run.stdout",
+      "bytes": 1136,
+      "sha256": "c87006d07a64fbabff6f631e198f58f6e28da8ceaf2630466224f86db7746f2a"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/foundation-source-01/baseline-run.stdout",
+      "bytes": 465,
+      "sha256": "6d68330ce8f1cf009cf3ddb58b9ca5394832ab6b9d5d8b102a6c7a9a26b88912"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/foundation-source-01/commands.json",
+      "bytes": 24471,
+      "sha256": "235fe9eb8fb3cb47eba6ad34ca9faaaed32e33317b73c84bc5abf07e7cd92677"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-source-01/ccd-probe-run.stdout",
+      "bytes": 181,
+      "sha256": "5a246a8881bc2d64ac1cc8ba010d48f5666f04075ada0a912f2442848ccc8a07"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-source-01/ccd-probe-run.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-source-01/ccd-probe-before-bundle-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-source-01/ccd-probe-after-run-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-source-01/ccd-pair-probe-run.stdout",
+      "bytes": 249,
+      "sha256": "00fdcc0c5acbddd5871912ed522c82cb8c50ad3861eae3d92ab163df889753c6"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-source-01/ccd-pair-probe-run.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-source-01/ccd-pair-probe-before-bundle-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-source-01/ccd-pair-probe-after-run-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-source-01/thin-box-ccd-probe-run.stdout",
+      "bytes": 277,
+      "sha256": "0f8c8ccc82aa3fa01da029f4f50a3ee04f854630ecc0a56fb69f09474dfe3771"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-source-01/thin-box-ccd-probe-run.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-source-01/thin-box-ccd-probe-before-bundle-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-source-01/thin-box-ccd-probe-after-run-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-source-01/friction-stack-probe-run.stdout",
+      "bytes": 273,
+      "sha256": "14870000cc40b73c2938a5506ac7d490e1270b29a415765d4b368ac35aa7536e"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-source-01/friction-stack-probe-run.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-source-01/friction-stack-probe-before-bundle-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-source-01/friction-stack-probe-after-run-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/foundation-emitted-01/contact-run.stdout",
+      "bytes": 1136,
+      "sha256": "10d8ba33c7031af29439f88c88256c43d17bc3ea16fe0829bda56704ffa8d48f"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/foundation-emitted-01/baseline-run.stdout",
+      "bytes": 465,
+      "sha256": "b752f00e7587beb114672900c66b8ccaaa46c56b6915de86a948b56c644718b6"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/foundation-emitted-01/commands.json",
+      "bytes": 23637,
+      "sha256": "a75b957c77d8e63bf3d17e44bdb2978a3c49a763f83e8c441857cdcadb33bdfc"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-emitted-01/ccd-probe-run.stdout",
+      "bytes": 181,
+      "sha256": "5a246a8881bc2d64ac1cc8ba010d48f5666f04075ada0a912f2442848ccc8a07"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-emitted-01/ccd-probe-run.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-emitted-01/ccd-probe-before-bundle-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-emitted-01/ccd-probe-after-run-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-emitted-01/ccd-pair-probe-run.stdout",
+      "bytes": 249,
+      "sha256": "00fdcc0c5acbddd5871912ed522c82cb8c50ad3861eae3d92ab163df889753c6"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-emitted-01/ccd-pair-probe-run.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-emitted-01/ccd-pair-probe-before-bundle-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-emitted-01/ccd-pair-probe-after-run-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-emitted-01/thin-box-ccd-probe-run.stdout",
+      "bytes": 277,
+      "sha256": "0f8c8ccc82aa3fa01da029f4f50a3ee04f854630ecc0a56fb69f09474dfe3771"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-emitted-01/thin-box-ccd-probe-run.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-emitted-01/thin-box-ccd-probe-before-bundle-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-emitted-01/thin-box-ccd-probe-after-run-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-emitted-01/friction-stack-probe-run.stdout",
+      "bytes": 273,
+      "sha256": "14870000cc40b73c2938a5506ac7d490e1270b29a415765d4b368ac35aa7536e"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-emitted-01/friction-stack-probe-run.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-emitted-01/friction-stack-probe-before-bundle-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/probes-emitted-01/friction-stack-probe-after-run-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/foundation-source-01/contact-before-bundle-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    },
+    {
+      "path": "examples/physics-world-p1b-2276/evidence/foundation-source-01/baseline-before-bundle-source-hashes.json",
+      "bytes": 11096,
+      "sha256": "81dcf00bd04e9ebc766e036bd62129d6ed7d176ec9e1f8247db02d6247809fff"
+    }
+  ],
+  "kernelTransferComparisons": [
+    {
+      "receipt": "examples/physics-world-p1b-2276/evidence/foundation-source-01/contact-before-bundle-source-hashes.json",
+      "producer": "packages/barocss-physics/src/collision.ts",
+      "historicalSha256": "baa1492ee990bb156d4ba10deb45e0ddc31d31ab6555318c5f652043aa1ea501",
+      "currentSha256": "baa1492ee990bb156d4ba10deb45e0ddc31d31ab6555318c5f652043aa1ea501",
+      "sameBytes": true
+    },
+    {
+      "receipt": "examples/physics-world-p1b-2276/evidence/foundation-source-01/contact-before-bundle-source-hashes.json",
+      "producer": "packages/barocss-physics/src/persistent-box-contact.ts",
+      "historicalSha256": "2c117202db9bcb0b988b59f9add9cae57e09d175927122a313e7166720a63d9b",
+      "currentSha256": "2c117202db9bcb0b988b59f9add9cae57e09d175927122a313e7166720a63d9b",
+      "sameBytes": true
+    },
+    {
+      "receipt": "examples/physics-world-p1b-2276/evidence/foundation-source-01/contact-before-bundle-source-hashes.json",
+      "producer": "packages/barocss-physics/src/ccd.ts",
+      "historicalSha256": "040de88f74673b297164227ff5faada12f0eb190aa14a9471dbeb02f879a57ab",
+      "currentSha256": "040de88f74673b297164227ff5faada12f0eb190aa14a9471dbeb02f879a57ab",
+      "sameBytes": true
+    },
+    {
+      "receipt": "examples/physics-world-p1b-2276/evidence/foundation-source-01/contact-before-bundle-source-hashes.json",
+      "producer": "packages/barocss-physics/src/ccd-slab.ts",
+      "historicalSha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340",
+      "currentSha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340",
+      "sameBytes": true
+    },
+    {
+      "receipt": "examples/physics-world-p1b-2276/evidence/foundation-source-01/contact-before-bundle-source-hashes.json",
+      "producer": "packages/barocss-physics/src/ccd-pair.ts",
+      "historicalSha256": "570b434c19e432ccc3632bafa2c174df6dac9968e6c38b0f7d4416f75090231f",
+      "currentSha256": "570b434c19e432ccc3632bafa2c174df6dac9968e6c38b0f7d4416f75090231f",
+      "sameBytes": true
+    },
+    {
+      "receipt": "examples/physics-world-p1b-2276/evidence/foundation-source-01/contact-before-bundle-source-hashes.json",
+      "producer": "packages/barocss-physics/src/ccd-box.ts",
+      "historicalSha256": "43667cba73a01782cac3b9fe14828b67885229a6e09bc9f0e68b6a2d27057b43",
+      "currentSha256": "43667cba73a01782cac3b9fe14828b67885229a6e09bc9f0e68b6a2d27057b43",
+      "sameBytes": true
+    },
+    {
+      "receipt": "examples/physics-world-p1b-2276/evidence/foundation-source-01/contact-before-bundle-source-hashes.json",
+      "producer": "packages/barocss-physics/src/math.ts",
+      "historicalSha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2",
+      "currentSha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2",
+      "sameBytes": true
+    },
+    {
+      "receipt": "examples/physics-world-p1b-2276/evidence/foundation-source-01/baseline-before-bundle-source-hashes.json",
+      "producer": "packages/barocss-physics/src/collision.ts",
+      "historicalSha256": "baa1492ee990bb156d4ba10deb45e0ddc31d31ab6555318c5f652043aa1ea501",
+      "currentSha256": "baa1492ee990bb156d4ba10deb45e0ddc31d31ab6555318c5f652043aa1ea501",
+      "sameBytes": true
+    },
+    {
+      "receipt": "examples/physics-world-p1b-2276/evidence/foundation-source-01/baseline-before-bundle-source-hashes.json",
+      "producer": "packages/barocss-physics/src/persistent-box-contact.ts",
+      "historicalSha256": "2c117202db9bcb0b988b59f9add9cae57e09d175927122a313e7166720a63d9b",
+      "currentSha256": "2c117202db9bcb0b988b59f9add9cae57e09d175927122a313e7166720a63d9b",
+      "sameBytes": true
+    },
+    {
+      "receipt": "examples/physics-world-p1b-2276/evidence/foundation-source-01/baseline-before-bundle-source-hashes.json",
+      "producer": "packages/barocss-physics/src/ccd.ts",
+      "historicalSha256": "040de88f74673b297164227ff5faada12f0eb190aa14a9471dbeb02f879a57ab",
+      "currentSha256": "040de88f74673b297164227ff5faada12f0eb190aa14a9471dbeb02f879a57ab",
+      "sameBytes": true
+    },
+    {
+      "receipt": "examples/physics-world-p1b-2276/evidence/foundation-source-01/baseline-before-bundle-source-hashes.json",
+      "producer": "packages/barocss-physics/src/ccd-slab.ts",
+      "historicalSha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340",
+      "currentSha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340",
+      "sameBytes": true
+    },
+    {
+      "receipt": "examples/physics-world-p1b-2276/evidence/foundation-source-01/baseline-before-bundle-source-hashes.json",
+      "producer": "packages/barocss-physics/src/ccd-pair.ts",
+      "historicalSha256": "570b434c19e432ccc3632bafa2c174df6dac9968e6c38b0f7d4416f75090231f",
+      "currentSha256": "570b434c19e432ccc3632bafa2c174df6dac9968e6c38b0f7d4416f75090231f",
+      "sameBytes": true
+    },
+    {
+      "receipt": "examples/physics-world-p1b-2276/evidence/foundation-source-01/baseline-before-bundle-source-hashes.json",
+      "producer": "packages/barocss-physics/src/ccd-box.ts",
+      "historicalSha256": "43667cba73a01782cac3b9fe14828b67885229a6e09bc9f0e68b6a2d27057b43",
+      "currentSha256": "43667cba73a01782cac3b9fe14828b67885229a6e09bc9f0e68b6a2d27057b43",
+      "sameBytes": true
+    },
+    {
+      "receipt": "examples/physics-world-p1b-2276/evidence/foundation-source-01/baseline-before-bundle-source-hashes.json",
+      "producer": "packages/barocss-physics/src/math.ts",
+      "historicalSha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2",
+      "currentSha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2",
+      "sameBytes": true
+    }
+  ],
+  "branches": [
+    {
+      "id": "D01",
+      "law": "discrete normal impulse",
+      "scope": "closing/resting/separating; inverse-mass zero",
+      "status": "HISTORICAL_PARTIAL",
+      "nextOrEvidence": "elastic pair and sphere support; no full branch census"
+    },
+    {
+      "id": "D02",
+      "law": "restitution switch",
+      "scope": "closing speed below/exactly/above0.5m/s; unequal material minimum",
+      "status": "MISSING_BOUNDARY_PROOF",
+      "nextOrEvidence": "freeze adjacent representable words; analytic two-body momentum/energy loss"
+    },
+    {
+      "id": "D03",
+      "law": "discrete friction admission",
+      "scope": "zero mu / zero normal impulse / zero tangential speed",
+      "status": "HISTORICAL_PARTIAL",
+      "nextOrEvidence": "support and zero-friction probe; zero impulse plus finite tangential speed separate"
+    },
+    {
+      "id": "D04",
+      "law": "discrete static/dynamic friction",
+      "scope": "required impulse below/exactly/above muStatic*normal; reverse tangent; unequal mu",
+      "status": "HISTORICAL_PARTIAL",
+      "nextOrEvidence": "sliding-to-rolling covers a transition, not exact boundary or unequal geometric-mean mixing"
+    },
+    {
+      "id": "D05",
+      "law": "contact position correction",
+      "scope": "geometry before/after projection; force moment and work accounting",
+      "status": "HISTORICAL_PARTIAL",
+      "nextOrEvidence": "sphere floor exact arm independent; generic body producer points insufficient"
+    },
+    {
+      "id": "P01",
+      "law": "persistent normal accumulation",
+      "scope": "positive/clamped zero and normal-cache reduction",
+      "status": "MISSING_BRANCH_PROOF",
+      "nextOrEvidence": "old32point equilibrium does not prove cache reduction law"
+    },
+    {
+      "id": "P02",
+      "law": "persistent friction cache",
+      "scope": "tangent below/exactly/above1e-12m/s; stale tangent reprojected after normal decrease",
+      "status": "MISSING_BRANCH_PROOF",
+      "nextOrEvidence": "do not widen original1e-12 switch or iteration caps"
+    },
+    {
+      "id": "P03",
+      "law": "persistent Coulomb limit",
+      "scope": "requested norm below/exactly/above static; dynamic cap; zero cache",
+      "status": "MISSING_BRANCH_PROOF",
+      "nextOrEvidence": "instantaneous point microcase then actual public profile if supported"
+    },
+    {
+      "id": "P04",
+      "law": "eight-box long-time exit",
+      "scope": "ALIGNED/OFFSET/YAW1200 and original settle window",
+      "status": "EXISTING_NO_GO",
+      "nextOrEvidence": "original failures/tolerances/timeouts preserved; no rerun in inventory"
+    },
+    {
+      "id": "C01",
+      "law": "sphere/static-box face CCD",
+      "scope": "orthogonal face crossing, separating, rotated static fixture",
+      "status": "HISTORICAL_SELECTED_PASS",
+      "nextOrEvidence": "TOI0.282 within1e-12; rotated normal probe is bounded smoke"
+    },
+    {
+      "id": "C02",
+      "law": "slab CCD boundary",
+      "scope": "initial touching/overlap; stationary/parallel-outside; endpoint; tied axes",
+      "status": "MISSING_BOUNDARY_PROOF",
+      "nextOrEvidence": "slab initial inside/touch returns no CCDhit, discrete owns subsequent response"
+    },
+    {
+      "id": "C03",
+      "law": "sphere/static-box corner CCD",
+      "scope": "expanded OBB corner versus exact rounded Minkowski boundary",
+      "status": "SOURCE_MODEL_GAP_HYPOTHESIS",
+      "nextOrEvidence": "source uses uniform radius expansion plus slab intersection; independent corner geometry first, no numerical failure claimed"
+    },
+    {
+      "id": "C04",
+      "law": "multiple static fixtures",
+      "scope": "equal TOI sorted ID; near ties and input permutation",
+      "status": "MISSING_BRANCH_PROOF",
+      "nextOrEvidence": "earliest tie uses >= and sorted fixture order; no capsule-query result transferred"
+    },
+    {
+      "id": "C05",
+      "law": "sphere/sphere CCD",
+      "scope": "head-on crossing; overlap; separating; reversed input order",
+      "status": "HISTORICAL_SELECTED_PASS",
+      "nextOrEvidence": "TOI0.135 within1e-12; equal mass inelastic head-on only"
+    },
+    {
+      "id": "C06",
+      "law": "sphere/sphere quadratic boundary",
+      "scope": "zero relative travel, discriminant zero/negative, endpoint, near-grazing cancellation",
+      "status": "MISSING_BOUNDARY_PROOF",
+      "nextOrEvidence": "independent analytic relative geometry; finite current admission only"
+    },
+    {
+      "id": "C07",
+      "law": "axis-aligned box/static-box CCD",
+      "scope": "linear thin-face hit; initial overlap; no entry; rotated candidate refusal",
+      "status": "HISTORICAL_SELECTED_PASS",
+      "nextOrEvidence": "TOI0.09541284403669836 within1e-12; CAD-based fixture receipt retained"
+    },
+    {
+      "id": "C08",
+      "law": "box CCD admission boundaries",
+      "scope": "exact current angular tolerance, negative q equivalence, angular command refusal",
+      "status": "HISTORICAL_PARTIAL",
+      "nextOrEvidence": "do not infer generic rotation support or silently normalize original input"
+    },
+    {
+      "id": "X01",
+      "law": "capsule/rotating/general mesh CCD",
+      "scope": "outside admitted rigid CCD profile",
+      "status": "NOT_SUPPORTED",
+      "nextOrEvidence": "private upright capsule geometry is a separate API; no rigid world capability claim"
+    }
+  ],
+  "scope": "Historical receipts retained at their original providers; unchanged numeric leaf bytes do not certify changed World admission/serialization/ownership. No newly executed physical pass.",
+  "next": "G1a repair qualification first. For G2, review finite independent restitution/friction boundary and CCD corner geometry microcases before World. No full stack retry without new approved bounded strategy.",
+  "invariants": "HOLD/NO_GO/first failures/iterations/tolerances/public admission unchanged."
+}
