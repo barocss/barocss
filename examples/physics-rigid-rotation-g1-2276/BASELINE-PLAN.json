@@ -1,0 +1,176 @@
+{
+  "work_id": "physics-rigid-rotation-g1a-2276",
+  "artifact_type": "baseline-capture-and-classifier-plan",
+  "status": "AUTHOR_ONLY_BASELINE_NO_EXECUTION",
+  "mode": "BASELINE_CHARACTERIZATION_ONLY",
+  "cli": {
+    "outer": [
+      "NODE22",
+      "examples/physics-world-p5-2276/command-run.mjs",
+      "FRESH-GUARD-ID",
+      ".",
+      "NODE22",
+      "examples/physics-rigid-rotation-g1-2276/baseline.mjs",
+      "--run-id",
+      "FRESH-ID",
+      "--freeze",
+      "ABS-PARENT-FREEZE",
+      "--token",
+      "SHA256",
+      "--authorize-baseline"
+    ],
+    "classifier": [
+      "PYTHON",
+      "-B",
+      "examples/physics-rigid-rotation-g1-2276/baseline-classify.py",
+      "--request",
+      "ABS-REQUEST",
+      "--request-sha256",
+      "SHA256",
+      "--freeze",
+      "ABS-PARENT-FREEZE",
+      "--token",
+      "SHA256",
+      "--out",
+      "ABS-FRESH-RESULT"
+    ],
+    "sourceBuild": [
+      "NATIVE-ESBUILD",
+      "packages/barocss-physics/src/index.ts",
+      "--bundle",
+      "--platform=node",
+      "--format=esm",
+      "--target=node22",
+      "--log-level=error",
+      "--outfile=FRESH/build/source.mjs",
+      "--metafile=FRESH/build/source-metafile.json"
+    ]
+  },
+  "executionFreeze": {
+    "status": "PARENT_AUTHORIZED_G1_BASELINE_CHARACTERIZATION",
+    "mode": "BASELINE_CHARACTERIZATION_ONLY",
+    "runtimeAuthorized": true,
+    "futureRepairAuthorized": false,
+    "runId": "exact fresh CLI ID",
+    "files": "repo-relative authority/harness/actual current source+native/package/High-review/guard pins {bytes,sha256}",
+    "toolFiles": "absolute installed Node22/Python/native-esbuild pins",
+    "tools": [
+      "node",
+      "python",
+      "esbuildBinary"
+    ],
+    "highReview": "{path,approved:true}; pinned exact report",
+    "requiredAuthority": [
+      "CONTRACT.md",
+      "CASES.json",
+      "AUTHORING-FREEZE-01.json",
+      "PROVIDER-IDENTITY-CLARIFICATION-01.json",
+      "INTEGRATION-AUDIT.md",
+      "baseline.mjs",
+      "baseline-classify.py",
+      "BASELINE-PLAN.json",
+      "BASELINE-AUTHOR-READY.json"
+    ]
+  },
+  "order": [
+    "authenticate all authority/current producer/tool pins and actual public maps",
+    "one source-root esbuild bundle, source metafile closure auth/CAD-free; native actual published entry recursive literal-import closure auth/no source fallback; no package emit/rebuild",
+    "schema-directed native conversion of the one literal model/options pair once; write all numeric F64LE words",
+    "source actual createPhysicsWorld/getState/step([])/dispose; capture+guard each result and input ownership",
+    "native same only if all source API/schema/finite/input/alias capture guards complete",
+    "check exact non-provider public fields and all raw words; preserve/check own frozen providerDigest before/after and explicitly retain source/native inequality",
+    "write CLOSED capture ledger after both disposal returns, release all World references",
+    "one independent Python Fraction classifier: common nine-integral cuboid certificate; source before/after audits then native saved before/after audits; no World API after classification flag",
+    "persist first source physical failure and separately evaluate native saved data; never label whole baseline physics PASS"
+  ],
+  "ledger": {
+    "literalModelOptionsConversions": 1,
+    "worldInputClonePairs": 2,
+    "perGraph": {
+      "constructorAttempts": 1,
+      "constructorReturns": 1,
+      "getStateAttempts": 1,
+      "getStateReturns": 1,
+      "stepAttempts": 1,
+      "stepReturns": 1,
+      "disposeAttempts": 1,
+      "disposeReturns": 1
+    },
+    "bothGraphs": {
+      "constructors": 2,
+      "getState": 2,
+      "stepAttempts": 2,
+      "acceptedStepReturns": 2,
+      "disposeAttempts": 2
+    },
+    "getModel": 0,
+    "query": 0,
+    "recorder": 0,
+    "WorldApisAfterClassificationStarts": 0,
+    "sourceBuildProcesses": 1,
+    "nativePackageBuilds": 0,
+    "classifierProcesses": 1,
+    "geometryCertificates": 1,
+    "monomialMoments": 9,
+    "stateAudits": 4,
+    "properRationalRotations": 4,
+    "fractionOperationsMax": 10000,
+    "trig": 0,
+    "sqrt": 0,
+    "ODE": 0,
+    "linearSolves": 0,
+    "retries": 0
+  },
+  "identityClarification": "PROVIDER-IDENTITY-CLARIFICATION-01.json supersedes only the impossible providerDigest-equality sentence; do not modify/drop/normalize saved public fields. Check graph-owned expected digest exactly and stable, compare all other public data exactly.",
+  "classifier": "Independent stdlib Fraction. Physical inputs from recorded F64 words; nine polynomial antiderivative moments over each native half extent, density/COM/full tensor from volume integrals; no primitive inertia shortcut/import. Four proper normalized-quaternion rational matrices; exact R-transposeR/determinant checks. World L/E, raw squared-q norm, linear momentum and COM audits; own observed initial state is each graph target. Intended literals/rounding remain separate.",
+  "gates": "Exact CONTRACT/CASES baseline gates only: L component/E e+e*max(1,abs(before),abs(after)); squared q norm/COM/linear absolute e; e=1/10^12. No new trajectory/refinement or future analytic phase.",
+  "statuses": [
+    "CHARACTERIZED_PHYSICAL_NO_GO",
+    "CHARACTERIZED_NO_FAILURE_OBSERVED",
+    "BASELINE_CAPTURE_FAILURE",
+    "REFERENCE_OR_RESOURCE_FAILURE"
+  ],
+  "failureRules": {
+    "capture": "stop later graph immediately; at most one owned dispose finally; constructor/dispose unknown outcomes explicit; no API guard failure relabelled physical NO_GO",
+    "classification": "physical failure is data: complete source assessment then native saved assessment, preserve first failure. Reference/unknown/resource error stops further audits; prefix counts remain lower bounds with in-flight unknown.",
+    "noApiAfterClose": "All API wrappers reject a classification-started flag; no cleanup World remains by this phase; classifier imports no production module.",
+    "immutability": "fresh dirs and exclusive artifact writes; bounded progress overwritten only as durable current ledger, not old raw snapshots"
+  },
+  "resources": {
+    "internalMs": 170000,
+    "outerMs": 180000,
+    "cleanupMsMax": 4000,
+    "childTerminationMs": 1500,
+    "captureAndClassifierEvidenceBytes": 2097152,
+    "sourceBuildBytes": 16777216,
+    "referenceWorkBytes": 8388608,
+    "worldHarnessWorkBytes": 8388608,
+    "totalLogicalEnvelopeBytes": 67108864,
+    "reserveBytes": 16777216,
+    "generalEvidencePartitionBytes": 16777216,
+    "childLogsCombinedBytes": 131072,
+    "singleStateOrInputRawBytes": 65536,
+    "singleClassifierArtifactBytes": 524288,
+    "fractionStoredBits": 4096,
+    "fractionProductPrecheckBits": 8192,
+    "fractionSumPrecheckBits": 8193,
+    "rationalTextChars": 1300,
+    "RSSClaim": false,
+    "scope": "logical payload/artifacts; compiler/interpreter/OS/tool internal heap and RSS unmeasured"
+  },
+  "ownershipProof": "At most one live World at a time. All current input/output plain graphs bounded by fixed one-body schemas, <=4096 container/scalar nodes and16depth. Source/native closed raw states remain <=4*64KiB. Original input/native clones/snapshots and descriptor/alias scratch are explicit in the8MiB logical harness charge; code buffers/metafile/native closure charged build16MiB. Classifier handles only <=5raw graphs/one geometry/4audits and <=10000 checked Fraction operations; caller roots and serialization are charged together using measured reachable-owned bytes and fixed derived size allowances, no recursive closure cycles. No previous World or classifier process persists.",
+  "history": "Preserve all old physical/static/DATA first failures and impulse instantaneous PASS. Baseline hypothesis is not a golden expected failure. No P3/P4 threshold/arithmetic or current public provider change.",
+  "resourceDerivation": {
+    "driver": "No claim about V8/tool heap/RSS. Fixed one-body graphs have <=4096 nodes and depth16; each raw input/state <=64KiB. Retain unique input, two detached call inputs only during their own graph, four output graphs/word files and small provider/command ledgers. The8MiB logical harness envelope covers simultaneous copies/raw trees/JSON UTF16+UTF8; source/native code text/metafile/closure buffers and generated files are charged separately to16MiB build. Logs cumulatively128KiB, at most3copies in16MiB reserve. Classifier metrics header alone is retained after reading its <=512KiB file; full result remains in its artifact. Actual evidence directory excluding build is checked including classifier-created files before every later write and before final summary.",
+    "classifier": "Measure all registered raw artifacts, native decoded pair/states, freeze/request metadata, geometry certificate, full prior/current assessment data and result using sys.getsizeof with a cleared per-call identity set. Add derived1.5MiB for <=8192 identity integers/old+new set tables/32 traversal frames, plus0.5MiB for bounded8192bit Fraction and decimal-string/control/encoder temporaries. Preflight newly packed dict/list containers at4*existing container size, each rational record1024B+actual decimal strings, and simultaneous ASCII JSON+UTF8 at2*derived exact-safe ASCII length. Numerator/denominator strings<=1300chars. Max total8MiB; no self-recursive local closure or per-audit retained scratch. All four observed-state metrics and partial/final serialization roots remain registered. Resource failure is distinct and emits a bounded emergency result rather than physicsPASS.",
+    "firstSourceRecord": "Write complete immutable source-assessment.json before native audits, then native-assessment.json. Unknown/reference failure cannot erase the first source physical failure or its original raw states; firstPhysicalFailure and completed graph artifact pins remain in the final/emergency record."
+  },
+  "classifierOutputs": [
+    "classification.json",
+    "classifier-progress.json",
+    "source-assessment.json",
+    "native-assessment.json"
+  ],
+  "fractionCounting": "Checked add/sub/mul/div/negation/absolute/comparison operations all count toward10000; rawF64 decoding and JSON formatting are conversions, not linear/ODE/trig/sqrt solves. Fraction products and cross-products prechecked8192bits; reduced stored values<=4096bits; addition bound8193bits follows prechecked two products.",
+  "sourceNativeIdentity": "Required clarification faf2748... is pinned before any conversion or World: own expected public providerDigest exactly checked/stable; all public fields saved unmodified; provider inequality explicit; every other identity and all nonidentity raw fields compared exactly."
+}
