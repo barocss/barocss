@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D442: disclose selected native STEP face/edge name character loss without changing writer bytes or source keys](notes/step-native-name-loss-2026-11-02/README.md).
+
 - [D441: bounded printable-ASCII literal STEP backslashes, unchanged opaque values and writer bytes](notes/step-literal-backslash-2026-11-02/README.md).
 
 - [D440: current original case126b native and public Open/Fit profile; historical denominator cause unresolved](notes/fuzz-case126-current-2026-11-02/README.md).
@@ -100,6 +102,8 @@ Numeric proof and limits remain in the canonical item notes.
 | D440 | Qualify one current original fuzz input and exact-equivalent public Studio Open/Fit; preserve the first visual gap and historical denominator cause as unresolved | [Note](notes/fuzz-case126-current-2026-11-02/README.md) |
 
 | D441 | Decode writer-profile literal backslashes once; preserve opaque values, producer goldens and geometry; qualify actual Open/Fit/Preview/Cancel | [Note](notes/step-literal-backslash-2026-11-02/README.md) |
+
+| D442 | Report native face/edge character loss through the existing list; preserve exact output bytes/source keys and qualify one actual Preview/Cancel | [Note](notes/step-native-name-loss-2026-11-02/README.md) |
 
 <!-- D418 LEGACY COMPATIBILITY BEGIN: fixed original heading sequence -->
 <details>

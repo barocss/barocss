@@ -485,6 +485,16 @@ function stepNameLosses(name: string): string[] {
     ? ['Non-ASCII and control characters in the STEP header file name and product name are replaced with underscores.']
     : [];
 }
+const STEP_NATIVE_NAME_LOSS = 'Non-ASCII and control characters in native face and edge names are not retained in this STEP file.';
+const OUTSIDE_STEP_NATIVE_ASCII = /[^\x20-\x7e]/;
+/** Only selected native name fields: no ids, source text or writer-conversion policy. */
+function stepNativeNameLosses(breps: readonly Brep[]): string[] {
+  for (const brep of breps) {
+    for (const face of brep.faces) if (OUTSIDE_STEP_NATIVE_ASCII.test(face.name ?? '')) return [STEP_NATIVE_NAME_LOSS];
+    for (const edge of brep.edges) if (OUTSIDE_STEP_NATIVE_ASCII.test(edge.name ?? '')) return [STEP_NATIVE_NAME_LOSS];
+  }
+  return [];
+}
 // These losses describe this exporter, not STEP's full format capabilities. They do not affect bytes or revision.
 function stepProfileLosses(doc: StudioDoc): string[] {
   let history = false, parameters = false, labels = false, appearance = false, assembly = false, pmi = false, datums = false;
@@ -537,9 +547,10 @@ export function exportStudioStep(doc: StudioDoc, options: StudioStepOptions): St
     }
   }
   if (!breps.length) throw refusal('NO_BODY', sheets.length && !left.length ? `Only band sheets: STEP of band sheets is not supported yet, and there is no other body to export (${sheets.join(', ')}).` : left.length ? 'Only infill bodies: STEP carries the exact part, and there is none to export.' : 'There is no body to export.');
+  const nativeNameLosses = stepNativeNameLosses(breps);
   // (O9: the header names the source revision the file was made from.)
   const source = revisionOf(doc), text = exportStep(breps, { name, description: ['BaroCSS CAD part', `source revision ${source}`], ...(meshes ? { meshes } : {}), ...(options.timestamp ? { timestamp: options.timestamp } : {}) });
-  const omitted = [...(left.length ? [`lattice infill not included (${left.join(', ')}); 3MF carries it`] : []), ...sheets.map(k => `band sheet ${k} not included: STEP of band sheets is not supported yet`), ...stepProfileLosses(doc), ...stepNameLosses(name)];
+  const omitted = [...(left.length ? [`lattice infill not included (${left.join(', ')}); 3MF carries it`] : []), ...sheets.map(k => `band sheet ${k} not included: STEP of band sheets is not supported yet`), ...stepProfileLosses(doc), ...stepNameLosses(name), ...nativeNameLosses];
   // This inspects only our writer's fixed record; text() removes newlines from names.
   // A quoted product name therefore cannot forge a whole bbox record.
   if (!/^#\d+=REPRESENTATION\('bounding box',\(#\d+,#\d+\),#\d+\);$/m.test(text)) omitted.push('Bounding-box validation is not included in this STEP file.');
