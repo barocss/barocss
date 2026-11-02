@@ -1,0 +1,82 @@
+{
+  "status": "AUTHOR_READY_T03_SELF_ALIAS_REPAIR_RUNTIME_NOT_AUTHORIZED",
+  "runtimeAuthorized": false,
+  "productionActivation": false,
+  "source": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/trajectory-campaign.mjs",
+    "bytes": 44847,
+    "sha256": "20fe9c961965054489260468a4d100795b24c6bdd721cb1e9176ed69ac6ca23b"
+  },
+  "note": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-SELF-ALIAS-REPAIR-T03.md",
+    "bytes": 2908,
+    "sha256": "4b5aa7c4c52e074f44a1f54ec27675dc4b35b84df34632a754e2af0973f18541"
+  },
+  "preserved": {
+    "TRAJECTORY-READY-T01.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-READY-T01.json",
+      "bytes": 7217,
+      "sha256": "dd90bc5baa069d2e8118dacaf29cdaa8da3652220cfb0c3fbfbb0ca3388a2d03"
+    },
+    "TRAJECTORY-READY-T02.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-READY-T02.json",
+      "bytes": 1653,
+      "sha256": "3de558cc820f3a24cf4f34f08634c2d9209d74ab8ddee1d01e6e8b671e25dab6"
+    },
+    "TRAJECTORY-DRIVER-PLAN-01.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-DRIVER-PLAN-01.json",
+      "bytes": 18115,
+      "sha256": "a83f7f85b9e50154fd9abfd4cc87fe2e3eb984d91b452cdc4f60cd8d1da63c12"
+    },
+    "TRAJECTORY-DRIVER-PLAN-01.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-DRIVER-PLAN-01.md",
+      "bytes": 5474,
+      "sha256": "267d5137ec6353beac67123ae4425deb1d2cce66c899f095dad40108ea2e83bd"
+    },
+    "evidence/g1b-trajectory-01/summary.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-01/summary.json",
+      "bytes": 4782,
+      "sha256": "4e3fcaa8aa94aff4c85f376bcaf107029e97f462e69c5658b847cda547c3dfc5"
+    },
+    "evidence/g1b-trajectory-01/reference/progress.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-01/reference/progress.json",
+      "bytes": 1026,
+      "sha256": "0300a4b57f338b3f2567d160647ab2b0d2025835c6139014d0e3a9e86a84a050"
+    }
+  },
+  "repair": {
+    "originalDriverSha256": "fa1098b58515d6b3b8382e647a431d29c7bd4615d618506b8af0871ee69b7453",
+    "onlyBehavioralDelta": "Audit includes context.previous in detached operands only if context.previous!==state; both inputpair checks and existing raw retention checks unchanged.",
+    "authorityOnlyDelta": [
+      "TRAJECTORY-READY-T02.json",
+      "TRAJECTORY-READY-T03.json",
+      "TRAJECTORY-SELF-ALIAS-REPAIR-T03.md",
+      "REFERENCE-PROTOCOL-T02.md",
+      "REFERENCE-READY-T02.json",
+      "REUSE-NOTES-T02.md",
+      "REFERENCE-BANK-REUSE-T02.json",
+      "TRAJECTORY-EXECUTION-REVIEW-T02.md"
+    ],
+    "reference": "Same112schema. High referenceT02 must authenticate/reuse completedT01bank; no newODE/sqrt/geometry/algebraic-root work. Exact closed-row manifest and referenceT02 source/Ready are parent frozen prerequisites, not assumed results."
+  },
+  "firstFailureScope": "Harness self-comparison at initialaudit, not establishedphysicalAPIalias. Actual1ctor/1read/1cache/1dispose,0steps/0audits;NativeNOT_RUN. Completedreference INIT44windows/20876116Decimal/88sqrt remains immutable reusable evidence.",
+  "checks": {
+    "gate": "g1b-t03-self-alias-author heavy300",
+    "node22Syntax": "PASS",
+    "installedTypeScriptAST": "PASS",
+    "staticSelfPredicateAndInputOperands": "PASS",
+    "failedChecks": 0
+  },
+  "actualAuthorCalls": {
+    "driverModuleEvaluation": 0,
+    "providerEvaluation": 0,
+    "fixtureConversion": 0,
+    "coefficientOrCandidateMath": 0,
+    "referenceOrBankReplay": 0,
+    "build": 0,
+    "World": 0,
+    "installedTypeScriptASTToolLoads": 1
+  },
+  "unchanged": "Original16World/36reads/114attempts94accepted/110audits/112requests,allgates/caps/iterations/trace/source-beforeNative/normalEOF/UNKNOWNprefix rules. No M/G1a/G2/provider/oldReady/oldPlan file edited.",
+  "stop": "READY andSTOP. Parent owns finalreview/freeze/runtime."
+}
