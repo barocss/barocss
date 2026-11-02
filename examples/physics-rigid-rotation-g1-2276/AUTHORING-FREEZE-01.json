@@ -1,0 +1,30 @@
+{
+  "status": "PARENT_APPROVED_BASELINE_AUTHORING_ONLY",
+  "mode": "BASELINE_CHARACTERIZATION_PAIRED_ACQUISITION_THEN_DATA_CLASSIFICATION",
+  "inputs": {
+    "CONTRACT.md": {
+      "bytes": 16124,
+      "sha256": "29feb5a2d8b9baf1f9508bd13fa5837af61a25c960f400b59aefd6014b914b95"
+    },
+    "CASES.json": {
+      "bytes": 16543,
+      "sha256": "2ce857f257ddfabd5feab1f98e78577efe0b4b3ff1b5a77f6288e503a9c8777b"
+    },
+    "INTEGRATION-AUDIT.md": {
+      "bytes": 18659,
+      "sha256": "4c6a793080dd8339cc38638bfbd5ae30a5defd6d370e025c98d1402ffbbd1645"
+    }
+  },
+  "futureQualification": "NOT_AUTHORIZED; futureG1a/G1b proposal needs separate freeze",
+  "scope": "Existing publicsingleanisotropicbox; source/native2constructors2reads2steps2disposals,0WorldAPIafterclassificationstarts",
+  "oracle": "Exact9monomialcuboidintegrals +4rationalproper-R observedstate audits;0trig/sqrt/ODE/linear solves",
+  "gates": "All CONTRACT baseline1e-12 component/invariant/norm gates fixed unchanged before firstcall",
+  "ownedAuthoring": [
+    "baseline.mjs",
+    "baseline-classify.py",
+    "BASELINE-PLAN.json",
+    "BASELINE-AUTHOR-READY.json"
+  ],
+  "execution": "NOT_AUTHORIZED until actualcompleteprovider/harness/tool hashes plus independent static review/fresh runtime token. Syntax/AST/metadata only during authoring; no constructors/fixtureconversion/math/build/Worldcalls.",
+  "preservation": "All first failures/HOLD/P3/P4/currentP6instantaneousPASS/oldcriteria remain. Baseline may characterize physicalNO_GO, never rename it physicsPASS."
+}

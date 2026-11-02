@@ -1,0 +1,45 @@
+{
+  "asOf": "2026-11-02",
+  "branch": "codex/physics-world-p5-2276",
+  "roadmapCommit": "357caa03f",
+  "lastNumericalMilestone": {
+    "commit": "ac1a2db29",
+    "profile": "private instantaneous contact-free cloth-point/rigid-anchor impulse",
+    "status": "PASS_SOURCE_NATIVE_FINITE_POPULATION",
+    "scope": "13normal+10refused+2fault attempts pergraph;0World; no public coupling/trajectory"
+  },
+  "mainSlices": {
+    "P0": "CONTRACT_COMPLETE_LOCAL",
+    "P1": "COMMON_WORLD_BOUNDED_LOCAL_PASS",
+    "P2": "RIGID_RECORDING_BOUNDED_LOCAL_PASS",
+    "P3": "SELECTED_DISJOINT_HINGE_PASS_NOT_GENERAL_MECHANISMS",
+    "P4": "ORIGINAL_EIGHT_BOX_NO_GO",
+    "P5": "DONE_BOUNDED_LOCALSELECTED_RENDER_SDK_IMPLEMENTATION_NOT_RUN",
+    "P6a": "PRIVATE_IMPULSE_LEAF_PASS_FULL_COUPLING_NOT_SUPPORTED",
+    "P6b": "NOT_STARTED",
+    "P7": "NOT_STARTED",
+    "P8": "OUTSIDE_CURRENT_WORK_HOLD"
+  },
+  "addedGates": {
+    "coreRequired": [
+      "G1 anisotropic-box free rotation",
+      "G2 finite contact/CCD coverage",
+      "G7 evidence-provider/failure-prefix trust"
+    ],
+    "conditional": [
+      "G3 COM/tensor extension",
+      "G4 rank/condition/frame-scale",
+      "G5 mixed endpoints/substeps",
+      "G6 recording if enabled"
+    ]
+  },
+  "active": "G1a bounded baseline/qualification contract and source integration audit; no G1 simulation yet",
+  "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
+  "forecasts": {
+    "firstImpulseResult": "ACHIEVED2026-11-02",
+    "nextG1Baseline": "TARGET2026-11-02 after contract/source freeze; not guaranteed",
+    "wholeRoadmap": "NO_RELIABLE_DATE_YET; reassess from G1/P4/coupling evidence, no whole-engine date promised"
+  },
+  "reportCadence": "milestone,firstfailure,directionchange; report qualified scope,remaining dependency,and revised confidence",
+  "invariants": "HOLD,originalNO_GO,tolerances,first failures preserved; no partial develop merge,push,deploy,release"
+}
