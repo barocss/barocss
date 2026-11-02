@@ -10,6 +10,22 @@ Read [Physics](/packages/physics/), [Units and frames](/packages/physics/units-a
 motion, use [Robot motion](/guide/robot-motion). A supported input is not a claim that every admitted parameter
 has been verified to the errors below.
 
+## Offline P4 reference checkpoint
+
+An integer SAT observer candidate matches2592saved numeric words exactly over
+six saved frames,432PRE/HYPpair stages and12960axes. Independent saved numeric
+authority and a separate Fraction rounding-cell observer are used. No World,
+QP or old-reference computation is rerun. Its measured534.484msCPU is for this
+numeric subset only, and is not a whole-reference speed or stack certificate.
+
+Full feature-selection/output compatibility and total cost remain unqualified;
+original1200-step eight-box settling stays NO_GO. The first experiment's
+rounding-boundary certificate failure is preserved. Production source/API and
+rendering remain at the verified discrete-friction checkpoint. See
+`examples/physics-p4-sat-2276/RESULTS.md`. The updated19-branch G2 map retains
+explicit gaps, including persistent friction, general projection/coupled work
+and remaining finite CCD cases; it is not a blanket engine PASS.
+
 ## Discrete friction checkpoint
 
 The discrete contact solver now solves both static tangent constraints and uses

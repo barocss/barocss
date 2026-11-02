@@ -1,0 +1,123 @@
+{
+  "status": "PASS_SAVED_SAT_NUMERIC_SUBSET_FULL_P4_NO_GO",
+  "final": {
+    "status": "PASS_SAVED_SAT_NUMERIC_SUBSET",
+    "counts": {
+      "framesAttempted": 6,
+      "framesCompleted": 6,
+      "pairStagesAttempted": 432,
+      "pairStagesReturned": 432,
+      "pairStagesVerified": 432,
+      "numericWordsVerified": 2592,
+      "WorldCalls": 0,
+      "QPCalls": 0,
+      "oldReferenceCalls": 0,
+      "fixtureCalls": 0,
+      "trigCalls": 0
+    },
+    "firstFailure": null,
+    "fullCompactPairCompatible": false,
+    "costGO": "NOT_RUN",
+    "fullP4": "NO_GO",
+    "separate192BoundaryRows": "AUTHENTICATE_ONLY_NOT_SAT_ORACLE",
+    "kernelCounters": {
+      "integerOperations": 1091821,
+      "peakIntegerBits": 5814,
+      "axisVisits": 12960,
+      "conventionProblems": 864
+    },
+    "elapsedWallNs": 545851334,
+    "elapsedCpuNs": 534484000,
+    "peakExplicitDataBytes": 833032,
+    "writtenPairEvidenceBytes": 1303168,
+    "interpreterAndTemporaryHeap": "NOT_A_TOTAL_RSS_BOUND",
+    "unsupportedOutputs": [
+      "Float64 selection/point/normal/ties",
+      "legacy precisionMaxDifferenceM",
+      "independent exact feature winner",
+      "full compact_pair raw compatibility",
+      "full reference cost",
+      "1200-step P4 trajectory"
+    ]
+  },
+  "firstFailure": {
+    "status": "NO_GO_OFFLINE_SAT_MICRO",
+    "counts": {
+      "framesAttempted": 1,
+      "framesCompleted": 0,
+      "pairStagesAttempted": 8,
+      "pairStagesReturned": 8,
+      "pairStagesVerified": 7,
+      "numericWordsVerified": 42,
+      "WorldCalls": 0,
+      "QPCalls": 0,
+      "oldReferenceCalls": 0,
+      "fixtureCalls": 0,
+      "trigCalls": 0
+    },
+    "firstFailure": {
+      "type": "ValueError",
+      "message": "SAVED_WORD_INTERVAL_UNRESOLVED:rawMarginM",
+      "cursor": {
+        "scene": "ALIGNED",
+        "step": 1,
+        "stage": "PRE",
+        "pairKey": "b0\u0000floor"
+      },
+      "counts": {
+        "framesAttempted": 1,
+        "framesCompleted": 0,
+        "pairStagesAttempted": 8,
+        "pairStagesReturned": 8,
+        "pairStagesVerified": 7,
+        "numericWordsVerified": 42,
+        "WorldCalls": 0,
+        "QPCalls": 0,
+        "oldReferenceCalls": 0,
+        "fixtureCalls": 0,
+        "trigCalls": 0
+      }
+    },
+    "fullCompactPairCompatible": false,
+    "costGO": "NOT_RUN",
+    "fullP4": "NO_GO",
+    "separate192BoundaryRows": "AUTHENTICATE_ONLY_NOT_SAT_ORACLE",
+    "kernelCounters": {
+      "integerOperations": 16982,
+      "peakIntegerBits": 257,
+      "axisVisits": 240,
+      "conventionProblems": 16
+    },
+    "elapsedWallNs": 33025458,
+    "elapsedCpuNs": 25386000,
+    "peakExplicitDataBytes": 767809,
+    "writtenPairEvidenceBytes": 22997,
+    "interpreterAndTemporaryHeap": "NOT_A_TOTAL_RSS_BOUND",
+    "unsupportedOutputs": [
+      "Float64 selection/point/normal/ties",
+      "legacy precisionMaxDifferenceM",
+      "independent exact feature winner",
+      "full compact_pair raw compatibility",
+      "full reference cost",
+      "1200-step P4 trajectory"
+    ]
+  },
+  "commands": {
+    "p4-sat-micro-01": {
+      "status": "FAIL",
+      "exit": 1,
+      "elapsedMs": 124.236916,
+      "timedOut": false
+    },
+    "p4-sat-micro-02": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 640.189083,
+      "timedOut": false
+    }
+  },
+  "productionMutation": false,
+  "publicAPI": "UNCHANGED",
+  "renderer": "UNCHANGED_EXISTING_DESKTOP_PROOFS_RETAINED",
+  "fullStack": "NO_GO_NOT_RUN"
+}

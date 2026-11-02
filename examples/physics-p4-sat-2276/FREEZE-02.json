@@ -1,0 +1,34 @@
+{
+  "base": "1dbf2ac27",
+  "stage": "before first revision02 import/evaluation; observer and resource caps unchanged",
+  "inputs": {
+    "examples/physics-p4-sat-2276/CONTRACT.md": {
+      "bytes": 5466,
+      "sha256": "b34c2fa0d19a4a75d0ffe14373e674478b5e233ed9092d6c5358ad5970afdea7"
+    },
+    "examples/physics-p4-sat-2276/METHOD.md": {
+      "bytes": 3061,
+      "sha256": "3d402f7721111715434708d3605118bf95f17652a31a97b2d44fe9aed4c115ad"
+    },
+    "examples/physics-p4-sat-2276/corpus.json": {
+      "bytes": 1243,
+      "sha256": "45c88bd51eae941cd039174f1e3f79319fb1e9c4bc99c86b8ba26d677102edb6"
+    },
+    "examples/physics-p4-sat-2276/integer_sat.py": {
+      "bytes": 13025,
+      "sha256": "b1c2f4a4d291c52b9182864fea658381afd482aa34da7d300997a81bf45a3b1e"
+    },
+    "examples/physics-p4-sat-2276/verify.py": {
+      "bytes": 2790,
+      "sha256": "8970cdf7bcc77dbc51f51e0c12d485afa783366f27664deb8e7ddd8018cbcdef"
+    },
+    "examples/physics-p4-sat-2276/run.py": {
+      "bytes": 9611,
+      "sha256": "a3960f697b40ccaebf927db44ef79c5012a224940c4cb45771e074e08d1c50f0"
+    },
+    "examples/physics-p4-sat-2276/AMENDMENT-02.md": {
+      "bytes": 1858,
+      "sha256": "8e3ea9080925d170e2a28864520a532ca683bc0da94c9ff3f9396fac6fe7be12"
+    }
+  }
+}

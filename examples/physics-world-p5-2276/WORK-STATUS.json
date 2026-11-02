@@ -33,7 +33,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "G2 centered persistent restitution and finite discrete tangent response implemented/qualified. Continue exact P4 reference-budget audit before full8box; persistentfriction/frame/cache, coupledcontacts and CCDcoverage remain separate. No old-worker resume, Studio/manufacturing/equipment HOLD, no deployment.",
+  "active": "Core restitution/discrete-tangent fixes committed and numerically/desktop qualified. P4 offlineSATnumeric subset passed; nextcompletephysicalreferenceprotocol and savedframeTOTALcostbeforefull8box. Persistentfriction/generalcoupledwork/remainingCCD/P6P7 stayopen. HOLD/no deployment.",
   "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
@@ -98,5 +98,24 @@
     "reason": "180000ms execution budget; correctedrunner16stepSource/Nativeprefixonly",
     "physicalSettlingQualification": "NO_GO_NOT_RUN_FULL1200",
     "next": "new independentreferencebudget strategy, not ended supportcachev3repeat"
-  }
+  },
+  "latestOfflineReference": {
+    "profile": "P4 saved integer SAT numeric subset",
+    "status": "PASS_SUBSET_FULL_P4_NO_GO",
+    "frames": 6,
+    "pairStages": 432,
+    "numericWords": 2592,
+    "axes": 12960,
+    "integerOps": 1091821,
+    "peakBits": 5814,
+    "wallMs": 545.851334,
+    "cpuMs": 534.484,
+    "WorldCalls": 0,
+    "QPCalls": 0,
+    "oldReferenceCalls": 0,
+    "fullOutputCompatible": false,
+    "costGO": "NOT_RUN",
+    "results": "examples/physics-p4-sat-2276/RESULTS.md"
+  },
+  "g2EvidenceMap": "examples/physics-contact-coverage-g2-2276/COVERAGE-02.json"
 }

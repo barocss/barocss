@@ -440,6 +440,28 @@ P4 dependency is a new bounded independent-reference strategy, not an unchanged
 full-stack rerun or another ended support-radius-cache iteration. All prior
 failures, HOLDs, four-body public limit and no-deployment policy remain.
 
+### P4 exact integer SAT observer micro (2026-11-03)
+
+A new files-only integer homogeneous SAT observer passes the saved numeric
+subset on6CURRENT frames, all432PRE/HYPpair stages,864raw/normalized quaternion
+problems and12960axis visits. Independent savedDecimal authority and Fraction
+rounding-cell audit match2592binary64 numeric words exactly. Actual total
+CPU534.484ms/wall545.851ms;1,091,821integerops of2M, max5814bits of16384.
+Zero World/QP/old-reference/fixture/trig calls. The first halfway-boundary
+certificate failure and original source are preserved; stricter candidate
+termination reuses the old precision table without relaxing the observer.
+
+This is NOT a full compact_pair replacement, costGO or stack result. Exact
+feature winner has no complete independent saved certificate; scalar feature/
+normal/point/ties and reference-specific precision-delta output remain separate.
+The original192row corpus is authenticated only, not reused as a SAT oracle.
+Next must qualify a complete physical output/reference protocol and measure
+saved-frame TOTAL cost before1200steps. Source/persistent limit4 unchanged;
+original308accepted/309budget stop,16prefixPASS and older physical failures
+remain. See `examples/physics-p4-sat-2276/RESULTS.md`. No production/renderer
+change or deployment. G2's current19-branch evidence/gap map is separately in
+`examples/physics-contact-coverage-g2-2276/COVERAGE-02.json`.
+
 Dependency order: close the G1 admitted-rotation boundary and G2 finite coverage
 map before the corresponding general rigid/contact claim. Keep original P4
 work as its own acceptance track. Before a new P6/P7 plant runs, select only

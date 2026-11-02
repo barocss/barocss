@@ -1,0 +1,35 @@
+{
+  "base": "1dbf2ac27",
+  "stage": "before first offline candidate/module import/numerical execution",
+  "scope": "saved SAT numeric subset only, no World/QP/oldreference",
+  "inputs": {
+    "examples/physics-p4-sat-2276/CONTRACT.md": {
+      "bytes": 5466,
+      "sha256": "b34c2fa0d19a4a75d0ffe14373e674478b5e233ed9092d6c5358ad5970afdea7"
+    },
+    "examples/physics-p4-sat-2276/METHOD.md": {
+      "bytes": 3061,
+      "sha256": "3d402f7721111715434708d3605118bf95f17652a31a97b2d44fe9aed4c115ad"
+    },
+    "examples/physics-p4-sat-2276/corpus.json": {
+      "bytes": 1243,
+      "sha256": "45c88bd51eae941cd039174f1e3f79319fb1e9c4bc99c86b8ba26d677102edb6"
+    },
+    "examples/physics-p4-sat-2276/integer_sat.py": {
+      "bytes": 11834,
+      "sha256": "f8c44cc49bff0f8c09be06794ba5801476319f77df707d9a04c569f81f94b4c7"
+    },
+    "examples/physics-p4-sat-2276/verify.py": {
+      "bytes": 2790,
+      "sha256": "8970cdf7bcc77dbc51f51e0c12d485afa783366f27664deb8e7ddd8018cbcdef"
+    },
+    "examples/physics-p4-sat-2276/run.py": {
+      "bytes": 9611,
+      "sha256": "a3960f697b40ccaebf927db44ef79c5012a224940c4cb45771e074e08d1c50f0"
+    },
+    "examples/physics-p4-sat-2276/README.md": {
+      "bytes": 1626,
+      "sha256": "6b1cbc7e10afe3928757ea2ad7632869dfb3c99ac298128d58711738cfca2be3"
+    }
+  }
+}
