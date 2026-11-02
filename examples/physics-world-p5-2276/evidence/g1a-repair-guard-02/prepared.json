@@ -1,0 +1,48 @@
+{
+  "kind": "P5B_OWNED_COMMAND_GUARD",
+  "receiptId": "g1a-repair-guard-02",
+  "censusId": "g1a-repair-guard-02",
+  "status": "PREPARED",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "examples/physics-rigid-rotation-g1-2276/repair-campaign.mjs",
+    "--run-id",
+    "g1a-repair-02",
+    "--freeze",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/REPAIR-EXECUTION-FREEZE-02.json",
+    "--token",
+    "e9a8f911970893289d8b1b793a0583ba9fc69474cc4719c717bb573f374c9ce9",
+    "--authorize-repair"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "inputs": {
+    "command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": null,
+  "spawnAt": null,
+  "pid": null,
+  "processGroupId": null,
+  "exit": null,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": null,
+  "processClosed": false,
+  "groupSignals": [],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/g1a-repair-guard-02/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/g1a-repair-guard-02/progress.json",
+  "errors": []
+}

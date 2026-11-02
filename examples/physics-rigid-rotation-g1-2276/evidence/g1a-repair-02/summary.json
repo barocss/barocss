@@ -1,0 +1,442 @@
+{
+  "status": "PASS_STAGED_G1A_REPAIR_ONLY",
+  "productionActivation": "NOT_RUN",
+  "currentPublishedNative": "NOT_RUN",
+  "canonicalBuildRootBundling": "NOT_RUN",
+  "firstFailure": null,
+  "counts": {
+    "nativePairConversions": 10,
+    "nativePhysicalScalarConversions": 310,
+    "commandScalarConversions": 9,
+    "guardScalarConversions": 9,
+    "identityDigestDataCalls": 2,
+    "constructorAttempts": 20,
+    "constructorReturns": 20,
+    "stepAttempts": 1708,
+    "acceptedSteps": 1688,
+    "getStateAttempts": 40,
+    "getStateReturns": 40,
+    "disposeAttempts": 20,
+    "disposeReturns": 20,
+    "commandRefusals": 8,
+    "unknownFaults": 6,
+    "postFlowGuardRefusals": 6,
+    "referenceSpawns": 1,
+    "referenceRequestAttempts": 1710,
+    "referenceRequestsWritten": 1710,
+    "referenceRepliesReceived": 1711,
+    "referenceAuditsReceived": 1708,
+    "buildChildren": 4,
+    "query": 0,
+    "getModel": 0,
+    "recorder": 0
+  },
+  "graphs": {
+    "source": {
+      "status": "PASS_STAGED_GRAPH",
+      "cases": [
+        {
+          "caseId": "T01-isotropic-cube-dt60",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 60
+        },
+        {
+          "caseId": "T01-isotropic-cube-dt120",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 120
+        },
+        {
+          "caseId": "T01-isotropic-cube-dt240",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 240
+        },
+        {
+          "caseId": "T02-axisymmetric-off-axis-dt60",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 60
+        },
+        {
+          "caseId": "T02-axisymmetric-off-axis-dt120",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 120
+        },
+        {
+          "caseId": "T02-axisymmetric-off-axis-dt240",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 240
+        },
+        {
+          "caseId": "C01-principal-axis",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 1
+        },
+        {
+          "caseId": "C02-zero-positive",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 1
+        },
+        {
+          "caseId": "C03-zero-signed-negative-q",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 1
+        },
+        {
+          "caseId": "C04-off-axis-negative-q",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 1
+        }
+      ],
+      "expectedProviderDigest": "sha256:4b8c7cb4ac159854d447665302c0179850ce4713c80fcb429c542bff82a4a534",
+      "helperCounts": {
+        "dispatch": 850,
+        "prepare": 850,
+        "null": 420,
+        "eligible": 430,
+        "zero": 2,
+        "nonzero": 428,
+        "validate": 430,
+        "inheritedAdvanceOrientation": 848,
+        "sharedSin": 848,
+        "sharedCos": 848,
+        "bodySin": 428,
+        "bodyCos": 428,
+        "F01Site": 427,
+        "F02Site": 426,
+        "F03Site": 845,
+        "faultThrows": 3,
+        "guardReplacements": 3,
+        "attachments": 10,
+        "releases": 10,
+        "cacheReads": 11
+      },
+      "counts": {
+        "nativePairConversions": 0,
+        "nativePhysicalScalarConversions": 0,
+        "commandScalarConversions": 0,
+        "guardScalarConversions": 0,
+        "identityDigestDataCalls": 0,
+        "constructorAttempts": 10,
+        "constructorReturns": 10,
+        "stepAttempts": 854,
+        "acceptedSteps": 844,
+        "getStateAttempts": 20,
+        "getStateReturns": 20,
+        "disposeAttempts": 10,
+        "disposeReturns": 10,
+        "commandRefusals": 4,
+        "unknownFaults": 3,
+        "postFlowGuardRefusals": 3,
+        "referenceSpawns": 0,
+        "referenceRequestAttempts": 854,
+        "referenceRequestsWritten": 854,
+        "referenceRepliesReceived": 854,
+        "referenceAuditsReceived": 854,
+        "buildChildren": 0,
+        "query": 0,
+        "getModel": 0,
+        "recorder": 0
+      }
+    },
+    "native": {
+      "status": "PASS_STAGED_GRAPH",
+      "cases": [
+        {
+          "caseId": "T01-isotropic-cube-dt60",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 60
+        },
+        {
+          "caseId": "T01-isotropic-cube-dt120",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 120
+        },
+        {
+          "caseId": "T01-isotropic-cube-dt240",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 240
+        },
+        {
+          "caseId": "T02-axisymmetric-off-axis-dt60",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 60
+        },
+        {
+          "caseId": "T02-axisymmetric-off-axis-dt120",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 120
+        },
+        {
+          "caseId": "T02-axisymmetric-off-axis-dt240",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 240
+        },
+        {
+          "caseId": "C01-principal-axis",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 1
+        },
+        {
+          "caseId": "C02-zero-positive",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 1
+        },
+        {
+          "caseId": "C03-zero-signed-negative-q",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 1
+        },
+        {
+          "caseId": "C04-off-axis-negative-q",
+          "status": "PASS_STAGED_CASE",
+          "accepted": 1
+        }
+      ],
+      "expectedProviderDigest": "sha256:896ad61f00918ac49ecd51a4acaaba039511d095de7bbe2ec77f1d819f3231c4",
+      "helperCounts": {
+        "dispatch": 850,
+        "prepare": 850,
+        "null": 420,
+        "eligible": 430,
+        "zero": 2,
+        "nonzero": 428,
+        "validate": 430,
+        "inheritedAdvanceOrientation": 848,
+        "sharedSin": 848,
+        "sharedCos": 848,
+        "bodySin": 428,
+        "bodyCos": 428,
+        "F01Site": 427,
+        "F02Site": 426,
+        "F03Site": 845,
+        "faultThrows": 3,
+        "guardReplacements": 3,
+        "attachments": 10,
+        "releases": 10,
+        "cacheReads": 11
+      },
+      "counts": {
+        "nativePairConversions": 0,
+        "nativePhysicalScalarConversions": 0,
+        "commandScalarConversions": 0,
+        "guardScalarConversions": 0,
+        "identityDigestDataCalls": 0,
+        "constructorAttempts": 10,
+        "constructorReturns": 10,
+        "stepAttempts": 854,
+        "acceptedSteps": 844,
+        "getStateAttempts": 20,
+        "getStateReturns": 20,
+        "disposeAttempts": 10,
+        "disposeReturns": 10,
+        "commandRefusals": 4,
+        "unknownFaults": 3,
+        "postFlowGuardRefusals": 3,
+        "referenceSpawns": 0,
+        "referenceRequestAttempts": 854,
+        "referenceRequestsWritten": 854,
+        "referenceRepliesReceived": 854,
+        "referenceAuditsReceived": 854,
+        "buildChildren": 0,
+        "query": 0,
+        "getModel": 0,
+        "recorder": 0
+      }
+    }
+  },
+  "commands": [
+    {
+      "label": "generate-source",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/generate-provider.mjs"
+      ],
+      "pid": 34851,
+      "closed": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exit": 0,
+      "timedOut": false,
+      "signal": null,
+      "logStorage": {
+        "allocatedBytes": 2097152,
+        "decodeUpperBytes": 2097152,
+        "capturedBytes": 34,
+        "stdoutBytes": 34,
+        "stderrBytes": 0,
+        "retainedChunkObjects": 0
+      }
+    },
+    {
+      "label": "tsc-emit",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/typescript/lib/tsc.js",
+        "-p",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/tsconfig.g1.json",
+        "--listFiles",
+        "--listEmittedFiles"
+      ],
+      "pid": 34853,
+      "closed": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exit": 0,
+      "timedOut": false,
+      "signal": null,
+      "logStorage": {
+        "allocatedBytes": 2097152,
+        "decodeUpperBytes": 2097152,
+        "capturedBytes": 65620,
+        "stdoutBytes": 65620,
+        "stderrBytes": 0,
+        "retainedChunkObjects": 0
+      }
+    },
+    {
+      "label": "generate-emitted",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/package/src/generate-provider.mjs",
+        "--emitted"
+      ],
+      "pid": 34891,
+      "closed": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exit": 0,
+      "timedOut": false,
+      "signal": null,
+      "logStorage": {
+        "allocatedBytes": 2097152,
+        "decodeUpperBytes": 2097152,
+        "capturedBytes": 35,
+        "stdoutBytes": 35,
+        "stderrBytes": 0,
+        "retainedChunkObjects": 0
+      }
+    },
+    {
+      "label": "source-bundle",
+      "command": [
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/esbuild/bin/esbuild",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/source-entry.ts",
+        "--bundle",
+        "--format=esm",
+        "--platform=node",
+        "--target=node22",
+        "--log-level=error",
+        "--outfile=/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/source.mjs",
+        "--metafile=/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/build/source-meta.json"
+      ],
+      "pid": 34895,
+      "closed": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exit": 0,
+      "timedOut": false,
+      "signal": null,
+      "logStorage": {
+        "allocatedBytes": 2097152,
+        "decodeUpperBytes": 2097152,
+        "capturedBytes": 0,
+        "stdoutBytes": 0,
+        "stderrBytes": 0,
+        "retainedChunkObjects": 0
+      }
+    },
+    {
+      "label": "persistent-reference",
+      "command": [
+        "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+        "-B",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/repair-reference.py",
+        "--run-id",
+        "g1a-repair-02",
+        "--freeze",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/REPAIR-EXECUTION-FREEZE-02.json",
+        "--token",
+        "e9a8f911970893289d8b1b793a0583ba9fc69474cc4719c717bb573f374c9ce9",
+        "--out",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference"
+      ],
+      "pid": 34901,
+      "closed": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exit": 0,
+      "signal": null
+    }
+  ],
+  "reference": {
+    "started": true,
+    "actual": {
+      "requestsAttempted": 1710,
+      "requestsReturned": 1710,
+      "bankInitializations": 1,
+      "bodyGeometryCertificatesAttempted": 2,
+      "bodyGeometryCertificatesReturned": 2,
+      "oneDimensionalMonomialMoments": 18,
+      "observedStateAuditsAttempted": 1708,
+      "observedStateAuditsReturned": 1708,
+      "properRationalRotationAttempts": 1708,
+      "properRationalRotationReturns": 1708,
+      "fractionScalarOperations": 603038,
+      "decimalOperations": 215016,
+      "sinCosEvaluations": 60,
+      "sqrtEvaluations": 24,
+      "taylorRecurrences": 7620,
+      "decimal80Evaluations": 10,
+      "decimal120Evaluations": 10,
+      "WorldCalls": 0,
+      "candidateCalls": 0,
+      "nativeFixtureConversions": 0,
+      "odeSolves": 0,
+      "linearSolves": 0
+    },
+    "durableLowerBound": {
+      "requestsAttempted": 1710,
+      "requestsReturned": 1710,
+      "bankInitializations": 1,
+      "bodyGeometryCertificatesAttempted": 2,
+      "bodyGeometryCertificatesReturned": 2,
+      "oneDimensionalMonomialMoments": 18,
+      "observedStateAuditsAttempted": 1708,
+      "observedStateAuditsReturned": 1708,
+      "properRationalRotationAttempts": 1708,
+      "properRationalRotationReturns": 1708,
+      "fractionScalarOperations": 603038,
+      "decimalOperations": 215016,
+      "sinCosEvaluations": 60,
+      "sqrtEvaluations": 24,
+      "taylorRecurrences": 7620,
+      "decimal80Evaluations": 10,
+      "decimal120Evaluations": 10,
+      "WorldCalls": 0,
+      "candidateCalls": 0,
+      "nativeFixtureConversions": 0,
+      "odeSolves": 0,
+      "linearSolves": 0
+    },
+    "inFlight": false,
+    "lastReceivedReplyWire": {
+      "bytes": 16924,
+      "sha256": "b13399f5e6db831cca5988019f254014611cddbf6373f979111d28476c2e31d9"
+    }
+  },
+  "cleanupErrors": [],
+  "sourceNativeRawParity": "PASS_ALL_NON_PROVIDER_FIELDS; graph-specific providerDigest exact and preserved",
+  "timingMs": 51741.878417,
+  "resources": {
+    "actualEvidenceBytesBeforeSummary": 11301761,
+    "peakEvidenceChargeBytes": 12527337,
+    "peakWorldHarnessOwnedChargeBytes": 7738774,
+    "ownedChargeScope": "source-derived layout allowance for retained plain DATA plus2MiB transient allowance; not measured heap/RSS",
+    "buildBytes": 1518818,
+    "logicalOwnedLimitBytes": 67108864,
+    "heapOrRssClaim": false
+  },
+  "authority": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/REPAIR-EXECUTION-FREEZE-02.json",
+    "sha256": "e9a8f911970893289d8b1b793a0583ba9fc69474cc4719c717bb573f374c9ce9"
+  }
+}

@@ -9,7 +9,7 @@ last_updated: 2026-11-02
 
 # G2 contact and CCD evidence map
 
-This is source inspection and saved-evidence classification. New physics/geometry/reference/World calls: **0**. No branch-coverage instrumentation ran. The rows name finite missing proofs; they do not promise universal contact support.
+The initial inventory used source inspection and saved evidence, with **0** new physics/geometry/reference/World calls. The later C03 follow-up below made one source sweep and one independent witness audit, with **0 World** calls. No branch-coverage instrumentation ran. The rows name finite missing proofs; they do not promise universal contact support.
 
 | ID | Law/profile | Boundary or evidence | Status | Next/evidence limit |
 | --- | --- | --- | --- | --- |
@@ -24,7 +24,7 @@ This is source inspection and saved-evidence classification. New physics/geometr
 | P04 | eight-box long-time exit | ALIGNED/OFFSET/YAW1200 and original settle window | EXISTING_NO_GO | original failures/tolerances/timeouts preserved; no rerun in inventory |
 | C01 | sphere/static-box face CCD | orthogonal face crossing, separating, rotated static fixture | HISTORICAL_SELECTED_PASS | TOI0.282 within1e-12; rotated normal probe is bounded smoke |
 | C02 | slab CCD boundary | initial touching/overlap; stationary/parallel-outside; endpoint; tied axes | MISSING_BOUNDARY_PROOF | slab initial inside/touch returns no CCDhit, discrete owns subsequent response |
-| C03 | sphere/static-box corner CCD | expanded OBB corner versus exact rounded Minkowski boundary | SOURCE_MODEL_GAP_HYPOTHESIS | source uses uniform radius expansion plus slab intersection; independent corner geometry first, no numerical failure claimed |
+| C03 | sphere/static-box corner CCD | expanded OBB corner versus exact rounded Minkowski boundary | EXACT_CONTACT_WITNESS_NO_GO_CONSERVATIVE_BOUND | Actual corner witness fails; exact rounded contact and conservative broad-phase semantics stay distinct. See CORNER-RESULTS-01.json |
 | C04 | multiple static fixtures | equal TOI sorted ID; near ties and input permutation | MISSING_BRANCH_PROOF | earliest tie uses >= and sorted fixture order; no capsule-query result transferred |
 | C05 | sphere/sphere CCD | head-on crossing; overlap; separating; reversed input order | HISTORICAL_SELECTED_PASS | TOI0.135 within1e-12; equal mass inelastic head-on only |
 | C06 | sphere/sphere quadratic boundary | zero relative travel, discriminant zero/negative, endpoint, near-grazing cancellation | MISSING_BOUNDARY_PROOF | independent analytic relative geometry; finite current admission only |

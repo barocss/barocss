@@ -1,0 +1,377 @@
+{
+  "status": "PROPOSAL_AUTHOR_ONLY_PARENT_FREEZE_REQUIRED",
+  "workId": "physics-contact-coverage-g2-exact-sweep-2276",
+  "scope": "PRIVATE_IDENTITY_SPHERE_STATIC_BOX_GEOMETRY_ONLY",
+  "units": {
+    "length": "m",
+    "time": "s",
+    "fraction": "dimensionless"
+  },
+  "common": {
+    "boxCenterM": [
+      "0",
+      "0",
+      "0"
+    ],
+    "boxHalfExtentsM": [
+      "1/4",
+      "1/4",
+      "1/4"
+    ],
+    "boxOrientationXYZW": [
+      "0",
+      "0",
+      "0",
+      "1"
+    ],
+    "sphereRadiusM": "1/8"
+  },
+  "literalEncoding": "Rational strings; explicit ieee754F64LE objects for signed zero. No numeric fixture conversion during authoring. Common fields overridden only by explicit case values.",
+  "bodyModelAuthority": "Actual frozen CORNER-INPUT-01 model/options layout and model/CCD admission; replace only frozen geometry/endpoints per case. No World integration. Revision may be case-specific explicit inert data.",
+  "cases": [
+    {
+      "id": "C03-original-corner-witness",
+      "authority": "Reuse actual saved source input/candidate endpoint bytes; no second literal conversion or old-helper call.",
+      "sphereRadiusM": "1/10",
+      "boxHalfExtentsM": [
+        "1/10",
+        "1/10",
+        "1/10"
+      ],
+      "startM": [
+        "-3/10",
+        "3/20",
+        "0"
+      ],
+      "endM": [
+        "3/10",
+        "3/20",
+        "0"
+      ],
+      "expectedClass": "HIT",
+      "feature": "edge: x-negative,y-positive; historical corner-witness label retained",
+      "baseline": "Preserve original EXACT_CONTACT_WITNESS_NO_GO_CONSERVATIVE_BOUND; new candidate only."
+    },
+    {
+      "id": "F01-negative-x-face",
+      "startM": [
+        "-1",
+        "0",
+        "0"
+      ],
+      "endM": [
+        "1",
+        "0",
+        "0"
+      ],
+      "expectedClass": "HIT",
+      "feature": "face:x-negative",
+      "exactIdealFraction": "5/16"
+    },
+    {
+      "id": "F02-positive-x-face",
+      "startM": [
+        "1",
+        "0",
+        "0"
+      ],
+      "endM": [
+        "-1",
+        "0",
+        "0"
+      ],
+      "expectedClass": "HIT",
+      "feature": "face:x-positive",
+      "exactIdealFraction": "5/16"
+    },
+    {
+      "id": "E01-two-outside-edge",
+      "startM": [
+        "-1",
+        "5/16",
+        "0"
+      ],
+      "endM": [
+        "1",
+        "5/16",
+        "0"
+      ],
+      "expectedClass": "HIT",
+      "feature": "edge:x-negative,y-positive"
+    },
+    {
+      "id": "V01-three-outside-vertex",
+      "startM": [
+        "-1",
+        "5/16",
+        "5/16"
+      ],
+      "endM": [
+        "1",
+        "5/16",
+        "5/16"
+      ],
+      "expectedClass": "HIT",
+      "feature": "vertex:x-negative,y-positive,z-positive"
+    },
+    {
+      "id": "M01-expanded-corner-miss",
+      "startM": [
+        "-1",
+        "3/8",
+        "3/8"
+      ],
+      "endM": [
+        "1",
+        "3/8",
+        "3/8"
+      ],
+      "expectedClass": "MISS",
+      "purpose": "Inside expanded slabs can still be outside the Euclidean rounded boundary."
+    },
+    {
+      "id": "G01-edge-to-face-contact-plateau",
+      "startM": [
+        "-1",
+        "3/8",
+        "0"
+      ],
+      "endM": [
+        "1",
+        "3/8",
+        "0"
+      ],
+      "expectedClass": "HIT",
+      "feature": "edge boundary then top-face tangent plateau",
+      "exactIdealFraction": "3/8"
+    },
+    {
+      "id": "G02-isolated-vertex-graze",
+      "sphereRadiusM": "3/16",
+      "startM": [
+        "-7/16",
+        "3/16",
+        "3/8"
+      ],
+      "endM": [
+        "-5/16",
+        "7/16",
+        "3/8"
+      ],
+      "expectedClass": "HIT",
+      "feature": "vertex:x-negative,y-positive,z-positive; exact double root",
+      "exactIdealFraction": "1/2"
+    },
+    {
+      "id": "T01-endpoint-touch",
+      "startM": [
+        "-1",
+        "0",
+        "0"
+      ],
+      "endM": [
+        "-3/8",
+        "0",
+        "0"
+      ],
+      "expectedClass": "HIT",
+      "feature": "face:x-negative",
+      "exactIdealFraction": "1"
+    },
+    {
+      "id": "M02-endpoint-short-miss",
+      "startM": [
+        "-1",
+        "0",
+        "0"
+      ],
+      "endM": [
+        "-25/64",
+        "0",
+        "0"
+      ],
+      "expectedClass": "MISS",
+      "purpose": "Do not clamp a later root into t=1."
+    },
+    {
+      "id": "I01-initial-touch-moving-out",
+      "startM": [
+        "-3/8",
+        "0",
+        "0"
+      ],
+      "endM": [
+        "-1",
+        "0",
+        "0"
+      ],
+      "expectedClass": "INITIAL_DISCRETE_OWNED"
+    },
+    {
+      "id": "I02-initial-overlap-moving-out",
+      "startM": [
+        "-5/16",
+        "0",
+        "0"
+      ],
+      "endM": [
+        "-1",
+        "0",
+        "0"
+      ],
+      "expectedClass": "INITIAL_DISCRETE_OWNED"
+    },
+    {
+      "id": "I03-center-in-box",
+      "startM": [
+        "0",
+        "0",
+        "0"
+      ],
+      "endM": [
+        "1",
+        "0",
+        "0"
+      ],
+      "expectedClass": "INITIAL_DISCRETE_OWNED"
+    },
+    {
+      "id": "I04-expanded-only-start-not-contact",
+      "startM": [
+        "-3/16",
+        "3/8",
+        "3/8"
+      ],
+      "endM": [
+        "-3/16",
+        "0",
+        "0"
+      ],
+      "expectedClass": "HIT",
+      "feature": "edge:y-positive,z-positive; initial Euclidean distance exceeds r",
+      "purpose": "Do not reject merely because start is inside expanded AABB."
+    },
+    {
+      "id": "Z01-zero-motion-outside",
+      "startM": [
+        "-1",
+        "0",
+        "0"
+      ],
+      "endM": [
+        "-1",
+        "0",
+        "0"
+      ],
+      "expectedClass": "MISS"
+    },
+    {
+      "id": "S01-signed-zero-face",
+      "boxCenterM": [
+        {
+          "ieee754F64LE": "0000000000000080"
+        },
+        "0",
+        {
+          "ieee754F64LE": "0000000000000080"
+        }
+      ],
+      "startM": [
+        "-1",
+        {
+          "ieee754F64LE": "0000000000000080"
+        },
+        "0"
+      ],
+      "endM": [
+        "1",
+        "0",
+        {
+          "ieee754F64LE": "0000000000000080"
+        }
+      ],
+      "expectedClass": "HIT",
+      "feature": "face:x-negative",
+      "exactIdealFraction": "5/16",
+      "signRule": "Preserve raw caller/fixture/candidate non-position words; exact rational oracle does not invent computed zero signs."
+    }
+  ],
+  "firstCaseRawAuthority": "Parent must pin saved g2-corner-source-01 input-raw.json/capture/witness/summary before implementation; actual raw input reused without rerunning original sweep.",
+  "gates": {
+    "toiAbsolute": "1/1000000000000",
+    "distanceM": "1/1000000000000",
+    "newNormalComponentAbsolute": "1/1000000000000",
+    "newNormalSquaredNormAbsolute": "1/1000000000000",
+    "normalStatus": "Proposed new edge/vertex gate; parent review before implementation; no prior qualification implied.",
+    "domain": "Strict finite0<=t<=1; never tolerance-clamp a root.",
+    "initialOwnership": "Initial squared closest distance<=r\u00b2 yields INITIAL_DISCRETE_OWNED/null and unchanged candidate.",
+    "miss": "Independent no-root classification and candidate unchanged.",
+    "native": "All source cases PASS before native import/admission/calls; exact raw result/changed-candidate parity.",
+    "firstFailure": "Stop before the next case; preserve original source witness failure unchanged."
+  },
+  "reference": {
+    "construction": "Independent6 face patches/12 finite edge cylinders/8 vertex spheres; exact Fraction equations and geometric validity, separate from candidate7-interval decomposition.",
+    "precisions": [
+      80,
+      120
+    ],
+    "componentWidth80": "1e-65",
+    "componentWidth120": "1e-105",
+    "widthMeaning": "Reference root/normal enclosure upper bound; fixed, no adaptive precision.",
+    "duplicatePolicy": "Exact rational roots or proportional-quadratic same-branch identity; unproved overlap -> UNRESOLVED.",
+    "maxFeatureCandidates": 736,
+    "maxIntervalSqrtConstructions": 640,
+    "maxEndpointDecimalSqrtOperations": 1280,
+    "maxIntegerSquareDetectionCalls": 640,
+    "maxFractionOperations": 2000000,
+    "maxDecimalOperations": 2000000,
+    "trig": 0,
+    "odeOrLinearSolves": 0
+  },
+  "countsMaximum": {
+    "casesSource": 16,
+    "casesNativeConditional": 16,
+    "newLiteralPairConversionsGlobal": 15,
+    "savedRawPairReuse": 1,
+    "detachedGraphCopies": 32,
+    "admitModel": 32,
+    "admitCcd": 32,
+    "newCandidateSweep": 32,
+    "oldSweep": 0,
+    "World": 0,
+    "sourceBuildChildren": 1,
+    "nativeEmitChildrenConditional": 1,
+    "referenceChildren": 1,
+    "totalDirectChildren": 3,
+    "intervalsAcrossGraphs": 224,
+    "candidateRootsAcrossGraphs": 448,
+    "candidateMathSqrt": 224,
+    "candidateNormalMathHypot": 32,
+    "retries": 0,
+    "warmups": 0
+  },
+  "resources": {
+    "internalSeconds": 170,
+    "cleanupSeconds": 4,
+    "externalSeconds": 180,
+    "logicalCampaignBytes": 67108864,
+    "logicalWorkBytesPerActiveEvaluator": 8388608,
+    "sourceBuildBytes": 2097152,
+    "combinedEvidenceBytes": 1048576,
+    "referenceCaseProofBytes": 32768,
+    "rawCaseBytes": 8192,
+    "summaryFailureReserveBytes": 32768,
+    "heapOrRssClaim": false
+  },
+  "outside": [
+    "World integration/contact response",
+    "rotated OBB",
+    "multiple fixtures and cross-fixture ties",
+    "general arbitrary-F64-scale admission",
+    "general initial ownership/discrete response qualification",
+    "production activation/public-root integration",
+    "G1 changes or reruns",
+    "P4 cache retry",
+    "existing physical gate relaxation"
+  ]
+}

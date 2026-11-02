@@ -3,10 +3,10 @@
   "branch": "codex/physics-world-p5-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "G1a one-step axisymmetric public box free rotation",
-    "status": "CHARACTERIZED_PHYSICAL_NO_GO",
-    "scope": "source/native one step each; angular momentum max residual8.333140433438353e-5 vs2e-12; no repair/trajectory qualification",
-    "results": "examples/physics-rigid-rotation-g1-2276/RESULTS-01.json"
+    "profile": "G1a staged common-World axisymmetric free rotation plus isotropic controls",
+    "status": "PASS_STAGED_G1A_REPAIR_ONLY",
+    "scope": "20Worlds/1688accepted/1708attempts/20failurecontrols; sourcecomplete before genuineTypeScript-emitted graph. Currentpublishednative/canonicalrootbundle/productionactivation NOT_RUN.",
+    "results": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/summary.json"
   },
   "mainSlices": {
     "P0": "CONTRACT_COMPLETE_LOCAL",
@@ -33,19 +33,19 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "G1a staged exact symmetric-top candidate authored, independent analytic oracle and source/TypeScript-emitted runner in authoring; no repair runtime yet",
+  "active": "Record actual G1a errors and immutable compressed evidence; freeze next G1b/general-range and G2 exact-sweep dependencies. G2 first exact-corner witness NO_GO preserved; no production activation.",
   "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
     "nextG1Baseline": "ACHIEVED2026-11-02; actual physical NO_GO preserved",
     "wholeRoadmap": "NO_RELIABLE_DATE_YET; reassess from G1/P4/coupling evidence, no whole-engine date promised",
-    "nextG1Repair": "Estimate after first bounded source qualification; authoring/independent reference in progress, no guaranteed date"
+    "nextG1Repair": "G1a staged first qualification ACHIEVED2026-11-02. G1 completion date pending G1b and admitted-range/integration evidence."
   },
   "reportCadence": "milestone,firstfailure,directionchange; report qualified scope,remaining dependency,and revised confidence",
   "invariants": "HOLD,originalNO_GO,tolerances,first failures preserved; no partial develop merge,push,deploy,release",
   "addedGateProgress": {
-    "G1": "BASELINE_PHYSICAL_NO_GO_PRESERVED; STAGED_AXISYMMETRIC_CANDIDATE_WRITTEN_NOT_RUN; TRIAXIAL_OPEN",
-    "G2": "STATIC19BRANCH_MAP_COMPLETE; NUMERICAL_GAPS_OPEN; 0NEW_WORLD",
+    "G1": "G1a STAGED_AXISYMMETRIC_PASS; originalproductionbaselinePHYSICAL_NO_GO preserved; G1b/nearunit/axis/frame/downstream/adoption open",
+    "G2": "STATIC19BRANCH_MAP_COMPLETE; ACTUAL_SOURCE_CORNER_EXACT_CONTACT_NO_GO; reference1/World0/nativeNOT_RUN; other numerical gaps open",
     "G7": "PER_CAMPAIGN_TRUST_GATE; NO_BLANKET_PASS"
   }
 }

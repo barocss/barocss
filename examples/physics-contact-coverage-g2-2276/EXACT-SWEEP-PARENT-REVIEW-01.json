@@ -1,0 +1,35 @@
+{
+  "status": "PARENT_ACCEPTS_NUMERICAL_DESIGN_AUTHORING_NEEDS_JOINT_PAYLOAD_PROOF",
+  "runtimeAuthorized": false,
+  "productionActivation": false,
+  "authorities": [
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/EXACT-SWEEP-DESIGN-01.md",
+      "bytes": 12250,
+      "sha256": "375d2ce0b4dbb2d8c19db24828102616b11804a9ae28b1ab73c2109336ecfc54"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/EXACT-SWEEP-CASES-01.json",
+      "bytes": 9502,
+      "sha256": "47a1adb72fe39710919ddf675a3b16afc9ba3415c9b3d8d81b69f1ba52dab78e"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/CORNER-RESULTS-01.json",
+      "bytes": 4857,
+      "sha256": "0763b5557dcdb4d05bd8302b7895dc9ef637f2f85602590a370ab9d2b552bad2"
+    }
+  ],
+  "accepted": [
+    "At most7 piecewise squared-distance intervals, stable roots, no epsilon discriminant/time clamp, no old wrong expanded-slab fallback.",
+    "Independent face/edge/vertex enumeration, exact polynomial coefficients and directed fixed80/120 enclosures.",
+    "Existing1e-12TOI and1e-12m gates unchanged; new independent normal1e-12component/norm gates accepted before implementation.",
+    "Original failedC03 input first; subsequent source cases only after each immediate reference PASS. Allsource16PASS before conditionalnative16. NoWorld or original stack expansion."
+  ],
+  "beforeAuthoringReady": [
+    "Derive joint1MiBevidence allocation. The individual32KiBreference and8KiBraw ceilings are not a proof that32result+16reference records and required logs/reserves fit together. Reuse unique inputs; avoid duplicate matrices/before-state payloads; freeze tighter per-section serialization bounds before math. Do not increase the declared cap.",
+    "Prove all retained current/root/temp/serialization and preallocated logs fit existing8MiBwork/2MiBbuild partitions. Maxima are budgets, not observed call counts.",
+    "Preserve proposed raw reuse so the original failed helper is not rerun. Newcandidate is a separate experiment; source/native entries and test-only overlay must be named plainly."
+  ],
+  "outOfScope": "RotatedOBB/multiplefixtures/ties/publicworld/response/adoption/legacycompatibility; G1b and originalP4NO_GO remain.",
+  "next": "After explicit parent authoring release, implement narrow geometry leaf/reference/runner with this approved numerical scope and compact budget proof; then final source/tools freeze and one owned run. This document grants no runtime."
+}

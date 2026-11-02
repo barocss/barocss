@@ -33,3 +33,27 @@ The freeze pins 279 authority/source/native/package files and 218 installed tool
 Source inspection and this observation are consistent with the absence of torque-free gyroscopic evolution for unequal box moments. The production integrator has not been changed. A reviewed repair and independent analytic trajectory/refinement population are next. G1b triaxial rotation remains open. No contact, connected joint, fluid, cloth trajectory or real equipment claim follows from this one-step measurement.
 
 Original P3/P4 NO_GO, historical UNKNOWN operands, HOLD, tolerances, iteration caps and instantaneous private impulse PASS remain unchanged. There is no legacy compatibility path, develop merge, push, deployment or release.
+
+
+## Actual staged repair qualification (2026-11-02)
+
+**PASS_STAGED_G1A_REPAIR_ONLY.** [REPAIR-RESULTS-02.md](./REPAIR-RESULTS-02.md) and [exact result data](./REPAIR-RESULTS-02.json) record20Worlds,1688accepted steps,20failure controls and source-before-emitted execution. Two trajectory families use dt1/60,1/120,1/240 over the same native1s duration, plus principal/zero/signed-zero/negative-q controls. The modified factory is the actual common World in an isolated staged source graph and genuine NodeNext emitted public entry. The current installed/published package is not repaired by this result.
+
+| Quantity | Actual maximum | Frozen gate |
+| --- | ---: | ---: |
+| World angular-momentum component residual | 1.4218082239564305e-16kg m²/s | 2e-12 at that maximum |
+| Rotational-energy residual | 1.5503562929136472e-16J | 2e-12 at that maximum |
+| Squared quaternion-norm defect | 4.970104043257947e-16 | 1e-12 |
+| Analytic world angular-velocity error | 9.038815095388075e-15rad/s | 1e-11 absolute +1e-12relative |
+| Analytic rotation-matrix entry error | 3.700233833097752e-15 | same declared dimensionless rule |
+| Analytic quaternion entry error | 1.976202073466268e-15 | same declared dimensionless rule |
+
+All24refinement records are ROUNDING_FLOOR under the predeclared1e-11floor; no measured convergence order follows. Initial/accepted invariants were checked in1708audits. Every failure retained accepted state/time/cache; recovery used the scheduled step. Source and emitted saved854states/16226raw numeric words each, with exact non-provider parity. Provider digests remain distinct and authenticated. Determinism and physical checks are reported separately.
+
+The original public baseline physical failure, strict compiler failure before0math in g1a-repair-01, and static log-resource NO_GO reviews remain unchanged. The correction used one erased Vec3 assertion, explicitly pinned existing Node declarations and fixed child log buffers. No runtime dependency/download, equation, tolerance, contact iteration or original case changed.
+
+The complete closed run has3700files/12835162uncompressed bytes. Its [verified archive](./evidence/g1a-repair-02.tar.gz) is1380037bytes, SHA256`970ba3ecf1166fa817a19689ab15ebd50542ec726b436692bb0b99111f74e222`. [REPAIR-ARCHIVE-02.json](./REPAIR-ARCHIVE-02.json) records streamed byte verification of every file, and [REPAIR-INVENTORY-02.json](./REPAIR-INVENTORY-02.json) lists each original size/SHA. Extract into a fresh directory to inspect all raw frame/audit/reply/build files; original local runtime files were retained unchanged. Selected primary records are also tracked directly. Archive/report work used saved DATA, with0new physics/World calls.
+
+The full guard elapsed53.614s after153s waiting at the existing heavy gate. This includes build/reference/file/transport work and is not an engine benchmark. Peak harness logical charge7,738,774B and reference charge4,720,093B stayed under their8MiBpartitions; no RSS/heap claim is made.
+
+G1btriaxial, wider axis/frame/near-unit input controls, long-duration claims, successful torque/contact/joint/later-body/recorder integration, canonical build-root output, actual production activation and equipment validation remain open or NOT_RUN. G1/the whole roadmap is not complete. No legacy compatibility path, develop merge, push, deploy or release was introduced.

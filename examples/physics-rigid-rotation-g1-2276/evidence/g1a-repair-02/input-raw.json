@@ -1,0 +1,1918 @@
+{
+  "pairs": [
+    {
+      "caseId": "T01-isotropic-cube-dt60",
+      "steps": 60,
+      "pairRaw": {
+        "model": {
+          "format": "barocss-physics-model",
+          "version": {
+            "$f64le": "000000000000f03f"
+          },
+          "revision": "g1a-baseline-2276",
+          "frame": {
+            "id": "g1World",
+            "basis": "right-handed-xyz",
+            "rotation": "local-to-world-xyzw"
+          },
+          "units": {
+            "length": "m",
+            "mass": "kg",
+            "time": "s",
+            "angle": "rad"
+          },
+          "gravityMps2": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ],
+          "bodies": [
+            {
+              "id": "rotor",
+              "kind": "dynamic",
+              "massKg": {
+                "$f64le": "000000000000f03f"
+              },
+              "inertia": {
+                "kind": "primitive-com",
+                "about": "com",
+                "frame": "body-local"
+              },
+              "initial": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ],
+                "velocityMps": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "angularVelocityRadps": [
+                  {
+                    "$f64le": "000000000000f03f"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              }
+            }
+          ],
+          "colliders": [
+            {
+              "id": "rotorCollider",
+              "bodyId": "rotor",
+              "geometry": {
+                "kind": "box",
+                "halfExtentsM": [
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  }
+                ]
+              },
+              "local": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              },
+              "material": {
+                "restitution": {
+                  "$f64le": "0000000000000000"
+                },
+                "friction": {
+                  "static": {
+                    "$f64le": "0000000000000000"
+                  },
+                  "dynamic": {
+                    "$f64le": "0000000000000000"
+                  }
+                }
+              },
+              "sensor": false,
+              "ccd": false,
+              "filter": {
+                "categoryBits": {
+                  "$f64le": "000000000000f03f"
+                },
+                "maskBits": {
+                  "$f64le": "00000000e0ffef40"
+                }
+              }
+            }
+          ],
+          "joints": [],
+          "cloths": [],
+          "fluids": [],
+          "sourceBindings": []
+        },
+        "options": {
+          "profile": "rigid-discrete-v1",
+          "fixedStepSeconds": {
+            "$f64le": "111111111111913f"
+          },
+          "broadPhase": "direct"
+        }
+      }
+    },
+    {
+      "caseId": "T01-isotropic-cube-dt120",
+      "steps": 120,
+      "pairRaw": {
+        "model": {
+          "format": "barocss-physics-model",
+          "version": {
+            "$f64le": "000000000000f03f"
+          },
+          "revision": "g1a-baseline-2276",
+          "frame": {
+            "id": "g1World",
+            "basis": "right-handed-xyz",
+            "rotation": "local-to-world-xyzw"
+          },
+          "units": {
+            "length": "m",
+            "mass": "kg",
+            "time": "s",
+            "angle": "rad"
+          },
+          "gravityMps2": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ],
+          "bodies": [
+            {
+              "id": "rotor",
+              "kind": "dynamic",
+              "massKg": {
+                "$f64le": "000000000000f03f"
+              },
+              "inertia": {
+                "kind": "primitive-com",
+                "about": "com",
+                "frame": "body-local"
+              },
+              "initial": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ],
+                "velocityMps": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "angularVelocityRadps": [
+                  {
+                    "$f64le": "000000000000f03f"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              }
+            }
+          ],
+          "colliders": [
+            {
+              "id": "rotorCollider",
+              "bodyId": "rotor",
+              "geometry": {
+                "kind": "box",
+                "halfExtentsM": [
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  }
+                ]
+              },
+              "local": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              },
+              "material": {
+                "restitution": {
+                  "$f64le": "0000000000000000"
+                },
+                "friction": {
+                  "static": {
+                    "$f64le": "0000000000000000"
+                  },
+                  "dynamic": {
+                    "$f64le": "0000000000000000"
+                  }
+                }
+              },
+              "sensor": false,
+              "ccd": false,
+              "filter": {
+                "categoryBits": {
+                  "$f64le": "000000000000f03f"
+                },
+                "maskBits": {
+                  "$f64le": "00000000e0ffef40"
+                }
+              }
+            }
+          ],
+          "joints": [],
+          "cloths": [],
+          "fluids": [],
+          "sourceBindings": []
+        },
+        "options": {
+          "profile": "rigid-discrete-v1",
+          "fixedStepSeconds": {
+            "$f64le": "111111111111813f"
+          },
+          "broadPhase": "direct"
+        }
+      }
+    },
+    {
+      "caseId": "T01-isotropic-cube-dt240",
+      "steps": 240,
+      "pairRaw": {
+        "model": {
+          "format": "barocss-physics-model",
+          "version": {
+            "$f64le": "000000000000f03f"
+          },
+          "revision": "g1a-baseline-2276",
+          "frame": {
+            "id": "g1World",
+            "basis": "right-handed-xyz",
+            "rotation": "local-to-world-xyzw"
+          },
+          "units": {
+            "length": "m",
+            "mass": "kg",
+            "time": "s",
+            "angle": "rad"
+          },
+          "gravityMps2": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ],
+          "bodies": [
+            {
+              "id": "rotor",
+              "kind": "dynamic",
+              "massKg": {
+                "$f64le": "000000000000f03f"
+              },
+              "inertia": {
+                "kind": "primitive-com",
+                "about": "com",
+                "frame": "body-local"
+              },
+              "initial": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ],
+                "velocityMps": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "angularVelocityRadps": [
+                  {
+                    "$f64le": "000000000000f03f"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              }
+            }
+          ],
+          "colliders": [
+            {
+              "id": "rotorCollider",
+              "bodyId": "rotor",
+              "geometry": {
+                "kind": "box",
+                "halfExtentsM": [
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  }
+                ]
+              },
+              "local": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              },
+              "material": {
+                "restitution": {
+                  "$f64le": "0000000000000000"
+                },
+                "friction": {
+                  "static": {
+                    "$f64le": "0000000000000000"
+                  },
+                  "dynamic": {
+                    "$f64le": "0000000000000000"
+                  }
+                }
+              },
+              "sensor": false,
+              "ccd": false,
+              "filter": {
+                "categoryBits": {
+                  "$f64le": "000000000000f03f"
+                },
+                "maskBits": {
+                  "$f64le": "00000000e0ffef40"
+                }
+              }
+            }
+          ],
+          "joints": [],
+          "cloths": [],
+          "fluids": [],
+          "sourceBindings": []
+        },
+        "options": {
+          "profile": "rigid-discrete-v1",
+          "fixedStepSeconds": {
+            "$f64le": "111111111111713f"
+          },
+          "broadPhase": "direct"
+        }
+      }
+    },
+    {
+      "caseId": "T02-axisymmetric-off-axis-dt60",
+      "steps": 60,
+      "pairRaw": {
+        "model": {
+          "format": "barocss-physics-model",
+          "version": {
+            "$f64le": "000000000000f03f"
+          },
+          "revision": "g1a-baseline-2276",
+          "frame": {
+            "id": "g1World",
+            "basis": "right-handed-xyz",
+            "rotation": "local-to-world-xyzw"
+          },
+          "units": {
+            "length": "m",
+            "mass": "kg",
+            "time": "s",
+            "angle": "rad"
+          },
+          "gravityMps2": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ],
+          "bodies": [
+            {
+              "id": "rotor",
+              "kind": "dynamic",
+              "massKg": {
+                "$f64le": "000000000000f03f"
+              },
+              "inertia": {
+                "kind": "primitive-com",
+                "about": "com",
+                "frame": "body-local"
+              },
+              "initial": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ],
+                "velocityMps": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "angularVelocityRadps": [
+                  {
+                    "$f64le": "000000000000f03f"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              }
+            }
+          ],
+          "colliders": [
+            {
+              "id": "rotorCollider",
+              "bodyId": "rotor",
+              "geometry": {
+                "kind": "box",
+                "halfExtentsM": [
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999c93f"
+                  }
+                ]
+              },
+              "local": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              },
+              "material": {
+                "restitution": {
+                  "$f64le": "0000000000000000"
+                },
+                "friction": {
+                  "static": {
+                    "$f64le": "0000000000000000"
+                  },
+                  "dynamic": {
+                    "$f64le": "0000000000000000"
+                  }
+                }
+              },
+              "sensor": false,
+              "ccd": false,
+              "filter": {
+                "categoryBits": {
+                  "$f64le": "000000000000f03f"
+                },
+                "maskBits": {
+                  "$f64le": "00000000e0ffef40"
+                }
+              }
+            }
+          ],
+          "joints": [],
+          "cloths": [],
+          "fluids": [],
+          "sourceBindings": []
+        },
+        "options": {
+          "profile": "rigid-discrete-v1",
+          "fixedStepSeconds": {
+            "$f64le": "111111111111913f"
+          },
+          "broadPhase": "direct"
+        }
+      }
+    },
+    {
+      "caseId": "T02-axisymmetric-off-axis-dt120",
+      "steps": 120,
+      "pairRaw": {
+        "model": {
+          "format": "barocss-physics-model",
+          "version": {
+            "$f64le": "000000000000f03f"
+          },
+          "revision": "g1a-baseline-2276",
+          "frame": {
+            "id": "g1World",
+            "basis": "right-handed-xyz",
+            "rotation": "local-to-world-xyzw"
+          },
+          "units": {
+            "length": "m",
+            "mass": "kg",
+            "time": "s",
+            "angle": "rad"
+          },
+          "gravityMps2": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ],
+          "bodies": [
+            {
+              "id": "rotor",
+              "kind": "dynamic",
+              "massKg": {
+                "$f64le": "000000000000f03f"
+              },
+              "inertia": {
+                "kind": "primitive-com",
+                "about": "com",
+                "frame": "body-local"
+              },
+              "initial": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ],
+                "velocityMps": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "angularVelocityRadps": [
+                  {
+                    "$f64le": "000000000000f03f"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              }
+            }
+          ],
+          "colliders": [
+            {
+              "id": "rotorCollider",
+              "bodyId": "rotor",
+              "geometry": {
+                "kind": "box",
+                "halfExtentsM": [
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999c93f"
+                  }
+                ]
+              },
+              "local": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              },
+              "material": {
+                "restitution": {
+                  "$f64le": "0000000000000000"
+                },
+                "friction": {
+                  "static": {
+                    "$f64le": "0000000000000000"
+                  },
+                  "dynamic": {
+                    "$f64le": "0000000000000000"
+                  }
+                }
+              },
+              "sensor": false,
+              "ccd": false,
+              "filter": {
+                "categoryBits": {
+                  "$f64le": "000000000000f03f"
+                },
+                "maskBits": {
+                  "$f64le": "00000000e0ffef40"
+                }
+              }
+            }
+          ],
+          "joints": [],
+          "cloths": [],
+          "fluids": [],
+          "sourceBindings": []
+        },
+        "options": {
+          "profile": "rigid-discrete-v1",
+          "fixedStepSeconds": {
+            "$f64le": "111111111111813f"
+          },
+          "broadPhase": "direct"
+        }
+      }
+    },
+    {
+      "caseId": "T02-axisymmetric-off-axis-dt240",
+      "steps": 240,
+      "pairRaw": {
+        "model": {
+          "format": "barocss-physics-model",
+          "version": {
+            "$f64le": "000000000000f03f"
+          },
+          "revision": "g1a-baseline-2276",
+          "frame": {
+            "id": "g1World",
+            "basis": "right-handed-xyz",
+            "rotation": "local-to-world-xyzw"
+          },
+          "units": {
+            "length": "m",
+            "mass": "kg",
+            "time": "s",
+            "angle": "rad"
+          },
+          "gravityMps2": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ],
+          "bodies": [
+            {
+              "id": "rotor",
+              "kind": "dynamic",
+              "massKg": {
+                "$f64le": "000000000000f03f"
+              },
+              "inertia": {
+                "kind": "primitive-com",
+                "about": "com",
+                "frame": "body-local"
+              },
+              "initial": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ],
+                "velocityMps": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "angularVelocityRadps": [
+                  {
+                    "$f64le": "000000000000f03f"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              }
+            }
+          ],
+          "colliders": [
+            {
+              "id": "rotorCollider",
+              "bodyId": "rotor",
+              "geometry": {
+                "kind": "box",
+                "halfExtentsM": [
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999c93f"
+                  }
+                ]
+              },
+              "local": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              },
+              "material": {
+                "restitution": {
+                  "$f64le": "0000000000000000"
+                },
+                "friction": {
+                  "static": {
+                    "$f64le": "0000000000000000"
+                  },
+                  "dynamic": {
+                    "$f64le": "0000000000000000"
+                  }
+                }
+              },
+              "sensor": false,
+              "ccd": false,
+              "filter": {
+                "categoryBits": {
+                  "$f64le": "000000000000f03f"
+                },
+                "maskBits": {
+                  "$f64le": "00000000e0ffef40"
+                }
+              }
+            }
+          ],
+          "joints": [],
+          "cloths": [],
+          "fluids": [],
+          "sourceBindings": []
+        },
+        "options": {
+          "profile": "rigid-discrete-v1",
+          "fixedStepSeconds": {
+            "$f64le": "111111111111713f"
+          },
+          "broadPhase": "direct"
+        }
+      }
+    },
+    {
+      "caseId": "C01-principal-axis",
+      "steps": 1,
+      "pairRaw": {
+        "model": {
+          "format": "barocss-physics-model",
+          "version": {
+            "$f64le": "000000000000f03f"
+          },
+          "revision": "g1a-baseline-2276",
+          "frame": {
+            "id": "g1World",
+            "basis": "right-handed-xyz",
+            "rotation": "local-to-world-xyzw"
+          },
+          "units": {
+            "length": "m",
+            "mass": "kg",
+            "time": "s",
+            "angle": "rad"
+          },
+          "gravityMps2": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ],
+          "bodies": [
+            {
+              "id": "rotor",
+              "kind": "dynamic",
+              "massKg": {
+                "$f64le": "000000000000f03f"
+              },
+              "inertia": {
+                "kind": "primitive-com",
+                "about": "com",
+                "frame": "body-local"
+              },
+              "initial": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ],
+                "velocityMps": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "angularVelocityRadps": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              }
+            }
+          ],
+          "colliders": [
+            {
+              "id": "rotorCollider",
+              "bodyId": "rotor",
+              "geometry": {
+                "kind": "box",
+                "halfExtentsM": [
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999c93f"
+                  }
+                ]
+              },
+              "local": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              },
+              "material": {
+                "restitution": {
+                  "$f64le": "0000000000000000"
+                },
+                "friction": {
+                  "static": {
+                    "$f64le": "0000000000000000"
+                  },
+                  "dynamic": {
+                    "$f64le": "0000000000000000"
+                  }
+                }
+              },
+              "sensor": false,
+              "ccd": false,
+              "filter": {
+                "categoryBits": {
+                  "$f64le": "000000000000f03f"
+                },
+                "maskBits": {
+                  "$f64le": "00000000e0ffef40"
+                }
+              }
+            }
+          ],
+          "joints": [],
+          "cloths": [],
+          "fluids": [],
+          "sourceBindings": []
+        },
+        "options": {
+          "profile": "rigid-discrete-v1",
+          "fixedStepSeconds": {
+            "$f64le": "111111111111813f"
+          },
+          "broadPhase": "direct"
+        }
+      }
+    },
+    {
+      "caseId": "C02-zero-positive",
+      "steps": 1,
+      "pairRaw": {
+        "model": {
+          "format": "barocss-physics-model",
+          "version": {
+            "$f64le": "000000000000f03f"
+          },
+          "revision": "g1a-baseline-2276",
+          "frame": {
+            "id": "g1World",
+            "basis": "right-handed-xyz",
+            "rotation": "local-to-world-xyzw"
+          },
+          "units": {
+            "length": "m",
+            "mass": "kg",
+            "time": "s",
+            "angle": "rad"
+          },
+          "gravityMps2": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ],
+          "bodies": [
+            {
+              "id": "rotor",
+              "kind": "dynamic",
+              "massKg": {
+                "$f64le": "000000000000f03f"
+              },
+              "inertia": {
+                "kind": "primitive-com",
+                "about": "com",
+                "frame": "body-local"
+              },
+              "initial": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ],
+                "velocityMps": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "angularVelocityRadps": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ]
+              }
+            }
+          ],
+          "colliders": [
+            {
+              "id": "rotorCollider",
+              "bodyId": "rotor",
+              "geometry": {
+                "kind": "box",
+                "halfExtentsM": [
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999c93f"
+                  }
+                ]
+              },
+              "local": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              },
+              "material": {
+                "restitution": {
+                  "$f64le": "0000000000000000"
+                },
+                "friction": {
+                  "static": {
+                    "$f64le": "0000000000000000"
+                  },
+                  "dynamic": {
+                    "$f64le": "0000000000000000"
+                  }
+                }
+              },
+              "sensor": false,
+              "ccd": false,
+              "filter": {
+                "categoryBits": {
+                  "$f64le": "000000000000f03f"
+                },
+                "maskBits": {
+                  "$f64le": "00000000e0ffef40"
+                }
+              }
+            }
+          ],
+          "joints": [],
+          "cloths": [],
+          "fluids": [],
+          "sourceBindings": []
+        },
+        "options": {
+          "profile": "rigid-discrete-v1",
+          "fixedStepSeconds": {
+            "$f64le": "111111111111813f"
+          },
+          "broadPhase": "direct"
+        }
+      }
+    },
+    {
+      "caseId": "C03-zero-signed-negative-q",
+      "steps": 1,
+      "pairRaw": {
+        "model": {
+          "format": "barocss-physics-model",
+          "version": {
+            "$f64le": "000000000000f03f"
+          },
+          "revision": "g1a-baseline-2276",
+          "frame": {
+            "id": "g1World",
+            "basis": "right-handed-xyz",
+            "rotation": "local-to-world-xyzw"
+          },
+          "units": {
+            "length": "m",
+            "mass": "kg",
+            "time": "s",
+            "angle": "rad"
+          },
+          "gravityMps2": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ],
+          "bodies": [
+            {
+              "id": "rotor",
+              "kind": "dynamic",
+              "massKg": {
+                "$f64le": "000000000000f03f"
+              },
+              "inertia": {
+                "kind": "primitive-com",
+                "about": "com",
+                "frame": "body-local"
+              },
+              "initial": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000080"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000080"
+                  },
+                  {
+                    "$f64le": "000000000000f0bf"
+                  }
+                ],
+                "velocityMps": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "angularVelocityRadps": [
+                  {
+                    "$f64le": "0000000000000080"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000080"
+                  }
+                ]
+              }
+            }
+          ],
+          "colliders": [
+            {
+              "id": "rotorCollider",
+              "bodyId": "rotor",
+              "geometry": {
+                "kind": "box",
+                "halfExtentsM": [
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999c93f"
+                  }
+                ]
+              },
+              "local": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              },
+              "material": {
+                "restitution": {
+                  "$f64le": "0000000000000000"
+                },
+                "friction": {
+                  "static": {
+                    "$f64le": "0000000000000000"
+                  },
+                  "dynamic": {
+                    "$f64le": "0000000000000000"
+                  }
+                }
+              },
+              "sensor": false,
+              "ccd": false,
+              "filter": {
+                "categoryBits": {
+                  "$f64le": "000000000000f03f"
+                },
+                "maskBits": {
+                  "$f64le": "00000000e0ffef40"
+                }
+              }
+            }
+          ],
+          "joints": [],
+          "cloths": [],
+          "fluids": [],
+          "sourceBindings": []
+        },
+        "options": {
+          "profile": "rigid-discrete-v1",
+          "fixedStepSeconds": {
+            "$f64le": "111111111111813f"
+          },
+          "broadPhase": "direct"
+        }
+      }
+    },
+    {
+      "caseId": "C04-off-axis-negative-q",
+      "steps": 1,
+      "pairRaw": {
+        "model": {
+          "format": "barocss-physics-model",
+          "version": {
+            "$f64le": "000000000000f03f"
+          },
+          "revision": "g1a-baseline-2276",
+          "frame": {
+            "id": "g1World",
+            "basis": "right-handed-xyz",
+            "rotation": "local-to-world-xyzw"
+          },
+          "units": {
+            "length": "m",
+            "mass": "kg",
+            "time": "s",
+            "angle": "rad"
+          },
+          "gravityMps2": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ],
+          "bodies": [
+            {
+              "id": "rotor",
+              "kind": "dynamic",
+              "massKg": {
+                "$f64le": "000000000000f03f"
+              },
+              "inertia": {
+                "kind": "primitive-com",
+                "about": "com",
+                "frame": "body-local"
+              },
+              "initial": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f0bf"
+                  }
+                ],
+                "velocityMps": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "angularVelocityRadps": [
+                  {
+                    "$f64le": "000000000000f03f"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              }
+            }
+          ],
+          "colliders": [
+            {
+              "id": "rotorCollider",
+              "bodyId": "rotor",
+              "geometry": {
+                "kind": "box",
+                "halfExtentsM": [
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999b93f"
+                  },
+                  {
+                    "$f64le": "9a9999999999c93f"
+                  }
+                ]
+              },
+              "local": {
+                "positionM": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  }
+                ],
+                "orientationXYZW": [
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "0000000000000000"
+                  },
+                  {
+                    "$f64le": "000000000000f03f"
+                  }
+                ]
+              },
+              "material": {
+                "restitution": {
+                  "$f64le": "0000000000000000"
+                },
+                "friction": {
+                  "static": {
+                    "$f64le": "0000000000000000"
+                  },
+                  "dynamic": {
+                    "$f64le": "0000000000000000"
+                  }
+                }
+              },
+              "sensor": false,
+              "ccd": false,
+              "filter": {
+                "categoryBits": {
+                  "$f64le": "000000000000f03f"
+                },
+                "maskBits": {
+                  "$f64le": "00000000e0ffef40"
+                }
+              }
+            }
+          ],
+          "joints": [],
+          "cloths": [],
+          "fluids": [],
+          "sourceBindings": []
+        },
+        "options": {
+          "profile": "rigid-discrete-v1",
+          "fixedStepSeconds": {
+            "$f64le": "111111111111813f"
+          },
+          "broadPhase": "direct"
+        }
+      }
+    }
+  ],
+  "refusals": [
+    {
+      "id": "R01-dt-as-step-input",
+      "commands": null
+    },
+    {
+      "id": "R02-unknown-body",
+      "commands": [
+        {
+          "kind": "torque",
+          "bodyId": "missingRotor",
+          "torqueNm": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "R03-nonfinite-torque",
+      "commands": [
+        {
+          "kind": "torque",
+          "bodyId": "rotor",
+          "torqueNm": [
+            {
+              "$f64le": "000000000000f87f"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "R04-angular-movement-guard",
+      "commands": [
+        {
+          "kind": "torque",
+          "bodyId": "rotor",
+          "torqueNm": [
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000000000000"
+            },
+            {
+              "$f64le": "0000000080842e41"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "guardReplacements": [
+    {
+      "id": "N01-nonfinite-omega",
+      "raw": [
+        {
+          "$f64le": "000000000000f87f"
+        },
+        {
+          "$f64le": "0000000000000000"
+        },
+        {
+          "$f64le": "0000000000000000"
+        }
+      ]
+    },
+    {
+      "id": "N02-component-omega",
+      "raw": [
+        {
+          "$f64le": "0000000000488f40"
+        },
+        {
+          "$f64le": "0000000000000000"
+        },
+        {
+          "$f64le": "0000000000000000"
+        }
+      ]
+    },
+    {
+      "id": "N03-step-angle-omega",
+      "raw": [
+        {
+          "$f64le": "0000000000208c40"
+        },
+        {
+          "$f64le": "0000000000208c40"
+        },
+        {
+          "$f64le": "0000000000208c40"
+        }
+      ]
+    }
+  ],
+  "equalNativeDurations": [
+    {
+      "numerator": "288230376151711740",
+      "denominator": "288230376151711744"
+    },
+    {
+      "numerator": "576460752303423480",
+      "denominator": "576460752303423488"
+    },
+    {
+      "numerator": "1152921504606846960",
+      "denominator": "1152921504606846976"
+    }
+  ]
+}

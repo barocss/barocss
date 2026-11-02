@@ -2,8 +2,6 @@
   "workId": "physics-contact-coverage-g2-2276",
   "status": "STATIC_EVIDENCE_MAP_COMPLETE_QUALIFICATION_OPEN",
   "date": "2026-11-02",
-  "newRuntimeCalls": 0,
-  "newGeometryOrReferenceCalls": 0,
   "sourcePins": [
     {
       "path": "packages/barocss-physics/src/collision.ts",
@@ -547,5 +545,18 @@
     "path": "examples/physics-contact-coverage-g2-2276/CORNER-RESULTS-01.json",
     "bytes": 4857,
     "sha256": "0763b5557dcdb4d05bd8302b7895dc9ef637f2f85602590a370ab9d2b552bad2"
+  },
+  "inventoryActuals": {
+    "newRuntimeCalls": 0,
+    "newGeometryOrReferenceCalls": 0
+  },
+  "cornerFollowUpActuals": {
+    "admitModel": 1,
+    "admitCcd": 1,
+    "sweepSphere": 1,
+    "independentWitnessAudits": 1,
+    "fractionOperations": 41,
+    "World": 0,
+    "native": "NOT_RUN_AFTER_FIRST_SOURCE_FAILURE"
   }
 }

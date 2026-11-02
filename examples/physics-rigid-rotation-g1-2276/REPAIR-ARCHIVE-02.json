@@ -1,0 +1,15 @@
+{
+  "status": "PASS_BYTE_IDENTICAL_STREAMED_ARCHIVE_VERIFICATION",
+  "archive": {
+    "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02.tar.gz",
+    "bytes": 1380037,
+    "sha256": "970ba3ecf1166fa817a19689ab15ebd50542ec726b436692bb0b99111f74e222"
+  },
+  "filesVerified": 3700,
+  "uncompressedBytes": 12835162,
+  "rawLocalTreeRetained": true,
+  "verification": "Every archived regular file decoded once and exact size/SHA matched to original closed runtime file. No extraction, provider import, physical reference, World, build or numerical rerun.",
+  "metadata": "Archive paths relative to evidence; metadata normalizedmtime0/uid0/gid0/mode0644 for archival only. Original file payload bytes unchanged; actual run timing/first failures remain in raw receipts.",
+  "restoration": "Read archive into a fresh directory; top-level g1a-repair-02 reproduces exact original payloads. Runtime directory build contents are original staged source/emits, not adopted production code.",
+  "gitScope": "Complete archive plus selected primary JSON/streams and outer guard records; no need thousands of separately tracked audit/reply files."
+}
