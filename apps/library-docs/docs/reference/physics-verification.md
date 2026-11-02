@@ -324,3 +324,25 @@ fluid–cloth coupling, self-contact, fracture and generic plugins remain option
 Studio, hardware and manufacturing HOLDs remain. The private contact-free
 impulse campaign passes its frozen source/native population; it advances no
 time/orientation and does not qualify public coupling or general rotation.
+
+Later G1 checks remain staged. Eight named input/frame cases pass on Source and
+genuine emitted World: cyclic axes, world half-turns, radial near-unit q signs
+and one equal-inertia mass/length pair. The first run passed one physical case
+then failed test-observer cleanup; the later result reuses that physical audit
+and preserves the original FAIL. The largest angular-momentum error is
+2.1876288451716093e-17 kg m²/s. This is a finite one-step population.
+
+The separate command/recorder gate passes on both graphs: six actual Worlds,
+twelve accepted steps, eight independent endpoint audits and six refused steps
+that preserve state, recording and accepted caches. It checks principal-axis
+impulse/torque expiry and a two-step general triaxial record–restore–continue
+path. Maximum angular-momentum error is 1.600786710055395e-17 kg m²/s. New ODE
+windows are zero; recorded continuation equality is separate from physical
+reference accuracy. The [roadmap](/physics-evidence/api-roadmap.txt) names the
+exact source reports and remaining boundaries.
+
+These checks do not activate the private rotation prototype in the public
+package. Wider admitted inertia/spin/dt inputs, G1a x/y symmetry, off-axis
+loads, motors, contacts and joints still need their own qualification. The
+original production gyro NO_GO and eight-box NO_GO remain. No tolerance or
+HOLD changed; no measured-equipment or manufacturing safety claim follows.

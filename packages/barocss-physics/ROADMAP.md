@@ -248,6 +248,23 @@ merge completion set.
 | G6 — domain recording capability and reconstruction | **PROFILE_PREREQUISITE only if enabling domain/coupled recording.** Current cloth attach exceeds128KiB; fluid attach/domain restore refuse explicitly. P5 verified those refusals, not domain record/restore. | Keep a public supported/refused capability row. Before enabling, define typed-array wire, complete state/history for log reconstruction versus checkpoint, supported duration and bounded payload. Test below/at/over caps, atomic refusal, source/native record–restore–continue. Existing128KiB/1MiB/512frame/4096command caps and errors remain; do not raise them or introduce an old-reader fallback to obtain PASS. | **CURRENT REFUSAL QUALIFIED; ENABLEMENT_NOT_SUPPORTED.** This is not a missing P5 exit and does not require a new codec for the current work. |
 | G7 — provider / oracle / failed-prefix evidence trust | **CORE_REQUIRED for each new qualification.** Actual campaign review found partial memory sums, widened report/state gates and lost interrupted reference counts. A producer PASS or missing-count0 is insufficient. | Pin actual loaded source/native/reference/tool/declaration closure, input/raw-number authority and gate/budget definition before calls. Preserve physical, harness, resource and source failures separately. Authenticate original summaries; progress supplies durable lower bounds and unknown in-flight totals remain UNKNOWN. Distinguish payload charges from unmeasured heap/RSS. Check newly changed trust logic with bounded DATA tests, without repeating numerical prefixes to repair receipts. | **SELECTED PRIVATE CAMPAIGN PASS after recorded static repairs.** Other profiles retain their own proof limits, P3 missing historical operands and P4 historical raw-sign UNKNOWN. No blanket cross-runtime/determinism or physical-accuracy badge. |
 
+### G1 finite input and downstream additions (2026-11-02)
+
+The existing G1 row retains the original gyro failure and earlier trajectory
+receipts. Two later finite gates add staged evidence; neither activates the
+prototype across the wider admitted range.
+
+| Gate | Actual result | Remaining boundary |
+| --- | --- | --- |
+| G1c input/frame | Eight named one-step cases per Source/emitted graph pass independent transported 80/120 targets: two cyclic labels, three world half-turns, two radial near-unit signs and one equal-inertia mass/length pair. Composite physical evidence reuses one Source audit from a cleanup-failed first run, then seven Source and eight Native cases. Max world-L error 2.1876288451716093e-17 kg m²/s; R-entry 3.155338571293821e-17. | The first observer-release failure remains FAIL. The counter limitation has its own additive resource note. No general near-unit direction, inertia scale, dt endpoint, G1a x/y symmetry or long-duration claim. See `examples/physics-rigid-rotation-g1c-2276/FRAME-RESULTS-02.md`. |
+| G1d command/recorder | Source and genuine emitted root/replay pass principal-axis impulse+torque expiry and two-step general triaxial recording/restore/continue: six actual Worlds, twelve accepted steps, eight independent endpoint audits and six state/log/cache-preserving refusals. Max world-L error 1.600786710055395e-17 kg m²/s; R-entry 2.2833535057329648e-17. | One new combined Source bundle; Native reuses authenticated strict NodeNext modules. No canonical-root adoption. Nonprincipal load, motor/joint/contact/projection, persistent/large angular flow and physical coupled trajectories remain NOT_RUN. See `examples/physics-rigid-rotation-g1d-2276/INTEGRATION-RESULTS-01.md`. |
+| Admission and public adoption | Source audit fixes SI, body-to-world XYZW, world angular vectors, existing initial-q normalization, and kick/motor/free/contact/record commit order. | The fixed momentum-unit triaxial prototype excludes much of the parser's existing mass/extents/spin/dt range. Finite PASS is not authority to apply it to every admitted box, silently narrow admission or retain the incorrect anisotropic law as a compatibility fallback. Explicit supported-range resolution and affected canonical build/caller checks remain required. |
+
+All old HOLDs, error gates and first failures remain. New reference ODE windows
+for these two gates are zero. Deterministic replay equality and physical error
+checks remain separate. Studio, manufacturing and equipment stay outside this
+independent Work. No partial develop merge, deployment or publication follows.
+
 Dependency order: close the G1 admitted-rotation boundary and G2 finite coverage
 map before the corresponding general rigid/contact claim. Keep original P4
 work as its own acceptance track. Before a new P6/P7 plant runs, select only

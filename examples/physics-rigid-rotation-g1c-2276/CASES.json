@@ -1,0 +1,12 @@
+{
+  "rows": [
+    {"id":"b01-cycle-yzx","halfExtentsM":[0.2,0.3,0.1],"massKg":1,"qXYZW":[0,0,0,1],"omegaWorldRadps":[1,1,1],"bodyPermutation":[1,2,0],"worldSigns":[1,1,1],"worldHalfTurnAxis":null,"quatSign":1},
+    {"id":"b02-cycle-zxy","halfExtentsM":[0.3,0.1,0.2],"massKg":1,"qXYZW":[0,0,0,1],"omegaWorldRadps":[1,1,1],"bodyPermutation":[2,0,1],"worldSigns":[1,1,1],"worldHalfTurnAxis":null,"quatSign":1},
+    {"id":"w01-half-turn-x","halfExtentsM":[0.1,0.2,0.3],"massKg":1,"qXYZW":[1,0,0,0],"omegaWorldRadps":[1,-1,-1],"bodyPermutation":[0,1,2],"worldSigns":[1,-1,-1],"worldHalfTurnAxis":0,"quatSign":1},
+    {"id":"w02-half-turn-y","halfExtentsM":[0.1,0.2,0.3],"massKg":1,"qXYZW":[0,1,0,0],"omegaWorldRadps":[-1,1,-1],"bodyPermutation":[0,1,2],"worldSigns":[-1,1,-1],"worldHalfTurnAxis":1,"quatSign":1},
+    {"id":"w03-half-turn-z","halfExtentsM":[0.1,0.2,0.3],"massKg":1,"qXYZW":[0,0,1,0],"omegaWorldRadps":[-1,-1,1],"bodyPermutation":[0,1,2],"worldSigns":[-1,-1,1],"worldHalfTurnAxis":2,"quatSign":1},
+    {"id":"n01-near-unit-positive","halfExtentsM":[0.1,0.2,0.3],"massKg":1,"qXYZW":[0,0,0,0.9999995231628418],"omegaWorldRadps":[1,1,1],"bodyPermutation":[0,1,2],"worldSigns":[1,1,1],"worldHalfTurnAxis":null,"quatSign":1},
+    {"id":"n02-near-unit-negative","halfExtentsM":[0.1,0.2,0.3],"massKg":1,"qXYZW":[0,0,0,-0.9999995231628418],"omegaWorldRadps":[1,1,1],"bodyPermutation":[0,1,2],"worldSigns":[1,1,1],"worldHalfTurnAxis":null,"quatSign":-1},
+    {"id":"s01-equal-inertia-scale","halfExtentsM":[0.05,0.1,0.15],"massKg":4,"qXYZW":[0,0,0,1],"omegaWorldRadps":[1,1,1],"bodyPermutation":[0,1,2],"worldSigns":[1,1,1],"worldHalfTurnAxis":null,"quatSign":1}
+  ]
+}
