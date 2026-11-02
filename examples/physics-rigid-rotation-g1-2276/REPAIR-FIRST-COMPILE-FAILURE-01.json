@@ -1,0 +1,47 @@
+{
+  "status": "COMPILE_NO_GO_BEFORE_ALL_NUMERICAL_CALLS",
+  "firstFailure": {
+    "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-01/summary.json",
+    "bytes": 2406,
+    "sha256": "dbf7bf92eb4772b0448c3c2aacf8d22661076be9e90a365027334c900cfbf68c"
+  },
+  "diagnostics": {
+    "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-01/tsc-emit.stdout.raw",
+    "bytes": 21762,
+    "sha256": "d849444ca5bce829cd7c9311989bbe3fa96d9dc58537d860f54e135634621adb"
+  },
+  "preservedStageInputs": [
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-01/failed-author-inputs/g1-test-control.ts",
+      "bytes": 2465,
+      "sha256": "0c20dc862992391e3fae3b8b7e3c83051065e9b4dd8aefe037e358470047f471"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-01/failed-author-inputs/math.ts",
+      "bytes": 2579,
+      "sha256": "5a649cc80f58928732141d5813a4165ebf15e30d3d76f5906f10bb87da99c1c9"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-01/failed-author-inputs/provider-manifest.generated.ts",
+      "bytes": 7879,
+      "sha256": "b25fbd9dbd1ee28f5526899d5dd41207ddf71c0513fb3027a55a970624d7f16a"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-01/failed-author-inputs/rigid-free-rotation.ts",
+      "bytes": 4146,
+      "sha256": "8801a59ac3663f18a9373fe295133f3a8d26f558ec5d9a2d684210f7babf2865"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-01/failed-author-inputs/tsconfig.g1.json",
+      "bytes": 368,
+      "sha256": "f4a53f9db20e2931fe869906706d0949e948b451a3f05799d279e99ed09148a4"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-01/failed-author-inputs/world.ts",
+      "bytes": 30021,
+      "sha256": "bc5cbb3261bd59a063a189348352f11a1f1f078a898175c2a878cea1bf2108bd"
+    }
+  ],
+  "observed": "generate-source exited0; strict selected-root TSC failed on missingstructuredClone/TextDecoder ambient declarations and narrowedzero-array tuple type. No native emit, reference, fixture conversion, identity DATA or World.",
+  "next": "Correct only staged compiler environment using already installed pinned Node declarations and one erased Vec3 type assertion; no equations/cases/tolerances/iterations change."
+}
