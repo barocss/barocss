@@ -348,6 +348,22 @@ and P6 coupled dynamics. Long-run phase, full CAD SDK/subpath closure and browse
 proof remain NOT_RUN. No engine-wide or release-gate PASS. Existing HOLDs and
 first failures remain. No deployment or release.
 
+### Desktop Physics Lab consumer (2026-11-02)
+
+`examples/physics-lab` now drives the existing public World/recorder and Viewer
+from one independent desktop sample. Box/sphere/capsule inputs, fixed steps,
+world torque/J, page-memory save/restore/real continuation and explicit512-frame
+recording stop are implemented. No numerical package or Viewer/GPU source changed.
+Four focused session tests and12desktop Chrome checks PASS at1280/1440/1920widths.
+The browser verifies accepted pose→Viewer agreement, actual GPU pixels, command
+expiry, refusal retention/recovery and the same six-time three-grid independent
+reference comparison. Live trapezoid work is explicitly approximate; screenshots
+are presentation evidence. Current active checks are desktop only per owner.
+See `examples/physics-lab/RESULTS.md`. Source consumer proof does not certify the
+published browser SDK, device-loss recovery, contact/joint composition, G2 CCD,
+P4eight-box, Studio, equipment or manufacturing. All HOLDs/NO_GO/old gates and
+first failures remain. No deployment or release.
+
 Dependency order: close the G1 admitted-rotation boundary and G2 finite coverage
 map before the corresponding general rigid/contact claim. Keep original P4
 work as its own acceptance track. Before a new P6/P7 plant runs, select only

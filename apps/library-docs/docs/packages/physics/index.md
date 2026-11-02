@@ -185,3 +185,21 @@ each, and native published-map/runtime/type checks. These historical receipts ap
 acceptance remains NO_GO. At that checkpoint, final recording callers passed3 per graph and docs samples174/174.
 Current P5 results are separate in [verification](/reference/physics-verification#p5-common-world-visual-profiles).
 Existing HOLD and NO_GO decisions stay in force.
+
+## Physics Lab on desktop
+
+The local Physics Lab uses the public World and recorder with the existing
+WebGPU Viewer. From the repository root, run:
+
+```sh
+node examples/physics-lab/server.mjs
+```
+
+Open `http://127.0.0.1:52889`. Select box, sphere or capsule, change mass and
+initial spin, apply world torque or a one-time angular impulse, then save,
+restore and continue. The existing512-frame recording limit remains visible.
+The fixed0.1s comparison uses six shared times at60/120/240Hz against saved
+independent directed reference data. Live torque work is marked approximate;
+it is not the independent comparison result. Desktop browser checks cover
+actual controls, Viewer pose agreement, GPU pixels and failure retention.
+This sample does not resume Studio or qualify contact/stack/device behavior.

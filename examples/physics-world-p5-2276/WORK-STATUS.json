@@ -56,5 +56,18 @@
     "wholeRoadmapComplete": false,
     "deploymentAuthorized": false,
     "holdReleaseAuthorized": false
+  },
+  "latestBrowserConsumer": {
+    "profile": "Desktop Physics Lab: public Source World/recorder/Viewer",
+    "status": "PASS_DESKTOP_ONLY_1280_1440_1920",
+    "scope": "12realdesktopbrowserchecks;4sessiontests;0.1s fixedJ+torque independent3grid18matchedframes;displayproxyonly;512recordcapunchanged",
+    "results": "examples/physics-lab/RESULTS.md",
+    "notRun": [
+      "published browser SDK",
+      "GPU device-loss recovery",
+      "contact/joint coupling",
+      "8-box qualification"
+    ],
+    "ownerConstraint": "No further mobile checks; earlier pre-instruction execution preserved."
   }
 }

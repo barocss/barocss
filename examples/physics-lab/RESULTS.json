@@ -1,0 +1,190 @@
+{
+  "status": "PASS_DESKTOP_PHYSICS_LAB",
+  "sourceBase": "0fd6d15f6a1642707fed37d202058dafc7299a21",
+  "branch": "codex/physics-world-p5-2276",
+  "url": "http://127.0.0.1:52889",
+  "browserVersion": "156.0.8078.74",
+  "desktopWidths": [
+    1280,
+    1440,
+    1920
+  ],
+  "browserChecks": [
+    {
+      "name": "actual WebGPU box and initial pose",
+      "status": "PASS",
+      "elapsedMs": 30
+    },
+    {
+      "name": "single steps rotate body, display pose and pixels",
+      "status": "PASS",
+      "elapsedMs": 431
+    },
+    {
+      "name": "save, restore and actual continued execution",
+      "status": "PASS",
+      "elapsedMs": 143
+    },
+    {
+      "name": "numerical refusal preserves physics, log and display; recovery succeeds",
+      "status": "PASS",
+      "elapsedMs": 83
+    },
+    {
+      "name": "preset applies initial impulse once and reissues constant torque",
+      "status": "PASS",
+      "elapsedMs": 69
+    },
+    {
+      "name": "independent three-grid matched-time comparison and scene preservation",
+      "status": "PASS",
+      "elapsedMs": 70
+    },
+    {
+      "name": "sphere custom inputs and keyboard step/play/pause",
+      "status": "PASS",
+      "elapsedMs": 499
+    },
+    {
+      "name": "capsule and coordinate transport through public Viewer",
+      "status": "PASS",
+      "elapsedMs": 111
+    },
+    {
+      "name": "save survives model reset and reconstructs original model",
+      "status": "PASS",
+      "elapsedMs": 134
+    },
+    {
+      "name": "orbit and camera reset alter view without advancing physics",
+      "status": "PASS",
+      "elapsedMs": 226
+    },
+    {
+      "name": "desktop resize retains state and renders at1280 and1920 widths",
+      "status": "PASS",
+      "elapsedMs": 470
+    },
+    {
+      "name": "recording horizon stops at512 without hidden extra steps",
+      "status": "PASS",
+      "elapsedMs": 2466
+    }
+  ],
+  "sourceSessionTests": 4,
+  "pageErrors": [],
+  "consoleErrors": [],
+  "threeGrids": [
+    {
+      "hz": 60,
+      "steps": 6,
+      "maxRotationError": 2.220446049250313e-16,
+      "maxOmegaError": 2.4424906541753444e-15,
+      "maxWorkResidualJ": 7.670730370334944e-17,
+      "maxMomentumResidualNms": 4.163336342344337e-17,
+      "maxNormSquaredError": 2.220446049250313e-16,
+      "pass": true
+    },
+    {
+      "hz": 120,
+      "steps": 12,
+      "maxRotationError": 2.220446049250313e-16,
+      "maxOmegaError": 1.7763568394002505e-15,
+      "maxWorkResidualJ": 6.429318882839041e-17,
+      "maxMomentumResidualNms": 4.85722573273506e-17,
+      "maxNormSquaredError": 2.220446049250313e-16,
+      "pass": true
+    },
+    {
+      "hz": 240,
+      "steps": 24,
+      "maxRotationError": 3.3306690738754696e-16,
+      "maxOmegaError": 2.4424906541753444e-15,
+      "maxWorkResidualJ": 1.2674323396355547e-16,
+      "maxMomentumResidualNms": 1.0408340855860843e-16,
+      "maxNormSquaredError": 4.440892098500626e-16,
+      "pass": true
+    }
+  ],
+  "referenceBankSHA256": "02aa996a8540ec3d102e7e3c11f850ac0a658fa698c93072e442cf090f1f294e",
+  "publicSourceInputs": 597,
+  "browserBundleBytes": 2059655,
+  "recordingHorizon": 512,
+  "commands": {
+    "physics-lab-app-build-01": {
+      "status": "PASS",
+      "elapsedMs": 311.590459,
+      "exit": 0,
+      "timedOut": false
+    },
+    "physics-lab-browser-01": {
+      "status": "PASS",
+      "elapsedMs": 7420.740375,
+      "exit": 0,
+      "timedOut": false
+    },
+    "physics-lab-desktop-02": {
+      "status": "PASS",
+      "elapsedMs": 7556.685959,
+      "exit": 0,
+      "timedOut": false
+    },
+    "physics-lab-desktop-03": {
+      "status": "PASS",
+      "elapsedMs": 7945.48825,
+      "exit": 0,
+      "timedOut": false
+    },
+    "physics-lab-desktop-04": {
+      "status": "PASS",
+      "elapsedMs": 7784.644875,
+      "exit": 0,
+      "timedOut": false
+    },
+    "physics-lab-docbuild-01": {
+      "status": "PASS",
+      "elapsedMs": 9824.978458,
+      "exit": 0,
+      "timedOut": false
+    },
+    "physics-lab-docbuild-02": {
+      "status": "PASS",
+      "elapsedMs": 9333.8245,
+      "exit": 0,
+      "timedOut": false
+    },
+    "physics-lab-docsite-01": {
+      "status": "PASS",
+      "elapsedMs": 327.676125,
+      "exit": 0,
+      "timedOut": false
+    },
+    "physics-lab-docsite-02": {
+      "status": "PASS",
+      "elapsedMs": 67.110667,
+      "exit": 0,
+      "timedOut": false
+    },
+    "physics-lab-session-tests-01": {
+      "status": "PASS",
+      "elapsedMs": 123.005584,
+      "exit": 0,
+      "timedOut": false
+    },
+    "physics-lab-test-build-01": {
+      "status": "PASS",
+      "elapsedMs": 373.414833,
+      "exit": 0,
+      "timedOut": false
+    }
+  },
+  "notRun": [
+    "published/compiled browser SDK",
+    "GPU device-loss recovery",
+    "contact/hinge/8-box qualification",
+    "machine validation",
+    "deployment",
+    "release"
+  ],
+  "scopeChange": "No further mobile checks. The earlier pre-instruction run is preserved; current driver and current proof are desktop-only."
+}

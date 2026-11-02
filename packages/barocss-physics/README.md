@@ -27,6 +27,8 @@ separates admission from measured accuracy. The original G1/G1e failures and
 one-step evidence remain historical records. Contact, joint and CCD profile
 limits still apply; rotation accuracy alone does not qualify those solvers.
 
+The [desktop Physics Lab](../../examples/physics-lab/README.md) runs box, sphere and capsule rotation with the public World/recorder and existing Viewer. It includes live diagnostics, in-page save/restore and an independent fixed-case three-grid comparison.
+
 | Entry point | Current result | Example |
 | --- | --- | --- |
 | `@barocss/physics` | One World for selected rigid or fixed visual cloth/fluid model profiles | [3D native-Surface Viewer](../../examples/physics-viewer-scene/README.md) |
