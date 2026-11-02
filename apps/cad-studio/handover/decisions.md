@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D438: omit uncertified trimmed-mesh STEP validation boxes and report the loss](notes/step-validation-box-2026-11-02/README.md).
+
 - [D437: spherical STEP round trips — three native profiles, independent readers and actual preview/Cancel/reopen](notes/step-sphere-roundtrip-2026-11-02/README.md).
 
 - [D436: direct spherical STEP offsets with exact full-span boundary checks and local witnesses — bounded source, independent and actual qualification](notes/step-sphere-offset-2026-11-02/README.md).
@@ -84,6 +86,8 @@ Numeric proof and limits remain in the canonical item notes.
 | D435 | Refuse rank0/1/2 native STEP sphere patches with exact rank3 necessity; preserve represented geometry and prior Studio document | [Note](notes/step-sphere-precision-2026-11-02/README.md) |
 | D436 | Admit bounded direct spherical STEP offsets; preserve original tolerances and failed V1 target while restoring the pre-existing R5 centroid qualification policy | [Note](notes/step-sphere-offset-2026-11-02/README.md) |
 | D437 | Qualify bounded spherical native STEP export/read/reimport and actual generated-byte reopen; report uncertainty, aliases and bbox diagnostics separately | [Note](notes/step-sphere-roundtrip-2026-11-02/README.md) |
+
+| D438 | Omit actual trimmed-mesh validation bbox without changing legacy numeric bounds or geometry/V/A/C; report the actual loss and retain original test failures | [Note](notes/step-validation-box-2026-11-02/README.md) |
 
 <!-- D418 LEGACY COMPATIBILITY BEGIN: fixed original heading sequence -->
 <details>

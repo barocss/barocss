@@ -540,6 +540,9 @@ export function exportStudioStep(doc: StudioDoc, options: StudioStepOptions): St
   // (O9: the header names the source revision the file was made from.)
   const source = revisionOf(doc), text = exportStep(breps, { name, description: ['BaroCSS CAD part', `source revision ${source}`], ...(meshes ? { meshes } : {}), ...(options.timestamp ? { timestamp: options.timestamp } : {}) });
   const omitted = [...(left.length ? [`lattice infill not included (${left.join(', ')}); 3MF carries it`] : []), ...sheets.map(k => `band sheet ${k} not included: STEP of band sheets is not supported yet`), ...stepProfileLosses(doc), ...stepNameLosses(name)];
+  // This inspects only our writer's fixed record; text() removes newlines from names.
+  // A quoted product name therefore cannot forge a whole bbox record.
+  if (!/^#\d+=REPRESENTATION\('bounding box',\(#\d+,#\d+\),#\d+\);$/m.test(text)) omitted.push('Bounding-box validation is not included in this STEP file.');
   return omitted.length ? { text, source, omitted } : { text, source };
 }
 

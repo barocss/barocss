@@ -9,7 +9,7 @@ import { facetedCopy } from '../mesh/facet-boolean.js';
 import { BrepError, type Brep } from '../brep/brep-core.js';
 import { faceGeometry } from '../brep/analytic-boolean.js';
 import { brepMassProperties, brepSurfaceArea } from '../brep/solid-mass.js';
-import { brepBounds } from '../brep/brep-bounds.js';
+import { stepValidationBounds } from '../brep/brep-bounds.js';
 import { dot, len, scale, sub, unit } from '../core/vec3.js';
 import type { Curve, FacetPatch, Point, Surface } from '../types.js';
 import { brepFromTriangles } from '../mesh/mesh-brep.js';
@@ -205,13 +205,16 @@ export function exportStep(input: Brep | readonly Brep[] | { readonly id: string
  */
 function writeValidationProperties(breps: readonly Brep[], add_: (e: string) => string, shape: string, context: string, mm: string, name: string): void {
   let volume = 0, area = 0; const moment = [0, 0, 0], lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  let qualifiedBox = true;
   for (const b of breps) {
     if (!b.bodies.some(x => x.kind === 'solid')) continue;
     const m = brepMassProperties(b, 1); volume += m.volume; for (let k = 0; k < 3; k++) moment[k] += m.volume * m.centroid[k];
     area += brepSurfaceArea(b);
     // (The box without a mesh, D151: a tessellation at 16 a quarter took 14 s of the 724-face wheel's 20 s export.)
-    const box = brepBounds(b);
-    for (let k = 0; k < 3; k++) { if (box.min[k] < lo[k]) lo[k] = box.min[k]; if (box.max[k] > hi[k]) hi[k] = box.max[k]; }
+    const box = stepValidationBounds(b);
+    if (box) {
+      for (let k = 0; k < 3; k++) { if (box.min[k] < lo[k]) lo[k] = box.min[k]; if (box.max[k] > hi[k]) hi[k] = box.max[k]; }
+    } else qualifiedBox = false;
   }
   if (!(volume > 0)) return;
   const property = (what: string, representation: string) => { const def = add_(`PROPERTY_DEFINITION('geometric validation property',${text(`${what} of ${name}`)},${shape})`); add_(`PROPERTY_DEFINITION_REPRESENTATION(${def},${representation})`); };
@@ -221,7 +224,7 @@ function writeValidationProperties(breps: readonly Brep[], add_: (e: string) => 
   property('surface area', add_(`REPRESENTATION('surface area',(${add_(`MEASURE_REPRESENTATION_ITEM('surface area measure',AREA_MEASURE(${real(area)}),${areaUnit})`)}),${context})`));
   const centre = moment.map(x => x / volume);
   property('centroid', add_(`REPRESENTATION('centroid',(${add_(`CARTESIAN_POINT('centre point',(${centre.map(real).join(',')}))`)}),${context})`));
-  property('bounding box', add_(`REPRESENTATION('bounding box',(${add_(`CARTESIAN_POINT('minimum point',(${lo.map(real).join(',')}))`)},${add_(`CARTESIAN_POINT('maximum point',(${hi.map(real).join(',')}))`)}),${context})`));
+  if (qualifiedBox) property('bounding box', add_(`REPRESENTATION('bounding box',(${add_(`CARTESIAN_POINT('minimum point',(${lo.map(real).join(',')}))`)},${add_(`CARTESIAN_POINT('maximum point',(${hi.map(real).join(',')}))`)}),${context})`));
 }
 
 function bsplineCurve(c: Curve, add_: (e: string) => string, point: (p: readonly number[]) => string): string {
