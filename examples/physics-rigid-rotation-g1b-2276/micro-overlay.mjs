@@ -5,12 +5,13 @@ import {makeRepairOverlay} from '../physics-rigid-rotation-g1-2276/repair-overla
 const sha=value=>createHash('sha256').update(value).digest('hex');
 const once=(source,anchor,value)=>{assert.equal(source.split(anchor).length,2,'unique M overlay anchor '+anchor);return source.replace(anchor,value);};
 export const EXPECTED_G1A_MICRO=Object.freeze({dispatch:1,prepare:1,null:0,eligible:0,zero:0,nonzero:0,validate:1,inheritedAdvanceOrientation:0,sharedSin:0,sharedCos:0,bodySin:0,bodyCos:0,F01Site:1,F02Site:1,F03Site:1,faultThrows:0,guardReplacements:0,attachments:1,releases:1,cacheReads:1});
-export const EXPECTED_TRI_MICRO=Object.freeze({coefficientPow:3,prepare:1,triaxial:1,zero:0,principal:0,general:1,initialMomentum:1,midpoint:27,newtonCondition:108,linearSolve:108,pivot:324,newtonUpdate:108,midpointResidual:27,stageComplete:27,generalReturn:1});
+export const EXPECTED_TRI_MICRO=Object.freeze({coefficientPow:3,prepare:1,triaxial:1,zero:0,principal:0,general:1,initialMomentum:1,midpoint:27,newtonCondition:108,linearSolve:108,pivot:324,newtonUpdate:108,midpointResidual:27,stageComplete:27,generalReturn:1,linearResidualFailure:0});
 const recording={
+ G1B_LINEAR_RESIDUAL_FAILURE:['linearResidualFailure','{linearResidualMaximum:residualMaximum,linearResidualBound:residualBound}'],
  G1B_INITIAL_MOMENTUM:['initialMomentum','{moments,diagonal,localOmega,p,momentumNorm}'],
  G1B_NEWTON_CONDITION:['newtonCondition','{update,middle,residual,perturbation}'],
  G1B_LINEAR_PIVOT:['pivot','{column,selectedPivot,pivotMagnitude}'],
- G1B_NEWTON_UPDATE:['newtonUpdate','{update,guess}'],
+ G1B_NEWTON_UPDATE:['newtonUpdate','{update,guess,linearResidualMaximum,linearResidualBound}'],
  G1B_MIDPOINT_RESIDUAL:['midpointResidual','{residualMaximum,residualBound,finalPerturbation}'],
  G1B_STAGE_COMPLETE:['stageComplete','{stage,weight,signedStep,p,orientation}']
 };

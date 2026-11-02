@@ -44,7 +44,9 @@ function derivative(p: Vec3, diagonal: Vec3): [Vec3, Vec3, Vec3] {
     [(diagonal[1] - diagonal[0]) * p[1], (diagonal[1] - diagonal[0]) * p[0], 0]];
 }
 
-function linearSolve(matrix: [Vec3, Vec3, Vec3], right: Vec3): Vec3 {
+function linearSolve(matrix: [Vec3, Vec3, Vec3], right: Vec3): {
+  value: Vec3; residualMaximum: number; residualBound: number;
+} {
   // G1B_LINEAR_SOLVE_ENTRY: one direct solve per fixed Newton update.
   const rows = matrix.map((row, index) => [...row, right[index]]);
   for (let column = 0; column < 3; column++) {
@@ -72,7 +74,17 @@ function linearSolve(matrix: [Vec3, Vec3, Vec3], right: Vec3): Vec3 {
     result[row] = total / rows[row][row];
   }
   if (!result.every(Number.isFinite)) error('NUMERIC_LIMIT', 'nonfinite triaxial midpoint correction');
-  return result;
+  const residual = matrix.map((row, index) =>
+    row.reduce((sum, value, column) => sum + value * result[column], 0) - right[index]) as Vec3;
+  const matrixNorm = Math.max(...matrix.map((row) => row.reduce((sum, value) => sum + Math.abs(value), 0)));
+  const residualMaximum = maximumComponent(residual);
+  const residualScale = Math.max(1, matrixNorm * maximumComponent(result) + maximumComponent(right));
+  const residualBound = 64 * ROUNDING_UNIT * residualScale;
+  if (!Number.isFinite(residualMaximum) || !Number.isFinite(residualBound) || residualMaximum > residualBound) {
+    // G1B_LINEAR_RESIDUAL_FAILURE: test-only failed-prefix residual/bound, zero normal records.
+    error('NUMERIC_LIMIT', 'triaxial linear correction residual outside qualified bound');
+  }
+  return { value: result, residualMaximum, residualBound };
 }
 
 function midpoint(p0: Vec3, diagonal: Vec3, signedStep: number): { p: Vec3; omegaMid: Vec3 } {
@@ -96,7 +108,10 @@ function midpoint(p0: Vec3, diagonal: Vec3, signedStep: number): { p: Vec3; omeg
     }
     const jacobian = jacobianField.map((row, i) => row.map((value, j) =>
       (i === j ? 1 : 0) - signedStep * value / 2) as Vec3) as [Vec3, Vec3, Vec3];
-    const correction = linearSolve(jacobian, residual.map((value) => -value) as Vec3);
+    const linearResult = linearSolve(jacobian, residual.map((value) => -value) as Vec3);
+    const correction = linearResult.value;
+    const linearResidualMaximum = linearResult.residualMaximum;
+    const linearResidualBound = linearResult.residualBound;
     guess = guess.map((value, index) => value + correction[index]) as Vec3;
     // G1B_NEWTON_UPDATE: one completed update; observe existing local values.
     if (!unitVectorBound(guess)) error('NUMERIC_LIMIT', 'triaxial midpoint update outside bound');

@@ -1,0 +1,173 @@
+{
+  "status": "AUTHOR_READY_M01_STOPPED_PARENT_HIGH_REVIEW_AND_EXECUTION_FREEZE_REQUIRED",
+  "phase": "M_ONLY",
+  "runtimeAuthorized": false,
+  "phaseTImplemented": false,
+  "productionActivation": false,
+  "ownedSources": {
+    "micro-campaign.mjs": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/micro-campaign.mjs",
+      "bytes": 42720,
+      "sha256": "279079090463879ea03170d3ff2d781b2c902ccff719fe9433bde4726bf66511"
+    },
+    "micro-overlay.mjs": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/micro-overlay.mjs",
+      "bytes": 6091,
+      "sha256": "e4a10163d06ec9a0ace492cc2a6064c953a15c6f145b22c970259b5a756b8fac"
+    },
+    "MICRO-PLAN.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/MICRO-PLAN.json",
+      "bytes": 15413,
+      "sha256": "73bda8804f9f2979c6eeda3833381c2216f27ffd836eeed4c68eadebe140a097"
+    }
+  },
+  "immutableAuthorities": {
+    "AUTHORING-FREEZE-M01.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/AUTHORING-FREEZE-M01.json",
+      "bytes": 2123,
+      "sha256": "a0c9ee98f49a69e5dde8fdd4855cfaea337ed2056adf89a4a9d254826d22d919"
+    },
+    "CONTRACT.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/CONTRACT.md",
+      "bytes": 14376,
+      "sha256": "c1c87c64323836d7ac656ead490380bee82f801de2b67979f9f91309ee73ed31"
+    },
+    "CASES.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/CASES.json",
+      "bytes": 8881,
+      "sha256": "0fb8b4ebc78044e8984fab83878a42fc5051f8717ce914091246de7098fbc386"
+    },
+    "INTEGRATION-NOTES.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/INTEGRATION-NOTES.md",
+      "bytes": 4085,
+      "sha256": "2b3c318e2c8d89a9b63d09faf64f53482547ba2513713cc84f9532a387666f9a"
+    },
+    "REFERENCES-CLARIFICATION-01.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/REFERENCES-CLARIFICATION-01.md",
+      "bytes": 10318,
+      "sha256": "0d6e8a79f2cbf45f7579291f9b1b947295f28f0cf00eb57053ed581cb8979945"
+    },
+    "ADMISSION-NORMALIZATION-CORRECTION-01.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/ADMISSION-NORMALIZATION-CORRECTION-01.json",
+      "bytes": 2208,
+      "sha256": "4388918c5562d20ff73fb87d82de6fe1dde156d061a75b12f57eb0ec4ec3f713"
+    },
+    "rigid-triaxial-free-rotation.ts": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/rigid-triaxial-free-rotation.ts",
+      "bytes": 11287,
+      "sha256": "972bb4dbab8ebb8c9604f2c5afb1d1ea324643b37fc4ec2654a2a4508eb0a707"
+    },
+    "CANDIDATE-READY-M02.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/CANDIDATE-READY-M02.json",
+      "bytes": 6364,
+      "sha256": "952878418887c832b56644a21c28d0b1663e8ef1225f1915542a3de8e7ebbe25"
+    },
+    "LINEAR-CHECK-REPAIR-M02.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/LINEAR-CHECK-REPAIR-M02.md",
+      "bytes": 2004,
+      "sha256": "7a45e60e53efdc6efbb3d42c027fb78406d4a23257f4ac185d7e5fee3d5e0a89"
+    }
+  },
+  "reusedFrozenSources": {
+    "repair-overlay.mjs": {
+      "path": "examples/physics-rigid-rotation-g1-2276/repair-overlay.mjs",
+      "bytes": 6549,
+      "sha256": "70656ff3c79bdadded9027784c00da8321f337f5b9d22a5e34d0d7e1ca683081"
+    },
+    "rigid-free-rotation.ts": {
+      "path": "examples/physics-rigid-rotation-g1-2276/rigid-free-rotation.ts",
+      "bytes": 3901,
+      "sha256": "9037e4fc2d83e20d6a5ed08e05bf0225314fe7efc1dac444cfb2188264ff9f54"
+    },
+    "CANDIDATE-READY-02.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/CANDIDATE-READY-02.json",
+      "bytes": 3366,
+      "sha256": "c0230244b3f9dc1a27442086aa931e2e28765a4fb6b920432e49830c2987da94"
+    },
+    "TOOLCHAIN-PINS-02.json": {
+      "path": "examples/physics-rigid-rotation-g1-2276/TOOLCHAIN-PINS-02.json",
+      "bytes": 88927,
+      "sha256": "f0db4c99e1fcf5df8f238ad7729447f06b58e2177f01e282ea4f555c0802cb90"
+    }
+  },
+  "protocolDependency": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/REFERENCE-PROTOCOL-M01.md",
+    "implementation": "examples/physics-rigid-rotation-g1b-2276/reference-micro.py",
+    "Ready": "examples/physics-rigid-rotation-g1b-2276/REFERENCE-READY-M01.json",
+    "finalPins": "Parent must pin actual final High reference/protocol/Ready and approved joint review before runtime. Driver already enforces the agreed6request schema and zero-padded saved reply names. Reference implementation authoring is separate; no runtime claimed."
+  },
+  "authorChecks": [
+    {
+      "gate": "g1b-overlay-author heavy300",
+      "result": "PASS Node syntax; initial overlay59d614 review-ready, no factory invocation",
+      "actualOutput": "go after0s,load25.86,slot1of1"
+    },
+    {
+      "gate": "g1b-driver-author-syntax heavy300",
+      "result": "PASS Node syntax; driver later changed only for agreed protocol/current-root/failure fields",
+      "actualOutput": "go after0s,load13.25,slot1of3"
+    },
+    {
+      "gate": "g1b-m-author-final heavy300",
+      "result": "PASS current driver+overlay Node syntax, installedTS AST, extra-control TypeScript template scaffold with only static metadata substitutions, fixed log buffer predicates, exact M population metadata, actual HighM02 candidate pin and unique anchor/local names",
+      "actualOutput": "go after0s,load11.34,slot1of3",
+      "factoryInvoked": false,
+      "emitPerformed": false,
+      "failedChecks": 0
+    }
+  ],
+  "sourceOnlyDelta": {
+    "preservedOverlay": "59d614858448efdb9943aae6768c6eb3772a545f4cef7e9f99c608ffa2013d02 at parentcommit904bf1af1",
+    "authorizedRevision": "Only NEWTON_UPDATE adds existing linearResidualMaximum/linearResidualBound; failure-only marker records aliases to actual existing residualMaximum/residualBound. No handler residual computation. New expected linearResidualFailure0;595nominal records/cap640 unchanged. High candidateM02 owns actual correction check.",
+    "G1a_G2": "All existing G1a/G2 sources and receipts unchanged by this task."
+  },
+  "plannedActualLedger": {
+    "WorldConstructors": 2,
+    "getState": 2,
+    "acceptedSteps": 2,
+    "stepAttempts": 2,
+    "dispose": 2,
+    "privateInitialInertiaCacheObservations": 2,
+    "stateAudits": 4,
+    "referenceRequests": 6,
+    "referenceReplyLinesIncludingReady": 7,
+    "buildChildren": 4,
+    "referenceChildren": 1,
+    "identityDigestDataCalls": 2,
+    "actualNativeMathPow": 6,
+    "generalMacroflows": 2,
+    "midpointStages": 54,
+    "NewtonUpdates": 216,
+    "direct3x3Solves": 216,
+    "query": 0,
+    "getModel": 0,
+    "recorder": 0,
+    "faultControls": 0,
+    "retries": 0,
+    "warmups": 0
+  },
+  "observer": {
+    "nominalRecordsPerGraph": 595,
+    "maximumRetainedRecords": 640,
+    "perRecordInputNodes": 128,
+    "perRecordDepth": 8,
+    "rawPersistence": "One bounded raw record per JSONL line, whole trace never encoded/serialized. Trace excluded from four oracle packets. Native trace bytes compared to source via bounded streaming; first mismatch line is persisted before rejection.",
+    "zeroNormalFailureEvents": true,
+    "coefficientDataset": "Actual exponents,roots,a,b,weights allrawF64;39words/graph;3directobservedPow calls/graph. Native root loaded only afterSourceaudit/helper/ownership/disposePASS,thenexactsource-certified coefficient words required beforeNativeWorld.",
+    "sourceDerivedOnly": "39expansion multiplications (excludesa/b arithmetic),56generalhypot+2validatorhypot pergraph are source-derived path counts, not observed runtime counters."
+  },
+  "ownershipAndBudget": "See MICRO-PLAN.json for all retained roots and serialization overlap, fixed contiguous logs, source/code/provider/tool closures, temporary identity/callable release, original8/8/16/16/16MiB partitions/64MiB total, no RSS/heap claim. Exactly one pending reference request, full original progress/lower bounds and UNKNOWN failure prefix.",
+  "actualAuthorCounts": {
+    "providerModuleEvaluations": 0,
+    "overlayFactoryInvocations": 0,
+    "fixtureConversions": 0,
+    "coefficientMath": 0,
+    "candidateCalls": 0,
+    "linearSolves": 0,
+    "builds": 0,
+    "referenceCalls": 0,
+    "WorldCalls": 0,
+    "installedTypeScriptASTToolLoads": 1
+  },
+  "stop": "READY. No more owned edits until explicit parent authorization. Parent owns all build/runtime, frozen reference review and any T decision."
+}
