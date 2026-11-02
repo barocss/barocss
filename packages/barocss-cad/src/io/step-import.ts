@@ -25,6 +25,7 @@ import { isMeshBrepError } from '../mesh/mesh-brep.js';
 import { curveDomain, evaluateCurve } from '../core/math.js';
 import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
 import type { Curve, Point, Surface } from '../types.js';
+import { SectionRationalContext, type SectionRational } from '../section-rational-internal.js';
 import { checkOffsetBoundary, checkOffsetSourceEndpoints, type OffsetSupport } from './step-offset-internal.js';
 
 // ---- Part 21 -----------------------------------------------------------------------------------------
@@ -225,6 +226,37 @@ function naturalNormal(sd: SurfDef, p: Point): Point {
   if (sd.kind === 'cone') return unit(sub(radial, scale(sd.f.z, sd.tan)));
   if (sd.kind === 'sphere') return unit(d);
   return unit(sub(d, scale(radial, sd.R)));
+}
+
+/** A sphere patch cannot retain a two-dimensional spherical image in a plane. */
+function spherePrecisionUnavailable(): never {
+  return refuse('SPHERICAL_SURFACE patch precision is not supported at its stored coordinates (the sphere would lose its three-dimensional shape)');
+}
+function sphereControlDelta(q: SectionRationalContext, p: readonly number[], origin: readonly SectionRational[]): SectionRational[] {
+  return [q.sub(q.from(p[0]), origin[0]), q.sub(q.from(p[1]), origin[1]), q.sub(q.from(p[2]), origin[2])];
+}
+function sphereControlCross(q: SectionRationalContext, a: readonly SectionRational[], b: readonly SectionRational[]): SectionRational[] {
+  return [q.sub(q.mul(a[1], b[2]), q.mul(a[2], b[1])), q.sub(q.mul(a[2], b[0]), q.mul(a[0], b[2])), q.sub(q.mul(a[0], b[1]), q.mul(a[1], b[0]))];
+}
+function assertSphereRepresentation(surface: Surface): void {
+  const q = new SectionRationalContext(spherePrecisionUnavailable), anchor = surface.controlPoints[0][0];
+  const origin = [q.from(anchor[0]), q.from(anchor[1]), q.from(anchor[2])], zero = q.integer(0);
+  let line: SectionRational[] | undefined, normal: SectionRational[] | undefined;
+  for (const row of surface.controlPoints) for (const p of row) {
+    const v = sphereControlDelta(q, p, origin);
+    if (!line) {
+      if (q.compare(v[0], zero) !== 0 || q.compare(v[1], zero) !== 0 || q.compare(v[2], zero) !== 0) line = v;
+      continue;
+    }
+    if (!normal) {
+      const n = sphereControlCross(q, line, v);
+      if (q.compare(n[0], zero) !== 0 || q.compare(n[1], zero) !== 0 || q.compare(n[2], zero) !== 0) normal = n;
+      continue;
+    }
+    const triple = q.add(q.add(q.mul(normal[0], v[0]), q.mul(normal[1], v[1])), q.mul(normal[2], v[2]));
+    if (q.compare(triple, zero) !== 0) return;
+  }
+  spherePrecisionUnavailable();
 }
 
 // ---- import ------------------------------------------------------------------------------------------
@@ -596,6 +628,7 @@ export function importStep(source: string, options: { readonly id?: string } = {
       if (span > TAU - 1e-6) refuse(`a face going once round its axis without a seam is not supported (${f.name || f.id})`);
       surface = revolutionPatch(an, pick.start - margin, pick.start + span + margin, v0, v1, sid);
     }
+    if (sd.kind === 'sphere') assertSphereRepresentation(surface);
     // The face's sense: its surface's outward normal (or the reverse) against the patch's own.
     const S = surface, P = S.controlPoints as Point[][], m = Math.floor(P.length / 2), n2 = Math.floor(P[0].length / 2);
     const own = cross(sub(P[Math.min(P.length - 1, m + 1)][n2], P[Math.max(0, m - 1)][n2]), sub(P[m][Math.min(P[0].length - 1, n2 + 1)], P[m][Math.max(0, n2 - 1)]));
