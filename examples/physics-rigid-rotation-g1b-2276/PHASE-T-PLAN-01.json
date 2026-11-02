@@ -1,0 +1,208 @@
+{
+  "status": "PLAN_FROZEN_FOR_AUTHORIZED_SOURCE_AUTHORING_ONLY",
+  "runtimeAuthorized": false,
+  "productionActivation": false,
+  "phase": "T",
+  "authority": "AUTHORING-FREEZE-T02.json",
+  "unchangedCaseAuthority": "CASES.json phaseT; no new physical literals",
+  "cases": [
+    {
+      "caseId": "T01-dt60",
+      "steps": 6
+    },
+    {
+      "caseId": "T02-dt120",
+      "steps": 12
+    },
+    {
+      "caseId": "T03-dt240",
+      "steps": 24
+    },
+    {
+      "caseId": "P01-principal-x",
+      "steps": 1
+    },
+    {
+      "caseId": "P02-principal-y",
+      "steps": 1
+    },
+    {
+      "caseId": "P03-principal-z",
+      "steps": 1
+    },
+    {
+      "caseId": "Z01-zero",
+      "steps": 1
+    },
+    {
+      "caseId": "Q01-negative-q-off-axis",
+      "steps": 1
+    }
+  ],
+  "perGraph": {
+    "constructors": 8,
+    "getState": 18,
+    "attempts": 57,
+    "accepted": 47,
+    "commandRefusals": 4,
+    "unknownFaults": 3,
+    "postResultGuards": 3,
+    "dispose": 8,
+    "stateAudits": 55,
+    "cacheObservations": 18,
+    "initialPrivateAudits": 8,
+    "generalFlows": 49,
+    "principalFlows": 3,
+    "zeroFlows": 1,
+    "midpointStages": 1323,
+    "Newton3x3Solves": 5292,
+    "pivots": 15876,
+    "traceRecords": 29155,
+    "coefficientPow": 3
+  },
+  "combinedT": {
+    "constructors": 16,
+    "getState": 36,
+    "attempts": 114,
+    "accepted": 94,
+    "dispose": 16,
+    "stateAudits": 110,
+    "initialPrivateAudits": 16,
+    "cacheObservations": 36,
+    "generalFlows": 98,
+    "Newton3x3Solves": 10584,
+    "coefficientPow": 6,
+    "newPairs": 7,
+    "savedRawPairReuse": 1,
+    "commandScalarConversions": 9,
+    "guardScalarConversions": 9,
+    "buildChildren": 0,
+    "referenceChildren": 1,
+    "referenceRequests": 112,
+    "referenceRepliesIncludingReady": 113,
+    "retries": 0,
+    "warmups": 0,
+    "queryGetModelRecorder": 0
+  },
+  "referenceReuse": {
+    "M02bank": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/reference/bank.json",
+      "bytes": 51170,
+      "sha256": "fd5ffef592c5df56b06d4d9931916406b17b748a87ecb5272cce5e1b155c06d9"
+    },
+    "M02summary": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/reference/summary.json",
+      "bytes": 4490,
+      "sha256": "1c1b29b04ba8f8b0554164a3aa47fd65be3e89727d8195063fb2e2f24f043703"
+    },
+    "M02parentSummary": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/summary.json",
+      "bytes": 12835,
+      "sha256": "a3d3d9856676e4c41a01713e992fd094ffa9b95682bd6a34fbe4bbd1912f3ecc"
+    },
+    "G1aprincipalBank": {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1a-repair-02/reference/analytic-bank.json",
+      "bytes": 174532,
+      "sha256": "d237da7777cb95ce1a1fc7d2e974a8da9262976f0137b35c7a385ab62fa0f99a"
+    },
+    "G1aprincipalRow": "principal:4803839602528529/576460752303423488",
+    "principalProperCyclicMaps": {
+      "x": [
+        2,
+        0,
+        1
+      ],
+      "y": [
+        1,
+        2,
+        0
+      ],
+      "z": [
+        0,
+        1,
+        2
+      ]
+    },
+    "reconstruction": "Directed p=(I/L*)*R^T*omega; M bank lacks p; no invented endpoint/no first2window rerun",
+    "newTaylorWindows": 44,
+    "reusedTaylorWindows": 4,
+    "newEndpointDecimalSqrt": 88,
+    "newGeometryMonomialsBisectionsTrigLinear": 0,
+    "principalNewTaylorTrigSqrt": 0
+  },
+  "operationProof": {
+    "actualM02DecimalBase": 2758004,
+    "originalWindow": 689198,
+    "observable": 288,
+    "oldInitialSetupsTotal": 60,
+    "exactMCountReproduction": 2758004,
+    "removedDuplicateFieldConvolutionPerWindow": 215040,
+    "optimizedWindow": 474158,
+    "TwindowObservableTotal": 20875624,
+    "TsetupOverheadReserve": 100000,
+    "TplannedDecimalMaximum": 20975624,
+    "ThardDecimalSubcap": 21000000,
+    "jointPlannedDecimalMaximum": 23733628,
+    "jointDecimalCap": 32000000,
+    "jointDecimalMargin": 8266372,
+    "TactualFractionSubcap": 1000000,
+    "historicalFractionBaseIncludingM01M02": 28292,
+    "jointPlannedFractionMaximum": 1028292,
+    "jointFractionCap": 10000000,
+    "method": "Streamlow degree residual from alreadycomputedF_n, retaincomplete residual0..64/etaorder, no cachematrix/no numericalformula/precision/order/tolerance change",
+    "proofBeforeREADY": "Exact source-transfer whitelist, immutable C_n/fixed contexts/sticky flags; no oldwindow execution"
+  },
+  "trace": {
+    "schema": "Rows[tag0..6,...hex16strings],layout in immutable header",
+    "wordsPerFlow": 2848,
+    "rowsPerFlow": 595,
+    "exactBytesPerFlow": 56492,
+    "Tflows": 98,
+    "exactNormalTraceBytes": 5536216,
+    "headersMaximumBytes": 50176,
+    "failureOnlyTwoWordRowBytes": 42,
+    "allObservedWordPreservation": true,
+    "floatNormalization": false
+  },
+  "evidence": {
+    "referenceEnvelope": 8388608,
+    "driverEnvelope": 1572864,
+    "reservedParentFailureProgressEnvelope": 1048576,
+    "traceBytes": 5536216,
+    "headersBytes": 50176,
+    "jointMaximum": 16596440,
+    "jointCap": 16777216,
+    "jointMargin": 180776,
+    "referenceSubcaps": {
+      "bank": 2097152,
+      "auditProofs": 5406720,
+      "savedReplies": 458752,
+      "summary": 65536,
+      "failureProgress": 65536,
+      "sum": 8093696
+    },
+    "driverDerivationDependency": "TRAJECTORY-DRIVER-PLAN-01.md/json; Medium owns exact inventory and live roots. Final authorReady/execution freeze must pin its actual files. No duplication or omitted protocol/state copies."
+  },
+  "bounds": {
+    "internalSeconds": 170,
+    "cleanupSeconds": 4,
+    "externalSeconds": 180,
+    "referenceWork": 8388608,
+    "harnessWork": 8388608,
+    "buildPartition": 16777216,
+    "evidence": 16777216,
+    "reserve": 16777216,
+    "logicalTotal": 67108864,
+    "processToolHeapRSSClaim": false
+  },
+  "protocol": "REFERENCE-PROTOCOL-T01.md",
+  "authoringActuals": {
+    "moduleEvaluation": 0,
+    "fixtureConversion": 0,
+    "FractionDecimalReferenceCalls": 0,
+    "build": 0,
+    "World": 0,
+    "dataIntegerBudgetArithmeticOnly": true
+  },
+  "stop": "Runtime remainsHOLD until sourceReady/jointdriverproof/combinedHighreview/freshparentfreeze; alloldfilesimmutable"
+}
