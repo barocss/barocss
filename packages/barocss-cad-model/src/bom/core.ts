@@ -22,7 +22,14 @@ import { rootOf } from '../app/lookKey';
 // Equal feature text can resolve different local/parent rows. Compare the converted geometry for row-backed parts.
 function shapeOf(doc: StudioDoc, evaluated: boolean): string {
   const backed = doc.nodes.some(n => ['bearing', 'oring-gland', 'oring', 'retaining-ring', 'sprocket', 'pulley', 'belt', 'coupling', 'connector-opening'].includes(n.kind) || ((n.kind === 'frame' || n.kind === 'frame-member') && (n.section.kind === 'library' || (n.kind === 'frame' && n.overrides?.some(o => o.section?.kind === 'library')))));
-  return JSON.stringify(backed && evaluated ? toPartDocument(doc) : doc.nodes);
+  if (backed) return JSON.stringify(evaluated ? toPartDocument(doc) : doc.nodes);
+  const names = Object.keys(doc.parameters).sort();
+  if (!names.length) return JSON.stringify(doc.nodes);
+  // Ordinary feature text can also resolve different parameter values. Keep the whole dictionary as source
+  // identity, independent of insertion order; this is not a test for general geometric equivalence.
+  const parameters: [string, number][] = [];
+  for (const name of names) parameters.push([name, doc.parameters[name]]);
+  return JSON.stringify({ nodes: doc.nodes, parameters });
 }
 /**
  * A body's mass from its exact volume and its material's density (O169): its own massG is the default material's.

@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D456: distinguish parameterized ordinary part recipes in BOM and qualify public Insert/Duplicate/Undo/project retention](notes/bom-parameter-identity-2026-11-03/README.md).
+
 - [D455: qualify one ordinary native section/detail update and project loop with actual Worker/SVG binding](notes/section-detail-workflow-2026-11-03/README.md).
 
 - [D454: include parameter values in Studio drawing revision staleness and qualify the linked dimension/project loop](notes/drawing-parameter-revision-2026-11-03/README.md).
