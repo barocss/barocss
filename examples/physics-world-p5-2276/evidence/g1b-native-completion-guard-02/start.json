@@ -1,0 +1,48 @@
+{
+  "kind": "P5B_OWNED_COMMAND_GUARD",
+  "receiptId": "g1b-native-completion-guard-02",
+  "censusId": "g1b-native-completion-guard-02",
+  "status": "SPAWNING",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "examples/physics-rigid-rotation-g1b-2276/native-completion.mjs",
+    "--run-id",
+    "g1b-native-completion-02",
+    "--freeze",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/NATIVE-COMPLETION-FREEZE-02.json",
+    "--token",
+    "414fffd9bc2ffd65185057ff702a755d2806f773f940a3b762d1fc9921bf96ba",
+    "--authorize-native-completion"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "inputs": {
+    "command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": "2026-11-02T08:44:17.160Z",
+  "spawnAt": null,
+  "pid": null,
+  "processGroupId": null,
+  "exit": null,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": null,
+  "processClosed": false,
+  "groupSignals": [],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/g1b-native-completion-guard-02/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/g1b-native-completion-guard-02/progress.json",
+  "errors": []
+}

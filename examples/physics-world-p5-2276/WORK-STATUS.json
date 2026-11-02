@@ -3,10 +3,10 @@
   "branch": "codex/physics-world-p5-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "G1b staged one-step triaxial torque-free box",
-    "status": "PASS_STAGED_G1B_MICRO_ONLY",
-    "scope": "2Worlds/2acceptedsteps/4independentaudits; sourcecomplete before genuineNodeNextemittedpublicentry. PhaseT/currentpublishednative/canonicalroot/productionactivation NOT_RUN. Firstreferenceprofilefailure preserved.",
-    "results": "examples/physics-rigid-rotation-g1b-2276/MICRO-RESULTS-M02.json"
+    "profile": "G1b bounded0.1s torque-free triaxial box /3dtgrids+5one-stepcontrols+failureatomicity",
+    "status": "PASS_BOUNDED_G1B_0P1S_BY_PRESERVED_SOURCE_AND_FRESH_NATIVE",
+    "scope": "ActualclosedT02Source8World47steps55audits10controls +freshNative8World47steps55audits10controls. Compositeevidence; oldT02resourceFAIL remains. NoSource rerun/newtargetintegration/currentproductionactivation.",
+    "results": "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-RESULTS-T03.json"
   },
   "mainSlices": {
     "P0": "CONTRACT_COMPLETE_LOCAL",
@@ -33,19 +33,19 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "G1b Source0.1s threegrids/10failurecontrols/fullhelperledger PASS inT02. OriginalT02Native3grids/principalX/10controls PASS thenreference8192objectNO_GO. Preserveprefixes; newNative-only8World completion authoring,0SourceWorld orreferenceintegrationrerun. Allcaps/tolerances/HOLD unchanged.",
+  "active": "RequestedG1b0.1s three-grid/rollbackqualification COMPLETE_BOUNDED_COMPOSITE. SourceandgenuineNodeNextNative passed; reports/archivespreserved. NextdependencyG1adoption/range/frame/downstream, thenotherreadyroadmapwork; currentproduction/canonicalbuild/P4/G2/P6/P7 remainopen. No runtimeactive.",
   "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
     "nextG1Baseline": "ACHIEVED2026-11-02; actual physical NO_GO preserved",
     "wholeRoadmap": "NO_RELIABLE_DATE_YET; reassess from G1/P4/coupling evidence, no whole-engine date promised",
-    "nextG1Repair": "G1a bounded staged qualification and G1b one-step ACHIEVED2026-11-02. G1 completion pending T/admitted-range/integration; no reliable date.",
-    "nextG1Trajectory": "Tsourceauthoring in progress; one170sinternal/180souter campaign planned afterREADY, no runtimePASS or reliablecalendarcompletion date yet."
+    "nextG1Repair": "G1a/G1bselectedstagedprofilesqualified; G1closurependingadmission/frame/downstream/canonicaladoption. No reliablecalendarcompletion date.",
+    "nextG1Trajectory": "ACHIEVED2026-11-02 compositeSource+freshNative; all72refinementchecks beloworiginal1e-11floor, nomeasuredorderclaim."
   },
   "reportCadence": "milestone,firstfailure,directionchange; report qualified scope,remaining dependency,and revised confidence",
   "invariants": "HOLD,originalNO_GO,tolerances,first failures preserved; no partial develop merge,push,deploy,release",
   "addedGateProgress": {
-    "G1": "G1a STAGED_AXISYMMETRIC_PASS + G1b STAGED_TRIAXIAL_ONE_STEP_PASS; M01referencefirstfailure and originalproductionPHYSICAL_NO_GO preserved; T/range/frame/downstream/adoptionopen",
+    "G1": "G1a boundedaxisymstagedPASS; G1b0.1s literalprofilecompositePASS Source+Native. OldproductiongyroNO_GO/T01selfalias/T02reference8192resource/Nativeauthmissingpin preserved. Wideradmission/frame/torque/contact/joint/recording/canonicaladoptionNOT_RUN.",
     "G2": "STATIC19BRANCH_MAP_COMPLETE; ACTUAL_SOURCE_CORNER_EXACT_CONTACT_NO_GO; reference1/World0/nativeNOT_RUN; other numerical gaps open",
     "G7": "PER_CAMPAIGN_TRUST_GATE; NO_BLANKET_PASS"
   },

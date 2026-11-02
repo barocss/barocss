@@ -1,0 +1,58 @@
+{
+  "status": "PASS_LOCAL_SITE_STRUCTURE_BUILD_LINKS_AND_REPORT_LOCAL_LINKS",
+  "checks": [
+    {
+      "path": "examples/physics-world-p5-2276/evidence/g1b-trajectory-docs-structure-01/result.json",
+      "bytes": 3033,
+      "sha256": "ea3d96b942948e9bd576daa70a9fca820d7f866404b6413248c8e3ce8daf806d"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/g1b-trajectory-docs-build-01/result.json",
+      "bytes": 3056,
+      "sha256": "ae8c23f6f57176f0894ee2c6d574e10b214c8765344b09dfaef3c520be549f01"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/g1b-trajectory-docs-links-01/result.json",
+      "bytes": 3013,
+      "sha256": "ae4e386e3fe567a8ab5d94f9891040735155b397bb67f22287b5fa4d64d36a5d"
+    }
+  ],
+  "siteCounts": {
+    "pages": 5,
+    "links": 808,
+    "anchors": 216,
+    "snippetRegions": 26,
+    "byteIdenticalHistoricalCopies": 14,
+    "proposedRoadmapCopy": true,
+    "networkChecks": "NOT_RUN"
+  },
+  "files": [
+    {
+      "path": "packages/barocss-physics/ROADMAP.md",
+      "bytes": 56574,
+      "sha256": "c5b5e4638d66741caa5385a0f878ee7ad3ab8d0438fab8ee1a14a70f0b8f2ae0"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt",
+      "bytes": 56574,
+      "sha256": "c5b5e4638d66741caa5385a0f878ee7ad3ab8d0438fab8ee1a14a70f0b8f2ae0"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-RESULTS-T03.md",
+      "bytes": 7043,
+      "sha256": "56b9dea6f2dccbd54216048d7352da05cd74d0469af6365eba31b3628eb4aaba"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-RESULTS-T03.json",
+      "bytes": 9584,
+      "sha256": "c84dcd142f49a34c59b72814d2801242df0a047fdb9a5854a85a70ae68c32fb9"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1b-2276/NATIVE-COMPLETION-ARCHIVE-02.json",
+      "bytes": 27990,
+      "sha256": "51529e53454b137676b9263eb8e9e182b837f9bd0ec538d05668a44f17520339"
+    }
+  ],
+  "reportLocalLinks": 3,
+  "scope": "Builtlocaldocumentation/currentroadmappubliccopy. ReportMarkdownlocalpathschecked; reportitselfisrepositoryevidence,notanextra sitepage. NoNumerical/Worldrerun/network/deploy."
+}

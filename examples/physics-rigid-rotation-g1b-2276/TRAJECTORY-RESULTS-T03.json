@@ -1,0 +1,236 @@
+{
+  "status": "PASS_BOUNDED_G1B_0P1S_BY_PRESERVED_SOURCE_AND_FRESH_NATIVE",
+  "qualification": "Composite evidence, not one successful16Worldrun. OriginalT02campaign stays resourceFAIL.",
+  "profile": "One1kgprimitive-COMbox half[0.1,0.2,0.3]m; qI/omega[1,1,1]rad/s; no gravity/translation/contact/joint/domain/CCD. dt1/60,1/120,1/240;6/12/24steps tosharednative0.1s horizon. Principalx/y/z,zero,negativeq controls each1step atdt1/120.",
+  "Source": {
+    "status": "PASS_REUSED_ACTUAL_T02_SOURCE",
+    "proof": "T02-SOURCE-COMPLETE-PROOF.json",
+    "results": "SOURCE-RESULTS-T02.json",
+    "Worlds": 8,
+    "acceptedSteps": 47,
+    "attempts": 57,
+    "reads": 18,
+    "audits": 55,
+    "failureControls": 10,
+    "dispose": 8,
+    "newWorldCallsInNativeCompletion": 0
+  },
+  "Native": {
+    "status": "PASS_FRESH_GENUINE_NODE_NEXT_EMITTED_PUBLIC_ENTRY",
+    "runId": "g1b-native-completion-02",
+    "counts": {
+      "savedTCaseRawReuse": 8,
+      "sourceModuleEvaluations": 0,
+      "sourceWorldCalls": 0,
+      "newPairVariants": 0,
+      "savedRawPairReuse": 0,
+      "variantScalarConversions": 0,
+      "commandScalarConversions": 0,
+      "guardScalarConversions": 0,
+      "constructorAttempts": 8,
+      "constructorReturns": 8,
+      "getStateAttempts": 18,
+      "getStateReturns": 18,
+      "stepAttempts": 57,
+      "acceptedSteps": 47,
+      "disposeAttempts": 8,
+      "disposeReturns": 8,
+      "privateInertiaCacheObservations": 18,
+      "commandRefusals": 4,
+      "unknownFaults": 3,
+      "postFlowGuards": 3,
+      "candidateConstantRootCalls": 3,
+      "knownCandidateConstantRootCalls": 3,
+      "generalFlowTraces": 49,
+      "traceRecords": 29155,
+      "traceF64Words": 139552,
+      "referenceSpawns": 1,
+      "referenceRequestAttempts": 57,
+      "referenceRequestsWritten": 57,
+      "referenceRepliesReceived": 58,
+      "referenceAuditsReceived": 55,
+      "buildChildren": 0,
+      "identityDigestDataCalls": 0,
+      "query": 0,
+      "getModel": 0,
+      "recorder": 0
+    },
+    "results": "evidence/g1b-native-completion-02/summary.json",
+    "newBuilds": 0,
+    "provider": "Same fullyauthenticatedactualM02strictNodeNextemits; no Source fallback/currentcanonicalroot claim."
+  },
+  "physicalMaximaBothGraphs": {
+    "angularMomentum": {
+      "error": 8.688303184260071e-17,
+      "exactError": {
+        "numerator": "73031802859172089682758799976910692031063053697684030142671752896698680237435089489670873103695433067",
+        "denominator": "840576132189748775670226328947406613838397596346829906877187553849201742779207494839159274419932470453934516326105088"
+      },
+      "bound": 2e-12,
+      "unit": "kg*m^2/s",
+      "case": "T03-dt240",
+      "step": 21,
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-native-completion-02/reference/audit-0097.json"
+    },
+    "rotationalEnergy": {
+      "error": 1.3552452579256276e-16,
+      "exactError": {
+        "numerator": "4617397192398440162918217384376945803750603275604941898203018938919871659493946054471835204322426078674468170486226765",
+        "denominator": "34070565201356574055939790795038422019513139851116017653163702882711827033528896861254212002744127221437374131100799125080408506499072"
+      },
+      "bound": 2e-12,
+      "unit": "J",
+      "case": "T02-dt120",
+      "step": 11,
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-native-completion-02/reference/audit-0074.json"
+    },
+    "quaternionSquaredNorm": {
+      "error": 2.9377234085987427e-16,
+      "exactError": {
+        "numerator": "97622604964553465841",
+        "denominator": "332306998946228968225951765070086144"
+      },
+      "bound": 1e-12,
+      "unit": "dimensionless",
+      "case": "P01-principal-x",
+      "step": 1,
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-native-completion-02/reference/audit-0102.json"
+    },
+    "linearMomentum": {
+      "error": 0.0,
+      "exactError": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "bound": 1e-12,
+      "unit": "kg*m/s",
+      "case": "T01-dt60",
+      "step": 0,
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-native-completion-02/reference/audit-0056.json"
+    },
+    "comPosition": {
+      "error": 0.0,
+      "exactError": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "bound": 1e-12,
+      "unit": "m",
+      "case": "T01-dt60",
+      "step": 0,
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-native-completion-02/reference/audit-0056.json"
+    }
+  },
+  "trajectoryMaximaBothGraphs": {
+    "R": {
+      "error": 3.553155138080568e-14,
+      "exactError": {
+        "numerator": "14759229009074095937095459132591164247789884454231330955529854109970300413745660883646034085835786629",
+        "denominator": "415383748682786292277897848619713700000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "case": "T01-dt60",
+      "step": 6,
+      "precision": "80"
+    },
+    "omega": {
+      "error": 2.154505342319026e-14,
+      "exactError": {
+        "numerator": "134656583894939107273694927353690928111231641747114875146724114003",
+        "denominator": "6250000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "case": "T01-dt60",
+      "step": 6,
+      "precision": "80"
+    },
+    "q": {
+      "error": 1.697760950549119e-14,
+      "exactError": {
+        "numerator": "8488804752745595322697302764870060680917765523680402472933695307701",
+        "denominator": "500000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "case": "T01-dt60",
+      "step": 6,
+      "precision": "80"
+    }
+  },
+  "trajectoryMaximaByGridBothGraphs": {
+    "T01-dt60": {
+      "R": 3.553155138080568e-14,
+      "omega": 2.154505342319026e-14,
+      "q": 1.697760950549119e-14
+    },
+    "T02-dt120": {
+      "R": 4.026136982277312e-16,
+      "omega": 2.2089263779017555e-15,
+      "q": 1.8858390887186926e-16
+    },
+    "T03-dt240": {
+      "R": 6.84375557606673e-16,
+      "omega": 3.39886227694751e-15,
+      "q": 3.269374362279035e-16
+    }
+  },
+  "trajectoryGate": "Percomponent1e-11+1e-12*abs(reference) againstboth80/120directedendpoints; unchanged.",
+  "refinement": {
+    "SourceChecks": 36,
+    "NativeChecks": 36,
+    "status": "ALL_ROUNDING_FLOOR_1E_MINUS_11",
+    "minimumRatio": 1.8,
+    "measuredOrder": "NOT_ESTABLISHED"
+  },
+  "statePreservation": "Eachgraph4commandrefusals+3same-objectunknownfaults+3numericguards. Acceptedrawstate/clock, callerinputs andprivatecacheidentity/Mapcontents preserved; scheduledstep1 suppliesrecovery.",
+  "rawParity": "All55Nativepublicframes exactlyequalclosedSource non-providerwords; ownproviderdigestsdistinctandchecked.49generalflowtraces/29,155records/139,552F64words exactlyequal Source; 5,292actualNativeNewton/direct3x3solves/15,876pivots.",
+  "reference": {
+    "newNativeAudits": 55,
+    "reusedSourceAudits": 55,
+    "logicalAuditCursor": 110,
+    "newNativeFractionOperations": 41367,
+    "newODE": 0,
+    "newDecimal": 0,
+    "newSqrt": 0,
+    "reusedValidatedWindows": 48,
+    "reusedPrincipalTargets": 6,
+    "studyDecimal": 23634120,
+    "studyFraction": 150809,
+    "studyEndpointSqrt": 96,
+    "logicalBudgetOnlyNoRSSClaim": true,
+    "peakNativeReferenceOwnedUpperBytes": 8204673,
+    "referenceLimitBytes": 8388608
+  },
+  "resources": {
+    "peakNativeHarnessOwnedChargeBytes": 5124048,
+    "evidenceBytesBeforeSummary": 4232069,
+    "traceBytes": 2768108,
+    "wholeLogicalBytes": 67108864,
+    "harnessLimitBytes": 8388608,
+    "evidenceLimitBytes": 16777216,
+    "internalMs": 27945.120833,
+    "outerMs": 29882.987291,
+    "timingScope": "Wholeguardedrun includeshashing/I/O/reference/cleanup;notperformancebenchmark."
+  },
+  "firstFailuresPreserved": [
+    "MICRO-RESULTS-M01.json referenceprofilefailurebeforeWorld",
+    "TRAJECTORY-RESULTS-T01.json selfaliasfalsepositivebeforesteps",
+    "TRAJECTORY-RESULTS-T02.json laterNative8192objectresourceNO_GO",
+    "NATIVE-COMPLETION-AUTH-FAILURE-01.json missingcontrols pinbeforeWorld/reference",
+    "OriginalG1productionbaseline/P3/P4/G2failuresunchanged"
+  ],
+  "historicalExecutionAccounting": "T02ran13Worlds/90acceptedsteps including Source47+partialNative43 before resourcefailure. FreshNativecompletion reran8Worlds/47steps toobservefinalaggregatehelper/resourcechecks. OldSource47wasnotrerun. ExtraT01initialWorld0steps andNativeauthfailure0World remainseparate. Qualifieduniquegraphscope is Source8+Native8, not a claim ofonly16historicalconstructors.",
+  "notQualified": [
+    "Installedcurrentpublishedpackageactivation/canonicalbuildroot",
+    "Alladmittedmass/extents/spin/orientation/frame/time-step ranges",
+    "Longtimeorbeyond0.1s stability",
+    "Torque/motor/contact/projection/joint/recording/couplingintegration",
+    "Original8box1200stepstackNO_GO",
+    "Generalconnectedmechanisms/G4globalrankclaims",
+    "Hardwareprediction/manufacturingsafety"
+  ],
+  "nextDependency": "G1adoption/range/frame anddownstreamphasequalification beforeproductionintegration. P4/G2/P6/P7roadmapgatesremain; no developmerge untilrequiredroadmapcomplete.",
+  "archive": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-native-completion-02.tar.gz",
+    "bytes": 664370,
+    "sha256": "4fa8540e7a86baab41009353cff2a2ebab8a91fd3494c395dcaa7028b9af85a5"
+  },
+  "deployment": "NOT_DONE_NO_PUSH_MERGE_RELEASE_DEPLOY",
+  "invariants": "AlloriginalHOLD/NO_GO/tolerances/iterations/firstfailureevidence preserved."
+}
