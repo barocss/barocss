@@ -1,0 +1,30 @@
+--- native01/private-phase.ts
++++ native02/private-phase.ts
+@@ -2,6 +2,9 @@
+ // This module is copied into the private staged graph. It is not a public API.
+ import { PhysicsError } from './types.js';
+ import { quantizedContact } from '../../B/candidate.js';
++import {checkedPhaseHit} from './phase-hit.js';
++import type {PhaseHit} from './phase-hit.js';
++import type {Body} from './internal-types.js';
+ const clone=x=>structuredClone(x);
+ export const phaseLimits={worlds:4,attempts:8,records:8192,applications:4352,queries:72,queryPoints:288,anchorChecks:7776,bytes:16*1024*1024-65536};
+ const contexts=[];let active=null,records=0,applications=0,queries=0,queryPoints=0,anchorChecks=0,traceBytes=0,attempts=0;
+@@ -16,7 +19,7 @@
+ export function phaseBody(kind,before,after,extra={}){emit(kind,{before,after:bodyWords(after),...extra});}
+ export function phasePass(pass){active.current.pass=pass;}
+ function box(b){return {id:b.id,positionM:[...b.positionM],orientationXYZW:[...b.orientation],halfExtentsM:[...b.shape.halfExtentsM]};}
+-export function phaseQuery(a,b,final=false){
++export function phaseQuery(a:Body,b:Body,final=false):PhaseHit|null {
+  if(!final&&active.current.fault==='known')refuse('PRIVATE_B_FAULT_BEFORE_APPLICATION');
+  if(queries+1>phaseLimits.queries)refuse('PRIVATE_B_QUERY_CAP');const pair={id:`w${active.id}-a${active.current.attempt}-q${queries+1}`,a:box(a),b:box(b)};
+  const result=quantizedContact(pair);queries++;queryPoints+=result.points?.length??0;anchorChecks+=result.counts?.anchorChecks??0;if(queryPoints>phaseLimits.queryPoints||anchorChecks>phaseLimits.anchorChecks)refuse('PRIVATE_B_POINT_ANCHOR_CAP');
+@@ -25,7 +28,7 @@
+  if(result.status==='UNRESOLVED')refuse('PRIVATE_B_UNRESOLVED:'+result.reason);if(result.status==='MISS')return null;
+  if(result.status!=='HIT'||!['FACE','EDGE'].includes(result.feature?.kind)||!result.points.length||result.points.length>4)refuse('PRIVATE_B_UNSUPPORTED_POINT_LIST');
+  const n=result.normal;const penetration=projectedDepthM;
+- return {normal:[...n],penetration,pointM:[...result.points[0].pointM],_phase:{queryId:record.queryId,result,pair}};
++ return checkedPhaseHit([...n],penetration,[...result.points[0].pointM],record.queryId,result,pair);
+ }
+ export function phaseCacheInit(key,point,normal,hit,impulse,prior){const old=active.accepted.cacheFrames[key]??null;active.current.cacheOrigins[key]=prior?'prior-step':'cold';emit('cache-init',{key,pointId:point.id,queryId:hit._phase.queryId,feature:hit._phase.result.feature,normal,prior:prior??null,producingFrame:old,actualCache:impulse});}
+ export function phasePoint(key,point,normal,hit,impulse,iteration,order){active.current.point={key,pointId:point.id,queryId:hit._phase.queryId,feature:clone(hit._phase.result.feature),queryPair:clone(hit._phase.pair),native:clone(point.exact),aPointM:clone(point.aPointM),bPointM:clone(point.bPointM),normal:clone(normal),iteration,order,cacheOrigin:active.current.cacheOrigins[key]??'current-pass',producingFrame:clone(active.current.cacheFrames[key]??active.accepted.cacheFrames[key]??null),cacheBefore:clone(impulse),impulse};}

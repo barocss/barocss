@@ -1,0 +1,189 @@
+{
+  "status": "AUTHORED_NOT_COMPILED_NOT_RUN",
+  "exactTextEdits": [
+    {
+      "file": "world.ts",
+      "label": "Schema2 output types",
+      "old": "Identity, QueryResult }",
+      "new": "Identity, QueryResult, Contact, PairWrench }",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Typed native hit and accumulator imports",
+      "old": "import { prepareForcedRotation } from './rigid-forced-rotation.js';",
+      "new": "import { prepareForcedRotation } from './rigid-forced-rotation.js';\nimport {isPhaseHit} from './phase-hit.js';\nimport type {MutablePairWrench} from './producer.js';",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Remove unreachable publicDomainState helper",
+      "old": "type DomainRuntime =\n  | { readonly kind: 'cloth'; readonly definition: ClothDefinition; readonly accepted: ClothCandidate }\n  | { readonly kind: 'fluid'; readonly definition: FluidDefinition; readonly accepted: FluidCandidate };\n\n/** Copies all externally visible data before the shared World commit. */\nfunction publicDomainState(runtime: DomainRuntime, model: PhysicsModel, identity: Identity,\n  stepIndex: number, dt: number, prepared?: ClothOutput | FluidOutput): PhysicsState {\n  const bodies = model.bodies.map((body): PhysicsState['bodies'][number] => ({\n    id: body.id, kind: body.kind, positionM: [...body.initial.positionM],\n    orientationXYZW: [...body.initial.orientationXYZW], velocityMps: [0, 0, 0],\n    angularVelocityRadps: [0, 0, 0], sleeping: false,\n  }));\n  const state: PhysicsState = {\n    schemaVersion:2, identity: { ...identity }, stepIndex, timeSeconds: stepIndex * dt, bodies,\n    joints: [], contacts: [], pairWrenches:[], events: [], ccdHits: [], cloths: [], fluids: [],\n    pairStats: { eligiblePairs: 0, candidatePairs: 0, aabbTests: 0 },\n  };\n  if (runtime.kind === 'cloth') {\n    const output: ClothOutput = prepared as ClothOutput | undefined ?? {\n      id: runtime.definition.cloth.id, positionsM: runtime.accepted.positions.slice(),\n      velocitiesMps: runtime.accepted.velocities.slice(), diagnostics: { ...runtime.accepted.diagnostics },\n    };\n    return { ...state, cloths: [output] };\n  }\n  const output: FluidOutput = prepared as FluidOutput | undefined ?? {\n    id: runtime.definition.fluid.id, positionsM: runtime.accepted.positions.slice(),\n    velocitiesMps: runtime.accepted.velocities.slice(), diagnostics: { ...runtime.accepted.diagnostics },\n  };\n  return { ...state, fluids: [output] };\n}\n\n",
+      "new": "",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Remove admission-forbidden domain setup",
+      "old": "  const domainKind = admitted.domain?.kind ?? null;\n  const domainId = admitted.domain?.data.id ?? null;\n  const stepLimit = domainKind === 'cloth' ? CLOTH_MAX_STEPS : domainKind === 'fluid' ? FLUID_MAX_STEPS : MAX_STEPS;\n  // Only this clearable holder owns runtime definitions and accepted domain buffers.\n  let domainState: DomainRuntime | null = null;\n  if (admitted.domain?.kind === 'cloth') {\n    const initialized = initializeCloth(admitted.domain.data, admitted.domain.staticData);\n    domainState = { kind: 'cloth', definition: initialized.definition, accepted: initialized.initial };\n  } else if (admitted.domain?.kind === 'fluid') {\n    const initialized = initializeFluid(admitted.domain.data, admitted.domain.staticData);\n    domainState = { kind: 'fluid', definition: initialized.definition, accepted: initialized.initial };\n  }\n",
+      "new": "  const stepLimit = MAX_STEPS;\n",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Remove forbidden large-profile branch",
+      "old": "  const largeMode = admitted.options.profile === 'rigid-large-v1';\n",
+      "new": "",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "CCD admission unchanged on admitted rigid profile",
+      "old": "  let ccd = domainKind ? { kind: 'none' as const } : admitCcd(bodies, joints.length, gravity);",
+      "new": "  let ccd = admitCcd(bodies, joints.length, gravity);",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Remove unreachable large filter",
+      "old": "    if ((bodies[a].inverseMass !== 0 || bodies[b].inverseMass !== 0) &&\n      (!largeMode || filterAllowsPair(bodies[a], bodies[b]))) {",
+      "new": "    if (bodies[a].inverseMass !== 0 || bodies[b].inverseMass !== 0) {",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Rigid-only output",
+      "old": "      return domainState ? publicDomainState(domainState, modelCopy!, identity, stepIndex, dt)\n        : publicState(",
+      "new": "      return publicState(",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Remove admission-forbidden domain step",
+      "old": "      if (domainState) {\n        if (admittedCommands.length !== 0) error('INVALID_COMMAND', 'visual domain commands are unsupported');\n        const preparedFrames = owner ? owner.prepareFrames(admittedCommands, stepIndex + 1) : null;\n        let nextDomain: DomainRuntime;\n        let output: ClothOutput | FluidOutput;\n        if (domainState.kind === 'cloth') {\n          const prepared = prepareCloth(domainState.definition, domainState.accepted);\n          nextDomain = { kind: 'cloth', definition: domainState.definition, accepted: prepared.candidate };\n          output = prepared.output;\n        } else {\n          const prepared = prepareFluid(domainState.definition, domainState.accepted);\n          nextDomain = { kind: 'fluid', definition: domainState.definition, accepted: prepared.candidate };\n          output = prepared.output;\n        }\n        const state = publicDomainState(nextDomain, modelCopy!, identity, stepIndex + 1, dt, output);\n        const preparedRecording = owner ? owner.prepare(preparedFrames!, state) : null;\n        const preparedCommandCount = owner ? owner.commandCount + admittedCommands.length : 0;\n        // Shared domain commit: all allocations/callbacks above, assignments only below.\n        domainState = nextDomain;\n        stepIndex++;\n        if (owner) { owner.recording = preparedRecording!; owner.commandCount = preparedCommandCount; }\n        return state;\n      }\n",
+      "new": "",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Remove unreachable sleeping/filter call",
+      "old": "      if (largeMode) wakeForActions(next, contacts, actions, nextSleepFrames);\n",
+      "new": "",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Remove unreachable sleeping/filter call",
+      "old": "          if (largeMode && body.sleeping) continue;\n",
+      "new": "",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Remove unreachable sleeping/filter call",
+      "old": "          if (largeMode && pass > 0 && dormantPair(next[aIndex], next[bIndex])) continue;\n",
+      "new": "",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Remove unreachable sleeping/filter call",
+      "old": "          if (largeMode) wakeOnContact(a, b, nextSleepFrames, aIndex, bIndex);\n",
+      "new": "",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Remove unreachable sleeping/filter call",
+      "old": "          if (largeMode && dormantPair(a, b)) continue;\n",
+      "new": "",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Remove unreachable sleeping/filter call",
+      "old": "      if (largeMode) updateSleeping(next, nextContacts, nextSleepFrames);\n",
+      "new": "",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Rigid profile has no large sleeping branch",
+      "old": "        if (body.kind !== 'dynamic' || (largeMode && body.sleeping)) continue;",
+      "new": "        if (body.kind !== 'dynamic') continue;",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Typed actual accumulator map",
+      "old": "      const stepPairWrenches=new Map();",
+      "new": "      const stepPairWrenches=new Map<string,MutablePairWrench>();",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Checked hit discrimination",
+      "old": "const manifold = hit._phase ? hit._phase.result.points :",
+      "new": "const manifold = isPhaseHit(hit) ? hit._phase.result.points :",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Remove unreachable domain disposal",
+      "old": "optionsCopy = null; domainState = null;",
+      "new": "optionsCopy = null;",
+      "count": 1
+    },
+    {
+      "file": "world.ts",
+      "label": "Actual admitted rigid error ownership",
+      "old": "domain: domainKind ?? 'rigid', entityIds: domainId && failure.details.entityIds.length === 0 ? [domainId] : failure.details.entityIds,",
+      "new": "domain: 'rigid', entityIds: failure.details.entityIds,",
+      "count": 1
+    },
+    {
+      "file": "private-phase.ts",
+      "label": "Explicit checked phase-hit boundary",
+      "old": "import { quantizedContact } from '../../B/candidate.js';",
+      "new": "import { quantizedContact } from '../../B/candidate.js';\nimport {checkedPhaseHit} from './phase-hit.js';\nimport type {PhaseHit} from './phase-hit.js';\nimport type {Body} from './internal-types.js';",
+      "count": 1
+    },
+    {
+      "file": "private-phase.ts",
+      "label": "Actual phase query result type",
+      "old": "export function phaseQuery(a,b,final=false){",
+      "new": "export function phaseQuery(a:Body,b:Body,final=false):PhaseHit|null {",
+      "count": 1
+    },
+    {
+      "file": "private-phase.ts",
+      "label": "Validate unknown geometry result before typed return",
+      "old": "return {normal:[...n],penetration,pointM:[...result.points[0].pointM],_phase:{queryId:record.queryId,result,pair}};",
+      "new": "return checkedPhaseHit([...n],penetration,[...result.points[0].pointM],record.queryId,result,pair);",
+      "count": 1
+    },
+    {
+      "file": "persistent-box-contact.ts",
+      "label": "Actual contribution return type",
+      "old": "import {actualContribution,emptyContribution,combineContribution}",
+      "new": "import {actualContribution,emptyContribution,combineContribution,type PairContribution}",
+      "count": 1
+    }
+  ],
+  "replacements": [
+    "world.ts",
+    "private-phase.ts",
+    "persistent-box-contact.ts",
+    "producer.ts"
+  ],
+  "added": [
+    "phase-hit.ts"
+  ],
+  "newNocheck": 0,
+  "movedNocheck": 0,
+  "removedNocheck": [
+    "producer.ts"
+  ],
+  "newCasts": 0,
+  "newAnyAnnotations": 0
+}

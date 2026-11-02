@@ -1,0 +1,42 @@
+{
+  "status": "AUTHORED_NOT_RUN",
+  "edits": [
+    {
+      "label": "Explicit amended graph selector",
+      "old": "[buildId,id]=process.argv.slice(2);",
+      "new": "[buildId,id,graph='native']=process.argv.slice(2);assert(['source','native'].includes(graph));",
+      "count": 1
+    },
+    {
+      "label": "Separate amended build receipt",
+      "old": "assert.equal(buildResult.status,'PASS_PRIVATE_NATIVE_EMITTED_BUILD');",
+      "new": "assert.equal(buildResult.status,'PASS_PRIVATE_TYPED_DUAL_GRAPH_BUILD');",
+      "count": 1
+    },
+    {
+      "label": "Actual same-amendment Source or emitted import",
+      "old": "api=await import(pathToFileURL(resolve(built,buildResult.entry)));",
+      "new": "if(graph==='source'){const source=readFileSync(resolve(built,buildResult.sourceEntry));assert.equal(source.length,buildResult.source.bytes);assert.equal(hash(source),buildResult.source.sha256);}api=await import(pathToFileURL(resolve(built,graph==='source'?buildResult.sourceEntry:buildResult.entry)));",
+      "count": 1
+    },
+    {
+      "label": "Require actual new provider identity",
+      "old": "const initial=ar.getState();",
+      "new": "const initial=ar.getState();assert.notEqual(initial.identity.providerDigest,buildResult.qualifiedSourceProviderDigest,'Typed source changes require distinct actual provider identity');",
+      "count": 1
+    },
+    {
+      "label": "Explicit graph result label",
+      "old": "status:executionStatus+'_PRIVATE_EMITTED_PRODUCER'",
+      "new": "status:executionStatus+(graph==='source'?'_PRIVATE_TYPED_SOURCE_PRODUCER':'_PRIVATE_TYPED_EMITTED_PRODUCER'),graph",
+      "count": 1
+    },
+    {
+      "label": "Scope labels only",
+      "old": "native:executionStatus+'_PRIVATE_EMITTED_GRAPH'",
+      "new": "native:graph==='native'?executionStatus+'_PRIVATE_TYPED_EMITTED_GRAPH':'NOT_RUN',source:graph==='source'?executionStatus+'_PRIVATE_TYPED_SOURCE_GRAPH':'NOT_RUN'",
+      "count": 1
+    }
+  ],
+  "unchanged": "Original model, all controls/caps/gates and phase01 raw body comparator unchanged."
+}
