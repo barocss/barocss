@@ -1,0 +1,67 @@
+{
+  "status": "PARENT_APPROVED_RUNNER_AUTHORING_ONLY_NO_NUMERIC_EXECUTION",
+  "frozenInputs": {
+    "CONTRACT.md": {
+      "bytes": 13569,
+      "sha256": "7e11f247a8287d5713bdba8f18a3a36fba2abf3602a39cfcd5663461974a05a6"
+    },
+    "CASES.json": {
+      "bytes": 31141,
+      "sha256": "f2de2962270fc9fc4910844325d52eb7a2b373f9c3ac884455a53340b4d87d90"
+    },
+    "AUTHORING-FREEZE-01.json": {
+      "bytes": 1705,
+      "sha256": "77631e8fadcf0ab61e3f57e810ad81e14a029cad69a8961c683cc9ff546615f7"
+    },
+    "oracle.py": {
+      "bytes": 46738,
+      "sha256": "4115ab96c46e662942f38b90395c20de69fad6dcd49bf2cb07efd065dc04244e"
+    },
+    "ORACLE-AUTHOR-READY.json": {
+      "bytes": 6141,
+      "sha256": "abdb2cdc8e929603c489ae7a44a7e324ec4b284a2b6066c2e2e46fc41509e1e4"
+    },
+    "candidate.ts": {
+      "bytes": 14057,
+      "sha256": "7901dc4240098da03bb2dea3f353be37c8d8e34c7d31303f19c8950813721106"
+    },
+    "CANDIDATE-AUTHOR-READY.json": {
+      "bytes": 5943,
+      "sha256": "0fffa89d9226087d724a558473da69fde49f9aec6697fd7b567b850e31e48a05"
+    }
+  },
+  "p5Prerequisite": {
+    "commit": "2324afb7e",
+    "record": "examples/physics-world-p5-2276/completion-results.json",
+    "status": "P5_DONE_BOUNDED_LOCALSELECTED_WITH_RENDERING_SDK_BOUNDARY"
+  },
+  "ownedNewSources": [
+    "impulse-run.mjs",
+    "native-validate.py",
+    "RUNNER-PLAN.json",
+    "RUNNER-AUTHOR-READY.json"
+  ],
+  "graph": "Node runner imports existing esbuild/TypeScript tools and builtins; standalone oracle/validator Python stdlib; private candidate has no runtime imports;0World/CAD/service/recording/trajectory",
+  "futureMathLedger": {
+    "referenceRequests": 23,
+    "exactKkt": 13,
+    "exactCondition": 13,
+    "decimal80": 13,
+    "decimal120": 13,
+    "candidateAttempts": 50,
+    "candidateDirectSolves": 30,
+    "nativeLiteralFixtureConversions": 23,
+    "nativeValidationProcesses": 26,
+    "validatorLinearSolves": 0,
+    "WorldCalls": 0
+  },
+  "evaluationGates": {
+    "component": "abs(actualF64-idealFraction)<=1/10^12+(1/10^12)*abs(idealFraction)",
+    "invariant": "abs(balance/work residual)<=1/10^12+(1/10^12)*max(1,abs(beforeIdeal),abs(afterIdeal)) in declared SI quantity",
+    "reference": "CONTRACT exact/80/120 and conditioning gates unchanged",
+    "determinism": "ALL source/native output numeric rawF64 bits, separate from physical errors",
+    "staticHighReview": "Required before execution; exact formulas and accounting reviewed separately"
+  },
+  "execution": "NOT_AUTHORIZED. No fixture conversion, oracle/reference/candidate invocation, transpile/emit or mathematical evaluation during authoring. Only gated syntax/AST/hash/metadata checks. Parent must freeze actual complete source/commands/High review and one170/180s/64MiBcampaign before executing.",
+  "scope": "No public API/schema/current Physics provider changes; existing HOLD/NO_GO/first failures/old tolerances stay."
+}

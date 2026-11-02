@@ -1,0 +1,146 @@
+{
+  "workId": "physics-cloth-rigid-impulse-2276",
+  "status": "AUTHOR_READY_STATIC_ONLY_NUMERICAL_EXECUTION_NOT_RUN",
+  "source": {
+    "path": "examples/physics-cloth-rigid-impulse-2276/oracle.py",
+    "bytes": 46738,
+    "sha256": "4115ab96c46e662942f38b90395c20de69fad6dcd49bf2cb07efd065dc04244e"
+  },
+  "immutableInputs": {
+    "CONTRACT.md": {
+      "bytes": 13569,
+      "sha256": "7e11f247a8287d5713bdba8f18a3a36fba2abf3602a39cfcd5663461974a05a6"
+    },
+    "CASES.json": {
+      "bytes": 31141,
+      "sha256": "f2de2962270fc9fc4910844325d52eb7a2b373f9c3ac884455a53340b4d87d90"
+    },
+    "AUTHORING-FREEZE-01.json": {
+      "bytes": 1705,
+      "sha256": "77631e8fadcf0ab61e3f57e810ad81e14a029cad69a8961c683cc9ff546615f7"
+    }
+  },
+  "interface": {
+    "CLI": "python3 -B oracle.py --run-id FRESH --freeze ABS_EXECUTION_JSON --token SHA256_OF_EXECUTION_JSON",
+    "executionFreezeRequired": {
+      "status": "PARENT_AUTHORIZED_IMPULSE_ORACLE_EXECUTION",
+      "runtimeAuthorized": true,
+      "p5Closed": true,
+      "inputs": "exact four required folder-relative filenames with {bytes,sha256}; optional ORACLE-AUTHOR-READY.json also authenticated"
+    },
+    "requiredInputs": [
+      "CONTRACT.md",
+      "CASES.json",
+      "AUTHORING-FREEZE-01.json",
+      "oracle.py"
+    ],
+    "successStatus": "PASS_INDEPENDENT_IMPULSE_ORACLE",
+    "exit": "0 only on complete reference PASS;1 on mathematical/resource failure; authorization/startup errors exit nonzero before fixture conversion",
+    "logicalProtocol": "one standalone batch internally processes13accepted+10refusal requests, no stdin service or candidate import",
+    "outputDirectory": "evidence/FRESH, mkdir exist_okFalse",
+    "outputs": "each case raw ideal-input JSON and full reply JSON; progress.json; summary.json; stdout bounded summary",
+    "acceptedReply": "reference.fraction values/fullKKT/M/A/condition; separate decimal80/decimal120 fullKKT/values/context; crosschecks; raw ideal input; full input/provenance hashes/units/sign/origin; countDeltaBeforeReplyCommit",
+    "numberEncoding": "Fraction:{numerator,denominator} strings; Decimal:{decimal,sign,exponent,digits}; no float expected-output conversion",
+    "candidateMapping": {
+      "report.pointLinearImpulseNs": "reference.fraction.values.impulseOnClothNs",
+      "report.rigidLinearImpulseNs": "reference.fraction.values.linearImpulseOnRigidNs",
+      "report.rigidAngularImpulseNms": "reference.fraction.values.angularImpulseOnRigidNms",
+      "point.velocityMps": "reference.fraction.values.velocityPointMps",
+      "rigid.velocityMps": "reference.fraction.values.velocityRigidMps",
+      "rigid.angularVelocityRadps": "reference.fraction.values.angularVelocityRigidRadps"
+    }
+  },
+  "independence": {
+    "projectImports": [],
+    "stdlibImports": [
+      "argparse",
+      "copy",
+      "decimal",
+      "fractions",
+      "hashlib",
+      "hmac",
+      "json",
+      "pathlib",
+      "re",
+      "signal",
+      "sys",
+      "time"
+    ],
+    "exactBuilder": "full physical9mass/3constraint blocks; Jacobian columns from basis velocities and cross products",
+    "exactSolution": "independent12x12 KKT, first-nonzero pivot; no production3x3 solve/assembler",
+    "conditionOnly": "full-block A*M^-1*A-transpose then exact3x3 inverse with3RHS; not expected-solution source",
+    "decimalBuilder": "reads raw rational literals independently; explicit physical tensor/Jacobian construction; separate12x12 maximum-absolute-pivot elimination",
+    "sharedHelpers": "lexical parsing, serialization and metadata only; no shared Fraction/Decimal coefficient builder or elimination",
+    "invariants": "actual returned reference state determines P/L/energy/work; exact reaction sign/compatible-motion/signed-zero physical controls"
+  },
+  "plannedLedger": {
+    "referenceRequests": 23,
+    "idealFixturesConstructed": 23,
+    "exactKktFactorizations": 13,
+    "exactConditionFactorizations": 13,
+    "exactFactorizationsTotal": 26,
+    "conditionRightHandSides": 39,
+    "decimal80Factorizations": 13,
+    "decimal120Factorizations": 13,
+    "decimalFactorizationsTotal": 26,
+    "refusalClassifications": 10,
+    "refusedFactorizations": 0,
+    "WorldCalls": 0,
+    "candidateCalls": 0,
+    "nativeFixtureConversions": 0
+  },
+  "enforcedBounds": {
+    "internalMs": 170000,
+    "requiredParentExternalMs": 180000,
+    "cleanupMsMax": 4000,
+    "workingBytes": 8388608,
+    "evidenceBytes": 8388608,
+    "failureEvidenceReservedBytes": 65536,
+    "oneArtifactBytes": 1048576,
+    "allocationSumFixedReserveBytes": 262144,
+    "workingGraphNodes": 10000,
+    "workingGraphDepth": 16,
+    "matrixShapes": [
+      [
+        12,
+        13
+      ],
+      [
+        3,
+        6
+      ]
+    ],
+    "storedFractionBits": 4096,
+    "precheckedProductBits": 8192,
+    "derivedAdditionSumBits": 8193,
+    "DecimalCoefficientDigitsMax": 2048,
+    "rationalInputCharactersMax": 128,
+    "RSSClaim": false
+  },
+  "preservation": {
+    "signedZero": "raw ideal spellings retained; Fraction numerical zero is not native sign authority",
+    "nativeRounding": "ideal rational target; native non-dyadic input rounding stays explicit; no normalization",
+    "bothInputIntegrity": "raw ideal input bytes checked before/after every reference request",
+    "P4NoGoAndCacheEnd": "unchanged",
+    "publicSchemaOrProfileChange": false
+  },
+  "staticChecks": {
+    "pythonAstAndCompile": "PASS_NO_MODULE_EVALUATION",
+    "stdlibImportWhitelist": "PASS",
+    "separateBuilderAndEliminationASTChecks": "PASS",
+    "immutableInputHashesAndCasePopulationMetadata": "PASS",
+    "runtimeReferenceValues": "NOT_RUN",
+    "resourceMaxima": "NOT_MEASURED",
+    "numericGateResults": "NOT_RUN"
+  },
+  "actualAuthoringMathLedger": {
+    "oracleModuleEvaluations": 0,
+    "fixtureConversions": 0,
+    "FractionSolves": 0,
+    "DecimalSolves": 0,
+    "conditionInversions": 0,
+    "candidateCalls": 0,
+    "WorldCalls": 0
+  },
+  "next": "Parent reviews actual oracle/candidate/runner source, closes P5 prerequisite, freezes effective graph/budgets and explicitly authorizes one campaign; no retry/tolerance/precision escalation."
+}
