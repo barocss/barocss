@@ -1,0 +1,244 @@
+{
+  "status": "BREAKING_CONTRACT_DESIGN_READY_NOT_IMPLEMENTED",
+  "observedHead": "1871cd4b32ca94cefa36190255332b4b35db913b",
+  "ownedFiles": [
+    "CONTRACT.md",
+    "types.ts",
+    "MIGRATION.md",
+    "validation.json"
+  ],
+  "sourceAndEvidencePins": {
+    "examples/physics-contact-phase-wrench-2276/evidence/phase-01/summary.json": {
+      "bytes": 2317,
+      "sha256": "dd96417282c180d12278bee653696be6cf90ff235f2eb13fa236755a566816ec"
+    },
+    "examples/physics-contact-phase-wrench-2276/evidence/phase-01/A-step1-observer.json": {
+      "bytes": 12500,
+      "sha256": "100bfd98d0cd7be0dd865d89c6ac1aae92fd196d971916fcd2dfb25ed0907562"
+    },
+    "examples/physics-contact-phase-wrench-2276/evidence/phase-01/A-step1-trace.json": {
+      "bytes": 4241382,
+      "sha256": "cc7b7a787a6b82706450e0b648c5b66f69315c2922e022d112cb3d2b47bdd436"
+    },
+    "packages/barocss-physics/src/types.ts": {
+      "bytes": 11884,
+      "sha256": "37fdf1abcc20fd379304213b8c0686f8e0468d285f008aa8ebdb316882efade5"
+    },
+    "packages/barocss-physics/src/world.ts": {
+      "bytes": 30779,
+      "sha256": "449865bf2e73ed799885c7e9d0f95f7d3f09c740e42ce1f8b960384308e08266"
+    },
+    "packages/barocss-physics/src/persistent-box-contact.ts": {
+      "bytes": 3769,
+      "sha256": "3f53922b557ca142a4d95e1e19d5be21828b375b75bc45ff1e57a7b9171261f1"
+    },
+    "packages/barocss-physics/src/replay.ts": {
+      "bytes": 7119,
+      "sha256": "07bafc635620c56c479ed44b0f458cbbb470bf20b3ce2ead7248ceb0973ca408"
+    },
+    "packages/barocss-physics/src/replay-validation.ts": {
+      "bytes": 8096,
+      "sha256": "ab9a7b5097515ddd3d6aa9a434d14f2ae2e04fd15c4059b473d0d708a507c82a"
+    },
+    "packages/barocss-physics/src/replay-json.ts": {
+      "bytes": 7760,
+      "sha256": "1ab8cf962443edd3be387e5095a9cce3f2071c8b44e47cc165ce82d5c00ac617"
+    }
+  },
+  "existingPhase01": {
+    "receiptStatus": "NO_GO_SOURCE_PRIVATE_PHASE_WRENCH",
+    "executionStatus": "EXECUTED_ACCEPTED_STEP",
+    "validationStatus": "EXECUTED_NO_GO",
+    "rawControlLabelRetained": "NOT_RUN",
+    "rawLabelInterpretation": "validation did not finish; the step DID execute and was accepted",
+    "worlds": 1,
+    "totalAttempts": 1,
+    "acceptedSteps": 1,
+    "actualApplyEvents": 168,
+    "geometryQueries": 9,
+    "queryPoints": 20,
+    "corrections": 8,
+    "firstFailure": {
+      "cursor": {
+        "kind": "public-aggregate-wrench"
+      },
+      "type": "ValueError",
+      "message": "REPORT_VECTOR_NO_GO0: 0.06810993686254845 > 1e-10"
+    },
+    "reportVectorXErrorNs": 0.06810993686254845,
+    "gateNs": "1e-10",
+    "checkedPrefix": {
+      "momentum": "EXECUTED_PASS_PREFIX_ONLY",
+      "spin": "EXECUTED_PASS_PREFIX_ONLY",
+      "midpointWork": "EXECUTED_PASS_PREFIX_ONLY",
+      "nativeGeometry": "EXECUTED_PASS_PREFIX_ONLY",
+      "acceptedPublicGeometry": "EXECUTED_PASS_PREFIX_ONLY"
+    },
+    "unreached": {
+      "reportVectorYAndZ": "NOT_RUN",
+      "reportWorldOriginMoment": "NOT_RUN",
+      "secondStep": "NOT_RUN",
+      "knownRefusal": "NOT_RUN",
+      "unknownRefusal": "NOT_RUN",
+      "retry": "NOT_RUN",
+      "restoreReplay": "NOT_RUN"
+    },
+    "warmChangedFrameReuse": "NOT_COVERED",
+    "scope": "existing saved receipt read; no rerun or new numerical verification"
+  },
+  "contractDecisions": {
+    "canonicalStateSchemaVersion": 2,
+    "recordingVersion": 2,
+    "recordingWireMagic": "BCPHREC2",
+    "contactAuthority": "accepted-pose native geometry points only",
+    "removedContactFields": [
+      "pointM",
+      "normalAtoB",
+      "penetrationM",
+      "normalImpulseNs",
+      "tangentImpulseOnBNs"
+    ],
+    "contactPointFields": [
+      "id",
+      "normalAtoB",
+      "anchorM",
+      "pointOnAM",
+      "pointOnBM",
+      "signedGapM"
+    ],
+    "mandatoryPairWrenches": true,
+    "wrenchAuthority": "producer actual impulse application returns; step-local transactional pair map",
+    "wrenchSides": [
+      "onA",
+      "onB"
+    ],
+    "momentReference": "O=[0,0,0] metres in state-frame world coordinates",
+    "wrenchIncludes": [
+      "actual contact warm applications",
+      "actual normal increments",
+      "actual tangent increments"
+    ],
+    "wrenchExcludes": [
+      "gravity",
+      "user commands",
+      "joints/motors",
+      "pose projection",
+      "visual-domain constraints"
+    ],
+    "pairPresence": "at least one nonzero actual contact application; retain cancelling pairs",
+    "acceptedEvents": "end-pose contact/sensor membership transitions; independent of step wrench presence",
+    "visualDomainPairWrenches": "mandatory explicit empty arrays",
+    "legacyAliases": false,
+    "legacyDecoder": false,
+    "missingFieldDefaults": false,
+    "parallelOldNewReportAuthorities": false,
+    "observerTraceSuppliesProducerReport": false,
+    "finalCacheSuppliesProducerReport": false,
+    "finalNormalProjectionSuppliesProducerReport": false,
+    "oldRecordingRejection": "INVALID_SNAPSHOT before any World creation",
+    "signedGapDefinition": "(native B entry t - native A exit t)*length(normal) on anchor+t*normal; no historical max",
+    "initialState": "classify initial accepted geometry; contacts may be nonempty; events and pairWrenches empty; membership initialized",
+    "initialTouchFirstStepEvent": "stay if still present at accepted step1"
+  },
+  "nextPrivatePrototype": {
+    "status": "NOT_IMPLEMENTED_NOT_BUILT_NOT_RUN",
+    "graph": "SOURCE_PRIVATE_ONLY",
+    "supportedInput": "same frozen two-body rigid-persistent-box-v1 B cube/floor baseline",
+    "changedProducerSurface": "actual apply return contributions and new state/recording schema; no force/cache law repair",
+    "maximumWorldCreations": 4,
+    "plannedWorldCreations": 3,
+    "maximumTotalStepAttempts": 8,
+    "plannedAcceptedSteps": 6,
+    "plannedExpectedRefusals": 2,
+    "hiddenRestoreReplayCounts": true,
+    "outerPasses": 8,
+    "innerIterations": 8,
+    "maximumApplyEvents": 4352,
+    "maximumGeometryQueries": 72,
+    "maximumQueryPoints": 288,
+    "maximumAnchorChecks": 7776,
+    "maximumTraceRecords": 8192,
+    "maximumEvidenceBytes": 16777216,
+    "outerGuardSeconds": 180,
+    "requiredChecks": [
+      "actual producer J/M versus independent event sums",
+      "linear/spin momentum and midpoint work",
+      "passive contact work",
+      "accepted native point lists",
+      "accepted geometry/event versus interval-wrench independence",
+      "current tangent plane",
+      "known and identical unknown error rollback",
+      "accepted pair-map/cache/trace/log cursor rollback",
+      "nested client mutation isolation",
+      "clean repeat and hidden restore continuation",
+      "recording2 exact fields and BCPHREC2 only",
+      "old-version/old-key rejection before factory calls",
+      "initial accepted geometry and empty initial wrench/events",
+      "initial membership gives stay on first persistent-contact step"
+    ],
+    "gates": {
+      "linearImpulseNs": "1e-10",
+      "angularImpulseNms": "1e-10",
+      "energyWorkJ": "1e-10",
+      "tangentPlaneNs": "1e-12",
+      "nativeSurfaceM": "1e-9",
+      "nativeLineAndBaselineAcceptedGapM": "1e-12"
+    },
+    "warmCoveragePolicy": "NOT_COVERED unless actual prior hit/nonzero tangent/native correspondence is observed",
+    "firstFailurePolicy": "save actual state/producer report/independent trace, mark EXECUTED_NO_GO, stop; later controls remain NOT_RUN",
+    "constructorGeometryQueriesCounted": true,
+    "plannedMaximumQueriesIncludingCreation": 65,
+    "queryCountProof": "6 accepted steps*9 queries + at most8 queries before unknown apply refusal +3 constructor queries; known refusal precedes query"
+  },
+  "migrationScope": {
+    "package": [
+      "canonical root types/exports",
+      "World rigid and visual state builders",
+      "all actual rigid impulse producers",
+      "accepted contact/sensor event state",
+      "private cache/report separation"
+    ],
+    "recording": [
+      "version2",
+      "BCPHREC2",
+      "exact state/contact/wrench validation",
+      "signed-zero copies/comparison",
+      "single provider identity and ownership"
+    ],
+    "activeConsumerInventory": "parent-supplied local inventory; no author rescan or external-completeness claim",
+    "activeConsumerGroups": [
+      "contact.test",
+      "material/tangent/discrete-restitution/box-slab",
+      "persistent-impact and warm",
+      "probe scenes",
+      "mock PhysicsState constructors",
+      "current public docs"
+    ],
+    "heldSurfaceInventory": "no held Studio/CAD Viewer/manufacturing/device readers found in supplied local inventory; not proof of no external consumers"
+  },
+  "promotionGates": {
+    "status": "BLOCKED",
+    "privatePrototype": "NOT_RUN",
+    "cacheWarmFrameBranch": "NOT_COVERED",
+    "allCurrentRigidProducersAndNativeGeometryFamilies": "NOT_MIGRATED_NOT_QUALIFIED",
+    "strictNativeRootReplayParity": "NOT_RUN",
+    "actualPublicRecorderControls": "NOT_RUN",
+    "performance": {
+      "status": "BLOCKED_NOT_FROZEN_NOT_RUN",
+      "requiredLatency": "uninstrumented p95 complete producer step <= declared fixedStepSeconds on declared hardware",
+      "requiredPopulationMemoryBounds": "separate finite benchmark contract must freeze them before execution",
+      "research180sCompletionIsShippingLatencyPass": false
+    },
+    "static32Receipt": "reuse at fixed geometry/force-moment scope only",
+    "originalP4": "UNCHANGED_NO_GO",
+    "nativeOnlyAuthorityPromotion": false,
+    "productionEditsAuthorizedByThisTask": false
+  },
+  "authorExecutions": {
+    "WorldCalls": 0,
+    "builds": 0,
+    "candidateGeometryCalls": 0,
+    "newNumericalReferenceCalls": 0
+  },
+  "historicalEvidencePolicy": "READ_ONLY; preserve all old freezes, archives, saved source protocols and first failures without reclassification"
+}

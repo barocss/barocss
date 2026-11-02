@@ -1,0 +1,119 @@
+{
+  "status": "PASS_PROPOSED_CONTRACT_TYPES_ONLY",
+  "files": {
+    "consumer.mts": {
+      "bytes": 1069,
+      "sha256": "38738f025a17a8da13dbce1279432a58a83aafc88d4e606ed409f7252fd565c0"
+    },
+    "CONTRACT.md": {
+      "bytes": 8840,
+      "sha256": "9b5ed4661c3d928a631b6c70b798a361a5366bdab9740081369f14bd1417a2a8"
+    },
+    "MIGRATION.md": {
+      "bytes": 8014,
+      "sha256": "36dd367bdf4cab14b057a1c5875cc1abf2b68c04cdef11b7c5f2b45229362312"
+    },
+    "types.ts": {
+      "bytes": 3744,
+      "sha256": "d86ec76d6b89cbc9e4e378cffe7a72abfdfb8e4ec39eff7e8514fbfc65bfd622"
+    },
+    "validation.json": {
+      "bytes": 9757,
+      "sha256": "92748f1d72e77d8c3dd1befb3bcaf3267447b6dd9b30c275d61fd39189aa7fbf"
+    }
+  },
+  "receipt": {
+    "kind": "P5B_OWNED_COMMAND_GUARD",
+    "receiptId": "contact-wrench-contract-types-01",
+    "censusId": "contact-wrench-contract-types-01",
+    "status": "PASS",
+    "node": "v22.19.0",
+    "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "command": [
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--strict",
+      "--skipLibCheck",
+      "--target",
+      "ES2022",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "examples/physics-contact-wrench-contract-2276/consumer.mts"
+    ],
+    "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+    "inputs": {
+      "command-run.mjs": {
+        "bytes": 11565,
+        "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+      }
+    },
+    "timeoutMs": 180000,
+    "terminationGraceMs": 1000,
+    "postKillCloseWaitMs": 2000,
+    "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+    "combinedOutputLimitBytes": 4194304,
+    "startedAt": "2026-11-02T21:45:23.612Z",
+    "spawnAt": "2026-11-02T21:45:23.632Z",
+    "pid": 58062,
+    "processGroupId": 58062,
+    "exit": 0,
+    "signal": null,
+    "timedOut": false,
+    "stopReason": null,
+    "processClosed": true,
+    "groupSignals": [],
+    "parentWorldCalls": 0,
+    "parentReferenceCalls": 0,
+    "parentGeometryCalls": 0,
+    "retries": 0,
+    "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-contract-types-01/summary.json",
+    "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-contract-types-01/progress.json",
+    "errors": [],
+    "exitAt": "2026-11-02T21:45:25.106Z",
+    "finishedAt": "2026-11-02T21:45:25.106Z",
+    "elapsedMs": 1494.148625,
+    "ownedGroupPresentAtFinalization": false,
+    "censusElapsedMs": 1479.110625,
+    "cleanupElapsedMs": 0,
+    "output": {
+      "stdout": {
+        "observedBytes": 0,
+        "capturedBytes": 0,
+        "omittedBytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "eof": true,
+        "writeError": null
+      },
+      "stderr": {
+        "observedBytes": 0,
+        "capturedBytes": 0,
+        "omittedBytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "eof": true,
+        "writeError": null
+      }
+    },
+    "censusSummary": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-contract-types-01/summary.json",
+      "present": false
+    },
+    "censusProgress": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-contract-types-01/progress.json",
+      "present": true,
+      "bytes": 1822,
+      "sha256": "c3ffae51633cd076c36b19e11a17d83e2c8cf99ba8ecfb881181a31e052325a0",
+      "status": "RUNNING",
+      "counts": null,
+      "referenceCallCounts": null,
+      "firstFailure": null
+    },
+    "callCountBoundary": "Only counts present in original census progress/summary/timing receipts are reported; a timeout never implies the primitive call population completed."
+  },
+  "WorldCalls": 0,
+  "runtimeAPI": "NOT_IMPLEMENTED",
+  "nativeProducer": "NOT_RUN",
+  "publicPromotion": "BLOCKED"
+}
