@@ -79,6 +79,20 @@ function dataSection(source: string): string {
   }
   return refuse('no DATA section');
 }
+/** Decode only the existing writer's printable-ASCII, paired-backslash literal profile.
+ * Mixed or opaque directive-looking strings stay whole; no recursive or Unicode interpretation. */
+function literalBackslashes(value: string): string {
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if (code < 32 || code > 126) return value;
+    if (code !== 92) continue;
+    let end = i + 1;
+    while (value.charCodeAt(end) === 92) end++;
+    if ((end - i) % 2) return value;
+    i = end - 1;
+  }
+  return value.replace(/\\\\/g, '\\');
+}
 /** The DATA section's instances: simple ones and complex ones (as their partial entities). */
 function parseData(source: string): Map<number, Entity> {
   const s = dataSection(source), out = new Map<number, Entity>();
@@ -89,9 +103,9 @@ function parseData(source: string): Map<number, Entity> {
     const c = s[i];
     if (c === '(') { i++; const list: Value[] = []; ws(); if (s[i] === ')') { i++; return list; } for (;;) { list.push(value()); ws(); if (s[i] === ',') { i++; continue; } if (s[i] === ')') { i++; return list; } refuse(`bad list near ${s.slice(i, i + 20)}`); } }
     if (c === "'") {
-      // (A quote doubled is one quote.)
+      // A doubled quote is one quote; literal backslashes use only the bounded writer profile.
       let t = ''; i++;
-      for (;;) { const q = s.indexOf("'", i); if (q < 0) refuse('unterminated string'); t += s.slice(i, q); if (s[q + 1] === "'") { t += "'"; i = q + 2; continue; } i = q + 1; return t; }
+      for (;;) { const q = s.indexOf("'", i); if (q < 0) refuse('unterminated string'); t += s.slice(i, q); if (s[q + 1] === "'") { t += "'"; i = q + 2; continue; } i = q + 1; return literalBackslashes(t); }
     }
     if (c === '#') { i++; const m = sticky(REF, s, i)!; i += m[0].length; return { ref: Number(m[0]) }; }
     if (c === '.') { const m = sticky(ENUM, s, i); if (!m) refuse('bad enumeration'); i += m![0].length; return { enum: m![1] }; }
