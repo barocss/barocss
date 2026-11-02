@@ -346,3 +346,44 @@ package. Wider admitted inertia/spin/dt inputs, G1a x/y symmetry, off-axis
 loads, motors, contacts and joints still need their own qualification. The
 original production gyro NO_GO and eight-box NO_GO remain. No tolerance or
 HOLD changed; no measured-equipment or manufacturing safety claim follows.
+
+## G1 nonprincipal loads and public range
+
+G1e adds a later, breaking public input boundary. The earlier G1d principal
+torque oracle checked a full-kick/free discrete map. Its original PASS is
+preserved, but it is not evidence for the continuous-torque pose. In the new
+paired Source/emitted baseline, nonprincipal J alone passes. J with constant
+world torque fails: maximum R-entry error is 6.261993963206803e-6 and torque-work
+residual is 2.592920627392333e-7 J, despite passing final angular momentum.
+These actual first failures remain recorded.
+
+An independent 13-state body-momentum/rotation/work ODE supplies directed
+80/120-digit Taylor32 targets with full degree64 defect bounds. It does not use
+the candidate's quaternion RK4 method. The new forced candidate passes on both
+graphs with maximum R-entry error 3.641892612819734e-13 and work/energy residual
+4.0216506512969355e-15 J under the original gates. Its four-World micro reused
+the same paid bank. Tool-path and compiler-output failures before physical
+evaluation are preserved separately; no cap or tolerance was increased.
+
+The actual package Source and canonical bundled emitted root/replay then pass
+the selected API gate: sixteen actual Worlds and sixteen accepted steps,
+including two internal reconstruction steps; six independent endpoint audits;
+eighteen refused steps and twenty-four refused configurations. Recording restore,
+forced-helper Error/NaN preservation, renamed labels and sphere/cube free-spin
+compatibility pass. Public state/log retention and subsequent output were
+observed; hidden cache identity was not directly observed in this canonical graph.
+Strict root/replay declaration compilation and the published-map consumer pass.
+This does not claim the full CAD SDK or every package subpath was rebuilt.
+
+Only the [declared one-step rotor](../packages/physics/profiles-and-lifecycle#isolated-noncubic-rotor)
+is newly admitted. Other dynamic noncubic boxes now refuse `INVALID_CONFIG`.
+Historical oriented-contact, thin-box CCD and dynamic CAD-box acceptance probes
+remain preserved as unsupported/expected breaking failures; their shapes and
+physical criteria were not replaced or relaxed. This is not a numerical PASS
+for those earlier cases, nor a full release-gate PASS.
+
+The [roadmap](/physics-evidence/api-roadmap.txt) records source reports and remaining
+dependencies. Longer forced trajectories, three-dt refinement, arbitrary inertia,
+axisymmetry, nonidentity forced frames, contacts, joints and motors remain open.
+Studio/manufacturing/equipment HOLDs, original eight-box NO_GO, old error gates
+and all first failures remain. No deployment or machine-safety claim follows.

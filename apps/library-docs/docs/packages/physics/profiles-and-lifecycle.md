@@ -8,11 +8,11 @@ active CAD adoption claim. Start with the [package overview](./) and [unit contr
 ## Rigid world profiles
 
 All rigid-world profiles use `createPhysicsWorld(model, options)` from `@barocss/physics`. Unless a narrower
-profile fixes the step, `fixedStepSeconds` is in `[1/240, 1/30]` s. `step(commands?)` uses the configured value and takes no time argument. The world admits at most 3600 accepted steps and requires at least one dynamic body.
+profile fixes the step, `fixedStepSeconds` is in `[1/240, 1/30]` s. `step(commands?)` uses the configured value and takes no time argument. The usual limit is 3600 accepted steps; the isolated noncubic rotor has a one-step physical horizon. At least one dynamic body is required.
 
 | Selection | Capacity and combinations | Numerical scope and evidence route |
 | --- | --- | --- |
-| `profile:'rigid-discrete-v1'` | 1–32 spheres, oriented boxes or capsules; optional `broadPhase:'aabb'` | One contact point per pair and eight solver passes. Primitive contacts are not exact CAD collision. See the package's `examples/physics-scene` probes and [verification](/reference/physics-verification). |
+| `profile:'rigid-discrete-v1'` | 1–32 spheres, oriented cubes, static/kinematic boxes or capsules; optional `broadPhase:'aabb'`; separate isolated-rotor exception below | One contact point per pair and eight solver passes. Primitive contacts are not exact CAD collision. General dynamic noncubic boxes refuse. See [verification](/reference/physics-verification). |
 | `profile:'rigid-persistent-box-v1'` | At most four bodies; no `large-v1` or box-pair CCD | Up to four clipped points for face-normal box contacts and bounded impulse reuse. Edge/edge and non-box pairs use the one-point path. Recorded centred and 0.05 m offset fixtures do not qualify arbitrary stacks. |
 | `profile:'rigid-large-v1'` | 1–64 bodies; requires `broadPhase:'aabb'`; requires an empty `joints` array; excludes CCD and persistent-box contact | Fixed collision filters and contact-island sleep. The named 63-sphere floor probe is a capacity case, not a general 64-body stack certificate. |
 | Anchored fixed or hinge joints | At most eight records. Each static/kinematic A connects to a uniquely jointed dynamic B | Body-local initial anchors must coincide within `1e-6` m. A hinge uses unit `axisWorld` and limits within ±π/2 that include zero. Connected bodies do not collide. |
@@ -22,7 +22,7 @@ profile fixes the step, `fixedStepSeconds` is in `[1/240, 1/30]` s. `step(comman
 | Two disjoint dynamic hinges | Exactly four 1 kg spheres of radius 0.1 m, forming the offset pair at Z=0 and Z=1 m | `rigid-discrete-v1`, direct broad phase, zero gravity, exact identity initial quaternions, zero initial motion, restitution 0, friction 1/0.7. Both hinges use the offset limits/motor above. Only empty commands; cross-component contact refuses. See the bounded evidence below. |
 | Sphere/static-box CCD | One CCD dynamic sphere and 1–8 static nonsensor oriented boxes; no joints or other bodies | Conservative expanded-box sweep. Rounded corners can produce early hits. |
 | Dynamic-sphere-pair CCD | Exactly two nonsensor dynamic spheres, exactly one with `ccd:true`; zero gravity, no joints | Relative sphere sweep. `colliderId` denotes the other dynamic sphere's collider. |
-| Axis-aligned-box-pair CCD | One CCD dynamic box and one static nonsensor box, both axis-aligned; no joints or persistent boxes | Nonzero angular commands refuse. Contact-induced rotation refuses the candidate. This covers the named thin-box fixture. |
+| Axis-aligned-box-pair CCD | One CCD dynamic cube and one static nonsensor box, both axis-aligned; no joints or persistent boxes | Nonzero angular commands refuse. Contact-induced rotation refuses the candidate. The historical dynamic thin-box fixture is now explicitly unsupported by G1 admission; its old receipt remains historical. |
 
 CCD stops at the earliest admitted hit with a `1e-9` m inward offset. It does not integrate the
 remaining fraction of that step. Initial overlap/touch uses the discrete path. Capsule CCD, general
@@ -37,6 +37,37 @@ The public persistent-box limit remains four bodies. Private nine-body studies d
 activate the original eight-box experiment. The disjoint-hinge profile has a separate qualification;
 it does not admit connected two-link mechanisms. Keep historical NO_GO results and unresolved causes alongside later
 bounded results in [Physics verification](/reference/physics-verification).
+
+### Isolated noncubic rotor
+
+The current unreleased API makes this breaking support restriction in all rigid
+profiles: dynamic boxes with unequal half extents require the following exact
+leaf. Other noncubic dynamic boxes refuse `INVALID_CONFIG`, even when initially
+at rest. Static/kinematic boxes, geometric cubes and declared capsule proxies
+retain their existing support. This does not clear the original stack NO_GO.
+
+Use `rigid-discrete-v1`, direct broad phase, dt `1/120` s, one 1 kg primitive-COM
+box with half extents `[0.1,0.2,0.3]` m. Initial normalized q is identity, world
+omega is `[1,1,1]` rad/s, and position, linear speed and gravity are zero. No
+other body, joint, cloth, fluid, sensor or CCD is admitted. Labels and validated
+provenance remain model data. Only one accepted step is qualified.
+
+Use `freeModel()` and `worldOptions` from the [overview](./) with this fixture:
+
+<<< @/../samples/physics-docs.test.mjs#isolated-rotor-fixture
+
+The step accepts empty commands, the exact world J shown below, or that J with
+the exact world tau. J acts at the start; tau acts over the interval, then
+expires. Other loads refuse `INVALID_COMMAND`. Advancing a second step refuses
+`NUMERIC_LIMIT` and preserves accepted state and any attached recording.
+
+<<< @/../samples/physics-docs.test.mjs#isolated-rotor-step
+
+This example checks API use and the refusal boundary. Independent pose/work
+references and the preserved earlier torque failure are in
+[Physics verification](/reference/physics-verification#g1-nonprincipal-loads-and-public-range).
+It proves no longer horizon, dt refinement, arbitrary shape or contact/control
+accuracy. No integrator option or legacy compatibility World exists.
 
 ### Use the selected disjoint-hinge model
 

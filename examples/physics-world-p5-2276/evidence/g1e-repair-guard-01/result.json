@@ -1,0 +1,94 @@
+{
+  "kind": "P5B_OWNED_COMMAND_GUARD",
+  "receiptId": "g1e-repair-guard-01",
+  "censusId": "g1e-repair-guard-01",
+  "status": "FAIL",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "examples/physics-rigid-rotation-g1e-2276/repair-campaign.mjs",
+    "--run-id",
+    "g1e-repair-01",
+    "--freeze",
+    "examples/physics-rigid-rotation-g1e-2276/REPAIR-FREEZE-01.json",
+    "--token",
+    "eaf68302a4588cc7781a8bb1a30741c74c73e2ec77d370663f63270c31dd981f"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "inputs": {
+    "command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": "2026-11-02T12:15:53.895Z",
+  "spawnAt": "2026-11-02T12:15:53.917Z",
+  "pid": 39862,
+  "processGroupId": 39862,
+  "exit": 1,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": "CENSUS_EXIT_FAILURE",
+  "processClosed": true,
+  "groupSignals": [
+    {
+      "signal": "SIGTERM",
+      "elapsedMs": 198.994417,
+      "result": "GROUP_ABSENT",
+      "code": "ESRCH"
+    }
+  ],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/g1e-repair-guard-01/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/g1e-repair-guard-01/progress.json",
+  "errors": [],
+  "exitAt": "2026-11-02T12:15:54.094Z",
+  "stopRequestedAtMs": 198.914042,
+  "finishedAt": "2026-11-02T12:15:54.103Z",
+  "elapsedMs": 207.072625,
+  "ownedGroupPresentAtFinalization": false,
+  "censusElapsedMs": 188.026708,
+  "cleanupElapsedMs": 8.158582999999993,
+  "output": {
+    "stdout": {
+      "observedBytes": 165,
+      "capturedBytes": 165,
+      "omittedBytes": 0,
+      "sha256": "eb6dca0cee7edd7af3a338f8817ae0dddccc8a62107861d1f12c82a3e71a5215",
+      "eof": true,
+      "writeError": null
+    },
+    "stderr": {
+      "observedBytes": 0,
+      "capturedBytes": 0,
+      "omittedBytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "eof": true,
+      "writeError": null
+    }
+  },
+  "censusSummary": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/g1e-repair-guard-01/summary.json",
+    "present": false
+  },
+  "censusProgress": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/g1e-repair-guard-01/progress.json",
+    "present": true,
+    "bytes": 2004,
+    "sha256": "35da3a2219138cac2950253da84282d4912820c3d2223a825a91a46d60d7f1eb",
+    "status": "RUNNING",
+    "counts": null,
+    "referenceCallCounts": null,
+    "firstFailure": null
+  },
+  "callCountBoundary": "Only counts present in original census progress/summary/timing receipts are reported; a timeout never implies the primitive call population completed."
+}

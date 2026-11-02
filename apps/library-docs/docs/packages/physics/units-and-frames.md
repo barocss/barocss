@@ -23,6 +23,14 @@ This page describes the current unreleased branch. See the [package overview](./
 | World frame | Host declares right-handed XYZ and CAD orientation | Physics body positions and velocities use that declared world frame | There is no universal CAD up axis. These Physics examples use −Y gravity; Robot statics default to −Z. Rotate vectors explicitly when connecting these frames. |
 | Body rotation | Local-to-world quaternion | `[x, y, z, w]`, right-handed | The input and state field is `orientationXYZW`; identity is `[0,0,0,1]`. Rigid admission requires norm within `1e-6` of one and normalizes it. `cadProxyPose` requires norm within `1e-9`. |
 | Body axes and angular input | Shape dimensions and joint anchors are body-local | Torque and angular velocity are world-frame vectors | A capsule's segment uses its local Y axis. `axisWorld` is a world hinge axis. |
+
+For the [qualified isolated rotor](./profiles-and-lifecycle#isolated-noncubic-rotor),
+angular impulse acts instantaneously at the step start. Torque is constant in
+world coordinates over the interval, then expires. The independent reference
+checks `Lend=Lbefore+J+tau*dt` and integrated torque work, not final momentum
+alone. The historical full-torque kick/free map is a first-order discretization;
+its old G1d PASS does not prove the continuous torque pose. Other existing
+isotropic paths retain their recorded discretization and limits.
 | Contact convention | Pair IDs sorted as A, B | `normalAtoB` points from A to B; `pointM` is world metres | Positive normal impulse acts along the normal on B and against it on A. `tangentImpulseOnBNs` is the accumulated world-vector impulse on B, opposite on A. |
 | Independent pendulum reference inertia | `inertia: {about:'com'|'pivot', kgM2}` | Moment about the +Z axis through the named origin | For COM input, Physics adds `massKg * comDistanceM²` once. For pivot input, include this term yourself. |
 | CAD proxy display | Source points and `sourceCenterMM` in mm; body centre in m | Viewer translation in mm and unchanged XYZW orientation | `translation = 1000 * bodyPositionM - R * sourceCenterMM`. Rotate around the source centre, then place that centre at the body position. |

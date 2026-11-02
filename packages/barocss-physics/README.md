@@ -4,7 +4,31 @@ The [library design and development roadmap](ROADMAP.md) defines the unreleased 
 its staged verification. The root uses the P0 model/options contract. P5a private cloth/fluid kernels passed their bounded two-step source/native gates; the P5b common-World cutover is implemented with qualification pending. Existing HOLDs,
 public admission limits and original NO_GO receipts remain in force.
 
-A bounded, renderer-neutral fixed-step 3D Physics package. Its rigid world simulates admitted sphere, oriented-box and capsule pairs, limited fixed/hinge joints and narrow opt-in CCD profiles. The same World owns a selected fixed256-particle visual basin or a fixed pinned sheet over a static sphere. The caller owns time and display. The package does not simulate exact CAD Surface or mesh collision, general joint networks, arbitrary cloth meshes or engineering fluid flow.
+A bounded, renderer-neutral fixed-step 3D Physics package. Its rigid world simulates admitted spheres, oriented cubes and capsules, static/kinematic boxes, limited fixed/hinge joints and narrow opt-in CCD profiles. Dynamic noncubic boxes use only the isolated rotor described below. The same World owns a selected fixed256-particle visual basin or a fixed pinned sheet over a static sphere. The caller owns time and display. The package does not simulate exact CAD Surface or mesh collision, general joint networks, arbitrary cloth meshes or engineering fluid flow.
+
+## Breaking G1 angular support boundary
+
+The unreleased World now refuses unsupported dynamic noncubic boxes with
+`INVALID_CONFIG`, including former general anisotropic contact, thin-box CCD
+and dynamic CAD-box callers. Static boxes and true dynamic cubes retain their
+existing paths. Old probe inputs/results and original failures are preserved;
+this restriction is unsupported status, not a physical PASS for those cases.
+
+The sole new noncubic leaf is one isolated 1 kg primitive-COM box with half
+extents `[0.1,0.2,0.3]` m, normalized identity q, world omega `[1,1,1]` rad/s,
+zero position/linear speed/gravity, discrete/direct and dt `1/120` s. It has
+no joints, other bodies, CCD, sensors or domains. Exactly one step is qualified.
+Accept empty commands, J=`[1/1024,-1/2048,1/4096]` N m s, or J together with
+tau=`[1/128,-1/256,1/512]` N m. Other loads refuse `INVALID_COMMAND`; a second
+step refuses `NUMERIC_LIMIT` without changing state or its recording.
+
+J acts once at the start; tau acts continuously in the world frame during
+that interval. The forced leaf uses the independently checked two-halfstep
+quaternion/world-momentum method; zero torque uses the qualified free map.
+There is no integrator switch, compatibility engine or second World. Other
+existing isotropic laws retain their original discretization/evidence scope.
+The former full-torque kick/free G1d K PASS proves that discrete map, not the
+continuous-torque pose. See the [support contract](../../examples/physics-rigid-rotation-g1e-2276/PUBLIC-SUPPORT-CONTRACT.md).
 
 | Entry point | Current result | Example |
 | --- | --- | --- |

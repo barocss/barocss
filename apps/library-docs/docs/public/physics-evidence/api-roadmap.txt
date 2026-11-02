@@ -9,6 +9,16 @@ last_updated: 2026-11-02
 
 # Physics library design and roadmap
 
+## Current owner publication decision (2026-11-02)
+
+The owner explicitly requested pushing the current independent Work checkpoint
+to develop before the full roadmap is complete. This authorizes the present
+checkpoint push despite the earlier conditional integration rule below. It does
+not mark outstanding gates PASS, resume held workers or authorize deployment,
+release, Studio, manufacturing or equipment work. All existing NO_GO results,
+tolerances and first-failure records remain. Future roadmap completion and
+release acceptance still require their recorded physical/software exits.
+
 ## Decision and scope
 
 Use one public simulation World for one physical scene. Keep rigid, cloth and fluid numerical solvers separate
@@ -260,8 +270,54 @@ prototype across the wider admitted range.
 | G1d command/recorder | Source and genuine emitted root/replay pass principal-axis impulse+torque expiry and two-step general triaxial recording/restore/continue: six actual Worlds, twelve accepted steps, eight independent endpoint audits and six state/log/cache-preserving refusals. Max world-L error 1.600786710055395e-17 kg m²/s; R-entry 2.2833535057329648e-17. | One new combined Source bundle; Native reuses authenticated strict NodeNext modules. No canonical-root adoption. Nonprincipal load, motor/joint/contact/projection, persistent/large angular flow and physical coupled trajectories remain NOT_RUN. See `examples/physics-rigid-rotation-g1d-2276/INTEGRATION-RESULTS-01.md`. |
 | Admission and public adoption | Source audit fixes SI, body-to-world XYZW, world angular vectors, existing initial-q normalization, and kick/motor/free/contact/record commit order. | The fixed momentum-unit triaxial prototype excludes much of the parser's existing mass/extents/spin/dt range. Finite PASS is not authority to apply it to every admitted box, silently narrow admission or retain the incorrect anisotropic law as a compatibility fallback. Explicit supported-range resolution and affected canonical build/caller checks remain required. |
 
+### G1e public input boundary and nonprincipal loads (2026-11-02)
+
+The public Source and canonical bundled emitted root/replay now adopt only the
+explicit one-step isolated-rotor range in
+`examples/physics-rigid-rotation-g1e-2276/PUBLIC-SUPPORT-CONTRACT.md`.
+This is a BREAKING admission restriction, not a general anisotropic engine GO:
+other dynamic noncubic boxes refuse INVALID_CONFIG, out-of-leaf loads refuse
+INVALID_COMMAND, and the one-step horizon refuses NUMERIC_LIMIT without commit.
+The old uniform-world-omega anisotropic fallback is unreachable for unsupported
+models. There is no compatibility World, integrator flag or legacy reader.
+
+The selected physical input is one1kg primitive-COM box with half extents
+[0.1,0.2,0.3]m, normalized identityq, worldomega[1,1,1]rad/s, zero linear state/
+gravity, discrete/direct and dt1/120s. Only empty, exactJ or exactJ+tau are
+admitted: J=[1/1024,-1/2048,1/4096]Nms and tau=[1/128,-1/256,1/512]Nm.
+J acts at the start; tau acts continuously over the positive interval.
+Spheres, geometric cubes, declared capsule proxies and static/kinematic boxes
+retain their prior paths and evidence scope. Materials/labels/provenance cannot
+create a contact in this isolated one-collider topology.
+
+The new paired old-map baseline has4World/4steps and preserves PHYSICAL_NO_GO
+for J+tau on both graphs: maxR error6.261993963206803e-6 and work residual
+2.592920627392333e-7J, while final world-L passes. J alone passes. The old G1d K
+PASS is explicitly a full-kick/free discrete-map check, not continuous torque
+pose truth; its original receipt is unchanged. The independent13-state p/R/work
+reference uses8directed Taylor32windows,80/120precision and degree64defect.
+The corrected micro passes both graphs: maxR3.641892612819734e-13 and work/energy
+4.0216506512969355e-15J, using the same bank with0newODEwindows.
+
+Actual canonical checks pass16World/16accepted steps, including2internal replay
+steps;6independent endpoint audits;18refused steps and24configuration refusals.
+Record/restore/refused continuation, same-object unexpected Error and NaN
+retention/recovery, label renaming and sphere/cube free-spin compatibility pass.
+Public state/log/output retention was observed; hidden cache identity was not
+directly observed in this canonical graph. Actual strict root/replay compilation
+and declaration consumer pass; the actual package canonical root build runs.
+Full CAD SDK/all-subpath rebuild and whole release-gate acceptance are NOT_RUN.
+
+The original oriented-contact, thin-box CCD and dynamic CAD-box inputs/criteria
+are preserved. Their former broad construction is now unsupported; this is not
+a numerical PASS and does not waive their release gates. Wider input intervals,
+axisymmetry, nonidentity forced frames, three-dt forced trajectories, longer
+duration, contact/joint/motor and coupled trajectory qualification remain open.
+Existing P4/eight-box NO_GO, HOLDs and every original first failure remain.
+
 All old HOLDs, error gates and first failures remain. New reference ODE windows
-for these two gates are zero. Deterministic replay equality and physical error
+for G1c/G1d are zero; G1e adds only its eight frozen baseline reference windows.
+Deterministic replay equality and physical error
 checks remain separate. Studio, manufacturing and equipment stay outside this
 independent Work. No partial develop merge, deployment or publication follows.
 

@@ -24,6 +24,18 @@ const vectorNear = (actual, expected, tolerance) => {
 };
 const hasCode = code => error => error instanceof PhysicsError && error.code === code;
 
+// #region isolated-rotor-fixture
+const isolatedRotorModel = () => ({
+  ...freeModel([0, 0, 0]), revision: 'docsRotor1',
+  bodies: [{ id: 'rotor', kind: 'dynamic', massKg: 1,
+    inertia: { kind: 'primitive-com', about: 'com', frame: 'body-local' },
+    initial: { positionM: [0, 0, 0], orientationXYZW: [0, 0, 0, 1],
+      velocityMps: [0, 0, 0], angularVelocityRadps: [1, 1, 1] } }],
+  colliders: [{ ...freeModel().colliders[0], id: 'rotorHull', bodyId: 'rotor',
+    geometry: { kind: 'box', halfExtentsM: [0.1, 0.2, 0.3] } }],
+});
+// #endregion isolated-rotor-fixture
+
 // #region world-fixture
 const dt = 1 / 120;
 const worldOptions = { profile: 'rigid-discrete-v1', fixedStepSeconds: dt, broadPhase: 'direct' };
@@ -45,6 +57,21 @@ const freeModel = (gravityMps2 = [0, -9.81, 0]) => ({
   joints: [], cloths: [], fluids: [], sourceBindings: [],
 });
 // #endregion world-fixture
+
+test('the isolated rotor accepts its qualified load and refuses a second step', () => {
+  // #region isolated-rotor-step
+  const world = createPhysicsWorld(isolatedRotorModel(), worldOptions);
+  try {
+    const accepted = world.step([
+      { kind: 'angularImpulse', bodyId: 'rotor', angularImpulseNms: [1 / 1024, -1 / 2048, 1 / 4096] },
+      { kind: 'torque', bodyId: 'rotor', torqueNm: [1 / 128, -1 / 256, 1 / 512] },
+    ]);
+    assert.equal(accepted.stepIndex, 1);
+    assert.throws(() => world.step(), hasCode('NUMERIC_LIMIT'));
+    assert.deepEqual(world.getState(), accepted);
+  } finally { world.dispose(); }
+  // #endregion isolated-rotor-step
+});
 
 // #region disjoint-hinge-fixture
 const disjointHingeModel = () => {
