@@ -1,0 +1,68 @@
+{
+  "status": "ROADMAP_GAPS_ADDED_AND_SITE_VALIDATED",
+  "changes": {
+    "coreRequired": [
+      "G1 admitted anisotropic BOX free rotation",
+      "G2 finite existing contact-law/CCD coverage map",
+      "G7 provider/oracle/failed-prefix evidence trust"
+    ],
+    "profilePrerequisites": [
+      "G3 selected COM/principal-frame/tensor extension",
+      "G4 constraint rank/conditioning/lawful frame/scale controls",
+      "G5 typed mixed endpoints and once-only substeps",
+      "G6 domain recording only if enabled"
+    ],
+    "optionalAndHeld": "Future optional features do not become blanket merge gates; P8/Studio/hardware/manufacturing HOLD preserved."
+  },
+  "files": [
+    {
+      "path": "packages/barocss-physics/ROADMAP.md",
+      "bytes": 53851,
+      "sha256": "ebef27639762c95b3d148808de01c659dfd72ff9e6b08f01ed9802a24aa520a2"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt",
+      "bytes": 53851,
+      "sha256": "ebef27639762c95b3d148808de01c659dfd72ff9e6b08f01ed9802a24aa520a2"
+    },
+    {
+      "path": "apps/library-docs/docs/reference/physics-verification.md",
+      "bytes": 26272,
+      "sha256": "25a8b978379d62c479f99302a205152cf5c744bd8d6dee9e24460a0f75519f91"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/ROADMAP-GAP-AUDIT.md",
+      "bytes": 16914,
+      "sha256": "289a4460700bfde9a992c1d80a984bb92d98f44c74bb46f28c248f2ed39380dc"
+    }
+  ],
+  "checks": [
+    {
+      "path": "examples/physics-world-p5-2276/evidence/roadmap-docs-structure-03/result.json",
+      "bytes": 2989,
+      "sha256": "c26965cef27a99549b0c90db1d71550671445ef3494d5340bd77dde63cea060c"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/roadmap-docs-build-03/result.json",
+      "bytes": 3011,
+      "sha256": "ce8874d2123cf44761b79802080f8e6203d475f35e5f149854ae32d8cd88fe48"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/roadmap-docs-links-03/result.json",
+      "bytes": 2971,
+      "sha256": "011d52d17a964af4d3c55f7330642b72305b9c4fd44c4ff1bc8ab34eafa19a49"
+    }
+  ],
+  "site": {
+    "pages": 5,
+    "linkOccurrences": 808,
+    "anchorOccurrences": 216,
+    "snippetRegions": 26,
+    "unchangedHistoricalCopies": 14,
+    "network": "NOT_RUN"
+  },
+  "originalContracts": "P0\u2013P8 IDs, original P3/P4 cases, gates, iterations, HOLD, first failures unchanged; no retroactive addition to completed instantaneous campaign",
+  "firstNewShellFailure": "roadmap-docs-pipeline-first-failure-03.json; wrong executable before link guard; corrected only unexecuted link check, no repeated structure/build",
+  "next": "G1 finite support/oracle criteria and original failure reproduction before changing rotational integration; full coupling P6/P7 and P4 remain",
+  "merge": "Whole-required-set condition remains unmet; no develop merge/push/deploy/release"
+}

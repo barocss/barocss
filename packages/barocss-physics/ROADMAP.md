@@ -215,7 +215,7 @@ iterations, original input law or evidence in order to pass.
 | P3 — hinge and mechanism dynamics | P1/P2; original #1489 contract. Preserve four spheres, two disjoint hinges, 1/120 s and 1200 steps. Retain step77 raw-bit failure. | Exact original source/repeat/emitted/reference gates; independently mapped rename/order controls; separately budgeted recorder and hardened current API checks. Historical operands remain unavailable; no cross-runtime claim follows. | Selected local disjoint profile PASS; current API adopted with unchanged calculation bytes. Historical step77, general connected joints and #1490 live adoption remain separate. See the P3 checkpoint. |
 | P4 — contact and original eight-box exit | P1 and the already measured 32-point equilibrium/192-row repair. Improve independent reference cost within the fixed 180 s budget before full replay. Preserve original inputs and all points. | Same32 patch equilibrium, strict line booleans, 1e-9 m geometry, 1e-10 SI residual gates; original ALIGNED/OFFSET/YAW1200-step settling metrics; actual source/repeat/emitted graph and per-phase accounting. Public adoption only after the full selected contract. | NO_GO. Matched16-step prefixes pass; separate ALIGNED308-step source attempt is incomplete. Public persistent limit stays4. |
 | P5 — cloth and fluid as model data | P1/P2 and each domain's independent current receipts. Extract kernels into candidate buffers, admit existing fixed scenes as explicit model data and static colliders. No dynamic coupling. | Reproduce original fixed-profile results before adding input freedom; domain failure rolls back whole host step; common-clock/substep checks; source/emitted closure; reject unsupported cross-domain pairs. | P5a private candidate extraction PASS for four fixtures/two steps/failure recovery; P5b_DONE_BOUNDED_LOCALSELECTED: public source/native runtime, strict source/native consumers,127logical bundles and4selected source doc examples pass. Native rendering SDKs remain explicit external dependencies; their implementation/product closure is NOT_RUN. Visual evidence class stays visual; full required roadmap exits still block integration. |
-| P6a — cloth–rigid coupling | P5 and qualified contact/rigid cases needed by a small declared pair, not a blanket full-engine GO. | Equal/opposite impulse and torque, attachment/contact residuals, work/dissipation balance, dt refinement, mass-ratio/boundary/refusal tests; no pinned-vertex masquerading as dynamic reaction. Freeze numerical tolerances first. | NOT_SUPPORTED; gates must be specified before execution. |
+| P6a — cloth–rigid coupling | P5 and qualified contact/rigid cases needed by a small declared pair, not a blanket full-engine GO. | Equal/opposite impulse and torque, attachment/contact residuals, work/dissipation balance, dt refinement, mass-ratio/boundary/refusal tests; no pinned-vertex masquerading as dynamic reaction. Freeze numerical tolerances first. | NOT_SUPPORTED publicly; private instantaneous impulse source/native campaign PASS. G5/schema, trajectory/contact/work/dt and needed G1/G4 leaves remain before public coupling. |
 | P6b — fluid–rigid coupling | P5 and its required rigid/contact profile. Independent of P6a. Start with one small dynamic rigid object, no cloth. | Momentum/reaction accounting, independent buoyancy or pressure reference where the model supports it, dt/particle refinement, density/free-surface limits and measured cost; correct external basin reaction. Freeze reference error first. | NOT_SUPPORTED; visual PBF alone is not a CFD accuracy claim. |
 | P7 — connected joints and control | Required P3/P4 leaf profiles, verified single fixed-axis dynamics and explicit plant model. Keep Robot FK/IK/timing in CAD Model. | First two-link conservation/reference case; then actuator units/saturation/sample time and tracking gates. Desired motion and actual response are separate arrays. Unreachable/saturated inputs remain visible. | BACKLOG. Reduced pendulum ODE checks do not qualify rigid multi-link dynamics. |
 | P8 — product consumers and measured validation | Only profiles that passed their own preceding gates; existing HOLD/owner authority separately resolved. | #1490 live World→Viewer where applicable; design revision/save/reopen/refusal retention; then separately controlled measurements with uncertainty and intended-use limits. | OUTSIDE CURRENT WORK / NOT_RUN. No deployment, hardware control or manufacturing approval. |
@@ -223,6 +223,69 @@ iterations, original input law or evidence in order to pass.
 P3 and P4 are independent acceptance tracks after the common rigid contract. P5 does not make either NO_GO pass.
 P6a and P6b require their actual contact dependencies, not the completion of every optional Physics feature. This
 keeps the roadmap usable without turning a shared API into an all-or-nothing engine claim.
+
+### Necessary qualification additions (G1–G7; 2026-11-02)
+
+These are concrete gaps or explicit prerequisites within P0–P7, not new public
+Worlds, packages or a second execution queue. The source audit is
+`examples/physics-world-p5-2276/ROADMAP-GAP-AUDIT.md`. Reuse already qualified
+receipts at their exact provider/profile scope; do not duplicate their work.
+A new row does not retroactively change any frozen campaign, tolerance or
+historical result.
+
+`CORE_REQUIRED` closes a gap in currently admitted behavior or evidence trust.
+`PROFILE_PREREQUISITE` applies only when the selected extension needs it.
+Future optional features and existing HOLD work remain outside the current
+merge completion set.
+
+| Gate | Priority and source gap | Dependency / finite exit | Current status |
+|---|---|---|---|
+| G1 — anisotropic rigid free rotation | **CORE_REQUIRED.** Rectangular boxes admit general angular velocity and unequal primitive-COM moments. Current world stepping applies external torque/impulse then advances orientation, with no torque-free gyroscopic update (`src/world.ts`, `src/validation.ts`). Sphere-spin checks do not qualify this freedom. | First freeze a supported rotation subset and finite isotropic control, off-axis axisymmetric box and triaxial box. Compare an independent analytic/Euler-equation reference, world angular momentum, energy, rotation and matched-time dt refinement. Quantify reference error and cost first. Preserve any initial failure; a separately reviewed admission restriction is an unsupported boundary, not a numerical PASS. Qualify before general off-axis box, coupled trajectory or connected-mechanism claims that use it. | **SOURCE_GAP_IDENTIFIED; numerical reproduction NOT_RUN.** Cubic original stacks and P3 spheres are isotropic; their exact contracts are unchanged. Capsule inertia remains its declared isotropic proxy. The instantaneous impulse precursor advances no orientation and gains no new gyro condition. |
+| G2 — admitted contact-law / CCD coverage | **CORE_REQUIRED.** P4's first32-point normal equilibrium is not evidence for every friction/restitution branch. Current laws include a0.5m/s restitution switch, minimum restitution, geometric-mean friction and static/dynamic limits; CCD has separate touch/overlap/parallel/endpoint branches. | Build a finite profile/pair/law/branch evidence table. Reuse existing sphere impact, sliding-to-rolling, support and exact geometry receipts. Qualify only missing required before/at/after switches, separating/closing/resting, reversed/zero tangent, stick/slip, grazing/corner/tied TOI and finite-boundary cases. Compare independent geometry/TOI, equal/opposite force moment and work; account external support and projection. Preserve existing laws and original iteration caps. | **COVERAGE_MAP_PENDING.** No universal collision/rotating-CCD expansion; original P4 eight-box exit remains required and NO_GO. |
+| G3 — COM / principal frame / tensor admission | **PROFILE_PREREQUISITE** for non-primitive inertia, offset COM or nonidentity collider frames. Current public inertia is primitive-COM or sphere-isotropic; collider local transforms are identity. An off-COM anchor does not establish arbitrary CAD mass properties. | Before such an extension, fix COM, principal axes, local/world tensor meaning, SI/MMGS conversion, symmetry/positive definiteness/physical moment inequalities and parallel-axis conversion. Use independent off-COM impulse/torque, translated/rotated controls and wrong-frame/nonphysical refusals. Migrate actual callers directly with no compatibility engine. | **NOT_SUPPORTED outside current primitives.** No full-tensor API/import is required when the selected plant's primitive COM law suffices. CAD/Studio ownership remains unchanged. |
+| G4 — rank / conditioning / lawful frame and scale controls | **PROFILE_PREREQUISITE** for expanded coupled or connected constraints. Existing solvers have different pivot/condition limits; none is a universal threshold. | Define independent constraint rank, permitted redundant rows, inconsistent/singular refusal and a unit-aware condition metric before selecting a solver. Verify exact small rank controls and full state/cache/log retention. Add common translation/proper-rotation and dimensional M/L/T similarity cases only where every transformed input, material and dt remains admitted. No hidden regularization/fallback or copied threshold. | **PER-PROFILE_PENDING.** The private impulse population keeps its own frozen condition4096 and13-case reference; no added transformations or calls are inserted into that completed campaign. |
+| G5 — typed mixed endpoints and coupled phase ownership | **PROFILE_PREREQUISITE** before public P6a/P6b integration. Existing Joint/JointState/commands name rigid body IDs; visual models reference only static colliders and commit one selected domain branch. | Freeze tagged rigid-anchor/cloth-vertex or rigid/fluid references, owner/index checks and SI exchange reports. Define force interval, actual physical substeps, solver iteration distinction, lambda/cache lifetime and host reaction accumulation. Apply each opposite impulse exactly once; inject first-side/both-side/pre-log failures and retain all accepted state/time/log. Then qualify the finite trajectory's drift/contact/work/dt gates. | **NOT_SUPPORTED publicly.** The private instantaneous50-attempt source/native campaign passes; it proves neither full-sheet coupling nor public state/schema, contact, trajectory or timestep accuracy. No clothId-as-bodyId or pin-as-dynamic-reaction shortcut. |
+| G6 — domain recording capability and reconstruction | **PROFILE_PREREQUISITE only if enabling domain/coupled recording.** Current cloth attach exceeds128KiB; fluid attach/domain restore refuse explicitly. P5 verified those refusals, not domain record/restore. | Keep a public supported/refused capability row. Before enabling, define typed-array wire, complete state/history for log reconstruction versus checkpoint, supported duration and bounded payload. Test below/at/over caps, atomic refusal, source/native record–restore–continue. Existing128KiB/1MiB/512frame/4096command caps and errors remain; do not raise them or introduce an old-reader fallback to obtain PASS. | **CURRENT REFUSAL QUALIFIED; ENABLEMENT_NOT_SUPPORTED.** This is not a missing P5 exit and does not require a new codec for the current work. |
+| G7 — provider / oracle / failed-prefix evidence trust | **CORE_REQUIRED for each new qualification.** Actual campaign review found partial memory sums, widened report/state gates and lost interrupted reference counts. A producer PASS or missing-count0 is insufficient. | Pin actual loaded source/native/reference/tool/declaration closure, input/raw-number authority and gate/budget definition before calls. Preserve physical, harness, resource and source failures separately. Authenticate original summaries; progress supplies durable lower bounds and unknown in-flight totals remain UNKNOWN. Distinguish payload charges from unmeasured heap/RSS. Check newly changed trust logic with bounded DATA tests, without repeating numerical prefixes to repair receipts. | **SELECTED PRIVATE CAMPAIGN PASS after recorded static repairs.** Other profiles retain their own proof limits, P3 missing historical operands and P4 historical raw-sign UNKNOWN. No blanket cross-runtime/determinism or physical-accuracy badge. |
+
+Dependency order: close the G1 admitted-rotation boundary and G2 finite coverage
+map before the corresponding general rigid/contact claim. Keep original P4
+work as its own acceptance track. Before a new P6/P7 plant runs, select only
+its needed G3/G4/G5 prerequisites; contact-free instantaneous work does not
+inherit unused contact or rotation-trajectory requirements. P6b must first
+state its physical mass/density/pressure/reaction law; visual unit weights or
+PBF lambda do not acquire kg/Pa meaning by coupling. G6 applies only to a
+recording capability being enabled. G7 applies to every new receipt.
+
+### Completion set, optional work and estimates
+
+Required completion remains the bounded P0–P7 scope plus applicable core and
+profile prerequisites above. Existing P3/P5 selected completions stay recorded;
+they are not reclassified as general engines. The owner-authorized develop
+merge stays conditional on the entire required completion set, affected actual
+source/native/API checks and preserved evidence. No partial or optional-feature
+count turns an outstanding required NO_GO into GO.
+
+Arbitrary compound/mesh collision, general rotating-body CCD, fluid–cloth
+coupling, self-contact, fracture, arbitrary CAD tensor imports, new material
+families and generic solver plugins are **FUTURE_OPTIONAL**, unless a separately
+selected plant actually requires one. They have no current implementation or
+merge deadline. First qualify the smallest chosen physical law; do not add all
+possible physics features as completion gates.
+
+Headless numeric host/runtime qualification is separate from Viewer/SDK/product
+execution. Record actual source/emitted/runtime/platform/performance scope and
+reuse valid receipts; cross-runtime raw-bit equality is not presumed. A new
+runtime/download/dependency still requires the existing policy check. P8,
+Studio, hardware, manufacturing and measured engineering/CFD acceptance remain
+**OUTSIDE_CURRENT_WORK / HOLD**; this document does not reactivate their owners.
+
+Report milestone completion, first failure and direction changes with the
+current qualified profile, remaining dependency and estimate confidence.
+Track main-slice completion and added gates separately; row counts are not a
+weighted percent. The next completion-date estimate must use actual G1/P4 and
+coupling results. No whole-engine date is asserted from authoring or a single
+instantaneous operator PASS.
 
 ### Fixed original stack and hinge exits
 

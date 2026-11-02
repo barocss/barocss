@@ -306,3 +306,21 @@ failures and exact proof limits are in the repository report
 P4 full eight-box settling remains NO_GO. Connected mechanisms, P6 coupling,
 P7 control, full Viewer acceptance, measured equipment validation and
 manufacturing approval remain unsupported or NOT_RUN. Existing HOLDs remain.
+
+
+## Additional qualification gates
+
+The [current package roadmap](/physics-evidence/api-roadmap.txt) names seven
+additional gates G1–G7. Core work covers already-admitted anisotropic box
+rotation, a finite contact-law/CCD coverage map and trustworthy provider/oracle
+failure-prefix evidence. Selected extensions must first qualify the COM/tensor,
+rank/conditioning, mixed-endpoint/substep and recording capabilities they use.
+Current capsule inertia remains an isotropic proxy; a free-rotation box gap
+must not be misreported as a measured capsule or old cubic-stack failure.
+
+These are scoped dependencies, not seven new public features. Existing P3/P5
+receipts and original gates remain. General mesh collision, rotating CCD,
+fluid–cloth coupling, self-contact, fracture and generic plugins remain optional.
+Studio, hardware and manufacturing HOLDs remain. The private contact-free
+impulse campaign passes its frozen source/native population; it advances no
+time/orientation and does not qualify public coupling or general rotation.
