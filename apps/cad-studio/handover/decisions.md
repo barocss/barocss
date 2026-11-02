@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D443: measure the current valid zero-distance cone STEP offset refusal and actual atomic retention](notes/step-cone-offset-boundary-2026-11-02/README.md).
+
 - [D442: disclose selected native STEP face/edge name character loss without changing writer bytes or source keys](notes/step-native-name-loss-2026-11-02/README.md).
 
 - [D441: bounded printable-ASCII literal STEP backslashes, unchanged opaque values and writer bytes](notes/step-literal-backslash-2026-11-02/README.md).
@@ -104,6 +106,8 @@ Numeric proof and limits remain in the canonical item notes.
 | D441 | Decode writer-profile literal backslashes once; preserve opaque values, producer goldens and geometry; qualify actual Open/Fit/Preview/Cancel | [Note](notes/step-literal-backslash-2026-11-02/README.md) |
 
 | D442 | Report native face/edge character loss through the existing list; preserve exact output bytes/source keys and qualify one actual Preview/Cancel | [Note](notes/step-native-name-loss-2026-11-02/README.md) |
+
+| D443 | Measure a valid zero-distance cone OFFSET graph, current named refusal and exact actual Studio retention; no new admission | [Note](notes/step-cone-offset-boundary-2026-11-02/README.md) |
 
 <!-- D418 LEGACY COMPATIBILITY BEGIN: fixed original heading sequence -->
 <details>
