@@ -1,0 +1,298 @@
+{
+  "id": "D437",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "d05a22f445d95d532165dd3c62647e414fa63217",
+  "roadmapRows": [
+    13
+  ],
+  "overallEstimatePercent": 43,
+  "scope": "Three distinct saved native shapes through STEP export, independent read and fresh reimport; one actual far-zero prepare/preview and Open of the real output",
+  "assessmentSHA256": "490c8d8945414ad94a3f166ed0e97bf9bcf10fc856a5b72e7991a4f7b9978257",
+  "matrixSHA256": "b4548938b7a3a5d6bf4a43547d2f351057f72ef37cce3ba5ce42f8956943b441",
+  "independentPlanSHA256": "3e33da0abe86d7cfab9c33f4647724a90721d1b6755f5a607c5b29a8d626e8ed",
+  "consumerPlanSHA256": "a8d0c5fca688971235dc931e628fee866b2627bfeddd899abfae3712877e5605",
+  "physicalDatabaseSHA256": "fd344458c64b4ad31784fc1b2e0ef4a831ad2e52ce1a7d51c6134c9fa38127e6",
+  "physicalHelperSHA256": "0c6ef903a8a7f1c13f68604dbf51361fd8e288a14cfc6efe9b6e397702650297",
+  "originalInputs": "Reuse D436 native captures and physical receipts; no original admission baseline rerun",
+  "uncertaintyPolicy": "Report original edge/vertex T, emitted uncertainty and fresh T separately; original geometry and V2 physical references remain fixed",
+  "numericDiagnostics": "Finite Number serialization is String-based and normalizes signed zero. Bit changes are measured, not an invented tighter acceptance target.",
+  "validationProperties": "Product declarations checked independently, never used as the sole oracle",
+  "producer": {
+    "result": "PASS_EXPORT_CAPTURE_ONLY",
+    "exports": 3,
+    "originalImports": 0,
+    "reimports": 0,
+    "standalonePhysicalCalls": 0,
+    "defaultValidation": "Enabled; its internal calculations are inherent writer behavior",
+    "pinsBeforeAfter": 732,
+    "nativeObjectsUnchanged": true,
+    "receiptSHA256": "bacdae58beb3ba55cbbf7beb581481e4e1fb435fb97accdfcb69d473ae389b1f",
+    "recipeSHA256": "0dd1e6563fbda2eb43c71886a6aace141cd4e2e44c228b6803bfc191d5f5b962",
+    "outputs": [
+      {
+        "case": "ordinaryR5",
+        "bytes": 11840,
+        "sha256": "f0fba92b03415f289fddc63b789ae73374aefef4db621dea82a05481460f028a"
+      },
+      {
+        "case": "tinyCentered",
+        "bytes": 10819,
+        "sha256": "4b3b0b2305b957aabe16d28cd810013dd5d7fe1611faa60e8fabb99d91672347"
+      },
+      {
+        "case": "tinyFar",
+        "bytes": 9870,
+        "sha256": "dbec8151fd68fd88f0cb7417d47a4f883cf448222b5c6e23d7b29aca1a74fa1d"
+      }
+    ]
+  },
+  "independentRead": {
+    "result": "PASS_BOUNDED_RAW_READER",
+    "files": 3,
+    "negativeControls": 3,
+    "negativePredicates": [
+      "declared mm",
+      "expanded knot multiplicity",
+      "independent validation-volume bound"
+    ],
+    "runtimeErrors": 0,
+    "sourcePinsBeforeAfter": 739,
+    "recipeSHA256": "2f50d2cd380fdc4f8c413566a49805255a5f9b6a0d181cf698ff45e15adea3f9",
+    "receiptSHA256": "c8ea1885c21fec06ef231e11f54d6f237c3e8d7da4e192d6b14d809f2516c0b0",
+    "readerSHA256": "db8e78f391937bafdc754a23184b3d8605c4fa10619857570478395ab1bfebd9",
+    "eachRawDecimalAndDecodedBinaryMode": {
+      "wholeCurveSpans": 12,
+      "localJacobianWitnesses": 6,
+      "exactCoxSamples": 294
+    },
+    "decodedBinary64FieldDifferences": [
+      0,
+      0,
+      0
+    ],
+    "declarations": "V/A/C pass immutable V2; bbox finite/order/unit/association checks pass; extrema accuracy not qualified",
+    "emittedUncertainty": [
+      1e-06,
+      1e-06,
+      9.9900000048e-06
+    ],
+    "bboxAnalyticExtremaDifferencesDiagnosticOnly": {
+      "ordinaryY": 0.005938,
+      "tinyCentered": 4.47e-07,
+      "tinyFar": 3.75e-07
+    },
+    "bboxScope": "Sampled/refined numerical extrema have no source-backed support-sample accuracy guarantee; no defect inferred from analytic differences alone"
+  },
+  "freshReimport": {
+    "result": "PASS_FRESH_REIMPORT_CAPTURE_AND_INDEPENDENT_AUDIT",
+    "imports": 3,
+    "densityReports": 6,
+    "sharedAreaCalls": 3,
+    "newExports": 0,
+    "originalImports": 0,
+    "strict": "All3 valid:1body/1shell/2faces/2loops/4coedges/2edges/2vertices",
+    "geometryFieldDifferences": 0,
+    "representationSourceAndIdDifferencesPerCase": [
+      56,
+      56,
+      56
+    ],
+    "edgeVertexTolerances": [
+      [
+        1e-07,
+        1e-07
+      ],
+      [
+        1e-07,
+        1e-07
+      ],
+      [
+        9.9900000048e-06,
+        9.9900000048e-06
+      ]
+    ],
+    "pinsBeforeAfter": 738,
+    "receiptSHA256": "a58360a8a474c57acb53fb55b72727dc8bd12555ebc416f2e4077372067c2478",
+    "summarySHA256": "b2496e334d48001c9be35358dfcc26a16fb9cbde19bf865e16874dcf2e87ca3e",
+    "independentAuditSHA256": "de5e0251df674ef9694025439818a362af8d0cf91cf33e4193c00a9718d45157",
+    "independentPhysicalChecks": 90,
+    "opaqueIdsMappedPerCase": 16,
+    "remainingFields": "Strictly identical after explicit one-to-one parent-based ID mapping; numeric data unchanged",
+    "ordinaryV1Target": "Still not achieved; immutable V2 uses pre-existing R5 policy"
+  },
+  "actualStudio": {
+    "result": "PASS_ACTUAL_PREVIEW_CANCEL_AND_EXACT_OUTPUT_OPEN",
+    "driverSHA256": "d3571da1fccc58fe77996f77d8f7a9e876d962dc1c00400b2f78ec374d6a5dbb",
+    "casesSHA256": "f4e8b17882c4e16c4fc57c24f7b13dfdb4b37c8611a19d02927d320f2faaeb35",
+    "runtimeSourcesSHA256": "65a891de1e064cb4c25ca8d7a11e2f62ffd860534fff1d647e5e9fcda8b90e24",
+    "readinessSHA256": "cb1229d228fd0eac480602001cbde79a935000680caf997e0392c14e4a0cf7a0",
+    "inputPins": 770,
+    "runtimeSources": 35,
+    "preexecAudit": "ACK no blocker",
+    "sourceRouteSHA256": "110105502f16e301bb834645c71df98080986a3f7b3d7ae159d9fb867b746028",
+    "sourceRoute": "Public toolbar\u2192prepare\u2192EngineClient.step\u2192worker snapshot native BRep\u2192kernel writer; no source passthrough/display-mesh fallback for selected native input",
+    "receiptSHA256": "d4ae5dda485ad67de252afd549fd1c7bbeb0c4f08cc6772ed3225a5441b5bf84",
+    "summarySHA256": "f4de60959b474f65ae8d17b4c8f88991e71036e73e0db2ee2bff8df34851630a",
+    "executedRecipeSHA256": "cdbb5a7cb88d9f66c7321ed46a4a86d27bbc624204805e383ba6d7b814861a75",
+    "runs": 1,
+    "opens": 2,
+    "previews": 1,
+    "cancels": 1,
+    "screenshotsViewedByRoot": 3,
+    "stepRequestReplyId": 5,
+    "sourceSignature": "e8025858d0e3ead7",
+    "publicReopen": {
+      "readId": 7,
+      "revision": 4,
+      "evaluateId": 8,
+      "evaluateRevision": 5,
+      "massRef": 3
+    },
+    "preparedOutput": {
+      "bytes": 9937,
+      "sha256": "c1ad48b9bad71c0219c1ad125f9eac487d90c0634472e6f90830d7837bb34e00",
+      "differsFromOffline": true,
+      "finalDiskHashExact": true
+    },
+    "cancelRetention": "Exact whole held document/native/seven fields/source/camera bytes/effects; no camera restoration",
+    "preferenceBoundary": "Existing studio.stepMeshes absent\u2192auto is observed; all-storage retention is not claimed",
+    "physicalChecks": 15,
+    "physics": "PASS unchanged V2 tinyFar, matched MMGS values and density2.7 SI metadata",
+    "display": {
+      "vertices": 522,
+      "triangles": 964,
+      "degenerateTriangles": 0,
+      "vertexSampleError": 5.68328e-10,
+      "sampleLimit": 1e-07
+    },
+    "frozenAfterCleanupCurrentHashes": 1040,
+    "executedInputsExact": 770,
+    "passiveRuntimeBodiesAudited": 67,
+    "missingDirectSources": [
+      "apps/cad-studio/test/flow-helper.mjs"
+    ],
+    "errors": 0,
+    "consoleErrors": 0,
+    "sourceChanges": 0,
+    "downloads": 0,
+    "cleanup": "Context, Chrome, server closed; own holder45815 absent; gate none",
+    "auditSHA256": "04a083b3d1cfd59d3bce38488f732b56155df6db9bf62261afe4172046ded75a",
+    "optionalFieldBoundary": "Undefined queried fields compare at runtime; JSON omission does not establish historical presence"
+  },
+  "productEdits": [],
+  "models": {
+    "routineProducerAndDriver": "GPT-6.1 Sol Medium",
+    "geometryAndIndependentReader": "GPT-6.1 Sol High"
+  },
+  "scopeLimits": [
+    "No general STEP/assembly/PMI/source-history qualification",
+    "No download button or external SDK/OCP",
+    "No new tolerance, fitting, degree/pole, schema, dependency, develop integration or release"
+  ],
+  "preexecCorrections": [
+    {
+      "scope": "Independent reader bbox predicate",
+      "result": "NOT_RUN",
+      "oldDraftSHA256": "739f2bb9dde3667bc96a67087a5e527406494c068851ad13c4cb331e3321edee",
+      "correction": "Remove unsupported C\u00b1R accuracy assertion before any reader execution; keep finite/order/unit/association and diagnostic differences",
+      "productionChange": false
+    },
+    {
+      "scope": "Independent retained PhaseC audit",
+      "result": "Initial opaque nested-ID assertion failed",
+      "correction": "Add parent-matched surface/curve IDs to one-to-one mapping; no numeric field ignored or SUT rerun",
+      "newAuditResult": "PASS",
+      "productionChange": false
+    },
+    {
+      "scope": "Root final checks01 admission",
+      "result": "NOT_RUN_RESOURCE_LOAD",
+      "holder": "none",
+      "observedLoad": 71.15,
+      "limit": 40,
+      "leaseAcquired": false
+    },
+    {
+      "scope": "Actual-byte face binding",
+      "result": "First exact signature assumption stopped",
+      "firstFailureSHA256": "285c95f81ca16da57d171297fa7c9368621033bef09611160276006ea6c08b6e",
+      "diagnosticSHA256": "09e352db85647d37576e87c19e4570adc417e5d2adeb7136b93e34cf1d36219e",
+      "correction": "Use source-derived alias/connectivity binding; preserve and prove actual9weights under original contracts",
+      "retry": "PASS, no product/browser rerun or numeric limit change"
+    }
+  ],
+  "verificationTier": "Measurement with independent source/math/reader controls and actual Studio; no product code changes",
+  "rootFinalChecks": {
+    "result": "PASS",
+    "scriptSHA256": "c7840c0d1adf3bf67fae2adf55e6639c4f039d82d56b311730c348ef9e14eb98",
+    "driverSyntax": "PASS",
+    "driverLint": "PASS",
+    "cadModelTypes": "PASS after last actual-driver edit",
+    "navigation": "PASS before final index links",
+    "diffCheck": "PASS"
+  },
+  "independentActualRead": {
+    "result": "PASS_ACTUAL_FIELDS_UNCHANGED_CONTRACT",
+    "outputSHA256": "c1ad48b9bad71c0219c1ad125f9eac487d90c0634472e6f90830d7837bb34e00",
+    "receiptSHA256": "b1673b31e874db2da06e095f0a74e3f930c5076868134bab6851534be2c4f5a3",
+    "recipeSHA256": "9df4cb3dbb8929c3cd18c5883e8e855300115f8df1b9338fef689c1ce4e2d8c0",
+    "retryPinsBeforeAfter": 1920,
+    "priorPinsUnchanged": 1913,
+    "binding": "Exact source-backed n0 prefix per face/compound-edge alias plus connectivity, not closeness",
+    "eachRawAndDecodedMode": {
+      "wholeCurveSpans": 4,
+      "localJacobianWitnesses": 2,
+      "exactCoxSamples": 98
+    },
+    "decodedNativeShellSampleMax": 5.1775e-11,
+    "nativeShellReserve": 1.574e-10,
+    "rawSampleMax": 8.0346e-11,
+    "rawSampleLimit": 1e-07,
+    "actualVsSavedNodeFaceDiagnostic": {
+      "firstFaceWeightDifferences": 9,
+      "ulpsEach": 1,
+      "maxAbsolute": 1.1102230246251565e-16,
+      "controlDegreeKnotDimensionDifferences": 0,
+      "secondFaceDifferences": 0
+    },
+    "actualWeightsUsedWithoutSubstitution": true,
+    "firstFailureSHA256": "285c95f81ca16da57d171297fa7c9368621033bef09611160276006ea6c08b6e",
+    "diagnosticSHA256": "09e352db85647d37576e87c19e4570adc417e5d2adeb7136b93e34cf1d36219e",
+    "sourceRule": "part/part-mesh.ts27,32\u201334 import prefix per alias; actual resolved node is n0",
+    "scope": "Curves continuously certified; local Jacobian and surface samples are not global trim/regularity proofs"
+  },
+  "finalIndependentReceiptSHA256": "535fe510312bb4f845553fc8c9c6aa3c6a8a9186b9b5ea8099468960de40e0b9",
+  "finalIndependentReviewSHA256": "20addc17c3465fed13dafd67132ae99cccab1063f23d65a8853037e5e3f2a5c7",
+  "commands": {
+    "environment": "Node22.19.0; one owned gate; global idle/load<40 and sole-own post-acquire admission",
+    "export": "D437_EXPORT_GRANTED=1 node /tmp/barocss-d437-probe/offline/export-native-only.mjs /tmp/barocss-d437-probe/offline/export-run01 /tmp/barocss-d437-probe/offline/export-readiness.json",
+    "independentRawRead": "zsh /tmp/barocss-d437-independent/phaseB-run01/run-heavy.sh",
+    "reimport": "D437_REIMPORT_GRANTED=1 node /tmp/barocss-d437-probe/offline/reimport-emitted-only.mjs /tmp/barocss-d437-probe/offline/reimport-run01 /tmp/barocss-d437-probe/offline/reimport-readiness.json",
+    "actual": "SPHERE_EXCHANGE_SOURCE_FROZEN=1 node /tmp/barocss-d437-probe/preview-reopen-browser.mjs /tmp/barocss-d437-probe/studio-run01 /tmp/barocss-d437-probe/studio-exchange-cases.json /tmp/barocss-d437-probe/studio-source-manifest.json",
+    "actualEnvironment": "Existing PW_DIR/CHROME and CAD_STUDIO_CHAT_PORT=52391; worktree frozen through cleanup; outputs only/tmp",
+    "independentActualRead": "zsh /tmp/barocss-d437-independent/actual-read02/run-heavy.sh",
+    "modelTypes": "pnpm --dir packages/barocss-cad-model type-check",
+    "navigation": "node apps/cad-studio/handover/scripts/check-navigation.mjs"
+  },
+  "notRun": [
+    "Fresh product unit/full-kernel suite: no code changes, prior checkpoint reused",
+    "External STEP SDK/OCP and customer corpus",
+    "Browser download or Save",
+    "Remote CI verification, develop integration and release",
+    "BBox enclosure/accuracy witness campaign, global trimming, material cavity, hardware picking"
+  ],
+  "delivery": {
+    "branch": "local/cad-dev",
+    "target": "origin/local/cad-dev",
+    "method": "Normal commit and push; exact delivery SHA in Git history and issue evidence comment",
+    "rawEvidenceCommitted": false
+  },
+  "finalNavigation": {
+    "result": "PASS",
+    "rows": 34,
+    "links": 2452,
+    "newBroken": 0,
+    "knownMissing": 1,
+    "archives": "Both through-D417 hashes unchanged"
+  }
+}

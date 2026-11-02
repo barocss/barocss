@@ -1,0 +1,248 @@
+{
+  "workId": "D422",
+  "status": "QUALIFIED_BOUNDED_IMPORT_AND_MESH_ARITHMETIC",
+  "tier": "full",
+  "baseline": "8350c8e245ca2c35a71460c01e4be8772576661d",
+  "roadmapRows": [
+    13,
+    16
+  ],
+  "overallEstimate": {
+    "percent": 43,
+    "method": "(7 bounded closeouts + 15 partial rows * 0.5) / 34; equal row weights; not release acceptance"
+  },
+  "models": {
+    "geometryAuthorAndIndependentReviewer": "GPT-6.1 Sol High",
+    "consumerAndFlow": "GPT-6.1 Sol Medium"
+  },
+  "node": "v22.19.0",
+  "sourceHashes": {
+    "packages/barocss-cad/src/io/step-import.ts": "a163d0a01e7b25b7f601d816b123d653138120f6a52e5d3138c2c802a6b4112a",
+    "packages/barocss-cad/src/brep/brep-tessellate.ts": "9a972488bf801b06d2504fb09797e05cee068ff3c80eec4da8fd289f8efee9ca",
+    "packages/barocss-cad/src/io/step-offset-internal.ts": "061dee76cda7c182c4def841e57e4092bcf29886c9c1d7e2f686c6e50fa17fa8",
+    "packages/barocss-cad/test/step-sphere-coverage-fixtures.mjs": "d759db27a4de1450bafe5a09599b024334b1489945a12ca9caa6fe5a06ce22d1",
+    "packages/barocss-cad/test/step-sphere-coverage.test.mjs": "e920d44ff140ed7eb5525b566a793c6f4c908625c4df1e9b07309a5a7dab32a8",
+    "packages/barocss-cad/test/brep-mesh-normal-fixtures.mjs": "2a6b8a848a5b864fed36dc147791b83cce709702278024dae7785a39cd844657",
+    "packages/barocss-cad/test/brep-mesh-normal-child.mjs": "0ef85e2f6dd7cb59f23e46e2f4d71cd153f4fb5adc60423009337bb19039aeab",
+    "packages/barocss-cad/test/brep-mesh-normal-translation.test.mjs": "874b125142a47c7f1695b374dcf316190c3c40c1f34a4e86c65b97b137365493",
+    "apps/cad-studio/test/step-sphere-hemisphere-browser.mjs": "0e50cca6eda04ecf2e81a636dfa1e571653fbf736d2d0a525095cdca6f5e222f"
+  },
+  "changes": [
+    "Closed-ring first-point anchoring only in existing analytic equal-gap selection.",
+    "One private per-face normal-only control net; same-sign factor-two axes use exact Sterbenz subtraction.",
+    "World evaluator, inversion, positions, finite steps, pole fallback, thresholds, quality and refinement caps unchanged."
+  ],
+  "units": {
+    "length": "mm",
+    "area": "mm^2",
+    "volume": "mm^3",
+    "time": "ms",
+    "angle": "rad"
+  },
+  "authorChecks": {
+    "hemisphereFocused": "PASS 8/8",
+    "normalFocused": "PASS 16/16",
+    "affectedExisting": "PASS 4/4",
+    "cadLibraryBuild": "PASS full tsc/declarations/emission",
+    "scopedLint": "PASS 0 errors/0 warnings",
+    "codeShape": "PASS unchanged119/32/269/69",
+    "diffCheck": "PASS"
+  },
+  "independentChecks": {
+    "sourceMathRounds": "PASS design, source, executable and final flow review",
+    "hemisphereControls": "PASS scoped6/6; original7-case failed oracle retained",
+    "closedRingFractionIdentities": "PASS 8/8",
+    "literalMeshes": "PASS 3/3",
+    "privateRangeControls": "PASS 4/4",
+    "exactDyadicCoordinates": "PASS108",
+    "radialNormalSamples": 1408,
+    "minimumRadialDot": 0.9999999990866464,
+    "normalAngleThreshold": "0.1 degree",
+    "exactWorldPositions": 1440,
+    "exactSharedBoundaryPositions": 208,
+    "authoredBrepUnchanged": true
+  },
+  "mutations": [
+    {
+      "name": "restore world-coordinate ring area",
+      "unique": 1,
+      "result": "EXPECTED raw ERR_ASSERTION in3 independent controls; no crash"
+    },
+    {
+      "name": "restore world-coordinate normal reads",
+      "unique": 1,
+      "result": "EXPECTED raw child ERR_ASSERTION, not timeout/crash",
+      "normalDot": 0.9983284423817832,
+      "threshold": "cos(pi/180)",
+      "elapsed": 103.062875,
+      "wholeOldFileIdentityClaimed": false
+    }
+  ],
+  "timingObservations": {
+    "oldFarImport": 3.675,
+    "oldFarTessellation": "TIMEOUT20000",
+    "newFarTessellationAuthor": 49.754667,
+    "newFarTessellationIndependent": 39.832375,
+    "farTriangles": 1020,
+    "oldCenteredModelRead": 204,
+    "oldFarModelRead": "TIMEOUT20000",
+    "newCenteredModelRead": 214.065,
+    "newFarModelRead": 54.734,
+    "modelReadControls": "PASS2/2 same solids2, quality8, eager/shared read request and 20s child limit; finite nonempty meshes"
+  },
+  "finalStatic": {
+    "modelTypesAfterFinalTestEdit": "PASS",
+    "driverSyntax": "PASS",
+    "driverLint": "PASS 1file 0errors 0warnings",
+    "freshInspectorInputs": 458,
+    "requiredGraph": "PASS Model/importer/tessellator",
+    "pythonSyntax": "PASS",
+    "handoverNavigation": "PASS 34 row pages, new broken links0; one known archived missing evidence path retained"
+  },
+  "actual": {
+    "status": "PASS",
+    "run": "/tmp/barocss-d422-browser-run02",
+    "workflow": "Direct original STEP Open; tiny-far then centered control; no native-project workaround",
+    "states": 2,
+    "frozenFiles": 746,
+    "beforeAfterAndCleanupEqual": true,
+    "criticalSourceHashesMatch": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "changes": 0,
+    "downloads": 0,
+    "fontStylesheetsIntercepted": 1,
+    "fontAssets": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "independentCoxSamples": 60,
+    "duplicateHemisphereCanaries": 2,
+    "sampleTolerance": 1e-07,
+    "sampleToleranceMeaning": "D0/radius comparison threshold, not imported edge tolerance",
+    "oracle": {
+      "status": "PASS",
+      "units": {
+        "length": "mm",
+        "area": "mm^2",
+        "volume": "mm^3",
+        "parameter": "dimensionless"
+      },
+      "sampleTolerance": 1e-07,
+      "cases": [
+        {
+          "name": "tiny-far",
+          "faces": [
+            {
+              "name": "n0.ball#1",
+              "samples": 15,
+              "sign": -1,
+              "minimumInteriorFraction": 0.26822444599035167,
+              "maximumRadiusResidual": 4.589297496714051e-11,
+              "maximumProductD0Difference": 3.033119495387459e-10
+            },
+            {
+              "name": "n0.ball#2",
+              "samples": 15,
+              "sign": 1,
+              "minimumInteriorFraction": 0.2682244459903517,
+              "maximumRadiusResidual": 4.589297496714051e-11,
+              "maximumProductD0Difference": 4.426559223168884e-10
+            }
+          ],
+          "midpointSeparation": 0.002000000073604612
+        },
+        {
+          "name": "centered-control",
+          "faces": [
+            {
+              "name": "n0.ball#1",
+              "samples": 15,
+              "sign": -1,
+              "minimumInteriorFraction": 0.26822444636853215,
+              "maximumRadiusResidual": 1.734723475976807e-18,
+              "maximumProductD0Difference": 1.788112030672749e-18
+            },
+            {
+              "name": "n0.ball#2",
+              "samples": 15,
+              "sign": 1,
+              "minimumInteriorFraction": 0.2682244463685321,
+              "maximumRadiusResidual": 1.734723475976807e-18,
+              "maximumProductD0Difference": 1.788112030672749e-18
+            }
+          ],
+          "midpointSeparation": 0.019999999999999997
+        }
+      ],
+      "duplicateHemisphereControls": [
+        {
+          "name": "tiny-far",
+          "detected": "two patches occupy the same hemisphere"
+        },
+        {
+          "name": "centered-control",
+          "detected": "two patches occupy the same hemisphere"
+        }
+      ],
+      "productImports": 0,
+      "scope": "Finite interior D0 samples, not global coverage or mass acceptance"
+    },
+    "visual": "Open/fresh one-body UI confirmed. Tiny-far shape not discernible; centered small sphere appears as a point. Tiny-body rendering quality NOT_ACCEPTED; cause not diagnosed."
+  },
+  "retainedFailures": [
+    "Initial scratch enumeration formatting error: no geometry conclusion.",
+    "Exact old importer same-hemisphere assertion failure.",
+    "Initial independent7-case 6PASS/1FAIL: native support midpoint expectation excessive for compound trim support.",
+    "Ordered compound native/scalar equality assertion failed; later mapping proves exact unordered geometry with only roundoff-scale scalar deltas.",
+    "Actualrun01 first Open TIMEOUT60000, initial bracket unchanged; 746 inputs match cleanup, errors/changes/downloads0, all resources closed.",
+    "Consumerdiagnostic01 far Model and tessellation TIMEOUT20000; only owned children terminated.",
+    "Normal author bundle setup error, tilted-pole oracle13/14 and pinned-boundary position oracle11/16; preserved before corrected final16/16."
+  ],
+  "reportOnlyChanges": {
+    "actualDriverBefore": "85a88ef163a8301d99d01cd0a8281711b6bfcf424a6dbb2531a2ee8ecf939123",
+    "actualDriverAfter": "0e50cca6eda04ecf2e81a636dfa1e571653fbf736d2d0a525095cdca6f5e222f",
+    "decodedJavaScriptASTEqualModuloTwoReportStrings": true,
+    "pythonASTEqualModuloOneReportKey": true,
+    "asRun01SourcesPreservedOutsideGit": true,
+    "finalNormalTestDelta": "labels/comments/stdout logging only after exercised bundle; no assertions/options/TS inputs changed; final syntax/lint passed"
+  },
+  "nextAccuracyBoundary": {
+    "decision": "D423",
+    "status": "NOT_ACCEPTED",
+    "case": "Compound rotated tiny sphere at mixed far center; near-pole longitude contaminates support extent",
+    "volume": 5.004820040126272e-09,
+    "expectedVolume": 4.188790204786391e-09,
+    "area": 1.769173067634306e-05,
+    "expectedArea": 1.2566370614359172e-05,
+    "supportSpanApprox": "253.4 degrees each; support extent alone is not a missing-trim-coverage proof",
+    "oldCurrentUnorderedPatchGeometryExact": true,
+    "volumeDeltaCurrentMinusOld": 1.075334796318936e-23,
+    "areaDeltaCurrentMinusOld": -2.0328790734103208e-20,
+    "order": "Resolve accuracy before spherical OFFSET admission"
+  },
+  "notRun": [
+    "Spherical OFFSET or new STEP family admission",
+    "Generic kinked C0/high-degree/arbitrary translation certification",
+    "Whole kernel/Model/Studio suites: unchanged B-rep topology core; affected checks used",
+    "OCP or new downloads",
+    "Further develop merge, release, npm publish or deployment"
+  ],
+  "ocpCleanup": {
+    "/Users/user/.cache/barocss-step-reader": true,
+    "/tmp/barocss-d406-native-source": true,
+    "/tmp/barocss-d406-native-build": true
+  },
+  "issueReview": "#2263 remains OPEN: assemblies, presentation/PMI, general offsets, vertex loops and seam holes are incomplete. #2248/#2266 remain separate open research/widening scope.",
+  "commands": [
+    "zsh /tmp/barocss-d422-mesh-author/run04.sh",
+    "zsh /tmp/barocss-d422-mesh-author/run-final.sh",
+    "zsh /tmp/barocss-d422-independent/mesh-final01/run.sh",
+    "pnpm --filter @barocss/cad-model type-check",
+    "node apps/cad-studio/test/step-sphere-hemisphere-browser.mjs /tmp/barocss-d422-browser-run02 /tmp/barocss-d422-consumer/fixtures",
+    "node apps/cad-studio/handover/scripts/check-navigation.mjs"
+  ],
+  "artifacts": "Raw inputs/logs/bundles/native objects/screenshots stay under /tmp/barocss-d422-*; no raw evidence committed. Heavy jobs serial via gate.sh with load<40. No worktree writes during actual runs."
+}

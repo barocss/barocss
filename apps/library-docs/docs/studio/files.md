@@ -91,7 +91,9 @@ Use **Untrim** only when you intend to remove a surface's trims.
 **Export STEP** prepares the current evaluated design and opens one panel in the right dock. Check its schema,
 millimetre units and applicable loss report. This profile does not transfer native editing history, assembly hierarchy
 and shared definitions, user body labels, colours, semantic PMI or named datum systems. The file/product name and
-generated face names are separate from user body labels. Only the panel's **Export** action writes the file.
+generated face names are separate from user body labels. Names inside this STEP profile use printable ASCII.
+Other characters in the STEP header file name and product name become underscores, and the panel reports that loss.
+The download name shown in the panel is separate and remains as entered. Only the panel's **Export** action writes the file.
 **Cancel**, **Close** or Escape discards the preparation. An edit, Open or New also clears it; prepare again for the
 current design.
 

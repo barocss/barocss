@@ -67,8 +67,8 @@ function within(points: Iterable<readonly number[]>, lo: readonly number[], hi: 
   for (const p of points) for (let k = 0; k < 3; k++) if (p[k] < lo[k] || p[k] > hi[k]) return false;
   return true;
 }
-/** The smallest axis box holding the B-rep: exact on edges, planar faces and whole patches; trimmed curved faces by their mesh at 16 segments a quarter. */
-export function brepBounds(brep: Brep): { min: Point; max: Point } {
+/** Keep the legacy numerical calculation and record when it uses trimmed mesh samples. */
+function boundsResult(brep: Brep): { box: { min: Point; max: Point }; usedTrimMesh: boolean } {
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (const v of brep.vertices) grow(lo, hi, v.point);
   // (A curve or patch whose control net lies within the box so far adds nothing: most of them, once the vertices are in.)
@@ -80,6 +80,18 @@ export function brepBounds(brep: Brep): { min: Point; max: Point } {
     if (whole(f)) { patchInto(f.surface, lo, hi); continue; }
     rest.add(f.id);
   }
-  if (rest.size) { const P = tessellateBrepWithParameters(brep, { segmentsPerQuarter: 16 }, rest).mesh.positions; for (let i = 0; i + 2 < P.length; i += 3) grow(lo, hi, [P[i], P[i + 1], P[i + 2]]); }
-  return { min: lo as Point, max: hi as Point };
+  const usedTrimMesh = rest.size > 0;
+  if (usedTrimMesh) { const P = tessellateBrepWithParameters(brep, { segmentsPerQuarter: 16 }, rest).mesh.positions; for (let i = 0; i + 2 < P.length; i += 3) grow(lo, hi, [P[i], P[i + 1], P[i + 2]]); }
+  return { box: { min: lo as Point, max: hi as Point }, usedTrimMesh };
+}
+
+/** Legacy numerical bounds; trimmed curved faces use their mesh at 16 segments a quarter. */
+export function brepBounds(brep: Brep): { min: Point; max: Point } {
+  return boundsResult(brep).box;
+}
+
+/** Private writer policy: trimmed mesh samples do not qualify a STEP bounding-box declaration. */
+export function stepValidationBounds(brep: Brep): { min: Point; max: Point } | undefined {
+  const result = boundsResult(brep);
+  return result.usedTrimMesh ? undefined : result.box;
 }

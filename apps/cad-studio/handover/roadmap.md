@@ -4,61 +4,115 @@ This is the single current status index. Row pages describe scope and evidence n
 Historical statements remain verbatim in the [through-D417 archive](roadmap-history-through-D417.md).
 A bounded closeout does not close an entire feature family, format, standard or release.
 
+## Active priority authority — D445
+
+The [D445 core CAD priority decision](notes/core-cad-priority-2026-11-02/README.md) and [Claude handoff](notes/claude-handoff-2026-11-02/README.md) are the current continuation entry points. This owner-selected order supersedes only the former active sequence **10 → 11 → 13 → 14**. Other operating constraints, tolerances and owner gates remain unchanged. The 34 row IDs and scope links remain the scope inventory.
+
+Sketch editing, solid modeling, feature history, native files and local-project versions already exist. An open feature family or collaboration scope does not mean those daily functions are absent. Report reproduced defects separately from unverified breadth and unsupported extensions.
+
+| Priority | User outcome and boundary | Related rows |
+| --- | --- | --- |
+| C1 | Reliable everyday part workflow: sketch dimensions/constraints → extrude/revolve → union/cut/hole/fillet → upstream dimension edit/rebuild/reference retention → measure/UndoRedo/refusal retention → native/local-project Save and fresh Open. | 07, 08, 09, 12, 16, 30 |
+| C2 | Frequent modeling robustness and throughput: ordinary Boolean, fillet, chamfer, hole, pattern, shell and draft within current public scopes. Kernel changes address concrete blockers; preserve #2258/#2266 boundaries. | 03, 07, 08, 20, 21 |
+| C3 | Useful engineering handoff: ordinary STEP/STL/3MF units, explicit losses and independent reads; part drawing dimensions, sections and model updates. Uncommon cone/format variants wait unless a real task or C1 needs them. | 01, 02, 04, 11, 12, 13 |
+| C4 | Basic assemblies: placement, mates, BOM and related drawings; no Motion activation. | 10 |
+| C5 | Usability and scale: Viewer/GPU, selection, latency, large assemblies and the later owner UI discussion. Daily functional defects may move to C1/C2; no workspace/menu/icon redesign starts now. | 05, 06, 15, 20, 21, 22, 23, 32 |
+| C6 | Advanced surfaces, modeling and generality. A targeted core-enabling fix may move earlier only when needed; broad NURBS/fitter and existing HOLDs remain. | 07, 08, 24, 25, 30, 31, 34 |
+| C7 | Ecosystem: customer files, formats, catalogs and PDM retain owner gates. | 26, 28, 29 |
+| C8 | Separately held manufacturing, paths, Motion, experiments, release and browser CI. Preserve delivered proofs without automatic activation. | 14, 17, 18, 19, 27, 33 |
+
+**D446: [qualified develop integration candidate](notes/develop-integration-2026-11-02/README.md); verify the final PR/remote receipt before continuation.** After integration, **D447 / C1-1** is one ordinary bearing-support/bracket acceptance audit. Reuse D349, D377, D380 and valid retained receipts first; map the linked everyday steps, run only uncovered steps, and fix the first reproduced failure. Do not restart implemented features or declare whole-loop PASS before coverage is established. Use the existing local-project save route and approved receipts; no new external or browser downloads are authorized here.
+
+The provisional nonzero-cone D445 source-only investigation is deferred, with no code change or SUT execution. Published D445 is this priority/handoff decision. D443/D444 proofs and all held tracks remain unchanged.
+
 ## Current navigation — authority
 
-- Current qualified product checkpoint: [D419](notes/step-analytic-offset-2026-11-01/README.md).
+- Latest bounded exchange admission: [D444 exact-zero direct cone frustums](notes/step-cone-zero-offset-2026-11-02/README.md), QUALIFIED for actual parsed-zero provenance, unchanged legacy native output, narrow source/representation guards, independent mutations and one actual acceptance/underflow-refusal flow. General nonzero cone offsets remain open.
+
+- Latest bounded exchange boundary measurement: [D443 direct cone zero-offset refusal](notes/step-cone-offset-boundary-2026-11-02/README.md), QUALIFIED for the current native guard, exact identity graph and one actual control/refusal-retention flow. New cone admission and nonzero offset qualification remain open.
+
+- Latest bounded exchange loss correction: [D442 native face/edge names](notes/step-native-name-loss-2026-11-02/README.md), QUALIFIED for one truthful existing-list disclosure, unchanged output bytes/source keys, scoped tests and one actual Open/Fit/Preview/Cancel. General Unicode writing and complete name/presentation transfer remain open.
+
+- Latest bounded exchange string correction: [D441 ASCII literal backslashes](notes/step-literal-backslash-2026-11-02/README.md), QUALIFIED for existing writer-profile literals, opaque-value preservation, unchanged producer bytes and one actual Open/Fit/Preview/Cancel with independent raw tokens. Unicode/directive interpretation and product metadata remain open.
+
+- Latest bounded current robustness profile: [D440 original case126b](notes/fuzz-case126-current-2026-11-02/README.md), QUALIFIED for one current native result, exact existing-node representation and public Open/Fit with root visible-model review. Historical D423 denominator cause remains UNKNOWN; full-kernel authority stays D433.
+
+- Latest bounded exchange/file correction: [D439 quoted STEP strings](notes/step-quoted-section-tokens-2026-11-02/README.md), QUALIFIED for literal supported face names, real comments, scoped tests and one actual Open/Preview/Cancel flow; no general grammar or product-name claim.
+
+- Latest bounded exchange correction: [D438 validation-box omission](notes/step-validation-box-2026-11-02/README.md), QUALIFIED for scoped candidate checks, independent source/byte and actual-file graph reads, plus one actual Studio Preview/Cancel flow. Trimmed-mesh bounds no longer become unsupported STEP declarations; existing loss reporting shows the absence.
+
+- Latest bounded exchange measurement: [D437 spherical native STEP round trips](notes/step-sphere-roundtrip-2026-11-02/README.md), QUALIFIED for three offline shapes and one actual far preview/Cancel/reopen flow with a separate actual-byte read. Bbox accuracy remains unqualified.
+- Latest bounded exchange admission: [D436 direct spherical STEP offsets](notes/step-sphere-offset-2026-11-02/README.md), QUALIFIED for the selected direct positive-radius/CIRCLE profile with exact boundary checks, independent mutation review and one four-state Studio flow. The original centroid target failure and its explicit existing-policy correction remain recorded.
+- Latest accuracy prerequisite: [D435 STEP sphere dimensional-loss refusal](notes/step-sphere-precision-2026-11-02/README.md), BOUNDED QUALIFIED: exact rank guard,96scoped tests, independent mutation/source review and one four-state Studio refusal/retention flow.
+- Latest bounded GPU/native checkpoint: [D434 relative raster frame](notes/gpu-relative-frame-2026-11-02/README.md), QUALIFIED for six declared profiles through scoped actual runs and certified reuse; far render/pick, native lines and positive grid pass. Unsupported/general precision remains open.
+- Latest native accuracy/full-kernel checkpoint: [D433 conditioned polyhedral inertia](notes/planar-inertia-conditioning-2026-11-02/README.md), bounded source, full-kernel and actual Model/properties qualification. D434 changes no B-rep core.
+- Latest CPU camera checkpoint: [D432 relative project/ray queries](notes/camera-query-precision-2026-11-02/README.md), bounded CPU PASS; its measured raster boundary is addressed by D434 for the declared profile.
+- Previous CPU checkpoint: [D431 retained Viewer coordinates and world hits](notes/viewer-cpu-world-precision-2026-11-02/README.md), bounded CPU PASS; original raster failures remain in its historical record.
+- First-loss diagnosis: [D430 far-coordinate first loss](notes/far-gpu-first-loss-2026-11-02/README.md), retained measured failure before D431/D432/D434.
+- Image-quality control: [D429 orthographic depth conditioning](notes/orthographic-depth-conditioning-2026-11-02/README.md), bounded centered effects-ON artifact correction; exact ROI remains passing in D434.
+- Latest measurement: [D428 orthographic AO/bounds interaction](notes/orthographic-ao-artifact-2026-11-02/README.md), bounded diagnostic PASS; its selected correction is D429.
+- Current qualified bounded camera checkpoint: [D427](notes/small-camera-scale-2026-11-02/README.md), centered fit/visibility/picking. General raster quality remains HOLD. D426 retains native Model world-coordinate proof; D433 is the latest full-kernel run.
 - D418 documentation organization: **QUALIFIED**, [record](notes/roadmap-index-2026-11-01/README.md).
-- Operating rules and priority remain in the unchanged [handoff](notes/codex-handoff-2026-11-01/README.md).
+- D423 historical mass source checkpoint: **scoped source PASS; original Studio/full-backend HOLD**, [record](notes/mass-translation-2026-11-01/README.md). D424 current source has full-kernel and two bounded actual flow PASS; original failure cause remains unexplained.
+- D420 owner-approved develop integration: **MERGED**, [PR #2274](https://github.com/barocss/barocss/pull/2274), [scope and CI](notes/develop-integration-2026-11-01/README.md).
+- Resume from the [Claude handoff](notes/claude-handoff-2026-11-02/README.md). Other operating rules remain in the [prior handoff](notes/codex-handoff-2026-11-01/README.md); D445 replaces only its active execution order.
 - Decisions: [current navigation](decisions.md); numeric proof belongs to canonical item notes and qualifications.
 - Before selecting one next item, check its dependencies, current source, recorded HOLDs and owner authorization.
 - Do not restart qualified bounded profiles or infer release acceptance from a documentation change.
 
 ## Current navigation — active lane and next boundary
 
-- Active feature lane: **row 13, exchange and explicit loss profiles**. D418 is documentation maintenance, not a new exchange feature.
-- Rows 12 and 16 are cross-cutting file/acceptance and robustness work. Row 30 runs with row 16; row 31 follows row 30.
-- D419 direct plane/cylinder STEP offsets: **QUALIFIED**, [bounded record](notes/step-analytic-offset-2026-11-01/README.md). The next decision is **D420 — not started**; select one bounded gap after checking dependencies and HOLDs.
-- Accepted sequence: 10 → 11 → 13 → 14, subject to all owner HOLDs; usability row 15 precedes rows 17–19.
-- The unchanged [handoff §3 continuation order](notes/codex-handoff-2026-11-01/README.md#_3-%E1%84%83%E1%85%A1%E1%84%8B%E1%85%B3%E1%86%B7-%E1%84%8C%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%A5%E1%86%B8-%E1%84%85%E1%85%A9%E1%84%83%E1%85%B3%E1%84%86%E1%85%A2%E1%86%B8-%E1%84%89%E1%85%AE%E1%86%AB%E1%84%89%E1%85%A5) retains the detailed sequence and authority. This pointer does not activate manufacturing or Motion/Physics work.
+- [D446](notes/develop-integration-2026-11-02/README.md) qualifies the owner-authorized develop integration candidate and scoped checks; final publication is verified by PR and remote ancestry. After it, the active product task is **D447 / C1-1 everyday part workflow acceptance audit**, under [D445](notes/core-cad-priority-2026-11-02/README.md).
+- Rows 12 and 16 remain cross-cutting file/acceptance and robustness concerns. Row 30 changes only for concrete core-workflow blockers.
+- Exchange profiles through D444 remain qualified at their recorded scope. General exchange stays open, but another uncommon cone/format variant is not the automatic next task. Preserve public-thicken/fitter/NURBS HOLDs.
+- Follow C1–C8 above. The former row sequence is historical context, not current execution authority. Manufacturing, Motion/Physics and the deferred UI redesign remain held.
+
+## Current navigation — progress reporting
+
+- **Legacy estimate at D444: 43%, frozen.** The former equal-row heuristic was `(7 + 15 × 0.5) / 34 = 42.65%`: seven bounded closeouts, fifteen partial rows and twelve planned/held rows. It is history, not core CAD readiness; delivered/open rows are not each 50% complete.
+- **Core workflow readiness: NOT_MEASURED.** C1-1 must establish coverage first. Until then report “legacy 43%; core coverage not measured”; then report real covered/required steps as N/M until a defensible percentage exists. Do not invent zero readiness, weights or scores.
+- Announce the selected priority, rows and concrete task. Keep the [owner UX discussion](roadmap-rows/15.md) deferred.
+- Scope labels are not percentages: **Verified scope** means recorded acceptance of the agreed bounded scope; **Delivered; open scope** means delivered profiles with broader acceptance still open; **Planned / held** retains its existing planning/owner boundary. None means whole-family, release or standards acceptance.
+- State reproduced defects separately from unverified breadth. Row 12's open collaboration scope does not mean Save, native versions or local-project Open are missing.
 
 ## Current navigation — 34 scope rows
 
-| Row | Scope and acceptance navigation | Current bounded status / next boundary |
-| --- | --- | --- |
-| 01 | [독립 공차 프레임 — CG5 DR-6](roadmap-rows/01.md) | Bounded closeout D372. |
-| 02 | [도면 사용 문서 연결](roadmap-rows/02.md) | Bounded documentation closeout D374. |
-| 03 | [절삭 피처 선형 반복 — CG2](roadmap-rows/03.md) | Bounded closeout D373. |
-| 04 | [실제 API 문서·그림·탐색 구조](roadmap-rows/04.md) | Bounded API/documentation closeout D374. |
-| 05 | [Viewer 제품 마감과 다음 리뷰 전달](roadmap-rows/05.md) | Bounded Viewer closeout D375. |
-| 06 | [GPU 소유 결과 인계와 다음 GPU 기능](roadmap-rows/06.md) | Existing GPU handoff/local-merge records; later GPU work is separate. |
-| 07 | [Advanced modeling — CG1](roadmap-rows/07.md) | Delivered recorded modeling profiles; reuse D288–D316. |
-| 08 | [Feature patterns, direct editing and surfaces — CG2](roadmap-rows/08.md) | Bounded closeout D333–D347; extensions are separate. |
-| 09 | [Advanced sketch — CG3](roadmap-rows/09.md) | BOUNDED_CLOSED for D348–D358/D366 scope. |
-| 10 | [조립 확장 — CG4](roadmap-rows/10.md) | Qualified assembly slices D383–D393; motion/physics HOLD remains. |
-| 11 | [도면 확장 — CG5 DR-6/7/8](roadmap-rows/11.md) | Qualified drawing slices through D416; general certification remains open. |
-| 12 | [파일·버전·협업 — CG6](roadmap-rows/12.md) | OPEN general file/version/collaboration scope. |
-| 13 | [교환과 손실 표시 — CG7](roadmap-rows/13.md) | OPEN exchange scope; bounded analytic offsets D419. #2263/#2248/#2266 remain open. |
-| 14 | [생산 기능 — CG8](roadmap-rows/14.md) | Planned manufacturing; P2/PG11 HOLDs remain. |
-| 15 | [제품 사용성 — CG9](roadmap-rows/15.md) | U1–U4 bounded closeouts; other usability work remains. |
-| 16 | [정확도·강건성·API/참조 — CG10, R7, #2210/#2215](roadmap-rows/16.md) | OPEN accuracy/robustness scope; D417/D419 qualify bounded admission and refusal fixes. |
-| 17 | [경로 묶음·가상 클립 — PB0–PB4](roadmap-rows/17.md) | Existing bounded path/clip profiles; no automatic dynamics work. |
-| 18 | [관절·로봇 — J1/J2, R1/D1/R2, RS6/RS7/P4](roadmap-rows/18.md) | Existing staged robotics plan; Physics/Motion HOLD remains. |
-| 19 | [가상 실험·다물리·실측 — Stage0–6](roadmap-rows/19.md) | Existing staged experiment plan; CAE/Physics HOLDs remain. |
-| 20 | [기즈모·핸들 드래그 UI/UX·렌더링 (2026-10-27 사용자 관찰)](roadmap-rows/20.md) | Bounded handle/UI profiles; measured drag limits remain. |
-| 21 | [Studio 도구 사이드바 배치 (2026-10-27 사용자 요청)](roadmap-rows/21.md) | Bounded sidebar/history closeouts; search/ribbon scope remains. |
-| 22 | [Kernel JavaScript performance and code shape](roadmap-rows/22.md) | Bounded performance/code-shape measurements; no universal acceptance. |
-| 23 | [대형 조립 성능 (2026-10-30 상용 공백)](roadmap-rows/23.md) | Planned large-assembly work after assembly foundations. |
-| 24 | [곡면 품질·Class-A (2026-10-30)](roadmap-rows/24.md) | Planned Class-A scope; preserve B2/08 dependencies. |
-| 25 | [공차 누적 해석 (2026-10-30)](roadmap-rows/25.md) | Planned tolerance-stack scope after drawing/assembly foundations. |
-| 26 | [실제 고객 파일 회귀 (2026-10-30)](roadmap-rows/26.md) | Customer regression requires per-download permission. |
-| 27 | [릴리스·운영 (2026-10-30)](roadmap-rows/27.md) | Release/operations decisions retain owner gates. |
-| 28 | [교환 형식 범위·표준 부품 카탈로그 (2026-10-30)](roadmap-rows/28.md) | Format/catalog/SDK decisions retain owner gates. |
-| 29 | [협업·PDM (2026-10-30)](roadmap-rows/29.md) | Collaboration/PDM retains server and owner gates. |
-| 30 | [커널 일반성 (2026-10-30 엔진 리뷰)](roadmap-rows/30.md) | OPEN kernel generality; #2266 widening is deferred. |
-| 31 | [B-rep 직접 편집 (2026-10-30 엔진 리뷰)](roadmap-rows/31.md) | Planned direct editing after kernel generality. |
-| 32 | [Viewer SDK 상용 기준 (2026-10-30 엔진 리뷰)](roadmap-rows/32.md) | Viewer commercial scope remains separately qualified. |
-| 33 | [CI 브라우저 검증 (2026-10-30 엔진 리뷰)](roadmap-rows/33.md) | Local-only browser verification boundary D359; no CI restart. |
-| 34 | [단위 접미사 이름 정리 R7.7 (2026-10-30 엔진 리뷰)](roadmap-rows/34.md) | R7.7 quiet boundary; no schema5/migration authority. |
+| Row | Scope and acceptance navigation | Current evidence / next boundary | Scope label |
+| --- | --- | --- | --- |
+| 01 | [독립 공차 프레임 — CG5 DR-6](roadmap-rows/01.md) | Bounded closeout D372. | Verified scope |
+| 02 | [도면 사용 문서 연결](roadmap-rows/02.md) | Bounded documentation closeout D374. | Verified scope |
+| 03 | [절삭 피처 선형 반복 — CG2](roadmap-rows/03.md) | Bounded closeout D373. | Verified scope |
+| 04 | [실제 API 문서·그림·탐색 구조](roadmap-rows/04.md) | Bounded API/documentation closeout D374. | Verified scope |
+| 05 | [Viewer 제품 마감과 다음 리뷰 전달](roadmap-rows/05.md) | Bounded Viewer closeout D375. | Verified scope |
+| 06 | [GPU 소유 결과 인계와 다음 GPU 기능](roadmap-rows/06.md) | D434 bounded relative raster frame, physical GPU picks/native lines and shared orthographic grid correction qualified. General far/mixed-scale/unsupported profiles and other GPU features remain open. | Delivered; open scope |
+| 07 | [Advanced modeling — CG1](roadmap-rows/07.md) | Delivered recorded modeling profiles; reuse D288–D316. | Delivered; open scope |
+| 08 | [Feature patterns, direct editing and surfaces — CG2](roadmap-rows/08.md) | Bounded closeout D333–D347; extensions are separate. | Verified scope |
+| 09 | [Advanced sketch — CG3](roadmap-rows/09.md) | BOUNDED_CLOSED for D348–D358/D366 scope. | Verified scope |
+| 10 | [조립 확장 — CG4](roadmap-rows/10.md) | Qualified assembly slices D383–D393; motion/physics HOLD remains. | Delivered; open scope |
+| 11 | [도면 확장 — CG5 DR-6/7/8](roadmap-rows/11.md) | Qualified drawing slices through D416; general certification remains open. | Delivered; open scope |
+| 12 | [파일·버전·협업 — CG6](roadmap-rows/12.md) | OPEN general file/version/collaboration scope. | Delivered; open scope |
+| 13 | [교환과 손실 표시 — CG7](roadmap-rows/13.md) | OPEN exchange scope. Bounded analytic offsets D419/D436 and three native STEP round trips plus one actual far workflow D437 qualify declared profiles. D438 omits mesh-derived bbox declarations and reports their loss; D439 preserves quoted supported face strings and D441 restores bounded ASCII literal backslashes; D442 discloses selected native face/edge character loss without changing output bytes. D443 records the prior zero-offset cone refusal; D444 admits the bounded exact-zero frustum profile and retains nonzero-underflow refusals. General bbox accuracy, assemblies/presentation/PMI/other offsets/topology and general format acceptance remain open; #2263/#2248/#2266 stay open. | Delivered; open scope |
+| 14 | [생산 기능 — CG8](roadmap-rows/14.md) | Planned manufacturing; P2/PG11 HOLDs remain. | Planned / held |
+| 15 | [제품 사용성 — CG9](roadmap-rows/15.md) | U1–U4 and D425 quantity labels bounded closeouts; other usability work remains. | Delivered; open scope |
+| 16 | [정확도·강건성·API/참조 — CG10, R7, #2210/#2215](roadmap-rows/16.md) | OPEN general robustness scope. Native/CPU/GPU profiles through D435 and D436 exact spherical-offset boundary/local representation checks qualify declared cases. D440 qualifies one current original-case native/public Open/Fit profile while its historical denominator cause stays unresolved. D444 adds necessary profile/rank guards to the bounded zero-cone identity admission. D433 remains latest full kernel. No universal geometry/raster precision claim. | Delivered; open scope |
+| 17 | [경로 묶음·가상 클립 — PB0–PB4](roadmap-rows/17.md) | Existing bounded path/clip profiles; no automatic dynamics work. | Delivered; open scope |
+| 18 | [관절·로봇 — J1/J2, R1/D1/R2, RS6/RS7/P4](roadmap-rows/18.md) | Existing staged robotics plan; Physics/Motion HOLD remains. | Delivered; open scope |
+| 19 | [가상 실험·다물리·실측 — Stage0–6](roadmap-rows/19.md) | Existing staged experiment plan; CAE/Physics HOLDs remain. | Planned / held |
+| 20 | [기즈모·핸들 드래그 UI/UX·렌더링 (2026-10-27 사용자 관찰)](roadmap-rows/20.md) | Bounded handle/UI profiles; measured drag limits remain. | Delivered; open scope |
+| 21 | [Studio 도구 사이드바 배치 (2026-10-27 사용자 요청)](roadmap-rows/21.md) | Bounded sidebar/history closeouts; search/ribbon scope remains. | Delivered; open scope |
+| 22 | [Kernel JavaScript performance and code shape](roadmap-rows/22.md) | Bounded performance/code-shape measurements; no universal acceptance. | Delivered; open scope |
+| 23 | [대형 조립 성능 (2026-10-30 상용 공백)](roadmap-rows/23.md) | Planned large-assembly work after assembly foundations. | Planned / held |
+| 24 | [곡면 품질·Class-A (2026-10-30)](roadmap-rows/24.md) | Planned Class-A scope; preserve B2/08 dependencies. | Planned / held |
+| 25 | [공차 누적 해석 (2026-10-30)](roadmap-rows/25.md) | Planned tolerance-stack scope after drawing/assembly foundations. | Planned / held |
+| 26 | [실제 고객 파일 회귀 (2026-10-30)](roadmap-rows/26.md) | Customer regression requires per-download permission. | Planned / held |
+| 27 | [릴리스·운영 (2026-10-30)](roadmap-rows/27.md) | Release/operations decisions retain owner gates. | Planned / held |
+| 28 | [교환 형식 범위·표준 부품 카탈로그 (2026-10-30)](roadmap-rows/28.md) | Format/catalog/SDK decisions retain owner gates. | Planned / held |
+| 29 | [협업·PDM (2026-10-30)](roadmap-rows/29.md) | Collaboration/PDM retains server and owner gates. | Planned / held |
+| 30 | [커널 일반성 (2026-10-30 엔진 리뷰)](roadmap-rows/30.md) | OPEN kernel generality; #2266 widening is deferred. | Delivered; open scope |
+| 31 | [B-rep 직접 편집 (2026-10-30 엔진 리뷰)](roadmap-rows/31.md) | Planned direct editing after kernel generality. | Planned / held |
+| 32 | [Viewer SDK 상용 기준 (2026-10-30 엔진 리뷰)](roadmap-rows/32.md) | Viewer commercial scope remains separately qualified. | Delivered; open scope |
+| 33 | [CI 브라우저 검증 (2026-10-30 엔진 리뷰)](roadmap-rows/33.md) | Local-only browser verification boundary D359; no CI restart. | Planned / held |
+| 34 | [단위 접미사 이름 정리 R7.7 (2026-10-30 엔진 리뷰)](roadmap-rows/34.md) | R7.7 quiet boundary; no schema5/migration authority. | Planned / held |
 
 ## Current navigation — holds and evidence
 

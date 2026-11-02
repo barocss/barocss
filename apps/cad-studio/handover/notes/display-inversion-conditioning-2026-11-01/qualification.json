@@ -1,0 +1,520 @@
+{
+  "work_id": "D424",
+  "artifact_type": "display-inversion-qualification",
+  "status": "QUALIFIED_BOUNDED_INVERSION_AND_CURRENT_SOURCE_FLOW",
+  "owner_role": "executor",
+  "source_request": "Continue the roadmap and announce row, task and overall progress",
+  "last_updated": "2026-11-01",
+  "rows": [
+    13,
+    16
+  ],
+  "overallPercent": 43,
+  "tier": "full",
+  "sourceCheckpoint": "c24e282fc20d085b5b87b342e0fe61fa6c6805dd",
+  "models": {
+    "geometryAuthor": "GPT-6.1 Sol High",
+    "independentGeometryReview": "GPT-6.1 Sol High",
+    "generalAndActual": "GPT-6.1 Sol Medium"
+  },
+  "units": {
+    "length": "mm",
+    "area": "mm^2",
+    "volume": "mm^3",
+    "mass": "g",
+    "inertia": "g*mm^2",
+    "time": "ms"
+  },
+  "assessment": {
+    "exactStep": {
+      "bytes": 1301,
+      "sha256": "55ba8745e35a1b2bdd9db664dc381f9d50d7c07c480ed9bd7eaad5bbdcb551a0",
+      "radius": 0.001,
+      "center": [
+        999000,
+        -998000,
+        997000
+      ]
+    },
+    "nodeWireReplay": {
+      "status": "PASS_BOUNDED_REPLAY",
+      "warmElapsed": 317.865916,
+      "coldElapsed": 330.05116699999996,
+      "vertices": 524,
+      "triangles": 966,
+      "limits": "Node source bundle is not browser module semantic equivalence proof."
+    },
+    "browserWorkerProbe": {
+      "status": "EXPECTED_PRODUCT_REFUSAL_REPRODUCED",
+      "cold": "GEOMETRY",
+      "warm": "GEOMETRY",
+      "directRecomputation": "GEOMETRY",
+      "nativeBeforeAfterEqual": true,
+      "frozenFiles": 746,
+      "sourceMapsEqual": true,
+      "chrome": "156.0.8078.74",
+      "node": "22.19.0",
+      "nodeV8": "12.4.254.21-node.29",
+      "pageErrors": 0,
+      "consoleErrors": 1,
+      "console404": "UNDETERMINED_LOCAL_RESOURCE",
+      "downloads": 0,
+      "nonLocalRequests": 0,
+      "ownedResourcesAfterCleanup": 0,
+      "limits": "Separate same-worker API recomputation after the genuine product reply; not the original private throw object. Original Node replay V8 not recorded."
+    },
+    "fixedNativeComparison": {
+      "browserSha256": "9bd194e627047871edbfd82360526f30be017825643eae447a8d35e713de2b93",
+      "freshNodeSha256": "1fb7418d920c0876eae398454550a465241487b6360600475a5951918c34236a",
+      "equalNumericEntries": 380,
+      "equalOtherEntries": 82,
+      "differentOtherEntries": 0,
+      "weightDifferences": 9,
+      "weightULPDistance": 1,
+      "browserWeight": 0.7403836081153047,
+      "nodeWeight": 0.7403836081153048,
+      "locations": "face0 odd U rows1,3,5 x even V columns0,2,4",
+      "browserSnapshotInNode": "GEOMETRY",
+      "freshNode": "PASS_524_VERTICES_966_TRIANGLES"
+    },
+    "controlledSubstitution": {
+      "status": "PASS_SENSITIVITY_REPRODUCED",
+      "freshPlainClone": "PASS_524_VERTICES_966_TRIANGLES",
+      "sameCloneWithOnlyNineWeights": "EXPECTED_SAME_GEOMETRY_REFUSAL",
+      "hashesMatchCorrespondingInputs": true,
+      "nativeUnchanged": true,
+      "originalPredicateAndThrow": "UNCHANGED",
+      "limits": "This identifies sensitivity to represented weights; source of runtime weight difference remains undetermined."
+    },
+    "afterRefusalWitness": {
+      "status": "VALID_ORIGINAL_WORLD_BINDING_WITNESS",
+      "boundaryIndex": 35,
+      "oldUV": [
+        0.046290046895535994,
+        0.016159246167198535
+      ],
+      "oldWorldResidual": 1.2708874473418495e-05,
+      "originalOff3": 9.9900000048e-06,
+      "originalNear": 9.9900000048e-06,
+      "origin": [
+        999000.0002468762,
+        -998000.0000253529,
+        996999.9999378638
+      ],
+      "localUV": [
+        0.0002471693429304327,
+        0.019041780808410787
+      ],
+      "worldResidual": 1.6463612699567982e-10,
+      "localResidual": 1.754782650227789e-11,
+      "unchangedDone": 1.0030219507667167e-12,
+      "seedCount": 575,
+      "originalErrorStillThrown": true,
+      "limits": "Diagnostic-only local frame over all CPs and rings; original world check retained. No geometry repair/adoption or universal inverse proof."
+    },
+    "independentExactPointsetBound": {
+      "status": "PASS_EXACT_RATIONAL_BOUND",
+      "absoluteBound": "6431489/3375516057204551757856768",
+      "approximation": 1.9053350335196644e-18,
+      "assumptions": "Same CPs/knots, positive rational weights, nonnegative partition-of-unity basis. L1 CP-box diameter bound.",
+      "limits": "Not binary64 evaluator error, inversion convergence, coverage, mass or runtime/libm provenance proof."
+    }
+  },
+  "checks": {
+    "author": {
+      "status": "PASS",
+      "pass": 37,
+      "fail": 0,
+      "skip": 0,
+      "newTests": 11,
+      "elapsed": 3210.826375,
+      "coverage": [
+        "q8/q12 nine-weight sphere",
+        "original world binding and published evaluator",
+        "all shared edge points retained",
+        "UV finite and original domain",
+        "native input unchanged",
+        "separated-face typed refusal",
+        "zero/positive/negative/wide/mixed axis controls",
+        "out-of-control-net ring targets typed refusal"
+      ],
+      "files": [
+        {
+          "file": "packages/barocss-cad/test/brep-inversion-conditioning.test.mjs",
+          "pass": 11
+        },
+        {
+          "file": "packages/barocss-cad/test/brep-mesh-normal-translation.test.mjs",
+          "pass": 16
+        },
+        {
+          "file": "packages/barocss-cad/test/step-sphere-coverage.test.mjs",
+          "pass": 8
+        },
+        {
+          "file": "packages/barocss-cad/test/tessellate-flips.test.mjs",
+          "pass": 1
+        },
+        {
+          "file": "packages/barocss-cad/test/tessellate-cylinder-ears.test.mjs",
+          "pass": 1
+        }
+      ],
+      "build": "PASS_TRANSPILE_ONLY"
+    },
+    "independent": {
+      "status": "PASS_BOUNDED_SOURCE_MATH_AND_BASELINE",
+      "pass": 11,
+      "fail": 0,
+      "limits": "Independent source overlays exercise author regression tests; not independent closest-point or full geometry solver."
+    },
+    "mutation": {
+      "status": "COMPLETED_WITH_ONE_SURVIVOR",
+      "uniqueMutants": 4,
+      "caught": 3,
+      "survived": 1,
+      "harnessErrors": 0,
+      "timeouts": 0,
+      "details": [
+        {
+          "name": "world-inversion",
+          "classification": "CAUGHT_VALID_REGRESSION_REFUSAL",
+          "pass": 10,
+          "fail": 1,
+          "elapsed": 212.31208400000003,
+          "sourceSha256": "de593d807d4a1c6b1c59190132161e5678fa12a881497a7603b64b7f1bb63d9d",
+          "bundleSha256": "dccffb859e7c30a0864eb4ee8c58a62d4044d69d3d04883049dcb1e42b547c52"
+        },
+        {
+          "name": "world-seeds",
+          "classification": "SURVIVED_ALL_11",
+          "pass": 11,
+          "fail": 0,
+          "elapsed": 264.52699999999993,
+          "sourceSha256": "ff2e8e71ae07504874ed47111c2d680237eace5c87266f939eb22cf584df40c2",
+          "bundleSha256": "86070c0839c9f9fb7686403d3216fd773628a010787b39fd45b861edcc2b9bc4"
+        },
+        {
+          "name": "wrong-target",
+          "classification": "CAUGHT_VALID_REGRESSION_REFUSAL",
+          "pass": 6,
+          "fail": 5,
+          "elapsed": 133.52470800000015,
+          "sourceSha256": "fc6392f2aca227d185eeb41c788c21c2667de47353fa37e010cd20f2a9f10b61",
+          "bundleSha256": "b5d24c319ec4b5667408601a51eec8461ee70f0d2d6e04eccd1e34f0b2efc42a",
+          "limits": "First failure is original world-binding GEOMETRY; four such refusals and one later triangulation refusal total."
+        },
+        {
+          "name": "no-world-guard",
+          "classification": "CAUGHT_ASSERTION_MISSING_EXPECTED_EXCEPTION",
+          "pass": 10,
+          "fail": 1,
+          "elapsed": 213.03333300000003,
+          "sourceSha256": "7e4573ee80bb7bdbe5065fba582e7bd73944bd61ad73ecc37c4dfa92c104fda0",
+          "bundleSha256": "90a1d8338b0b9e7febb75fb7e26d93b7d0cacfc7dde17c3957b4690398d5abaa",
+          "scope": "World guard bypass only for deliberately separated-sphere negative fixture; other guard sites retained."
+        }
+      ],
+      "limits": "The seed-precision rule is source/math justified. Current behavior tests do not distinguish world-evaluated then shifted seeds; no claim all mutants killed."
+    },
+    "kernelFull": {
+      "status": "PASS_CURRENT_SOURCE",
+      "total": 2054,
+      "pass": 2052,
+      "fail": 0,
+      "skip": 2,
+      "elapsed": 262169.167875,
+      "sha256": "fc2e783d96b841c2c1ad897203b2f51c079945aec6e82b2f54559d8da9c81234",
+      "limits": "Single full run after shared tessellator change. Does not explain or erase the original D423 failed run."
+    },
+    "actualStudio": {
+      "status": "PASS_BOUNDED_PRODUCT_FLOW",
+      "driverSha256": "b90605a07e232c68276697559072df655d77e64719ab0f53104ea372a1f4e00d",
+      "receiptSha256": "ded43cd0a63f64147214b0a9386cdf2a6b486d3b1c7ef3d18debe14f625703ec",
+      "capsules": {
+        "frozenCount": 746,
+        "afterCount": 746,
+        "cleanupCount": 746,
+        "equal": true
+      },
+      "errors": 0,
+      "consoleErrors": 0,
+      "changes": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "fontNetwork": {
+        "stylesheets": 2,
+        "assets": 0
+      },
+      "cases": [
+        {
+          "label": "01-compound-far",
+          "inputSha256": "55ba8745e35a1b2bdd9db664dc381f9d50d7c07c480ed9bd7eaad5bbdcb551a0",
+          "density": 2.7,
+          "eager": {
+            "key": "b0",
+            "volume": 4.188790288725148e-09,
+            "mass": 1.1309733779557902e-11,
+            "centroid": [
+              999000,
+              -998000,
+              997000
+            ],
+            "inertia": [
+              [
+                4.523893512383454e-18,
+                1.4105046492712999e-26,
+                -6.843798305606691e-26
+              ],
+              [
+                1.4105046492712999e-26,
+                4.523893581832085e-18,
+                -5.890142427238923e-26
+              ],
+              [
+                -6.843798305606691e-26,
+                -5.890142427238923e-26,
+                4.52389361840151e-18
+              ]
+            ],
+            "area": 1.2566371152558097e-05,
+            "areaBasis": "exact"
+          },
+          "eagerRelativeErrors": {
+            "volume": 2.0038902218576677e-08,
+            "area": 4.2828509698611644e-08,
+            "mass": 2.0038902285087292e-08,
+            "maxDiagonalInertia": 4.3597889970577486e-08
+          },
+          "eagerAbsoluteErrors": {
+            "centroid": [
+              0,
+              0,
+              0
+            ],
+            "maxCrossInertia": 6.843798305606691e-26
+          },
+          "evaluateAndDeferredPatch": "PASS_WITH_SAME_LITERAL_BUDGETS",
+          "deferredPatchObserved": true,
+          "adoptedVolumeAndCentroidDifference": {
+            "volume": 0,
+            "centroid": [
+              0,
+              0,
+              0
+            ]
+          },
+          "displayedMaterial": "al6061",
+          "displayedVolume": "Volume\n0 mm\u00b3"
+        },
+        {
+          "label": "02-compound-centered",
+          "inputSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+          "density": 2.7,
+          "eager": {
+            "key": "b0",
+            "volume": 4.188790204881397e-09,
+            "mass": 1.1309733553179772e-11,
+            "centroid": [
+              3.439063931831052e-15,
+              5.8114616826167e-15,
+              1.0665895460291393e-14
+            ],
+            "inertia": [
+              [
+                4.523893421122589e-18,
+                -2.1029710604438476e-29,
+                -6.941382422201735e-29
+              ],
+              [
+                -2.1029710604438476e-29,
+                4.5238934212160026e-18,
+                -8.45618091978602e-29
+              ],
+              [
+                -6.941382422201735e-29,
+                -8.45618091978602e-29,
+                4.5238934212605725e-18
+              ]
+            ],
+            "area": 1.2566370614470153e-05,
+            "areaBasis": "exact"
+          },
+          "eagerRelativeErrors": {
+            "volume": 2.2680971022663774e-11,
+            "area": 8.831638687644023e-12,
+            "mass": 2.2680892169869078e-11,
+            "maxDiagonalInertia": 2.0175059747742764e-11
+          },
+          "eagerAbsoluteErrors": {
+            "centroid": [
+              3.439063931831052e-15,
+              5.8114616826167e-15,
+              1.0665895460291393e-14
+            ],
+            "maxCrossInertia": 8.45618091978602e-29
+          },
+          "evaluateAndDeferredPatch": "PASS_WITH_SAME_LITERAL_BUDGETS",
+          "deferredPatchObserved": true,
+          "adoptedVolumeAndCentroidDifference": {
+            "volume": 0,
+            "centroid": [
+              0,
+              0,
+              0
+            ]
+          },
+          "displayedMaterial": "al6061",
+          "displayedVolume": "Volume\n0 mm\u00b3"
+        }
+      ],
+      "runtime": {
+        "responses": 24,
+        "tessellatorResponses": 6,
+        "sameTransformedTessellatorHash": true,
+        "localInversionAndLocalTargetBranchPresent": true,
+        "optimizedCandidates": 0,
+        "missingDirectModules": 0,
+        "limits": "Direct own-worktree URLs, frozen source graph and helper tokens establish provenance; transformed hashes/tokens are not semantic equivalence proof."
+      },
+      "visualReview": {
+        "root": "Both screenshots inspected",
+        "far": "Body adopted and inertia/centroid visible; tiny shape not discernible.",
+        "center": "Body adopted; tiny point only.",
+        "numericLabels": "Volume, mass, area and bounds labels display zero. D424 does not capture raw bounds; D425 separately distinguishes rounding from collapsed display-mesh bounds.",
+        "acceptance": "Tiny rendering, GPU precision and small-value readability NOT_ACCEPTED"
+      },
+      "budgets": {
+        "relativeVolumeAreaMassDiagonalInertia": 1e-06,
+        "crossInertiaAbsolute": "density-specific ideal diagonal inertia x 1e-6",
+        "centroidAbsolute": 9.313225746154785e-10,
+        "limits": "Finite fixture policies; not certified universal or shell-to-mass error bounds. areaBasis exact is a native-source label, not an error certificate."
+      }
+    },
+    "preFixRegression": {
+      "status": "EXPECTED_FAIL_REPRODUCED",
+      "pass": 0,
+      "fail": 1,
+      "firstFailure": {
+        "code": "GEOMETRY",
+        "message": "B-rep: tessellation: an edge of face step_b23/step_sh23_0/step_f0_21_a does not lie on its surface"
+      },
+      "testElapsed": 15.853958,
+      "totalElapsed": 533.884541
+    },
+    "independentSourceMath": {
+      "status": "PASS_BOUNDED",
+      "sourceDelta": "Exact original source recovered after removing approved delta.",
+      "frameProof": "All captured axes exact dyadic bounds and endpoint subtractions; mathematical factor-two proof for every CP and target within recorded bounds.",
+      "limits": "Reviewer inspected bounds loops; actual ring arrays not independently replayed. Not evaluator/inversion/coverage certificate."
+    },
+    "build": {
+      "status": "PASS",
+      "command": "pnpm --filter @barocss/cad build:library",
+      "scope": "Stable CAD build and types"
+    },
+    "lint": {
+      "status": "PASS",
+      "errors": 0,
+      "warnings": 0,
+      "codeShape": {
+        "spread-minmax": 119,
+        "spread-push": 32,
+        "loop-spread": 269,
+        "loop-literal": 69
+      },
+      "limits": "Existing code-shape categories/counts unchanged."
+    },
+    "modelTypes": {
+      "status": "PASS",
+      "command": "pnpm --filter @barocss/cad-model type-check",
+      "exit": 0,
+      "scope": "Final check after last test edit"
+    },
+    "independentActual": {
+      "status": "ACK_BOUNDED_TWO_CASES",
+      "scope": "Reviewer independently checked receipt hash, source capsules, numeric literal budgets and both screenshots.",
+      "limits": "Tiny visibility/readability not accepted; original D423 failure cause preserved."
+    },
+    "navigation": {
+      "status": "PASS",
+      "node": "22.19.0",
+      "checkedLocalLinks": 2385,
+      "newBroken": 0,
+      "historicalMissingPaths": 1,
+      "originalArchivesUnchanged": true
+    },
+    "navigationInitialTooling": {
+      "status": "NOT_ACCEPTED_WRONG_NODE",
+      "node": "18.10.0",
+      "result": "Parser passed but root detected unexported default PATH. Repeated once with required Node22.19.0; accepted result above."
+    }
+  },
+  "retainedHistory": {
+    "D423FullKernel": {
+      "pass": 2040,
+      "fail": 1,
+      "skip": 2,
+      "classification": "UNRESOLVED_NOT_REPRODUCED",
+      "firstFailure": "D246 case126 rational denominator must be positive and finite"
+    },
+    "D423Studio": "Two original failed runs remain preserved; no successful compound adoption at D423.",
+    "followupCurrentSource": "D424 current full suite and two actual product flows PASS. These close the missing bounded flow evidence on current source; original D423 failures and unexplained cause remain unchanged historical evidence."
+  },
+  "limits": [
+    "No tolerance, input weight, native geometry or public API change authorized by diagnostic evidence.",
+    "No generic C0/degree5/self-intersection or closest-point proof.",
+    "Tiny-body rendering/GPU quality remains unqualified.",
+    "Spherical OFFSET and broader STEP scope remain deferred.",
+    "OCP remains removed; no downloads or paid calls.",
+    "No further develop merge, release or publication."
+  ],
+  "artifacts": [
+    "/tmp/barocss-d424-wire-replay",
+    "/tmp/barocss-d424-browser-probe/run01",
+    "/tmp/barocss-d424-fixed-native",
+    "/tmp/barocss-d424-conditioning",
+    "/tmp/barocss-d424-independent"
+  ],
+  "source": {
+    "tessellator": "331e525c09d72bca0ac1c81c9f883919c27c75038f39fb03afcc995eb513e42a",
+    "test": "f3f7971bdac62d2014c4a7ba748025bd0389491f20fe6eeacf2995c547874a4a",
+    "priorTessellator": "9a972488bf801b06d2504fb09797e05cee068ff3c80eec4da8fd289f8efee9ca",
+    "delta": "Private22-line helper, one per-face local frame and one inverse-target branch; independent removal recovers exact baseline source.",
+    "unchanged": "newtonUV/invert, world grid/pole membership, UV domain, h/done/iteration caps, world output/binding/off3, D422 normal helper"
+  },
+  "commands": [
+    "node --test --test-name-pattern='q8' packages/barocss-cad/test/brep-inversion-conditioning.test.mjs",
+    "node packages/barocss-cad/scripts/tool.mjs build:fast",
+    "node --test packages/barocss-cad/test/brep-inversion-conditioning.test.mjs packages/barocss-cad/test/brep-mesh-normal-translation.test.mjs packages/barocss-cad/test/step-sphere-coverage.test.mjs packages/barocss-cad/test/tessellate-flips.test.mjs packages/barocss-cad/test/tessellate-cylinder-ears.test.mjs",
+    "node /tmp/barocss-d424-independent/mutations.mjs baseline world-inversion world-seeds wrong-target; node /tmp/barocss-d424-independent/mutations.mjs no-world-guard (serial gate/load guards)",
+    "pnpm --filter @barocss/cad build:library",
+    "node packages/barocss-cad/scripts/tool.mjs lint",
+    "node --test --test-concurrency=4 packages/barocss-cad/test/*.test.mjs",
+    "pnpm --filter @barocss/cad-model type-check",
+    "STEP_MASS_TRANSLATION_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' CAD_STUDIO_CHAT_PORT=52391 node apps/cad-studio/test/step-mass-translation-browser.mjs /tmp/barocss-d424-browser-run01 /tmp/barocss-d423-consumer/fixtures",
+    "PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH node apps/cad-studio/handover/scripts/check-navigation.mjs"
+  ],
+  "ocpCleanup": {
+    "status": "PASS_ABSENT_RECHECKED",
+    "paths": [
+      "/Users/user/.cache/barocss-step-reader",
+      "/tmp/barocss-d406-native-source",
+      "/tmp/barocss-d406-native-build"
+    ]
+  },
+  "notRun": [
+    "Whole 94-step Studio flow",
+    "Tiny-body rendering/GPU precision acceptance",
+    "General closest-point/trim coverage certification",
+    "Spherical OFFSET or broader STEP admission",
+    "Further develop integration, release, publication"
+  ],
+  "next": "D425, rows15/16: prevent nonzero body quantities from rounding to zero in Studio; rendering quality remains separate.",
+  "execution": "Heavy runs serialized using gate.sh acquire heavy 30 LABEL with release trap, start load<40; foreign holders naturally finish and are never killed/released. All worktree writes stopped through actual cleanup."
+}

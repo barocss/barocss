@@ -654,7 +654,10 @@ export function wholePatchTest(brep: Brep): (face: BrepFace) => boolean {
 function wholePatch(face: BrepFace, maps: Maps): boolean {
   if (face.loops.length !== 1) return false;
   const S = face.surface as Surface, at = surfaceEvaluator(S), { u: U, v: V } = surfaceDomain(S);
-  let size = 1; for (const row of S.controlPoints) for (const p of row) size = Math.max(size, Math.abs(p[0]), Math.abs(p[1]), Math.abs(p[2]));
+  const lo: Point = [Infinity, Infinity, Infinity], hi: Point = [-Infinity, -Infinity, -Infinity];
+  for (const row of S.controlPoints) for (const p of row) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], p[k]); hi[k] = Math.max(hi[k], p[k]); }
+  // A local half-extent, never larger than the old absolute-coordinate size. The 1 mm floor is compatibility policy.
+  const size = Math.max(1, (hi[0] - lo[0]) / 2, (hi[1] - lo[1]) / 2, (hi[2] - lo[2]) / 2);
   // The four boundary iso-curves sampled once (side k, sample i at SIDE[k][3i..3i+2]).
   const sides: Float64Array[] = [];
   for (let k = 0; k < 4; k++) {

@@ -1,0 +1,50 @@
+{
+  "workId": "D445",
+  "status": "DOCS_QUALIFIED",
+  "productBaseline": "087369e8a01095585db90d2473e5b9c280a4ec56",
+  "scope": "Core CAD execution priority, status explanation and Claude handoff; no product edits",
+  "models": {
+    "orchestration": "root",
+    "routineRoadmapDocs": "gpt-6.1-sol medium"
+  },
+  "PASS": [
+    "Retained evidence/source inventory; no new product acceptance inferred",
+    "Navigation2493links/34rows/0newbroken;1pre-existing historicalmissing",
+    "Archive hashes unchanged",
+    "Tracked product/runtime source unchanged from D444",
+    "git diff --check"
+  ],
+  "FAIL": [],
+  "NOT_RUN": [
+    "New C1-1 Studio flow",
+    "Build and type checks for docs-only change",
+    "Full kernel suite",
+    "New nonzero cone admission",
+    "Release/deployment"
+  ],
+  "coreReadiness": "NOT_MEASURED",
+  "legacyEstimate": {
+    "frozenAt": "D444",
+    "percent": 43,
+    "formula": "(7 + 15 * 0.5) / 34",
+    "notProductReadiness": true
+  },
+  "commands": [
+    "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+    "git diff --check",
+    "git diff --exit-code -- packages apps/cad-studio/src apps/cad-studio/test apps/cad-studio/scripts"
+  ],
+  "nextIntegration": "D446",
+  "nextFeature": "C1-1, expected D447",
+  "navigation": {
+    "status": "PASS",
+    "rowPages": 34,
+    "checkedLocalLinks": 2493,
+    "newBroken": 0,
+    "knownHistoricalMissing": 1,
+    "archiveHashes": {
+      "roadmap": "1325b18b05f71ca1ffb8cb56552d7e0ee95bb516792a1ef77096a2b24cf1ad2e",
+      "decisions": "ab13b705211d7b76b52e43b2f3fa7d603a7db95a941a53c9ac5e709c8a3075c7"
+    }
+  }
+}

@@ -6,6 +6,52 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D446: owner-authorized integration through D445 with the updated develop branch and scoped merged-head checks](notes/develop-integration-2026-11-02/README.md).
+
+- [D445: prioritize the ordinary core CAD workflow, explain bounded status and prepare Claude continuation](notes/core-cad-priority-2026-11-02/README.md).
+
+- [D444: exact-zero direct cone STEP frustum admission, unchanged native output and actual underflow-refusal retention](notes/step-cone-zero-offset-2026-11-02/README.md).
+
+- [D443: measure the current valid zero-distance cone STEP offset refusal and actual atomic retention](notes/step-cone-offset-boundary-2026-11-02/README.md).
+
+- [D442: disclose selected native STEP face/edge name character loss without changing writer bytes or source keys](notes/step-native-name-loss-2026-11-02/README.md).
+
+- [D441: bounded printable-ASCII literal STEP backslashes, unchanged opaque values and writer bytes](notes/step-literal-backslash-2026-11-02/README.md).
+
+- [D440: current original case126b native and public Open/Fit profile; historical denominator cause unresolved](notes/fuzz-case126-current-2026-11-02/README.md).
+
+- [D439: preserve quoted STEP section tokens and literal comment markers](notes/step-quoted-section-tokens-2026-11-02/README.md).
+
+- [D438: omit uncertified trimmed-mesh STEP validation boxes and report the loss](notes/step-validation-box-2026-11-02/README.md).
+
+- [D437: spherical STEP round trips — three native profiles, independent readers and actual preview/Cancel/reopen](notes/step-sphere-roundtrip-2026-11-02/README.md).
+
+- [D436: direct spherical STEP offsets with exact full-span boundary checks and local witnesses — bounded source, independent and actual qualification](notes/step-sphere-offset-2026-11-02/README.md).
+
+- [D435: exact STEP sphere dimensional-loss refusal — bounded source and actual atomic retention qualification](notes/step-sphere-precision-2026-11-02/README.md).
+
+- [D434: relative GPU frame, native surface/line evidence and shared orthographic grid fade — six bounded profiles with certified scoped reuse](notes/gpu-relative-frame-2026-11-02/README.md).
+
+- [D433: conditioned native polyhedral inertia — bounded full-kernel and actual properties qualification](notes/planar-inertia-conditioning-2026-11-02/README.md).
+
+- [D432: relative CPU project/ray queries and genuine pointer routes — far raster/GPU pick still fail](notes/camera-query-precision-2026-11-02/README.md).
+
+- [D431: retained Viewer Float64 input and genuine CPU world hits — raster/project failures remain](notes/viewer-cpu-world-precision-2026-11-02/README.md).
+
+- [D430: far-coordinate first loss — diagnostic qualified, product failures remain](notes/far-gpu-first-loss-2026-11-02/README.md).
+
+- [D429: automatic orthographic depth conditioning — bounded fixture and compatibility qualification](notes/orthographic-depth-conditioning-2026-11-02/README.md).
+
+- [D428: orthographic AO/bounds interaction — bounded diagnosis, product repair pending](notes/orthographic-ao-artifact-2026-11-02/README.md).
+
+- [D427: centered small-camera framing and pointer selection — raster quality held](notes/small-camera-scale-2026-11-02/README.md).
+- [D426: native Model world coordinates — bounded qualification](notes/native-display-world-precision-2026-11-02/README.md).
+- [D425: nonzero body quantities — bounded display qualification](notes/nonzero-quantity-display-2026-11-01/README.md).
+- [D424: local-coordinate display inversion — bounded qualification](notes/display-inversion-conditioning-2026-11-01/README.md).
+- [D423: local-coordinate mass source checkpoint — acceptance HOLD](notes/mass-translation-2026-11-01/README.md).
+- [D422: translation-stable STEP hemispheres and display normals](notes/step-sphere-hemisphere-2026-11-01/README.md).
+- [D421: applicable STEP header/product-name loss](notes/step-name-loss-2026-11-01/README.md).
+- [D420: owner-approved develop integration](notes/develop-integration-2026-11-01/README.md).
 - [D419: bounded analytic STEP offsets and precision admission](notes/step-analytic-offset-2026-11-01/README.md).
 - [D418: documentation organization — qualified record](notes/roadmap-index-2026-11-01/README.md).
 - [Current 34-row scope navigation](roadmap.md).
@@ -38,6 +84,38 @@ Numeric proof and limits remain in the canonical item notes.
 | D417 | Reject proven boundary mismatches | [Note](notes/patch-boundary-binding-2026-11-01/README.md) |
 | D418 | Documentation navigation organization — qualified | [Root-owned note](notes/roadmap-index-2026-11-01/README.md) |
 | D419 | Bounded direct plane/cylinder STEP offsets | [Note](notes/step-analytic-offset-2026-11-01/README.md) |
+| D420 | Develop integration through D419 | [Note](notes/develop-integration-2026-11-01/README.md) |
+| D421 | Applicable STEP header/product-name loss | [Note](notes/step-name-loss-2026-11-01/README.md) |
+| D422 | Translation-stable STEP hemispheres and display normals | [Note](notes/step-sphere-hemisphere-2026-11-01/README.md) |
+| D423 | Local-coordinate mass source checkpoint — historical Studio/backend HOLD | [Note](notes/mass-translation-2026-11-01/README.md) |
+| D424 | Local-coordinate display inversion; bounded current full-kernel and actual flow PASS | [Note](notes/display-inversion-conditioning-2026-11-01/README.md) |
+| D425 | Nonzero Body/Part quantities and STEP summary; display-only | [Note](notes/nonzero-quantity-display-2026-11-01/README.md) |
+| D426 | Native Model world coordinates and ordinary GL byte compatibility; GPU precision separate | [Note](notes/native-display-world-precision-2026-11-02/README.md) |
+| D427 | Centered small-camera framing, visibility and real pointer picks; raster quality held | [Note](notes/small-camera-scale-2026-11-02/README.md) |
+| D428 | Orthographic AO/bounds interaction; diagnostic only, product repair pending | [Note](notes/orthographic-ao-artifact-2026-11-02/README.md) |
+| D429 | Viewer automatic orthographic depth conditioning; centered AO-ON artifact, real picks and bounded compatibility | [Note](notes/orthographic-depth-conditioning-2026-11-02/README.md) |
+| D430 | Far-coordinate first loss measured; integrity PASS, render/pick/product projection FAIL | [Note](notes/far-gpu-first-loss-2026-11-02/README.md) |
+| D431 | Viewer retained CPU Float64 input/world bounds/hits, explicit Float32 draw submissions; raster/Orbit held | [Note](notes/viewer-cpu-world-precision-2026-11-02/README.md) |
+| D432 | CPU relative projection/ray precision, actual product pointer routes; unchanged raster bytes and far GPU failures | [Note](notes/camera-query-precision-2026-11-02/README.md) |
+| D433 | Retained local polyhedral moments, central inertia and native-SI basis; far/center/ordinary actual mass profiles | [Note](notes/planar-inertia-conditioning-2026-11-02/README.md) |
+| D434 | Coherent relative GPU raster/pick frame, positive native lines and orthographic eye-plane grid fade; six bounded profiles with scoped reuse | [Note](notes/gpu-relative-frame-2026-11-02/README.md) |
+| D435 | Refuse rank0/1/2 native STEP sphere patches with exact rank3 necessity; preserve represented geometry and prior Studio document | [Note](notes/step-sphere-precision-2026-11-02/README.md) |
+| D436 | Admit bounded direct spherical STEP offsets; preserve original tolerances and failed V1 target while restoring the pre-existing R5 centroid qualification policy | [Note](notes/step-sphere-offset-2026-11-02/README.md) |
+| D437 | Qualify bounded spherical native STEP export/read/reimport and actual generated-byte reopen; report uncertainty, aliases and bbox diagnostics separately | [Note](notes/step-sphere-roundtrip-2026-11-02/README.md) |
+
+| D438 | Omit actual trimmed-mesh validation bbox without changing legacy numeric bounds or geometry/V/A/C; report the actual loss and retain original test failures | [Note](notes/step-validation-box-2026-11-02/README.md) |
+
+| D439 | Preserve literal face strings during first-DATA/comment extraction; retain downstream geometry and correct the stale D436 cone-refusal expectation | [Note](notes/step-quoted-section-tokens-2026-11-02/README.md) |
+
+| D440 | Qualify one current original fuzz input and exact-equivalent public Studio Open/Fit; preserve the first visual gap and historical denominator cause as unresolved | [Note](notes/fuzz-case126-current-2026-11-02/README.md) |
+
+| D441 | Decode writer-profile literal backslashes once; preserve opaque values, producer goldens and geometry; qualify actual Open/Fit/Preview/Cancel | [Note](notes/step-literal-backslash-2026-11-02/README.md) |
+
+| D442 | Report native face/edge character loss through the existing list; preserve exact output bytes/source keys and qualify one actual Preview/Cancel | [Note](notes/step-native-name-loss-2026-11-02/README.md) |
+
+| D443 | Measure a valid zero-distance cone OFFSET graph, current named refusal and exact actual Studio retention; no new admission | [Note](notes/step-cone-offset-boundary-2026-11-02/README.md) |
+
+| D444 | Admit bounded exact-zero direct cone frustums with raw scalar provenance, unchanged native output, independent semantic mutations and actual acceptance/refusal retention | [Note](notes/step-cone-zero-offset-2026-11-02/README.md) |
 
 <!-- D418 LEGACY COMPATIBILITY BEGIN: fixed original heading sequence -->
 <details>

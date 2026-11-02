@@ -6,8 +6,8 @@ export const MAX_SHADOWS = POINT_SHADOW_START + POINT_SHADOW_FACES;
 /** Byte sizes and offsets of the uniform blocks (kept with the WGSL below and packFrame in lights.ts). */
 /** Clip planes at most (G19: a box section's six). */
 export const MAX_CLIP_PLANES = 6;
-export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16 + 96 + 16 + MAX_CLIP_PLANES * 16 + MAX_SHADOWS * 80 + 16 + MAX_SPOT * 16 + 16;
-export const OBJECT_BYTES = 256, OBJECT_STRIDE = 256;
+export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16 + 96 + 16 + MAX_CLIP_PLANES * 16 + MAX_SHADOWS * 80 + 16 + MAX_SPOT * 16 + 16 + 48;
+export const OBJECT_BYTES = 272, OBJECT_STRIDE = 512;
 
 /** The WGSL every program starts with (internal: its frame and object blocks, its helpers). */
 export const common = /* wgsl */ `
@@ -50,6 +50,10 @@ struct Frame {
   spotShadowParams: array<vec4f, ${MAX_SPOT}>,
   // Point PCSS: shared face near/far, world-space emitter radius, reserved; zero for PCF.
   pointShadowParams: vec4f,
+  // Private raster frame; CPU geometry and public camera remain world based.
+  origin: vec4f,
+  gridPhase: vec4f,
+  gridAxis: vec4f,
 }
 struct Object {
   model: mat4x4f,
@@ -67,6 +71,7 @@ struct Object {
   finish: vec4f,
   finishAxis: vec4f,
   finishOrigin: vec4f,
+  meshOrigin: vec4f,
 }
 @group(0) @binding(0) var<uniform> frame: Frame;
 @group(0) @binding(1) var shadowMap: texture_depth_2d_array;

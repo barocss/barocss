@@ -25,11 +25,12 @@ import { isMeshBrepError } from '../mesh/mesh-brep.js';
 import { curveDomain, evaluateCurve } from '../core/math.js';
 import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
 import type { Curve, Point, Surface } from '../types.js';
-import { checkOffsetBoundary, checkOffsetSourceEndpoints, type OffsetSupport } from './step-offset-internal.js';
+import { SectionRationalContext, type SectionRational } from '../section-rational-internal.js';
+import { checkOffsetBoundary, checkOffsetSourceEndpoints, checkSphereOffsetPatch, type OffsetSupport } from './step-offset-internal.js';
 
 // ---- Part 21 -----------------------------------------------------------------------------------------
 type Value = number | string | { ref: number } | { enum: string } | null | '*' | Value[] | { type: string; args: Value[] };
-interface Entity { type: string; args: Value[]; parts?: { type: string; args: Value[] }[] }
+interface Entity { type: string; args: Value[]; parts?: { type: string; args: Value[] }[]; zeroOffsetDistance?: true }
 const refuse = (detail: string): never => { throw new BrepError('INPUT', 'STEP: ' + detail); };
 
 // (Tokens matched where the reader stands — sticky, without a copy of the rest of the text — and white space told by
@@ -41,21 +42,78 @@ function space(s: string, i: number): boolean {
   const c = s.charCodeAt(i);
   return c === 32 || (c >= 9 && c <= 13) || (c > 127 && (c === 0xa0 || /\s/.test(s[i])));
 }
+/** First DATA section, with real comments replaced by whitespace and all quoted bytes retained. */
+function dataSection(source: string): string {
+  const chunks: string[] = [];
+  let start = 0, quoted = false;
+  for (let i = 0; i < source.length; i++) {
+    if (source[i] === "'") {
+      if (quoted && source[i + 1] === "'") { i++; continue; }
+      quoted = !quoted;
+    } else if (!quoted && source[i] === '/' && source[i + 1] === '*') {
+      const end = source.indexOf('*/', i + 2);
+      if (end < 0) refuse('unterminated comment');
+      chunks.push(source.slice(start, i), ' ');
+      i = end + 1; start = end + 2;
+    }
+  }
+  if (quoted) refuse('unterminated string');
+  const clean = chunks.length ? chunks.join('') + source.slice(start) : source;
+  let statement = 0, dataStart = -1;
+  for (let i = 0; i < clean.length; i++) {
+    if (clean[i] === "'") {
+      quoted = !quoted;
+      if (quoted) {
+        for (i++; i < clean.length; i++) {
+          if (clean[i] !== "'") continue;
+          if (clean[i + 1] === "'") { i++; continue; }
+          quoted = false; break;
+        }
+      }
+    } else if (clean[i] === ';') {
+      const word = clean.slice(statement, i).trim();
+      if (dataStart < 0 && word === 'DATA') dataStart = i + 1;
+      else if (dataStart >= 0 && word === 'ENDSEC') return clean.slice(dataStart, statement);
+      statement = i + 1;
+    }
+  }
+  return refuse('no DATA section');
+}
+/** Decode only the existing writer's printable-ASCII, paired-backslash literal profile.
+ * Mixed or opaque directive-looking strings stay whole; no recursive or Unicode interpretation. */
+function literalBackslashes(value: string): string {
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if (code < 32 || code > 126) return value;
+    if (code !== 92) continue;
+    let end = i + 1;
+    while (value.charCodeAt(end) === 92) end++;
+    if ((end - i) % 2) return value;
+    i = end - 1;
+  }
+  return value.replace(/\\\\/g, '\\');
+}
+/** Called only on one scalar NUM token: an exponent cannot make a nonzero mantissa zero. */
+function zeroMantissa(token: string): boolean {
+  for (let i = 0; i < token.length && token[i] !== 'e' && token[i] !== 'E'; i++) {
+    const c = token[i]; if (c !== '0' && c !== '+' && c !== '-' && c !== '.') return false;
+  }
+  return true;
+}
 /** The DATA section's instances: simple ones and complex ones (as their partial entities). */
 function parseData(source: string): Map<number, Entity> {
-  const data = /DATA;([\s\S]*?)ENDSEC;/.exec(source.includes('/*') ? source.replace(/\/\*[\s\S]*?\*\//g, '') : source);
-  if (!data) refuse('no DATA section');
-  const s = data![1], out = new Map<number, Entity>();
+  const s = dataSection(source), out = new Map<number, Entity>();
+  const zeroOffsetArgs = new WeakSet<Value[]>();
   let i = 0;
   const ws = () => { while (i < s.length && space(s, i)) i++; };
-  const value = (): Value => {
+  const value = (offsetArgs = false): Value => {
     ws();
     const c = s[i];
-    if (c === '(') { i++; const list: Value[] = []; ws(); if (s[i] === ')') { i++; return list; } for (;;) { list.push(value()); ws(); if (s[i] === ',') { i++; continue; } if (s[i] === ')') { i++; return list; } refuse(`bad list near ${s.slice(i, i + 20)}`); } }
+    if (c === '(') { i++; const list: Value[] = []; ws(); if (s[i] === ')') { i++; return list; } for (;;) { ws(); const start = i, item = value(); if (offsetArgs && list.length === 2 && typeof item === 'number' && zeroMantissa(s.slice(start, i))) zeroOffsetArgs.add(list); list.push(item); ws(); if (s[i] === ',') { i++; continue; } if (s[i] === ')') { i++; return list; } refuse(`bad list near ${s.slice(i, i + 20)}`); } }
     if (c === "'") {
-      // (A quote doubled is one quote.)
+      // A doubled quote is one quote; literal backslashes use only the bounded writer profile.
       let t = ''; i++;
-      for (;;) { const q = s.indexOf("'", i); if (q < 0) refuse('unterminated string'); t += s.slice(i, q); if (s[q + 1] === "'") { t += "'"; i = q + 2; continue; } i = q + 1; return t; }
+      for (;;) { const q = s.indexOf("'", i); if (q < 0) refuse('unterminated string'); t += s.slice(i, q); if (s[q + 1] === "'") { t += "'"; i = q + 2; continue; } i = q + 1; return literalBackslashes(t); }
     }
     if (c === '#') { i++; const m = sticky(REF, s, i)!; i += m[0].length; return { ref: Number(m[0]) }; }
     if (c === '.') { const m = sticky(ENUM, s, i); if (!m) refuse('bad enumeration'); i += m![0].length; return { enum: m![1] }; }
@@ -77,7 +135,8 @@ function parseData(source: string): Map<number, Entity> {
       out.set(Number(head![1]), { type: 'COMPLEX', args: [], parts });
     } else {
       const w = sticky(WORD, s, i); if (!w) refuse('expected an entity name');
-      i += w![0].length; out.set(Number(head![1]), { type: w![0], args: value() as Value[] });
+      i += w![0].length; const args = value(w![0] === 'OFFSET_SURFACE') as Value[];
+      out.set(Number(head![1]), { type: w![0], args, ...(zeroOffsetArgs.has(args) ? { zeroOffsetDistance: true as const } : {}) });
     }
     ws(); if (s[i] === ';') i++;
   }
@@ -227,6 +286,127 @@ function naturalNormal(sd: SurfDef, p: Point): Point {
   return unit(sub(d, scale(radial, sd.R)));
 }
 
+/** A sphere patch cannot retain a two-dimensional spherical image in a plane. */
+function spherePrecisionUnavailable(): never {
+  return refuse('SPHERICAL_SURFACE patch precision is not supported at its stored coordinates (the sphere would lose its three-dimensional shape)');
+}
+function sphereControlDelta(q: SectionRationalContext, p: readonly number[], origin: readonly SectionRational[]): SectionRational[] {
+  return [q.sub(q.from(p[0]), origin[0]), q.sub(q.from(p[1]), origin[1]), q.sub(q.from(p[2]), origin[2])];
+}
+function sphereControlCross(q: SectionRationalContext, a: readonly SectionRational[], b: readonly SectionRational[]): SectionRational[] {
+  return [q.sub(q.mul(a[1], b[2]), q.mul(a[2], b[1])), q.sub(q.mul(a[2], b[0]), q.mul(a[0], b[2])), q.sub(q.mul(a[0], b[1]), q.mul(a[1], b[0]))];
+}
+function assertSphereRepresentation(surface: Surface): void {
+  const q = new SectionRationalContext(spherePrecisionUnavailable), anchor = surface.controlPoints[0][0];
+  const origin = [q.from(anchor[0]), q.from(anchor[1]), q.from(anchor[2])], zero = q.integer(0);
+  let line: SectionRational[] | undefined, normal: SectionRational[] | undefined;
+  for (const row of surface.controlPoints) for (const p of row) {
+    const v = sphereControlDelta(q, p, origin);
+    if (!line) {
+      if (q.compare(v[0], zero) !== 0 || q.compare(v[1], zero) !== 0 || q.compare(v[2], zero) !== 0) line = v;
+      continue;
+    }
+    if (!normal) {
+      const n = sphereControlCross(q, line, v);
+      if (q.compare(n[0], zero) !== 0 || q.compare(n[1], zero) !== 0 || q.compare(n[2], zero) !== 0) normal = n;
+      continue;
+    }
+    const triple = q.add(q.add(q.mul(normal[0], v[0]), q.mul(normal[1], v[1])), q.mul(normal[2], v[2]));
+    if (q.compare(triple, zero) !== 0) return;
+  }
+  spherePrecisionUnavailable();
+}
+
+// Exact-zero cone identity is a separate, regular-frustum profile, not a cone offset construction.
+type EntityLookup = (value: Value | undefined) => Entity;
+function coneIdentityUnsupported(detail: string): never { return refuse(`OFFSET_SURFACE exact-zero cone is not supported yet (${detail})`); }
+function coneIdentityPrecisionUnavailable(): never { return coneIdentityUnsupported('the frustum would lose its three-dimensional shape or cannot be certified at its stored coordinates'); }
+function coneRecord(e: Entity, type: string, count: number): void {
+  if (e.type !== type || e.args.length !== count || typeof e.args[0] !== 'string') refuse(`OFFSET_SURFACE exact-zero cone requires ${type} with a name and ${count} attributes`);
+}
+function coneBoolean(value: Value): void {
+  if (!value || typeof value !== 'object' || !('enum' in value) || value.enum !== 'T' && value.enum !== 'F') refuse('OFFSET_SURFACE exact-zero cone orientation must be BOOLEAN T or F');
+}
+function conePoint(e: Entity, direction = false): void {
+  coneRecord(e, direction ? 'DIRECTION' : 'CARTESIAN_POINT', 2);
+  const p = e.args[1];
+  if (!Array.isArray(p) || p.length !== 3) refuse('OFFSET_SURFACE exact-zero cone requires finite three-dimensional frame values');
+  for (const v of p as Value[]) if (typeof v !== 'number' || !Number.isFinite(v)) refuse('OFFSET_SURFACE exact-zero cone requires finite three-dimensional frame values');
+  if (direction && (!(len(p as Point) > 0) || !Number.isFinite(len(p as Point)))) refuse('OFFSET_SURFACE exact-zero cone direction must be finite and nonzero');
+}
+function coneFrame(value: Value, get: EntityLookup): void {
+  const e = get(value); coneRecord(e, 'AXIS2_PLACEMENT_3D', 4); conePoint(get(e.args[1]));
+  for (const v of [e.args[2], e.args[3]]) if (v !== null) conePoint(get(v), true);
+}
+function coneEdge(e: Entity, get: EntityLookup): void {
+  coneRecord(e, 'EDGE_CURVE', 5); coneBoolean(e.args[4]);
+  for (const value of [e.args[1], e.args[2]]) { const vertex = get(value); coneRecord(vertex, 'VERTEX_POINT', 2); conePoint(get(vertex.args[1])); }
+}
+function conePrimitive(e: Entity, get: EntityLookup): void {
+  if (e.type === 'LINE') {
+    coneRecord(e, 'LINE', 3); conePoint(get(e.args[1]));
+    const v = get(e.args[2]); coneRecord(v, 'VECTOR', 3); conePoint(get(v.args[1]), true);
+  } else if (e.type === 'CIRCLE') { coneRecord(e, 'CIRCLE', 3); coneFrame(e.args[1], get); }
+  else coneIdentityUnsupported(`boundary ${e.type}`);
+}
+function coneWrapper(e: Entity): void {
+  coneRecord(e, e.type, e.type === 'TRIMMED_CURVE' ? 6 : 4);
+  const enumAt = e.args[e.type === 'TRIMMED_CURVE' ? 5 : 3];
+  if (!enumAt || typeof enumAt !== 'object' || !('enum' in enumAt)) refuse('OFFSET_SURFACE exact-zero cone curve representation must be an enumeration');
+  if (e.type === 'TRIMMED_CURVE') {
+    coneBoolean(e.args[4]);
+    if (!Array.isArray(e.args[2]) || !Array.isArray(e.args[3]) || !['CARTESIAN', 'PARAMETER', 'UNSPECIFIED'].includes((enumAt as { enum: string }).enum)) refuse('OFFSET_SURFACE exact-zero cone trimmed curve requires trim lists and a master representation');
+  } else if (!Array.isArray(e.args[2]) || !['CURVE_3D', 'PCURVE_S1', 'PCURVE_S2'].includes((enumAt as { enum: string }).enum)) refuse('OFFSET_SURFACE exact-zero cone surface curve requires an associated geometry list and representation');
+}
+function coneFrustumLoop(loops: IFace['loops'], edges: ReadonlyMap<string, IEdge>): void {
+  if (loops.length !== 1 || !loops[0].outer || loops[0].uses.length !== 4) coneIdentityUnsupported('one outer loop with two circular rims and one seam is required');
+  const uses = loops[0].uses, ids: string[] = [], counts = new Map<string, number>();
+  for (let i = 0; i < uses.length; i++) {
+    const use = uses[i], next = uses[(i + 1) % uses.length], a = edges.get(use.edge)!, b = edges.get(next.edge)!;
+    if (a.v[use.fwd ? 1 : 0] !== b.v[next.fwd ? 0 : 1]) coneIdentityUnsupported('the frustum loop must be cyclically connected');
+  }
+  for (const use of uses) { if (!counts.has(use.edge)) ids.push(use.edge); counts.set(use.edge, (counts.get(use.edge) ?? 0) + 1); }
+  if (ids.length !== 3) coneIdentityUnsupported('two distinct circular rims and one seam are required');
+  let seamId: string | undefined; for (const id of ids) if (counts.get(id) === 2) seamId = id;
+  if (!seamId) coneIdentityUnsupported('the seam must be used twice');
+  const seam = edges.get(seamId)!, seamUses: IUse[] = []; for (const use of uses) if (use.edge === seamId) seamUses.push(use);
+  if (seam.geo.kind !== 'line' || seam.v[0] === seam.v[1] || seamUses[0].fwd === seamUses[1].fwd) coneIdentityUnsupported('a nonzero LINE seam must be used in opposite directions');
+  const rims: IEdge[] = []; for (const id of ids) if (id !== seamId) rims.push(edges.get(id)!);
+  for (const rim of rims) if (rim.geo.kind !== 'conic' || rim.geo.a !== rim.geo.b || rim.v[0] !== rim.v[1]) coneIdentityUnsupported('both rims must be closed CIRCLE edges');
+  if (rims[0].v[0] === rims[1].v[0]) coneIdentityUnsupported('the seam must connect the two rim vertices');
+  for (const rim of rims) if (!seam.v.includes(rim.v[0])) coneIdentityUnsupported('the seam must connect the two rim vertices');
+}
+function coneProfile(sd: Extract<SurfDef, { kind: 'cone' }>, u0: number, u1: number, v0: number, v1: number): void {
+  if (![u0, u1, v0, v1].every(Number.isFinite) || !(u1 > u0) || !(v1 > v0)) coneIdentityUnsupported('the stored patch must have nonzero finite parameter spans');
+  const q = new SectionRationalContext(coneIdentityPrecisionUnavailable), r = q.from(sd.r), t = q.from(sd.tan);
+  for (const v of [v0, v1]) {
+    const stored = sd.r + v * sd.tan;
+    if (!Number.isFinite(stored) || !(stored > 0) || q.add(r, q.mul(q.from(v), t)).n <= 0n) coneIdentityUnsupported('the padded patch reaches the apex or another nappe');
+  }
+}
+/** Necessary affine-rank witness only; no immersion, trim or accuracy theorem. */
+function assertConeIdentityRepresentation(surface: Surface): void {
+  for (let i = 0; i < surface.controlPoints.length; i++) {
+    if (surface.weights[i]?.length !== surface.controlPoints[i].length) coneIdentityPrecisionUnavailable();
+    for (let j = 0; j < surface.controlPoints[i].length; j++) {
+      const p = surface.controlPoints[i][j], weight = surface.weights[i][j];
+      if (!p.every(Number.isFinite) || !Number.isFinite(weight) || !(weight > 0)) coneIdentityPrecisionUnavailable();
+    }
+  }
+  const q = new SectionRationalContext(coneIdentityPrecisionUnavailable), anchor = surface.controlPoints[0][0];
+  const origin = [q.from(anchor[0]), q.from(anchor[1]), q.from(anchor[2])];
+  let line: SectionRational[] | undefined, normal: SectionRational[] | undefined;
+  for (let i = 0; i < surface.controlPoints.length; i++) for (let j = 0; j < surface.controlPoints[i].length; j++) {
+    const p = surface.controlPoints[i][j];
+    const v = sphereControlDelta(q, p, origin);
+    if (!line) { if (v[0].n !== 0n || v[1].n !== 0n || v[2].n !== 0n) line = v; continue; }
+    if (!normal) { const n = sphereControlCross(q, line, v); if (n[0].n !== 0n || n[1].n !== 0n || n[2].n !== 0n) normal = n; continue; }
+    const triple = q.add(q.add(q.mul(normal[0], v[0]), q.mul(normal[1], v[1])), q.mul(normal[2], v[2]));
+    if (triple.n !== 0n) return;
+  }
+  coneIdentityPrecisionUnavailable();
+}
+
 // ---- import ------------------------------------------------------------------------------------------
 interface IEdge { id: string; geo: Geo; v: [string, string]; name?: string }
 interface IUse { edge: string; fwd: boolean }
@@ -278,10 +458,11 @@ export function importStep(source: string, options: { readonly id?: string } = {
     if (e.type === 'TRIMMED_CURVE') return curveEntity(get(e.args[1]));
     return e;
   };
-  const offsetCurveEntity = (raw: Entity): Entity => {
+  const offsetCurveEntity = (raw: Entity, coneIdentity = false): Entity => {
     const seen = new Set<Entity>(); let e = raw;
     while (e.type === 'SURFACE_CURVE' || e.type === 'SEAM_CURVE' || e.type === 'TRIMMED_CURVE') {
       if (seen.has(e) || seen.size >= 32) refuse('OFFSET_SURFACE boundary wrapper cycle or depth is not supported yet');
+      if (coneIdentity) coneWrapper(e);
       seen.add(e); e = get(e.args[1]);
     }
     return e;
@@ -319,14 +500,17 @@ export function importStep(source: string, options: { readonly id?: string } = {
     if (!c) return refuse(`surfaces swept by ${e.type} curves are not supported yet`);
     return { kind: 'curve', c };
   };
-  const offsetPrimitive = (edge: Entity): void => {
+  const offsetPrimitive = (edge: Entity, sphere = false, coneIdentity = false): void => {
+    if (coneIdentity) coneEdge(edge, get);
     if (edge.args.length !== 5) refuse('OFFSET_SURFACE source EDGE_CURVE requires five attributes');
     for (let i = 1; i <= 2; i++) {
       const vertex = get(edge.args[i]);
       if (vertex.type !== 'VERTEX_POINT' || vertex.args.length !== 2) refuse('OFFSET_SURFACE source edge requires VERTEX_POINT endpoints');
       offsetPoint(vertex.args[1]);
     }
-    const raw = offsetCurveEntity(get(edge.args[3])), sense = edge.args[4];
+    const raw = offsetCurveEntity(get(edge.args[3]), coneIdentity), sense = edge.args[4];
+    if (coneIdentity) conePrimitive(raw, get);
+    if (sphere && raw.type !== 'CIRCLE') refuse(`OFFSET_SURFACE spherical boundary ${raw.type} is not supported yet`);
     if (!sense || typeof sense !== 'object' || !('enum' in sense) || sense.enum !== 'T' && sense.enum !== 'F') refuse('OFFSET_SURFACE source EDGE_CURVE same_sense must be BOOLEAN');
     if (raw.type === 'LINE') {
       offsetPoint(raw.args[1]); const v = get(raw.args[2]);
@@ -337,10 +521,10 @@ export function importStep(source: string, options: { readonly id?: string } = {
       for (let i = 2; i < (raw.type === 'CIRCLE' ? 3 : 4); i++) if (typeof raw.args[i] !== 'number' || !Number.isFinite(raw.args[i]) || !(raw.args[i] as number > 0)) refuse('OFFSET_SURFACE source conic requires finite positive radii');
     } else refuse(`OFFSET_SURFACE boundary ${raw.type} is not supported yet`);
   };
-  const edgeOf = (v: Value, offset = false): IEdge => {
+  const edgeOf = (v: Value, offset = false, sphere = false, coneIdentity = false): IEdge => {
     const n = refNo(v), eid = `${id}_e${n}`; let x = edges.get(eid);
     const e = get(v); if (e.type !== 'EDGE_CURVE') refuse(`${e.type} edges are not supported`);
-    if (offset) offsetPrimitive(e);
+    if (offset) offsetPrimitive(e, sphere, coneIdentity);
     if (x) return x;
     const a = vertexOf(e.args[1]), b = vertexOf(e.args[2]);
     x = { id: eid, geo: geoOf(get(e.args[3]), points.get(a)!, points.get(b)!, flag(e.args[4])), v: [a, b], ...(e.args[0] ? { name: e.args[0] as string } : {}) };
@@ -350,13 +534,25 @@ export function importStep(source: string, options: { readonly id?: string } = {
 
   // Surfaces.
   const offsetDefinitions = new Set<SurfDef>(), offsetPatches = new Map<Surface, OffsetSupport>();
+  const coneIdentities = new Set<SurfDef>(), coneIdentityPatches = new WeakSet<Surface>();
   const surfDefOf = (e: Entity): SurfDef => {
     if (e.type === 'OFFSET_SURFACE') {
       if (e.args.length !== 4 || typeof e.args[0] !== 'string' || typeof e.args[2] !== 'number' || !Number.isFinite(e.args[2])) refuse('OFFSET_SURFACE requires a string name, finite numeric distance and four attributes');
       const logical = e.args[3];
       if (!logical || typeof logical !== 'object' || !('enum' in logical) || !['T', 'F', 'U'].includes(logical.enum)) refuse('OFFSET_SURFACE self_intersect must be LOGICAL T, F or U');
       const base = get(e.args[1]);
-      if (base.type !== 'PLANE' && base.type !== 'CYLINDRICAL_SURFACE') refuse(`OFFSET_SURFACE basis ${base.type} is not supported yet (direct plane or cylinder only)`);
+      if (base.type === 'CONICAL_SURFACE' && e.zeroOffsetDistance) {
+        coneRecord(base, 'CONICAL_SURFACE', 4); coneFrame(base.args[1], get);
+        const r = base.args[2], angle = base.args[3];
+        if (typeof r !== 'number' || !Number.isFinite(r) || typeof angle !== 'number' || !Number.isFinite(angle)) refuse('OFFSET_SURFACE exact-zero cone requires finite radius and semi-angle');
+        const radius = r as number, semi = angle as number;
+        if (!(radius > 0) || !(semi > 0 && semi < Math.PI / 2)) coneIdentityUnsupported('a positive reference radius and semi-angle between zero and pi/2 are required');
+        offsetFrameOf(base.args[1]); // Validate, but retain the legacy construction's normalization order.
+        const sd: Extract<SurfDef, { kind: 'cone' }> = { kind: 'cone', f: frameOf(base.args[1]), r: num(base.args[2]), tan: Math.tan(num(base.args[3])) };
+        if (!Number.isFinite(sd.tan) || !(sd.tan > 0)) coneIdentityUnsupported('the cone slope is not finite and positive');
+        offsetDefinitions.add(sd); coneIdentities.add(sd); return sd;
+      }
+      if (base.type !== 'PLANE' && base.type !== 'CYLINDRICAL_SURFACE' && base.type !== 'SPHERICAL_SURFACE') refuse(`OFFSET_SURFACE basis ${base.type} is not supported yet (direct plane, cylinder or sphere only)`);
       if (base.args.length !== (base.type === 'PLANE' ? 2 : 3)) refuse('OFFSET_SURFACE basis has invalid attributes');
       const f = offsetFrameOf(base.args[1]), distance = e.args[2] as number;
       const input = { origin: f.o, axis: offsetAxes.get(f)!, distance }; let sd: OffsetSupport;
@@ -364,6 +560,12 @@ export function importStep(source: string, options: { readonly id?: string } = {
         const o = add(f.o, scale(f.z, distance));
         if (!o.every(Number.isFinite)) refuse('OFFSET_SURFACE plane origin is not finite');
         sd = { kind: 'plane', f: { ...f, o }, input };
+      } else if (base.type === 'SPHERICAL_SURFACE') {
+        const value = base.args[2];
+        if (typeof value !== 'number' || !Number.isFinite(value) || !(value > 0)) refuse('OFFSET_SURFACE sphere basis radius must be finite and positive');
+        const r = value as number, result = r + distance;
+        if (!Number.isFinite(result) || !(result > 0)) refuse('OFFSET_SURFACE sphere radius at or beyond collapse is not supported yet');
+        sd = { kind: 'sphere', f, r: result, input: { ...input, radius: r } };
       } else {
         const value = base.args[2];
         if (typeof value !== 'number' || !Number.isFinite(value) || !(value > 0)) refuse('OFFSET_SURFACE cylinder basis radius must be finite and positive');
@@ -421,18 +623,25 @@ export function importStep(source: string, options: { readonly id?: string } = {
   const faces: IFace[] = [];
   const faceOf = (v: Value, k: number): IFace => {
     const e = get(v); if (e.type !== 'ADVANCED_FACE' && e.type !== 'FACE_SURFACE') refuse(`${e.type} faces are not supported`);
-    const sd = surfDefOf(get(e.args[2])), offset = offsetDefinitions.has(sd);
+    const sd = surfDefOf(get(e.args[2])), offset = offsetDefinitions.has(sd), coneIdentity = coneIdentities.has(sd);
+    if (coneIdentity) { coneRecord(e, e.type, 4); if (!Array.isArray(e.args[1])) refuse('OFFSET_SURFACE exact-zero cone face requires a bound list'); }
     if (offset) {
       const sense = e.args[3];
       if (!sense || typeof sense !== 'object' || !('enum' in sense) || sense.enum !== 'T' && sense.enum !== 'F') refuse('OFFSET_SURFACE face same_sense must be BOOLEAN T or F');
     }
     const loops = list(e.args[1]).map(bv => {
       const b = get(bv), loop = get(b.args[1]);
+      if (coneIdentity) {
+        if (b.type !== 'FACE_OUTER_BOUND' || loop.type !== 'EDGE_LOOP') coneIdentityUnsupported('one FACE_OUTER_BOUND with an EDGE_LOOP is required');
+        coneRecord(b, 'FACE_OUTER_BOUND', 3); coneBoolean(b.args[2]); coneRecord(loop, 'EDGE_LOOP', 2);
+        if (!Array.isArray(loop.args[1])) refuse('OFFSET_SURFACE exact-zero cone loop requires an oriented edge list');
+      }
       if (loop.type !== 'EDGE_LOOP') refuse(`${loop.type} bounds are not supported yet`);
-      let uses = list(loop.args[1]).map(ov => { const o = get(ov); return { edge: edgeOf(o.args[3], offset).id, fwd: flag(o.args[4]) }; });
+      let uses = list(loop.args[1]).map(ov => { const o = get(ov); if (coneIdentity) { coneRecord(o, 'ORIENTED_EDGE', 5); coneBoolean(o.args[4]); if (o.args[1] !== '*' || o.args[2] !== '*') refuse('OFFSET_SURFACE exact-zero cone ORIENTED_EDGE endpoints must be derived'); } return { edge: edgeOf(o.args[3], offset, offset && sd.kind === 'sphere', coneIdentity).id, fwd: flag(o.args[4]) }; });
       if (!flag(b.args[2])) uses = [...uses].reverse().map(u => ({ edge: u.edge, fwd: !u.fwd }));
       return { outer: b.type === 'FACE_OUTER_BOUND', uses };
     });
+    if (coneIdentity) coneFrustumLoop(loops, edges);
     if (loops.length && !loops.some(l => l.outer)) loops[0].outer = true;
     return { id: `${id}_f${k}_${refNo(v)}`, sd, same: flag(e.args[3]), loops, ...(e.args[0] ? { name: e.args[0] as string } : {}) };
   };
@@ -584,19 +793,26 @@ export function importStep(source: string, options: { readonly id?: string } = {
       let pick = gaps[0];
       if (gaps.length > 1 && gaps[0].size - gaps[1].size < 1e-6) {
         let area: Point = [0, 0, 0];
-        for (const ring of loopPoints(f)) for (let i = 0; i < ring.length; i++) area = add(area, scale(cross(ring[i], ring[(i + 1) % ring.length]), 0.5));
+        for (const ring of loopPoints(f)) {
+          const origin = ring[0]; if (!origin) continue;
+          // A closed ring has the same vector area in this local frame, without world-coordinate cancellation.
+          for (let i = 0; i < ring.length; i++) area = add(area, scale(cross(sub(ring[i], origin), sub(ring[(i + 1) % ring.length], origin)), 0.5));
+        }
         const score = (g: { size: number; start: number }) => { const mid = g.start + (TAU - g.size) / 2, vm = (vlo + vhi) / 2, probe = revolutionPatch(an, mid - 1e-3, mid + 1e-3, vm - 1e-3, vm + 1e-3, 'probe'), P = probe.controlPoints[1][Math.floor(probe.controlPoints[1].length / 2)] as Point; return dot(area, naturalNormal(sd, P)) * (f.same ? 1 : -1); };
         if (score(gaps[1]) > score(gaps[0])) pick = gaps[1];
       }
       const span = TAU - pick.size, margin = Math.min(1e-3, pick.size / 4);
       if (span > TAU - 1e-6) refuse(`a face going once round its axis without a seam is not supported (${f.name || f.id})`);
+      if (coneIdentities.has(sd)) coneProfile(sd as Extract<SurfDef, { kind: 'cone' }>, pick.start - margin, pick.start + span + margin, v0, v1);
       surface = revolutionPatch(an, pick.start - margin, pick.start + span + margin, v0, v1, sid);
     }
+    if (sd.kind === 'sphere') assertSphereRepresentation(surface);
+    if (coneIdentities.has(sd)) { assertConeIdentityRepresentation(surface); coneIdentityPatches.add(surface); }
     // The face's sense: its surface's outward normal (or the reverse) against the patch's own.
     const S = surface, P = S.controlPoints as Point[][], m = Math.floor(P.length / 2), n2 = Math.floor(P[0].length / 2);
     const own = cross(sub(P[Math.min(P.length - 1, m + 1)][n2], P[Math.max(0, m - 1)][n2]), sub(P[m][Math.min(P[0].length - 1, n2 + 1)], P[m][Math.max(0, n2 - 1)]));
     const natN = naturalNormal(sd, P[m][n2]);
-    if (offsetDefinitions.has(sd) && (sd.kind === 'plane' || sd.kind === 'cylinder')) offsetPatches.set(surface, sd);
+    if (offsetDefinitions.has(sd) && (sd.kind === 'plane' || sd.kind === 'cylinder' || sd.kind === 'sphere')) offsetPatches.set(surface, sd as OffsetSupport);
     return { surface, sense: (dot(own, natN) >= 0) === f.same ? 'forward' : 'reversed' };
   };
 
@@ -628,10 +844,13 @@ export function importStep(source: string, options: { readonly id?: string } = {
   const offsetEdges = new Map(brep.edges.map(e => [e.id, e])), byLoop = new Map(brep.loops.map(l => [l.id, l])), byCoedge = new Map(brep.coedges.map(c => [c.id, c]));
   for (const face of brep.faces) {
     const support = face.surface.kind === 'surface' ? offsetPatches.get(face.surface) : undefined;
-    if (!support) continue;
+    const coneIdentity = face.surface.kind === 'surface' && coneIdentityPatches.has(face.surface);
+    if (!support && !coneIdentity) continue;
+    if (support?.kind === 'sphere') checkSphereOffsetPatch(support, face.surface as Surface, face.id);
     for (const lid of face.loops) for (const cid of byLoop.get(lid)?.coedges ?? []) {
       const edge = offsetEdges.get(byCoedge.get(cid)!.edge)!, source = sourceCurves.get(edge.id);
-      if (!source && !generatedEdges.has(edge.id) || source && source.type !== 'LINE' && source.type !== 'CIRCLE' && !(support.kind === 'plane' && source.type === 'ELLIPSE')) refuse(`OFFSET_SURFACE boundary ${source?.type ?? 'derived edge'} is not supported yet`);
+      if (support?.kind === 'sphere' && source && source.type !== 'CIRCLE') refuse(`OFFSET_SURFACE spherical boundary ${source.type} is not supported yet`);
+      if (!source && !generatedEdges.has(edge.id) || source && source.type !== 'LINE' && source.type !== 'CIRCLE' && !(support?.kind === 'plane' && source.type === 'ELLIPSE')) refuse(`OFFSET_SURFACE boundary ${source?.type ?? 'derived edge'} is not supported yet`);
       const a = edge.curve.controlPoints[0], b = edge.curve.controlPoints[edge.curve.controlPoints.length - 1];
       if (source?.type === 'LINE') {
         const p = offsetPoint(source.args[1]), v = get(source.args[2]);
@@ -644,7 +863,7 @@ export function importStep(source: string, options: { readonly id?: string } = {
         const ends = unpinnedEnds.get(edge.id)!;
         checkOffsetSourceEndpoints({ kind: 'conic', start: ends[0], end: ends[1] }, a, b, edge.tolerance, face.id, edge.id);
       }
-      checkOffsetBoundary(support, edge.curve, edge.tolerance, face.id, edge.id);
+      if (support) checkOffsetBoundary(support, edge.curve, edge.tolerance, face.id, edge.id);
     }
   }
   }

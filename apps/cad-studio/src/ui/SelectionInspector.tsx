@@ -13,6 +13,7 @@ import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
 import { emptySel } from '../app/studioConstants';
 import { PointTest } from './PointTest';
 import { Icon } from './atoms';
+import { quantityText } from './quantityText';
 interface SelectionInspectorProps {
   model: { doc: StudioDoc; evaluated: StudioDoc; bodies: BodyResult[]; fresh: boolean; busy: boolean; massReady: boolean };
   selection: Selection;
@@ -62,7 +63,7 @@ export function SelectionInspector({ model, selection, materialSettings, display
           <div className="empty" aria-busy="true">{busy ? 'Evaluating… its values show once the part is up to date.' : 'The part did not evaluate: fix it, or undo, to see this body\'s values.'}</div></>}
         {selBodies.length > 0 && fresh && <>
           <div className="card-title" style={{ marginTop: sel1 ? 10 : 0 }}>BODY{selBodies.length > 1 ? ` · ${selBodies.length} selected` : ''}</div>
-          {selBodies.slice(0, 1).map(b => { const { min, max } = b.mesh.bounds, look = lookOf(doc, b); return <div key={b.key}>
+          {selBodies.slice(0, 1).map(b => { const { min, max } = b.mesh.bounds, look = lookOf(doc, b), area = b.area ?? b.mesh.faces.reduce((t, f) => t + f.area, 0); return <div key={b.key}>
             <label className="kv">Name <input className="kv-input" aria-label="Name" key={b.key + bodyName(doc, b)} defaultValue={bodyName(doc, b)}
               onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); e.stopPropagation(); }}
               onBlur={e => { const v = e.currentTarget.value.trim(); if (v !== bodyName(doc, b)) commit(withLook(doc, b, { name: v })); }} /></label>
@@ -73,13 +74,13 @@ export function SelectionInspector({ model, selection, materialSettings, display
                 <input type="color" aria-label="Any colour" value={look.color ?? '#bcc0c7'} onChange={e => commit(withLook(doc, b, { color: e.target.value }))} /></label>
             </span></div>
             <label className="kv">Visible <input type="checkbox" checked={!look.hidden} onChange={e => { if (!commit(withLook(doc, b, { hidden: !e.target.checked }))) return; if (!e.target.checked) setSelection(emptySel); }} /></label>
-            <label className="kv"><span>Bounds <b>{fmt(max[0] - min[0])} × {fmt(max[1] - min[1])} × {fmt(max[2] - min[2])}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label>
+            <label className="kv"><span>Bounds <b>{quantityText(max[0] - min[0])} × {quantityText(max[1] - min[1])} × {quantityText(max[2] - min[2])}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label>
             {/* (O18: a mass still being worked out reads "…", never 0 or the last revision's.) */}
-            {b.volume !== null ? <div className="kv">Volume <b>{fmt(Math.round(b.volume))} mm³</b></div> : b.massRef !== undefined ? <div className="kv">Volume <b aria-label="Mass pending">…</b></div> : null}
+            {b.volume !== null ? <div className="kv">Volume <b>{quantityText(b.volume, fmt(Math.round(b.volume)))} mm³</b></div> : b.massRef !== undefined ? <div className="kv">Volume <b aria-label="Mass pending">…</b></div> : null}
             {/* (O179: a volume the kernel found from the mesh, said so with its bound — its mass is as good.) */}
-            {b.volume !== null && b.volumeBasis && <div className="kv warn" aria-label="Volume basis" title="The kernel could not integrate this body: its volume, mass and centre of mass are from the display mesh">From the mesh <b>± {b.volumeBasis.bound === null ? '?' : fmt(Math.round(b.volumeBasis.bound * 10) / 10)} mm³</b></div>}
+            {b.volume !== null && b.volumeBasis && <div className="kv warn" aria-label="Volume basis" title="The kernel could not integrate this body: its volume, mass and centre of mass are from the display mesh">From the mesh <b>± {b.volumeBasis.bound === null ? '?' : quantityText(b.volumeBasis.bound, fmt(Math.round(b.volumeBasis.bound * 10) / 10))} mm³</b></div>}
             {(() => { const own = MATERIALS.find(m => m.id === materialIdOf(doc, b)) ?? density; return <>
-              {b.volume !== null ? <div className="kv">Mass <b>{fmt(Math.round(b.volume * own.density / 100) / 10)} g</b></div> : b.massRef !== undefined ? <div className="kv">Mass <b>…</b></div> : null}
+              {b.volume !== null ? <div className="kv">Mass <b>{quantityText(b.volume * own.density / 1000, fmt(Math.round(b.volume * own.density / 100) / 10))} g</b></div> : b.massRef !== undefined ? <div className="kv">Mass <b>…</b></div> : null}
               {/* The body's own material (the default for new bodies stays the studio's). */}
               <label className="kv"><span>Material{!look.material && <span className="muted"> · {briefMaterial(doc) ? 'from the brief' : 'default'}</span>}</span><select aria-label="Material" value={own.id} onChange={e => commit(withLook(doc, b, { material: e.target.value === (briefMaterial(doc) ?? material) ? undefined : e.target.value }))}>{MATERIALS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></label>
               {own.id !== material && <div className="kv"><span /><button className="ghost small" onClick={() => setMaterial(own.id)} data-tip="Default material" data-tip-desc="Bodies without a material of their own use it">Use as default</button></div>}
@@ -95,7 +96,7 @@ export function SelectionInspector({ model, selection, materialSettings, display
                 <div className="kv inertia muted">Ixy Iyz Ixz <b>{[[0, 1], [1, 2], [0, 2]].map(([i, j]) => sig3(I[i][j], Math.max(I[0][0], I[1][1], I[2][2]))).join(' · ')}</b></div>
               </>; })()}
             {/* (The kernel's area over the exact surfaces, as mass properties; the display mesh's only where it cannot, said.) */}
-            <div className="kv" title={b.areaBasis === 'display mesh' ? 'From the display mesh: the kernel could not integrate this body' : 'Over the exact surfaces'}>Surface area <b>{fmt(Math.round(b.area ?? b.mesh.faces.reduce((t, f) => t + f.area, 0)))} mm²{b.areaBasis === 'display mesh' ? ' (mesh)' : ''}</b></div>
+            <div className="kv" title={b.areaBasis === 'display mesh' ? 'From the display mesh: the kernel could not integrate this body' : 'Over the exact surfaces'}>Surface area <b>{quantityText(area, fmt(Math.round(area)))} mm²{b.areaBasis === 'display mesh' ? ' (mesh)' : ''}</b></div>
             <div className="kv">Faces <b>{b.mesh.faces.length}</b></div>
             {b.notes?.map((n, k) => <div key={k} className={'hint' + (n.warning ? ' warn' : ' muted')} aria-label="Generator note">{n.warning && <Icon name="warning" small />} {n.text}</div>)}
             {b.sheet && <div className="kv"><span>K <b>{b.sheet.bendTable ? `bend table ${b.sheet.bendTable}` : b.sheet.kFactor}</b></span><label className="ghost small" data-tip="Bend table" data-tip-desc="Load your shop's bend table (JSON: rows of thickness, radius and angle to K, allowance or deduction, each citing a source or marked an estimate) for this sheet's bends">Bend table…<input type="file" accept=".json,application/json" aria-label="Bend table file" style={{ display: 'none' }} onChange={e => { const file = e.currentTarget.files?.[0]; e.currentTarget.value = ''; void loadBendTable(b, file); }} /></label></div>}
@@ -106,14 +107,14 @@ export function SelectionInspector({ model, selection, materialSettings, display
           </div>; })}
           {selBodies.length > 1 && selBodies.some(b => b.massRef !== undefined) && <div className="kv">Together <b aria-label="Mass pending">…</b></div>}
           {selBodies.length > 1 && !selBodies.some(b => b.massRef !== undefined) && (() => { const parts = selBodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).density); return m ? [m] : []; }), c = combined(parts), box = boundsOf(selBodies);
-            return c && box ? <><div className="kv">Together <b>{fmt(Math.round(c.mass * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
-              <div className="kv">Bounds <b>{[0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ')}</b></div></> : null; })()}
+            return c && box ? <><div className="kv">Together <b>{quantityText(c.mass, fmt(Math.round(c.mass * 10) / 10))} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
+              <div className="kv">Bounds <b>{[0, 1, 2].map(k => quantityText(box.max[k] - box.min[k], fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100))).join(' × ')}</b></div></> : null; })()}
         </>}
         {!sel1 && !selBodies.length && bodies.length > 0 && fresh && !massReady && <div className="part-summary"><div className="card-title">PART · {bodies.length} {bodies.length === 1 ? 'body' : 'bodies'}</div><div className="kv">Mass <b aria-label="Mass pending">…</b></div></div>}
         {!sel1 && !selBodies.length && bodies.length > 0 && fresh && massReady && (() => { const parts = bodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).density); return m ? [m] : []; }), c = combined(parts), box = boundsOf(bodies);
           return c && box ? <div className="part-summary"><div className="card-title">PART · {bodies.length} {bodies.length === 1 ? 'body' : 'bodies'}</div>
-            <div className="kv">Mass <b>{fmt(Math.round(c.mass * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
-            <label className="kv"><span>Bounds <b>{[0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ')}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label></div> : null; })()}
+            <div className="kv">Mass <b>{quantityText(c.mass, fmt(Math.round(c.mass * 10) / 10))} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
+            <label className="kv"><span>Bounds <b>{[0, 1, 2].map(k => quantityText(box.max[k] - box.min[k], fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100))).join(' × ')}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label></div> : null; })()}
         {children}
       </aside>;
 }

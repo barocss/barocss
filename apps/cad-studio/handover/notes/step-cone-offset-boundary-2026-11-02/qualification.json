@@ -1,0 +1,390 @@
+{
+  "id": "D443",
+  "status": "BOUNDED_MEASUREMENT_QUALIFIED",
+  "baseline": "4ac391cfd1c0dbfca537cf44d4e6ab8c389a51ae",
+  "roadmapRows": [
+    13
+  ],
+  "overallEstimatePercent": 43,
+  "validationTier": "small measurement; no product source changes",
+  "models": {
+    "geometrySourceAndNativeBaseline": "GPT-6.1 Sol High",
+    "actualDriverAndChecks": "GPT-6.1 Sol Medium"
+  },
+  "selectedScope": "Existing frustumStep(10,6,30) control plus a direct CONICAL_SURFACE OFFSET distance0; current support/refusal and actual atomic retention only",
+  "fixtureSource": {
+    "path": "packages/barocss-cad/test/step-fixtures.mjs",
+    "sha256": "3a4f58e5ebc2dd3c78e6ff993787edfdc13b798b8fc999a65c28e38d519fc98c",
+    "existingConstructorArguments": [
+      10,
+      6,
+      30
+    ],
+    "argumentMeanings": [
+      "bottom radius",
+      "height",
+      "semi-angle"
+    ],
+    "lengthUnit": "mm",
+    "angleUnit": "degree in existing constructor, radians in STEP"
+  },
+  "fixtures": {
+    "plain": {
+      "path": "/tmp/barocss-d443-author/frustum-control.step",
+      "sha256": "82a6a31b874d158b8d799bc35798ac0b4706c0c44f3f3efeaf475cb8de367fcd",
+      "bytes": 2261,
+      "records": 57
+    },
+    "zeroOffset": {
+      "path": "/tmp/barocss-d443-author/frustum-zero-offset.step",
+      "sha256": "4cf2dde3679f70694c9323bd37e9123ffdda962a6249cb13c6a9f53b8d0033ed",
+      "bytes": 2296,
+      "records": 58
+    },
+    "changedRecord": {
+      "originalId": "33",
+      "original": "#33=CONICAL_SURFACE('',#32,6.535898384862246,0.5235987755982988);",
+      "wrapper": "#33=OFFSET_SURFACE('',#58,0.,.F.);"
+    },
+    "appendedRecord": "#58=CONICAL_SURFACE('',#32,6.535898384862246,0.5235987755982988);",
+    "exactReversalSHA256": "82a6a31b874d158b8d799bc35798ac0b4706c0c44f3f3efeaf475cb8de367fcd",
+    "allOtherRecordsIdentical": true
+  },
+  "sourceInspection": {
+    "importerSHA256": "145e94fdfa100912d005aeaf45f0af2737a8713f0d3f0ee61619c5250a34d71a",
+    "offsetProofSHA256": "d65d1aee476bb5251cd898b5ee6cfaff6ceb5f50b679d398714e3cb175aac29c",
+    "dispatch": "Plain cone uses existing constructor; direct offset basis guard refuses CONICAL before frame/boundary processing",
+    "oldFixture": "Legacy unsupportedOffsetStep deliberately has only three cone arguments; it was not used for this valid new profile and was not modified",
+    "productSourceChanges": 0,
+    "newPublicSurface": false
+  },
+  "independentInputAudit": {
+    "status": "PASS_SELECTED_ZERO_OFFSET_GRAPH_AND_REGULAR_BRANCH",
+    "observations": [
+      {
+        "label": "plain",
+        "records": 57,
+        "counts": {
+          "MANIFOLD_SOLID_BREP": 1,
+          "ADVANCED_FACE": 3,
+          "EDGE_CURVE": 3,
+          "VERTEX_POINT": 2,
+          "CIRCLE": 2,
+          "LINE": 1,
+          "SEAM_CURVE": 1
+        },
+        "allReferencesResolve": true,
+        "allRecordsReachableFromShape": true,
+        "schema": [
+          "AUTOMOTIVE_DESIGN"
+        ],
+        "lengthUnit": "mm"
+      },
+      {
+        "label": "offset",
+        "records": 58,
+        "counts": {
+          "MANIFOLD_SOLID_BREP": 1,
+          "ADVANCED_FACE": 3,
+          "EDGE_CURVE": 3,
+          "VERTEX_POINT": 2,
+          "CIRCLE": 2,
+          "LINE": 1,
+          "SEAM_CURVE": 1
+        },
+        "allReferencesResolve": true,
+        "allRecordsReachableFromShape": true,
+        "schema": [
+          "AUTOMOTIVE_DESIGN"
+        ],
+        "lengthUnit": "mm"
+      }
+    ],
+    "exactWrapperReversal": true,
+    "sameOriginalConeArguments": true,
+    "unchangedAllOtherEntitiesAndHeader": true,
+    "regularBranch": {
+      "rawRadius": "3267949192431123/500000000000000",
+      "rawSemiAngle": "1308996938995747/2500000000000000",
+      "frameOrigin": [
+        0,
+        0,
+        6
+      ],
+      "frameAxis": [
+        0,
+        0,
+        -1
+      ],
+      "selectedAxialRange": [
+        0,
+        6
+      ],
+      "reason": "0 < raw angle < 1 < pi/2 and positive reference radius imply positive radius throughout this axial frustum branch; zero displacement leaves every regular support point unchanged."
+    },
+    "reader": {
+      "baseSHA256": "64dc4a400ae8448dfb145212651e1699d4ddaf146f1350978f8022ba5fe6af54",
+      "selectedSHA256": "ba45dbeccea5aa64beaa4bd06234f73a7f304f6e3231de0eb4dbc2f239bfbd7c",
+      "change": "Only enum lexical digits after initial UPPER; pre-execution coverage correction for PCURVE_S1; original file untouched",
+      "primaryReference": "https://www.steptools.com/stds/step/IS_final_p21e3.html Table2/6.4.5"
+    },
+    "scope": "Independent selected token/reference/frame/regular-branch and exact d=0 graph equivalence, not independent solid integration, general STEP schema conformance, raw-angle/native patch accuracy or nonzero offsets",
+    "productCalls": 0
+  },
+  "inputAuditSHA256": "c8dbe7f8fb6985a61d2368680c37bb171f9649a1ad4041678d007110c9abb035",
+  "toolHistory": {
+    "preExecutionCoverageCorrection": "The retained enum lexer omitted digits in PCURVE_S1. A scratch copy changes only enum lexical digits after initial UPPER, with exact inverse proof; original reader unchanged. Primary Part21 Table2/6.4.5 permits digits.",
+    "firstAttempt": {
+      "status": "FAIL_TOOL_ASSERTION_BEFORE_FIXTURE_READ",
+      "error": "AttributeError: NoneType has no attribute lastgroup",
+      "cause": "The malformed enum was correctly unmatched; the negative assertion dereferenced None",
+      "productCalls": 0,
+      "correction": "Accept None or a non-enum match, preserving the intended invalid-enum rejection; new attempt02 only"
+    },
+    "secondAttempt": "PASS same intended malformed-enum rejection after guarding None; fixture graph predicates unchanged; no product calls in either independent graph attempt"
+  },
+  "nativeBaseline": {
+    "status": "PASS",
+    "pass": 1,
+    "fail": 0,
+    "skip": 0,
+    "receiptSHA256": "c461b22ffe6f0c00db9230d82218e8860def121080cd8f8cb474e2e7a2f7974c",
+    "calls": {
+      "importStep": 2,
+      "checkBrep": 1
+    },
+    "controlReport": {
+      "valid": true,
+      "issues": [],
+      "counts": {
+        "bodies": 1,
+        "shells": 1,
+        "faces": 4,
+        "loops": 4,
+        "coedges": 12,
+        "edges": 6,
+        "vertices": 4
+      },
+      "topology": [
+        {
+          "body": "step_b54",
+          "vertices": 4,
+          "edges": 6,
+          "faces": 4,
+          "loops": 4,
+          "shells": 1,
+          "genus": 0
+        }
+      ],
+      "maximumVertexGap": 0,
+      "maximumPcurveGap": 0,
+      "maximumEdgeSurfaceGap": 2.0174802309303058e-15
+    },
+    "rawGraphInventory": {
+      "MANIFOLD_SOLID_BREP": 1,
+      "ADVANCED_FACE": 3,
+      "EDGE_CURVE": 3,
+      "VERTEX_POINT": 2,
+      "CIRCLE": 2,
+      "LINE": 1,
+      "SEAM_CURVE": 1
+    },
+    "inventoryBoundary": "Raw graph has3faces/3edges/2vertices; native output has4faces/6edges/4vertices after existing periodic splitting. Inventories are not equated.",
+    "originalEdgeTolerances": [
+      {
+        "id": "step_e22",
+        "tolerance": 1e-07
+      },
+      {
+        "id": "step_e16_a1",
+        "tolerance": 1e-07
+      },
+      {
+        "id": "step_e16_b1",
+        "tolerance": 1e-07
+      },
+      {
+        "id": "step_e10_a2",
+        "tolerance": 1e-07
+      },
+      {
+        "id": "step_e10_b2",
+        "tolerance": 1e-07
+      },
+      {
+        "id": "step_f0_34_cut",
+        "tolerance": 1e-07
+      }
+    ],
+    "originalVertexTolerances": [
+      {
+        "id": "step_v2",
+        "tolerance": 1e-07
+      },
+      {
+        "id": "step_v4",
+        "tolerance": 1e-07
+      },
+      {
+        "id": "step_sv0",
+        "tolerance": 1e-07
+      },
+      {
+        "id": "step_sv1",
+        "tolerance": 1e-07
+      }
+    ],
+    "offsetError": {
+      "name": "BrepError",
+      "code": "INPUT",
+      "message": "B-rep: STEP: OFFSET_SURFACE basis CONICAL_SURFACE is not supported yet (direct plane, cylinder or sphere only)"
+    },
+    "fixedPinsBeforeAfterCurrent": 1094,
+    "newPhysicsCalls": 0,
+    "builds": 0,
+    "automaticRetries": 0
+  },
+  "finalDriverChecks": {
+    "status": "PASS",
+    "driverSHA256": "033f50c2c5cfd374adedb82594d0a73a1c5de9dcb54051e34793b47fb93fd644",
+    "receiptSHA256": "3ebd4bc555f75d1807f75c4bfa5d8f6e04b40df482f9424a47e3b7f89f5c6252",
+    "checks": [
+      "Node22 driver syntax",
+      "Driver stdin eslint",
+      "Final Model tsc after last driver edit"
+    ],
+    "fixedPinsBeforeAfterCurrent": 768,
+    "productRegressionTests": "NOT_RUN_UNCHANGED_SOURCE",
+    "CADBuild": "NOT_RUN_UNCHANGED_SOURCE"
+  },
+  "actualAudit": {
+    "status": "PASS_CONTROL_AND_NAMED_REFUSAL_RETENTION",
+    "receiptSHA256": "8103b6ab2c05f685bad4ce8136806015e6ccacd9165e18ff9112c37ef3fc621b",
+    "fixedPinsBeforeAfterCleanupCurrent": 768,
+    "frozenCapsuleBeforeAfterCleanupCurrent": 1038,
+    "passiveRuntimeBodies": 70,
+    "missingDirectSources": [
+      "apps/cad-studio/src/viewport/Camera.ts",
+      "apps/cad-studio/test/flow-helper.mjs"
+    ],
+    "ownWrapperPIDAbsent": 77882,
+    "classification": {
+      "capture": "OBSERVED_REAL_WORKER",
+      "requestId": 6,
+      "requestRevision": 4,
+      "replyRevision": 4,
+      "ok": false,
+      "error": {
+        "title": "The kernel could not build this",
+        "hint": "Undo the last change, or adjust the values and try again.",
+        "detail": "OFFSET_SURFACE basis CONICAL_SURFACE is not supported yet (direct plane, cylinder or sphere only)",
+        "code": "CAPABILITY"
+      },
+      "typedCode": "CAPABILITY"
+    },
+    "notice": "Could not open this fileThe kernel can\u2019t read it as STEP: OFFSET_SURFACE basis CONICAL_SURFACE is not supported yet (direct plane, cylinder or sphere only). Your part is unchanged.DetailsOFFSET_SURFACE basis CONICAL_SURFACE is not supported yet (direct plane, cylinder or sphere only)",
+    "cancelOrRefusalWholeHeldStateExact": true,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "scope": "One actual ordinary control and exact zero-offset cone refusal; no new admission/physical accuracy/nonzero/sign/normal capability claim"
+  },
+  "actualStudio": {
+    "status": "PASS",
+    "receiptSHA256": "8103b6ab2c05f685bad4ce8136806015e6ccacd9165e18ff9112c37ef3fc621b",
+    "wrapperSHA256": "2fd54127116e639a3fcac6387d0ad6d4596842943fdd8615299e9e30956e2937",
+    "route": "One supported control public Open/Fit, then one zero-offset attempted Open and named refusal",
+    "controlReadRequest": 3,
+    "controlReadRevision": 2,
+    "adoptedEvaluateRequest": 4,
+    "adoptedEvaluateRevision": 3,
+    "attemptReadRequest": 6,
+    "attemptReadRevision": 4,
+    "actualTypedCode": "CAPABILITY",
+    "originalControlAndAttemptedInputBytesMatchedExactly": true,
+    "heldStateRetained": [
+      "Authored document",
+      "Adopted/native data",
+      "Seven quantity fields",
+      "Matched accepted source IDs",
+      "Camera and F64/F32 matrix bytes",
+      "Meshes/effects/environment/grid/lights"
+    ],
+    "rootVisualReview": "PASS: 00-control.png shows the frustum; 01-zero-conical-offset.png shows the same model and readable named refusal",
+    "errors": 0,
+    "consoleErrors": 0,
+    "changes": 0,
+    "downloads": 0,
+    "worktreeFrozenThroughCleanup": true,
+    "ownWrapperPIDAbsent": 77882,
+    "resourcesClosed": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "gateReleased": true,
+    "runtimeResponseBoundary": "70 passive bodies rehashed. Camera.ts/flow-helper lack direct browser responses; fixed source pins/capsules cover both. No semantic equivalence inferred from body hashes."
+  },
+  "commands": [
+    "python3 /tmp/barocss-d443-root/audit-inputs-02.py",
+    "bash /tmp/barocss-d443-author/run-baseline-once.sh",
+    "bash /tmp/barocss-d443-consumer/final-checks-gated-recipe.sh",
+    "bash /tmp/barocss-d443-consumer/run-studio-once.sh",
+    "node apps/cad-studio/handover/scripts/check-navigation.mjs"
+  ],
+  "runtime": {
+    "node": "22.19.0",
+    "heavyGate": "Global idle/load<40 before; sole own holder/load<40 after acquire; own release only",
+    "newDownloads": 0,
+    "paidCalls": 0,
+    "OCP": "NOT_USED; previous isolated cache/source/build remain absent"
+  },
+  "primaryReference": {
+    "url": "https://steptools.com/stds/smrl/data/resource_docs/geometric_and_topological_representation/sys/4_schema.htm",
+    "sections": [
+      "4.5.61 conical_surface",
+      "4.5.86 offset_surface"
+    ],
+    "use": "Formal regular surface and zero-distance identity only; public HTML read, no file/package download"
+  },
+  "resultClasses": {
+    "PASS": [
+      "Selected independent graph/reversal/regular branch",
+      "Native1PASS0FAIL0SKIP current control/refusal contract",
+      "Final driver syntax/lint/Model types",
+      "One actual control and named CAPABILITY refusal with exact state retention",
+      "Root image/source/runtime-integrity review"
+    ],
+    "FAIL": [
+      "First independent tool negative assertion dereferenced None before fixture read/product execution; preserved and corrected in attempt02"
+    ],
+    "NOT_RUN": [
+      "Nonzero cone offset/sign/normal/reduction precision or new admission",
+      "New physical accuracy or general independent solid/schema qualification",
+      "Full kernel/build/regression repeat: no product source change",
+      "Export/reopen/download/paid live/customer files/release/develop integration"
+    ]
+  },
+  "issueReview": {
+    "issue": 2263,
+    "state": "OPEN",
+    "remaining": "General offset/cone admission, assemblies, AP242 presentation/names/colours, sheets, PMI and other topology criteria remain incomplete"
+  },
+  "followUps": [
+    "New cone offset admission would require full geometry tier, multiple independent audits/mutation and actual evidence",
+    "Nonzero offsets need signed normal, positive nappe/apex, raw-angle trig/reduction/frame error and full-span original-tolerance proof",
+    "Preserve #2258 fitter/public-thicken and #2266 widening HOLDs; no automatic manufacturing/Physics/Motion work"
+  ],
+  "publicationPins": 1133,
+  "finalNavigation": {
+    "status": "PASS",
+    "node": "22.19.0",
+    "rowPages": 34,
+    "checkedLocalLinks": 2480,
+    "newBroken": 0,
+    "knownMissingHistoricalPaths": 1,
+    "archiveHashesUnchanged": true
+  }
+}

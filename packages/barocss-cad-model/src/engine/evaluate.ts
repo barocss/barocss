@@ -430,7 +430,7 @@ function boxOf(vs: readonly { point: readonly number[] }[], m: readonly number[]
 const move = (m: readonly number[], t: readonly number[], p: readonly number[]): [number, number, number] => [m[0] * p[0] + m[1] * p[1] + m[2] * p[2] + t[0], m[3] * p[0] + m[4] * p[1] + m[5] * p[2] + t[1], m[6] * p[0] + m[7] * p[1] + m[8] * p[2] + t[2]];
 const turn = (m: readonly number[], p: readonly number[]): [number, number, number] => [m[0] * p[0] + m[1] * p[1] + m[2] * p[2], m[3] * p[0] + m[4] * p[1] + m[5] * p[2], m[6] * p[0] + m[7] * p[1] + m[8] * p[2]];
 /** In place: each xyz triple of a ← m·xyz (+ t). */
-function moveAll(a: Float32Array, m: readonly number[], t: readonly number[] | null): void {
+function moveAll(a: Float32Array | Float64Array, m: readonly number[], t: readonly number[] | null): void {
   for (let i = 0; i < a.length; i += 3) {
     const x = a[i], y = a[i + 1], z = a[i + 2];
     a[i] = m[0] * x + m[1] * y + m[2] * z + (t ? t[0] : 0); a[i + 1] = m[3] * x + m[4] * y + m[5] * z + (t ? t[1] : 0); a[i + 2] = m[6] * x + m[7] * y + m[8] * z + (t ? t[2] : 0);
@@ -479,6 +479,22 @@ export interface StudioStepOptions {
 }
 /** A StudioDoc's STEP file: its text, the source revision it names (O9), and what was left out. */
 export interface StudioStep { text: string; source: string; omitted?: string[] }
+// The writer keeps printable ASCII and replaces other header/product-name characters with underscores.
+function stepNameLosses(name: string): string[] {
+  return /[^\x20-\x7e]/.test(name)
+    ? ['Non-ASCII and control characters in the STEP header file name and product name are replaced with underscores.']
+    : [];
+}
+const STEP_NATIVE_NAME_LOSS = 'Non-ASCII and control characters in native face and edge names are not retained in this STEP file.';
+const OUTSIDE_STEP_NATIVE_ASCII = /[^\x20-\x7e]/;
+/** Only selected native name fields: no ids, source text or writer-conversion policy. */
+function stepNativeNameLosses(breps: readonly Brep[]): string[] {
+  for (const brep of breps) {
+    for (const face of brep.faces) if (OUTSIDE_STEP_NATIVE_ASCII.test(face.name ?? '')) return [STEP_NATIVE_NAME_LOSS];
+    for (const edge of brep.edges) if (OUTSIDE_STEP_NATIVE_ASCII.test(edge.name ?? '')) return [STEP_NATIVE_NAME_LOSS];
+  }
+  return [];
+}
 // These losses describe this exporter, not STEP's full format capabilities. They do not affect bytes or revision.
 function stepProfileLosses(doc: StudioDoc): string[] {
   let history = false, parameters = false, labels = false, appearance = false, assembly = false, pmi = false, datums = false;
@@ -531,9 +547,13 @@ export function exportStudioStep(doc: StudioDoc, options: StudioStepOptions): St
     }
   }
   if (!breps.length) throw refusal('NO_BODY', sheets.length && !left.length ? `Only band sheets: STEP of band sheets is not supported yet, and there is no other body to export (${sheets.join(', ')}).` : left.length ? 'Only infill bodies: STEP carries the exact part, and there is none to export.' : 'There is no body to export.');
+  const nativeNameLosses = stepNativeNameLosses(breps);
   // (O9: the header names the source revision the file was made from.)
   const source = revisionOf(doc), text = exportStep(breps, { name, description: ['BaroCSS CAD part', `source revision ${source}`], ...(meshes ? { meshes } : {}), ...(options.timestamp ? { timestamp: options.timestamp } : {}) });
-  const omitted = [...(left.length ? [`lattice infill not included (${left.join(', ')}); 3MF carries it`] : []), ...sheets.map(k => `band sheet ${k} not included: STEP of band sheets is not supported yet`), ...stepProfileLosses(doc)];
+  const omitted = [...(left.length ? [`lattice infill not included (${left.join(', ')}); 3MF carries it`] : []), ...sheets.map(k => `band sheet ${k} not included: STEP of band sheets is not supported yet`), ...stepProfileLosses(doc), ...stepNameLosses(name), ...nativeNameLosses];
+  // This inspects only our writer's fixed record; text() removes newlines from names.
+  // A quoted product name therefore cannot forge a whole bbox record.
+  if (!/^#\d+=REPRESENTATION\('bounding box',\(#\d+,#\d+\),#\d+\);$/m.test(text)) omitted.push('Bounding-box validation is not included in this STEP file.');
   return omitted.length ? { text, source, omitted } : { text, source };
 }
 

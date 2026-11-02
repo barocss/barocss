@@ -525,7 +525,8 @@ export class Renderer implements ViewRenderer {
   }
 
   private buffer(data: ArrayBufferView, target: number = this.gl.ARRAY_BUFFER, usage: number = this.gl.STATIC_DRAW) {
-    const gl = this.gl; const b = gl.createBuffer()!; gl.bindBuffer(target, b); gl.bufferData(target, data, usage); return b;
+    const gl = this.gl; const b = gl.createBuffer()!; gl.bindBuffer(target, b); // WebGL attributes remain gl.FLOAT; world-coordinate doubles stay on the CPU.
+    gl.bufferData(target, data instanceof Float64Array ? new Float32Array(data) : data, usage); return b;
   }
 
   private attr(location: number, buffer: WebGLBuffer, size: number, stride = 0, offset = 0, divisor = 0) {
@@ -552,7 +553,7 @@ export class Renderer implements ViewRenderer {
   }
 
   /** A triangle mesh drawn by the mesh program in one colour: no faces, no state (G16). */
-  private plainMesh(positions: Float32Array, normals: Float32Array, indices: Uint32Array): Plain {
+  private plainMesh(positions: Float32Array | Float64Array, normals: Float32Array, indices: Uint32Array): Plain {
     const gl = this.gl; const vao = gl.createVertexArray()!; gl.bindVertexArray(vao);
     const pos = this.buffer(positions), nor = this.buffer(normals), zero = this.buffer(new Float32Array(positions.length / 3));
     this.attr(0, pos, 3); this.attr(1, nor, 3); this.attr(2, zero, 1); this.attr(3, zero, 1);
@@ -561,7 +562,7 @@ export class Renderer implements ViewRenderer {
   }
 
   /** Segments (six numbers each) drawn by the line program in one colour (G16). */
-  private plainLines(segments: Float32Array): Plain {
+  private plainLines(segments: Float32Array | Float64Array): Plain {
     const gl = this.gl; const vao = gl.createVertexArray()!; gl.bindVertexArray(vao);
     const n = segments.length / 6, segs = this.buffer(segments), zero = this.buffer(new Float32Array(n));
     this.attr(0, this.corner, 2); this.attr(1, segs, 3, 24, 0, 1); this.attr(2, segs, 3, 24, 12, 1); this.attr(3, zero, 1, 0, 0, 1);
@@ -1270,7 +1271,7 @@ function sameMatrix(a: Float32Array, b: Float32Array): boolean {
  * The segments (six numbers each, moved by `model`) within `radius` CSS px of (x, y), nearest first: each with its index,
  * its distance and its world point nearest the pointer (the screen's nearest point taken back through the perspective).
  */
-function nearSegments(L: Float32Array, model: Float32Array, vp: Float32Array, cw: number, ch: number, x: number, y: number, radius: number): { s: number; d: number; at: Vec3 }[] {
+function nearSegments(L: Float32Array | Float64Array, model: Float32Array, vp: Float32Array, cw: number, ch: number, x: number, y: number, radius: number): { s: number; d: number; at: Vec3 }[] {
   const out: { s: number; d: number; at: Vec3 }[] = [];
   for (let s = 0; s < L.length; s += 6) {
     const ax = model[0] * L[s] + model[4] * L[s + 1] + model[8] * L[s + 2] + model[12], ay = model[1] * L[s] + model[5] * L[s + 1] + model[9] * L[s + 2] + model[13], az = model[2] * L[s] + model[6] * L[s + 1] + model[10] * L[s + 2] + model[14];

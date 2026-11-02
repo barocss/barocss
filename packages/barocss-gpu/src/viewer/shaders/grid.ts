@@ -32,12 +32,20 @@ fn axisLine(x: f32) -> f32 { return 1.0 - min(abs(x) / max(fwidth(x), 1e-6) / 1.
   let e2 = normalize(select(cross(up, vec3f(1.0, 0.0, 0.0)), cross(up, vec3f(0.0, 1.0, 0.0)), abs(up.x) > 0.9));
   let e1 = cross(e2, up);
   let uv = vec2f(dot(hit, e1), dot(hit, e2));
-  let minor = lines(uv, frame.grid.x);
-  let major = lines(uv, frame.grid.x * frame.grid.y);
-  let ax = axisLine(uv.y);
-  let ay = axisLine(uv.x);
+  var minor = lines(uv, frame.grid.x);
+  var major = lines(uv, frame.grid.x * frame.grid.y);
+  var axes = uv;
+  if (frame.origin.w != 0.0) {
+    minor = lines(uv + frame.gridPhase.xy, frame.grid.x);
+    major = lines(uv + frame.gridPhase.zw, frame.grid.x * frame.grid.y);
+    axes = uv + frame.gridAxis.xy;
+  }
+  let ax = axisLine(axes.y);
+  let ay = axisLine(axes.x);
   // Fade with distance and at grazing angles (where lines would alias).
-  let dist = length(hit - select(p0, frame.eye.xyz, frame.eye.w > 0.5));
+  var dist = length(hit - select(p0, frame.eye.xyz, frame.eye.w > 0.5));
+  // Parallel rays fade from the eye plane, not the arbitrary signed raster near plane.
+  if (frame.eye.w <= 0.5) { dist = abs(dot(hit - frame.eye.xyz, normalize(dir))); }
   let fade = (1.0 - smoothstep(frame.grid.z * 0.4, frame.grid.z, dist)) * smoothstep(0.02, 0.25, abs(dot(normalize(dir), up)));
   var color = frame.gridColor.rgb;
   var k = max(minor * 0.45, major) * frame.gridColor.a;

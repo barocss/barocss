@@ -78,7 +78,7 @@ for (const r of ['0.', '-1.', '1E309', "'10'"]) test(`offset rejects invalid bas
   assert.throws(() => importStep(text), e => e instanceof BrepError && e.code === 'INPUT' && /basis radius must be finite and positive/.test(e.message));
 });
 for (const distance of [-10, -11]) test(`offset rejects collapsed/cross-focal radius ${distance}`, () => unsupported(cylinderOffsetStep({ baseRadius: 10, distance, boundaryRadius: 12 }), 'radius at or beyond collapse is not supported yet'));
-test('offset refuses unsupported analytic sphere without following a missing reference', () => unsupported(unsupportedOffsetStep(), 'OFFSET_SURFACE basis SPHERICAL_SURFACE is not supported yet'));
+test('offset refuses unsupported analytic cone without following a missing reference', () => unsupported(unsupportedOffsetStep(), 'OFFSET_SURFACE basis CONICAL_SURFACE is not supported yet'));
 test('nested and cyclic offset bases are refused nonrecursively', () => {
   for (const cycle of [false, true]) {
     let text = cylinderOffsetStep(); const m = /^#(\d+)=OFFSET_SURFACE\('',#(\d+),/m.exec(text); assert.ok(m);

@@ -39,7 +39,7 @@ const palette: Record<ClearanceOverlay['state'], readonly [number, number, numbe
   overlap: [0.94, 0.13, 0.12], contact: [0.96, 0.64, 0.18], pending: [0.96, 0.64, 0.18], refused: [1, 0.12, 0.12],
   touching: [0.26, 0.66, 0.94], designed: [0.13, 0.72, 0.54], near: [0.98, 0.54, 0.12], clear: [0.35, 0.64, 0.8],
 };
-function normalsOf(positions: Float32Array, indices: Uint32Array): Float32Array {
+function normalsOf(positions: ArrayLike<number>, indices: Uint32Array): Float32Array {
   const normals = new Float32Array(positions.length);
   for (let t = 0; t + 2 < indices.length; t += 3) {
     const a = indices[t] * 3, b = indices[t + 1] * 3, c = indices[t + 2] * 3;
@@ -53,14 +53,15 @@ function normalsOf(positions: Float32Array, indices: Uint32Array): Float32Array 
 /** Vertex colours consume only the Model's independent band field; display tessellation indices are not substituted. */
 export function clearanceOverlays(map: ClearanceMap, bodies: readonly PlacedBody[]): ClearanceOverlay[] {
   const overlays: ClearanceOverlay[] = [];
-  const add = (pair: ClearancePair, side: string, body: PlacedBody | undefined, positions: Float32Array, indices: Uint32Array, field?: Float32Array) => {
+  const add = (pair: ClearancePair, side: string, body: PlacedBody | undefined, positions: Float32Array | Float64Array, indices: Uint32Array, field?: Float32Array) => {
     if (!body || !indices.length) return;
     const state = clearancePairState(pair), colors = new Float32Array(positions.length), base = palette[state];
     for (let vertex = 0; vertex < positions.length / 3; vertex++) {
       const fraction = state === 'near' && field ? Math.min(1, Math.max(0, field[vertex] / map.near.value)) : 0;
       colors.set([base[0], base[1] + fraction * 0.28, base[2]], vertex * 3);
     }
-    overlays.push({ id: `${pair.a}|${pair.b}|${side}`, bodyKey: body.key, positions, indices, colors, normals: normalsOf(positions, indices), field,
+    // Draw payloads remain Float32; keep the canonical Model overlap coordinates intact.
+    overlays.push({ id: `${pair.a}|${pair.b}|${side}`, bodyKey: body.key, positions: positions instanceof Float64Array ? new Float32Array(positions) : positions, indices, colors, normals: normalsOf(positions, indices), field,
       model: poseMatrix({ R: Float64Array.from(body.pose.m), t: Float64Array.from(body.pose.t) }, undefined), state, hatched: state === 'refused', opacity: state === 'pending' ? 0.38 : 0.65 });
   };
   for (const pair of map.pairs) {

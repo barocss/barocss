@@ -4,6 +4,8 @@ export { sub, dot, cross, unit as normalize } from '@barocss/cad-model/engine/ve
 import { sub, dot, cross, unit as normalize } from '@barocss/cad-model/engine/vec3';
 
 export type Mat4 = Float32Array;
+// The existing persisted RenderCamera admission (cad-model/engine/render.ts); no new camera state.
+const MIN_DISTANCE = 1e-3;
 
 export class OrbitCamera {
   target: Vec3 = [32, 16, 4];
@@ -32,7 +34,7 @@ export class OrbitCamera {
     return new Float32Array([r[0], u[0], -f[0], 0, r[1], u[1], -f[1], 0, r[2], u[2], -f[2], 0, -dot(r, eye), -dot(u, eye), dot(f, eye), 1]);
   }
 
-  near() { return Math.max(0.05, this.distance * 0.01); }
+  near() { return Math.max(Math.min(0.05, 0.05 * this.distance), this.distance * 0.01); }
   far() { return this.distance * 40 + 2000; }
 
   projection(): Mat4 {
@@ -47,19 +49,27 @@ export class OrbitCamera {
 
   viewProjection(): Mat4 { return mul(this.projection(), this.view()); }
   /**
-   * The view-projection for project (R1b): made again only when the camera has moved — project runs for every edge end
-   * under a hover and every overlay point in a frame. The same matrix as viewProjection.
+   * The relative basis and projection for project: made again only when the camera has moved — project runs for
+   * every edge end under a hover and every overlay point in a frame. Invalid bases retain the legacy matrix path.
    */
-  private projector(): Mat4 {
+  private projector() {
     const k = this.projectorKey, t = this.target, o = this.ortho ? 1 : 0;
-    if (!this.projectorMatrix || k[0] !== t[0] || k[1] !== t[1] || k[2] !== t[2] || k[3] !== this.distance || k[4] !== this.yaw || k[5] !== this.pitch || k[6] !== this.fovY || k[7] !== o || k[8] !== this.aspect) {
+    if ((!this.projectorData && !this.projectorMatrix) || k[0] !== t[0] || k[1] !== t[1] || k[2] !== t[2] || k[3] !== this.distance || k[4] !== this.yaw || k[5] !== this.pitch || k[6] !== this.fovY || k[7] !== o || k[8] !== this.aspect) {
       k[0] = t[0]; k[1] = t[1]; k[2] = t[2]; k[3] = this.distance; k[4] = this.yaw; k[5] = this.pitch; k[6] = this.fovY; k[7] = o; k[8] = this.aspect;
-      this.projectorMatrix = this.viewProjection();
+      const b = this.basis(), projection = this.projection();
+      if (b.eye.every(Number.isFinite) && b.forward.every(Number.isFinite) && b.right.every(Number.isFinite) && b.up.every(Number.isFinite)
+        && (b.forward[0] !== 0 || b.forward[1] !== 0 || b.forward[2] !== 0)
+        && (b.right[0] !== 0 || b.right[1] !== 0 || b.right[2] !== 0)
+        && (b.up[0] !== 0 || b.up[1] !== 0 || b.up[2] !== 0)
+        && projection.every(Number.isFinite) && projection[0] !== 0 && projection[5] !== 0) {
+        this.projectorData = { ...b, projection }; this.projectorMatrix = null;
+      } else { this.projectorData = null; this.projectorMatrix = this.viewProjection(); }
     }
-    return this.projectorMatrix;
+    return this.projectorData;
   }
   private projectorKey = new Float64Array(9);
   private projectorMatrix: Mat4 | null = null;
+  private projectorData: { eye: Vec3; forward: Vec3; right: Vec3; up: Vec3; projection: Mat4 } | null = null;
 
   orbit(dx: number, dy: number) {
     this.yaw -= dx * 0.008;
@@ -77,15 +87,21 @@ export class OrbitCamera {
     const { right, up } = this.basis();
     const h = this.distance * Math.tan(this.fovY / 2), w = h * this.aspect;
     const before = this.distance;
-    this.distance = Math.max(1, Math.min(20000, this.distance * factor));
+    this.distance = Math.max(MIN_DISTANCE, Math.min(20000, this.distance * factor));
     const shift = 1 - this.distance / before;
     for (let k = 0; k < 3; k++) this.target[k] += (ndcX * w * right[k] + ndcY * h * up[k]) * shift;
   }
 
   fit(min: Vec3, max: Vec3) {
-    this.target = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2];
-    const radius = Math.max(1, Math.hypot(max[0] - min[0], max[1] - min[1], max[2] - min[2]) / 2);
-    this.distance = (radius / Math.sin(this.fovY / 2)) * 1.15 / Math.min(1, this.aspect);
+    let valid = true;
+    for (let k = 0; k < 3; k++) if (!Number.isFinite(min[k]) || !Number.isFinite(max[k]) || min[k] > max[k]) valid = false;
+    let radius = 1;
+    if (valid) {
+      const measured = Math.hypot(max[0] - min[0], max[1] - min[1], max[2] - min[2]) / 2;
+      const target: Vec3 = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2];
+      if (Number.isFinite(measured) && target.every(Number.isFinite)) { radius = measured || 1; this.target = target; }
+    }
+    this.distance = Math.max(MIN_DISTANCE, (radius / Math.sin(this.fovY / 2)) * 1.15 / Math.min(1, this.aspect));
   }
 
   /**
@@ -98,9 +114,12 @@ export class OrbitCamera {
 
   /** Frames a span (width along the view's right, height along its up) centred on a point, as frameRect. */
   frameAt(centre: Vec3, span: [number, number], insetLeft = 0, insetRight = 0, margin = 1.2) {
+    if (!centre.every(Number.isFinite)) return;
     const free = Math.max(0.3, 1 - insetLeft - insetRight), t = Math.tan(this.fovY / 2);
-    const spanX = Math.max(1, span[0]) * margin, spanY = Math.max(1, span[1]) * margin;
-    this.distance = Math.max(spanY / (2 * t), spanX / (2 * t * this.aspect * free));
+    const small = Number.isFinite(span[0]) && Number.isFinite(span[1]) && span[0] >= 0 && span[1] >= 0 && span[0] < 1 && span[1] < 1 && (span[0] > 0 || span[1] > 0);
+    const spanX = (small ? span[0] : Math.max(1, Number.isFinite(span[0]) ? span[0] : 1)) * margin;
+    const spanY = (small ? span[1] : Math.max(1, Number.isFinite(span[1]) ? span[1] : 1)) * margin;
+    this.distance = Math.max(MIN_DISTANCE, spanY / (2 * t), spanX / (2 * t * this.aspect * free));
     this.target = [...centre] as Vec3;
     // Shift so the rectangle's centre lands in the middle of the free band, not of the canvas.
     const { right } = this.basis(), halfWidth = this.distance * t * this.aspect, ndc = insetLeft - insetRight;
@@ -134,7 +153,16 @@ export class OrbitCamera {
 
   /** Project a world point to CSS pixels. */
   project(p: Vec3, width: number, height: number): [number, number, number] {
-    const m = this.projector();
+    const b = this.projector();
+    if (b) {
+      const dx = p[0] - b.eye[0], dy = p[1] - b.eye[1], dz = p[2] - b.eye[2], P = b.projection;
+      const x = P[0] * (dx * b.right[0] + dy * b.right[1] + dz * b.right[2]);
+      const y = P[5] * (dx * b.up[0] + dy * b.up[1] + dz * b.up[2]);
+      const viewZ = -(dx * b.forward[0] + dy * b.forward[1] + dz * b.forward[2]);
+      const z = P[10] * viewZ + P[14], w = this.ortho ? 1 : -viewZ;
+      return [(x / w * 0.5 + 0.5) * width, (1 - (y / w * 0.5 + 0.5)) * height, z / w];
+    }
+    const m = this.projectorMatrix!;
     const x = m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12];
     const y = m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13];
     const z = m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14];

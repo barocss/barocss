@@ -143,7 +143,7 @@ export const clipMeshSection = (m: DisplayMesh, s: Section, capName: string): Di
 /** Two display meshes as one: points, faces and edges of the second after the first's, renumbered. */
 export function mergeMeshes(a: DisplayMesh, b: DisplayMesh): DisplayMesh {
   const nv = a.positions.length / 3, nf = a.faces.length, ne = a.edges.length;
-  const cat = (x: Float32Array, y: Float32Array) => { const o = new Float32Array(x.length + y.length); o.set(x); o.set(y, x.length); return o; };
+  const cat = (x: Float32Array | Float64Array, y: Float32Array | Float64Array) => { const o = new Float32Array(x.length + y.length); o.set(x); o.set(y, x.length); return o; };
   const fov = cat(a.faceOfVertex, b.faceOfVertex), eos = cat(a.edgeOfSegment, b.edgeOfSegment), idx = new Uint32Array(a.indices.length + b.indices.length);
   for (let i = a.faceOfVertex.length; i < fov.length; i++) fov[i] += nf;
   for (let i = a.edgeOfSegment.length; i < eos.length; i++) eos[i] += ne;

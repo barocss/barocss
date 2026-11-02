@@ -1,0 +1,477 @@
+{
+  "workId": "D423",
+  "status": "IMPLEMENTED_SCOPED_SOURCE_PASS_STUDIO_AND_FULL_BACKEND_HOLD",
+  "baseline": "5c820c3c343c9c1a1ab4ef05591928a543c4b083",
+  "tier": "full",
+  "roadmapRows": [
+    13,
+    16
+  ],
+  "overallEstimate": {
+    "percent": 43,
+    "method": "Equal row weights: (7 bounded closeouts + 15 partial rows *0.5)/34; not release acceptance"
+  },
+  "models": {
+    "geometryAuthorAndIndependentReviewer": "GPT-6.1 Sol High",
+    "consumerAndGeneralValidation": "GPT-6.1 Sol Medium"
+  },
+  "node": "v22.19.0",
+  "sourceHashes": {
+    "packages/barocss-cad/src/brep/brep-mass-quadrature.ts": "2310401d716aba5fbacd859dcc98431b0b52e733eb6fa95cfe9c09bdad007b0c",
+    "packages/barocss-cad/src/brep/solid-mass.ts": "8f87d33be2716bfc259a658ab409de302240a7f025c1ce416468aa05b526749a",
+    "packages/barocss-cad/test/brep-mass-translation-fixtures.mjs": "38aa097367557a9c5475c4e5d857b195c9fe9196e3108b1390927e95e4868df0",
+    "packages/barocss-cad/test/brep-mass-translation.test.mjs": "77c11c335417bb1bed09247907f98e5be93f10a66c33e4fde1f1d0f2175a380c",
+    "packages/barocss-cad-model/test/native-quadrature-step.test.ts": "bfe21ef02df89883095911df4d522478603bf36eb896cf499b4f0eb1d571117b",
+    "apps/cad-studio/test/step-mass-translation-browser.mjs": "b90605a07e232c68276697559072df655d77e64719ab0f53104ea372a1f4e00d"
+  },
+  "scope": [
+    "Local half-extent whole-patch recognition; retained1mm compatibility floor, no tolerance widening or scale-free claim.",
+    "Exact common native3D working-copy translation on quadrature cache miss; original identity/quality cache and upfront binding guard retained.",
+    "Local central mass properties; restore centroid only and transfer the central native basis.",
+    "World raw-integral/null API retained; facet/mixed and polyhedral/B9 paths remain separate.",
+    "No importer, display-mesh path, public signature, schema, dependency or raw edge-tolerance change."
+  ],
+  "units": {
+    "length": "mm",
+    "volume": "mm^3",
+    "area": "mm^2",
+    "mass": "g",
+    "density": "g/cm^3",
+    "inertia": "g*mm^2",
+    "nativeSIInertia": "kg*m^2",
+    "time": "ms"
+  },
+  "baselineWrongSuccess": {
+    "volume": 5.004820040126272e-09,
+    "expectedVolume": 4.188790204786391e-09,
+    "area": 1.769173067634306e-05,
+    "expectedArea": 1.2566370614359172e-05,
+    "wholePatch": [
+      true,
+      true
+    ],
+    "meaning": "Full support integrated instead of intended trim; 253degree support alone is not a coverage defect."
+  },
+  "assessmentControls": [
+    "Original far wrong success retained.",
+    "Same literal rotation centered gives accurate trimmed integration.",
+    "Forced-decline far returns directnull/publicGEOMETRY; classifier-only correction is insufficient.",
+    "Same already-imported rounded geometry translated toorigin, originaltolerances unchanged, returns accurate trimmed integration and preserves input."
+  ],
+  "currentIndependentNativeObservations": [
+    {
+      "density": 1,
+      "volume": 4.188790288725287e-09,
+      "area": 1.25663711525574e-05,
+      "mass": 4.188790288725288e-12,
+      "centroid": [
+        999000,
+        -998000,
+        997000
+      ],
+      "inertia": [
+        [
+          1.6755161156973644e-18,
+          5.224118383751786e-27,
+          -2.534751954908299e-26
+        ],
+        [
+          5.224118383751786e-27,
+          1.6755161414191992e-18,
+          -2.181534853211565e-26
+        ],
+        [
+          -2.534751954908299e-26,
+          -2.181534853211565e-26,
+          1.6755161549632513e-18
+        ]
+      ]
+    },
+    {
+      "density": 7.85,
+      "volume": 4.188790288725287e-09,
+      "area": 1.25663711525574e-05,
+      "mass": 3.2882003766493505e-11,
+      "centroid": [
+        999000,
+        -998000,
+        997000
+      ],
+      "inertia": [
+        [
+          1.315280150822431e-17,
+          4.100932931245152e-26,
+          -1.9897802846030147e-25
+        ],
+        [
+          4.100932931245152e-26,
+          1.3152801710140712e-17,
+          -1.7125048597710783e-25
+        ],
+        [
+          -1.9897802846030147e-25,
+          -1.7125048597710783e-25,
+          1.315280181646152e-17
+        ]
+      ]
+    }
+  ],
+  "budgets": {
+    "meaning": "Preregistered finite fixture numerical qualification policies, not universal or shell-derived volume/area certificates",
+    "literalVolumeAreaCentralInertiaRelative": 1e-06,
+    "crossInertiaAbsolute": "density-specific ideal diagonal inertia *1e-6",
+    "centroidAbsolute": 9.313225746154785e-10,
+    "sameRoundedGeometryRelative": 1e-07,
+    "representedSupportRadiusBound": 1.574e-10,
+    "supportBoundMeaning": "ExactFraction shell-only enclosure; not V/A/coverage certificate",
+    "nativeSI": "central MMGS inertia *1e-9; density converted by1e-3 to g/mm^3"
+  },
+  "PASS": {
+    "authorUnique": 23,
+    "authorBreakdown": "14new+4mass/B9+5binding/cache",
+    "independentBaseline": 5,
+    "actualUVPcurves": 24,
+    "exactCoordinateChecks": 183,
+    "meaningfulUniqueMutants": 8,
+    "mutantAssertionsKilled": 8,
+    "mutantFinalCrashes": 0,
+    "mutantFinalMixed": 0,
+    "stableCadBuild": "PASS once",
+    "affectedModelFinalUnique": 14,
+    "modelHistory": "Initial12PASS/2FAIL stale unit expectations; only those2 repaired/retestedPASS",
+    "postFinalModelTestTypes": "PASS",
+    "finalTypedSourceAndDriverLint": "PASS 0errors/0warnings before later diagnostic-only MJS changes",
+    "originalFailedKernelFileRerun": "PASS8/8; subset, not extra unique kernel tests",
+    "exactNodeModelReads": "PASS2/2 under20s caps, far298.601ms/center241.070ms; not browser acceptance",
+    "codeShape": "PASS unchanged119/32/269/69"
+  },
+  "FAIL": {
+    "initialFullKernel": {
+      "total": 2043,
+      "pass": 2040,
+      "fail": 1,
+      "skip": 2,
+      "elapsed": 255820.037,
+      "test": "D246 third case126 in fuzz-k14-findings.test.mjs, evaluateCadPart unexpected rational denominator",
+      "state": "UNRESOLVED_NOT_REPRODUCED; neither regression nor flaky classification established",
+      "tapHash": "7e7587df8114bd8b9d825d4e1b9fdf2e6cff01a3a14966f71959b400f3437647"
+    },
+    "actualRuns": [
+      {
+        "run": 1,
+        "status": "FAIL",
+        "phase": "Open compound-far and inspect real eager/adopted mass",
+        "driverHash": "72050a85579ea9a8bcbbb3d296c61451286f7671f69cd205228bbe3ab792ae13",
+        "frozenFiles": 746,
+        "cleanupEquality": true,
+        "errors": 0,
+        "consoleErrors": 0,
+        "changes": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "failure": "Read refusal before adoption: edge of native face does not lie on its surface",
+        "harness": "Original adoption wait TIMEOUT60000",
+        "adoptedCompoundMassAcceptance": "NOT_ESTABLISHED",
+        "originalPartPreserved": true
+      },
+      {
+        "run": 2,
+        "status": "FAIL",
+        "phase": "Open compound-far and inspect real eager/adopted mass",
+        "driverHash": "b90605a07e232c68276697559072df655d77e64719ab0f53104ea372a1f4e00d",
+        "frozenFiles": 746,
+        "cleanupEquality": true,
+        "errors": 0,
+        "consoleErrors": 0,
+        "changes": 0,
+        "downloads": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "failure": "Read refusal before adoption: edge of native face does not lie on its surface",
+        "harness": "Explicit assertion on matching genuine GEOMETRY refusal",
+        "adoptedCompoundMassAcceptance": "NOT_ESTABLISHED",
+        "originalPartPreserved": true
+      }
+    ]
+  },
+  "denominatorDiagnosis": {
+    "productEdits": false,
+    "originalFailurePreserved": true,
+    "comparisons": [
+      "Isolated126 source baseline/current bothPASS.",
+      "NativeESM184->99->126 baseline/current bothPASS.",
+      "NativeESM immediate predecessor24->184->99->126 baseline/current bothPASS.",
+      "Original unmodified failed file rerun8/8PASS, no loader/tracing/rebuild."
+    ],
+    "limitation": "Initial full failure remains unclassified; these are scoped observations, not a rewritten full-suite PASS."
+  },
+  "mutationScopes": [
+    {
+      "name": "old-world-recognition-scale",
+      "classification": "ASSERTION_KILLED",
+      "scope": "raw-integral wrong successful full-support numerical admission; private local public mass masks oldscale"
+    },
+    {
+      "name": "origin-disabled",
+      "classification": "ASSERTION_KILLED",
+      "scope": "valid-success/refusal and local central tensor contract"
+    },
+    {
+      "name": "centroid-origin-omitted",
+      "classification": "ASSERTION_KILLED",
+      "scope": "world-centroid numeric contract"
+    },
+    {
+      "name": "centroid-origin-doubled",
+      "classification": "ASSERTION_KILLED",
+      "scope": "world-centroid numeric contract"
+    },
+    {
+      "name": "native-basis-transfer-omitted",
+      "classification": "ASSERTION_KILLED",
+      "scope": "private native SI authority/provenance contract, not a wrong volume detector"
+    },
+    {
+      "name": "ephemeral-cache-key",
+      "classification": "ASSERTION_KILLED",
+      "scope": "original cache identity contract, not scalar wrong-success"
+    },
+    {
+      "name": "UV-pcurves-translated-as-world",
+      "classification": "ASSERTION_KILLED",
+      "scope": "actual UV coordinate ownership contract, not scalar wrong-success"
+    },
+    {
+      "name": "edge-translation-omitted",
+      "classification": "ASSERTION_KILLED",
+      "scope": "common geometry binding/exactness; may cause controlled valid-input refusal"
+    }
+  ],
+  "reviewerHistory": [
+    {
+      "attempt": "run01",
+      "status": "BASELINE_FAIL",
+      "reason": "Reviewer required nonnull raw sphere integrals, but API permits null.4other controlsPASS; no mutations ran."
+    },
+    {
+      "attempt": "run02",
+      "status": "BASELINE_SETUP_ERROR",
+      "reason": "Reviewer queried unqualified f1 instead of built qualified face ID; no product inference or mutations."
+    },
+    {
+      "attempt": "run03",
+      "status": "BASELINE5PASS+7ASSERTIONKILLS+1MIXED_NOT_KILLED",
+      "reason": "Omitted-edge mutant also exposed secondary null dereference in reviewer cache check; not counted as kill. Full capsule preserved."
+    },
+    {
+      "attempt": "run04",
+      "status": "TARGET_BASELINE1PASS+SAME_EDGE_MUTANT_ASSERTION_KILLED",
+      "reason": "Explicit valid-roof cached quadrature nonnull assertion added; no hidden TypeError, no numerical thresholds changed."
+    }
+  ],
+  "staleModelTestRepair": {
+    "file": "packages/barocss-cad-model/test/native-quadrature-step.test.ts",
+    "cause": "D406 plainDERIVED_UNIT contract supersedes complex VOLUME_UNIT/AREA_UNIT names",
+    "change": "MRI ->single derived element ->millimetre length base exponent3/2 graph checks",
+    "nativeNumericOracleReadbackAssertionsUnchanged": true,
+    "writerSourceUnchanged": "6679c111ad1fb14d8b38c97a7a9f7d5a3ff21389a05ec5889d2582ee5093a638",
+    "onlyTwoFailedChecksRepeated": true,
+    "allOtherTestTextIdentical": true
+  },
+  "actualDiagnosticProvenance": {
+    "responses": 12,
+    "sourceURLs": "All captured relevant URLs are within the authorized worktree",
+    "modules": {
+      "model-evaluate": {
+        "status": 200,
+        "module": "model-evaluate",
+        "optimizedCandidate": false,
+        "hash": "a8e1dacf632a976d4ea1c973acc8846e10b2490a7b469b8a130a6770fd41b755",
+        "length": 136159,
+        "tokens": {
+          "model-evaluate": {
+            "massOfRef": true,
+            "massOfBrep": true,
+            "bodyOf": true
+          },
+          "mass-quadrature": {
+            "wholePatchTest": false,
+            "hi[0] - lo[0]": false
+          },
+          "solid-mass": {
+            "quadratureOrigin": false,
+            "centralMassProperties": false,
+            "transferNativeMassBasis": false
+          },
+          "tessellate": {
+            "localNormalSurface": false,
+            "normalAt": false
+          }
+        },
+        "body": "AVAILABLE"
+      },
+      "tessellate": {
+        "status": 200,
+        "module": "tessellate",
+        "optimizedCandidate": false,
+        "hash": "50ba0a3f80f5810be1d79248726e3e996c7ac8c691fb065e4f8181ecc29f2f89",
+        "length": 306555,
+        "tokens": {
+          "model-evaluate": {
+            "massOfRef": false,
+            "massOfBrep": false,
+            "bodyOf": false
+          },
+          "mass-quadrature": {
+            "wholePatchTest": false,
+            "hi[0] - lo[0]": false
+          },
+          "solid-mass": {
+            "quadratureOrigin": false,
+            "centralMassProperties": false,
+            "transferNativeMassBasis": false
+          },
+          "tessellate": {
+            "localNormalSurface": true,
+            "normalAt": true
+          }
+        },
+        "body": "AVAILABLE"
+      },
+      "solid-mass": {
+        "status": 200,
+        "module": "solid-mass",
+        "optimizedCandidate": false,
+        "hash": "d429fbe01a853239f5c331b35d5af29de669cac8e268c9c030be4907dccd9e1a",
+        "length": 58809,
+        "tokens": {
+          "model-evaluate": {
+            "massOfRef": false,
+            "massOfBrep": false,
+            "bodyOf": false
+          },
+          "mass-quadrature": {
+            "wholePatchTest": false,
+            "hi[0] - lo[0]": false
+          },
+          "solid-mass": {
+            "quadratureOrigin": true,
+            "centralMassProperties": false,
+            "transferNativeMassBasis": true
+          },
+          "tessellate": {
+            "localNormalSurface": false,
+            "normalAt": false
+          }
+        },
+        "body": "AVAILABLE"
+      },
+      "mass-quadrature": {
+        "status": 200,
+        "module": "mass-quadrature",
+        "optimizedCandidate": false,
+        "hash": "86085e6f112845a52c6472f4848a5335fe871eccf6f9e6244b749cbb265c60f9",
+        "length": 195498,
+        "tokens": {
+          "model-evaluate": {
+            "massOfRef": false,
+            "massOfBrep": false,
+            "bodyOf": false
+          },
+          "mass-quadrature": {
+            "wholePatchTest": true,
+            "hi[0] - lo[0]": true
+          },
+          "solid-mass": {
+            "quadratureOrigin": false,
+            "centralMassProperties": false,
+            "transferNativeMassBasis": false
+          },
+          "tessellate": {
+            "localNormalSurface": false,
+            "normalAt": false
+          }
+        },
+        "body": "AVAILABLE"
+      }
+    },
+    "interpretation": "Passive transformed-source hashes/helper tokens, not semantic equivalence proof. No response replacement or cache forcing.",
+    "wire": "Initial Bracket evaluate and matching part/read request/refusal preserved; no compound body adopted."
+  },
+  "NOT_RUN": [
+    "Successful Studio eager/adopted compound mass flow: blocked by display tessellation refusal",
+    "Broad shared-backend/release acceptance: HOLD due initial fullsuite1FAIL",
+    "Browser inversion implementation: nextD424 assessment only",
+    "Spherical OFFSET or new format admission",
+    "New OCP/download/dependency, further develop merge, release/npm publish/deployment"
+  ],
+  "nextDecision": {
+    "id": "D424",
+    "scope": "Diagnose the browser display UV inversion refusal before format expansion",
+    "status": "NOT_STARTED_AT_CHECKPOINT",
+    "authority": "No mesh implementation is authorized by this source checkpoint"
+  },
+  "commands": [
+    "node scripts/tool.mjs build (packages/barocss-cad cwd)",
+    "node --test --test-concurrency=4 test/*.test.mjs (packages/barocss-cad cwd)",
+    "node --test --test-concurrency=4 test/fuzz-k14-findings.test.mjs (failed-file rerun only)",
+    "pnpm --filter @barocss/cad-model type-check",
+    "node apps/cad-studio/test/step-mass-translation-browser.mjs /tmp/barocss-d423-browser-run01 /tmp/barocss-d423-consumer/fixtures",
+    "node apps/cad-studio/test/step-mass-translation-browser.mjs /tmp/barocss-d423-browser-run02 /tmp/barocss-d423-consumer/fixtures",
+    "node apps/cad-studio/handover/scripts/check-navigation.mjs"
+  ],
+  "artifacts": "All TAP/logs/raw STEP/native geometry/module bodies/screenshots/bundles remain under /tmp/barocss-d423-*; only numbers/commands/source tests are committed. Heavy jobs serialized via gate.sh with load<40; no worktree writes during actual runs.",
+  "acceptanceBoundary": "This is a source checkpoint, not a complete Studio or backend qualification. Last qualified bounded product checkpoint remains D422. Writer source unchanged does not establish byte-identical STEP validation values after a numeric correction.",
+  "issues": "#2263 remains open; assemblies/presentation/PMI/generaloffsets/vertexloops/seamholes and successful consumer acceptance are incomplete. #2248/#2266 remain separate open scope.",
+  "ocpEnvironmentRemainsRemoved": true,
+  "checkpointStatic": {
+    "modelTypesAfterFinalDiagnosticTestEdit": "PASS",
+    "currentDiagnosticDriverSyntax": "PASS",
+    "currentDiagnosticDriverLint": "PASS 1file 0errors 0warnings",
+    "handoverNavigation": "PASS 34rows, newbroken0, one known archived missing evidence path",
+    "qualificationJson": "PASS parse",
+    "diffCheck": "PASS"
+  },
+  "fixtures": {
+    "manifestHash": "3101b9b86da78aff3fcd8e9b6d2c7c892a06fe26d05d98b187aaa337b72a078b",
+    "cases": [
+      {
+        "name": "compound-far",
+        "file": "compound-far.step",
+        "radius": 0.001,
+        "center": [
+          999000,
+          -998000,
+          997000
+        ],
+        "sha256": "55ba8745e35a1b2bdd9db664dc381f9d50d7c07c480ed9bd7eaad5bbdcb551a0"
+      },
+      {
+        "name": "compound-centered",
+        "file": "compound-centered.step",
+        "radius": 0.001,
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "sha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468"
+      }
+    ],
+    "plannedActualDensity": 2.7,
+    "densityMeaning": "Source/manifest assumption2.7 g/cm^3; successful compound UI adoption not established"
+  },
+  "driverEvolution": {
+    "originalActualHash": "72050a85579ea9a8bcbbb3d296c61451286f7671f69cd205228bbe3ab792ae13",
+    "diagnosticHash": "b90605a07e232c68276697559072df655d77e64719ab0f53104ea372a1f4e00d",
+    "change": "Passive error/wire/module capture and fast matching-refusal detection; success predicates/inputs/numeric limits unchanged; not whole-AST equality claim",
+    "asRunSourcesPreservedOutsideGit": true
+  }
+}

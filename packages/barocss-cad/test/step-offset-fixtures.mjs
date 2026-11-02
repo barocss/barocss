@@ -39,5 +39,5 @@ export function planeOffsetStep({ distance = 1, baseHeight = 1, boundaryHeight =
   return units(["ISO-10303-21;",'HEADER;',"FILE_DESCRIPTION((''),'2;1');","FILE_NAME('offset plane.stp','',(''),(''),'','','');","FILE_SCHEMA(('AUTOMOTIVE_DESIGN'));",'ENDSEC;','DATA;',...records,'ENDSEC;','END-ISO-10303-21;',''].join('\n'), unit);
 }
 export function unsupportedOffsetStep() {
-  return cylinderOffsetStep().replace(/CYLINDRICAL_SURFACE\('',(#\d+),10\.\)/, "SPHERICAL_SURFACE('',$1,10.)");
+  return cylinderOffsetStep().replace(/CYLINDRICAL_SURFACE\('',(#\d+),10\.\)/, "CONICAL_SURFACE('',$1,10.)");
 }

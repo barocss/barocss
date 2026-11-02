@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { OrbitCamera } from '../src/viewport/camera';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 
-// R1b's projector: project keeps its view-projection until the camera moves. Each value it depends on, changed in place
+// The projector keeps its camera basis and optics until the camera moves. Each value it depends on, changed in place
 // after a projection, must give what a camera made fresh with the same values projects — bit for bit.
 
 const points: Vec3[] = [[0, 0, 0], [32, 16, 4], [-40, 25, 60], [100, -3, -20]];
@@ -38,14 +38,13 @@ for (const [name, change] of changes) test(`camera.project after ${name}: the sa
   same(c, fresh(c));
   change(c);
   same(c, fresh(c));
-  // (And again, from the kept matrix.)
+  // (And again, from the kept basis and optics.)
   same(c, fresh(c));
 });
 
-test('camera.project: the same matrix as viewProjection', () => {
+test('camera.project centers its actual target while raster matrices stay unchanged', () => {
   const c = new OrbitCamera(); c.aspect = 1.25; c.orbit(10, 5);
-  const m = c.viewProjection(), p: Vec3 = [12, -4, 9];
-  const w = m[3] * p[0] + m[7] * p[1] + m[11] * p[2] + m[15];
-  const x = m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12];
-  assert.equal(c.project(p, 800, 600)[0], (x / w * 0.5 + 0.5) * 800);
+  const m = c.viewProjection(), q = c.project(c.target, 800, 600);
+  assert.ok(Math.abs(q[0] - 400) < 1e-10 && Math.abs(q[1] - 300) < 1e-10);
+  assert.deepEqual(c.viewProjection(), m);
 });

@@ -1,0 +1,720 @@
+{
+  "work_id": "D430",
+  "artifact_type": "far-coordinate-gpu-first-loss-assessment",
+  "status": "QUALIFIED_DIAGNOSTIC_PRODUCT_RENDER_PICK_PROJECT_FAILURES_UNRESOLVED",
+  "owner_role": "executor",
+  "source_request": "Continue autonomously by roadmap while owner sleeps",
+  "last_updated": "2026-11-02",
+  "rows": [
+    6,
+    13,
+    16
+  ],
+  "overallPercent": 43,
+  "sourceCheckpoint": "7a3cfee11eb61ab7aced20ce7fa26be320541f3f",
+  "models": {
+    "sourceArchitecture": "GPT-6.1 Sol High",
+    "independentMath": "GPT-6.1 Sol High",
+    "actualProbe": "GPT-6.1 Sol Medium"
+  },
+  "units": {
+    "world": "mm",
+    "image": "RGBA8 code values",
+    "screen": "CSS pixels"
+  },
+  "input": {
+    "farSha256": "55ba8745e35a1b2bdd9db664dc381f9d50d7c07c480ed9bd7eaad5bbdcb551a0",
+    "center": [
+      999000,
+      -998000,
+      997000
+    ],
+    "radius": 0.001,
+    "centeredSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468"
+  },
+  "firstLoss": {
+    "native": "D426 retained canonical Model F64 world positions and edge endpoints; must remeasure actual current worker arrays.",
+    "consumer": "Studio makeBody passes native arrays unchanged to Viewer.createGeometry; prepareGeometry converts positions to Float32Array before upload and derives bounds from the rounded positions.",
+    "location": "packages/barocss-gpu/src/viewer/geometry.ts:108",
+    "float32Spacing": 0.0625,
+    "roundingHalfCell": 0.03125,
+    "mathematicalWitness": "All center components are exact F32 in exponent bin[2^19,2^20). Every radius.001 world point lies strictly in the center rounding cell; all prepared vertices collapse to center.",
+    "additionalBoundaries": [
+      "F32 object and instance model transforms",
+      "F32 frame VP and eye",
+      "large world-position shader intermediate before VP"
+    ],
+    "GL": "Same source/math boundary exists at F64->F32 buffer conversion; NOT_RUN current GL browser."
+  },
+  "checks": {
+    "sourceAndULP": "PASS_SOURCE_MATH_ONLY",
+    "actualStudio": {
+      "status": "PASS",
+      "qualification": "D430_BASELINE_DIAGNOSTIC_NOT_REPAIR_ACCEPTANCE",
+      "assessment": "BASELINE_OBSERVATIONS_NOT_REPAIR_ACCEPTANCE",
+      "sourceFrozenCount": 793,
+      "sourceAfterCount": 793,
+      "sourceAfterCleanupCount": 793,
+      "capsulesEqual": true,
+      "errors": [],
+      "consoleErrors": [],
+      "changes": [],
+      "downloads": [],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "productProfiles": [
+        {
+          "label": "far-top-perspective",
+          "render": "FAIL_RENDER",
+          "pick": "FAIL_PICK",
+          "project": "FAIL_PROJECT",
+          "projectScope": "Product route finite/unoccluded inside canvas only; exact numeric projection witnesses are recorded separately",
+          "queryStatus": "FAIL_PICK"
+        },
+        {
+          "label": "far-top-orthographic",
+          "render": "FAIL_RENDER",
+          "pick": "FAIL_PICK",
+          "project": "FAIL_PROJECT",
+          "projectScope": "Product route finite/unoccluded inside canvas only; exact numeric projection witnesses are recorded separately",
+          "queryStatus": "FAIL_PICK"
+        },
+        {
+          "label": "center-top-orthographic",
+          "render": "PASS_RENDER",
+          "pick": "PASS_PICK",
+          "project": "PASS_PROJECT",
+          "projectScope": "Product route finite/unoccluded inside canvas only; exact numeric projection witnesses are recorded separately",
+          "queryStatus": "PASS_PICK"
+        }
+      ],
+      "exit": 0,
+      "receiptSha256": "657fb4cb87bfd75531ac96eb448e5bf3ad30f4405019370dc52a0e03b60f6005",
+      "probeSha256": "6cbaafcc6c56cd576cf3114522129807c80532c3cee13941ce96ef3874f05084",
+      "profiles": [
+        {
+          "label": "far-top-perspective",
+          "inputSha256": "55ba8745e35a1b2bdd9db664dc381f9d50d7c07c480ed9bd7eaad5bbdcb551a0",
+          "render": "FAIL_RENDER",
+          "pick": "FAIL_PICK",
+          "project": "FAIL_PROJECT",
+          "queryStatus": "FAIL_PICK",
+          "pixels": {
+            "box": {
+              "left": 398,
+              "right": 742,
+              "top": 328,
+              "bottom": 672
+            },
+            "changed": 0,
+            "total": 118336,
+            "fraction": 0,
+            "rgbThreshold": 20,
+            "scope": "Body/helper image difference; not by itself a physical surface oracle"
+          },
+          "documentRestoredExactly": true,
+          "nativeArraysRestoredExactly": true,
+          "preparedRestoredExactly": true,
+          "quantitiesEqualD425": {
+            "volume": true,
+            "mass": true,
+            "area": true,
+            "centroid": true,
+            "inertia": true
+          },
+          "nativeIdeal": {
+            "min": [
+              325.5130973904967,
+              255.61098538401106
+            ],
+            "max": [
+              814.4174506325833,
+              744.5282165897282
+            ],
+            "width": 488.9043532420866,
+            "height": 488.91723120571714,
+            "scope": "Independent camera-relative Number oracle, not rendered bounds"
+          },
+          "preparedIdeal": {
+            "min": [
+              570,
+              499.99997180381837
+            ],
+            "max": [
+              570,
+              499.99997180381837
+            ],
+            "width": 0,
+            "height": 0,
+            "scope": "Independent camera-relative Number oracle, not rendered bounds"
+          },
+          "productOrbitPoint": {
+            "point": [
+              999000.0001,
+              -997999.9999,
+              997000.0009899494
+            ],
+            "screen": [
+              1520.1169729270848,
+              322.1214837966814
+            ],
+            "project": [
+              1520.1169729270848,
+              322.1214837966814,
+              3.498178710068646
+            ]
+          },
+          "native": {
+            "type": "Float64Array",
+            "stats": {
+              "vertices": 522,
+              "unique": 484,
+              "min": [
+                998999.9990056084,
+                -998000.0009943799,
+                996999.9989999998
+              ],
+              "max": [
+                999000.0009943917,
+                -997999.9990056204,
+                997000.001
+              ],
+              "spans": [
+                0.0019887833623215556,
+                0.001988759497180581,
+                0.0020000002114102244
+              ],
+              "nondegenerate": 964,
+              "degenerate": 0,
+              "arrayHash": "80dee0bd93a6e0533fb32e35d697152eeff7981ba52148c869890328cc409da9"
+            },
+            "edgeSegments": 0
+          },
+          "prepared": {
+            "type": "Float32Array",
+            "stats": {
+              "vertices": 522,
+              "unique": 1,
+              "min": [
+                999000,
+                -998000,
+                997000
+              ],
+              "max": [
+                999000,
+                -998000,
+                997000
+              ],
+              "spans": [
+                0,
+                0,
+                0
+              ],
+              "nondegenerate": 0,
+              "degenerate": 964,
+              "arrayHash": "ffa48e3740f24c07aafb729b4d4140d83c25142ff4f6f94399c0579b3171ac3b"
+            },
+            "meshId": 5,
+            "bounds": {
+              "min": [
+                999000,
+                -998000,
+                997000
+              ],
+              "max": [
+                999000,
+                -998000,
+                997000
+              ]
+            }
+          },
+          "rasterClip": [
+            7.19935168182802e-06,
+            "Infinity"
+          ],
+          "idealRouteStatus": "FAIL_PICK",
+          "productRouteStatus": "NOT_EXERCISED_PRODUCT_ROUTE"
+        },
+        {
+          "label": "far-top-orthographic",
+          "inputSha256": "55ba8745e35a1b2bdd9db664dc381f9d50d7c07c480ed9bd7eaad5bbdcb551a0",
+          "render": "FAIL_RENDER",
+          "pick": "FAIL_PICK",
+          "project": "FAIL_PROJECT",
+          "queryStatus": "FAIL_PICK",
+          "pixels": {
+            "box": {
+              "left": 401,
+              "right": 739,
+              "top": 331,
+              "bottom": 669
+            },
+            "changed": 0,
+            "total": 114244,
+            "fraction": 0,
+            "rgbThreshold": 20,
+            "scope": "Body/helper image difference; not by itself a physical surface oracle"
+          },
+          "documentRestoredExactly": true,
+          "nativeArraysRestoredExactly": true,
+          "preparedRestoredExactly": true,
+          "quantitiesEqualD425": {
+            "volume": true,
+            "mass": true,
+            "area": true,
+            "centroid": true,
+            "inertia": true
+          },
+          "nativeIdeal": {
+            "min": [
+              329.1550002013123,
+              259.1499318150347
+            ],
+            "max": [
+              810.8450279948707,
+              740.8500681849654
+            ],
+            "width": 481.69002779355844,
+            "height": 481.7001363699307,
+            "scope": "Independent camera-relative Number oracle, not rendered bounds"
+          },
+          "preparedIdeal": {
+            "min": [
+              570,
+              499.99997180381837
+            ],
+            "max": [
+              570,
+              499.99997180381837
+            ],
+            "width": 0,
+            "height": 0,
+            "scope": "Independent camera-relative Number oracle, not rendered bounds"
+          },
+          "productOrbitPoint": {
+            "point": [
+              999000.0001,
+              -997999.9999,
+              997000.0009899494
+            ],
+            "screen": [
+              -8417.09559559822,
+              -1635.0977420806885
+            ],
+            "project": [
+              -8417.09559559822,
+              -1635.0977420806885,
+              -0.9999128657407255
+            ]
+          },
+          "native": {
+            "type": "Float64Array",
+            "stats": {
+              "vertices": 522,
+              "unique": 484,
+              "min": [
+                998999.9990056084,
+                -998000.0009943799,
+                996999.9989999998
+              ],
+              "max": [
+                999000.0009943917,
+                -997999.9990056204,
+                997000.001
+              ],
+              "spans": [
+                0.0019887833623215556,
+                0.001988759497180581,
+                0.0020000002114102244
+              ],
+              "nondegenerate": 964,
+              "degenerate": 0,
+              "arrayHash": "80dee0bd93a6e0533fb32e35d697152eeff7981ba52148c869890328cc409da9"
+            },
+            "edgeSegments": 0
+          },
+          "prepared": {
+            "type": "Float32Array",
+            "stats": {
+              "vertices": 522,
+              "unique": 1,
+              "min": [
+                999000,
+                -998000,
+                997000
+              ],
+              "max": [
+                999000,
+                -998000,
+                997000
+              ],
+              "spans": [
+                0,
+                0,
+                0
+              ],
+              "nondegenerate": 0,
+              "degenerate": 964,
+              "arrayHash": "ffa48e3740f24c07aafb729b4d4140d83c25142ff4f6f94399c0579b3171ac3b"
+            },
+            "meshId": 5,
+            "bounds": {
+              "min": [
+                999000,
+                -998000,
+                997000
+              ],
+              "max": [
+                999000,
+                -998000,
+                997000
+              ]
+            }
+          },
+          "rasterClip": [
+            -0.04319611009096812,
+            0.04319611009096812
+          ],
+          "idealRouteStatus": "FAIL_PICK",
+          "productRouteStatus": "NOT_EXERCISED_PRODUCT_ROUTE"
+        },
+        {
+          "label": "center-top-orthographic",
+          "inputSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+          "render": "PASS_RENDER",
+          "pick": "PASS_PICK",
+          "project": "PASS_PROJECT",
+          "queryStatus": "PASS_PICK",
+          "pixels": {
+            "box": {
+              "left": 401,
+              "right": 739,
+              "top": 331,
+              "bottom": 669
+            },
+            "changed": 114244,
+            "total": 114244,
+            "fraction": 1,
+            "rgbThreshold": 20,
+            "scope": "Body/helper image difference; not by itself a physical surface oracle"
+          },
+          "documentRestoredExactly": true,
+          "nativeArraysRestoredExactly": true,
+          "preparedRestoredExactly": true,
+          "quantitiesEqualD425": {
+            "volume": true,
+            "mass": true,
+            "area": true,
+            "centroid": true,
+            "inertia": true
+          },
+          "nativeIdeal": {
+            "min": [
+              328.94668219710485,
+              259.10610082105677
+            ],
+            "max": [
+              811.0533178028951,
+              740.8938991789432
+            ],
+            "width": 482.10663560579025,
+            "height": 481.78779835788646,
+            "scope": "Independent camera-relative Number oracle, not rendered bounds"
+          },
+          "preparedIdeal": {
+            "min": [
+              328.9466827781317,
+              259.106087271132
+            ],
+            "max": [
+              811.0533172218684,
+              740.8939127288679
+            ],
+            "width": 482.1066344437367,
+            "height": 481.7878254577359,
+            "scope": "Independent camera-relative Number oracle, not rendered bounds"
+          },
+          "productOrbitPoint": {
+            "point": [
+              0.0001,
+              0.0001,
+              0.0009899494936611666
+            ],
+            "screen": [
+              594.1950944824218,
+              475.72965851491534
+            ],
+            "project": [
+              594.1950944824218,
+              475.72965851491534,
+              -0.9999941352413064
+            ]
+          },
+          "native": {
+            "type": "Float64Array",
+            "stats": {
+              "vertices": 552,
+              "unique": 514,
+              "min": [
+                -0.0009962900100075728,
+                -0.0009956044981891043,
+                -0.0010000000000000002
+              ],
+              "max": [
+                0.0009962900100075726,
+                0.0009956044981891043,
+                0.001
+              ],
+              "spans": [
+                0.0019925800200151457,
+                0.0019912089963782086,
+                0.002
+              ],
+              "nondegenerate": 1024,
+              "degenerate": 0,
+              "arrayHash": "4b956c89f0279584c698ce10746b287b7d8f229d74a11320803cc6bd544623b4"
+            },
+            "edgeSegments": 0
+          },
+          "prepared": {
+            "type": "Float32Array",
+            "stats": {
+              "vertices": 552,
+              "unique": 514,
+              "min": [
+                -0.0009962900076061487,
+                -0.0009956045541912317,
+                -0.0010000000474974513
+              ],
+              "max": [
+                0.0009962900076061487,
+                0.0009956045541912317,
+                0.0010000000474974513
+              ],
+              "spans": [
+                0.0019925800152122974,
+                0.0019912091083824635,
+                0.0020000000949949026
+              ],
+              "nondegenerate": 1024,
+              "degenerate": 0,
+              "arrayHash": "f2a6ca0674eb4c251468cb8eb0a7363f54b68c744fc3f07cbcf8d496f2f70de8"
+            },
+            "meshId": 5,
+            "bounds": {
+              "min": [
+                -0.0009962900076061487,
+                -0.0009956045541912317,
+                -0.0010000000474974513
+              ],
+              "max": [
+                0.0009962900076061487,
+                0.0009956045541912317,
+                0.0010000000474974513
+              ]
+            }
+          },
+          "rasterClip": [
+            -0.04324117422846461,
+            0.04324117422846461
+          ],
+          "idealRouteStatus": "PASS_PICK",
+          "productRouteStatus": "PASS_PICK"
+        }
+      ],
+      "pointerAttempts": {
+        "total": 8,
+        "farMiss": 4,
+        "centerPass": 4,
+        "farProductRoute": "NOT_EXERCISED_PRODUCT_ROUTE_OUTSIDE_CANVAS"
+      },
+      "runtimeModules": {
+        "passiveResponses": 60,
+        "missingDirectSources": [
+          "packages/barocss-gpu/src/api/scene.ts"
+        ],
+        "limit": "Route not requested by direct Studio path; no forced fetch; transformed hashes are provenance, not semantic equivalence."
+      },
+      "edgePrecision": "NOT_QUALIFIED_EMPTY_NATIVE_EDGE_LINES_ON_ALL_SPHERES"
+    },
+    "repair": "NOT_RUN_NOT_IMPLEMENTED",
+    "fullKernel": "NOT_RUN_NO_BREP_CORE_CHANGE",
+    "navigation": {
+      "status": "PASS",
+      "rowPages": 34,
+      "newBroken": 0,
+      "archives": "unchanged"
+    },
+    "unitAndTypes": "NOT_RUN_NO_PRODUCT_OR_REPOSITORY_TEST_EDIT",
+    "independentActualAudit": {
+      "status": "PASS_DIAGNOSTIC_WITH_PRODUCT_FAILURES_RETAINED",
+      "model": "GPT-6.1 Sol High",
+      "nativePreparedStatsRecomputed": true,
+      "preparedExactlyFloat32FromNative": true,
+      "pixelContrasts": [
+        0,
+        0,
+        114244
+      ],
+      "idealAndProductRoutesRecomputed": true,
+      "capsulesEqual": true,
+      "moduleHashesVerified": 60,
+      "D425QuantitiesExact": true,
+      "auditSha256": "091e8d572bbdf07d3c9981eed3cda0ae4b4957274e10b345610923bb9874ba92",
+      "limit": "No repair or edge precision qualification."
+    }
+  },
+  "plannedActualProfiles": [
+    "far Top perspective",
+    "far Top orthographic",
+    "center Top orthographic positive control"
+  ],
+  "verdictContract": "Diagnostic source/camera/cleanup integrity is separate from FAIL_RENDER/FAIL_PICK. The center control must draw/pick. Hide/Undo image differences include derived helpers and cannot alone prove a valid body surface.",
+  "limits": [
+    "No geometry replacement, origin intervention, manual clip, AO/grid/ground change, new API or product repair in this baseline.",
+    "World coordinates and original tolerances remain authored.",
+    "CPU basis/combined/rounded-coefficient projections are numerical observables, not exact GPU arithmetic readback.",
+    "No new GL run, full kernel, download, paid call, develop merge or release."
+  ],
+  "sourceManifest": {
+    "head": "7a3cfee11eb61ab7aced20ce7fa26be320541f3f",
+    "purpose": "D430 read-only exact source route; passive loaded module capture only",
+    "files": [
+      {
+        "path": "apps/cad-studio/src/viewport/gpuRenderer.ts",
+        "sha256": "44949ce26bddc8b5a2728355e96b307b717090194966d12fd715d79cb5558a2f"
+      },
+      {
+        "path": "apps/cad-studio/src/viewport/camera.ts",
+        "sha256": "9d13f10780ff61b478b1f8bcd11a1026b13271a314196cc1b0b4c7f6e826339f"
+      },
+      {
+        "path": "apps/cad-studio/src/viewport/renderer.ts",
+        "sha256": "7c7b5f850512e626b7c7ea823e54b6ec16953a54a0e50f334ebdf704369cbbcb"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+        "sha256": "dec5564cfdb4a01de3c7916792414f8fdac5b99cb19d1ee2d768108a780a579a"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/geometry.ts",
+        "sha256": "9c77377ef621977c0ccda0e8ed7ef02e8a7eb215d2d9a4f39a3901407a593cc5"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/scene.ts",
+        "sha256": "037031ea6004f955afe09c72e88241fc9aeef1b6c409be7b3dd6b0587939a24d"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/camera.ts",
+        "sha256": "73d7f311c4e0f65d3755be2364d26dd8dfdf8e39bd894a2757bce39d0ab6ee0a"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/math.ts",
+        "sha256": "2b31578cbfbfe52a703107c846a7f80a899576204a4f5779c3b92bb5c4cf22b4"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/bounds.ts",
+        "sha256": "1928c002a41e084e68ecccff0a8130d23c8701bae2cb941baae4e0f723196ba5"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/lights.ts",
+        "sha256": "42878b930ed30b52d60d0a87728649eddfb283aa83dc7b4084374a005a30b5af"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/shaders.ts",
+        "sha256": "38b82b382a93409b4d5bfb706bce75de0796660ce43c56dda0d20352ae5c96e8"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/orthographic-depth-internal.ts",
+        "sha256": "fd62bb99f19f9460be3c8c85e5474d66380fe00b258b4c9bb5b324544ba34ee6"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/shaders/common.ts",
+        "sha256": "f3541637de07550a80ad484e1a074db8ee546981ce44673ef2966d1765b0a02a"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/shaders/surface.ts",
+        "sha256": "31cfba9e21dc1e05bda614981fe720e19448bb391e5d812f54b4bf61f0c8a6d6"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/shaders/line.ts",
+        "sha256": "3afb71cc0e02caf596d11f2c6f8dfd57f13673129d1b771e430f49c2b0d27559"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/shaders/pick.ts",
+        "sha256": "f56f935d60c540ee3f4fbe40038e459405fb856c63452eaff729acdbe1d36c4b"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/shaders/label.ts",
+        "sha256": "b980963127d3e3c142400d7b303effdc9b8d42e9eceb48e58a859cac8f3be048"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/shaders/grid.ts",
+        "sha256": "cc7ce9dc5ac21f544302adda861f6fdef286dce808dea13b59512addb2ce2415"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/shaders/output.ts",
+        "sha256": "a7b7490f916077b89dec8a82893dfe279c4828c94a68324997180cd2915d6a8d"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/shaders/material-layer.ts",
+        "sha256": "8f5ff3a09c9b1c21933b013b591756e9fad787edb2cfb56a935786acbd2082e1"
+      },
+      {
+        "path": "packages/barocss-gpu/src/api/scene.ts",
+        "sha256": "d916baf32a4cf224b1dd386b22ef84865b737a0a255a57f09770527edf62d1ca"
+      }
+    ]
+  },
+  "independent": {
+    "model": "GPT-6.1 Sol High",
+    "assessmentSha256": "d30d60686047f1ae58cc69a6567e22e1f13879ca237342df1150ad346dfed490",
+    "architectureSha256": "39ac73acb009fd6b0ebb6683f5e478c80910c0406e638694047c5d206aed5690",
+    "status": "PASS_SOURCE_MATH_ONLY_NO_ACTUAL"
+  },
+  "contract": {
+    "publicObservables": [
+      "Viewer.meshList/Geometry.data/bounds and Mesh.transforms",
+      "Current adopted worker native arrays linked to exact fixture",
+      "Public camera view/projection/VP matrices and rounded coefficient copies",
+      "Existing Orbit project/screen/eye hooks",
+      "Real UI picks at product-projected and independent-relative-oracle coordinates",
+      "Public raycast and hardware pick serialized separately",
+      "Public Browser Hide body / Undo independent of selection"
+    ],
+    "pointOffset": [
+      0.0001,
+      0.0001,
+      0.0009899494936611666
+    ],
+    "pointRule": "z=sqrt(R^2-2*.0001^2); interior point avoids pole/seam ties",
+    "queries": "Outside product-projected canvas is FAIL_PROJECT/NOT_EXERCISED on that route; independent oracle pixel remains a separate real input, not corrected product output.",
+    "classifications": [
+      "diagnosticIntegrity",
+      "FAIL_RENDER",
+      "FAIL_PICK",
+      "FAIL_PROJECT",
+      "FAIL_PICK_QUERY"
+    ],
+    "coordinateMathLimit": "Recorded coefficient computations use CPU arithmetic, not exact device arithmetic."
+  },
+  "tier": "measurement with independent source/math and actual audit",
+  "visualReview": "Root viewed three full-page profiles and far visible/hidden/restored +center hidden/restored images; far canvas remains empty, center draws. All canvas images1140x1000, fullpage1440x1000.",
+  "commands": [
+    "FAR_WORLD_BASELINE_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' CAD_STUDIO_CHAT_PORT=52391 node /tmp/barocss-d430-probe/far-world-baseline.mjs /tmp/barocss-d430-probe/run01 /tmp/barocss-d423-consumer/fixtures"
+  ],
+  "artifacts": [
+    "/tmp/barocss-d430-assessment",
+    "/tmp/barocss-d430-independent",
+    "/tmp/barocss-d430-probe/run01"
+  ],
+  "issues": {
+    "2263": "OPEN; complete exchange acceptance absent."
+  },
+  "next": "D431: retain Viewer CPU world-coordinate authority and verify CPU bounds/picks independently; GPU relative raster and Orbit world projection remain explicit follow-up boundaries, not implicitly qualified."
+}

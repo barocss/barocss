@@ -1,0 +1,93 @@
+<!doctype html><meta charset="utf-8"><title>Relative raster public API regression</title>
+<style>body{margin:0;background:#111;color:white;font:12px monospace}canvas{width:320px;height:240px;display:block}</style>
+<script type="importmap">{"imports":{"@barocss/cad":"/cad/index.js"}}</script><canvas id="c"></canvas>
+<script type="module">
+import { createViewer } from '/viewer/index.js';
+const C=[999000,-998000,997000], canvas=document.getElementById('c'), descriptors=new WeakMap(), writes=[];
+const create=GPUDevice.prototype.createBuffer, write=GPUQueue.prototype.writeBuffer;
+GPUDevice.prototype.createBuffer=function(d){const b=create.call(this,d);descriptors.set(b,{label:d.label,size:d.size});return b;};
+GPUQueue.prototype.writeBuffer=function(buffer,offset,data,start=0,count){
+  const d=descriptors.get(buffer), width=data.BYTES_PER_ELEMENT??1, raw=data instanceof ArrayBuffer?new Uint8Array(data):new Uint8Array(data.buffer,data.byteOffset,data.byteLength);
+  if(d&&['positions','lines','points','viewer frame','viewer objects'].includes(d.label)){
+    const first=start*width,n=count===undefined?raw.byteLength-first:count*width;
+    writes.push({label:d.label,size:d.size,offset,bytes:Array.from(raw.slice(first,first+n))});
+  }
+  return write.apply(this,arguments);
+};
+let viewer,body,lines,points,contour,source,disposed=false;
+const pixel=(image,x,y)=>Array.from(image.data.slice((y*image.width+x)*4,(y*image.width+x)*4+4));
+function contrast(a,b){let count=0;for(let i=0;i<a.data.length;i+=4)if(Math.max(Math.abs(a.data[i]-b.data[i]),Math.abs(a.data[i+1]-b.data[i+1]),Math.abs(a.data[i+2]-b.data[i+2]))>2)count++;return count;}
+function floatWrite(label,size){for(let i=writes.length-1;i>=0;i--)if(writes[i].label===label&&(size===undefined||writes[i].size===size))return new Float32Array(Uint8Array.from(writes[i].bytes).buffer);return null;}
+function ulp(x){return x===0?2**-149:2**(Math.floor(Math.log2(Math.abs(x)))-23);}
+function inverse(A){
+  const r=[];for(let i=0;i<4;i++){const row=[];for(let j=0;j<4;j++)row.push(A[j*4+i]);for(let j=0;j<4;j++)row.push(i===j?1:0);r.push(row);}
+  for(let k=0;k<4;k++){let pivot=k;for(let i=k+1;i<4;i++)if(Math.abs(r[i][k])>Math.abs(r[pivot][k]))pivot=i;[r[k],r[pivot]]=[r[pivot],r[k]];const s=r[k][k];for(let j=0;j<8;j++)r[k][j]/=s;for(let i=0;i<4;i++)if(i!==k){const t=r[i][k];for(let j=0;j<8;j++)r[i][j]-=t*r[k][j];}}
+  const out=[];for(let j=0;j<4;j++)for(let i=0;i<4;i++)out.push(r[i][4+j]);return out;
+}
+function transform(M,x,y,z){const w=M[3]*x+M[7]*y+M[11]*z+M[15];return[(M[0]*x+M[4]*y+M[8]*z+M[12])/w,(M[1]*x+M[5]*y+M[9]*z+M[13])/w,(M[2]*x+M[6]*y+M[10]*z+M[14])/w];}
+// Narrow physical oracle: identity instance/model, exactly local-z-zero quad, axial camera. Vertex depth is constant.
+// Constant dot products contain one nonzero term; only division and declared two depth ULPs need storage reserve.
+function planeBudget(hit,x,y,projection){
+  const frame=floatWrite('viewer frame'), packed=Array.from(frame.slice(0,16)), inv=inverse(packed), P=viewer.camera.projectionMatrix(viewer.aspect), d=viewer.camera.position[2]-C[2];
+  const nx=2*(Math.floor(x)+.5)/canvas.width-1,ny=1-2*(Math.floor(y)+.5)/canvas.height;
+  const expectedLocal=projection==='orthographic'?[nx/P[0],ny/P[5],0]:[nx*d/P[0],ny*d/P[5],0];
+  const idealDepth=(P[14]-P[10]*d)/(projection==='orthographic'?1:d), constant=Math.fround(packed[14]/packed[15]);
+  const gamma16=16*2**-24/(1-16*2**-24);
+  const depthBound=Math.abs(constant-idealDepth)+gamma16*Math.abs(constant)+2*ulp(constant), reserve=4*2**(Math.floor(Math.log2(Math.max(...C.map(Math.abs))))-52);
+  let pointBound=reserve;
+  for(const z of [idealDepth-depthBound,idealDepth+depthBound]){const q=transform(inv,nx,ny,z);for(let k=0;k<3;k++)pointBound=Math.max(pointBound,Math.abs(q[k]-expectedLocal[k])+reserve);}
+  const expected=expectedLocal.map((v,i)=>v+C[i]), error=Math.max(...hit.point.map((v,i)=>Math.abs(v-expected[i])));
+  const decode=transform(inv,nx,ny,hit.depth).map((v,i)=>v+C[i]),decodeError=Math.max(...hit.point.map((v,i)=>Math.abs(v-decode[i])));
+  // Projection bound from actual uploaded coefficients and gamma16; affine identity/input lattice stages are exact.
+  const h=viewer.camera.halfHeight;
+  let cssBound=0;
+  for(let i=0;i<source.length;i+=3){const q=[source[i]-C[0],source[i+1]-C[1],0,1],trueClip=[P[0]*q[0],P[5]*q[1],P[14]-P[10]*d,projection==='orthographic'?1:d],v=[];
+    for(let row=0;row<4;row++){let value=0,scale=0;for(let col=0;col<4;col++){value+=packed[col*4+row]*q[col];scale+=Math.abs(packed[col*4+row]*q[col]);}v.push({value,error:Math.abs(value-trueClip[row])+gamma16*scale});}
+    for(let k=0;k<2;k++){const ratio=trueClip[k]/trueClip[3],w=Math.abs(trueClip[3])-v[3].error;cssBound=Math.max(cssBound,(v[k].error+Math.abs(ratio)*v[3].error)/w*(k===0?canvas.width:canvas.height)/2);}}
+  return{pointBound,pointCeiling:.002*1e-4,error,depthBound,depthError:Math.abs(hit.depth-idealDepth),decodeError,cssBound,expected,depth:hit.depth,packed,halfHeight:h};
+}
+async function frame(){await viewer.frame();return viewer.capture();}
+async function start(){
+  viewer=await createViewer(canvas,{controls:false,autoResize:false,antialias:false,pixelRatio:1,background:'#111111',camera:{position:[C[0],C[1],C[2]+.01],target:C,up:[0,1,0],projection:'perspective'},grid:{visible:true,cell:10,major:5},lights:[{kind:'directional',direction:[-.4,.6,-1],intensity:1.1},{kind:'directional',direction:[0,0,-1],intensity:0,castShadow:true}],environment:{ambient:.3,toneMapping:'aces',ambientOcclusion:{radius:1,strength:.9},softShadows:0}});
+  viewer.setSize(320,240);
+  source=Float64Array.from([-.001,-.001,0,.001,-.001,0,.001,.001,0,-.001,.001,0],(x,i)=>x+C[i%3]);
+  body=viewer.add({positions:source,normals:[0,0,1,0,0,1,0,0,1,0,0,1],indices:[0,1,2,0,2,3],faces:[42,43]},{name:'far surface',material:{color:'#d03020',roughness:.62}});
+  lines=viewer.add({positions:Float64Array.of(C[0]-.0014,C[1]-.0014,C[2],C[0]+.0014,C[1]-.0014,C[2]),topology:'lines',edges:[29]},{name:'far line',material:{color:'#ffffff',lineWidth:2,unlit:true,lineOver:true}});
+  points=viewer.add({positions:Float64Array.of(C[0]+.0014,C[1]+.0014,C[2]),topology:'points'},{name:'far point',material:{color:'#ffffff',pointSize:8,unlit:true,lineOver:true}});
+  contour=viewer.add({positions:source,normals:[0,0,1,0,0,-1,0,0,-1,0,0,1],indices:[0,1,2,0,2,3],topology:'lines',contour:true},{name:'authored normal contour',material:{color:'#ffffff',lineWidth:2,unlit:true,lineOver:true}});
+  return projection('perspective');
+}
+async function projection(kind){
+  viewer.camera.projection=kind;viewer.requestRender();const image=await frame(),hit=await viewer.pick(170,126),packet=floatWrite('positions');
+  if(!hit)throw new Error(`hardware pick missing in ${kind}`);
+  const budget=planeBudget(hit,170,126,kind),cpu=viewer.raycast(170,126),before=body.geometry.data.positions.slice();
+  body.visible=false;const hidden=await frame();body.visible=true;const restored=await frame();
+  return{kind,coverage:contrast(image,hidden),restoreDifference:contrast(image,restored),point:hit.point,face:hit.face,triangle:hit.triangle,cpu:!!cpu,budget,worldUnchanged:Array.from(before).every((x,i)=>Object.is(x,body.geometry.data.positions[i])),packet:Array.from(packet),expectedPacket:Array.from(Float32Array.from(source,(x,i)=>x-C[i%3])),bounds:body.bounds,origin:viewer.camera.target,grid:viewer.grid.visible,ao:viewer.environment.ambientOcclusion};
+}
+async function updates(){
+  const before=await frame();lines.visible=false;const noLine=await frame();lines.visible=true;points.visible=false;const noPoint=await frame();points.visible=true;
+  const restored=await frame();points.geometry.setColors([0,0,1]);lines.geometry.setColors([0,1,0,0,1,0]);const changed=await frame();
+  const lineWrite=floatWrite('lines',32),pointWrite=floatWrite('points',16),contourWrite=floatWrite('lines',144);
+  contour.visible=false;const noContour=await frame();contour.visible=true;const withContour=await frame();
+  let contourSetterCode=null;try{contour.geometry.setColors([1,0,0]);}catch(error){contourSetterCode=error.code;}
+  return{linePixels:contrast(before,noLine),pointPixels:contrast(restored,noPoint),contourPixels:contrast(withContour,noContour),contourSetterCode,changedPixels:contrast(restored,changed),linePacket:Array.from(lineWrite),pointPacket:Array.from(pointWrite),contourPacket:Array.from(contourWrite)};
+}
+async function fallback(){
+  body.geometry.setScalars([1,2],'triangle');const legacy=await frame(),miss=await viewer.pick(170,126);body.geometry.setScalars(null);const restored=await frame(),hit=await viewer.pick(170,126);
+  return{legacyReturnedNull:miss===null,restoredHit:!!hit,contrast:contrast(legacy,restored),frameBytes:floatWrite('viewer frame').byteLength};
+}
+async function recover(){
+  const old=viewer.computeDevice;if(!old||typeof old.destroy!=='function')return{supported:false};old.destroy();
+  const end=performance.now()+15000;while((!viewer.ready||viewer.computeDevice===old)&&performance.now()<end)await new Promise(r=>setTimeout(r,20));
+  if(!viewer.ready||viewer.computeDevice===old)throw new Error('owned viewer device did not recover');
+  const image=await frame(),hit=await viewer.pick(170,126);if(!hit)throw new Error('post-recovery hardware pick missing');
+  return{supported:true,changedDevice:viewer.computeDevice!==old,point:hit.point,budget:planeBudget(hit,170,126,viewer.camera.projection),packet:Array.from(floatWrite('positions')),pixel:pixel(image,170,126)};
+}
+async function ordinary(){
+  body.visible=lines.visible=points.visible=contour.visible=false;viewer.camera.position=[0,0,.01];viewer.camera.target=[0,0,0];viewer.camera.projection='orthographic';
+  const mesh=viewer.add({positions:Float32Array.of(-.001,-.001,0,.001,-.001,0,.001,.001,0,-.001,.001,0),normals:[0,0,1,0,0,1,0,0,1,0,0,1],indices:[0,1,2,0,2,3]},{material:{color:'#20d030',unlit:true}});
+  const image=await frame(),hit=await viewer.pick(170,126);return{hit:!!hit,color:pixel(image,170,126),frameTail:Array.from(floatWrite('viewer frame').slice(580)),point:hit?.point,bounds:mesh.bounds};
+}
+async function finish(){if(!disposed){disposed=true;viewer?.dispose();}GPUDevice.prototype.createBuffer=create;GPUQueue.prototype.writeBuffer=write;return{disposed,restored:GPUDevice.prototype.createBuffer===create&&GPUQueue.prototype.writeBuffer===write};}
+window.relativeRasterBrowser={start,projection,updates,fallback,recover,ordinary,finish,writes};
+</script>

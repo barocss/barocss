@@ -1,0 +1,547 @@
+{
+  "work_id": "D432",
+  "artifact_type": "cpu-camera-project-ray-precision",
+  "status": "QUALIFIED_BOUNDED_CPU_PROJECT_AND_RAY",
+  "owner_role": "executor",
+  "source_request": "Continue autonomously by roadmap while owner sleeps",
+  "last_updated": "2026-11-02",
+  "rows": [
+    6,
+    13,
+    16
+  ],
+  "overallPercent": 43,
+  "sourceCheckpoint": "8e9c45e9f6b0cd1f39252d5423f28f32503caad1",
+  "tier": "full: public CPU query math, multiple source/math/API audits and mutations; B-rep core unchanged",
+  "models": {
+    "sourceAuthor": "GPT-6.1 Sol High",
+    "independentMathAndReview": "GPT-6.1 Sol High",
+    "actualProbe": "GPT-6.1 Sol Medium"
+  },
+  "units": {
+    "world": "mm",
+    "screen": "CSS pixels",
+    "time": "ms"
+  },
+  "scope": [
+    "OrbitCamera.project uses cached represented Number basis and point-eye subtraction before projection",
+    "Viewer.Camera.ray uses projection/aspect and represented Number basis, with old inversion retained for admission/fallback",
+    "Preserve analytic OrbitCamera.ray, public unproject, all raster matrix bytes, camera pose/FOV/clipping/depth conventions and serialization",
+    "No relative GPU origin, shader/frame, geometry, Model/kernel or GL change"
+  ],
+  "measurementBefore": {
+    "D431Actual": "f316182e0aa4f15dad02ca899f9b801c5e4f9c80311289c6f114cae74e288bd3",
+    "farProductOrbit": "outside actual canvas in perspective and orthographic",
+    "farPerspectiveBasisVsPublicHitMaximum": 2.497964860040538e-07,
+    "scope": "Descriptive basis diagnostic outside D431 primary geometry oracle; new D432 query admission is separate."
+  },
+  "predeclaredContracts": {
+    "Orbit": "Keep OpenGL[-1,1] depth and existing Float32 projection coefficients; coefficient-aware Double-FOV error envelope +fixed gamma64 local reserve, envelope<.001CSSpx for the predeclared finite fixtures",
+    "ViewerRay": "ActualpublicP64 and represented Number basis; perspective origin remains eye, orthographic origin remains signed near plane; direction gamma64 and origin/native-hit8ULP+64EPSlocalScale",
+    "manual": "Retain projectionMatrix/aspect/manual guard order and legacy invalid/singular fallback",
+    "W0AndNonfinite": "Separate IEEE/behavior checks, no widened finite pixel budget",
+    "files": {
+      "/tmp/barocss-d432-independent/predeclared-contract.md": "59ea573e2c62f57d970338009983744cf232fe52170a93c2d0299fa5fb0b227a",
+      "/tmp/barocss-d432-independent/projection-budget.mjs": "e9b1320d2ce0ccfbfb97f5ca4f398d050c8fb88e6b26d33b8f77247fcedbdf6f",
+      "/tmp/barocss-d432-independent/ray-budget.mjs": "5f1249f0cdec5d1fc6a6e3a5619ace273a11c0f69c814e25234d7c7ceb85dcd0",
+      "/tmp/barocss-d432-independent/basis-hit-budget.mjs": "1c5b6d3b809d4ea29dade44643d17a4c69d692f3310b23114b9efd2332d596ac",
+      "/tmp/barocss-d432-independent/basis-hit-budget-contract.md": "5b8f7856ad92bdf0342e8a2971e8b0f1fb5465935cf4cb977286812298e17dfe"
+    },
+    "basisHit": "After direction/origin limits, strict same interior native triangle and incidence admission: fixed plane perturbation allowance uses observed Eo,Ed; no post-failure change to primary8ULP+64EPSlocalScale."
+  },
+  "checks": {
+    "source": "PASS",
+    "focused": {
+      "status": "PASS",
+      "new": 38,
+      "existing": 156,
+      "uniquePass": 194,
+      "fail": 0,
+      "skip": 0,
+      "studio": 50,
+      "viewer": 144,
+      "authorReceiptSha256": "cb13490da4c7cb5a3b403273df7312d0fb4940dec8240eff319a2ffee4d6b9e1",
+      "commands": [
+        {
+          "name": "baseline-provenance",
+          "command": [
+            "node",
+            "/tmp/barocss-d432-author/baseline-provenance.cjs"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+          "exitCode": 0,
+          "expectedExitCode": 0,
+          "elapsedSeconds": 0.161,
+          "log": "/tmp/barocss-d432-author/baseline-provenance.log"
+        },
+        {
+          "name": "studio-pre-fix",
+          "command": [
+            "node",
+            "/tmp/barocss-d432-author/studio-baseline.mjs"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+          "exitCode": 1,
+          "expectedExitCode": 1,
+          "elapsedSeconds": 0.383,
+          "log": "/tmp/barocss-d432-author/studio-pre-fix.log"
+        },
+        {
+          "name": "viewer-pre-fix",
+          "command": [
+            "node",
+            "--import",
+            "./tests/cad-dist.mjs",
+            "--test",
+            "--test-concurrency=1",
+            "tests/camera-relative-ray.test.mjs"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu",
+          "exitCode": 1,
+          "expectedExitCode": 1,
+          "elapsedSeconds": 0.085,
+          "log": "/tmp/barocss-d432-author/viewer-pre-fix.log"
+        },
+        {
+          "name": "gpu-build",
+          "command": [
+            "pnpm",
+            "build:library"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu",
+          "exitCode": 0,
+          "expectedExitCode": 0,
+          "elapsedSeconds": 7.752,
+          "log": "/tmp/barocss-d432-author/gpu-build.log"
+        },
+        {
+          "name": "studio-focused",
+          "command": [
+            "node",
+            "apps/cad-studio/scripts/test.mjs",
+            "camera-relative-query",
+            "camera-projector",
+            "small-camera-scale",
+            "sketch-framing",
+            "render-focus"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+          "exitCode": 0,
+          "expectedExitCode": 0,
+          "elapsedSeconds": 1.637,
+          "log": "/tmp/barocss-d432-author/studio-focused.log"
+        },
+        {
+          "name": "viewer-focused",
+          "command": [
+            "node",
+            "--import",
+            "./tests/cad-dist.mjs",
+            "--test",
+            "--test-concurrency=1",
+            "tests/camera-relative-ray.test.mjs",
+            "tests/viewer-core.test.mjs",
+            "tests/viewer-world-precision.test.mjs",
+            "tests/viewer-orthographic-depth.test.mjs",
+            "tests/pick-instance-readback.test.mjs",
+            "tests/viewer-display.test.mjs"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu",
+          "exitCode": 0,
+          "expectedExitCode": 0,
+          "elapsedSeconds": 1.03,
+          "log": "/tmp/barocss-d432-author/viewer-focused.log"
+        },
+        {
+          "name": "gpu-types",
+          "command": [
+            "pnpm",
+            "type-check"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu",
+          "exitCode": 0,
+          "expectedExitCode": 0,
+          "elapsedSeconds": 7.324,
+          "log": "/tmp/barocss-d432-author/gpu-types.log"
+        },
+        {
+          "name": "studio-types",
+          "command": [
+            "pnpm",
+            "--filter",
+            "@barocss/cad-studio-app",
+            "type-check"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+          "exitCode": 0,
+          "expectedExitCode": 0,
+          "elapsedSeconds": 20.928,
+          "log": "/tmp/barocss-d432-author/studio-types.log"
+        },
+        {
+          "name": "lint",
+          "command": [
+            "pnpm",
+            "exec",
+            "eslint",
+            "apps/cad-studio/src/viewport/camera.ts",
+            "packages/barocss-gpu/src/viewer/camera.ts",
+            "apps/cad-studio/test/camera-relative-query.test.ts",
+            "apps/cad-studio/test/camera-projector.test.ts",
+            "packages/barocss-gpu/tests/camera-relative-ray.test.mjs"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+          "exitCode": 0,
+          "expectedExitCode": 0,
+          "elapsedSeconds": 1.197,
+          "log": "/tmp/barocss-d432-author/lint.log"
+        }
+      ]
+    },
+    "independent": {
+      "status": "PASS_SOURCE_AND_18_PHYSICAL_CHECKS",
+      "receiptSha256": "a9d564a0a869820cc68698a57eb2a4c46815ff9f7f6f6000ca0c1865b44d68d0",
+      "reviewSha256": "91aa4e3f48c2c5d15ced1290055c61f7355c82b1ece38e71ee73f52ce8f20ee5",
+      "unchangedMethods": 24,
+      "actual": "PASS_6_DIFFERENT_NATIVE_ORACLES_24_PROJECTIONS_12_POINTER_SELECTIONS",
+      "actualAuditSha256": "fc7675aa25811afb55491a2f6935fc5f86f20213f8e33c65bf5bc4cbe8184d7e",
+      "actualReviewSha256": "f8e11eb807cb65c1b5707f6f87f6eed71c0e908be180227e8422668c97e00a89"
+    },
+    "mutation": {
+      "status": "PASS_4_CLEAN_ASSERTION_KILLS",
+      "outcomes": {
+        "oldGlobalF32Projector": {
+          "pass": 6,
+          "fail": 12
+        },
+        "oldWorldInverseRay": {
+          "pass": 16,
+          "fail": 2
+        },
+        "orthoOriginAtEye": {
+          "pass": 16,
+          "fail": 2
+        },
+        "staleTargetXCache": {
+          "pass": 17,
+          "fail": 1
+        }
+      },
+      "crashes": 0,
+      "survivors": 0
+    },
+    "typesAndLint": {
+      "status": "PASS",
+      "gpuBuild": "PASS",
+      "gpuTypes": "PASS",
+      "studioTypes": "PASS",
+      "scopedLint": "PASS",
+      "finalModelTypes": "PASS_AFTER_LAST_DRIVER_EDIT",
+      "driverSyntaxAndStdinLint": "PASS",
+      "finalRootCommand": "/tmp/barocss-d432-root-recheck/run.sh"
+    },
+    "actual": {
+      "status": "PASS_BOUNDED_CPU_QUERY_ONLY",
+      "receiptSha256": "e4a0dfdda1fb32e432e5811e08e1ebeee231646f339e968c57f70f2c95d59ca0",
+      "consumerSummarySha256": "33df21f1c3bbe6ecbd431108a5ebcdf6d1273da94cfa16d4110a9470e9f41b0f",
+      "driverSha256": "3e385af300888a97900da9029ed7234d5b337f1c99598dc8e6cb95390cc5e797",
+      "sourceManifestSha256": "87d4db97e2971c49bc6c072745208f685fa5538f94737cd30578fae6354e8b03",
+      "profiles": [
+        {
+          "label": "far-top-perspective",
+          "projection": {
+            "count": 8,
+            "allPassed": true,
+            "maxCssError": 5.819841362608713e-06,
+            "maxCssBudget": 5.819874624799102e-06,
+            "maxDepthError": 6.116454009941208e-10,
+            "maxDepthBudget": 4.505073270293235e-09,
+            "allPageFrameExact": true
+          },
+          "cpu": {
+            "cpuHit": {
+              "triangle": 55,
+              "face": 0,
+              "primaryError": 3.508202495866586e-11,
+              "primaryBudget": 9.313226769244143e-10,
+              "basisError": 3.508202495866586e-11,
+              "basisBudget": 9.313226769707312e-10,
+              "rayOriginError": 0,
+              "rayOriginBudget": 0,
+              "rayDirectionError": 3.469446951953614e-18,
+              "rayDirectionBudget": 1.4207159009022296e-14,
+              "passed": true
+            },
+            "productCpuHit": {
+              "triangle": 55,
+              "face": 0,
+              "primaryError": 3.5335612040554576e-11,
+              "primaryBudget": 9.313226769244143e-10,
+              "basisError": 3.5335612040554576e-11,
+              "basisBudget": 9.313226784065569e-10,
+              "rayOriginError": 0,
+              "rayOriginBudget": 0,
+              "rayDirectionError": 1.1102230246251565e-16,
+              "rayDirectionBudget": 1.4207159009159543e-14,
+              "passed": true
+            }
+          },
+          "ui": {
+            "idealPicks": [
+              "PASS_PICK",
+              "PASS_PICK"
+            ],
+            "productPicks": [
+              "PASS_PICK",
+              "PASS_PICK"
+            ]
+          },
+          "render": "FAIL_RENDER",
+          "gpuPick": "FAIL_PICK",
+          "drawSubmission": {
+            "byteLength": 6264,
+            "byteHash": "6aef68e6f815de28ef27c5465eb969ba924cbce3b2c4e1472eb295556980626e",
+            "matchesD431ActualSubmission": true
+          },
+          "documentRestoredExactly": true,
+          "nativeArraysRestoredExactly": true,
+          "preparedRestoredExactly": true,
+          "withinRunMatrixByteEquality": true
+        },
+        {
+          "label": "far-top-orthographic",
+          "projection": {
+            "count": 8,
+            "allPassed": true,
+            "maxCssError": 3.6536118841468124e-06,
+            "maxCssBudget": 3.653641259918985e-06,
+            "maxDepthError": 2.2876129879279006e-09,
+            "maxDepthBudget": 2.288412624770284e-09,
+            "allPageFrameExact": true
+          },
+          "cpu": {
+            "cpuHit": {
+              "triangle": 55,
+              "face": 0,
+              "primaryError": 3.7921451230354085e-11,
+              "primaryBudget": 9.31323290778477e-10,
+              "basisError": 3.7921451230354085e-11,
+              "basisBudget": 9.31323290778477e-10,
+              "rayOriginError": 0,
+              "rayOriginBudget": 9.313231911232858e-10,
+              "rayDirectionError": 0,
+              "rayDirectionBudget": 1.4210854715202206e-14,
+              "passed": true
+            },
+            "productCpuHit": {
+              "triangle": 55,
+              "face": 0,
+              "primaryError": 3.7921451230354085e-11,
+              "primaryBudget": 9.31323290778477e-10,
+              "basisError": 3.7921451230354085e-11,
+              "basisBudget": 9.31323290778477e-10,
+              "rayOriginError": 0,
+              "rayOriginBudget": 9.313231911232856e-10,
+              "rayDirectionError": 0,
+              "rayDirectionBudget": 1.4210854715202206e-14,
+              "passed": true
+            }
+          },
+          "ui": {
+            "idealPicks": [
+              "PASS_PICK",
+              "PASS_PICK"
+            ],
+            "productPicks": [
+              "PASS_PICK",
+              "PASS_PICK"
+            ]
+          },
+          "render": "FAIL_RENDER",
+          "gpuPick": "FAIL_PICK",
+          "drawSubmission": {
+            "byteLength": 6264,
+            "byteHash": "6aef68e6f815de28ef27c5465eb969ba924cbce3b2c4e1472eb295556980626e",
+            "matchesD431ActualSubmission": true
+          },
+          "documentRestoredExactly": true,
+          "nativeArraysRestoredExactly": true,
+          "preparedRestoredExactly": true,
+          "withinRunMatrixByteEquality": true
+        },
+        {
+          "label": "center-top-orthographic",
+          "projection": {
+            "count": 8,
+            "allPassed": true,
+            "maxCssError": 8.594518249083194e-06,
+            "maxCssBudget": 8.594547577747732e-06,
+            "maxDepthError": 2.6632474003918105e-09,
+            "maxDepthBudget": 2.663563913860144e-09,
+            "allPageFrameExact": true
+          },
+          "cpu": {
+            "cpuHit": {
+              "triangle": 8,
+              "face": 0,
+              "primaryError": 1.3877787807814457e-17,
+              "primaryBudget": 7.724212824768009e-16,
+              "basisError": 1.3877787807814457e-17,
+              "basisBudget": 7.724270342459296e-16,
+              "rayOriginError": 0,
+              "rayOriginBudget": 6.2408689750039e-16,
+              "rayDirectionError": 5.421010862427522e-20,
+              "rayDirectionBudget": 1.4210854715202206e-14,
+              "passed": true
+            },
+            "productCpuHit": {
+              "triangle": 8,
+              "face": 0,
+              "primaryError": 1.3877787807814457e-17,
+              "primaryBudget": 7.724212824768098e-16,
+              "basisError": 1.3877787807814457e-17,
+              "basisBudget": 7.724270342459385e-16,
+              "rayOriginError": 0,
+              "rayOriginBudget": 6.240868974783953e-16,
+              "rayDirectionError": 5.421010862427522e-20,
+              "rayDirectionBudget": 1.4210854715202206e-14,
+              "passed": true
+            }
+          },
+          "ui": {
+            "idealPicks": [
+              "PASS_PICK",
+              "PASS_PICK"
+            ],
+            "productPicks": [
+              "PASS_PICK",
+              "PASS_PICK"
+            ]
+          },
+          "render": "PASS_RENDER",
+          "gpuPick": "PASS_PICK",
+          "drawSubmission": {
+            "byteLength": 6624,
+            "byteHash": "4902c3732bcdafca03f27a37edd1dc66451bc66889c3d36269c8574705f300f6",
+            "matchesD431ActualSubmission": true
+          },
+          "documentRestoredExactly": true,
+          "nativeArraysRestoredExactly": true,
+          "preparedRestoredExactly": true,
+          "withinRunMatrixByteEquality": true
+        }
+      ],
+      "projectionSamples": 24,
+      "genuinePointerSelections": 12,
+      "sourceFrozenCount": 799,
+      "sourceAfterCount": 799,
+      "sourceAfterCleanupCount": 799,
+      "capsulesEqual": true,
+      "errors": 0,
+      "consoleErrors": 0,
+      "changes": 0,
+      "downloads": 0,
+      "runtimeBodies": 60,
+      "missingDirectSources": [
+        "packages/barocss-gpu/src/api/scene.ts"
+      ],
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "gate": "GLOBAL_IDLE_PRE_AND_SOLE_OWN_POST_LOAD8.07_LT40;RELEASED",
+      "visualReview": "ROOT_VIEWED_CENTER_VISIBLE_HIDDEN_RESTORED_AND_BOTH_FAR_VISIBLE"
+    },
+    "rasterAndGPUQuery": "FAIL_FAR_RENDER_AND_GPU_PICK_RETAINED;CENTER_CONTROL_PASS",
+    "navigation": "PASS_34_ROWS_2424_LOCAL_LINKS_0_NEW_BROKEN_ARCHIVES_UNCHANGED",
+    "fullKernel": "NOT_RUN_NO_BREP_CORE_CHANGE; latest D424 PASS2052/FAIL0/SKIP2",
+    "actualAttempt01": {
+      "status": "FAIL_DRIVER_SIGNED_ZERO_VERSUS_LOSSY_JSON",
+      "receiptSha256": "eba402b4b62309418e80485e7b41e678507c526ec5b6079b790e3ccd23bc970d",
+      "frozenCount": 799,
+      "after": "NOT_CAPTURED_FAILURE_PATH",
+      "cleanupCount": 799,
+      "frozenEqualsCleanup": true,
+      "errors": 0,
+      "consoleErrors": 0,
+      "changes": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "phase": "First far profile held-camera comparison before all query/projection/upload proof",
+      "candidateProof": "NOT_RUN",
+      "failure": "Current rawview androundedview contain-0; retainedD431JSON necessarily stored0. Exact deepStrictEqual was an invalid byte/value comparison across that persistence boundary.",
+      "repairPlan": "Applied signed-zero-only persisted-reference normalization. All other historical values exact, within-run raw matrix bytes exact; no widened tolerance. Final driver checks and Model types PASS before fresh run02."
+    }
+  },
+  "limits": [
+    "A CPU project/ray fix does not recover Float32 raster geometry or hardware picks.",
+    "Public unproject remains unchanged and is not newly qualified for far-world precision.",
+    "Input pose quantization remains part of the represented finite state; no hidden pose or scale.",
+    "No dependency/download/paid call/develop integration/release.",
+    "No performance improvement claim; legacy inversion admission is still executed."
+  ],
+  "sourceHashes": {
+    "apps/cad-studio/src/viewport/camera.ts": "e392782533ac20f5161ee80b0eb317c8a3b3b0cb960dfb663602b8f4ef2a5190",
+    "packages/barocss-gpu/src/viewer/camera.ts": "b86d10aca2bcfe98693efce729b0416bdebe089ffddcdd3b25a99f18833b6e7f",
+    "apps/cad-studio/test/camera-projector.test.ts": "58ce60f70cb9ebf4c9486f4d1bba6e507c1806a35208713653a6a8dff57da503",
+    "apps/cad-studio/test/camera-relative-query.test.ts": "ab7da0d23b5b3851d7fba273ecfae49d8bf56629a5adbb1663481b09d6667e2c",
+    "packages/barocss-gpu/tests/camera-relative-ray.test.mjs": "80545ddedee2f9e3706aad0992f105537ae3e292609f1415b287ff2b45fd41ae"
+  },
+  "preFix": {
+    "studio": {
+      "tests": 32,
+      "pass": 19,
+      "fail": 13,
+      "skipped": 0,
+      "assertionFailures": 13
+    },
+    "viewer": {
+      "tests": 22,
+      "pass": 21,
+      "fail": 1,
+      "skipped": 0,
+      "assertionFailures": 1
+    },
+    "all14FailuresCleanPhysicalAssertions": true,
+    "provenance": {
+      "sourceSha256": "73d7f311c4e0f65d3755be2364d26dd8dfdf8e39bd894a2757bce39d0ab6ee0a",
+      "compiledSha256": "95349abf69147b6f3aabeb2614e58c4d8fce7120d2d6a892a586fb7428bcd53b",
+      "distSha256": "95349abf69147b6f3aabeb2614e58c4d8fce7120d2d6a892a586fb7428bcd53b",
+      "identical": true,
+      "node": "v22.19.0",
+      "typescript": "5.9.3"
+    }
+  },
+  "ordinaryCompatibility": {
+    "maxPixels": 3.576278699846114e-05,
+    "maxDepth": 5.0551540731191835e-09,
+    "maxPixelEnvelope": 4.073671111194667e-05,
+    "scope": "ordinary bounded points; retained Float32 projection optics"
+  },
+  "reconstructedMatrixAudit": {
+    "status": "PASS",
+    "receiptSha256": "99449e56efe1cf5fac32cc689f5e0237edba8bf211335a6cb962bdca29c46bd0",
+    "rawFloat64Matrices": 9,
+    "roundedFloat32Matrices": 9,
+    "scope": "Reconstructed old/new source at3retainedD431poses; not historical runtime or device-buffer byte capture"
+  },
+  "reproduction": {
+    "node": "22.19.0",
+    "readiness": "globally idle heavy gate, load<40, acquire own heavy lease, verify sole own post-holder/load<40; source/helper freeze through cleanup",
+    "command": "PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME=\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" PROJECT_RAY_PRECISION_SOURCE_FROZEN=1 CAD_STUDIO_CHAT_PORT=52391 node /tmp/barocss-d432-probe/project-ray-precision.mjs /tmp/barocss-d432-probe/run02 /tmp/barocss-d423-consumer/fixtures /tmp/barocss-d432-probe/candidate-source-manifest.json /tmp/barocss-d431-probe/run02/receipt.json",
+    "evidenceLocation": "/tmp only; raw receipts, arrays, capsules, screenshots and bundles not committed"
+  },
+  "issueReview": {
+    "issue": 2263,
+    "state": "OPEN",
+    "reason": "Complete assemblies, AP242 presentation/names/PMI and remaining offset/loop/seam acceptance absent; this is a measured display/query prerequisite, not exchange closeout"
+  },
+  "next": "D433: coherent GPU relative-frame design/measurement and bounded correction; keep native CPU world authority and all authored semantics."
+}

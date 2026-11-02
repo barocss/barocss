@@ -169696,7 +169696,7 @@
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
-                "type": "Float32Array<ArrayBufferLike> | undefined"
+                "type": "Float64Array<ArrayBufferLike> | Float32Array<ArrayBufferLike> | undefined"
               },
               {
                 "name": "material",
@@ -169717,7 +169717,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "Float32Array<ArrayBufferLike>"
+                "type": "Float64Array<ArrayBufferLike> | Float32Array<ArrayBufferLike>"
               }
             ],
             "indexSignatures": []
@@ -178982,7 +178982,7 @@
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
-                "type": "Float32Array<ArrayBufferLike> | undefined"
+                "type": "Float64Array<ArrayBufferLike> | Float32Array<ArrayBufferLike> | undefined"
               },
               {
                 "name": "material",
@@ -179003,7 +179003,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "Float32Array<ArrayBufferLike>"
+                "type": "Float64Array<ArrayBufferLike> | Float32Array<ArrayBufferLike>"
               }
             ],
             "indexSignatures": []
@@ -183730,7 +183730,7 @@
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
-                "type": "Float32Array<ArrayBufferLike> | undefined"
+                "type": "Float64Array<ArrayBufferLike> | Float32Array<ArrayBufferLike> | undefined"
               },
               {
                 "name": "material",
@@ -183751,7 +183751,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "Float32Array<ArrayBufferLike>"
+                "type": "Float64Array<ArrayBufferLike> | Float32Array<ArrayBufferLike>"
               }
             ],
             "indexSignatures": []
@@ -188044,7 +188044,7 @@
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
-                "type": "Float32Array<ArrayBufferLike> | undefined"
+                "type": "Float64Array<ArrayBufferLike> | Float32Array<ArrayBufferLike> | undefined"
               },
               {
                 "name": "material",
@@ -188065,7 +188065,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "Float32Array<ArrayBufferLike>"
+                "type": "Float64Array<ArrayBufferLike> | Float32Array<ArrayBufferLike>"
               }
             ],
             "indexSignatures": []
@@ -278842,7 +278842,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "Float32Array<ArrayBufferLike>"
+                "type": "Float64Array<ArrayBufferLike> | Float32Array<ArrayBufferLike>"
               },
               {
                 "name": "edgeOfSegment",
@@ -278891,7 +278891,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "Float32Array<ArrayBufferLike>"
+                "type": "Float64Array<ArrayBufferLike> | Float32Array<ArrayBufferLike>"
               },
               {
                 "name": "quality",

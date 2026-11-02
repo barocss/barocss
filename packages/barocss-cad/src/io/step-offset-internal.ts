@@ -1,11 +1,13 @@
 // Private D419 admission: direct analytic offsets only. No general offset construction or repair.
 import { BrepError } from '../brep/brep-core.js';
 import { SectionRationalContext, type SectionRational } from '../section-rational-internal.js';
-import type { Curve, Point } from '../types.js';
+import type { Curve, Point, Surface } from '../types.js';
 
 export interface OffsetFrame { o: Point; x: Point; y: Point; z: Point }
 interface OffsetInput { origin: Point; axis: Point; distance: number; radius?: number }
-export type OffsetSupport = ({ kind: 'plane'; f: OffsetFrame } | { kind: 'cylinder'; f: OffsetFrame; r: number }) & { input?: OffsetInput };
+type ReducedOffsetSupport = ({ kind: 'plane'; f: OffsetFrame } | { kind: 'cylinder'; f: OffsetFrame; r: number }) & { input?: OffsetInput };
+type SphereOffsetSupport = { kind: 'sphere'; f: OffsetFrame; r: number; input: OffsetInput & { radius: number } };
+export type OffsetSupport = ReducedOffsetSupport | SphereOffsetSupport;
 type Q = SectionRational;
 type QV = [Q, Q, Q];
 function unavailable(_kind: 'BUDGET' | 'REPRESENTABILITY', detail: string): never { throw new BrepError('INPUT', `STEP: OFFSET_SURFACE boundary proof is not supported yet (${detail})`); }
@@ -25,7 +27,7 @@ function uncertain(face: string, edge: string): never { throw new BrepError('INP
  * Unit(N) adds at most |N.N-1|. Triangle bounds cover reduction and local axis error.
  * All budgets remain exact rationals and are subtracted ONCE from the declared edge tolerance.
  */
-function reductionError(q: SectionRationalContext, s: OffsetSupport, c: Curve, n: QV, nn: Q): Q {
+function reductionError(q: SectionRationalContext, s: ReducedOffsetSupport, c: Curve, n: QV, nn: Q): Q {
   const input = s.input; if (!input) return q.rat(0n);
   const a = vector(q, input.axis), aa = dot(q, a, a), one = q.rat(1n);
   if (aa.n === 0n) unavailable('REPRESENTABILITY', 'zero raw offset axis');
@@ -70,6 +72,74 @@ export function checkOffsetSourceEndpoints(source: { kind: 'line'; o: Point; z: 
   }
 }
 
+/** Existing conic construction: clamped quadratic Bezier spans joined at double knots. */
+function quadraticBezierLayout(degree: number, knots: readonly number[], count: number): boolean {
+  if (degree !== 2 || count < 3 || count % 2 !== 1 || knots.length !== count + 3) return false;
+  for (const k of knots) if (!Number.isFinite(k)) return false;
+  const end = knots.length - 3;
+  if (knots[0] !== knots[1] || knots[1] !== knots[2] || knots[end] !== knots[end + 1] || knots[end + 1] !== knots[end + 2]) return false;
+  let previous = knots[2];
+  for (let i = 3; i < end; i += 2) {
+    if (knots[i] !== knots[i + 1] || !(knots[i] > previous)) return false;
+    previous = knots[i];
+  }
+  return knots[end] > previous;
+}
+function cross(q: SectionRationalContext, a: QV, b: QV): QV {
+  return [q.sub(q.mul(a[1], b[2]), q.mul(a[2], b[1])), q.sub(q.mul(a[2], b[0]), q.mul(a[0], b[2])), q.sub(q.mul(a[0], b[1]), q.mul(a[1], b[0]))];
+}
+function difference(q: SectionRationalContext, a: QV, b: QV): QV { return [q.sub(a[0], b[0]), q.sub(a[1], b[1]), q.sub(a[2], b[2])]; }
+function zeroVector(a: QV): boolean { return a[0].n === 0n && a[1].n === 0n && a[2].n === 0n; }
+/** Final stored circle spans against exact represented-input R+d; no axis reduction. */
+function checkSphereBoundary(s: SphereOffsetSupport, c: Curve, tolerance: number, face: string, edge: string): void {
+  if (!quadraticBezierLayout(c.degree, c.knots, c.controlPoints.length) || c.weights.length !== c.controlPoints.length) uncertain(face, edge);
+  const q = new SectionRationalContext(unavailable), t = q.from(tolerance), r = q.add(q.from(s.input.radius), q.from(s.input.distance));
+  if (r.n <= 0n) uncertain(face, edge);
+  const low = q.compare(r, t) > 0 ? q.sub(r, t) : q.rat(0n), high = q.add(r, t), lo2 = q.mul(low, low), hi2 = q.mul(high, high);
+  for (const i of [0, c.controlPoints.length - 1]) {
+    const p = minus(q, c.controlPoints[i], s.input.origin), d2 = dot(q, p, p);
+    if (q.compare(d2, lo2) < 0 || q.compare(d2, hi2) > 0) mismatch(face, edge);
+  }
+  for (let start = 0; start + 2 < c.controlPoints.length; start += 2) {
+    const p: QV[] = [], v: QV[] = [], w: Q[] = [];
+    for (let i = 0; i <= 2; i++) {
+      const point = minus(q, c.controlPoints[start + i], s.input.origin), weight = q.from(c.weights[start + i]);
+      v.push(point); p.push([q.mul(point[0], weight), q.mul(point[1], weight), q.mul(point[2], weight)]); w.push(weight);
+    }
+    if (zeroVector(cross(q, difference(q, v[1], v[0]), difference(q, v[2], v[1])))) uncertain(face, edge);
+    for (let k = 0; k <= 4; k++) {
+      let rr = q.rat(0n), ww = q.rat(0n);
+      for (let i = Math.max(0, k - 2); i <= Math.min(2, k); i++) {
+        const j = k - i, factor = q.rat(BigInt(CHOOSE[2][i] * CHOOSE[2][j]), BigInt(CHOOSE[4][k]));
+        rr = q.add(rr, q.mul(factor, dot(q, p[i], p[j]))); ww = q.add(ww, q.mul(factor, q.mul(w[i], w[j])));
+      }
+      if (q.compare(rr, q.mul(lo2, ww)) < 0 || q.compare(rr, q.mul(hi2, ww)) > 0) uncertain(face, edge);
+    }
+  }
+}
+/** One exact interior rank witness in the first generated Bezier cell, not global regularity. */
+export function checkSphereOffsetPatch(s: SphereOffsetSupport, surface: Surface, face: string): void {
+  const rows = surface.controlPoints.length, columns = surface.controlPoints[0]?.length ?? 0;
+  if (!quadraticBezierLayout(surface.degreeU, surface.knotsU, rows) || !quadraticBezierLayout(surface.degreeV, surface.knotsV, columns) || surface.weights.length !== rows) uncertain(face, 'surface');
+  for (let i = 0; i < rows; i++) {
+    if (surface.controlPoints[i].length !== columns || surface.weights[i].length !== columns) uncertain(face, 'surface');
+    for (const w of surface.weights[i]) if (!(w > 0) || !Number.isFinite(w)) uncertain(face, 'surface');
+  }
+  const q = new SectionRationalContext(unavailable), b = [q.rat(1n, 4n), q.rat(1n, 2n), q.rat(1n, 4n)], d = [q.rat(-1n), q.rat(0n), q.rat(1n)];
+  const h: QV[] = [[q.rat(0n), q.rat(0n), q.rat(0n)], [q.rat(0n), q.rat(0n), q.rat(0n)], [q.rat(0n), q.rat(0n), q.rat(0n)]], w = [q.rat(0n), q.rat(0n), q.rat(0n)];
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+    const p = minus(q, surface.controlPoints[i][j], s.input.origin), weight = q.from(surface.weights[i][j]);
+    const factors = [q.mul(b[i], b[j]), q.mul(d[i], b[j]), q.mul(b[i], d[j])];
+    for (let k = 0; k < 3; k++) {
+      const f = q.mul(weight, factors[k]); w[k] = q.add(w[k], f);
+      for (let a = 0; a < 3; a++) h[k][a] = q.add(h[k][a], q.mul(f, p[a]));
+    }
+  }
+  const u: QV = [q.sub(q.mul(h[1][0], w[0]), q.mul(h[0][0], w[1])), q.sub(q.mul(h[1][1], w[0]), q.mul(h[0][1], w[1])), q.sub(q.mul(h[1][2], w[0]), q.mul(h[0][2], w[1]))];
+  const v: QV = [q.sub(q.mul(h[2][0], w[0]), q.mul(h[0][0], w[2])), q.sub(q.mul(h[2][1], w[0]), q.mul(h[0][1], w[2])), q.sub(q.mul(h[2][2], w[0]), q.mul(h[0][2], w[2]))];
+  if (w[0].n <= 0n || zeroVector(cross(q, u, v))) uncertain(face, 'surface');
+}
+
 /**
  * Certifies the actual stored binary64 rational curve against the literal analytic offset support,
  * with conservative exact normalization/reduction budgets; not samples of the source conic.
@@ -81,6 +151,7 @@ export function checkOffsetSourceEndpoints(source: { kind: 'line'; o: Point; z: 
 export function checkOffsetBoundary(s: OffsetSupport, c: Curve, tolerance: number, face: string, edge: string): void {
   if (!Number.isFinite(tolerance) || tolerance < 0 || !c.controlPoints.length) uncertain(face, edge);
   for (const w of c.weights) if (!(w > 0) || !Number.isFinite(w)) uncertain(face, edge);
+  if (s.kind === 'sphere') { checkSphereBoundary(s, c, tolerance, face, edge); return; }
   const q = new SectionRationalContext(unavailable), n = vector(q, s.f.z), nn = dot(q, n, n), raw = q.from(tolerance);
   if (nn.n === 0n) uncertain(face, edge);
   const error = reductionError(q, s, c, n, nn), t = q.sub(raw, error), far = q.add(raw, error);

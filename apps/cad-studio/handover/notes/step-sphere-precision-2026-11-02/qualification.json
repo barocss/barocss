@@ -1,0 +1,386 @@
+{
+  "work_id": "D435",
+  "status": "BOUNDED_QUALIFIED",
+  "rows": [
+    13,
+    16
+  ],
+  "overallPercent": 43,
+  "sourceCheckpoint": "35165905d50e0dde2e34d631d28d080a2670b8a0",
+  "sourceAndRemoteMatch": true,
+  "priorQualifiedItem": "D434",
+  "priorIssueComment": "https://github.com/barocss/barocss/issues/2263#issuecomment-6565732847",
+  "models": {
+    "sourceAndGeometry": "GPT-6.1 Sol High",
+    "independentMathematics": "GPT-6.1 Sol High",
+    "ordinaryConsumer": "GPT-6.1 Sol Medium"
+  },
+  "checks": {
+    "currentSourceAdmission": {
+      "status": "PASS_CURRENT_REFUSAL_CONTRACT_ONLY",
+      "receiptSha256": "ec0cafad98e0ddc26f5bde44483c3215cfe9668b47d400d1ba6dece393c9f1ca",
+      "materializedMatrixSha256": "db00e184e4d182e725de764aea9b6d272b622a8f89a426aa8f26ba51ddacb11a",
+      "recipeSha256": "56de3e1ab733e329c1b983713115e20221464014113f827491d11bd2522b3a66",
+      "importStepCalls": 8,
+      "evaluateCadPartCalls": 8,
+      "plainControlsStrictValid": 2,
+      "plainControlCounts": {
+        "bodies": 1,
+        "faces": 2,
+        "edges": 2,
+        "vertices": 2
+      },
+      "offsetWrappersRefused": 6,
+      "rawImporter": {
+        "name": "BrepError",
+        "code": "INPUT",
+        "message": "B-rep: STEP: OFFSET_SURFACE basis SPHERICAL_SURFACE is not supported yet (direct plane or cylinder only)"
+      },
+      "productPartEvaluator": {
+        "name": "CadPartError",
+        "code": "CAPABILITY",
+        "feature": "n0",
+        "messageContains": "OFFSET_SURFACE basis SPHERICAL_SURFACE is not supported yet"
+      },
+      "sourceDistPins": 7,
+      "beforeAfterExact": true,
+      "gateReleased": true,
+      "unexpectedFailures": 0,
+      "newSupport": "NOT_QUALIFIED",
+      "command": "Node22.19.0, sole heavy gate: node /tmp/barocss-d435-probe/prepare-sphere-offset.mjs --materialize; D435_MEASUREMENT_GRANTED=1 node /tmp/barocss-d435-probe/measure-current-admission.mjs /tmp/barocss-d435-probe/admission-run01",
+      "graph": "Originals1sphere/26entities, #16SPHERICAL_SURFACE radius.001/frame15. Replace#16 withOFFSET to freshbase27; retain allotherbytes, refsvalid and reverseoriginalbytes exact. Six positive/negative/zero wrappers plus2plain controls.",
+      "controlTolerance": {
+        "centeredNativeEdgeTolerance": 1e-07,
+        "farNativeEdgeTolerance": 9.9900000048e-06,
+        "centeredReportedStrictMaxGapApprox": 2.18948e-19,
+        "farReportedStrictMaxGapApprox": 1.8294e-06,
+        "interpretation": "Reportedstrictgap is not a certified closest-distance oracle; both strictchecks valid withinexistingnativeedge policy. No tolerance altered or accuracy defect established."
+      }
+    },
+    "independentProof": "PASS_EXACT_AFFINE_RANK_SOURCE_AND_ACTUAL_SCOPE",
+    "productEdits": "COMPLETE_ONE_IO_PRODUCTION_FILE_AND_DEDICATED_TESTS",
+    "buildFocusedMutation": "Source96PASS/independent8PASS/4behavioralkills; strictmutationclassifierFAIL70 separatelypreserved",
+    "actualStudio": {
+      "status": "PASS_ONE_FINAL_FOUR_STATE_FLOW_INDEPENDENTLY_AUDITED",
+      "receiptSha256": "fcd2f2ce02d6cc311acf3bd4f03e3567432f218a61ddc2f04a1b1e28326cb65e",
+      "consumerSummarySha256": "39741f66c4fc2d3c98006e4dd709a248a9d50678a283ae3a9cefa969b6a9d703",
+      "executedWrapperSha256": "dedad9a4ecf3a30fb9540c5819fc562dc9209e22bd49ea7b3a3eb4ef145d878c",
+      "controlStates": 1,
+      "refusalStates": 3,
+      "observedRealWorkerCodes": [
+        "CAPABILITY",
+        "CAPABILITY",
+        "CAPABILITY"
+      ],
+      "matchedReadIds": [
+        6,
+        8,
+        10
+      ],
+      "matchedReadRevisions": [
+        4,
+        5,
+        6
+      ],
+      "retainedOriginalSource": {
+        "readId": 3,
+        "readRevision": 2,
+        "evaluationId": 4,
+        "evaluationRevision": 3,
+        "massRef": 2
+      },
+      "exactWithinRunRetained": [
+        "doc/importnode1/originalSTEP/name",
+        "adoptednativeFloat64arrays/face-edgeIDs",
+        "queriedvolume/mass/area/centroid/inertia/areaBasis/volumeBasis",
+        "matchedacceptedrevision/deferrednativepatch",
+        "publiccamera/F64andF32matrixbytes",
+        "actualmeshgeometry/materials/effects/grid/lights"
+      ],
+      "optionalFieldScope": "volumeBasis remains undefined for this original sphere; JSON summary omission does not prove historical raw JSON presence. Seven queried fields are preserved, not seven populated numeric quantities.",
+      "controlDisplayMesh": {
+        "positionsType": "Float64Array",
+        "vertices": 552,
+        "triangles": 1024,
+        "mergedDisplayFaces": 1,
+        "displayEdges": 0,
+        "scope": "Display grouping differs from2face/2edge/2vertex rawBRep topology; identities retained at each layer."
+      },
+      "observedUnchangedControlProperties": {
+        "volume": 4.188790204881397e-09,
+        "volumeUnits": "mm^3",
+        "mass": 1.1309733553179772e-11,
+        "massUnits": "g",
+        "area": 1.2566370614470153e-05,
+        "areaUnits": "mm^2",
+        "scope": "Matched actual control values, not new generalmass accuracy qualification"
+      },
+      "frozenAfterCleanupCount": 330,
+      "frozenAfterCleanupExact": true,
+      "asExecutedInputs": 54,
+      "runtimeResponseCaptures": 46,
+      "onlyMissingDirectSource": "flow-helper isNodeharness, notbrowsermodule; notfetched",
+      "errors": 0,
+      "consoleErrors": 0,
+      "changes": 0,
+      "downloads": 0,
+      "ownedContextBrowserServerClosed": true,
+      "gateReleased": true,
+      "rootImagesViewed": [
+        "00-control",
+        "01-far-rank0",
+        "02-mixedX-rank2",
+        "03-mixedXY-rank1"
+      ],
+      "scope": "ActualpublicfileOpen/passiverealworker/Fileevents only; no product evaluator calledasfakeUI, noSave/export/paidcalls/newSphereOFFSETsupport."
+    },
+    "independentPreflight": {
+      "status": "CONSTRAINTS_RECORDED_BEFORE_IMPLEMENTATION_NOT_PRODUCT_QUALIFICATION",
+      "noteSha256": "cf4be843ec8c0914a407df38a99d3893e9716f7a32444deced3e10453187340d",
+      "summarySha256": "9cfb09834ede49d032977a16bacff441716d0c434dbead38e3ea62162f0d45a5",
+      "semantics": "Direct ordinary sphere uses unchangedC and signedR+d; ADVANCED_FACE.same_sense separate; oriented_surface base requires separate refusal. NegativeR+d is outsidepositive analyticprofile, not universally malformedSTEP; zero collapses.",
+      "continuousCounterexample": "SphereR5/C0; circlecenter(3,0,0)radius4 inXY has endpointsonSphere at(3,\u00b14,0) but interior(7,0,0) offsupport. Exactfullhomogeneousnorm Bernstein proof required; endpoints/samples alone insufficient.",
+      "source": "https://www.steptools.com/stds/smrl/data/resource_docs/geometric_and_topological_representation/sys/4_schema.htm"
+    },
+    "independentAdmissionAudit": {
+      "status": "PASS_CURRENT_REFUSAL_CONTRACT_ONLY",
+      "sha256": "5b296389e39201a1dd594b3caf8009e4b18ff5d703338b3a1a09c4c7419a989a"
+    },
+    "representabilityBaseline": {
+      "status": "REPRODUCED_WRONG_SUCCESS_ACCEPTED_DEGENERATE_NATIVE_SPHERE",
+      "firstReceiptSha256": "5e1f12f262059a276f15361ecfc5e3737ecf9fa36212ff9cc163ee26349298bd",
+      "firstSummarySha256": "bcdc7854f187fa9ed8be1b526c75cc2ad01ea3a873bb7d27273703c146430ccd",
+      "firstRecipeSha256": "ecfbf9527a4cd8395a72da8ccae5682cdd69f360412850f36042e2d5e6d78a32",
+      "firstCalls": {
+        "raw": 2,
+        "facade": 2
+      },
+      "firstSourcePins": 17,
+      "mixedReceiptSha256": "5c1fd84b2ce72f615ab29655297e19340358a40fa92f4420494bff333016b07f",
+      "mixedSummarySha256": "e3d0cac5e0602fcfc54023cbd36dae7122fb70c9f5eb2ae97a371598673bc6fd",
+      "mixedRecipeSha256": "2801df12d62b5a2bc94473dc709966c09cb2ddf82677cce313d80e16cf9a40f6",
+      "mixedCalls": {
+        "raw": 2,
+        "facade": 2
+      },
+      "mixedSourcePins": 16,
+      "allSourcePinsBeforeAfterExact": true,
+      "allLeasesReleased": true,
+      "literalRadius": 1e-12,
+      "units": "mm",
+      "rawInputConstruction": "ExactFraction/Decimal translation+1e-9 scaling oforiginal26entitygraph; allCartesian tokens retain tinydecimaldisplacements, bothSphere/Circle radii1e-12, directions/frames/senses/topology preserved. NoNumberworldscaling.",
+      "cases": [
+        {
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "rawAndFacade": "ACCEPTED",
+          "strict": "valid",
+          "nativeControlHullRank": 3,
+          "massArea": "finite legacyresults; no new tiny-massaccuracy certification"
+        },
+        {
+          "center": [
+            999000,
+            -998000,
+            997000
+          ],
+          "rawAndFacade": "ACCEPTED",
+          "strict": "valid",
+          "nativeControlHullRank": 0,
+          "nativeFaceControlPoints": 18,
+          "nativeFaceControlPointsUnique": 1,
+          "lateMassAndArea": "GEOMETRY singular surface/degenerate loop"
+        },
+        {
+          "center": [
+            999000,
+            0,
+            0
+          ],
+          "rawAndFacade": "ACCEPTED",
+          "strict": "valid",
+          "nativeControlHullRank": 2,
+          "lateMass": "SOLID_MASS no positivevolume",
+          "observedArea": 5.346098232952791e-24,
+          "observedAreaUnits": "mm^2"
+        },
+        {
+          "center": [
+            999000,
+            -998000,
+            0
+          ],
+          "rawAndFacade": "ACCEPTED",
+          "strict": "valid",
+          "nativeControlHullRank": 1,
+          "lateMassAndArea": "GEOMETRY singular surface/degenerate loop"
+        }
+      ],
+      "independentRawPreflightSha256": "d887ccd759fb82035d2b4a048734f85ee2951ea0b9deeb28ea0156a7189fddba",
+      "independentActualAuditSha256": "0d3a1dc52a8d17a3aa88e47a4591c905aec03eea77855bcfda3551098594fa4b",
+      "proof": "Positiveweights andallCP=C imply H=CW and S=C everywhere; allJacobiansexactzero. Coplanarcontrols confine rationalimage toplane, unabletorepresent2Dsphericalface. This isinvalidnativegeometryaccepted, notvolumeerrorofvalidsolid."
+    },
+    "authorBatch01": {
+      "status": "STOPPED_TEST_ORACLE_FAILURE_BEFORE_BUILD",
+      "oldNewTestsPass": 10,
+      "oldNewTestsFail": 7,
+      "intendedCleanPhysicalAssertionFails": 6,
+      "additionalFailure": "Newmm-documenttestexpectedINPUT butexistingpart-model924reportsFORMAT. One test-only expectedcode correction; no source algorithm/tolerancechange.",
+      "repair": "Correctedunitscaseonlyonold dist; preserve10oldpositives+6physicalprefails, then candidate17+affectedchecks.",
+      "testBeforeSha256": "5ff9e940a347b5945eff7fe36a8de091c1fecf8cb9a4fd3bf4ea45f1bbd050fd",
+      "testAfterSha256": "35227f5b857cb4dacd27e6660fba88f9ccce4719a3685d291b9947337286b5d0",
+      "candidateBuildTests": "NOT_RUN_AT_FIRST_STOP"
+    },
+    "sourceAndFocused": {
+      "status": "PASS_96_UNIQUE_SCOPED_TESTS_AND_SOURCE_CHECKS",
+      "sourceSha256": "a1e6f95613afd9f6702be06f2d8a0cb289524662715bf554f1823b27bfdc674d",
+      "testSha256": "47ba99078b11fa01ebb1735f23ce1b9b1197fd92309eb9815209dbaa3cfe15b7",
+      "fixtureSha256": "6019eefa952feb41bf915c9463be86caaff44defb999326a857ae91a0eb79d2f",
+      "v1ReceiptSha256": "e00d3824afed8bc2f409f7affc2c79064a651a3403a1b15170eec6d21022a01c",
+      "v1ManifestSha256": "dd049a822add5eb905d7c82c4eaeb1aab18a5993c10b1c843e733465e1e9d2cf",
+      "v1SourceCertificateSha256": "7bd163eca1bc85cfda0804be50fa585c63f9b91285c4c8e9f4b2893a54470bb3",
+      "v2ReceiptSha256": "8f8e4067fb08a9cdfe934986906c7903ce29cdf9c76ebad2f19366e4450fc6d4",
+      "v2ManifestSha256": "93a574579770e8d5dca88024856c613e4d706249bf7204bb9a786147a571f83c",
+      "v2LiteralCertificateSha256": "5c4e09021c2b1b86b5c71bb9cc93008d1e2e1e5f23c59b6369384e97ca5b9ae9",
+      "new": 17,
+      "affectedExisting": 77,
+      "selectedExistingRoundtrip": 2,
+      "totalUnique": 96,
+      "fail": 0,
+      "skip": 0,
+      "checks": "CAD librarybuild/types/scopedlint/code-shape PASS.17currentv2+79unaffectedv1 reused viaexacttwo-literalreversal; nofull96rerun afterUIwordingchange.",
+      "geometrySourceReconstruction": "Removeonlynewprivateexactimport/helpers/sphere-onlycall to recoveroldfulla163d0a0. V2\u2192V1 onlymessage/regexp literals.",
+      "unchangedNativeJSONFingerprints": {
+        "centered001": "25cfe27749cfb5bb7e017d2ab101dd6230fde2fa340f35e6cf5e07fce8280028",
+        "far001": "82f5403bda7fb8f5451ba52af9f301859d46ee1d7fba1a224872c7590c152200"
+      },
+      "additionalResidentMemory": "No new retained metadata/cache/buffer; per-sphere bounded temporary exact arithmetic only; runtimeperformance benchmarkNOT_RUN",
+      "v2FirstAttempt": "NOT_RUN_RESOURCE_BUSY_FOREIGNphysics-impulse-type-only-01; no ownlease/build/test and foreignleaseuntouched. FreshauthorizedattemptPASS.",
+      "finalReason": "SPHERICAL_SURFACE patch precision is not supported at its stored coordinates (the sphere would lose its three-dimensional shape)"
+    },
+    "independent": {
+      "status": "PASS_SOURCE_EXACT_RANK_AND_BEHAVIORAL_MUTATION_COVERAGE_WITH_CLASSIFIER_FAILURE_PRESERVED",
+      "v1ReceiptSha256": "05a1b75ad35c15a6c7ceec74d7042602de83264e022d42f58581b6e89d1e9865",
+      "v1SourceCertificateSha256": "6ba8a1b1d0701a04379f5193e85bae765b3a7f4c2932aeda34a7c27778872519",
+      "v1ReviewSha256": "2c461e45c2691642c4781c7914022a8498a609f1295735d2a623f4e0afa22d8e",
+      "baselinePass": 8,
+      "mutants": {
+        "skipGuard": {
+          "pass": 5,
+          "assertionFail": 3,
+          "outcome": "CLEAN_ASSERTION_KILL"
+        },
+        "rank2Accept": {
+          "pass": 6,
+          "assertionFail": 2,
+          "outcome": "CLEAN_ASSERTION_KILL"
+        },
+        "roundedDeltaBeforeQ": {
+          "pass": 7,
+          "assertionFail": 1,
+          "outcome": "CLEAN_ASSERTION_KILL"
+        },
+        "epsilonRank": {
+          "pass": 5,
+          "assertionFail": 2,
+          "typedWrongRefusal": 1,
+          "outcome": "MIXED_ASSERTION_AND_TYPED_INPUT_WRONG_REFUSAL_KILL"
+        }
+      },
+      "mutantSurvivors": 0,
+      "moduleOrHarnessCrashes": 0,
+      "strictClassifier": {
+        "status": "FAIL_MIXED_TAP_FAILURE_CODES",
+        "exit": 70,
+        "scope": "All5modes alreadyexecuted; runnerrequiresallfailurecodesERR_ASSERTION. epsilonRank has2assertions+1legitimateBrepErrorINPUTwrongrefusal onexpected-successrank3control. No numericrerun/oraclechange toforcecleanclassification."
+      },
+      "sourceAndOwnedInputPins": 12,
+      "beforeAfterExact": true,
+      "gateReleased": true,
+      "v2LiteralReuseCertificateSha256": "08a7f1fa83e5b4032da9c077f45129b0c72189c0e5cea1d8d78dab9830feee29",
+      "v2ReviewSha256": "e11463491bd68a4885d7cb51541979bc0b725123634bc53fc784948a6f7fc7e2",
+      "v2AuditScope": "Ownexactsource/regexp reversal; original fixture/otherownedinputs unchanged, not-supported publicCAP mapping intact.8baseline+4kill numericalevidence reused; noalgorithmmodification."
+    },
+    "fullKernel": {
+      "status": "NOT_RUN_NO_BREP_CORE_CHANGE",
+      "reusedCheckpoint": "D433",
+      "pass": 2066,
+      "fail": 0,
+      "skip": 2
+    },
+    "finalPreexecution": {
+      "status": "PASS_ACTUAL_STUDIO_NOT_RUN",
+      "driverSha256": "39b4b534fbdb37683efc250470e4f1e7229346f289fb9d0e4e9f2304b32b4ca0",
+      "casesSha256": "cefc24efdbd1417cbf8435d35465511fe86905347d87c260dc47d5e057beb14b",
+      "runtimeSourceManifestSha256": "b63c7e17e2fa6a376aa4e35a59bb6dd6245575687d9d3f61dfef5ad95d38995a",
+      "runtimeSourcePaths": 24,
+      "readinessManifestSha256": "3c2c28274bf4ebfef34a34b3646c83158f24f1a83663513e2d5eba45d3bf9a9f",
+      "readinessPins": 54,
+      "allCurrentPinsExact": true,
+      "driverSyntax": "PASS",
+      "driverLint": "PASS",
+      "modelTypesAfterLastTestDriverEdit": "PASS",
+      "command": "export PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH\nexport PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright\nexport CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'\nexport CAD_STUDIO_CHAT_PORT=52391\nexport SPHERE_PRECISION_SOURCE_FROZEN=1\nnode /tmp/barocss-d435-probe/sphere-precision-refusal-browser.mjs /tmp/barocss-d435-probe/studio-run01 /tmp/barocss-d435-probe/studio-refusal-cases.json /tmp/barocss-d435-probe/studio-source-manifest.json\n",
+      "checkerCommand": "/bin/zsh /tmp/barocss-d435-root-checks/run02.sh",
+      "logs": {
+        "driver-syntax": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "driver-lint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model-types": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+      },
+      "preexecutionFindings": [
+        "App2257 clears fileInput immediately: capture public change-event filename/size, then expectemptyinput and actualworkerSTEPcontent; no nonemptyinput assumption.",
+        "Studioindex8/9 hasremoteGooglefonts; addexistingD434 emptyCSS/font routes todriver beforegoto. Noactualrun/download occurred beforefix; initialdriver4a andsuccessfulpriorchecks preserved."
+      ],
+      "scope": "Onequalifiedoriginal.001control +three exactliteralR1e-12 rank0/2/1 refusals; preserveoriginaldoc/nativearrays/IDs/sevenquantities/source/camera+matrixbytes/meshes/effects. Workerclassification onlywhenactualmatchingreadreply; otherwiseNOT_CAPTURED. No productevaluator calledasUIproof."
+    },
+    "finalIndependent": {
+      "status": "ACK_BOUNDED_SOURCE_AND_ACTUAL_REFUSAL_ATOMIC_RETENTION",
+      "reviewSha256": "3d742f47290d5436a87b5237af6805c54e8e5e7330ed6f863af316066df2c8e1",
+      "auditSha256": "c7240e9891b642e3da57aae6db643999498f044bbb3fbe55baa645b0158cd9b4",
+      "studioAuditSha256": "14d9087c9ee7bcae85db6e71894ec20c34707783e817b10fdb81c15612df26bd",
+      "actualInputCopiesVerified": 54,
+      "actualRuntimeBodyHashesVerified": 46,
+      "actualSourceCapsVerified": 330,
+      "scope": "Native/current7queriedvalues matchretainedD434control; strictsame-run rawcamera bytes; optionalundefinedJSONpresence notclaimed. No generalregularity/tiny-mass/raster/offset acceptance."
+    },
+    "navigation": {
+      "status": "PASS",
+      "rowPages": 34,
+      "newBroken": 0,
+      "archives": "Unchanged byteexact throughD417; same2archive hashes asD434",
+      "scope": "Documentation-only; no source/test edit afterfinaltyped/actualsource."
+    }
+  },
+  "limits": [
+    "Original tolerance and native geometry remain authoritative; reproducedaccuracydefectfirst.",
+    "Selected D435direct-sphere precision refusal only; sphericalOFFSET extensionD436 deferred; publicthicken/fitter/NURBS widening/topology extensions outside.",
+    "No dependency/download/OCP/paidrun/develop integration/release."
+  ],
+  "artifact_type": "step-sphere-representability-refusal",
+  "scopeChange": "OriginalD435sphereOFFSET assessment found existingdirect-sphere dimensionalcollapse. Accuracy-firstrule selectsnativeprecisionrefusal; newOFFSETadmission deferredD436.",
+  "selectedCorrection": {
+    "authorPlanSha256": "3c30cf986589c42404c3a8143ef814b3a3c7df43e7a5160edf0b25d3b2771b66",
+    "independentGuardReviewSha256": "8c827864afc301bf275aec1a6d1a24d0db966f340dae8475682e3b4ab904237d",
+    "nondegeneracyReviewSha256": "9c1f4526e0cf976361224243e6c082bd13563bd0cbce9db7a8e316d0de618830",
+    "productionPath": "packages/barocss-cad/src/io/step-import.ts",
+    "predicate": "Each generateddirect-sphere patch needs an exact affine-control-hull rank3 witness beforebuildBrep. ExactQ(Pi)-Q(P0), cross andscalartriple products underexistingwork budgets.",
+    "refusal": "RawBrepErrorINPUT namednot-supported precision; unchangedpublicadapter yieldsCAPABILITY. No radius/tolerance/epsilon floor,repair,core/mass/fitter/API/schema/dependencychange.",
+    "proofBoundary": "Rank3 is necessary native representability, not universal immersion/nonfold/trim/solid-volume certificate. Centered1e-12 rank3 shouldremainaccepted."
+  },
+  "tier": "full: STEP analytic-sphere precision admission; independent exact proofs/mutations and actualStudio; no B-rep corechange",
+  "commands": {
+    "cwd": "packages/barocss-cad",
+    "build": "node scripts/tool.mjs build",
+    "newTests": "node --test --test-concurrency=1 test/step-sphere-representability.test.mjs",
+    "affectedTests": "node --test --test-concurrency=1 test/step-offset.test.mjs test/step-sphere-coverage.test.mjs test/brep-inversion-conditioning.test.mjs",
+    "roundtrip": "node --test --test-concurrency=1 --test-name-pattern=\"STEP export is well formed AP214|STEP from other systems\" test/step.test.mjs",
+    "types": "node scripts/tool.mjs type-check",
+    "v1Recipe": "/tmp/barocss-d435-author/author-batch02/as-executed.sh",
+    "v2Recipe": "/tmp/barocss-d435-author/message-v2/source-batch02/as-executed.sh",
+    "rootFinal": "/bin/zsh /tmp/barocss-d435-root-checks/run02.sh",
+    "studio": "export PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH\nexport PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright\nexport CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'\nexport CAD_STUDIO_CHAT_PORT=52391\nexport SPHERE_PRECISION_SOURCE_FROZEN=1\nnode /tmp/barocss-d435-probe/sphere-precision-refusal-browser.mjs /tmp/barocss-d435-probe/studio-run01 /tmp/barocss-d435-probe/studio-refusal-cases.json /tmp/barocss-d435-probe/studio-source-manifest.json\n"
+  }
+}

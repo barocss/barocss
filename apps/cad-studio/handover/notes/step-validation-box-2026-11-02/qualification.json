@@ -1,0 +1,264 @@
+{
+  "id": "D438",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "3895c7bd55726513c187250e8ff04c58b40efbaf",
+  "roadmapRows": [
+    13,
+    16
+  ],
+  "overallEstimatePercent": 43,
+  "scope": "Omit STEP validation boxes made by actual trimmed-mesh fallback; keep legacy numeric bounds, geometry and V/A/C; report actual absence in existing Studio loss list",
+  "producerPlanSHA256": "ebb0ebf9338661bb5610642e13943ac83eab42456edf320bbdeffda92d383072",
+  "independentPlanSHA256": "c0e4fcf4aec8239942e0a3fbe1d84113c41f54a00ee73b4dad1f6d5b28598f87",
+  "actualPlanSHA256": "7032feaa02675b209e842c583273a903a99747e69b462a3278879501ef1a9444",
+  "nativeInputSHA256": "079b3fba92eaa6902512bc7d85925c54318ef6b9e6867249c2807a3700928b62",
+  "emittedInputSHA256": "f0fba92b03415f289fddc63b789ae73374aefef4db621dea82a05481460f028a",
+  "units": "mm",
+  "originalEdgeTolerance": 1e-07,
+  "declaredUncertainty": 1e-06,
+  "declaredBox": {
+    "min": [
+      -5,
+      -4.994061996270625,
+      -5.000000000000001
+    ],
+    "max": [
+      5.000000000000001,
+      4.994061996270626,
+      5.000000000000001
+    ]
+  },
+  "association": "D437 validated bbox points135/136\u2192representation137\u2192property138/139\u2192shape9/context14mm",
+  "sourceContract": "Smallest/holding box wording; trimmed curved implementation can use mesh16 samples with no outward enclosure certificate. Comparator checks V/A/C, not bbox containment.",
+  "proofSelection": "Exact section, two crossing intervals, original-T boundary matching and actual coedge/face orientation; candidate admitted only after strict trim membership",
+  "nativePcurves": "All four null; a domain midpoint is not automatically a trimmed-face point",
+  "proof": {
+    "result": "PROVEN_SELECTED_TRIMMED_FACE_POINT_OUTSIDE_DECLARED_BOX",
+    "certificateSHA256": "db955e06689b78866218f96ac833bc0fdcdd149fd09eca4aa1b9625e270a62f8",
+    "receiptSHA256": "d65014ed5c00ba86da511c43d2d28448bd8bbddc0b3ad67292170d425ad0a03a",
+    "recipeSHA256": "5c7b72d7c0084cf45510c03d13b16ed5894582a748eafc91be2544ff181c8a9b",
+    "scriptSHA256": "1ae259d20808a390d5f178505c8955ed55a49c95c0342c98dd9667cc80544483",
+    "pinsBeforeAfter": 12,
+    "nativePointApprox": [
+      -2.8374407422e-16,
+      -5,
+      0
+    ],
+    "rawDecimalPointApprox": [
+      4.4151705153e-17,
+      -5,
+      0
+    ],
+    "nativeOutsideGap": 0.005938003729374987,
+    "rawOutsideGap": 0.005938003729374873,
+    "crossingParametersApprox": [
+      0.0003331,
+      0.9996669
+    ],
+    "boundaryMatchingSquaredErrorUpper": 1.115e-23,
+    "originalToleranceSquared": 1e-14,
+    "candidateParameterClearanceLower": 0.4996668,
+    "worldYClearanceApprox": 5,
+    "authorChallenge": "ACK under source-defined oriented outer-loop and continuous original-T attachment semantics",
+    "authorReviewSHA256": "ab561256f850b0e21ab845a6034e9e2acf584ce30016c1428237489420ef6709",
+    "authorArgumentSHA256": "003898facf35e6577550cd3d9f52a3102bf2dac76c5b69f05068ad9ce5fa33b2",
+    "scope": "Selected face/section only; no global pcurve reconstruction or universal trimmed-surface theorem"
+  },
+  "productCalls": {
+    "assessmentAndWitness": 0,
+    "candidate": "Focused author tests; counts are tests, not product calls",
+    "actual": "One original Open, one public STEP prepare, one Cancel; no output reopen"
+  },
+  "productEdits": [
+    "packages/barocss-cad/src/brep/brep-bounds.ts",
+    "packages/barocss-cad/src/io/step.ts",
+    "packages/barocss-cad-model/src/engine/evaluate.ts"
+  ],
+  "actualStudio": {
+    "status": "PASS",
+    "receiptSHA256": "302facf734416b0e72c2570d127004d16405a5ccee999a23b1ff6b17b92d9463",
+    "driverSHA256": "c0b9979940658966515f0b77b105f72949cd87c09c6bda1079e06a1d5a017af8",
+    "readinessSHA256": "336adc04a10a09337b7e4de54b8a8031e271bb4fabdf420db8a84a5f4ea9bb24",
+    "fixedInputPins": 741,
+    "frozenAfterCleanupHashes": 1044,
+    "rootCurrentRehash": "PASS_1044",
+    "writerRequestReplyId": 5,
+    "source": "4fcb40ead35449b3",
+    "actualOutputSHA256": "a24139187b24a1aef7fb6bf7b23ad86ca36606e4af78e4c15f9d09c38655e265",
+    "actualOutputBytes": 11575,
+    "omittedAndVisibleLosses": [
+      "Bounding-box validation is not included in this STEP file."
+    ],
+    "cancelRetained": "Exact document/native/7 quantities/accepted source/public camera and F64/F32 camera byte state",
+    "screenshots": "Root viewed2; original and preview only. Cancel proven by strict03-cancel-held.json equality, not a third image.",
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "downloads": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "ownWrapperPid": 75850,
+    "ownWrapperAbsent": "PASS_ROOT_CHECK",
+    "gateAfter": "none",
+    "proofBoundary": "Visible loss report and raw state retention, not new mass/raster/global bbox accuracy acceptance"
+  },
+  "models": {
+    "geometryAndIndependentProof": "GPT-6.1 Sol High",
+    "routineDriver": "GPT-6.1 Sol Medium"
+  },
+  "limits": [
+    "No universal bbox-error tolerance invented",
+    "Analytic C\u00b1R difference alone is not a defect",
+    "No generic topology solver, new degree/pole budget or fitting",
+    "No external SDK/OCP/download, develop integration or release"
+  ],
+  "selectedCorrection": {
+    "scopeSHA256": "ff296732a3171669797c8029684c449a34d127ef008edbdd802fb60685914e88",
+    "byteCompatibilityPlanSHA256": "f7f760279c1f166d79aca5a1fe56029f3fbb90bd08bacfad831bd5bd0d2271f1",
+    "policy": "Only actual rest.size>0 trimmed-mesh fallback makes that solid bbox unavailable for STEP validation. Omit global bbox if any contributing solid has unavailable bounds. Keep legacy numerical bounds and geometry/V/A/C unchanged.",
+    "modelReport": "Existing omitted:string[] reports actual fixed-writer bbox record absence generically; no generic Part21 self-parser",
+    "publicChanges": "No new public flag, signature, schema, dependency, fitter or geometry limit",
+    "planarBytes": "Six historical D421 complete-file hashes/source key stay unchanged",
+    "r5ExpectedNewFullBytesSHA256": "816838f297b4ea1f982d0b9183a57f373c87c7181ad20140dac146d6237c4e3a",
+    "expectedByteChange": "Only old final bbox entities135\u2013139 removed; no other header/entity/geometry/unit/uncertainty/V/A/C change",
+    "implementationBeforeManifestSHA256": "18dcd5ac7193123a545106953e4d49c59ccbce92370ef5d887bb4c96cd61f313",
+    "checks": "PASS_SCOPED; original expectation failures retained"
+  },
+  "validationTier": {
+    "tier": "small",
+    "reason": "Bounded omission correction; private method bookkeeping preserves the exact legacy numeric body and adds no public API. No B-rep core geometry or tolerance changes.",
+    "fullKernel": "NOT_RUN; no B-rep core change",
+    "independentReview": "Additional bounded geometry/witness/source review used for the admitted physical defect"
+  },
+  "preExecutionReview": {
+    "numericBody": "Reconstructed original numerical body SHA256 bb0eda30921ef8552907d2e52f646ed790fec727f9cc61919d7b95b4499b120c exactly",
+    "selfParseConcern": "A valid quoted ENDSEC; name can truncate the existing generic DATA parser. Source-backed concern caught before candidate execution; not a reproduced SUT failure.",
+    "selectedAdjustment": "Use a complete anchored generated bounding-box representation record. Writer text() replaces all label newlines; names cannot forge a standalone record. Add ENDSEC; and fake-record name controls. No generic parser change.",
+    "finalAuthorSourceReviewSHA256": "1e35e6ede5451e92b2bb48ab71e4f582c033dd2fa00995d2a5ea5bda870cf2c4"
+  },
+  "firstCandidate": {
+    "status": "FAIL",
+    "build": "PASS",
+    "syntax": "PASS",
+    "cadFocused": {
+      "pass": 7,
+      "fail": 1,
+      "firstFailure": "D151 wheel dereferences intentionally absent STEP box; TypeError at box.min"
+    },
+    "downstreamModelLintShapeTypes": "NOT_RUN; serial stop",
+    "logSHA256": "f4b08a34551877d1a28adf6c07c7b8b0058548d06fcbd00afcb18959baf427af",
+    "node": "22.19.0",
+    "gateAfter": "none; load14.66"
+  },
+  "contractAdjustment": {
+    "originalD151UnchangedObjective": "NOT_MET",
+    "selection": "Change only wheel validation-property presence expectation; preserve 724-face fixture, export<12000ms, original q4 mesh containment and six fixed extrema at1e-9 against unchanged legacy brepBounds. Leave entire bicubic test unchanged.",
+    "authorReviewSHA256": "ee284bc622d6fff039611e20fe4b80351f567802624a746c73b009c1b668553d",
+    "reason": "Actual mesh-method policy must apply to wheel too. No wheel exception or relaxed numerical tolerance.",
+    "productionCodeChangesAfterFirstRun": false
+  },
+  "remainingAttempt02": {
+    "status": "FAIL",
+    "driverSyntax": "PASS",
+    "revisedD151Wheel": "PASS",
+    "modelFocused": {
+      "pass": 8,
+      "fail": 1,
+      "firstFailure": "New hostile-name test omitted the existing control-character name loss from its expected list. Actual existing name loss and new bbox loss are both truthful."
+    },
+    "d421SixFixedFilesAndSourceKeys": "PASS",
+    "lintShapeTypes": "NOT_RUN; serial stop",
+    "logSHA256": "9b0abdbcc916ed9aee09ab3a9d8f1df5bfc5dda47a9890ff0f9c66816b9a3176",
+    "selection": "Correct only the newline-name expected loss list against unchanged stepNameLosses. Rerun failed hostile-name case only; retain the eight passed Model tests.",
+    "productionChanges": false,
+    "gateAfter": "none; load14.26"
+  },
+  "candidate": {
+    "status": "PASS_SCOPED_WITH_EXPLICIT_FAILED_EXPECTATION_HISTORY",
+    "uniqueCAD": 8,
+    "uniqueModel": 9,
+    "build": "PASS",
+    "lintOwned6AndDriver": "PASS",
+    "codeShape": "PASS",
+    "driverSyntax": "PASS",
+    "modelTypesAfterLastTestAndDriverEdit": "PASS",
+    "d421SixCompleteFilesAndSourceKeys": "PASS_UNCHANGED",
+    "r5ExactNewFullBytesSHA256": "816838f297b4ea1f982d0b9183a57f373c87c7181ad20140dac146d6237c4e3a",
+    "first7CADPassesReused": "Exact unchanged tests/production; only revised wheel rerun",
+    "first8ModelPassesReused": "Only hostile-name expected list changed; failed case rerun alone",
+    "finalReceiptSHA256": "2ed894db71d9cfa467a10d25a5359bd74452641b468437d72d2ab608d6048d90",
+    "pins": {
+      "packages/barocss-cad/src/brep/brep-bounds.ts": "12ab45978c3e25d1a8cadf89d6d6e1caa51d452260c5e8c81ae9cf7dd98dfd8e",
+      "packages/barocss-cad/src/io/step.ts": "9922a7d822fbb0d02b359b36c62ca2bf93c718e2b8704365bfeee6df625176e3",
+      "packages/barocss-cad-model/src/engine/evaluate.ts": "65be1ca46f1c48f378d5f80d6c6d00a36c51caac8e9fdf1f2a5ccaaed4cc0c9e",
+      "packages/barocss-cad/test/step-validation-bbox-omission.test.mjs": "635a504d855ba6ade09ce3605e5ded2dbb7d46c1aaff61ca8a90da8c48c5d4f1",
+      "packages/barocss-cad-model/test/step-bbox-loss.test.ts": "5e6cfce9d2d68e28602c6245c42d36129a9ffbaf0930e6a2b8e9995eb0a90866",
+      "packages/barocss-cad/test/d151-step-bounds.test.mjs": "ebbd59bd8e2135165377b543c1d63e0dbfc6520321b1f84ce76c88beaa117783"
+    },
+    "optionalMutations": "NOT_RUN; small tier, no geometry/core/public API change"
+  },
+  "commands": [
+    "bash /tmp/barocss-d438-probe/candidate-checks.sh",
+    "bash /tmp/barocss-d438-probe/candidate-remaining-checks.sh",
+    "bash /tmp/barocss-d438-probe/candidate-final-remaining-checks.sh",
+    "STEP_BBOX_OMISSION_SOURCE_FROZEN=1 node /tmp/barocss-d438-probe/bbox-omission-preview-browser.mjs /tmp/barocss-d438-probe/studio-run01 /tmp/barocss-d438-probe/studio-cases.json /tmp/barocss-d438-probe/studio-source-manifest.json (own sole gate, Node22.19.0, installed PW_DIR/CHROME, chat52391)",
+    "python3 -I /tmp/barocss-d438-independent/audit-actual-metadata.py /tmp/barocss-d438-independent/actual-audit01/audit.json (own sole gate; no product call)"
+  ],
+  "issueReview": {
+    "issue": 2263,
+    "state": "OPEN",
+    "reason": "Assembly trees, AP242 presentation/PMI/sheets and remaining offset/topology profiles unmet. R5 bbox removal intentionally changes five existing records; broad historical byte-identity acceptance is not claimed."
+  },
+  "notRun": [
+    "Full kernel (no B-rep core change); latest full D433 evidence reused only at original scope",
+    "New physical accuracy, output reopen, download, OCP, paid call",
+    "Develop integration/release/npm/deploy",
+    "Optional scratch mutations"
+  ],
+  "independentCorrectionAudit": {
+    "status": "PASS_BOUNDED",
+    "staticSourceAndExpectedBytesSHA256": "549322eb79437ded36970cdc29f6f3343e47dde0118d4e5feaa44d883b7d71aa",
+    "actualMetadataAuditSHA256": "306154b4501058dc9c1db369b4ac1e37bbfe554362f87f9ee48100c3e4fbe71a",
+    "actualRecipeSHA256": "e4c50a3a1c4a333681dbdf540b694f31923ac84badf9cb62d3bd4f98d2f08fc0",
+    "actualScriptSHA256": "39dbaacbc5209f235bfb24e2cfda71e25e2d98abea7ac2cb4ff3f94fdb42376f",
+    "pinsBeforeAfter": 1126,
+    "newProductCalls": 0,
+    "units": "mm",
+    "declaredUncertainty": 1e-06,
+    "originalNativeEdgeToleranceSeparate": 1e-07,
+    "validationKinds": [
+      "volume",
+      "surface area",
+      "centroid"
+    ],
+    "actualDecodedGeometry": "Two surfaces and two curves: zero numeric-field differences versus retained qualified R5 under explicit n0 source-prefix aliases",
+    "bboxOrOrphanReplacement": "ABSENT",
+    "actualAssociation": "Same shape and mm context; positive finite volume/area with mm^3/mm^2 derived units; finite centroid",
+    "capturedModuleBodies": 70,
+    "missingDirectRuntimeSource": "flow-helper.mjs is Node-side driver code, not a browser module",
+    "newPhysicalTarget": "NOT_RUN; metadata values reported, not new physical acceptance",
+    "optionalMutations": "NOT_RUN",
+    "sourceAuditPreparation": "Two preparation assertions retained separately; no product execution/failure",
+    "sourceAuditPreparationErrorsSHA256": "def9159ae067322c9e5aa8c720f1ea3061ae56d6bd2d9795d205cb7de33c5b33",
+    "finalCombinedReceiptSHA256": "c6b0f89e63c8aa7a225877344fa0c5820a839bce99040406dd01ea1e4a601311",
+    "finalReviewSHA256": "77f8eb6a1d343dee4db436c64a971641432a02e81163cb65ed3ad0f033fc9e4c"
+  },
+  "finalNavigation": {
+    "status": "PASS",
+    "rowPages": 34,
+    "checkedLocalLinks": 2457,
+    "newBroken": 0,
+    "knownMissingHistoricalPathCount": 1,
+    "immutableArchiveHashesUnchanged": true
+  },
+  "nextBoundary": "Keep row13 general acceptance OPEN. The valid quoted section-token/comment parser boundary found during review needs its own reproduced item; no broad scope or HOLD release.",
+  "cleanupPolicy": {
+    "ocpCache": "ABSENT",
+    "downloadedOcctSource": "ABSENT",
+    "nativeReaderBuild": "ABSENT",
+    "newDownloads": 0
+  }
+}
