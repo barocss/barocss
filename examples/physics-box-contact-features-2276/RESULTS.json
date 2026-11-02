@@ -1,0 +1,312 @@
+{
+  "work_id": "physics-box-contact-features-2276",
+  "artifact_type": "private-box-construction-and-presentation-results",
+  "status": "CONFIRMED_PRESENTATION_NO_GO",
+  "owner_role": "independent-evidence-writer",
+  "source_request": "Preserve private native construction and binary64 presentation proof boundaries",
+  "last_updated": "2026-11-03",
+  "construction01": {
+    "status": "PASS_PRIVATE_CONSTRUCTION_AND_GRAPH_PARITY",
+    "counts": {
+      "source": {
+        "attemptedCases": 20,
+        "completedCases": 20,
+        "returnedPoints": 62,
+        "WorldCalls": 0
+      },
+      "strict-nodenext": {
+        "attemptedCases": 20,
+        "completedCases": 20,
+        "returnedPoints": 62,
+        "WorldCalls": 0
+      }
+    },
+    "population": {
+      "source": {
+        "originalRows": 32,
+        "returnedRows": 32,
+        "sameRawPointRows": 28,
+        "maximumMatchedMovementM": 5.551115123125783e-17
+      },
+      "strict-nodenext": {
+        "originalRows": 32,
+        "returnedRows": 32,
+        "sameRawPointRows": 28,
+        "maximumMatchedMovementM": 5.551115123125783e-17
+      }
+    },
+    "firstFailure": null,
+    "evidenceBytes": 349634,
+    "independentNativeGeometry": "NOT_RUN",
+    "physicalDynamics": "NOT_QUALIFIED",
+    "productionIntegration": "NOT_RUN",
+    "publicBaseline": "UNCHANGED_NO_GO",
+    "originalP4": "UNCHANGED_NO_GO"
+  },
+  "independentGeometry01": {
+    "status": "NO_GO_INDEPENDENT_PRIVATE_BOX_GEOMETRY",
+    "counts": {
+      "cases": 1,
+      "points": 3,
+      "exactCertificates": 3,
+      "floatPresentations": 2
+    },
+    "firstFailure": {
+      "cursor": {
+        "graph": "source",
+        "case": "failure-pre-1"
+      },
+      "message": "rounded midpoint line misses native box"
+    },
+    "maximaM": {
+      "surface": 7.645634235655675e-20,
+      "normalLine": 2.828510844250429e-17,
+      "midpoint": 2.8814659223449546e-17,
+      "floatLineWitness": 2.4139376619725323e-13,
+      "acceptedGap": 0.0,
+      "numericNormal": 8.752912949534895e-17
+    },
+    "WorldCalls": 0,
+    "candidateCalls": 0,
+    "productionIntegration": "NOT_RUN"
+  },
+  "preservedFirstFailureArchive": {
+    "bytes": 50577,
+    "sha256": "c223d6e3c2e148d148fe2d87c2dcd1de31075d36cce925ec91bf0a804437b6a6"
+  },
+  "nestedFirstFailureArchiveMembersVerified": 101,
+  "build01": "PASS_PRIVATE_BUILD",
+  "build02": "PASS_PRIVATE_BUILD",
+  "run02": {
+    "status": "PREFLIGHT_SOURCE_BYTE_DRIFT_NO_GO",
+    "candidateCalls": 0,
+    "WorldCalls": 0,
+    "reason": "Build02 froze candidate.ts before final author edit; runner detected17864 versus17710bytes before candidate import",
+    "receipt": "examples/physics-world-p5-2276/evidence/box-contact-private-run-02/result.json"
+  },
+  "build03": "PASS_PRIVATE_BUILD",
+  "run03": {
+    "status": "PRIVATE_GEOMETRY_NO_GO",
+    "counts": {
+      "source": {
+        "attemptedCases": 1,
+        "completedCases": 0,
+        "returnedPoints": 0,
+        "WorldCalls": 0
+      }
+    },
+    "population": {
+      "source": {
+        "originalRows": 0,
+        "returnedRows": 0,
+        "sameRawPointRows": 0,
+        "maximumMatchedMovementM": 0
+      }
+    },
+    "firstFailure": {
+      "graph": "source",
+      "caseId": "failure-pre-1",
+      "name": "AssertionError",
+      "message": "unresolved failure-pre-1: FLOAT_PRESENTATION_LINE_MISSES_NATIVE_BOX",
+      "stack": "AssertionError [ERR_ASSERTION]: unresolved failure-pre-1: FLOAT_PRESENTATION_LINE_MISSES_NATIVE_BOX\n    at file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-box-contact-features-2276/run.mjs:59:14"
+    },
+    "evidenceBytes": 77215,
+    "independentNativeGeometry": "NOT_RUN",
+    "physicalDynamics": "NOT_QUALIFIED",
+    "productionIntegration": "NOT_RUN",
+    "publicBaseline": "UNCHANGED_NO_GO",
+    "originalP4": "UNCHANGED_NO_GO"
+  },
+  "amendedTypedRefusal": {
+    "status": "UNRESOLVED",
+    "reason": "FLOAT_PRESENTATION_LINE_MISSES_NATIVE_BOX",
+    "pointId": "FACE:4:2",
+    "retainedExactConstructionPoints": 4,
+    "sourceAttemptedCases": 1,
+    "sourceCompletedCases": 0,
+    "native": "NOT_RUN",
+    "original32": "NOT_REACHED"
+  },
+  "independentPresentationAudit": {
+    "status": "CONFIRMED_PRESENTATION_NO_GO",
+    "counts": {
+      "savedCases": 1,
+      "retainedPoints": 4,
+      "exactCertificatesVerified": 4,
+      "roundingCoordinates": 36,
+      "correctlyRoundedCoordinates": 36,
+      "normalCoordinates": 3,
+      "correctlyRoundedNormalCoordinates": 3,
+      "representedLinesChecked": 4,
+      "representedLinesHitBoth": 2,
+      "representedLinesMissNativeBox": 2,
+      "originalP4RowsAnalyzed": 0
+    },
+    "pins": {
+      "candidate.ts": {
+        "bytes": 17864,
+        "sha256": "15a1931ed4fc5cc91bbae4fde700258a039aa3e081c128bc61030474de38200d"
+      },
+      "build.mjs": {
+        "bytes": 2793,
+        "sha256": "224cc40840207e8c5620fc809132a8b952ef58c5531fb7cbbd639e92c10c8557"
+      },
+      "run.mjs": {
+        "bytes": 6310,
+        "sha256": "908a1a10cf369e52397f53d252aaeb7c58dde9107b0fb234062a3dc4b5e3e500"
+      },
+      "evidence/run-03/source-00-failure-pre-1-input.json": {
+        "bytes": 1600,
+        "sha256": "5ff1fa80ef895e7b80d380b9686fb6a84411877072b15c943111a6acd09ad934"
+      },
+      "evidence/run-03/source-00-failure-pre-1-output.json": {
+        "bytes": 9687,
+        "sha256": "d142ab17da92628e9b98a05e2e7f08f71e4b162f009cd9900ca7d9404d91e58a"
+      }
+    },
+    "WorldCalls": 0,
+    "candidateCalls": 0,
+    "productionGeometryCalls": 0,
+    "globalBinary64LineUnrepresentability": "NOT_PROVED"
+  },
+  "proofBoundaries": {
+    "construction": "Run01 completed20cases62points in each Source and strict NodeNext graph; graph parity only",
+    "exactNative": "Run01 first3 certificates verified before first floating failure; amended saved construction4 certificates independently verified",
+    "binary64Presentation": "Amended4 represented lines:2 hit both native boxes,2 miss; all36 coordinates and3 unit-direction coordinates correctly rounded",
+    "physicalDynamics": "NOT_QUALIFIED",
+    "productionIntegration": "NOT_RUN",
+    "publicBaseline": "UNCHANGED_NO_GO",
+    "originalP4": "UNCHANGED_NO_GO"
+  },
+  "nextDependency": "Selected option B: a NEW separate private quantized-feasibility construction with represented normal fixed, exact native12-slab feasibility, unchanged1e-12 exit/midpoint gates, bounded work, and a frozen nearest-ideal/lexicographic objective. Freeze the representation, case bank, work bound and independent observer before execution. Exact/native witness and report-phase verdicts remain separate. Native-only authority is an unselected research alternative; it cannot clear the old floating/public failure.",
+  "originalCommandReceipts": [
+    {
+      "id": "box-contact-presentation-audit-01",
+      "command": [
+        "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+        "-B",
+        "examples/physics-box-contact-features-2276/presentation-audit.py",
+        "examples/physics-box-contact-features-2276/evidence/run-03"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 75.365625,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-contact-private-build-01",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-contact-features-2276/build.mjs",
+        "build-01"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 970.808875,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-contact-private-build-02",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-contact-features-2276/build.mjs",
+        "build-02"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 1061.944417,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-contact-private-build-03",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-contact-features-2276/build.mjs",
+        "build-03"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 1095.029458,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-contact-private-reference-01",
+      "command": [
+        "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+        "-B",
+        "examples/physics-box-contact-features-2276/reference.py",
+        "examples/physics-box-contact-features-2276/evidence/run-01",
+        "examples/physics-box-contact-features-2276/cases.json"
+      ],
+      "status": "FAIL",
+      "exit": 1,
+      "elapsedMs": 83.756542,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-contact-private-run-01",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-contact-features-2276/run.mjs",
+        "build-01",
+        "run-01"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 219.313167,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-contact-private-run-02",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-contact-features-2276/run.mjs",
+        "build-02",
+        "run-02"
+      ],
+      "status": "FAIL",
+      "exit": 1,
+      "elapsedMs": 65.386333,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-contact-private-run-03",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-contact-features-2276/run.mjs",
+        "build-03",
+        "run-03"
+      ],
+      "status": "FAIL",
+      "exit": 1,
+      "elapsedMs": 122.975042,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    }
+  ],
+  "sourceContractsFreezeCasesEvidenceUnchanged": true,
+  "readmeOnlyExistingFileUpdated": true,
+  "readmeBeforePin": {
+    "bytes": 2051,
+    "sha256": "01d9ec982c4ce4ea59f0f303fc5b98a28bafbeea181ecbbdf3831939fc910a82"
+  },
+  "newNumericalRuns": 0,
+  "WorldCallsDuringPackaging": 0,
+  "archive": "EVIDENCE-01.tar.gz",
+  "selectedNextOption": "B_DIRECT_QUANTIZED_FEASIBILITY_FIXED_REPRESENTED_NORMAL"
+}

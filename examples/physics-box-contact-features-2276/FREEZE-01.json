@@ -1,0 +1,42 @@
+{
+  "base": "1779dd871",
+  "stage": "before first private candidate build/import/geometry; unchangedproductionWorld",
+  "inputs": {
+    "examples/physics-box-contact-features-2276/run.mjs": {
+      "bytes": 6310,
+      "sha256": "908a1a10cf369e52397f53d252aaeb7c58dde9107b0fb234062a3dc4b5e3e500"
+    },
+    "examples/physics-box-contact-features-2276/candidate.ts": {
+      "bytes": 14884,
+      "sha256": "7805449c60bea990148553a64b48c68cbf9b6c87b4819ec7e743d97ea255a2e8"
+    },
+    "examples/physics-box-contact-features-2276/CONTRACT.md": {
+      "bytes": 3578,
+      "sha256": "4d3f705e639b5435866345d46bfdf98d4388fdb7047a6772967bcabcb36a15cc"
+    },
+    "examples/physics-box-contact-features-2276/README.md": {
+      "bytes": 1485,
+      "sha256": "55a94a47204b3071b7b65406aa475d3c8c8f594a91a92f75a6b2b8b53906919e"
+    },
+    "examples/physics-box-contact-features-2276/package.json": {
+      "bytes": 97,
+      "sha256": "1c27c0974443a78fe4977ea0c606d134e56ba6751973042cdfff54b6ca079d00"
+    },
+    "examples/physics-box-contact-features-2276/build.mjs": {
+      "bytes": 2758,
+      "sha256": "9553b8d9c8a76454918e5e481681a6024dc986249a1df3a54352a6223d218f46"
+    },
+    "examples/physics-box-contact-features-2276/cases.json": {
+      "bytes": 24863,
+      "sha256": "97623de2d6a8795384d6985d4415579e9b6ef7410cdd90be1facdd5d9740af83"
+    },
+    "examples/physics-box-contact-features-2276/reference.py": {
+      "bytes": 6436,
+      "sha256": "743e5503b2a82f469d642818c1d4689e9569e516045c79c5ea29e01868894f27"
+    },
+    "examples/physics-box-contact-features-2276/tsconfig.json": {
+      "bytes": 261,
+      "sha256": "21048c2564bb0c88c24af19180adcc37e2f1812aaa2605f2bad182a43a4c6759"
+    }
+  }
+}
