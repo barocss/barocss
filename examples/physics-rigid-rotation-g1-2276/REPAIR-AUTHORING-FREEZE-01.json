@@ -1,0 +1,19 @@
+{
+  "status": "PARENT_APPROVED_AUTHORING_ONLY",
+  "workId": "physics-rigid-rotation-g1a-repair-2276",
+  "head": "c8b231948ccd2e4d5105eb1e23556e1c4f9940dc",
+  "files": {
+    "REPAIR-DESIGN-01.md": {
+      "bytes": 14716,
+      "sha256": "0469f20a8131075a43d2898a51a3f7d2a297826e5c3fdbd0688b5fd8fa7be2fa"
+    },
+    "REPAIR-CASES-01.json": {
+      "bytes": 11505,
+      "sha256": "843069a1a614cf0a80b82fecc866051321cd992906072e4208831e991a83748a"
+    }
+  },
+  "runtimeAuthorized": false,
+  "productionActivation": false,
+  "scope": "Staged actual common World source copy with private symmetric-top leaf; no production source edit or legacy user flag. Author independent reference and finite runner. Freeze exact source/tools/counts before execution.",
+  "unchanged": "Baseline, oldP3/P4, tolerances, HOLD, triaxial production admission; G1b/adoption remain."
+}

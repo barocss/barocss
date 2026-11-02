@@ -1,0 +1,281 @@
+{
+  "workId": "physics-rigid-rotation-g1a-repair-2276",
+  "status": "PROPOSAL_PARENT_FREEZE_REQUIRED_NO_IMPLEMENTATION_OR_EXECUTION",
+  "scope": "STAGED_AXISYMMETRIC_FREE_ROTATION_ONLY_NO_PRODUCTION_ACTIVATION",
+  "immutableInputs": {
+    "CONTRACT.md": "29feb5a2d8b9baf1f9508bd13fa5837af61a25c960f400b59aefd6014b914b95",
+    "CASES.json": "2ce857f257ddfabd5feab1f98e78577efe0b4b3ff1b5a77f6288e503a9c8777b",
+    "INTEGRATION-AUDIT.md": "4c6a793080dd8339cc38638bfbd5ae30a5defd6d370e025c98d1402ffbbd1645",
+    "baseline-classify.py": "5f5eee9ac2cd8b654eab134823a619254fd0b7c4ab8791419d077a71413a09eb",
+    "evidence/g1-baseline-01/summary.json": "9bfcb15f6dab6c30ca236f086322ba4e18327634cd1ad1c314c514ee5be13d5d",
+    "evidence/g1-baseline-01/classification.json": "95973a8a801d6c995164e5954040665a07c92802ee5b98f5ec03b39df6e47dcf",
+    "evidence/g1-baseline-01/source-assessment.json": "a96374d09b9be6f98d5a77ec3c9469f332e340a9c454fd8279a8f9c2bffb344e",
+    "evidence/g1-baseline-01/native-assessment.json": "0df0b1131a1981bff385b04991da857545ad63e368de233c425f52687750f02a"
+  },
+  "baselineStatusPreserved": "CHARACTERIZED_PHYSICAL_NO_GO; no baseline rerun or overwrite",
+  "literalPopulation": {
+    "authority": "CASES.json literalModel/literalOptions and futureRepairProposal; exact pinned data, no old-config conversion",
+    "trajectoryFamilies": [
+      "T01-isotropic-cube",
+      "T02-axisymmetric-off-axis"
+    ],
+    "grids": [
+      "dt60",
+      "dt120",
+      "dt240"
+    ],
+    "oneStepControls": [
+      "C01-principal-axis",
+      "C02-zero-positive",
+      "C03-zero-signed-negative-q",
+      "C04-off-axis-negative-q"
+    ],
+    "commands": [],
+    "nativeModelOptionsPairsConvertedGlobal": 10,
+    "worldInputCopiesPerConvertedPair": 2,
+    "rawInputPolicy": "Record every actualF64 word once; all intended rounding separate. q and -q remain distinct raw inputs but same physical R.",
+    "newBodiesOrTrajectoryFamilies": 0,
+    "isotropicArithmetic": "Exact original dispatch statements/helper/order for actual equal numeric inertia; no arithmetic simplification"
+  },
+  "candidateStrategy": {
+    "kind": "exact symmetric-top free flow in actual common World candidate stage",
+    "newPublicAPIOrFlags": false,
+    "expectedSourceSurface": [
+      "packages/barocss-physics/src/world.ts",
+      "one new private rigid-free-rotation.ts leaf"
+    ],
+    "localData": [
+      "current candidate q/omega after existing actions/motors",
+      "positive repeated moment A",
+      "distinct moment C",
+      "body symmetry axis e",
+      "temporary worldL/Omega/k"
+    ],
+    "equations": [
+      "a0=R(q0)e; u=omega0 dot a0",
+      "L=A*omega0+(C-A)*u*a0; Omega=L/A; k=(A-C)*u/A",
+      "q1=normalize(Q_world(Omega,dt)*q0*Q_body(e*k,dt))",
+      "omega1=Omega+k*R(q1)e"
+    ],
+    "history": "No new accepted momentum/cache/clock; discard localL before contact/joint/sleep consumers and never restore it after their impulses.",
+    "guards": "Original pre-flow guard unchanged; new omega checked finite/component<=1000/hypot*dt<=10 and q finite/unit before downstream use; existing NUMERIC_LIMIT, no clamp.",
+    "eligibleGeometry": "Primitive axisymmetric box equality plus corresponding exact repeated numeric moments; no near-equality epsilon. First qualification is literal z symmetry.",
+    "triaxialPolicy": "Production admission unchanged during staging; no claim of triaxial repair and no silent refusal. Activation/G1 completion blocked until independent G1b and public admitted-range resolution, or separately approved explicit support migration. No legacy compatibility mode."
+  },
+  "reference": {
+    "geometryAndObservedInvariants": "Pinned unchanged integral_certificate/proper_rotation/observed_audit/assessment pure functions from baseline-classify.py, passed a separately bounded arithmetic protocol; no production helper import or copied inertia shortcut.",
+    "analyticConstruction": "Independent body Euler transverse phase plus world symmetry-axis Rodrigues precession; reconstruct full R from body/world momentum-axis triads, then continuous-sign q from the safe positive-trace branch. Candidate quaternion product is not reference code.",
+    "independentChecks": [
+      "body Euler derivative",
+      "Rdot=[omega]xR",
+      "worldL constant",
+      "energy constant",
+      "initial conditions",
+      "R orthogonality/det+1",
+      "positive trace branch bound"
+    ],
+    "precisions": [
+      80,
+      120
+    ],
+    "rounding": [
+      "ROUND_FLOOR",
+      "ROUND_CEILING"
+    ],
+    "Emin": -999999,
+    "Emax": 999999,
+    "capitals": 1,
+    "clamp": 0,
+    "traps": [
+      "InvalidOperation",
+      "DivisionByZero",
+      "Overflow",
+      "FloatOperation"
+    ],
+    "contextRestore": true,
+    "fixedTaylorTerms": 128,
+    "fullAngleRange": [
+      "-2",
+      "2"
+    ],
+    "remainder": "Exact alternating-series majorants at2, no pi/reduction/adaptive terms",
+    "width80Power10": -65,
+    "width120Power10": -105,
+    "enclosureConsistency": "120 contained in80; analytic residual intervals contain0 within width bounds",
+    "timeInput": "Exact n*native dt; equal final sums and quarter times across grids checked as DATA before reference arithmetic; intended1s separate",
+    "nonzeroAnalyticSamples": [
+      {
+        "family": "T01-isotropic-cube",
+        "fractionsOfCommonDuration": [
+          "1/4",
+          "1/2",
+          "3/4",
+          "1"
+        ]
+      },
+      {
+        "family": "T02-axisymmetric-off-axis",
+        "fractionsOfCommonDuration": [
+          "1/4",
+          "1/2",
+          "3/4",
+          "1"
+        ]
+      },
+      {
+        "family": "C01-principal-axis",
+        "nativeStep": "1/120",
+        "steps": 1
+      },
+      {
+        "family": "T02-axisymmetric-off-axis",
+        "nativeStep": "1/120",
+        "steps": 1,
+        "reuse": "scheduled recovery plus C04 negative-q physical reference; exact quaternion sign map"
+      }
+    ],
+    "zeroAndTime0": "Exact states, no trig; Fraction is not computed-zero-sign authority",
+    "ceilings": {
+      "processes": 1,
+      "geometryCertificates": 2,
+      "uniqueNonzeroAnalyticSamples": 10,
+      "decimal80Evaluations": 10,
+      "decimal120Evaluations": 10,
+      "sinCosEvaluationsMax": 80,
+      "sqrtEvaluationsMax": 24,
+      "observedStateAudits": 1708,
+      "fractionScalarOperations": 10000000,
+      "odeSolves": 0,
+      "linearSolves": 0
+    }
+  },
+  "gates": {
+    "baselineConservationNormComLinear": "CASES.json invariantGates unchanged; e=1/10^12; L/E component abs(after-initial)<=e+e*max(1,abs(initial),abs(after)); q squared norm/COM/linear absolute e",
+    "trajectoryGateBeforeImplementation": "abs(actual-reference interval endpoint)<=1e-11+1e-12*abs(reference) per omega/R/q component, worst endpoint, rad/s or dimensionless",
+    "priorUnexecutedProposal": "Grid-specific1e-3/5e-4/2.5e-4 trajectory limits superseded by this exact-flow choice before implementation/math; no executed gate changed",
+    "refinementMinimumRatio": "9/5",
+    "refinementFloor": "1/100000000000",
+    "refinementRule": "next<=max(previous/(9/5),floor); all3below floor -> ROUNDING_FLOOR without measured-order claim",
+    "nativeParity": "Every repaired public physical/state numeric word and structure exact across source/native; own new frozen provider identities preserved/checked; historical baseline digests not reused as new provider identities",
+    "oldAnisotropicParity": "Not required: failed baseline q/omega are physically changed. Preserve baseline artifact/firstFailure instead.",
+    "oldIsotropicRetention": "Original source/arithmetic/order transfer and exact named old receipt boundary, no indiscriminate extra full-campaign rerun"
+  },
+  "failureControls": {
+    "world": "Existing T02 dt120 World at step0; no extra constructor or accepted recovery step",
+    "originalCommandRefusals": [
+      "R01-dt-as-step-input",
+      "R02-unknown-body",
+      "R03-nonfinite-torque",
+      "R04-angular-movement-guard"
+    ],
+    "originalUnknownFaults": [
+      "F01-angular-candidate",
+      "F02-pose-candidate",
+      "F03-before-shared-commit"
+    ],
+    "postRecomputeGuardRefusals": [
+      {
+        "id": "N01-nonfinite-omega",
+        "testOnlyReplacement": [
+          {
+            "ieee754F64LE": "000000000000f87f"
+          },
+          "0",
+          "0"
+        ],
+        "expectedCode": "NUMERIC_LIMIT",
+        "branch": "finite"
+      },
+      {
+        "id": "N02-component-omega",
+        "testOnlyReplacement": [
+          "1001",
+          "0",
+          "0"
+        ],
+        "expectedCode": "NUMERIC_LIMIT",
+        "branch": "component"
+      },
+      {
+        "id": "N03-step-angle-omega",
+        "testOnlyReplacement": [
+          "900",
+          "900",
+          "900"
+        ],
+        "expectedCode": "NUMERIC_LIMIT",
+        "branch": "dt-scaled movement, each component individually admissible"
+      }
+    ],
+    "injectionMechanism": "Test-only frozen transform of staged actual source/native graph; no production/public diagnostic or runtime user flag",
+    "afterEach": "One getState; raw accepted state/clock/cache equality to already audited step0, unknown marker identity; no physical reference audit of unchanged duplicate needed",
+    "recovery": "Originally scheduled first accepted step checked against analytic dt120 reference; no new step/control World",
+    "remainingBeforeAdoption": [
+      "later-body failure",
+      "affected contact/joint/cache report laws",
+      "output/recorder owner preparation and reconstruction with actual counted extra Worlds",
+      "G1b triaxial admitted-range resolution"
+    ]
+  },
+  "ledgerPerGraph": {
+    "constructors": 10,
+    "acceptedTrajectorySteps": 840,
+    "acceptedControlSteps": 4,
+    "acceptedSteps": 844,
+    "commandRefusals": 4,
+    "unknownFaults": 3,
+    "postFlowGuardRefusals": 3,
+    "stepAttempts": 854,
+    "getState": 20,
+    "disposeAttempts": 10,
+    "freeRotationDispatchEntriesMax": 850,
+    "query": 0,
+    "getModel": 0,
+    "recorder": 0
+  },
+  "ledgerBothGraphs": {
+    "constructors": 20,
+    "acceptedSteps": 1688,
+    "commandRefusals": 8,
+    "unknownFaults": 6,
+    "postFlowGuardRefusals": 6,
+    "stepAttempts": 1708,
+    "getState": 40,
+    "disposeAttempts": 20,
+    "freeRotationDispatchEntriesMax": 1700,
+    "nativeOnlyAfterCompleteSourcePass": true,
+    "retries": 0,
+    "warmups": 0,
+    "extraRecoverySteps": 0
+  },
+  "resources": {
+    "internalMs": 170000,
+    "externalOwnedGroupMs": 180000,
+    "cleanupMsMax": 4000,
+    "logicalOwnedBytes": 67108864,
+    "referenceWorkBytes": 8388608,
+    "worldHarnessWorkBytes": 8388608,
+    "sourceBuildBytes": 16777216,
+    "evidenceBytes": 16777216,
+    "reserveBytes": 16777216,
+    "storedFractionBits": 4096,
+    "productBits": 8192,
+    "sumBits": 8193,
+    "rationalTextCharacters": 1300,
+    "heapOrRssClaim": false,
+    "dependenciesOrDownloads": 0
+  },
+  "authoringActuals": {
+    "moduleEvaluations": 0,
+    "fixtureConversions": 0,
+    "referenceCalculations": 0,
+    "builds": 0,
+    "WorldCalls": 0
+  },
+  "next": "Parent review/freeze before any implementation. Later actual source/oracle/harness freeze and one explicit execution token. Baseline NO_GO, P3/P4 contracts, instantaneous P6 PASS and whole-roadmap merge hold unchanged.",
+  "design": {
+    "path": "examples/physics-rigid-rotation-g1-2276/REPAIR-DESIGN-01.md",
+    "bytes": 14716,
+    "sha256": "0469f20a8131075a43d2898a51a3f7d2a297826e5c3fdbd0688b5fd8fa7be2fa"
+  }
+}
