@@ -1,0 +1,131 @@
+{
+  "status": "PASS_SOURCE_G1B_0P1S_THREE_GRIDS_AND_FAILURE_ATOMICITY_ONLY",
+  "authority": "T02-SOURCE-COMPLETE-PROOF.json",
+  "physicalMaxima": {
+    "angularMomentum": {
+      "error": 8.688303184260071e-17,
+      "exactError": {
+        "numerator": "73031802859172089682758799976910692031063053697684030142671752896698680237435089489670873103695433067",
+        "denominator": "840576132189748775670226328947406613838397596346829906877187553849201742779207494839159274419932470453934516326105088"
+      },
+      "bound": 2e-12,
+      "unit": "kg*m^2/s",
+      "case": "T03-dt240",
+      "step": 21,
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0042.json"
+    },
+    "rotationalEnergy": {
+      "error": 1.3552452579256276e-16,
+      "exactError": {
+        "numerator": "4617397192398440162918217384376945803750603275604941898203018938919871659493946054471835204322426078674468170486226765",
+        "denominator": "34070565201356574055939790795038422019513139851116017653163702882711827033528896861254212002744127221437374131100799125080408506499072"
+      },
+      "bound": 2e-12,
+      "unit": "J",
+      "case": "T02-dt120",
+      "step": 11,
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0019.json"
+    },
+    "quaternionSquaredNorm": {
+      "error": 2.9377234085987427e-16,
+      "exactError": {
+        "numerator": "97622604964553465841",
+        "denominator": "332306998946228968225951765070086144"
+      },
+      "bound": 1e-12,
+      "unit": "dimensionless",
+      "case": "P01-principal-x",
+      "step": 1,
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0047.json"
+    },
+    "linearMomentum": {
+      "error": 0.0,
+      "exactError": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "bound": 1e-12,
+      "unit": "kg*m/s",
+      "case": "T01-dt60",
+      "step": 0,
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0001.json"
+    },
+    "comPosition": {
+      "error": 0.0,
+      "exactError": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "bound": 1e-12,
+      "unit": "m",
+      "case": "T01-dt60",
+      "step": 0,
+      "artifact": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-02/reference/audit-0001.json"
+    }
+  },
+  "trajectoryMaxima": {
+    "R": {
+      "error": 3.553155138080568e-14,
+      "exactError": {
+        "numerator": "14759229009074095937095459132591164247789884454231330955529854109970300413745660883646034085835786629",
+        "denominator": "415383748682786292277897848619713700000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "case": "T01-dt60",
+      "step": 6,
+      "precision": "80"
+    },
+    "omega": {
+      "error": 2.154505342319026e-14,
+      "exactError": {
+        "numerator": "134656583894939107273694927353690928111231641747114875146724114003",
+        "denominator": "6250000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "case": "T01-dt60",
+      "step": 6,
+      "precision": "80"
+    },
+    "q": {
+      "error": 1.697760950549119e-14,
+      "exactError": {
+        "numerator": "8488804752745595322697302764870060680917765523680402472933695307701",
+        "denominator": "500000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "case": "T01-dt60",
+      "step": 6,
+      "precision": "80"
+    }
+  },
+  "trajectoryMaximaByGrid": {
+    "T01-dt60": {
+      "R": 3.553155138080568e-14,
+      "omega": 2.154505342319026e-14,
+      "q": 1.697760950549119e-14
+    },
+    "T02-dt120": {
+      "R": 4.026136982277312e-16,
+      "omega": 2.2089263779017555e-15,
+      "q": 1.8858390887186926e-16
+    },
+    "T03-dt240": {
+      "R": 6.84375557606673e-16,
+      "omega": 3.39886227694751e-15,
+      "q": 3.269374362279035e-16
+    }
+  },
+  "refinement": {
+    "records": 36,
+    "status": "ALL_ROUNDING_FLOOR_1E_MINUS_11",
+    "measuredOrder": "NOT_ESTABLISHED"
+  },
+  "api": {
+    "Worlds": 8,
+    "accepted": 47,
+    "attempts": 57,
+    "reads": 18,
+    "audits": 55,
+    "failureControls": 10,
+    "dispose": 8
+  },
+  "Native": "INCOMPLETE_RESOURCE_NO_GO_PENDING_SEPARATE_COMPLETION",
+  "scope": "ActualstagedcommonWorldSource only; currentproduction/canonicalbuild/hardwareNOT_QUALIFIED. ClosedDATA errorformatting only;0neworacle/World."
+}
