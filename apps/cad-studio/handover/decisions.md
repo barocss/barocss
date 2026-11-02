@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D436: direct spherical STEP offsets with exact full-span boundary checks and local witnesses — bounded source, independent and actual qualification](notes/step-sphere-offset-2026-11-02/README.md).
+
 - [D435: exact STEP sphere dimensional-loss refusal — bounded source and actual atomic retention qualification](notes/step-sphere-precision-2026-11-02/README.md).
 
 - [D434: relative GPU frame, native surface/line evidence and shared orthographic grid fade — six bounded profiles with certified scoped reuse](notes/gpu-relative-frame-2026-11-02/README.md).
@@ -78,6 +80,7 @@ Numeric proof and limits remain in the canonical item notes.
 | D433 | Retained local polyhedral moments, central inertia and native-SI basis; far/center/ordinary actual mass profiles | [Note](notes/planar-inertia-conditioning-2026-11-02/README.md) |
 | D434 | Coherent relative GPU raster/pick frame, positive native lines and orthographic eye-plane grid fade; six bounded profiles with scoped reuse | [Note](notes/gpu-relative-frame-2026-11-02/README.md) |
 | D435 | Refuse rank0/1/2 native STEP sphere patches with exact rank3 necessity; preserve represented geometry and prior Studio document | [Note](notes/step-sphere-precision-2026-11-02/README.md) |
+| D436 | Admit bounded direct spherical STEP offsets; preserve original tolerances and failed V1 target while restoring the pre-existing R5 centroid qualification policy | [Note](notes/step-sphere-offset-2026-11-02/README.md) |
 
 <!-- D418 LEGACY COMPATIBILITY BEGIN: fixed original heading sequence -->
 <details>

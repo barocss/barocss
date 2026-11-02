@@ -26,7 +26,7 @@ import { curveDomain, evaluateCurve } from '../core/math.js';
 import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
 import type { Curve, Point, Surface } from '../types.js';
 import { SectionRationalContext, type SectionRational } from '../section-rational-internal.js';
-import { checkOffsetBoundary, checkOffsetSourceEndpoints, type OffsetSupport } from './step-offset-internal.js';
+import { checkOffsetBoundary, checkOffsetSourceEndpoints, checkSphereOffsetPatch, type OffsetSupport } from './step-offset-internal.js';
 
 // ---- Part 21 -----------------------------------------------------------------------------------------
 type Value = number | string | { ref: number } | { enum: string } | null | '*' | Value[] | { type: string; args: Value[] };
@@ -351,7 +351,7 @@ export function importStep(source: string, options: { readonly id?: string } = {
     if (!c) return refuse(`surfaces swept by ${e.type} curves are not supported yet`);
     return { kind: 'curve', c };
   };
-  const offsetPrimitive = (edge: Entity): void => {
+  const offsetPrimitive = (edge: Entity, sphere = false): void => {
     if (edge.args.length !== 5) refuse('OFFSET_SURFACE source EDGE_CURVE requires five attributes');
     for (let i = 1; i <= 2; i++) {
       const vertex = get(edge.args[i]);
@@ -359,6 +359,7 @@ export function importStep(source: string, options: { readonly id?: string } = {
       offsetPoint(vertex.args[1]);
     }
     const raw = offsetCurveEntity(get(edge.args[3])), sense = edge.args[4];
+    if (sphere && raw.type !== 'CIRCLE') refuse(`OFFSET_SURFACE spherical boundary ${raw.type} is not supported yet`);
     if (!sense || typeof sense !== 'object' || !('enum' in sense) || sense.enum !== 'T' && sense.enum !== 'F') refuse('OFFSET_SURFACE source EDGE_CURVE same_sense must be BOOLEAN');
     if (raw.type === 'LINE') {
       offsetPoint(raw.args[1]); const v = get(raw.args[2]);
@@ -369,10 +370,10 @@ export function importStep(source: string, options: { readonly id?: string } = {
       for (let i = 2; i < (raw.type === 'CIRCLE' ? 3 : 4); i++) if (typeof raw.args[i] !== 'number' || !Number.isFinite(raw.args[i]) || !(raw.args[i] as number > 0)) refuse('OFFSET_SURFACE source conic requires finite positive radii');
     } else refuse(`OFFSET_SURFACE boundary ${raw.type} is not supported yet`);
   };
-  const edgeOf = (v: Value, offset = false): IEdge => {
+  const edgeOf = (v: Value, offset = false, sphere = false): IEdge => {
     const n = refNo(v), eid = `${id}_e${n}`; let x = edges.get(eid);
     const e = get(v); if (e.type !== 'EDGE_CURVE') refuse(`${e.type} edges are not supported`);
-    if (offset) offsetPrimitive(e);
+    if (offset) offsetPrimitive(e, sphere);
     if (x) return x;
     const a = vertexOf(e.args[1]), b = vertexOf(e.args[2]);
     x = { id: eid, geo: geoOf(get(e.args[3]), points.get(a)!, points.get(b)!, flag(e.args[4])), v: [a, b], ...(e.args[0] ? { name: e.args[0] as string } : {}) };
@@ -388,7 +389,7 @@ export function importStep(source: string, options: { readonly id?: string } = {
       const logical = e.args[3];
       if (!logical || typeof logical !== 'object' || !('enum' in logical) || !['T', 'F', 'U'].includes(logical.enum)) refuse('OFFSET_SURFACE self_intersect must be LOGICAL T, F or U');
       const base = get(e.args[1]);
-      if (base.type !== 'PLANE' && base.type !== 'CYLINDRICAL_SURFACE') refuse(`OFFSET_SURFACE basis ${base.type} is not supported yet (direct plane or cylinder only)`);
+      if (base.type !== 'PLANE' && base.type !== 'CYLINDRICAL_SURFACE' && base.type !== 'SPHERICAL_SURFACE') refuse(`OFFSET_SURFACE basis ${base.type} is not supported yet (direct plane, cylinder or sphere only)`);
       if (base.args.length !== (base.type === 'PLANE' ? 2 : 3)) refuse('OFFSET_SURFACE basis has invalid attributes');
       const f = offsetFrameOf(base.args[1]), distance = e.args[2] as number;
       const input = { origin: f.o, axis: offsetAxes.get(f)!, distance }; let sd: OffsetSupport;
@@ -396,6 +397,12 @@ export function importStep(source: string, options: { readonly id?: string } = {
         const o = add(f.o, scale(f.z, distance));
         if (!o.every(Number.isFinite)) refuse('OFFSET_SURFACE plane origin is not finite');
         sd = { kind: 'plane', f: { ...f, o }, input };
+      } else if (base.type === 'SPHERICAL_SURFACE') {
+        const value = base.args[2];
+        if (typeof value !== 'number' || !Number.isFinite(value) || !(value > 0)) refuse('OFFSET_SURFACE sphere basis radius must be finite and positive');
+        const r = value as number, result = r + distance;
+        if (!Number.isFinite(result) || !(result > 0)) refuse('OFFSET_SURFACE sphere radius at or beyond collapse is not supported yet');
+        sd = { kind: 'sphere', f, r: result, input: { ...input, radius: r } };
       } else {
         const value = base.args[2];
         if (typeof value !== 'number' || !Number.isFinite(value) || !(value > 0)) refuse('OFFSET_SURFACE cylinder basis radius must be finite and positive');
@@ -461,7 +468,7 @@ export function importStep(source: string, options: { readonly id?: string } = {
     const loops = list(e.args[1]).map(bv => {
       const b = get(bv), loop = get(b.args[1]);
       if (loop.type !== 'EDGE_LOOP') refuse(`${loop.type} bounds are not supported yet`);
-      let uses = list(loop.args[1]).map(ov => { const o = get(ov); return { edge: edgeOf(o.args[3], offset).id, fwd: flag(o.args[4]) }; });
+      let uses = list(loop.args[1]).map(ov => { const o = get(ov); return { edge: edgeOf(o.args[3], offset, offset && sd.kind === 'sphere').id, fwd: flag(o.args[4]) }; });
       if (!flag(b.args[2])) uses = [...uses].reverse().map(u => ({ edge: u.edge, fwd: !u.fwd }));
       return { outer: b.type === 'FACE_OUTER_BOUND', uses };
     });
@@ -633,7 +640,7 @@ export function importStep(source: string, options: { readonly id?: string } = {
     const S = surface, P = S.controlPoints as Point[][], m = Math.floor(P.length / 2), n2 = Math.floor(P[0].length / 2);
     const own = cross(sub(P[Math.min(P.length - 1, m + 1)][n2], P[Math.max(0, m - 1)][n2]), sub(P[m][Math.min(P[0].length - 1, n2 + 1)], P[m][Math.max(0, n2 - 1)]));
     const natN = naturalNormal(sd, P[m][n2]);
-    if (offsetDefinitions.has(sd) && (sd.kind === 'plane' || sd.kind === 'cylinder')) offsetPatches.set(surface, sd);
+    if (offsetDefinitions.has(sd) && (sd.kind === 'plane' || sd.kind === 'cylinder' || sd.kind === 'sphere')) offsetPatches.set(surface, sd as OffsetSupport);
     return { surface, sense: (dot(own, natN) >= 0) === f.same ? 'forward' : 'reversed' };
   };
 
@@ -666,8 +673,10 @@ export function importStep(source: string, options: { readonly id?: string } = {
   for (const face of brep.faces) {
     const support = face.surface.kind === 'surface' ? offsetPatches.get(face.surface) : undefined;
     if (!support) continue;
+    if (support.kind === 'sphere') checkSphereOffsetPatch(support, face.surface as Surface, face.id);
     for (const lid of face.loops) for (const cid of byLoop.get(lid)?.coedges ?? []) {
       const edge = offsetEdges.get(byCoedge.get(cid)!.edge)!, source = sourceCurves.get(edge.id);
+      if (support.kind === 'sphere' && source && source.type !== 'CIRCLE') refuse(`OFFSET_SURFACE spherical boundary ${source.type} is not supported yet`);
       if (!source && !generatedEdges.has(edge.id) || source && source.type !== 'LINE' && source.type !== 'CIRCLE' && !(support.kind === 'plane' && source.type === 'ELLIPSE')) refuse(`OFFSET_SURFACE boundary ${source?.type ?? 'derived edge'} is not supported yet`);
       const a = edge.curve.controlPoints[0], b = edge.curve.controlPoints[edge.curve.controlPoints.length - 1];
       if (source?.type === 'LINE') {

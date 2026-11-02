@@ -1,0 +1,360 @@
+{
+  "id": "D436",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "1c396619ba219bffc667ef82c0417dc3b652b2c7",
+  "roadmapRows": [
+    13,
+    16
+  ],
+  "overallEstimatePercent": 43,
+  "scope": "Direct ordinary spherical STEP offsets with exact continuous boundary certificates and bounded local representation witnesses",
+  "preExecution": {
+    "scopeSHA256": "0f204bdb4c8c86c252c600692f5b6968c18f3e7f0c4a6c4f4eb6fc93f757561d",
+    "budgetAddendumSHA256": "97b4f3ee2ef7aecb97b2503ddf6c9bb341ad6bf86f61818cf286ebd3a77e60e3",
+    "physicalBudgetSHA256": "34a3d6758dcc9e21540618a711915bc52c5ed1c07640522f3b394bf9ec970f49",
+    "independentPhysicalHelperSHA256": "0c6ef903a8a7f1c13f68604dbf51361fd8e288a14cfc6efe9b6e397702650297",
+    "displaySamplingCorrection": "Use the existing supportSampleAbsoluteMM=1e-7 for rounded display vertices. The exact native tensor shell1.574e-10 has a different scope; no frozen limit changed and no D436 actual run preceded this correction."
+  },
+  "failureHistory": [
+    {
+      "attempt": "author-batch01",
+      "stage": "CAD build",
+      "result": "FAIL",
+      "codes": [
+        "TS18047",
+        "TS2365",
+        "TS2322"
+      ],
+      "cause": "TypeScript Value narrowing after the existing finite-positive radius guard",
+      "correction": "Use the same guarded number assertion as the existing cylinder branch; no runtime guard or arithmetic policy changes",
+      "remainingStages": "NOT_RUN"
+    },
+    {
+      "attempt": "author-batch02",
+      "stage": "pre-acquire admission",
+      "result": "NOT_RUN_RESOURCE_LOAD",
+      "observedLoad": 56.06,
+      "limit": 40,
+      "leaseAcquired": false
+    },
+    {
+      "attempt": "author-batch03",
+      "stage": "new sphere-offset tests",
+      "build": "PASS",
+      "result": "FAIL",
+      "tests": 41,
+      "pass": 38,
+      "fail": 3,
+      "skip": 0,
+      "firstAssertion": "literal sphere centroid",
+      "profiles": [
+        "ordinary R5",
+        "advisory T",
+        "advisory U"
+      ],
+      "remainingStages": "Seven native captures, affected94, CAD types, lint, code-shape NOT_RUN",
+      "classification": "Pending matched plain/offset diagnostic; not yet a product geometry defect"
+    },
+    {
+      "attempt": "independent-batch01",
+      "stage": "Fraction/Cox hemisphere-midpoint projection",
+      "result": "FAIL_ASSERTION_PENDING_ORACLE_DIAGNOSIS",
+      "recipeSHA256": "f39655967140f005a13f0bbcfa5c2146d4b11fb6592b49cb94cab27886c2b131",
+      "remainingStages": "Independent8baseline/5mutants NOT_RUN",
+      "classification": "No product defect claim; captured midpoint/frame expectation under bounded scratch diagnosis",
+      "sourceBeforeAfter": "Unchanged"
+    }
+  ],
+  "currentSource": {
+    "stepImportSHA256": "15b285e1673797c5a6c9ee8d8d24d76ccd68b78f817389b1540dc418f8f459a2",
+    "stepOffsetSHA256": "d65d1aee476bb5251cd898b5ee6cfaff6ceb5f50b679d398714e3cb175aac29c",
+    "readinessV2SHA256": "598eaed8b2c468e5079484affc5d30c91fce5d947bc968ba29948ccc8e04952e",
+    "newTestSHA256": "c8b823cf0643520a955278ab404b57001e4118fa3ca8784de841a3079b7f8fb0",
+    "readinessV3SHA256": "061a9b9046cd5a5edcd2ecf55f6a77a1844a1c753e1df976ce058d022a91f6e3"
+  },
+  "candidate": {
+    "result": "PASS_UNDER_EXPLICIT_V2_EXISTING_POLICY",
+    "uniqueTests": 135,
+    "currentFail": 0,
+    "currentSkip": 0,
+    "new41": {
+      "reusedUnchangedV1Pass": 38,
+      "freshCorrectedV2Pass": 3
+    },
+    "affectedFreshPass": 94,
+    "sourceAndTests": {
+      "packages/barocss-cad/src/io/step-import.ts": "15b285e1673797c5a6c9ee8d8d24d76ccd68b78f817389b1540dc418f8f459a2",
+      "packages/barocss-cad/src/io/step-offset-internal.ts": "d65d1aee476bb5251cd898b5ee6cfaff6ceb5f50b679d398714e3cb175aac29c",
+      "packages/barocss-cad/test/step-sphere-offset.test.mjs": "c8b823cf0643520a955278ab404b57001e4118fa3ca8784de841a3079b7f8fb0",
+      "packages/barocss-cad/test/step-sphere-offset-fixtures.mjs": "39c4f87bf8e94e84dee59177e44501ab548091309f3fe7308471c96952d1ce3e",
+      "packages/barocss-cad/test/step-offset-fixtures.mjs": "6a03baa9a5e8911d9112c766bad17ac6b572be2212f74afe62254aca1e2c6217",
+      "packages/barocss-cad/test/step-offset.test.mjs": "645941b70fe7a79c2b40979cb69c6e764f8a8490e02c42a3308c70c38e6465ae",
+      "packages/barocss-cad/test/step-sphere-representability.test.mjs": "47c7beccf406a9cb614a14f1cd90b2aa2576f9e5cd6ec072922dba55058b42e4"
+    },
+    "checks": {
+      "CADbuild": "PASS_batch03_reused_production_source_unchanged",
+      "CADtypes": "PASS",
+      "ownedLint": "PASS",
+      "codeShape": "PASS",
+      "newTestFixtureSyntax": "PASS"
+    },
+    "receiptSHA256": "87dfb90f18ae8d4275a56e1e520d82be3d7cce8ac6d074c8dab5a806c30af906",
+    "manifestSHA256": "040ddaac92ae8bedbb1b1f730db37c75a2c8c379a042547ed5344516eb49c9d0",
+    "sourceCertificateSHA256": "155159cc9fdae30ad3d2f0027ae86318d59e63a75c6254a6dfcf2a790b70bc24"
+  },
+  "independentExecution": {
+    "result": "PASS_BOUNDED",
+    "nativeCases": 7,
+    "wholeCurveBezierSpansCertified": 28,
+    "localJacobianWitnesses": 14,
+    "exactFractionCoxSamples": 686,
+    "analyticPhysicalComparisons": 14,
+    "baselinePass": 8,
+    "baselineFail": 0,
+    "mutants": [
+      {
+        "name": "stored-radius",
+        "pass": 7,
+        "expectedAssertionFail": 1
+      },
+      {
+        "name": "cylinder-projection",
+        "pass": 5,
+        "expectedAssertionFail": 3
+      },
+      {
+        "name": "endpoint-only",
+        "pass": 6,
+        "expectedAssertionFail": 2
+      },
+      {
+        "name": "skip-curvature",
+        "pass": 7,
+        "expectedAssertionFail": 1
+      },
+      {
+        "name": "skip-jacobian",
+        "pass": 7,
+        "expectedAssertionFail": 1
+      }
+    ],
+    "mutantSurvivors": 0,
+    "mixedMutantFailures": 0,
+    "runtimeCrashes": 0,
+    "executionPinsBeforeAfterCurrent": 39,
+    "receiptSHA256": "8939e2db3acee69a7ffb3d638a4c7ebcba681d858a990b48f8f4c856ee553526",
+    "reviewSHA256": "e4c9ec92f7b032805ec7d2fe7b546520ddd3e895f1e3407a473a9056206b50d3",
+    "sourceReviewSHA256": "2b9e1ae63d537089e6e738faae7fd88edc55d54670908384ee77f1fa4f6fe1c6",
+    "fractionMathAuditSHA256": "fadc8f907812d69df42c70d6f48525e7402390abdff3d7bf47fbb7d0b530ed37",
+    "recipeV2SHA256": "dc45cbced5199a32ed24a47995f1e25f3edd030cb2a73a241beef144810fe03f",
+    "oracleCorrectionCertificateSHA256": "c6601dd5be7317bbf662f98c87b4ac1939c7fb3f51873392137a0470a98c43a3",
+    "oracleRole": "Independent stdlib Part21/Fraction/power-Bernstein/Cox and analytic references; no kernel math imported as oracle",
+    "subjectRole": "Eight isolated behavioral SUT checks, including two designated importStep calls from tmp source-overlay bundles",
+    "limits": "Exact whole-curve support plus local witnesses and surface samples; no global trim/regularity theorem or external-reader conformance"
+  },
+  "actualStudio": {
+    "result": "PASS_UNDER_NAMED_V2_POLICY",
+    "runs": 1,
+    "inputStates": 4,
+    "successfulOpens": 3,
+    "refusedOpens": 1,
+    "screenshots": 7,
+    "rootViewedScreenshots": 7,
+    "profiles": [
+      "ordinary positive, R5 = 3 + 2",
+      "original centered negative, R0.001",
+      "original far zero, R0.001"
+    ],
+    "collapse": {
+      "workerCode": "CAPABILITY",
+      "requestId": 12,
+      "revision": 8,
+      "reason": "OFFSET_SURFACE sphere radius at or beyond collapse is not supported yet",
+      "priorStateRetained": "Exact document/native data/seven fields/source IDs/camera bytes/effects"
+    },
+    "receiptSHA256": "77f0a97f619f85d30269979c2ea0ccd6eddd7d72f1aa63552512545a2b6e6a5e",
+    "summarySHA256": "4e137bc8318da0728bed22a592e9e14e3958f6ec9af7822c630474d6192b2a6a",
+    "executedRecipeSHA256": "b2e69d2c011dfd9527f41048d554ffa83ef0f1a21f6b68e90d0bb2c2885fc644",
+    "frozenAfterCleanupHashCount": 333,
+    "rootCurrentFileHashesMatch": 333,
+    "asExecutedInputs": 59,
+    "runtimeSourcePins": 30,
+    "errors": 0,
+    "consoleErrors": 0,
+    "sourceChanges": 0,
+    "downloads": 0,
+    "cleanup": "Context, browser and server closed; own holder PID61505 absent; gate none",
+    "displayMeshes": [
+      {
+        "vertices": 548,
+        "triangles": 1020
+      },
+      {
+        "vertices": 552,
+        "triangles": 1024
+      },
+      {
+        "vertices": 522,
+        "triangles": 964
+      }
+    ],
+    "topologyBoundary": "Display counts are not raw B-rep topology; source input has27entities/1face/1EDGE_CURVE",
+    "ordinaryCentroidMaxAbsolute": 3.2273437e-11,
+    "ordinaryV2CentroidLimit": 9.313225746154785e-10,
+    "ordinaryV1Target": "FAIL retained",
+    "farRelativeErrors": {
+      "volume": 2.00389e-08,
+      "mass": 2.00389e-08,
+      "area": 4.28285e-08,
+      "maximumInertiaEntry": 4.35979e-08,
+      "limit": 1e-06
+    },
+    "farDisplayVertexRadiusError": 5.68328e-10,
+    "displaySampleLimit": 1e-07,
+    "displayScope": "Vertex sampling is not the exact native tensor shell proof",
+    "density": "2.7 source SI metadata captured; physical comparisons use matched MMGS fields once",
+    "independentAudit": "PASS",
+    "independentAuditSHA256": "3542c368541ccf0df2206705728a9707dd1492b61e382094a0e00c1692847648",
+    "independentPropertyChecks": 45,
+    "readEvaluateLineages": [
+      [
+        3,
+        4
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        9,
+        10
+      ]
+    ],
+    "passiveRuntimeBodiesAudited": 59,
+    "missingDirectSources": [
+      "apps/cad-studio/test/flow-helper.mjs"
+    ],
+    "missingSourceMeaning": "Node-only helper; not browser semantic coverage",
+    "optionalFieldBoundary": "Same-run accessed values are compared at runtime; omitted undefined JSON fields do not establish historical presence"
+  },
+  "fullKernel": {
+    "result": "NOT_RUN",
+    "reason": "No B-rep core change; retain unchanged-core D433 receipt",
+    "reused": {
+      "pass": 2066,
+      "fail": 0,
+      "existingSkip": 2
+    }
+  },
+  "limits": [
+    "Face-sense tests qualify support/sign semantics only; valid material-cavity physical volume is not qualified",
+    "No global immersion, arbitrary trim, full STEP conformance or external-reader proof",
+    "No general thicken/offset, fitting or tolerance/limit increase",
+    "No UI redesign, download, OCP reinstall, develop integration or release"
+  ],
+  "diagnostic": {
+    "result": "COMPLETED_WITH_V1_CENTROID_FAILURE_RETAINED",
+    "receiptSHA256": "87acb5ce45ce5d1ea6fc65151408941a587cd2784782a7f5df60a8d0bbbfafcd",
+    "rawCaptureSHA256": "613fd7fc467fe99d211dd5e676fcf2089109bcecdc06978c22b676ff08613bb2",
+    "plainOffsetNativeObjectIsIdentical": true,
+    "plainOffsetPropertiesObjectIsIdentical": true,
+    "centroid": [
+      -4.595309876111804e-14,
+      -3.664722745942397e-13,
+      3.2213809409964036e-11
+    ],
+    "v1CentroidLimit": 3.637978807091713e-12,
+    "v1CentroidResult": "FAIL",
+    "allOtherPhysicalChecks": "PASS",
+    "newOffsetGeometryDefectReproduced": false
+  },
+  "qualificationContractCorrection": {
+    "timing": "Selected after preserved v1 failure and before remainder execution",
+    "v1TargetResult": "FAILED_NOT_ACHIEVED",
+    "v2DatabaseSHA256": "fd344458c64b4ad31784fc1b2e0ef4a831ad2e52ce1a7d51c6134c9fa38127e6",
+    "certificateSHA256": "17054f109554707365c7cebe31ee56b6bc57612ace5157a63063c5b18637cabf",
+    "ordinaryCentroidLimit": 9.313225746154785e-10,
+    "sourceEvidence": "Existing brep-mass-translation.test.mjs sphere helper and explicit R5 test use MASS_TRANSLATION_BUDGET.centroid=8*2^-33",
+    "reason": "The new ULP target was256times stricter than the pre-existing R5 contract and has no integration guarantee. Restore that existing policy; do not fit a bound to the observed value.",
+    "onlyChangedNumbers": "Ordinary centroid absolute and radius-normalized limits at densities1/2.7",
+    "unchanged": "All other physical limits, tiny centroid limits, original edge tolerances, exact-work budgets and production/core code",
+    "currentChecks": "PASS under V2; V1 target remains FAIL"
+  },
+  "nativePhysicalCapture": {
+    "cases": 7,
+    "densityReports": 14,
+    "v2Pass": 14,
+    "v1Pass": 12,
+    "v1Fail": 2,
+    "receiptSHA256": "6cc98e383b1e93a34ba6fb34e32f1051493e7a8c90b4a29577d72301b3c44829",
+    "scope": "Each original raw input and native sphere at densities1/2.7; plain equality is additional compatibility evidence"
+  },
+  "sourcePreservation": {
+    "oldImporterRecoveredSHA256": "a1e6f95613afd9f6702be06f2d8a0cb289524662715bf554f1823b27bfdc674d",
+    "oldOffsetProofRecoveredSHA256": "061dee76cda7c182c4def841e57e4092bcf29886c9c1d7e2f686c6e50fa17fa8",
+    "method": "Remove only new sphere wiring/type/helpers/dispatch to recover complete old source files; no mass/core or public barrel edits"
+  },
+  "rootChecks": {
+    "result": "PASS",
+    "scriptSHA256": "0ab2529417cdfa41bc6557ff716c2818cd7e64a0e391ffddae616c023e46d55a",
+    "driverSHA256": "f5c1b9ed98bdfc4fbed22169d5df5e20cedf9ad16ed88e832155cd0795c3c8c0",
+    "driverSyntax": "PASS",
+    "driverLint": "PASS",
+    "cadModelTypes": "PASS after last repository test and actual-driver edit",
+    "navigation": {
+      "rows": 34,
+      "links": 2443,
+      "newBroken": 0,
+      "knownMissing": 1
+    },
+    "diffCheck": "PASS"
+  },
+  "independentOracleCorrection": {
+    "firstFailure": "A fixed rational parameter midpoint was assumed to be the hemisphere geometric pole",
+    "diagnosticSHA256": "8edce7989c4a235d15d6828f005b27206ebc71a21bf995f0127ce41c7eaea93f",
+    "failingCase": "far-offset-positive, first face",
+    "circleNormalProjectionOverRadius": 0.8022931357141128,
+    "invalidRequiredMinimum": 0.999999,
+    "correction": "Report signed midpoint projections; opposite nonzero signs are sample evidence only. A rational parameter midpoint need not be an angular midpoint or geometric pole.",
+    "counterexample": "Exact unit quarter-circle controls(1,0),(1,1),(0,1), weights1,1,2 give t=0.5 point(0.6,0.8), not the45-degree point",
+    "unchanged": "Native support/Jacobian/physical limits, original inputs, product code and actual source",
+    "oldPredicateResult": "FAIL preserved",
+    "remainingExecution": "PASS on corrected oracle; original assertion FAIL remains preserved"
+  },
+  "commands": {
+    "environment": "Node22.19.0; PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH; one owned gate; global idle/load<40 and sole-own post-acquire checks",
+    "cadWorkingDirectory": "packages/barocss-cad",
+    "build": "node scripts/tool.mjs build",
+    "initialV1Tests": "node --test --test-concurrency=1 test/step-sphere-offset.test.mjs",
+    "correctedThreeOnly": "node --test --test-concurrency=1 --test-name-pattern='ordinary R5 positive offset|sphere offset advisory (T|U) ' test/step-sphere-offset.test.mjs",
+    "affected94": "node --test --test-concurrency=1 test/step-offset.test.mjs test/step-sphere-representability.test.mjs test/step-sphere-coverage.test.mjs test/brep-inversion-conditioning.test.mjs",
+    "cadTypes": "node scripts/tool.mjs type-check",
+    "codeShapeFromRoot": "node packages/barocss-cad/scripts/code-shape.mjs --check",
+    "modelTypesFromRoot": "pnpm --dir packages/barocss-cad-model type-check",
+    "actualFromRoot": "SPHERE_OFFSET_SOURCE_FROZEN=1 node /tmp/barocss-d436-probe/sphere-offset-admission-browser.mjs /tmp/barocss-d436-probe/studio-run01 /tmp/barocss-d436-probe/selected-studio-cases.json /tmp/barocss-d436-probe/studio-source-manifest.json",
+    "actualEnvironment": "Existing PW_DIR/CHROME, CAD_STUDIO_CHAT_PORT=52391; worktree frozen through cleanup; outputs only/tmp",
+    "independentRetry": "zsh /tmp/barocss-d436-independent/attempt02/run-heavy.sh"
+  },
+  "verificationTier": "Full geometric-admission review: multiple source/math audits, mutation and actual Studio. Full kernel NOT_RUN because B-rep core is unchanged.",
+  "models": {
+    "geometry": "GPT-6.1 Sol High",
+    "independentReview": "GPT-6.1 Sol High",
+    "consumer": "GPT-6.1 Sol Medium"
+  },
+  "delivery": {
+    "branch": "local/cad-dev",
+    "target": "origin/local/cad-dev",
+    "developIntegration": "NOT_RUN",
+    "release": "NOT_RUN",
+    "rawEvidenceCommitted": false,
+    "method": "Normal commit and push; exact delivery SHA in Git history and issue evidence comment"
+  },
+  "finalNavigation": {
+    "result": "PASS",
+    "rows": 34,
+    "links": 2448,
+    "newBroken": 0,
+    "knownMissing": 1,
+    "archives": "Both through-D417 archive hashes unchanged"
+  }
+}

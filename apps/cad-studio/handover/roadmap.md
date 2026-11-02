@@ -6,6 +6,7 @@ A bounded closeout does not close an entire feature family, format, standard or 
 
 ## Current navigation — authority
 
+- Latest bounded exchange admission: [D436 direct spherical STEP offsets](notes/step-sphere-offset-2026-11-02/README.md), QUALIFIED for the selected direct positive-radius/CIRCLE profile with exact boundary checks, independent mutation review and one four-state Studio flow. The original centroid target failure and its explicit existing-policy correction remain recorded.
 - Latest accuracy prerequisite: [D435 STEP sphere dimensional-loss refusal](notes/step-sphere-precision-2026-11-02/README.md), BOUNDED QUALIFIED: exact rank guard,96scoped tests, independent mutation/source review and one four-state Studio refusal/retention flow.
 - Latest bounded GPU/native checkpoint: [D434 relative raster frame](notes/gpu-relative-frame-2026-11-02/README.md), QUALIFIED for six declared profiles through scoped actual runs and certified reuse; far render/pick, native lines and positive grid pass. Unsupported/general precision remains open.
 - Latest native accuracy/full-kernel checkpoint: [D433 conditioned polyhedral inertia](notes/planar-inertia-conditioning-2026-11-02/README.md), bounded source, full-kernel and actual Model/properties qualification. D434 changes no B-rep core.
@@ -27,7 +28,7 @@ A bounded closeout does not close an entire feature family, format, standard or 
 
 - Active feature lane: **row 13, exchange and explicit loss profiles**. D418 is documentation maintenance, not a new exchange feature.
 - Rows 12 and 16 are cross-cutting file/acceptance and robustness work. Row 30 runs with row 16; row 31 follows row 30.
-- Latest bounded profile: [D434 coherent relative GPU frame and shared orthographic grid fade](notes/gpu-relative-frame-2026-11-02/README.md). Native CPU, physical raster/pick, lines, default effects and exact restore pass for six declared profiles. D435 now qualifies direct-sphere dimensional-collapse refusals. Next D436 resumes the measured spherical OFFSET boundary/admission proof; public-thicken/fitter/NURBS HOLDs remain.
+- Latest bounded profile: [D434 coherent relative GPU frame and shared orthographic grid fade](notes/gpu-relative-frame-2026-11-02/README.md). Native CPU, physical raster/pick, lines, default effects and exact restore pass for six declared profiles. D435 qualifies direct-sphere dimensional-collapse refusals. D436 qualifies bounded direct spherical OFFSET admission. Next selection must measure the remaining exchange/round-trip boundary before further widening; public-thicken/fitter/NURBS HOLDs remain.
 - Accepted sequence: 10 → 11 → 13 → 14, subject to all owner HOLDs; usability row 15 precedes rows 17–19.
 - The unchanged [handoff §3 continuation order](notes/codex-handoff-2026-11-01/README.md#_3-%E1%84%83%E1%85%A1%E1%84%8B%E1%85%B3%E1%86%B7-%E1%84%8C%E1%85%A1%E1%86%A8%E1%84%8B%E1%85%A5%E1%86%B8-%E1%84%85%E1%85%A9%E1%84%83%E1%85%B3%E1%84%86%E1%85%A2%E1%86%B8-%E1%84%89%E1%85%AE%E1%86%AB%E1%84%89%E1%85%A5) retains the detailed sequence and authority. This pointer does not activate manufacturing or Motion/Physics work.
 
@@ -54,10 +55,10 @@ A bounded closeout does not close an entire feature family, format, standard or 
 | 10 | [조립 확장 — CG4](roadmap-rows/10.md) | Qualified assembly slices D383–D393; motion/physics HOLD remains. | Partial |
 | 11 | [도면 확장 — CG5 DR-6/7/8](roadmap-rows/11.md) | Qualified drawing slices through D416; general certification remains open. | Partial |
 | 12 | [파일·버전·협업 — CG6](roadmap-rows/12.md) | OPEN general file/version/collaboration scope. | Partial |
-| 13 | [교환과 손실 표시 — CG7](roadmap-rows/13.md) | OPEN exchange scope; bounded analytic offsets D419, loss/accuracy profiles through D433 and declared native raster intake/pick profiles D434 qualified. D435 sphere precision refusal prerequisite qualified. Assemblies/presentation/PMI/other offset/topology acceptance remain open; #2263/#2248/#2266 stay open. | Partial |
+| 13 | [교환과 손실 표시 — CG7](roadmap-rows/13.md) | OPEN exchange scope; bounded plane/cylinder offsets D419 and direct spherical offsets D436 qualified. Accuracy and declared native raster intake/pick profiles through D435 remain bounded. Assemblies/presentation/PMI/other offset/topology and general round-trip acceptance remain open; #2263/#2248/#2266 stay open. | Partial |
 | 14 | [생산 기능 — CG8](roadmap-rows/14.md) | Planned manufacturing; P2/PG11 HOLDs remain. | Planned / held |
 | 15 | [제품 사용성 — CG9](roadmap-rows/15.md) | U1–U4 and D425 quantity labels bounded closeouts; other usability work remains. | Partial |
-| 16 | [정확도·강건성·API/참조 — CG10, R7, #2210/#2215](roadmap-rows/16.md) | OPEN general accuracy/robustness scope. Bounded native/CPU/GPU fixes through D434 and D435 sphere precision refusal qualify declared profiles; D433 remains latest full kernel. No universal raster/geometry precision claim. | Partial |
+| 16 | [정확도·강건성·API/참조 — CG10, R7, #2210/#2215](roadmap-rows/16.md) | OPEN general robustness scope. Native/CPU/GPU profiles through D435 and D436 exact spherical-offset boundary/local representation checks qualify declared cases. D433 remains latest full kernel. No universal geometry/raster precision claim. | Partial |
 | 17 | [경로 묶음·가상 클립 — PB0–PB4](roadmap-rows/17.md) | Existing bounded path/clip profiles; no automatic dynamics work. | Partial |
 | 18 | [관절·로봇 — J1/J2, R1/D1/R2, RS6/RS7/P4](roadmap-rows/18.md) | Existing staged robotics plan; Physics/Motion HOLD remains. | Partial |
 | 19 | [가상 실험·다물리·실측 — Stage0–6](roadmap-rows/19.md) | Existing staged experiment plan; CAE/Physics HOLDs remain. | Planned / held |

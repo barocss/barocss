@@ -78,8 +78,8 @@ test('public part document units remain mm-only', () => {
   assert.throws(() => evaluateCadPart({ ...doc, units:'m' }), e => e.code === 'FORMAT' && /document in mm/.test(e.message));
   validNative(evaluateCadPart(doc).outputs[0].brep);
 });
-test('sphere OFFSET support remains an explicit deferred capability', () => {
+test('cone OFFSET support remains an explicit deferred capability', () => {
   const text = unsupportedOffsetStep();
-  assert.throws(() => importStep(text), e => e instanceof BrepError && e.code === 'INPUT' && /OFFSET_SURFACE basis SPHERICAL_SURFACE is not supported yet/.test(e.message));
-  assert.throws(() => evaluateCadPart(document(text)), e => e.code === 'CAPABILITY' && /OFFSET_SURFACE basis SPHERICAL_SURFACE is not supported yet/.test(e.message));
+  assert.throws(() => importStep(text), e => e instanceof BrepError && e.code === 'INPUT' && /OFFSET_SURFACE basis CONICAL_SURFACE is not supported yet/.test(e.message));
+  assert.throws(() => evaluateCadPart(document(text)), e => e.code === 'CAPABILITY' && /OFFSET_SURFACE basis CONICAL_SURFACE is not supported yet/.test(e.message));
 });
