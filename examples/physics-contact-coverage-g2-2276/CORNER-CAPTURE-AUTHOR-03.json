@@ -1,0 +1,23 @@
+{
+  "status": "AUTHOR_READY_AFTER_RETAINED_LOG_VIEW_FIX",
+  "source": {
+    "path": "examples/physics-contact-coverage-g2-2276/corner-capture.mjs",
+    "bytes": 13043,
+    "sha256": "7f5523623a28f29eef90496c655d6e8964aa340db23a4fafdca25835c48184d9"
+  },
+  "preservedReviews": [
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/CORNER-CAPTURE-REVIEW-01.md",
+      "bytes": 5633,
+      "sha256": "dd053c271b8a1543d27014a5a4e9c11c0a9bdb8f79b789a357113043e09e2b4e"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/CORNER-CAPTURE-REVIEW-02.md",
+      "bytes": 2905,
+      "sha256": "b54afffeb4dc4b6179c09da0a08b5e14bd87f05649cfb2ce5f62128e591f4d2a"
+    }
+  ],
+  "repair": "Copy only nonempty remaining prefix with Buffer.from; retain no zero-length/partial view into upstream chunk. Owned log payload<=32768B; metadata cardinality<=32768 nonempty chunks; cleanup unchanged.",
+  "check": "Node--checkPASS;0module/fixture/build/physics/reference/World",
+  "unchanged": "Allphysicalcriteria/calllimits/time/resourcecaps/modelinputs/nativewitnessbinding retained."
+}

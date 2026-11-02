@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { createReadStream } from 'node:fs';
 import { mkdir, readFile, writeFile, stat, readdir } from 'node:fs/promises';
-import { dirname, resolve, relative } from 'node:path';
+import { dirname, resolve, relative, isAbsolute } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), ROOT = resolve(HERE, '../..');
@@ -70,7 +70,7 @@ async function main() {
   await mkdir(dirname(out), { recursive: true }); await mkdir(out, { recursive: false });
   const counts = { pairConversions: 0, scalarConversions: 0, admitModelAttempts: 0, admitModelReturns: 0,
     admitCcdAttempts: 0, admitCcdReturns: 0, sweepSphereAttempts: 0, sweepSphereReturns: 0, World: 0 };
-  let phase = 'auth', firstFailure = null, capture = null, evidenceBytes = 0;
+  let phase = 'auth', firstFailure = null, capture = null, evidenceBytes = 0, buildObservation = null;
   const started = performance.now();
   const time = () => assert(performance.now() - started <= 30000, '30s phase deadline');
   async function write(name, value) {
@@ -80,13 +80,16 @@ async function main() {
     return pin(resolve(out, name));
   }
   async function progress() {
-    await writeFile(resolve(out, 'progress.json'), json({ phase, counts, firstFailure }));
+    await writeFile(resolve(out, 'progress.json'), json({ phase, counts, firstFailure, buildObservation }));
   }
   try {
     for (const [name, expected] of Object.entries(freeze.files)) {
       const path = resolve(ROOT, name); assert(!relative(ROOT, path).startsWith('..')); await auth(path, expected);
     }
     for (const [path, expected] of Object.entries(freeze.toolFiles)) await auth(path, expected);
+    for (const name of ['node', 'esbuildBinary']) {
+      assert(isAbsolute(freeze.tools[name]) && freeze.toolFiles[freeze.tools[name]], 'mandatory tool pin ' + name);
+    }
     assert.equal(freeze.tools.node, process.execPath);
     assert(freeze.highReview.approved && freeze.files[freeze.highReview.path]);
     phase = 'input'; await progress();
@@ -99,6 +102,10 @@ async function main() {
       const proof = JSON.parse((await bounded(freeze.sourceWitness.path, 65536)).toString());
       await auth(freeze.sourceWitness.path, freeze.sourceWitness);
       assert.equal(proof.status, 'NECESSARY_CONTACT_WITNESS_PASS_ONLY');
+      assert.equal(proof.graph, 'source');
+      assert.deepEqual(proof.input, freeze.input, 'witness must certify this exact input');
+      assert.deepEqual(proof.capture, freeze.sourceCapture, 'witness must certify the exact source capture');
+      await auth(freeze.sourceCapture.path, freeze.sourceCapture);
       await auth(freeze.input.path, freeze.input); pair = decode(JSON.parse((await bounded(freeze.input.path, 65536)).toString()));
     }
     const inputPin = await write('input-raw.json', raw(pair)), inputImage = json(raw(pair));
@@ -111,25 +118,48 @@ async function main() {
     phase = 'build'; await progress();
     const args = [sourceEntry, '--bundle', '--platform=node', '--format=esm', '--target=node22',
       '--log-level=error', '--outfile=' + bundled, '--metafile=' + resolve(out, 'metafile.json')];
+    buildObservation = { executable: freeze.tools.esbuildBinary, args, pid: null, closed: false,
+      stdoutEOF: false, stderrEOF: false, exit: null, signal: null, timedOut: false,
+      logOverflow: false, observedBytes: 0, capturedBytes: 0, spawnError: null, pipeError: null };
+    await progress();
     const child = spawn(freeze.tools.esbuildBinary, args, { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
-    const logs = []; let logBytes = 0, overflow = false;
-    const eof = { stdout: false, stderr: false };
-    child.stdout.once('end', () => { eof.stdout = true; });
-    child.stderr.once('end', () => { eof.stderr = true; });
-    for (const pipe of [child.stdout, child.stderr]) pipe.on('data', bytes => {
-      logBytes += bytes.length;
-      if (logBytes > 32768) { overflow = true; child.kill('SIGKILL'); return; }
-      logs.push(bytes);
-    });
-    const timer = setTimeout(() => child.kill('SIGKILL'), 10000);
+    buildObservation.pid = child.pid ?? null;
+    const logs = []; let finish, stopping = false;
+    const cleanupTimers = [];
+    const stop = () => {
+      if (stopping) return; stopping = true; child.kill('SIGTERM');
+      cleanupTimers.push(setTimeout(() => child.kill('SIGKILL'), 500));
+      cleanupTimers.push(setTimeout(() => { child.stdout.destroy(); child.stderr.destroy(); finish?.(); }, 1500));
+    };
+    for (const name of ['stdout', 'stderr']) {
+      const pipe = child[name];
+      pipe.once('end', () => { buildObservation[name + 'EOF'] = true; });
+      pipe.once('error', error => { buildObservation.pipeError = String(error.message); stop(); });
+      pipe.on('data', bytes => {
+        buildObservation.observedBytes += bytes.length;
+        const length = Math.min(bytes.length, Math.max(0, 32768 - buildObservation.capturedBytes));
+        if (length > 0) logs.push(Buffer.from(bytes.subarray(0, length)));
+        buildObservation.capturedBytes += length;
+        if (length !== bytes.length) { buildObservation.logOverflow = true; stop(); }
+      });
+    }
+    const timer = setTimeout(() => { buildObservation.timedOut = true; stop(); }, 10000);
     try {
-      await new Promise((done, reject) => {
-        child.once('error', reject); child.once('close', (code, signal) => {
-          if (code === 0 && !signal && !overflow && eof.stdout && eof.stderr) done(); else reject(new Error('esbuild child failed'));
+      await new Promise(done => {
+        finish = done;
+        child.once('error', error => { buildObservation.spawnError = String(error.message); stop(); });
+        child.once('close', (code, signal) => {
+          buildObservation.closed = true; buildObservation.exit = code; buildObservation.signal = signal; done();
         });
       });
-    } finally { clearTimeout(timer); }
-    await write('build-command.json', { executable: freeze.tools.esbuildBinary, args, logBytes, eof, output: Buffer.concat(logs).toString() });
+    } finally { clearTimeout(timer); cleanupTimers.forEach(clearTimeout); }
+    const buildFailed = !buildObservation.closed || buildObservation.exit !== 0 || buildObservation.signal ||
+      buildObservation.timedOut || buildObservation.logOverflow || buildObservation.spawnError || buildObservation.pipeError ||
+      !buildObservation.stdoutEOF || !buildObservation.stderrEOF;
+    const buildError = buildFailed ? new Error('esbuild child failed; see preserved build-command.json and progress') : null;
+    try { await write('build-command.json', { ...buildObservation, output: Buffer.concat(logs).toString() }); }
+    catch (error) { if (buildError) buildError.receiptFailure = String(error.message); else throw error; }
+    if (buildError) throw buildError;
     assert((await stat(bundled)).size <= 524288);
     const meta = JSON.parse((await bounded(resolve(out, 'metafile.json'), 131072)).toString());
     assert(Object.values(meta.outputs).every(value => value.imports.length === 0));
@@ -142,16 +172,16 @@ async function main() {
     }
     time(); phase = 'capture'; await progress();
     const api = await import(pathToFileURL(bundled).href), local = clone(pair);
-    counts.admitModelAttempts++; await progress();
+    time(); counts.admitModelAttempts++; await progress(); time();
     const admitted = api.admitModel(local.model, local.options); counts.admitModelReturns++;
-    counts.admitCcdAttempts++; await progress();
+    time(); counts.admitCcdAttempts++; await progress(); time();
     const profile = api.admitCcd(admitted.bodies, admitted.joints.length, admitted.model.gravityMps2); counts.admitCcdReturns++;
     assert.equal(profile.kind, 'static-boxes');
     const previous = admitted.bodies.find(body => body.id === 'sphere'); assert(previous);
     const candidate = { ...previous, positionM: [...local.candidateEndM] };
     const admittedBefore = json(raw(admitted.bodies));
     await write('before-raw.json', { previous: raw(previous), candidate: raw(candidate), fixtures: raw(profile.fixtures) });
-    counts.sweepSphereAttempts++; await progress();
+    time(); counts.sweepSphereAttempts++; await progress(); time();
     const hit = api.sweepSphere(previous, candidate, profile.fixtures); counts.sweepSphereReturns++;
     capture = await write('capture-raw.json', { graph: freeze.graph, input: inputPin,
       hit: raw(hit), stoppedCandidate: raw(candidate), counts, provider: await pin(bundled) });
@@ -166,10 +196,11 @@ async function main() {
       if (buildNames.has(name)) actualBuildBytes += bytes; else actualEvidenceBytes += bytes;
     }
     assert(actualBuildBytes <= 2097152 && actualEvidenceBytes <= 1048576 - 32768);
-  } catch (error) { firstFailure = { phase, name: error.name, message: String(error.message).slice(0, 2048) }; }
+  } catch (error) { firstFailure = { phase, name: error.name, message: String(error.message).slice(0, 2048),
+    ...(error.receiptFailure ? { receiptFailure: error.receiptFailure } : {}) }; }
   await progress();
   await write('summary.json', { status: firstFailure ? 'CAPTURE_FAILURE' : 'CAPTURE_COMPLETE_NOT_PHYSICS_PASS',
-    graph: freeze.graph, counts, capture, firstFailure, elapsedMs: performance.now() - started,
+    graph: freeze.graph, counts, capture, firstFailure, buildObservation, elapsedMs: performance.now() - started,
     physicalPASS: false, World: 0, inputOrOutputOwnership: firstFailure ? 'SEE_FIRST_FAILURE' : 'UNCHANGED_INPUTS',
     scope: 'Internal helper capture; emitted graph is genuine dist modules rebundled for capture, not public root or World integration.' });
   console.log(json({ counts, firstFailure })); if (firstFailure) process.exitCode = 1;
