@@ -1,0 +1,249 @@
+{
+  "workId": "D455",
+  "status": "BOUNDED_QUALIFIED",
+  "category": "C3-2 ordinary section/detail drawing",
+  "baseline": "17a3991813a679f1406debf6ec09c76578b834c5",
+  "productChanges": "NONE",
+  "validationTier": "verification_only_existing_scope",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercent": 43,
+  "models": {
+    "publicInventoryAndDriver": "GPT-6.1 Sol Medium",
+    "nativeProviderMathAndIndependentOracle": "GPT-6.1 Sol High",
+    "executionFreezeCleanupVisualReview": "Root"
+  },
+  "retainedInput": {
+    "path": "apps/cad-studio/test/fixtures/d355.bcad",
+    "sha256": "5d9d0b16bdf137848c129caca354bc1696c601d2147cbbcd789d545318cf9414",
+    "scope": "Whole original 60x40x10 plate, R5 bore centered15,20 and far-corner vertical R3 fillet; no stripping or reconstruction"
+  },
+  "preflight": {
+    "status": "PASS_NATIVE_PROVIDER_THREE_HEIGHTS",
+    "receiptSHA256": "a7ddaad52f370171cb100e81133e5e162075e774a275494476f94bcf2af2b564",
+    "command": "bash /tmp/barocss-d455-root/run-preflight.sh",
+    "inspectorCalls": 3,
+    "oracleCalls": 3,
+    "sourceFiles": 475,
+    "sourcePinsEqual": true,
+    "cases": [
+      {
+        "height": 10,
+        "gap": 8,
+        "capWorldY": 23,
+        "area": 520,
+        "strictValid": true,
+        "nativeSHA256": "15268938b432ba28f7eddd0904f684217ef2880645e0384fb6c5b7d7cf5445a9",
+        "oracleSHA256": "7ed62f4078fa0ef5208b2839b221cc07863a1a1669bed242a7b668457e2e79ac",
+        "consumer": "NOT_RUN_OFFLINE_PROVIDER_ONLY"
+      },
+      {
+        "height": 12,
+        "gap": 8,
+        "capWorldY": 23,
+        "area": 624,
+        "strictValid": true,
+        "nativeSHA256": "bb4751d0b4293582e7735e5329ea816a76f4ae9d564f1aa1a9af65df64bb2016",
+        "oracleSHA256": "daf9c93caa30c7fb942666cd021bc2e62cde0d8ab5a86b6a9682a459b2519c1e",
+        "consumer": "NOT_RUN_OFFLINE_PROVIDER_ONLY"
+      },
+      {
+        "height": 14,
+        "gap": 8,
+        "capWorldY": 23,
+        "area": 728,
+        "strictValid": true,
+        "nativeSHA256": "8618f8cd8b0ed59c424f836e94cb51ed55eb4a81e679ed9d59f98bc05515a0a1",
+        "oracleSHA256": "e35b7a6083ed2ce25aa59b153fe7b55f66a9b27db4e870e5ab996336e90787e3",
+        "consumer": "NOT_RUN_OFFLINE_PROVIDER_ONLY"
+      }
+    ]
+  },
+  "actual": {
+    "status": "PASS_BY_EXACT_SCOPE_COMPOSITION",
+    "run01": {
+      "status": "FAIL_HARNESS_SIGNED_ZERO",
+      "receiptSHA256": "160208b6a7e4ac21ecb3471e07b9ae2f158342f3d1348d79f75d06c344028d49",
+      "command": "bash /tmp/barocss-d455-root/run-studio-workflow.sh",
+      "coverage": {
+        "publicSectionA": "PASS",
+        "publicTopDetailB": "NOT_RUN",
+        "sourceHeight12": "NOT_RUN",
+        "authoredUndo": "NOT_RUN",
+        "authoredRedo": "NOT_RUN",
+        "zeroRadiusDetailRefusal": "NOT_RUN",
+        "projectSaveCloseReloadOpen": "NOT_RUN",
+        "postOpenHeight14": "NOT_RUN",
+        "exports": "NOT_RUN",
+        "generalCurves": "NOT_RUN",
+        "standards": "NOT_RUN"
+      },
+      "cause": "Worker preserves IEEE754 negative zero; inspector JSON writes positive zero. No observed nonzero mismatch.",
+      "states": 5,
+      "sourceCapsules": 2351,
+      "sourceFrozenCleanupCurrentEqual": true,
+      "ownedRuntimeAndGateClean": true
+    },
+    "run02": {
+      "status": "PASS",
+      "receiptSHA256": "d66e56dcd994ecfffb26fef0468713baaa3dee3fb9b8b88154d4c83dfa24134e",
+      "command": "bash /tmp/barocss-d455-root/run-studio-workflow02.sh",
+      "driver": "/tmp/barocss-d455-driver04/driver.mjs",
+      "configSHA256": "30c65345c31183ecd6cf5636b708eebf225de9fa49770fce717d03c436079d2c",
+      "coverage": {
+        "publicSectionA": "REUSED_RUN01_PASS",
+        "publicTopDetailB": "PASS_PUBLIC_CREATION_REUSED_NATIVE_WORKER_SVG_CURRENT",
+        "sourceHeight12": "PASS",
+        "authoredUndo": "PASS",
+        "authoredRedo": "PASS",
+        "zeroRadiusDetailRefusal": "PASS",
+        "projectSaveCloseReloadOpen": "PASS",
+        "postOpenHeight14": "PASS",
+        "exports": "NOT_RUN",
+        "generalCurves": "NOT_RUN",
+        "standards": "NOT_RUN"
+      },
+      "states": 12,
+      "nativeReads": 7,
+      "independentConsumerReads": 7,
+      "sourceCapsules": 2407,
+      "sourceBeforeFrozenAfterCleanupCurrentEqual": true,
+      "cleanup": [
+        {
+          "ownedProject": "D455-section-detail-run02",
+          "namespace": "REMOVED_AND_ABSENT"
+        },
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "qualifiedActionGroups": 8,
+    "reusedCreation": "Real Section A and Top Detail B creation from run01; continuation publicly Opens exact actual accepted Model file, completes native/Worker/SVG qualification and remaining actions",
+    "resumeInputSHA256": "d6966edf847092d85653b2be15459052a7f423b418af6da4d6eeb08d6b9bfaab",
+    "nativeCases": [
+      {
+        "height": 10,
+        "gap": 8,
+        "area": 520,
+        "consumer": "PASS_ACTUAL_REQUEST_REPLY_AND_READONLY_PLACEMENT_BINDING"
+      },
+      {
+        "height": 12,
+        "gap": 8,
+        "area": 624,
+        "consumer": "PASS_ACTUAL_REQUEST_REPLY_AND_READONLY_PLACEMENT_BINDING"
+      },
+      {
+        "height": 10,
+        "gap": 8,
+        "area": 520,
+        "consumer": "PASS_ACTUAL_REQUEST_REPLY_AND_READONLY_PLACEMENT_BINDING"
+      },
+      {
+        "height": 12,
+        "gap": 8,
+        "area": 624,
+        "consumer": "PASS_ACTUAL_REQUEST_REPLY_AND_READONLY_PLACEMENT_BINDING"
+      },
+      {
+        "height": 12,
+        "gap": 8,
+        "area": 624,
+        "consumer": "PASS_ACTUAL_REQUEST_REPLY_AND_READONLY_PLACEMENT_BINDING"
+      },
+      {
+        "height": 12,
+        "gap": 8,
+        "area": 624,
+        "consumer": "PASS_ACTUAL_REQUEST_REPLY_AND_READONLY_PLACEMENT_BINDING"
+      },
+      {
+        "height": 14,
+        "gap": 8,
+        "area": 728,
+        "consumer": "PASS_ACTUAL_REQUEST_REPLY_AND_READONLY_PLACEMENT_BINDING"
+      }
+    ],
+    "rootVisualReview": {
+      "status": "PASS",
+      "finalImages": 6,
+      "originalCreatedImage": 1,
+      "scope": "Section/detail creation, height12, Undo10, Redo12, zero-radius refusal, project Open12 and post-Open14"
+    },
+    "ownedWrappersAbsent": true,
+    "gateLeasesReleased": true,
+    "downloads": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0
+  },
+  "transportAndConsumer": {
+    "instrumentation": "Driver-only passive Worker postMessage observer; original constructor/prototype objects/instances and native receiver/arguments/transfer/return/exceptions retained. No messages or Model state modified.",
+    "wireDoc": "Clone real added nodes before transfer, commit per-worker cache only after native post succeeds; decode actual ids; pair by page generation/worker/request id.",
+    "actualRequestReplyPairs": 7,
+    "observerErrors": 0,
+    "source": "Whole evaluated D355 nodes/outputs/parameters and actual Y23 drawing options matched the native inspector",
+    "rawEvidence": "V8 captures retain original actual/request/provider numeric values outside repository",
+    "comparison": "Structured comparison copies normalize only signed zero; all nonzero, undefined and nonfinite values retained. No fuzzy native payload comparison or tolerance relaxation.",
+    "nativePayloadTarget": 1e-09,
+    "svgFormatterStep": 0.0001,
+    "svgCoordinateEnvelope": 5.0001e-05,
+    "maxObservedSvgCoordinateError": 3.74315355e-05,
+    "actualSvg": "Unique cap g.section[data-dim=A] without data-view; separate Top annotation excluded. Detail B/detail:B has two reversed R10 single-A half-arcs, distinct from R12 clip.",
+    "geometry": "Native cap Y23, x ranges0..11 and19..60, gap8, total material area52H; native circle center15,20/R5 and clipR6/scale2.",
+    "performanceQualification": "NOT_RUN_PASSIVE_OBSERVER_ADDS_OVERHEAD"
+  },
+  "oracleV2": {
+    "sha256": "fb4d65e5fc44d51b16daf90d08ea923ada9846eb23e9491a19e6f105efb22d05",
+    "readinessSHA256": "415d3653055e4e231207fcf2544be72f156a7584505f10d49205729879be2b74",
+    "nativeAssertionReversalCertificateSHA256": "49e63b34642d1009a54fd12f3e979d920788fc0e9a69ef0d98d8a390d5d958aa",
+    "change": "Consumer XML grouping and visible geometry only; exact reversal recovers original native oracle. No native preflight replay.",
+    "retainedActualConsumerParserCheck": {
+      "status": "PASS",
+      "resultSHA256": "d0edd58902da5bcf0f25628a3e0f2a9cdf0b7f3ac1716d96a29b743b14a170b1",
+      "command": "python3 -I /tmp/barocss-d455-geometry/section-oracle-v2.py < /tmp/barocss-d455-root/retained-consumer-check01/input.json",
+      "scope": "Immutable real run01 Worker/SVG/summary evidence; no new SUT execution"
+    }
+  },
+  "independentFinalReview": {
+    "status": "PASS",
+    "sha256": "1433dc8b1b48b7ed9ab57d4f960c4d4910da01554dc3074c8a47b7be9e70bb68",
+    "executionByReviewer": "NOT_RUN"
+  },
+  "checks": {
+    "PASS": [
+      "Three native/provider height cases and independent closed forms",
+      "Eight combined actual workflow groups with seven current Worker/native/SVG bindings",
+      "Strict cut validity, plane/gap/material area and R5 native circle",
+      "Owned source freeze, namespace/runtime/PID/gate cleanup"
+    ],
+    "FAIL": [
+      "Original run01 signed-zero comparison failure retained"
+    ],
+    "NOT_RUN": [
+      "New unit/build/types: no repository source or tests changed; retained D454 checks apply",
+      "Full kernel: no B-rep change; D433 authority retained",
+      "Export/download, standards, new drawing dimensions, general curves/visibility/hatch accuracy",
+      "Performance with passive observer",
+      "Unexecuted prepared driver02/03 drafts; no new failure attributed"
+    ]
+  },
+  "limits": [
+    "Native analytic line/circle payload targets do not qualify general curved hatch area or SVG as1e-9",
+    "Native visibility/general curves use documented sampling; section hatch curves16/quarter, detail hatch512-gon remain representation approximations",
+    "Ellipse720-scan narrow-root candidate is source-only NOT_PROVEN_PRODUCT and outside this ordinary selected profile",
+    "Only the exact original or exact current-height vertical fillet signature cache may differ; all authoring refs/IDs/settings preserved",
+    "No product hooks, new public APIs, dependencies, schema or geometric admission added",
+    "Ordinary exchange proofs throughD444 retain their recorded scope; this item does not newly qualify transfer/export"
+  ],
+  "issueAssessment": {
+    "540": "OPEN: broad engineering/drawing epic not complete"
+  },
+  "navigation": {
+    "status": "PASS",
+    "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+    "rows": 34,
+    "newBrokenLinks": 0,
+    "knownHistoricalMissingPaths": 1,
+    "historicalArchivesUnchanged": true
+  }
+}
