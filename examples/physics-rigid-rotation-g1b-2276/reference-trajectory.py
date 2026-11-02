@@ -17,8 +17,8 @@ ROOT = HERE.parent.parent
 MIB = 1048576
 CLOSED_M_SHA = '90412a7e20b106939c14de7c5f8d619f0cd69d19caa780c91300ce540e3f0c36'
 BASELINE_SHA = '5f5eee9ac2cd8b654eab134823a619254fd0b7c4ab8791419d077a71413a09eb'
-M_DECIMAL_BASE = 2758004
-STUDY_FRACTION_BASE = 28292
+M_DECIMAL_BASE = 23634120
+STUDY_FRACTION_BASE = 31362
 IDS = ('T01-dt60','T02-dt120','T03-dt240','P01-principal-x','P02-principal-y','P03-principal-z','Z01-zero','Q01-negative-q-off-axis')
 ENDS = (6,12,24,1,1,1,1,1)
 M_BANK = 'examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/reference/bank.json'
@@ -123,7 +123,8 @@ def authenticate(args):
     names = ('PHASE-T-PLAN-01.md','PHASE-T-PLAN-01.json','REFERENCE-PROTOCOL-T01.md','REFERENCE-OPTIMIZATION-T01.md',
              'AUTHORING-FREEZE-T02.json','reference-trajectory.py','REFERENCE-READY-T01.json',
              'TRAJECTORY-EXECUTION-REVIEW-T01.md','trajectory-campaign.mjs','TRAJECTORY-READY-T01.json',
-             'TRAJECTORY-DRIVER-PLAN-01.md','TRAJECTORY-DRIVER-PLAN-01.json','TRAJECTORY-READY-T02.json','reference-micro.py')
+             'TRAJECTORY-DRIVER-PLAN-01.md','TRAJECTORY-DRIVER-PLAN-01.json','TRAJECTORY-READY-T02.json','TRAJECTORY-READY-T03.json','REFERENCE-READY-T02.json',
+             'REFERENCE-PROTOCOL-T02.md','REUSE-NOTES-T02.md','TRAJECTORY-EXECUTION-REVIEW-T02.md','REFERENCE-BANK-REUSE-T02.json','reference-micro.py')
     for name in names: need(str(HERE.relative_to(ROOT) / name) in freeze['files'], 'required authority ' + name)
     for name in (M_BANK,M_SUMMARY,M_TOP,M_INPUT,M_COEFFICIENTS,G1A_BANK,
                  'examples/physics-rigid-rotation-g1b-2276/evidence/g1b-micro-02/staged-providers.json',
@@ -160,6 +161,9 @@ def build_server_types(micro, baseline):
                  self.counts['fractionScalarOperations'] + STUDY_FRACTION_BASE <= 10000000, 'T/joint Fraction caps')
 
     class Intervals(micro.Intervals):
+        def __init__(self,*args,**kwargs):
+            raise Failure('T02 reuses closed targets; no fresh interval engine permitted')
+
         def tick(self):
             self.counts['decimalOperations'] += 1
             need(self.counts['decimalOperations'] <= 21000000 and
@@ -175,7 +179,7 @@ def build_server_types(micro, baseline):
             self.f = Arithmetic(self.counts)
             self.counts.update(reusedGeometryCertificates=0,reusedAlgebraicRootCertificates=0,
                                reusedTaylorWindows=0,restored12StateEndpoints=0,principalBankCopies=0,
-                               savedRationalConversions=0,clockRoundings=0)
+                               savedRationalConversions=0,clockRoundings=0,reusedClosedT01Banks=0,reusedTargetRows=0,reusedPrincipalTargets=0)
             self.configs = {}; self.contexts = {}; self.principals = {}
             self.owners.update(configs=self.configs,contextRegistry=self.contexts,principalTargets=self.principals)
             self.baseline_input = None
@@ -235,172 +239,85 @@ def build_server_types(micro, baseline):
         def initial_metrics(self, observed):
             return {key:observed[key] for key in ('angularMomentumKgM2ps','rotationalEnergyJ','quaternionSquaredNorm','comPositionM','linearMomentumKgMps')}
 
-        def window(self, initial, diagonal, h, engine, window_index):
-            self.counts['taylorWindowsAttempted'] += 1
-            self.counts['decimal' + str(engine.precision) + 'Windows'] += 1
-            self.transient = MIB
-            scratch = {'initial': initial, 'contexts': {'down': engine.down, 'up': engine.up}}
-            self.owners['currentWindow'] = scratch
-            self.memory({})
-            terms = micro.equation_terms(diagonal, engine); scratch['terms'] = terms
-            coefficients = [initial]; scratch['coefficients'] = coefficients
-            h_interval = engine.literal(h)
-            eta_by_component = [Decimal(0) for _ in range(12)]
-            power = engine.literal(1)
-            scratch['etaByComponent'] = eta_by_component
-            for degree in range(32):
-                current = micro.polynomial_field_coefficient(degree, coefficients, terms, engine)
-                scratch['currentFieldCoefficient'] = current
-                coefficients.append([engine.div(value, engine.literal(degree + 1)) for value in current])
-                # Same degree residual and power sum, reusing this immutable F_n.
-                residual_coefficient = [engine.sub(engine.mul(engine.literal(degree + 1), coefficients[degree + 1][i]), current[i]) for i in range(12)]
-                scratch['currentResidualCoefficient'] = residual_coefficient
-                for index, cell in enumerate(residual_coefficient):
-                    eta_by_component[index] = engine.scalar_add_up(eta_by_component[index], engine.scalar_mul_up(engine.absupper(cell), power[1]))
-                power = engine.mul(power, h_interval)
-                self.memory({})
-            tube = engine.literal(Fraction(17, 16))
-            tube_abs = tube[1]
-            M = L = Decimal(0)
-            for row in terms:
-                field_bound = derivative_bound = Decimal(0)
-                for constant, _, _ in row:
-                    magnitude = engine.absupper(constant)
-                    field_bound = engine.scalar_add_up(field_bound, engine.scalar_mul_up(magnitude, engine.scalar_mul_up(tube_abs, tube_abs)))
-                    derivative_bound = engine.scalar_add_up(derivative_bound, engine.scalar_mul_up(Decimal(2), engine.scalar_mul_up(magnitude, tube_abs)))
-                M = engine.select([M, field_bound], True); L = engine.select([L, derivative_bound], True)
-            need(engine.le(M, Decimal(8)) and engine.le(L, Decimal(16)), 'verified full-tube field/Lipschitz bounds')
-            h_upper = h_interval[1]
-            start_max = engine.select([engine.absupper(value) for value in initial], True)
-            need(engine.lt(engine.scalar_add_up(start_max, engine.scalar_mul_up(h_upper, M)), tube_abs) and
-                 engine.lt(engine.scalar_mul_up(h_upper, M), engine.literal(Fraction(1, 16))[0]) and
-                 engine.lt(engine.scalar_mul_up(h_upper, L), engine.literal(Fraction(1, 8))[0]), 'Picard map/tube contraction with full initial width')
-            polynomial_range = micro.polynomial_value(coefficients, (Decimal(0), h_upper), engine)
-            scratch['polynomialRange'] = polynomial_range
-            need(all(engine.le(engine.absupper(value), tube_abs) for value in polynomial_range), 'every fixed Taylor polynomial lies in the same convex tube')
-            # Stream all65 residual coefficients. No degree64 matrix tree is retained.
-            coefficient_hash = hashlib.sha256()
-            for row in coefficients:
-                for lo, hi in row:
-                    for endpoint in (lo, hi):
-                        chunk = str(endpoint).encode('ascii'); need(len(chunk) <= 4096, 'bounded coefficient hash chunk')
-                        coefficient_hash.update(str(len(chunk)).encode('ascii') + b':' + chunk)
-            for degree in range(32, 65):
-                value = micro.polynomial_field_coefficient(degree, coefficients, terms, engine)
-                value = [engine.neg(x) for x in value]
-                scratch['currentResidualCoefficient'] = value
-                for index, cell in enumerate(value):
-                    eta_by_component[index] = engine.scalar_add_up(eta_by_component[index], engine.scalar_mul_up(engine.absupper(cell), power[1]))
-                power = engine.mul(power, h_interval)
-            eta = engine.select(eta_by_component, True)
-            numerator = engine.mul((eta, eta), h_interval)
-            denominator = engine.sub(engine.literal(1), engine.mul((L, L), h_interval))
-            error = engine.div(numerator, denominator)[1]
-            endpoint = micro.polynomial_value(coefficients, h_interval, engine)
-            scratch['endpointPolynomial'] = endpoint
-            negative_error = engine.neg((error, error))[0]
-            widened = [engine.add(value, (negative_error, error)) for value in endpoint]
-            scratch['endpointWithError'] = widened
-            self.memory({})
-            certificate = {'window': window_index, 'order': 32, 'completeResidualDegree': 64,
-                'coefficientTreeSha256': coefficient_hash.hexdigest(), 'MperSecond': engine.fraction(M),
-                'LperSecond': engine.fraction(L), 'tubeComponentBound': Fraction(17, 16),
-                'fullInitialAbsoluteUpper': engine.fraction(start_max),
-                'defectAbsoluteUpper': engine.fraction(eta), 'uniformSolutionErrorUpper': engine.fraction(error),
-                'proof': 'For every fixed initial z, interval coefficients enclose the exact recurrence coefficients; complete residual bounds all corresponding fixed polynomials. e(0)=0; previous uncertainty enters C0 and every recurrence coefficient.',
-                'contexts': engine.report()}
-            certificate = self.factor_context(certificate)
-            scratch['certificate'] = certificate
-            self.memory({})
-            self.counts['taylorWindowsReturned'] += 1
-            self.owners.pop('currentWindow'); self.transient = 0
-            return widened, certificate
+        def window(self,*args,**kwargs):
+            raise Failure('T02 closed-bank reuse only; fresh reference integration forbidden')
 
+        def manifest_data(self, pin, owner, cap=MIB):
+            path=pin['path'];need(path in self.freeze['files'],'all reuse refs in runtime freeze')
+            declared=self.freeze['files'][path]
+            need(declared['bytes']==pin['bytes']and declared['sha256']==pin['sha256'],'manifest/freeze pin equality')
+            return self.load(path,owner,cap)
 
         def init(self, packet):
-            need(self.counts['bankInitializations'] == 0 and packet['authoritySha256'] == self.args.token,'one authorized T bank')
-            top = self.load(M_TOP,'closedTop',65536)
-            need(top['status']=='PASS_STAGED_G1B_MICRO_ONLY' and top['firstFailure'] is None and not top['cleanupErrors'],'actual successful M02 authority')
-            summary = self.load(M_SUMMARY,'closedSummary',65536)
-            need(summary['status']=='PASS_G1B_MICRO_FINISH' and summary['counts']['decimalOperations']==M_DECIMAL_BASE and
-                 summary['counts']['fractionScalarOperations']==15662 and summary['counts']['taylorWindowsReturned']==4,'actual M cost/window authority')
-            self.closed_counts = dict(summary['counts']); self.owners['closedCounts']=self.closed_counts
-            self.reference_moment_words=summary['privateObservations']['source']['raw']['inertiaDiagonalKgM2']
-            self.owners['referenceMomentWords']=self.reference_moment_words
-            self.owners.pop('closedTop'); self.owners.pop('closedSummary'); top=summary=None
+            need(self.counts['bankInitializations']==0 and packet['authoritySha256']==self.args.token,'one authorized reuse INIT')
+            manifest=self.load(str(HERE.relative_to(ROOT)/'REFERENCE-BANK-REUSE-T02.json'),'reuseManifest',65536)
+            need(manifest['status']=='AUTHENTICATED_CLOSED_T01_BANK_ROWS'and manifest['valueIdentity']=='EXACT_JSON_TREE_NO_CONVERSIONS','exact closed-row DATA authority')
+            original=manifest['originalBank']
+            need(original['sha256']=='53d94c22d5f0f6a803d8c430ff121facbad57287e25f8ef906e1fddfe18c9e2b','closed original bank authority')
+            refs=[original,manifest['initReply'],manifest['progress'],manifest['requestProof'],manifest['sourceCoefficients'],manifest['metadata'],manifest['extractionSource']]+manifest['inputs']+manifest['rows']+manifest['principals']
+            for pin in refs:
+                need(pin['path']in self.freeze['files'],'complete transitive reuse pin')
+                expected=self.freeze['files'][pin['path']]
+                need(expected['bytes']==pin['bytes']and expected['sha256']==pin['sha256'],'exact transitive reuse pin')
+            receipt=self.manifest_data(manifest['initReply'],'closedInitReply',4096)
+            progress=self.manifest_data(manifest['progress'],'closedProgress',8192)
+            proof=self.manifest_data(manifest['requestProof'],'closedRequestProof',32768)
+            need(receipt['status']=='PASS_G1B_TRAJECTORY_BANK'and receipt['op']=='init'and receipt['requestOrdinal']==1 and
+                 receipt['bank']['bytes']==original['bytes']and receipt['bank']['sha256']==original['sha256'],'actual passed closed INIT')
+            c=receipt['counts']
+            need(c==progress['counts']and progress['firstFailure']is None and progress['sourceGraphComplete']is False and
+                 c['requestsAttempted']==c['requestsReturned']==1 and c['observedStateAuditsReturned']==0 and
+                 c['taylorWindowsReturned']==44 and c['decimalOperations']==20876116 and c['fractionScalarOperations']==3070 and c['endpointDecimalSqrtOperations']==88,'exact durable completed prefix')
+            need(type(proof)is list and len(proof)==6 and proof[0]==1 and proof[3]==manifest['initReply']['bytes']and proof[4]==manifest['initReply']['sha256']and proof[5]==1,'closed request/reply receipt association')
+            self.closed_counts=dict(c);self.owners['closedCounts']=self.closed_counts
+            for key in ('closedInitReply','closedProgress','closedRequestProof'):self.owners.pop(key)
+            receipt=progress=proof=c=None
+            coefficients=self.manifest_data(manifest['sourceCoefficients'],'closedCoefficientWords',65536)
+            need(packet['sourceCoefficientsRaw']==coefficients,'current Source words equal closed T01 authority')
+            certified=self.load(M_COEFFICIENTS,'Mcoefficients',65536)
+            need(coefficients==certified,'M02/closedT01/current coefficient words equal')
+            self.source_coefficients_raw=packet['sourceCoefficientsRaw'];self.owners['sourceCoefficientsRaw']=self.source_coefficients_raw
+            self.owners.pop('Mcoefficients');self.owners.pop('closedCoefficientWords');coefficients=certified=None
+            rows=packet['cases'];need(type(rows)is list and len(rows)==8 and [r['caseId']for r in rows]==list(IDS),'eight unchanged ordered cases')
+            need(len(manifest['inputs'])==8,'all closed input pins')
+            for i,(row,pin)in enumerate(zip(rows,manifest['inputs'])):
+                need(pin['index']==i and type(row['steps'])is int and row['steps']==ENDS[i],'fixed case/input association')
+                closed=self.manifest_data(pin,'closedInput',8192)
+                need(row['pairRaw']==closed,'current actual input equals passed INIT input')
+                dt=baseline.decode(closed['options']['fixedStepSeconds'])
+                self.configs[IDS[i]]={'index':i,'steps':ENDS[i],'dt':dt,'stride':(4,2,1,2,2,2,2,2)[i],'kind':'general'if i<3 or i==7 else'principal'if i<6 else'zero','axis':i-3,'negative':i==7}
+                self.owners.pop('closedInput')
+            packet['cases']=None;rows=row=closed=None
             self.baseline_input=self.load(M_INPUT,'canonicalBase',65536)
-            certified=self.load(M_COEFFICIENTS,'closedCoefficientWords',65536)
-            need(packet['sourceCoefficientsRaw']==certified,'actual Source words equal certified M02 authority')
-            self.source_coefficients_raw=packet['sourceCoefficientsRaw']; self.owners['sourceCoefficientsRaw']=self.source_coefficients_raw
-            self.owners.pop('closedCoefficientWords'); certified=None
-            closed=self.load(M_BANK,'closedBankRaw',MIB)
-            self.geometry=self.unpack(closed['geometry']); self.owners['geometry']=self.geometry
-            self.h=self.unpack(closed['nativeWindowSeconds']); self.owners['nativeWindow']=self.h
-            for precision in ('80','120'):
-                self.bank[precision]={}
-                for index in ('1','2'):
-                    row=self.unpack(closed['bank'][precision][index])
-                    row['certificate']=self.factor_context(row['certificate'])
-                    self.bank[precision][index]=row
-            self.owners.pop('closedBankRaw'); closed=row=None
-            self.counts.update(reusedGeometryCertificates=1,reusedAlgebraicRootCertificates=3,reusedTaylorWindows=4)
-            rows=packet['cases']
-            need(type(rows)is list and len(rows)==8 and [r['caseId'] for r in rows]==list(IDS),'eight ordered frozen cases')
-            for i,row in enumerate(rows):
-                need(type(row['steps'])is int and row['steps']==ENDS[i],'fixed case horizon')
-                expected=self.expected_pair(i); self.owners['expectedPair']=expected
-                need(row['pairRaw']==expected,'canonical M-based native case '+IDS[i])
-                dt=baseline.decode(row['pairRaw']['options']['fixedStepSeconds'])
-                stride=self.f.div(dt,self.h)
-                need(stride in (Fraction(1),Fraction(2),Fraction(4)),'exact native grid ratio')
-                self.configs[IDS[i]]={'index':i,'steps':ENDS[i],'dt':dt,'stride':int(stride),'kind':'general' if i<3 or i==7 else 'principal' if i<6 else 'zero','axis':i-3,'negative':i==7}
-            packet['cases']=None; rows=row=expected=None; self.owners.pop('expectedPair')
-            inertia=[self.geometry['tensorKgM2'][i][i] for i in range(3)]
-            diagonal=[self.f.div(Fraction(1,16),v) for v in inertia]
-            inverse_diagonal=[self.f.div(v,Fraction(1,16)) for v in inertia]
-            self.owners['diagonalExact']=diagonal; self.owners['inverseDiagonalExact']=inverse_diagonal
-            old=self.load(G1A_BANK,'principalBankRaw',MIB)
-            for precision in ('80','120'):
-                entry=self.unpack(old['bank'][PRINCIPAL_KEY][precision]);value=entry['values']
-                for axis,perm in enumerate(((2,0,1),(1,2,0),(0,1,2))):
-                    self.principals[precision+':'+str(axis)]={'R':[[value['R'][perm[i]][perm[j]] for j in range(3)] for i in range(3)],
-                        'omega':[value['omega'][perm[i]] for i in range(3)],'q':[value['q'][perm[i]] for i in range(3)]+[value['q'][3]]}
-                    self.counts['principalBankCopies']+=1
-            self.owners.pop('principalBankRaw');old=entry=value=None
-            for precision in (80,120):
-                engine=Intervals(precision,self.counts,self.f)
-                active={'contexts':{'down':engine.down,'up':engine.up}}
-                self.owners['precisionScratch']=active
-                d=[engine.literal(v) for v in diagonal]; inv=[engine.literal(v) for v in inverse_diagonal]
-                active.update(diagonal=d,inverseDiagonal=inv)
-                saved=self.bank[str(precision)]['2']['values']
-                def restore(cell):return engine.literal(cell['lo'])[0],engine.literal(cell['hi'])[1]
-                r=[[restore(v) for v in row] for row in saved['R']]
-                omega=[restore(v) for v in saved['omega']]
-                active.update(restoredR=r,restoredOmega=omega)
-                p=[]
-                for i in range(3):
-                    value=engine.literal(0)
-                    for j in range(3):value=engine.add(value,engine.mul(r[j][i],omega[j]))
-                    p.append(engine.mul(inv[i],value))
-                state=p+[v for row in r for v in row];active['state']=state
-                self.counts['restored12StateEndpoints']+=1
-                self.transient=MIB;self.memory({})
-                for window_index in range(3,25):
-                    state,certificate=self.window(state,d,self.h,engine,window_index)
-                    active.update(state=state,certificate=certificate)
-                    self.transient=MIB;self.memory({})
-                    values,width=self.observable(state,d,engine)
-                    self.bank[str(precision)][str(window_index)]={'values':values,'maxObservableWidth':width,'certificate':certificate}
-                    self.memory({});self.transient=0
-            self.owners.pop('precisionScratch');active=state=p=r=omega=saved=engine=values=certificate=None
-            for index in range(1,25):
-                a=dict(interval_tree_rows(self.bank['80'][str(index)]['values']));b=dict(interval_tree_rows(self.bank['120'][str(index)]['values']))
-                for path in a:need(self.f.le(a[path]['lo'],b[path]['hi'])and self.f.le(b[path]['lo'],a[path]['hi']),'independently certified precisions intersect')
-            self.counts['bankInitializations']=1
-            self.bank_pin=self.write('bank.json',{'scope':'T_ONLY','reuse':{'Mbank':self.freeze['files'][M_BANK],'G1aprincipal':self.freeze['files'][G1A_BANK],
-                'window2p':'outward I*R^Tomega/L*; no unobserved endpoint'},'geometry':self.geometry,'bank':self.bank,'principals':self.principals,
-                'contextRegistry':self.contexts,'newCounts':dict(self.counts),'closedMCounts':self.closed_counts},2*MIB)
+            summary=self.load(M_SUMMARY,'Msummary',65536)
+            self.reference_moment_words=summary['privateObservations']['source']['raw']['inertiaDiagonalKgM2'];self.owners['referenceMomentWords']=self.reference_moment_words
+            self.owners.pop('Msummary');summary=None
+            metadata=self.manifest_data(manifest['metadata'],'closedMetadata',16384)
+            need(metadata['scope']=='T_ONLY'and metadata['newCounts']['decimalOperations']==20876116 and
+                 metadata['closedMCounts']['decimalOperations']==2758004,'metadata work provenance')
+            self.geometry=self.unpack(metadata['geometry']);self.owners['geometry']=self.geometry
+            self.contexts.update(metadata['contextRegistry'])
+            self.owners.pop('closedMetadata');metadata=None
+            need(len(manifest['rows'])==48 and len(manifest['principals'])==6,'complete target population')
+            for precision in ('80','120'):self.bank[precision]={}
+            seen=set()
+            try:
+                for pin in manifest['rows']:
+                    key=(pin['precision'],pin['index']);need(key not in seen and key[0]in ('80','120')and type(key[1])is int and 1<=key[1]<=24,'unique exact bank-row identity')
+                    seen.add(key);need(pin['originalPointer']=='/bank/'+key[0]+'/'+str(key[1]),'original row pointer')
+                    raw=self.manifest_data(pin,'closedRow',32768)
+                    self.bank[key[0]][str(key[1])]=self.unpack(raw)
+                    self.owners.pop('closedRow');raw=None;self.memory({})
+            finally:seen.clear()
+            for pin in manifest['principals']:
+                key=pin['key'];need(key not in self.principals and key in ('80:0','80:1','80:2','120:0','120:1','120:2')and pin['originalPointer']=='/principals/'+key,'unique principal row identity')
+                raw=self.manifest_data(pin,'closedPrincipal',8192);self.principals[key]=self.unpack(raw)
+                self.owners.pop('closedPrincipal');raw=None
+            self.reuse_pin={'path':str(HERE.relative_to(ROOT)/'REFERENCE-BANK-REUSE-T02.json'),'bytes':self.freeze['files'][str(HERE.relative_to(ROOT)/'REFERENCE-BANK-REUSE-T02.json')]['bytes'],'sha256':self.freeze['files'][str(HERE.relative_to(ROOT)/'REFERENCE-BANK-REUSE-T02.json')]['sha256']}
+            self.owners.pop('reuseManifest');manifest=refs=pin=None
+            self.counts.update(bankInitializations=1,reusedGeometryCertificates=1,reusedAlgebraicRootCertificates=3,reusedTaylorWindows=48,reusedClosedT01Banks=1,reusedTargetRows=48,reusedPrincipalTargets=6)
+            self.bank_pin=self.write('bank.json',{'scope':'T02_REUSED_CLOSED_T01','reuseAuthority':self.reuse_pin,'geometry':self.geometry,'bank':self.bank,'principals':self.principals,'contextRegistry':self.contexts,
+                'closedCompletedCounts':self.closed_counts,'newCounts':dict(self.counts)},2*MIB)
             return {'status':'PASS_G1B_TRAJECTORY_BANK','bank':self.bank_pin,'sourceGraphComplete':False}
 
         def targets(self, config, index):
@@ -510,8 +427,8 @@ def build_server_types(micro, baseline):
 
         def finish(self):
             need(self.audit_cursor==110 and self.source_complete and self.counts['observedStateAuditsReturned']==self.counts['properRationalRotationReturns']==110 and
-                 self.counts['privateBodyObservations']==16 and self.counts['clockRoundings']==110 and self.counts['taylorWindowsReturned']==44 and
-                 self.counts['decimal80Windows']==self.counts['decimal120Windows']==22 and self.counts['endpointDecimalSqrtOperations']==88 and
+                 self.counts['privateBodyObservations']==16 and self.counts['clockRoundings']==110 and self.counts['taylorWindowsReturned']==0 and
+                 self.counts['decimal80Windows']==self.counts['decimal120Windows']==self.counts['endpointDecimalSqrtOperations']==self.counts['decimalOperations']==0 and self.counts['reusedTaylorWindows']==48 and
                  self.counts['bodyGeometryCertificatesAttempted']==self.counts['algebraicBisectionDecisions']==0,'complete unchanged T ledger')
             need(len(self.refinement_done)==72 and len(self.refinement_proofs)==4,'all72refinement checks stored once')
             refinements={'checks':72,'allPass':True,'allBelowFloor':all(self.refinement_done.values()),'proofs':self.refinement_proofs};self.finished=True
