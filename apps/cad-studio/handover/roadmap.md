@@ -6,6 +6,8 @@ A bounded closeout does not close an entire feature family, format, standard or 
 
 ## Current navigation — authority
 
+- Latest bounded current robustness profile: [D440 original case126b](notes/fuzz-case126-current-2026-11-02/README.md), QUALIFIED for one current native result, exact existing-node representation and public Open/Fit with root visible-model review. Historical D423 denominator cause remains UNKNOWN; full-kernel authority stays D433.
+
 - Latest bounded exchange/file correction: [D439 quoted STEP strings](notes/step-quoted-section-tokens-2026-11-02/README.md), QUALIFIED for literal supported face names, real comments, scoped tests and one actual Open/Preview/Cancel flow; no general grammar or product-name claim.
 
 - Latest bounded exchange correction: [D438 validation-box omission](notes/step-validation-box-2026-11-02/README.md), QUALIFIED for scoped candidate checks, independent source/byte and actual-file graph reads, plus one actual Studio Preview/Cancel flow. Trimmed-mesh bounds no longer become unsupported STEP declarations; existing loss reporting shows the absence.
@@ -63,7 +65,7 @@ A bounded closeout does not close an entire feature family, format, standard or 
 | 13 | [교환과 손실 표시 — CG7](roadmap-rows/13.md) | OPEN exchange scope. Bounded analytic offsets D419/D436 and three native STEP round trips plus one actual far workflow D437 qualify declared profiles. D438 omits mesh-derived bbox declarations and reports their loss; D439 preserves quoted supported face strings. General bbox accuracy, assemblies/presentation/PMI/other offsets/topology and general format acceptance remain open; #2263/#2248/#2266 stay open. | Partial |
 | 14 | [생산 기능 — CG8](roadmap-rows/14.md) | Planned manufacturing; P2/PG11 HOLDs remain. | Planned / held |
 | 15 | [제품 사용성 — CG9](roadmap-rows/15.md) | U1–U4 and D425 quantity labels bounded closeouts; other usability work remains. | Partial |
-| 16 | [정확도·강건성·API/참조 — CG10, R7, #2210/#2215](roadmap-rows/16.md) | OPEN general robustness scope. Native/CPU/GPU profiles through D435 and D436 exact spherical-offset boundary/local representation checks qualify declared cases. D433 remains latest full kernel. No universal geometry/raster precision claim. | Partial |
+| 16 | [정확도·강건성·API/참조 — CG10, R7, #2210/#2215](roadmap-rows/16.md) | OPEN general robustness scope. Native/CPU/GPU profiles through D435 and D436 exact spherical-offset boundary/local representation checks qualify declared cases. D440 qualifies one current original-case native/public Open/Fit profile while its historical denominator cause stays unresolved. D433 remains latest full kernel. No universal geometry/raster precision claim. | Partial |
 | 17 | [경로 묶음·가상 클립 — PB0–PB4](roadmap-rows/17.md) | Existing bounded path/clip profiles; no automatic dynamics work. | Partial |
 | 18 | [관절·로봇 — J1/J2, R1/D1/R2, RS6/RS7/P4](roadmap-rows/18.md) | Existing staged robotics plan; Physics/Motion HOLD remains. | Partial |
 | 19 | [가상 실험·다물리·실측 — Stage0–6](roadmap-rows/19.md) | Existing staged experiment plan; CAE/Physics HOLDs remain. | Planned / held |

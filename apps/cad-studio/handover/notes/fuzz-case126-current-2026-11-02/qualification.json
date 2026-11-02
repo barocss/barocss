@@ -1,0 +1,250 @@
+{
+  "id": "D440",
+  "status": "CURRENT_PROFILE_QUALIFIED_HISTORICAL_CAUSE_UNRESOLVED",
+  "baseline": "4f20128130bcbae8c486e364ac4df8bcf4d2447d",
+  "roadmapRows": [
+    16
+  ],
+  "overallEstimatePercent": 43,
+  "scope": "Current-source original D246 case126b and exact-equivalent public Studio profile; historical D423 denominator cause remains unknown unless independently reproduced",
+  "models": {
+    "numericalAssessmentAndReplay": "GPT-6.1 Sol High",
+    "publicStudioAdapterAndFlow": "GPT-6.1 Sol Medium"
+  },
+  "historical": {
+    "checkpoint": "D423",
+    "fullKernel": {
+      "pass": 2040,
+      "fail": 1,
+      "skip": 2
+    },
+    "tapSHA256": "7e7587df8114bd8b9d825d4e1b9fdf2e6cff01a3a14966f71959b400f3437647",
+    "phase": "evaluateCadPart, final union n0, before helper assertions",
+    "error": "CadPartError GEOMETRY: unexpected kernel failure: Rational denominator must be positive and finite",
+    "lowLevelStack": "NOT_CAPTURED",
+    "completeOriginalRuntimeCapsule": "NOT_AVAILABLE",
+    "classification": "UNKNOWN_NOT_REPRODUCED",
+    "existingReplays": "Baseline/current isolated, ordered and predecessor comparisons pass; original unmodified failed file8/8 passes. Not repeated here."
+  },
+  "originalInput": {
+    "sha256": "9352ac927038089fcdd18107f3f6c5e92c9127b28ec048f681571265a6d282fe",
+    "features": 32,
+    "root": "n0",
+    "committedEquivalent": "packages/barocss-cad/robustness/corpus/fuzz/fuzz-20261025-126b.json input.partDocument",
+    "notEquivalent": "fuzz-20261025-126.json is the shrunk D248 typed-refusal fixture"
+  },
+  "assessment": {
+    "readinessSHA256": "2bc9e13c85704a2ad02edd6e89face63780baf21cad82c77ea1b274d6cb78ecb",
+    "assessmentSHA256": "700907af826e2b9583049c3706513be84bf6e9e783d783f4d08d9a18632c0bff",
+    "sourceDiffSHA256": "6d3e2e758dcedbef4bc8ffeedd88d8bfce62cd5ebb92597d1d67c5cf91d0189c",
+    "publicRouteSHA256": "c54fd2899e9841605a77d122765390114fd0895ddb7389fec06cd9e9bc2378dd"
+  },
+  "oraclePolicy": {
+    "volume": 311.56508168860796,
+    "e": 0.017027469029605124,
+    "expression": "abs(V-Q)<=3*e+1e-9",
+    "meaning": "Existing deterministic shifted-ray estimate; statistical e, not rigorous enclosure",
+    "validity": "Original checkOutput default predicate; do not imply stronger strict check",
+    "q8OpenEdges": 0,
+    "centroidInertiaTarget": "NOT_ADDED"
+  },
+  "currentNative": {
+    "status": "PASS_CURRENT_EXACT_INPUT_ONLY",
+    "receiptSHA256": "08c9330e1c01297a2f99599df01db59abb5d9378e2db3367f91abef2c1a96664",
+    "nativeSHA256": "7040934f338d90ccc78f9422aad4b4645afb14fb248c77a8b381122353306c05",
+    "volume": 311.57339590847596,
+    "difference": 0.008314219867997963,
+    "limit": 0.05108240808881537,
+    "q8Triangles": 1428,
+    "q8OpenEdges": 0,
+    "calls": {
+      "evaluateCadPart": 1,
+      "massPropertiesOf": 1,
+      "checkOutput": 1,
+      "tessellateBrep": 1
+    },
+    "pinsBeforeAfter": 1091,
+    "historicalCause": "STILL_UNKNOWN_NOT_REPRODUCED"
+  },
+  "publicStudio": {
+    "status": "PASS_CURRENT_EXACT_DEFINITION_OPEN_AND_PUBLIC_FIT_WITH_ROOT_VISUAL_REVIEW",
+    "receiptSHA256": "bc2b32d33c192321583d38485f2a96294d34425149bbc871aa88d31fbab73f77",
+    "driverSHA256": "92ea7017104b52528a0e1cd05aabdba7a7694f0389f4e1bfef45415124913d95",
+    "finalDriverChecksReceiptSHA256": "f0847fc2a6005508dd8a547432f9af788ee9dccd4add9bf42d85fcfe5324b5e2",
+    "fixedReadinessSHA256": "544feb22ec573293c924c026e99f08b2f16133932222dffc5f287b1e36903a2c",
+    "fixedInputPins": 494,
+    "storedAndWireNodes": 32,
+    "requestId": 3,
+    "revision": 3,
+    "nativeSource": {
+      "epoch": 1,
+      "requestId": 3,
+      "revision": 3,
+      "slot": "evaluate"
+    },
+    "adoptedKeys": [
+      "b0"
+    ],
+    "ownership": [
+      {
+        "key": "b0",
+        "ref": {
+          "node": 31,
+          "side": "solid"
+        },
+        "pieces": 3,
+        "vertices": 1055,
+        "triangles": 1426,
+        "degenerate": 0,
+        "displayFaceTable": 23,
+        "displayEdgeTable": 50
+      }
+    ],
+    "publicFit": {
+      "commands": [
+        "Escape",
+        "f"
+      ],
+      "stableSamples": 3,
+      "projectedExposedSpanCSS": [
+        444.49478350070615,
+        595.5434058227572
+      ],
+      "exposedVertices": 1055,
+      "framingFloorCSS": 100,
+      "minimumExposedVertices": 3,
+      "policy": "Predeclared fixture framing policy; CPU projection/DOM exposure is not GPU raster proof",
+      "rootVisual": "PASS: identifiable gray multi-piece profile in central viewport outside left rail; root viewed fitted03 PNG",
+      "authoredDocumentAndAdoptionUnchangedByFit": true
+    },
+    "rootCurrentRehash": {
+      "status": "PASS",
+      "entries": 772
+    },
+    "passiveModuleBodiesRehashed": 1385,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "downloads": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "ownWrapperPID": 22374,
+    "ownPIDAbsent": "PASS_ROOT_CHECK",
+    "gateAfter": "none",
+    "attemptAccounting": "Run01 logical adoption passed but root visual proof failed; only required Open and failed visual stage rerun in run02. Native/pure proof not repeated.",
+    "boundary": "Actual display1426triangles/23faceTable/50edgeTable differs from nativeq8 1428 and BRep25faces/85edges. These paths/inventories are not equated; no actual-vs-native raw BRep or new physical accuracy theorem is claimed."
+  },
+  "publicRouteConstraints": [
+    "Raw barocss-cad-part/version1/features JSON is not a public Studio file",
+    "A schema3/4 wrapper must use existing native nodes and readStudioDoc->toPartDocument deepStrictEqual original before evaluator/browser",
+    "GenericModel Open replaces document before async kernel verification; do not promise STEP-style prior-document atomic retention on failure"
+  ],
+  "limits": [
+    "No causal inference from later PASS or source deltas alone",
+    "No speculative denominator/UV/weight/tolerance/cache/geometry patch",
+    "No whole kernel, prefix/old-variant matrix, external download, SDK/OCP, new API or release"
+  ],
+  "pureConversion": {
+    "status": "PASS_EXACT_DEFINITION_CONVERSION_ONLY",
+    "receiptSHA256": "28f34f45f13f2b6c9ae51887dfe4ac5b8b28ee48ba0840e0bffe54a2240fabca",
+    "wrapperSHA256": "cbc9ba543cc5458552d3f8087ae1a8f2c8efad3b496630e91d39ee69dea82505",
+    "features": 32,
+    "readCalls": 1,
+    "compileCalls": 1,
+    "evaluatorCalls": 0,
+    "pinsBeforeAfter": 9,
+    "proof": "Full existing compiler result deepStrictEqual original9352; no migration notes, parsednodes/IDs/order/value presence unchanged"
+  },
+  "publicStudioRun01": {
+    "driverStatus": "PASS_EXACT_DEFINITION_PUBLIC_MODEL_OPEN",
+    "rootVisualStatus": "FAIL_VISIBLE_PROFILE_PROOF_NOT_ESTABLISHED",
+    "receiptSHA256": "04a33fc6df338c0c08cd2f8e2d15439483996a6a12384f102530f612f801e58b",
+    "requestId": 3,
+    "revision": 3,
+    "nativeSourceEpoch": 1,
+    "storedAndWireNodes": 32,
+    "adoptedKey": "b0",
+    "ref": {
+      "node": 31,
+      "side": "solid"
+    },
+    "pieces": 3,
+    "displayMesh": {
+      "vertices": 1055,
+      "triangles": 1426,
+      "degenerate": 0,
+      "faces": 23,
+      "edges": 50,
+      "positions": "Float64Array"
+    },
+    "nativeAndDisplayBoundary": "Display1426/23/50 is separate from native q8 1428 and BRep25/85; no equality or new topology/physics claim",
+    "volumeDiagnosticOnly": 311.5733959084799,
+    "fixedInputPins": 483,
+    "frozenAfterCleanupCurrentHashes": 763,
+    "rootRehash": "PASS_763",
+    "passiveRuntimeBodies": 1381,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "downloads": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "ownWrapperPID": 85300,
+    "ownPIDAbsent": "PASS_ROOT_CHECK",
+    "gateAfter": "none",
+    "visualReview": "Root viewed both original PNGs: grid visible, no identifiable model. A visible/pickable flag is not raster presence proof. Original receipt/PNGs unchanged.",
+    "selectedFollowup": "Driver only: public Fit after successful exact adoption, then camera stability and positive visible-profile screenshot. Repeat failed visual stage and required Open only; no native/pure matrix rerun.",
+    "heavyFollowup": "NOT_RUN until load<40 and sole gate; observed post-cleanup load105.93"
+  },
+  "validationTier": "small/current-profile documentation; no product source, API or numerical policy change",
+  "productEdits": [],
+  "run01SavedProjection": {
+    "artifactSHA256": "477ef9991f8cfe06c11260e707b5b4e79389bc1a98d997b855363feab6b17b50",
+    "starterTarget": [
+      32,
+      16,
+      4
+    ],
+    "distanceApprox": 150.197,
+    "ndcXApprox": [
+      -0.8352,
+      -0.5974
+    ],
+    "diagnosis": "Saved positions project to the left rail region. Camera framing/DOM occlusion is consistent with missing visible profile; no GPU failure established."
+  },
+  "commands": [
+    "bash /tmp/barocss-d440-author/run-once.sh",
+    "bash /tmp/barocss-d440-consumer/preflight-gated-recipe.sh",
+    "bash /tmp/barocss-d440-consumer/final-checks-gated-recipe.sh",
+    "bash /tmp/barocss-d440-consumer/final-checks-fit-gated-recipe.sh",
+    "EXACT_DEFINITION_SOURCE_FROZEN=1 node /tmp/barocss-d440-consumer/exact-definition-open-browser.mjs /tmp/barocss-d440-consumer/studio-run02 /tmp/barocss-d440-consumer/studio-cases.json /tmp/barocss-d440-consumer/studio-source-manifest.json (Node22.19.0, installedPW_DIR/CHROME/chat52391, soleown gate, allwriters frozen throughcleanup)"
+  ],
+  "notRun": [
+    "Historical failed full suite, old variants, prefix matrix or repeated original8/8 file",
+    "New denominator/UV/weight/tolerance/cache/geometry patch or public API",
+    "Fresh physical oracle, centroid/inertia budget or actual raw-BRep identity qualification",
+    "Download/OCP/externalSDK/paidcall",
+    "Preview/export/Save/reimport/HideUndo/effect/material campaign",
+    "Develop integration/release/npm/deploy"
+  ],
+  "issueReview": {
+    "issue": 2263,
+    "state": "OPEN",
+    "reason": "Historical denominator cause still unknown; broad exchange assembly/presentation/PMI/offset acceptance remains incomplete. No dedicated D246 issue was found."
+  },
+  "finalNavigation": {
+    "status": "PASS",
+    "node": "22.19.0",
+    "rowPages": 34,
+    "checkedLocalLinks": 2466,
+    "newBroken": 0,
+    "knownMissingHistoricalPaths": 1,
+    "archiveHashesUnchanged": true
+  }
+}

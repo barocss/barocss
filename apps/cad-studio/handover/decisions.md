@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D440: current original case126b native and public Open/Fit profile; historical denominator cause unresolved](notes/fuzz-case126-current-2026-11-02/README.md).
+
 - [D439: preserve quoted STEP section tokens and literal comment markers](notes/step-quoted-section-tokens-2026-11-02/README.md).
 
 - [D438: omit uncertified trimmed-mesh STEP validation boxes and report the loss](notes/step-validation-box-2026-11-02/README.md).
@@ -92,6 +94,8 @@ Numeric proof and limits remain in the canonical item notes.
 | D438 | Omit actual trimmed-mesh validation bbox without changing legacy numeric bounds or geometry/V/A/C; report the actual loss and retain original test failures | [Note](notes/step-validation-box-2026-11-02/README.md) |
 
 | D439 | Preserve literal face strings during first-DATA/comment extraction; retain downstream geometry and correct the stale D436 cone-refusal expectation | [Note](notes/step-quoted-section-tokens-2026-11-02/README.md) |
+
+| D440 | Qualify one current original fuzz input and exact-equivalent public Studio Open/Fit; preserve the first visual gap and historical denominator cause as unresolved | [Note](notes/fuzz-case126-current-2026-11-02/README.md) |
 
 <!-- D418 LEGACY COMPATIBILITY BEGIN: fixed original heading sequence -->
 <details>
