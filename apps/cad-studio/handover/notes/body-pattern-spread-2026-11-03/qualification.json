@@ -1,0 +1,441 @@
+{
+  "workId": "D453",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "b2bd3d9dd956f83a2d55b8fa130f5b1220a1e0ca",
+  "category": "C2-5 ordinary body patterns",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercent": 43,
+  "firstActual": {
+    "status": "FAIL",
+    "receiptSHA256": "ceefe1c27670a4bd0bd7d4a21b039d2ef6e290a966f4fd7d717bf5a4be1b974d",
+    "command": "bash /tmp/barocss-d453-root/run-repro.sh",
+    "authoredSpan": 270,
+    "initialCount": 4,
+    "initialStep": 90,
+    "editedCount": 2,
+    "expectedStep": 270,
+    "actualStep": 180,
+    "coverage": {
+      "publicPartialSpreadCreate": "PASS",
+      "countEditorCommit": "PASS",
+      "authoredSpreadRetained": "FAIL",
+      "physicalQualification": "NOT_RUN"
+    },
+    "sourceCapsules": 1185,
+    "sourceBeforeFrozenCleanupCurrentEqual": true,
+    "ownedRuntimeClean": true,
+    "ownWrapperAbsent": true,
+    "gateLeaseReleased": true,
+    "downloads": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "rootVisualReview": {
+      "status": "PASS",
+      "images": 2,
+      "scope": "Public authored HUD and accepted wrong result; no complete physical visible-model claim"
+    }
+  },
+  "preflight": {
+    "status": "PASS",
+    "receiptSHA256": "ce57097fba8f98bb092d8ed9edc711954ea9f44602f3fca29125502abc6cd524",
+    "command": "bash /tmp/barocss-d453-root/run-preflight.sh",
+    "calls": {
+      "native": 8,
+      "positiveOracle": 8,
+      "negativeOracle": 1
+    },
+    "sourceCapsules": 473,
+    "sourcePinsEqual": true,
+    "cases": [
+      {
+        "phase": "linear",
+        "count": 2,
+        "height": 10,
+        "status": "PASS",
+        "nativeSHA": "f91958765c1d319343235981e711d70a266f43df6035edf3a62a300b6896f5e4",
+        "oracleSHA": "4d88f50ae53d3900c1de25b1453f9ea172d6ca367888eac5987638aa36fc9b43",
+        "counts": {
+          "bodies": 2,
+          "shells": 2,
+          "faces": 12,
+          "loops": 12,
+          "coedges": 48,
+          "edges": 24,
+          "vertices": 16
+        },
+        "errors": {
+          "volumeAbsolute": 3.637978807091713e-11,
+          "volumeRelative": 5.684341886080802e-16,
+          "centroidMaximum": 2.842170943040401e-14,
+          "boundsMaximum": 0,
+          "maximumCornerMM": 0,
+          "maximumPlaneMM": 0,
+          "maximumNormalComponent": 0
+        }
+      },
+      {
+        "phase": "linear",
+        "count": 3,
+        "height": 10,
+        "status": "PASS",
+        "nativeSHA": "7dad57b0ca52375c53b942183f490b80b2b62b151dad9b38905773bc72838e77",
+        "oracleSHA": "83d001534743b5b846d7f44939642fed6795d5e90bbc0f784bc159137aa1b01a",
+        "counts": {
+          "bodies": 3,
+          "shells": 3,
+          "faces": 18,
+          "loops": 18,
+          "coedges": 72,
+          "edges": 36,
+          "vertices": 24
+        },
+        "errors": {
+          "volumeAbsolute": 5.820766091346741e-11,
+          "volumeRelative": 6.063298011819521e-16,
+          "centroidMaximum": 5.684341886080802e-14,
+          "boundsMaximum": 0,
+          "maximumCornerMM": 0,
+          "maximumPlaneMM": 0,
+          "maximumNormalComponent": 0
+        }
+      },
+      {
+        "phase": "linear",
+        "count": 3,
+        "height": 12,
+        "status": "PASS",
+        "nativeSHA": "a21538a559749a7ebc069ea9721b70349020a6529622a62769c4d155135c915c",
+        "oracleSHA": "cbeed52325ad9847c2277aacdfebca97adb21974deb8eac0f05f51590cd5740d",
+        "counts": {
+          "bodies": 3,
+          "shells": 3,
+          "faces": 18,
+          "loops": 18,
+          "coedges": 72,
+          "edges": 36,
+          "vertices": 24
+        },
+        "errors": {
+          "volumeAbsolute": 7.275957614183426e-11,
+          "volumeRelative": 6.315935428978669e-16,
+          "centroidMaximum": 4.263256414560601e-14,
+          "boundsMaximum": 0,
+          "maximumCornerMM": 0,
+          "maximumPlaneMM": 0,
+          "maximumNormalComponent": 0
+        }
+      },
+      {
+        "phase": "circular-partial",
+        "count": 4,
+        "height": 10,
+        "status": "PASS",
+        "nativeSHA": "1141732e9197cfb6c9aa5860453cedccf55eeac4fff1b826e264756e8efab6a5",
+        "oracleSHA": "903e6bd028acd7e5c5f39033152790507bd0e7adda57b0aa675977d183d559a6",
+        "counts": {
+          "bodies": 4,
+          "shells": 4,
+          "faces": 24,
+          "loops": 24,
+          "coedges": 96,
+          "edges": 48,
+          "vertices": 32
+        },
+        "errors": {
+          "volumeAbsolute": 2.9103830456733704e-11,
+          "volumeRelative": 2.2737367544323206e-16,
+          "centroidMaximum": 2.842170943040401e-14,
+          "boundsMaximum": 0,
+          "maximumCornerMM": 0,
+          "maximumPlaneMM": 0,
+          "maximumNormalComponent": 0
+        }
+      },
+      {
+        "phase": "circular-partial",
+        "count": 2,
+        "height": 10,
+        "status": "PASS",
+        "nativeSHA": "596a40739228fe85189280cf930207674b46489fda2c15ed6eb92a5f2ea81ea5",
+        "oracleSHA": "fd74c2c879e12fcece1b7360339ced57e89c11d30dd6e2a6f3a1a546055b3db6",
+        "counts": {
+          "bodies": 2,
+          "shells": 2,
+          "faces": 12,
+          "loops": 12,
+          "coedges": 48,
+          "edges": 24,
+          "vertices": 16
+        },
+        "errors": {
+          "volumeAbsolute": 1.4551915228366852e-11,
+          "volumeRelative": 2.2737367544323206e-16,
+          "centroidMaximum": 2.1316282072803006e-14,
+          "boundsMaximum": 0,
+          "maximumCornerMM": 0,
+          "maximumPlaneMM": 0,
+          "maximumNormalComponent": 0
+        }
+      },
+      {
+        "phase": "circular-partial",
+        "count": 2,
+        "height": 12,
+        "status": "PASS",
+        "nativeSHA": "39b646bd520f60bb28fbd4e481f3c9432e13c07024d8fcd9956f820993e702a5",
+        "oracleSHA": "433b0c001fbaf1d9567ad459ce47e0ee37d1abc2bf71984553fa4b429b8a499a",
+        "counts": {
+          "bodies": 2,
+          "shells": 2,
+          "faces": 12,
+          "loops": 12,
+          "coedges": 48,
+          "edges": 24,
+          "vertices": 16
+        },
+        "errors": {
+          "volumeAbsolute": 0,
+          "volumeRelative": 0,
+          "centroidMaximum": 2.1316282072803006e-14,
+          "boundsMaximum": 0,
+          "maximumCornerMM": 0,
+          "maximumPlaneMM": 0,
+          "maximumNormalComponent": 0
+        }
+      },
+      {
+        "phase": "circular-full",
+        "count": 4,
+        "height": 10,
+        "status": "PASS",
+        "nativeSHA": "1957f8b92f3b359ad4c277964c3b9f1e24a3ae767f9587206e6943ca25f76e1b",
+        "oracleSHA": "e814d36a5b06849fc60905912851dfe9ff054b02a41e9f5211451ab19cd80813",
+        "counts": {
+          "bodies": 4,
+          "shells": 4,
+          "faces": 24,
+          "loops": 24,
+          "coedges": 96,
+          "edges": 48,
+          "vertices": 32
+        },
+        "errors": {
+          "volumeAbsolute": 2.9103830456733704e-11,
+          "volumeRelative": 2.2737367544323206e-16,
+          "centroidMaximum": 2.842170943040401e-14,
+          "boundsMaximum": 0,
+          "maximumCornerMM": 0,
+          "maximumPlaneMM": 0,
+          "maximumNormalComponent": 0
+        }
+      },
+      {
+        "phase": "circular-full",
+        "count": 2,
+        "height": 10,
+        "status": "PASS",
+        "nativeSHA": "efcb1f8e430843dbf04f9e36c931ab2fa3229786ab48cd996fa5dc735fdab4d1",
+        "oracleSHA": "1684011fadde19d082cc351aca3b69dc77eab69e21b7573685855c48abc539d1",
+        "counts": {
+          "bodies": 2,
+          "shells": 2,
+          "faces": 12,
+          "loops": 12,
+          "coedges": 48,
+          "edges": 24,
+          "vertices": 16
+        },
+        "errors": {
+          "volumeAbsolute": 3.637978807091713e-11,
+          "volumeRelative": 5.684341886080802e-16,
+          "centroidMaximum": 4.263256414560601e-14,
+          "boundsMaximum": 0,
+          "maximumCornerMM": 0,
+          "maximumPlaneMM": 0,
+          "maximumNormalComponent": 0
+        }
+      }
+    ],
+    "negativeControl": {
+      "status": "EXPECTED_PHYSICAL_ASSERTION_FAIL",
+      "classification": "full360native V/countcorrect but partial270centroidwrong; correctpartialdoc+compiledmeta supplied",
+      "error": {
+        "status": "FAIL",
+        "error": "AssertionError",
+        "message": "('centroid0', -100.00000000000004, -40.0, 1e-09)"
+      }
+    }
+  },
+  "checks01": {
+    "status": "FAIL",
+    "command": "bash /tmp/barocss-d453-fix/run-checks.sh",
+    "tests": 52,
+    "pass": 50,
+    "fail": 2,
+    "skip": 0,
+    "cause": "Two new schema4 test fixtures omit the existing required valid route bundle. Product route guards correctly refuse them before metadata checks.",
+    "remainingLintAndTypes": "NOT_RUN",
+    "sourceChangesAfterRun": "New test fixture only; production unchanged"
+  },
+  "declaredFullWorkflows": 2,
+  "qualifiedFullWorkflows": 2,
+  "models": {
+    "routineImplementationAndTests": "GPT-6.1 Sol Medium",
+    "geometryAndIndependentReview": "GPT-6.1 Sol High",
+    "actualExecutionAndCleanup": "Root"
+  },
+  "product": {
+    "scope": "Retain optional authored spread on new Z Result-one circular body patterns, preserve legacy absence, and wire metadata to existing read/compile/whole-feature interfaces",
+    "nativeSchemaOrKernelChanges": "NONE",
+    "modelSchemas": [
+      3,
+      4
+    ],
+    "newRuntimeDependencies": "NONE",
+    "sourcePins": {
+      "packages/barocss-cad-model/src/engine/doc.ts": "b35d4dedc69cb4921489084cd1c52e6fe0770b03916fd5000553b6728fdbe799",
+      "packages/barocss-cad-model/src/app/commands.ts": "4ca09b32f834da00a840b065b1cd30f8cd9c815dce912e4b7546fea600456f8d",
+      "packages/barocss-cad-model/src/app/editFields.ts": "86a0017245a75c023e6eb23abfbda7716c055e6dfa139e79f00384afb7c3c50c",
+      "packages/barocss-cad-model/src/engine/part.ts": "2f92406182ee602b66f414f0ccf9bf15311298386b92aae88c6b3a52b8ff2e2c",
+      "packages/barocss-cad-model/src/engine/migrate.ts": "157aa984c10e425c4d77d35c7f6a0c4ba56f548fee183ebae168bc7d25b856ab",
+      "packages/barocss-cad-model/src/engine/circularPatternSpan.ts": "72eb847455ac2eb4a09799d80c997dc15873fde8306558f52bff71eb476379f8",
+      "packages/barocss-cad-model/src/chat/features.ts": "857c48e1dff1ded458048542d2bc3abbe678e7bb16eb2f98268be6afefb69e3b",
+      "packages/barocss-cad-model/test/circular-pattern-span.test.ts": "8bf40174efc80f53e70d9a317a0a46cdc8b2bcc0972ca8c76c7bdda5305475fe",
+      "packages/barocss-cad-model/test/api-verbs.test.ts": "81e92752ecb0ab2be309115825766694d4662e02c2c5e9c122e4223e3ec89283"
+    }
+  },
+  "checks02": {
+    "status": "FAIL",
+    "command": "bash /tmp/barocss-d453-fix/run-checks02.sh",
+    "tests": 9,
+    "pass": 8,
+    "fail": 1,
+    "skip": 0,
+    "cause": "New malformed-input test corrupted nonfinite values before creating its schema4 antecedent. Existing route builder correctly refused them first. Only test setup order changed.",
+    "remainingLintAndTypes": "NOT_RUN"
+  },
+  "checks03": {
+    "status": "PASS",
+    "command": "bash /tmp/barocss-d453-fix/run-checks03.sh",
+    "tests": 9,
+    "pass": 9,
+    "fail": 0,
+    "skip": 0,
+    "lintChangedFiles": 9,
+    "studioTypes": "PASS",
+    "finalModelTypes": "PASS_AFTER_LAST_TEST_EDIT",
+    "diff": "PASS",
+    "sourcePinsEqual": true,
+    "sourceEqualSHA256": "7824013ec918c49079f2ce8ceeaffc4355fa670aea9f51c42adb169b4cf590f4",
+    "retainedExistingGroups": 43,
+    "finalUniqueQualifiedGroups": 52,
+    "separateModelBuild": "NOT_RUN: package has no separate build script; official runner bundles live TypeScript sources",
+    "fullKernel": "NOT_RUN: no B-rep core change; latest full authority D433"
+  },
+  "actual": {
+    "status": "PASS",
+    "receiptSHA256": "b4de8fdc136ac2ff8bd1a7ab3af38a208e2afe89fa02d14f9c6e7b7f0da34e46",
+    "command": "bash /tmp/barocss-d453-root/run-studio-workflow.sh",
+    "configSHA256": "030c49a033d554ab15287acfb0d30a5e235cd7f4adb165687288c2c0a5ea9edc",
+    "coverage": {
+      "linear": {
+        "publicCreate": "PASS",
+        "countEdit": "PASS",
+        "upstreamSourceEdit": "PASS",
+        "exactUndo": "PASS",
+        "exactRedo": "PASS",
+        "invalidEditorRefusal": "PASS",
+        "projectSaveCloseReloadOpen": "PASS",
+        "postOpenCountReedit": "PASS"
+      },
+      "circular-partial": {
+        "publicCreate": "PASS",
+        "countEdit": "PASS",
+        "upstreamSourceEdit": "PASS",
+        "exactUndo": "PASS",
+        "exactRedo": "PASS",
+        "invalidEditorRefusal": "PASS",
+        "projectSaveCloseReloadOpen": "PASS",
+        "postOpenCountReedit": "PASS"
+      },
+      "full360": {
+        "publicCreate": "PASS",
+        "countEdit": "PASS",
+        "upstreamSourceEdit": "NOT_RUN",
+        "projectSaveOpen": "NOT_RUN"
+      }
+    },
+    "states": 33,
+    "nativeReads": 21,
+    "independentReads": 21,
+    "sourceCapsules": 2347,
+    "sourceBeforeFrozenAfterCleanupCurrentEqual": true,
+    "cleanup": [
+      {
+        "ownedProject": "D453-linear-run01",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      {
+        "ownedProject": "D453-circular-partial-run01",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "ownWrapperAbsent": true,
+    "gateLeaseReleased": true,
+    "downloads": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "rootVisualReview": {
+      "status": "PASS",
+      "images": 9,
+      "scope": "Linear counts/refusal/post-Open; partial circle create/count/refusal/post-Open; full-circle count contrast. Existing palette partly occludes some left copies; no UI layout or pixel-quality certification."
+    },
+    "maximumErrors": {
+      "volumeAbsolute": 7.275957614183426e-11,
+      "volumeRelative": 6.315935428978669e-16,
+      "centroidMaximum": 5.684341886080802e-14,
+      "boundsMaximum": 0,
+      "maximumCornerMM": 0,
+      "maximumPlaneMM": 0,
+      "maximumNormalComponent": 0
+    }
+  },
+  "independentSourceReview": {
+    "finalSourceACKSHA256": "d384aa53f5bdec19e970dca5471cd9d0e11750188f1e2cfcfb26a13e912f048b",
+    "fixtureSupplementACKSHA256": "a0dd4716d05f56daf7d4069e888a7774d5c43d86564205d79a9ab752c753490f",
+    "originalFinding": "Whole-feature validator rejected new span; resolved by optional span and existing pivot wiring",
+    "originalFixtureFinding": "Malformed nonfinite patch preceded schema4 construction; resolved without expectation or production guard relaxation",
+    "executionByReviewer": "NOT_RUN"
+  },
+  "limits": [
+    "Legacy span-absent documents keep old Count arithmetic; original partial intent cannot be recovered from identical old angle/count data",
+    "New metadata Count edits retain existing HUD six-decimal step rounding; ideal noncardinal placement is not qualified",
+    "Actual geometry covers only selected quarter-turn Z and X-linear nonoverlap Result-one body patterns, not separate copies, feature patterns, X/Y circular workflows or general pattern editing",
+    "One Model output can contain multiple disconnected native solids; no fusion or one-native-solid claim",
+    "Full-circle control has create/edit proof only, not source edit or project persistence",
+    "Schema4 canonical route bundle is a test codec antecedent, not a new manufacturing/PB0 physical qualification",
+    "Whole-feature replacement with no span intentionally supplies a legacy recipe; no intent is inferred",
+    "Older app metadata editing, general formats, UI redesign, manufacturing/Motion/Physics and releases remain outside this scope"
+  ],
+  "issueAssessment": {
+    "534": "OPEN: part-feature epic acceptance is broader",
+    "2011": "ALREADY_CLOSED: older Editor cardinal circular contract is separate; untouched",
+    "2016": "ALREADY_CLOSED: older Editor count-selection contract is separate; untouched"
+  },
+  "independentFinalEvidenceReview": {
+    "status": "PASS",
+    "sha256": "a6f0b9ffbb4a35ab180f18ba25253eb56aaad3aff2b7c01e6bf9a5b7c39f477a",
+    "scope": "Read-only current source, exact Model/native identities, intent, per-component geometry, fixed physical targets and retained first failures; no extra SUT execution"
+  },
+  "navigation": {
+    "status": "PASS",
+    "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+    "rows": 34,
+    "newBrokenLinks": 0,
+    "knownHistoricalMissingPaths": 1,
+    "historicalArchivesUnchanged": true
+  }
+}

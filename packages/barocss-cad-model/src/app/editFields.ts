@@ -1,4 +1,5 @@
 import { sewTolerance } from '../engine/sew';
+import { circularPatternStep } from '../engine/circularPatternSpan';
 import { eligibleFillPatternRegions, fillRegionSnapshot } from '../engine/fillFeaturePattern';
 import { eligibleCurvePatternPaths } from '../engine/curveFeaturePattern';
 import type { StudioDoc } from '../engine/doc';
@@ -631,7 +632,11 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       number('count', 'Count', undefined, n => (n as typeof node).count, (n, v) => ({ ...(n as typeof node), count: Math.round(v) }));
       break;
     case 'circular-pattern':
-      number('count', 'Count', undefined, n => (n as typeof node).count, (n, v) => ({ ...(n as typeof node), count: Math.round(v), ...((n as typeof node).axis === 'z' ? { angle: 360 / Math.max(1, Math.round(v)) } : {}) }));
+      number('count', 'Count', undefined, n => (n as typeof node).count, (n, v) => {
+        const pattern = n as typeof node, count = Math.round(v);
+        if (pattern.axis === 'z' && pattern.span !== undefined) return { ...pattern, count, angle: circularPatternStep(pattern.span, count) };
+        return { ...pattern, count, ...(pattern.axis === 'z' ? { angle: 360 / Math.max(1, count) } : {}) };
+      });
       break;
     case 'split':
       if (node.normal) (['x', 'y', 'z'] as const).forEach((a, k) => number('n' + a, `Normal ${a.toUpperCase()}`, undefined, n => (n as typeof node).normal?.[k] ?? 0, (n, v) => { const was = (n as typeof node).normal ?? [0, 0, 0], next = was.map((c, j) => j === k ? v : c) as [number, number, number]; return { ...(n as typeof node), normal: next }; }));

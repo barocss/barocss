@@ -1,4 +1,5 @@
 import { fillPatternDocumentProblem } from './fillFeaturePattern';
+import { circularPatternSpanProblem } from './circularPatternSpan';
 import { curvePatternDocumentProblem, resolveCurveFeaturePatternPath } from './curveFeaturePattern';
 import { resolveShopTree } from './shopRows';
 // The studio document as a kernel part document: a node is the feature of its stable id (`n<k>`, see ids.ts),
@@ -505,6 +506,8 @@ export function resolveAssociativeSketch(doc: StudioDoc, index: number): SketchN
 export function toPartDocument(doc: StudioDoc): CadPartDocument { return buildPartDocument(doc); }
 
 function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
+  const circularProblem = circularPatternSpanProblem(doc);
+  if (circularProblem) throw coded('VALUE', circularProblem);
   const fillProblem = fillPatternDocumentProblem(doc);
   if (fillProblem) throw coded(fillProblem.startsWith('[BAD_REFERENCE]') ? 'BAD_REFERENCE' : 'VALUE', fillProblem);
   const curveProblem = curvePatternDocumentProblem(doc);

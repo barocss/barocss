@@ -1,5 +1,6 @@
 import { MATERIALS } from '../library/materials';
 import { fillPatternDocumentProblem } from './fillFeaturePattern';
+import { circularPatternSpanProblem } from './circularPatternSpan';
 import { curvePatternDocumentProblem } from './curveFeaturePattern';
 import { documentConnectorError } from '../assembly/connectors';
 // Reading a saved .bcad file: its format and schema checked, what was filled in said, one from an older
@@ -75,6 +76,8 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   if (curveProblem) return { error: curveProblem };
   const patternProblem = rectangularPatternDocumentProblem({ ...o, parameters });
   if (patternProblem) return { error: patternProblem };
+  const circularProblem = circularPatternSpanProblem(o);
+  if (circularProblem) return { error: circularProblem };
   const textProblem = textDocumentProblem({ ...o, parameters });
   if (textProblem) return { error: textProblem };
   const doc: StudioDoc = withIds({ ...(o as unknown as StudioDoc), format: 'barocss-cad-model' as const, schema: schema === 4 ? 4 : SCHEMA, units: 'mm' as const, parameters });

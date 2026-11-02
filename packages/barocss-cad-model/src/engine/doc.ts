@@ -396,7 +396,7 @@ type ModelNodeBase = SketchNode | TextNode | TextReliefNode | CylindricalWrapNod
   | { kind: 'curve-feature-pattern'; parent: BodyRef; path: CurveFeaturePatternPath; spacing: Dim; count: number }
   | { kind: 'rectangular-feature-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number; axis2: Axis; spacing2: Dim; count2: number }
   /** About `axis` through `pivot` (default the origin). */
-  | { kind: 'circular-pattern'; parent: BodyRef; axis: Axis; angle: number; count: number; pivot?: [Dim, Dim, Dim] }
+  | { kind: 'circular-pattern'; parent: BodyRef; axis: Axis; angle: number; count: number; pivot?: [Dim, Dim, Dim]; /** Authored Z spread; absent on legacy patterns. */ span?: number }
   | { kind: 'union'; left: BodyRef; right: BodyRef; made?: Made }
   | { kind: 'intersect'; left: BodyRef; right: BodyRef }
   | { kind: 'difference'; parent: BodyRef; tool: BodyRef; made?: Made }

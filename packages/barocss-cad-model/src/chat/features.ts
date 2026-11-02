@@ -36,7 +36,7 @@ const SPECS: Record<string, Spec> = {
   'curve-feature-pattern': { parent: 'ref', path: 'any', spacing: 'dim', count: 'positive-index' },
   'rectangular-feature-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'positive-index', axis2: 'enum:x|y|z', spacing2: 'dim', count2: 'positive-index' },
   'linear-feature-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'count' },
-  'circular-pattern': { parent: 'ref', axis: 'enum:x|y|z', angle: 'num', count: 'count' },
+  'circular-pattern': { parent: 'ref', axis: 'enum:x|y|z', angle: 'num', count: 'count', 'span?': 'num', 'pivot?': 'dim3' },
   union: { left: 'ref', right: 'ref' },
   intersect: { left: 'ref', right: 'ref' },
   difference: { parent: 'ref', tool: 'ref' },

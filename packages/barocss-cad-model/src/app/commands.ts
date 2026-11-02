@@ -901,7 +901,7 @@ const allCommands: Command[] = [
         return doc;
       }
       return withNode(ctx.doc, v.axis === 'z'
-        ? { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: 'z', angle: Math.round((span >= 360 ? 360 / n : span / (n - 1)) * 1e6) / 1e6, count: n, ...(pivot[0] || pivot[1] ? { pivot } : {}) }
+        ? { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: 'z', angle: Math.round((span >= 360 ? 360 / n : span / (n - 1)) * 1e6) / 1e6, count: n, span: span >= 360 ? 360 : span, ...(pivot[0] || pivot[1] ? { pivot } : {}) }
         : { kind: 'circular-pattern', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, angle: 90, count: Math.min(4, n) });
     },
   },

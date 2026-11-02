@@ -58,7 +58,7 @@ const CASES: Case[] = [
       nodes: [
         { kind: 'sketch', profile: 'rectangle', min: [20, 0], max: [30, 10], id: 'n0' },
         { kind: 'extrude', sketch: 0, height: 5, id: 'n1', made: { command: 'box', values: { w: 10, d: 10, h: 5, x: 20, y: 0, z: 0 } } },
-        { kind: 'circular-pattern', parent: { node: 1, side: 'solid' }, axis: 'z', angle: 60, count: 6, id: 'n2' },
+        { kind: 'circular-pattern', parent: { node: 1, side: 'solid' }, axis: 'z', angle: 60, count: 6, span: 360, id: 'n2' },
         { kind: 'linear-pattern', parent: { node: 2, side: 'solid' }, axis: 'z', spacing: 10, count: 2, id: 'n3' },
         { kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'x', angle: 90, pivot: [0, 0, 0], id: 'n4' },
         { kind: 'translate', parent: { node: 4, side: 'solid' }, offset: [0, 0, 5], id: 'n5' },
