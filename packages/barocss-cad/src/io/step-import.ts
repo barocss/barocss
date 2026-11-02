@@ -42,11 +42,46 @@ function space(s: string, i: number): boolean {
   const c = s.charCodeAt(i);
   return c === 32 || (c >= 9 && c <= 13) || (c > 127 && (c === 0xa0 || /\s/.test(s[i])));
 }
+/** First DATA section, with real comments replaced by whitespace and all quoted bytes retained. */
+function dataSection(source: string): string {
+  const chunks: string[] = [];
+  let start = 0, quoted = false;
+  for (let i = 0; i < source.length; i++) {
+    if (source[i] === "'") {
+      if (quoted && source[i + 1] === "'") { i++; continue; }
+      quoted = !quoted;
+    } else if (!quoted && source[i] === '/' && source[i + 1] === '*') {
+      const end = source.indexOf('*/', i + 2);
+      if (end < 0) refuse('unterminated comment');
+      chunks.push(source.slice(start, i), ' ');
+      i = end + 1; start = end + 2;
+    }
+  }
+  if (quoted) refuse('unterminated string');
+  const clean = chunks.length ? chunks.join('') + source.slice(start) : source;
+  let statement = 0, dataStart = -1;
+  for (let i = 0; i < clean.length; i++) {
+    if (clean[i] === "'") {
+      quoted = !quoted;
+      if (quoted) {
+        for (i++; i < clean.length; i++) {
+          if (clean[i] !== "'") continue;
+          if (clean[i + 1] === "'") { i++; continue; }
+          quoted = false; break;
+        }
+      }
+    } else if (clean[i] === ';') {
+      const word = clean.slice(statement, i).trim();
+      if (dataStart < 0 && word === 'DATA') dataStart = i + 1;
+      else if (dataStart >= 0 && word === 'ENDSEC') return clean.slice(dataStart, statement);
+      statement = i + 1;
+    }
+  }
+  return refuse('no DATA section');
+}
 /** The DATA section's instances: simple ones and complex ones (as their partial entities). */
 function parseData(source: string): Map<number, Entity> {
-  const data = /DATA;([\s\S]*?)ENDSEC;/.exec(source.includes('/*') ? source.replace(/\/\*[\s\S]*?\*\//g, '') : source);
-  if (!data) refuse('no DATA section');
-  const s = data![1], out = new Map<number, Entity>();
+  const s = dataSection(source), out = new Map<number, Entity>();
   let i = 0;
   const ws = () => { while (i < s.length && space(s, i)) i++; };
   const value = (): Value => {

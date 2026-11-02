@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D439: preserve quoted STEP section tokens and literal comment markers](notes/step-quoted-section-tokens-2026-11-02/README.md).
+
 - [D438: omit uncertified trimmed-mesh STEP validation boxes and report the loss](notes/step-validation-box-2026-11-02/README.md).
 
 - [D437: spherical STEP round trips — three native profiles, independent readers and actual preview/Cancel/reopen](notes/step-sphere-roundtrip-2026-11-02/README.md).
@@ -88,6 +90,8 @@ Numeric proof and limits remain in the canonical item notes.
 | D437 | Qualify bounded spherical native STEP export/read/reimport and actual generated-byte reopen; report uncertainty, aliases and bbox diagnostics separately | [Note](notes/step-sphere-roundtrip-2026-11-02/README.md) |
 
 | D438 | Omit actual trimmed-mesh validation bbox without changing legacy numeric bounds or geometry/V/A/C; report the actual loss and retain original test failures | [Note](notes/step-validation-box-2026-11-02/README.md) |
+
+| D439 | Preserve literal face strings during first-DATA/comment extraction; retain downstream geometry and correct the stale D436 cone-refusal expectation | [Note](notes/step-quoted-section-tokens-2026-11-02/README.md) |
 
 <!-- D418 LEGACY COMPATIBILITY BEGIN: fixed original heading sequence -->
 <details>
