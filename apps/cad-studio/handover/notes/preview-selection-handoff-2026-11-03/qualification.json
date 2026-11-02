@@ -1,0 +1,460 @@
+{
+  "workId": "D450",
+  "status": "QUALIFIED_BOUNDED",
+  "baseline": "f7ba4b165d5c57d585a14c87f8311b24eda7b793",
+  "category": "C2-2 accepted preview selection identity",
+  "relatedRows": [
+    "07",
+    "08",
+    "16",
+    "20"
+  ],
+  "tier": "small",
+  "model": "GPT-6.1 Sol Medium; root execution and review",
+  "source": {
+    "path": "apps/cad-studio/src/App.tsx",
+    "sha256": "5c0a7971a0820d22040c193c0b92f90244dfa2e5f962d5ffacc944adffbc7304",
+    "scope": "Capture accepted bodies; carry existing name-based selection before preview installation; retain explicit clear precedence and callback dependencies"
+  },
+  "coverage": {
+    "qualifiedCases": 3,
+    "declaredCases": 3,
+    "assertions": {
+      "pass": 9,
+      "fail": 0
+    },
+    "policy": [
+      "Missing Chamfer edge clears",
+      "Renamed Draft face clears",
+      "Surviving Shell n1.top rim remaps10\u21925\u219210 across Apply/Undo/Redo"
+    ],
+    "notGeneralMatchingQualification": true
+  },
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercent": 43,
+  "legacyPolicy": "FROZEN_NOT_CORE_COMPLETENESS",
+  "originalActual": {
+    "status": "FAIL_SELECTION_IDENTITY",
+    "receiptSHA256": "b7ca1c4d2fc42a151ae11ec5bb0bde909e97e1c958f9807c4b325d2ba878fb6a",
+    "states": 19,
+    "sourceFiles": 1184,
+    "sourceEqualAfterCleanupAndCurrent": true,
+    "physicalOracles": 6,
+    "physicalStatus": "PASS",
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "watcherChanges": 0,
+    "downloads": 0,
+    "wrapperPIDAbsent": 41724,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "gateEnd": "holder: none\nslots: 0 of 3\nload: { 14.86 12.29 11.27 }\n",
+    "selectionAssertions": [
+      {
+        "label": "chamfer-after-apply-selection",
+        "status": "FAIL",
+        "expected": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [],
+          "edges": [
+            {
+              "body": 0,
+              "edge": 2
+            }
+          ],
+          "bodies": []
+        }
+      },
+      {
+        "label": "chamfer-after-undo-selection",
+        "status": "PASS",
+        "expected": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        }
+      },
+      {
+        "label": "chamfer-after-redo-selection",
+        "status": "PASS",
+        "expected": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        }
+      },
+      {
+        "label": "draft-after-apply-selection",
+        "status": "FAIL",
+        "expected": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [
+            {
+              "body": 0,
+              "face": 1
+            }
+          ],
+          "edges": [],
+          "bodies": []
+        }
+      },
+      {
+        "label": "draft-after-undo-selection",
+        "status": "FAIL",
+        "expected": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [
+            {
+              "body": 0,
+              "face": 2
+            }
+          ],
+          "edges": [],
+          "bodies": []
+        }
+      },
+      {
+        "label": "draft-after-redo-selection",
+        "status": "FAIL",
+        "expected": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [
+            {
+              "body": 0,
+              "face": 1
+            }
+          ],
+          "edges": [],
+          "bodies": []
+        }
+      },
+      {
+        "label": "shell-after-apply-selection",
+        "status": "FAIL",
+        "expected": {
+          "faces": [
+            {
+              "body": 0,
+              "face": 10
+            }
+          ],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [
+            {
+              "body": 0,
+              "face": 5
+            }
+          ],
+          "edges": [],
+          "bodies": []
+        }
+      },
+      {
+        "label": "shell-after-undo-selection",
+        "status": "FAIL",
+        "expected": {
+          "faces": [
+            {
+              "body": 0,
+              "face": 5
+            }
+          ],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        }
+      },
+      {
+        "label": "shell-after-redo-selection",
+        "status": "FAIL",
+        "expected": {
+          "faces": [
+            {
+              "body": 0,
+              "face": 10
+            }
+          ],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        }
+      }
+    ]
+  },
+  "fixedActual": {
+    "status": "PASS",
+    "receiptSHA256": "694d05f82801353b490e180bc44f164ed319a27c97a18129d85ab7cee943c5bb",
+    "states": 18,
+    "sourceFiles": 1191,
+    "sourceEqualBeforeAfterCleanupAndCurrent": true,
+    "physicalOracles": 6,
+    "physicalStatus": "PASS_RETAINED_EXPECTATIONS",
+    "nativeReadsExactOldRun": 12,
+    "acceptedDocumentsExactOldRun": 3,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "watcherChanges": 0,
+    "downloads": 0,
+    "wrapperPIDAbsent": 47676,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "gateEnd": "holder: none\nslots: 0 of 3\nload: { 11.02 10.80 10.86 }\n",
+    "selectionAssertions": [
+      {
+        "label": "chamfer-after-apply-selection",
+        "status": "PASS",
+        "expected": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        }
+      },
+      {
+        "label": "chamfer-after-undo-selection",
+        "status": "PASS",
+        "expected": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        }
+      },
+      {
+        "label": "chamfer-after-redo-selection",
+        "status": "PASS",
+        "expected": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        }
+      },
+      {
+        "label": "draft-after-apply-selection",
+        "status": "PASS",
+        "expected": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        }
+      },
+      {
+        "label": "draft-after-undo-selection",
+        "status": "PASS",
+        "expected": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        }
+      },
+      {
+        "label": "draft-after-redo-selection",
+        "status": "PASS",
+        "expected": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        }
+      },
+      {
+        "label": "shell-after-apply-selection",
+        "status": "PASS",
+        "expected": {
+          "faces": [
+            {
+              "body": 0,
+              "face": 10
+            }
+          ],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [
+            {
+              "body": 0,
+              "face": 10
+            }
+          ],
+          "edges": [],
+          "bodies": []
+        }
+      },
+      {
+        "label": "shell-after-undo-selection",
+        "status": "PASS",
+        "expected": {
+          "faces": [
+            {
+              "body": 0,
+              "face": 5
+            }
+          ],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [
+            {
+              "body": 0,
+              "face": 5
+            }
+          ],
+          "edges": [],
+          "bodies": []
+        }
+      },
+      {
+        "label": "shell-after-redo-selection",
+        "status": "PASS",
+        "expected": {
+          "faces": [
+            {
+              "body": 0,
+              "face": 10
+            }
+          ],
+          "edges": [],
+          "bodies": []
+        },
+        "actual": {
+          "faces": [
+            {
+              "body": 0,
+              "face": 10
+            }
+          ],
+          "edges": [],
+          "bodies": []
+        }
+      }
+    ]
+  },
+  "driverEquality": {
+    "driverSHA256": "2e13c924779bbcc6f8678eb6807d3289033c2454ecc25d206ced190c5688b673",
+    "inspectorOraclePublicHelpers": "BYTE_IDENTICAL_TO_EXECUTED_OLD_RUN",
+    "parametersExpectationsBudgetsChanged": false
+  },
+  "checks": {
+    "status": "PASS",
+    "relatedStudioTests": {
+      "pass": 14,
+      "fail": 0,
+      "skip": 0,
+      "file": "apps/cad-studio/test/fillet-family.test.ts",
+      "scope": "Existing helper/lifecycle contracts; actual App handoff proof is separate"
+    },
+    "studioTypes": "PASS",
+    "changedFileLint": "PASS",
+    "diff": "PASS",
+    "command": "bash /tmp/barocss-d450-root/run-checks.sh"
+  },
+  "retainedChecks": {
+    "D449": "CAD42focused/build/types/Model-final-types/24independent/9mutants retained; owning sources/tests unchanged",
+    "modelTypesThisItem": "NOT_RUN; no Model source or test edit",
+    "kernelThisItem": "NOT_RUN; App-only change"
+  },
+  "commands": {
+    "original": "bash /tmp/barocss-d450-root/run-studio-repro.sh",
+    "fixed": "bash /tmp/barocss-d450-root/run-studio-fixed.sh"
+  },
+  "rootVisualReview": {
+    "status": "PASS_BOUNDED",
+    "original": "Shell old ordinal highlights innerwall",
+    "fixed": [
+      "Chamfer selection empty",
+      "Draft selection empty",
+      "Shell rim highlighted; normal0,0,1;area464;selectedface10"
+    ],
+    "imagesViewed": 4
+  },
+  "issues": {
+    "551": "OPEN; general graph, naming, reorder/cache scope remains"
+  },
+  "docChecks": {
+    "status": "PASS",
+    "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs; git diff --check",
+    "rowPages": 34,
+    "newBroken": 0,
+    "knownHistoricalMissing": 1,
+    "archivesUnchanged": true
+  },
+  "notRun": [
+    "New named-match algorithm, ambiguous aliases or universal topology identity",
+    "Actual explicit-clear commands/direct-surface/instance-placement cases; predicates and guards retained unchanged",
+    "New physical/persistence campaign; D449 retained scope only",
+    "Independent extra audit: not required for small tier",
+    "UI redesign, browser CI, develop integration, downloads/paid live/release/deployment"
+  ]
+}
