@@ -6,11 +6,12 @@ import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import { changeDrawingScope } from '@barocss/cad-model/drawing/scope';
 import { sectionMiddle } from '@barocss/cad-model/drawing/sheet';
 import { ORIENTATIONS, SCALES, VIEWS, scaleLabel, type Orientation } from '@barocss/cad-model/drawing/views';
-import { SECTION_VIEWS, VIEW_IDS, modelPrint, nextRevision, nextSectionId, sameSection, withSections, type DrawingSettings, type SectionViewId } from '@barocss/cad-model/drawing/types';
+import { SECTION_VIEWS, VIEW_IDS, nextRevision, nextSectionId, sameSection, withSections, type DrawingSettings, type SectionViewId } from '@barocss/cad-model/drawing/types';
 import type { useDrawingSheet } from '../useDrawingSheet';
 import { Icon } from '../atoms';
 import { CONTROL, FIELD, SIDE_NAMES, TICK, withTable } from './sheetShared';
 import { DrawingMetadata } from './DrawingMetadata';
+import { drawingRevisionPrint } from './revisionPrint';
 import { SectionKind } from './SectionKind';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -119,7 +120,7 @@ export function SheetSettings({ sheet: { scopeRead, scope, views, layout, sectio
         <label className={FIELD}><span>Title</span><Input className={CONTROL} aria-label="Drawing title" value={titleDraft ?? title} onChange={e => setTitleDraft(e.target.value)}
           onBlur={() => { if (titleDraft !== null) { const rest = { ...settings }; delete rest.title; onChange(titleDraft.trim() && titleDraft.trim() !== fileName ? { ...rest, title: titleDraft.trim() } : rest); setTitleDraft(null); } }}
           onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /></label>
-        {(() => { const print = modelPrint(doc.nodes), stale = !!settings.revision && !!settings.revisedModel && settings.revisedModel !== print;
+        {(() => { const print = drawingRevisionPrint(doc), stale = !!settings.revision && !!settings.revisedModel && settings.revisedModel !== print;
           const set = (rev: string) => onChange(rev ? { ...settings, revision: rev, revisedModel: print } : (({ revision: _r, revisedModel: _m, ...rest }) => rest)(settings));
           return <>
             <label className={FIELD}><span>Revision</span><Input className={CONTROL} aria-label="Revision" value={settings.revision ?? ''} placeholder="-" maxLength={6} onChange={e => set(e.target.value.trim().toUpperCase())} />

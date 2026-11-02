@@ -1,0 +1,187 @@
+{
+  "workId": "D454",
+  "status": "BOUNDED_QUALIFIED",
+  "category": "C3-1 ordinary part drawing/model update",
+  "baseline": "4abf963812ad20f027f0a3170b464dcddcd80221",
+  "validationTier": "small",
+  "reason": "Bounded Studio revision-dependency defect, no new public surface or geometry change",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercent": 43,
+  "sourcePins": {
+    "apps/cad-studio/src/ui/drawing/SheetSettings.tsx": "05c5e2f1e0771682cdb69398f69ee5e81a95ee343550bc20d5b32556dc1a0ca4",
+    "apps/cad-studio/src/ui/drawing/revisionPrint.ts": "f81658a6286bc9b67160c335d2585d06aa83a237ca7bb0afd5033d3f82273c27",
+    "apps/cad-studio/test/drawing-revision-print.test.ts": "c5a725241ac29ba80225057b79b9d64ddaa890cd4b57951f86efee3e824c877a"
+  },
+  "models": {
+    "implementationAndTests": "GPT-6.1 Sol Medium",
+    "driver": "GPT-6.1 Sol Medium",
+    "executionReviewCleanup": "Root",
+    "independentHighAudit": "NOT_RUN_SMALL_TIER"
+  },
+  "retainedInput": {
+    "path": "apps/cad-studio/test/fixtures/d356.bcad",
+    "sha256": "be63861ad50cf5681ef5692775490eacd1cc42c7107114d6f3ed327f112619dc",
+    "scope": "Existing W60 rectangle plate, two source nodes; no new construction claim"
+  },
+  "initialHarnessFailure": {
+    "receiptSHA256": "27f3258c8cae43abb745225f66d2864a983993d78e24ac66b6bb601422048fd7",
+    "status": "FAIL",
+    "command": "bash /tmp/barocss-d454-root/run-repro.sh",
+    "cause": "Overstrict whole-drawing equality rejected legitimate six added dimension a/b.sig caches",
+    "sourceCapsules": 1191,
+    "sourceFrozenCleanupEqualAndCurrentMatchedAtCleanup": true,
+    "ownedRuntimeAndGateClean": true
+  },
+  "productFailure": {
+    "receiptSHA256": "bcf81f6d69f092b79b36e3d2e2f35e9505f2024fad0267766b4cb28b4f2712bd",
+    "status": "FAIL",
+    "command": "bash /tmp/barocss-d454-root/run-repro02.sh",
+    "widthBefore": 60,
+    "widthAfter": 70,
+    "authoredNodesExact": true,
+    "sameWidthDimensionID": "d2",
+    "drawingWidthBefore": 60,
+    "drawingWidthAfter": 70,
+    "revision": "A",
+    "revisedModelBeforeAndAfter": "ec3ed842",
+    "expectedWarningCount": 1,
+    "actualWarningCount": 0,
+    "printedSRCBefore": "ab9d8eeedc2168b0",
+    "printedSRCAfter": "c4c74a53d3c6d0f1",
+    "sourceCapsules": 1192,
+    "sourceFrozenCleanupEqualAndCurrentMatchedAtCleanup": true,
+    "ownedRuntimeAndGateClean": true,
+    "physicalQualification": "NOT_RUN"
+  },
+  "checks": {
+    "status": "PASS",
+    "command": "bash /tmp/barocss-d454-fix/run-checks.sh",
+    "newBehavioralGroups": 5,
+    "existingRoundTripGroups": 2,
+    "pass": 7,
+    "fail": 0,
+    "skip": 0,
+    "lintChangedFiles": 3,
+    "studioTypes": "PASS",
+    "finalModelTypes": "PASS_AFTER_LAST_TEST_EDIT",
+    "sourcePinsEqual": true,
+    "sourceEqualSHA256": "f2cec1ab1e740e5a364e7755266bfc5759c2ec048181f9901737db537159b110",
+    "fullKernel": "NOT_RUN_NO_BREP_CORE_CHANGE",
+    "independentAudit": "NOT_RUN_SMALL_TIER",
+    "publicModelBuild": "NOT_RUN_NO_MODEL_SOURCE_CHANGE"
+  },
+  "actual": {
+    "status": "PASS_BY_EXACT_SCOPE_COMPOSITION",
+    "run01": {
+      "status": "FAIL_HARNESS",
+      "receiptSHA256": "283dc5f81cafa73aff11a5143d9a25fb1e5c2ba698f49052ea1900ce2c91ea62",
+      "command": "bash /tmp/barocss-d454-root/run-studio-workflow.sh",
+      "coverage": {
+        "autoRevisionA": "PASS",
+        "parameterW70": "NOT_RUN",
+        "authoredUndo": "NOT_RUN",
+        "authoredRedo": "NOT_RUN",
+        "revisionB": "NOT_RUN",
+        "invalidParameterRefusal": "NOT_RUN",
+        "projectSaveCloseReloadOpen": "NOT_RUN",
+        "postOpenW80": "NOT_RUN",
+        "physicalQualification": "NOT_RUN",
+        "export": "NOT_RUN",
+        "standards": "NOT_RUN"
+      },
+      "cause": "One premature parameter-only raw-document assertion still omitted the known signature enrichment",
+      "states": 5,
+      "sourceCapsules": 2374,
+      "sourceFrozenCleanupCurrentEqual": true,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "run02": {
+      "status": "PASS",
+      "receiptSHA256": "ae7dd7cf44ad9d3f148273226c19cca769a93a5e768999c9585e6a3122d24dab",
+      "command": "bash /tmp/barocss-d454-root/run-studio-workflow02.sh",
+      "configSHA256": "01ba69fea469a02afb00d4654f896db9727fdcb1f64c09be06813d93c1a0d29a",
+      "coverage": {
+        "autoRevisionA": "REUSED_RUN01_PASS",
+        "parameterW70": "PASS",
+        "authoredUndo": "PASS",
+        "authoredRedo": "PASS",
+        "revisionB": "PASS",
+        "invalidParameterRefusal": "PASS",
+        "projectSaveCloseReloadOpen": "PASS",
+        "postOpenW80": "PASS",
+        "physicalQualification": "NOT_RUN",
+        "export": "NOT_RUN",
+        "standards": "NOT_RUN"
+      },
+      "states": 15,
+      "sourceCapsules": 2393,
+      "sourceBeforeFrozenAfterCleanupCurrentEqual": true,
+      "cleanup": [
+        {
+          "ownedProject": "D454-drawing-run02",
+          "namespace": "REMOVED_AND_ABSENT"
+        },
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    "reusedGroup": "Public Auto-dimension and revision A from run01, reopened through the exact accepted actual Model file; not reconstructed or rerun",
+    "reusedAInputSHA256": "28b6af57cf5f856ddc35530bf81c7500afefef523370df9abbff2be912e80bd0",
+    "qualifiedActionGroups": 8,
+    "sameDimensionIDs": [
+      "d1",
+      "d2",
+      "d3"
+    ],
+    "knownCacheChanges": "Only six drawing.dimensions[0..2].a/b.sig paths, validated exactly against the current W; all authoring refs/placement/settings and other top-level fields retained",
+    "revisionStamps": {
+      "AatW60": "805de516",
+      "BatW70": "9987a07b",
+      "BatW80Still": "9987a07b"
+    },
+    "printedSRC": {
+      "W60": "ab9d8eeedc2168b0",
+      "W70": "c4c74a53d3c6d0f1",
+      "W80": "d4e08fecb35ca076",
+      "revisionOnlyChange": "UNCHANGED"
+    },
+    "rootVisualReview": {
+      "status": "PASS",
+      "finalImages": 6,
+      "originalReproImages": 2,
+      "scope": "Width70 warning, Undo60, revisionB clear, numeric refusal, project Open B and post-Open width80 warning"
+    },
+    "ownedWrappersAbsent": true,
+    "gateLeasesReleased": true,
+    "downloads": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "physicalQualification": "NOT_RUN",
+    "export": "NOT_RUN",
+    "standards": "NOT_RUN"
+  },
+  "limits": [
+    "Preview DOM SVG and UI volume are observations, not independent native accuracy or exported file qualification",
+    "Old node-only stamps on parameterized parts remain unverifiable/outdated until manual stamping; no automatic restamp",
+    "Parameter-free legacy node fingerprints are exact; Model public modelPrint behavior and printed SRC provider are unchanged",
+    "Existing JSON parameter key-order policy remains; semantic key-order equivalence is not qualified",
+    "No section/detail, drawing export/download, units/standards breadth, manufacturing, UI redesign or release acceptance"
+  ],
+  "issueAssessment": {
+    "540": "OPEN: engineering/drawing epic requires broader acceptance",
+    "2057": "ALREADY_CLOSED_DESIGN_TARGET: generated concept gallery, not implementation evidence"
+  },
+  "navigation": {
+    "status": "PASS",
+    "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+    "rows": 34,
+    "newBrokenLinks": 0,
+    "knownHistoricalMissingPaths": 1,
+    "historicalArchivesUnchanged": true
+  }
+}
