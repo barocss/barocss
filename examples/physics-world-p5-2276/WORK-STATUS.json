@@ -3,10 +3,10 @@
   "branch": "codex/physics-world-p5-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "G2 finite discrete tangent response",
+    "profile": "G2 sphere-pair CCD exact predicates",
     "status": "BOUNDED_SOURCE_NATIVE_INDEPENDENT_AND_DESKTOP_PASS",
-    "scope": "cuboid27World31steps/graph plus separate original22spherecases; independent40audits;9desktopchecks4presets; originalsupport3000+slide240/graph; allfirstfailurespreserved",
-    "results": "examples/physics-tangent-response-2276/RESULTS.md"
+    "scope": "29World33steps+22directhelpercalls/graph; exactbank22 and independent88audit;8desktopchecks4presets;originalfalsegrazeandrenderfailurepreserved",
+    "results": "examples/physics-sphere-pair-ccd-2276/RESULTS.md"
   },
   "mainSlices": {
     "P0": "CONTRACT_COMPLETE_LOCAL",
@@ -33,7 +33,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Core restitution/discrete-tangent fixes committed and numerically/desktop qualified. P4 offlineSATnumeric subset passed; nextcompletephysicalreferenceprotocol and savedframeTOTALcostbeforefull8box. Persistentfriction/generalcoupledwork/remainingCCD/P6P7 stayopen. HOLD/no deployment.",
+  "active": "Spherepairfalsegraze repaired and API/independent/desktop qualified. Continue P4compactV2/fullcoldposition+totalbudget; persistentfriction/generalcoupling/remainingCCD/P6P7 open. HOLD/no deployment.",
   "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
@@ -117,5 +117,12 @@
     "costGO": "NOT_RUN",
     "results": "examples/physics-p4-sat-2276/RESULTS.md"
   },
-  "g2EvidenceMap": "examples/physics-contact-coverage-g2-2276/COVERAGE-02.json"
+  "g2EvidenceMap": "examples/physics-contact-coverage-g2-2276/COVERAGE-03.json",
+  "latestPairCcdConsumer": {
+    "status": "PASS_DESKTOP_ONLY",
+    "results": "examples/physics-sphere-pair-ccd-2276/RESULTS.md",
+    "url": "http://127.0.0.1:52960",
+    "checks": 8,
+    "presets": 4
+  }
 }

@@ -10,6 +10,24 @@ Read [Physics](/packages/physics/), [Units and frames](/packages/physics/units-a
 motion, use [Robot motion](/guide/robot-motion). A supported input is not a claim that every admitted parameter
 has been verified to the errors below.
 
+## Sphere-pair CCD checkpoint
+
+Exact represented endpoint/radius predicates fix an observed false graze: the
+original positive closest gap9.999999987147026e-12m exceeds the old1e-12m gate.
+Original failure/provider/input remain. Each Source and actual compiled public
+graph passes29Worlds/33steps and22direct helper calls. Independent exact
+closest-approach classification and fixed80/120 chord audits check88results;
+maximum TOI residual3.906e-17 and distance residual1.607e-16m meet unchanged
+1e-12 gates. Actual desktop GPU Viewer tests pass8checks/four inputs at
+1280/1440/1920. Tiny display radii are labelled1000×; accepted centers stay exact.
+
+The first browser driver failure from a closed details panel is preserved;
+opening the actual panel resolves visible-data verification without changing
+physics or criteria. No mobile or deployment. This finite two-sphere profile
+does not qualify extreme outputs, rotating non-spheres, remaining-time flow or
+friction-coupled impacts. See
+`examples/physics-sphere-pair-ccd-2276/RESULTS.md` on this branch.
+
 ## Offline P4 reference checkpoint
 
 An integer SAT observer candidate matches2592saved numeric words exactly over

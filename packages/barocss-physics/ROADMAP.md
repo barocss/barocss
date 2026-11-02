@@ -462,6 +462,29 @@ remain. See `examples/physics-p4-sat-2276/RESULTS.md`. No production/renderer
 change or deployment. G2's current19-branch evidence/gap map is separately in
 `examples/physics-contact-coverage-g2-2276/COVERAGE-02.json`.
 
+### G2 exact sphere-pair CCD (2026-11-03)
+
+The actual compiled min-radius baseline reports falsegraze at0.5 while exact
+closest gap9.999999987147026e-12m exceeds unchanged1e-12m gate. Originalinput,
+provider/source and failure remain. New `ccd-sphere-pair-exact.ts` classifies
+represented endpoints/separate radii with exact dyadic predicates; stable roots
+and projected normals construct hits. Both5e-10 inward biases, initialownership,
+currentadmission and remaining-time discard remain. No epsilon/fallback/search.
+
+Each Source/compiled public graph passes29Worlds/33steps and22direct helper
+calls. Exact closest-approach bank precedes candidateexecution; independent
+Fraction/80/120 chord audit passes88results. Max TOI3.906e-17, normal4.207e-17,
+distance1.607e-16m. Old1e-12 gates, unknown/known failure retention and replay
+pass. Original spherepairprobe passes. Actual GPU Viewer scene passes8desktop
+checks/four presets at1280/1440/1920; tiny proxies explicitly1000x. First closed-
+details driver failure remains; revised driver opens actualvisibledata. No
+mobile. See `examples/physics-sphere-pair-ccd-2276/RESULTS.md`. Sourceanalysis
+bounds intermediates<8410bits; corpusBigIntops notmetered/no2MopsPASSclaim.
+
+This is finite C06 proof, not arbitraryextremes, rotatingnonsphereCCD, remaining-
+timeflow or friction-coupled impact. P4eightbox, persistentfriction, spherepair
+finiteoverlapfriction, generalcoupledwork and P6/P7 stayopen. HOLD/no deployment.
+
 Dependency order: close the G1 admitted-rotation boundary and G2 finite coverage
 map before the corresponding general rigid/contact claim. Keep original P4
 work as its own acceptance track. Before a new P6/P7 plant runs, select only
