@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D444: exact-zero direct cone STEP frustum admission, unchanged native output and actual underflow-refusal retention](notes/step-cone-zero-offset-2026-11-02/README.md).
+
 - [D443: measure the current valid zero-distance cone STEP offset refusal and actual atomic retention](notes/step-cone-offset-boundary-2026-11-02/README.md).
 
 - [D442: disclose selected native STEP face/edge name character loss without changing writer bytes or source keys](notes/step-native-name-loss-2026-11-02/README.md).
@@ -108,6 +110,8 @@ Numeric proof and limits remain in the canonical item notes.
 | D442 | Report native face/edge character loss through the existing list; preserve exact output bytes/source keys and qualify one actual Preview/Cancel | [Note](notes/step-native-name-loss-2026-11-02/README.md) |
 
 | D443 | Measure a valid zero-distance cone OFFSET graph, current named refusal and exact actual Studio retention; no new admission | [Note](notes/step-cone-offset-boundary-2026-11-02/README.md) |
+
+| D444 | Admit bounded exact-zero direct cone frustums with raw scalar provenance, unchanged native output, independent semantic mutations and actual acceptance/refusal retention | [Note](notes/step-cone-zero-offset-2026-11-02/README.md) |
 
 <!-- D418 LEGACY COMPATIBILITY BEGIN: fixed original heading sequence -->
 <details>

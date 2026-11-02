@@ -79,7 +79,7 @@ test('unsupported OFFSET basis is an expected evaluation refusal and does not mu
   const result = evaluatePart(imported(unsupportedOffsetStep()), 2);
   assert.equal(result.ok, false);
   if (!result.ok) {
-    assert.match(result.error.detail, /OFFSET_SURFACE basis SPHERICAL_SURFACE is not supported yet/);
+    assert.match(result.error.detail, /OFFSET_SURFACE basis CONICAL_SURFACE is not supported yet/);
     assert.doesNotMatch(result.error.detail, /unexpected kernel failure/i);
   }
   assert.deepEqual(doc, before);
