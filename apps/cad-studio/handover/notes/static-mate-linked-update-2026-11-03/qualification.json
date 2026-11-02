@@ -1,0 +1,398 @@
+{
+  "workId": "D457",
+  "status": "BOUNDED_QUALIFIED",
+  "category": "C4-2 static planar mate and explicit linked-source update",
+  "baseline": "366400fdf0f7eb423fcfd8ef92093ed4924b13b1",
+  "productChanges": "NONE",
+  "validationTier": "verification_only_existing_scope",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercent": 43,
+  "models": {
+    "driverAndSourceReview": "GPT-6.1 Sol Medium",
+    "nativeSolverMathAndIndependentOracle": "GPT-6.1 Sol High",
+    "executionFreezeCleanupVisualReview": "Root"
+  },
+  "input": {
+    "path": "apps/cad-studio/test/fixtures/d356.bcad",
+    "sha256": "be63861ad50cf5681ef5692775490eacd1cc42c7107114d6f3ed327f112619dc",
+    "scope": "Whole W60 depth40 H10 plate; public source Extrude edit to H12"
+  },
+  "preflight": {
+    "status": "PASS_PROSPECTIVE_STATIC_NATIVE_THREE_STATES",
+    "command": "bash /tmp/barocss-d457-root/run-preflight02.sh",
+    "receiptSHA256": "d0c5381a6b00ee46611073256056e031c4f1a349085b93cf4a8434713140cd3f",
+    "inspectorCalls": 3,
+    "oracleCalls": 3,
+    "sourceFiles": 466,
+    "sourcePinsEqual": true,
+    "cases": [
+      {
+        "name": "unmated-h10",
+        "height": 10,
+        "mated": false,
+        "status": "PASS",
+        "nativeSHA256": "820ebc138d6d4b14aa6ef614372f56c77439ce837b88b7740b40108d2e82fb3b",
+        "oracleSHA256": "48beddb9f7f47723a0b3c98641744a164c7b4c540f5beada01b67c6341d62a50",
+        "reports": [
+          {
+            "role": "first",
+            "id": "first",
+            "width": 60,
+            "volume": 24000,
+            "centroid": [
+              30,
+              20,
+              5
+            ],
+            "bounds": {
+              "min": [
+                0,
+                0,
+                0
+              ],
+              "max": [
+                60,
+                40,
+                10
+              ]
+            }
+          },
+          {
+            "role": "second",
+            "id": "second",
+            "width": 60,
+            "volume": 24000,
+            "centroid": [
+              30,
+              20,
+              35
+            ],
+            "bounds": {
+              "min": [
+                0,
+                0,
+                30
+              ],
+              "max": [
+                60,
+                40,
+                40
+              ]
+            }
+          }
+        ],
+        "freedom": {}
+      },
+      {
+        "name": "mated-h10",
+        "height": 10,
+        "mated": true,
+        "status": "PASS",
+        "nativeSHA256": "a5a5acfcdbd23a510a792d5043200cdecb3352b1b405df7921460ee25d8cac24",
+        "oracleSHA256": "dc809bcca932fd82719bc027628de805e1fd5c86f493e76cb7ba163ed8f33643",
+        "reports": [
+          {
+            "role": "first",
+            "id": "first",
+            "width": 60,
+            "volume": 24000,
+            "centroid": [
+              30,
+              20,
+              5
+            ],
+            "bounds": {
+              "min": [
+                0,
+                0,
+                0
+              ],
+              "max": [
+                60,
+                40,
+                10
+              ]
+            }
+          },
+          {
+            "role": "second",
+            "id": "second",
+            "width": 60,
+            "volume": 24000,
+            "centroid": [
+              30,
+              20,
+              15
+            ],
+            "bounds": {
+              "min": [
+                0,
+                0,
+                10
+              ],
+              "max": [
+                60,
+                40,
+                20
+              ]
+            }
+          }
+        ],
+        "freedom": {
+          "second": {
+            "turns": 1,
+            "slides": 2
+          }
+        }
+      },
+      {
+        "name": "mated-h12",
+        "height": 12,
+        "mated": true,
+        "status": "PASS",
+        "nativeSHA256": "8dd5580f9e67eaa4f2e935aae05355b450e7da7272f44e1aa3269975862db211",
+        "oracleSHA256": "e41a8587f8de69d0ecaf5f65bbf88ca9650ffe17ac776246a883199fd4f99bab",
+        "reports": [
+          {
+            "role": "first",
+            "id": "first",
+            "width": 60,
+            "volume": 28800,
+            "centroid": [
+              30,
+              20,
+              6
+            ],
+            "bounds": {
+              "min": [
+                0,
+                0,
+                0
+              ],
+              "max": [
+                60,
+                40,
+                12
+              ]
+            }
+          },
+          {
+            "role": "second",
+            "id": "second",
+            "width": 60,
+            "volume": 28800,
+            "centroid": [
+              30,
+              20,
+              18
+            ],
+            "bounds": {
+              "min": [
+                0,
+                0,
+                12
+              ],
+              "max": [
+                60,
+                40,
+                24
+              ]
+            }
+          }
+        ],
+        "freedom": {
+          "second": {
+            "turns": 1,
+            "slides": 2
+          }
+        }
+      }
+    ],
+    "limits": {
+      "volumeRelative": 1e-09,
+      "centroidBoundsPlanesCornersAbsolute": 1e-09
+    },
+    "initialGateAttempt": {
+      "status": "NOT_RUN_LOAD_PRECONDITION",
+      "command": "bash /tmp/barocss-d457-root/run-preflight.sh",
+      "load": 85.48,
+      "maximumExclusive": 40,
+      "leaseAcquired": false,
+      "providerCalls": 0
+    }
+  },
+  "nativeReader": {
+    "inspectorSHA256": "9819eb7bbdcfe44d9ebdeef2d1cccb44b3e9ba4c886106c0a2fd78d5187360f2",
+    "oracleSHA256": "f974da704fe1bc89f34268c9b0401d961235f23459469db681d164283e791dc0",
+    "readinessSHA256": "7a0e5b3ce223e7f92e45e17baa81137e9cd384d7dafb4f1724102762262a7355",
+    "meaning": "Native stored placements evaluated unchanged; separate solver result must agree. Actual public document and current Instance POSITION fields bind source; raster exactness not claimed"
+  },
+  "firstFailures": [
+    {
+      "run": 1,
+      "status": "FAIL_HARNESS_TRANSIENT_OLD_INSTANCE_NAME",
+      "receiptSHA256": "71de8bf203f034ec7078208773334ba2db4017c43d08fc752ee69697011de65d",
+      "command": "bash /tmp/barocss-d457-root/run-studio-workflow01.sh",
+      "sourceFiles": 2337,
+      "cleanupCurrentEqual": true,
+      "nativeCalls": 0,
+      "correction": "Wait current public Instance Name after clicking the actual Browser row. Original failure image shows correct selected first instance."
+    },
+    {
+      "run": 2,
+      "status": "FAIL_HARNESS_EXPECTED_EMPTY_MATES_OMITTED",
+      "receiptSHA256": "ffdde4b5280b58de2837d175c4677fe18543148ab49157d1e5bd083bc6b2d894",
+      "command": "bash /tmp/barocss-d457-root/run-studio-workflow02.sh",
+      "sourceFiles": 2377,
+      "cleanupCurrentEqual": true,
+      "nativeCalls": 0,
+      "correction": "Existing Ground commit adds explicit mates[]; root confirmed exact original doc plus grounded:true and mates:[] only. No broad normalization or product change."
+    }
+  ],
+  "actual": {
+    "status": "PASS_BY_EXACT_SCOPE_COMPOSITION",
+    "command": "bash /tmp/barocss-d457-root/run-studio-workflow03.sh",
+    "receiptSHA256": "70ed9455aeab9995778c1126000cd3e5b5d6f12b428067e1e2ce77cc333a8d37",
+    "configSHA256": "f05700bd764c618899c72a9240176e49117c2230c248f905dbde2af6fc60ba44",
+    "qualifiedGroups": 7,
+    "coverage": {
+      "sourceSave": "REUSED_RUN01_PASS_RECREATED_SOURCE_NECESSARY_ANTECEDENT",
+      "insertDuplicatePoseFix": "PASS_PUBLIC_PREFIX_AND_FIX_REUSED_CURRENT_NATIVE_QUALIFIED",
+      "samePartRefusal": "PASS",
+      "staticPlanarMate": "PASS",
+      "sourceHeight12Save": "PASS",
+      "autoOfferKeepCheckAccept": "PASS",
+      "acceptUndoRedoProjectOpen": "PASS",
+      "BOMConsumer": "PASS",
+      "fullConstraint": "NOT_RUN",
+      "exports": "NOT_RUN"
+    },
+    "screenshots": 18,
+    "nativeBindings": 10,
+    "newInspectorCalls": 4,
+    "exactDocumentNativeReuse": 6,
+    "oracleCalls": 10,
+    "sourceFiles": 2397,
+    "sourceBeforeFrozenAfterCleanupCurrentEqual": true,
+    "cleanup": [
+      {
+        "ownedProject": "D457-static-run03",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "wrapperAbsent": true,
+    "gateReleased": true,
+    "downloads": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "rootFinalImageViews": 6,
+    "rootEarlierFailureAndGroundImageViews": 2,
+    "resumeInput": {
+      "path": "/tmp/barocss-d457-workflow-run02/02-first-fixed.bcad",
+      "sha256": "fca22858bb873553b080589dd06a84153c62e6cd29a693546e975404f60c908a"
+    },
+    "priorResumeSHA256": "e3334e5dab57835c7ca43e7f2b7ef945b0682b28ae5b7260fcf5be810bf0a3e7",
+    "reuseMeaning": "Public source Save, Insert, Duplicate, typed poses and Ground operations retained from actual runs01/02. Run03 publicly opens their exact accepted fixed document and completes missing native/refusal/mate/link/history/file proof. Source file recreation is a necessary antecedent after owned-project cleanup. No construction or Ground replay."
+  },
+  "contract": {
+    "ids": {
+      "first": "inst1",
+      "second": "inst2",
+      "definition": "part1",
+      "mate": "m1"
+    },
+    "revisions": [
+      "A",
+      "B"
+    ],
+    "mate": {
+      "kind": "coincident",
+      "a": "inst1/n1.top",
+      "b": "inst2/n1.bottom",
+      "flip": false
+    },
+    "acceptedPositions": {
+      "first": [
+        0,
+        0,
+        0
+      ],
+      "unmatedSecond": [
+        0,
+        0,
+        30
+      ],
+      "matedH10Second": [
+        0,
+        0,
+        10
+      ],
+      "matedH12Second": [
+        0,
+        0,
+        12
+      ]
+    },
+    "eachVolumes": [
+      24000,
+      28800
+    ],
+    "matedCentroidsH10": [
+      [
+        30,
+        20,
+        5
+      ],
+      [
+        30,
+        20,
+        15
+      ]
+    ],
+    "matedCentroidsH12": [
+      [
+        30,
+        20,
+        6
+      ],
+      [
+        30,
+        20,
+        18
+      ]
+    ],
+    "freedom": {
+      "turns": 1,
+      "slides": 2
+    },
+    "sourcePath": "./D457-plate.bcad",
+    "projectPersistence": "Own OPFS; same browser context across Close/reload/Open; source and assembly paths distinct"
+  },
+  "notRun": {
+    "newUnitBuildTypes": "NOT_RUN_NO_SOURCE_OR_TEST_CHANGE_RETAIN_D456",
+    "fullKernel": "NOT_RUN_NO_BREP_CORE_CHANGE_RETAIN_D433",
+    "postOpenSourceEdit": "NOT_RUN_NOT_DECLARED",
+    "concentricDistanceNestedOrCoupledMates": "NOT_RUN_OTHER_PROFILES",
+    "MotionPhysics": "NOT_RUN_HOLD",
+    "exportsDownloads": "NOT_RUN_OWNER_GATE",
+    "rasterExactnessPerformanceGeneralPrecision": "NOT_RUN"
+  },
+  "issues": [
+    {
+      "number": 538,
+      "state": "OPEN",
+      "reason": "Only one finite public static mate and link profile; full adopted epic criteria not evidenced"
+    }
+  ],
+  "documentation": {
+    "status": "PASS",
+    "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+    "rows": 34,
+    "newBrokenLinks": 0,
+    "knownHistoricalMissingPaths": 1,
+    "archivesUnchanged": true
+  }
+}
