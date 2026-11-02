@@ -1,0 +1,90 @@
+{
+  "status": "EXECUTED_NO_GO_REAL_WARM_FRAME_BASELINE",
+  "asOf": "2026-11-03",
+  "sourceSummary": "examples/physics-real-warm-frame-2276/evidence/warm-01/summary.json",
+  "sourceSummaryPin": {
+    "bytes": 2509,
+    "sha256": "d64a684ce23c4c9ce33ebb9e32574f316b33261fd73612b41f7b6953e3d9cb6b"
+  },
+  "counts": {
+    "worlds": 1,
+    "attempts": 2,
+    "records": 297,
+    "applications": 203,
+    "queries": 19,
+    "queryPoints": 19,
+    "anchorChecks": 513,
+    "traceBytes": 1412571
+  },
+  "acceptedSteps": 2,
+  "firstFailure": {
+    "phase": "step2",
+    "kind": null,
+    "name": "Error",
+    "message": "currentTangentPlane: 9.141407414550243e-05 > 1e-12",
+    "stack": "Error: currentTangentPlane: 9.141407414550243e-05 > 1e-12\n    at observe (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-real-warm-frame-2276/run.mjs:15:787)\n    at file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-real-warm-frame-2276/run.mjs:25:167",
+    "independent": {
+      "cursor": {
+        "record": 6,
+        "kind": "impulse-application",
+        "outerPass": 0
+      },
+      "type": "ValueError",
+      "message": "currentTangentPlane: 9.141407414550243e-05 > 1e-12"
+    }
+  },
+  "checkedScope": {
+    "constructor": "EXECUTED_PASS",
+    "step1": "EXECUTED_PASS",
+    "step2": "EXECUTED_NO_GO_AT_FIRST_ACTUAL_WARM_EVENT",
+    "step3": "NOT_RUN",
+    "warmBranch": "ACTUALLY_EXERCISED_PRIOR_HIT_NONZERO_T_CHANGED_NORMAL_NATIVE_CORRESPONDENCE",
+    "warmTransportQualification": "NO_GO",
+    "laterStep2Checks": "NOT_RUN_AFTER_FIRST_FAILURE"
+  },
+  "residualNs": 9.141407414550243e-05,
+  "unchangedGateNs": 1e-12,
+  "inputAdjustedAtRuntime": false,
+  "cacheInjected": false,
+  "newNumericalRunsByPackaging": 0,
+  "newBuild": "NOT_RUN",
+  "serde": "NOT_RUN",
+  "restore": "NOT_RUN",
+  "publicNativeDesktop": "NOT_RUN",
+  "promotion": "BLOCKED",
+  "originalP4": "UNCHANGED_NO_GO",
+  "guardReceipts": {
+    "real-warm-reference-01": {
+      "path": "examples/physics-world-p5-2276/evidence/real-warm-reference-01/result.json",
+      "bytes": 3050,
+      "sha256": "f638bf82cf5bec1dfbb964a88dd10de98e00e061941685a93b8ea4b7399cd61e",
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 96.611125,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false
+    },
+    "real-warm-freeze-01": {
+      "path": "examples/physics-world-p5-2276/evidence/real-warm-freeze-01/result.json",
+      "bytes": 2993,
+      "sha256": "59d9c824eb10052db9761f2ba293f5948ba242142b9f1fdb96c7cc574c2cd332",
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 85.358834,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false
+    },
+    "real-warm-run-01": {
+      "path": "examples/physics-world-p5-2276/evidence/real-warm-run-01/result.json",
+      "bytes": 3168,
+      "sha256": "a6060dd4d91ec8f4f9f0cde5b03b5fd13a98fae7592cc12c3e62aa97808a69be",
+      "status": "FAIL",
+      "exit": 1,
+      "elapsedMs": 6374.149875,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false
+    }
+  },
+  "setupReview": "EXECUTION-REVIEW-02.json preserves pre-World review-hash mismatch and final matching review",
+  "archive": "EVIDENCE-01.tar.gz"
+}

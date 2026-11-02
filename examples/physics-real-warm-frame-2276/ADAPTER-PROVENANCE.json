@@ -1,0 +1,14 @@
+{
+  "kind": "NARROW_INPUT_ASSERTION_ADAPTER_ONLY",
+  "qualifiedObserver": "examples/physics-contact-wrench-producer-2276/observer.py",
+  "qualifiedObserverSHA256": "08b24e1d74b32f112b9d9b5627cd0d9e067f64c3b5709f970b9424bf94ab37fc",
+  "qualifiedTraceDecoder": "examples/physics-contact-wrench-producer-2276/trace_decode.py",
+  "allowedChanges": [
+    "import qualified immutable decoder from its directory",
+    "read/hash exact plain independently generated model/options",
+    "replace original cube initial pose and floor input assertions only"
+  ],
+  "unchanged": "All unit-cube inertia/momentum/spin/work/passivity/geometry/native-gap/wrench/coverage gates and tolerances copied verbatim",
+  "execution": "NOT_RUN",
+  "unchangedPhysicalAuditSuffixSHA256": "aeb432d2786270f7246d7adf3b17c467d8e5950fdfcd8bb320af3cb1115a39c9"
+}
