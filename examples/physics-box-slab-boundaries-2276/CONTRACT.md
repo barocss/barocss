@@ -1,0 +1,22 @@
+---
+work_id: physics-box-slab-boundaries-2276
+artifact_type: contract
+status: frozen_before_execution
+last_updated: 2026-11-03
+---
+
+Qualify only the current standard axis-aligned moving-box/static-box CCD path through the actual public World. Admission is in ccd.ts; there is no ccd-admission.ts. Existing thin-box CCD probe evidence already covers a CAD-derived gravity trajectory and rotational-candidate refusal. This new table adds finite analytic primitive-box boundary controls. Do not rerun the old probe or change production, admission, tolerances, solver passes, viewers, previous evidence or HOLDs.
+
+Use mass 2 kg, primitive COM box inertia, moving/static half extents [0.5,0.5,0.5], identity orientation, zero gravity, friction and restitution, direct broad phase, rigid-discrete-v1 and dt 1/128 s. The marked box alone has CCD enabled. All accepted impact controls are centered on one principal axis; they have no normal/angular coupling. Side-by-side off-center, edge/corner simultaneous events, tilted boxes, arbitrary scales and persistent contact dynamics are outside the qualification.
+
+Freeze 20 cases: 14 one-step geometric controls, 2 angular-command refusal controls and 4 creation-admission boundaries. Include positive/negative direction and X/Y/Z events, exact endpoint entry, beyond-endpoint MISS, separating/parallel/zero travel, initial touch/overlap discrete ownership, and translated geometry. A negative identity quaternion describes the same physical axes, but current box CCD admission requires w near +1. The two negative-q cases must preserve the existing typed INVALID_CONFIG boundary; they are not a claim of physical orientation error or permission to widen admission. Sensor fixtures and the persistent profile also remain refused. Torque and angularImpulse commands must refuse INVALID_COMMAND and retain the accepted World, clock and recorder log before retry/control comparison.
+
+The independent reference generator imports no candidate or public numerical code. Convert represented input floats to exact Fractions. Enumerate scalar face-crossing event times and test all six closed physical halfspaces at each event. Initial inclusion belongs to discrete contact; otherwise the first feasible event is the swept entry. The reference bank is written before any World import. Use Newton normal velocity and linear momentum for centered e0 response. Do not copy or invoke sweepBox/sweepDynamicBox as an oracle. Exact event ownership has no epsilon. The current inward CCD bias is not changed; accepted centered contact position is independently checked on the native face.
+
+Reuse the qualified1779 sphere-pair Source bundle and canonical Native index/replay dist without rebuilding. Freeze and verify every source/dist dependency hash before importing either graph. A hash drift stops the run. Root must review the authored contract/code, generate the independent bank, then freeze that bank before the first API execution. The API runner will not generate or refresh a bank or pins.
+
+Per graph: 18 successfully created Worlds, 4 creation refusals, 22 creation attempts, 22 accepted steps, 2 refused command entries; hard caps 24 Worlds and 28 accepted steps. Total table is 20 cases per graph. No more than 16 MiB evidence per graph. Geometry, TOI, normal, spin and tangent-impulse gates are 1e-12 in SI; momentum, velocity and energy gates are 1e-10. Source/Native full state/recording parity is exact after providerDigest normalization only. Save full raw binary64 inputs and pre/post states before checking. Stop on the first failure and preserve it. No iteration or tolerance relaxation. All execution uses the existing heavy gate and 180-second wrapper.
+
+This task authors files only. No build, numerical import, World call, browser job, deployment, dependency installation or old-worker resume is authorized during authoring. Full G2, persistent box contact geometry, P4, coupled mechanics and equipment acceptance remain separate NO_GO/NOT_RUN tracks.
+
+For the frozen negative-q baseline, Hamilton rotation by [0,0,0,-1] equals rotation by [0,0,0,1] for every vector: both have zero vector part and therefore leave every vector unchanged. The expected constructor refusal records current software admission only. A later sign-invariance repair requires an actual baseline first and a separate explicit bank/provider amendment. Preserve this original refusal bank and pins. Do not author a renderer before the repaired API result.

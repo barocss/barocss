@@ -18,7 +18,7 @@ export const providerManifest = {
     "capsule-query/snapshot.ts": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd",
     "capsule-query/sweep.ts": "a8f4d16879b2ff88086ceec54cef19d04d58fb063893e7a146382cad59cbaf77",
     "capsule-query/types.ts": "c22d17887cd8ab889a443c828200310a4c560fd3b4f8ed49f3f1f60e5dd46f44",
-    "ccd-box.ts": "43667cba73a01782cac3b9fe14828b67885229a6e09bc9f0e68b6a2d27057b43",
+    "ccd-box.ts": "076eadf591500684332bd19b53a780de480ccdde205196ad072a11e1abc4f7a4",
     "ccd-pair.ts": "87ea34e6b662b223874857651839407f351b0beaa03a4a85d1e4797744027e1a",
     "ccd-rounded-box.ts": "b4ad5a06435b1bacb796dace179f95904fd9d35e4e9dac17ead55bc2f675f59c",
     "ccd-slab.ts": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340",

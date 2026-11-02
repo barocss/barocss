@@ -1,0 +1,3111 @@
+{
+  "format": "bounded-evidence-archive-v1",
+  "status": "PASS_MEMBER_HASH_AND_PROTECTED_PRESERVATION_CHECK",
+  "archive": "EVIDENCE-01.tar.gz",
+  "bytes": 3025237,
+  "sha256": "a595f2a4ecef24f3fc29e3ea9543b0db55da0978d4c38da45dcfc95f83a859f2",
+  "uncompressedTarBytes": 13301760,
+  "uncompressedPayloadBytes": 12697475,
+  "uncompressedCapBytes": 16777216,
+  "members": {
+    "HASH-MANIFEST.json": {
+      "bytes": 332621,
+      "sha256": "5c49086085b3bcce67755bd36d7c7f231a5ece58db0cc1a8c7b5edb86acba6f4"
+    },
+    "SIGN-SOURCE-CHANGE.diff": {
+      "bytes": 490,
+      "sha256": "2e8d205edf999578921f422284ae6303713aa1d6fadb35271e6c5667e3ce0d3c"
+    },
+    "examples/physics-box-slab-boundaries-2276/AMENDMENT-02.md": {
+      "bytes": 3579,
+      "sha256": "3273fa7982a1e0a9a1401230b4f1faa1b1ece9199eefe4d22452e397e28d11e3"
+    },
+    "examples/physics-box-slab-boundaries-2276/BANK-01.json": {
+      "bytes": 8393,
+      "sha256": "c2114491c5f1f948a16f19b9a64ccffac608154c4bc01a6c38a8f4f2547a1954"
+    },
+    "examples/physics-box-slab-boundaries-2276/BANK-02.json": {
+      "bytes": 9609,
+      "sha256": "8af84b9de8f7a0eea07d61c067160548bd0d959c418fce5d4b49de6f0cf1c1a2"
+    },
+    "examples/physics-box-slab-boundaries-2276/CASES-01.json": {
+      "bytes": 2068,
+      "sha256": "6d2252e69ca6fde5361364f83e33c5a87d4938937897eeeab212891ce5b07fc2"
+    },
+    "examples/physics-box-slab-boundaries-2276/CASES-02.json": {
+      "bytes": 4263,
+      "sha256": "1278c142924ab2d91984c108dec98dd8e9dcf1abae80676482452cc878babc7a"
+    },
+    "examples/physics-box-slab-boundaries-2276/CONTRACT.md": {
+      "bytes": 4477,
+      "sha256": "654927a9bc0124387d3d66bee84bef8d9e9560b509252ad80f5378025024a64e"
+    },
+    "examples/physics-box-slab-boundaries-2276/FREEZE-01.json": {
+      "bytes": 50537,
+      "sha256": "50ca135e0c13cca1772240abe66626ef18fcf5a14a085a6520dfb5a379c6a88d"
+    },
+    "examples/physics-box-slab-boundaries-2276/FREEZE-02.json": {
+      "bytes": 50412,
+      "sha256": "f4a7d39b9853250d3bb18b471bd6b9fe3720543f1ec276304934dea396185271"
+    },
+    "examples/physics-box-slab-boundaries-2276/PROVIDER-PINS-01.json": {
+      "bytes": 48765,
+      "sha256": "1abb5528ebf195bd26da1c39688152fd7a97b6f1deca5f2a1ec2a3f07f31b7ba"
+    },
+    "examples/physics-box-slab-boundaries-2276/README.md": {
+      "bytes": 2100,
+      "sha256": "dbf133fa764f9f7597aef07d04d7ca6bd48fdea068d4a03b05d11f65a1784fc6"
+    },
+    "examples/physics-box-slab-boundaries-2276/RESULTS.json": {
+      "bytes": 14430,
+      "sha256": "8438c09db456a6e94e39114ea25f71b1fd392afb80ba59bec3259c80a8ee7379"
+    },
+    "examples/physics-box-slab-boundaries-2276/RESULTS.md": {
+      "bytes": 4323,
+      "sha256": "0f7987dc74393b9d1f3cb1b9b00fd4be93cf7288d1ed8f8fb83a065ff057e349"
+    },
+    "examples/physics-box-slab-boundaries-2276/browser-checks.js": {
+      "bytes": 10917,
+      "sha256": "a123a409aabea53f9df45493bd81b36025f304358838fa2fa81dde8e3566c0dc"
+    },
+    "examples/physics-box-slab-boundaries-2276/browser-run.mjs": {
+      "bytes": 3093,
+      "sha256": "3affb2d83f42f9ed6ac18daf47b54e3194f9ad49d8c149873d49a3fe2be02ed4"
+    },
+    "examples/physics-box-slab-boundaries-2276/build.mjs": {
+      "bytes": 4738,
+      "sha256": "cfa6d43357d3268e7a55ff3dce6d062649cd35394725b31ff2343df66fa847ba"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/canonical-root.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/canonical-root.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/compile.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/compile.stdout": {
+      "bytes": 34202,
+      "sha256": "4f2b2157c7e79e587b1ba75dc7935d38a445004ada12f08957fb9612e484a4b2"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/consumer.mts": {
+      "bytes": 837,
+      "sha256": "008ccd7316ca9e01acfc911ebec3e833b869b292ce4cb34c282a9f1d727255df"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/consumer.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/consumer.stdout": {
+      "bytes": 26240,
+      "sha256": "64ad0ee4392960ca941b8ee7228093c02a5f3068a5ce4b36e59ef13e6dd05d54"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/consumer.tsconfig.json": {
+      "bytes": 574,
+      "sha256": "736972e3e0e869d4ab2e968bdb370ad3d85a7f3e2e535b00ac69d261e1e06fb2"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/emitted-manifest.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/emitted-manifest.stdout": {
+      "bytes": 35,
+      "sha256": "455dbaedaeab23c5d70a0981f3b1a04b10d4b346cdb743d863b2f33503ad4cf2"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/generate.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/generate.stdout": {
+      "bytes": 34,
+      "sha256": "3d19351b907adb7b4463323437389f8615e34b1d31fbbcc3bd2b422580f5d8fb"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/provider-pins.json": {
+      "bytes": 45672,
+      "sha256": "4ccf047026241889376d8ecdeee72094f63c6dc6979c900b111a1844ce3a0280"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/result.json": {
+      "bytes": 2428,
+      "sha256": "9e82ff91439e68f8138268d46a0b78bfc564c14e1f3b2d677055f718203a91b7"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/runtime.tsconfig.json": {
+      "bytes": 862,
+      "sha256": "ed8630dcce542c097ecb3a82755cc89e27c11e5f778073f6674faa3782789a85"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/source-before.json": {
+      "bytes": 15077,
+      "sha256": "d8e67739b63e2eccaa9e888d17e7c0e72f461e6ed6a9a2f431accf757ac1a0ac"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/source-entry.ts": {
+      "bytes": 227,
+      "sha256": "010cae604b9538f3cef80af52821a8ff2ab4c3eae981773b660245b4cf9e9a51"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/source-meta.json": {
+      "bytes": 55783,
+      "sha256": "cf24d49f8ba63d05db7c40644c79da38d80f64f52506afd8b59289a3440cc731"
+    },
+    "examples/physics-box-slab-boundaries-2276/build/sign-02/source.mjs": {
+      "bytes": 459863,
+      "sha256": "6670895298efbfc98ed14516e915ae122588c07b5cf39e6b39190233049a07e2"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/frozen-inputs.json": {
+      "bytes": 53323,
+      "sha256": "bc1f412a73c7932ff7a8f28334eb7aa28ca1a109dc58d9b838fb3808f3f5695a"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-angular-impulse-refusal-before.json": {
+      "bytes": 25750,
+      "sha256": "0d5c2c3a75e87c239b8962134e5451c47f241b63f78ef9020c8d3874e5d4123a"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-angular-impulse-refusal-input.json": {
+      "bytes": 6537,
+      "sha256": "4b64355f32db58785bfaf845e2c8945f39f82d98a4ccbe5bc3f114f40f035272"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-angular-impulse-refusal-retained.json": {
+      "bytes": 19028,
+      "sha256": "562b222bb7eba2b9627c4764dae50a37dbb067860a8aa853623c71e45db8e066"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-angular-impulse-refusal.json": {
+      "bytes": 65591,
+      "sha256": "5c51ce433893fb90676895db5ffef027b51289b52f04837685d950b39f9f08d5"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-axis-x-entry-before.json": {
+      "bytes": 9820,
+      "sha256": "f2bc8f11408e38b87f7df97587ce9c8582044786891c3a30a637482d8237b3d3"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-axis-x-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "a19ea134b8dbd6c3cf7ca39dc82795d21c3eab58e652915c36e7fb5236fc0258"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-axis-x-entry-input.json": {
+      "bytes": 6942,
+      "sha256": "7fa3cfd504382225338935bfa4d8139045eb041f661d12f7d64ff27330bd8c88"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-axis-x-entry.json": {
+      "bytes": 15094,
+      "sha256": "a62ec3cf4570fd9d4c695d176c7ba611d17823e53e5ea7740512c0a60e4a1391"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-axis-z-entry-before.json": {
+      "bytes": 9820,
+      "sha256": "df9182216728dccede6c5727d85c88177b44dc55ebfe91cfc905c5491ccc6278"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-axis-z-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "94634280d8283e3658f676efb1f45b50da819f8ef41bcc7168a02a4147c1aee1"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-axis-z-entry-input.json": {
+      "bytes": 6939,
+      "sha256": "d1bcdfe13d41f6f0a2a5366db9ee01fd70f9d0ee664e24d2e84e292e58e5b5ff"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-axis-z-entry.json": {
+      "bytes": 15091,
+      "sha256": "557d447f2a6c6b0ba6ac4e34cbb8dc267256b5b1d486a377ebe6a72b112da026"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-beyond-endpoint-before.json": {
+      "bytes": 9826,
+      "sha256": "e9735c5d9955971dfb3502ff17f8f9dbb07e27d2abc572d034188d5432e1c840"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-beyond-endpoint-checks.json": {
+      "bytes": 720,
+      "sha256": "1fab602d381fa797f86ecf658b0bbb4114757afd41dde163e427875c2410bd2a"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-beyond-endpoint-input.json": {
+      "bytes": 6941,
+      "sha256": "4e326a7f353d732c6396d0c9c8346b852a19804a6693445201a468d5b9170f70"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-beyond-endpoint.json": {
+      "bytes": 13527,
+      "sha256": "e31d588e75c23fef2aa01e526dc029767029261e3d84c7d459c0ac05745b8781"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-centered-y-entry-before.json": {
+      "bytes": 9828,
+      "sha256": "101ead9afdece1e51892f13fbf591cbf996acdf870bf7a4f998ebf70c138f6f0"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-centered-y-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "6aaeb2b73ceae82c1fc13e2cba7e7f462827d6a436bb944b488a33b714695017"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-centered-y-entry-input.json": {
+      "bytes": 6951,
+      "sha256": "13aff5c705e567213bcb2635cb5ece4551659e705ddb7daafd0003168d187054"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-centered-y-entry.json": {
+      "bytes": 15107,
+      "sha256": "e7529662be1a0b2f89bed78583f836df946b002943b0af58ae38f7c583e4b8dd"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-counts.json": {
+      "bytes": 354,
+      "sha256": "7a97b233e398456f18180a6a9bb4947441b21fdb85b82775b8ce461bd7762c53"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-endpoint-entry-before.json": {
+      "bytes": 9824,
+      "sha256": "86a7e61580d6d91e90eb7d3e0e857bc177a8efcd47b1b73ce8c4c42f8edefb50"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-endpoint-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "672688fe2d1b803f0ab32a04a5949d99933cc7c8d4e9a24d3aaaf9748fb8db27"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-endpoint-entry-input.json": {
+      "bytes": 6930,
+      "sha256": "03cd634291b95fed3fffb8a3c51ba29c6c5dc66442a3dd59cd345470482af468"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-endpoint-entry.json": {
+      "bytes": 15084,
+      "sha256": "c643e733dd39a18440784a67a419939278eeacabe96ca46a9fd20864977bfb1c"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-initial-overlap-closing-before.json": {
+      "bytes": 9842,
+      "sha256": "bf1d3ec45661329369b31dcc864ac928fabb03d1f0549a4d03ef4674460cd0f9"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-initial-overlap-closing-checks.json": {
+      "bytes": 720,
+      "sha256": "a3a0fc14e173fa3cdb10e674fcfc77e90efc0d7d7a73ba9bf7ec32948aafa116"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-initial-overlap-closing-input.json": {
+      "bytes": 6960,
+      "sha256": "dfe4df0b44c78c5b73ccbb84286fab190a5202c7d89653f5421bf215a55114b7"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-initial-overlap-closing.json": {
+      "bytes": 14720,
+      "sha256": "6d3a4d4da0c7c2c2829d5da5bdd3f0b7584a8c138ddb62a7ad91374d263c5351"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-initial-overlap-rest-before.json": {
+      "bytes": 9836,
+      "sha256": "8b4a78b880befed92de3ff311be060de3660fc534c00eb171f72a8d1c9098c9e"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-initial-overlap-rest-checks.json": {
+      "bytes": 720,
+      "sha256": "a1219082a493d0a3f003bccbedec4818bba785eb4b784dde0480b2fa966adc48"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-initial-overlap-rest-input.json": {
+      "bytes": 6949,
+      "sha256": "a65af7202c262f0f4aa4271ee0f2381f6af8f2bd99df8d2ca975a3aa71c76282"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-initial-overlap-rest.json": {
+      "bytes": 14706,
+      "sha256": "04c6ec6b5f3715cd9ec59bf25892b78de81ab844e14403b1234493be5ddf95f0"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-initial-touch-rest-before.json": {
+      "bytes": 9832,
+      "sha256": "e18cdf19133898b9acf6a922f05c2985449ed8182e8f06ef713a0d0d85c3a928"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-initial-touch-rest-checks.json": {
+      "bytes": 720,
+      "sha256": "a1219082a493d0a3f003bccbedec4818bba785eb4b784dde0480b2fa966adc48"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-initial-touch-rest-input.json": {
+      "bytes": 6943,
+      "sha256": "8ad5f1675702041ce1d7955c1c28b4797c4a1367cc145002f04155d5468ba51c"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-initial-touch-rest.json": {
+      "bytes": 14698,
+      "sha256": "0c90dc14633db7840eaa704eb9468be2510604990a27361ab09a9ac52342ef64"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-initial-touch-separating-before.json": {
+      "bytes": 9844,
+      "sha256": "c104f95111621e654110ce4235101bf3b3470a672add628462136503f4042959"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-initial-touch-separating-checks.json": {
+      "bytes": 720,
+      "sha256": "1fab602d381fa797f86ecf658b0bbb4114757afd41dde163e427875c2410bd2a"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-initial-touch-separating-input.json": {
+      "bytes": 6968,
+      "sha256": "d91108873ecf56a2233a25b46d7ab38ea77b156078c718c5a9e860dea40af54b"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-initial-touch-separating.json": {
+      "bytes": 13563,
+      "sha256": "dbde9c640fc87b66f09611b5e66d7db82147ca2cb05371dbc186056a8167bc09"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-negative-fixture-quaternion-input.json": {
+      "bytes": 6331,
+      "sha256": "b4b075d9748234d1bbf8136274f6dc8e0c990fbd7a9a7d08817315924a4d3354"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-negative-fixture-quaternion-refusal.json": {
+      "bytes": 114,
+      "sha256": "e47a785ff9dfe243f456a8570c1e88b0462f8d1eb56ca13da485ea22f184886d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-negative-fixture-quaternion.json": {
+      "bytes": 6870,
+      "sha256": "4af263990d58400e0724c2365503720e4fb0b989e9a8ec76c5b12e469c6c303e"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-negative-moving-quaternion-input.json": {
+      "bytes": 6327,
+      "sha256": "5baa37751bed961704e5ee695ebc9cbfeafefc88fe64b609ca26dea5432688d9"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-negative-moving-quaternion-refusal.json": {
+      "bytes": 114,
+      "sha256": "e47a785ff9dfe243f456a8570c1e88b0462f8d1eb56ca13da485ea22f184886d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-negative-moving-quaternion.json": {
+      "bytes": 6868,
+      "sha256": "4432f23a4515d5a624573fb74ed91b8add668fcea2f4dc0d1380e572d52e318d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-negative-y-entry-before.json": {
+      "bytes": 9828,
+      "sha256": "7d94419b8b937f83c250f9fe14ec5663d00265c755ecb902d9b1ce0e44fd692a"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-negative-y-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "b0881c6c608d3ccbf980336ee316044a374f47c908e04f3fa8fc5c72ab468335"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-negative-y-entry-input.json": {
+      "bytes": 6954,
+      "sha256": "16091c97a5a3c3dd67fba7dca709e4213c92c5e698dc4f69c160e4f3606a9570"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-negative-y-entry.json": {
+      "bytes": 15110,
+      "sha256": "5ae717db7a6b6f2a821c294be6d4c227a2efcc12a1a25a757101c09ab82e1460"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-parallel-outside-before.json": {
+      "bytes": 9828,
+      "sha256": "2a64184709fb593c6158f189a321b5d1c084f245b63803e26d95b0998558eb17"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-parallel-outside-checks.json": {
+      "bytes": 720,
+      "sha256": "5431ae66e61218d5450be1b8cec5d6b8cb4a38fed5e8b708578983fd53c788fa"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-parallel-outside-input.json": {
+      "bytes": 6943,
+      "sha256": "8daa0fcc646cb004f1fc489139da8d35a81f308d4f39a2029c93e120c4a06d40"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-parallel-outside.json": {
+      "bytes": 13530,
+      "sha256": "09f9188dfa21c47d3f4df9c91018e07865094f0c171e349e2d38799d6d77e456"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-persistent-profile-input.json": {
+      "bytes": 6310,
+      "sha256": "19561fcaa704283d69fb8cf75f1a0ecb9cd9c451e50d48975eaadcfb37bc3ee4"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-persistent-profile-refusal.json": {
+      "bytes": 108,
+      "sha256": "0b3c007ddc7e02053e11040cd1296c07ae7e0679b16dfde059dba857938da026"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-persistent-profile.json": {
+      "bytes": 6852,
+      "sha256": "cfef8de4f078255eaf44241a838fb645979cf052a92c57d654f6aff5259c699d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-sensor-fixture-input.json": {
+      "bytes": 6287,
+      "sha256": "a672220bc0a92e98102e1ffc86dcdb91e73366df0652d22758a402efef376499"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-sensor-fixture-refusal.json": {
+      "bytes": 116,
+      "sha256": "e79f356aab945a5e6785b9777c92e109f7823e692ccc2d8d636a94be7f2ddf08"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-sensor-fixture.json": {
+      "bytes": 6845,
+      "sha256": "ae8121aea3054f62d67d47dc289d32e7755fa756607c84f88238167e74f4b908"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-separating-before.json": {
+      "bytes": 9816,
+      "sha256": "15107a819dbc2af9e516dfabdc3d1f5be9e681c5c1d9ca69f187b68058896772"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-separating-checks.json": {
+      "bytes": 720,
+      "sha256": "5431ae66e61218d5450be1b8cec5d6b8cb4a38fed5e8b708578983fd53c788fa"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-separating-input.json": {
+      "bytes": 6925,
+      "sha256": "68259faedbced1bd771bf992629e1722610bb5d2adf5476b59b1fc153c0302c2"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-separating.json": {
+      "bytes": 13506,
+      "sha256": "f935d0113ed1f1147fd18f010f0f649c55fc0d541fa65b85947a91f4f54554dd"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-torque-refusal-before.json": {
+      "bytes": 25688,
+      "sha256": "fd25685a461c8fe33c24f10f6ae00571f081a68e10f9bb13b7d5254459a73015"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-torque-refusal-input.json": {
+      "bytes": 6493,
+      "sha256": "cd4aa59013eaf361406bb4eca532bee0458a8335e6ac85aeef89ca6dbcd8474d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-torque-refusal-retained.json": {
+      "bytes": 18992,
+      "sha256": "c8bb5010a1bd133b69e9094dcbe42e9209da1649929c42ca87b9fb0a047adc06"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-torque-refusal.json": {
+      "bytes": 65465,
+      "sha256": "4cb489b1f3d81829e3da111687332880aa8d4a9293f825f37ab1ffe2e2f64797"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-translated-y-entry-before.json": {
+      "bytes": 9832,
+      "sha256": "a9e963f9221794ca8458ffe9d5da004e377ee89caafd61f486c5a6105eb50952"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-translated-y-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "6aaeb2b73ceae82c1fc13e2cba7e7f462827d6a436bb944b488a33b714695017"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-translated-y-entry-input.json": {
+      "bytes": 7153,
+      "sha256": "726b44698cd9a5ec876e6dd11e62f7eb6c132679f104efdf3344bdf4237acde7"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-translated-y-entry.json": {
+      "bytes": 15120,
+      "sha256": "51b7ce69898fd1c7e4794268b21802a3b2c8d2f306a7025b9422d1adff470a8f"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-zero-travel-before.json": {
+      "bytes": 9818,
+      "sha256": "ac6e54a88c79621449a113a93f9ed1add9f0a3451083e39c29d50eb5da0470ec"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-zero-travel-checks.json": {
+      "bytes": 720,
+      "sha256": "a1219082a493d0a3f003bccbedec4818bba785eb4b784dde0480b2fa966adc48"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-zero-travel-input.json": {
+      "bytes": 6922,
+      "sha256": "5b123bace1663acf4312b8f92fcc1e2d627babdaf55724512268b3dd540f7fd6"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/native-zero-travel.json": {
+      "bytes": 13504,
+      "sha256": "ce3f170793e89bb90dc2c54b1e888a5e74f577b383a5b943b0ceb29d0cb8503e"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/result.json": {
+      "bytes": 1425,
+      "sha256": "a7fe5fd829bd65e9efb43c5a09946f2ca1afcb9beffdd07912eb4a14988607d3"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-angular-impulse-refusal-before.json": {
+      "bytes": 25750,
+      "sha256": "108f5b9b43f75e31f9841b876e05c405ebb07e4f1214cf8ef65fc9f468264cd0"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-angular-impulse-refusal-input.json": {
+      "bytes": 6537,
+      "sha256": "4b64355f32db58785bfaf845e2c8945f39f82d98a4ccbe5bc3f114f40f035272"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-angular-impulse-refusal-retained.json": {
+      "bytes": 19028,
+      "sha256": "91a06d6a8a31a61078ab58e9687af3b53757372c8f7ccabd9dd066360586e0e2"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-angular-impulse-refusal.json": {
+      "bytes": 65591,
+      "sha256": "1428ba8dc20286145223baeefe35abd8242ca52faee1efa2a2fd0eb8f85fe0b9"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-axis-x-entry-before.json": {
+      "bytes": 9820,
+      "sha256": "248ae26f62d9bec4a0af63e7d8d9b6fdec6e63bc4b7f1e852791988e83bd8bb1"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-axis-x-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "a19ea134b8dbd6c3cf7ca39dc82795d21c3eab58e652915c36e7fb5236fc0258"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-axis-x-entry-input.json": {
+      "bytes": 6942,
+      "sha256": "7fa3cfd504382225338935bfa4d8139045eb041f661d12f7d64ff27330bd8c88"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-axis-x-entry.json": {
+      "bytes": 15094,
+      "sha256": "9d044188ead38fc9062ee36a287b311bc3044b7f0e32b3610502a746714819fa"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-axis-z-entry-before.json": {
+      "bytes": 9820,
+      "sha256": "7f323f973af15fb37c33b74e9e05e62f63cd97aa4f90635a28e9d8778c64c7f5"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-axis-z-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "94634280d8283e3658f676efb1f45b50da819f8ef41bcc7168a02a4147c1aee1"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-axis-z-entry-input.json": {
+      "bytes": 6939,
+      "sha256": "d1bcdfe13d41f6f0a2a5366db9ee01fd70f9d0ee664e24d2e84e292e58e5b5ff"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-axis-z-entry.json": {
+      "bytes": 15091,
+      "sha256": "623574bf58308d97763b0cea9b33b03d26b5c0c26a494b897af74d7b60233bab"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-beyond-endpoint-before.json": {
+      "bytes": 9826,
+      "sha256": "1ee99085212bf34c0a8347765fc2e6d38cf46814323a726cc743eefc928850c9"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-beyond-endpoint-checks.json": {
+      "bytes": 720,
+      "sha256": "1fab602d381fa797f86ecf658b0bbb4114757afd41dde163e427875c2410bd2a"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-beyond-endpoint-input.json": {
+      "bytes": 6941,
+      "sha256": "4e326a7f353d732c6396d0c9c8346b852a19804a6693445201a468d5b9170f70"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-beyond-endpoint.json": {
+      "bytes": 13527,
+      "sha256": "cdb0dd47284f0138f66543f9130b5ba43fd96e4113274df2e40026326620f074"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-centered-y-entry-before.json": {
+      "bytes": 9828,
+      "sha256": "9d6c5c57cc54c74b589adea8c692fd5ed6dd01e6647e91b7a2ca20b743e22711"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-centered-y-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "6aaeb2b73ceae82c1fc13e2cba7e7f462827d6a436bb944b488a33b714695017"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-centered-y-entry-input.json": {
+      "bytes": 6951,
+      "sha256": "13aff5c705e567213bcb2635cb5ece4551659e705ddb7daafd0003168d187054"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-centered-y-entry.json": {
+      "bytes": 15107,
+      "sha256": "5cc796e7e665de87b6f0e41f9f10c0a99f9889d51c0c3c89de206d940bd77566"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-counts.json": {
+      "bytes": 354,
+      "sha256": "7a97b233e398456f18180a6a9bb4947441b21fdb85b82775b8ce461bd7762c53"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-endpoint-entry-before.json": {
+      "bytes": 9824,
+      "sha256": "4dc6f47a2caa7a3e8bb7e9e38024a5a56c6ce7cbb88016a33798757644edc526"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-endpoint-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "672688fe2d1b803f0ab32a04a5949d99933cc7c8d4e9a24d3aaaf9748fb8db27"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-endpoint-entry-input.json": {
+      "bytes": 6930,
+      "sha256": "03cd634291b95fed3fffb8a3c51ba29c6c5dc66442a3dd59cd345470482af468"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-endpoint-entry.json": {
+      "bytes": 15084,
+      "sha256": "eb69cf0033d3a21349384a6c2c6ff108f87fe9948059a0a6b9643083a1af84b1"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-initial-overlap-closing-before.json": {
+      "bytes": 9842,
+      "sha256": "decc7ccddfa665d83fca08f9b18432b45c45970fe0935052ba4f6ef0ce63e190"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-initial-overlap-closing-checks.json": {
+      "bytes": 720,
+      "sha256": "a3a0fc14e173fa3cdb10e674fcfc77e90efc0d7d7a73ba9bf7ec32948aafa116"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-initial-overlap-closing-input.json": {
+      "bytes": 6960,
+      "sha256": "dfe4df0b44c78c5b73ccbb84286fab190a5202c7d89653f5421bf215a55114b7"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-initial-overlap-closing.json": {
+      "bytes": 14720,
+      "sha256": "b9bed46ae2707a753647b730f484733abcbfa3660bebdbd27c011e0eea5b8c3c"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-initial-overlap-rest-before.json": {
+      "bytes": 9836,
+      "sha256": "fa7600443acc7d823307927db25289ade698bc6c6d52b9a42fd08f68de7337ba"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-initial-overlap-rest-checks.json": {
+      "bytes": 720,
+      "sha256": "a1219082a493d0a3f003bccbedec4818bba785eb4b784dde0480b2fa966adc48"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-initial-overlap-rest-input.json": {
+      "bytes": 6949,
+      "sha256": "a65af7202c262f0f4aa4271ee0f2381f6af8f2bd99df8d2ca975a3aa71c76282"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-initial-overlap-rest.json": {
+      "bytes": 14706,
+      "sha256": "19ff60521d1ed1d29729ec297287f766a787d9ce404906f16037d9d3cb106b4b"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-initial-touch-rest-before.json": {
+      "bytes": 9832,
+      "sha256": "cf6347731663e67136a1e20c001e177bb7ddd6acb63024a8b52fb749408bda39"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-initial-touch-rest-checks.json": {
+      "bytes": 720,
+      "sha256": "a1219082a493d0a3f003bccbedec4818bba785eb4b784dde0480b2fa966adc48"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-initial-touch-rest-input.json": {
+      "bytes": 6943,
+      "sha256": "8ad5f1675702041ce1d7955c1c28b4797c4a1367cc145002f04155d5468ba51c"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-initial-touch-rest.json": {
+      "bytes": 14698,
+      "sha256": "06bab5cb1b62e83180653b3cc92b7fc0ad8182086a7d40d0fc87438813c5f599"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-initial-touch-separating-before.json": {
+      "bytes": 9844,
+      "sha256": "cfc221f44848c892d545f98e2d515d06ac5c39efad777b861cf98fba6a37192b"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-initial-touch-separating-checks.json": {
+      "bytes": 720,
+      "sha256": "1fab602d381fa797f86ecf658b0bbb4114757afd41dde163e427875c2410bd2a"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-initial-touch-separating-input.json": {
+      "bytes": 6968,
+      "sha256": "d91108873ecf56a2233a25b46d7ab38ea77b156078c718c5a9e860dea40af54b"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-initial-touch-separating.json": {
+      "bytes": 13563,
+      "sha256": "7a84c8acc836dc2fb50e24187c01cd3c5952ae29929ceed053a384b095b86ad9"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-negative-fixture-quaternion-input.json": {
+      "bytes": 6331,
+      "sha256": "b4b075d9748234d1bbf8136274f6dc8e0c990fbd7a9a7d08817315924a4d3354"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-negative-fixture-quaternion-refusal.json": {
+      "bytes": 114,
+      "sha256": "e47a785ff9dfe243f456a8570c1e88b0462f8d1eb56ca13da485ea22f184886d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-negative-fixture-quaternion.json": {
+      "bytes": 6870,
+      "sha256": "4af263990d58400e0724c2365503720e4fb0b989e9a8ec76c5b12e469c6c303e"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-negative-moving-quaternion-input.json": {
+      "bytes": 6327,
+      "sha256": "5baa37751bed961704e5ee695ebc9cbfeafefc88fe64b609ca26dea5432688d9"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-negative-moving-quaternion-refusal.json": {
+      "bytes": 114,
+      "sha256": "e47a785ff9dfe243f456a8570c1e88b0462f8d1eb56ca13da485ea22f184886d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-negative-moving-quaternion.json": {
+      "bytes": 6868,
+      "sha256": "4432f23a4515d5a624573fb74ed91b8add668fcea2f4dc0d1380e572d52e318d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-negative-y-entry-before.json": {
+      "bytes": 9828,
+      "sha256": "96fd21db479436036d70217d0b03b71763a45bae918415a5f36dd37993c16b18"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-negative-y-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "b0881c6c608d3ccbf980336ee316044a374f47c908e04f3fa8fc5c72ab468335"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-negative-y-entry-input.json": {
+      "bytes": 6954,
+      "sha256": "16091c97a5a3c3dd67fba7dca709e4213c92c5e698dc4f69c160e4f3606a9570"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-negative-y-entry.json": {
+      "bytes": 15110,
+      "sha256": "7c2f2341f791be4cc135e35624cea2e3886408551a6803f2fce4a6c3da0d063e"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-parallel-outside-before.json": {
+      "bytes": 9828,
+      "sha256": "6cb9920a914b5da788d511206b1e63026fecc4c9cd37671ad6143dbedd2c9cb9"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-parallel-outside-checks.json": {
+      "bytes": 720,
+      "sha256": "5431ae66e61218d5450be1b8cec5d6b8cb4a38fed5e8b708578983fd53c788fa"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-parallel-outside-input.json": {
+      "bytes": 6943,
+      "sha256": "8daa0fcc646cb004f1fc489139da8d35a81f308d4f39a2029c93e120c4a06d40"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-parallel-outside.json": {
+      "bytes": 13530,
+      "sha256": "f46e3f949f3f1d36ffb1a221123e2decc71b848cab866ffacc8172cdd99613b3"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-persistent-profile-input.json": {
+      "bytes": 6310,
+      "sha256": "19561fcaa704283d69fb8cf75f1a0ecb9cd9c451e50d48975eaadcfb37bc3ee4"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-persistent-profile-refusal.json": {
+      "bytes": 108,
+      "sha256": "0b3c007ddc7e02053e11040cd1296c07ae7e0679b16dfde059dba857938da026"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-persistent-profile.json": {
+      "bytes": 6852,
+      "sha256": "cfef8de4f078255eaf44241a838fb645979cf052a92c57d654f6aff5259c699d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-sensor-fixture-input.json": {
+      "bytes": 6287,
+      "sha256": "a672220bc0a92e98102e1ffc86dcdb91e73366df0652d22758a402efef376499"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-sensor-fixture-refusal.json": {
+      "bytes": 116,
+      "sha256": "e79f356aab945a5e6785b9777c92e109f7823e692ccc2d8d636a94be7f2ddf08"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-sensor-fixture.json": {
+      "bytes": 6845,
+      "sha256": "ae8121aea3054f62d67d47dc289d32e7755fa756607c84f88238167e74f4b908"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-separating-before.json": {
+      "bytes": 9816,
+      "sha256": "05bba244e068d4d5805bc36399be6c38b8d0b7b78162c4db6e58a9e3af020640"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-separating-checks.json": {
+      "bytes": 720,
+      "sha256": "5431ae66e61218d5450be1b8cec5d6b8cb4a38fed5e8b708578983fd53c788fa"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-separating-input.json": {
+      "bytes": 6925,
+      "sha256": "68259faedbced1bd771bf992629e1722610bb5d2adf5476b59b1fc153c0302c2"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-separating.json": {
+      "bytes": 13506,
+      "sha256": "6c31df5ba47c0c4582f4af170cbddf27bd01c960a420a16180e15eb6095a4287"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-torque-refusal-before.json": {
+      "bytes": 25688,
+      "sha256": "9f74eff3f20881fca520115cf1a0f6bdce12279efc5755a1318baf826801ef3c"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-torque-refusal-input.json": {
+      "bytes": 6493,
+      "sha256": "cd4aa59013eaf361406bb4eca532bee0458a8335e6ac85aeef89ca6dbcd8474d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-torque-refusal-retained.json": {
+      "bytes": 18992,
+      "sha256": "21c8c5d29bc2b2b6cf3d149b8e0b5a3d706fd7d6bbc4018c42bd1fe2f8690489"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-torque-refusal.json": {
+      "bytes": 65465,
+      "sha256": "0aadf4d799eb23a06343fb23484dafbb03ab8b82361b804927dfa7e112cb0f31"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-translated-y-entry-before.json": {
+      "bytes": 9832,
+      "sha256": "f6b930d85d878afaf980bf4913309272624f772e9fa3afe8b3de9b73b3bce336"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-translated-y-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "6aaeb2b73ceae82c1fc13e2cba7e7f462827d6a436bb944b488a33b714695017"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-translated-y-entry-input.json": {
+      "bytes": 7153,
+      "sha256": "726b44698cd9a5ec876e6dd11e62f7eb6c132679f104efdf3344bdf4237acde7"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-translated-y-entry.json": {
+      "bytes": 15120,
+      "sha256": "49b9a19979b382d68a3e8e3b6fa4755beba112e1ba81449f2cc65443f3994a9e"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-zero-travel-before.json": {
+      "bytes": 9818,
+      "sha256": "c20768d1f11ac79967aaffb74884f69e9a639f59f28fd7350fe3a2974d6c2e85"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-zero-travel-checks.json": {
+      "bytes": 720,
+      "sha256": "a1219082a493d0a3f003bccbedec4818bba785eb4b784dde0480b2fa966adc48"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-zero-travel-input.json": {
+      "bytes": 6922,
+      "sha256": "5b123bace1663acf4312b8f92fcc1e2d627babdaf55724512268b3dd540f7fd6"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/baseline-01/source-zero-travel.json": {
+      "bytes": 13504,
+      "sha256": "0ab9d6da9dc3392dbf4c40c61be934171a6ecd07a1d33ec8d2215d62d1ba8ac6"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/before-sign-fix-01/manifest.json": {
+      "bytes": 84370,
+      "sha256": "2047c7513d4bcddbe02cd8050657e62544d47999a9c0780ce1da22357b5c8609"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/before-sign-fix-01/provider-and-baseline.tar.gz": {
+      "bytes": 478690,
+      "sha256": "e3ed42e65317f5782e7413737f4d409a822871176b9fd4b108bf29ba84b2b832"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/regression-02/driver-at-refusal.mjs": {
+      "bytes": 2700,
+      "sha256": "7305898ef2e7e770575cc091ddfc841f1eccb739d6e122cb378f26fbc9c0eef6"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/regression-02/effective.mjs": {
+      "bytes": 5902,
+      "sha256": "14b7ac296936b1dfc7ca2c887ba0efdaa55b43140b070effc04d6b2d0650d882"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/regression-02/original.mjs": {
+      "bytes": 5805,
+      "sha256": "7931f845ac23ebcd2e82482219da2b09df1095be34f0b7d26009157b99684431"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/regression-02/preflight-refusal.json": {
+      "bytes": 393,
+      "sha256": "e6806eb97b67f291e9d65e87dd2d95d2d210e6942a5d1405991735161544e58f"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/regression-02/probe.mjs": {
+      "bytes": 599672,
+      "sha256": "709ac329b786f11b73e4b113457ddb403c76acd084a9d893169d818eaab5aa68"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/regression-03/driver-at-refusal.mjs": {
+      "bytes": 2782,
+      "sha256": "0de12e93394ca4b7b18e2e49aa78f1768afc69c19f9f987a3a26792bd6213055"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/regression-03/effective.mjs": {
+      "bytes": 5902,
+      "sha256": "14b7ac296936b1dfc7ca2c887ba0efdaa55b43140b070effc04d6b2d0650d882"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/regression-03/original.mjs": {
+      "bytes": 5805,
+      "sha256": "7931f845ac23ebcd2e82482219da2b09df1095be34f0b7d26009157b99684431"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/regression-03/preflight-refusal.json": {
+      "bytes": 388,
+      "sha256": "c07a0ac7c49db61c3158bd0fe4c45ff009d3638bdfbd7b53e3ffe264412c6c49"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/regression-03/probe.mjs": {
+      "bytes": 599672,
+      "sha256": "709ac329b786f11b73e4b113457ddb403c76acd084a9d893169d818eaab5aa68"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/regression-04/effective.mjs": {
+      "bytes": 5902,
+      "sha256": "14b7ac296936b1dfc7ca2c887ba0efdaa55b43140b070effc04d6b2d0650d882"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/regression-04/metafile.json": {
+      "bytes": 418766,
+      "sha256": "16b7713582d4478ac17f43cf4fe704fc9ce4805dd10995720e14e16572b87f8b"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/regression-04/original.mjs": {
+      "bytes": 5805,
+      "sha256": "7931f845ac23ebcd2e82482219da2b09df1095be34f0b7d26009157b99684431"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/regression-04/probe.mjs": {
+      "bytes": 417670,
+      "sha256": "e886d98bbd063df6267feb4aebdd052f06d0ee13585add6f035b2bd1f5c70e6f"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/regression-04/provider.json": {
+      "bytes": 604,
+      "sha256": "f2ac36a79561d8ed6fb36829437dde2a07c2bfb05c105a394151683a822bbe63"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/regression-04/result.json": {
+      "bytes": 666,
+      "sha256": "ad516ec5b9d9d4f18145067d319d0d48c5cf770a2a7a39ed1b9146ea6c282675"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/frozen-inputs.json": {
+      "bytes": 53190,
+      "sha256": "300029baa6fd3df5dd5457215e856d483cfc982a578b95e37e114a3866b96295"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-angular-impulse-refusal-before.json": {
+      "bytes": 25750,
+      "sha256": "d23fdfc218a463c534ff5454d22ac923d8f35c949135eee5ce5d60c7da6b9bb3"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-angular-impulse-refusal-input.json": {
+      "bytes": 6537,
+      "sha256": "4b64355f32db58785bfaf845e2c8945f39f82d98a4ccbe5bc3f114f40f035272"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-angular-impulse-refusal-retained.json": {
+      "bytes": 19028,
+      "sha256": "526e8400a70c3085e85849073202d089e14f0e5a6f77693a900392a13236893a"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-angular-impulse-refusal.json": {
+      "bytes": 65591,
+      "sha256": "08dfc30bda8f468c2baa5dc195221255dae2c3110102edb13ec5588b1d994af8"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-axis-x-entry-before.json": {
+      "bytes": 9820,
+      "sha256": "71100286ffd32ad2825cd477cfadd072c408dbf894902ef935294ed8b0195d3f"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-axis-x-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "a19ea134b8dbd6c3cf7ca39dc82795d21c3eab58e652915c36e7fb5236fc0258"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-axis-x-entry-input.json": {
+      "bytes": 6942,
+      "sha256": "7fa3cfd504382225338935bfa4d8139045eb041f661d12f7d64ff27330bd8c88"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-axis-x-entry.json": {
+      "bytes": 15094,
+      "sha256": "639e4464c3a7ea6381715b15073ef75c0c51720ec61e0c50c450adc7f3216cf9"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-axis-z-entry-before.json": {
+      "bytes": 9820,
+      "sha256": "90705617ef40e99d9d3308b008b3ed85dc46fd361f9fce1e5d66ea4344b3e091"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-axis-z-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "94634280d8283e3658f676efb1f45b50da819f8ef41bcc7168a02a4147c1aee1"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-axis-z-entry-input.json": {
+      "bytes": 6939,
+      "sha256": "d1bcdfe13d41f6f0a2a5366db9ee01fd70f9d0ee664e24d2e84e292e58e5b5ff"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-axis-z-entry.json": {
+      "bytes": 15091,
+      "sha256": "28b0468128d0e570aaacd636c9efee2af26451859bc522fed565f33ade5a26f5"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-beyond-endpoint-before.json": {
+      "bytes": 9826,
+      "sha256": "cd9b9c6e487717e04986d5d56b02c3e54a5b2f6fd50b810955f051f6c6d27576"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-beyond-endpoint-checks.json": {
+      "bytes": 720,
+      "sha256": "1fab602d381fa797f86ecf658b0bbb4114757afd41dde163e427875c2410bd2a"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-beyond-endpoint-input.json": {
+      "bytes": 6941,
+      "sha256": "4e326a7f353d732c6396d0c9c8346b852a19804a6693445201a468d5b9170f70"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-beyond-endpoint.json": {
+      "bytes": 13527,
+      "sha256": "56629828d4ca3ba0ff39c302b29b5cfd171a978b26217c0cd033185a1fa21a59"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-centered-y-entry-before.json": {
+      "bytes": 9828,
+      "sha256": "ff6de72de6e8bde92b6c7c3f47421fa77ad3245581cebd022c29d2ae4589931e"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-centered-y-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "6aaeb2b73ceae82c1fc13e2cba7e7f462827d6a436bb944b488a33b714695017"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-centered-y-entry-input.json": {
+      "bytes": 6951,
+      "sha256": "13aff5c705e567213bcb2635cb5ece4551659e705ddb7daafd0003168d187054"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-centered-y-entry.json": {
+      "bytes": 15107,
+      "sha256": "f48364d5df91f39e1660f42304a5cf6f405f0609e6a750ee121ff2f3613cba70"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-counts.json": {
+      "bytes": 354,
+      "sha256": "2e3cf52ad820844080ba16968312aff6c055660c50a4526173980d1b847ea6ef"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-endpoint-entry-before.json": {
+      "bytes": 9824,
+      "sha256": "b00970e7c8cfe7636d0a072936b421894b2a4d6d1adde270f7e1f44389fedf92"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-endpoint-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "672688fe2d1b803f0ab32a04a5949d99933cc7c8d4e9a24d3aaaf9748fb8db27"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-endpoint-entry-input.json": {
+      "bytes": 6930,
+      "sha256": "03cd634291b95fed3fffb8a3c51ba29c6c5dc66442a3dd59cd345470482af468"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-endpoint-entry.json": {
+      "bytes": 15084,
+      "sha256": "554790c6aacf58671915c68e9395227fd833c7e06e571aff0f6ae0196f641542"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-initial-overlap-closing-before.json": {
+      "bytes": 9842,
+      "sha256": "cc8afc50b29ccafb80fd3cadd0260456fe14dee1b0af0729eb5f0ad4abf76310"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-initial-overlap-closing-checks.json": {
+      "bytes": 720,
+      "sha256": "a3a0fc14e173fa3cdb10e674fcfc77e90efc0d7d7a73ba9bf7ec32948aafa116"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-initial-overlap-closing-input.json": {
+      "bytes": 6960,
+      "sha256": "dfe4df0b44c78c5b73ccbb84286fab190a5202c7d89653f5421bf215a55114b7"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-initial-overlap-closing.json": {
+      "bytes": 14720,
+      "sha256": "0bed2e3f869c555adc00df1dd6cd3c4180179b24d4c2a6044b5478d90ed13a06"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-initial-overlap-rest-before.json": {
+      "bytes": 9836,
+      "sha256": "216e80977c93c0a446202b5c64fe3255963ed80c1896e5791089a9f533f22000"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-initial-overlap-rest-checks.json": {
+      "bytes": 720,
+      "sha256": "a1219082a493d0a3f003bccbedec4818bba785eb4b784dde0480b2fa966adc48"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-initial-overlap-rest-input.json": {
+      "bytes": 6949,
+      "sha256": "a65af7202c262f0f4aa4271ee0f2381f6af8f2bd99df8d2ca975a3aa71c76282"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-initial-overlap-rest.json": {
+      "bytes": 14706,
+      "sha256": "e36a0dd62bbb9fefe448e84dab8e7e7ee54ac80a941ec989077ae0dcdaf52817"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-initial-touch-rest-before.json": {
+      "bytes": 9832,
+      "sha256": "24d48eb5df933aaa1fe5f9bc28c749bab9ce3ffdf0007a4c2292783f5e8bfa6d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-initial-touch-rest-checks.json": {
+      "bytes": 720,
+      "sha256": "a1219082a493d0a3f003bccbedec4818bba785eb4b784dde0480b2fa966adc48"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-initial-touch-rest-input.json": {
+      "bytes": 6943,
+      "sha256": "8ad5f1675702041ce1d7955c1c28b4797c4a1367cc145002f04155d5468ba51c"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-initial-touch-rest.json": {
+      "bytes": 14698,
+      "sha256": "d89db229843307b5e10d64e23a1be710c8ebed9f95ffd5e657a01f402cc5b8c4"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-initial-touch-separating-before.json": {
+      "bytes": 9844,
+      "sha256": "18ee05a27afc7a6eec370c2755aa3ec08a45f126bc624049fee3e199bece3d10"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-initial-touch-separating-checks.json": {
+      "bytes": 720,
+      "sha256": "1fab602d381fa797f86ecf658b0bbb4114757afd41dde163e427875c2410bd2a"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-initial-touch-separating-input.json": {
+      "bytes": 6968,
+      "sha256": "d91108873ecf56a2233a25b46d7ab38ea77b156078c718c5a9e860dea40af54b"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-initial-touch-separating.json": {
+      "bytes": 13563,
+      "sha256": "51693a279d4a18b69b50cc3acbca76b19a366617310bb67f192fdcf9cf7fc4fd"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-negative-fixture-quaternion-before.json": {
+      "bytes": 9850,
+      "sha256": "4abaf6681873315fe99e7b00ed390ef59b4106afffe62c5e5307382b1944441a"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-negative-fixture-quaternion-checks.json": {
+      "bytes": 720,
+      "sha256": "6aaeb2b73ceae82c1fc13e2cba7e7f462827d6a436bb944b488a33b714695017"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-negative-fixture-quaternion-input.json": {
+      "bytes": 7246,
+      "sha256": "17ee5857dade7b0533298082c68ba2a303034db013a32e6cba76a35dffa48e15"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-negative-fixture-quaternion-orientation-equivalence.json": {
+      "bytes": 38325,
+      "sha256": "57a3df661bf893c86f70c81bb4607862e9e221acc1dff71b48e880d19ebb3201"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-negative-fixture-quaternion.json": {
+      "bytes": 15335,
+      "sha256": "fd7eaa5a1c2efb004ea4a5fb8233a24a49f7440a5161cc7ba994dba8736d9bfb"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-negative-moving-quaternion-before.json": {
+      "bytes": 9848,
+      "sha256": "b5880d254ee67dcf55c7d4187f416760980bc31f49aa0c6e41134ae20904af75"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-negative-moving-quaternion-checks.json": {
+      "bytes": 720,
+      "sha256": "6aaeb2b73ceae82c1fc13e2cba7e7f462827d6a436bb944b488a33b714695017"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-negative-moving-quaternion-input.json": {
+      "bytes": 7242,
+      "sha256": "a7cd5248cefce303bbea85512960c3fd3027f18b7e5ba30d2ebf58d32bc39d31"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-negative-moving-quaternion-orientation-equivalence.json": {
+      "bytes": 38325,
+      "sha256": "57a3df661bf893c86f70c81bb4607862e9e221acc1dff71b48e880d19ebb3201"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-negative-moving-quaternion.json": {
+      "bytes": 15331,
+      "sha256": "d0ab42e171f8a50e4070f6ee1199c6de993d811214647640d8813bebd8f97036"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-negative-y-entry-before.json": {
+      "bytes": 9828,
+      "sha256": "f2e828d9cb422aa9f5139074283488bfb5ac7759b058aef3c3321b1d2f78189c"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-negative-y-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "b0881c6c608d3ccbf980336ee316044a374f47c908e04f3fa8fc5c72ab468335"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-negative-y-entry-input.json": {
+      "bytes": 6954,
+      "sha256": "16091c97a5a3c3dd67fba7dca709e4213c92c5e698dc4f69c160e4f3606a9570"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-negative-y-entry.json": {
+      "bytes": 15110,
+      "sha256": "a06b3be53bdbc81b9a58fb2abe7ab80c998f9647b868f29e079dfd041fc232b3"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-parallel-outside-before.json": {
+      "bytes": 9828,
+      "sha256": "7cd4143a8b41a3c086de3f80197399f2b94bc702e365028d801c1a574f4232ef"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-parallel-outside-checks.json": {
+      "bytes": 720,
+      "sha256": "5431ae66e61218d5450be1b8cec5d6b8cb4a38fed5e8b708578983fd53c788fa"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-parallel-outside-input.json": {
+      "bytes": 6943,
+      "sha256": "8daa0fcc646cb004f1fc489139da8d35a81f308d4f39a2029c93e120c4a06d40"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-parallel-outside.json": {
+      "bytes": 13530,
+      "sha256": "fea96145e443b2d8698325b5deab972df658f9e68c7136355e93edabd10afd19"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-persistent-profile-input.json": {
+      "bytes": 6310,
+      "sha256": "19561fcaa704283d69fb8cf75f1a0ecb9cd9c451e50d48975eaadcfb37bc3ee4"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-persistent-profile-refusal.json": {
+      "bytes": 108,
+      "sha256": "0b3c007ddc7e02053e11040cd1296c07ae7e0679b16dfde059dba857938da026"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-persistent-profile.json": {
+      "bytes": 6852,
+      "sha256": "cfef8de4f078255eaf44241a838fb645979cf052a92c57d654f6aff5259c699d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-sensor-fixture-input.json": {
+      "bytes": 6287,
+      "sha256": "a672220bc0a92e98102e1ffc86dcdb91e73366df0652d22758a402efef376499"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-sensor-fixture-refusal.json": {
+      "bytes": 116,
+      "sha256": "e79f356aab945a5e6785b9777c92e109f7823e692ccc2d8d636a94be7f2ddf08"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-sensor-fixture.json": {
+      "bytes": 6845,
+      "sha256": "ae8121aea3054f62d67d47dc289d32e7755fa756607c84f88238167e74f4b908"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-separating-before.json": {
+      "bytes": 9816,
+      "sha256": "93ba001f705a9572aaab0ef5fd26fad6932157a55e61650efb39fa612ce7bbd1"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-separating-checks.json": {
+      "bytes": 720,
+      "sha256": "5431ae66e61218d5450be1b8cec5d6b8cb4a38fed5e8b708578983fd53c788fa"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-separating-input.json": {
+      "bytes": 6925,
+      "sha256": "68259faedbced1bd771bf992629e1722610bb5d2adf5476b59b1fc153c0302c2"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-separating.json": {
+      "bytes": 13506,
+      "sha256": "36015bf267aef4ab411a49db95bcefafedff76e0955279bb1a524b1a4249e64a"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-torque-refusal-before.json": {
+      "bytes": 25688,
+      "sha256": "56d17c6099f52a732acf9b18e665195d89b36efa94dd260cbd9f4ee18b2b9025"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-torque-refusal-input.json": {
+      "bytes": 6493,
+      "sha256": "cd4aa59013eaf361406bb4eca532bee0458a8335e6ac85aeef89ca6dbcd8474d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-torque-refusal-retained.json": {
+      "bytes": 18992,
+      "sha256": "87cc1fc55ccb412e988ee85946cb1356e4b22928c52176810319df5cc2d128f2"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-torque-refusal.json": {
+      "bytes": 65465,
+      "sha256": "bd41f891b334269ce5f291f2d1f51877620ca41b7be882af2c1fc0ceb91fab59"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-translated-y-entry-before.json": {
+      "bytes": 9832,
+      "sha256": "98eb6c971f19995eb92a5d80ace2ca7ae588f26157ec0e5ff8858a11d42871f1"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-translated-y-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "6aaeb2b73ceae82c1fc13e2cba7e7f462827d6a436bb944b488a33b714695017"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-translated-y-entry-input.json": {
+      "bytes": 7153,
+      "sha256": "726b44698cd9a5ec876e6dd11e62f7eb6c132679f104efdf3344bdf4237acde7"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-translated-y-entry.json": {
+      "bytes": 15120,
+      "sha256": "242c7f60809ec0ef37615ac5ad5edb2e5d5cd2a93a83eb8bc42e6239cbbabd5f"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-zero-travel-before.json": {
+      "bytes": 9818,
+      "sha256": "d0e37864b8d05d55ee6715c62df021b118d302901f9e586569f75c5f656fb4ed"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-zero-travel-checks.json": {
+      "bytes": 720,
+      "sha256": "a1219082a493d0a3f003bccbedec4818bba785eb4b784dde0480b2fa966adc48"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-zero-travel-input.json": {
+      "bytes": 6922,
+      "sha256": "5b123bace1663acf4312b8f92fcc1e2d627babdaf55724512268b3dd540f7fd6"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/native-zero-travel.json": {
+      "bytes": 13504,
+      "sha256": "4af5cb71ef59cde6e60911a2c16b1cd83e9226fe7ab1b6a05d7ed75b5b19eef0"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/result.json": {
+      "bytes": 1430,
+      "sha256": "c2b4aa58e50430c8a7348bfb526cad554868bd6704c2893c94b5f2df6e3f2c1d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-angular-impulse-refusal-before.json": {
+      "bytes": 25750,
+      "sha256": "313ae76392ad6d13d6d66e9560be4cfdc31f083976bcfccc9f9cc0381944d145"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-angular-impulse-refusal-input.json": {
+      "bytes": 6537,
+      "sha256": "4b64355f32db58785bfaf845e2c8945f39f82d98a4ccbe5bc3f114f40f035272"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-angular-impulse-refusal-retained.json": {
+      "bytes": 19028,
+      "sha256": "74d79471ae6821107aea3de8d121f60ac935240c87f8a59f114fd8e915b8c741"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-angular-impulse-refusal.json": {
+      "bytes": 65591,
+      "sha256": "c611b3ecf6742d495551823b0e858076b29b61b2e996cc6c2a02128a69e0e440"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-axis-x-entry-before.json": {
+      "bytes": 9820,
+      "sha256": "a5cfe0591d98035c5649aec159211b167d1526b09aa5de06b15c3066914411aa"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-axis-x-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "a19ea134b8dbd6c3cf7ca39dc82795d21c3eab58e652915c36e7fb5236fc0258"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-axis-x-entry-input.json": {
+      "bytes": 6942,
+      "sha256": "7fa3cfd504382225338935bfa4d8139045eb041f661d12f7d64ff27330bd8c88"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-axis-x-entry.json": {
+      "bytes": 15094,
+      "sha256": "0c935f0ab9ea8b47d099fd074b1a586094834a2e0008acbb71892f3d501df8cb"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-axis-z-entry-before.json": {
+      "bytes": 9820,
+      "sha256": "62a5664d610c75a1ca8a5ddd75e7cedbbc663d9697c92de25e61eb4ec9e687c9"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-axis-z-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "94634280d8283e3658f676efb1f45b50da819f8ef41bcc7168a02a4147c1aee1"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-axis-z-entry-input.json": {
+      "bytes": 6939,
+      "sha256": "d1bcdfe13d41f6f0a2a5366db9ee01fd70f9d0ee664e24d2e84e292e58e5b5ff"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-axis-z-entry.json": {
+      "bytes": 15091,
+      "sha256": "ae8b2a17ddce1e1f48715d76ade0e455164a4af100a69f46625cffeaa282f6b2"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-beyond-endpoint-before.json": {
+      "bytes": 9826,
+      "sha256": "a972712474aa1cb7730cb24708209035bc535912211d5864b6d36d8b226fdcbf"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-beyond-endpoint-checks.json": {
+      "bytes": 720,
+      "sha256": "1fab602d381fa797f86ecf658b0bbb4114757afd41dde163e427875c2410bd2a"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-beyond-endpoint-input.json": {
+      "bytes": 6941,
+      "sha256": "4e326a7f353d732c6396d0c9c8346b852a19804a6693445201a468d5b9170f70"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-beyond-endpoint.json": {
+      "bytes": 13527,
+      "sha256": "afbdad02e74e91ae6f4aca5d60bf6fb1da236ea35774f3f338b2c9e4b012a755"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-centered-y-entry-before.json": {
+      "bytes": 9828,
+      "sha256": "7758e4da207e1978fa6885564f49fd926659414afdbebc2b0d70b1403d8baa67"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-centered-y-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "6aaeb2b73ceae82c1fc13e2cba7e7f462827d6a436bb944b488a33b714695017"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-centered-y-entry-input.json": {
+      "bytes": 6951,
+      "sha256": "13aff5c705e567213bcb2635cb5ece4551659e705ddb7daafd0003168d187054"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-centered-y-entry.json": {
+      "bytes": 15107,
+      "sha256": "3b11d5164d4a94b5e6daac9ab0655da7bd8a7d4f4ceae028db7ebc32861ba806"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-counts.json": {
+      "bytes": 354,
+      "sha256": "2e3cf52ad820844080ba16968312aff6c055660c50a4526173980d1b847ea6ef"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-endpoint-entry-before.json": {
+      "bytes": 9824,
+      "sha256": "7a09f7a12c0b186d393723a36f53ffedb5a46f55c35a83a925fa6aedcf0aaeb5"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-endpoint-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "672688fe2d1b803f0ab32a04a5949d99933cc7c8d4e9a24d3aaaf9748fb8db27"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-endpoint-entry-input.json": {
+      "bytes": 6930,
+      "sha256": "03cd634291b95fed3fffb8a3c51ba29c6c5dc66442a3dd59cd345470482af468"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-endpoint-entry.json": {
+      "bytes": 15084,
+      "sha256": "cb3272dc742f76d155b0cb486884075766d23f21ac38ab9adece536428847f8c"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-initial-overlap-closing-before.json": {
+      "bytes": 9842,
+      "sha256": "157b9632d98beb7a2e5d1f9e9a4379a05c0604c697491fcf4352269fa89486cc"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-initial-overlap-closing-checks.json": {
+      "bytes": 720,
+      "sha256": "a3a0fc14e173fa3cdb10e674fcfc77e90efc0d7d7a73ba9bf7ec32948aafa116"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-initial-overlap-closing-input.json": {
+      "bytes": 6960,
+      "sha256": "dfe4df0b44c78c5b73ccbb84286fab190a5202c7d89653f5421bf215a55114b7"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-initial-overlap-closing.json": {
+      "bytes": 14720,
+      "sha256": "edd2046620c2f8a7e197eb825db55d8e4955f928e2148c3d20bed31474313c1d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-initial-overlap-rest-before.json": {
+      "bytes": 9836,
+      "sha256": "04d17888a8d11f70e70894a8526c2912991569d1e11256226d550c5e3600fb40"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-initial-overlap-rest-checks.json": {
+      "bytes": 720,
+      "sha256": "a1219082a493d0a3f003bccbedec4818bba785eb4b784dde0480b2fa966adc48"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-initial-overlap-rest-input.json": {
+      "bytes": 6949,
+      "sha256": "a65af7202c262f0f4aa4271ee0f2381f6af8f2bd99df8d2ca975a3aa71c76282"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-initial-overlap-rest.json": {
+      "bytes": 14706,
+      "sha256": "84b8d0578bc4fa90695a7dfd4174a4ad39c5eb50999df2596d38e28823e95327"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-initial-touch-rest-before.json": {
+      "bytes": 9832,
+      "sha256": "08d3d5f8067b995a123462115cb3333342080740f9e3fe84a64326469496a8dc"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-initial-touch-rest-checks.json": {
+      "bytes": 720,
+      "sha256": "a1219082a493d0a3f003bccbedec4818bba785eb4b784dde0480b2fa966adc48"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-initial-touch-rest-input.json": {
+      "bytes": 6943,
+      "sha256": "8ad5f1675702041ce1d7955c1c28b4797c4a1367cc145002f04155d5468ba51c"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-initial-touch-rest.json": {
+      "bytes": 14698,
+      "sha256": "0bfb027ecf5c0775022f3b98aad799c8e5838b0810e1324e5f8259e08b51c801"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-initial-touch-separating-before.json": {
+      "bytes": 9844,
+      "sha256": "462acc6370d4ce4ad88fa058a6ce90007994e4ce36ff393bb47f7c81415144a9"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-initial-touch-separating-checks.json": {
+      "bytes": 720,
+      "sha256": "1fab602d381fa797f86ecf658b0bbb4114757afd41dde163e427875c2410bd2a"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-initial-touch-separating-input.json": {
+      "bytes": 6968,
+      "sha256": "d91108873ecf56a2233a25b46d7ab38ea77b156078c718c5a9e860dea40af54b"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-initial-touch-separating.json": {
+      "bytes": 13563,
+      "sha256": "77eccad12443242c68def8b169c376d6d813f3881efbf324852f129e2a13d483"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-negative-fixture-quaternion-before.json": {
+      "bytes": 9850,
+      "sha256": "da9dd38efc39648d168f03d9818b01c403d22b1317a2d7c0762d6287ba94493d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-negative-fixture-quaternion-checks.json": {
+      "bytes": 720,
+      "sha256": "6aaeb2b73ceae82c1fc13e2cba7e7f462827d6a436bb944b488a33b714695017"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-negative-fixture-quaternion-input.json": {
+      "bytes": 7246,
+      "sha256": "17ee5857dade7b0533298082c68ba2a303034db013a32e6cba76a35dffa48e15"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-negative-fixture-quaternion-orientation-equivalence.json": {
+      "bytes": 38325,
+      "sha256": "57a3df661bf893c86f70c81bb4607862e9e221acc1dff71b48e880d19ebb3201"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-negative-fixture-quaternion.json": {
+      "bytes": 15335,
+      "sha256": "42edb3189c341a135ab0a25ce2418a20cbe1fb1a7d4574663d6fbe4286fb7373"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-negative-moving-quaternion-before.json": {
+      "bytes": 9848,
+      "sha256": "7006be33005470eac65eff2af7c819d14dc4494b8ad395bf7daca7893bd74911"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-negative-moving-quaternion-checks.json": {
+      "bytes": 720,
+      "sha256": "6aaeb2b73ceae82c1fc13e2cba7e7f462827d6a436bb944b488a33b714695017"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-negative-moving-quaternion-input.json": {
+      "bytes": 7242,
+      "sha256": "a7cd5248cefce303bbea85512960c3fd3027f18b7e5ba30d2ebf58d32bc39d31"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-negative-moving-quaternion-orientation-equivalence.json": {
+      "bytes": 38325,
+      "sha256": "57a3df661bf893c86f70c81bb4607862e9e221acc1dff71b48e880d19ebb3201"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-negative-moving-quaternion.json": {
+      "bytes": 15331,
+      "sha256": "3129b7559cb16015a9626a10e243d93c69f83965373421a5ba7e25968e4fe7a0"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-negative-y-entry-before.json": {
+      "bytes": 9828,
+      "sha256": "2be889174ecb020761247b6f88c2988eb29cbb4ba0ed1510a93ec02d15593605"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-negative-y-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "b0881c6c608d3ccbf980336ee316044a374f47c908e04f3fa8fc5c72ab468335"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-negative-y-entry-input.json": {
+      "bytes": 6954,
+      "sha256": "16091c97a5a3c3dd67fba7dca709e4213c92c5e698dc4f69c160e4f3606a9570"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-negative-y-entry.json": {
+      "bytes": 15110,
+      "sha256": "f0f35d4afef01ca1c67d0c530ff14ef8bebcefd9ce5f29be30dafc65e481b7ba"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-parallel-outside-before.json": {
+      "bytes": 9828,
+      "sha256": "7135d318f650492992534b1f7cfa170ebf66c0d0b0d90b4acdfacbd75700a756"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-parallel-outside-checks.json": {
+      "bytes": 720,
+      "sha256": "5431ae66e61218d5450be1b8cec5d6b8cb4a38fed5e8b708578983fd53c788fa"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-parallel-outside-input.json": {
+      "bytes": 6943,
+      "sha256": "8daa0fcc646cb004f1fc489139da8d35a81f308d4f39a2029c93e120c4a06d40"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-parallel-outside.json": {
+      "bytes": 13530,
+      "sha256": "331358b59c7ebc6d2873c72689882156f7b380aa4fd9ca97ab5607e94261d7b4"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-persistent-profile-input.json": {
+      "bytes": 6310,
+      "sha256": "19561fcaa704283d69fb8cf75f1a0ecb9cd9c451e50d48975eaadcfb37bc3ee4"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-persistent-profile-refusal.json": {
+      "bytes": 108,
+      "sha256": "0b3c007ddc7e02053e11040cd1296c07ae7e0679b16dfde059dba857938da026"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-persistent-profile.json": {
+      "bytes": 6852,
+      "sha256": "cfef8de4f078255eaf44241a838fb645979cf052a92c57d654f6aff5259c699d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-sensor-fixture-input.json": {
+      "bytes": 6287,
+      "sha256": "a672220bc0a92e98102e1ffc86dcdb91e73366df0652d22758a402efef376499"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-sensor-fixture-refusal.json": {
+      "bytes": 116,
+      "sha256": "e79f356aab945a5e6785b9777c92e109f7823e692ccc2d8d636a94be7f2ddf08"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-sensor-fixture.json": {
+      "bytes": 6845,
+      "sha256": "ae8121aea3054f62d67d47dc289d32e7755fa756607c84f88238167e74f4b908"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-separating-before.json": {
+      "bytes": 9816,
+      "sha256": "a16e6644914ef4e047aaf7505eea9735b42130aca41fdf02b220623b303ba1a9"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-separating-checks.json": {
+      "bytes": 720,
+      "sha256": "5431ae66e61218d5450be1b8cec5d6b8cb4a38fed5e8b708578983fd53c788fa"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-separating-input.json": {
+      "bytes": 6925,
+      "sha256": "68259faedbced1bd771bf992629e1722610bb5d2adf5476b59b1fc153c0302c2"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-separating.json": {
+      "bytes": 13506,
+      "sha256": "1ebb60672dd05aada7d5a028fd1d701b5e5491d3f94ca3aa33087c5de5100750"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-torque-refusal-before.json": {
+      "bytes": 25688,
+      "sha256": "369e967a88e2032739fb67e7e16774bd87c52e05dd8ec81554584a2c8be7509d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-torque-refusal-input.json": {
+      "bytes": 6493,
+      "sha256": "cd4aa59013eaf361406bb4eca532bee0458a8335e6ac85aeef89ca6dbcd8474d"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-torque-refusal-retained.json": {
+      "bytes": 18992,
+      "sha256": "b81de6bc340adf9ac722dbf46a9cc17284c01d285f872a27af8ce778c7d68004"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-torque-refusal.json": {
+      "bytes": 65465,
+      "sha256": "8c313efb06d4e5d566e1b877eeac292c9bc78ef433de99ba5dbe59a7595d0a9b"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-translated-y-entry-before.json": {
+      "bytes": 9832,
+      "sha256": "8a7f8b793e7462f7c14e35ba76e5658a0a07e215aa490c72fb9eedd10d09a84b"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-translated-y-entry-checks.json": {
+      "bytes": 720,
+      "sha256": "6aaeb2b73ceae82c1fc13e2cba7e7f462827d6a436bb944b488a33b714695017"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-translated-y-entry-input.json": {
+      "bytes": 7153,
+      "sha256": "726b44698cd9a5ec876e6dd11e62f7eb6c132679f104efdf3344bdf4237acde7"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-translated-y-entry.json": {
+      "bytes": 15120,
+      "sha256": "66640f8a17aa12946dff1f8e72729cbea1c03f1c42e7fb6c2d24d2db7dff4d7a"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-zero-travel-before.json": {
+      "bytes": 9818,
+      "sha256": "a74796b3d2fcf0ffbed294576bc962bb622f8a4c739a64905de36bd05b02e0b4"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-zero-travel-checks.json": {
+      "bytes": 720,
+      "sha256": "a1219082a493d0a3f003bccbedec4818bba785eb4b784dde0480b2fa966adc48"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-zero-travel-input.json": {
+      "bytes": 6922,
+      "sha256": "5b123bace1663acf4312b8f92fcc1e2d627babdaf55724512268b3dd540f7fd6"
+    },
+    "examples/physics-box-slab-boundaries-2276/evidence/sign-api-02/source-zero-travel.json": {
+      "bytes": 13504,
+      "sha256": "70f9d59cf4231045886ea65128decb181e67c8b4c9ca2d4f0d18716fa16757cd"
+    },
+    "examples/physics-box-slab-boundaries-2276/freeze-02.mjs": {
+      "bytes": 2818,
+      "sha256": "1cec98ae3d85b0b578a75b28f01f25882acd8c4ea4262e02e90561398a3b2ae2"
+    },
+    "examples/physics-box-slab-boundaries-2276/freeze.mjs": {
+      "bytes": 1991,
+      "sha256": "c934a1ed3617cc2e30556d37024a6b0789347eb76fb530caab035a838e988488"
+    },
+    "examples/physics-box-slab-boundaries-2276/output/scene/app.mjs": {
+      "bytes": 2035339,
+      "sha256": "71d0ca4804ac5b9efc598fa1c6dea5b3ea75ae4ab6bd4aae1e2c5fbbeafa6dff"
+    },
+    "examples/physics-box-slab-boundaries-2276/output/scene/inputs.json": {
+      "bytes": 93348,
+      "sha256": "efbfc995e696971fef29cfc660782f915d762e8ea7b4716df372217a61f729be"
+    },
+    "examples/physics-box-slab-boundaries-2276/preview.png": {
+      "bytes": 124086,
+      "sha256": "ec2a66dfa5f292c9b7e5036f82d0d96c0ff48d17f1b34f8760c4639d2438fe4a"
+    },
+    "examples/physics-box-slab-boundaries-2276/reference-02.py": {
+      "bytes": 3542,
+      "sha256": "cc5e8904655c8c526493f868921160743fadf0d088778f9c8d7b91ae636e935d"
+    },
+    "examples/physics-box-slab-boundaries-2276/reference.py": {
+      "bytes": 3243,
+      "sha256": "40d8bf97e35971dd9fcab044392fe2866d9e1fdb09d593296cad8e6826d26802"
+    },
+    "examples/physics-box-slab-boundaries-2276/regression.mjs": {
+      "bytes": 2783,
+      "sha256": "510fe94feda86a8e8f396eef42dda35cd793b12026dc1f83ffdd0a8e2f382444"
+    },
+    "examples/physics-box-slab-boundaries-2276/run-02.mjs": {
+      "bytes": 11111,
+      "sha256": "454fee820118047e217740121c7d1a39b7906f1658f32ccc04c1ba9616739db8"
+    },
+    "examples/physics-box-slab-boundaries-2276/run.mjs": {
+      "bytes": 9923,
+      "sha256": "f0cbf9dbcf1e73986b840fe193b8aaac7b4e2bfffea6cddffcd56f9ad8100672"
+    },
+    "examples/physics-box-slab-boundaries-2276/scene/app.mjs": {
+      "bytes": 5235,
+      "sha256": "2020eeddda37b03086aadce1721d02a1e34b949ec093bbf8e68f0f45f4766a6a"
+    },
+    "examples/physics-box-slab-boundaries-2276/scene/display.mjs": {
+      "bytes": 4413,
+      "sha256": "f4bab9a1cb6a84442b3173cf0543ce2df9708b211e808b9bf6c10680fb4c462e"
+    },
+    "examples/physics-box-slab-boundaries-2276/scene/index.html": {
+      "bytes": 3757,
+      "sha256": "4b02fd1c79353b6d6cbe1310dcef8bc277f019708db611bb87d542fec0838f9c"
+    },
+    "examples/physics-box-slab-boundaries-2276/scene/scenario.mjs": {
+      "bytes": 1618,
+      "sha256": "48a87e6d6a1f69838f86d4f66081063977b1091a53cb9bbbda4ec5393cf625e3"
+    },
+    "examples/physics-box-slab-boundaries-2276/scene/server.mjs": {
+      "bytes": 4146,
+      "sha256": "c548c18ba18367e88ea9157dc08778cb5449c11f6b908bffb559bff37a5a3e7e"
+    },
+    "examples/physics-box-slab-boundaries-2276/scene/style.css": {
+      "bytes": 4048,
+      "sha256": "43822cbb77e7f3971f763a7f406df569197f0240e40c985544510a50d0c693be"
+    },
+    "examples/physics-model-input/model.mjs": {
+      "bytes": 2051,
+      "sha256": "8bbeb3712f27eb3d639dcde806fcf27f8bc5360274feefd051335b3887790baf"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-baseline-01/prepared.json": {
+      "bytes": 1488,
+      "sha256": "707f1c02367c997e21a1fb7b90599352abd86a7b321f09b743d3a445e8d2f221"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-baseline-01/progress.json": {
+      "bytes": 1586,
+      "sha256": "3c203bf7937d6bad50bbc38eaa6bd6abdc6860e8f0e12444f2bd24accc9e426f"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-baseline-01/result.json": {
+      "bytes": 2990,
+      "sha256": "6bcbdf29e7e7b0b802e28f30f38c8e6f63221d339b729610b759351d58b5b7f9"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-baseline-01/start.json": {
+      "bytes": 1510,
+      "sha256": "65ae13ef90fc9fa521c937ef365b55f227714b193d9b0e31626465c565eb8d66"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-baseline-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-baseline-01/stdout.raw": {
+      "bytes": 1061,
+      "sha256": "532eb3bc2e39120eccd94cd37c2993c27b58616c4831ca7bea0c1add119d2915"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-freeze-01/prepared.json": {
+      "bytes": 1464,
+      "sha256": "f473fb237011181b0f6b469e2120ab660cc0ecdfce5ca0f046c6bda7935e0dab"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-freeze-01/progress.json": {
+      "bytes": 1562,
+      "sha256": "b44cd96aabeb1793f35943bf05da9d15c7aa6ebf89312a88586e692cee7e88ff"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-freeze-01/result.json": {
+      "bytes": 2955,
+      "sha256": "8da4bd3b256c542b0e22395545c92967d9eb98d14bb2deb231b0bbae6c0fc098"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-freeze-01/start.json": {
+      "bytes": 1486,
+      "sha256": "4808e90d76d72891a6f82f1bafe7ceff7d869a2158741369ff558cdb96c81c70"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-freeze-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-freeze-01/stdout.raw": {
+      "bytes": 63,
+      "sha256": "6d7479367504dea956e7d1422e4026bbead3f4767fa4f073b6ca6065bee19d2e"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-freeze-02/prepared.json": {
+      "bytes": 1467,
+      "sha256": "e1dfe367558ccd2a1b09698e448fbd1ec19138228c6fd0fc2e5ac967c3b26ff5"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-freeze-02/progress.json": {
+      "bytes": 1565,
+      "sha256": "3baf2e797fcb96804d9a1293fe0277d8de5825d5451bc5912832dbc97c100480"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-freeze-02/result.json": {
+      "bytes": 2958,
+      "sha256": "e6633d5600e491fb6de41fdf41012f26c2f17fe14bb908212779c5711ebb2a77"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-freeze-02/start.json": {
+      "bytes": 1489,
+      "sha256": "d3e81324f98cf5b341f2ae24732fc924b24ba71d6e23d486ab91c52980fd7277"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-freeze-02/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-freeze-02/stdout.raw": {
+      "bytes": 73,
+      "sha256": "b363c1b994e3ccf1d1e1d65bf64555e322b3fce8d178824c984c15f41a89d1bd"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-01/prepared.json": {
+      "bytes": 1509,
+      "sha256": "24097adb681c9505bb92c795cbc3274ff5c6a1fbfa68c2e96f1014920f529a02"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-01/progress.json": {
+      "bytes": 1822,
+      "sha256": "29e21a3022404b9917a8ff1ae0f72b1dfe70dc8d7e9678c34b524049a5607c04"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-01/result.json": {
+      "bytes": 3221,
+      "sha256": "1d1fc8c58b5e2932d432cccd1734ac90eee30fb7ba1b260a0be48ac7616b4b3e"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-01/start.json": {
+      "bytes": 1531,
+      "sha256": "cb5f1b98ab2f2e9b15c6ee47477da5df717a69e4d047bd767718317f737e9b65"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-01/stderr.raw": {
+      "bytes": 990,
+      "sha256": "a5c0ca2cd7d4a65f5ea4e684d0383340b7f8b278da0ce1452b34acbead91e875"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-01/stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-02/prepared.json": {
+      "bytes": 1541,
+      "sha256": "104452be4947eb2836c0d92a11eded11b0e88df093660216dd58173dc97deb15"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-02/progress.json": {
+      "bytes": 1951,
+      "sha256": "08fa34d94f659b01083d161b5d44b327a6f5f65fe7046bf092f89429a7af6922"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-02/result.json": {
+      "bytes": 3350,
+      "sha256": "188612e037b6d183ae6f34f14fd1802687354f413cfd5fb510c37244df50abb3"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-02/start.json": {
+      "bytes": 1563,
+      "sha256": "4de6023bc77781e469e1b80d873941931041dba6e95a56b71b7116e4a453d044"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-02/stderr.raw": {
+      "bytes": 498,
+      "sha256": "bdcf88ea8d4e741eaaefe611bc2acc50000473e418390678ed4dadb55b1e572d"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-02/stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-03/prepared.json": {
+      "bytes": 1541,
+      "sha256": "d9bd9c5274fab3ec760b794ca28dab9768e6b5e1ce8ce327b46b59cc8f5d415e"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-03/progress.json": {
+      "bytes": 1950,
+      "sha256": "a2c52627cb4e4297baea425ee7e372ecc6ea5df7dbc73562d84ae5ed72fc7a5f"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-03/result.json": {
+      "bytes": 3349,
+      "sha256": "d44ed9611435857b5b4cf6ea1bf38ecdf9c2daf1922f3ef7de0f784a4cb1ecec"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-03/start.json": {
+      "bytes": 1563,
+      "sha256": "c2f3e1b4829db641dd8f47362933058ea6cc71bacfe6d8b8df7e316e7bc87be2"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-03/stderr.raw": {
+      "bytes": 498,
+      "sha256": "98be7a5b806b3f8e6045947e22ab5a49c17a415ca624f54bcb3d74e481e06bd6"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-03/stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-04/prepared.json": {
+      "bytes": 1541,
+      "sha256": "0c019374aad7891d006caa3cc632f51ba3f381fbffd02ceb4e8568bf9a2f106a"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-04/progress.json": {
+      "bytes": 1640,
+      "sha256": "f07372f58d567f5b7b95df0c9ec3f27d7e0f80e296e3eb6c67a55757fc9eafb3"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-04/result.json": {
+      "bytes": 3060,
+      "sha256": "0c1274f54aa93267694de0b37a6b5a6d46a666c38158faa8a0e092c20268b4c3"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-04/start.json": {
+      "bytes": 1563,
+      "sha256": "795131bd3a47f34a095a89908a78b9069f13eee2b94d59e4dcde89cd2adb4520"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-04/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-original-regression-04/stdout.raw": {
+      "bytes": 277,
+      "sha256": "0f8c8ccc82aa3fa01da029f4f50a3ee04f854630ecc0a56fb69f09474dfe3771"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-reference-01/prepared.json": {
+      "bytes": 1532,
+      "sha256": "3156e73bd45ea197e73e7964f6dc946943378ef7b015304ba1f796eebd83e5a2"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-reference-01/progress.json": {
+      "bytes": 1631,
+      "sha256": "ad986dfde644f453dd530d58e14a29c74079d4457d2cba8f614ad46e9f116fc1"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-reference-01/result.json": {
+      "bytes": 3031,
+      "sha256": "712bf722672e95de7eb37cba8d2e4b7b0cf148006cf8d12f1be1004c02b5439a"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-reference-01/start.json": {
+      "bytes": 1554,
+      "sha256": "a3d1499f5fcb4454d034a908e807b740eb1651f0b97bbc33f2d8d1c2ed3a399a"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-reference-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-reference-01/stdout.raw": {
+      "bytes": 96,
+      "sha256": "4d83b7cf88b92a47f5fa8f64517750189874d8e107504f47ad29bb8360c9281d"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-reference-02/prepared.json": {
+      "bytes": 1535,
+      "sha256": "3b251469aef689f59ff4e8fa19a7a0d5dfa2d148961c0f98b6afe03675533cd6"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-reference-02/progress.json": {
+      "bytes": 1634,
+      "sha256": "7cecae27d5a9da04b0b1e61e1d3a96fed4b1df0c45d765aa18c945619254813b"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-reference-02/result.json": {
+      "bytes": 3032,
+      "sha256": "a97bdd78c2fae6fb226578a3592d44e69d6b54f092ccd1ab8fa678a6bb494285"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-reference-02/start.json": {
+      "bytes": 1557,
+      "sha256": "af6ee7a3812b6c98384b80ce25410c6659abf5feb53c265fb0829c575fde15f6"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-reference-02/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-reference-02/stdout.raw": {
+      "bytes": 96,
+      "sha256": "4d83b7cf88b92a47f5fa8f64517750189874d8e107504f47ad29bb8360c9281d"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-render-01/prepared.json": {
+      "bytes": 1516,
+      "sha256": "a246f4df58ea42eecd0ecd27fe833dab410412f8b06eda458abc18c324d67c75"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-render-01/progress.json": {
+      "bytes": 1615,
+      "sha256": "3e263ac040e1cbcc0e79dafc1cda941a96c67de4f820c2c492389bf14816125c"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-render-01/result.json": {
+      "bytes": 3013,
+      "sha256": "c347223038f96c5dcf7930bc1dc44e2a36f847b7bbc560260ac1428cb112a323"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-render-01/start.json": {
+      "bytes": 1538,
+      "sha256": "93a90270f09bda0a999dacf57fd50975333fdf8980032bcb9a9424593c0bd6f2"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-render-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-render-01/stdout.raw": {
+      "bytes": 1040,
+      "sha256": "defb040215856492b0496a07d68e0b8572ab78f3221fb238a3c519e2c0d6a5e9"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-render-build-01/prepared.json": {
+      "bytes": 1509,
+      "sha256": "e0012e880c4faf9eb42054ba77436408ffc1b6bcb2d9fd213111382638fabec5"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-render-build-01/progress.json": {
+      "bytes": 1607,
+      "sha256": "28837c6a1a522d759160ce94eb40985515a6fd01d40bdd8137ebbb7edf500968"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-render-build-01/result.json": {
+      "bytes": 3021,
+      "sha256": "7b38bbb646e2785a9a889e0aa127ff3749e8dc07a585d77e98d87d545465d471"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-render-build-01/start.json": {
+      "bytes": 1531,
+      "sha256": "21804947ee524f6ae593a505a146c8a257dedbc78ee540962f3001e96c7d6761"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-render-build-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-render-build-01/stdout.raw": {
+      "bytes": 93349,
+      "sha256": "979529e3b98af3efddde3c8be1ccbc4d8ed58da8a6aebac761c666e31cebd44f"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-sign-api-02/prepared.json": {
+      "bytes": 1491,
+      "sha256": "327d1b0789335f956fde8df008d77b33e1b244fdd42b7e48ab1d4a5422debca3"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-sign-api-02/progress.json": {
+      "bytes": 1589,
+      "sha256": "b1e4210da954012721dde70bb06fb80d1033fc12fa6d7407da4a7c267287d3d3"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-sign-api-02/result.json": {
+      "bytes": 2993,
+      "sha256": "53f416253043c5d83c404c8bf4863d3bc764dd40c4cedcf665259dbfca72cb65"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-sign-api-02/start.json": {
+      "bytes": 1513,
+      "sha256": "4eba862981b7c45e80966393cf68d3099f5edfcea5e67e3887e8f33a89755ab2"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-sign-api-02/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-sign-api-02/stdout.raw": {
+      "bytes": 1066,
+      "sha256": "5a5708f76ac9aa1d2fd3afaf8cefd738882b429b0641293d1d332178474a0482"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-sign-build-02/prepared.json": {
+      "bytes": 1494,
+      "sha256": "e9efdf64cbb9fc61051ffcfc3420bcd7a6f60ca9dbf7ecfb441050289b4cc917"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-sign-build-02/progress.json": {
+      "bytes": 1593,
+      "sha256": "661e6a3abd4b642bd0bcc547fc338861fc75729971a1a583d767ac7cc9e18256"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-sign-build-02/result.json": {
+      "bytes": 2997,
+      "sha256": "57ad10ed9ac60a5ccc7bf853374d1cffb54aa4f08e497823a33adcfcb5a1967d"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-sign-build-02/start.json": {
+      "bytes": 1516,
+      "sha256": "0fed0a96410671482b1ae5301f03e4f8109a82a84fd1e009982db63d89f2210c"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-sign-build-02/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/box-slab-sign-build-02/stdout.raw": {
+      "bytes": 220,
+      "sha256": "c2a90ef40c74dc6dce09dd9a18eb09494aced50be948feb6e7dc2993fcf650e1"
+    },
+    "output/playwright/box-slab-boundaries/render-01/browser-checks.js": {
+      "bytes": 10917,
+      "sha256": "a123a409aabea53f9df45493bd81b36025f304358838fa2fa81dde8e3566c0dc"
+    },
+    "output/playwright/box-slab-boundaries/render-01/centered-y-entry.png": {
+      "bytes": 122315,
+      "sha256": "1f7ea12bab4b20137270bb717831f31cad98c92580c838807681f2f4895fed33"
+    },
+    "output/playwright/box-slab-boundaries/render-01/checks.process.json": {
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    "output/playwright/box-slab-boundaries/render-01/checks.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "output/playwright/box-slab-boundaries/render-01/checks.stdout": {
+      "bytes": 121788,
+      "sha256": "8b0ea167e0549bd4eaee4251bfbcb79f446a165f7af6a26f85e536da96cab2ba"
+    },
+    "output/playwright/box-slab-boundaries/render-01/close.process.json": {
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    "output/playwright/box-slab-boundaries/render-01/close.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "output/playwright/box-slab-boundaries/render-01/close.stdout": {
+      "bytes": 54,
+      "sha256": "535b17f718c03f1a0bfbb07ce0ba348974ba744eb99513b9b42a640a38b44bbc"
+    },
+    "output/playwright/box-slab-boundaries/render-01/desktop-1280.png": {
+      "bytes": 121579,
+      "sha256": "a0b67f51884f577da724f54c054ae5a44f0a3cc51ea604c24fd679cc5e89ecac"
+    },
+    "output/playwright/box-slab-boundaries/render-01/desktop-1440.png": {
+      "bytes": 124086,
+      "sha256": "ec2a66dfa5f292c9b7e5036f82d0d96c0ff48d17f1b34f8760c4639d2438fe4a"
+    },
+    "output/playwright/box-slab-boundaries/render-01/desktop-1920.png": {
+      "bytes": 126905,
+      "sha256": "e43d4dcb0619ef84ea7600ce68a491fa776b1e783246eaa2f8ea243f031073b4"
+    },
+    "output/playwright/box-slab-boundaries/render-01/inputs.json": {
+      "bytes": 396,
+      "sha256": "1c96d0392fd158fd1f00439a2a2b5033eb7bb5ccaa1e3053f68a2c72823e18fe"
+    },
+    "output/playwright/box-slab-boundaries/render-01/negative-fixture-quaternion.png": {
+      "bytes": 124354,
+      "sha256": "d5459cec4fc42d6cc3d94a51a7e836c63d9435115ddea482744f0ed195f4809c"
+    },
+    "output/playwright/box-slab-boundaries/render-01/negative-moving-quaternion.png": {
+      "bytes": 124086,
+      "sha256": "ec2a66dfa5f292c9b7e5036f82d0d96c0ff48d17f1b34f8760c4639d2438fe4a"
+    },
+    "output/playwright/box-slab-boundaries/render-01/open.process.json": {
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    "output/playwright/box-slab-boundaries/render-01/open.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "output/playwright/box-slab-boundaries/render-01/open.stdout": {
+      "bytes": 338,
+      "sha256": "33aeaef07ddaa7de599900e964905a9f7962d6c1f68497a1ca280230b6f733e4"
+    },
+    "output/playwright/box-slab-boundaries/render-01/parallel-outside.png": {
+      "bytes": 125028,
+      "sha256": "42b1c76086df917e80da52b9fa3fb4e4c9fd69c3b42e24f51a53d7622a66056b"
+    },
+    "output/playwright/box-slab-boundaries/render-01/report.json": {
+      "bytes": 352800,
+      "sha256": "7132d6e3c8cef198e7df54ebff62221fbf820796979003dbb21cdfd402c31f5c"
+    },
+    "output/playwright/box-slab-boundaries/render-01/visible-data.png": {
+      "bytes": 168428,
+      "sha256": "ce985c7a3bb56a2742e429f3ef582a23a66f1c530da47fbe503f7c606d0a3325"
+    },
+    "packages/barocss-physics/dist/broadphase.d.ts": {
+      "bytes": 239,
+      "sha256": "9231cd9d0f59808f02ab39305893cd5a48c30774f2bacd7ffd0fcab1f8767f13"
+    },
+    "packages/barocss-physics/dist/broadphase.js": {
+      "bytes": 1253,
+      "sha256": "f35e7453719dc2b44668bb20d6fad51a739c6b2cdb9797fe875fc81187400db3"
+    },
+    "packages/barocss-physics/dist/cad-fluid-data.d.ts": {
+      "bytes": 440,
+      "sha256": "b13135d255653f45cdd083ad7e9a3fb2877340e6c53b273674c282bc0f702a59"
+    },
+    "packages/barocss-physics/dist/cad-fluid-data.js": {
+      "bytes": 2123,
+      "sha256": "854603f2171481ec0bf8d795908eac35718518686532fb9c91a7ccd42a35feb9"
+    },
+    "packages/barocss-physics/dist/cad-proxy-admission.d.ts": {
+      "bytes": 322,
+      "sha256": "e571a8936bc6df9bfa2dfd9ba0464709947026528be2b5028fb0d7964aa5ca78"
+    },
+    "packages/barocss-physics/dist/cad-proxy-admission.js": {
+      "bytes": 7628,
+      "sha256": "ee51b4fc7e9f3c193bd993fa3f850f381142e58b48bca2b5b7ab992d9157548d"
+    },
+    "packages/barocss-physics/dist/cad-proxy-pose.d.ts": {
+      "bytes": 243,
+      "sha256": "8ed62f953840b9ed6319d507e080f771d05c48b1d3125849bbbbdde52beda981"
+    },
+    "packages/barocss-physics/dist/cad-proxy-pose.js": {
+      "bytes": 1287,
+      "sha256": "ca965a4d587c8b208c064f0d0d3a65b2b31c41c2f692f60b086e6eb2fce8b46d"
+    },
+    "packages/barocss-physics/dist/cad-proxy-types.d.ts": {
+      "bytes": 950,
+      "sha256": "4ba2ad188a191a5465bf422ee6e79b631caed56a1c7333d96ab7daa96b605d29"
+    },
+    "packages/barocss-physics/dist/cad-proxy-types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "packages/barocss-physics/dist/cad-proxy-validation.d.ts": {
+      "bytes": 549,
+      "sha256": "daa38774bf8e5a9bf5953ead96f9851bb5be1aa526fa6519b5d3bf0cb155343c"
+    },
+    "packages/barocss-physics/dist/cad-proxy-validation.js": {
+      "bytes": 1327,
+      "sha256": "30ff7c4b15b218924f4b6a8df561830ed254365a3b474f4e718b486fd7be5155"
+    },
+    "packages/barocss-physics/dist/cad-proxy.d.ts": {
+      "bytes": 321,
+      "sha256": "cc7715b4fc974c8ed4511ebf684cdc7c2923f7ab4b8b7f5db45b208f8e6ffa99"
+    },
+    "packages/barocss-physics/dist/cad-proxy.js": {
+      "bytes": 203,
+      "sha256": "457a52444143aee357e2be5e6673b95de67b918da30d3242747890af55a35fba"
+    },
+    "packages/barocss-physics/dist/capsule-contact.d.ts": {
+      "bytes": 198,
+      "sha256": "e3c1d147fbc7b1f30e8e97a6067e6750a56f0f6ccf7659a9d211f65e24e4a178"
+    },
+    "packages/barocss-physics/dist/capsule-contact.js": {
+      "bytes": 5708,
+      "sha256": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1"
+    },
+    "packages/barocss-physics/dist/capsule-query-error.d.ts": {
+      "bytes": 43,
+      "sha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e"
+    },
+    "packages/barocss-physics/dist/capsule-query-error.js": {
+      "bytes": 137,
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    "packages/barocss-physics/dist/capsule-query.d.ts": {
+      "bytes": 222,
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+    },
+    "packages/barocss-physics/dist/capsule-query.js": {
+      "bytes": 73,
+      "sha256": "f44c04d06c851b807add8096cc26bf893945f53b49ab6c671148491b88e781fc"
+    },
+    "packages/barocss-physics/dist/capsule-query/admission.d.ts": {
+      "bytes": 250,
+      "sha256": "779417df1dbf3f0f697de4a04f918007954b13fc9f301b991105bbfc0a9cefe6"
+    },
+    "packages/barocss-physics/dist/capsule-query/admission.js": {
+      "bytes": 4867,
+      "sha256": "547d9202b0db4be3d8a4fd5266b136f750d3e015151d60e679df26ecf51da7fe"
+    },
+    "packages/barocss-physics/dist/capsule-query/geometry.d.ts": {
+      "bytes": 536,
+      "sha256": "efb0588d7b8808333836dcc927eb7523c5a7c516467294e3743cccf056ba736b"
+    },
+    "packages/barocss-physics/dist/capsule-query/geometry.js": {
+      "bytes": 2319,
+      "sha256": "4c9034c23c2137d54e4d2e1554b9015ff2cc6bc7776d62d8e1f3c8b905b67d04"
+    },
+    "packages/barocss-physics/dist/capsule-query/profile.d.ts": {
+      "bytes": 357,
+      "sha256": "2b1626e82c8677593940e8100247b6fbb33e9ab53e80d9de001ec1f9a7411300"
+    },
+    "packages/barocss-physics/dist/capsule-query/profile.js": {
+      "bytes": 294,
+      "sha256": "acfab32b60a91c29bec4b89a803902aa9b944eb2ebb6cd0d129b60e039e13210"
+    },
+    "packages/barocss-physics/dist/capsule-query/snapshot.d.ts": {
+      "bytes": 176,
+      "sha256": "64340b99b9b456f3586ed545d7e99a570675df7972374c3ec76ecd9d73a515ea"
+    },
+    "packages/barocss-physics/dist/capsule-query/snapshot.js": {
+      "bytes": 2468,
+      "sha256": "5ee1b97dc58a872a9cd6c56121eca158ac5f746d543729e5f197b24d08f9d55f"
+    },
+    "packages/barocss-physics/dist/capsule-query/sweep.d.ts": {
+      "bytes": 240,
+      "sha256": "c99f678a450aa0db3d677c57c97ef5990544effca96e35196e8f3bbca073ecf3"
+    },
+    "packages/barocss-physics/dist/capsule-query/sweep.js": {
+      "bytes": 1833,
+      "sha256": "f04e6a548504cad0bb838862f7813225592c9549fb0233e026bc6276f7b4929e"
+    },
+    "packages/barocss-physics/dist/capsule-query/types.d.ts": {
+      "bytes": 1026,
+      "sha256": "6f1c259f0b05ffe866b493569a8d939f3493ad263381bfc5ac943705c8c31522"
+    },
+    "packages/barocss-physics/dist/capsule-query/types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "packages/barocss-physics/dist/ccd-box.d.ts": {
+      "bytes": 375,
+      "sha256": "e8c009659fab23be3f36024b61c7f693aad60e8df99cc36ea8c94c2e1d88efee"
+    },
+    "packages/barocss-physics/dist/ccd-box.js": {
+      "bytes": 1835,
+      "sha256": "e289ada87186b13de91bfda3c91b7db3c4b4a84b3870cea0290e2bab64f54271"
+    },
+    "packages/barocss-physics/dist/ccd-pair.d.ts": {
+      "bytes": 275,
+      "sha256": "62e7a116e62e543ffd85cbdc138788f73dddd56d81ab9ec681f277ea75d40829"
+    },
+    "packages/barocss-physics/dist/ccd-pair.js": {
+      "bytes": 1228,
+      "sha256": "3bd501f350075f4e373eaa08ab6d0a26f74ae488e376605e4613d48a7d862830"
+    },
+    "packages/barocss-physics/dist/ccd-rounded-box.d.ts": {
+      "bytes": 502,
+      "sha256": "bcd4f82854324d45d093b0ddf96c99153cf1a9f8cd63acd650e6c0abd17f18d5"
+    },
+    "packages/barocss-physics/dist/ccd-rounded-box.js": {
+      "bytes": 8311,
+      "sha256": "0ed00435e556cef7a81dba538818391957c114388a8591dab65439fc33cd6992"
+    },
+    "packages/barocss-physics/dist/ccd-slab.d.ts": {
+      "bytes": 216,
+      "sha256": "4adde0cfe2c336ea862ff7d61b3001503235d8b9e6761e73d310221a691e3646"
+    },
+    "packages/barocss-physics/dist/ccd-slab.js": {
+      "bytes": 1088,
+      "sha256": "cf85c1dce1ebaa899cc2fc9eead7b0c25f7096caeb3a652476beb93c5f02843f"
+    },
+    "packages/barocss-physics/dist/ccd-sphere-pair-exact.d.ts": {
+      "bytes": 545,
+      "sha256": "e308490fb137e76f53c72d808118ddd15c57f1bcc6c8eb89fcc9cd2528fed03e"
+    },
+    "packages/barocss-physics/dist/ccd-sphere-pair-exact.js": {
+      "bytes": 5256,
+      "sha256": "3182f9776b5f9f84942379fcd1b0e3728e7f8a5b2ce669772d025f8245ed595c"
+    },
+    "packages/barocss-physics/dist/ccd.d.ts": {
+      "bytes": 560,
+      "sha256": "ef17952c90ff59495d3120e697ae83fbc4eee9e28ae1050b25a21ceccc7069f4"
+    },
+    "packages/barocss-physics/dist/ccd.js": {
+      "bytes": 2927,
+      "sha256": "a53793b3cc447960ce3a17cb3207b65c573b7ab3c8d379a4da75542d1929efee"
+    },
+    "packages/barocss-physics/dist/character-controller.d.ts": {
+      "bytes": 505,
+      "sha256": "58081e98e53b7c4a256dd00eac153992c61dfdbfcdbb2f15b9da8aa88df092e8"
+    },
+    "packages/barocss-physics/dist/character-controller.js": {
+      "bytes": 1083,
+      "sha256": "7a68a578b18b42e02dcacba24011b41208fa9af3b5c1b6991dd8efbae29d75b8"
+    },
+    "packages/barocss-physics/dist/character/admission.d.ts": {
+      "bytes": 499,
+      "sha256": "49b1094be17da78b2a3b8cff6756f6191ddd0422886cd1985ff89c0337cfa6aa"
+    },
+    "packages/barocss-physics/dist/character/admission.js": {
+      "bytes": 4100,
+      "sha256": "07cf9fb6af74299fce3e8fba82ca65871ea7e0cc67e4e73c837606be9f30e43c"
+    },
+    "packages/barocss-physics/dist/character/core.d.ts": {
+      "bytes": 461,
+      "sha256": "403a8ef448bcab99937f5bdbaa5c5d49f2d0c2dbd9ea06faac8c4beb9d488287"
+    },
+    "packages/barocss-physics/dist/character/core.js": {
+      "bytes": 4194,
+      "sha256": "80a53992b06c75c9216a671c52bad2f3a01b6192bbd6002458ecfe077c3a4eb4"
+    },
+    "packages/barocss-physics/dist/character/ground.d.ts": {
+      "bytes": 250,
+      "sha256": "6fb19efbd8bb96956188dd9471a510686b3fd6a841b1656a4102435a4f2fdd8a"
+    },
+    "packages/barocss-physics/dist/character/ground.js": {
+      "bytes": 1117,
+      "sha256": "96298ab6534e5e9e7f3da6b0850bbbb7acd73ac11534f6047617ac2bdcd2eb16"
+    },
+    "packages/barocss-physics/dist/character/math.d.ts": {
+      "bytes": 400,
+      "sha256": "080a0c2c1d9a808d658028024dae011eda1fad85c72eadee8af62dfb06f5854d"
+    },
+    "packages/barocss-physics/dist/character/math.js": {
+      "bytes": 686,
+      "sha256": "1afbd07dcb7940e9808e9017d665d781b5e7442bebc290c8327d0d4fb7a79174"
+    },
+    "packages/barocss-physics/dist/character/profile.d.ts": {
+      "bytes": 355,
+      "sha256": "30d583b24f52cf743763b6d877a8d4d1f742a9646d000c43a64065f1836019ce"
+    },
+    "packages/barocss-physics/dist/character/profile.js": {
+      "bytes": 334,
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    "packages/barocss-physics/dist/character/query.d.ts": {
+      "bytes": 655,
+      "sha256": "3849ff4e235063452e740ddf26f9352c3da945e000233a6f1763f7ebd69fe68f"
+    },
+    "packages/barocss-physics/dist/character/query.js": {
+      "bytes": 2186,
+      "sha256": "3b22d2772d3724bdb3974f1d88f5298054e577286a9f73aa67e62684efca1184"
+    },
+    "packages/barocss-physics/dist/character/slide.d.ts": {
+      "bytes": 319,
+      "sha256": "ccf68ac00496f485887d10f5f441ecf7b74e1ef2575ddb3432952da5daabd354"
+    },
+    "packages/barocss-physics/dist/character/slide.js": {
+      "bytes": 2636,
+      "sha256": "10c7d825c4640a7837a0b69885bb422ea5a343c921430675c11955acafce3c57"
+    },
+    "packages/barocss-physics/dist/character/state.d.ts": {
+      "bytes": 504,
+      "sha256": "26784670cee2b09570f457a21d1fe7a60aa2446bf67f04882fc692c0c52fa4fc"
+    },
+    "packages/barocss-physics/dist/character/state.js": {
+      "bytes": 1923,
+      "sha256": "1600bb81b883944f36c687305bcb5f7134dbf6c0751e92d9206b03622eaf9633"
+    },
+    "packages/barocss-physics/dist/character/step-assist.d.ts": {
+      "bytes": 445,
+      "sha256": "23f5de885452721fb565a167cdcf3eab995f71643a46569faa3b7f905cb71e79"
+    },
+    "packages/barocss-physics/dist/character/step-assist.js": {
+      "bytes": 2969,
+      "sha256": "aacc69468b9db7a62a14fbb2628a4494cab01a82640c682ad72f098fcbe7c8e5"
+    },
+    "packages/barocss-physics/dist/character/types.d.ts": {
+      "bytes": 2684,
+      "sha256": "1a0f85fdcf124f38bbbfeb2e99ba5896d5303281ba44f7a80f116dff1a753153"
+    },
+    "packages/barocss-physics/dist/character/types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "packages/barocss-physics/dist/cloth/constraints.d.ts": {
+      "bytes": 222,
+      "sha256": "d73f6b43a6276c83a5393ad8f5888833f6e2e91289f90d8176fe4d8cdb6f6296"
+    },
+    "packages/barocss-physics/dist/cloth/constraints.js": {
+      "bytes": 1836,
+      "sha256": "6e2e0b09734222a87abdefd745540e3ff5f4f24414cfae51f85c1b96d15225d7"
+    },
+    "packages/barocss-physics/dist/cloth/metrics.d.ts": {
+      "bytes": 277,
+      "sha256": "5fb418be30e84af69659615f0c87a66d0907d9422087f8fb40ca1f03379e29b0"
+    },
+    "packages/barocss-physics/dist/cloth/metrics.js": {
+      "bytes": 1730,
+      "sha256": "78e03ac4e69c35a7be6a614e4d7aedff4e4390d64c103a28543c0f6ee056eb27"
+    },
+    "packages/barocss-physics/dist/cloth/profile.d.ts": {
+      "bytes": 604,
+      "sha256": "8f1d860e70cc6e12faa7d35c38bb116298f0ee6345e18aa53119294e531e0fa1"
+    },
+    "packages/barocss-physics/dist/cloth/profile.js": {
+      "bytes": 664,
+      "sha256": "0dc385cac798bcfde6ad9cf479b8c51cf55bfc42b478370534ccb2de1e66f807"
+    },
+    "packages/barocss-physics/dist/cloth/solver.d.ts": {
+      "bytes": 309,
+      "sha256": "02eae9d5e0564304417dcb5afc5994dc808ee261ad05c16453c36ee58a6607f0"
+    },
+    "packages/barocss-physics/dist/cloth/solver.js": {
+      "bytes": 1471,
+      "sha256": "1f7178354cc026a41996d32502ac54d888ddf83f6b955059bb43f45cc6d9453b"
+    },
+    "packages/barocss-physics/dist/cloth/topology.d.ts": {
+      "bytes": 97,
+      "sha256": "96f70c7b8084190711c77cde7e7c54ba1f549f58c0af1a92060e25d5198e8047"
+    },
+    "packages/barocss-physics/dist/cloth/topology.js": {
+      "bytes": 2033,
+      "sha256": "403cf1b19b85a3a6dd177ae8bb130b19895670e679452533df22dce26d558050"
+    },
+    "packages/barocss-physics/dist/cloth/types.d.ts": {
+      "bytes": 752,
+      "sha256": "482dbddb4b66efa7aa47e689cb8759d2c9d7b7e3e5b870e5aa500ced152bffa2"
+    },
+    "packages/barocss-physics/dist/cloth/types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "packages/barocss-physics/dist/collision.d.ts": {
+      "bytes": 535,
+      "sha256": "9d0eba9d2a95e584a98cce909b1a1206411eb2362c15425813b9b4adf056d15f"
+    },
+    "packages/barocss-physics/dist/collision.js": {
+      "bytes": 14698,
+      "sha256": "761a123d62e14ef798a0dce21fccd37d779e09d6a164dd7f4b709810d62b6b36"
+    },
+    "packages/barocss-physics/dist/contact-manifold.d.ts": {
+      "bytes": 320,
+      "sha256": "92763debd17ad80b2a55394adc00214c3e127cadd51cb969f496ec45100b496b"
+    },
+    "packages/barocss-physics/dist/contact-manifold.js": {
+      "bytes": 4576,
+      "sha256": "52fcb4accfbfd3251aa977f519983c7334f0d1663bfb2424ca82bfaaec1c8fae"
+    },
+    "packages/barocss-physics/dist/contact-tangent.d.ts": {
+      "bytes": 346,
+      "sha256": "7459a975c8a9473f4f983e7705812e4ee6cf7621d5bdddcbdf26721220322d3d"
+    },
+    "packages/barocss-physics/dist/contact-tangent.js": {
+      "bytes": 2713,
+      "sha256": "d5a3e6a0a2fef8000b219df53569c571a6d75b6a854b5266dd84fda3c58df9d0"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/admission.d.ts": {
+      "bytes": 480,
+      "sha256": "bc64cf951244b1fc444f2800c4ecb99892a4a93ea47375bd855a06317a9f8cb4"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/admission.js": {
+      "bytes": 3562,
+      "sha256": "4a72dbe445a74c4d1e7081e07a27c9c3cab46d823d0ab9568781a1ac54ffc587"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/errors.d.ts": {
+      "bytes": 941,
+      "sha256": "9e67f3825d9fa4cb31e69bfad57a2e66ba3ae592d944e94b04c30e0791242c3e"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/errors.js": {
+      "bytes": 2793,
+      "sha256": "9195a428dd9c96e0344b8eeb1eb7c66a7197a8e152b85d5fb5aed5038256d173"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/linear-solver.d.ts": {
+      "bytes": 254,
+      "sha256": "19623809b43cc41bc5ec39fd78094543243a57f7c2bdfe0b0acde011e2975680"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/linear-solver.js": {
+      "bytes": 12015,
+      "sha256": "123d3abb62b3a9f4f5ce3807463f070194e2d528f5cec841da5e623ee6b52e8e"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/measure.d.ts": {
+      "bytes": 1226,
+      "sha256": "2b9980af657dbe8735b4473393344073d6835103c5f3b5dba98cba9811f1bf53"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/measure.js": {
+      "bytes": 4860,
+      "sha256": "e576367851b0ea5ba37e9684e867aa28ae51cb6a585ad2c40f479341dc5f95f8"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/pose.d.ts": {
+      "bytes": 1787,
+      "sha256": "e91ee521eec25fabac02cfabacb9b76371696ab206bbbe47972c7cc486fcbbb0"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/pose.js": {
+      "bytes": 3352,
+      "sha256": "ee53440b0433e7be5b1f00027aca708bb567da46f9edd193de0bab2a282c02b9"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/postcontact.d.ts": {
+      "bytes": 793,
+      "sha256": "34c797517114767513a1edf7f161ffae4da85de440d1bdff3dcd2dba42d67dde"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/postcontact.js": {
+      "bytes": 2568,
+      "sha256": "32a4a1907a4540a550e67cee03a2817d9519d77a53212b160d018c2f484b2e1a"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/projection.d.ts": {
+      "bytes": 4433,
+      "sha256": "ce03195c1d5550114fe5589106edc6a423f40e62e9468ad65debcce7fabc0753"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/projection.js": {
+      "bytes": 3825,
+      "sha256": "30e04425020bff49e75c02f1d7abf15f82fe375dd1e07a0938a4a69aa03d159a"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/report.d.ts": {
+      "bytes": 1402,
+      "sha256": "791d2f931d8f24edc833a9ff2f18df5239ed73971b7228a906fe0e6bbce522fa"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/report.js": {
+      "bytes": 5257,
+      "sha256": "7ee0b7d17e70247ce4c2dff953593e82091efabdd2932e0f4272931c69843a2f"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/rows.d.ts": {
+      "bytes": 946,
+      "sha256": "fdabe8b245fd133a9312ebcec16466b0b7981a02df88cd3e5d85e91862b173ca"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/rows.js": {
+      "bytes": 4059,
+      "sha256": "e19d8d9c3ef835e98f796b3dc9b5785473e8aaef41af34d77c49200b446d3f55"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/stage.d.ts": {
+      "bytes": 989,
+      "sha256": "167a0fbdd4e34bc5a2dc504d795c53bd14c4e6cf6e93ae61bbe1d4798c0cbd7d"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/stage.js": {
+      "bytes": 2255,
+      "sha256": "bfa6d3528889d89da9d355a4bed753ed7287fd5979735f1158c7c009de94cafd"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/types.d.ts": {
+      "bytes": 1887,
+      "sha256": "50410e8dee0bd496114f1dfa72eff31603b5bd36d76dcf609352b1f25d5607a3"
+    },
+    "packages/barocss-physics/dist/disjoint-hinge/types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "packages/barocss-physics/dist/domain/admission.d.ts": {
+      "bytes": 403,
+      "sha256": "21e43ead4806bbbc2ca4518cb481698090abdd91520fa6340a7e971427944c01"
+    },
+    "packages/barocss-physics/dist/domain/admission.js": {
+      "bytes": 11163,
+      "sha256": "8d4a14d764742a9989a760ce27a0cc395ff818f879a9faa32f86fdaba7600960"
+    },
+    "packages/barocss-physics/dist/domain/cloth-reference.generated.d.ts": {
+      "bytes": 92,
+      "sha256": "f13ae964106fdfa5b0464ba945640467d79b497cba1ce2b2a5c02cbf8a331490"
+    },
+    "packages/barocss-physics/dist/domain/cloth-reference.generated.js": {
+      "bytes": 181057,
+      "sha256": "3c8e21d9612bf232074268c50bf7151290167391692a132e0619f5aedb4b75b9"
+    },
+    "packages/barocss-physics/dist/domain/cloth.d.ts": {
+      "bytes": 434,
+      "sha256": "f24352d6ca040d469cf484ab74864764fbc7121a824469f07cf43e9ae1a5aa02"
+    },
+    "packages/barocss-physics/dist/domain/cloth.js": {
+      "bytes": 4041,
+      "sha256": "a97392c690610d642eb7b6282385e362ee4ebe7b661319d3b70ea48fa95b6205"
+    },
+    "packages/barocss-physics/dist/domain/fluid.d.ts": {
+      "bytes": 434,
+      "sha256": "e5a257935af3d1b8dce16da0a439bf853639ff3676eade2eb4fe6a9f1774cfa3"
+    },
+    "packages/barocss-physics/dist/domain/fluid.js": {
+      "bytes": 4875,
+      "sha256": "c0ce5f1f97b1d19b2f6fa2bc892b5bc5bed445c3e1c56d5f4a1cd97c2ecd456f"
+    },
+    "packages/barocss-physics/dist/domain/types.d.ts": {
+      "bytes": 2142,
+      "sha256": "cb3c90cfaee8a1bd20b48bbf4d6c2d2bea631574361cc389f3d4d7d1ccf80de5"
+    },
+    "packages/barocss-physics/dist/domain/types.js": {
+      "bytes": 2151,
+      "sha256": "76eb7d0fc14a3ba6897ba0d649beeaba4a28172b2458782b64029af6ef5f6666"
+    },
+    "packages/barocss-physics/dist/dynamic-anchor-pair.d.ts": {
+      "bytes": 420,
+      "sha256": "9253386fe2c10c4a5c3b8a74930e9afc5c701d13c7310a6f7ad716e8ab76ec03"
+    },
+    "packages/barocss-physics/dist/dynamic-anchor-pair.js": {
+      "bytes": 3099,
+      "sha256": "8e20e96a9a3c803f65d78dfa21aaf530744b2c37e4f3507fd87e828190c800be"
+    },
+    "packages/barocss-physics/dist/dynamic-fixed-joint.d.ts": {
+      "bytes": 267,
+      "sha256": "c1af834c67ae4e82753fa5f949313ec9a1686c89193f1b368e37541753b478ca"
+    },
+    "packages/barocss-physics/dist/dynamic-fixed-joint.js": {
+      "bytes": 1935,
+      "sha256": "c637c4b13cdf432103202f895e50fae7e05c88920cf0889a67f2c16e565bfb5a"
+    },
+    "packages/barocss-physics/dist/dynamic-hinge-joint.d.ts": {
+      "bytes": 475,
+      "sha256": "c08e405d3b85f5967e12c29b30be360b47e2e015fe72132a34788a908cea41c1"
+    },
+    "packages/barocss-physics/dist/dynamic-hinge-joint.js": {
+      "bytes": 4671,
+      "sha256": "8780a6887f0c7cbec6ec2f059b2ada64d0e28d0224279d7ada42e4b79e84baac"
+    },
+    "packages/barocss-physics/dist/fluid/boundary.d.ts": {
+      "bytes": 349,
+      "sha256": "fdc60e3e6b43b551c74fee3eb888476213132987c2b6f80e9a2a515041076b91"
+    },
+    "packages/barocss-physics/dist/fluid/boundary.js": {
+      "bytes": 2027,
+      "sha256": "0411aee849b18145f75e2a602a23aab5b5e6a644bc44a47cc2944ab532d0ea18"
+    },
+    "packages/barocss-physics/dist/fluid/constants.d.ts": {
+      "bytes": 478,
+      "sha256": "b145eaa09c8094a630d0073564d79c13e9f9623ee98d49bf291afc743f42f2bc"
+    },
+    "packages/barocss-physics/dist/fluid/constants.js": {
+      "bytes": 396,
+      "sha256": "48cb2507298e158c9d711a3a08e36a521ccab101a26b55217d00247a9b844072"
+    },
+    "packages/barocss-physics/dist/fluid/diagnostics.d.ts": {
+      "bytes": 180,
+      "sha256": "2e528c38ac59e450feb510f421228cba10843df87d4f1b476582eb8a814f2e47"
+    },
+    "packages/barocss-physics/dist/fluid/diagnostics.js": {
+      "bytes": 1032,
+      "sha256": "b87d7b27266ca4b014d4b84b24b57216b12d4b0345088282b6ecd5270fa46c29"
+    },
+    "packages/barocss-physics/dist/fluid/kernel.d.ts": {
+      "bytes": 376,
+      "sha256": "4430b3611c7ea86ba71ca51f93e02b800f11a44986182059a219f2a5ab3da157"
+    },
+    "packages/barocss-physics/dist/fluid/kernel.js": {
+      "bytes": 1047,
+      "sha256": "264a62a2ed0aeee0c77bd5ba44a60a6d0522654ecc8f07117174c6fe328c123b"
+    },
+    "packages/barocss-physics/dist/fluid/neighbors.d.ts": {
+      "bytes": 384,
+      "sha256": "f81f41caadaccc5b3150f144b0687a5a2910e456ac707114b927ba2ef18869fd"
+    },
+    "packages/barocss-physics/dist/fluid/neighbors.js": {
+      "bytes": 3065,
+      "sha256": "e857766d44372269a19fb83d4bdeeabbc1816b9792230e6a9aac8cf1ea6249e5"
+    },
+    "packages/barocss-physics/dist/fluid/pbf.d.ts": {
+      "bytes": 722,
+      "sha256": "0475a847a3b98aadce70713913ac39d7d3c03e07a261c51e20ae86231c65e19c"
+    },
+    "packages/barocss-physics/dist/fluid/pbf.js": {
+      "bytes": 5606,
+      "sha256": "93ba3d6c2db8aee07c7307d74300888b9e48279279f6f060e157ea08b847241d"
+    },
+    "packages/barocss-physics/dist/fluid/static-box.d.ts": {
+      "bytes": 628,
+      "sha256": "5e643a758a5988858b624b26af6ac15c94b533977421688509597490b9789ce8"
+    },
+    "packages/barocss-physics/dist/fluid/static-box.js": {
+      "bytes": 2238,
+      "sha256": "120ee59f2212e86846bce3a73425b493d2bc98971dc230419a394a1235196b7c"
+    },
+    "packages/barocss-physics/dist/fluid/types.d.ts": {
+      "bytes": 130,
+      "sha256": "ff8120a184ec3b4139c14031e106c41ab0ea2569747d1bd2b34bca415e69b064"
+    },
+    "packages/barocss-physics/dist/fluid/types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "packages/barocss-physics/dist/fluid/visual-viscosity.d.ts": {
+      "bytes": 289,
+      "sha256": "f7917414df0b746457c9dc5fb9cd12e48dc2bc2ab6d4cc30f0a31a9c6e3a6b26"
+    },
+    "packages/barocss-physics/dist/fluid/visual-viscosity.js": {
+      "bytes": 1225,
+      "sha256": "0d01bcbd68f126c9d8954b46afe523f6e7f879f129817f40fc9300c297041205"
+    },
+    "packages/barocss-physics/dist/identity.d.ts": {
+      "bytes": 523,
+      "sha256": "bef1a44ab8fd4245d47a5cdeb09b56f7d703ad2c5ab20768350a9a1c44621330"
+    },
+    "packages/barocss-physics/dist/identity.js": {
+      "bytes": 6977,
+      "sha256": "7f7243fcc617a32f77d517d029cb90bd99584f518ece49a7d7a4e35ae54d7791"
+    },
+    "packages/barocss-physics/dist/index.d.ts": {
+      "bytes": 568,
+      "sha256": "b564302ed188eb8a22eaa3837ed7a69086b29bdd5c62fe6258048690e6a33277"
+    },
+    "packages/barocss-physics/dist/index.js": {
+      "bytes": 428926,
+      "sha256": "feda967c4a0643356c9701a1175159cf559d4fa3315e0fd08dcbd70ec7844eee"
+    },
+    "packages/barocss-physics/dist/internal-types.d.ts": {
+      "bytes": 2800,
+      "sha256": "288c355766cb51ea6e888d9ef38ea10c79600c44688d536a203b95dbca3f5c61"
+    },
+    "packages/barocss-physics/dist/internal-types.js": {
+      "bytes": 43,
+      "sha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e"
+    },
+    "packages/barocss-physics/dist/joint-motor.d.ts": {
+      "bytes": 255,
+      "sha256": "fdcf91647efdad5905cf989de7d9634cb7878f9b2299c20f13b5557eef958ed4"
+    },
+    "packages/barocss-physics/dist/joint-motor.js": {
+      "bytes": 1651,
+      "sha256": "43010c0e319717622727666e1e23f7288fdf500f1731f6fd52a443f36055c724"
+    },
+    "packages/barocss-physics/dist/joints.d.ts": {
+      "bytes": 268,
+      "sha256": "7ed4f0eb1cf54f665d75d42ac5c49211838a2480b33ffede327a3e3460da550b"
+    },
+    "packages/barocss-physics/dist/joints.js": {
+      "bytes": 7382,
+      "sha256": "f2893b2f8684f338a8d4832b9fa91c356fd360bf70ebf423062e21911d433ce0"
+    },
+    "packages/barocss-physics/dist/limits.d.ts": {
+      "bytes": 476,
+      "sha256": "9389e2dca0a552e1173fd3be829ea8f2cc698a86f6e7d92ddf305404192f0b6b"
+    },
+    "packages/barocss-physics/dist/limits.js": {
+      "bytes": 416,
+      "sha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219"
+    },
+    "packages/barocss-physics/dist/math.d.ts": {
+      "bytes": 893,
+      "sha256": "bdbe8b8906433f0aa9eeb9c3d6dc2016115712f7b749bd11ca135afb58b58443"
+    },
+    "packages/barocss-physics/dist/math.js": {
+      "bytes": 2114,
+      "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028"
+    },
+    "packages/barocss-physics/dist/model-admission.d.ts": {
+      "bytes": 510,
+      "sha256": "9fa8004b2021ad8f9e38209ef093180e845bbd341c3f9e8281660110ff787289"
+    },
+    "packages/barocss-physics/dist/model-admission.js": {
+      "bytes": 10761,
+      "sha256": "29a8cbe82623ce8c592da4dd7693daa625403d665e4f0a029c23b4bde0468fe7"
+    },
+    "packages/barocss-physics/dist/pendulum.d.ts": {
+      "bytes": 1452,
+      "sha256": "c1d3a9ee37e2e9a06ea1860204970e7bed57a4347c669ba26f8032fe119d7fed"
+    },
+    "packages/barocss-physics/dist/pendulum.js": {
+      "bytes": 5390,
+      "sha256": "86ae37d06196b0c93109828893357acadf25270374b708f4d7fe37a6cfd4ce8b"
+    },
+    "packages/barocss-physics/dist/persistent-box-contact.d.ts": {
+      "bytes": 499,
+      "sha256": "900d4b6a8c16298fc40e068c3a2ca5f6ae72872578bbc247c36fe72e2076ad99"
+    },
+    "packages/barocss-physics/dist/persistent-box-contact.js": {
+      "bytes": 3528,
+      "sha256": "a0934cea381f32600b83a881754d64db8ad76fc05c856b7fa445890ea45b5477"
+    },
+    "packages/barocss-physics/dist/provider-manifest.generated.d.ts": {
+      "bytes": 9355,
+      "sha256": "c21bc7f1dfca91a173b7e9679f12c4ce12346326338a5a4dc0a4cc0425a7ec37"
+    },
+    "packages/barocss-physics/dist/provider-manifest.generated.js": {
+      "bytes": 2375,
+      "sha256": "21cb841f54a7bd3e7f6c373386d16fabe5bb0f28f3f907a9854376641f66bf58"
+    },
+    "packages/barocss-physics/dist/recording-owner.d.ts": {
+      "bytes": 940,
+      "sha256": "e904a930ad3132e81fb3587df42b0cf71b62ca04910fa6f273bfa58ed6e12bd5"
+    },
+    "packages/barocss-physics/dist/recording-owner.js": {
+      "bytes": 46,
+      "sha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521"
+    },
+    "packages/barocss-physics/dist/replay-compare.d.ts": {
+      "bytes": 87,
+      "sha256": "9f0c2c538a56c78cb7fbfe9fe5131de4ce3dbe89792b7192da0b003e36021195"
+    },
+    "packages/barocss-physics/dist/replay-compare.js": {
+      "bytes": 974,
+      "sha256": "46e92b237a3b74725e1f973bc195f3fb3c7d182ea4978f5092608706d1400875"
+    },
+    "packages/barocss-physics/dist/replay-json.d.ts": {
+      "bytes": 695,
+      "sha256": "976f19331efa162c1043ca0c5d5febb0f64af5cb8989a8cf7028c3d92d6ca271"
+    },
+    "packages/barocss-physics/dist/replay-json.js": {
+      "bytes": 8011,
+      "sha256": "742249b1dd48de51d76dcf266dce19b2f85da400c5bc2b1043543d43c5593d0f"
+    },
+    "packages/barocss-physics/dist/replay-validation.d.ts": {
+      "bytes": 218,
+      "sha256": "a876f6e56327b9c7210c927421e7d547225f4961eb2147ac1429182dbd6501e0"
+    },
+    "packages/barocss-physics/dist/replay-validation.js": {
+      "bytes": 8287,
+      "sha256": "381aa19fa30f78cc6f5808aad541a42f0ca90bc673b3bc643c2eca4e5a01d298"
+    },
+    "packages/barocss-physics/dist/replay.d.ts": {
+      "bytes": 796,
+      "sha256": "126d9a849ec1dc0d8d8064e64a8b4a51cfba742eecba19bfecd4b453bb4168da"
+    },
+    "packages/barocss-physics/dist/replay.js": {
+      "bytes": 6623,
+      "sha256": "d352fcab204a7e5291a3a5f1e17d2856a5628a9179de2becf7f520676a471036"
+    },
+    "packages/barocss-physics/dist/rigid-forced-rotation.d.ts": {
+      "bytes": 423,
+      "sha256": "a38edc2e6197df45e92a40d9e520f7297b3f83ded8dceda8cbf100f25b3cd1f4"
+    },
+    "packages/barocss-physics/dist/rigid-forced-rotation.js": {
+      "bytes": 4913,
+      "sha256": "76a7de3e408c18d5ce78c447cd86c88f6f5e62678990dfb4dee6c000a783ea3d"
+    },
+    "packages/barocss-physics/dist/rigid-free-rotation.d.ts": {
+      "bytes": 558,
+      "sha256": "f6db0dd5704f6deddd9c9d37b1e69707e9feaf448a657489ca35d987455545f8"
+    },
+    "packages/barocss-physics/dist/rigid-free-rotation.js": {
+      "bytes": 11497,
+      "sha256": "88689f815d52f4c9503eaefd80fa13f146e6c4639f9a2a967c10d7116eb93e89"
+    },
+    "packages/barocss-physics/dist/rotation-validation.d.ts": {
+      "bytes": 251,
+      "sha256": "429e47e34bf3260a16b6f583dc30230394ec86166319dc66241d3b73e87c060c"
+    },
+    "packages/barocss-physics/dist/rotation-validation.js": {
+      "bytes": 697,
+      "sha256": "9ae367ba026027fbb0966561c54f508271f1119a479076c7bc3228a4a995f397"
+    },
+    "packages/barocss-physics/dist/scene-profile.d.ts": {
+      "bytes": 300,
+      "sha256": "c96672aaa6baeb8cb59c16e61ab561e0cf9554214b0c8eb2fe458366bff57ae7"
+    },
+    "packages/barocss-physics/dist/scene-profile.js": {
+      "bytes": 1138,
+      "sha256": "7a1198598bfaf64647f9ed89d76cb4f1035bd77e602d8b8c0b8a7914911b6e9f"
+    },
+    "packages/barocss-physics/dist/sleep.d.ts": {
+      "bytes": 396,
+      "sha256": "bc4940a234b4b29d6dae5554d7c7d05fe7d8a7eadb9110afc25cf702e7bfcef2"
+    },
+    "packages/barocss-physics/dist/sleep.js": {
+      "bytes": 4621,
+      "sha256": "681f3820fb08a61cd7f367b049f9b7bb3d2eb1a4e8f81975aec014fdefdb8250"
+    },
+    "packages/barocss-physics/dist/types.d.ts": {
+      "bytes": 12676,
+      "sha256": "e286c28700179075e347c13c70bc459caecbd55eb0507229a0117f008fa2bd62"
+    },
+    "packages/barocss-physics/dist/types.js": {
+      "bytes": 418,
+      "sha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b"
+    },
+    "packages/barocss-physics/dist/validation.d.ts": {
+      "bytes": 1401,
+      "sha256": "ac6326806207337984fa1e442913f7984710e261447daa819cc9a86d0077651a"
+    },
+    "packages/barocss-physics/dist/validation.js": {
+      "bytes": 14590,
+      "sha256": "7a16fbadf07097048276364818d8851d77f980fe84a30dc79529eadcb2fabe2c"
+    },
+    "packages/barocss-physics/dist/world.d.ts": {
+      "bytes": 178,
+      "sha256": "8d0c9906f7c25b589ef9a4db96adcc961fa99950ac64fd79007a9aff306af2a0"
+    },
+    "packages/barocss-physics/dist/world.js": {
+      "bytes": 33566,
+      "sha256": "7980be115ebcc87795fad7c60fdf7dfed462259edef212e0bee9f5aec06d9084"
+    },
+    "packages/barocss-physics/src/broadphase.ts": {
+      "bytes": 1371,
+      "sha256": "d93e38d78cc3d202481ceeba83631d528032426d03a8adafb2e461fc72a042a0"
+    },
+    "packages/barocss-physics/src/cad-fluid-data.ts": {
+      "bytes": 2345,
+      "sha256": "5a15e23ba65663433501f07d2f35f323960879218d52a007efeb09ca7934ce10"
+    },
+    "packages/barocss-physics/src/cad-proxy-admission.ts": {
+      "bytes": 7744,
+      "sha256": "898fb55af369727440fef9f4bfadba0ea455b4c800a719909e5311029a663441"
+    },
+    "packages/barocss-physics/src/cad-proxy-pose.ts": {
+      "bytes": 1479,
+      "sha256": "8b5f50642144e335421ee6483f8b016b8a0babdb0c312ddf6ba4afbcf8bda322"
+    },
+    "packages/barocss-physics/src/cad-proxy-types.ts": {
+      "bytes": 887,
+      "sha256": "31bbf6766887913149d6fa2185c173adb0c6b78cdb21d1556ae4ffd055666128"
+    },
+    "packages/barocss-physics/src/cad-proxy-validation.ts": {
+      "bytes": 1598,
+      "sha256": "4429f957bb51ff2604a15478095e35642368dcf91ca0d854561693d3f99f748e"
+    },
+    "packages/barocss-physics/src/cad-proxy.ts": {
+      "bytes": 321,
+      "sha256": "cc7715b4fc974c8ed4511ebf684cdc7c2923f7ab4b8b7f5db45b208f8e6ffa99"
+    },
+    "packages/barocss-physics/src/capsule-contact.ts": {
+      "bytes": 5615,
+      "sha256": "cc29d60423bd9a1883585cf164cca0b0736b9fc72e7feb3575c5208c7d892929"
+    },
+    "packages/barocss-physics/src/capsule-query-error.ts": {
+      "bytes": 137,
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    "packages/barocss-physics/src/capsule-query.ts": {
+      "bytes": 222,
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+    },
+    "packages/barocss-physics/src/capsule-query/admission.ts": {
+      "bytes": 5248,
+      "sha256": "9b67efc7a8824ce49361485eff925afa50017e05bc23d900db5ec7c4e2c8760d"
+    },
+    "packages/barocss-physics/src/capsule-query/geometry.ts": {
+      "bytes": 2570,
+      "sha256": "5fdbe1eb40f46e930161e98244a9e5ec0e00c29297caf6f91d530c98df3df4a7"
+    },
+    "packages/barocss-physics/src/capsule-query/profile.ts": {
+      "bytes": 303,
+      "sha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff"
+    },
+    "packages/barocss-physics/src/capsule-query/snapshot.ts": {
+      "bytes": 2537,
+      "sha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd"
+    },
+    "packages/barocss-physics/src/capsule-query/sweep.ts": {
+      "bytes": 1861,
+      "sha256": "a8f4d16879b2ff88086ceec54cef19d04d58fb063893e7a146382cad59cbaf77"
+    },
+    "packages/barocss-physics/src/capsule-query/types.ts": {
+      "bytes": 979,
+      "sha256": "c22d17887cd8ab889a443c828200310a4c560fd3b4f8ed49f3f1f60e5dd46f44"
+    },
+    "packages/barocss-physics/src/ccd-box.ts": {
+      "bytes": 1988,
+      "sha256": "076eadf591500684332bd19b53a780de480ccdde205196ad072a11e1abc4f7a4"
+    },
+    "packages/barocss-physics/src/ccd-pair.ts": {
+      "bytes": 1303,
+      "sha256": "87ea34e6b662b223874857651839407f351b0beaa03a4a85d1e4797744027e1a"
+    },
+    "packages/barocss-physics/src/ccd-rounded-box.ts": {
+      "bytes": 8125,
+      "sha256": "b4ad5a06435b1bacb796dace179f95904fd9d35e4e9dac17ead55bc2f675f59c"
+    },
+    "packages/barocss-physics/src/ccd-slab.ts": {
+      "bytes": 1125,
+      "sha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340"
+    },
+    "packages/barocss-physics/src/ccd-sphere-pair-exact.ts": {
+      "bytes": 5307,
+      "sha256": "2ee601d4e363d135fc356cef37a43495524449bb4dc38abe8f62848bdf28645c"
+    },
+    "packages/barocss-physics/src/ccd.ts": {
+      "bytes": 3183,
+      "sha256": "861e2b8fa56c746232581f1debddab0b88574df81187cb6dd2d6b8db7377d95e"
+    },
+    "packages/barocss-physics/src/character-controller.ts": {
+      "bytes": 1363,
+      "sha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927"
+    },
+    "packages/barocss-physics/src/character/admission.ts": {
+      "bytes": 4488,
+      "sha256": "d83cdb8231620a18935d4d4d5e19ab7ec5440b043e1df71d49d5fa42f3fecb26"
+    },
+    "packages/barocss-physics/src/character/core.ts": {
+      "bytes": 4057,
+      "sha256": "6c6251e9782baed07be65cce68bfdbca14e2f930ca04a54ee6812cbbfc925a02"
+    },
+    "packages/barocss-physics/src/character/ground.ts": {
+      "bytes": 1242,
+      "sha256": "bd1621641ebc9300943b88c9083710218768454acb0a5e1ba8b330086d68c321"
+    },
+    "packages/barocss-physics/src/character/math.ts": {
+      "bytes": 859,
+      "sha256": "df0e88c320d8a189004991cd5cfc3f8de3d7bb3eecb305bb01830a11191dcdc5"
+    },
+    "packages/barocss-physics/src/character/profile.ts": {
+      "bytes": 334,
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    "packages/barocss-physics/src/character/query.ts": {
+      "bytes": 2733,
+      "sha256": "9ef96eeb1529dc42466445529b100affc2f56913081f0c2fc169079cffe1a8cf"
+    },
+    "packages/barocss-physics/src/character/slide.ts": {
+      "bytes": 2555,
+      "sha256": "587d5512212e68fdc26068646152d2f8c52c3c6119d6c222de91b750c01fcd77"
+    },
+    "packages/barocss-physics/src/character/state.ts": {
+      "bytes": 2181,
+      "sha256": "6eb744c82f24604a8ecadd6e9d86406600119a3fbc7918129f93983df7cbf47e"
+    },
+    "packages/barocss-physics/src/character/step-assist.ts": {
+      "bytes": 3129,
+      "sha256": "9166857ad8509049a56d5b255ed59de17ee03e159581b495de7f1d985780c390"
+    },
+    "packages/barocss-physics/src/character/types.ts": {
+      "bytes": 2552,
+      "sha256": "866c5974fd99ec08b5dc6b5edf165241f4d02a8ed87274faf4cf35b19a3fb938"
+    },
+    "packages/barocss-physics/src/cloth/constraints.ts": {
+      "bytes": 1772,
+      "sha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be"
+    },
+    "packages/barocss-physics/src/cloth/metrics.ts": {
+      "bytes": 1805,
+      "sha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd"
+    },
+    "packages/barocss-physics/src/cloth/profile.ts": {
+      "bytes": 655,
+      "sha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f"
+    },
+    "packages/barocss-physics/src/cloth/solver.ts": {
+      "bytes": 1395,
+      "sha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d"
+    },
+    "packages/barocss-physics/src/cloth/topology.ts": {
+      "bytes": 1931,
+      "sha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203"
+    },
+    "packages/barocss-physics/src/cloth/types.ts": {
+      "bytes": 719,
+      "sha256": "bad411f3fa02e4ba7039b5d447de395074342aa207f2eeed251705b15facb6d1"
+    },
+    "packages/barocss-physics/src/collision.ts": {
+      "bytes": 14404,
+      "sha256": "8af301d4addf3b61a38fc54466a73dde48d27907f4143032d500962adbff47a3"
+    },
+    "packages/barocss-physics/src/contact-manifold.ts": {
+      "bytes": 4743,
+      "sha256": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428"
+    },
+    "packages/barocss-physics/src/contact-tangent.ts": {
+      "bytes": 2729,
+      "sha256": "5e1bddc158f9a6f307fdcc60ce8078ab36a06e372d530e7f5d05466d29bf9673"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/admission.ts": {
+      "bytes": 3764,
+      "sha256": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/errors.ts": {
+      "bytes": 2777,
+      "sha256": "5e51e5662fbce80bee3ccd3aa3694ee986b1492ed816d171774e261ab982bf4f"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/linear-solver.ts": {
+      "bytes": 10615,
+      "sha256": "4009d4d7f171be3a5d79ca309a14b039da54f9201b438a410a6e29ed0f90bfdf"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/measure.ts": {
+      "bytes": 4626,
+      "sha256": "97cbaf697dc8ef5caba0bf2c702699b025bcc6f906f553b623466618bbd77178"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/pose.ts": {
+      "bytes": 3194,
+      "sha256": "ab950c1f9f1a79f9f00cb26e4b3cef0e3dcaea7b16d74e345e711159706b39e4"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/postcontact.ts": {
+      "bytes": 2936,
+      "sha256": "8d07190383a64cb592165772109a4f462099743492f8373794ef7981b1431e38"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/projection.ts": {
+      "bytes": 3538,
+      "sha256": "9d0def632c07f8085e860a2dbf21f26d8073f3265eb57590607d23ea6d333b87"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/report.ts": {
+      "bytes": 5726,
+      "sha256": "d46b3e289c58b289b059928580ff2b89d9bd3ecfb11cb688d8b7a4735143973d"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/rows.ts": {
+      "bytes": 3685,
+      "sha256": "6556f07d1d7d22edb67af1b214c689c5b5c2b30628334abaec67280d7302903f"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/stage.ts": {
+      "bytes": 2648,
+      "sha256": "a66e09b816259c2bb1305fed8f90696585b9fd4b750406b0ce006cbe2c2f33ab"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/types.ts": {
+      "bytes": 1610,
+      "sha256": "89b2708fd9209932084eaa765f93ff6ea00a2d775911e8c9e607a7eb824c8cc1"
+    },
+    "packages/barocss-physics/src/domain/admission.ts": {
+      "bytes": 11327,
+      "sha256": "1182fb21ec319132ac2f16ddec8494e3d1c4c5ac750bbe1ebab4c29817b4423e"
+    },
+    "packages/barocss-physics/src/domain/cloth-reference.generated.ts": {
+      "bytes": 158018,
+      "sha256": "c9ee88af8e25b533c2694433502b28f51dffdeae5cce656b53eb36a187be60bc"
+    },
+    "packages/barocss-physics/src/domain/cloth.ts": {
+      "bytes": 4349,
+      "sha256": "2454474a24928a9f3d92d635a9391c537ef74de77112fdc2f2872536cb447883"
+    },
+    "packages/barocss-physics/src/domain/fluid.ts": {
+      "bytes": 4923,
+      "sha256": "bfcafa7cc2f2bbb4ec6e2c20797f5dc5410d995cd28305272a2c3665d827179a"
+    },
+    "packages/barocss-physics/src/domain/types.ts": {
+      "bytes": 3839,
+      "sha256": "35fcadf07a848d919806955f6c3d934d01217ff1c26ca7d4eb4eb2807eb4ee6f"
+    },
+    "packages/barocss-physics/src/dynamic-anchor-pair.ts": {
+      "bytes": 3072,
+      "sha256": "8ff622a6ce007e5e7fcb43f0b7c08521615ddacbc8195cde1ac4f574304b579d"
+    },
+    "packages/barocss-physics/src/dynamic-fixed-joint.ts": {
+      "bytes": 2051,
+      "sha256": "f5a0fa82c062c7406f6edfeb2aeb169c927ddd8d0965957f630f87e118c52dfa"
+    },
+    "packages/barocss-physics/src/dynamic-hinge-joint.ts": {
+      "bytes": 4835,
+      "sha256": "69c816393446b6e06d66849840ecf88a7d28baf72bd30c792180616f55e455f2"
+    },
+    "packages/barocss-physics/src/fluid/boundary.ts": {
+      "bytes": 1990,
+      "sha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c"
+    },
+    "packages/barocss-physics/src/fluid/constants.ts": {
+      "bytes": 459,
+      "sha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec"
+    },
+    "packages/barocss-physics/src/fluid/diagnostics.ts": {
+      "bytes": 1106,
+      "sha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215"
+    },
+    "packages/barocss-physics/src/fluid/kernel.ts": {
+      "bytes": 1112,
+      "sha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da"
+    },
+    "packages/barocss-physics/src/fluid/neighbors.ts": {
+      "bytes": 2949,
+      "sha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3"
+    },
+    "packages/barocss-physics/src/fluid/pbf.ts": {
+      "bytes": 5161,
+      "sha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50"
+    },
+    "packages/barocss-physics/src/fluid/static-box.ts": {
+      "bytes": 2481,
+      "sha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9"
+    },
+    "packages/barocss-physics/src/fluid/types.ts": {
+      "bytes": 125,
+      "sha256": "c75f020afeb760ec596c3043fc6d2a7166995ce0c3cedbc7e5424a6a83e56a62"
+    },
+    "packages/barocss-physics/src/fluid/visual-viscosity.ts": {
+      "bytes": 1265,
+      "sha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3"
+    },
+    "packages/barocss-physics/src/generate-provider.mjs": {
+      "bytes": 2663,
+      "sha256": "c45a6eb52df5f4840aa30006ac65d15ea0758066f63d815e4a3b394e8eb20557"
+    },
+    "packages/barocss-physics/src/identity.ts": {
+      "bytes": 6081,
+      "sha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be"
+    },
+    "packages/barocss-physics/src/index.ts": {
+      "bytes": 570,
+      "sha256": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30"
+    },
+    "packages/barocss-physics/src/internal-types.ts": {
+      "bytes": 2615,
+      "sha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8"
+    },
+    "packages/barocss-physics/src/joint-motor.ts": {
+      "bytes": 1723,
+      "sha256": "9a50b0d006ca2386cd2d79b8ba162f6850a5d08d3eb1c7d03460d606559b56ea"
+    },
+    "packages/barocss-physics/src/joints.ts": {
+      "bytes": 7231,
+      "sha256": "b6d0ec667a96fc26ec43d9d812c5ffd0a3b7446d135bd9b18713059327c59181"
+    },
+    "packages/barocss-physics/src/limits.ts": {
+      "bytes": 417,
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    "packages/barocss-physics/src/math.ts": {
+      "bytes": 2421,
+      "sha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2"
+    },
+    "packages/barocss-physics/src/model-admission.ts": {
+      "bytes": 10384,
+      "sha256": "7e77f184fed57d51ee1b0599e60c80d83b96045b139d236a37f76a4207689397"
+    },
+    "packages/barocss-physics/src/persistent-box-contact.ts": {
+      "bytes": 3769,
+      "sha256": "3f53922b557ca142a4d95e1e19d5be21828b375b75bc45ff1e57a7b9171261f1"
+    },
+    "packages/barocss-physics/src/provider-manifest.generated.ts": {
+      "bytes": 8271,
+      "sha256": "86207caac84e5354d78177f795a501878b24529af39765e4350cbe42bb731209"
+    },
+    "packages/barocss-physics/src/recording-owner.ts": {
+      "bytes": 895,
+      "sha256": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1"
+    },
+    "packages/barocss-physics/src/replay-compare.ts": {
+      "bytes": 1023,
+      "sha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec"
+    },
+    "packages/barocss-physics/src/replay-json.ts": {
+      "bytes": 7760,
+      "sha256": "1ab8cf962443edd3be387e5095a9cce3f2071c8b44e47cc165ce82d5c00ac617"
+    },
+    "packages/barocss-physics/src/replay-validation.ts": {
+      "bytes": 8096,
+      "sha256": "ab9a7b5097515ddd3d6aa9a434d14f2ae2e04fd15c4059b473d0d708a507c82a"
+    },
+    "packages/barocss-physics/src/replay.ts": {
+      "bytes": 7119,
+      "sha256": "07bafc635620c56c479ed44b0f458cbbb470bf20b3ce2ead7248ceb0973ca408"
+    },
+    "packages/barocss-physics/src/rigid-forced-rotation.ts": {
+      "bytes": 4961,
+      "sha256": "52447f9daa9da5c7382bd59d7132e3936ddf667942cbefd3fafeb79274e06d44"
+    },
+    "packages/barocss-physics/src/rigid-free-rotation.ts": {
+      "bytes": 11619,
+      "sha256": "63e5fd31e798a7bd85f56d0d0b5b5bad58d61e2c848594328fa74bf1c254dbbf"
+    },
+    "packages/barocss-physics/src/rotation-validation.ts": {
+      "bytes": 780,
+      "sha256": "45281b213700f86af36ea6d1a9189ca54349d13d01c37eeb366f1cdd474c1408"
+    },
+    "packages/barocss-physics/src/scene-profile.ts": {
+      "bytes": 1202,
+      "sha256": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7"
+    },
+    "packages/barocss-physics/src/sleep.ts": {
+      "bytes": 4411,
+      "sha256": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2"
+    },
+    "packages/barocss-physics/src/types.ts": {
+      "bytes": 11884,
+      "sha256": "37fdf1abcc20fd379304213b8c0686f8e0468d285f008aa8ebdb316882efade5"
+    },
+    "packages/barocss-physics/src/validation.ts": {
+      "bytes": 14962,
+      "sha256": "c5787fdbe5e31a51e52fb6b91634f75b363a629bb4a88248273e85c8ffc948af"
+    },
+    "packages/barocss-physics/src/world.ts": {
+      "bytes": 30779,
+      "sha256": "449865bf2e73ed799885c7e9d0f95f7d3f09c740e42ce1f8b960384308e08266"
+    },
+    "packaging-before-readme/README.md": {
+      "bytes": 3130,
+      "sha256": "98ba865045e67dbaf3524828ad995ed540ee37c18f07757ceb688600e35f5cfb"
+    }
+  },
+  "internalManifest": "HASH-MANIFEST.json",
+  "protectedOriginalFilesRechecked": 384,
+  "protectedOriginalFilesChanged": 0,
+  "currentFreeze02PinsRechecked": 294,
+  "historicalFreeze01PinsVerifiedInNestedArchive": 295,
+  "nestedArchiveMemberHashesVerified": 452,
+  "existingReadmeUpdatedAndOriginalArchived": true,
+  "previewByteIdenticalToExistingScreenshot": true,
+  "commandReceipts": 13,
+  "newNumericalRuns": 0,
+  "newBrowserRuns": 0
+}
