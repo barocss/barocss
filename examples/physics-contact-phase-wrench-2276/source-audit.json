@@ -1,0 +1,337 @@
+{
+  "status": "READ_ONLY_PHASE_WRENCH_DESIGN_READY",
+  "observedHead": "8717f386c36427d4e32dc42b90ea2a442fabe034",
+  "sourcePins": {
+    "packages/barocss-physics/src/world.ts": {
+      "bytes": 30779,
+      "sha256": "449865bf2e73ed799885c7e9d0f95f7d3f09c740e42ce1f8b960384308e08266"
+    },
+    "packages/barocss-physics/src/persistent-box-contact.ts": {
+      "bytes": 3769,
+      "sha256": "3f53922b557ca142a4d95e1e19d5be21828b375b75bc45ff1e57a7b9171261f1"
+    },
+    "packages/barocss-physics/src/collision.ts": {
+      "bytes": 14404,
+      "sha256": "8af301d4addf3b61a38fc54466a73dde48d27907f4143032d500962adbff47a3"
+    },
+    "packages/barocss-physics/src/contact-manifold.ts": {
+      "bytes": 4743,
+      "sha256": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428"
+    },
+    "packages/barocss-physics/src/internal-types.ts": {
+      "bytes": 2615,
+      "sha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8"
+    },
+    "packages/barocss-physics/src/math.ts": {
+      "bytes": 2421,
+      "sha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2"
+    },
+    "packages/barocss-physics/src/limits.ts": {
+      "bytes": 417,
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    "packages/barocss-physics/src/replay.ts": {
+      "bytes": 7119,
+      "sha256": "07bafc635620c56c479ed44b0f458cbbb470bf20b3ce2ead7248ceb0973ca408"
+    },
+    "packages/barocss-physics/src/recording-owner.ts": {
+      "bytes": 895,
+      "sha256": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1"
+    }
+  },
+  "existingReceiptsRead": [
+    {
+      "path": "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/result.json",
+      "bytes": 12356,
+      "sha256": "aa77c50446ddfbf4c69b93f222e24fd74e7b663f175c6103571ca819e72c4432",
+      "status": "OBSERVED_NO_GO_TANGENT_PLANE",
+      "counts": {
+        "worlds": 1,
+        "acceptedSteps": 2
+      },
+      "scope": "existing receipt read only; not a new execution"
+    },
+    {
+      "path": "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/independent-line-audit.json",
+      "bytes": 970,
+      "sha256": "a1e01566eceab7439636963b82504aaa9f54d0195088a41c42c3fab3239152a9",
+      "status": "NO_GO_PUBLIC_PAIRED_CONTACT_WITNESS",
+      "counts": null,
+      "scope": "existing receipt read only; not a new execution"
+    },
+    {
+      "path": "examples/physics-box-contact-features-2276/evidence/run-03/presentation-audit.json",
+      "bytes": 60340,
+      "sha256": "bd86ed702be2eb48f037173fb2a4234527778dfa307e7599dd5039aa629a2615",
+      "status": "CONFIRMED_PRESENTATION_NO_GO",
+      "counts": {
+        "savedCases": 1,
+        "retainedPoints": 4,
+        "exactCertificatesVerified": 4,
+        "roundingCoordinates": 36,
+        "correctlyRoundedCoordinates": 36,
+        "normalCoordinates": 3,
+        "correctlyRoundedNormalCoordinates": 3,
+        "representedLinesChecked": 4,
+        "representedLinesHitBoth": 2,
+        "representedLinesMissNativeBox": 2,
+        "originalP4RowsAnalyzed": 0
+      },
+      "scope": "existing receipt read only; not a new execution"
+    },
+    {
+      "path": "examples/physics-box-quantized-witness-2276/evidence/run-01/result.json",
+      "bytes": 1103,
+      "sha256": "b082273146304a866321bd4ffd7dbb9d36d4f207c7685779d8c4cf41d7d2f08a",
+      "status": "PASS_PRIVATE_CONSTRUCTION_AND_GRAPH_PARITY",
+      "counts": {
+        "source": {
+          "attemptedCases": 20,
+          "completedCases": 20,
+          "returnedPoints": 62,
+          "geometryCalls": 20,
+          "anchorChecks": 1674,
+          "WorldCalls": 0
+        },
+        "strict-nodenext": {
+          "attemptedCases": 20,
+          "completedCases": 20,
+          "returnedPoints": 62,
+          "geometryCalls": 20,
+          "anchorChecks": 1674,
+          "WorldCalls": 0
+        }
+      },
+      "scope": "existing receipt read only; not a new execution"
+    },
+    {
+      "path": "examples/physics-box-quantized-witness-2276/evidence/run-01/independent-cell-geometry.json",
+      "bytes": 69530,
+      "sha256": "37e341b56137f6a812669230372d333d832a5804d203a45c257e671dc86fdfe5",
+      "status": "PASS_INDEPENDENT_FINITE_CELL_GEOMETRY_ONLY",
+      "counts": {
+        "source": {
+          "cases": 20,
+          "points": 62,
+          "cells": 62,
+          "cellMembers": 1674,
+          "exactCertificates": 62,
+          "originalRows": 32
+        },
+        "strict-nodenext": {
+          "cases": 20,
+          "points": 62,
+          "cells": 62,
+          "cellMembers": 1674,
+          "exactCertificates": 62,
+          "originalRows": 32
+        }
+      },
+      "scope": "existing receipt read only; not a new execution"
+    },
+    {
+      "path": "examples/physics-box-quantized-equilibrium-2276/evidence/equilibrium-01/result.json",
+      "bytes": 32844,
+      "sha256": "2575d9c02e7243998fe3c7b66b109c437c3207305caf3a2518f80a0acc1ea30e",
+      "status": "PASS_SAME_32_STATIC_FORCE_MOMENT_ONLY",
+      "counts": null,
+      "scope": "existing receipt read only; not a new execution"
+    }
+  ],
+  "observations": [
+    {
+      "id": "S01",
+      "classification": "SOURCE_FACT",
+      "refs": [
+        "world.ts:133",
+        "world.ts:136"
+      ],
+      "finding": "Body pairs have lexical ID order. Every pair impulse trace must use that actual A/B order."
+    },
+    {
+      "id": "S02",
+      "classification": "SOURCE_FACT",
+      "refs": [
+        "limits.ts:12",
+        "world.ts:282",
+        "world.ts:345"
+      ],
+      "finding": "Eight outer passes and eight alternating-order inner point iterations are fixed."
+    },
+    {
+      "id": "S03",
+      "classification": "SOURCE_FACT",
+      "refs": [
+        "world.ts:245",
+        "world.ts:253",
+        "world.ts:260"
+      ],
+      "finding": "Orientation preparation, gravity/velocity kick and position drift occur before contacts. Pose projection must be accounted separately."
+    },
+    {
+      "id": "S04",
+      "classification": "SOURCE_FACT",
+      "refs": [
+        "world.ts:305",
+        "world.ts:312",
+        "world.ts:314"
+      ],
+      "finding": "Public pair normal is initialized once; point is overwritten later; penetration is the maximum across visited passes."
+    },
+    {
+      "id": "S05",
+      "classification": "SOURCE_FACT",
+      "refs": [
+        "world.ts:310",
+        "world.ts:316",
+        "world.ts:362"
+      ],
+      "finding": "Current public dispatcher uses persistent law only for a nonnull face manifold and otherwise calls scalar solve. New staged B dispatcher is an explicit separate change."
+    },
+    {
+      "id": "S06",
+      "classification": "SOURCE_FACT",
+      "refs": [
+        "world.ts:338",
+        "world.ts:342",
+        "persistent-box-contact.ts:29"
+      ],
+      "finding": "Prior cache scalar/world tangent is copied and warm-applied using the current normal. No producing normal is stored in PointImpulse."
+    },
+    {
+      "id": "S07",
+      "classification": "SOURCE_FACT",
+      "refs": [
+        "persistent-box-contact.ts:45",
+        "persistent-box-contact.ts:51",
+        "persistent-box-contact.ts:57"
+      ],
+      "finding": "Current tangent update assumes a unit normal; cached tangent is updated/clipped radially but is not projected into a new normal plane."
+    },
+    {
+      "id": "S08",
+      "classification": "SOURCE_FACT",
+      "refs": [
+        "persistent-box-contact.ts:6",
+        "persistent-box-contact.ts:43",
+        "persistent-box-contact.ts:65"
+      ],
+      "finding": "Warm, normal and tangent vectors are actually applied at a common world anchor using the then-current COM arms. There is no net-vector/moment event ledger."
+    },
+    {
+      "id": "S09",
+      "classification": "SOURCE_FACT",
+      "refs": [
+        "persistent-box-contact.ts:68",
+        "world.ts:354"
+      ],
+      "finding": "Persistent correction changes positions only after velocity iterations. It does not apply a physical impulse or change velocities/orientation."
+    },
+    {
+      "id": "S10",
+      "classification": "SOURCE_INFERENCE",
+      "refs": [
+        "world.ts:335",
+        "world.ts:355",
+        "world.ts:423"
+      ],
+      "finding": "The final active point-cache sum need not equal total applied world vector or moment when frames/active point population change. The next cache map can retain earlier-pass keys absent from the final manifold."
+    },
+    {
+      "id": "S11",
+      "classification": "SOURCE_FACT",
+      "refs": [
+        "world.ts:207",
+        "world.ts:208",
+        "world.ts:411",
+        "world.ts:415"
+      ],
+      "finding": "Bodies/cache/output/recording are staged before the assignment-only shared commit. New accepted trace state must share this boundary."
+    },
+    {
+      "id": "S12",
+      "classification": "SOURCE_FACT",
+      "refs": [
+        "world.ts:472",
+        "world.ts:481"
+      ],
+      "finding": "Known PhysicsError is enriched with accepted cursor; unknown errors are rethrown; running guard resets in finally."
+    },
+    {
+      "id": "S13",
+      "classification": "SOURCE_FACT",
+      "refs": [
+        "replay.ts:76",
+        "replay.ts:79",
+        "replay.ts:89",
+        "replay.ts:94"
+      ],
+      "finding": "Restore creates one hidden World and replays each frame. Serialize/deserialize also invoke restore and would consume extra factory/step budget."
+    },
+    {
+      "id": "S14",
+      "classification": "NEW_DESIGN_NOT_IMPLEMENTED",
+      "refs": [
+        "design.md"
+      ],
+      "finding": "A private event ledger separates actual per-event vector/moment/work, final native geometry and existing public aggregate. No aggregate projection or new public wrench representation is adopted."
+    },
+    {
+      "id": "S15",
+      "classification": "COVERAGE_LIMIT",
+      "refs": [
+        "design.md"
+      ],
+      "finding": "The proper B FACE-to-EDGE feature transition may cause a real cache miss. Warm frame reuse remains NOT_COVERED without actual native point-ID provenance."
+    }
+  ],
+  "ownedFiles": [
+    "CONTRACT.md",
+    "design.md",
+    "source-audit.json"
+  ],
+  "taskExecutions": {
+    "Worlds": 0,
+    "stepAttempts": 0,
+    "builds": 0,
+    "candidateGeometryCalls": 0,
+    "newNumericalReferenceCalls": 0
+  },
+  "nextPrivatePlan": {
+    "status": "FROZEN_NOT_IMPLEMENTED",
+    "initialGraph": "SOURCE_PRIVATE_ONLY",
+    "maximumWorldCreations": 4,
+    "maximumStepAttemptsIncludingRestoreAndFailures": 8,
+    "plannedWorldCreations": 3,
+    "plannedAcceptedSteps": 6,
+    "plannedExpectedRefusals": 2,
+    "outerPasses": 8,
+    "innerIterations": 8,
+    "maximumImpulseApplications": 4352,
+    "maximumGeometryQueries": 72,
+    "maximumGeometryQueryPoints": 288,
+    "maximumAnchorChecks": 7776,
+    "maximumTraceRecords": 8192,
+    "maximumEvidenceBytes": 16777216,
+    "terminalReceiptReserveBytes": 65536,
+    "outerTimeoutSeconds": 180,
+    "gates": {
+      "momentumNs": "1e-10",
+      "spinAngularMomentumNms": "1e-10",
+      "workJ": "1e-10",
+      "passiveNetContactWorkMaximumJ": "1e-10",
+      "tangentPlaneNs": "1e-12",
+      "nativeSurfaceM": "1e-9",
+      "pairedLineM": "1e-12"
+    }
+  },
+  "promotion": {
+    "status": "BLOCKED_PENDING_ACTUAL_PHASE_CACHE_WRENCH_REPORT_TRANSACTION_PROOF",
+    "productionEditsAuthorizedByThisTask": false,
+    "publicAPIExpansionAuthorized": false,
+    "scalarFallbackAllowed": false,
+    "geometryPassIsDynamicsProof": false,
+    "originalP4": "UNCHANGED_NO_GO",
+    "staticEquilibrium": "ROOT_SEPARATE_RECEIPT_ONLY_NO_DYNAMICS_OR_COMPLEMENTARITY"
+  }
+}

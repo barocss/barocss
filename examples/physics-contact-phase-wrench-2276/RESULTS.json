@@ -1,0 +1,1002 @@
+{
+  "work_id": "physics-contact-phase-wrench-2276",
+  "artifact_type": "source-private-phase-first-failure-results",
+  "status": "NO_GO_SOURCE_PRIVATE_PHASE_WRENCH",
+  "owner_role": "independent-evidence-writer",
+  "source_request": "Preserve actual private phase report failure and bounded files-only diagnosis",
+  "last_updated": "2026-11-03",
+  "sourceScope": "SOURCE_PRIVATE_ONLY",
+  "buildStatus": "PASS_PRIVATE_PHASE_BUILD",
+  "actualExecution": {
+    "worlds": 1,
+    "attempts": 1,
+    "acceptedSteps": 1,
+    "applications": 168,
+    "zeroApplications": 120,
+    "warmApplications": 0,
+    "queries": 9,
+    "queryPoints": 20,
+    "corrections": 8,
+    "driverRecords": 314,
+    "anchorChecks": 540
+  },
+  "rawDriverSummary": {
+    "status": "NO_GO_SOURCE_PRIVATE_PHASE_WRENCH",
+    "firstFailure": {
+      "phase": "A-step1",
+      "name": "Error",
+      "message": "REPORT_VECTOR_NO_GO0: 0.06810993686254845 > 1e-10",
+      "stack": "Error: REPORT_VECTOR_NO_GO0: 0.06810993686254845 > 1e-10\n    at observe (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-phase-wrench-2276/run.mjs:18:736)\n    at accepted (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-phase-wrench-2276/run.mjs:19:422)\n    at file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-phase-wrench-2276/run.mjs:24:175",
+      "observerFailure": {
+        "cursor": {
+          "kind": "public-aggregate-wrench"
+        },
+        "type": "ValueError",
+        "message": "REPORT_VECTOR_NO_GO0: 0.06810993686254845 > 1e-10"
+      }
+    },
+    "controls": {
+      "A_step1": "NOT_RUN",
+      "knownRefusal": "NOT_RUN",
+      "unknownRefusal": "NOT_RUN",
+      "retryStep2": "NOT_RUN",
+      "cleanTwoStepControl": "NOT_RUN",
+      "restorePrefix": "NOT_RUN",
+      "restoreContinue": "NOT_RUN"
+    },
+    "counts": {
+      "worlds": 1,
+      "attempts": 1,
+      "records": 314,
+      "applications": 168,
+      "queries": 9,
+      "queryPoints": 20,
+      "anchorChecks": 540,
+      "traceBytes": 940083
+    },
+    "acceptedSteps": 1,
+    "evidenceBytes": 4314409,
+    "observers": [
+      {
+        "label": "A-step1",
+        "status": "NO_GO_PRIVATE_PHASE_WRENCH",
+        "firstFailure": {
+          "cursor": {
+            "kind": "public-aggregate-wrench"
+          },
+          "type": "ValueError",
+          "message": "REPORT_VECTOR_NO_GO0: 0.06810993686254845 > 1e-10"
+        },
+        "counts": {
+          "events": 168,
+          "geometryQueries": 9,
+          "points": 20,
+          "corrections": 8,
+          "zeroApplications": 120,
+          "warmApplications": 0,
+          "actualWarmChangedFrame": 0,
+          "validatedNonzeroWarmFrictionChangedFrame": 0
+        },
+        "warmChangedFrameCoverage": "NOT_COVERED"
+      }
+    ],
+    "traceNormalization": [
+      "world",
+      "attempt",
+      "queryId",
+      "geometry pair.id only"
+    ],
+    "depthMapping": "SAMPLED_PATCH_DEPTH_NOT_GLOBAL_MTD",
+    "native": "NOT_RUN",
+    "public": "NOT_RUN",
+    "desktop": "NOT_RUN",
+    "promotion": "BLOCKED_PENDING_SEPARATE_REVIEW",
+    "originalP4": "UNCHANGED_NO_GO"
+  },
+  "driverLabelClarification": "controls.A_step1=NOT_RUN means successful validation did not finish. One actual staged World step DID execute and commit; its independent validation FAILED at REPORT_VECTOR_NO_GO0. The raw summary remains unchanged.",
+  "independentCheckedPrefix": {
+    "status": "NO_GO_PRIVATE_PHASE_WRENCH",
+    "checkedPrefixOnly": true,
+    "counts": {
+      "events": 168,
+      "geometryQueries": 9,
+      "points": 20,
+      "corrections": 8,
+      "zeroApplications": 120,
+      "warmApplications": 0,
+      "actualWarmChangedFrame": 0,
+      "validatedNonzeroWarmFrictionChangedFrame": 0
+    },
+    "maxima": {
+      "gravityKick0": 0.0,
+      "gravityKick1": 2.0932329943453478e-19,
+      "gravityKick2": 0.0,
+      "drift0": 0.0,
+      "drift1": 2.2098266503715418e-17,
+      "drift2": 0.0,
+      "normalNormSquared": 8.752912949534895e-17,
+      "endpointPresentationSquared": 1.5566925869971032e-34,
+      "surfaceOutside": 0.0,
+      "surfaceBoundary": 0.0,
+      "pairedLineSquared": 8.000473596042276e-34,
+      "nativeLineExitASquared": 7.412574005871803e-34,
+      "nativeLineExitBSquared": 8.000484254111592e-34,
+      "geometryProjectedDepth": 2.4664231468515784e-20,
+      "GEOMETRY_DEPTH_NO_GO": 3.8921025282444724e-21,
+      "currentTangentPlane": 9.680772765059666e-22,
+      "eventMomentum0": 2.7755575615628914e-17,
+      "eventMomentum1": 3.469446951953614e-18,
+      "eventMomentum2": 2.168404344971009e-19,
+      "eventSpin0": 2.168404344971009e-18,
+      "eventSpin1": 2.0724756013046276e-18,
+      "eventSpin2": 2.488173262872951e-18,
+      "eventMidpointWork": 1.205993595750233e-17,
+      "eventRelativeWork": 0.0,
+      "APPLIED_TANGENT_CURRENT_PLANE": 1.097976676499366e-21,
+      "correctionQueryNormal0": 0.0,
+      "correctionQueryNormal1": 0.0,
+      "correctionQueryNormal2": 0.0,
+      "correctionQueryDepth": 0.0,
+      "CORRECTION_LAW0": 3.336510917294293e-19,
+      "CORRECTION_LAW1": 2.5112448683516038e-17,
+      "CORRECTION_LAW2": 0.0,
+      "projectionKinetic": 0.0,
+      "acceptedPairedGapSquared": 1.5720172264565354e-34,
+      "stepMomentum0": 6.6158017268169e-17,
+      "stepMomentum1": 6.20991589133218e-18,
+      "stepMomentum2": 5.149960319306146e-19,
+      "stepSpin0": 9.64598114372874e-19,
+      "stepSpin1": 4.448988597452783e-19,
+      "stepSpin2": 1.047214753992911e-17,
+      "stepWorldOriginAngularLedger0": 1.2217452892914286e-18,
+      "stepWorldOriginAngularLedger1": 4.470446765449892e-19,
+      "stepWorldOriginAngularLedger2": 5.4581966106568905e-17,
+      "wholeStepEnergyLedger": 2.483949147885245e-16,
+      "REPORT_GEOMETRY_NO_GO_NORMAL": 8.752912949534895e-17,
+      "REPORT_GEOMETRY_NO_GO_MIDPOINT_SQUARED": 3.9300430661413384e-35,
+      "REPORT_GEOMETRY_NO_GO_ACCEPTED_GAP_SQUARED": 1.5720172264565354e-34,
+      "REPORT_GEOMETRY_NO_GO_SURFACE_OUTSIDE": 0.0,
+      "REPORT_GEOMETRY_NO_GO_SURFACE_BOUNDARY": 1.2538011112040598e-17,
+      "publicTangentPlane": 0.0,
+      "REPORT_VECTOR_NO_GO0": 0.06810993686254845
+    },
+    "warmChangedFrameCoverage": "NOT_COVERED",
+    "unreachedGates": "NOT_RUN_AFTER_FIRST_FAILURE"
+  },
+  "firstFailure": {
+    "phase": "A-step1",
+    "name": "Error",
+    "message": "REPORT_VECTOR_NO_GO0: 0.06810993686254845 > 1e-10",
+    "stack": "Error: REPORT_VECTOR_NO_GO0: 0.06810993686254845 > 1e-10\n    at observe (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-phase-wrench-2276/run.mjs:18:736)\n    at accepted (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-phase-wrench-2276/run.mjs:19:422)\n    at file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-phase-wrench-2276/run.mjs:24:175",
+    "observerFailure": {
+      "cursor": {
+        "kind": "public-aggregate-wrench"
+      },
+      "type": "ValueError",
+      "message": "REPORT_VECTOR_NO_GO0: 0.06810993686254845 > 1e-10"
+    }
+  },
+  "savedReportDiagnosis": {
+    "status": "DIAGNOSED_SAVED_REPORT_VECTOR_NO_GO",
+    "pins": {
+      "evidence/phase-01/A-step1-trace.json": {
+        "bytes": 4241382,
+        "sha256": "cc7b7a787a6b82706450e0b648c5b66f69315c2922e022d112cb3d2b47bdd436"
+      },
+      "evidence/phase-01/A-step1-observer.json": {
+        "bytes": 12500,
+        "sha256": "100bfd98d0cd7be0dd865d89c6ac1aae92fd196d971916fcd2dfb25ed0907562"
+      },
+      "REPORT-DIAGNOSIS-CONTRACT.md": {
+        "bytes": 934,
+        "sha256": "30820a8c5d114cf7ab1e80774bf705716a515c5b175914274a94f6464234fbb0"
+      },
+      "diagnose-report.py": {
+        "bytes": 3276,
+        "sha256": "9d198255e48a9b9881bde14721d0289a6832f46c3be7abd540873a97b06307f5"
+      }
+    },
+    "counts": {
+      "savedEvents": 168,
+      "savedQueries": 9,
+      "WorldCalls": 0,
+      "geometryCalls": 0
+    },
+    "actualImpulseOnBNs": {
+      "exact": [
+        "-329359444981828111197795/4835703278458516698824704",
+        "229702270985182008523/2361183241434822606848",
+        "-802084100573059/36893488147419103232"
+      ],
+      "approximate": [
+        -0.06810993686254845,
+        0.09728269579179234,
+        -2.174053310893481e-05
+      ]
+    },
+    "reportedImpulseOnBNs": {
+      "exact": [
+        "0",
+        "0",
+        "0"
+      ],
+      "approximate": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "actualMinusReportedImpulseNs": {
+      "exact": [
+        "-329359444981828111197795/4835703278458516698824704",
+        "229702270985182008523/2361183241434822606848",
+        "-802084100573059/36893488147419103232"
+      ],
+      "approximate": [
+        -0.06810993686254845,
+        0.09728269579179234,
+        -2.174053310893481e-05
+      ]
+    },
+    "actualWorldOriginMomentOnBNms": {
+      "exact": [
+        "29085235898770150108307288972642767/680564733841876926926749214863536422912",
+        "22778865726455611949937205703465/664613997892457936451903530140172288",
+        "1733561594865697253286023331590524784473041/89202980794122492566142873090593446023921664"
+      ],
+      "approximate": [
+        4.273691311417239e-05,
+        3.4273827813872635e-05,
+        0.019433897605582257
+      ]
+    },
+    "reportedPointCrossReportedImpulseNms": {
+      "exact": [
+        "0",
+        "0",
+        "0"
+      ],
+      "approximate": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "actualMinusReportedMomentNms": {
+      "exact": [
+        "29085235898770150108307288972642767/680564733841876926926749214863536422912",
+        "22778865726455611949937205703465/664613997892457936451903530140172288",
+        "1733561594865697253286023331590524784473041/89202980794122492566142873090593446023921664"
+      ],
+      "approximate": [
+        4.273691311417239e-05,
+        3.4273827813872635e-05,
+        0.019433897605582257
+      ]
+    },
+    "byPoint": {
+      "FACE:4:0": {
+        "applications": 68,
+        "impulse": {
+          "exact": [
+            "0",
+            "0",
+            "0"
+          ],
+          "approximate": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "moment": {
+          "exact": [
+            "0",
+            "0",
+            "0"
+          ],
+          "approximate": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "inLastForceQuery": true
+      },
+      "FACE:4:1": {
+        "applications": 68,
+        "impulse": {
+          "exact": [
+            "0",
+            "0",
+            "0"
+          ],
+          "approximate": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "moment": {
+          "exact": [
+            "0",
+            "0",
+            "0"
+          ],
+          "approximate": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "inLastForceQuery": true
+      },
+      "FACE:4:2": {
+        "applications": 16,
+        "impulse": {
+          "exact": [
+            "-329648868792160316104571/9671406556917033397649408",
+            "57476014054507576187/1180591620717411303424",
+            "355435991180957/18446744073709551616"
+          ],
+          "approximate": [
+            -0.03408489415186398,
+            0.04868407758101914,
+            1.926822369089661e-05
+          ]
+        },
+        "moment": {
+          "exact": [
+            "8283164395456155493367400179851922223/340282366920938463463374607431768211456",
+            "5662043849207547578728521656093897/332306998946228968225951765070086144",
+            "1735084466176991908167345609075839956644953/178405961588244985132285746181186892047843328"
+          ],
+          "approximate": [
+            0.024342032384477547,
+            0.017038593430659974,
+            0.009725484791710655
+          ]
+        },
+        "inLastForceQuery": false
+      },
+      "FACE:4:3": {
+        "applications": 16,
+        "impulse": {
+          "exact": [
+            "-329070021171495906291019/9671406556917033397649408",
+            "114750242876166856149/2361183241434822606848",
+            "-1512956082934973/36893488147419103232"
+          ],
+          "approximate": [
+            -0.03402504271068447,
+            0.048598618210773194,
+            -4.100875679983142e-05
+          ]
+        },
+        "moment": {
+          "exact": [
+            "-16537243555013540836626493070731201679/680564733841876926926749214863536422912",
+            "-11301308832688639545507106106484329/664613997892457936451903530140172288",
+            "1732038723554402598404701054105209612301129/178405961588244985132285746181186892047843328"
+          ],
+          "approximate": [
+            -0.024299295471363374,
+            -0.0170043196028461,
+            0.009708412813871603
+          ]
+        },
+        "inLastForceQuery": false
+      }
+    },
+    "queryPointPopulations": [
+      {
+        "final": false,
+        "count": 4
+      },
+      {
+        "final": false,
+        "count": 2
+      },
+      {
+        "final": false,
+        "count": 2
+      },
+      {
+        "final": false,
+        "count": 2
+      },
+      {
+        "final": false,
+        "count": 2
+      },
+      {
+        "final": false,
+        "count": 2
+      },
+      {
+        "final": false,
+        "count": 2
+      },
+      {
+        "final": false,
+        "count": 2
+      },
+      {
+        "final": true,
+        "count": 2
+      }
+    ],
+    "lastForceQueryPointIds": [
+      "FACE:4:0",
+      "FACE:4:1"
+    ],
+    "retainedCache": [
+      [
+        "a-floor\u0000z-cube\u0000FACE:4:0",
+        {
+          "normalNs": 0.0,
+          "tangentNs": [
+            -0.0,
+            -0.0,
+            0.0
+          ]
+        }
+      ],
+      [
+        "a-floor\u0000z-cube\u0000FACE:4:1",
+        {
+          "normalNs": 0.0,
+          "tangentNs": [
+            -0.0,
+            -0.0,
+            0.0
+          ]
+        }
+      ],
+      [
+        "a-floor\u0000z-cube\u0000FACE:4:2",
+        {
+          "normalNs": 0.0486869178198199,
+          "tangentNs": [
+            -0.03408083690871702,
+            -2.840069748967321e-06,
+            1.9268223690896612e-05
+          ]
+        }
+      ],
+      [
+        "a-floor\u0000z-cube\u0000FACE:4:3",
+        {
+          "normalNs": 0.0486014534622506,
+          "tangentNs": [
+            -0.034020992589567305,
+            -2.8350827223599665e-06,
+            -4.100875679983139e-05
+          ]
+        }
+      ]
+    ],
+    "warmApplications": 0,
+    "originalFirstFailure": {
+      "cursor": {
+        "kind": "public-aggregate-wrench"
+      },
+      "type": "ValueError",
+      "message": "REPORT_VECTOR_NO_GO0: 0.06810993686254845 > 1e-10"
+    },
+    "laterGates": "NOT_RUN_BY_THIS_DIAGNOSTIC",
+    "publicPromotion": "BLOCKED",
+    "originalP4": "UNCHANGED_NO_GO"
+  },
+  "diagnosticBoundary": "Read existing168 events and9 queries with exact represented Fractions only. No World/solver/geometry/replay call. Raw moment differences are diagnostic data, not execution of physical gates skipped after first failure.",
+  "prerequisite32ForceBalance": "PASS_SAME_32_STATIC_FORCE_MOMENT_ONLY; static prerequisite, not P4/trajectory/force-phase PASS",
+  "unreached": [
+    "later report moment validation gates",
+    "known refusal",
+    "unknown refusal",
+    "retry step2",
+    "clean two-step control",
+    "restore prefix",
+    "restore continue"
+  ],
+  "native": "NOT_RUN",
+  "public": "NOT_RUN",
+  "desktop": "NOT_RUN",
+  "warmChangedFrame": "NOT_COVERED",
+  "productionPromotion": "BLOCKED_PENDING_SEPARATE_REVIEW",
+  "originalP4": "UNCHANGED_NO_GO",
+  "originalCommandReceipts": [
+    {
+      "id": "contact-phase-build-01",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-contact-phase-wrench-2276/build.mjs",
+        "build-01"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 511.530417,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "contact-phase-run-01",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-contact-phase-wrench-2276/run.mjs",
+        "build-01",
+        "phase-01"
+      ],
+      "status": "FAIL",
+      "exit": 1,
+      "elapsedMs": 1494.735792,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "contact-phase-report-diagnosis-01",
+      "command": [
+        "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+        "-B",
+        "examples/physics-contact-phase-wrench-2276/diagnose-report.py"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 188.543584,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    }
+  ],
+  "executionFreezeFinalHashesChecked": {
+    "build.mjs": "397189e7ca02976ca8820b2a2d8549f6b3491b2fc302d1ad9a5b728147e117bb",
+    "run.mjs": "e9384b092c80be7f91dfce2d3927526cdd0338bf63c51ae399ce93f0306f0bad",
+    "private-phase.ts": "dadcb8d44a2f5e536a71602faf4e3088da86bd97a2388934d1d0f2d59f13ad36",
+    "observer.py": "934bce61089da784cb77a0944bd320e6067958bdfeade8769c35bb81d0568646"
+  },
+  "stagedModulePinsChecked": 98,
+  "authenticatedPrerequisiteClosurePins": {
+    "packages/barocss-physics/src/broadphase.ts": {
+      "bytes": 1371,
+      "sha256": "d93e38d78cc3d202481ceeba83631d528032426d03a8adafb2e461fc72a042a0"
+    },
+    "packages/barocss-physics/src/cad-fluid-data.ts": {
+      "bytes": 2345,
+      "sha256": "5a15e23ba65663433501f07d2f35f323960879218d52a007efeb09ca7934ce10"
+    },
+    "packages/barocss-physics/src/cad-proxy-admission.ts": {
+      "bytes": 7744,
+      "sha256": "898fb55af369727440fef9f4bfadba0ea455b4c800a719909e5311029a663441"
+    },
+    "packages/barocss-physics/src/cad-proxy-pose.ts": {
+      "bytes": 1479,
+      "sha256": "8b5f50642144e335421ee6483f8b016b8a0babdb0c312ddf6ba4afbcf8bda322"
+    },
+    "packages/barocss-physics/src/cad-proxy-types.ts": {
+      "bytes": 887,
+      "sha256": "31bbf6766887913149d6fa2185c173adb0c6b78cdb21d1556ae4ffd055666128"
+    },
+    "packages/barocss-physics/src/cad-proxy-validation.ts": {
+      "bytes": 1598,
+      "sha256": "4429f957bb51ff2604a15478095e35642368dcf91ca0d854561693d3f99f748e"
+    },
+    "packages/barocss-physics/src/cad-proxy.ts": {
+      "bytes": 321,
+      "sha256": "cc7715b4fc974c8ed4511ebf684cdc7c2923f7ab4b8b7f5db45b208f8e6ffa99"
+    },
+    "packages/barocss-physics/src/capsule-contact.ts": {
+      "bytes": 5615,
+      "sha256": "cc29d60423bd9a1883585cf164cca0b0736b9fc72e7feb3575c5208c7d892929"
+    },
+    "packages/barocss-physics/src/capsule-query/admission.ts": {
+      "bytes": 5248,
+      "sha256": "9b67efc7a8824ce49361485eff925afa50017e05bc23d900db5ec7c4e2c8760d"
+    },
+    "packages/barocss-physics/src/capsule-query/geometry.ts": {
+      "bytes": 2570,
+      "sha256": "5fdbe1eb40f46e930161e98244a9e5ec0e00c29297caf6f91d530c98df3df4a7"
+    },
+    "packages/barocss-physics/src/capsule-query/profile.ts": {
+      "bytes": 303,
+      "sha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff"
+    },
+    "packages/barocss-physics/src/capsule-query/snapshot.ts": {
+      "bytes": 2537,
+      "sha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd"
+    },
+    "packages/barocss-physics/src/capsule-query/sweep.ts": {
+      "bytes": 1861,
+      "sha256": "a8f4d16879b2ff88086ceec54cef19d04d58fb063893e7a146382cad59cbaf77"
+    },
+    "packages/barocss-physics/src/capsule-query/types.ts": {
+      "bytes": 979,
+      "sha256": "c22d17887cd8ab889a443c828200310a4c560fd3b4f8ed49f3f1f60e5dd46f44"
+    },
+    "packages/barocss-physics/src/capsule-query-error.ts": {
+      "bytes": 137,
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    "packages/barocss-physics/src/capsule-query.ts": {
+      "bytes": 222,
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+    },
+    "packages/barocss-physics/src/ccd-box.ts": {
+      "bytes": 1988,
+      "sha256": "076eadf591500684332bd19b53a780de480ccdde205196ad072a11e1abc4f7a4"
+    },
+    "packages/barocss-physics/src/ccd-pair.ts": {
+      "bytes": 1303,
+      "sha256": "87ea34e6b662b223874857651839407f351b0beaa03a4a85d1e4797744027e1a"
+    },
+    "packages/barocss-physics/src/ccd-rounded-box.ts": {
+      "bytes": 8125,
+      "sha256": "b4ad5a06435b1bacb796dace179f95904fd9d35e4e9dac17ead55bc2f675f59c"
+    },
+    "packages/barocss-physics/src/ccd-slab.ts": {
+      "bytes": 1125,
+      "sha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340"
+    },
+    "packages/barocss-physics/src/ccd-sphere-pair-exact.ts": {
+      "bytes": 5307,
+      "sha256": "2ee601d4e363d135fc356cef37a43495524449bb4dc38abe8f62848bdf28645c"
+    },
+    "packages/barocss-physics/src/ccd.ts": {
+      "bytes": 3183,
+      "sha256": "861e2b8fa56c746232581f1debddab0b88574df81187cb6dd2d6b8db7377d95e"
+    },
+    "packages/barocss-physics/src/character/admission.ts": {
+      "bytes": 4488,
+      "sha256": "d83cdb8231620a18935d4d4d5e19ab7ec5440b043e1df71d49d5fa42f3fecb26"
+    },
+    "packages/barocss-physics/src/character/core.ts": {
+      "bytes": 4057,
+      "sha256": "6c6251e9782baed07be65cce68bfdbca14e2f930ca04a54ee6812cbbfc925a02"
+    },
+    "packages/barocss-physics/src/character/ground.ts": {
+      "bytes": 1242,
+      "sha256": "bd1621641ebc9300943b88c9083710218768454acb0a5e1ba8b330086d68c321"
+    },
+    "packages/barocss-physics/src/character/math.ts": {
+      "bytes": 859,
+      "sha256": "df0e88c320d8a189004991cd5cfc3f8de3d7bb3eecb305bb01830a11191dcdc5"
+    },
+    "packages/barocss-physics/src/character/profile.ts": {
+      "bytes": 334,
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    "packages/barocss-physics/src/character/query.ts": {
+      "bytes": 2733,
+      "sha256": "9ef96eeb1529dc42466445529b100affc2f56913081f0c2fc169079cffe1a8cf"
+    },
+    "packages/barocss-physics/src/character/slide.ts": {
+      "bytes": 2555,
+      "sha256": "587d5512212e68fdc26068646152d2f8c52c3c6119d6c222de91b750c01fcd77"
+    },
+    "packages/barocss-physics/src/character/state.ts": {
+      "bytes": 2181,
+      "sha256": "6eb744c82f24604a8ecadd6e9d86406600119a3fbc7918129f93983df7cbf47e"
+    },
+    "packages/barocss-physics/src/character/step-assist.ts": {
+      "bytes": 3129,
+      "sha256": "9166857ad8509049a56d5b255ed59de17ee03e159581b495de7f1d985780c390"
+    },
+    "packages/barocss-physics/src/character/types.ts": {
+      "bytes": 2552,
+      "sha256": "866c5974fd99ec08b5dc6b5edf165241f4d02a8ed87274faf4cf35b19a3fb938"
+    },
+    "packages/barocss-physics/src/character-controller.ts": {
+      "bytes": 1363,
+      "sha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927"
+    },
+    "packages/barocss-physics/src/cloth/constraints.ts": {
+      "bytes": 1772,
+      "sha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be"
+    },
+    "packages/barocss-physics/src/cloth/metrics.ts": {
+      "bytes": 1805,
+      "sha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd"
+    },
+    "packages/barocss-physics/src/cloth/profile.ts": {
+      "bytes": 655,
+      "sha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f"
+    },
+    "packages/barocss-physics/src/cloth/solver.ts": {
+      "bytes": 1395,
+      "sha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d"
+    },
+    "packages/barocss-physics/src/cloth/topology.ts": {
+      "bytes": 1931,
+      "sha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203"
+    },
+    "packages/barocss-physics/src/cloth/types.ts": {
+      "bytes": 719,
+      "sha256": "bad411f3fa02e4ba7039b5d447de395074342aa207f2eeed251705b15facb6d1"
+    },
+    "packages/barocss-physics/src/collision.ts": {
+      "bytes": 14404,
+      "sha256": "8af301d4addf3b61a38fc54466a73dde48d27907f4143032d500962adbff47a3"
+    },
+    "packages/barocss-physics/src/contact-manifold.ts": {
+      "bytes": 4743,
+      "sha256": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428"
+    },
+    "packages/barocss-physics/src/contact-tangent.ts": {
+      "bytes": 2729,
+      "sha256": "5e1bddc158f9a6f307fdcc60ce8078ab36a06e372d530e7f5d05466d29bf9673"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/admission.ts": {
+      "bytes": 3764,
+      "sha256": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/errors.ts": {
+      "bytes": 2777,
+      "sha256": "5e51e5662fbce80bee3ccd3aa3694ee986b1492ed816d171774e261ab982bf4f"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/linear-solver.ts": {
+      "bytes": 10615,
+      "sha256": "4009d4d7f171be3a5d79ca309a14b039da54f9201b438a410a6e29ed0f90bfdf"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/measure.ts": {
+      "bytes": 4626,
+      "sha256": "97cbaf697dc8ef5caba0bf2c702699b025bcc6f906f553b623466618bbd77178"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/pose.ts": {
+      "bytes": 3194,
+      "sha256": "ab950c1f9f1a79f9f00cb26e4b3cef0e3dcaea7b16d74e345e711159706b39e4"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/postcontact.ts": {
+      "bytes": 2936,
+      "sha256": "8d07190383a64cb592165772109a4f462099743492f8373794ef7981b1431e38"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/projection.ts": {
+      "bytes": 3538,
+      "sha256": "9d0def632c07f8085e860a2dbf21f26d8073f3265eb57590607d23ea6d333b87"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/report.ts": {
+      "bytes": 5726,
+      "sha256": "d46b3e289c58b289b059928580ff2b89d9bd3ecfb11cb688d8b7a4735143973d"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/rows.ts": {
+      "bytes": 3685,
+      "sha256": "6556f07d1d7d22edb67af1b214c689c5b5c2b30628334abaec67280d7302903f"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/stage.ts": {
+      "bytes": 2648,
+      "sha256": "a66e09b816259c2bb1305fed8f90696585b9fd4b750406b0ce006cbe2c2f33ab"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/types.ts": {
+      "bytes": 1610,
+      "sha256": "89b2708fd9209932084eaa765f93ff6ea00a2d775911e8c9e607a7eb824c8cc1"
+    },
+    "packages/barocss-physics/src/domain/admission.ts": {
+      "bytes": 11327,
+      "sha256": "1182fb21ec319132ac2f16ddec8494e3d1c4c5ac750bbe1ebab4c29817b4423e"
+    },
+    "packages/barocss-physics/src/domain/cloth-reference.generated.ts": {
+      "bytes": 158018,
+      "sha256": "c9ee88af8e25b533c2694433502b28f51dffdeae5cce656b53eb36a187be60bc"
+    },
+    "packages/barocss-physics/src/domain/cloth.ts": {
+      "bytes": 4349,
+      "sha256": "2454474a24928a9f3d92d635a9391c537ef74de77112fdc2f2872536cb447883"
+    },
+    "packages/barocss-physics/src/domain/fluid.ts": {
+      "bytes": 4923,
+      "sha256": "bfcafa7cc2f2bbb4ec6e2c20797f5dc5410d995cd28305272a2c3665d827179a"
+    },
+    "packages/barocss-physics/src/domain/types.ts": {
+      "bytes": 3839,
+      "sha256": "35fcadf07a848d919806955f6c3d934d01217ff1c26ca7d4eb4eb2807eb4ee6f"
+    },
+    "packages/barocss-physics/src/dynamic-anchor-pair.ts": {
+      "bytes": 3072,
+      "sha256": "8ff622a6ce007e5e7fcb43f0b7c08521615ddacbc8195cde1ac4f574304b579d"
+    },
+    "packages/barocss-physics/src/dynamic-fixed-joint.ts": {
+      "bytes": 2051,
+      "sha256": "f5a0fa82c062c7406f6edfeb2aeb169c927ddd8d0965957f630f87e118c52dfa"
+    },
+    "packages/barocss-physics/src/dynamic-hinge-joint.ts": {
+      "bytes": 4835,
+      "sha256": "69c816393446b6e06d66849840ecf88a7d28baf72bd30c792180616f55e455f2"
+    },
+    "packages/barocss-physics/src/fluid/boundary.ts": {
+      "bytes": 1990,
+      "sha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c"
+    },
+    "packages/barocss-physics/src/fluid/constants.ts": {
+      "bytes": 459,
+      "sha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec"
+    },
+    "packages/barocss-physics/src/fluid/diagnostics.ts": {
+      "bytes": 1106,
+      "sha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215"
+    },
+    "packages/barocss-physics/src/fluid/kernel.ts": {
+      "bytes": 1112,
+      "sha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da"
+    },
+    "packages/barocss-physics/src/fluid/neighbors.ts": {
+      "bytes": 2949,
+      "sha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3"
+    },
+    "packages/barocss-physics/src/fluid/pbf.ts": {
+      "bytes": 5161,
+      "sha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50"
+    },
+    "packages/barocss-physics/src/fluid/static-box.ts": {
+      "bytes": 2481,
+      "sha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9"
+    },
+    "packages/barocss-physics/src/fluid/types.ts": {
+      "bytes": 125,
+      "sha256": "c75f020afeb760ec596c3043fc6d2a7166995ce0c3cedbc7e5424a6a83e56a62"
+    },
+    "packages/barocss-physics/src/fluid/visual-viscosity.ts": {
+      "bytes": 1265,
+      "sha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3"
+    },
+    "packages/barocss-physics/src/generate-provider.mjs": {
+      "bytes": 2663,
+      "sha256": "c45a6eb52df5f4840aa30006ac65d15ea0758066f63d815e4a3b394e8eb20557"
+    },
+    "packages/barocss-physics/src/identity.ts": {
+      "bytes": 6081,
+      "sha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be"
+    },
+    "packages/barocss-physics/src/index.ts": {
+      "bytes": 570,
+      "sha256": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30"
+    },
+    "packages/barocss-physics/src/internal-types.ts": {
+      "bytes": 2615,
+      "sha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8"
+    },
+    "packages/barocss-physics/src/joint-motor.ts": {
+      "bytes": 1723,
+      "sha256": "9a50b0d006ca2386cd2d79b8ba162f6850a5d08d3eb1c7d03460d606559b56ea"
+    },
+    "packages/barocss-physics/src/joints.ts": {
+      "bytes": 7231,
+      "sha256": "b6d0ec667a96fc26ec43d9d812c5ffd0a3b7446d135bd9b18713059327c59181"
+    },
+    "packages/barocss-physics/src/limits.ts": {
+      "bytes": 417,
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    "packages/barocss-physics/src/math.ts": {
+      "bytes": 2421,
+      "sha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2"
+    },
+    "packages/barocss-physics/src/model-admission.ts": {
+      "bytes": 10384,
+      "sha256": "7e77f184fed57d51ee1b0599e60c80d83b96045b139d236a37f76a4207689397"
+    },
+    "packages/barocss-physics/src/persistent-box-contact.ts": {
+      "bytes": 3769,
+      "sha256": "3f53922b557ca142a4d95e1e19d5be21828b375b75bc45ff1e57a7b9171261f1"
+    },
+    "packages/barocss-physics/src/provider-manifest.generated.ts": {
+      "bytes": 8271,
+      "sha256": "86207caac84e5354d78177f795a501878b24529af39765e4350cbe42bb731209"
+    },
+    "packages/barocss-physics/src/recording-owner.ts": {
+      "bytes": 895,
+      "sha256": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1"
+    },
+    "packages/barocss-physics/src/replay-compare.ts": {
+      "bytes": 1023,
+      "sha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec"
+    },
+    "packages/barocss-physics/src/replay-json.ts": {
+      "bytes": 7760,
+      "sha256": "1ab8cf962443edd3be387e5095a9cce3f2071c8b44e47cc165ce82d5c00ac617"
+    },
+    "packages/barocss-physics/src/replay-validation.ts": {
+      "bytes": 8096,
+      "sha256": "ab9a7b5097515ddd3d6aa9a434d14f2ae2e04fd15c4059b473d0d708a507c82a"
+    },
+    "packages/barocss-physics/src/replay.ts": {
+      "bytes": 7119,
+      "sha256": "07bafc635620c56c479ed44b0f458cbbb470bf20b3ce2ead7248ceb0973ca408"
+    },
+    "packages/barocss-physics/src/rigid-forced-rotation.ts": {
+      "bytes": 4961,
+      "sha256": "52447f9daa9da5c7382bd59d7132e3936ddf667942cbefd3fafeb79274e06d44"
+    },
+    "packages/barocss-physics/src/rigid-free-rotation.ts": {
+      "bytes": 11619,
+      "sha256": "63e5fd31e798a7bd85f56d0d0b5b5bad58d61e2c848594328fa74bf1c254dbbf"
+    },
+    "packages/barocss-physics/src/rotation-validation.ts": {
+      "bytes": 780,
+      "sha256": "45281b213700f86af36ea6d1a9189ca54349d13d01c37eeb366f1cdd474c1408"
+    },
+    "packages/barocss-physics/src/scene-profile.ts": {
+      "bytes": 1202,
+      "sha256": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7"
+    },
+    "packages/barocss-physics/src/sleep.ts": {
+      "bytes": 4411,
+      "sha256": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2"
+    },
+    "packages/barocss-physics/src/types.ts": {
+      "bytes": 11884,
+      "sha256": "37fdf1abcc20fd379304213b8c0686f8e0468d285f008aa8ebdb316882efade5"
+    },
+    "packages/barocss-physics/src/validation.ts": {
+      "bytes": 14962,
+      "sha256": "c5787fdbe5e31a51e52fb6b91634f75b363a629bb4a88248273e85c8ffc948af"
+    },
+    "packages/barocss-physics/src/world.ts": {
+      "bytes": 30779,
+      "sha256": "449865bf2e73ed799885c7e9d0f95f7d3f09c740e42ce1f8b960384308e08266"
+    },
+    "examples/physics-model-input/model.mjs": {
+      "bytes": 2051,
+      "sha256": "8bbeb3712f27eb3d639dcde806fcf27f8bc5360274feefd051335b3887790baf"
+    },
+    "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/result.json": {
+      "bytes": 12356,
+      "sha256": "aa77c50446ddfbf4c69b93f222e24fd74e7b663f175c6103571ca819e72c4432"
+    },
+    "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/independent-line-audit.json": {
+      "bytes": 970,
+      "sha256": "a1e01566eceab7439636963b82504aaa9f54d0195088a41c42c3fab3239152a9"
+    },
+    "examples/physics-box-contact-features-2276/evidence/run-03/presentation-audit.json": {
+      "bytes": 60340,
+      "sha256": "bd86ed702be2eb48f037173fb2a4234527778dfa307e7599dd5039aa629a2615"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/result.json": {
+      "bytes": 1103,
+      "sha256": "b082273146304a866321bd4ffd7dbb9d36d4f207c7685779d8c4cf41d7d2f08a"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/independent-cell-geometry.json": {
+      "bytes": 69530,
+      "sha256": "37e341b56137f6a812669230372d333d832a5804d203a45c257e671dc86fdfe5"
+    },
+    "examples/physics-box-quantized-equilibrium-2276/evidence/equilibrium-01/result.json": {
+      "bytes": 32844,
+      "sha256": "2575d9c02e7243998fe3c7b66b109c437c3207305caf3a2518f80a0acc1ea30e"
+    },
+    "examples/physics-box-quantized-witness-2276/dependencies.json": {
+      "bytes": 618,
+      "sha256": "eb1eaba57f802da00ea3723444ab5200241630510eb2ed8e9c4e32acfd819ea0"
+    },
+    "examples/physics-box-contact-features-2276/candidate.ts": {
+      "bytes": 17864,
+      "sha256": "15a1931ed4fc5cc91bbae4fde700258a039aa3e081c128bc61030474de38200d"
+    },
+    "examples/physics-box-contact-features-2276/cases.json": {
+      "bytes": 24863,
+      "sha256": "97623de2d6a8795384d6985d4415579e9b6ef7410cdd90be1facdd5d9740af83"
+    },
+    "examples/physics-box-contact-features-2276/package.json": {
+      "bytes": 97,
+      "sha256": "1c27c0974443a78fe4977ea0c606d134e56ba6751973042cdfff54b6ca079d00"
+    },
+    "examples/physics-box-quantized-witness-2276/candidate.ts": {
+      "bytes": 14708,
+      "sha256": "023f79d1feb83627348cc37ed094d7b8111715ce4c01bd9a41f5857f22f78c21"
+    },
+    "examples/physics-box-quantized-witness-2276/CONTRACT.md": {
+      "bytes": 5061,
+      "sha256": "06774494e847a0ab281550add600370bb9b5f55070eb2ffbd6a21677ba7769b3"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/build-01/source-pins.json": {
+      "bytes": 1122,
+      "sha256": "f0edd6c4d422f5155d2636d8a8d372a9e6219ba2ced75794e2216e2714417b9d"
+    },
+    "examples/physics-box-contact-features-2276/CONTRACT.md": {
+      "bytes": 3578,
+      "sha256": "4d3f705e639b5435866345d46bfdf98d4388fdb7047a6772967bcabcb36a15cc"
+    }
+  },
+  "traceOutputCapBytes": 16777216,
+  "newNumericalRuns": 0,
+  "protectedOriginalFilesChanged": 0,
+  "archive": "EVIDENCE-01.tar.gz"
+}
