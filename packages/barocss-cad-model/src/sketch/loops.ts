@@ -51,7 +51,9 @@ export function rectangleNode(s: Extract<SketchShape, { kind: 'polygon' }>): Ske
     : eq(p[0][0], p[1][0]) && eq(p[1][1], p[2][1]) && eq(p[2][0], p[3][0]) && eq(p[3][1], p[0][1]);
   if (!aligned) return null;
   const xs = p.map(q => q[0]), ys = p.map(q => q[1]);
-  return { kind: 'sketch', profile: 'rectangle', min: [Math.min(...xs), Math.min(...ys)], max: [Math.max(...xs), Math.max(...ys)] };
+  // Keep only authored driving dimensions; an ordinary rectangle must not acquire locks.
+  const outline = Object.keys(s.lengths ?? {}).length ? outlineOf(s) : null;
+  return { kind: 'sketch', profile: 'rectangle', min: [Math.min(...xs), Math.min(...ys)], max: [Math.max(...xs), Math.max(...ys)], ...(outline ? { outline } : {}) };
 }
 
 /** A constrained outline as the sketch node keeps it (null when nothing constrains it and it is no spline or ellipse); a spline's or ellipse's definition only while it still matches. */

@@ -3,9 +3,9 @@
 // profile; a value the constraints cannot take leaves the nodes unchanged.
 import { NODE_EXTRA_FIELDS, type ModelNode, type SketchNode, type SketchOutline } from '../engine/doc';
 import type { EditField } from '../app/editFields';
-import { profileOf } from './loops';
+import { outlineOf, profileOf } from './loops';
 import { commitDimension, dimensionLabel, dimensionValue } from './rules';
-import { outlinePolygon, rebindDims, sketchShapes } from './reopen';
+import { mainShape, outlinePolygon, rebindDims, resolveSketchDims, sketchShapes } from './reopen';
 export { outlinePolygon };
 
 type Nodes = readonly ModelNode[];
@@ -53,7 +53,14 @@ function replaced(old: SketchNode, next: SketchNode): SketchNode {
 export function outlineFields(nodes: Nodes, s: number, prefix: string, params: Readonly<Record<string, number>> = {}): EditField[] {
   const sk = nodes[s] as SketchNode | undefined;
   if (!sk || sk.kind !== 'sketch' || !sk.outline) return [];
-  const outline = (n: Nodes) => (n[s] as SketchNode).outline!;
+  const outline = (n: Nodes): SketchOutline => {
+    const node = n[s] as SketchNode;
+    if (node.profile === 'rectangle') {
+      const shape = mainShape(resolveSketchDims(node, params));
+      if (shape?.kind === 'polygon') return outlineOf(shape) ?? node.outline!;
+    }
+    return node.outline!;
+  };
   return drivingDimensions(sk.outline).map((key): EditField => {
     const label = dimensionLabel(outlinePolygon(sk.outline!), key);
     return {

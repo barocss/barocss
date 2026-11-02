@@ -5,7 +5,7 @@ import type { SketchShape } from './types';
 import type { P2 } from './profile';
 import { rulesWithoutCircle, type Polygon } from './rules';
 import { loopOf } from './loops';
-import { nextIdOf } from './entityIds';
+import { nextIdOf, tagsOf } from './entityIds';
 import { wellFormedBezier } from './bezier';
 import type { SplineDef } from './spline';
 import { ellipseMatches, wellFormedEllipse } from './ellipse';
@@ -172,7 +172,32 @@ export function loopShape(segments: readonly LoopSegment[]): SketchShape | null 
 
 /** The node's main profile as a shape. */
 export function mainShape(node: SketchNode): SketchShape | null {
-  if (node.outline) return outlinePolygon(node.outline);
+  if (node.outline) {
+    const shape = outlinePolygon(node.outline);
+    if (node.profile !== 'rectangle') return shape;
+    // The compact profile owns the geometry. Field edits and parameter changes move its
+    // authored metadata to the current bounds without adding any new driving dimensions.
+    const lo: P2 = [Infinity, Infinity], hi: P2 = [-Infinity, -Infinity];
+    for (const point of shape.points) for (let k = 0; k < 2; k++) {
+      lo[k] = Math.min(lo[k], point[k]); hi[k] = Math.max(hi[k], point[k]);
+    }
+    const min = pt(node.min), max = pt(node.max), points: [number, number][] = [];
+    for (const point of shape.points) {
+      const next: [number, number] = [point[0], point[1]];
+      for (let k = 0; k < 2; k++) if (min[k] !== lo[k] || max[k] !== hi[k])
+        next[k] = point[k] === lo[k] ? min[k] : point[k] === hi[k] ? max[k]
+          : min[k] + (point[k] - lo[k]) * (max[k] - min[k]) / (hi[k] - lo[k]);
+      points.push(next);
+    }
+    const lengths = shape.lengths && { ...shape.lengths };
+    if (lengths) for (const key of Object.keys(lengths)) {
+      const i = Number(key), a = shape.points[i], b = shape.points[(i + 1) % points.length];
+      const axis = Math.abs(b[0] - a[0]) > Math.abs(b[1] - a[1]) ? 0 : 1;
+      // Preserve typed decimals on unchanged dimensions, including pure translations.
+      if (max[axis] - min[axis] !== hi[axis] - lo[axis]) lengths[i] = Math.abs(max[axis] - min[axis]);
+    }
+    return { ...shape, points, ...(lengths ? { lengths } : {}), fromRectangle: true };
+  }
   switch (node.profile) {
     case 'rectangle': return { kind: 'rectangle', a: pt(node.min), b: pt(node.max) };
     case 'circle': return { kind: 'circle', c: pt(node.center), r: Number(node.radius) };
@@ -209,7 +234,17 @@ export function sketchShapes(stored: SketchNode, params: Params = {}): { shape: 
   const regions = (node.regions ?? []).map((l, r) => ({ s: loopShape(l), ids: idsFor(l.length, tags?.regions?.[r], i => `region${r}.side${i}`) }));
   const holes = (node.holes ?? []).map((l, h) => ({ s: loopShape(l), ids: idsFor(l.length, tags?.holes?.[h], i => `hole${h}.side${i}`) }));
   const loops = [...regions, ...holes];
-  let shape: SketchShape | null = main && { ...main, ids: outer };
+  // Native rectangle sides run in canonical order; an authored outline may start at
+  // another corner or run clockwise. Reattach its IDs by endpoints, not by array index.
+  let authoredOuter = outer;
+  if (main?.kind === 'polygon' && node.profile === 'rectangle' && node.outline) {
+    const outline: LoopSegment[] = [];
+    for (const start of main.points) outline.push({ kind: 'line', start });
+    const remapped = tagsOf({ kind: 'rectangle', a: pt(node.min), b: pt(node.max), ids: outer }, outline);
+    if (!remapped) throw refusal('VALUE', 'the authored rectangle outline does not match its profile sides');
+    authoredOuter = remapped;
+  }
+  let shape: SketchShape | null = main && { ...main, ids: authoredOuter };
   if (shape?.kind === 'polygon' && attached.length) shape = { ...shape, circleIds: attached.map(c => loops.find(x => sameCircle(x.s, c))?.ids[0] ?? `e${k++}`) };
   const done = loops.filter(x => !!x.s && !attached.some(c => sameCircle(x.s, c))).map(x => ({ ...x.s!, ids: x.ids }) as SketchShape);
   return { shape, done: [...done, ...constructionOf(node)], ...(Object.keys(positional).length && !tags ? { positional } : {}) };

@@ -7,6 +7,8 @@ import type { StudioDoc } from '../engine/doc';
 // sketch node, so every feature made from it follows).
 import { frameGeometry, type Axis, type Dim, type FrameCorners, type FrameNotch, type ModelNode, type SketchNode } from '../engine/doc';
 import { outlineFields } from '../sketch/outlineFields';
+import { outlineOf } from '../sketch/loops';
+import { mainShape, resolveSketchDims } from '../sketch/reopen';
 import type { BearingAssemblyContext, BearingAssemblyInput } from '../engine/bearingContext';
 import type { StudioFits } from '../engine/fits';
 import { bearingHousingOptions, bearingHousingPatch, bearingHousingValue } from './shaftCommands';
@@ -40,6 +42,10 @@ function changedLeaf(a: unknown, b: unknown, path: (string | number)[] = []): (s
   if (!b || typeof b !== 'object' || !a || typeof a !== 'object') return 'many';
   let found: (string | number)[] | null = null;
   for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
+    // Rectangle outlines mirror min/max. Binding still targets the one authored
+    // scalar, rather than treating its synchronized metadata as independent edits.
+    if (k === 'outline' && (a as { kind?: string; profile?: string }).kind === 'sketch' && (b as { kind?: string; profile?: string }).kind === 'sketch'
+      && (a as { profile?: string }).profile === 'rectangle' && (b as { profile?: string }).profile === 'rectangle') continue;
     const r = changedLeaf((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k], [...path, Array.isArray(b) ? Number(k) : k]);
     if (r === 'many' || (r && found)) return 'many';
     if (r) found = r;
@@ -81,7 +87,14 @@ function sketchFields(nodes: Nodes, s: number, prefix: string, params: Record<st
   const at = (n: Nodes) => n[s] as SketchNode;
   if (sk.profile === 'rectangle') {
     const rect = (n: Nodes) => at(n) as Extract<SketchNode, { profile: 'rectangle' }>;
-    const put = (n: Nodes, min: Dim[], max: Dim[]) => replace(n, s, { ...rect(n), min: [min[0], min[1]], max: [max[0], max[1]] });
+    const put = (n: Nodes, min: Dim[], max: Dim[]) => {
+      const next = { ...rect(n), min: [min[0], min[1]], max: [max[0], max[1]] } as Extract<SketchNode, { profile: 'rectangle' }>;
+      if (next.outline) {
+        const shape = mainShape(resolveSketchDims(next, params));
+        if (shape?.kind === 'polygon') next.outline = outlineOf(shape) ?? undefined;
+      }
+      return replace(n, s, next);
+    };
     out.push(
       { kind: 'number', key: prefix + 'w', label: prefix + 'Width', unit: 'mm', get: n => num(rect(n).max[0]) - num(rect(n).min[0]), set: (n, v) => put(n, rect(n).min, [num(rect(n).min[0]) + v, rect(n).max[1]]) },
       { kind: 'number', key: prefix + 'd', label: prefix + 'Depth', unit: 'mm', get: n => num(rect(n).max[1]) - num(rect(n).min[1]), set: (n, v) => put(n, rect(n).min, [rect(n).max[0], num(rect(n).min[1]) + v]) },

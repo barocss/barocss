@@ -1,0 +1,292 @@
+{
+  "workId": "D447",
+  "status": "BOUNDED_QUALIFIED",
+  "tier": "small bounded existing-metadata retention; additional independent source review retained",
+  "baseline": "a9f6a48faa7d046838c9b8404b1b59d70ca01bfc",
+  "models": {
+    "routineDriverAndRepair": "GPT-6.1 Sol Medium",
+    "nativePhysicalOracleAndIndependentSourceReview": "GPT-6.1 Sol High",
+    "coordinationAndVisibleReview": "root"
+  },
+  "PASS": [
+    "Fresh public rectangle authoring reaches fullydefined rank8/0DOF withtwo drivinglengths",
+    "Completed publicreopen diagnostic preserves geometry and reveals constraintloss",
+    "Translated native shape10/10 prefixes under frozen physical/reference policy",
+    "Repaired63focusedtests andchanged-filelint andfinalModeltsc",
+    "Independent source ACK after3findingsfixed",
+    "Actual13snapshot authoring/extrude/projectSave/reopen/reedit/UndoRedoPASS",
+    "Two independent Python plate-volume oraclesPASS;0outbounddownloads",
+    "1176currentpins equalaftercleanup;ownednamespaceabsent andresourcesclosed"
+  ],
+  "FAIL": [
+    "Public Finish/reopen loses two authored driving lengths:2DOF instead of0",
+    "Initial canvas focus and standalone history selector harness failures retained separately",
+    "Initial native output-count harness assertion retained separately",
+    "Initial test fixture preparation mistakes corrected before meaningful3PASS7FAILbaseline",
+    "Initial Model typecheck: unregistered refusalcode andtestcast; corrected toexistingVALUE/explicittestnarrowing",
+    "Independent review found typed-decimal no-op loss, stale parameter Length getter and fractional endpoint drift; allfixedwithregressions"
+  ],
+  "NOT_RUN": [
+    "Combined bracket public Revolve/Union/Hole/Fillet authoring",
+    "Combined downstream reference retention and real Measure",
+    "Invalid fillet refusal retention in the combined part",
+    "Generic field setters/parameter/fractional cases in actual UI (covered by focused tests)",
+    "Full combined C1-1 acceptance/readiness",
+    "Full kernel suite(B-repcoreunchanged)",
+    "New external downloads/paid live",
+    "Remote CI/develop integration/release/deployment"
+  ],
+  "native": {
+    "workId": "D447",
+    "scope": "staged translated ordinary geometry acceptance; no Studio proof",
+    "model": "gpt-6.1-sol high",
+    "status": "PASS_BOUNDED_NATIVE",
+    "head": "a9f6a48faa7d046838c9b8404b1b59d70ca01bfc",
+    "executedCommand": "bash /tmp/barocss-d447-geometry/run-translated-owner-slot.sh",
+    "recipeSHA256": "d73be0568ce6a51222953916f72c4b55f3cf9c9787042571f3cfa0a7e1abf344",
+    "summary": "run03-translated/summary.json",
+    "summarySHA256": "a3e644ab7ea1b351e7067469ee736bd1b4d94a0669c1582392e7a1b545891770",
+    "counts": {
+      "nativeStagePass": 10,
+      "nativeStageFail": 0,
+      "widths": [
+        80,
+        60
+      ]
+    },
+    "policy": {
+      "volume": "1e-9*max(1,abs analytic volume)",
+      "centroidAbsoluteMM": 1e-09,
+      "boundsCoordinateAbsoluteMM": 1e-09,
+      "productionToleranceChange": false
+    },
+    "maximumObservedErrors": {
+      "volumeRelative": 4.031910173413699e-15,
+      "centroidAbsoluteMM": 2.6645352591003757e-14,
+      "boundsAbsoluteMM": 7.105427357601002e-15
+    },
+    "sourcePins": {
+      "count": 1015,
+      "beforeAfterEqual": true,
+      "sha256": "dc7353abfb7872507cafbd4afaaa39d5ad994345d065804d56076d52eb72cc4e"
+    },
+    "failureHistory": [
+      {
+        "attempt": "run01",
+        "status": "FAIL_HARNESS",
+        "phase": "unshifted W80-revolve",
+        "reason": "Expected one live output before union; native Model correctly returns plate and independent boss. W80 plate passed. Remaining stages NOT_RUN.",
+        "failure": "run01/failure.json",
+        "failureSHA256": "d0f12852d7729f0245a8d6f3587e5291a6c8296670554294fe3cc162804371a8"
+      },
+      {
+        "attempt": "run02",
+        "status": "NOT_RUN",
+        "reason": "Previous global-idle admission found foreign holder; no acquire/bundle/SUT. Latest owner instruction then permitted separate available gate slots."
+      }
+    ],
+    "inputAdjustment": {
+      "translation": [
+        -20,
+        -20,
+        0
+      ],
+      "reason": "public Studio XZ authoring feasibility; no state injection/extra Move",
+      "oracleChange": "centroid and bbox translated; same volume, dimensions, overlap, radius and limits",
+      "oldPlateResultNotReusedAsTranslatedProof": true
+    },
+    "cleanup": {
+      "ownPID": 30820,
+      "ownLeaseReleased": true,
+      "foreignHolderPreserved": 36889,
+      "globalIdleClaim": false,
+      "nodeExitCode": 0
+    },
+    "NOT_RUN": [
+      "actual Studio typed sketch constraints",
+      "UI history/edit/Undo/refusal retention",
+      "Save/fresh Open/re-edit",
+      "inertia and surface-area independent acceptance",
+      "unselected general Boolean/fillet families"
+    ],
+    "manifest": "manifest-final.json",
+    "manifestSHA256": "65e11cd76bd3c76e24422d114c4f01e48bbfb629cb6234bce1de3a2bb117cb9a"
+  },
+  "retainedEvidenceLedgerSHA256": "0326117337f95469f33882338866864cdf5ef16ba0d0033fbd4be59bb36fdc32",
+  "productFailure": {
+    "receipt": "/tmp/barocss-d447-reopen-run02/receipt.json",
+    "sha256": "f0ddcdbed835ad2f78461ba0f3c9b90983630855f0c2bbf9301d2be6580b6a7a",
+    "before": {
+      "drivingLengths": [
+        80,
+        40
+      ],
+      "rank": 8,
+      "DOF": 0
+    },
+    "after": {
+      "displayedLengths": [
+        80,
+        40
+      ],
+      "authoredLengthRecords": 0,
+      "rank": 6,
+      "DOF": 2
+    },
+    "geometryDocumentPreserved": true,
+    "frozenSourceFiles": 1177,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "watcherChanges": 0
+  },
+  "gateAuthority": "Latestownerallowsindependentforeignholders; useavailablegatecapacity/load<40, atmostoneownheavy; worktreewritersstillfrozenforactualStudio",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercent": 43,
+  "nativeReceiptSize": 2371,
+  "lastUpdated": "2026-11-03",
+  "repair": {
+    "scope": "Retain authored rectangle outline constraints while preserving compact native profile; synchronize existing editor/parameter consumers",
+    "sourceSHA256": {
+      "packages/barocss-cad-model/src/app/editFields.ts": "139c5e140325c14b7809709e3aa8dbdc7c37565fedae73f67d875d889456c604",
+      "packages/barocss-cad-model/src/sketch/loops.ts": "45f46b51321a33d7dd0b6a0608a28938f8c045b3d792b3023fe8664253f53a54",
+      "packages/barocss-cad-model/src/sketch/outlineFields.ts": "606d486b3572751acdb60ebcfaef51833b208bf72c022f28265d1c47b05f2d2e",
+      "packages/barocss-cad-model/src/sketch/reopen.ts": "cf5a9ccd77ef516bdef59af2f69be98b7d3be43c3393d74a071e3d4931b0ea6a",
+      "packages/barocss-cad-model/test/sketch-rectangle-driving-retention.test.ts": "6dccd09d48ec09ef897cfe2c9b6222f564be6de850a897c06b92aba781896a78"
+    },
+    "schemaSolverCorePublicExportsChanged": false,
+    "legacyLocksInferred": false
+  },
+  "checks": {
+    "meaningfulPreFix": {
+      "PASS": 3,
+      "FAIL": 7
+    },
+    "finalFocused": {
+      "PASS": 63,
+      "FAIL": 0,
+      "SKIP": 0,
+      "testRunnerMilliseconds": 674.27175
+    },
+    "lint": "PASS5changedsource/testfiles",
+    "ModelTypeCheck": "PASSafterlastsource/testedit",
+    "commands": [
+      "pnpm --dir packages/barocss-cad-model run test sketch-rectangle-driving-retention.test.ts sketch-reopen-parameters.test.ts sketch-reopen-side-ids.test.ts sketch-reopen-main-role.test.ts",
+      "pnpm exec eslint --no-warn-ignored -- packages/barocss-cad-model/src/sketch/loops.ts packages/barocss-cad-model/src/sketch/reopen.ts packages/barocss-cad-model/src/app/editFields.ts packages/barocss-cad-model/src/sketch/outlineFields.ts packages/barocss-cad-model/test/sketch-rectangle-driving-retention.test.ts",
+      "pnpm --dir packages/barocss-cad-model run type-check"
+    ]
+  },
+  "independentSourceReview": {
+    "workId": "D447",
+    "reviewerModel": "gpt-6.1-sol high",
+    "status": "SOURCE_REVIEW_ACK",
+    "scope": "Selected compact-rectangle authored-dimension retention; final endpoint delta and five source/test pins",
+    "reviewedSHA256": {
+      "packages/barocss-cad-model/src/app/editFields.ts": "139c5e140325c14b7809709e3aa8dbdc7c37565fedae73f67d875d889456c604",
+      "packages/barocss-cad-model/src/sketch/loops.ts": "45f46b51321a33d7dd0b6a0608a28938f8c045b3d792b3023fe8664253f53a54",
+      "packages/barocss-cad-model/src/sketch/outlineFields.ts": "606d486b3572751acdb60ebcfaef51833b208bf72c022f28265d1c47b05f2d2e",
+      "packages/barocss-cad-model/src/sketch/reopen.ts": "cf5a9ccd77ef516bdef59af2f69be98b7d3be43c3393d74a071e3d4931b0ea6a",
+      "packages/barocss-cad-model/test/sketch-rectangle-driving-retention.test.ts": "6dccd09d48ec09ef897cfe2c9b6222f564be6de850a897c06b92aba781896a78"
+    },
+    "findings": [
+      {
+        "id": "typed-length-no-op",
+        "status": "FIXED"
+      },
+      {
+        "id": "parameter-editor-stale-length",
+        "status": "FIXED"
+      },
+      {
+        "id": "affine-endpoint-rounding",
+        "status": "FIXED"
+      }
+    ],
+    "blockers": [],
+    "reviewLaneSUTExecution": "NOT_RUN",
+    "reviewLaneProductWrites": false,
+    "historicalDraft": "candidate-review-draft.json preserved unchanged",
+    "limits": "Author focused/type/lint and actual Studio acceptance are separate receipts; no universal solver/core/geometry qualification."
+  },
+  "independentSourceReviewSHA256": "e6dcd8e44e942011b645a1c5856a2cde919d883a8c8918303c1c761204abc768",
+  "actualFixed": {
+    "status": "PASS",
+    "command": "bash /tmp/barocss-d447-root/run-studio-stage1-v3.sh",
+    "driver": "/tmp/barocss-d447-driver/driver.mjs",
+    "configSHA256": "36050be2176467c48c09b5ec51109731b39776c7d5fa39b68cdf51f7a4549744",
+    "receipt": "/tmp/barocss-d447-stage1-run03/receipt.json",
+    "receiptSHA256": "a8e65ca081d12034e48f1f9e492a5c11811106c305e14a24c8d205ae929efd98",
+    "snapshots": 13,
+    "sourceFiles": 1176,
+    "sourceBeforeAfterCleanupCurrentEquality": true,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "watcherChanges": 0,
+    "downloads": 0,
+    "oracles": [
+      {
+        "width": 80,
+        "expectedVolume": 32000,
+        "actualVolume": 31999.999999999985,
+        "absoluteTolerance": 1e-06,
+        "status": "PASS",
+        "productImports": 0
+      },
+      {
+        "width": 60,
+        "expectedVolume": 24000,
+        "actualVolume": 23999.999999999996,
+        "absoluteTolerance": 1e-06,
+        "status": "PASS",
+        "productImports": 0
+      }
+    ],
+    "project": {
+      "kind": "actual browser OPFS",
+      "savedBytes": 1089,
+      "sameContextReloadAndPublicReopen": true,
+      "documentEquality": true,
+      "reopenedDrivingLengths": [
+        80,
+        40
+      ],
+      "editedDrivingLengths": [
+        60,
+        40
+      ],
+      "rank": 8,
+      "DOF": 0,
+      "bothLocksRetained": true,
+      "undoRedoExact": true,
+      "ownedNamespaceRemovedAndAbsent": true
+    },
+    "rootVisibleReview": [
+      "07a-reopened-authored-80x40-fully-defined",
+      "07b-edited-authored-60x40-fully-defined",
+      "11-stage1-accepted"
+    ],
+    "wrapperPID": 18440,
+    "wrapperAbsent": true,
+    "resourcesClosed": [
+      "CONTEXT",
+      "BROWSER",
+      "SERVER"
+    ],
+    "gateReleased": true
+  },
+  "nativeReuseBoundary": "10translatedprefixes were measured on baseline before this metadata repair; CAD core/Model part conversion unchanged and exact metadata-versus-plain native-input/mesh equivalence test passes. Do not relabel them as10newpostrepair actualUI executions.",
+  "nextDecision": "D448: continue C1-1 from retained actual plate; do not repeat fresh authoring baseline",
+  "issueReview": {
+    "532": "OPEN backlogepic; broadercriteria notmet, bounded milestonecomment only",
+    "549": "alreadyCLOSED; not reopened",
+    "2210": "alreadyCLOSED research; not reopened",
+    "2215": "alreadyCLOSED review; not reopened"
+  },
+  "navigation": {
+    "status": "PASS",
+    "rowPages": 34,
+    "checkedLocalLinks": 2500,
+    "newBroken": 0,
+    "knownHistoricalMissing": 1,
+    "archiveHashesUnchanged": true
+  }
+}
