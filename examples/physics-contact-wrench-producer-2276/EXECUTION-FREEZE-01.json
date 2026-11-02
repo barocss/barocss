@@ -1,0 +1,13 @@
+{
+  "status": "FINAL_03_REVIEW_MATCH_BEFORE_BUILD",
+  "reviewedHashes": {
+    "encoding.mjs": "6178b80fab30deb89064fc89bcde70cf56199c8bec86495cb2be7c8381d5a05f",
+    "trace_decode.py": "db499d56e4e9db398ab0232b38ddf090f80449e9ea0322957b4cad810021a806",
+    "build.mjs": "ef8c314720db7fa656a57af07057743933eaf3bcd5eef090e94eb993e2a5b172",
+    "observer.py": "08b24e1d74b32f112b9d9b5627cd0d9e067f64c3b5709f970b9424bf94ab37fc",
+    "SOURCE-PINS-03.json": "40a48cdfb83b96f2034475f633636ac490586cb63066ee1c05cc781ab2b553ba"
+  },
+  "scope": "SOURCE_PRIVATE_PERSISTENT_ONLY",
+  "WorldCalls": 0,
+  "runtimePublicAPI": "NOT_PROMOTED"
+}
