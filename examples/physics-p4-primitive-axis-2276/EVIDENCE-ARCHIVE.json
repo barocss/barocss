@@ -1,0 +1,178 @@
+{
+  "format": "bounded-evidence-archive-v1",
+  "status": "PASS_MEMBER_HASH_AND_ORIGINAL_PRESERVATION_CHECK",
+  "archive": "EVIDENCE-01.tar.gz",
+  "bytes": 268765,
+  "sha256": "63d9179763ab37c4032810e30ac2450646a15fb01c529a32d1032913605d8047",
+  "uncompressedTarBytes": 2795520,
+  "uncompressedPayloadBytes": 2761180,
+  "uncompressedCapBytes": 16777216,
+  "members": {
+    "HASH-MANIFEST.json": {
+      "bytes": 12710,
+      "sha256": "cc0c44c043ec898b84ad7694b760c9ba9beb3498de8e1af9226d0b1f49c66391"
+    },
+    "examples/physics-p4-position-v2-2276/evidence/position-01/summary.json": {
+      "bytes": 8373,
+      "sha256": "97cb25276fac4cdfb7ef6f865b0e8c2a2c0cd6bf2eb4af3f0fc26190fb672ab7"
+    },
+    "examples/physics-p4-primitive-axis-2276/FREEZE-01.json": {
+      "bytes": 2264,
+      "sha256": "3347f27f03e3f46cea36fe8dd44f1b2fe88cca64f87b274e65310a4ee5a54179"
+    },
+    "examples/physics-p4-primitive-axis-2276/RESULTS.json": {
+      "bytes": 4964,
+      "sha256": "f92b3f1e0e188a5d5cb712ef620068b68524110b79a823d414be59bc7d156016"
+    },
+    "examples/physics-p4-primitive-axis-2276/RESULTS.md": {
+      "bytes": 2429,
+      "sha256": "84aba198d2b2544a77c4b3bd3654623e854d5ce12427bbbac47bd9253c5a89fb"
+    },
+    "examples/physics-p4-primitive-axis-2276/dependencies.json": {
+      "bytes": 6799,
+      "sha256": "f5bf2d492d6b94827926dec34868048d423e7ec625ae2ebafb1015235acfcfbd"
+    },
+    "examples/physics-p4-primitive-axis-2276/evidence/primitive-01/ALIGNED-1-reply.json": {
+      "bytes": 280483,
+      "sha256": "1eecbbaaf3e0f2d9eb42b48d2ffb7e9144218974e2edc461bb2171543f51a9c1"
+    },
+    "examples/physics-p4-primitive-axis-2276/evidence/primitive-01/ALIGNED-16-reply.json": {
+      "bytes": 366543,
+      "sha256": "d510c8d01b076d8399f0176692d6ef5f2f240ec56673ec86bdde482763f1b215"
+    },
+    "examples/physics-p4-primitive-axis-2276/evidence/primitive-01/OFFSET-1-reply.json": {
+      "bytes": 280575,
+      "sha256": "acda0577072f838d48beb26cfc23b6df0adcaa194ca5c30a55acfb9e13593fd6"
+    },
+    "examples/physics-p4-primitive-axis-2276/evidence/primitive-01/OFFSET-16-reply.json": {
+      "bytes": 365605,
+      "sha256": "3c1c32c6aca481eaae4831a42d308e48c9ba8a104d8987d8e282c9c5d02a90ea"
+    },
+    "examples/physics-p4-primitive-axis-2276/evidence/primitive-01/YAW-1-reply.json": {
+      "bytes": 280957,
+      "sha256": "feb158e902c2dd6ccdf0df6fed608f434c285510143aa980960be9f0f215cb64"
+    },
+    "examples/physics-p4-primitive-axis-2276/evidence/primitive-01/YAW-16-reply.json": {
+      "bytes": 370515,
+      "sha256": "840a623fa51a2c0594bdbc6d73b02c02a2534fb5cd461068848c49839fbfa89c"
+    },
+    "examples/physics-p4-primitive-axis-2276/evidence/primitive-01/function-transfer.diff": {
+      "bytes": 4791,
+      "sha256": "d440244f381e1e60e53a0332c948408fb8139ab8b5839667d36f7a62b68cbde0"
+    },
+    "examples/physics-p4-primitive-axis-2276/evidence/primitive-01/function-transfer.json": {
+      "bytes": 17181,
+      "sha256": "e35923f627544b92be78aab15d69460d38344b6d755db2ce61ae371913b7f3e1"
+    },
+    "examples/physics-p4-primitive-axis-2276/evidence/primitive-01/integer-source-transfer.diff": {
+      "bytes": 2068,
+      "sha256": "2515e0f53ad6d1601727eaacaaf9eb71cd8bf7eed3d81d9cfe53c97e1bbc8ecf"
+    },
+    "examples/physics-p4-primitive-axis-2276/evidence/primitive-01/integer-source-transfer.json": {
+      "bytes": 2357,
+      "sha256": "a76545ce55ecae883a09536cfe3c59e6a6d722265b2b83cceb30f9aa26881514"
+    },
+    "examples/physics-p4-primitive-axis-2276/evidence/primitive-01/summary.json": {
+      "bytes": 10069,
+      "sha256": "53a0a8a0831debc25985bf38175c47c4485989abbb4e7806487ad4bdc818a0ab"
+    },
+    "examples/physics-p4-primitive-axis-2276/integer-source-transfer.diff": {
+      "bytes": 2068,
+      "sha256": "2515e0f53ad6d1601727eaacaaf9eb71cd8bf7eed3d81d9cfe53c97e1bbc8ecf"
+    },
+    "examples/physics-p4-primitive-axis-2276/integer-source-transfer.json": {
+      "bytes": 2357,
+      "sha256": "a76545ce55ecae883a09536cfe3c59e6a6d722265b2b83cceb30f9aa26881514"
+    },
+    "examples/physics-p4-primitive-axis-2276/runner-source-transfer.diff": {
+      "bytes": 6102,
+      "sha256": "78a2d71e02e2593f7fde46bcb760809b9e3a234699b0edb80583166c7871b8f3"
+    },
+    "examples/physics-p4-primitive-axis-2276/runner-source-transfer.json": {
+      "bytes": 4500,
+      "sha256": "d8e00c21b89f0a2aa94b7b59fa45da65bc215b45df29520ac85498f4bae323bd"
+    },
+    "examples/physics-p4-sat-2276/corpus.json": {
+      "bytes": 1243,
+      "sha256": "45c88bd51eae941cd039174f1e3f79319fb1e9c4bc99c86b8ba26d677102edb6"
+    },
+    "examples/physics-world-p4-2276/evidence/cost-census-01/ALIGNED-1-position-world.stdin.jsonl": {
+      "bytes": 27751,
+      "sha256": "724ffd6804f3203a9753a29583e3f0777a4fcb54f70932eb397095092e4e79b4"
+    },
+    "examples/physics-world-p4-2276/evidence/cost-census-01/ALIGNED-1-position-world.stdout.raw": {
+      "bytes": 52515,
+      "sha256": "a654b24cd6d0008fe56422ef551c2701d2904b6100758dd1a9b1f204ccfb8dcf"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/ALIGNED-16-position-world.stdin.jsonl": {
+      "bytes": 35695,
+      "sha256": "c5014cbd7b6948642ff43cced4cbd0a5d216ac90302f21857f20848c5d8fa2e1"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/ALIGNED-16-position-world.stdout.raw": {
+      "bytes": 122825,
+      "sha256": "8d521cedc061fe03b2802809dc1290ad2a4762eb17431d265966c529fa0fd56e"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-1-position-world.stdin.jsonl": {
+      "bytes": 27832,
+      "sha256": "82380db104fc1650db3bda306d5875809914586a2ebc5f179a317da115c7cdbc"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-1-position-world.stdout.raw": {
+      "bytes": 52607,
+      "sha256": "138bde35877b14a22f08748b192c56cd1b896e6e435e205513c458a54ee10721"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-16-position-world.stdin.jsonl": {
+      "bytes": 35351,
+      "sha256": "d63d1287858963e0b5fa2ea065df242ac6d21eeeda4d7e2e4368acca15c1265c"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-16-position-world.stdout.raw": {
+      "bytes": 121814,
+      "sha256": "8228d2c51a073269f8cefe30a7dcbf1218c50343fe296c8c6046cf0d9958f515"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-1-position-world.stdin.jsonl": {
+      "bytes": 28793,
+      "sha256": "d6885e19204ac9753acdaddbf91d3a152c3105601ecc821d39aec007af6bc525"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-1-position-world.stdout.raw": {
+      "bytes": 54072,
+      "sha256": "d66225749932fba3140e2544e10881477442372826a49dff525b58dc961d9140"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-16-position-world.stdin.jsonl": {
+      "bytes": 35594,
+      "sha256": "e1567a963b0a8bc416e7ce027bbcce41710112575d5ce9380dc82d2eb0a150c3"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-16-position-world.stdout.raw": {
+      "bytes": 123188,
+      "sha256": "d31c63158d50c3d1c41e983a0ae70d7f958115f96a76b457a0a36c5ae027b22b"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-primitive-axis-01/prepared.json": {
+      "bytes": 1540,
+      "sha256": "ad2faa6513cbd9d63ff3dbdaf12c60ed5088f9d3759e70c3951de6803be94fbf"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-primitive-axis-01/progress.json": {
+      "bytes": 1854,
+      "sha256": "25e00ec64b2d12f21dd0618407146b5e615bee3fe97fed73a8f83cd7a1c5214d"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-primitive-axis-01/result.json": {
+      "bytes": 3234,
+      "sha256": "d83fe47777126cf20a330d254c84439f4b70f561e9554a8ac586188e27c6747f"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-primitive-axis-01/start.json": {
+      "bytes": 1562,
+      "sha256": "e35750f375f58a1ce79e6e02f33e3722696b1296e3e0c6b939ebdc31bb8c3638"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-primitive-axis-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-primitive-axis-01/stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "internalManifest": "HASH-MANIFEST.json",
+  "originalFilesRechecked": 24,
+  "originalFilesChanged": 0,
+  "newNumericalRuns": 0,
+  "originalCommandReceipt": "examples/physics-world-p5-2276/evidence/p4-primitive-axis-01",
+  "summaryStatus": "NUMERIC_EQ_PASS_COST_NO_GO"
+}

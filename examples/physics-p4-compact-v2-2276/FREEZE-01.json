@@ -1,0 +1,38 @@
+{
+  "base": "4ca00d04a",
+  "stage": "before first candidate build/import/geometry/API execution (inert bank separately executed)",
+  "inputs": {
+    "examples/physics-p4-compact-v2-2276/dependencies.json": {
+      "bytes": 2950,
+      "sha256": "e2cb5e2df61289ea74e0c75f6bb16ad3a12cfdcf126babe2fb3ee2220cdd8d5e"
+    },
+    "examples/physics-p4-compact-v2-2276/run.py": {
+      "bytes": 8246,
+      "sha256": "50922f2dac4787cf6051f3493c321e4144153bb33c499554a03b70f621074bda"
+    },
+    "examples/physics-p4-compact-v2-2276/METHOD.md": {
+      "bytes": 2238,
+      "sha256": "6c2415c2cf918e88cd0f11222bcb718e27368cd66730ccea3a37dc70bba13871"
+    },
+    "examples/physics-p4-compact-v2-2276/backend.py": {
+      "bytes": 3661,
+      "sha256": "94ab762e05317695b71df4da0550b1d77b137273c20901e74246a22b5bf62978"
+    },
+    "examples/physics-p4-compact-v2-2276/loaders.py": {
+      "bytes": 2790,
+      "sha256": "4d5a4de32e207acca67098c05aff02a9daa3051e0323c4e63a663b75437a761d"
+    },
+    "examples/physics-p4-compact-v2-2276/CONTRACT.md": {
+      "bytes": 5772,
+      "sha256": "f3c9b6651f447d823e6d019f81a82e1be8407db71e79e429490ae8e80ee9e68b"
+    },
+    "examples/physics-p4-compact-v2-2276/README.md": {
+      "bytes": 1295,
+      "sha256": "5bb67650498c4a31b5786468195bcd9ffb862982429cef6391a7cc1df6eb4b1b"
+    },
+    "examples/physics-p4-compact-v2-2276/verify.py": {
+      "bytes": 4826,
+      "sha256": "a8a177ebf0cd86200490dd765b507f672d4660d392056649c431240a40a1dcd2"
+    }
+  }
+}

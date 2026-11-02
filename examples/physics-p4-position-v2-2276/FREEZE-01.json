@@ -1,0 +1,30 @@
+{
+  "base": "1779dd871",
+  "stage": "before firstfullpositionV2import/evaluation;6savedrequests0World",
+  "inputs": {
+    "examples/physics-p4-position-v2-2276/observer.py": {
+      "bytes": 9441,
+      "sha256": "bac282631421947855bce3c2eb6d2c4f50a8855b6e63236a4e35ca9cc49bbdf0"
+    },
+    "examples/physics-p4-position-v2-2276/dependencies.json": {
+      "bytes": 5252,
+      "sha256": "0e3138295fb65b45c4684e786d97a1c874d1a9bd813e62b8f775418fb4f3a4e0"
+    },
+    "examples/physics-p4-position-v2-2276/run.py": {
+      "bytes": 9148,
+      "sha256": "c56bf6d810dfbdaddf0fbe0f93e2e4485ee7540c40952946b5329cb82d7104a4"
+    },
+    "examples/physics-p4-position-v2-2276/CONTRACT.md": {
+      "bytes": 6280,
+      "sha256": "b98bc0ac141199ec6d1047b0b6370e221afaf8604c256ffc3e0ee6e80b128eaf"
+    },
+    "examples/physics-p4-position-v2-2276/README.md": {
+      "bytes": 1576,
+      "sha256": "4e516fb59553224882fb6916e31823ed587c09fbc112faa0c61f60a4bf777b55"
+    },
+    "examples/physics-p4-position-v2-2276/verify.py": {
+      "bytes": 2581,
+      "sha256": "95a53cc56639165269b24029b10ea822bf7f4f71b684b03785486ace021aad63"
+    }
+  }
+}

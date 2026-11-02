@@ -1,0 +1,50 @@
+{
+  "base": "1779dd871",
+  "stage": "before single Node worker candidate first import/exec; includeswholewait4childCPU",
+  "inputs": {
+    "examples/physics-p4-node-sat-2276/observer.py": {
+      "bytes": 9441,
+      "sha256": "bac282631421947855bce3c2eb6d2c4f50a8855b6e63236a4e35ca9cc49bbdf0"
+    },
+    "examples/physics-p4-node-sat-2276/worker.mjs": {
+      "bytes": 3387,
+      "sha256": "d774c3c863485d0c8164841b9dd8efe588b2277c9eff8aa717ca4f3b043e5eb9"
+    },
+    "examples/physics-p4-node-sat-2276/dependencies.json": {
+      "bytes": 7387,
+      "sha256": "0ae3e3b2e0c25489cb0712554feb80721a015b3ba891ba3559df8fea5f24daa5"
+    },
+    "examples/physics-p4-node-sat-2276/run.py": {
+      "bytes": 13356,
+      "sha256": "14cb8892c63ee74b1346ded0b37008f91b94c40e61c78c82da7fcc37505fafaf"
+    },
+    "examples/physics-p4-node-sat-2276/METHOD.md": {
+      "bytes": 2019,
+      "sha256": "1f62ec9a29a0a9f9c98524dfc2b0eea9bcbb8b8721bdddca6355e3d50184431b"
+    },
+    "examples/physics-p4-node-sat-2276/backend.py": {
+      "bytes": 2476,
+      "sha256": "39a483e3a5b96b76f8335119de252f3f5ea39ad06377869f1aeee12d20fbe15f"
+    },
+    "examples/physics-p4-node-sat-2276/client.py": {
+      "bytes": 8871,
+      "sha256": "9752e634b099687670cc6b1a2dc13820c5cc01b857d309aca2dbab8a36f31881"
+    },
+    "examples/physics-p4-node-sat-2276/CONTRACT.md": {
+      "bytes": 5064,
+      "sha256": "e93280d03fd13bb76a4fa36254e4dd4bd15e2eb60f8578fbd77887814060f825"
+    },
+    "examples/physics-p4-node-sat-2276/README.md": {
+      "bytes": 1436,
+      "sha256": "bdcf293647fa2d74f5673fe74180c69455fbc6ae1bc73b6debab9a4f464fd6ea"
+    },
+    "examples/physics-p4-node-sat-2276/integer-sat.mjs": {
+      "bytes": 12478,
+      "sha256": "451afe402da446d49046dbdba7c77970e6afea0045bca9d58566eba8dcdeb527"
+    },
+    "examples/physics-p4-node-sat-2276/verify.py": {
+      "bytes": 2581,
+      "sha256": "95a53cc56639165269b24029b10ea822bf7f4f71b684b03785486ace021aad63"
+    }
+  }
+}

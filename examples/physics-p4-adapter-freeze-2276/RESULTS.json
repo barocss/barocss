@@ -1,0 +1,107 @@
+{
+  "artifact_type": "bounded-evidence-results",
+  "work_id": "physics-p4-adapter-freeze-2276",
+  "owner_role": "independent-evidence-writer",
+  "source_request": "Preserve completed bounded P4 evidence and proof boundaries",
+  "last_updated": "2026-11-03",
+  "status": "PASS_P4_ADAPTER_BYTE_EQUIVALENCE",
+  "sourceSummary": "examples/physics-p4-adapter-freeze-2276/evidence/verify-01/summary.json",
+  "sourceSummaryPin": {
+    "bytes": 4014,
+    "sha256": "6d2cc8f2e08e77ec0358bd0ef19eaede3cf614d55f64b3ec7aa77fd579bafaa6"
+  },
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "examples/physics-p4-adapter-freeze-2276/verify.mjs",
+    "verify-01"
+  ],
+  "commandReceipt": "examples/physics-world-p5-2276/evidence/p4-adapter-freeze-01/result.json",
+  "commandStatus": "PASS",
+  "commandExit": 0,
+  "newNumericalRuns": 0,
+  "sourceContractsDependenciesReadmeUnchanged": true,
+  "oldSchemaAndEvidencePreserved": true,
+  "apiQualification": "NOT_RUN",
+  "renderQualification": "NOT_RUN",
+  "fullP4": "NO_GO",
+  "wholeTrajectoryCostGO": "NOT_RUN",
+  "unsupported": [
+    "32-point line80/120 agreement at1e-60",
+    "paired witness1e-12",
+    "phase ledger and quality8–10s",
+    "complete trajectory output/cost",
+    "1200-step P4"
+  ],
+  "archive": "EVIDENCE-01.tar.gz",
+  "counts": {
+    "worlds": 0,
+    "acceptedSteps": 0,
+    "candidateCalls": 0,
+    "geometryCalls": 0,
+    "builds": 0,
+    "gitReads": 5
+  },
+  "firstFailure": null,
+  "proof": {
+    "oldSource": {
+      "bytes": 9924,
+      "sha256": "670f5226576cb0a2c1963705b99704be71d4ebd3ad38c312adf9c16d43781d8d"
+    },
+    "currentSource": {
+      "bytes": 9927,
+      "sha256": "5175c05c2e85f57a873bf954324a02f9fbfdcc45f0aad3a00f59f02639314078"
+    },
+    "oldReplacedRegion": {
+      "bytes": 2458,
+      "sha256": "8d1f50b64113266dcf934f2cec74631546a436d904d00c6683e20ca895fa3a4e",
+      "startUtf8ByteOffset": 5197,
+      "endUtf8ByteOffset": 7655,
+      "startAnchorCount": 1,
+      "endAnchorCount": 1
+    },
+    "currentReplacedRegion": {
+      "bytes": 2461,
+      "sha256": "b6efb38d8dca6ef18a9eaa5d854c535897e1243f91829eb6b0d4add7dbd4c357",
+      "startUtf8ByteOffset": 5197,
+      "endUtf8ByteOffset": 7658,
+      "startAnchorCount": 1,
+      "endAnchorCount": 1
+    },
+    "oldOutput": {
+      "bytes": 8048,
+      "sha256": "381f72400c69eebe91f5f73dc5799ab111a2339f2e43f247de650399b4d9c7c7"
+    },
+    "currentOutput": {
+      "bytes": 8048,
+      "sha256": "381f72400c69eebe91f5f73dc5799ab111a2339f2e43f247de650399b4d9c7c7"
+    },
+    "byteIdentical": true,
+    "oldAdapterGuard": "UNCHANGED_NOT_AUTOMATICALLY_ADOPTED",
+    "sourceChange": {
+      "kind": "insert literal , 0 in solvePersistentPoint call",
+      "oldCall": "          solvePersistentPoint(this.#bodies[patch.aIndex], this.#bodies[patch.bIndex],\n            point.pointM, patch.normal, impulse);",
+      "newCall": "          solvePersistentPoint(this.#bodies[patch.aIndex], this.#bodies[patch.bIndex],\n            point.pointM, patch.normal, impulse, 0);",
+      "editUtf8ByteOffset": 7403,
+      "withinReplacedSolve": true,
+      "outsidePrefixIdentical": true,
+      "outsideSuffixIdentical": true,
+      "addedBytes": 3,
+      "diff": {
+        "bytes": 758,
+        "sha256": "87aacd9f689c6bf39237ba7dcf72778f4eda2dcb5cd3de94b642f481347d1dc3"
+      }
+    }
+  },
+  "numericUncertainty": "NOT_APPLICABLE_BYTE_COMPARISON_ONLY",
+  "numericalQualification": "NOT_RUN",
+  "timing": {
+    "guardElapsedMs": 115.6525,
+    "guardChildElapsedMs": 109.617875,
+    "guardDeadlineMs": 180000,
+    "processClosed": true,
+    "ownedChildPresentAtFinalization": false,
+    "guardTimingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+    "guardReceiptIsSeparateFromObserverCpu": true,
+    "timedOut": false
+  }
+}

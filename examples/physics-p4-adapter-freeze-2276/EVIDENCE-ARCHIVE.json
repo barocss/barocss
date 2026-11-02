@@ -1,0 +1,98 @@
+{
+  "format": "bounded-evidence-archive-v1",
+  "status": "PASS_MEMBER_HASH_AND_ORIGINAL_PRESERVATION_CHECK",
+  "archive": "EVIDENCE-01.tar.gz",
+  "bytes": 17218,
+  "sha256": "d119b2eeee3b1831108f961821ed84a100a7f8a7f2dee51a6463158960f69b2e",
+  "uncompressedTarBytes": 122880,
+  "uncompressedPayloadBytes": 102867,
+  "uncompressedCapBytes": 16777216,
+  "members": {
+    "HASH-MANIFEST.json": {
+      "bytes": 6637,
+      "sha256": "a137b6ba6af6aa7f705477ff618f554bb3886f74782185b220f5e6e303f5c284"
+    },
+    "examples/physics-p4-adapter-freeze-2276/RESULTS.json": {
+      "bytes": 3833,
+      "sha256": "9565ea71fc8455b33d46f92c868d4699752227f2ddcb932993d83302d0c6a1cf"
+    },
+    "examples/physics-p4-adapter-freeze-2276/RESULTS.md": {
+      "bytes": 1878,
+      "sha256": "6fb7016bd9a6e6783fdff1944708f18e79025e0d0ae6b4eb055851374a006e73"
+    },
+    "examples/physics-p4-adapter-freeze-2276/evidence/verify-01/current-replaced-region.ts": {
+      "bytes": 2461,
+      "sha256": "b6efb38d8dca6ef18a9eaa5d854c535897e1243f91829eb6b0d4add7dbd4c357"
+    },
+    "examples/physics-p4-adapter-freeze-2276/evidence/verify-01/current-source.ts": {
+      "bytes": 9927,
+      "sha256": "5175c05c2e85f57a873bf954324a02f9fbfdcc45f0aad3a00f59f02639314078"
+    },
+    "examples/physics-p4-adapter-freeze-2276/evidence/verify-01/current-transformed-global-island.ts": {
+      "bytes": 8048,
+      "sha256": "381f72400c69eebe91f5f73dc5799ab111a2339f2e43f247de650399b4d9c7c7"
+    },
+    "examples/physics-p4-adapter-freeze-2276/evidence/verify-01/current-world-adapter.ts": {
+      "bytes": 12000,
+      "sha256": "43904b7f32f2ea3c5587c33c77048cd2002f1fa47797daf81e5fc42177e9bbdd"
+    },
+    "examples/physics-p4-adapter-freeze-2276/evidence/verify-01/old-replaced-region.ts": {
+      "bytes": 2458,
+      "sha256": "8d1f50b64113266dcf934f2cec74631546a436d904d00c6683e20ca895fa3a4e"
+    },
+    "examples/physics-p4-adapter-freeze-2276/evidence/verify-01/old-source.ts": {
+      "bytes": 9924,
+      "sha256": "670f5226576cb0a2c1963705b99704be71d4ebd3ad38c312adf9c16d43781d8d"
+    },
+    "examples/physics-p4-adapter-freeze-2276/evidence/verify-01/old-transformed-global-island.ts": {
+      "bytes": 8048,
+      "sha256": "381f72400c69eebe91f5f73dc5799ab111a2339f2e43f247de650399b4d9c7c7"
+    },
+    "examples/physics-p4-adapter-freeze-2276/evidence/verify-01/old-world-adapter.ts": {
+      "bytes": 12000,
+      "sha256": "43904b7f32f2ea3c5587c33c77048cd2002f1fa47797daf81e5fc42177e9bbdd"
+    },
+    "examples/physics-p4-adapter-freeze-2276/evidence/verify-01/source-change.diff": {
+      "bytes": 758,
+      "sha256": "87aacd9f689c6bf39237ba7dcf72778f4eda2dcb5cd3de94b642f481347d1dc3"
+    },
+    "examples/physics-p4-adapter-freeze-2276/evidence/verify-01/summary.json": {
+      "bytes": 4014,
+      "sha256": "6d2cc8f2e08e77ec0358bd0ef19eaede3cf614d55f64b3ec7aa77fd579bafaa6"
+    },
+    "examples/physics-p4-adapter-freeze-2276/evidence/verify-01/transition-source.ts": {
+      "bytes": 9927,
+      "sha256": "5175c05c2e85f57a873bf954324a02f9fbfdcc45f0aad3a00f59f02639314078"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-adapter-freeze-01/prepared.json": {
+      "bytes": 1487,
+      "sha256": "9ef0ad1cf551ac42a4f2a8f54e54028cc5acb90f75415676176a03e5ce883479"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-adapter-freeze-01/progress.json": {
+      "bytes": 1584,
+      "sha256": "b666c617ed58d741bf9f4126247898a9bc353e9da4e0be54131c64a8578fe46d"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-adapter-freeze-01/result.json": {
+      "bytes": 2987,
+      "sha256": "d17001eedd2ef62a18cfec05e9c6b30ec1f837da9024f47e974313967d16e6b3"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-adapter-freeze-01/start.json": {
+      "bytes": 1509,
+      "sha256": "7557aeeb47150eb81af84546510bb5cbdcc29ff4f321cd32175e8e9ae91e1c1f"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-adapter-freeze-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-adapter-freeze-01/stdout.raw": {
+      "bytes": 3387,
+      "sha256": "eda0142f20b84a1a7e8a987c766427ffd434e335b13f6fa73412ef262035a825"
+    }
+  },
+  "internalManifest": "HASH-MANIFEST.json",
+  "originalFilesRechecked": 13,
+  "originalFilesChanged": 0,
+  "newNumericalRuns": 0,
+  "originalCommandReceipt": "examples/physics-world-p5-2276/evidence/p4-adapter-freeze-01",
+  "summaryStatus": "PASS_P4_ADAPTER_BYTE_EQUIVALENCE"
+}
