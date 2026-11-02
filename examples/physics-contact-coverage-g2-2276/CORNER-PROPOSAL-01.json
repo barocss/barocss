@@ -1,0 +1,82 @@
+{
+  "workId": "physics-contact-coverage-g2-corner-2276",
+  "status": "PROPOSAL_INDEPENDENT_HIGH_REVIEW_REQUIRED_NO_RUNTIME",
+  "priority": "After G1a reference authoring; may be independent geometry-only work while G1a harness is prepared.",
+  "scope": "Single source-level sphere/static-box CCD corner witness; no World, solver, contact response, API change, deployment or original stack rerun.",
+  "literalInputs": {
+    "units": {
+      "length": "m",
+      "time": "s"
+    },
+    "sphereRadiusM": "1/10",
+    "sphereStartM": [
+      "-3/10",
+      "3/20",
+      "0"
+    ],
+    "sphereEndM": [
+      "3/10",
+      "3/20",
+      "0"
+    ],
+    "boxCenterM": [
+      "0",
+      "0",
+      "0"
+    ],
+    "boxHalfExtentsM": [
+      "1/10",
+      "1/10",
+      "1/10"
+    ],
+    "boxOrientationXYZW": [
+      "0",
+      "0",
+      "0",
+      "1"
+    ],
+    "fixedStepSeconds": "1/120"
+  },
+  "producer": "Actual unchanged src/ccd.ts sweepSphere and genuine current dist/ccd.js, each with frozen literal-import closure; actual model-admission helper supplies Body inputs rather than hand-coded inertia. No root/public World result is claimed.",
+  "independentWitness": "From exact binary64 words, at returned fraction t evaluate centre=start+t*(end-start). For identity box the closest coordinate is clamp(centre_i,-half_i,half_i). Sum squared coordinate gaps and compare to radius squared. This uses independent Euclidean geometry, not expanded slab formula. Separately check biased stop position without attributing bias to TOI.",
+  "gatesBeforeExecution": {
+    "fractionDomain": "0<=t<=1, finite; original face TOI gate1e-12 remains unchanged",
+    "contactDistanceM": "1/1000000000000",
+    "comparison": "distanceSquared <= (radius+1e-12m)^2 is necessary for an exact contact witness; do not use a fitted expected producer fraction",
+    "representation": "Native F64 words exact rational; no square root/trig/ODE/linear solve required",
+    "conservativeDistinction": "Failure of exact-contact gate shows conservative expanded-box entry, not a proof of tunnelling or violation of an explicitly conservative broad-phase guarantee. Current profile semantic decision remains separate."
+  },
+  "order": [
+    "Freeze reviewed literal/source/native/tool/oracle/runner inputs before conversion or calls.",
+    "One literal-to-native conversion; detached graph copies.",
+    "Source model admission, exact literal candidate endpoint assignment and one sweep helper. Save raw bytes.",
+    "Independent witness from files. Preserve first failure. Native helper NOT_RUN on source exact-contact NO_GO.",
+    "Native only if source gate passes; own current native closure, no source fallback."
+  ],
+  "ceilings": {
+    "literalConversions": 1,
+    "graphs": 2,
+    "admitModel": 2,
+    "admitCcd": 2,
+    "sweepSphere": 2,
+    "World": 0,
+    "independentWitnessAudits": 4,
+    "fractionOperations": 1000,
+    "sqrt": 0,
+    "trig": 0,
+    "odeOrLinearSolve": 0,
+    "internalMs": 30000,
+    "outerMs": 180000,
+    "evidenceBytes": 1048576,
+    "workingPayloadBytes": 8388608,
+    "RSSClaim": false,
+    "retry": 0,
+    "sourceBuildBytes": 2097152,
+    "singleProviderBytes": 524288,
+    "singleRawInputOrStateBytes": 65536,
+    "singleMetafileBytes": 131072,
+    "childLogsBytes": 32768
+  },
+  "outOfScope": "Exact corrected corner solver, physical integration/response at impact, general rotating CCD and multiple fixture ties; keep existing HOLD/NO_GO/tolerances/first failures.",
+  "resourceScope": "8MiB logical payload envelope for this fixed two-body input and bounded freeze/raw/state/code/log copies;2MiB build and1MiB persisted non-build evidence are separate. Tool/V8/Python internal heap and RSS unmeasured. Fixed-schema graphs, no retained previous trajectory or World."
+}

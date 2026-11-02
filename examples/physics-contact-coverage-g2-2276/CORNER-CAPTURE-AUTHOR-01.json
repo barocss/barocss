@@ -1,0 +1,34 @@
+{
+  "status": "AUTHOR_READY_STATIC_SYNTAX_ONLY_HIGH_REVIEW_PENDING",
+  "scope": "Single internal corner helper capture; source first, native only after a separately saved source necessary-witness PASS. No World or public-root proof.",
+  "files": [
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/CORNER-PROPOSAL-01.json",
+      "bytes": 3779,
+      "sha256": "fbb9af67a436c93777077e2e30dc5f47117d030c6470bddde1f91f9d390cdf95"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/CORNER-INPUT-01.json",
+      "bytes": 3422,
+      "sha256": "65e82b0165c0c09ebbb435a99d0b1fe877d0dd7c75d7cd99b19ed61bd25d618f"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/corner-capture.mjs",
+      "bytes": 10750,
+      "sha256": "4f932ef8c3caa66a84cda0120ae98a92153bb4a8096655be9135ba3f4a5132d3"
+    }
+  ],
+  "check": {
+    "command": [
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+      "--check",
+      "examples/physics-contact-coverage-g2-2276/corner-capture.mjs"
+    ],
+    "result": "PASS",
+    "moduleEvaluations": 0,
+    "fixtureConversions": 0,
+    "geometryOrPhysicsCalls": 0,
+    "World": 0
+  },
+  "next": "Independent High review and reference authoring, then actual source/native/tool closure freeze before any calls."
+}
