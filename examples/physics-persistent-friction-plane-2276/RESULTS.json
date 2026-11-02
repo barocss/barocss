@@ -1,0 +1,137 @@
+{
+  "work_id": "physics-persistent-friction-plane-2276",
+  "artifact_type": "bounded-evidence-results",
+  "status": "OBSERVED_NO_GO_TANGENT_PLANE",
+  "owner_role": "independent-evidence-writer",
+  "source_request": "Preserve completed bounded evidence and its first failure",
+  "last_updated": "2026-11-03",
+  "sourceSummary": "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/result.json",
+  "sourceSummaryPin": {
+    "bytes": 12356,
+    "sha256": "aa77c50446ddfbf4c69b93f222e24fd74e7b663f175c6103571ca819e72c4432"
+  },
+  "counts": {
+    "worlds": 1,
+    "acceptedSteps": 2
+  },
+  "firstFailure": {
+    "step": 2,
+    "kind": "TANGENT_PLANE",
+    "dotNs": -7.1917141151388005e-09
+  },
+  "originalCommandReceipts": [
+    {
+      "receiptId": "persistent-plane-baseline-01",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-persistent-friction-plane-2276/baseline.mjs",
+        "baseline-01"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "timedOut": false,
+      "elapsedMs": 241.687208,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup"
+    },
+    {
+      "receiptId": "persistent-plane-geometry-audit-01",
+      "command": [
+        "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+        "-B",
+        "examples/physics-persistent-friction-plane-2276/geometry-audit.py",
+        "examples/physics-persistent-friction-plane-2276/evidence/baseline-01"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "timedOut": false,
+      "elapsedMs": 142.006292,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup"
+    }
+  ],
+  "newNumericalRuns": 0,
+  "originalFilesChanged": 0,
+  "sourceContractEvidencePreserved": true,
+  "archive": "EVIDENCE-01.tar.gz",
+  "fullP4": "NO_GO",
+  "apiExpansion": "NOT_QUALIFIED",
+  "renderQualification": "NOT_RUN",
+  "independentFractionAudit": {
+    "status": "CONFIRMED_PUBLIC_TANGENT_PLANE_NO_GO",
+    "rows": [
+      {
+        "step": 1,
+        "exactDotNs": "970538187458187/1329227995784915872903807060280344576",
+        "absoluteDotNs": 7.301517802332167e-22,
+        "pass": true,
+        "normal": [
+          -8.333333323688273e-05,
+          0.9999999965277778,
+          0
+        ],
+        "tangent": [
+          -0.06807875218434126,
+          -5.67322936182758e-06,
+          1.9429929821313284e-05
+        ]
+      },
+      {
+        "step": 2,
+        "exactDotNs": "-2389856934880827213340755411/332306998946228968225951765070086144",
+        "absoluteDotNs": 7.191714115138252e-09,
+        "pass": false,
+        "normal": [
+          0.0005820520010293003,
+          0.9999998306077196,
+          0
+        ],
+        "tangent": [
+          -0.06960608685266673,
+          4.050717728390194e-05,
+          -3.0633960009184163e-06
+        ]
+      }
+    ],
+    "candidateCalls": 0,
+    "WorldCalls": 0,
+    "toleranceNs": "1e-12",
+    "geometry": "NOT_QUALIFIED"
+  },
+  "independentLineAudit": {
+    "status": "NO_GO_PUBLIC_PAIRED_CONTACT_WITNESS",
+    "model": "exact unit-quaternion/native box dimensions; accepted public point/normal",
+    "rows": [
+      {
+        "step": 1,
+        "lineHitsBoth": true,
+        "pairedTimeGapExact": "3758383253923125900639932642337654475166835049739411036072184942587/441711764660874844146281633452830248147308949288910218202521372606045335",
+        "approxDistanceM": 8.508678180235096e-06,
+        "pairedWitnessGateM": "1e-12",
+        "pass": false
+      },
+      {
+        "step": 2,
+        "lineHitsBoth": true,
+        "pairedTimeGapExact": "52723354008507111938849805603565807549865131902860621161443346423013431669/926336556978415919028237192147413698590102382763934538884303889010590827822720",
+        "approxDistanceM": 5.6915981142408475e-05,
+        "pairedWitnessGateM": "1e-12",
+        "pass": false
+      }
+    ],
+    "WorldCalls": 0,
+    "candidateGeometryCalls": 0,
+    "scope": "published aggregate point only; not every hidden manifold point"
+  },
+  "baselineSummaryAuditFieldUnchanged": "NOT_RUN",
+  "geometry": "NO_GO_PUBLIC_PAIRED_CONTACT_WITNESS",
+  "scope": "Aggregate accepted public point/normal/impulse only; internal PRE forces and every hidden manifold point NOT_FULLY_AUDITED",
+  "tangentPlaneGateNs": "1e-12",
+  "pairedWitnessGateM": "1e-12",
+  "candidateCalls": 0,
+  "repair": "NOT_IMPLEMENTED",
+  "publicQualification": "NO_GO_UNCHANGED",
+  "numericUncertainty": "Exact Fractions of returned binary64 words; decimal line distances are approximations of saved exact rational gaps."
+}

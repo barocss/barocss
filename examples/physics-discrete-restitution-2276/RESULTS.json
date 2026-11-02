@@ -1,0 +1,141 @@
+{
+  "work_id": "physics-discrete-restitution-2276",
+  "artifact_type": "finite-selected-discrete-restitution-results",
+  "status": "PASS_FINITE_DISCRETE_RESTITUTION",
+  "owner_role": "independent-evidence-writer",
+  "source_request": "Record completed finite discrete material restitution evidence",
+  "last_updated": "2026-11-03",
+  "counts": {
+    "source": {
+      "worlds": 16,
+      "acceptedSteps": 16
+    },
+    "native": {
+      "worlds": 16,
+      "acceptedSteps": 16
+    }
+  },
+  "totalWorlds": 32,
+  "totalAcceptedSteps": 32,
+  "independentBankCases": 16,
+  "referenceWorldCalls": 0,
+  "referenceMethod": "exact linear conservation plus Newton constraints",
+  "referenceBankBeforeApi": true,
+  "referenceBankContainsPrecomputedOutputs": true,
+  "maxima": {
+    "source": {
+      "velocity": 4.440892098500626e-16,
+      "impulse": 8.881784197001252e-16,
+      "angularVelocity": 0,
+      "energy": 1.3322676295501878e-15,
+      "tangentPlane": 0
+    },
+    "native": {
+      "velocity": 4.440892098500626e-16,
+      "impulse": 8.881784197001252e-16,
+      "angularVelocity": 0,
+      "energy": 1.3322676295501878e-15,
+      "tangentPlane": 0
+    }
+  },
+  "gates": {
+    "velocity": 1e-10,
+    "impulse": 1e-10,
+    "angularVelocity": 1e-10,
+    "energy": 1e-10,
+    "tangentPlane": 1e-12
+  },
+  "law": {
+    "strictClosingSpeedThresholdMps": 0.5,
+    "materialRestitution": "minimum of both represented material coefficients",
+    "reference": "exact Fraction conservation and Newton2x2 constraints with row pivoting"
+  },
+  "sourceNativeParity": "EXACT_WORDS_AFTER_ONLY_VALIDATED_PROVIDER_IDENTITY_NORMALIZATION",
+  "firstFailure": null,
+  "preservedReferenceFirstFailure": {
+    "status": "REFERENCE_SETUP_NO_GO_ZERO_PIVOT",
+    "WorldCalls": 0,
+    "bankWritten": false,
+    "receipt": "examples/physics-world-p5-2276/evidence/discrete-restitution-reference-01/result.json",
+    "reason": "Fixed-body linear constraint has zero first diagonal. Gaussian elimination lacked row pivoting. No physical result was produced.",
+    "pins": {
+      "run.mjs": "49890e0cdd11af285201eaa7f4abb6a62bcb38eda3bb6e55a874f312e774b545",
+      "CONTRACT.md": "1786540a9940021bc1118e1e3e62cf3c414302d98aff72953a0b4c7176454094",
+      "reference.py": "c668aa069d4cb2256e7734c597d4c2f7d9a8a8e33fc970c4f61e9de662bbe7a3"
+    }
+  },
+  "provider": "1779dd871 sphere-pair qualified build; no production edit since compilation",
+  "providerPinsCheckedBeforeGraphImports": 289,
+  "providerPinsRecheckedDuringPackaging": 289,
+  "newCompilation": false,
+  "newNumericalRuns": 0,
+  "originalFilesChanged": 0,
+  "scope": [
+    "one-step centered sphere against fixed box",
+    "one-step centered cube against fixed box",
+    "two uniform spheres masses2 and3kg",
+    "unequal/minimum/zero/unit coefficients",
+    "input/body order controls",
+    "immediately below/at/above0.5 closing-speed words"
+  ],
+  "noCCD": true,
+  "noFriction": true,
+  "noGravity": true,
+  "browser": "NOT_RUN",
+  "fullDynamics": "NOT_QUALIFIED",
+  "wholeEngine": "NOT_QUALIFIED",
+  "originalP4": "UNCHANGED_NO_GO",
+  "newRecorderQualification": "NOT_RUN",
+  "originalCommandReceipts": [
+    {
+      "id": "discrete-restitution-reference-01",
+      "command": [
+        "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+        "-B",
+        "examples/physics-discrete-restitution-2276/reference.py"
+      ],
+      "status": "FAIL",
+      "exit": 1,
+      "startedAt": "2026-11-02T19:59:42.937Z",
+      "finishedAt": "2026-11-02T19:59:43.020Z",
+      "elapsedMs": 83.308208,
+      "ownedGroupPresentAtFinalization": false,
+      "processClosed": true,
+      "timedOut": false
+    },
+    {
+      "id": "discrete-restitution-reference-02",
+      "command": [
+        "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+        "-B",
+        "examples/physics-discrete-restitution-2276/reference.py"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "startedAt": "2026-11-02T19:59:57.534Z",
+      "finishedAt": "2026-11-02T19:59:57.649Z",
+      "elapsedMs": 115.222041,
+      "ownedGroupPresentAtFinalization": false,
+      "processClosed": true,
+      "timedOut": false
+    },
+    {
+      "id": "discrete-restitution-api-01",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-discrete-restitution-2276/run.mjs",
+        "api-01"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "startedAt": "2026-11-02T20:00:15.620Z",
+      "finishedAt": "2026-11-02T20:00:15.804Z",
+      "elapsedMs": 183.852666,
+      "ownedGroupPresentAtFinalization": false,
+      "processClosed": true,
+      "timedOut": false
+    }
+  ],
+  "archive": "EVIDENCE-01.tar.gz",
+  "archiveContents": "own complete sources/evidence and preserved first failure;3 command receipts; pinned source bundle/build receipt; full Native distribution and pinned provider source closure"
+}

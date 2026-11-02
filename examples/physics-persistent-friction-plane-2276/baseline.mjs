@@ -1,0 +1,12 @@
+import {createPhysicsWorld} from '../../packages/barocss-physics/dist/index.js';
+import {makeModel,staticPart,dynamicPart} from '../physics-model-input/model.mjs';
+import {mkdirSync,writeFileSync,readFileSync,cpSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {createHash} from 'node:crypto';
+const id=process.argv[2];if(!/^[a-z0-9-]+$/.test(id??''))throw Error('fresh ID required');
+const out=resolve('examples/physics-persistent-friction-plane-2276/evidence',id);mkdirSync(out,{recursive:false});
+const mat={restitution:0,friction:{static:1,dynamic:.7}},model=makeModel({revision:'g2-persistent-changing-plane',gravityMps2:[0,-9.81,0],parts:[staticPart('a-floor',{kind:'box',halfExtentsM:[.2,.1,2]},{positionM:[0,-.1,0]},mat),dynamicPart('z-cube',{kind:'box',halfExtentsM:[.5,.5,.5]},{positionM:[0,.5,0],velocityMps:[.5,0,0],angularVelocityRadps:[0,0,.01]},1,mat)]}),options={profile:'rigid-persistent-box-v1',fixedStepSeconds:1/120,broadPhase:'direct'};
+const pins={};for(const name of ['world.ts','persistent-box-contact.ts','contact-manifold.ts','collision.ts','provider-manifest.generated.ts']){const path='packages/barocss-physics/src/'+name,b=readFileSync(path);pins[path]={bytes:b.length,sha256:createHash('sha256').update(b).digest('hex')};cpSync(path,resolve(out,name));}cpSync('packages/barocss-physics/dist',resolve(out,'provider-dist'),{recursive:true});
+const world=createPhysicsWorld(model,options),states=[world.getState()],measurements=[];let failed=null;
+try{for(let i=0;i<2;i++){const after=world.step();states.push(after);writeFileSync(resolve(out,'step-'+(i+1)+'.json'),JSON.stringify(after,null,2)+'\n',{flag:'wx'});for(const contact of after.contacts){const dot=contact.normalAtoB.reduce((s,n,j)=>s+n*contact.tangentImpulseOnBNs[j],0);measurements.push({step:i+1,dotNs:dot,normal:contact.normalAtoB,tangent:contact.tangentImpulseOnBNs,normalImpulseNs:contact.normalImpulseNs});if(Math.abs(dot)>1e-12){failed={step:i+1,kind:'TANGENT_PLANE',dotNs:dot};break;}}if(failed)break;}}finally{world.dispose();}
+const result={status:failed?'OBSERVED_NO_GO_TANGENT_PLANE':'NO_REPRO_TWO_STEP',counts:{worlds:1,acceptedSteps:states.length-1},model,options,pins,states,measurements,firstFailure:failed,toleranceNs:1e-12,independentAudit:'NOT_RUN',geometry:'NOT_QUALIFIED'};writeFileSync(resolve(out,'result.json'),JSON.stringify(result,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({status:result.status,measurements,firstFailure:failed}));if(!failed)process.exitCode=1;
