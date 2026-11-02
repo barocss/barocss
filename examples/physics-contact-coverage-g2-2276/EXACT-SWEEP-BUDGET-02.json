@@ -1,0 +1,250 @@
+{
+  "status": "STATIC_ALLOCATION_READY_IMPLEMENTATION_PROOF_STILL_REQUIRED",
+  "workId": "physics-contact-coverage-g2-exact-sweep-2276",
+  "runtimeAuthorized": false,
+  "sourceImplementationAuthorizedByThisFile": false,
+  "productionActivation": false,
+  "authorities": [
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/EXACT-SWEEP-DESIGN-01.md",
+      "bytes": 12250,
+      "sha256": "375d2ce0b4dbb2d8c19db24828102616b11804a9ae28b1ab73c2109336ecfc54"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/EXACT-SWEEP-CASES-01.json",
+      "bytes": 9502,
+      "sha256": "47a1adb72fe39710919ddf675a3b16afc9ba3415c9b3d8d81b69f1ba52dab78e"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/EXACT-SWEEP-PARENT-REVIEW-01.json",
+      "bytes": 2483,
+      "sha256": "76c9efea35c0102a5466fa04bbca42fce4ed422b6249d183ce36329764b31a1a"
+    }
+  ],
+  "unchanged": "16unique reference cases;32conditional candidate sweeps/admissions each;15new conversions+1saved raw reuse;0World; original caps/physical gates/precision/iterations/operations unchanged. No old failed helper replay.",
+  "evidence": {
+    "limitBytes": 1048576,
+    "jointWorstCaseBytes": 1048576,
+    "unallocatedExtraBytes": 0,
+    "sections": [
+      {
+        "section": "uniqueInputs",
+        "slots": 16,
+        "bytesPerSlotIncludingFraming": 8192,
+        "maximumBytes": 131072
+      },
+      {
+        "section": "candidateReceipts",
+        "slots": 32,
+        "bytesPerSlotIncludingFraming": 8192,
+        "maximumBytes": 262144
+      },
+      {
+        "section": "independentCaseCertificates",
+        "slots": 16,
+        "bytesPerSlotIncludingFraming": 32768,
+        "maximumBytes": 524288
+      },
+      {
+        "section": "sharedMetadataAndProvenance",
+        "slots": 1,
+        "bytesPerSlotIncludingFraming": 32768,
+        "maximumBytes": 32768
+      },
+      {
+        "section": "allRawChildAndParentLogs",
+        "slots": 1,
+        "bytesPerSlotIncludingFraming": 32768,
+        "maximumBytes": 32768
+      },
+      {
+        "section": "progressAndTransport",
+        "slots": 1,
+        "bytesPerSlotIncludingFraming": 32768,
+        "maximumBytes": 32768
+      },
+      {
+        "section": "summaryAndFirstFailureReserve",
+        "slots": 1,
+        "bytesPerSlotIncludingFraming": 32768,
+        "maximumBytes": 32768
+      }
+    ],
+    "byteRule": "Compact ASCII JSON or fixed raw bytes; every delimiter/newline/header included in its slot. No second full wire transcript, duplicate raw before-body or matrix, duplicate source/native reference, or unbudgeted outer-guard copy in this tree. Actual serialized bytes checked before publication.",
+    "failureReserve": "32768total, split final summary<=16384 and first-failure record<=16384; no extra emergency capacity. Bad current candidate still fits its already-reserved8192slot. Failed/truncated tool bytes remain in shared32768log slot with omitted count/hash; no fabricated full capture.",
+    "atomicWrite": "Reserve before encoding/call; construct one bounded record; write once fresh. Reference certificate once per unique input. Candidate record finalized once after immediate source comparison, or once with first failure. Do not write raw and then duplicate a final full receipt. Native byte parity points to source certificate.",
+    "externalAuthorities": "Existing immutable source/literal/parent freeze/tool authorities stay content-addressed at original paths. Store pins, not duplicate full authorities. Full actual closures belong parent freeze; build entry/metafile/code belong separate2MiBbuild tree."
+  },
+  "candidateRecord": {
+    "maximumBytes": 8192,
+    "sections": [
+      {
+        "name": "identityClassificationAndInputRef",
+        "bytes": 512
+      },
+      {
+        "name": "actualResultAndPostPositionF64Words",
+        "bytes": 512
+      },
+      {
+        "name": "completeOwnershipAndParityDigests",
+        "bytes": 512
+      },
+      {
+        "name": "intervalTrace",
+        "bytes": 1792
+      },
+      {
+        "name": "rootDecisionTrace",
+        "bytes": 2688
+      },
+      {
+        "name": "independentGateCommitments",
+        "bytes": 1728
+      },
+      {
+        "name": "paddingAndFraming",
+        "bytes": 448
+      }
+    ],
+    "schema": {
+      "header": "version,caseOrdinal,graph,class,inputSha,providerSha,referenceCaseSha; fixed enums/indices",
+      "actual": "raw16hex F64 words for actual TOI/normal/post-candidate position and diagnostic bias; null fields forMISS/INITIAL",
+      "ownership": "before/after whole-data or nonposition SHA pairs for caller/previous/fixture/candidate invariants; actual raw input saved once, no repeated full Body",
+      "intervals": "<=7compact rows,<=256B each; native endpoints/active-axis mask/A,B,C,D/raw decision fields",
+      "roots": "<=14compact decision rows,<=192B each; actual native words/interval/root branch/domain/choice flags",
+      "gates": "<=18compact rows<=96B each; gate/component/precision/endpoint/sign, exact residual numerator/denominator bit lengths and SHA commitment. Actual operands live in this receipt and its reference/input artifacts, so exact values are reconstructible without another solver. Do not emit every expanded residual fraction."
+    }
+  },
+  "referenceCaseRecord": {
+    "maximumBytes": 32768,
+    "sections": [
+      {
+        "name": "headerInputAndAuthorityRefs",
+        "bytes": 512
+      },
+      {
+        "name": "selectedExactPolynomialCoefficients",
+        "bytes": 6240
+      },
+      {
+        "name": "featureRootDecisionLedger",
+        "bytes": 4416
+      },
+      {
+        "name": "discriminantSquareRootCertificates",
+        "bytes": 14720
+      },
+      {
+        "name": "selectedRootExactOrInterval",
+        "bytes": 2080
+      },
+      {
+        "name": "normalEnclosureOrExactExpressionRefs",
+        "bytes": 1632
+      },
+      {
+        "name": "selectedIntegerSquareWitness",
+        "bytes": 1088
+      },
+      {
+        "name": "contextFlagsAndCounters",
+        "bytes": 256
+      },
+      {
+        "name": "selectionAndDuplicateIndex",
+        "bytes": 512
+      },
+      {
+        "name": "paddingAndFraming",
+        "bytes": 1312
+      }
+    ],
+    "schema": {
+      "input": "Unique raw input SHA +fixed independent6face/12edge/8vertex descriptors; no candidate interval/active-set builder.",
+      "selectedPolynomial": "Three full exact Fraction coefficients, each canonical signed numerator/positive denominator hex tuple<=2080B;4096bit integer caps unchanged.",
+      "featureLedger": "<=46rows<=96B, each feature/branch/domain/rejection-or-selected/duplicate representative index and equation-or-comparison commitment. Equation descriptors reference exact raw operands; unselected expanded coefficient matrices are not duplicated. Reject/duplicate/order outcomes remain explicit; no unproved overlap may be hidden by a digest.",
+      "radicals": "<=20rows<=736B: actual80/120 endpoint tuples plus exact-square decision/witness commitment and context references; only selected necessary integer witness expanded.",
+      "selectedRoot": "One exact rational<=2080B or four fixed-precision endpoint tuples.",
+      "normal": "Twelve80/120 endpoint tuples, each<=136B, or exact algebraic expression references to selected root/raw geometric operands for an exact value. Do not convert/quantize an exact rational into a rounded display value to fit.",
+      "earliestAndTies": "Indices/representatives refer to the46-entry ledger and actual geometric predicates. No all-pairs coefficient matrix. All earlier candidates must have explicit reject/later/equal classification. An unproved equality remainsUNRESOLVED and stops.",
+      "context": "Common Context settings/trap/flag-bit dictionary in shared metadata; actual per-case incoming/outgoing flags and context IDs here. No omitted effective flag settings."
+    }
+  },
+  "scalarEncoding": {
+    "nativeF64": "Exactly16lowercase hex characters in fixed-position arrays; no JSONnumber round trip and no zero normalization. Layout fixed in shared metadata.",
+    "exactFraction": "[q,signedHexNumerator,positiveHexDenominator], both<=4096bits =><=1024hex digits each, total<=2080ASCII bytes. No truncation/rounding; oversized record fails existing resource boundary.",
+    "directedDecimalEndpoint": "Field-typed [sign,coefficientDigits,exponent10]; sign0/1,<=120digits, exponent magnitude<=999999 =><=134ASCII bytes, budget136. Preserve actual as_tuple exactly; do not add arithmetic/quantization/precision adjustment for storage.",
+    "exactExpression": "Bounded enum+operand indices/root/input references,<=64B per reference; expanded exact value is already defined by saved operands and frozen independent feature equation, not candidate-derived expected data.",
+    "commitments": "Hash+bit counts are evidence links for reproducible exact intermediates, not physical PASS substitutes. Selected coefficients/root/interval enclosures/domain/selection obligations remain explicit."
+  },
+  "sharedSections": {
+    "metadata32768": "Codec/layout/enum/context dictionary<=8192; source/native/reference provider+parent-freeze+tool closure pins/command receipts<=8192; compact<=96deterministic file-ID inventory entries,<=80B each plus<=512B header, total<=8192; counters/timing/phase finalization<=8192. Tool closure list stays in immutable parent freeze, no duplicate354file table.",
+    "logs32768": "One shared campaign captured-byte cap across source build/native emit/reference and parent text; two fixed32768B buffers/stream cursors (64KiB working),0retained chunk objects. Copy only available prefix. Rawbytes hash as-is; observed/captured/omitted and EOF/exit/signal recorded. Structured proof payload goes once to its case artifact, not logs.",
+    "progressTransport32768": "Runner progress<=4096; reference progress<=4096; ordinal/bytes/rolling-SHA/last request-reply metadata<=8192; bounded first malformed-wire prefix<=8192; fixed ledger/index/framing<=8192. No full input/output JSONL replay copy. Actual protocol request count is frozen later; these storage slots do not authorize additional requests."
+  },
+  "working": {
+    "perActiveEvaluatorLimitBytes": 8388608,
+    "registeredSections": [
+      {
+        "section": "authorityInputsAndSmallIndices",
+        "maximumBytes": 1572864
+      },
+      {
+        "section": "currentBodyGeometryScratchAndTrace",
+        "maximumBytes": 1048576
+      },
+      {
+        "section": "currentReferenceExactAndDecimalRoots",
+        "maximumBytes": 1572864
+      },
+      {
+        "section": "rawDecodedAndEncoderOverlap",
+        "maximumBytes": 1048576
+      },
+      {
+        "section": "wideIntegerArithmeticTemporaries",
+        "maximumBytes": 1048576
+      },
+      {
+        "section": "boundedCodePipeAndContiguousLogs",
+        "maximumBytes": 524288
+      },
+      {
+        "section": "traversalAndIdentityScratch",
+        "maximumBytes": 1048576
+      },
+      {
+        "section": "unallocatedWorkHeadroom",
+        "maximumBytes": 524288
+      }
+    ],
+    "rootPolicy": "Parent/harness and reference each enforce their own complete current plain roots+pending raw/decoded/proof/encoder overlap before allocation. Keep only one case and one pending result; previous cases persist to disk with small indices, not16decoded proofs. Native reads one source result/certificate at a time. Clear traversal sets/callables and transferred records explicitly.",
+    "referenceLayoutBudget": "Prospective source obligation:<=512retained bounded Fractions,<=512Decimals,<=1024plain record/array containers and<=8192reference slots inside1.5MiB reference-root section; actual interpreter getsizeof/shape charging must prove this beforeREADY. All wide temporary products/sums/isqrt operands charged separately to1MiBtemporary section; original4096/8192/8193bit caps remain. If implementation cannot meet these bounds, STOP rather than raise limits.",
+    "codeAndTools": "Hash actual files streaming64KiB; one bounded code text/line buffer at a time. Tool/engine internal heap/RSS unmeasured. Do not retain both512KiBprovider source texts plus duplicate decodes as working DATA. Build artifacts themselves stay<=2MiB.",
+    "campaignComposition": {
+      "maximumActiveEvaluators": 2,
+      "activeEvaluatorDataBytes": 16777216,
+      "buildArtifactsBytes": 2097152,
+      "evidenceBytes": 1048576,
+      "accountedBytes": 19922944,
+      "wholeEnvelopeBytes": 67108864,
+      "unusedNotAnExtensionBytes": 47185920
+    }
+  },
+  "remainingBeforeImplementationReady": [
+    "Parent must freeze this compact schema; High must confirm that ledger/operand references retain every independent feature-validity/earliest/tie/normal obligation. A hash never replaces an unresolved geometric proof.",
+    "Actual encoder/source ownership proof must enforce every nested byte/field cap and current-root/temporary overlap before any call. No implementation exists in this task; these are exact serialization/storage obligations, not a claimed measured heap or executed resourcePASS.",
+    "First source/helper/candidate/reference schema or byte-limit failure remains a preservedNO_GO prefix. No cap, case, iteration, precision or tolerance may be changed automatically."
+  ],
+  "actualAuthoring": {
+    "moduleEvaluation": 0,
+    "fixtureConversion": 0,
+    "physicalOrReferenceMath": 0,
+    "candidateCalls": 0,
+    "builds": 0,
+    "World": 0,
+    "only": "Read/hash inputs and static integer byte-allocation arithmetic."
+  },
+  "stop": "READY andSTOP. No source implementation or runtime authorization."
+}

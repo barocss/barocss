@@ -1,0 +1,9 @@
+{
+  "status": "ADDITIVE_REPORT_SCOPE_CLARIFICATION_NO_NUMERICAL_CHANGE",
+  "appliesTo": "MICRO-RESULTS-M01.json nativeModule=NOT_LOADED",
+  "clarification": "The Native World/candidate ROOT graph was not loaded. The staged emitted identity.js/types.js DATA-only closure was loaded earlier and supplied2actual provider digest DATA calls, as already counted in the original driver/receipt. The shorter nativeModule label does not mean zero emitted module evaluation.",
+  "sourceOfTruth": "Unchanged M01staged-providers.json identityDataClosure and summarycounts identityDigestDataCalls=2. No nativecandidateconstants orWorldconstructor occurred.",
+  "artifactsChanged": false,
+  "numericalOrBuildOrWorldRerun": false,
+  "invariants": "Originalfirstfailure/source/archive bytes and all tolerance/HOLD/NO_GO claims remain unchanged."
+}

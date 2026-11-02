@@ -1,0 +1,24 @@
+{
+  "status": "PARENT_ACCEPTS_STATIC_ALLOCATION_HIGH_PROOF_REVIEW_REMAINS",
+  "runtimeAuthorized": false,
+  "implementationAuthorized": false,
+  "pins": [
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/EXACT-SWEEP-BUDGET-02.md",
+      "bytes": 6414,
+      "sha256": "cf70dc407233e8324523f955780d943979813966235fabc7a0ba28e464047209"
+    },
+    {
+      "path": "examples/physics-contact-coverage-g2-2276/EXACT-SWEEP-BUDGET-02.json",
+      "bytes": 13596,
+      "sha256": "5436384a69ae4f7fee0da0fba3b0d2f9328912665a62a48c2c00c4cc04b974dc"
+    }
+  ],
+  "accepted": "Existing1MiB evidence allocation sums exactly:16*8192 +32*8192 +16*32768 +4*32768=1048576. Inclusive nestedslotcaps and8MiBworking partitions are proposals, not runtime/resourcePASS. No cap/iteration/tolerance increase.",
+  "remaining": [
+    "High must verify compact operand/feature/radical/earliest/tie/normal proof sufficiency and full exact/interval representations.",
+    "Actual source encoder/root/temporary/transport proof and final frozen closure required before execution.",
+    "Zero spare bytes: every auxiliary log/failure/progress/metadata/transcript must use its original declaredslot. Stop on overflow; no truncation of required proof."
+  ],
+  "invariants": "OriginalC03exact-contactNO_GO remains preserved; no newsource/geometry/reference/module/build/World call, publicAPIadoption or stackextension. G1b/HOLD unchanged."
+}

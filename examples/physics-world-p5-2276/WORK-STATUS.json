@@ -33,7 +33,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "G1b M02 one-step PASS. PhaseT planning only:0.1s threegrids/controls/atomicity, frozenjointDecimal/compactevidenceproof beforeimplementation. G2exact-sweepbudget staticauthoring only.",
+  "active": "G1b M02 one-step PASS. PhaseT planning only:0.1s threegrids/controls/atomicity, frozenjointDecimal/compactevidenceproof beforeimplementation. G2exact-sweep staticjoint1MiB allocation ready; Highproofsufficiency andactualencoder/live-rootproof remain, noimplementation/runtime.",
   "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
