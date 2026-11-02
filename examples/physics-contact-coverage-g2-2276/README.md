@@ -49,3 +49,12 @@ Private capsule sweep tangent/tie checks are not rigid-World sphere/box CCD proo
 ## Next dependency
 
 Finish G1a staged rotation qualification. Then freeze a small G2 independent boundary population: restitution switch and material mixing, discrete/persistent Coulomb transitions, and exact CCD corner geometry. Review all current lawful inputs before running World. Preserve exact laws, iteration caps, errors, original reference and all historical NO_GO. No new dependencies, downloads, public API, deployment or hardware claim is introduced.
+
+
+## First actual corner witness (2026-11-02)
+
+[CORNER-RESULTS-01.json](./CORNER-RESULTS-01.json) preserves the source helper capture and independent exact rational closest-point witness. Status: **EXACT_CONTACT_WITNESS_NO_GO_CONSERVATIVE_BOUND**. The actual returned fraction is0.16666666666666663; centre-to-box squared distance is approximately0.0125m², above the frozen(radius+1e-12m)² bound approximately0.0100000000002m². Exact numerators/denominators and original raw F64 words are the authority.
+
+The current source performed one actual model admission, one CCD-profile admission and one sweepSphere call. The independent files-only observer performed one point audit,41 checked Fraction operations and0sqrt/trig/ODE/helper/World calls. The first geometric failure stops the later biased-stop audit and native graph. No World was constructed or advanced.
+
+The capture guard exits0; the witness guard exits1 for the preserved geometric NO_GO, with normal EOF/process closure. This failure shows that the returned expanded rectangular-box boundary is earlier than an exact rounded sphere/box contact. It does not establish tunnelling, refute an explicitly conservative broad-phase guarantee, or change existing face-aligned CCD receipts. Exact/conservative profile semantics and a bounded feature-aware repair are the next G2 dependency. No numerical limit, material law, public source or original8-box contract was changed.

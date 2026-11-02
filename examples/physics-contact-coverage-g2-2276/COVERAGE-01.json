@@ -487,8 +487,8 @@
       "id": "C03",
       "law": "sphere/static-box corner CCD",
       "scope": "expanded OBB corner versus exact rounded Minkowski boundary",
-      "status": "SOURCE_MODEL_GAP_HYPOTHESIS",
-      "nextOrEvidence": "source uses uniform radius expansion plus slab intersection; independent corner geometry first, no numerical failure claimed"
+      "status": "EXACT_CONTACT_WITNESS_NO_GO_CONSERVATIVE_BOUND",
+      "nextOrEvidence": "CORNER-RESULTS-01.json: actual source helper1, independent closest-point audit1/41Fractionops, World0; native/biased-stop not run after first necessary-contact failure. Exact-contact gate1e-12m unchanged; no tunnelling/conservative-guarantee failure claim."
     },
     {
       "id": "C04",
@@ -542,5 +542,10 @@
   ],
   "scope": "Historical receipts retained at their original providers; unchanged numeric leaf bytes do not certify changed World admission/serialization/ownership. No newly executed physical pass.",
   "next": "G1a repair qualification first. For G2, review finite independent restitution/friction boundary and CCD corner geometry microcases before World. No full stack retry without new approved bounded strategy.",
-  "invariants": "HOLD/NO_GO/first failures/iterations/tolerances/public admission unchanged."
+  "invariants": "HOLD/NO_GO/first failures/iterations/tolerances/public admission unchanged.",
+  "cornerFollowUp": {
+    "path": "examples/physics-contact-coverage-g2-2276/CORNER-RESULTS-01.json",
+    "bytes": 4857,
+    "sha256": "0763b5557dcdb4d05bd8302b7895dc9ef637f2f85602590a370ab9d2b552bad2"
+  }
 }
