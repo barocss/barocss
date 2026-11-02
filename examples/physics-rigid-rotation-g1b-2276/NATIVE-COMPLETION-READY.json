@@ -1,0 +1,118 @@
+{
+  "status": "AUTHOR_READY_NATIVE_COMPLETION_REFERENCE",
+  "runtimeAuthorized": false,
+  "sourceModuleWorldMathCalls": 0,
+  "authoringChecks": {
+    "syntaxAST": "PASS",
+    "moduleEvaluations": 0,
+    "FractionDecimalOperations": 0,
+    "fixtureConversions": 0,
+    "builds": 0,
+    "WorldCalls": 0
+  },
+  "sources": {
+    "reference-native-completion.py": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/reference-native-completion.py",
+      "bytes": 17978,
+      "sha256": "e49fd0499eddd7267cc535447d9733f7797d05d6f80bdedf1d30a2aca7500d5a"
+    },
+    "NATIVE-COMPLETION-PLAN.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/NATIVE-COMPLETION-PLAN.md",
+      "bytes": 4379,
+      "sha256": "67c977010130e6063d62a9ca90618619f05f94b74115715da5aab0c3ab768808"
+    },
+    "NATIVE-COMPLETION-PLAN.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/NATIVE-COMPLETION-PLAN.json",
+      "bytes": 1773,
+      "sha256": "af2cdc684fdfcdf0f3f41f703960b8e2517b2f7a08a1bce1b2d8b43ae44f5c09"
+    },
+    "NATIVE-COMPLETION-PROTOCOL.md": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/NATIVE-COMPLETION-PROTOCOL.md",
+      "bytes": 2928,
+      "sha256": "0c4e47e0d566e72ac7cc4b30a270996412a38b0c581414d49c5ab4aea64cc38d"
+    },
+    "reference-trajectory.py": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/reference-trajectory.py",
+      "bytes": 35076,
+      "sha256": "4597ad8a4d8ee710ff18c060f3dd2cf121efaa630e2ef187763126c17053e547"
+    },
+    "reference-micro.py": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/reference-micro.py",
+      "bytes": 47239,
+      "sha256": "90412a7e20b106939c14de7c5f8d619f0cd69d19caa780c91300ce540e3f0c36"
+    },
+    "T02-SOURCE-COMPLETE-PROOF.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/T02-SOURCE-COMPLETE-PROOF.json",
+      "bytes": 20751,
+      "sha256": "4db883cb120da10249f8233388b0eb9e56424f8c82d9bbf5f350989a182ae7a3"
+    },
+    "REFERENCE-BANK-REUSE-T02.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/REFERENCE-BANK-REUSE-T02.json",
+      "bytes": 21068,
+      "sha256": "aaffbe967d97a44ce2c5c4ceb9fd1e12258d41adba087b1dfcdd1d281601c4df"
+    },
+    "NATIVE-COMPLETION-AUTHORING.json": {
+      "path": "examples/physics-rigid-rotation-g1b-2276/NATIVE-COMPLETION-AUTHORING.json",
+      "bytes": 3187,
+      "sha256": "e1fd00da8bb5ca05a9cf1f335bdf5a38704e7a2e1178a76021083d6d57b3ffe6"
+    }
+  },
+  "interface": {
+    "script": "reference-native-completion.py",
+    "flags": [
+      "--run-id",
+      "--freeze",
+      "--token",
+      "--out"
+    ],
+    "protocol": "G1B_NATIVE_COMPLETION_JSONL_V1",
+    "requests": 57,
+    "linesIncludingReady": 58,
+    "actualNativeAudits": 55,
+    "reusedSourceAudits": 55,
+    "logicalCursor": [
+      55,
+      110
+    ],
+    "ready": "READY_G1B_NATIVE_COMPLETION_REFERENCE",
+    "pass": [
+      "PASS_G1B_NATIVE_COMPLETION_BANK",
+      "PASS_G1B_NATIVE_COMPLETION_AUDIT",
+      "PASS_G1B_NATIVE_COMPLETION_FINISH"
+    ],
+    "failure": "FAIL_G1B_NATIVE_COMPLETION_REFERENCE"
+  },
+  "numericalTransfer": {
+    "methodsInheritedUnchanged": [
+      "audit",
+      "targets",
+      "trajectory",
+      "refinement",
+      "rounded_clock",
+      "observe_private_t"
+    ],
+    "auditOverride": "Native-only guard/delegation; then release completed case initial/private and obsolete matched errors; status/cursor metadata only",
+    "workingRootChange": "No Source numerical roots; stream Source proof association before target load; actual private initial persisted before release",
+    "targetInitialization": "Authenticated T02 reuse-only init; current Native coefficient words occupy immutable loader equality parameter; no Source computation or integration"
+  },
+  "study": {
+    "priorDecimal": 23634120,
+    "newDecimal": 0,
+    "priorFraction": 109442,
+    "newFractionCap": 1000000,
+    "jointFractionCap": 10000000,
+    "newODEIntegralSqrtRoot": 0
+  },
+  "limits": {
+    "referenceWorkBytes": 8388608,
+    "referenceObjectIDs": 8192,
+    "referenceEvidenceBytes": 8388608,
+    "campaignEvidenceBytes": 16777216,
+    "campaignLogicalBytes": 67108864,
+    "internalSeconds": 170,
+    "cleanupSeconds": 4,
+    "outerSeconds": 180,
+    "heapRSSClaim": false
+  },
+  "remaining": "New Native execution NOT_RUN. Broad adoption/G1b range/torque/contact/current production activation remain HOLD. Old T01 self-alias and T02 reference ID first failures preserved."
+}
