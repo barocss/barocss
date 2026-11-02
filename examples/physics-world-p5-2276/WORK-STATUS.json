@@ -33,7 +33,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "G1b M02 one-step PASS. PhaseT source authoring approved underAUTHORING-FREEZE-T02 and52897763b frozenplans:0.1s threegrids/controls/atomicity; runtimeNOT_RUN untilcombinedreview/freshfreeze. G2exact-sweepjoint1MiBallocationready; Highproofsufficiency/actualencoderproof remain, noG2implementation/runtime.",
+  "active": "G1b T01firstexecution stoppedat harnessself-alias firstinitialstate:1World/0steps/NativeNOT_RUN. Firstfailure/archive preserved; completed44windowindependentbank retained. T02repair usesexactclosedbankrows,0newTaylor/sqrt/roots, same16Worldscope/caps/tolerances. RuntimependingnewreferenceReady/combinedreview/freshfreeze.",
   "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",

@@ -1,0 +1,93 @@
+{
+  "caseId": "T01-dt60",
+  "stateRaw": {
+    "identity": {
+      "modelRevision": "g1b-micro-2276",
+      "modelDigest": "sha256:7aa2880be13deddc99a771d322594058a21f0e2eb971726a952c791c499da766",
+      "configurationDigest": "sha256:0ecc20a78b3e35075bd3bc98cea67415de5ea164103710ccbbfdc14bfeac667b",
+      "providerDigest": "sha256:a32c4619fd8bf5f881ca8b1c35dacc993c39c05aba3a1037976a5e3db32100f7",
+      "profile": "rigid-discrete-v1",
+      "frameId": "g1bWorld",
+      "fixedStepSeconds": {
+        "$f64le": "111111111111913f"
+      }
+    },
+    "stepIndex": {
+      "$f64le": "0000000000000000"
+    },
+    "timeSeconds": {
+      "$f64le": "0000000000000000"
+    },
+    "bodies": [
+      {
+        "id": "rotor",
+        "kind": "dynamic",
+        "positionM": [
+          {
+            "$f64le": "0000000000000000"
+          },
+          {
+            "$f64le": "0000000000000000"
+          },
+          {
+            "$f64le": "0000000000000000"
+          }
+        ],
+        "orientationXYZW": [
+          {
+            "$f64le": "0000000000000000"
+          },
+          {
+            "$f64le": "0000000000000000"
+          },
+          {
+            "$f64le": "0000000000000000"
+          },
+          {
+            "$f64le": "000000000000f03f"
+          }
+        ],
+        "velocityMps": [
+          {
+            "$f64le": "0000000000000000"
+          },
+          {
+            "$f64le": "0000000000000000"
+          },
+          {
+            "$f64le": "0000000000000000"
+          }
+        ],
+        "angularVelocityRadps": [
+          {
+            "$f64le": "000000000000f03f"
+          },
+          {
+            "$f64le": "000000000000f03f"
+          },
+          {
+            "$f64le": "000000000000f03f"
+          }
+        ],
+        "sleeping": false
+      }
+    ],
+    "contacts": [],
+    "events": [],
+    "joints": [],
+    "ccdHits": [],
+    "cloths": [],
+    "fluids": [],
+    "pairStats": {
+      "eligiblePairs": {
+        "$f64le": "0000000000000000"
+      },
+      "candidatePairs": {
+        "$f64le": "0000000000000000"
+      },
+      "aabbTests": {
+        "$f64le": "0000000000000000"
+      }
+    }
+  }
+}

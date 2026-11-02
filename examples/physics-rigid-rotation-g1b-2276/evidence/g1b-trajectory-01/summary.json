@@ -1,0 +1,158 @@
+{
+  "status": "FAIL_STAGED_G1B_TRAJECTORY",
+  "firstFailure": {
+    "phase": "load-source",
+    "name": "AssertionError",
+    "message": "public output alias"
+  },
+  "counts": {
+    "newPairVariants": 7,
+    "savedRawPairReuse": 1,
+    "variantScalarConversions": 18,
+    "commandScalarConversions": 9,
+    "guardScalarConversions": 9,
+    "constructorAttempts": 1,
+    "constructorReturns": 1,
+    "getStateAttempts": 1,
+    "getStateReturns": 1,
+    "stepAttempts": 0,
+    "acceptedSteps": 0,
+    "disposeAttempts": 1,
+    "disposeReturns": 1,
+    "privateInertiaCacheObservations": 1,
+    "commandRefusals": 0,
+    "unknownFaults": 0,
+    "postFlowGuards": 0,
+    "candidateConstantRootCalls": 3,
+    "knownCandidateConstantRootCalls": 3,
+    "generalFlowTraces": 0,
+    "traceRecords": 0,
+    "traceF64Words": 0,
+    "referenceSpawns": 1,
+    "referenceRequestAttempts": 1,
+    "referenceRequestsWritten": 1,
+    "referenceRepliesReceived": 2,
+    "referenceAuditsReceived": 0,
+    "buildChildren": 0,
+    "identityDigestDataCalls": 0,
+    "query": 0,
+    "getModel": 0,
+    "recorder": 0
+  },
+  "graphs": {
+    "source": {
+      "status": "IN_PROGRESS",
+      "constantCalls": 3,
+      "cases": [
+        {
+          "caseId": "T01-dt60",
+          "status": "FAIL",
+          "accepted": 0,
+          "firstFailure": {
+            "name": "AssertionError",
+            "message": "public output alias"
+          }
+        }
+      ]
+    }
+  },
+  "commands": [
+    {
+      "command": [
+        "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+        "-B",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/reference-trajectory.py",
+        "--run-id",
+        "g1b-trajectory-01",
+        "--freeze",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/TRAJECTORY-EXECUTION-FREEZE-T01.json",
+        "--token",
+        "40e4bf7ffc9716a719997fd64c4ee8925731429e9b84bd6ba998aef2f21efde6",
+        "--out",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-01/reference"
+      ],
+      "pid": 70108,
+      "closed": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "exit": null,
+      "signal": "SIGTERM"
+    }
+  ],
+  "cleanupErrors": [],
+  "reference": {
+    "started": true,
+    "actual": "UNKNOWN",
+    "durableLowerBound": {
+      "counts": {
+        "requestsAttempted": 1,
+        "requestsReturned": 1,
+        "bankInitializations": 1,
+        "bodyGeometryCertificatesAttempted": 0,
+        "bodyGeometryCertificatesReturned": 0,
+        "oneDimensionalMonomialMoments": 0,
+        "observedStateAuditsAttempted": 0,
+        "observedStateAuditsReturned": 0,
+        "properRationalRotationAttempts": 0,
+        "properRationalRotationReturns": 0,
+        "privateBodyObservations": 0,
+        "algebraicBisectionDecisions": 0,
+        "algebraicRootsCertified": 0,
+        "taylorWindowsAttempted": 44,
+        "taylorWindowsReturned": 44,
+        "decimal80Windows": 22,
+        "decimal120Windows": 22,
+        "fractionScalarOperations": 3070,
+        "decimalOperations": 20876116,
+        "decimalConversions": 137626,
+        "decimalToFractionConversions": 1804,
+        "endpointDecimalSqrtOperations": 88,
+        "WorldCalls": 0,
+        "candidateCalls": 0,
+        "PhysicsImports": 0,
+        "referenceLinearSolves": 0,
+        "trigEvaluations": 0,
+        "reusedGeometryCertificates": 1,
+        "reusedAlgebraicRootCertificates": 3,
+        "reusedTaylorWindows": 4,
+        "restored12StateEndpoints": 2,
+        "principalBankCopies": 6,
+        "savedRationalConversions": 249,
+        "clockRoundings": 0
+      },
+      "nextAudit": 0,
+      "sourceGraphComplete": false,
+      "firstFailure": null
+    },
+    "inFlight": "UNKNOWN",
+    "lastWire": {
+      "bytes": 1178,
+      "sha256": "afe8c9ab6fd2fc422d7e69251a4e7e5478e3f03dd6850823c33525499b74a3ec"
+    },
+    "originalProgress": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-01/reference/progress.json",
+      "bytes": 1026,
+      "sha256": "0300a4b57f338b3f2567d160647ab2b0d2025835c6139014d0e3a9e86a84a050"
+    }
+  },
+  "used": {
+    "inputs": 15016,
+    "states": 0,
+    "caches": 6271,
+    "private": 362,
+    "failures": 0,
+    "controls": 981,
+    "coefficients": 1220,
+    "attempts": 0,
+    "protocol": 151,
+    "providers": 1416,
+    "helpers": 0,
+    "schema": 1201
+  },
+  "referenceBytes": 505950,
+  "traceBytes": 0,
+  "headerBytes": 0,
+  "reserveBytes": 4322,
+  "timingMs": 22046.872625,
+  "productionActivation": "NOT_RUN"
+}

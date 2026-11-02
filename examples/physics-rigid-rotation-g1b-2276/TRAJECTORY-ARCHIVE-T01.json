@@ -1,0 +1,113 @@
+{
+  "status": "PASS_BYTE_IDENTICAL_FIRST_T_FAILURE_ARCHIVE",
+  "archive": {
+    "path": "examples/physics-rigid-rotation-g1b-2276/evidence/g1b-trajectory-01.tar.gz",
+    "bytes": 126335,
+    "sha256": "b0e6646e01f5ba78d3e7e89b807c022926fa53cdc5c3fa237dac4ca99914af24"
+  },
+  "files": {
+    "g1b-trajectory-01/controls.json": {
+      "bytes": 981,
+      "sha256": "507a533220bf8449be462321bc2882d57116b4327fc31058c23a05c4eeb15754"
+    },
+    "g1b-trajectory-01/first-failure-inputs/reference-trajectory.py": {
+      "bytes": 39887,
+      "sha256": "bcc3e19f90f256631d5366e4a23180649fbacdba6df7d94d1bf48b71c2b908b0"
+    },
+    "g1b-trajectory-01/first-failure-inputs/trajectory-campaign.mjs": {
+      "bytes": 44582,
+      "sha256": "fa1098b58515d6b3b8382e647a431d29c7bd4615d618506b8af0871ee69b7453"
+    },
+    "g1b-trajectory-01/input-0.json": {
+      "bytes": 1877,
+      "sha256": "edf777a0c45a0849c4ec391de85e5fa0d5557c9e78c1407a07951f2c22a1ce71"
+    },
+    "g1b-trajectory-01/input-1.json": {
+      "bytes": 1877,
+      "sha256": "ffa90f765d6b060b427607cdc5c447fed12efe3e55fe9f3ae4276f581914207b"
+    },
+    "g1b-trajectory-01/input-2.json": {
+      "bytes": 1877,
+      "sha256": "26bee259ba4f37c4897cc3ac371beadfa8e2a37268f3c56b362c7785bf5faaf9"
+    },
+    "g1b-trajectory-01/input-3.json": {
+      "bytes": 1877,
+      "sha256": "27e6bbec7671b7ed20cc259588b724b886d69c6a07c30ceaa593503ac3b35677"
+    },
+    "g1b-trajectory-01/input-4.json": {
+      "bytes": 1877,
+      "sha256": "b4ebd23a0090615417385c00feb8bd6e8b16fbc8831feaef3d53a002a55ac303"
+    },
+    "g1b-trajectory-01/input-5.json": {
+      "bytes": 1877,
+      "sha256": "4514c50165e9fcc27e5a6ed33f858088b25b150397b2873549deb2c21d77776d"
+    },
+    "g1b-trajectory-01/input-6.json": {
+      "bytes": 1877,
+      "sha256": "9f781679aca6f5050882f6a91da0631dbb4dbcb11184686de085ba86de5bd81a"
+    },
+    "g1b-trajectory-01/input-7.json": {
+      "bytes": 1877,
+      "sha256": "8e3fe9d070422b055f9eb4828ee6e0930258b078c3c96c40f2dee4c2bae7e464"
+    },
+    "g1b-trajectory-01/progress.json": {
+      "bytes": 4672,
+      "sha256": "80de2a8646d187b8edd1319fdee19e3da740fa11eaf1b2e70ca247e9e9e943e9"
+    },
+    "g1b-trajectory-01/protocol.jsonl": {
+      "bytes": 151,
+      "sha256": "b17080fca7c86e7d58df35a451326a1c0abcd384f07b4084104ce2ec12474c4f"
+    },
+    "g1b-trajectory-01/provider-reuse.json": {
+      "bytes": 1416,
+      "sha256": "7e722f7fd53c220b3cc7a683be10df1bad4de211a94f3054367049425a73e8ae"
+    },
+    "g1b-trajectory-01/reference/bank.json": {
+      "bytes": 504772,
+      "sha256": "53d94c22d5f0f6a803d8c430ff121facbad57287e25f8ef906e1fddfe18c9e2b"
+    },
+    "g1b-trajectory-01/reference/progress.json": {
+      "bytes": 1026,
+      "sha256": "0300a4b57f338b3f2567d160647ab2b0d2025835c6139014d0e3a9e86a84a050"
+    },
+    "g1b-trajectory-01/reference/reply-0001.json": {
+      "bytes": 1178,
+      "sha256": "afe8c9ab6fd2fc422d7e69251a4e7e5478e3f03dd6850823c33525499b74a3ec"
+    },
+    "g1b-trajectory-01/reference-progress-original.raw": {
+      "bytes": 1026,
+      "sha256": "0300a4b57f338b3f2567d160647ab2b0d2025835c6139014d0e3a9e86a84a050"
+    },
+    "g1b-trajectory-01/reference-ready.raw": {
+      "bytes": 1150,
+      "sha256": "b3f4fa55569d9664bacc8555ca4400bc7a051c1d40e09eb2d9411046397c83c9"
+    },
+    "g1b-trajectory-01/schema-cli.json": {
+      "bytes": 1201,
+      "sha256": "af3e40595935a10a2e72c3be21c7222260e240d9c356a2cbcf6360008a08a1c7"
+    },
+    "g1b-trajectory-01/source-0-cache.json": {
+      "bytes": 6271,
+      "sha256": "c1a586d9a3be02b6109ee8960b7f11a609073059279be56cff91ff81ca74996a"
+    },
+    "g1b-trajectory-01/source-0-first-returned-state.json": {
+      "bytes": 2146,
+      "sha256": "1a1906749fd6b9696194db12569ac10c8d77408e4d10ab3186126d763c5d3ea6"
+    },
+    "g1b-trajectory-01/source-0-private.json": {
+      "bytes": 362,
+      "sha256": "ebbe3532624b0fd95ec44583ba8189097be64f53a97061a024e08ceda2e8d876"
+    },
+    "g1b-trajectory-01/source-coefficients.json": {
+      "bytes": 1220,
+      "sha256": "743a15db76e79fd35f7b12f33fb1a8435aa73be630eceb4586d55f3f4dbf5f11"
+    },
+    "g1b-trajectory-01/summary.json": {
+      "bytes": 4782,
+      "sha256": "4e3fcaa8aa94aff4c85f376bcaf107029e97f462e69c5658b847cda547c3dfc5"
+    }
+  },
+  "fileCount": 25,
+  "rawLocalTreeRetained": true,
+  "scope": "ClosedDATA-onlyarchive; allpayloadbytesverified; no numerical/reference/World/build rerun."
+}
