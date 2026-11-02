@@ -33,7 +33,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "G1b PhaseM candidate/independent-reference/2World micro harness authoring underAUTHORING-FREEZE-M01; no G1b runtime yet. G2 exact-sweep numerical design accepted; compact joint evidence budget proof pending.",
+  "active": "G1b M01 first run stopped BEFORE World: reused axisymmetric reference integral rejected triaxial tensor. First failure/282-file archive preserved. Local general-cuboid reference repair in progress; same numerical gates/iteration/caps. G2 exact-sweep compact evidence budget static authoring only.",
   "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
@@ -44,7 +44,7 @@
   "reportCadence": "milestone,firstfailure,directionchange; report qualified scope,remaining dependency,and revised confidence",
   "invariants": "HOLD,originalNO_GO,tolerances,first failures preserved; no partial develop merge,push,deploy,release",
   "addedGateProgress": {
-    "G1": "G1a STAGED_AXISYMMETRIC_PASS; originalproductionbaselinePHYSICAL_NO_GO preserved; G1b/nearunit/axis/frame/downstream/adoption open",
+    "G1": "G1a STAGED_AXISYMMETRIC_PASS; G1b M01 reference-only profile failure beforeWorld, candidatephysicalNOT_RUN; originalproductionNO_GO preserved; G1b trajectory/admitted-range/downstream/adoption open",
     "G2": "STATIC19BRANCH_MAP_COMPLETE; ACTUAL_SOURCE_CORNER_EXACT_CONTACT_NO_GO; reference1/World0/nativeNOT_RUN; other numerical gaps open",
     "G7": "PER_CAMPAIGN_TRUST_GATE; NO_BLANKET_PASS"
   },
