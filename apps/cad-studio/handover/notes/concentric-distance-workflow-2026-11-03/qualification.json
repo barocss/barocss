@@ -1,0 +1,376 @@
+{
+  "workId": "D458",
+  "status": "BOUNDED_QUALIFIED",
+  "category": "C4-3 ordinary concentric and distance mates",
+  "baseline": "cda34a21e17b2c07f54fb202e53c3ee993589fd7",
+  "productChanges": "NONE",
+  "validationTier": "verification_only_existing_scope",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercent": 43,
+  "models": {
+    "publicInventoryDriverAndSourceReview": "GPT-6.1 Sol Medium",
+    "nativeSolverMathAndIndependentOracle": "GPT-6.1 Sol High",
+    "executionFreezeCleanupVisualReview": "Root"
+  },
+  "retainedProof": "QA UM1\u20135 actuals use mutation pick hooks; their native/control scopes are retained, not substituted for public Reference-picker proof. No implementation of delivered tools.",
+  "input": {
+    "path": "/tmp/barocss-d458-geometry/seed-unmated.bcad",
+    "sha256": "5e957bd17007c59368ed15b2d470dd13709322e057c77714fb91a19263b83e80",
+    "authoring": "SOURCE_AUTHORED_FROM_EXISTING_STARTER_AND_PIN_RECIPE_NOT_PUBLIC_CONSTRUCTION",
+    "holder": "64x32x8 block with through bore R4 centered32,16",
+    "pin": "R4 height20, unrotated, initial position80,16,0",
+    "identity": "one embedded Pin occurrence id pin; base output b2; native family n2.side0 for bore and n1.side0 for pin"
+  },
+  "preflight": {
+    "status": "PASS_PROSPECTIVE_CONCENTRIC_DISTANCE_THREE_STATES",
+    "command": "bash /tmp/barocss-d458-root/run-preflight02.sh",
+    "receiptSHA256": "2ec8836c84a5591b58fc7ec91d5a40af4ef2d90d1fab0fc5ff625739b8897919",
+    "newInspectorCalls": 3,
+    "oracleCalls": 3,
+    "sourceFiles": 467,
+    "sourcePinsEqual": true,
+    "cases": [
+      {
+        "name": "axis",
+        "stage": "axis",
+        "distance": 0,
+        "status": "PASS",
+        "nativeSHA256": "8b6d9e62b9b75d401bee7eaab5d67d7e113af668ded2f46c0d7c1d7ce9beffc3",
+        "oracleSHA256": "ddd2aef7aa8e52b3af00ab4edcea8f4566b8e1c1cf1ceb73af794c0520eabc70",
+        "holder": {
+          "volumeExpected": 15981.876140340506,
+          "volumeError": 7.275957614183426e-12,
+          "centroidExpected": [
+            32,
+            16,
+            4
+          ],
+          "boundsExpected": {
+            "min": [
+              0,
+              0,
+              0
+            ],
+            "max": [
+              64,
+              32,
+              8
+            ]
+          },
+          "genus": 1,
+          "nativeCylinderNames": [
+            "n2.side0#2",
+            "n2.side0#1"
+          ]
+        },
+        "pin": {
+          "volumeExpected": 1005.3096491487338,
+          "volumeError": 9.094947017729282e-13,
+          "centroidExpected": [
+            32,
+            16,
+            10
+          ],
+          "boundsExpected": {
+            "min": [
+              28,
+              12,
+              0
+            ],
+            "max": [
+              36,
+              20,
+              20
+            ]
+          },
+          "genus": 0,
+          "nativeCylinderNames": [
+            "n1.side0#2",
+            "n1.side0#1"
+          ]
+        },
+        "freedom": {
+          "turns": 1,
+          "slides": 1
+        },
+        "refusalProbe": "NOT_RUN"
+      },
+      {
+        "name": "distance0",
+        "stage": "distance",
+        "distance": 0,
+        "status": "PASS",
+        "nativeSHA256": "f6a6162645c1f395c0d0ca4e84e62ad22aa46c2f796faf41f4507eb5b775fddd",
+        "oracleSHA256": "299a0a3e8f99b03734565be6a96e8758094bb719beae848f45fc56ad12ee0a2b",
+        "holder": {
+          "volumeExpected": 15981.876140340506,
+          "volumeError": 7.275957614183426e-12,
+          "centroidExpected": [
+            32,
+            16,
+            4
+          ],
+          "boundsExpected": {
+            "min": [
+              0,
+              0,
+              0
+            ],
+            "max": [
+              64,
+              32,
+              8
+            ]
+          },
+          "genus": 1,
+          "nativeCylinderNames": [
+            "n2.side0#2",
+            "n2.side0#1"
+          ]
+        },
+        "pin": {
+          "volumeExpected": 1005.3096491487338,
+          "volumeError": 9.094947017729282e-13,
+          "centroidExpected": [
+            32,
+            16,
+            18
+          ],
+          "boundsExpected": {
+            "min": [
+              28,
+              12,
+              8
+            ],
+            "max": [
+              36,
+              20,
+              28
+            ]
+          },
+          "genus": 0,
+          "nativeCylinderNames": [
+            "n1.side0#2",
+            "n1.side0#1"
+          ]
+        },
+        "freedom": {
+          "turns": 1,
+          "slides": 0
+        },
+        "refusalProbe": "NOT_RUN"
+      },
+      {
+        "name": "distance3",
+        "stage": "distance",
+        "distance": 3,
+        "status": "PASS",
+        "nativeSHA256": "3c394472da394ae43f4a6b48832058c9d25111b0be04fb243d2ce6b1d711c364",
+        "oracleSHA256": "d1eb30b8cb09f4d55feed3ccd9cd942efe55eb542cd56a48a1676f577063ea12",
+        "holder": {
+          "volumeExpected": 15981.876140340506,
+          "volumeError": 7.275957614183426e-12,
+          "centroidExpected": [
+            32,
+            16,
+            4
+          ],
+          "boundsExpected": {
+            "min": [
+              0,
+              0,
+              0
+            ],
+            "max": [
+              64,
+              32,
+              8
+            ]
+          },
+          "genus": 1,
+          "nativeCylinderNames": [
+            "n2.side0#2",
+            "n2.side0#1"
+          ]
+        },
+        "pin": {
+          "volumeExpected": 1005.3096491487338,
+          "volumeError": 9.094947017729282e-13,
+          "centroidExpected": [
+            32,
+            16,
+            21
+          ],
+          "boundsExpected": {
+            "min": [
+              28,
+              12,
+              11
+            ],
+            "max": [
+              36,
+              20,
+              31
+            ]
+          },
+          "genus": 0,
+          "nativeCylinderNames": [
+            "n1.side0#2",
+            "n1.side0#1"
+          ]
+        },
+        "freedom": {
+          "turns": 1,
+          "slides": 0
+        },
+        "refusalProbe": "PASS_NEW_MATE_ATTRIBUTION_AND_OLD_POSE_RETENTION_PROVIDER_ONLY"
+      }
+    ],
+    "initialAttempt": {
+      "status": "NOT_RUN_LOAD_PRECONDITION",
+      "load": 45.53,
+      "maximumExclusive": 40,
+      "providerCalls": 0,
+      "leaseAcquired": false
+    }
+  },
+  "native": {
+    "inspectorSHA256": "4f3c70626793c2785f6c01597ff1175390b913b3ac7112e9289b2c8f59a7e1c7",
+    "oracleSHA256": "4527b143630f87862aa14afa6633855d05e46df3137be61c1aa8fe1b9cff9457",
+    "readinessSHA256": "a4d979bacc31b3adb38d529ddcc0d1c662574b2e3903d4760e8ee83bcd964680",
+    "limits": {
+      "volumeRelative": 1e-09,
+      "centroidBoundsCylindersPlanesAbsolute": 1e-09
+    },
+    "holderVolume": "16384 - 128*pi",
+    "holderCentroid": [
+      32,
+      16,
+      4
+    ],
+    "holderGenus": 1,
+    "pinVolume": "320*pi",
+    "pinGenus": 0,
+    "nativeCylinderFamilies": [
+      "n2.side0#1/#2",
+      "n1.side0#1/#2"
+    ],
+    "storedNativeAndSolver": "Accepted stored placement is evaluated unchanged. Separate solver must agree; no solved pose substitution in inspector. Current public document/Instance XYZ/freedom bind actual state; raster precision not claimed."
+  },
+  "actual": {
+    "status": "PASS",
+    "command": "bash /tmp/barocss-d458-root/run-studio-workflow01.sh",
+    "receiptSHA256": "0765760659cbd881f918cd0ffb3663c5333153ae8a9e241de53c5b60e8ee7077",
+    "configSHA256": "49897d2c725470d5f64064facdbaa3fa2bdd3fc1df6203aa9274e36abae5755d",
+    "qualifiedGroups": 7,
+    "coverage": {
+      "publicOpenSourceAuthored": "PASS",
+      "publicConcentric": "PASS",
+      "publicDistance0": "PASS",
+      "edit3UndoRedo": "PASS",
+      "specificDistance5Refusal": "PASS",
+      "projectSaveCloseReloadOpen": "PASS",
+      "postOpenDistance0": "PASS",
+      "publicConstruction": "NOT_RUN",
+      "exports": "NOT_RUN"
+    },
+    "screenshots": 12,
+    "nativeBindings": 8,
+    "newInspectorCalls": 3,
+    "exactDocumentNativeReuses": 5,
+    "oracleCalls": 8,
+    "sourceFiles": 2367,
+    "sourceBeforeFrozenAfterCleanupCurrentEqual": true,
+    "cleanup": [
+      {
+        "ownedProject": "D458-concentric-distance-run01",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "ownWrapperAbsent": true,
+    "gateReleased": true,
+    "downloads": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "rootImageViews": 6,
+    "specificRefusal": "Conflicts with Distance 2: they hold Pin 2 mm from where this mate puts it.",
+    "undoProof": "First Undo follows the refused extra Distance5 and Cancel; it returns exact Distance0/Z8. One Redo returns exact Distance3/Z11, proving no refusal undo entry.",
+    "stages": [
+      {
+        "stage": "Concentric only",
+        "position": [
+          32,
+          16,
+          0
+        ],
+        "freedom": {
+          "turns": 1,
+          "slides": 1
+        }
+      },
+      {
+        "stage": "Distance0",
+        "position": [
+          32,
+          16,
+          8
+        ],
+        "freedom": {
+          "turns": 1,
+          "slides": 0
+        }
+      },
+      {
+        "stage": "Distance3",
+        "position": [
+          32,
+          16,
+          11
+        ],
+        "freedom": {
+          "turns": 1,
+          "slides": 0
+        }
+      }
+    ]
+  },
+  "preparedDrivers": {
+    "driver01": "PREPARED_NOT_EXECUTED_IMMUTABLE",
+    "driver02": "EXECUTED_PASS",
+    "correction": "Before first execution, public draft-number and Concentric control waits account for React render/effect updates. No global timing, numeric or metadata normalization. Mate row selection checks sel before clicking so an already selected editor stays open."
+  },
+  "historicalUM6": {
+    "classificationSHA256": "c7d482b36b3388dfad22ae881c3c37737d6e081d1dd611fa5ea6f4104a08d044",
+    "original": "REAL_HISTORICAL_PRODUCT_ACCEPT_THEN_PLACEMENT_REFUSAL",
+    "fixAncestor": "28cfdab95eeca596d6f53d66ad0ad92b9d197173",
+    "retained": "N9/M09/M10 and QA fixed report, with explicit provenance limits; original raw FAIL preserved",
+    "currentArbitraryAngleExecution": "NOT_RUN",
+    "meaning": "No current unresolved blocker established. This zero-rotation profile does not extend arbitrary-angle accuracy acceptance."
+  },
+  "notRun": {
+    "newUnitBuildTypes": "NOT_RUN_NO_REPOSITORY_SOURCE_OR_TEST_CHANGE_RETAIN_D456",
+    "fullKernel": "NOT_RUN_NO_BREP_CORE_CHANGE_RETAIN_D433",
+    "publicConstruction": "NOT_RUN_SOURCE_AUTHORED_INPUT",
+    "negativeDistancesUnequalRadiiGeneralContradictions": "NOT_RUN_OTHER_SCOPES",
+    "fitContactMotionPhysics": "NOT_RUN_NO_SUCH_CLAIM_AND_HOLDS",
+    "exportsDownloadsPerformanceRasterExactness": "NOT_RUN"
+  },
+  "issues": [
+    {
+      "number": 538,
+      "state": "OPEN",
+      "reason": "One finite concentric/distance public case does not evidence every adopted assembly criterion"
+    }
+  ],
+  "documentation": {
+    "status": "PASS",
+    "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+    "rows": 34,
+    "newBrokenLinks": 0,
+    "knownHistoricalMissingPaths": 1,
+    "archivesUnchanged": true
+  }
+}
