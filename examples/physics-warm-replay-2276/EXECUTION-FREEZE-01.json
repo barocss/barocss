@@ -1,0 +1,12 @@
+{
+  "status": "FINAL_HIGH_REVIEW_MATCH_BEFORE_FREEZE",
+  "reviewedHashes": {
+    "run.mjs": "46a677187279c4bd3073addb5eff5930c42eaf44fd34779a5d62e9afb134c75d",
+    "fault-observer.py": "a93f71ea1db0b5704e86de90bef98f39e958c15ffbcb53a5b312b41c51640cf6",
+    "freeze.mjs": "b489e9cf4b5448ace5589311695a562afc1cbdb1e8da60cbd4da1109faeaa903",
+    "CONTRACT.md": "ce695c5250956eee66c05e73372790bdee198ae5d872d753f167068fd4754d6b",
+    "SOURCE-PINS-01.json": "989a8b82bb43c171906a5055542dca5265e9688395419ec1140b4f53a2bec08d"
+  },
+  "WorldCalls": 0,
+  "scope": "SOURCE_PRIVATE_ACTUAL_WARM_REPLAY_AND_WIRE"
+}

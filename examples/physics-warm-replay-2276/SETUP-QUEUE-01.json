@@ -1,0 +1,17 @@
+{
+  "status": "ROOT_REPORTED_SETUP_QUEUE_ONLY",
+  "source": "Parent task handoff after completed run; no standalone gate receipt supplied",
+  "independentReceiptAvailable": false,
+  "firstAdmission": {
+    "queueLimitSeconds": 60,
+    "exit": 75,
+    "WorldCalls": 0
+  },
+  "laterAdmission": {
+    "queueLimitSeconds": 600,
+    "waitSeconds": 0,
+    "reportedLoad": 22.14
+  },
+  "physicalFailure": false,
+  "explanation": "First admission ended before World execution. Later admission allowed the same frozen guarded run; it did not change model, provider, numeric gates, attempt caps or 180s physical command deadline."
+}
