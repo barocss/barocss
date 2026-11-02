@@ -3,10 +3,10 @@
   "branch": "codex/physics-world-p5-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "G2 rounded sphere/static-box CCD",
-    "status": "BOUNDED_GEOMETRY_PUBLIC_SOURCE_NATIVE_AND_DESKTOP_PASS",
-    "scope": "16source+16nativeimmediateindependentaudits;eachpublicgraph26World29stepsplusseparateatomic1World1step;9desktopchecksall16boundariesplus5features;existingLab12desktopchecks;originalearlyhitandrenderfailurepreserved",
-    "results": "examples/physics-rounded-ccd-2276/RESULTS.md"
+    "profile": "G2 persistent centered box restitution",
+    "status": "BOUNDED_SOURCE_NATIVE_WARM_CACHE_AND_DESKTOP_PASS",
+    "scope": "main28World287steps/graph; separatewarm3World9steps/graph; independent40audits;11desktopchecks6presets;firstignored-restitutionfailurepreserved",
+    "results": "examples/physics-persistent-impact-2276/RESULTS.md"
   },
   "mainSlices": {
     "P0": "CONTRACT_COMPLETE_LOCAL",
@@ -33,7 +33,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Core rounded-box sphere CCD implemented and checked through public World and desktop rendering. Next: G2 restitution/friction transition and projection/work evidence, then remaining P4/coupling dependencies. Studio/manufacturing/equipment HOLD; local previews only, no long numerical job.",
+  "active": "Persistent restitution repaired and numerically/render qualified. Continue G2 finite friction transitions and reproduce anisotropic cuboid sticking candidate before repair. P4 eight-box remains NO_GO; Studio/manufacturing/equipment HOLD; no old-worker resume or deployment.",
   "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
@@ -46,7 +46,7 @@
   "invariants": "HOLD, original NO_GO, tolerances and first failures preserved. Owner explicitly authorized current checkpoint develop push on2026-11-02; no deploy/release or held-worker resume; not whole-roadmap completion.",
   "addedGateProgress": {
     "G1": "GENERAL_CONTINUOUS_PRIMITIVE_ROTATION_PASS; see physics-general-rotation-2276; old one-step restriction retired with original evidence retained. Wider phase/control/contact qualification remains separate.",
-    "G2": "ROUNDED_SPHERE_STATIC_BOX_REPAIR_AND_DESKTOP_PASS; original C03 early boundary NO_GO preserved. Material switches, near-ties/extreme-scales, projection/work and original8box remain open.",
+    "G2": "ROUNDED_CCD_AND_CENTERED_PERSISTENT_RESTITUTION_BOUNDED_PASS; friction/near-ties/extreme scales/projection work and original8box open.",
     "G7": "PER_CAMPAIGN_TRUST_GATE; NO_BLANKET_PASS"
   },
   "sourceCorrection": "G1b/ADMISSION-NORMALIZATION-CORRECTION-01.json: Body constructor already normalizes admitted initialq; prior inferredinitialnormguardmismatch unestablished. Broader boundary qualification stillNOT_RUN.",
@@ -77,5 +77,12 @@
     "checks": 9,
     "boundaryCases": 16,
     "existingLabChecks": 12
+  },
+  "latestMaterialConsumer": {
+    "status": "PASS_DESKTOP_ONLY",
+    "results": "examples/physics-persistent-impact-2276/RESULTS.md",
+    "url": "http://127.0.0.1:52920",
+    "checks": 11,
+    "presets": 6
   }
 }

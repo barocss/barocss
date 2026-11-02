@@ -28,7 +28,7 @@ const box = body('box',1,V(0,0.5,0),V(0,-1,0));
 const p: Vec3 = V(0,0,0);
 const n: Vec3 = V(0,1,0);
 const impulse: PointImpulse = { normalNs: 0, tangentNs: V() };
-solvePersistentPoint(floor,box,p,n,impulse);
+solvePersistentPoint(floor,box,p,n,impulse,0);
 check(near(box.velocityMps[1],0), 'one-body normal resting velocity');
 check(near(impulse.normalNs,1), 'one-body normal impulse equals incoming momentum');
 check(near(magnitude(impulse.tangentNs),0), 'one-body no invented friction');
@@ -47,7 +47,7 @@ const armPoint: Vec3 = V(0.25,0,0);
 support.frictionStatic = support.frictionDynamic = 0;
 upper.frictionStatic = upper.frictionDynamic = 0;
 const off: PointImpulse = { normalNs:0, tangentNs:V() };
-solvePersistentPoint(support,upper,armPoint,n,off);
+solvePersistentPoint(support,upper,armPoint,n,off,0);
 check(off.normalNs>0 && Number.isFinite(off.normalNs), 'off-centre positive normal impulse');
 check(magnitude(upper.angularVelocityRadps)>0, 'off-centre angular response');
 check(magnitude(off.tangentNs) <= 0.8*off.normalNs + 1e-10, 'Coulomb accumulated tangent bound');
@@ -59,8 +59,8 @@ const stackLower = body('stackLower',1,V(0,0.5,0),V(0,-1,0));
 const stackUpper = body('stackUpper',1,V(0,1.5,0),V(0,-1,0));
 const floorContact: PointImpulse = { normalNs:0,tangentNs:V() };
 const upperContact: PointImpulse = { normalNs:0,tangentNs:V() };
-solvePersistentPoint(stackFloor,stackLower,V(0,0,0),n,floorContact);
-solvePersistentPoint(stackLower,stackUpper,V(0,1,0),n,upperContact);
+solvePersistentPoint(stackFloor,stackLower,V(0,0,0),n,floorContact,0);
+solvePersistentPoint(stackLower,stackUpper,V(0,1,0),n,upperContact,0);
 // With a coupled stack, one Gauss-Seidel pass transfers momentum back to the
 // lower box. It MUST NOT be mistaken for convergence.
 check(near(stackLower.velocityMps[1],-0.5), 'first sweep lower has back reaction');
@@ -71,8 +71,8 @@ check(near(upperContact.normalNs,0.5), 'first sweep inter-body impulse');
 // Revisit both rows with one fixed, bounded 48-sweep budget; do not silently
 // increase iterations until a new quality gate passes.
 for (let sweep=1; sweep<48; sweep++) {
-  solvePersistentPoint(stackFloor,stackLower,V(0,0,0),n,floorContact);
-  solvePersistentPoint(stackLower,stackUpper,V(0,1,0),n,upperContact);
+  solvePersistentPoint(stackFloor,stackLower,V(0,0,0),n,floorContact,0);
+  solvePersistentPoint(stackLower,stackUpper,V(0,1,0),n,upperContact,0);
 }
 check(Math.abs(stackLower.velocityMps[1])<=1e-10, 'lower speed converges');
 check(Math.abs(stackUpper.velocityMps[1])<=1e-10, 'upper speed converges');

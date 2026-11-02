@@ -10,6 +10,28 @@ Read [Physics](/packages/physics/), [Units and frames](/packages/physics/units-a
 motion, use [Robot motion](/guide/robot-motion). A supported input is not a claim that every admitted parameter
 has been verified to the errors below.
 
+## Persistent box impact checkpoint
+
+The persistent manifold now applies minimum material restitution from point
+velocities captured before each pair's warm start. The strict closing-speed
+switch is `>0.5 m/s`; iteration counts, friction mixing and public four-body
+limit stay fixed. The original outgoing-zero failure remains recorded.
+
+Source and actual emitted public root/replay each pass28Worlds/287steps;
+separate warmed-cache restore/fault checks each pass3Worlds/9steps. Independent
+exact-rational Newton/momentum audits pass40finite impacts. Maximum velocity
+error2.221e-16m/s and impulse/energy errors8.882e-16SI pass the unchanged1e-10
+criteria. Actual desktop GPU Viewer tests pass11checks/six inputs at1280,
+1440 and1920pixels, with real pixels, accepted poses, motion and recorder
+clock. No mobile check or deployment was performed.
+
+This qualifies centered principal-axis zero-friction impacts. It does not
+qualify general tilted/off-center or simultaneous impacts, friction transitions,
+projection work or original eight-box settling. Source, compile and rendering
+proof remain separate from the published browser SDK and real equipment.
+Implementation, commands and raw evidence are in
+`examples/physics-persistent-impact-2276/RESULTS.md` on this branch.
+
 ## What a pass establishes
 
 Keep these records separate:

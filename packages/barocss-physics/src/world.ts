@@ -9,7 +9,7 @@ import { providerManifest } from './provider-manifest.generated.js';
 import type { Body, PhysicsCcdHit, PhysicsContact, PhysicsEvent, PhysicsJointState, PhysicsPairStats,  PhysicsRayHit, Vec3 } from './internal-types.js';
 import { MAX_STEPS, MAX_STEP_DISPLACEMENT_M, SOLVER_PASSES } from './limits.js';
 import { error, parseCommands, copyBody, queryRecord, queryVector, queryNumber, includeSensors } from './validation.js';
-import { add, scale, inverseInertia, advanceOrientation } from './math.js';
+import { add, cross, dot, scale, sub, inverseInertia, advanceOrientation } from './math.js';
 import { projectJoint } from './joints.js';
 import { driveDynamicHingeMotor, driveHingeMotor } from './joint-motor.js';
 import { admitDynamicHingeCommands, admitDynamicHingeScene } from './dynamic-hinge-joint.js';
@@ -272,6 +272,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
       const nextPairStats: PhysicsPairStats = { eligiblePairs: 0, candidatePairs: 0, aabbTests: 0 };
       const found = new Map<string, PhysicsContact>();
       const nextPersistentPoints = new Map<string, PointImpulse>();
+      const persistentNormalTargets = new Map<string, number>();
       const sensed = new Map<string, Omit<PhysicsEvent, 'phase'>>();
       const nextJoints = jointStates.map((joint, index) => ({ ...joint,
         linearImpulseNs: [0, 0, 0] as Vec3, angularImpulseNms: [0, 0, 0] as Vec3,
@@ -313,6 +314,23 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
           contact.penetrationM = Math.max(contact.penetrationM, hit.penetration);
           if (largeMode && dormantPair(a, b)) continue;
           if (manifold) {
+            // Capture every point before this pair's first warm start. Targets
+            // remain fixed through this step's passes and never enter the cache.
+            const restitution = Math.min(a.restitution, b.restitution);
+            for (const point of manifold) {
+              const pointKey = `${key}\u0000${point.id}`;
+              if (persistentNormalTargets.has(pointKey)) continue;
+              let target = 0;
+              if (restitution !== 0) {
+                const velocityA = add(a.velocityMps,
+                  cross(a.angularVelocityRadps, sub(point.pointM, a.positionM)));
+                const velocityB = add(b.velocityMps,
+                  cross(b.angularVelocityRadps, sub(point.pointM, b.positionM)));
+                const speed = dot(hit.normal, sub(velocityB, velocityA));
+                if (-speed > 0.5) target = -speed * restitution;
+              }
+              persistentNormalTargets.set(pointKey, target);
+            }
             for (const point of manifold) {
               const pointKey = `${key}\u0000${point.id}`;
               let impulse = nextPersistentPoints.get(pointKey);
@@ -327,8 +345,10 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
             for (let iteration = 0; iteration < 8; iteration++) {
               const order = iteration % 2 ? [...manifold].reverse() : manifold;
               for (const point of order) {
-                const impulse = nextPersistentPoints.get(`${key}\u0000${point.id}`)!;
-                solvePersistentPoint(a, b, point.pointM, hit.normal, impulse);
+                const pointKey = `${key}\u0000${point.id}`;
+                const impulse = nextPersistentPoints.get(pointKey)!;
+                solvePersistentPoint(a, b, point.pointM, hit.normal, impulse,
+                  persistentNormalTargets.get(pointKey)!);
               }
             }
             correctPersistentPair(a, b, hit.normal, hit.penetration);

@@ -14,7 +14,7 @@ function make(id:string, dynamic:boolean,vy:number):Body {
 }
 const floor=make('floor',false,0),box=make('box',true,1);
 const cache:PointImpulse={normalNs:1,tangentNs:vec(.25,0,0)};
-solvePersistentPoint(floor,box,vec(0,0,0),vec(0,1,0),cache);
+solvePersistentPoint(floor,box,vec(0,0,0),vec(0,1,0),cache,0);
 if(Math.abs(cache.normalNs)>1e-12)throw Error('expected separating contact to lose normal support');
 const tangentMagnitude=Math.hypot(...cache.tangentNs);
 const bound=.8*cache.normalNs;

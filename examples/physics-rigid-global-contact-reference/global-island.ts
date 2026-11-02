@@ -146,7 +146,7 @@ export class FrozenContactIsland {
         for (const point of order) {
           const impulse = this.#pointsMap.get(`${patch.pairKey}\u0000${point.id}`)!;
           solvePersistentPoint(this.#bodies[patch.aIndex], this.#bodies[patch.bIndex],
-            point.pointM, patch.normal, impulse);
+            point.pointM, patch.normal, impulse, 0);
           this.#globalStats.pointUpdates++;
         }
       }

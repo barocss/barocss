@@ -31,6 +31,8 @@ The [desktop Physics Lab](../../examples/physics-lab/README.md) runs box, sphere
 
 The [rounded CCD desktop scene](../../examples/physics-rounded-ccd-2276/README.md) shows the actual sphere/static-box face, edge and vertex boundary, with hit/miss and normal diagnostics. The narrow sweep now uses Euclidean distance instead of an expanded rectangular boundary.
 
+The [persistent box impact scene](../../examples/physics-persistent-impact-2276/README.md) exercises minimum restitution and the strict speed switch through the common World, recorder and desktop GPU Viewer. Centered zero-friction impacts and warmed-cache failure recovery are qualified separately from general stacks and friction.
+
 | Entry point | Current result | Example |
 | --- | --- | --- |
 | `@barocss/physics` | One World for selected rigid or fixed visual cloth/fluid model profiles | [3D native-Surface Viewer](../../examples/physics-viewer-scene/README.md) |

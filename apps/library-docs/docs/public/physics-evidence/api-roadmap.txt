@@ -388,6 +388,30 @@ Remaining-time integration, rotating-box CCD, original P4eight-box NO_GO,
 P6coupling and full-roadmap acceptance remain separate. Existing HOLDs and all
 first failures remain. No Studio/manufacturing/equipment resume, deploy or release.
 
+### G2 persistent box restitution (2026-11-03)
+
+The old compiled public baseline is PHYSICAL_NO_GO_RESTITUTION_IGNORED:
+expected0.5m/s outgoing, actual0. A once-per-step candidate normal target now
+uses all pre-warmstart point velocities for each pair, strict closing>0.5m/s
+and minimum restitution; all existing solver iterations, friction laws, limits
+and tolerances remain. Targets are not retained in warm caches. Internal live
+inelastic studies pass explicit zero, without an optional legacy argument.
+
+Public Source and genuine emitted root/replay each pass28Worlds/287steps.
+Separate warmed-cache/restore/fault tests each pass3Worlds/9steps. Independent
+exact-rational Newton/momentum audit passes40finite impacts. Max main/warm
+velocity2.221e-16m/s, spin2.776e-16rad/s, impulse/momentum/energy8.882e-16SI;
+old1e-10/1e-12 gates unchanged. Original persistent-box probe passes, without
+rerunning or qualifying the original eight-box NO_GO. Dedicated actual GPU
+Viewer scene passes11desktop checks/six presets at1280/1440/1920. No mobile.
+See `examples/physics-persistent-impact-2276/RESULTS.md` and preserved failure.
+
+This is centered principal-axis zero-friction impact qualification. Global
+simultaneous/tilted/off-center impact, friction transitions and projection work
+remain separate. Next: finite friction mixing/stick-slip and independent
+reproduction of the anisotropic cuboid sticking candidate before any repair.
+P4eight-box/public4 limit, P6/P7, all HOLDs and first failures remain. No deploy.
+
 Dependency order: close the G1 admitted-rotation boundary and G2 finite coverage
 map before the corresponding general rigid/contact claim. Keep original P4
 work as its own acceptance track. Before a new P6/P7 plant runs, select only

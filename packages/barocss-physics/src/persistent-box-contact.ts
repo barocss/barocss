@@ -32,10 +32,12 @@ export function warmStartPoint(a: Body, b: Body, pointM: Vec3, normal: Vec3,
 }
 
 export function solvePersistentPoint(a: Body, b: Body, pointM: Vec3, normal: Vec3,
-  impulse: PointImpulse): void {
+  impulse: PointImpulse, normalTargetMps: number): void {
   const normalSpeed = dot(relativeVelocity(a, b, pointM), normal);
   const normalMass = effectiveInverseMass(a, b, pointM, normal);
-  const nextNormal = Math.max(0, impulse.normalNs - normalSpeed / normalMass);
+  const nextNormal = Math.max(0, normalTargetMps === 0
+    ? impulse.normalNs - normalSpeed / normalMass
+    : impulse.normalNs + (normalTargetMps - normalSpeed) / normalMass);
   const deltaNormal = nextNormal - impulse.normalNs;
   impulse.normalNs = nextNormal;
   if (deltaNormal !== 0) apply(a, b, pointM, scale(normal, deltaNormal));

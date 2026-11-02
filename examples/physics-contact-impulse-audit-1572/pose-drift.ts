@@ -18,7 +18,7 @@ let peakTilt=0,peakHeightError=0,maxSpeed=0;
 for(let step=0;step<steps;step++){
   box.velocityMps[1]-=9.81*dt;
   const cache:PointImpulse={normalNs:0,tangentNs:v()};
-  for(let i=0;i<iterations;i++)solvePersistentPoint(floor,box,point,n,cache);
+  for(let i=0;i<iterations;i++)solvePersistentPoint(floor,box,point,n,cache,0);
   // This intentionally holds the contact point fixed to expose the inability
   // of a single off-centre constraint to support a real body. Not collision detection.
   box.positionM=[box.positionM[0]+box.velocityMps[0]*dt,
