@@ -100,7 +100,8 @@ def authenticate(args):
     required = ('CONTRACT.md', 'CASES.json', 'INTEGRATION-NOTES.md', 'REFERENCES-CLARIFICATION-01.md',
                 'AUTHORING-FREEZE-M01.json', 'ADMISSION-NORMALIZATION-CORRECTION-01.json',
                 'rigid-triaxial-free-rotation.ts', 'CANDIDATE-READY-M02.json', 'LINEAR-CHECK-REPAIR-M02.md',
-                'reference-micro.py', 'REFERENCE-PROTOCOL-M01.md', 'REFERENCE-READY-M01.json')
+                'reference-micro.py', 'REFERENCE-PROTOCOL-M01.md', 'REFERENCE-READY-M01.json',
+                'REFERENCE-REPAIR-M02.md', 'REFERENCE-READY-M02.json', 'MICRO-EXECUTION-REVIEW-M02.md')
     for name in required: need(str(HERE.relative_to(ROOT) / name) in freeze['files'], 'required frozen authority ' + name)
     need(str(BASELINE.relative_to(ROOT)) in freeze['files'], 'baseline helper closure')
     for name, pin in freeze['files'].items():
@@ -263,6 +264,63 @@ def interval_tree_rows(value, path=''):
         for key, child in value.items(): yield from interval_tree_rows(child, path + '/' + key)
     else:
         for index, child in enumerate(value): yield from interval_tree_rows(child, path + '/' + str(index))
+
+
+def general_cuboid_certificate(mass, half, arithmetic, counts, scratch):
+    counts['bodyGeometryCertificatesAttempted'] += 1
+    need(not arithmetic.le(mass, Fraction(0)) and all(not arithmetic.le(h, Fraction(0)) for h in half), 'positive actual native mass/half extents')
+    need(len(half) == 3, 'three cuboid half extents')
+    moments = []
+    scratch['moments'] = moments
+    for h in half:
+        negative_h = arithmetic.neg(h)
+        axis = []
+        scratch['currentAxis'] = axis
+        for n in range(3):
+            counts['oneDimensionalMonomialMoments'] += 1
+            positive, negative = Fraction(1), Fraction(1)
+            for _ in range(n + 1):
+                positive = arithmetic.mul(positive, h)
+                negative = arithmetic.mul(negative, negative_h)
+            axis.append(arithmetic.div(arithmetic.sub(positive, negative), Fraction(n + 1)))
+        moments.append(axis)
+    def volume_monomial(exponents):
+        value = Fraction(1)
+        for i in range(3):
+            value = arithmetic.mul(value, moments[i][exponents[i]])
+        return value
+    volume = volume_monomial([0, 0, 0])
+    need(not arithmetic.le(volume, Fraction(0)), 'positive integrated volume')
+    density = arithmetic.div(mass, volume)
+    need(not arithmetic.le(density, Fraction(0)), 'positive integrated density')
+    scratch.update(volume=volume, density=density)
+    integrated_mass = arithmetic.mul(density, volume)
+    com = []
+    scratch['com'] = com
+    for i in range(3):
+        powers = [0, 0, 0]; powers[i] = 1
+        com.append(arithmetic.div(arithmetic.mul(density, volume_monomial(powers)), integrated_mass))
+    tensor = []
+    scratch['tensor'] = tensor
+    for i in range(3):
+        row = []
+        scratch['currentTensorRow'] = row
+        for j in range(3):
+            square_sum = Fraction(0)
+            if i == j:
+                for k in range(3):
+                    powers = [0, 0, 0]; powers[k] = 2
+                    square_sum = arithmetic.add(square_sum, volume_monomial(powers))
+            powers = [0, 0, 0]; powers[i] += 1; powers[j] += 1
+            row.append(arithmetic.mul(density, arithmetic.sub(square_sum, volume_monomial(powers))))
+        tensor.append(row)
+    need(arithmetic.equal(integrated_mass, mass) and all(arithmetic.equal(x, Fraction(0)) for x in com), 'integrated mass/COM certificate')
+    need(all(arithmetic.equal(tensor[i][j], tensor[j][i]) and (i == j or arithmetic.equal(tensor[i][j], Fraction(0))) for i in range(3) for j in range(3)), 'symmetric diagonal integral tensor')
+    need(all(not arithmetic.le(tensor[i][i], Fraction(0)) for i in range(3)), 'positive integrated principal moments')
+    need(all(not arithmetic.equal(tensor[i][i], tensor[j][j]) for i in range(3) for j in range(i)), 'three distinct integrated principal moments')
+    counts['bodyGeometryCertificatesReturned'] += 1
+    return {'oneAxisMomentPowers': [0,1,2], 'oneAxisMomentUnits': ['m','m^2','m^3'], 'oneAxisMoments': moments, 'volumeM3': volume, 'densityKgPerM3': density,
+            'integratedMassKg': integrated_mass, 'integratedComM': com, 'tensorKgM2': tensor}
 
 
 class Server:
@@ -491,8 +549,12 @@ class Server:
         coefficient_certificate = self.certify_coefficients(self.source_coefficients_raw)
         self.owners['sourceCoefficientCertificate'] = coefficient_certificate
         model = self.pair['model']; mass = model['bodies'][0]['massKg']; half = model['colliders'][0]['geometry']['halfExtentsM']
-        self.geometry = self.b.integral_certificate(mass, half, self.f, self.counts)
+        geometry_scratch = {'mass': mass, 'half': half}
+        self.owners['geometryScratch'] = geometry_scratch
+        self.geometry = general_cuboid_certificate(mass, half, self.f, self.counts, geometry_scratch)
         self.owners['geometry'] = self.geometry
+        self.owners.pop('geometryScratch')
+        geometry_scratch = None
         inertia = [self.geometry['tensorKgM2'][i][i] for i in range(3)]
         need(all(not self.f.le(value, Fraction(0)) for value in inertia) and
              all(not self.f.equal(inertia[i], inertia[j]) for i in range(3) for j in range(i)), 'independent positive unequal moments')
