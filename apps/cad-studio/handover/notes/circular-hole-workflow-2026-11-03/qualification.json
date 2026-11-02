@@ -1,0 +1,592 @@
+{
+  "workId": "D451",
+  "status": "QUALIFIED_CURRENT_ROUNDED_REPRESENTATION",
+  "baseline": "b29b3fe5a544735f474b8b5c41331844a326b29f",
+  "category": "C2-3 ordinary circular Hole placement",
+  "productChanges": "NONE",
+  "declaredWorkflowCases": 1,
+  "qualifiedWorkflowCases": 1,
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercent": 43,
+  "preflight": {
+    "status": "PASS",
+    "receiptSHA256": "7d54be701c58e8271dad5363807365801f85cdfc684c0012f06de40ca24181a0",
+    "calls": {
+      "native": 2,
+      "oracle": 2
+    },
+    "sourceFiles": 462,
+    "sourcePinsEqual": true,
+    "cases": [
+      {
+        "count": 4,
+        "status": "PASS",
+        "nativeSHA": "e05e1cca6724ea7aa91c9ef1079d8aaf5b5cd62f66d7d0fb41b6d0292d8602d7",
+        "oracleSHA": "15454966b4236806e38a51863547be130de58566e419e15b4fd2b2f86fa1a223",
+        "counts": {
+          "bodies": 1,
+          "shells": 1,
+          "faces": 14,
+          "loops": 22,
+          "coedges": 72,
+          "edges": 36,
+          "vertices": 24
+        },
+        "topFace": {
+          "index": 9,
+          "nativeName": "n1.top",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "world": [
+            20,
+            0,
+            10
+          ],
+          "exact": {
+            "kind": "plane",
+            "o": [
+              -20,
+              -20,
+              10
+            ],
+            "n": [
+              0,
+              0,
+              1
+            ]
+          }
+        },
+        "errors": {
+          "volumeAbsolute": 7.275957614183426e-11,
+          "volumeRelative": 2.310022503058499e-15,
+          "centroidMaximum": 5.684341886080802e-14,
+          "maximumAxisLocationMM": 3.9968028886505635e-15,
+          "maximumAxisComponent": 0,
+          "maximumRadiusMM": 4.440892098500626e-16
+        },
+        "idealCircle": {
+          "status": "NOT_QUALIFIED_TO_1e-9_IDEAL",
+          "centers": [
+            [
+              28,
+              0
+            ],
+            [
+              20,
+              8
+            ],
+            [
+              12,
+              0
+            ],
+            [
+              20,
+              -8
+            ]
+          ],
+          "maximumCenterDeviationDiagnosticMM": 0,
+          "maximumRadialDeviationDiagnosticMM": 0,
+          "sourceRoundingBoundMM": 7.071067811865476e-07,
+          "interpretation": "Measured current rounded representation only; no global precision approval or tighter ideal-circle claim."
+        }
+      },
+      {
+        "count": 6,
+        "status": "PASS",
+        "nativeSHA": "a14f17dd0714cb62afa9e6281601bbea8deb1bbdc16a5c31be7da6934b6dcfe6",
+        "oracleSHA": "735f995e980ac8c02bd83a458ec75f2bc6119ecb983973fa6b719f8ef9829fa3",
+        "counts": {
+          "bodies": 1,
+          "shells": 1,
+          "faces": 18,
+          "loops": 30,
+          "coedges": 96,
+          "edges": 48,
+          "vertices": 32
+        },
+        "topFace": {
+          "index": 11,
+          "nativeName": "n1.top",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "world": [
+            20,
+            0,
+            10
+          ],
+          "exact": {
+            "kind": "plane",
+            "o": [
+              -20,
+              -20,
+              10
+            ],
+            "n": [
+              0,
+              0,
+              1
+            ]
+          }
+        },
+        "errors": {
+          "volumeAbsolute": 2.9103830456733704e-11,
+          "volumeRelative": 9.31441269647746e-16,
+          "centroidMaximum": 6.750155989720952e-14,
+          "maximumAxisLocationMM": 3.9968028886505635e-15,
+          "maximumAxisComponent": 0,
+          "maximumRadiusMM": 4.440892098500626e-16
+        },
+        "idealCircle": {
+          "status": "NOT_QUALIFIED_TO_1e-9_IDEAL",
+          "centers": [
+            [
+              28,
+              0
+            ],
+            [
+              24,
+              6.928203230275509
+            ],
+            [
+              16,
+              6.928203230275509
+            ],
+            [
+              12,
+              0
+            ],
+            [
+              16,
+              -6.928203230275509
+            ],
+            [
+              24,
+              -6.928203230275509
+            ]
+          ],
+          "maximumCenterDeviationDiagnosticMM": 2.302755088834374e-07,
+          "maximumRadialDeviationDiagnosticMM": 1.994244405167933e-07,
+          "sourceRoundingBoundMM": 7.071067811865476e-07,
+          "interpretation": "Measured current rounded representation only; no global precision approval or tighter ideal-circle claim."
+        }
+      }
+    ],
+    "command": "bash /tmp/barocss-d451-root/run-native-preflight.sh"
+  },
+  "modelFocused": {
+    "status": "PASS",
+    "tests": 4,
+    "fail": 0,
+    "skip": 0,
+    "command": "bash /tmp/barocss-d451-root/run-focused-checks.sh"
+  },
+  "idealPrecision": "NOT_QUALIFIED_TO_1e-9_IDEAL; source rounding measured explicitly",
+  "actual": {
+    "status": "PASS_CURRENT_ROUNDED_REPRESENTATION",
+    "receiptSHA256": "6e821844466881c967bb194b427aa040523422dfc90672d6cfd9795ff767d5f2",
+    "states": 10,
+    "reads": 8,
+    "physicalOracles": 7,
+    "oracles": [
+      {
+        "label": "circle-four-created-native",
+        "count": 4,
+        "errors": {
+          "volumeAbsolute": 7.275957614183426e-11,
+          "volumeRelative": 2.310022503058499e-15,
+          "centroidMaximum": 5.684341886080802e-14,
+          "maximumAxisLocationMM": 3.9968028886505635e-15,
+          "maximumAxisComponent": 0,
+          "maximumRadiusMM": 4.440892098500626e-16
+        },
+        "idealCircle": {
+          "status": "NOT_QUALIFIED_TO_1e-9_IDEAL",
+          "centers": [
+            [
+              28,
+              0
+            ],
+            [
+              20,
+              8
+            ],
+            [
+              12,
+              0
+            ],
+            [
+              20,
+              -8
+            ]
+          ],
+          "maximumCenterDeviationDiagnosticMM": 0,
+          "maximumRadialDeviationDiagnosticMM": 0,
+          "sourceRoundingBoundMM": 7.071067811865476e-07,
+          "interpretation": "Measured current rounded representation only; no global precision approval or tighter ideal-circle claim."
+        },
+        "volumeActual": 31497.345175425562,
+        "volumeExpected": 31497.345175425635,
+        "genus": 4
+      },
+      {
+        "label": "circle-six-edited-native",
+        "count": 6,
+        "errors": {
+          "volumeAbsolute": 2.9103830456733704e-11,
+          "volumeRelative": 9.31441269647746e-16,
+          "centroidMaximum": 6.750155989720952e-14,
+          "maximumAxisLocationMM": 3.9968028886505635e-15,
+          "maximumAxisComponent": 0,
+          "maximumRadiusMM": 4.440892098500626e-16
+        },
+        "idealCircle": {
+          "status": "NOT_QUALIFIED_TO_1e-9_IDEAL",
+          "centers": [
+            [
+              28,
+              0
+            ],
+            [
+              24,
+              6.928203230275509
+            ],
+            [
+              16,
+              6.928203230275509
+            ],
+            [
+              12,
+              0
+            ],
+            [
+              16,
+              -6.928203230275509
+            ],
+            [
+              24,
+              -6.928203230275509
+            ]
+          ],
+          "maximumCenterDeviationDiagnosticMM": 2.302755088834374e-07,
+          "maximumRadialDeviationDiagnosticMM": 1.994244405167933e-07,
+          "sourceRoundingBoundMM": 7.071067811865476e-07,
+          "interpretation": "Measured current rounded representation only; no global precision approval or tighter ideal-circle claim."
+        },
+        "volumeActual": 31246.01776313848,
+        "volumeExpected": 31246.01776313845,
+        "genus": 6
+      },
+      {
+        "label": "circle-four-undo-native",
+        "count": 4,
+        "errors": {
+          "volumeAbsolute": 7.275957614183426e-11,
+          "volumeRelative": 2.310022503058499e-15,
+          "centroidMaximum": 5.684341886080802e-14,
+          "maximumAxisLocationMM": 3.9968028886505635e-15,
+          "maximumAxisComponent": 0,
+          "maximumRadiusMM": 4.440892098500626e-16
+        },
+        "idealCircle": {
+          "status": "NOT_QUALIFIED_TO_1e-9_IDEAL",
+          "centers": [
+            [
+              28,
+              0
+            ],
+            [
+              20,
+              8
+            ],
+            [
+              12,
+              0
+            ],
+            [
+              20,
+              -8
+            ]
+          ],
+          "maximumCenterDeviationDiagnosticMM": 0,
+          "maximumRadialDeviationDiagnosticMM": 0,
+          "sourceRoundingBoundMM": 7.071067811865476e-07,
+          "interpretation": "Measured current rounded representation only; no global precision approval or tighter ideal-circle claim."
+        },
+        "volumeActual": 31497.345175425562,
+        "volumeExpected": 31497.345175425635,
+        "genus": 4
+      },
+      {
+        "label": "circle-six-redo-native",
+        "count": 6,
+        "errors": {
+          "volumeAbsolute": 2.9103830456733704e-11,
+          "volumeRelative": 9.31441269647746e-16,
+          "centroidMaximum": 6.750155989720952e-14,
+          "maximumAxisLocationMM": 3.9968028886505635e-15,
+          "maximumAxisComponent": 0,
+          "maximumRadiusMM": 4.440892098500626e-16
+        },
+        "idealCircle": {
+          "status": "NOT_QUALIFIED_TO_1e-9_IDEAL",
+          "centers": [
+            [
+              28,
+              0
+            ],
+            [
+              24,
+              6.928203230275509
+            ],
+            [
+              16,
+              6.928203230275509
+            ],
+            [
+              12,
+              0
+            ],
+            [
+              16,
+              -6.928203230275509
+            ],
+            [
+              24,
+              -6.928203230275509
+            ]
+          ],
+          "maximumCenterDeviationDiagnosticMM": 2.302755088834374e-07,
+          "maximumRadialDeviationDiagnosticMM": 1.994244405167933e-07,
+          "sourceRoundingBoundMM": 7.071067811865476e-07,
+          "interpretation": "Measured current rounded representation only; no global precision approval or tighter ideal-circle claim."
+        },
+        "volumeActual": 31246.01776313848,
+        "volumeExpected": 31246.01776313845,
+        "genus": 6
+      },
+      {
+        "label": "circle-six-refusal-retained-native",
+        "count": 6,
+        "errors": {
+          "volumeAbsolute": 2.9103830456733704e-11,
+          "volumeRelative": 9.31441269647746e-16,
+          "centroidMaximum": 6.750155989720952e-14,
+          "maximumAxisLocationMM": 3.9968028886505635e-15,
+          "maximumAxisComponent": 0,
+          "maximumRadiusMM": 4.440892098500626e-16
+        },
+        "idealCircle": {
+          "status": "NOT_QUALIFIED_TO_1e-9_IDEAL",
+          "centers": [
+            [
+              28,
+              0
+            ],
+            [
+              24,
+              6.928203230275509
+            ],
+            [
+              16,
+              6.928203230275509
+            ],
+            [
+              12,
+              0
+            ],
+            [
+              16,
+              -6.928203230275509
+            ],
+            [
+              24,
+              -6.928203230275509
+            ]
+          ],
+          "maximumCenterDeviationDiagnosticMM": 2.302755088834374e-07,
+          "maximumRadialDeviationDiagnosticMM": 1.994244405167933e-07,
+          "sourceRoundingBoundMM": 7.071067811865476e-07,
+          "interpretation": "Measured current rounded representation only; no global precision approval or tighter ideal-circle claim."
+        },
+        "volumeActual": 31246.01776313848,
+        "volumeExpected": 31246.01776313845,
+        "genus": 6
+      },
+      {
+        "label": "circle-six-persisted-open-native",
+        "count": 6,
+        "errors": {
+          "volumeAbsolute": 2.9103830456733704e-11,
+          "volumeRelative": 9.31441269647746e-16,
+          "centroidMaximum": 6.750155989720952e-14,
+          "maximumAxisLocationMM": 3.9968028886505635e-15,
+          "maximumAxisComponent": 0,
+          "maximumRadiusMM": 4.440892098500626e-16
+        },
+        "idealCircle": {
+          "status": "NOT_QUALIFIED_TO_1e-9_IDEAL",
+          "centers": [
+            [
+              28,
+              0
+            ],
+            [
+              24,
+              6.928203230275509
+            ],
+            [
+              16,
+              6.928203230275509
+            ],
+            [
+              12,
+              0
+            ],
+            [
+              16,
+              -6.928203230275509
+            ],
+            [
+              24,
+              -6.928203230275509
+            ]
+          ],
+          "maximumCenterDeviationDiagnosticMM": 2.302755088834374e-07,
+          "maximumRadialDeviationDiagnosticMM": 1.994244405167933e-07,
+          "sourceRoundingBoundMM": 7.071067811865476e-07,
+          "interpretation": "Measured current rounded representation only; no global precision approval or tighter ideal-circle claim."
+        },
+        "volumeActual": 31246.01776313848,
+        "volumeExpected": 31246.01776313845,
+        "genus": 6
+      },
+      {
+        "label": "circle-four-post-open-native",
+        "count": 4,
+        "errors": {
+          "volumeAbsolute": 7.275957614183426e-11,
+          "volumeRelative": 2.310022503058499e-15,
+          "centroidMaximum": 5.684341886080802e-14,
+          "maximumAxisLocationMM": 3.9968028886505635e-15,
+          "maximumAxisComponent": 0,
+          "maximumRadiusMM": 4.440892098500626e-16
+        },
+        "idealCircle": {
+          "status": "NOT_QUALIFIED_TO_1e-9_IDEAL",
+          "centers": [
+            [
+              28,
+              0
+            ],
+            [
+              20,
+              8
+            ],
+            [
+              12,
+              0
+            ],
+            [
+              20,
+              -8
+            ]
+          ],
+          "maximumCenterDeviationDiagnosticMM": 0,
+          "maximumRadialDeviationDiagnosticMM": 0,
+          "sourceRoundingBoundMM": 7.071067811865476e-07,
+          "interpretation": "Measured current rounded representation only; no global precision approval or tighter ideal-circle claim."
+        },
+        "volumeActual": 31497.345175425562,
+        "volumeExpected": 31497.345175425635,
+        "genus": 4
+      }
+    ],
+    "coverage": {
+      "publicCircle4": "PASS",
+      "editCopies6": "PASS",
+      "exactUndo4": "PASS",
+      "exactRedo6": "PASS",
+      "zeroDiameterRefusal": "PASS",
+      "projectSaveCloseReloadOpen": "PASS",
+      "postOpenCopies4": "PASS"
+    },
+    "sourceFiles": 1193,
+    "sourceEqualBeforeAfterCleanupAndCurrent": true,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "watcherChanges": 0,
+    "downloads": 0,
+    "wrapperPIDAbsent": 75085,
+    "cleanup": [
+      {
+        "ownedProject": "D451-circle-run01",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "gateEnd": "holder: none\nslots: 0 of 2\nload: { 18.96 11.21 10.28 }\n"
+  },
+  "workflowLinks": {
+    "pass": 7,
+    "fail": 0
+  },
+  "models": {
+    "routine": "GPT-6.1 Sol Medium",
+    "nativeOracleAndReadOnlyReview": "GPT-6.1 Sol High"
+  },
+  "review": {
+    "status": "ACK_BOUNDED",
+    "path": "/tmp/barocss-d451-geometry/final-evidence-review.json",
+    "sha256": "326282d46e3dfddf1b4514fdb2ba5a1c4bc0908fb34c0f07e46264ee70993a70"
+  },
+  "rootImagesViewed": [
+    "circle-four-created",
+    "circle-copies-six",
+    "circle-zero-diameter-refused",
+    "circle-post-open-copies-four"
+  ],
+  "idealDiagnostic": {
+    "criterionMaximumCenterDisplacement": 1e-09,
+    "fourCenters": "PASS_MEASURED_DIAGNOSTIC_ONLY",
+    "sixCenters": "FAIL_MEASURED_DIAGNOSTIC_ONLY",
+    "sixMaximumCenterDisplacement": 2.302755088834374e-07,
+    "sixMaximumRadialDisplacement": 1.994244405167933e-07,
+    "sourceRoundingBound": 7.071067811865476e-07,
+    "sourcePolicyAdoptedGlobally": false,
+    "idealCircleAdmission": "NOT_QUALIFIED"
+  },
+  "scopeLimits": [
+    "Native V/C/bounds/genus/cylinder locations under declared finite rounded coordinates only",
+    "FaceInspector mesh-derived area not qualified as native surface area",
+    "No blind/countersink/tapped/other-axis/overlap/generalpattern or circular cut-feature acceptance",
+    "OPFS uses same-context page reload; cold process/profile NOT_RUN"
+  ],
+  "retainedChecks": {
+    "D449ModelTypesAndNativeBuild": "PASS_RETAINED; no owning source/test change",
+    "D450StudioTypesLint": "PASS_RETAINED; no App edit",
+    "newFullKernelTypesBuildLint": "NOT_RUN; verification/docs only"
+  },
+  "commands": {
+    "actual": "bash /tmp/barocss-d451-root/run-studio-workflow.sh"
+  },
+  "issues": {
+    "536": "OPEN epic; broader detailed-operation acceptance remains",
+    "2263": "OPEN exchange scope; unrelated Hole title match not a producer completion issue"
+  },
+  "docChecks": {
+    "status": "PASS",
+    "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs;git diff --check",
+    "rows": 34,
+    "newBroken": 0,
+    "knownHistoricalMissing": 1,
+    "archivesUnchanged": true
+  }
+}

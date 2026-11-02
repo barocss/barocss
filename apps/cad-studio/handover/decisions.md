@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D451: measure current rounded circular Hole placement and qualify edit/refusal/project re-edit](notes/circular-hole-workflow-2026-11-03/README.md).
+
 - [D450: carry accepted selections by existing names before installing preview topology](notes/preview-selection-handoff-2026-11-03/README.md).
 
 - [D449: preserve the nominal Draft neutral plane, qualify three ordinary finishing branches and retain the newly found selection-identity gap](notes/ordinary-finishing-2026-11-03/README.md).
