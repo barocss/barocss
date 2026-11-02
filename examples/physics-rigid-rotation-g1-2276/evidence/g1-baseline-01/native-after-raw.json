@@ -1,0 +1,90 @@
+{
+  "identity": {
+    "modelRevision": "g1a-baseline-2276",
+    "modelDigest": "sha256:915e5a10e43f4d79cd68d9dcb4cc7dfa4d3a01aca95ee78dbcce1de3b820de7b",
+    "configurationDigest": "sha256:e88357a1b38446b29e23c3c495dad798317021ffe110f557c75ffe6a88cff423",
+    "providerDigest": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+    "profile": "rigid-discrete-v1",
+    "frameId": "g1World",
+    "fixedStepSeconds": {
+      "$f64le": "111111111111813f"
+    }
+  },
+  "stepIndex": {
+    "$f64le": "000000000000f03f"
+  },
+  "timeSeconds": {
+    "$f64le": "111111111111813f"
+  },
+  "bodies": [
+    {
+      "id": "rotor",
+      "kind": "dynamic",
+      "positionM": [
+        {
+          "$f64le": "0000000000000000"
+        },
+        {
+          "$f64le": "0000000000000000"
+        },
+        {
+          "$f64le": "0000000000000000"
+        }
+      ],
+      "orientationXYZW": [
+        {
+          "$f64le": "95800f980a11713f"
+        },
+        {
+          "$f64le": "0000000000000000"
+        },
+        {
+          "$f64le": "95800f980a11713f"
+        },
+        {
+          "$f64le": "45f65997dbffef3f"
+        }
+      ],
+      "velocityMps": [
+        {
+          "$f64le": "0000000000000000"
+        },
+        {
+          "$f64le": "0000000000000000"
+        },
+        {
+          "$f64le": "0000000000000000"
+        }
+      ],
+      "angularVelocityRadps": [
+        {
+          "$f64le": "000000000000f03f"
+        },
+        {
+          "$f64le": "0000000000000000"
+        },
+        {
+          "$f64le": "000000000000f03f"
+        }
+      ],
+      "sleeping": false
+    }
+  ],
+  "contacts": [],
+  "events": [],
+  "joints": [],
+  "ccdHits": [],
+  "cloths": [],
+  "fluids": [],
+  "pairStats": {
+    "eligiblePairs": {
+      "$f64le": "0000000000000000"
+    },
+    "candidatePairs": {
+      "$f64le": "0000000000000000"
+    },
+    "aabbTests": {
+      "$f64le": "0000000000000000"
+    }
+  }
+}

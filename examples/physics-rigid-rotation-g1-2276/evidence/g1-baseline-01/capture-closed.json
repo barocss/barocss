@@ -1,0 +1,67 @@
+{
+  "status": "CAPTURE_CLOSED_COMPLETE",
+  "counts": {
+    "nativePairConversions": 1,
+    "nativeScalarConversions": 31,
+    "constructorAttempts": 2,
+    "constructorReturns": 2,
+    "getStateAttempts": 2,
+    "getStateReturns": 2,
+    "stepAttempts": 2,
+    "stepReturns": 2,
+    "disposeAttempts": 2,
+    "disposeReturns": 2,
+    "getModel": 0,
+    "query": 0,
+    "recorder": 0,
+    "WorldApisAfterClassificationStarts": 0,
+    "sourceBuildStarts": 1,
+    "classifierStarts": 0
+  },
+  "graphs": {
+    "source": {
+      "status": "CAPTURE_GUARDS_PASSED",
+      "constructorOutcome": "WORLD_RETURNED",
+      "disposeOutcome": "RETURNED"
+    },
+    "native": {
+      "status": "CAPTURE_GUARDS_PASSED",
+      "constructorOutcome": "WORLD_RETURNED",
+      "disposeOutcome": "RETURNED"
+    }
+  },
+  "allWorldReferencesReleased": true,
+  "providerDigestInequality": {
+    "source": "sha256:2038bba8526717b52b44a57d13d4e3b7951dcfad6e0305179bfedd7e740b663d",
+    "native": "sha256:13873c119e48b3519a5c7469af03c2b31956e14eba1c6c9ba86cbaf33097a801",
+    "publicValuesUntouched": true
+  },
+  "publicRawParity": "all other identity and complete nonidentity state fields exactly equal",
+  "statePins": {
+    "sourceBefore": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/source-before-raw.json",
+      "bytes": 1928,
+      "sha256": "8cf233e124267d8816d51de031d866ac35dd2769e174f02da02e8431f23e4904"
+    },
+    "sourceAfter": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/source-after-raw.json",
+      "bytes": 1928,
+      "sha256": "a56a0bd723a8e01d2daac41be1b3018e24a0d71844d1a69d1c8433db7cf70545"
+    },
+    "nativeBefore": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/native-before-raw.json",
+      "bytes": 1928,
+      "sha256": "40fc317393c5c77648e30578fc2fa9b576590b15450a90f47d6cea4fde1cc249"
+    },
+    "nativeAfter": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/native-after-raw.json",
+      "bytes": 1928,
+      "sha256": "dc181b76cad96a40c531d67bc83891d36ee486860d27360f7d9efe0d77e43a66"
+    }
+  },
+  "inputPin": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/input-raw.json",
+    "bytes": 3791,
+    "sha256": "7bd4490b2cc3b0cc0b3fc60850f0a13d76475547f170437bbdda7a3a8ab0c9d7"
+  }
+}

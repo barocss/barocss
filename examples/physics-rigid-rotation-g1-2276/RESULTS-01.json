@@ -1,0 +1,542 @@
+{
+  "status": "CHARACTERIZED_PHYSICAL_NO_GO",
+  "date": "2026-11-02",
+  "mode": "BASELINE_CHARACTERIZATION_ONLY",
+  "physicalPASS": false,
+  "counts": {
+    "nativePairConversions": 1,
+    "nativeScalarConversions": 31,
+    "constructorAttempts": 2,
+    "constructorReturns": 2,
+    "getStateAttempts": 2,
+    "getStateReturns": 2,
+    "stepAttempts": 2,
+    "stepReturns": 2,
+    "disposeAttempts": 2,
+    "disposeReturns": 2,
+    "getModel": 0,
+    "query": 0,
+    "recorder": 0,
+    "WorldApisAfterClassificationStarts": 0,
+    "sourceBuildStarts": 1,
+    "classifierStarts": 1
+  },
+  "referenceCounts": {
+    "bodyGeometryCertificatesAttempted": 1,
+    "bodyGeometryCertificatesReturned": 1,
+    "oneDimensionalMonomialMoments": 9,
+    "observedStateAuditsAttempted": 4,
+    "observedStateAuditsReturned": 4,
+    "properRationalRotationAttempts": 4,
+    "properRationalRotationReturns": 4,
+    "fractionScalarOperations": 1403,
+    "WorldCalls": 0,
+    "trig": 0,
+    "sqrt": 0,
+    "odeSolves": 0,
+    "linearSolves": 0
+  },
+  "measurementsForDisplayOnly": [
+    {
+      "graph": "source",
+      "status": "PHYSICAL_NO_GO_OBSERVED",
+      "checks": [
+        {
+          "quantity": "angularMomentum",
+          "component": 0,
+          "phase": null,
+          "unit": "kg*m^2/s",
+          "residualDisplay": -3.472182034651074e-07,
+          "boundDisplay": 2e-12,
+          "pass_": false
+        },
+        {
+          "quantity": "angularMomentum",
+          "component": 1,
+          "phase": null,
+          "unit": "kg*m^2/s",
+          "residualDisplay": 8.333140433438353e-05,
+          "boundDisplay": 2e-12,
+          "pass_": false
+        },
+        {
+          "quantity": "angularMomentum",
+          "component": 2,
+          "phase": null,
+          "unit": "kg*m^2/s",
+          "residualDisplay": 3.472182034651074e-07,
+          "boundDisplay": 2e-12,
+          "pass_": false
+        },
+        {
+          "quantity": "rotationalEnergy",
+          "component": null,
+          "phase": null,
+          "unit": "J",
+          "residualDisplay": 0.0,
+          "boundDisplay": 2e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "quaternionSquaredNorm",
+          "component": null,
+          "phase": "before",
+          "unit": "dimensionless",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "linearMomentum",
+          "component": 0,
+          "phase": "before",
+          "unit": "kg*m/s",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "linearMomentum",
+          "component": 1,
+          "phase": "before",
+          "unit": "kg*m/s",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "linearMomentum",
+          "component": 2,
+          "phase": "before",
+          "unit": "kg*m/s",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "comPosition",
+          "component": 0,
+          "phase": "before",
+          "unit": "m",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "comPosition",
+          "component": 1,
+          "phase": "before",
+          "unit": "m",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "comPosition",
+          "component": 2,
+          "phase": "before",
+          "unit": "m",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "quaternionSquaredNorm",
+          "component": null,
+          "phase": "after",
+          "unit": "dimensionless",
+          "residualDisplay": 2.3943771368430156e-16,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "linearMomentum",
+          "component": 0,
+          "phase": "after",
+          "unit": "kg*m/s",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "linearMomentum",
+          "component": 1,
+          "phase": "after",
+          "unit": "kg*m/s",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "linearMomentum",
+          "component": 2,
+          "phase": "after",
+          "unit": "kg*m/s",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "comPosition",
+          "component": 0,
+          "phase": "after",
+          "unit": "m",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "comPosition",
+          "component": 1,
+          "phase": "after",
+          "unit": "m",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "comPosition",
+          "component": 2,
+          "phase": "after",
+          "unit": "m",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        }
+      ]
+    },
+    {
+      "graph": "native",
+      "status": "PHYSICAL_NO_GO_OBSERVED",
+      "checks": [
+        {
+          "quantity": "angularMomentum",
+          "component": 0,
+          "phase": null,
+          "unit": "kg*m^2/s",
+          "residualDisplay": -3.472182034651074e-07,
+          "boundDisplay": 2e-12,
+          "pass_": false
+        },
+        {
+          "quantity": "angularMomentum",
+          "component": 1,
+          "phase": null,
+          "unit": "kg*m^2/s",
+          "residualDisplay": 8.333140433438353e-05,
+          "boundDisplay": 2e-12,
+          "pass_": false
+        },
+        {
+          "quantity": "angularMomentum",
+          "component": 2,
+          "phase": null,
+          "unit": "kg*m^2/s",
+          "residualDisplay": 3.472182034651074e-07,
+          "boundDisplay": 2e-12,
+          "pass_": false
+        },
+        {
+          "quantity": "rotationalEnergy",
+          "component": null,
+          "phase": null,
+          "unit": "J",
+          "residualDisplay": 0.0,
+          "boundDisplay": 2e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "quaternionSquaredNorm",
+          "component": null,
+          "phase": "before",
+          "unit": "dimensionless",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "linearMomentum",
+          "component": 0,
+          "phase": "before",
+          "unit": "kg*m/s",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "linearMomentum",
+          "component": 1,
+          "phase": "before",
+          "unit": "kg*m/s",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "linearMomentum",
+          "component": 2,
+          "phase": "before",
+          "unit": "kg*m/s",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "comPosition",
+          "component": 0,
+          "phase": "before",
+          "unit": "m",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "comPosition",
+          "component": 1,
+          "phase": "before",
+          "unit": "m",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "comPosition",
+          "component": 2,
+          "phase": "before",
+          "unit": "m",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "quaternionSquaredNorm",
+          "component": null,
+          "phase": "after",
+          "unit": "dimensionless",
+          "residualDisplay": 2.3943771368430156e-16,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "linearMomentum",
+          "component": 0,
+          "phase": "after",
+          "unit": "kg*m/s",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "linearMomentum",
+          "component": 1,
+          "phase": "after",
+          "unit": "kg*m/s",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "linearMomentum",
+          "component": 2,
+          "phase": "after",
+          "unit": "kg*m/s",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "comPosition",
+          "component": 0,
+          "phase": "after",
+          "unit": "m",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "comPosition",
+          "component": 1,
+          "phase": "after",
+          "unit": "m",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        },
+        {
+          "quantity": "comPosition",
+          "component": 2,
+          "phase": "after",
+          "unit": "m",
+          "residualDisplay": 0.0,
+          "boundDisplay": 1e-12,
+          "pass_": true
+        }
+      ]
+    }
+  ],
+  "exactAuthority": "Immutable rational records in classification/source-assessment/native-assessment, not rounded display values.",
+  "firstPhysicalFailure": {
+    "graph": "source",
+    "check": {
+      "quantity": "angularMomentum",
+      "component": 0,
+      "unit": "kg*m^2/s",
+      "before": {
+        "numerator": "64903710731685352562390607908045",
+        "denominator": "3894222643901120721397872246915072"
+      },
+      "after": {
+        "numerator": "7189169335492216600966102867197121191111563433176274205443025156747",
+        "denominator": "431359146674410339998320097924393362916336294763761585888499637157888"
+      },
+      "residual": {
+        "numerator": "-299551495913061027985931720190372145821066588539236101875982241",
+        "denominator": "862718293348820679996640195848786725832672589527523171776999274315776"
+      },
+      "bound": {
+        "numerator": "1",
+        "denominator": "500000000000"
+      },
+      "pass": false
+    },
+    "meaning": "first physical failure from immutable saved states; later native assessment uses files only"
+  },
+  "artifacts": [
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/build/source-meta.json",
+      "bytes": 48312,
+      "sha256": "be421f59ff1be6eb6f5d60fb39900f1421138b4207c500d0892ff109a3e6295e"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/build/source.mjs",
+      "bytes": 407308,
+      "sha256": "cf9cbfa60826218476bca7f764d65ff8cd5ddee2e8fe843f813a920d605ec407"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/capture-closed.json",
+      "bytes": 2649,
+      "sha256": "16f10e3a4a08c3a857eaf169a982838f670ebf75816600a8af764ae8344d916a"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/classification-request.json",
+      "bytes": 1896,
+      "sha256": "c4c38147d23bac9ca3108e342fb5c3f6cbb0069b6957465736606db9ff0fe883"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/classification.json",
+      "bytes": 33799,
+      "sha256": "95973a8a801d6c995164e5954040665a07c92802ee5b98f5ec03b39df6e47dcf"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/classifier-progress.json",
+      "bytes": 499,
+      "sha256": "ade8c786e2db1b02900fcff0c860c1c3fd35c365cf318e1acb3657f716ba031c"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/classifier.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/classifier.stdout.raw",
+      "bytes": 480,
+      "sha256": "364b56c66d4760a3c208bfa19fda70e033b31c2fe3b42ab0477fa1b59e1433dc"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/input-raw.json",
+      "bytes": 3791,
+      "sha256": "7bd4490b2cc3b0cc0b3fc60850f0a13d76475547f170437bbdda7a3a8ab0c9d7"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/intended-literal-input.json",
+      "bytes": 2019,
+      "sha256": "3fdf96a3148ab1b90b7a52c06b34189ed437d89ee5e0b1700653436f166f9d72"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/native-after-raw.json",
+      "bytes": 1928,
+      "sha256": "dc181b76cad96a40c531d67bc83891d36ee486860d27360f7d9efe0d77e43a66"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/native-assessment.json",
+      "bytes": 12315,
+      "sha256": "0df0b1131a1981bff385b04991da857545ad63e368de233c425f52687750f02a"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/native-before-raw.json",
+      "bytes": 1928,
+      "sha256": "40fc317393c5c77648e30578fc2fa9b576590b15450a90f47d6cea4fde1cc249"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/progress.json",
+      "bytes": 5687,
+      "sha256": "26ec19c685bf0ecef4442946b4e535e29738dd74f9f6d90f6b185d677e6a4811"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/providers.json",
+      "bytes": 53022,
+      "sha256": "70f0e46802dcebc89170bfffe8c272492f034b19a580efcf1cb438df86dc7cb8"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/source-after-raw.json",
+      "bytes": 1928,
+      "sha256": "a56a0bd723a8e01d2daac41be1b3018e24a0d71844d1a69d1c8433db7cf70545"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/source-assessment.json",
+      "bytes": 12315,
+      "sha256": "a96374d09b9be6f98d5a77ec3c9469f332e340a9c454fd8279a8f9c2bffb344e"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/source-before-raw.json",
+      "bytes": 1928,
+      "sha256": "8cf233e124267d8816d51de031d866ac35dd2769e174f02da02e8431f23e4904"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/source-build.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/source-build.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-rigid-rotation-g1-2276/evidence/g1-baseline-01/summary.json",
+      "bytes": 6173,
+      "sha256": "9bfcb15f6dab6c30ca236f086322ba4e18327634cd1ad1c314c514ee5be13d5d"
+    }
+  ],
+  "freeze": {
+    "path": "examples/physics-rigid-rotation-g1-2276/EXECUTION-FREEZE-01.json",
+    "bytes": 101255,
+    "sha256": "6a04602e299bb6950775205be5a7d8748ac9e9b35d28ff92e779b00b4cc2b055"
+  },
+  "outerCommand": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "examples/physics-rigid-rotation-g1-2276/baseline.mjs",
+    "--run-id",
+    "g1-baseline-01",
+    "--freeze",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-rigid-rotation-g1-2276/EXECUTION-FREEZE-01.json",
+    "--token",
+    "6a04602e299bb6950775205be5a7d8748ac9e9b35d28ff92e779b00b4cc2b055",
+    "--authorize-baseline"
+  ],
+  "outerGuard": {
+    "path": "examples/physics-world-p5-2276/evidence/g1-baseline-guard-01/result.json",
+    "bytes": 3269,
+    "sha256": "9422686c35a0e85309261a2ac2d17aad4a1904c426cc32a26e9217f78ede8437"
+  },
+  "executionFailures": null,
+  "cleanupErrors": [],
+  "limitations": [
+    "One axisymmetric box, one step; not triaxial/trajectory/refinement qualification.",
+    "Source/native exact non-provider public values match; own provider digests intentionally differ.",
+    "Energy and q-norm pass do not imply conservation of angular momentum.",
+    "No repair, no public API change, no old P3/P4 rerun, no actual equipment validation.",
+    "Logical payload charges are not RSS/heap/performance claims."
+  ],
+  "next": "Freeze reviewed G1a repair and independent analytic three-dt trajectory contract; triaxial G1b remains a separate gate."
+}
