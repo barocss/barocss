@@ -33,13 +33,14 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "G1b M02 one-step PASS. PhaseT planning only:0.1s threegrids/controls/atomicity, frozenjointDecimal/compactevidenceproof beforeimplementation. G2exact-sweep staticjoint1MiB allocation ready; Highproofsufficiency andactualencoder/live-rootproof remain, noimplementation/runtime.",
+  "active": "G1b M02 one-step PASS. PhaseT source authoring approved underAUTHORING-FREEZE-T02 and52897763b frozenplans:0.1s threegrids/controls/atomicity; runtimeNOT_RUN untilcombinedreview/freshfreeze. G2exact-sweepjoint1MiBallocationready; Highproofsufficiency/actualencoderproof remain, noG2implementation/runtime.",
   "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
     "nextG1Baseline": "ACHIEVED2026-11-02; actual physical NO_GO preserved",
     "wholeRoadmap": "NO_RELIABLE_DATE_YET; reassess from G1/P4/coupling evidence, no whole-engine date promised",
-    "nextG1Repair": "G1a bounded staged qualification and G1b one-step ACHIEVED2026-11-02. G1 completion pending T/admitted-range/integration; no reliable date."
+    "nextG1Repair": "G1a bounded staged qualification and G1b one-step ACHIEVED2026-11-02. G1 completion pending T/admitted-range/integration; no reliable date.",
+    "nextG1Trajectory": "Tsourceauthoring in progress; one170sinternal/180souter campaign planned afterREADY, no runtimePASS or reliablecalendarcompletion date yet."
   },
   "reportCadence": "milestone,firstfailure,directionchange; report qualified scope,remaining dependency,and revised confidence",
   "invariants": "HOLD,originalNO_GO,tolerances,first failures preserved; no partial develop merge,push,deploy,release",
