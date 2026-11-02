@@ -437,5 +437,150 @@
     "newBrokenLinks": 0,
     "knownHistoricalMissingPaths": 1,
     "historicalArchivesUnchanged": true
+  },
+  "validationTier": {
+    "tier": "full",
+    "reason": "Additive public Model span metadata and existing whole-feature field wiring",
+    "independentAudits": "Multiple High source/interface and geometry/evidence reviews, linked above",
+    "semanticCodeMutation": "PASS9_OF9_KILLED",
+    "physicalSubstitutionMutation": "PASS_WRONG_CENTROID_CAUGHT",
+    "kernelFullSuite": "NOT_RUN_NO_BREP_CORE_CHANGE_D433_RETAINED"
+  },
+  "semanticMutationSupplement": {
+    "status": "PASS_NINE_SEMANTIC_MUTANTS_KILLED",
+    "receiptSHA256": "a34641dbb10e4cec3b39e7f8d5a62a527cef474a93a2abd75fe45f479faee71b",
+    "command": "bash /tmp/barocss-d453-root/run-mutations.sh",
+    "readinessSHA256": "7b8e9e08b6277efa42a2e135240d6f4153f4ebb56a023198e68ee8d1ba6ac5bb",
+    "runnerSHA256": "62b5a030ddcdc61fe4caea027022d91057a64416752f87ede49584a373adeaeb",
+    "productionCommit": "a107a183adae562e43c89f09d004797c0f19668b",
+    "baseline": "REUSED_CHECKS03_OFFICIAL_9_OF_9_NO_RERUN",
+    "sourcePinsEqual": true,
+    "importedSourceGraphFilesPerMutant": 641,
+    "repoWrites": "NONE",
+    "actual2347SourceCapsulesStillEqual": true,
+    "actualRerun": "NOT_RUN_EXACT_UNCHANGED_SOURCE_REUSE",
+    "kernelRerun": "NOT_RUN_NO_CORE_CHANGE",
+    "mutants": [
+      {
+        "id": "omit-command-span",
+        "classification": "KILLED_CLEAN_EXPECTED_SEMANTIC_ASSERTION",
+        "test": "270 partial and 360 full turns retain distinct intent despite identical original step/count",
+        "counts": {
+          "tests": 1,
+          "pass": 0,
+          "fail": 1,
+          "skipped": 0,
+          "cancelled": 0
+        },
+        "assertionStatement": "assert.equal(pattern(partial).span, 270);"
+      },
+      {
+        "id": "force-editor-full360",
+        "classification": "KILLED_CLEAN_EXPECTED_SEMANTIC_ASSERTION",
+        "test": "270 partial and 360 full turns retain distinct intent despite identical original step/count",
+        "counts": {
+          "tests": 1,
+          "pass": 0,
+          "fail": 1,
+          "skipped": 0,
+          "cancelled": 0
+        },
+        "assertionStatement": "assert.equal(pattern(p2).angle, 270);"
+      },
+      {
+        "id": "partial-wrong-denominator",
+        "classification": "KILLED_CLEAN_EXPECTED_SEMANTIC_ASSERTION",
+        "test": "180 partial spread includes endpoints after Count4 to3, while full-circle steps retain creation rounding",
+        "counts": {
+          "tests": 1,
+          "pass": 0,
+          "fail": 1,
+          "skipped": 0,
+          "cancelled": 0
+        },
+        "assertionStatement": "assert.equal(pattern(after).angle, 90);"
+      },
+      {
+        "id": "legacy-inferred-rounded-intent",
+        "classification": "KILLED_CLEAN_EXPECTED_SEMANTIC_ASSERTION",
+        "test": "legacy absence preserves exact old count arithmetic and serialization; X/Y and separate paths keep their graphs",
+        "counts": {
+          "tests": 1,
+          "pass": 0,
+          "fail": 1,
+          "skipped": 0,
+          "cancelled": 0
+        },
+        "assertionStatement": "assert.equal(pattern(count2(old, 7)).angle, 360 / 7);"
+      },
+      {
+        "id": "remove-model-read-guard",
+        "classification": "KILLED_CLEAN_EXPECTED_SEMANTIC_ASSERTION",
+        "test": "typed read and direct compile reject malformed or contradictory metadata, including suppressed and nested nodes",
+        "counts": {
+          "tests": 1,
+          "pass": 0,
+          "fail": 1,
+          "skipped": 0,
+          "cancelled": 0
+        },
+        "assertionStatement": "assert.ok(\"error\" in read);"
+      },
+      {
+        "id": "remove-direct-compile-guard",
+        "classification": "KILLED_CLEAN_EXPECTED_SEMANTIC_ASSERTION",
+        "test": "typed read and direct compile reject malformed or contradictory metadata, including suppressed and nested nodes",
+        "counts": {
+          "tests": 1,
+          "pass": 0,
+          "fail": 1,
+          "skipped": 0,
+          "cancelled": 0
+        },
+        "assertionStatement": "assert.throws(() => toPartDocument(doc), (error) => isRefusal(error, \"VALUE\"));"
+      },
+      {
+        "id": "remove-specs-span",
+        "classification": "KILLED_CLEAN_EXPECTED_SEMANTIC_ASSERTION",
+        "test": "offline edit_feature accepts coherent whole-node intent/pivot, refuses stale intent atomically, and permits explicit legacy replacement",
+        "counts": {
+          "tests": 1,
+          "pass": 0,
+          "fail": 1,
+          "skipped": 0,
+          "cancelled": 0
+        },
+        "assertionStatement": "assert.ok(!edited.isError, edited.content);"
+      },
+      {
+        "id": "remove-specs-pivot",
+        "classification": "KILLED_CLEAN_EXPECTED_SEMANTIC_ASSERTION",
+        "test": "offline edit_feature accepts coherent whole-node intent/pivot, refuses stale intent atomically, and permits explicit legacy replacement",
+        "counts": {
+          "tests": 1,
+          "pass": 0,
+          "fail": 1,
+          "skipped": 0,
+          "cancelled": 0
+        },
+        "assertionStatement": "assert.ok(!edited.isError, edited.content);"
+      },
+      {
+        "id": "drop-intent-on-count1",
+        "classification": "KILLED_CLEAN_EXPECTED_SEMANTIC_ASSERTION",
+        "test": "schema3 Save/load retains partial intent and Count1 round trip",
+        "counts": {
+          "tests": 1,
+          "pass": 0,
+          "fail": 1,
+          "skipped": 0,
+          "cancelled": 0
+        },
+        "assertionStatement": "assert.equal(pattern(one).span, -900);"
+      }
+    ],
+    "killPolicy": "Compile SUCCESS plus the exact semantic assertion failure; syntax/import/runtime/skip/survivor does not count as a kill",
+    "gateLeaseReleased": true,
+    "ownWrapperAbsent": true
   }
 }
