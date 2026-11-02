@@ -1,0 +1,200 @@
+{
+  "work_id": "physics-box-quantized-witness-2276",
+  "artifact_type": "private-finite-cell-witness-results",
+  "status": "PASS_INDEPENDENT_FINITE_CELL_GEOMETRY_ONLY",
+  "owner_role": "independent-evidence-writer",
+  "source_request": "Preserve optionB finite-cell construction and independent native geometry evidence",
+  "last_updated": "2026-11-03",
+  "build": "PASS_PRIVATE_BUILD",
+  "construction": {
+    "status": "PASS_PRIVATE_CONSTRUCTION_AND_GRAPH_PARITY",
+    "counts": {
+      "source": {
+        "attemptedCases": 20,
+        "completedCases": 20,
+        "returnedPoints": 62,
+        "geometryCalls": 20,
+        "anchorChecks": 1674,
+        "WorldCalls": 0
+      },
+      "strict-nodenext": {
+        "attemptedCases": 20,
+        "completedCases": 20,
+        "returnedPoints": 62,
+        "geometryCalls": 20,
+        "anchorChecks": 1674,
+        "WorldCalls": 0
+      }
+    },
+    "population": {
+      "source": {
+        "originalRows": 32,
+        "returnedRows": 32,
+        "sameRawPointRows": 32,
+        "maximumMatchedMovementM": 0
+      },
+      "strict-nodenext": {
+        "originalRows": 32,
+        "returnedRows": 32,
+        "sameRawPointRows": 32,
+        "maximumMatchedMovementM": 0
+      }
+    },
+    "firstFailure": null,
+    "evidenceBytes": 2230764,
+    "independentNativeGeometry": "NOT_RUN",
+    "oldSingleRoundedMidpointProtocol": "UNCHANGED_NO_GO",
+    "globalNearest": "NOT_CLAIMED",
+    "physicalDynamics": "NOT_QUALIFIED",
+    "productionIntegration": "NOT_RUN",
+    "publicBaseline": "UNCHANGED_NO_GO",
+    "originalP4": "UNCHANGED_NO_GO"
+  },
+  "independentGeometry": {
+    "status": "PASS_INDEPENDENT_FINITE_CELL_GEOMETRY_ONLY",
+    "counts": {
+      "source": {
+        "cases": 20,
+        "points": 62,
+        "cells": 62,
+        "cellMembers": 1674,
+        "exactCertificates": 62,
+        "originalRows": 32
+      },
+      "strict-nodenext": {
+        "cases": 20,
+        "points": 62,
+        "cells": 62,
+        "cellMembers": 1674,
+        "exactCertificates": 62,
+        "originalRows": 32
+      }
+    },
+    "firstFailure": null,
+    "originalSameRawRows": {
+      "source": 32,
+      "strict-nodenext": 32
+    },
+    "maximumOriginalMovementSquaredExact": "0",
+    "maximumOriginalMovementM": 0.0,
+    "WorldCalls": 0,
+    "candidateCalls": 0,
+    "globalNearest": "NOT_CLAIMED",
+    "globalUnrepresentability": "NOT_PROVED",
+    "oldSingleRoundedMidpointProtocol": "UNCHANGED_NO_GO",
+    "productionIntegration": "NOT_RUN",
+    "physicalDynamics": "NOT_QUALIFIED",
+    "originalP4": "UNCHANGED_NO_GO"
+  },
+  "totalCertificatesVerified": 124,
+  "totalCellMembersIndependentlyChecked": 3348,
+  "domain": "complete frozen27-member predecessor/RNE/successor coordinate cell per exact native midpoint",
+  "objective": "exact rational squared distance to ideal midpoint; lexical three-word IEEE tie break",
+  "representedNormal": "FIXED",
+  "scope": "Private finite-cell geometry only;20box-pair cases per graph",
+  "gates": {
+    "nativeSlabFeasibility": "EXACT_BOTH_BOXES",
+    "nativeEndpointHalfspaces": 12,
+    "surfaceM": 1e-09,
+    "exitMidpointLineM": 1e-12,
+    "acceptedPairedGapM": 1e-12,
+    "normalNormSquared": 1e-12
+  },
+  "globalNearest": "NOT_CLAIMED",
+  "globalUnrepresentability": "NOT_PROVED",
+  "forcePhaseWrench": "NOT_QUALIFIED",
+  "productionIntegration": "NOT_RUN",
+  "publicBaseline": "UNCHANGED_NO_GO",
+  "originalP4": "UNCHANGED_NO_GO",
+  "oldSingleRoundedMidpointProtocol": "UNCHANGED_NO_GO",
+  "previousFailureEvidence": "examples/physics-box-contact-features-2276/EVIDENCE-01.tar.gz remains separate and unchanged",
+  "nextDependency": "A separate reviewed public geometry/phase/wrench contract must independently qualify integration and accepted public reports before engine adoption. Finite-cell geometry cannot replace force-phase/wrench or wholeP4 gates.",
+  "originalCommandReceipts": [
+    {
+      "id": "box-quantized-build-01",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-quantized-witness-2276/build.mjs",
+        "build-01"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 1079.238708,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-quantized-run-01",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-quantized-witness-2276/run.mjs",
+        "build-01",
+        "run-01"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 2406.533,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-quantized-reference-01",
+      "command": [
+        "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+        "-B",
+        "examples/physics-box-quantized-witness-2276/reference.py",
+        "examples/physics-box-quantized-witness-2276/evidence/run-01"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 468.052417,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    }
+  ],
+  "genericConstructorClosurePins": {
+    "examples/physics-box-contact-features-2276/candidate.ts": {
+      "bytes": 17864,
+      "sha256": "15a1931ed4fc5cc91bbae4fde700258a039aa3e081c128bc61030474de38200d"
+    },
+    "examples/physics-box-contact-features-2276/cases.json": {
+      "bytes": 24863,
+      "sha256": "97623de2d6a8795384d6985d4415579e9b6ef7410cdd90be1facdd5d9740af83"
+    },
+    "examples/physics-box-contact-features-2276/package.json": {
+      "bytes": 97,
+      "sha256": "1c27c0974443a78fe4977ea0c606d134e56ba6751973042cdfff54b6ca079d00"
+    },
+    "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/result.json": {
+      "bytes": 12356,
+      "sha256": "aa77c50446ddfbf4c69b93f222e24fd74e7b663f175c6103571ca819e72c4432"
+    },
+    "examples/physics-contact-boundary-2276/evidence/baseline-01/fixtures.json": {
+      "bytes": 948322,
+      "sha256": "6dbee5b66fa8b7fe638220181cf41ce3beed6e57456588943cc0e91fb135fe49"
+    },
+    "examples/physics-box-contact-features-2276/CONTRACT.md": {
+      "bytes": 3578,
+      "sha256": "4d3f705e639b5435866345d46bfdf98d4388fdb7047a6772967bcabcb36a15cc"
+    },
+    "examples/physics-box-contact-features-2276/AMENDMENT-01.md": {
+      "bytes": 2985,
+      "sha256": "7883d3095e130a79575e7b9a7d15ddede609122b70c5b06f86f3ebf9a2b9bf08"
+    },
+    "examples/physics-box-contact-features-2276/PRESENTATION-DIAGNOSIS-CONTRACT.md": {
+      "bytes": 3946,
+      "sha256": "313042dfda74bee87758f8e09561c7bb82f91e450f830f608e891cb2ad166956"
+    }
+  },
+  "protectedOriginalFilesChanged": 0,
+  "readmeOnlyExistingFileUpdated": true,
+  "readmeBeforePin": {
+    "bytes": 1538,
+    "sha256": "13f395f2edeeae9435087dfc15aaee4cdf0eee1818c3429bfac3ac32972b200d"
+  },
+  "newNumericalRuns": 0,
+  "archive": "EVIDENCE-01.tar.gz"
+}
