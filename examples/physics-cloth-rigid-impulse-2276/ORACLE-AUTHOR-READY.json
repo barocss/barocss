@@ -1,10 +1,10 @@
 {
   "workId": "physics-cloth-rigid-impulse-2276",
-  "status": "AUTHOR_READY_STATIC_ONLY_NUMERICAL_EXECUTION_NOT_RUN",
+  "status": "AUTHOR_READY_ACCOUNTING_REPAIR_STATIC_AND_DATA_ONLY_NUMERICAL_EXECUTION_NOT_RUN",
   "source": {
     "path": "examples/physics-cloth-rigid-impulse-2276/oracle.py",
-    "bytes": 46738,
-    "sha256": "4115ab96c46e662942f38b90395c20de69fad6dcd49bf2cb07efd065dc04244e"
+    "bytes": 61185,
+    "sha256": "9b7d801cabad49db972b6a06f4a30f191a54c1f1ac26fc49ea73e19d409a42f5"
   },
   "immutableInputs": {
     "CONTRACT.md": {
@@ -59,12 +59,14 @@
       "fractions",
       "hashlib",
       "hmac",
+      "io",
       "json",
       "pathlib",
       "re",
       "signal",
       "sys",
-      "time"
+      "time",
+      "types"
     ],
     "exactBuilder": "full physical9mass/3constraint blocks; Jacobian columns from basis velocities and cross products",
     "exactSolution": "independent12x12 KKT, first-nonzero pivot; no production3x3 solve/assembler",
@@ -97,7 +99,6 @@
     "evidenceBytes": 8388608,
     "failureEvidenceReservedBytes": 65536,
     "oneArtifactBytes": 1048576,
-    "allocationSumFixedReserveBytes": 262144,
     "workingGraphNodes": 10000,
     "workingGraphDepth": 16,
     "matrixShapes": [
@@ -115,7 +116,20 @@
     "derivedAdditionSumBits": 8193,
     "DecimalCoefficientDigitsMax": 2048,
     "rationalInputCharactersMax": 128,
-    "RSSClaim": false
+    "RSSClaim": false,
+    "runtimeLayout": "CPython3.13; constructor refuses other implementation/minor",
+    "auditScratchUpperBytes": 2097152,
+    "betweenAuditNumericGrowthUpperBytes": 2097152,
+    "scalarOperationTemporaryUpperBytes": 131072,
+    "serializationScratchUpperBytes": 2228224,
+    "maxEscapedAsciiScalarBytes": 32768,
+    "maxLiveOracleFrames": 32,
+    "maxLocalsPerOracleFrame": 64,
+    "persistentOwnersMax": 16,
+    "jsonDecodePrecharge": "128*inputBytes+65536; input bytes separately rooted",
+    "encodedTreePrecharge": "per-node/header/string-length envelope before original+encoded coexistence",
+    "readPrecharge": "2*(statBytes+1)+8192; unbuffered read <=statBytes+1",
+    "finalReceiptExtraBytes": 65536
   },
   "preservation": {
     "signedZero": "raw ideal spellings retained; Fraction numerical zero is not native sign authority",
@@ -130,8 +144,10 @@
     "separateBuilderAndEliminationASTChecks": "PASS",
     "immutableInputHashesAndCasePopulationMetadata": "PASS",
     "runtimeReferenceValues": "NOT_RUN",
-    "resourceMaxima": "NOT_MEASURED",
-    "numericGateResults": "NOT_RUN"
+    "resourceMaxima": "FULL_REFERENCE_NOT_RUN; syntheticDATA separate",
+    "numericGateResults": "NOT_RUN",
+    "numericalDefinitionsByteAndAstTransfer": "PASS25_PROTECTED_DEFINITIONS",
+    "syntheticDataAccounting": "14PASS_groups,1preservedauthoringFAIL;15groupattempts across3isolatedhelper-onlyprocesses; no passed ten-group prefix replay"
   },
   "actualAuthoringMathLedger": {
     "oracleModuleEvaluations": 0,
@@ -140,7 +156,222 @@
     "DecimalSolves": 0,
     "conditionInversions": 0,
     "candidateCalls": 0,
-    "WorldCalls": 0
+    "WorldCalls": 0,
+    "isolatedDataHelperDefinitionEvaluations": 3,
+    "originalOracleNumericalModuleEvaluations": 0,
+    "FractionConstructions": 0,
+    "DecimalConstructions": 0
   },
-  "next": "Parent reviews actual oracle/candidate/runner source, closes P5 prerequisite, freezes effective graph/budgets and explicitly authorizes one campaign; no retry/tolerance/precision escalation."
+  "next": "STOP edits. Parent reviews repaired resource proof and runner, freezes actual providers, and may separately authorize exactly the unchanged single campaign. Full numerical results and full-reference resource maxima remain NOT_RUN.",
+  "accountingRepair": {
+    "preservedBaseCommit": "301cb393b38b8c3bb84c83a8d76a6ca8db54f593",
+    "preservedOriginalSourceSha256": "4115ab96c46e662942f38b90395c20de69fad6dcd49bf2cb07efd065dc04244e",
+    "preservedStaticReviewSha256": "e426214d90ede6b4c6f1ac606392a1b76b71af2aeca7fc476d06dd56c6a388b4",
+    "originalBlocker": "STATIC_NO_GO_ORACLE_WORKING_BOUND_UNPROVED;0math; immutable history retained",
+    "ownership": "explicit persistent owner registry plus all live bounded oracle caller locals; no retained frame/proxy snapshots",
+    "lifetimes": "previous case numeric/encoded roots released; recursive helper cycles broken in finally without GC dependence; traceback/cause/context cleared before failure receipts",
+    "metricSeparation": [
+      "peakMeasuredReachableOwnedBytes",
+      "peakDerivedOwnedLayoutAllowanceBytes",
+      "peakDerivedScratchAndGrowthBytes",
+      "peakPreflightOwnedUpperBytes"
+    ],
+    "serialization": "exact size first; bounded ASCII chunks into exact-size bytearray; no full JSONstr+UTF8 pair",
+    "numericalTransferProof": [
+      {
+        "name": "raw_parts",
+        "sourceSha256": "595fda37f4aa93b4ff7018df68870e6507e00d0cc81f7d068e19c070e1002afe",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "ExactArithmetic",
+        "sourceSha256": "a509cd1a0e0d7bd064e1f8679fc7bff067cbf02611431aa9424aeeb84daa2509",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "exact_record",
+        "sourceSha256": "4fea1e47f5513641696ae6d98e013922daefffda00ca5d5f2e03af973b1ccf24",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "scalar_shape",
+        "sourceSha256": "c40752430abd10d38f863a09c908fc42fe283f1b912fe8e13d62193b1dbf2c2d",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "vector_shape",
+        "sourceSha256": "46f82985b233092b8143d6b91592fc3f6c31e4bdc4b5c9d67d27f8f3f7d46204",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "classify",
+        "sourceSha256": "b7ac73a66b6c01c8e37c3cca73ac4d7e744d225b163d8ae58ba4b2d06b97f65f",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "f_zeros",
+        "sourceSha256": "93da0a4c0e7efece37b9e1fc6312c509f2e85b301236cedf828fd2d77a5f58ea",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "transpose",
+        "sourceSha256": "db951d8872eeed9a35edda3938e3e6c46fc24f30a13da5cbe8b99776f9c144fd",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "f_rotated_diagonal",
+        "sourceSha256": "bfa1bcda9608844ab835bb4a33637f1ffe12de8bc8e25a0f589a2b471cd6d9c8",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "exact_physical_blocks",
+        "sourceSha256": "fe8f47e7375e34dc3e4fb6c9735d90858c84e4a2cdd3af999436909b2b5bad6f",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "exact_elimination",
+        "sourceSha256": "6cd874dd5d642af2d451a08d1ce96e6d1e1dd0bfce59f1c999f8dcd26bba18f9",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "exact_condition",
+        "sourceSha256": "b7d68dbfcea8689bcea9a23a06ace265cae7f4d47b2c992ef8bc563e6a33b9ce",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "exact_observables",
+        "sourceSha256": "e3583c5845381800fdd718f9bb6298a2e0eced7504884ebfe862eb8e9cd5708b",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "DecimalArithmetic",
+        "sourceSha256": "e3c3f686baa7c8a67312121db87a16e1a926f71ebac902e7fd74e3d323f06817",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "decimal_system",
+        "sourceSha256": "1ccaa6b64904326fe8d86dfc1e7a6f83792cc4a54143ca45a927604e94d61388",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "decimal_elimination",
+        "sourceSha256": "8f85d0352f2049207e4fb50a62f8860c3b5d72c39a1b198a91d7415938df0d73",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "decimal_observables",
+        "sourceSha256": "5a41094e3a0c40be7176809f0ceda22ee56653080cb6bf7438fb938ec67e2038",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "decimal_context",
+        "sourceSha256": "58e91e3de442f1cff4132fc3307c1424c1fb104ea5f1d550a492378bb9d55811",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "context_report",
+        "sourceSha256": "d80fc2e8a8198bd32274656de2cdd05925df4bba6a62fa1c92d9aa07ad05bfec",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "decimal_reference",
+        "sourceSha256": "45eae47775f07757787212c2302b3a73d0b32cdfb1f275002f23fd622f6c34d7",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "numeric_leaves",
+        "sourceSha256": "c606ca9ce9108b2bce285b6557172995dde1dbe89a5f79169895f100f243eac2",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "decimal_crosschecks",
+        "sourceSha256": "8fdfdb548b52735c039a6b7cabb55b92139a8c6e5f6100449dac0aa23c6aa57d",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "instantiate",
+        "sourceSha256": "8269c33e9601a1cd44a3ce20bb62d35c22c86b7e6b59b24823b1f189d2c469ec",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "check_case_relations",
+        "sourceSha256": "37d75140679c0501397097accb4745a710fe0276aae71fdaae498b1e12be7174",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      },
+      {
+        "name": "accepted_reference",
+        "sourceSha256": "f88a5129cc91ab6985d3b99aa35bbef25c13132810890670d8151154feb94f7c",
+        "sourceByteIdentical": true,
+        "astIdentical": true
+      }
+    ],
+    "reviewRequired": "parent reviews derived bounds and full runner before new execution freeze"
+  },
+  "syntheticDataEvidence": {
+    "plan": "ORACLE-ACCOUNTING-REPAIR.md recorded before each bounded DATA check",
+    "check01": {
+      "attemptedGroups": 11,
+      "passedGroups": 10,
+      "firstFailure": {
+        "group": 11,
+        "type": "ReferenceFailure",
+        "message": "unlisted live-owned object type: Pattern"
+      },
+      "group12": "NOT_RUN"
+    },
+    "check02": {
+      "groups": [
+        11,
+        12
+      ],
+      "status": "PASS",
+      "peakMeasuredReachableOwnedBytes": 11110,
+      "peakDerivedOwnedLayoutAllowanceBytes": 16384,
+      "peakPreflightOwnedUpperBytes": 4460759
+    },
+    "check03": {
+      "groups": [
+        "helper-ownership-no-cyclic-GC",
+        "default-help-path-progress-layout"
+      ],
+      "status": "PASS",
+      "nestedHelpersBefore": 0,
+      "nestedHelpersAfter": 0,
+      "gcCollectCalls": 0,
+      "peakMeasuredReachableOwnedBytes": 13323,
+      "peakDerivedOwnedLayoutAllowanceBytes": 32768,
+      "peakPreflightOwnedUpperBytes": 4502137
+    },
+    "oracleModuleEvaluations": 0,
+    "fixtureConversions": 0,
+    "FractionConstructions": 0,
+    "DecimalConstructions": 0,
+    "linearSolves": 0,
+    "candidateCalls": 0,
+    "WorldCalls": 0
+  }
 }

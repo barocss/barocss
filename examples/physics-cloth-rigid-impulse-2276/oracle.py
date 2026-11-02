@@ -8,12 +8,14 @@ from decimal import (Decimal, Context, localcontext, getcontext, ROUND_HALF_EVEN
 from fractions import Fraction
 import hashlib
 import hmac
+import io
 import json
 from pathlib import Path
 import re
 import signal
 import sys
 import time
+import types
 
 sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
@@ -33,6 +35,16 @@ SIGNALS = (Clamped, InvalidOperation, DivisionByZero, Inexact, Rounded,
            Subnormal, Overflow, Underflow, FloatOperation)
 RATIONAL = re.compile(r'^-?(0|[1-9][0-9]*)(/[1-9][0-9]*)?$')
 ENTITY = re.compile(r'^[A-Za-z][A-Za-z0-9._:-]{0,63}$')
+# Separate derived allowances. None is labelled a measured reachable size.
+AUDIT_SCRATCH_MAX = 2 * MIB
+PHASE_GROWTH_MAX = 2 * MIB
+OPERATION_TEMP_MAX = 131072
+SERIALIZER_SCRATCH_MAX = 2 * MIB + 131072
+MAX_SCALAR_ASCII = 32768
+NUMERICAL_FRAMES = frozenset(('classify', 'exact_physical_blocks', 'exact_elimination',
+    'exact_condition', 'exact_observables', 'decimal_system', 'decimal_elimination',
+    'decimal_observables', 'decimal_reference', 'decimal_crosschecks', 'accepted_reference'))
+_ACTIVE_ACCOUNTING = None
 
 
 class ReferenceFailure(RuntimeError):
@@ -49,14 +61,21 @@ def sha(data):
 
 
 def read_bound(path, maximum=MIB):
-    require(path.stat().st_size <= maximum, 'input byte bound: ' + str(path))
-    with path.open('rb') as stream:
-        data = stream.read(maximum + 1)
-    require(len(data) <= maximum, 'input grew beyond bound')
+    size = path.stat().st_size
+    require(size <= maximum, 'input byte bound: ' + str(path))
+    if _ACTIVE_ACCOUNTING is not None:
+        _ACTIVE_ACCOUNTING.preflight(2 * (size + 1) + 8192, 'bounded-input-read')
+    with path.open('rb', buffering=0) as stream:
+        data = stream.read(size + 1)
+    require(len(data) <= size, 'input grew beyond precharged bound')
     return data
 
 
 def strict_json(data):
+    if _ACTIVE_ACCOUNTING is not None:
+        # CPython JSON token/container/pairs/string allocation envelope, including
+        # the decoded text; immutable fixture JSON is authenticated before math.
+        _ACTIVE_ACCOUNTING.preflight(128 * len(data) + 65536, 'bounded-json-decode')
     def pairs(items):
         value = {}
         for key, item in items:
@@ -68,8 +87,85 @@ def strict_json(data):
     return json.loads(data, object_pairs_hook=pairs, parse_constant=constant)
 
 
-def json_bytes(value):
-    return (json.dumps(value, ensure_ascii=True, allow_nan=False, separators=(',', ':')) + '\n').encode()
+def ascii_string_size(value):
+    size = 2
+    for character in value:
+        point = ord(character)
+        size += (2 if point in (8, 9, 10, 12, 13, 34, 92) else
+                 1 if 32 <= point <= 126 else 6 if point <= 65535 else 12)
+        require(size <= MAX_SCALAR_ASCII, 'one ASCII JSON scalar32KiB bound')
+    return size
+
+
+def json_size(value, maximum=MIB):
+    nodes = 0
+    def visit(item, depth):
+        nonlocal nodes
+        nodes += 1
+        require(nodes <= 10000 and depth <= 16, 'JSON output graph bound')
+        if type(item) is str: size = ascii_string_size(item)
+        elif item is None: size = 4
+        elif type(item) is bool: size = 4 if item else 5
+        elif type(item) is int:
+            require(item.bit_length() <= STORED_BITS, 'JSON metadata integer bound')
+            size = len(str(item))
+        elif type(item) is list:
+            size = 2 + max(0, len(item) - 1)
+            for child in item: size += visit(child, depth + 1)
+        elif type(item) is dict:
+            size = 2 + max(0, len(item) - 1)
+            for key, child in item.items():
+                require(type(key) is str, 'JSON keys must be strings')
+                size += visit(key, depth + 1) + 1 + visit(child, depth + 1)
+        else: raise ReferenceFailure('unlisted ASCII JSON output type')
+        require(size + 1 <= maximum, 'one reference artifact byte bound before output allocation')
+        return size
+    try:
+        return visit(value, 0) + 1
+    finally:
+        visit = None  # Break recursive closure ownership without waiting for GC.
+
+
+def json_bytes(value, maximum=MIB):
+    # Exact size first, then bounded ASCII chunks. No full JSON str/UTF8 pair.
+    if _ACTIVE_ACCOUNTING is not None:
+        _ACTIVE_ACCOUNTING.preflight(SERIALIZER_SCRATCH_MAX, 'bounded-ascii-serialization')
+    size = json_size(value, maximum)
+    buffer = bytearray(size)
+    used = 0
+    def append(text):
+        nonlocal used
+        require(type(text) is str and len(text) <= MAX_SCALAR_ASCII and text.isascii(), 'bounded ASCII chunk')
+        chunk = text.encode('ascii')
+        require(used + len(chunk) <= size, 'ASCII writer predicted size differs')
+        buffer[used:used + len(chunk)] = chunk
+        used += len(chunk)
+    def emit(item, depth=0):
+        require(depth <= 16, 'ASCII writer depth bound')
+        if type(item) is str: append(json.encoder.encode_basestring_ascii(item))
+        elif item is None: append('null')
+        elif type(item) is bool: append('true' if item else 'false')
+        elif type(item) is int: append(str(item))
+        elif type(item) is list:
+            append('[')
+            for index, child in enumerate(item):
+                if index: append(',')
+                emit(child, depth + 1)
+            append(']')
+        else:
+            append('{')
+            for index, (key, child) in enumerate(item.items()):
+                if index: append(',')
+                append(json.encoder.encode_basestring_ascii(key)); append(':'); emit(child, depth + 1)
+            append('}')
+    try:
+        emit(value); append('\n')
+    finally:
+        emit = append = None
+    require(used == size, 'ASCII writer exact-size gate')
+    data = bytes(buffer)
+    if _ACTIVE_ACCOUNTING is not None: _ACTIVE_ACCOUNTING.working(value, buffer, data)
+    return data
 
 
 def raw_parts(text):
@@ -94,28 +190,113 @@ class Accounting:
         self.case_id = None
         self.offending = None
         self.detail = None
+        self.owners = {}
+        self.peak_measured_roots = self.peak_derived_extra = 0
+        self.peak_owned_layout_allowance = 0
+        self.peak_upper_phase = None
+        self.last_measured_roots = 0
+        require(sys.implementation.name == 'cpython' and sys.version_info[:2] == (3, 13),
+                'owned-data proof requires frozen CPython3.13 object layout')
+
+    def own(self, name, value):
+        require(name in self.owners or len(self.owners) < 16, 'persistent owner registry bound')
+        self.owners[name] = value
+
+    def release(self, name):
+        self.owners.pop(name, None)
 
     def working(self, *roots):
-        # Conservative explicit allocation sum. Shared values can count twice;
-        # this is task-owned working data, not interpreter/code-page RSS.
+        return self.preflight(0, 'live-root-check', *roots)
+
+    def preflight(self, extra, phase, *roots, numerical_entry=False):
+        require(type(extra) is int and extra >= 0, 'nonnegative owned-data precharge')
+        # Capture every live oracle caller's local data, not only supplied DTOs.
+        # Do not retain frames/proxies on this object after the audit returns.
+        snapshots = []
+        frame = sys._getframe(1)
+        numerical = numerical_entry
+        try:
+            while frame is not None:
+                if frame.f_code.co_filename == __file__ and frame.f_code.co_name != '<module>':
+                    require(len(snapshots) < 32 and len(frame.f_locals) <= 64, 'live oracle frame/local bound')
+                    require(sys.getsizeof(frame) <= 4096, 'one oracle frame4KiB proof bound')
+                    numerical |= frame.f_code.co_name in NUMERICAL_FRAMES
+                    snapshots.append(dict(frame.f_locals))
+                frame = frame.f_back
+        finally:
+            del frame
+        seen = set()
         nodes = 0
+        layout_extra = 0
         def walk(value, depth=0):
-            nonlocal nodes
+            nonlocal nodes, layout_extra
+            identity = id(value)
+            require(sys.getsizeof(identity) <= 40, 'audit identity integer40-byte proof bound')
+            if identity in seen: return 0
+            require(len(seen) < 10000, 'working graph node bound')
+            seen.add(identity)
+            require(sys.getsizeof(seen) <= MIB, 'audit identity-set1MiB table bound')
             nodes += 1
-            require(nodes <= 10000 and depth <= 16, 'working graph shape bound')
+            require(depth <= 16, 'working graph depth bound')
             size = sys.getsizeof(value)
             if type(value) is Fraction:
                 return size + sys.getsizeof(value.numerator) + sys.getsizeof(value.denominator)
             if type(value) is dict:
                 return size + sum(walk(key, depth + 1) + walk(item, depth + 1) for key, item in value.items())
-            if type(value) in (list, tuple):
+            if type(value) in (list, tuple, set, frozenset):
                 return size + sum(walk(item, depth + 1) for item in value)
-            require(type(value) in (str, int, bool, type(None), Decimal), 'unlisted working object type')
-            return size
-        measured = sum(walk(root) for root in roots)
-        # Reserve fixed interpreter frames/iterators, operand temporaries and
-        # bounded source/input/progress metadata inside this8MiB allowance.
-        upper = measured + 262144
+            if type(value) is memoryview: return size + walk(value.obj, depth + 1)
+            if isinstance(value, Path):
+                require(len(str(value)) <= 1024 and len(value.parts) <= 32 and
+                        len(value._raw_paths) <= 32 and sum(len(part) for part in value._raw_paths) <= 1024,
+                        'owned CPython path layout bound')
+                layout_extra += 16384  # raw paths/parts and temporary spelling
+                return size
+            if type(value) is Context:
+                layout_extra += 4096
+                return size
+            if type(value) is re.Pattern:
+                require(type(value.pattern) is str and len(value.pattern) <= 1024 and value.groups <= 64, 'CLI regex metadata bound')
+                layout_extra += 16384  # bounded group-name dictionary and integers
+                return size + walk(value.pattern, depth + 1)
+            if isinstance(value, (Accounting, ExactArithmetic, DecimalArithmetic, argparse.Namespace)):
+                return size + walk(vars(value), depth + 1)
+            if type(value).__module__ == 'argparse' and hasattr(value, '__dict__'):
+                return size + walk(vars(value), depth + 1)
+            if type(value) is types.FunctionType:
+                # Immutable code/globals belong to the separate source/build
+                # partition. New function/closure containers and captured data do not.
+                total = size + walk(value.__dict__, depth + 1) + walk(value.__defaults__, depth + 1) + walk(value.__kwdefaults__, depth + 1)
+                if value.__closure__:
+                    total += sys.getsizeof(value.__closure__)
+                    for cell in value.__closure__:
+                        total += sys.getsizeof(cell) + walk(cell.cell_contents, depth + 1)
+                return total
+            if type(value) is types.MethodType: return size + walk(value.__self__, depth + 1)
+            if isinstance(value, (type, types.BuiltinFunctionType)): return 0
+            if isinstance(value, io.IOBase):
+                layout_extra += 8192
+                return size
+            if isinstance(value, BaseException): return size + walk(value.args, depth + 1) + walk(vars(value), depth + 1)
+            if type(value) in (str, bytes, bytearray, int, bool, float, type(None), Decimal): return size
+            if isinstance(value, int) and type(value).__module__ == 'signal': return size
+            raise ReferenceFailure('unlisted live-owned object type: ' + type(value).__name__)
+        # Self/registry and explicit owners are roots even before authentication.
+        # Shared identities are charged once; every caller snapshot is included.
+        try:
+            measured = walk(self) + sum(walk(root) for root in roots)
+            for snapshot in snapshots:
+                for value in snapshot.values(): measured += walk(value)
+        finally:
+            walk = None
+            seen.clear(); snapshots.clear()
+        derived = layout_extra + AUDIT_SCRATCH_MAX + OPERATION_TEMP_MAX + extra + (PHASE_GROWTH_MAX if numerical else 0)
+        upper = measured + derived
+        self.last_measured_roots = measured
+        self.peak_measured_roots = max(self.peak_measured_roots, measured)
+        self.peak_derived_extra = max(self.peak_derived_extra, derived)
+        self.peak_owned_layout_allowance = max(self.peak_owned_layout_allowance, layout_extra)
+        if upper > self.peak_work_sum: self.peak_upper_phase = phase
         self.peak_work_sum = max(self.peak_work_sum, upper)
         require(upper <= WORK_MAX, 'reference working-data8MiB bound')
         return upper
@@ -615,16 +796,52 @@ def decimal_crosschecks(exact_values, low, high, low_residual, high_residual, au
                 'comparisonContext': context_report(getcontext())}
 
 
+def encoded_allocation_bound(value):
+    nodes = 0
+    def visit(item, depth=0):
+        nonlocal nodes
+        nodes += 1
+        require(nodes <= 10000 and depth <= 16, 'reference encoding graph bound')
+        if type(item) is Fraction:
+            require(max(item.numerator.bit_length(), item.denominator.bit_length()) <= STORED_BITS, 'encoded Fraction bit bound')
+            return 1024 + len(str(item.numerator)) + len(str(item.denominator))
+        if type(item) is Decimal:
+            require(item.is_finite(), 'cannot encode nonfinite reference')
+            digits = len(item.as_tuple().digits)
+            require(digits <= MAX_DECIMAL_DIGITS, 'encoded Decimal digit bound')
+            return 1024 + len(str(item)) + digits
+        if type(item) is list:
+            return 128 + 16 * len(item) + sum(visit(child, depth + 1) for child in item)
+        if type(item) is dict:
+            return 128 + 72 * len(item) + sum(visit(child, depth + 1) for child in item.values())
+        return 0  # Reused ordinary metadata is already a retained live root.
+    try:
+        return visit(value)
+    finally:
+        visit = None
+
+
 def encode_numbers(value):
-    if type(value) is Fraction:
-        return {'numerator': str(value.numerator), 'denominator': str(value.denominator)}
-    if type(value) is Decimal:
-        require(value.is_finite(), 'cannot serialize nonfinite Decimal reference')
-        return {'decimal': str(value), 'sign': value.as_tuple().sign,
-                'exponent': value.as_tuple().exponent, 'digits': ''.join(str(x) for x in value.as_tuple().digits)}
-    if type(value) is list: return [encode_numbers(x) for x in value]
-    if type(value) is dict: return {key: encode_numbers(x) for key, x in value.items()}
-    return value
+    if _ACTIVE_ACCOUNTING is not None:
+        _ACTIVE_ACCOUNTING.preflight(OPERATION_TEMP_MAX, 'encoding-bound-inspection')
+        allocation = encoded_allocation_bound(value)
+        _ACTIVE_ACCOUNTING.preflight(allocation, 'original-plus-encoded-reference')
+    def encode(item):
+        if type(item) is Fraction:
+            return {'numerator': str(item.numerator), 'denominator': str(item.denominator)}
+        if type(item) is Decimal:
+            require(item.is_finite(), 'cannot serialize nonfinite Decimal reference')
+            return {'decimal': str(item), 'sign': item.as_tuple().sign,
+                    'exponent': item.as_tuple().exponent, 'digits': ''.join(str(x) for x in item.as_tuple().digits)}
+        if type(item) is list: return [encode(x) for x in item]
+        if type(item) is dict: return {key: encode(x) for key, x in item.items()}
+        return item
+    try:
+        encoded = encode(value)
+    finally:
+        encode = None
+    if _ACTIVE_ACCOUNTING is not None: _ACTIVE_ACCOUNTING.working(value, encoded)
+    return encoded
 
 
 def instantiate(case, recipes, audit):
@@ -686,6 +903,7 @@ def accepted_reference(raw, state, case, audit):
 
 
 def authenticate(freeze_path, token):
+    if _ACTIVE_ACCOUNTING is not None: _ACTIVE_ACCOUNTING.working(freeze_path, token)
     raw = read_bound(freeze_path)
     require(re.fullmatch('[0-9a-f]{64}', token) and hmac.compare_digest(sha(raw), token), 'explicit parent execution token differs')
     freeze = strict_json(raw)
@@ -714,27 +932,37 @@ def authenticate(freeze_path, token):
 
 
 def run(run_id, freeze_path, token):
+    global _ACTIVE_ACCOUNTING
     require(re.fullmatch('[a-z0-9][a-z0-9-]{0,95}', run_id), 'invalid fresh reference run ID')
     started = time.monotonic_ns()
     def deadline(_signum, _frame):
         raise ReferenceFailure('170s private impulse reference deadline')
     previous = signal.signal(signal.SIGALRM, deadline); signal.setitimer(signal.ITIMER_REAL, 170)
     try:
+        audit = Accounting()
+        require(_ACTIVE_ACCOUNTING is None, 'one owned reference accounting scope')
+        _ACTIVE_ACCOUNTING = audit
+        audit.own('immutable-pin-metadata', PINS)
+        if 'parser' in globals(): audit.own('cli-parser-metadata', globals()['parser'])
+        if 'arguments' in globals(): audit.own('cli-arguments', globals()['arguments'])
         recipes, provenance = authenticate(freeze_path, token)
+        audit.own('recipes', recipes); audit.own('provenance', provenance)
         out = HERE / 'evidence' / run_id
         out.mkdir(parents=True, exist_ok=False)
     except BaseException:
+        _ACTIVE_ACCOUNTING = None
         signal.setitimer(signal.ITIMER_REAL, 0); signal.signal(signal.SIGALRM, previous)
         raise
-    audit = Accounting(); stored = 0
+    stored = 0
     summary = {'workId': 'physics-cloth-rigid-impulse-2276', 'runId': run_id, 'status': 'IN_PROGRESS',
                'provenance': provenance, 'counts': audit.counts, 'replies': [], 'firstFailure': None,
                'candidateExecution': 'NOT_RUN_BY_ORACLE', 'WorldCalls': 0,
                'signedZeroAuthority': 'raw ideal spellings retained; Fraction numerical zero predicts no native zero sign',
                'nativeRounding': 'ideal rational reference; no native fixture conversion or binary64 output authority is manufactured'}
+    audit.own('summary', summary)
     def write(name, value, reserved=False):
         nonlocal stored
-        data = json_bytes(value)
+        data = json_bytes(value, MIB)
         require(len(data) <= MIB, 'one reference artifact1MiB bound')
         limit = EVIDENCE_MAX if reserved else EVIDENCE_MAX - RESERVED_EVIDENCE
         require(stored + len(data) + 8192 <= limit, 'reference evidence8MiB bound')
@@ -743,21 +971,30 @@ def run(run_id, freeze_path, token):
         return {'path': name, 'bytes': len(data), 'sha256': sha(data)}
     def progress():
         data = json_bytes({'status': summary['status'], 'counts': audit.counts,
-                           'caseId': audit.case_id, 'phase': audit.phase, 'firstFailure': summary['firstFailure']})
+                           'caseId': audit.case_id, 'phase': audit.phase, 'firstFailure': summary['firstFailure']}, 8192)
         require(len(data) <= 8192 and stored + len(data) <= EVIDENCE_MAX, 'bounded progress receipt')
         (out / 'progress.json').write_bytes(data)
     try:
         zero_solution = None
+        raw = state = result = reply = before_raw = None
         for case in recipes['acceptedCases'] + recipes['refusalCases']:
+            # Release the preceding pair of full numeric/encoded trees before
+            # constructing a new literal. Signed-zero control data is explicit.
+            raw = state = result = reply = before_raw = None
+            for owner in ('raw', 'state', 'result', 'reply'): audit.release(owner)
+            audit.working()
             before_counts = dict(audit.counts)
             audit.case_id = case['id']; audit.phase = 'request-preflight'
             audit.counts['requestsAttempted'] += 1
             require(audit.counts['requestsAttempted'] <= 23, 'reference request budget23')
             progress()
             raw = instantiate(case, recipes, audit)
+            audit.own('raw', raw)
             before_raw = json_bytes(raw)
             write(case['id'] + '.ideal-input.json', raw)
+            audit.preflight(0, 'classification-entry', numerical_entry=True)
             reason, state = classify(raw, ExactArithmetic(audit))
+            audit.own('state', state)
             if case['expected'] == 'private-input-error':
                 require(reason == case['reason'], 'reference refusal classification differs: ' + str(reason))
                 require(all(audit.counts[name] == before_counts[name] for name in
@@ -769,13 +1006,16 @@ def run(run_id, freeze_path, token):
             else:
                 require(reason is None, 'normal literal plant refused: ' + str(reason))
                 result = accepted_reference(raw, state, case, audit)
+                audit.own('result', result)
                 if case['id'] == '12-negative-zero-input': zero_solution = copy.deepcopy(result['fraction']['values'])
+                audit.own('signed-zero-control', zero_solution)
                 if case['id'] == '13-positive-zero-input':
                     require(zero_solution == result['fraction']['values'], 'signed-zero physical equivalence differs')
                 audit.counts['acceptedReferences'] += 1
                 reply = {'status': 'ACCEPTED_REFERENCE', 'caseId': case['id'], 'rawIdealInput': raw,
                          'reference': encode_numbers(result), 'equationModel': 'independent12x12 full kinetic KKT',
                          'nativeZeroSigns': 'NOT_PREDICTED_BY_FRACTION', 'nativeRounding': summary['nativeRounding']}
+            audit.own('reply', reply)
             require(json_bytes(raw) == before_raw, 'reference mutated literal input')
             audit.phase = 'write-complete-reply'
             reply['provenance'] = provenance
@@ -788,6 +1028,8 @@ def run(run_id, freeze_path, token):
             summary['replies'].append(write(case['id'] + '.reply.json', reply))
             audit.counts['requestsReturned'] += 1
             progress()
+        raw = state = result = reply = before_raw = zero_solution = None
+        for owner in ('raw', 'state', 'result', 'reply', 'signed-zero-control'): audit.release(owner)
         require(audit.counts['requestsAttempted'] == audit.counts['requestsReturned'] == 23 and
                 audit.counts['acceptedReferences'] == 13 and audit.counts['expectedRefusals'] == 10,
                 'incomplete reference request population')
@@ -796,14 +1038,32 @@ def run(run_id, freeze_path, token):
         authenticate(freeze_path, token)
         summary['status'] = 'PASS_INDEPENDENT_IMPULSE_ORACLE'
     except BaseException as error:
+        # Keep bounded diagnostic values, not traceback-owned solver frames.
+        # Release numerical/encoding roots before progress/failure serialization.
+        error.__traceback__ = None
+        error.__cause__ = error.__context__ = None
+        raw = state = result = reply = before_raw = zero_solution = None
+        for owner in ('raw', 'state', 'result', 'reply', 'signed-zero-control'): audit.release(owner)
         summary['status'] = 'FAIL'
         summary['firstFailure'] = {'type': type(error).__name__, 'message': str(error)[:4096], 'caseId': audit.case_id,
                                    'phase': audit.phase, 'counts': dict(audit.counts), 'offending': audit.offending}
         summary['firstFailure']['detail'] = audit.detail
     finally:
-        signal.setitimer(signal.ITIMER_REAL, 0); signal.signal(signal.SIGALRM, previous)
+        # The original170s work deadline is unchanged. Receipt cleanup has its
+        # own smaller bound inside the parent's unchanged180s outer guard.
+        def cleanup_deadline(_signum, _frame):
+            raise ReferenceFailure('4s private impulse receipt-cleanup deadline')
+        signal.signal(signal.SIGALRM, cleanup_deadline); signal.setitimer(signal.ITIMER_REAL, 4)
         summary['elapsedWallNs'] = time.monotonic_ns() - started
-        summary['workingData'] = {'peakConservativeAllocationSumPlusReserveBytes': audit.peak_work_sum,
+        summary['workingData'] = {'peakMeasuredReachableOwnedBytes': audit.peak_measured_roots,
+                                  'peakDerivedScratchAndGrowthBytes': audit.peak_derived_extra,
+                                  'peakDerivedOwnedLayoutAllowanceBytes': audit.peak_owned_layout_allowance,
+                                  'peakPreflightOwnedUpperBytes': audit.peak_work_sum,
+                                  'peakUpperPhase': audit.peak_upper_phase,
+                                  'auditScratchBoundBytes': AUDIT_SCRATCH_MAX,
+                                  'betweenAuditNumericGrowthBoundBytes': PHASE_GROWTH_MAX,
+                                  'operationTemporaryBoundBytes': OPERATION_TEMP_MAX,
+                                  'serializerScratchBoundBytes': SERIALIZER_SCRATCH_MAX,
                                   'limitBytes': WORK_MAX, 'RSSClaim': False,
                                   'maxStoredFractionBits': audit.max_stored_bits,
                                   'maxEstimatedIntermediateProductBits': audit.max_product_bits,
@@ -812,9 +1072,20 @@ def run(run_id, freeze_path, token):
         summary['exactFactorizations'] = audit.counts['exactKktAttempted'] + audit.counts['exactConditionAttempted']
         summary['decimalFactorizations'] = audit.counts['decimal80Attempted'] + audit.counts['decimal120Attempted']
         summary['chargedEvidenceBytesBeforeSummary'] = stored
+        # Charge final receipt scratch before freezing its reported peak. The
+        # extra64KiB covers adding/updating these bounded metric fields.
+        audit.preflight(SERIALIZER_SCRATCH_MAX + 65536, 'final-receipt-preflight')
+        summary['workingData'].update({'peakMeasuredReachableOwnedBytes': audit.peak_measured_roots,
+                                      'peakDerivedScratchAndGrowthBytes': audit.peak_derived_extra,
+                                      'peakPreflightOwnedUpperBytes': audit.peak_work_sum,
+                                      'peakUpperPhase': audit.peak_upper_phase})
         progress(); write('summary.json', summary, reserved=True)
-    print(json.dumps({'status': summary['status'], 'runId': run_id, 'counts': audit.counts,
-                      'firstFailure': summary['firstFailure']}, separators=(',', ':')))
+    try:
+        sys.stdout.buffer.write(json_bytes({'status': summary['status'], 'runId': run_id, 'counts': audit.counts,
+                          'firstFailure': summary['firstFailure']}, 8192))
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0); signal.signal(signal.SIGALRM, previous)
+        _ACTIVE_ACCOUNTING = None
     return 0 if summary['status'] == 'PASS_INDEPENDENT_IMPULSE_ORACLE' else 1
 
 

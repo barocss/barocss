@@ -1,0 +1,132 @@
+{
+  "work_id": "physics-cloth-rigid-impulse-2276",
+  "artifact_type": "private-campaign-runner-author-ready",
+  "status": "AUTHOR_READY_STATIC_ONLY_HIGH_REVIEW_AND_EXECUTION_FREEZE_REQUIRED",
+  "owner_role": "runner-validator-implementation",
+  "source_request": "One frozen standalone reduced impulse source/native campaign; no public API or World",
+  "last_updated": "2026-11-02",
+  "sources": [
+    {
+      "path": "examples/physics-cloth-rigid-impulse-2276/impulse-run.mjs",
+      "bytes": 29294,
+      "sha256": "f999040ba6a571a0337265fa0ffb275ad4181135f6f9679ff7b815e917d15df7"
+    },
+    {
+      "path": "examples/physics-cloth-rigid-impulse-2276/native-validate.py",
+      "bytes": 22690,
+      "sha256": "c8264b15d67563710091acf16c3adbe829de603dd8ece1de7925fafa21491237"
+    },
+    {
+      "path": "examples/physics-cloth-rigid-impulse-2276/RUNNER-PLAN.json",
+      "bytes": 13903,
+      "sha256": "6c8ff71d777890140a583bce27815a3a1a1d21048037125aa0b1830411674747"
+    }
+  ],
+  "immutableAuthority": [
+    {
+      "path": "examples/physics-cloth-rigid-impulse-2276/CONTRACT.md",
+      "bytes": 13569,
+      "sha256": "7e11f247a8287d5713bdba8f18a3a36fba2abf3602a39cfcd5663461974a05a6"
+    },
+    {
+      "path": "examples/physics-cloth-rigid-impulse-2276/CASES.json",
+      "bytes": 31141,
+      "sha256": "f2de2962270fc9fc4910844325d52eb7a2b373f9c3ac884455a53340b4d87d90"
+    },
+    {
+      "path": "examples/physics-cloth-rigid-impulse-2276/AUTHORING-FREEZE-01.json",
+      "bytes": 1705,
+      "sha256": "77631e8fadcf0ab61e3f57e810ad81e14a029cad69a8961c683cc9ff546615f7"
+    },
+    {
+      "path": "examples/physics-cloth-rigid-impulse-2276/RUNNER-AUTHORING-FREEZE-01.json",
+      "bytes": 2905,
+      "sha256": "d086512f537cc60db7c089737b61f5044593522b3a6be61cb5333bfce28abfc8"
+    },
+    {
+      "path": "examples/physics-cloth-rigid-impulse-2276/candidate.ts",
+      "bytes": 14057,
+      "sha256": "7901dc4240098da03bb2dea3f353be37c8d8e34c7d31303f19c8950813721106"
+    },
+    {
+      "path": "examples/physics-cloth-rigid-impulse-2276/CANDIDATE-AUTHOR-READY.json",
+      "bytes": 5943,
+      "sha256": "0fffa89d9226087d724a558473da69fde49f9aec6697fd7b567b850e31e48a05"
+    }
+  ],
+  "dependentProviderPolicy": "No oracle SHA is hardcoded. Parent runtime freeze must pin the final current oracle.py, ORACLE-AUTHOR-READY.json, its accounting repair report, High source review, P5 completion receipt, all four runner author files, all immutable authority and exact installed tool closure before any execution.",
+  "cli": {
+    "wrapper": "NODE22 examples/physics-world-p5-2276/command-run.mjs FRESH-GUARD-ID . NODE22 examples/physics-cloth-rigid-impulse-2276/impulse-run.mjs --run-id FRESH-CAMPAIGN-ID --freeze ABS --token SHA256 --authorize-impulse-campaign",
+    "freezeStatus": "PARENT_AUTHORIZED_IMPULSE_CAMPAIGN",
+    "requiredAttestations": [
+      "runtimeAuthorized=true",
+      "p5Closed=true",
+      "runId=exact CLI id",
+      "validationRequestLimit=26",
+      "highReview.approved=true with pinned report"
+    ],
+    "details": "RUNNER-PLAN.json"
+  },
+  "staticChecks": {
+    "status": "PASS_SYNTAX_AST_METADATA_ONLY",
+    "gates": [
+      "heavy: impulse-runner-author",
+      "heavy: impulse-runner-final-author"
+    ],
+    "node": "/Users/user/.volta/tools/image/node/22.19.0/bin/node --check impulse-run.mjs",
+    "python": "python3 -B AST parse + compile(source, filename, exec), no module evaluation; stdlib-only imports; no eval/exec/import trampoline; no solver function",
+    "metadata": "13+10+2 cases,50 attempts/30 solves/26 validators, build-before-oracle-before-conversion-before-module-evaluation order, unique source overlay anchor strings",
+    "typecheckOrEmit": "NOT_RUN",
+    "moduleEvaluations": 0,
+    "fixtureInstantiations": 0,
+    "nativeConversions": 0,
+    "referenceCalls": 0,
+    "candidateCalls": 0,
+    "WorldCalls": 0,
+    "builds": 0
+  },
+  "futureLedger": {
+    "oracleBatches": 1,
+    "referenceRequests": 23,
+    "exactFactorizations": 26,
+    "decimalKktFactorizations": 26,
+    "nativeConversionsGlobal": 23,
+    "candidateAttempts": 50,
+    "candidateReturns": 26,
+    "candidateRefusals": 20,
+    "candidateInjectedUnknownThrows": 4,
+    "candidateDirect3x3Solves": 30,
+    "validationProcesses": 26,
+    "validationLinearSolves": 0,
+    "esbuildProcesses": 1,
+    "typescriptProcesses": 1,
+    "actualDirectChildStarts": 29,
+    "WorldCalls": 0,
+    "retries": 0,
+    "warmups": 0,
+    "extraRecoveryCalls": 0
+  },
+  "order": "Full source/tool/P5/High auth and literal metadata; source/native compilation with zero module evaluation and zero references; one full oracle PASS;23 one-time native conversions; source25 with immediate13 audits; native25 only after complete sourcePASS with immediate13 audits; postauth/ledger.",
+  "physicalGatePolicy": "Frozen1e-12 absolute+relative exact rational rules unchanged. Each physical validator uses only actualF64 bits+saved ideal Fraction reply, recomputes P/L/energy/work/relative velocity and state-derived reactions, performs0solves, preserves exact first failed error/bound rationals. Fraction gives no computed zero-sign authority.",
+  "rawOwnershipPolicy": "Input snapshots after EVERY call incl refusions/faults; detached all output object/array identity checks; unchanged nonvelocity raw bits; unknown markers strict object identity; all source/native output numeric words and structure compared per accepted case.",
+  "resourcePolicy": {
+    "sourceDerivation": "RUNNER-PLAN.json resourceDerivation; entire explicit root sets and serialization charges, fixed scratch, artifact and log budgets documented",
+    "status": "SOURCE_CHARGE_MODEL_REQUIRES_HIGH_REVIEW_NOT_RUNTIME_PASS",
+    "internalMs": 170000,
+    "outerGroupMs": 180000,
+    "externalCleanupMsMax": 4000,
+    "allChildrenInheritGroup": true,
+    "internalChildTermKillResolveMsMax": 1500,
+    "combinedCapturedChildLogsBytes": 4194304,
+    "combinedOracleRunnerEvidenceBytes": 8388608,
+    "buildBytes": 16777216,
+    "declaredOwnedEnvelopeBytes": 67108864,
+    "toolHeapMeasured": false,
+    "RSSClaim": false
+  },
+  "installedToolSourceInspection": {
+    "nativeEsbuild": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/node_modules/esbuild/bin/esbuild; file inspection Mach-O arm64, not JS SDK launcher. Runtime verifies native header+parent hash.",
+    "typescript": "installed lib/tsc.js wrapper +lib/_tsc.js +actual ES2022 declaration closure; all --listFiles inputs must be overlay or frozen tool file. No compiler execution during authoring."
+  },
+  "scopeBoundary": "No implementation outside these four new files. Candidate/oracle/contract/cases/READY inputs not modified. No public profile/schema/API/World/current provider changes, no P6 trajectory claim. Runtime, physical gates, source/native parity, ownership fault results and resource maxima remain NOT_RUN. Parent must review and freeze actual closure before one run."
+}

@@ -1,0 +1,208 @@
+{
+  "workId": "physics-cloth-rigid-impulse-2276",
+  "status": "AUTHOR_ONLY_NO_EXECUTION",
+  "cli": {
+    "outer": [
+      "NODE22",
+      "examples/physics-world-p5-2276/command-run.mjs",
+      "FRESH-GUARD-ID",
+      ".",
+      "NODE22",
+      "examples/physics-cloth-rigid-impulse-2276/impulse-run.mjs",
+      "--run-id",
+      "FRESH-CAMPAIGN-ID",
+      "--freeze",
+      "ABS-PARENT-FREEZE",
+      "--token",
+      "SHA256",
+      "--authorize-impulse-campaign"
+    ],
+    "oracle": [
+      "PYTHON",
+      "-B",
+      "oracle.py",
+      "--run-id",
+      "CAMPAIGN-ID-oracle",
+      "--freeze",
+      "derived-oracle-freeze.json",
+      "--token",
+      "SHA256"
+    ],
+    "emit": [
+      "NODE22",
+      "TSC-CLI",
+      "--project",
+      "fresh-build/tsconfig.json",
+      "--listFiles"
+    ],
+    "validator": [
+      "PYTHON",
+      "-B",
+      "native-validate.py",
+      "--request",
+      "ABS-REQUEST",
+      "--request-sha256",
+      "SHA256",
+      "--freeze",
+      "ABS-PARENT-FREEZE",
+      "--token",
+      "SHA256",
+      "--out",
+      "ABS-FRESH-RESULT"
+    ],
+    "sourceBuild": [
+      "PINNED-NATIVE-ESBUILD-BINARY",
+      "fresh-build/overlay/candidate.ts",
+      "--bundle",
+      "--platform=node",
+      "--format=esm",
+      "--target=node22",
+      "--log-level=error",
+      "--outfile=fresh-build/source.mjs",
+      "--metafile=fresh-build/source-metafile.json"
+    ]
+  },
+  "executionFreeze": {
+    "status": "PARENT_AUTHORIZED_IMPULSE_CAMPAIGN",
+    "runtimeAuthorized": true,
+    "p5Closed": true,
+    "files": "repo-relative source/data/READY/High-review/P5-completion/outer-guard pins {bytes,sha256}; all actual source closure required",
+    "toolFiles": "Absolute installed Node/Python/native-esbuild/TypeScript CLI+compiler+all actual ES2022 declaration input pins. Compiler --listFiles output must equal fresh overlay or a frozen installed tool file.",
+    "tools": {
+      "node": "exact installed Node22 executable",
+      "python": "exact installed Python3 executable",
+      "typescriptCLI": "exact installed TypeScript lib/tsc.js",
+      "esbuildBinary": "exact installed native esbuild executable, not JS launcher"
+    },
+    "highReview": "pinned repo-relative STATIC-REVIEW report with approved=true",
+    "validationRequestLimit": 26,
+    "runId": "Exactly FRESH-CAMPAIGN-ID; no reuse with a second run"
+  },
+  "graphs": {
+    "source": "Authenticated candidate.ts plus four observation overlays; one direct native esbuild binary CLI process; zero generated graph imports. No esbuild JS service or project numeric import.",
+    "native": "Same effective TS; one strict isolated tsc CLI with --listFiles, fresh outDir, declarations and type:module; actual emitted candidate.js imported only after oracle PASS. All actual type inputs must be overlay or frozen toolFiles. Both generated providers hashed before import and after final graph.",
+    "imports": "builtins/tool imports only; zero public Physics/World/CAD/recorder imports",
+    "nativeVsSource": "all returned numeric rawF64LE words and exact structure per case"
+  },
+  "overlayAnchors": {
+    "entry": "export function projectClothRigidImpulse(input: unknown): ImpulseResult {",
+    "solve": "IMPULSE_DIRECT_SOLVE_ENTRY",
+    "faultFirst": "IMPULSE_FIRST_SIDE_PREPARED",
+    "faultPair": "IMPULSE_PAIR_PREPARED"
+  },
+  "ledger": {
+    "oracleProcesses": 1,
+    "oracleRequests": 23,
+    "idealFixtures": 23,
+    "exactKktFactorizations": 13,
+    "exactConditionFactorizations": 13,
+    "decimal80Factorizations": 13,
+    "decimal120Factorizations": 13,
+    "nativeFixtureConversionsGlobal": 23,
+    "perGraph": {
+      "attempts": 25,
+      "returns": 13,
+      "refusals": 10,
+      "faultThrows": 2,
+      "solveEntries": 15,
+      "firstSideVisits": 15,
+      "pairVisits": 14,
+      "validatorProcesses": 13
+    },
+    "candidateAttempts": 50,
+    "candidateSolves": 30,
+    "nativeValidationProcesses": 26,
+    "validatorFactorizations": 0,
+    "WorldCalls": 0,
+    "extraRecoveryCalls": 0,
+    "retries": 0,
+    "esbuildProcesses": 1,
+    "typescriptProcesses": 1,
+    "actualChildProcessStarts": 29
+  },
+  "ordering": [
+    "authenticate entire freeze/tools/High review/P5 completion and literal metadata13+10+2/paths/report mappings before any build or mathematical conversion",
+    "build source/native isolated effective graphs with authenticated native esbuild+TSC; zero candidate module evaluation/fixture conversion/reference calls; compiler/provenance failures consume0math",
+    "one oracle batch; authenticate all23 full reply artifacts and counts; PASS prerequisite before first candidate",
+    "convert exactly23 literal inputs once globally; save rawF64LE for every number",
+    "source13 accepted: each call -> ownership/state gates -> save raw output -> one validator -> require PASS before next call",
+    "source10 refusals exact code/reason before solve;2 marker faults after solve; raw input integrity after EVERY call",
+    "native only after complete source PASS; same sequence plus per-case full output raw parity",
+    "postauthenticate sources/tools; verify exact counters; stop on first failure"
+  ],
+  "validation": {
+    "componentGate": "abs(actual-ideal)<=1/10^12+(1/10^12)*abs(ideal)",
+    "invariantGate": "abs(error)<=1/10^12+(1/10^12)*max(1,abs(beforeIdeal),abs(afterIdeal))",
+    "nativeArithmetic": "exact stdlib Fraction from IEEE binary64 bits; no candidate/oracle imports, matrix solve, or coefficient reuse",
+    "recomputed": [
+      "state-derived impulses",
+      "relative endpoint velocity",
+      "linear momentum",
+      "angular momentum about origin0 including spin RdiagI R-transpose",
+      "kinetic energy",
+      "average-velocity impulse work",
+      "mass-metric objective",
+      "reaction signs/report consistency"
+    ],
+    "inputRounding": "exact native-minus-ideal rational errors separate from physical-output gates; no signed-zero authority from Fraction",
+    "firstFailure": "Failed physical check retains exact actual/ideal/error/bound rationals and peak ratio in validator artifact; runner propagates that artifact pin before stopping. Failed oracle summary/count prefix remains preserved without reclassification.",
+    "extraReportMapping": {
+      "report.worldAnchorArmM": "reference.fraction.worldArmM, plus independent consistency with actual-input R*anchor"
+    }
+  },
+  "bounds": {
+    "internalMs": 170000,
+    "outerOwnedGroupMs": 180000,
+    "outerCleanupMs": 4000,
+    "phaseMs": {
+      "oracle": 100000,
+      "build": 20000,
+      "fixtures": 5000,
+      "source": 20000,
+      "native": 20000,
+      "finalize": 5000
+    },
+    "combinedChildOutputBytes": 4194304,
+    "singleJSONBytes": 1048576,
+    "evidenceCombinedOracleAndRunnerBytes": 8388608,
+    "failureReserveBytes": 65536,
+    "referenceWorkBytes": 8388608,
+    "candidateWorkBytes": 8388608,
+    "sourceBuildBytes": 16777216,
+    "wholeOwnedDataBytes": 67108864,
+    "fixedReserveBytes": 25165824,
+    "RSSClaim": false,
+    "validatorOutputBytes": 262144,
+    "validatorChecksMax": 256,
+    "validatorRequestMsMax": 5000,
+    "internalChildCleanupMsMax": 1500
+  },
+  "processOwnership": {
+    "detached": false,
+    "group": "parent command-run owns sole detached group; all runner/oracle/compiler/validator/esbuild children inherit it",
+    "childCompletion": "close + stdout EOF + stderr EOF required. Internal deadline sends child PID TERM, KILL after500ms, destroys pipes/resolves failed wait after1500ms; missing close/EOF never PASS. Parent180s group guard handles remaining descendants and bounded final cleanup.",
+    "durableCounters": "write progress synchronously before every subprocess/candidate invocation; preserve unknown first failure and actual counts",
+    "noOverwrite": "fresh campaign+oracle IDs; all artifacts wx except bounded progress file",
+    "actualStarts": "Durable attempt counters increment before commands; PID-observed actual starts counted separately oracle1/esbuild1/tsc1/validator26. Progress includes all command PIDs and EOF/close states."
+  },
+  "proofBoundary": "Operator-only; source/native physical results NOT_RUN. Public API/schema/World/current provider unchanged. No broad example/probe evaluation. Source-level resource charge derivation requires High review; actual tool heap and process RSS are NOT_MEASURED.",
+  "resourceDerivation": {
+    "scope": "Enforced owned payload, serialization and artifact allocation envelope. Not a claim that V8, CPython, TypeScript compiler, esbuild, OS pages or whole process RSS are <=64MiB. Installed toolchain internal heap is unmeasured. High static review must approve this source-level charge model before runtime.",
+    "runnerCharge": {
+      "formula": "4MiB + 32*S <=8MiB; S is actual UTF8 JSON byte length of all23 retained native fixture inputs encoded as raw words, all up-to13 retained source raw output strings, and ALL retained command records. The previous draft2MiB fixed charge is replaced with4MiB to cover concurrently parsed validator metrics and recipe/summary roots.",
+      "retainedRoots": "fixtureInputs23; sourceOutputs13; command records29; cases31KiB original literals; oracleSummary23 reply pins; replyPins23; graph/provider pins; counters/progress; current input clone/output/raw word representation/request/result raw+parsed metrics. No previous full candidate output or previous validation metric object is stored in a collection. Per-case lexical scope ends before next candidate; only source raw string remains for parity. currentCall ref is cleared after every invocation and graph finally.",
+      "factor32Derivation": "Raw-word encoding provides at least one16-character word plus key/container characters per numeric slot. Each scalar appears in a bounded number of ordinary input/output/raw-tree/JSON representations. The32-byte-per-encoded-byte allocation charge covers those numeric slots, array/property/container payload and simultaneous UTF16/UTF8 copies with a large fixed multiplicity. This is a declared conservative logical payload charge, not a measured V8 object-header or heap theorem. S itself is bounded before proceeding.",
+      "fixed4MiBDerivation": "Covers one <=256KiB validation raw buffer +UTF16 text +fixed <=256-check parsed record tree, one <=64KiB request, <=64KiB progress snapshot, cases+oracle summary/pin metadata, two current endpoint copies/output snapshots, observer/frame metadata and bounded scalar temporaries. Validator output schema caps checks256 and depth32; it is not arbitrary JSON from an untrusted module. All retained large raw-output strings and commands are additionally included in S.",
+      "sourceBuildCharge": "Original TS<=64KiB, effective TS<=128KiB, source bundle<=1MiB, native JS<=1MiB, compiler inputs metadata<=64KiB, native declarations/config/package metadata and serialized provider manifest are charged to build16MiB disk envelope, with their concurrently retained code buffers/text charged there too. nativeBytes is explicitly nulled after hash checks; no candidate data is allocated by build.",
+      "logsReserve": "Captured stdout+stderr is <=4MiB cumulative. A chunk list, concatenated Buffer and write Buffer can coexist: <=12MiB charged to24MiB reserve. Each hash stream uses64KiB blocks. Remaining reserve covers bounded final summary/progress/failure encoding and file-system metadata, not a process RSS claim."
+    },
+    "validatorCharge": {
+      "formula": "WorkingBound.check whole explicit owned roots <=8MiB, with1MiB fixed scratch reserve; evaluated before decoding/validation growth, on each accumulated check, and before serialization.",
+      "roots": "raw request bytes, request pin graph, all original raw input/output/oracle reply/oracle summary JSON dictionaries, decoded before/after input/output, decoded ideal reference values, raw ideal literals, every accumulated exact-rational check, peak ratio, recomputed physical tensors/momenta/metrics and rounding metrics. Main serialization check still includes original artifact roots and result/detail, deduplicated by object identity.",
+      "weights": "Fraction:2048+16*(numeratorBits+denominatorBits), max4096bits per numerator/denominator; this charges live integer payload plus packed numerator/denominator string records and simultaneous JSON/UTF8 copies. String:256+24*length charges original text plus worst JSON escape/UTF16/UTF8 duplicates; dict512+128*entries and list256+32*entries charge current and packed containers, child payload charged recursively; bytes128+2*length; integer128+bitLength. Duplicate object IDs charged once. These are explicit fixed-provider logical allocation sums, not measured RSS.",
+      "reserveDerivation": "1MiB covers fixed-size three-vector/3x3 physical recomputation scratch, Fraction arithmetic temporaries, closure/frame and encoder transient metadata. There are no matrices larger than3x3, inversions, solves, retained previous requests or adaptive loops in this validator. <=256 component checks, <=50000 visited nodes, depth<=32; factorization count0.",
+      "serialization": "Charge model includes future packed dictionaries, integer decimal strings, JSON text and UTF8 bytes before pack/dumps. Output is capped256KiB, one physical request only. Failed check detail is retained. Files/tools are hashed in64KiB streams, not loaded wholesale."
+    },
+    "artifactEnvelope": "Combined oracle+runner evidence <=8MiB, including oracle raw/reply/progress/summary files, candidate raw inputs/outputs,26 validator request/results, child logs and runner progress/summary. Runner reserves64KiB failure and64KiB progress; actual final evidence tree excluding build is checked before PASS. Build separately<=16MiB. Oracle owns reference working8MiB and its own corrected accounting; candidate/validator working charge8MiB is sequential, not simultaneous with oracle work.24MiB fixed reserve is not an extra allocation permission."
+  }
+}
