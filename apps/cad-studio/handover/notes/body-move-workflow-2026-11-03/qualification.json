@@ -1,0 +1,258 @@
+{
+  "workId": "D468",
+  "lastUpdated": "2026-11-03",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "2c0e7bdf8c71f0ed3c0f1167d4310efee735b51f",
+  "priority": "C1/C2",
+  "rows": [
+    "07",
+    "08",
+    "12",
+    "16"
+  ],
+  "productChanges": "NONE",
+  "testChanges": "NONE",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercentFrozen": 43,
+  "input": {
+    "path": "/tmp/barocss-d468-geometry/seed.bcad",
+    "sha256": "e2b20d76b42a2ac4bc575a8958f11e791fda12a8aca5dfd1bc964a23e9330c1c",
+    "bytes": 428,
+    "origin": "SOURCE_AUTHORED exactD462reuse;no publicconstruction/seednative replay"
+  },
+  "publicContract": {
+    "allSixHUDValuesVerified": {
+      "ToX": 40,
+      "ToY": 60,
+      "ToZ": 5,
+      "DeltaX": 30,
+      "DeltaY": 40,
+      "DeltaZ": 5
+    },
+    "stored": "n2translate,parentn1solid,offset[30,40,5],outputb2;sourceconsumed,one solid",
+    "edits": "DeltaX50;sourceH12;H0refusal;FIRSTUndo50/h10\u2192Redo50/h12;ownOPFS;postOpenDeltaX30",
+    "ToSemantics": "currentmesh.bounds.min rounded1e-3;derive rounded1e-3;fixedtranslation NOTliveToTarget",
+    "integerGridOnly": true,
+    "noTranslate0Refusal": true
+  },
+  "preflight": {
+    "status": "PASS_FOUR_STATES_PLUS_H0_PARAMETER_GUARD",
+    "command": "bash /tmp/barocss-d468-root/run-preflight01.sh",
+    "receipt": "/tmp/barocss-d468-geometry/preflight-run01/receipt.json",
+    "receiptSHA256": "f539060ed4809582188d2c631f4a8d618a602c7c78b2e5b6af167b36bbf22331",
+    "sourcePins": 747,
+    "sourceEqualAfterCleanupCurrent": true,
+    "ownPID": 12980,
+    "ownPIDAbsent": true,
+    "gate": "FREE",
+    "maximumVolumeCentroidError": 0,
+    "refusal": {
+      "code": "PARAMETER",
+      "feature": "n1",
+      "reason": "height must not be zero"
+    }
+  },
+  "actual": {
+    "status": "PASS",
+    "declaredGroups": 8,
+    "qualifiedGroups": 8,
+    "coverage": {
+      "publicToPosition": "PASS",
+      "DeltaX50Edit": "PASS",
+      "sourceH12Edit": "PASS",
+      "exactUndo": "PASS",
+      "exactRedo": "PASS",
+      "sourceH0RefusalRetention": "PASS",
+      "ownProjectRoundtrip": "PASS",
+      "postOpenDeltaX30": "PASS"
+    },
+    "command": "bash /tmp/barocss-d468-root/run-studio02.sh",
+    "receipt": "/tmp/barocss-d468-workflow-run01/receipt.json",
+    "receiptSHA256": "ac41776290bf1da90c37b800ad488fe801298fea50f3078f78386189dcdf5b73",
+    "configSHA256": "71e648a77cc705aae69d11c933da325781ce7e0d6943988a2bca2254bcd83449",
+    "nativeBindings": 8,
+    "freshCaptures": 4,
+    "exactWholeDocReuses": 4,
+    "freshPythonOracles": 8,
+    "freshRawWorkerBindings": 8,
+    "maximumNativeVolumeCentroidError": 0,
+    "maximumWorkerVolumeCentroidBindingError": 0,
+    "statesAndImages": 24,
+    "rootViewedImages": 7,
+    "previewBoundary": "Initialblankview withcorrectHUD/status;acceptedFrameAllgeometrycorrect;previewFit NOT_RUN/no visibility/autoframingclaim",
+    "prehashPaths": 2383,
+    "fullFrozenPaths": 2384,
+    "aliasesIncluded": true,
+    "beforeAfterCleanupCurrentEqual": true,
+    "errors": {
+      "page": 0,
+      "console": 0,
+      "downloads": 0,
+      "watchedChanges": 0
+    },
+    "cleanup": {
+      "namespace": "D468-body-move-run01",
+      "namespaceStatus": "REMOVED_AND_ABSENT",
+      "contextBrowserServer": "CLOSED",
+      "ownPID": 23835,
+      "ownPIDAbsent": true,
+      "gate": "FREE",
+      "endLoad": 22.32
+    },
+    "executedSUTFailures": 0
+  },
+  "attempt01": {
+    "status": "NOT_RUN_LOAD_GUARD",
+    "command": "bash /tmp/barocss-d468-root/run-studio01.sh",
+    "postAcquireLoad": 53.71,
+    "maximumAllowedLoad": 40,
+    "beforeDriverInvocation": true,
+    "workflowDirectoryAbsent": true,
+    "sourcePins": 2383,
+    "sourceEqualAfterCleanupCurrent": true,
+    "ownPID": 20039,
+    "ownPIDAbsent": true,
+    "gate": "FREE",
+    "SUTFailure": false
+  },
+  "environmentCorrection": {
+    "plainDocumentationNavigationDefaultNode": "v18.10.0",
+    "productNativeStudioNode": "22.19.0_ALWAYS_WRAPPER_DRIVER_ASSERT_PASS",
+    "navigationNode22Recheck": {
+      "receipt": "/tmp/barocss-d468-root/navigation-node22-recheck.json",
+      "receiptSHA256": "afa280aba9c0c463736b6f72ff5ff6a11e11b1a97497a4263d0e383852ae4030",
+      "rows": 34,
+      "links": 2648,
+      "newBroken": 0,
+      "status": "PASS",
+      "command": "export PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH\nnode apps/cad-studio/handover/scripts/check-navigation.mjs"
+    },
+    "classification": "CORRECTED_PREPARATION_ENVIRONMENT_NOT_SUT_FAILURE",
+    "productRerunNeeded": false,
+    "futureAllNodeCommands": "ExplicitPATH/Users/user/Library/pnpm/nodejs/22.19.0/bin includingdocs"
+  },
+  "physicalContract": {
+    "authority": "CurrentstrictnativeBRep+actualBRepmass+independentFractionvectoraddition;notdisplaymesh",
+    "volume": "600*h",
+    "centroid": "[20,35,h/2]+[dx,40,5]",
+    "states": [
+      {
+        "dx": 30,
+        "height": 10,
+        "volume": 6000,
+        "centroid": [
+          50,
+          75,
+          10.0
+        ],
+        "bounds": [
+          [
+            40,
+            60,
+            5
+          ],
+          [
+            60,
+            90,
+            15
+          ]
+        ]
+      },
+      {
+        "dx": 50,
+        "height": 10,
+        "volume": 6000,
+        "centroid": [
+          70,
+          75,
+          10.0
+        ],
+        "bounds": [
+          [
+            60,
+            60,
+            5
+          ],
+          [
+            80,
+            90,
+            15
+          ]
+        ]
+      },
+      {
+        "dx": 50,
+        "height": 12,
+        "volume": 7200,
+        "centroid": [
+          70,
+          75,
+          11.0
+        ],
+        "bounds": [
+          [
+            60,
+            60,
+            5
+          ],
+          [
+            80,
+            90,
+            17
+          ]
+        ]
+      },
+      {
+        "dx": 30,
+        "height": 12,
+        "volume": 7200,
+        "centroid": [
+          50,
+          75,
+          11.0
+        ],
+        "bounds": [
+          [
+            40,
+            60,
+            5
+          ],
+          [
+            60,
+            90,
+            17
+          ]
+        ]
+      }
+    ],
+    "topology": "oneclosedsolid8vertices6faces12straightedges",
+    "faceWitnesses": "n1.bottom/top/side[e1..e4];unitnormalsunchanged",
+    "volumeRelative": 1e-09,
+    "centroidBoundsCornerFaceEdgePinsNormalsAbsolute": 1e-09
+  },
+  "checks": {
+    "newTestsTypesBuildFullKernel": "NOT_RUN_NO_SOURCE_OR_TEST_CHANGE",
+    "retained": "D46128groups,lint,StudioTSC,finalModelTSC",
+    "independentOracleSHA256": "7aad7bed20052692241f48b33b53d532caca050d1ab701344cb3c8e7b0179804",
+    "geometryManifestSHA256": "1e53ded096ac46191b277a9a4df3d7d33237ebfbe281b6fe7a76a26fa8f31376",
+    "rootReview": "/tmp/barocss-d468-root/root-review.json",
+    "documentation": {
+      "status": "PASS",
+      "node": "v22.19.0",
+      "command": "export PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH\nnode apps/cad-studio/handover/scripts/check-navigation.mjs",
+      "whitespaceCommand": "git diff --cached --check",
+      "rows": 34,
+      "legacyHeadingFragments": 552,
+      "legacyOutboundLinks": 913,
+      "checkedLocalLinks": 2655,
+      "newBroken": 0,
+      "knownHistoricalMissingPaths": 1,
+      "receiptSHA256": "795a4488c7b1a8641ab518d1195775aece0e87bcdac8613d6d9efd3172d8c545"
+    }
+  },
+  "issues": {
+    "534": "OPEN_BOUNDED_PARTIAL_ONLY"
+  },
+  "next": "D469 selects existing terminal Scale suppression/source-edit/persistence and activation guard, rows07/08/12/16. From retained D467 Scale2/height12: Suppress\u2192sourceH14\u2192Factor0 while suppressed\u2192Unsuppress0 INPUT at n2 with accepted state retained\u2192FIRST Undo suppressedFactor2/H14 and Redo suppressedFactor0/H14\u2192own OPFS Open suppressedFactor0\u2192restoreFactor2 still suppressed\u2192successful post-Open Unsuppress Scale2/H14. Eight groups and nine bindings are planned; actual is NOT_RUN. Inactive Factor0 is permitted but not active Scale0 admission. Preserve IDs/pivot/outputb2 and existing n2 identity-translate bypass. No new feature, guard, solver or bare Hole-toggle replay.",
+  "holds": "CoreNOT_MEASURED,legacy43frozen;all #2258/#2266,Motion/Physics,fitter/thicken,widening,manufacturing,UI,schema,download/dependency,browserCI/release gates unchanged."
+}
