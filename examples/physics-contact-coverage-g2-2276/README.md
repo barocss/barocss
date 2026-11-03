@@ -122,3 +122,22 @@ not retained. Prefix2 Worlds/4 phase attempts/2 accepted steps,129 applications,
 parity remain NOT_RUN. COVERAGE-11.json and ROOT-FIRST-FAILURE-01 preserve this
 NO_GO. A new bounded pre-dispose observer is a dependency, not an achieved gate.
 No failed condition is deleted, relaxed or filled using reconstructed data.
+
+## Genuine lifecycle and dynamic arithmetic checkpoints (2026-11-03)
+
+The distinct lifecycle provider25da0c262 passes40 static and44 transaction
+packet/wire matches between Source/Native. Real pre-dispose captures close the
+hidden accepted-state observation gap without reconstructing output; old0210
+NO_GO stays unchanged. Its browser8b6b2400a passes7 desktop checks and15 unchanged
+physical observers plus raw lifecycle proof comparison, with zero UI errors.
+See COVERAGE-12.json. The current preview is localhost53040.
+
+Independent reference c1d9a640c is READY. Original dynamic pure36f260949 stops at
+a denied262146 attempted charge under262144; that prefix is not a completed cost.
+Efficientc67bc917e passes3 physical inputs and8 admission controls per Source/Native
+graph,13 top-level calls and14 full packets. After completes241975 integer
+primitives under unchanged prices/caps. Zero Worlds run. General arithmetic
+boundary banks and runtime host integration still block promotion; the original
+production13-call/cap16 remains separate from new private test-entry work. See
+COVERAGE-13.json. Dynamic World, warm/multipoint, public adoption and P4 remain
+NO_GO/open; no mobile/deployment or machine-accuracy claim follows.

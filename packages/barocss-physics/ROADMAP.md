@@ -773,6 +773,50 @@ deserialization, live restore and parity remain NOT_RUN after this first NO_GO.
 See `examples/physics-coupled-transaction-2276/ROOT-FIRST-FAILURE-01.json`.
 The next dependency is genuine bounded pre-dispose observation under a new
 provider identity; the failed equality gate is not deleted or relaxed.
+A subsequent distinct lifecycle provider now retains actual public/private and
+attached-owner data immediately before original disposal. It preflights actual
+storage before clone-returning reads, shares the existing diagnostic byte cap,
+returns isolated copies and cannot mask original cleanup/errors. The old solver,
+geometry, codec and emitted static helper remain unchanged. Strict compilation,
+consumer and actual entry closure pass. Fresh Source/Native static controls pass
+40 complete packets. Their one-frame transaction campaigns each pass4 Worlds/
+6 phase attempts/4 accepted steps,257 applications,41 queries,37 points and999
+anchor checks;44 complete packets/wire artifacts match without normalization.
+Hidden B/C public state and complete private.world now compare from genuine
+pre-dispose captures, not cleared storage or reconstructed traces. Actual
+rollback/retry/serialization/deserialization/live restore and second-interval
+refusal pass. Across-World diagnostic cacheFrames/provenance still remain
+NOT_PROVEN; no identifier erasure is used. The old first NO_GO remains history.
+See `examples/physics-coupled-lifecycle-2276/RESULTS.md`. Its separate emitted
+browser consumer now passes7 desktop checks at1280/1440/1920, including genuine
+pre-dispose state/model/private equality, two bounded capture reads and returned-
+copy isolation. Fifteen unchanged physical observers plus a separate original-
+DAG/report comparison pass; page/console/network errors are zero. Actual browser
+census stays3 Worlds/3 attempts/2 accepted steps. No wire or second interval is
+executed by this browser campaign. See
+`examples/physics-coupled-lifecycle-viewer-2276/RESULTS.md`. Dynamic/warm
+composition, public adoption and performance remain separate NOT_RUN gates.
+
+The independent coupled dynamic reference passes the original three inputs with
+exact native geometry, virtual impulse columns and full3x3 directed80/120
+Gaussian interval proofs. The entire parameter domain has one after-case
+crossing and both precisions agree on RNE words. This is reference evidence,
+not a World PASS. The first dynamic pure implementation passes before/at but
+refuses after at the fixed262144 integer-work limit (262146 is an attempted
+charge, denied before its operation). Native/negative/parity checks stop there.
+The original source and failure remain in
+`examples/physics-coupled-dynamic-2276/RESULTS.md`. A separate positive-scale
+integer pseudo-remainder and bounded endpoint-memo implementation then passes
+Source/Native3 physical inputs plus8 admission controls:13 top-level calls per
+graph and14 complete byte-equal packets. After completes at241975 integer
+primitives under the SAME cap/prices, with771 rational constructions and66
+subdivisions. Do not compare its completed gcd total with the truncated old
+prefix as a reduction claim. The independent Gaussian/RNE/physical and exact
+polynomial/Sturm audits pass. See
+`examples/physics-coupled-dynamic-efficient-2276/RESULTS.md`. World calls remain
+zero. General polynomial/RNE/resource boundary banks and actual host validation
+still block runtime promotion. New shared-core arithmetic work does not raise
+the existing production13-call/cap16 or physical8x8 limits.
 Warm/multipoint/general inertia,
 outside-cone dynamics, public adoption and full P4 remain NO_GO/unqualified;
 there is no scalar fallback.

@@ -33,7 +33,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Privatecoupledstatic7370857bc Source+strictNativebefore/atPASS;33fullpacketparity. Newdesktop6/6+15independentbrowserjobsPASS,freshmanual53020. FirsttransactionSOURCE Alivepostapplyrollback/retry/control PASS,serializeexecuted,hiddenBdisposedstorageequalityNO_GO2W4phase2accepted129apply;Native/deser/D/parityNOTRUN. SeparateboundedPREdisposecapture authoring,newidentityrequired; dynamicdesignONLY. Public/P4/HOLD unchanged.",
+  "active": "Newlifecycle25da0c262 static40+P244SourceNativepacket/wirePASS; genuinehiddenPREdisposepublic/privateRAW_EQUAL. Currentdesktop8b6b2400a7/7+15physical+captureproofPASSmanual53040. Independentdynamicreferencec1dREADY; firstpure36f260949workNO_GOpreserved; efficientc67bc917eSourceNative3physical8negative13calls14packetsPASS241975int<262144,0World. Sharedmathcore/boundarybank AUTHORING. Worlddynamic/public/P4/HOLD unchangedNO_GO/open.",
   "progressMethod": "Prior5of9boundedmilestones retained as historicalqualifications; newcontact-schema delta requiresseparateP0/P1/P2/P5outputrequalification. No weightedpercent orwhole-enginePASS.",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
@@ -648,7 +648,7 @@
     "firstBuild": "PRESERVED_ESBUILD_LAUNCHER_AUTH_FAILURE_NO_COMPILER_HELPER_WORLD",
     "build02": "IDENTICAL_PAID_STAGE_MANIFEST_EXISTING_NATIVE_BINARY_EXACT_OLD_HASH_STRICT_PASS",
     "newDesktop": "EXECUTED_PASS_SEPARATE6CHECKS15INDEPENDENTPHYSICALJOBS",
-    "postApplyRollbackWire": "SOURCE_ALIVE_ROLLBACK_RETRY_PASS_HIDDEN_POSTDISPOSE_OBSERVATION_NO_GO_NATIVE_NOT_RUN",
+    "postApplyRollbackWire": "QUALIFIED_DISTINCT_LIFECYCLE_PROVIDER_ONE_FRAME_25da0c262",
     "warmMultipointSecondInterval": "NOT_QUALIFIED",
     "canonicalPublicPackage": "NOT_ADOPTED",
     "P03Whole": "NO_GO_DYNAMIC_NOT_SUPPORTED",
@@ -762,9 +762,111 @@
   },
   "latestDocs": {
     "status": "PASS",
-    "receipt": "examples/physics-world-p5-2276/DOCS-COUPLED-STATIC-07.json",
-    "buildElapsedMs": 9382.764291,
-    "siteElapsedMs": 203.036709,
+    "receipt": "examples/physics-world-p5-2276/DOCS-LIFECYCLE-MATH-08.json",
+    "buildElapsedMs": 9891.145292,
+    "siteElapsedMs": 100.333916,
     "deployment": "NOT_RUN"
+  },
+  "lifecycleQualified": {
+    "status": "EXECUTED_SOURCE_NATIVE_STATIC_AND_ONE_FRAME_TRANSACTION_PASS",
+    "commit": "25da0c262",
+    "results": "examples/physics-coupled-lifecycle-2276/RESULTS.md",
+    "staticPacketParity": 40,
+    "transactionPacketWireParity": 44,
+    "normalization": "NONE",
+    "staticPerGraph": {
+      "worlds": 3,
+      "attempts": 3,
+      "acceptedSteps": 2,
+      "applications": 128,
+      "queries": 22,
+      "points": 19,
+      "anchors": 513
+    },
+    "transactionPerGraph": {
+      "worlds": 4,
+      "attempts": 6,
+      "acceptedSteps": 4,
+      "applications": 257,
+      "queries": 41,
+      "points": 37,
+      "anchors": 999
+    },
+    "hiddenBCAcceptedPublicPrivate": "GENUINE_PRE_DISPOSE_CAPTURE_RAW_EQUAL",
+    "oldFailure": "PRESERVED_0210d2889_NOT_REWRITTEN",
+    "crossWorldDiagnosticProvenance": "NOT_PROVEN",
+    "captureBound": "SERIALIZED_DATA_CELLS_AND_COPY_ALLOWANCE_NOT_RSS",
+    "physicalSecondInterval": "NOT_SUPPORTED",
+    "dynamicWarmMultipointPublicP4": "NOT_QUALIFIED"
+  },
+  "latestLifecycleDesktop": {
+    "status": "EXECUTED_PASS7_DESKTOP_AND15_BROWSER_PHYSICAL_OBSERVERS",
+    "commit": "8b6b2400a",
+    "results": "examples/physics-coupled-lifecycle-viewer-2276/RESULTS.md",
+    "manualPreview": "http://127.0.0.1:53040",
+    "widths": [
+      1280,
+      1440,
+      1920
+    ],
+    "checks": 7,
+    "originalPhysicalObservers": 15,
+    "lifecycleData": "PASS_COMPLETE_BROWSER_CAPTURE_RAW_VS_ORIGINAL_PROOF",
+    "genuinePreDisposeCaptures": 3,
+    "explicitBulkReads": 2,
+    "physicsCensus": {
+      "worlds": 3,
+      "attempts": 3,
+      "acceptedSteps": 2,
+      "applications": 128,
+      "queries": 22,
+      "points": 19,
+      "anchors": 513
+    },
+    "pageConsoleNetworkErrors": 0,
+    "oldUIUnchanged": true,
+    "mobile": "NOT_RUN",
+    "wireDynamicWarmSecondInterval": "NOT_RUN",
+    "public": "NOT_ADOPTED"
+  },
+  "efficientDynamicPure": {
+    "status": "PASS_PURE_THREE_INPUTS_AND_EIGHT_ADMISSION_CONTROLS",
+    "commit": "c67bc917e",
+    "results": "examples/physics-coupled-dynamic-efficient-2276/RESULTS.md",
+    "WorldCalls": 0,
+    "perGraphCalls": {
+      "coupledCalls": 11,
+      "directStaticChecks": 2,
+      "topLevelCalls": 13,
+      "underlyingStaticCalls": 13
+    },
+    "sourceNativePackets": 14,
+    "normalization": "NONE",
+    "afterCompleteIntegerOps": 241975,
+    "integerCap": 262144,
+    "rationalOps": 771,
+    "gcdSteps": 23153,
+    "peakBits": 1297,
+    "subdivisionsAndExponent": 66,
+    "oldFirstFailure": "PRESERVED_36f260949_262146_DENIED_ATTEMPT_TRUNCATED_NOT_COMPLETED",
+    "reference": "INDEPENDENT_REFERENCE_READY_c1d9a640c",
+    "runtimeWorldPromotion": "BLOCKED_UNQUALIFIED_ARITHMETIC_BANKS",
+    "sharedCoreAndBoundaryBank": "AUTHORING_ONLY_NOT_EXECUTED",
+    "production13CallCap16": "UNCHANGED_SEPARATE_FROM_NEW_PRIVATE_BANK"
+  },
+  "uiPreference": "2026-11-03 user AGENTS: UI controls/state/results, omit explanatory layers where possible; detailed explanations in docs. Frozen prior evidence/UI unchanged.",
+  "arithmeticNext": {
+    "status": "AUTHOR_ONLY_SHARED_CORE_AND_INDEPENDENT_LITERAL_BANK_READY_NOT_EXECUTED",
+    "productionProtocol": {
+      "plannedCalls": 13,
+      "cap": 16
+    },
+    "privateTestEntryProtocol": {
+      "plannedCalls": 52,
+      "cap": 64
+    },
+    "completeObservedTotalIfBothPass": 65,
+    "algorithmsMetersLimitsPrecision": "UNCHANGED",
+    "WorldPromotion": "BLOCKED_PENDING_ALL_ARITHMETIC_AND_HOST_GATES"
   }
 }

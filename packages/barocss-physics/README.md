@@ -99,6 +99,22 @@ physics data. Desktop widths are1280/1440/1920; no mobile tests run. The
 original0.1410596011492487m/s constitutive failure and all original criteria
 remain preserved.
 
+The separate [lifecycle observation candidate](../../examples/physics-coupled-lifecycle-2276/RESULTS.md)
+retains actual hidden validation state before disposal. Fresh Source/compiled
+controls and one-frame rollback, wire and live restore checks pass, with40 static
+and44 transaction packet matches. The old post-disposal observation failure
+remains preserved. Its [desktop consumer](../../examples/physics-coupled-lifecycle-viewer-2276/RESULTS.md)
+separately passes7 rendering/capture checks and15 unchanged physical observers
+on actual browser data. This does not qualify a second physical interval,
+dynamic contact, warm/multipoint or public adoption.
+
+The [dynamic target arithmetic](../../examples/physics-coupled-dynamic-efficient-2276/RESULTS.md)
+passes three fixed physical inputs and eight admission controls in Source and
+compiled JavaScript, against an independent directed80/120 reference. It stays
+within the unchanged integer-work cap. The original work-limit failure remains
+preserved. This is pure arithmetic with zero World calls; general arithmetic
+boundary tests and actual World integration remain required before promotion.
+
 | Entry point | Current result | Example |
 | --- | --- | --- |
 | `@barocss/physics` | One World for selected rigid or fixed visual cloth/fluid model profiles | [3D native-Surface Viewer](../../examples/physics-viewer-scene/README.md) |

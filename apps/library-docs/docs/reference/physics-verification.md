@@ -214,6 +214,35 @@ NOT_RUN after the first failure. The old gate remains NO_GO. A separate bounded
 pre-dispose observer is required; reconstructing hidden state is not evidence.
 See `examples/physics-coupled-transaction-2276/ROOT-FIRST-FAILURE-01.json`.
 
+A new distinct lifecycle provider captures genuine accepted public/private state
+before disposal, without changing solver/geometry/codec code. Observation is
+bounded before allocation, cannot mask cleanup/errors and returns independent
+copies. Fresh Source/Native controls match40 static packets. One-frame fault
+rollback/retry, actual wire roundtrip and live restore then pass4 Worlds/
+6 phase attempts/4 accepted steps per graph;44 packet/wire artifacts match.
+Hidden B/C accepted public state and full private.world equality now use real
+pre-dispose captures. Across-World diagnostic cacheFrames/provenance remain
+NOT_PROVEN; the original failed run is unchanged. See
+`examples/physics-coupled-lifecycle-2276/RESULTS.md`. The new provider's browser
+consumer then passes7 desktop checks and15 unchanged physical observers, plus
+full original-DAG/report comparison for three real pre-dispose captures. Two
+bounded reads prove copy isolation without advancing Physics. The three-case
+browser census remains3 Worlds/3 attempts/2 accepted steps, with zero UI errors.
+See `examples/physics-coupled-lifecycle-viewer-2276/RESULTS.md`. Browser wire,
+dynamic/warm composition and public integration are separate pending gates.
+
+The independent dynamic reference certifies the complete physical parameter
+domain at80/120 digits and matching RNE words on the original inputs. The first
+pure candidate reaches a work-limit NO_GO on after;262146 is a denied attempted
+charge against the unchanged262144 cap. A separate integer pseudo-remainder/
+bounded memo candidate passes3 physical inputs and8 admission controls per
+Source/Native graph (13 top-level calls,14 complete packet matches). Its complete
+after count is241975 integer primitives. Prices, work limits, precision and
+physical gates remain unchanged. See
+`examples/physics-coupled-dynamic-efficient-2276/RESULTS.md`. Zero Worlds are
+called. General arithmetic boundary banks and actual World integration remain
+required; this pure result does not clear dynamic World/P4 NO_GO.
+
 
 ## Discrete friction checkpoint
 
