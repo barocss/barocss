@@ -1,0 +1,114 @@
+{
+  "status": "PASS_GZIP_STORAGE_TRANSPORT_ONLY",
+  "originalArchiveIndex": {
+    "file": "EVIDENCE-ARCHIVE.json",
+    "bytes": 659128,
+    "sha256": "7be47e5cc526ab7a2f68cbf5030018203ee555bbc06bf70ae64a227a47c7b652"
+  },
+  "originalForecast": {
+    "file": "ARCHIVE-FORECAST.json",
+    "bytes": 900,
+    "sha256": "4d0bf2ee25b29e0e3f7b78b675069c09d7b6626ee2cc1e3ac5ca11cd396a583f"
+  },
+  "uncompressedTarCapBytes": 16777216,
+  "aggregateOriginalTarBytes": 47503360,
+  "aggregateGzipStoredBytes": 7193689,
+  "verifiedLogicalMembers": 1956,
+  "reconstruction": "Decompress each .tar.gz to its exact original .tar bytes. Verify original SHA256 and size in EVIDENCE-ARCHIVE.json. Then verify every logical member against that unchanged index.",
+  "policy": "Gzip is storage transport only. Each16MiB limit applies to the original uncompressed tar. Raw tar files and original index/forecast remain unchanged locally. Root owns Git writes and may commit the gzip archives, unchanged original index, and this transport map; raw tar files stay local.",
+  "WorldCalls": 0,
+  "compilerCalls": 0,
+  "browserCalls": 0,
+  "observerCalls": 0,
+  "archives": [
+    {
+      "originalTar": {
+        "file": "SOURCE-01.tar",
+        "bytes": 16762880,
+        "sha256": "1ad5be88c533bb80a357bfd45f5c34a1989aa44ba157be545f50c1c104975bd4"
+      },
+      "gzipTransport": {
+        "file": "SOURCE-01.tar.gz",
+        "bytes": 3304514,
+        "sha256": "68937e5ccb2f0489d535ba01509ec16751a5c0cda9688ed7e435c8ab37a844fc"
+      },
+      "verification": {
+        "status": "PASS_EXACT_ORIGINAL_TAR_AND_ALL_LOGICAL_MEMBERS",
+        "decompressedTar": {
+          "bytes": 16762880,
+          "sha256": "1ad5be88c533bb80a357bfd45f5c34a1989aa44ba157be545f50c1c104975bd4"
+        },
+        "verifiedLogicalMembers": 1402
+      }
+    },
+    {
+      "originalTar": {
+        "file": "SOURCE-02.tar",
+        "bytes": 6758400,
+        "sha256": "f7d681abfbb5eec8b574da7b64a8c49206a339f41b3d93328b73001f354b6832"
+      },
+      "gzipTransport": {
+        "file": "SOURCE-02.tar.gz",
+        "bytes": 1563160,
+        "sha256": "302a8bda7b946c055d6838364b60679d81eece938208fcf5b1f1c519baf3424a"
+      },
+      "verification": {
+        "status": "PASS_EXACT_ORIGINAL_TAR_AND_ALL_LOGICAL_MEMBERS",
+        "decompressedTar": {
+          "bytes": 6758400,
+          "sha256": "f7d681abfbb5eec8b574da7b64a8c49206a339f41b3d93328b73001f354b6832"
+        },
+        "verifiedLogicalMembers": 439
+      }
+    },
+    {
+      "originalTar": {
+        "file": "PROOF-01.tar",
+        "bytes": 13393920,
+        "sha256": "8be61bcfc48d2c73609153cc35bbe2a6904d504af78c252489d87532686508d6"
+      },
+      "gzipTransport": {
+        "file": "PROOF-01.tar.gz",
+        "bytes": 2084039,
+        "sha256": "853d858d77cb072c9d1250acc71a99034eadb13d415155406451abe6adf0c48d"
+      },
+      "verification": {
+        "status": "PASS_EXACT_ORIGINAL_TAR_AND_ALL_LOGICAL_MEMBERS",
+        "decompressedTar": {
+          "bytes": 13393920,
+          "sha256": "8be61bcfc48d2c73609153cc35bbe2a6904d504af78c252489d87532686508d6"
+        },
+        "verifiedLogicalMembers": 114
+      }
+    },
+    {
+      "originalTar": {
+        "file": "PROOF-02.tar",
+        "bytes": 10588160,
+        "sha256": "466678d79753e034f2bb8c55ae5b1d199860d3d86572380f5a1b7ad0fcd10d22"
+      },
+      "gzipTransport": {
+        "file": "PROOF-02.tar.gz",
+        "bytes": 241976,
+        "sha256": "d1cd3150b73e19093f74ecd03bc61f4e75ef2b4676aac997d695c260b266947b"
+      },
+      "verification": {
+        "status": "PASS_EXACT_ORIGINAL_TAR_AND_ALL_LOGICAL_MEMBERS",
+        "decompressedTar": {
+          "bytes": 10588160,
+          "sha256": "466678d79753e034f2bb8c55ae5b1d199860d3d86572380f5a1b7ad0fcd10d22"
+        },
+        "verifiedLogicalMembers": 1
+      }
+    }
+  ],
+  "postArchiveDocumentation": {
+    "currentHandoff": "HANDOFF-RESULTS.md",
+    "archivedVersionRecovery": "HANDOFF-RESULTS-ARCHIVED-01.md",
+    "originalHandoffPin": {
+      "bytes": 1717,
+      "sha256": "1ce2a3c87ff605ac9c1e48e26849798bd23b77148b00b33d6ef84fdcc98d3141"
+    },
+    "note": "Original archive logical member remains unchanged; only the current unfrozen handoff gains transport instructions."
+  }
+}

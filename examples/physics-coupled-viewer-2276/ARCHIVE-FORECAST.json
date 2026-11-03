@@ -1,0 +1,35 @@
+{
+  "status": "FORECAST_BEFORE_ARCHIVE_CREATION",
+  "perUncompressedTarLimitBytes": 16777216,
+  "archiveFormat": "PAX_UNCOMPRESSED_REGULAR_FILES_NO_HARDLINKS",
+  "sourceFrozenInputCount": 1840,
+  "sourceInputBytes": 21997757,
+  "proofInputBytes": 23850036,
+  "parts": [
+    {
+      "file": "SOURCE-01.tar",
+      "logicalMembers": 1402,
+      "contentBytes": 15577383,
+      "predictedActualTarBytes": 16762880
+    },
+    {
+      "file": "SOURCE-02.tar",
+      "logicalMembers": 439,
+      "contentBytes": 6420374,
+      "predictedActualTarBytes": 6758400
+    },
+    {
+      "file": "PROOF-01.tar",
+      "logicalMembers": 114,
+      "contentBytes": 13267642,
+      "predictedActualTarBytes": 13393920
+    },
+    {
+      "file": "PROOF-02.tar",
+      "logicalMembers": 1,
+      "contentBytes": 10582394,
+      "predictedActualTarBytes": 10588160
+    }
+  ],
+  "aggregatePredictedTarBytes": 47503360
+}
