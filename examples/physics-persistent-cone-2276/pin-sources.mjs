@@ -1,0 +1,13 @@
+// Source/data hashes only; no physics, reference, observer or helper execution.
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync} from 'node:fs';
+import {resolve,dirname,relative} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {createHash} from 'node:crypto';
+const home=dirname(fileURLToPath(import.meta.url)),root=resolve(home,'../..'),files={};const pin=p=>{const b=readFileSync(p);return{bytes:b.length,sha256:createHash('sha256').update(b).digest('hex')};};function add(p,v){const actual=pin(p);if(v)assert.deepEqual(actual,v,'Immutable hash drift '+p);files[relative(root,p)]=actual;}
+for(const n of ['run.mjs','freeze.mjs','pin-sources.mjs','physical-observer.py','cone-observer.py','IMPLEMENTATION.md'])add(resolve(home,n));
+const design=resolve(root,'examples/physics-persistent-cone-design-2276');for(const n of ['CONTRACT.md','reference.py','EXECUTION-INPUT-FREEZE-01.json','evidence/model-01/before-model.json','evidence/model-01/at-model.json','evidence/model-01/after-model.json','evidence/model-01/options.json','evidence/model-01/reference.json'])add(resolve(design,n));assert.equal(pin(resolve(design,'CONTRACT.md')).sha256,'dd5b6c099e734cce73fffb60d316bc5ee4bffe6beed9710d784b4e281bb936af');assert.equal(pin(resolve(design,'reference.py')).sha256,'af3eaa1f4a8bfaa0f0de3b345d1e05603573fea0ee3aca04a95b5afafed0850d');
+const setup=JSON.parse(readFileSync(resolve(design,'EXECUTION-INPUT-FREEZE-01.json')));for(const[p,v]of Object.entries(setup.prerequisites))add(resolve(root,p),{bytes:v.bytes,sha256:v.sha256});
+const qualified=resolve(root,'examples/physics-warm-transport-2276');for(const n of ['SOURCE-PINS-02.json','EXECUTION-FREEZE-02.json','observer.py','evidence/freeze-01/frozen.json','evidence/build-01/result.json','evidence/build-01/source.mjs','evidence/warm-01/summary.json'])add(resolve(qualified,n));const old=JSON.parse(readFileSync(resolve(qualified,'evidence/freeze-01/frozen.json')));for(const[p,v]of Object.entries(old.files))add(resolve(root,p),v);
+const originalObserver=readFileSync(resolve(qualified,'observer.py'),'utf8'),adapted=readFileSync(resolve(home,'physical-observer.py'),'utf8');assert.equal(adapted,originalObserver.replace("need(model['gravityMps2']==[0,-9.81,0],'Frozen gravity')","need(model['gravityMps2']==[0,0,0],'Frozen cone gravity')"),'Only authorized input-prefix gravity delta');
+writeFileSync(resolve(home,'SOURCE-PINS-01.json'),JSON.stringify({format:'physics-persistent-cone-source-freeze',version:1,status:'AUTHORED_NOT_EXECUTED',files},null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({status:'SOURCE_HASHES_FROZEN_ONLY',files:Object.keys(files).length,WorldCalls:0,candidateCalls:0}));
