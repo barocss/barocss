@@ -1,0 +1,11 @@
+# OPT09 provider and bounded failure-slot evidence revision
+
+Original CONTRACT.md, all physical gates/tolerances, original1200 trajectory population, shared280MiB retained cap,2MiB wire/emergency and16MiB scratch,170s inner/180s outer per-scene limits remain unchanged. The qualified stream-sized archive remains selected. No failed codec is adopted.
+
+Use immutable actual canonical build12 OPT09 at examples/physics-stack-library-2276/evidence/canonical-opt09-01. The only provider module changed from08 is strict-line.js. OPT09 uses the approved nonunit-first-product dot guard; actual production source is61baf61303c5450b69329f2006883b712eee75635d7ca0d53a2100ceab1c06ed. Provider provenance pins all33 code/metadata/helper files; helpers remain byte-identical. The harness does not compile a replacement provider. Original run09 first16 record/wire authority and runtime05 body-only determinism authority remain unchanged.
+
+Private failure evidence now retains selected plus at most two other validated received frame aliases from the same three-credit window at first capture. Selected semantics remain exact. The same2MiB whole-envelope cap and explicit metadata-only omission policy apply. At-capture availability and actual persistence are separate fields; metadata excludes frame graphs. Root actual fixed11 PASS binds unchanged original8 plus new3 regressions and exact helper/driver hashes through FAILURE-EVIDENCE-ADDITIONAL-ROOT-RESULT.json. The old fixed8 receipt alone is not authority for this revision. No missing historical full03 packet is recovered by this change.
+
+Before replacement, exact executed08 PINS and SOURCE-SEAL were copied to baseline/pre-opt09-PINS.json and baseline/pre-opt09-SOURCE-SEAL.json. Root preserved full03 sources/receipts in its completed preservation archive and checkpoint07. All previous failures remain NO_GO with their original source bindings.
+
+This revision requires a fresh combined3x16 prefix using its own sealed source/PINS before original3x1200 mode can run. Neither the existing08 prefix nor fixed11 component tests qualify the new physical composition. No numerical execution by the author. API/public World/desktop remain false or NOT_RUN; optional strict-global64 remains NOT_QUALIFIED. No new resource condition or relaxed limit is introduced.

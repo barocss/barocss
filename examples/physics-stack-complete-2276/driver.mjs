@@ -11,7 +11,8 @@ import {fingerprint,verifyFingerprint} from './fingerprint.mjs';
 import {reference} from './reference.mjs';
 import {CommittedBaseline} from './baseline.mjs';
 import {captureFailureWindow,failureWindowMetadata,encodeFiniteFailure} from './failure-evidence.mjs';
-import {StreamArchive,retainedBudget,verifyArchive} from '../physics-stack-stream-sized-2276/archive.mjs';
+import {writeClosedPhaseCheckpoint} from './phase-checkpoint.mjs';
+import {StreamArchive,retainedBudget,verifyArchive} from '../physics-stack-stream-native-crc-2276/archive.mjs';
 import {SerialReference,Cancelled,terminateOwnedWorker} from '../physics-stack-pipeline-2276/protocol.mjs';
 const sha=b=>createHash('sha256').update(b).digest('hex'),state=(bodies,step,contacts=[])=>({bodies,contacts,stepIndex:step,timeSeconds:step*(1/120)});
 class Producer{
@@ -129,6 +130,7 @@ export async function campaign({root,out,pins,deadline,python,scene,steps,budget
  }
  const bodyOnlySha256=bodyHash.digest('hex');
  if(!firstObserved&&!executionFailure)try{
+  writeClosedPhaseCheckpoint(join(out,'phase-checkpoint.json'),{scene,steps,counts,archive:archiveReceipt,bodyOnlySha256,baseline960:baseline960Identity,terminalQualityPassed,peakCredits:window.peak},wire);
   const recoveredBody=createHash('sha256'),recoveredPrefixBody=createHash('sha256'),recoveredPrefixJSON=createHash('sha256'),recoveredPrefixWords=createHash('sha256'),recoveredWires=Object.fromEntries(['geometry','position0','position1'].map(label=>[label,createHash('sha256')]));let recoveredOldWireEntries=0,recoveredRecords=0;
   recovery=await verifyArchive(join(out,'events.gz'),async entry=>{
    const h=entry.header;assert.equal(h.scene,scene);
@@ -151,8 +153,8 @@ export async function campaign({root,out,pins,deadline,python,scene,steps,budget
  }catch(e){executionFailure={name:e.name,code:e.code??null,message:e.message};}
  if(firstObserved||executionFailure){
   const evidence={firstObserved,earliest:window.failureSummary(),executionFailure,lastAccepted,failureData,failureWindow,reachedDiagnosticsUnavailableOnExternalTermination:false};
-  try{const bytes=encodeFiniteFailure(evidence,wire);budget.charge(bytes.length,true);writeFileSync(join(out,'failure.json'),bytes,{flag:'wx'});failureEvidence={file:'failure.json',selectedFramePersisted:!!failureWindow?.selectedFrame,includedFiniteNumberBits:'RECOVERABLE',aliasIdentityRestored:false,selection:failureWindowMetadata(failureWindow)};}
-  catch(e){const omission={status:'FAILURE_EVIDENCE_OMITTED',fullPayloadOmitted:true,selectedFramePersisted:false,firstObserved,earliest:window.failureSummary(),executionFailure,evidenceError:{code:e.code??null,message:String(e.message).slice(0,1024)},lastContiguous:window.contiguous,failureWindow:failureWindowMetadata(failureWindow)};const bytes=encodeFiniteFailure(omission,wire);budget.charge(bytes.length,true);writeFileSync(join(out,'failure-metadata.json'),bytes,{flag:'wx'});failureEvidence={file:'failure-metadata.json',fullPayloadOmitted:true,selectedFramePersisted:false,includedFiniteNumberBits:'RECOVERABLE_METADATA_ONLY',aliasIdentityRestored:false,selection:failureWindowMetadata(failureWindow)};}
+  try{const bytes=encodeFiniteFailure(evidence,wire);budget.charge(bytes.length,true);writeFileSync(join(out,'failure.json'),bytes,{flag:'wx'});failureEvidence={file:'failure.json',selectedFramePersisted:!!failureWindow?.selectedFrame,additionalReceivedStepsPersisted:failureWindow?.additionalReceivedStepsAtCapture??[],includedFiniteNumberBits:'RECOVERABLE',aliasIdentityRestored:false,selection:failureWindowMetadata(failureWindow)};}
+  catch(e){const omission={status:'FAILURE_EVIDENCE_OMITTED',fullPayloadOmitted:true,selectedFramePersisted:false,additionalReceivedStepsPersisted:[],firstObserved,earliest:window.failureSummary(),executionFailure,evidenceError:{code:e.code??null,message:String(e.message).slice(0,1024)},lastContiguous:window.contiguous,failureWindow:failureWindowMetadata(failureWindow)};const bytes=encodeFiniteFailure(omission,wire);budget.charge(bytes.length,true);writeFileSync(join(out,'failure-metadata.json'),bytes,{flag:'wx'});failureEvidence={file:'failure-metadata.json',fullPayloadOmitted:true,selectedFramePersisted:false,additionalReceivedStepsPersisted:[],includedFiniteNumberBits:'RECOVERABLE_METADATA_ONLY',aliasIdentityRestored:false,selection:failureWindowMetadata(failureWindow)};}
   writeFileSync(budgetPath,JSON.stringify({cap:budget.cap,used:budget.used,reserve:budget.reserve})+'\n');
  }
  const result={status:firstObserved||executionFailure?'COMPLETE_SCENE_STOPPED':'COMPLETE_SCENE_PHYSICAL_CONFIRMED',scene,selectedSteps:steps,counts,firstObserved,earliest:window.failureSummary(),executionFailure,cleanup,lastContiguous:window.contiguous,peakCredits:window.peak,baseline960:baseline960Identity,baselinePromoted,terminalQualityPassed,prefixParity,runtimeDeterminism:{frames:counts.runtimeFramesCompared,authority:'SAVED_RUNTIME05_BODY_WORDS_NOT_PHASE_ORACLE'},bodyOnlySha256,bodyBytes,archive:archiveReceipt,recovery,workMax,failureEvidence,timing:Object.fromEntries(Object.entries(timing).map(([k,v])=>[k,String(v)])),budget:{cap:budget.cap,used:budget.used,reserve:budget.reserve},originalIndependentFullPhysics:false,strictGlobal64MiBCertification:'NOT_QUALIFIED',API:false,publicWorld:'NOT_RUN',desktop:'NOT_RUN'};

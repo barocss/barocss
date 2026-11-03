@@ -476,3 +476,39 @@ or complete1200/API claim. Original first failures remain. The failure envelope
 selects actual1153 while archiving; it later commits. Pending1154 packet is
 not in that envelope; reached RPCs remain in the closed partial archive.
 See `../physics-stack-complete-2276/FULL-03-RESULTS.md`.
+
+## OPT09: remove a redundant initial exact zero-add
+
+Root isolated32 Source/NodeNext passes1696.869459ms. Only the first-present
+nonzero nonunit product in a dot skips ZERO+product after actual mul has
+normalized it. Zero/integer first products retain old work/guards; sparse
+arrays retain native reduce order. All product bit checks remain, peaks are
+unchanged and actual work can decrease at unchanged caps. See the independently
+traced literal bank and `OPTIMIZATION-09-CONTRACT.md`.
+
+Root adopts source61baf61303c5450b69329f2006883b712eee75635d7ca0d53a2100ceab1c06ed.
+All production retained07/06/05/04/03/16 banks and boundary19 pass Source/genuine
+Native. Run13 passes all51 phase acceptances and453231 record words per graph;
+all117 payload files per graph exactly match run04, with no field exceptions
+(physical-parity guard408.449584ms). Canonical build12 passes8.99330275s. Its
+actual immutable closure is `evidence/canonical-opt09-01`, aggregate
+5830b5e47f1c274a100c638fc790191827c17b2de27847a852310b06dadf10d5.
+The same fixed32 test body also passes actual canonical ESM348.550541ms; only
+two static test-module import paths change. No complete1200 cost/API claim.
+
+Failure-window evidence separately passes all original8 and new3 tests
+(997.018209ms): additional received packets survive an earlier captured packet
+committing during drain. At most3 aliases, same2MiB emergency envelope, no new
+success-path clone. Oversize omission remains explicit. This new helper cannot
+recover the missing packet in old full03. Fresh combined-prefix/full integration
+with this component and the actual OPT09 provider remains required.
+
+Full05 actual canonical OPT09 ALIGNED1200 LIVE passes every original gate,
+full10803-entry recovery, final source authentication and clean after-wait CPU
+collection at169.46208579209633s. Complete1201-record JSON/word/raw hashes match
+paid offline04 exactly, so its recorded maxima can be reused by byte identity
+with zero new reference calls. OFFSET then stops at shared evidence capacity
+after328 host commits; selected330/additional329 received packets survive.
+YAW NOT_RUN; whole original three-scene exit and public World remain NO_GO.
+See `../physics-stack-complete-2276/FULL-05-RESULTS.md`. Next exact local-cost
+and lossless evidence representation work retain every original cap/tolerance.

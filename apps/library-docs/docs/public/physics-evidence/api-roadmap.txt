@@ -15,7 +15,7 @@ last_updated: 2026-11-04
 | --- | --- |
 | P0–P2 | Bounded common World and rigid recorder contracts/runtime pass locally. |
 | P3 / P5 | Selected disjoint hinges and fixed visual domain profiles pass; general mechanisms/coupling do not. |
-| P4 | Original eight-box exit remains NO_GO; full-reference/runtime cost is the earliest observed blocker. |
+| P4 | ALIGNED1200 passes live; OFFSET hits shared evidence capacity. Whole original three-scene exit remains NO_GO. |
 | P6 / P7 | Full physical domain coupling and connected-mechanism/control exits remain open. |
 
 ### Current library implementation priority
@@ -203,6 +203,26 @@ pending1154 is not included in the failure envelope. Its reached RPC evidence
 remains in the closed partial archive. No missing packet is reconstructed or
 claimed recovered. Preserve this diagnostic limit and the original first
 failure. See `examples/physics-stack-complete-2276/FULL-03-RESULTS.md`.
+
+Full05 with the same OPT09 engine and qualified native CRC now completes
+ALIGNED1200 LIVE: every original independent gate, full10803-entry recovery,
+final source authentication and clean after-wait CPU ownership pass in
+169.46208579209633s. All1201 records/10594384 words equal the paid full04
+physical record stream. This qualifies that case only; runtime headroom remains
+small. OFFSET verifies/archives328 steps before the shared recording cap, with
+RETAINED_CAP preserved in its stop receipt. First observed geometry330 stream
+error and earlier pending work leave earliest failure UNKNOWN. Its selected330
+and additional329 packets survive; YAW is NOT_RUN. Whole three-scene P4 and
+public World admission remain NO_GO/NOT_RUN. See
+`examples/physics-stack-complete-2276/FULL-05-RESULTS.md`.
+
+Next reduce exact local-coordinate cost and losslessly reduce evidence bytes.
+Keep the shared280MiB, existing reserve, all clocks/caps and physical tolerances.
+New independent common-denominator unit controls pass in an isolated candidate;
+production adoption/full qualification remain pending. Byte measurements reject
+a pure-integer-string hypothesis; fraction/hex and repeated opaque string
+representations have exact captured-byte round trips, with no compressed-fit
+forecast. No ended storage candidate is revived or tuned.
 
 The current first-interval coupled-contact path has completed its finite
 arithmetic, actual World, post-impulse rollback/wire and desktop Native gates.

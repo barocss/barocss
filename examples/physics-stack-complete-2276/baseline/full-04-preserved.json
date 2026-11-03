@@ -1,0 +1,524 @@
+{
+  "API": false,
+  "archiveLargePayloadIncluded": false,
+  "auditFirstPathFailurePreserved": "NOT_ASSERTED_FOR_FULL04",
+  "budget": {
+    "cap": 293601280,
+    "reserve": 2097152,
+    "used": 230929014
+  },
+  "campaignAccepted": 0,
+  "campaignScenes": [],
+  "campaignStatus": "COMPLETE_CAMPAIGN_STOPPED",
+  "checkedInputFiles": 683,
+  "embeddedMetadataSHA256": "00d398b2fdbdeca3f3349300f7bce99c11449c745ddc8559ae19997afdc1ef77",
+  "externalArchives": {
+    "examples/physics-stack-complete-2276/evidence/full-04/ALIGNED/host/events.gz": {
+      "bytes": 222540406,
+      "sha256": "4a262ec7fbd1388413e180777f7d2d01201191b067fb8e41dc1224547760a993"
+    }
+  },
+  "extractedMembersVerified": 71,
+  "failureRecovery": "NOT_PRESENT",
+  "hostArchiveReceipt": null,
+  "hostContiguousPhysicalAccepted": "UNKNOWN_NO_HOST_RECEIPT",
+  "hostCounts": null,
+  "hostEarliest": "UNKNOWN_NO_HOST_RECEIPT",
+  "hostFirstObserved": null,
+  "hostFullyVerified": "UNKNOWN_NO_HOST_RECEIPT",
+  "hostResultPresent": false,
+  "laterScenes": "NOT_RUN",
+  "numericalCalls": 0,
+  "offlineRecovery": {
+    "API": false,
+    "bodyOnlySHA256OfVerifiedRecords": "2f771065f3437de89a71464915e9a4532cb0c54e51d9e3967ba0363d4574027d",
+    "completeArchivePopulationRecovered": true,
+    "completeDecodedEntriesObserved": 10803,
+    "error": null,
+    "expectedArchive": {
+      "bytes": 222540406,
+      "sha256": "4a262ec7fbd1388413e180777f7d2d01201191b067fb8e41dc1224547760a993"
+    },
+    "hostClosurePresent": false,
+    "hostFailurePresent": false,
+    "hostResultPresent": false,
+    "lastRecordStep": 1200,
+    "liveContiguousAccepted": "UNKNOWN_NO_HOST_RECEIPT",
+    "maxima": {
+      "contactGeometry.maxLocalSlabViolationM": 8.32641864620115e-17,
+      "contactGeometry.maxPointToLineWitnessMidpointM": 4.636362793431309e-17,
+      "contactGeometry.maxPrecisionDifference": 4.1820142433181277e-79,
+      "contactGeometry.maxSignedSupportPlaneGapM": 8.314574306376816e-17,
+      "ledgerCheck.freeAngularMomentumResidualKgM2ps": 1.1480552198547173e-30,
+      "ledgerCheck.freeLinearMomentumResidualKgMps": 4.330794981891965e-17,
+      "ledgerCheck.freeOmegaDifferenceRadps": 5e-149,
+      "ledgerCheck.freePositionDifferenceM": 0,
+      "ledgerCheck.freeQuaternionDifference": 3.171706896945574e-33,
+      "ledgerCheck.freeVelocityDifferenceMps": 7.148217203341763e-18,
+      "ledgerCheck.positionAngularArtifactKgM2ps": 1.4520767700483482e-20,
+      "ledgerCheck.positionAngularResidualKgM2ps": 3.194901611020283e-133,
+      "ledgerCheck.stepAngularMomentumResidualKgM2ps": 3.284178409531897e-14,
+      "ledgerCheck.stepLinearMomentumResidualKgMps": 9.298979179265624e-14,
+      "ledgerCheck.velocityAngularMomentumResidualKgM2ps": 3.2841784095318975e-14,
+      "ledgerCheck.velocityLinearMomentumResidualKgMps": 9.298811720626077e-14,
+      "ledgerCheck.velocityOmegaDifferenceRadps": 5.862486650039758e-13,
+      "ledgerCheck.velocityVelocityDifferenceMps": 9.205221778069565e-14,
+      "normal.closingNormalSpeedMps": 4.520741817570147e-13,
+      "normal.complementarityJ": 1.2934972525521417e-13,
+      "normal.impulseWorkErrorJ": 1.3877787807814457e-17,
+      "normal.loadedTangentSpeedMps": 2.069869282722644e-13,
+      "normal.negativeNormalImpulseNs": 0,
+      "normal.reportedAngularVelocityErrorRadps": 5.86460386359914e-13,
+      "normal.reportedResidualError": 4.5205506925447887e-13,
+      "normal.reportedVelocityErrorMps": 9.199585537800203e-14,
+      "positionCheck.certificateReportedDifference": 3.4043643948221495e-35,
+      "positionCheck.complementarityKgM2": 6.228871552456917e-38,
+      "positionCheck.marginReportedDifferenceM": 1.1102230246251565e-16,
+      "positionCheck.maxHypDepthNormalizedM": 7.330075454912672e-17,
+      "positionCheck.maxHypDepthRawM": 7.330075454912672e-17,
+      "positionCheck.maxPreAxisDifferenceM": 0,
+      "positionCheck.maxRoundedFinalDifferenceM": 0,
+      "positionCheck.negativeMultiplierKgM": 0,
+      "positionCheck.objectiveDifferenceKgM2": 3.8396260997499504e-22,
+      "positionCheck.objectiveReportedDifferenceKgM2": 3.839626099749951e-22,
+      "positionCheck.precisionMaxDifferenceM": 4.242876545952403e-60,
+      "positionCheck.primalViolationM": 4.8175676245531006e-36,
+      "positionCheck.rawNormalizedDepthDifferenceM": 2.7493279259185493e-50,
+      "positionCheck.stationarityKgM": 3.4043643948221495e-35,
+      "positionCheck.translationDifferenceM": 3.4043643948221495e-35,
+      "quality.maxAngularSpeedRadps": 2.7912237565712937e-16,
+      "quality.maxFloorPenetrationM": 7.330075454912672e-17,
+      "quality.maxHalfspaceIntrusionM": 7.330075454912672e-17,
+      "quality.maxHorizontalDriftM": 5.203700649481272e-14,
+      "quality.maxLinearSpeedMps": 1.2464943404954969e-14,
+      "quality.maxPairPenetrationM": 1.5058647339611058e-17,
+      "quality.maxQuaternionNormError": 6.959556198971135e-34,
+      "quality.maxTiltRad": 0,
+      "quality.maxVerticalDriftM": 2.7755575615628914e-17,
+      "quality.nearParallelAxisCount": 108,
+      "quality.overlapWithoutContactCount": 0
+    },
+    "originalIndependentFullPhysics": false,
+    "pendingReferenceWires": [],
+    "pinsSHA256": "4ad32b3410a31ede3431f9c5ed1552c8b61a783ddfcb7c2a875a7ad2b5939c63",
+    "record960BodySHA256": "47914bcfb4b3a2b4e53c5667f7de0573560ff07603bd74f2a9563d57d631b014",
+    "recordGroupsVerified": 1201,
+    "recordedPhaseGateStepsVerified": 1200,
+    "recordedTerminalQualityFrames": 241,
+    "recovered": {
+      "binary64BeWordSha256": "63df737352741f4e7cdf6462ff89c83172b0b741fb4c726d3ac9f83a544b5d58",
+      "compressedSha256": "4a262ec7fbd1388413e180777f7d2d01201191b067fb8e41dc1224547760a993",
+      "decodedRecordSha256": "bc839525f346f06a31cfca29465df38dd53ef58e4dd4baa6e5c350ad2bb964cf",
+      "entries": 10803,
+      "numericLeaves": 10594384,
+      "rawBytes": 6336936,
+      "rawSha256": "772bedc4c3183559e2889f099ee46ec9765d22d6ca2c8b2d17b70d9f8b8c9814",
+      "records": 1201,
+      "status": "ARCHIVE_VERIFIED"
+    },
+    "referenceCalls": 0,
+    "referenceWires": {
+      "contacts": {
+        "replies": 1200,
+        "requests": 1200
+      },
+      "quality": {
+        "replies": 1201,
+        "requests": 1201
+      },
+      "step-ledger": {
+        "replies": 1200,
+        "requests": 1200
+      },
+      "world": {
+        "replies": 1200,
+        "requests": 1200
+      }
+    },
+    "runtimeFramesCompared": 1201,
+    "scope": "Offline persisted bytes and recorded gate flags only; no new physical oracle, live acceptance, clean CPU or deadline promotion.",
+    "solverCalls": 0,
+    "sourceIntegrityFinal": "NOT_RUN_NO_LIVE_RECEIPT",
+    "status": "PASS_OFFLINE_RECOVERY_ONLY",
+    "worldCalls": 0
+  },
+  "offlineRecoveryFailure": null,
+  "originalIndependentFullPhysics": false,
+  "ownerFirstFailure": {
+    "message": "REAP_EOF_DEADLINE",
+    "type": "ValueError"
+  },
+  "ownerStatus": "CPUUNKNOWN",
+  "physicalFailureNotInferredFromAuditPathFailure": true,
+  "pinsSHA256": "4ad32b3410a31ede3431f9c5ed1552c8b61a783ddfcb7c2a875a7ad2b5939c63",
+  "providerOrNumericalSourceExecution": "NONE",
+  "sourceAndSmallReceipts": {
+    "examples/physics-stack-complete-2276/API-ADOPTION-PLAN.md": {
+      "bytes": 19365,
+      "mode": 420,
+      "sha256": "8b65447dc699cf29700b418a32ad30bbbd91797765a4092e7e6fb8304dac949f"
+    },
+    "examples/physics-stack-complete-2276/CONTRACT.md": {
+      "bytes": 20131,
+      "mode": 420,
+      "sha256": "cf9d8946e6e6fcaf303f6849e68abc0e1df013c1f5fe43e4d36e6aa481655427"
+    },
+    "examples/physics-stack-complete-2276/CONTROLS-ROOT-RESULT.json": {
+      "bytes": 477,
+      "mode": 420,
+      "sha256": "d3152494e29197b9fdd031762af7f4fca758d9365d9daddafea4f2f8cd3a71af"
+    },
+    "examples/physics-stack-complete-2276/CONTROLS-ROOT-SEAL.json": {
+      "bytes": 952,
+      "mode": 420,
+      "sha256": "2daea725a2f5ea8905e9239a64e4f7f941fb3b0c20d08e8c5d0736490990fad1"
+    },
+    "examples/physics-stack-complete-2276/FAILURE-EVIDENCE-ADDITIONAL-ADDENDUM.md": {
+      "bytes": 1987,
+      "mode": 420,
+      "sha256": "2555f11ef3b676c31001cb241d38e2673651483d5fecefbfc95e907dbf815358"
+    },
+    "examples/physics-stack-complete-2276/FAILURE-EVIDENCE-ADDITIONAL-PINS.json": {
+      "bytes": 1180,
+      "mode": 420,
+      "sha256": "08d799fca35772dff7e67535fb7e13fd865d2af9ddb9521d26486b8cba4921dc"
+    },
+    "examples/physics-stack-complete-2276/FAILURE-EVIDENCE-ADDITIONAL-ROOT-RESULT.json": {
+      "bytes": 836,
+      "mode": 420,
+      "sha256": "7ce35c3eb402d972f5ac76b6503edc3166a96acaa056518fa0281ee2ce8d9953"
+    },
+    "examples/physics-stack-complete-2276/FAILURE-EVIDENCE-CONTRACT.md": {
+      "bytes": 8361,
+      "mode": 420,
+      "sha256": "9ec9dda8a60fd6771f323fceff91a2e1b2c7ecffac506d11e3889e9bf494f43c"
+    },
+    "examples/physics-stack-complete-2276/FAILURE-EVIDENCE-PINS.json": {
+      "bytes": 1828,
+      "mode": 420,
+      "sha256": "002014de36db79b13ddc33a6a284c51f9d2d2059af2681f48bc2e09a31453a1e"
+    },
+    "examples/physics-stack-complete-2276/FAILURE-EVIDENCE-ROOT-RESULT.json": {
+      "bytes": 764,
+      "mode": 420,
+      "sha256": "b044dce6e27821aeffb3d4ae070d0f42fe483a1c4014392ee6c78e4a54e18b0b"
+    },
+    "examples/physics-stack-complete-2276/FINGERPRINT-CONTRACT.md": {
+      "bytes": 1337,
+      "mode": 420,
+      "sha256": "252a1a469710614b593528f12e71d9eda987cc4f53a4d7c8fb59b775500b7d53"
+    },
+    "examples/physics-stack-complete-2276/FIRST-FAILURE-01.md": {
+      "bytes": 2191,
+      "mode": 420,
+      "sha256": "c189b65d17f1f690486bd9191e5345ccee367aea44fe50238963e710042459e8"
+    },
+    "examples/physics-stack-complete-2276/FP-ROOT-BINDING.json": {
+      "bytes": 1122,
+      "mode": 420,
+      "sha256": "771f269e759226a64362c2691055e1febc6054656c82943f5fc7e7654471d267"
+    },
+    "examples/physics-stack-complete-2276/FULL-01-RESULTS.md": {
+      "bytes": 4304,
+      "mode": 420,
+      "sha256": "d4163e3aea4ae9addf40807523fd7555d966af6d0c27783435f182e25b8c334a"
+    },
+    "examples/physics-stack-complete-2276/FULL-02-RESULTS.md": {
+      "bytes": 5912,
+      "mode": 420,
+      "sha256": "f83df0898a041db8c5ca724dfe165cccfe48d9761b338adb55dc8197e448882d"
+    },
+    "examples/physics-stack-complete-2276/FULL-03-RESULTS.md": {
+      "bytes": 4762,
+      "mode": 420,
+      "sha256": "f1cb40738dc0857afcc59b58e676e8d9d1f984c243b74817d569656c15d61ec6"
+    },
+    "examples/physics-stack-complete-2276/IMPLEMENTATION.md": {
+      "bytes": 5128,
+      "mode": 420,
+      "sha256": "3100f40783836fa1f346f2da7d8391f9b97cd2569337b4943049f4ecb307efc9"
+    },
+    "examples/physics-stack-complete-2276/OPT07-FAILURE-RETENTION-ADDENDUM.md": {
+      "bytes": 4350,
+      "mode": 420,
+      "sha256": "219cd5a54c62a39ce3bb3ee36f1df53f6fcdd63b36a9c3fbb01b9148e1195cb3"
+    },
+    "examples/physics-stack-complete-2276/OPT08-PROVIDER-ADDENDUM.md": {
+      "bytes": 3507,
+      "mode": 420,
+      "sha256": "aadfb23b07292425a6e2f22a7880c351f51649fcf922f2f687ab260a6006ba22"
+    },
+    "examples/physics-stack-complete-2276/OPT09-PROVIDER-FAILURE-ADDENDUM.md": {
+      "bytes": 2306,
+      "mode": 420,
+      "sha256": "e0aa1fdfc4d32d044b5e135dbaef5c13edf66b1378f9c5248299cff1441e2cd7"
+    },
+    "examples/physics-stack-complete-2276/PINS.json": {
+      "bytes": 139352,
+      "mode": 420,
+      "sha256": "4ad32b3410a31ede3431f9c5ed1552c8b61a783ddfcb7c2a875a7ad2b5939c63"
+    },
+    "examples/physics-stack-complete-2276/PREFIX-02-RESULTS.md": {
+      "bytes": 2686,
+      "mode": 420,
+      "sha256": "d5c65c0123b23b754401de73f262e63c69c2d5fc5b55e749f5bca80a2b3bd864"
+    },
+    "examples/physics-stack-complete-2276/PREFIX-03-RESULTS.md": {
+      "bytes": 3235,
+      "mode": 420,
+      "sha256": "ed43ce7a3943ea66ebb3e39ee863ba3c9727186e7c87a3a7f95476e5f9745504"
+    },
+    "examples/physics-stack-complete-2276/PREFIX-04-RESULTS.md": {
+      "bytes": 3336,
+      "mode": 420,
+      "sha256": "0178105a6b64107bcafa40e537aa0a19baa1161240612fe50ca07f7e1ed4f61f"
+    },
+    "examples/physics-stack-complete-2276/PREFIX-05-RESULTS.md": {
+      "bytes": 3028,
+      "mode": 420,
+      "sha256": "367023f8a9f82ba8b9fc80774347ef5bf3cf4ef5c6939fbadd5bc5d673b62947"
+    },
+    "examples/physics-stack-complete-2276/PROVIDER-OPT07.json": {
+      "bytes": 6965,
+      "mode": 420,
+      "sha256": "c0dff2e8b71e21486aeedfe97ea1ad8492271dfd40c5cf3c2e8212791cdf48e1"
+    },
+    "examples/physics-stack-complete-2276/PROVIDER-OPT08.json": {
+      "bytes": 7449,
+      "mode": 420,
+      "sha256": "561cf7875fd5dbe5079f20f16aeae4ccb7dc7f87f56e88021437a1490866322c"
+    },
+    "examples/physics-stack-complete-2276/PROVIDER-OPT09.json": {
+      "bytes": 7298,
+      "mode": 420,
+      "sha256": "62711d747da47179eeebb55d763bdd772fa075117bd9cf0f5710b59c7259fe83"
+    },
+    "examples/physics-stack-complete-2276/ROOT-PREFLIGHT-01.json": {
+      "bytes": 961,
+      "mode": 420,
+      "sha256": "001674fc789b01c6cd1a4899d77f0ae1b96e75f6e9a14d51a9ec80601a66c7f1"
+    },
+    "examples/physics-stack-complete-2276/ROOT-PREFLIGHT-02.json": {
+      "bytes": 370,
+      "mode": 420,
+      "sha256": "8f868847cc3f22ff1e5e1d0b445e982805b1c7822014b3dd693591adb983250c"
+    },
+    "examples/physics-stack-complete-2276/SOURCE-SEAL.json": {
+      "bytes": 5020,
+      "mode": 420,
+      "sha256": "d8add57483fc664c92b53c97b8b0cb5064b3e41629a2af9979b95644fda07ed1"
+    },
+    "examples/physics-stack-complete-2276/audit-failure-02.mjs": {
+      "bytes": 2762,
+      "mode": 420,
+      "sha256": "f0dac89d501ce1247e06d4b7cdc21c67100a8340b1260891b7f98972bd9f5a37"
+    },
+    "examples/physics-stack-complete-2276/baseline.mjs": {
+      "bytes": 992,
+      "mode": 420,
+      "sha256": "09af6549726f3c9cd22b4d14132bd7c60e2a26b0b0aa204ef925057fa83912b2"
+    },
+    "examples/physics-stack-complete-2276/controls.test.mjs": {
+      "bytes": 3224,
+      "mode": 420,
+      "sha256": "25a69057cdeedba4f3345b7033a9c3511f632bba4e730677920e6c00ee22cb6d"
+    },
+    "examples/physics-stack-complete-2276/driver.mjs": {
+      "bytes": 26471,
+      "mode": 420,
+      "sha256": "ce500def882ec3d23f6ae6bc1f58b6e2b1b8ff877a4e8df04fbea1f6d0e9e49b"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-04/ALIGNED-owner.stderr": {
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-04/ALIGNED-owner.stdout": {
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-04/ALIGNED/host.stderr": {
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-04/ALIGNED/host.stdout": {
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-04/ALIGNED/host/inputs-before.json": {
+      "bytes": 285,
+      "mode": 420,
+      "sha256": "836085dce297223455a611453ef9a1e967d203c9bd7c89b39c52b3964edc9f07"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-04/ALIGNED/outer-stop.json": {
+      "bytes": 156,
+      "mode": 420,
+      "sha256": "c27db60a593ea1da51e1602ed90f26ec0026d5bb42d0de70d5084ce9a7256d51"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-04/ALIGNED/stage.json": {
+      "bytes": 578,
+      "mode": 420,
+      "sha256": "c94a7b61c6aac81d9f4bef61d150fe969e15eb9d3bfd85479005a2f924efde8f"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-04/ALIGNED/summary.json": {
+      "bytes": 1455,
+      "mode": 420,
+      "sha256": "6c4eeb16891dceeecb1cbd65e2d2f827be0355935db7558f6515887a54eaaa2d"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-04/admission.json": {
+      "bytes": 442,
+      "mode": 420,
+      "sha256": "d8bf27ccac2eafb7e7e7f9e5adb29c293020f04aa13f2ffd5cca617394e04eea"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-04/budget.json": {
+      "bytes": 53,
+      "mode": 420,
+      "sha256": "f9063b56b855363eda483a5910ad7bce8b7d63dcc9d1083d337c4fe5f0e5e739"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-04/campaign-inputs.json": {
+      "bytes": 345,
+      "mode": 420,
+      "sha256": "b6337b327af51bf300ad15b4b179a7583d19cadfcfeecbaf054522b1b14d902f"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-04/campaign-result.json": {
+      "bytes": 777,
+      "mode": 420,
+      "sha256": "f4398e5991f40511ef56fb95632170cbf8b292aa659f77aca3f5ee5fe080ae1a"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-04/offline-recovery.json": {
+      "bytes": 5360,
+      "mode": 420,
+      "sha256": "154d72fece0440ffefb47d69a8bc81ab341db611ac0f1fb0cab624a1348a826c"
+    },
+    "examples/physics-stack-complete-2276/failure-evidence-additional.test.mjs": {
+      "bytes": 4390,
+      "mode": 420,
+      "sha256": "80ca8ded54e8627d602449785905a0a3926269b39605bac1ec69b3cf42aa8db7"
+    },
+    "examples/physics-stack-complete-2276/failure-evidence.mjs": {
+      "bytes": 5368,
+      "mode": 420,
+      "sha256": "f80dd00dcb355b86c971bbf034addd1dfdcebbbe79ce02abac3b43233f4c7688"
+    },
+    "examples/physics-stack-complete-2276/failure-evidence.test.mjs": {
+      "bytes": 10490,
+      "mode": 420,
+      "sha256": "19309fb795f9544f40e1807b1b6ec4ada362cc7bb72f9d67651cdcb3799afe96"
+    },
+    "examples/physics-stack-complete-2276/fingerprint.mjs": {
+      "bytes": 1602,
+      "mode": 420,
+      "sha256": "62e32917277f5376c38b2c1f6adb34a24ef112da2985514eaa37e6073fda5448"
+    },
+    "examples/physics-stack-complete-2276/fingerprint.test.mjs": {
+      "bytes": 2899,
+      "mode": 420,
+      "sha256": "acec9903611dda94183dcc501adee63b5a8c47bcbe09a3365c18ca5124f183a4"
+    },
+    "examples/physics-stack-complete-2276/host.mjs": {
+      "bytes": 4824,
+      "mode": 420,
+      "sha256": "14a54f2802a7dcbae439b67458d9638748bec5eef4aa8f1f77b5b2cf386cd0ee"
+    },
+    "examples/physics-stack-complete-2276/preserve-full-02.py": {
+      "bytes": 7666,
+      "mode": 420,
+      "sha256": "82e25fd1701db3e1e7cd7c9ad678f5ebba5a01dc10c8d4b37ffae7520cd27bc5"
+    },
+    "examples/physics-stack-complete-2276/preserve-full-03.py": {
+      "bytes": 7666,
+      "mode": 420,
+      "sha256": "b72c15a4933db2f2c597e37d7b4ffe5a789ebf3eb13b6e6b18870cf21938e854"
+    },
+    "examples/physics-stack-complete-2276/preserve-full-04.py": {
+      "bytes": 8095,
+      "mode": 420,
+      "sha256": "9ed00c7d7434635b8de92f42cf86f70bcb64f90afb08c1e78155de0a4e3b15df"
+    },
+    "examples/physics-stack-complete-2276/producer.mjs": {
+      "bytes": 2784,
+      "mode": 420,
+      "sha256": "e19302b030799e309bf174f3beae7c64779cd879c4793ba14c45f841a3568649"
+    },
+    "examples/physics-stack-complete-2276/recover-full-01.mjs": {
+      "bytes": 4406,
+      "mode": 420,
+      "sha256": "04129b4cc7c06769bea2749029511b9680ca32524f828ab96c92aec2a22a83a4"
+    },
+    "examples/physics-stack-complete-2276/recover-full-04.mjs": {
+      "bytes": 6320,
+      "mode": 420,
+      "sha256": "241de8122c31fb70dd0704eb56190e072e0e8feb51c9cf5f4c3917d2d0735461"
+    },
+    "examples/physics-stack-complete-2276/reference.mjs": {
+      "bytes": 4175,
+      "mode": 420,
+      "sha256": "feecbee290f68b011a078aff2e4742b6be25bfbff0a015b6ae4d61019b2a3efb"
+    },
+    "examples/physics-stack-complete-2276/run.py": {
+      "bytes": 7880,
+      "mode": 420,
+      "sha256": "a7fc34af5e6f9058b8a8c7a8e40984cc7fdb9432dfdb8936c179d0aae4ac348e"
+    },
+    "examples/physics-stack-complete-2276/scene-owner.py": {
+      "bytes": 12965,
+      "mode": 420,
+      "sha256": "726a6f1b48a3774512141f20a9bfae2abfa696d094f87a7a4698d0aa8daae29c"
+    },
+    "examples/physics-stack-complete-2276/window.mjs": {
+      "bytes": 2177,
+      "mode": 420,
+      "sha256": "6e87f9501e0b464a03fccd60ac700a3fc0672043e942878040a110f44e104358"
+    },
+    "examples/physics-world-p5-2276/evidence/stack-full04-offline-recovery-01/prepared.json": {
+      "bytes": 1524,
+      "mode": 420,
+      "sha256": "8377b560b2f88c96847298331abd108d0e291cb367a572743736a407178ae151"
+    },
+    "examples/physics-world-p5-2276/evidence/stack-full04-offline-recovery-01/progress.json": {
+      "bytes": 1623,
+      "mode": 420,
+      "sha256": "a45bf963487c07b27122080018769740b62a4a22a0a6076c1020dfb1214b8a32"
+    },
+    "examples/physics-world-p5-2276/evidence/stack-full04-offline-recovery-01/result.json": {
+      "bytes": 3052,
+      "mode": 420,
+      "sha256": "379e4946bc50f18aaabf563f80fb3b0de31f30693d9df58742274aaff4369011"
+    },
+    "examples/physics-world-p5-2276/evidence/stack-full04-offline-recovery-01/start.json": {
+      "bytes": 1546,
+      "mode": 420,
+      "sha256": "2ffa62254510147e6461912a42876a23bc391f68ac21a9b22035426d9b84c28a"
+    },
+    "examples/physics-world-p5-2276/evidence/stack-full04-offline-recovery-01/stderr.raw": {
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/stack-full04-offline-recovery-01/stdout.raw": {
+      "bytes": 227,
+      "mode": 420,
+      "sha256": "167a78a357ab77460c66e0e931e0616617b1930ce9d945ce2c42680d029f4b33"
+    }
+  },
+  "sourceArchive": {
+    "bytes": 125606,
+    "path": "examples/physics-stack-complete-2276/baseline/full-04-source.tar.gz",
+    "sha256": "624a0d646f63b36c97503f440e367c1348050fb07dbefb781bc396a38586a7bf"
+  },
+  "sourceIntegrityFinal": "NOT_RUN_NO_LIVE_RECEIPT",
+  "sourceSealSHA256": "d8add57483fc664c92b53c97b8b0cb5064b3e41629a2af9979b95644fda07ed1",
+  "status": "PRESERVED_ENDED_FULL04_NOT_RECLASSIFIED",
+  "strictGlobal64MiBCertification": "NOT_QUALIFIED",
+  "tarMetadata": {
+    "gid": 0,
+    "gname": "",
+    "modes": "ORIGINAL",
+    "mtime": 0,
+    "uid": 0,
+    "uname": ""
+  }
+}

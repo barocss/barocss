@@ -147,7 +147,12 @@ class Arithmetic {
     if (value.length !== length || !Array.from({ length },(_,i)=>i).every(i=>Object.hasOwn(value,i))) throw new StrictLineFailure('dense exact vector required');
     return value.map(x=>this.from(x));
   }
-  dot(a: Rational[], b: Rational[]): Rational { return a.reduce((value,x,i)=>this.add(value,this.mul(x,b[i])),ZERO); }
+  dot(a: Rational[], b: Rational[]): Rational {
+    return a.reduce<Rational|null>((value,x,i)=>{
+      const product = this.mul(x,b[i]);
+      return value === null && product.n !== 0n && product.d !== 1n ? product : this.add(value ?? ZERO,product);
+    },null) ?? ZERO;
+  }
   /** Correct nearest-even conversion, including subnormals; no Number(BigInt)/Number(BigInt). */
   number(value: Rational): number {
     this.op();

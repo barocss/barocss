@@ -1,0 +1,1548 @@
+{
+  "API": false,
+  "archiveLargePayloadIncluded": false,
+  "budget": {
+    "cap": 293601280,
+    "reserve": 2097152,
+    "used": 291909222
+  },
+  "campaignAccepted": 1200,
+  "campaignFirstFailure": {
+    "errorClass": "ValueError",
+    "laterScenes": "NOT_RUN",
+    "message": "OWNER_STOPPED",
+    "ownerExit": -9,
+    "scene": "OFFSET"
+  },
+  "campaignScenes": [
+    {
+      "archive": {
+        "compressedBytes": 222546917,
+        "compressedSha256": "6f5871abe2d1f5f54e20c05ac7c3a90d4c287faa8987df2fd60c86b2f3dae230",
+        "entries": 10803,
+        "status": "ARCHIVE_CLOSED",
+        "storageFormat": "CONTINUOUS_GZIP_NOT_OLD_PER_RECORD_GZIP"
+      },
+      "contiguousPhysicalAccepted": 1200,
+      "cpuStatus": "CPU_COMPLETE_ORIGINAL_SCENE",
+      "cpuUs": {
+        "systemUs": 2911612,
+        "userUs": 513428773
+      },
+      "ownerSummarySHA256": "f16e94046b8885ebaaf26fe6c85f96cda06068c19c003233b41c9469dced3654",
+      "physicalResultSHA256": "3128d63986ad2e2f45be3d933b680a5feaadbe538667ee8f852050e8ce579f22",
+      "recovery": {
+        "binary64BeWordSha256": "63df737352741f4e7cdf6462ff89c83172b0b741fb4c726d3ac9f83a544b5d58",
+        "bodyOnlySha256": "2f771065f3437de89a71464915e9a4532cb0c54e51d9e3967ba0363d4574027d",
+        "compressedSha256": "6f5871abe2d1f5f54e20c05ac7c3a90d4c287faa8987df2fd60c86b2f3dae230",
+        "decodedRecordSha256": "bc839525f346f06a31cfca29465df38dd53ef58e4dd4baa6e5c350ad2bb964cf",
+        "entries": 10803,
+        "numericLeaves": 10594384,
+        "originalWireEntriesCompared": 130,
+        "rawBytes": 6336936,
+        "rawSha256": "772bedc4c3183559e2889f099ee46ec9765d22d6ca2c8b2d17b70d9f8b8c9814",
+        "records": 1201,
+        "status": "ARCHIVE_VERIFIED"
+      },
+      "scene": "ALIGNED",
+      "steps": 1200
+    }
+  ],
+  "campaignStatus": "COMPLETE_CAMPAIGN_STOPPED",
+  "checkedInputFiles": 704,
+  "embeddedMetadataSHA256": "9aba7949b7fb5ff791ce0cdc5b74f31c132cad18f4cedf9278d8418617ab2e27",
+  "externalArchives": {
+    "examples/physics-stack-complete-2276/evidence/full-05/ALIGNED/host/events.gz": {
+      "bytes": 222546917,
+      "sha256": "6f5871abe2d1f5f54e20c05ac7c3a90d4c287faa8987df2fd60c86b2f3dae230"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/OFFSET/host/events.gz": {
+      "bytes": 60566605,
+      "sha256": "f1c0d1c90fb32b332d5968d870e48eb1c8453d6be6f5aab2b195b5a7a2fa2153"
+    }
+  },
+  "extractedMembersVerified": 93,
+  "laterYAW": "NOT_RUN",
+  "numericalCalls": 0,
+  "observedSceneLayers": {
+    "ALIGNED": {
+      "archiveStop": {
+        "present": false,
+        "receipt": null
+      },
+      "closedPhaseProgress": {
+        "present": true,
+        "receipt": {
+          "API": false,
+          "archive": {
+            "compressedBytes": 222546917,
+            "compressedSha256": "6f5871abe2d1f5f54e20c05ac7c3a90d4c287faa8987df2fd60c86b2f3dae230",
+            "entries": 10803,
+            "status": "ARCHIVE_CLOSED",
+            "storageFormat": "CONTINUOUS_GZIP_NOT_OLD_PER_RECORD_GZIP"
+          },
+          "baseline960": {
+            "bodyRawSha256": "47914bcfb4b3a2b4e53c5667f7de0573560ff07603bd74f2a9563d57d631b014",
+            "stateFingerprint": {
+              "boundBytes": 30980,
+              "containers": 91,
+              "edges": 375,
+              "maxDepth": 5,
+              "maxWireBytes": 2097152,
+              "numericLeaves": 233,
+              "sha256": "46147de389ee682c078b4ad7260f8eb04c6698da854e93d817093c0550912a88"
+            },
+            "step": 960
+          },
+          "bodyOnlySha256": "2f771065f3437de89a71464915e9a4532cb0c54e51d9e3967ba0363d4574027d",
+          "closedTreeCPU": "NOT_QUALIFIED_BY_CHECKPOINT",
+          "counts": {
+            "archived": 1200,
+            "contiguousPhysicalAccepted": 1200,
+            "fullyVerifiedPhaseSteps": 1200,
+            "independentlyFullAccepted": 0,
+            "normalKktPassed": 1200,
+            "oldRecordsCompared": 17,
+            "oldWirePairsCompared": 65,
+            "producerAttempted": 1200,
+            "producerReturned": 1200,
+            "recordGroups": 1201,
+            "reference": {
+              "contacts": {
+                "attempted": 1200,
+                "passed": 1200,
+                "replied": 1200,
+                "resolved": 1200,
+                "shadowReplies": 0
+              },
+              "quality": {
+                "attempted": 1201,
+                "passed": 1201,
+                "replied": 1201,
+                "resolved": 1201,
+                "shadowReplies": 0
+              },
+              "step-ledger": {
+                "attempted": 1200,
+                "passed": 1200,
+                "replied": 1200,
+                "resolved": 1200,
+                "shadowReplies": 0
+              },
+              "world": {
+                "attempted": 1200,
+                "passed": 1200,
+                "replied": 1200,
+                "resolved": 1200,
+                "shadowReplies": 0
+              }
+            },
+            "requested": 1200,
+            "runtimeFramesCompared": 1201
+          },
+          "originalIndependentFullPhysics": false,
+          "peakCredits": 3,
+          "recovery": "NOT_YET_COMPLETED",
+          "scene": "ALIGNED",
+          "scope": "Recorded phase/archive completion only; recovery, final source authentication and owner acceptance remain required.",
+          "selectedSteps": 1200,
+          "status": "PHASES_AND_ARCHIVE_CLOSED_BEFORE_RECOVERY",
+          "terminalQualityPassed": 241
+        }
+      },
+      "closure": {
+        "present": true,
+        "receipt": {
+          "API": false,
+          "allReaped": true,
+          "children": [
+            {
+              "closed": true,
+              "error": null,
+              "exit": 0,
+              "pid": 88724,
+              "replies": 2401,
+              "requests": 2401,
+              "role": "geometry",
+              "signal": null,
+              "stderrBytes": 0,
+              "trailingBytes": 0
+            },
+            {
+              "closed": true,
+              "error": null,
+              "exit": 0,
+              "pid": 88725,
+              "replies": 1200,
+              "requests": 1200,
+              "role": "position0",
+              "signal": null,
+              "stderrBytes": 0,
+              "trailingBytes": 0
+            },
+            {
+              "closed": true,
+              "error": null,
+              "exit": 0,
+              "pid": 88726,
+              "replies": 1200,
+              "requests": 1200,
+              "role": "position1",
+              "signal": null,
+              "stderrBytes": 0,
+              "trailingBytes": 0
+            }
+          ],
+          "counts": {
+            "archived": 1200,
+            "contiguousPhysicalAccepted": 1200,
+            "fullyVerifiedPhaseSteps": 1200,
+            "independentlyFullAccepted": 0,
+            "normalKktPassed": 1200,
+            "oldRecordsCompared": 17,
+            "oldWirePairsCompared": 65,
+            "producerAttempted": 1200,
+            "producerReturned": 1200,
+            "recordGroups": 1201,
+            "reference": {
+              "contacts": {
+                "attempted": 1200,
+                "passed": 1200,
+                "replied": 1200,
+                "resolved": 1200,
+                "shadowReplies": 0
+              },
+              "quality": {
+                "attempted": 1201,
+                "passed": 1201,
+                "replied": 1201,
+                "resolved": 1201,
+                "shadowReplies": 0
+              },
+              "step-ledger": {
+                "attempted": 1200,
+                "passed": 1200,
+                "replied": 1200,
+                "resolved": 1200,
+                "shadowReplies": 0
+              },
+              "world": {
+                "attempted": 1200,
+                "passed": 1200,
+                "replied": 1200,
+                "resolved": 1200,
+                "shadowReplies": 0
+              }
+            },
+            "requested": 1200,
+            "runtimeFramesCompared": 1201
+          },
+          "error": null,
+          "expectedPgid": 88677,
+          "mode": "full",
+          "originalIndependentFullPhysics": false,
+          "pid": 88683,
+          "ppid": 88677,
+          "producer": {
+            "exit": 0,
+            "joinedByPinnedClose": true,
+            "threadId": "NOT_CAPTURED_NOT_INVENTED"
+          },
+          "protocol": "stack-complete-scene-cpu-v1",
+          "resultSHA256": "3128d63986ad2e2f45be3d933b680a5feaadbe538667ee8f852050e8ce579f22",
+          "scene": "ALIGNED",
+          "sourceIntegrity": true,
+          "sourceSeal": "4d37cd6b94b293a982dd4a47ff338d13c5812df26ea0d735790535693744d5c8",
+          "status": "HOST_PHYSICAL_SCENE_CONFIRMED",
+          "steps": 1200,
+          "strictGlobal64MiBCertification": "NOT_QUALIFIED"
+        }
+      },
+      "host": {
+        "present": true,
+        "receipt": {
+          "API": false,
+          "archive": {
+            "compressedBytes": 222546917,
+            "compressedSha256": "6f5871abe2d1f5f54e20c05ac7c3a90d4c287faa8987df2fd60c86b2f3dae230",
+            "entries": 10803,
+            "status": "ARCHIVE_CLOSED",
+            "storageFormat": "CONTINUOUS_GZIP_NOT_OLD_PER_RECORD_GZIP"
+          },
+          "baseline960": {
+            "bodyRawSha256": "47914bcfb4b3a2b4e53c5667f7de0573560ff07603bd74f2a9563d57d631b014",
+            "stateFingerprint": {
+              "boundBytes": 30980,
+              "containers": 91,
+              "edges": 375,
+              "maxDepth": 5,
+              "maxWireBytes": 2097152,
+              "numericLeaves": 233,
+              "sha256": "46147de389ee682c078b4ad7260f8eb04c6698da854e93d817093c0550912a88"
+            },
+            "step": 960
+          },
+          "baselinePromoted": true,
+          "bodyBytes": 4493736,
+          "bodyOnlySha256": "2f771065f3437de89a71464915e9a4532cb0c54e51d9e3967ba0363d4574027d",
+          "budget": {
+            "cap": 293601280,
+            "reserve": 2097152,
+            "used": 230935525
+          },
+          "cleanup": [
+            {
+              "producer": {
+                "exit": 0,
+                "fatal": null,
+                "joinedByPinnedClose": true,
+                "logBytes": 0,
+                "maxPrepareNs": "240798833",
+                "prepareNs": "139523614207",
+                "proofSha256": "67865af29177d07cd02fa28947d7e2f2f4c8357cc3722ac6ddda9d27434de6bc",
+                "proofs": 1201
+              }
+            },
+            {
+              "closed": true,
+              "error": null,
+              "executable": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+              "exit": 0,
+              "label": "geometry",
+              "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/trajectory-reference.py",
+              "pendingIdentity": null,
+              "pid": 88724,
+              "replies": 2401,
+              "requests": 2401,
+              "signal": null,
+              "stderrBytes": 0,
+              "trailingBytes": 0,
+              "wireTranscriptSha256": "3833cf74e528b13d4213a3a6fbbd97c85dee7d074f6d2d3e6e6076cd3fdced90"
+            },
+            {
+              "closed": true,
+              "error": null,
+              "executable": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+              "exit": 0,
+              "label": "position0",
+              "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-reference-prepared-2276/candidate.py",
+              "pendingIdentity": null,
+              "pid": 88725,
+              "replies": 1200,
+              "requests": 1200,
+              "signal": null,
+              "stderrBytes": 0,
+              "trailingBytes": 0,
+              "wireTranscriptSha256": "cc552dd903f467db7c338383cd5a7c7704f7e4524c96346256aec38bacce6c3a"
+            },
+            {
+              "closed": true,
+              "error": null,
+              "executable": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+              "exit": 0,
+              "label": "position1",
+              "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-reference-prepared-2276/candidate.py",
+              "pendingIdentity": null,
+              "pid": 88726,
+              "replies": 1200,
+              "requests": 1200,
+              "signal": null,
+              "stderrBytes": 0,
+              "trailingBytes": 0,
+              "wireTranscriptSha256": "a037a3e54603369ee3a50b58b941b2a69b2d95aaace63cf6dbfb2acbc282b761"
+            }
+          ],
+          "counts": {
+            "archived": 1200,
+            "contiguousPhysicalAccepted": 1200,
+            "fullyVerifiedPhaseSteps": 1200,
+            "independentlyFullAccepted": 0,
+            "normalKktPassed": 1200,
+            "oldRecordsCompared": 17,
+            "oldWirePairsCompared": 65,
+            "producerAttempted": 1200,
+            "producerReturned": 1200,
+            "recordGroups": 1201,
+            "reference": {
+              "contacts": {
+                "attempted": 1200,
+                "passed": 1200,
+                "replied": 1200,
+                "resolved": 1200,
+                "shadowReplies": 0
+              },
+              "quality": {
+                "attempted": 1201,
+                "passed": 1201,
+                "replied": 1201,
+                "resolved": 1201,
+                "shadowReplies": 0
+              },
+              "step-ledger": {
+                "attempted": 1200,
+                "passed": 1200,
+                "replied": 1200,
+                "resolved": 1200,
+                "shadowReplies": 0
+              },
+              "world": {
+                "attempted": 1200,
+                "passed": 1200,
+                "replied": 1200,
+                "resolved": 1200,
+                "shadowReplies": 0
+              }
+            },
+            "requested": 1200,
+            "runtimeFramesCompared": 1201
+          },
+          "desktop": "NOT_RUN",
+          "earliest": null,
+          "executionFailure": null,
+          "failureEvidence": null,
+          "firstObserved": null,
+          "lastContiguous": 1200,
+          "originalIndependentFullPhysics": false,
+          "peakCredits": 3,
+          "prefixParity": {
+            "binary64BeWordSha256": "f08ee1ff2ff41db8eab59d395f4937c5383d3b2db579a7c04eedcaf8a83fbea0",
+            "bodyRawSha256": "02b3ca9eba5badb1d1bae07fbb2ee5776f3a55d15a5ff6bea2e1d1f75d6ca834",
+            "decodedRecordSha256": "8b312e803aebcba3aee4a15ca64ab17811357fbfcfde1ea574d1de901a3674a4",
+            "records": 17,
+            "wirePairs": 65
+          },
+          "publicWorld": "NOT_RUN",
+          "recovery": {
+            "binary64BeWordSha256": "63df737352741f4e7cdf6462ff89c83172b0b741fb4c726d3ac9f83a544b5d58",
+            "bodyOnlySha256": "2f771065f3437de89a71464915e9a4532cb0c54e51d9e3967ba0363d4574027d",
+            "compressedSha256": "6f5871abe2d1f5f54e20c05ac7c3a90d4c287faa8987df2fd60c86b2f3dae230",
+            "decodedRecordSha256": "bc839525f346f06a31cfca29465df38dd53ef58e4dd4baa6e5c350ad2bb964cf",
+            "entries": 10803,
+            "numericLeaves": 10594384,
+            "originalWireEntriesCompared": 130,
+            "rawBytes": 6336936,
+            "rawSha256": "772bedc4c3183559e2889f099ee46ec9765d22d6ca2c8b2d17b70d9f8b8c9814",
+            "records": 1201,
+            "status": "ARCHIVE_VERIFIED"
+          },
+          "runtimeDeterminism": {
+            "authority": "SAVED_RUNTIME05_BODY_WORDS_NOT_PHASE_ORACLE",
+            "frames": 1201
+          },
+          "scene": "ALIGNED",
+          "selectedSteps": 1200,
+          "status": "COMPLETE_SCENE_PHYSICAL_CONFIRMED",
+          "strictGlobal64MiBCertification": "NOT_QUALIFIED",
+          "terminalQualityPassed": 241,
+          "timing": {
+            "archiveNs": "20950413629",
+            "normalKktNs": "127485659",
+            "referenceAskNs": "340187245274"
+          },
+          "workMax": {
+            "hits": 8,
+            "maxTranslationM": 0.0006812500000000221,
+            "postPairTests": 36,
+            "rows": 36,
+            "signedPreQueries": 36,
+            "solverCalls": 1,
+            "tests": 36,
+            "workingApplicationCount": 1
+          }
+        }
+      },
+      "owner": {
+        "present": true,
+        "receipt": {
+          "API": false,
+          "RSS": "NOT_QUALIFIED",
+          "authority": "ONE_RUSAGE_CHILDREN_DELTA_AFTER_EXACT_WAIT_AND_PINNED_CLOSED_TREE",
+          "closure": {
+            "API": false,
+            "allReaped": true,
+            "children": [
+              {
+                "closed": true,
+                "error": null,
+                "exit": 0,
+                "pid": 88724,
+                "replies": 2401,
+                "requests": 2401,
+                "role": "geometry",
+                "signal": null,
+                "stderrBytes": 0,
+                "trailingBytes": 0
+              },
+              {
+                "closed": true,
+                "error": null,
+                "exit": 0,
+                "pid": 88725,
+                "replies": 1200,
+                "requests": 1200,
+                "role": "position0",
+                "signal": null,
+                "stderrBytes": 0,
+                "trailingBytes": 0
+              },
+              {
+                "closed": true,
+                "error": null,
+                "exit": 0,
+                "pid": 88726,
+                "replies": 1200,
+                "requests": 1200,
+                "role": "position1",
+                "signal": null,
+                "stderrBytes": 0,
+                "trailingBytes": 0
+              }
+            ],
+            "counts": {
+              "archived": 1200,
+              "contiguousPhysicalAccepted": 1200,
+              "fullyVerifiedPhaseSteps": 1200,
+              "independentlyFullAccepted": 0,
+              "normalKktPassed": 1200,
+              "oldRecordsCompared": 17,
+              "oldWirePairsCompared": 65,
+              "producerAttempted": 1200,
+              "producerReturned": 1200,
+              "recordGroups": 1201,
+              "reference": {
+                "contacts": {
+                  "attempted": 1200,
+                  "passed": 1200,
+                  "replied": 1200,
+                  "resolved": 1200,
+                  "shadowReplies": 0
+                },
+                "quality": {
+                  "attempted": 1201,
+                  "passed": 1201,
+                  "replied": 1201,
+                  "resolved": 1201,
+                  "shadowReplies": 0
+                },
+                "step-ledger": {
+                  "attempted": 1200,
+                  "passed": 1200,
+                  "replied": 1200,
+                  "resolved": 1200,
+                  "shadowReplies": 0
+                },
+                "world": {
+                  "attempted": 1200,
+                  "passed": 1200,
+                  "replied": 1200,
+                  "resolved": 1200,
+                  "shadowReplies": 0
+                }
+              },
+              "requested": 1200,
+              "runtimeFramesCompared": 1201
+            },
+            "error": null,
+            "expectedPgid": 88677,
+            "mode": "full",
+            "originalIndependentFullPhysics": false,
+            "pid": 88683,
+            "ppid": 88677,
+            "producer": {
+              "exit": 0,
+              "joinedByPinnedClose": true,
+              "threadId": "NOT_CAPTURED_NOT_INVENTED"
+            },
+            "protocol": "stack-complete-scene-cpu-v1",
+            "resultSHA256": "3128d63986ad2e2f45be3d933b680a5feaadbe538667ee8f852050e8ce579f22",
+            "scene": "ALIGNED",
+            "sourceIntegrity": true,
+            "sourceSeal": "4d37cd6b94b293a982dd4a47ff338d13c5812df26ea0d735790535693744d5c8",
+            "status": "HOST_PHYSICAL_SCENE_CONFIRMED",
+            "steps": 1200,
+            "strictGlobal64MiBCertification": "NOT_QUALIFIED"
+          },
+          "complete64MiBData": "NOT_QUALIFIED",
+          "completeNodeSubtreeCpuUs": {
+            "systemUs": 2911612,
+            "userUs": 513428773
+          },
+          "controllerSelfObservedSpanUs": {
+            "systemUs": 112770,
+            "userUs": 308648
+          },
+          "controllerSelfSpanScope": "BEFORE_PIN_AUTH_TO_BEFORE_FINAL_RECEIPT;NOT_WHOLE_LIFETIME;NOT_ADDED_TO_NODE",
+          "controllerWholeLifetimeCpu": "NOT_CLAIMED",
+          "firstFailure": null,
+          "identityAuthority": "TRUSTED_PINNED_HOST_OS_PID_PPID_PLUS_PARENT_GETPGID",
+          "independentlyFullAccepted": 0,
+          "mode": "full",
+          "observedWallSecondsBeforeFinalReceipt": 169.46208579209633,
+          "originalIndependentFullPhysics": false,
+          "ownedPgid": 88677,
+          "ownerPid": 88677,
+          "resourceQualification": false,
+          "rssSemantics": "DARWIN_BYTES;OS_MAXRSS_OBSERVATION_NOT_SIMULTANEOUS_TREE_RSS_OR_64MIB_DATA",
+          "sample": {
+            "childrenAfter": {
+              "maxrssBytes": 238092288,
+              "systemUs": 2911612,
+              "userUs": 513428773
+            },
+            "childrenBefore": {
+              "maxrssBytes": 0,
+              "systemUs": 0,
+              "userUs": 0
+            },
+            "exitCode": 0,
+            "ioFailure": null,
+            "observedDirectChildPgid": 88677,
+            "ownerPid": 88677,
+            "pgid": 88677,
+            "pid": 88683,
+            "pipeEof": true,
+            "reaped": true,
+            "signals": [],
+            "timedOut": false,
+            "wait4Usage": {
+              "maxrssBytes": 238092288,
+              "systemUs": 2911612,
+              "userUs": 513428773
+            },
+            "waitOwnershipLost": false
+          },
+          "scene": "ALIGNED",
+          "status": "CPU_COMPLETE_ORIGINAL_SCENE",
+          "steps": 1200,
+          "strictGlobal64MiBCertification": "NOT_QUALIFIED",
+          "wait4IsCrosscheckOnly": true,
+          "workerCpuAddedSeparately": false
+        }
+      }
+    },
+    "OFFSET": {
+      "archiveStop": {
+        "present": true,
+        "receipt": {
+          "code": "RETAINED_CAP",
+          "compressedBytes": 60566605,
+          "kernelWrittenCompleteFrames": 2962,
+          "message": "RETAINED_CAP",
+          "status": "ARCHIVE_STOPPED"
+        }
+      },
+      "closedPhaseProgress": {
+        "present": false,
+        "receipt": null
+      },
+      "closure": {
+        "present": true,
+        "receipt": {
+          "API": false,
+          "allReaped": false,
+          "children": [
+            {
+              "closed": true,
+              "error": "Cannot call write after a stream was destroyed",
+              "exit": null,
+              "pid": 91946,
+              "replies": 659,
+              "requests": 660,
+              "role": "geometry",
+              "signal": "SIGTERM",
+              "stderrBytes": 0,
+              "trailingBytes": 0
+            },
+            {
+              "closed": true,
+              "error": "ARCHIVE_STOPPED",
+              "exit": null,
+              "pid": 91947,
+              "replies": 328,
+              "requests": 329,
+              "role": "position0",
+              "signal": "SIGTERM",
+              "stderrBytes": 0,
+              "trailingBytes": 0
+            },
+            {
+              "closed": true,
+              "error": "ARCHIVE_STOPPED",
+              "exit": null,
+              "pid": 91948,
+              "replies": 328,
+              "requests": 329,
+              "role": "position1",
+              "signal": "SIGTERM",
+              "stderrBytes": 0,
+              "trailingBytes": 0
+            }
+          ],
+          "counts": {
+            "archived": 328,
+            "contiguousPhysicalAccepted": 328,
+            "fullyVerifiedPhaseSteps": 328,
+            "independentlyFullAccepted": 0,
+            "normalKktPassed": 330,
+            "oldRecordsCompared": 17,
+            "oldWirePairsCompared": 65,
+            "producerAttempted": 331,
+            "producerReturned": 331,
+            "recordGroups": 329,
+            "reference": {
+              "contacts": {
+                "attempted": 330,
+                "passed": 329,
+                "replied": 329,
+                "resolved": 329,
+                "shadowReplies": 0
+              },
+              "quality": {
+                "attempted": 330,
+                "passed": 330,
+                "replied": 330,
+                "resolved": 330,
+                "shadowReplies": 0
+              },
+              "step-ledger": {
+                "attempted": 328,
+                "passed": 328,
+                "replied": 328,
+                "resolved": 328,
+                "shadowReplies": 0
+              },
+              "world": {
+                "attempted": 330,
+                "passed": 328,
+                "replied": 328,
+                "resolved": 328,
+                "shadowReplies": 0
+              }
+            },
+            "requested": 1200,
+            "runtimeFramesCompared": 329
+          },
+          "error": {
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'COMPLETE_SCENE_STOPPED'\n- 'COMPLETE_SCENE_PHYSICAL_CONFIRMED'\n                  ^\n",
+            "name": "AssertionError"
+          },
+          "expectedPgid": 91939,
+          "mode": "full",
+          "originalIndependentFullPhysics": false,
+          "pid": 91944,
+          "ppid": 91939,
+          "producer": {
+            "exit": 1,
+            "joinedByPinnedClose": false,
+            "threadId": "NOT_CAPTURED_NOT_INVENTED"
+          },
+          "protocol": "stack-complete-scene-cpu-v1",
+          "resultSHA256": "d9148c93a44ee2d70bf5056a61d2436c7a29dd707b476b11a61be7f4434504d5",
+          "scene": "OFFSET",
+          "sourceIntegrity": false,
+          "sourceSeal": "4d37cd6b94b293a982dd4a47ff338d13c5812df26ea0d735790535693744d5c8",
+          "status": "HOST_STOPPED",
+          "steps": 1200,
+          "strictGlobal64MiBCertification": "NOT_QUALIFIED"
+        }
+      },
+      "host": {
+        "present": true,
+        "receipt": {
+          "API": false,
+          "archive": null,
+          "baseline960": null,
+          "baselinePromoted": false,
+          "bodyBytes": 1228968,
+          "bodyOnlySha256": "b987c1df5662c257a46a423de407977950d7b59c4aef18cc3a579ba36e33954b",
+          "budget": {
+            "cap": 293601280,
+            "reserve": 2097152,
+            "used": 291909222
+          },
+          "cleanup": [
+            {
+              "producer": {
+                "exit": 1,
+                "fatal": "producer unexpected/pending exit",
+                "joinedByPinnedClose": true,
+                "logBytes": 0,
+                "maxPrepareNs": "145255083",
+                "prepareNs": "33790940203",
+                "proofSha256": "78ba77517c6dc9054331184e2ee7d8a495d1d82756001f649e56017c20d22dec",
+                "proofs": 332
+              }
+            },
+            {
+              "closed": true,
+              "error": "Cannot call write after a stream was destroyed",
+              "executable": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+              "exit": null,
+              "label": "geometry",
+              "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-solver-2276/trajectory-reference.py",
+              "pendingIdentity": {
+                "op": "contacts",
+                "receiving": true,
+                "step": 330
+              },
+              "pid": 91946,
+              "replies": 659,
+              "requests": 660,
+              "signal": "SIGTERM",
+              "stderrBytes": 0,
+              "trailingBytes": 0,
+              "wireTranscriptSha256": "2c4aa8dfe523765e5a7892db55a1ec03b2d0c26125a426b807968435dd1491fb"
+            },
+            {
+              "closed": true,
+              "error": "ARCHIVE_STOPPED",
+              "executable": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+              "exit": null,
+              "label": "position0",
+              "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-reference-prepared-2276/candidate.py",
+              "pendingIdentity": {
+                "op": "world",
+                "receiving": true,
+                "step": 330
+              },
+              "pid": 91947,
+              "replies": 328,
+              "requests": 329,
+              "signal": "SIGTERM",
+              "stderrBytes": 0,
+              "trailingBytes": 0,
+              "wireTranscriptSha256": "25ef6513b98bee6fe13c17490b93a8f2376347e8c5940a9acd30cd51cd34702b"
+            },
+            {
+              "closed": true,
+              "error": "ARCHIVE_STOPPED",
+              "executable": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+              "exit": null,
+              "label": "position1",
+              "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-stack-reference-prepared-2276/candidate.py",
+              "pendingIdentity": {
+                "op": "world",
+                "receiving": true,
+                "step": 329
+              },
+              "pid": 91948,
+              "replies": 328,
+              "requests": 329,
+              "signal": "SIGTERM",
+              "stderrBytes": 0,
+              "trailingBytes": 0,
+              "wireTranscriptSha256": "ba4c6efde817bad77918a2f1519852e281096917cac418fa2c563f7cd08ef07d"
+            }
+          ],
+          "counts": {
+            "archived": 328,
+            "contiguousPhysicalAccepted": 328,
+            "fullyVerifiedPhaseSteps": 328,
+            "independentlyFullAccepted": 0,
+            "normalKktPassed": 330,
+            "oldRecordsCompared": 17,
+            "oldWirePairsCompared": 65,
+            "producerAttempted": 331,
+            "producerReturned": 331,
+            "recordGroups": 329,
+            "reference": {
+              "contacts": {
+                "attempted": 330,
+                "passed": 329,
+                "replied": 329,
+                "resolved": 329,
+                "shadowReplies": 0
+              },
+              "quality": {
+                "attempted": 330,
+                "passed": 330,
+                "replied": 330,
+                "resolved": 330,
+                "shadowReplies": 0
+              },
+              "step-ledger": {
+                "attempted": 328,
+                "passed": 328,
+                "replied": 328,
+                "resolved": 328,
+                "shadowReplies": 0
+              },
+              "world": {
+                "attempted": 330,
+                "passed": 328,
+                "replied": 328,
+                "resolved": 328,
+                "shadowReplies": 0
+              }
+            },
+            "requested": 1200,
+            "runtimeFramesCompared": 329
+          },
+          "desktop": "NOT_RUN",
+          "earliest": {
+            "contiguousPhysicalAccepted": 328,
+            "earliestFailingKnown": false,
+            "earliestFailingStep": "UNKNOWN",
+            "firstObserved": {
+              "arrivalOrder": 1,
+              "code": "ERR_STREAM_DESTROYED",
+              "errorClass": "Error",
+              "gate": "geometry IO",
+              "hostMonotonicNs": "1752464992103458",
+              "message": "Cannot call write after a stream was destroyed",
+              "scene": "OFFSET",
+              "step": 330,
+              "unresolved": true
+            }
+          },
+          "executionFailure": {
+            "code": null,
+            "message": "scene stopped at first observed failure",
+            "name": "Error"
+          },
+          "failureEvidence": {
+            "additionalReceivedStepsPersisted": [
+              329
+            ],
+            "aliasIdentityRestored": false,
+            "file": "failure.json",
+            "includedFiniteNumberBits": "RECOVERABLE",
+            "selectedFramePersisted": true,
+            "selection": {
+              "additionalReceivedStepsAtCapture": [
+                329
+              ],
+              "availabilityAtCapture": [
+                {
+                  "phase": "proof",
+                  "recordReady": false,
+                  "returned": true,
+                  "step": 329
+                },
+                {
+                  "phase": "unresolved",
+                  "recordReady": false,
+                  "returned": true,
+                  "step": 330
+                },
+                {
+                  "phase": "producing",
+                  "recordReady": false,
+                  "returned": false,
+                  "step": 331
+                }
+              ],
+              "availabilityScope": "FINGERPRINT_IDENTITY_WORD_CHAIN_PASSED",
+              "captureStatus": "CAPTURED",
+              "firstCandidateMissing": false,
+              "firstObservedStep": 330,
+              "selectedStep": 330,
+              "selectionReason": "FIRST_OBSERVED_STEP_PACKET"
+            }
+          },
+          "firstObserved": {
+            "arrivalOrder": 1,
+            "code": "ERR_STREAM_DESTROYED",
+            "errorClass": "Error",
+            "gate": "geometry IO",
+            "hostMonotonicNs": "1752464992103458",
+            "message": "Cannot call write after a stream was destroyed",
+            "scene": "OFFSET",
+            "step": 330,
+            "unresolved": true
+          },
+          "lastContiguous": 328,
+          "originalIndependentFullPhysics": false,
+          "peakCredits": 3,
+          "prefixParity": null,
+          "publicWorld": "NOT_RUN",
+          "recovery": null,
+          "runtimeDeterminism": {
+            "authority": "SAVED_RUNTIME05_BODY_WORDS_NOT_PHASE_ORACLE",
+            "frames": 329
+          },
+          "scene": "OFFSET",
+          "selectedSteps": 1200,
+          "status": "COMPLETE_SCENE_STOPPED",
+          "strictGlobal64MiBCertification": "NOT_QUALIFIED",
+          "terminalQualityPassed": 0,
+          "timing": {
+            "archiveNs": "5965556029",
+            "normalKktNs": "42159371",
+            "referenceAskNs": "78054760307"
+          },
+          "workMax": {
+            "hits": 8,
+            "maxTranslationM": 0.0006812500000000221,
+            "postPairTests": 36,
+            "rows": 36,
+            "signedPreQueries": 36,
+            "solverCalls": 1,
+            "tests": 36,
+            "workingApplicationCount": 1
+          }
+        }
+      },
+      "owner": {
+        "present": true,
+        "receipt": {
+          "API": false,
+          "RSS": "NOT_QUALIFIED",
+          "complete64MiBData": "NOT_QUALIFIED",
+          "completeNodeSubtreeCpuUs": null,
+          "controllerSelfObservedSpanUs": {
+            "systemUs": 41628,
+            "userUs": 107453
+          },
+          "controllerSelfSpanScope": "BEFORE_PIN_AUTH_TO_BEFORE_FINAL_RECEIPT;NOT_WHOLE_LIFETIME;NOT_ADDED_TO_NODE",
+          "controllerWholeLifetimeCpu": "NOT_CLAIMED",
+          "firstFailure": {
+            "message": "CLEAN_NODE_REQUIRED",
+            "type": "ValueError"
+          },
+          "independentlyFullAccepted": 0,
+          "observedWallSecondsBeforeFinalReceipt": 36.79467216692865,
+          "originalIndependentFullPhysics": false,
+          "ownedPgid": 91939,
+          "ownerPid": 91939,
+          "resourceQualification": false,
+          "rssSemantics": "DARWIN_BYTES;OS_MAXRSS_OBSERVATION_NOT_SIMULTANEOUS_TREE_RSS_OR_64MIB_DATA",
+          "sample": {
+            "childrenAfter": {
+              "maxrssBytes": 250118144,
+              "systemUs": 769283,
+              "userUs": 121737058
+            },
+            "childrenBefore": {
+              "maxrssBytes": 0,
+              "systemUs": 0,
+              "userUs": 0
+            },
+            "exitCode": 1,
+            "ioFailure": null,
+            "observedDirectChildPgid": 91939,
+            "ownerPid": 91939,
+            "pgid": 91939,
+            "pid": 91944,
+            "pipeEof": true,
+            "reaped": true,
+            "signals": [],
+            "timedOut": false,
+            "wait4Usage": {
+              "maxrssBytes": 250118144,
+              "systemUs": 769283,
+              "userUs": 121737058
+            },
+            "waitOwnershipLost": false
+          },
+          "status": "CPUUNKNOWN",
+          "strictGlobal64MiBCertification": "NOT_QUALIFIED"
+        }
+      }
+    },
+    "YAW": {
+      "archiveStop": {
+        "present": false,
+        "receipt": null
+      },
+      "closedPhaseProgress": {
+        "present": false,
+        "receipt": null
+      },
+      "closure": {
+        "present": false,
+        "receipt": null
+      },
+      "host": {
+        "present": false,
+        "receipt": null
+      },
+      "owner": {
+        "present": false,
+        "receipt": null
+      }
+    }
+  },
+  "originalIndependentFullPhysics": false,
+  "pinsSHA256": "46260824e261fe3582447723c89942f14dd0650052006c075ef48c9436873b7c",
+  "providerOrNumericalSourceExecution": "NONE",
+  "sourceAndSmallReceipts": {
+    "examples/physics-stack-complete-2276/API-ADOPTION-PLAN.md": {
+      "bytes": 19365,
+      "mode": 420,
+      "sha256": "8b65447dc699cf29700b418a32ad30bbbd91797765a4092e7e6fb8304dac949f"
+    },
+    "examples/physics-stack-complete-2276/CONTRACT.md": {
+      "bytes": 20131,
+      "mode": 420,
+      "sha256": "cf9d8946e6e6fcaf303f6849e68abc0e1df013c1f5fe43e4d36e6aa481655427"
+    },
+    "examples/physics-stack-complete-2276/CONTROLS-ROOT-RESULT.json": {
+      "bytes": 477,
+      "mode": 420,
+      "sha256": "d3152494e29197b9fdd031762af7f4fca758d9365d9daddafea4f2f8cd3a71af"
+    },
+    "examples/physics-stack-complete-2276/CONTROLS-ROOT-SEAL.json": {
+      "bytes": 952,
+      "mode": 420,
+      "sha256": "2daea725a2f5ea8905e9239a64e4f7f941fb3b0c20d08e8c5d0736490990fad1"
+    },
+    "examples/physics-stack-complete-2276/FAILURE-EVIDENCE-ADDITIONAL-ADDENDUM.md": {
+      "bytes": 1987,
+      "mode": 420,
+      "sha256": "2555f11ef3b676c31001cb241d38e2673651483d5fecefbfc95e907dbf815358"
+    },
+    "examples/physics-stack-complete-2276/FAILURE-EVIDENCE-ADDITIONAL-PINS.json": {
+      "bytes": 1180,
+      "mode": 420,
+      "sha256": "08d799fca35772dff7e67535fb7e13fd865d2af9ddb9521d26486b8cba4921dc"
+    },
+    "examples/physics-stack-complete-2276/FAILURE-EVIDENCE-ADDITIONAL-ROOT-RESULT.json": {
+      "bytes": 836,
+      "mode": 420,
+      "sha256": "7ce35c3eb402d972f5ac76b6503edc3166a96acaa056518fa0281ee2ce8d9953"
+    },
+    "examples/physics-stack-complete-2276/FAILURE-EVIDENCE-CONTRACT.md": {
+      "bytes": 8361,
+      "mode": 420,
+      "sha256": "9ec9dda8a60fd6771f323fceff91a2e1b2c7ecffac506d11e3889e9bf494f43c"
+    },
+    "examples/physics-stack-complete-2276/FAILURE-EVIDENCE-PINS.json": {
+      "bytes": 1828,
+      "mode": 420,
+      "sha256": "002014de36db79b13ddc33a6a284c51f9d2d2059af2681f48bc2e09a31453a1e"
+    },
+    "examples/physics-stack-complete-2276/FAILURE-EVIDENCE-ROOT-RESULT.json": {
+      "bytes": 764,
+      "mode": 420,
+      "sha256": "b044dce6e27821aeffb3d4ae070d0f42fe483a1c4014392ee6c78e4a54e18b0b"
+    },
+    "examples/physics-stack-complete-2276/FINGERPRINT-CONTRACT.md": {
+      "bytes": 1337,
+      "mode": 420,
+      "sha256": "252a1a469710614b593528f12e71d9eda987cc4f53a4d7c8fb59b775500b7d53"
+    },
+    "examples/physics-stack-complete-2276/FIRST-FAILURE-01.md": {
+      "bytes": 2191,
+      "mode": 420,
+      "sha256": "c189b65d17f1f690486bd9191e5345ccee367aea44fe50238963e710042459e8"
+    },
+    "examples/physics-stack-complete-2276/FP-ROOT-BINDING.json": {
+      "bytes": 1122,
+      "mode": 420,
+      "sha256": "771f269e759226a64362c2691055e1febc6054656c82943f5fc7e7654471d267"
+    },
+    "examples/physics-stack-complete-2276/FULL-01-RESULTS.md": {
+      "bytes": 4304,
+      "mode": 420,
+      "sha256": "d4163e3aea4ae9addf40807523fd7555d966af6d0c27783435f182e25b8c334a"
+    },
+    "examples/physics-stack-complete-2276/FULL-02-RESULTS.md": {
+      "bytes": 5912,
+      "mode": 420,
+      "sha256": "f83df0898a041db8c5ca724dfe165cccfe48d9761b338adb55dc8197e448882d"
+    },
+    "examples/physics-stack-complete-2276/FULL-03-RESULTS.md": {
+      "bytes": 4762,
+      "mode": 420,
+      "sha256": "f1cb40738dc0857afcc59b58e676e8d9d1f984c243b74817d569656c15d61ec6"
+    },
+    "examples/physics-stack-complete-2276/FULL-04-RESULTS.md": {
+      "bytes": 2839,
+      "mode": 420,
+      "sha256": "12f5519706efe8ae8034da56668288d8acac922329bb81d30df2bcd3a2882df5"
+    },
+    "examples/physics-stack-complete-2276/FULL-05-RESULTS.md": {
+      "bytes": 5358,
+      "mode": 420,
+      "sha256": "7ad6f884f6bb754dcb8ad7484536beba17033c12656fefed899d6113803cf67b"
+    },
+    "examples/physics-stack-complete-2276/IMPLEMENTATION.md": {
+      "bytes": 5128,
+      "mode": 420,
+      "sha256": "3100f40783836fa1f346f2da7d8391f9b97cd2569337b4943049f4ecb307efc9"
+    },
+    "examples/physics-stack-complete-2276/NATIVE-CRC-PHASE-ADDENDUM.md": {
+      "bytes": 2614,
+      "mode": 420,
+      "sha256": "7b78397a6e9ff14030e9a4a739ad3b1f298af01444a9fabea03bd89ab298c324"
+    },
+    "examples/physics-stack-complete-2276/OPT07-FAILURE-RETENTION-ADDENDUM.md": {
+      "bytes": 4350,
+      "mode": 420,
+      "sha256": "219cd5a54c62a39ce3bb3ee36f1df53f6fcdd63b36a9c3fbb01b9148e1195cb3"
+    },
+    "examples/physics-stack-complete-2276/OPT08-PROVIDER-ADDENDUM.md": {
+      "bytes": 3507,
+      "mode": 420,
+      "sha256": "aadfb23b07292425a6e2f22a7880c351f51649fcf922f2f687ab260a6006ba22"
+    },
+    "examples/physics-stack-complete-2276/OPT09-PROVIDER-FAILURE-ADDENDUM.md": {
+      "bytes": 2306,
+      "mode": 420,
+      "sha256": "e0aa1fdfc4d32d044b5e135dbaef5c13edf66b1378f9c5248299cff1441e2cd7"
+    },
+    "examples/physics-stack-complete-2276/PHASE-CHECKPOINT-CONTRACT.md": {
+      "bytes": 1511,
+      "mode": 420,
+      "sha256": "be5400c03e9018d4f5ad113bc5dfd44d210cef3282d44116775922c1797fe717"
+    },
+    "examples/physics-stack-complete-2276/PHASE-CHECKPOINT-ROOT-RESULT.json": {
+      "bytes": 1033,
+      "mode": 420,
+      "sha256": "e02394010a9152d6abcf3fc7bf7213a4b1bf56dd947e1589763a2e661866b36b"
+    },
+    "examples/physics-stack-complete-2276/PINS.json": {
+      "bytes": 144045,
+      "mode": 420,
+      "sha256": "46260824e261fe3582447723c89942f14dd0650052006c075ef48c9436873b7c"
+    },
+    "examples/physics-stack-complete-2276/PREFIX-02-RESULTS.md": {
+      "bytes": 2686,
+      "mode": 420,
+      "sha256": "d5c65c0123b23b754401de73f262e63c69c2d5fc5b55e749f5bca80a2b3bd864"
+    },
+    "examples/physics-stack-complete-2276/PREFIX-03-RESULTS.md": {
+      "bytes": 3235,
+      "mode": 420,
+      "sha256": "ed43ce7a3943ea66ebb3e39ee863ba3c9727186e7c87a3a7f95476e5f9745504"
+    },
+    "examples/physics-stack-complete-2276/PREFIX-04-RESULTS.md": {
+      "bytes": 3336,
+      "mode": 420,
+      "sha256": "0178105a6b64107bcafa40e537aa0a19baa1161240612fe50ca07f7e1ed4f61f"
+    },
+    "examples/physics-stack-complete-2276/PREFIX-05-RESULTS.md": {
+      "bytes": 3028,
+      "mode": 420,
+      "sha256": "367023f8a9f82ba8b9fc80774347ef5bf3cf4ef5c6939fbadd5bc5d673b62947"
+    },
+    "examples/physics-stack-complete-2276/PREFIX-06-RESULTS.md": {
+      "bytes": 3625,
+      "mode": 420,
+      "sha256": "4a7b6d2fbb855f279d0f68504ee20b0cc8899928d2db6a91734422a32cd7b531"
+    },
+    "examples/physics-stack-complete-2276/PROVIDER-OPT07.json": {
+      "bytes": 6965,
+      "mode": 420,
+      "sha256": "c0dff2e8b71e21486aeedfe97ea1ad8492271dfd40c5cf3c2e8212791cdf48e1"
+    },
+    "examples/physics-stack-complete-2276/PROVIDER-OPT08.json": {
+      "bytes": 7449,
+      "mode": 420,
+      "sha256": "561cf7875fd5dbe5079f20f16aeae4ccb7dc7f87f56e88021437a1490866322c"
+    },
+    "examples/physics-stack-complete-2276/PROVIDER-OPT09.json": {
+      "bytes": 7298,
+      "mode": 420,
+      "sha256": "62711d747da47179eeebb55d763bdd772fa075117bd9cf0f5710b59c7259fe83"
+    },
+    "examples/physics-stack-complete-2276/ROOT-PREFLIGHT-01.json": {
+      "bytes": 961,
+      "mode": 420,
+      "sha256": "001674fc789b01c6cd1a4899d77f0ae1b96e75f6e9a14d51a9ec80601a66c7f1"
+    },
+    "examples/physics-stack-complete-2276/ROOT-PREFLIGHT-02.json": {
+      "bytes": 370,
+      "mode": 420,
+      "sha256": "8f868847cc3f22ff1e5e1d0b445e982805b1c7822014b3dd693591adb983250c"
+    },
+    "examples/physics-stack-complete-2276/SOURCE-SEAL.json": {
+      "bytes": 5540,
+      "mode": 420,
+      "sha256": "4d37cd6b94b293a982dd4a47ff338d13c5812df26ea0d735790535693744d5c8"
+    },
+    "examples/physics-stack-complete-2276/audit-failure-02.mjs": {
+      "bytes": 2762,
+      "mode": 420,
+      "sha256": "f0dac89d501ce1247e06d4b7cdc21c67100a8340b1260891b7f98972bd9f5a37"
+    },
+    "examples/physics-stack-complete-2276/baseline.mjs": {
+      "bytes": 992,
+      "mode": 420,
+      "sha256": "09af6549726f3c9cd22b4d14132bd7c60e2a26b0b0aa204ef925057fa83912b2"
+    },
+    "examples/physics-stack-complete-2276/controls.test.mjs": {
+      "bytes": 3224,
+      "mode": 420,
+      "sha256": "25a69057cdeedba4f3345b7033a9c3511f632bba4e730677920e6c00ee22cb6d"
+    },
+    "examples/physics-stack-complete-2276/driver.mjs": {
+      "bytes": 26750,
+      "mode": 420,
+      "sha256": "b85584699e2b77e6293372e4b84626b2f5b39d45622d33403ba8b557b78c3796"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/ALIGNED-owner.stderr": {
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/ALIGNED-owner.stdout": {
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/ALIGNED/host.stderr": {
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/ALIGNED/host.stdout": {
+      "bytes": 1729,
+      "mode": 420,
+      "sha256": "4bfe51bcd1d0435c2179fed8d2a9d6efc749660fd3b5c6821b54b501c6247cbc"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/ALIGNED/host/closure.json": {
+      "bytes": 1729,
+      "mode": 420,
+      "sha256": "4bfe51bcd1d0435c2179fed8d2a9d6efc749660fd3b5c6821b54b501c6247cbc"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/ALIGNED/host/inputs-before.json": {
+      "bytes": 285,
+      "mode": 420,
+      "sha256": "4b413de32eb9c722be8d7aae4fb9aef0176cfad4436a64fdf46117a442a57c99"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/ALIGNED/host/phase-checkpoint.json": {
+      "bytes": 1707,
+      "mode": 420,
+      "sha256": "19b1dfd171ef31d85578062d59e80fd784bd22f2e04e9b69b095342bf6543f48"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/ALIGNED/host/result.json": {
+      "bytes": 4782,
+      "mode": 420,
+      "sha256": "3128d63986ad2e2f45be3d933b680a5feaadbe538667ee8f852050e8ce579f22"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/ALIGNED/stage.json": {
+      "bytes": 578,
+      "mode": 420,
+      "sha256": "46c3bb6fcc961e36318ab47ae5fe2c1dae6bbb2b7cfd41fc6eebe2e3e1ecd47f"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/ALIGNED/summary.json": {
+      "bytes": 4397,
+      "mode": 420,
+      "sha256": "f16e94046b8885ebaaf26fe6c85f96cda06068c19c003233b41c9469dced3654"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/OFFSET-owner.stderr": {
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/OFFSET-owner.stdout": {
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/OFFSET/host.stderr": {
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/OFFSET/host.stdout": {
+      "bytes": 1985,
+      "mode": 420,
+      "sha256": "1498b8441696dc7dc3d69d482b4ae0d2b9c4abca934c54864a8dc24cedf839ce"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/OFFSET/host/closure.json": {
+      "bytes": 1985,
+      "mode": 420,
+      "sha256": "1498b8441696dc7dc3d69d482b4ae0d2b9c4abca934c54864a8dc24cedf839ce"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/OFFSET/host/failure.json": {
+      "bytes": 406954,
+      "mode": 420,
+      "sha256": "1f253cc4da4622be67185b32ef8a0d5cb9330d025173c82e50d9b251ff14b722"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/OFFSET/host/inputs-before.json": {
+      "bytes": 284,
+      "mode": 420,
+      "sha256": "e636bc6160c1a4d375b3881fdbe1b1e4506fa12fbe0e34f8605524da0ace3fad"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/OFFSET/host/result.json": {
+      "bytes": 4921,
+      "mode": 420,
+      "sha256": "d9148c93a44ee2d70bf5056a61d2436c7a29dd707b476b11a61be7f4434504d5"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/OFFSET/host/stop.json": {
+      "bytes": 138,
+      "mode": 420,
+      "sha256": "7f4dd8b3881443217889965bc30915f5aadcc1eaebed0d92e48af2e9823eead1"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/OFFSET/outer-stop.json": {
+      "bytes": 156,
+      "mode": 420,
+      "sha256": "33b492fda17a0ec82dbc65cd99924c38b607dd15f0ddfb8d8670d28dd629416f"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/OFFSET/stage.json": {
+      "bytes": 576,
+      "mode": 420,
+      "sha256": "2e2875211ecdc2a57438830952434db0753a6d0fc34932e0ce57daeca0ff2865"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/OFFSET/summary.json": {
+      "bytes": 1433,
+      "mode": 420,
+      "sha256": "b16d29630559dcc8598dc401e4deb9f083200c878a0627b8ef9df1f2f25a0e16"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/admission.json": {
+      "bytes": 442,
+      "mode": 420,
+      "sha256": "2462bae318a6d9cb74c836bc794f4fe15c95416aa3dcd6ad8c088fd1537a5c2d"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/budget.json": {
+      "bytes": 53,
+      "mode": 420,
+      "sha256": "e35136190b510c72e47f4695f32817ea1423eb71a87d2ad79d6175798cd7682e"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/campaign-inputs.json": {
+      "bytes": 345,
+      "mode": 420,
+      "sha256": "f652aaa0d784acd9fa814e35566f9d6db0adeda5966e68aa698430ede6f3f65e"
+    },
+    "examples/physics-stack-complete-2276/evidence/full-05/campaign-result.json": {
+      "bytes": 2202,
+      "mode": 420,
+      "sha256": "4720e7a39dbbbae2919a16dee19f719b5098aa8b1e0ff395178307c290388d34"
+    },
+    "examples/physics-stack-complete-2276/failure-evidence-additional.test.mjs": {
+      "bytes": 4390,
+      "mode": 420,
+      "sha256": "80ca8ded54e8627d602449785905a0a3926269b39605bac1ec69b3cf42aa8db7"
+    },
+    "examples/physics-stack-complete-2276/failure-evidence.mjs": {
+      "bytes": 5368,
+      "mode": 420,
+      "sha256": "f80dd00dcb355b86c971bbf034addd1dfdcebbbe79ce02abac3b43233f4c7688"
+    },
+    "examples/physics-stack-complete-2276/failure-evidence.test.mjs": {
+      "bytes": 10490,
+      "mode": 420,
+      "sha256": "19309fb795f9544f40e1807b1b6ec4ada362cc7bb72f9d67651cdcb3799afe96"
+    },
+    "examples/physics-stack-complete-2276/fingerprint.mjs": {
+      "bytes": 1602,
+      "mode": 420,
+      "sha256": "62e32917277f5376c38b2c1f6adb34a24ef112da2985514eaa37e6073fda5448"
+    },
+    "examples/physics-stack-complete-2276/fingerprint.test.mjs": {
+      "bytes": 2899,
+      "mode": 420,
+      "sha256": "acec9903611dda94183dcc501adee63b5a8c47bcbe09a3365c18ca5124f183a4"
+    },
+    "examples/physics-stack-complete-2276/host.mjs": {
+      "bytes": 4824,
+      "mode": 420,
+      "sha256": "14a54f2802a7dcbae439b67458d9638748bec5eef4aa8f1f77b5b2cf386cd0ee"
+    },
+    "examples/physics-stack-complete-2276/phase-checkpoint.mjs": {
+      "bytes": 1983,
+      "mode": 420,
+      "sha256": "c5d393633b391e4a6eeb57efb6038d8cfa79c1d29e3c3bdfc376fac4c3ecc96d"
+    },
+    "examples/physics-stack-complete-2276/phase-checkpoint.test.mjs": {
+      "bytes": 2271,
+      "mode": 420,
+      "sha256": "c1c7021145e3cb1d381489768050b62bad78e4391f3fda5708312a2620f4d6b0"
+    },
+    "examples/physics-stack-complete-2276/preserve-full-02.py": {
+      "bytes": 7666,
+      "mode": 420,
+      "sha256": "82e25fd1701db3e1e7cd7c9ad678f5ebba5a01dc10c8d4b37ffae7520cd27bc5"
+    },
+    "examples/physics-stack-complete-2276/preserve-full-03.py": {
+      "bytes": 7666,
+      "mode": 420,
+      "sha256": "b72c15a4933db2f2c597e37d7b4ffe5a789ebf3eb13b6e6b18870cf21938e854"
+    },
+    "examples/physics-stack-complete-2276/preserve-full-04.py": {
+      "bytes": 8095,
+      "mode": 420,
+      "sha256": "9ed00c7d7434635b8de92f42cf86f70bcb64f90afb08c1e78155de0a4e3b15df"
+    },
+    "examples/physics-stack-complete-2276/preserve-full-05.py": {
+      "bytes": 8403,
+      "mode": 420,
+      "sha256": "235e5c0c1d27fd194c41068dfba4a10cbdf4d9b8772157cf1e2721ddb324593f"
+    },
+    "examples/physics-stack-complete-2276/producer.mjs": {
+      "bytes": 2784,
+      "mode": 420,
+      "sha256": "e19302b030799e309bf174f3beae7c64779cd879c4793ba14c45f841a3568649"
+    },
+    "examples/physics-stack-complete-2276/recover-full-01.mjs": {
+      "bytes": 4406,
+      "mode": 420,
+      "sha256": "04129b4cc7c06769bea2749029511b9680ca32524f828ab96c92aec2a22a83a4"
+    },
+    "examples/physics-stack-complete-2276/recover-full-04.mjs": {
+      "bytes": 6320,
+      "mode": 420,
+      "sha256": "241de8122c31fb70dd0704eb56190e072e0e8feb51c9cf5f4c3917d2d0735461"
+    },
+    "examples/physics-stack-complete-2276/reference.mjs": {
+      "bytes": 4175,
+      "mode": 420,
+      "sha256": "feecbee290f68b011a078aff2e4742b6be25bfbff0a015b6ae4d61019b2a3efb"
+    },
+    "examples/physics-stack-complete-2276/run.py": {
+      "bytes": 7880,
+      "mode": 420,
+      "sha256": "a7fc34af5e6f9058b8a8c7a8e40984cc7fdb9432dfdb8936c179d0aae4ac348e"
+    },
+    "examples/physics-stack-complete-2276/scene-owner.py": {
+      "bytes": 12965,
+      "mode": 420,
+      "sha256": "726a6f1b48a3774512141f20a9bfae2abfa696d094f87a7a4698d0aa8daae29c"
+    },
+    "examples/physics-stack-complete-2276/window.mjs": {
+      "bytes": 2177,
+      "mode": 420,
+      "sha256": "6e87f9501e0b464a03fccd60ac700a3fc0672043e942878040a110f44e104358"
+    },
+    "examples/physics-world-p5-2276/evidence/stack-full04-offline-recovery-01/prepared.json": {
+      "bytes": 1524,
+      "mode": 420,
+      "sha256": "8377b560b2f88c96847298331abd108d0e291cb367a572743736a407178ae151"
+    },
+    "examples/physics-world-p5-2276/evidence/stack-full04-offline-recovery-01/progress.json": {
+      "bytes": 1623,
+      "mode": 420,
+      "sha256": "a45bf963487c07b27122080018769740b62a4a22a0a6076c1020dfb1214b8a32"
+    },
+    "examples/physics-world-p5-2276/evidence/stack-full04-offline-recovery-01/result.json": {
+      "bytes": 3052,
+      "mode": 420,
+      "sha256": "379e4946bc50f18aaabf563f80fb3b0de31f30693d9df58742274aaff4369011"
+    },
+    "examples/physics-world-p5-2276/evidence/stack-full04-offline-recovery-01/start.json": {
+      "bytes": 1546,
+      "mode": 420,
+      "sha256": "2ffa62254510147e6461912a42876a23bc391f68ac21a9b22035426d9b84c28a"
+    },
+    "examples/physics-world-p5-2276/evidence/stack-full04-offline-recovery-01/stderr.raw": {
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/stack-full04-offline-recovery-01/stdout.raw": {
+      "bytes": 227,
+      "mode": 420,
+      "sha256": "167a78a357ab77460c66e0e931e0616617b1930ce9d945ce2c42680d029f4b33"
+    }
+  },
+  "sourceArchive": {
+    "bytes": 189325,
+    "path": "examples/physics-stack-complete-2276/baseline/full-05-source.tar.gz",
+    "sha256": "4d00c6f003bbc8d91a3d62365c1978479d485e6bb7e9c0c99a34c6d7c8f6877e"
+  },
+  "sourceSealSHA256": "4d37cd6b94b293a982dd4a47ff338d13c5812df26ea0d735790535693744d5c8",
+  "status": "PRESERVED_ENDED_FULL05_NOT_RECLASSIFIED",
+  "strictGlobal64MiBCertification": "NOT_QUALIFIED",
+  "tarMetadata": {
+    "gid": 0,
+    "gname": "",
+    "modes": "ORIGINAL",
+    "mtime": 0,
+    "uid": 0,
+    "uname": ""
+  }
+}

@@ -3,10 +3,10 @@
   "branch": "codex/physics-world-p5-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "P4 original eight-box live independent partial trajectory",
-    "status": "FULL03_COST_NO_GO_1153_HOST_STEPS_NO_ACCEPTED_CAMPAIGN_SCENE",
-    "scope": "ALIGNED1153fullyverified/archived; firstObserved1155producerdeadline/world1154pending; earliestUNKNOWN; actual960baseline+194terminalstates; OFFSET/YAWNOT_RUN. Originalfull01/02failurespreserved.",
-    "results": "examples/physics-stack-complete-2276/FULL-03-RESULTS.md",
+    "profile": "P4 original eight-box ALIGNED complete live scene",
+    "status": "ALIGNED_LIVE1200_CONFIRMED_WHOLE_THREE_SCENE_NO_GO",
+    "scope": "ALIGNED1200 alloriginalindependentgates/fullarchive/finalsourceauth/cleanCPU169.46208579209633s. OFFSET328hostcommitted then sharedcap;YAWNOT_RUN. Campaigncontiguous1200, originalIndependentFullPhysics false.",
+    "results": "examples/physics-stack-complete-2276/FULL-05-RESULTS.md",
     "canonicalAdoption": "PUBLIC_WORLD_NOT_RUN"
   },
   "mainSlices": {
@@ -34,7 +34,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "P4 originalfull03OPT08 COST_NO_GO:1153contiguoushost,1155producerdeadlinefirstObserved/world1154pending/earliestUNKNOWN;campaignaccepted0,OFFSET/YAWNOT_RUN. SourceNativebanks/privateprefix/build11PASS;prefix04all48PASS. Actualfailurecaptureselected1153latercommits;pending1154packetnotinfinitefailureenvelope, reachedRPCsretainedclosedarchive. Next exactdotnormalizationcostcandidate andboundedfailurewindowevidencefix; physicaltols/time/shared280/HOLDunchanged; noAPI/deploy/mobile.",
+  "active": "Full05 ALIGNED LIVE1200 alloriginalgates/recovery/finalauth/cleanCPU PASS169.462s. OFFSET328 committed then sharedRETAINED_CAP; firstObserved330streamerror/earliestUNKNOWN; YAWNOT_RUN; wholeP4NO_GO/API notadmitted. Sameexistinglimits. Next isolatedexactcommon-denominatorlocal kernel plusNEWlosslessquotedlexeme evidenceformat; oldcodec candidatesremainended.",
   "latestStackImplementation": {
     "results": "examples/physics-stack-library-2276/RESULTS.md",
     "entry": "packages/barocss-physics/src/stack/prepare-step.ts",
@@ -315,6 +315,24 @@
       "sharedOutputBytes": 222383149,
       "sharedOutputCapBytes": 293601280,
       "wholeClosedTreeCPU": "UNKNOWN"
+    },
+    "completeFull05": {
+      "status": "ONE_LIVE_SCENE_CONFIRMED_SHARED_CAP_NO_GO",
+      "alignedLiveAccepted": 1200,
+      "alignedOwnerSeconds": 169.46208579209633,
+      "alignedClosedCPU": "COMPLETE",
+      "alignedOriginalAllGates": true,
+      "alignedArchiveRecoveredEntries": 10803,
+      "alignedFullRecordNumericLeaves": 10594384,
+      "offsetHostCommitted": 328,
+      "offsetOriginalStopCode": "RETAINED_CAP",
+      "offsetFirstObservedStep": 330,
+      "offsetEarliestFailingStep": "UNKNOWN",
+      "offsetAdditionalReceived329Persisted": true,
+      "YAW": "NOT_RUN",
+      "campaignAccepted": 1200,
+      "wholeThreeSceneQualification": false,
+      "API": false
     }
   },
   "latestGramProofCandidate": {

@@ -7,7 +7,7 @@ export class FailureEvidenceError extends Error {
 }
 const need=(value,code)=>{if(!value)throw new FailureEvidenceError(code);};
 
-// A selected frame remains an alias. Availability rows are scalar copies at capture.
+// Received frames remain aliases. Availability rows are scalar copies at capture.
 export function captureFailureWindow(window,firstStep){
  need(window.slots instanceof Map&&window.slots.size<=3,'FAILURE_CREDIT_BOUND');
  need(Number.isSafeInteger(firstStep)&&firstStep>=0,'FAILURE_STEP');
@@ -15,13 +15,15 @@ export function captureFailureWindow(window,firstStep){
  const same=slots.find(slot=>slot.step===firstStep),selected=same?.received?same:slots.find(slot=>slot.received);
  return {captureStatus:'CAPTURED',availabilityScope:'FINGERPRINT_IDENTITY_WORD_CHAIN_PASSED',firstObservedStep:firstStep,
   selectedStep:selected?.step??null,selectedFrame:selected?.received??null,
+  additionalReceivedFrames:slots.filter(slot=>slot.received&&slot!==selected).map(slot=>({step:slot.step,frame:slot.received})),
+  additionalReceivedStepsAtCapture:slots.filter(slot=>slot.received&&slot!==selected).map(slot=>slot.step),
   selectionReason:same?.received?'FIRST_OBSERVED_STEP_PACKET':selected?'EARLIEST_RECEIVED_UNCOMMITTED':'NO_RECEIVED_PACKET',
   firstCandidateMissing:!same?.received,
   availabilityAtCapture:slots.map(slot=>({step:slot.step,phase:slot.state,returned:!!slot.received,recordReady:!!slot.value}))};
 }
 export function failureWindowMetadata(capture){
  if(capture===null)return null;
- const {selectedFrame,...metadata}=capture;
+ const {selectedFrame,additionalReceivedFrames,...metadata}=capture;
  return metadata;
 }
 

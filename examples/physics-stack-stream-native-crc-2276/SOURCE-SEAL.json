@@ -1,0 +1,14 @@
+{
+  "API": false,
+  "files": {
+    "CONTRACT.md": "178b11acba7619a45eefd24f08fb8fead6bbc9ba650b0a347368e5102e3d259b",
+    "PINS.json": "3452608db5fcb589c3475dc9d03fae6f9d0317b82ab9e6b159a348918d44ddc9",
+    "archive.mjs": "8ab60659035aef867273444b6f491840592030ab315473ca2cccb000bb02d54f",
+    "archive.test.mjs": "9a58c80be0830baf424d5f10c245c152ef93fd3b9fc2bfe862dd06f7cf154f47",
+    "crc.test.mjs": "37b30e3cd92e4f9f1c0571d7cc2602a7ed269ce0a5ab3dcef67654518c8a62c9",
+    "exact-size.test.mjs": "4e6536e6e132a494780ee1bd85a8141848d09a59fd29e3c02d93cf686ab3478a",
+    "identity.test.mjs": "95254c6646f5c4b1ad4a788260ca5cbfd023473805076347abaee3213e5a700f",
+    "recover-full-04-native-crc.mjs": "c93ca8b7943615357d895f59d0af83ce001b28cdef57c01c7ce5e7063b491a92"
+  },
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN"
+}

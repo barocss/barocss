@@ -1,0 +1,16 @@
+{
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN",
+  "scope": "PRIVATE_FAILURE_EVIDENCE_FIXED8_PLUS3_ROOT_EXECUTION_REQUIRED",
+  "files": {
+    "examples/physics-stack-complete-2276/failure-evidence.mjs": "f80dd00dcb355b86c971bbf034addd1dfdcebbbe79ce02abac3b43233f4c7688",
+    "examples/physics-stack-complete-2276/driver.mjs": "ce500def882ec3d23f6ae6bc1f58b6e2b1b8ff877a4e8df04fbea1f6d0e9e49b",
+    "examples/physics-stack-complete-2276/failure-evidence.test.mjs": "19309fb795f9544f40e1807b1b6ec4ada362cc7bb72f9d67651cdcb3799afe96",
+    "examples/physics-stack-complete-2276/failure-evidence-additional.test.mjs": "80ca8ded54e8627d602449785905a0a3926269b39605bac1ec69b3cf42aa8db7",
+    "examples/physics-stack-complete-2276/FAILURE-EVIDENCE-CONTRACT.md": "9ec9dda8a60fd6771f323fceff91a2e1b2c7ecffac506d11e3889e9bf494f43c",
+    "examples/physics-stack-complete-2276/FAILURE-EVIDENCE-ADDITIONAL-ADDENDUM.md": "2555f11ef3b676c31001cb241d38e2673651483d5fecefbfc95e907dbf815358",
+    "examples/physics-stack-complete-2276/window.mjs": "6e87f9501e0b464a03fccd60ac700a3fc0672043e942878040a110f44e104358"
+  },
+  "authorExecutionCalls": 0,
+  "completeCampaignResealed": false,
+  "API": false
+}
