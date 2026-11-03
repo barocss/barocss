@@ -1,0 +1,260 @@
+{
+  "workId": "D462",
+  "lastUpdated": "2026-11-03",
+  "status": "BOUNDED_QUALIFIED",
+  "category": "C2 ordinary BODY Mirror edit/history/project workflow",
+  "baseline": "d631a85ce3d96762d571ffc614725a0f3a3b85e3",
+  "productChanges": "NONE",
+  "validationTier": "VERIFICATION_ONLY_EXISTING_SCOPE",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercent": 43,
+  "models": {
+    "inventoryDriver": "GPT-6.1 Sol Medium",
+    "nativeMathIndependentOracle": "GPT-6.1 Sol High",
+    "executionFreezeCleanupVisualReview": "Root"
+  },
+  "input": {
+    "path": "/tmp/barocss-d462-geometry/seed.bcad",
+    "sha256": "e2b20d76b42a2ac4bc575a8958f11e791fda12a8aca5dfd1bc964a23e9330c1c",
+    "bytes": 428,
+    "provenance": "SOURCE_AUTHORED_NATIVE_DOCUMENT; public seed construction NOT_CLAIMED",
+    "shape": "n0 rectangle min[10,20],max[30,50]; n1Extrude10; e1..e4; outputb1, nextId2."
+  },
+  "publicContract": {
+    "operation": "Existing BODY Mirror, not SubD Mirror. Set PlaneYZ and Planeat0 explicitly; default display-bounds coordinate is not used.",
+    "result": "Mirror n2/outputb2; one UI body row/output contains kept original + reflected component, two disjoint strict native solids. Native conversion targetn1, keep:true.",
+    "edits": "PlaneYZ0\u2192XZ0; upstream n1.height10\u219212; after project Open PlaneYZ0 atH12. Original n0/sideIDs, n2.parent node1 solid and outputb2 retained."
+  },
+  "actual": {
+    "status": "PASS_8_OF_8",
+    "coverage": {
+      "publicMirrorYZ": "PASS",
+      "existingPlaneXZEdit": "PASS",
+      "upstreamHeight12": "PASS",
+      "exactUndo": "PASS",
+      "exactRedo": "PASS",
+      "zeroHeightRefusalRetention": "PASS",
+      "ownProjectRoundtrip": "PASS",
+      "postOpenPlaneYZEdit": "PASS",
+      "publicSeedConstruction": "NOT_CLAIMED_SOURCE_AUTHORED_OPEN",
+      "nonzeroPlaneAndSubD": "NOT_RUN_SEPARATE",
+      "exports": "NOT_RUN"
+    },
+    "sequence": [
+      "MirrorYZ0 H10",
+      "MirrorPlaneXZ0 H10",
+      "upstreamExtrudeH12",
+      "height0typedrefusal retaining acceptedDoc/history/native",
+      "FIRSTUndo\u2192XZ H10",
+      "Redo\u2192XZ H12",
+      "ownOPFS Save/Close/same-context reload/Open XZ H12",
+      "postOpenPlaneYZ0 H12"
+    ],
+    "receipt": "/tmp/barocss-d462-workflow-run01/receipt.json",
+    "receiptSHA256": "b76eebb3061ec30bda83dd04e6ecfa1ab3017a2c454be6adc70f9bc49446b5cb",
+    "configSHA256": "5550f3e71ce10418cc3f0edd40cce32e4dc24bc665564d3e94055a39883e259a",
+    "nativeBindings": 8,
+    "newNativeCaptures": 4,
+    "exactWholeDocReuses": 4,
+    "independentPythonOracles": 8,
+    "rawCurrentWorkerVolumeCentroidBindings": 8,
+    "rawWorkerMaximumError": 0,
+    "reusePolicy": "Exact whole accepted native-input document and product/source pins; independent oracle and current raw Worker binding executed anew. UI values are consumer coherence, not physical truth.",
+    "statesAndImages": 24,
+    "rootViewedImages": 7,
+    "viewed": "preview,YZaccepted,H12,refusal,Undo,reopened,postOpenYZ",
+    "commands": [
+      "bash /tmp/barocss-d462-root/run-studio01.sh"
+    ],
+    "launchedDriver": "D462_SOURCE_FROZEN=1 node /tmp/barocss-d462-driver01/driver.mjs /tmp/barocss-d462-workflow-run01",
+    "sourcePrehashPaths": 2387,
+    "fullFrozenPinnedPaths": 2388,
+    "aliasNote": "Private /tmp native-inspector alias is the same physical file; counts are pinned paths, not unique physical files.",
+    "sourceEqual": "frozen == after == aftercleanup == root current before documentation writes",
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "watchedChanges": 0,
+    "cleanup": {
+      "namespace": "D462-body-mirror-run01 REMOVED_AND_ABSENT",
+      "runtime": "context/browser/serverclosed",
+      "ownPID": 95396,
+      "ownPIDAbsent": true,
+      "gate": "released/clean"
+    }
+  },
+  "preflight": {
+    "status": "PASS_4_NEW_NATIVE_STATES_PLUS_HEIGHT0_GUARD",
+    "command": "bash /tmp/barocss-d462-root/run-preflight01.sh",
+    "receiptSHA256": "b8cf02890fa384808ae5e3dffe16f8b9728bcd8b46bb607ce8fd2e1a542ed1dc",
+    "sourcePins": 746,
+    "sourceEqual": true,
+    "typedRefusal": {
+      "name": "CadPartError",
+      "code": "PARAMETER",
+      "feature": "n1",
+      "message": "n1: height must not be zero"
+    },
+    "scope": "Native/provider only; actual public history/project proved separately."
+  },
+  "physical": {
+    "volumeRelative": 1e-09,
+    "centroidBoundsAndFaceVertexPinsAbsoluteMM": 1e-09,
+    "outwardUnitNormalComponentError": 1e-09,
+    "maximumNativeCentroidErrorMM": 3.552713678800501e-15,
+    "states": [
+      {
+        "plane": "YZ0",
+        "height": 10,
+        "volume": 12000,
+        "centroid": [
+          0,
+          35,
+          5
+        ],
+        "bounds": {
+          "min": [
+            -30,
+            20,
+            0
+          ],
+          "max": [
+            30,
+            50,
+            10
+          ]
+        }
+      },
+      {
+        "plane": "XZ0",
+        "height": 10,
+        "volume": 12000,
+        "centroid": [
+          20,
+          0,
+          5
+        ],
+        "bounds": {
+          "min": [
+            10,
+            -50,
+            0
+          ],
+          "max": [
+            30,
+            50,
+            10
+          ]
+        }
+      },
+      {
+        "plane": "XZ0",
+        "height": 12,
+        "volume": 14400,
+        "centroid": [
+          20,
+          0,
+          6
+        ],
+        "bounds": {
+          "min": [
+            10,
+            -50,
+            0
+          ],
+          "max": [
+            30,
+            50,
+            12
+          ]
+        }
+      },
+      {
+        "plane": "YZ0",
+        "height": 12,
+        "volume": 14400,
+        "centroid": [
+          0,
+          35,
+          6
+        ],
+        "bounds": {
+          "min": [
+            -30,
+            20,
+            0
+          ],
+          "max": [
+            30,
+            50,
+            12
+          ]
+        }
+      }
+    ],
+    "authority": "Strict native B-rep aggregate+per-component mass/bounds, selected n1/@m face/corner/outward-normal witnesses; zero product imports in Python Fraction reflection oracle. No display mesh truth."
+  },
+  "retainedValidation": {
+    "D461": "28 focused groups, scoped lint, Studio types and final Model types remain retained because product source/test unchanged.",
+    "newTestsBuildTypesFullKernel": "NOT_RUN_NO_PRODUCT_CHANGE",
+    "contractSHA256": "27045ca45fa712df940e86ddcff4d51d8d8855962e2084238f3497d78c0006bb",
+    "geometryManifestSHA256": "5167cd1330519d23bad36f6508767e7c101042a220ed09a8993c0d29204d3d48",
+    "oracleSHA256": "9462300c436638c706b547f09682c307a4accb752d71335e0ea3fb8d2137b424"
+  },
+  "failures": {
+    "executedSUT": "NONE",
+    "launcherPreparation": "Root first seal-reader looked for files instead of hashes; corrected before wrapper/runtime. NOT_RUN attempt, not harness/product execution failure."
+  },
+  "notRun": [
+    "Public seed sketch construction",
+    "Touching/overlapping Mirror result classes",
+    "Nonzero Planeat lowering",
+    "Picked-face plane precision",
+    "Assembly Mirror or general downstream rematching",
+    "Exports/downloads/standards",
+    "Cold browser process/profile restart",
+    "New Motion/Physics/browserCI/release"
+  ],
+  "issueDisposition": {
+    "534": "OPEN; PART08/10 broad acceptance not all met; root may post bounded comment after push."
+  },
+  "next": "D463 / C2 ordinary partial Revolve Angle edit/history/project inventory; first read D448 full360 and current C2 inventory before selecting a finite profile. No automatic new feature or HOLD lift.",
+  "holds": "All current #2258/#2266, fitter/public-thicken, widening, manufacturing, Motion/Physics, UI, schema3/4, download/dependency, browser-CI and release gates unchanged.",
+  "rawEvidence": "Raw logs/images/native bodies stay in /tmp/barocss-d462-*; repository holds summaries only.",
+  "checkoutRecovery": {
+    "status": "PASS_SAME_AUTHORIZED_PATH_BRANCH_HEAD",
+    "receipt": "/tmp/barocss-d462-root/recovery-wrapper01/receipt.json",
+    "receiptSHA256": "d417699ca7b0fd8ebd420d9bd3424ad7522852c25b18176b5e1727f043a08846",
+    "timing": "External checkout disappearance occurred AFTER actual cleanup and final frozen/current equality verification.",
+    "restoration": "Ordinary git worktree add restored same authorized path, branchlocal/cad-dev and baselined631a85ce3d96762d571ffc614725a0f3a3b85e3; stale original admin preserved; no force/prune/reset.",
+    "mainRepository": "Main HEAD/index unchanged.",
+    "sourceRevalidation": "All2388 frozen pinned paths available and identical after recovery, no missing/changed paths.",
+    "actualReplay": "NOT_REQUIRED_SOURCE_IDENTICAL_AND_PRIOR_ACTUAL_COMPLETE",
+    "dependencies": "Root handles only existing offline cache restoration; no dependency/download change authorized by this record.",
+    "offlineDependencies": {
+      "status": "PASS_EXISTING_CACHE_ONLY",
+      "receipt": "/tmp/barocss-d462-root/offline-deps-wrapper01/receipt.json",
+      "receiptSHA256": "2d016cd2b01a7afc5b5bd6e4bf70f3970a38eba12887860acd5abe7dce31a436",
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts --reporter=append-only",
+      "node": "22.19.0",
+      "pnpm": "9.15.4",
+      "addedFromCache": 805,
+      "reused": 778,
+      "downloaded": 0,
+      "durationSeconds": 7.2,
+      "packageWorkspaceLockHashes": "UNCHANGED",
+      "scope": "Environment recovery only, no dependency change or new source/actual qualification. No Studio replay required for identical source."
+    }
+  },
+  "documentation": {
+    "status": "PASS",
+    "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+    "rows": 34,
+    "legacyHeadings": 552,
+    "legacyOutboundLinks": 913,
+    "checkedLocalLinks": 2613,
+    "newBrokenLinks": 0,
+    "knownHistoricalMissingPaths": 1,
+    "archiveHashesUnchanged": true
+  }
+}
