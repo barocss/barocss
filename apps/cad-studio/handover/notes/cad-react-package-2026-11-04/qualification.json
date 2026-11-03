@@ -1,0 +1,434 @@
+{
+  "work_id": "D495",
+  "status": "QUALIFIED_PRIVATE_CAD_REACT_PACKAGE_CURRENT_BRACKET_WORKER_VIEWER_STUDIO_NATIVE",
+  "parentHead": "d58638ef86025a5310c7c20bc31687d3c9453e68",
+  "tier": "EXPERIMENTAL_PRIVATE_TYPESCRIPT_SOURCE_PACKAGE",
+  "productScope": {
+    "package": "@barocss/cad-react",
+    "version": "0.0.0-experimental",
+    "private": true,
+    "packageFiles": 24,
+    "otherProductChange": "pnpm-lock.yaml new importer only, existing installed/locked versions",
+    "installs": 0,
+    "downloads": 0,
+    "ordinaryReactDOMRegistry": true,
+    "manualUserFunctionCalls": false,
+    "automaticNativeIDs": true,
+    "optionalTypedRefsAndDefinitions": true,
+    "extrudeInput": "profile geometry, internal Sketch lowering; no Sketch-only public requirement",
+    "operators": "Existing compositional Union/Difference/Target/Tools",
+    "engineViewer": "Injected existing EnginePort, provenance-aware withMasses, current existing Viewer; no duplicated Worker/render protocol"
+  },
+  "checks": {
+    "status": "PASS",
+    "uniqueTests": 24,
+    "unchangedReusedPass": 14,
+    "affectedRecheckedPass": 10,
+    "packageTypes": "PASS",
+    "apiExampleTypes": "PASS",
+    "lint": "PASS",
+    "finalModelTypes": "PASS",
+    "summary": {
+      "path": "/tmp/barocss-d495-root/final-check-summary01.json",
+      "sha256": "895cc0de8a07365189267bf6de68b7d358182226cf4ed763eb4b56f62ea4aac2"
+    },
+    "receipts": [
+      {
+        "path": "/tmp/barocss-d495-checks01/receipt.json",
+        "sha256": "0daf9f5cee29c173fc660ac62b7515676a0e7bd53234c4948ba456fe2a35f3f5",
+        "status": "FAIL"
+      },
+      {
+        "path": "/tmp/barocss-d495-checks02/receipt.json",
+        "sha256": "51f67f733a5e3d7a5d0741a25ab848b38e6487a6de6074ed6ea4d11b28a3df95",
+        "status": "FAIL"
+      },
+      {
+        "path": "/tmp/barocss-d495-checks03/receipt.json",
+        "sha256": "bff13ca8d7fc1a8f4f5d15c638b17cea00fcd912f260ae76e952da032e40b72a",
+        "status": "PASS"
+      }
+    ],
+    "typeErasureProof": {
+      "path": "/tmp/barocss-d495-root/type-erasure-proof01.json",
+      "sha256": "a2736f5e9bf209fa26cbe4a591863fea23e9eef76dc01b6bcab9f7e68d6c8e1e"
+    },
+    "typeErasureBoundary": "Two erased as-unknown casts; single components.tsx emitted JS byte equality only; unchanged runtime tests not repeated"
+  },
+  "retainedFailures": [
+    {
+      "stage": "checks01",
+      "status": "FAIL",
+      "pass": 22,
+      "fail": 2,
+      "cause": "Test fixture preconditions: empty-success bodies and duplicate keys; production guard unchanged"
+    },
+    {
+      "stage": "checks02",
+      "status": "FAIL",
+      "affectedTestsPass": 10,
+      "firstFailure": "package-types TS2367 React builtin comparison",
+      "correction": "Two erased as-unknown casts; no runtime JS change in that file"
+    },
+    {
+      "stage": "Studio01",
+      "status": "FAIL_SOURCE_PREPARATION_BEFORE_UI",
+      "receipt": {
+        "path": "/tmp/barocss-d495-studio-run01/receipt.json",
+        "sha256": "75b39a1828b0354a4488cf7d2788691af4d24899d8cc93e4f3e950afea739e8e"
+      },
+      "cause": "Source preparation capsule exceeds4096 files",
+      "recovery": "Only Studio plus previously unrun native100; outer full4393 original pins retained, local helper3009, recovery wrapper4407; browser flow not replayed"
+    }
+  ],
+  "actual": {
+    "status": "PASS_ROOT_REVIEWED",
+    "browser": {
+      "path": "/tmp/barocss-d495-package-run01/browser.receipt.json",
+      "sha256": "6b7870261be75f8201d4454cb8b6e2658d8952f98d50c2e7b135a0721f3821cf"
+    },
+    "browserStates": [
+      "width80",
+      "width100",
+      "returned width80"
+    ],
+    "Studio": {
+      "path": "/tmp/barocss-d495-studio-run02/receipt.json",
+      "sha256": "eee12f60cde7b64688dbf46a534a084126d9242c24f4660572d01ee9c2afc218"
+    },
+    "StudioCheckpoints": "Public Open and Frame all of exact returned80 accepted document",
+    "native": {
+      "path": "/tmp/barocss-d495-native-run01/receipt.json",
+      "sha256": "30a5006c0a1920641f27b9cd04e3bc0c72623440ecb7e9282c2248be58f649a0"
+    },
+    "newNativeCaptures": 2,
+    "newPhysicalOracleRuns": 2,
+    "exact80PhysicalSubproofReuses": 2,
+    "freshConsumerBindings": 4,
+    "acceptedDocNodes": 20,
+    "acceptedBodyKey": "b19",
+    "readerNormalization": "Compiler logical result output becomes b19 through current public reader; no manual native ID/ref injection",
+    "wholeDocSHA256": {
+      "width80": "c7527fc13be3468475533404f2eb93542823d7ccc22ccd906d329ac22e03918c",
+      "width100": "05d8846bd001536f508103f1d9fab18aaf7223428a849198857c9e3864c843e3"
+    },
+    "historicalD483NativeResultReuse": false,
+    "rootReview": {
+      "path": "/tmp/barocss-d495-root/actual02-review.json",
+      "sha256": "a96133963690d0e0b02d54b30c869a12e7fa24e39bee2a0db2383f2523bf0a1a"
+    },
+    "sourceEqualThroughCleanup": true,
+    "imagesReviewed": 5,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "originalOwnedPIDsGone": [
+      92715,
+      92848
+    ],
+    "recoveryOwnedPIDGone": 96921,
+    "resources": "Context/browser/server closed",
+    "fullFitAndRasterPrecision": "NOT_MEASURED; some Studio left-palette occlusion"
+  },
+  "physics": {
+    "capsuleManifest": {
+      "path": "/tmp/barocss-d495-geometry01/manifest.json",
+      "sha256": "069e5794d668a8c2d89d2b1357e8ca0c8960ac738ddf98504a8be78d77c2fe18"
+    },
+    "sourceContract": {
+      "path": "/tmp/barocss-d495-geometry01/CONTRACT.md",
+      "sha256": "fd234f283d0f8864b50bf9f3f22680d969bfd60d87e893fd0d2c7d5cee206c39"
+    },
+    "widths": [
+      80,
+      100
+    ],
+    "volume": "660W-1680-216pi mm^3",
+    "centroid": "[W/2,(27900W-95760-5832pi)/V,(10380W-68880-648pi)/V] mm",
+    "bounds": "[0,0,0]..[W,60,56] mm",
+    "topology": "One closed connected genus5 solid; four floor tunnels and wall window",
+    "budgets": {
+      "volumeAbsoluteMM3": 1e-06,
+      "density1MassAbsoluteG": 1e-09,
+      "centroidBoundsAbsoluteMM": 1e-08,
+      "carrierAbsoluteMM": 1e-07
+    },
+    "sampling": "Finite:3 line/9 curved edge points,5 pcurve points,5x5 surface points; not full domain",
+    "maximumObservedNativeVolumeAbsoluteMM3": 5.093170329928398e-11,
+    "maximumObservedNativeCentroidAbsoluteMM": 1.0658141036401503e-13,
+    "displayBoundary": "Existing Viewer mesh/frame ownership is separate from physical native proof",
+    "inertia": "NOT_CLAIMED"
+  },
+  "highFinal": {
+    "status": "PASS_BOUNDED_SAVED_CURRENT_PACKAGE_STUDIO_NATIVE_AUDIT",
+    "path": "/tmp/barocss-d495-high-final01/review.json",
+    "sha256": "25416d1f091b38d8b5a3e66032255d88ab668730b53c5f2763195008ea266e1b",
+    "savedHashArithmeticChecks": 7842,
+    "productTestCountClaim": false,
+    "failures": 0,
+    "auditCorrection": false,
+    "productNativeOracleSUTBuildReruns": 0
+  },
+  "commands": {
+    "execution": "Node22.19.0; root serial owned heavy gate, no install/download",
+    "checks01": [
+      [
+        "workspace-lock-existing-versions",
+        [
+          "node",
+          "/tmp/barocss-d495-root/validate-lock.mjs"
+        ],
+        "."
+      ],
+      [
+        "package-controlled-unit-tests",
+        [
+          "node",
+          "--test",
+          "--test-concurrency=1",
+          "tests/adapter.test.mjs",
+          "tests/compiler.test.mjs",
+          "tests/model-host.test.mjs",
+          "tests/react-host.test.mjs",
+          "tests/viewer-sink.test.mjs"
+        ],
+        "packages/barocss-cad-react"
+      ],
+      [
+        "package-types",
+        [
+          "node",
+          "../../node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "-p",
+          "tsconfig.json"
+        ],
+        "packages/barocss-cad-react"
+      ],
+      [
+        "public-api-example-types",
+        [
+          "node",
+          "../../node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "-p",
+          "tests/types/tsconfig.json"
+        ],
+        "packages/barocss-cad-react"
+      ],
+      [
+        "package-lint",
+        [
+          "node",
+          "node_modules/eslint/bin/eslint.js",
+          "packages/barocss-cad-react/src",
+          "packages/barocss-cad-react/tests",
+          "packages/barocss-cad-react/examples"
+        ],
+        "."
+      ],
+      [
+        "diff",
+        [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "."
+      ]
+    ],
+    "checks02": [
+      [
+        "affected-controlled-adapter-compiler-tests",
+        [
+          "node",
+          "--test",
+          "--test-concurrency=1",
+          "tests/adapter.test.mjs",
+          "tests/compiler.test.mjs"
+        ],
+        "packages/barocss-cad-react"
+      ],
+      [
+        "package-types",
+        [
+          "node",
+          "../../node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "-p",
+          "tsconfig.json"
+        ],
+        "packages/barocss-cad-react"
+      ],
+      [
+        "public-api-example-types",
+        [
+          "node",
+          "../../node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "-p",
+          "tests/types/tsconfig.json"
+        ],
+        "packages/barocss-cad-react"
+      ],
+      [
+        "package-lint",
+        [
+          "node",
+          "node_modules/eslint/bin/eslint.js",
+          "packages/barocss-cad-react/src",
+          "packages/barocss-cad-react/tests",
+          "packages/barocss-cad-react/examples"
+        ],
+        "."
+      ],
+      [
+        "model-types-final",
+        [
+          "node",
+          "../../node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "-p",
+          "."
+        ],
+        "packages/barocss-cad-model"
+      ],
+      [
+        "diff",
+        [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "."
+      ]
+    ],
+    "checks03": [
+      [
+        "package-types",
+        [
+          "node",
+          "../../node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "-p",
+          "tsconfig.json"
+        ],
+        "packages/barocss-cad-react"
+      ],
+      [
+        "public-api-example-types",
+        [
+          "node",
+          "../../node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "-p",
+          "tests/types/tsconfig.json"
+        ],
+        "packages/barocss-cad-react"
+      ],
+      [
+        "package-lint",
+        [
+          "node",
+          "node_modules/eslint/bin/eslint.js",
+          "packages/barocss-cad-react/src",
+          "packages/barocss-cad-react/tests",
+          "packages/barocss-cad-react/examples"
+        ],
+        "."
+      ],
+      [
+        "model-types-final",
+        [
+          "node",
+          "../../node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "-p",
+          "."
+        ],
+        "packages/barocss-cad-model"
+      ],
+      [
+        "diff",
+        [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "."
+      ]
+    ],
+    "actualWrappers": [
+      "/tmp/barocss-d495-root/run-actual01.sh",
+      "/tmp/barocss-d495-root/run-actual02.sh"
+    ]
+  },
+  "notRunOrNotClaimed": [
+    "dist build / install / distribution / release",
+    "General Face/UV or native-face producer",
+    "Arbitrary hidden Suspense/Offscreen/async whole-intent atomicity",
+    "Studio JSX editing or project persistence",
+    "General CAD React compatibility or arbitrary widths/components",
+    "Full parameter-domain/inertia certification",
+    "PDF/export/download/mobile",
+    "Full kernel/baseline suites/CI/general manufacturing acceptance"
+  ],
+  "issues": {
+    "665": "CLOSED_UNCHANGED",
+    "2180": "RESEARCH_CLOSED_UNCHANGED",
+    "roadmapRow32": "OPEN"
+  },
+  "global": {
+    "coreReadiness": "NOT_MEASURED",
+    "legacyHistoricalRows": 43,
+    "legacyStatus": "FROZEN",
+    "holds": "ALL_UNCHANGED",
+    "PDF": "OWNER_DEFERRED"
+  },
+  "next": {
+    "main": "D496_EXISTING_D408_POINT_PROJECT_PERSISTENCE",
+    "cadReact": "D497_SOURCE_REVIEW_ONLY_COMPOSITIONAL_TRANSLATE_ROTATE_AFTER_D495_PUBLICATION_AND_D496_ACTUAL"
+  },
+  "rawArtifacts": "TMP_ONLY_NOT_COMMITTED",
+  "rows": [
+    "32",
+    "05"
+  ],
+  "physicalErrorMaxima": {
+    "nativeVolumeAbsolute": 5.093170329928398e-11,
+    "nativeCentroidAbsolute": 1.0658141036401503e-13,
+    "boundsAbsolute": 0.0,
+    "radialCarrierAbsolute": 1.9095836023552692e-14,
+    "independentPcurveGap": 1.591302455776226e-14,
+    "browserWorkerNativeVolumeAbsolute": 0.0,
+    "browserWorkerNativeCentroidAbsolute": 0.0,
+    "studioWorkerNativeVolumeAbsolute": 0.0,
+    "studioWorkerNativeCentroidAbsolute": 0.0
+  },
+  "observedNativeCounts": {
+    "80": {
+      "bodies": 1,
+      "shells": 1,
+      "faces": 28,
+      "loops": 36,
+      "coedges": 148,
+      "edges": 74,
+      "vertices": 46
+    },
+    "100": {
+      "bodies": 1,
+      "shells": 1,
+      "faces": 28,
+      "loops": 36,
+      "coedges": 148,
+      "edges": 74,
+      "vertices": 46
+    }
+  },
+  "postAuditDocumentation": {
+    "path": "/tmp/barocss-d495-root/post-audit-doc-change01.json",
+    "sha256": "294bcce17a6a153dcb4db1c7749f700edbc69dabf7c9e7a9a120caf0576a5230",
+    "onlyChange": "PACKAGE_README_VALIDATION_LINK_AND_CURRENT_RESULTS",
+    "allExecutedCodeAndTestsUnchanged": true
+  }
+}
