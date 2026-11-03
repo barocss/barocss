@@ -1,0 +1,235 @@
+{
+  "workId": "D465",
+  "lastUpdated": "2026-11-03",
+  "status": "CURRENT_SUPPORT_MEASURED_NO_LINE_ARC_ADMISSION",
+  "baseline": "c0d6c0222750cd14dd76eed79e6e226c53b22442",
+  "category": "C1/C2 current line-arc Round support and finite feasibility measurement only",
+  "rows": [
+    "09",
+    "16"
+  ],
+  "productChanges": "NONE",
+  "testChanges": "NONE",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercent": 43,
+  "sourceReview": {
+    "path": "/tmp/barocss-d465-geometry/source-feasibility.json",
+    "sha256": "45b534fa74fa1ed8e2580aeee49fcd8d1d48ceb6e1e5e4dde7a90dc906e56f83",
+    "status": "SOURCE_REVIEW_ONLY",
+    "currentLineLine": "EXISTS",
+    "currentLineArc": "EXPLICIT_ARC_ADJACENT_GUARD",
+    "safeRefusalIsDefect": false,
+    "source": "packages/barocss-cad-model/src/sketch/corner.ts:18",
+    "disposition": "DEFER_PRODUCT_ADMISSION_ADOPT_ONLY_BOUNDED_FOLLOWUP_SPEC"
+  },
+  "input": {
+    "path": "/tmp/barocss-d465-geometry/seed.bcad",
+    "sha256": "4abd919ae6eeacdd95172e37e6ab89e46c79514676d0d812a6cc2398f8fbe6e1",
+    "bytes": 1640,
+    "authoring": "SOURCE_AUTHORED;no fresh public construction",
+    "outline": [
+      [
+        0,
+        0
+      ],
+      [
+        40,
+        20
+      ],
+      [
+        20,
+        40
+      ],
+      [
+        0,
+        40
+      ]
+    ],
+    "originalArc": {
+      "id": "e2",
+      "index": 1,
+      "direction": "ccw",
+      "center": [
+        20,
+        20
+      ],
+      "radius": 20
+    },
+    "sourceExtrudeHeight": 10,
+    "metadata": {
+      "radii": {
+        "1": 20
+      },
+      "tangents": [
+        2
+      ],
+      "hv": {
+        "h": [
+          2
+        ],
+        "v": [
+          3
+        ]
+      }
+    }
+  },
+  "actual": {
+    "status": "PASS",
+    "declaredGroups": 6,
+    "qualifiedGroups": 6,
+    "coverage": {
+      "currentSeedOpenNative": "PASS",
+      "currentLineArcRefusalRetention": "PASS",
+      "existingLineLineControl": "PASS",
+      "exactUndoRedoControl": "PASS",
+      "ownProjectControlRoundtrip": "PASS",
+      "postOpenCurrentLineArcRefusal": "PASS"
+    },
+    "command": "bash /tmp/barocss-d465-root/run-studio01.sh",
+    "receipt": "/tmp/barocss-d465-workflow-run01/receipt.json",
+    "configSHA256": "fc9c80958ae9eeb26aa37ab5070247d6120279a4db2f0a682d807be9806f6db6",
+    "receiptSHA256": "346920dcce773626953efdcec785f2ec3d3ee79de758265c56cd9e88a5d60a37",
+    "nativeBindings": 7,
+    "newCaptures": 2,
+    "exactWholeDocReuses": 5,
+    "freshPythonOracles": 7,
+    "freshRawWorkerVolumeCentroidBindings": 7,
+    "maximumWorkerBindingError": 0,
+    "statesAndImages": 25,
+    "rootViewedImages": 7,
+    "prehashPaths": 2378,
+    "fullFrozenPaths": 2379,
+    "sourceFrozenAfterCleanupCurrentEqual": true,
+    "pinBoundary": "Pinned paths include aliases",
+    "errors": 0,
+    "downloads": 0,
+    "watchedChanges": 0,
+    "cleanup": {
+      "namespace": "D465-round-support-run01",
+      "namespaceStatus": "REMOVED_AND_ABSENT",
+      "contextBrowserServer": "CLOSED",
+      "ownPID": 56370,
+      "ownPIDAbsent": true,
+      "gate": "FREE"
+    },
+    "executedSUTFailures": 0,
+    "preparationFailures": 0,
+    "postRunReaderCorrections": "cwd/JSON-shape reader corrections only;NOT_SUT;no rerun",
+    "oracleMaximumErrors": {
+      "volumeAbsolute": 3.637978807091713e-12,
+      "centroidAbsoluteMM": 2.1316282072803006e-14,
+      "linearAbsoluteMM": 0,
+      "angularAbsolute": 2.220446049250313e-16
+    },
+    "originalCircleNativeBudget": 1e-09
+  },
+  "publicContract": {
+    "unsupported": "Real P1[40,20] selection;Round the corner;Corner radius3;Round the corner",
+    "expectedAlert": "Round corners between two straight edges (this one has an arc).",
+    "retention": "Local authored fields/locks/constraints,accepted wholeDoc,accessible history exact;Escape cancel;not no-op Finish",
+    "positiveControl": "Real P3[0,40] line-line corner;RoundR2;Finish",
+    "controlMetadata": {
+      "newArc": {
+        "id": "e5",
+        "index": 3,
+        "center": [
+          2,
+          38
+        ],
+        "radius": 2
+      },
+      "radii": {
+        "1": 20,
+        "3": 2
+      },
+      "tangents": [
+        2,
+        3,
+        4
+      ],
+      "hv": {
+        "h": [
+          2
+        ],
+        "v": [
+          4
+        ]
+      }
+    },
+    "project": "Own OPFS Save/Close/reload/Open SAMEbrowsercontext;own namespace only cleanup",
+    "circleBoundary": "Initial unchanged valid geometry only;no future underconstrained radius-edit fixed-pose guarantee"
+  },
+  "prospective": {
+    "status": "THEORETICAL_NOT_PRODUCT_ADMISSION",
+    "branch": "Finite convex line-then-CCWarc,left-offset/internalcircle,R3/R4only",
+    "sourceCircle": "Recompute trimmed source-arc bulge;do not reuse full quarter bulge",
+    "constraints": "Removed sharp-point rules and trimmed-line lengths require explicit refusal/explanation;never silently reassociate",
+    "unmeasured": [
+      "candidate producer/App.updateShape/settleShape",
+      "source-circle pose at native budget after solveOutline grid acceptance",
+      "finite-domain branch/self-crossing after edits",
+      "trimmed-arc tangent branch retention",
+      "removed-point/line-length constraint policy",
+      "native sideTags/downstream/history/project/radiusedit of any new feature"
+    ],
+    "representationOnly": "Existing point/bulge/radius/tangent/ID types can express proposed result;not solver/native/public acceptance",
+    "results": {
+      "R3": "ONE_FINITE_DECLARED_BRANCH",
+      "R4": "ONE_FINITE_DECLARED_BRANCH",
+      "productImports": 0,
+      "nativeProducerCalls": 0,
+      "status": "THEORETICAL_NOT_PRODUCT_ADMISSION"
+    }
+  },
+  "evidenceBoundary": "Current public refusal/control only. Separate theory is not a producer PASS. Raw logs/screens/native bodies remain outside repository.",
+  "nextProposed": "D466 isolated initial-settle measurement:two source-authored R3/R4 candidates through existing settleShape(candidate,seed). No Round producer,repair,newapproval,admission or HOLD lift. Current roundCorner arc-adjacent guard unchanged.",
+  "issues": {
+    "2282": "OPEN_RESEARCH_EPIC_NOT_IMPLEMENTED"
+  },
+  "holds": "CoreNOT_MEASURED/legacy43frozen;all #2258/#2266,Motion/Physics,fitter/thicken,widening,manufacturing,UI,schema,download/dependency,browserCI/release gates unchanged.",
+  "relatedRows": [
+    "07",
+    "12"
+  ],
+  "decision": "DEFER_PRODUCT_ADMISSION_ADOPT_BOUNDED_INTEGRATION_SPEC",
+  "preflight": {
+    "status": "PASS_CURRENT_ONLY",
+    "receipt": "/tmp/barocss-d465-geometry/preflight-run01/receipt.json",
+    "receiptSHA256": "c198cb38576f05c9021519f4b9df7ef8441c2b36a858b81e91420533809eb4e3",
+    "sourcePins": 749,
+    "sourceEqualAfterCleanupCurrent": true,
+    "ownPID": 53496,
+    "ownPIDAbsent": true,
+    "maximumNativeVolumeAbsoluteError": 3.64e-12,
+    "maximumNativeCentroidAbsoluteErrorMM": 2.13e-14,
+    "command": "bash /tmp/barocss-d465-root/run-preflight01.sh"
+  },
+  "checks": {
+    "newTestsTypesBuildFullKernel": "NOT_RUN_NO_SOURCE_OR_TEST_CHANGE",
+    "retained": "D46128 focused groups,lint,StudioTSC,finalModelTSC",
+    "nativeLimits": {
+      "volumeRelative": 1e-09,
+      "centroidBoundsCirclePinsAbsoluteMM": 1e-09
+    },
+    "returnedSolverLimits": {
+      "linearMM": 1e-07,
+      "angularRadians": 1e-09
+    },
+    "currentIndependentOracleSHA256": "36a87160461d37aea22100c46f8d9258e0e9ae091a0d8a10ff23623d6fbb186f",
+    "pureTheorySHA256": "66f7a26f37555c742b0b6100bbb1f3632eb549e7b1ad6c07ba342dc2b3089b38",
+    "rootVisualReview": "/tmp/barocss-d465-root/root-review.json",
+    "documentation": {
+      "status": "PASS",
+      "commands": [
+        "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+        "git diff --cached --check"
+      ],
+      "rows": 34,
+      "legacyHeadingFragments": 552,
+      "legacyOutboundLinks": 913,
+      "checkedLocalLinks": 2634,
+      "newBroken": 0,
+      "knownHistoricalMissingPaths": 1
+    }
+  }
+}

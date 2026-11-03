@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D465: measure current line–arc refusal and arc-preserving line–line control; defer product admission, adopt bounded integration measurement](notes/line-arc-round-support-2026-11-03/README.md).
 - [D464: qualify one ordinary BODY Rotate quarter-turn/source/history/refusal/project workflow](notes/body-rotate-workflow-2026-11-03/README.md).
 - [D463: qualify one ordinary partial Revolve Angle/source/history/refusal/project workflow](notes/partial-revolve-workflow-2026-11-03/README.md).
 - [D462: qualify one ordinary BODY Mirror plane/source/history/refusal/project workflow](notes/body-mirror-workflow-2026-11-03/README.md).
