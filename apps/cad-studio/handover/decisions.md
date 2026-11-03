@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D463: qualify one ordinary partial Revolve Angle/source/history/refusal/project workflow](notes/partial-revolve-workflow-2026-11-03/README.md).
 - [D462: qualify one ordinary BODY Mirror plane/source/history/refusal/project workflow](notes/body-mirror-workflow-2026-11-03/README.md).
 
 - [D461: preserve unchanged legacy construction IDs during in-place Sketch Finish; qualify the public line–line Round/history/project loop](notes/sketch-round-construction-2026-11-03/README.md).

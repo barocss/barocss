@@ -1,0 +1,235 @@
+{
+  "workId": "D463",
+  "lastUpdated": "2026-11-03",
+  "status": "BOUNDED_QUALIFIED",
+  "category": "C2 existing partial Revolve Angle/source edit/history/project",
+  "rows": [
+    "07",
+    "08",
+    "12",
+    "16"
+  ],
+  "baseline": "222869c87157558ec150b7f3e6d1252bccdc8c77",
+  "branch": "local/cad-dev",
+  "productChanges": "NONE",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercent": 43,
+  "input": {
+    "path": "/tmp/barocss-d463-geometry/seed.bcad",
+    "bytes": 324,
+    "sha256": "d2d61b8cc20966f3a8fa7d557b9f91296fe11a8d106dfd85af444b973e885dc0",
+    "provenance": "SOURCE_AUTHORED_SINGLE_SKETCH; public seed construction NOT_CLAIMED",
+    "profile": "n0 tagged XY rectangle min[10,20],max[20,50]; e1..e4; nextId1; no solid outputs"
+  },
+  "publicContract": {
+    "selection": "Outliner Sketch 1; existing pickProfile0",
+    "creation": "Revolve, Axis Sketch Y, Angle90, Apply",
+    "stored": "n1 revolve sketch0 axisy angle90/180; outputb1 n1solid; nextId2",
+    "edits": "Existing Angle(deg)90\u2192180, original Depth(d)30\u219240, attempted Angle0, postOpenAngle90 atDepth40",
+    "signedAxis": "Stored SketchY/y uses existing effective native\u2212Y/+X convention and sweeps toward positiveZ; p=[r cosphi,y,r sinphi],r10..20,y20..20+depth."
+  },
+  "retainedProof": "D448 full360 boss/support workflow read, not replayed; it does not qualify this standalone partial-sector Angle/history/project profile.",
+  "preflight": {
+    "status": "PASS_4_NEW_STATES_PLUS_ANGLE0_INPUT_GUARD",
+    "command": "bash /tmp/barocss-d463-root/run-preflight01.sh",
+    "receipt": "/tmp/barocss-d463-geometry/preflight-run01/receipt.json",
+    "receiptSHA256": "95c548dc953dcf9116fbd93e11cdd5ede722d0ae8824a5acafd76f38556ed5ca",
+    "sourcePins": 746,
+    "sourceEqualAfterCleanupCurrent": true,
+    "ownPID": 98034,
+    "ownPIDAbsent": true,
+    "gate": "released/clean",
+    "refusal": {
+      "name": "CadPartError",
+      "code": "INPUT",
+      "feature": "n1",
+      "message": "n1: angle must be in (0, 360]"
+    },
+    "maximumVolumeAbsoluteError": 5.46e-11,
+    "maximumCentroidAbsoluteErrorMM": 4.62e-14,
+    "proofBoundary": "Native/provider only. Preflight postopen label is a planned geometry state, not actual persistence proof."
+  },
+  "actual": {
+    "status": "PASS",
+    "qualifiedGroups": 8,
+    "declaredGroups": 8,
+    "coverage": {
+      "publicRevolve90": "PASS",
+      "existingAngle180Edit": "PASS",
+      "sourceDepth40Edit": "PASS",
+      "exactUndo": "PASS",
+      "exactRedo": "PASS",
+      "zeroAngleRefusalRetention": "PASS",
+      "ownProjectRoundtrip": "PASS",
+      "postOpenAngle90Edit": "PASS"
+    },
+    "command": "bash /tmp/barocss-d463-root/run-studio01.sh",
+    "output": "/tmp/barocss-d463-workflow-run01",
+    "configSHA256": "487abe406c950fd3c99ac87aca79224a25ae2289633e9b5aa4197d7e974327dd",
+    "sequence": "90/d30\u2192180/d30\u2192180/d40\u2192Angle0INPUTrefusal\u2192FIRSTUndo180/d30\u2192Redo180/d40\u2192ownedOPFS Save/Close/samecontextreload/Open\u219290/d40",
+    "cleanup": {
+      "namespace": "D463-partial-revolve-run01",
+      "namespaceStatus": "REMOVED_AND_ABSENT",
+      "contextBrowserServer": "CLOSED",
+      "ownWrapperPID": 1097,
+      "ownWrapperAbsent": true,
+      "gate": "RELEASED_CLEAN"
+    },
+    "errorsDownloadsChanges": {
+      "page": 0,
+      "console": 0,
+      "downloads": 0,
+      "watchedChanges": 0
+    },
+    "rootVisualReview": {
+      "images": 7,
+      "states": [
+        "Sketch1 selection",
+        "90 accepted",
+        "Depth40",
+        "Angle0 refusal",
+        "Undo180/30",
+        "project reopen180/40",
+        "postOpen90/40"
+      ]
+    },
+    "receipt": "/tmp/barocss-d463-workflow-run01/receipt.json",
+    "receiptSHA256": "470985137ae52ec794eed49f16b5882699faa4efa89a36f5f34f850bed1744fc",
+    "nativeBindings": 8,
+    "newNativeCaptures": 4,
+    "exactWholeDocReuses": 4,
+    "independentPythonOracles": 8,
+    "freshRawCurrentWorkerVolumeCentroidBindings": 8,
+    "maximumRawWorkerVolumeCentroidBindingError": 0,
+    "statesAndImages": 25,
+    "sourcePrehashPaths": 2384,
+    "fullFrozenPaths": 2385,
+    "sourceEqualFrozenAfterCleanupCurrent": true,
+    "sourcePinBoundary": "Pinned paths include a private /tmp inspector realpath alias to the same physical file."
+  },
+  "physicalContract": {
+    "source": "Strict native B-rep massPropertiesOf + brepMassProperties; independent polar integration imports no product code; no display mesh truth.",
+    "volumeRelative": 1e-09,
+    "centroidBoundsBoundaryPinsAbsoluteMM": 1e-09,
+    "outwardUnitNormalComponentsAbsolute": 1e-09,
+    "states": [
+      {
+        "angle": 90,
+        "depth": 30,
+        "volume": "2250*pi",
+        "centroid": [
+          "280/(9*pi)",
+          35,
+          "280/(9*pi)"
+        ],
+        "bounds": [
+          [
+            0,
+            20,
+            0
+          ],
+          [
+            20,
+            50,
+            20
+          ]
+        ]
+      },
+      {
+        "angle": 180,
+        "depth": 30,
+        "volume": "4500*pi",
+        "centroid": [
+          0,
+          35,
+          "280/(9*pi)"
+        ],
+        "bounds": [
+          [
+            -20,
+            20,
+            0
+          ],
+          [
+            20,
+            50,
+            20
+          ]
+        ]
+      },
+      {
+        "angle": 180,
+        "depth": 40,
+        "volume": "6000*pi",
+        "centroid": [
+          0,
+          40,
+          "280/(9*pi)"
+        ],
+        "bounds": [
+          [
+            -20,
+            20,
+            0
+          ],
+          [
+            20,
+            60,
+            20
+          ]
+        ]
+      },
+      {
+        "angle": 90,
+        "depth": 40,
+        "volume": "3000*pi",
+        "centroid": [
+          "280/(9*pi)",
+          40,
+          "280/(9*pi)"
+        ],
+        "bounds": [
+          [
+            0,
+            20,
+            0
+          ],
+          [
+            20,
+            60,
+            20
+          ]
+        ]
+      }
+    ],
+    "boundary": "Native edges/vertices/loops establish physical trim pins. Oversized planar-carrier probes check only carrier plane/normal, not trimmed membership. One strict closed solid, selected sixface/eightvertex/twelveedge topology; no general downstream rematching."
+  },
+  "highArtifacts": {
+    "contractSHA256": "f32ff1affb6175fa56aa1411beccaf90e4334e49f5e7523f8b777fb6e6252f41",
+    "manifestSHA256": "f0c085bb2b7bda47bc2b5899890887c176f651b42b3f3614d66e7638de7bdc4d"
+  },
+  "checks": {
+    "newTestsTypesBuildFullKernel": "NOT_RUN_NO_PRODUCT_OR_TEST_CHANGE",
+    "retained": "D46128focused groups +scopedlint +StudioTSC +finalModelTSC remain valid; no broader baseline repeated.",
+    "sourceKnownDefect": "NONE_ESTABLISHED_IN_THIS_BOUNDED_CASE",
+    "executedActualFailures": 0,
+    "preparationFailures": 0
+  },
+  "issueDisposition": {
+    "534": "OPEN; fullPART03/10 not all met; no closure/checklist promotion."
+  },
+  "nextProposed": "D464 ordinary public BODY Rotate exact-quarter-turn inventory (C2 inventory rank3), before locking a profile or execution. No UI redesign or HOLD lift.",
+  "holds": "Core NOT_MEASURED; legacy43 frozen; #2258/#2266 fitter/thicken/widening, manufacturing, Motion/Physics, UI, schema3/4, owner-download/dependency, browser-CI and release gates unchanged.",
+  "evidenceBoundary": "Raw logs/screens/native fixtures remain outside repository. Native/independent physical authority; current Worker values bind the actual consumer. No general partial-Revolve qualification.",
+  "documentation": {
+    "status": "PASS",
+    "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+    "rows": 34,
+    "legacyHeadings": 552,
+    "legacyOutboundLinks": 913,
+    "checkedLocalLinks": 2620,
+    "newBrokenLinks": 0,
+    "knownHistoricalMissingPaths": 1,
+    "archiveHashesUnchanged": true
+  }
+}
