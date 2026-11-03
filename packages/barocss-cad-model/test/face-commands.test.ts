@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { brepMassProperties, checkBrep } from '@barocss/cad';
+import { brepMassProperties, checkBrep, curveDomain, curveEvaluator, faceGeometry } from '@barocss/cad';
 import { evaluateDoc, partBreps, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
 import { faceProfile, fitLoop } from '../src/app/faceProfile';
@@ -70,23 +70,76 @@ test('face Extrude Join preserves integer and dyadic native +Z cap heights as on
   }
 });
 
-test('face Extrude does not replace stale source or tampered display identity with a generic profile', () => {
-  const doc = rectanglePart(20, 30, 10 + 2 ** -10), bodies = bodiesOf(doc), face = faceNamed(bodies[0], 'n1.top');
-  const ctx: Ctx = { doc, bodies, selection: { faces: [{ body: 0, face }], edges: [], bodies: [] } };
-  const changed = structuredClone(doc); assert.ok(changed.nodes[1].kind === 'extrude'); changed.nodes[1].height = 11;
-  const tampered = structuredClone(bodies); tampered[0].mesh.faces[face].centroid[0] += 1;
-  for (const current of [{ ...ctx, doc: changed }, { ...ctx, bodies: tampered }]) {
-    const before = structuredClone(current.doc);
-    assert.throws(() => extrudeCommand.build!(current, { ...extrudeCommand.defaults!(current), h: 5 }), error => isRefusal(error, 'BAD_REFERENCE'));
-    assert.deepEqual(current.doc, before);
+test('face Extrude preserves an owned native circle cap and connected cylinder at integer and dyadic heights', () => {
+  for (const height of [10, 10 + 2 ** -10]) {
+    const seed = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 3 }), { kind: 'extrude', sketch: 0, height }), before = structuredClone(seed);
+    const out = pull(seed, 'n1.top', { h: 5 }).doc, sketch = out.nodes[2]; assert.ok(sketch.kind === 'sketch' && sketch.profile === 'loop');
+    assert.deepEqual(sketch.plane, { origin: [0, 0, height], normal: [0, 0, 1], xAxis: [1, 0, 0] });
+    assert.deepEqual(sketch.segments, [{ kind: 'arc', start: [3, 0], center: [0, 0], direction: 'ccw' }]);
+    assert.deepEqual(sketch.on, { node: 1, side: 'solid' }); assert.deepEqual(out.nodes.slice(0, 2), seed.nodes); assert.deepEqual(seed, before);
+    const outputs = partBreps(out); assert.equal(outputs.length, 1); assert.equal(outputs[0].key, 'b4');
+    const brep = outputs[0].brep, strict = checkBrep(brep, { strict: true }); assert.ok(strict.valid, strict.issues.join('; '));
+    assert.equal(brep.bodies.length, 1); assert.equal(brep.shells.length, 1); assert.equal(brep.shells[0].closed, true);
+    const total = height + 5, volume = Math.PI * 9 * total, mass = brepMassProperties(brep, 1), points: number[][] = [], levels = new Set<number>();
+    assert.ok(Math.abs(mass.volume - volume) <= 1e-9 * volume);
+    for (let axis = 0; axis < 3; axis++) assert.ok(Math.abs(mass.centroid[axis] - [0, 0, total / 2][axis]) <= 1e-9);
+    const adjacent = new Map<string, Set<string>>();
+    for (const face of brep.faces) for (const loopId of face.loops) {
+      const loop = brep.loops.find(value => value.id === loopId); assert.ok(loop);
+      for (const id of loop.coedges) {
+        const use = brep.coedges.find(value => value.id === id); assert.ok(use);
+        const faces = adjacent.get(use.edge) ?? new Set<string>(); faces.add(face.id); adjacent.set(use.edge, faces);
+      }
+    }
+    for (const edge of brep.edges) {
+      const [lo, hi] = curveDomain(edge.curve), at = curveEvaluator(edge.curve), a = at(lo), b = at(hi);
+      const axial = edge.curve.degree === 1 && a[0] === b[0] && a[1] === b[1];
+      if (edge.curve.degree === 1 && !axial) {
+        const ids = [...(adjacent.get(edge.id) ?? [])]; assert.equal(ids.length, 2); const capLevels: number[] = [];
+        for (const id of ids) {
+          const face = brep.faces.find(value => value.id === id); assert.ok(face); const geometry = faceGeometry(face); assert.equal(geometry.kind, 'plane');
+          if (geometry.kind !== 'plane') throw new Error('Expected a coplanar cap partition');
+          assert.ok(Math.abs(geometry.n[0]) <= 1e-9 && Math.abs(geometry.n[1]) <= 1e-9 && Math.abs(Math.abs(geometry.n[2]) - 1) <= 1e-9);
+          assert.ok(Math.abs(geometry.o[2]) <= 1e-9 || Math.abs(geometry.o[2] - total) <= 1e-9); capLevels.push(geometry.o[2]);
+        }
+        assert.ok(Math.abs(capLevels[0] - capLevels[1]) <= 1e-9);
+      }
+      for (const t of [0, .25, .5, .75, 1]) {
+        const point = at(lo + (hi - lo) * t); points.push(point);
+        if (edge.curve.degree !== 1 || axial) assert.ok(Math.abs(Math.hypot(point[0], point[1]) - 3) <= 1e-9);
+      }
+    }
+    for (let axis = 0; axis < 3; axis++) {
+      assert.ok(Math.abs(Math.min(...points.map(p => p[axis])) - [-3, -3, 0][axis]) <= 1e-9);
+      assert.ok(Math.abs(Math.max(...points.map(p => p[axis])) - [3, 3, total][axis]) <= 1e-9);
+    }
+    for (const face of brep.faces) {
+      const geometry = faceGeometry(face); if (geometry?.kind !== 'plane') continue;
+      assert.ok(Math.abs(geometry.n[0]) <= 1e-9); assert.ok(Math.abs(geometry.n[1]) <= 1e-9); assert.ok(Math.abs(Math.abs(geometry.n[2]) - 1) <= 1e-9); levels.add(geometry.o[2]);
+    }
+    const caps = [...levels].sort((a, b) => a - b); assert.equal(caps.length, 2); assert.ok(Math.abs(caps[0]) <= 1e-9); assert.ok(Math.abs(caps[1] - total) <= 1e-9);
   }
 });
 
-test('face Extrude keeps generic profiles for existing holed, drafted, circular, side and unkeyed faces', () => {
+test('face Extrude does not replace stale polygon or circle source and tampered identity with a generic profile', () => {
+  const circle = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 3 }), { kind: 'extrude', sketch: 0, height: 10 + 2 ** -10 });
+  for (const doc of [rectanglePart(20, 30, 10 + 2 ** -10), circle]) {
+    const bodies = bodiesOf(doc), face = faceNamed(bodies[0], 'n1.top');
+    const ctx: Ctx = { doc, bodies, selection: { faces: [{ body: 0, face }], edges: [], bodies: [] } };
+    const changed = structuredClone(doc); assert.ok(changed.nodes[1].kind === 'extrude'); changed.nodes[1].height = 11;
+    const tampered = structuredClone(bodies); tampered[0].mesh.faces[face].centroid[0] += 1;
+    for (const current of [{ ...ctx, doc: changed }, { ...ctx, bodies: tampered }]) {
+      const before = structuredClone(current.doc);
+      assert.throws(() => extrudeCommand.build!(current, { ...extrudeCommand.defaults!(current), h: 5 }), error => isRefusal(error, 'BAD_REFERENCE'));
+      assert.deepEqual(current.doc, before);
+    }
+  }
+});
+
+test('face Extrude keeps generic profiles for existing holed, drafted, side and unkeyed faces', () => {
   const base = rectanglePart(20, 30, 10), drafted = structuredClone(base); assert.ok(drafted.nodes[1].kind === 'extrude'); drafted.nodes[1].draft = 5;
   const hole = withNode(base, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [8, 10], radius: 2 });
-  const circle = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 6 }), { kind: 'extrude', sketch: 0, height: 10 });
-  for (const [doc, name] of [[hole, 'n1.top'], [drafted, 'n1.top'], [circle, 'n1.top'], [base, 'n1.side1']] as const) {
+  for (const [doc, name] of [[hole, 'n1.top'], [drafted, 'n1.top'], [base, 'n1.side1']] as const) {
     const bodies = bodiesOf(doc), face = faceNamed(bodies[0], name), generic = faceProfile(bodies[0].mesh, face); assert.ok(generic);
     const fallback = { ...generic, on: refOf(bodies[0]) };
     const ctx: Ctx = { doc, bodies, selection: { faces: [{ body: 0, face }], edges: [], bodies: [] } };

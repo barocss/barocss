@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D476: retain circular +Z native face Extrude height; qualify seven desktop groups and close the current known C1/C2 reproduced-defect list first pass](notes/native-circle-face-extrude-height-2026-11-03/README.md).
+
 - [D475: retain exact native +Z polygon cap height in face Extrude; preserve first accuracy FAIL and qualify one dyadic desktop lifecycle](notes/native-face-extrude-height-2026-11-03/README.md).
 
 - [D474: qualify integer real face-picked default Extrude Join and generated-tool lifecycle; retain precision and visibility limits](notes/face-picked-extrude-join-2026-11-03/README.md).

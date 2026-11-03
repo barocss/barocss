@@ -1,0 +1,1314 @@
+{
+  "workId": "D476",
+  "category": "C1/C2 finite first-pass closeout",
+  "rows": [
+    "07",
+    "08",
+    "12",
+    "16"
+  ],
+  "lastUpdated": "2026-11-03",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "f0ef2ddb00fef6a7b073d1a51a15bef69974eb61",
+  "sourceState": "KNOWN_TWO_UNCOMMITTED_CANDIDATE_FILES_NOT_CLEAN_HEAD",
+  "source": {
+    "packages/barocss-cad-model/src/app/nativeExtrudeFace.ts": "3a1e3a05d9371b4fa57b46a5a3295414cbeac64d05c927991082b532a3f05ba0",
+    "packages/barocss-cad-model/test/face-commands.test.ts": "03745116086a487b0017c327d704cb5d9b74ae935a0454d2a85516aa4186279b",
+    "packages/barocss-cad-model/src/app/profileCommands.ts": "913b3c0b8e3818ed6dd7c0a74e2280f81e0fe38a1e6423e214399f289851587a"
+  },
+  "evidence": {
+    "originalNative": {
+      "path": "/tmp/barocss-d476-geometry/preflight-run01/receipt.json",
+      "sha256": "71f7655c01adc1247a934753d2b4ab2aa9488065c20cba617adb9b5b8833ca46"
+    },
+    "originalDesktop": {
+      "path": "/tmp/barocss-d476-repro-run01/receipt.json",
+      "sha256": "0e11776720ed40d20339d4a4ed5bb55f0d991ec269d20f56972e0bfd67299526"
+    },
+    "checks": {
+      "path": "/tmp/barocss-d476-checks01/receipt.json",
+      "sha256": "d9c96abf7b46ce36f91b8161fcc082fc742e6479f97f79f40c94e30bc95b89f6"
+    },
+    "fixedNative": {
+      "path": "/tmp/barocss-d476-fixed-geometry/preflight-run01/receipt.json",
+      "sha256": "d9df1a28d97a50b1fc5c212f11545753f39452384de02a10b66d8ce807499e44"
+    },
+    "fixedDesktopAttempt01": {
+      "path": "/tmp/barocss-d476-fixed-workflow-run01/receipt.json",
+      "sha256": "e0db151bde64dc44d569d2711483076fd386d2276dea1637aa74223141e7c3a8"
+    },
+    "savedActualRaw": {
+      "path": "/tmp/barocss-d476-root/raw-document-wrapper01/provider.stdout.json",
+      "sha256": "c5bb001e5ead4216cd026114ffa4700320c24c82661a95402209eb5f7375e81b"
+    },
+    "fixedDesktopAttempt02": {
+      "path": "/tmp/barocss-d476-fixed-workflow-run02/receipt.json",
+      "sha256": "f10d9ca99e8049f14535622076e81983991cf433cae810f0f85d3bc79f908858"
+    },
+    "savedActualOracle02": {
+      "path": "/tmp/barocss-d476-root/oracle02-wrapper01/provider.stdout.json",
+      "sha256": "fc30286238b1d7401d574aa92af4e2f93b2fe224e50b89f700c118e61f2e91f3"
+    }
+  },
+  "input": {
+    "radius": 3,
+    "center": [
+      0,
+      0
+    ],
+    "sourceHeight": 10.0009765625,
+    "sourceHeightExact": "10241/1024",
+    "isolation": "Same one existing circular +Z cap; cap map antecedent only, no separate seed physical baseline"
+  },
+  "correction": {
+    "route": "Build time only; fresh pure owned native +Z one finite CCW full-circle loop; existing circle certificate/frame/on cloned",
+    "preserved": "Polygon route, typed unsupported fallback, stale BAD_REFERENCE and unknown/malformed propagation",
+    "malformedGuardCoverage": "SOURCE_REVIEW_ONLY_NOT_NEW_RUNTIME_PROOF",
+    "unchanged": "B-rep core, global rounding, Offset resolver, API, schema and UI"
+  },
+  "originalNative": {
+    "status": "FAIL_CURRENT_CIRCLE_FACE_JOIN_ACCURACY",
+    "oracleExitCode": 1,
+    "captureReadiness": {
+      "status": "PASS",
+      "issues": []
+    },
+    "producerMapReadiness": {
+      "status": "PASS_ANTECEDENT_ONLY",
+      "seedFaceMapSHA256": "aec4994db4733be643275e260fce8c96319337896f3015bca1eb4f4d6d725c76"
+    },
+    "expected": {
+      "sourceHeightExact": "10241/1024",
+      "totalHeightExact": "15361/1024",
+      "piCoefficientExact": "138249/1024",
+      "volume": 424.142619888804,
+      "centroid": [
+        0,
+        0,
+        7.50048828125
+      ],
+      "bounds": {
+        "min": [
+          -3,
+          -3,
+          0
+        ],
+        "max": [
+          3,
+          3,
+          15.0009765625
+        ]
+      },
+      "nativeBodies": 1,
+      "closedShells": 1
+    },
+    "observed": {
+      "bodyCount": 2,
+      "shellCount": 2,
+      "generatedPlane": 10.001,
+      "generatedCircle": [
+        {
+          "kind": "arc",
+          "start": [
+            3,
+            0
+          ],
+          "center": [
+            0,
+            0
+          ],
+          "direction": "ccw"
+        }
+      ],
+      "horizontalCapLevels": [
+        0,
+        10.0009765625,
+        10.001,
+        15.001
+      ],
+      "components": [
+        {
+          "bodyIds": [
+            "n4_b0"
+          ],
+          "bounds": {
+            "min": [
+              -3,
+              -3,
+              0
+            ],
+            "max": [
+              3,
+              3,
+              10.0009765625
+            ]
+          },
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3,
+          "axialInterval": [
+            0,
+            10.0009765625
+          ],
+          "independentPiVolume": 282.77095047726334,
+          "independentCentroid": [
+            0,
+            0,
+            5.00048828125
+          ],
+          "capCoverage": [
+            {
+              "level": 0,
+              "quarterSpans": 4,
+              "signedQuarterTurns": -4
+            },
+            {
+              "level": 10.0009765625,
+              "quarterSpans": 4,
+              "signedQuarterTurns": 4
+            }
+          ],
+          "radialDistanceBound": 2.5121479338940395e-15,
+          "pcurveDistanceBound": 5.974795500617759e-16,
+          "nativeCounts": {
+            "vertices": 4,
+            "edges": 6,
+            "faces": 4,
+            "shells": 1
+          }
+        },
+        {
+          "bodyIds": [
+            "n4_b1"
+          ],
+          "bounds": {
+            "min": [
+              -3,
+              -3,
+              10.001
+            ],
+            "max": [
+              3,
+              3,
+              15.001
+            ]
+          },
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3,
+          "axialInterval": [
+            10.001,
+            15.001
+          ],
+          "independentPiVolume": 141.3716694115407,
+          "independentCentroid": [
+            0,
+            0,
+            12.501
+          ],
+          "capCoverage": [
+            {
+              "level": 10.001,
+              "quarterSpans": 4,
+              "signedQuarterTurns": -4
+            },
+            {
+              "level": 15.001,
+              "quarterSpans": 4,
+              "signedQuarterTurns": 4
+            }
+          ],
+          "radialDistanceBound": 2.5121479338940395e-15,
+          "pcurveDistanceBound": 5.974795500617759e-16,
+          "nativeCounts": {
+            "vertices": 4,
+            "edges": 6,
+            "faces": 4,
+            "shells": 1
+          }
+        }
+      ],
+      "positiveAxialGaps": [
+        {
+          "lowerTop": 10.0009765625,
+          "upperBottom": 10.001,
+          "gap": 2.3437499999445777e-05
+        }
+      ],
+      "deltas": {
+        "mass": {
+          "volume": 5.684341886080802e-14,
+          "centroid": [
+            1.8520944183050566e-16,
+            7.65660141447796e-17,
+            7.8119914057595e-06
+          ]
+        },
+        "brepMass": {
+          "volume": 5.684341886080801e-13,
+          "centroid": [
+            5.488717227641955e-17,
+            2.301957492203542e-16,
+            7.8119914057595e-06
+          ]
+        }
+      }
+    },
+    "limits": {
+      "volumeRelative": 1e-09,
+      "centroidBoundsCarrierCurvePcurveAbsolute": 1e-09
+    },
+    "representationConsistency": {
+      "consistent": true,
+      "issues": [],
+      "independentObservedComponentAggregate": {
+        "volume": 424.142619888804,
+        "centroid": [
+          0,
+          0,
+          7.500496093241407
+        ]
+      },
+      "maximumRadialDistanceBound": 2.5121479338940395e-15,
+      "maximumPcurveDistanceBound": 5.974795500617759e-16
+    }
+  },
+  "originalDesktop": {
+    "status": "FAIL_CURRENT_PRODUCT_CIRCLE_ACCURACY",
+    "receiptSHA256": "0e11776720ed40d20339d4a4ed5bb55f0d991ec269d20f56972e0bfd67299526",
+    "rootViewed": [
+      "01-real-cap-selection-before-assert",
+      "01-default-Join-before-distance",
+      "01-ExtrudeJoin5-public-preview",
+      "01-current-accepted-before-accuracy"
+    ],
+    "visibleAcceptedUI": "Pieces2;display Faces6;one output row;public Join accepted",
+    "nativeBodies": 2,
+    "nativeShells": 2,
+    "WorkerVolumeRelativeError": 0,
+    "maximumWorkerCentroidAbsoluteErrorMM": 2.0940560510824758e-17,
+    "nativeVolumeAbsoluteError": 5.684341886080802e-14,
+    "BrepVolumeAbsoluteError": 5.684341886080801e-13,
+    "centroidZAbsoluteErrorMM": 7.8119914057595e-06,
+    "gapMM": 2.3437499999445777e-05,
+    "wrapperSourceBeforeAfterCleanupCurrentEqual": 2377,
+    "helperFrozenCleanupCurrentEqual": 2378,
+    "helperNormalSourceAfter": "NOT_RUN_FIRST_FAILURE",
+    "ownPIDAbsent": 28927,
+    "contextBrowserServer": "CLOSED",
+    "namespace": "NONE_CREATED",
+    "gate": "FREE",
+    "endLoad": 13.11,
+    "pageConsoleDownloadsChanges": 0,
+    "mobile": "NOT_RUN_OWNER_RULE",
+    "visualBoundary": "Picked cap unobstructed; initial preview top cropped; accepted Frame all cylinder visible. No complete preview-fit claim.",
+    "SUTRetries": 0,
+    "sourceFreezeReleased": true,
+    "rootViewedCount": 4,
+    "totalStates": 10,
+    "normalHelperSourceAfter": "NOT_RUN_FIRST_FAILURE_ABSENT",
+    "workerProofBoundary": "Current native consumer coherence only; nonzero centroid error does not establish requested geometry"
+  },
+  "checks": {
+    "status": "PASS",
+    "tests": 65,
+    "fail": 0,
+    "skip": 0,
+    "receiptSHA256": "d9c96abf7b46ce36f91b8161fcc082fc742e6479f97f79f40c94e30bc95b89f6",
+    "equalPins": 1488,
+    "ownPIDAbsent": 69316,
+    "lastCommand": "Model tsc after final test edit",
+    "commands": [
+      {
+        "name": "model-face-related",
+        "argv": [
+          "pnpm",
+          "--dir",
+          "packages/barocss-cad-model",
+          "run",
+          "test",
+          "face-commands.test.ts",
+          "native-offset-face.test.ts",
+          "native-offset-circle-browser.test.ts",
+          "native-offset-result.test.ts",
+          "offset-face-native.test.ts"
+        ],
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 3.135
+      },
+      {
+        "name": "lint",
+        "argv": [
+          "pnpm",
+          "exec",
+          "eslint",
+          "--no-warn-ignored",
+          "--",
+          "packages/barocss-cad-model/src/app/profileCommands.ts",
+          "packages/barocss-cad-model/src/app/nativeExtrudeFace.ts",
+          "packages/barocss-cad-model/test/face-commands.test.ts"
+        ],
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 1.431
+      },
+      {
+        "name": "diff",
+        "argv": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 0.133
+      },
+      {
+        "name": "studio-types",
+        "argv": [
+          "pnpm",
+          "--dir",
+          "apps/cad-studio",
+          "run",
+          "type-check"
+        ],
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 23.381
+      },
+      {
+        "name": "model-types-final",
+        "argv": [
+          "pnpm",
+          "--dir",
+          "packages/barocss-cad-model",
+          "run",
+          "type-check"
+        ],
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 20.093
+      }
+    ],
+    "sourceEqual": true,
+    "sourcePinCount": 1488,
+    "productionBuild": "NOT_RUN",
+    "fullKernel": "NOT_RUN_CORE_UNCHANGED",
+    "retainedKernel": "D433 2066 PASS / 2 old SKIP",
+    "inspectorBundling": "PASS_SEPARATELY",
+    "documentationNavigation": {
+      "status": "PASS",
+      "command": "export PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH; node apps/cad-studio/handover/scripts/check-navigation.mjs",
+      "node": "22.19.0",
+      "receipt": "/tmp/barocss-d476-root/navigation-final-node22.json",
+      "sha256": "93ef4179eb192672cc3b5b8c3ae53b9b52c4372f8fb5a4f2733a7c9f065315e3",
+      "rows": 34,
+      "oldHeadingFragments": 552,
+      "parsedLegacyOutboundLinks": 913,
+      "checkedLocalLinks": 2711,
+      "newBroken": 0,
+      "knownMissingPaths": 1
+    }
+  },
+  "fixedNative": {
+    "status": "PASS_CURRENT_NATIVE_CIRCLE_EXTRUDE_JOIN_STATES_ONLY",
+    "seedFaceMapSHA256": "3cafa25590436107bdce89e167789dfab58545056198671cdda78bdfa0055437",
+    "mapSourcePins": 10,
+    "tempManifestSources": 8,
+    "refusal": {
+      "name": "CadPartError",
+      "code": "PARAMETER",
+      "feature": "n3",
+      "message": "n3: height must not be zero"
+    },
+    "states": [
+      {
+        "label": "joined-height5",
+        "height": 5,
+        "documentSHA256": "75bffce2bb22c58cd0b2c9f8a070f380fa22db3bf9201c0fde1bcccc5848fdde",
+        "status": "PASS_ONE_CASE_REQUESTED_GEOMETRY_ONLY",
+        "expected": {
+          "sourceHeightExact": "10241/1024",
+          "totalHeightExact": "15361/1024",
+          "piCoefficientExact": "138249/1024",
+          "volume": 424.142619888804,
+          "centroid": [
+            0,
+            0,
+            7.50048828125
+          ],
+          "bounds": {
+            "min": [
+              -3,
+              -3,
+              0
+            ],
+            "max": [
+              3,
+              3,
+              15.0009765625
+            ]
+          },
+          "nativeBodies": 1,
+          "closedShells": 1
+        },
+        "observed": {
+          "bodyCount": 1,
+          "shellCount": 1,
+          "generatedPlane": 10.0009765625,
+          "generatedCircle": [
+            {
+              "kind": "arc",
+              "start": [
+                3,
+                0
+              ],
+              "center": [
+                0,
+                0
+              ],
+              "direction": "ccw"
+            }
+          ],
+          "horizontalCapLevels": [
+            0,
+            15.0009765625
+          ],
+          "components": [
+            {
+              "bodyIds": [
+                "n4_b0"
+              ],
+              "bounds": {
+                "min": [
+                  -3,
+                  -3,
+                  0
+                ],
+                "max": [
+                  3,
+                  3,
+                  15.0009765625
+                ]
+              },
+              "center": [
+                0,
+                0
+              ],
+              "radius": 3,
+              "axialInterval": [
+                0,
+                15.0009765625
+              ],
+              "independentPiVolume": 424.142619888804,
+              "independentCentroid": [
+                0,
+                0,
+                7.50048828125
+              ],
+              "capCoverage": [
+                {
+                  "level": 0,
+                  "quarterSpans": 4,
+                  "signedQuarterTurns": -4
+                },
+                {
+                  "level": 15.0009765625,
+                  "quarterSpans": 4,
+                  "signedQuarterTurns": 4
+                }
+              ],
+              "radialDistanceBound": 2.5121479338940395e-15,
+              "pcurveDistanceBound": 5.974795500617759e-16,
+              "nativeCounts": {
+                "vertices": 4,
+                "edges": 6,
+                "faces": 4,
+                "shells": 1
+              }
+            }
+          ],
+          "positiveAxialGaps": [],
+          "deltas": {
+            "mass": {
+              "volume": 5.684341886080802e-14,
+              "centroid": [
+                2.5130308594279636e-16,
+                1.2391530920357018e-16,
+                0
+              ]
+            },
+            "brepMass": {
+              "volume": 0,
+              "centroid": [
+                1.5352048424498413e-16,
+                1.1312740217550907e-16,
+                8.881784197001252e-16
+              ]
+            }
+          }
+        },
+        "representationConsistency": {
+          "consistent": true,
+          "issues": [],
+          "independentObservedComponentAggregate": {
+            "volume": 424.142619888804,
+            "centroid": [
+              0,
+              0,
+              7.500488281249999
+            ]
+          },
+          "maximumRadialDistanceBound": 2.5121479338940395e-15,
+          "maximumPcurveDistanceBound": 5.974795500617759e-16
+        },
+        "limits": {
+          "volumeRelative": 1e-09,
+          "centroidBoundsCarrierCurvePcurveAbsolute": 1e-09
+        }
+      },
+      {
+        "label": "tool-height8",
+        "height": 8,
+        "documentSHA256": "57734e264ac2b0e826d5c3ca4f6b2fde212fa700fbd1699d853f851fd9b28ad6",
+        "status": "PASS_ONE_CASE_REQUESTED_GEOMETRY_ONLY",
+        "expected": {
+          "sourceHeightExact": "10241/1024",
+          "totalHeightExact": "18433/1024",
+          "piCoefficientExact": "165897/1024",
+          "volume": 508.9656215357285,
+          "centroid": [
+            0,
+            0,
+            9.00048828125
+          ],
+          "bounds": {
+            "min": [
+              -3,
+              -3,
+              0
+            ],
+            "max": [
+              3,
+              3,
+              18.0009765625
+            ]
+          },
+          "nativeBodies": 1,
+          "closedShells": 1
+        },
+        "observed": {
+          "bodyCount": 1,
+          "shellCount": 1,
+          "generatedPlane": 10.0009765625,
+          "generatedCircle": [
+            {
+              "kind": "arc",
+              "start": [
+                3,
+                0
+              ],
+              "center": [
+                0,
+                0
+              ],
+              "direction": "ccw"
+            }
+          ],
+          "horizontalCapLevels": [
+            0,
+            18.0009765625
+          ],
+          "components": [
+            {
+              "bodyIds": [
+                "n4_b0"
+              ],
+              "bounds": {
+                "min": [
+                  -3,
+                  -3,
+                  0
+                ],
+                "max": [
+                  3,
+                  3,
+                  18.0009765625
+                ]
+              },
+              "center": [
+                0,
+                0
+              ],
+              "radius": 3,
+              "axialInterval": [
+                0,
+                18.0009765625
+              ],
+              "independentPiVolume": 508.9656215357285,
+              "independentCentroid": [
+                0,
+                0,
+                9.00048828125
+              ],
+              "capCoverage": [
+                {
+                  "level": 0,
+                  "quarterSpans": 4,
+                  "signedQuarterTurns": -4
+                },
+                {
+                  "level": 18.0009765625,
+                  "quarterSpans": 4,
+                  "signedQuarterTurns": 4
+                }
+              ],
+              "radialDistanceBound": 2.5121479338940395e-15,
+              "pcurveDistanceBound": 5.974795500617759e-16,
+              "nativeCounts": {
+                "vertices": 4,
+                "edges": 6,
+                "faces": 4,
+                "shells": 1
+              }
+            }
+          ],
+          "positiveAxialGaps": [],
+          "deltas": {
+            "mass": {
+              "volume": 0,
+              "centroid": [
+                2.5130308594279636e-16,
+                1.2391530920357018e-16,
+                0
+              ]
+            },
+            "brepMass": {
+              "volume": 4.547473508864641e-13,
+              "centroid": [
+                8.921648100741392e-17,
+                1.0876661118926505e-16,
+                1.7763568394002505e-15
+              ]
+            }
+          }
+        },
+        "representationConsistency": {
+          "consistent": true,
+          "issues": [],
+          "independentObservedComponentAggregate": {
+            "volume": 508.9656215357285,
+            "centroid": [
+              0,
+              0,
+              9.00048828125
+            ]
+          },
+          "maximumRadialDistanceBound": 2.5121479338940395e-15,
+          "maximumPcurveDistanceBound": 5.974795500617759e-16
+        },
+        "limits": {
+          "volumeRelative": 1e-09,
+          "centroidBoundsCarrierCurvePcurveAbsolute": 1e-09
+        }
+      },
+      {
+        "label": "postopen-height12",
+        "height": 12,
+        "documentSHA256": "7b714d45fa774ffa7294e78c96ddd4fc2ab5e9a8c5dd68663c1285e20f3c3d03",
+        "status": "PASS_ONE_CASE_REQUESTED_GEOMETRY_ONLY",
+        "expected": {
+          "sourceHeightExact": "10241/1024",
+          "totalHeightExact": "22529/1024",
+          "piCoefficientExact": "202761/1024",
+          "volume": 622.062957064961,
+          "centroid": [
+            0,
+            0,
+            11.00048828125
+          ],
+          "bounds": {
+            "min": [
+              -3,
+              -3,
+              0
+            ],
+            "max": [
+              3,
+              3,
+              22.0009765625
+            ]
+          },
+          "nativeBodies": 1,
+          "closedShells": 1
+        },
+        "observed": {
+          "bodyCount": 1,
+          "shellCount": 1,
+          "generatedPlane": 10.0009765625,
+          "generatedCircle": [
+            {
+              "kind": "arc",
+              "start": [
+                3,
+                0
+              ],
+              "center": [
+                0,
+                0
+              ],
+              "direction": "ccw"
+            }
+          ],
+          "horizontalCapLevels": [
+            0,
+            22.0009765625
+          ],
+          "components": [
+            {
+              "bodyIds": [
+                "n4_b0"
+              ],
+              "bounds": {
+                "min": [
+                  -3,
+                  -3,
+                  0
+                ],
+                "max": [
+                  3,
+                  3,
+                  22.0009765625
+                ]
+              },
+              "center": [
+                0,
+                0
+              ],
+              "radius": 3,
+              "axialInterval": [
+                0,
+                22.0009765625
+              ],
+              "independentPiVolume": 622.062957064961,
+              "independentCentroid": [
+                0,
+                0,
+                11.00048828125
+              ],
+              "capCoverage": [
+                {
+                  "level": 0,
+                  "quarterSpans": 4,
+                  "signedQuarterTurns": -4
+                },
+                {
+                  "level": 22.0009765625,
+                  "quarterSpans": 4,
+                  "signedQuarterTurns": 4
+                }
+              ],
+              "radialDistanceBound": 2.5121479338940395e-15,
+              "pcurveDistanceBound": 5.974795500617759e-16,
+              "nativeCounts": {
+                "vertices": 4,
+                "edges": 6,
+                "faces": 4,
+                "shells": 1
+              }
+            }
+          ],
+          "positiveAxialGaps": [],
+          "deltas": {
+            "mass": {
+              "volume": 1.1368683772161603e-13,
+              "centroid": [
+                2.5130308594279636e-16,
+                1.2391530920357015e-16,
+                0
+              ]
+            },
+            "brepMass": {
+              "volume": 0,
+              "centroid": [
+                2.242084436703896e-16,
+                2.7547433711932144e-16,
+                0
+              ]
+            }
+          }
+        },
+        "representationConsistency": {
+          "consistent": true,
+          "issues": [],
+          "independentObservedComponentAggregate": {
+            "volume": 622.062957064961,
+            "centroid": [
+              0,
+              0,
+              11.00048828125
+            ]
+          },
+          "maximumRadialDistanceBound": 2.5121479338940395e-15,
+          "maximumPcurveDistanceBound": 5.974795500617759e-16
+        },
+        "limits": {
+          "volumeRelative": 1e-09,
+          "centroidBoundsCarrierCurvePcurveAbsolute": 1e-09
+        }
+      }
+    ],
+    "rootReview": {
+      "status": "PASS",
+      "sourcePinsEqual": 747,
+      "ownPIDAbsent": 76496,
+      "gate": "holder: none\nslots: 0 of 3\nload: { 7.24 10.00 12.88 }\n",
+      "mapSHA256": "3cafa25590436107bdce89e167789dfab58545056198671cdda78bdfa0055437",
+      "mapSourcePins": 10,
+      "generatedSketch": {
+        "kind": "sketch",
+        "profile": "loop",
+        "segments": [
+          {
+            "kind": "arc",
+            "start": [
+              3,
+              0
+            ],
+            "center": [
+              0,
+              0
+            ],
+            "direction": "ccw"
+          }
+        ],
+        "plane": {
+          "origin": [
+            0,
+            0,
+            10.0009765625
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ]
+        },
+        "on": {
+          "node": 1,
+          "side": "solid"
+        },
+        "id": "n2"
+      }
+    },
+    "review": "HIGH_ACCEPT_REPORTED_BY_ROOT"
+  },
+  "fixedDesktopAttempt01": {
+    "classification": "EARLY_HARNESS_ASSERTION_STOP_BEFORE_ANY_NATIVE_ORACLE_BINDING",
+    "reason": "Exact equality rejected Chrome-derived arc center/startY -2.220446049250313e-16 against Node zeros",
+    "productGeometryVerdict": "NOT_ESTABLISHED_BY_THIS_ATTEMPT",
+    "lifecycle": "NOT_QUALIFIED",
+    "status": "FAIL",
+    "receiptSHA256": "e0db151bde64dc44d569d2711483076fd386d2276dea1637aa74223141e7c3a8",
+    "failure": "AssertionError [ERR_ASSERTION]: whole accepted source/IDs/refs/output exact\n+ actual - expected\n... Skipped lines\n\n  {\n    format: 'barocss-cad-model',\n    nextId: 5,\n    nodes: [\n      {\n...\n            center: [\n+             -2.220446049250313e-16,\n+             -2.220446049250313e-16\n-             0,\n-             0\n            ],\n            direction: 'ccw',\n            kind: 'arc',\n            start: [\n              3,\n+             -2.220446049250313e-16\n-             0\n            ]\n          }\n        ]\n      },\n      {\n\n    at qualify (file:///private/tmp/barocss-d476-fixed-driver01/driver.mjs:45:10)\n    at async file:///private/tmp/barocss-d476-fixed-driver01/driver.mjs:63:14\n    at async f.run (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/flow-helper.mjs:264:24)\n    at async file:///private/tmp/barocss-d476-fixed-driver01/driver.mjs:59:1",
+    "sourceFrozenCleanupCurrentEqual": [
+      2394,
+      2395
+    ],
+    "missingNormalAfterFiles": [
+      "/tmp/barocss-d476-root/fixed-actual-wrapper01/pins-after.json",
+      "/tmp/barocss-d476-fixed-workflow-run01/source-after.json"
+    ],
+    "ownPIDAbsent": 97318,
+    "gate": "holder: none\nslots: 0 of 3\nload: { 12.16 10.33 11.83 }\n",
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "states": 9,
+    "errors": {
+      "errors": [],
+      "consoleErrors": [],
+      "downloads": [],
+      "changes": []
+    }
+  },
+  "savedActualInspection": {
+    "rawSHA256": "c5bb001e5ead4216cd026114ffa4700320c24c82661a95402209eb5f7375e81b",
+    "bodyCount": 1,
+    "nativeCounts": {
+      "vertices": 4,
+      "edges": 6,
+      "faces": 4,
+      "shells": 1,
+      "loops": 4,
+      "coedges": 12
+    },
+    "check": {
+      "valid": true,
+      "issues": [],
+      "counts": {
+        "bodies": 1,
+        "shells": 1,
+        "faces": 4,
+        "loops": 4,
+        "coedges": 12,
+        "edges": 6,
+        "vertices": 4
+      },
+      "topology": [
+        {
+          "body": "n4_b0",
+          "vertices": 4,
+          "edges": 6,
+          "faces": 4,
+          "loops": 4,
+          "shells": 1,
+          "genus": 0
+        }
+      ],
+      "maximumVertexGap": 0,
+      "maximumPcurveGap": 6.280369834735101e-16,
+      "maximumEdgeSurfaceGap": 0
+    },
+    "bounds": {
+      "min": [
+        -3,
+        -3.0000000000000004,
+        0
+      ],
+      "max": [
+        3,
+        3.0000000000000004,
+        15.0009765625
+      ]
+    },
+    "mass": {
+      "volume": 424.14261988880406,
+      "mass": 0.4241426198888041,
+      "centroid": [
+        2.5130308594279636e-16,
+        1.2391530920357018e-16,
+        7.50048828125
+      ],
+      "method": "closed-form",
+      "inertia": [
+        [
+          8.9080305558158,
+          -4.4823835839054035e-17,
+          0
+        ],
+        [
+          -4.4823835839054035e-17,
+          8.908030555815799,
+          5.048709793414476e-32
+        ],
+        [
+          0,
+          5.048709793414476e-32,
+          1.908641789499617
+        ]
+      ]
+    },
+    "brepMass": {
+      "volume": 424.142619888804,
+      "mass": 0.42414261988880403,
+      "centroid": [
+        -1.5352048424498413e-16,
+        1.1312740217550907e-16,
+        7.500488281249999
+      ],
+      "method": "quadrature",
+      "inertia": [
+        [
+          8.908030555815772,
+          4.773351852671581e-17,
+          -6.661338147750838e-18
+        ],
+        [
+          4.773351852671581e-17,
+          8.908030555815772,
+          -2.5909481918406507e-17
+        ],
+        [
+          -6.661338147750838e-18,
+          -2.5909481918406507e-17,
+          1.9086417894995429
+        ]
+      ]
+    },
+    "sourcePinsEqual": 747,
+    "ownPIDAbsent": 19047,
+    "gate": "holder: none\nslots: 0 of 3\nload: { 8.85 8.95 10.77 }\n",
+    "scope": "Saved accepted actual document; topology/mass evidence only, no lifecycle promotion",
+    "curveAudit": "HIGH_ACCEPT_REPORTED_BY_ROOT_WITH_ORIGINAL_1E-9_BUDGET",
+    "revisedOracle": {
+      "status": "PASS_ONE_CASE_REQUESTED_GEOMETRY_ONLY",
+      "review": {
+        "status": "PASS_ONE_CASE_REQUESTED_GEOMETRY_ONLY",
+        "receiptSHA256": "fc30286238b1d7401d574aa92af4e2f93b2fe224e50b89f700c118e61f2e91f3",
+        "captureReadiness": {
+          "status": "PASS",
+          "issues": []
+        },
+        "accuracy": {
+          "status": "PASS",
+          "issues": []
+        },
+        "observed": {
+          "bodyCount": 1,
+          "shellCount": 1,
+          "generatedPlane": 10.0009765625,
+          "deltas": {
+            "mass": {
+              "volume": 5.684341886080802e-14,
+              "centroid": [
+                2.5130308594279636e-16,
+                1.2391530920357018e-16,
+                0
+              ]
+            },
+            "brepMass": {
+              "volume": 0,
+              "centroid": [
+                1.5352048424498413e-16,
+                1.1312740217550907e-16,
+                8.881784197001252e-16
+              ]
+            }
+          }
+        },
+        "representation": {
+          "consistent": true,
+          "issues": [],
+          "independentObservedComponentAggregate": {
+            "volume": 424.142619888804,
+            "centroid": [
+              0,
+              0,
+              7.500488281249999
+            ]
+          },
+          "maximumRadialDistanceBound": 2.5121479338940395e-15,
+          "maximumPcurveDistanceBound": 5.974795500617759e-16
+        },
+        "sourcePinsEqual": 759,
+        "ownPIDAbsent": 97271,
+        "gate": "holder: none\nslots: 0 of 3\nload: { 12.10 11.05 11.23 }\n"
+      },
+      "manifestSHA256": "5e80d53a06be1fafb3692b4d02c6fc7c59b730954e009d61b2638c21f03de4c9",
+      "oracleSHA256": "40fd31e9e925ea4ceeb87ab457f6a79a6b91542469ab87375caddc886fbfee32",
+      "scope": "One replay on saved actual raw; no repeated passed three-state native baseline"
+    }
+  },
+  "fixedDesktopAttempt02": {
+    "status": "PASS",
+    "receipt": "/tmp/barocss-d476-fixed-workflow-run02/receipt.json",
+    "receiptSHA256": "f10d9ca99e8049f14535622076e81983991cf433cae810f0f85d3bc79f908858",
+    "configSHA256": "fa7d620012da1a1fca1920a16515aa55fc1606d5ad223c3c7c14fdca9de3a7b7",
+    "groupsPassed": 7,
+    "groupsTotal": 7,
+    "nativeBindings": 7,
+    "freshCaptures": 3,
+    "exactActualDocumentReuses": 4,
+    "freshPythonWorkerBindings": 7,
+    "coverage": {
+      "realCapDefaultJoin5": "PASS",
+      "generatedToolDistance8": "PASS",
+      "tool0RefusalRetention": "PASS",
+      "exactUndo5": "PASS",
+      "exactRedo8": "PASS",
+      "ownProjectRoundtrip8": "PASS",
+      "postOpenToolDistance12": "PASS",
+      "publicSketchConstruction": "NOT_CLAIMED_SOURCE_AUTHORED_SEED",
+      "seedPhysicalBaseline": "NOT_REPLAYED_MAP_ANTECEDENT_ONLY",
+      "offsetFaceAndLiveBaseFollowing": "NOT_CLAIMED",
+      "browserRestartPersistence": "NOT_RUN",
+      "exports": "NOT_RUN"
+    },
+    "acceptedActualCreatedBaselineSHA256": "cfa35e37ed3fbb70f1a7740b1942c13d93629626261771914ab77babe67c0336",
+    "sourceCounts": {
+      "wrapper": 2384,
+      "helper": 2385
+    },
+    "rootReview": {
+      "status": "PASS_BOUNDED_DESKTOP_CIRCLE_LIFECYCLE",
+      "receiptSHA256": "f10d9ca99e8049f14535622076e81983991cf433cae810f0f85d3bc79f908858",
+      "rootViewed": [
+        "01-real-cap-selection-before-assert",
+        "01-ExtrudeJoin5-public-preview",
+        "01-real-cap-default-Join5-accepted",
+        "03-tool-Distance0-refused",
+        "04-FIRSTUndo-tool5-accepted",
+        "06-project-reopened-Join-tool8-accepted",
+        "07-postOpen-tool12-accepted"
+      ],
+      "groups": 7,
+      "bindings": 7,
+      "freshCaptures": 3,
+      "exactDocReuses": 4,
+      "freshPythonWorkerBindings": 7,
+      "states": 24,
+      "sourceBeforeAfterCleanupCurrentEqual": [
+        2384,
+        2385
+      ],
+      "ownPIDAbsent": 2003,
+      "namespace": "D476-fixed02-face-join-run02 REMOVED_AND_ABSENT",
+      "contextBrowserServer": "CLOSED",
+      "gate": "FREE",
+      "endLoad": 7.28,
+      "pageConsoleDownloadsChanges": 0,
+      "maxNativeVolumeAbsoluteError": 4.547473508864641e-13,
+      "maxNativeCentroidAbsoluteErrorMM": 1.7763568394002505e-15,
+      "selectedWorkerVolumeCentroidError": 0,
+      "fullRadialBoundMM": 2.5121479338940395e-15,
+      "fullPcurveLiftBoundMM": 5.974795500617759e-16,
+      "visualBoundary": "Selected cap and accepted Frame all cylinder visible; initial preview top cropped. No full preview-fit claim.",
+      "mobile": "NOT_RUN_OWNER_RULE",
+      "originalProductFAILAndHarnessStop": "PRESERVED_IMMUTABLE",
+      "productAndPhysicalBudgetsUnchangedAfterChecks": true
+    },
+    "verification": {
+      "status": "PASS",
+      "receiptSHA256": "f10d9ca99e8049f14535622076e81983991cf433cae810f0f85d3bc79f908858",
+      "coverage": {
+        "realCapDefaultJoin5": "PASS",
+        "generatedToolDistance8": "PASS",
+        "tool0RefusalRetention": "PASS",
+        "exactUndo5": "PASS",
+        "exactRedo8": "PASS",
+        "ownProjectRoundtrip8": "PASS",
+        "postOpenToolDistance12": "PASS",
+        "publicSketchConstruction": "NOT_CLAIMED_SOURCE_AUTHORED_SEED",
+        "seedPhysicalBaseline": "NOT_REPLAYED_MAP_ANTECEDENT_ONLY",
+        "offsetFaceAndLiveBaseFollowing": "NOT_CLAIMED",
+        "browserRestartPersistence": "NOT_RUN",
+        "exports": "NOT_RUN"
+      },
+      "equalPins": [
+        2384,
+        2385
+      ],
+      "ownPIDAbsent": 2003,
+      "gate": "holder: none\nslots: 0 of 3\nload: { 7.28 8.95 10.25 }\n",
+      "cleanup": [
+        {
+          "ownedProject": "D476-fixed02-face-join-run02",
+          "namespace": "REMOVED_AND_ABSENT"
+        },
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "states": 24,
+      "stateLabels": [
+        "00-source-cylinder-Open-no-native-baseline",
+        "01-before-real-cap-pick",
+        "01-real-cap-selection-before-assert",
+        "01-default-Join-before-distance",
+        "01-ExtrudeJoin5-public-preview",
+        "01-real-cap-default-Join5-fit",
+        "01-real-cap-default-Join5-accepted",
+        "02-edit-tool-Distance8",
+        "02-generated-tool-Distance8-fit",
+        "02-generated-tool-Distance8-accepted",
+        "03-tool-Distance0-refused",
+        "03-tool0-refusal-retained8-fit",
+        "03-tool0-refusal-retained8-accepted",
+        "04-FIRSTUndo-tool5-fit",
+        "04-FIRSTUndo-tool5-accepted",
+        "05-Redo-tool8-fit",
+        "05-Redo-tool8-accepted",
+        "06-Join-tool8-saved",
+        "06-own-project-open-before-retention",
+        "06-project-reopened-Join-tool8-fit",
+        "06-project-reopened-Join-tool8-accepted",
+        "07-postOpen-tool-Distance12",
+        "07-postOpen-tool12-fit",
+        "07-postOpen-tool12-accepted"
+      ],
+      "bindings": 7,
+      "captures": 3,
+      "freshOracles": 7,
+      "maxNativeVolumeAbsoluteError": 4.547473508864641e-13,
+      "maxNativeCentroidAbsoluteErrorMM": 1.7763568394002505e-15,
+      "maxWorkerVolumeRelativeError": 0,
+      "maxWorkerCentroidAbsoluteErrorMM": 0,
+      "maxFullRadialBoundMM": 2.5121479338940395e-15,
+      "maxFullPcurveLiftBoundMM": 5.974795500617759e-16
+    },
+    "normalAfterFiles": "PRESENT_FINAL_PASS",
+    "review": "ACCEPT_SEVEN_SELECTED_DESKTOP_NATIVE_CIRCLE_BINDINGS",
+    "sourceAndPhysicalBudgetsAfterChecks": "UNCHANGED",
+    "reviewModel": "GPT-6.1 Sol High",
+    "reviewBoundary": "Seven selected native/oracle/Worker bindings; full continuous radial/lift bounds and exact actual-document reuse audited; no whole geometry/lifecycle generality",
+    "actualDerivedBaselineSHA256": "cfa35e37ed3fbb70f1a7740b1942c13d93629626261771914ab77babe67c0336",
+    "continuousFullPcurveLiftBoundMM": 5.974795500617759e-16,
+    "nativeNumericalNinePointPcurveGapMM": 3.552713678800501e-15,
+    "metricBoundary": "Continuous full lift bound and numerical nine-point gap are different metrics; both below original 1e-9"
+  },
+  "physicalContract": {
+    "authority": "All native B-rep bodies plus independent analytic pi-cylinder reference; no product imports",
+    "volume": "9*pi*(10241/1024+h)",
+    "centroid": "[0,0,(10241/1024+h)/2]",
+    "bounds": "[-3,-3,0]..[3,3,10241/1024+h]",
+    "volumeRelativeTolerance": 1e-09,
+    "centroidBoundsCarrierCurvePcurveAbsoluteTolerance": 1e-09,
+    "observedTopology": {
+      "bodies": 1,
+      "shells": 1,
+      "closed": true,
+      "genus": 0,
+      "vertices": 4,
+      "edges": 6,
+      "faces": 4,
+      "loops": 4,
+      "coedges": 12
+    },
+    "countsBoundary": "This case only"
+  },
+  "environment": {
+    "node": "22.19.0",
+    "runtime": "Root gate-managed runs only"
+  },
+  "mobile": "NOT_RUN_OWNER_RULE",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercentFrozen": 43,
+  "holds": "UNCHANGED",
+  "issues": {
+    "534": "OPEN_PART06_PARTIAL_NO_CHECKLIST_PROMOTION"
+  },
+  "retained": "D475 polygon height, D474 integer lifecycle and D342-D344 Offset proofs",
+  "next": "D477 selected C3 audit/measurement: existing PART DRAWING dimension loss/recovery after public Hole Suppress/Unsuppress. Fixture and group contract pending. Inspect DimensionsList lost + DIMENSION_LOST and SVG mark removal while authored definition remains; recover same ID/ref via Unsuppress/history and own OPFS lost-state Open then restore. No defect reproduced or product change selected. Delete intentionally removes a dimension and is separate. Do not replay D454 always-resolved revisions, D455 section/detail, D459 assembly or D399 signed-band recovery; no new annotation/standards/export/download.",
+  "notClaimed": "Whole C1/C2 completion, whole geometry readiness, ellipse/general circle or cap variants, XY off-grid, side/-Z caps, live base following, inertia, new API/schema/UI, export, production build or full kernel",
+  "oracleProtocol": {
+    "firstCreation": "Authored source/frame/DAG exact; derived start/center vectors under existing 1e-9 budget",
+    "laterReuse": "Exact accepted actual whole document including derived coordinates; no snapping",
+    "continuousCurveBounds": "Independent full radial and pcurve-lift bounds; numerical F64 pcurve samples are separate"
+  },
+  "closeout": {
+    "ownerDecision": "Current known reproduced C1/C2 defect list FIRST_PASS_CLOSEOUT through D476 after this bounded qualification",
+    "notClaimed": "Whole C1/C2 or feature-family completion",
+    "deferred": "Other cap variants, off-grid XY and general breadth; no automatic variant hunting"
+  },
+  "reviewModels": {
+    "implementationTests": "GPT-6.1 Sol Medium",
+    "difficultGeometryAudit": "GPT-6.1 Sol High",
+    "generalSourceReview": "ACCEPT_REPORTED_BY_ROOT",
+    "nativePreflightReview": "HIGH_ACCEPT",
+    "savedActualCurveReview": "HIGH_ACCEPT",
+    "finalActualReview": "ACCEPT_SEVEN_SELECTED_DESKTOP_NATIVE_CIRCLE_BINDINGS"
+  }
+}

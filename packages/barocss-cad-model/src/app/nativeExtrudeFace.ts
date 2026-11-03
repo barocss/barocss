@@ -63,17 +63,23 @@ function currentUnsupportedProfile(ctx: Ctx): boolean {
   return faces === 1 && finiteGeometry(brep) && checkBrep(brep, { strict: true }).valid;
 }
 
-/** Build-time correction for an owned native +Z polygon cap. Other profiles keep the existing route. */
+/** Build-time correction for an owned native +Z polygon or circular cap. Other profiles keep the existing route. */
 export function nativeExtrudeFace(ctx: Ctx, fallback: SketchNode): SketchNode {
   const selection = ctx.selection;
   if (selection.faces.length !== 1 || selection.edges.length || selection.bodies.length || selection.sketches?.length || selection.vertices?.length || ctx.direct?.length) return fallback;
   const picked = selection.faces[0], body = ctx.bodies[picked.body], face = body?.mesh.faces[picked.face];
   if (!body?.ref || !face?.id || face.kind !== 'plane' || face.facet || !face.name || face.name.includes('+') || face.normal[0] !== 0 || face.normal[1] !== 0 || face.normal[2] !== 1) return fallback;
   if (fallback.profile !== 'loop' || fallback.holes?.length) return fallback;
-  for (const segment of fallback.segments) if (segment.kind !== 'line') return fallback;
+  const arc = fallback.segments.length === 1 && fallback.segments[0].kind === 'arc' ? fallback.segments[0] : null;
+  if (arc) {
+    if (arc.direction !== 'ccw' || arc.start.length !== 2 || arc.center.length !== 2) return fallback;
+    for (const point of [arc.start, arc.center]) for (const value of point) if (typeof value !== 'number' || !Number.isFinite(value)) return fallback;
+    const radius = Math.hypot(Number(arc.start[0]) - Number(arc.center[0]), Number(arc.start[1]) - Number(arc.center[1]));
+    if (!(radius > 0) || !Number.isFinite(radius)) return fallback;
+  } else for (const segment of fallback.segments) if (segment.kind !== 'line') return fallback;
   try {
     const native = resolveNativeOffsetFace(ctx);
-    if (native.axis !== 2 || native.sign !== 1 || native.kind !== 'polygon') return fallback;
+    if (native.axis !== 2 || native.sign !== 1 || native.kind !== (arc ? 'circle' : 'polygon')) return fallback;
     return structuredClone(native.sketch);
   } catch (error) {
     // Unsupported current geometry keeps the generic face profile. Stale identity must still refuse.
