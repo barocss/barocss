@@ -1,0 +1,277 @@
+{
+  "protocol": "p4-position-witness-saved-corpus-v1",
+  "status": "HASH_DATA_ONLY_NO_NUMERICAL_RUN",
+  "authorities": {
+    "examples/physics-stack-next-2276/NEXT-DEPENDENCY.md": {
+      "bytes": 7253,
+      "sha256": "329692f7ae911c0ccb22053eb1f5772484955cc794363bf78ae57b6ad32dddbf"
+    },
+    "examples/physics-stack-next-2276/CONTRACT-DRAFT.md": {
+      "bytes": 7441,
+      "sha256": "ca07cd2802e816f6ddb43de9aca22570b191aafd4c52706a5f0e47cc1684d856"
+    },
+    "examples/physics-p4-sat-2276/corpus.json": {
+      "bytes": 1243,
+      "sha256": "45c88bd51eae941cd039174f1e3f79319fb1e9c4bc99c86b8ba26d677102edb6"
+    },
+    "examples/physics-p4-position-v2-2276/EVIDENCE-ARCHIVE.json": {
+      "bytes": 7161,
+      "sha256": "a5b05b2211df7bad8b3e6452d80a57d629429cf8d570cdce5e57deb53810192e"
+    },
+    "examples/physics-p4-position-v2-2276/FREEZE-01.json": {
+      "bytes": 1134,
+      "sha256": "c5f56f49179a84cd948c8634a577abd1bf95d782f2131525f05af55e8b6f1b30"
+    },
+    "examples/physics-p4-position-v2-2276/dependencies.json": {
+      "bytes": 5252,
+      "sha256": "0e3138295fb65b45c4684e786d97a1c874d1a9bd813e62b8f775418fb4f3a4e0"
+    },
+    "examples/physics-p4-position-v2-2276/RESULTS.json": {
+      "bytes": 3673,
+      "sha256": "87ea0b41e95c4a1e14a967f75b34f6af28dc7b51e017baf2d119e3b469e75c5d"
+    },
+    "examples/physics-p4-position-v2-2276/evidence/position-01/summary.json": {
+      "bytes": 8373,
+      "sha256": "97cb25276fac4cdfb7ef6f865b0e8c2a2c0cd6bf2eb4af3f0fc26190fb672ab7"
+    }
+  },
+  "frames": [
+    {
+      "id": "ALIGNED-1",
+      "scene": "ALIGNED",
+      "stepIndex": 1,
+      "request": {
+        "path": "examples/physics-world-p4-2276/evidence/cost-census-01/ALIGNED-1-position-world.stdin.jsonl",
+        "bytes": 27751,
+        "sha256": "724ffd6804f3203a9753a29583e3f0777a4fcb54f70932eb397095092e4e79b4"
+      },
+      "currentOracle": {
+        "path": "examples/physics-world-p4-2276/evidence/cost-census-01/ALIGNED-1-position-world.stdout.raw",
+        "bytes": 52515,
+        "sha256": "a654b24cd6d0008fe56422ef551c2701d2904b6100758dd1a9b1f204ccfb8dcf"
+      },
+      "positionV2Oracle": {
+        "path": "examples/physics-p4-position-v2-2276/evidence/position-01/ALIGNED-1-reply.json",
+        "bytes": 280483,
+        "sha256": "1eecbbaaf3e0f2d9eb42b48d2ffb7e9144218974e2edc461bb2171543f51a9c1"
+      },
+      "observedWitness": {
+        "path": "/result/basisRows",
+        "value": [
+          0,
+          7,
+          8,
+          15,
+          21,
+          26,
+          30,
+          33
+        ],
+        "authority": "UNTRUSTED_OBSERVED_NATIVE_INDICES_NOT_ORACLE_SEED"
+      },
+      "forcePoints": 32,
+      "positionRows": 36,
+      "dynamicDof": 24
+    },
+    {
+      "id": "ALIGNED-16",
+      "scene": "ALIGNED",
+      "stepIndex": 16,
+      "request": {
+        "path": "examples/physics-world-p4-2276/evidence/observable-census-01/ALIGNED-16-position-world.stdin.jsonl",
+        "bytes": 35695,
+        "sha256": "c5014cbd7b6948642ff43cced4cbd0a5d216ac90302f21857f20848c5d8fa2e1"
+      },
+      "currentOracle": {
+        "path": "examples/physics-world-p4-2276/evidence/observable-census-01/ALIGNED-16-position-world.stdout.raw",
+        "bytes": 122825,
+        "sha256": "8d521cedc061fe03b2802809dc1290ad2a4762eb17431d265966c529fa0fd56e"
+      },
+      "positionV2Oracle": {
+        "path": "examples/physics-p4-position-v2-2276/evidence/position-01/ALIGNED-16-reply.json",
+        "bytes": 366543,
+        "sha256": "d510c8d01b076d8399f0176692d6ef5f2f240ec56673ec86bdde482763f1b215"
+      },
+      "observedWitness": {
+        "path": "/result/basisRows",
+        "value": [
+          0,
+          7,
+          8,
+          15,
+          21,
+          26,
+          30,
+          33
+        ],
+        "authority": "UNTRUSTED_OBSERVED_NATIVE_INDICES_NOT_ORACLE_SEED"
+      },
+      "forcePoints": 32,
+      "positionRows": 36,
+      "dynamicDof": 24
+    },
+    {
+      "id": "OFFSET-1",
+      "scene": "OFFSET",
+      "stepIndex": 1,
+      "request": {
+        "path": "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-1-position-world.stdin.jsonl",
+        "bytes": 27832,
+        "sha256": "82380db104fc1650db3bda306d5875809914586a2ebc5f179a317da115c7cdbc"
+      },
+      "currentOracle": {
+        "path": "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-1-position-world.stdout.raw",
+        "bytes": 52607,
+        "sha256": "138bde35877b14a22f08748b192c56cd1b896e6e435e205513c458a54ee10721"
+      },
+      "positionV2Oracle": {
+        "path": "examples/physics-p4-position-v2-2276/evidence/position-01/OFFSET-1-reply.json",
+        "bytes": 280575,
+        "sha256": "acda0577072f838d48beb26cfc23b6df0adcaa194ca5c30a55acfb9e13593fd6"
+      },
+      "observedWitness": {
+        "path": "/result/basisRows",
+        "value": [
+          0,
+          7,
+          8,
+          15,
+          21,
+          26,
+          30,
+          33
+        ],
+        "authority": "UNTRUSTED_OBSERVED_NATIVE_INDICES_NOT_ORACLE_SEED"
+      },
+      "forcePoints": 32,
+      "positionRows": 36,
+      "dynamicDof": 24
+    },
+    {
+      "id": "OFFSET-16",
+      "scene": "OFFSET",
+      "stepIndex": 16,
+      "request": {
+        "path": "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-16-position-world.stdin.jsonl",
+        "bytes": 35351,
+        "sha256": "d63d1287858963e0b5fa2ea065df242ac6d21eeeda4d7e2e4368acca15c1265c"
+      },
+      "currentOracle": {
+        "path": "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-16-position-world.stdout.raw",
+        "bytes": 121814,
+        "sha256": "8228d2c51a073269f8cefe30a7dcbf1218c50343fe296c8c6046cf0d9958f515"
+      },
+      "positionV2Oracle": {
+        "path": "examples/physics-p4-position-v2-2276/evidence/position-01/OFFSET-16-reply.json",
+        "bytes": 365605,
+        "sha256": "3c1c32c6aca481eaae4831a42d308e48c9ba8a104d8987d8e282c9c5d02a90ea"
+      },
+      "observedWitness": {
+        "path": "/result/basisRows",
+        "value": [
+          0,
+          7,
+          8,
+          15,
+          21,
+          26,
+          30,
+          33
+        ],
+        "authority": "UNTRUSTED_OBSERVED_NATIVE_INDICES_NOT_ORACLE_SEED"
+      },
+      "forcePoints": 32,
+      "positionRows": 36,
+      "dynamicDof": 24
+    },
+    {
+      "id": "YAW-1",
+      "scene": "YAW",
+      "stepIndex": 1,
+      "request": {
+        "path": "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-1-position-world.stdin.jsonl",
+        "bytes": 28793,
+        "sha256": "d6885e19204ac9753acdaddbf91d3a152c3105601ecc821d39aec007af6bc525"
+      },
+      "currentOracle": {
+        "path": "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-1-position-world.stdout.raw",
+        "bytes": 54072,
+        "sha256": "d66225749932fba3140e2544e10881477442372826a49dff525b58dc961d9140"
+      },
+      "positionV2Oracle": {
+        "path": "examples/physics-p4-position-v2-2276/evidence/position-01/YAW-1-reply.json",
+        "bytes": 280956,
+        "sha256": "15d86174bfe19760e93f2ed020097fa7020e9aae3cf152c876fda99fe1ed6be1"
+      },
+      "observedWitness": {
+        "path": "/result/basisRows",
+        "value": [
+          0,
+          7,
+          8,
+          15,
+          21,
+          26,
+          30,
+          33
+        ],
+        "authority": "UNTRUSTED_OBSERVED_NATIVE_INDICES_NOT_ORACLE_SEED"
+      },
+      "forcePoints": 32,
+      "positionRows": 36,
+      "dynamicDof": 24
+    },
+    {
+      "id": "YAW-16",
+      "scene": "YAW",
+      "stepIndex": 16,
+      "request": {
+        "path": "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-16-position-world.stdin.jsonl",
+        "bytes": 35594,
+        "sha256": "e1567a963b0a8bc416e7ce027bbcce41710112575d5ce9380dc82d2eb0a150c3"
+      },
+      "currentOracle": {
+        "path": "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-16-position-world.stdout.raw",
+        "bytes": 123188,
+        "sha256": "d31c63158d50c3d1c41e983a0ae70d7f958115f96a76b457a0a36c5ae027b22b"
+      },
+      "positionV2Oracle": {
+        "path": "examples/physics-p4-position-v2-2276/evidence/position-01/YAW-16-reply.json",
+        "bytes": 370515,
+        "sha256": "840a623fa51a2c0594bdbc6d73b02c02a2534fb5cd461068848c49839fbfa89c"
+      },
+      "observedWitness": {
+        "path": "/result/basisRows",
+        "value": [
+          0,
+          7,
+          8,
+          15,
+          21,
+          26,
+          30,
+          33
+        ],
+        "authority": "UNTRUSTED_OBSERVED_NATIVE_INDICES_NOT_ORACLE_SEED"
+      },
+      "forcePoints": 32,
+      "positionRows": 36,
+      "dynamicDof": 24
+    }
+  ],
+  "costBaseline": {
+    "source": "examples/physics-p4-position-v2-2276/evidence/position-01/summary.json",
+    "path": "/frames/*/observerIncludingCompactQpCpuNs",
+    "perFrameCoreCpuNs": [
+      94334000,
+      167038000,
+      95116000,
+      155765000,
+      106162000,
+      154732000
+    ],
+    "sumCoreCpuNs": 773147000,
+    "sameBoundary": "context.evaluate(request): complete compact plus full position check; setup/decode/serialize/output/audit excluded",
+    "newBaselineExecutions": 0
+  }
+}
