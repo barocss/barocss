@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D488: measure existing linked pending revision supersession through public Edit part Finish, exact Undo/Redo, source-file preservation and owned project Open; final saved-data High audit passes](notes/linked-pending-edit-finish-2026-11-04/README.md).
+
 - [D487: measure existing assembly Through cut across explicit linked-source thickness revision; retain selector stop and recover only the postOpen target edit](notes/assembly-cut-linked-revision-2026-11-04/README.md).
 
 - [D486: qualify one retained two-sheet drawing through common issue A/source update/B, Undo/Redo and owned project Open; retain the separately deferred PDF test failure](notes/two-sheet-revision-workflow-2026-11-04/README.md).

@@ -1,0 +1,198 @@
+{
+  "work_id": "D488",
+  "status": "QUALIFIED_SMALL_EXISTING_LINKED_PENDING_EDIT_FINISH_SIX_GROUPS",
+  "tier": "SMALL_EXISTING_C4_WORKFLOW_MEASUREMENT",
+  "rows": [
+    "10",
+    "12",
+    "16"
+  ],
+  "parentHead": "3d4af0330f5ff067f346f8ee6b6db34208a920dd",
+  "productImplementation": false,
+  "input": {
+    "provenance": "/tmp/barocss-d488-input01/provenance.json",
+    "originalReceipt": "/tmp/barocss-d457-workflow-run03/receipt.json",
+    "originalReceiptSHA256": "70ed9455aeab9995778c1126000cd3e5b5d6f12b428067e1e2ce77cc333a8d37",
+    "pending": {
+      "path": "/tmp/barocss-d488-input01/retained-pending-H10.bcad",
+      "bytes": 1591,
+      "sha256": "b8766a68f91cba4d33abb14c272d1da637beed9dd1cdbd1f9ba6dd38780e4fdc",
+      "state": "06-explicit-Check-reoffered-H10"
+    },
+    "source": {
+      "path": "/tmp/barocss-d488-input01/retained-source-H12.bcad",
+      "bytes": 326,
+      "sha256": "2a9a202b5b763fdda9bc32b46528f99b2b323cc2a339879f4cf62963808f340d",
+      "state": "05-source-H12-saved"
+    },
+    "derivedFixture": false,
+    "constructionReplay": false
+  },
+  "checks": {
+    "newStudioEditInPlacePass": 10,
+    "newReceiptSHA256": "9f76cfdde3efd0e57175026c9c90c93b3d388400d519a85032f528e496eb8450",
+    "sourceIdenticalD487RelatedPassReused": 56,
+    "reusedReceiptSHA256": "7cb3ac14ea4ea78cc3282e7ed5d3f7029b3d377a0d8cdaf13dded2493d388f68",
+    "buildAndTypes": "REUSE_D484_AT_IDENTICAL_SOURCE",
+    "fullKernel": "NOT_RUN_NO_PRODUCT_CHANGE",
+    "PDF": "NOT_SELECTED_OWNER_DEFERRED"
+  },
+  "actual": {
+    "status": "PASS",
+    "runtimeFailure": false,
+    "groups": [
+      "retainedPendingH10WithOwnSourceH12",
+      "publicLocalEditH14FinishSupersedesPending",
+      "unlinkedCheckAvailability",
+      "firstUndoRedoExactPendingAndEdited",
+      "ownProjectOpenLocalH14",
+      "externalSourceH12BytesUnchanged"
+    ],
+    "groupsPass": 6,
+    "nativeCaptures": 2,
+    "exactWholeDocReuses": 3,
+    "freshBindings": 5,
+    "configSHA256": "689b89daf14e8480a32ef197b6cdeaebecb71e53fd9f771263a95c75e0d404a1",
+    "checkPlacedPartsCalled": false,
+    "checkPolicy": "ABSENT_AFTER_FINISH_REDO_OPEN_PRESENT_AFTER_UNDO",
+    "finish": "ACCEPTED_A_H10_TO_LOCAL_B_H14_SUPERSEDES_PENDING_B_H12",
+    "sourceMarker": "D457-plate.bcad (edited)",
+    "undo": "EXACT_ORIGINAL_PENDING_H10",
+    "redo": "EXACT_LOCAL_H14"
+  },
+  "sourceIntegrity": {
+    "publicSavedBaselineBytes": 638,
+    "publicSavedBaselineSHA256": "77d6eaf02a108d63532ef3e8961b449d84f2fb4c0c3cd510a0d263c5138dc0f7",
+    "laterUnchangedByteObservations": 6,
+    "compactAndPrettySameDoc": true,
+    "compactAndPrettySameBytes": false
+  },
+  "physical": {
+    "rootNativeOutputs": 0,
+    "eachPlateVolumeH10": 24000,
+    "eachPlateVolumeH14": 33600,
+    "centroidsH10": [
+      [
+        30,
+        20,
+        5
+      ],
+      [
+        30,
+        20,
+        15
+      ]
+    ],
+    "centroidsH14": [
+      [
+        30,
+        20,
+        7
+      ],
+      [
+        30,
+        20,
+        21
+      ]
+    ],
+    "storedAndSolverInst2Z": 14,
+    "retainedMate": "m1:inst1/n1.top->inst2/n1.bottom",
+    "freedom": {
+      "turns": 1,
+      "slides": 2
+    },
+    "fullConstraint": false,
+    "volumeRelative": 1e-09,
+    "absoluteGeometryBudget": 1e-09,
+    "nativeSignatureFloor": 1e-07,
+    "placedWorkerVolumeCentroidCoherence": "NOT_MEASURED",
+    "maximumSavedPhysicalErrors": {
+      "nativeVolumeAbsolute": 0,
+      "nativeCentroidAbsolute": 7.105427357601002e-15,
+      "nativeBoundsAbsolute": 0,
+      "wholePcurveLiftBound": 0,
+      "planeResidualAbsolute": 0,
+      "lineEndpointAbsolute": 0,
+      "planeAreaAbsolute": 0
+    }
+  },
+  "custody": {
+    "wrapperPins": 1856,
+    "helperFrozenPins": 1858,
+    "cleanupCurrentEqual": true,
+    "PID": 81229,
+    "PIDAbsent": true,
+    "namespace": "REMOVED_AND_ABSENT",
+    "contextBrowserServer": "CLOSED",
+    "rootImagesViewed": 7,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0,
+    "fullViewportFit": "NOT_MEASURED_PALETTE_DOCK_CROP",
+    "existingToast": "OBSERVED_ONLY",
+    "inheritedJointsPreview": "OBSERVED_ONLY_NO_MOTION_ACTION"
+  },
+  "highFinal": {
+    "status": "PASS_SAVED_EVIDENCE_HIGH_AUDIT_FINITE_D488_PROFILE",
+    "path": "/tmp/barocss-d488-high-final01/review.json",
+    "sha256": "ae69d797258a04743a2ea695a7b59613742a59cc7aedb47cfc03e92ed762c21f",
+    "savedChecksPass": 318,
+    "failures": 0,
+    "currentSourcePins": 1856,
+    "imageHashesIntact": 7,
+    "SUTReruns": 0,
+    "oracleReruns": 0
+  },
+  "receipts": {
+    "actual": {
+      "path": "/tmp/barocss-d488-workflow-run01/receipt.json",
+      "sha256": "f17c19c4ee1033d47b9bb6b734c068a4f3da0fa652ae327907791e745cb21432"
+    },
+    "rootReview": {
+      "path": "/tmp/barocss-d488-root/actual01-review.json",
+      "sha256": "589709576323d3746888431bdbbd4c31df1d6e5dc6de3685200c10a44f6023a3"
+    },
+    "checks": {
+      "path": "/tmp/barocss-d488-checks01/receipt.json",
+      "sha256": "9f76cfdde3efd0e57175026c9c90c93b3d388400d519a85032f528e496eb8450"
+    }
+  },
+  "models": {
+    "generalPreparation": "GPT-6.1 Sol Medium",
+    "geometryAndFinalAudit": "GPT-6.1 Sol High",
+    "runtimeCustodyImages": "Root"
+  },
+  "limits": [
+    "ONE_EXISTING_TOP_LEVEL_LINKED_PENDING_EDIT_FINISH_PROFILE",
+    "NO_PRODUCT_CHANGE",
+    "NO_NEW_LINK_PRODUCER",
+    "NO_NESTED_EDIT_IN_CONTEXT_REFERENCES_API_SCHEMA_OR_GEOMETRY_ADMISSION",
+    "NO_FULL_CONSTRAINT_MOTION_PHYSICS_EXPORT_OR_STANDARDS_CLAIM",
+    "NO_PLACED_WORKER_V_C_COHERENCE_CLAIM",
+    "NO_FULL_VIEWPORT_FIT_CLAIM",
+    "NO_MOBILE_OR_DOWNLOADS",
+    "NO_RAW_ARTIFACTS_COPIED_TO_REPOSITORY"
+  ],
+  "roadmap": {
+    "issue538": "OPEN_EPIC_UNCHANGED",
+    "core": "NOT_MEASURED",
+    "legacyPercent": 43,
+    "legacyStatus": "FROZEN",
+    "holds": "UNCHANGED",
+    "PDF": "OWNER_DEFERRED_NO_RERUN",
+    "next": "D489_EXACT_RETAINED_D397_INCH_DUAL_SOURCE_H6_TO_H8_REVISION_HISTORY_PROJECT",
+    "nextSelected": true,
+    "nextPDFExportDownloadOrNewAdmission": false,
+    "nextGroups": [
+      "PUBLIC_MM_DUAL_OFF_TO_INCH_DUAL_ON_PRECISION2_CYCLE",
+      "ISSUE_A_H6",
+      "SOURCE_H8_STALE_A",
+      "ISSUE_B",
+      "FIRST_UNDO_REDO",
+      "OWN_PROJECT_OPEN_B"
+    ],
+    "nextSignedToleranceAuthoring": false,
+    "nextReadRetainedInputFirst": true
+  }
+}
