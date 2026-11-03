@@ -1,0 +1,33 @@
+{
+  "status": "PRESERVED_TOOLCHAIN_PRECOMPILER_NO_GO",
+  "firstFailure": {
+    "phase": "strict-runtime-compile",
+    "name": "AssertionError",
+    "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   bytes: 9351,\n+   sha256: '3d1037d9a128440856daec17f4358ebb465b73823858a88a5fe1ce702cc17944'\n-   bytes: 9934834,\n-   sha256: '3e030ee2aa86ad3c33e5e95ae0e53bb03de40e0da35c9b1180a67de4a497cae5'\n  }\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   bytes: 9351,\n+   sha256: '3d1037d9a128440856daec17f4358ebb465b73823858a88a5fe1ce702cc17944'\n-   bytes: 9934834,\n-   sha256: '3e030ee2aa86ad3c33e5e95ae0e53bb03de40e0da35c9b1180a67de4a497cae5'\n  }\n\n    at file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-coupled-contact-2276/build.mjs:23:206"
+  },
+  "buildResultPin": {
+    "bytes": 33059,
+    "sha256": "6061864a94a9c3ef9552bdd0cafac05e053c839b9cde7eda7b578e3858dffff7"
+  },
+  "commandsExecuted": [],
+  "WorldCalls": 0,
+  "candidateCalls": 0,
+  "referenceStatus": "READY_INDEPENDENT_VIRTUAL_IMPULSE_GAUSSIAN_BANK",
+  "guards": {
+    "coupled-static-reference-01": {
+      "status": "PASS",
+      "elapsedMs": 228.216792,
+      "bytes": 3138,
+      "sha256": "248097e2d618e2c9fb8881a2810488c23a5110395351dbfa7091619e972e3fda"
+    },
+    "coupled-static-build-01": {
+      "status": "FAIL",
+      "elapsedMs": 253.696417,
+      "bytes": 3193,
+      "sha256": "dd9c22758f789f7f191d6f76d2964468b2fe7c2e095772513b1926c73da9dbc8"
+    }
+  },
+  "oldAuthorFreeze": "UNCHANGED",
+  "scope": "Investigate existing local tool drift; no new download or gate change"
+}
