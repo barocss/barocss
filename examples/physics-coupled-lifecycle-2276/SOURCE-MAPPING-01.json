@@ -1,0 +1,104 @@
+{
+  "status": "AUTHOR_ONLY_NOT_EXECUTED",
+  "ancestor": "examples/physics-coupled-contact-2276/evidence/build-02",
+  "allowedChangedRuntimeFiles": [
+    "entry.ts",
+    "physics/src/world.ts",
+    "physics/src/private-phase.ts",
+    "physics/src/provider-manifest.generated.ts"
+  ],
+  "onlyAddedRuntimeFile": "physics/src/lifecycle-capture.ts",
+  "unchangedKernel": {
+    "C/candidate.ts": {
+      "bytes": 10841,
+      "sha256": "5ee4eb75ec8baa1036a7a60977ab1d6c39b37e1d96cbe1cc2ea7c67140781db2"
+    },
+    "physics/src/persistent-box-contact.ts": {
+      "bytes": 3550,
+      "sha256": "5632ac32eae8f715c57b9addf9d21f23d2d97152e44e77b76367bad38cc9ae3f"
+    },
+    "physics/src/producer.ts": {
+      "bytes": 5046,
+      "sha256": "3725baed986308a863824a1c8520c9eccce6f0a7b796b3e69df626692e92c160"
+    },
+    "physics/src/replay.ts": {
+      "bytes": 7119,
+      "sha256": "cad01e2cdc0d5ce879e17b1e0998ce83448b1a3b2368c339a9651b227b966742"
+    }
+  },
+  "qualifiedEmittedKernel": {
+    "bytes": 10114,
+    "sha256": "2ef143e687b1982e32bc886a30af3ff3ddd4c2f8dcb2ef2bfe7378de143b9b29"
+  },
+  "copiedObservers": {
+    "physical-observer.py": {
+      "pin": {
+        "bytes": 25945,
+        "sha256": "f2f3116b9549ce6dcf01e8b9a99e9aa94e5a3e9b983758ccf929d370dc28d730"
+      },
+      "bytesIdenticalTo": "examples/physics-coupled-contact-2276/physical-observer.py"
+    },
+    "cone-observer.py": {
+      "pin": {
+        "bytes": 11722,
+        "sha256": "7c5821028a6cd1da2032b124bbba3bf9f32ef9c2443db847fbefa22a304c47e3"
+      },
+      "bytesIdenticalTo": "examples/physics-coupled-contact-2276/cone-observer.py"
+    },
+    "target-observer.py": {
+      "pin": {
+        "bytes": 7493,
+        "sha256": "39dd4e8a2f351e29cee2ff671c7f99fd253821ad420dfdabb4c354dd76bd6936"
+      },
+      "bytesIdenticalTo": "examples/physics-coupled-contact-2276/target-observer.py"
+    },
+    "reference.py": {
+      "pin": {
+        "bytes": 4560,
+        "sha256": "cedbf35fb1821edd3d6c57b2eba2e3817dfefc824fae4cc2214dd50d0a2ec950"
+      },
+      "bytesIdenticalTo": "examples/physics-coupled-contact-2276/reference.py"
+    }
+  },
+  "copiedFaultPrefixObserver": {
+    "pin": {
+      "bytes": 7126,
+      "sha256": "0918ccf9758810c2a48bdbd70ebd6c7aa960e9cfb909351d8be7a19f467774f7"
+    },
+    "bytesIdenticalTo": "examples/physics-coupled-transaction-2276/fault-observer.py"
+  },
+  "immutableFirstFailure": {
+    "summary": {
+      "bytes": 21867,
+      "sha256": "5186688a9e753361f8706f64cda874386beda985169d6fde5b256536a4242401"
+    },
+    "fullPrefix": {
+      "bytes": 419766,
+      "sha256": "c0f1006148dbbf4dc4a849183069b7b92d13e85c72899734e726f2e3813b6132"
+    },
+    "status": "EXECUTED_NO_GO_COUPLED_TRANSACTION",
+    "willNeverBeRetagged": "NO_GO_HISTORICAL"
+  },
+  "captureAuthority": "Actual live world.getState/getModel/phasePrivateSnapshot plus ACTUAL attached owner only, immediately before original dispose cleanup",
+  "captureLimits": {
+    "worlds": 4,
+    "reads": 16,
+    "cells": 8192,
+    "depth": 64,
+    "stringCodeUnits": 4096,
+    "failureMetadataReservedBytes": 4096,
+    "preCloneCopyMultiplier": 4,
+    "sharedDiagnosticBytes": 16711680,
+    "totalEvidenceBytes": 16777216
+  },
+  "newProviderRequired": true,
+  "providerNormalization": "NONE_FRESH_NEW_STATIC_CONTROLS",
+  "authorCalls": {
+    "compiler": 0,
+    "helper": 0,
+    "reference": 0,
+    "observer": 0,
+    "World": 0,
+    "browser": 0
+  }
+}

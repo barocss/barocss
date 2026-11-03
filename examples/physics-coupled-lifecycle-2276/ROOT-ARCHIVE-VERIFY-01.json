@@ -1,0 +1,17 @@
+{
+  "status": "ROOT_FULL_LIFECYCLE_ARCHIVE_READBACK_VERIFIED",
+  "indexPin": {
+    "bytes": 693869,
+    "sha256": "342cb93a30cb307cf435444a155a363d19c9abeb9fd95d1cbea1be98dfa1a706"
+  },
+  "logicalMembers": 2042,
+  "hardlinks": 1261,
+  "originalAuthorInputs": 1428,
+  "uncompressedTarAggregateBytes": 19589120,
+  "individualTarCapBytes": 16777216,
+  "aggregateCapClaim": false,
+  "allInternalManifestsAndMembersAndFrozenDiskInputs": "VERIFIED",
+  "rootReviewSchemaCorrection": "Initial generic checker expected file/recovery-map keys; corrected to documented archive/internalManifest and same-path source membership without changing any archive/gate",
+  "newPhysicsCompilerObserverBrowserCalls": 0,
+  "postArchiveSupplemental": true
+}
