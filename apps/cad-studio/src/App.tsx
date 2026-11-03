@@ -60,6 +60,7 @@ import { EngineClient, type ProposalOverlay } from './engine/client';
 import { beginWork, createWorkOwnership, finishWork, invalidateWork, reserveAcceptedChange, settleWorkReservation, stopOwnedWork, workEditRefusal, type WorkHistory } from './state/workOwnership';
 import { currentDocumentSave } from './state/saveOwnership';
 import type { OpenScope } from './state/openOwnership';
+import { scheduleProjectOpenFit } from './app/projectOpenFit';
 import { type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
 import { placedDoc, type PartInstance } from '@barocss/cad-model/engine/doc';
 import { placementOf } from '@barocss/cad-model/engine/placement';
@@ -454,16 +455,17 @@ export function App() {
       replaceDoc(d, true);
       const accepted = openIntent.current;
       setFileName(path.replace(/\.bcad$/i, '').split('/').pop()!); setDirty(notes.length > 0);
-      setTimeout(() => { if (isOpenCurrent(accepted)) viewport.current?.fit(); }, 300);
       return accepted;
     },
+    onOpenReady: accepted => scheduleProjectOpenFit(accepted, isOpenCurrent, () => viewport.current?.fit()),
     onError: (title, hint) => setToast({ title, hint, detail: '' }),
     canOpen: () => { if (openAccepted(inPlaceNow.current)) return true; setToast({ title: 'A part is being edited', hint: 'Finish or cancel it before opening a project file.', detail: '' }); return false; },
     onLinked: l => {
       if (!openAccepted(inPlaceNow.current)) return;
-      if (l.offered.length) commitParts(l.doc);
+      const accepted = l.offered.length && commitParts(l.doc) ? openIntent.current : undefined;
       setToast({ title: l.offered.length ? `Newer files for ${l.offered.length} placed part${l.offered.length > 1 ? 's' : ''}` : 'Placed parts without their files',
         hint: [l.offered.length ? `${l.offered.join(', ')}: Revision waiting in the part's panel (Accept or Keep).` : '', l.missing.length ? `Not in the project any more: ${l.missing.join(', ')}.` : ''].filter(Boolean).join(' '), detail: '' });
+      return accepted;
     },
   });
   const [versionsOpen, setVersionsOpen] = useState(false);
@@ -1000,9 +1002,10 @@ export function App() {
   /** One undoable change of the instances and their mates together. */
   /** One undoable change of the placed parts and their waiting revisions (shared definitions). */
   const commitParts = useCallback((next: Pick<StudioDoc, 'instances' | 'pendingParts'>) => {
-    if (!canChangeDocument()) return;
+    if (!canChangeDocument()) return false;
     pushUndo();
-    if (!setDoc(withPatterns({ ...doc, instances: next.instances, pendingParts: next.pendingParts }))) return; setDirty(true);
+    if (!setDoc(withPatterns({ ...doc, instances: next.instances, pendingParts: next.pendingParts }))) return false; setDirty(true);
+    return true;
   }, [doc, marker, acceptanceScope]);
   const commitAssembly = useCallback((instances: PartInstance[], mates: Mate[]) => {
     if (!canChangeDocument()) return false;

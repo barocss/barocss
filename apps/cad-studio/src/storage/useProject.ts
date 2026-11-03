@@ -29,7 +29,9 @@ export interface ProjectCallbacks extends OpenIntentBridge {
   onOpened(doc: StudioDoc, path: string, notes: string[]): OpenScope | void;
   onError(title: string, hint: string): void;
   /** Placed parts whose project files differ (offered as waiting revisions), or that the project no longer has. */
-  onLinked?(linked: Linked): void;
+  onLinked?(linked: Linked): OpenScope | void;
+  /** This Open's log, autosave and linked-file work completed under its accepted App scope. */
+  onOpenReady?(scope: OpenScope): void;
   /** Whether an opened file may take the document now (not while a part is edited in place): asked before the project points at it. */
   canOpen?(): boolean;
 }
@@ -84,13 +86,17 @@ export function useProject(cb: ProjectCallbacks) {
       set({ ...EMPTY, store });
       await refresh(store, () => currentOpen(owner)).catch(e => { if (currentOpen(owner)) fail('The project could not be read', e); });
     };
-    const checkLinked = async (doc: StudioDoc, store: ProjectStore, current: () => boolean): Promise<boolean> => {
+    const checkLinked = async (doc: StudioDoc, store: ProjectStore, current: () => boolean, accept?: (scope: OpenScope) => void): Promise<boolean> => {
       if (!doc.instances?.length) return current();
       try {
         const linked = await linkedRevisions(doc, store);
         if (!current()) return false;
         // The callback can commit its own accepted revision; do not classify that synchronous change as stale.
-        if (linked.offered.length || linked.missing.length) call.current.onLinked?.(linked);
+        if (linked.offered.length || linked.missing.length) {
+          const accepted = call.current.onLinked?.(linked);
+          // Only the automatic Open caller accepts its callback's explicit synchronous dispatch scope.
+          if (accepted) accept?.(accepted);
+        }
         return true;
       } catch (e) { if (!current()) return false; fail('The placed parts could not be checked', e); return true; }
     };
@@ -139,7 +145,9 @@ export function useProject(cb: ProjectCallbacks) {
           const a = await readAutosave(store, path);
           if (!current()) return false;
           if (a && 'doc' in a) set({ offered: a.doc });
-          return await checkLinked(r.doc, store, current);
+          if (!(await checkLinked(r.doc, store, current, scope => { owner.scope = scope; })) || !current()) return false;
+          if (owner.scope) call.current.onOpenReady?.(owner.scope);
+          return true;
         } catch (e) { if (!current()) return false; return fail(`Could not open ${path}`, e); }
         finally { reading.current--; }
       },

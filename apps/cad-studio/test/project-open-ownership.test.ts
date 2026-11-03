@@ -88,20 +88,21 @@ const document = (length: number): StudioDoc => ({ ...emptyDoc(), parameters: { 
 const a = document(10), b = document(20), c = document(30);
 const same = (left: StudioDoc, right: StudioDoc) => assert.equal(canonical(left), canonical(right));
 
-interface TestBridge { onOpenIntent(): object; isOpenCurrent(scope: object): boolean; currentOpenScope(): object; accepted?(): object | void; linked?(): void }
+interface TestBridge { onOpenIntent(): object; isOpenCurrent(scope: object): boolean; currentOpenScope(): object; accepted?(): object | void; linked?(): object | void }
 interface OpenControls { bridge(next: TestBridge): void; picker(next: () => Promise<DirHandle>): void; browser(next: () => Promise<DirHandle>): void }
-interface Observation { current: StudioDoc; opened: string[]; errors: string[]; linked: Linked[] }
+interface Observation { current: StudioDoc; opened: string[]; errors: string[]; linked: Linked[]; ready: object[] }
 /** Real hook actions and codecs; observed callbacks are not App/React view or native browser proof. */
 async function project(run: (api: ProjectActions, seen: Observation, select: (dir: Directory) => void, controls: OpenControls) => Promise<void>) {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'window'), navigatorDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
   let picked = directory(), api!: ProjectActions;
   let pick = async () => picked.root, browser = async () => picked.root;
-  const seen: Observation = { current: c, opened: [], errors: [], linked: [] };
+  const seen: Observation = { current: c, opened: [], errors: [], linked: [], ready: [] };
   let accepted: TestBridge['accepted'], linkedCommit: TestBridge['linked'];
   const callbacks: ProjectCallbacks = {
     onOpened(doc, path) { seen.current = doc; seen.opened.push(path); return accepted?.(); },
     onError(title, hint) { seen.errors.push(`${title}: ${hint}`); },
-    onLinked(linked) { seen.linked.push(linked); linkedCommit?.(); },
+    onLinked(linked) { seen.linked.push(linked); return linkedCommit?.(); },
+    onOpenReady(scope) { seen.ready.push(scope); },
   };
   const controls: OpenControls = {
     picker(next) { pick = next; }, browser(next) { browser = next; },
@@ -343,5 +344,82 @@ test('an accepted onLinked document commit does not turn its successful Open int
     assert.equal(await api.openPart('assembly.bcad'), true);
     assert.equal(seen.linked.length, 1); assert.deepEqual(seen.linked[0].offered, ['child.bcad']);
     assert.deepEqual(seen.errors, []);
+  });
+});
+
+test('plain project Open announces readiness once with its accepted dispatch scope', async () => {
+  await project(async (api, seen, select, controls) => {
+    const dir = directory(), bridge = appBridge(); await seed(dir);
+    controls.bridge({ ...bridge, accepted: bridge.dispatch }); select(dir); await api.openFolder();
+    assert.equal(await api.openPart('a.bcad'), true);
+    assert.deepEqual(seen.ready, [bridge.currentOpenScope()]);
+    same(seen.current, a);
+  });
+});
+
+test('automatic linked Open hands only its returned commit scope to one ready callback', async () => {
+  await project(async (api, seen, select, controls) => {
+    const dir = directory(), assembly = linkedAssembly(), bridge = appBridge();
+    await writePart(dir.store, 'assembly.bcad', assembly); await writePart(dir.store, 'child.bcad', document(2));
+    let openedScope: object | undefined, linkedScope: object | undefined;
+    controls.bridge({ ...bridge, accepted() { return openedScope = bridge.dispatch(); }, linked() { return linkedScope = bridge.dispatch(); } });
+    select(dir); await api.openFolder(); assert.equal(await api.openPart('assembly.bcad'), true);
+    assert.notEqual(linkedScope, openedScope); assert.equal(seen.linked.length, 1);
+    assert.deepEqual(seen.ready, [linkedScope]); assert.equal(linkedScope, bridge.currentOpenScope());
+  });
+});
+
+for (const stage of ['read', 'log', 'autosave', 'linked check'] as const) {
+  for (const external of ['File Open intent', 'document dispatch', 'project Close'] as const) {
+    test(`project ready is withheld after external ${external} during ${stage}`, async () => {
+      await project(async (api, seen, select, controls) => {
+        const dir = directory(), assembly = linkedAssembly(), bridge = appBridge();
+        await writePart(dir.store, 'assembly.bcad', assembly); await writePart(dir.store, 'child.bcad', document(2));
+        await writeVersions(dir.store, 'assembly.bcad', makeVersions(assembly, { at: '2026-11-04T00:00:00' }));
+        await writeAutosave(dir.store, 'assembly.bcad', c);
+        controls.bridge({ ...bridge, accepted: bridge.dispatch, linked: bridge.dispatch });
+        select(dir); await api.openFolder();
+        const pause = stage === 'linked check' ? dir.pauseList() : dir.pauseRead(stage === 'read' ? 'assembly.bcad'
+          : stage === 'log' ? versionsPath('assembly.bcad') : autosavePath('assembly.bcad'));
+        const pending = api.openPart('assembly.bcad');
+        try {
+          await reached(pause.entered, pending);
+          if (external === 'project Close') api.close();
+          else if (external === 'File Open intent') bridge.onOpenIntent();
+          else bridge.dispatch();
+          seen.current = b;
+        } finally { pause.release(); }
+        assert.equal(await pending, false); assert.deepEqual(seen.ready, []);
+        same(seen.current, b); assert.deepEqual(seen.errors, []);
+      });
+    });
+  }
+}
+
+test('a linked callback cannot hand off a superseded scope or implicitly adopt an external dispatch', async () => {
+  for (const explicit of [false, true]) {
+    await project(async (api, seen, select, controls) => {
+      const dir = directory(), assembly = linkedAssembly(), bridge = appBridge();
+      await writePart(dir.store, 'assembly.bcad', assembly); await writePart(dir.store, 'child.bcad', document(2));
+      controls.bridge({ ...bridge, accepted: bridge.dispatch, linked() {
+        const accepted = bridge.dispatch(); bridge.dispatch();
+        return explicit ? accepted : undefined;
+      } });
+      select(dir); await api.openFolder();
+      assert.equal(await api.openPart('assembly.bcad'), false); assert.deepEqual(seen.ready, []);
+      assert.deepEqual(seen.errors, []);
+    });
+  }
+});
+
+test('informational linked Check never announces Open readiness, even when its callback commits', async () => {
+  await project(async (api, seen, select, controls) => {
+    const dir = directory(), assembly = linkedAssembly(), bridge = appBridge();
+    await writePart(dir.store, 'assembly.bcad', assembly); await writePart(dir.store, 'child.bcad', document(2));
+    controls.bridge({ ...bridge, accepted: bridge.dispatch, linked: bridge.dispatch });
+    select(dir); await api.openFolder(); assert.equal(await api.openPart('assembly.bcad'), true);
+    assert.equal(seen.ready.length, 1); seen.ready.length = 0; seen.linked.length = 0;
+    await api.checkLinked(assembly);
+    assert.equal(seen.linked.length, 1); assert.deepEqual(seen.ready, []);
   });
 });

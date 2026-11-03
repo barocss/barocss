@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D491: preserve project Open auto-fit after its own linked-file commit; retain original product failure, unchanged public-F control and corrected actual/ownership proof](notes/project-open-fit-ready-2026-11-04/README.md).
+
 - [D490: measure an existing skipped instance pattern across explicit linked-source update, BOM quantities, exact history and project Open; retain cropped source-return views and pass final High saved-data review](notes/skipped-pattern-linked-revision-2026-11-04/README.md).
 
 - [D489: measure retained inch/dual drawing across source height, revision, history and project Open; retain summary/SVG oracle failure and recover only remaining groups](notes/inch-dual-source-revision-2026-11-04/README.md).
