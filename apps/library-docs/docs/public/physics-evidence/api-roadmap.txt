@@ -39,10 +39,22 @@ The next order is:
    Existing independent cold-QP outputs and a separately authored exact checker
    remain the numerical authority. The basis is explicitly untrusted witness
    input; this changes the reference-proof contract and is not a cold optimizer
-   independent of producer metadata. This candidate is DESIGN_ONLY, with no
-   implementation or execution yet. Freeze operation pricing/bounds first.
-2. After numerical proof passes, perform one predeclared same-boundary cost
-   comparison. End the candidate on cost NO_GO. Do not resume ended support
+   independent of producer metadata. The Python revision01 hit its unchanged2M
+   primitive limit on ALIGNED16. Revision02's common-denominator products passed
+   all10 kernel/control checks and6 full physical/independent frame checks, but
+   its one cost decision failed:2395213000ns versus saved773147000ns, with the
+   predeclared695832300ns threshold. Both revisions and first failures remain;
+   the Python candidate is ENDED, not a new public capability. See
+   `examples/physics-p4-position-witness-v2-2276/RESULTS.md`.
+2. The next separate candidate moves only exact position proof to installed
+   Node22 BigInt, retaining raw inputs, original2M proof pricing and all36-row
+   gates. Producer solutions and incompatible producer arithmetic are not proof
+   inputs. Native authoring is NOT_RUN. Its predeclared conservative cost
+   envelope includes parent context CPU plus the owned Node child's entire
+   lifetime CPU, including startup/IO/shutdown; it must not be called the same
+   CPU boundary as the saved single-process baseline. One decision follows
+   complete A10/B6 physical/independent qualification, with no baseline rerun.
+   End the candidate on cost NO_GO. Do not resume ended support
    caches, Node-SAT or primitive-axis retunes. A subset speedup is not evidence
    that the full1200-step protocol fits180s.
 3. Qualify complete contact/position/ledger/quality cost and original inputs

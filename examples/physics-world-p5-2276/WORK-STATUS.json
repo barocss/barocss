@@ -34,7 +34,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Current roadmap review: finite dynamic-contact vertical path passes. Earliest observed original P4 blocker is complete reference/runtime cost. New exact36-row KKT certificate candidate is design only; old ended cost candidates remain ended.",
+  "active": "P4 cost work: Python exact witness revision02 passes A10/B6 physical/independent gates but ended on cost NO_GO (2395213000ns versus773147000ns baseline). Separate Node22 position-proof runtime authoring; no execution or performance claim yet.",
   "progressMethod": "Prior5of9boundedmilestones retained as historicalqualifications; newcontact-schema delta requiresseparateP0/P1/P2/P5outputrequalification. No weightedpercent orwhole-enginePASS.",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
@@ -1191,5 +1191,28 @@
     "documentationBuild": "EXECUTED_PASS_DOCS_09_BUILD_LINK_AND_GENERATED_ASSETS",
     "implementationHead": "b2bd44f9d"
   },
-  "roadmapCommitMeaning": "Historical baseline roadmap commit; currentreview is ROADMAP-REVIEW-20261103.json"
+  "roadmapCommitMeaning": "Historical baseline roadmap commit; currentreview is ROADMAP-REVIEW-20261103.json",
+  "latestPositionWitness": {
+    "status": "NUMERICAL_PASS_COST_NO_GO_ENDED",
+    "results": "examples/physics-p4-position-witness-v2-2276/RESULTS.md",
+    "kernelChecks": 10,
+    "fullPhysicalAndIndependentFrames": 6,
+    "candidateCoreCpuNs": 2395213000,
+    "savedBaselineCoreCpuNs": 773147000,
+    "thresholdCoreCpuNs": 695832300,
+    "costDecisions": 1,
+    "baselineReruns": 0,
+    "WorldCalls": 0,
+    "original1200Steps": "NOT_RUN",
+    "publicAdoption": "NOT_RUN",
+    "desktop": "NOT_RUN",
+    "firstResourceFailure": "examples/physics-p4-position-witness-2276/RESULTS.md"
+  },
+  "nextNativePositionWitness": {
+    "status": "AUTHORING_NOT_EXECUTED",
+    "runtime": "existing pinned Node22 BigInt; no new dependency",
+    "scope": "position proof only; Python compact unchanged",
+    "costBoundary": "parent core CPU plus owned Node complete-lifetime CPU; conservative envelope, not same boundary",
+    "publicAdoption": "NOT_RUN"
+  }
 }
