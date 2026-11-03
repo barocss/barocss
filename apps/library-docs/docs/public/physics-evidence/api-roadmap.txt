@@ -75,9 +75,30 @@ The next order is:
    the same695832300ns gate. Its maximum proof work was356696 units. Accepted
    translation error≤2.148164124373243e-36m and margin-report error
    ≤1.1102230246251565e-16m pass the unchanged1e-12 gate. See
-   `examples/physics-p4-integer-witness-2276/RESULTS.md`. Next is read-only
-   complete-reference algorithm/integration review; no ended candidate retime
-   or higher limits. Original1200/World/API/desktop remain NOT_RUN.
+   `examples/physics-p4-integer-witness-2276/RESULTS.md`. The new direct minimal
+   radical-grid interval has actual pure17 PASS:13valid,2invalid,2resource,
+   one old SAT Meter/17 immediate independent audits,18911 operations and
+   peak16383bits under the unchanged2M/16384/64-sqrt limits. It changes
+   interval construction, not the already-existing signed-square winner test.
+   See `examples/physics-p4-radical-grid-2276/RESULTS.md`. The closed V3
+   metadata map preserves every physical word, axis/selection/tie, threshold
+   and KKT field; only proof endpoints/precision/tag/protocol and derived
+   proof-width diagnostic can change. New full6 mathematical/physical and
+   independent validations all passed:432records/864models/12960axes,
+   78888 unchanged physical leaves and8682 checked metadata paths. Its one
+   cost was559202000ns parent +234927000ns whole child =794129000ns:
+   COST_NO_GO, ENDED against the same695832300ns gate. See
+   `examples/physics-p4-radical-compact-2276/RESULTS.md`. A post-run source
+   audit revoked the NEW validator observed-graph measurement: temporary
+   dictionary-entry IDs can be reused. Its separate preallocation bound is
+   conditional pending ownership review; no corrected memory PASS is claimed.
+   Original reports/math passes/cost failure remain unchanged. Next is a
+   distinct pair-local Gram/mixed-determinant design for all15 axes, without
+   orthogonality, radius caches or pruning; its signed27 identities and all
+   exactN/D/S outputs require independent qualification before another B.
+   Existing geometry decoder reuse is not a new independent geometry oracle.
+   No ended candidate retime or higher limits. Original1200/World/API/desktop
+   remain NOT_RUN.
    Do not resume ended support
    caches, Node-SAT or primitive-axis retunes. A subset speedup is not evidence
    that the full1200-step protocol fits180s.

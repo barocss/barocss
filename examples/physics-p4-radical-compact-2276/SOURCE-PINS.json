@@ -1,0 +1,48 @@
+{
+  "protocol": "p4-radical-compact-source-pins-v1",
+  "status": "AUTHOR_SOURCE_ONLY_NOT_EXECUTED",
+  "scope": "Direct code, frozen math component, prerequisite and explicit source/protocol provenance; full runtime tool and closure authentication remains mandatory in the outer harness.",
+  "selfHashPolicy": "This file is excluded from its own pins; outer harness freeze must authenticate this file.",
+  "pins": {
+    "examples/physics-p4-radical-compact-2276/backend.py": {
+      "bytes": 9849,
+      "sha256": "5fed3731c6b84d8563d8cd118912b34a0a1c3d711aed38ed2396d2b5fb1e3415"
+    },
+    "examples/physics-p4-radical-compact-2276/CONTRACT.md": {
+      "bytes": 6566,
+      "sha256": "ff2cf6d7af07db47499c4581e41cc4b024fcabbc45ce6250663f8203975201c9"
+    },
+    "examples/physics-p4-radical-compact-2276/ALGORITHM.md": {
+      "bytes": 2353,
+      "sha256": "e9616dad4145a6f6182fb006361b0eef75d9dd23b830624f094746e4a63fbe2f"
+    },
+    "examples/physics-p4-radical-grid-2276/radical_grid.py": {
+      "bytes": 6513,
+      "sha256": "f9a57fa5ed8aca0a671cbb4a49b0033bfcfdc89b45466320782f88ceb5169afc"
+    },
+    "examples/physics-p4-radical-grid-2276/CONTRACT.md": {
+      "bytes": 4928,
+      "sha256": "30fa88317f5b982b79f581648f00062c9c0d637ef1ee4c7eb61c169e291adad1"
+    },
+    "examples/physics-p4-radical-grid-2276/evidence/r0-proof-01/summary.json": {
+      "bytes": 2570,
+      "sha256": "21073e2d5773b89f157ef2e5e7835df4384a671358a3b9231dda50dfcfa83a2f"
+    },
+    "examples/physics-p4-sat-2276/integer_sat.py": {
+      "bytes": 13025,
+      "sha256": "b1c2f4a4d291c52b9182864fea658381afd482aa34da7d300997a81bf45a3b1e"
+    },
+    "examples/physics-p4-compact-v2-2276/backend.py": {
+      "bytes": 3661,
+      "sha256": "94ab762e05317695b71df4da0550b1d77b137273c20901e74246a22b5bf62978"
+    },
+    "examples/physics-p4-position-v2-2276/observer.py": {
+      "bytes": 9441,
+      "sha256": "bac282631421947855bce3c2eb6d2c4f50a8855b6e63236a4e35ca9cc49bbdf0"
+    },
+    "examples/physics-p4-radical-metadata-map-2276/MAP.md": {
+      "bytes": 9326,
+      "sha256": "514585569603d1d32c4a28da7c15c524d82b1f3ad6912e61273c902ae52e8259"
+    }
+  }
+}
