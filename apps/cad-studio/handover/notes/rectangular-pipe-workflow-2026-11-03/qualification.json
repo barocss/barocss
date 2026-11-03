@@ -1,0 +1,188 @@
+{
+  "workId": "D472",
+  "lastUpdated": "2026-11-03",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "8340ca93830d89f59e7d561bee11e03683fba472",
+  "category": "C2 existingPUBLICrectangularPipe lifecycle",
+  "rows": [
+    "07",
+    "08",
+    "12",
+    "16"
+  ],
+  "productChanges": "NONE",
+  "testChanges": "NONE",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercentFrozen": 43,
+  "input": {
+    "path": "/tmp/barocss-d472-geometry/seed.bcad",
+    "sha256": "1a1c631a144ccddbb3fc09a861025953aafa0a7260d7fd7c0f86286b54e683fe",
+    "origin": "NEW_SOURCE_AUTHORED_FREE_RECTANGLE;no publicseedconstruction",
+    "profile": "n0min[-2,-1]max[2,1],e1..e4"
+  },
+  "publicContract": {
+    "creation": "Pipe Run12/Bendradius10/Bendangle90/+X\u2192n1sweep straight+bend+straight,b1",
+    "edits": "Run1=18;sourceDepth2\u21924 keepingminY\u22121,maxY3;Run1=0refusal\u2192FIRSTUndoDepth2/RedoDepth4;ownOPFS;postRun3=16",
+    "identities": "n0/n1/sketch0/sideTags/middlebend/nextId2/outputb1exact",
+    "refusal": {
+      "code": "PARAMETER",
+      "feature": "n1",
+      "reason": "path[0].length must be positive"
+    },
+    "excludedCommand": "FacetedSweep-curve;no inventedstraightonlyPipe"
+  },
+  "preflight": {
+    "status": "PASS_FIRST_PRODUCT_NATIVE_EXECUTION",
+    "command": "bash /tmp/barocss-d472-root/run-preflight02.sh",
+    "receipt": "/tmp/barocss-d472-geometry/preflight-run01/receipt.json",
+    "receiptSHA256": "b67864b9abaa8f5d6373068f40043452621bc50d49c9e7cc70e44cad1fa8bf99",
+    "nativeStates": 4,
+    "Run1ZeroGuard": "PASS",
+    "sourcePins": 747,
+    "sourceEqualAfterCleanupCurrent": true,
+    "ownPID": 72762,
+    "ownPIDAbsent": true,
+    "gate": "FREE"
+  },
+  "preparation01": {
+    "status": "FAILED_BEFORE_GATE_BUILD_PRODUCT_RUNTIME",
+    "record": "/tmp/barocss-d472-root/attempt01-preparation.json",
+    "cause": "Rootmanifestreader assumedfilesdictionarybutHighusesarray",
+    "pinsGenerated": false,
+    "ownPID": 71380,
+    "ownPIDAbsent": true,
+    "leaseAcquired": false,
+    "correction": "Readeronly;Highsealedinputsunchanged",
+    "SUTFailure": false
+  },
+  "actual": {
+    "status": "PASS",
+    "declaredGroups": 8,
+    "qualifiedGroups": 8,
+    "coverage": {
+      "publicPipeCreate": "PASS",
+      "Run1Edit18": "PASS",
+      "sourceDepth4": "PASS",
+      "Run1ZeroRefusalRetention": "PASS",
+      "firstExactUndoDepth2": "PASS",
+      "exactRedoDepth4": "PASS",
+      "ownProjectRoundtrip": "PASS",
+      "postOpenRun3Edit16": "PASS"
+    },
+    "command": "bash /tmp/barocss-d472-root/run-studio01.sh",
+    "receipt": "/tmp/barocss-d472-workflow-run01/receipt.json",
+    "receiptSHA256": "f990f7574cee07d5617a9e4c434714c14a22007a0ddfd8fb5b79ac1a6f6e1e2b",
+    "configSHA256": "db82dba1858bb0c226761b4c3b65acaf9804b9e6de343f848946fc99275cb483",
+    "nativeBindings": 8,
+    "freshCaptures": 4,
+    "exactWholeDocReuses": 4,
+    "freshPythonOracles": 8,
+    "freshRawWorkerBindings": 8,
+    "maximumWorkerVolumeRelativeError": 0,
+    "maximumWorkerCentroidAbsoluteErrorMM": 1.0658141036401503e-14,
+    "WorkerCentroidErrorNonzeroWithinBudget": true,
+    "maximumNativeVolumeAbsoluteError": 6.821210263296962e-13,
+    "maximumNativeCentroidAbsoluteErrorMM": 1.9539925233402755e-14,
+    "statesAndImages": 25,
+    "rootViewedImages": 7,
+    "prehashPaths": 2390,
+    "fullFrozenPaths": 2391,
+    "aliasesIncluded": true,
+    "beforeAfterCleanupCurrentEqual": true,
+    "errors": {
+      "page": 0,
+      "console": 0,
+      "downloads": 0,
+      "watchedChanges": 0
+    },
+    "cleanup": {
+      "namespace": "D472-public-pipe-run01",
+      "namespaceStatus": "REMOVED_AND_ABSENT",
+      "contextBrowserServer": "CLOSED",
+      "ownPID": 77195,
+      "ownPIDAbsent": true,
+      "gate": "FREE",
+      "endLoad": 10.16
+    },
+    "previewBoundary": "Initialsmallendsegmentcropped/offcamera withcorrectHUD/status;acceptedpublicFrameAllwholemodelgood;pendingFit/autoframingNOT_RUN,no previewvisibility/UIredesignclaim",
+    "executedSUTFailures": 0,
+    "rootReview": "/tmp/barocss-d472-root/root-review.json"
+  },
+  "physicalContract": {
+    "source": "Highindependentannularsector+prisms,notspinecentroid;native+BRepmass/physicalboundaries,notmesh",
+    "A": "4*depth",
+    "q": "152/15",
+    "D": "L1+10*pi/2+L3",
+    "volume": "A*D",
+    "Cx": "[100*pi/2-10*q+L3*(10+L3/2)]/D",
+    "Cy": "depth/2-1",
+    "Cz": "[L1^2/2+10*pi/2*L1+10*q+L3*(L1+10)]/D",
+    "bounds": "[-2,-1,0]..[10+L3,depth-1,L1+12]",
+    "states": [
+      [
+        12,
+        2,
+        12
+      ],
+      [
+        18,
+        2,
+        12
+      ],
+      [
+        18,
+        4,
+        12
+      ],
+      [
+        18,
+        4,
+        16
+      ]
+    ],
+    "strictTopology": {
+      "bodies": 1,
+      "shells": 1,
+      "vertices": 16,
+      "edges": 28,
+      "faces": 14
+    },
+    "witnesses": {
+      "gluedSeams": 8,
+      "R8R12QuarterArcEdges": 4,
+      "faceBoundaryPinsNormals": 14
+    },
+    "volumeRelative": 1e-09,
+    "centroidBoundsBoundaryPinsOutwardNormalsAbsolute": 1e-09,
+    "carrierBoundary": "Planarcarrierprobesplane/normalONLY;nottrim-membership/boundsauthority",
+    "manifestSHA256": "87fb944034b4ea5866ffb77791ce0114b9467dfe0ccdea6af0375740ef4658ab"
+  },
+  "reviews": {
+    "MediumCodeAlignment": "ACCEPT_SCOPE",
+    "HighPhysicsAudit": "ACCEPT_FOUR_FINITE_STATES_ANNULAR_VOLUME_FIRST_MOMENTS_14FACES_4ARCS_8SEAMS_NATIVEBOUNDS_UNCHANGED_1e-9_BUDGETS"
+  },
+  "retainedProof": "D168circlePipe/D288D315D316guidedLoft/D357ordinaryLoft readnotreplayed",
+  "checks": {
+    "newTestsTypesBuildFullKernel": "NOT_RUN_NO_PRODUCT_OR_TEST_CHANGE",
+    "retained": "D46128groups,lint,StudioTSC,finalModelTSC",
+    "documentationNavigation": {
+      "status": "PASS",
+      "command": "export PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH; node apps/cad-studio/handover/scripts/check-navigation.mjs",
+      "node": "22.19.0",
+      "receipt": "/tmp/barocss-d472-root/navigation-final-node22.json",
+      "sha256": "8ed7b7a7ab39f39d01a132d3758ccec4b964f9d5d0bf2dd965481d72a53fd525",
+      "rows": 34,
+      "oldHeadingFragments": 552,
+      "parsedLegacyOutboundLinks": 913,
+      "checkedLocalLinks": 2683,
+      "newBroken": 0,
+      "knownMissingPaths": 1
+    }
+  },
+  "issues": {
+    "534": "OPEN_PART04_BOUNDED_ONLY"
+  },
+  "environment": "AllNodecommands explicitPATH22.19.0",
+  "next": "D473 selects C2 existing ordinary no-guide copied-section Loft height lifecycle supplement,rows07/08/12/16. Reuse D357 real public W60\u219270 copied snapshot/non-follow/create and D288/D315/D316 guided proof;do not replay. Retained D357H30/W70 Loft n4/outputb4 uses public Section2 height z1. Six groups planned:H40,H0 PARAMETER refusal,FIRSTUndo30,Redo40,ownOPFSOpen40,postOpen50. Six nativebindings/three captures/three exact reuses planned. Strict native V/centroid/bounds/rulings/reciprocal trims supplement only;no new Loft admission. ActualD473NOT_RUN.",
+  "holds": "CoreNOT_MEASURED/legacy43frozen;all current #2258/#2266,Motion/Physics,fitter/thicken,widening,manufacturing,UI,schema,download/dependency,browserCI/release gates unchanged."
+}
