@@ -49,12 +49,31 @@ The next order is:
 2. The next separate candidate moves only exact position proof to installed
    Node22 BigInt, retaining raw inputs, original2M proof pricing and all36-row
    gates. Producer solutions and incompatible producer arithmetic are not proof
-   inputs. Native authoring is NOT_RUN. Its predeclared conservative cost
-   envelope includes parent context CPU plus the owned Node child's entire
-   lifetime CPU, including startup/IO/shutdown; it must not be called the same
-   CPU boundary as the saved single-process baseline. One decision follows
-   complete A10/B6 physical/independent qualification, with no baseline rerun.
-   End the candidate on cost NO_GO. Do not resume ended support
+   inputs. The native candidate passed A10 and all6 full physical/independent
+   frames, then ENDED on its one cost NO_GO:545702000ns parent context CPU plus
+   568623000ns owned Node complete-lifetime CPU =1114325000ns. The threshold
+   remained695832300ns. This conservative envelope includes startup/IO/shutdown
+   and is wider than the saved single-process core, not the same boundary.
+   Its setup-only NameError and zero-call counters remain preserved separately.
+   See `examples/physics-p4-native-witness-2276/RESULTS.md`.
+   The separate Lehmer candidate passed32 exact GCD/Bézout pairs with one
+   1159878-unit meter and319 accepted blocks. Its fresh position bank then hit
+   the unchanged2M cap on ALIGNED16; B/cost/World were NOT_RUN. See
+   `examples/physics-p4-lehmer-witness-2276/RESULTS.md`.
+   The entry-invariant GCD candidate passed freshG0/A10/B6, but its one
+   parent-plus-owned-child cost was845830000ns: COST_NO_GO, ENDED. The bounded
+   Float64/decimal codec candidate then passed freshG0/U0/A10/B6 with exact
+   saved physical payload identity, but its one cost was861802000ns against
+   the unchanged695832300ns threshold: COST_NO_GO, ENDED. Their explicit
+   GUARD-POLICY changes preserve prices/caps but do not claim every old guard
+   clause unchanged. See each candidate RESULTS.md. A single instrumented D0
+   ALIGNED16 diagnostic preserved every output byte/counter; its57 samples
+   locate GCD/bit/meter and rational KKT work, not an actual speed ratio.
+   The next distinct algorithm uses one dyadic integer matrix and final-only
+   canonical fraction reduction. Independent math review and freshG0/U0/A10/B6
+   remain required before its one cost decision. No baseline rerun or higher
+   limits are allowed. End it on cost NO_GO.
+   Do not resume ended support
    caches, Node-SAT or primitive-axis retunes. A subset speedup is not evidence
    that the full1200-step protocol fits180s.
 3. Qualify complete contact/position/ledger/quality cost and original inputs

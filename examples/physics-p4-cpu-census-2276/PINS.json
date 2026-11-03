@@ -1,0 +1,100 @@
+{
+  "format": "p4-ended-candidate-instrumented-cpu-census-pins-v1",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "sources": {
+    "examples/physics-p4-cpu-census-2276/run.py": {
+      "bytes": 10729,
+      "sha256": "05d28d8e051dbfac1a25f772607d5805aee1f7d9a006d9a78bb57aaa87c218eb"
+    },
+    "examples/physics-p4-cpu-census-2276/CONTRACT.md": {
+      "bytes": 1969,
+      "sha256": "81ba60ef06956e4be69aff70f169756ac9aa659bdb42f38b34b4aab943f15ba4"
+    },
+    "examples/physics-p4-bounded-codec-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-16-request.json": {
+      "bytes": 8084,
+      "sha256": "78d18515fb8d8f70b04fdf9c13524881d83daec81f8933d2a0142e4841e94210"
+    },
+    "examples/physics-p4-bounded-codec-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-16-reply.json": {
+      "bytes": 59388,
+      "sha256": "c28abba7845ceda6f60f92759b3734e931fde3ea41e4a5bf872e2bc3e2b13ec3"
+    },
+    "examples/physics-p4-bounded-codec-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-16-independent.json": {
+      "bytes": 4275,
+      "sha256": "78fb1da22520259fc404b48ddbff82d6ad0f352facd883bc41bd664269e2e81c"
+    },
+    "examples/physics-p4-bounded-codec-witness-harness-2276/evidence/stage-a-01/summary.json": {
+      "bytes": 7803,
+      "sha256": "cd17279877c5496e91a35bbe01c0b4cbc9a92864699e78aa4a60b0e451ffeba7"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/kernel-ALIGNED-16.json": {
+      "bytes": 8084,
+      "sha256": "78d18515fb8d8f70b04fdf9c13524881d83daec81f8933d2a0142e4841e94210"
+    },
+    "examples/physics-p4-bounded-codec-witness-harness-2276/AUTHOR-FREEZE-01.json": {
+      "bytes": 35642,
+      "sha256": "de8e614bf9c74d03883de9057d87b1cd196f9d656ccb28b0e189eb0f13937dbf"
+    },
+    "examples/physics-p4-bounded-codec-witness-harness-2276/PROTOCOL-01.json": {
+      "bytes": 7715,
+      "sha256": "6120f461a8b6217c983ebaa030be5b395638c02645b0c417f2abe35c267c281d"
+    },
+    "examples/physics-world-p5-2276/command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    },
+    "examples/physics-p4-bounded-codec-witness-2276/candidate.mjs": {
+      "bytes": 39067,
+      "sha256": "4864622582d5324c80309adefcc5e9388ccbd7c793830f54c9b515f02be53916"
+    },
+    "examples/physics-p4-bounded-codec-witness-2276/ALLOCATION.md": {
+      "bytes": 6827,
+      "sha256": "383175e87822add69a2d33bff68576b4d73fdb12c6f98cf16cfee04652f48d8f"
+    },
+    "examples/physics-p4-bounded-codec-witness-2276/smallworker.mjs": {
+      "bytes": 2957,
+      "sha256": "2db37e9419832e9ab04074cd66bfdfeba820e27d7472385cee73b1d929b80a65"
+    },
+    "examples/physics-p4-bounded-codec-witness-2276/GUARD-POLICY.md": {
+      "bytes": 10575,
+      "sha256": "5ec35188b777324d1289bbee60453929e58542a9d53ef665232f1cc587191d74"
+    },
+    "examples/physics-p4-bounded-codec-witness-2276/CONTRACT.md": {
+      "bytes": 5924,
+      "sha256": "40aaaf5e0ca3d55592750772b502c195b9545dd3e8b17b66b91baae6bf6f27c1"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-codec-stage-a-01/result.json": {
+      "bytes": 3211,
+      "sha256": "dae0d1e3d6ec6c6148b1eee92513cf6d2ddb9a73e3fb198c0479ce7fc4620cf6"
+    }
+  },
+  "tools": {
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node": {
+      "bytes": 110712624,
+      "sha256": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13": {
+      "bytes": 52640,
+      "sha256": "a1f6d9dc20d4787a84dc2fe782094a7bac5946f49a962aa0af48a02f0e8d5bc5"
+    }
+  },
+  "node": {
+    "path": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "version": "v22.19.0",
+    "versionAuthority": "examples/physics-world-p5-2276/evidence/p4-codec-stage-a-01/result.json"
+  },
+  "candidate": "examples/physics-p4-bounded-codec-witness-2276/candidate.mjs",
+  "request": "examples/physics-p4-bounded-codec-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-16-request.json",
+  "qualifiedReply": "examples/physics-p4-bounded-codec-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-16-reply.json",
+  "diagnosticOnly": true,
+  "candidateInvocations": 1,
+  "costDecisions": 0,
+  "baselineReruns": 0,
+  "retiredCandidateEligibility": "UNCHANGED_ENDED",
+  "sampleWeightLabel": "SAMPLE_WEIGHT_NOT_COST_CPU",
+  "authorCandidateCalls": 0,
+  "authorProfileCalls": 0,
+  "python": {
+    "path": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13"
+  },
+  "environmentPolicy": "PRESERVE_ALL_ENV_REQUIRE_NODE_OPTIONS_EMPTY_OR_ABSENT_NO_OVERRIDE"
+}

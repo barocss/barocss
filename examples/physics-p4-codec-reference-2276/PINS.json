@@ -1,0 +1,76 @@
+{
+  "format": "p4-independent-codec-author-pins-v1",
+  "python": {
+    "path": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+    "version": "3.13.5 (main, Jun 11 2025, 15:36:57) [Clang 17.0.0 (clang-1700.0.13.3)]"
+  },
+  "nodeVersion": "v22.19.0",
+  "tools": {
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node": {
+      "bytes": 110712624,
+      "sha256": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13": {
+      "bytes": 52640,
+      "sha256": "a1f6d9dc20d4787a84dc2fe782094a7bac5946f49a962aa0af48a02f0e8d5bc5"
+    }
+  },
+  "sources": {
+    "CONTRACT.md": {
+      "bytes": 10990,
+      "sha256": "c2aa61975649538a311b6c68039d52a85c73ca9ce97c446998ae0298582f8fee"
+    },
+    "audit.py": {
+      "bytes": 10739,
+      "sha256": "274f47b41d203c919aeb37db3789a5ee7b192cda3db4e2f3c46a89d11c0152ef"
+    },
+    "bank-spec.json": {
+      "bytes": 3178,
+      "sha256": "66be7c910a4be698cdbdd54caf13bc07f10324634679c0e8d656a4af96f6dae0"
+    },
+    "materialize.py": {
+      "bytes": 3649,
+      "sha256": "01f19a04caf92b815ff2b1fc66b1987341693d93eb1800b364190c72b31db0ab"
+    },
+    "support.py": {
+      "bytes": 3701,
+      "sha256": "c6fd289f7e31791e39f0dc983e37c400d68a7d3356065dd400fb94532cc5e3b7"
+    },
+    "../physics-p4-invariant-gcd-reference-2276/CONTRACT.md": {
+      "bytes": 6770,
+      "sha256": "efac38f95016152b7b6f0560b2261433070d97fc3fb8eb83eea1076167979e5b"
+    },
+    "../physics-p4-invariant-gcd-reference-2276/PINS.json": {
+      "bytes": 3469,
+      "sha256": "974f419ab8956773b108a4c177da9ce73dada709e1b182dfb8c2270f77700173"
+    },
+    "../physics-p4-invariant-gcd-reference-2276/audit.py": {
+      "bytes": 8726,
+      "sha256": "1b64a927b421946dd280ed769eeffeca5ad346bcc9fe0acccade109780926323"
+    },
+    "../physics-p4-invariant-gcd-reference-2276/literals.py": {
+      "bytes": 1682,
+      "sha256": "6442766999c7ca3066a4a8f91d0722815966f04c2ca46bf7692fd611dcb68f8c"
+    },
+    "../physics-p4-invariant-gcd-reference-2276/support.py": {
+      "bytes": 3701,
+      "sha256": "c6fd289f7e31791e39f0dc983e37c400d68a7d3356065dd400fb94532cc5e3b7"
+    },
+    "../physics-p4-gcd-reference-2276/evidence/bank-01/requests.json": {
+      "bytes": 26601,
+      "sha256": "e7b0bdf52e6750691298173f2dcdc7ea2a039d6255d18c8398e80ad9ffde0b8c"
+    },
+    "../physics-p4-gcd-reference-2276/evidence/bank-01/oracle.json": {
+      "bytes": 18532,
+      "sha256": "47bf2c2d3edc840bfb2bd87a633a0968dda0d5b8621828de939a06d7dc903bf7"
+    },
+    "../physics-p4-gcd-reference-2276/evidence/bank-01/manifest.json": {
+      "bytes": 2252,
+      "sha256": "cc1f0ba2daa7c35ad7fa08213ddaa8aba6a506a880d58c3e4e2be86bfde7d36a"
+    }
+  },
+  "toolReceiptOrigins": [
+    "examples/physics-coupled-contact-2276/TOOLCHAIN-PINS-02.json",
+    "examples/physics-p4-position-witness-2276/RUNTIME-LAYOUT-01.json"
+  ]
+}

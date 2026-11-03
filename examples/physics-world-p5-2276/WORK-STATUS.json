@@ -34,7 +34,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "P4 cost work: Python exact witness revision02 passes A10/B6 physical/independent gates but ended on cost NO_GO (2395213000ns versus773147000ns baseline). Separate Node22 position-proof runtime authoring; no execution or performance claim yet.",
+  "active": "P4 cost remains NO_GO. Entry-invariant and bounded-codec candidates passed G0/A10/B6 (codec also U0), then ended on fixed cost gate. D0 diagnostic output identical; new dyadic integer-matrix algorithm authoring. Original1200/API/desktop NOT_RUN.",
   "progressMethod": "Prior5of9boundedmilestones retained as historicalqualifications; newcontact-schema delta requiresseparateP0/P1/P2/P5outputrequalification. No weightedpercent orwhole-enginePASS.",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
@@ -1206,13 +1206,209 @@
     "original1200Steps": "NOT_RUN",
     "publicAdoption": "NOT_RUN",
     "desktop": "NOT_RUN",
-    "firstResourceFailure": "examples/physics-p4-position-witness-2276/RESULTS.md"
+    "firstResourceFailure": "examples/physics-p4-position-witness-2276/RESULTS.md",
+    "allocationEvidence": "Frame graph measurements only; old whole-file110MB tool hash transient was outside measurement. Whole-protocol64MiB not qualified; first record preserved."
   },
   "nextNativePositionWitness": {
-    "status": "AUTHORING_NOT_EXECUTED",
+    "status": "ENDED_NUMERICAL_PASS_COST_NO_GO",
     "runtime": "existing pinned Node22 BigInt; no new dependency",
     "scope": "position proof only; Python compact unchanged",
     "costBoundary": "parent core CPU plus owned Node complete-lifetime CPU; conservative envelope, not same boundary",
     "publicAdoption": "NOT_RUN"
+  },
+  "latestNativePositionWitness": {
+    "status": "NUMERICAL_PASS_CONSERVATIVE_COST_NO_GO_ENDED",
+    "results": "examples/physics-p4-native-witness-2276/RESULTS.md",
+    "kernelChecks": 10,
+    "fullPhysicalAndIndependentFrames": 6,
+    "parentCoreCpuNs": 545702000,
+    "ownedNodeLifetimeCpuNs": 568623000,
+    "conservativeEnvelopeCpuNs": 1114325000,
+    "thresholdCpuNs": 695832300,
+    "sameBaselineBoundary": false,
+    "actualNumericalBanks": 1,
+    "wrapperCommandAttempts": 2,
+    "priorWrapperAttempt": "NameError before any compact/proof/worker call; preserved",
+    "costDecisions": 1,
+    "baselineReruns": 0,
+    "WorldCalls": 0,
+    "original1200Steps": "NOT_RUN",
+    "publicAPI": "NOT_RUN",
+    "desktop": "NOT_RUN"
+  },
+  "nextLehmerPositionWitness": {
+    "status": "GCD32_PASS_POSITION_ALIGNED16_PRIMITIVE_NO_GO_B_NOT_RUN",
+    "firstGate": "32 independent exact GCD pairs with one2M primitive meter",
+    "nextGates": [
+      "freshA10",
+      "oneB6fullphysical/independent",
+      "oneconservativeCPUcostdecision"
+    ],
+    "limits": "Original prices,2M,8192/16385bits,170/180s and physical tolerances unchanged"
+  },
+  "latestLehmerPositionWitness": {
+    "results": "examples/physics-p4-lehmer-witness-2276/RESULTS.md",
+    "GCD32": "EXACT_AND_BEZOUT_PASS",
+    "G0GlobalPrimitives": 1159878,
+    "acceptedBlocks": 319,
+    "positionCalls": 6,
+    "positionIndependentPasses": 5,
+    "firstFailure": "ALIGNED16 PROOF_PRIMITIVE_LIMIT at2M; attempt2000001 denied",
+    "B": "NOT_RUN",
+    "cost": "NOT_RUN",
+    "WorldCalls": 0,
+    "publicAPI": "NOT_RUN",
+    "desktop": "NOT_RUN"
+  },
+  "nextInvariantPositionWitness": {
+    "status": "ENDED_NUMERICAL_PASS_COST_NO_GO",
+    "policy": "New localized GCD entry/remainder invariant explicitly overrides old per-REM guard clause; no unchanged-clause claim.",
+    "unchanged": "All actual operation prices,2M/bit/time limits, physical gates and first failures",
+    "gates": [
+      "fresh32-pair exact/B\u00e9zout audit",
+      "freshA10",
+      "oneB6fullphysical+independent",
+      "oneparent-plus-fullchildCPUcostdecision"
+    ]
+  },
+  "latestInvariantPositionWitness": {
+    "results": "examples/physics-p4-invariant-witness-2276/RESULTS.md",
+    "G0": "PASS32",
+    "A": "PASS10",
+    "B": "PASS6_PHYSICAL_AND_INDEPENDENT",
+    "parentCoreCpuNs": 534950000,
+    "ownedChildLifetimeCpuNs": 310880000,
+    "conservativeEnvelopeCpuNs": 845830000,
+    "thresholdCpuNs": 695832300,
+    "costDecisions": 1,
+    "baselineReruns": 0,
+    "WorldCalls": 0
+  },
+  "latestBoundedCodecPositionWitness": {
+    "status": "ALL_G0_U0_A_B_NUMERICAL_PASS_COST_NO_GO_ENDED",
+    "sourceFiles": 179,
+    "guardPolicy": {
+      "path": "examples/physics-p4-bounded-codec-witness-2276/GUARD-POLICY.md",
+      "scope": "GCD_REM_PLUS_BOUNDED_INTEGER_CODEC_AND_F64_WORD_CONSTANT_FASTPATHS_ONLY",
+      "allOldGuardChecksUnchanged": false,
+      "pricesAndCapsUnchanged": true,
+      "pin": {
+        "bytes": 10575,
+        "sha256": "5ec35188b777324d1289bbee60453929e58542a9d53ef665232f1cc587191d74"
+      }
+    },
+    "G0": {
+      "pairs": 32,
+      "performed": 466279
+    },
+    "U0": {
+      "integers": 16,
+      "finiteWords": 24,
+      "expectedRejections": 4,
+      "performed": 192217,
+      "privateStats": {
+        "guardedGcdEntries": 20,
+        "invariantRemainders": 46,
+        "guardedTextEntries": 64,
+        "constantF64Returns": 4,
+        "fixedWordDecodes": 20
+      }
+    },
+    "A": "FRESH10_CANDIDATE_AND10_INDEPENDENT_PASS",
+    "B": "FRESH6_FULL_PHYSICAL_AND6_INDEPENDENT_PASS",
+    "cost": {
+      "parentCoreCpuNs": 562091000,
+      "childLifetimeCpuNs": 299711000,
+      "conservativeEnvelopeCpuNs": 861802000,
+      "savedBaselineCoreCpuNs": 773147000,
+      "costBoundaryIdenticalToSavedBaseline": false
+    },
+    "thresholdCpuNs": 695832300,
+    "costDecisions": 1,
+    "baselineReruns": 0,
+    "nestedParentCPU": {
+      "compactCpuNs": 469359000,
+      "parentBridgeCpuNs": 22713000,
+      "residualWorldCpuNs": 70019000,
+      "legacyAdmissionCpuNs": 1776000
+    },
+    "physicalLeaves": 87102,
+    "float64Words": 45408,
+    "maxBProofPrimitives": 497019,
+    "worker": {
+      "protocol": "p4-native-witness-rpc-v1",
+      "workerStarts": 1,
+      "requestCalls": 6,
+      "workerClosed": true,
+      "exit": 0,
+      "pid": 82147,
+      "childCpuAuthority": "RESOURCE_RUSAGE_CHILDREN_DELTA_AFTER_CLOSE_AND_WAIT",
+      "childLifetimeCpuNs": 299711000,
+      "resourceBefore": {
+        "userSeconds": 0.0,
+        "systemSeconds": 0.0
+      },
+      "resourceAfter": {
+        "userSeconds": 0.288052,
+        "systemSeconds": 0.011659
+      },
+      "selfReportedChildCpuUsed": false,
+      "sentBytes": 41909,
+      "receivedBytes": 246748,
+      "parentTransportLimitBytes": 4194304,
+      "childTransportReservedBytes": 4194304,
+      "maxExplicitTransportReservedBytes": 1637096,
+      "stderrBytes": 0,
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "cleanupError": null,
+      "scope": "ONE_OWNED_NODE_WORKER_ONLY_NO_PROCESS_RSS_CLAIM"
+    },
+    "WorldCalls": 0,
+    "original1200Steps": "NOT_RUN",
+    "publicAPI": "NOT_RUN",
+    "desktop": "NOT_RUN",
+    "firstFailure": {
+      "cursor": "one-cost-decision",
+      "type": "CostGate",
+      "message": "CONSERVATIVE_NATIVE_CPU_ENVELOPE_EXCEEDS_FIXED_695832300NS_GATE"
+    },
+    "archivePins": {
+      "SOURCE-01.tar.gz": {
+        "bytes": 705176,
+        "sha256": "7fe685e3ddb5729b5410e2156569711a59a251279bdee41e232c460777fdd17a"
+      },
+      "PROOF-01.tar.gz": {
+        "bytes": 329636,
+        "sha256": "13db650aa70584976283714b775d6b72cb3e8adf498a3178263bb0c99f40407f"
+      }
+    },
+    "next": "One separately declared instrumented CPU diagnostic; no repeated cost eligibility for ended candidates.",
+    "results": "examples/physics-p4-bounded-codec-witness-2276/RESULTS.md"
+  },
+  "cpuDiagnostic": {
+    "status": "PASS_INSTRUMENTED_IDENTICAL_BYTES_FIELDS_COUNTERS_ONLY",
+    "results": "examples/physics-p4-cpu-census-2276/RESULTS.md",
+    "samples": 57,
+    "timeDeltaSampleWeightUs": 75375,
+    "authoritativeCostCPU": "NOT_MEASURED",
+    "actualSpeedRatio": "NOT_MEASURED",
+    "costDecisions": 0,
+    "retiredEligibility": "UNCHANGED_ENDED"
+  },
+  "nextIntegerPositionWitness": {
+    "status": "AUTHORING_NOT_EXECUTED",
+    "scope": "Unit-mass global dyadic integer KKT proof; same immutable GCD/codec/position/physical banks",
+    "gates": [
+      "independent math review",
+      "freshG0",
+      "freshU0",
+      "freshA10",
+      "oneB6physical+independent+conservativeCPUdecision"
+    ],
+    "thresholdCpuNs": 695832300,
+    "WorldCalls": 0,
+    "original1200Steps": "NOT_RUN",
+    "publicAPI": "NOT_RUN",
+    "desktop": "NOT_RUN"
   }
 }
