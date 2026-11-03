@@ -1,0 +1,13 @@
+{
+  "status": "PASS_FIXED_CAPTURED_BYTE_AND_FOOTPRINT_INSPECTION_ONLY",
+  "sourceSealSHA256": "de7935a095b75d904f72d24d4f459d866b0be34b5d19a7c10571393098dcf70f",
+  "measurementPath": "examples/physics-stack-evidence-refs-2276/evidence/measure-01/measurement.json",
+  "measurementSHA256": "db20c0e4dfa23f49c6508f8d05fecaa621897c14239b5d3eff6d76b2c7664135",
+  "disjointDuplicateBytes": 412568,
+  "hypotheticalJSONBytes": 72089,
+  "globalThreeCopyProjectionBytes": 1197045,
+  "combinedScratchBytes": 13983810,
+  "compressedOutputQualification": false,
+  "physicsCalls": 0,
+  "API": false
+}

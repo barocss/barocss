@@ -397,3 +397,82 @@ under examples/physics-stack-complete-2276. The q1 archive candidate ends on
 its fixed80MiB screen; a separately sourced stateful path is not yet adopted.
 All old failures, numerical tolerances,8x8/public4 limits,HOLDs and deployment
 restrictions remain unchanged.
+
+## OPT07 owned sum-square (2026-11-04)
+
+The package Arithmetic now owns normalization of a sum before squaring it.
+Coprime numerator/denominator have coprime squares, so the inner strict-line
+midpoint-distance square omits redundant GCD work. Generic multiplication,
+input checks, checked product order,16384-bit ceiling,200000/2000000 operation
+caps,16 rounding steps and all physical tolerances remain unchanged. Nonunit
+integer work decreases because actual operations are removed; universal old
+work-refusal/counter parity is not claimed. The frozen contract records zero,
+integer and stale-bit behavior explicitly. No expected solution, cache or new
+public hook exists.
+
+Root actually passes new32 cases and retained32/32/26/25/16 arithmetic plus19
+boundary cases on Source and genuine Native. Natural exhaustion tests use
+actual operations and no counter mutation. New exact9/64 completes at the same
+2M work cap where old redundant normalization refuses; the next tighter
+prefilled case still refuses at the original product boundary.
+
+Run11 then passes original first32 equilibrium, input retention, repeat and all
+three one-step/fresh16 populations. All six physical reports,117 whole payload
+files and453231 numeric words per graph remain exact to run04. Canonical
+build10 passes9.252183583s. The actual copied canonical28-code-file+package
+closure is6a504f420b8d2db5e60cd8b73103ac0c136381d56a966cb41ee54feda4336305;
+its four test helpers match prior paid bytes. The source and emitted snapshot
+are frozen for the next complete campaign after storage qualification.
+
+Cost/full1200/API/recorder/desktop qualification for this new candidate is
+NOT_RUN. No extra runtime-only campaign is required by the new contract; the
+next cost trial is the original complete population after all prerequisites.
+Previous OPT06 runtime3603-frame equality, full01 cost NO_GO and every earlier
+first failure retain their exact scopes and statuses.
+
+## OPT08: exact bit-length encoding
+
+Root isolated32 Source/genuine Native controls pass (guard
+`stack-library-arithmetic-opt08-01`,1632.356833ms). Root then adopts only the
+`checked` bit-length expression, sourceSHA
+`abb2036ddd46c146a42299173d471a360afc7c30226f694f58c1515fab10f2af`.
+The entire candidate equals preserved OPT07 apart from this expression and its
+type-only import relocation. Literal nibble widths, analytic shift exponents
+and fixed IEEE words are independent expected results; actual canonical OPT07
+is secondary parity evidence. Exact counters, work admissions, checked peaks
+and refusal priority are retained.
+
+Actual production retained07/06/05/04/03/16 banks (32/32/32/26/25/16), boundary19
+and run12 Source/genuine Native pass. Run04→run12 complete physical comparison
+passes (guard `stack-opt08-physical-parity-01`,191.364792ms): all117 payload files
+and453231 numeric words per graph, without excluded fields or normalization.
+Canonical build11 passes9.206205666s. Actual28-module+metadata closure and four
+unchanged emitted helpers are copied into `evidence/canonical-opt08-01`,
+provider digest `09e0eaba79ac8b7ac3bfe268849cf72a0d429b54b71032ad63b9ecd8b6479c2a`.
+The provenance explicitly defines its identity hash and binds the build receipt.
+This is private library implementation/compilation proof; full1200 cost and
+public World adoption remain unqualified.
+
+The preceding OPT07 full02 retains1098 independently verified/archived host
+steps before its original deadline. Its failed CPU owner admits no campaign
+scene; campaign count0 and host count1098 are separate. Original full01 and
+all storage-candidate failures remain. The actual1099 received failure packet
+now survives; data-only recovery restores84 signed-zero paths and four body
+frames, adding zero physical acceptance. New OPT08 requires fresh same-source
+prefix/full qualification. No API cap, HOLD, tolerance, shared280MiB cap, mobile
+test, release or deployment changes.
+
+The isolated candidate NodeNext graph emits CJS, while the actual package
+module is ESM; their whole emitted bytes differ. Root therefore runs the same
+fixed32 test body against actual canonical ESM, adapting only its two static
+module import paths. `stack-opt08-canonical-arithmetic-01` passes all32 in
+265.608125ms. No test formula, expected value, cap or tolerance changes.
+
+Actual canonical OPT08 prefix04 passes all48 steps,195 old wire pairs and
+425916 recovered words. Full03 then ends on original cost limits:1153
+contiguous host steps; first observed producer1155, unresolved world1154,
+earliest UNKNOWN. Owner/campaign accept0; OFFSET/YAW NOT_RUN. No speed ratio
+or complete1200/API claim. Original first failures remain. The failure envelope
+selects actual1153 while archiving; it later commits. Pending1154 packet is
+not in that envelope; reached RPCs remain in the closed partial archive.
+See `../physics-stack-complete-2276/FULL-03-RESULTS.md`.

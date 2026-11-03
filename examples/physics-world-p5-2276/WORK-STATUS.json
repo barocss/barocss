@@ -4,9 +4,9 @@
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
     "profile": "P4 original eight-box live independent partial trajectory",
-    "status": "1114_CONTIGUOUS_PHASE_AND_ARCHIVE_PASS_COMPLETE_1200_COST_NO_GO",
-    "scope": "ALIGNED1114committed; firstObserved1116deadline,position1115unresolved,earliestUNKNOWN; OFFSET/YAW NOT_RUN; actual960baseline+155terminalrecordframes; SourceNativeOPT06new32/retained/physicalprefixwordparity/buildPASS separately",
-    "results": "examples/physics-stack-complete-2276/FULL-01-RESULTS.md",
+    "status": "FULL03_COST_NO_GO_1153_HOST_STEPS_NO_ACCEPTED_CAMPAIGN_SCENE",
+    "scope": "ALIGNED1153fullyverified/archived; firstObserved1155producerdeadline/world1154pending; earliestUNKNOWN; actual960baseline+194terminalstates; OFFSET/YAWNOT_RUN. Originalfull01/02failurespreserved.",
+    "results": "examples/physics-stack-complete-2276/FULL-03-RESULTS.md",
     "canonicalAdoption": "PUBLIC_WORLD_NOT_RUN"
   },
   "mainSlices": {
@@ -34,7 +34,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Originalcompletefull01stillNO_GO1114 ALIGNED contiguous/firstObserved1116/earliestUNKNOWN. OPT06SourceNative arithmetic+physicalwordparity/build09 andall3runtime-only1200PASS; nofullphase/APIclaim. q1 andstatefulq2archive screens ended80MiB NO_GO; noq3 orcapraise. Next source-provenexactarithmetic andmeasuredlossless duplicate-byte storage work, thenqualifiednewfullcampaign. HOLD/tolerances/firstfailures preserved.",
+  "active": "P4 originalfull03OPT08 COST_NO_GO:1153contiguoushost,1155producerdeadlinefirstObserved/world1154pending/earliestUNKNOWN;campaignaccepted0,OFFSET/YAWNOT_RUN. SourceNativebanks/privateprefix/build11PASS;prefix04all48PASS. Actualfailurecaptureselected1153latercommits;pending1154packetnotinfinitefailureenvelope, reachedRPCsretainedclosedarchive. Next exactdotnormalizationcostcandidate andboundedfailurewindowevidencefix; physicaltols/time/shared280/HOLDunchanged; noAPI/deploy/mobile.",
   "latestStackImplementation": {
     "results": "examples/physics-stack-library-2276/RESULTS.md",
     "entry": "packages/barocss-physics/src/stack/prepare-step.ts",
@@ -230,6 +230,91 @@
       "runtimeDigest": "7acdbb4af249c7c8492aadbac94b5d107f1e73fe07d84dd018c29c2d3dd3e331",
       "fullIndependentlyAccepted": 0,
       "API": false
+    },
+    "opt07": {
+      "status": "SOURCE_NATIVE_PREFIX_AND_BUILD_PASS_FULL_COST_NOT_QUALIFIED",
+      "arithmeticGroups": 32,
+      "retainedGroups": [
+        32,
+        32,
+        26,
+        25,
+        16
+      ],
+      "boundaryGroups": 19,
+      "physicalNumericWordsPerGraph": 453231,
+      "completePayloadFilesPerGraph": 117,
+      "canonicalBuildSeconds": 9.252183583,
+      "providerDigest": "6a504f420b8d2db5e60cd8b73103ac0c136381d56a966cb41ee54feda4336305",
+      "actualWorkCanDecrease": true,
+      "API": false
+    },
+    "failureEvidence": {
+      "status": "PASS_FIXED8_COMPONENT_DRIVER_INTEGRATION_PENDING",
+      "result": "examples/physics-stack-complete-2276/FAILURE-EVIDENCE-ROOT-RESULT.json",
+      "emergencyBytes": 2097152,
+      "full1200": false
+    },
+    "referenceStorageScreen": {
+      "status": "ENDED_NO_GO_RETAINED_CAP",
+      "controlGroupsPassed": 34,
+      "entriesAtStop": 7606,
+      "fixedInputEntries": 10034,
+      "compressedBytes": 83886080,
+      "fullRecovery": "NOT_RUN",
+      "completeCPU": "UNKNOWN",
+      "adopted": false
+    },
+    "opt08": {
+      "status": "SOURCE_NATIVE_PREFIX_AND_BUILD_PASS_FULL_COST_NOT_QUALIFIED",
+      "sourceSHA256": "abb2036ddd46c146a42299173d471a360afc7c30226f694f58c1515fab10f2af",
+      "isolatedGroups": 32,
+      "retainedGroups": [
+        32,
+        32,
+        32,
+        26,
+        25,
+        16
+      ],
+      "boundaryGroups": 19,
+      "physicalNumericWordsPerGraph": 453231,
+      "completePayloadFilesPerGraph": 117,
+      "canonicalBuildSeconds": 9.206205666,
+      "providerDigest": "09e0eaba79ac8b7ac3bfe268849cf72a0d429b54b71032ad63b9ecd8b6479c2a",
+      "API": false
+    },
+    "completeFull02": {
+      "status": "COST_NO_GO",
+      "hostFullyVerifiedAndArchived": 1098,
+      "campaignAccepted": 0,
+      "firstObservedStep": 1099,
+      "firstObservedGate": "position1 IO deadline",
+      "earliestFailingStep": "UNKNOWN",
+      "laterScenes": "NOT_RUN",
+      "selectedActualFailurePacket": 1099,
+      "negativeZeroPathsRecovered": 84,
+      "offlineDataAuditAddsPhysicalAcceptance": 0,
+      "sharedOutputBytes": 212219837,
+      "sharedOutputCapBytes": 293601280,
+      "wholeClosedTreeCPU": "UNKNOWN"
+    },
+    "completeFull03": {
+      "status": "COST_NO_GO",
+      "hostFullyVerifiedAndArchived": 1153,
+      "campaignAccepted": 0,
+      "firstObservedStep": 1155,
+      "firstObservedGate": "producer deadline",
+      "earliestFailingStep": "UNKNOWN",
+      "laterScenes": "NOT_RUN",
+      "selectedActualFailurePacket": 1153,
+      "selectedPacketLaterCommitted": true,
+      "unresolved1154PacketInFailureEnvelope": false,
+      "reachedRPCsInClosedArchive": true,
+      "compressedBytes": 213852828,
+      "sharedOutputBytes": 222383149,
+      "sharedOutputCapBytes": 293601280,
+      "wholeClosedTreeCPU": "UNKNOWN"
     }
   },
   "latestGramProofCandidate": {

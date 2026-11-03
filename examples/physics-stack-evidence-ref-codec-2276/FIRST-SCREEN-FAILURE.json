@@ -1,0 +1,175 @@
+{
+  "API": false,
+  "actualScreenFiles": {
+    "examples/physics-stack-evidence-ref-codec-2276/evidence/screen-01/host.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-stack-evidence-ref-codec-2276/evidence/screen-01/host.stdout": {
+      "bytes": 778,
+      "sha256": "45b0a95fab6da41dda9856bf45aca16e81b07af983101cd17d82cb92e0823710"
+    },
+    "examples/physics-stack-evidence-ref-codec-2276/evidence/screen-01/host/events.br": {
+      "bytes": 83886080,
+      "sha256": "db22981c1700fedff64f9dd7ccdb917600d93750a22c4bcb318eb18e753fdc90"
+    },
+    "examples/physics-stack-evidence-ref-codec-2276/evidence/screen-01/host/result.json": {
+      "bytes": 778,
+      "sha256": "45b0a95fab6da41dda9856bf45aca16e81b07af983101cd17d82cb92e0823710"
+    },
+    "examples/physics-stack-evidence-ref-codec-2276/evidence/screen-01/host/stop.json": {
+      "bytes": 218,
+      "sha256": "4150e1a2f19f9486de1cd9a6ef0f234efe1cb2a4015c0d33ea5e4941a3d3b47e"
+    },
+    "examples/physics-stack-evidence-ref-codec-2276/evidence/screen-01/outer-stop.json": {
+      "bytes": 164,
+      "sha256": "6c89df57f8dd2c8e39fd2846ebd51e0fbd492629cd4e730d90b05a36834c1c64"
+    },
+    "examples/physics-stack-evidence-ref-codec-2276/evidence/screen-01/stage.json": {
+      "bytes": 446,
+      "sha256": "74ead7e29f35adc83a52b57b602ca6e44086d407ade00e4493594682e25f29ff"
+    },
+    "examples/physics-stack-evidence-ref-codec-2276/evidence/screen-01/summary.json": {
+      "bytes": 1444,
+      "sha256": "5f6b41f7d08675dc29b9d7b4d7ef40d2313f9b1454b179a249d6db3c920a35ef"
+    }
+  },
+  "adoptedByCompleteRunner": false,
+  "archiveDecodedByAuthor": false,
+  "completeNodeSubtreeCpuUs": null,
+  "compressedBytes": 83886080,
+  "cpuQualification": "CPUUNKNOWN",
+  "declaredOriginalInputSHA256": "a7d9a3aa99dad8b1be00f0291765e01a38e3db33868ff2973a6359b4110d5e99",
+  "encodedSuccessReceipt": null,
+  "fixed34ControlsResultPin": {
+    "bytes": 2770,
+    "sha256": "0320d5db27995aa609091ef49636e397b699164b3f73f65362f54aea9e91db51"
+  },
+  "fixedLimits": {
+    "compressedBytes": 83886080,
+    "nodeCpuUs": 30000000,
+    "wallSeconds": 45
+  },
+  "full1200": false,
+  "fullRecovery": "NOT_RUN",
+  "originalInputNotRehashedHere": true,
+  "parametersChanged": false,
+  "parentFirstFailure": {
+    "message": "CLEAN_NODE_REQUIRED",
+    "type": "ValueError"
+  },
+  "parentStatus": "SCREEN_NO_GO",
+  "physicsCalls": 0,
+  "primaryRefusal": {
+    "code": "RETAINED_CAP",
+    "message": "RETAINED_CAP",
+    "name": "ArchiveStop"
+  },
+  "rawOSWaitObservations": {
+    "childrenAfter": {
+      "maxrssBytes": 181633024,
+      "systemUs": 839871,
+      "userUs": 18322956
+    },
+    "childrenBefore": {
+      "maxrssBytes": 0,
+      "systemUs": 0,
+      "userUs": 0
+    },
+    "exitCode": 1,
+    "ioFailure": null,
+    "nodeWallSecondsThroughReapAndEof": 18.340993208112195,
+    "observedDirectChildPgid": 5858,
+    "ownerPid": 5858,
+    "pgid": 5858,
+    "pid": 5861,
+    "pipeEof": true,
+    "reaped": true,
+    "signals": [],
+    "timedOut": false,
+    "wait4Usage": {
+      "maxrssBytes": 181633024,
+      "systemUs": 839871,
+      "userUs": 18322956
+    },
+    "waitOwnershipLost": false
+  },
+  "rawOriginalInputKept": true,
+  "recoveredSuccessReceipt": null,
+  "retainedPartialArchivePin": {
+    "bytes": 83886080,
+    "sha256": "db22981c1700fedff64f9dd7ccdb917600d93750a22c4bcb318eb18e753fdc90"
+  },
+  "retries": 0,
+  "screenInvocations": 1,
+  "secondarySourceReadError": {
+    "code": "ERR_STREAM_DESTROYED",
+    "entries": 7606,
+    "message": "Cannot call write after a stream was destroyed",
+    "status": "ARCHIVE_INCOMPLETE"
+  },
+  "sourceFilesPostRunReadback": {
+    "CONTRACT.md": {
+      "bytes": 11038,
+      "sha256": "43ec9481d53c8cfd32ee44d0128b42fe041c6d142d8ba496767028b5118bb1f6"
+    },
+    "PINS.json": {
+      "bytes": 16294,
+      "sha256": "eef1e6d162af611b30f6b87463ccd2a004a561602a4ca56142ef7c74001bfc6b"
+    },
+    "archive.mjs": {
+      "bytes": 18011,
+      "sha256": "003bca57a83f014b15b42049d6168f2f3fcdd922d26fbc53b5fca4ae2be663df"
+    },
+    "archive.test.mjs": {
+      "bytes": 11352,
+      "sha256": "5e3164d85c5f666e32a02589f8741c3859f3c9496141aa9cfd291d543af5c7aa"
+    },
+    "crc.test.mjs": {
+      "bytes": 1020,
+      "sha256": "37b30e3cd92e4f9f1c0571d7cc2602a7ed269ce0a5ab3dcef67654518c8a62c9"
+    },
+    "exact-size.test.mjs": {
+      "bytes": 3753,
+      "sha256": "5e4a373252050a447fb6c0b7ac9242dba2d0319d4bf3442837d5b3ee348ed0b2"
+    },
+    "fixture-wrapper.mjs": {
+      "bytes": 941,
+      "sha256": "eaf04d4a28358bbf9b76f5f6e1c15b8ac6a3a3c892c3921fbbbd5aa5b86b72bd"
+    },
+    "history.test.mjs": {
+      "bytes": 1975,
+      "sha256": "6069399c7ab26ce6a9a106a3abbd366b6445a4d21c31009411c42418f974c512"
+    },
+    "references.test.mjs": {
+      "bytes": 9324,
+      "sha256": "8ee02fe702b6b2118ac0a5196648603fda91fdee59152aa7e9a99819a651c932"
+    },
+    "replay.mjs": {
+      "bytes": 4553,
+      "sha256": "03f53efd452524e6a569211b3bc44fce4c2e68b1b712d0d8a60ada6641c8d5b2"
+    },
+    "screen.py": {
+      "bytes": 11086,
+      "sha256": "5d603690d9aa1d33d06b33e56eb123ea207c6f8e6c82ec3a7e65338ad7322feb"
+    },
+    "views.mjs": {
+      "bytes": 8814,
+      "sha256": "2fa0e651dfc427b460980f8c88da603708be5046d208a65bfcb7b2516a78e04a"
+    }
+  },
+  "sourceOrParameterEditsAfterRun": false,
+  "sourcePinsSHA256": "eef1e6d162af611b30f6b87463ccd2a004a561602a4ca56142ef7c74001bfc6b",
+  "sourceSealSHA256": "0def9ef367c5874185bb1dfe491682dc1a491b18ce6ccdb05b1886f2c3b52298",
+  "status": "ENDED_NO_GO",
+  "stopCounters": {
+    "code": "RETAINED_CAP",
+    "codecAcceptedCompleteFrames": 7606,
+    "compressedBytes": 83886080,
+    "kernelWrittenCompleteFrames": 7606,
+    "message": "RETAINED_CAP",
+    "rpcDictionaryAdmissionCompletedFrames": 6761,
+    "status": "ARCHIVE_STOPPED"
+  },
+  "strictGlobal64MiBCertification": "NOT_QUALIFIED"
+}

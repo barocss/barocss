@@ -1,0 +1,4 @@
+// Test fixtures only: preserve old logical corruption cases through literal wrappers.
+import {crc32} from 'node:zlib';
+export function literalPhysical(logical){const out=[];let at=0;while(at<logical.length){const p=logical.subarray(at,at+16),H=p.readUInt32BE(4),P=p.readUInt32BE(8),h=logical.subarray(at+16,at+16+H),body=logical.subarray(at+16+H,at+16+H+P),w=Buffer.alloc(24);w.write('R227');w.writeUInt32BE(H,8);w.writeUInt32BE(P,12);w.writeUInt32BE(P,16);w.writeUInt32BE(crc32(body,crc32(h,crc32(p,crc32(w.subarray(0,20))))),20);out.push(w,p,h,body);at+=16+H+P;}return Buffer.concat(out);}
+export function literalLogical(physical){const out=[];let at=0;while(at<physical.length){const w=physical.subarray(at,at+24),H=w.readUInt32BE(8),P=w.readUInt32BE(12),S=w.readUInt32BE(16);if(w.readUInt32BE(4)!==0||P!==S)throw Error('literal-only fixture adapter');out.push(physical.subarray(at+24,at+40+H+S));at+=40+H+S;}return Buffer.concat(out);}

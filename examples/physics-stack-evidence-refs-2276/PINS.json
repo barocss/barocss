@@ -1,0 +1,145 @@
+{
+  "API": false,
+  "authorCompressionCalls": 0,
+  "authorDataExecution": 0,
+  "authorImports": 0,
+  "authorPhysicsCalls": 0,
+  "case": "ALIGNED:2",
+  "compressed80MiBScreen": "NOT_DETERMINED_BY_BYTE_COUNTS",
+  "descriptorModel": {
+    "literalRunBytes": 8,
+    "notAnImplementedFormat": true,
+    "programHeaderBytes": 16,
+    "referenceBytes": 64
+  },
+  "expected": {
+    "bodyRawBytes": 3744,
+    "numericLeaves": 8842,
+    "pointRawBytes": 1536,
+    "recordPlainJSONBytes": 483481,
+    "wordSidecarBytes": 70736
+  },
+  "files": {
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node": {
+      "bytes": 110712624,
+      "sha256": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+    },
+    "examples/physics-stack-evidence-refs-2276/CONTRACT.md": {
+      "bytes": 6567,
+      "sha256": "7a5cbf791bd3278bb44f439ba9639e76540541a19720b627dddc4aeb5dfcb525"
+    },
+    "examples/physics-stack-evidence-refs-2276/inspect-record.mjs": {
+      "bytes": 9395,
+      "sha256": "5b875fa5a1e7d3dc5d250a8b088c52e1fcb4b4fd4bf2c3bc081d555f455e2ef1"
+    },
+    "examples/physics-stack-library-2276/evidence/run-09/native/ALIGNED-16-2.f64le.gz": {
+      "bytes": 871,
+      "sha256": "643ab2787f5eb36abbd368cdab7022b530534c25ff9a96f8581d73a0174af9c9"
+    },
+    "examples/physics-stack-library-2276/evidence/run-09/native/ALIGNED-16-2.jsonl.gz": {
+      "bytes": 73574,
+      "sha256": "870fac553bea13ea75bb190b24c6238f17057eb29ece5a3224369dc5f50910da"
+    },
+    "examples/physics-stack-library-2276/evidence/run-09/native/geometry-13-reply.json": {
+      "bytes": 212345,
+      "sha256": "f0fafecca8f9b31da4449021ac6ac9c2deb2202f374ae6717425bb3d63bc3a96"
+    },
+    "examples/physics-stack-library-2276/evidence/run-09/native/geometry-13-request.json": {
+      "bytes": 17026,
+      "sha256": "ac79c3ca0a3e2967c6418234dcc3720a42694c4f1fc6eb196bb1068e4cf47334"
+    },
+    "examples/physics-stack-library-2276/evidence/run-09/native/geometry-14-reply.json": {
+      "bytes": 939,
+      "sha256": "df59ff534388e12f3511f1611ac160020839f8f4e81f81f9c3119ac7a4ae690f"
+    },
+    "examples/physics-stack-library-2276/evidence/run-09/native/geometry-14-request.json": {
+      "bytes": 8831,
+      "sha256": "b3055be2b58106f4b17e7a46d3ebef4b663d2f265f99d0826a9413607f12f697"
+    },
+    "examples/physics-stack-library-2276/evidence/run-09/native/position-10-reply.json": {
+      "bytes": 11706,
+      "sha256": "ddad6cb440dbb56270ed63c381e4ebe3b99cf08bafc0ff58e86c352d79863a7c"
+    },
+    "examples/physics-stack-library-2276/evidence/run-09/native/position-10-request.json": {
+      "bytes": 38312,
+      "sha256": "2b88980160081115ac0c43832b854bcd958c0abb3185a57b8840a7aace28a6bd"
+    },
+    "examples/physics-stack-library-2276/evidence/run-09/native/position-9-reply.json": {
+      "bytes": 124148,
+      "sha256": "eff73494113190b5e98c03a1f867a38a6dfffcb17cd9cfc945da8ada35e44404"
+    },
+    "examples/physics-stack-library-2276/evidence/run-09/native/position-9-request.json": {
+      "bytes": 34636,
+      "sha256": "eb95400b41c99b419bd55a990bbb6fd08ca6746112fbd1806610b895f3db9d28"
+    },
+    "examples/physics-stack-pipeline-2276/PINS.json": {
+      "bytes": 244882,
+      "sha256": "a3692b8d40ee75b649a0055ad046005c21996f9b3a4275748635db449e5f0821"
+    }
+  },
+  "format": "fixed-aligned2-evidence-ref-count-pins-v1",
+  "full1200": false,
+  "limits": {
+    "combinedScratchBytes": 16777216,
+    "globalDictionaryBytes": 2097152,
+    "pendingAllowanceBytes": 8388608
+  },
+  "node": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "record": {
+    "json": {
+      "bytes": 73574,
+      "path": "examples/physics-stack-library-2276/evidence/run-09/native/ALIGNED-16-2.jsonl.gz",
+      "sha256": "870fac553bea13ea75bb190b24c6238f17057eb29ece5a3224369dc5f50910da"
+    },
+    "raw": {
+      "bytes": 871,
+      "path": "examples/physics-stack-library-2276/evidence/run-09/native/ALIGNED-16-2.f64le.gz",
+      "sha256": "643ab2787f5eb36abbd368cdab7022b530534c25ff9a96f8581d73a0174af9c9"
+    }
+  },
+  "rpc": {
+    "contacts:reply": {
+      "bytes": 212345,
+      "path": "examples/physics-stack-library-2276/evidence/run-09/native/geometry-13-reply.json",
+      "sha256": "f0fafecca8f9b31da4449021ac6ac9c2deb2202f374ae6717425bb3d63bc3a96"
+    },
+    "contacts:request": {
+      "bytes": 17026,
+      "path": "examples/physics-stack-library-2276/evidence/run-09/native/geometry-13-request.json",
+      "sha256": "ac79c3ca0a3e2967c6418234dcc3720a42694c4f1fc6eb196bb1068e4cf47334"
+    },
+    "quality:reply": {
+      "bytes": 939,
+      "path": "examples/physics-stack-library-2276/evidence/run-09/native/geometry-14-reply.json",
+      "sha256": "df59ff534388e12f3511f1611ac160020839f8f4e81f81f9c3119ac7a4ae690f"
+    },
+    "quality:request": {
+      "bytes": 8831,
+      "path": "examples/physics-stack-library-2276/evidence/run-09/native/geometry-14-request.json",
+      "sha256": "b3055be2b58106f4b17e7a46d3ebef4b663d2f265f99d0826a9413607f12f697"
+    },
+    "step-ledger:reply": {
+      "bytes": 11706,
+      "path": "examples/physics-stack-library-2276/evidence/run-09/native/position-10-reply.json",
+      "sha256": "ddad6cb440dbb56270ed63c381e4ebe3b99cf08bafc0ff58e86c352d79863a7c"
+    },
+    "step-ledger:request": {
+      "bytes": 38312,
+      "path": "examples/physics-stack-library-2276/evidence/run-09/native/position-10-request.json",
+      "sha256": "2b88980160081115ac0c43832b854bcd958c0abb3185a57b8840a7aace28a6bd"
+    },
+    "world:reply": {
+      "bytes": 124148,
+      "path": "examples/physics-stack-library-2276/evidence/run-09/native/position-9-reply.json",
+      "sha256": "eff73494113190b5e98c03a1f867a38a6dfffcb17cd9cfc945da8ada35e44404"
+    },
+    "world:request": {
+      "bytes": 34636,
+      "path": "examples/physics-stack-library-2276/evidence/run-09/native/position-9-request.json",
+      "sha256": "eb95400b41c99b419bd55a990bbb6fd08ca6746112fbd1806610b895f3db9d28"
+    }
+  },
+  "scope": "ONE_DATA_ONLY_COUNT_NO_CODEC",
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN",
+  "strictGlobal64MiBCertification": "NOT_QUALIFIED"
+}

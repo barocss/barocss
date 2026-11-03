@@ -1,0 +1,8 @@
+{
+  "status": "FIRST_AUDIT_FAILED_BEFORE_RUNTIME_COMPARISON",
+  "reason": "Root used an extra parent URL while locating the saved runtime file",
+  "guard": "examples/physics-world-p5-2276/evidence/stack-full02-failure-recovery-01/result.json",
+  "sourceSHA256": "d9a3fe47a7b31b5d588dc519672662dd07ec65ac191f097c3f99912cf175cfdf",
+  "physicsCalls": 0,
+  "originalCampaignUnchanged": true
+}

@@ -1,0 +1,16 @@
+{
+  "status": "PRESERVED_FIRST_ROOT_ENVIRONMENT_SETUP_FAILURE",
+  "guardResult": "examples/physics-world-p5-2276/evidence/stack-stateful-controls-01/result.json",
+  "guardResultSHA256": "879c2d6a74c85a408bbb108d47752a0abeba00904190a04bfdf8dd5665972710",
+  "rootCause": "Root omitted creation of output parent evidence directory; module setup failed ENOENT.",
+  "testsReported": 4,
+  "passed": 1,
+  "failed": 3,
+  "passedGroup": "native CRC only",
+  "sourceChanges": 0,
+  "sourceSealSHA256": "2ec99c55237d33be0097906b3b17e9c56471a835e7be22abf88155ae6bf4bc96",
+  "fixedCriteriaChanges": 0,
+  "physicsCalls": 0,
+  "nextOutputNames": "controls-02/exact-02/history-02",
+  "component25Qualification": "NOT_RUN"
+}

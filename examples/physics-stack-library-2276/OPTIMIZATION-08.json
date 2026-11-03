@@ -1,0 +1,60 @@
+{
+  "status": "ISOLATED_SOURCE_READY_AUTHOR_NOT_RUN",
+  "candidate": "OPT08_EXACT_HEX_BIT_LENGTH_ONLY",
+  "productionAdopted": false,
+  "source": {
+    "path": "examples/physics-stack-library-2276/candidate-strict-line-opt08.ts",
+    "sha256": "debc13349c9d45b2dc9f8e7f59e779156928953892c41b372e7a3f5339e415ce"
+  },
+  "productionUnchanged": {
+    "path": "packages/barocss-physics/src/stack/strict-line.ts",
+    "sha256": "4c6cc8b397cb2095a255cd61e33c3050e07d5a4c933f5c7d9d896764d154606b"
+  },
+  "baselineSource": {
+    "path": "examples/physics-stack-library-2276/baseline/strict-line-opt07.ts",
+    "sha256": "4c6cc8b397cb2095a255cd61e33c3050e07d5a4c933f5c7d9d896764d154606b"
+  },
+  "actualBaseline": {
+    "path": "examples/physics-stack-library-2276/evidence/canonical-opt07-01/canonical-provider/dist/stack/strict-line.js",
+    "sha256": "b4b9b84f02cd42d3f8a974ebdcaa959aa5f9c652900c41fba483793706c2708e",
+    "packagePath": "examples/physics-stack-library-2276/evidence/canonical-opt07-01/canonical-provider/package.json",
+    "packageSha256": "7ef765dcf000a0b45dd74495e60243e16516506e730afa024fc7f32b11222330",
+    "providerDigest": "6a504f420b8d2db5e60cd8b73103ac0c136381d56a966cb41ee54feda4336305"
+  },
+  "files": {
+    "candidate-strict-line-opt08.ts": "debc13349c9d45b2dc9f8e7f59e779156928953892c41b372e7a3f5339e415ce",
+    "baseline/strict-line-opt07.ts": "4c6cc8b397cb2095a255cd61e33c3050e07d5a4c933f5c7d9d896764d154606b",
+    "OPTIMIZATION-08-CONTRACT.md": "aa561c95958d39a5c2c628e7942dda292231070fc278a65039492a448a20032c",
+    "arithmetic-opt08.test.mts": "b44aca8f35e4eb685dba96c4b8b265d8f51387d4978be4a16358d7ce496f5e31",
+    "arithmetic-opt08-run.mjs": "01b0eb917a8967fee56b57ca87528cc2206b46f08dfa90d39019649cea3c3805"
+  },
+  "proofBoundary": {
+    "wholeCandidateEquality": "RUNNER_REQUIRES_EXACT_PRESERVED_OPT07_BYTES_EXCEPT_ONE_CHECKED_EXPRESSION_AND_TYPE_ONLY_IMPORT_RELOCATION",
+    "positiveWidth": "FOUR_TIMES_HEX_TAIL_DIGITS_PLUS_EXACT_FIRST_NIBBLE_WIDTH",
+    "zeroWidth": 1,
+    "negativeMagnitude": "SAME_ABSOLUTE_VALUE_AS_OLD",
+    "oversizedPeak": "EXACT_NOT_CLAMPED_BEFORE_OR_AFTER_REFUSAL",
+    "checkedCallsAndOrder": "UNCHANGED",
+    "counterAndWorkAdmissionParity": "REQUIRED_EXACTLY",
+    "refusalPriority": "UNCHANGED_INCLUDING_STALE_CONTEXT_BEHAVIOR",
+    "numberRounding": "UNCHANGED",
+    "mathGcdOrCacheChange": false,
+    "performance": "SOURCE_HYPOTHESIS_NO_CURRENT_HOTSPOT_PERCENTAGE_OR_DEADLINE_FIT_CLAIM"
+  },
+  "fixedTests": 32,
+  "fixedOracle": "LITERAL16_NIBBLE_WIDTHS_AND_ANALYTIC_SHIFT_EXPONENTS_PLUS_LITERAL_IEEE_WORDS_NOT_SAME_ENCODING_FORMULA",
+  "testAccess": "ACTUAL_PRIVATE_ARITHMETIC_CONSTRUCTOR_FROM_ONE_THROWAWAY_CONTEXT_NO_COUNTER_OR_PROTOTYPE_MUTATION",
+  "limits": {
+    "rationalOperations": 200000,
+    "integerOperations": 2000000,
+    "integerBits": 16384,
+    "roundingSteps": 16
+  },
+  "afterAdoptionRequired": "ROOT_NEW_ADOPTED_SOURCE_BINDING_RETAINED_ARITHMETIC_BOUNDARY19_FULL_PHYSICAL_SOURCE_NATIVE_PREFIX_BUILD_CANONICAL_FREEZE_BEFORE_COST",
+  "authorCalls": {"imports": 0, "arithmetic": 0, "compiler": 0, "tests": 0, "physics": 0},
+  "cost": "NOT_RUN",
+  "originalIndependentFullPhysics": false,
+  "API": false,
+  "strictGlobal64MiBCertification": "NOT_QUALIFIED",
+  "deployment": false
+}

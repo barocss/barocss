@@ -1,0 +1,47 @@
+{
+  "API": false,
+  "RSS": "NOT_QUALIFIED",
+  "authorCodecCalls": 0,
+  "authorDataExecution": 0,
+  "authorImports": 0,
+  "authorPhysicsCalls": 0,
+  "authorTests": 0,
+  "codec": {
+    "bindingCount": 16,
+    "chunkSize": 65536,
+    "crc": "NODE_NATIVE_CHAINED_HEADER_PAYLOAD",
+    "dictionaryBytes": 2097152,
+    "encoderPath": "GENERAL_RING_HASHER_NOT_FAST_FRAGMENT",
+    "largeWindow": false,
+    "lgwin": 20,
+    "logicalFormat": "ORIGINAL_S227_BYTE_EXACT",
+    "maxSteps": 3,
+    "physicalFormat": "R227_FIXED16_REFS",
+    "quality": 2
+  },
+  "files": {
+    "CONTRACT.md": "43ec9481d53c8cfd32ee44d0128b42fe041c6d142d8ba496767028b5118bb1f6",
+    "PINS.json": "eef1e6d162af611b30f6b87463ccd2a004a561602a4ca56142ef7c74001bfc6b",
+    "archive.mjs": "003bca57a83f014b15b42049d6168f2f3fcdd922d26fbc53b5fca4ae2be663df",
+    "archive.test.mjs": "5e3164d85c5f666e32a02589f8741c3859f3c9496141aa9cfd291d543af5c7aa",
+    "crc.test.mjs": "37b30e3cd92e4f9f1c0571d7cc2602a7ed269ce0a5ab3dcef67654518c8a62c9",
+    "exact-size.test.mjs": "5e4a373252050a447fb6c0b7ac9242dba2d0319d4bf3442837d5b3ee348ed0b2",
+    "fixture-wrapper.mjs": "eaf04d4a28358bbf9b76f5f6e1c15b8ac6a3a3c892c3921fbbbd5aa5b86b72bd",
+    "history.test.mjs": "6069399c7ab26ce6a9a106a3abbd366b6445a4d21c31009411c42418f974c512",
+    "references.test.mjs": "8ee02fe702b6b2118ac0a5196648603fda91fdee59152aa7e9a99819a651c932",
+    "replay.mjs": "03f53efd452524e6a569211b3bc44fce4c2e68b1b712d0d8a60ada6641c8d5b2",
+    "screen.py": "5d603690d9aa1d33d06b33e56eb123ea207c6f8e6c82ec3a7e65338ad7322feb",
+    "views.mjs": "2fa0e651dfc427b460980f8c88da603708be5046d208a65bfcb7b2516a78e04a"
+  },
+  "fixedArchiveSHA256": "a7d9a3aa99dad8b1be00f0291765e01a38e3db33868ff2973a6359b4110d5e99",
+  "fixedGroups": 34,
+  "full1200": false,
+  "oldComponentsAndPackageUnchanged": true,
+  "screens": {
+    "afterWaitNodeCpuUs": 30000000,
+    "compressedBytes": 83886080,
+    "nodeWallSeconds": 45
+  },
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN",
+  "strictGlobal64MiBCertification": "NOT_QUALIFIED"
+}

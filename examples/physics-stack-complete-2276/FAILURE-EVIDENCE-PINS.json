@@ -1,0 +1,27 @@
+{
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN",
+  "scope": "FIXED8_FAILURE_DATA_COMPONENT_NOT_PHYSICS_OR_DRIVER_EXECUTION",
+  "files": {
+    "examples/physics-stack-complete-2276/failure-evidence.mjs": "f9c87ff773263f9723b6390561c90ee0d886fed3db2576b84431ab18a76c4709",
+    "examples/physics-stack-complete-2276/failure-evidence.test.mjs": "19309fb795f9544f40e1807b1b6ec4ada362cc7bb72f9d67651cdcb3799afe96",
+    "examples/physics-stack-complete-2276/FAILURE-EVIDENCE-CONTRACT.md": "9ec9dda8a60fd6771f323fceff91a2e1b2c7ecffac506d11e3889e9bf494f43c",
+    "examples/physics-stack-complete-2276/window.mjs": "6e87f9501e0b464a03fccd60ac700a3fc0672043e942878040a110f44e104358",
+    "examples/physics-stack-library-2276/io.mjs": "33e266bb0d9d6b86e9890b1aaef0c730a96754c90daab698d22b0bc9e2c89a97",
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+  },
+  "integrationAtAuthoring": {
+    "path": "examples/physics-stack-complete-2276/driver.mjs",
+    "beforeSha256": "285c049f89ce44f713cfd6579bedcd82feda49e0deda8cae5247ac235bb7ad0a",
+    "afterSha256": "9041bcdce5e2c07c3ceab5575a79c2534e600833059d52e9b40bf30ba3ea566a",
+    "boundary": "SOURCE_REVIEW_BINDING_ONLY; ROOT_COMPLETE_ADOPTION_RESEAL_AND_FRESH_PHYSICAL_PREFIX_REQUIRED"
+  },
+  "immutableOldControls": {
+    "baseline.mjs": "09af6549726f3c9cd22b4d14132bd7c60e2a26b0b0aa204ef925057fa83912b2",
+    "controls.test.mjs": "25a69057cdeedba4f3345b7033a9c3511f632bba4e730677920e6c00ee22cb6d"
+  },
+  "limits": {"credits": 3, "emergencyBytes": 2097152, "depth": 64, "valueOccurrences": 262144},
+  "authorCalls": {"imports": 0, "tests": 0, "codec": 0, "arithmetic": 0, "compiler": 0, "physics": 0},
+  "API": false,
+  "originalIndependentFullPhysics": false,
+  "strictGlobal64MiBCertification": "NOT_QUALIFIED"
+}

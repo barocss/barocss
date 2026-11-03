@@ -47,7 +47,8 @@ class Arithmetic {
     if (++this.counters.rationalOperations > STRICT_LINE_LIMITS.rationalOperations) throw new StrictLineFailure('rational work limit');
   }
   checked(value: bigint): bigint {
-    const bits = (value < 0n ? -value : value).toString(2).length;
+    const hex = (value < 0n ? -value : value).toString(16), first = hex.charCodeAt(0);
+    const bits = 4*(hex.length-1) + (first <= 49 ? 1 : first <= 51 ? 2 : first <= 55 ? 3 : 4);
     this.counters.peakIntegerBits = Math.max(this.counters.peakIntegerBits, bits);
     if (bits > STRICT_LINE_LIMITS.integerBits) throw new StrictLineFailure('integer bit limit');
     return value;
@@ -107,6 +108,16 @@ class Arithmetic {
   neg(a: Rational): Rational { this.op(); this.tick(); return { n: -a.n, d: a.d }; }
   sub(a: Rational, b: Rational): Rational { return this.add(a,this.neg(b)); }
   mul(a: Rational, b: Rational): Rational { this.op(); return this.normalizeChecked(this.multiply(a.n,b.n),this.multiply(a.d,b.d)); }
+  sumSquare(a: Rational, b: Rational): Rational {
+    // Own the normalization: even raw input pairs produce a reduced sum.
+    // Its numerator and denominator squares are therefore already coprime.
+    const sum = this.add(a,b);
+    this.op();
+    const n = this.multiply(sum.n,sum.n), d = this.multiply(sum.d,sum.d);
+    if (n === 0n) return ZERO;
+    if (d === 1n) this.guardCached();
+    return { n, d };
+  }
   div(a: Rational, b: Rational): Rational {
     this.op();
     if (a.d > 0n && b.d > 0n && b.n !== 0n) {
@@ -254,8 +265,7 @@ export class StrictLineContext {
     if(b===null) return false;
     // The line is p+t*n. Its true surface-pair midpoint is
     // p+(a.high+b.low)*n/2, not the midpoint of two arbitrary face projections.
-    const twiceOffset=m.add(a.high,b.low);
-    const fourDistanceSquared=m.mul(m.mul(twiceOffset,twiceOffset),this.normalSquared);
+    const fourDistanceSquared=m.mul(m.sumSquare(a.high,b.low),this.normalSquared);
     return m.compare(fourDistanceSquared,this.fourToleranceSquared)<=0;
   }
   private faceIsBoundary(which: 0 | 1,entry: ExactMidpoint,plane: FacePlane,bound: Rational,exit: boolean): boolean {

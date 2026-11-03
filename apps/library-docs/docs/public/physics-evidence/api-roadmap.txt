@@ -27,9 +27,9 @@ The completed totals are currently discarded; this adds no public wrench
 capability and makes no performance claim. See
 `examples/physics-canonical-contribution-2276/RESULTS.md`.
 
-The next implementation is a package-owned frozen contact island under
-`src/stack/`, starting with the original32-force-point normal solve and the
-separate36-row position solve. The current public pairwise solver is not the
+The package-owned frozen contact island under `src/stack/` now implements
+the original32-force-point normal solve and the separate36-row position solve.
+Its original1200-step qualification is still open. The current public pairwise solver is not the
 historically qualified private P4 provider. New current-package tests must
 requalify represented contact operands, phase order, independent physical
 checks and genuine emitted modules; old16-step receipts are not inherited.
@@ -152,6 +152,57 @@ of10034 entries. A separately sourced stateful ring/hasher candidate must keep
 those screens and qualify independently. Next address measured engine/archive
 cost, then a new full campaign. No public profile, recorder or desktop promotion
 precedes original full acceptance.
+
+OPT07 removes a redundant GCD only for the square of an internally normalized
+sum. New32, all retained arithmetic banks and boundary19 pass on Source and
+genuine Native; run11 preserves all453231 physical numeric words and117 payload
+files per graph. Canonical build10 passes9.252183583s. Actual integer work can
+decrease; no universal old work-limit refusal parity is claimed. Physical
+tolerances, integer bit checks and fixed operation ceilings remain unchanged.
+Its complete1200 cost is not yet qualified.
+
+Both stateful q2 and fixed16 reference-storage candidates also end at the
+unchanged80MiB component screen:5137 and7606 of10034 entries respectively.
+The latter passes34 component tests but does not recover the full fixed input;
+CPU remains UNKNOWN on that failed screen. Neither candidate is adopted. Keep
+all three storage failures. The next full campaign uses the already qualified
+exact-size archive and actual canonical OPT07 provider. A separate8-test
+failure-evidence component now preserves the received uncommitted packet and
+its finite numbers, including signed zero, within the existing2MiB emergency
+bound. Fresh combined-prefix and full physical tests must qualify integration.
+
+The fresh OPT07 prefix03 passes48 independent steps,195 old wire pairs and
+425916 recovered numeric words. Full02 then stops at the unchanged deadline:
+ALIGNED1098 steps are fully verified/archived by the host; first observed
+position1099 deadline leaves earliest failure UNKNOWN. The failed owner has
+CPUUNKNOWN and no accepted campaign scene, so its campaign count is0. OFFSET
+and YAW are NOT_RUN. Actual received1099 evidence survives; a data-only audit
+restores84 negative-zero paths and matches four body frames to the paid
+runtime05 data. It adds no physical acceptance. Root's first audit had a wrong
+saved-file URL; that harness failure and its corrected audit remain recorded.
+Original full01 is unchanged. See `physics-stack-complete-2276` results.
+
+OPT08 changes only exact integer bit-length encoding from binary digits to
+hexadecimal digits plus an exact leading-nibble width. The isolated32 controls,
+retained32/32/32/26/25/16 and boundary19 pass on Source/genuine Native. Actual
+package run12 keeps all453231 physical numeric words and117 payload files per
+graph exact to run04; canonical build11 passes9.206205666s. Counters, checked
+peaks, bit/work limits and refusal order remain unchanged from OPT07. No current
+speed or1200-fit claim follows. Next freeze this actual canonical provider,
+run a fresh combined prefix and then the original full campaign. Shared280MiB
+remains shared across scenes; source tracing does not justify resetting it.
+
+Actual OPT08 prefix04 passes48 independent steps and425916 recovered words.
+Full03 then verifies/archives1153 ALIGNED steps before the original deadline;
+producer1155 is first observed and world1154 is unresolved, so earliest failure
+is UNKNOWN. Campaign acceptance remains0 because the owner fails; OFFSET/YAW
+are NOT_RUN. The actual960 baseline and194 completed terminal states survive,
+but the required241 states and1200/full recovery do not. Failure capture keeps
+received1153 while it is archiving; that step later commits. The packet for
+pending1154 is not included in the failure envelope. Its reached RPC evidence
+remains in the closed partial archive. No missing packet is reconstructed or
+claimed recovered. Preserve this diagnostic limit and the original first
+failure. See `examples/physics-stack-complete-2276/FULL-03-RESULTS.md`.
 
 The current first-interval coupled-contact path has completed its finite
 arithmetic, actual World, post-impulse rollback/wire and desktop Native gates.
