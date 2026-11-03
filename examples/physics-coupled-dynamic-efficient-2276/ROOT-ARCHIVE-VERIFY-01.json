@@ -1,0 +1,15 @@
+{
+  "status": "ROOT_ALL_EFFICIENT_PURE_SOURCE_NATIVE_EVIDENCE_VERIFIED",
+  "indexPin": {
+    "bytes": 235879,
+    "sha256": "54b82309d300c6c638acef7f4b9a1ce23444c8b59a654ee26c7d8ac1dd979dc5"
+  },
+  "logicalMembers": 207,
+  "standardHardlinks": 44,
+  "workspaceRecoveryLocations": 84,
+  "uncompressedTarAggregateBytes": 2467840,
+  "individualTarCapBytes": 16777216,
+  "kernelWorldBrowserObserverCalls": 0,
+  "scope": "PURE_3_INPUT_8_ADMISSION_PASS_WORLD_ARITHMETIC_PROMOTION_BLOCKED",
+  "postArchiveSupplemental": true
+}

@@ -1,0 +1,26 @@
+# Coupled dynamic actual-work reduction 01
+
+Status: AUTHOR_SOURCE_ONLY_NOT_EXECUTED. This new candidate is a separate revision. It does not change the frozen candidate a211f1e3e92e9e3eebc56985b1f457d1cef78e054c0f2f201c5c8cfc83c97dac, its harness, reference/gold, first setup failure or first pure failure. The author has made no numerical, helper, reference, decoder, compiler, World or browser call. All other workers' files and held scopes remain unchanged.
+
+## Preserved first failure and diagnosis
+
+Root's saved `physics-coupled-dynamic-2276/ROOT-FIRST-PURE-FAILURE-01.json` records an actual pure Source after-case UNRESOLVED/DYNAMIC_INTEGER_WORK_LIMIT: attempted integerOps262146 against262144, gcdSteps20194, rationalOps732, peakBits1293, subdivisions66 and maxDyadicExponent66. Before/at independent physical audits and complete original static certificate words passed. There were3 coupled calls and2 direct static controls, zero Worlds. Native, negative controls and parity were NOT_RUN. These facts are historical results, not results for this new candidate.
+
+The saved meter has no per-function cost breakdown. Source inspection identifies two avoidable computations: rational polynomial Euclidean division repeatedly normalizes fractions then clears denominators back to integers; root subdivision repeatedly evaluates complete endpoint Sturm variations, including unchanged endpoints and both one-sided limits of the same member. No exact cost attribution or claim that the new revision fits the cap follows without root execution.
+
+## Sole algorithm changes
+
+1. Use exact integer pseudo-remainders for the Sturm sequence. With b=LC(B), r=LC(R) and k=degree(R)-degree(B), replace R by `abs(b)*R-sign(b)*r*x^k*B`. The leading term cancels. Modulo B the result equals the previous remainder times strictly positive abs(b). Divide only by positive integer content after each elimination to control growth. Negate the final remainder for the next Sturm term. No leading sign is forced positive. If a step exceeds the original bit/work cap, refuse before any impulse.
+2. Memoize verified paired left/right Sturm variations at each exact immutable dyadic Point. Evaluate each member and its first nonzero derivative once, then derive both Taylor side signs. Store only those completed results and the independently established polynomial-root flag. The complete chain and each coefficient array are frozen before any memo use; Point objects and memo records are frozen too. A separate chain-identity guard prevents reuse with a different chain.
+
+The cache is local to one helper invocation, shared across every root, and never reset. Before growing it, enforce capacity258, derived from2 initial endpoints plus at most256 global midpoint allocations. A cache hit performs no substituted or deferred BigInt arithmetic. All BigInt arithmetic for constructing a new result remains inside the original unchanged wrappers. There are no supplied coefficient/root/solution seeds or process-global caches.
+
+## Exact unchanged boundary
+
+Keep the original input/result/certificate types and helper import, static priority, material/reported-normal admission, before/at J/N/T and complete static certificate, physical/native K/frame/point derivation, compact-s polynomial, all-root population, H admissibility, unique-root rule, RNE/IEEE-zero logic, physical residual/cache/work gates and64-initial/8-refinement policy. Only readonly types needed to express the frozen chain/points are added. Root endpoint/midpoint checks consume the same exact polynomial-root flag now computed as part of the complete variation result; they do not skip the check.
+
+Every old meter wrapper, price and limit is unchanged. This includes4096 rational constructions,262144 integer primitives,262144 Euclidean remainders,16384 bits, degree4, chain5,256 total bisections and exponent128. Static and dynamic meters remain separate/cumulative with no root reset. Avoided fraction objects, gcd calls, divisions, Horner evaluations and duplicate derivatives simply do not occur. There is no cheaper charge for an operation that still occurs and no unmetered arithmetic implementation. Polynomial/content arithmetic continues to use guarded integer multiply/shift/division/remainder/sign/check wrappers.
+
+The positive primitive normalization makes the new chain coefficient-for-coefficient equal to the old rational algorithm's primitive signed chain whenever both complete. All root counts, selected interval, RNE outputs and physical certificates should therefore agree apart from actual work counters. This is an algebraic expectation to verify independently, not a new pure PASS claim.
+
+Use the unchanged original data/gold and independent auditor. Authenticate this source under a new provider/freeze. First qualify Source pure results and every previously unreached negative control, then strict Native pure results and full parity. No World dynamic execution is authorized until those arithmetic dependencies actually pass. Original180s/16MiB and all physical8x8/World/query/application/tolerance caps remain unchanged. Static lifecycle/browser receipts remain separate; no public, warm, multipoint, later-step or whole-engine dynamic claim is made.

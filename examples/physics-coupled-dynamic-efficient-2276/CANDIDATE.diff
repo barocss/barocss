@@ -1,0 +1,174 @@
+--- ancestor-a211/candidate.ts
++++ efficient/candidate.ts
+@@ -46,8 +46,9 @@
+ type V = [Q, Q, Q];
+ type P = Q[];
+ type IP = bigint[];
++type Chain = ReadonlyArray<ReadonlyArray<bigint>>;
+ type Interval = [Q, Q];
+-interface Point { n: bigint; e: number }
++interface Point { readonly n: bigint; readonly e: number }
+ interface Root { lo: Point; hi: Point; exact: boolean }
+ const LIMIT = Object.freeze({ bits: 16384, rationals: 4096, integerOps: 262144,
+   gcdSteps: 262144, subdivisions: 256, exponent: 128, initialExponent: 64 });
+@@ -181,28 +182,44 @@
+     trim(a);
+     let denominator = 1n;
+     for (const x of a) denominator = imul(idiv(denominator, gcd(denominator, x.d)), x.d);
+-    let out = a.map(x => imul(x.n, idiv(denominator, x.d))), content = 0n;
+-    for (const x of out) content = gcd(content, x);
+-    if (!sign(content)) return [0n];
+-    out = out.map(x => idiv(x, content));
++    const out = a.map(x => imul(x.n, idiv(denominator, x.d)));
+     // The removed common denominator and content are positive. Never flip sign.
+-    return out;
++    return primitiveInteger(out);
+   }
++  function trimInteger(a: IP): IP {
++    while (a.length > 1 && !sign(a[a.length - 1])) a.pop();
++    return a;
++  }
++  function primitiveInteger(a: IP): IP {
++    trimInteger(a);
++    let content = 0n;
++    for (const x of a) content = gcd(content, x);
++    if (!sign(content)) return [0n];
++    // gcd is nonnegative: only positive rescaling is allowed in a Sturm chain.
++    return a.map(x => idiv(x, content));
++  }
+   function remainder(a: IP, b: IP): IP {
+-    let out = a.map(x => q(x));
+-    const divisor = b.map(x => q(x));
++    let out = [...a];
+     if (b.length === 1 && !sign(b[0])) fail('DYNAMIC_ZERO_STURM_DIVISOR');
+-    while (out.length >= b.length && !(out.length === 1 && !sign(out[0].n))) {
+-      const index = out.length - b.length, factor = div(out[out.length - 1], divisor[divisor.length - 1]);
+-      for (let j = 0; j < divisor.length; j++) out[index + j] = sub(out[index + j], mul(factor, divisor[j]));
+-      trim(out);
++    const leadingB = b[b.length - 1], negativeB = sign(leadingB) < 0;
++    const absoluteB = negativeB ? ineg(leadingB) : leadingB;
++    let normalized = false;
++    while (out.length >= b.length && !(out.length === 1 && !sign(out[0]))) {
++      const index = out.length - b.length, leadingR = out[out.length - 1];
++      const factor = negativeB ? ineg(leadingR) : leadingR;
++      // abs(LC(B))*R - sign(LC(B))*LC(R)*x^index*B cancels the leading term.
++      // Its remainder modulo B is a POSITIVE multiple of the old remainder.
++      const next = out.map(x => imul(absoluteB, x));
++      for (let j = 0; j < b.length; j++) next[index + j] = isub(next[index + j], imul(factor, b[j]));
++      out = primitiveInteger(next); normalized = true;
+     }
+-    return primitive(pNeg(out));
++    const negative = out.map(ineg);
++    return normalized ? negative : primitiveInteger(negative);
+   }
+-  function derivative(p: IP): IP {
++  function derivative(p: ReadonlyArray<bigint>): IP {
+     return p.length === 1 ? [0n] : p.slice(1).map((x, i) => { tick(); return imul(x, BigInt(i + 1)); });
+   }
+-  function sturm(p: IP): IP[] {
++  function sturm(p: IP): Chain {
+     const chain = [p, derivative(p)];
+     if (chain[1].length === 1 && !sign(chain[1][0])) fail('DYNAMIC_CONSTANT_POLYNOMIAL');
+     while (chain[chain.length - 1].length > 1) {
+@@ -211,38 +228,46 @@
+       if (r.length === 1 && !sign(r[0])) fail('DYNAMIC_MULTIPLE_ROOT_UNQUALIFIED');
+       chain.push(r);
+     }
+-    return chain;
++    return Object.freeze(chain.map(member => Object.freeze(member)));
+   }
+   function point(n: bigint, e: number): Point {
+     if (e > LIMIT.exponent) fail('DYNAMIC_DYADIC_EXPONENT_LIMIT');
+-    checked(n); counts.maxDyadicExponent = Math.max(counts.maxDyadicExponent, e); return { n, e };
++    checked(n); counts.maxDyadicExponent = Math.max(counts.maxDyadicExponent, e); return Object.freeze({ n, e });
+   }
+-  function value(p: IP, x: Point): bigint {
++  function value(p: ReadonlyArray<bigint>, x: Point): bigint {
+     let result = p[p.length - 1];
+     for (let i = p.length - 2; i >= 0; i--)
+       result = iadd(imul(result, x.n), ishift(p[i], x.e * (p.length - 1 - i)));
+     return result;
+   }
+-  function sideSign(p: IP, x: Point, side: -1 | 1): number {
+-    let derivativeOrder = 0, current = p;
+-    for (;;) {
+-      const s = sign(value(current, x));
+-      if (s) return side === -1 && derivativeOrder % 2 ? -s : s;
+-      if (current.length === 1) fail('DYNAMIC_ZERO_STURM_MEMBER');
+-      current = derivative(current); derivativeOrder++;
++  interface Variations { readonly left: number; readonly right: number; readonly root: boolean }
++  // There is one immutable chain per invocation, and at most 2+256 dyadic points.
++  // A hit reuses an already-checked result; it performs no displaced BigInt work.
++  const variationMemo = new Map<Point, Variations>();
++  let variationChain: Chain | null = null;
++  function variations(chain: Chain, x: Point): Variations {
++    if (variationChain === null) variationChain = chain;
++    else if (variationChain !== chain) fail('DYNAMIC_VARIATION_CHAIN_IDENTITY');
++    const found = variationMemo.get(x);
++    if (found) return found;
++    if (variationMemo.size >= LIMIT.subdivisions + 2) fail('DYNAMIC_VARIATION_CACHE_BOUND');
++    let previousLeft = 0, previousRight = 0, left = 0, right = 0, root = false;
++    for (let i = 0; i < chain.length; i++) {
++      let order = 0, current = chain[i], s = sign(value(current, x));
++      if (i === 0) root = s === 0;
++      while (!s) {
++        if (current.length === 1) fail('DYNAMIC_ZERO_STURM_MEMBER');
++        current = derivative(current); order++; s = sign(value(current, x));
++      }
++      const leftSign = order % 2 ? -s : s;
++      if (previousLeft && previousLeft !== leftSign) left++;
++      if (previousRight && previousRight !== s) right++;
++      previousLeft = leftSign; previousRight = s;
+     }
++    const result = Object.freeze({ left, right, root }); variationMemo.set(x, result); return result;
+   }
+-  function variations(chain: IP[], x: Point, side: -1 | 1): number {
+-    let previous = 0, result = 0;
+-    for (const member of chain) {
+-      const s = sideSign(member, x, side);
+-      if (previous && previous !== s) result++;
+-      previous = s;
+-    }
+-    return result;
+-  }
+-  function countOpen(chain: IP[], lo: Point, hi: Point): number {
+-    const count = variations(chain, lo, 1) - variations(chain, hi, -1);
++  function countOpen(chain: Chain, lo: Point, hi: Point): number {
++    const count = variations(chain, lo).right - variations(chain, hi).left;
+     if (count < 0 || count > 4) fail('DYNAMIC_INVALID_STURM_COUNT');
+     return count;
+   }
+@@ -251,9 +276,9 @@
+     const e = Math.max(lo.e, hi.e);
+     return point(iadd(ishift(lo.n, e - lo.e), ishift(hi.n, e - hi.e)), e + 1);
+   }
+-  function isolate(p: IP, chain: IP[]): Root[] {
++  function isolate(p: IP, chain: Chain): Root[] {
+     const lo = point(0n, 0), hi = point(1n, 0);
+-    if (!sign(value(p, lo)) || !sign(value(p, hi))) fail('DYNAMIC_ENDPOINT_ROOT_UNQUALIFIED');
++    if (variations(chain, lo).root || variations(chain, hi).root) fail('DYNAMIC_ENDPOINT_ROOT_UNQUALIFIED');
+     const total = countOpen(chain, lo, hi);
+     if (!total) fail('DYNAMIC_NO_INTERIOR_ROOT');
+     const roots: Root[] = [], stack = [{ lo, hi, count: total }];
+@@ -263,7 +288,7 @@
+       if (cell.count === 1 && Math.min(cell.lo.e, cell.hi.e) >= LIMIT.initialExponent) {
+         roots.push({ lo: cell.lo, hi: cell.hi, exact: false }); continue;
+       }
+-      const mid = midpoint(cell.lo, cell.hi), exact = !sign(value(p, mid));
++      const mid = midpoint(cell.lo, cell.hi), exact = variations(chain, mid).root;
+       const left = countOpen(chain, cell.lo, mid), right = countOpen(chain, mid, cell.hi);
+       if (left + right + Number(exact) !== cell.count) fail('DYNAMIC_ROOT_PARTITION_COUNT');
+       if (right) stack.push({ lo: mid, hi: cell.hi, count: right });
+@@ -273,10 +298,10 @@
+     if (roots.length !== total || roots.length > 4) fail('DYNAMIC_INCOMPLETE_ROOT_POPULATION');
+     return roots;
+   }
+-  function refine(root: Root, p: IP, chain: IP[], rounds: number): void {
++  function refine(root: Root, p: IP, chain: Chain, rounds: number): void {
+     for (let i = 0; i < rounds && !root.exact; i++) {
+       const mid = midpoint(root.lo, root.hi);
+-      if (!sign(value(p, mid))) { root.lo = mid; root.hi = mid; root.exact = true; break; }
++      if (variations(chain, mid).root) { root.lo = mid; root.hi = mid; root.exact = true; break; }
+       const left = countOpen(chain, root.lo, mid), right = countOpen(chain, mid, root.hi);
+       if (left + right !== 1) fail('DYNAMIC_REFINEMENT_COUNT');
+       if (left) root.hi = mid; else root.lo = mid;

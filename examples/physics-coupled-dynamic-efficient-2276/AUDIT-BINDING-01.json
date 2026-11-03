@@ -1,0 +1,47 @@
+{
+  "format": "efficient-pure-audit-binding-01",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "oldActualBank": {
+    "path": "examples/physics-coupled-dynamic-2276/evidence/bank-01/bank.json",
+    "bytes": 5818,
+    "sha256": "58371a5b250845a664fbc501e7f4f13d93d98cf191e33a94afede7bc16b6a514"
+  },
+  "gold": {
+    "path": "examples/physics-coupled-dynamic-reference-2276/evidence/reference-01/reference.json",
+    "sha256": "0f710491f0063fd0b0e988ea915cd6342c5e013e695057d503a27a7d7ba7c943",
+    "execution": "ALREADY_READY_NOT_REGENERATED"
+  },
+  "audit": {
+    "path": "examples/physics-coupled-dynamic-reference-2276/audit-pure.py",
+    "sha256": "fbb772ee12e86520673dd682031d3a6b5b483bba8371a5b9029cb482a5ee8820",
+    "cli": "packetPath referencePath outputPath",
+    "status": "EXECUTED_PASS_PURE_COUPLED_PHYSICAL_INPUT",
+    "scope": "ONE_ORIGINAL_INPUT_IMMEDIATELY_BEFORE_NEXT_CASE",
+    "versionChange": false
+  },
+  "sourceAuthority": {
+    "allowedCandidate": {
+      "path": "examples/physics-coupled-dynamic-efficient-2276/candidate.ts",
+      "sha256": "24294355dc1743f8d08e747ee99da85b3ce44ae40afe1ba83b4a69d8270988f3"
+    },
+    "unchangedStaticHelper": {
+      "path": "examples/physics-coupled-contact-2276/candidate.ts",
+      "sha256": "5ee4eb75ec8baa1036a7a60977ab1d6c39b37e1d96cbe1cc2ea7c67140781db2"
+    },
+    "oldCandidateForProofOnly": {
+      "path": "examples/physics-coupled-dynamic-2276/candidate.ts",
+      "sha256": "a211f1e3e92e9e3eebc56985b1f457d1cef78e054c0f2f201c5c8cfc83c97dac",
+      "compiledOrImported": false
+    },
+    "changeProof": "Protected CONTRACT.md / DIFF-NOTES.md / CANDIDATE.diff; exact hashes in author seal. Source proof is not numerical qualification."
+  },
+  "packetSchema": {
+    "packet": "{id,input,actual}, every numeric value encoded as {$f64le:16hex}",
+    "staticControl": "<id>-static-control.json same lossless words",
+    "provenance": "bank.json + frozen-inputs.json siblings; actual trace-derived input unchanged"
+  },
+  "sharedGates": "Unchanged independent physical/native/static-certificate/dynamic-root/RNE/cache/work and exact old tolerances; no provider/number normalization",
+  "missingArithmeticBanks": "NOT_RUN",
+  "runtimeWorldPromotion": "BLOCKED",
+  "WorldCalls": 0
+}
