@@ -169,3 +169,14 @@ Inherited typing boundaries are explicit, no new waivers. See COVERAGE-15.json
 and `examples/physics-coupled-dynamic-host-2276/CLEAN-RESULTS.md`. Post-impulse
 rollback/wire, dynamic desktop, warm/multipoint, public adoption and original
 long-duration eight-box settling remain separate unqualified gates.
+
+## Dynamic after transaction checkpoint (2026-11-03)
+
+Source/Native each pass4Worlds/6phase attempts/4accepted intervals and20independent
+audits, including genuine post-J/bucket rollback and actual serialize/deserialize/
+restore. Full38packet/wire files match raw; valid wire is4771bytes. Hidden
+accepted outputs use genuine pre-dispose getters. Hidden initial getter is
+NOT_RETAINED; same-model initial controls are explicitly bound to actual hidden
+creation/attempt/free-input/cache records. No ID normalization. Second interval
+remains a typed pre-phase refusal, not physics success. See COVERAGE-16.json and
+`examples/physics-coupled-dynamic-host-2276/TRANSACTION-RESULTS.md`.

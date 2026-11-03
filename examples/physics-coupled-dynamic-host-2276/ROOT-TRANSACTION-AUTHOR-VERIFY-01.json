@@ -1,0 +1,8 @@
+{
+  "status": "PASS_ALL_1584_TRANSACTION_INPUT_PINS",
+  "authorSha256": "4ea253b457686e0af89d9c3bec23dc0915cb3afa10ae07dea964d2f60b543886",
+  "verifiedPins": 1584,
+  "WorldCalls": 0,
+  "candidateCalls": 0,
+  "inspectionNote": "All frozen pins verified before the optional command-list display raised KeyError: commands. No runtime or numerical call occurred. Commands are fixed in TRANSACTION-PROTOCOL.md."
+}

@@ -33,7 +33,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Priority: actual post-impulse rollback and recorder/restore for qualified coupled dynamic contact. Shared arithmetic and original three clean Source/Native Worlds pass. Dynamic desktop and long-duration stack remain unqualified.",
+  "active": "Dynamic first-interval arithmetic, clean Worlds, post-impulse atomicity/wire and desktop after-selected rendering have passed their finite gates. Next: determine the earliest original eight-box warm/multipoint/cost dependency from preserved receipts.",
   "progressMethod": "Prior5of9boundedmilestones retained as historicalqualifications; newcontact-schema delta requiresseparateP0/P1/P2/P5outputrequalification. No weightedpercent orwhole-enginePASS.",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
@@ -889,10 +889,9 @@
     "WorldPromotion": "FINITE_THREE_CLEAN_WORLD_CASES_PASS_ATOMICITY_WIRE_DESKTOP_PUBLIC_GATES_REMAIN"
   },
   "currentPriorityOrder": [
-    "Post-impulse rollback and genuine recorder/restore for the admitted dynamic case",
-    "Desktop browser rendering plus independent actual-browser physics after rollback/wire pass",
-    "Warm and multipoint contact prerequisites",
-    "Original long-duration eight-box settling under unchanged gates"
+    "Identify and qualify the earliest warm/multipoint or cost blocker for the original eight-box profile",
+    "Implement only the newly frozen bounded candidate and compare independent saved-contact references first",
+    "Revalidate original long-duration eight-box cases only after prerequisite passes"
   ],
   "dynamicHost": {
     "status": "EXECUTED_PASS_ORIGINAL_THREE_CLEAN_WORLD_CASES",
@@ -924,9 +923,82 @@
     "archiveLogicalMembersVerified": 1261,
     "archiveFrozenWorkspaceRecoveryVerified": 1092,
     "inheritedTypingBoundaries": "skipLibCheck true; two existing nocheck files; no new waiver; not whole-host strict typing proof",
-    "postImpulseAndWire": "AUTHORING_NOT_EXECUTED",
-    "dynamicDesktop": "AUTHORED_NOT_EXECUTED",
+    "postImpulseAndWire": "EXECUTED_PASS_AFTER_SOURCE_NATIVE_38_FULL_RAW_FILES",
+    "dynamicDesktop": "EXECUTED_PASS_AFTER_SELECTED_7_CHECKS_18_PHYSICAL_JOBS_6_FULL_PACKET_PARITY",
     "canonicalPublicAdoption": "NOT_RUN",
     "warmMultipointLongStack": "UNCHANGED_NO_GO_OR_NOT_RUN"
+  },
+  "dynamicTransaction": {
+    "status": "PASS_DYNAMIC_AFTER_ROLLBACK_AND_GENUINE_ONE_FRAME_WIRE_SOURCE_NATIVE",
+    "profile": "Original after model, empty commands, first accepted interval only",
+    "perGraphCounts": {
+      "worlds": 4,
+      "attempts": 6,
+      "records": 337,
+      "applications": 257,
+      "queries": 41,
+      "queryPoints": 37,
+      "anchorChecks": 999,
+      "traceBytes": 1216253
+    },
+    "perGraphAccepted": 4,
+    "perGraphHelperPlans": 5,
+    "perGraphDirectStepCalls": 4,
+    "perGraphHiddenReplayCalls": 3,
+    "perGraphTotalObservedStepCalls": 7,
+    "perGraphIndependentAudits": 20,
+    "rawParityFiles": 38,
+    "normalization": "NONE",
+    "wirePin": {
+      "bytes": 4771,
+      "sha256": "293976328e1204c87bebcc619ef2a6b38b319ef493a2fc8a61b784f09faff758"
+    },
+    "rollback": "RAW_EQUAL_AFTER_KNOWN_PREQUERY_AND_UNKNOWN_ACTUAL_POST_J_BUCKET_MUTATION",
+    "hiddenAcceptedState": "GENUINE_PRE_DISPOSE_FULL_PUBLIC_PRIVATE_OWNER_RAW_EQUAL",
+    "hiddenInitialGetter": "NOT_RETAINED",
+    "hiddenInitialAuthority": "SAME_MODEL_INITIAL_CONTROL_BOUND_TO_ACTUAL_CREATION_ATTEMPT_FREE_INPUT",
+    "privateDiagnosticCacheFrameAndTraceEqualityAcrossWorlds": "NOT_PROVEN_NO_ID_MAP",
+    "secondInterval": "TYPED_REFUSAL_BEFORE_PHASE_BEGIN_WITH_ACCEPTED_AND_DIAGNOSTIC_STATE_PRESERVED",
+    "commandPopulation": "EMPTY_ONLY",
+    "runtimeChanged": "NONE_FROM_QUALIFIED_HOST_BUILD02",
+    "guards": [
+      {
+        "path": "examples/physics-world-p5-2276/evidence/coupled-dynamic-tx-freeze-01/result.json",
+        "pin": {
+          "bytes": 3077,
+          "sha256": "62f251f66ea6f9f6f6cdd4752c9f8517fee5796ddd1a8507bff89a3ce05cdb24"
+        },
+        "elapsedMs": 466.09125
+      },
+      {
+        "path": "examples/physics-world-p5-2276/evidence/coupled-dynamic-tx-source-01/result.json",
+        "pin": {
+          "bytes": 3105,
+          "sha256": "2643a0ae5b1e65ef85d3017a7a62b70473604690e115e8b9a4be9ea454bae0f7"
+        },
+        "elapsedMs": 7866.29275
+      },
+      {
+        "path": "examples/physics-world-p5-2276/evidence/coupled-dynamic-tx-native-01/result.json",
+        "pin": {
+          "bytes": 3106,
+          "sha256": "2df04ec3935b934154947fc46fb280dfb2692d7aa20c087899592cda9da4c0c9"
+        },
+        "elapsedMs": 7911.372291
+      },
+      {
+        "path": "examples/physics-world-p5-2276/evidence/coupled-dynamic-tx-parity-01/result.json",
+        "pin": {
+          "bytes": 3171,
+          "sha256": "d23d707ad39989e0bc4c22741651dd0822a0cda0ae3ca90ecfd1ce99f8734208"
+        },
+        "elapsedMs": 236.070792
+      }
+    ],
+    "warmMultipointAndLongStack": "UNCHANGED_NO_GO_OR_NOT_RUN",
+    "canonicalPublicAdoption": "NOT_RUN",
+    "browserWire": "NOT_RUN",
+    "HOLD": "UNCHANGED",
+    "deploy": "NOT_RUN"
   }
 }
