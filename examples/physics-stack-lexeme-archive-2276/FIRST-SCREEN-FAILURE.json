@@ -1,0 +1,226 @@
+{
+  "API": false,
+  "actualScreenFiles": {
+    "examples/physics-stack-lexeme-archive-2276/evidence/screen-01/host.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-stack-lexeme-archive-2276/evidence/screen-01/host.stdout": {
+      "bytes": 873,
+      "sha256": "bfbcecb409ac93cc82d4e33adeb26cac0edf5f1854cd6418c72551c10275e5ec"
+    },
+    "examples/physics-stack-lexeme-archive-2276/evidence/screen-01/host/events.gz": {
+      "bytes": 83886080,
+      "sha256": "4afd6b46348eb0ac0d2bbbdcb9b2defcc117c39f068c34652e48af4eb1249ef6"
+    },
+    "examples/physics-stack-lexeme-archive-2276/evidence/screen-01/host/result.json": {
+      "bytes": 873,
+      "sha256": "bfbcecb409ac93cc82d4e33adeb26cac0edf5f1854cd6418c72551c10275e5ec"
+    },
+    "examples/physics-stack-lexeme-archive-2276/evidence/screen-01/host/stop.json": {
+      "bytes": 242,
+      "sha256": "d936f8e8742e614baa7da35a2a0126cf84e11cf7e71151a0a16ec17877549e82"
+    },
+    "examples/physics-stack-lexeme-archive-2276/evidence/screen-01/outer-stop.json": {
+      "bytes": 165,
+      "sha256": "fb0d8cc991b22122e3350fb8ed435885e2d8ce6da597d61c7ca9168b69f492ac"
+    },
+    "examples/physics-stack-lexeme-archive-2276/evidence/screen-01/stage.json": {
+      "bytes": 439,
+      "sha256": "2e5ce51d7ef5b908d044dcc9065159c0f01ece05490b988f6c8c5b0fd54955c0"
+    },
+    "examples/physics-stack-lexeme-archive-2276/evidence/screen-01/summary.json": {
+      "bytes": 1450,
+      "sha256": "ecc8c0508acb8a0de577ce9bffc7805a266541d3d371fcef1842ea1c1b6fabce"
+    }
+  },
+  "archiveDecompressions": 0,
+  "candidateExecutionCalls": 0,
+  "completeOwnedNodeCPU": "UNKNOWN",
+  "firstFailurePreserved": true,
+  "fullRecovery": "NOT_RUN",
+  "hashBufferBytes": 65536,
+  "host": {
+    "API": false,
+    "RSS": "NOT_QUALIFIED",
+    "allOwnedStreamsClosed": true,
+    "budget": {
+      "cap": 84934656,
+      "reserve": 786432,
+      "used": 84148466
+    },
+    "children": [],
+    "codec": {
+      "backend": "GZIP_DEFAULT_UNCHANGED",
+      "chunkSize": 65536,
+      "dictionaryEntries": 777,
+      "dictionaryRawBytes": 92931,
+      "epoch": 53,
+      "physicalFormat": "L227"
+    },
+    "encoded": null,
+    "error": {
+      "code": "RETAINED_CAP",
+      "message": "RETAINED_CAP",
+      "name": "ArchiveStop"
+    },
+    "expectedPgid": 50747,
+    "full1200": false,
+    "nodeSelfCpuIsNotAfterWaitAuthority": true,
+    "nodeSelfObservedCpuUs": {
+      "system": 769615,
+      "user": 19649249
+    },
+    "physicsCalls": 0,
+    "pid": 50752,
+    "ppid": 50747,
+    "protocol": "stack-lexeme-replay-v1",
+    "recovered": null,
+    "source": {
+      "code": "ERR_STREAM_DESTROYED",
+      "entries": 5707,
+      "message": "Cannot call write after a stream was destroyed",
+      "status": "ARCHIVE_INCOMPLETE"
+    },
+    "status": "REPLAY_STOPPED",
+    "strictGlobal64MiBCertification": "NOT_QUALIFIED",
+    "wallMsBeforeFinalReceipt": 19122.328584
+  },
+  "noUniversalFitForecast": true,
+  "originalFullP4Qualification": false,
+  "owner": {
+    "API": false,
+    "RSS": "NOT_QUALIFIED",
+    "complete64MiBData": "NOT_QUALIFIED",
+    "completeNodeSubtreeCpuUs": null,
+    "controllerSelfObservedSpanUs": {
+      "systemUs": 19920,
+      "userUs": 76472
+    },
+    "controllerSelfSpanScope": "BEFORE_PIN_AUTH_TO_BEFORE_FINAL_RECEIPT;NOT_WHOLE_LIFETIME;NOT_ADDED_TO_NODE",
+    "controllerWholeLifetimeCpu": "NOT_CLAIMED",
+    "firstFailure": {
+      "message": "CLEAN_NODE_REQUIRED",
+      "type": "ValueError"
+    },
+    "full1200": false,
+    "fullP4Qualification": false,
+    "independentlyFullAccepted": 0,
+    "observedWallSecondsBeforeFinalReceipt": 19.312526374822482,
+    "ownedPgid": 50747,
+    "ownerPid": 50747,
+    "resourceQualification": false,
+    "rssSemantics": "DARWIN_BYTES;OS_MAXRSS_OBSERVATION_NOT_SIMULTANEOUS_TREE_RSS_OR_64MIB_DATA",
+    "sample": {
+      "childrenAfter": {
+        "maxrssBytes": 224198656,
+        "systemUs": 772523,
+        "userUs": 19656147
+      },
+      "childrenBefore": {
+        "maxrssBytes": 0,
+        "systemUs": 0,
+        "userUs": 0
+      },
+      "exitCode": 1,
+      "ioFailure": null,
+      "nodeWallSecondsThroughReapAndEof": 19.228621958987787,
+      "observedDirectChildPgid": 50747,
+      "ownerPid": 50747,
+      "pgid": 50747,
+      "pid": 50752,
+      "pipeEof": true,
+      "reaped": true,
+      "signals": [],
+      "timedOut": false,
+      "wait4Usage": {
+        "maxrssBytes": 224198656,
+        "systemUs": 772523,
+        "userUs": 19656147
+      },
+      "waitOwnershipLost": false
+    },
+    "status": "SCREEN_NO_GO"
+  },
+  "preservationMetadataAndSourceFiles": {
+    "examples/physics-stack-lexeme-archive-2276/CONTRACT.md": {
+      "bytes": 6900,
+      "sha256": "16a44b7f7f827aefbd91aa3683821e3cfaed2163976a3619dafe8a36090fc11c"
+    },
+    "examples/physics-stack-lexeme-archive-2276/PINS.json": {
+      "bytes": 9877,
+      "sha256": "79729f2e0d02100437944022ed0f9ba452be91e81982137bbb4f9af12cdeb8a4"
+    },
+    "examples/physics-stack-lexeme-archive-2276/RESULTS.md": {
+      "bytes": 2124,
+      "sha256": "e8e7e56396903f010d4ec642026b67648ed0bb1c979269860e07b9bb9915c805"
+    },
+    "examples/physics-stack-lexeme-archive-2276/ROOT-CONTROLS-RESULT.json": {
+      "bytes": 1040,
+      "sha256": "883683c53df1d36c60b61ddd62cde9f5401539b8a1705d14115d3364748ce8e6"
+    },
+    "examples/physics-stack-lexeme-archive-2276/SOURCE-SEAL.json": {
+      "bytes": 1380,
+      "sha256": "7eec3c5fc1e7af055de171188bf4a5fd1345d84129a9bc40fe8a1098ecbec4c5"
+    },
+    "examples/physics-stack-lexeme-archive-2276/archive.mjs": {
+      "bytes": 15202,
+      "sha256": "155efb98e54463e7f7e7873fca4bc19b3b17dd798c71c95252b2596fb4afd61a"
+    },
+    "examples/physics-stack-lexeme-archive-2276/archive.test.mjs": {
+      "bytes": 11136,
+      "sha256": "d1affd966846d3fa6fc3487f7be8bc275e52c4e2755897720422aa60a84c47c9"
+    },
+    "examples/physics-stack-lexeme-archive-2276/exact-size.test.mjs": {
+      "bytes": 3753,
+      "sha256": "4e6536e6e132a494780ee1bd85a8141848d09a59fd29e3c02d93cf686ab3478a"
+    },
+    "examples/physics-stack-lexeme-archive-2276/fixture-adapter.mjs": {
+      "bytes": 1224,
+      "sha256": "274ccb7fafcaeed0ee0a773b73b44f1dcc7525cbc6fb1ca54dcbe3a47ddb75e4"
+    },
+    "examples/physics-stack-lexeme-archive-2276/lexemes.mjs": {
+      "bytes": 8548,
+      "sha256": "72cc6f7af94c4c74a4c40fd359db868e9fa39534f49bfa0e6aa03e88b9944a21"
+    },
+    "examples/physics-stack-lexeme-archive-2276/lexemes.test.mjs": {
+      "bytes": 8028,
+      "sha256": "71c66e94d250bf4dcecd75892ee95f4b5ec10f31c1fa05d43c43903c1e14ecdf"
+    },
+    "examples/physics-stack-lexeme-archive-2276/physical.mjs": {
+      "bytes": 3792,
+      "sha256": "026a12195bf0d8c9eecadd6554b7eff32919dd2e72d6ffc34c814532897223a2"
+    },
+    "examples/physics-stack-lexeme-archive-2276/preserve-ended.py": {
+      "bytes": 3394,
+      "sha256": "6f7b90b1e770273bc517e06153a36a58b3a65cb6e0d6df6cde0e2a94e21d95a9"
+    },
+    "examples/physics-stack-lexeme-archive-2276/replay.mjs": {
+      "bytes": 4821,
+      "sha256": "7a52dbdaa9316690f400e92d3fc736b6dc961746b5b01f94094cd1efd2be2e1f"
+    },
+    "examples/physics-stack-lexeme-archive-2276/screen.py": {
+      "bytes": 11074,
+      "sha256": "8682be983fa1b67e3c446839cb0d4305b8792bf9f5aae01c6d6bc8a2eb28a6d2"
+    },
+    "examples/physics-stack-lexeme-archive-2276/source-reader.mjs": {
+      "bytes": 14538,
+      "sha256": "19728d7e24e70a2aa15f598e4afb36729e9eb4eadc3c7b26e1174e450e9555ea"
+    }
+  },
+  "sourceInputsReauthenticated": 43,
+  "sourcePINS_SHA256": "79729f2e0d02100437944022ed0f9ba452be91e81982137bbb4f9af12cdeb8a4",
+  "sourceSealSHA256": "7eec3c5fc1e7af055de171188bf4a5fd1345d84129a9bc40fe8a1098ecbec4c5",
+  "status": "ENDED_NO_GO_RETAINED_CAP_NO_RETRY_NOT_ADOPTED",
+  "stop": {
+    "code": "RETAINED_CAP",
+    "compressedBytes": 83886080,
+    "dictionaryEntries": 777,
+    "dictionaryEpoch": 53,
+    "dictionaryPreparedFrames": 5708,
+    "dictionaryRawBytes": 92931,
+    "kernelWrittenCompleteFrames": 5707,
+    "message": "RETAINED_CAP",
+    "status": "ARCHIVE_STOPPED"
+  }
+}

@@ -512,3 +512,35 @@ after328 host commits; selected330/additional329 received packets survive.
 YAW NOT_RUN; whole original three-scene exit and public World remain NO_GO.
 See `../physics-stack-complete-2276/FULL-05-RESULTS.md`. Next exact local-cost
 and lossless evidence representation work retain every original cap/tolerance.
+
+## OPT10: exact common-denominator local projection
+
+Root adopts the actual rotation-denominator LCM/dyadic-coordinate kernel after
+isolated32 Source/NodeNext tests pass1650.225875ms. The new source is
+eb24b03efa39b5beb4d4fe132bfa723b7273d4c30ce81d51c989dcc5d1925b53.
+All retained07/06/05/04/03/16 banks and boundary19 pass in Source and genuine
+Native. Run14 retains all51 phase acceptances,453231 numeric words and117
+payload files per graph exactly to run04; the physical parity guard passes
+472.453375ms. Counters and work/bit peaks can change; caps do not. New local
+entry refuses stale failed contexts after original relative assembly, as
+specified before implementation. No old failed-context resume parity claim.
+
+Canonical build13 passes14513.908417ms. Actual immutable ESM closure
+0449ad0eeaf504c416e2de9659a280797773962dd9c075c23fb5f3a05a15a7e5
+changes only strict-line.js from canonical OPT09; four helpers remain exact.
+The same fixed32 test body passes actual canonical ESM753.509709ms, adapting
+only its two static import paths.
+
+Fresh complete prefix07 then passes ALIGNED/OFFSET/YAW16 each:48 independent
+steps,425916 recovered words,51 complete records and195 original wire pairs.
+See `../physics-stack-complete-2276/PREFIX-07-RESULTS.md`. Full1200 for OPT10,
+public World admission and desktop remain NOT_RUN. The original OPT09
+ALIGNED1200 PASS and whole-three-scene NO_GO are preserved separately.
+
+The distinct L227 lossless archive candidate passes33 component tests, then
+ends its single80MiB screen at5707 of10803 input frames with RETAINED_CAP.
+Full recovery is NOT_RUN and complete owned CPU is UNKNOWN. It is not adopted
+or retried. Its first screen/source/hash receipts remain under
+`../physics-stack-lexeme-archive-2276/`. Next verify a new bounded exact normal
+equilibrium candidate on the same authenticated32 points before any new
+trajectory or API admission. It must pass all old physical gates unchanged.

@@ -1,0 +1,21 @@
+{
+  "API": false,
+  "authorExecution": 0,
+  "files": {
+    "CONTRACT.md": "16a44b7f7f827aefbd91aa3683821e3cfaed2163976a3619dafe8a36090fc11c",
+    "PINS.json": "79729f2e0d02100437944022ed0f9ba452be91e81982137bbb4f9af12cdeb8a4",
+    "archive.mjs": "155efb98e54463e7f7e7873fca4bc19b3b17dd798c71c95252b2596fb4afd61a",
+    "archive.test.mjs": "d1affd966846d3fa6fc3487f7be8bc275e52c4e2755897720422aa60a84c47c9",
+    "baseline/archive.test.mjs": "9a58c80be0830baf424d5f10c245c152ef93fd3b9fc2bfe862dd06f7cf154f47",
+    "baseline/exact-size.test.mjs": "4e6536e6e132a494780ee1bd85a8141848d09a59fd29e3c02d93cf686ab3478a",
+    "exact-size.test.mjs": "4e6536e6e132a494780ee1bd85a8141848d09a59fd29e3c02d93cf686ab3478a",
+    "fixture-adapter.mjs": "274ccb7fafcaeed0ee0a773b73b44f1dcc7525cbc6fb1ca54dcbe3a47ddb75e4",
+    "lexemes.mjs": "72cc6f7af94c4c74a4c40fd359db868e9fa39534f49bfa0e6aa03e88b9944a21",
+    "lexemes.test.mjs": "71c66e94d250bf4dcecd75892ee95f4b5ec10f31c1fa05d43c43903c1e14ecdf",
+    "physical.mjs": "026a12195bf0d8c9eecadd6554b7eff32919dd2e72d6ffc34c814532897223a2",
+    "replay.mjs": "7a52dbdaa9316690f400e92d3fc736b6dc961746b5b01f94094cd1efd2be2e1f",
+    "screen.py": "8682be983fa1b67e3c446839cb0d4305b8792bf9f5aae01c6d6bc8a2eb28a6d2",
+    "source-reader.mjs": "19728d7e24e70a2aa15f598e4afb36729e9eb4eadc3c7b26e1174e450e9555ea"
+  },
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN"
+}

@@ -1,0 +1,27 @@
+{
+  "API": false,
+  "authorCandidateExecution": 0,
+  "candidatePINS": {
+    "bytes": 9877,
+    "sha256": "79729f2e0d02100437944022ed0f9ba452be91e81982137bbb4f9af12cdeb8a4"
+  },
+  "candidateSourceSeal": {
+    "bytes": 1380,
+    "sha256": "7eec3c5fc1e7af055de171188bf4a5fd1345d84129a9bc40fe8a1098ecbec4c5"
+  },
+  "elapsedMs": 890.566042,
+  "fixedGroups": 33,
+  "fullReplayRecovery": "NOT_QUALIFIED_BY_CONTROLS",
+  "guardResult": "examples/physics-world-p5-2276/evidence/stack-lexeme-controls-01/result.json",
+  "guardResultPin": {
+    "bytes": 3156,
+    "sha256": "5cfd6ac89d860e05b4945f5c32a6baa2c7b24aeb8e965aa2b0832c0b85715b78"
+  },
+  "guardStdoutPin": {
+    "bytes": 6351,
+    "sha256": "303fda785085195cd2c6959fa8a2815ee32a3cf4dbd27ab759e8b1a315048e4b"
+  },
+  "originalIndependentFullPhysics": false,
+  "provenance": "Root reported all43 pinned files and seal authenticated at actual execution; this small binding is authored after that run, not an invented preflight receipt.",
+  "status": "PASS_FIXED33_LEXEME_ARCHIVE_CONTROLS_ONLY"
+}

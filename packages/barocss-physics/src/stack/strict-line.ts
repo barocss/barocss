@@ -6,6 +6,7 @@ export class StrictLineFailure extends Error { constructor(message: string) { su
 interface Rational { n: bigint; d: bigint }
 type RVec = [Rational, Rational, Rational];
 interface ExactBox { centre: RVec; extent: RVec; rotation: Rational[][] }
+interface IntegerRotation { denominator: bigint; columns: [bigint[], bigint[], bigint[]] }
 interface ExactInterval { low: Rational; high: Rational }
 interface ExactMidpoint {
   key: Vec3;
@@ -153,6 +154,36 @@ class Arithmetic {
       return value === null && product.n !== 0n && product.d !== 1n ? product : this.add(value ?? ZERO,product);
     },null) ?? ZERO;
   }
+  private quotient(a: bigint, b: bigint): bigint { this.tick(); return this.checked(a/b); }
+  /** Called only after both original boxes have fully decoded and normalized. */
+  prepareRotation(rotation: Rational[][]): IntegerRotation {
+    let denominator = 1n;
+    for (const row of rotation) for (const value of row) {
+      if (value.d === 1n) continue;
+      let a = denominator, b = value.d;
+      while (b !== 0n) { this.tick(); const remainder = a%b; a = b; b = remainder; }
+      denominator = this.multiply(this.quotient(denominator,a),value.d);
+    }
+    // The already checked unit-denominator numerators need no new arithmetic.
+    if (denominator === 1n) return { denominator, columns: [0,1,2].map(axis=>rotation.map(row=>row[axis].n)) as [bigint[],bigint[],bigint[]] };
+    const columns = [0,1,2].map(axis=>rotation.map(row=>
+      this.multiply(row[axis].n,this.quotient(denominator,row[axis].d)))) as [bigint[],bigint[],bigint[]];
+    return { denominator, columns };
+  }
+  /** Relative coordinates are owned dyadics from unchanged from/sub calls. */
+  localProjection(rotation: IntegerRotation, relative: Rational[]): RVec {
+    this.guardCached();
+    let denominator = 1n;
+    for (const value of relative) if (value.d > denominator) denominator = value.d;
+    const scaled = relative.map(value=>this.multiply(value.n,this.quotient(denominator,value.d)));
+    const divisor = this.multiply(rotation.denominator,denominator);
+    return rotation.columns.map(column=>{
+      this.op();
+      let numerator = this.multiply(column[0],scaled[0]);
+      for (let i=1;i<3;i++) numerator = this.sum(numerator,this.multiply(column[i],scaled[i]));
+      return this.normalizeChecked(numerator,divisor);
+    }) as RVec;
+  }
   /** Correct nearest-even conversion, including subnormals; no Number(BigInt)/Number(BigInt). */
   number(value: Rational): number {
     this.op();
@@ -176,6 +207,7 @@ class Arithmetic {
 export class StrictLineContext {
   private readonly m = new Arithmetic();
   private readonly boxes: [ExactBox, ExactBox];
+  private readonly integerRotations: [IntegerRotation, IntegerRotation];
   private readonly normal: RVec;
   private readonly tolerance: Rational;
   private readonly normalSquared: Rational;
@@ -189,6 +221,7 @@ export class StrictLineContext {
     this.normalSquared = this.m.dot(this.normal,this.normal);
     this.fourToleranceSquared = this.m.mul(this.m.from(4),this.m.mul(this.tolerance,this.tolerance));
     this.boxes = [this.box(a),this.box(b)];
+    this.integerRotations = [this.m.prepareRotation(this.boxes[0].rotation),this.m.prepareRotation(this.boxes[1].rotation)];
   }
   stats(): StrictLineStats { return { ...this.m.counters }; }
   private box(body: Body): ExactBox {
@@ -209,7 +242,7 @@ export class StrictLineContext {
   }
   private local(box: ExactBox,world: Rational[],direction=false): RVec {
     const relative = direction?world:world.map((value,i)=>this.m.sub(value,box.centre[i]));
-    return [0,1,2].map(axis=>this.m.dot(box.rotation.map(row=>row[axis]),relative)) as RVec;
+    return this.m.localProjection(this.integerRotations[box === this.boxes[0] ? 0 : 1],relative);
   }
   private direction(which: 0 | 1): RVec {
     const cached = this.directions[which];

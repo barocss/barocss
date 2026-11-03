@@ -216,13 +216,25 @@ and additional329 packets survive; YAW is NOT_RUN. Whole three-scene P4 and
 public World admission remain NO_GO/NOT_RUN. See
 `examples/physics-stack-complete-2276/FULL-05-RESULTS.md`.
 
-Next reduce exact local-coordinate cost and losslessly reduce evidence bytes.
-Keep the shared280MiB, existing reserve, all clocks/caps and physical tolerances.
-New independent common-denominator unit controls pass in an isolated candidate;
-production adoption/full qualification remain pending. Byte measurements reject
-a pure-integer-string hypothesis; fraction/hex and repeated opaque string
-representations have exact captured-byte round trips, with no compressed-fit
-forecast. No ended storage candidate is revived or tuned.
+OPT10 exact common-denominator local projection now passes32 new controls,
+all retained banks/boundary19, Source/Native run14 full physical-word parity,
+actual canonical package build13 and canonical ESM32. Fresh complete prefix07
+passes all48 ALIGNED/OFFSET/YAW steps,425916 recovered words and195 original
+wire pairs. Full1200 for OPT10 and public World remain NOT_RUN. Its arithmetic
+work/peaks can change under the same limits; stale failed private contexts are
+explicitly refused. See `physics-stack-library-2276/RESULTS.md` and
+`physics-stack-complete-2276/PREFIX-07-RESULTS.md`.
+
+The distinct L227 archive candidate passes33 controls, then ends its single
+80MiB screen at5707 of10803 frames with RETAINED_CAP. Full recovery is NOT_RUN;
+complete owned CPU is UNKNOWN. No archive candidate is revived or tuned.
+Next verify an exact stationary normal-equilibrium witness on the identical
+authenticated32-point input, including an independent global balance check
+and the unchanged original Float/Decimal gates. A new algorithm's impulses
+can differ from nonunique old QR impulses; its physics, determinism and full
+trajectory require fresh qualification. No public admission follows from
+source existence. Keep shared280MiB, reserves, clocks, caps, tolerances, every
+first failure and all HOLDs unchanged.
 
 The current first-interval coupled-contact path has completed its finite
 arithmetic, actual World, post-impulse rollback/wire and desktop Native gates.

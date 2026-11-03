@@ -1,0 +1,109 @@
+{
+  "authorCalls": {
+    "codec": 0,
+    "compiler": 0,
+    "imports": 0,
+    "largeArchiveReads": 0,
+    "numericExecution": 0,
+    "references": 0,
+    "solver": 0,
+    "tests": 0
+  },
+  "currentFullRawRPCRecordJSONALLwordProfileUnchanged": true,
+  "document": {
+    "bytes": 14090,
+    "path": "examples/physics-stack-evidence-scope-2276/SOURCE-AUDIT.md",
+    "sha256": "f5ac8f4d4faf51e726c5ec5a399a5c78f907711b94a62699cf91dc644fff4680"
+  },
+  "files": {
+    "examples/physics-contact-boundary-2276/world-consumer.mjs": {
+      "bytes": 10504,
+      "sha256": "106c4c9b14f3e3b8268538409782d6b0124f806fa2363ae638a114872c77e316"
+    },
+    "examples/physics-rigid-contact-diagnostic/observer.mjs": {
+      "bytes": 1044,
+      "sha256": "85b3e216b28ec12511f8fc7262f96c3e050eeccd32b588d154797083ed795a98"
+    },
+    "examples/physics-rigid-full-pair-position-world/CONTRACT.md": {
+      "bytes": 72221,
+      "sha256": "2daf9bbd465454b4ad8b97ef1944bdab2715d4ff72993eea98793d0cb1776b60"
+    },
+    "examples/physics-rigid-full-pair-position-world/archive.mjs": {
+      "bytes": 2261,
+      "sha256": "79591e398cf859b7f9348990d39a048392453ac36ea8d805bf5091985ffba40c"
+    },
+    "examples/physics-rigid-full-pair-position-world/consumer.mjs": {
+      "bytes": 5732,
+      "sha256": "959709e93f1fd702ec8d2cb410b6e81ff3bc1a7b070753afa0e7ee4453254b3a"
+    },
+    "examples/physics-rigid-full-pair-position-world/reference.py": {
+      "bytes": 23351,
+      "sha256": "89caf6850b49a77713c7776df9fedd200ecbe1f426ec3cdae6165cc9bf48b58c"
+    },
+    "examples/physics-rigid-full-pair-position-world/runner.mjs": {
+      "bytes": 6066,
+      "sha256": "6d6610b41d5a492ecac53526211ba39cb12f03593827157c86ec4b3fc21a54fa"
+    },
+    "examples/physics-stack-complete-2276/CONTRACT.md": {
+      "bytes": 20131,
+      "sha256": "cf9d8946e6e6fcaf303f6849e68abc0e1df013c1f5fe43e4d36e6aa481655427"
+    },
+    "examples/physics-stack-complete-2276/driver.mjs": {
+      "bytes": 26750,
+      "sha256": "b85584699e2b77e6293372e4b84626b2f5b39d45622d33403ba8b557b78c3796"
+    },
+    "examples/physics-stack-complete-2276/failure-evidence.mjs": {
+      "bytes": 5368,
+      "sha256": "f80dd00dcb355b86c971bbf034addd1dfdcebbbe79ce02abac3b43233f4c7688"
+    },
+    "examples/physics-stack-complete-2276/fingerprint.mjs": {
+      "bytes": 1602,
+      "sha256": "62e32917277f5376c38b2c1f6adb34a24ef112da2985514eaa37e6073fda5448"
+    },
+    "examples/physics-stack-complete-2276/reference.mjs": {
+      "bytes": 4175,
+      "sha256": "feecbee290f68b011a078aff2e4742b6be25bfbff0a015b6ae4d61019b2a3efb"
+    },
+    "examples/physics-stack-complete-2276/run.py": {
+      "bytes": 7880,
+      "sha256": "a7fc34af5e6f9058b8a8c7a8e40984cc7fdb9432dfdb8936c179d0aae4ac348e"
+    },
+    "examples/physics-stack-evidence-refs-2276/inspect-record.mjs": {
+      "bytes": 9395,
+      "sha256": "5b875fa5a1e7d3dc5d250a8b088c52e1fcb4b4fd4bf2c3bc081d555f455e2ef1"
+    },
+    "examples/physics-stack-library-2276/campaign.mts": {
+      "bytes": 10190,
+      "sha256": "6bc510b3fa06f278b00cd856d9ac96726ad95aab754e6daef764bcf4c2006a0b"
+    },
+    "examples/physics-stack-library-2276/io.mjs": {
+      "bytes": 7661,
+      "sha256": "33e266bb0d9d6b86e9890b1aaef0c730a96754c90daab698d22b0bc9e2c89a97"
+    },
+    "examples/physics-stack-pipeline-2276/CONTRACT.md": {
+      "bytes": 5261,
+      "sha256": "01610f1d89fa9b5cbec31cb16c7bc9287e71575242afc2ab68f9c2a5052c88c8"
+    },
+    "examples/physics-stack-solver-2276/trajectory-contract.md": {
+      "bytes": 5993,
+      "sha256": "efb1f3b48e435fed3ca0a4d9dabd131eb9841fc7ae2196ce6002d1a119d898ca"
+    },
+    "examples/physics-stack-solver-2276/trajectory-reference.py": {
+      "bytes": 6575,
+      "sha256": "f2c1850b193a14944de657848d065c461e3ff2440e9e9bf452b6d24519af0ea0"
+    },
+    "examples/physics-stack-solver-2276/trajectory-run.mjs": {
+      "bytes": 18114,
+      "sha256": "2ca872e4dc6b024f6e01984c3e50250eadf43c815a080c0f69fa3602189ddf71"
+    },
+    "examples/physics-stack-stream-native-crc-2276/archive.mjs": {
+      "bytes": 14116,
+      "sha256": "8ab60659035aef867273444b6f491840592030ab315473ca2cccb000bb02d54f"
+    }
+  },
+  "priorNO_GOReceiptsPreserved": true,
+  "rootDecision": "NO_STORAGE_CONDITION_CHANGE_NO_NEW_CODEC_DEVELOPMENT",
+  "shared280MiBOriginalConditionPreserved": true,
+  "sourceFileCount": 21,
+  "status": "SOURCE_ONLY_FACT_AUDIT_NOT_ADMISSION_CHANGE"
+}

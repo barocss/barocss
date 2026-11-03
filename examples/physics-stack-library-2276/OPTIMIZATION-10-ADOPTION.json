@@ -1,0 +1,22 @@
+{
+  "status": "ROOT_ADOPTED_AFTER_ISOLATED32_PASS_PRODUCTION_REQUALIFICATION_PENDING",
+  "sourceSHA256": "eb24b03efa39b5beb4d4fe132bfa723b7273d4c30ce81d51c989dcc5d1925b53",
+  "oldSourceSHA256": "61baf61303c5450b69329f2006883b712eee75635d7ca0d53a2100ceab1c06ed",
+  "independentUnitGroups": 32,
+  "adapters": [
+    {
+      "path": "examples/physics-stack-library-2276/arithmetic-opt10-retained07-run.mjs",
+      "sha256": "c2efefb9dc6cca1f5915c6bff505bb5e0d0abafb17def42ea46e5858705af671",
+      "changes": "production source SHA guard and fresh output ID only; test body unchanged"
+    },
+    {
+      "path": "examples/physics-stack-library-2276/arithmetic-opt10-retained06-run.mjs",
+      "sha256": "b93188dc73b008c7b3f54661acc7b091485836980ee9c741290903e90fb03eb9",
+      "changes": "production source SHA guard and fresh output ID only; test body unchanged"
+    }
+  ],
+  "privateFailedContextPolicy": "New local kernel rejects stale failed context after original relative assembly; no old private resume parity claim",
+  "bitPeakAndWorkCounters": "May change; limits unchanged; every new integer product/sum/quotient checked and ticked",
+  "API": false,
+  "full1200": false
+}
