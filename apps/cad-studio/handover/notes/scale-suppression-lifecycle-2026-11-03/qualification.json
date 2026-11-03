@@ -1,0 +1,221 @@
+{
+  "workId": "D469",
+  "lastUpdated": "2026-11-03",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "b3f72e8f6d261e0b715fb45b1130c40c2117da28",
+  "category": "C1 existing terminalScale suppression/sourceedit/persistence/activationguard",
+  "rows": [
+    "07",
+    "08",
+    "12",
+    "16"
+  ],
+  "productChanges": "NONE",
+  "testChanges": "NONE",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercentFrozen": 43,
+  "input": {
+    "path": "/tmp/barocss-d469-geometry/seed.bcad",
+    "sha256": "1b36630ff4bddb26bde859e9298f1dee840fc120bb89c5b5451fe59a1bf647f4",
+    "bytes": 396,
+    "origin": "ExactretainedD467qualifiedpostOpenScale2H12;no activeH12nativebaseline/publicconstruction replay"
+  },
+  "contract": {
+    "authored": "n2Scale,parentn1solid,pivot0,outputb2,IDsandfactorpreserved",
+    "suppressedLowering": {
+      "id": "n2",
+      "kind": "translate",
+      "target": "n1",
+      "offset": [
+        0,
+        0,
+        0
+      ]
+    },
+    "inactiveFactor0Allowed": true,
+    "activeFactor0Admitted": false,
+    "refusal": {
+      "code": "INPUT",
+      "feature": "n2",
+      "reason": "factor must be a positive number at most 1000"
+    },
+    "history": "RefusedUnsuppress thenFIRSTUndo SuppressedFactor2H14/Redo SuppressedFactor0H14",
+    "postOpen": "RestoreFactor2 stillsuppressed thenUnsuppressScale2H14"
+  },
+  "preflight": {
+    "status": "PASS",
+    "receipt": "/tmp/barocss-d469-geometry/preflight-run01/receipt.json",
+    "receiptSHA256": "11268d322e9f4ec8a8f7d8dde1c1896b8f6e1a83a4c7948abe724173623e5402",
+    "exactDocuments": 4,
+    "physicalProfiles": 3,
+    "activationFactor0Refusal": "PASS_INPUT_N2",
+    "sourcePins": 746,
+    "sourceEqualAfterCleanupCurrent": true,
+    "ownPID": 45060,
+    "ownPIDAbsent": true,
+    "gate": "FREE",
+    "endLoad": 18.9,
+    "maximumNativeVolumeAbsoluteError": 0,
+    "maximumNativeCentroidAbsoluteErrorMM": 7.11e-15,
+    "command": "bash /tmp/barocss-d469-root/run-preflight01.sh"
+  },
+  "actual": {
+    "status": "PASS",
+    "declaredGroups": 8,
+    "qualifiedGroups": 8,
+    "coverage": {
+      "SuppressScale2H12": "PASS",
+      "sourceH14WhileSuppressed": "PASS",
+      "inactiveFactor0Edit": "PASS",
+      "UnsuppressFactor0RefusalRetention": "PASS",
+      "firstExactUndoRedo": "PASS",
+      "ownProjectSuppressed0Roundtrip": "PASS",
+      "restoreFactor2StillSuppressed": "PASS",
+      "postOpenUnsuppressScale2H14": "PASS"
+    },
+    "nativeCaptures": 4,
+    "exactWholeDocReuses": 5,
+    "freshPythonOracles": 9,
+    "freshRawWorkerBindings": 9,
+    "command": "bash /tmp/barocss-d469-root/run-studio01.sh",
+    "configSHA256": "44f996f7287cc99dc2e81c43baa3b8d3e6b1c3cdcf02d3b9e388fa2587ea14ec",
+    "receipt": "/tmp/barocss-d469-workflow-run01/receipt.json",
+    "sourcePins": {
+      "prehashPaths": 2390,
+      "fullFrozenPaths": 2391,
+      "aliasesIncluded": true,
+      "beforeAfterCleanupCurrentEqual": true
+    },
+    "visualReview": {
+      "statesAndImages": 25,
+      "rootViewed": 7,
+      "states": [
+        "suppH12",
+        "H14",
+        "inactive0",
+        "activationrefusal",
+        "firstUndo",
+        "projectOpen0",
+        "active2H14"
+      ]
+    },
+    "cleanup": {
+      "namespace": "D469-terminal-scale-run01",
+      "namespaceStatus": "REMOVED_AND_ABSENT",
+      "contextBrowserServer": "CLOSED",
+      "ownPID": 57227,
+      "ownPIDAbsent": true,
+      "gate": "FREE",
+      "endLoad": 14.51
+    },
+    "errors": {
+      "page": 0,
+      "console": 0,
+      "downloads": 0,
+      "watchedChanges": 0
+    },
+    "physicalProfiles": 3,
+    "maximumWorkerVolumeCentroidBindingError": 0,
+    "maximumNativeVolumeAbsoluteError": 0,
+    "maximumNativeCentroidAbsoluteErrorMM": 7.105427357601002e-15,
+    "receiptSHA256": "6cfff9cd7d7064fb3539351090f1daac908105f1397d409bd0ebc3d99486442d",
+    "executedSUTFailures": 0,
+    "executedPreparationFailures": 0,
+    "postOpenActive2H14": {
+      "volume": 67200,
+      "centroid": [
+        40,
+        70,
+        14
+      ]
+    },
+    "nativeBindings": 9
+  },
+  "physicalContract": {
+    "effectiveFactor": "1suppressed/2active",
+    "volume": "effectivek^3*600h",
+    "centroid": "effectivek*[20,35,h/2]",
+    "authority": "StrictnativeBRep+independentFractionoracle;notdisplaymesh",
+    "states": [
+      {
+        "factor": 2,
+        "height": 12,
+        "suppressed": true,
+        "effectiveFactor": 1,
+        "volume": 7200,
+        "centroid": [
+          20,
+          35,
+          6.0
+        ]
+      },
+      {
+        "factor": 2,
+        "height": 14,
+        "suppressed": true,
+        "effectiveFactor": 1,
+        "volume": 8400,
+        "centroid": [
+          20,
+          35,
+          7.0
+        ]
+      },
+      {
+        "factor": 0,
+        "height": 14,
+        "suppressed": true,
+        "effectiveFactor": 1,
+        "volume": 8400,
+        "centroid": [
+          20,
+          35,
+          7.0
+        ]
+      },
+      {
+        "factor": 2,
+        "height": 14,
+        "suppressed": false,
+        "effectiveFactor": 2,
+        "volume": 67200,
+        "centroid": [
+          40,
+          70,
+          14.0
+        ]
+      }
+    ],
+    "checks": "eightcornerbounds,sixn1namedfacecenters/pins,straightedgepins,unchangedunitnormals,oneclosedsolid8v6f12e",
+    "volumeRelative": 1e-09,
+    "centroidBoundsCornerFaceEdgePinsNormalsAbsolute": 1e-09
+  },
+  "review": "Independentreadonlyoracle/inspector/preflightACCEPT_SCOPE;no variablealias/blocker;notactualproof",
+  "checks": {
+    "newTestsTypesBuildFullKernel": "NOT_RUN_NO_PRODUCT_OR_TEST_CHANGE",
+    "retained": "D46128groups,lint,StudioTSC,finalModelTSC",
+    "independentOracleSHA256": "a61a091e6d07db54629d528e175d4b3da412197254c37365f2e73ce89392fe2c",
+    "geometryManifestSHA256": "1fa10791ad15721a77c2e1a277aa1106a1875b1b21b8bf32035d41679a0c5a9c",
+    "rootReview": "/tmp/barocss-d469-root/root-review.json",
+    "documentation": {
+      "status": "PASS",
+      "node": "v22.19.0",
+      "command": "export PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH\nnode apps/cad-studio/handover/scripts/check-navigation.mjs",
+      "whitespaceCommand": "git diff --cached --check",
+      "rows": 34,
+      "legacyHeadingFragments": 552,
+      "legacyOutboundLinks": 913,
+      "checkedLocalLinks": 2662,
+      "newBroken": 0,
+      "knownHistoricalMissingPaths": 1,
+      "receiptSHA256": "e9898f57e896eea73bf2f91c12052654a18ba3b811e7dd3ececb12bf56ad50c6"
+    }
+  },
+  "issueDisposition": {
+    "534": "OPEN_BOUNDED_PARTIAL_ONLY"
+  },
+  "next": "D470 selects existing named-Version Restore physical/Measure/re-edit supplement to D323, primaryC1rows12/16 with07/08/30 consumers. Five groups planned: retainedD469 activeScale2/H14\u2192ownproject Save and ONE namedH14version;sourceH16/native;RestoreH14 wholeDoc exact/native plus real-pointer vertical Measure28;EXPLICIT Save restoredH14 then Close/same-context reload/Open;post-Open sourceH18/native plus Measure36. Four bindings planned:three new documents/one exact reuse;actualNOT_RUN. Restore opens dirty and does not Save;no assumed Undo/history rewind. No D323 Compare/log/autosave/two-version replay,new feature/guard or HOLD lift.",
+  "holds": "CoreNOT_MEASURED/legacy43frozen;all current #2258/#2266,Motion/Physics,fitter/thicken,widening,manufacturing,UI,schema,download/dependency,browserCI/release gates unchanged.",
+  "environment": "AllNodecommands includingdocs explicitPATH22.19.0",
+  "evidenceBoundary": "Existing terminalScale suppression lifecycle only;inactive0 uses identity bypass,active0 stillrefused;no broaddependency/suppressedgraph or newScaleadmission."
+}
