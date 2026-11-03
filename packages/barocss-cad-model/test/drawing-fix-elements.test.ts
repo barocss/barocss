@@ -51,3 +51,25 @@ test('O172: where two edges meet one place on the view, the snap point is the vi
   const first = { ...(pr as object), edges: [edge('shown.one', true), edge('hidden.one', false)] } as never;
   assert.deepEqual(snapPoints(first).map(p => p.ref.edge), ['shown.one', 'shown.one']);
 });
+
+test('round circle center snaps prefer the visible rim while endpoints retain their legacy ranking', () => {
+  const arc = { kind: 'arc' as const, center: [28, 0] as [number, number], u: [2, 0] as [number, number], v: [0, 2] as [number, number], t0: 0, t1: Math.PI };
+  const edge = (name: string, z: number, centerY: number, visible: boolean) => ({
+    name, kind: 'circle' as const, ends: [[26, 0, z], [30, 0, z]],
+    circle: { center: [28, centerY, z], radius: 2, normal: [0, 0, 1], full: false, sweep: Math.PI },
+    pieces: visible ? [{ curve: arc, visible: true }] : [],
+  });
+  const bottom = edge('empty.bottom', 0, -4.440892098500626e-16, false), top = edge('visible.top', 10, 3.9968028886505635e-15, true);
+  const projection = (edges: unknown[]) => ({ right: [1, 0, 0], up: [0, 1, 0], toward: [0, 0, 1], edges, min: [-20, -20], max: [60, 20] }) as never;
+  for (const edges of [[bottom, top], [top, bottom]]) {
+    const snaps = snapPoints(projection(edges)); assert.equal(snaps.length, 3);
+    const center = snaps.find(s => s.ref.at === 'center')!; assert.equal(center.ref.edge, top.name); assert.deepEqual(center.ref.near, top.circle.center);
+    const ends = snaps.filter(s => s.ref.at === 'end'); assert.equal(ends.length, 2);
+    assert.ok(ends.every(s => s.ref.edge === edges[0].name && s.ref.near[2] === edges[0].circle.center[2]), 'empty-circle endpoints retain the first legacy-visible reference');
+  }
+  const fallback = snapPoints(projection([bottom])); assert.equal(fallback.length, 3);
+  assert.ok(fallback.every(s => s.ref.edge === bottom.name && s.ref.near[2] === 0));
+  assert.deepEqual(fallback.find(s => s.ref.at === 'center')!.ref.near, bottom.circle.center);
+  const nonround = [bottom, top].map(e => ({ ...e, circle: { ...e.circle, normal: [0, 1, 0] } }));
+  assert.equal(snapPoints(projection(nonround)).find(s => s.ref.at === 'center')!.ref.edge, bottom.name, 'non-round centers keep the legacy first-reference policy');
+});

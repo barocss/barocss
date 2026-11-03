@@ -1,0 +1,318 @@
+{
+  "workId": "D477",
+  "category": "C3 ordinary Part Drawing loss/recovery",
+  "rows": [
+    "11",
+    "12",
+    "16"
+  ],
+  "lastUpdated": "2026-11-03",
+  "status": "BOUNDED_DESKTOP_QUALIFIED",
+  "sourceRequest": "Owner-approved C3 continuation after D476 C1/C2 first-pass closeout",
+  "baseline": "3bf118d21c1365f54e24ed980ab1ccef4f1ff911",
+  "sourceState": "PARENT_PLUS_TWO_UNCOMMITTED_CANDIDATE_FILES_DURING_PROOF",
+  "source": {
+    "packages/barocss-cad-model/src/drawing/dimensions.ts": "075e6fb73a82468fe952f7fe1efd0a31d2cfa3ea466dbdc153e384bb339269cc",
+    "packages/barocss-cad-model/test/drawing-fix-elements.test.ts": "2e76d5243b0f706b403ff1f432c384f60feff2ec8b23ebf22cdf67c9fffa001f"
+  },
+  "modelRouting": {
+    "implementationAndDriver": "GPT-6.1 Sol Medium",
+    "hardGeometryAndReferenceAudit": "GPT-6.1 Sol High",
+    "gateRuntimeCleanupSourceAndImages": "root"
+  },
+  "correction": {
+    "scope": "Only roundIn circle CENTER snaps rank actual visible pieces ahead of an empty coincident rim; exact legacy endpoint/nonround-center ranking retained",
+    "rootCause": "snapPoints treated pieces=[] as visible; bottom rim entered first and blocked visible top replacement",
+    "nativeGeometryChange": false,
+    "toleranceApiSchemaUiChange": false,
+    "noNewAnnotationOrAdmission": true
+  },
+  "originalActual": {
+    "status": "FAIL_PUBLIC_SNAP_REFERENCE_IDENTITY",
+    "completedGroups": 0,
+    "pendingGroups": 8,
+    "failedTopVisibilityAssertions": 3,
+    "wrongReference": {
+      "edge": "n1.bottom|n2_p0.side0#2",
+      "near": [
+        28,
+        -4.440892098500626e-16,
+        0
+      ]
+    },
+    "physicalDiameterAndMass": "PASS",
+    "opfs": "NOT_CREATED",
+    "prelaunchReaderFailure": "Separate root cwd/hash-reader failure before gate/SUT; config.repo resolution corrected; no product or sealed input edit",
+    "preserved": true
+  },
+  "nativeReadiness": {
+    "status": "PASS_D477_NATIVE_DRAWING_ACTIVE_LOST_RESTORE_AND_ZERO_GUARD",
+    "states": 3,
+    "templatesNotPublicDimensions": true,
+    "mappingSourcePins": 16,
+    "currentSourceChange": "Only dimensions.ts consumer snap ranking differs; other15 map pins exact; physical projection/producer/resolveDimension basis unchanged",
+    "replayedAfterConsumerFix": false,
+    "radius0Guard": {
+      "code": "PARAMETER",
+      "feature": "n2_p0",
+      "message": "n2_p0: radius must be positive",
+      "publicField": "Diameter",
+      "typedValue": 0
+    },
+    "templateSelectedRimRadialBound": 5.370678290282277e-15
+  },
+  "checks": {
+    "checks01": {
+      "passed": 120,
+      "failed": 1,
+      "skipped": 0,
+      "status": "FAIL_RETAINED_O172_ASSERTION"
+    },
+    "finalChecks02": {
+      "passed": 120,
+      "failed": 1,
+      "skipped": 0,
+      "status": "FAIL_WITH_PROVEN_PREEXISTING_BASELINE_FAILURE",
+      "newRegression": "PASS"
+    },
+    "checks03": {
+      "lint": "PASS",
+      "diff": "PASS",
+      "studioTSC": "PASS",
+      "finalModelTSC": "PASS_AFTER_FINAL_TEST_EDIT",
+      "sourceEqual": true
+    },
+    "baselineControl": {
+      "status": "PASS_BASELINE_CLASSIFICATION_IDENTICAL_OLD_AND_CURRENT_FAILURE",
+      "originalExit": 1,
+      "currentExit": 1,
+      "sameAssertion": "applied.includes(add-section)",
+      "preFixAndResultPayloads": "BYTE_IDENTICAL",
+      "causalityCorrection": "Earlier provisional regression attribution is withdrawn; the final D477 candidate did not introduce this pre-existing failure",
+      "assertionOrToleranceWeakened": false
+    },
+    "full121PassClaim": false,
+    "fullKernel": "NOT_RUN"
+  },
+  "actual02": {
+    "status": "PASS",
+    "groupsPassed": 8,
+    "bindings": 9,
+    "nativeCaptures": 3,
+    "exactWholeDocumentReuses": 6,
+    "authoredDocumentStates": 3,
+    "physicalGeometries": 2,
+    "states": 16,
+    "groups": [
+      "publicDiameterBaseline",
+      "suppressHoleLostDimension",
+      "unsuppressSameDimensionRestore",
+      "diameter0RefusalAttachedDrawing",
+      "firstUndoLostState",
+      "redoRestoredState",
+      "ownProjectLostRoundtrip",
+      "postOpenUnsuppressRestore"
+    ],
+    "actualPublicDimension": {
+      "id": "d1",
+      "view": "top",
+      "kind": "diameter",
+      "edge": "n1.top|n2_p0.side0#2",
+      "near": [
+        28,
+        -4.440892098500626e-16,
+        10
+      ],
+      "place": [
+        39.99999852310937,
+        13.999996299743643
+      ]
+    },
+    "oneTimeCapturedSignature": {
+      "k": "curve",
+      "p": [
+        26,
+        0,
+        10
+      ],
+      "s": 0,
+      "n": 2
+    },
+    "retention": "Actual id/edge/near/place exact; one first-Suppress sig enrichment validated at original metadata budget, then actual sig exact",
+    "printedSource": {
+      "active": "51fa688e5445cfdf",
+      "suppressed": "f4dfc5c6c1cf2f21"
+    },
+    "freshness": "Current main model, current printed SRC, nonnull readonly sheet and no projecting overlay before judgement",
+    "lost": "Same authored definition, DIMENSION_LOST, target SVG mark absent",
+    "restored": "Same ID/reference, native diameter4 and target SVG mark restored",
+    "consumer": "DOM SVG preview only, not export or standards acceptance",
+    "actualTopEdgeDiffersFromTemplate": "Actual #2; template #1. Same chosen physical top rim, original native budgets; actual reference retained exactly."
+  },
+  "physical": {
+    "active": {
+      "bodyCount": 1,
+      "closedShells": 1,
+      "bores": 4,
+      "genus": 4,
+      "volume": "32000 - 160*pi",
+      "centroid": [
+        20,
+        0,
+        5
+      ]
+    },
+    "suppressed": {
+      "bodyCount": 1,
+      "closedShells": 1,
+      "bores": 0,
+      "genus": 0,
+      "volume": 32000,
+      "centroid": [
+        20,
+        0,
+        5
+      ]
+    },
+    "bounds": {
+      "min": [
+        -20,
+        -20,
+        0
+      ],
+      "max": [
+        60,
+        20,
+        10
+      ]
+    },
+    "chosenTopRim": {
+      "center": [
+        28,
+        0,
+        10
+      ],
+      "radius": 2,
+      "diameter": 4
+    },
+    "limits": {
+      "volumeRelative": 1e-09,
+      "centroidBoundsBoreDiameterProjectionAbsolute": 1e-09,
+      "firstSignatureMetadataAbsolute": 1e-09
+    },
+    "maxNativeVolumeAbsoluteError": 7.275957614183426e-11,
+    "maxNativeCentroidAbsoluteError": 5.684341886080802e-14,
+    "maxWorkerVolumeRelativeError": 0,
+    "maxWorkerCentroidAbsoluteError": 0,
+    "actualSelectedTopRimRadialBound": 6.2803698347351e-16
+  },
+  "cleanup": {
+    "wrapperPinnedPaths": 2428,
+    "helperPinnedPaths": 2429,
+    "frozenAfterCleanupCurrentEqual": true,
+    "ownedNamespace": "D477-drawing02-hole-run02",
+    "namespace": "REMOVED_AND_ABSENT",
+    "contextBrowserServer": "CLOSED",
+    "ownedPid": 667,
+    "ownedPidAbsent": true,
+    "gate": "RELEASED",
+    "sourceFreeze": "RELEASED",
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "watchedChanges": 0
+  },
+  "visual": {
+    "rootImagesViewed": 6,
+    "finding": "Full sheet and native bore/callout removal/restoration visible; Diameter0 error retains accepted part",
+    "lostBadge": "DOM/read-only proof only; below fold, no root visual legibility claim",
+    "noGeneralFramingClaim": true
+  },
+  "historicalReferences": {
+    "observedRows": [],
+    "bindingsObserved": 9,
+    "verificationCompletionHook": "UNAVAILABLE",
+    "noAutomaticClearingProof": true,
+    "noRematchInvoked": true
+  },
+  "highFinalActualAudit": {
+    "status": "ACCEPT_D477_ACTUAL_PUBLIC_TOP_DIAMETER_LOSS_RECOVERY_NINE_BINDINGS",
+    "proofBoundary": "Read-only saved actual/native/Python/Worker/DOM audit; no native or oracle rerun",
+    "path": "/tmp/barocss-d477-geometry/high-final-actual02-review.json",
+    "sha256": "205527e0129fc3d037afd57a803f5d811e68dcf5607d8c00ba488c83a17cd1b9"
+  },
+  "commands": {
+    "relatedTests": "PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH pnpm --dir packages/barocss-cad-model run test drawing-fix-elements.test.ts auto-dimension.test.ts auto-layout.test.ts drawing-issues.test.ts drawing-linear-clearance.test.ts drawing-units.test.ts",
+    "pairedControl": "bash /tmp/barocss-d477-root/run-shaft-control02.sh",
+    "lintAndTypes": "bash /tmp/barocss-d477-root/run-checks03.sh",
+    "actual02": "bash /tmp/barocss-d477-root/run-fixed-studio01.sh",
+    "driver": "D477_SOURCE_FROZEN=1 /Users/user/Library/pnpm/nodejs/22.19.0/bin/node /tmp/barocss-d477-driver02/driver.mjs /tmp/barocss-d477-workflow-run02"
+  },
+  "evidence": {
+    "input": {
+      "path": "/tmp/barocss-d451-workflow-run01/circle-four-created.bcad",
+      "sha256": "89092fd8a065bf2dde1b9dd447d7fcb124fa83c3f4d4bfab526f9b94d810b147"
+    },
+    "nativePreflight": {
+      "path": "/tmp/barocss-d477-geometry/preflight-run01/receipt.json",
+      "sha256": "27eadadc05c0869427677baae9c1ebc2074827909c54f3b2421e3fdc7ad45f78"
+    },
+    "originalActual": {
+      "path": "/tmp/barocss-d477-workflow-run01/receipt.json",
+      "sha256": "e33efc6e520b562aedfcb36f560fee40e66afe1ce86497cd7e1c9027c07956c9"
+    },
+    "checks01": {
+      "path": "/tmp/barocss-d477-checks01/receipt.json",
+      "sha256": "741e14426b8123d9152acb5b0ef1093f293e1eec0a342b03d231b14e4fc1988f"
+    },
+    "checks02": {
+      "path": "/tmp/barocss-d477-checks02/receipt.json",
+      "sha256": "5e30d894b80ec0eee1bd9cf7c1c92210afec38abd8b884588112ce0a70b05f8b"
+    },
+    "checks03": {
+      "path": "/tmp/barocss-d477-checks03/receipt.json",
+      "sha256": "993354950e06296b6a1eade8f26276557e37a13ed7cacc285bcfaac32e9bbd9b"
+    },
+    "pairedComparison": {
+      "path": "/tmp/barocss-d477-shaft-diagnostic-run02/comparison.json",
+      "sha256": "d4930a40e722832e74a08421ae043b3ffba15bc1d8392f636c9fbf285d18e3f1"
+    },
+    "pairedClassification": {
+      "path": "/tmp/barocss-d477-root/shaft-original-current-summary.json",
+      "sha256": "6df4b509017b8c89fcc19faaa7143ec7ec23427572fce739aa466033737fc999"
+    },
+    "driver02Config": {
+      "path": "/tmp/barocss-d477-driver02/config.json",
+      "sha256": "525527c00b794e0b60cecf9f7cffbbb9b0abd73d945e2b0e918198dd7807bdb7"
+    },
+    "actual02": {
+      "path": "/tmp/barocss-d477-workflow-run02/receipt.json",
+      "sha256": "9868684a6acbcd6455ce41dd108b9e8c2580ba674c7531454a6e0a48ca50ac49"
+    },
+    "rootVerification": {
+      "path": "/tmp/barocss-d477-root/fixed-actual02-verification.json",
+      "sha256": "1a22a54db87935a86c3a3e3dbd667780508880bcddb2882cd0a2ca027957cc0b"
+    },
+    "highFinalActualAudit": {
+      "path": "/tmp/barocss-d477-geometry/high-final-actual02-review.json",
+      "sha256": "205527e0129fc3d037afd57a803f5d811e68dcf5607d8c00ba488c83a17cd1b9"
+    }
+  },
+  "boundaries": {
+    "issue540": "OPEN_ALL_CRITERIA_NOT_MET",
+    "coreWorkflowReadiness": "NOT_MEASURED",
+    "legacy43Percent": "FROZEN",
+    "c1c2FirstPass": "OWNER_CLOSEOUT_THROUGH_D476_UNCHANGED",
+    "allOwnerHolds": "UNCHANGED",
+    "mobile": "NOT_RUN_OWNER_RULE",
+    "browserRestartPersistence": "NOT_RUN_SAME_CONTEXT_RELOAD_OPEN_ONLY",
+    "exportsDownloadsStandards": "NOT_QUALIFIED",
+    "newProductScope": "NONE"
+  },
+  "next": {
+    "workId": "D478",
+    "category": "C3",
+    "task": "Inventory exact source/retained evidence for existing O172 shaft auto-dimension Fix baseline failure; root actual reproduction before implementation",
+    "notScope": "No unit tolerance change or new annotation"
+  }
+}

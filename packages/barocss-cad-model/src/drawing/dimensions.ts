@@ -22,9 +22,9 @@ export function snapPoints(pr: BrepProjection): SnapPoint[] {
   // it measured to a hidden line though the same line shows.)
   const out: SnapPoint[] = [], shown: boolean[] = [];
   for (const e of pr.edges) {
-    const visible = !e.pieces.length || e.pieces.some(p => p.visible);
+    const pieceVisible = e.pieces.some(p => p.visible), visible = !e.pieces.length || pieceVisible;
     if (e.ends) for (const p of e.ends) addSnap(pr, out, shown, e, 'end', p, visible);
-    if (e.circle) addSnap(pr, out, shown, e, 'center', e.circle.center, visible);
+    if (e.circle) addSnap(pr, out, shown, e, 'center', e.circle.center, roundIn(pr, e) ? pieceVisible : visible);
   }
   return out;
 }

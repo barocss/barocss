@@ -153,3 +153,8 @@ Newest last. Branch `claude/drawings-cg5`; the coordinator merges.
   28 hidden, the top edge covered 0–64, cut left 0–28, the centreline at X 32 past the box; saved/refused inputs;
   SECTION_KIND; set_drawing; the DXF's one HATCH with four loops spanning 0–12, 18–30, 30–41, 49–60 (ezdxf). Flow step
   "section kinds (CG5 DR-3)".
+
+
+## D477 — Visible circle-center snap and Hole drawing recovery (2026-11-03)
+
+[D477 canonical proof](notes/drawing-circle-snap-recovery-2026-11-03/README.md) records the original bottom-rim public pick FAIL, the bounded round-circle CENTER visibility correction and8/8 desktop groups with nine native/Python/Worker/SVG bindings. Endpoint/non-round legacy policies and all physical budgets remain. Related tests are120 PASS/1 proven pre-existing O172 baseline FAIL; lint/types pass. The paired original/current control supersedes provisional regression attribution. #540 remains open. Next D478 inventories and actually reproduces that old shaft Fix failure before implementation; no new annotation, export or standards scope.
