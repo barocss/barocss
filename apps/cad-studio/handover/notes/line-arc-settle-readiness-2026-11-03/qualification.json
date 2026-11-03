@@ -1,0 +1,211 @@
+{
+  "workId": "D466",
+  "lastUpdated": "2026-11-03",
+  "status": "BOUNDED_INITIAL_AND_SAME_VALUE_READINESS_PASS",
+  "baseline": "fc5085bcb258833dffacf8f147156f60efc7e953",
+  "primaryRows": [
+    "09",
+    "16"
+  ],
+  "relatedRows": [
+    "07",
+    "12"
+  ],
+  "scope": "Isolated initial-settle and existing manual-profile consumer measurement",
+  "productChanges": "NONE",
+  "testChanges": "NONE",
+  "newRoundProducer": false,
+  "lineArcRoundGuard": "UNCHANGED_CURRENT_REFUSAL",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercentFrozen": 43,
+  "input": {
+    "seed": {
+      "path": "/tmp/barocss-d466-geometry/seed.bcad",
+      "sourcePath": "/tmp/barocss-d465-geometry/seed.bcad",
+      "sha256": "4abd919ae6eeacdd95172e37e6ab89e46c79514676d0d812a6cc2398f8fbe6e1",
+      "bytes": 1640,
+      "authoring": "SOURCE_AUTHORED;no new seed native baseline"
+    },
+    "candidates": [
+      {
+        "radius": 3,
+        "path": "/tmp/barocss-d466-geometry/R3-raw.bcad",
+        "sha256": "03862a44f4a8f3947c22d132508405ff502887d223e7d9858d85dfc35568f53f",
+        "authoringPath": "/tmp/barocss-d466-geometry/R3-authoring.json",
+        "authoringSHA256": "15cbe0bb2084b9e29566fb1a82abe3e05a19a79da27a5e30ca782c85de0cfe87",
+        "origin": "SOURCE_AUTHORED_MANUAL_TWO_ARC_PROFILE",
+        "productImports": 0,
+        "newRoundProducer": false
+      },
+      {
+        "radius": 4,
+        "path": "/tmp/barocss-d466-geometry/R4-raw.bcad",
+        "sha256": "6624176088ca2b9b2e0bcbca994ee11d2812f7f4e97a9465d0fbbc38a6a06e38",
+        "authoringPath": "/tmp/barocss-d466-geometry/R4-authoring.json",
+        "authoringSHA256": "5f1db3dc9718ebcd826bb7fda2be5c1f0a8b9a3664d4babd5460b594d371881d",
+        "origin": "SOURCE_AUTHORED_MANUAL_TWO_ARC_PROFILE",
+        "productImports": 0,
+        "newRoundProducer": false
+      }
+    ]
+  },
+  "preflight": {
+    "status": "PASS",
+    "declaredTransitions": 4,
+    "transitions": [
+      {
+        "radius": 3,
+        "context": "candidate_with_original_seed_previous",
+        "status": "PASS",
+        "result": "BOUNDED_INITIAL_CARRIER_AND_CONSTRAINT_READINESS"
+      },
+      {
+        "radius": 4,
+        "context": "candidate_with_original_seed_previous",
+        "status": "PASS",
+        "result": "BOUNDED_INITIAL_CARRIER_AND_CONSTRAINT_READINESS"
+      },
+      {
+        "radius": 3,
+        "context": "same_value_candidate_with_candidate_previous",
+        "status": "PASS",
+        "result": "BOUNDED_INITIAL_CARRIER_AND_CONSTRAINT_READINESS"
+      },
+      {
+        "radius": 4,
+        "context": "same_value_candidate_with_candidate_previous",
+        "status": "PASS",
+        "result": "BOUNDED_INITIAL_CARRIER_AND_CONSTRAINT_READINESS"
+      }
+    ],
+    "receipt": "/tmp/barocss-d466-geometry/preflight-run01/receipt.json",
+    "sourcePins": 754,
+    "cleanup": {
+      "ownPID": 74108,
+      "ownPIDAbsent": true,
+      "gate": "FREE"
+    },
+    "receiptSHA256": "5e33a31a5612cfcb3ea7e6040ba6b1f8261d1226fc44db7cf5bb77f7262c5b47",
+    "sourceEqualAfterCleanupCurrent": true,
+    "maximumNativeVolumeAbsoluteError": 1.82e-12,
+    "command": "bash /tmp/barocss-d466-root/run-preflight01.sh"
+  },
+  "actual": {
+    "status": "PASS",
+    "declaredGroups": 4,
+    "qualifiedGroups": 4,
+    "coverage": {
+      "manualR3PublicOpenNative": "PASS",
+      "manualR3CurrentLockedRadiusEnterFinishNative": "PASS",
+      "manualR4PublicOpenNative": "PASS",
+      "manualR4CurrentLockedRadiusEnterFinishNative": "PASS"
+    },
+    "consumerPath": "Public locked fillet radius current-value Enter \u2192 App.updateShape \u2192 settleShape(candidate,previousManualShape) \u2192 Finish; Finish alone does not solve",
+    "command": "bash /tmp/barocss-d466-root/run-studio01.sh",
+    "configSHA256": "5d4051ffa7b10f521243847963c9460c65f4c89badb1d9c8d198060b3a8a58a4",
+    "receipt": "/tmp/barocss-d466-workflow-run01/receipt.json",
+    "nativeBindings": 4,
+    "oracleResults": "PASS",
+    "sourcePins": {
+      "prehashPaths": 2394,
+      "fullFrozenPaths": 2395,
+      "aliasesIncluded": true,
+      "beforeAfterCleanupCurrentEqual": true
+    },
+    "visualReview": "raw/afterEnter/Finish eachR3/R4",
+    "cleanup": {
+      "sequentialFreshContexts": 2,
+      "contextsBrowserServer": "CLOSED",
+      "OPFSNamespacesCreated": 0,
+      "saveClaim": false,
+      "ownPID": 80220,
+      "ownPIDAbsent": true,
+      "gate": "FREE"
+    },
+    "errors": {
+      "page": 0,
+      "console": 0,
+      "downloads": 0,
+      "watchedChanges": 0
+    },
+    "receiptSHA256": "8ab1b0117229bba8f45639ec5478f9e1527aa6fba859dedf5e5a075f2333870d",
+    "freshNativeCaptures": 4,
+    "freshPythonOracles": 4,
+    "freshRawWorkerBindings": 4,
+    "maximumWorkerVolumeCentroidBindingError": 0,
+    "statesAndImages": 14,
+    "rootViewedImages": 6,
+    "executedFailures": 0,
+    "maximumErrors": {
+      "nativeVolumeAbsolute": 3.637978807091713e-12,
+      "nativeCentroidAbsoluteMM": 7.105427357601002e-15,
+      "carrierCenterDriftMM": 3.552713678800501e-15,
+      "carrierRadiusDriftMM": 0,
+      "linearResidual": 9.769962616701378e-15,
+      "angularResidual": 2.9976021664879227e-15
+    }
+  },
+  "measurementQuestions": [
+    "Source-circle pose preserved after actual settle?",
+    "Finite declared line/arc branch and original-circle direction retained?",
+    "Original and new constraint metadata preserved or explicitly refused?",
+    "Current native geometry agrees with independent analytic expectation?"
+  ],
+  "proofBoundaries": [
+    "Manual source-authored input,not public producer construction",
+    "Isolated original-seed transition is preflight only",
+    "Same-value radius Enter invokes settle;no-op Finish alone is not equivalent",
+    "No radius-change/history/OPFS/generaldownstream qualification",
+    "Independent physical oracle separate from raw current Worker binding",
+    "No new admission/repair/tolerance/HOLD change"
+  ],
+  "results": {
+    "initialAndSameValue": "PASS_TWO_MANUAL_PROFILES_ONLY",
+    "highSourceMathAudit": "ACCEPT",
+    "producer": "ABSENT_CURRENT_GUARD_UNCHANGED"
+  },
+  "decision": "DEFER_NEW_ADMISSION",
+  "nextIfDeferred": "D467 existing BODYScale explicitpivot0 Factor2\u21920.5,sourceH12,Factor0INPUTrefusal,exactUndoRedo,ownOPFS/postOpenFactor2;no lineArcadmission",
+  "issues": {
+    "2282": "OPEN_RESEARCH_NOT_IMPLEMENTED",
+    "534": "OPEN_PARTIAL"
+  },
+  "holds": "CoreNOT_MEASURED/legacy43frozen;all current Motion/Physics,fitter/thicken,widening,manufacturing,UI,schema,download/dependency,browserCI/release gates unchanged.",
+  "budgets": {
+    "nativeVolumeRelative": 1e-09,
+    "nativeCentroidBoundsCirclePinsAbsolute": 1e-09,
+    "currentLinearResidual": 1e-07,
+    "currentAngularResidual": 1e-09
+  },
+  "checks": {
+    "newTestsTypesBuildFullKernel": "NOT_RUN_NO_PRODUCT_OR_TEST_CHANGE",
+    "retained": "D46128focused,lint,StudioTSC,finalModelTSC",
+    "SUTFix": "NONE",
+    "independentOracleSHA256": "ed852ee17e68b206ebf5fb343e153fe986dcea7566b9a13dc8014499168ef5f1",
+    "geometryManifestSHA256": "fb058e8f2c005a8fea2fd8b8923816288d1899364d32ea210ee9162dd34abeb6",
+    "rootReview": "/tmp/barocss-d466-root/root-review.json",
+    "physicalOracle": "Independent actual line/arc area and first moments; finite line/source quarter-arc domains and left/internal branch; native arc boundary pins; both outline bulges bind emitted carrier center/radius/signed sweep at unchanged1e-9.",
+    "documentation": {
+      "status": "PASS",
+      "commands": [
+        "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+        "git diff --cached --check"
+      ],
+      "rows": 34,
+      "legacyHeadingFragments": 552,
+      "legacyOutboundLinks": 913,
+      "checkedLocalLinks": 2641,
+      "newBroken": 0,
+      "knownHistoricalMissingPaths": 1
+    }
+  },
+  "unmeasured": [
+    "Roundproducer",
+    "changedradius",
+    "sourceedit",
+    "negativecases",
+    "constraintremovalpolicy",
+    "newfeatureidentity/history/project"
+  ],
+  "evidenceBoundary": "Four actual manual-profile groups only;initialcandidate\u2192seed isolatedpreflight distinct from publicsamevalue\u2192manualprevious. No Roundproducer/Save/history/project/newadmission claim."
+}
