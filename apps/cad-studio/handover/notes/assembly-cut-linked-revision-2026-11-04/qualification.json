@@ -1,0 +1,225 @@
+{
+  "work_id": "D487",
+  "status": "QUALIFIED_SMALL_EXISTING_ASSEMBLY_CUT_LINKED_REVISION_SIX_AGGREGATE_GROUPS",
+  "tier": "SMALL_EXISTING_C4_WORKFLOW_MEASUREMENT",
+  "rows": [
+    "10",
+    "12",
+    "16"
+  ],
+  "parentHead": "2909fdd938c49911989e32f04800fab268d42419",
+  "productImplementation": false,
+  "input": {
+    "path": "/tmp/barocss-d487-input01/retained-both-cut.bcad",
+    "bytes": 1159,
+    "sha256": "4dd90255c84bbb3b511bca713ea74a5208ea738b5d09ad347b132155e8ec23fc",
+    "sourceReceipt": "apps/cad-studio/handover/notes/assembly-cut-2026-10-31/run03/receipt.json",
+    "sourceReceiptSHA256": "c1b026f7471e6d8478bc3b2dc26ce1e43951680396b1192b60dcd9be75816ae0",
+    "originalSourcePaths": "ABSENT",
+    "sourcePlateBytes": 261,
+    "sourcePlateSHA256": "6075d66b91695fa19b28c74f8a4de223d7c3b1fe0903c6ddbef010134f1aaa9e",
+    "derivedSetupChange": "ONLY_ADD_./D487-plate.bcad_AFTER_PUBLIC_OWN_SOURCE_SAVE",
+    "derivedSetupSHA256": "6312258e32d555aa7b2a53d09910e1470b7d587cb116c6470be2352e8d230d1f",
+    "retainedPublicLinkCreationClaim": false
+  },
+  "checks": {
+    "initial": "LOAD_REFUSAL_ALL_NOT_RUN",
+    "final": "PASS",
+    "modelTests": 38,
+    "studioTests": 18,
+    "totalPass": 56,
+    "fullKernel": "NOT_RUN_NO_PRODUCT_CHANGE",
+    "PDF": "OWNER_DEFERRED_NO_RERUN",
+    "commands": [
+      "bash /tmp/barocss-d487-root/run-checks01.sh",
+      "bash /tmp/barocss-d487-root/run-checks02.sh"
+    ],
+    "reusedAtIdenticalSource": [
+      "D484_CAD_SEMANTIC_BUILD",
+      "D484_FINAL_MODEL_TSC",
+      "D484_STUDIO_TSC"
+    ],
+    "docsNavigation": "PASS_34_ROWS_NO_NEW_BROKEN_LINKS",
+    "diff": "PASS"
+  },
+  "probe": {
+    "initial": "OWNER_ASSERTION_FAIL_BEFORE_GEOMETRY_RAW_P2_OWNER_B6_NOT_B1",
+    "correction": "ORACLE03_STRONG_ORIGINAL_TRANSFORM_CHAIN_MAPPING_RAW_OWNER_PRESERVED_FULL_PHYSICS",
+    "probe02": "PASS_SAVED_H5_AND_FIRST_DERIVED_H8_NATIVE_ANTECEDENTS_ONLY",
+    "publicLinkedRevisionAuthority": false
+  },
+  "actual": {
+    "status": "AGGREGATE_6_OF_6",
+    "groups": [
+      "PUBLIC_OWN_SOURCE_SAVE_DERIVED_LINKED_CUT_H5",
+      "SOURCE_H8_OFFER_KEEP_CHECK_RETAINS_H5",
+      "ACCEPT_BOTH_H8",
+      "FIRST_UNDO_REDO_EXACT_REVISION",
+      "OWN_PROJECT_RELOAD_OPEN_H8",
+      "POSTOPEN_PUBLIC_TARGETS_P1_P2_TO_P2_AND_EXACT_UNDO"
+    ],
+    "run01": {
+      "pass": 5,
+      "group6": "NOT_RUN_STRICT_SELECTOR_TOOLBAR_AND_ASIDE_SHARE_LABEL_BEFORE_TARGET_EDIT",
+      "configSHA256": "81e85b32e8071c2b0f1dc854708322f7047ef21dcf119549fc6bf2d34a1af3c5",
+      "nativeCaptures": 3,
+      "exactWholeDocReuses": 5
+    },
+    "run02": {
+      "scope": "RECOVERY_ONLY_GROUP6_AND_REQUIRED_PUBLIC_SAVED_H8_SOURCE_ASSEMBLY_SAVE_CLOSE_RELOAD_OPEN_ANTECEDENT",
+      "group6": "PASS",
+      "configSHA256": "c47675c7ac488613aa7074395edf2f5314c3057634efae8d7e011fad5d3476a1",
+      "sourceInputSHA256": "19d2d73df2daa1b4b32476d030f94adccb06456f7fca8b9d8194c79fc6a79aea",
+      "assemblyInputSHA256": "e8858b24851ccaec777dcf75047dc5ed6018def2c9f7377980f909c6aad05e11",
+      "newNativeCaptures": 1,
+      "exactWholeDocReuses": 2
+    },
+    "nativeCaptures": 4,
+    "exactWholeDocReuses": 7,
+    "freshNativeOracleInstanceBoundsBindings": 11,
+    "placedWorkerVolumeCentroidCoherence": "NOT_MEASURED",
+    "productFix": false,
+    "physical": {
+      "cutVolumeFormula": "H*(2400-16*pi)",
+      "cutVolumeH5": 11748.672587712817,
+      "cutVolumeH8": 18797.876140340508,
+      "uncutH8Volume": 19200,
+      "unchangedBaseVolume": 28800,
+      "p1Centroid": [
+        30,
+        20,
+        "H/2"
+      ],
+      "p2Centroid": [
+        30,
+        20,
+        "5+H/2"
+      ],
+      "p1ZBounds": "0..H",
+      "p2ZBounds": "5..5+H",
+      "Through": "BOTH_DIRECTIONS_BEYOND_PLANE_Z10",
+      "volumeRelativeBudget": 1e-09,
+      "centroidBoundsCarriersPcurveAbsoluteBudget": 1e-09,
+      "H8Placements": "OVERLAP_NO_COLLISION_FREE_OR_FUSED_UNION_MASS_CLAIM",
+      "maxSavedErrors": {
+        "volumeAbsoluteMM3": 1.4551915228366852e-11,
+        "centroidAbsoluteMM": 2.1316282072803006e-14,
+        "wholeRationalRadialBoundMM": 1.2019591063733156e-15,
+        "pcurveBoundMM": 1.88411095042053e-15
+      }
+    },
+    "commands": [
+      "bash /tmp/barocss-d487-root/run-studio01.sh",
+      "bash /tmp/barocss-d487-root/run-studio02.sh"
+    ]
+  },
+  "visual": {
+    "rootImages": 15,
+    "finding": "ADOPTED_H8_HOLES_P2_ONLY_EDIT_FILLS_P1_UNDO_RESTORES_BOTH_CUT_TARGETS",
+    "completeViewportFit": "NOT_MEASURED_PALETTE_DOCK_CROPPING",
+    "existingRevisionToast": "RETAINED_NO_UI_FIX_CLAIM"
+  },
+  "custody": {
+    "run01": {
+      "wrapperPins": 1861,
+      "helperFrozenPins": 1863,
+      "sourceEqual": true,
+      "ownPID": 49149,
+      "ownPIDAbsent": true
+    },
+    "run02": {
+      "wrapperPins": 1872,
+      "helperInitialPins": 1872,
+      "helperFrozenPins": 1874,
+      "sourceEqualThroughCleanupCurrent": true,
+      "ownPID": 68127,
+      "ownPIDAbsent": true
+    },
+    "ownedProjects": "REMOVED_AND_ABSENT",
+    "resources": "ALL_CONTEXTS_BROWSERS_SERVERS_CLOSED",
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "watchedChanges": 0
+  },
+  "HighFinalSavedReview": {
+    "status": "PASS_SAVED_EVIDENCE_HIGH_AUDIT_FINITE_D487_PROFILE",
+    "path": "/tmp/barocss-d487-high-final01/review.json",
+    "sha256": "122006033ea1c640b24088508ffa9912db5122287443344b799a48d1abd35511",
+    "savedEvidenceChecks": 291,
+    "failures": 0,
+    "savedDataOnly": true,
+    "SUTNativeOracleRerun": false,
+    "verifiedCurrentSourcePins": 1034,
+    "uniqueWholeDocumentSHAClasses": 4
+  },
+  "roles": {
+    "driverSourcePreparation": "Sol Medium",
+    "nativeOracleAndFinalSavedReview": "Sol High",
+    "sealedConfigRuntimeCustodyImages": "root"
+  },
+  "evidence": {
+    "inputProvenance": {
+      "path": "/tmp/barocss-d487-input01/provenance.json"
+    },
+    "checks01": {
+      "path": "/tmp/barocss-d487-checks01/receipt.json",
+      "sha256": "7ebc3c5193f40eae60d8e13838b7626b62306efd9652cc87e9ebba196c525dfc"
+    },
+    "checks02": {
+      "path": "/tmp/barocss-d487-checks02/receipt.json",
+      "sha256": "7cb3ac14ea4ea78cc3282e7ed5d3f7029b3d377a0d8cdaf13dded2493d388f68"
+    },
+    "nativeProbe02": {
+      "path": "/tmp/barocss-d487-native-probe02/receipt.json",
+      "sha256": "1476a6bff663ef213c9fb27ec7f7a97df5f88f537b73073c63d281aa9f7ecd01"
+    },
+    "oracle03": {
+      "path": "/tmp/barocss-d487-oracle03/physical-oracle.py",
+      "sha256": "98396eaead7e17bc976ad2782fe48922496f1f4a407e9ab34d81de2200f826d1"
+    },
+    "exactAcceptedNativeReuse": {
+      "path": "/tmp/barocss-d487-root/reuse-accepted-native01.json",
+      "sha256": "83bb784ebf0d588498d0fba8709cfaf76b2f9babc2457207f6a13f2897c64fd1"
+    },
+    "actual01": {
+      "path": "/tmp/barocss-d487-workflow-run01/receipt.json",
+      "sha256": "85ab58979fb6de444ddab84fed92765d3a0e8832eeacc939f70c8f457a87121d"
+    },
+    "actual02": {
+      "path": "/tmp/barocss-d487-workflow-run02/receipt.json",
+      "sha256": "915b0fbce8a9dea8050b3d36af4125b32bc94f5f99af4e9ddf275ca387856ba7"
+    },
+    "rootReview01": {
+      "path": "/tmp/barocss-d487-root/actual01-review.json",
+      "sha256": "4e0b51baae6f8f19e3b3aed26a2a5f169288aa027cf97528e5aecf08bbfdb911"
+    },
+    "rootReview02": {
+      "path": "/tmp/barocss-d487-root/actual02-review.json",
+      "sha256": "c5c86beea04122f7e5f9c7f676da89ffe2c9c33bd6c1cf2112acf9b34c00cc3f"
+    }
+  },
+  "limits": [
+    "ONE_EXISTING_TOP_LEVEL_ASSEMBLY_CUT_LINKED_REVISION_PROFILE",
+    "NO_PRODUCT_CHANGE",
+    "NO_RETAINED_PUBLIC_LINK_CREATION",
+    "NO_GENERAL_NESTED_SUBASSEMBLY_CLEARANCE_MOTION_PHYSICS_OR_EXPORT_ADMISSION",
+    "NO_PLACED_WORKER_V_C_CLAIM",
+    "NO_FULL_VIEWPORT_FIT_CLAIM",
+    "NO_MOBILE_OR_DOWNLOADS",
+    "NO_RAW_ARTIFACTS_COPIED_TO_REPOSITORY"
+  ],
+  "roadmap": {
+    "issue538": "OPEN_EPIC",
+    "issue2180": "HISTORICAL_CLOSED_UNCHANGED",
+    "core": "NOT_MEASURED",
+    "legacyPercent": 43,
+    "legacyStatus": "FROZEN",
+    "holds": "UNCHANGED",
+    "PDF": "OWNER_DEFERRED_NO_RERUN",
+    "next": "D488_C4_EXISTING_EDIT_PART_FINISH_SUPERSEDES_PENDING_LINKED_SOURCE_REVISION_INVENTORY_FIRST",
+    "nextBoundary": "EXACT_D457_ACTUAL_PENDING_H10_AND_SAVED_H12_SOURCE_LOCAL_EDIT_H14_VS_UNCHANGED_FILE_H12_PENDING_CLEAR_SHARED_NEXT_REV_UNLINKED_EDITED_MARKER_CHECK_NO_OFFER_FIRST_UNDO_REDO_OWN_PROJECT_OPEN",
+    "nextInventoryMayNarrowCase": true,
+    "nextConstructionReplayOrNewAPIAdmission": false
+  }
+}
