@@ -1,0 +1,115 @@
+{
+  "format": "stack-owned-data-component-pins-v1",
+  "status": "SOURCE_ONLY_NOT_EXECUTED",
+  "python": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+  "pythonVersion": "3.13.5 (main, Jun 11 2025, 15:36:57) [Clang 17.0.0 (clang-1700.0.13.3)]",
+  "decimalExtension": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/lib-dynload/_decimal.cpython-313-darwin.so",
+  "files": {
+    "examples/physics-stack-owned-data-2276/owned.py": {
+      "bytes": 9687,
+      "sha256": "3f42fcb4671cee9b4e7ca409ad84c6e2c7edb0fdeabc6cec0b2e6cbfaaf008d4"
+    },
+    "examples/physics-stack-owned-data-2276/ledger.py": {
+      "bytes": 4442,
+      "sha256": "a56e10c455029882c9590c55ef46a3789a8757e6314e9eaccff0c19add59b7f8"
+    },
+    "examples/physics-stack-owned-data-2276/selftest.py": {
+      "bytes": 15858,
+      "sha256": "770efcabe822536d64eadd3891df0ebb6f91790f7dc1dfd115fc8c788dfd94af"
+    },
+    "examples/physics-stack-owned-data-2276/CONTRACT.md": {
+      "bytes": 7136,
+      "sha256": "81c6734fcbc12953f07aa02dc381d1b453db64b48deedd6a500cd10cf3792379"
+    },
+    "examples/physics-stack-owned-data-2276/DECIMAL-PREMISE.md": {
+      "bytes": 1982,
+      "sha256": "6a31dca17ee69772bbc3caac1989634c172eb62c3e37a3354c092237a771289f"
+    },
+    "examples/physics-p4-owned-data-2276/owned.py": {
+      "bytes": 15993,
+      "sha256": "03aef2a5fa1cec2f8389b6f668a9f170e26fae43bfb319db79fd722e9b22278f"
+    },
+    "examples/physics-p4-owned-data-2276/PINS.json": {
+      "bytes": 2365,
+      "sha256": "ce956b595bc56460f643dcc3d5f47e5b153dbaee4e22e0905652ae068090bcfd"
+    },
+    "examples/physics-p4-owned-data-2276/evidence/selftest-01/summary.json": {
+      "bytes": 1825,
+      "sha256": "40f2655bd12233c8ec65d3a4b13ed786c95bfd0b24c96127699fc2a14f318f75"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13": {
+      "bytes": 52640,
+      "sha256": "a1f6d9dc20d4787a84dc2fe782094a7bac5946f49a962aa0af48a02f0e8d5bc5"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/Python": {
+      "bytes": 5080352,
+      "sha256": "9fbad407dcddb437d1cdc70a57274c6a179a0a835662870b4628e750b91f5066"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/lib-dynload/_decimal.cpython-313-darwin.so": {
+      "bytes": 195120,
+      "sha256": "012ccc5fc549ca1da531e00957e6f1807e364971fcd55209f51d5545d788e585"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/decimal.py": {
+      "bytes": 2798,
+      "sha256": "ed070025c9742f71f7ea92ec1a3d24f85b3199dd79b9d15a141716154e647989"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/fractions.py": {
+      "bytes": 40021,
+      "sha256": "58f7750133f2e23999ba3f634d1b14edfec6dc48bf8bb00a9911262cd7198f63"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/config-3.13-darwin/Makefile": {
+      "bytes": 205673,
+      "sha256": "a7f6c3625dea70d68c55ce417d1d92ec86507dccf0d038194e81ade17a6aa95f"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/INSTALL_RECEIPT.json": {
+      "bytes": 3199,
+      "sha256": "3de49807fae9605903988baae7431258fc9c1c125f6fc3cbc26cf004a99efad7"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/.brew/python@3.13.rb": {
+      "bytes": 21046,
+      "sha256": "fcf27351349355986262330e7dc580b2f58d463d5a394d1fd19cf992fd1657ec"
+    },
+    "/opt/homebrew/Cellar/mpdecimal/4.0.1/include/mpdecimal.h": {
+      "bytes": 40507,
+      "sha256": "0670bcbafbdc502c32781725ddcbb32de2a1acfe5057d56aeb3814be599b8c7f"
+    },
+    "/opt/homebrew/Cellar/mpdecimal/4.0.1/lib/libmpdec.4.0.1.dylib": {
+      "bytes": 189472,
+      "sha256": "30a40206c5b075e7b92f11aead6e937559e7a418914fd01dc925e92894c1796d"
+    }
+  },
+  "decimalPremise": {
+    "source": "https://raw.githubusercontent.com/python/cpython/v3.13.5/Modules/_decimal/_decimal.c",
+    "objectLines": [
+      168,
+      173
+    ],
+    "sizeMethodLines": [
+      4612,
+      4620
+    ],
+    "bindingLine": 4738,
+    "retainedCoefficientSemantics": "UPSTREAM_SOURCE_ESTABLISHED",
+    "localRuntimeBinding": "PENDING_ROOT_PIN_REVIEW_AND_TEST",
+    "defaultAdmission": "UNKNOWN_REFUSE",
+    "explicitPolicy": "cpython3135-c-coefficient-v1",
+    "nativeTemporaries": "UNKNOWN"
+  },
+  "qualification": {
+    "groups": 7,
+    "authorTargetImports": 0,
+    "authorHelperCalls": 0,
+    "authorMathCalls": 0,
+    "authorTests": 0,
+    "authorCompilerCalls": 0,
+    "authorAST": "PARSED_ONLY",
+    "actualTests": "NOT_RUN",
+    "actualProductionToken": "NOT_IMPORTED",
+    "whole64MiBBound": false,
+    "allLiveFrames": "UNKNOWN",
+    "CPU": "NOT_RUN",
+    "RSS": "NOT_RUN",
+    "full1200": "BLOCKED",
+    "API": false
+  }
+}

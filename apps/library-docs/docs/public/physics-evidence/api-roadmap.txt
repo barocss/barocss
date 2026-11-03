@@ -98,11 +98,29 @@ replies and a current canonical3×16 census:195 old wire pairs/425916 record wor
 exact. Root's initial432decode-count assertion failed and is preserved; source
 mapping proves288 on this world path, corrected by a data-only review. The
 separate live detached-packet3×16 gate also passes, including254544 own numeric
-words, every physical check and next-state ownership. Next is bounded three-credit
-scheduling plus complete owned-DATA/CPU qualification before the original1200
-composed path. The existing64MiB explicit DATA gate has unresolved Decimal,
-slots, native-temporary and Node-lifetime roots; it is not replaced by an RSS
-number. See the prepared/packet RESULTS and wholepath RESOURCE-NEXT.md.
+words, every physical check and next-state ownership. The actual bounded three-credit Worker/three-reference composition now passes
+all48 fresh phase steps and195 old wire pairs. A separate exact after-wait CPU
+run observes9.265765s wall and complete Node-subtree CPU21.301446s user plus
+0.365372s system, without a speed ratio or1200 forecast. Existing first synthetic
+control12 failure stopped before physics and remains preserved; only its invalid
+expectation was corrected. Next is lossless bounded full-run archive handling,
+a fresh combined3×16 producer/archive gate, then original3×1200 under its original
+physical/wall/wire/scratch/output contract. The new stream archive component now
+passes all18 fixed word/corruption/boundary controls (867.339833ms outer), with
+zero physics calls. Live combined qualification remains pending; see
+`examples/physics-stack-stream-2276/RESULTS.md`.
+
+**Resource scope correction (2026-11-04):** source tracing found no global64MiB
+heap/engine-plus-oracles threshold in the original1200 exit. That number belongs
+to later offline proof or cache-owned research contracts. The previous review
+incorrectly inherited it as a whole-engine prerequisite. Keep those stricter
+profiles, limits and NO_GOs intact as NOT_QUALIFIED; do not call them PASS or
+raise them. The original280MiB compressed/20MiB fixed-evidence/2MiB emergency,
+2MiB wire, existing16MiB scratch and170s/180s scene bounds retain their actual
+scopes. Total heap/RSS certification is separate and unclaimed. Exact authority
+paths/lines and allocator exclusions are in
+`examples/physics-stack-owned-data-2276/ENVELOPE-PREMISES.md`. New full-run
+contract explicitly adopts this correction; historical contracts stay unchanged.
 
 The current first-interval coupled-contact path has completed its finite
 arithmetic, actual World, post-impulse rollback/wire and desktop Native gates.

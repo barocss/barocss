@@ -1,0 +1,40 @@
+{
+  "API": false,
+  "RSS": "NOT_QUALIFIED",
+  "authorCompilerCalls": 0,
+  "authorProviderCalls": 0,
+  "authorTestCalls": 0,
+  "changedExecutableSources": [
+    "controls.test.mjs:group12 expectations ONLY"
+  ],
+  "complete64MiBData": "NOT_QUALIFIED",
+  "completeOwnedLifetimeCpu": "NOT_QUALIFIED",
+  "correction": "FIRST-FAILURE-CORRECTION.md",
+  "dependencyFiles": 567,
+  "files": {
+    "CONTRACT.md": "01610f1d89fa9b5cbec31cb16c7bc9287e71575242afc2ab68f9c2a5052c88c8",
+    "FIRST-FAILURE-CORRECTION.md": "b9fa5d87fde44cf2fa11f60b364ab822f5afe395f7be408f6cb28fd40cc73f09",
+    "PINS.json": "a3692b8d40ee75b649a0055ad046005c21996f9b3a4275748635db449e5f0821",
+    "controls.test.mjs": "38025c8f8defa29914c1735aaed30a4039888a89b3800edb812620d0673262f9",
+    "driver.mjs": "2e0b254fc2a1bce2612fbe278870f87111271f591cc5d99342016b05dde9620d",
+    "producer.mjs": "9b0f636ae9d4edb210d77b49c6644c0962a17f32146e39db18aa184bcb51a26b",
+    "protocol.mjs": "7e94585adf0040296f852e481b792b4a9258b1919bee578df97c7f4bcc4df9c2",
+    "run.mjs": "e4225dedb6a75eba35ac385ea23f355222f6c5f0ad2ece0cf5afa12c8d6e798e"
+  },
+  "fixedSyntheticControls": 18,
+  "full1200": false,
+  "geometryProcesses": 1,
+  "hardStepsPerScene": 16,
+  "independentlyFullAccepted": 0,
+  "innerEntry": "explicit Node22.19 run.mjs --inner FRESH_OUT (no detached supervisor in this branch)",
+  "nextRunID": "prefix-02",
+  "physicalRecordPieces": 102,
+  "preparedPositionProcesses": 2,
+  "priorFrozenArchiveSHA256": "5aefaa86a81a48941039c1ed40a6d7a72bdba8d528783be4486d8e73e65a74c9",
+  "priorSealSHA256": "1415bd22aa03574fe53d88ab565a168f7d536d672c1e5a5dde64ab00fe806856",
+  "producerWorkerThreads": 1,
+  "resourceQualification": false,
+  "semanticRequestReplyPairs": 195,
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN",
+  "uncommittedCredits": 3
+}

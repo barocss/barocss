@@ -1,0 +1,28 @@
+// Fixed18 protocol controls; no producer/provider/reference math is imported.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {Worker} from 'node:worker_threads';
+import {fingerprint,verifyFingerprint,Window,SerialReference,Cancelled,terminateOwnedWorker,STEPS} from './protocol.mjs';
+const clone=structuredClone;
+test('01 structured clone preserves every canonical graph transcript',()=>{const shared={n:[-0,Number.MIN_VALUE,Number.MAX_VALUE]},a={shared,alias:shared,text:'한글\ud800😀',yes:true,nil:null};assert.deepEqual(fingerprint(a),fingerprint(clone(a)));});
+test('02 signed zero loss is detected',()=>{const a={n:-0},b={n:0};assert.notEqual(fingerprint(a).sha256,fingerprint(b).sha256);});
+test('03 a changed point word is detected',()=>{assert.notEqual(fingerprint({point:[1,2,3]}).sha256,fingerprint({point:[1,2,3+Number.EPSILON*2]}).sha256);});
+test('04 UTF16 strings are not normalized by UTF8 replacement',()=>{assert.notEqual(fingerprint({s:'\ud800'}).sha256,fingerprint({s:'\ud801'}).sha256);});
+test('05 split aliases and merged distinct nodes are detected',()=>{const x={n:1};assert.notEqual(fingerprint({a:x,b:x}).sha256,fingerprint({a:{n:1},b:{n:1}}).sha256);});
+test('06 mutation after fingerprint cannot pass receive verification',()=>{const a={n:[-0]},proof=fingerprint(a),b=clone(a);b.n[0]=0;assert.throws(()=>verifyFingerprint(b,proof));assert.ok(Object.is(a.n[0],-0));});
+test('07 oversized packets stop before fingerprint encoding',()=>{assert.throws(()=>fingerprint({s:'x'.repeat(2*1024*1024)}),e=>e.code==='CAPACITY'&&e.stage==='admission');});
+test('08 malformed sparse or cyclic graphs refuse',()=>{const a=[];a.length=1;assert.throws(()=>fingerprint({a}));const b={};b.self=b;assert.throws(()=>fingerprint(b));});
+test('09 three credits cover producer, proof and verified storage',()=>{const w=new Window('ALIGNED');w.hold(1);w.hold(2);w.hold(3);w.phase(1,'proof');w.verified(2,{});assert.throws(()=>w.hold(4),/three credits/);assert.equal(w.peak,3);});
+test('10 out-of-order completion never creates an accepted gap',()=>{const w=new Window('ALIGNED');w.hold(1);w.hold(2);w.verified(2,{});assert.equal(w.ready(),null);assert.throws(()=>w.beginArchive(2),/no accepted gap/);w.verified(1,{});w.beginArchive(1);w.archived(1);w.beginArchive(2);w.archived(2);assert.equal(w.contiguous,2);});
+test('11 later failure stays earliest-unknown until all earlier steps persist',()=>{const w=new Window('ALIGNED');for(const n of [1,2,3])w.hold(n);w.fail(3,'world',Error('late failure'));assert.equal(w.failureSummary().earliestFailingStep,'UNKNOWN');for(const n of [1,2]){assert.ok(w.canResolve(n));w.verified(n,{});w.beginArchive(n);w.archived(n);}assert.equal(w.failureSummary().earliestFailingStep,3);});
+test('12 killed or unresolved earlier work cannot be inferred passed',()=>{
+ const w=new Window('ALIGNED');for(const n of [1,2,3])w.hold(n);w.fail(3,'world',Error('later'));w.fail(1,'position',Object.assign(Error('missing reply'),{unresolved:true}));
+ const before=w.slots.get(2).state;assert.throws(()=>w.verified(2,{}));assert.equal(w.slots.get(2).state,before);assert.equal(w.ready(),null);assert.equal(w.contiguous,0);assert.equal(w.firstObserved.step,3);assert.equal(w.failureSummary().earliestFailingKnown,false);assert.equal(w.failureSummary().earliestFailingStep,'UNKNOWN');
+ const original=new Window('ALIGNED');for(const n of [1,2,3])original.hold(n);original.fail(3,'world',Error('later'));original.unknown(1);original.verified(2,{});assert.equal(original.slots.get(2).state,'verified');assert.equal(original.ready(),null);assert.throws(()=>original.beginArchive(2),/no accepted gap/);assert.equal(original.contiguous,0);assert.equal(original.failureSummary().earliestFailingKnown,false);
+});
+test('13 first arrival and earliest known failing step remain distinct',()=>{const w=new Window('ALIGNED');for(const n of [1,2,3])w.hold(n);w.fail(3,'position',Error('observed first'));w.fail(2,'contacts',Error('observed second'));w.verified(1,{});w.beginArchive(1);w.archived(1);assert.equal(w.firstObserved.step,3);assert.equal(w.failureSummary().earliestFailingStep,2);});
+test('14 observed failure stops new producer credits',()=>{const w=new Window('ALIGNED');w.hold(1);w.fail(1,'fingerprint',Error('stop'));assert.throws(()=>w.hold(2),/producer stopped/);});
+test('15 reference queues allow only one pending call and cancel later dispatch',async()=>{let active=0,peak=0,stopped=false;const q=new SerialReference(null,step=>!stopped||step<2);const jobs=[1,2,3].map(step=>q.run(step,async()=>{active++;peak=Math.max(peak,active);await Promise.resolve();active--;if(step===1)stopped=true;return step;}));const results=await Promise.allSettled(jobs);assert.equal(results[0].value,1);assert.ok(results[1].reason instanceof Cancelled);assert.ok(results[2].reason instanceof Cancelled);assert.equal(peak,1);});
+test('16 owned Worker termination/reap is bounded',async()=>{const worker=new Worker('setInterval(()=>{},1000)',{eval:true});const result=await terminateOwnedWorker(worker,1000);assert.equal(typeof result,'number');assert.equal(worker.threadId,-1);});
+test('17 hard16 has no larger step option',()=>{const w=new Window('ALIGNED');for(let step=1;step<=STEPS;step++){w.hold(step);w.verified(step,{});w.beginArchive(step);w.archived(step);}assert.throws(()=>w.hold(17),/hard16/);});
+test('18 archive completion, not proof completion, releases credit',()=>{const w=new Window('ALIGNED');for(const n of [1,2,3])w.hold(n);w.verified(1,{});w.beginArchive(1);assert.throws(()=>w.hold(4),/three credits/);w.archived(1);w.hold(4);assert.equal(w.slots.size,3);});

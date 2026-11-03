@@ -1,0 +1,24 @@
+{
+  "API": false,
+  "authorImports": 0,
+  "authorPhysicsCalls": 0,
+  "authorTestCalls": 0,
+  "files": {
+    "CONTRACT.md": "523c1a31717e330c29088ea9d769a46b02507fb1069231b1bd1e338cd96bd612",
+    "PINS.json": "af0a11e9299cdcb4974ba7bb9aa6805e7a689ade47dc5df42f85c160c76f01ae",
+    "archive.mjs": "3c9587ed2f9648bfbfb508866c0b7107d0611c4ea03a31a3d336f88370332036",
+    "archive.test.mjs": "9a58c80be0830baf424d5f10c245c152ef93fd3b9fc2bfe862dd06f7cf154f47"
+  },
+  "finalCloseFsync": true,
+  "fixedSyntheticGroups": 18,
+  "full1200": false,
+  "maxPendingAppends": 4,
+  "pendingCapBytes": 8388608,
+  "perAppendFsync": false,
+  "perRecordPowerLossGuarantee": false,
+  "resourceQualification": false,
+  "retainedCapBytes": 293601280,
+  "scratchModelBytes": 16777216,
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN",
+  "strict64Profiles": "UNKNOWN"
+}

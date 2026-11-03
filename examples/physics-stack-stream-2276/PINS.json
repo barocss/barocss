@@ -1,0 +1,36 @@
+{
+  "API": false,
+  "authorImports": 0,
+  "authorPhysicsCalls": 0,
+  "authorTestCalls": 0,
+  "files": {
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node": {
+      "bytes": 110712624,
+      "sha256": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+    },
+    "examples/physics-stack-library-2276/io.mjs": {
+      "bytes": 7661,
+      "sha256": "33e266bb0d9d6b86e9890b1aaef0c730a96754c90daab698d22b0bc9e2c89a97"
+    },
+    "examples/physics-stack-stream-2276/CONTRACT.md": {
+      "bytes": 9168,
+      "sha256": "523c1a31717e330c29088ea9d769a46b02507fb1069231b1bd1e338cd96bd612"
+    },
+    "examples/physics-stack-stream-2276/archive.mjs": {
+      "bytes": 13561,
+      "sha256": "3c9587ed2f9648bfbfb508866c0b7107d0611c4ea03a31a3d336f88370332036"
+    },
+    "examples/physics-stack-stream-2276/archive.test.mjs": {
+      "bytes": 11026,
+      "sha256": "9a58c80be0830baf424d5f10c245c152ef93fd3b9fc2bfe862dd06f7cf154f47"
+    }
+  },
+  "fixedSyntheticGroups": 18,
+  "format": "stack-stream-prerequisite-pins-v1",
+  "full1200": false,
+  "node": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "originalIOIsProvenanceOnlyNotImported": true,
+  "resourceQualification": false,
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN",
+  "strict64Profiles": "UNKNOWN"
+}
