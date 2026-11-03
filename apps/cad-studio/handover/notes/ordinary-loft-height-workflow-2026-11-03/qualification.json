@@ -1,0 +1,157 @@
+{
+  "workId": "D473",
+  "lastUpdated": "2026-11-03",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "64e8c9bb46a896517170d75ec24008e580e9802e",
+  "category": "C2 ordinary no-guide copied-section Loft height supplement",
+  "rows": [
+    "07",
+    "08",
+    "12",
+    "16"
+  ],
+  "productChanges": "NONE",
+  "testChanges": "NONE",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercentFrozen": 43,
+  "input": {
+    "path": "/tmp/barocss-d473-geometry/seed.bcad",
+    "sha256": "ca1d60a011fb590730f747ad7d4577e0ae54074ef380398726488c97c7ed0dd1",
+    "origin": "Exact retained D357 public saved Loft",
+    "retained": "Public W60\u219270 copied snapshot non-follow/create and D288/D315/D316 guided proof, not replayed",
+    "sourceBoundary": "W70 original bound n0/n1, numeric W60 copies n2/n3, original n1 plane30 unchanged; n4 sections[1].z only edited"
+  },
+  "publicContract": {
+    "field": "Section 2 \u00b7 height",
+    "key": "z1",
+    "sequence": "Open30 antecedent \u2192 H40 \u2192 H0 refusal \u2192 FIRST Undo30 \u2192 Redo40 \u2192 own OPFS Open40 \u2192 post-Open50",
+    "initialOpenNativeCapture": false,
+    "identities": "n0..n4, from[0,1], b4, nextId5 exact",
+    "refusal": {
+      "code": "PARAMETER",
+      "feature": "n4",
+      "reason": "sections[1] must lie above sections[0]"
+    },
+    "grouping": "Undo and Redo are separate groups; initial Open is antecedent"
+  },
+  "preflight": {
+    "status": "PASS_THREE_STATES_PLUS_HEIGHT0_GUARD",
+    "command": "bash /tmp/barocss-d473-root/run-preflight01.sh",
+    "receipt": "/tmp/barocss-d473-geometry/preflight-run01/receipt.json",
+    "receiptSHA256": "2d7cb9093b28da299e23e5008b2c31c22a63688edb228778e1b0d51e763d56f4",
+    "sourcePins": 745,
+    "sourceEqualAfterCleanupCurrent": true,
+    "ownPID": 65938,
+    "ownPIDAbsent": true,
+    "gate": "FREE",
+    "HighNativeAudit": "ACCEPT",
+    "manifestSHA256": "8076c4e32a5a519c842c40e50459ab6ca2210ecdf1eb7ad45ed18ff66e535932"
+  },
+  "actual": {
+    "status": "PASS",
+    "declaredGroups": 6,
+    "qualifiedGroups": 6,
+    "coverage": {
+      "height40": "PASS",
+      "height0RefusalRetention": "PASS",
+      "FIRSTUndo30": "PASS",
+      "Redo40": "PASS",
+      "ownProjectOpen40": "PASS",
+      "postOpenHeight50": "PASS"
+    },
+    "command": "bash /tmp/barocss-d473-root/run-studio01.sh",
+    "receipt": "/tmp/barocss-d473-workflow-run01/receipt.json",
+    "receiptSHA256": "fd810f0103daa685a121c95cd15076a63b59930c4ea21b15d6f2ce1757008f36",
+    "configSHA256": "6272379418679abb4d3254d9655acddd47b4d96d0886e64814daf65d45e0d5df",
+    "nativeBindings": 6,
+    "freshCaptures": 3,
+    "exactWholeDocReuses": 3,
+    "freshPythonOracles": 6,
+    "freshRawWorkerBindings": 6,
+    "maximumWorkerVolumeCentroidError": 0,
+    "maximumNativeVolumeAbsoluteError": 4.3655745685100555e-11,
+    "maximumNativeCentroidAbsoluteErrorMM": 7.105427357601002e-15,
+    "statesAndImages": 18,
+    "rootViewedImages": 6,
+    "HighActualAudit": "ACCEPT_RECEIPT_SHA_VERIFIED_SIX_SELECTED_NATIVE_BINDINGS",
+    "prehashPaths": 2387,
+    "fullFrozenPaths": 2388,
+    "aliasesIncluded": true,
+    "beforeAfterCleanupCurrentEqual": true,
+    "errors": {
+      "page": 0,
+      "console": 0,
+      "downloads": 0,
+      "watchedChanges": 0
+    },
+    "cleanup": {
+      "namespace": "D473-loft-height-run01",
+      "namespaceStatus": "REMOVED_AND_ABSENT",
+      "contextBrowserServer": "CLOSED",
+      "ownPID": 75191,
+      "ownPIDAbsent": true,
+      "gate": "FREE",
+      "endLoad": 20.2
+    },
+    "executedSUTFailures": 0,
+    "WorkerZeroBoundary": "Selected bindings only; not general exactness",
+    "rootReview": "/tmp/barocss-d473-root/root-review.json"
+  },
+  "physicalContract": {
+    "authority": "Current strict native BRep/BRep mass and independent Fraction slice integral; not display mesh",
+    "volume": "5000*H/3",
+    "centroid": [
+      "643/20",
+      20,
+      "43*H/100"
+    ],
+    "bounds": "[0,0,0]..[60,40,H]",
+    "heights": [
+      30,
+      40,
+      50
+    ],
+    "nativeTopology": {
+      "bodies": 1,
+      "shells": 1,
+      "vertices": 8,
+      "edges": 12,
+      "faces": 6,
+      "reciprocalOuterLoops": 6,
+      "oppositeMutualTwinEdgePairs": 12
+    },
+    "volumeRelative": 1e-09,
+    "centroidBoundsPinsCarrierDistanceOutwardNormalsAbsolute": 1e-09,
+    "carrierBoundary": "Carrier planes/coefficients separate from analytic trim pins, directed loops/rulings; cap poles are not trim bounds",
+    "HighActualChecks": "V/C/bounds/carriers/normals/reciprocal trims within unchanged1e-9; strict one closed genus0 body, zero gaps"
+  },
+  "bookkeepingErratum": {
+    "path": "/tmp/barocss-d473-root/preflight-bookkeeping-erratum.json",
+    "cause": "High contract prose counted initial Open and combined Undo/Redo; manifest bindings and driver correct",
+    "sealedInputsEdited": false,
+    "runtimeFailureOrRerun": false
+  },
+  "checks": {
+    "newTestsTypesBuildFullKernel": "NOT_RUN_NO_SOURCE_OR_TEST_CHANGE",
+    "retained": "D461 28 groups, lint, StudioTSC, finalModelTSC",
+    "documentationNavigation": {
+      "status": "PASS",
+      "command": "export PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH; node apps/cad-studio/handover/scripts/check-navigation.mjs",
+      "node": "22.19.0",
+      "receipt": "/tmp/barocss-d473-root/navigation-final-node22.json",
+      "sha256": "b7e7239e89e4458939ed85a54b4b9aa3dfc13e5262b1bdf00242f2c0f87364d3",
+      "rows": 34,
+      "oldHeadingFragments": 552,
+      "parsedLegacyOutboundLinks": 913,
+      "checkedLocalLinks": 2690,
+      "newBroken": 0,
+      "knownMissingPaths": 1
+    }
+  },
+  "issues": {
+    "534": "OPEN_PART05_PARTIAL_NO_CHECKLIST_PROMOTION"
+  },
+  "environment": "All Node commands require explicit PATH22.19.0",
+  "next": "D474 real face-picked Extrude Join audit candidate only; High finite-contract review and root selection pending",
+  "holds": "Core NOT_MEASURED; legacy43 frozen; all current #2258/#2266, Motion/Physics, fitter/thicken, widening, manufacturing, UI, schema, download/dependency, browserCI/release gates unchanged."
+}

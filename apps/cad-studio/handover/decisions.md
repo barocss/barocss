@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D473: qualify existing ordinary copied-section Loft height, native reciprocal trims and refusal/history/project proof](notes/ordinary-loft-height-workflow-2026-11-03/README.md).
 - [D472: qualify existing public rectangular Pipe lifecycle with native annular-sector proof and preview/preparation boundaries](notes/rectangular-pipe-workflow-2026-11-03/README.md).
 - [D471: qualify existing public parameter Rename, bound raw/resolved height, refusal/history and post-Open Measure44](notes/parameter-rename-binding-2026-11-03/README.md).
 - [D470: qualify named-Version Restore native/real Measure/post-Open re-edit supplement; explicit Save required](notes/named-version-restore-physical-2026-11-03/README.md).
