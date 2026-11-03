@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { setImmediate } from 'node:timers/promises';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { createElement, type SetStateAction } from 'react';
 import { renderToString } from 'react-dom/server.edge';
 import { part } from '@barocss/cad-model/api';
@@ -16,6 +18,9 @@ import type { EngineClient } from '../src/engine/client';
 import { useSketchActions } from '../src/sketch/useSketchActions';
 import { switchTool } from '../src/app/sketchControls';
 import type { SketchState } from '../src/viewport/Viewport';
+import type { SketchShape } from '@barocss/cad-model/sketch/types';
+import { roundCorner } from '@barocss/cad-model/sketch/corner';
+import { settleShape } from '@barocss/cad-model/sketch/settle';
 
 function source() {
   const seed = part('Sketch identity').box({ w: 60, d: 40, h: 10 })
@@ -45,6 +50,108 @@ function actions(doc: StudioDoc) {
   const render = () => renderToString(createElement(Probe)); render();
   return { accepted, evaluated, notices, render, get api() { return api; }, get sketch() { return sketch; }, setSketch };
 }
+
+function d348Fixture(): StudioDoc {
+  return JSON.parse(readFileSync(join(process.cwd(), 'test/fixtures/d348.bcad'), 'utf8')) as StudioDoc;
+}
+
+function constructionOf(doc: StudioDoc): SketchShape[] {
+  const sketch = doc.nodes[0]; assert.ok(sketch.kind === 'sketch');
+  return sketch.construction as SketchShape[];
+}
+
+async function finishConstructionEdit(doc: StudioDoc, change: (editing: SketchState) => SketchState) {
+  const before = structuredClone(doc), f = actions(doc); f.api.editSketch(0);
+  assert.ok(f.sketch); f.setSketch(change(f.sketch)); f.render(); f.api.finishSketch(); await setImmediate();
+  assert.equal(f.notices.length, 0); assert.equal(f.accepted.length, 1); assert.equal(f.evaluated.length, 1);
+  assert.deepEqual(doc, before, 'Finish must not mutate the accepted source');
+  return f;
+}
+
+test('D461: actual Finish after the D348 line-line Round keeps untouched construction e11 and allocates a distinct arc', async () => {
+  const doc = d348Fixture(), original = constructionOf(doc);
+  const f = await finishConstructionEdit(doc, editing => {
+    assert.ok(editing.shape?.kind === 'polygon');
+    const rounded = roundCorner(editing.shape, 4, 2); assert.ok('shape' in rounded);
+    const settled = settleShape(rounded.shape, editing.shape); assert.equal(settled.error, null);
+    return { ...editing, shape: settled.shape };
+  });
+  const accepted = f.accepted[0], node = accepted.nodes[0];
+  assert.ok(node.kind === 'sketch' && node.profile === 'loop');
+  assert.deepEqual(constructionOf(accepted), original);
+  assert.deepEqual(constructionOf(f.evaluated[0]), original, 'the evaluated source also keeps construction identity');
+  assert.equal('pending' in constructionOf(accepted)[0], false);
+  const arc = node.segments.findIndex(segment => segment.kind === 'arc'); assert.equal(arc, 4);
+  const arcId = node.sideTags!.outer[arc]; assert.ok(arcId && !/^e(?:[1-9]|10|11)$/.test(arcId));
+  assert.equal(new Set(node.sideTags!.outer).size, 7);
+  assert.deepEqual(node.sideTags!.outer.filter(id => id !== arcId), (doc.nodes[0] as typeof node).sideTags!.outer);
+  assert.deepEqual(accepted.nodes.slice(1), doc.nodes.slice(1), 'downstream Extrude and fillet refs/signatures stay exact');
+});
+
+test('D461: no-op in-place Finish preserves the original construction record without a pending field', async () => {
+  const doc = d348Fixture(), f = await finishConstructionEdit(doc, editing => editing);
+  assert.deepEqual(constructionOf(f.accepted[0]), constructionOf(doc));
+  assert.equal('pending' in constructionOf(f.accepted[0])[0], false);
+});
+
+test('D461: edited construction coordinates or authored properties use the current allocation path, not the old record', async () => {
+  for (const propertyEdit of [false, true]) {
+    const doc = d348Fixture(), f = await finishConstructionEdit(doc, editing => ({ ...editing, done: editing.done!.map(shape => {
+      if (!shape.construction) return shape;
+      assert.ok(shape.kind === 'polygon');
+      return propertyEdit ? Object.assign({ ...shape }, { note: 'edited construction' }) : { ...shape, points: [[0, 0], [61, 40]] as [number, number][] };
+    }) }));
+    const result = constructionOf(f.accepted[0])[0]; assert.ok(result.kind === 'polygon');
+    assert.equal(result.ids!.length, 2); assert.ok(!result.ids!.includes('e11'));
+    if (propertyEdit) assert.equal((result as unknown as { note: string }).note, 'edited construction');
+    else assert.deepEqual(result.points, [[0, 0], [61, 40]]);
+    assert.equal(result.pending, false);
+  }
+});
+
+test('D461: reordering two construction records is not overwritten by ordinal or geometry restoration', async () => {
+  const doc = d348Fixture(), original = constructionOf(doc)[0]; assert.ok(original.kind === 'polygon');
+  const second: SketchShape = { ...original, points: [[0, 50], [60, 50]], ids: ['e12'] };
+  (doc.nodes[0] as Extract<ModelNode, { kind: 'sketch' }>).construction = [original, second];
+  const f = await finishConstructionEdit(doc, editing => {
+    const ordinary = editing.done!.filter(shape => !shape.construction), refs = editing.done!.filter(shape => shape.construction);
+    return { ...editing, done: [...ordinary, refs[1], refs[0]] };
+  });
+  const result = constructionOf(f.accepted[0]); assert.ok(result[0].kind === 'polygon' && result[1].kind === 'polygon');
+  assert.deepEqual(result[0].points, second.points); assert.deepEqual(result[1].points, original.points);
+  assert.ok(!result[0].ids!.includes('e12') && !result[1].ids!.includes('e11'));
+});
+
+test('D461: new construction gets fresh IDs while the untouched original keeps e11', async () => {
+  const doc = d348Fixture(), original = constructionOf(doc)[0]; assert.ok(original.kind === 'polygon');
+  const newShape = { ...original, points: [[5, 45], [15, 45]] as [number, number][] }; delete newShape.ids;
+  const f = await finishConstructionEdit(doc, editing => ({ ...editing, done: [...editing.done!, newShape] }));
+  const result = constructionOf(f.accepted[0]); assert.equal(result.length, 2);
+  assert.deepEqual(result[0], original); assert.equal(result[1].ids!.length, 2);
+  assert.ok(!result[1].ids!.includes('e11')); assert.equal(new Set(result[1].ids).size, 2);
+});
+
+test('D461: an attached circle reserves its ID and blocks an ambiguous construction restoration', async () => {
+  const doc = d348Fixture(), f = await finishConstructionEdit(doc, editing => {
+    assert.ok(editing.shape?.kind === 'polygon');
+    return { ...editing, shape: { ...editing.shape, circles: [{ c: [10, 30], r: 2 }], circleIds: ['e11'] } };
+  });
+  const result = constructionOf(f.accepted[0])[0];
+  assert.equal(result.ids!.length, 2); assert.ok(!result.ids!.includes('e11'));
+});
+
+test('D461: ambiguous IDs, pending true and current per-point IDs do not qualify for legacy restoration', async () => {
+  for (const mode of ['duplicate', 'pending', 'current']) {
+    const doc = d348Fixture(), original = constructionOf(doc)[0]; assert.ok(original.kind === 'polygon');
+    if (mode === 'duplicate') (doc.nodes[0] as Extract<ModelNode, { kind: 'sketch' }>).construction = [original, { ...original, points: [[0, 50], [60, 50]] }];
+    else if (mode === 'pending') original.pending = true;
+    else original.ids = ['e11', 'e12'];
+    const f = await finishConstructionEdit(doc, editing => editing), result = constructionOf(f.accepted[0])[0];
+    assert.ok(result.kind === 'polygon'); assert.equal(result.pending, false); assert.equal(result.ids!.length, 2);
+    if (mode === 'current') assert.deepEqual(result.ids, ['e11', 'e12']);
+    else assert.ok(!result.ids!.includes('e11'));
+  }
+});
 
 test('Edit sketch then Finish retains source and fill IDs, nextId, captured snapshot and native file identity', async () => {
   const { doc, index } = source(), before = structuredClone(doc), original = doc.nodes[index];

@@ -1,0 +1,217 @@
+{
+  "decision": "D461",
+  "status": "QUALIFIED_BOUNDED_EIGHT_GROUP_PUBLIC_WORKFLOW",
+  "tier": "SMALL",
+  "canonicalNote": "apps/cad-studio/handover/notes/sketch-round-construction-2026-11-03",
+  "baseline": "2c2f61bd05371f0becc1e71978d12c269e1b48c9",
+  "category": "C1 existing line-line Sketch Round",
+  "rows": [
+    "09",
+    "07",
+    "12",
+    "16"
+  ],
+  "input": {
+    "path": "apps/cad-studio/test/fixtures/d348.bcad",
+    "sha256": "b52e314b68e48db78aedf7c34df5bb26e3e9f9b6e12104e048e09697c2cc3d7f",
+    "construction": "Original legacy open e11 retained exactly"
+  },
+  "sourcePins": {
+    "apps/cad-studio/src/sketch/useSketchActions.ts": "7c4f83df104d0f44e0f6d614cbd373da590e8126b5127694c84b81f3a2908f71",
+    "apps/cad-studio/src/sketch/preserveConstruction.ts": "5c859ccbfddf2ad8e64395ead454eecafce6df46bb470948be19fcf802a4c2d5",
+    "apps/cad-studio/test/sketch-edit-identity.test.ts": "658d93dd1c618e8806d0d3066a2997642b446eb2a2c8d6ebf3df3ca93c71148b"
+  },
+  "correction": {
+    "owner": "GPT-6.1 Sol Medium / d446_checks",
+    "policyReview": "High ACCEPT",
+    "helperSHA256": "5c859ccbfddf2ad8e64395ead454eecafce6df46bb470948be19fcf802a4c2d5",
+    "scope": "Existing in-place Finish, unchanged legacy open construction only",
+    "matches": [
+      "n-1 valid stored IDs",
+      "same reference ordinal",
+      "exact original stable ID array",
+      "unique IDs including polygon circleIds",
+      "all authored properties and unknown extras",
+      "final equality ignoring only normalized IDs and absent-to-false pending"
+    ],
+    "excludes": [
+      "new or edited construction",
+      "reordered or ambiguous references",
+      "joined shapes",
+      "pending true",
+      "global Model withIds or per-point change"
+    ],
+    "publicApiSchemaDependencyTolerance": "UNCHANGED"
+  },
+  "preservedFailures": [
+    {
+      "scope": "prospective native preflight01",
+      "status": "FAIL_IDENTITY_BEFORE_GEOMETRY",
+      "reason": "Legacy construction e11 renamed e13/e14; no native/oracle state qualified",
+      "pins": 747,
+      "pinsEqualAfterCleanup": true
+    },
+    {
+      "scope": "minimal actual public RoundR2 Finish",
+      "status": "FAIL_PRODUCT_CONFIRMED",
+      "receipt": "/tmp/barocss-d461-repro-run01/receipt.json",
+      "sha256": "7058467483ce2a1edc48805f86a87d8cd2653ade2aa8632aa52760d338d042b7",
+      "reason": "Untouched e11 became e13/e14 and pending:false added",
+      "pins": 2348,
+      "pinsEqualCleanupAndCurrentBeforePatch": true
+    }
+  ],
+  "checks": {
+    "status": "PASS",
+    "focused": {
+      "pass": 28,
+      "fail": 0,
+      "skip": 0,
+      "new": 7,
+      "retainedRelated": 21
+    },
+    "lint": "PASS",
+    "studioTSC": "PASS",
+    "finalModelTSC": "PASS_LAST",
+    "sourceEqual": true,
+    "fullKernel": "NOT_RUN_NO_BREP_CORE_CHANGE"
+  },
+  "nativePreflight02": {
+    "status": "PASS",
+    "newNativeStates": 3,
+    "states": [
+      "Round R2",
+      "arc R3",
+      "post-Open-style R2"
+    ],
+    "directGuard": "R1000 does not fit; not public refusal proof",
+    "sourcePins": 754,
+    "sourceEqual": true,
+    "publicUIHistoryProject": "NOT_RUN_IN_PREFLIGHT",
+    "originalPreflight01": "FAIL_IDENTITY_BEFORE_GEOMETRY; no physical PASS"
+  },
+  "geometry": {
+    "owner": "GPT-6.1 Sol High",
+    "inputLoop": "actual emitted line/arc coefficients; no ideal-circle substitution",
+    "oracle": "shoelace + oriented circular-segment area/first moment \u2212 rectangular hole \u2212 downstream convex fillet cut",
+    "constraintLimits": {
+      "linearMM": 1e-07,
+      "angularRad": 1e-09
+    },
+    "nativeLimits": {
+      "volumeRelative": 1e-09,
+      "centroidBoundsArcAndEdgePinsMM": 1e-09
+    },
+    "required": [
+      "strict native validity",
+      "both massPropertiesOf and brepMassProperties",
+      "native bounds without trimmed-mesh fallback",
+      "pre-fillet named edge endpoints/samples",
+      "final n2 reference resolves"
+    ],
+    "unlockedR3Coordinates": "MAY_MOVE",
+    "undoRedo": "exact captured historical documents",
+    "laterR2EqualsFirstR2": "NOT_REQUIRED",
+    "idealRoundingOrLineArcAdmission": false
+  },
+  "actualStudio": {
+    "status": "PASS",
+    "command": "bash /tmp/barocss-d461-root/run-studio01.sh",
+    "output": "/tmp/barocss-d461-workflow-run01",
+    "receipt": "/tmp/barocss-d461-workflow-run01/receipt.json",
+    "receiptSHA256": "cd8f575f313980aa2fa9dd59551668841a222dadd5bda9eeed495a8d99f59183",
+    "driverVariant": "03",
+    "configSHA256": "cf0df43925d702708d4405739eded6eb446cc8bd7940fade6e76b713d18486ab",
+    "groups": {
+      "publicRoundR2Finish": "PASS",
+      "arcRadiusR3Finish": "PASS",
+      "nativeDownstreamIdentity": "PASS",
+      "exactUndo": "PASS",
+      "exactRedo": "PASS",
+      "tooLargeRoundRefusalRetention": "PASS",
+      "ownProjectRoundtrip": "PASS",
+      "postOpenGeometryReedit": "PASS"
+    },
+    "nativeCaptures": 7,
+    "pythonOracles": 7,
+    "actualRawWorkerVolumeCentroidBindings": 7,
+    "bindingError": 0,
+    "screenshotsAndStates": 19,
+    "prehashPaths": 2359,
+    "fullFrozenPaths": 2360,
+    "frozenAfterAfterCleanupCurrentEqual": true,
+    "ownProject": {
+      "name": "D461-sketch-round-run01",
+      "namespace": "REMOVED_AND_ABSENT"
+    },
+    "cleanup": {
+      "context": "CLOSED",
+      "browser": "CLOSED",
+      "server": "CLOSED",
+      "wrapperPID": 74787,
+      "wrapper": "ABSENT",
+      "gateLease": "RELEASED"
+    },
+    "zeroCounts": [
+      "pageErrors",
+      "consoleErrors",
+      "downloads",
+      "watchedChanges"
+    ],
+    "rootImageReview": {
+      "final": 7,
+      "originalFailure": 2,
+      "finalSubjects": [
+        "Round working",
+        "RoundR2 Model",
+        "R3 authored fields",
+        "Undo R2",
+        "R1000 refusal",
+        "project reopen R3",
+        "postOpen R2"
+      ]
+    },
+    "newPostFixFailures": 0,
+    "preparedFullDriver01And02": "NOT_EXECUTED_IMMUTABLE",
+    "extraPinnedPath": "Inspector /private/tmp/barocss-d461-geometry/native-inspector.ts aliases declared /tmp path; same physical file",
+    "uniquePhysicalFileCountClaim": false,
+    "browserRestartPersistence": "NOT_RUN"
+  },
+  "limits": [
+    "No #2282 line-arc feature",
+    "No geometry/API/schema/dependency/tolerance change",
+    "No export/standards/general proof; browser restart persistence NOT_RUN",
+    "531/532 broad epics remain open",
+    "D462 Mirror unexecuted candidate"
+  ],
+  "readiness": {
+    "core": "NOT_MEASURED",
+    "legacy": "43_FROZEN"
+  },
+  "evidencePins": {
+    "/tmp/barocss-d461-root/selection.json": "18082d40d7577031ab21afe25b1f6ff452769f399275a02fdc41fec1daebaafa",
+    "/tmp/barocss-d461-fix/source-pins.json": "d5e99638b5c0dd719ab8765c7f24420cc651fc00c9f2274555a831466bf517b9",
+    "/tmp/barocss-d461-checks01/receipt.json": "64ff2f72daa84edb6ead86f23247beefd53133af7ac70068328ca9f42368e2d0",
+    "/tmp/barocss-d461-geometry/CONTRACT.md": "444bc72bd5536071f6782a60875f6ac4754333a4aa9cf69c0cfe6159a53bff2f",
+    "/tmp/barocss-d461-geometry/v02/policy-review.json": "ea6fc610d49f17d3b747d72a5e4a6f0e31f4e23b80302779391136aa8476fd43",
+    "/tmp/barocss-d461-geometry/preflight-run02/receipt.json": "9e47cc1c3cac22417870c677a937636fe5df7e79dcd7b71867bcb84e41fc0a2a",
+    "/tmp/barocss-d461-repro-run01/receipt.json": "7058467483ce2a1edc48805f86a87d8cd2653ade2aa8632aa52760d338d042b7",
+    "/tmp/barocss-d461-driver03/config.json": "cf0df43925d702708d4405739eded6eb446cc8bd7940fade6e76b713d18486ab",
+    "/tmp/barocss-d461-inventory/c2-review.md": "beca97f53f4572e54ab6bb0dca3631287b9f162c5161d4bf33e5f18cc6ce28ce",
+    "/tmp/barocss-d461-inventory/c1-review.md": "e83d6f1ee482b062f50c68df608cccaab847fa72869fa98aee15da521bceeb73",
+    "/tmp/barocss-d461-workflow-run01/receipt.json": "cd8f575f313980aa2fa9dd59551668841a222dadd5bda9eeed495a8d99f59183"
+  },
+  "nextCandidate": "D462 C2 ordinary body Mirror, not SubD; inventory only, unexecuted",
+  "source_request": "Continue the core CAD roadmap autonomously, one bounded category at a time",
+  "documentation": {
+    "status": "PASS",
+    "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+    "rows": 34,
+    "legacyHeadings": 552,
+    "legacyOutboundLinks": 913,
+    "checkedLocalLinks": 2605,
+    "newBrokenLinks": 0,
+    "knownHistoricalMissingPaths": 1,
+    "archiveHashesUnchanged": true
+  }
+}

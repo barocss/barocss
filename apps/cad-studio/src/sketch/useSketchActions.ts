@@ -29,6 +29,7 @@ import type { Selection } from '@barocss/cad-model/app/commands';
 import type { DirectGeometry } from '@barocss/cad-model/engine/direct';
 import type { ViewportHandle, SketchState } from '../viewport/Viewport';
 import type { EngineClient } from '../engine/client';
+import { preserveConstruction } from './preserveConstruction';
 interface SketchActionOptions {
   model: { doc: StudioDoc; bodies: BodyResult[]; selection: Selection; marker: number | null };
   editor: { sketch: SketchState | null; setSketch: Dispatch<SetStateAction<SketchState | null>>; sketchGeneration: RefObject<number> };
@@ -156,15 +157,19 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const requestCurrent = () => docNow.current === doc && sketchGeneration.current === requestedGeneration;
     // A reopened sketch keeps its main profile first (the first outer shape is the main one).
     // (Open lines and arcs meeting end to end are one outline.)
-    // Every shape gets its side ids here (idempotent), so construction shapes are stored with theirs: a band refers to them.
-    const shapes = withIds(joinOpen((sketch.editNode !== undefined ? reopenedOrder(sketch.shape, sketch.done ?? [], sketch.mainIds) : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])]).map(x => x.kind === 'polygon' && !x.closed ? { ...x, pending: false } : x)));
+    // Allocate current shape IDs here; unchanged legacy construction records are reconciled below.
+    const authored = sketch.editNode !== undefined ? reopenedOrder(sketch.shape, sketch.done ?? [], sketch.mainIds) : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])];
+    const shapes = withIds(joinOpen(authored.map(x => x.kind === 'polygon' && !x.closed ? { ...x, pending: false } : x)));
     // A band sketch holds the band and its construction sources only (the model refuses anything else, and a band that cannot be made).
     const banded = sketch.band ? bandSketchNode(shapes, sketch.band) : null;
     if (banded && 'error' in banded) { setToast({ title: 'Cannot finish the band', hint: banded.error, detail: '' }); return; }
     const profile = banded ?? profileOf(shapes);
     if ('error' in profile) { setToast({ title: 'Finish the profile first', hint: profile.error, detail: '' }); return; }
     // Construction shapes and Bézier curves are kept with the sketch (they come back when it is reopened). A Bézier is stored without `construction`: it is no reference to hide or snap as one, and drawing and Make curves treat it as the curve it is.
-    const refs = banded ? [] : shapes.filter(x => x.construction || x.kind === 'bezier').map(x => x.kind === 'bezier' && x.construction ? (({ construction: _c, ...rest }) => rest as SketchShape)(x) : x), node = refs.length ? { ...profile.node, construction: refs } as SketchNode : profile.node;
+    let refs = banded ? [] : shapes.filter(x => x.construction || x.kind === 'bezier').map(x => x.kind === 'bezier' && x.construction ? (({ construction: _c, ...rest }) => rest as SketchShape)(x) : x);
+    const storedSketch = sketch.editNode === undefined ? undefined : doc.nodes[sketch.editNode];
+    if (!banded && storedSketch?.kind === 'sketch') refs = preserveConstruction((storedSketch.construction ?? []) as SketchShape[], authored, refs);
+    const node = refs.length ? { ...profile.node, construction: refs } as SketchNode : profile.node;
     // The sketch keeps its plane; everything below is in the plane's own coordinates (Z along its normal).
     const placedNode: ModelNode = { ...node, ...(isDefaultPlane(sketch.plane) ? {} : { plane: { origin: [...sketch.plane.origin], normal: [...sketch.plane.normal], xAxis: [...sketch.plane.xAxis] } }), ...(sketch.association ? { association: sketch.association } : {}), ...((sketch.association || sketch.associationDetached) && sketch.base ? { on: sketch.base } : {}) } as SketchNode;
     if (sketch.editNode !== undefined) {

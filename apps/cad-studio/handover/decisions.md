@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D461: preserve unchanged legacy construction IDs during in-place Sketch Finish; qualify the public line–line Round/history/project loop](notes/sketch-round-construction-2026-11-03/README.md).
+
 - [D460: reconcile33 recent GitHub issues with existing rows; record future profiles, acceptance additions and retained owner gates](notes/github-issue-intake-2026-11-03/README.md).
 
 - [D459: include accepted assembly source in private drawing issue stamps and qualify the revision/project loop](notes/assembly-drawing-revision-2026-11-03/README.md).
