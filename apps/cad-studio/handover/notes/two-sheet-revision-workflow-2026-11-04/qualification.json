@@ -1,0 +1,53 @@
+{
+  "work_id": "D486", "status": "QUALIFIED_SIX_ACTUAL_GROUPS_TWELVE_SHEETS_WITH_RETAINED_OWNER_DEFERRED_PDF_TEST_FAIL",
+  "tier": "SMALL_EXISTING_C3_WORKFLOW_MEASUREMENT", "rows": ["11", "12", "16"],
+  "parentHead": "5ed3c32636aab1e0b6f21c21de63aa2e08e9f1cc", "productImplementation": false,
+  "input": {"path": "/tmp/barocss-d486-input01/retained-two-sheets.bcad", "bytes": 1059, "sha256": "9962d4fe41afea65cfb6ebd58493fc26af1d831012e8d7353fdb44883ff922eb", "provenance": "EXACT_RETAINED_EXECUTED_D398_RUN03_STATES05_FRESH_OPEN_DOC", "sourceReceiptPath": "apps/cad-studio/handover/notes/drawing-sheets-2026-11-01/run03/receipt.json", "sourceReceiptSHA256": "3a06b239255f5a2f58474c5c0981c7f381cd73c5fc2200dc2be74cc49659c64e", "constructionMoveExportPDFReplay": false},
+  "checks": {
+    "status": "QUALIFIED_CATEGORY_CHECKS_WITH_RETAINED_OWNER_DEFERRED_PDF_FAIL", "allTestsPass": false,
+    "commands": ["bash /tmp/barocss-d486-root/run-checks01.sh", "bash /tmp/barocss-d486-root/run-checks02.sh"],
+    "modelPass": 26, "modelFail": 1, "studioPass": 13, "totalPass": 39, "diff": "PASS",
+    "failure": "PREEXISTING_OWNER_DEFERRED_ASME_PDF_GOLDEN_UNCHANGED_FROM_D478",
+    "failedPDFInvestigatedEditedOrRerun": false,
+    "checks02Scope": "ONLY_PREVIOUSLY_UNRUN_STUDIO_REVISION13_AND_DIFF",
+    "reusedAtIdenticalSource": ["D484_CAD_SEMANTIC_BUILD", "D484_FINAL_MODEL_TSC", "D484_STUDIO_TSC"],
+    "fullKernel": "NOT_RUN_D482_SEPARATE_EVIDENCE_RETAINED"
+  },
+  "reader": {"command": "bash /tmp/barocss-d486-root/run-reader01.sh", "scope": "EXACT_INPUT_READ_ONLY_NO_NATIVE_PROJECTION_OR_PREFLIGHT_NOT_ACTUAL_PROOF"},
+  "actual": {
+    "command": "bash /tmp/barocss-d486-root/run-studio01.sh", "status": "PASS", "runtimeFailures": 0,
+    "configSHA256": "4d67cdd0c140e2ef309112fa305022b81e9672313e4bca1b6ba54a6ed8b1e00b",
+    "groups": ["PUBLIC_NEXT_A_FROM_SHEET2_BOTH_SHEETS", "SOURCE_N1_DISTANCE6_TO8_STALE_A_CURRENT_DIMENSIONS_BOTH", "PUBLIC_NEXT_B_FROM_SHEET2_COMMON_STAMP", "FIRST_UNDO_EXACT_STALE_A", "REDO_EXACT_B", "OWN_OPFS_RELOAD_OPEN_EXACT_B_BOTH"],
+    "groupCount": 6, "nativeCaptures": 3, "exactWholeDocReuses": 3, "freshNativeWorkerBindings": 6, "freshSheetObservations": 12,
+    "dimensionValuesAtH8": {"sheet1": {"d3": 8, "d2": 30}, "sheet2": {"d1": 12}},
+    "issuePrints": {"A": "d03e0626", "B": "3336e060"},
+    "currentSRC": {"H6": "1d7c0ab5f6a3527c", "H8": "edefbfd7b7cb9971"},
+    "actualSourceH8Change": "ONLY_HEIGHT_AND_SIX_CACHES_ALL_ORIGINAL_H6_NATIVE_METADATA",
+    "d3BCache": {"retainedPZ": 6, "independentCurrentNativePZ": 8, "currentEndpoint": 8, "currentDimension": 8},
+    "nextBChange": "ONLY_COMMON_REVISION_STAMP_BOTH_DERIVED_LAYOUTS_AND_GROUPS_EXACT_TO_STALE_A",
+    "authority": {"issuePrint": "EXISTING_8HEX_ISSUE_MARKER_NOT_GEOMETRY_OR_INTEGRITY_PROOF", "modelSRC": "CURRENT_16HEX_SRC", "sigCacheEnrichment": "ONLY_INDEPENDENTLY_VALIDATED_A_SIG_B_SIG_CACHE_KEYS", "authoredReferences": "EXACT_EDGE_NEAR_PLACE_ID_AUTO_SHEET", "acceptedHistoryAndProjectDocs": "EXACT_ACTUAL_BASELINES", "nextB": "EXACT_STALE_A_EXCEPT_REVISION_REVISEDMODEL"},
+    "physicalReference": {"volume": "360*H", "centroid": [15, 6, "H/2"], "bounds": "0..[30,12,H]", "physicalReuse": "EXACT_D485_5251_BYTE_BLOCK_AS_PURE_FUNCTION_NO_FAKE_DOC_OR_TARGET"},
+    "physicalBudgets": {"volumeRelative": 1e-9, "otherNativeGeometryAbsolute": 1e-9}, "SVG": "EXACT_EXISTING_FOUR_DECIMAL_SERIALIZER_SEPARATE_FROM_NATIVE_BUDGETS",
+    "maxErrors": {"nativeVolume": 0, "rawPolyhedronVolume": 0, "rawPolyhedronCentroid": 0, "nativeMassCentroid": 3.552713678800501e-15, "bounds": 0, "corners": 0, "carriers": 0, "pcurve": 0, "planeArea": 0, "workerVolume": 0, "workerCentroid": 0, "SVGSerializerResidual": 0},
+    "presealDriverCorrection": "EXACT_n OF 2 A4_TITLE_WAIT_NOT_PRODUCT_FIX"
+  },
+  "rootReview": {"status": "PASS_ROOT_ACTUAL_REVIEW_WITH_SEPARATE_RETAINED_PDF_TEST_FAIL", "images": 12, "completeSheetsVisibleAtEveryCheckpoint": true},
+  "custody": {"wrapperPins": 1862, "wrapperEqualThroughCleanupCurrent": true, "helperInitialPins": 1862, "helperFrozenPins": 1864, "helperAddedDependencies": ["PRIVATE_TMP_ALIAS", "VITE_CONFIG"], "allInitialPinsRetained": true, "helperFrozenEqualAfterCleanupCurrent": true, "ownedProject": "REMOVED_AND_ABSENT", "ownPID": 79439, "ownPIDAbsent": true, "contextBrowserServer": "CLOSED", "errors": 0, "consoleErrors": 0, "downloads": 0, "watchedChanges": 0},
+  "savedProject": {"path": "/tmp/barocss-d486-workflow-run01/06-issued-B-H8-saved-opfs.bcad", "bytes": 3891, "sha256": "5416d43c65ed56c38ae5f99cbe2ab89b6d5180aff1d48fb1f84dfe6d699aff11", "format": "EXISTING_ASSET_FREE_PLAIN_JSON", "document": "EXACT_ISSUED_B_COMMON_STAMP_SHEET_OWNERSHIP_THREE_AUTHORED_DIMENSIONS_SIX_ORIGINAL_H6_SIG_CACHES"},
+  "HighFinalSavedReview": {"status": "ACCEPT_D486_RETAINED_TWO_SHEET_ISSUED_REVISION_HEIGHT_HISTORY_PROJECT_SIX_BINDINGS_TWELVE_SHEETS", "path": "/tmp/barocss-d486-geometry01/high-final-actual01-review.json", "sha256": "55f15353bb0e7db72c6ebaff78f12cbec272e7654cd2e0e5d2ae65e9ae68e18c", "savedDataOnly": true, "newProductOrOracleRun": false},
+  "roles": {"driverSourcePreparation": "Sol Medium", "nativeOracleAndSavedAudit": "Sol High", "finalConfigRuntimeImages": "root"},
+  "evidence": {
+    "readerWrapper": {"path": "/tmp/barocss-d486-map-wrapper01/receipt.json", "sha256": "9220c42f0c2c9e74e34b297de09cd082162f25655f5aac8b91e24060ff0cd88b"},
+    "checks01": {"path": "/tmp/barocss-d486-checks01/receipt.json", "sha256": "95937b470b55a74e032eec2834556227a22f766613c9db8b14f0cd444e07e46c"},
+    "checks02": {"path": "/tmp/barocss-d486-checks02/receipt.json", "sha256": "1a259568c70b35a6fd4187677210574aca07a1a85884e6a37f8e7a2be5955477"},
+    "finalCategoryChecks": {"path": "/tmp/barocss-d486-root/final-category-checks01.json", "sha256": "c92e70764eb107dd28c3475b3058732e96e29600f1e3f87c7505b23d9dc31a25"},
+    "geometryArray10Manifest": {"path": "/tmp/barocss-d486-geometry01/manifest.json", "sha256": "a5630f2dde3e34e8b9413743a584fa7adbcf60826d7238e1849e9f7d3af5438a"},
+    "lifecycleOracle": {"path": "/tmp/barocss-d486-geometry01/lifecycle-oracle.py", "sha256": "a782d82414359b09ea2a7372aa2a1e9fe2771a8cc19fdd558c47151b2fd96a5f"},
+    "boxPhysical": {"path": "/tmp/barocss-d486-geometry01/box-physical.py", "sha256": "c221419823b38a3b4d2797518c115c6c89b4a17433e49398b0dc30d484f6c8d9"},
+    "oracleContract": {"path": "/tmp/barocss-d486-geometry01/CONTRACT.md"},
+    "actual": {"path": "/tmp/barocss-d486-workflow-run01/receipt.json", "sha256": "0ab2c9c8068fd7a924e2fbda20eeeed48fa4a7029fb8fce234656b0c708a2aee"},
+    "rootActualReview": {"path": "/tmp/barocss-d486-root/actual01-review.json", "sha256": "ccf9e940aec30a84f79ad9e5efc749201b6769278ed94f94256f90c651cdcd90"}
+  },
+  "limits": ["NOT_ALL_TESTS_PASS", "ONE_EXISTING_TWO_SHEET_REVISION_PROFILE", "NO_PRODUCT_IMPLEMENTATION", "NO_CONSTRUCTION_MOVE_EXPORT_PDF_REPLAY", "NO_NEW_API_STANDARD_OR_GENERAL_DRAWING_ACCEPTANCE", "NO_MOBILE_OR_DOWNLOADS", "NO_RAW_ARTIFACTS_COPIED_TO_REPOSITORY"],
+  "roadmap": {"issue540": "OPEN_EPIC", "issue2243": "OPEN_RESEARCH", "core": "NOT_MEASURED", "legacyPercent": 43, "legacyStatus": "FROZEN", "holds": "UNCHANGED", "PDF": "OWNER_DEFERRED_NO_INVESTIGATION_EDIT_OR_RERUN", "next": "D487_C4_EXISTING_ASSEMBLY_THROUGH_CUT_EXPLICIT_LINKED_SOURCE_THICKNESS_REVISION", "nextSetupBoundary": "D392_ORIGINAL_CUT_INPUT_LACKS_SOURCE_PATHS_SETUP_MUST_BE_DERIVED_AND_PINNED_NOT_RETAINED_PUBLIC_LINK_CREATION", "broaderAdmissionOrHoldChange": false}
+}
