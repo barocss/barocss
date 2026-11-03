@@ -1,0 +1,15 @@
+{
+  "status": "PASS_BOTH_RETAINED_BROWSER_CAMPAIGNS_ORIGINAL_REPORT_DAG_AND_NODE_PACKET_PINS",
+  "campaigns": 2,
+  "perCampaignChecks": 7,
+  "perCampaignIndependentJobs": 18,
+  "perCampaignWholeDecodedPackets": 6,
+  "actualAfter1440PNGViewedByRoot": "output/playwright/coupled-dynamic-host-viewer/desktop-02/desktop-1440.png",
+  "candidateCalls": 0,
+  "WorldCalls": 0,
+  "referenceGeneratorCalls": 0,
+  "resultsPin": {
+    "bytes": 5007,
+    "sha256": "5d7e4e8cc5f1b6bd5c38ed14d943389fa577874bb0c7f580d4f4053dd41efd1b"
+  }
+}

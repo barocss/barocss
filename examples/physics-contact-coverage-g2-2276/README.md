@@ -180,3 +180,16 @@ NOT_RETAINED; same-model initial controls are explicitly bound to actual hidden
 creation/attempt/free-input/cache records. No ID normalization. Second interval
 remains a typed pre-phase refusal, not physics success. See COVERAGE-16.json and
 `examples/physics-coupled-dynamic-host-2276/TRANSACTION-RESULTS.md`.
+
+## Dynamic desktop and priority review (2026-11-03)
+
+Two separate finite desktop campaigns each pass7checks,18independent physical
+observations and6whole decoded packet comparisons with actual Native Node.
+The first screenshots before1; the latest explicitly selects after1 at
+1280/1440/1920. Each has3Worlds/3accepted/192applications. Both original proofs
+remain. No mobile or deployment. See COVERAGE-17.json and the dynamic host
+viewer RESULTS.md. The earliest observed original P4 blocker is full-reference/
+runtime cost after ALIGNED308; the different successful one-point G2 profile
+does not qualify those eight boxes. A new exact full36-position-row certificate
+proposal is design only, not an ended cache/SAT/axis retune. Original tolerances,
+all first failures and required long-stack exits remain.

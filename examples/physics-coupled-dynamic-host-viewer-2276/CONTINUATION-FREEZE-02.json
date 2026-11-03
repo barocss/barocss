@@ -1,0 +1,48 @@
+{
+  "status": "PRE_AUDIT_DEADLINE_SETUP_ONLY",
+  "originalAuthorPin": {
+    "bytes": 1261781,
+    "sha256": "eeded3c77eacb9aeb5148af94283fa9a4321069a5b86ee985ac78b2a945f5d97"
+  },
+  "originalAudit": "audit-browser.mjs",
+  "executedAudit": "audit-browser-02.mjs",
+  "delta": "Math.floor positive original remaining timeout only",
+  "actualBrowserReuse": "desktop-01 unchanged; no rerun",
+  "WorldCalls": 0,
+  "browserCalls": 0,
+  "originalAuditExecuted": false,
+  "files": {
+    "examples/physics-coupled-dynamic-host-viewer-2276/audit-browser.mjs": {
+      "bytes": 5827,
+      "sha256": "8e4caba3e49dbab5448e2f906de519fc5906cf9608bb6799f89fe2059595f200"
+    },
+    "examples/physics-coupled-dynamic-host-viewer-2276/audit-browser-02.mjs": {
+      "bytes": 5839,
+      "sha256": "9b021a8a4fdfb2acca40ab4d74459797d3c524c578cae2d3291a171fff752340"
+    },
+    "examples/physics-coupled-dynamic-host-viewer-2276/AUDIT-AMENDMENT-02.md": {
+      "bytes": 898,
+      "sha256": "b9eedfe80ebc594a166b53cf09d43bde9a9d95214883d414134f6784201af67d"
+    },
+    "examples/physics-coupled-dynamic-host-viewer-2276/AUTHOR-FREEZE-01.json": {
+      "bytes": 1261781,
+      "sha256": "eeded3c77eacb9aeb5148af94283fa9a4321069a5b86ee985ac78b2a945f5d97"
+    },
+    "output/playwright/coupled-dynamic-host-viewer/desktop-01/report.json": {
+      "bytes": 12595730,
+      "sha256": "c79a9d20a5a51ada8bf75b9e97e4e50aacf7565752895b36f9e072f1302882e8"
+    },
+    "output/playwright/coupled-dynamic-host-viewer/desktop-01/report-pin.json": {
+      "bytes": 156,
+      "sha256": "7abbf1f96e25e75095db4d67c88db1154ab5aa6ebc1996b3e51f6e41add41008"
+    },
+    "examples/physics-coupled-dynamic-host-viewer-2276/evidence/browser-desktop-01/proof.json": {
+      "bytes": 767194,
+      "sha256": "4c166ced43eb983eef069f4ae2a6d9d9f9c4a9baca5b66a74d9253727cc791d2"
+    },
+    "examples/physics-coupled-dynamic-host-viewer-2276/evidence/browser-desktop-01/capture.json": {
+      "bytes": 429,
+      "sha256": "74fa51610c5d67a3cbe90d4f2e269d1935fa1f8dd40702b1ca2f2b92e8b7faf0"
+    }
+  }
+}

@@ -3,10 +3,11 @@
   "branch": "codex/physics-world-p5-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "G2 boxCCD identity quaternion sign",
-    "status": "BOUNDED_SOURCE_NATIVE_INDEPENDENT_AND_DESKTOP_PASS",
-    "scope": "20cases/20World24steps pergraph,2creation2commandrefusals,exactface-eventbankzeroresidual;9desktopchecks4presets",
-    "results": "examples/physics-box-slab-boundaries-2276/RESULTS.md"
+    "profile": "G2 private first-cold-one-point coupled static/dynamic contact",
+    "status": "FINITE_ARITHMETIC_WORLD_TRANSACTION_AND_DESKTOP_NATIVE_PASS",
+    "scope": "Original3cases; SourceNative clean3World each and26rawfiles; Tx4World/6attempt/4accepted each20audits38rawfiles; desktopafter-selected7checks18audits6wholepacketparity",
+    "results": "examples/physics-coupled-dynamic-host-viewer-2276/RESULTS.md",
+    "canonicalAdoption": "NOT_RUN"
   },
   "mainSlices": {
     "P0": "CONTRACT_COMPLETE_LOCAL",
@@ -33,7 +34,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Dynamic first-interval arithmetic, clean Worlds, post-impulse atomicity/wire and desktop after-selected rendering have passed their finite gates. Next: determine the earliest original eight-box warm/multipoint/cost dependency from preserved receipts.",
+  "active": "Current roadmap review: finite dynamic-contact vertical path passes. Earliest observed original P4 blocker is complete reference/runtime cost. New exact36-row KKT certificate candidate is design only; old ended cost candidates remain ended.",
   "progressMethod": "Prior5of9boundedmilestones retained as historicalqualifications; newcontact-schema delta requiresseparateP0/P1/P2/P5outputrequalification. No weightedpercent orwhole-enginePASS.",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
@@ -46,7 +47,7 @@
   "invariants": "HOLD, original NO_GO, tolerances and first failures preserved. Owner explicitly authorized current checkpoint develop push on2026-11-02; no deploy/release or held-worker resume; not whole-roadmap completion.",
   "addedGateProgress": {
     "G1": "GENERAL_CONTINUOUS_PRIMITIVE_ROTATION_PASS; see physics-general-rotation-2276; old one-step restriction retired with original evidence retained. Wider phase/control/contact qualification remains separate.",
-    "G2": "ROUNDED_CCD_CENTERED_PERSISTENT_RESTITUTION_DISCRETE_TANGENT_AND_SPHERE_PAIR_CCD_BOUNDED_PASS; persistent friction tangent-plane and accepted paired-contact geometry NO_GO; coupled normal-tangent/projection/general CCD remain open.",
+    "G2": "BOUNDED_CONTACT_CCD_AND_PRIVATE_FIRST_COLD_COUPLED_CONTACT_PASS; historical persistent plane/gap/warm failures preserved; general warm/multipoint/contact and original P4 exits remain open",
     "G7": "PER_CAMPAIGN_TRUST_GATE; NO_BLANKET_PASS"
   },
   "sourceCorrection": "G1b/ADMISSION-NORMALIZATION-CORRECTION-01.json: Body constructor already normalizes admitted initialq; prior inferredinitialnormguardmismatch unestablished. Broader boundary qualification stillNOT_RUN.",
@@ -58,15 +59,20 @@
     "holdReleaseAuthorized": false
   },
   "latestBrowserConsumer": {
-    "profile": "Desktop boxCCD publicSourceWorld/recorder/Viewer",
-    "status": "PASS_DESKTOP_ONLY_1280_1440_1920",
-    "scope": "9realdesktopchecks4presets,acceptedXYZW/TOI/meshposes/qsignphysicalequivalence,0errors",
-    "results": "examples/physics-box-slab-boundaries-2276/RESULTS.md",
+    "profile": "Private actual Native first-interval coupled dynamic contact",
+    "status": "PASS_DESKTOP_ONLY_AFTER_SELECTED_1280_1440_1920",
+    "results": "examples/physics-coupled-dynamic-host-viewer-2276/RESULTS.md",
+    "latestCampaign": "desktop-02",
+    "checks": 7,
+    "independentPhysicalJobs": 18,
+    "wholeDecodedBrowserNodePackets": 6,
     "notRun": [
-      "Native GPU browser graph",
-      "device-loss",
-      "privatecontactphase/wrench",
-      "original8boxP4"
+      "mobile user excluded",
+      "browser wire",
+      "second successful interval",
+      "warm/multipoint",
+      "original eight-box P4",
+      "canonical public adoption"
     ]
   },
   "latestCcdConsumer": {
@@ -889,9 +895,11 @@
     "WorldPromotion": "FINITE_THREE_CLEAN_WORLD_CASES_PASS_ATOMICITY_WIRE_DESKTOP_PUBLIC_GATES_REMAIN"
   },
   "currentPriorityOrder": [
-    "Identify and qualify the earliest warm/multipoint or cost blocker for the original eight-box profile",
-    "Implement only the newly frozen bounded candidate and compare independent saved-contact references first",
-    "Revalidate original long-duration eight-box cases only after prerequisite passes"
+    "Original P4 exact position-reference certificate proposal: freeze bounds/pricing and independent saved-data proof before implementation",
+    "One fixed cost comparison only after numerical proof; qualify complete contact/position/ledger/quality cost",
+    "Original ALIGNED/OFFSET/YAW1200-step validation under unchanged180s/8x8/physics gates",
+    "Separate gated atomic canonical schema/producer/caller migration without legacy path",
+    "P6/P7 only for their required physical plant and prerequisite leaves"
   ],
   "dynamicHost": {
     "status": "EXECUTED_PASS_ORIGINAL_THREE_CLEAN_WORLD_CASES",
@@ -1000,5 +1008,185 @@
     "browserWire": "NOT_RUN",
     "HOLD": "UNCHANGED",
     "deploy": "NOT_RUN"
+  },
+  "priorLastNumericalMilestone": {
+    "profile": "G2 boxCCD identity quaternion sign",
+    "status": "BOUNDED_SOURCE_NATIVE_INDEPENDENT_AND_DESKTOP_PASS",
+    "scope": "20cases/20World24steps pergraph,2creation2commandrefusals,exactface-eventbankzeroresidual;9desktopchecks4presets",
+    "results": "examples/physics-box-slab-boundaries-2276/RESULTS.md"
+  },
+  "priorLatestBrowserConsumer": {
+    "profile": "Desktop boxCCD publicSourceWorld/recorder/Viewer",
+    "status": "PASS_DESKTOP_ONLY_1280_1440_1920",
+    "scope": "9realdesktopchecks4presets,acceptedXYZW/TOI/meshposes/qsignphysicalequivalence,0errors",
+    "results": "examples/physics-box-slab-boundaries-2276/RESULTS.md",
+    "notRun": [
+      "Native GPU browser graph",
+      "device-loss",
+      "privatecontactphase/wrench",
+      "original8boxP4"
+    ]
+  },
+  "dynamicDesktop": {
+    "status": "PASS_DYNAMIC_FIRST_INTERVAL_DESKTOP_GPU_AND_INDEPENDENT_BROWSER_DATA",
+    "campaigns": [
+      {
+        "id": "desktop-01",
+        "scope": "before1 GPU, all three physics",
+        "status": "PASS_DESKTOP_COUPLED_DYNAMIC_HOST_VIEWER_ONLY",
+        "checks": 7,
+        "independentPhysicalJobs": 18,
+        "wholeDecodedPacketParity": 6,
+        "counts": {
+          "worlds": 3,
+          "attempts": 3,
+          "records": 243,
+          "applications": 192,
+          "queries": 30,
+          "queryPoints": 27,
+          "anchorChecks": 729,
+          "traceBytes": 853375
+        },
+        "desktopWidths": [
+          1280,
+          1440,
+          1920
+        ],
+        "errors": {
+          "pageErrors": 0,
+          "consoleErrors": 0,
+          "networkErrors": 0
+        },
+        "browserVersion": "156.0.8078.80",
+        "lifecycleCapture": "PASS_GENUINE_PRE_DISPOSE_RAW_AND_CLONE_ISOLATION",
+        "browserDisposedGetters": "NOT_RUN_REFS_NOT_EXPOSED",
+        "reportPin": {
+          "bytes": 12595730,
+          "sha256": "c79a9d20a5a51ada8bf75b9e97e4e50aacf7565752895b36f9e072f1302882e8"
+        },
+        "proofPin": {
+          "bytes": 767194,
+          "sha256": "4c166ced43eb983eef069f4ae2a6d9d9f9c4a9baca5b66a74d9253727cc791d2"
+        },
+        "requestReceipt": {
+          "bytes": 3586360,
+          "sha256": "b9613775cba8982528ad2d01e6dc16924ba33ea566a3d131d70282e1f71700b4"
+        },
+        "screenshots": {
+          "desktop-1920.png": {
+            "bytes": 117236,
+            "sha256": "75bad404d64960c220e451de0beb2aa1cec4af68b2e93ac8e3964adefe0fa4a6"
+          },
+          "desktop-1440.png": {
+            "bytes": 113076,
+            "sha256": "26071be531e29fdabe93c30fc297c7555039a8bde219fcfc68501c5c8f6d748c"
+          },
+          "desktop-1280.png": {
+            "bytes": 110179,
+            "sha256": "c37bf5758fe4893aaf5f125fdb0a30338a21833c7a15e98d623ebd6c1823bed2"
+          }
+        },
+        "auditSummaryPin": {
+          "bytes": 2433,
+          "sha256": "d552aabf79bedcec2463dccce5ba512691955f924ae064a8b9913b2bc35d8433"
+        },
+        "packetParityPin": {
+          "bytes": 892,
+          "sha256": "7d7690eece7547ff0ae25a1ac756b4011ff68a43e4028ddbbf54f0598391aad8"
+        },
+        "auditGuard": "coupled-dynamic-viewer-audit-02"
+      },
+      {
+        "id": "desktop-02",
+        "scope": "after1 GPU, all three physics",
+        "status": "PASS_DESKTOP_COUPLED_DYNAMIC_HOST_VIEWER_ONLY",
+        "checks": 7,
+        "independentPhysicalJobs": 18,
+        "wholeDecodedPacketParity": 6,
+        "counts": {
+          "worlds": 3,
+          "attempts": 3,
+          "records": 243,
+          "applications": 192,
+          "queries": 30,
+          "queryPoints": 27,
+          "anchorChecks": 729,
+          "traceBytes": 853375
+        },
+        "desktopWidths": [
+          1280,
+          1440,
+          1920
+        ],
+        "errors": {
+          "pageErrors": 0,
+          "consoleErrors": 0,
+          "networkErrors": 0
+        },
+        "browserVersion": "156.0.8078.80",
+        "lifecycleCapture": "PASS_GENUINE_PRE_DISPOSE_RAW_AND_CLONE_ISOLATION",
+        "browserDisposedGetters": "NOT_RUN_REFS_NOT_EXPOSED",
+        "reportPin": {
+          "bytes": 12595744,
+          "sha256": "151c93588c7a19ec4762e27908e6c00903b463eb12b3064a6042af7b66138d3f"
+        },
+        "proofPin": {
+          "bytes": 767194,
+          "sha256": "33e1eb618904e4deb81015a321ef6aad816b225112a31f857d44357119830307"
+        },
+        "requestReceipt": {
+          "bytes": 3586360,
+          "sha256": "c601f223487fc54d87087e7fbe98e877ca8666eaa7a40329db0af0c1dc8a759f"
+        },
+        "screenshots": {
+          "desktop-1920.png": {
+            "bytes": 117319,
+            "sha256": "a0f1c2ea0e5b471d99298084e52035d88259c1b3eb19948b0e70c5b43bc7a524"
+          },
+          "desktop-1440.png": {
+            "bytes": 113173,
+            "sha256": "5a88716076f858561306fb3d064509d87053eae7f8bf3726cb1096cd6588af84"
+          },
+          "desktop-1280.png": {
+            "bytes": 110265,
+            "sha256": "abedbef4c8e49164fe26010747370fbf183342a8ef0ec7d7f765c57e3a74261d"
+          }
+        },
+        "auditSummaryPin": {
+          "bytes": 2433,
+          "sha256": "ace45bf42666f82104d640c4d791d51c77cfb42619b6f7b774cec27e2bf58ba2"
+        },
+        "packetParityPin": {
+          "bytes": 892,
+          "sha256": "7d7690eece7547ff0ae25a1ac756b4011ff68a43e4028ddbbf54f0598391aad8"
+        },
+        "auditGuard": "coupled-dynamic-viewer-audit-03"
+      }
+    ],
+    "censusBoundary": "Each separate fresh browser campaign repeats the same three cases with cap3Worlds; no single cap6 or six distinct fixtures claim",
+    "selectedLatestGPUState": "after1",
+    "actualPrimitiveGraphicsOnly": "NOT_CAD_NATIVE_SURFACE_QUALIFICATION",
+    "canonicalPhysicsPublicAdoption": "NOT_RUN",
+    "browserWireSecondIntervalWarmLongStack": "NOT_RUN_OR_UNCHANGED_NO_GO",
+    "auditRunner": "audit-browser-02.mjs; original audit runner NOT_RUN; deadline flooring only",
+    "firstAdmission": "NOT_RUN_EXTERNAL_LOAD_GATE_PRESERVED_THEN_NORMAL_ADMISSION",
+    "HOLD": "UNCHANGED",
+    "tolerancesCapsAndFirstFailures": "PRESERVED",
+    "mobile": "NOT_RUN_USER_EXCLUDED",
+    "deploy": "NOT_RUN"
+  },
+  "roadmapReview": {
+    "date": "2026-11-03",
+    "status": "CURRENT_EVIDENCE_AND_PRIORITY_RECONCILED",
+    "correction": "Original P4 cost stop is observed first; new warm/multipoint failure on that cold-normal path is not established",
+    "P4Profile": "Eight1kg half-.25 boxes, inverse inertia24I, gravity, original1/120s",
+    "G2Profile": "One1kg half-.5 cube, inverse inertia6I, zero gravity, first exact cold contact only",
+    "costCandidate": "DESIGN_ONLY_NEW_FULL36_ROW_UNTRUSTED_BASIS_EXACT_KKT_CERTIFICATE; not a fourth cache/axis retune",
+    "requiredBeforeCandidateExecution": "Complete frozen operation pricing/bounds, independent controls and original six saved cold-QP authorities",
+    "publicCutover": "SEPARATE_REQUIRED_GATED_LANE; no whole-P4 prerequisite implied",
+    "completionEstimate": "NO_RELIABLE_WHOLE_ENGINE_DATE_OR_WEIGHTED_PERCENT",
+    "HOLD": "UNCHANGED",
+    "mobile": "NOT_RUN",
+    "deployment": "NOT_RUN"
   }
 }

@@ -1,0 +1,13 @@
+{
+  "status": "PASS_ALL_VIEWER_INPUT_AND_TOOL_PINS",
+  "authorSha256": "eeded3c77eacb9aeb5148af94283fa9a4321069a5b86ee985ac78b2a945f5d97",
+  "filePins": 3864,
+  "externalToolPins": 357,
+  "scopeCounts": {
+    "workspace": 3611,
+    "external": 253
+  },
+  "transactionParityFiles": 38,
+  "WorldCalls": 0,
+  "browserCalls": 0
+}
