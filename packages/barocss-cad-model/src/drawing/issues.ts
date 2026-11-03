@@ -258,6 +258,61 @@ function linearPayloadGeometryClash(ctx: IssueContext, id: string | undefined, v
   for (const f of fixed) { const polygon = linearMarkPolygon(f); for (const moving of polygons) if (linearPolygonsOverlap(moving, polygon)) return true; }
   return false;
 }
+// Only ordinary automatic rulers may recover from the retained no-safe text-only result.
+// Rebuilds reuse current projections and sections; no geometry evaluation occurs in this search.
+const AUTO_LINEAR_MOVE_TRIES = 64;
+function rulerClearOfOtherText(sheet: Sheet, id: string, view: DimView): boolean {
+  let own: MarkGroup | undefined;
+  for (const group of sheet.groups) if (group.role === 'dimension' && group.id === id && group.view === view) { own = group; break; }
+  if (!own) return false;
+  const placed = placedOf(own);
+  for (const group of sheet.groups) {
+    if (group === own || !(group.standaloneFrame || group.role === 'dimension' || group.role === 'note' || group.role === 'label' || group.role === 'datum' || group.role === 'control' || group.role === 'table' || group.role === 'weld' || group.role === 'balloon')) continue;
+    const other = placedOf(group);
+    for (const box of other.boxes) {
+      for (const [a, b] of placed.lines) if (segmentHitsQuad(a, b, box)) return false;
+      // Centerlines alone miss stroked ends and arrowheads. Use the existing full primitive polygons too.
+      for (const mark of own.marks) if (mark.kind !== 'text' && linearPolygonsOverlap(linearMarkPolygon(mark), box)) return false;
+    }
+  }
+  return true;
+}
+function issueIdentity(issue: DrawingIssue): string {
+  return JSON.stringify([issue.code, issue.severity, issue.message, issue.view, issue.dims, issue.notes, issue.tables, issue.datumTargets, issue.frames, issue.welds]);
+}
+function issuesNotAdded(before: readonly DrawingIssue[], after: readonly DrawingIssue[]): boolean {
+  const held = new Map<string, number>();
+  for (const issue of before) { const key = issueIdentity(issue); held.set(key, (held.get(key) ?? 0) + 1); }
+  for (const issue of after) { const key = issueIdentity(issue), count = held.get(key) ?? 0; if (!count) return false; held.set(key, count - 1); }
+  return true;
+}
+function verifiedAutoLinearMove(ctx: IssueContext, id: string | undefined, view: DimView | undefined): { fix?: DrawingFix } {
+  // Sourced tables can evaluate geometry through meta.tableContent; they are outside this sheet-only fallback.
+  if (!ctx.rebuild || !id || !view || ctx.settings.tables?.length || ctx.settings.standard !== undefined || ctx.settings.units !== undefined || ctx.settings.dual !== undefined || ctx.settings.precision !== undefined) return {};
+  let r: Extract<Resolved, { ok: true; kind: 'linear' }> | undefined;
+  for (const resolved of ctx.sheet.dimensions) if (resolved.ok && resolved.kind === 'linear' && resolved.dim.id === id && resolved.dim.view === view) { r = resolved; break; }
+  if (!r || r.dim.auto !== true || r.dim.tol !== undefined || r.dim.basic !== undefined || r.dim.count !== undefined || r.alt !== undefined || r.shownPrecision !== undefined || (view !== 'front' && view !== 'top' && view !== 'right')) return {};
+  for (const frame of ctx.settings.frames ?? []) if (frame.dim === id) return {};
+  const placement = placementOf(ctx.layout, ctx.sheet, view), projection = projectionOf(ctx.views, ctx.sheet, view);
+  if (!placement || placement.hidden || !projection) return {};
+  // Removing rebuild disables this proposal and all recursive layout searches during verification.
+  const before = drawingIssues({ ...ctx, rebuild: undefined }), score = fixScore(before);
+  const [x0, y0, x1, y1] = ctx.layout.frame, places = candidates(r, placement.scale, projection, Math.hypot(x1 - x0, y1 - y0));
+  for (let k = 0; k < Math.min(AUTO_LINEAR_MOVE_TRIES, places.length); k++) {
+    const place = places[k], dimensions: DrawingDimension[] = [];
+    for (const dim of ctx.settings.dimensions) dimensions.push(dim.id === id ? { ...dim, place } : dim);
+    const rebuilt = ctx.rebuild({ ...ctx.settings, dimensions }), verification = { ...rebuilt, rebuild: undefined };
+    let moved: Resolved | undefined;
+    for (const resolved of rebuilt.sheet.dimensions) if (resolved.dim.id === id && resolved.dim.view === view) { moved = resolved; break; }
+    if (!moved?.ok || moved.kind !== 'linear' || moved.value !== r.value || linearPayloadGeometryClash(verification, id, view) || !rulerClearOfOtherText(rebuilt.sheet, id, view)) continue;
+    const after = drawingIssues(verification);
+    if (!betterScore(fixScore(after), score) || !issuesNotAdded(before, after)) continue;
+    let targetError = false;
+    for (const issue of after) if (issue.severity === 'error' && issue.dims?.includes(id)) { targetError = true; break; }
+    if (!targetError) return { fix: { kind: 'move', dim: id, place } };
+  }
+  return {};
+}
 const name = (o: Owner, sheet: Sheet) => o.kind === 'frame' ? 'a standalone feature control frame' : o.kind === 'dimension' ? `dimension ${textOf(sheet, o.id!)}` : o.kind === 'note' ? 'a note' : o.kind === 'table' ? `table ${o.id}` : o.kind === 'balloon' ? `balloon ${o.id}` : o.kind === 'weld' ? `weld symbol ${o.id}` : o.kind === 'datum' ? `datum${o.datumTarget ? ' target' : ''} ${datumLetter(sheet, o.id!, o.datumTarget)}` : `the ${o.view ?? 'section'} view’s name`;
 function datumLetter(sheet: Sheet, id: string, target?: true): string { const t = sheet.groups.find(g => g.role === 'datum' && g.id === id && g.datumTarget === target)?.marks.find(m => m.kind === 'text'); return t && t.kind === 'text' ? t.text : id; }
 function textOf(sheet: Sheet, id: string): string { const r = sheet.dimensions.find(d => d.dim.id === id); return r?.ok ? r.text : id; }
@@ -463,7 +518,7 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     const others = placed.filter(q => q !== p && (q.owner.kind === 'dimension' || q.owner.kind === 'weld' || q.owner.kind === 'balloon')).flatMap(q => q.lines);
     if (ownClash || p.boxes.some(b => viewGrid.hits(b) || others.some(([s, t]) => segmentHitsQuad(s, t, b)) || onOtherView(ctx.layout, ctx.sheet, b, p.owner.view))) {
       flagged.add(`dimension:${p.owner.id}`);
-      out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `The text of ${name(p.owner, sheet)} lies over lines of the drawing.`, ...ids([p]), at: center(p.boxes[0]), ...(ownClash ? {} : fixFor(ctx, p, placed, viewGrid)) });
+      out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `The text of ${name(p.owner, sheet)} lies over lines of the drawing.`, ...ids([p]), at: center(p.boxes[0]), ...(ownClash ? verifiedAutoLinearMove(ctx, p.owner.id, p.owner.view) : fixFor(ctx, p, placed, viewGrid)) });
     }
   }
   const [fx0, fy0, fx1, fy1] = layout.frame, [tx0, ty0, tx1, ty1] = layout.title;

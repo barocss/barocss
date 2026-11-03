@@ -55,7 +55,7 @@ import { DatumsEditor } from './drawing/DatumsEditor';
 import { DatumTargetsEditor, DEFAULT_TARGET_DRAFT, type DatumTargetDraft } from './drawing/DatumTargetsEditor';
 import { checkDatumTargetOptions, datumTargetConflicts, datumTargetEndpoint, resolveDatumTarget, type DatumTargetPoint, type DrawingDatumTarget } from '@barocss/cad-model/drawing/datumTargets';
 import { FrameEditor } from './drawing/FrameEditor';
-import { committedSettings } from './drawing/commitSettings';
+import { committedSettings, committedSheetSettings } from './drawing/commitSettings';
 import { StandaloneFramesEditor } from './drawing/StandaloneFramesEditor';
 import { checkDrawingFrames, readFrames, type DrawingFrame } from '@barocss/cad-model/drawing/controls';
 import { ToleranceEditor } from './drawing/ToleranceEditor';
@@ -164,7 +164,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const fixOnly = (fix: DrawingFix) => scope.kind !== 'assembly' || fix.kind !== 'auto-dimension';
   const fixStep = (step: FixRoundStep) => {
     if (step.next) {
-      fixing.current = { state: step.state, want: wholeSettings.sheets?.length && scopeRead.scope ? JSON.stringify(forSheet(committedSettings(mergeSheet(wholeSettings, current, step.next), scopeRead.scope), current)) : JSON.stringify({ ...step.next, scope: step.next.scope ?? scopeRead.scope }) };
+      fixing.current = { state: step.state, want: scopeRead.scope ? JSON.stringify(committedSheetSettings(wholeSettings, current, step.next, scopeRead.scope)) : JSON.stringify(step.next) };
       onChange(step.next); return;
     }
     fixing.current = null;

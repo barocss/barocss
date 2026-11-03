@@ -1,0 +1,245 @@
+{
+  "work_id": "D478",
+  "status": "QUALIFIED_ONE_BOUNDED_C3_PUBLIC_FIX_LIFECYCLE",
+  "scope": "ONE_EXISTING_O172_C3_SHAFT_DRAWING_FIX_LIFECYCLE",
+  "parentHead": "31c14fe423380b6a3faa725b401c44dc1471154a",
+  "sourceRequest": "Direct owner continue roadmap; selected C3 before D479 type-first decomposition",
+  "candidateState": "FIVE_KNOWN_UNCOMMITTED_SOURCE_TEST_FILES_PLUS_ROOT_DOC_WIP_DURING_PROOF_NOT_CLEAN_HEAD",
+  "sourcePins": {
+    "apps/cad-studio/src/ui/DrawingWorkspace.tsx": "d68012a9ade7d340c0ab95578e973965d4ff4177eed52a7c2f4120b676cbdf7f",
+    "apps/cad-studio/src/ui/drawing/commitSettings.ts": "99807b874dd13852e298f884154ae4a2828ba44607548f2df18373684dd89dce",
+    "apps/cad-studio/test/drawing-commit-roundtrip.test.ts": "1585ab140f780889c44a147d793e96dbd305039dd6c4733963fd05851cf983f2",
+    "packages/barocss-cad-model/src/drawing/issues.ts": "06a25fe57e96dce476e6ebe6a61e6056853a2bae6a9ffc9be88cb8ff487e3df4",
+    "packages/barocss-cad-model/test/drawing-fix-rounds.test.ts": "5a6e088169d5935b989fc5d9ec5a4dc5e55ff76c4ae20f475b58decc3fd303b0"
+  },
+  "input": {
+    "provenance": "SOURCE_AUTHORED_EXACT_FULL_O172_PREFIX_NOT_PUBLIC_CONSTRUCTION",
+    "path": "/tmp/barocss-d478-driver01/fixture/pre-fix-full.bcad",
+    "sha256": "91d60d57d255262b6372e0265ca70ba2f74d43ef67d4055b0bbeaf5ecf464f1c",
+    "openReaderAcceptedSHA256": "91d60d57d255262b6372e0265ca70ba2f74d43ef67d4055b0bbeaf5ecf464f1c",
+    "readerNotes": []
+  },
+  "causes": [
+    "UI_RAW_WAIT_VS_CANONICAL_COMMIT_KEY_ORDER_CANCELLED_ROUNDS",
+    "AUTO_PLAIN_LINEAR_TEXT_REAL_STROKE_CLASH_NO_VERIFIED_WHOLE_RULER_MOVE;BEST_SCORE_POLICY_CORRECT"
+  ],
+  "correction": {
+    "ui": "Same canonical active-sheet commit identity; strict foreign-edit cancellation preserved",
+    "model": "At most64 existing candidates; current-sheet rebuild only; final payload/stroke/other-text clearance; no new issue multiplicities; unchanged strict score improvement",
+    "excluded": [
+      "manual no-safe",
+      "tables/tableContent/native reevaluation",
+      "frames/basic/tolerances/count",
+      "explicit standards/units/dual/precision",
+      "circle/radius/angle/PCD",
+      "kernel/API/schema/UI changes"
+    ],
+    "nativeToleranceChange": false
+  },
+  "evidence": {
+    "nativeReadiness": {
+      "path": "/tmp/barocss-d478-geometry/preflight-run01/receipt.json",
+      "sha256": "0d86dc47e0e0b0bceee0bbaf4bcf23e499691dabde3c1c7bb854e976879b1fe8",
+      "status": "PASS_NATIVE_REFERENCE_READINESS_ONLY_NOT_PUBLIC_FIX"
+    },
+    "originalActual01": {
+      "path": "/tmp/barocss-d478-repro-run01/receipt.json",
+      "sha256": "72baf399706caa557c32127cdb45428d9d2b246919523f47cffaae4b49ef0472",
+      "status": "FAIL_TERMINAL_WAIT_AFTER_PARTIAL_B;LIVE_AFTER_ORACLE_NOT_RUN"
+    },
+    "savedPartialOracle": {
+      "path": "/tmp/barocss-d478-root/saved-after-wrapper01/oracle.stdout.json",
+      "sha256": "dbc8db0b509fb6a956cfd90b11090c18fa210f74159f3d1f2fedac3398972249",
+      "status": "FAIL_CURRENT_SHAFT_FIX_FUNCTION_EXIT1_READINESS_PASS_SAVED_DATA_ONLY"
+    },
+    "fixedAttempt01": {
+      "path": "/tmp/barocss-d478-fixed-workflow-run01/receipt.json",
+      "sha256": "13006d47b4d81d4b01eb89de631ee79dad6fa246d97b9cdd6986b1bb42d8b050",
+      "status": "FAIL_HARNESS_TOAST_BOUNDARY;AFTER_ORACLE_NOT_RUN"
+    },
+    "fixedAttempt02": {
+      "path": "/tmp/barocss-d478-fixed-workflow-run02/receipt.json",
+      "sha256": "66bafe62825000f46a8834f26095b915bae02fee884ab2a2acbb4c24dad87508",
+      "status": "FIRST_FIXED_BINDING_PASS_THEN_FAIL_HARNESS_UNAVAILABLE_FIX_BUTTON"
+    },
+    "fixedActual03": {
+      "path": "/tmp/barocss-d478-fixed-workflow-run03/receipt.json",
+      "sha256": "f0d5cbfa290241fd707131cb0947fea3b8c4b3e139c7e96f7e8cde4466c2cbb2",
+      "status": "PASS_ALL7"
+    },
+    "rootReview03": {
+      "path": "/tmp/barocss-d478-root/fixed-actual-wrapper03/review.json",
+      "sha256": "aaf55401ce142b6f8914f5c6fe2fa71e58ecbcf604e2b7902a2a7c4e65a52198",
+      "status": "PASS_RUNTIME_SOURCE_EQUAL_CLEANUP_ROOT_IMAGES"
+    },
+    "checks01": {
+      "path": "/tmp/barocss-d478-checks01/receipt.json",
+      "sha256": "bf8a81b4ba1d34054dc0a9110416feaef417a1715b945d1b046ba734786fd8a3",
+      "status": "FAIL142_PASS_1_KNOWN_BASELINE_FAIL"
+    },
+    "checks02": {
+      "path": "/tmp/barocss-d478-checks02/receipt.json",
+      "sha256": "14c5469bae18d083c9da7b617a068e0e829a69a03a56171f3ddc09c5c8ca84ac",
+      "status": "PASS_FINAL_SCOPE"
+    },
+    "PDFControl": {
+      "path": "/tmp/barocss-d478-pdf-control01/comparison.json",
+      "sha256": "8e15e75c2e7981605f379912128f57ae5fa7f3a9597ac4f5a1d2ea5dbfc361ab",
+      "status": "IDENTICAL_PARENT_CURRENT_ASME_BASELINE_FAIL"
+    },
+    "lifecycleManifest": {
+      "path": "/tmp/barocss-d478-fixed-geometry/manifest.json",
+      "sha256": "92e70e1fcd11bfe9d7be33bc400be68bd0d7f96060d3d70b954a322cb38aa98b",
+      "status": "FIVE_SOURCE_CAPSULE"
+    }
+  },
+  "checks": {
+    "checks01": {
+      "tests": 143,
+      "pass": 142,
+      "fail": 1,
+      "scope": "PRE_TABLE_GUARD_RELATED_CATEGORY",
+      "knownFailure": "ASME_ONE_PAGE_PDF_GOLDEN"
+    },
+    "checks02": {
+      "status": "PASS",
+      "modelRoundTests": 4,
+      "studioCommitTests": 4,
+      "lintDiff": "PASS",
+      "studioTSC": "PASS",
+      "finalModelTSC": "PASS_AFTER_TEST_5a6e0881",
+      "fullCategoryAllPass": false
+    },
+    "PDFControl": {
+      "classification": "PARENT31c_AND_FINAL_CURRENT_IDENTICAL_ASME_BASELINE_FAILURE",
+      "originalExit": 1,
+      "currentExit": 1,
+      "plainISO": "EXACT_PASS",
+      "actualASME": "a3c0e4473a82fab17f7cb9fe4f56cd65b769ba7078ba368aa989b3e17d0f036e",
+      "expectedASME": "7643251eca96357dd48c9868cc0722c5c46e37bf9aad9f6d58c9b4bd368f4d3a",
+      "goldenChanged": false,
+      "preD477Attribution": "NOT_CLAIMED"
+    }
+  },
+  "actual": {
+    "command": "bash /tmp/barocss-d478-root/run-fixed-studio03.sh",
+    "configSHA256": "c344dbb9ad2d2f9f0e6aecc9fa55c0b9e48d4d75230bba2b42caca530c8a90d0",
+    "status": "PASS",
+    "groups": [
+      "prefixReadiness",
+      "onePublicFix",
+      "fixedPublicQuiescence",
+      "firstUndoLastRound",
+      "redoFixed",
+      "ownProjectRoundtrip",
+      "postOpenPublicQuiescence"
+    ],
+    "checkpointGroups": 7,
+    "freshPythonWorkerSVGBindings": 7,
+    "nativeWholeDocCaptures": 3,
+    "exactDocReuses": 4,
+    "publicFixInvocations": 1,
+    "quiescenceObservations": 2,
+    "quiescenceActionTaken": false,
+    "terminalTitle": "6 fixes applied",
+    "observedDistinctAcceptedDocs": 3,
+    "firstUndo": "EXACT_PREVIOUS_ACCEPTED_ROUND_A_B_ADDED_RIGHT16_5_PENDING",
+    "wholeFixUndoClaim": false,
+    "postOpenIdempotentFixInvoked": false,
+    "firstUndoIssues": [
+      "DIM_ON_HIDDEN_d9_WARNING",
+      "TEXT_OVER_LINES_d2_ERROR"
+    ]
+  },
+  "physical": {
+    "nativeStepRadius": 10,
+    "keyseatFloorX": 6.5,
+    "farCylinderX": -10,
+    "independentDistance": 16.5,
+    "section": {
+      "id": "B",
+      "view": "top",
+      "at": -15,
+      "physicalZ": 15
+    },
+    "madeProjection": [
+      "n0"
+    ],
+    "allNativeWorkerOutputs": [
+      "n0",
+      "n1",
+      "n2"
+    ],
+    "actualDimensionId": "d9",
+    "actualDimensionView": "section:B",
+    "sourceRevision": "7077ab99dd88ad84",
+    "budgets": {
+      "volumeRelative": 1e-09,
+      "centroidAbsolute": 1e-09,
+      "physicalReferenceAbsolute": 1e-09
+    },
+    "workerMaxVolumeRelativeError": 0,
+    "workerMaxCentroidAbsoluteError": 5.395614644290433e-16,
+    "massTopologyCounts": "OBSERVATION_ONLY_NOT_NEW_EXPECTED_QUALIFICATION",
+    "nativeIndependentSpanError": 0
+  },
+  "custody": {
+    "wrapperPinnedPaths": 2434,
+    "helperPinnedPaths": 2436,
+    "equalThroughCleanupCurrent": true,
+    "project": "D478-fixed-run03",
+    "namespace": "REMOVED_AND_ABSENT",
+    "contextBrowserServer": "CLOSED",
+    "ownPID": 61307,
+    "ownPIDAbsent": true,
+    "gateLeaseReleased": true,
+    "sourceFreezeReleased": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "watchedChanges": 0,
+    "rootReviewedImages": 6
+  },
+  "HighFinalReview": {
+    "status": "ACCEPT_D478_FIXED_PUBLIC_FIX_LIFECYCLE_7_OF_7",
+    "path": "/tmp/barocss-d478-fixed-geometry/high-final-actual03-review.json",
+    "sha256": "f957edbf85316b3772061d739c1decf91c0e0851bfa4c022b80626b8a1c1a07a",
+    "scope": "SEVEN_SAVED_BINDINGS_THREE_CAPTURES_FOUR_REUSES_NO_NEW_PRODUCT_RUN",
+    "originalFailuresPreserved": true
+  },
+  "roles": {
+    "implementationDriver": "Sol Medium",
+    "geometryReferenceReview": "Sol High",
+    "runtimeCustodyImages": "root"
+  },
+  "limits": [
+    "SVG preview only; no export/standards acceptance",
+    "Browser restart persistence NOT_RUN",
+    "Mobile NOT_RUN_OWNER_RULE",
+    "No kernel/full suite/CI/release claim",
+    "Old failures and sealed capsules immutable",
+    "No new annotation/units/tolerance/general layout admission"
+  ],
+  "roadmap": {
+    "priority": "C3",
+    "rows": [
+      "11",
+      "12",
+      "16"
+    ],
+    "issue540": "OPEN_NOT_ALL_CRITERIA_MET",
+    "core": "NOT_MEASURED",
+    "legacyPercent": 43,
+    "legacyStatus": "FROZEN",
+    "C1C2": "FIRST_PASS_CLOSEOUT_THROUGH_D476_UNCHANGED",
+    "holds": "UNCHANGED",
+    "next": "D479_TYPE_DOCUMENT_CONTRACT_FIRST_PART_MODEL_DECOMPOSITION",
+    "ASMEGolden": "SEPARATE_FUTURE_TRIAGE"
+  },
+  "tier": {
+    "classification": "SMALL_PRIVATE_BEHAVIOR_CORRECTION",
+    "hardReview": "TARGETED_HIGH_GEOMETRY_REFERENCE_AND_STROKE_CLEARANCE_ADVICE",
+    "publicSurfaceChanged": false,
+    "brepCoreChanged": false
+  }
+}

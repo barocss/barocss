@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D478: complete the existing shaft Drawing Fix with canonical UI continuation and a verified automatic-ruler move; seven desktop checkpoints pass, with two no-action quiescence observations](notes/shaft-drawing-fix-2026-11-03/README.md).
+
 - [D477: correct visible round-circle CENTER snap priority and qualify the eight-group Part Drawing loss/recovery loop; retain the pre-existing O172 shaft failure](notes/drawing-circle-snap-recovery-2026-11-03/README.md).
 
 - [D476: retain circular +Z native face Extrude height; qualify seven desktop groups and close the current known C1/C2 reproduced-defect list first pass](notes/native-circle-face-extrude-height-2026-11-03/README.md).

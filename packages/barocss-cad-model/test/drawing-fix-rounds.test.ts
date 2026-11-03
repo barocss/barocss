@@ -7,7 +7,7 @@ import { editBearingRows } from '../src/engine/bearings';
 import { editFitTables } from '../src/engine/fits';
 import { drawingInputs } from '../src/chat/drawing';
 const readSettings = (doc: StudioDoc) => readDrawing(doc.drawing);
-import { drawingIssues, fixAll, fixRound, fixRoundsStart, fixScore, issueContext } from '../src/drawing/issues';
+import { applyFix, drawingIssues, fixAll, fixRound, fixRoundsStart, fixScore, issueContext } from '../src/drawing/issues';
 import { readDrawing, sectionsOf } from '../src/drawing/types';
 
 // O170 (A9's F8): one Fix leaves a sheet it can fix fixed. On the default shaft with its key and bearing, Fix adds the
@@ -68,4 +68,38 @@ test('O175: Fix all round by round, as the studio runs it — the chat\'s result
   // (The chat's fix_drawing, the same rounds in one call: the same settings.)
   await call('drawing', { action: 'fix' });
   assert.deepEqual(readSettings(s.doc), step.settings);
+});
+
+
+test('an automatic plain ruler move is offered only after a clear rebuild of the current projected sheet', async t => {
+  let s: ChatState = { doc: emptyDoc(), bodies: [] };
+  const call = async (tool: string, args: Record<string, unknown>) => { const r = await dispatchTool(s, tool, args, evaluate); assert.ok(!r.isError, r.content); s = r.state; };
+  await call('features', { action: 'command', command: 'shaft', values: {} });
+  const bearingRows = editBearingRows(s.doc, [ROW]); assert.ok('doc' in bearingRows);
+  const fitTables = editFitTables(bearingRows.doc, [FITS]); assert.ok('doc' in fitTables); s = { ...s, doc: fitTables.doc };
+  await call('features', { action: 'command', command: 'key', values: { h: 6 }, bodies: ['b0'] });
+  await call('features', { action: 'command', command: 'bearing', values: { sc: 'k5', step: 3, against: 'start' }, bodies: ['b0'] });
+  await call('drawing', { action: 'auto' });
+  const start = drawingInputs(s.doc); if (typeof start === 'string') throw Error(start);
+  const once = fixAll(start, 40), section = drawingInputs({ ...s.doc, drawing: once.settings }, once.settings); if (typeof section === 'string') throw Error(section);
+  const automatic = applyFix(issueContext(section), { kind: 'auto-dimension' }), inputs = drawingInputs({ ...s.doc, drawing: automatic }, automatic); if (typeof inputs === 'string') throw Error(inputs);
+  const ctx = issueContext(inputs), before = JSON.stringify(ctx.settings), original = ctx.sheet.dimensions.find(d => d.ok && d.dim.id === 'd1'); assert.ok(original?.ok);
+  const retained = drawingIssues({ ...ctx, rebuild: undefined }).find(i => i.code === 'TEXT_OVER_LINES' && i.dims?.includes('d1')); assert.ok(retained); assert.equal(retained.fix, undefined);
+  let rebuilds = 0; const rebuild = ctx.rebuild!;
+  const observed = { ...ctx, rebuild: (settings: typeof automatic) => { rebuilds++; const next = rebuild(settings); assert.equal(next.views, ctx.views, 'candidate verification reuses current projections'); assert.equal(next.sections, ctx.sections, 'candidate verification reuses current section projections'); return next; } };
+  const issue = drawingIssues(observed).find(i => i.code === 'TEXT_OVER_LINES' && i.dims?.includes('d1')); assert.ok(issue?.fix?.kind === 'move');
+  assert.ok(rebuilds > 0 && rebuilds <= 64 * ctx.settings.dimensions.length);
+  const changed = applyFix(ctx, issue.fix), next = rebuild(changed), resolved = next.sheet.dimensions.find(d => d.dim.id === 'd1'); assert.ok(resolved?.ok);
+  assert.deepEqual({ ...resolved.dim, place: original.dim.place }, original.dim); assert.equal(resolved.value, original.value);
+  assert.deepEqual(next.sheet.dimensions.filter(d => d.dim.view === 'section:B'), ctx.sheet.dimensions.filter(d => d.dim.view === 'section:B'));
+  assert.deepEqual(drawingIssues({ ...next, rebuild: undefined }), []);
+  assert.equal(JSON.stringify(ctx.settings), before, 'a proposal leaves accepted settings unchanged');
+  await t.test('a sourced-table context never invokes automatic ruler rebuilds', () => {
+    const tableContext = { ...ctx, settings: { ...ctx.settings, tables: [{ id: 'manufacturing', from: 'cut-list' }] }, rebuild: () => { assert.fail('sourced-table callbacks must stay outside the automatic ruler search'); } };
+    const tableIssue = drawingIssues(tableContext).find(i => i.code === 'TEXT_OVER_LINES' && i.dims?.includes('d1'));
+    assert.ok(tableIssue); assert.equal(tableIssue.fix, undefined);
+  });
+  const manual = { ...automatic, dimensions: automatic.dimensions.map(d => { if (d.id !== 'd1') return d; const dim = { ...d }; delete dim.auto; return dim; }) };
+  const manualInputs = drawingInputs({ ...s.doc, drawing: manual }, manual); if (typeof manualInputs === 'string') throw Error(manualInputs);
+  const manualIssue = drawingIssues(issueContext(manualInputs)).find(i => i.code === 'TEXT_OVER_LINES' && i.dims?.includes('d1')); assert.ok(manualIssue); assert.equal(manualIssue.fix, undefined, 'manual no-safe payloads keep the D416 contract');
 });
