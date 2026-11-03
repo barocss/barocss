@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D470: qualify named-Version Restore native/real Measure/post-Open re-edit supplement; explicit Save required](notes/named-version-restore-physical-2026-11-03/README.md).
 - [D469: qualify existing terminal Scale suppression/source-edit/persistence and activation guard; no active Scale0 admission](notes/scale-suppression-lifecycle-2026-11-03/README.md).
 - [D468: qualify integer-grid Move To-minXYZ lowering/fixed translation/history/project; retain preview and preparation limits](notes/body-move-workflow-2026-11-03/README.md).
 - [D467: qualify one existing uniform BODY Scale/source/refusal/history/project workflow, with preview-fit limit](notes/body-scale-workflow-2026-11-03/README.md).

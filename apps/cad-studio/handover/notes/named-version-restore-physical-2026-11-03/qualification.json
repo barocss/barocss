@@ -1,0 +1,215 @@
+{
+  "workId": "D470",
+  "lastUpdated": "2026-11-03",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "8a804fee8602d187fb8b2e7264501e316daa6267",
+  "category": "C1 existing namedVersionRestore physical/Measure/reedit supplement",
+  "primaryRows": [
+    "12",
+    "16"
+  ],
+  "relatedRows": [
+    "07",
+    "08",
+    "30"
+  ],
+  "productChanges": "NONE",
+  "testChanges": "NONE",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercentFrozen": 43,
+  "input": {
+    "path": "/tmp/barocss-d470-geometry/seed.bcad",
+    "sha256": "acac4d204b3ec99103e885572e86b925883115ceafd0c21aca2f804f0c3f1e1a",
+    "origin": "ExactretainedD469activeScale2H14;no initialH14nativebaseline/publicconstruction"
+  },
+  "publicContract": {
+    "namedVersions": 1,
+    "sequence": "ownProjectSave+oneH14version\u2192sourceH16\u2192RestoreH14wholeDoc/native+Measure28\u2192EXPLICITSaveRestoredH14\u2192Close/samecontextreload/Open\u2192postOpenH18native+Measure36",
+    "restoreDirty": true,
+    "savedDirty": false,
+    "restoreSaves": false,
+    "oneNamedRowRetainedAfterSaveOpen": true,
+    "undoHistoryRewindClaim": false,
+    "identities": "n0/n1/n2,parentn1solid,pivot0,outputb2,nextId3 exact"
+  },
+  "preflight": {
+    "status": "PASS_THREE_STATES_PLUS_NATIVE_DISPLAY_MAPPINGS",
+    "command": "bash /tmp/barocss-d470-root/run-preflight01.sh",
+    "receipt": "/tmp/barocss-d470-geometry/preflight-run01/receipt.json",
+    "receiptSHA256": "7ff3d32ef733d47bfd2fb75cc5ac19ba80b212ce38c213cbadc972a12209d1d2",
+    "sourcePins": 746,
+    "sourceEqualAfterCleanupCurrent": true,
+    "ownPID": 83607,
+    "ownPIDAbsent": true,
+    "gate": "FREE",
+    "proofBoundary": "ProspectiveRestore geometry only,notUIrestore/Measure/persistence"
+  },
+  "actual": {
+    "status": "PASS",
+    "declaredGroups": 5,
+    "qualifiedGroups": 5,
+    "coverage": {
+      "ownProjectSaveOneNamedH14Version": "PASS",
+      "sourceH16Native": "PASS",
+      "RestoreH14ExactNativeMeasure28": "PASS",
+      "explicitSaveRestoredH14CloseReloadOpen": "PASS",
+      "postOpenH18NativeMeasure36": "PASS"
+    },
+    "command": "bash /tmp/barocss-d470-root/run-studio01.sh",
+    "receipt": "/tmp/barocss-d470-workflow-run01/receipt.json",
+    "receiptSHA256": "1f7de8fc35d7d0a67a788bc0f2b0068fc01c3dbfab8d6191a4267fdec661bd03",
+    "configSHA256": "9cd872c089fc54cd0df86496ed5d2decf96d0867c3b9462168443822200e5a07",
+    "nativeBindings": 4,
+    "freshCaptures": 3,
+    "exactWholeDocReuses": 1,
+    "physicalProfiles": 3,
+    "freshPythonOracles": 4,
+    "freshRawWorkerBindings": 4,
+    "maximumWorkerVolumeCentroidBindingError": 0,
+    "maximumNativeVolumeAbsoluteError": 0,
+    "maximumNativeCentroidAbsoluteErrorMM": 7.105427357601002e-15,
+    "statesAndImages": 23,
+    "rootViewedImages": 7,
+    "prehashPaths": 2385,
+    "fullFrozenPaths": 2386,
+    "aliasesIncluded": true,
+    "beforeAfterCleanupCurrentEqual": true,
+    "errors": {
+      "page": 0,
+      "console": 0,
+      "downloads": 0,
+      "watchedChanges": 0
+    },
+    "cleanup": {
+      "namespace": "D470-named-restore-run01",
+      "namespaceStatus": "REMOVED_AND_ABSENT",
+      "contextBrowserServer": "CLOSED",
+      "ownPID": 85488,
+      "ownPIDAbsent": true,
+      "gate": "FREE",
+      "endLoad": 7.22
+    },
+    "executedSUTFailures": 0,
+    "executedPreparationFailures": 0
+  },
+  "measurement": {
+    "publicRoute": "Freshnativeendpoint/name\u2192displaymap,currentprojection/edgeAt,unobstructedcanvas,realpointerselectiondynamicindex,publicMeasure",
+    "nativeName": "n1.side[e1]|n1.side[e2]",
+    "lengthsMM": [
+      28,
+      36
+    ],
+    "observedDynamicIndices": [
+      1,
+      1
+    ],
+    "indexAssumed": false,
+    "visibleFirstAttemptBoth": true,
+    "orbitNeeded": false,
+    "UIFormattingMM": 0.01,
+    "physicalAuthority": "native+independentFraction at1e-9;notroundedUI/displaymesh"
+  },
+  "physicalContract": {
+    "volume": "4800h",
+    "centroid": "[40,70,h]",
+    "bounds": "[20,40,0]..[60,100,2h]",
+    "states": [
+      {
+        "height": 16,
+        "volume": 76800,
+        "centroid": [
+          40,
+          70,
+          16
+        ],
+        "bounds": [
+          [
+            20,
+            40,
+            0
+          ],
+          [
+            60,
+            100,
+            32
+          ]
+        ]
+      },
+      {
+        "height": 14,
+        "volume": 67200,
+        "centroid": [
+          40,
+          70,
+          14
+        ],
+        "bounds": [
+          [
+            20,
+            40,
+            0
+          ],
+          [
+            60,
+            100,
+            28
+          ]
+        ]
+      },
+      {
+        "height": 18,
+        "volume": 86400,
+        "centroid": [
+          40,
+          70,
+          18
+        ],
+        "bounds": [
+          [
+            20,
+            40,
+            0
+          ],
+          [
+            60,
+            100,
+            36
+          ]
+        ]
+      }
+    ],
+    "strictTopology": "oneclosedsolid8vertices6faces12edges",
+    "volumeRelative": 1e-09,
+    "centroidBoundsCornerFaceEdgePinsNormalsAbsolute": 1e-09
+  },
+  "independentReview": "ACCEPT_SCOPE_readonlyMedium",
+  "checks": {
+    "newTestsTypesBuildFullKernel": "NOT_RUN_NO_SOURCE_OR_TEST_CHANGE",
+    "retained": "D46128groups,lint,StudioTSC,finalModelTSC",
+    "independentOracleSHA256": "a2e492c78a928423cd525c6d4603836e52473b7b7ffc7e0e9826bacca5deeefa",
+    "geometryManifestSHA256": "dc3ece32efc95ccfed7b8d148e51500c51a3fa842debf9a220d5d2bb0ac71c38",
+    "rootReview": "/tmp/barocss-d470-root/root-review.json",
+    "documentation": {
+      "status": "PASS",
+      "node": "v22.19.0",
+      "command": "export PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH\nnode apps/cad-studio/handover/scripts/check-navigation.mjs",
+      "whitespaceCommand": "git diff --cached --check",
+      "rows": 34,
+      "legacyHeadingFragments": 552,
+      "legacyOutboundLinks": 913,
+      "checkedLocalLinks": 2669,
+      "newBroken": 0,
+      "knownHistoricalMissingPaths": 1,
+      "receiptSHA256": "b5905f58efbddc2989f174893d9f3878c50857673f56f6ed1de7e55fcc77a030"
+    }
+  },
+  "issues": {
+    "2236": "FRESH_READ_CLOSED_COMPLETED_0COMMENTS_D323_CANONICAL_SNAPSHOT_CLOSEOUT_PRESERVED_NO_MUTATION",
+    "534": "OPEN_BOUNDED_PARTIAL_ONLY"
+  },
+  "notReplayed": "D323Compare/log/autosave/twoversionbaseline",
+  "exclusions": "export/externalfolder/crash/browserrestart/merge/collaboration/generalrecovery",
+  "environment": "AllNodecommands includingdocs explicitPATH22.19.0",
+  "next": "D471 selects existing public parameter Rename with bound-feature/native/persistence supplement,C1rows07/08/12/16. Five groups planned: retained literal activeScale2/H18\u2192public Add H18\u2192bind Distance parameterH\u2192rename H to Height/native (height{parameter:Height},dictionaryHeight18);ValueHeight20/native;Height0 PARAMETERn1 retention thenFIRSTUndoHeight18/RedoHeight20 (onegroup,threebindings);ownOPFSOpenHeight20boundDoc/nativeReuse;postOpenHeight22/native+realpointerMeasure44. Seven bindings planned:three bound-document captures/four exact reuses;actualNOT_RUN. Add/bind are antecedents,no initial literalH18nativebaseline. Reuse D356/associativeBand/D454 qualified generic edit/refusal/Undo/Save evidence. Finite global numbers and Dim number|parameter only;no configuration/delete/expression/cycle editor/campaign/new feature/HOLD lift.",
+  "holds": "CoreNOT_MEASURED/legacy43frozen;all current #2258/#2266,Motion/Physics,fitter/thicken,widening,manufacturing,UI,schema,download/dependency,browserCI/release gates unchanged."
+}
