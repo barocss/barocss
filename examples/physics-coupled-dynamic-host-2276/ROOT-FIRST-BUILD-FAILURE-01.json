@@ -1,0 +1,63 @@
+{
+  "status": "FIRST_HOST_BUILD_FORMAT_NO_GO_PRESERVED",
+  "strictCompileExit": 0,
+  "failure": "C source unchanged but NodeNext output CommonJS rather than qualified ESM; new home lacked inherited module scope",
+  "candidateCalls": 0,
+  "WorldCalls": 0,
+  "SourcePhysical": "NOT_RUN",
+  "NativePhysical": "NOT_RUN",
+  "parity": "NOT_RUN",
+  "expectedStaticESM": {
+    "bytes": 10114,
+    "sha256": "2ef143e687b1982e32bc886a30af3ff3ddd4c2f8dcb2ef2bfe7378de143b9b29"
+  },
+  "actualStaticCJS": {
+    "bytes": 10235,
+    "sha256": "9321ab8f62673bfa155a82b6ab768cfe818606ac201cbcee3a4d6da7d65bfbb5"
+  },
+  "rootCause": "Qualified lifecycle home has type:module; original and failed stage lack their own package.json",
+  "nextBoundary": "New build only: explicit isolated stage/emitted package.json type:module, same compiler options, same immutable C output comparison",
+  "tolerancesCapsAndFirstFailures": "UNCHANGED",
+  "files": {
+    "examples/physics-coupled-dynamic-host-2276/AUTHOR-FREEZE-01.json": {
+      "bytes": 174329,
+      "sha256": "d6aee4c6584b8d545e403af226770f1db72b8e706a7b12490ce5cb34224d0db4"
+    },
+    "examples/physics-coupled-dynamic-host-2276/build.mjs": {
+      "bytes": 11821,
+      "sha256": "915d48a02c19d719155581ce8c8702b61916713264c3464b50b962148d9a8198"
+    },
+    "examples/physics-coupled-dynamic-host-2276/evidence/build-01/result.json": {
+      "bytes": 77249,
+      "sha256": "1701f421557c6982b9d0d4561f7bfa88b65795aaa38d7d9ce2b30e847b4372a1"
+    },
+    "examples/physics-coupled-dynamic-host-2276/evidence/build-01/compile.stdout": {
+      "bytes": 81733,
+      "sha256": "ca85ebe668c364799876e98dd124a6c375959c0ba629206711469d95a42d5758"
+    },
+    "examples/physics-coupled-dynamic-host-2276/evidence/build-01/compile.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-coupled-dynamic-host-2276/evidence/build-01/emitted/C/candidate.js": {
+      "bytes": 10235,
+      "sha256": "9321ab8f62673bfa155a82b6ab768cfe818606ac201cbcee3a4d6da7d65bfbb5"
+    },
+    "examples/physics-coupled-lifecycle-2276/evidence/build-01/emitted/C/candidate.js": {
+      "bytes": 10114,
+      "sha256": "2ef143e687b1982e32bc886a30af3ff3ddd4c2f8dcb2ef2bfe7378de143b9b29"
+    },
+    "examples/physics-coupled-lifecycle-2276/package.json": {
+      "bytes": 33,
+      "sha256": "a90fc33418afa2b9cbf4768524b021135b965ecdf993457505bfae3ac44a8428"
+    },
+    "package.json": {
+      "bytes": 1210,
+      "sha256": "1d575b89482ff9234d5605033fcd24677eed9c4a32824fe34be156d44ab0496b"
+    },
+    "examples/physics-world-p5-2276/evidence/coupled-dynamic-host-build-01/result.json": {
+      "bytes": 3241,
+      "sha256": "ac797cdfc04319e7d62cc1906a22c8bf2e14736d545563ffed160a4d6f0e84d7"
+    }
+  }
+}

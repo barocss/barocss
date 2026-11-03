@@ -1,0 +1,25 @@
+# Dynamic host clean protocol 01
+
+AUTHOR_ONLY_NOT_EXECUTED. Root arithmetic production13+private52 Source/Native/raw-parity PASS is prerequisite, not a World result. Exact original before/at/after models/options only. No input/root/cache seed, epsilon, tolerance, cap, work price or solver-slot change.
+
+Root guarded order (180s/16MiB EACH, fresh IDs, stop first failure):
+```
+node examples/physics-coupled-dynamic-host-2276/build.mjs build-01
+node examples/physics-coupled-dynamic-host-2276/clean-run.mjs build-01 source-01 source
+node examples/physics-coupled-dynamic-host-2276/clean-run.mjs build-01 native-01 native
+python3 -B examples/physics-coupled-dynamic-host-2276/clean-parity.py source-01 native-01 parity-01
+```
+
+Copy actual qualified lifecycle104-source stage unchanged except coupled-plan, persistent-box-contact diagnostic kind/message, private entry and generated manifest. Add ONLY D6qualified arithmetic03 production files. Exact static import relocations are4literal occurrences in3files: candidate1/types2/production-entry1; two erased type-only occurrences and2runtime static relocation specifiers are distinguished; actual compiled reachability is audited after build. Cstatic5ee4 and world/producer/private-phase/lifecycle-capture stay byte-identical. Builder authenticates full ancestor source/emits/bundle and full arithmetic03provider pins before transform, then compares every Dfile against qualified bytes with ONLY declared import replacements. No test/ref/audit/oracle runtime code is copied. An inherited production file named domain/cloth-reference.generated remains unchanged; it is not an independent oracle. Actual native entry closure and Source metafile are audited; reachable D must be exactly candidate/math-core/production-context/production-entry/limits.
+
+Retain ancestor typing flags exactly: strict/declaration/noEmitOnError, skipLibCheck=true, two inherited effective private-phase/replay-validation nocheck boundaries, no new waivers. Entire host strict-typing PASS is not claimed. Consumer checks STATE2geometry+wrenches/recording2, new STATIC/DYNAMIC target union and absence of old COUPLED_DYNAMIC_REQUIRED tag. Source/strict Native share one new manifest; no provider normalization.
+
+Each graph uses actual public createPhysicsWorld+recorder, starts from cold original inputs, steps once with[], records accepted model/state/private cache/clock/recording and all real traces, then disposes with genuine pre-clear capture checks. No wire serialize/deserialize/restore and no second interval/fault protocol. At most3Worlds/3attempts. Only if ALL complete:3accepted,192actualapplications (one wholeJ+63actualzeros percase in unchanged8×8),30queries,27points,729anchors and3actualhelper-plan records. These are frozen predictions compared to actual counters, not author execution claims. Global records8192/applications4352/queries72/points288/anchors7776 remain unchanged. Every case's constructor query, actual force/final queries, plan/request/result and actual apply/cache/producer data are retained. No trace or average point becomes force authority.
+
+For each case initial geometry+physical observers pass before step. Accepted interval then passes unchanged force geometry, full physical ledger, cone and NEW independent host target observer IN THAT ORDER. Target CLI: observer.py accepted PACKET GOLD OUTPUT; status EXECUTED_PASS_COUPLED_HOST_GOLD_TARGET. The new observer is pinned a90cbc24; unchanged physical/cone and gold0f710491/fbb utility plus their data dependencies are frozen. Full actual input binding,64events/slot metadata, actual cache/body/producer and gold/static certificate are checked. Unexpected refusal/failure is first NO_GO. Full failed trace/candidate snapshot is saved before disposal; later cases/Native/parity are NOT_RUN when root stops. Getter-unavailable boundaries are recorded, never reconstructed. All old gates remain1e-10SI motion/conservation and1e-12native geometry/tangent/cone plus stricter original gates.
+
+Raw Source/Native parity covers26complete files: frozen input envelope, capture isolation and8actual input/state/recording/trace/capture files percase. No field/number/provider/diagnostic normalization. Independent audits run separately pergraph; their clocks/process paths are not part of raw physics-file parity. Full audit results remain saved. Screenshots are not part of this protocol.
+
+Spawn timeouts floor positive remaining milliseconds; expiry refuses, no deadline extension. Runner reserves65536terminal bytes within16MiB and counts all actual work. Build logs/source/emits/metafiles/consumer/allowed-diff/fullsource inventories are retained. Freeze excludes mutable main status/roadmap/coverage/docs. Author performs syntax/AST/hash/source reads only, no compiler/kernel/reference/decoder/audit/World/browser calls.
+
+After-transaction4World/8attempt is a SEPARATE future authorization after clean Source+Native+parity PASS. Warm/later successful intervals/general contacts/public adoption/browser/performance/fullP4/deploy remain unqualified. Old failures/HOLD/NO_GO remain unchanged.

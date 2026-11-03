@@ -33,7 +33,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Priority: qualify actual coupled dynamic friction in the original three cold World cases. Shared arithmetic Source/Native production13 and private52 have passed. Dynamic World, long-duration stack and dynamic desktop are not yet qualified.",
+  "active": "Priority: actual post-impulse rollback and recorder/restore for qualified coupled dynamic contact. Shared arithmetic and original three clean Source/Native Worlds pass. Dynamic desktop and long-duration stack remain unqualified.",
   "progressMethod": "Prior5of9boundedmilestones retained as historicalqualifications; newcontact-schema delta requiresseparateP0/P1/P2/P5outputrequalification. No weightedpercent orwhole-enginePASS.",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
@@ -886,21 +886,47 @@
       "toolMetadataVerified": 359
     },
     "algorithmsMetersLimitsPrecision": "UNCHANGED",
-    "WorldPromotion": "BLOCKED_PENDING_ACTUAL_HOST_AND_REMAINING_GATES"
+    "WorldPromotion": "FINITE_THREE_CLEAN_WORLD_CASES_PASS_ATOMICITY_WIRE_DESKTOP_PUBLIC_GATES_REMAIN"
   },
   "currentPriorityOrder": [
-    "Original three cold dynamic-friction World inputs with independent physical audits",
-    "Post-impulse failure atomicity, recorder and genuine restore under the same qualified profile",
-    "Desktop browser rendering and independent actual-browser physics",
-    "Warm and multipoint contact prerequisites before original long-duration eight-box settling"
+    "Post-impulse rollback and genuine recorder/restore for the admitted dynamic case",
+    "Desktop browser rendering plus independent actual-browser physics after rollback/wire pass",
+    "Warm and multipoint contact prerequisites",
+    "Original long-duration eight-box settling under unchanged gates"
   ],
   "dynamicHost": {
-    "status": "AUTHORED_NOT_EXECUTED",
-    "folder": "examples/physics-coupled-dynamic-host-2276",
-    "profile": "Original before/at/after cold one-point first interval only",
-    "arithmeticPrerequisite": "EXECUTED_PASS",
-    "WorldCalls": 0,
-    "dynamicDesktop": "NOT_RUN",
+    "status": "EXECUTED_PASS_ORIGINAL_THREE_CLEAN_WORLD_CASES",
+    "results": "examples/physics-coupled-dynamic-host-2276/CLEAN-RESULTS.json",
+    "profile": "Original before/at/after; one cold point, first interval only; private staged real World API",
+    "perGraph": {
+      "worlds": 3,
+      "attempts": 3,
+      "accepted": 3,
+      "records": 243,
+      "applications": 192,
+      "queries": 30,
+      "queryPoints": 27,
+      "anchorChecks": 729,
+      "traceBytes": 853375,
+      "independentObservers": 18,
+      "helperPlans": 3
+    },
+    "fullRawSourceNativeFiles": 26,
+    "normalization": "NONE",
+    "afterMetrics": {
+      "normalSpeedMps": 2.245727290605634e-18,
+      "coneErrorNs": 3.26936304418379e-18,
+      "oppositionErrorNs": 3.2620547630988122e-18,
+      "slipLowerMps": 0.14415413024243495,
+      "midpointWorkJ": -0.019189277255532176
+    },
+    "firstFormatBuildFailure": "PRESERVED_0_WORLD_CALLS",
+    "archiveLogicalMembersVerified": 1261,
+    "archiveFrozenWorkspaceRecoveryVerified": 1092,
+    "inheritedTypingBoundaries": "skipLibCheck true; two existing nocheck files; no new waiver; not whole-host strict typing proof",
+    "postImpulseAndWire": "AUTHORING_NOT_EXECUTED",
+    "dynamicDesktop": "AUTHORED_NOT_EXECUTED",
+    "canonicalPublicAdoption": "NOT_RUN",
     "warmMultipointLongStack": "UNCHANGED_NO_GO_OR_NOT_RUN"
   }
 }

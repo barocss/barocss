@@ -1,0 +1,36 @@
+{
+  "status": "PASS_RETAINED_CLEAN_OUTPUTS_ALL_FROZEN_RUNTIME_PINS_AND_26_RAW_FILES",
+  "providerFilesVerified": 1103,
+  "perGraphObserverJobs": 18,
+  "rawParityFiles": 26,
+  "firstFailurePreserved": true,
+  "candidateCalls": 0,
+  "WorldCalls": 0,
+  "numericalAuthority": "Prior actual independent observations, no observer/reference rerun",
+  "files": {
+    "examples/physics-coupled-dynamic-host-2276/evidence/build-01/result.json": {
+      "bytes": 77249,
+      "sha256": "1701f421557c6982b9d0d4561f7bfa88b65795aaa38d7d9ce2b30e847b4372a1"
+    },
+    "examples/physics-coupled-dynamic-host-2276/evidence/build-02/result.json": {
+      "bytes": 181556,
+      "sha256": "272fb702440bd8bb59fe332c4b66615b62090c50d947f79b222db2b35a9f7c9e"
+    },
+    "examples/physics-coupled-dynamic-host-2276/evidence/source-01/summary.json": {
+      "bytes": 173794,
+      "sha256": "8fec3112382f605a4f7931b08984bb6d62c20317050b04e98fadece54d77c3b5"
+    },
+    "examples/physics-coupled-dynamic-host-2276/evidence/native-01/summary.json": {
+      "bytes": 173786,
+      "sha256": "8b25c7a2f58a499175df389876108e806c9414a794b8edf1981b48bbfab3a236"
+    },
+    "examples/physics-coupled-dynamic-host-2276/evidence/parity-01/result.json": {
+      "bytes": 4658,
+      "sha256": "8fb47c68202e6b285a65608ecdafa6b42c198ca9c7a9257561466809209f8c09"
+    },
+    "examples/physics-coupled-dynamic-host-2276/CLEAN-RESULTS.json": {
+      "bytes": 3250,
+      "sha256": "fdfee2bbf7ef972ba1b3ab52ae51f5077405429cdbb6a95ed3ba7b659f5e6071"
+    }
+  }
+}

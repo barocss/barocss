@@ -155,3 +155,17 @@ compile failures01/02 remain preserved;03 changes only erased type annotations.
 See COVERAGE-14.json and `examples/physics-coupled-arithmetic-2276/RESULTS.md`.
 Actual dynamic World is the next priority, before desktop and original long-stack
 expansion. HOLDs, tolerances, old failures and NoDeploy remain unchanged.
+
+## Actual coupled dynamic World checkpoint (2026-11-03)
+
+The new private host passes original before/at/after in Source and actual
+NodeNext Native: each3Worlds/3attempts/3accepted,192applications,30queries,
+27points/729anchors. All18independent observations pergraph pass; full26files
+match raw. Actual dynamic normal-speed residual2.245727290605634e-18m/s,
+cone magnitude residual3.26936304418379e-18Ns and opposition residual
+3.2620547630988122e-18Ns satisfy unchanged1e-10/1e-12 gates. This qualifies only
+one cold exact point and first interval. Initial ESM-format build NO_GO remains.
+Inherited typing boundaries are explicit, no new waivers. See COVERAGE-15.json
+and `examples/physics-coupled-dynamic-host-2276/CLEAN-RESULTS.md`. Post-impulse
+rollback/wire, dynamic desktop, warm/multipoint, public adoption and original
+long-duration eight-box settling remain separate unqualified gates.

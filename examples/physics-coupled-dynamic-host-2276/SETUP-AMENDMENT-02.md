@@ -1,0 +1,9 @@
+# Self-contained ESM setup continuation 02
+
+AUTHOR_ONLY_NOT_EXECUTED. Root build01 ran strict compile successfully but failed the preserved unchanged-C emitted byte comparison. New output was CJS10235bytes; qualified original was ESM10114bytes. Only CJS prolog/export form differed. There were0World/helper calls. Original AUTHOR765, build script, failed stage/emits/logs/result remain unchanged.
+
+Qualified lifecycle home has package.json type:module; new host home had none and stage had no own package. New build-02.mjs writes ONLY a fresh stage/package.json {"type":"module"} BEFORE manifest/inventory/compile, then fresh emitted/package.json AFTER compile BEFORE emitted inventory/entry audit. It does not add/change host home, root or old lifecycle package scopes. Added source metadata count is +7 (D6+stage package), not +6. Cemit must still equal original qualified ESM bytes exactly. Actual native entry must be closed ESM; strict flags/consumer/parser/compiler/math and High files stay unchanged.
+
+Original author and new CONTINUATION-FREEZE-02 inputs are checked before work. Result/frozen provider carry continuationPin. Stage package is in manifest/staged pins; emitted package is in actual emitted inventory. Original root+old lifecycle home package bytes and absent host home package scope are bound by continuation. No numerical input, expected census, arithmetic work, precision, tolerance, observer or original runner is changed.
+
+Root validates original+continuation+provider before EACH unchanged runner/parity command. Resume build-02.mjs build-02, then clean-run.mjs build-02 source-01 source; clean-run.mjs build-02 native-01 native; clean-parity.py source-01 native-01 parity-01. Each original180s/16MiB command stops the sequence on first failure. No author compiler/math/audit/World/browser execution occurred. This is setup-only, not a dynamic World PASS.
