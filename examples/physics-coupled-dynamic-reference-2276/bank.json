@@ -1,0 +1,18 @@
+{
+  "format": "physics-coupled-dynamic-independent-bank-01",
+  "order": ["before", "at", "after"],
+  "inputs": {
+    "before-model.json": "8f9c34238b98216656789f1d49a4c88779d55c1af1927d1b51b5f87464edb132",
+    "at-model.json": "de76b4d60f43c50be503558c10cc8b2f2d20ae4846b942473c2bf25f3f533c36",
+    "after-model.json": "17d1c9e777c73221d1cfe2b39b605ac2e8077a72dab07d439ee16af93ddda620",
+    "options.json": "d898d9bfc70e36d79b76b187a9ac8f2d578b5df7ad6ca5b528bf3e252d5a5f9b"
+  },
+  "orientationWords": ["3fafe02fb08b05cb", "0000000000000000", "3fafe02fb08b05cb", "3fefe02fb08b05cb"],
+  "dtWord": "3f81111111111111",
+  "dynamicFrictionWord": "3fe6666666666666",
+  "cases": {
+    "before": {"velocityWords": ["bfccccfd02f00000", "bfc68f4083200000", "3fc135ff6fc00000"], "positionWords": ["3f5eb88558777777", "3fe00c0822681111", "3fd7eda444de2222"], "staticMarginSign": -1},
+    "at": {"velocityWords": ["bfcccd0000000000", "bfc68f4000000000", "3fc1360000000000"], "positionWords": ["3f5eb88888888888", "3fe00c0822222222", "3fd7eda444444444"], "staticMarginSign": 0},
+    "after": {"velocityWords": ["bfcccd02fd100000", "bfc68f3f7ce00000", "3fc1360090400000"], "positionWords": ["3f5eb88bb8999999", "3fe00c0821dc3333", "3fd7eda443aa6666"], "staticMarginSign": 1}
+  }
+}

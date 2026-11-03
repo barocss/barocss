@@ -1,0 +1,97 @@
+{
+  "status": "DATA_ONLY_REFERENCE_ARCHIVE_VERIFIED",
+  "archive": "REFERENCE-01.tar.gz",
+  "archivePin": {
+    "bytes": 78281,
+    "sha256": "0750006161d267a9957c2feb01e424c357296cecf6305d77d2a85e5d79fd30c5"
+  },
+  "uncompressedTarBytes": 327680,
+  "uncompressedCapBytes": 16777216,
+  "preArchiveForecastPayloadAndHeadersBytes": 318464,
+  "members": {
+    "examples/physics-coupled-dynamic-reference-2276/CONTRACT.md": {
+      "bytes": 7015,
+      "sha256": "340b7d997b6c05800447e6cf7ccbb167775c14e30b1322bbf1c6b48feba89cea"
+    },
+    "examples/physics-coupled-dynamic-reference-2276/DERIVATION.md": {
+      "bytes": 6450,
+      "sha256": "b6ae6236f37472f14344d5227b6e7970b8695b6679fbd02e78b0917d00e9d599"
+    },
+    "examples/physics-coupled-dynamic-reference-2276/README.md": {
+      "bytes": 528,
+      "sha256": "8a627c3f91dc3142c78b0d5eef623100cd823d2133a89f2d375439932adee0a2"
+    },
+    "examples/physics-coupled-dynamic-reference-2276/RESULTS.json": {
+      "bytes": 5030,
+      "sha256": "5a153d2635ec0aff402ec7a710ecc824bb726783926c1582cea0bd46b7f1a5ab"
+    },
+    "examples/physics-coupled-dynamic-reference-2276/RESULTS.md": {
+      "bytes": 1659,
+      "sha256": "0f56d7d13d972614fe6ace9c233d51f8f9b2b20c5d11200db7f62de9e9240dc5"
+    },
+    "examples/physics-coupled-dynamic-reference-2276/ROOT-FREEZE-01.json": {
+      "bytes": 2674,
+      "sha256": "36736b7024562fc25639170cb515f604629d9b329fb91137348de95722013a03"
+    },
+    "examples/physics-coupled-dynamic-reference-2276/author-snapshot/reference-01-e652a7ce/reference.py": {
+      "bytes": 35752,
+      "sha256": "e652a7ce99d1f3faac38d4bf741ed8a23659b3bdb995961e9e26de896cccdcd2"
+    },
+    "examples/physics-coupled-dynamic-reference-2276/bank.json": {
+      "bytes": 1265,
+      "sha256": "43c24acc080ed8f2cb8f3343af0af072b460e12d24de0324cb43bae32a7e6d15"
+    },
+    "examples/physics-coupled-dynamic-reference-2276/evidence/reference-01/reference.json": {
+      "bytes": 193752,
+      "sha256": "0f710491f0063fd0b0e988ea915cd6342c5e013e695057d503a27a7d7ba7c943"
+    },
+    "examples/physics-coupled-dynamic-reference-2276/reference.py": {
+      "bytes": 36220,
+      "sha256": "de003c086edf519357369c4893c69afaf7f511b63bd3c49782ad554527142b52"
+    },
+    "examples/physics-persistent-cone-design-2276/evidence/model-01/after-model.json": {
+      "bytes": 1416,
+      "sha256": "17d1c9e777c73221d1cfe2b39b605ac2e8077a72dab07d439ee16af93ddda620"
+    },
+    "examples/physics-persistent-cone-design-2276/evidence/model-01/at-model.json": {
+      "bytes": 1409,
+      "sha256": "de76b4d60f43c50be503558c10cc8b2f2d20ae4846b942473c2bf25f3f533c36"
+    },
+    "examples/physics-persistent-cone-design-2276/evidence/model-01/before-model.json": {
+      "bytes": 1417,
+      "sha256": "8f9c34238b98216656789f1d49a4c88779d55c1af1927d1b51b5f87464edb132"
+    },
+    "examples/physics-persistent-cone-design-2276/evidence/model-01/options.json": {
+      "bytes": 100,
+      "sha256": "d898d9bfc70e36d79b76b187a9ac8f2d578b5df7ad6ca5b528bf3e252d5a5f9b"
+    },
+    "examples/physics-world-p5-2276/evidence/coupled-dynamic-independent-reference-01/prepared.json": {
+      "bytes": 1634,
+      "sha256": "7736eda3dc55df70627b13739b918daab8b7e364c03499c3003aacadce438a20"
+    },
+    "examples/physics-world-p5-2276/evidence/coupled-dynamic-independent-reference-01/progress.json": {
+      "bytes": 1733,
+      "sha256": "60b6eaa9e07f097b5d7ff3b395996f4b4c07b8648ff713d4db409f6045ce80d0"
+    },
+    "examples/physics-world-p5-2276/evidence/coupled-dynamic-independent-reference-01/result.json": {
+      "bytes": 3173,
+      "sha256": "77b027be406a8823f9578000d9f7660f70f2973053f92047ea4502dc5ffe9a9c"
+    },
+    "examples/physics-world-p5-2276/evidence/coupled-dynamic-independent-reference-01/start.json": {
+      "bytes": 1656,
+      "sha256": "3e6eba29e9395649e7188e690a0a58a69fd7c868e0253bc2388bdfe7dc3f1f6e"
+    },
+    "examples/physics-world-p5-2276/evidence/coupled-dynamic-independent-reference-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/coupled-dynamic-independent-reference-01/stdout.raw": {
+      "bytes": 298,
+      "sha256": "381a94ae28bda3badf68ae1a3ff808d7d0dcc9c9cef9e8c320bfd43045a52f75"
+    }
+  },
+  "logicalMembers": 20,
+  "allFrozenInputsAndOriginalGuardIncluded": true,
+  "packagingWorldCandidateReferenceObserverCalls": 0,
+  "externalPythonBinaryEmbedded": false
+}

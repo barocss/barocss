@@ -1,0 +1,141 @@
+{
+  "status": "EXECUTED_REFERENCE_READY_ONLY_NOT_CANDIDATE_OR_ENGINE_PASS",
+  "referencePin": {
+    "bytes": 193752,
+    "sha256": "0f710491f0063fd0b0e988ea915cd6342c5e013e695057d503a27a7d7ba7c943"
+  },
+  "guard": {
+    "kind": "P5B_OWNED_COMMAND_GUARD",
+    "receiptId": "coupled-dynamic-independent-reference-01",
+    "censusId": "coupled-dynamic-independent-reference-01",
+    "status": "PASS",
+    "node": "v22.19.0",
+    "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "command": [
+      "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+      "-B",
+      "examples/physics-coupled-dynamic-reference-2276/reference.py",
+      "reference-01"
+    ],
+    "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+    "inputs": {
+      "command-run.mjs": {
+        "bytes": 11565,
+        "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+      }
+    },
+    "timeoutMs": 180000,
+    "terminationGraceMs": 1000,
+    "postKillCloseWaitMs": 2000,
+    "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+    "combinedOutputLimitBytes": 4194304,
+    "startedAt": "2026-11-03T03:38:19.815Z",
+    "spawnAt": "2026-11-03T03:38:19.853Z",
+    "pid": 61091,
+    "processGroupId": 61091,
+    "exit": 0,
+    "signal": null,
+    "timedOut": false,
+    "stopReason": null,
+    "processClosed": true,
+    "groupSignals": [],
+    "parentWorldCalls": 0,
+    "parentReferenceCalls": 0,
+    "parentGeometryCalls": 0,
+    "retries": 0,
+    "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/coupled-dynamic-independent-reference-01/summary.json",
+    "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/coupled-dynamic-independent-reference-01/progress.json",
+    "errors": [],
+    "exitAt": "2026-11-03T03:38:20.399Z",
+    "finishedAt": "2026-11-03T03:38:20.399Z",
+    "elapsedMs": 583.74675,
+    "ownedGroupPresentAtFinalization": false,
+    "censusElapsedMs": 548.103458,
+    "cleanupElapsedMs": 0,
+    "output": {
+      "stdout": {
+        "observedBytes": 298,
+        "capturedBytes": 298,
+        "omittedBytes": 0,
+        "sha256": "381a94ae28bda3badf68ae1a3ff808d7d0dcc9c9cef9e8c320bfd43045a52f75",
+        "eof": true,
+        "writeError": null
+      },
+      "stderr": {
+        "observedBytes": 0,
+        "capturedBytes": 0,
+        "omittedBytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "eof": true,
+        "writeError": null
+      }
+    },
+    "censusSummary": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/coupled-dynamic-independent-reference-01/summary.json",
+      "present": false
+    },
+    "censusProgress": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/coupled-dynamic-independent-reference-01/progress.json",
+      "present": true,
+      "bytes": 1733,
+      "sha256": "60b6eaa9e07f097b5d7ff3b395996f4b4c07b8648ff713d4db409f6045ce80d0",
+      "status": "RUNNING",
+      "counts": null,
+      "referenceCallCounts": null,
+      "firstFailure": null
+    },
+    "callCountBoundary": "Only counts present in original census progress/summary/timing receipts are reported; a timeout never implies the primitive call population completed."
+  },
+  "cases": [
+    {
+      "id": "before",
+      "status": "REFERENCE_READY",
+      "branch": "STATIC_STICK",
+      "budget": {
+        "exactSolves": 2,
+        "intervalSolves": 0,
+        "maxDepth": 0,
+        "maxFractionBits": 1580,
+        "splits": 0,
+        "terminalCells": 0,
+        "zeroContainingPivotAttempts": 0
+      }
+    },
+    {
+      "id": "at",
+      "status": "REFERENCE_READY",
+      "branch": "STATIC_STICK",
+      "budget": {
+        "exactSolves": 2,
+        "intervalSolves": 0,
+        "maxDepth": 0,
+        "maxFractionBits": 1580,
+        "splits": 0,
+        "terminalCells": 0,
+        "zeroContainingPivotAttempts": 0
+      }
+    },
+    {
+      "id": "after",
+      "status": "REFERENCE_READY",
+      "branch": "DYNAMIC_SLIP",
+      "budget": {
+        "exactSolves": 132,
+        "intervalSolves": 412,
+        "maxDepth": 61,
+        "maxFractionBits": 804,
+        "splits": 158,
+        "terminalCells": 160,
+        "zeroContainingPivotAttempts": 4
+      }
+    }
+  ],
+  "candidateCalls": 0,
+  "WorldCalls": 0,
+  "completePhysicalParameterDomain": "DIRECTED80_AND120_FULL_3X3_GAUSSIAN_COVERAGE_EXACTLY_ONE_AFTER_CROSSING",
+  "presentation": "80_120_RNE_WORDS_MATCH_IN_ORIGINAL_REPORT",
+  "P03Dynamic": "NO_GO_CANDIDATE_NOT_EXECUTED",
+  "lifecycle": "SEPARATE_FIRST_FAILURE_PRESERVED_NEW_CAPTURE_PENDING",
+  "firstSourceReview": "PREEXECUTION_QA_PRODUCT_GUARD_CORRECTION_OLD_SOURCE_SNAPSHOT_RETAINED",
+  "runtimeOrDependencyChanges": "NONE"
+}
