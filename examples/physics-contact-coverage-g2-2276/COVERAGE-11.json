@@ -1,0 +1,48 @@
+{
+  "status": "PRESERVED_TRANSACTION_SOURCE_PARTIAL_PASS_POSTDISPOSE_OBSERVATION_NO_GO",
+  "date": "2026-11-03",
+  "previousCoverage": "COVERAGE-10.json",
+  "scope": {
+    "status": "PRESERVED_FIRST_TRANSACTION_OBSERVATION_NO_GO",
+    "originalSummary": {
+      "path": "examples/physics-coupled-transaction-2276/evidence/source-01/summary.json",
+      "bytes": 21867,
+      "sha256": "5186688a9e753361f8706f64cda874386beda985169d6fde5b256536a4242401"
+    },
+    "firstFailurePhase": "serializeOneFrame",
+    "firstFailureMessageLine": "B-serialize-hidden raw accepted private storage complete private.world",
+    "actualCounts": {
+      "worlds": 2,
+      "attempts": 4,
+      "records": 175,
+      "applications": 129,
+      "queries": 21,
+      "queryPoints": 19,
+      "anchorChecks": 513,
+      "traceBytes": 589480
+    },
+    "acceptedSteps": 2,
+    "passedControls": [
+      "initialGeometry",
+      "initialPhysical",
+      "knownRollback",
+      "unknownPostApplyRollback",
+      "unknownActualPrefix",
+      "cleanRetry",
+      "retryGeometry",
+      "retryPhysical",
+      "retryCone",
+      "retryTarget",
+      "cleanPublicRawEquality",
+      "cleanPrivateWorldRawEquality",
+      "serializeOneFrame"
+    ],
+    "BChecker": "ACTUALLY_STARTED_AND_FAILED_POST_DISPOSE_PRIVATE_WORLD_EQUALITY; original control label NOT_RUN retained unchanged",
+    "failureBoundary": "Actual hiddenB accepted then disposed; current private.world arrays empty, no pre-dispose full snapshot retained by old access path",
+    "native": "NOT_RUN_AFTER_FIRST_FAILURE",
+    "deserializeRestoreParity": "NOT_RUN_AFTER_FIRST_FAILURE",
+    "oldToleranceAndRuntime": "UNCHANGED",
+    "futureRequirement": "Genuine pre-dispose accepted snapshot observation; no reconstructed hidden state or deleted equality gate",
+    "engineAccuracyConclusion": "NOT_A_NEW_CONSTITUTIVE_FAILURE; observation equality NOT_PROVEN/NO_GO"
+  }
+}

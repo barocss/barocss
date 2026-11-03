@@ -176,6 +176,44 @@ against a partial normal load. Later at/after cases are NOT_RUN. See
 `examples/physics-persistent-cone-2276/RESULTS.md`; that NO_GO does not invalidate
 or broaden the separately qualified Viewer finite profile above.
 
+A separate private coupled static solve passes the unchanged before/at inputs
+in Source and actual strict NodeNext emitted JavaScript. Each graph uses3 Worlds,
+3 attempts and2 accepted steps. The independent virtual-unit-impulse/Gaussian
+reference and original physical/cone observers pass. Contact-velocity,
+momentum/spin and work-ledger residuals are zero; maximum current tangent-plane
+residual1.8973538018496328e-19 Ns passes the unchanged1e-12 gate. One total world
+impulse and63 actual zero applications use the original64 slots. All33 retained
+Source/Native packets match without normalization. Three pure reference cases
+and eight separate refusal controls pass per graph.
+
+The unchanged after input returns COUPLED_DYNAMIC_REQUIRED before application;
+raw accepted model/state/cache/time/recording remain unchanged. This proves a
+refusal, not dynamic contact accuracy. The original first build's esbuild
+launcher authentication failure is retained; an exact-source continuation uses
+the already installed native binary with its original hash. No download or
+physical-gate change occurs. See `examples/physics-coupled-contact-2276/RESULTS.md`.
+Only the first cold single-point unit-cube/static-box interval is qualified.
+The new candidate's separate actual emitted desktop consumer passes6 checks
+at1280/1440/1920 with zero page/console/network errors. The complete original
+browser proof passes SHA/DAG/input/full-history census checks and15 unchanged
+independent geometry/physical/cone/target observers. Its3 Worlds/3 attempts/
+2 accepted steps remain separate from the earlier warm provider's browser
+proof. See `examples/physics-coupled-viewer-2276/RESULTS.md`. GPU triangle packets
+are display-only; actual native points and integrated wrenches are separate.
+Post-application rollback, wire, warm/multipoint and public adoption are still
+separate pending gates. Whole P03 and original P4 remain NO_GO.
+
+The first transaction Source campaign passes actual post-application/bucket
+fault rollback, independent prefix physics, retry and complete raw clean
+public/recording/private-world storage checks. Actual one-frame serialization
+executes, then the hidden World's post-disposal storage comparison fails because
+that storage is already cleared. The prefix is2 Worlds/4 phase attempts/
+2 accepted steps and129 applications. Full hidden pre-dispose accepted data is
+NOT_RETAINED/NOT_PROVEN. Native, deserialization, live restore and parity stay
+NOT_RUN after the first failure. The old gate remains NO_GO. A separate bounded
+pre-dispose observer is required; reconstructing hidden state is not evidence.
+See `examples/physics-coupled-transaction-2276/ROOT-FIRST-FAILURE-01.json`.
+
 
 ## Discrete friction checkpoint
 

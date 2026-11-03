@@ -86,6 +86,19 @@ General cache/cone laws, all producer paths, performance and full P4 still block
 adoption. See the [typed result](../../examples/physics-contact-wrench-native-2276/RESULTS.md)
 and [warm recording result](../../examples/physics-warm-replay-2276/RESULTS.md).
 
+The separate [coupled static-contact candidate](../../examples/physics-coupled-contact-2276/RESULTS.md)
+passes the unchanged before/at static-friction boundary inputs in Source and
+strict emitted JavaScript. Independent contact-velocity residuals are zero;
+all33 retained packets match. The after input refuses before application and
+preserves accepted state. Dynamic contact remains NO_GO. This private first-
+cold-interval result does not adopt a public API or qualify warm/multipoint,
+recording or long-time behavior. Its separate
+[desktop sample](../../examples/physics-coupled-viewer-2276/RESULTS.md) passes6
+rendering/control checks and15 independent checks of the actual saved browser
+physics data. Desktop widths are1280/1440/1920; no mobile tests run. The
+original0.1410596011492487m/s constitutive failure and all original criteria
+remain preserved.
+
 | Entry point | Current result | Example |
 | --- | --- | --- |
 | `@barocss/physics` | One World for selected rigid or fixed visual cloth/fluid model profiles | [3D native-Surface Viewer](../../examples/physics-viewer-scene/README.md) |

@@ -82,3 +82,43 @@ separate and unqualified. The earlier aggregate-report NO_GO is preserved.
 capture loss and old decoder resource NO_GO remain preserved. The next exact
 cone before-case is a new source-only constitutive NO_GO; at/after remain
 NOT_RUN. No blanket contact law, public package or original P4 PASS follows.
+
+## Coupled cold static contact checkpoint (2026-11-03)
+
+Source and actual strict emitted Native pass the original before/at inputs with
+zero independent static contact-velocity residual. All33 retained packets match
+without normalization. Per graph:3 Worlds/3 attempts/2 accepted steps,128 actual
+applications,22 queries,19 points and513 anchor checks. Three pure reference
+cases and eight separate refusal controls pass. After is a genuine typed
+COUPLED_DYNAMIC_REQUIRED refusal before application with raw accepted data
+preserved, not dynamic physics PASS. Original cone first failure and the new
+precompiler esbuild-launcher failure remain preserved. See COVERAGE-09.json and
+`examples/physics-coupled-contact-2276/RESULTS.md`. Post-application transaction,
+wire and new-candidate desktop qualification are separate pending work; current
+public adoption, dynamic P03, warm/multipoint and original P4 remain NO_GO/open.
+All original criteria and HOLDs remain.
+
+## Coupled static desktop checkpoint (2026-11-03)
+
+The separate actual emitted browser consumer passes6 desktop checks at
+1280/1440/1920 and15 unchanged independent geometry/physical/cone/target jobs
+on the complete authenticated actual browser proof. Page/console/network errors
+are zero. Actual census is3 Worlds/3 attempts/2 accepted steps,128 applications,
+22 queries/19 points/513 anchors. Only before/at static physics pass; after is
+a typed PREapply refusal with raw accepted data preserved. See COVERAGE-10.json
+and `examples/physics-coupled-viewer-2276/RESULTS.md`. AUTHOR03/build01 executed;
+withdrawn04 was a corrected stale-read proposal, not a browser/source failure.
+GPU triangles are display-only and screenshots are not numerical evidence.
+No mobile/deployment/public adoption or dynamic P03/full P4 qualification follows.
+
+## Transaction first observation failure (2026-11-03)
+
+Source actual rollback after nonzero J/bucket mutation, independent fault-prefix
+physics, clean retry and complete raw public/recording/private-world equality
+pass. Actual serialization executes. The next hidden B comparison fails because
+disposal cleared its world storage; genuine pre-dispose full accepted output was
+not retained. Prefix2 Worlds/4 phase attempts/2 accepted steps,129 applications,
+21 queries/19 points/513 anchors. Native, deserialization, live D restore and
+parity remain NOT_RUN. COVERAGE-11.json and ROOT-FIRST-FAILURE-01 preserve this
+NO_GO. A new bounded pre-dispose observer is a dependency, not an achieved gate.
+No failed condition is deleted, relaxed or filled using reconstructed data.

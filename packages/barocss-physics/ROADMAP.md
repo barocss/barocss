@@ -735,9 +735,47 @@ full coupled sticking impulse is inside the static cone. All64 tangent updates
 choose dynamic friction using a partial normal load. At/after remain NOT_RUN.
 The complete first failure is preserved in
 `examples/physics-persistent-cone-2276/RESULTS.md`. No input, criterion or8x8
-iteration change follows. A separate exact coupled static-only candidate is
-being designed; outside-cone dynamic contact stays unsupported, with no scalar
-fallback. See `examples/physics-persistent-cone-design-2276/CONTRACT.md`.
+iteration change follows. A separate exact coupled static-only candidate now
+passes the unchanged before/at inputs in Source and actual strict NodeNext
+emitted modules. Its input-driven exact solve uses the actual native point,
+COM, quaternion and pre-application velocity. An independent virtual-unit-
+impulse matrix and Gaussian solve verify the target. The first of64 original
+slots applies the complete world impulse once;63 actual zero applications
+follow. Both static contact-velocity residuals and momentum/spin/work ledger
+residuals are zero; the maximum current tangent-plane residual is
+1.8973538018496328e-19Ns against1e-12. Each graph has3 Worlds/3 attempts/
+2 accepted steps,128 applications,22 queries,19 points and513 anchor checks.
+All33 retained Source/Native packets match without normalization. Three pure
+reference cases and eight separate input/refusal controls pass per graph.
+The unchanged outside-cone input throws COUPLED_DYNAMIC_REQUIRED before any
+application and preserves accepted model/state/cache/time/recording. This is
+refusal qualification, not dynamic physics PASS. The first build's installed
+esbuild launcher mismatch remains preserved; a fresh continuation uses the
+already installed native binary with the exact old hash and the identical
+staged source/manifest. No download, solver change or tolerance change occurs.
+See `examples/physics-coupled-contact-2276/RESULTS.md`. This private lane covers
+one first cold contact interval only. Its separate actual emitted desktop
+consumer passes6 checks across1280/1440/1920 with zero page/console/network
+errors. The full original browser DAG and actual3-World/3-attempt/2-accepted
+census pass authentication, followed by15 unchanged independent geometry,
+physical, cone and target/refusal observers. The new sample uses display-only
+primitive triangles and accepted native contact markers; screenshots are not
+physical evidence. See `examples/physics-coupled-viewer-2276/RESULTS.md`.
+The first separate transaction Source run passes known/unknown rollback after
+a genuine nonzero target application and producer-bucket mutation, independent
+failed-prefix physics, retry and raw clean-control state/recording/private-world
+storage equality. Actual serialization also executes. It then fails the hidden
+World comparison: disposal already cleared its body/contact/cache storage.
+The actual prefix is2 Worlds/4 phase attempts/2 accepted steps,129 applications,
+21 queries,19 points and513 anchor checks. Full hidden pre-dispose state was
+not retained and cannot be reconstructed as accepted output. Native,
+deserialization, live restore and parity remain NOT_RUN after this first NO_GO.
+See `examples/physics-coupled-transaction-2276/ROOT-FIRST-FAILURE-01.json`.
+The next dependency is genuine bounded pre-dispose observation under a new
+provider identity; the failed equality gate is not deleted or relaxed.
+Warm/multipoint/general inertia,
+outside-cone dynamics, public adoption and full P4 remain NO_GO/unqualified;
+there is no scalar fallback.
 The concrete atomic public producer/geometry/caller migration map is
 `examples/physics-contact-wrench-contract-2276/PUBLIC-CUTOVER-MAP.json`;
 this map is static evidence, not public API adoption or20 new test passes. Original P0/P1/P2/P5 bounded receipts remain history; they do not

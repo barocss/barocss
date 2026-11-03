@@ -33,7 +33,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Desktop10checks+separatebrowserfinitephysicsPASS committed6197433f3; freshmanualViewer53001. NextP03beforecaseSOURCEconstitutiveNO_GO0.1410596m/s>1e-10 despiteexact3x3stickfeasible, all64tangentcallsdynamic, baselinecommittedd62523ae3. Exactcoupledstatic-onlycandidate authoring, no newphysicsrun. Canonicalpublic/P4/HOLD unchanged.",
+  "active": "Privatecoupledstatic7370857bc Source+strictNativebefore/atPASS;33fullpacketparity. Newdesktop6/6+15independentbrowserjobsPASS,freshmanual53020. FirsttransactionSOURCE Alivepostapplyrollback/retry/control PASS,serializeexecuted,hiddenBdisposedstorageequalityNO_GO2W4phase2accepted129apply;Native/deser/D/parityNOTRUN. SeparateboundedPREdisposecapture authoring,newidentityrequired; dynamicdesignONLY. Public/P4/HOLD unchanged.",
   "progressMethod": "Prior5of9boundedmilestones retained as historicalqualifications; newcontact-schema delta requiresseparateP0/P1/P2/P5outputrequalification. No weightedpercent orwhole-enginePASS.",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
@@ -613,5 +613,158 @@
     "atAfter": "NOT_RUN",
     "inputTolerancesIterations": "UNCHANGED",
     "next": "EXACT_COUPLED_STATIC_ONLY_CANDIDATE_NO_SCALAR_FALLBACK"
+  },
+  "P03Static": {
+    "status": "EXECUTED_STATIC_PASS_DYNAMIC_REQUIRED_REFUSAL_PRIVATE_COUPLED_CONTACT",
+    "results": "examples/physics-coupled-contact-2276/RESULTS.md",
+    "graphs": [
+      "source",
+      "strict-emitted-native"
+    ],
+    "perGraph": {
+      "worlds": 3,
+      "attempts": 3,
+      "applications": 128,
+      "queries": 22,
+      "queryPoints": 19,
+      "anchorChecks": 513,
+      "records": 169
+    },
+    "acceptedStepsPerGraph": 2,
+    "staticPhysicalCases": [
+      "before",
+      "at"
+    ],
+    "contactVelocityResidualMps": 0,
+    "contactVelocityGateMps": 1e-10,
+    "currentTangentPlaneResidualNs": 1.8973538018496328e-19,
+    "currentTangentPlaneGateNs": 1e-12,
+    "physicalSolve": "ONE_TOTAL_WORLD_IMPULSE_THEN63_ACTUAL_ZERO_APPLICATIONS_ORIGINAL8x8",
+    "pureHelperCasesPerGraph": 3,
+    "separateNegativeControlsPerGraph": 8,
+    "retainedPacketParity": 33,
+    "normalization": "NONE",
+    "after": "TYPED_DYNAMIC_REQUIRED_BEFORE_APPLY_RAW_ACCEPTED_DATA_PRESERVED_NOT_DYNAMIC_PASS",
+    "firstBuild": "PRESERVED_ESBUILD_LAUNCHER_AUTH_FAILURE_NO_COMPILER_HELPER_WORLD",
+    "build02": "IDENTICAL_PAID_STAGE_MANIFEST_EXISTING_NATIVE_BINARY_EXACT_OLD_HASH_STRICT_PASS",
+    "newDesktop": "EXECUTED_PASS_SEPARATE6CHECKS15INDEPENDENTPHYSICALJOBS",
+    "postApplyRollbackWire": "SOURCE_ALIVE_ROLLBACK_RETRY_PASS_HIDDEN_POSTDISPOSE_OBSERVATION_NO_GO_NATIVE_NOT_RUN",
+    "warmMultipointSecondInterval": "NOT_QUALIFIED",
+    "canonicalPublicPackage": "NOT_ADOPTED",
+    "P03Whole": "NO_GO_DYNAMIC_NOT_SUPPORTED",
+    "P4": "UNCHANGED_NO_GO",
+    "HOLD": "UNCHANGED",
+    "tolerancesIterationsInputsFirstFailure": "PRESERVED",
+    "commit": "7370857bc"
+  },
+  "coupledStaticDesktop": {
+    "status": "EXECUTED_PASS_DESKTOP_RENDER_AND_SEPARATE_BROWSER_STATIC_PHYSICS",
+    "results": "examples/physics-coupled-viewer-2276/RESULTS.md",
+    "executedAuthor": "AUTHOR-FREEZE-03.json",
+    "author04": "WITHDRAWN_PROPOSAL_ROOT_STALE_READ_CORRECTED_NOT_EXECUTED",
+    "browserVersion": "156.0.8078.80",
+    "checks": 6,
+    "widths": [
+      1280,
+      1440,
+      1920
+    ],
+    "pageConsoleNetworkErrors": [
+      0,
+      0,
+      0
+    ],
+    "actualCounts": {
+      "worlds": 3,
+      "attempts": 3,
+      "acceptedSteps": 2,
+      "applications": 128,
+      "queries": 22,
+      "queryPoints": 19,
+      "anchorChecks": 513,
+      "records": 169
+    },
+    "independentBrowserObserverJobs": 15,
+    "physicalCases": [
+      "before",
+      "at"
+    ],
+    "after": "TYPED_PREAPPLY_REFUSAL_RAW_ROLLBACK_NOT_DYNAMIC_PHYSICS_PASS",
+    "proof": {
+      "status": "SAVED_BROWSER_RAW_WORD_PROOF",
+      "file": "examples/physics-coupled-viewer-2276/evidence/browser-desktop-01/proof.json",
+      "rawRequestBytes": 2557412,
+      "rawRequestSHA256": "147eb0ac49d7a271ccfef4e70972c26457f6b44ec1b194bc4c6aea61da931105",
+      "storedBytes": 532144,
+      "storedSHA256": "5ed22114850604ada27a22b671a1cd3de4942d41586dcf1679a300e39535b65e",
+      "physicsObserver": "NOT_RUN",
+      "runCompletion": "CAPTURED_PREFIX_OR_TERMINAL"
+    },
+    "displayGeometry": "DISPLAY_ONLY_EXACT_PRIMITIVE_GPU_TRIANGLES_NOT_CAD_SURFACE",
+    "physicalMeasurement": "ORIGINAL_IMMUTABLE_GEOMETRY_PHYSICAL_CONE_TARGET_OBSERVERS_NOT_SCREENSHOTS",
+    "mobile": "NOT_RUN",
+    "public": "NOT_ADOPTED",
+    "wholeP03": "NO_GO_DYNAMIC_UNSUPPORTED",
+    "P4": "UNCHANGED_NO_GO",
+    "HOLD": "UNCHANGED",
+    "manualPreview": "http://127.0.0.1:53020",
+    "commit": "9315582a7"
+  },
+  "P03TransactionFirstFailure": {
+    "status": "PRESERVED_FIRST_TRANSACTION_OBSERVATION_NO_GO",
+    "originalSummary": {
+      "path": "examples/physics-coupled-transaction-2276/evidence/source-01/summary.json",
+      "bytes": 21867,
+      "sha256": "5186688a9e753361f8706f64cda874386beda985169d6fde5b256536a4242401"
+    },
+    "firstFailurePhase": "serializeOneFrame",
+    "firstFailureMessageLine": "B-serialize-hidden raw accepted private storage complete private.world",
+    "actualCounts": {
+      "worlds": 2,
+      "attempts": 4,
+      "records": 175,
+      "applications": 129,
+      "queries": 21,
+      "queryPoints": 19,
+      "anchorChecks": 513,
+      "traceBytes": 589480
+    },
+    "acceptedSteps": 2,
+    "passedControls": [
+      "initialGeometry",
+      "initialPhysical",
+      "knownRollback",
+      "unknownPostApplyRollback",
+      "unknownActualPrefix",
+      "cleanRetry",
+      "retryGeometry",
+      "retryPhysical",
+      "retryCone",
+      "retryTarget",
+      "cleanPublicRawEquality",
+      "cleanPrivateWorldRawEquality",
+      "serializeOneFrame"
+    ],
+    "BChecker": "ACTUALLY_STARTED_AND_FAILED_POST_DISPOSE_PRIVATE_WORLD_EQUALITY; original control label NOT_RUN retained unchanged",
+    "failureBoundary": "Actual hiddenB accepted then disposed; current private.world arrays empty, no pre-dispose full snapshot retained by old access path",
+    "native": "NOT_RUN_AFTER_FIRST_FAILURE",
+    "deserializeRestoreParity": "NOT_RUN_AFTER_FIRST_FAILURE",
+    "oldToleranceAndRuntime": "UNCHANGED",
+    "futureRequirement": "Genuine pre-dispose accepted snapshot observation; no reconstructed hidden state or deleted equality gate",
+    "engineAccuracyConclusion": "NOT_A_NEW_CONSTITUTIVE_FAILURE; observation equality NOT_PROVEN/NO_GO",
+    "commit": "0210d2889"
+  },
+  "coupledDynamicDesign": {
+    "status": "DESIGN_ONLY_NO_CANDIDATE_NO_NUMERICAL_RUN",
+    "commit": "31334b18e",
+    "contract": "examples/physics-coupled-dynamic-design-2276/CONTRACT.md",
+    "physical": "NO_GO_NOT_QUALIFIED"
+  },
+  "latestDocs": {
+    "status": "PASS",
+    "receipt": "examples/physics-world-p5-2276/DOCS-COUPLED-STATIC-07.json",
+    "buildElapsedMs": 9382.764291,
+    "siteElapsedMs": 203.036709,
+    "deployment": "NOT_RUN"
   }
 }
