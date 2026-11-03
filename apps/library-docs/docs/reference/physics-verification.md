@@ -131,6 +131,52 @@ performance are NOT_RUN. There are zero actual warm applications. See
 `examples/physics-contact-wrench-producer-2276/RESULTS.md`. The original report
 failure and public persistent-friction failures remain preserved.
 
+Later private typed Source and actual NodeNext emitted modules each pass3 Worlds/
+8 attempts/6 accepted steps. All22 retained packets match between those graphs;
+old Source comparison maps only providerDigest. Earlier strict compile and
+whole-emission CAD dependency failures remain preserved. Actual reachable-entry
+closure and declaration consumer pass; unused CAD execution and full typing of
+two inherited suppressed modules remain unqualified. See
+`examples/physics-contact-wrench-native-2276/RESULTS.md`.
+
+A separate real warm-frame case first fails9.141407e-5 Ns against1e-12. Its
+warm-only projection repair passes unchanged inputs,1 World/2 steps and9 exact
+Gram helper cases. Maximum tangent-plane residual1.301150e-18 Ns and energy
+ledger4.673587e-16 J pass existing gates. The immutable Source provider then
+passes4 Worlds/8 attempts/6 accepted steps, including failures after actual
+projected warm application/map mutation and exported wire serialize/deserialize,
+live restore and continuation. Hidden replay public output is not retained;
+its raw equality is NOT_PROVEN although full actual trace parity passes. See
+`examples/physics-warm-transport-2276/RESULTS.md` and
+`examples/physics-warm-replay-2276/RESULTS.md`. The composed typed Source and
+actual emitted Native each then pass4 Worlds/8 attempts/6 accepted steps;
+38 complete packets and all4791 wire bytes match with no new-graph normalization.
+See `examples/physics-warm-native-2276/RESULTS.md`.
+
+The actual emitted browser consumer passes10 desktop Viewer checks at
+1280/1440/1920 with zero page/console/network errors. It renders accepted poses
+and contact points on explicitly display-only GPU triangle packets. Its complete
+browser proof is retained after the original capture-path failure, whose missing
+full history stays NOT_RETAINED. The first independent physical audit did not reach
+an observer: the old decoder refused its1M-fragment work budget. The new data-only verified-span algorithm passes21
+controls, every480 original pool hash and the full original root SHA/byte count.
+It preserves the old resource NO_GO and uses bounded authenticated byte reuse
+with a stricter cumulative1M emitted-span counter. The SAME retained browser
+proof then passes independent native geometry, Gram, momentum/work/wrench,
+actual A2/D2 warm coverage and wire/live restore checks. Eight browser/Node
+word observations match for this one campaign; no global identity follows.
+Screenshots remain visual evidence and are not physical-observer input. Current package adoption, general cache/cone laws, full P4,
+original CAD surface rendering and broader performance remain unqualified.
+
+The next source-only cone before-case commits one real step, passes exact
+contact geometry and the full work/wrench ledger, then fails the coupled
+constitutive gate:0.1410596011492487 m/s exceeds1e-10 for a contact whose exact
+3x3 sticking solution is feasible. All64 tangent updates use dynamic friction
+against a partial normal load. Later at/after cases are NOT_RUN. See
+`examples/physics-persistent-cone-2276/RESULTS.md`; that NO_GO does not invalidate
+or broaden the separately qualified Viewer finite profile above.
+
+
 ## Discrete friction checkpoint
 
 The discrete contact solver now solves both static tangent constraints and uses

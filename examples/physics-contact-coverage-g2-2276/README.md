@@ -76,3 +76,9 @@ geometry, actual impulse/moment report and rollback/retry/restore contract.
 `COVERAGE-06.json` records3 Worlds/8 attempts/6 accepted steps. Actual warm
 applications are zero; Native/public/desktop/performance and original P4 remain
 separate and unqualified. The earlier aggregate-report NO_GO is preserved.
+
+`COVERAGE-08.json` records composed typed Source/Native warm recording passes,
+10 desktop checks and the separate independent browser physical pass. The first
+capture loss and old decoder resource NO_GO remain preserved. The next exact
+cone before-case is a new source-only constitutive NO_GO; at/after remain
+NOT_RUN. No blanket contact law, public package or original P4 PASS follows.

@@ -74,9 +74,17 @@ HOLDs, first failures and all tolerances remain. No deployment is authorized.
 A private replacement separates accepted native geometry from integrated
 pair wrenches. Its first Source execution passes3 Worlds/8 attempts/6 accepted
 steps, independent physical reports, rollback, retry and restore/continue.
-Actual warm-cache reuse is absent. Current public types/recording remain unchanged;
-Native/public/desktop/performance qualification still blocks adoption. See the
-[producer result](../../examples/physics-contact-wrench-producer-2276/RESULTS.md).
+Its typed Source/emitted amendment also passes the bounded cold-cache campaign
+with22 complete packet matches. A separate same-input warm projection passes
+one real changed-frame cache hit and a4-World/8-attempt recording, rollback,
+wire and restore campaign. The composed warm Source/emitted gate now passes38 complete packets and full
+wire equality. Its browser consumer passes10 desktop rendering checks and a
+separate independent physical audit of the saved finite-window trace. The
+original capture and decoder-resource failures remain preserved.
+Current public types/recording remain unchanged.
+General cache/cone laws, all producer paths, performance and full P4 still block
+adoption. See the [typed result](../../examples/physics-contact-wrench-native-2276/RESULTS.md)
+and [warm recording result](../../examples/physics-warm-replay-2276/RESULTS.md).
 
 | Entry point | Current result | Example |
 | --- | --- | --- |

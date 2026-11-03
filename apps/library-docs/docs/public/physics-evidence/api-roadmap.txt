@@ -639,11 +639,108 @@ wire round-trip uses the private pure codec; successful public serializer and
 deserializer execution remains NOT_RUN. See
 `examples/physics-contact-wrench-producer-2276/RESULTS.md`.
 
-Actual warm applications remain zero: this does not qualify cache transport.
-Next: a frozen native-point-preserving changed-frame case, then atomic
-canonical root/replay/caller migration only within the qualified scope. Every current rigid application path and accepted geometry family,
-visual-state empty arrays, Native parity and uninstrumented performance remain
-blocking gates. Original P0/P1/P2/P5 bounded receipts remain history; they do not
+The qualified producer campaign has zero warm applications. A separate frozen
+narrow-ledge/pretilted-cube input is independently feasible and reaches a real
+same-native-point, nonzero-tangent, changed-normal cache hit. It commits2 steps
+in1 World, with203 actual applications,19 queries/points and513 anchor checks.
+Step1 passes; the first warm event of step2 fails currentTangentPlane:
+9.141407414550243e-5 Ns exceeds the unchanged1e-12 Ns gate. The raw prior vector
+is not in the current contact plane. Remaining step2 physical gates and step3
+are NOT_RUN; a reached coverage counter is not validated physical coverage.
+Input/reference/setup-review mismatch and the first failure are preserved in
+`examples/physics-real-warm-frame-2276/`. No cache or input is injected or tuned.
+
+A separate strict NodeNext baseline fails22 staged World integration type
+diagnostics before emission/World execution. Full diagnostics are preserved
+in `examples/physics-contact-wrench-native-2276/evidence/native-01/`. No new
+type-check waiver is allowed. A genuine typed integration amendment fixes those
+errors. Its first whole-emission audit stops at an unused CAD subpath external
+import; that failure is preserved. The continuation reuses the successful
+strict emit, audits73 actual entry-reachable modules, and reports26 unused
+modules including the unexecuted CAD import. Strict declaration consumer and
+actual Source/emitted runtime both pass3 Worlds/8 attempts/6 accepted steps
+per graph. All22 saved numerical/state/record/observer packets match with no
+normalization between new graphs; only providerDigest is mapped against the
+old qualified Source. Two inherited effective instrumentation/validation
+nochecks remain explicit, so this is not full instrumentation type coverage.
+See `examples/physics-contact-wrench-native-2276/RESULTS.md`.
+
+The separate warm-only amendment projects the raw prior tangent onto the current
+represented normal before actual application. A different exact Gram reference
+passes9 helper cases. The unchanged input passes1 World/2 steps/198 actual
+applications,19 queries/points and513 anchor checks, including one genuine
+same-native-point changed-frame warm event. Maximum current-plane residual is
+1.3011501682971844e-18 Ns and energy-ledger residual4.673586713626203e-16 J.
+No tolerance, normal cache, material, input word or8x8 iteration cap changes.
+See `examples/physics-warm-transport-2276/RESULTS.md`.
+
+That immutable warm provider also passes a SOURCE_PRIVATE recording campaign:
+4 actual Worlds/8 attempts/6 accepted steps,595 applications,59 queries/points
+and1593 anchor checks. Known failure before apply and unknown failure after
+projected warm apply plus nonzero candidate-wrench-map mutation preserve raw
+accepted state/cache/frame/cursor/time/log. Retry and live restore/continue
+match. Actual exported serialize/deserialize functions run, including their
+hidden replay Worlds; wire-decoded prefix equality passes. Hidden replay traces
+match exactly, but their accepted public outputs disappear on internal disposal:
+hidden raw output equality is NOT_PROVEN, not inferred from the trace or the
+internal relative1e-12 replay comparison. See
+`examples/physics-warm-replay-2276/RESULTS.md`.
+
+The composed typed warm Source and actual emitted Native provider now pass the
+same4-World/8-attempt/6-accepted P2 protocol per graph, with595 applications,
+59 queries/points and1593 anchor checks each. All38 retained packets and the
+complete4791-byte wire match exactly between new graphs, without normalization.
+Old qualified warm Source comparison validates every providerDigest before
+mapping that field only. Strict compile, declaration consumer and actual entry
+closure pass. Hidden accepted public outputs remain NOT_PROVEN. See
+`examples/physics-warm-native-2276/RESULTS.md`.
+
+The desktop Viewer consumes that actual emitted ESM. Ten checks pass at
+1280/1440/1920, including real GPU full/detail pixels, accepted SI pose mapping,
+contact annotation, finite clock ownership, actual wire/restore and replay that
+never advances physics. Display packets are explicitly triangle proxies with
+exact primitive extents; no original CAD nativeSurface authority follows. The
+original first run's missing evidence parent causes a capture FAIL after9 checks;
+its lost full history is NOT_RETAINED and not reconstructed from Node. After
+only the parent-directory fix, desktop02 captures the complete actual4-World/
+6-attempt/6-accepted browser proof with594 applications and58 queries/points.
+Page/console/network errors are zero. Independent physical audit stops BEFORE
+any observer at the old1M canonical-fragment transport limit. This is a preserved
+data-resource NO_GO, not a physical failure. The new bounded verified-span
+transport then passes21 data-only controls on the SAME saved bytes. It validates
+all480 original pool hashes and the full6,408,953-byte canonical root SHA.
+Cumulative actual emitted spans474,164, cache413,902 bytes and maximum span3158
+meet the new stricter cumulative1M work bound,4MiB cache and4KiB span limits.
+The old1,006,660 lexical-fragment outcome stays NO_GO; no old-protocol PASS is
+invented. Original16MiB root,8192-node,64-depth and all physical gates remain.
+Independent browser physics then passes the four planned observers, actual
+A2/D2 nonzero changed-frame warm coverage, wire/live-state and hidden trace
+controls. Eight selected browser/Node observations are bit-identical; this is
+not a global cross-runtime claim. Browser/World is NOT rerun to repair decoding.
+Screen and physical results remain separate receipts. See
+`examples/physics-warm-viewer-2276/TRANSPORT-RESULTS-04.md` and the preserved
+`TRANSPORT-FAILURE-02.json`.
+
+A future atomic canonical root/replay/caller cutover still requires every current
+rigid application path and accepted geometry family, visual-state empty arrays,
+current public/Native parity and uninstrumented performance. General within-pass frame changes, native cache identity, Coulomb
+switches, all rigid pairs and original eight-box settling remain NO_GO/open.
+The P03 input reference independently certifies3 fixed before/at/after
+static-cone cases via exact native geometry and a physical3x3 contact response.
+The first actual Source before-case commits1 step in1 World/attempt,108 actual
+applications,10 queries/9 points and243 anchor checks. Force geometry, fixed
+pose and the full impulse/work/wrench ledger pass. The constitutive gate fails:
+world-X contact-velocity residual0.1410596011492487m/s exceeds1e-10 although the
+full coupled sticking impulse is inside the static cone. All64 tangent updates
+choose dynamic friction using a partial normal load. At/after remain NOT_RUN.
+The complete first failure is preserved in
+`examples/physics-persistent-cone-2276/RESULTS.md`. No input, criterion or8x8
+iteration change follows. A separate exact coupled static-only candidate is
+being designed; outside-cone dynamic contact stays unsupported, with no scalar
+fallback. See `examples/physics-persistent-cone-design-2276/CONTRACT.md`.
+The concrete atomic public producer/geometry/caller migration map is
+`examples/physics-contact-wrench-contract-2276/PUBLIC-CUTOVER-MAP.json`;
+this map is static evidence, not public API adoption or20 new test passes. Original P0/P1/P2/P5 bounded receipts remain history; they do not
 automatically qualify the new state/schema boundary. Do not reconstruct a
 historical wrench from final cache or average geometry. Existing HOLDs and all
 original NO_GO/first failures remain.
