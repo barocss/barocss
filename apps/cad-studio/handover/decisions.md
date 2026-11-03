@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D480: extract ten unchanged transform/pattern cases with private runtime ownership; bounded parity and one eight-checkpoint retained linear profile pass, with a matched curve limitation recorded](notes/part-transform-extraction-2026-11-03/README.md).
+
 - [D479: extract34 existing part type contracts with exact runtime/export equivalence and three unchanged-document desktop checkpoints; no new feature qualification](notes/part-types-extraction-2026-11-03/README.md).
 
 - [D478: complete the existing shaft Drawing Fix with canonical UI continuation and a verified automatic-ruler move; seven desktop checkpoints pass, with two no-action quiescence observations](notes/shaft-drawing-fix-2026-11-03/README.md).

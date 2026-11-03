@@ -1,0 +1,231 @@
+{
+  "work_id": "D480",
+  "status": "QUALIFIED_SMALL_MECHANICAL_EXTRACTION_ONE_SELECTED_ACTUAL_PROFILE",
+  "tier": "SMALL_MECHANICAL_FAMILY_EXTRACTION",
+  "sourceRequest": "Direct owner PDF deferral and next queued transform/pattern extraction",
+  "parentHead": "45f5bf60b573665817f895ce96b1729ca63afff5",
+  "proofState": "TWO_KNOWN_CAD_CANDIDATES_PLUS_OWNER_TWO_DOC_WIP_DURING_PROOF_NOT_CLEAN_HEAD",
+  "sourcePins": {
+    "packages/barocss-cad/src/part/part-model.ts": "bc70f432f473bfc83d76da95cb0209ef8a70fe21fa53b8bafed02f2e78453935",
+    "packages/barocss-cad/src/part/part-transform.ts": "7e9b401b76e008a229aadbf624645a6433be7216d36b0ded9263381ce8a9af1d"
+  },
+  "extraction": {
+    "beforeLines": 1520,
+    "afterLines": 1417,
+    "familyLines": 135,
+    "exactCases": 10,
+    "exactCaseBlockBytes": 7625,
+    "oldExports": 70,
+    "publicHelpersChanged": false,
+    "privateBag": "ONCE_MODULE_LEVEL_FROZEN_AFTER_DEPENDENT_CONSTS",
+    "valueBackImport": false,
+    "perFeatureHelperObjectAdded": false,
+    "parentHeaderChange": "ONLY_UNUSED_integer_DESTRUCTURE_REMOVED",
+    "runtimeOwnerHelpersCacheFacetBooleanProfiling": "RETAINED_EXACT",
+    "wholeRuntimeJSByteEquality": "NOT_CLAIMED_INTENTIONAL_FUNCTION_BOUNDARY_CHANGE",
+    "D479TypeOnlyProof": "SEPARATE_RETAINED"
+  },
+  "checks": {
+    "status": "PASS_EIGHT_PRIMARY_COMMANDS",
+    "focusedFiles": 9,
+    "focusedTests": 107,
+    "freshImportOrders": 2,
+    "importOrders": [
+      "FAMILY_FIRST",
+      "MODEL_FIRST"
+    ],
+    "fullCADBuildSemantic": "PASS",
+    "namedLintDiff": "PASS",
+    "StudioTSC": "PASS",
+    "finalModelTSC": "PASS_AFTER_FINAL_SOURCE",
+    "fullKernel": "NOT_RUN_NO_ALGORITHM_CHANGE"
+  },
+  "paired": {
+    "status": "PASS_EXACT_BOUNDED_EXTRACTION_PARITY",
+    "cases": 16,
+    "phases": 32,
+    "positiveRecipes": 10,
+    "typedRefusals": 4,
+    "emptyControls": 2,
+    "cacheChecks": 12,
+    "parameterEdits": 4,
+    "booleanCalls": 53,
+    "tessellations": 0,
+    "nativeSIAvailable": 48,
+    "nativeSITransformed": 8,
+    "strictValidOutputObservations": 27,
+    "strictInvalidOutputObservations": 1,
+    "equalFields": [
+      "BRep",
+      "order",
+      "names",
+      "mass",
+      "nativeSI",
+      "refusals",
+      "cache",
+      "profileCalls"
+    ],
+    "excludedRecordedFields": [
+      "wallTime",
+      "stacks"
+    ],
+    "geometryAllPassClaim": false,
+    "retainedLimitation": {
+      "case": "curve-feature",
+      "phase": "parameter-edit",
+      "spacing": 6,
+      "parentAndCurrentStrictValid": false,
+      "selfTouchLoopIssues": 2,
+      "extractionDivergence": false,
+      "newAdmissionOrFix": false
+    }
+  },
+  "input": {
+    "provenance": "RETAINED_D453_EXECUTED_PUBLIC_CREATED_LINEAR_ANTECEDENT",
+    "path": "/tmp/barocss-d453-workflow-run01/linear-created-native-doc.bcad",
+    "sha256": "bef7e58d2009a2d7c1be73d071fd2a74617624644cd5a997a2e6477153754985",
+    "creationReplay": false
+  },
+  "actual": {
+    "command": "bash /tmp/barocss-d480-root/run-studio01.sh",
+    "configSHA256": "02dbc404e41ddae84497dc4a5fa8e3887e51e6917a3f964fcbff980dcfe9930a",
+    "status": "PASS",
+    "groups": [
+      "OPEN_N2_H10",
+      "COUNT3_H10",
+      "SOURCE_H12_N3",
+      "SPACING0_REFUSAL",
+      "FIRST_UNDO_H10_N3",
+      "REDO_H12_N3",
+      "OWN_OPFS_SAVE_CLOSE_RELOAD_OPEN",
+      "POST_OPEN_N2_H12"
+    ],
+    "groupCount": 8,
+    "nativeCaptures": 4,
+    "exactDocReuses": 4,
+    "freshPythonWorkerBindings": 8,
+    "savedStates": 21,
+    "bodyCount": "COUNT_DISCONNECTED_NATIVE_SOLIDS_ONE_UI_OUTPUT_B2",
+    "originalBudgets": {
+      "volumeRelative": 1e-09,
+      "centroidBoundsCornersPlanesAbsolute": 1e-09
+    },
+    "allSelectedLinearStrictValid": true,
+    "workerMaxVolumeRelativeError": 0,
+    "workerMaxCentroidAbsoluteError": 0,
+    "publicCreationOtherCircularFull360CompositeReplay": false,
+    "newGeometryAdmission": false,
+    "nativeErrors": {
+      "volumeAbsoluteMaximum": 7.275957614183426e-11,
+      "volumeRelativeMaximum": 6.315935428978669e-16,
+      "centroidAbsoluteMaximum": 5.684341886080802e-14,
+      "boundsCornersPlaneNormalMaximum": 0
+    }
+  },
+  "visual": {
+    "rootReviewedImages": 8,
+    "leftmostBody": "PARTLY_OCCLUDED_BY_PALETTE",
+    "fullPreviewFit": "NOT_MEASURED",
+    "physicalAuthority": "NATIVE_BREP_AND_INDEPENDENT_PYTHON_NOT_DISPLAY_ROWS"
+  },
+  "custody": {
+    "wrapperPinnedPaths": 2484,
+    "helperPinnedPaths": 2485,
+    "equalThroughCleanupCurrent": true,
+    "namespace": "D480-linear-run01_REMOVED_AND_ABSENT",
+    "ownPID": 82200,
+    "ownPIDAbsent": true,
+    "contextBrowserServer": "CLOSED",
+    "gateLeaseReleased": true,
+    "sourceFreezeReleased": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "watchedChanges": 0
+  },
+  "HighFinalReview": {
+    "status": "ACCEPT_D480_SELECTED_LINEAR_ACTUAL8_BINDINGS",
+    "path": "/tmp/barocss-d480-review/high-final-actual01-review.json",
+    "sha256": "b6da3c46b957de6e173046c0f8a7d3d622aea67e5504a656307124994ff987d1",
+    "savedDataOnly": true,
+    "newProductOracleRun": false
+  },
+  "roles": {
+    "mechanicalSourceDriver": "Sol Medium",
+    "sourcePairedNativeReview": "Sol High",
+    "runtimeCustodyImages": "root"
+  },
+  "evidence": {
+    "preimage": {
+      "path": "/tmp/barocss-d480-transform01/part-model.before.ts",
+      "sha256": "05d62ab4136bb52beda71df548246a864a1645834ea2163872cb63a66cb93dbc",
+      "status": "PRESERVED_PARENT_SOURCE"
+    },
+    "ASTProof": {
+      "path": "/tmp/barocss-d480-transform01/proof.json",
+      "sha256": "e494186a78835757ab4782125c22fb78896ad27543d5d2da29b89dd5af147b39",
+      "status": "PASS_MECHANICAL_AST_OWNER_PROVENANCE"
+    },
+    "HighSourceReview": {
+      "path": "/tmp/barocss-d480-review/source-review.json",
+      "sha256": "7b4b0a59976176df78baf65a052bf68eda469c8b2ecb9c4645e62b50f2e99a45",
+      "status": "ACCEPT_SCOPE_SOURCE_ONLY_RUNTIME_PENDING"
+    },
+    "primaryChecks": {
+      "path": "/tmp/barocss-d480-checks01/receipt.json",
+      "sha256": "524421a4bc489b6e89b7253cde20b61780a8e15a4606d59eca01b637e744bedb",
+      "status": "PASS_107_TESTS_EIGHT_COMMANDS"
+    },
+    "pairedRaw": {
+      "path": "/tmp/barocss-d480-review/paired-run01/receipt.json",
+      "sha256": "e356c50f8f6f8c377805e056f0b9bdc56d3d2b8b3890e398ee69858b9099c8a8",
+      "status": "PASS_EXACT_PARITY_NOT_ALL_GEOMETRY"
+    },
+    "HighPairedReview": {
+      "path": "/tmp/barocss-d480-review/high-paired-review01.json",
+      "sha256": "3e7dfc4210303c4910580256fa52feea74cf44d685a2d5a804e792e90b7e79ab",
+      "status": "ACCEPT_WITH_RETAINED_STRICT_LIMITATION"
+    },
+    "actual01": {
+      "path": "/tmp/barocss-d480-workflow-run01/receipt.json",
+      "sha256": "4be820d2fa016d9b839687f86a2e21ab81ec34a536cf55d11b6dfe5339d4b3cf",
+      "status": "PASS_EIGHT_SELECTED_CHECKPOINTS"
+    },
+    "rootActualReview": {
+      "path": "/tmp/barocss-d480-root/actual-wrapper01/review.json",
+      "sha256": "2784215b73fa764ee17e7d60ae34ee873650c3cc1bcf110925242796071d7563",
+      "status": "PASS_RUNTIME_SOURCE_EQUAL_CLEANUP_IMAGES"
+    },
+    "sourceManifest": {
+      "path": "/tmp/barocss-d480-review/manifest.json",
+      "sha256": "a338cb8c6a44e2e8dd476c0eba27c49182ae3d7e762e0bf7cd61ce494dfd551b",
+      "status": "FOURTEEN_SOURCE_ARRAY"
+    }
+  },
+  "limits": [
+    "NO_ALL10_PUBLIC_ACTUAL_CLAIM",
+    "NO_16_GEOMETRY_PASS_CLAIM",
+    "NO_NEW_API_BREP_CORE_TOLERANCE_SCHEMA_BEHAVIOR_OR_UI",
+    "NO_FULLPREVIEWFIT_CLAIM",
+    "BROWSER_RESTART_EXPORT_CI_RELEASE_NOT_RUN",
+    "MOBILE_NOT_RUN_OWNER_RULE",
+    "NO_ORIGINAL_PRODUCER_BASELINE_REPLAY"
+  ],
+  "roadmap": {
+    "rows": [
+      "08",
+      "16",
+      "30"
+    ],
+    "issue534": "OPEN_EPIC_NOT_ALL_CRITERIA_MET",
+    "core": "NOT_MEASURED",
+    "legacyPercent": 43,
+    "legacyStatus": "FROZEN",
+    "D476FirstPassHistory": "UNCHANGED",
+    "holds": "UNCHANGED",
+    "next": "D481_ONLY_OBSERVED_CURVE_FEATURE_SPACING6_CURRENT_SOURCE_ACTUAL_ADMISSION_TRIAGE",
+    "otherVariants": "NO_HUNT_NO_NEW_ADMISSION",
+    "profileDetailSplit": "QUEUED_AFTER_SEPARATE_TRIAGE",
+    "PDF": "OWNER_DEFERRED_NO_FURTHER_INVESTIGATION"
+  }
+}
