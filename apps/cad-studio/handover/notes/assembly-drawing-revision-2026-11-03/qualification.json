@@ -1,0 +1,360 @@
+{
+  "workId": "D459",
+  "lastUpdated": "2026-11-03",
+  "status": "BOUNDED_QUALIFIED",
+  "category": "C4-4 related assembly drawing revision and project update",
+  "baseline": "91de5d72fb7d151ed8f5489bd3b8152eaf6dc2f4",
+  "validationTier": "SMALL_PRIVATE_STUDIO_DEPENDENCY_FIX",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercent": 43,
+  "models": {
+    "inventoryImplementationTestsDriver": "GPT-6.1 Sol Medium",
+    "nativeMathPolicyIndependentOracle": "GPT-6.1 Sol High",
+    "executionFreezeCleanupVisualReview": "Root"
+  },
+  "scope": "One retained two-instance unrotated H12 assembly, Assembly drawing scope, Scale1, second instance X0/10, no new geometry construction or D457 source refresh replay.",
+  "productPaths": {
+    "apps/cad-studio/src/ui/drawing/revisionPrint.ts": "4c66c90c38334857e68b46b9da5e17c541a8d914523c4735975978d7f4b49d5f",
+    "apps/cad-studio/test/drawing-revision-print.test.ts": "14554be26d0f69d7e6d48183828b9d8993bacf151a3fd7d7892edbe9577882fc"
+  },
+  "policy": {
+    "ordinary": "D454 ordinary branch preserved literally, including empty-param node-only and nonempty-param nodes+parameters key-order contract.",
+    "assembly": "Scoped instances present, including explicit empty array: private known-Doc recursive source snapshot; full occurrence metadata and nested definitions retained, canonical ordering then existing modelPrint.",
+    "retained": "Nodes/parameters/outputs, occurrence poses/identity/looks/hidden/joints, root/nested cuts, rows/frame context, mates/patterns/robot and remaining semantic source. Conservative authored identity, not geometric equivalence.",
+    "excludedDocChannels": [
+      "drawing",
+      "render",
+      "history",
+      "proposals",
+      "baselines",
+      "ecrs",
+      "questions",
+      "pendingParts",
+      "assemblySteps",
+      "underlays",
+      "nextId"
+    ],
+    "direct": "At each actual Doc boundary, retain direct when schema4 OR own routeBundles property OR curve-feature-pattern with objectId path, exactly following evaluatedPart condition. Ordinary direct excluded; arbitrary similarly named node fields not stripped.",
+    "compatibility": "String reader unchanged; no migration/auto-restamp/public Model/schema/provider/SRC change. Old insufficient assembly stamps remain saved and outdated until manual Next. No universal normalizer or cryptographic integrity claim."
+  },
+  "input": {
+    "path": "/tmp/barocss-d457-workflow-run03/07-project-reopened-current-H12.bcad",
+    "sha256": "2e333b3518c620f9b194a1c91d40007b441be9c7a9837e9c9f21f8ed27ae2c62",
+    "identity": "inst1 fixed[0,0,0]; inst2[0,0,12]\u2192[10,0,12]; same part1/RevB/./D457-plate.bcad; m1 inst1/n1.top\u2192inst2/n1.bottom coincident; each W60\u00d740\u00d712."
+  },
+  "firstFailures": [
+    {
+      "record": "repro-run01",
+      "classification": "HARNESS_AMBIGUOUS_SCALE",
+      "reason": "Unscoped Scale matched Modify tool and Drawing settings select; candidate assertion NOT_RUN."
+    },
+    {
+      "record": "repro-run02",
+      "classification": "PRODUCT_WRONG_SUCCESS_STALE_REVISION",
+      "reason": "Native/current readonly width60\u219270 and printedSRC a7649e1ff1c02d7a\u219263c2b7a453394e65 passed, old marker741638a5 stayed, warning0 instead of1."
+    },
+    {
+      "record": "workflow-run01",
+      "classification": "HARNESS_MISSING_MODEL_TAB_BEFORE_PROJECT",
+      "reason": "First six groups PASS; Versions panel unavailable while still in Drawing. Run02 switches Model and resumes only missing groups."
+    }
+  ],
+  "checks": {
+    "status": "PASS",
+    "groups": 15,
+    "fail": 0,
+    "skip": 0,
+    "composition": "13 revision helper groups (5 retained D454,8 new assembly) +2 retained commit-roundtrip groups",
+    "receipt": "/tmp/barocss-d459-checks01/receipt.json",
+    "receiptSHA256": "16b4f928e5295640183f369346250e401e053deb801b9043739327ee6d57fc97",
+    "commands": [
+      {
+        "name": "studio-focused",
+        "argv": [
+          "pnpm",
+          "--dir",
+          "apps/cad-studio",
+          "run",
+          "test",
+          "drawing-revision-print.test.ts",
+          "drawing-commit-roundtrip.test.ts"
+        ],
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 0.952
+      },
+      {
+        "name": "lint",
+        "argv": [
+          "pnpm",
+          "exec",
+          "eslint",
+          "--no-warn-ignored",
+          "--",
+          "apps/cad-studio/src/ui/drawing/revisionPrint.ts",
+          "apps/cad-studio/test/drawing-revision-print.test.ts"
+        ],
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 1.323
+      },
+      {
+        "name": "diff",
+        "argv": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 0.171
+      },
+      {
+        "name": "studio-types",
+        "argv": [
+          "pnpm",
+          "--dir",
+          "apps/cad-studio",
+          "run",
+          "type-check"
+        ],
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 23.686
+      },
+      {
+        "name": "model-types-final",
+        "argv": [
+          "pnpm",
+          "--dir",
+          "packages/barocss-cad-model",
+          "run",
+          "type-check"
+        ],
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 19.67
+      }
+    ],
+    "sourcePinsEqual": true,
+    "order": "Final Model tsc follows final test edits and Studio tsc.",
+    "retainedCheckPins": {
+      "apps/cad-studio/test/drawing-commit-roundtrip.test.ts": "641afffd6cc535a9752e8fe44c8b20357577b3aff181c76d03e319b8ba163f1f"
+    }
+  },
+  "preflight": {
+    "status": "PASS_ONE_NEW_SHIFTED_PROVIDER_CASE",
+    "command": "bash /tmp/barocss-d459-root/run-preflight.sh",
+    "receiptSHA256": "0a51b7e3b1f97109c3c8840370a3b7b66c2da5ad346d74e0c41621b6419812ae",
+    "newInspectorCalls": 1,
+    "independentOracles": 1,
+    "sourceFiles": 465,
+    "sourceEqual": true,
+    "boundary": "Prospective shifted native/provider input only, not actual UI; unshifted D457 provider baseline not rerun."
+  },
+  "highArtifacts": {
+    "drawing-inspector.ts": "55ab4ce6737bdc2f05fe640e8b280dec666f8e78fea5428827832daab468dd48",
+    "drawing-oracle.py": "c880470acc4f281bf0aea59c8b9c2fd97b5cde87f577efef296192a281e7c535",
+    "stamp-policy-review.json": "c90aa8db2b4589b6d76d39fbaa3740c89514ca79fb635c791f09497ab6496956"
+  },
+  "records": {
+    "repro-run01": {
+      "path": "/tmp/barocss-d459-repro-run01/receipt.json",
+      "sha256": "346b30c5b78949ff0dcfa1c160ab0cd977b1e1510282d8f378b235e21d459f78",
+      "status": "FAIL",
+      "coverage": {
+        "publicOpenRetainedAssembly": "PASS",
+        "publicAssemblyScopeRevisionA": "NOT_RUN",
+        "publicPoseX10": "NOT_RUN",
+        "currentAssemblyDrawingGeometryAndSRC": "NOT_RUN",
+        "finiteNativeConsumerBinding": "NOT_RUN",
+        "revisionOutOfDate": "NOT_RUN",
+        "physicalQualification": "NOT_RUN",
+        "dimensions": "NOT_RUN",
+        "persistence": "NOT_RUN",
+        "exports": "NOT_RUN"
+      },
+      "sourceCapsules": 2343,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0
+    },
+    "repro-run02": {
+      "path": "/tmp/barocss-d459-repro-run02/receipt.json",
+      "sha256": "63b6089e3b58306675db5ec8160e05b20fef25d9ab7800421dd2787537531abc",
+      "status": "FAIL",
+      "coverage": {
+        "publicOpenRetainedAssembly": "PASS",
+        "publicAssemblyScopeRevisionA": "PASS",
+        "publicPoseX10": "PASS",
+        "currentAssemblyDrawingGeometryAndSRC": "PASS",
+        "finiteNativeConsumerBinding": "PASS",
+        "revisionOutOfDate": "FAIL",
+        "physicalQualification": "NOT_RUN",
+        "dimensions": "NOT_RUN",
+        "persistence": "NOT_RUN",
+        "exports": "NOT_RUN"
+      },
+      "sourceCapsules": 2356,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0
+    },
+    "workflow-run01": {
+      "path": "/tmp/barocss-d459-workflow-run01/receipt.json",
+      "sha256": "a6fd494d3f8c9d028a8f6d67439bc397bda936a63b2cde60c9aa5a32340a6c4d",
+      "status": "FAIL",
+      "coverage": {
+        "legacyAWarning": "PASS",
+        "manualNextB": "PASS",
+        "poseX10Warning": "PASS",
+        "exactUndoRedo": "PASS",
+        "manualNextC": "PASS",
+        "paperOnlyA3": "PASS",
+        "ownProjectRoundtrip": "NOT_RUN",
+        "postOpenX0Warning": "NOT_RUN",
+        "physicalQualification": "NOT_RUN",
+        "exports": "NOT_RUN"
+      },
+      "sourceCapsules": 2501,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0
+    },
+    "workflow-run02": {
+      "path": "/tmp/barocss-d459-workflow-run02/receipt.json",
+      "sha256": "b36678567117193d447716c69c6fc219a5bb3f1e101ce6506e7e3ed7d5b121bc",
+      "status": "PASS",
+      "coverage": {
+        "legacyAWarning": "REUSED_RUN01_PASS",
+        "manualNextB": "REUSED_RUN01_PASS",
+        "poseX10Warning": "REUSED_RUN01_PASS",
+        "exactUndoRedo": "REUSED_RUN01_PASS",
+        "manualNextC": "REUSED_RUN01_PASS",
+        "paperOnlyA3": "REUSED_RUN01_PASS",
+        "ownProjectRoundtrip": "PASS",
+        "postOpenX0Warning": "PASS",
+        "physicalQualification": "NOT_RUN",
+        "exports": "NOT_RUN"
+      },
+      "sourceCapsules": 2661,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "changes": 0
+    }
+  },
+  "actual": {
+    "status": "PASS_8_OF_8_DECLARED_GROUPS",
+    "run01NewPassingGroups": 6,
+    "run02NewPassingGroups": 2,
+    "run02ReusedPassingGroups": 6,
+    "groups": [
+      {
+        "name": "legacy A remains saved and warns",
+        "status": "PASS",
+        "origin": "workflow-run01"
+      },
+      {
+        "name": "manual Next B current at X0",
+        "status": "PASS",
+        "origin": "workflow-run01"
+      },
+      {
+        "name": "X10 geometry and stale B warning",
+        "status": "PASS",
+        "origin": "workflow-run01"
+      },
+      {
+        "name": "exact Undo X0 current / Redo X10 warning",
+        "status": "PASS",
+        "origin": "workflow-run01"
+      },
+      {
+        "name": "manual Next C current at X10",
+        "status": "PASS",
+        "origin": "workflow-run01"
+      },
+      {
+        "name": "paper-only A3 remains current",
+        "status": "PASS",
+        "origin": "workflow-run01"
+      },
+      {
+        "name": "own OPFS Save/Close/same-context reload/Open C current",
+        "status": "PASS",
+        "origin": "workflow-run02"
+      },
+      {
+        "name": "post-Open X0 geometry and stale C warning",
+        "status": "PASS",
+        "origin": "workflow-run02"
+      }
+    ],
+    "nativeBindings": 9,
+    "newNativeCaptures": 6,
+    "exactWholeDocReuses": 3,
+    "independentOracleRuns": 9,
+    "reuseCondition": "Exact accepted native input document and all original source/test/helper pins equal; current readonly consumer oracle executed anew. Undo/Redo and reopened C reuse accepted native captures, not new native evaluation.",
+    "commands": [
+      "bash /tmp/barocss-d459-root/run-repro.sh",
+      "bash /tmp/barocss-d459-root/run-repro02.sh",
+      "bash /tmp/barocss-d459-root/run-studio-workflow01.sh",
+      "bash /tmp/barocss-d459-root/run-studio-workflow02.sh"
+    ],
+    "markers": {
+      "legacyA": "741638a5",
+      "currentX0": "2dd482f4",
+      "currentX10": "fcbafe89",
+      "printedSRCX0": "a7649e1ff1c02d7a",
+      "printedSRCX10": "63c2b7a453394e65"
+    },
+    "rootViewedScreenshots": 7,
+    "viewed": "Run01 legacyA warning, B current, X10 warning, Undo0 current, A3 current; run02 reopenedC current, postOpen0 warning.",
+    "sourceCapsulesRun01": 2501,
+    "sourceCapsulesRun02": 2661,
+    "rootFinalSourceEquality": "2661 current == frozen == after cleanup",
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0,
+    "ownProjectNamespace": "D459-assembly-drawing-workflow-run02 REMOVED_AND_ABSENT",
+    "cleanup": "Context/browser/server closed; own wrappers absent; leases released."
+  },
+  "physicalBoundary": {
+    "volumeRelative": 1e-09,
+    "centroidBoundsAndReadonlyScale1ProjectionAbsoluteMM": 1e-09,
+    "perBodyV": 28800,
+    "centroids": "inst1[30,20,6], inst2[30+x,20,18]",
+    "assemblyBounds": "[0,0,0]..[60+x,40,24], x0or10",
+    "scope": "Finite native straight boxes and current readonly layout extents/SRC, distinct from warning assertion. Not generic HLR/SVG formatter/raster/standards or overall physical qualification."
+  },
+  "notRun": [
+    "New independent full-tier audit/mutation campaign (small tier)",
+    "Full kernel (no B-rep core change)",
+    "New CAD/Model geometry tests or build baseline",
+    "General assembly/drawing completeness, manual dimension breadth, standards, exchange/export/downloads",
+    "New Motion/Physics/contact/robot execution",
+    "New browser CI or release"
+  ],
+  "next": "D460 owner-requested planning-only issue intake; after it D461 inventories the highest-priority uncovered C1/C2 profile. No automatic feature start or HOLD lift.",
+  "holds": "#2258 public-thicken/fitter; #2266 widening; manufacturing P2/PG11; Motion/Physics; schema3/4-only; owner-gated downloads/dependencies; local-only browser CI; release. #540 remains open.",
+  "rawEvidence": "All raw logs/screenshots/native bodies/driver capsules stay in /tmp/barocss-d459-*; no raw evidence copied into repository.",
+  "issueDisposition": {
+    "540": "OPEN; broad ENG01\u201308 acceptance not fully met; no checklist promotion or issue closure.",
+    "newIssueComment": "NOT_REQUIRED_BY_ROOT; no comment made by this lane."
+  },
+  "documentation": {
+    "status": "PASS",
+    "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+    "rowPages": 34,
+    "preservedOldHeadingFragments": 552,
+    "preservedLegacyOutboundLinks": 913,
+    "newBrokenLinks": 0,
+    "knownHistoricalMissingPaths": 1,
+    "archiveHashesUnchanged": true
+  }
+}
