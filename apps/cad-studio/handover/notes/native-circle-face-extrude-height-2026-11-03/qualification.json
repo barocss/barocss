@@ -867,7 +867,7 @@
       "status": "PASS",
       "sourcePinsEqual": 747,
       "ownPIDAbsent": 76496,
-      "gate": "holder: none\nslots: 0 of 3\nload: { 7.24 10.00 12.88 }\n",
+      "gate": "FREE",
       "mapSHA256": "3cafa25590436107bdce89e167789dfab58545056198671cdda78bdfa0055437",
       "mapSourcePins": 10,
       "generatedSketch": {
@@ -909,7 +909,8 @@
           "side": "solid"
         },
         "id": "n2"
-      }
+      },
+      "endLoad": 7.24
     },
     "review": "HIGH_ACCEPT_REPORTED_BY_ROOT"
   },
@@ -920,7 +921,7 @@
     "lifecycle": "NOT_QUALIFIED",
     "status": "FAIL",
     "receiptSHA256": "e0db151bde64dc44d569d2711483076fd386d2276dea1637aa74223141e7c3a8",
-    "failure": "AssertionError [ERR_ASSERTION]: whole accepted source/IDs/refs/output exact\n+ actual - expected\n... Skipped lines\n\n  {\n    format: 'barocss-cad-model',\n    nextId: 5,\n    nodes: [\n      {\n...\n            center: [\n+             -2.220446049250313e-16,\n+             -2.220446049250313e-16\n-             0,\n-             0\n            ],\n            direction: 'ccw',\n            kind: 'arc',\n            start: [\n              3,\n+             -2.220446049250313e-16\n-             0\n            ]\n          }\n        ]\n      },\n      {\n\n    at qualify (file:///private/tmp/barocss-d476-fixed-driver01/driver.mjs:45:10)\n    at async file:///private/tmp/barocss-d476-fixed-driver01/driver.mjs:63:14\n    at async f.run (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/flow-helper.mjs:264:24)\n    at async file:///private/tmp/barocss-d476-fixed-driver01/driver.mjs:59:1",
+    "failure": "Early verifier assertion on exact Node-derived circle coordinates; Chrome derived center/startY differed by -2.220446049250313e-16. No native/oracle binding ran.",
     "sourceFrozenCleanupCurrentEqual": [
       2394,
       2395
@@ -930,7 +931,7 @@
       "/tmp/barocss-d476-fixed-workflow-run01/source-after.json"
     ],
     "ownPIDAbsent": 97318,
-    "gate": "holder: none\nslots: 0 of 3\nload: { 12.16 10.33 11.83 }\n",
+    "gate": "FREE",
     "cleanup": [
       "CONTEXT_CLOSED",
       "BROWSER_CLOSED",
@@ -942,7 +943,8 @@
       "consoleErrors": [],
       "downloads": [],
       "changes": []
-    }
+    },
+    "endLoad": 12.16
   },
   "savedActualInspection": {
     "rawSHA256": "c5bb001e5ead4216cd026114ffa4700320c24c82661a95402209eb5f7375e81b",
@@ -1002,24 +1004,7 @@
         1.2391530920357018e-16,
         7.50048828125
       ],
-      "method": "closed-form",
-      "inertia": [
-        [
-          8.9080305558158,
-          -4.4823835839054035e-17,
-          0
-        ],
-        [
-          -4.4823835839054035e-17,
-          8.908030555815799,
-          5.048709793414476e-32
-        ],
-        [
-          0,
-          5.048709793414476e-32,
-          1.908641789499617
-        ]
-      ]
+      "method": "closed-form"
     },
     "brepMass": {
       "volume": 424.142619888804,
@@ -1029,28 +1014,11 @@
         1.1312740217550907e-16,
         7.500488281249999
       ],
-      "method": "quadrature",
-      "inertia": [
-        [
-          8.908030555815772,
-          4.773351852671581e-17,
-          -6.661338147750838e-18
-        ],
-        [
-          4.773351852671581e-17,
-          8.908030555815772,
-          -2.5909481918406507e-17
-        ],
-        [
-          -6.661338147750838e-18,
-          -2.5909481918406507e-17,
-          1.9086417894995429
-        ]
-      ]
+      "method": "quadrature"
     },
     "sourcePinsEqual": 747,
     "ownPIDAbsent": 19047,
-    "gate": "holder: none\nslots: 0 of 3\nload: { 8.85 8.95 10.77 }\n",
+    "gate": "FREE",
     "scope": "Saved accepted actual document; topology/mass evidence only, no lifecycle promotion",
     "curveAudit": "HIGH_ACCEPT_REPORTED_BY_ROOT_WITH_ORIGINAL_1E-9_BUDGET",
     "revisedOracle": {
@@ -1105,12 +1073,14 @@
         },
         "sourcePinsEqual": 759,
         "ownPIDAbsent": 97271,
-        "gate": "holder: none\nslots: 0 of 3\nload: { 12.10 11.05 11.23 }\n"
+        "gate": "FREE",
+        "endLoad": 12.1
       },
       "manifestSHA256": "5e80d53a06be1fafb3692b4d02c6fc7c59b730954e009d61b2638c21f03de4c9",
       "oracleSHA256": "40fd31e9e925ea4ceeb87ab457f6a79a6b91542469ab87375caddc886fbfee32",
       "scope": "One replay on saved actual raw; no repeated passed three-state native baseline"
-    }
+    },
+    "endLoad": 8.85
   },
   "fixedDesktopAttempt02": {
     "status": "PASS",
@@ -1202,7 +1172,7 @@
         2385
       ],
       "ownPIDAbsent": 2003,
-      "gate": "holder: none\nslots: 0 of 3\nload: { 7.28 8.95 10.25 }\n",
+      "gate": "FREE",
       "cleanup": [
         {
           "ownedProject": "D476-fixed02-face-join-run02",
@@ -1213,32 +1183,6 @@
         "SERVER_CLOSED"
       ],
       "states": 24,
-      "stateLabels": [
-        "00-source-cylinder-Open-no-native-baseline",
-        "01-before-real-cap-pick",
-        "01-real-cap-selection-before-assert",
-        "01-default-Join-before-distance",
-        "01-ExtrudeJoin5-public-preview",
-        "01-real-cap-default-Join5-fit",
-        "01-real-cap-default-Join5-accepted",
-        "02-edit-tool-Distance8",
-        "02-generated-tool-Distance8-fit",
-        "02-generated-tool-Distance8-accepted",
-        "03-tool-Distance0-refused",
-        "03-tool0-refusal-retained8-fit",
-        "03-tool0-refusal-retained8-accepted",
-        "04-FIRSTUndo-tool5-fit",
-        "04-FIRSTUndo-tool5-accepted",
-        "05-Redo-tool8-fit",
-        "05-Redo-tool8-accepted",
-        "06-Join-tool8-saved",
-        "06-own-project-open-before-retention",
-        "06-project-reopened-Join-tool8-fit",
-        "06-project-reopened-Join-tool8-accepted",
-        "07-postOpen-tool-Distance12",
-        "07-postOpen-tool12-fit",
-        "07-postOpen-tool12-accepted"
-      ],
       "bindings": 7,
       "captures": 3,
       "freshOracles": 7,
@@ -1247,7 +1191,8 @@
       "maxWorkerVolumeRelativeError": 0,
       "maxWorkerCentroidAbsoluteErrorMM": 0,
       "maxFullRadialBoundMM": 2.5121479338940395e-15,
-      "maxFullPcurveLiftBoundMM": 5.974795500617759e-16
+      "maxFullPcurveLiftBoundMM": 5.974795500617759e-16,
+      "endLoad": 7.28
     },
     "normalAfterFiles": "PRESENT_FINAL_PASS",
     "review": "ACCEPT_SEVEN_SELECTED_DESKTOP_NATIVE_CIRCLE_BINDINGS",
