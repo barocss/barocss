@@ -1,0 +1,255 @@
+{
+  "work_id": "D484",
+  "status": "QUALIFIED_SMALL_MECHANICAL_EXTRACTION_ONE_NEW_PUBLIC_A_PROFILE",
+  "tier": "SMALL_MECHANICAL_FAMILY_EXTRACTION",
+  "parentHead": "bcaa200cdd332999ca7943f61f24ffdf5aec7838",
+  "proofState": "TWO_KNOWN_CAD_CANDIDATES_DURING_PROOF_NOT_CLEAN_HEAD",
+  "sourcePins": {
+    "packages/barocss-cad/src/part/part-model.ts": "d52215faca5c937fc8dd704bd7d12a3fc52481ecf2c6b5afdd47d2a1ba9910ce",
+    "packages/barocss-cad/src/part/part-prismatic-detail.ts": "3c57f350382da9de8c58a6690d48302bdaf1e2ebc57e9b5db6344c57d54f9ef4"
+  },
+  "extraction": {
+    "beforeLines": 1417,
+    "afterLines": 1348,
+    "familyLines": 101,
+    "exactCaseLines": 73,
+    "cases": [
+      "rib",
+      "profile-relief",
+      "rectangular-relief"
+    ],
+    "oldExports": 70,
+    "unaffectedOwnerAST": "SAME",
+    "unaffectedCaseOrder": "SAME",
+    "allLiteralLabelOrder": "NOT_CLAIMED_THREE_EXCLUSIVE_KINDS_GROUPED_BEFORE_CYLINDRICAL_WRAP",
+    "privateBag": "ONCE_MODULE_LEVEL_FROZEN_AFTER_DEPENDENT_CONSTANTS",
+    "originalOwnerHelpers": [
+      "CadPartLimits",
+      "lineOnly",
+      "brepOf",
+      "boxSolid",
+      "boolean",
+      "empty",
+      "exactVolume"
+    ],
+    "runtimeValueBackImport": false,
+    "perFeatureHelperObjectAdded": false,
+    "stateCacheAdmissionBooleanFacetProfilingNativeSI": "RETAINED_IN_RUNTIME_OWNER",
+    "wholeEmittedJSByteEquality": "NOT_CLAIMED_FUNCTION_BOUNDARY_CHANGE",
+    "newGeometryAPIBehaviorToleranceSchemaUI": false
+  },
+  "checks": {
+    "command": "bash /tmp/barocss-d484-root/run-checks01.sh",
+    "status": "PASS_NINE_PRIMARY_COMMANDS",
+    "CADFocusedFiles": 7,
+    "CADFocusedTests": 41,
+    "ModelAffectedFiles": 5,
+    "ModelAffectedTests": 31,
+    "AST": "PASS_EXACT_THREE_CASES_AND_70_EXPORTS",
+    "CADFullSemanticBuild": "PASS",
+    "freshImportOrders": 2,
+    "importFixture": "EXISTING_K06_RIB_DOC_SHAPE_VOLUME12200_ORIGINAL_1E_MINUS9_RELATIVE",
+    "CADFullLint": "PASS",
+    "StudioTSC": "PASS",
+    "finalModelTSC": "PASS",
+    "diff": "PASS",
+    "fullKernel": "NOT_RUN_FOR_THIS_SMALL_EXTRACTION",
+    "additionalPairedGeometryCampaign": "NOT_RUN"
+  },
+  "input": {
+    "provenance": "NEW_CURRENT_PUBLIC_CREATION_EXISTING_D296_A_PROFILE_NOT_HISTORICAL_INPUT_REUSE",
+    "stock": [
+      40,
+      30,
+      10
+    ],
+    "publicMadeProvenance": "PRESERVED",
+    "faceSelection": "REAL_NATIVE_TOP_CAP_MOUSE_PICK",
+    "text": "A",
+    "em": 10,
+    "at": [
+      5,
+      5
+    ],
+    "tracking": 0,
+    "tolerance": 0.002,
+    "fontPath": "apps/cad-studio/test/fixtures/fonts/abeezee/ABeeZee-Regular.ttf",
+    "fontBytes": 46016,
+    "fontSHA256": "2901c8df256648cc2bb2e3afb381cb8d28e65ed3dbe11de20695ae4d5ffdeda9",
+    "independentReference": "CURRENT_PINNED_FONT_FONTTOOLS_4.67.0_EXISTING_UV_CACHE_NO_DOWNLOAD_OR_INSTALL",
+    "historicalD296FullDocAndExecutedFontCustody": "NOT_FOUND_NOT_REUSED",
+    "mapFontCommand": "bash /tmp/barocss-d484-root/run-map01.sh",
+    "independentFormula": {
+      "glyphAreaDesignUnitsSquared": 148797,
+      "unitsPerEm": 1000,
+      "placedAreaMM2": 14.8797,
+      "baseVolumeMM3": 12000,
+      "embossDepth2VolumeMM3": 12029.7594,
+      "engraveDepth1_5VolumeMM3": 11977.68045,
+      "engraveDepth2VolumeMM3": 11970.2406,
+      "formula": "BASE_VOLUME_PLUS_OR_MINUS_EXACT_FONT_AREA_TIMES_DEPTH; EXACT_FONT_FIRST_MOMENTS_AND_PLACEMENT_EXTRUSION_DEFINE_CENTROID_AND_CARRIERS; NO_OBSERVED_PRODUCT_OUTPUT_DEFINES_EXPECTATIONS"
+    }
+  },
+  "actual": {
+    "command": "bash /tmp/barocss-d484-root/run-studio03.sh",
+    "status": "PASS",
+    "configSHA256": "f77cae7f4d3e9d3159713f0492c41acfbd72296378822666d6c51bf9e2f5955d",
+    "groups": [
+      "NEW_PUBLIC_EMBOSS2_WITH_OUTSIDE_X39_REFUSAL",
+      "FIRST_UNDO_BASE",
+      "REDO_EMBOSS2",
+      "HISTORY_ENGRAVE1_5",
+      "OWN_PORTABLE_FONT_PROJECT_RELOAD_OPEN",
+      "POST_OPEN_ENGRAVE2"
+    ],
+    "groupCount": 6,
+    "nativeCaptures": 4,
+    "exactWholeDocReuses": 2,
+    "freshBindings": 6,
+    "workerMaxVolumeError": 0,
+    "workerMaxCentroidError": 0,
+    "nativeRawMaxErrors": {
+      "volume": 3.637978807091713e-12,
+      "centroid": 1.0658141036401503e-14,
+      "bounds": 0,
+      "pcurve": 3.552713678800501e-15,
+      "plane": 4.440892098500626e-16,
+      "sideArea": 1.7763568394002505e-14
+    },
+    "physicalCriteria": "ORIGINAL_UNCHANGED",
+    "absoluteBudgets": {
+      "nativeVolume": 1e-08,
+      "workerVolume": 1e-07,
+      "centroidBoundsCarriersPcurve": 1e-09,
+      "sideArea": 1e-08
+    },
+    "physicalAuthority": "NATIVE_STRICT_BREP_AND_INDEPENDENT_CURRENT_FONT_REFERENCE",
+    "workerAuthority": "CONSUMER_VOLUME_CENTROID_COHERENCE_ONLY"
+  },
+  "savedContainer": {
+    "magic": "BCADPACK",
+    "bytes": 46896,
+    "sha256": "55aa4bb3260b5d004b5d634beb212f57ccd60c1996e0dd516357c54f74e8fb1d",
+    "originalFontBytes": 46016,
+    "originalFontOccurrences": 1,
+    "originalFontByteOffset": 880,
+    "downloadOrExport": false
+  },
+  "originalFailures": [
+    {
+      "attempt": "actual01",
+      "status": "FAIL_HARNESS_MAP_SOURCE_ANTECEDENT_MISSING_PUBLIC_BOX_PROVENANCE",
+      "firstDifference": "nodes[1].made",
+      "physicalGroups": "ALL_SIX_NOT_RUN_BEFORE_PICK_AND_FONT",
+      "productFix": false
+    },
+    {
+      "attempt": "first-map-rebind-postcheck",
+      "status": "FAIL_OLD_DOC_SHA_USED_BY_POSTPROCESS",
+      "correction": "POSTPROCESS_ONLY",
+      "productFix": false
+    },
+    {
+      "attempt": "actual02",
+      "status": "EXIT2_REDO_CAPTURE_BEFORE_DEFERRED_WORKER_MASS_READY",
+      "firstGroupsPass": 2,
+      "remainingGroupsNotRun": 4,
+      "redoDocByteExactEmboss": true,
+      "actual03Correction": "ONLY_DRIVER_AWAIT_F_SAME_EMBOSSED_DOC_AFTER_REDO",
+      "productFix": false
+    }
+  ],
+  "visual": {
+    "rootReviewedImages": 8,
+    "finding": "A_APPEARS_UNDO_REMOVES_REDO_RESTORES_ENGRAVE_OPEN_POSTEDIT_VISIBLE",
+    "stock": "PARTLY_PALETTE_OCCLUDED",
+    "completeViewportFit": "NOT_MEASURED"
+  },
+  "custody": {
+    "wrapperPinnedPaths": 3047,
+    "helperPinnedPaths": 2581,
+    "equalThroughCleanupCurrent": true,
+    "namespace": "D484-text-run03_REMOVED_AND_ABSENT",
+    "ownPID": 73377,
+    "ownPIDAbsent": true,
+    "contextBrowserServer": "CLOSED",
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "watchedChanges": 0
+  },
+  "HighFinalSavedReview": {
+    "status": "ACCEPT_D484_NEW_CURRENT_PUBLIC_ONE_A_TEXT_RELIEF_SIX_BINDINGS",
+    "path": "/tmp/barocss-d484-text-oracle01/high-final-actual03-review.json",
+    "sha256": "bdec5cacd96e1846852367eb1f7fcf23f610c0f6d65360e92e0bcf1826ef4f24",
+    "savedDataOnly": true,
+    "newProductOrOracleRun": false
+  },
+  "roles": {
+    "mechanicalSource": "Sol Medium",
+    "driverPrep": "Sol Medium",
+    "geometryReadinessAndFinalSavedAudit": "Sol High",
+    "runtimeCustodyImages": "root"
+  },
+  "evidence": {
+    "preimage": {
+      "path": "/tmp/barocss-d484-prismatic-detail01/part-model.before.ts",
+      "sha256": "bc70f432f473bfc83d76da95cb0209ef8a70fe21fa53b8bafed02f2e78453935"
+    },
+    "ASTProof": {
+      "path": "/tmp/barocss-d484-prismatic-detail01/source-proof.json",
+      "sha256": "5a322f2b207d850bb8317e896d1d8ec9c7a7dfd1ebf05ee157f894300484d2d0"
+    },
+    "primaryChecks": {
+      "path": "/tmp/barocss-d484-checks01/receipt.json",
+      "sha256": "6acf4a0d1334a67eed76c99fa4598992d0d3825114445ac90cba1e251f376b00"
+    },
+    "fontReference": {
+      "path": "/tmp/barocss-d484-root/font-reference01.json",
+      "sha256": "9b8c6ca76e33fc4c75e389b8ac0efc35321a784408f74cf55f6a50f9e05a355c"
+    },
+    "mapRebind02SavedPostprocess": {
+      "sha256": "f5783b65eea1c601fa2bb921738114fcafc348b3e638d3cd4fdae4bd06eb855e",
+      "status": "CORRECTED_POSTPROCESS_ONLY_SAVED_ACTUAL_WHOLE_DOC",
+      "path": "/tmp/barocss-d484-map-rebind02/receipt.json"
+    },
+    "actual01": {
+      "path": "/tmp/barocss-d484-workflow-run01/receipt.json",
+      "sha256": "a74193546ac84bc26118f5b5b4d8f6f7bfe4798f75b7673ed7360c8b035bf614"
+    },
+    "actual02": {
+      "path": "/tmp/barocss-d484-workflow-run02/receipt.json",
+      "sha256": "b64415fc45ea9d69d7e44bc284078e7842a7b395cffe79507b4ed0ee15cf504c"
+    },
+    "actual03": {
+      "path": "/tmp/barocss-d484-workflow-run03/receipt.json",
+      "sha256": "107dc4e918af1dba074353edc8037670f1fff8de9596825a0caf75ad79e42038"
+    },
+    "rootActualReview": {
+      "path": "/tmp/barocss-d484-root/actual03-review.json",
+      "sha256": "34bc48831df22e39c07c15aaaa70929ce7e7b861778b08b78601d80f58fc5077"
+    }
+  },
+  "limits": [
+    "NO_RIB_OR_RECTANGULAR_RELIEF_PUBLIC_ACTUAL_CLAIM",
+    "NO_GENERAL_FONT_GLYPH_RELIEF_ADMISSION",
+    "NO_COMPLETE_VIEWPORT_FIT_CLAIM",
+    "BROWSER_RESTART_EXPORT_CI_RELEASE_NOT_RUN",
+    "MOBILE_NOT_RUN_OWNER_RULE",
+    "NO_HISTORICAL_D296_ACTUAL_INPUT_REUSE"
+  ],
+  "roadmap": {
+    "rows": [
+      "08",
+      "16",
+      "30"
+    ],
+    "issue534": "VERIFIED_OPEN_EPIC_ALL_CRITERIA_NOT_MET",
+    "core": "NOT_MEASURED",
+    "legacyPercent": 43,
+    "legacyStatus": "FROZEN",
+    "holds": "UNCHANGED",
+    "PDF": "OWNER_DEFERRED",
+    "next": "D485_REVIEW_UNMET_ORDINARY_C3_HANDOFF_ACCEPTANCE"
+  }
+}

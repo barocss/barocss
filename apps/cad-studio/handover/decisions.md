@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D484: extract three unchanged prismatic-detail cases with private runtime ownership;72 related tests and six fresh public text-relief/history/portable-font project groups pass](notes/part-prismatic-detail-extraction-2026-11-04/README.md).
+
 - [D483: reuse existing Viewer for actual nested JSX CAD and props80→100→80 framebuffer updates; fix bounded typed-array input bypass and qualify two native widths](notes/jsx-existing-viewer-2026-11-04/README.md).
 
 - [D482: refuse the exact non-manifold contact at the existing half-circle guard; full-kernel and three actual refusal/retention/project groups pass](notes/vertical-contact-refusal-2026-11-04/README.md).
