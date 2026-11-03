@@ -1,0 +1,84 @@
+{
+  "status": "NATIVE_NUMERICAL_PASS_CONSERVATIVE_COST_NO_GO_ENDED",
+  "sourceFiles": 248,
+  "stageA": "TEN_CANDIDATE_TEN_INDEPENDENT_PASS_NOT_REEXECUTED",
+  "stageB": "SIX_FULL_PHYSICAL_AND_INDEPENDENT_PASS",
+  "cost": {
+    "parentCoreCpuNs": 545702000,
+    "childLifetimeCpuNs": 568623000,
+    "conservativeEnvelopeCpuNs": 1114325000,
+    "costBoundaryIdenticalToSavedBaseline": false,
+    "costAuthority": "PARENT_SIX_CONTEXT_CPU_PLUS_OWNED_NODE_ENTIRE_LIFETIME_RESOURCE_CPU",
+    "savedBaselineCoreCpuNs": 773147000
+  },
+  "thresholdCpuNs": 695832300,
+  "ratioToHistoricalBaseline": 1.4412847750815823,
+  "oneCostDecision": 1,
+  "actualNumericalBanks": {
+    "prior": 0,
+    "current": 1,
+    "authorizedMaximum": 1
+  },
+  "wrapperCommandAttempts": {
+    "priorInfrastructureOnly": 1,
+    "current": 1,
+    "total": 2
+  },
+  "worker": {
+    "protocol": "p4-native-witness-rpc-v1",
+    "workerStarts": 1,
+    "requestCalls": 6,
+    "workerClosed": true,
+    "exit": 0,
+    "pid": 92174,
+    "childCpuAuthority": "RESOURCE_RUSAGE_CHILDREN_DELTA_AFTER_CLOSE_AND_WAIT",
+    "childLifetimeCpuNs": 568623000,
+    "resourceBefore": {
+      "userSeconds": 0.0,
+      "systemSeconds": 0.0
+    },
+    "resourceAfter": {
+      "userSeconds": 0.558334,
+      "systemSeconds": 0.010289
+    },
+    "selfReportedChildCpuUsed": false,
+    "sentBytes": 41909,
+    "receivedBytes": 246796,
+    "parentTransportLimitBytes": 4194304,
+    "childTransportReservedBytes": 4194304,
+    "maxExplicitTransportReservedBytes": 1637132,
+    "stderrBytes": 0,
+    "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cleanupError": null,
+    "scope": "ONE_OWNED_NODE_WORKER_ONLY_NO_PROCESS_RSS_CLAIM"
+  },
+  "nestedParentAttribution": {
+    "compactCpuNs": 457006000,
+    "parentBridgeCpuNs": 22085000,
+    "residualWorldCpuNs": 66611000,
+    "legacyAdmissionCpuNs": 1704000
+  },
+  "physicalLeaves": 87102,
+  "float64Words": 45408,
+  "maximumProofPrimitives": 1428082,
+  "firstFailure": {
+    "cursor": "one-cost-decision",
+    "type": "CostGate",
+    "message": "CONSERVATIVE_NATIVE_CPU_ENVELOPE_EXCEEDS_FIXED_695832300NS_GATE"
+  },
+  "original1200Steps": "NOT_RUN",
+  "WorldCalls": 0,
+  "publicAPI": "NOT_RUN",
+  "desktop": "NOT_RUN",
+  "archivePins": {
+    "SOURCE-02.tar.gz": {
+      "bytes": 1474296,
+      "sha256": "786356e2d9732d6d34beb598f78a56f2b372191e054bf6565253ac9bc5a75eff"
+    },
+    "PROOF-02.tar.gz": {
+      "bytes": 308852,
+      "sha256": "cab2aa9cce3e2a2eea4e8d21b0e91c66a7a09ef8b9b5a8a079c8c086aa8f1856"
+    }
+  },
+  "next": "Separate Lehmer integer-matrix GCD algorithm; independent32-pair exact oracle before freshA10/B6, unchanged caps. Not a repeated timing of this ended candidate."
+}

@@ -19,6 +19,8 @@ The largest candidate request used1387605 of2000000 priced primitives, with1890/
 
 The observed cost ratio was3.0980046485. Nested attribution was457534000ns compact,1868982000ns proof and68697000ns remaining world work. Legacy admission1671000ns is already inside the remaining/root timing; do not add it again. Setup, transport, serialization and external audits remain separate. The bounded reference is mathematically qualified on these six saved frames but fails the required performance gate. It cannot justify1200-step execution or public API expansion.
 
+A later source review found an additional allocation-evidence limit: the recorded2179640B peak covers measured frame graphs. Whole-file tool authentication temporarily read the110MB Node executable outside that measurement. This run therefore does not qualify a whole-protocol64MiB allocation bound. Preserve the old source and result. The next harness uses streaming tool hashes before its first execution.
+
 Commands, each admitted through the existing heavy gate:
 
 ```sh

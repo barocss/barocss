@@ -1,0 +1,83 @@
+{
+  "status": "WRAPPER_NAME_ERROR_BEFORE_NUMERICAL_CALLS_PRESERVED",
+  "stageA": "TEN_CANDIDATE_AND_TEN_INDEPENDENT_PASS",
+  "firstFailure": {
+    "status": "NO_GO_WORLD_WITNESS_BANK",
+    "firstFailure": {
+      "type": "NameError",
+      "message": "name 'core' is not defined",
+      "counts": {
+        "framesAttempted": 1,
+        "framesReturned": 0,
+        "framesVerifiedByExternalAuditor": 0,
+        "proofCalls": 0,
+        "compactAttempts": 0,
+        "compactReturns": 0,
+        "scalarCalls": 0,
+        "scalarReturns": 0,
+        "coldQpCalls": 0,
+        "oldKernelCalls": 0,
+        "WorldCalls": 0,
+        "forbiddenOldCompactAttempts": 0
+      }
+    },
+    "counts": {
+      "framesAttempted": 1,
+      "framesReturned": 0,
+      "framesVerifiedByExternalAuditor": 0,
+      "proofCalls": 0,
+      "compactAttempts": 0,
+      "compactReturns": 0,
+      "scalarCalls": 0,
+      "scalarReturns": 0,
+      "coldQpCalls": 0,
+      "oldKernelCalls": 0,
+      "WorldCalls": 0,
+      "forbiddenOldCompactAttempts": 0
+    },
+    "frames": [],
+    "coreCpuNs": 0,
+    "costDecision": "DEFERRED_EXTERNAL_NUMERIC_AUDIT",
+    "setupCpuNs": 116586000,
+    "worker": {
+      "protocol": "p4-native-witness-rpc-v1",
+      "workerStarts": 0,
+      "requestCalls": 0,
+      "workerClosed": false,
+      "exit": null,
+      "pid": null,
+      "childCpuAuthority": "RESOURCE_RUSAGE_CHILDREN_DELTA_AFTER_CLOSE_AND_WAIT",
+      "childLifetimeCpuNs": null,
+      "resourceBefore": null,
+      "resourceAfter": null,
+      "selfReportedChildCpuUsed": false,
+      "sentBytes": 0,
+      "receivedBytes": 0,
+      "parentTransportLimitBytes": 4194304,
+      "childTransportReservedBytes": 4194304,
+      "maxExplicitTransportReservedBytes": 0,
+      "stderrBytes": 0,
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "cleanupError": null,
+      "scope": "ONE_OWNED_NODE_WORKER_ONLY_NO_PROCESS_RSS_CLAIM"
+    },
+    "totalCpuNs": 117706000,
+    "wallNs": 143086458,
+    "evidenceBytesBeforeSummary": 25783,
+    "legacyOuterArithmetic": "separate guarded calls/CPU, never inside new proof counter or used as proof inputs",
+    "independentAudit": "NOT_RUN_BY_WRAPPER",
+    "WorldCalls": 0
+  },
+  "costDecision": "NOT_RUN",
+  "sourceFiles": 138,
+  "archivePins": {
+    "PROOF-01.tar": {
+      "bytes": 583680,
+      "sha256": "21626fd92d9d17c28c2d162bc574288fb619ba8aaedc3b27dfa976791465aa12"
+    },
+    "SOURCE-01.tar": {
+      "bytes": 6174720,
+      "sha256": "ca2a7f8306752fa7ac0bfb1bce3be0d71b5b872f69e815d5fb8f5e3ff2fb8b7a"
+    }
+  }
+}
