@@ -1,0 +1,84 @@
+{
+  "format": "prepared-reference-original-six-v1",
+  "authority": "IMMUTABLE_ORIGINAL_COLD_WORLD_REPLIES_NOT_REGENERATED",
+  "cases": [
+    {
+      "id": "ALIGNED-1",
+      "request": "examples/physics-world-p4-2276/evidence/cost-census-01/ALIGNED-1-position-world.stdin.jsonl",
+      "reply": "examples/physics-world-p4-2276/evidence/cost-census-01/ALIGNED-1-position-world.stdout.raw",
+      "requestPin": {
+        "bytes": 27751,
+        "sha256": "724ffd6804f3203a9753a29583e3f0777a4fcb54f70932eb397095092e4e79b4"
+      },
+      "replyPin": {
+        "bytes": 52515,
+        "sha256": "a654b24cd6d0008fe56422ef551c2701d2904b6100758dd1a9b1f204ccfb8dcf"
+      }
+    },
+    {
+      "id": "ALIGNED-16",
+      "request": "examples/physics-world-p4-2276/evidence/observable-census-01/ALIGNED-16-position-world.stdin.jsonl",
+      "reply": "examples/physics-world-p4-2276/evidence/observable-census-01/ALIGNED-16-position-world.stdout.raw",
+      "requestPin": {
+        "bytes": 35695,
+        "sha256": "c5014cbd7b6948642ff43cced4cbd0a5d216ac90302f21857f20848c5d8fa2e1"
+      },
+      "replyPin": {
+        "bytes": 122825,
+        "sha256": "8d521cedc061fe03b2802809dc1290ad2a4762eb17431d265966c529fa0fd56e"
+      }
+    },
+    {
+      "id": "OFFSET-1",
+      "request": "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-1-position-world.stdin.jsonl",
+      "reply": "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-1-position-world.stdout.raw",
+      "requestPin": {
+        "bytes": 27832,
+        "sha256": "82380db104fc1650db3bda306d5875809914586a2ebc5f179a317da115c7cdbc"
+      },
+      "replyPin": {
+        "bytes": 52607,
+        "sha256": "138bde35877b14a22f08748b192c56cd1b896e6e435e205513c458a54ee10721"
+      }
+    },
+    {
+      "id": "OFFSET-16",
+      "request": "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-16-position-world.stdin.jsonl",
+      "reply": "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-16-position-world.stdout.raw",
+      "requestPin": {
+        "bytes": 35351,
+        "sha256": "d63d1287858963e0b5fa2ea065df242ac6d21eeeda4d7e2e4368acca15c1265c"
+      },
+      "replyPin": {
+        "bytes": 121814,
+        "sha256": "8228d2c51a073269f8cefe30a7dcbf1218c50343fe296c8c6046cf0d9958f515"
+      }
+    },
+    {
+      "id": "YAW-1",
+      "request": "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-1-position-world.stdin.jsonl",
+      "reply": "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-1-position-world.stdout.raw",
+      "requestPin": {
+        "bytes": 28793,
+        "sha256": "d6885e19204ac9753acdaddbf91d3a152c3105601ecc821d39aec007af6bc525"
+      },
+      "replyPin": {
+        "bytes": 54072,
+        "sha256": "d66225749932fba3140e2544e10881477442372826a49dff525b58dc961d9140"
+      }
+    },
+    {
+      "id": "YAW-16",
+      "request": "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-16-position-world.stdin.jsonl",
+      "reply": "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-16-position-world.stdout.raw",
+      "requestPin": {
+        "bytes": 35594,
+        "sha256": "e1567a963b0a8bc416e7ce027bbcce41710112575d5ce9380dc82d2eb0a150c3"
+      },
+      "replyPin": {
+        "bytes": 123188,
+        "sha256": "d31c63158d50c3d1c41e983a0ae70d7f958115f96a76b457a0a36c5ae027b22b"
+      }
+    }
+  ]
+}

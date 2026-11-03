@@ -60,7 +60,13 @@ class Arithmetic {
     if (d === 0n) throw new StrictLineFailure('zero rational denominator');
     if (n === 0n) return ZERO;
     if (d < 0n) { this.tick(2); n = -n; d = -d; }
+    if (d === 1n) { this.guardCached(); return { n, d }; }
     let a = n < 0n ? -n : n, b = d;
+    this.tick(2);
+    if ((d & (d-1n)) === 0n) {
+      this.tick(2); const factor = a & -a, divisor = factor < d ? factor : d;
+      this.tick(2); return { n: n/divisor, d: d/divisor };
+    }
     while (b !== 0n) { this.tick(); const remainder = a % b; a = b; b = remainder; }
     this.tick(2); return { n: n/a, d: d/a };
   }
@@ -76,12 +82,47 @@ class Arithmetic {
     return power >= 0 ? this.make(this.shifted(n, power)) : this.make(n, this.shifted(1n, -power));
   }
   add(a: Rational, b: Rational): Rational {
-    this.op(); return this.make(this.sum(this.multiply(a.n,b.d),this.multiply(b.n,a.d)),this.multiply(a.d,b.d));
+    this.op();
+    if (a.d === b.d) return this.make(this.sum(a.n,b.n),a.d);
+    if (a.d > 0n && b.d > 0n) {
+      this.tick();
+      if (a.d % b.d === 0n) {
+        this.tick();
+        const ratio = this.checked(a.d/b.d);
+        return this.make(this.sum(a.n,this.multiply(b.n,ratio)),a.d);
+      }
+      this.tick();
+      if (b.d % a.d === 0n) {
+        this.tick();
+        const ratio = this.checked(b.d/a.d);
+        return this.make(this.sum(this.multiply(a.n,ratio),b.n),b.d);
+      }
+    }
+    return this.make(this.sum(this.multiply(a.n,b.d),this.multiply(b.n,a.d)),this.multiply(a.d,b.d));
   }
   neg(a: Rational): Rational { this.op(); this.tick(); return { n: -a.n, d: a.d }; }
   sub(a: Rational, b: Rational): Rational { return this.add(a,this.neg(b)); }
   mul(a: Rational, b: Rational): Rational { this.op(); return this.make(this.multiply(a.n,b.n),this.multiply(a.d,b.d)); }
-  div(a: Rational, b: Rational): Rational { this.op(); return this.make(this.multiply(a.n,b.d),this.multiply(a.d,b.n)); }
+  div(a: Rational, b: Rational): Rational {
+    this.op();
+    if (a.d > 0n && b.d > 0n && b.n !== 0n) {
+      this.guardCached();
+      if (a.d === b.d) return this.make(a.n,b.n);
+      this.tick();
+      if (a.d % b.d === 0n) {
+        this.tick();
+        const ratio = this.checked(a.d/b.d);
+        return this.make(a.n,this.multiply(ratio,b.n));
+      }
+      this.tick();
+      if (b.d % a.d === 0n) {
+        this.tick();
+        const ratio = this.checked(b.d/a.d);
+        return this.make(this.multiply(ratio,a.n),b.n);
+      }
+    }
+    return this.make(this.multiply(a.n,b.d),this.multiply(a.d,b.n));
+  }
   compare(a: Rational, b: Rational): number {
     this.op(); const difference = this.sum(this.multiply(a.n,b.d),-this.multiply(b.n,a.d));
     return difference < 0n ? -1 : difference > 0n ? 1 : 0;

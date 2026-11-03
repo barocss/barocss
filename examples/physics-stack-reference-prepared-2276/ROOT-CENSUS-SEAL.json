@@ -1,0 +1,11 @@
+{
+  "status": "FROZEN_BEFORE_CURRENT_CANONICAL_CENSUS",
+  "sources": {
+    "census.mjs": "f0fc62d3f23cc57acf69bf32f455a9085623153938ce43aec882581c256983e4",
+    "position-timing.py": "5518e9e42179512e01551a90f07b9b30c98afd4ae4fee3f00fe12598c5e396a1",
+    "CENSUS-CONTRACT.md": "15cf586811a6b38faa62cc7fbaabe2a6f818e157c21de2c1bda61f91e53298dc"
+  },
+  "twelveGroupsGuard": "stack-reference-prepared-tests-01 PASS",
+  "priorProbeReview": "retained old reply byte parity; own432 counter assertion failure preserved",
+  "API": false
+}

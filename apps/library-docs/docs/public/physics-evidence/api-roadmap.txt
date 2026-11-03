@@ -59,16 +59,50 @@ accepted steps remain0. OFFSET/YAW were not run. Whole-function preparation
 accounts for168.611802125s of170.020379334s observed wall time; this is an actual
 library cost failure, separate from the old308-step complete-path timeout.
 One word-qualified16-step CPU sample places92.88 percent of sample weight under
-strict-line geometry. The new OPT01 face-local exact reuse passes19 boundary
-tests per graph and fresh Source/Native prefixes; all previous physical records
-and raw words remain exact, with no metadata exception. Its fresh actual
-canonical-build runtime returned1051 candidates/1050 local normal-KKT acceptances
-before the unchanged170s deadline; OFFSET/YAW remain NOT_RUN. This is another
-preserved runtime cost NO_GO, not complete P4 acceptance. Next is a bounded
-equal-denominator rational addition change in the measured library hotspot,
-with exact arithmetic/resource controls before fresh prefix/runtime checks.
-Full independent/resource qualification is still open. Public API/cap promotion
-and new desktop integration remain blocked; no full-stack PASS is inferred.
+strict-line geometry. OPT01–05 retain every run04 physical record and all453231
+numeric words per graph on fresh Source/Native prefixes. Latest fixed arithmetic
+banks32/26/25/16 and geometric boundary19 pass per graph; canonical build08 passes.
+Original runtime failures at542/1050/1065/1166 local acceptances remain recorded.
+The OPT04 canonical diagnostic now completes ALIGNED/OFFSET/YAW1200 each with
+normal KKT, at166.543/146.165/146.909s child scene wall. This observer omits full
+independent geometry/position/ledger/quality: independently fully accepted steps
+remain0 and API/resource qualification remains open. No full-stack PASS follows.
+
+The current whole-path16-step census preserves all195 old physical request/reply
+pairs byte-exact and all record/raw words. Of20.932s observed wall,48 position
+asks account for9.511s;48 preparations7.185s. One captured reference profile
+locates repeated compact geometry and cold LP/QP work; nested profile times are
+not disjoint cost or a performance gate. Next are bounded exact library
+arithmetic and request-local reference preparation reuse. Keep every pair/axis,
+precision comparison, cold optimizer and original failure. Requalify unchanged
+physical replies before a full1200 complete-path/resource campaign. Public API,
+cap promotion and new desktop integration remain gated on those results.
+
+OPT05 also completes all3 local1200/KKT scenes, at161.173/143.057/140.331s.
+All raw streams and initial physical metadata equal OPT04 exactly; reuse of its
+paid saved-quality audit is explicitly input-identity proof with zero new
+numerical calls. Full live checks are still absent. A new make-key observation
+retains all original16-step physical results but does not justify a production
+cache or performance claim. Next validate request-local reference preparation
+and live lossless detached packets before bounded scheduling/resource tests.
+
+The separately captured OPT04 trajectory also passes every original independent
+quality gate for all3603 states, with actual frame960 baselines and241 frames per
+scene in8–10s. Maximum vertical drift is2.7755575615628914e-17m and linear speed
+2.395448185421987e-14m/s. This saved-data audit does not supply the absent complete
+contact/position/ledger/live-resource/API gates. See
+`examples/physics-stack-trajectory-audit-2276/RESULTS.md`.
+
+Request-local reference preparation now passes12 groups,6 complete old CLI
+replies and a current canonical3×16 census:195 old wire pairs/425916 record words
+exact. Root's initial432decode-count assertion failed and is preserved; source
+mapping proves288 on this world path, corrected by a data-only review. The
+separate live detached-packet3×16 gate also passes, including254544 own numeric
+words, every physical check and next-state ownership. Next is bounded three-credit
+scheduling plus complete owned-DATA/CPU qualification before the original1200
+composed path. The existing64MiB explicit DATA gate has unresolved Decimal,
+slots, native-temporary and Node-lifetime roots; it is not replaced by an RSS
+number. See the prepared/packet RESULTS and wholepath RESOURCE-NEXT.md.
 
 The current first-interval coupled-contact path has completed its finite
 arithmetic, actual World, post-impulse rollback/wire and desktop Native gates.
@@ -83,7 +117,13 @@ half-.5m/inverse-inertia6I/g0; P4 uses eight half-.25m/inverse-inertia24I boxes
 and gravity. Neither provider qualifies the other. Original persistent plane,
 gap, warm and settling failures remain failures of their actual providers.
 
-The next order is:
+Current execution order is package arithmetic/reference cost, full original1200
+independent/resource checks, atomic World/recorder/API adoption, then desktop
+consumer verification. No legacy shipping path is introduced. P6/P7 remain
+dependent on their physical profiles. The historical proof-candidate sequence
+below is preserved as evidence; its ended candidates are not the next task.
+
+Historical proof-candidate sequence:
 
 1. Qualify one NEW exact active-basis KKT certificate checker on the saved
    full36-row position problem, starting with original ALIGNED1. Preserve its

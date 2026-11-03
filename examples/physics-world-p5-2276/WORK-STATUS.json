@@ -34,12 +34,12 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Actual library stack engine Source/Native one-step and16 prefixes PASS; OPT01 exact face-local reuse passes19 boundary tests per graph and all453231 prefix numeric words unchanged. Original1200 remains NO_GO. Baseline emitted runtime stopped after542 local acceptances; actual canonical OPT01 stopped after1050 at unchanged170s. Next is bounded equal-denominator rational addition in actual strict-line hotspot; full independent/resource qualification and API/cap/desktop promotion remain blocked.",
+  "active": "OPT05 actual library implementation, Source/Native prefixes/canonicalbuild and all3 original1200 local+normalKKT diagnostics PASS; savedtrajectoryquality reused by exactinputidentity. Prepared reference/current3x16 and LIVE detached48 packets PASS exactoldphysics. Next bounded3credit pipeline and complete ownedDATA/CPU adapters; original fullP4/resource/API remains NO_GO_NOT_QUALIFIED.",
   "latestStackImplementation": {
     "results": "examples/physics-stack-library-2276/RESULTS.md",
     "entry": "packages/barocss-physics/src/stack/prepare-step.ts",
     "qualification": "PACKAGE_INTERNAL_ORIGINAL_NINE_BODY_PROFILE_ONLY",
-    "sourceAndNativePrefix": "run-04 PASS; OPT01 run-05 PASS",
+    "sourceAndNativePrefix": "run04..run09 PASS; all453231 numeric words, reports and117payloadfiles per graph exactly match run04",
     "phaseAcceptedPerGraph": 51,
     "numericRecordWordsPerGraph": 453231,
     "originalFirst32InputWordsMatched": 363,
@@ -48,10 +48,87 @@
     "opt01BaselinePayload": "Exact run-04 to run-05 physical records/raw words; zero metadata exceptions",
     "runtime01": "ALIGNED543 returned/542 local+normalKKT accepted; step543 internal170s deadline; OFFSET/YAW NOT_RUN; independent full accepted0",
     "runtimeOpt01": "Actual canonical snapshot: ALIGNED1051 returned/1050 local+normalKKT accepted; step1051 unchanged170s deadline; OFFSET/YAW NOT_RUN; full independent accepted0",
+    "opt02": "Arithmetic16 and boundary19 per graph PASS; run-06 full prefix453231word identity PASS; canonical build-05 PASS; runtime ALIGNED1066 returned/1065 local+normalKKT then same170s deadline. FullP4 remains NO_GO. Next exact denominator-divisibility addition paths.",
     "profile01": "Qualified16-step word parity;92.88 percent sample weight under strict-line; sampling not benchmark",
     "publicWorldAndApi": "NOT_RUN; existing cap4 and8x8 unchanged",
-    "full1200": "NO_GO; full independent/resource qualification blocked",
-    "desktop": "NOT_RUN for new internal engine"
+    "full1200": "LOCAL_RUNTIME_COMPLETED; full independent original P4/resource exit remains NO_GO_NOT_QUALIFIED",
+    "desktop": "NOT_RUN for new internal engine",
+    "opt03": "25/25, prior16/16 and boundary19/19 PASS; run07 exact prefix parity; build06 PASS; runtime1167 returned/1166 local accepted before unchanged170s. Preserved NO_GO.",
+    "opt04": "26/26, prior25/25 and16/16 and boundary19/19 PASS; run08 exact prefix parity; build07 PASS8.100317708s.",
+    "runtimeOpt04": {
+      "status": "RUNTIME_DIAGNOSTIC_COMPLETED",
+      "phaseAndNormalKktStepsPerScene": 1200,
+      "scenes": [
+        "ALIGNED",
+        "OFFSET",
+        "YAW"
+      ],
+      "childSceneWallSeconds": [
+        166.543123958,
+        146.164993208,
+        146.909394667
+      ],
+      "fullIndependentlyAccepted": 0,
+      "API": false,
+      "resourceQualification": false,
+      "providerDigest": "4a765881cfe2aeb6bb04611baf29174035e6f58436d423c7090efdafbddc66a3"
+    },
+    "wholepathCensus": "census01 PASS exact195 old physical pairs and all48 prefix steps; parent20.931844875s, position asks9.510570873s, prepare7.184726545s; observation only",
+    "savedTrajectoryQuality": {
+      "status": "PASS_SAVED_ORIGINAL_QUALITY_ALL_3603_FRAMES",
+      "results": "examples/physics-stack-trajectory-audit-2276/RESULTS.md",
+      "statesPerScene": 1201,
+      "settlingFramesPerScene": 241,
+      "baselineStep": 960,
+      "maxVerticalDriftM": 2.7755575615628914e-17,
+      "maxLinearSpeedMps": 2.395448185421987e-14,
+      "prefixEvaluateResultsExact": 51,
+      "independentlyFullAccepted": 0,
+      "API": false
+    },
+    "opt05": "32/32, retained26/26+25/25+16/16 and19/19 boundary PASS; run09 fullprefix identity PASS; canonicalbuild08 PASS8.051469084s",
+    "runtimeOpt05": {
+      "status": "RUNTIME_DIAGNOSTIC_COMPLETED",
+      "localAndNormalKktStepsPerScene": 1200,
+      "childSceneWallSeconds": [
+        161.172798625,
+        143.056669083,
+        140.330518834
+      ],
+      "allRawStreamsByteExactTo": "runtime-opt04-01",
+      "savedQualityReuse": "exactphysicalinputidentity; zero new referencecalls",
+      "providerDigest": "6c3bf494f3a53f7ac32154cb271ec05e6cf9eea3b495e73cc87e4d85c8636cf5",
+      "fullIndependentlyAccepted": 0,
+      "API": false,
+      "resourceQualification": false
+    },
+    "preparedReference": {
+      "status": "PREPARED_OBSERVATIONAL_CENSUS_PHYSICAL_PARITY_CONFIRMED",
+      "tests": "12groups and6oldCLIreplylines PASS",
+      "rootProbeFirstFailure": "own432decoderassertion incorrect; failedreceipt preserved; source-backed288 corrected via captureddata-only review",
+      "steps": 48,
+      "numericLeaves": 425916,
+      "originalWirePairsByteExact": 195,
+      "parentWallSeconds": 20.197439959,
+      "positionAskSeconds": 9.243110622,
+      "prepareSeconds": 6.702886584,
+      "resourceQualification": false,
+      "API": false
+    },
+    "livePackets": {
+      "status": "LIVE_PACKET_PREFIX_PHYSICAL_PARITY_CONFIRMED",
+      "fixedTests": 20,
+      "preparedPackets": 48,
+      "liveNumericLeavesVerified": 254544,
+      "recordNumericLeaves": 425916,
+      "oldWirePairsExact": 195,
+      "maxEncodedBytes": 103332,
+      "maxConservativeAdmissionBytes": 711148,
+      "nextOwner": "DETACHED_CANDIDATE_BODIES_ONLY",
+      "wholeParentWallSeconds": 20.331178834,
+      "resourceQualification": false,
+      "API": false
+    }
   },
   "latestGramProofCandidate": {
     "results": "examples/physics-p4-gram-compact-2276/RESULTS.md",
@@ -933,11 +1010,11 @@
     "WorldPromotion": "FINITE_THREE_CLEAN_WORLD_CASES_PASS_ATOMICITY_WIRE_DESKTOP_PUBLIC_GATES_REMAIN"
   },
   "currentPriorityOrder": [
-    "Original P4 exact position-reference certificate proposal: freeze bounds/pricing and independent saved-data proof before implementation",
-    "One fixed cost comparison only after numerical proof; qualify complete contact/position/ledger/quality cost",
-    "Original ALIGNED/OFFSET/YAW1200-step validation under unchanged180s/8x8/physics gates",
-    "Separate gated atomic canonical schema/producer/caller migration without legacy path",
-    "P6/P7 only for their required physical plant and prerequisite leaves"
+    "Bounded three-credit producer/reference/archive scheduling and complete ownedDATA/CPU qualification; keep old limits and firstfailures",
+    "Original ALIGNED/OFFSET/YAW1200 complete strictcontact/all36position/ledger/quality/8-10s settling path under unchanged170/180s and280MiB/64MiB gates",
+    "Atomic commonWorld/command/recorder/API adoption only for passedprofile; no legacy route",
+    "Desktop-only emitted library consumer and rendering tests",
+    "P6/P7 required coupledphysical profiles aftertheir prerequisites"
   ],
   "dynamicHost": {
     "status": "EXECUTED_PASS_ORIGINAL_THREE_CLEAN_WORLD_CASES",
@@ -1303,7 +1380,7 @@
     "policy": "New localized GCD entry/remainder invariant explicitly overrides old per-REM guard clause; no unchanged-clause claim.",
     "unchanged": "All actual operation prices,2M/bit/time limits, physical gates and first failures",
     "gates": [
-      "fresh32-pair exact/B\u00e9zout audit",
+      "fresh32-pair exact/Bézout audit",
       "freshA10",
       "oneB6fullphysical+independent",
       "oneparent-plus-fullchildCPUcostdecision"

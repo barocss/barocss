@@ -1,0 +1,89 @@
+{
+  "format": "barocss-physics-stack-optimization-v1",
+  "candidate": 5,
+  "status": "SOURCE_ONLY_READY_NOT_EXECUTED",
+  "algorithm": "UNIT_DENOMINATOR_AND_DYADIC_GCD_NORMALIZATION",
+  "files": {
+    "baselineSource": {
+      "path": "examples/physics-stack-library-2276/baseline/strict-line-opt04.ts",
+      "bytes": 15859,
+      "sha256": "0e4faf8299621c0dd92a69731ee21b4fa47104aade51b81a762c3d8ed98d284b"
+    },
+    "newSource": {
+      "path": "packages/barocss-physics/src/stack/strict-line.ts",
+      "bytes": 16110,
+      "sha256": "1ce1c28ee3eec55ae132b902791e814c58b3cda0ee1d7ec5714d8e25ef49796f"
+    },
+    "contract": {
+      "path": "examples/physics-stack-library-2276/OPTIMIZATION-05-CONTRACT.md",
+      "bytes": 8065,
+      "sha256": "8578f600c1a231ca7264350ec9f1a7fd34c43fb2f23c43a845d8883f53561df0"
+    },
+    "originalProvenance": {
+      "path": "packages/barocss-physics/src/stack/PROVENANCE.json",
+      "bytes": 11389,
+      "sha256": "0ba21dcba3bfb56d07c300282ad00bd06515a682ad80edaf3ef2e4a093a161d2"
+    },
+    "priorOptimization": {
+      "path": "packages/barocss-physics/src/stack/OPTIMIZATION-04.json",
+      "bytes": 3068,
+      "sha256": "f16ce36f3db40d3c4ca99cc6b81091242d925831c08e7010cbbcd06051efe9c0"
+    },
+    "actualOpt04Native": {
+      "path": "examples/physics-stack-library-2276/evidence/runtime-opt04-01/canonical-provider/dist/stack/strict-line.js",
+      "bytes": 15981,
+      "sha256": "c3b9561abc41611df70a2c6cad9bd3390d80ee45c7dfd9f0e601d64825b45e8f"
+    },
+    "actualOpt04RuntimeReceipt": {
+      "path": "examples/physics-stack-library-2276/evidence/runtime-opt04-01/result.json",
+      "bytes": 6474,
+      "sha256": "6c3b397906a7f19a170c30c5e5220ea30485134dac5313f323c706a2705bc2f0"
+    },
+    "actualOpt04BuildReceipt": {
+      "path": "examples/physics-world-p5-2276/evidence/stack-library-build-07/result.json",
+      "bytes": 2981,
+      "sha256": "97ee82fea200458eea0b2c26d6f0a4a9f56cccf774ab06e56795dcca9c04fbb0"
+    }
+  },
+  "change": {
+    "shippingFiles": [
+      "packages/barocss-physics/src/stack/strict-line.ts"
+    ],
+    "changedMethod": "Arithmetic.make_ONLY",
+    "existingInputZeroAndSignOrder": "UNCHANGED",
+    "unitDenominator": "guardCached_then_return_checked_integer_NO_FAKE_TICK",
+    "powerOfTwoTest": "d_AND_d_MINUS_ONE_EQUALS_ZERO",
+    "powerOfTwoGcd": "min(abs_n_AND_negative_abs_n,d)",
+    "newBigintOperationUnitPrice": 1,
+    "powerOfTwoTicksAfterSignNormalization": 6,
+    "nonbinaryDenominatorAddedTicks": 2,
+    "nonbinaryEuclideanLoopAndDivision": "EXACT_SOURCE_TEXT_UNCHANGED",
+    "allOtherSource": "EXACT_SOURCE_TEXT_UNCHANGED_FROM_OPT04",
+    "integerBitsRationalAndIntegerCaps": "UNCHANGED",
+    "newCacheOrCanonicalOperandAssumption": false,
+    "multiplyDivRoundingToleranceOrGeometryChanged": false,
+    "actualCountersMayDiffer": true,
+    "universalResourceRefusalParity": false,
+    "workAdmissionMayImproveOrRegress": true,
+    "oversizedInputRefusalBeforeReduction": "UNCHANGED"
+  },
+  "qualification": {
+    "fixedArithmeticCases": 32,
+    "retainedOpt04ArithmeticCases": 26,
+    "retainedOpt03ArithmeticCases": 25,
+    "retainedOriginalArithmeticCases": 16,
+    "existingBoundaryCases": 19,
+    "authorArithmeticCalls": 0,
+    "authorHelperCalls": 0,
+    "authorCompilerCalls": 0,
+    "actualArithmeticTests": "NOT_RUN",
+    "actualBoundaryTests": "NOT_RUN",
+    "actualPhysicalPrefixes": "NOT_RUN",
+    "runtimeDiagnostic": "NOT_RUN",
+    "speedImprovement": "NOT_CLAIMED",
+    "fullP4": "BLOCKED",
+    "resourceQualification": false,
+    "publicAdmissionChanged": false,
+    "API": false
+  }
+}

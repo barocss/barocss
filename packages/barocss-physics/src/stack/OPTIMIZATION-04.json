@@ -1,0 +1,76 @@
+{
+  "format": "barocss-physics-stack-optimization-v1",
+  "candidate": 4,
+  "status": "SOURCE_ONLY_READY_NOT_EXECUTED",
+  "algorithm": "POSITIVE_CANONICAL_DENOMINATOR_CANCELLATION_DIV",
+  "files": {
+    "baselineSource": {
+      "path": "examples/physics-stack-library-2276/baseline/strict-line-opt03.ts",
+      "bytes": 15363,
+      "sha256": "c07b409b62dc5601b6d107861e4a1f6ff47f018c2731bef38e77aeea8d82adcd"
+    },
+    "newSource": {
+      "path": "packages/barocss-physics/src/stack/strict-line.ts",
+      "bytes": 15859,
+      "sha256": "0e4faf8299621c0dd92a69731ee21b4fa47104aade51b81a762c3d8ed98d284b"
+    },
+    "contract": {
+      "path": "examples/physics-stack-library-2276/OPTIMIZATION-04-CONTRACT.md",
+      "bytes": 6723,
+      "sha256": "b4227c3d34d2475a5595c480f6bdeaafddf2688d87325d6651edc185ad9e3697"
+    },
+    "originalProvenance": {
+      "path": "packages/barocss-physics/src/stack/PROVENANCE.json",
+      "bytes": 11389,
+      "sha256": "0ba21dcba3bfb56d07c300282ad00bd06515a682ad80edaf3ef2e4a093a161d2"
+    },
+    "priorOptimization": {
+      "path": "packages/barocss-physics/src/stack/OPTIMIZATION-03.json",
+      "bytes": 3165,
+      "sha256": "7850024dfb3dabe6ad3a99dc24be897397ba67e2318eedb98cdf44fdcc4abfab"
+    },
+    "actualOpt03Native": {
+      "path": "examples/physics-stack-library-2276/evidence/runtime-opt03-01/canonical-provider/dist/stack/strict-line.js",
+      "bytes": 15346,
+      "sha256": "584bc66a9d301aeeb24564edd1844df7bb4fc1d5ca1d3bad19237653c1d6eaa6"
+    },
+    "actualOpt03FailureReceipt": {
+      "path": "examples/physics-stack-library-2276/evidence/runtime-opt03-01/ALIGNED-result.json",
+      "bytes": 1114,
+      "sha256": "89fbff2288afaeb8b0de43ee165142fd65df49201afa9d5bdf78bb08eaae932c"
+    }
+  },
+  "change": {
+    "shippingFiles": [
+      "packages/barocss-physics/src/stack/strict-line.ts"
+    ],
+    "changedMethod": "Arithmetic.div_ONLY",
+    "rationalOp": "FIRST_UNCHANGED",
+    "fastPathGuard": "a.d>0_and_b.d>0_and_b.n!=0",
+    "existingFailureGuard": "guardCached_BEFORE_FAST_RETURNS_WITH_NO_FAKE_CHARGE",
+    "equalDenominator": "make(a.n,b.n)",
+    "firstDivisibility": "make(a.n,multiply(checked(a.d/b.d),b.n))",
+    "converseDivisibility": "make(multiply(checked(b.d/a.d),a.n),b.n)",
+    "zeroDivisorNonpositiveOrNeither": "ORIGINAL_TWO_PRODUCT_FALLBACK",
+    "remainderAndIntegerDivisionUnitPrice": 1,
+    "scaledProduct": "EXISTING_CHECKED_MULTIPLY_BEFORE_MAKE",
+    "allOtherSource": "EXACT_SOURCE_TEXT_UNCHANGED",
+    "capsPricesGcdMultiplyCacheOrToleranceChanges": false,
+    "actualCountersMayDiffer": true,
+    "universalResourceRefusalParity": false
+  },
+  "qualification": {
+    "fixedArithmeticCases": 26,
+    "existingBoundaryCases": 19,
+    "authorArithmeticCalls": 0,
+    "authorHelperCalls": 0,
+    "authorCompilerCalls": 0,
+    "actualArithmeticTests": "NOT_RUN",
+    "actualBoundaryTests": "NOT_RUN",
+    "actualPhysicalPrefixes": "NOT_RUN",
+    "runtimeDiagnostic": "NOT_RUN",
+    "fullP4": "BLOCKED",
+    "resourceQualification": false,
+    "publicAdmissionChanged": false
+  }
+}

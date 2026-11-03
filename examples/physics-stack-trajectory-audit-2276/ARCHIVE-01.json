@@ -1,0 +1,93 @@
+{
+  "status": "LOSSLESS_SAVED_QUALITY_ARCHIVE_VERIFIED",
+  "dependency": "runtime-opt04-01 raw streams and actual canonical provider preserved in library DELTA-03; no runtime resimulation",
+  "archives": {
+    "SOURCE-01.tar.gz": {
+      "bytes": 6037,
+      "sha256": "403bc58088e9ae58723a9cd8cdeef3cd3e214499bb232bc2ad9a365992f7ee12",
+      "members": [
+        {
+          "path": "examples/physics-stack-trajectory-audit-2276/audit.py",
+          "bytes": 8828,
+          "sha256": "e0fe0870a78f9cb16865df48b27fdd3e7ccdd6a660a2aa6a231de7544dd1bae2"
+        },
+        {
+          "path": "examples/physics-stack-trajectory-audit-2276/CONTRACT.md",
+          "bytes": 2658,
+          "sha256": "790f5c1dc3702db10b2745ac949181ee8bfceab024751406911a39bddbf964d7"
+        },
+        {
+          "path": "examples/physics-stack-trajectory-audit-2276/RESULTS.md",
+          "bytes": 3118,
+          "sha256": "38fd85ddac374bd1bcf8e8709aa9366b1437fdec854380a349abef29eb2d2d68"
+        }
+      ]
+    },
+    "PROOF-01.tar.gz": {
+      "bytes": 421161,
+      "sha256": "16b4208aa0c12fab7218fc3c7d0d88b10db18a205270b3636c85905b12d2237c",
+      "members": [
+        {
+          "path": "examples/physics-stack-trajectory-audit-2276/evidence/audit-01/ALIGNED-quality.jsonl",
+          "bytes": 780523,
+          "sha256": "ff71dd90a22e46bdd95c7afe035ece2ab5a3fedb0840b4f7313d9c6843c73811"
+        },
+        {
+          "path": "examples/physics-stack-trajectory-audit-2276/evidence/audit-01/OFFSET-quality.jsonl",
+          "bytes": 780530,
+          "sha256": "7d1cda1150d6d4070b67700dc0cf2228c57e3ba9686c27df02c45b15587bdfaf"
+        },
+        {
+          "path": "examples/physics-stack-trajectory-audit-2276/evidence/audit-01/YAW-quality.jsonl",
+          "bytes": 779399,
+          "sha256": "9e1312f7bb24223656d5c1e501a96a8bf5d1e06cbfcbd86dae1b6626bd339a5d"
+        },
+        {
+          "path": "examples/physics-stack-trajectory-audit-2276/evidence/audit-01/inputs-after.json",
+          "bytes": 9157,
+          "sha256": "1ae13780fc631b654ed8a2cd1f121f5e4a465f097047d3991b5192cac8ba0b38"
+        },
+        {
+          "path": "examples/physics-stack-trajectory-audit-2276/evidence/audit-01/inputs-before.json",
+          "bytes": 9157,
+          "sha256": "1ae13780fc631b654ed8a2cd1f121f5e4a465f097047d3991b5192cac8ba0b38"
+        },
+        {
+          "path": "examples/physics-stack-trajectory-audit-2276/evidence/audit-01/result.json",
+          "bytes": 3590,
+          "sha256": "24384657c14727f56f172f7ac2ca488410a064c53d60eb38b35464d659aced7e"
+        },
+        {
+          "path": "examples/physics-world-p5-2276/evidence/stack-trajectory-audit-01/prepared.json",
+          "bytes": 1563,
+          "sha256": "e591cabf969b83cab3988bca203e2aaa8f18c266e872bf3c718660fa94034f2a"
+        },
+        {
+          "path": "examples/physics-world-p5-2276/evidence/stack-trajectory-audit-01/progress.json",
+          "bytes": 1661,
+          "sha256": "a74f665255d7df956b1972eae2cb4a99d3ebcc782706885af60ed1caf8faea82"
+        },
+        {
+          "path": "examples/physics-world-p5-2276/evidence/stack-trajectory-audit-01/result.json",
+          "bytes": 3076,
+          "sha256": "202ceb8c41619b4f22954d71fbee763d9ac8e33725fdd0f3f11659d6b363c82f"
+        },
+        {
+          "path": "examples/physics-world-p5-2276/evidence/stack-trajectory-audit-01/start.json",
+          "bytes": 1585,
+          "sha256": "5584944381339a707ec5106cf6237814b1e9b3db0961cc724d110cde68b50310"
+        },
+        {
+          "path": "examples/physics-world-p5-2276/evidence/stack-trajectory-audit-01/stderr.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "examples/physics-world-p5-2276/evidence/stack-trajectory-audit-01/stdout.raw",
+          "bytes": 119,
+          "sha256": "023701969acc6e689cdbc64d615d4cb021253c79b990602995bda7b9ac79617e"
+        }
+      ]
+    }
+  }
+}
