@@ -34,7 +34,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "P4 cost remains NO_GO. Entry-invariant and bounded-codec candidates passed G0/A10/B6 (codec also U0), then ended on fixed cost gate. D0 diagnostic output identical; new dyadic integer-matrix algorithm authoring. Original1200/API/desktop NOT_RUN.",
+  "active": "P4 still NO_GO. Integer-matrix candidate passes freshG0/U0/A10/B6, then ENDED on cost812273000ns>695832300ns. New complete-reference algorithm/execution review is READ_ONLY. Original1200/World/API/desktop NOT_RUN.",
   "progressMethod": "Prior5of9boundedmilestones retained as historicalqualifications; newcontact-schema delta requiresseparateP0/P1/P2/P5outputrequalification. No weightedpercent orwhole-enginePASS.",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
@@ -1396,7 +1396,7 @@
     "retiredEligibility": "UNCHANGED_ENDED"
   },
   "nextIntegerPositionWitness": {
-    "status": "AUTHORING_NOT_EXECUTED",
+    "status": "ENDED_NUMERICAL_PASS_COST_NO_GO",
     "scope": "Unit-mass global dyadic integer KKT proof; same immutable GCD/codec/position/physical banks",
     "gates": [
       "independent math review",
@@ -1410,5 +1410,305 @@
     "original1200Steps": "NOT_RUN",
     "publicAPI": "NOT_RUN",
     "desktop": "NOT_RUN"
+  },
+  "latestIntegerPositionWitness": {
+    "status": "FRESH_G0_U0_A10_B6_NUMERICAL_PASS_COST_NO_GO_ENDED",
+    "sourceFiles": 182,
+    "A": {
+      "candidateChecksAttempted": 10,
+      "candidateRepliesRetained": 10,
+      "independentChecksAttempted": 10,
+      "independentChecksPassed": 10,
+      "freshFullWrapperCommands": 0,
+      "fullFramesVerified": 0,
+      "costDecisions": 0,
+      "WorldCalls": 0,
+      "baselineReruns": 0
+    },
+    "B": {
+      "candidateChecksAttempted": 0,
+      "candidateRepliesRetained": 0,
+      "independentChecksAttempted": 6,
+      "independentChecksPassed": 6,
+      "freshFullWrapperCommands": 1,
+      "fullFramesVerified": 6,
+      "costDecisions": 1,
+      "WorldCalls": 0,
+      "baselineReruns": 0
+    },
+    "cost": {
+      "parentCoreCpuNs": 557970000,
+      "childLifetimeCpuNs": 254303000,
+      "conservativeEnvelopeCpuNs": 812273000,
+      "costBoundaryIdenticalToSavedBaseline": false,
+      "savedBaselineCoreCpuNs": 773147000
+    },
+    "thresholdCpuNs": 695832300,
+    "firstFailure": {
+      "cursor": "one-cost-decision",
+      "type": "CostGate",
+      "message": "CONSERVATIVE_NATIVE_CPU_ENVELOPE_EXCEEDS_FIXED_695832300NS_GATE"
+    },
+    "maxProofPrimitives": 356696,
+    "wrapperFrames": [
+      {
+        "caseId": "ALIGNED-1",
+        "scene": "ALIGNED",
+        "step": 1,
+        "fullReplyFile": "ALIGNED-1-reply.json",
+        "kernelReplyFile": "ALIGNED-1-kernel.json",
+        "fullReplyPin": {
+          "bytes": 281343,
+          "sha256": "fe7dd83b2145c7a412295c441d745199c5b0c0ccb82ae573a28d67c803b6ca44"
+        },
+        "kernelReplyPin": {
+          "bytes": 4315,
+          "sha256": "caa61431a5f0ff2978c750dd3fe4cec85d13dfcacb20a5667cb4f12aae2f8efd"
+        },
+        "modelExactFile": "ALIGNED-1-model-exact.json",
+        "modelExactPin": {
+          "bytes": 6021,
+          "sha256": "409ba22046bb295b6687254a409dd898690b3fa045036cd5eb69c758cc14f626"
+        },
+        "coreCpuNs": 66726000,
+        "compactCpuNs": 51251000,
+        "parentBridgeCpuNs": 4394000,
+        "legacyAdmissionCpuNs": 290000,
+        "legacyOuterCalls": {
+          "admissionCalls": 1,
+          "arithmeticInstances": 2,
+          "problemEquivalenceIntegerComparisons": 1848
+        },
+        "legacyOuterRetainedBytes": 438177,
+        "legacyOuterPostReplyRetainedBytes": 3261843,
+        "residualWorldCpuNs": 11081000
+      },
+      {
+        "caseId": "ALIGNED-16",
+        "scene": "ALIGNED",
+        "step": 16,
+        "fullReplyFile": "ALIGNED-16-reply.json",
+        "kernelReplyFile": "ALIGNED-16-kernel.json",
+        "fullReplyPin": {
+          "bytes": 367463,
+          "sha256": "fa82c20ebd9b604d57da874c6defceb4b99fb5c25eadfae05aaeeed521ae1dac"
+        },
+        "kernelReplyPin": {
+          "bytes": 59385,
+          "sha256": "57a36f0d85d64402c59e1b56237c2f2400197fbf4f8e6e80e5c14d596f56a528"
+        },
+        "modelExactFile": "ALIGNED-16-model-exact.json",
+        "modelExactPin": {
+          "bytes": 11997,
+          "sha256": "2de98f229f3af7eb9d8e130032ab42195caac1802d21a99e752248e143625904"
+        },
+        "coreCpuNs": 125469000,
+        "compactCpuNs": 108614000,
+        "parentBridgeCpuNs": 4590000,
+        "legacyAdmissionCpuNs": 304000,
+        "legacyOuterCalls": {
+          "admissionCalls": 1,
+          "arithmeticInstances": 2,
+          "problemEquivalenceIntegerComparisons": 1848
+        },
+        "legacyOuterRetainedBytes": 449687,
+        "legacyOuterPostReplyRetainedBytes": 3398085,
+        "residualWorldCpuNs": 12265000
+      },
+      {
+        "caseId": "OFFSET-1",
+        "scene": "OFFSET",
+        "step": 1,
+        "fullReplyFile": "OFFSET-1-reply.json",
+        "kernelReplyFile": "OFFSET-1-kernel.json",
+        "fullReplyPin": {
+          "bytes": 281435,
+          "sha256": "6323baa41096251ed5a1c2e1b2a671ba67763a0e4b52237542e50992d276d1f5"
+        },
+        "kernelReplyPin": {
+          "bytes": 4315,
+          "sha256": "caa61431a5f0ff2978c750dd3fe4cec85d13dfcacb20a5667cb4f12aae2f8efd"
+        },
+        "modelExactFile": "OFFSET-1-model-exact.json",
+        "modelExactPin": {
+          "bytes": 6021,
+          "sha256": "409ba22046bb295b6687254a409dd898690b3fa045036cd5eb69c758cc14f626"
+        },
+        "coreCpuNs": 63035000,
+        "compactCpuNs": 50541000,
+        "parentBridgeCpuNs": 2194000,
+        "legacyAdmissionCpuNs": 274000,
+        "legacyOuterCalls": {
+          "admissionCalls": 1,
+          "arithmeticInstances": 2,
+          "problemEquivalenceIntegerComparisons": 1848
+        },
+        "legacyOuterRetainedBytes": 437272,
+        "legacyOuterPostReplyRetainedBytes": 3260938,
+        "residualWorldCpuNs": 10300000
+      },
+      {
+        "caseId": "OFFSET-16",
+        "scene": "OFFSET",
+        "step": 16,
+        "fullReplyFile": "OFFSET-16-reply.json",
+        "kernelReplyFile": "OFFSET-16-kernel.json",
+        "fullReplyPin": {
+          "bytes": 366525,
+          "sha256": "c78ab87fe7de6dd0a417bde620bcf82fb82862524c04bc0f506d20b2a2a37a89"
+        },
+        "kernelReplyPin": {
+          "bytes": 59159,
+          "sha256": "c5b556ef9a9c53847f7a0a9d40c99259a2f837f8e5e260b5ccaf30eb28ee5c2d"
+        },
+        "modelExactFile": "OFFSET-16-model-exact.json",
+        "modelExactPin": {
+          "bytes": 12090,
+          "sha256": "fe32ea9206542dbdb5f9c8dad77a7649c7e0ffbb7af6517f237e51393ae29685"
+        },
+        "coreCpuNs": 113113000,
+        "compactCpuNs": 96232000,
+        "parentBridgeCpuNs": 4734000,
+        "legacyAdmissionCpuNs": 282000,
+        "legacyOuterCalls": {
+          "admissionCalls": 1,
+          "arithmeticInstances": 2,
+          "problemEquivalenceIntegerComparisons": 1848
+        },
+        "legacyOuterRetainedBytes": 446613,
+        "legacyOuterPostReplyRetainedBytes": 3394941,
+        "residualWorldCpuNs": 12147000
+      },
+      {
+        "caseId": "YAW-1",
+        "scene": "YAW",
+        "step": 1,
+        "fullReplyFile": "YAW-1-reply.json",
+        "kernelReplyFile": "YAW-1-kernel.json",
+        "fullReplyPin": {
+          "bytes": 281816,
+          "sha256": "800a558fe645df6c57358a503382ec9e668df0fecb1b60f056e64b99d0a377c6"
+        },
+        "kernelReplyPin": {
+          "bytes": 4315,
+          "sha256": "caa61431a5f0ff2978c750dd3fe4cec85d13dfcacb20a5667cb4f12aae2f8efd"
+        },
+        "modelExactFile": "YAW-1-model-exact.json",
+        "modelExactPin": {
+          "bytes": 6021,
+          "sha256": "409ba22046bb295b6687254a409dd898690b3fa045036cd5eb69c758cc14f626"
+        },
+        "coreCpuNs": 73507000,
+        "compactCpuNs": 60819000,
+        "parentBridgeCpuNs": 2181000,
+        "legacyAdmissionCpuNs": 285000,
+        "legacyOuterCalls": {
+          "admissionCalls": 1,
+          "arithmeticInstances": 2,
+          "problemEquivalenceIntegerComparisons": 1848
+        },
+        "legacyOuterRetainedBytes": 439965,
+        "legacyOuterPostReplyRetainedBytes": 3275487,
+        "residualWorldCpuNs": 10507000
+      },
+      {
+        "caseId": "YAW-16",
+        "scene": "YAW",
+        "step": 16,
+        "fullReplyFile": "YAW-16-reply.json",
+        "kernelReplyFile": "YAW-16-kernel.json",
+        "fullReplyPin": {
+          "bytes": 371435,
+          "sha256": "fd545f8be2a8448f582b371ed57466fb86c6855d9db61a5156e240c2c2c3344f"
+        },
+        "kernelReplyPin": {
+          "bytes": 60651,
+          "sha256": "459bc48617e680f7cf201418254ff59a70562e64ca61ed722d951e4dd4cf0a80"
+        },
+        "modelExactFile": "YAW-16-model-exact.json",
+        "modelExactPin": {
+          "bytes": 11959,
+          "sha256": "7ba33c2b626848057d40639b44a480c7f1e0786b6123b7195e37c49122095f07"
+        },
+        "coreCpuNs": 116120000,
+        "compactCpuNs": 98358000,
+        "parentBridgeCpuNs": 5189000,
+        "legacyAdmissionCpuNs": 284000,
+        "legacyOuterCalls": {
+          "admissionCalls": 1,
+          "arithmeticInstances": 2,
+          "problemEquivalenceIntegerComparisons": 1848
+        },
+        "legacyOuterRetainedBytes": 446198,
+        "legacyOuterPostReplyRetainedBytes": 3404288,
+        "residualWorldCpuNs": 12573000
+      }
+    ],
+    "worker": {
+      "protocol": "p4-native-witness-rpc-v1",
+      "workerStarts": 1,
+      "requestCalls": 6,
+      "workerClosed": true,
+      "exit": 0,
+      "pid": 42188,
+      "childCpuAuthority": "RESOURCE_RUSAGE_CHILDREN_DELTA_AFTER_CLOSE_AND_WAIT",
+      "childLifetimeCpuNs": 254303000,
+      "resourceBefore": {
+        "userSeconds": 0.0,
+        "systemSeconds": 0.0
+      },
+      "resourceAfter": {
+        "userSeconds": 0.24182599999999999,
+        "systemSeconds": 0.012477
+      },
+      "selfReportedChildCpuUsed": false,
+      "sentBytes": 41909,
+      "receivedBytes": 246724,
+      "parentTransportLimitBytes": 4194304,
+      "childTransportReservedBytes": 4194304,
+      "maxExplicitTransportReservedBytes": 1637084,
+      "stderrBytes": 0,
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "cleanupError": null,
+      "scope": "ONE_OWNED_NODE_WORKER_ONLY_NO_PROCESS_RSS_CLAIM"
+    },
+    "archivePins": {
+      "SOURCE-01.tar.gz": {
+        "bytes": 697717,
+        "sha256": "85a62c6acc1f264f23354724246ad414e3ef441423985ebad372a307be5f0da3"
+      },
+      "PROOF-01.tar.gz": {
+        "bytes": 327680,
+        "sha256": "10a3acb6411e28398ba622a73d441c8f6c29a3b2158802fa3633ba54c5468d81"
+      }
+    },
+    "original1200": "NOT_RUN",
+    "publicAPI": "NOT_RUN",
+    "desktop": "NOT_RUN",
+    "WorldCalls": 0,
+    "sealSetupAttempt": "Initial freeze argparse rejected missing three required flags before file creation or numerical work; corrected invocation sealed once.",
+    "acceptedKernelMetricMaxima": {
+      "translationDifferenceM": 2.148164124373243e-36,
+      "objectiveDifferenceKgM2": 3.8396260997499504e-22,
+      "certificateReportedDifference": 2.148164124373243e-36,
+      "marginReportedDifferenceM": 1.1102230246251565e-16,
+      "objectiveReportedDifferenceKgM2": 3.8396260997499504e-22,
+      "primalViolationM": 3.306385822763573e-38,
+      "negativeMultiplierKgM": 0,
+      "complementarityKgM2": 6.020453919619368e-40,
+      "stationarityKgM": 2.148164124373243e-36
+    },
+    "expectedMismatchControlMetricMaxima": {
+      "translationDifferenceM": 2.3283064365386963e-10,
+      "objectiveDifferenceKgM2": 3.8396260997499504e-22,
+      "certificateReportedDifference": 2.3283064365386963e-10,
+      "marginReportedDifferenceM": 2.3283064365386963e-10,
+      "objectiveReportedDifferenceKgM2": 1.5861590347820783e-13,
+      "primalViolationM": 2.3283064365386963e-10,
+      "negativeMultiplierKgM": 0,
+      "complementarityKgM2": 1.2689270079135273e-12,
+      "stationarityKgM": 2.3283064365386963e-10
+    },
+    "results": "examples/physics-p4-integer-witness-2276/RESULTS.md"
   }
 }

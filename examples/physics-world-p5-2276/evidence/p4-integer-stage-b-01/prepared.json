@@ -1,0 +1,45 @@
+{
+  "kind": "P5B_OWNED_COMMAND_GUARD",
+  "receiptId": "p4-integer-stage-b-01",
+  "censusId": "p4-integer-stage-b-01",
+  "status": "PREPARED",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+    "-B",
+    "examples/physics-p4-integer-witness-harness-2276/run.py",
+    "stage-b",
+    "stage-b-01",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/summary.json"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "inputs": {
+    "command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": null,
+  "spawnAt": null,
+  "pid": null,
+  "processGroupId": null,
+  "exit": null,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": null,
+  "processClosed": false,
+  "groupSignals": [],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/p4-integer-stage-b-01/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/p4-integer-stage-b-01/progress.json",
+  "errors": []
+}

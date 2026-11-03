@@ -69,10 +69,15 @@ The next order is:
    clause unchanged. See each candidate RESULTS.md. A single instrumented D0
    ALIGNED16 diagnostic preserved every output byte/counter; its57 samples
    locate GCD/bit/meter and rational KKT work, not an actual speed ratio.
-   The next distinct algorithm uses one dyadic integer matrix and final-only
-   canonical fraction reduction. Independent math review and freshG0/U0/A10/B6
-   remain required before its one cost decision. No baseline rerun or higher
-   limits are allowed. End it on cost NO_GO.
+   The distinct dyadic integer-matrix algorithm also passed freshG0/U0/A10/B6,
+   including full saved payload and all36 KKT checks, but ENDED on its one cost
+   NO_GO:557970000ns parent +254303000ns whole child =812273000ns, above
+   the same695832300ns gate. Its maximum proof work was356696 units. Accepted
+   translation error≤2.148164124373243e-36m and margin-report error
+   ≤1.1102230246251565e-16m pass the unchanged1e-12 gate. See
+   `examples/physics-p4-integer-witness-2276/RESULTS.md`. Next is read-only
+   complete-reference algorithm/integration review; no ended candidate retime
+   or higher limits. Original1200/World/API/desktop remain NOT_RUN.
    Do not resume ended support
    caches, Node-SAT or primitive-axis retunes. A subset speedup is not evidence
    that the full1200-step protocol fits180s.
