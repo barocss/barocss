@@ -1,0 +1,171 @@
+{
+  "work_id": "D482",
+  "status": "QUALIFIED_FULL_BOUNDED_TYPED_REFUSAL_RETAINED8_ACTUAL3",
+  "tier": "FULL_SHARED_PRISMATIC_BREP_GUARD",
+  "parentHead": "28881bb137c54de334ad9ff4e1e1b248ffa9ca97",
+  "proofState": "TWO_CAD_CANDIDATES_PLUS_FIVE_INDEPENDENT_VIEWER_WIP",
+  "sourcePins": {
+    "packages/barocss-cad/src/features/prismatic-solid.ts": "cfdcc7d863e7b021b592337b4964b639f7a70acbc70913d6da814fd58bcd39fd",
+    "packages/barocss-cad/test/curve-cut-pattern.test.mjs": "f3e2e825ff75d7a58f750e582bf6933fda95a2d418d7a05af50d4eafe8b460e2"
+  },
+  "PASS": {
+    "CADFullLintBuild": true,
+    "kernel": {
+      "tests": 2169,
+      "pass": 2167,
+      "fail": 0,
+      "skip": 2,
+      "durationSeconds": 980.783066833,
+      "skipBoundary": "TWO_EXISTING_GEAR_SURVEY"
+    },
+    "modelAffected": 12,
+    "studioAffectedUnique": 12,
+    "studioCorrectedCandidates": 5,
+    "studioReusedDirectCurve": 7,
+    "nativeControlOriginalPredicateMutation": true,
+    "StudioTSC": true,
+    "finalModelTSC": "AFTER_LAST_VIEWER_TEST_EDIT",
+    "actualGroups": 3
+  },
+  "FAIL_PRESERVED": {
+    "D481": "ACTUAL_ACCEPTED6_STRICT_NATIVE_POSTCONDITION_TWO_CAP_SELFTOUCH",
+    "primaryD482": "FIVE_STUDIO_ENOENT_ROOT_WRONG_CWD_BEFORE_GEOMETRY_ASSERTIONS",
+    "primaryAggregate": "FAIL_NOT_RELABELLED_PASS"
+  },
+  "NOT_RUN": [
+    "HEALED_MANIFOLD6_SOLID",
+    "OTHER_GEOMETRY_VARIANTS",
+    "FULL_MUTANT_TEST_SUITE",
+    "EXPORT",
+    "BROWSER_RESTART",
+    "CI_RELEASE",
+    "MOBILE_OWNER_RULE"
+  ],
+  "guard": {
+    "from": ">0.5",
+    "to": ">=0.5",
+    "requiresDuplicateCapVertexIDs": true,
+    "materialProbes": 16,
+    "observedMaterialCount": 8,
+    "samplerRadiusToleranceStrictIDsChanged": false,
+    "universalContactClassifier": false,
+    "nativeCode": "GEOMETRY",
+    "existingFacadeCode": "EVALUATION"
+  },
+  "actual": {
+    "command": "bash /tmp/barocss-d482-root/run-studio01.sh",
+    "configSHA256": "1a200b1410d73c17b35230db5213df54551162601ce7a6e24550864461a35cbb",
+    "input": "/tmp/barocss-d481-repro-run01/01-public-Open-spacing8.bcad",
+    "inputSHA256": "d4a5c90325944f10c5ac20de9229466e0d7db6130a26e7b0dbb4de5121e1636a",
+    "groups": [
+      "OPEN8_CURRENT_NATIVE_WORKER",
+      "PUBLIC6_ATOMIC_REFUSAL_EXACT_DOC_HISTORY8_RETENTION",
+      "OWN_SAVE_CLOSE_RELOAD_OPEN8"
+    ],
+    "nativeCaptures": 1,
+    "exactDocReuses": 2,
+    "freshPythonWorkerBindings": 3,
+    "geometry6PassClaim": false,
+    "volumeAbsoluteErrorMaximum": 2.9103830456733704e-11,
+    "volumeRelativeErrorMaximum": 1.2332131549463435e-15,
+    "centroidAbsoluteErrorMaximum": 5.684341886080802e-14,
+    "remainingPhysicalErrorMaximum": 0,
+    "workerVolumeRelativeAndCentroidErrorMaximum": 0,
+    "budgetsChanged": false,
+    "rootReviewedImages": 6,
+    "fullPreviewFit": "NOT_MEASURED_PALETTE_PARTLY_OCCLUDES",
+    "preQualificationOpenImage": "TRANSIENTLY_EMPTY_FINAL_QUALIFIED_IMAGE_RETAINS_PLATE"
+  },
+  "custody": {
+    "wrapperPins": 2498,
+    "helperPins": 2499,
+    "sourceEqual": true,
+    "ownPID": 59118,
+    "ownPIDAbsent": true,
+    "projectNamespace": "D482-path-run01_REMOVED_AND_ABSENT",
+    "contextBrowserServer": "CLOSED",
+    "gateFreeze": "RELEASED",
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "watchedChanges": 0
+  },
+  "evidence": {
+    "capsule": {
+      "path": "/tmp/barocss-d482-correction01/manifest.json",
+      "sha256": "27a19e2ad8d51cbfea882a1a28b3e0ec4ed96472db5e0f045db6b11dfdfcc584",
+      "status": "SEALED_ARRAY15"
+    },
+    "applied": {
+      "path": "/tmp/barocss-d482-correction01/applied-receipt.json",
+      "sha256": "b7bf91a1548fff9c7ce2d82558441b95457c827249b6320ccc4312b7683e40f8",
+      "status": "EXACT_TWO_FILES"
+    },
+    "primary": {
+      "path": "/tmp/barocss-d482-checks01/receipt.json",
+      "sha256": "069711c6ce975615897e65235c58f59d14a7e6c33c6d66038d7d6e9a4a50d711",
+      "status": "FAIL_ONLY_STUDIO_CWD_FULL_KERNEL_PASS"
+    },
+    "primaryRootReview": {
+      "path": "/tmp/barocss-d482-root/checks01-review.json",
+      "sha256": "141ad8f3a22ec9433e4c71ff879278ea3ceaa063e75d8db8a11c48820aaadd6b",
+      "status": "SOURCE_CUSTODY_PASS_ORIGINAL_FAILURE_RETAINED"
+    },
+    "highPrimary": {
+      "path": "/tmp/barocss-d482-correction01/high-primary-checks01-review.json",
+      "sha256": "da4e5ebd0ef3bdce44f1a650515b646c6d9132d4a102062e461756c12d393632",
+      "status": "ACCEPT_FULL_KERNEL_TANGENCY_ASSERTIONS"
+    },
+    "continuation": {
+      "path": "/tmp/barocss-d482-checks02/receipt.json",
+      "sha256": "41b063862f5ab71c5ffa090b30aa133bcbc06d6584d623cfa9f7744692c847a7",
+      "status": "PASS_EIGHT_COMMANDS"
+    },
+    "finalChecks": {
+      "path": "/tmp/barocss-d482-root/final-checks01.json",
+      "sha256": "33110a960e2155a2a34dad0eb1ff0896a219d8ed0b5e651551aa7a2515a4a440",
+      "status": "PASS_FINAL_SCOPED_AGGREGATE"
+    },
+    "nativeMutation": {
+      "path": "/tmp/barocss-d482-checks02/independent-native-refusal-oracle.log",
+      "sha256": "3596463c640c91d4e2a46f183d1fad7a4faed399f33df8123bf97c3fcb4f61df",
+      "status": "PASS_CONTROL_AND_ORIGINAL_PREDICATE_NEGATIVE_CONTROL"
+    },
+    "highNativeMutation": {
+      "path": "/tmp/barocss-d482-correction01/high-native-mutation-review01.json",
+      "sha256": "7af1ccb2f9da3340024054c271f81af6cf4251244df7645904694c2382051744",
+      "status": "ACCEPT_EXACT_NATIVE_SOURCE_BOUNDARY"
+    },
+    "actual": {
+      "path": "/tmp/barocss-d482-workflow-run01/receipt.json",
+      "sha256": "5e31c7144639e4ff01ced8c713d55550a6de91c6018da9a6c5e4d80bcfbe9f41",
+      "status": "PASS_THREE_GROUPS"
+    },
+    "rootActual": {
+      "path": "/tmp/barocss-d482-root/actual01-review.json",
+      "sha256": "99d4a0a3251f8eec4cbec1d5f52df868d6dfda3787f5f5272a1b76ffb551edef",
+      "status": "PASS_CUSTODY_IMAGES_SOURCE_EQUAL"
+    },
+    "highFinalActual": {
+      "path": "/tmp/barocss-d482-correction01/high-final-actual01-review.json",
+      "sha256": "484011aaf249edd238285d0705e4b8b102dc50fa907b6399e9fae530685ca9d6",
+      "status": "ACCEPT_D482_ACTUAL_THREE_RETAINED8_BINDINGS",
+      "savedDataOnly": true
+    }
+  },
+  "roadmap": {
+    "priority": "C2",
+    "rows": [
+      "08",
+      "16",
+      "30"
+    ],
+    "issue534": "OPEN_NOT_ALL_CRITERIA_MET",
+    "core": "NOT_MEASURED",
+    "legacy43": "FROZEN",
+    "D476History": "UNCHANGED",
+    "PDF": "OWNER_DEFERRED",
+    "holds": "UNCHANGED",
+    "next": "D483_CURRENT_SOURCE_JSX_EXISTING_VIEWER_REPLAY_THEN_PROFILE_DETAIL_SEAM"
+  }
+}

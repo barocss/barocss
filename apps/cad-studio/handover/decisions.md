@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D482: refuse the exact non-manifold contact at the existing half-circle guard; full-kernel and three actual refusal/retention/project groups pass](notes/vertical-contact-refusal-2026-11-04/README.md).
+
 - [D481: reproduce the accepted curve-spacing6 strict-native failure in actual Studio; retain first FAIL and physical/current-Worker proof boundaries before correction](notes/curve-contact-admission-2026-11-04/README.md).
 
 - [D480: extract ten unchanged transform/pattern cases with private runtime ownership; bounded parity and one eight-checkpoint retained linear profile pass, with a matched curve limitation recorded](notes/part-transform-extraction-2026-11-03/README.md).

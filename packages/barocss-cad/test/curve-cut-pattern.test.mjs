@@ -36,7 +36,7 @@ const refused = (doc, code, message) => assert.throws(() => evaluateCadPart(doc)
 const facadeRefused = (run, code) => assert.throws(run, e => e instanceof BarocssError && e.code === code);
 function geometry(snapshot, { expectedOffsets = offsets, seedX = 8, width = 4, stockVolume = 24000 } = {}) {
   assert.equal(snapshot.outputs.length, 1);
-  const out = snapshot.outputs[0], report = checkBrep(out.brep);
+  const out = snapshot.outputs[0], report = checkBrep(out.brep, { strict: true });
   assert.equal(out.bodyCount, 1);
   assert.equal(out.brep.bodies[0].kind, 'solid');
   assert.equal(report.valid, true, report.issues.join('\n'));
@@ -78,13 +78,11 @@ test('path cut: native quadratic line spans and translated/nonuniform parameteri
   }
 });
 
-test('path cut: source, spacing, count and path edits recompute without stale cache or renamed cuts', () => {
+test('path cut: source, count and path edits recompute without stale cache or renamed cuts', () => {
   const input = document(), before = structuredClone(input), accepted = evaluateCadPart(input), acceptedBefore = structuredClone(accepted.document);
   const original = names(geometry(accepted));
   assert.deepEqual(names(geometry(reevaluate(accepted, { parameters: { seedX: 10 } }), { seedX: 10 })), original);
   assert.deepEqual(names(geometry(reevaluate(accepted, { parameters: { width: 3 } }), { width: 3 })), original);
-  const shorter = [[0, 0], [6, 0], [12, 0], [16, 2], [16, 8]];
-  assert.deepEqual(names(geometry(reevaluate(accepted, { parameters: { spacing: 6 } }), { expectedOffsets: shorter })), original);
   const changed = document(); changed.features.at(-1).path.controlPoints[1][0] = 24; changed.features.at(-1).path.controlPoints[2][0] = 24;
   assert.deepEqual(names(geometry(evaluateCadPart(changed), { expectedOffsets: [[0, 0], [8, 0], [16, 0], [24, 0], [24, 8]] })), original);
   geometry(evaluateCadPart(document({ count: 3 })), { expectedOffsets: offsets.slice(0, 3) });
@@ -93,8 +91,27 @@ test('path cut: source, spacing, count and path edits recompute without stale ca
   const source = part('edits', input), sourceBefore = source.doc;
   facadeRefused(() => source.withParameters({ spacing: 9 }), 'PARAMETER');
   assert.deepEqual(source.doc, sourceBefore);
-  geometry(evaluateCadPart(source.withParameters({ spacing: 6 }).doc), { expectedOffsets: shorter });
   facadeRefused(() => part('count binding', seedDocument()).curveFeaturePattern({ path: path(), spacing: 8, count: param('count') }), 'PARAMETER_UNBINDABLE');
+});
+
+test('path cut: diagonal cavity contact is refused before changing the accepted snapshot or facade', () => {
+  // Spacing6 puts cuts2/3 at [20,24]x[8,10] and [24,28]x[10,12]. Their common vertical line
+  // has two opposite right-angle material sectors: correct volume cannot make this a manifold solid (D481/D482).
+  const accepted = evaluateCadPart(document()), before = structuredClone(accepted.document), brepBefore = structuredClone(accepted.outputs[0].brep);
+  const candidate = structuredClone(before); candidate.parameters.spacing = 6;
+  const candidateBefore = structuredClone(candidate), reason = /touches itself along the vertical line at \(24,10\)/;
+  const nativeRefusal = e => e.code === 'GEOMETRY' && reason.test(e.message);
+  assert.throws(() => evaluateCadPart(candidate), nativeRefusal);
+  assert.deepEqual(candidate, candidateBefore);
+  assert.throws(() => reevaluate(accepted, { parameters: { spacing: 6 } }), nativeRefusal);
+  assert.deepEqual(accepted.document, before);
+  assert.deepEqual(accepted.outputs[0].brep, brepBefore);
+  geometry(reevaluate(accepted, { parameters: {} }));
+  const source = part('contact refusal', before), sourceBefore = source.doc;
+  // The existing facade maps a final-output BrepError to EVALUATION; no new refusal mapping is introduced.
+  assert.throws(() => source.withParameters({ spacing: 6 }), e => e instanceof BarocssError && e.code === 'EVALUATION' && reason.test(e.message));
+  assert.deepEqual(source.doc, sourceBefore);
+  geometry(evaluateCadPart(source.doc));
 });
 
 test('path cut: count one is an identity that still validates the path; copy and native curve caps remain bounded', () => {

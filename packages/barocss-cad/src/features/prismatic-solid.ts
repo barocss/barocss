@@ -341,7 +341,8 @@ export function brepFromPrismatic(solid: PrismaticSolid, options: { readonly id?
     if (!f.cap) continue;
     const at = new Map<number, Set<string>>();
     for (const l of f.loops) for (const u of l.uses) { const p = Number(u.start.split('_')[0]), ids = at.get(p) ?? new Set<string>(); ids.add(vertexOf(u.start, u.startRoot!)); at.set(p, ids); }
-    for (const [p, ids] of at) if (ids.size > 1 && materialAround(f.cap.region, P[p], rho) > 0.5)
+    // Opposite right-angle sectors occupy exactly half the probe circle and still pinch along the line (D482).
+    for (const [p, ids] of at) if (ids.size > 1 && materialAround(f.cap.region, P[p], rho) >= 0.5)
       throw new BrepError('GEOMETRY', `the solid touches itself along the vertical line at (${P[p].map(x => +x.toFixed(4))}): two of its walls meet there from outside each other`);
   }
 
