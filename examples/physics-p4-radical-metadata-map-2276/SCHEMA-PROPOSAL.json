@@ -1,0 +1,72 @@
+{
+  "status": "READ_ONLY_CLOSED_SCHEMA_PROPOSAL_ROOT_REVIEW_REQUIRED",
+  "positionRecordRanges": {
+    "phase": [
+      "prePairs",
+      "hypPairs"
+    ],
+    "pairIndex": [
+      0,
+      35
+    ],
+    "numericField": [
+      "rawMarginM",
+      "normalizedMarginM",
+      "rawDepthM",
+      "normalizedDepthM",
+      "rawNormalizedMarginDifferenceM",
+      "rawNormalizedDepthDifferenceM"
+    ],
+    "convention": [
+      "raw",
+      "normalized"
+    ],
+    "axisIndex": [
+      0,
+      14
+    ]
+  },
+  "newCertificateKey": "satCertificateV3",
+  "newCertificateProtocol": "p4-compact-direct-grid-v1",
+  "newEnclosureAlgorithm": "DIRECT_SCALED_MARGIN_QUOTIENT_ISQRT_MINIMAL_GRID",
+  "newFullProtocolProposal": "p4-position-witness-direct-grid-v3",
+  "fullProtocolStatus": "PROPOSED_ROOT_MUST_CONFIRM",
+  "changedEnclosureLeaves": [
+    "low",
+    "high",
+    "precision"
+  ],
+  "newTagKey": "enclosureAlgorithm",
+  "derivedProofDiagnostic": "/metrics/maxCertifiedSatWidthM",
+  "unchangedInsideRenamedCertificate": [
+    "numericIntervals/{F}/word",
+    "raw/**",
+    "normalized/**",
+    "physicalGates/**",
+    "absoluteIntervalWidthLimitM",
+    "axisArithmetic",
+    "omittedLegacyField",
+    "oldDecimalRuns",
+    "exactWinnerUsedForScalarSelection",
+    "scalarCandidateAxes"
+  ],
+  "wildcardMeaning": "STRUCTURAL_CLASSIFICATION_ONLY_NEVER_A_RUNTIME_DELETE_OR_OMISSION",
+  "default": "EXACT_ALL_SAVED_LEAVES_AND_KEYSETS_UNKNOWN_NEW_FIELDS_FAIL",
+  "precisionTable": [
+    64,
+    128,
+    256,
+    512,
+    1024,
+    2048
+  ],
+  "widthLimitExact": "1e-25",
+  "physicalGate": "EXACT_REPRESENTED_BINARY64_1e-12",
+  "scalarWinnerIsolation": "UNCHANGED_SCALAR_CODE_EXACT_WINNER_NOT_USED_FOR_SELECTION",
+  "fullBackend": "PYTHON_COMPACT_NEW_INTERVAL_ONLY_UNCHANGED_INTEGER_NODE_PROOF_SIX_RPC",
+  "phase3Authorization": "ONLY_AFTER_PURE17_PASS_AND_ROOT_MAP_REVIEW",
+  "costGateNs": 695832300,
+  "costRuns": 1,
+  "oldKktCostStatus": "UNCHANGED_ENDED_IDENTICAL_MATH_COMPONENT_REUSE_ONLY",
+  "newCertificateValidator": "REQUIRED_NEW_OWNED_SOURCE_NO_EDIT_TO_OLD_CHECKERS"
+}

@@ -1,0 +1,148 @@
+{
+  "status": "SOURCE_VIEW_AND_SAVED_RECEIPT_DATA_ONLY",
+  "inputs": {
+    "examples/physics-stack-next-2276/COMPLETE-COST-INPUTS.md": {
+      "bytes": 2617,
+      "sha256": "89160154ed59d064cb1e47226b6d07100d37c5f00778d239ecae10e965c52cc0"
+    },
+    "examples/physics-stack-next-2276/NEXT-DEPENDENCY.md": {
+      "bytes": 7253,
+      "sha256": "329692f7ae911c0ccb22053eb1f5772484955cc794363bf78ae57b6ad32dddbf"
+    },
+    "examples/physics-contact-boundary-2276/evidence/world-source-03/world-consumer-graph.json": {
+      "bytes": 7797,
+      "sha256": "ca5c53975a2e480e93eba4cf3c6b9b85cad81837f5f70e575e7118cebad87af1"
+    },
+    "examples/physics-contact-boundary-2276/evidence/world-emitted-01/world-consumer-graph.json": {
+      "bytes": 9130,
+      "sha256": "d59e020d69cf8ebe35786cdb4b6a506f638a9b3a91734cafb8aac7ab2a9d7504"
+    },
+    "examples/physics-contact-boundary-2276/evidence/world-source-03/world-result.json": {
+      "bytes": 5301,
+      "sha256": "ab4bfbd942b2432b0a207559f493fba61c567476e9b565871cb8fff72edff0f0"
+    },
+    "examples/physics-contact-boundary-2276/evidence/world-emitted-01/world-result.json": {
+      "bytes": 5301,
+      "sha256": "d254c76f7c833dd0b15efa647a7e00a6d04d2675b918c5bc0663d4662a26d356"
+    },
+    "examples/physics-contact-boundary-2276/evidence/world-source-03/admission.json": {
+      "bytes": 238,
+      "sha256": "fa67de22645ef76487c497126c34e1112a3e244ac5e55e76b699d4223b035faa"
+    },
+    "examples/physics-contact-boundary-2276/evidence/world-source-03/velocity-transform.json": {
+      "bytes": 633,
+      "sha256": "73115bef07a40772c489b1e8e8e673a14184c2fba7b42d04dc97fe947224dcae"
+    },
+    "examples/physics-contact-boundary-2276/world-consumer.mjs": {
+      "bytes": 10504,
+      "sha256": "106c4c9b14f3e3b8268538409782d6b0124f806fa2363ae638a114872c77e316"
+    },
+    "examples/physics-contact-boundary-2276/world-entry.ts": {
+      "bytes": 424,
+      "sha256": "18f3c8f42c552d3bf7dc080aaae6bc0d71535dfa6c271e959fbc6491e32d36fd"
+    },
+    "examples/physics-contact-boundary-2276/run.mjs": {
+      "bytes": 12303,
+      "sha256": "50086800ac991ffcbed547df17ecfe8e1042680c9da3144d49425fd68dd54da4"
+    },
+    "examples/physics-contact-boundary-2276/step-observation.mjs": {
+      "bytes": 862,
+      "sha256": "80f8f0f8a3acb53f223a8078d71a55b0f6edd72df746b08cd5401133c039f7f7"
+    },
+    "examples/physics-stack-solver-2276/world-adapter.ts": {
+      "bytes": 12000,
+      "sha256": "43904b7f32f2ea3c5587c33c77048cd2002f1fa47797daf81e5fc42177e9bbdd"
+    },
+    "examples/physics-stack-solver-2276/trajectory-reference.py": {
+      "bytes": 6575,
+      "sha256": "f2c1850b193a14944de657848d065c461e3ff2440e9e9bf452b6d24519af0ea0"
+    },
+    "examples/physics-stack-solver-2276/trajectory-errors.mjs": {
+      "bytes": 544,
+      "sha256": "8e5b820c495fc439cc9501b258a1390f8b8d7e976b6ed8c7334de38b104c7bbf"
+    },
+    "examples/physics-rigid-full-pair-position-world/reference.py": {
+      "bytes": 23351,
+      "sha256": "89caf6850b49a77713c7776df9fedd200ecbe1f426ec3cdae6165cc9bf48b58c"
+    },
+    "examples/physics-rigid-full-pair-position-world/reference-world.ts": {
+      "bytes": 19731,
+      "sha256": "671da74d216905c94592e4b7ecae488ea35d4db926108779c38a8c26d3b1d33e"
+    },
+    "examples/physics-rigid-full-pair-position-world/archive.mjs": {
+      "bytes": 2261,
+      "sha256": "79591e398cf859b7f9348990d39a048392453ac36ea8d805bf5091985ffba40c"
+    },
+    "examples/physics-rigid-contact-diagnostic/observer.mjs": {
+      "bytes": 1044,
+      "sha256": "85b3e216b28ec12511f8fc7262f96c3e050eeccd32b588d154797083ed795a98"
+    },
+    "examples/physics-rigid-contact-reference/geometry-reference.py": {
+      "bytes": 23429,
+      "sha256": "2c8bc7f6cd809e865c986a859b8614c963c4862296920555eb31c9487411af26"
+    },
+    "examples/physics-rigid-contact-reference/fixtures.mjs": {
+      "bytes": 909,
+      "sha256": "ca760b2945d246de1e2f32cb4763ef58bf95e87422b6d4545682c20abb3a1ac0"
+    },
+    "examples/physics-world-p4-2276/cost-profile.json": {
+      "bytes": 4301,
+      "sha256": "93ae1f85ac9a0812d8edec84a9b6847c2596592b3f145d0bbae5f72df1dd3d7e"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/summary.json": {
+      "bytes": 59236,
+      "sha256": "be2317e3160da6ac961b7e4ec7e0bbddd20133947bc536c3de955691d9df80cb"
+    },
+    "examples/physics-world-p4-2276/evidence/cost-census-01/summary.json": {
+      "bytes": 8319,
+      "sha256": "bf65e7fadf3b87f6f80cfac4f1f05bd5fb9f4462fcf0947aaa3a19125bf44357"
+    },
+    "examples/physics-p4-node-sat-2276/RESULTS.md": {
+      "bytes": 2751,
+      "sha256": "03cd65b17a7d64163aed64376ba199a5b0622acaf34ed42ada92f35458d3f245"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-b-01/full-bank/summary.json": {
+      "bytes": 6930,
+      "sha256": "43d9a2911c445d3eabf1724f05ca1a879444b753b81426b7afce2afb68218c69"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-b-01/summary.json": {
+      "bytes": 8338,
+      "sha256": "3664189da9b5ee3a362530e8f6bf3518b815edb0d107e68afc5a2dd0cb8173e6"
+    }
+  },
+  "integerReceiptFieldSumsNs": {
+    "coreCpuNs": 557970000,
+    "compactCpuNs": 465815000,
+    "parentBridgeCpuNs": 23282000,
+    "legacyAdmissionCpuNs": 1719000,
+    "residualWorldCpuNs": 68873000
+  },
+  "attributionCaution": "legacyAdmission is inside residual; totalCpu/setup and external auditors have different boundaries; no sums used as a new benchmark",
+  "endedIntegerCost": {
+    "parentContextCpuNs": 557970000,
+    "wholeNodeCpuNs": 254303000,
+    "conservativeEnvelopeCpuNs": 812273000,
+    "gateNs": 695832300,
+    "status": "NO_GO_ENDED"
+  },
+  "historicalPrefix": {
+    "sourceAcceptedPerScene": 16,
+    "emittedAcceptedPerScene": 16,
+    "scenes": [
+      "ALIGNED",
+      "OFFSET",
+      "YAW"
+    ],
+    "compressedBytesPerGraph": 5005131,
+    "full1200Passed": false,
+    "currentLiveProviderQualification": "NOT_INHERITED"
+  },
+  "historicalTrajectoryRecorderCapBytes": 293601280,
+  "offlineBankEvidenceCapIsTrajectoryCap": false,
+  "newCandidateCalls": 0,
+  "newMathOrReferenceCalls": 0,
+  "newWorldCalls": 0,
+  "newCompilerCalls": 0,
+  "newBrowserCalls": 0,
+  "speedForecast": "NOT_MADE"
+}

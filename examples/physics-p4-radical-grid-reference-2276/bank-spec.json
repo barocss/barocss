@@ -1,0 +1,22 @@
+{
+  "format":"p4-independent-radical-spec-v1",
+  "cases":[
+    {"id":"zero","N":{"int":"0"},"D":{"int":"1"},"S":{"int":"2"},"p":64,"kind":"valid"},
+    {"id":"exact-positive-half","N":{"int":"3"},"D":{"int":"2"},"S":{"int":"9"},"p":128,"kind":"valid"},
+    {"id":"exact-negative-half","N":{"int":"-3"},"D":{"int":"2"},"S":{"int":"9"},"p":256,"kind":"valid"},
+    {"id":"irrational-positive","N":{"int":"1"},"D":{"int":"1"},"S":{"int":"2"},"p":512,"kind":"valid"},
+    {"id":"irrational-negative","N":{"int":"-1"},"D":{"int":"1"},"S":{"int":"2"},"p":1024,"kind":"valid"},
+    {"id":"maximum-table-precision","N":{"int":"1"},"D":{"int":"3"},"S":{"int":"5"},"p":2048,"kind":"valid"},
+    {"id":"subgrid-positive-nonzero","N":{"int":"1"},"D":{"pow2":65},"S":{"int":"2"},"p":64,"kind":"valid"},
+    {"id":"subgrid-negative-nonzero","N":{"int":"-1"},"D":{"pow2":65},"S":{"int":"2"},"p":64,"kind":"valid"},
+    {"id":"below-grid-one","N":{"pow2":64},"D":{"int":"1"},"S":{"add":[{"pow2":128},{"int":"1"}]},"p":64,"kind":"valid"},
+    {"id":"above-grid-one","N":{"pow2":64},"D":{"int":"1"},"S":{"sub":[{"pow2":128},{"int":"1"}]},"p":64,"kind":"valid"},
+    {"id":"exact-rne-tie-even","N":{"add":[{"pow2":53},{"int":"1"}]},"D":{"pow2":53},"S":{"int":"1"},"p":128,"kind":"valid"},
+    {"id":"above-rne-tie","N":{"mul":[{"add":[{"pow2":53},{"int":"1"}]},{"pow2":128}]},"D":{"pow2":53},"S":{"sub":[{"pow2":256},{"int":"1"}]},"p":512,"kind":"valid"},
+    {"id":"below-rne-tie","N":{"mul":[{"add":[{"pow2":53},{"int":"1"}]},{"pow2":128}]},"D":{"pow2":53},"S":{"add":[{"pow2":256},{"int":"1"}]},"p":512,"kind":"valid"},
+    {"id":"zero-denominator","N":{"int":"1"},"D":{"int":"0"},"S":{"int":"2"},"p":64,"kind":"invalid","reason":"GRID_NONPOSITIVE_DENOMINATOR"},
+    {"id":"zero-square","N":{"int":"1"},"D":{"int":"1"},"S":{"int":"0"},"p":64,"kind":"invalid","reason":"GRID_NONPOSITIVE_SQUARE"},
+    {"id":"shift-prebound","N":{"pow2":8191},"D":{"int":"1"},"S":{"int":"1"},"p":64,"kind":"resource","reason":"INTEGER_SHIFT_PREBOUND"},
+    {"id":"upper-product-prebound","N":{"pow2":8127},"D":{"pow2":4095},"S":{"pow2":8192},"p":64,"kind":"resource","reason":"INTEGER_PRODUCT_PREBOUND"}
+  ]
+}

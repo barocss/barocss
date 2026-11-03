@@ -1,0 +1,1 @@
+{"status": "PASS_R0_PURE17_ONE_GLOBAL_METER", "firstFailure": null, "counts": {"meterContexts": 1, "candidateCallsAttempted": 17, "candidateReplies": 17, "auditCommandsAttempted": 17, "auditPasses": 17, "validVerified": 13, "expectedInvalidVerified": 2, "expectedResourceVerified": 2, "WorldCalls": 0}}

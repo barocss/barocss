@@ -1,0 +1,185 @@
+{
+  "format": "p4-radical-r0-author-pins-v1",
+  "status": "AUTHOR_SOURCE_ONLY_NOT_EXECUTED",
+  "python": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+  "pythonVersion": "3.13.5 (main, Jun 11 2025, 15:36:57) [Clang 17.0.0 (clang-1700.0.13.3)]",
+  "candidate": "examples/physics-p4-radical-grid-2276/radical_grid.py",
+  "auditor": "examples/physics-p4-radical-grid-reference-2276/audit.py",
+  "requests": "examples/physics-p4-radical-grid-reference-2276/evidence/bank-01/requests.json",
+  "oracle": "examples/physics-p4-radical-grid-reference-2276/evidence/bank-01/oracle.json",
+  "manifest": "examples/physics-p4-radical-grid-reference-2276/evidence/bank-01/manifest.json",
+  "m2Receipt": "examples/physics-world-p5-2276/evidence/p4-radical-materialize-01/result.json",
+  "sources": {
+    "examples/physics-coupled-contact-2276/TOOLCHAIN-PINS-02.json": {
+      "bytes": 91224,
+      "sha256": "322ff3a1d49c5921fb8c96cc23c54a8a39793f437b7d944fe5cfb2363cdd1273"
+    },
+    "examples/physics-p4-position-witness-2276/RUNTIME-LAYOUT-01.json": {
+      "bytes": 913,
+      "sha256": "bc3904316e2e67f74f61140437c2ce35e170b75f194c026bc446d016d66f709e"
+    },
+    "examples/physics-p4-radical-grid-2276/CONTRACT.md": {
+      "bytes": 4928,
+      "sha256": "30fa88317f5b982b79f581648f00062c9c0d637ef1ee4c7eb61c169e291adad1"
+    },
+    "examples/physics-p4-radical-grid-2276/radical_grid.py": {
+      "bytes": 6513,
+      "sha256": "f9a57fa5ed8aca0a671cbb4a49b0033bfcfdc89b45466320782f88ceb5169afc"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/CONTRACT.md": {
+      "bytes": 2383,
+      "sha256": "fdd7cb93618a45d48b6d8ed352fe484383ac0ba5112a01da8d7c02e6cf1a1595"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/bounds.py": {
+      "bytes": 5981,
+      "sha256": "a3c1f37d2b8a92565bcb1a023ab9c119eb81ed8146f259e1702fc1f9e94f9af4"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/run.py": {
+      "bytes": 9251,
+      "sha256": "5ea1f6e6f021ae910c2a1d024bdce0d8234d08ff65c1bdb037006f704e33c067"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/CONTRACT.md": {
+      "bytes": 10123,
+      "sha256": "d5b40812637c824f3939000132fb09e949462a6ffd072de11c7c0d30c962a7ab"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/MATH.md": {
+      "bytes": 7068,
+      "sha256": "38a1d7e1eee57713fe2ce72204513de33281a274005132b4e1ce464e7728af22"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/PINS.json": {
+      "bytes": 2248,
+      "sha256": "9902d80e76fd9acddf4a8d19b6f38d09905fcb0e2097ad737a8f859cf61e2c45"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/audit.py": {
+      "bytes": 7569,
+      "sha256": "7b210bbb09f89c11f50b9728f83729cde735ab6a8f721d48fa87ee658160045f"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/bank-spec.json": {
+      "bytes": 2175,
+      "sha256": "5a1ad88dac259ecf88894295c2df3ec207bf9771ebe3f49c75a74fcd8f411bac"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/evidence/bank-01/manifest.json": {
+      "bytes": 3076,
+      "sha256": "b77a9355b10ffe112d10938a023b20759736ea58ef3c2bf468cffcc8d2387263"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/evidence/bank-01/oracle.json": {
+      "bytes": 13659,
+      "sha256": "b35acf846abd6e71c28f3318a6121cd2f9c55cb46e6a671a3e04e3dc12a5c6fb"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/evidence/bank-01/requests.json": {
+      "bytes": 10964,
+      "sha256": "798bbc18f8623214e44ce7bd342e967385d31205ae6ef16369d5d389018a611e"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/materialize.py": {
+      "bytes": 2493,
+      "sha256": "2bda6d18822ae8073433b74b4605f12d44695715a5bbe9814e5e1dbefcbedb26"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/oracle_math.py": {
+      "bytes": 7355,
+      "sha256": "eb74bc6373f16aecb043f78cf414da88636ba7494e2609e8da887f2e2fb4e46e"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/support.py": {
+      "bytes": 3696,
+      "sha256": "1f7b4455af801f21a0cf87d99b38354629512c645bec1e377bb23ab8fef74aa1"
+    },
+    "examples/physics-p4-radical-metadata-map-2276/EVIDENCE.json": {
+      "bytes": 2857,
+      "sha256": "ef8b871d9abadd5ddc534df537b44da1a24c63589c916a216678feb2463d830a"
+    },
+    "examples/physics-p4-radical-metadata-map-2276/LEAF-CLASSES.json": {
+      "bytes": 25151,
+      "sha256": "17ae13b6c6f519f545147d177a15b1ec0d927e9b14146171d565c9ce854dcea9"
+    },
+    "examples/physics-p4-radical-metadata-map-2276/MAP.md": {
+      "bytes": 9326,
+      "sha256": "514585569603d1d32c4a28da7c15c524d82b1f3ad6912e61273c902ae52e8259"
+    },
+    "examples/physics-p4-radical-metadata-map-2276/SCHEMA-PROPOSAL.json": {
+      "bytes": 2072,
+      "sha256": "dc0773b538d9f7a35b5aa4bd0370e69bc83e1d2bb540d163e58424634365b89d"
+    },
+    "examples/physics-p4-sat-2276/CONTRACT.md": {
+      "bytes": 5466,
+      "sha256": "b34c2fa0d19a4a75d0ffe14373e674478b5e233ed9092d6c5358ad5970afdea7"
+    },
+    "examples/physics-p4-sat-2276/METHOD.md": {
+      "bytes": 3061,
+      "sha256": "3d402f7721111715434708d3605118bf95f17652a31a97b2d44fe9aed4c115ad"
+    },
+    "examples/physics-p4-sat-2276/corpus.json": {
+      "bytes": 1243,
+      "sha256": "45c88bd51eae941cd039174f1e3f79319fb1e9c4bc99c86b8ba26d677102edb6"
+    },
+    "examples/physics-p4-sat-2276/integer_sat.py": {
+      "bytes": 13025,
+      "sha256": "b1c2f4a4d291c52b9182864fea658381afd482aa34da7d300997a81bf45a3b1e"
+    },
+    "examples/physics-world-p5-2276/command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-materialize-01/prepared.json": {
+      "bytes": 1628,
+      "sha256": "3fe4666865fe830817f222c0880f72205c135b5b488ef33ded45e6fa52b46f93"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-materialize-01/progress.json": {
+      "bytes": 1727,
+      "sha256": "f4ffef674578c255f5f2332a36c47587c9415f09fdba42df3fc8fd04430e5643"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-materialize-01/result.json": {
+      "bytes": 3130,
+      "sha256": "0a9e0f10e703aadbe06ca6e8b32df44689f4cc8be1eef773ac013edbff4bf315"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-materialize-01/start.json": {
+      "bytes": 1650,
+      "sha256": "1e34e01415539dcc6507b927c32417e0594fe6afec84e4af6dd0c7818e36bcc5"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-materialize-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-materialize-01/stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "tools": {
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13": {
+      "bytes": 52640,
+      "sha256": "a1f6d9dc20d4787a84dc2fe782094a7bac5946f49a962aa0af48a02f0e8d5bc5"
+    },
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node": {
+      "bytes": 110712624,
+      "sha256": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+    }
+  },
+  "protocol": {
+    "candidate": "p4-radical-grid-kernel-v1",
+    "requests": "p4-radical-grid-requests-v1",
+    "replies": "p4-radical-grid-results-v1",
+    "prefixPass": "EXECUTED_PASS_PREFIX_RADICAL_GRID",
+    "completePass": "EXECUTED_PASS_EXACT_RADICAL_GRID_BANK",
+    "harnessPass": "PASS_R0_PURE17_ONE_GLOBAL_METER"
+  },
+  "plannedCounts": {
+    "candidateCalls": 17,
+    "meterContexts": 1,
+    "prefixAudits": 17,
+    "valid": 13,
+    "expectedInvalid": 2,
+    "expectedResource": 2,
+    "WorldCalls": 0,
+    "costDecisions": 0
+  },
+  "bounds": {
+    "integerOperations": 2000000,
+    "peakIntegerBits": 16384,
+    "internalSeconds": 170,
+    "externalSeconds": 180,
+    "requestReplyBytes": 2097152,
+    "evidenceBytes": 16777216,
+    "explicitDataBytes": 67108864
+  },
+  "m2Boundary": "ACTUAL_SEPARATE_COMPLETED_GENERATION_NOT_INCLUDED_IN_R0_170S",
+  "rootReview": "Caller must pass exact Root-reviewed PINS SHA; author does not self-approve execution"
+}

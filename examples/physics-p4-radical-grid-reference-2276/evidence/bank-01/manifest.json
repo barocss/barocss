@@ -1,0 +1,89 @@
+{
+  "format": "p4-independent-radical-manifest-v1",
+  "caseCount": 17,
+  "validCount": 13,
+  "invalidCount": 2,
+  "resourceCount": 2,
+  "candidateInput": "requests.json",
+  "oracleOnly": "oracle.json",
+  "specPin": {
+    "bytes": 2175,
+    "sha256": "5a1ad88dac259ecf88894295c2df3ec207bf9771ebe3f49c75a74fcd8f411bac"
+  },
+  "sourcePins": {
+    "format": "p4-independent-radical-author-pins-v1",
+    "python": {
+      "path": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+      "version": "3.13.5 (main, Jun 11 2025, 15:36:57) [Clang 17.0.0 (clang-1700.0.13.3)]"
+    },
+    "tools": {
+      "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13": {
+        "bytes": 52640,
+        "sha256": "a1f6d9dc20d4787a84dc2fe782094a7bac5946f49a962aa0af48a02f0e8d5bc5"
+      }
+    },
+    "sources": {
+      "CONTRACT.md": {
+        "bytes": 10123,
+        "sha256": "d5b40812637c824f3939000132fb09e949462a6ffd072de11c7c0d30c962a7ab"
+      },
+      "MATH.md": {
+        "bytes": 7068,
+        "sha256": "38a1d7e1eee57713fe2ce72204513de33281a274005132b4e1ce464e7728af22"
+      },
+      "audit.py": {
+        "bytes": 7569,
+        "sha256": "7b210bbb09f89c11f50b9728f83729cde735ab6a8f721d48fa87ee658160045f"
+      },
+      "bank-spec.json": {
+        "bytes": 2175,
+        "sha256": "5a1ad88dac259ecf88894295c2df3ec207bf9771ebe3f49c75a74fcd8f411bac"
+      },
+      "materialize.py": {
+        "bytes": 2493,
+        "sha256": "2bda6d18822ae8073433b74b4605f12d44695715a5bbe9814e5e1dbefcbedb26"
+      },
+      "oracle_math.py": {
+        "bytes": 7355,
+        "sha256": "eb74bc6373f16aecb043f78cf414da88636ba7494e2609e8da887f2e2fb4e46e"
+      },
+      "support.py": {
+        "bytes": 3696,
+        "sha256": "1f7b4455af801f21a0cf87d99b38354629512c645bec1e377bb23ab8fef74aa1"
+      },
+      "../physics-p4-sat-2276/integer_sat.py": {
+        "bytes": 13025,
+        "sha256": "b1c2f4a4d291c52b9182864fea658381afd482aa34da7d300997a81bf45a3b1e"
+      },
+      "../physics-p4-sat-2276/CONTRACT.md": {
+        "bytes": 5466,
+        "sha256": "b34c2fa0d19a4a75d0ffe14373e674478b5e233ed9092d6c5358ad5970afdea7"
+      },
+      "../physics-p4-sat-2276/METHOD.md": {
+        "bytes": 3061,
+        "sha256": "3d402f7721111715434708d3605118bf95f17652a31a97b2d44fe9aed4c115ad"
+      },
+      "../physics-p4-sat-2276/corpus.json": {
+        "bytes": 1243,
+        "sha256": "45c88bd51eae941cd039174f1e3f79319fb1e9c4bc99c86b8ba26d677102edb6"
+      }
+    },
+    "toolReceiptOrigins": [
+      "examples/physics-coupled-contact-2276/TOOLCHAIN-PINS-02.json",
+      "examples/physics-p4-position-witness-2276/RUNTIME-LAYOUT-01.json"
+    ]
+  },
+  "files": {
+    "requests.json": {
+      "bytes": 10964,
+      "sha256": "798bbc18f8623214e44ce7bd342e967385d31205ae6ef16369d5d389018a611e"
+    },
+    "oracle.json": {
+      "bytes": 13659,
+      "sha256": "b35acf846abd6e71c28f3318a6121cd2f9c55cb46e6a671a3e04e3dc12a5c6fb"
+    }
+  },
+  "referenceMajorOperations": 49034,
+  "candidateCalls": 0,
+  "WorldCalls": 0
+}

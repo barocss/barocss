@@ -1,0 +1,81 @@
+{
+  "status": "READ_ONLY_SOURCE_AND_SAVED_JSON_MAP",
+  "inputs": {
+    "examples/physics-p4-compact-v2-2276/backend.py": {
+      "bytes": 3661,
+      "sha256": "94ab762e05317695b71df4da0550b1d77b137273c20901e74246a22b5bf62978"
+    },
+    "examples/physics-p4-compact-v2-2276/verify.py": {
+      "bytes": 4826,
+      "sha256": "a8a177ebf0cd86200490dd765b507f672d4660d392056649c431240a40a1dcd2"
+    },
+    "examples/physics-p4-position-v2-2276/observer.py": {
+      "bytes": 9441,
+      "sha256": "bac282631421947855bce3c2eb6d2c4f50a8855b6e63236a4e35ca9cc49bbdf0"
+    },
+    "examples/physics-p4-position-v2-2276/verify.py": {
+      "bytes": 2581,
+      "sha256": "95a53cc56639165269b24029b10ea822bf7f4f71b684b03785486ace021aad63"
+    },
+    "examples/physics-p4-sat-2276/integer_sat.py": {
+      "bytes": 13025,
+      "sha256": "b1c2f4a4d291c52b9182864fea658381afd482aa34da7d300997a81bf45a3b1e"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/physical.py": {
+      "bytes": 4164,
+      "sha256": "679dcc822bea8327d073f6b17639d05c4bddf4647a8ef6b0cafc7cc19b2e0fd9"
+    },
+    "examples/physics-p4-position-witness-reference-2276/checker.py": {
+      "bytes": 36990,
+      "sha256": "df5efdf7eba1efd5e36dfc338112c4f8655a00bb7617286544c2b8f701271490"
+    }
+  },
+  "frames": [
+    {
+      "path": "examples/physics-p4-position-v2-2276/evidence/position-01/ALIGNED-1-reply.json",
+      "pin": {
+        "bytes": 280483,
+        "sha256": "1eecbbaaf3e0f2d9eb42b48d2ffb7e9144218974e2edc461bb2171543f51a9c1"
+      }
+    },
+    {
+      "path": "examples/physics-p4-position-v2-2276/evidence/position-01/ALIGNED-16-reply.json",
+      "pin": {
+        "bytes": 366543,
+        "sha256": "d510c8d01b076d8399f0176692d6ef5f2f240ec56673ec86bdde482763f1b215"
+      }
+    },
+    {
+      "path": "examples/physics-p4-position-v2-2276/evidence/position-01/OFFSET-1-reply.json",
+      "pin": {
+        "bytes": 280575,
+        "sha256": "acda0577072f838d48beb26cfc23b6df0adcaa194ca5c30a55acfb9e13593fd6"
+      }
+    },
+    {
+      "path": "examples/physics-p4-position-v2-2276/evidence/position-01/OFFSET-16-reply.json",
+      "pin": {
+        "bytes": 365605,
+        "sha256": "3c1c32c6aca481eaae4831a42d308e48c9ba8a104d8987d8e282c9c5d02a90ea"
+      }
+    },
+    {
+      "path": "examples/physics-p4-position-v2-2276/evidence/position-01/YAW-1-reply.json",
+      "pin": {
+        "bytes": 280956,
+        "sha256": "15d86174bfe19760e93f2ed020097fa7020e9aae3cf152c876fda99fe1ed6be1"
+      }
+    },
+    {
+      "path": "examples/physics-p4-position-v2-2276/evidence/position-01/YAW-16-reply.json",
+      "pin": {
+        "bytes": 370515,
+        "sha256": "840a623fa51a2c0594bdbc6d73b02c02a2534fb5cd461068848c49839fbfa89c"
+      }
+    }
+  ],
+  "newCandidateCalls": 0,
+  "newMathReferenceWorldCalls": 0,
+  "oldFilesEdited": false,
+  "implementationAuthored": false
+}
