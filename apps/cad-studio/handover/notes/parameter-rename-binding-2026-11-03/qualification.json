@@ -1,0 +1,162 @@
+{
+  "workId": "D471",
+  "lastUpdated": "2026-11-03",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "879f4e7a1123df015b8c55c5a2d4a1d1b777a81a",
+  "category": "C1 publicparameterRename boundfeature/native/persistence supplement",
+  "rows": [
+    "07",
+    "08",
+    "12",
+    "16"
+  ],
+  "productChanges": "NONE",
+  "testChanges": "NONE",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercentFrozen": 43,
+  "input": {
+    "path": "/tmp/barocss-d471-geometry/seed.bcad",
+    "sha256": "8b464f04645be206cb419120975f1a9e6b53be8305f916bfc5f774b7b667fc7b",
+    "origin": "ExactretainedD470literalScale2H18;AddH18/bindH antecedents;no initialliteralH18nativebaseline"
+  },
+  "contract": {
+    "publicRoute": "AddH18\u2192DistanceparameterH Apply\u2192NameofH Height Enter(bluronBlurrename)",
+    "serialized": "n1.height{parameter:Height};dictionary{Height:18|20|22};Habsent",
+    "rawKernelHeight": {
+      "parameter": "Height"
+    },
+    "resolvedKernelHeight": "numeric18|20|22 verifiedseparately",
+    "boundUI": "DistanceparameterHeight,disabledliteralDistancefield showscurrentvalue",
+    "guard": "withParameters Height0,notliteraloverride;PARAMETERn1 heightmustnotzero;acceptedbound20 retained",
+    "identities": "source/nodes/n0n1n2/pivot/parent/b2/nextIdexact",
+    "retention": "ExactHeightdictionary/reference and disabledDistance/selectHeight afterRename/projectOpen;Height0PARAMETERn1retainsDoc/history/field20/native beforeFIRSTUndo18Redo20"
+  },
+  "preflight": {
+    "status": "PASS_THREE_RENAMED_BOUND_DOCS_PLUS_HEIGHT0_PARAMETER_GUARD",
+    "receipt": "/tmp/barocss-d471-geometry/preflight-run01/receipt.json",
+    "receiptSHA256": "c1f446c00e3cd549d0b05aa12b8713e94df4d67c0d90a47d2e586b43faab6428",
+    "sourcePins": 746,
+    "sourceEqualAfterCleanupCurrent": true,
+    "ownPID": 18010,
+    "ownPIDAbsent": true,
+    "gate": "FREE",
+    "endLoad": 6.05,
+    "maximumNativeVolumeAbsoluteError": 0,
+    "maximumNativeCentroidAbsoluteErrorMM": 7.11e-15,
+    "proofBoundary": "Native/officialparameterfunctions only;notpublicRenamehistoryprojectMeasure proof",
+    "command": "bash /tmp/barocss-d471-root/run-preflight01.sh"
+  },
+  "actual": {
+    "status": "PASS",
+    "declaredGroups": 5,
+    "qualifiedGroups": 5,
+    "coverage": {
+      "publicCreateBindRenameHeight18": "PASS",
+      "parameterHeight20Native": "PASS",
+      "height0RefusalFirstUndoRedoRetention": "PASS",
+      "boundHeight20ProjectRoundtrip": "PASS",
+      "postOpenHeight22NativeMeasure44": "PASS"
+    },
+    "receipt": "/tmp/barocss-d471-workflow-run01/receipt.json",
+    "command": "bash /tmp/barocss-d471-root/run-studio01.sh",
+    "configSHA256": "6c6b43b34ec75c7439f908720d33b7252af6377b4ef4f3a572e821b18c1ee415",
+    "sourcePins": {
+      "prehashPaths": 2386,
+      "fullFrozenPaths": 2387,
+      "aliasesIncluded": true,
+      "beforeAfterCleanupCurrentEqual": true
+    },
+    "images": {
+      "statesAndImages": 26,
+      "rootViewed": 7,
+      "states": [
+        "renamebindingUI",
+        "renamed18",
+        "20",
+        "0refusal",
+        "FIRSTUndo18",
+        "reopenedbindingUI",
+        "realMeasure44"
+      ]
+    },
+    "errors": {
+      "page": 0,
+      "console": 0,
+      "downloads": 0,
+      "watchedChanges": 0
+    },
+    "cleanup": {
+      "namespace": "D471-parameter-rename-run01",
+      "namespaceStatus": "REMOVED_AND_ABSENT",
+      "contextBrowserServer": "CLOSED",
+      "ownPID": 21348,
+      "ownPIDAbsent": true,
+      "gate": "FREE",
+      "endLoad": 7.28
+    },
+    "receiptSHA256": "436259b74a2950eaf7d9d4fead7b31bb5c2304059d0c47770a3632783c34ae42",
+    "freshPythonOracles": 7,
+    "freshRawWorkerBindings": 7,
+    "maximumWorkerBindingError": 0,
+    "maximumNativeVolumeAbsoluteError": 0,
+    "maximumNativeCentroidAbsoluteErrorMM": 7.105427357601002e-15,
+    "executedSUTFailures": 0,
+    "executedPreparationFailures": 0,
+    "nativeBindings": 7,
+    "renamedBoundDocCaptures": 3,
+    "exactWholeDocReuses": 4
+  },
+  "physicalContract": {
+    "authority": "nativeBRep/BRepmass+independentFraction;notdisplaymesh",
+    "volume": "4800h",
+    "centroid": "[40,70,h]",
+    "bounds": "[20,40,0]..[60,100,2h]",
+    "heights": [
+      18,
+      20,
+      22
+    ],
+    "volumeRelative": 1e-09,
+    "centroidBoundsCornerFaceEdgePinsNormalsAbsolute": 1e-09,
+    "Measure": "Freshnativename/endpoints\u2192displayindex mapping,realpointer/publicMeasure44,rounded0.01mmUIconsistency only"
+  },
+  "retainedEvidence": "D356/associativeBand/D454genericparameteredit/refusal/UndoSave scopes reused;featurealreadyexists",
+  "checks": {
+    "newTestsTypesBuildFullKernel": "NOT_RUN_NO_PRODUCT_OR_TEST_CHANGE",
+    "retained": "D46128groups,lint,StudioTSC,finalModelTSC",
+    "independentOracleSHA256": "7a8a0f0b9d8df794f9f57dc195ecca634087492bb14bda99cd09f8abf5bd69ab",
+    "geometryManifestSHA256": "aff5fdfbe03b9c2d5cc49b618bb0a7437207e6f4af663ce4e9e8c61572f9e188",
+    "rootReview": "/tmp/barocss-d471-root/root-review.json",
+    "documentation": {
+      "status": "PASS",
+      "node": "v22.19.0",
+      "command": "export PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH\nnode apps/cad-studio/handover/scripts/check-navigation.mjs",
+      "whitespaceCommand": "git diff --cached --check",
+      "rows": 34,
+      "legacyHeadingFragments": 552,
+      "legacyOutboundLinks": 913,
+      "checkedLocalLinks": 2676,
+      "newBroken": 0,
+      "knownHistoricalMissingPaths": 1,
+      "receiptSHA256": "7299e3be1b31d5db07ee5dbd31f47d32691b81cdeae962381662f8188ef6c9fa"
+    }
+  },
+  "scopeExclusions": "expressiondependencyeditor/configuration/delete/cyclecampaign/newfeature/HOLDlift",
+  "issueDisposition": {
+    "534": "OPEN_BOUNDED_PARTIAL_ONLY"
+  },
+  "next": "D472 selects C2 existing PUBLIC Pipe(kind sweep) rectangular run\u201390\u00b0bend\u2013run lifecycle,rows07/08/12/16. Source-authored freeRectn0 min[-2,-1]max[2,1],e1..e4;publicPipe Run12/Radius10/Angle90/+X;Run1edit18;sourceDepth2\u21924(minY\u22121fixed,maxY3);Run1=0 existing PARAMETER path[0].lengthmustpositive refusal retainingstate beforeFIRSTUndoDepth2/RedoDepth4;ownOPFSOpen;post-OpenRun3 12\u219216. Eight groups/eight bindings (four newdocs/four exact reuses)planned,actualNOT_RUN. Independent exact annular-sector/native oracle by High,publicdriver by Medium,rootgate/runtime;R10>radialhalfwidth2. D168 circlePipe creation,D288/D315/D316 guidedLoft andD357 unguidedLoft loops retained,not replayed. Not Sweep-curve/newadmission/Loft or invented straight-only Pipe;current command alwaysrun+bend+run. Existing strictnativeSweepBrep/prismatic/revolve/glue only,no kernelwidening/fitter/HOLDlift. #534PART04partial,not closure. D472finalbaselineSHA pendingD471push.",
+  "environment": "AllNodecommands explicitPATH22.19.0",
+  "holds": "CoreNOT_MEASURED/legacy43frozen;all current #2258/#2266,Motion/Physics,fitter/thicken,widening,manufacturing,UI,schema,download/dependency,browserCI/release gates unchanged.",
+  "measurement": {
+    "lengthMM": 44,
+    "nativeName": "n1.side[e1]|n1.side[e2]",
+    "observedDynamicIndex": 1,
+    "indexAssumed": false,
+    "firstVisibilityAttempt": true,
+    "orbitNeeded": false,
+    "UIFormattingMM": 0.01,
+    "physicalAuthority": "Native/independentFraction1e-9notroundedUI"
+  },
+  "evidenceBoundary": "ExistingRename binding consumer supplement only;no initialliteralnativebaseline/config/delete/expressions or full #534 acceptance."
+}
