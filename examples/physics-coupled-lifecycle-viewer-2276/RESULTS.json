@@ -1,0 +1,644 @@
+{
+  "status": "PASS_PRIVATE_LIFECYCLE_STATIC_DESKTOP_AND_BROWSER_DATA_DYNAMIC_REFUSAL_ONLY",
+  "firstFailure": null,
+  "executedAuthorPin": {
+    "path": "examples/physics-coupled-lifecycle-viewer-2276/AUTHOR-FREEZE-01.json",
+    "bytes": 566533,
+    "sha256": "ca0c2bc36495334a56bacaa599e63fd5834544a72713f8f7569ee64e77891da2"
+  },
+  "frozenWorkspaceInputs": 2401,
+  "frozenInstalledToolMetadataPins": 357,
+  "oldUI": "AUTHOR03_BYTE_IDENTICAL_REUSED_NO_NEW_MESH",
+  "provider": "ACTUAL_COUPLED_LIFECYCLE_BUILD01_NATIVE_EMITTED_CLOSURE",
+  "executedBuild": "build-01",
+  "desktopStatus": "PASS_DESKTOP_COUPLED_LIFECYCLE_STATIC_VIEWER_ONLY",
+  "desktopChecks": [
+    {
+      "name": "cold native emitted realm without World calls",
+      "status": "PASS"
+    },
+    {
+      "name": "before single finite attempt",
+      "status": "PASS"
+    },
+    {
+      "name": "at single finite attempt",
+      "status": "PASS"
+    },
+    {
+      "name": "after single finite attempt",
+      "status": "PASS"
+    },
+    {
+      "name": "desktop GPU pixels poses markers tables and display-only controls",
+      "status": "PASS"
+    },
+    {
+      "name": "actual new lifecycle pre-dispose capture raw and returned-copy isolation",
+      "status": "PASS"
+    },
+    {
+      "name": "bounded raw proof zero UI errors",
+      "status": "PASS"
+    }
+  ],
+  "desktopWidths": [
+    {
+      "width": 1280,
+      "full": {
+        "bytes": 1384320,
+        "blue": 147168,
+        "orange": 1277,
+        "green": 0
+      },
+      "detail": {
+        "bytes": 692640,
+        "blue": 88958,
+        "orange": 68872,
+        "green": 93
+      }
+    },
+    {
+      "width": 1440,
+      "full": {
+        "bytes": 1568640,
+        "blue": 147168,
+        "orange": 1277,
+        "green": 0
+      },
+      "detail": {
+        "bytes": 784800,
+        "blue": 100800,
+        "orange": 72974,
+        "green": 94
+      }
+    },
+    {
+      "width": 1920,
+      "full": {
+        "bytes": 1706880,
+        "blue": 147168,
+        "orange": 1277,
+        "green": 0
+      },
+      "detail": {
+        "bytes": 853920,
+        "blue": 109683,
+        "orange": 75752,
+        "green": 94
+      }
+    }
+  ],
+  "browserVersion": "156.0.8078.80",
+  "uiErrors": {
+    "page": 0,
+    "console": 0,
+    "network": 0
+  },
+  "actualTraceCounts": {
+    "worlds": 3,
+    "attempts": 3,
+    "records": 169,
+    "applications": 128,
+    "queries": 22,
+    "queryPoints": 19,
+    "anchorChecks": 513,
+    "traceBytes": 571473
+  },
+  "acceptedSteps": 2,
+  "lifecycleGate": {
+    "status": "PASS_GENUINE_PRE_DISPOSE_RAW_AND_CLONE_ISOLATION",
+    "independentAudit": {
+      "status": "PASS_INDEPENDENT_GENUINE_BROWSER_PRE_DISPOSE_RAW",
+      "captureCount": 3,
+      "bulkReads": 2,
+      "duplicateHookCalls": 0,
+      "budgetScope": "DIAGNOSTIC_CELLS_AND_COPY_ALLOWANCE_NOT_RSS"
+    },
+    "completeRawStatePrivateModelComparison": "PASS_COMPLETE_BROWSER_CAPTURE_RAW_VS_ORIGINAL_PROOF",
+    "captures": 3,
+    "bulkReads": 2,
+    "duplicateHookCalls": 0,
+    "owner": "NOT_APPLICABLE_NO_ATTACHED_OWNER",
+    "mutationIsolation": "PASS_RETURNED_COPY_ONLY_STORED_WORDS_UNCHANGED",
+    "sharedBudgetLimitBytes": 16711680,
+    "budgetScope": "DIAGNOSTIC_CELLS_COPY_ALLOWANCE_AND_SERIALIZED_EVIDENCE_NOT_RSS",
+    "actualRawObservation": {
+      "path": "examples/physics-coupled-lifecycle-viewer-2276/evidence/lifecycle-report-raw-01.json",
+      "bytes": 168510,
+      "sha256": "cd1c5f056d07ec01a3a08ecbd436603118216b93dd0356df5b30acd66be5dac3"
+    },
+    "firstStatsRaw": {
+      "budget": {
+        "lifecycleBytes": {
+          "$f64le": "0000000048f61d41"
+        },
+        "limitBytes": {
+          "$f64le": "0000000000e06f41"
+        },
+        "traceBytes": {
+          "$f64le": "00000000a2702141"
+        }
+      },
+      "captureCalls": {
+        "$f64le": "0000000000000840"
+      },
+      "captureCopyBytes": {
+        "$f64le": "00000000a03c1841"
+      },
+      "duplicateHookCalls": {
+        "$f64le": "0000000000000000"
+      },
+      "globalFailure": null,
+      "limits": {
+        "cells": {
+          "$f64le": "000000000000c040"
+        },
+        "depth": {
+          "$f64le": "0000000000005040"
+        },
+        "reads": {
+          "$f64le": "0000000000003040"
+        },
+        "string": {
+          "$f64le": "000000000000b040"
+        },
+        "worlds": {
+          "$f64le": "0000000000001040"
+        }
+      },
+      "readCalls": {
+        "$f64le": "000000000000f03f"
+      },
+      "readCopyBytes": {
+        "$f64le": "00000000a0e6f540"
+      }
+    },
+    "secondStatsRaw": {
+      "budget": {
+        "lifecycleBytes": {
+          "$f64le": "00000000f8b72141"
+        },
+        "limitBytes": {
+          "$f64le": "0000000000e06f41"
+        },
+        "traceBytes": {
+          "$f64le": "00000000a2702141"
+        }
+      },
+      "captureCalls": {
+        "$f64le": "0000000000000840"
+      },
+      "captureCopyBytes": {
+        "$f64le": "00000000a03c1841"
+      },
+      "duplicateHookCalls": {
+        "$f64le": "0000000000000000"
+      },
+      "globalFailure": null,
+      "limits": {
+        "cells": {
+          "$f64le": "000000000000c040"
+        },
+        "depth": {
+          "$f64le": "0000000000005040"
+        },
+        "reads": {
+          "$f64le": "0000000000003040"
+        },
+        "string": {
+          "$f64le": "000000000000b040"
+        },
+        "worlds": {
+          "$f64le": "0000000000001040"
+        }
+      },
+      "readCalls": {
+        "$f64le": "0000000000000040"
+      },
+      "readCopyBytes": {
+        "$f64le": "00000000a0e60541"
+      }
+    }
+  },
+  "independentPhysicalAuditStatus": "PASS_BROWSER_STATIC_DATA_DYNAMIC_REFUSAL_ONLY",
+  "unchangedIndependentObserverJobs": 15,
+  "independentObserverResults": [
+    {
+      "phase": "before-0-cone-observer.py-0",
+      "status": "EXECUTED_PASS_CONE_GEOMETRY"
+    },
+    {
+      "phase": "before-0-physical-observer.py-1",
+      "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL"
+    },
+    {
+      "phase": "before-1-cone-observer.py-0",
+      "status": "EXECUTED_PASS_CONE_GEOMETRY"
+    },
+    {
+      "phase": "before-1-physical-observer.py-1",
+      "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL"
+    },
+    {
+      "phase": "before-1-cone-observer.py-2",
+      "status": "EXECUTED_PASS_INDEPENDENT_PERSISTENT_CONE"
+    },
+    {
+      "phase": "before-1-target-observer.py-3",
+      "status": "PASS_INDEPENDENT_COUPLED_TARGET_ONCE_NATIVE_CACHE"
+    },
+    {
+      "phase": "at-2-cone-observer.py-0",
+      "status": "EXECUTED_PASS_CONE_GEOMETRY"
+    },
+    {
+      "phase": "at-2-physical-observer.py-1",
+      "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL"
+    },
+    {
+      "phase": "at-3-cone-observer.py-0",
+      "status": "EXECUTED_PASS_CONE_GEOMETRY"
+    },
+    {
+      "phase": "at-3-physical-observer.py-1",
+      "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL"
+    },
+    {
+      "phase": "at-3-cone-observer.py-2",
+      "status": "EXECUTED_PASS_INDEPENDENT_PERSISTENT_CONE"
+    },
+    {
+      "phase": "at-3-target-observer.py-3",
+      "status": "PASS_INDEPENDENT_COUPLED_TARGET_ONCE_NATIVE_CACHE"
+    },
+    {
+      "phase": "after-4-cone-observer.py-0",
+      "status": "EXECUTED_PASS_CONE_GEOMETRY"
+    },
+    {
+      "phase": "after-4-physical-observer.py-1",
+      "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL"
+    },
+    {
+      "phase": "after-5-target-observer.py-0",
+      "status": "PASS_EXPECTED_DYNAMIC_PROFILE_REFUSAL_BEFORE_APPLICATION"
+    }
+  ],
+  "originalObserverMaxima": {
+    "before-0-cone-observer.py-0": {},
+    "before-0-physical-observer.py-1": {
+      "stepMomentum0": 0.0,
+      "stepMomentum1": 0.0,
+      "stepMomentum2": 0.0,
+      "stepSpin0": 0.0,
+      "stepSpin1": 0.0,
+      "stepSpin2": 0.0,
+      "stepWorldOriginAngularLedger0": 0.0,
+      "stepWorldOriginAngularLedger1": 0.0,
+      "stepWorldOriginAngularLedger2": 0.0,
+      "wholeStepEnergyLedger": 0.0
+    },
+    "before-1-cone-observer.py-0": {
+      "representedNativeNormal0": 2.6034299608458128e-17,
+      "representedNativeNormal1": 1.9450418881029874e-16,
+      "representedNativeNormal2": 2.6034299608458128e-17
+    },
+    "before-1-physical-observer.py-1": {
+      "gravityKick0": 0.0,
+      "gravityKick1": 0.0,
+      "gravityKick2": 0.0,
+      "drift0": 7.517068596570998e-20,
+      "drift1": 7.381104211153622e-18,
+      "drift2": 7.417036936256106e-18,
+      "normalNormSquared": 3.958934816492807e-16,
+      "endpointPresentationSquared": 0.0,
+      "surfaceOutside": 0.0,
+      "surfaceBoundary": 0.0,
+      "pairedLineSquared": 0.0,
+      "nativeLineExitASquared": 0.0,
+      "nativeLineExitBSquared": 0.0,
+      "geometryProjectedDepth": 0.0,
+      "GEOMETRY_DEPTH_NO_GO": 1.6002487879165893e-18,
+      "applicationLinearReciprocity0": 0.0,
+      "applicationLinearReciprocity1": 0.0,
+      "applicationLinearReciprocity2": 0.0,
+      "applicationMomentReciprocity0": 0.0,
+      "applicationMomentReciprocity1": 0.0,
+      "applicationMomentReciprocity2": 0.0,
+      "currentTangentPlane": 1.8973519923920428e-19,
+      "eventMomentum0": 0.0,
+      "eventMomentum1": 0.0,
+      "eventMomentum2": 0.0,
+      "eventSpin0": 0.0,
+      "eventSpin1": 0.0,
+      "eventSpin2": 0.0,
+      "eventMidpointWork": 0.0,
+      "eventRelativeWork": 0.0,
+      "acceptedPairedGapSquared": 0.0,
+      "stepMomentum0": 0.0,
+      "stepMomentum1": 0.0,
+      "stepMomentum2": 0.0,
+      "stepSpin0": 0.0,
+      "stepSpin1": 0.0,
+      "stepSpin2": 0.0,
+      "stepWorldOriginAngularLedger0": 2.2996944065589857e-18,
+      "stepWorldOriginAngularLedger1": 1.6789834174186535e-18,
+      "stepWorldOriginAngularLedger2": 1.64754228295398e-18,
+      "wholeStepEnergyLedger": 0.0,
+      "acceptedNormalNorm": 3.958934816492807e-16,
+      "acceptedAnchorMidpointSquared": 0.0,
+      "acceptedAbsoluteGapSquared": 0.0,
+      "acceptedEndpointSquared": 0.0,
+      "acceptedSurfaceOutside": 0.0,
+      "acceptedSurfaceBoundary": 0.0,
+      "signedNativeGap": 0.0,
+      "PRODUCER_onA_J0": 0.0,
+      "PRODUCER_onA_J1": 0.0,
+      "PRODUCER_onA_J2": 0.0,
+      "PRODUCER_onA_M00": 0.0,
+      "PRODUCER_onA_M01": 0.0,
+      "PRODUCER_onA_M02": 0.0,
+      "PRODUCER_onB_J0": 0.0,
+      "PRODUCER_onB_J1": 0.0,
+      "PRODUCER_onB_J2": 0.0,
+      "PRODUCER_onB_M00": 0.0,
+      "PRODUCER_onB_M01": 0.0,
+      "PRODUCER_onB_M02": 0.0,
+      "producerLinearReciprocity0": 0.0,
+      "producerLinearReciprocity1": 0.0,
+      "producerLinearReciprocity2": 0.0,
+      "producerMomentReciprocity0": 0.0,
+      "producerMomentReciprocity1": 0.0,
+      "producerMomentReciprocity2": 0.0
+    },
+    "before-1-cone-observer.py-2": {
+      "representedNativeNormal0": 2.6034299608458128e-17,
+      "representedNativeNormal1": 1.9450418881029874e-16,
+      "representedNativeNormal2": 2.6034299608458128e-17,
+      "eventsPhysicalKActualBodyContactVelocity0": 0.0,
+      "eventsPhysicalKActualBodyContactVelocity1": 0.0,
+      "eventsPhysicalKActualBodyContactVelocity2": 0.0,
+      "eventsStaticZeroContactVelocity0": 0.0,
+      "eventsStaticZeroContactVelocity1": 0.0,
+      "eventsStaticZeroContactVelocity2": 0.0,
+      "eventsStaticConeExcessNs": 0.0,
+      "producerPhysicalKActualBodyContactVelocity0": 0.0,
+      "producerPhysicalKActualBodyContactVelocity1": 0.0,
+      "producerPhysicalKActualBodyContactVelocity2": 0.0,
+      "producerStaticZeroContactVelocity0": 0.0,
+      "producerStaticZeroContactVelocity1": 0.0,
+      "producerStaticZeroContactVelocity2": 0.0,
+      "producerStaticConeExcessNs": 0.0
+    },
+    "before-1-target-observer.py-3": {
+      "combinedCacheCurrentTangentPlaneNs": 1.8973519923920428e-19
+    },
+    "at-2-cone-observer.py-0": {},
+    "at-2-physical-observer.py-1": {
+      "stepMomentum0": 0.0,
+      "stepMomentum1": 0.0,
+      "stepMomentum2": 0.0,
+      "stepSpin0": 0.0,
+      "stepSpin1": 0.0,
+      "stepSpin2": 0.0,
+      "stepWorldOriginAngularLedger0": 0.0,
+      "stepWorldOriginAngularLedger1": 0.0,
+      "stepWorldOriginAngularLedger2": 0.0,
+      "wholeStepEnergyLedger": 0.0
+    },
+    "at-3-cone-observer.py-0": {
+      "representedNativeNormal0": 2.6034299608458128e-17,
+      "representedNativeNormal1": 1.9450418881029874e-16,
+      "representedNativeNormal2": 2.6034299608458128e-17
+    },
+    "at-3-physical-observer.py-1": {
+      "gravityKick0": 0.0,
+      "gravityKick1": 0.0,
+      "gravityKick2": 0.0,
+      "drift0": 8.962667373134565e-20,
+      "drift1": 1.478259104904946e-17,
+      "drift2": 1.4818523774858764e-17,
+      "normalNormSquared": 3.958934816492807e-16,
+      "endpointPresentationSquared": 0.0,
+      "surfaceOutside": 0.0,
+      "surfaceBoundary": 0.0,
+      "pairedLineSquared": 0.0,
+      "nativeLineExitASquared": 0.0,
+      "nativeLineExitBSquared": 0.0,
+      "geometryProjectedDepth": 0.0,
+      "GEOMETRY_DEPTH_NO_GO": 1.6002487879165893e-18,
+      "applicationLinearReciprocity0": 0.0,
+      "applicationLinearReciprocity1": 0.0,
+      "applicationLinearReciprocity2": 0.0,
+      "applicationMomentReciprocity0": 0.0,
+      "applicationMomentReciprocity1": 0.0,
+      "applicationMomentReciprocity2": 0.0,
+      "currentTangentPlane": 1.8973538018496328e-19,
+      "eventMomentum0": 0.0,
+      "eventMomentum1": 0.0,
+      "eventMomentum2": 0.0,
+      "eventSpin0": 0.0,
+      "eventSpin1": 0.0,
+      "eventSpin2": 0.0,
+      "eventMidpointWork": 0.0,
+      "eventRelativeWork": 0.0,
+      "acceptedPairedGapSquared": 0.0,
+      "stepMomentum0": 0.0,
+      "stepMomentum1": 0.0,
+      "stepMomentum2": 0.0,
+      "stepSpin0": 0.0,
+      "stepSpin1": 0.0,
+      "stepSpin2": 0.0,
+      "stepWorldOriginAngularLedger0": 4.599388903590851e-18,
+      "stepWorldOriginAngularLedger1": 3.3463095372465203e-18,
+      "stepWorldOriginAngularLedger2": 3.3103768114372168e-18,
+      "wholeStepEnergyLedger": 0.0,
+      "acceptedNormalNorm": 3.958934816492807e-16,
+      "acceptedAnchorMidpointSquared": 0.0,
+      "acceptedAbsoluteGapSquared": 0.0,
+      "acceptedEndpointSquared": 0.0,
+      "acceptedSurfaceOutside": 0.0,
+      "acceptedSurfaceBoundary": 0.0,
+      "signedNativeGap": 0.0,
+      "PRODUCER_onA_J0": 0.0,
+      "PRODUCER_onA_J1": 0.0,
+      "PRODUCER_onA_J2": 0.0,
+      "PRODUCER_onA_M00": 0.0,
+      "PRODUCER_onA_M01": 0.0,
+      "PRODUCER_onA_M02": 0.0,
+      "PRODUCER_onB_J0": 0.0,
+      "PRODUCER_onB_J1": 0.0,
+      "PRODUCER_onB_J2": 0.0,
+      "PRODUCER_onB_M00": 0.0,
+      "PRODUCER_onB_M01": 0.0,
+      "PRODUCER_onB_M02": 0.0,
+      "producerLinearReciprocity0": 0.0,
+      "producerLinearReciprocity1": 0.0,
+      "producerLinearReciprocity2": 0.0,
+      "producerMomentReciprocity0": 0.0,
+      "producerMomentReciprocity1": 0.0,
+      "producerMomentReciprocity2": 0.0
+    },
+    "at-3-cone-observer.py-2": {
+      "representedNativeNormal0": 2.6034299608458128e-17,
+      "representedNativeNormal1": 1.9450418881029874e-16,
+      "representedNativeNormal2": 2.6034299608458128e-17,
+      "eventsPhysicalKActualBodyContactVelocity0": 0.0,
+      "eventsPhysicalKActualBodyContactVelocity1": 0.0,
+      "eventsPhysicalKActualBodyContactVelocity2": 0.0,
+      "eventsStaticZeroContactVelocity0": 0.0,
+      "eventsStaticZeroContactVelocity1": 0.0,
+      "eventsStaticZeroContactVelocity2": 0.0,
+      "eventsStaticConeExcessNs": 0.0,
+      "producerPhysicalKActualBodyContactVelocity0": 0.0,
+      "producerPhysicalKActualBodyContactVelocity1": 0.0,
+      "producerPhysicalKActualBodyContactVelocity2": 0.0,
+      "producerStaticZeroContactVelocity0": 0.0,
+      "producerStaticZeroContactVelocity1": 0.0,
+      "producerStaticZeroContactVelocity2": 0.0,
+      "producerStaticConeExcessNs": 0.0
+    },
+    "at-3-target-observer.py-3": {
+      "combinedCacheCurrentTangentPlaneNs": 1.8973538018496328e-19
+    },
+    "after-4-cone-observer.py-0": {},
+    "after-4-physical-observer.py-1": {
+      "stepMomentum0": 0.0,
+      "stepMomentum1": 0.0,
+      "stepMomentum2": 0.0,
+      "stepSpin0": 0.0,
+      "stepSpin1": 0.0,
+      "stepSpin2": 0.0,
+      "stepWorldOriginAngularLedger0": 0.0,
+      "stepWorldOriginAngularLedger1": 0.0,
+      "stepWorldOriginAngularLedger2": 0.0,
+      "wholeStepEnergyLedger": 0.0
+    },
+    "after-5-target-observer.py-0": {}
+  },
+  "staticCases": [
+    "before",
+    "at"
+  ],
+  "after": {
+    "status": "EXPECTED_TYPED_DYNAMIC_REFUSAL",
+    "code": "COUPLED_DYNAMIC_REQUIRED",
+    "originalRawModelStatePrivateClockRecordingRollback": "PASS",
+    "dynamicPhysicalQualification": "NO_GO_UNSUPPORTED"
+  },
+  "originalRequest": {
+    "bytes": 2557412,
+    "sha256": "75fb81c745e385baf622e263ab3bea83c8f7ab19da68258cd95c1be38d6a3093",
+    "originalRequestText": "NOT_RETAINED_SEPARATELY_RECEIPT_ONLY"
+  },
+  "storedFullOriginalDAG": {
+    "bytes": 532144,
+    "sha256": "e63284880020f5b43f1dc1b7f6f7a6da6ad0b22134b8a8382e2c859a43f42873"
+  },
+  "guards": {
+    "build": {
+      "status": "PASS",
+      "elapsedMs": 841.178209,
+      "exit": 0,
+      "signal": null,
+      "timedOut": false,
+      "stopReason": null,
+      "ownedGroupPresentAtFinalization": false,
+      "receipt": {
+        "path": "examples/physics-world-p5-2276/evidence/coupled-lifecycle-viewer-build-01/result.json",
+        "bytes": 3070,
+        "sha256": "e48360050a3a63a1565b9d8655f0af02205ac48f500bc132868ed82bebad2c7b"
+      }
+    },
+    "desktop": {
+      "status": "PASS",
+      "elapsedMs": 10627.237083,
+      "exit": 0,
+      "signal": null,
+      "timedOut": false,
+      "stopReason": null,
+      "ownedGroupPresentAtFinalization": false,
+      "receipt": {
+        "path": "examples/physics-world-p5-2276/evidence/coupled-lifecycle-viewer-desktop-01/result.json",
+        "bytes": 3124,
+        "sha256": "415fc2bd73b059010a8c948b2ccda9bdf8b7113aba38178ba95b0852b7eecf2b"
+      }
+    },
+    "browserDataAudit": {
+      "status": "PASS",
+      "elapsedMs": 2963.121875,
+      "exit": 0,
+      "signal": null,
+      "timedOut": false,
+      "stopReason": null,
+      "ownedGroupPresentAtFinalization": false,
+      "receipt": {
+        "path": "examples/physics-world-p5-2276/evidence/coupled-lifecycle-viewer-physics-audit-01/result.json",
+        "bytes": 3140,
+        "sha256": "5b48bbfb5fc54486b678b067677f4a94ed9ef36c1b818e327cb0608430f9aa53"
+      }
+    }
+  },
+  "artifacts": {
+    "desktopReport": {
+      "path": "output/playwright/coupled-lifecycle-viewer/desktop-01/report.json",
+      "bytes": 10750608,
+      "sha256": "17112d119832717511cbcb169252d94ad021dbe035165fdf4966b7e20ae0e610"
+    },
+    "reportPin": {
+      "path": "output/playwright/coupled-lifecycle-viewer/desktop-01/report-pin.json",
+      "bytes": 156,
+      "sha256": "d2633af08e62e30fa9aa2666a3d2b89c8ad89e8aee35be71d6a4ae56407fd1f0"
+    },
+    "browserAudit": {
+      "path": "examples/physics-coupled-lifecycle-viewer-2276/evidence/audit-01/summary.json",
+      "bytes": 2250,
+      "sha256": "f23f5223bf90ffafae0e81b66cfd233bd96072381a8c9db3476265e236931472"
+    },
+    "actualBundle": {
+      "path": "examples/physics-coupled-lifecycle-viewer-2276/output/build-01/app.mjs",
+      "bytes": 1615124,
+      "sha256": "7db1fef10c74f3dc8967cb4c95b3c4e46fee99637c05c43d19317978f9380c1b"
+    },
+    "actualMetafile": {
+      "path": "examples/physics-coupled-lifecycle-viewer-2276/output/build-01/metafile.json",
+      "bytes": 553566,
+      "sha256": "57a6a708975a576f99e7f5966b931f0235e076c937383d4033f1b7c024b6cc2d"
+    },
+    "desktop1440": {
+      "path": "output/playwright/coupled-lifecycle-viewer/desktop-01/desktop-1440.png",
+      "bytes": 149249,
+      "sha256": "957946f2c3ddef49e35b68835b7c7fa47930c75f2b77e8336f11322d11f689f0"
+    }
+  },
+  "rootVisualReview": "Root viewed the existing old static1440 screenshot and confirmed the new actual1440 PNG is byte-identical. Exact reused UI and unchanged physics output explain that equality. No author browser/image-generation repeat.",
+  "qualificationBoundary": {
+    "wholeP03": "NO_GO_DYNAMIC_UNSUPPORTED",
+    "firstColdStaticInterval": "PASS_BEFORE_AT_ONLY",
+    "newNativeIdentity": "ACTUAL_LIFECYCLE_PROVIDER_IN_BROWSER",
+    "lifecyclePreDisposeRaw": "PASS_REAL_BROWSER_PUBLIC_COMPLETE_PRIVATE_MODEL",
+    "browserDisposedGetterOrClearedStorage": "NOT_RUN_NO_WORLD_REFERENCES_EXPOSED",
+    "browserSecondInterval": "NOT_RUN",
+    "browserWireRestore": "NOT_RUN",
+    "browserTransactions": "NOT_RUN",
+    "warmSupport": "NOT_RUN",
+    "mobile": "NOT_RUN",
+    "CADSurface": "NOT_QUALIFIED_DISPLAY_ONLY",
+    "StudioManufacturingEquipment": "HOLD_UNCHANGED",
+    "promotion": "BLOCKED",
+    "publicationDeployRelease": "NOT_RUN",
+    "originalConeFailure": 0.1410596011492487
+  },
+  "historicalEvidence": "Old failures, original lifecycle post-dispose failure0210 and withdrawn oldViewer04 remain unchanged. This consumer introduces no replacement of that history.",
+  "newPackagingExecution": {
+    "compiler": 0,
+    "World": 0,
+    "browser": 0,
+    "reference": 0,
+    "observer": 0,
+    "decoder": 0,
+    "allowed": "Read existing JSON and byte/hash/archive/gzip IO only."
+  },
+  "packaging": "Each original UNCOMPRESSED tar<=16MiB. Multiple-part aggregate is explicit in unchanged EVIDENCE-ARCHIVE.json. Gzip is transport only; see GZIP-TRANSPORT-01.json. No single16MiB aggregate claim."
+}
