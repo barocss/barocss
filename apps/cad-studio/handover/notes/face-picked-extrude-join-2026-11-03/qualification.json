@@ -1,0 +1,185 @@
+{
+  "workId": "D474",
+  "lastUpdated": "2026-11-03",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "ac4ffe56ddf109bc424fcb1e1142071dfd0d316c",
+  "category": "C1/C2 real face-picked default Extrude Join lifecycle",
+  "rows": [
+    "07",
+    "08",
+    "12",
+    "16"
+  ],
+  "productChanges": "NONE",
+  "testChanges": "NONE",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercentFrozen": 43,
+  "input": {
+    "path": "/tmp/barocss-d474-geometry/seed.bcad",
+    "sha256": "e2b20d76b42a2ac4bc575a8958f11e791fda12a8aca5dfd1bc964a23e9330c1c",
+    "origin": "Exact D462 source-authored integer prism; no public seed/native baseline replay"
+  },
+  "capMap": {
+    "sha256": "107166ff88a4770681d94c4d72e0cf6af0ab73d4f036a4a22f34ea05fa8d45b7",
+    "classification": "Producer antecedent only, not fourth physical capture",
+    "route": "partSnapshot\u2192bodyMesh, current Worker default route",
+    "revision": 0,
+    "quality": 8,
+    "sourcePins": 8,
+    "positionsType": "Float64Array",
+    "worldInterior": [
+      20,
+      35,
+      10
+    ],
+    "actualSelection": {
+      "bodyIndex": 0,
+      "bodyKey": "b1",
+      "faceIndex": 5,
+      "name": "n1.top"
+    },
+    "visibleInspector": {
+      "kind": "Planar",
+      "normal": [
+        0,
+        0,
+        1
+      ],
+      "area": 600
+    },
+    "precisionBoundary": "1e-5 boundary keys/1e-4 profile/1e-3 plane height; integer case only, no universal Float32 claim"
+  },
+  "publicContract": {
+    "observedDefaults": {
+      "Operation": "join",
+      "Draft": 0
+    },
+    "defaultsManuallySet": false,
+    "generated": "n2 snapshot loop/on n1/plane[0,0,10]; n3 Extrude; n4 Union; b4; nextId5",
+    "sequence": "Join5\u2192public n3 Distance8\u21920 refusal\u2192FIRST Undo5\u2192Redo8\u2192own OPFS Open8\u2192post12",
+    "refusal": {
+      "code": "PARAMETER",
+      "feature": "n3",
+      "reason": "height must not be zero"
+    },
+    "noLiveBaseWidthHeightFollowing": true
+  },
+  "preflight": {
+    "status": "PASS_THREE_JOINED_STATES_PLUS_ZERO_GUARD",
+    "command": "bash /tmp/barocss-d474-root/run-preflight01.sh",
+    "receipt": "/tmp/barocss-d474-geometry/preflight-run01/receipt.json",
+    "receiptSHA256": "8d7d52d2e4b638ec7f54a63955dd3d401658fd1d116e3455b4585aae60c700d0",
+    "manifestSHA256": "42cabf3452f0dc761ccb7ee61db58085f879216a562102d2169542cd584e64a9",
+    "sourcePins": 745,
+    "sourceEqualAfterCleanupCurrent": true,
+    "ownPID": 34274,
+    "ownPIDAbsent": true,
+    "gate": "FREE",
+    "endLoad": 6.83,
+    "HighNativeAudit": "ACCEPT",
+    "inspectorBundling": "PASS"
+  },
+  "actual": {
+    "status": "PASS",
+    "declaredGroups": 7,
+    "qualifiedGroups": 7,
+    "coverage": {
+      "realCapDefaultJoin5": "PASS",
+      "generatedToolDistance8": "PASS",
+      "tool0RefusalRetention": "PASS",
+      "exactUndo5": "PASS",
+      "exactRedo8": "PASS",
+      "ownProjectRoundtrip8": "PASS",
+      "postOpenToolDistance12": "PASS"
+    },
+    "command": "bash /tmp/barocss-d474-root/run-studio01.sh",
+    "receipt": "/tmp/barocss-d474-workflow-run01/receipt.json",
+    "receiptSHA256": "7ac617c03b48a927037613213293c62cd135367b07d5f361f761d1edcc1a88f2",
+    "configSHA256": "865f4be7424805a9a072554d96ce00b11c9bb0f7ac5822cd921429cfe2826842",
+    "nativeBindings": 7,
+    "freshCaptures": 3,
+    "exactWholeDocReuses": 4,
+    "freshPythonOracles": 7,
+    "freshRawWorkerBindings": 7,
+    "maximumWorkerVolumeCentroidError": 0,
+    "WorkerZeroBoundary": "Selected bindings only, not general exactness",
+    "maximumNativeVolumeAbsoluteError": 0,
+    "maximumNativeCentroidAbsoluteErrorMM": 3.552713678800501e-15,
+    "statesAndImages": 24,
+    "rootViewedImages": 8,
+    "HighActualAudit": "ACCEPT_AFTER_EXACT_RECEIPT_SHA_VERIFICATION",
+    "prehashPaths": 2387,
+    "fullFrozenPaths": 2388,
+    "aliasesIncluded": true,
+    "beforeAfterCleanupCurrentEqual": true,
+    "errors": {
+      "page": 0,
+      "console": 0,
+      "downloads": 0,
+      "watchedChanges": 0
+    },
+    "cleanup": {
+      "namespace": "D474-face-join-run01",
+      "namespaceStatus": "REMOVED_AND_ABSENT",
+      "contextBrowserServer": "CLOSED",
+      "ownPID": 38353,
+      "ownPIDAbsent": true,
+      "gate": "FREE",
+      "endLoad": 11.31
+    },
+    "executedSUTFailures": 0,
+    "visualBoundary": "Selected cap fully visible/unobstructed; subsequent preview and accepted Iso partly occluded by fixed left palette; no full-shape Fit/pending Fit or UI-redesign claim",
+    "HighActualChecks": "Seven selected native box/support/pcurve/reciprocal-trim bindings; strict one solid/shell; unchanged budgets; real cap/default Join route complete; partial palette boundary retained",
+    "rootReview": "/tmp/barocss-d474-root/root-review.json"
+  },
+  "physicalContract": {
+    "authority": "Native BRep and independent box integration, not mesh expected geometry",
+    "volume": "600*(10+h)",
+    "centroid": "[20,35,(10+h)/2]",
+    "bounds": "[10,20,0]..[30,50,10+h]",
+    "toolHeights": [
+      5,
+      8,
+      12
+    ],
+    "actualTopology": {
+      "bodies": 1,
+      "shells": 1,
+      "genus": 0,
+      "vertices": 8,
+      "edges": 12,
+      "faces": 6,
+      "loops": 6,
+      "coedges": 24
+    },
+    "boundaryChecks": "Native carriers/corners/directions/reciprocal trims/pcurve-edge gaps/exterior areas",
+    "observedFaces": "n1.bottom,n1.side[e1..e4],n3.top; no exposed z10 interface",
+    "volumeRelative": 1e-09,
+    "centroidBoundsPinsCarrierDistanceNormalsAbsolute": 1e-09,
+    "partitionBoundary": "Observed counts only; no fixed partition count for general Booleans"
+  },
+  "retainedEvidence": "D342/D343/D344 Offset, D349 attached Cut, D448 separate Union, old synthetic-selection graph; not replayed",
+  "checks": {
+    "newProductBuildTestsTypesFullKernel": "NOT_RUN_NO_PRODUCT_OR_TEST_CHANGE",
+    "retained": "D461 28 groups, lint, StudioTSC, finalModelTSC",
+    "documentationNavigation": {
+      "status": "PASS",
+      "command": "export PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH; node apps/cad-studio/handover/scripts/check-navigation.mjs",
+      "node": "22.19.0",
+      "receipt": "/tmp/barocss-d474-root/navigation-final-node22.json",
+      "sha256": "9fcfdabb9e12b063bbdad6db84720fcf2e4acae7cdb4f5c6423b770b323d371f",
+      "rows": 34,
+      "oldHeadingFragments": 552,
+      "parsedLegacyOutboundLinks": 913,
+      "checkedLocalLinks": 2697,
+      "newBroken": 0,
+      "knownMissingPaths": 1
+    }
+  },
+  "issues": {
+    "534": "OPEN_PART06_BOUNDED_PARTIAL_NO_CHECKLIST_PROMOTION"
+  },
+  "next": "D475 source-only off-grid generic faceProfile precision audit candidate; runtime NOT_RUN; no new admission selected. D342 native Offset does not protect this generic consumer.",
+  "environment": "All Node commands require explicit PATH22.19.0",
+  "holds": "Core NOT_MEASURED; legacy43 frozen; all current #2258/#2266, Motion/Physics, fitter/thicken, widening, manufacturing, UI, schema, download/dependency, browserCI/release gates unchanged."
+}
