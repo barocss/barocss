@@ -1,0 +1,53 @@
+{
+  "API": false,
+  "RSS": "NOT_QUALIFIED",
+  "complete64MiBData": "NOT_QUALIFIED",
+  "completeNodeSubtreeCpuUs": null,
+  "controllerSelfObservedSpanUs": {
+    "systemUs": 31723,
+    "userUs": 69225
+  },
+  "controllerSelfSpanScope": "BEFORE_PIN_AUTH_TO_BEFORE_FINAL_RECEIPT;NOT_WHOLE_LIFETIME;NOT_ADDED_TO_NODE",
+  "controllerWholeLifetimeCpu": "NOT_CLAIMED",
+  "firstFailure": {
+    "message": "CLEAN_NODE_REQUIRED",
+    "type": "ValueError"
+  },
+  "independentlyFullAccepted": 0,
+  "observedWallSecondsBeforeFinalReceipt": 0.8570042089559138,
+  "originalIndependentFullPhysics": false,
+  "ownedPgid": 93713,
+  "ownerPid": 93713,
+  "resourceQualification": false,
+  "rssSemantics": "DARWIN_BYTES;OS_MAXRSS_OBSERVATION_NOT_SIMULTANEOUS_TREE_RSS_OR_64MIB_DATA",
+  "sample": {
+    "childrenAfter": {
+      "maxrssBytes": 143835136,
+      "systemUs": 86941,
+      "userUs": 1569346
+    },
+    "childrenBefore": {
+      "maxrssBytes": 0,
+      "systemUs": 0,
+      "userUs": 0
+    },
+    "exitCode": 1,
+    "ioFailure": null,
+    "observedDirectChildPgid": 93713,
+    "ownerPid": 93713,
+    "pgid": 93713,
+    "pid": 93715,
+    "pipeEof": true,
+    "reaped": true,
+    "signals": [],
+    "timedOut": false,
+    "wait4Usage": {
+      "maxrssBytes": 143835136,
+      "systemUs": 86941,
+      "userUs": 1569346
+    },
+    "waitOwnershipLost": false
+  },
+  "status": "CPUUNKNOWN",
+  "strictGlobal64MiBCertification": "NOT_QUALIFIED"
+}
