@@ -1,0 +1,29 @@
+{
+  "status": "SOURCE_ONLY_RENDERER_ADMISSION_FINDING",
+  "WorldCalls": 0,
+  "browserCalls": 0,
+  "buildCalls": 0,
+  "source": {
+    "path": "packages/barocss-viewer/src/index.ts",
+    "bytes": 161192,
+    "sha256": "ec81a4222a69b3859fbe16203c07cc1606fa99aa504c8fa521a3ea0c3f114a91"
+  },
+  "findings": [
+    {
+      "line": 860,
+      "gate": "Viewer Surface array maximum4"
+    },
+    {
+      "line": 537,
+      "gate": "Motion bindings require one-to-one target/ref; twelve faces cannot bind as two targets"
+    },
+    {
+      "line": 1501,
+      "gate": "setSurfaceMaterial requires qualified document/modelset and at most4objects"
+    }
+  ],
+  "rejectedUnexecutedDraft": "Twelve native box-face surfaces plus annotations; never built or browser executed",
+  "authorizedResolution": "Use unchanged established cube/floor/marker GPU packet path with exact collider dimensions, accepted COM/XYZW, at most3packets. Display-only proxy provenance, no original CAD nativeSurface qualification claim.",
+  "productionOrSdkEdit": false,
+  "physicalSolverOrTolerancesChanged": false
+}

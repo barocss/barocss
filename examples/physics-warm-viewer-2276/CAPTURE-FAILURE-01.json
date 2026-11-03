@@ -1,0 +1,36 @@
+{
+  "status": "ACTUAL_DESKTOP_HARNESS_FAILURE_ONLY",
+  "originalReport": "output/playwright/warm-viewer/desktop-01/report.json",
+  "passedDesktopChecks": 9,
+  "totalFrozenChecks": 10,
+  "firstFailure": {
+    "message": "Actual original words exported",
+    "stack": "Error: Actual original words exported\n    at need (evalmachine.<anonymous>:4:33)\n    at evalmachine.<anonymous>:26:282\n    at async check (evalmachine.<anonymous>:6:34)\n    at async evalmachine.<anonymous>:26:3\n    at async evalmachine.<anonymous>:3:20\n    at async /Users/user/.npm/_npx/31e32ef8478fbf80/node_modules/playwright-core/lib/coreBundle.js:69222:13\n    at async waitForCompletion (/Users/user/.npm/_npx/31e32ef8478fbf80/node_modules/playwright-core/lib/coreBundle.js:65487:15)\n    at async _Tab._raceAgainstModalStates (/Users/user/.npm/_npx/31e32ef8478fbf80/node_modules/playwright-core/lib/coreBundle.js:66668:18)\n    at async _Tab.waitForCompletion (/Users/user/.npm/_npx/31e32ef8478fbf80/node_modules/playwright-core/lib/coreBundle.js:66675:9)\n    at async Object.handle (/Users/user/.npm/_npx/31e32ef8478fbf80/node_modules/playwright-core/lib/coreBundle.js:69218:11)"
+  },
+  "captureFailure": "Error: page.evaluate: Error: ENOENT: no such file or directory, mkdir '/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-warm-viewer-2276/evidence/browser-desktop-01'\n    at eval (eval at evaluate (:368:30), <anonymous>:1:381)\n    at async <anonymous>:394:30",
+  "httpFailureCount": 2,
+  "actualRetainedCounts": {
+    "worlds": 4,
+    "attempts": 6,
+    "records": 898,
+    "applications": 594,
+    "queries": 58,
+    "queryPoints": 58,
+    "anchorChecks": 1566,
+    "traceBytes": 4189638
+  },
+  "acceptedCheckpointsRetained": [
+    "A0",
+    "A1",
+    "A2",
+    "D1",
+    "D2"
+  ],
+  "completeActualPhaseHistory": "NOT_RETAINED",
+  "originalPOSTProof": "NOT_SAVED",
+  "independentBrowserPhysics": "NOT_RUN",
+  "browserNodeParity": "NOT_RUN",
+  "physicalFailure": "NOT_ESTABLISHED",
+  "cause": "Capture attempted mkdir(fresh child) before its evidence parent existed. Both primary and fallback POST failed ENOENT; Chrome then closed. Do not reconstruct missing actual traces from Node.",
+  "noRerun": true
+}
