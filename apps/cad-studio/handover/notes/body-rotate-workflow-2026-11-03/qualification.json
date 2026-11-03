@@ -1,0 +1,259 @@
+{
+  "workId": "D464",
+  "lastUpdated": "2026-11-03",
+  "status": "BOUNDED_QUALIFIED",
+  "category": "C2 existing BODY Rotate exact Z quarter turns",
+  "rows": [
+    "07",
+    "08",
+    "12",
+    "16"
+  ],
+  "baseline": "54c6fb5de215d1bb957ba365b2b1a74184d19c69",
+  "branch": "local/cad-dev",
+  "productChanges": "NONE",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercent": 43,
+  "input": {
+    "path": "/tmp/barocss-d464-geometry/seed.bcad",
+    "sourcePath": "/tmp/barocss-d462-geometry/seed.bcad",
+    "sha256": "e2b20d76b42a2ac4bc575a8958f11e791fda12a8aca5dfd1bc964a23e9330c1c",
+    "bytes": 428,
+    "authoring": "SOURCE_AUTHORED byte-exact reuse; no fresh public construction/native seed baseline",
+    "profile": "min[10,20],max[30,50],height10;n0/n1;e1..e4;nextId2;outputb1"
+  },
+  "publicContract": {
+    "creation": "Real body row; Rotate AxisZ Angle90 PivotX/Y/Z explicitly0; Apply",
+    "stored": "n2 parent{node:1,side:solid},axisz,angle90/180,pivot[0,0,0];outputb2;one native solid;source consumed,not kept copy",
+    "edits": "Angle(deg)90\u2192180; original Extrude Distance(h)10\u219212; attempted sourceH0; postOpenAngle90/h12",
+    "notRefusal": "Rotate Angle0 is valid identity"
+  },
+  "preflight": {
+    "status": "PASS_4_NEW_STATES_PLUS_SOURCE_H0_PARAMETER_GUARD",
+    "command": "bash /tmp/barocss-d464-root/run-preflight01.sh",
+    "receipt": "/tmp/barocss-d464-geometry/preflight-run01/receipt.json",
+    "receiptSHA256": "7d6c62009bbcab5f44d29adde4f882826fa4ede6a57ca434d64e16e583b47f1d",
+    "sourcePins": 747,
+    "sourceEqualAfterCleanupCurrent": true,
+    "ownPID": 17271,
+    "ownPIDAbsent": true,
+    "gate": "RELEASED_CLEAN",
+    "refusal": {
+      "name": "CadPartError",
+      "code": "PARAMETER",
+      "feature": "n1",
+      "message": "n1: height must not be zero"
+    },
+    "maximumVolumeAbsoluteError": 0,
+    "maximumCentroidAbsoluteErrorMM": 3.55e-15,
+    "proofBoundary": "Native/API only; postopen label is a geometry state, not public persistence proof."
+  },
+  "actual": {
+    "status": "PASS",
+    "declaredGroups": 8,
+    "qualifiedGroups": 8,
+    "coverage": {
+      "publicRotate90": "PASS",
+      "angle180Edit": "PASS",
+      "sourceHeight12Edit": "PASS",
+      "exactUndo": "PASS",
+      "exactRedo": "PASS",
+      "sourceHeight0RefusalRetention": "PASS",
+      "ownProjectRoundtrip": "PASS",
+      "postOpenAngle90Edit": "PASS"
+    },
+    "command": "bash /tmp/barocss-d464-root/run-studio01.sh",
+    "output": "/tmp/barocss-d464-workflow-run01",
+    "configSHA256": "8cc9bad885642d4e62b3160fc9d33d7610424caa49ef2e6f75a90f26e4001762",
+    "sequence": "Z90/h10\u2192Z180/h10\u2192Z180/h12\u2192H0PARAMETERrefusal\u2192FIRSTUndo180/h10\u2192Redo180/h12\u2192ownOPFS Save/Close/samecontextreload/Open\u219290/h12",
+    "receipt": "/tmp/barocss-d464-workflow-run01/receipt.json",
+    "receiptSHA256": "7d239bfdea44b54d232670f86979b9a569018bb4193553a72ba9533adce1dbf7",
+    "nativeBindings": 8,
+    "newNativeCaptures": 4,
+    "exactWholeDocReuses": 4,
+    "independentPythonOracles": 8,
+    "freshRawWorkerVolumeCentroidBindings": 8,
+    "maximumRawWorkerVolumeCentroidBindingError": 0,
+    "statesAndImages": 24,
+    "rootViewedImages": 7,
+    "sourcePrehashPaths": 2383,
+    "fullFrozenPaths": 2384,
+    "sourceEqualFrozenAfterCleanupCurrent": true,
+    "pinBoundary": "Private /tmp inspector realpath alias is the same physical file. Counts are pinned paths.",
+    "cleanup": {
+      "namespace": "D464-body-rotate-run01",
+      "namespaceStatus": "REMOVED_AND_ABSENT",
+      "contextBrowserServer": "CLOSED",
+      "ownPID": 19760,
+      "ownPIDAbsent": true,
+      "gate": "RELEASED_CLEAN"
+    },
+    "errors": {
+      "page": 0,
+      "console": 0,
+      "downloads": 0,
+      "watchedChanges": 0
+    },
+    "previewBoundary": "HUD AxisZ90/Pivot0 and preview status observed; geometry outside initial view. No Frame before Apply. Accepted states Frame all show correct model. Preview visibility/pendingFit/automaticframing NOT_MEASURED; no established product defect/UI redesign authority."
+  },
+  "physicalContract": {
+    "source": "Current strict native B-rep massPropertiesOf and brepMassProperties; independent Fraction/integer-quarter-matrix oracle; no mesh truth",
+    "matrix90": [
+      [
+        0,
+        -1,
+        0
+      ],
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1
+      ]
+    ],
+    "matrix180": [
+      [
+        -1,
+        0,
+        0
+      ],
+      [
+        0,
+        -1,
+        0
+      ],
+      [
+        0,
+        0,
+        1
+      ]
+    ],
+    "volumeRelative": 1e-09,
+    "centroidBoundsCornerFacePinsAbsoluteMM": 1e-09,
+    "outwardUnitNormalComponentsAbsolute": 1e-09,
+    "states": [
+      {
+        "angle": 90,
+        "height": 10,
+        "volume": 6000,
+        "centroid": [
+          -35,
+          20,
+          5.0
+        ],
+        "bounds": [
+          [
+            -50,
+            10,
+            0
+          ],
+          [
+            -20,
+            30,
+            10
+          ]
+        ]
+      },
+      {
+        "angle": 180,
+        "height": 10,
+        "volume": 6000,
+        "centroid": [
+          -20,
+          -35,
+          5.0
+        ],
+        "bounds": [
+          [
+            -30,
+            -50,
+            0
+          ],
+          [
+            -10,
+            -20,
+            10
+          ]
+        ]
+      },
+      {
+        "angle": 180,
+        "height": 12,
+        "volume": 7200,
+        "centroid": [
+          -20,
+          -35,
+          6.0
+        ],
+        "bounds": [
+          [
+            -30,
+            -50,
+            0
+          ],
+          [
+            -10,
+            -20,
+            12
+          ]
+        ]
+      },
+      {
+        "angle": 90,
+        "height": 12,
+        "volume": 7200,
+        "centroid": [
+          -35,
+          20,
+          6.0
+        ],
+        "bounds": [
+          [
+            -50,
+            10,
+            0
+          ],
+          [
+            -20,
+            30,
+            12
+          ]
+        ]
+      }
+    ],
+    "boundary": "One closed native solid,eight vertices,six planar faces,twelve straight edges; all transformed corners and current n1.bottom/top/side[e1..e4] witnesses; no general downstream matching."
+  },
+  "highArtifacts": {
+    "contractSHA256": "08c1dff599fd6cc695768768e1ddf83d4bbe606b1b143f3e6f788c307f9df088",
+    "inspectorSHA256": "d3c218f870fdfd46d65bb76542db8a06bb0a4cdd1914d06811643bd35efe3109",
+    "oracleSHA256": "6531bba9ed063b964274025bacd4f37715efb90655bd0651b652722a8a9f17cb"
+  },
+  "checks": {
+    "newTestsTypesBuildFullKernel": "NOT_RUN_NO_PRODUCT_OR_TEST_CHANGE",
+    "retained": "D46128 focused groups,lint,StudioTSC,finalModelTSC; no repeated broad baseline",
+    "executedActualFailures": 0,
+    "preparationFailures": 0
+  },
+  "issueDisposition": {
+    "534": "OPEN;fullPART08/10 not all met"
+  },
+  "nextProposed": "D465 C1/C2 line-arc Round #2282 CURRENT SUPPORT/FEASIBILITY MEASUREMENT ONLY. Inspect existing source constraints/finite branches/oracle and current actual refusal before new admission. No automatic implementation/HOLD lift. D461 line-line Round already qualified.",
+  "exclusions": "Arbitraryangle/axis/pivot,gizmoperformance,affineinertia,generaldownstreammatching,export,browserrestart,standards",
+  "holds": "CoreNOT_MEASURED,legacy43frozen;all existing #2258/#2266,fitter/thicken,widening,Motion/Physics,manufacturing,UI,schema,download/dependency,browserCI/release gates unchanged.",
+  "evidenceBoundary": "Raw logs/images/native bodies remain outside repository. Accepted geometry is qualified; initial preview geometry visibility is not.",
+  "documentation": {
+    "status": "PASS",
+    "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+    "rows": 34,
+    "legacyHeadings": 552,
+    "legacyOutboundLinks": 913,
+    "checkedLocalLinks": 2627,
+    "newBrokenLinks": 0,
+    "knownHistoricalMissingPaths": 1,
+    "archiveHashesUnchanged": true
+  }
+}
