@@ -1,0 +1,166 @@
+{
+  "work_id": "D479",
+  "status": "QUALIFIED_SMALL_TYPE_ONLY_STRUCTURAL_MAINTENANCE",
+  "tier": "SMALL",
+  "sourceRequest": "Direct owner part-model.ts decomposition; type/document contracts first",
+  "parentHead": "a4c0d130f671813c5ba5d49b59abac129b767b94",
+  "proofState": "TWO_KNOWN_UNCOMMITTED_CANDIDATE_FILES_NOT_CLEAN_HEAD_DURING_PROOF",
+  "sourcePins": {
+    "packages/barocss-cad/src/part/part-model.ts": "05d62ab4136bb52beda71df548246a864a1645834ea2163872cb63a66cb93dbc",
+    "packages/barocss-cad/src/part/part-types.ts": "4bd5b9c8fd75dc67660159a3d9bf263c6ad2c5f1a85d15e8ee6f57a9c49981e4"
+  },
+  "extraction": {
+    "beforeLines": 2245,
+    "afterLines": 1520,
+    "newTypeLines": 750,
+    "movedOldExportedTypes": 34,
+    "typeInterfaceContractsCompared": 41,
+    "oldModelExportNamesCompared": 70,
+    "Frame": "INTERNAL_NEW_MODULE_EXPORT_ONLY_NOT_OLD_PUBLIC_REEXPORT",
+    "BasePlaced": "PRIVATE",
+    "runtimeStateFunctionsMoved": false,
+    "runtimeBackImportAdded": false,
+    "publicPackageExportChange": false,
+    "typeBodiesComments": "RETAINED;Frame_internal_export_modifier_approved"
+  },
+  "compiler": {
+    "node": "22.19.0",
+    "typescript": "5.9.3",
+    "target": "ES2022",
+    "module": "NodeNext",
+    "packageType": "module",
+    "verbatimModuleSyntax": false,
+    "tsconfigSHA256": "fa7ac345eb98ef9d92226630c29581ea39ce64ebd04d4702b9ab7faddd68cfe4",
+    "isolatedESMTranspile": "STATIC_SOURCE_COMPARISON_ONLY",
+    "freshFullBuild": "PASS_SEMANTIC_AND_DECLARATION_CHECK",
+    "actualDistRuntimeJavaScriptEqual": true,
+    "runtimeImportOrderEqual": true,
+    "newTypeModuleRuntimeImportsInitializers": false
+  },
+  "checks": {
+    "status": "PASS_NINE_COMMANDS",
+    "focusedExistingTests": 69,
+    "familyFirstFreshProcesses": 9,
+    "familyFirstGeometryEvaluation": false,
+    "targetedLintDiff": "PASS",
+    "StudioTSC": "PASS",
+    "finalModelTSC": "PASS_AFTER_FINAL_TWO_SOURCE_HASHES",
+    "fullKernelSuite": "NOT_RUN_NOT_REQUIRED_NO_RUNTIME_CHANGE",
+    "CADTypeCheck": "FULL_LIBRARY_BUILD_NO_DUPLICATE_CHECK"
+  },
+  "actual": {
+    "command": "bash /tmp/barocss-d479-root/run-studio02.sh",
+    "configSHA256": "41ae8f9b55cf0e4d9098666c2095914d42624f8f83a8c4651c573b1735c7b9d7",
+    "checkpoints": [
+      "PUBLIC_OPEN_UNCHANGED_FULL_PREFIX",
+      "OWN_OPFS_SAVE",
+      "CLOSE_SAME_CONTEXT_RELOAD_OPEN"
+    ],
+    "passed": 3,
+    "nativeWholeDocCaptures": 1,
+    "exactDocReuses": 2,
+    "freshPythonWorkerSVGBindings": 3,
+    "allReadOutputs": "EXACT_RETAINED_EXECUTED_D478_PREFIX_AT_EVERY_BINDING",
+    "knownDIM_ON_HIDDEN16_5": "RETAINED_EXPECTED_PREFIX_WARNING_NOT_CLAIMED_FIXED",
+    "publicFixInvocations": 0,
+    "publicConstruction": "NOT_REPLAYED",
+    "newProducerGeometryQualification": "NONE",
+    "workerMaxVolumeRelativeError": 0,
+    "workerMaxCentroidAbsoluteError": 5.395614644290433e-16,
+    "rootReviewedImages": 3
+  },
+  "attempt01": {
+    "status": "NOT_RUN_HARNESS_CONFIG_READINESS",
+    "cause": "MISSING_finalChecks_CONFIG",
+    "productBrowserFlowHelperStarted": false,
+    "correction": "CONFIG_ONLY_SAME_DRIVER_CODE",
+    "testsProductReplayedForCorrection": false
+  },
+  "custody": {
+    "wrapperPinnedPaths": 2466,
+    "helperPinnedPaths": 2468,
+    "equalThroughCleanupCurrent": true,
+    "project": "D479-types-run02",
+    "namespace": "REMOVED_AND_ABSENT",
+    "contextBrowserServer": "CLOSED",
+    "ownPID": 22447,
+    "ownPIDAbsent": true,
+    "gateLeaseReleased": true,
+    "sourceFreezeReleased": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "watchedChanges": 0
+  },
+  "roles": {
+    "sourceProofPreparation": "Sol Medium",
+    "runtimeCustodyImages": "root",
+    "newHighAudit": "NOT_REQUIRED_TYPE_ONLY_SMALL_UNCHANGED_NATIVE_CRITERIA_REUSED"
+  },
+  "evidence": {
+    "originalSnapshot": {
+      "path": "/tmp/barocss-d479-types01/part-model.before.ts",
+      "sha256": "6d4d1d2e70b6c18b3e4b7f60eef3f537a7ea9b09002e6693f9def394e45a1571",
+      "status": "PRESERVED_PRE_EDIT_SOURCE"
+    },
+    "staticProof": {
+      "path": "/tmp/barocss-d479-types01/proof.json",
+      "sha256": "6b447f139fa1dc2f584e938dc68d0653a0d07fbe7e0a7ad50ac7f2cfeefa97f1",
+      "status": "PASS_TYPE_RUNTIME_CONTRACT_EXPORT_EQUIVALENCE"
+    },
+    "actualDistProof": {
+      "path": "/tmp/barocss-d479-types01/dist-proof.json",
+      "sha256": "48bb27e0012dcf079e88dc2f5558a9588a89b1010aee5163c44c4ab9aa25b6f6",
+      "status": "PASS_FULL_BUILD_RUNTIME_EQUIVALENCE"
+    },
+    "familyFirstSmoke": {
+      "path": "/tmp/barocss-d479-types01/family-first-smoke.json",
+      "sha256": "4d9f648cdd67390798f1c1b3d1ca600c944dd67c4ec6b3dd470755a42066748a",
+      "status": "PASS_IMPORT_INITIALIZATION_ONLY"
+    },
+    "checks": {
+      "path": "/tmp/barocss-d479-checks01/receipt.json",
+      "sha256": "80ec538e364249dbafc1e55bca9b85950fba148b89398f522fc31f0e3c67ac8d",
+      "status": "PASS_NINE_COMMANDS"
+    },
+    "attempt01": {
+      "path": "/tmp/barocss-d479-root/actual-wrapper01/review.json",
+      "sha256": "816521aecae097074df64c6653a007079d4127062054cdbab5cbb570e416d70d",
+      "status": "NOT_RUN_HARNESS_CONFIG_READINESS"
+    },
+    "actual02": {
+      "path": "/tmp/barocss-d479-workflow-run02/receipt.json",
+      "sha256": "08cb8065999558fcb5f0869cb374b60e471ba1005714f262600962609090afe2",
+      "status": "PASS_THREE_CHECKPOINTS"
+    },
+    "rootReview02": {
+      "path": "/tmp/barocss-d479-root/actual-wrapper02/review.json",
+      "sha256": "4241035e773b7b0a2b12f68f5c27c1f76de36a67f95886a135a53a6185d057db",
+      "status": "PASS_RUNTIME_SOURCE_EQUAL_CLEANUP_IMAGES"
+    }
+  },
+  "limits": [
+    "NO_FEATURE_QUALIFICATION_OR_PERCENTAGE_CHANGE",
+    "NO_RUNTIME_ADMISSION_CACHE_BOOLEAN_PROFILING_HELPERS_MOVE",
+    "NO_BREP_CORE_API_SCHEMA_TOLERANCE_CHANGE",
+    "D478_COMPLETED_FIX_PROOF_SEPARATE_NOT_REPLAYED",
+    "EXPORT_BROWSER_RESTART_NOT_RUN",
+    "MOBILE_NOT_RUN_OWNER_RULE",
+    "NO_CI_RELEASE_FULL_KERNEL_CLAIM"
+  ],
+  "roadmap": {
+    "rows": [
+      "08",
+      "16",
+      "30"
+    ],
+    "issue534": "OPEN_EPIC_NOT_ALL_CRITERIA_MET",
+    "core": "NOT_MEASURED",
+    "legacyPercent": 43,
+    "legacyStatus": "FROZEN",
+    "C1C2": "FIRST_PASS_CLOSEOUT_THROUGH_D476_UNCHANGED",
+    "holds": "UNCHANGED",
+    "next": "D480_C3_CONTROLLED_PARENT31c_ASME_PDF_GOLDEN_DIAGNOSIS",
+    "transformPatternProfileDetailSplits": "SEPARATE_QUEUED_NOT_COMPLETED"
+  }
+}
