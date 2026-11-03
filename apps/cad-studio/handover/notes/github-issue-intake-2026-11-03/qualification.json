@@ -1,0 +1,378 @@
+{
+  "decision": "D460",
+  "status": "ADOPTED_PLANNING_ONLY",
+  "canonicalNote": "github-issue-intake-2026-11-03",
+  "scope": {
+    "recentQuery": "repo:barocss/barocss is:issue created:>=2026-10-30",
+    "fullBodies": 33,
+    "openCadTitleResults": 82,
+    "recentIDs": [
+      2247,
+      2248,
+      2250,
+      2251,
+      2252,
+      2253,
+      2254,
+      2255,
+      2256,
+      2257,
+      2258,
+      2259,
+      2260,
+      2261,
+      2262,
+      2263,
+      2264,
+      2265,
+      2266,
+      2267,
+      2268,
+      2269,
+      2270,
+      2271,
+      2272,
+      2273,
+      2275,
+      2276,
+      2277,
+      2278,
+      2279,
+      2280,
+      2282
+    ],
+    "refreshedScope": "Root refreshed both queries at 2026-11-03 01:31:17 UTC: no new/removed IDs or body changes; draft uses supplied saved records.",
+    "comments": "NOT_AUDITED",
+    "all82Bodies": "NOT_AUDITED",
+    "savedBodyStateFields": "null; no per-issue live-state inference",
+    "vendorFacts": "NOT_INDEPENDENTLY_VERIFIED",
+    "openCadQuery": "repo:barocss/barocss is:issue is:open CAD in:title",
+    "queryOptions": {
+      "sort": "created",
+      "order": "desc",
+      "topn": 100
+    }
+  },
+  "classificationCounts": {
+    "ADD_ACCEPTANCE": 4,
+    "ALREADY_MAPPED": 21,
+    "DEFERRED/HOLD": 2,
+    "EXPAND_BACKLOG": 4,
+    "OTHER_OWNER": 2
+  },
+  "dispositions": [
+    {
+      "issue": 2247,
+      "classification": "ALREADY_MAPPED",
+      "destination": "12/16; C1/C3 foundations; later AI"
+    },
+    {
+      "issue": 2248,
+      "classification": "ALREADY_MAPPED",
+      "destination": "13/16; C3"
+    },
+    {
+      "issue": 2250,
+      "classification": "ALREADY_MAPPED",
+      "destination": "09/15; C1/C5"
+    },
+    {
+      "issue": 2251,
+      "classification": "ALREADY_MAPPED",
+      "destination": "10; related12/15; C4/C5"
+    },
+    {
+      "issue": 2252,
+      "classification": "OTHER_OWNER",
+      "destination": "World owner; no CAD row"
+    },
+    {
+      "issue": 2253,
+      "classification": "ALREADY_MAPPED",
+      "destination": "30; related16/24; C6"
+    },
+    {
+      "issue": 2254,
+      "classification": "ALREADY_MAPPED",
+      "destination": "16/30; C2 subset/C6 breadth"
+    },
+    {
+      "issue": 2255,
+      "classification": "ALREADY_MAPPED",
+      "destination": "16/30; C1 dependency/C6"
+    },
+    {
+      "issue": 2256,
+      "classification": "ALREADY_MAPPED",
+      "destination": "30/16; C6"
+    },
+    {
+      "issue": 2257,
+      "classification": "ALREADY_MAPPED",
+      "destination": "30; related07/08; C6"
+    },
+    {
+      "issue": 2258,
+      "classification": "ALREADY_MAPPED",
+      "destination": "30; related07/08/24; C6 HOLD"
+    },
+    {
+      "issue": 2259,
+      "classification": "ALREADY_MAPPED",
+      "destination": "30/24; C2 subset/C6 breadth"
+    },
+    {
+      "issue": 2260,
+      "classification": "ALREADY_MAPPED",
+      "destination": "30/16; C6 dependency HOLD"
+    },
+    {
+      "issue": 2261,
+      "classification": "ALREADY_MAPPED",
+      "destination": "30; C2 subset/C6 breadth"
+    },
+    {
+      "issue": 2262,
+      "classification": "ALREADY_MAPPED",
+      "destination": "16/26; C6/C7, C1 blocker only"
+    },
+    {
+      "issue": 2263,
+      "classification": "ALREADY_MAPPED",
+      "destination": "13/28; related26; C3/C7"
+    },
+    {
+      "issue": 2264,
+      "classification": "ALREADY_MAPPED",
+      "destination": "31; dependencies30/16; C6"
+    },
+    {
+      "issue": 2265,
+      "classification": "ALREADY_MAPPED",
+      "destination": "22/23; C5, targeted C2 only"
+    },
+    {
+      "issue": 2266,
+      "classification": "ALREADY_MAPPED",
+      "destination": "30; related24/26; C6 HOLD"
+    },
+    {
+      "issue": 2267,
+      "classification": "ADD_ACCEPTANCE",
+      "destination": "18/19; 12/16 reuse; C8 HOLD"
+    },
+    {
+      "issue": 2268,
+      "classification": "EXPAND_BACKLOG",
+      "destination": "18; 13 acceptance reuse; C8 HOLD"
+    },
+    {
+      "issue": 2269,
+      "classification": "DEFERRED/HOLD",
+      "destination": "Later AI/BIM; 12/13/16 reuse"
+    },
+    {
+      "issue": 2270,
+      "classification": "ADD_ACCEPTANCE",
+      "destination": "15/10; C5; 18 C8 HOLD"
+    },
+    {
+      "issue": 2271,
+      "classification": "ADD_ACCEPTANCE",
+      "destination": "19; revision reuse12; C8 HOLD"
+    },
+    {
+      "issue": 2272,
+      "classification": "EXPAND_BACKLOG",
+      "destination": "07/08 C2/C6; 13 C3; 14 C8 HOLD"
+    },
+    {
+      "issue": 2273,
+      "classification": "DEFERRED/HOLD",
+      "destination": "14 C8 HOLD; optional28/29 C7"
+    },
+    {
+      "issue": 2275,
+      "classification": "ALREADY_MAPPED",
+      "destination": "14 C8 HOLD; 13 handoff reuse"
+    },
+    {
+      "issue": 2276,
+      "classification": "ALREADY_MAPPED",
+      "destination": "18/19 C8 HOLD; static10 reuse"
+    },
+    {
+      "issue": 2277,
+      "classification": "EXPAND_BACKLOG",
+      "destination": "11; C3"
+    },
+    {
+      "issue": 2278,
+      "classification": "ALREADY_MAPPED",
+      "destination": "All34 rows; C1\u2013C8 unchanged"
+    },
+    {
+      "issue": 2279,
+      "classification": "ADD_ACCEPTANCE",
+      "destination": "Later AI; 12/16; 10/15 consumers"
+    },
+    {
+      "issue": 2280,
+      "classification": "OTHER_OWNER",
+      "destination": "Rendering owner; no CAD row"
+    },
+    {
+      "issue": 2282,
+      "classification": "EXPAND_BACKLOG",
+      "destination": "09; selected C1/C2 profile"
+    }
+  ],
+  "fiveOlderNavigationGaps": {
+    "2247": [
+      "12",
+      "16"
+    ],
+    "2250": [
+      "09",
+      "15"
+    ],
+    "2251": [
+      "10"
+    ],
+    "2262": [
+      "16",
+      "26"
+    ],
+    "2265": [
+      "22",
+      "23"
+    ]
+  },
+  "D393Canonical": {
+    "path": "apps/cad-studio/handover/notes/assembly-steps-2026-10-31/qualification.json",
+    "readme": "apps/cad-studio/handover/notes/assembly-steps-2026-10-31/README.md",
+    "foundBy": "rg D393 in decisions-history-through-D417.md and handover notes",
+    "proofReuse": "Existing top-level assembly steps v1; no playback/chat/nested claim",
+    "SHA256": "2b00cd545077a72c43649e5c5645b87b5f6f95a1b76e22bb7b7aef1d647e83d9"
+  },
+  "preserved": {
+    "rowIDs": 34,
+    "priority": "C1\u2192C2\u2192C3\u2192C4\u2192C5\u2192C6\u2192C7\u2192C8",
+    "legacyEstimate": "43% FROZEN",
+    "coreReadiness": "NOT_MEASURED",
+    "existingHolds": "UNCHANGED",
+    "newImplementationAuthority": false,
+    "newAcceptanceExecution": "NOT_RUN",
+    "issueStateChanges": false
+  },
+  "verification": {
+    "documentationOnly": true,
+    "dispositionCoverage": "PASS_33_UNIQUE_RECENT_IDS",
+    "inputHashes": "PASS_UNCHANGED",
+    "navigation": {
+      "status": "PASS",
+      "command": "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+      "rowPages": 34,
+      "oldHeadingFragments": 552,
+      "legacyOutboundLinks": 913,
+      "checkedLocalLinks": 2598,
+      "newBrokenLinks": 0,
+      "knownHistoricalMissingPaths": 1,
+      "archiveHashesUnchanged": true
+    },
+    "whitespace": {
+      "status": "PASS",
+      "command": "git diff --cached --check"
+    },
+    "newCandidateTests": "NOT_RUN",
+    "newStudio": "NOT_RUN_DOCS_ONLY",
+    "benchmarksExportsVendorStandards": "NOT_RUN",
+    "downloadsInstalls": "NONE",
+    "GitHubWrites": "NONE",
+    "rowIDs": 34,
+    "freshStudioRequired": false,
+    "rowsWithAddedNavigation": [
+      "07",
+      "08",
+      "09",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "18",
+      "19",
+      "22",
+      "23",
+      "26"
+    ]
+  },
+  "inputPins": {
+    "issue-2247.json": "c476306068f61bdf2db855b123247642fd537b98ceb74834497275333d372ae5",
+    "issue-2248.json": "91ef40c00a982e0425b657e81aca1dbffc33dd45924a14a08f0dbd73761a235d",
+    "issue-2250.json": "d96fff6417d5775e7ce4c80f949190cd3857fe1309c81f40606cd0a67c9e73e7",
+    "issue-2251.json": "88a78dd13ffa21d95d5513f94abf304718604a6e44a66c1205cf3c02071d9e14",
+    "issue-2252.json": "6906a447517c300c99222aaf1e75dc5531a9da7787fe4f2d93e49c7c5b4de52f",
+    "issue-2253.json": "7cbbb48d88ed487341e9ee8eaa9c10aaa1191a8ab1ab5ef2a9a384b57cb2e35b",
+    "issue-2254.json": "cc23616efbe459d79ff9b6be3bda67b88f2b641e8e6d924e2842e002590c45c1",
+    "issue-2255.json": "38217da7da9aef6bded51b1a405648488d5a5c34049394f3c43f4d19e6211f65",
+    "issue-2256.json": "447da15b9e45cf47ad6d10974a10edfc38d8cff53512a259bb425a70eff48655",
+    "issue-2257.json": "710f9ee0ef9bf5e853dd49a78b75c0f0ffa54d661fa7842c1fd7336d1bbb7b55",
+    "issue-2258.json": "3b89f1d2b73eae23a40e22951124bda2937ff9fbb06b85a8d3e5866839cad44c",
+    "issue-2259.json": "4472f0d7b478e5e32f91be47f95fb726ab291bd5c885e6a6795ceec0a1917012",
+    "issue-2260.json": "822f83acd67761d64a8c4f1f958f379df0752d3d0265269b4a8f67f494f1f6ac",
+    "issue-2261.json": "5fff6dbaab9fc1b5fdd5a9454bbad46e1048efc39fa67c8a5187f3ef72cf3546",
+    "issue-2262.json": "1e0ecaf22d532f099a7c1c54cc7ee4d51e85fc99fd1f0748ef35a6fbd51a6473",
+    "issue-2263.json": "ee847cd2200154e75d152d51307b3e3f49a7751647b462fa517eb31b22cb8506",
+    "issue-2264.json": "53a6aac433c62c8f9e0c6cc463400f4480b26adecdab859b0788b05826ad45b2",
+    "issue-2265.json": "d837fb2672c310b425cf0d1e43a906bd3dd6a4214c8b8065870f48b5ac0facfc",
+    "issue-2266.json": "f15c64407e97b5b0da6d8d308ea697bb7b16cb95d5aee03d9445b4f774487637",
+    "issue-2267.json": "e03310414fe6150ade9cb5a2cd93b6b3943d9c8ffec6bc6d06821abe36aaee9d",
+    "issue-2268.json": "58a4fea1b10f898fb1f443e7033e09a01d131f2227af78d7bb6bd6af36e62bab",
+    "issue-2269.json": "e8eb31a35e607f3a80257640f5693e4f5917a26f08d5afa89e9c91b57d39c362",
+    "issue-2270.json": "afa1fa13fc830d27dccff2cadbb9b52462c8c362defddc2d890c14366e0df84d",
+    "issue-2271.json": "9f967259b003a172508a634542ba544f416dc520bc415884531b7dc65a410644",
+    "issue-2272.json": "9a5cc57b1dfd790649ef9f857efe7ab1106fea59dca54d761d36855813edb6d2",
+    "issue-2273.json": "fc043f31aeaf622e8c04e89817921d0480744bfbae3ae8bce7ee517780a24429",
+    "issue-2275.json": "e9e886c1352da0265d8693b582558d5616f2475f8108e8f5141a2d1b6d764011",
+    "issue-2276.json": "42d7dc58bb6b29e70ed3936c626e9cd18af3173d2901372c0309744ba9f2173e",
+    "issue-2277.json": "0119ff3a4c72c9b94cf03c22767dd0bb7b4b764fd84209f5e7a2dd865c8e0090",
+    "issue-2278.json": "5660868a673fc84d83a1def61fa69f3646d288643f78cc2e65db73f12ebe1afa",
+    "issue-2279.json": "008c8d5b92279f81e0507006c43cafa8517a3342d6877b9afa2bfb84378dfead",
+    "issue-2280.json": "6a4d9a986afdb9cac60d8933ed4721d3ecb1daa1a6759bd715482cfc0b99ab97",
+    "issue-2282.json": "24eb88ce90a8c3a19873208b2646c356a60956f6962e0ad8b4403ec666815425",
+    "index.json": "6801120eda3b4185df7b6b19389fca28c858626ba1c24fb34a0f891082ffc874",
+    "candidate-table.md": "858d741b9dc4ef68d365953236e3497f84f9bab4ee2b2f6bd6a632733e2596dc",
+    "candidate-entries.json": "a98191ddd64895393ebb0f90f396b832b0bc6ec4ff4062f6a7b89548342ab4e7",
+    "older-19-review.md": "275ee3213d8b3f4643a867868dd5453ebda8160842c83178a492054d3e80dea9",
+    "older-19-review.json": "4fae07856f7852e8f5a3a557c84038d8da675c88036c9e35f66fed94d5a81061"
+  },
+  "baseline": "e849056637e38898849c3833d0c038549bb793de",
+  "reviewModels": {
+    "issueReviewAndDrafts": "GPT-6.1 Sol Medium",
+    "adoptionAndRemoteVerification": "Root"
+  },
+  "inputDirectory": "/tmp/barocss-issue-audit-2026-11-03",
+  "sourceSpotCheckPins": {
+    "apps/cad-studio/handover/roadmap.md": "e83146c8bec6576f0c2ed0989febc48a05dc0ba529b36517f03269414cf68870",
+    "apps/cad-studio/handover/notes/github-research-roadmap-2026-10-29.md": "b4e3cf20262729bbf3a4ff012af2124af1854051a65e61b18a3ad2030abeefed",
+    "packages/barocss-cad-model/src/sketch/corner.ts": "0ba2261562cb410d3f23a0d4b901a4b3ea4bd4307283911e6f43065d6b56f5a4",
+    "packages/barocss-cad-model/src/drawing/types.ts": "42ad757bb04efc7a97045917cc86541d5a2ed9395648d46550d1ae453d57548e",
+    "apps/cad-studio/handover/roadmap-rows/07.md": "280d9af71d348d5c7034d0edf15cb38709ba51ba420f2233b3f46ae76a953590",
+    "apps/cad-studio/handover/roadmap-rows/09.md": "362a1345ee0ad49784c8a425b100ba1cf5323f62c3a867b544cf7887f67ecf4c",
+    "apps/cad-studio/handover/roadmap-rows/10.md": "d929acae793743e5a812184d568697700a67102ffff782e670cc2076873c8123",
+    "apps/cad-studio/handover/roadmap-rows/11.md": "5210e3fd332f61f93d66a6d143d823b14ddaab78469e7c9f958bbeeca148043e",
+    "apps/cad-studio/handover/roadmap-rows/12.md": "774e5331257652873aa532336cb38252cf35ecdd2d43d1db8612b1ca59f38193",
+    "apps/cad-studio/handover/roadmap-rows/13.md": "50ddf7e1aa7db973b0159934788e19896ec0aee70cce628155f6f61b4e7a2421",
+    "apps/cad-studio/handover/roadmap-rows/14.md": "4b691c9263f4ad06e815a5ab299db6d20d20136f05828c81a623de9154923f76",
+    "apps/cad-studio/handover/roadmap-rows/15.md": "22bebf35fcbf516d707c377a7da11e2a85b57ddd8a5ab67b99234f181f5151aa",
+    "apps/cad-studio/handover/roadmap-rows/16.md": "c617772d4518ab776fafde89ab96bd0c4b64e209de21210e3de13ed87d889139",
+    "apps/cad-studio/handover/roadmap-rows/18.md": "628183492983fd6fa743e5dc140a60ac69d9e6a8b0d66854e2d86767c40e7ed2",
+    "apps/cad-studio/handover/roadmap-rows/19.md": "c8bb0c05baa4767c5bf4e15baa50c3e80fef556e142d6c835e81c6c76a820ba8",
+    "apps/cad-studio/handover/roadmap-rows/28.md": "10284e1e0d29947bc6f35a189838301de92241e2144b2a251f5a76f0d578e9c8",
+    "apps/cad-studio/handover/roadmap-rows/29.md": "e5fb7c845461d6759a0d2d71c6110ef8ac8da14f58fffeadd8aa08d6629ee391"
+  },
+  "sourceSpotCheckBaseline": "91de5d72fb7d151ed8f5489bd3b8152eaf6dc2f4"
+}
