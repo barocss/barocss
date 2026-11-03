@@ -32,6 +32,7 @@ import { FLUID_MAX_STEPS } from './fluid/constants.js';
 import { validateRotationResult } from './rotation-validation.js';
 import { prepareFreeRotation } from './rigid-free-rotation.js';
 import { prepareForcedRotation } from './rigid-forced-rotation.js';
+import { ContactPairAccumulator } from './contact-contribution.js';
 
 function publicState(bodies: Body[], contacts: PhysicsContact[], events: PhysicsEvent[],
   joints: PhysicsJointState[], ccdHits: PhysicsCcdHit[], pairStats: PhysicsPairStats,
@@ -271,6 +272,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
       const nextCcdHits = hit ? [hit] : [];
       const nextPairStats: PhysicsPairStats = { eligiblePairs: 0, candidatePairs: 0, aabbTests: 0 };
       const found = new Map<string, PhysicsContact>();
+      const contactContributions = new ContactPairAccumulator();
       const nextPersistentPoints = new Map<string, PointImpulse>();
       const persistentNormalTargets = new Map<string, number>();
       const sensed = new Map<string, Omit<PhysicsEvent, 'phase'>>();
@@ -339,7 +341,8 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
                 impulse = prior ? { normalNs: prior.normalNs, tangentNs: [...prior.tangentNs] as Vec3 }
                   : { normalNs: 0, tangentNs: [0, 0, 0] };
                 nextPersistentPoints.set(pointKey, impulse);
-                if (prior) warmStartPoint(a, b, point.pointM, hit.normal, impulse);
+                if (prior) contactContributions.add(a.id, b.id,
+                  warmStartPoint(a, b, point.pointM, hit.normal, impulse));
               }
             }
             for (let iteration = 0; iteration < 8; iteration++) {
@@ -347,8 +350,9 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
               for (const point of order) {
                 const pointKey = `${key}\u0000${point.id}`;
                 const impulse = nextPersistentPoints.get(pointKey)!;
-                solvePersistentPoint(a, b, point.pointM, hit.normal, impulse,
-                  persistentNormalTargets.get(pointKey)!);
+                contactContributions.add(a.id, b.id,
+                  solvePersistentPoint(a, b, point.pointM, hit.normal, impulse,
+                    persistentNormalTargets.get(pointKey)!));
               }
             }
             correctPersistentPair(a, b, hit.normal, hit.penetration);
@@ -361,6 +365,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
             }
           } else {
             const resolved = solve(a, b, hit);
+            contactContributions.add(a.id, b.id, resolved.contribution);
             contact.impulseNs += resolved.normalImpulseNs;
             contact.tangentImpulseNs = add(contact.tangentImpulseNs, resolved.tangentImpulseNs);
           }
@@ -408,6 +413,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
           error('NUMERIC_LIMIT', `${joints[index].id} exceeded motor reaction limit`);
         }
       }
+      contactContributions.finish();
       const state = publicState(next, nextContacts, nextEvents, nextJoints, nextCcdHits, nextPairStats, stepIndex + 1, dt, identity, colliderIds);
       // All candidate, output and recording allocations finish before shared commit.
       const preparedRecording = owner ? owner.prepare(preparedFrames!, state) : null;

@@ -40,7 +40,8 @@ export const providerManifest = {
     "cloth/profile.ts": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f",
     "cloth/solver.ts": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d",
     "cloth/types.ts": "bad411f3fa02e4ba7039b5d447de395074342aa207f2eeed251705b15facb6d1",
-    "collision.ts": "8af301d4addf3b61a38fc54466a73dde48d27907f4143032d500962adbff47a3",
+    "collision.ts": "189cf061d127eadcc8ea5cde39874c53b562fb44ac25db44b9eab902474da976",
+    "contact-contribution.ts": "2703a20ec122414f4c4352fc5b53c235b20dc162800f6f71248d413aa7960d86",
     "contact-manifold.ts": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428",
     "contact-tangent.ts": "5e1bddc158f9a6f307fdcc60ce8078ab36a06e372d530e7f5d05466d29bf9673",
     "disjoint-hinge/admission.ts": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d",
@@ -79,7 +80,7 @@ export const providerManifest = {
     "limits.ts": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3",
     "math.ts": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2",
     "model-admission.ts": "7e77f184fed57d51ee1b0599e60c80d83b96045b139d236a37f76a4207689397",
-    "persistent-box-contact.ts": "3f53922b557ca142a4d95e1e19d5be21828b375b75bc45ff1e57a7b9171261f1",
+    "persistent-box-contact.ts": "6d4b8e9276be9aa0c89754ffb64040591a3c0479640acf81fc86d808926960df",
     "recording-owner.ts": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1",
     "replay-compare.ts": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec",
     "replay-json.ts": "1ab8cf962443edd3be387e5095a9cce3f2071c8b44e47cc165ce82d5c00ac617",
@@ -92,6 +93,6 @@ export const providerManifest = {
     "sleep.ts": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2",
     "types.ts": "37fdf1abcc20fd379304213b8c0686f8e0468d285f008aa8ebdb316882efade5",
     "validation.ts": "c5787fdbe5e31a51e52fb6b91634f75b363a629bb4a88248273e85c8ffc948af",
-    "world.ts": "449865bf2e73ed799885c7e9d0f95f7d3f09c740e42ce1f8b960384308e08266"
+    "world.ts": "fb6440b8ee0e940c7af3fc88b2e64ba5a34424442903f449dc451ac0cd031494"
   }
 } as const;

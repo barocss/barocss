@@ -1,0 +1,19 @@
+{
+  "workId": "physics-canonical-contribution-2276",
+  "status": "BOUNDED_LOCAL_PASS",
+  "baseline": "205890b0e95ee6e79d732ed6c566babca46d2b00",
+  "archives": {
+    "SOURCE-01.tar.gz": "18a7136e1f9b7f45bacc859ba4545b1a74c42ff2a75e557e12160857838aec23",
+    "PROOF-01.tar.gz": "c424ee5520c6d39cc0b9ee66903ebb34a70f399db576f2fa7a9aae09d48e9c61"
+  },
+  "firstRun": "run-01: strict compilation PASS, Source7/9; signed-zero assertion expectations failed and are retained",
+  "qualifiedRun": "run-02: Source9/9 Native9/9, canonical build/declarations/API record-restore parity PASS",
+  "guard": "canonical-contribution-02: PASS exit0, 12559.402875ms, no timeout",
+  "numericLeavesPerParityComparison": 1650,
+  "linearImpulseErrorMaxNs": 2.0816681711721685e-17,
+  "momentErrorMaxNms": 2.7755575615628914e-17,
+  "frozenGate": 1e-12,
+  "newPublicCapability": false,
+  "notQualified": ["performance", "new desktop regression", "native contact geometry", "public STATE2", "original eight-box1200"],
+  "publication": "local only; no deployment or release"
+}

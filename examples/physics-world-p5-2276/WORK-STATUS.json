@@ -34,7 +34,17 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "P4 remains NO_GO. Direct-grid full6 mathematical/physical+independent PASS, then ENDED cost794129000>695832300. New audit observed-graph metric REVOKED; separate preallocation bound conditional. Gram/mixed-determinant all15-axis algebra in READ_ONLY design. Original1200/World/API/desktop NOT_RUN.",
+  "active": "P4 remains NO_GO. Root actual owned-data seven-group selftest and Gram R1 nine-pair/18-model/270-axis gates PASS; new full B source preparation only. Canonical package contribution implementation Source9/Native9, build/declarations and bounded public API record/restore parity PASS. Original1200, new performance and desktop NOT_RUN.",
+  "latestCanonicalImplementation": {
+    "status": "BOUNDED_LOCAL_PASS_INTERNAL_CONTACT_CONTRIBUTION",
+    "results": "examples/physics-canonical-contribution-2276/RESULTS.md",
+    "sourceTests": "9/9 PASS",
+    "nativeTests": "9/9 PASS",
+    "canonicalBuildAndDeclarationConsumer": "PASS",
+    "publicApiNumericLeavesPerComparison": 1650,
+    "newPublicCapability": false,
+    "limits": "Internal actual-application collection/finite validation only; completed totals currently discarded. No STATE2/P4/geometry/performance/desktop promotion. Run01 signed-zero expectation failures preserved."
+  },
   "progressMethod": "Prior5of9boundedmilestones retained as historicalqualifications; newcontact-schema delta requiresseparateP0/P1/P2/P5outputrequalification. No weightedpercent orwhole-enginePASS.",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
@@ -2119,7 +2129,7 @@
     }
   },
   "nextGramSat": {
-    "status": "READ_ONLY_DESIGN",
+    "status": "PURE_R1_SOURCE_AUTHORING_NOT_EXECUTED",
     "scope": "Pair-local Gram plus signed27 mixed determinants, arbitrary exact basis; same all15 per-convention N/D/S and report, no radius cache/pruning/Node relocation",
     "required": [
       "independent derivation/sign/scaling review",
@@ -2134,6 +2144,16 @@
     ],
     "WorldCalls": 0,
     "publicAPI": "NOT_RUN",
-    "desktop": "NOT_RUN"
+    "desktop": "NOT_RUN",
+    "R1FixedScope": {
+      "pairs": 9,
+      "conventions": 18,
+      "axisSlots": 270,
+      "gramCoefficients": 378,
+      "signedFaceCenters": 108,
+      "signedMixedTriples": 486,
+      "validOnly": true,
+      "genericLargePreparedIntegerOverflowQualification": "NOT_RUN"
+    }
   }
 }
