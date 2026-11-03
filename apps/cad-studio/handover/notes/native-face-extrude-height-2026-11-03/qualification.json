@@ -1,0 +1,320 @@
+{
+  "workId": "D475",
+  "lastUpdated": "2026-11-03",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "fa860edf9d781f7bade94ae8564d8c980a2b1e2a",
+  "category": "C1/C2 native face Extrude height accuracy correction",
+  "rows": [
+    "07",
+    "08",
+    "12",
+    "16"
+  ],
+  "source": {
+    "packages/barocss-cad-model/src/app/profileCommands.ts": "913b3c0b8e3818ed6dd7c0a74e2280f81e0fe38a1e6423e214399f289851587a",
+    "packages/barocss-cad-model/src/app/nativeExtrudeFace.ts": "962ed8228e2b2bf1cb90e80e3a221c68c5aaa613d10356ae6b79397fce635131",
+    "packages/barocss-cad-model/test/face-commands.test.ts": "8d6589dcfd4395d32cc7542aa84c953b7e803c78837edac2b26de172b088df47"
+  },
+  "correction": {
+    "route": "Extrude build only; fresh pure owned native +Z polygon cap via existing resolver; clone loop/plane/on",
+    "unsupportedFallback": "Explicit typed reason plus current native binding, complete finite geometry and strict BRep validity",
+    "propagate": "Stale BAD_REFERENCE, unknown and malformed errors",
+    "guardCoverage": "Unknown/malformed propagation SOURCE_REVIEW_ONLY, not direct regressions",
+    "unchanged": "Global rounding, render/available/default/handle paths, Offset resolver, core, schema, API and UI",
+    "excluded": "Unkeyed, holes, arcs, side, -Z and circle retain generic route; no wider geometry admission"
+  },
+  "input": {
+    "path": "/tmp/barocss-d475-geometry/seed.bcad",
+    "sha256": "7f6626f558f008851ef72fb45aa90cc89543ddc54a9687c46e27ca5319db82ef",
+    "sourceHeight": 10.0009765625,
+    "footprint": {
+      "min": [
+        10,
+        20
+      ],
+      "max": [
+        30,
+        50
+      ]
+    },
+    "isolation": "One exact dyadic height; integer XY; no separate seed physical baseline"
+  },
+  "originalNative": {
+    "receipt": "/tmp/barocss-d475-geometry/preflight-run01/receipt.json",
+    "receiptSHA256": "44eefecdf096605e5910e0cf257abfb4905aec1df1c9f28cf7f838ea5cf040e3",
+    "status": "FAIL_CURRENT_FACE_JOIN_ACCURACY",
+    "exit": 1,
+    "captureReadiness": "PASS",
+    "bodies": 2,
+    "shells": 2,
+    "axialGapMM": 2.3437499999445777e-05,
+    "volumeAbsoluteError": 0,
+    "centroidZAbsoluteErrorMM": 7.811991406647678e-06,
+    "observedTop": 15.001,
+    "expectedTop": 15.0009765625,
+    "pins": 745,
+    "pinsEqual": true,
+    "ownPID": 24741,
+    "ownPIDAbsent": true,
+    "gate": "FREE",
+    "HighCaptureAudit": "ACCEPT_KNOWN_ACCURACY_FAIL"
+  },
+  "originalDesktop": {
+    "receipt": "/tmp/barocss-d475-repro-run01/receipt.json",
+    "receiptSHA256": "1b523ab5e3ebe1c7bd425e9036c046e7f3f5e5699e7006ae0e138bc544070a05",
+    "status": "FAIL_CURRENT_FACE_JOIN_ACCURACY",
+    "exit": 1,
+    "captureReadiness": "PASS",
+    "publicApply": "APPLIED",
+    "visiblePieces": 2,
+    "visibleFaces": 12,
+    "workerCoherenceError": 0,
+    "rawAllBodiesBeforeIdealAssertions": true,
+    "states": 10,
+    "rootViewed": 4,
+    "wrapperPins": 2371,
+    "wrapperBeforeAfterCleanupCurrentEqual": true,
+    "helperPins": 2372,
+    "helperFrozenCleanupCurrentEqual": true,
+    "normalHelperSourceAfter": "NOT_RUN_ABSENT_ON_FIRST_FAILURE",
+    "historyProject": "NOT_RUN_MINIMAL_ONLY",
+    "namespace": "NONE",
+    "ownPID": 57114,
+    "ownPIDAbsent": true,
+    "contextBrowserServer": "CLOSED",
+    "gate": "FREE",
+    "endLoad": 17.13,
+    "pageConsoleDownloadsChanges": [
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "preparation": {
+    "path": "/tmp/barocss-d475-root/preparation01.json",
+    "outcome": "Root top-level ARRAY manifest read as .files before gate/build/SUT; reader-only correction; sealed inputs unchanged; first native measurement is run01",
+    "driverProtocol": "Corrected before SUT; not product failure",
+    "originalFailures": "IMMUTABLE"
+  },
+  "checks": {
+    "receipt": "/tmp/barocss-d475-checks01/receipt.json",
+    "receiptSHA256": "eae6cd6aa118ec606d3e5b04a95cade3fd115cce39dfba624272598ec8b311c0",
+    "status": "PASS",
+    "tests": 64,
+    "fail": 0,
+    "skip": 0,
+    "targetedLint": "PASS",
+    "StudioTSC": "PASS",
+    "finalModelTSC": "PASS_AFTER_LAST_TEST_EDIT",
+    "sourcePins": 1488,
+    "sourceEqual": true,
+    "ownPID": 4732,
+    "ownPIDAbsent": true,
+    "gate": "FREE",
+    "tier": "SMALL",
+    "productionBuild": "NOT_RUN",
+    "fullKernel": "NOT_RUN_CORE_UNCHANGED",
+    "retainedKernel": "D433 2066 PASS / 2 old SKIP",
+    "inspectorBundling": "PASS_SEPARATELY",
+    "documentationNavigation": {
+      "status": "PASS",
+      "command": "export PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH; node apps/cad-studio/handover/scripts/check-navigation.mjs",
+      "node": "22.19.0",
+      "receipt": "/tmp/barocss-d475-root/navigation-final-node22.json",
+      "sha256": "ecd349fa0e6ef3f7537fcebb3b1649a2ed7967d378f4b8aaee2d62a906dec22d",
+      "rows": 34,
+      "oldHeadingFragments": 552,
+      "parsedLegacyOutboundLinks": 913,
+      "checkedLocalLinks": 2704,
+      "newBroken": 0,
+      "knownMissingPaths": 1
+    },
+    "commands": [
+      {
+        "name": "model-face-related",
+        "argv": [
+          "pnpm",
+          "--dir",
+          "packages/barocss-cad-model",
+          "run",
+          "test",
+          "face-commands.test.ts",
+          "native-offset-face.test.ts",
+          "native-offset-circle-browser.test.ts",
+          "native-offset-result.test.ts",
+          "offset-face-native.test.ts"
+        ],
+        "status": "PASS"
+      },
+      {
+        "name": "lint",
+        "argv": [
+          "pnpm",
+          "exec",
+          "eslint",
+          "--no-warn-ignored",
+          "--",
+          "packages/barocss-cad-model/src/app/profileCommands.ts",
+          "packages/barocss-cad-model/src/app/nativeExtrudeFace.ts",
+          "packages/barocss-cad-model/test/face-commands.test.ts"
+        ],
+        "status": "PASS"
+      },
+      {
+        "name": "diff",
+        "argv": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "status": "PASS"
+      },
+      {
+        "name": "studio-types",
+        "argv": [
+          "pnpm",
+          "--dir",
+          "apps/cad-studio",
+          "run",
+          "type-check"
+        ],
+        "status": "PASS"
+      },
+      {
+        "name": "model-types-final",
+        "argv": [
+          "pnpm",
+          "--dir",
+          "packages/barocss-cad-model",
+          "run",
+          "type-check"
+        ],
+        "status": "PASS"
+      }
+    ]
+  },
+  "fixedNative": {
+    "receipt": "/tmp/barocss-d475-fixed-geometry/preflight-run01/receipt.json",
+    "receiptSHA256": "1533d79f7eda823080e9d7dc5d95719f85f01e86951f38b1bce8e9963eb0d10a",
+    "status": "PASS",
+    "toolHeights": [
+      5,
+      8,
+      12
+    ],
+    "zeroGuard": {
+      "code": "PARAMETER",
+      "feature": "n3",
+      "reason": "height must not be zero"
+    },
+    "capMapSHA256": "bf2bfd1beb1572479de7bc9762219f902f1149db22839dfeda2c72f23572d24b",
+    "capMapPins": 10,
+    "mapAuthority": "Current producer antecedent only; n2 exact source height",
+    "pins": 747,
+    "pinsEqual": true,
+    "ownPID": 7101,
+    "ownPIDAbsent": true,
+    "gate": "FREE",
+    "endLoad": 10.12,
+    "HighNativeAudit": "ACCEPT",
+    "capMap": "/tmp/barocss-d475-fixed-geometry/preflight-run01/seed-face-map.json"
+  },
+  "fixedDesktop": {
+    "receipt": "/tmp/barocss-d475-fixed-workflow-run01/receipt.json",
+    "receiptSHA256": "068c97f269697094724d74ff87be9be19a9251065b27170491070785cb838a0a",
+    "configSHA256": "30704d7ed65817dd56247be5573be3ce48f587f3449fcb21ccc0316da04ea523",
+    "status": "PASS",
+    "groups": 7,
+    "sequence": [
+      "Real cap default Join5",
+      "Generated tool Distance8",
+      "Distance0 refusal retention",
+      "FIRST Undo5",
+      "Redo8",
+      "Own OPFS Open8",
+      "Post-Open Distance12"
+    ],
+    "observedDefaults": {
+      "op": "join",
+      "draft": 0
+    },
+    "defaultsManuallySet": false,
+    "bindings": 7,
+    "captures": 3,
+    "exactWholeDocReuses": 4,
+    "freshPython": 7,
+    "freshWorker": 7,
+    "maximumNativeVolumeAbsoluteError": 0,
+    "maximumNativeCentroidAbsoluteErrorMM": 3.552713678800501e-15,
+    "maximumWorkerVolumeCentroidError": 0,
+    "workerZeroScope": "Selected bindings only, not general exactness",
+    "states": 24,
+    "rootViewed": 7,
+    "wrapperPins": 2394,
+    "helperPins": 2395,
+    "beforeAfterCleanupCurrentEqual": true,
+    "HighActualAudit": "ACCEPT_SEVEN_SELECTED_DESKTOP_NATIVE_BINDINGS",
+    "pageConsoleDownloadsChanges": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "cleanup": {
+      "namespace": "D475-fixed-face-join-run01",
+      "namespaceStatus": "REMOVED_AND_ABSENT",
+      "contextBrowserServer": "CLOSED",
+      "ownPID": 11176,
+      "ownPIDAbsent": true,
+      "gate": "FREE",
+      "endLoad": 7.0
+    },
+    "visualBoundary": "Cap unobstructed; later Iso partly occluded by fixed palette; no full Fit claim",
+    "HighActualChecks": "Exact receipt SHA verified; seven oracle exits 0/PASS, three fresh and four exact reused native reads with unchanged frozen source; one closed body/shell; exact dyadic bounds, volume and centroid; reciprocal trims and pcurve samples; maximum sampled gap 0; seven Worker volume/centroid errors 0"
+  },
+  "physicalContract": {
+    "authority": "Native BRep plus independent Fraction integration",
+    "volume": "600*(10.0009765625+h)",
+    "centroid": "[20,35,(10.0009765625+h)/2]",
+    "bounds": "[10,20,0]..[30,50,10.0009765625+h]",
+    "volumes": [
+      9000.5859375,
+      10800.5859375,
+      13200.5859375
+    ],
+    "volumeRelativeTolerance": 1e-09,
+    "centroidBoundsPinsCarrierNormalsAbsoluteTolerance": 1e-09,
+    "observedTopology": {
+      "bodies": 1,
+      "shells": 1,
+      "closed": true,
+      "vertices": 8,
+      "edges": 12,
+      "faces": 6,
+      "loops": 6,
+      "coedges": 24
+    },
+    "boundaryChecks": "Exterior support areas, reciprocal trims, pcurves, no exposed cap interface; counts apply to this case"
+  },
+  "rootReviews": [
+    "/tmp/barocss-d475-root/root-review-first-failure.json",
+    "/tmp/barocss-d475-root/root-review-fixed.json",
+    "/tmp/barocss-d475-root/check-review.json"
+  ],
+  "retained": "D474 integer lifecycle; D342/D343/D344 Offset proofs, not replayed",
+  "notClaimed": "XY off-grid, live base following, inertia, general polygon or circular precision, whole-CAD readiness",
+  "mobile": "NOT_RUN_OWNER_RULE_DESKTOP_ONLY",
+  "environment": "All Node commands require explicit PATH22.19.0",
+  "issues": {
+    "534": "OPEN_PART06_BOUNDED_PARTIAL_NO_CHECKLIST_PROMOTION"
+  },
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercentFrozen": 43,
+  "holds": "ALL_UNCHANGED",
+  "next": "D476 circular +Z generic face Extrude dyadic-height source-only audit candidate; no new admission/probe/runtime/fix selected",
+  "reviewModels": {
+    "generalImplementationAndTests": "GPT-6.1 Sol Medium",
+    "difficultGeometryAndToleranceAudit": "GPT-6.1 Sol High"
+  }
+}

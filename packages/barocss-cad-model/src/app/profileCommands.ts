@@ -8,6 +8,7 @@ import { toLocal, toWorld } from '../sketch/plane';
 import { boundParameters, framedLoftSections, loftSections, pickedSketches, planeOf, profileMiddle } from './profiles';
 import { copyLoftGuide } from './loftGuides';
 import { faceProfile } from './faceProfile';
+import { nativeExtrudeFace } from './nativeExtrudeFace';
 import { resolveNativeOffsetFace, validateNativeOffsetDistance, validateNativeOffsetResult } from './nativeOffsetFace';
 import { directNow } from '../engine/directModule';
 import type { Command, Ctx, Field, Values } from './commands';
@@ -79,7 +80,8 @@ export const extrudeCommand: Command = {
   defaults: ctx => { const p = extrudeProfile(ctx); return { h: 8, draft: 0, ...(p && baseOf(ctx, p.node) ? { op: 'join', depth: 'distance' } : {}) }; },
   steps: ctx => { const p = extrudeProfile(ctx); return [{ label: 'Profile', text: !p ? 'pick a flat face or a finished sketch' : p.fresh ? 'the picked face' : `Sketch ${p.index + 1}`, done: !!p }]; },
   build: (ctx, v) => {
-    const p = extrudeProfile(ctx)!, cut = v.op === 'cut', height = cut && v.depth === 'through' ? throughDepth(ctx, p.node) : Number(v.h), draft = Number(v.draft);
+    const selected = extrudeProfile(ctx)!, p = selected.fresh ? { ...selected, node: nativeExtrudeFace(ctx, selected.node) } : selected;
+    const cut = v.op === 'cut', height = cut && v.depth === 'through' ? throughDepth(ctx, p.node) : Number(v.h), draft = Number(v.draft);
     const doc = p.fresh ? withNode(ctx.doc, p.node) : ctx.doc;
     // A cut goes down from the face (with a draft its walls lean in away from the opening); join/new go up.
     const node: ModelNode = cut ? (draft ? { kind: 'extrude', sketch: p.index, height: -height, draft } : { kind: 'extrude', sketch: p.index, height, from: -height })
