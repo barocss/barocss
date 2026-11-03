@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D485: qualify one public point datum target through source-change warning, explicit native endpoint reselection, Undo/Redo and owned project Open; no product change](notes/point-datum-target-recovery-2026-11-04/README.md).
+
 - [D484: extract three unchanged prismatic-detail cases with private runtime ownership;72 related tests and six fresh public text-relief/history/portable-font project groups pass](notes/part-prismatic-detail-extraction-2026-11-04/README.md).
 
 - [D483: reuse existing Viewer for actual nested JSX CAD and props80→100→80 framebuffer updates; fix bounded typed-array input bypass and qualify two native widths](notes/jsx-existing-viewer-2026-11-04/README.md).

@@ -1,0 +1,65 @@
+{
+  "work_id": "D485",
+  "status": "QUALIFIED_SMALL_EXISTING_POINT_TARGET_WORKFLOW_SIX_GROUPS",
+  "tier": "SMALL_EXISTING_WORKFLOW_MEASUREMENT",
+  "parentHead": "65b7258c716c66a7826659f5e5401eec9e0b8289",
+  "productSource": "CLEAN_UNCHANGED_THROUGH_RUNTIME",
+  "productImplementation": false,
+  "rows": ["11", "12", "16"],
+  "input": {"provenance": "EXACT_ORIGINAL_SOURCE_AUTHORED_EXISTING_BRACKET_STOCK_NOT_NEW_PUBLIC_PART_CREATION", "bytes": 334, "sha256": "36b79a5ceb65f46d72a51cfb05c9e0db83e416ecec57d5b5221e9469919dcb3f", "retainedD395Boundary": "AREA_AND_LINE_ONLY_NOT_POINT_LIFECYCLE"},
+  "workflow": {
+    "target": "A1", "kind": "point", "view": "Front",
+    "nativeDiscoveredUniqueVerticalEdge": "n1.side0|n1.side1", "initialMaxEndpoint": [30, 0, 6], "newMaxEndpoint": [30, 0, 8],
+    "heightEdit": [6, 8], "afterHeightEdit": "EXACT_TARGET_RETAINED_DATUM_TARGET_UNVERIFIED_NO_STALE_A1",
+    "recovery": "PUBLIC_EXPLICIT_SAME_NATIVE_EDGE_CHOICE_UPDATES_POINT_ONLY",
+    "exactPointChanges": {"nearZ": [6, 8], "sigPZ": [3, 4], "sigS": [6, 8]},
+    "symbolPlaceExact": [40.000002178171904, 16.000000023249406],
+    "symbolPlacementNormalization": false,
+    "allOtherTargetFields": "EXACT_ORIGINAL_EDGE_MAX_ID_LETTER_NUMBER_VIEW_PLACE",
+    "firstUndo": "UNVERIFIED", "redo": "RECOVERED", "projectReloadOpen": "RECOVERED",
+    "newFeatureAPIKindGeometryRecoveryAlgorithm": false
+  },
+  "checks": {
+    "command": "bash /tmp/barocss-d485-root/run-checks01.sh", "status": "PASS",
+    "modelCategoryTests": 29, "studioDrawingCommitRoundtripTests": 4, "diff": "PASS",
+    "reusedAtIdenticalSource": ["D484_CAD_FULL_SEMANTIC_BUILD", "D484_FINAL_MODEL_TSC", "D484_STUDIO_TSC"],
+    "fullKernel": "NOT_RUN_D482_SEPARATE_FULL_KERNEL_EVIDENCE_RETAINED"
+  },
+  "map": {"command": "bash /tmp/barocss-d485-root/run-map01.sh", "authority": "MAP_ONLY_ANTECEDENT_NOT_ACTUAL_WORKFLOW"},
+  "actual": {
+    "command": "bash /tmp/barocss-d485-root/run-studio01.sh", "status": "PASS", "runtimeFailures": 0,
+    "configSHA256": "91025f8cd8aea0e3debfa0bb9e473edef6feee8bd2e26889106f0bca01051835",
+    "groups": ["PUBLIC_POINT_A1_H6", "PUBLIC_SOURCE_H8_UNVERIFIED", "PUBLIC_RESELECT_H8_RECOVERED", "FIRST_UNDO_UNVERIFIED", "REDO_RECOVERED", "OWN_OPFS_RELOAD_OPEN_RECOVERED"],
+    "groupCount": 6, "nativeCaptures": 3, "exactWholeDocReuses": 3, "freshBindings": 6,
+    "physicalReference": {"stock": "30x12xH", "volume": "360*H", "centroid": [15, 6, "H/2"], "checks": "ALL_NATIVE_CORNERS_PLANES_EDGES_TRIMS_AND_EXACT_TARGET_LIFECYCLE"},
+    "physicalBudgets": {"volumeRelative": 1e-9, "centroidBoundsCarriersAbsolute": 1e-9},
+    "SVGContract": "EXACT_EXISTING_FOUR_DECIMAL_SERIALIZER_SEPARATE_FROM_PHYSICAL_ORACLE",
+    "signatureAndLeader": {"nativeSourceSignatureMidpointLengthError": 0, "rawLeaderError": 0, "SVGSerializerResidual": 0, "rawToSVGMaximumQuantizationMM": 4.5835837852337136e-5, "quantizationIsNativeBudget": false},
+    "maxErrors": {"nativeVolume": 0, "rawPolyhedronVolume": 0, "rawPolyhedronCentroid": 0, "nativeMassCentroid": 3.552713678800501e-15, "bounds": 0, "corners": 0, "carriers": 0, "pcurve": 0, "planeArea": 0, "workerVolume": 0, "workerCentroid": 0},
+    "presealDriverCorrections": "TARGET_ROW_TEXT_ABI_AND_RACE_GUARDS_BEFORE_ACTUAL_NOT_PRODUCT_FIXES"
+  },
+  "rootReview": {"status": "PASS_ROOT_ACTUAL_REVIEW", "reviewedImages": 8, "bindingsReviewed": 6},
+  "custody": {
+    "wrapperPins": 1854, "wrapperEqualThroughCleanupCurrent": true,
+    "helperInitialPins": 1854, "helperFrozenPins": 1856,
+    "helperAddedDependencies": ["PRIVATE_TMP_ALIAS", "VITE_CONFIG"], "allInitialPinsRetained": true,
+    "helperFrozenEqualAfterCleanupCurrent": true, "ownedNamespace": "D485-point-run01_REMOVED_AND_ABSENT",
+    "ownPID": 34126, "ownPIDAbsent": true, "contextBrowserServer": "CLOSED",
+    "errors": 0, "consoleErrors": 0, "downloads": 0, "watchedChanges": 0
+  },
+  "savedProject": {"path": "/tmp/barocss-d485-workflow-run01/06-recovered-H8-saved-opfs.bcad", "bytes": 1286, "sha256": "62cd67bcf6b9d2af6d7f95e0ae4bde5c291f35dd0b356cd236b0f2b3bcdb3f6e", "format": "EXISTING_ASSET_FREE_PLAIN_JSON_NOT_BCADPACK", "document": "EXACT_RECOVERED_ACTUAL_H8_DOC_TARGET_AND_SOURCE"},
+  "HighFinalSavedReview": {"status": "ACCEPT_D485_ONE_POINT_TARGET_NATIVE_SIGNATURE_HEIGHT_RESELECT_HISTORY_PROJECT_SIX_BINDINGS", "path": "/tmp/barocss-d485-geometry01/high-final-actual01-review.json", "sha256": "cec8c1ceff5e3e3070795ac5f57bf5e1947a862f4301be9817eaaadf5a42f75f", "savedDataOnly": true, "newProductOrOracleRun": false},
+  "roles": {"driverSourcePreparation": "Sol Medium", "nativeOracleAndSavedAudit": "Sol High", "finalConfigRuntimeImages": "root"},
+  "evidence": {
+    "intake": {"path": "/tmp/barocss-d485-root/intake01.json", "sha256": "40519d1f690c6636ba4758feadd2538f24baaca7f16679d61bef1da9b2f6c1fa"},
+    "categoryChecks": {"path": "/tmp/barocss-d485-checks01/receipt.json", "sha256": "8fbd122b4a16ff1ddc8f3ca1ec73a2e86710a16bc2d0c689af49d65804cccf04"},
+    "mapWrapper": {"path": "/tmp/barocss-d485-map-wrapper01/receipt.json", "sha256": "d326bf5c9a3118e130eab66871679353a284d926e261c917d1de90e126e519b2"},
+    "geometryArray8Manifest": {"path": "/tmp/barocss-d485-geometry01/manifest.json", "sha256": "19479f62f5a1d320e1e56b374817788634ef2f79ba584c0b79b2559b35ce72c3"},
+    "lifecycleOracle": {"path": "/tmp/barocss-d485-geometry01/lifecycle-oracle.py", "sha256": "8392bf79ac5b1274b7aa351dee1378b9049b134551bb89306f6a54564e60d942"},
+    "oracleContract": {"path": "/tmp/barocss-d485-geometry01/CONTRACT.md", "sha256": "468604ee7908b2ed9d386f977605c7790c46f25899064ecb03982937854e3c92"},
+    "actual": {"path": "/tmp/barocss-d485-workflow-run01/receipt.json", "sha256": "92c243f8ea0858663e724541aa51169a4c4d793550d958d873d62be51d149670"},
+    "rootActualReview": {"path": "/tmp/barocss-d485-root/actual01-review.json", "sha256": "5b7b91e1680e427429e7ffa749c53725c15a87ff049d9f8cae1df5e5eaf44c0a"}
+  },
+  "limits": ["ONE_EXISTING_POINT_TARGET_PROFILE_ONLY", "NO_NEW_PUBLIC_PART_CONSTRUCTION", "NO_PRODUCT_IMPLEMENTATION", "NO_ALL_DRAWING_RECOVERY_OR_OTHER_TARGET_ADMISSION", "NO_FUTURE_2277_FEATURE", "NO_MOBILE", "NO_DOWNLOADS_OR_INSTALLS", "NO_RAW_ARTIFACTS_COPIED_TO_REPOSITORY"],
+  "roadmap": {"issue540": "OPEN_EPIC", "issue2243": "OPEN_RESEARCH", "issue2277": "FUTURE_FEATURE_NOT_THIS_SCOPE", "core": "NOT_MEASURED", "legacyPercent": 43, "legacyStatus": "FROZEN", "holds": "UNCHANGED", "PDF": "OWNER_DEFERRED", "next": "D486_PRIORITY_REVIEW_NO_CONCRETE_FEATURE_SELECTED"}
+}
