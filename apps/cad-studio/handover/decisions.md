@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D493: qualify the existing native-cap plus two public origin-plane mates at zero remaining freedom through Distance3 refusal, linked-source revision, FIRST Undo/Redo and project Open](notes/fully-constrained-mate-workflow-2026-11-04/README.md).
+
 - [D492: extract four exact profile-solid cases behind private helpers and requalify the retained Loft lifecycle; retain oracle-path stop, saved-only correction and remaining-only recovery](notes/part-profile-solid-extraction-2026-11-04/README.md).
 
 - [D491: preserve project Open auto-fit after its own linked-file commit; retain original product failure, unchanged public-F control and corrected actual/ownership proof](notes/project-open-fit-ready-2026-11-04/README.md).
