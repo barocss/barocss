@@ -33,7 +33,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Newlifecycle25da0c262 static40+P244SourceNativepacket/wirePASS; genuinehiddenPREdisposepublic/privateRAW_EQUAL. Currentdesktop8b6b2400a7/7+15physical+captureproofPASSmanual53040. Independentdynamicreferencec1dREADY; firstpure36f260949workNO_GOpreserved; efficientc67bc917eSourceNative3physical8negative13calls14packetsPASS241975int<262144,0World. Sharedmathcore/boundarybank AUTHORING. Worlddynamic/public/P4/HOLD unchangedNO_GO/open.",
+  "active": "Priority: qualify actual coupled dynamic friction in the original three cold World cases. Shared arithmetic Source/Native production13 and private52 have passed. Dynamic World, long-duration stack and dynamic desktop are not yet qualified.",
   "progressMethod": "Prior5of9boundedmilestones retained as historicalqualifications; newcontact-schema delta requiresseparateP0/P1/P2/P5outputrequalification. No weightedpercent orwhole-enginePASS.",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
@@ -850,23 +850,57 @@
     "subdivisionsAndExponent": 66,
     "oldFirstFailure": "PRESERVED_36f260949_262146_DENIED_ATTEMPT_TRUNCATED_NOT_COMPLETED",
     "reference": "INDEPENDENT_REFERENCE_READY_c1d9a640c",
-    "runtimeWorldPromotion": "BLOCKED_UNQUALIFIED_ARITHMETIC_BANKS",
-    "sharedCoreAndBoundaryBank": "AUTHORING_ONLY_NOT_EXECUTED",
+    "runtimeWorldPromotion": "BLOCKED_ACTUAL_HOST_AND_REMAINING_GATES",
+    "sharedCoreAndBoundaryBank": "EXECUTED_PASS_PRODUCTION_13_AND_PRIVATE_52_SOURCE_NATIVE",
     "production13CallCap16": "UNCHANGED_SEPARATE_FROM_NEW_PRIVATE_BANK"
   },
   "uiPreference": "2026-11-03 user AGENTS: UI controls/state/results, omit explanatory layers where possible; detailed explanations in docs. Frozen prior evidence/UI unchanged.",
   "arithmeticNext": {
-    "status": "AUTHOR_ONLY_SHARED_CORE_AND_INDEPENDENT_LITERAL_BANK_READY_NOT_EXECUTED",
-    "productionProtocol": {
-      "plannedCalls": 13,
-      "cap": 16
+    "status": "EXECUTED_PASS_FINITE_SHARED_ARITHMETIC",
+    "results": "examples/physics-coupled-arithmetic-2276/RESULTS.json",
+    "providerDigest": "563358d90def9027f39d4e0a7744c436f849660f5bfd1b2dc1d5094d6b37bff9",
+    "productionPerGraph": {
+      "actualCalls": 13,
+      "cap": 16,
+      "fullFilesRawEqualToEfficient": 14,
+      "allCounterWordsEqual": true
     },
-    "privateTestEntryProtocol": {
-      "plannedCalls": 52,
-      "cap": 64
+    "privateTestEntryPerGraph": {
+      "actualCalls": 52,
+      "cap": 64,
+      "independentAudits": 52,
+      "fullFilesRawEqualSourceNative": 53
     },
-    "completeObservedTotalIfBothPass": 65,
+    "observedAcrossSeparateProcessesPerGraph": 65,
+    "combined64CapClaim": false,
+    "WorldCalls": 0,
+    "strictCompileFirstFailures": [
+      "build-01 TS18048 preserved at3179b6018",
+      "build-02 TS4060/TS4058 preserved"
+    ],
+    "successfulBuild": "build-03 type annotations only; original math bodies unchanged",
+    "archive": {
+      "path": "examples/physics-coupled-arithmetic-2276/EVIDENCE-01.tar.gz",
+      "logicalMembersVerified": 715,
+      "frozenWorkspaceRecoveryVerified": 234,
+      "toolMetadataVerified": 359
+    },
     "algorithmsMetersLimitsPrecision": "UNCHANGED",
-    "WorldPromotion": "BLOCKED_PENDING_ALL_ARITHMETIC_AND_HOST_GATES"
+    "WorldPromotion": "BLOCKED_PENDING_ACTUAL_HOST_AND_REMAINING_GATES"
+  },
+  "currentPriorityOrder": [
+    "Original three cold dynamic-friction World inputs with independent physical audits",
+    "Post-impulse failure atomicity, recorder and genuine restore under the same qualified profile",
+    "Desktop browser rendering and independent actual-browser physics",
+    "Warm and multipoint contact prerequisites before original long-duration eight-box settling"
+  ],
+  "dynamicHost": {
+    "status": "AUTHORED_NOT_EXECUTED",
+    "folder": "examples/physics-coupled-dynamic-host-2276",
+    "profile": "Original before/at/after cold one-point first interval only",
+    "arithmeticPrerequisite": "EXECUTED_PASS",
+    "WorldCalls": 0,
+    "dynamicDesktop": "NOT_RUN",
+    "warmMultipointLongStack": "UNCHANGED_NO_GO_OR_NOT_RUN"
   }
 }

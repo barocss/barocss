@@ -141,3 +141,17 @@ boundary banks and runtime host integration still block promotion; the original
 production13-call/cap16 remains separate from new private test-entry work. See
 COVERAGE-13.json. Dynamic World, warm/multipoint, public adoption and P4 remain
 NO_GO/open; no mobile/deployment or machine-accuracy claim follows.
+
+## Shared arithmetic boundary checkpoint (2026-11-03)
+
+Source and actual NodeNext Native each pass the unchanged production13/cap16
+regression, with all14 complete packet/counter files raw equal to efficient2429.
+Separate fresh private-entry processes each pass52 independently audited
+literal polynomial/RNE/resource cases under cap64; all53 files including bank
+match raw between Source/Native. Their observed sum65 is across separate
+processes, not one combined64 cap. Shared production arithmetic has no test
+entry or lowering hook. World calls remain0 for this checkpoint. First strict
+compile failures01/02 remain preserved;03 changes only erased type annotations.
+See COVERAGE-14.json and `examples/physics-coupled-arithmetic-2276/RESULTS.md`.
+Actual dynamic World is the next priority, before desktop and original long-stack
+expansion. HOLDs, tolerances, old failures and NoDeploy remain unchanged.

@@ -1,0 +1,47 @@
+{
+  "status": "FINITE_SHARED_ARITHMETIC_PASS_ACTUAL_HOST_PENDING",
+  "date": "2026-11-03",
+  "previousCoverage": "COVERAGE-13.json",
+  "scope": {
+    "status": "EXECUTED_PASS_FINITE_SHARED_ARITHMETIC",
+    "results": "examples/physics-coupled-arithmetic-2276/RESULTS.json",
+    "providerDigest": "563358d90def9027f39d4e0a7744c436f849660f5bfd1b2dc1d5094d6b37bff9",
+    "productionPerGraph": {
+      "actualCalls": 13,
+      "cap": 16,
+      "fullFilesRawEqualToEfficient": 14,
+      "allCounterWordsEqual": true
+    },
+    "privateTestEntryPerGraph": {
+      "actualCalls": 52,
+      "cap": 64,
+      "independentAudits": 52,
+      "fullFilesRawEqualSourceNative": 53
+    },
+    "observedAcrossSeparateProcessesPerGraph": 65,
+    "combined64CapClaim": false,
+    "WorldCalls": 0,
+    "strictCompileFirstFailures": [
+      "build-01 TS18048 preserved at3179b6018",
+      "build-02 TS4060/TS4058 preserved"
+    ],
+    "successfulBuild": "build-03 type annotations only; original math bodies unchanged",
+    "archive": {
+      "path": "examples/physics-coupled-arithmetic-2276/EVIDENCE-01.tar.gz",
+      "logicalMembersVerified": 715,
+      "frozenWorkspaceRecoveryVerified": 234,
+      "toolMetadataVerified": 359
+    },
+    "algorithmsMetersLimitsPrecision": "UNCHANGED",
+    "WorldPromotion": "BLOCKED_PENDING_ACTUAL_HOST_AND_REMAINING_GATES"
+  },
+  "priorityOrder": [
+    "Original three cold dynamic-friction World inputs with independent physical audits",
+    "Post-impulse failure atomicity, recorder and genuine restore under the same qualified profile",
+    "Desktop browser rendering and independent actual-browser physics",
+    "Warm and multipoint contact prerequisites before original long-duration eight-box settling"
+  ],
+  "HOLD": "UNCHANGED",
+  "allFirstFailures": "PRESERVED",
+  "deploy": "NOT_RUN"
+}

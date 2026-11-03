@@ -1,0 +1,199 @@
+{
+  "status": "EXECUTED_PASS_FINITE_SHARED_ARITHMETIC_PRODUCTION_AND_PRIVATE_BANKS",
+  "providerDigest": "563358d90def9027f39d4e0a7744c436f849660f5bfd1b2dc1d5094d6b37bff9",
+  "WorldCalls": 0,
+  "productionPerGraph": {
+    "calls": 13,
+    "cap": 16,
+    "fullPacketFiles": 14,
+    "ancestorRawMismatchBytes": 0
+  },
+  "privatePerGraph": {
+    "calls": 52,
+    "cap": 64,
+    "fullFilesIncludingBank": 53,
+    "immediateIndependentAudits": 52
+  },
+  "observedPerGraphAcrossSeparateProcesses": 65,
+  "combined64CapClaim": false,
+  "afterDynamicCounts": {
+    "gcdSteps": 23153,
+    "integerOps": 241975,
+    "maxDyadicExponent": 66,
+    "peakBits": 1297,
+    "rationalOps": 771,
+    "subdivisions": 66
+  },
+  "rows": [
+    {
+      "run": "materialize-01",
+      "status": "READY_MATERIALIZED_ARITHMETIC_BANK",
+      "guardStatus": "PASS",
+      "elapsedMs": 206.603584,
+      "result": "examples/physics-coupled-arithmetic-2276/evidence/materialize-01/result.json",
+      "resultPin": {
+        "bytes": 402,
+        "sha256": "70222c23f1c0ca4b47000555f2a02048547cb1b1a64a9be500597d791ec3b36d"
+      },
+      "guard": "examples/physics-world-p5-2276/evidence/coupled-arithmetic-materialize-01/result.json",
+      "guardPin": {
+        "bytes": 3076,
+        "sha256": "daa30bc24c174d766e610a3ae0de5feff2329a9b9a11ee4cd946549954636a08"
+      }
+    },
+    {
+      "run": "build-01",
+      "status": "NO_GO_ARITHMETIC_BUILD",
+      "guardStatus": "FAIL",
+      "elapsedMs": 611.587208,
+      "result": "examples/physics-coupled-arithmetic-2276/evidence/build-01/result.json",
+      "resultPin": {
+        "bytes": 1478,
+        "sha256": "3bf8602e549821ec35730d2fcab0f1ee3a4a9b0acf293752d65fb20f88748c07"
+      },
+      "guard": "examples/physics-world-p5-2276/evidence/coupled-arithmetic-build-01/result.json",
+      "guardPin": {
+        "bytes": 3225,
+        "sha256": "3ed9ac773f9d8fe6019dea1ea9d58bca5e615db1c621ee6e966e48309fa1db33"
+      }
+    },
+    {
+      "run": "build-02",
+      "status": "NO_GO_ARITHMETIC_BUILD",
+      "guardStatus": "FAIL",
+      "elapsedMs": 986.773583,
+      "result": "examples/physics-coupled-arithmetic-2276/evidence/build-02/result.json",
+      "resultPin": {
+        "bytes": 1690,
+        "sha256": "dce69012ede2bdb616bc680cbcff76aca2964766b7bd2d55fe33ec10fe8b1a37"
+      },
+      "guard": "examples/physics-world-p5-2276/evidence/coupled-arithmetic-build-02/result.json",
+      "guardPin": {
+        "bytes": 3228,
+        "sha256": "6cd3ec12c90d3799325f49508a12a938e582b8739006e3e6ce3f8750442ae015"
+      }
+    },
+    {
+      "run": "build-03",
+      "status": "PASS_SHARED_ARITHMETIC_STRICT_DUAL_ENTRY_BUILD",
+      "guardStatus": "PASS",
+      "elapsedMs": 1596.05275,
+      "result": "examples/physics-coupled-arithmetic-2276/evidence/build-03/result.json",
+      "resultPin": {
+        "bytes": 3381,
+        "sha256": "d20453a8e5e987f19a68501f46b0d8bce15e49ee46c44cb2d8d3c012b5a7502b"
+      },
+      "guard": "examples/physics-world-p5-2276/evidence/coupled-arithmetic-build-03/result.json",
+      "guardPin": {
+        "bytes": 3031,
+        "sha256": "2e49c5707eab18e6510c342a39435042193245801eb769d198d6affb16ee27a7"
+      }
+    },
+    {
+      "run": "production-source-01",
+      "status": "PASS_PRODUCTION_REGRESSION_RAW_EQUAL_EFFICIENT",
+      "guardStatus": "PASS",
+      "elapsedMs": 537.710583,
+      "result": "examples/physics-coupled-arithmetic-2276/evidence/production-source-01/result.json",
+      "resultPin": {
+        "bytes": 3028,
+        "sha256": "2ad18b11c9ea8dadbe6c5457cba5846aa2fd2d5279c79091823aee524940a86b"
+      },
+      "guard": "examples/physics-world-p5-2276/evidence/coupled-arithmetic-production-source-01/result.json",
+      "guardPin": {
+        "bytes": 3153,
+        "sha256": "3b1d7789c6b60ca6ec7c429583dc17e1a1cc80cca106cb64123620f08279dc50"
+      }
+    },
+    {
+      "run": "production-native-01",
+      "status": "PASS_PRODUCTION_REGRESSION_RAW_EQUAL_EFFICIENT",
+      "guardStatus": "PASS",
+      "elapsedMs": 513.900167,
+      "result": "examples/physics-coupled-arithmetic-2276/evidence/production-native-01/result.json",
+      "resultPin": {
+        "bytes": 3028,
+        "sha256": "bd84e172c8ef712585e6f85c321cb496accd18104e767487ab0e740d780f8e1a"
+      },
+      "guard": "examples/physics-world-p5-2276/evidence/coupled-arithmetic-production-native-01/result.json",
+      "guardPin": {
+        "bytes": 3153,
+        "sha256": "2683646b9ddd6919e778d690301c1a3062d685c2e06e884e5bdb2d907ff21d6d"
+      }
+    },
+    {
+      "run": "production-parity-01",
+      "status": "PASS_PRODUCTION_SOURCE_NATIVE_AND_EFFICIENT_RAW_PACKETS",
+      "guardStatus": "PASS",
+      "elapsedMs": 51.111791,
+      "result": "examples/physics-coupled-arithmetic-2276/evidence/production-parity-01/result.json",
+      "resultPin": {
+        "bytes": 2818,
+        "sha256": "8fc963482a494fbe84f5d40e7edcd55383cfaf8eb821c1a94ae98e86788efb72"
+      },
+      "guard": "examples/physics-world-p5-2276/evidence/coupled-arithmetic-production-parity-01/result.json",
+      "guardPin": {
+        "bytes": 3233,
+        "sha256": "61cefc8a8064418e2973a08cca2f2895a2c9cf590a9db1fa4e427d996141a95a"
+      }
+    },
+    {
+      "run": "arithmetic-source-01",
+      "status": "PASS_PRIVATE_SHARED_ARITHMETIC_52_LITERAL_CASES",
+      "guardStatus": "PASS",
+      "elapsedMs": 2350.805375,
+      "result": "examples/physics-coupled-arithmetic-2276/evidence/arithmetic-source-01/result.json",
+      "resultPin": {
+        "bytes": 13665,
+        "sha256": "3e5f4be36f9214ca47ecd4b69ef58303a2f563203cbaaa06d0fd438c885d52de"
+      },
+      "guard": "examples/physics-world-p5-2276/evidence/coupled-arithmetic-source-01/result.json",
+      "guardPin": {
+        "bytes": 3136,
+        "sha256": "3d7c42206a1cfaea013e1aa235615abe2225481801497e3a6de1039a1fed370c"
+      }
+    },
+    {
+      "run": "arithmetic-native-01",
+      "status": "PASS_PRIVATE_SHARED_ARITHMETIC_52_LITERAL_CASES",
+      "guardStatus": "PASS",
+      "elapsedMs": 2437.124917,
+      "result": "examples/physics-coupled-arithmetic-2276/evidence/arithmetic-native-01/result.json",
+      "resultPin": {
+        "bytes": 13658,
+        "sha256": "f1c6e88fe236194e7857a3877a89b1bc2d04e1c3890e66986d5dae20b4c9f0eb"
+      },
+      "guard": "examples/physics-world-p5-2276/evidence/coupled-arithmetic-native-01/result.json",
+      "guardPin": {
+        "bytes": 3136,
+        "sha256": "d66e0eaa0bab362be7a533883b4e3cfe69812cb77bb10a73812dd34602c5b459"
+      }
+    },
+    {
+      "run": "arithmetic-parity-01",
+      "status": "PASS_PRIVATE_ARITHMETIC_52_SOURCE_NATIVE_RAW_PACKET_PARITY",
+      "guardStatus": "PASS",
+      "elapsedMs": 89.222833,
+      "result": "examples/physics-coupled-arithmetic-2276/evidence/arithmetic-parity-01/result.json",
+      "resultPin": {
+        "bytes": 9589,
+        "sha256": "46a0dd3b86a062c16f1ee00ee8ea82d41c4f011a6ec2518807a593ffcc184d64"
+      },
+      "guard": "examples/physics-world-p5-2276/evidence/coupled-arithmetic-parity-01/result.json",
+      "guardPin": {
+        "bytes": 3160,
+        "sha256": "25dd2355e972695ce955e5565db56c4a8d111c9c4105a1ee2203729249d266c1"
+      }
+    }
+  ],
+  "firstFailures": [
+    "build-01 TS18048",
+    "build-02 TS4060/TS4058"
+  ],
+  "allOldTolerancesCapsAndFirstFailures": "PRESERVED",
+  "actualHost": "NOT_RUN",
+  "dynamicDesktop": "NOT_RUN",
+  "wholeP4": "UNCHANGED_NO_GO",
+  "publicPromotion": "BLOCKED_ACTUAL_HOST_AND_REMAINING_GATES",
+  "deploy": "NOT_RUN"
+}
