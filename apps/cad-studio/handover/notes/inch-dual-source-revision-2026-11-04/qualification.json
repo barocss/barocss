@@ -1,0 +1,211 @@
+{
+  "work_id": "D489",
+  "status": "QUALIFIED_SIX_AGGREGATE_GROUPS_WITH_RETAINED_ORIGINAL_HARNESS_FAIL",
+  "tier": "SMALL_EXISTING_C3_WORKFLOW_MEASUREMENT",
+  "rows": [
+    "11",
+    "12",
+    "16"
+  ],
+  "parentHead": "fb7fa86a8a277d6dbe20a9dbd491609810b6f760",
+  "productImplementation": false,
+  "input": {
+    "path": "/tmp/barocss-d489-input01/retained-inch-dual.bcad",
+    "bytes": 1070,
+    "sha256": "9462939cb035b12ec4900cb6dae48f5a2462a43d09b3ddb39a1fe5d832ef8fd2",
+    "source": "EXACT_D397_RUN03_05_FRESH_OPEN_DOC_NO_FIELD_CHANGES",
+    "sourceReceiptSHA256": "86e2109206030bc8de606ad85ae2ffe5970a35ecf3797c6546f03c79579ec3da",
+    "modelUnits": "mm",
+    "drawingUnits": "inch",
+    "dual": true,
+    "inchPrecision": 2,
+    "toleranceFields": "ABSENT_NO_AUTHORING"
+  },
+  "groups": [
+    "OPEN_AND_PUBLIC_MM_DUAL_OFF_TO_INCH_DUAL_ON_PRECISION2",
+    "PUBLIC_ISSUE_A_H6",
+    "PUBLIC_SOURCE_DISTANCE6_TO8_STALE_A_CURRENT_DIMENSIONS",
+    "PUBLIC_ISSUE_B_H8",
+    "FIRST_UNDO_REDO_EXACT_STATES",
+    "OWN_OPFS_SAVE_CLOSE_RELOAD_OPEN_B"
+  ],
+  "actual": {
+    "status": "AGGREGATE_6_OF_6",
+    "nativeCaptures": 3,
+    "exactWholeDocReuses": 4,
+    "freshNativeWorkerSVGBindings": 7,
+    "recoveryNewCaptures": 2,
+    "recoveryExactReuses": 4,
+    "recoveryBindings": 6,
+    "unitCycleNextAOrNativeA6Replayed": false,
+    "recoveryRequiredAntecedent": "EXACT_PUBLIC_ISSUED_A6_OPEN_FRESH_WORKER_SVG_CACHED_NATIVE_READ",
+    "config02SHA256": "990f9d7198c8c979dfa6ab3cf64ef7a89a0735f0953a1b4aeca1c1cbbb81ec6b",
+    "authoredIdentity": "EDGE_NEAR_PLACE_IDS_UNITS_DUAL_PRECISION_PRESERVED_ONLY_INDEPENDENTLY_VALIDATED_SIG_CACHES_MAY_ENRICH",
+    "historyProject": "EXACT_ACCEPTED_ACTUAL_DOCS",
+    "worker": "MEASURED_ROOT_PART_COHERENCE_NO_PLACED_INSTANCES"
+  },
+  "physical": {
+    "stock": "30x12xH",
+    "volumeFormula": "360*H",
+    "volumes": [
+      2160,
+      2880
+    ],
+    "centroid": [
+      15,
+      6,
+      "H/2"
+    ],
+    "bounds": "0..[30,12,H]",
+    "d1": "TOP_Y12",
+    "d2": "FRONT_X30",
+    "d3": "FRONT_Z6_TO8_FROM_CURRENT_NATIVE_ENDPOINT_NOT_OLD_NEAR_HINT",
+    "budget": "ORIGINAL_1E_MINUS9_RELATIVE_VOLUME_ABSOLUTE_OTHER_NATIVE_GEOMETRY",
+    "text": {
+      "fullSVG": [
+        ".47 [12]",
+        "1.18 [30]",
+        ".24 [6] -> .31 [8]"
+      ],
+      "summary": "PRIMARY_ONLY_BY_EXISTING_CONTRACT",
+      "native": "PRIMARY_AND_ALT_CHECKED_SEPARATELY",
+      "SVGSerialization": "EXACT_EXISTING_FOUR_DECIMAL_FORMAT_SEPARATE_FROM_NATIVE_BUDGETS"
+    }
+  },
+  "originalFailure": {
+    "receiptStatus": "FAIL",
+    "coverageFieldsRetained": "NOT_RUN",
+    "classification": "ORACLE_SUMMARY_PRIMARY_VS_FULL_DUAL_SVG_DIALECT_AT_A6",
+    "productDefectEstablished": false,
+    "correction": "NEW_ORACLE02_SUMMARY_PRIMARY_EXPECTATION_ONLY_FULL_NATIVE_ALT_SVG_PHYSICS_RETAINED",
+    "savedOnlyRecheck": "PASS_NO_SUT_NATIVE_REPLAY_QUALIFIES_ORIGINAL_FIRST_TWO_GROUPS"
+  },
+  "recoveryInput": {
+    "path": "/tmp/barocss-d489-input02/actual-issued-A-H6.bcad",
+    "bytes": 1111,
+    "sha256": "6e0b98783aba4d17c7b162679249b64d007426c87b8820015c0273a8ba035f44",
+    "provenance": "EXACT_ORIGINAL_READ_DOCUMENT_JSON_NOT_REMADE"
+  },
+  "reuse": {
+    "path": "/tmp/barocss-d489-root/reuse-issued-A-native01.json",
+    "sha256": "620439fe0d6a6df09229cae7e854237571d00bf42465301809d36a0f272298ee",
+    "eligibleSourcePins": 1028,
+    "checks": "EXACT_DOC_READ_FULL_ORIGINAL_INPUT_AND_ORIGINAL_CORRECTED_RECEIPT_BYTES_CURRENT_ELIGIBLE_PINS_PLUS_NEW_CAPTURE_ORACLE_PINS",
+    "unchangedOldFullConfigClaim": false
+  },
+  "checks": {
+    "newModelUnitsTests": 27,
+    "newStatus": "PASS",
+    "reusedStudioTests": 13,
+    "reuseCondition": "EXACT_UNCHANGED_SOURCE",
+    "buildTypes": "D484_IDENTICAL_SOURCE_REUSED",
+    "fullKernel": "NOT_RUN",
+    "PDF": "OWNER_DEFERRED_NO_RERUN",
+    "docsNavigation": "PASS_34_ROWS_NO_NEW_BROKEN_LINKS",
+    "diff": "PASS"
+  },
+  "visual": {
+    "rootOriginalImages": 4,
+    "rootRecoveryImages": 6,
+    "rootTotalImages": 10,
+    "allA4SheetsFullyVisible": true
+  },
+  "savedB": {
+    "bytes": 3868,
+    "sha256": "cead17956ce983113e863438615864ac61d5b7901bc6b1b1d54c97b018e7981b",
+    "format": "EXISTING_PLAIN_JSON"
+  },
+  "custody": {
+    "run01": {
+      "wrapperPins": 1853,
+      "helperPins": 1855,
+      "cleanupCurrentEqual": true,
+      "ownPID": 94055,
+      "ownPIDAbsent": true
+    },
+    "run02": {
+      "wrapperPins": 1867,
+      "helperPins": 1869,
+      "cleanupCurrentEqual": true,
+      "ownPID": 96014,
+      "ownPIDAbsent": true
+    },
+    "ownedNamespaces": "REMOVED_AND_ABSENT",
+    "resources": "ALL_CONTEXTS_BROWSERS_SERVERS_CLOSED",
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "watchedChanges": 0
+  },
+  "HighFinalSavedReview": {
+    "status": "PASS",
+    "path": "/tmp/barocss-d489-high-final01/review.json",
+    "sha256": "d861601f95bdc0091310a5beb126d2f8a80dbb33c174b0cc12681ae9c6f6132e",
+    "checks": 407,
+    "failures": 0,
+    "savedOnly": true,
+    "SUTNativeOracleRerun": false,
+    "eligibleCurrentPinsEqual": 1028,
+    "rootImageHashes": 10,
+    "maxErrors": {
+      "nativeVolumeAbsolute": 0,
+      "nativeCentroidAbsolute": 3.552713678800501e-15,
+      "boundsCornersPcurveRawPolyhedronWorkerAndSVGResidual": 0
+    }
+  },
+  "roles": {
+    "driverPreparation": "Sol Medium",
+    "nativeOracleFinalSavedReview": "Sol High",
+    "configRuntimeCustodyImages": "root"
+  },
+  "evidence": {
+    "actual01": {
+      "path": "/tmp/barocss-d489-workflow-run01/receipt.json",
+      "sha256": "6fcd5292bc4f68390fb3b731b0995b4ea50bc2e1c765cd6f7fc3ec2f5adc6c6e"
+    },
+    "savedOracle02": {
+      "path": "/tmp/barocss-d489-saved-oracle02/receipt.json",
+      "sha256": "e351e9e85e68fae7f0fd2eddde701c524e05c34de885f01d9a9d60878b4b1cbf"
+    },
+    "actual02": {
+      "path": "/tmp/barocss-d489-workflow-run02/receipt.json",
+      "sha256": "db9d11edc9e94250898cf09a9c702cab951cdc3d6b51da025b6a6e8f2a989991"
+    },
+    "rootReview01": {
+      "path": "/tmp/barocss-d489-root/actual01-review.json",
+      "sha256": "03488fb16b7641c2d283deecd1edabee2aa22eb79b2ded194a3b7242b529f460"
+    },
+    "rootReview02": {
+      "path": "/tmp/barocss-d489-root/actual02-review.json",
+      "sha256": "9eaf290313f7ba3b5ac65edcd621c8188465d7e15757ca5bfff0d563d9f3fc7a"
+    },
+    "checks01": {
+      "path": "/tmp/barocss-d489-checks01/receipt.json",
+      "sha256": "3c9780162f0de78a67f850e15f83d83f2c69539d62e550b33049e7c1ae205619"
+    },
+    "reusedStudio13": {
+      "path": "/tmp/barocss-d486-checks02/receipt.json",
+      "sha256": "1a259568c70b35a6fd4187677210574aca07a1a85884e6a37f8e7a2be5955477"
+    }
+  },
+  "limits": [
+    "NO_PRODUCT_CHANGE",
+    "NO_PUBLIC_CONSTRUCTION_REPLAY",
+    "NO_TOLERANCE_FIELDS_AUTHORING_OR_CLAIM",
+    "NO_SVG_EXPORT_PDF_STANDARDS_NEW_GEOMETRY_ADMISSION",
+    "NO_MOBILE_OR_DOWNLOADS",
+    "NO_RAW_ARTIFACTS_COPIED_TO_REPOSITORY"
+  ],
+  "roadmap": {
+    "issue538": "OPEN",
+    "issue540": "OPEN",
+    "core": "NOT_MEASURED",
+    "legacyPercent": 43,
+    "legacyStatus": "FROZEN",
+    "holds": "UNCHANGED",
+    "PDF": "OWNER_DEFERRED_NO_RERUN",
+    "next": "D490_C4_EXISTING_D383_SKIPPED_INSTANCE_PATTERN_LINKED_SOURCE_H10_TO14",
+    "nextSetup": "ORIGINAL_SOURCE_PATHS_ABSENT_DERIVED_ONLY_AFTER_PUBLIC_OWN_SOURCE_SAVE_SEPARATE_PIN",
+    "nextRetainedBoundary": "COUNT5_SKIP1_FOUR_LIVE_IDS_POSITIONS_BOM_QTY4_HISTORY_PROJECT_NO_PATTERN_CONSTRUCTION_REPLAY_NESTED_ADMISSION_OR_MOTION"
+  }
+}
