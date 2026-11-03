@@ -1,0 +1,42 @@
+{
+  "status": "ROOT_CONTRACT_REVIEW_PASS_IMPLEMENTATION_AUTHORIZED",
+  "workId": "physics-p4-position-witness-2276",
+  "date": "2026-11-03",
+  "inputs": {
+    "CONTRACT.md": {
+      "bytes": 14351,
+      "sha256": "d4590564d03caf4bf6128537555a33f25b02f2cc7532a261d6d2ea8eacfc453a"
+    },
+    "METERING.md": {
+      "bytes": 14418,
+      "sha256": "66849646ac9b5b1791fc09696b68032316fabfbb58d1c3188334e36a5565d37e"
+    },
+    "RUNTIME-LAYOUT-01.json": {
+      "bytes": 913,
+      "sha256": "bc3904316e2e67f74f61140437c2ce35e170b75f194c026bc446d016d66f709e"
+    }
+  },
+  "approvedScope": "Author candidate core and one fresh six-frame full-reference wrapper only; no actual execution until full source/oracle/harness freeze verified by Root",
+  "formatClarification": "Match saved exact text: integer denominator1 is decimal n (zero is 0); otherwise reduced n/d. No string normalization by comparison harness. This resolves canonical n/d wording with the contract canonical exact0 rule.",
+  "memoryCondition": "Before execution freeze, include concrete ownership/preallocation table bound to RUNTIME-LAYOUT-01. Account input/outer retained data plus scratch/output before dense allocation; no64MiB/RSS equivalence. Prefer bounded tuples/slots; no unbounded object dictionaries/history.",
+  "deadlines": "Charge large READ_CHAR/WRITE_CHAR in chunks that preserve <=1024 units between deadline checks; no hidden large-int string conversion.",
+  "guardOrder": "Validate changed controls basisRank with mutatedS; dependent coefficient rank first; omitted ground primal before old reportedlambda comparison; observed translation comparison last",
+  "stages": {
+    "A": {
+      "kernelChecks": 10,
+      "SAT": 0,
+      "World": 0
+    },
+    "B": {
+      "onlyAfterA": "COMPLETE_NUMERICAL_PASS",
+      "fullReferences": 6,
+      "compact": 432,
+      "coldQP": 0,
+      "World": 0,
+      "costDecisions": 1
+    }
+  },
+  "existingLimitsAndCriteria": "UNCHANGED; no inherited candidate resumed; no legacy fallback",
+  "authorExecution": "NOT_AUTHORIZED; syntax/AST/hash only",
+  "RootExecution": "NOT_YET_AUTHORIZED_UNTIL_ALL_FROZEN_FILES_READY"
+}

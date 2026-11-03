@@ -1,0 +1,61 @@
+{
+  "protocol": "p4-position-witness-harness-run-v1",
+  "status": "INTERFACE_PENDING_DO_NOT_SEAL",
+  "numericOrder": [
+    "ALIGNED-1",
+    "CONTROL-MALFORMED-WITNESS",
+    "CONTROL-DEPENDENT-BASIS",
+    "CONTROL-OMITTED-GROUND",
+    "CONTROL-CHANGED-TRANSLATION",
+    "ALIGNED-16",
+    "OFFSET-1",
+    "OFFSET-16",
+    "YAW-1",
+    "YAW-16"
+  ],
+  "maxNumericalCandidateChecks": 10,
+  "WorldCalls": 0,
+  "baselineReruns": 0,
+  "candidateArithmeticPreparation": "COMPLETE_NEW_PROOF_INSIDE_CANDIDATE_2M_METER_NO_HARNESS_FRACTION_PREPARATION",
+  "savedBaselineCoreCpuNs": 773147000,
+  "costRatioNumerator": 9,
+  "costRatioDenominator": 10,
+  "costRequires": "ACTUAL_STAGE_B_ALL_SIX_FULL_NUMERICAL_AND_INDEPENDENT_PASS",
+  "limits": {
+    "externalWallMs": 180000,
+    "internalWallMs": 170000,
+    "evidenceBytes": 16777216,
+    "requestBytes": 2097152,
+    "replyBytes": 2097152,
+    "explicitRetainedBytes": 67108864
+  },
+  "metadataDifferences": null,
+  "candidateCommand": null,
+  "independentCheckerCommand": null,
+  "externalToolFiles": {},
+  "firstFailurePolicy": "STOP_AND_RETAIN_UNREACHED_NOT_RUN",
+  "qualification": "NO_WORLD_NO_WARM_NO_1200_STEP_NO_PUBLIC_ADOPTION",
+  "stages": {
+    "A": {
+      "profile": "PURE_KERNEL",
+      "maxCandidateChecks": 10,
+      "SATCalls": 0,
+      "WorldCalls": 0,
+      "geometryAndForceEvidence": "AUTHENTICATE_AND_REUSE_ONLY"
+    },
+    "B": {
+      "requires": "ACTUAL_STAGE_A_ALL_PASS",
+      "freshFullWrapperCommands": 1,
+      "frames": 6,
+      "compactCalls": 432,
+      "coldQpCalls": 0,
+      "engineWorldCalls": 0,
+      "replyTransport": "ONE_EXCLUSIVE_FILE_PER_FRAME_MAX_2MIB",
+      "costTiming": "SAME_CONTEXT_EVALUATE_CORE_RETAINED_ONCE",
+      "costDecision": "ONCE_AFTER_ALL_SIX_PHYSICAL_AND_INDEPENDENT_GATES_PASS",
+      "duplicateSixFrameRuns": 0
+    }
+  },
+  "costDecisions": 1,
+  "fullWrapperCommand": null
+}

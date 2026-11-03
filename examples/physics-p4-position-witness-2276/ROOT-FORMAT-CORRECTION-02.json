@@ -1,0 +1,71 @@
+{
+  "status": "ROOT_EXACT_TEXT_CORRECTION_BEFORE_IMPLEMENTATION_EXECUTION",
+  "supersedesOnly": "ROOT-APPROVAL-01.json formatClarification; original record remains unchanged",
+  "previousApprovalPin": {
+    "bytes": 2139,
+    "sha256": "db7749ad305275e8424dcbd5817b694d2efa85d3c5021a65384fb1b022547ca8"
+  },
+  "cause": "Root incorrectly inferred denominator1 decimal formatting without checking actual position reference fields",
+  "correctRule": "Preserve existing position CURRENT/V2 exact field text verbatim: reduced numerator/positive denominator INCLUDING /1 for integer/zero. New stationarity/complementarity exact vectors use the same explicit n/d convention. Do not normalize strings in harness. Other proof families may use str(Fraction); do not transfer their format.",
+  "observedAuthorities": [
+    {
+      "path": "examples/physics-world-p4-2276/evidence/cost-census-01/ALIGNED-1-position-world.stdout.raw",
+      "pin": {
+        "bytes": 52515,
+        "sha256": "a654b24cd6d0008fe56422ef551c2701d2904b6100758dd1a9b1f204ccfb8dcf"
+      },
+      "translation0": {
+        "id": "b0",
+        "u": [
+          "0/1",
+          "1534038623073/2251799813685248",
+          "0/1"
+        ]
+      },
+      "lambda0": "10738270361511/2251799813685248",
+      "marginPrefix": [
+        "0/1",
+        "1/2",
+        "1/1"
+      ],
+      "certificateExact": {
+        "primalViolationM": "0/1",
+        "negativeMultiplierKgM": "0/1",
+        "complementarityKgM2": "0/1",
+        "stationarityKgM": "0/1"
+      }
+    },
+    {
+      "path": "examples/physics-p4-position-v2-2276/evidence/position-01/ALIGNED-1-reply.json",
+      "pin": {
+        "bytes": 280483,
+        "sha256": "1eecbbaaf3e0f2d9eb42b48d2ffb7e9144218974e2edc461bb2171543f51a9c1"
+      },
+      "translation0": {
+        "id": "b0",
+        "u": [
+          "0/1",
+          "1534038623073/2251799813685248",
+          "0/1"
+        ]
+      },
+      "lambda0": "10738270361511/2251799813685248",
+      "marginPrefix": [
+        "0/1",
+        "1/2",
+        "1/1"
+      ],
+      "certificateExact": {
+        "primalViolationM": "0/1",
+        "negativeMultiplierKgM": "0/1",
+        "complementarityKgM2": "0/1",
+        "stationarityKgM": "0/1"
+      }
+    }
+  ],
+  "candidateCalls": 0,
+  "referenceCalls": 0,
+  "WorldCalls": 0,
+  "tolerancesAndInputs": "UNCHANGED",
+  "otherImplementationAuthorization": "UNCHANGED"
+}

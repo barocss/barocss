@@ -1,0 +1,250 @@
+{
+  "status": "FIRST_PRIMITIVE_NO_GO_PRESERVED",
+  "sourceFiles": 130,
+  "stageA": {
+    "protocol": "p4-position-witness-harness-v1",
+    "stage": "stage-a",
+    "status": "NO_GO_POSITION_WITNESS_HARNESS",
+    "firstFailure": {
+      "cursor": "ALIGNED-16",
+      "type": "ValueError",
+      "message": "KERNEL_EXPECTED_STATUS"
+    },
+    "cases": [
+      {
+        "id": "ALIGNED-1",
+        "status": "EXECUTED_PASS",
+        "actualStatus": "EXACT_KKT_CERTIFIED",
+        "actualReason": null,
+        "replyPin": {
+          "bytes": 4470,
+          "sha256": "63e58724a765198acef29495982b09021f0e14ccbe7e1310898b4f2402742465"
+        },
+        "independent": {
+          "path": "examples/physics-p4-position-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-1-independent.json",
+          "pin": {
+            "bytes": 3250,
+            "sha256": "b3dc51c10282447a163b8a605a8c123b8e92b595a2e62e81003d947aa37b3362"
+          },
+          "status": "EXECUTED_PASS_POSITION_WITNESS_KERNEL_CASE",
+          "expectedRejectionControl": false
+        }
+      },
+      {
+        "id": "control-duplicate-index",
+        "status": "EXECUTED_PASS",
+        "actualStatus": "UNRESOLVED",
+        "actualReason": "WITNESS_INDEX_INVALID",
+        "replyPin": {
+          "bytes": 1042,
+          "sha256": "735db21df5ce742b33b01fb37d955463179c86fcaff7fca25665073859d7a0ad"
+        },
+        "independent": {
+          "path": "examples/physics-p4-position-witness-harness-2276/evidence/stage-a-01/kernel-control-duplicate-index-independent.json",
+          "pin": {
+            "bytes": 2831,
+            "sha256": "242a9cf4b274eaf778486a52d08a91e9bd1e8d572df44359bccf8bc15891499c"
+          },
+          "status": "EXECUTED_PASS_POSITION_WITNESS_KERNEL_CASE",
+          "expectedRejectionControl": true
+        }
+      },
+      {
+        "id": "control-dependent-original-row1",
+        "status": "EXECUTED_PASS",
+        "actualStatus": "UNRESOLVED",
+        "actualReason": "WITNESS_BASIS_DEPENDENT",
+        "replyPin": {
+          "bytes": 1096,
+          "sha256": "fb59cbea4a91b1a41a1411cf4e3d7b469645c996646a46fed3a6ce1496617a5d"
+        },
+        "independent": {
+          "path": "examples/physics-p4-position-witness-harness-2276/evidence/stage-a-01/kernel-control-dependent-original-row1-independent.json",
+          "pin": {
+            "bytes": 2960,
+            "sha256": "115fe2fa7eb3280c4415ff7c309b892a5ecdcbeed01a298efc6b77d623b6662d"
+          },
+          "status": "EXECUTED_PASS_POSITION_WITNESS_KERNEL_CASE",
+          "expectedRejectionControl": true
+        }
+      },
+      {
+        "id": "control-omit-ground-row7",
+        "status": "EXECUTED_PASS",
+        "actualStatus": "UNRESOLVED",
+        "actualReason": "WITNESS_PRIMAL_INFEASIBLE",
+        "replyPin": {
+          "bytes": 1105,
+          "sha256": "9361ec6b5db7e3797bc4a479c008e6ca753301db12bad5130dc56eaeb30f5808"
+        },
+        "independent": {
+          "path": "examples/physics-p4-position-witness-harness-2276/evidence/stage-a-01/kernel-control-omit-ground-row7-independent.json",
+          "pin": {
+            "bytes": 2976,
+            "sha256": "79abda2868d96f5287cf27097afa61219010bff7869c2f9b413dc050bb60837f"
+          },
+          "status": "EXECUTED_PASS_POSITION_WITNESS_KERNEL_CASE",
+          "expectedRejectionControl": true
+        }
+      },
+      {
+        "id": "control-reported-translation",
+        "status": "EXECUTED_PASS",
+        "actualStatus": "OBSERVED_RESULT_MISMATCH",
+        "actualReason": "OBSERVED_RESULT_MISMATCH",
+        "replyPin": {
+          "bytes": 5012,
+          "sha256": "d52beaad9f0e360576573a3661c6a4dac0046faa0251885a828a7a05f13db178"
+        },
+        "independent": {
+          "path": "examples/physics-p4-position-witness-harness-2276/evidence/stage-a-01/kernel-control-reported-translation-independent.json",
+          "pin": {
+            "bytes": 3385,
+            "sha256": "a3aef4d3cfdb87b02f0a45b21ee3b41b02f694d9f2ca6fa1fdece541552f59ca"
+          },
+          "status": "EXECUTED_PASS_POSITION_WITNESS_KERNEL_CASE",
+          "expectedRejectionControl": true
+        }
+      }
+    ],
+    "controls": {
+      "ALIGNED-1": "EXECUTED_PASS",
+      "control-duplicate-index": "EXECUTED_PASS",
+      "control-dependent-original-row1": "EXECUTED_PASS",
+      "control-omit-ground-row7": "EXECUTED_PASS",
+      "control-reported-translation": "EXECUTED_PASS",
+      "ALIGNED-16": "EXECUTED_NO_GO",
+      "OFFSET-1": "NOT_RUN",
+      "OFFSET-16": "NOT_RUN",
+      "YAW-1": "NOT_RUN",
+      "YAW-16": "NOT_RUN"
+    },
+    "counts": {
+      "candidateChecksAttempted": 6,
+      "candidateRepliesRetained": 6,
+      "independentChecksAttempted": 5,
+      "independentChecksPassed": 5,
+      "freshFullWrapperCommands": 0,
+      "fullFramesVerified": 0,
+      "costDecisions": 0,
+      "WorldCalls": 0,
+      "baselineReruns": 0
+    },
+    "stageB": "NOT_RUN",
+    "costDecision": "NOT_RUN",
+    "wholeP4": "UNCHANGED_NO_GO",
+    "directAPI": "NOT_RUN",
+    "desktop": "NOT_RUN",
+    "executionBoundary": "OFFLINE_SAVED_REQUESTS_ONLY",
+    "freezePin": {
+      "bytes": 26416,
+      "sha256": "61c866927b07db778e9b78393f9b5e8a65113ff0081b6c38c1d26d7b2aa86428"
+    },
+    "manifestPin": {
+      "bytes": 2601,
+      "sha256": "2cfee91e60760a806f2b5676329833d5d7e2a13f52623fce87edde216f4bfaff"
+    },
+    "elapsedWallNs": 1695487875,
+    "peakExplicitRetainedDataBytes": 90520,
+    "explicitDataBoundary": "Accounted retained Python data, not process RSS",
+    "writtenEvidenceBytesBeforeSummary": 78864,
+    "laterChecks": "NOT_RUN_AFTER_FIRST_FAILURE",
+    "setupIOAuditTiming": "Candidate wrapper separate fields; never subtract from observed core",
+    "warm": "NOT_RUN",
+    "original1200Steps": "NOT_RUN",
+    "baselineRemeasured": false
+  },
+  "firstActualKernelFailure": {
+    "protocol": "p4-position-witness-kernel-v1",
+    "status": "UNRESOLVED",
+    "ok": false,
+    "resolved": false,
+    "reason": "PROOF_PRIMITIVE_LIMIT",
+    "certificate": null,
+    "metrics": null,
+    "proofCounters": {
+      "pricing": "p4-position-witness-primitives-v1",
+      "limit": 2000000,
+      "performed": 2000000,
+      "attempted": 2000001,
+      "phasePerformed": {
+        "parse": 6695,
+        "prepare": 196610,
+        "factor": 281413,
+        "kkt": 1515282,
+        "rne": 0,
+        "compare": 0
+      },
+      "phaseAttempted": {
+        "parse": 6695,
+        "prepare": 196610,
+        "factor": 281413,
+        "kkt": 1515283,
+        "rne": 0,
+        "compare": 0
+      },
+      "operationCounts": {
+        "READ_FIELD": 876,
+        "READ_CHAR": 2242,
+        "WRITE_CHAR": 0,
+        "READ_BYTE": 1224,
+        "ADD": 309,
+        "SUB": 196,
+        "MUL": 2759,
+        "NEG": 994,
+        "CMP": 1273500,
+        "BIT_LENGTH": 540814,
+        "SHL": 1140,
+        "SHR": 306,
+        "AND": 306,
+        "OR": 1365,
+        "QUOT": 4702,
+        "REM": 166809,
+        "F64_CAST": 774,
+        "F64_PACK": 153,
+        "F64_FROM_SMALL_INT": 0,
+        "F64_SCALE_POW2": 0,
+        "F64_FINITE": 774,
+        "F64_CMP": 113,
+        "F64_ABS": 36,
+        "F64_SUB": 36,
+        "F64_HYPOT3": 36,
+        "DIVMOD": 268
+      },
+      "gcdRemainders": 166809,
+      "normalizations": 161,
+      "factorizationAttempts": 1,
+      "pivots": 8,
+      "allRows": 36,
+      "dynamicDof": 24,
+      "witnessRows": 8,
+      "peakInputBits": 115,
+      "peakReducedBits": 1760,
+      "peakIntermediateBits": 3104,
+      "denied": {
+        "phase": "kkt",
+        "operation": "BIT_LENGTH",
+        "price": 1,
+        "attempted": 2000001
+      },
+      "resetCount": 0
+    },
+    "violations": [
+      "PROOF_PRIMITIVE_LIMIT"
+    ]
+  },
+  "archives": {
+    "PROOF-01.tar": {
+      "bytes": 204800,
+      "sha256": "0f114469e346c80570fab18312fd198a4d563202c95ae540c537ae814c8830d5"
+    },
+    "SOURCE-01.tar": {
+      "bytes": 6082560,
+      "sha256": "85413068d13869a31ebfb5d0c32eb63b61e0ccba86e58bfe0807ddb638d88565"
+    }
+  },
+  "stageB": "NOT_RUN",
+  "newWorldCalls": 0,
+  "publicAdoption": "NOT_RUN",
+  "next": "One new common-denominator matrix-product algorithm revision under the SAME operation, bit, time and physical gates."
+}
