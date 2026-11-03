@@ -1,0 +1,153 @@
+{
+  "work_id": "D481",
+  "status": "COMPLETED_BOUNDED_ADMISSION_MEASUREMENT_PRODUCT_FAIL_RETAINED",
+  "tier": "MEASUREMENT_ONLY_NO_PRODUCT_CHANGE",
+  "parentHead": "0b71f17f2bf1b668e4f3f5fdc2a4664599cf5d5b",
+  "PASS": [
+    "SOURCE_AUTHORED_MODEL_READER_AND_NATIVE_GRAPH",
+    "INITIAL8_NATIVE_STRICT_READINESS",
+    "INITIAL8_ACTUAL_NATIVE_PYTHON_CURRENT_WORKER",
+    "PUBLIC_PARAMETER6_APPLIED_SOURCE_CAPTURE",
+    "INDEPENDENT_REQUESTED_SET_PHYSICAL_CONSISTENCY",
+    "SOURCE_EQUAL_CLEANUP_ROOT_IMAGE_REVIEW"
+  ],
+  "FAIL": [
+    "ACTUAL_ACCEPTED6_STRICT_NATIVE_POSTCONDITION_TWO_SELF_TOUCHING_CAP_LOOPS"
+  ],
+  "NOT_RUN": [
+    "REPAIR",
+    "ATOMIC_UI_REFUSAL",
+    "HISTORY_PROJECT_MATRIX",
+    "OTHER_VARIANTS",
+    "FULL_KERNEL_NO_PRODUCT_CHANGE",
+    "MOBILE_OWNER_RULE",
+    "CI_RELEASE"
+  ],
+  "actual": {
+    "command": "bash /tmp/barocss-d481-root/run-studio01.sh",
+    "configSHA256": "6e14421522b13f45b421f19f590cebba8cbee64084187a7eb56986f3abdf4041",
+    "status": "FAIL_CURRENT_STRICT_NATIVE_POSTCONDITION",
+    "open8": "PASS",
+    "publicEdit": "APPLIED",
+    "native6": "FAIL",
+    "currentWorkerBinding6": "NOT_ESTABLISHED",
+    "currentRenderedCorruptGeometryClaim": false,
+    "publicConstruction": false,
+    "nativeCaptures": 2,
+    "sourceSHA256": "d4a5c90325944f10c5ac20de9229466e0d7db6130a26e7b0dbb4de5121e1636a",
+    "rootReviewedImages": 4,
+    "fullPreviewFit": "NOT_MEASURED"
+  },
+  "physical": {
+    "spacing": 6,
+    "volume": 23600,
+    "centroidFractions": [
+      "1780/59",
+      "1189/59",
+      "5"
+    ],
+    "bounds": {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        60,
+        40,
+        10
+      ]
+    },
+    "volumeAbsoluteError": 1.8189894035458565e-11,
+    "volumeRelativeError": 7.707582218414646e-16,
+    "centroidMaximumAbsoluteError": 7.105427357601002e-15,
+    "boundsCarrierCornerSupportCapAreaMaximum": 0,
+    "requestedSetGeometryConsistency": true,
+    "strictNativePostcondition": false,
+    "selfTouchLoopIssues": 2,
+    "budgetsChanged": false
+  },
+  "custody": {
+    "wrapperPins": 2397,
+    "helperPins": 2398,
+    "equalThroughCleanupRootReview": true,
+    "ownPID": 8919,
+    "ownPIDAbsent": true,
+    "contextBrowserServer": "CLOSED",
+    "projectNamespace": "NONE_CREATED",
+    "gateAndFreeze": "RELEASED",
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "watchedChanges": 0
+  },
+  "evidence": {
+    "sourceAudit": {
+      "path": "/tmp/barocss-d481-admission01/admission-review.json",
+      "sha256": "e6b39edeeffcf6d6aa368b0d2d79cf517b329061c650fb6ed1376501e61ce54a",
+      "status": "EXISTING_API_ADMITTED_WITH_POSITIVE_TEST_STRICT_POSTCONDITION_UNMET"
+    },
+    "fixture": {
+      "path": "/tmp/barocss-d481-studio-entry01/fixture/receipt.json",
+      "sha256": "695a7fa17ca8ad9d60b05573ee5435a95324597f357ce852963021a29b18e504",
+      "status": "PASS_READER_GRAPH_ONLY"
+    },
+    "nativeReadiness": {
+      "path": "/tmp/barocss-d481-repro01/preflight-run01/receipt.json",
+      "sha256": "77404265b0c9bf2edc815b5ff6f3948d56324e3c3caa8dc709679cb418524724",
+      "status": "PASS_INITIAL8_NATIVE_ONLY"
+    },
+    "nativeReadinessWrapper": {
+      "path": "/tmp/barocss-d481-native-wrapper01/receipt.json",
+      "sha256": "c7d56e15e6f6182ed3628fde46298d3a2d23d300ee505709f929e40a29879f05",
+      "status": "PASS_2469_SOURCE_PINS_EQUAL"
+    },
+    "isolatedPythonSavedInput": {
+      "path": "/tmp/barocss-d481-repro01/preflight-run01/oracle-isolated.stdout.json",
+      "sha256": "5aaf154956fe642c864f00641b15ced1a9a3cbf6999474c548efb7c559137c88",
+      "status": "PASS_NO_EXTRA_NATIVE_RUN"
+    },
+    "actual": {
+      "path": "/tmp/barocss-d481-repro-run01/receipt.json",
+      "sha256": "d599e365cab0c62a2644e64819f2b6a325d9689440e1b03302cf62a9d7c06e0e",
+      "status": "FAIL_ACCEPTED6_STRICT_POSTCONDITION"
+    },
+    "rootReview": {
+      "path": "/tmp/barocss-d481-root/actual01-review.json",
+      "sha256": "0ce278798e935f32a269ccb1cd79dac157157826c20d981f5e24353446cf7ed3",
+      "status": "PASS_CUSTODY_PRODUCT_FAIL_RETAINED"
+    },
+    "capsule": {
+      "path": "/tmp/barocss-d481-repro01/manifest.json",
+      "sha256": "bc1822c1bc9a8f2cb32ecc6d4877623d8582f78ef946cb0719a6d5ead1ae6ffb",
+      "status": "SEALED_SOURCE_ARRAY8"
+    },
+    "highFinalActualReview": {
+      "path": "/tmp/barocss-d481-admission01/high-final-actual-review.json",
+      "sha256": "7ddbb53a11940cdec046ae4d0146390e481caae1414dfd9dea7dd49ebc44325e",
+      "status": "ACCEPT_D481_ACTUAL_CAPTURE_KNOWN_STRICT_NATIVE_FAILURE_TRIAGE_COMPLETE",
+      "savedDataOnly": true
+    }
+  },
+  "roles": {
+    "readerDriver": "Sol Medium",
+    "geometryOracleReview": "Sol High",
+    "runtimeCustodyImages": "root"
+  },
+  "roadmap": {
+    "priority": "C2_CONCRETE_ROBUSTNESS_BLOCKER",
+    "rows": [
+      "08",
+      "16",
+      "30"
+    ],
+    "issue534": "OPEN_ALL_ACCEPTANCE_NOT_MET",
+    "core": "NOT_MEASURED",
+    "legacy43": "FROZEN",
+    "D476HistoricalFirstPass": "UNCHANGED",
+    "next": "D482_FIX_ONLY_THIS_REPRODUCED_CONTACT_FAILURE",
+    "profileDetailSplit": "QUEUED_AFTER_BLOCKER",
+    "PDF": "OWNER_DEFERRED",
+    "holds": "UNCHANGED"
+  }
+}
