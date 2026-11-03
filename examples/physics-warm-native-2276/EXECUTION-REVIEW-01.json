@@ -1,0 +1,9 @@
+{
+  "status": "FINAL_HIGH_REVIEW_MATCH_BEFORE_BUILD",
+  "authorFreezeSha256": "9d74062ae9ba622b7adb9f037f318c55d73d6c253f48eb0bfe04225c59f2e4df",
+  "ownFiles": 11,
+  "sharedFiles": 726,
+  "WorldCalls": 0,
+  "candidateCalls": 0,
+  "normalization": "NONE newgraphs;validateeveryproviderDigestbeforeoldmapping"
+}
