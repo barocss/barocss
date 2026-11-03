@@ -1,0 +1,35 @@
+# Coupled dynamic contact: private design 01
+
+Status: DESIGN_ONLY_NOT_EXECUTED. This folder contains no candidate, executable reference, generated answer, or runtime patch. The author has not called an engine, arithmetic helper, geometry builder, reference, compiler, World, or browser. Root must review this contract before authorizing implementation. All earlier sources, inputs, provider identities, receipts, first failures and held work remain immutable.
+
+## Exact finite scope
+
+Use the unchanged original `before`, `at`, and `after` models and options from `physics-persistent-cone-design-2276/evidence/model-01`. Authenticate their actual paths and SHA256 from the qualified coupled static build02 before implementation freeze. No input height, pose, velocity, material, point or time-step change is allowed. Source and strict NodeNext execute the same new private stage under a new complete provider identity. Neither graph inherits a dynamic PASS from the static provider.
+
+The physical lane is one cold contact in the first interval, one static floor and one uniform unit cube, mass1, inertia `(1/6) Identity`, zero gravity, initial spin, restitution and commands, and the original time-step word. The first force query must establish one finite native FACE point, exact touching, fixed native pose/frame and zero projected depth. Initial geometry is separated. Preserve the qualified single-point admission, actual-input word binding, final-query callback and cache/transaction guards. Multipoint, changing pose/frame, warm cache, later intervals, general inertia, other materials and a public engine path are unsupported.
+
+The helper reads actual pre-warm body/point/quaternion/material words and native feature correspondence. It receives no solved K, impulse, reference root, model case ID, cache seed or saved answer. Form physical K from those inputs. A reference may consume saved data but must not supply engine inputs.
+
+First resolve static priority by the existing exact native predicate. `before` and `at` retain the qualified exact world J and exact native N/T words. Equality is static. Only a positive exact static margin with positive sticking normal load enters dynamic construction. A rounded public normal or a partial normal cache must not select the branch. Negative/zero sticking load or non-closing free normal velocity is UNRESOLVED in this lane.
+
+Both dynamic materials equal the represented binary64 word of0.7. Let `qD=muADynamic*muBDynamic` in exact rational arithmetic. The effective coefficient is `sqrt(qD)`, which is exactly the represented positive0.7 here because the two words are equal. Do not use0.49 as an independent decimal constant or treat `qD` itself as the coefficient.
+
+## Required result and physical gates
+
+A dynamic target must have positive N, nonzero final tangent slip, zero final native normal speed, `|T|^2=qD*N^2`, and T opposite final tangent slip. The exact root and interval certificate establish the ideal solution; they do not turn the represented impulse into an exact algebraic solution. The represented world J, represented cache N/T and fixed public normal need separate error certificates before any application.
+
+Preserve all original gates: native surface1e-9m; paired-line, accepted-gap and depth1e-12m; public tangent plane1e-12Ns; zero normal contact speed and physical/body contact-velocity agreement1e-10m/s; dynamic cone magnitude and each antiparallel-slip impulse component1e-12Ns; positive final tangent slip greater than1e-10m/s. Keep all original momentum, COM spin, origin moment, midpoint impulse work, passivity, pose-projection, producer-wrench and complete population checks. Event sums and actual producer accumulations are checked independently. No tolerance selects a mathematical branch or hides a root ambiguity.
+
+One immutable host-step plan owns the target. The first of the original64 solve slots applies the represented complete world J through the existing actual contribution return. The remaining63 slots make actual zero applications. Do not reconstruct J from rounded public n and cache N/T. Later slots and the final accepted geometry query must validate the same actual point/pose/native and represented frame. A refusal precedes the first application; a later guard/error uses existing transactional rollback. No scalar fallback, normal bias, nudge, additional solver iteration or diagnostic-as-report authority is permitted.
+
+## Proposed arithmetic budget: review before implementation
+
+The qualified static lane keeps its existing4096 reduced-rational constructions,262144 Euclidean remainder steps and16384-bit limit. Dynamic algebra is a separate bounded algorithm, not extra outer/inner solver passes. Proposed dynamic caps per call are4096 reduced-rational constructions;16384 bits for every integer and proposed product/shift;262144 total checked integer primitive operations;262144 cumulative Euclidean remainders, also charged to the integer meter; degree at most4; Sturm chain at most5 nonzero polynomials; at most256 total interval subdivisions/refinements; and dyadic denominator exponent at most128. The integer primitive meter includes polynomial arithmetic, exact division, Horner evaluations, sign work, gcd and presentation. These are new explicit operation categories, not a claim that the static4096 counter already measured them. Static preflight work and dynamic work are reported separately and cumulatively; both caps must be met. No work is reset per root.
+
+The root count, every root's disposition, all intermediate bit/work maxima and presentation enclosure must fit these caps. Any cap, repeated root, endpoint ambiguity, missing admissible root, multiple admissible roots, unproved denominator, interval conditioning failure or unresolved RNE cell returns typed UNRESOLVED before application. A positive polynomial root is not automatically a physical root. No unbounded neighbor search or precision loop is allowed.
+
+The independent reference has a separately frozen finite interval budget described in `reference-design.md`; it cannot increase candidate work or solver iterations. The whole-command maximum180s and16MiB evidence remain unchanged. At most3Worlds and3step attempts per graph;8192 records,4352 applications,72 queries,288 points and7776 anchor checks remain hard caps. Stop at the first actual failure. Cases not reached stay NOT_RUN.
+
+## Promotion boundary
+
+Dependency order is root review; arithmetic implementation and independent reference; source freeze; input/reference-only qualification; pure helper qualification; build/strict consumer and actual entry-closure checks; Source physics; Native physics; full retained packet/wire parity. No stage may borrow another stage's authority. Source/Native static and new browser static receipts remain unchanged. Dynamic, transaction composition, warm composition, browser dynamic, public API, performance, general contact and whole-engine completion remain NO_GO or NOT_RUN until their own actual checks. This design makes no dynamic PASS claim.
