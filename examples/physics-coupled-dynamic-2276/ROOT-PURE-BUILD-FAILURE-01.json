@@ -1,0 +1,21 @@
+{
+  "status": "PRESERVED_FIRST_PURE_BUILD_SETUP_NO_GO_BEFORE_COMPILER",
+  "originalResult": {
+    "path": "examples/physics-coupled-dynamic-2276/evidence/build-01/result.json",
+    "bytes": 1223,
+    "sha256": "7df82246b96326be54ea9734a0f27f220771fa96ca231c54b7c6b269491647fe"
+  },
+  "firstFailure": {
+    "name": "RangeError",
+    "message": "The value of \"timeout\" is out of range. It must be an unsigned integer. Received 179978.814708",
+    "stack": "RangeError [ERR_OUT_OF_RANGE]: The value of \"timeout\" is out of range. It must be an unsigned integer. Received 179978.814708\n    at validateTimeout (node:child_process:1012:11)\n    at spawnSync (node:child_process:866:3)\n    at run (file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-coupled-dynamic-2276/build-pure.mjs:20:38)\n    at file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-coupled-dynamic-2276/build-pure.mjs:21:2\n    at ModuleJob.run (node:internal/modules/esm/module_job:345:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:651:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+  },
+  "commands": [],
+  "candidateCalls": 0,
+  "WorldCalls": 0,
+  "inputBank": "ORIGINAL_BANK01_READY_PRESERVED",
+  "mathSource": "a211f1e3_UNCHANGED_NOT_EXECUTED",
+  "nextChange": "NEW_SEPARATE_BUILDER_RUNNER_INTEGER_TIMEOUT_ONLY_SAME180S",
+  "thresholdsArithmeticInputs": "UNCHANGED",
+  "SourceNativeMath": "NOT_RUN"
+}

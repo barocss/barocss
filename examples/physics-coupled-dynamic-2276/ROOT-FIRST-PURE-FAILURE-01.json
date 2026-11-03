@@ -1,0 +1,37 @@
+{
+  "status": "PRESERVED_FIRST_DYNAMIC_CANDIDATE_PURE_NO_GO",
+  "packetPin": {
+    "path": "examples/physics-coupled-dynamic-2276/evidence/source-01/after-packet.json",
+    "bytes": 2809,
+    "sha256": "4623b86904c466026eaf749ba527cd84c50e72e9a06d2a3d58e483af265b348a"
+  },
+  "caseId": "after",
+  "candidateStatus": "UNRESOLVED",
+  "reason": "DYNAMIC_INTEGER_WORK_LIMIT",
+  "dynamicCounts": {
+    "gcdSteps": 20194.0,
+    "integerOps": 262146.0,
+    "maxDyadicExponent": 66.0,
+    "peakBits": 1293.0,
+    "rationalOps": 732.0,
+    "subdivisions": 66.0
+  },
+  "staticCounts": {
+    "gcdSteps": 3392.0,
+    "peakBits": 1075.0,
+    "rationalOps": 284.0
+  },
+  "fixedIntegerLimit": 262144,
+  "beforeAt": "EXECUTED_PASS_INDEPENDENT_PHYSICAL_AUDIT_AND_WHOLE_STATIC_CERT_RAW",
+  "coupledCalls": 3,
+  "directStaticChecks": 2,
+  "topLevelCalls": 5,
+  "underlyingStaticCalls": 5,
+  "WorldCalls": 0,
+  "Native": "NOT_RUN_AFTER_FIRST_FAILURE",
+  "negativeControls": "NOT_RUN_AFTER_FIRST_FAILURE",
+  "parity": "NOT_RUN_AFTER_FIRST_FAILURE",
+  "independentReference": "REFERENCE_READY_UNCHANGED",
+  "limitsPrecisionInputs": "UNCHANGED",
+  "nextDependency": "Reduce actual algorithm work under same meter/caps; no uncounted work or raised limits"
+}
