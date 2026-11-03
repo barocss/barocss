@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D467: qualify one existing uniform BODY Scale/source/refusal/history/project workflow, with preview-fit limit](notes/body-scale-workflow-2026-11-03/README.md).
 - [D466: bounded manual R3/R4 initial/same-value settle readiness PASS; DEFER_NEW_ADMISSION, no Round producer](notes/line-arc-settle-readiness-2026-11-03/README.md).
 - [D465: measure current line–arc refusal and arc-preserving line–line control; defer product admission, adopt bounded integration measurement](notes/line-arc-round-support-2026-11-03/README.md).
 - [D464: qualify one ordinary BODY Rotate quarter-turn/source/history/refusal/project workflow](notes/body-rotate-workflow-2026-11-03/README.md).

@@ -1,0 +1,240 @@
+{
+  "workId": "D467",
+  "lastUpdated": "2026-11-03",
+  "status": "BOUNDED_QUALIFIED",
+  "category": "C2 existing ordinary BODY Scale",
+  "rows": [
+    "07",
+    "08",
+    "12",
+    "16"
+  ],
+  "baseline": "cd584c2e491111e987ce7d8b2746413ba7d5fcd0",
+  "productChanges": "NONE",
+  "testChanges": "NONE",
+  "coreReadiness": "NOT_MEASURED",
+  "legacyPercentFrozen": 43,
+  "input": {
+    "path": "/tmp/barocss-d467-geometry/seed.bcad",
+    "sha256": "e2b20d76b42a2ac4bc575a8958f11e791fda12a8aca5dfd1bc964a23e9330c1c",
+    "bytes": 428,
+    "origin": "SOURCE_AUTHORED exactD462reuse;no public construction/native seed baseline"
+  },
+  "publicContract": {
+    "creation": "Real bodyrow Scale Factor2 PivotX/Y/Z explicitly0 Apply",
+    "stored": "n2scale,parentn1solid,pivot[0,0,0],outputb2;one solid,source consumed,no copy",
+    "edits": "Existing Factor2\u21920.5;sourceHeight10\u219212;Factor0refusal;postOpenFactor2",
+    "guard": "Native finite0<factor<=1000;HUDmin0.01 does not clamp existingFactor editor"
+  },
+  "preflight": {
+    "status": "PASS_FOUR_STATES_PLUS_FACTOR0_INPUT_GUARD",
+    "receipt": "/tmp/barocss-d467-geometry/preflight-run01/receipt.json",
+    "receiptSHA256": "7f6a2571a2a775f8c63dbd259660fcd1e36b6f9dd43673c7b8a1e02aa8d31492",
+    "sourcePins": 747,
+    "sourceEqualAfterCleanupCurrent": true,
+    "ownPID": 88616,
+    "ownPIDAbsent": true,
+    "gate": "FREE",
+    "maximumNativeVolumeAbsoluteError": 0,
+    "maximumNativeCentroidAbsoluteErrorMM": 7.11e-15,
+    "refusal": {
+      "code": "INPUT",
+      "feature": "n2",
+      "reason": "factor must be a positive number at most 1000"
+    },
+    "presealCorrection": "Python axisIndex replaces shadowing of Fraction scale;independently reviewed before runtime;not executed failure",
+    "command": "bash /tmp/barocss-d467-root/run-preflight01.sh"
+  },
+  "actual": {
+    "status": "PASS",
+    "declaredGroups": 8,
+    "qualifiedGroups": 8,
+    "coverage": {
+      "publicScale2": "PASS",
+      "factorHalfEdit": "PASS",
+      "sourceHeight12Edit": "PASS",
+      "exactUndo": "PASS",
+      "exactRedo": "PASS",
+      "factor0RefusalRetention": "PASS",
+      "ownProjectRoundtrip": "PASS",
+      "postOpenFactor2": "PASS"
+    },
+    "receipt": "/tmp/barocss-d467-workflow-run01/receipt.json",
+    "configSHA256": "eb0e545cb43c501d432db32a3838586fec54b25b9cf4de116e48c462bd245de7",
+    "sourcePins": {
+      "prehashPaths": 2383,
+      "fullFrozenPaths": 2384,
+      "aliasesIncluded": true,
+      "beforeAfterCleanupCurrentEqual": true
+    },
+    "cleanup": {
+      "namespace": "D467-body-scale-run01",
+      "namespaceStatus": "REMOVED_AND_ABSENT",
+      "contextBrowserServer": "CLOSED",
+      "ownPID": 93737,
+      "ownPIDAbsent": true,
+      "gate": "FREE",
+      "endLoad": 32.18
+    },
+    "visualReview": {
+      "statesAndImages": 24,
+      "rootViewed": 7,
+      "previewBoundary": "Factor2/pivot0/status visible;large partialbox cropped byinitialcamera;acceptedFrameAllcorrect;no fullpreviewfit/autoframingclaim"
+    },
+    "errors": {
+      "page": 0,
+      "console": 0,
+      "downloads": 0,
+      "watchedChanges": 0
+    },
+    "command": "bash /tmp/barocss-d467-root/run-studio01.sh",
+    "receiptSHA256": "e8ca7613de50dca9469dc60ece0266a53600991623b131a4da92dc4e75470306",
+    "maximumRawWorkerBindingError": 0,
+    "maximumNativeVolumeAbsoluteError": 0,
+    "maximumNativeCentroidAbsoluteErrorMM": 7.105427357601002e-15,
+    "executedSUTFailures": 0,
+    "executedPreparationFailures": 0,
+    "nativeBindings": 8,
+    "freshCaptures": 4,
+    "exactWholeDocReuses": 4,
+    "freshPythonOracles": 8,
+    "freshRawWorkerVolumeCentroidBindings": 8
+  },
+  "physicalContract": {
+    "authority": "Strict nativeBRep massPropertiesOf and actualbrepMassProperties plus independentFraction oracle;notdisplaymesh",
+    "volume": "factor^3*600*height",
+    "centroid": "factor*[20,35,height/2]",
+    "bounds": "component extrema of all8scaled sourcecorners",
+    "faceWitnesses": "n1.bottom/top/side[e1..e4] centers/corners/outwardunitnormals;positiveuniformk preservesnormals",
+    "volumeRelative": 1e-09,
+    "centroidBoundsCornerFacePinsAbsoluteMM": 1e-09,
+    "outwardUnitNormalComponentsAbsolute": 1e-09,
+    "states": [
+      {
+        "factor": 2,
+        "height": 10,
+        "volume": 48000,
+        "centroid": [
+          40,
+          70,
+          10.0
+        ],
+        "bounds": [
+          [
+            20,
+            40,
+            0
+          ],
+          [
+            60,
+            100,
+            20
+          ]
+        ]
+      },
+      {
+        "factor": 0.5,
+        "height": 10,
+        "volume": 750.0,
+        "centroid": [
+          10.0,
+          17.5,
+          2.5
+        ],
+        "bounds": [
+          [
+            5.0,
+            10.0,
+            0
+          ],
+          [
+            15.0,
+            25.0,
+            5.0
+          ]
+        ]
+      },
+      {
+        "factor": 0.5,
+        "height": 12,
+        "volume": 900.0,
+        "centroid": [
+          10.0,
+          17.5,
+          3.0
+        ],
+        "bounds": [
+          [
+            5.0,
+            10.0,
+            0
+          ],
+          [
+            15.0,
+            25.0,
+            6.0
+          ]
+        ]
+      },
+      {
+        "factor": 2,
+        "height": 12,
+        "volume": 57600,
+        "centroid": [
+          40,
+          70,
+          12.0
+        ],
+        "bounds": [
+          [
+            20,
+            40,
+            0
+          ],
+          [
+            60,
+            100,
+            24
+          ]
+        ]
+      }
+    ],
+    "strictTopology": "one closed native solid;8vertices/6faces/12edges;sourceconsumed/b2n2/IDskept",
+    "edgePinsAbsoluteMM": 1e-09
+  },
+  "checks": {
+    "newTestsTypesBuildFullKernel": "NOT_RUN_NO_SOURCE_OR_TEST_CHANGE",
+    "retained": "D46128focusedgroups,lint,StudioTSC,finalModelTSC",
+    "independentOracleSHA256": "c6e2b0a7bb54deaf6844ca5706037a30512936d85823cc51b85af9d65faa8ca6",
+    "geometryManifestSHA256": "5b1256ecfe063763047c218fe675d89113bb15d6282350ebb6720bae171285f9",
+    "rootReview": "/tmp/barocss-d467-root/root-review.json",
+    "documentation": {
+      "status": "PASS",
+      "commands": [
+        "node apps/cad-studio/handover/scripts/check-navigation.mjs",
+        "git diff --cached --check"
+      ],
+      "rows": 34,
+      "legacyHeadingFragments": 552,
+      "legacyOutboundLinks": 913,
+      "checkedLocalLinks": 2648,
+      "newBroken": 0,
+      "knownHistoricalMissingPaths": 1
+    }
+  },
+  "issueDisposition": {
+    "534": "FETCHED_OPEN;fulltenfeatureacceptance notmet;no checkboxpromotion"
+  },
+  "exclusions": [
+    "negative/nonuniformscale",
+    "arbitrarypivot",
+    "inertia",
+    "generaldownstreammatching",
+    "export",
+    "coldbrowserrestart",
+    "standards"
+  ],
+  "next": "D468 existingMove ToX40/Y60/Z5\u2192\u039430/40/5;DeltaX50editor;sourceH12;H0PARAMETERrefusalbeforeFIRSTUndoRedo;ownOPFS/postOpenDeltaX30. To=leastXYZ corner loweredfixedtranslation,notlivetarget. Integergrid/current1e-3derive boundary.",
+  "holds": "CoreNOT_MEASURED,legacy43frozen;all #2258/#2266,Motion/Physics,fitter/thicken,widening,manufacturing,UI,schema,download/dependency,browserCI/release gates unchanged.",
+  "evidenceBoundary": "Accepted uniformpositiveoriginScale case only. Initialpreviewpartiallycropped;fullpreviewfit/autoframing unmeasured. No new feature or geometrypolicy."
+}
