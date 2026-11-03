@@ -1,0 +1,66 @@
+{
+  "format": "p4-independent-gcd-manifest-v1",
+  "caseCount": 32,
+  "candidateInput": "requests.json",
+  "oracleOnly": "oracle.json",
+  "specPin": {
+    "bytes": 2261,
+    "sha256": "0731fb0e0f92de465f1f7a765887284668e41d9dac40a97dd4f064ae710c9ef9"
+  },
+  "sourcePins": {
+    "format": "p4-independent-gcd-author-pins-v1",
+    "python": {
+      "path": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+      "version": "3.13.5 (main, Jun 11 2025, 15:36:57) [Clang 17.0.0 (clang-1700.0.13.3)]"
+    },
+    "nodeVersion": "v22.19.0",
+    "tools": {
+      "/Users/user/.volta/tools/image/node/22.19.0/bin/node": {
+        "bytes": 110712624,
+        "sha256": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+      },
+      "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13": {
+        "bytes": 52640,
+        "sha256": "a1f6d9dc20d4787a84dc2fe782094a7bac5946f49a962aa0af48a02f0e8d5bc5"
+      }
+    },
+    "sources": {
+      "CONTRACT.md": {
+        "bytes": 10227,
+        "sha256": "f98065b52df7d6ac30ac68e8107548abe4ed38771e41ae1ab0b5c6a799bb69c3"
+      },
+      "audit.py": {
+        "bytes": 8114,
+        "sha256": "9a1a0de57fd2816446875e6bd5e43180bd17b329ea0f9b850b9b50a40c81e30e"
+      },
+      "bank-spec.json": {
+        "bytes": 2261,
+        "sha256": "0731fb0e0f92de465f1f7a765887284668e41d9dac40a97dd4f064ae710c9ef9"
+      },
+      "materialize.py": {
+        "bytes": 5167,
+        "sha256": "5e778886a8277f4928a7322e27d4ca5c6a756e04c6a7c33fd70e49588147de6c"
+      },
+      "support.py": {
+        "bytes": 3701,
+        "sha256": "c6fd289f7e31791e39f0dc983e37c400d68a7d3356065dd400fb94532cc5e3b7"
+      }
+    },
+    "toolReceiptOrigins": [
+      "examples/physics-coupled-contact-2276/TOOLCHAIN-PINS-02.json",
+      "examples/physics-p4-position-witness-2276/RUNTIME-LAYOUT-01.json"
+    ]
+  },
+  "files": {
+    "requests.json": {
+      "bytes": 26601,
+      "sha256": "e7b0bdf52e6750691298173f2dcdc7ea2a039d6255d18c8398e80ad9ffde0b8c"
+    },
+    "oracle.json": {
+      "bytes": 18532,
+      "sha256": "47bf2c2d3edc840bfb2bd87a633a0968dda0d5b8621828de939a06d7dc903bf7"
+    }
+  },
+  "candidateCalls": 0,
+  "WorldCalls": 0
+}
