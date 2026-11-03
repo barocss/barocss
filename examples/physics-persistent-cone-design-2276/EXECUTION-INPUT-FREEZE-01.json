@@ -1,0 +1,23 @@
+{
+  "status": "FROZEN_FOR_INDEPENDENT_INPUT_GENERATION_ONLY",
+  "mathFiles": {
+    "CONTRACT.md": "dd5b6c099e734cce73fffb60d316bc5ee4bffe6beed9710d784b4e281bb936af",
+    "reference.py": "af3eaa1f4a8bfaa0f0de3b345d1e05603573fea0ee3aca04a95b5afafed0850d"
+  },
+  "prerequisites": {
+    "examples/physics-warm-replay-2276/evidence/replay-01/summary.json": {
+      "status": "EXECUTED_PASS_PRIVATE_WARM_REPLAY_PROTOCOL",
+      "bytes": 3112,
+      "sha256": "ab00bca2ff5c1bca0ca41d7e51258e7f976ef52db95402637661be9a4c6038b9"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/parity-03/result.json": {
+      "status": "PASS_FULL_PRIVATE_SOURCE_NATIVE_AND_SAVED_SOURCE_PARITY",
+      "bytes": 11830,
+      "sha256": "960d072e0bf9ec106880446e5e3d3489e3ab5b765b5fdad222433387c4b617c7"
+    }
+  },
+  "WorldCalls": 0,
+  "candidateCalls": 0,
+  "warmNativeComposition": "SEPARATE_PENDING",
+  "physicsExecution": "NOT_AUTHORIZED_BY_THIS_FILE"
+}
