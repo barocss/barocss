@@ -1,0 +1,355 @@
+{
+  "format": "coupled-transaction-preserved-results",
+  "version": 1,
+  "date": "2026-11-03",
+  "status": "NO_GO_POST_DISPOSE_OBSERVATION_EQUALITY",
+  "sourceStatus": "EXECUTED_NO_GO_COUPLED_TRANSACTION",
+  "firstFailure": {
+    "phase": "serializeOneFrame",
+    "name": "AssertionError",
+    "messageLine": "B-serialize-hidden raw accepted private storage complete private.world",
+    "fullOriginalSummary": {
+      "path": "examples/physics-coupled-transaction-2276/evidence/source-01/summary.json",
+      "bytes": 21867,
+      "sha256": "5186688a9e753361f8706f64cda874386beda985169d6fde5b256536a4242401"
+    },
+    "rootSupplement": {
+      "path": "examples/physics-coupled-transaction-2276/ROOT-FIRST-FAILURE-01.json",
+      "bytes": 1656,
+      "sha256": "b9a3892d0d5a83b5e12dff780df5cfe0ee5f47b7cf48581c4b356a5f12b129da"
+    },
+    "boundary": "Hidden B accepted then disposed. The subsequent complete private.world read has empty arrays; no pre-dispose full snapshot or hidden accepted public output was retained. No reconstruction or equality-gate deletion."
+  },
+  "counts": {
+    "worlds": 2,
+    "attempts": 4,
+    "records": 175,
+    "applications": 129,
+    "queries": 21,
+    "queryPoints": 19,
+    "anchorChecks": 513,
+    "traceBytes": 589480
+  },
+  "acceptedSteps": 2,
+  "observedDirectStepCalls": 3,
+  "hiddenReplayStepCalls": 1,
+  "evidenceBytesOriginalSummary": 1072870,
+  "controlsOriginalUnmodified": {
+    "initialGeometry": "EXECUTED_PASS",
+    "initialPhysical": "EXECUTED_PASS",
+    "knownRollback": "EXECUTED_PASS",
+    "unknownPostApplyRollback": "EXECUTED_PASS",
+    "unknownActualPrefix": "EXECUTED_PASS",
+    "cleanRetry": "EXECUTED_PASS",
+    "retryGeometry": "EXECUTED_PASS",
+    "retryPhysical": "EXECUTED_PASS",
+    "retryCone": "EXECUTED_PASS",
+    "retryTarget": "EXECUTED_PASS",
+    "cleanPublicRawEquality": "EXECUTED_PASS",
+    "cleanPrivateWorldRawEquality": "EXECUTED_PASS",
+    "serializeOneFrame": "EXECUTED_PASS",
+    "B_hiddenCensus": "NOT_RUN",
+    "oldWireRefusal": "NOT_RUN",
+    "deserializeOneFrame": "NOT_RUN",
+    "C_hiddenCensus": "NOT_RUN",
+    "wireRawRoundtrip": "NOT_RUN",
+    "restoreOneFrame": "NOT_RUN",
+    "D_publicRawEquality": "NOT_RUN",
+    "D_privateWorldRawEquality": "NOT_RUN",
+    "D_geometry": "NOT_RUN",
+    "D_physical": "NOT_RUN",
+    "D_cone": "NOT_RUN",
+    "D_target": "NOT_RUN",
+    "secondIntervalUnsupported": "NOT_RUN"
+  },
+  "controlAnnotation": {
+    "B_hiddenCensus": "ACTUALLY_STARTED_AND_FAILED; original NOT_RUN control label preserved verbatim, corrected only by ROOT-FIRST-FAILURE-01 supplement"
+  },
+  "observationsWithAllOriginalNumericalMaxima": [
+    {
+      "label": "A-initial-geometry",
+      "status": "EXECUTED_PASS_CONE_GEOMETRY",
+      "firstFailure": null,
+      "maxima": {}
+    },
+    {
+      "label": "A-initial-physical",
+      "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+      "firstFailure": null,
+      "counts": {
+        "events": 0,
+        "geometryQueries": 1,
+        "points": 0,
+        "corrections": 0,
+        "zeroApplications": 0,
+        "warmApplications": 0,
+        "actualWarmChangedFrame": 0,
+        "validatedNonzeroWarmFrictionChangedFrame": 0
+      },
+      "maxima": {
+        "stepMomentum0": 0,
+        "stepMomentum1": 0,
+        "stepMomentum2": 0,
+        "stepSpin0": 0,
+        "stepSpin1": 0,
+        "stepSpin2": 0,
+        "stepWorldOriginAngularLedger0": 0,
+        "stepWorldOriginAngularLedger1": 0,
+        "stepWorldOriginAngularLedger2": 0,
+        "wholeStepEnergyLedger": 0
+      }
+    },
+    {
+      "label": "unknown-actual-prefix",
+      "status": "PASS_ACTUAL_COUPLED_POST_APPLY_FAULT_PREFIX",
+      "firstFailure": null,
+      "maxima": {
+        "currentTangentPlane": 1.8973519923920428e-19,
+        "actualLinearResponse0": 0,
+        "actualLinearResponse1": 0,
+        "actualLinearResponse2": 0,
+        "actualSpinResponse0": 0,
+        "actualSpinResponse1": 0,
+        "actualSpinResponse2": 0,
+        "impulseReciprocity0": 0,
+        "impulseReciprocity1": 0,
+        "impulseReciprocity2": 0,
+        "actualPostApplyContactVelocity0": 0,
+        "actualPostApplyContactVelocity1": 0,
+        "actualPostApplyContactVelocity2": 0,
+        "actualMidpointWork": 0,
+        "mutatedBucketLinearonB0": 0,
+        "mutatedBucketLinearonB1": 0,
+        "mutatedBucketLinearonB2": 0,
+        "mutatedBucketWorldMomentonB0": 0,
+        "mutatedBucketWorldMomentonB1": 0,
+        "mutatedBucketWorldMomentonB2": 0,
+        "mutatedBucketLinearonA0": 0,
+        "mutatedBucketLinearonA1": 0,
+        "mutatedBucketLinearonA2": 0,
+        "mutatedBucketWorldMomentonA0": 0,
+        "mutatedBucketWorldMomentonA1": 0,
+        "mutatedBucketWorldMomentonA2": 0
+      }
+    },
+    {
+      "label": "A-retry-geometry",
+      "status": "EXECUTED_PASS_CONE_GEOMETRY",
+      "firstFailure": null,
+      "maxima": {
+        "representedNativeNormal0": 2.6034299608458128e-17,
+        "representedNativeNormal1": 1.9450418881029874e-16,
+        "representedNativeNormal2": 2.6034299608458128e-17
+      }
+    },
+    {
+      "label": "A-retry-physical",
+      "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+      "firstFailure": null,
+      "counts": {
+        "events": 64,
+        "geometryQueries": 9,
+        "points": 9,
+        "corrections": 0,
+        "zeroApplications": 63,
+        "warmApplications": 0,
+        "actualWarmChangedFrame": 0,
+        "validatedNonzeroWarmFrictionChangedFrame": 0
+      },
+      "maxima": {
+        "gravityKick0": 0,
+        "gravityKick1": 0,
+        "gravityKick2": 0,
+        "drift0": 7.517068596570998e-20,
+        "drift1": 7.381104211153622e-18,
+        "drift2": 7.417036936256106e-18,
+        "normalNormSquared": 3.958934816492807e-16,
+        "endpointPresentationSquared": 0,
+        "surfaceOutside": 0,
+        "surfaceBoundary": 0,
+        "pairedLineSquared": 0,
+        "nativeLineExitASquared": 0,
+        "nativeLineExitBSquared": 0,
+        "geometryProjectedDepth": 0,
+        "GEOMETRY_DEPTH_NO_GO": 1.6002487879165893e-18,
+        "applicationLinearReciprocity0": 0,
+        "applicationLinearReciprocity1": 0,
+        "applicationLinearReciprocity2": 0,
+        "applicationMomentReciprocity0": 0,
+        "applicationMomentReciprocity1": 0,
+        "applicationMomentReciprocity2": 0,
+        "currentTangentPlane": 1.8973519923920428e-19,
+        "eventMomentum0": 0,
+        "eventMomentum1": 0,
+        "eventMomentum2": 0,
+        "eventSpin0": 0,
+        "eventSpin1": 0,
+        "eventSpin2": 0,
+        "eventMidpointWork": 0,
+        "eventRelativeWork": 0,
+        "acceptedPairedGapSquared": 0,
+        "stepMomentum0": 0,
+        "stepMomentum1": 0,
+        "stepMomentum2": 0,
+        "stepSpin0": 0,
+        "stepSpin1": 0,
+        "stepSpin2": 0,
+        "stepWorldOriginAngularLedger0": 2.2996944065589857e-18,
+        "stepWorldOriginAngularLedger1": 1.6789834174186535e-18,
+        "stepWorldOriginAngularLedger2": 1.64754228295398e-18,
+        "wholeStepEnergyLedger": 0,
+        "acceptedNormalNorm": 3.958934816492807e-16,
+        "acceptedAnchorMidpointSquared": 0,
+        "acceptedAbsoluteGapSquared": 0,
+        "acceptedEndpointSquared": 0,
+        "acceptedSurfaceOutside": 0,
+        "acceptedSurfaceBoundary": 0,
+        "signedNativeGap": 0,
+        "PRODUCER_onA_J0": 0,
+        "PRODUCER_onA_J1": 0,
+        "PRODUCER_onA_J2": 0,
+        "PRODUCER_onA_M00": 0,
+        "PRODUCER_onA_M01": 0,
+        "PRODUCER_onA_M02": 0,
+        "PRODUCER_onB_J0": 0,
+        "PRODUCER_onB_J1": 0,
+        "PRODUCER_onB_J2": 0,
+        "PRODUCER_onB_M00": 0,
+        "PRODUCER_onB_M01": 0,
+        "PRODUCER_onB_M02": 0,
+        "producerLinearReciprocity0": 0,
+        "producerLinearReciprocity1": 0,
+        "producerLinearReciprocity2": 0,
+        "producerMomentReciprocity0": 0,
+        "producerMomentReciprocity1": 0,
+        "producerMomentReciprocity2": 0
+      }
+    },
+    {
+      "label": "A-retry-cone",
+      "status": "EXECUTED_PASS_INDEPENDENT_PERSISTENT_CONE",
+      "firstFailure": null,
+      "maxima": {
+        "representedNativeNormal0": 2.6034299608458128e-17,
+        "representedNativeNormal1": 1.9450418881029874e-16,
+        "representedNativeNormal2": 2.6034299608458128e-17,
+        "eventsPhysicalKActualBodyContactVelocity0": 0,
+        "eventsPhysicalKActualBodyContactVelocity1": 0,
+        "eventsPhysicalKActualBodyContactVelocity2": 0,
+        "eventsStaticZeroContactVelocity0": 0,
+        "eventsStaticZeroContactVelocity1": 0,
+        "eventsStaticZeroContactVelocity2": 0,
+        "eventsStaticConeExcessNs": 0,
+        "producerPhysicalKActualBodyContactVelocity0": 0,
+        "producerPhysicalKActualBodyContactVelocity1": 0,
+        "producerPhysicalKActualBodyContactVelocity2": 0,
+        "producerStaticZeroContactVelocity0": 0,
+        "producerStaticZeroContactVelocity1": 0,
+        "producerStaticZeroContactVelocity2": 0,
+        "producerStaticConeExcessNs": 0
+      }
+    },
+    {
+      "label": "A-retry-target",
+      "status": "PASS_INDEPENDENT_COUPLED_TARGET_ONCE_NATIVE_CACHE",
+      "firstFailure": null,
+      "maxima": {
+        "combinedCacheCurrentTangentPlaneNs": 1.8973519923920428e-19
+      }
+    }
+  ],
+  "wire": {
+    "status": "GENUINE_SERIALIZATION_EXECUTED_PASS",
+    "pin": {
+      "path": "examples/physics-coupled-transaction-2276/evidence/source-01/prefix.bcphrec2",
+      "bytes": 4774,
+      "sha256": "4444ad2ee549cd92f76fdf5b02d65b75aa06b53f4a4f988e08f65051dc576579"
+    },
+    "decodedRawRoundtrip": "NOT_RUN"
+  },
+  "cleanControlComparison": {
+    "status": "EXECUTED_PASS_RAW_PUBLIC_AND_PRIVATE_STORAGE",
+    "publicState": "ALL_RAW_WORDS_EQUAL",
+    "recording": "ALL_RAW_WORDS_EQUAL",
+    "privateWorld": "ALL_RAW_WORDS_EQUAL",
+    "acceptedFields": [
+      "cursor",
+      "stepIndex",
+      "actualCache"
+    ],
+    "fullPrivateCacheFramesAndTrace": "NOT_PROVEN_NO_DIAGNOSTIC_NORMALIZATION"
+  },
+  "unreached": {
+    "native": "NOT_RUN_AFTER_FIRST_FAILURE",
+    "deserialize": "NOT_RUN_AFTER_FIRST_FAILURE",
+    "liveDRestore": "NOT_RUN_AFTER_FIRST_FAILURE",
+    "wireRoundtrip": "NOT_RUN_AFTER_FIRST_FAILURE",
+    "parity": "NOT_RUN_AFTER_FIRST_FAILURE"
+  },
+  "hiddenAcceptedPublicOutput": "NOT_RETAINED_AFTER_DISPOSE",
+  "hiddenPublicRawEquality": "NOT_PROVEN",
+  "hiddenBPreDisposePrivateWorld": "NOT_RETAINED_NOT_PROVEN",
+  "engineConclusion": "NOT_A_NEW_CONSTITUTIVE_FAILURE; whole transaction proof NO_GO",
+  "provider": "UNCHANGED_QUALIFIED_COUPLED_CONTACT_BUILD02_SOURCE",
+  "newRuntimeFiles": 0,
+  "authorClosurePins": 1346,
+  "caps": {
+    "worlds": 4,
+    "attempts": 8,
+    "outerPasses": 8,
+    "innerSlots": 8,
+    "records": 8192,
+    "applications": 4352,
+    "queries": 72,
+    "queryPoints": 288,
+    "anchorChecks": 7776,
+    "evidenceBytes": 16777216,
+    "wallMilliseconds": 180000
+  },
+  "guards": [
+    {
+      "name": "freeze-01",
+      "status": "PASS",
+      "elapsedMs": 352.608958,
+      "receipt": {
+        "path": "examples/physics-world-p5-2276/evidence/coupled-transaction-freeze-01/result.json",
+        "bytes": 3041,
+        "sha256": "6166165e1df0f575bbda867ba0ab0d8b5c0dc7083125a2c4b2f0a15b8838ec7a"
+      },
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false
+    },
+    {
+      "name": "source-01",
+      "status": "FAIL",
+      "elapsedMs": 3313.82,
+      "receipt": {
+        "path": "examples/physics-world-p5-2276/evidence/coupled-transaction-source-01/result.json",
+        "bytes": 3269,
+        "sha256": "c1c1ac148a94d433a8adbdfdd692be725e4e09adb65327f5f17e9a7398ad0fa0"
+      },
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false
+    }
+  ],
+  "priorLimits": {
+    "originalConeFirstStaticSlipMps": 0.1410596011492487,
+    "originalConeStatus": "NO_GO_FIRST_STATIC_CONSTITUTIVE_CASE_PRESERVED",
+    "dynamicPhysics": "NOT_SUPPORTED_NO_GO",
+    "secondIntervalPhysics": "NOT_SUPPORTED",
+    "warm": "NOT_RUN",
+    "browser": "NOT_RUN",
+    "production": "NOT_RUN",
+    "performance": "NOT_RUN",
+    "old32PointP4": "UNCHANGED_NO_GO",
+    "HOLD": "UNCHANGED"
+  },
+  "nextDependency": "Distinct bounded provider with actual pre-dispose observation. Not achieved by this archive.",
+  "packagingOnly": {
+    "newWorlds": 0,
+    "newCompilerHelperReferenceDecoderObserverBrowserCalls": 0,
+    "initialFreezeChanged": false,
+    "archiveLimitUncompressedBytesEach": 16777216,
+    "aggregateGateClaim": "NONE; report actual sum in EVIDENCE-ARCHIVE.json"
+  }
+}
