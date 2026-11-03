@@ -1187,6 +1187,9 @@
     "completionEstimate": "NO_RELIABLE_WHOLE_ENGINE_DATE_OR_WEIGHTED_PERCENT",
     "HOLD": "UNCHANGED",
     "mobile": "NOT_RUN",
-    "deployment": "NOT_RUN"
-  }
+    "deployment": "NOT_RUN",
+    "documentationBuild": "EXECUTED_PASS_DOCS_09_BUILD_LINK_AND_GENERATED_ASSETS",
+    "implementationHead": "b2bd44f9d"
+  },
+  "roadmapCommitMeaning": "Historical baseline roadmap commit; currentreview is ROADMAP-REVIEW-20261103.json"
 }

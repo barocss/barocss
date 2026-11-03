@@ -1,0 +1,37 @@
+# Original-stack exact position witness draft 01
+
+Status: DESIGN_ONLY_NOT_AUTHORIZED_FOR_EXECUTION. Own only this document and NEXT-DEPENDENCY.md. Existing cores, sources, protocols, first failures, ended cost candidates, worker state, HOLDs and public limits remain immutable. No numerical/helper/reference/World/compiler/auditor/browser execution occurred during this design.
+
+## Fixed profile and proposed input bank
+
+Use the ORIGINAL eight1kg cubes, half extents[.25,.25,.25]m, inertia(1/24)kg m² Identity; static floor center[0,-.1,0]m/half extents[2,.1,2]m; original represented gravity/material1/.7/e0 and dt1/120s. Authenticate model/request bytes, not this prose's decimal approximations. SI units; right-handed XYZ; local-to-world XYZW; normal A→B. Translation variable u is metres, objective half u^T W u is kg m² and position multiplier is kg m. It is not a contact impulse Ns or a physical force N.
+
+Original velocity contact population32 and full-pair position constraint population36 are different. Preserve every original point ID/order/normal/coordinate word and all36 pair rows. No point merge/drop or SAT feature replacement is permitted. PRE overlaps and signed gaps remain actual values; final HYP closure is a separate unchanged gate.
+
+Freeze these files through their existing complete manifests before implementation/import:
+
+1. Original ALIGNED1 request `physics-world-p4-2276/evidence/cost-census-01/ALIGNED-1-position-world.stdin.jsonl`; corresponding complete CURRENT raw oracle and qualified position-V2 reply; the original32-row ledger/raw point operands authenticated by contact-boundary receipts, finite-cell run-01 and same32-equilibrium FREEZE-01.
+2. Remaining saved ALIGNED16,OFFSET1/16,YAW1/16 through the immutable input set in `physics-p4-position-v2-2276/FREEZE-01.json` and its dependencies. No fixture regeneration or original reference rerun.
+3. Four separately frozen pure rejection controls on copies: malformed/duplicate witness index; dependent witness basis in a small literal exact problem; omission of the necessary ALIGNED1 ground constraint; changed reported translation exceeding the original1e-12 comparison gate with unchanged problem/witness. Independent author supplies exact expected outcomes before calls. These are verifier controls, not new World fixtures or altered original physical runs.
+
+Execute ALIGNED1 first, then pure rejection controls, then the other five saved frames in their original order. Maximum6 saved-frame candidate checks and4 control checks; zero World/trajectory/production solver/fixture/trig calls. Stop the whole bank on first unexpected refusal, mismatch or resource failure; unreached cases remain NOT_RUN. No known-good basis or answer is inserted by the harness.
+
+## New reference proof, no fallback
+
+Input is the authenticated full represented problem plus observed result/witness. The witness is untrusted and appears explicitly in the new protocol. Independently derive all matrix coefficients and mass weights. For sorted unique S of size at most24, perform at most one exact equality factorization, no phase-I LP and no active-set search. Reconstruct u and lambda, then require exact nonnegative full primal margins, nonnegative lambda, zero stationarity and zero complementarity for ALL36 rows. Empty S is allowed only if the independently checked zero solution satisfies all rows. Singular/dependent or insufficient S refuses without trying another set.
+
+Positive-definite W and exact KKT prove the unique primal optimum; observed native u/lambda are comparison data, not trusted solutions. The comparison against saved cold-QP authority must retain translations, multiplier values, objective, exact margins/certificate, original Float64 selection/point/tie, PRE/HYP scalar and native geometry, actual correction/roundoff and all old physical gates. A nonunique dual that differs from the frozen oracle fails this finite equivalence gate; no hidden normalization is authorized.
+
+Replace only algorithm-specific reference search/pivot/counter metadata with a NEW explicit protocol/certificate and actual proof-work counters. Do not copy old cold-QP counters or claim a cold solve occurred. No old solver fallback, reference result seed, warm reuse, support cache, precision retry, native feature selector or runtime mutation is permitted. This is not an amendment that relabels an ended candidate.
+
+## Independent oracle, limits and cost
+
+The independent oracle consists of existing authenticated CURRENT cold-QP outputs and a separately authored exact KKT matrix-product checker. The checker must not copy the candidate elimination. It must verify mass/row admission, all36 inequalities and global convex optimality, then certify displayed words/comparison gates. New arithmetic must guard products before allocation and retain original QP8192-bit reduced/16385-bit intermediate bounds. At most24 basis rows/24 dynamic DOF/36 constraints, one factorization and24 elimination pivots. The old independent reference permits at most4096 LP pivots/QP transitions; this new proof uses neither search, and does not raise those limits. Those algorithm counts are not primitive-operation units and must not be compared as if they were.
+
+Propose an ADDITIONAL separate2M checked-integer-primitive ceiling, including GCD remainders, for the complete proof request. Freeze its full pricing before implementation; every parse, coefficient preparation, factorization, exact KKT check and rounding operation is included. This is a new stricter accounting bound on a fixed-dimensional algorithm, not a changed old meter or a borrowed SAT budget. No counter resets inside a request. A bound/bit/pivot/refusal failure stops the candidate. If a complete finite operation bound cannot be established at source review, implementation remains blocked.
+
+Keep compact V2/scalar/SAT source and its2M-total/16384-bit/precision-table bounds unchanged. Keep existing1e-9 native surface, strict line intersection,1e-12 paired witness/state/position,1e-10 normal/tangent/impulse-work and1e-60 old80/120 agreement gates. Exact proof replaces no body, contact or phase ledger check. New evidence≤16MiB, retained explicit data≤64MiB, request/reply≤existing2MiB, internal170s/external180s. Existing archive decoding bounds stay separately authenticated; no total-process RSS claim follows.
+
+After all numeric/proof gates pass, make ONE cost comparison against the saved six-frame position-V2 core boundary773147000ns; retain the identical compact+position checking boundary, setup/IO/audit and nested attribution separately. Require candidate core×10≤saved baseline×9 before even considering cost GO. No baseline rerun, timing retune or fourth cache/axis iteration is allowed. A cost NO_GO ends this new candidate. This benchmark does not establish a1200-step/180s forecast: full32-line/ledger/quality/transport/output cost remains a later frozen gate.
+
+No fresh trajectory is authorized by this draft. Original solver8×8 and separate cold QR/active-work limits remain unchanged; do not equate those counters or increase either. No warm/multipoint Coulomb extension, public9-body activation, reuse of the one-point G2 target as a multi-body solver, public performance/general accuracy, browser, deploy or whole P4 claim follows. Historical ALIGNED960/OFFSET315/YAW243,308-timeout, persistent plane/gap/report failures and all first cost failures remain preserved.

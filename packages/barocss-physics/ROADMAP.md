@@ -9,6 +9,60 @@ last_updated: 2026-11-03
 
 # Physics library design and roadmap
 
+## Current priority review (2026-11-03)
+
+| Main track | Current qualified boundary |
+| --- | --- |
+| P0–P2 | Bounded common World and rigid recorder contracts/runtime pass locally. |
+| P3 / P5 | Selected disjoint hinges and fixed visual domain profiles pass; general mechanisms/coupling do not. |
+| P4 | Original eight-box exit remains NO_GO; full-reference/runtime cost is the earliest observed blocker. |
+| P6 / P7 | Full physical domain coupling and connected-mechanism/control exits remain open. |
+
+The current first-interval coupled-contact path has completed its finite
+arithmetic, actual World, post-impulse rollback/wire and desktop Native gates.
+Keep these separate from canonical package adoption and the original stack.
+See COVERAGE-14 through17 and the corresponding actual reports.
+
+The earliest OBSERVED blocker on the original P4 path is full-reference/runtime
+cost. That cold32-normal path already passes matched16-step ALIGNED/OFFSET/YAW
+prefixes and rejects loaded tangential speed above1e-10m/s. The separate ALIGNED
+run accepted308 steps, then stopped at180s before309. The one-point G2 lane uses
+half-.5m/inverse-inertia6I/g0; P4 uses eight half-.25m/inverse-inertia24I boxes
+and gravity. Neither provider qualifies the other. Original persistent plane,
+gap, warm and settling failures remain failures of their actual providers.
+
+The next order is:
+
+1. Qualify one NEW exact active-basis KKT certificate checker on the saved
+   full36-row position problem, starting with original ALIGNED1. Preserve its
+   distinct original32 velocity contact points and all coordinate words.
+   Existing independent cold-QP outputs and a separately authored exact checker
+   remain the numerical authority. The basis is explicitly untrusted witness
+   input; this changes the reference-proof contract and is not a cold optimizer
+   independent of producer metadata. This candidate is DESIGN_ONLY, with no
+   implementation or execution yet. Freeze operation pricing/bounds first.
+2. After numerical proof passes, perform one predeclared same-boundary cost
+   comparison. End the candidate on cost NO_GO. Do not resume ended support
+   caches, Node-SAT or primitive-axis retunes. A subset speedup is not evidence
+   that the full1200-step protocol fits180s.
+3. Qualify complete contact/position/ledger/quality cost and original inputs
+   before a fresh original ALIGNED/OFFSET/YAW1200-step campaign. Preserve all
+   first failures, fixed8x8 loops, geometry/work/settling gates and180s limits.
+4. Keep atomic public producer/geometry/caller cutover as a separate lane under
+   its existing map and individual producer gates; it need not wait for every
+   P4 or optional physics feature. No legacy compatibility route is allowed.
+   New private profile passes do not automatically adopt schema2 in canonical
+   root/replay/CAD callers; complete its source/native/API/recording checks.
+5. Advance P6/P7 only with their actual required physical laws, reactions,
+   trajectory/work/dt gates and typed endpoint prerequisites. Keep general
+   warm/multipoint friction as its own qualified profile; do not invent it as
+   the cause of the observed P4 timeout.
+
+The new cost proposal and source evidence are in
+`examples/physics-stack-next-2276/`. Saved32-point force balance and finite-cell
+witness checks are not long-time dynamics. Studio/manufacturing/equipment HOLDs,
+old tolerances and first failures remain. Desktop only; no mobile or deployment.
+
 ## Current owner publication decision (2026-11-02)
 
 The owner explicitly requested pushing the current independent Work checkpoint
@@ -813,13 +867,41 @@ primitives under the SAME cap/prices, with771 rational constructions and66
 subdivisions. Do not compare its completed gcd total with the truncated old
 prefix as a reduction claim. The independent Gaussian/RNE/physical and exact
 polynomial/Sturm audits pass. See
-`examples/physics-coupled-dynamic-efficient-2276/RESULTS.md`. World calls remain
-zero. General polynomial/RNE/resource boundary banks and actual host validation
-still block runtime promotion. New shared-core arithmetic work does not raise
-the existing production13-call/cap16 or physical8x8 limits.
-Warm/multipoint/general inertia,
-outside-cone dynamics, public adoption and full P4 remain NO_GO/unqualified;
-there is no scalar fallback.
+`examples/physics-coupled-dynamic-efficient-2276/RESULTS.md`. World calls in that pure cohort remain zero. A later extracted shared core
+passes the unchanged production13/cap16 per Source/Native graph, with all14
+result/certificate/counter files raw equal to efficient2429. Separate fresh
+private-entry processes each pass52 independently audited literal polynomial,
+IEEE RNE and lowered-resource cases under cap64; all53 files including the bank
+match raw. The observed sum65 spans separate production/test processes, not one
+combined64 cap. Actual production/test entry graphs share the same arithmetic
+core; production cannot reach the test entry or a lower-limit hook. First strict
+build failures TS18048 and TS4060/TS4058 remain preserved. The successful build03
+changes only erased type annotations. See
+`examples/physics-coupled-arithmetic-2276/RESULTS.md` and COVERAGE-14.
+Those arithmetic checks alone did not qualify World application. A later
+private host93a9c0674 passes the original before/at/after in actual Source and
+NodeNext Worlds: each3 Worlds/3 accepted intervals,192 actual applications,
+30 queries/27 points/729 anchors and18 independent observations. All26 retained
+files match raw. Actual after normal-speed error2.245727290605634e-18m/s and
+cone magnitude error3.26936304418379e-18Ns satisfy the unchanged1e-10/1e-12 gates.
+Post-impulse rollback and actual public serialize/deserialize/restore then pass
+in81476d8d2: each4 Worlds/6 phase attempts/4 accepted,257 applications,20 audits
+and38 full raw packet/wire matches. Hidden accepted outputs use genuine
+pre-dispose getters; hidden initial getters remain NOT_RETAINED and their
+same-model controls are explicitly bound to actual creation/start/free-input
+records. No diagnostic ID normalization is used. The second interval is still
+a typed pre-phase refusal.
+
+The separate actual Native browser consumer passes7 desktop checks and18
+independent physical jobs at1280/1440/1920. All6 complete decoded browser packets
+match actual Native Node packets without field or numeric normalization. The
+first campaign retained before1 GPU images; a separate same-census campaign
+explicitly selects after1 for all three GPU widths. Each campaign independently
+creates3 Worlds/3 accepted intervals, not one six-World census. Root viewed the
+actual after1 PNG. See `examples/physics-coupled-dynamic-host-viewer-2276/RESULTS.md`.
+These are private first-cold-one-point results, with no canonical public
+cutover, second successful interval, warm/multipoint/general inertia or full P4
+qualification. There is no scalar fallback and physical8x8 limits are unchanged.
 The concrete atomic public producer/geometry/caller migration map is
 `examples/physics-contact-wrench-contract-2276/PUBLIC-CUTOVER-MAP.json`;
 this map is static evidence, not public API adoption or20 new test passes. Original P0/P1/P2/P5 bounded receipts remain history; they do not

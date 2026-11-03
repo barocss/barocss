@@ -754,3 +754,70 @@ all material branches or exact CAD collision. Remaining G2 restitution/friction
 switch evidence, original8-box NO_GO and all HOLDs remain. Source/command/error
 records are in `examples/physics-rounded-ccd-2276/RESULTS.md`. No deployment,
 release or machine/manufacturing acceptance follows.
+
+## G2 private coupled contact: first interval
+
+The new private staged provider qualifies the original before/at/after contact
+inputs through arithmetic, actual World calls, failure/recording recovery and
+the actual Native browser graph. This does not adopt the new contact schema in
+the canonical package or qualify long stacking.
+
+| Gate | Actual executed evidence | Boundary |
+| --- | --- | --- |
+| Shared arithmetic | Source/Native each13 production calls, all14 complete files and counters equal the prior candidate; separate52 independent literal boundary cases and53-file parity | Separate cap16 and cap64 processes; zero Worlds |
+| Clean actual World | Source/Native each3 Worlds/3 accepted intervals,192 applications,18 independent observations;26 full files match raw | One cold point, first interval, unit cube/static box |
+| Dynamic rollback and wire | Each4 Worlds/6 phase attempts/4 accepted,257 applications,20 independent observations;38 raw packet/wire matches | Actual post-J/bucket failure and genuine serialize/deserialize/restore; empty commands only |
+| Desktop Native browser | Each fresh campaign7 checks,18 independent observations and6 complete decoded packet matches with actual Native Node | Desktop1280/1440/1920; latest GPU campaign explicitly selects after1 |
+
+The actual after normal-speed residual is2.245727290605634e-18m/s and cone
+magnitude residual3.26936304418379e-18Ns, within unchanged1e-10m/s and1e-12Ns
+gates. Before/at retain the original static result and complete certificate.
+Every original8x8 slot remains: one full J and63 actual zero applications.
+Actual body response, cache, event ledger and separate pair wrench are audited;
+screenshots are presentation evidence only.
+
+Hidden accepted replay outputs use genuine pre-dispose public/private/owner
+captures. Hidden initial getters are NOT_RETAINED; explicitly labeled
+same-model initial controls are bound to actual creation/start/free-input
+records. Cross-World diagnostic trace/cacheFrame equality remains NOT_PROVEN
+without ID normalization. The second interval is a typed pre-phase refusal,
+not a successful second physical interval. Inherited private typing boundaries
+remain explicit; no new type waiver was added.
+
+The original desktop campaign captured before1 GPU images. Its PASS remains.
+A separate same-census campaign captures after1 at all three widths. Page,
+console and network errors are zero. No mobile test ran. A load-gate refusal
+before the first offline audit is retained as NOT_RUN; the later normally
+admitted audit reused the original browser data. Initial strict/type/module
+setup failures and original numerical NO_GOs remain preserved.
+
+See the executed [clean World report](/physics-evidence/coupled-dynamic-clean.txt),
+[transaction report](/physics-evidence/coupled-dynamic-transaction.txt) and
+[desktop report](/physics-evidence/coupled-dynamic-desktop.txt). Their commands,
+input/output hashes, full observations and immutable archives remain in the
+named repository example folders. No public API compatibility path, warm or
+multiple-point extension, general inertia, browser wire, long-stack PASS,
+deployment or equipment claim follows.
+
+## Current priority for the original eight-box exit
+
+The original P4 cold-normal path already passes matched16-step
+ALIGNED/OFFSET/YAW prefixes. A separate ALIGNED run accepted308 steps and hit
+the fixed180s limit before309. The earliest observed blocker on this path is
+full-reference/runtime cost. Historical public persistent-friction plane/gap
+failures belong to their actual providers and remain preserved.
+
+P4 uses eight half-.25m boxes, inverse inertia24I and gravity. The newly
+qualified one-point G2 profile uses one half-.5m cube, inverse inertia6I and
+zero gravity. Their results do not qualify each other. The original32-point
+force balance and the full36-row position problem are also distinct.
+
+The next proposed reference candidate reconstructs an exact KKT certificate
+from an explicitly untrusted active-basis witness and checks every position
+row. It is DESIGN_ONLY. It requires independent saved cold-QP authority,
+numerical proof and one frozen cost comparison before runtime expansion.
+Ended cache/Node-SAT/axis cost candidates remain ended. A subset speedup will
+not establish a1200-step/180s fit. The original inputs, tolerances,8x8 loops,
+first failures and HOLDs remain. Public producer/schema cutover is a separate
+qualified lane; it must not retain a legacy compatibility route. See the
+[current roadmap](/physics-evidence/api-roadmap.txt).

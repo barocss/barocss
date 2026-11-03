@@ -1,0 +1,47 @@
+{
+  "status": "FROZEN_PROSE_LINK_AND_LOCAL_SITE_INPUTS",
+  "implementationHead": "b2bd44f9d3bb785069c9e0494cf2c376b27b0add",
+  "date": "2026-11-03",
+  "files": {
+    "packages/barocss-physics/README.md": {
+      "bytes": 24081,
+      "sha256": "59b8dd6a962a4139bddbb33d5460a4de883d4c0e7f013411cd6e1ae1c34f93e7"
+    },
+    "packages/barocss-physics/ROADMAP.md": {
+      "bytes": 103937,
+      "sha256": "7abf0bfa593e4544f49ac477591d7b9c35309b660ae8499f2d35be35d002f025"
+    },
+    "apps/library-docs/docs/reference/physics-verification.md": {
+      "bytes": 58928,
+      "sha256": "e69e4e9b92c3e6ef627d2ddc093a099b4336bb9ae84e90d3e60077f656dfe9e0"
+    },
+    "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt": {
+      "bytes": 103937,
+      "sha256": "7abf0bfa593e4544f49ac477591d7b9c35309b660ae8499f2d35be35d002f025"
+    },
+    "apps/library-docs/docs/public/physics-evidence/coupled-dynamic-clean.txt": {
+      "bytes": 3388,
+      "sha256": "9a8bdb05186751ff73948345292cc8f0e2389da0003a8c3d203bf6d85d72458f"
+    },
+    "apps/library-docs/docs/public/physics-evidence/coupled-dynamic-transaction.txt": {
+      "bytes": 3098,
+      "sha256": "05d1c0aa5d3df05e9027468637b4b1b37c7e47a8b267e14e3d11623d10e546c6"
+    },
+    "apps/library-docs/docs/public/physics-evidence/coupled-dynamic-desktop.txt": {
+      "bytes": 3878,
+      "sha256": "9f83b66a9fa3b188488ac53ad571cefc31d13fb6772c46680fe4132ba4e98061"
+    },
+    "examples/physics-stack-next-2276/NEXT-DEPENDENCY.md": {
+      "bytes": 7253,
+      "sha256": "329692f7ae911c0ccb22053eb1f5772484955cc794363bf78ae57b6ad32dddbf"
+    },
+    "examples/physics-stack-next-2276/CONTRACT-DRAFT.md": {
+      "bytes": 7441,
+      "sha256": "ca07cd2802e816f6ddb43de9aca22570b191aafd4c52706a5f0e47cc1684d856"
+    }
+  },
+  "newPublicAPIExamples": "NONE_ADDED_OR_CHANGED",
+  "priorExampleRuntimeReceipts": "REUSED_NO_NEW_174_EXAMPLE_PASS_CLAIM",
+  "WorldCalls": 0,
+  "deployment": "NOT_RUN"
+}

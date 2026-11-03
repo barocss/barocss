@@ -112,8 +112,14 @@ The [dynamic target arithmetic](../../examples/physics-coupled-dynamic-efficient
 passes three fixed physical inputs and eight admission controls in Source and
 compiled JavaScript, against an independent directed80/120 reference. It stays
 within the unchanged integer-work cap. The original work-limit failure remains
-preserved. This is pure arithmetic with zero World calls; general arithmetic
-boundary tests and actual World integration remain required before promotion.
+preserved. That cohort remains pure arithmetic with zero World calls. Later
+[shared arithmetic](../../examples/physics-coupled-arithmetic-2276/RESULTS.md),
+[private actual World](../../examples/physics-coupled-dynamic-host-2276/CLEAN-RESULTS.md),
+[post-impulse rollback/wire](../../examples/physics-coupled-dynamic-host-2276/TRANSACTION-RESULTS.md)
+and [desktop Native browser](../../examples/physics-coupled-dynamic-host-viewer-2276/RESULTS.md)
+pass their separately frozen gates. Only the original first-cold-one-point
+before/at/after profile is qualified. Canonical package schema/caller adoption,
+warm/multipoint dynamics and the original eight-box exit remain separate.
 
 | Entry point | Current result | Example |
 | --- | --- | --- |
