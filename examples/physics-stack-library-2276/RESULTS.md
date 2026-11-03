@@ -359,3 +359,41 @@ old wire pairs. Nonbinary denominator calls are94950, with3786 hypothetical
 four-entry raw-pair hits. This does not justify a new production cache or prove
 any saved GCD/time. No cache was implemented. See
 `examples/physics-stack-make-census-2276/RESULTS.md`.
+
+## OPT06 duplicate result checks (2026-11-04)
+
+The actual package source splits normalization after the existing checked
+numerator/denominator entry. Only general add, mul and general div results that
+have already passed both primitive bit checks use the private helper. BigInt
+math, GCD, operation/bit limits, counter totals, failure priority and outputs
+remain exact OPT05. Source delta is7 added lines and3 call-site replacements;
+there is no new public API, solver option, fallback or runtime dependency.
+
+Root actually passes the new32 independent arithmetic/counter/error cases on
+Source and genuine Native. It also retains all prior32/26/25/16 arithmetic and19
+boundary cases per graph. Actual run10 independently passes original first32,
+input retention, repeat and three-scene one-step/fresh16; every physical report,
+117 complete payload files and453231 numeric words per graph equal run04 with
+zero exceptions. Canonical build09 passes9.343297625s.
+
+A new immutable actual canonical build09 closure (28 code files +package)
+then completes all three1200-step **runtime-only** diagnostics:
+ALIGNED157.965913125s, OFFSET138.402241417s, YAW136.722443083s. Each has1200 local
+and independent normal-KKT acceptances,1201 full raw frames and no first failure.
+Closure aggregate is7acdbb4af249c7c8492aadbac94b5d107f1e73fe07d84dd018c29c2d3dd3e331.
+Every raw byte and physical initial metadata field equal runtime05. Code identity
+is a separate sidecar, not a physical exception. Exact physical-input identity
+permits explicit reuse of the paid saved-quality audit with zero new reference
+calls. This is not fresh live contact/position/ledger/quality qualification.
+See evidence/runtime-opt06-01/runtime05-word-parity.json.
+
+No speed ratio follows from these differently timed runs. Full independent
+acceptance stays0/API false for the diagnostic. The original complete pipeline
+still has its preserved full01 NO_GO:1114 ALIGNED steps, first observed1116
+producer wait, unresolved1115 position and earliestUNKNOWN. Actual960 baseline
+and155 committed settling frames do not qualify the missing1200 duration.
+The separate complete-runner results and exact-size archive qualification are
+under examples/physics-stack-complete-2276. The q1 archive candidate ends on
+its fixed80MiB screen; a separately sourced stateful path is not yet adopted.
+All old failures, numerical tolerances,8x8/public4 limits,HOLDs and deployment
+restrictions remain unchanged.

@@ -57,6 +57,10 @@ class Arithmetic {
   shifted(value: bigint, bits: number): bigint { this.tick(); return this.checked(value << BigInt(bits)); }
   make(n: bigint, d = 1n): Rational {
     this.checked(n); this.checked(d);
+    return this.normalizeChecked(n, d);
+  }
+  /** Both operands have already passed checked in this call's evaluation order. */
+  private normalizeChecked(n: bigint, d: bigint): Rational {
     if (d === 0n) throw new StrictLineFailure('zero rational denominator');
     if (n === 0n) return ZERO;
     if (d < 0n) { this.tick(2); n = -n; d = -d; }
@@ -98,11 +102,11 @@ class Arithmetic {
         return this.make(this.sum(this.multiply(a.n,ratio),b.n),b.d);
       }
     }
-    return this.make(this.sum(this.multiply(a.n,b.d),this.multiply(b.n,a.d)),this.multiply(a.d,b.d));
+    return this.normalizeChecked(this.sum(this.multiply(a.n,b.d),this.multiply(b.n,a.d)),this.multiply(a.d,b.d));
   }
   neg(a: Rational): Rational { this.op(); this.tick(); return { n: -a.n, d: a.d }; }
   sub(a: Rational, b: Rational): Rational { return this.add(a,this.neg(b)); }
-  mul(a: Rational, b: Rational): Rational { this.op(); return this.make(this.multiply(a.n,b.n),this.multiply(a.d,b.d)); }
+  mul(a: Rational, b: Rational): Rational { this.op(); return this.normalizeChecked(this.multiply(a.n,b.n),this.multiply(a.d,b.d)); }
   div(a: Rational, b: Rational): Rational {
     this.op();
     if (a.d > 0n && b.d > 0n && b.n !== 0n) {
@@ -121,7 +125,7 @@ class Arithmetic {
         return this.make(this.multiply(ratio,a.n),b.n);
       }
     }
-    return this.make(this.multiply(a.n,b.d),this.multiply(a.d,b.n));
+    return this.normalizeChecked(this.multiply(a.n,b.d),this.multiply(a.d,b.n));
   }
   compare(a: Rational, b: Rational): number {
     this.op(); const difference = this.sum(this.multiply(a.n,b.d),-this.multiply(b.n,a.d));

@@ -1,0 +1,49 @@
+{
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN",
+  "candidate": "OPT06_DUPLICATE_CHECKED_ELIMINATION",
+  "source": {
+    "path": "packages/barocss-physics/src/stack/strict-line.ts",
+    "sha256": "cce95ffc60613230e4ff114d4ae3f37e50924b8dfe9e428ef1e919172813f890"
+  },
+  "baselineSource": {
+    "path": "examples/physics-stack-library-2276/baseline/strict-line-opt05.ts",
+    "sha256": "1ce1c28ee3eec55ae132b902791e814c58b3cda0ee1d7ec5714d8e25ef49796f"
+  },
+  "actualBaseline": {
+    "path": "examples/physics-stack-library-2276/evidence/runtime-opt05-01/canonical-provider/dist/stack/strict-line.js",
+    "sha256": "23b3b36e269a6dd7ad15d5a1d41d2b0f81b67298d2fe47c51442dd913d21167a",
+    "packagePath": "examples/physics-stack-library-2276/evidence/runtime-opt05-01/canonical-provider/package.json",
+    "packageSha256": "7ef765dcf000a0b45dd74495e60243e16516506e730afa024fc7f32b11222330",
+    "scope": "IMMUTABLE_ACTUAL_CANONICAL_OPT05_SNAPSHOT_NOT_PRODUCTION_FALLBACK"
+  },
+  "files": {
+    "OPTIMIZATION-06-CONTRACT.md": "dcac6b6a2cd5851db3c63aa30adba114f94bf0c81f24e2d203ff970a89559d0d",
+    "arithmetic-opt06.test.mts": "cd29d4aa667b819eff8e4be6836f4e7e8c9927353b9b058e8aa4ca4ff5e87a1f",
+    "arithmetic-opt06-run.mjs": "eff83d41feb02dfe1cc34ee68e3bc1a0fe047611fa0b97185d71f8cb06c1f585"
+  },
+  "proofBoundary": {
+    "helperPrecondition": "BOTH_RESULT_BIGINTS_ALREADY_CHECKED_IN_THE_SAME_CALL",
+    "bypassSites": ["mul", "general_add_fallback", "general_div_fallback"],
+    "directMakeChecks": "UNCHANGED_NUMERATOR_THEN_DENOMINATOR",
+    "normalizationMathGcdTickOrder": "VERBATIM_OPT05",
+    "counterPeakFailureParity": "REQUIRED_EXACT_OPT05",
+    "rationalProvenanceAssumption": false,
+    "cache": false,
+    "publicExport": false,
+    "admissionLimitChange": false
+  },
+  "fixedTests": 32,
+  "retainedTests": [32, 26, 25, 16, 19],
+  "limits": {
+    "rationalOperations": 200000,
+    "integerOperations": 2000000,
+    "integerBits": 16384,
+    "roundingSteps": 16
+  },
+  "authorCalls": {"imports": 0, "arithmetic": 0, "compiler": 0, "tests": 0, "physics": 0},
+  "cost": "NOT_RUN_NO_SPEED_CLAIM",
+  "originalIndependentFullPhysics": false,
+  "API": false,
+  "strictGlobal64MiBCertification": "NOT_QUALIFIED",
+  "oldFailure": "COMPLETE_FULL01_ALIGNED_CONTIGUOUS1114_TIMEOUT_PRESERVED"
+}

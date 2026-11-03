@@ -3,11 +3,11 @@
   "branch": "codex/physics-world-p5-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "G2 private first-cold-one-point coupled static/dynamic contact",
-    "status": "FINITE_ARITHMETIC_WORLD_TRANSACTION_AND_DESKTOP_NATIVE_PASS",
-    "scope": "Original3cases; SourceNative clean3World each and26rawfiles; Tx4World/6attempt/4accepted each20audits38rawfiles; desktopafter-selected7checks18audits6wholepacketparity",
-    "results": "examples/physics-coupled-dynamic-host-viewer-2276/RESULTS.md",
-    "canonicalAdoption": "NOT_RUN"
+    "profile": "P4 original eight-box live independent partial trajectory",
+    "status": "1114_CONTIGUOUS_PHASE_AND_ARCHIVE_PASS_COMPLETE_1200_COST_NO_GO",
+    "scope": "ALIGNED1114committed; firstObserved1116deadline,position1115unresolved,earliestUNKNOWN; OFFSET/YAW NOT_RUN; actual960baseline+155terminalrecordframes; SourceNativeOPT06new32/retained/physicalprefixwordparity/buildPASS separately",
+    "results": "examples/physics-stack-complete-2276/FULL-01-RESULTS.md",
+    "canonicalAdoption": "PUBLIC_WORLD_NOT_RUN"
   },
   "mainSlices": {
     "P0": "CONTRACT_COMPLETE_LOCAL",
@@ -34,7 +34,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Actual bounded Worker/reference pipeline48 and real afterwaitCPU PASS exactoriginalphysics; fulloriginal1200 remains NOT_RUN. Next streamarchive+single-copy/bufferedfingerprint combined3x16 then original3x1200. Explicitscopeaudit corrects unsupportedglobal64 enginegate: keepofflineproof/cache64 limits andNO_GOs unchanged/NOT_QUALIFIED; originalwall/wire/scratch/output gates remain. PublicAPI/recorder/desktop newprofile NOT_RUN.",
+  "active": "Originalcompletefull01stillNO_GO1114 ALIGNED contiguous/firstObserved1116/earliestUNKNOWN. OPT06SourceNative arithmetic+physicalwordparity/build09 andall3runtime-only1200PASS; nofullphase/APIclaim. q1 andstatefulq2archive screens ended80MiB NO_GO; noq3 orcapraise. Next source-provenexactarithmetic andmeasuredlossless duplicate-byte storage work, thenqualifiednewfullcampaign. HOLD/tolerances/firstfailures preserved.",
   "latestStackImplementation": {
     "results": "examples/physics-stack-library-2276/RESULTS.md",
     "entry": "packages/barocss-physics/src/stack/prepare-step.ts",
@@ -172,6 +172,63 @@
       "results": "examples/physics-stack-stream-2276/RESULTS.md",
       "liveComposition": "NOT_RUN",
       "full1200": false,
+      "API": false
+    },
+    "opt06": {
+      "status": "SOURCE_NATIVE_FIXED_ARITHMETIC_AND_PHYSICAL_PREFIX_CANONICAL_BUILD_PASS",
+      "fixedNewTestsPerGraph": 32,
+      "retainedTestsPerGraph": [
+        32,
+        26,
+        25,
+        16,
+        19
+      ],
+      "phaseStepsPerGraph": 51,
+      "numericWordsPerGraph": 453231,
+      "fullPayloadFilesPerGraph": 117,
+      "canonicalBuildSeconds": 9.343297625,
+      "cost": "RUNTIME_ONLY_ALL_3X1200_COMPLETED_NO_FULL_PHASE_EXIT",
+      "API": false
+    },
+    "completePrefix02": {
+      "status": "COMBINED_PREFIX_CONFIRMED",
+      "results": "examples/physics-stack-complete-2276/PREFIX-02-RESULTS.md",
+      "contiguousSteps": 48,
+      "referencePairs": 195,
+      "recoveredNumericWords": 425916,
+      "API": false
+    },
+    "originalCompleteFull01": {
+      "status": "NO_GO_COST",
+      "results": "examples/physics-stack-complete-2276/FULL-01-RESULTS.md",
+      "scene": "ALIGNED",
+      "contiguousAccepted": 1114,
+      "firstObservedStep": 1116,
+      "earliestFailingStep": "UNKNOWN",
+      "unresolvedPositionStep": 1115,
+      "actual960BaselinePromoted": true,
+      "committedTerminalFrames": 155,
+      "ownerWallSecondsBeforeFinalReceipt": 166.32361983298324,
+      "compressedArchiveBytes": 206516742,
+      "outputCapFailureObserved": false,
+      "laterScenes": "NOT_RUN",
+      "offlineRecovery": "PASS_SEPARATE_DATA_ONLY_1115_GROUPS",
+      "full1200": false,
+      "API": false
+    },
+    "runtimeOpt06": {
+      "status": "RUNTIME_DIAGNOSTIC_COMPLETED",
+      "localAndNormalKktStepsPerScene": 1200,
+      "childSceneWallSeconds": [
+        157.965913125,
+        138.402241417,
+        136.722443083
+      ],
+      "all3603FramesByteExactTo": "runtime-opt05-01",
+      "physicalInitialMetadataExact": true,
+      "runtimeDigest": "7acdbb4af249c7c8492aadbac94b5d107f1e73fe07d84dd018c29c2d3dd3e331",
+      "fullIndependentlyAccepted": 0,
       "API": false
     }
   },
@@ -2305,5 +2362,12 @@
       "validOnly": true,
       "genericLargePreparedIntegerOverflowQualification": "NOT_RUN"
     }
+  },
+  "priorSelectedNumericalMilestoneBeforeStack1114": {
+    "profile": "G2 private first-cold-one-point coupled static/dynamic contact",
+    "status": "FINITE_ARITHMETIC_WORLD_TRANSACTION_AND_DESKTOP_NATIVE_PASS",
+    "scope": "Original3cases; SourceNative clean3World each and26rawfiles; Tx4World/6attempt/4accepted each20audits38rawfiles; desktopafter-selected7checks18audits6wholepacketparity",
+    "results": "examples/physics-coupled-dynamic-host-viewer-2276/RESULTS.md",
+    "canonicalAdoption": "NOT_RUN"
   }
 }

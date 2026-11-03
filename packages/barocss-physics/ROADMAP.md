@@ -122,6 +122,37 @@ paths/lines and allocator exclusions are in
 `examples/physics-stack-owned-data-2276/ENVELOPE-PREMISES.md`. New full-run
 contract explicitly adopts this correction; historical contracts stay unchanged.
 
+The new complete runner first stopped on ALIGNED2 archive admission: actual
+JSON483481 bytes was below2MiB, while the conservative estimate2446850 exceeded
+it. Prefix01 remains FAIL. A distinct exact-size archive passes23 fixed controls
+under unchanged wire/scratch/output bounds; the new same-source prefix02 passes
+all48 independent phase steps,195 original wire pairs and425916 recovered words.
+See `examples/physics-stack-complete-2276/PREFIX-02-RESULTS.md`.
+
+Original full01 then contiguously verifies/archives1114 ALIGNED steps before the
+fixed scene deadline (166s actor work plus4s cleanup inside170s). First observed
+producer wait is1116; unfinished position1115 means earliest failure UNKNOWN.
+OFFSET/YAW remain NOT_RUN. Actual960 baseline promotion and155 committed terminal
+frames pass;10s/1200 and whole P4 do not. Archive206516742 bytes closes; separate
+offline recovery passes1115 groups in10.723851667s with no new physical calls.
+No output-cap failure was observed. Preserve all first failures and distinguish
+that later audit from live qualification. See
+`examples/physics-stack-complete-2276/FULL-01-RESULTS.md`.
+
+OPT06 now removes duplicate checks of already checked exact integer results.
+New32, retained32/26/25/16 and boundary19 tests pass on Source/genuine Native;
+run10 retains every original physical report,117 payload files and453231 numeric
+words per graph. Canonical build09 passes9.343297625s. Exact old arithmetic
+counters, bit peaks and refusal priority remain required. Its canonical runtime-only
+diagnostic now completes all3×1200, at157.965913125/138.402241417/136.722443083s;
+all3603 raw frames and initial physical metadata equal runtime05. Full independent
+acceptance remains0 and API false; no speed ratio or full P4 claim follows.
+The q1 archive candidate ends at its unchanged80MiB component screen after4120
+of10034 entries. A separately sourced stateful ring/hasher candidate must keep
+those screens and qualify independently. Next address measured engine/archive
+cost, then a new full campaign. No public profile, recorder or desktop promotion
+precedes original full acceptance.
+
 The current first-interval coupled-contact path has completed its finite
 arithmetic, actual World, post-impulse rollback/wire and desktop Native gates.
 Keep these separate from canonical package adoption and the original stack.

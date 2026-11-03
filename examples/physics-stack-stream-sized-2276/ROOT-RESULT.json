@@ -1,0 +1,19 @@
+{
+  "status": "PASS_FIXED23_EXACT_SIZE_ARCHIVE_COMPONENT",
+  "tests": 23,
+  "elapsedMs": 860.710833,
+  "pinsSHA256": "3b40366fcbbc93a5b0dc4beee256597175778a14f66a6cf946ab953e0b23fb35",
+  "sourceSealSHA256": "f509d7a0ade48b59e718c81091c8a34fd2fe20584225ca40161efd9f9e348e1c",
+  "guardResult": "examples/physics-world-p5-2276/evidence/stack-sized-controls-01/result.json",
+  "guardResultSHA256": "eec1285fd964758e1e0807d3da72d242c72da3fe88730e926341d03f7b0a10eb",
+  "sourceRecheckedAfter": true,
+  "unchangedOldTests": 18,
+  "newControls": 5,
+  "failedRecordWholeJSONBytes": 483481,
+  "failedRecordNumericLeaves": 8842,
+  "failedRecordWordBytes": 70736,
+  "physicsCalls": 0,
+  "full1200": false,
+  "API": false,
+  "strictGlobal64MiBCertification": "NOT_QUALIFIED"
+}

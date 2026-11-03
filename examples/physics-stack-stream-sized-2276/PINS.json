@@ -1,0 +1,82 @@
+{
+  "API": false,
+  "authorImports": 0,
+  "authorPhysicsCalls": 0,
+  "authorTests": 0,
+  "encodedJSONLimit": 2097152,
+  "files": {
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node": {
+      "bytes": 110712624,
+      "sha256": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+    },
+    "examples/physics-stack-complete-2276/baseline/prefix-01-preserved.json": {
+      "bytes": 6323,
+      "sha256": "83ac45d914d3f3fb74c8b76cf7833a4faa517f4c94603377144cbe4c52495c8e"
+    },
+    "examples/physics-stack-complete-2276/evidence/prefix-01/ALIGNED/host/failure.json": {
+      "bytes": 120840,
+      "sha256": "6bb5ffea5292d0bb625ef0a3ac1a59f5f4cfec860957283b3cafa513530125b9"
+    },
+    "examples/physics-stack-library-2276/evidence/run-09/native/ALIGNED-16-2.f64le.gz": {
+      "bytes": 871,
+      "sha256": "643ab2787f5eb36abbd368cdab7022b530534c25ff9a96f8581d73a0174af9c9"
+    },
+    "examples/physics-stack-library-2276/evidence/run-09/native/ALIGNED-16-2.jsonl.gz": {
+      "bytes": 73574,
+      "sha256": "870fac553bea13ea75bb190b24c6238f17057eb29ece5a3224369dc5f50910da"
+    },
+    "examples/physics-stack-pipeline-2276/PINS.json": {
+      "bytes": 244882,
+      "sha256": "a3692b8d40ee75b649a0055ad046005c21996f9b3a4275748635db449e5f0821"
+    },
+    "examples/physics-stack-stream-2276/CONTRACT.md": {
+      "bytes": 9168,
+      "sha256": "523c1a31717e330c29088ea9d769a46b02507fb1069231b1bd1e338cd96bd612"
+    },
+    "examples/physics-stack-stream-2276/PINS.json": {
+      "bytes": 1283,
+      "sha256": "af0a11e9299cdcb4974ba7bb9aa6805e7a689ade47dc5df42f85c160c76f01ae"
+    },
+    "examples/physics-stack-stream-2276/SOURCE-SEAL.json": {
+      "bytes": 837,
+      "sha256": "459f91af8e3c3ee6668f08c82b5566c3aada88a01d643a61711bb86d03e7a948"
+    },
+    "examples/physics-stack-stream-2276/archive.mjs": {
+      "bytes": 13561,
+      "sha256": "3c9587ed2f9648bfbfb508866c0b7107d0611c4ea03a31a3d336f88370332036"
+    },
+    "examples/physics-stack-stream-2276/archive.test.mjs": {
+      "bytes": 11026,
+      "sha256": "9a58c80be0830baf424d5f10c245c152ef93fd3b9fc2bfe862dd06f7cf154f47"
+    },
+    "examples/physics-stack-stream-2276/evidence/stream-01/source-binding.json": {
+      "bytes": 939,
+      "sha256": "552a45bf4d61c4ae43073218ac686293c97b9ca83e095db1be1e5efac28a2faf"
+    },
+    "examples/physics-stack-stream-sized-2276/CONTRACT.md": {
+      "bytes": 5145,
+      "sha256": "06e7a76f430cd1a69bc44e80a9dabc20f98819d07f40126518673b63a05a062f"
+    },
+    "examples/physics-stack-stream-sized-2276/archive.mjs": {
+      "bytes": 14410,
+      "sha256": "d8a1e1aa4d9b1ea0d71f5999dee77f8b92fe624ff0fb4da3b50358bc3b71d735"
+    },
+    "examples/physics-stack-stream-sized-2276/archive.test.mjs": {
+      "bytes": 11026,
+      "sha256": "9a58c80be0830baf424d5f10c245c152ef93fd3b9fc2bfe862dd06f7cf154f47"
+    },
+    "examples/physics-stack-stream-sized-2276/exact-size.test.mjs": {
+      "bytes": 3753,
+      "sha256": "4e6536e6e132a494780ee1bd85a8141848d09a59fd29e3c02d93cf686ab3478a"
+    }
+  },
+  "fixedGroups": 23,
+  "format": "stack-stream-sized-pins-v1",
+  "full1200": false,
+  "node": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "oldFailure": "complete-prefix-01 ALIGNED2 JSON_WORD_CAPACITY preserved",
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN",
+  "strictGlobal64MiBCertification": "NOT_QUALIFIED",
+  "unchanged18TestSHA256": "9a58c80be0830baf424d5f10c245c152ef93fd3b9fc2bfe862dd06f7cf154f47",
+  "wordSidecarLimit": 524288
+}

@@ -1,0 +1,35 @@
+{
+  "API": false,
+  "RSS": "NOT_QUALIFIED",
+  "authorCodecCalls": 0,
+  "authorImports": 0,
+  "authorPhysicsCalls": 0,
+  "authorTests": 0,
+  "codec": {
+    "chunkSize": 65536,
+    "crc": "NODE_NATIVE_CHAINED_HEADER_PAYLOAD",
+    "largeWindow": false,
+    "lgwin": 20,
+    "quality": 1
+  },
+  "files": {
+    "CONTRACT.md": "bb7028886d2e1c6e98f21ad2b2741ca250b821a0e2b5d82552c27b1542ac6f6a",
+    "PINS.json": "a53edc3365fdda4ab087b9ffca646a0209d87048ff867bb6e9f80266ecd3449b",
+    "archive.mjs": "e9ebf193d63c58ad38ac5d9723edbb829eaf5c7b3b762710931606d8b43b95dd",
+    "archive.test.mjs": "265cfd92bb36be6a1910a031c0796c092a0b703a85256db527b75e89cd2167b3",
+    "crc.test.mjs": "37b30e3cd92e4f9f1c0571d7cc2602a7ed269ce0a5ab3dcef67654518c8a62c9",
+    "exact-size.test.mjs": "c5d61a99f08662a1e102cf335ba798ed51d5128d5c381ea89b262ab704f5dfc7",
+    "replay.mjs": "070abc612c973af457590aa7733703234f4f7ded2bb636f445fb91ed623a9dc2",
+    "screen.py": "648def73235ebae5b504b3149c3ab454ab1865d5dbcd607d78f3c86fd8aad3e2"
+  },
+  "fixedArchiveSHA256": "a7d9a3aa99dad8b1be00f0291765e01a38e3db33868ff2973a6359b4110d5e99",
+  "fixedGroups": 24,
+  "full1200": false,
+  "screens": {
+    "afterWaitNodeCpuUs": 30000000,
+    "compressedBytes": 83886080,
+    "nodeWallSeconds": 45
+  },
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN",
+  "strictGlobal64MiBCertification": "NOT_QUALIFIED"
+}

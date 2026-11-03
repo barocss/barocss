@@ -1,0 +1,12 @@
+{
+  "status": "PASS_FIXED8_COMPLETE_WINDOW_AND_COMMITTED_960_BARRIER",
+  "tests": 8,
+  "elapsedMs": 133.745584,
+  "sealSHA256": "2daea725a2f5ea8905e9239a64e4f7f941fb3b0c20d08e8c5d0736490990fad1",
+  "guardResult": "examples/physics-world-p5-2276/evidence/stack-complete-controls-01/result.json",
+  "guardResultSHA256": "acc2e03b468929a2d4150de41fca43567a57f86994820a91eac39bddc4957564",
+  "sourceRecheckedAfter": true,
+  "physicsCalls": 0,
+  "full1200": false,
+  "API": false
+}

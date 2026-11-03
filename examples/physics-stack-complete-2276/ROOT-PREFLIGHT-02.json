@@ -1,0 +1,10 @@
+{
+  "status": "PASS_EXACT_SOURCE_PINS_AND_SINGLE_IMPORT_DELTA",
+  "pinnedInputs": 646,
+  "pinsSHA256": "8fecc7607f12c94107018d29edd03acd356f70fdc31e1e0f4e820b852d751235",
+  "sourceSealSHA256": "46d78267388800fe1421c61cd66fde5ac5e69d988e71df27155bab9a65bb5805",
+  "onlyExecutableDelta": "archive module import",
+  "physicsCalls": 0,
+  "full1200": false,
+  "API": false
+}

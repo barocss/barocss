@@ -1,0 +1,47 @@
+{
+  "status": "ENDED_NO_GO_FIRST_SCREEN_OUTPUT_CAP",
+  "sourceSealSHA256": "93ea41c0b6c82dc1fdb62486f47152a23e8e52be51a053039bf25b9204bde474",
+  "fixedOriginalScreensUnchanged": true,
+  "primaryFailure": "RETAINED_CAP",
+  "sourceEntriesBeforeFailure": 4120,
+  "requiredSourceEntries": 10034,
+  "screenCompressedCapBytes": 83886080,
+  "controlsPassed": 24,
+  "physicsCalls": 0,
+  "full1200": false,
+  "API": false,
+  "files": {
+    "evidence/screen-01/host/events.br": {
+      "bytes": 83886080,
+      "sha256": "0fb121757276cf077b4fad9d2beb25e1c2a7a9d27dd405476d899532a53e5d67"
+    },
+    "evidence/screen-01/host/result.json": {
+      "bytes": 780,
+      "sha256": "79248d4ea03d083a8765413a658fcdd6c856532444c44bc5301f86426a01968c"
+    },
+    "evidence/screen-01/host/stop.json": {
+      "bytes": 138,
+      "sha256": "8c98f18c0e8eaea43fe39065c69c83c6b6a266bba68cbf181e3514b930a617af"
+    },
+    "evidence/screen-01/host.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "evidence/screen-01/host.stdout": {
+      "bytes": 780,
+      "sha256": "79248d4ea03d083a8765413a658fcdd6c856532444c44bc5301f86426a01968c"
+    },
+    "evidence/screen-01/outer-stop.json": {
+      "bytes": 165,
+      "sha256": "c5fc807e8584b58b04b6315ec31de06cd4c34748828fdcd89f3f83c548b848cb"
+    },
+    "evidence/screen-01/stage.json": {
+      "bytes": 437,
+      "sha256": "5ff85d40d1c9afaad26529459b02e0d748350ee76c86848793b953235de9ad2a"
+    },
+    "evidence/screen-01/summary.json": {
+      "bytes": 1446,
+      "sha256": "553121bcf0344f23e4b2f1acab26a02c7bcb5dd7ec725ebebea07d8294c2ff24"
+    }
+  }
+}

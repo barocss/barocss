@@ -1,0 +1,26 @@
+{
+  "status": "FROZEN_BEFORE_ROOT_FIXED8_EXECUTION",
+  "physicsCalls": 0,
+  "files": {
+    "examples/physics-stack-complete-2276/controls.test.mjs": {
+      "bytes": 3224,
+      "sha256": "25a69057cdeedba4f3345b7033a9c3511f632bba4e730677920e6c00ee22cb6d"
+    },
+    "examples/physics-stack-complete-2276/baseline.mjs": {
+      "bytes": 992,
+      "sha256": "09af6549726f3c9cd22b4d14132bd7c60e2a26b0b0aa204ef925057fa83912b2"
+    },
+    "examples/physics-stack-complete-2276/window.mjs": {
+      "bytes": 2177,
+      "sha256": "6e87f9501e0b464a03fccd60ac700a3fc0672043e942878040a110f44e104358"
+    },
+    "examples/physics-stack-pipeline-2276/protocol.mjs": {
+      "bytes": 4616,
+      "sha256": "7e94585adf0040296f852e481b792b4a9258b1919bee578df97c7f4bcc4df9c2"
+    },
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node": {
+      "bytes": 110712624,
+      "sha256": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+    }
+  }
+}

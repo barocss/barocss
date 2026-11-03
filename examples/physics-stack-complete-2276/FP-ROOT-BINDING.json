@@ -1,0 +1,25 @@
+{
+  "status": "PASS_FIXED6_BUFFERED_FINGERPRINT_COMPONENT",
+  "tests": 6,
+  "elapsedMs": 523.040958,
+  "guardResult": "examples/physics-world-p5-2276/evidence/stack-buffered-fingerprint-01/result.json",
+  "guardResultSHA256": "a48481636bd579c4f1041197b8ed55fb0feb5fecfcc78952e158aa5f903ca23f",
+  "files": {
+    "examples/physics-stack-complete-2276/fingerprint.mjs": {
+      "bytes": 1602,
+      "sha256": "62e32917277f5376c38b2c1f6adb34a24ef112da2985514eaa37e6073fda5448"
+    },
+    "examples/physics-stack-complete-2276/fingerprint.test.mjs": {
+      "bytes": 2899,
+      "sha256": "acec9903611dda94183dcc501adee63b5a8c47bcbe09a3365c18ca5124f183a4"
+    },
+    "examples/physics-stack-complete-2276/FINGERPRINT-CONTRACT.md": {
+      "bytes": 1337,
+      "sha256": "252a1a469710614b593528f12e71d9eda987cc4f53a4d7c8fb59b775500b7d53"
+    }
+  },
+  "sourceProvenance": "Root authored and executed these unchanged files; checked against lossless checkpoint05 source members. This is an explicit post-run binding, not an independently captured pre-run hash manifest.",
+  "physicsCalls": 0,
+  "full1200": false,
+  "API": false
+}
