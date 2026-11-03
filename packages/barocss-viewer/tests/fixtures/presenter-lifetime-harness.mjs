@@ -10,7 +10,8 @@ const root = new URL('../../../../', import.meta.url);
 export async function loadLifetimeSource(source = new URL('../../src/presenter.ts', import.meta.url), snapshot) {
   const built = await build({ stdin: { contents: `export { Presenter } from ${JSON.stringify(source.pathname)};
 export { Viewer as CoreViewer, Geometry, ImageTexture } from '@barocss/gpu/viewer';
-export { Viewer as PublicViewer } from './packages/barocss-viewer/src/index.ts';`, resolveDir: root.pathname },
+export { Viewer as PublicViewer } from './packages/barocss-viewer/src/index.ts';
+export { createSeedInput as directionalSeed } from './examples/viewer-native-directional-lights/controller.ts';`, resolveDir: root.pathname },
     bundle: true, platform: 'node', format: 'esm', write: false, metafile: true,
     plugins: [{ name: 'own-source', setup(builder) {
       builder.onResolve({ filter: /^@barocss\// }, async ({ path }) => {

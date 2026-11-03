@@ -79,3 +79,112 @@ test('public Viewer.clear removes only the Presenter scene geometry', () => {
   const source = items(); f.presenter.show(drawing(source)); assert.equal(f.core.geometries.size, 3);
   viewer.clear(); assert.equal(f.core.geometries.size, 0); assert.equal(f.core.meshList.length, 0); viewer.dispose();
 });
+
+// Append to existing presenter-lifetime.test.mjs only after root reviews the patch.
+function displayTriangle() {
+  return { version: 0, revision: 1, sourceUnit: 'mm', sourceFrame: 'right-handed-z-up', bodies: [{ bodyId: 'bracket',
+    positions: new Float64Array([0, 0, 0, 10, 0, 0, 0, 0, 10]),
+    normals: new Float32Array([0, -1, 0, 0, -1, 0, 0, -1, 0]), indices: new Uint32Array([0, 1, 2]) }] };
+}
+function packetSquare() {
+  return [{ modelId: 'literal', packet: { version: 0, surfaceId: 'literal-square', revision: 0, lengthUnit: 'mm',
+    coordinateSystem: 'right-handed-z-up', winding: 'ccw', positions: [-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0],
+    normals: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], indices: [0, 1, 2, 0, 2, 3],
+    parameters: [0, 0, 1, 0, 1, 1, 0, 1], bounds: { min: [-1, -1, 0], max: [1, 1, 0] } } }];
+}
+function displayViewer() {
+  const f = setup(api); globalThis.HTMLCanvasElement = class { width = 320; height = 240; };
+  return { ...f, viewer: new api.PublicViewer(new HTMLCanvasElement(), { mmToSceneUnit: .1, background: [0, 0, 0] }, f.presenter) };
+}
+test('display boundary owns copied render triangles and refuses native UV inspection', () => {
+  const f = displayViewer(), source = displayTriangle();
+  f.viewer.loadDisplayMeshes(source);
+  const accepted = f.viewer.getState();
+  assert.equal(accepted.status, 'ready'); assert.equal(accepted.displayMeshes.authority, 'approximate-display-only');
+  assert.deepEqual(accepted.surfaces, []); assert.deepEqual(accepted.packets, []);
+  assert.equal(accepted.native, null); assert.equal(accepted.document, null);
+  assert.throws(() => f.viewer.pick(0, 0), /no native Surface\/UV/);
+  source.bodies[0].positions[0] = 99;
+  assert.equal(f.viewer.getState().displayMeshes.bodies[0].positions[0], 0);
+  const before = f.viewer.getState(), geometry = f.core.meshList[0].geometry;
+  assert.throws(() => f.viewer.loadDisplayMeshes({ ...displayTriangle(), revision: -1 }), /revision/);
+  assert.deepEqual(f.viewer.getState(), before); assert.equal(f.core.meshList[0].geometry, geometry); assert.equal(geometry.disposed, false);
+  let reads = 0; const getter = displayTriangle();
+  Object.defineProperty(getter, 'revision', { enumerable: true, get() { reads++; return 2; } });
+  assert.throws(() => f.viewer.loadDisplayMeshes(getter), /own data/); assert.equal(reads, 0);
+  assert.throws(() => f.viewer.loadDisplayMeshes({ ...displayTriangle(), bodies: new Array(1) }), /dense/);
+  assert.deepEqual(f.viewer.getState(), before); assert.equal(f.core.meshList[0].geometry, geometry);
+  f.viewer.dispose(); assert.equal(f.core.geometries.size, 0);
+});
+test('display camera operations retain body data and packet transitions clear incompatible state', () => {
+  const f = displayViewer(); f.viewer.setPackets(packetSquare());
+  assert.equal(f.viewer.getState().surfaces.length, 1);
+  f.viewer.loadDisplayMeshes(displayTriangle()); assert.deepEqual(f.viewer.getState().surfaces, []);
+  const before = f.viewer.getState(); f.viewer.orbit(.1, .05);
+  assert.notDeepEqual(f.viewer.getState().camera, before.camera);
+  assert.deepEqual(f.viewer.getState().displayMeshes, before.displayMeshes);
+  f.viewer.fit(); assert.deepEqual(f.viewer.getState().camera, before.camera);
+  f.viewer.setPackets(packetSquare()); assert.equal(f.viewer.getState().displayMeshes, null);
+  assert.equal(f.viewer.getState().surfaces.length, 1);
+  f.viewer.loadDisplayMeshes(displayTriangle()); f.viewer.clear();
+  assert.equal(f.viewer.getState().displayMeshes, null); assert.equal(f.viewer.getState().status, 'empty');
+  f.viewer.dispose(); assert.equal(f.core.geometries.size, 0);
+});
+test('presenter failure cannot adopt a display candidate or report its frame ready', () => {
+  const f = displayViewer(); f.viewer.loadDisplayMeshes(displayTriangle());
+  const failure = new Error('injected actual presenter add failure');
+  f.core.growObjects = () => { throw failure; };
+  assert.throws(() => f.viewer.loadDisplayMeshes({ ...displayTriangle(), revision: 2 }), error => error === failure);
+  assert.equal(f.viewer.getState().status, 'disposed');
+  assert.equal(f.viewer.getState().displayMeshes, null); assert.equal(f.core.geometries.size, 0);
+  f.viewer.dispose();
+});
+test('appearance guards preserve display state, and existing qualified replacement clears it', () => {
+  const f = displayViewer(), seed = api.directionalSeed();
+  const appearance = { version: 1, source: seed.source, display: seed.display,
+    appearance: { lighting: { ambientStrength: .3, directionalStrength: .7, direction: [0, .5, 1] }, materials: seed.materials } };
+  f.viewer.loadDisplayMeshes(displayTriangle()); const before = f.viewer.getState(), geometry = f.core.meshList[0].geometry;
+  assert.throws(() => f.viewer.loadNativeSceneAppearance(appearance), /drawn nothing/);
+  assert.throws(() => f.viewer.replaceNativeSceneAppearance(appearance), /qualified scene/);
+  assert.deepEqual(f.viewer.getState(), before); assert.equal(f.core.meshList[0].geometry, geometry);
+  // clear retains the existing qualified-empty presentation contract. The
+  // existing replacement method then admits its actual documented fixture.
+  f.viewer.clear(); f.viewer.replaceNativeSceneAppearance(appearance);
+  assert.equal(f.viewer.getState().displayMeshes, null); assert.ok(f.viewer.getState().document);
+  f.viewer.loadDisplayMeshes(displayTriangle());
+  assert.equal(f.viewer.getState().document, null); assert.equal(f.viewer.getState().surfaceMaterials.length, 0);
+  assert.equal(f.viewer.getState().displayMeshes.authority, 'approximate-display-only');
+  f.viewer.dispose(); assert.equal(f.core.geometries.size, 0);
+});
+test('display typed-array overrides refuse before user code or presentation', () => {
+  const f = displayViewer(); f.viewer.loadDisplayMeshes(displayTriangle());
+  const before = f.viewer.getState(), geometry = f.core.meshList[0].geometry; let calls = 0;
+  const subclass = Base => class extends Base {
+    get length() { calls++; throw new Error('subclass length executed'); }
+    get buffer() { calls++; throw new Error('subclass buffer executed'); }
+  };
+  const variants = [
+    { positions: new (subclass(Float32Array))(9) }, { positions: new (subclass(Float64Array))(9) },
+    { normals: new (subclass(Float32Array))(9) }, { indices: new (subclass(Uint32Array))(3) },
+  ];
+  const refused = (input, pattern) => {
+    assert.throws(() => f.viewer.loadDisplayMeshes(input), pattern); assert.equal(calls, 0);
+    assert.deepEqual(f.viewer.getState(), before); assert.equal(f.core.meshList[0].geometry, geometry);
+    assert.equal(f.core.geometries.size, 1); assert.equal(geometry.disposed, false);
+  };
+  for (const change of variants) {
+    const input = displayTriangle(); Object.assign(input.bodies[0], change);
+    refused(input, /exact typed-array prototypes/);
+  }
+  for (const field of ['positions', 'normals', 'indices']) {
+    for (const metadata of ['length', 'buffer', Symbol.iterator]) {
+      const input = displayTriangle();
+      Object.defineProperty(input.bodies[0][field], metadata, { get() { calls++; throw new Error('own metadata executed'); } });
+      refused(input, /own typed-array metadata\/iterator/);
+    }
+  }
+  const iterator = displayTriangle();
+  Object.defineProperty(iterator.bodies[0].indices, Symbol.iterator, { value() { calls++; throw new Error('own iterator executed'); } });
+  refused(iterator, /own typed-array metadata\/iterator/);
+  f.viewer.dispose(); assert.equal(f.core.geometries.size, 0);
+});

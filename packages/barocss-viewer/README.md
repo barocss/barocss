@@ -56,6 +56,50 @@ refused after a successful clear; the caller still owns network cancellation.
 Later native, packet or qualified model-set loads use their usual validation.
 The runnable `examples/viewer-clear` exercises this lifecycle.
 
+## CAD display meshes
+
+`loadDisplayMeshes` accepts render-only triangle meshes from a CAD Worker. It
+does not require or create a native Surface reference or UV parameters:
+
+```ts
+viewer.loadDisplayMeshes({
+  version: 0, sourceUnit: 'mm', sourceFrame: 'right-handed-z-up',
+  revision: evaluationRevision,
+  bodies: results.map(body => ({
+    bodyId: body.key, positions: body.mesh.positions,
+    normals: body.mesh.normals, indices: body.mesh.indices,
+  })),
+});
+await viewer.readPixels();
+```
+
+The input uses exact own data fields and a dense array of 1..4 unique body IDs.
+Positions must be finite `Float32Array` or `Float64Array`; normals must be unit
+`Float32Array` vectors; indices must be valid `Uint32Array` triangles. Shared
+buffers, typed-array subclasses, and own `length`, `buffer` or `Symbol.iterator`
+overrides are refused before typed metadata is read. Arrays must have the exact
+current-realm typed-array prototype. The separate display profile permits at most 4096 vertices
+and 24576 indices across all bodies. Existing Surface budgets do not change.
+Viewer copies the arrays and rotates Z-up millimetres into its Y-up display
+frame as `[x,z,-y]`, then applies `mmToSceneUnit`. It does not alter the CAD
+document, native mass, or native bounds.
+
+The existing Presenter owns the GPU geometry and rendering. Viewer owns camera
+fit, orbit, pan, zoom, controls, readback, clear and disposal. Hosts must still
+own their control leases and reject stale Worker replies before loading a new
+frame; `revision` labels the accepted display and does not order requests.
+`getState().displayMeshes` returns copied body IDs, triangles, revision and
+`authority: 'approximate-display-only'`. This path provides no native UV picks,
+Face queries, measurements, or native review state. Initial/qualified appearance
+loads retain their existing admission guards.
+
+Input validation fails before presentation and retains the previous scene.
+Successful display loads clear incompatible native scene state; successful
+native/packet loads clear display state. Presenter replacement has no rollback
+guarantee. If a display presentation or a handoff from a display scene fails,
+Viewer disposes itself and reports `disposed`; it does not report a failed
+candidate as a ready frame. Create a new Viewer to recover from that failure.
+
 For the bounded fluid display, load one qualified native Surface through
 `loadModelSet` or `loadDocument`, then pass an actual Physics state through
 `setFluidFrame`. The host supplies a context ID and owns the Physics world,

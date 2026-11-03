@@ -1,3 +1,6 @@
+import { prepareViewerDisplayMeshes } from './display-mesh.js';
+import type { ViewerDisplayMeshInputV0, ViewerDisplayMeshStateV0 } from './display-mesh.js';
+export type { ViewerDisplayMeshInputV0, ViewerDisplayMeshStateV0 } from './display-mesh.js';
 import { reviewRecord, validateReviewScene } from './review-state.js';
 import type { ViewerReviewSceneV1, ViewerReviewStateV1 } from './review-state.js';
 export type { ViewerReviewSceneV1, ViewerReviewStateV1, ViewerMeasuredReviewStateV1 } from './review-state.js';
@@ -272,6 +275,7 @@ export interface ViewerNativeDocumentBodiesFitInput {
   documentRevision: number;
 }
 export interface ViewerState {
+  displayMeshes: ViewerDisplayMeshStateV0 | null;
   status: 'empty' | 'ready' | 'disposed';
   frame: 'right-handed-y-up';
   sourceUnit: 'mm';
@@ -689,7 +693,8 @@ function sphereItem(centre: Vec3, radius: number, color: Vec3): DrawnItem {
 
 export class Viewer {
   /** What is drawn: nothing yet, a scene of surfaces and curves (qualified: with materials and layers), a Shell, mixed depth or qualified Faces. */
-  private drawn: 'none' | 'mesh' | 'qualified' | 'shell' | 'mixed' | 'faces' = 'none';
+  private drawn: 'none' | 'mesh' | 'qualified' | 'shell' | 'mixed' | 'faces' | 'display' = 'none';
+  private displayMeshes: ViewerDisplayMeshStateV0 | null = null;
   private packets: ViewerPacket[] = [];
   private curves: ViewerCurveEntry[] = [];
   private native: BaroCadNativeResult | null = null;
@@ -731,6 +736,7 @@ export class Viewer {
   private live(): void { check(!this.disposed, 'Viewer is disposed'); }
   private gpuLive(): void { this.live(); }
   private nativeScope(): void {
+    check(!this.displayMeshes, 'Display meshes have no native Surface/UV authority');
     check(!this.shell, 'This native operation is unavailable in native Shell mode');
     check(!this.qualifiedFaceScene, 'Unqualified native inspection is unavailable for independent qualified Face sources');
   }
@@ -744,7 +750,17 @@ export class Viewer {
     lighting: MeshLighting | null = this.acceptedLighting): void {
     const drawing: Drawing = { items, camera, lighting: this.effectiveLighting(lighting),
       background: this.options.background, mmToScene: this.options.mmToSceneUnit, ...(translate ? { translate } : {}) };
-    this.presenter.show(drawing);
+    try { this.presenter.show(drawing); }
+    catch (error) {
+      // Presenter can retire old meshes before throwing. A display-origin handoff
+      // cannot continue to claim a live frame after that non-atomic failure.
+      if (this.displayMeshes) {
+        try { this.dispose(); } catch (cleanupError) {
+          throw new AggregateError([error, cleanupError], 'Display handoff and disposal failed');
+        }
+      }
+      throw error;
+    }
   }
   /** The current scene again with some of its layers or materials changed. */
   private redrawScene(change: { particleLayer?: ParticleLayerV0 | null; clothLayer?: ClothLayerV0 | null;
@@ -762,18 +778,21 @@ export class Viewer {
       return [{ kind: 'triangles', positions: b.positions, normals: b.normals, indices: b.indices, color: entry.color as Vec3 },
         ...(entry.edges ? [{ kind: 'lines' as const, positions: b.edgePositions, indices: b.edgeIndices, color: entry.edges.color as Vec3 }] : [])];
     }), camera);
+    this.displayMeshes = null;
   }
   /** Mixed depth: the native Surface and the authored Sphere (tessellated). */
   private showMixed(frame: ReturnType<typeof prepareMixedDepthFrame>): void {
     const { execution, mesh } = resolveMixedDepthFrame(frame), sphere = execution.scene.objects[0];
     this.show([{ kind: 'triangles', positions: mesh.positions, normals: mesh.normals, indices: mesh.indices, color: frame.surface.color as Vec3 },
       sphereItem(sphere.translate as Vec3, sphere.radius, sphere.color as Vec3)], frame.camera);
+    this.displayMeshes = null;
   }
   /** Qualified Faces: one mesh each. */
   private showFaces(scene: QualifiedFaceSceneV0): void {
     const { meshes } = resolveQualifiedFaceScene(scene);
     this.show(meshes.map((mesh, i): DrawnItem => ({ kind: 'triangles', positions: mesh.positions, normals: mesh.normals,
       indices: mesh.indices, color: scene.assets[i].color as Vec3 })), scene.camera);
+    this.displayMeshes = null;
   }
   private dimensions(width: number, height: number): void {
     check(Number.isInteger(width) && Number.isInteger(height) && width >= 1 && height >= 1
@@ -854,6 +873,7 @@ export class Viewer {
       modelId: value.ref.modelId, geometryId: value.ref.surfaceId }, binding: value.binding })) : [];
     this.show(itemsOf(entries, materials, qualified ? particleLayer : null, qualified ? clothLayer : null), camera,
       undefined, lighting);
+    this.displayMeshes = null;
     this.drawn = qualified || packets.length + curves.length === 0 ? 'qualified' : 'mesh';
   }
   private validatedPackets(input: unknown, allowEmpty = false, qualified = false,
@@ -928,6 +948,39 @@ export class Viewer {
         check(isWideGpuCurveSample(curve.sample), 'Viewer requires Curve sample v0 or v1');
         return { modelId: native.model.name, sampleVersion: 1, sample: curve.sample };
       }));
+  }
+  /** Render-only Worker triangles. No native Surface, UV, or certified measurement authority. */
+  loadDisplayMeshes(input: ViewerDisplayMeshInputV0): void {
+    this.gpuLive();
+    const candidate = prepareViewerDisplayMeshes(input, this.options.mmToSceneUnit);
+    const bounds = candidate.boundsScene;
+    const camera = cameraForBounds(bounds.min, bounds.max, this.canvas.width, this.canvas.height);
+    this.showDisplayMeshes(candidate, camera);
+    this.camera = camera; this.drawn = 'display'; this.sceneRequest++;
+    this.packets = []; this.curves = []; this.native = null; this.modelSet = null;
+    this.document = null; this.documentBodies = []; this.assembly = null; this.assemblyInstances = [];
+    this.shell = null; this.uniformCurve = null; this.selectedUniformCurve = null;
+    this.mixedDepth = null; this.qualifiedFaceScene = null; this.nativeReplacement = false; this.appearanceDocument = null;
+    this.selected = null; this.selectedGeometry = null; this.hiddenGeometry = [];
+    this.measurement = null; this.motion = null; this.geometryMotion = null; this.curveMeasurement = null;
+    this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
+    this.fluidFrame = null; this.particleLayer = null; this.surfaceMaterials = [];
+    this.clothFrame = null; this.clothLayer = null; this.acceptedLighting = null;
+  }
+  private showDisplayMeshes(scene: ViewerDisplayMeshStateV0, camera: MeshCamera): void {
+    try {
+      this.show(scene.bodies.map((body, index): DrawnItem => ({ kind: 'triangles',
+        positions: body.positions, normals: body.normals, indices: body.indices,
+        color: PALETTE[index], mm: true, name: body.bodyId })), camera, undefined, null);
+    } catch (error) {
+      // New candidate is never adopted. Presenter has no rollback contract, so
+      // terminal disposal is explicit rather than reporting the old frame ready.
+      try { this.dispose(); } catch (cleanupError) {
+        throw new AggregateError([error, cleanupError], 'Display presentation and disposal failed');
+      }
+      throw error;
+    }
+    this.displayMeshes = scene;
   }
   loadMixedDepthScene(input: ViewerMixedDepthInputV0): void {
     this.gpuLive();
@@ -1802,6 +1855,8 @@ export class Viewer {
   }
   fit(): void {
     this.gpuLive();
+    if (this.displayMeshes) { const bounds = this.displayMeshes.boundsScene;
+      this.setView(cameraForBounds(bounds.min, bounds.max, this.canvas.width, this.canvas.height)); return; }
     if (this.qualifiedFaceScene) {
       const bounds = qualifiedFaceDisplayBounds(this.qualifiedFaceScene);
       this.setView(cameraForBounds(bounds.min, bounds.max, this.canvas.width, this.canvas.height)); return;
@@ -2066,7 +2121,10 @@ export class Viewer {
   }
   setView(input: MeshCamera): void {
     this.gpuLive(); const camera = validateMeshCamera(input);
-    if (this.drawn === 'faces') {
+    if (this.drawn === 'display') {
+      check(this.displayMeshes, 'Display-mesh authority is missing');
+      this.showDisplayMeshes(this.displayMeshes, camera);
+    } else if (this.drawn === 'faces') {
       check(this.qualifiedFaceScene, 'Qualified Face authority is missing');
       const scene = prepareQualifiedFaceScene({ ...this.qualifiedFaceScene, camera });
       this.showFaces(scene);
@@ -2500,8 +2558,8 @@ export class Viewer {
     return { review, lighting, result, detached };
   }
   getState(): ViewerState {
-    const status = this.disposed ? 'disposed' : this.packets.length + this.curves.length || this.shell?.boundsScene || this.qualifiedFaceScene ? 'ready' : 'empty';
-    return structuredClone({ status, frame: 'right-handed-y-up', sourceUnit: 'mm',
+    const status = this.disposed ? 'disposed' : this.packets.length + this.curves.length || this.shell?.boundsScene || this.qualifiedFaceScene || this.displayMeshes ? 'ready' : 'empty';
+    return structuredClone({ status, displayMeshes: this.displayMeshes, frame: 'right-handed-y-up', sourceUnit: 'mm',
       mmToSceneUnit: this.options.mmToSceneUnit, camera: this.camera,
       lighting: this.acceptedLighting ?? this.options.lighting ?? null,
       surfaces: this.packets.map(entry => ({ modelId: entry.modelId, surfaceId: entry.packet.surfaceId })),
@@ -2529,7 +2587,7 @@ export class Viewer {
     return this.presenter.readPixels();
   }
   dispose(): void { if (this.disposed) return; this.disposed = true;
-    this.presenter.dispose(); this.drawn = 'none'; this.fluidFrame = null; this.particleLayer = null;
+    this.presenter.dispose(); this.displayMeshes = null; this.drawn = 'none'; this.fluidFrame = null; this.particleLayer = null;
     this.surfaceMaterials = []; this.clothFrame = null; this.clothLayer = null;
     if (this.qualifiedFaceScene) {
       this.packets = []; this.curves = []; this.hiddenGeometry = []; this.selected = null; this.selectedGeometry = null;

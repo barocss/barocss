@@ -1,0 +1,222 @@
+{
+  "work_id": "D483",
+  "status": "QUALIFIED_FULL_BOUNDED_VIEWER_BRIDGE_AND_LOCAL_JSX_PROTOTYPE",
+  "tier": "FULL_NEW_PUBLIC_VIEWER_INPUT",
+  "parentHead": "7cd412556afe5630856d1fdc4f7d4b98f538b5a3",
+  "sourcePins": {
+    "packages/barocss-viewer/src/index.ts": "4b899d16eca871c69740be9b706b4ba80bc48097a50b4a6806620375cdd7cace",
+    "packages/barocss-viewer/src/display-mesh.ts": "ce6602bc1bf17f1e6fe0e6f445e44522043fd00fd7551672a8942155555ef2ac",
+    "packages/barocss-viewer/tests/presenter-lifetime.test.mjs": "57b0868b4d882e9cd5a5bc7a86937b3ddfad7dd12d28daf792fe68db6e0e4de7",
+    "packages/barocss-viewer/tests/fixtures/presenter-lifetime-harness.mjs": "a26f7d3f192b578ace0aa1e688109db5b36df9143875784c2a302bfc7885d96c",
+    "packages/barocss-viewer/README.md": "9b398ff064c877522f79a18c4cc29a2993469aaf583d17479c12621ce8fc41ec"
+  },
+  "delivery": {
+    "viewerPublicAPI": "loadDisplayMeshes",
+    "renderer": "EXISTING_VIEWER_PRESENTER_GPU",
+    "versionedCadReactPackage": "NOT_CREATED",
+    "prototype": "/tmp/barocss-cad-react-live-demo-2026-11-03",
+    "newDependencies": false,
+    "UIRedesign": false
+  },
+  "PASS": {
+    "freshActualHostSemantics": "ZERO_DIAGNOSTICS",
+    "viewerSemanticBuild": true,
+    "helperTests": 7,
+    "fullViewerTests": {
+      "pass": 71,
+      "fail": 0,
+      "skip": 0
+    },
+    "lint": true,
+    "finalModelTSCAfterLastTestEdit": "D482_CONTINUATION_PASS",
+    "finalHelperBoundedMutationFaultsDetected": 6,
+    "actualDOMWidths": [
+      80,
+      100,
+      80
+    ],
+    "actualNativeWidths": [
+      80,
+      100
+    ],
+    "returned80": "BYTE_EXACT_ACCEPTED_DOC_AND_VIEWER_FRAMEBUFFER",
+    "ownerRevisions": [
+      1,
+      2,
+      3
+    ]
+  },
+  "FAIL_PRESERVED": {
+    "initialSemantic": "ONE_AMBIENT_CONFIG_TWO_INFERENCE_ERRORS",
+    "inputBoundary": "4097_VERTICES_ACCEPTED_OVER_4096_BUDGET_BEFORE_FIX",
+    "reviewStop": "UNFINISHED_SUITE_NOT_PRODUCT_FAILURE_NOT_FULL_PASS"
+  },
+  "NOT_RUN_OR_UNQUALIFIED": [
+    "GENERAL_CAD_REACT_SDK",
+    "ARBITRARY_WIDTH_DOMAIN",
+    "ARBITRARY_COMPONENTS_SUSPENSE",
+    "NATIVE_FACE_UV_PICK",
+    "INERTIA_ACCURACY",
+    "STUDIO_JSX_WORKSPACE_INTEGRATION",
+    "MOBILE_OWNER_RULE",
+    "CI_RELEASE"
+  ],
+  "publicInput": {
+    "version": 0,
+    "frame": "RIGHT_HANDED_Z_UP_TO_Y_UP_EXPLICIT_PROPER_ROTATION",
+    "unit": "mm",
+    "maxBodies": 4,
+    "maxVertices": 4096,
+    "maxIndices": 24576,
+    "authority": "APPROXIMATE_DISPLAY_ONLY",
+    "copiesInputs": true,
+    "exactTypedArrayPrototypes": true,
+    "ownMetadataIteratorRejectedBeforeRead": true,
+    "invalidInput": "RETAINS_ACCEPTED_SCENE_BEFORE_PRESENTATION",
+    "presentationFailure": "TERMINAL_DISPOSAL",
+    "hostOrdersRevisions": true
+  },
+  "actual": {
+    "sourceEntry": "Bracket width prop",
+    "generatedNodeCount": 20,
+    "logicalOutputNormalization": "result_TO_READER_BODYKEY_b19_ONLY",
+    "manualModelSettersOrCompileButtons": false,
+    "nativeRequests": 3,
+    "frameReadbackBytes": 2800000,
+    "nonBackgroundPixels": [
+      107469,
+      105457,
+      107469
+    ],
+    "frameSHA256": [
+      "6a75988648670bd0420310f69dbd0eef453d5719b1cb3b4f2545c5c60e5577b9",
+      "93ef36c9cd07e214c8709d3f8d8bf9c1cac9b1e54ec2703c274ae21e06042350",
+      "6a75988648670bd0420310f69dbd0eef453d5719b1cb3b4f2545c5c60e5577b9"
+    ],
+    "adapterFreshPresentation": false,
+    "presentationAuthority": "SEPARATE_CURRENT_VIEWER_SINK_MOUNTED_FRAME_OWNER",
+    "sourcePins": 14178,
+    "serverPins": 14180,
+    "sourceEqual": true,
+    "ownPIDsAbsent": [
+      68678,
+      68491
+    ],
+    "workerClosed": true,
+    "cleanup": "IPC_ACK_EXIT0_CONTEXT_BROWSER_CLOSED",
+    "rootReviewedImages": 3,
+    "wholeScreenshotEqualityClaim": false,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "externalRequests": 0
+  },
+  "native": {
+    "freshBuild": "/tmp/barocss-d481-repro01/build02",
+    "oldBuild01Reused": false,
+    "CADGuardSHA256": "cfdcc7d863e7b021b592337b4964b639f7a70acbc70913d6da814fd58bcd39fd",
+    "widths": [
+      80,
+      100
+    ],
+    "wholeDocCaptures": 2,
+    "return80Reuse": "EXACT_WHOLE_DOC_ONLY",
+    "volumeAbsoluteErrorMax": 5.093170329928398e-11,
+    "centroidAbsoluteErrorMax": 1.0658141036401503e-13,
+    "boundsAbsoluteErrorMax": 0,
+    "radialErrorMax": 1.9095836023552692e-14,
+    "pcurveGapMax": 1.591302455776226e-14,
+    "workerNativeVolumeCentroidDiff": 0,
+    "strictValid": true,
+    "closedSingleSolidGenus": 5,
+    "budgets": {
+      "volumeAbs": 1e-06,
+      "centroidBoundsAbs": 1e-08,
+      "carrierAbs": 1e-07
+    },
+    "inertiaQualified": false,
+    "wrapperPins": 481,
+    "ownPIDAbsent": 81648
+  },
+  "evidence": {
+    "finalViewerChecks": {
+      "path": "/tmp/barocss-cad-react-live-demo-2026-11-03/typed-array-subclass-review01/checks01/run/receipt.json",
+      "sha256": "6fb8e733401a6a98df0d92547e82a09009b3c66b7dc02aa134e8081a87def3fb",
+      "status": "PASS_COMMANDS_ONLY"
+    },
+    "originalBudgetFailure": {
+      "path": "/tmp/barocss-cad-react-live-demo-2026-11-03/typed-array-subclass-review01/reproduce01/baseline.status.json",
+      "sha256": "f527bdc8d976e8484efa3dfb80b20f67667ab4ee3119ed5bdc0b1cceade4a5a2",
+      "status": "REPRODUCED_PUBLIC_DISPLAY_BUDGET_FAIL"
+    },
+    "finalMutations": {
+      "path": "/tmp/barocss-cad-react-live-demo-2026-11-03/mutants02/receipt.json",
+      "sha256": "092722f2f06576bf9d8c6a91dcb3440c7f1d218f0ff3c25b45046d4662f9e4df",
+      "status": "PASS_BOUNDED_DISPLAY_FAULT_DETECTION"
+    },
+    "independentSource": {
+      "path": "/tmp/barocss-viewer-bridge-review-2026-11-04/source-review.json",
+      "sha256": "05f1abadf843b038afe1c28537fce72793fc762211bf858feea268244e68cd37",
+      "status": "ACCEPT_BOUNDED_SOURCE"
+    },
+    "independentGuardDelta": {
+      "path": "/tmp/barocss-viewer-bridge-review-2026-11-04/delta-review.json",
+      "sha256": "4cee2a14d5ee1745eaff7cd058b3036916a4f9f9c6b1ede840732e25f2800c78",
+      "status": "ACCEPT_BOUNDED_SOURCE_DELTA"
+    },
+    "actualBrowser": {
+      "path": "/tmp/barocss-cad-react-live-demo-2026-11-03/post-d482-attempt01/browser.receipt.json",
+      "sha256": "0e053c3379ce8e5aca240a440da4155ecc59a0edbbc584792417d069cc616a0c",
+      "status": "PASS_ONE_JSX_WORKER_VIEWER_BRACKET"
+    },
+    "actualWrapper": {
+      "path": "/tmp/barocss-cad-react-live-demo-2026-11-03/post-d482-attempt01/wrapper.receipt.json",
+      "sha256": "71ed813acebe366ab53c8675bd0a2b764c2f5617b4ea160cfd432f6702bbdcbd",
+      "status": "PASS_POST_D482_JSX_WORKER_VIEWER_COMMANDS"
+    },
+    "actualSourceManifest": {
+      "path": "/tmp/barocss-cad-react-live-demo-2026-11-03/post-d482-attempt01/FINAL-MANIFEST.json",
+      "sha256": "d1199af4653a7eb46ef774cd108ba479a7cd5094ea3b21e4078982e6646c870a",
+      "status": null
+    },
+    "nativeWidths": {
+      "path": "/tmp/barocss-cad-react-actual-native02-results/receipt.json",
+      "sha256": "74b4e83ee9b29c4dbad683adb173a92cfa569527c101aa7b0f5ce63fbd264196",
+      "status": "PASS_TWO_ACTUAL_GENERATED_DOC_NATIVE_WIDTHS"
+    },
+    "freshNativeWrapper": {
+      "path": "/tmp/barocss-cad-react-actual-native02-wrapper/receipt.json",
+      "sha256": "50ec83473f4ff267e88a1fd23fd87312b260d1e5d6378ac9a7e3e6d548c6fb60",
+      "status": "PASS"
+    },
+    "rootReview": {
+      "path": "/tmp/barocss-d483-root/actual-native-root-review01.json",
+      "sha256": "40a056f14b65af8c7be142a925a65b303b8194fa0c4a624456c6e6eab7beffbd",
+      "status": "PASS_ROOT_CURRENT_D483_JSX_VIEWER_NATIVE_TWO_WIDTHS_CUSTODY_IMAGES"
+    },
+    "nativeCustody": {
+      "path": "/tmp/barocss-d483-root/native-custody01.json",
+      "sha256": "db313570a9a3ea2291cc9329e5b5eeb4b4b3151d1b01093d2839a3a5bbc74204",
+      "status": "PASS_FRESH_BUILD02_NATIVE_CUSTODY"
+    },
+    "highFinal": {
+      "path": "/tmp/barocss-cad-react-live-oracle-2026-11-03/new-final-review.json",
+      "sha256": "e2fd4105757edc240a2b79dc674d90a4cf14ed5c1caa25708cff9f16f0e11616",
+      "status": "ACCEPT_D483_ACTUAL_JSX_REAL_WORKER_EXISTING_VIEWER_TWO_WIDTH_PHYSICAL_BINDING"
+    }
+  },
+  "roadmap": {
+    "priority": "C5_OWNER_REQUESTED_PARALLEL_JSX_LANE",
+    "rows": [
+      "32",
+      "16"
+    ],
+    "issue665": "PRESERVE_HISTORIC_CLOSED_PROTOTYPE",
+    "issue534": "OPEN_NO_CHECKLIST_PROMOTION",
+    "core": "NOT_MEASURED",
+    "legacy43": "FROZEN",
+    "holds": "UNCHANGED",
+    "PDF": "OWNER_DEFERRED",
+    "next": "D484_PROFILE_DETAIL_STRUCTURAL_SEAM_FRESH_CURRENT_PUBLIC_PROOF"
+  }
+}
