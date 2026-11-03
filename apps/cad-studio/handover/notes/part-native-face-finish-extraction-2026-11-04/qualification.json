@@ -1,0 +1,267 @@
+{
+  "work_id": "D494",
+  "status": "QUALIFIED_EXACT_NATIVE_FACE_FINISH_EXTRACTION_AND_FIVE_DRAFT_GROUPS",
+  "tier": "FEATURE_MECHANICAL_EXTRACTION",
+  "parentHead": "a30787af157538dd5f26c5f1bab12ce8a8d3346a",
+  "productFiles": [
+    "packages/barocss-cad/src/part/part-model.ts",
+    "packages/barocss-cad/src/part/part-face-finish.ts"
+  ],
+  "extraction": {
+    "cases": {
+      "full-round": 48,
+      "face-thread": 92,
+      "draft": 56
+    },
+    "exactCaseLines": 196,
+    "exactCaseBytes": 22483,
+    "oldExports": 70,
+    "ownerBeforeLines": 1257,
+    "ownerAfterLines": 1067,
+    "familyLines": 234,
+    "caseTextAST": "EXACT",
+    "unaffectedOwnerAST": "SAME",
+    "helperReferences": [
+      "CadPartLimits",
+      "brepOf",
+      "bounds",
+      "boxSolid",
+      "boolean",
+      "empty",
+      "exactVolume",
+      "faceVertices",
+      "affine",
+      "draftWedge"
+    ],
+    "helperBagOnceFrozenInitializesLast": true,
+    "liveOwnerRefsNotSnapshots": true,
+    "runtimeBackImport": false,
+    "moduleOneWrapper": "EXACT_PURE_EXPRESSION",
+    "perElementNewClosures": false,
+    "ownerSHA256": "355decd0abd692fccf77dbbc93c6b5605a578d0a6315bff0a75ff67dd5cb991d",
+    "correctedFamilySHA256": "fab7559938ce42872ba25074daa2f05c9aceb557564b5c514f59f50e46337618",
+    "emittedJSByteOrStackEquality": "NOT_CLAIMED"
+  },
+  "failuresAndCorrection": {
+    "sourceProof01": "COMMENT_SENSITIVE_PROFILING_REGEX_FALSE_POSITIVE_PRESERVED_AST_IDENTIFIER_GUARD_CORRECTED_NO_PRODUCT_LOGIC_CHANGE",
+    "checks01": {
+      "status": "NOT_RUN_PRELAUNCH_RESOURCE_GUARD",
+      "load": 49.11,
+      "commandsExecuted": 0,
+      "gateAcquired": false,
+      "productFailure": false
+    },
+    "checks02": {
+      "status": "FAIL_SEMANTIC_CAD_BUILD_TS2304_MISSING_XY_TYPE",
+      "savedStaticProofValidation": "PASS",
+      "laterCommandsNotRun": 7
+    },
+    "sourceFix": "ONE_TYPE_ONLY_XY_IMPORT_FROM_ORIGINAL_CURVED_ARRANGEMENT_MODULE",
+    "caseLogicMathToleranceChangesForFix": false,
+    "oldExtraction01": "PRESERVED_IMMUTABLE",
+    "newCapsule": "/tmp/barocss-d494-extraction02",
+    "sourceProof02SHA256": "3bf5fe3162b5f894971e763d3ae49b5f9bc4494e5da2de4c4d90b9f43723ea61",
+    "actualRuntimeFailure": false
+  },
+  "checks": {
+    "final": "PASS",
+    "CADPass": 68,
+    "ModelPass": 37,
+    "totalPass": 105,
+    "freshInitializationSmokes": 2,
+    "smoke": "EXACT_EXISTING_FIRST_FULL_ROUND_WALL_FIXTURE_BOTH_IMPORT_ORDERS",
+    "semanticCADBuild": "PASS",
+    "CADLint": "PASS",
+    "StudioTSC": "PASS",
+    "finalModelTSC": "PASS",
+    "currentSourcePinsEqual": 1853,
+    "sourceProof": "REUSE_CURRENT_SAVED_SOURCE_AST_NO_RERUN",
+    "fullKernel": "NOT_RUN_NO_BREP_CORE_ALGORITHM_CHANGE",
+    "summarySHA256": "88a47e1788c33221b39c04ab996f7cfe2e222bfa57a58f62b3c5ec5d0e64a7c1"
+  },
+  "input": {
+    "path": "/tmp/barocss-d494-input01/retained-draft12.bcad",
+    "bytes": 588,
+    "sha256": "8d8a4e8eb0e70ffc0c41d9c5e168264143a5e8782e3475a879e9a08d34a28f49",
+    "originalD449ReceiptSHA256": "84ecfb8daf291964a2ef1048be1e461a0521789a30d6d0ff8d3d9ac432c958c2",
+    "creationFaceSelectionRefusalReplay": false,
+    "missingPriorAcceptance": [
+      "DRAFT_PROJECT_OPEN",
+      "POSTOPEN_GEOMETRY_EDIT"
+    ],
+    "onlyAuthoredChange": "n2.angle12to15",
+    "selectedFace": "n1.side[e2]",
+    "signature": {
+      "p": [
+        60,
+        0,
+        5
+      ],
+      "d": [
+        1,
+        0,
+        0
+      ],
+      "s": 400,
+      "authority": "UPSTREAM_UNDRAFTED_FACE_NOT_FINISHED_SLOPED_SURFACE"
+    },
+    "pullNeutralFields": "ABSENT_DEFAULT_PLUS_Z_ZERO_RETAINED",
+    "output": "b2",
+    "nextId": 3
+  },
+  "actual": {
+    "status": "PASS",
+    "coverage": {
+      "retainedDraft12CurrentBaseline": "PASS",
+      "ownedProjectSaveCloseReloadOpen12": "PASS",
+      "publicPostOpenDraftAngle15": "PASS",
+      "firstUndoRetainsDraft12": "PASS",
+      "redoRetainsDraft15": "PASS"
+    },
+    "groups": 5,
+    "nativeCaptures": 2,
+    "exactWholeDocReuses": 3,
+    "freshBindings": 5,
+    "editorObservation": "POSTOPEN_BEFORE12_ENTERED15",
+    "undoRedo": "EXACT_DOC_NATIVE_WORKER_NOT_UNRETAINED_EDITOR_VALUE_ASSERTIONS",
+    "secondProjectOpen15": false,
+    "wholeRootWorkerVC": "CURRENT_SEPARATE_CONSUMER_BINDING",
+    "geometryManifestSHA256": "c80b9295c249403af05611b8a9d32ec759c2b3c621072ffb85eb05cc6474a6c3"
+  },
+  "physical": {
+    "angleStates": [
+      12,
+      15
+    ],
+    "k": "tan(angle*pi/180)",
+    "solid": "-20<=y<=20;0<=z<=10;-20<=x<=60-k*z",
+    "volume": "32000-2000*k",
+    "momentX": "640000-120000*k+(20000/3)*k*k",
+    "momentZ": "160000-(40000/3)*k",
+    "centroid": "[momentX/volume,0,momentZ/volume]",
+    "bounds": [
+      [
+        -20,
+        -20,
+        0
+      ],
+      [
+        60,
+        20,
+        10
+      ]
+    ],
+    "scalarReference": "BYTE_EXACT_D449_PURE_FUNCTION_NO_EXACT_TRANSCENDENTAL_CERTIFICATION",
+    "strictTopology": {
+      "solids": 1,
+      "closedShells": 1,
+      "genus": 0,
+      "vertices": 8,
+      "edges": 12,
+      "faces": 6,
+      "outerLoops": 6,
+      "coedges": 24
+    },
+    "pcurvesPresent": 0,
+    "pcurveNullRecords": 24,
+    "pcurves": "UNCHANGED_OPTIONAL_CONTRACT",
+    "volumeRelativeBudget": 1e-09,
+    "geometryAbsoluteBudget": 1e-09,
+    "genericBindingFloor": 1e-07,
+    "authority": "CURRENT_NATIVE_AND_INDEPENDENT_SCALAR_RAW_POLYHEDRAL_PYTHON",
+    "maximumSavedErrors": {
+      "nativeVolumeAbsolute": 7.275957614183426e-12,
+      "nativeVolumeRelative": 2.312463169354524e-16,
+      "nativeCentroidAbsolute": 8.881784197001252e-16,
+      "boundsAbsolute": 0.0,
+      "cornerAbsolute": 0.0,
+      "carrierPlaneAbsolute": 6.950156722025765e-15,
+      "outwardNormalAbsolute": 5.828670879282072e-16,
+      "lineAbsolute": 7.105427357601002e-15,
+      "optionalPcurveLiftBound": 0.0,
+      "rawPolyhedronVolumeAbsolute": 3.637978807091713e-12,
+      "rawPolyhedronCentroidAbsolute": 3.552713678800501e-15,
+      "workerVolumeRelative": 0.0,
+      "workerCentroidAbsolute": 0.0,
+      "strictMaximumEdgeSurfaceGap": 7.323070772462603e-15
+    }
+  },
+  "custody": {
+    "wrapperPins": 1873,
+    "helperFrozenPins": 1875,
+    "cleanupCurrentSourceEqual": true,
+    "PID": 37247,
+    "PIDAbsent": true,
+    "namespace": "D494-draft-run01_REMOVED_AND_ABSENT",
+    "contextBrowserServer": "CLOSED",
+    "rootImagesViewed": 6,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "watchedChanges": 0,
+    "fullViewportFit": "NOT_MEASURED_PALETTE_OCCLUSION",
+    "rasterPrecision": "NOT_MEASURED"
+  },
+  "highFinal": {
+    "status": "PASS_BOUNDED_SAVED_EVIDENCE_AUDIT",
+    "path": "/tmp/barocss-d494-high-final01/review.json",
+    "sha256": "2a99f086da0088e2770ed2280cb89ae619febb4672d52a4bd49de21a328a57f6",
+    "savedHashArithmeticChecks": 2267,
+    "productTestCountClaim": false,
+    "failures": 0,
+    "allFiveDocumentHashesVerified": true,
+    "auditSourceCorrection": false,
+    "productNativeOracleSUTBuildReruns": 0,
+    "cadReactWIPOutsidePinScope": true
+  },
+  "receipts": {
+    "prelaunch01": {
+      "path": "/tmp/barocss-d494-checks01/prelaunch-stop.json",
+      "sha256": "4622738861799faafa1ab8eea3817efee43335dbfcc8a62415ced0b2b314f81e"
+    },
+    "checks02": {
+      "path": "/tmp/barocss-d494-checks02/receipt.json",
+      "sha256": "1c6f7f9feaba29b17a04dd00a6b3ef1d897f48997042087cdd98adbc2683bc34"
+    },
+    "checks03": {
+      "path": "/tmp/barocss-d494-checks03/receipt.json",
+      "sha256": "fde19620a19901315edb0b43a8ac1c54e305aba32172e4ed338ef98d711261aa"
+    },
+    "checkSummary": {
+      "path": "/tmp/barocss-d494-root/final-check-summary01.json",
+      "sha256": "88a47e1788c33221b39c04ab996f7cfe2e222bfa57a58f62b3c5ec5d0e64a7c1"
+    },
+    "actual": {
+      "path": "/tmp/barocss-d494-workflow-run01/receipt.json",
+      "sha256": "a76b74a62c8fc41d0cd0f766d1abc297dac555d2af735f77d41b859aef7a1e09"
+    },
+    "rootReview": {
+      "path": "/tmp/barocss-d494-root/actual01-review.json",
+      "sha256": "f5a96701f977bb9a508af968230be48f2e3c1a05fbf5a95a4591b23d0e23748e"
+    }
+  },
+  "models": {
+    "generalImplementationProofTestsDocs": "GPT-6.1 Sol Medium",
+    "sourceNativeOracleFinalAudit": "GPT-6.1 Sol High",
+    "runtimeCustodyImages": "Root"
+  },
+  "limits": [
+    "EXACT_PRIVATE_FACE_FINISH_SEAM_AND_RETAINED_DRAFT_PROJECT_REEDIT_SUPPLEMENT",
+    "NO_NEW_ACTUAL_FULL_ROUND_FACE_THREAD_FULL_FAMILY_QUALIFICATION",
+    "NO_API_ALGORITHM_MATH_TOLERANCE_SCHEMA_PROFILING_OR_GEOMETRY_ADMISSION",
+    "NO_FULL_VIEWPORT_FIT_RASTER_INERTIA_MANUFACTURING_EXPORT_OR_STANDARDS_CLAIM",
+    "NO_MOBILE_DOWNLOADS_DEVELOP_RELEASE_OR_RAW_ARTIFACTS_IN_GIT"
+  ],
+  "roadmap": {
+    "issue534": "OPEN_PARTIAL_EPIC_UNCHANGED",
+    "core": "NOT_MEASURED",
+    "legacyPercent": 43,
+    "legacyStatus": "FROZEN",
+    "holds": "UNCHANGED",
+    "PDF": "OWNER_DEFERRED_NO_INVESTIGATION",
+    "next": "D495_PARALLEL_CAD_REACT_PRIVATE_EXPERIMENTAL_PACKAGE_OWNER_REQUEST",
+    "nextScope": "COMPOSITION_REFS_AUTO_IDS_INJECTED_EXISTING_WORKER_VIEWER_CURRENT_INTEGRATION_REQUIRED",
+    "nextValidation": "NOT_RUN_SOURCE_IMPLEMENTATION_ACTIVE",
+    "mainCoreNextSelection": "SOURCE_AUDIT_EXISTING_C3_TOLERANCE_PERSISTENCE_GAP_AFTER_D494_PUBLICATION"
+  }
+}

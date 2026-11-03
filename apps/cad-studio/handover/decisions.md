@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D494: extract three exact native-face finishing cases behind original owner helpers and close the retained Draft project/post-Open edit gap; preserve the missing-type build failure](notes/part-native-face-finish-extraction-2026-11-04/README.md).
+
 - [D493: qualify the existing native-cap plus two public origin-plane mates at zero remaining freedom through Distance3 refusal, linked-source revision, FIRST Undo/Redo and project Open](notes/fully-constrained-mate-workflow-2026-11-04/README.md).
 
 - [D492: extract four exact profile-solid cases behind private helpers and requalify the retained Loft lifecycle; retain oracle-path stop, saved-only correction and remaining-only recovery](notes/part-profile-solid-extraction-2026-11-04/README.md).
