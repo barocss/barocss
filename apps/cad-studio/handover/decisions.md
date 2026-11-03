@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D490: measure an existing skipped instance pattern across explicit linked-source update, BOM quantities, exact history and project Open; retain cropped source-return views and pass final High saved-data review](notes/skipped-pattern-linked-revision-2026-11-04/README.md).
+
 - [D489: measure retained inch/dual drawing across source height, revision, history and project Open; retain summary/SVG oracle failure and recover only remaining groups](notes/inch-dual-source-revision-2026-11-04/README.md).
 
 - [D488: measure existing linked pending revision supersession through public Edit part Finish, exact Undo/Redo, source-file preservation and owned project Open; final saved-data High audit passes](notes/linked-pending-edit-finish-2026-11-04/README.md).

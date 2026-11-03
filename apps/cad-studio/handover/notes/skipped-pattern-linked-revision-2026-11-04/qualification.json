@@ -1,0 +1,272 @@
+{
+  "work_id": "D490",
+  "status": "QUALIFIED_SMALL_EXISTING_SKIPPED_PATTERN_LINKED_REVISION_SIX_GROUPS",
+  "tier": "SMALL_EXISTING_C4_WORKFLOW_MEASUREMENT",
+  "rows": [
+    "10",
+    "12",
+    "16"
+  ],
+  "parentHead": "ae13a65c275b0c2c74e05e3f1c9e547f2b41a52b",
+  "productImplementation": false,
+  "input": {
+    "provenance": "/tmp/barocss-d490-input01/provenance.json",
+    "originalReceipt": "apps/cad-studio/handover/notes/instance-patterns-2026-10-31/run08/receipt.json",
+    "originalReceiptSHA256": "09edb904104287ee155e7fbb147c6e89f6eb7812c9bdc1ceb94d80af44bee0a4",
+    "actualState": "10-fresh-open",
+    "retainedAssembly": {
+      "path": "/tmp/barocss-d490-input01/retained-skipped-pattern.bcad",
+      "bytes": 2017,
+      "sha256": "e49e43c12ece156465eaa1765c8e545eff266efcc931b158b4e61a2a17f591fa"
+    },
+    "source": {
+      "path": "/tmp/barocss-d490-input01/retained-cube-source.bcad",
+      "bytes": 262,
+      "sha256": "ef0d5b2325b775af58f07d6811373bff83a045a60f8b1ee0a095fefa032625fa"
+    },
+    "originalSourcePaths": "ABSENT",
+    "derivedSetup": {
+      "status": "SOURCE_AUTHORED_DERIVED_SETUP_AFTER_PUBLIC_OWN_SOURCE_SAVE",
+      "retainedInputSHA256": "e49e43c12ece156465eaa1765c8e545eff266efcc931b158b4e61a2a17f591fa",
+      "derivedSHA256": "b7f042e1335704c8c7a8b7c13ef0d7431ee2ceac6600081c2614ea0eb0b5ca65",
+      "sourceInputSHA256": "ef0d5b2325b775af58f07d6811373bff83a045a60f8b1ee0a095fefa032625fa",
+      "sourcePath": "./D490-cube.bcad",
+      "changes": [
+        {
+          "instance": "cube",
+          "addedPartSource": "./D490-cube.bcad"
+        },
+        {
+          "instance": "pat1-2",
+          "addedPartSource": "./D490-cube.bcad"
+        },
+        {
+          "instance": "pat1-3",
+          "addedPartSource": "./D490-cube.bcad"
+        },
+        {
+          "instance": "pat1-4",
+          "addedPartSource": "./D490-cube.bcad"
+        }
+      ],
+      "retainedPublicLinkConstruction": false
+    },
+    "constructionReplay": false
+  },
+  "checks": {
+    "status": "PASS",
+    "newModelPass": 26,
+    "newStudioPass": 7,
+    "newTotalPass": 33,
+    "newReceiptSHA256": "6df6b6bc699f445a32f1f277fe9d8b4418cc0643871cbb4c6e5cdc73e71182dd",
+    "relatedDefinitionLinkedChecks": "REUSED_D487_AT_IDENTICAL_SOURCE_APPLICABLE_SCOPE_ONLY",
+    "relatedReceiptSHA256": "7cb3ac14ea4ea78cc3282e7ed5d3f7029b3d377a0d8cdaf13dded2493d388f68",
+    "buildAndTypes": "REUSED_D484_AT_IDENTICAL_SOURCE",
+    "fullKernel": "NOT_RUN_NO_PRODUCT_CHANGE",
+    "PDF": "OWNER_DEFERRED_NO_INVESTIGATION_OR_RERUN"
+  },
+  "actual": {
+    "status": "PASS",
+    "runtimeFailure": false,
+    "coverage": {
+      "sourceSaveDerivedSkippedPatternH10": "PASS",
+      "sourceH14OfferKeepCheckRetainsH10": "PASS",
+      "acceptAllFourH14BOM": "PASS",
+      "firstUndoExactPendingH10": "PASS",
+      "redoExactAcceptedH14": "PASS",
+      "ownProjectOpenH14BOM": "PASS"
+    },
+    "nativeCaptures": 3,
+    "exactWholeDocReuses": 5,
+    "freshBindings": 8,
+    "configSHA256": "4aef1270206b825da3905675444062b834260b1e92606487713beb0bec860ee6",
+    "savedH14Assembly": {
+      "bytes": 4852,
+      "sha256": "1b64f056276789d59db3f06e0af39f568e684e50ed63010b3f5cf81015ace646"
+    },
+    "pattern": {
+      "count": 5,
+      "spacing": 25,
+      "dir": [
+        1,
+        0,
+        0
+      ],
+      "skip": [
+        1
+      ],
+      "liveIDs": [
+        "cube",
+        "pat1-2",
+        "pat1-3",
+        "pat1-4"
+      ],
+      "X": [
+        10,
+        60,
+        85,
+        110
+      ],
+      "YZ": [
+        0,
+        0
+      ],
+      "rotations": [
+        0,
+        0,
+        0
+      ]
+    },
+    "publicBOM": {
+      "freshMountObservations": 3,
+      "phases": [
+        "BASELINE_H10",
+        "ACCEPT_H14",
+        "PROJECT_OPEN_H14"
+      ],
+      "cubeRows": 1,
+      "cubeQty": 4,
+      "baseRows": 1,
+      "baseQty": 1,
+      "singleOverallRowClaim": false,
+      "massCoherence": "NOT_MEASURED"
+    },
+    "drivenPolicy": {
+      "placementXFields": 0,
+      "makeIndependentButtons": 0,
+      "skipButtons": 1,
+      "skipActionCalled": false,
+      "readOnlyObservation": true
+    }
+  },
+  "physical": {
+    "strictWorldNativeOutputsPerCapture": 5,
+    "baseVolume": 38400,
+    "baseCentroid": [
+      60,
+      10,
+      -2
+    ],
+    "eachCubeVolume": "100*H",
+    "eachCubeVolumeH10": 1000,
+    "eachCubeVolumeH14": 1400,
+    "eachCubeCentroid": "[X+5,5,H/2]",
+    "volumeRelative": 1e-09,
+    "absoluteGeometryBudget": 1e-09,
+    "nativeSignatureFloor": 1e-07,
+    "placedWorkerVolumeCentroidCoherence": "NOT_MEASURED",
+    "maximumSavedPhysicalErrors": {
+      "nativeMassVolumeAbsolute": 2.2737367544323206e-13,
+      "nativeMassCentroidAbsolute": 1.4210854715202004e-14,
+      "nativeBoundsAbsolute": 0.0,
+      "completePlaneAbsolute": 0.0,
+      "completeLineEndpointAbsolute": 0.0,
+      "completePcurveLiftBound": 0.0,
+      "completePlaneAreaAbsolute": 0.0,
+      "independentRawVolumeAbsolute": 9.094947017729282e-13,
+      "independentRawCentroidAbsolute": 9.947598300641403e-14,
+      "rootWorkerAnalyticVolumeAbsolute": 0.0,
+      "rootWorkerAnalyticCentroidAbsolute": 1.4210854715202004e-14,
+      "rootWorkerNativeVolumeAbsolute": 0.0,
+      "rootWorkerNativeCentroidAbsolute": 0.0
+    }
+  },
+  "viewport": {
+    "initialH10": "FOUR_SEPARATED_CUBES_AND_SKIPPED_GAP_VISIBLE",
+    "freshProjectOpenH14": "FOUR_SEPARATED_CUBES_AND_SKIPPED_GAP_VISIBLE",
+    "afterSourceReturnKeepAcceptHistory": "HEAVILY_CROPPED_CLOSE_CAMERA_RETAINED",
+    "fullAssemblyFitAfterSourceReturn": "NOT_MEASURED",
+    "allFourRasterVisibilityAfterSourceReturn": "NOT_MEASURED",
+    "geometryFailureClaim": false,
+    "existingRevisionToast": "OBSERVED_ONLY_NO_FIX"
+  },
+  "custody": {
+    "wrapperPins": 1856,
+    "helperFrozenPins": 1858,
+    "cleanupCurrentEqual": true,
+    "PID": 22067,
+    "PIDAbsent": true,
+    "namespace": "REMOVED_AND_ABSENT",
+    "contextBrowserServer": "CLOSED",
+    "rootImagesViewed": 10,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "sourceChanges": 0
+  },
+  "highFinal": {
+    "status": "PASS_SAVED_EVIDENCE_HIGH_AUDIT_FINITE_D490_PROFILE_WITH_VISUAL_FRAME_LIMIT",
+    "path": "/tmp/barocss-d490-high-final01/review.json",
+    "sha256": "9e05185555f506a8e3b17c9ddd0e3e16150851e04e32e96fa66e380b35369bdc",
+    "finiteSavedChecksPass": 678,
+    "failures": 0,
+    "verifiedCurrentSourcePins": 1856,
+    "rootReviewedImageHashesIntact": 10,
+    "SUTReruns": 0,
+    "nativeReruns": 0,
+    "oracleReruns": 0,
+    "initialAuditCorrection": {
+      "path": "/tmp/barocss-d490-high-final01/initial-audit-config-transcription-failure.json",
+      "cause": "MANUALLY_TRANSCRIBED_65_CHARACTER_CONFIG_HASH_EXTRA_TRAILING_1",
+      "correction": "HASH_ACTUAL_PINNED_CONFIG_BYTES_EXACT_64_CHARACTERS",
+      "productOrRuntimeFailure": false
+    }
+  },
+  "receipts": {
+    "actual": {
+      "path": "/tmp/barocss-d490-workflow-run01/receipt.json",
+      "sha256": "8ed2d68b2974347813a8543fd749ab114c9892eb41f1cce9fe4bbba3eeb6690f"
+    },
+    "rootReview": {
+      "path": "/tmp/barocss-d490-root/actual01-review.json",
+      "sha256": "e7546ba46fa8c04de0fb5093dd8b1b70d7c670bd91848cdbc23359c5534ab16e"
+    },
+    "checks": {
+      "path": "/tmp/barocss-d490-checks01/receipt.json",
+      "sha256": "6df6b6bc699f445a32f1f277fe9d8b4418cc0643871cbb4c6e5cdc73e71182dd"
+    }
+  },
+  "models": {
+    "generalPreparationAndDocs": "GPT-6.1 Sol Medium",
+    "geometryAndFinalAudit": "GPT-6.1 Sol High",
+    "executionCustodyImages": "Root"
+  },
+  "limits": [
+    "ONE_EXISTING_TOP_LEVEL_SKIPPED_PATTERN_LINKED_SOURCE_REVISION",
+    "NO_PRODUCT_IMPLEMENTATION_OR_RETAINED_PUBLIC_LINK_CREATION",
+    "NO_PATTERN_SKIP_MATE_OR_INDEPENDENT_COPY_REPLAY",
+    "NO_PLACED_WORKER_V_C_OR_BOM_MASS_COHERENCE_CLAIM",
+    "NO_COMPLETE_RASTER_FIT_CLAIM_AFTER_SOURCE_RETURN",
+    "NO_API_SCHEMA_GEOMETRY_NESTED_MOTION_PHYSICS_EXPORT_OR_STANDARDS_ADMISSION",
+    "NO_MOBILE_DOWNLOADS_OR_RAW_ARTIFACTS_IN_REPOSITORY"
+  ],
+  "roadmap": {
+    "issue538": "FRESH_OPEN_UNCHANGED",
+    "issue2180": "FRESH_CLOSED_UNCHANGED",
+    "core": "NOT_MEASURED",
+    "legacyPercent": 43,
+    "legacyStatus": "FROZEN",
+    "holds": "UNCHANGED",
+    "PDF": "OWNER_DEFERRED_NO_RERUN",
+    "next": "D491_C1_C5_PUBLIC_PROJECT_OPEN_AUTOFIT_RETENTION_MINIMAL_RUNTIME_REPRO_FIRST",
+    "nextSelected": true,
+    "nextFixRequiresExistingPolicyJustification": true,
+    "alternative": "PROFILE_SOLID_EXACT_EXTRACTION_DEFERRED_NO_AUTOMATIC_START",
+    "nextUIRedesignOrGeometryAdmission": false,
+    "nextRows": [
+      "05",
+      "12",
+      "16"
+    ],
+    "nextRuntimeCause": "NOT_CONFIRMED_SOURCE_SUPPORTED_CANDIDATE_ONLY",
+    "nextSourceCandidate": "ONOPENED_DELAYED_FIT_OPEN_INTENT_REPLACED_BY_SAME_OPEN_LINKED_OFFER_COMMIT",
+    "nextControls": [
+      "INITIAL_FRESH_OPEN_OVERVIEW",
+      "READ_ONLY_EIGHT_NATIVE_BOUNDS_CORNER_PROJECTIONS",
+      "PUBLIC_F_FIT",
+      "STALE_OLD_OPEN_GUARD",
+      "USER_CAMERA_GUARD"
+    ],
+    "nextFixRequiresRuntimeConfirmation": true
+  }
+}
