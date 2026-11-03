@@ -1,6 +1,6 @@
 /** Bundle the root while sharing only the three canonical package siblings. */
 import { build } from 'esbuild';
-import { realpath } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, realpath } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -44,3 +44,20 @@ await build({
     },
   }],
 });
+
+// The bounded stack position kernel is JavaScript source with an explicit
+// NodeNext declaration boundary. tsc emits its TypeScript callers; preserve
+// these local runtime modules for direct emitted-module consumers as well.
+const stackFiles = [
+  'full-pair-input.mjs', 'full-pair-linear.mjs', 'full-pair-exact.mjs',
+  'full-pair-core.mjs', 'full-pair-solver.mjs', 'full-pair-solver.d.mts',
+];
+await mkdir(resolve(packageDirectory, 'dist/stack'), { recursive: true });
+for (const name of stackFiles) {
+  const source = resolve(packageDirectory, 'src/stack', name);
+  const target = resolve(packageDirectory, 'dist/stack', name);
+  await copyFile(source, target);
+  if (!(await readFile(source)).equals(await readFile(target))) {
+    throw new Error(`stack build copy differs: ${name}`);
+  }
+}

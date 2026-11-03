@@ -31,7 +31,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build:library": "node src/generate-provider.mjs && tsc && node build-root.mjs && node src/generate-provider.mjs --emitted"
+    "build:library": "node src/generate-provider.mjs && node build-types.mjs && node build-root.mjs && node src/generate-provider.mjs --emitted"
   },
   "dependencies": {
     "@barocss/cad": "workspace:*"

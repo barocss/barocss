@@ -1,0 +1,79 @@
+{
+  "format": "barocss-physics-stack-optimization-v1",
+  "candidate": 1,
+  "status": "SOURCE_ONLY_READY_NOT_EXECUTED",
+  "algorithm": "FACE_CONTEXT_LOCAL_DIRECTION_AND_SINGLE_MIDPOINT_EXACT_REUSE",
+  "files": {
+    "baselineSource": {
+      "path": "examples/physics-stack-library-2276/baseline/strict-line.ts",
+      "bytes": 12236,
+      "sha256": "cc913c40dc520cf830165823ea325e006aa30aac12800f8da0a1b156993d1d10"
+    },
+    "originalProvenance": {
+      "path": "packages/barocss-physics/src/stack/PROVENANCE.json",
+      "bytes": 11389,
+      "sha256": "0ba21dcba3bfb56d07c300282ad00bd06515a682ad80edaf3ef2e4a093a161d2"
+    },
+    "newSource": {
+      "path": "packages/barocss-physics/src/stack/strict-line.ts",
+      "bytes": 14873,
+      "sha256": "52996dde63132e42a655f8300bb544258c22c8b6c6296f66d03dd53ab36441e8"
+    },
+    "contract": {
+      "path": "examples/physics-stack-library-2276/OPTIMIZATION-CONTRACT.md",
+      "bytes": 3935,
+      "sha256": "a30e6e25e70bee1f6005889f86b11093c457e7474fd6951500fc1743533afde4"
+    },
+    "executedOldNative": {
+      "path": "examples/physics-stack-library-2276/evidence/run-04/native-modules/packages/barocss-physics/src/stack/strict-line.js",
+      "bytes": 12249,
+      "sha256": "59ef239ae03c7e606bfa31bfa05f7ea99c0152f46b436ff9268b64fc83296be1"
+    },
+    "executedCpuProfile": {
+      "path": "examples/physics-stack-library-2276/evidence/profile-01/CPU.20261103.235904.79424.0.001.cpuprofile",
+      "bytes": 234299,
+      "sha256": "48ca5d2edb7e60a55136c5aa0e8835fed38ddecbe517e471b455ab4d228ba06f"
+    },
+    "profileAnalysis": {
+      "path": "examples/physics-stack-library-2276/evidence/profile-01/analysis.json",
+      "bytes": 3846,
+      "sha256": "6d59ab3a5442430c98569fdc180e36cb2668f8178b46a0960fbce6656aa61f6c"
+    }
+  },
+  "scope": {
+    "changedShippingFiles": [
+      "packages/barocss-physics/src/stack/strict-line.ts"
+    ],
+    "crossFaceOrStepCache": false,
+    "midpointEntriesPerFace": 1,
+    "directionVectorsPerFace": 2,
+    "key": "COPIED_DENSE_FINITE_F64_TRIPLE_OBJECT_IS_INCLUDING_SIGNED_ZERO",
+    "invalidVectorRefusalBeforeHit": true,
+    "nullIntervalDistinctFromUncomputed": true,
+    "exceptionsCached": false,
+    "failedArithmeticCacheBypass": false,
+    "lazyAThenBShortCircuit": true,
+    "oldProvenanceModified": false
+  },
+  "unchanged": {
+    "rationalOperations": 200000,
+    "integerOperations": 2000000,
+    "integerBits": 16384,
+    "roundingSteps": 16,
+    "arithmeticBodiesExceptNewCacheGuard": "EXACT_SOURCE_TEXT_MATCH",
+    "roundingProjectionFormula": "UNCHANGED",
+    "onFaceMovementAndNextafter": "EXACT_SOURCE_TEXT_MATCH"
+  },
+  "stats": "ACTUAL_WORK_MAY_DECREASE_NO_FAKE_BASELINE_COUNTS",
+  "qualification": {
+    "authorArithmeticCalls": 0,
+    "authorHelperCalls": 0,
+    "authorCompilerCalls": 0,
+    "boundaryTests": "NOT_RUN",
+    "freshPhysicalPrefixes": "NOT_RUN",
+    "runtimeDiagnostic": "NOT_RUN",
+    "fullP4": "BLOCKED",
+    "resourceQualification": false,
+    "publicAdmissionChanged": false
+  }
+}

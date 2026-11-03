@@ -1,0 +1,35 @@
+{
+  "workId": "physics-stack-library-2276",
+  "status": "OPT01_PREFIX_PASS_RUNTIME_COST_NO_GO",
+  "baseCommit": "8769c8a007c346aed8f130fa12e0a3d18f6d138c",
+  "archiveIndex": "ARCHIVE-02.json",
+  "sourceArchive": {
+    "path": "SOURCE-01.tar.gz",
+    "sha256": "9610e71c26e862225f290d6343bbb22c3ef9d5453748547b9afbb1eb680e2a5e"
+  },
+  "proofArchive": {
+    "path": "PROOF-02.tar.gz",
+    "sha256": "d4a9f17124267a6a08748b449317f226b4fb6f159298683c4728493eeabc2fce",
+    "files": 3848,
+    "storage": "Exact duplicate contents use tar hardlinks; every path and extracted file SHA verified; no evidence omitted"
+  },
+  "prefix": {
+    "baseline": "run-04",
+    "optimized": "run-05",
+    "status": "SOURCE_AND_GENUINE_NATIVE_PASS",
+    "phaseAcceptedPerGraph": 51,
+    "recordNumericWordsPerGraph": 453231,
+    "baselinePhysicalExceptions": 0,
+    "originalFirst32WordsMatched": 363,
+    "boundaryTestsPerGraph": "19/19 PASS"
+  },
+  "actualCanonicalBuild": "stack-library-build-04 PASS",
+  "runtimeBaseline": "ALIGNED542 local accepted then170s deadline; later scenes NOT_RUN",
+  "runtimeOpt01": "ALIGNED1050 local accepted then170s deadline; later scenes NOT_RUN",
+  "fullIndependentAccepted": 0,
+  "wholeP4": "NO_GO",
+  "publicApiPromotion": false,
+  "desktopForNewProfile": "NOT_RUN",
+  "whitespace": "Default check reports one blank EOF line in frozen world-types.ts; only blank-at-eof disabled for the passing whitespace check; source bytes and numerical gates unchanged",
+  "invariants": "Existing HOLD, tolerances, body cap,8x8, initial failures and ended candidates preserved; no deployment/release/mobile"
+}

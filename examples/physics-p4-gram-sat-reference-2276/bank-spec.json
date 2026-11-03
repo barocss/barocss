@@ -1,0 +1,15 @@
+{
+  "format":"p4-independent-gram-spec-v1",
+  "defaults":{"positionM":["0","0","0"],"halfExtentsM":["1/4","1/4","1/4"],"orientation":["0","0","0","1"]},
+  "cases":[
+    {"id":"coincident-identity","a":{},"b":{}},
+    {"id":"exact-face-touch","a":{},"b":{"positionM":["1/2","0","0"]}},
+    {"id":"separated-unequal","a":{"positionM":["-1/8","1/4","-1/2"],"halfExtentsM":["1/4","1/2","1/8"]},"b":{"positionM":["7/8","0","-3/8"],"halfExtentsM":["1/2","1/4","1/4"]}},
+    {"id":"cyclic-unit-rotation","a":{"halfExtentsM":["1/4","1/2","1/8"]},"b":{"positionM":["1/8","-1/4","1/2"],"halfExtentsM":["1/2","1/4","3/8"],"orientation":["1/2","1/2","1/2","1/2"]}},
+    {"id":"half-turn-signed-center","a":{"positionM":["-1/4","1/8","-1/8"],"halfExtentsM":["1/4","3/8","1/2"]},"b":{"positionM":["-3/8","1/2","-3/8"],"halfExtentsM":["1/2","1/4","1/8"],"orientation":["0","0","1","0"]}},
+    {"id":"raw-nonorthogonal-a","a":{"halfExtentsM":["1/4","1/2","1/8"],"orientation":["1/2","1/2","1/2",{"add":["1/2",{"pow2":-42}]}]},"b":{"positionM":["1/8","-3/8","1/4"],"halfExtentsM":["1/2","1/4","3/8"]}},
+    {"id":"both-raw-nonorthogonal","a":{"positionM":["-1/8","1/4","-3/8"],"halfExtentsM":["1/4","1/2","1/8"],"orientation":["1/2","1/2","1/2",{"add":["1/2",{"pow2":-42}]}]},"b":{"positionM":["-3/8","3/8","0"],"halfExtentsM":["1/2","1/4","3/8"],"orientation":["1/2","-1/2","1/2",{"sub":["1/2",{"pow2":-42}]}]}},
+    {"id":"near-parallel-nonzero","a":{"halfExtentsM":["1/4","1/2","1/8"]},"b":{"positionM":["1/8","3/8","-1/4"],"halfExtentsM":["1/2","1/4","3/8"],"orientation":["0","0",{"pow2":-50},"1"]}},
+    {"id":"both-skew-reversed-order","reverseOf":6}
+  ]
+}

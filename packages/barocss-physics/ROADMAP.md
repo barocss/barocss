@@ -4,12 +4,12 @@ artifact_type: architecture-and-development-roadmap
 status: p5_done_bounded_localselected_p4_no_go
 owner_role: independent-physics-algorithm-work
 source_request: redesign the unreleased Physics library and reorganize its roadmap; preserve HOLD, NO_GO and first failures
-last_updated: 2026-11-03
+last_updated: 2026-11-04
 ---
 
 # Physics library design and roadmap
 
-## Current priority review (2026-11-03)
+## Current priority review (2026-11-04)
 
 | Main track | Current qualified boundary |
 | --- | --- |
@@ -17,6 +17,58 @@ last_updated: 2026-11-03
 | P3 / P5 | Selected disjoint hinges and fixed visual domain profiles pass; general mechanisms/coupling do not. |
 | P4 | Original eight-box exit remains NO_GO; full-reference/runtime cost is the earliest observed blocker. |
 | P6 / P7 | Full physical domain coupling and connected-mechanism/control exits remain open. |
+
+### Current library implementation priority
+
+The current package has locally qualified actual contact-application collection
+and finite-sum validation before World commit (`8769c8a00`): Source9/Native9,
+canonical build/declarations and bounded public record/restore parity pass.
+The completed totals are currently discarded; this adds no public wrench
+capability and makes no performance claim. See
+`examples/physics-canonical-contribution-2276/RESULTS.md`.
+
+The next implementation is a package-owned frozen contact island under
+`src/stack/`, starting with the original32-force-point normal solve and the
+separate36-row position solve. The current public pairwise solver is not the
+historically qualified private P4 provider. New current-package tests must
+requalify represented contact operands, phase order, independent physical
+checks and genuine emitted modules; old16-step receipts are not inherited.
+Historical sources remain evidence, with no shipping example imports or
+compatibility fallback. The JavaScript position core has an explicit NodeNext
+declaration boundary and byte-preserving build copies; strict TypeScript
+callers and actual runtime tests are separate proof boundaries.
+
+Internal implementation and numerical qualification take priority over further
+standalone proof-tool variants. No public profile/body-cap change follows from
+source presence. Fresh16-step Source/emitted gates precede the original1200
+campaign and its full geometry/position/ledger/quality/resource checks. Existing
+HOLDs, public persistent cap4,8x8 loops, tolerances and first failures remain.
+The ended cost candidates below stay ended; a new private proof-cost result
+does not by itself qualify this library engine or the original full stack.
+
+The actual package engine now passes original first32 equilibrium, invalid-input
+retention, deterministic repeat and ALIGNED/OFFSET/YAW one-step/fresh16 on both
+Source and genuine Native modules. Each graph has51 independently checked
+phase acceptances and453231 exact record numeric words. The generated ALIGNED
+first input exactly matches the saved32-point problem, including363 numeric
+words. See `examples/physics-stack-library-2276/RESULTS.md`.
+
+Its separate emitted-only runtime diagnostic returned543 ALIGNED candidates
+but accepted542 locally before the unchanged170s deadline; full independently
+accepted steps remain0. OFFSET/YAW were not run. Whole-function preparation
+accounts for168.611802125s of170.020379334s observed wall time; this is an actual
+library cost failure, separate from the old308-step complete-path timeout.
+One word-qualified16-step CPU sample places92.88 percent of sample weight under
+strict-line geometry. The new OPT01 face-local exact reuse passes19 boundary
+tests per graph and fresh Source/Native prefixes; all previous physical records
+and raw words remain exact, with no metadata exception. Its fresh actual
+canonical-build runtime returned1051 candidates/1050 local normal-KKT acceptances
+before the unchanged170s deadline; OFFSET/YAW remain NOT_RUN. This is another
+preserved runtime cost NO_GO, not complete P4 acceptance. Next is a bounded
+equal-denominator rational addition change in the measured library hotspot,
+with exact arithmetic/resource controls before fresh prefix/runtime checks.
+Full independent/resource qualification is still open. Public API/cap promotion
+and new desktop integration remain blocked; no full-stack PASS is inferred.
 
 The current first-interval coupled-contact path has completed its finite
 arithmetic, actual World, post-impulse rollback/wire and desktop Native gates.
@@ -92,10 +144,16 @@ The next order is:
    audit revoked the NEW validator observed-graph measurement: temporary
    dictionary-entry IDs can be reused. Its separate preallocation bound is
    conditional pending ownership review; no corrected memory PASS is claimed.
-   Original reports/math passes/cost failure remain unchanged. Next is a
-   distinct pair-local Gram/mixed-determinant design for all15 axes, without
-   orthogonality, radius caches or pruning; its signed27 identities and all
-   exactN/D/S outputs require independent qualification before another B.
+   Original reports/math passes/cost failure remain unchanged. The distinct
+   pair-local Gram/mixed-determinant candidate retained all15 axes, without
+   orthogonality, radius caches or pruning. Its signed27/all exactN/D/S pure
+   bank and fresh six-frame full mathematical/independent checks passed. Its
+   new corrected ownership measurement passed without repairing the old V3
+   revoked measurement. Its single cost was554815000ns parent plus244623000ns
+   whole owned Node =799438000ns against695832300ns: COST_NO_GO, ENDED.
+   See `examples/physics-p4-gram-compact-2276/RESULTS.md`. The outer zero
+   candidateChecksAttempted field is a preserved counter defect; actual
+   wrapper receipts show6 frames and6 proof calls, not zero physical work.
    Existing geometry decoder reuse is not a new independent geometry oracle.
    No ended candidate retime or higher limits. Original1200/World/API/desktop
    remain NOT_RUN.

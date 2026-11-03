@@ -1,0 +1,42 @@
+// Root alone executes under its existing180s owned guard. No public API changes.
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {readFileSync,writeFileSync,mkdirSync,readdirSync,existsSync,openSync,readSync,closeSync,copyFileSync,realpathSync} from 'node:fs';
+import {dirname,resolve,join,relative} from 'node:path';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+import {createRequire} from 'node:module';
+const home=dirname(fileURLToPath(import.meta.url)),root=resolve(home,'../..'),node='/Users/user/.volta/tools/image/node/22.19.0/bin/node';
+const id=process.argv[2];assert.match(id??'',/^boundary-[a-z0-9-]{1,56}$/);const out=join(home,'evidence',id);assert.ok(!existsSync(out),'new boundary receipt ID required');mkdirSync(out);
+const hash=p=>{const h=createHash('sha256'),b=Buffer.alloc(64*1024),fd=openSync(p,'r');try{let n;while((n=readSync(fd,b,0,b.length,null)))h.update(b.subarray(0,n));}finally{closeSync(fd);}return h.digest('hex');};
+const files=dir=>readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?files(join(dir,e.name)):[join(dir,e.name)]);
+const put=(name,value)=>writeFileSync(join(out,name),JSON.stringify(value,null,2)+'\n');
+const baseline=join(home,'evidence/run-04/native-modules/packages/barocss-physics/src/stack/strict-line.js');
+const baselineHash='59ef239ae03c7e606bfa31bfa05f7ea99c0152f46b436ff9268b64fc83296be1';
+assert.equal(realpathSync(process.execPath),realpathSync(node));assert.equal(hash(node),'0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1');assert.equal(hash(baseline),baselineHash);
+const require=createRequire(join(root,'package.json')),tsc=require.resolve('typescript/lib/tsc.js'),esbuild=require.resolve('esbuild'),esbuildNative=createRequire(esbuild).resolve('@esbuild/'+process.platform+'-'+process.arch+'/bin/esbuild');
+const deadline=Date.now()+170000,receipt={status:'RUNNING',stage:'freeze',commands:[],firstFailure:null,fullPrefix:'NOT_RUN',publicAPI:false,resourceQualification:false};let frozen;
+const remaining=()=>{const n=Math.floor(deadline-Date.now());assert.ok(n>0,'internal170s deadline');return n;};
+const verify=()=>{const after=Object.fromEntries(Object.keys(frozen).map(p=>[p,hash(p)]));put('inputs-after.json',after);assert.deepEqual(after,frozen,'frozen source/tool/baseline bytes changed');};
+const timer=setTimeout(()=>{receipt.status='FIRST_FAILURE';receipt.firstFailure??={stage:receipt.stage,message:'internal170s deadline'};put('result.json',receipt);process.exit(1);},remaining());
+function command(stage,args){
+ receipt.stage=stage;put('progress.json',receipt);const timeout=remaining(),result=spawnSync(node,args,{cwd:root,encoding:'utf8',timeout,maxBuffer:2*1024*1024,env:{...process.env,NODE_DISABLE_COMPILE_CACHE:'1',STRICT_LINE_BASELINE_MODULE:baseline}});
+ writeFileSync(join(out,stage+'.stdout'),result.stdout??'');writeFileSync(join(out,stage+'.stderr'),result.stderr??'');receipt.commands.push({stage,args,timeoutMs:timeout,exit:result.status,signal:result.signal,error:result.error?.message});put('progress.json',receipt);assert.equal(result.status,0,stage+' failed; stop before later graph');
+ if(stage.endsWith('-tests'))assert.match(result.stdout,/# tests 19\b/,'all predeclared19 tests executed');
+}
+try{
+ const metadata=[join(root,'package.json'),join(root,'packages/barocss-physics/package.json'),join(home,'evidence/run-04/native-modules/packages/barocss-physics/package.json')];
+ const owned=[fileURLToPath(import.meta.url),join(home,'boundary.test.mts')],tools=[node,tsc,resolve(dirname(tsc),'_tsc.js'),esbuild,esbuildNative];
+ const inputs=[...files(join(root,'packages/barocss-physics/src')),...owned,...metadata,...tools,baseline,baseline.replace(/\.js$/,'.d.ts'),join(root,'examples/physics-contact-boundary-2276/geometry.test.ts')];
+ frozen=Object.fromEntries([...new Set(inputs)].map(p=>[p,hash(p)]));put('inputs-before.json',frozen);
+ put('baseline-origin.json',{path:baseline,sha256:baselineHash,origin:'ACTUAL_RUN04_GENUINE_NODENEXT_EMITTED_UNOPTIMIZED_MODULE',runtimeImports:0,typeDeclaration:baseline.replace(/\.js$/,'.d.ts'),productionFallback:false,original12:'examples/physics-contact-boundary-2276/geometry.test.ts',counterParity:'NOT_REQUIRED; physical Boolean/witness/RNE outputs unchanged',fixedCaps:{rationalOperations:200000,integerOperations:2000000,integerBits:16384,roundingSteps:16}});
+ const native=join(out,'native-modules');mkdirSync(native);copyFileSync(metadata[0],join(native,'package.json'));mkdirSync(join(native,'packages/barocss-physics'),{recursive:true});copyFileSync(metadata[1],join(native,'packages/barocss-physics/package.json'));
+ put('native.tsconfig.json',{compilerOptions:{target:'ES2022',module:'NodeNext',moduleResolution:'NodeNext',strict:true,skipLibCheck:true,noEmitOnError:true,declaration:true,rootDir:root,outDir:native,types:['node'],typeRoots:[join(root,'node_modules/@types')]},files:[join(home,'boundary.test.mts')]});
+ command('strict-native',[tsc,'-p',join(out,'native.tsconfig.json'),'--pretty','false','--listFiles']);
+ receipt.stage='source-bundle';put('progress.json',receipt);remaining();const {build}=await import(pathToFileURL(esbuild));
+ const buildResult=await build({absWorkingDir:root,entryPoints:[join(home,'boundary.test.mts')],bundle:true,platform:'node',format:'esm',target:'node22',outfile:join(out,'source.mjs'),metafile:true,logLevel:'silent'});
+ put('source-metafile.json',buildResult.metafile);for(const p of Object.keys(buildResult.metafile.inputs))assert.ok(Object.hasOwn(frozen,resolve(root,p)),'unfrozen source input '+p);
+ command('source-tests',['--test',join(out,'source.mjs')]);command('native-tests',['--test',join(native,relative(root,join(home,'boundary.test.mjs')))]);
+ verify();remaining();receipt.status='PASS_BOUNDARY_SOURCE_AND_GENUINE_NATIVE_19_TESTS';
+}catch(error){receipt.status='FIRST_FAILURE';receipt.firstFailure??={stage:receipt.stage,errorClass:error.name,message:error.message};try{if(frozen)verify();}catch(e){receipt.integrityFailure=e.message;}process.exitCode=1;}
+finally{clearTimeout(timer);put('result.json',receipt);}

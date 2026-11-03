@@ -1,0 +1,67 @@
+{
+  "format": "p4-independent-gram-source-pins-v1",
+  "python": {
+    "path": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+    "version": "3.13.5 (main, Jun 11 2025, 15:36:57) [Clang 17.0.0 (clang-1700.0.13.3)]"
+  },
+  "tools": {
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13": {
+      "bytes": 52640,
+      "sha256": "a1f6d9dc20d4787a84dc2fe782094a7bac5946f49a962aa0af48a02f0e8d5bc5"
+    }
+  },
+  "sources": {
+    "examples/physics-p4-gram-design-2276/DESIGN.md": {
+      "bytes": 8872,
+      "sha256": "0dee0daef07512b6425af6fd99efb3cc6e786da90876f266c7b1b3caf76761ec"
+    },
+    "examples/physics-p4-gram-reference-design-2276/REVIEW.md": {
+      "bytes": 12431,
+      "sha256": "8fb0a2269e5357d37e17bd817e841794388fbea7f485245ed73b91bfc232ebf5"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/CONTRACT.md": {
+      "bytes": 12002,
+      "sha256": "637d9eb018bd0f870825953ca4e5780e8770dbf86172cb362c0a2ce0bd9faa0c"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/audit.py": {
+      "bytes": 8642,
+      "sha256": "fd7c104ec49808d3e81f0c15440ce211e5d318d2e8a0448fd5082c0b9ab64f41"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/bank-spec.json": {
+      "bytes": 1647,
+      "sha256": "3a648318aec51496d73dbf569edd7ced91e31d391f0a9e5a116812acd2d00be9"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/direct_oracle.py": {
+      "bytes": 4524,
+      "sha256": "620bfc04c6a20d04a665cdaacb29eddd8a3f063907f646f4474de97be9129ccc"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/literals.py": {
+      "bytes": 3219,
+      "sha256": "733a20bcd003933912cae757b92a526b75fd6ad180a6d5651f0594e493108c04"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/materialize.py": {
+      "bytes": 2327,
+      "sha256": "83f59efe13755bf0a56904ec447b3e67528f2dc0bbf5875fcbd250408e235402"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/support.py": {
+      "bytes": 5849,
+      "sha256": "7d47984bf61e6f6d0f3b089533012c855ce8b32224b402aeae9a1e31d1157d8c"
+    },
+    "examples/physics-p4-retained-graph-review-2276/REVIEW.md": {
+      "bytes": 6967,
+      "sha256": "3e78a311604a10d7423ab87d819da364956c9ab0db41084c45d777d1c7b4091f"
+    },
+    "examples/physics-p4-sat-2276/CONTRACT.md": {
+      "bytes": 5466,
+      "sha256": "b34c2fa0d19a4a75d0ffe14373e674478b5e233ed9092d6c5358ad5970afdea7"
+    },
+    "examples/physics-p4-sat-2276/METHOD.md": {
+      "bytes": 3061,
+      "sha256": "3d402f7721111715434708d3605118bf95f17652a31a97b2d44fe9aed4c115ad"
+    },
+    "examples/physics-p4-sat-2276/integer_sat.py": {
+      "bytes": 13025,
+      "sha256": "b1c2f4a4d291c52b9182864fea658381afd482aa34da7d300997a81bf45a3b1e"
+    }
+  }
+}

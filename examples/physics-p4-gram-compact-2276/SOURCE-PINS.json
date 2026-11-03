@@ -1,0 +1,61 @@
+{
+  "protocol": "p4-gram-geometry-sidecar-v1",
+  "status": "AUTHOR_SOURCE_ONLY_NOT_EXECUTED",
+  "geometryAlgorithm": "PAIR_LOCAL_GRAM_MIXED_DETERMINANTS",
+  "namespaceOverride": [
+    "solve_model"
+  ],
+  "fullPayloadFieldsAdded": [],
+  "scope": "Geometry facade/direct frozen component sources only; outer host must authenticate full runtime/provider closure and qualify corrected validator plus seven helpers before any full numerical bank.",
+  "selfHashPolicy": "Excluded from own pins; outer freeze must authenticate this manifest.",
+  "pins": {
+    "examples/physics-p4-gram-compact-2276/geometry.py": {
+      "bytes": 2864,
+      "sha256": "3bd793c79bb78c299de5d8aa744614de62aab1ad7c1e34307a9a98078e349b85"
+    },
+    "examples/physics-p4-gram-compact-2276/CONTRACT.md": {
+      "bytes": 4391,
+      "sha256": "15b5eed36ad2f14f409f157c95caabd730ce39ef937c6e9c089f5d2b3b88b0fe"
+    },
+    "examples/physics-p4-gram-sat-2276/gram_sat.py": {
+      "bytes": 11181,
+      "sha256": "3e241cbce819f9e9d887737759914340b6821a6960eba1a00f16895f835e450b"
+    },
+    "examples/physics-p4-gram-sat-2276/CONTRACT.md": {
+      "bytes": 8484,
+      "sha256": "511470c76953d68fb91767477aa024631e8dceeec2da2345c4d1575dc9971f9d"
+    },
+    "examples/physics-p4-gram-sat-2276/SCALING-NOTE.md": {
+      "bytes": 731,
+      "sha256": "0f787fb9df1255abcfa6f7e06a1f3f27070f4d804369f7df9c617d7fb2321e3f"
+    },
+    "examples/physics-p4-radical-compact-2276/backend.py": {
+      "bytes": 9849,
+      "sha256": "5fed3731c6b84d8563d8cd118912b34a0a1c3d711aed38ed2396d2b5fb1e3415"
+    },
+    "examples/physics-p4-radical-compact-2276/CONTRACT.md": {
+      "bytes": 6566,
+      "sha256": "ff2cf6d7af07db47499c4581e41cc4b024fcabbc45ce6250663f8203975201c9"
+    },
+    "examples/physics-p4-radical-compact-2276/ALGORITHM.md": {
+      "bytes": 2353,
+      "sha256": "e9616dad4145a6f6182fb006361b0eef75d9dd23b830624f094746e4a63fbe2f"
+    },
+    "examples/physics-p4-radical-compact-2276/SOURCE-PINS.json": {
+      "bytes": 2149,
+      "sha256": "f9443bd893473b0c1b1597212430db1422980026982018713ff193f116ba3f6d"
+    },
+    "examples/physics-p4-radical-grid-2276/radical_grid.py": {
+      "bytes": 6513,
+      "sha256": "f9a57fa5ed8aca0a671cbb4a49b0033bfcfdc89b45466320782f88ceb5169afc"
+    },
+    "examples/physics-p4-radical-grid-2276/CONTRACT.md": {
+      "bytes": 4928,
+      "sha256": "30fa88317f5b982b79f581648f00062c9c0d637ef1ee4c7eb61c169e291adad1"
+    },
+    "examples/physics-p4-sat-2276/integer_sat.py": {
+      "bytes": 13025,
+      "sha256": "b1c2f4a4d291c52b9182864fea658381afd482aa34da7d300997a81bf45a3b1e"
+    }
+  }
+}

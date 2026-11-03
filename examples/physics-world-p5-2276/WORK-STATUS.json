@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-03",
+  "asOf": "2026-11-04",
   "branch": "codex/physics-world-p5-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
@@ -34,7 +34,35 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "P4 remains NO_GO. Root actual owned-data seven-group selftest and Gram R1 nine-pair/18-model/270-axis gates PASS; new full B source preparation only. Canonical package contribution implementation Source9/Native9, build/declarations and bounded public API record/restore parity PASS. Original1200, new performance and desktop NOT_RUN.",
+  "active": "Actual library stack engine Source/Native one-step and16 prefixes PASS; OPT01 exact face-local reuse passes19 boundary tests per graph and all453231 prefix numeric words unchanged. Original1200 remains NO_GO. Baseline emitted runtime stopped after542 local acceptances; actual canonical OPT01 stopped after1050 at unchanged170s. Next is bounded equal-denominator rational addition in actual strict-line hotspot; full independent/resource qualification and API/cap/desktop promotion remain blocked.",
+  "latestStackImplementation": {
+    "results": "examples/physics-stack-library-2276/RESULTS.md",
+    "entry": "packages/barocss-physics/src/stack/prepare-step.ts",
+    "qualification": "PACKAGE_INTERNAL_ORIGINAL_NINE_BODY_PROFILE_ONLY",
+    "sourceAndNativePrefix": "run-04 PASS; OPT01 run-05 PASS",
+    "phaseAcceptedPerGraph": 51,
+    "numericRecordWordsPerGraph": 453231,
+    "originalFirst32InputWordsMatched": 363,
+    "independentReferenceRepliesPerGraph": 210,
+    "opt01BoundaryTestsPerGraph": "19/19 PASS",
+    "opt01BaselinePayload": "Exact run-04 to run-05 physical records/raw words; zero metadata exceptions",
+    "runtime01": "ALIGNED543 returned/542 local+normalKKT accepted; step543 internal170s deadline; OFFSET/YAW NOT_RUN; independent full accepted0",
+    "runtimeOpt01": "Actual canonical snapshot: ALIGNED1051 returned/1050 local+normalKKT accepted; step1051 unchanged170s deadline; OFFSET/YAW NOT_RUN; full independent accepted0",
+    "profile01": "Qualified16-step word parity;92.88 percent sample weight under strict-line; sampling not benchmark",
+    "publicWorldAndApi": "NOT_RUN; existing cap4 and8x8 unchanged",
+    "full1200": "NO_GO; full independent/resource qualification blocked",
+    "desktop": "NOT_RUN for new internal engine"
+  },
+  "latestGramProofCandidate": {
+    "results": "examples/physics-p4-gram-compact-2276/RESULTS.md",
+    "status": "SIX_MATH_AND_INDEPENDENT_PASS_COST_NO_GO_ENDED",
+    "parentCpuNs": 554815000,
+    "ownedNodeLifetimeCpuNs": 244623000,
+    "costEnvelopeNs": 799438000,
+    "unchangedGateNs": 695832300,
+    "oldV3MemoryMeasurement": "REVOKED_UNCHANGED; new corrected-memory tests do not repair it",
+    "next": "No retime or new standalone variant; actual package runtime priority"
+  },
   "latestCanonicalImplementation": {
     "status": "BOUNDED_LOCAL_PASS_INTERNAL_CONTACT_CONTRIBUTION",
     "results": "examples/physics-canonical-contribution-2276/RESULTS.md",
