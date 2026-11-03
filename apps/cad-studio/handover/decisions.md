@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D492: extract four exact profile-solid cases behind private helpers and requalify the retained Loft lifecycle; retain oracle-path stop, saved-only correction and remaining-only recovery](notes/part-profile-solid-extraction-2026-11-04/README.md).
+
 - [D491: preserve project Open auto-fit after its own linked-file commit; retain original product failure, unchanged public-F control and corrected actual/ownership proof](notes/project-open-fit-ready-2026-11-04/README.md).
 
 - [D490: measure an existing skipped instance pattern across explicit linked-source update, BOM quantities, exact history and project Open; retain cropped source-return views and pass final High saved-data review](notes/skipped-pattern-linked-revision-2026-11-04/README.md).
