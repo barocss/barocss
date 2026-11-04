@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D498: qualify one existing ordinary blind Hole depth/source/history/refusal/project lifecycle; seven desktop groups and10037 final High saved-evidence checks pass](notes/ordinary-blind-hole-workflow-2026-11-04/README.md).
+
 - [D497: qualify existing CAD React Translate/Rotate, both example right inspectors and eighteen-page component/support documentation with current desktop route proof; retain source/type/inventory/observer stops](notes/cad-react-transforms-docs-2026-11-04/README.md).
 - [D496: qualify retained printed-tolerance project persistence, Lower/Upper re-edit and exact history across six aggregate groups; preserve oracle/pin/navigation stops and unresolved actual03 reset](notes/printed-tolerance-persistence-2026-11-04/README.md).
 - [D495: deliver a private compositional CAD React package with current props80→100→80, existing Worker/Viewer, public Studio Open and independent native physics; preserve fixture/type/capsule preparation failures](notes/cad-react-package-2026-11-04/README.md).

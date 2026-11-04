@@ -1,0 +1,375 @@
+{
+  "work_id": "D498",
+  "status": "PASS_BOUNDED_CURRENT_STUDIO_ORDINARY_BLIND_HOLE_NATIVE_CONSUMER_QUALIFICATION",
+  "tier": "SMALL_EXISTING_C1_C2_MEASUREMENT_NO_PRODUCT_CHANGE",
+  "parentHead": "969f60318558557dd3273e5656c7004b08bf3fa6",
+  "models": {
+    "routine": "GPT-6.1 Sol Medium",
+    "geometryAndFinalSavedAudit": "GPT-6.1 Sol High"
+  },
+  "productChanges": 0,
+  "sourceAudit": {
+    "path": "/tmp/barocss-d498-source-audit01/README.md",
+    "sha256": "fe422cce5bfe5a66efa1b64d6deed4a0b3e74ea8267c4bd6daca6e8bb5d86736"
+  },
+  "geometryManifest": {
+    "path": "/tmp/barocss-d498-geometry01/manifest.json",
+    "sha256": "a57b54650ef47ce4aaba56b10cf1bf4d0509220f2276b38cf3b9c4a0b9d5b791"
+  },
+  "input": {
+    "path": "/tmp/barocss-d498-geometry01/seed.bcad",
+    "sha256": "0c602dc99f33ab44ec37fd84a5fd70adb4ee6b23c9e2d61fd71eebde6ffffd0d",
+    "bytes": 1089,
+    "geometry": "80x40x10 mm, [-20,-20,0]..[60,20,10]"
+  },
+  "groups": {
+    "publicBlindDepth3": "PASS",
+    "editDepth4": "PASS",
+    "sourceH12FixedDepth4": "PASS",
+    "firstUndoH10RedoH12": "PASS",
+    "Depth0RefusalRetainsC": "PASS",
+    "ownedProjectSaveCloseReloadOpenC": "PASS",
+    "postOpenDepth2": "PASS"
+  },
+  "counts": {
+    "qualifiedGroups": 7,
+    "nativeCaptures": 4,
+    "uniqueHoleNativeDocs": 4,
+    "exactWholeDocNativeReuses": 4,
+    "freshBindings": 8,
+    "separatePickOnlySeedEvaluations": 1,
+    "seedStrictPhysicalCaptures": 0,
+    "seedOracles": 0
+  },
+  "acceptedStates": [
+    {
+      "height": 10,
+      "depth": 3
+    },
+    {
+      "height": 10,
+      "depth": 4
+    },
+    {
+      "height": 12,
+      "depth": 4
+    },
+    {
+      "height": 12,
+      "depth": 2
+    }
+  ],
+  "physicalContract": {
+    "material": "Axis-aligned80x40xH stock with one full inward cylindrical blind cavity R2 from Z=H-depth to current namedtop Z=H, closed flat floor. No drillpoint cone.",
+    "volume": "3200*H - 4*pi*depth",
+    "centroid": "[20,0,(3200*H*(H/2)-4*pi*depth*(H-depth/2))/(3200*H-4*pi*depth)]",
+    "bounds": "[-20,-20,0]..[60,20,H]",
+    "topology": "one strict closed native solid/shell, connected genus0. Through genus1 is a physical FAIL. Counts observed, never used as fixed family admission.",
+    "carrierRoles": "six outward box supports +blindfloor outward+Z at H-depth; one or more inwardR2cylinder patches axis(20,0), nativecompleteaxialrangeH-depth..H and fullcirculartrimwitnesses at both actualrims; rawallfaces/loops/curves/vertices preserved."
+  },
+  "budgets": {
+    "volumeRelative": 1e-09,
+    "centroidBoundsCarrierRadiusAxisEndpointPcurveAbsoluteMM": 1e-09,
+    "density1MassAbsoluteG": 1e-09,
+    "nativeStrictPolicy": "Unchanged existing native strict report/tolerance cap; no generic policy edits.",
+    "finiteWitnesses": "Independent old pure deBoor3line/9curved edge,5pcurve,5x5surface witnesses +complete native topology traversal and current analytical supports. No full parameter-domain theorem.",
+    "pcurvePresence": "Optional fields observed; presentpcurves mustlift within unchanged native edge budget AND1e-9profile target. No pcurve synthesis."
+  },
+  "recipe": {
+    "node": "n2",
+    "parent": "n1",
+    "face": "n1.top",
+    "radius": 2,
+    "center": [
+      20,
+      0
+    ],
+    "axisSide": "OMITTED_DEFAULTS",
+    "sourceWidth": 80,
+    "sourceHeightEdit": [
+      10,
+      12
+    ],
+    "fixedHoleDepthDuringSourceEdit": 4,
+    "floorZAtFixedDepth4": [
+      6,
+      8
+    ]
+  },
+  "checks": {
+    "status": "PASS",
+    "freshModelPass": 9,
+    "freshCADPass": 3,
+    "uniqueFreshPass": 12,
+    "receipt": {
+      "path": "/tmp/barocss-d498-checks01/receipt.json",
+      "sha256": "43025ebec6656dcbd7cfeaafc2d26817657ac5b1f0ae016a7c9ce43a9d10e741"
+    },
+    "commands": [
+      {
+        "name": "model-hole-types-region-depth-compatibility",
+        "argv": [
+          "node",
+          "scripts/test.mjs",
+          "hole-types.test.ts",
+          "hole-region.test.ts",
+          "hole-thread-depth-compatibility.test.ts"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 2.105,
+        "observedTAPCounts": {
+          "tests": 9,
+          "pass": 9,
+          "fail": 0,
+          "skipped": 0
+        }
+      },
+      {
+        "name": "cad-d148-current-named-face-depth",
+        "argv": [
+          "node",
+          "--test",
+          "--test-concurrency=1",
+          "test/d148-hole-face.test.mjs"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 0.489,
+        "observedTAPCounts": {
+          "tests": 3,
+          "pass": 3,
+          "fail": 0,
+          "skipped": 0
+        }
+      },
+      {
+        "name": "diff",
+        "argv": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 0.052,
+        "observedTAPCounts": {}
+      }
+    ],
+    "unchangedReuse": {
+      "status": "PASS_CURRENT_UNCHANGED_SOURCE_REUSE_NO_RERUN",
+      "head": "969f60318558557dd3273e5656c7004b08bf3fa6",
+      "receipt": {
+        "path": "/tmp/barocss-d494-checks03/receipt.json",
+        "sha256": "fde19620a19901315edb0b43a8ac1c54e305aba32172e4ed338ef98d711261aa"
+      },
+      "commands": [
+        {
+          "name": "cad-full-semantic-build",
+          "argv": [
+            "node",
+            "scripts/tool.mjs",
+            "build"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad",
+          "status": "PASS",
+          "exitCode": 0,
+          "durationSeconds": 9.079
+        },
+        {
+          "name": "cad-full-lint",
+          "argv": [
+            "node",
+            "scripts/tool.mjs",
+            "lint"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad",
+          "status": "PASS",
+          "exitCode": 0,
+          "durationSeconds": 9.298
+        },
+        {
+          "name": "studio-types",
+          "argv": [
+            "node",
+            "../../node_modules/typescript/bin/tsc",
+            "--noEmit"
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio",
+          "status": "PASS",
+          "exitCode": 0,
+          "durationSeconds": 25.978
+        },
+        {
+          "name": "model-types-final",
+          "argv": [
+            "node",
+            "../../node_modules/typescript/bin/tsc",
+            "--noEmit",
+            "-p",
+            "."
+          ],
+          "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model",
+          "status": "PASS",
+          "exitCode": 0,
+          "durationSeconds": 22.033
+        }
+      ],
+      "verifiedRepositoryPins": 1841,
+      "sourceClosure": "Exact current CAD/Model/Studio source and dependency/config pins from D494 viaD496 checkprep; private CADReact/docs are independent and not native producer changes",
+      "PDF": "NOT_RUN_OWNER_DEFERRED",
+      "fullKernel": "NOT_RUN_NO_BREP_ALGORITHM_CHANGE"
+    },
+    "reuseReceipt": {
+      "path": "/tmp/barocss-d498-root/unchanged-reuse01.json",
+      "sha256": "44429d573a8b994dc3f5c0f9520e6cd63055a2d0f09cc0eacb6c8e647012502f"
+    },
+    "fullKernel": "NOT_RUN_NO_BREP_ALGORITHM_CHANGE",
+    "newBuildTypesLint": "NOT_RUN_UNCHANGED_RECEIPTS_REUSED"
+  },
+  "seedMap": {
+    "status": "COMPILE_PASS_THEN_ONE_ACTUAL_PICK_ONLY_EVALUATION",
+    "compileReceipt": {
+      "path": "/tmp/barocss-d498-seedmap-build01/receipt.json",
+      "sha256": "637be87bea11fb09d737c09eb6fb1af0d8a5858f849a295dabb2fd6da11bdeeb"
+    },
+    "actual": {
+      "evaluations": 1,
+      "strictNativeCaptures": 0,
+      "physicalBaseline": "NOT_QUALIFIED",
+      "exit": 0
+    },
+    "physicalBaseline": "NOT_QUALIFIED_NO_SEED_PHYSICAL_PASS",
+    "compileCommands": [
+      [
+        "compile-pick-only-seed-map",
+        [
+          "node",
+          "node_modules/esbuild/bin/esbuild",
+          "/tmp/barocss-d498-driver01/seed-map.ts",
+          "--bundle",
+          "--platform=node",
+          "--format=esm",
+          "--target=node22",
+          "--outfile=/tmp/barocss-d498-root/seed-map01.mjs",
+          "--metafile=/tmp/barocss-d498-root/seed-map-metafile01.json"
+        ],
+        "."
+      ]
+    ]
+  },
+  "actual": {
+    "status": "PASS",
+    "receipt": {
+      "path": "/tmp/barocss-d498-workflow-run01/receipt.json",
+      "sha256": "1150f601985cb4146b6e702e748648c28b6bae5d5a6ebe8da9d0f2e8a19efc23"
+    },
+    "configSHA256": "c37c24646768203ccbcacdda8122b6c1118458dbe5b8ac21d58684e75eb359b5",
+    "rootReview": {
+      "path": "/tmp/barocss-d498-root/actual01-review.json",
+      "sha256": "a88b305afdade6cbda7217a9cf6b3e4b8ba3956783a57518ed48f535dc7f4904"
+    },
+    "wrapperPins": 2605,
+    "helperPins": 2606,
+    "sourceEqualityThroughCleanup": true,
+    "ownedWrapperPIDGone": 25293,
+    "cleanup": [
+      {
+        "ownedProject": "D498-blind-hole-run01",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "rootReviewedImages": 8,
+    "nativeErrorsMax": {
+      "volumeAbsoluteMM3": 4.3655745685100555e-11,
+      "volumeRelative": 1.2525226729516761e-15,
+      "centroidAbsoluteMM": 3.907985046680551e-14,
+      "boundsAbsoluteMM": 0
+    },
+    "workerErrorsMax": {
+      "volumeRelative": 0,
+      "centroidAbsoluteMM": 2.2239394050990325e-19
+    },
+    "savedProject": {
+      "path": "/tmp/barocss-d498-workflow-run01/06-H12-D4-public-saved-opfs.bcad",
+      "sha256": "988611ced7f76a056df7a045fd3c23586517481dfadd0de4deba5ef9f4c6eca8",
+      "bytes": 1321
+    }
+  },
+  "highFinal": {
+    "status": "PASS_BOUNDED_SAVED_D498_ORDINARY_BLIND_HOLE_LIFECYCLE_AUDIT",
+    "path": "/tmp/barocss-d498-high-final01/review.json",
+    "sha256": "85c1ac74df6cb663cc0665b139635be69fee5aa42e01cc0e7f06140e3b679a57",
+    "savedChecks": 10037,
+    "productTestsSeparate": 12,
+    "command": "python3 -I /tmp/barocss-d498-high-final01/audit-saved02.py",
+    "scriptSHA256": "9715f8589e0403ceb98b1c217c008cf3764694a1f5598806d40f46f0297bfe35",
+    "execution": "Saved file/hash/scalar/topology arithmetic only. No native/oracle/SUT/build/test/browser rerun; no repository/capsule edit.",
+    "physicalErrorMaxima": {
+      "volumeAbsoluteMM3": 4.3655745685100555e-11,
+      "volumeRelative": 1.2525226729516761e-15,
+      "centroidAbsoluteMM": 3.907985046680551e-14,
+      "boundsAbsoluteMM": 0.0,
+      "density1MassAbsoluteG": 4.263256414560601e-14,
+      "maximumEndpointGapMM": 0.0,
+      "maximumPcurveLiftGapMM": 5.9580819677934555e-15,
+      "maximumCarrierResidualMM": 6.439293542825908e-15,
+      "workerVolumeRelative": 0.0,
+      "workerCentroidAbsoluteMM": 2.2239394050990325e-19
+    },
+    "observedNativeTopology": {
+      "eachSelectedState": {
+        "bodies": 1,
+        "shells": 1,
+        "faces": 9,
+        "loops": 10,
+        "coedges": 36,
+        "edges": 18,
+        "vertices": 12
+      },
+      "allEightSameObservedCounts": true,
+      "genus": 0,
+      "cavity": "flat closed floor and inwardR2 cylinder; both current circular rims checked by saved independent oracle"
+    },
+    "preservedAuditDialectStop": {
+      "path": "/tmp/barocss-d498-high-final01/audit01-stop.json",
+      "sha256": "0340cb7429c89927a023f95e435d6a82dd40666b881f05001733fcd77fc1d4b9",
+      "bytes": 659
+    },
+    "correction": "Audit02 asserts exact command names/statuses/exit0, empty diff TAP object and exactly two non-diff TAP rows. Saved-only observer guard correction; no product/native/oracle/build/test/browser rerun or physical criteria change."
+  },
+  "commands": {
+    "checks": "bash /tmp/barocss-d498-root/run-checks01.sh",
+    "seedMapCompile": "bash /tmp/barocss-d498-root/run-build-seedmap01.sh",
+    "actual": "bash /tmp/barocss-d498-root/run-studio01.sh",
+    "execution": "Node22.19.0; serial root-owned gate, load<40; all worktree writers frozen during actual through cleanup"
+  },
+  "limits": [
+    "One existing ordinary plain blind Hole lifecycle only; no new command, implementation, defect fix or geometry admission.",
+    "Native BRep and independent analytic checks establish physical truth; rounded UI/display meshes do not.",
+    "Current Worker supplies fresh V/C/massReady, not root native bounds.",
+    "Left palette partly occludes stock; full-fit/raster quality NOT_MEASURED.",
+    "No inertia/pattern/otheraxis/counterbore/countersink/tap/general clearance or whole Hole-family acceptance.",
+    "No PDF/mobile/export/download/install/paid/browserCI/release."
+  ],
+  "global": {
+    "coreReadiness": "NOT_MEASURED",
+    "legacy43": "FROZEN",
+    "holds": "UNCHANGED",
+    "#536": "OPEN_BROAD_OPERATION_FAMILY"
+  },
+  "next": {
+    "main": "PROVISIONAL_D500_ORDINARY_COUNTERBORE_SOURCE_AUDIT_IF_RETAINED_EVIDENCE_GAP",
+    "parallelD499": "REVOLVE_SOURCE_CANDIDATE_ONLY_NO_CURRENT_API_OR_NEW_COMPONENT_ADMISSION"
+  },
+  "rawArtifacts": "TMP_ONLY_NOT_COMMITTED"
+}
