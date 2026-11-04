@@ -32,6 +32,8 @@ Rows [03](../roadmap-rows/03.md), [07](../roadmap-rows/07.md), [08](../roadmap-r
 
 ### Finite P1 closeout
 
+[D538/B01 v1](09-b01-evidence-ledger.md) is accepted12/12 for the exact retained support bracket, using historical creation plus9 current consumer bindings. B02 enclosure interaction is next. This does not close all families in the table or publish an aggregate baseline percentage.
+
 Choose one declared daily part that uses an existing sketch, primary solid, cut and finishing feature. Keep a second supported family only when it covers a distinct missing boundary above. Close the selected case after numeric source/native/measurement agreement, reference retention, refusal retention, history and persistence pass. Record untested families separately; do not repeat previously qualified examples merely to increase counts. Broader P1 acceptance needs an explicit family/case ledger before anyone declares the category complete.
 
 ## P2 — Drawings and engineering exchange
@@ -66,4 +68,4 @@ Finite P3 closeout is one small static assembly with repeated and nested occurre
 
 Each case names the requirement owner, source/consumer modules, existing evidence reused, affected SMALL/FEATURE/FULL tier, actual desktop observations and numeric authority. Record PASS, FAIL, NOT_RUN and UNKNOWN separately. A retained partial checkpoint is valid work, but does not close the category.
 
-The separate CAD React, Physics and automation tracks are defined in [Platform and extensions](03-platform-and-extensions.md). They must share the same current core/Doc/refusal rules without blocking unrelated MAIN source work. Competitor feature lists are declared claims, not measured parity or speed evidence. Root's finite B01..B10 baseline starts NOT_ADJUDICATED; this document assigns no baseline result.
+The separate CAD React, Physics and automation tracks are defined in [Platform and extensions](03-platform-and-extensions.md). They must share the same current core/Doc/refusal rules without blocking unrelated MAIN source work. Competitor feature lists are declared claims, not measured parity or speed evidence. B01 v1 is now adjudicated at its explicit ledger scope. B02–B10 remain NOT_ADJUDICATED; no whole-P1 or aggregate baseline result follows.

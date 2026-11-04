@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D538: adjudicate B01 v1 support12/12 with retained creation and nine current bracket/Measure/refusal-history/project bindings](notes/support-bracket-baseline-2026-11-05/README.md).
+
 - [D537: deliver one persistent named sketch LINE contract; FULL checks and joined root Studio pass, original failures retained](notes/named-sketch-length-2026-11-05/README.md).
 
 - [D536: qualify numeric mixed driving-line Edit/Finish and preserve the oracle preparation failure](notes/mixed-line-dimension-2026-11-05/README.md).

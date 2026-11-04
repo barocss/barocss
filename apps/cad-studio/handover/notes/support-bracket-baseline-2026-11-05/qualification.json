@@ -1,0 +1,167 @@
+{
+  "decision": "D538",
+  "tier": "SMALL_VERIFICATION_ONLY",
+  "parent": "718ccff32b2556d6eaaeaf973255d8d636878a6c",
+  "branch": "local/cad-dev",
+  "productSourceChanges": 0,
+  "scope": {
+    "priority": "P1",
+    "rows": [
+      "07",
+      "08",
+      "12",
+      "16"
+    ],
+    "scenario": "B01 v1 exact D447/D448 support bracket",
+    "acceptedActionGroups": 12,
+    "declaredActionGroups": 12,
+    "basis": "retained coherent creation provenance plus current changed-chain and missing refusal/history-order supplement",
+    "freshCurrentCreationClaimed": false,
+    "B02ToB10": "NOT_ADJUDICATED",
+    "aggregateBaselinePercent": "NOT_PUBLISHED",
+    "wholeCadCore": "NOT_MEASURED"
+  },
+  "PASS": {
+    "controlledNativePythonStates": [
+      60,
+      80
+    ],
+    "controlledSourcePins": 466,
+    "actualRuns": 1,
+    "actualSnapshots": 17,
+    "actualBindings": 9,
+    "nativeCaptures": 2,
+    "wholeDocReuses": 7,
+    "sourcePins": 760,
+    "rank": 8,
+    "freeDof": 0,
+    "drivingLocks": 2,
+    "actualMeasureMM": [
+      76,
+      56
+    ],
+    "firstUndoAfterRefusal": true,
+    "currentTypedRefusal": {
+      "code": "RADIUS_EXCEEDS_FACE",
+      "edge": "n1.bottom|n1.side[e1]",
+      "radiusMM": 1000,
+      "applyDisabled": true,
+      "acceptedDocBodyHistoryRetained": true
+    },
+    "finalModelTypes": "final-model-types01.log",
+    "syntaxHelpers": 2,
+    "sourceAndSavedHighReview": "PASS",
+    "rootOriginalPngReview": true,
+    "jsonLinksDiff": "PASS"
+  },
+  "REUSED": {
+    "D447D448Creation": "same bracket ancestry, exact retained input and original receipts",
+    "D537FocusedControls": 68,
+    "D537DocsSamples": 185,
+    "D537StudioTypes": "studio-types06.log",
+    "D537ReactTypes": "react-types03.log",
+    "boundary": "eligible unchanged product source; these checks are not new D538 executions"
+  },
+  "FAIL": {
+    "newRuntimeFailures": 0,
+    "historicalD448FramingFailurePreserved": true,
+    "staticFindingsFixedBeforeRun": [
+      "pointer world ABI mismatch; retain validated old interior point0",
+      "eight-versus-nine bindings; initial antecedent excluded and both actual Measure states qualified"
+    ]
+  },
+  "inputs": {
+    "W60": {
+      "path": "/tmp/barocss-d448-remaining-run02/05-opfs-saved.bcad",
+      "bytes": 3431,
+      "sha256": "2727e7d3d726a58030657720ebc7a8d09a4dab574887dd7d2001cc42305ed16f"
+    },
+    "historicalW80Redo": {
+      "path": "/tmp/barocss-d448-reedit-run01/accepted-postpersist-width80-redo.bcad",
+      "sha256": "48cdbda5e57669f26d653077fc260eb6b853a58963bb7d2843a7abf5fd99bf43"
+    },
+    "currentOwnW80Save": {
+      "bytes": 3431,
+      "sha256": "81b54014f43b505034b7e128297ada565a9dc3d8471a3054d85a29a40fa3abb8",
+      "freshOpenExact": true,
+      "postOpenW60Resaved": false
+    }
+  },
+  "numeric": {
+    "authority": "source-validated independent Decimal support formula plus original current native rational/graph/measurement witnesses",
+    "maxVolumeRelativeError": 4.04694e-15,
+    "maxDensity1MassAbsErrorG": 1.13369e-13,
+    "maxCentroidAbsErrorMM": 2.6685e-14,
+    "nativeBudget": 1e-09,
+    "constraintLinearBudgetMM": 1e-07,
+    "constraintAngularBudgetRad": 1e-09,
+    "nativeMethods": [
+      "quadrature"
+    ],
+    "counts": {
+      "faces": 15,
+      "loops": 18,
+      "edges": 36,
+      "vertices": 24,
+      "genus": 1
+    },
+    "physicalCarrierRoles": 13,
+    "originalPcurves": 0,
+    "uvLiftBranch": "NOT_EXERCISED",
+    "fullDomainCertificate": false,
+    "density": {
+      "value": 1,
+      "unit": "g/cm3",
+      "volume": "mm3",
+      "mass": "g"
+    }
+  },
+  "custody": {
+    "actualDirectory": "/tmp/barocss-d538-studio01",
+    "actualReceiptSHA256": "5300b771b58cffe8c638631b17a4baa79214f06f42ff297dee78b752359d964c",
+    "controlledDirectory": "/tmp/barocss-d538-control01",
+    "controlledReceiptSHA256": "45a46f0e9e785173067fb033994827f617606a9ec6d3dd9143948327bc168185",
+    "sourceHashesUnchangedThroughCleanup": true,
+    "rawEvidenceCommitted": false,
+    "executedSources": {
+      "apps/cad-studio/test/bracket-baseline-browser.mjs": "c19f05cabf2211bb79a071cdfe7cc1a0f632ab72a08ee0f30fb964ee9e11d811",
+      "apps/cad-studio/test/bracket-baseline-oracles.mjs": "8c56da2bdbcb7f86fc448368426fba4403360a3f0ae1cc57007d4ab56c8863a2"
+    },
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "downloads": 0,
+    "ownedProjectRemovedAndAbsent": true,
+    "allOwnedResourcesClosed": true
+  },
+  "runtime": {
+    "node": "22.19.0",
+    "heavyJobsSerialUnderGate": true,
+    "worktreeWritesDuringActual": false,
+    "PW_DIR": "/Users/user/.cache/barocss-playwright/node_modules/playwright",
+    "CHROME": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "CAD_STUDIO_CHAT_PORT": 52391
+  },
+  "issues": {
+    "551": "OPEN: broader mixed graph/cache/reorder/topology requirements unmet",
+    "534": "OPEN: broader part families unmet",
+    "closureOrCompletionComment": false
+  },
+  "NOT_RUN": [
+    "fresh current plate/boss/Union/Hole/fourFillet UI creation",
+    "NodeEditor Apply refusal",
+    "cold-process project recovery",
+    "final dirty W60 resave",
+    "inertia/general geometry/full-domain proof",
+    "optional UV lifting",
+    "fresh focused suites/docs/build/full kernel",
+    "whole viewport automatic fit",
+    "mobile",
+    "new downloads/external readers",
+    "paid live",
+    "new CI",
+    "develop integration",
+    "release"
+  ],
+  "next": "D539 / P1 B02 coherent enclosure ledger, retained evidence and first missing interaction before new geometry work"
+}
