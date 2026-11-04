@@ -1,0 +1,336 @@
+{
+  "workId": "D535",
+  "priority": "P1",
+  "rows": [
+    "07",
+    "08",
+    "12",
+    "16"
+  ],
+  "tier": "SMALL_VERIFICATION_ONLY",
+  "parent": "b77f85c8177f3bee850cdd1b8fe9ff55a0effd86",
+  "status": "PASS_BOUNDED_SHELL_UPSTREAM_WIDTH_LIFECYCLE",
+  "models": {
+    "driver": "GPT-6.1 Sol Medium",
+    "geometryOracle": "GPT-6.1 Sol High"
+  },
+  "productChanges": 0,
+  "newVersionedSources": [
+    "apps/cad-studio/test/shell-width-lifecycle-browser.mjs",
+    "apps/cad-studio/test/shell-width-lifecycle-oracles.mjs"
+  ],
+  "oldEvidence": "D449 Wall-only/creation/history/refusal/file proof and D450 selection remain separate; no recreation or general breadth claim. Old drivers unchanged.",
+  "input": {
+    "file": "/tmp/barocss-d449-category-run01/shell-edited.bcad",
+    "sha256": "17351eb2ad01ffbafcf9c76d21e2da5030b794600ca80a55a41a0928fdbaf6c9",
+    "bytes": 582,
+    "authority": "retained open-top Shell antecedent; S physical consumer qualified at FIRST Undo"
+  },
+  "selectedStates": {
+    "S": {
+      "width": 80,
+      "wall": 3
+    },
+    "A": {
+      "width": 60,
+      "wall": 3
+    },
+    "B": {
+      "width": 60,
+      "wall": 2
+    },
+    "C": {
+      "width": 70,
+      "wall": 2
+    }
+  },
+  "semanticDeltas": [
+    "Source Width updates n0.maxX, original outline points and existing horizontal driving length0 together",
+    "Length1=40/HV/sideTags/all node IDs/n1H10/n2parent/opening/b2/nextId3 remain",
+    "No made fields introduced or removed",
+    "Wall changes n2.thickness only",
+    "Historical n2.sigs[n1.top] retains p[20,0,10]/normal[0,0,1]/size3200 under existing direct NodeEditor capture-only-missing policy"
+  ],
+  "signatureAuthority": {
+    "role": "Historical creation/identity anchor, not a current physical measurement or current-derived-cache contract",
+    "currentParent": "Separately labelled observer-derived same-actual-source two-node prefix before Shell, original derived Doc and parent BRep bytes preserved; final actual Doc/Shell never replaced.",
+    "parentTop": {
+      "W80": {
+        "centroid": [
+          20,
+          0,
+          10
+        ],
+        "area": 3200
+      },
+      "W60": {
+        "centroid": [
+          10,
+          0,
+          10
+        ],
+        "area": 2400
+      },
+      "W70": {
+        "centroid": [
+          15,
+          0,
+          10
+        ],
+        "area": 2800
+      }
+    },
+    "rimNotParentCap": true,
+    "productRepair": "None: no wrong reference or false current measurement established."
+  },
+  "controlled": {
+    "native": {
+      "status": "PASS_FOUR_NATIVE_STATES_AND_TYPED_COLLAPSE_REFUSAL",
+      "sourcePaths": 472,
+      "acceptedStates": 4,
+      "typedInvalidWidth4Wall3": "ok:false/CadPartError/PARAMETER/n2: a wall of 3 mm leaves no hollow inside this body; expected refusal"
+    },
+    "independentPython": {
+      "status": "PASS_FOUR_DECLARED_NATIVE_NUMERICAL_STATES",
+      "cases": 4,
+      "source": "Native original reads reused only after frozen inspector and producer-closure comparison",
+      "productImports": 0
+    },
+    "focusedCAD": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "testName": "shell: the section eroded exactly, open faces removed, the result still upright",
+      "scope": "One existing name-selected native Shell regression group; unmatched part-model tests NOT_RUN. Fresh build:fast JS first; no declaration/type/full build."
+    },
+    "retainedAffectedSourceChecks": "D534 editFields checks retain unchanged source scope, not additional fresh Shell tests."
+  },
+  "physical": {
+    "formula": {
+      "Vc": "(W-2*t)*(40-2*t)*(10-t)",
+      "V": "400*W-Vc",
+      "centroid": "[W/2-20,0,(2000*W-Vc*(10+t)/2)/V]",
+      "massDensity1G": "V/1000 at1g/cm3 MMGS"
+    },
+    "bounds": "[-20,-20,0]..[W-20,20,10]",
+    "cavity": "[-20+t,-20+t,t]..[W-20-t,20-t,10]",
+    "expectedVolumesMM3": {
+      "S": 14388,
+      "A": 11148,
+      "B": 7872,
+      "C": 8992
+    },
+    "native": "One closed connected genus0 material solid,11faces/12loops/24edges/16vertices observed, default/strict/output valid",
+    "independentAuthority": [
+      "No product imports",
+      "Literal box minus open cavity formulas",
+      "Exact Fraction oriented boundary integration over original face/inner loops",
+      "Original topology/trim/twin/ownership/connectivity traversal",
+      "Outer/cavity plane roles/floor/top annular rim with exact areas/perimeters",
+      "Original planar D1/optional pcurve lift; no synthesized fields",
+      "Independent original parent-cap trim area/centroid separate from stored signature"
+    ],
+    "maximumActualVolumeRelativeError": 1.6174956586408784e-15,
+    "maximumActualCentroidAbsoluteMM": 3.552713678800501e-14,
+    "maximumGeometryWitnessErrors": {
+      "maximumEndpointGapMM": 0,
+      "maximumPcurveLiftGapMM": 8.140289677804162e-15,
+      "maximumCarrierResidualMM": 0,
+      "maximumIndependentProbePointGapMM": 0,
+      "maximumIndependentD1ComponentGapMM": 1.4210854715202004e-14,
+      "maximumIndependentEdgeProbeGapMM": 0,
+      "maximumOutwardNormalComponentError": 0
+    },
+    "budgets": {
+      "volumeRelative": 1e-09,
+      "centroidBoundsBoundaryCarrierD1EndpointPcurveAbsoluteMM": 1e-09,
+      "unitNormalComponent": 1e-09,
+      "density1MassAbsoluteG": 1e-09
+    },
+    "limits": "Selected planar boundary/finite witnesses only; no general Shell/offset/freeform, inertia, solver-completeness, displayed-catalog-mass or manufacturing certificate. Internal cutter extension is not material geometry.",
+    "maximumActualDensity1MassAbsoluteG": 1.42109e-14
+  },
+  "selectedActionGroups": [
+    {
+      "action": "source Width80 to60 at Wall3",
+      "status": "PASS"
+    },
+    {
+      "action": "source Width4 Apply collapse refusal retains A",
+      "status": "PASS"
+    },
+    {
+      "action": "FIRST Undo after refusal restores S80/3",
+      "status": "PASS"
+    },
+    {
+      "action": "Redo exact A60/3",
+      "status": "PASS"
+    },
+    {
+      "action": "Wall3 to2 at Width60",
+      "status": "PASS"
+    },
+    {
+      "action": "own project Save B",
+      "status": "PASS"
+    },
+    {
+      "action": "Close/same-context reload/fresh project Open B",
+      "status": "PASS"
+    },
+    {
+      "action": "post-Open source Width60 to70 C",
+      "status": "PASS"
+    }
+  ],
+  "rootActualStudio": {
+    "status": "PASS",
+    "snapshots": 14,
+    "contexts": 1,
+    "physicalBindings": 8,
+    "finalShellCaptures": 4,
+    "separateDerivedParentPrefixObservations": 4,
+    "exactWholeDocPacketReuses": 4,
+    "sourcePaths": 757,
+    "sourceUnchangedThroughCleanup": true,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "sourceChanges": 0,
+    "downloads": 0,
+    "refusalObservation": [
+      {
+        "label": "source-width4-shell-collapse-Apply-refusal",
+        "actualReason": "The wall is too thickThe design was not changed. Adjust the values and try again.Detailsa wall of 3 mm leaves no hollow inside this body",
+        "nativeCategoryAuthority": "PARAMETER from focused native control; GUI records actual specific reason",
+        "previewClaim": "NONE"
+      }
+    ],
+    "ownSave": {
+      "namespace": "projects/D535-d7b01a9c-fa6d-4cd5-9ab3-0a9cf6a5b498",
+      "path": "D535-shell-width.bcad",
+      "bytes": 1525,
+      "sha256": "aa9550c0aeeb65c3b820b38c21dcf26a8422f79282ff9aaff2fe8974ee05a13b",
+      "exactAcceptedDoc": true
+    },
+    "rootViewed": [
+      "02-A-width60-wall3",
+      "04-source-width4-Apply-refused",
+      "11-own-project-reopened-B60-wall2",
+      "13-C-postOpen-width70-wall2"
+    ],
+    "cleanup": [
+      {
+        "ownedProject": "D535-d7b01a9c-fa6d-4cd5-9ab3-0a9cf6a5b498",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "exactExecutedSourcesPreserved": true,
+    "persistenceLimits": "B persisted/reopened, C accepted subsequent in-memory re-edit; same-context reload, not cold process restart/C resave/standalone verifyDocumentFile rematching."
+  },
+  "checks": {
+    "syntaxBothNewModules": "PASS",
+    "finalModelTypesAfterLastDriverEdit": "PASS",
+    "diff": "PASS",
+    "HighSavedReview": "PASS bounded original Doc/main BRep/derived parent bytes, current physical geometry and independent saved-boundary arithmetic; no product/native/browser replay."
+  },
+  "fail": [],
+  "notRun": [
+    "Original Shell creation/old Wall-only lifecycle replay",
+    "General Shell/offset/thicken/fitter/#2266/other openings/curved admission",
+    "Full-domain/inertia/displayed-catalog-mass/solver-completeness certificate",
+    "Cold-process persistence/C resave/standalone saved-file rematching",
+    "Full kernel/Studio build, packed/declaration consumers, fresh OCP/external reader/download",
+    "Mobile/new CI/paid live/release/develop integration"
+  ],
+  "wholeCad": "NOT_MEASURED",
+  "B01_B10": "NOT_ADJUDICATED",
+  "sourcePins": {
+    "apps/cad-studio/test/shell-width-lifecycle-browser.mjs": "ba4504972e9ea2e1514680ae3a3f0a6e317fb358f504344dba1877569d8f966c",
+    "apps/cad-studio/test/shell-width-lifecycle-oracles.mjs": "6fbe5b9829c01b216c2eafa57f5d4c7c4c0b0e83721ae5e3b7e7896cdb767c2b",
+    "apps/cad-studio/test/flow-helper.mjs": "3aaf23e8a0078a9411b8f8d2bbbc05e42a304a89cf96e59bf2faae3d313cfe6c",
+    "packages/barocss-cad-model/src/app/editFields.ts": "86a0017245a75c023e6eb23abfbda7716c055e6dfa139e79f00384afb7c3c50c",
+    "packages/barocss-cad-model/src/sketch/reopen.ts": "cf5a9ccd77ef516bdef59af2f69be98b7d3be43c3393d74a071e3d4931b0ea6a",
+    "packages/barocss-cad-model/src/engine/references.ts": "850e1a70fd6f7631e5fcb150c0beb3efd94d94d86e669ce0881db707d0564cd9",
+    "packages/barocss-cad-model/src/engine/part.ts": "2f92406182ee602b66f414f0ccf9bf15311298386b92aae88c6b3a52b8ff2e2c",
+    "packages/barocss-cad/src/part/part-shell.ts": "1c1f62ff6f33ddedd7dc5758e0c746d14327a92470f906ccfce33cd68b6bcc86"
+  },
+  "externalEvidence": [
+    {
+      "path": "/tmp/barocss-d535-admission01/receipt.json",
+      "sha256": "261572ac0e7d65f8cbfd844432b72512654baee7f915ee7b69d218a2d283613f"
+    },
+    {
+      "path": "/tmp/barocss-d535-admission01/run.mjs",
+      "sha256": "dba27588a613204d19b069e244d6f3829a0ac32b7d25208f62a6af83f34a1b0a"
+    },
+    {
+      "path": "/tmp/barocss-d535-admission01/executed-oracles-snapshot.mjs",
+      "sha256": "9ccec4e0e3605b9d0b651253ad92a43a283ca0465fe801a752fcd9c0995dc28f"
+    },
+    {
+      "path": "/tmp/barocss-d535-admission01/run.log",
+      "sha256": "77a6a0302a696e6129a78a942862e18a1e857c354f99c0dbd589a2a1894880ed"
+    },
+    {
+      "path": "/tmp/barocss-d535-oracle01/receipt.json",
+      "sha256": "1875b49b7f0a1da8ed6d572c2ecfa0db78a71202f36c09dead67cef39f5e1b07"
+    },
+    {
+      "path": "/tmp/barocss-d535-oracle01/run.mjs",
+      "sha256": "aeaf72d3c1ccabaab4c14b507a2006c113cb9afdfdfb5349f095343a96f86ab5"
+    },
+    {
+      "path": "/tmp/barocss-d535-oracle01/executed-oracles.mjs",
+      "sha256": "6fbe5b9829c01b216c2eafa57f5d4c7c4c0b0e83721ae5e3b7e7896cdb767c2b"
+    },
+    {
+      "path": "/tmp/barocss-d535-oracle01/run.log",
+      "sha256": "4454ca1601931a7129e649d85145f09d332a8506760b922b928c3184f4262d80"
+    },
+    {
+      "path": "/tmp/barocss-d535-checks01/cad-build-fast.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d535-checks01/shell-focused.log",
+      "sha256": "260ef275803647d257b53cc4d10647621c1dc0ed2141778451e1dbdaf43af165"
+    },
+    {
+      "path": "/tmp/barocss-d535-checks01/browser-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d535-checks01/oracle-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d535-checks01/final-model-types.log",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "path": "/tmp/barocss-d535-studio01/receipt.json",
+      "sha256": "2ddb980ebd4388211187552bf76cbd0a7adb6625f14b533d294745e2da028f0b"
+    },
+    {
+      "path": "/tmp/barocss-d535-studio01/executed-shell-width-lifecycle-browser.mjs",
+      "sha256": "ba4504972e9ea2e1514680ae3a3f0a6e317fb358f504344dba1877569d8f966c"
+    },
+    {
+      "path": "/tmp/barocss-d535-studio01/executed-shell-width-lifecycle-oracles.mjs",
+      "sha256": "6fbe5b9829c01b216c2eafa57f5d4c7c4c0b0e83721ae5e3b7e7896cdb767c2b"
+    },
+    {
+      "path": "/tmp/barocss-d535-studio01/10-own-native-opfs-save.bcad",
+      "sha256": "aa9550c0aeeb65c3b820b38c21dcf26a8422f79282ff9aaff2fe8974ee05a13b"
+    },
+    {
+      "path": "/tmp/barocss-d535-studio01-meta/run.log",
+      "sha256": "f95d6a8890f7a233006a5f7a48bb17744f0ead5a049f75da9febf0e06d62cea1"
+    }
+  ]
+}
