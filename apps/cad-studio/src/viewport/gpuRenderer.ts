@@ -1,7 +1,7 @@
 // The studio viewport on the @barocss/gpu viewer (WebGPU): the same interface as the WebGL2 Renderer, so
 // the viewport keeps its own camera, pointer handling and overlays. Bodies are lit meshes with their edges
 // as lines; hovered and selected faces are vertex colours, hovered and selected edges a wider line on top,
-// selected bodies an outline; ghost bodies are see-through. Picking is on the CPU (synchronous for hover).
+// selected bodies their native edge lines; ghost bodies are see-through. Picking is on the CPU (synchronous for hover).
 // With render settings (the Render workspace) bodies take their appearances, and the lights, environment
 // and ground come from the settings instead of the theme's modelling look.
 import { instanceBodyLit, instanceLit, parseInstanceSelection, type ParsedInstanceSelection } from './instanceSelection';
@@ -609,6 +609,10 @@ export class GpuRenderer implements ViewRenderer {
     const mode = this.displayMode.effective, lineOnly = lineDisplayMode(mode);
     this.bodies.forEach((b, bi) => {
       const faceState = faceStateOf(view, bi);
+      // A closed smooth body can have no native edge lines. Tint its faces so a body pick remains visible.
+      const bodyFaceState = !b.edges && !view.ghostBodies.has(bi) && !view.isolatedInstances?.length && !this.contactLinks.has(BASE)
+        ? view.selectedBodies.includes(bi) ? 2 : view.hoverBody === bi ? 1 : 0 : 0;
+      if (bodyFaceState) for (const face of b.result.mesh.faceOfVertex) faceState.set(face, Math.max(bodyFaceState, faceState.get(face) ?? 0));
       // Hovered and selected edges: their segments again, wider and in the accent colour.
       const edgeState = edgeStateOf(view, bi);
       // (Only a body whose look changed is painted again: a hover repaints one body, not all.)
@@ -645,14 +649,17 @@ export class GpuRenderer implements ViewRenderer {
       // (While the mould's halves show, picks reach only them, G6.)
       const halvesOn = !!this.mould?.halves.length;
       b.surface.pickable = !ghost && !isolated && !hidden && !halvesOn; b.surface.visible = !hidden && !(isolated && lineOnly);
-      b.surface.outline = lineOnly || isolated ? null : this.contactLinks.has(BASE) ? CONTACT : view.selectedBodies.includes(bi) ? this.theme.selection : view.hoverBody === bi ? this.theme.selectionHover : null;
+      // Body picks use the same native edge centerlines as the normal display.
+      // Keep the surface outline for contact warnings only; hover must not restore a halo.
+      b.surface.outline = lineOnly || isolated ? null : this.contactLinks.has(BASE) ? CONTACT : null;
       const moved = view.transforms?.get(bi) ?? translation(offset);
       for (const mesh of [b.surface, b.edges, b.highlight]) if (mesh) mesh.transform = moved;
       // (Its hatch on the exact section's cut, G19.3/4: moved with it, faint when it is.)
       const hatch = this.hatchLines.get(bi);
       if (hatch) { hatch.transform = moved; hatch.visible = !hidden && !lineOnly; hatch.material = { opacity: HATCH_OPACITY * (ghost ? GHOST_OPACITY : 1) * (isolated ? FADED : 1) }; }
       const edgeStyle = { lineOver: mode === 'wireframe', lineDash: null, lineHidden: mode === 'hidden-lines-dashed' ? HIDDEN_LINE_SHARE : 0, lineHiddenDash: mode === 'hidden-lines-dashed' ? HIDDEN_DASH : null };
-      if (b.edges) { b.edges.material = { opacity: (ghost ? GHOST_OPACITY : EDGE_OPACITY) * (isolated ? FADED : 1), ...edgeStyle }; b.edges.pickable = !ghost && !isolated && !hidden && !halvesOn; b.edges.visible = !hidden && (this.settings ? this.settings.environment.edges : true); }
+      const bodyState = !isolated && !ghost && !this.contactLinks.has(BASE) ? view.selectedBodies.includes(bi) ? 2 : view.hoverBody === bi ? 1 : 0 : 0;
+      if (b.edges) { b.edges.material = { color: bodyState === 2 ? this.theme.selection : bodyState === 1 ? this.theme.selectionHover : this.theme.edge, lineWidth: bodyState === 2 ? SELECTION_EDGE_WIDTH : bodyState === 1 ? 2.2 : 1.2, opacity: (ghost ? GHOST_OPACITY : EDGE_OPACITY) * (isolated ? FADED : 1), ...edgeStyle }; b.edges.pickable = !ghost && !isolated && !hidden && !halvesOn; b.edges.visible = !hidden && (bodyState > 0 || (this.settings ? this.settings.environment.edges : true)); }
       if (b.highlight) { b.highlight.material = edgeStyle; b.highlight.visible = !hidden && !isolated; }
     });
     const isolationKey = JSON.stringify(view.isolatedInstances ?? null);
@@ -1033,11 +1040,14 @@ export class GpuRenderer implements ViewRenderer {
     const r = this.settings, agreed = new Map<Shape, string>(), want: { it: PlacedInstance; bi: number; share: boolean }[] = [];
     for (const it of this.instances) {
       const look = r ? appearanceOf(r, 'inst:' + it.id) : null;
+      let sourceBodies: InstanceItem['sourceBodies'];
+      for (const item of this.lastItems) if (item.id === it.id) { sourceBodies = item.sourceBodies; break; }
       it.shapes.forEach((shape, bi) => {
         if (!shape) return;
         const mine = it.looks[bi], base: Vec3 = look ? [1, 1, 1] : mine?.color ?? this.theme.base, key = JSON.stringify(base);
         // (Copies drawing one geometry agree on its colour; one with face colours of its own paints a copy of its own.)
-        const own = !!look && (!!look.texture || !!look.shader) || !!mine?.faces || this.instanceFaces.some(f => f.id === it.id && f.body === bi);
+        const edgeLessSelected = !it.bodies[bi].mesh.edgeLines.length && !this.fadedInstance(it.id) && !this.contactLinks.has(it.id) && instanceBodyLit(this.litBodies, it.id, bi, sourceBodies);
+        const own = edgeLessSelected || !!look && (!!look.texture || !!look.shader) || !!mine?.faces || this.instanceFaces.some(f => f.id === it.id && f.body === bi);
         if (!own && !agreed.has(shape)) agreed.set(shape, key);
         want.push({ it, bi, share: !own && agreed.get(shape) === key });
       });
@@ -1083,13 +1093,14 @@ export class GpuRenderer implements ViewRenderer {
         // Faded line-only context contributes edges, not an occluder in front of the focus.
         m.visible = !(faded && lineOnly) && !hidden;
         m.material = { colorWrite: !lineOnly, opacity: (mode === 'x-ray' ? Math.min(XRAY_OPACITY, m.material.opacity ?? 1) : m.material.opacity ?? 1) * (faded ? FADED : 1) };
-        m.outline = lineOnly || faded ? null : this.contactLinks.has(it.id) ? CONTACT : instanceBodyLit(this.litBodies, it.id, bi, sourceBodies) ? this.theme.selection : null;
+        m.outline = lineOnly || faded ? null : this.contactLinks.has(it.id) ? CONTACT : null;
         // Face colours as the bodies' (paint): the base, picked faces mixed with the accent.
         const mesh = this.instanceMeshes.get(it.id)?.[bi];
         if (!mesh) return;
         const base: Vec3 = look ? [1, 1, 1] : mine?.color ?? this.theme.base, on = mix(base, this.theme.selection, SELECTION_MIX), picked = new Set(this.instanceFaces.filter(f => f.id === it.id && f.body === bi).map(f => f.face));
         // (Face colours of the look, over the body's: not under a render appearance, as the part's own bodies'.)
         const faces = look ? null : faceColorsOfMesh(mine, mesh);
+        if (!mesh.edgeLines.length && !faded && !this.contactLinks.has(it.id) && instanceBodyLit(this.litBodies, it.id, bi, sourceBodies)) for (const face of mesh.faceOfVertex) picked.add(face);
         // (Its cap as the CPU's section painted it: an instance's cut face was never selected, the base colour; G2b.)
         m.capColor = base;
         // (A shared geometry: painted once in its sharers' base colour — none of them has picked faces.)
@@ -1110,7 +1121,11 @@ export class GpuRenderer implements ViewRenderer {
         for (let v = 0; v < colors.length / 3; v++) { const f = mesh.faceOfVertex[v]; colors.set(picked.has(f) ? onFace?.get(f) ?? on : faces?.get(f) ?? base, v * 3); }
         m.geometry.setColors(colors);
       });
-      it.edges.forEach((e, k) => { e.material = { color: this.theme.edge, opacity: faded ? FADED : 1, ...edgeStyle }; e.visible = (env ? env.edges : true) && !it.looks[it.edgeBody[k]]?.hidden; });
+      it.edges.forEach((e, k) => {
+        const bi = it.edgeBody[k], selected = !faded && !this.contactLinks.has(it.id) && instanceBodyLit(this.litBodies, it.id, bi, sourceBodies);
+        e.material = { color: selected ? this.theme.selection : this.theme.edge, lineWidth: selected ? SELECTION_EDGE_WIDTH : 1.2, opacity: faded ? FADED : 1, ...edgeStyle };
+        e.visible = (selected || (env ? env.edges : true)) && !it.looks[bi]?.hidden;
+      });
       // Cosmetic thread rings are not native CAD edges.
       if (it.threads) { it.threads.material = { color: this.theme.edge, opacity: faded ? THREAD_OPACITY * FADED : THREAD_OPACITY }; it.threads.visible = !lineOnly; }
     }

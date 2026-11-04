@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D514: align body and instance selection to existing native edge centerlines, retain edge-less face tint; six tests and root 15-state Studio validation pass](notes/native-edge-selection-2026-11-04/README.md).
+
 - [D513: fix nested card source/placement freshness; 13 affected tests and root Studio revision/Undo/Redo pass with zero mixed samples](notes/nested-card-freshness-2026-11-04/README.md).
 
 - D512 qualifies the existing C4 nested selection/card and fresh BOM across the retained parent revision: 2/2 public groups, two Docs, two fresh native captures and two bindings. The sub1/p2 card retains its path while position z0→5 and folded face n3.top→n4.top update; BOM changes nested Qty2 to Qty1/1. Five fresh tests and final High saved review pass. No product change, ideal Hole or aggregate mass-precision certificate; core NOT_MEASURED and HOLDs remain. [Evidence](notes/nested-selection-bom-revision-2026-11-04/README.md).

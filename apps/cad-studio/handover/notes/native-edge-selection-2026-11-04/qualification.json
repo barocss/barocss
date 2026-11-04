@@ -1,0 +1,192 @@
+{
+  "workId": "D514",
+  "status": "PASS_BOUNDED_NATIVE_EDGE_SELECTION",
+  "tier": "SMALL",
+  "date": "2026-11-04",
+  "models": {
+    "implementationAndTests": "GPT-6.1 Sol Medium",
+    "actualStudio": "root agent"
+  },
+  "sourcePins": {
+    "apps/cad-studio/src/viewport/gpuRenderer.ts": "cc05ab2520cc48c10f00cf58944454398ffda4e559a88c6f2923766694d18403",
+    "apps/cad-studio/test/selection-edge.test.ts": "fd42cca49ce9e3e359a46ac31b168353289b97483568cedb9486eae8ae563f9c"
+  },
+  "checks": {
+    "rendererMethodTests": {
+      "status": "PASS",
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skip": 0
+    },
+    "scopedLint": {
+      "status": "PASS",
+      "errors": 0,
+      "warnings": 12,
+      "warningRule": "@typescript-eslint/no-explicit-any"
+    },
+    "studioTypes": "PASS_CURRENT_SOURCE_AFTER_LAST_TEST_EDIT",
+    "modelTypesFinal": "PASS_CURRENT_SOURCE_AFTER_LAST_TEST_EDIT",
+    "diffCheck": "PASS_SHARED_CURRENT_CHECKS"
+  },
+  "actual": {
+    "status": "PASS",
+    "desktopOnly": true,
+    "states": [
+      "01-unselected",
+      "02-body-selected",
+      "03-body-deselected",
+      "04-body-hover",
+      "05-hover-cleared",
+      "05a-render-no-edges-body",
+      "05b-render-no-edges-cleared",
+      "06-face-selected",
+      "07-edge-selected",
+      "08-instance-selected",
+      "08a-render-no-edges-instance",
+      "09-instance-deselected",
+      "10-sphere-clear",
+      "11-sphere-body-selected",
+      "12-sphere-body-deselected"
+    ],
+    "stateCount": 15,
+    "sourcePins": 758,
+    "sourceEqualBeforeAfterCleanupCurrent": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "changes": 0,
+    "downloads": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "rootViewedFixedPNGs": 8,
+    "rootViewedOriginalSelectedPNG": 1,
+    "alignment": "PASS_SAME_NATIVE_EDGE_GEOMETRY_AND_ROOT_VISUAL_COMPARISON",
+    "sphereNativeEdgeSegments": 0,
+    "sphereEdgeLessFallback": "ELIGIBLE",
+    "independentPhysicalOracle": "NOT_RUN_NOT_REQUIRED_DISPLAY_ONLY",
+    "pixelMetric": "NOT_RUN_OPTIONAL_PIL_UNAVAILABLE"
+  },
+  "preservedFailures": [
+    {
+      "run": "initialTestFailure",
+      "status": "FAIL",
+      "pass": 5,
+      "fail": 1,
+      "cause": "Test rig omitted constructor-equivalent instanceFaces: []; fixture corrected only."
+    },
+    {
+      "run": "originalStudioFailure",
+      "status": "FAIL",
+      "passingStates": 5,
+      "cause": "Harness requested Render Edges before opening the Scene tab. Original selected image retained; no passing baseline replay."
+    }
+  ],
+  "commands": [
+    {
+      "cwd": "repository root",
+      "argv": [
+        "node",
+        "apps/cad-studio/scripts/test.mjs",
+        "selection-edge"
+      ]
+    },
+    {
+      "cwd": "repository root",
+      "argv": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "apps/cad-studio/src/viewport/gpuRenderer.ts",
+        "apps/cad-studio/test/selection-edge.test.ts"
+      ]
+    },
+    {
+      "cwd": "apps/cad-studio",
+      "argv": [
+        "node",
+        "../../node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ]
+    },
+    {
+      "cwd": "packages/barocss-cad-model",
+      "argv": [
+        "node",
+        "../../node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "."
+      ]
+    },
+    {
+      "cwd": "repository root",
+      "environment": {
+        "D514_SOURCE_FROZEN": "1",
+        "PW_DIR": "/Users/user/.cache/barocss-playwright/node_modules/playwright",
+        "CHROME": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+      },
+      "argv": [
+        "node",
+        "/tmp/barocss-d514-selection-candidate04/studio-driver.mjs",
+        "fixed",
+        "/tmp/barocss-d514-studio-fixed-run01"
+      ],
+      "execution": "root heavy-gate-owned serial run"
+    }
+  ],
+  "artifacts": {
+    "fixedStudio": {
+      "path": "/tmp/barocss-d514-studio-fixed-run01/receipt.json",
+      "sha256": "62288844951278504510f349d1fb1e31eaff0b40d2c1931bb9966000131c45dd"
+    },
+    "rootVisualReview": {
+      "path": "/tmp/barocss-d514-root/d514-actual-root-review.json",
+      "sha256": "dc59d1a53c894dbf1e719ce8cd8ad5d8d6f79194ea0b5a252493dcd68088c573"
+    },
+    "tests": {
+      "path": "/tmp/barocss-d514-root/checks02/tests.log",
+      "sha256": "ca931d29d4394edd9e8ab903e78e0b6e164c14db3bb07597b588e6acf961aaf7"
+    },
+    "lint": {
+      "path": "/tmp/barocss-d514-root/checks02/lint.log",
+      "sha256": "2132dcd3d740fdd92c5e84215fb1813de86d7d4314b1c0be36dd21698a4af976"
+    },
+    "initialTestFailure": {
+      "path": "/tmp/barocss-d514-root/checks01/tests.log",
+      "sha256": "7ced62d17153b0e29b3f13b3da95893882e2d046bc30beecc936969047955419"
+    },
+    "originalStudioFailure": {
+      "path": "/tmp/barocss-d514-studio-original-run01/receipt.json",
+      "sha256": "e78503202ae9d1de7449d91e70f692a1f437091b7f4e66651f882c98a726544f"
+    },
+    "finalTypes": {
+      "path": "/tmp/barocss-d513-checks01/receipt.json",
+      "sha256": "a0f083cee31a91e3e6f2331277e23c99ee47a66b0fae0db27197d7023766cfc5"
+    },
+    "actualDriver": {
+      "path": "/tmp/barocss-d514-selection-candidate04/studio-driver.mjs",
+      "sha256": "7748f0c0b5464080c51d298b5b64b85c7c01391cbdd945080fa5c5865dfa73f6"
+    }
+  },
+  "limits": [
+    "Finite desktop Studio flow and manual source/visual alignment only; no quantified pixel, general AA, all silhouettes or full occlusion certificate.",
+    "Native edge-less bodies use existing face tint; no invented smooth contour geometry.",
+    "Explicit face/edge paths, native depth/clipping/display styles and red contact outline policy retained; no kernel/public API/dependency change.",
+    "Issue #529 remains open with eight unchecked items; no issue write or closure.",
+    "D509 checkpoint preserved; its docs actual remains NOT_RUN. Core NOT_MEASURED and existing HOLDs remain.",
+    "Remote publication/release not established by this receipt."
+  ],
+  "priority": "C5",
+  "rows": [
+    6,
+    15
+  ],
+  "parentHEAD": "bab82d61d",
+  "handoverNavigation": {
+    "status": "PASS",
+    "newBroken": 0,
+    "sha256": "49a372b6700bf851d577002b54e76ae4ee7d610dfbccd385cc1497a49ee11a1d"
+  }
+}
