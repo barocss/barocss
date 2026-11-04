@@ -1,0 +1,312 @@
+{
+  "format": "barocss-physics-stack-source-provenance-v1",
+  "status": "AUTHOR_SOURCE_HASH_ONLY_NOT_EXECUTED",
+  "headAtTask": "8769c8a00",
+  "entry": "packages/barocss-physics/src/stack/prepare-step.ts",
+  "directNormalEntry": "packages/barocss-physics/src/stack/normal-solver.ts",
+  "contract": {
+    "path": "examples/physics-stack-library-2276/CONTRACT.md",
+    "bytes": 4767,
+    "sha256": "3f3b5d16fff385163caac7e2ea8fd7a35ae6d2b7ac2ba4999f6bec0a771be985"
+  },
+  "files": [
+    {
+      "target": "packages/barocss-physics/src/stack/contact-types.ts",
+      "targetPin": {
+        "bytes": 775,
+        "sha256": "7191984e5ee106de91c68ce4efb6c40afe8f5122b7a53e0ad2c5762191edfb47"
+      },
+      "source": "examples/physics-rigid-feature-geometry/contact-types.ts",
+      "sourcePin": {
+        "bytes": 798,
+        "sha256": "17fc4211862bd1ab665b26c11b3e1caed17e0b702e44964e03da3841c149bac9"
+      },
+      "change": "IMPORT_PATHS_ONLY"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/edge-contact.ts",
+      "targetPin": {
+        "bytes": 3034,
+        "sha256": "58f1189ab830195628fe485e7885351595a86bbdbe6341d7b02ea9ff63aa9184"
+      },
+      "source": "examples/physics-rigid-feature-geometry/edge-contact.ts",
+      "sourcePin": {
+        "bytes": 3121,
+        "sha256": "09d60f75a3c699cfb9cf587e40d4b809fe42cc63221292bc5693deb25950220b"
+      },
+      "change": "IMPORT_PATHS_ONLY"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/face-contact.ts",
+      "targetPin": {
+        "bytes": 5605,
+        "sha256": "37dcbd7601ad05b403207e5030dd04c64582169eed59631338cd41942e1c1063"
+      },
+      "source": "examples/physics-rigid-feature-geometry/face-contact.ts",
+      "sourcePin": {
+        "bytes": 5692,
+        "sha256": "f54dc71a5ef823a4ab1cde07d8d6af08abc0b098a50dca2466d0b84fc3bdca6b"
+      },
+      "change": "IMPORT_PATHS_ONLY"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/full-pair-apply.ts",
+      "targetPin": {
+        "bytes": 3447,
+        "sha256": "d4c7e503337e318d1dae9d2f93ad7310e078f2123159894542014a4945ef3f04"
+      },
+      "source": "examples/physics-rigid-full-pair-position-world/full-pair-apply.ts",
+      "sourcePin": {
+        "bytes": 3534,
+        "sha256": "72d770ac19454bf9d627e7d2bc0a2f808b15110f60a7cb7714292a98a1e69b68"
+      },
+      "change": "IMPORT_PATHS_ONLY"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/full-pair-core.mjs",
+      "targetPin": {
+        "bytes": 6177,
+        "sha256": "75941f67d5359c3734a68c93dd571313bdcab030a170205dee6e22d592119a46"
+      },
+      "source": "examples/physics-rigid-full-pair-position-world/full-pair-core.mjs",
+      "sourcePin": {
+        "bytes": 6177,
+        "sha256": "75941f67d5359c3734a68c93dd571313bdcab030a170205dee6e22d592119a46"
+      },
+      "change": "EXACT_SOURCE_BYTES"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/full-pair-exact.mjs",
+      "targetPin": {
+        "bytes": 7675,
+        "sha256": "258732a572bd6b2d1606db97cd2b637bfd252ce5fb59ee31cb30b0e9d298cd32"
+      },
+      "source": "examples/physics-rigid-full-pair-position-world/full-pair-exact.mjs",
+      "sourcePin": {
+        "bytes": 7675,
+        "sha256": "258732a572bd6b2d1606db97cd2b637bfd252ce5fb59ee31cb30b0e9d298cd32"
+      },
+      "change": "EXACT_SOURCE_BYTES"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/full-pair-input.mjs",
+      "targetPin": {
+        "bytes": 5935,
+        "sha256": "294a5ace022a05ca93cf269c2c9f3faa7f22f9715bc8f59a2956b2cb04078027"
+      },
+      "source": "examples/physics-rigid-full-pair-position-world/full-pair-input.mjs",
+      "sourcePin": {
+        "bytes": 5935,
+        "sha256": "294a5ace022a05ca93cf269c2c9f3faa7f22f9715bc8f59a2956b2cb04078027"
+      },
+      "change": "EXACT_SOURCE_BYTES"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/full-pair-linear.mjs",
+      "targetPin": {
+        "bytes": 6168,
+        "sha256": "f12c0243c18178a138b79faaac29b14e61714a42376c6c88c2b8757eef82b280"
+      },
+      "source": "examples/physics-rigid-full-pair-position-world/full-pair-linear.mjs",
+      "sourcePin": {
+        "bytes": 6168,
+        "sha256": "f12c0243c18178a138b79faaac29b14e61714a42376c6c88c2b8757eef82b280"
+      },
+      "change": "EXACT_SOURCE_BYTES"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/full-pair-phase.ts",
+      "targetPin": {
+        "bytes": 5854,
+        "sha256": "ad4c4e8d014528eac7aadb0dbc86ef9d376d2c9a7f0e817cccf19d661630802d"
+      },
+      "source": "examples/physics-rigid-full-pair-position-world/full-pair-phase.ts",
+      "sourcePin": {
+        "bytes": 5718,
+        "sha256": "ef27019cd19a1efbd613e683daca7360e06fe53dc90596c2169e63af49bf2cd6"
+      },
+      "change": "LOCAL_IMPORTS_REMOVE_SOLVER_CALLBACK_AND_GLOBAL_OBSERVER_ADD_DETACHED_TYPED_FAILURE"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/full-pair-rows.ts",
+      "targetPin": {
+        "bytes": 8155,
+        "sha256": "46ff000e6e9bf3b21891d459dcf3eb1390728e039d09b6f548e154a728444361"
+      },
+      "source": "examples/physics-rigid-full-pair-position-world/full-pair-rows.ts",
+      "sourcePin": {
+        "bytes": 8285,
+        "sha256": "110b81520702f8bffb95c15c2ce85b94a88880d9d8d0590b41b8940f4040b937"
+      },
+      "change": "IMPORT_PATHS_ONLY"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/full-pair-solver.d.mts",
+      "targetPin": {
+        "bytes": 947,
+        "sha256": "c1c5c954b0664b3e75ff800d8b9fee7c237a44c6c72d64020428e377cc1a81e4"
+      },
+      "change": "NEW_TYPED_PHASE_OR_LOCAL_DECLARATION"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/full-pair-solver.mjs",
+      "targetPin": {
+        "bytes": 9940,
+        "sha256": "84e32cae07dbdd295e46af04691f0bf37815d77e73e2b5edfb75b0739e104432"
+      },
+      "source": "examples/physics-rigid-full-pair-position-world/full-pair-solver.mjs",
+      "sourcePin": {
+        "bytes": 9940,
+        "sha256": "84e32cae07dbdd295e46af04691f0bf37815d77e73e2b5edfb75b0739e104432"
+      },
+      "change": "EXACT_SOURCE_BYTES"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/full-pair-types.ts",
+      "targetPin": {
+        "bytes": 3165,
+        "sha256": "7cd7a0bb0c22b46e1ab0e82749b5afeeec297c236832fdb6badd69ffaa48d20f"
+      },
+      "source": "examples/physics-rigid-full-pair-position-world/full-pair-types.ts",
+      "sourcePin": {
+        "bytes": 3188,
+        "sha256": "b97bc9c33b27319fd51b5d9dc5e1e4cf33f9fb0f7003d76b60b3d2fa01478709"
+      },
+      "change": "IMPORT_PATHS_ONLY"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/geometry-adapter.ts",
+      "targetPin": {
+        "bytes": 1969,
+        "sha256": "c5dd9d06cba7409904e447189d3fadcbc312905c697d99ed47edcd12fb9e04d6"
+      },
+      "source": "examples/physics-rigid-feature-contact-reference/geometry-adapter.ts",
+      "sourcePin": {
+        "bytes": 2088,
+        "sha256": "6ddb12ae49c887f03e9386b14e8af0e9f0ebc6a147fa45adf63998f9e51ab05e"
+      },
+      "change": "IMPORT_PATHS_ONLY"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/geometry.ts",
+      "targetPin": {
+        "bytes": 1984,
+        "sha256": "9a6e025a7443f324dc12d94f89240e52ef2aabdfed7f8886e6d2fd47e7b98c12"
+      },
+      "source": "examples/physics-rigid-feature-geometry/geometry.ts",
+      "sourcePin": {
+        "bytes": 2103,
+        "sha256": "c581fd7eef4d615eb2c9fbee4fea7f13918548261fe404fde6b7e4432865d694"
+      },
+      "change": "IMPORT_PATHS_ONLY"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/normal-bridge.ts",
+      "targetPin": {
+        "bytes": 5950,
+        "sha256": "5d9692b06fd3009fc87f9b2529558114b14597f1ea40ec5cb895250fdac91e12"
+      },
+      "change": "NEW_TYPED_PHASE_OR_LOCAL_DECLARATION"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/normal-solver.ts",
+      "targetPin": {
+        "bytes": 16648,
+        "sha256": "2b7b8ed01cb61d8408087f666f4330b5034b4aa2449df0bd859b76084e940229"
+      },
+      "source": "examples/physics-stack-solver-2276/candidate.ts",
+      "sourcePin": {
+        "bytes": 16642,
+        "sha256": "6380bc290909527fbd196ccafe45378f5fb8d93d3ace91ee6c06015b077c73a0"
+      },
+      "change": "MODULE_COMMENT_ONLY"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/prepare-step.ts",
+      "targetPin": {
+        "bytes": 8125,
+        "sha256": "50bf399969e366d8ceac3858e90b2cfdb053495b317695fb39332944d45abd23"
+      },
+      "change": "NEW_TYPED_PHASE_OR_LOCAL_DECLARATION"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/sat-feature.ts",
+      "targetPin": {
+        "bytes": 6079,
+        "sha256": "ae127d4b791895d2997540fe1c78f61193f95490fbd7d38e9f56be7165909377"
+      },
+      "source": "examples/physics-rigid-feature-geometry/sat-feature.ts",
+      "sourcePin": {
+        "bytes": 6166,
+        "sha256": "5c84e0327d621a0bdcf1ca85d73244147fd2b05ae29fa6dfc25ded7d3af460af"
+      },
+      "change": "IMPORT_PATHS_ONLY"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/signed-sat.ts",
+      "targetPin": {
+        "bytes": 7797,
+        "sha256": "88e1e823d92e880cd2c7429118da92db62d1bb42d0dca1d933e0e09192f80030"
+      },
+      "source": "examples/physics-rigid-signed-separation-reference/signed-sat.ts",
+      "sourcePin": {
+        "bytes": 7916,
+        "sha256": "2ae6a57ec0de1bd3db13812f02789572c5eacff85e9e2a0a9f2454a301933dea"
+      },
+      "change": "IMPORT_PATHS_ONLY"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/strict-line.ts",
+      "targetPin": {
+        "bytes": 12236,
+        "sha256": "cc913c40dc520cf830165823ea325e006aa30aac12800f8da0a1b156993d1d10"
+      },
+      "source": "examples/physics-rigid-feature-geometry/strict-line.ts",
+      "sourcePin": {
+        "bytes": 12259,
+        "sha256": "4def5fbe70e46cddbb61fc3d88dd16e7ddbd082f27172435f25b919222d0b18d"
+      },
+      "change": "IMPORT_PATHS_ONLY"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/witness.ts",
+      "targetPin": {
+        "bytes": 1194,
+        "sha256": "0369d4f3ffc8428a067c043cf262d19bde713cb3cb38045306eb360e8833bb64"
+      },
+      "source": "examples/physics-rigid-feature-geometry/witness.ts",
+      "sourcePin": {
+        "bytes": 1281,
+        "sha256": "d1a9e4356f250cfe5203320da3d05b094fe294342ed05bed1de9daab5d09073e"
+      },
+      "change": "IMPORT_PATHS_ONLY"
+    },
+    {
+      "target": "packages/barocss-physics/src/stack/world-types.ts",
+      "targetPin": {
+        "bytes": 2784,
+        "sha256": "57d1a3d76c3caea2d7a9b649838615c0c5e0812fa4a51c9956527c332f60a2a0"
+      },
+      "source": "examples/physics-rigid-full-pair-position-world/world-types.ts",
+      "sourcePin": {
+        "bytes": 4512,
+        "sha256": "531ea5f8c36fcc76b43bd834abab1961063fe43438baa46f6433b47005165d48"
+      },
+      "change": "LOCAL_TYPES_AND_REMOVE_OLD_WORLD_CALLBACK_INTERFACE"
+    }
+  ],
+  "MjsEmissionRequiresExactCopy": [
+    "full-pair-input.mjs",
+    "full-pair-linear.mjs",
+    "full-pair-exact.mjs",
+    "full-pair-core.mjs",
+    "full-pair-solver.mjs"
+  ],
+  "declarationBoundary": "full-pair-solver.d.mts",
+  "noExampleRuntimeImports": true,
+  "WorldIntegrated": false,
+  "publicAdmissionChanged": false,
+  "historicalPrefixInherited": false,
+  "authorNumericalCalls": 0,
+  "authorCompilerCalls": 0
+}

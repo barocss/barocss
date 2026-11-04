@@ -1,0 +1,11 @@
+{
+  "status": "FINAL_HIGH_REVIEW_MATCH_BEFORE_BUILD_OR_BROWSER",
+  "sourcePinsSha256": "ca75f18926996586c8cdfc7ef56c354ac7f0ebaa4a7733b34ce367fa1b4d3a2a",
+  "frozenFiles": 947,
+  "WorldCalls": 0,
+  "browserRuns": 0,
+  "viewportScope": "DESKTOP_ONLY_1280_1440_1920",
+  "displayGeometry": "DISPLAY_ONLY_PROXY_NOT_CAD_ORIGINAL_NATIVE_SURFACE",
+  "physicsProvider": "ACTUAL_TYPED_WARM_EMITTED_ESM",
+  "timeOwnership": "FINITE_ACTIONS_ONLY_RAF_RECORDED_DISPLAY_ONLY"
+}

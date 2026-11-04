@@ -1,0 +1,91 @@
+{
+  "protocol": "p4-independent-codec-audit-v1",
+  "status": "EXECUTED_PASS_EXACT_CODEC_BANK",
+  "verifiedDecimals": 16,
+  "verifiedFiniteWords": 24,
+  "verifiedExpectedRejections": 4,
+  "firstFailure": null,
+  "candidateCallsByAuditor": 0,
+  "WorldCalls": 0,
+  "requestPin": {
+    "bytes": 10851,
+    "sha256": "f9b032698b4afc7808a41df361332c8ed1261bff0cbdabe21953ae2428b1f01b"
+  },
+  "oraclePin": {
+    "bytes": 21139,
+    "sha256": "fa00ae164a08dcbce88ec6b3f06f0fcded989affbb5706dc63de0956f88c345e"
+  },
+  "replyPin": {
+    "bytes": 17023,
+    "sha256": "a3d43ba325f9e3dfdb6f242de489a303912277ea9fd7d0b4b7a48915a0e54d0d"
+  },
+  "proofCounters": {
+    "pricing": "p4-position-witness-primitives-v1",
+    "limit": 2000000,
+    "performed": 192217,
+    "attempted": 192217,
+    "phasePerformed": {
+      "parse": 173151,
+      "prepare": 0,
+      "factor": 0,
+      "kkt": 0,
+      "rne": 19066,
+      "compare": 0
+    },
+    "phaseAttempted": {
+      "parse": 173151,
+      "prepare": 0,
+      "factor": 0,
+      "kkt": 0,
+      "rne": 19066,
+      "compare": 0
+    },
+    "operationCounts": {
+      "READ_FIELD": 28,
+      "READ_CHAR": 10447,
+      "WRITE_CHAR": 13190,
+      "READ_BYTE": 576,
+      "ADD": 9983,
+      "SUB": 0,
+      "MUL": 9967,
+      "NEG": 54,
+      "CMP": 83264,
+      "BIT_LENGTH": 61040,
+      "SHL": 224,
+      "SHR": 40,
+      "AND": 40,
+      "OR": 176,
+      "QUOT": 40,
+      "REM": 46,
+      "F64_CAST": 56,
+      "F64_PACK": 44,
+      "F64_FROM_SMALL_INT": 22,
+      "F64_SCALE_POW2": 22,
+      "F64_FINITE": 50,
+      "F64_CMP": 67,
+      "F64_ABS": 0,
+      "F64_SUB": 11,
+      "F64_HYPOT3": 0,
+      "DIVMOD": 1415
+    },
+    "gcdRemainders": 46,
+    "normalizations": 20,
+    "factorizationAttempts": 0,
+    "pivots": 0,
+    "allRows": 0,
+    "dynamicDof": 0,
+    "witnessRows": 0,
+    "peakInputBits": 8192,
+    "peakReducedBits": 1075,
+    "peakIntermediateBits": 8192,
+    "denied": null,
+    "resetCount": 0
+  },
+  "privateStats": {
+    "guardedGcdEntries": 20,
+    "invariantRemainders": 46,
+    "guardedTextEntries": 64,
+    "constantF64Returns": 4,
+    "fixedWordDecodes": 20
+  }
+}

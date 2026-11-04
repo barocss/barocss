@@ -1,0 +1,77 @@
+{
+  "API": false,
+  "bindingBoundary": "Author-declared pre-run source seal checked after Root execution; guard independently records command-run input only. No invented initial source capture.",
+  "dataScreenStatus": "ENDED_NO_GO_RETAINED_CAP",
+  "elapsedMs": 810.43275,
+  "full1200": false,
+  "fullRecovery": "NOT_RUN",
+  "guardResult": "examples/physics-world-p5-2276/evidence/stack-reference-codec-controls-01/result.json",
+  "guardResultPin": {
+    "bytes": 3360,
+    "sha256": "aba21b3891765d0241540dd0f3102e6355a356b836c853e21c399a9e56a3f87e"
+  },
+  "physicsCalls": 0,
+  "pinsSHA256": "eef1e6d162af611b30f6b87463ccd2a004a561602a4ca56142ef7c74001bfc6b",
+  "sourceFilesReadback": {
+    "CONTRACT.md": {
+      "bytes": 11038,
+      "sha256": "43ec9481d53c8cfd32ee44d0128b42fe041c6d142d8ba496767028b5118bb1f6"
+    },
+    "PINS.json": {
+      "bytes": 16294,
+      "sha256": "eef1e6d162af611b30f6b87463ccd2a004a561602a4ca56142ef7c74001bfc6b"
+    },
+    "archive.mjs": {
+      "bytes": 18011,
+      "sha256": "003bca57a83f014b15b42049d6168f2f3fcdd922d26fbc53b5fca4ae2be663df"
+    },
+    "archive.test.mjs": {
+      "bytes": 11352,
+      "sha256": "5e3164d85c5f666e32a02589f8741c3859f3c9496141aa9cfd291d543af5c7aa"
+    },
+    "crc.test.mjs": {
+      "bytes": 1020,
+      "sha256": "37b30e3cd92e4f9f1c0571d7cc2602a7ed269ce0a5ab3dcef67654518c8a62c9"
+    },
+    "exact-size.test.mjs": {
+      "bytes": 3753,
+      "sha256": "5e4a373252050a447fb6c0b7ac9242dba2d0319d4bf3442837d5b3ee348ed0b2"
+    },
+    "fixture-wrapper.mjs": {
+      "bytes": 941,
+      "sha256": "eaf04d4a28358bbf9b76f5f6e1c15b8ac6a3a3c892c3921fbbbd5aa5b86b72bd"
+    },
+    "history.test.mjs": {
+      "bytes": 1975,
+      "sha256": "6069399c7ab26ce6a9a106a3abbd366b6445a4d21c31009411c42418f974c512"
+    },
+    "references.test.mjs": {
+      "bytes": 9324,
+      "sha256": "8ee02fe702b6b2118ac0a5196648603fda91fdee59152aa7e9a99819a651c932"
+    },
+    "replay.mjs": {
+      "bytes": 4553,
+      "sha256": "03f53efd452524e6a569211b3bc44fce4c2e68b1b712d0d8a60ada6641c8d5b2"
+    },
+    "screen.py": {
+      "bytes": 11086,
+      "sha256": "5d603690d9aa1d33d06b33e56eb123ea207c6f8e6c82ec3a7e65338ad7322feb"
+    },
+    "views.mjs": {
+      "bytes": 8814,
+      "sha256": "2fa0e651dfc427b460980f8c88da603708be5046d208a65bfcb7b2516a78e04a"
+    }
+  },
+  "sourceSealSHA256": "0def9ef367c5874185bb1dfe491682dc1a491b18ce6ccdb05b1886f2c3b52298",
+  "status": "PASS_FIXED34_EVIDENCE_REFERENCE_CODEC_COMPONENT",
+  "stderrPin": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stdoutPin": {
+    "bytes": 6376,
+    "sha256": "25d37b1214bb37e2003ba05dc7cdd8d861c4720d288959297a1d6ee7da8396b8"
+  },
+  "strictGlobal64MiBCertification": "NOT_QUALIFIED",
+  "tests": 34
+}

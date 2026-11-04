@@ -1,0 +1,1 @@
+{"status": "PASS_POSITION_WITNESS_STAGE_A_TEN_PURE_KERNEL_CHECKS", "firstFailure": null, "counts": {"candidateChecksAttempted": 10, "candidateRepliesRetained": 10, "independentChecksAttempted": 10, "independentChecksPassed": 10, "freshFullWrapperCommands": 0, "fullFramesVerified": 0, "costDecisions": 0, "WorldCalls": 0, "baselineReruns": 0}, "costDecision": "NOT_RUN"}

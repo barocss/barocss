@@ -1,0 +1,22 @@
+{
+  "status": "ROADMAP_REVIEW_COMPLETE_WITH_PRIORITY_CORRECTION",
+  "date": "2026-11-03",
+  "canonicalRoadmap": "packages/barocss-physics/ROADMAP.md",
+  "actualMilestones": [
+    "998d913b4 shared arithmetic",
+    "93a9c0674 actual clean World",
+    "81476d8d2 actual rollback/wire",
+    "b2bd44f9d dynamic-selected GPU/browser proof"
+  ],
+  "firstOriginalP4ObservedBlocker": "REFERENCE_RUNTIME_COST_AFTER_ALIGNED308_FIXED180S",
+  "selectedPrefixes": "ALIGNED/OFFSET/YAW16step source/native only",
+  "fullOriginal1200": "NO_GO_OR_NOT_RUN",
+  "newCostCandidate": "DESIGN_ONLY; full36-position-row exactKKT witness; operation pricing and independent controls before execution",
+  "canonicalCutover": "SEPARATE_GATED_LANE; no legacy route",
+  "wholeRoadmapPercentOrDate": "NOT_ESTABLISHED",
+  "docsRecord": "examples/physics-world-p5-2276/DOCS-DYNAMIC-ROADMAP-09.json",
+  "evidenceScope": "Finite private prototype passes do not imply canonical public adoption or long-run physical accuracy",
+  "HOLDTolerancesAndFirstFailures": "UNCHANGED",
+  "deployment": "NOT_RUN",
+  "mobile": "NOT_RUN"
+}

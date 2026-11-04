@@ -1,0 +1,23 @@
+{
+  "status": "PASS_ALL_SEVEN_ARCHIVES_LOGICAL_MEMBERS_RECOVERY_AND_CURRENT_TOOLS",
+  "indexPin": {
+    "bytes": 1357809,
+    "sha256": "a4f0a541c8dc498823b57c20ae981b7711854b7c415d3a747996bbfad4f12c2d"
+  },
+  "archivesVerified": 7,
+  "logicalMembersVerified": 3691,
+  "sameArchiveBackwardRegularHardlinksVerified": 1928,
+  "frozenWorkspaceRecoveryVerified": 3506,
+  "toolMetadataMapCounts": {
+    "frozenFileToolMetadata": 358,
+    "installedExternalToolFiles": 357
+  },
+  "toolMapCountsAreNotSummed": true,
+  "perTarMaxBytes": 14663680,
+  "aggregateTarBytes": 80680960,
+  "aggregate16MiBClaim": false,
+  "unsafeExtraction": false,
+  "candidateCalls": 0,
+  "WorldCalls": 0,
+  "referenceGeneratorCalls": 0
+}

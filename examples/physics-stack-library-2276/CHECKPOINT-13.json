@@ -1,0 +1,3570 @@
+{
+  "status": "CHECKPOINT_IO_VERIFIED_NO_PHYSICS_EXECUTION",
+  "baseCommit": "CHECKPOINT12_DEPENDENCY",
+  "dependencies": {
+    "examples/physics-stack-library-2276/CHECKPOINT-12.json": {
+      "bytes": 860873,
+      "sha256": "b96dea4c0cc3e3c5999a0643b01a6f5fdc13a91f7e69f4acbe504610f11702cc"
+    },
+    "examples/physics-stack-library-2276/CHECKPOINT-12-SOURCE.tar.gz": {
+      "bytes": 443636,
+      "sha256": "f9ef62bef3ee8bc3f9a5b221527c3c9cb4ab7de396d22c712ebd4caf86b6b895"
+    },
+    "examples/physics-stack-library-2276/CHECKPOINT-12-PROOF.tar.gz": {
+      "bytes": 3979228,
+      "sha256": "c854fc1ae7e9e66a49c58a6702222d3077ab4b1533651f40274c44bf82edc953"
+    }
+  },
+  "explicitDesktopId": "three-desktop-01",
+  "scope": "New three dynamic cubes plus static floor, existing direct frictionless public island; independent3DOF chain and same-stage Native GPU/full-word evidence",
+  "requiredActualReceipts": {
+    "api": {
+      "status": "THREE_CUBES_FLOOR_SOURCE_NATIVE_256_CONFIRMED",
+      "failure": null,
+      "reports": {
+        "source": {
+          "worlds": 1,
+          "stepAttempts": 256,
+          "acceptedSteps": 256,
+          "referenceAttempts": 2,
+          "referenceReplies": 2,
+          "passedIndependentTransitions": 256,
+          "status": "CHECKPOINT_256_INDEPENDENTLY_CONFIRMED",
+          "providerDigest": "sha256:1315f48936826783866b751668a8cc9969ef5e636a8629057ac766812360ee88",
+          "lastReference": {
+            "ok": true,
+            "resolved": true,
+            "executionFailure": false,
+            "status": "VERIFIED",
+            "violations": [],
+            "metrics": {
+              "observedStepIndex": 0,
+              "observedClockSeconds": 0,
+              "omegaRadps": 6.064593272014918e-14,
+              "orientationComponent": 3.700678573313398e-15,
+              "lateralPositionM": 2.2549381870834102e-14,
+              "lateralVelocityMps": 5.442777539917834e-14,
+              "actualInitialPositionM": 0,
+              "actualInitialMotion": 0,
+              "upperFreeClosedPositionM": 7.016339477009895e-16,
+              "upperFreeClosedVelocityMps": 1.0599854327608682e-16,
+              "geometryNormalSquared": 7.612227227466976e-29,
+              "geometryNormalDirection": 7.401357146626797e-15,
+              "tangentImpulseNs": 0,
+              "geometryRepresentativeFacePlaneM": 3.108624468950433e-15,
+              "geometryRepresentativeBoundsM": 3.108624468950433e-15,
+              "globalNormalMultiplierNs": 4.0330107309305416e-14,
+              "globalVelocityProjectionMps": 2.0192181260370035e-14,
+              "globalPositionProjectionM": 1.2434497875801753e-14,
+              "globalActualJStationarityNs": 6.934707437918538e-16,
+              "bodyMomentumNs": 6.934707437918538e-16,
+              "maxReconstructedProjectionPotentialWorkJ": 0.1473952500000053,
+              "globalPositionPrimalM": 2.220446049250313e-16,
+              "globalNormalPrimalMps": 2.0233814623793478e-14,
+              "globalNormalComplementarityJ": 9.904264908211778e-15,
+              "globalNormalKineticEnergyJ": 8.517374739530625e-16,
+              "globalNormalEnergyGrowthJ": 0
+            },
+            "certificates": {
+              "scope": "FIXED_THREE_CUBE_VERTICAL_INELASTIC_CHAIN",
+              "candidateImports": 0,
+              "candidateSolves": 0,
+              "generalDynamicEight": false,
+              "privateManifoldPointClaim": false,
+              "actualWorldCalls": "CALLER_OWNED_NOT_INFERRED",
+              "projectionWorkBoundary": "Public-state reconstruction includes unobserved free-position rounding",
+              "aggregateMeanIsForceCentroid": false,
+              "caseId": "chain3-120",
+              "receivedStates": 257,
+              "receivedTransitions": 256,
+              "referenceVerticalDof": 3,
+              "activeSubsetsAtMost": 8,
+              "gramDimensionAtMost": 3,
+              "firstPhysicalFailureStep": null,
+              "firstObservedContacts": [
+                1,
+                1,
+                27
+              ],
+              "firstReferenceContacts": [
+                1,
+                1,
+                27
+              ],
+              "couplingObserved": true,
+              "lastReference": {
+                "stepIndex": 256,
+                "activeVelocityRows": [
+                  0,
+                  1,
+                  2
+                ],
+                "freeVelocityY": [
+                  {
+                    "n": "-26529391761571515657856341880335",
+                    "d": "324518553658426726783156020576256"
+                  },
+                  {
+                    "n": "-26529391761576379136029382796815",
+                    "d": "324518553658426726783156020576256"
+                  },
+                  {
+                    "n": "-26529391761576379136029382796815",
+                    "d": "324518553658426726783156020576256"
+                  }
+                ],
+                "velocityTargetY": [
+                  {
+                    "n": "0",
+                    "d": "1"
+                  },
+                  {
+                    "n": "0",
+                    "d": "1"
+                  },
+                  {
+                    "n": "0",
+                    "d": "1"
+                  }
+                ],
+                "idealAxisNormalImpulsesNs": [
+                  {
+                    "n": "79588175284724273929915107473965",
+                    "d": "162259276829213363391578010288128"
+                  },
+                  {
+                    "n": "26529391761576379136029382796815",
+                    "d": "81129638414606681695789005144064"
+                  },
+                  {
+                    "n": "26529391761576379136029382796815",
+                    "d": "162259276829213363391578010288128"
+                  }
+                ],
+                "freePositionY": [
+                  {
+                    "n": "93408661846403635421211679528838112028671818953217",
+                    "d": "187072209578355573530071658587684226515959365500928"
+                  },
+                  {
+                    "n": "280480871424760265585660859673616464570284155976193",
+                    "d": "187072209578355573530071658587684226515959365500928"
+                  },
+                  {
+                    "n": "467553081003115839115732518261300691086243521477121",
+                    "d": "187072209578355573530071658587684226515959365500928"
+                  }
+                ],
+                "positionTargetY": [
+                  {
+                    "n": "1",
+                    "d": "2"
+                  },
+                  {
+                    "n": "3",
+                    "d": "2"
+                  },
+                  {
+                    "n": "5",
+                    "d": "2"
+                  }
+                ],
+                "positionDualRatios": [
+                  {
+                    "n": "382328828320340762717406180823751636617648347645",
+                    "d": "93536104789177786765035829293842113257979682750464"
+                  },
+                  {
+                    "n": "127442942773094709446628207909875203654892275199",
+                    "d": "46768052394588893382517914646921056628989841375232"
+                  },
+                  {
+                    "n": "127442942773094709446628207909875203654892275199",
+                    "d": "93536104789177786765035829293842113257979682750464"
+                  }
+                ],
+                "massWeightedVelocityChangeObjective": 0.02004918749999754,
+                "massWeightedPositionChangeObjective": 1.3923046874604996e-06,
+                "referenceGlobalKineticLossJ": 0.02004918749999754,
+                "actualGlobalKineticLossJ": 0.02004918749999754
+              },
+              "reconstructedProjectionPotentialWorkSumJ": 10.051693875000552,
+              "angularEvidence": "Observed omega/orientation/rotational energy only; public mean is not applied wrench",
+              "actualPositionDualExposed": false,
+              "continuousTOIOrRemainderClaim": false
+            }
+          }
+        },
+        "native": {
+          "worlds": 1,
+          "stepAttempts": 256,
+          "acceptedSteps": 256,
+          "referenceAttempts": 2,
+          "referenceReplies": 2,
+          "passedIndependentTransitions": 256,
+          "status": "CHECKPOINT_256_INDEPENDENTLY_CONFIRMED",
+          "providerDigest": "sha256:4ff775ef30fd0de633b84a78c71fe8535661776a988e4fcb2643e355a9e4f5c4",
+          "lastReference": {
+            "ok": true,
+            "resolved": true,
+            "executionFailure": false,
+            "status": "VERIFIED",
+            "violations": [],
+            "metrics": {
+              "observedStepIndex": 0,
+              "observedClockSeconds": 0,
+              "omegaRadps": 6.064593272014918e-14,
+              "orientationComponent": 3.700678573313398e-15,
+              "lateralPositionM": 2.2549381870834102e-14,
+              "lateralVelocityMps": 5.442777539917834e-14,
+              "actualInitialPositionM": 0,
+              "actualInitialMotion": 0,
+              "upperFreeClosedPositionM": 7.016339477009895e-16,
+              "upperFreeClosedVelocityMps": 1.0599854327608682e-16,
+              "geometryNormalSquared": 7.612227227466976e-29,
+              "geometryNormalDirection": 7.401357146626797e-15,
+              "tangentImpulseNs": 0,
+              "geometryRepresentativeFacePlaneM": 3.108624468950433e-15,
+              "geometryRepresentativeBoundsM": 3.108624468950433e-15,
+              "globalNormalMultiplierNs": 4.0330107309305416e-14,
+              "globalVelocityProjectionMps": 2.0192181260370035e-14,
+              "globalPositionProjectionM": 1.2434497875801753e-14,
+              "globalActualJStationarityNs": 6.934707437918538e-16,
+              "bodyMomentumNs": 6.934707437918538e-16,
+              "maxReconstructedProjectionPotentialWorkJ": 0.1473952500000053,
+              "globalPositionPrimalM": 2.220446049250313e-16,
+              "globalNormalPrimalMps": 2.0233814623793478e-14,
+              "globalNormalComplementarityJ": 9.904264908211778e-15,
+              "globalNormalKineticEnergyJ": 8.517374739530625e-16,
+              "globalNormalEnergyGrowthJ": 0
+            },
+            "certificates": {
+              "scope": "FIXED_THREE_CUBE_VERTICAL_INELASTIC_CHAIN",
+              "candidateImports": 0,
+              "candidateSolves": 0,
+              "generalDynamicEight": false,
+              "privateManifoldPointClaim": false,
+              "actualWorldCalls": "CALLER_OWNED_NOT_INFERRED",
+              "projectionWorkBoundary": "Public-state reconstruction includes unobserved free-position rounding",
+              "aggregateMeanIsForceCentroid": false,
+              "caseId": "chain3-120",
+              "receivedStates": 257,
+              "receivedTransitions": 256,
+              "referenceVerticalDof": 3,
+              "activeSubsetsAtMost": 8,
+              "gramDimensionAtMost": 3,
+              "firstPhysicalFailureStep": null,
+              "firstObservedContacts": [
+                1,
+                1,
+                27
+              ],
+              "firstReferenceContacts": [
+                1,
+                1,
+                27
+              ],
+              "couplingObserved": true,
+              "lastReference": {
+                "stepIndex": 256,
+                "activeVelocityRows": [
+                  0,
+                  1,
+                  2
+                ],
+                "freeVelocityY": [
+                  {
+                    "n": "-26529391761571515657856341880335",
+                    "d": "324518553658426726783156020576256"
+                  },
+                  {
+                    "n": "-26529391761576379136029382796815",
+                    "d": "324518553658426726783156020576256"
+                  },
+                  {
+                    "n": "-26529391761576379136029382796815",
+                    "d": "324518553658426726783156020576256"
+                  }
+                ],
+                "velocityTargetY": [
+                  {
+                    "n": "0",
+                    "d": "1"
+                  },
+                  {
+                    "n": "0",
+                    "d": "1"
+                  },
+                  {
+                    "n": "0",
+                    "d": "1"
+                  }
+                ],
+                "idealAxisNormalImpulsesNs": [
+                  {
+                    "n": "79588175284724273929915107473965",
+                    "d": "162259276829213363391578010288128"
+                  },
+                  {
+                    "n": "26529391761576379136029382796815",
+                    "d": "81129638414606681695789005144064"
+                  },
+                  {
+                    "n": "26529391761576379136029382796815",
+                    "d": "162259276829213363391578010288128"
+                  }
+                ],
+                "freePositionY": [
+                  {
+                    "n": "93408661846403635421211679528838112028671818953217",
+                    "d": "187072209578355573530071658587684226515959365500928"
+                  },
+                  {
+                    "n": "280480871424760265585660859673616464570284155976193",
+                    "d": "187072209578355573530071658587684226515959365500928"
+                  },
+                  {
+                    "n": "467553081003115839115732518261300691086243521477121",
+                    "d": "187072209578355573530071658587684226515959365500928"
+                  }
+                ],
+                "positionTargetY": [
+                  {
+                    "n": "1",
+                    "d": "2"
+                  },
+                  {
+                    "n": "3",
+                    "d": "2"
+                  },
+                  {
+                    "n": "5",
+                    "d": "2"
+                  }
+                ],
+                "positionDualRatios": [
+                  {
+                    "n": "382328828320340762717406180823751636617648347645",
+                    "d": "93536104789177786765035829293842113257979682750464"
+                  },
+                  {
+                    "n": "127442942773094709446628207909875203654892275199",
+                    "d": "46768052394588893382517914646921056628989841375232"
+                  },
+                  {
+                    "n": "127442942773094709446628207909875203654892275199",
+                    "d": "93536104789177786765035829293842113257979682750464"
+                  }
+                ],
+                "massWeightedVelocityChangeObjective": 0.02004918749999754,
+                "massWeightedPositionChangeObjective": 1.3923046874604996e-06,
+                "referenceGlobalKineticLossJ": 0.02004918749999754,
+                "actualGlobalKineticLossJ": 0.02004918749999754
+              },
+              "reconstructedProjectionPotentialWorkSumJ": 10.051693875000552,
+              "angularEvidence": "Observed omega/orientation/rotational energy only; public mean is not applied wrench",
+              "actualPositionDualExposed": false,
+              "continuousTOIOrRemainderClaim": false
+            }
+          }
+        }
+      },
+      "childRuns": [
+        {
+          "graph": "source",
+          "checkpoint": 32,
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "graph": "native",
+          "checkpoint": 32,
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "graph": "source",
+          "checkpoint": 256,
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "graph": "native",
+          "checkpoint": 256,
+          "exit": 0,
+          "signal": null,
+          "error": null
+        }
+      ],
+      "sourceIntegrity": "PASS",
+      "evidenceBytes": {
+        "source": 1370630,
+        "native": 1370630
+      },
+      "buildManifest": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/result.json",
+      "fullStatePackets": {
+        "source": "source-full-states.json",
+        "native": "native-full-states.json"
+      },
+      "onlyProviderDigestStringNormalized": true,
+      "restores": 0,
+      "desktop": "NOT_RUN",
+      "generalEightDynamicQualified": false,
+      "mobile": false,
+      "publication": false
+    },
+    "checkpoint32": {
+      "status": "BOTH_GRAPHS_32_INDEPENDENT_AND_ALLWORD_CONFIRMED",
+      "frames": 33,
+      "onlyProviderDigestStringNormalized": true
+    },
+    "controls": {
+      "status": "THREE_CUBES_FLOOR_REFERENCE_CONTROLS_CONFIRMED",
+      "firstFailure": null,
+      "sourceIntegrity": "PASS",
+      "analyticalHelperCalls": 6,
+      "helperRestoreCalls": 2,
+      "oracleCLIAttempts": 11,
+      "confirmedControls": 11,
+      "analytical": [
+        {
+          "name": "feasible-free",
+          "confirmed": true,
+          "target": [
+            "1",
+            "5/2",
+            "4"
+          ],
+          "multipliers": [
+            "0",
+            "0",
+            "0"
+          ],
+          "objective": "0"
+        },
+        {
+          "name": "floor-only",
+          "confirmed": true,
+          "target": [
+            "1/2",
+            "2",
+            "4"
+          ],
+          "multipliers": [
+            "1/2",
+            "0",
+            "0"
+          ],
+          "objective": "1/16"
+        },
+        {
+          "name": "lower-middle-pair",
+          "confirmed": true,
+          "target": [
+            "5/8",
+            "13/8",
+            "3"
+          ],
+          "multipliers": [
+            "0",
+            "1/4",
+            "0"
+          ],
+          "objective": "1/32"
+        },
+        {
+          "name": "middle-upper-degenerate",
+          "confirmed": true,
+          "target": [
+            "3/4",
+            "7/4",
+            "11/4"
+          ],
+          "multipliers": [
+            "0",
+            "0",
+            "1/2"
+          ],
+          "objective": "1/8"
+        },
+        {
+          "name": "full-position",
+          "confirmed": true,
+          "target": [
+            "1/2",
+            "3/2",
+            "5/2"
+          ],
+          "multipliers": [
+            "3",
+            "5/2",
+            "3/2"
+          ],
+          "objective": "7/8"
+        },
+        {
+          "name": "full-velocity",
+          "confirmed": true,
+          "target": [
+            "0",
+            "0",
+            "0"
+          ],
+          "multipliers": [
+            "12",
+            "10",
+            "6"
+          ],
+          "objective": "14"
+        }
+      ],
+      "controls": [
+        {
+          "name": "paid-source",
+          "expected": "positive",
+          "confirmed": true,
+          "requestBytes": 1162853,
+          "requestSHA256": "51a9b80f0263864fd7897e2026a873f9f4ab8309034d5459d4ae9bea1038bb85",
+          "replySHA256": "2cc18db015827e930093f79c3febed0d326ba2f9a8ce85ca48ee4dd5d2e09db7",
+          "status": "VERIFIED"
+        },
+        {
+          "name": "paid-native",
+          "expected": "positive",
+          "confirmed": true,
+          "requestBytes": 1162853,
+          "requestSHA256": "3ea8cd4ef40c99664cfbf6566ec06f1b02ae4551301c5c947920e2c49e722085",
+          "replySHA256": "2cc18db015827e930093f79c3febed0d326ba2f9a8ce85ca48ee4dd5d2e09db7",
+          "status": "VERIFIED"
+        },
+        {
+          "name": "terminal-velocity",
+          "expected": "physical",
+          "confirmed": true,
+          "requestBytes": 1181863,
+          "requestSHA256": "7feecf7556504ff7a1db5870b13a098e8cbc1de46290e83a9981bd13191279c5",
+          "replySHA256": "2cc2bee545761747096f5fb7fcd09cee2c332183fd1ee022307b73e8c5a5a317",
+          "status": "PHYSICAL_NO_GO"
+        },
+        {
+          "name": "terminal-position",
+          "expected": "physical",
+          "confirmed": true,
+          "requestBytes": 1181865,
+          "requestSHA256": "a96abe94ea6bdee6c6fc8fb9aefb6f1a37e2e9895b1f717214c9546af6c35b11",
+          "replySHA256": "eef4b066bfc0543196028c0449cf23da04e6932b78e540add3d5aeccd9d59f51",
+          "status": "PHYSICAL_NO_GO"
+        },
+        {
+          "name": "terminal-required-contact",
+          "expected": "physical",
+          "confirmed": true,
+          "requestBytes": 1181340,
+          "requestSHA256": "a4bfd541fdf0210102663a9b60e1754d0bfbdefe826c873fb2d88f79af2f716a",
+          "replySHA256": "2a6c6fc4c57c8cedcf465b7525cfbb23d56080ed2e0d8d522a7b942b9e62b3f8",
+          "status": "PHYSICAL_NO_GO"
+        },
+        {
+          "name": "terminal-point-1e-11",
+          "expected": "physical",
+          "confirmed": true,
+          "requestBytes": 1181865,
+          "requestSHA256": "d48d40a3b0dd98a2138a40f8652c347e12124563cd1e6bb48d27d414bc32cb49",
+          "replySHA256": "51951b18e6078ba78ab3317e0c08bda0315f114ff0dcca7fb3633cd035729801",
+          "status": "PHYSICAL_NO_GO"
+        },
+        {
+          "name": "wire-nonzero-mismatch",
+          "expected": "invalid",
+          "confirmed": true,
+          "requestBytes": 1162853,
+          "requestSHA256": "5aab04b1e80d02fb08a7916aef8cb320a61abaa10e2ea6e3bc8b1a50e40b9e4e",
+          "replySHA256": "8f305a641cf523e69460dbc74d9977eb3d5adf6f430ea55f88986d8f494531ae",
+          "status": "INVALID_INPUT"
+        },
+        {
+          "name": "wire-trailing-word",
+          "expected": "invalid",
+          "confirmed": true,
+          "requestBytes": 1162869,
+          "requestSHA256": "bbfe1d58b98e731e8d4f33ec35e05d0540446e852b94061e13170025d9d2d844",
+          "replySHA256": "6f8b51699e45f69ab34412b99077d9de5b0177b8afde50e5e7b54fc457d6ee65",
+          "status": "INVALID_INPUT"
+        },
+        {
+          "name": "wire-missing-word",
+          "expected": "invalid",
+          "confirmed": true,
+          "requestBytes": 1162837,
+          "requestSHA256": "0fb29d4acb5a789229b920f042dc46ecdff4fc67d81cb061863682943eb90621",
+          "replySHA256": "628e7d329ce74b98b42fed746569bd4a6317236efa61005f3e548e0f7dacef21",
+          "status": "INVALID_INPUT"
+        },
+        {
+          "name": "wire-nonfinite-word",
+          "expected": "invalid",
+          "confirmed": true,
+          "requestBytes": 1162853,
+          "requestSHA256": "b2090b7a7fbd66a31dc4649cb19d624b86e6627d259e85d14aca654911ff4da3",
+          "replySHA256": "8f305a641cf523e69460dbc74d9977eb3d5adf6f430ea55f88986d8f494531ae",
+          "status": "INVALID_INPUT"
+        },
+        {
+          "name": "signed-zero-value-preserved",
+          "expected": "positive",
+          "confirmed": true,
+          "requestBytes": 1181866,
+          "requestSHA256": "5d5d18335255a5576ec2166ce735a6070c3f8e3ff1eb24622db7fb9a71713262",
+          "replySHA256": "2cc18db015827e930093f79c3febed0d326ba2f9a8ce85ca48ee4dd5d2e09db7",
+          "status": "VERIFIED"
+        }
+      ],
+      "worldCalls": 0,
+      "candidateCalls": 0,
+      "compilerCalls": 0,
+      "captureOrReplayCalls": 0,
+      "chargedBeforeFinalReceiptBytes": 33289,
+      "evidenceCapBytes": 16777216,
+      "scope": "FIXED_REFERENCE_AND_PAID_DATA_OBSERVER_CONTROLS_NOT_NEW_PHYSICAL_CASES"
+    },
+    "desktop": {
+      "status": "THREE_CUBES_FLOOR_DESKTOP_NUMERICAL_WORDS_AND_PIXELS_CONFIRMED",
+      "firstFailure": null,
+      "actual": {
+        "status": "THREE_CUBES_FLOOR_DESKTOP_NUMERICAL_WORDS_AND_PIXELS_CONFIRMED",
+        "worlds": 2,
+        "acceptedSteps": 256,
+        "frames": 257,
+        "firstContacts": {
+          "lower": 1,
+          "middle": 1,
+          "upper": 27
+        },
+        "initialPixels": {
+          "coloredPixels": 20955,
+          "changedPixels": 0
+        },
+        "flightPixels": {
+          "coloredPixels": 12418,
+          "changedPixels": 1623
+        },
+        "capture": {
+          "http": 200,
+          "result": {
+            "status": "CAPTURE_EQUAL",
+            "caseId": "chain3-120",
+            "providerDigest": "sha256:4ff775ef30fd0de633b84a78c71fe8535661776a988e4fcb2643e355a9e4f5c4",
+            "frames": 257,
+            "actualCaptureBytes": 1179663,
+            "observationalOnly": true,
+            "physicsRecording": false,
+            "expectedPin": {
+              "bytes": 1162853,
+              "sha256": "3ea8cd4ef40c99664cfbf6566ec06f1b02ae4551301c5c947920e2c49e722085"
+            }
+          }
+        },
+        "energy": {
+          "kineticJ": 7.695326229878872e-27,
+          "potentialJ": 88.2900000000006
+        },
+        "errors": [],
+        "mobile": false,
+        "physicsRecording": false
+      },
+      "commands": [
+        {
+          "label": "open",
+          "args": [
+            "open",
+            "http://127.0.0.1:53048/",
+            "--browser=chrome",
+            "--headed"
+          ],
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "fresh-snapshot",
+          "args": [
+            "snapshot"
+          ],
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "checks",
+          "args": [
+            "run-code",
+            "--filename=/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/output/playwright/three-cubes-floor/three-desktop-01/browser/checks.js"
+          ],
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "final-snapshot",
+          "args": [
+            "snapshot"
+          ],
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "close",
+          "args": [
+            "close"
+          ],
+          "exit": 0,
+          "signal": null,
+          "error": null
+        }
+      ],
+      "sourceIntegrity": true,
+      "wholeProofBytesBeforeFinalReceipt": 2504794,
+      "physicsRecording": false,
+      "publication": false,
+      "mobile": false
+    }
+  },
+  "selectedReceipts": {
+    "examples/physics-world-p5-2276/evidence/three-cubes-floor-api-01/result.json": {
+      "status": "PASS",
+      "bytes": 3115,
+      "sha256": "ad5d7d924d3d7c39a8c0460c2c32adf92bec50908b037cff45d8e7831f8a7840"
+    },
+    "examples/physics-world-p5-2276/evidence/three-cubes-floor-controls-01/result.json": {
+      "status": "PASS",
+      "bytes": 3220,
+      "sha256": "93a4dc4171209c73aa422dc6137b1c33e8203bb9bc7e93544572af3a17a34df1"
+    },
+    "examples/physics-world-p5-2276/evidence/three-desktop-01/result.json": {
+      "status": "PASS",
+      "bytes": 2975,
+      "sha256": "6d9fcb30a4b7f4a2ae3ce47e60bea644af3bb3b4129c74e170f7e55bd6ea774f"
+    },
+    "examples/physics-world-p5-2276/evidence/three-desktop-build-01/result.json": {
+      "status": "PASS",
+      "bytes": 3021,
+      "sha256": "7cd02d5a69825ee9586943d76cedef6a8463e15d8cb52b30ebf4a82e09c98dba"
+    },
+    "examples/physics-world-p5-2276/evidence/three-doc-example-01/result.json": {
+      "status": "PASS",
+      "bytes": 2977,
+      "sha256": "a2fa95f5965ff0ac95df58b90a5629f36ec24b0de93572ceaefafd5bc7358742"
+    },
+    "examples/physics-world-p5-2276/evidence/three-docbuild-01/result.json": {
+      "status": "PASS",
+      "bytes": 2990,
+      "sha256": "8c43dc81b6baf47fc07baccfd0ab078429edc19e839849f64a2ea10f89a44309"
+    },
+    "examples/physics-world-p5-2276/evidence/three-docsite-01/result.json": {
+      "status": "PASS",
+      "bytes": 2944,
+      "sha256": "4040316f2fd09b3d8cb30b4152422b4fd63af8ba2a939b8a591ef43f608396ed"
+    },
+    "examples/physics-three-cubes-floor-2276/evidence/api-01/result.json": {
+      "status": "THREE_CUBES_FLOOR_SOURCE_NATIVE_256_CONFIRMED",
+      "bytes": 9016,
+      "sha256": "4357ff5dd010cc4efce5201c2c8cdb2453e19e4f9b479df3d7bd4d6e96e58a4e"
+    },
+    "examples/physics-three-cubes-floor-2276/evidence/api-01/checkpoint32-parity.json": {
+      "status": "BOTH_GRAPHS_32_INDEPENDENT_AND_ALLWORD_CONFIRMED",
+      "bytes": 116,
+      "sha256": "176ca324a1cb2fe1810f1ca2cee5fcd98876d6e9fb0e6184c08896284fd2f391"
+    },
+    "examples/physics-three-cubes-floor-2276/evidence/controls-01/result.json": {
+      "status": "THREE_CUBES_FLOOR_REFERENCE_CONTROLS_CONFIRMED",
+      "bytes": 5749,
+      "sha256": "53b2a74084a97c83cd873aad7bb9a5e4e8817d5106e8f2f5181705ca2744bf92"
+    },
+    "output/playwright/three-cubes-floor/three-desktop-01/browser/result.json": {
+      "status": "THREE_CUBES_FLOOR_DESKTOP_NUMERICAL_WORDS_AND_PIXELS_CONFIRMED",
+      "bytes": 2324,
+      "sha256": "ed891578ee9f882d3f0586ebad08f82d243f646d74e301c50b0fbf0c28481a52"
+    }
+  },
+  "preservedDesktopFailures": {},
+  "unchangedProviderBindings": {
+    "packages/barocss-physics/src/": {
+      "checkpoint12ArchiveRole": "source",
+      "files": {
+        "packages/barocss-physics/src/broadphase.ts": {
+          "bytes": 1371,
+          "sha256": "d93e38d78cc3d202481ceeba83631d528032426d03a8adafb2e461fc72a042a0"
+        },
+        "packages/barocss-physics/src/cad-fluid-data.ts": {
+          "bytes": 2345,
+          "sha256": "5a15e23ba65663433501f07d2f35f323960879218d52a007efeb09ca7934ce10"
+        },
+        "packages/barocss-physics/src/cad-proxy-admission.ts": {
+          "bytes": 7744,
+          "sha256": "898fb55af369727440fef9f4bfadba0ea455b4c800a719909e5311029a663441"
+        },
+        "packages/barocss-physics/src/cad-proxy-pose.ts": {
+          "bytes": 1479,
+          "sha256": "8b5f50642144e335421ee6483f8b016b8a0babdb0c312ddf6ba4afbcf8bda322"
+        },
+        "packages/barocss-physics/src/cad-proxy-types.ts": {
+          "bytes": 887,
+          "sha256": "31bbf6766887913149d6fa2185c173adb0c6b78cdb21d1556ae4ffd055666128"
+        },
+        "packages/barocss-physics/src/cad-proxy-validation.ts": {
+          "bytes": 1598,
+          "sha256": "4429f957bb51ff2604a15478095e35642368dcf91ca0d854561693d3f99f748e"
+        },
+        "packages/barocss-physics/src/cad-proxy.ts": {
+          "bytes": 321,
+          "sha256": "cc7715b4fc974c8ed4511ebf684cdc7c2923f7ab4b8b7f5db45b208f8e6ffa99"
+        },
+        "packages/barocss-physics/src/capsule-contact.ts": {
+          "bytes": 5615,
+          "sha256": "cc29d60423bd9a1883585cf164cca0b0736b9fc72e7feb3575c5208c7d892929"
+        },
+        "packages/barocss-physics/src/capsule-query/admission.ts": {
+          "bytes": 5248,
+          "sha256": "9b67efc7a8824ce49361485eff925afa50017e05bc23d900db5ec7c4e2c8760d"
+        },
+        "packages/barocss-physics/src/capsule-query/geometry.ts": {
+          "bytes": 2570,
+          "sha256": "5fdbe1eb40f46e930161e98244a9e5ec0e00c29297caf6f91d530c98df3df4a7"
+        },
+        "packages/barocss-physics/src/capsule-query/profile.ts": {
+          "bytes": 303,
+          "sha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff"
+        },
+        "packages/barocss-physics/src/capsule-query/snapshot.ts": {
+          "bytes": 2537,
+          "sha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd"
+        },
+        "packages/barocss-physics/src/capsule-query/sweep.ts": {
+          "bytes": 1861,
+          "sha256": "a8f4d16879b2ff88086ceec54cef19d04d58fb063893e7a146382cad59cbaf77"
+        },
+        "packages/barocss-physics/src/capsule-query/types.ts": {
+          "bytes": 979,
+          "sha256": "c22d17887cd8ab889a443c828200310a4c560fd3b4f8ed49f3f1f60e5dd46f44"
+        },
+        "packages/barocss-physics/src/capsule-query-error.ts": {
+          "bytes": 137,
+          "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+        },
+        "packages/barocss-physics/src/capsule-query.ts": {
+          "bytes": 222,
+          "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+        },
+        "packages/barocss-physics/src/ccd-box.ts": {
+          "bytes": 1988,
+          "sha256": "076eadf591500684332bd19b53a780de480ccdde205196ad072a11e1abc4f7a4"
+        },
+        "packages/barocss-physics/src/ccd-pair.ts": {
+          "bytes": 1303,
+          "sha256": "87ea34e6b662b223874857651839407f351b0beaa03a4a85d1e4797744027e1a"
+        },
+        "packages/barocss-physics/src/ccd-rounded-box.ts": {
+          "bytes": 8125,
+          "sha256": "b4ad5a06435b1bacb796dace179f95904fd9d35e4e9dac17ead55bc2f675f59c"
+        },
+        "packages/barocss-physics/src/ccd-slab.ts": {
+          "bytes": 1125,
+          "sha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340"
+        },
+        "packages/barocss-physics/src/ccd-sphere-pair-exact.ts": {
+          "bytes": 5307,
+          "sha256": "2ee601d4e363d135fc356cef37a43495524449bb4dc38abe8f62848bdf28645c"
+        },
+        "packages/barocss-physics/src/ccd.ts": {
+          "bytes": 3183,
+          "sha256": "861e2b8fa56c746232581f1debddab0b88574df81187cb6dd2d6b8db7377d95e"
+        },
+        "packages/barocss-physics/src/character/admission.ts": {
+          "bytes": 4488,
+          "sha256": "d83cdb8231620a18935d4d4d5e19ab7ec5440b043e1df71d49d5fa42f3fecb26"
+        },
+        "packages/barocss-physics/src/character/core.ts": {
+          "bytes": 4057,
+          "sha256": "6c6251e9782baed07be65cce68bfdbca14e2f930ca04a54ee6812cbbfc925a02"
+        },
+        "packages/barocss-physics/src/character/ground.ts": {
+          "bytes": 1242,
+          "sha256": "bd1621641ebc9300943b88c9083710218768454acb0a5e1ba8b330086d68c321"
+        },
+        "packages/barocss-physics/src/character/math.ts": {
+          "bytes": 859,
+          "sha256": "df0e88c320d8a189004991cd5cfc3f8de3d7bb3eecb305bb01830a11191dcdc5"
+        },
+        "packages/barocss-physics/src/character/profile.ts": {
+          "bytes": 334,
+          "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+        },
+        "packages/barocss-physics/src/character/query.ts": {
+          "bytes": 2733,
+          "sha256": "9ef96eeb1529dc42466445529b100affc2f56913081f0c2fc169079cffe1a8cf"
+        },
+        "packages/barocss-physics/src/character/slide.ts": {
+          "bytes": 2555,
+          "sha256": "587d5512212e68fdc26068646152d2f8c52c3c6119d6c222de91b750c01fcd77"
+        },
+        "packages/barocss-physics/src/character/state.ts": {
+          "bytes": 2181,
+          "sha256": "6eb744c82f24604a8ecadd6e9d86406600119a3fbc7918129f93983df7cbf47e"
+        },
+        "packages/barocss-physics/src/character/step-assist.ts": {
+          "bytes": 3129,
+          "sha256": "9166857ad8509049a56d5b255ed59de17ee03e159581b495de7f1d985780c390"
+        },
+        "packages/barocss-physics/src/character/types.ts": {
+          "bytes": 2552,
+          "sha256": "866c5974fd99ec08b5dc6b5edf165241f4d02a8ed87274faf4cf35b19a3fb938"
+        },
+        "packages/barocss-physics/src/character-controller.ts": {
+          "bytes": 1363,
+          "sha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927"
+        },
+        "packages/barocss-physics/src/cloth/constraints.ts": {
+          "bytes": 1772,
+          "sha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be"
+        },
+        "packages/barocss-physics/src/cloth/metrics.ts": {
+          "bytes": 1805,
+          "sha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd"
+        },
+        "packages/barocss-physics/src/cloth/profile.ts": {
+          "bytes": 655,
+          "sha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f"
+        },
+        "packages/barocss-physics/src/cloth/solver.ts": {
+          "bytes": 1395,
+          "sha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d"
+        },
+        "packages/barocss-physics/src/cloth/topology.ts": {
+          "bytes": 1931,
+          "sha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203"
+        },
+        "packages/barocss-physics/src/cloth/types.ts": {
+          "bytes": 719,
+          "sha256": "bad411f3fa02e4ba7039b5d447de395074342aa207f2eeed251705b15facb6d1"
+        },
+        "packages/barocss-physics/src/collision.ts": {
+          "bytes": 15064,
+          "sha256": "189cf061d127eadcc8ea5cde39874c53b562fb44ac25db44b9eab902474da976"
+        },
+        "packages/barocss-physics/src/contact-contribution.ts": {
+          "bytes": 5167,
+          "sha256": "2703a20ec122414f4c4352fc5b53c235b20dc162800f6f71248d413aa7960d86"
+        },
+        "packages/barocss-physics/src/contact-manifold.ts": {
+          "bytes": 4743,
+          "sha256": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428"
+        },
+        "packages/barocss-physics/src/contact-tangent.ts": {
+          "bytes": 2729,
+          "sha256": "5e1bddc158f9a6f307fdcc60ce8078ab36a06e372d530e7f5d05466d29bf9673"
+        },
+        "packages/barocss-physics/src/disjoint-hinge/admission.ts": {
+          "bytes": 3764,
+          "sha256": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d"
+        },
+        "packages/barocss-physics/src/disjoint-hinge/errors.ts": {
+          "bytes": 2777,
+          "sha256": "5e51e5662fbce80bee3ccd3aa3694ee986b1492ed816d171774e261ab982bf4f"
+        },
+        "packages/barocss-physics/src/disjoint-hinge/linear-solver.ts": {
+          "bytes": 10615,
+          "sha256": "4009d4d7f171be3a5d79ca309a14b039da54f9201b438a410a6e29ed0f90bfdf"
+        },
+        "packages/barocss-physics/src/disjoint-hinge/measure.ts": {
+          "bytes": 4626,
+          "sha256": "97cbaf697dc8ef5caba0bf2c702699b025bcc6f906f553b623466618bbd77178"
+        },
+        "packages/barocss-physics/src/disjoint-hinge/pose.ts": {
+          "bytes": 3194,
+          "sha256": "ab950c1f9f1a79f9f00cb26e4b3cef0e3dcaea7b16d74e345e711159706b39e4"
+        },
+        "packages/barocss-physics/src/disjoint-hinge/postcontact.ts": {
+          "bytes": 2936,
+          "sha256": "8d07190383a64cb592165772109a4f462099743492f8373794ef7981b1431e38"
+        },
+        "packages/barocss-physics/src/disjoint-hinge/projection.ts": {
+          "bytes": 3538,
+          "sha256": "9d0def632c07f8085e860a2dbf21f26d8073f3265eb57590607d23ea6d333b87"
+        },
+        "packages/barocss-physics/src/disjoint-hinge/report.ts": {
+          "bytes": 5726,
+          "sha256": "d46b3e289c58b289b059928580ff2b89d9bd3ecfb11cb688d8b7a4735143973d"
+        },
+        "packages/barocss-physics/src/disjoint-hinge/rows.ts": {
+          "bytes": 3685,
+          "sha256": "6556f07d1d7d22edb67af1b214c689c5b5c2b30628334abaec67280d7302903f"
+        },
+        "packages/barocss-physics/src/disjoint-hinge/stage.ts": {
+          "bytes": 2648,
+          "sha256": "a66e09b816259c2bb1305fed8f90696585b9fd4b750406b0ce006cbe2c2f33ab"
+        },
+        "packages/barocss-physics/src/disjoint-hinge/types.ts": {
+          "bytes": 1610,
+          "sha256": "89b2708fd9209932084eaa765f93ff6ea00a2d775911e8c9e607a7eb824c8cc1"
+        },
+        "packages/barocss-physics/src/domain/admission.ts": {
+          "bytes": 11327,
+          "sha256": "1182fb21ec319132ac2f16ddec8494e3d1c4c5ac750bbe1ebab4c29817b4423e"
+        },
+        "packages/barocss-physics/src/domain/cloth-reference.generated.ts": {
+          "bytes": 158018,
+          "sha256": "c9ee88af8e25b533c2694433502b28f51dffdeae5cce656b53eb36a187be60bc"
+        },
+        "packages/barocss-physics/src/domain/cloth.ts": {
+          "bytes": 4349,
+          "sha256": "2454474a24928a9f3d92d635a9391c537ef74de77112fdc2f2872536cb447883"
+        },
+        "packages/barocss-physics/src/domain/fluid.ts": {
+          "bytes": 4923,
+          "sha256": "bfcafa7cc2f2bbb4ec6e2c20797f5dc5410d995cd28305272a2c3665d827179a"
+        },
+        "packages/barocss-physics/src/domain/types.ts": {
+          "bytes": 3839,
+          "sha256": "35fcadf07a848d919806955f6c3d934d01217ff1c26ca7d4eb4eb2807eb4ee6f"
+        },
+        "packages/barocss-physics/src/dynamic-anchor-pair.ts": {
+          "bytes": 3072,
+          "sha256": "8ff622a6ce007e5e7fcb43f0b7c08521615ddacbc8195cde1ac4f574304b579d"
+        },
+        "packages/barocss-physics/src/dynamic-fixed-joint.ts": {
+          "bytes": 2051,
+          "sha256": "f5a0fa82c062c7406f6edfeb2aeb169c927ddd8d0965957f630f87e118c52dfa"
+        },
+        "packages/barocss-physics/src/dynamic-hinge-joint.ts": {
+          "bytes": 4835,
+          "sha256": "69c816393446b6e06d66849840ecf88a7d28baf72bd30c792180616f55e455f2"
+        },
+        "packages/barocss-physics/src/fluid/boundary.ts": {
+          "bytes": 1990,
+          "sha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c"
+        },
+        "packages/barocss-physics/src/fluid/constants.ts": {
+          "bytes": 459,
+          "sha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec"
+        },
+        "packages/barocss-physics/src/fluid/diagnostics.ts": {
+          "bytes": 1106,
+          "sha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215"
+        },
+        "packages/barocss-physics/src/fluid/kernel.ts": {
+          "bytes": 1112,
+          "sha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da"
+        },
+        "packages/barocss-physics/src/fluid/neighbors.ts": {
+          "bytes": 2949,
+          "sha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3"
+        },
+        "packages/barocss-physics/src/fluid/pbf.ts": {
+          "bytes": 5161,
+          "sha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50"
+        },
+        "packages/barocss-physics/src/fluid/static-box.ts": {
+          "bytes": 2481,
+          "sha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9"
+        },
+        "packages/barocss-physics/src/fluid/types.ts": {
+          "bytes": 125,
+          "sha256": "c75f020afeb760ec596c3043fc6d2a7166995ce0c3cedbc7e5424a6a83e56a62"
+        },
+        "packages/barocss-physics/src/fluid/visual-viscosity.ts": {
+          "bytes": 1265,
+          "sha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3"
+        },
+        "packages/barocss-physics/src/generate-provider.mjs": {
+          "bytes": 2663,
+          "sha256": "c45a6eb52df5f4840aa30006ac65d15ea0758066f63d815e4a3b394e8eb20557"
+        },
+        "packages/barocss-physics/src/identity.ts": {
+          "bytes": 6081,
+          "sha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be"
+        },
+        "packages/barocss-physics/src/index.ts": {
+          "bytes": 570,
+          "sha256": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30"
+        },
+        "packages/barocss-physics/src/internal-types.ts": {
+          "bytes": 2615,
+          "sha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8"
+        },
+        "packages/barocss-physics/src/joint-motor.ts": {
+          "bytes": 1723,
+          "sha256": "9a50b0d006ca2386cd2d79b8ba162f6850a5d08d3eb1c7d03460d606559b56ea"
+        },
+        "packages/barocss-physics/src/joints.ts": {
+          "bytes": 7231,
+          "sha256": "b6d0ec667a96fc26ec43d9d812c5ffd0a3b7446d135bd9b18713059327c59181"
+        },
+        "packages/barocss-physics/src/limits.ts": {
+          "bytes": 417,
+          "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+        },
+        "packages/barocss-physics/src/math.ts": {
+          "bytes": 2421,
+          "sha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2"
+        },
+        "packages/barocss-physics/src/model-admission.ts": {
+          "bytes": 10792,
+          "sha256": "c9bfc8432ad1b026b56abb77fcc39e22981ef31860bf8bb1d1cd1d400a1fe530"
+        },
+        "packages/barocss-physics/src/persistent-box-contact.ts": {
+          "bytes": 4287,
+          "sha256": "6d4b8e9276be9aa0c89754ffb64040591a3c0479640acf81fc86d808926960df"
+        },
+        "packages/barocss-physics/src/provider-manifest.generated.ts": {
+          "bytes": 10936,
+          "sha256": "b1849f94c31d0b7adec183150ec75790110301330e70e98352cfee74d26582ea"
+        },
+        "packages/barocss-physics/src/recording-owner.ts": {
+          "bytes": 895,
+          "sha256": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1"
+        },
+        "packages/barocss-physics/src/replay-compare.ts": {
+          "bytes": 1023,
+          "sha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec"
+        },
+        "packages/barocss-physics/src/replay-json.ts": {
+          "bytes": 7760,
+          "sha256": "1ab8cf962443edd3be387e5095a9cce3f2071c8b44e47cc165ce82d5c00ac617"
+        },
+        "packages/barocss-physics/src/replay-validation.ts": {
+          "bytes": 8309,
+          "sha256": "0c105100228e493d7c1e71dc6fa46e779914028f6dcd614b2194a0c1a8f88011"
+        },
+        "packages/barocss-physics/src/replay.ts": {
+          "bytes": 7119,
+          "sha256": "07bafc635620c56c479ed44b0f458cbbb470bf20b3ce2ead7248ceb0973ca408"
+        },
+        "packages/barocss-physics/src/rigid-forced-rotation.ts": {
+          "bytes": 4961,
+          "sha256": "52447f9daa9da5c7382bd59d7132e3936ddf667942cbefd3fafeb79274e06d44"
+        },
+        "packages/barocss-physics/src/rigid-free-rotation.ts": {
+          "bytes": 11619,
+          "sha256": "63e5fd31e798a7bd85f56d0d0b5b5bad58d61e2c848594328fa74bf1c254dbbf"
+        },
+        "packages/barocss-physics/src/rotation-validation.ts": {
+          "bytes": 780,
+          "sha256": "45281b213700f86af36ea6d1a9189ca54349d13d01c37eeb366f1cdd474c1408"
+        },
+        "packages/barocss-physics/src/scene-profile.ts": {
+          "bytes": 1202,
+          "sha256": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7"
+        },
+        "packages/barocss-physics/src/sleep.ts": {
+          "bytes": 4411,
+          "sha256": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2"
+        },
+        "packages/barocss-physics/src/stack/OPTIMIZATION-01.json": {
+          "bytes": 3023,
+          "sha256": "48bf01c29961d20d2457f872439877c8078c4b9e154b3f9e8bdb85b99546590d"
+        },
+        "packages/barocss-physics/src/stack/OPTIMIZATION-02.json": {
+          "bytes": 2857,
+          "sha256": "589443a94afb9f32f4e39444fe49a8ff654097859119b568a9aa2821bc2a9432"
+        },
+        "packages/barocss-physics/src/stack/OPTIMIZATION-03.json": {
+          "bytes": 3165,
+          "sha256": "7850024dfb3dabe6ad3a99dc24be897397ba67e2318eedb98cdf44fdcc4abfab"
+        },
+        "packages/barocss-physics/src/stack/OPTIMIZATION-04.json": {
+          "bytes": 3068,
+          "sha256": "f16ce36f3db40d3c4ca99cc6b81091242d925831c08e7010cbbcd06051efe9c0"
+        },
+        "packages/barocss-physics/src/stack/OPTIMIZATION-05.json": {
+          "bytes": 3600,
+          "sha256": "79fbd675d7e200c87d84c0f75016591ec18ff82c5573e03632f7acb156b53136"
+        },
+        "packages/barocss-physics/src/stack/PROVENANCE.json": {
+          "bytes": 11389,
+          "sha256": "0ba21dcba3bfb56d07c300282ad00bd06515a682ad80edaf3ef2e4a093a161d2"
+        },
+        "packages/barocss-physics/src/stack/contact-types.ts": {
+          "bytes": 775,
+          "sha256": "7191984e5ee106de91c68ce4efb6c40afe8f5122b7a53e0ad2c5762191edfb47"
+        },
+        "packages/barocss-physics/src/stack/edge-contact.ts": {
+          "bytes": 3034,
+          "sha256": "58f1189ab830195628fe485e7885351595a86bbdbe6341d7b02ea9ff63aa9184"
+        },
+        "packages/barocss-physics/src/stack/face-contact.ts": {
+          "bytes": 5605,
+          "sha256": "37dcbd7601ad05b403207e5030dd04c64582169eed59631338cd41942e1c1063"
+        },
+        "packages/barocss-physics/src/stack/frictionless-island.ts": {
+          "bytes": 18976,
+          "sha256": "7721f76f9122112c5bf8aaff202f27ce4cbc5fbe47560f8591264d4c17728e6f"
+        },
+        "packages/barocss-physics/src/stack/full-pair-apply.ts": {
+          "bytes": 3447,
+          "sha256": "d4c7e503337e318d1dae9d2f93ad7310e078f2123159894542014a4945ef3f04"
+        },
+        "packages/barocss-physics/src/stack/full-pair-core.mjs": {
+          "bytes": 6177,
+          "sha256": "75941f67d5359c3734a68c93dd571313bdcab030a170205dee6e22d592119a46"
+        },
+        "packages/barocss-physics/src/stack/full-pair-exact.mjs": {
+          "bytes": 7675,
+          "sha256": "258732a572bd6b2d1606db97cd2b637bfd252ce5fb59ee31cb30b0e9d298cd32"
+        },
+        "packages/barocss-physics/src/stack/full-pair-input.mjs": {
+          "bytes": 5935,
+          "sha256": "294a5ace022a05ca93cf269c2c9f3faa7f22f9715bc8f59a2956b2cb04078027"
+        },
+        "packages/barocss-physics/src/stack/full-pair-linear.mjs": {
+          "bytes": 6168,
+          "sha256": "f12c0243c18178a138b79faaac29b14e61714a42376c6c88c2b8757eef82b280"
+        },
+        "packages/barocss-physics/src/stack/full-pair-phase.ts": {
+          "bytes": 5854,
+          "sha256": "ad4c4e8d014528eac7aadb0dbc86ef9d376d2c9a7f0e817cccf19d661630802d"
+        },
+        "packages/barocss-physics/src/stack/full-pair-rows.ts": {
+          "bytes": 8155,
+          "sha256": "46ff000e6e9bf3b21891d459dcf3eb1390728e039d09b6f548e154a728444361"
+        },
+        "packages/barocss-physics/src/stack/full-pair-solver.d.mts": {
+          "bytes": 947,
+          "sha256": "c1c5c954b0664b3e75ff800d8b9fee7c237a44c6c72d64020428e377cc1a81e4"
+        },
+        "packages/barocss-physics/src/stack/full-pair-solver.mjs": {
+          "bytes": 9940,
+          "sha256": "84e32cae07dbdd295e46af04691f0bf37815d77e73e2b5edfb75b0739e104432"
+        },
+        "packages/barocss-physics/src/stack/full-pair-types.ts": {
+          "bytes": 3165,
+          "sha256": "7cd7a0bb0c22b46e1ab0e82749b5afeeec297c236832fdb6badd69ffaa48d20f"
+        },
+        "packages/barocss-physics/src/stack/geometry-adapter.ts": {
+          "bytes": 1969,
+          "sha256": "c5dd9d06cba7409904e447189d3fadcbc312905c697d99ed47edcd12fb9e04d6"
+        },
+        "packages/barocss-physics/src/stack/geometry.ts": {
+          "bytes": 1984,
+          "sha256": "9a6e025a7443f324dc12d94f89240e52ef2aabdfed7f8886e6d2fd47e7b98c12"
+        },
+        "packages/barocss-physics/src/stack/normal-bridge.ts": {
+          "bytes": 10812,
+          "sha256": "b1a18d86d2a748e3325cbc0853d4c735dbd953f6656911742b369d36fe123751"
+        },
+        "packages/barocss-physics/src/stack/normal-solver.ts": {
+          "bytes": 16648,
+          "sha256": "2b7b8ed01cb61d8408087f666f4330b5034b4aa2449df0bd859b76084e940229"
+        },
+        "packages/barocss-physics/src/stack/prepare-step.ts": {
+          "bytes": 8693,
+          "sha256": "7a1eb50d7159fdb4a16875a9226636756528650cd97ec8c9740739a960432680"
+        },
+        "packages/barocss-physics/src/stack/public-output.ts": {
+          "bytes": 4095,
+          "sha256": "fae7765c69900f636fdedeba654da0c203cf1566a670644a6f5f51c4c525cf42"
+        },
+        "packages/barocss-physics/src/stack/sat-feature.ts": {
+          "bytes": 6079,
+          "sha256": "ae127d4b791895d2997540fe1c78f61193f95490fbd7d38e9f56be7165909377"
+        },
+        "packages/barocss-physics/src/stack/signed-sat.ts": {
+          "bytes": 7797,
+          "sha256": "88e1e823d92e880cd2c7429118da92db62d1bb42d0dca1d933e0e09192f80030"
+        },
+        "packages/barocss-physics/src/stack/stationary-normal.ts": {
+          "bytes": 15728,
+          "sha256": "04d851c18661bd340814c37acfa47364d9bec42da0df4721971bb5823d513f40"
+        },
+        "packages/barocss-physics/src/stack/stationary-profile.ts": {
+          "bytes": 3172,
+          "sha256": "3d6b82a5a907a211d6dd3b455c48e6882e09c84bd1f407d2887972fe6f0f3897"
+        },
+        "packages/barocss-physics/src/stack/strict-line.ts": {
+          "bytes": 18999,
+          "sha256": "eb24b03efa39b5beb4d4fe132bfa723b7273d4c30ce81d51c989dcc5d1925b53"
+        },
+        "packages/barocss-physics/src/stack/witness.ts": {
+          "bytes": 1194,
+          "sha256": "0369d4f3ffc8428a067c043cf262d19bde713cb3cb38045306eb360e8833bb64"
+        },
+        "packages/barocss-physics/src/stack/world-types.ts": {
+          "bytes": 2784,
+          "sha256": "57d1a3d76c3caea2d7a9b649838615c0c5e0812fa4a51c9956527c332f60a2a0"
+        },
+        "packages/barocss-physics/src/types.ts": {
+          "bytes": 12044,
+          "sha256": "f7c6b5ebf7732fc412d324192e55087cdeaa7d44e5228091bd8f8a05a9038666"
+        },
+        "packages/barocss-physics/src/validation.ts": {
+          "bytes": 14962,
+          "sha256": "c5787fdbe5e31a51e52fb6b91634f75b363a629bb4a88248273e85c8ffc948af"
+        },
+        "packages/barocss-physics/src/world.ts": {
+          "bytes": 36572,
+          "sha256": "6e307bfdb38937c6e30bcbbf921d6cea0a6896845243ad49e35dcb0c5dd37954"
+        }
+      },
+      "liveBytesComparedAtBuild": true,
+      "physicsCalls": 0
+    },
+    "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/": {
+      "checkpoint12ArchiveRole": "proof",
+      "files": {
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/broadphase.js": {
+          "bytes": 1253,
+          "sha256": "f35e7453719dc2b44668bb20d6fad51a739c6b2cdb9797fe875fc81187400db3"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/capsule-contact.js": {
+          "bytes": 5708,
+          "sha256": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/capsule-query/admission.js": {
+          "bytes": 4867,
+          "sha256": "547d9202b0db4be3d8a4fd5266b136f750d3e015151d60e679df26ecf51da7fe"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/capsule-query/geometry.js": {
+          "bytes": 2319,
+          "sha256": "4c9034c23c2137d54e4d2e1554b9015ff2cc6bc7776d62d8e1f3c8b905b67d04"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/capsule-query/profile.js": {
+          "bytes": 294,
+          "sha256": "acfab32b60a91c29bec4b89a803902aa9b944eb2ebb6cd0d129b60e039e13210"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/capsule-query/snapshot.js": {
+          "bytes": 2468,
+          "sha256": "5ee1b97dc58a872a9cd6c56121eca158ac5f746d543729e5f197b24d08f9d55f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/capsule-query/sweep.js": {
+          "bytes": 1833,
+          "sha256": "f04e6a548504cad0bb838862f7813225592c9549fb0233e026bc6276f7b4929e"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/capsule-query/types.js": {
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/capsule-query-error.js": {
+          "bytes": 137,
+          "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/capsule-query.js": {
+          "bytes": 73,
+          "sha256": "f44c04d06c851b807add8096cc26bf893945f53b49ab6c671148491b88e781fc"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/ccd-box.js": {
+          "bytes": 1835,
+          "sha256": "e289ada87186b13de91bfda3c91b7db3c4b4a84b3870cea0290e2bab64f54271"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/ccd-pair.js": {
+          "bytes": 1228,
+          "sha256": "3bd501f350075f4e373eaa08ab6d0a26f74ae488e376605e4613d48a7d862830"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/ccd-rounded-box.js": {
+          "bytes": 8311,
+          "sha256": "0ed00435e556cef7a81dba538818391957c114388a8591dab65439fc33cd6992"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/ccd-slab.js": {
+          "bytes": 1088,
+          "sha256": "cf85c1dce1ebaa899cc2fc9eead7b0c25f7096caeb3a652476beb93c5f02843f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/ccd-sphere-pair-exact.js": {
+          "bytes": 5256,
+          "sha256": "3182f9776b5f9f84942379fcd1b0e3728e7f8a5b2ce669772d025f8245ed595c"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/ccd.js": {
+          "bytes": 2927,
+          "sha256": "a53793b3cc447960ce3a17cb3207b65c573b7ab3c8d379a4da75542d1929efee"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/character/admission.js": {
+          "bytes": 4100,
+          "sha256": "07cf9fb6af74299fce3e8fba82ca65871ea7e0cc67e4e73c837606be9f30e43c"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/character/core.js": {
+          "bytes": 4194,
+          "sha256": "80a53992b06c75c9216a671c52bad2f3a01b6192bbd6002458ecfe077c3a4eb4"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/character/ground.js": {
+          "bytes": 1117,
+          "sha256": "96298ab6534e5e9e7f3da6b0850bbbb7acd73ac11534f6047617ac2bdcd2eb16"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/character/math.js": {
+          "bytes": 686,
+          "sha256": "1afbd07dcb7940e9808e9017d665d781b5e7442bebc290c8327d0d4fb7a79174"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/character/profile.js": {
+          "bytes": 334,
+          "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/character/query.js": {
+          "bytes": 2186,
+          "sha256": "3b22d2772d3724bdb3974f1d88f5298054e577286a9f73aa67e62684efca1184"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/character/slide.js": {
+          "bytes": 2636,
+          "sha256": "10c7d825c4640a7837a0b69885bb422ea5a343c921430675c11955acafce3c57"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/character/state.js": {
+          "bytes": 1923,
+          "sha256": "1600bb81b883944f36c687305bcb5f7134dbf6c0751e92d9206b03622eaf9633"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/character/step-assist.js": {
+          "bytes": 2969,
+          "sha256": "aacc69468b9db7a62a14fbb2628a4494cab01a82640c682ad72f098fcbe7c8e5"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/character/types.js": {
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/character-controller.js": {
+          "bytes": 1083,
+          "sha256": "7a68a578b18b42e02dcacba24011b41208fa9af3b5c1b6991dd8efbae29d75b8"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/cloth/constraints.js": {
+          "bytes": 1836,
+          "sha256": "6e2e0b09734222a87abdefd745540e3ff5f4f24414cfae51f85c1b96d15225d7"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/cloth/metrics.js": {
+          "bytes": 1730,
+          "sha256": "78e03ac4e69c35a7be6a614e4d7aedff4e4390d64c103a28543c0f6ee056eb27"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/cloth/profile.js": {
+          "bytes": 664,
+          "sha256": "0dc385cac798bcfde6ad9cf479b8c51cf55bfc42b478370534ccb2de1e66f807"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/cloth/solver.js": {
+          "bytes": 1471,
+          "sha256": "1f7178354cc026a41996d32502ac54d888ddf83f6b955059bb43f45cc6d9453b"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/cloth/types.js": {
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/collision.js": {
+          "bytes": 15257,
+          "sha256": "a42979046e9f32c9fe16323617975b4d3a80aa71f44a74330208b0003c491457"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/contact-contribution.js": {
+          "bytes": 3983,
+          "sha256": "ef2eea7731343f2584baea3280515163ca23602cd3219049ea5d0296e7bce57e"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/contact-manifold.js": {
+          "bytes": 4576,
+          "sha256": "52fcb4accfbfd3251aa977f519983c7334f0d1663bfb2424ca82bfaaec1c8fae"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/contact-tangent.js": {
+          "bytes": 2713,
+          "sha256": "d5a3e6a0a2fef8000b219df53569c571a6d75b6a854b5266dd84fda3c58df9d0"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/disjoint-hinge/admission.js": {
+          "bytes": 3562,
+          "sha256": "4a72dbe445a74c4d1e7081e07a27c9c3cab46d823d0ab9568781a1ac54ffc587"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/disjoint-hinge/errors.js": {
+          "bytes": 2793,
+          "sha256": "9195a428dd9c96e0344b8eeb1eb7c66a7197a8e152b85d5fb5aed5038256d173"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/disjoint-hinge/linear-solver.js": {
+          "bytes": 12015,
+          "sha256": "123d3abb62b3a9f4f5ce3807463f070194e2d528f5cec841da5e623ee6b52e8e"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/disjoint-hinge/measure.js": {
+          "bytes": 4860,
+          "sha256": "e576367851b0ea5ba37e9684e867aa28ae51cb6a585ad2c40f479341dc5f95f8"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/disjoint-hinge/pose.js": {
+          "bytes": 3352,
+          "sha256": "ee53440b0433e7be5b1f00027aca708bb567da46f9edd193de0bab2a282c02b9"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/disjoint-hinge/postcontact.js": {
+          "bytes": 2568,
+          "sha256": "32a4a1907a4540a550e67cee03a2817d9519d77a53212b160d018c2f484b2e1a"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/disjoint-hinge/projection.js": {
+          "bytes": 3825,
+          "sha256": "30e04425020bff49e75c02f1d7abf15f82fe375dd1e07a0938a4a69aa03d159a"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/disjoint-hinge/report.js": {
+          "bytes": 5257,
+          "sha256": "7ee0b7d17e70247ce4c2dff953593e82091efabdd2932e0f4272931c69843a2f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/disjoint-hinge/rows.js": {
+          "bytes": 4059,
+          "sha256": "e19d8d9c3ef835e98f796b3dc9b5785473e8aaef41af34d77c49200b446d3f55"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/disjoint-hinge/stage.js": {
+          "bytes": 2255,
+          "sha256": "bfa6d3528889d89da9d355a4bed753ed7287fd5979735f1158c7c009de94cafd"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/disjoint-hinge/types.js": {
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/domain/admission.js": {
+          "bytes": 11163,
+          "sha256": "8d4a14d764742a9989a760ce27a0cc395ff818f879a9faa32f86fdaba7600960"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/domain/cloth-reference.generated.js": {
+          "bytes": 181057,
+          "sha256": "3c8e21d9612bf232074268c50bf7151290167391692a132e0619f5aedb4b75b9"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/domain/cloth.js": {
+          "bytes": 4041,
+          "sha256": "a97392c690610d642eb7b6282385e362ee4ebe7b661319d3b70ea48fa95b6205"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/domain/fluid.js": {
+          "bytes": 4875,
+          "sha256": "c0ce5f1f97b1d19b2f6fa2bc892b5bc5bed445c3e1c56d5f4a1cd97c2ecd456f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/domain/types.js": {
+          "bytes": 2151,
+          "sha256": "76eb7d0fc14a3ba6897ba0d649beeaba4a28172b2458782b64029af6ef5f6666"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/dynamic-anchor-pair.js": {
+          "bytes": 3099,
+          "sha256": "8e20e96a9a3c803f65d78dfa21aaf530744b2c37e4f3507fd87e828190c800be"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/dynamic-fixed-joint.js": {
+          "bytes": 1935,
+          "sha256": "c637c4b13cdf432103202f895e50fae7e05c88920cf0889a67f2c16e565bfb5a"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/dynamic-hinge-joint.js": {
+          "bytes": 4671,
+          "sha256": "8780a6887f0c7cbec6ec2f059b2ada64d0e28d0224279d7ada42e4b79e84baac"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/fluid/boundary.js": {
+          "bytes": 2027,
+          "sha256": "0411aee849b18145f75e2a602a23aab5b5e6a644bc44a47cc2944ab532d0ea18"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/fluid/constants.js": {
+          "bytes": 396,
+          "sha256": "48cb2507298e158c9d711a3a08e36a521ccab101a26b55217d00247a9b844072"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/fluid/diagnostics.js": {
+          "bytes": 1032,
+          "sha256": "b87d7b27266ca4b014d4b84b24b57216b12d4b0345088282b6ecd5270fa46c29"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/fluid/kernel.js": {
+          "bytes": 1047,
+          "sha256": "264a62a2ed0aeee0c77bd5ba44a60a6d0522654ecc8f07117174c6fe328c123b"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/fluid/neighbors.js": {
+          "bytes": 3065,
+          "sha256": "e857766d44372269a19fb83d4bdeeabbc1816b9792230e6a9aac8cf1ea6249e5"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/fluid/pbf.js": {
+          "bytes": 5606,
+          "sha256": "93ba3d6c2db8aee07c7307d74300888b9e48279279f6f060e157ea08b847241d"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/fluid/static-box.js": {
+          "bytes": 2238,
+          "sha256": "120ee59f2212e86846bce3a73425b493d2bc98971dc230419a394a1235196b7c"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/fluid/types.js": {
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/fluid/visual-viscosity.js": {
+          "bytes": 1225,
+          "sha256": "0d01bcbd68f126c9d8954b46afe523f6e7f879f129817f40fc9300c297041205"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/identity.js": {
+          "bytes": 6977,
+          "sha256": "7f7243fcc617a32f77d517d029cb90bd99584f518ece49a7d7a4e35ae54d7791"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/index.js": {
+          "bytes": 217,
+          "sha256": "560813197ed96657e44ebd195ea1be17cf3aff51aa0bc08ec9fb1622057db2e1"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/internal-types.js": {
+          "bytes": 43,
+          "sha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/joint-motor.js": {
+          "bytes": 1651,
+          "sha256": "43010c0e319717622727666e1e23f7288fdf500f1731f6fd52a443f36055c724"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/joints.js": {
+          "bytes": 7382,
+          "sha256": "f2893b2f8684f338a8d4832b9fa91c356fd360bf70ebf423062e21911d433ce0"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/limits.js": {
+          "bytes": 416,
+          "sha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/math.js": {
+          "bytes": 2114,
+          "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/model-admission.js": {
+          "bytes": 11193,
+          "sha256": "a5d99e1d5b4ab8c2413b509b6f19a58a3c40ed088784714acc7b05dc8f98423a"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/package.json": {
+          "bytes": 1602,
+          "sha256": "7ef765dcf000a0b45dd74495e60243e16516506e730afa024fc7f32b11222330"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/persistent-box-contact.js": {
+          "bytes": 3933,
+          "sha256": "38d7204fc639296ce5919d33b6f20290fc26dd0d61a6e94e65962e091262931b"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/provider-manifest.generated.js": {
+          "bytes": 11397,
+          "sha256": "eede484f2f4a3bdb21b3196ff7a681675393f4d621751b0740a43e890079feb3"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/recording-owner.js": {
+          "bytes": 46,
+          "sha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/replay-compare.js": {
+          "bytes": 974,
+          "sha256": "46e92b237a3b74725e1f973bc195f3fb3c7d182ea4978f5092608706d1400875"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/replay-json.js": {
+          "bytes": 8011,
+          "sha256": "742249b1dd48de51d76dcf266dce19b2f85da400c5bc2b1043543d43c5593d0f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/replay-validation.js": {
+          "bytes": 8489,
+          "sha256": "10fcc070dc89a66b576b8ce956a866cf6ecd3581d5a3b2aaa31cbbaf008643de"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/replay.js": {
+          "bytes": 6623,
+          "sha256": "d352fcab204a7e5291a3a5f1e17d2856a5628a9179de2becf7f520676a471036"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/rigid-forced-rotation.js": {
+          "bytes": 4913,
+          "sha256": "76a7de3e408c18d5ce78c447cd86c88f6f5e62678990dfb4dee6c000a783ea3d"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/rigid-free-rotation.js": {
+          "bytes": 11497,
+          "sha256": "88689f815d52f4c9503eaefd80fa13f146e6c4639f9a2a967c10d7116eb93e89"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/rotation-validation.js": {
+          "bytes": 697,
+          "sha256": "9ae367ba026027fbb0966561c54f508271f1119a479076c7bc3228a4a995f397"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/scene-profile.js": {
+          "bytes": 1138,
+          "sha256": "7a1198598bfaf64647f9ed89d76cb4f1035bd77e602d8b8c0b8a7914911b6e9f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/sleep.js": {
+          "bytes": 4621,
+          "sha256": "681f3820fb08a61cd7f367b049f9b7bb3d2eb1a4e8f81975aec014fdefdb8250"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/contact-types.js": {
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/edge-contact.js": {
+          "bytes": 3306,
+          "sha256": "cd35a636c99773c087204ead2e3f797b9b803624d6883d1906b8d4bff2af0c34"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/face-contact.js": {
+          "bytes": 6143,
+          "sha256": "f00894e179c5317e77367991e6a30b1858ddf637282ccce40318b36873d20349"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/frictionless-island.js": {
+          "bytes": 17494,
+          "sha256": "9e64c47fdeef3826aa44699571fb16d2eccdde700b8ccda1feea31a781e7748f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/full-pair-apply.js": {
+          "bytes": 3288,
+          "sha256": "7f8d7bc1a0540ae85de4684a571ce70f08efd536f34bb67ad111cced690377d7"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/full-pair-core.mjs": {
+          "bytes": 6177,
+          "sha256": "75941f67d5359c3734a68c93dd571313bdcab030a170205dee6e22d592119a46"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/full-pair-exact.mjs": {
+          "bytes": 7675,
+          "sha256": "258732a572bd6b2d1606db97cd2b637bfd252ce5fb59ee31cb30b0e9d298cd32"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/full-pair-input.mjs": {
+          "bytes": 5935,
+          "sha256": "294a5ace022a05ca93cf269c2c9f3faa7f22f9715bc8f59a2956b2cb04078027"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/full-pair-linear.mjs": {
+          "bytes": 6168,
+          "sha256": "f12c0243c18178a138b79faaac29b14e61714a42376c6c88c2b8757eef82b280"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/full-pair-phase.js": {
+          "bytes": 5612,
+          "sha256": "e82291e4014b98666367fe33bdf7e996f3b3c544c881dc5967b1b06ad6311c32"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/full-pair-rows.js": {
+          "bytes": 7852,
+          "sha256": "9810df91101ff635dcfe9c0610a4cc35d4b88dd340ce9cef67406ee5afcaffe9"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/full-pair-solver.d.mts": {
+          "bytes": 947,
+          "sha256": "c1c5c954b0664b3e75ff800d8b9fee7c237a44c6c72d64020428e377cc1a81e4"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/full-pair-solver.mjs": {
+          "bytes": 9940,
+          "sha256": "84e32cae07dbdd295e46af04691f0bf37815d77e73e2b5edfb75b0739e104432"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/full-pair-types.js": {
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/geometry-adapter.js": {
+          "bytes": 1393,
+          "sha256": "203477a61d5a9bf7d2afa2d66114e2bcff360fd6d0c123c659166d6c4dc1ac27"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/geometry.js": {
+          "bytes": 2057,
+          "sha256": "225329ca8c8359cd1e3278e7bb40951087841182cc07e1581e48f1cea691e43f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/normal-bridge.js": {
+          "bytes": 10232,
+          "sha256": "ab372a977dd99af31c36384dd1c637a193adc27c4b38d4b846e9e5b0b140eab7"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/normal-solver.js": {
+          "bytes": 15421,
+          "sha256": "d672f4a7f41179fc9aefb767d0e92ed580cf346c9bd17ac8cc75b75aefba9570"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/prepare-step.js": {
+          "bytes": 8009,
+          "sha256": "4329d143d07d09de2ee6070996fd6863e20cfe65011bbf7caf68999c82a27cce"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/public-output.js": {
+          "bytes": 3765,
+          "sha256": "7b0724c879bf678e1f8840ea6530f1a7a9342c629e0182ef0588645dfcf50238"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/sat-feature.js": {
+          "bytes": 5108,
+          "sha256": "75558bcb2392da27b81e8f0ae17cbb446ceccb191e4ec536280140da9bde7359"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/signed-sat.js": {
+          "bytes": 6746,
+          "sha256": "0c6d102bb26183d6f0789615bb66d9b44afedc52774dd575603308ebf859547c"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/stationary-normal.js": {
+          "bytes": 17039,
+          "sha256": "0315c168703d37c4372d45a778d3a2681ea42024bbd36f9d8c79e588d1276fc2"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/stationary-profile.js": {
+          "bytes": 2928,
+          "sha256": "346629680d4dee9e0c9293e4aeb9a53fd5473c0501f8fd096954e87d6d2b32b5"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/strict-line.js": {
+          "bytes": 19275,
+          "sha256": "2314ce1450bc4d54148895c3498a511b793fd34e37aba03295f03501adcf51b3"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/witness.js": {
+          "bytes": 1043,
+          "sha256": "efd1289164059156211e7a382d69a6382e88dd0253f3e3c58a082268d20c3aa9"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/stack/world-types.js": {
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/types.js": {
+          "bytes": 418,
+          "sha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/validation.js": {
+          "bytes": 14590,
+          "sha256": "7a16fbadf07097048276364818d8851d77f980fe84a30dc79529eadcb2fabe2c"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/source-modules/world.js": {
+          "bytes": 41620,
+          "sha256": "58f1aec16ba241bc70d0c6c8603e7306279e9475d8e4886d719186baeec2d183"
+        }
+      },
+      "liveBytesComparedAtBuild": true,
+      "physicsCalls": 0
+    },
+    "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/": {
+      "checkpoint12ArchiveRole": "proof",
+      "files": {
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/broadphase.d.ts": {
+          "bytes": 239,
+          "sha256": "9231cd9d0f59808f02ab39305893cd5a48c30774f2bacd7ffd0fcab1f8767f13"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/broadphase.js": {
+          "bytes": 1253,
+          "sha256": "f35e7453719dc2b44668bb20d6fad51a739c6b2cdb9797fe875fc81187400db3"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cad-fluid-data.d.ts": {
+          "bytes": 440,
+          "sha256": "b13135d255653f45cdd083ad7e9a3fb2877340e6c53b273674c282bc0f702a59"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cad-fluid-data.js": {
+          "bytes": 2123,
+          "sha256": "854603f2171481ec0bf8d795908eac35718518686532fb9c91a7ccd42a35feb9"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cad-proxy-admission.d.ts": {
+          "bytes": 322,
+          "sha256": "e571a8936bc6df9bfa2dfd9ba0464709947026528be2b5028fb0d7964aa5ca78"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cad-proxy-admission.js": {
+          "bytes": 7628,
+          "sha256": "ee51b4fc7e9f3c193bd993fa3f850f381142e58b48bca2b5b7ab992d9157548d"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cad-proxy-pose.d.ts": {
+          "bytes": 243,
+          "sha256": "8ed62f953840b9ed6319d507e080f771d05c48b1d3125849bbbbdde52beda981"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cad-proxy-pose.js": {
+          "bytes": 1287,
+          "sha256": "ca965a4d587c8b208c064f0d0d3a65b2b31c41c2f692f60b086e6eb2fce8b46d"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cad-proxy-types.d.ts": {
+          "bytes": 950,
+          "sha256": "4ba2ad188a191a5465bf422ee6e79b631caed56a1c7333d96ab7daa96b605d29"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cad-proxy-types.js": {
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cad-proxy-validation.d.ts": {
+          "bytes": 549,
+          "sha256": "daa38774bf8e5a9bf5953ead96f9851bb5be1aa526fa6519b5d3bf0cb155343c"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cad-proxy-validation.js": {
+          "bytes": 1327,
+          "sha256": "30ff7c4b15b218924f4b6a8df561830ed254365a3b474f4e718b486fd7be5155"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cad-proxy.d.ts": {
+          "bytes": 321,
+          "sha256": "cc7715b4fc974c8ed4511ebf684cdc7c2923f7ab4b8b7f5db45b208f8e6ffa99"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cad-proxy.js": {
+          "bytes": 203,
+          "sha256": "457a52444143aee357e2be5e6673b95de67b918da30d3242747890af55a35fba"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-contact.d.ts": {
+          "bytes": 198,
+          "sha256": "e3c1d147fbc7b1f30e8e97a6067e6750a56f0f6ccf7659a9d211f65e24e4a178"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-contact.js": {
+          "bytes": 5708,
+          "sha256": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-query/admission.d.ts": {
+          "bytes": 250,
+          "sha256": "779417df1dbf3f0f697de4a04f918007954b13fc9f301b991105bbfc0a9cefe6"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-query/admission.js": {
+          "bytes": 4867,
+          "sha256": "547d9202b0db4be3d8a4fd5266b136f750d3e015151d60e679df26ecf51da7fe"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-query/geometry.d.ts": {
+          "bytes": 536,
+          "sha256": "efb0588d7b8808333836dcc927eb7523c5a7c516467294e3743cccf056ba736b"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-query/geometry.js": {
+          "bytes": 2319,
+          "sha256": "4c9034c23c2137d54e4d2e1554b9015ff2cc6bc7776d62d8e1f3c8b905b67d04"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-query/profile.d.ts": {
+          "bytes": 357,
+          "sha256": "2b1626e82c8677593940e8100247b6fbb33e9ab53e80d9de001ec1f9a7411300"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-query/profile.js": {
+          "bytes": 294,
+          "sha256": "acfab32b60a91c29bec4b89a803902aa9b944eb2ebb6cd0d129b60e039e13210"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-query/snapshot.d.ts": {
+          "bytes": 176,
+          "sha256": "64340b99b9b456f3586ed545d7e99a570675df7972374c3ec76ecd9d73a515ea"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-query/snapshot.js": {
+          "bytes": 2468,
+          "sha256": "5ee1b97dc58a872a9cd6c56121eca158ac5f746d543729e5f197b24d08f9d55f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-query/sweep.d.ts": {
+          "bytes": 240,
+          "sha256": "c99f678a450aa0db3d677c57c97ef5990544effca96e35196e8f3bbca073ecf3"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-query/sweep.js": {
+          "bytes": 1833,
+          "sha256": "f04e6a548504cad0bb838862f7813225592c9549fb0233e026bc6276f7b4929e"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-query/types.d.ts": {
+          "bytes": 1026,
+          "sha256": "6f1c259f0b05ffe866b493569a8d939f3493ad263381bfc5ac943705c8c31522"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-query/types.js": {
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-query-error.d.ts": {
+          "bytes": 43,
+          "sha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-query-error.js": {
+          "bytes": 137,
+          "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-query.d.ts": {
+          "bytes": 222,
+          "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/capsule-query.js": {
+          "bytes": 73,
+          "sha256": "f44c04d06c851b807add8096cc26bf893945f53b49ab6c671148491b88e781fc"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/ccd-box.d.ts": {
+          "bytes": 375,
+          "sha256": "e8c009659fab23be3f36024b61c7f693aad60e8df99cc36ea8c94c2e1d88efee"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/ccd-box.js": {
+          "bytes": 1835,
+          "sha256": "e289ada87186b13de91bfda3c91b7db3c4b4a84b3870cea0290e2bab64f54271"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/ccd-pair.d.ts": {
+          "bytes": 275,
+          "sha256": "62e7a116e62e543ffd85cbdc138788f73dddd56d81ab9ec681f277ea75d40829"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/ccd-pair.js": {
+          "bytes": 1228,
+          "sha256": "3bd501f350075f4e373eaa08ab6d0a26f74ae488e376605e4613d48a7d862830"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/ccd-rounded-box.d.ts": {
+          "bytes": 502,
+          "sha256": "bcd4f82854324d45d093b0ddf96c99153cf1a9f8cd63acd650e6c0abd17f18d5"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/ccd-rounded-box.js": {
+          "bytes": 8311,
+          "sha256": "0ed00435e556cef7a81dba538818391957c114388a8591dab65439fc33cd6992"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/ccd-slab.d.ts": {
+          "bytes": 216,
+          "sha256": "4adde0cfe2c336ea862ff7d61b3001503235d8b9e6761e73d310221a691e3646"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/ccd-slab.js": {
+          "bytes": 1088,
+          "sha256": "cf85c1dce1ebaa899cc2fc9eead7b0c25f7096caeb3a652476beb93c5f02843f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/ccd-sphere-pair-exact.d.ts": {
+          "bytes": 545,
+          "sha256": "e308490fb137e76f53c72d808118ddd15c57f1bcc6c8eb89fcc9cd2528fed03e"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/ccd-sphere-pair-exact.js": {
+          "bytes": 5256,
+          "sha256": "3182f9776b5f9f84942379fcd1b0e3728e7f8a5b2ce669772d025f8245ed595c"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/ccd.d.ts": {
+          "bytes": 560,
+          "sha256": "ef17952c90ff59495d3120e697ae83fbc4eee9e28ae1050b25a21ceccc7069f4"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/ccd.js": {
+          "bytes": 2927,
+          "sha256": "a53793b3cc447960ce3a17cb3207b65c573b7ab3c8d379a4da75542d1929efee"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/admission.d.ts": {
+          "bytes": 499,
+          "sha256": "49b1094be17da78b2a3b8cff6756f6191ddd0422886cd1985ff89c0337cfa6aa"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/admission.js": {
+          "bytes": 4100,
+          "sha256": "07cf9fb6af74299fce3e8fba82ca65871ea7e0cc67e4e73c837606be9f30e43c"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/core.d.ts": {
+          "bytes": 461,
+          "sha256": "403a8ef448bcab99937f5bdbaa5c5d49f2d0c2dbd9ea06faac8c4beb9d488287"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/core.js": {
+          "bytes": 4194,
+          "sha256": "80a53992b06c75c9216a671c52bad2f3a01b6192bbd6002458ecfe077c3a4eb4"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/ground.d.ts": {
+          "bytes": 250,
+          "sha256": "6fb19efbd8bb96956188dd9471a510686b3fd6a841b1656a4102435a4f2fdd8a"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/ground.js": {
+          "bytes": 1117,
+          "sha256": "96298ab6534e5e9e7f3da6b0850bbbb7acd73ac11534f6047617ac2bdcd2eb16"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/math.d.ts": {
+          "bytes": 400,
+          "sha256": "080a0c2c1d9a808d658028024dae011eda1fad85c72eadee8af62dfb06f5854d"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/math.js": {
+          "bytes": 686,
+          "sha256": "1afbd07dcb7940e9808e9017d665d781b5e7442bebc290c8327d0d4fb7a79174"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/profile.d.ts": {
+          "bytes": 355,
+          "sha256": "30d583b24f52cf743763b6d877a8d4d1f742a9646d000c43a64065f1836019ce"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/profile.js": {
+          "bytes": 334,
+          "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/query.d.ts": {
+          "bytes": 655,
+          "sha256": "3849ff4e235063452e740ddf26f9352c3da945e000233a6f1763f7ebd69fe68f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/query.js": {
+          "bytes": 2186,
+          "sha256": "3b22d2772d3724bdb3974f1d88f5298054e577286a9f73aa67e62684efca1184"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/slide.d.ts": {
+          "bytes": 319,
+          "sha256": "ccf68ac00496f485887d10f5f441ecf7b74e1ef2575ddb3432952da5daabd354"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/slide.js": {
+          "bytes": 2636,
+          "sha256": "10c7d825c4640a7837a0b69885bb422ea5a343c921430675c11955acafce3c57"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/state.d.ts": {
+          "bytes": 504,
+          "sha256": "26784670cee2b09570f457a21d1fe7a60aa2446bf67f04882fc692c0c52fa4fc"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/state.js": {
+          "bytes": 1923,
+          "sha256": "1600bb81b883944f36c687305bcb5f7134dbf6c0751e92d9206b03622eaf9633"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/step-assist.d.ts": {
+          "bytes": 445,
+          "sha256": "23f5de885452721fb565a167cdcf3eab995f71643a46569faa3b7f905cb71e79"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/step-assist.js": {
+          "bytes": 2969,
+          "sha256": "aacc69468b9db7a62a14fbb2628a4494cab01a82640c682ad72f098fcbe7c8e5"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/types.d.ts": {
+          "bytes": 2684,
+          "sha256": "1a0f85fdcf124f38bbbfeb2e99ba5896d5303281ba44f7a80f116dff1a753153"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character/types.js": {
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character-controller.d.ts": {
+          "bytes": 505,
+          "sha256": "58081e98e53b7c4a256dd00eac153992c61dfdbfcdbb2f15b9da8aa88df092e8"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/character-controller.js": {
+          "bytes": 1083,
+          "sha256": "7a68a578b18b42e02dcacba24011b41208fa9af3b5c1b6991dd8efbae29d75b8"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cloth/constraints.d.ts": {
+          "bytes": 222,
+          "sha256": "d73f6b43a6276c83a5393ad8f5888833f6e2e91289f90d8176fe4d8cdb6f6296"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cloth/constraints.js": {
+          "bytes": 1836,
+          "sha256": "6e2e0b09734222a87abdefd745540e3ff5f4f24414cfae51f85c1b96d15225d7"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cloth/metrics.d.ts": {
+          "bytes": 277,
+          "sha256": "5fb418be30e84af69659615f0c87a66d0907d9422087f8fb40ca1f03379e29b0"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cloth/metrics.js": {
+          "bytes": 1730,
+          "sha256": "78e03ac4e69c35a7be6a614e4d7aedff4e4390d64c103a28543c0f6ee056eb27"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cloth/profile.d.ts": {
+          "bytes": 604,
+          "sha256": "8f1d860e70cc6e12faa7d35c38bb116298f0ee6345e18aa53119294e531e0fa1"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cloth/profile.js": {
+          "bytes": 664,
+          "sha256": "0dc385cac798bcfde6ad9cf479b8c51cf55bfc42b478370534ccb2de1e66f807"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cloth/solver.d.ts": {
+          "bytes": 309,
+          "sha256": "02eae9d5e0564304417dcb5afc5994dc808ee261ad05c16453c36ee58a6607f0"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cloth/solver.js": {
+          "bytes": 1471,
+          "sha256": "1f7178354cc026a41996d32502ac54d888ddf83f6b955059bb43f45cc6d9453b"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cloth/topology.d.ts": {
+          "bytes": 97,
+          "sha256": "96f70c7b8084190711c77cde7e7c54ba1f549f58c0af1a92060e25d5198e8047"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cloth/topology.js": {
+          "bytes": 2033,
+          "sha256": "403cf1b19b85a3a6dd177ae8bb130b19895670e679452533df22dce26d558050"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cloth/types.d.ts": {
+          "bytes": 752,
+          "sha256": "482dbddb4b66efa7aa47e689cb8759d2c9d7b7e3e5b870e5aa500ced152bffa2"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/cloth/types.js": {
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/collision.d.ts": {
+          "bytes": 644,
+          "sha256": "9a1775b67a8271b9ba652f741e4483450e8cb47825293bfd383cf3d5ef853369"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/collision.js": {
+          "bytes": 15257,
+          "sha256": "a42979046e9f32c9fe16323617975b4d3a80aa71f44a74330208b0003c491457"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/contact-contribution.d.ts": {
+          "bytes": 2105,
+          "sha256": "651858a4f792ce1606c3ae2d474a25cf8ffe195ac53c0faba0e9454ffa66093e"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/contact-contribution.js": {
+          "bytes": 3983,
+          "sha256": "ef2eea7731343f2584baea3280515163ca23602cd3219049ea5d0296e7bce57e"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/contact-manifold.d.ts": {
+          "bytes": 320,
+          "sha256": "92763debd17ad80b2a55394adc00214c3e127cadd51cb969f496ec45100b496b"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/contact-manifold.js": {
+          "bytes": 4576,
+          "sha256": "52fcb4accfbfd3251aa977f519983c7334f0d1663bfb2424ca82bfaaec1c8fae"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/contact-tangent.d.ts": {
+          "bytes": 346,
+          "sha256": "7459a975c8a9473f4f983e7705812e4ee6cf7621d5bdddcbdf26721220322d3d"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/contact-tangent.js": {
+          "bytes": 2713,
+          "sha256": "d5a3e6a0a2fef8000b219df53569c571a6d75b6a854b5266dd84fda3c58df9d0"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/admission.d.ts": {
+          "bytes": 480,
+          "sha256": "bc64cf951244b1fc444f2800c4ecb99892a4a93ea47375bd855a06317a9f8cb4"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/admission.js": {
+          "bytes": 3562,
+          "sha256": "4a72dbe445a74c4d1e7081e07a27c9c3cab46d823d0ab9568781a1ac54ffc587"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/errors.d.ts": {
+          "bytes": 941,
+          "sha256": "9e67f3825d9fa4cb31e69bfad57a2e66ba3ae592d944e94b04c30e0791242c3e"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/errors.js": {
+          "bytes": 2793,
+          "sha256": "9195a428dd9c96e0344b8eeb1eb7c66a7197a8e152b85d5fb5aed5038256d173"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/linear-solver.d.ts": {
+          "bytes": 254,
+          "sha256": "19623809b43cc41bc5ec39fd78094543243a57f7c2bdfe0b0acde011e2975680"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/linear-solver.js": {
+          "bytes": 12015,
+          "sha256": "123d3abb62b3a9f4f5ce3807463f070194e2d528f5cec841da5e623ee6b52e8e"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/measure.d.ts": {
+          "bytes": 1226,
+          "sha256": "2b9980af657dbe8735b4473393344073d6835103c5f3b5dba98cba9811f1bf53"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/measure.js": {
+          "bytes": 4860,
+          "sha256": "e576367851b0ea5ba37e9684e867aa28ae51cb6a585ad2c40f479341dc5f95f8"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/pose.d.ts": {
+          "bytes": 1787,
+          "sha256": "e91ee521eec25fabac02cfabacb9b76371696ab206bbbe47972c7cc486fcbbb0"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/pose.js": {
+          "bytes": 3352,
+          "sha256": "ee53440b0433e7be5b1f00027aca708bb567da46f9edd193de0bab2a282c02b9"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/postcontact.d.ts": {
+          "bytes": 793,
+          "sha256": "34c797517114767513a1edf7f161ffae4da85de440d1bdff3dcd2dba42d67dde"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/postcontact.js": {
+          "bytes": 2568,
+          "sha256": "32a4a1907a4540a550e67cee03a2817d9519d77a53212b160d018c2f484b2e1a"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/projection.d.ts": {
+          "bytes": 4433,
+          "sha256": "ce03195c1d5550114fe5589106edc6a423f40e62e9468ad65debcce7fabc0753"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/projection.js": {
+          "bytes": 3825,
+          "sha256": "30e04425020bff49e75c02f1d7abf15f82fe375dd1e07a0938a4a69aa03d159a"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/report.d.ts": {
+          "bytes": 1402,
+          "sha256": "791d2f931d8f24edc833a9ff2f18df5239ed73971b7228a906fe0e6bbce522fa"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/report.js": {
+          "bytes": 5257,
+          "sha256": "7ee0b7d17e70247ce4c2dff953593e82091efabdd2932e0f4272931c69843a2f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/rows.d.ts": {
+          "bytes": 946,
+          "sha256": "fdabe8b245fd133a9312ebcec16466b0b7981a02df88cd3e5d85e91862b173ca"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/rows.js": {
+          "bytes": 4059,
+          "sha256": "e19d8d9c3ef835e98f796b3dc9b5785473e8aaef41af34d77c49200b446d3f55"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/stage.d.ts": {
+          "bytes": 989,
+          "sha256": "167a0fbdd4e34bc5a2dc504d795c53bd14c4e6cf6e93ae61bbe1d4798c0cbd7d"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/stage.js": {
+          "bytes": 2255,
+          "sha256": "bfa6d3528889d89da9d355a4bed753ed7287fd5979735f1158c7c009de94cafd"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/types.d.ts": {
+          "bytes": 1887,
+          "sha256": "50410e8dee0bd496114f1dfa72eff31603b5bd36d76dcf609352b1f25d5607a3"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/disjoint-hinge/types.js": {
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/domain/admission.d.ts": {
+          "bytes": 403,
+          "sha256": "21e43ead4806bbbc2ca4518cb481698090abdd91520fa6340a7e971427944c01"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/domain/admission.js": {
+          "bytes": 11163,
+          "sha256": "8d4a14d764742a9989a760ce27a0cc395ff818f879a9faa32f86fdaba7600960"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/domain/cloth-reference.generated.d.ts": {
+          "bytes": 92,
+          "sha256": "f13ae964106fdfa5b0464ba945640467d79b497cba1ce2b2a5c02cbf8a331490"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/domain/cloth-reference.generated.js": {
+          "bytes": 181057,
+          "sha256": "3c8e21d9612bf232074268c50bf7151290167391692a132e0619f5aedb4b75b9"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/domain/cloth.d.ts": {
+          "bytes": 434,
+          "sha256": "f24352d6ca040d469cf484ab74864764fbc7121a824469f07cf43e9ae1a5aa02"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/domain/cloth.js": {
+          "bytes": 4041,
+          "sha256": "a97392c690610d642eb7b6282385e362ee4ebe7b661319d3b70ea48fa95b6205"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/domain/fluid.d.ts": {
+          "bytes": 434,
+          "sha256": "e5a257935af3d1b8dce16da0a439bf853639ff3676eade2eb4fe6a9f1774cfa3"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/domain/fluid.js": {
+          "bytes": 4875,
+          "sha256": "c0ce5f1f97b1d19b2f6fa2bc892b5bc5bed445c3e1c56d5f4a1cd97c2ecd456f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/domain/types.d.ts": {
+          "bytes": 2142,
+          "sha256": "cb3c90cfaee8a1bd20b48bbf4d6c2d2bea631574361cc389f3d4d7d1ccf80de5"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/domain/types.js": {
+          "bytes": 2151,
+          "sha256": "76eb7d0fc14a3ba6897ba0d649beeaba4a28172b2458782b64029af6ef5f6666"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/dynamic-anchor-pair.d.ts": {
+          "bytes": 420,
+          "sha256": "9253386fe2c10c4a5c3b8a74930e9afc5c701d13c7310a6f7ad716e8ab76ec03"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/dynamic-anchor-pair.js": {
+          "bytes": 3099,
+          "sha256": "8e20e96a9a3c803f65d78dfa21aaf530744b2c37e4f3507fd87e828190c800be"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/dynamic-fixed-joint.d.ts": {
+          "bytes": 267,
+          "sha256": "c1af834c67ae4e82753fa5f949313ec9a1686c89193f1b368e37541753b478ca"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/dynamic-fixed-joint.js": {
+          "bytes": 1935,
+          "sha256": "c637c4b13cdf432103202f895e50fae7e05c88920cf0889a67f2c16e565bfb5a"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/dynamic-hinge-joint.d.ts": {
+          "bytes": 475,
+          "sha256": "c08e405d3b85f5967e12c29b30be360b47e2e015fe72132a34788a908cea41c1"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/dynamic-hinge-joint.js": {
+          "bytes": 4671,
+          "sha256": "8780a6887f0c7cbec6ec2f059b2ada64d0e28d0224279d7ada42e4b79e84baac"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/boundary.d.ts": {
+          "bytes": 349,
+          "sha256": "fdc60e3e6b43b551c74fee3eb888476213132987c2b6f80e9a2a515041076b91"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/boundary.js": {
+          "bytes": 2027,
+          "sha256": "0411aee849b18145f75e2a602a23aab5b5e6a644bc44a47cc2944ab532d0ea18"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/constants.d.ts": {
+          "bytes": 478,
+          "sha256": "b145eaa09c8094a630d0073564d79c13e9f9623ee98d49bf291afc743f42f2bc"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/constants.js": {
+          "bytes": 396,
+          "sha256": "48cb2507298e158c9d711a3a08e36a521ccab101a26b55217d00247a9b844072"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/diagnostics.d.ts": {
+          "bytes": 180,
+          "sha256": "2e528c38ac59e450feb510f421228cba10843df87d4f1b476582eb8a814f2e47"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/diagnostics.js": {
+          "bytes": 1032,
+          "sha256": "b87d7b27266ca4b014d4b84b24b57216b12d4b0345088282b6ecd5270fa46c29"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/kernel.d.ts": {
+          "bytes": 376,
+          "sha256": "4430b3611c7ea86ba71ca51f93e02b800f11a44986182059a219f2a5ab3da157"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/kernel.js": {
+          "bytes": 1047,
+          "sha256": "264a62a2ed0aeee0c77bd5ba44a60a6d0522654ecc8f07117174c6fe328c123b"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/neighbors.d.ts": {
+          "bytes": 384,
+          "sha256": "f81f41caadaccc5b3150f144b0687a5a2910e456ac707114b927ba2ef18869fd"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/neighbors.js": {
+          "bytes": 3065,
+          "sha256": "e857766d44372269a19fb83d4bdeeabbc1816b9792230e6a9aac8cf1ea6249e5"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/pbf.d.ts": {
+          "bytes": 722,
+          "sha256": "0475a847a3b98aadce70713913ac39d7d3c03e07a261c51e20ae86231c65e19c"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/pbf.js": {
+          "bytes": 5606,
+          "sha256": "93ba3d6c2db8aee07c7307d74300888b9e48279279f6f060e157ea08b847241d"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/static-box.d.ts": {
+          "bytes": 628,
+          "sha256": "5e643a758a5988858b624b26af6ac15c94b533977421688509597490b9789ce8"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/static-box.js": {
+          "bytes": 2238,
+          "sha256": "120ee59f2212e86846bce3a73425b493d2bc98971dc230419a394a1235196b7c"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/types.d.ts": {
+          "bytes": 130,
+          "sha256": "ff8120a184ec3b4139c14031e106c41ab0ea2569747d1bd2b34bca415e69b064"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/types.js": {
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/visual-viscosity.d.ts": {
+          "bytes": 289,
+          "sha256": "f7917414df0b746457c9dc5fb9cd12e48dc2bc2ab6d4cc30f0a31a9c6e3a6b26"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/fluid/visual-viscosity.js": {
+          "bytes": 1225,
+          "sha256": "0d01bcbd68f126c9d8954b46afe523f6e7f879f129817f40fc9300c297041205"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/identity.d.ts": {
+          "bytes": 523,
+          "sha256": "bef1a44ab8fd4245d47a5cdeb09b56f7d703ad2c5ab20768350a9a1c44621330"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/identity.js": {
+          "bytes": 6977,
+          "sha256": "7f7243fcc617a32f77d517d029cb90bd99584f518ece49a7d7a4e35ae54d7791"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/index.d.ts": {
+          "bytes": 568,
+          "sha256": "b564302ed188eb8a22eaa3837ed7a69086b29bdd5c62fe6258048690e6a33277"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/index.js": {
+          "bytes": 599720,
+          "sha256": "7e5a1542add2c23145b026b80c06d99e12a98f24b273ca64cdce7aebefc16c87"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/internal-types.d.ts": {
+          "bytes": 2800,
+          "sha256": "288c355766cb51ea6e888d9ef38ea10c79600c44688d536a203b95dbca3f5c61"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/internal-types.js": {
+          "bytes": 43,
+          "sha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/joint-motor.d.ts": {
+          "bytes": 255,
+          "sha256": "fdcf91647efdad5905cf989de7d9634cb7878f9b2299c20f13b5557eef958ed4"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/joint-motor.js": {
+          "bytes": 1651,
+          "sha256": "43010c0e319717622727666e1e23f7288fdf500f1731f6fd52a443f36055c724"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/joints.d.ts": {
+          "bytes": 268,
+          "sha256": "7ed4f0eb1cf54f665d75d42ac5c49211838a2480b33ffede327a3e3460da550b"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/joints.js": {
+          "bytes": 7382,
+          "sha256": "f2893b2f8684f338a8d4832b9fa91c356fd360bf70ebf423062e21911d433ce0"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/limits.d.ts": {
+          "bytes": 476,
+          "sha256": "9389e2dca0a552e1173fd3be829ea8f2cc698a86f6e7d92ddf305404192f0b6b"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/limits.js": {
+          "bytes": 416,
+          "sha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/math.d.ts": {
+          "bytes": 893,
+          "sha256": "bdbe8b8906433f0aa9eeb9c3d6dc2016115712f7b749bd11ca135afb58b58443"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/math.js": {
+          "bytes": 2114,
+          "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/model-admission.d.ts": {
+          "bytes": 535,
+          "sha256": "1df0697bb131c587452ea286ffe3f89cdba05dec88f7f7eeeeeb46415ae52ed3"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/model-admission.js": {
+          "bytes": 11193,
+          "sha256": "a5d99e1d5b4ab8c2413b509b6f19a58a3c40ed088784714acc7b05dc8f98423a"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/pendulum.d.ts": {
+          "bytes": 1452,
+          "sha256": "c1d3a9ee37e2e9a06ea1860204970e7bed57a4347c669ba26f8032fe119d7fed"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/pendulum.js": {
+          "bytes": 5390,
+          "sha256": "86ae37d06196b0c93109828893357acadf25270374b708f4d7fe37a6cfd4ce8b"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/persistent-box-contact.d.ts": {
+          "bytes": 599,
+          "sha256": "3a378c5586b42fb2791c6808647c5e22a5a1a0598dbc0ee38c2fa7f9d1ee7e53"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/persistent-box-contact.js": {
+          "bytes": 3933,
+          "sha256": "38d7204fc639296ce5919d33b6f20290fc26dd0d61a6e94e65962e091262931b"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/provider-manifest.generated.d.ts": {
+          "bytes": 12371,
+          "sha256": "437b308581fd2836ca6c04fcee6d1a413250b1a286fad215fde54ac8c39254ea"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/provider-manifest.generated.js": {
+          "bytes": 2478,
+          "sha256": "7d30d3677bcb02c027a3a9e275d8d74df53a8626991da11daf40ffc4da905a77"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/recording-owner.d.ts": {
+          "bytes": 940,
+          "sha256": "e904a930ad3132e81fb3587df42b0cf71b62ca04910fa6f273bfa58ed6e12bd5"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/recording-owner.js": {
+          "bytes": 46,
+          "sha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/replay-compare.d.ts": {
+          "bytes": 87,
+          "sha256": "9f0c2c538a56c78cb7fbfe9fe5131de4ce3dbe89792b7192da0b003e36021195"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/replay-compare.js": {
+          "bytes": 974,
+          "sha256": "46e92b237a3b74725e1f973bc195f3fb3c7d182ea4978f5092608706d1400875"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/replay-json.d.ts": {
+          "bytes": 695,
+          "sha256": "976f19331efa162c1043ca0c5d5febb0f64af5cb8989a8cf7028c3d92d6ca271"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/replay-json.js": {
+          "bytes": 8011,
+          "sha256": "742249b1dd48de51d76dcf266dce19b2f85da400c5bc2b1043543d43c5593d0f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/replay-validation.d.ts": {
+          "bytes": 218,
+          "sha256": "a876f6e56327b9c7210c927421e7d547225f4961eb2147ac1429182dbd6501e0"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/replay-validation.js": {
+          "bytes": 8489,
+          "sha256": "10fcc070dc89a66b576b8ce956a866cf6ecd3581d5a3b2aaa31cbbaf008643de"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/replay.d.ts": {
+          "bytes": 796,
+          "sha256": "126d9a849ec1dc0d8d8064e64a8b4a51cfba742eecba19bfecd4b453bb4168da"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/replay.js": {
+          "bytes": 6623,
+          "sha256": "d352fcab204a7e5291a3a5f1e17d2856a5628a9179de2becf7f520676a471036"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/rigid-forced-rotation.d.ts": {
+          "bytes": 423,
+          "sha256": "a38edc2e6197df45e92a40d9e520f7297b3f83ded8dceda8cbf100f25b3cd1f4"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/rigid-forced-rotation.js": {
+          "bytes": 4913,
+          "sha256": "76a7de3e408c18d5ce78c447cd86c88f6f5e62678990dfb4dee6c000a783ea3d"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/rigid-free-rotation.d.ts": {
+          "bytes": 558,
+          "sha256": "f6db0dd5704f6deddd9c9d37b1e69707e9feaf448a657489ca35d987455545f8"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/rigid-free-rotation.js": {
+          "bytes": 11497,
+          "sha256": "88689f815d52f4c9503eaefd80fa13f146e6c4639f9a2a967c10d7116eb93e89"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/rotation-validation.d.ts": {
+          "bytes": 251,
+          "sha256": "429e47e34bf3260a16b6f583dc30230394ec86166319dc66241d3b73e87c060c"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/rotation-validation.js": {
+          "bytes": 697,
+          "sha256": "9ae367ba026027fbb0966561c54f508271f1119a479076c7bc3228a4a995f397"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/scene-profile.d.ts": {
+          "bytes": 300,
+          "sha256": "c96672aaa6baeb8cb59c16e61ab561e0cf9554214b0c8eb2fe458366bff57ae7"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/scene-profile.js": {
+          "bytes": 1138,
+          "sha256": "7a1198598bfaf64647f9ed89d76cb4f1035bd77e602d8b8c0b8a7914911b6e9f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/sleep.d.ts": {
+          "bytes": 396,
+          "sha256": "bc4940a234b4b29d6dae5554d7c7d05fe7d8a7eadb9110afc25cf702e7bfcef2"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/sleep.js": {
+          "bytes": 4621,
+          "sha256": "681f3820fb08a61cd7f367b049f9b7bb3d2eb1a4e8f81975aec014fdefdb8250"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/contact-types.d.ts": {
+          "bytes": 857,
+          "sha256": "4f4895259cd171ec7c9e50557eb5ff805d1ae0f2c486bdc045de663ab6d0605b"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/contact-types.js": {
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/edge-contact.d.ts": {
+          "bytes": 627,
+          "sha256": "7f2ef087144ec8fea1d5ea113321df3ee004f5b8e8fc5772a1570b90b969f4e5"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/edge-contact.js": {
+          "bytes": 3306,
+          "sha256": "cd35a636c99773c087204ead2e3f797b9b803624d6883d1906b8d4bff2af0c34"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/face-contact.d.ts": {
+          "bytes": 478,
+          "sha256": "e866784b16b189f5d612c40a15a2bdbed59d7e8f0ea7f49ab5650254db9426f3"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/face-contact.js": {
+          "bytes": 6143,
+          "sha256": "f00894e179c5317e77367991e6a30b1858ddf637282ccce40318b36873d20349"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/frictionless-island.d.ts": {
+          "bytes": 2703,
+          "sha256": "5ef3fbb8e56ece94fcc254bb88b6bcffed3b15a75c938bcb60115fcda8f37c65"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/frictionless-island.js": {
+          "bytes": 17494,
+          "sha256": "9e64c47fdeef3826aa44699571fb16d2eccdde700b8ccda1feea31a781e7748f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/full-pair-apply.d.ts": {
+          "bytes": 512,
+          "sha256": "345b0aaeee6ba2c72ad4ad3c6d199146c63c96c8aab72b0e262d4f16ae87a651"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/full-pair-apply.js": {
+          "bytes": 3288,
+          "sha256": "7f8d7bc1a0540ae85de4684a571ce70f08efd536f34bb67ad111cced690377d7"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/full-pair-core.mjs": {
+          "bytes": 6177,
+          "sha256": "75941f67d5359c3734a68c93dd571313bdcab030a170205dee6e22d592119a46"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/full-pair-exact.mjs": {
+          "bytes": 7675,
+          "sha256": "258732a572bd6b2d1606db97cd2b637bfd252ce5fb59ee31cb30b0e9d298cd32"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/full-pair-input.mjs": {
+          "bytes": 5935,
+          "sha256": "294a5ace022a05ca93cf269c2c9f3faa7f22f9715bc8f59a2956b2cb04078027"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/full-pair-linear.mjs": {
+          "bytes": 6168,
+          "sha256": "f12c0243c18178a138b79faaac29b14e61714a42376c6c88c2b8757eef82b280"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/full-pair-phase.d.ts": {
+          "bytes": 833,
+          "sha256": "b68d173932f7a36c669edcbb5d523586f39758082b9a16832b272a6b47e7a2e2"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/full-pair-phase.js": {
+          "bytes": 5612,
+          "sha256": "e82291e4014b98666367fe33bdf7e996f3b3c544c881dc5967b1b06ad6311c32"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/full-pair-rows.d.ts": {
+          "bytes": 2284,
+          "sha256": "d5e2bdc27d1bc3e0aeca1262b88ee898fd8a07347c1097c7eb4a83b972c01629"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/full-pair-rows.js": {
+          "bytes": 7852,
+          "sha256": "9810df91101ff635dcfe9c0610a4cc35d4b88dd340ce9cef67406ee5afcaffe9"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/full-pair-solver.d.mts": {
+          "bytes": 947,
+          "sha256": "c1c5c954b0664b3e75ff800d8b9fee7c237a44c6c72d64020428e377cc1a81e4"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/full-pair-solver.mjs": {
+          "bytes": 9940,
+          "sha256": "84e32cae07dbdd295e46af04691f0bf37815d77e73e2b5edfb75b0739e104432"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/full-pair-types.d.ts": {
+          "bytes": 3687,
+          "sha256": "e7ddd3c05adef4c7442ac6c95f7ff82640890c714ec7d9aef32fceef5a3d09cf"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/full-pair-types.js": {
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/geometry-adapter.d.ts": {
+          "bytes": 791,
+          "sha256": "42ecfde4e7e0832912382145ee88835769bcc3be1626544115816f195b056a08"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/geometry-adapter.js": {
+          "bytes": 1393,
+          "sha256": "203477a61d5a9bf7d2afa2d66114e2bcff360fd6d0c123c659166d6c4dc1ac27"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/geometry.d.ts": {
+          "bytes": 250,
+          "sha256": "b3398e99758db64c514070e516bbda5ab8d7e0fc7b36314904b09fe3cd47f177"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/geometry.js": {
+          "bytes": 2057,
+          "sha256": "225329ca8c8359cd1e3278e7bb40951087841182cc07e1581e48f1cea691e43f"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/normal-bridge.d.ts": {
+          "bytes": 1693,
+          "sha256": "4240ab5a2a87bbe9440c46aa5bf03514e7b85fb0a287aee570cbc1be539002e0"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/normal-bridge.js": {
+          "bytes": 10232,
+          "sha256": "ab372a977dd99af31c36384dd1c637a193adc27c4b38d4b846e9e5b0b140eab7"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/normal-solver.d.ts": {
+          "bytes": 2380,
+          "sha256": "cb3df6810901c33821f066645511812137a0e2775eb072b1ea8a87e58db30f18"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/normal-solver.js": {
+          "bytes": 15421,
+          "sha256": "d672f4a7f41179fc9aefb767d0e92ed580cf346c9bd17ac8cc75b75aefba9570"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/prepare-step.d.ts": {
+          "bytes": 1342,
+          "sha256": "84b50880ec0bd809a0ee3cffd8e7435189de2a9406589a355bc86eebcfa5787c"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/prepare-step.js": {
+          "bytes": 8009,
+          "sha256": "4329d143d07d09de2ee6070996fd6863e20cfe65011bbf7caf68999c82a27cce"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/public-output.d.ts": {
+          "bytes": 553,
+          "sha256": "500f9ec12b2c12f66ba9cbf31b8a83ac0f52f492591f1ad89cf479fd0fa17932"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/public-output.js": {
+          "bytes": 3765,
+          "sha256": "7b0724c879bf678e1f8840ea6530f1a7a9342c629e0182ef0588645dfcf50238"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/sat-feature.d.ts": {
+          "bytes": 1670,
+          "sha256": "5d8f63120c017effeffacf8263a857429b2bd53d24ad00583b44d2c72b6618f3"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/sat-feature.js": {
+          "bytes": 5108,
+          "sha256": "75558bcb2392da27b81e8f0ae17cbb446ceccb191e4ec536280140da9bde7359"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/signed-sat.d.ts": {
+          "bytes": 1863,
+          "sha256": "2c774ec721639dc005439cfd4518935aa67c2ba21fc19f1104047b7cee577121"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/signed-sat.js": {
+          "bytes": 6746,
+          "sha256": "0c6d102bb26183d6f0789615bb66d9b44afedc52774dd575603308ebf859547c"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/stationary-normal.d.ts": {
+          "bytes": 1893,
+          "sha256": "3c4bab9d78d14c66241f0970f07b4044ff184c56aa83c70cdd5205ef5219e403"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/stationary-normal.js": {
+          "bytes": 17039,
+          "sha256": "0315c168703d37c4372d45a778d3a2681ea42024bbd36f9d8c79e588d1276fc2"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/stationary-profile.d.ts": {
+          "bytes": 716,
+          "sha256": "f75abd0c05da1c9639168339f33e59e1a5d501c04fe86528791f02da3d1e8ad3"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/stationary-profile.js": {
+          "bytes": 2928,
+          "sha256": "346629680d4dee9e0c9293e4aeb9a53fd5473c0501f8fd096954e87d6d2b32b5"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/strict-line.d.ts": {
+          "bytes": 1939,
+          "sha256": "b5c2c324e46e0fd01903f0a171d66c7176e88eba29ecc68c9afed045d4491c7b"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/strict-line.js": {
+          "bytes": 19275,
+          "sha256": "2314ce1450bc4d54148895c3498a511b793fd34e37aba03295f03501adcf51b3"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/witness.d.ts": {
+          "bytes": 537,
+          "sha256": "6b1f50d445d2fbfb1c361472e2064947896a18d44998148106548f377cd7fcb5"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/witness.js": {
+          "bytes": 1043,
+          "sha256": "efd1289164059156211e7a382d69a6382e88dd0253f3e3c58a082268d20c3aa9"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/world-types.d.ts": {
+          "bytes": 2917,
+          "sha256": "8899360acd61274c859d46502139ecf3261c2f8b5bd65105587cef0e26fc261c"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/stack/world-types.js": {
+          "bytes": 11,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/types.d.ts": {
+          "bytes": 12847,
+          "sha256": "4efa2edccc5da0a2dded35921cc616550c375433a1f03bb1928d47a6b732ee1b"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/types.js": {
+          "bytes": 418,
+          "sha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/validation.d.ts": {
+          "bytes": 1401,
+          "sha256": "ac6326806207337984fa1e442913f7984710e261447daa819cc9a86d0077651a"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/validation.js": {
+          "bytes": 14590,
+          "sha256": "7a16fbadf07097048276364818d8851d77f980fe84a30dc79529eadcb2fabe2c"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/world.d.ts": {
+          "bytes": 178,
+          "sha256": "8d0c9906f7c25b589ef9a4db96adcc961fa99950ac64fd79007a9aff306af2a0"
+        },
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/dist/world.js": {
+          "bytes": 41620,
+          "sha256": "58f1aec16ba241bc70d0c6c8603e7306279e9475d8e4886d719186baeec2d183"
+        }
+      },
+      "liveBytesComparedAtBuild": true,
+      "physicsCalls": 0
+    },
+    "packages/barocss-physics/package.json": {
+      "checkpoint12ArchiveRole": "source",
+      "files": {
+        "packages/barocss-physics/package.json": {
+          "bytes": 1602,
+          "sha256": "7ef765dcf000a0b45dd74495e60243e16516506e730afa024fc7f32b11222330"
+        }
+      },
+      "liveBytesComparedAtBuild": true,
+      "physicsCalls": 0
+    },
+    "packages/barocss-physics/build-root.mjs": {
+      "checkpoint12ArchiveRole": "source",
+      "files": {
+        "packages/barocss-physics/build-root.mjs": {
+          "bytes": 2619,
+          "sha256": "79f4c9429da6aa37155285e1d764b160e315205d2335d99996e1c0225aa7e8fb"
+        }
+      },
+      "liveBytesComparedAtBuild": true,
+      "physicsCalls": 0
+    },
+    "packages/barocss-physics/build-types.mjs": {
+      "checkpoint12ArchiveRole": "source",
+      "files": {
+        "packages/barocss-physics/build-types.mjs": {
+          "bytes": 539,
+          "sha256": "04d7dd7854007fc6f1f718bd709e670c08109571b24b0f492304ce918a6e3575"
+        }
+      },
+      "liveBytesComparedAtBuild": true,
+      "physicsCalls": 0
+    },
+    "packages/barocss-physics/tsconfig.json": {
+      "checkpoint12ArchiveRole": "source",
+      "files": {
+        "packages/barocss-physics/tsconfig.json": {
+          "bytes": 284,
+          "sha256": "8b5c1133167b1ce9b885732d1c13be9a4d75834741d72be9c96894942aeb4747"
+        }
+      },
+      "liveBytesComparedAtBuild": true,
+      "physicsCalls": 0
+    },
+    "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/package.json": {
+      "checkpoint12ArchiveRole": "proof",
+      "files": {
+        "examples/physics-coupled-cubes-floor-2276/evidence/public-build-01/canonical-provider/package.json": {
+          "bytes": 1602,
+          "sha256": "7ef765dcf000a0b45dd74495e60243e16516506e730afa024fc7f32b11222330"
+        }
+      },
+      "liveBytesComparedAtBuild": true,
+      "physicsCalls": 0
+    }
+  },
+  "providerComparisonIsHashIOOnlyNotNewNumericalProof": true,
+  "qualificationBoundaries": {
+    "publicProfile": "rigid-persistent-box-v1",
+    "bodyCap": 4,
+    "dynamicCubes": 3,
+    "staticFloors": 1,
+    "graphWorldsEach": 1,
+    "graphAcceptedStepsEach": 256,
+    "graphReferenceCallsEach": 2,
+    "checkpoint32RequiredBeforeEitherGraph33": true,
+    "framesPerGraph": 257,
+    "newThreeCubeRestores": 0,
+    "priorCoupledRestoreIsNotThreeCubeRestore": true,
+    "desktopWorldsIncludingZeroStepReset": 2,
+    "desktopAcceptedSteps": 256,
+    "desktopFrames": 257,
+    "independentReferenceVerticalDof": 3,
+    "productionDofIsNotReferenceDof": true,
+    "firstContacts": {
+      "lower": 1,
+      "middle": 1,
+      "upper": 27
+    },
+    "generalEightDynamicQualified": false,
+    "remainingProfilesAndFirstFailures": "NO_SCOPE_UPGRADE",
+    "mobile": "NOT_RUN",
+    "publication": false
+  },
+  "newPhysicsCalls": 0,
+  "newReferenceCalls": 0,
+  "receiptStatusesArePreservedNotUpgraded": true,
+  "selectionRecord": {
+    "guardPrefixes": [
+      "three-"
+    ],
+    "checkpointWrapperPrefixExcluded": "stack-three-",
+    "explicitPassedDesktop": "three-desktop-01",
+    "compiledProviderBytesRearchived": false,
+    "providerByteArchivesRetainedByCheckpoint12Dependency": true
+  },
+  "artifactSelectionLimitIsNotPhysicsOrMemoryAdmission": true,
+  "archiveInputLimitBytesPerFile": 16777216,
+  "selectedInputLimitBytes": 536870912,
+  "externalLocalOriginalsNotInArchives": {},
+  "archives": {
+    "source": {
+      "file": "CHECKPOINT-13-SOURCE.tar.gz",
+      "bytes": 176978,
+      "sha256": "9e9e3673717de8fe3d09765eea3102e1224030685086856c174c86743961e5b9",
+      "members": {
+        "apps/library-docs/docs/packages/physics/profiles-and-lifecycle.md": {
+          "bytes": 22347,
+          "sha256": "07a701aa46f333f50263afdc322160b0fc3f0b5db7a75fa4c82d755db2b77d40",
+          "mode": 420
+        },
+        "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt": {
+          "bytes": 131940,
+          "sha256": "305f3a98f08260d3b9a5dd6dfab2a67a66f39773b8f6f291859991aef4dbbfaf",
+          "mode": 420
+        },
+        "apps/library-docs/docs/reference/physics-verification.md": {
+          "bytes": 66968,
+          "sha256": "eab3fc8aceda73bf22dc9951bda44c6e75ef17a907423616d27af119b283c047",
+          "mode": 420
+        },
+        "apps/library-docs/samples/physics-island.test.mjs": {
+          "bytes": 3566,
+          "sha256": "467ed409eb51d97b9c946d725dc7c99ca3ffd42eeafb9ea70c845694de363a8a",
+          "mode": 420
+        },
+        "examples/physics-coupled-cubes-floor-2276/RESULTS.md": {
+          "bytes": 17387,
+          "sha256": "2f1e2228ce54a1e53ee16e9e0bda80935f637c32a1c00d67a8eae4145560414f",
+          "mode": 420
+        },
+        "examples/physics-stack-library-2276/checkpoint-08.py": {
+          "bytes": 13951,
+          "sha256": "e5094bd827d79f269512bef1713a73270bb5f7f735a5e331c204339e4900963e",
+          "mode": 420
+        },
+        "examples/physics-stack-library-2276/checkpoint-13.py": {
+          "bytes": 13308,
+          "sha256": "09215adeb65b92bb3f0cbb044705a645414c936b064f5807de1fb4c823c1c7ca",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/CONTRACT.md": {
+          "bytes": 8821,
+          "sha256": "6dd15a7bc7c2b0b4adbcb8f81bbd8eb6b113abd8c764f06400f3c6733881114e",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/CONTROLS-CONTRACT.md": {
+          "bytes": 4811,
+          "sha256": "2e57dcc8577d94df607ecc033d08bb4983d0433cd20db540bcdbad1626abcaa9",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/DESKTOP-CONTRACT.md": {
+          "bytes": 3371,
+          "sha256": "5b01ffa68b91ea9eb336595f88fb97af3d341e09f38af0c215c38b78031780de",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/RESULTS.md": {
+          "bytes": 6951,
+          "sha256": "79b74afcb335642b5dcf9959fb28d3aa9a6ca6706886a1fe3264f91a9291c661",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/RUNNER-CONTRACT.md": {
+          "bytes": 3158,
+          "sha256": "04e08e4d1368fd62bba7b097aefb76a6f62e621324c2931dcc3262ee601c6195",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/browser-checks.js": {
+          "bytes": 7604,
+          "sha256": "21985be7ff499179063bf53527cf5f7adb6bb21c10a303a18aa31a22d35f5982",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/browser-run.mjs": {
+          "bytes": 5058,
+          "sha256": "6e087d73ff33769cb2ca7bd25d3defa7693ff23af838e015ee16c56ae4ef7aae",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/cases.mjs": {
+          "bytes": 2015,
+          "sha256": "a283f3d2ccd449b8c595fbf101d3addc68b75802630dd6927c64744ee1646761",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/controls.py": {
+          "bytes": 15501,
+          "sha256": "0ed381096b4bfc9b5ae292260a4f0c13f15ec5833db6ce91824f307cb94f4145",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/oracle.py": {
+          "bytes": 25480,
+          "sha256": "87f5b8f44bbfcd5e3b669843d1fe185696bd8040d7e79e6cb723a2d673382dce",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/run.mjs": {
+          "bytes": 11728,
+          "sha256": "48313564b0b576993cbdbbd4037e07c4380777c7ac60c93fffd48becc5ae9e2a",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/scene/app.mjs": {
+          "bytes": 4712,
+          "sha256": "f8f5dac14eae96286dcdf4a240c0c0f9c52c70b5e492c68cc0671c350df781b3",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/scene/index.html": {
+          "bytes": 1063,
+          "sha256": "850e7c5015bd1cfaee98a1e027c9d6ff28dde3de10ba60a07c94366d0ad039e6",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/scene/renderer.mjs": {
+          "bytes": 9932,
+          "sha256": "6c209b3bbf954f9e3e1785b0835d0c571f9d4d033cb24d95e7f35e7d602c8079",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/scene/style.css": {
+          "bytes": 1394,
+          "sha256": "ca79c36f9df70a28cda3e3b8f2567b09bc939146504a21a01d871fe6eaab2117",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/scene/transport.mjs": {
+          "bytes": 867,
+          "sha256": "378d444231496d804f08f933994fda054af797207a23b0687897ab85c88d982e",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/scene/worker.mjs": {
+          "bytes": 853,
+          "sha256": "c1b8986c120bebafaf1edcf35b09f14ba11e5539306a2670cfea8b24b47eba2e",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/server.mjs": {
+          "bytes": 10040,
+          "sha256": "471db3f7e51417ef4322a5edba7bf9cce7c4217677f5d6e54615a0de6a7eabcf",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/WORK-STATUS.json": {
+          "bytes": 101297,
+          "sha256": "010c0eca6f7cef252d3d90d437961e83946027255d7033043df2b249e3627324",
+          "mode": 420
+        },
+        "packages/barocss-physics/README.md": {
+          "bytes": 25858,
+          "sha256": "8c2d399114dabf5baa827e6f0211440c378e5085ea77f38361e6185aa922554d",
+          "mode": 420
+        },
+        "packages/barocss-physics/ROADMAP.md": {
+          "bytes": 131940,
+          "sha256": "305f3a98f08260d3b9a5dd6dfab2a67a66f39773b8f6f291859991aef4dbbfaf",
+          "mode": 420
+        }
+      },
+      "uniqueBlobs": 27
+    },
+    "proof": {
+      "file": "CHECKPOINT-13-PROOF.tar.gz",
+      "bytes": 1110739,
+      "sha256": "295d1b2eece63b68701a0027e8c8300a96319e5dbc22ce60d914e05bbba1ac2b",
+      "members": {
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/checkpoint32-parity.json": {
+          "bytes": 116,
+          "sha256": "176ca324a1cb2fe1810f1ca2cee5fcd98876d6e9fb0e6184c08896284fd2f391",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/inputs.json": {
+          "bytes": 40583,
+          "sha256": "94a16e3934be5ed687fe18da5ed5bca989541791d10baccc583a0414442b75f2",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/native-first32.json": {
+          "bytes": 128895,
+          "sha256": "2d2ac352d1a84789ad32acad201f6604f040347576acf2046a7fc3f04589a96a",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/native-full-states.json": {
+          "bytes": 1162853,
+          "sha256": "3ea8cd4ef40c99664cfbf6566ec06f1b02ae4551301c5c947920e2c49e722085",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/native-reference-256.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/native-reference-256.stdout": {
+          "bytes": 3794,
+          "sha256": "2cc18db015827e930093f79c3febed0d326ba2f9a8ce85ca48ee4dd5d2e09db7",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/native-reference-32.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/native-reference-32.stdout": {
+          "bytes": 3787,
+          "sha256": "c7d7c3ac1fc70fa2c53c210de273bdef3ec1d826731acc60d356c576335f88a4",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/native-terminal-owner.json": {
+          "bytes": 30602,
+          "sha256": "8a7c283f7592a9ab6afd5525317faeb540de5640ce84d9c6e5036f14343688c0",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/progress.json": {
+          "bytes": 8201,
+          "sha256": "5896134f6511e1a047e58974adcc581b13517ea08f6cfca4498a1326e50c6b81",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/result.json": {
+          "bytes": 9016,
+          "sha256": "4357ff5dd010cc4efce5201c2c8cdb2453e19e4f9b479df3d7bd4d6e96e58a4e",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/source-first32.json": {
+          "bytes": 128895,
+          "sha256": "d6bd5cfbf73a0ee3d0f2f4f10294991374b9e05bd543f967e421db61e6e05c1c",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/source-full-states.json": {
+          "bytes": 1162853,
+          "sha256": "51a9b80f0263864fd7897e2026a873f9f4ab8309034d5459d4ae9bea1038bb85",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/source-reference-256.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/source-reference-256.stdout": {
+          "bytes": 3794,
+          "sha256": "2cc18db015827e930093f79c3febed0d326ba2f9a8ce85ca48ee4dd5d2e09db7",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/source-reference-32.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/source-reference-32.stdout": {
+          "bytes": 3787,
+          "sha256": "c7d7c3ac1fc70fa2c53c210de273bdef3ec1d826731acc60d356c576335f88a4",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/api-01/source-terminal-owner.json": {
+          "bytes": 30602,
+          "sha256": "68797b2950d8c1da230edfad464f41ac9c0b2c0bd423df051526c8b8c570fbed",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/analytical.json": {
+          "bytes": 1241,
+          "sha256": "331a60f62c209699dafd598b4a3b440f9a56507094429595956cbb0b84f71f35",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/inputs.json": {
+          "bytes": 2468,
+          "sha256": "50e31dcf00a6fd42ade95af239b08f910d7441b6a24eabf0f1ef1867888c8975",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/paid-native.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/paid-native.stdout": {
+          "bytes": 3794,
+          "sha256": "2cc18db015827e930093f79c3febed0d326ba2f9a8ce85ca48ee4dd5d2e09db7",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/paid-source.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/paid-source.stdout": {
+          "bytes": 3794,
+          "sha256": "2cc18db015827e930093f79c3febed0d326ba2f9a8ce85ca48ee4dd5d2e09db7",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/result.json": {
+          "bytes": 5749,
+          "sha256": "53b2a74084a97c83cd873aad7bb9a5e4e8817d5106e8f2f5181705ca2744bf92",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/signed-zero-value-preserved.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/signed-zero-value-preserved.stdout": {
+          "bytes": 3794,
+          "sha256": "2cc18db015827e930093f79c3febed0d326ba2f9a8ce85ca48ee4dd5d2e09db7",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/terminal-point-1e-11.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/terminal-point-1e-11.stdout": {
+          "bytes": 4172,
+          "sha256": "51951b18e6078ba78ab3317e0c08bda0315f114ff0dcca7fb3633cd035729801",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/terminal-position.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/terminal-position.stdout": {
+          "bytes": 4383,
+          "sha256": "eef4b066bfc0543196028c0449cf23da04e6932b78e540add3d5aeccd9d59f51",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/terminal-required-contact.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/terminal-required-contact.stdout": {
+          "bytes": 4419,
+          "sha256": "2a6c6fc4c57c8cedcf465b7525cfbb23d56080ed2e0d8d522a7b942b9e62b3f8",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/terminal-velocity.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/terminal-velocity.stdout": {
+          "bytes": 4588,
+          "sha256": "2cc2bee545761747096f5fb7fcd09cee2c332183fd1ee022307b73e8c5a5a317",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/wire-missing-word.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/wire-missing-word.stdout": {
+          "bytes": 158,
+          "sha256": "628e7d329ce74b98b42fed746569bd4a6317236efa61005f3e548e0f7dacef21",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/wire-nonfinite-word.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/wire-nonfinite-word.stdout": {
+          "bytes": 159,
+          "sha256": "8f305a641cf523e69460dbc74d9977eb3d5adf6f430ea55f88986d8f494531ae",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/wire-nonzero-mismatch.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/wire-nonzero-mismatch.stdout": {
+          "bytes": 159,
+          "sha256": "8f305a641cf523e69460dbc74d9977eb3d5adf6f430ea55f88986d8f494531ae",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/wire-trailing-word.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-three-cubes-floor-2276/evidence/controls-01/wire-trailing-word.stdout": {
+          "bytes": 160,
+          "sha256": "6f8b51699e45f69ab34412b99077d9de5b0177b8afde50e5e7b54fc457d6ee65",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-cubes-floor-api-01/prepared.json": {
+          "bytes": 1607,
+          "sha256": "65233eca4f53bce0c4aa66cd8b343a5ccc2752d145634591c41e68fded52ecfe",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-cubes-floor-api-01/progress.json": {
+          "bytes": 1706,
+          "sha256": "ec6abcc20840e144c0d78b414473731a1b1a966fac78be2b2a0c52a4bc619422",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-cubes-floor-api-01/result.json": {
+          "bytes": 3115,
+          "sha256": "ad5d7d924d3d7c39a8c0460c2c32adf92bec50908b037cff45d8e7831f8a7840",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-cubes-floor-api-01/start.json": {
+          "bytes": 1629,
+          "sha256": "9ce5219d6eb9bc8782e170e2b9d2ba2a06ddd5c5069a2677f78aece6d205ba83",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-cubes-floor-api-01/stderr.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-cubes-floor-api-01/stdout.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-cubes-floor-controls-01/prepared.json": {
+          "bytes": 1700,
+          "sha256": "99c85afe7f752df691e170eed8743cf3bfa02aaf34d31af9c9227140b9862a56",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-cubes-floor-controls-01/progress.json": {
+          "bytes": 1799,
+          "sha256": "3c429e6d6e41c54f158d608fd4cb69ea96e59d46cbe363820553cf24ad1c40f8",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-cubes-floor-controls-01/result.json": {
+          "bytes": 3220,
+          "sha256": "93a4dc4171209c73aa422dc6137b1c33e8203bb9bc7e93544572af3a17a34df1",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-cubes-floor-controls-01/start.json": {
+          "bytes": 1722,
+          "sha256": "2cd0f409b07aec493921c5593dc7704f4f990c271965f8893447c7202c611b08",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-cubes-floor-controls-01/stderr.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-cubes-floor-controls-01/stdout.raw": {
+          "bytes": 265,
+          "sha256": "7bc071e0eb2a9e20fe85bd732cc608e5281d9ae671c7f43df0455e42ea0b7b7f",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-desktop-01/prepared.json": {
+          "bytes": 1483,
+          "sha256": "22c4f8928832e5ee1e44c851c8a56f7f810d97abfb888af50b8b5fb41d1b350d",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-desktop-01/progress.json": {
+          "bytes": 1582,
+          "sha256": "7d98700bda7dcb39accff940c5a2233ac97ec558c992795149707a4bbcf59fcd",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-desktop-01/result.json": {
+          "bytes": 2975,
+          "sha256": "6d9fcb30a4b7f4a2ae3ce47e60bea644af3bb3b4129c74e170f7e55bd6ea774f",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-desktop-01/start.json": {
+          "bytes": 1505,
+          "sha256": "515d6afdfe512957fe7d62817a46178ba13bbecfaf438e32bcd520a3bcf0d8e6",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-desktop-01/stderr.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-desktop-01/stdout.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-desktop-build-01/prepared.json": {
+          "bytes": 1517,
+          "sha256": "49e4c5ee1f34681fa1c945b687089965ef9d5a9ce09b98874602f876db1d5c22",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-desktop-build-01/progress.json": {
+          "bytes": 1615,
+          "sha256": "51aa08df46b7f41c685c32db66c7842d82886326c61444cc59c5d74cdda06be0",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-desktop-build-01/result.json": {
+          "bytes": 3021,
+          "sha256": "7cd02d5a69825ee9586943d76cedef6a8463e15d8cb52b30ebf4a82e09c98dba",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-desktop-build-01/start.json": {
+          "bytes": 1539,
+          "sha256": "5f8e6435fe2869310abeefb47027b5f8f9c7a77599c11fe7b70c6a072cfaf202",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-desktop-build-01/stderr.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-desktop-build-01/stdout.raw": {
+          "bytes": 255,
+          "sha256": "3b4f111237cd1d19ae7bd5b836d33b1244df3c9a7e175f82bf4997e7420867e9",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-doc-example-01/prepared.json": {
+          "bytes": 1475,
+          "sha256": "16fd1b136cd05c010b0374457507eb6b4f3d357f09e2d867a4809379831f15d2",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-doc-example-01/progress.json": {
+          "bytes": 1574,
+          "sha256": "66e511a96bb0fd1e30a23cc1256cb60b39a58e6e576b46e651a632320722366d",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-doc-example-01/result.json": {
+          "bytes": 2977,
+          "sha256": "a2fa95f5965ff0ac95df58b90a5629f36ec24b0de93572ceaefafd5bc7358742",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-doc-example-01/start.json": {
+          "bytes": 1497,
+          "sha256": "19faf028a4d80e68d5d8135b1c9547632aabb5e43e69df0902b11a6d25753995",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-doc-example-01/stderr.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-doc-example-01/stdout.raw": {
+          "bytes": 721,
+          "sha256": "03a075f1ed5e2bc17bddb17b92cf93085e219d7748124016095af3d854902988",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-docbuild-01/prepared.json": {
+          "bytes": 1490,
+          "sha256": "78605b008a9b15246e7746b877ba3f3bb43939b1ed9dad16674f6c8eb2285a42",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-docbuild-01/progress.json": {
+          "bytes": 1589,
+          "sha256": "3d55a1f26b217c8835813ff664531bfc85c83906e1eda5688cfd642d2e4fb6db",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-docbuild-01/result.json": {
+          "bytes": 2990,
+          "sha256": "8c43dc81b6baf47fc07baccfd0ab078429edc19e839849f64a2ea10f89a44309",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-docbuild-01/start.json": {
+          "bytes": 1512,
+          "sha256": "b8bf286d426158a53b62206e305eb206c88bb0a86cd97cb0ec69a8a0b27a448b",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-docbuild-01/stderr.raw": {
+          "bytes": 472,
+          "sha256": "b4d513bbe2b301d67a30f1cec368f85433e75aff0036a694f7d03a8ecef139cb",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-docbuild-01/stdout.raw": {
+          "bytes": 47,
+          "sha256": "1c5cf766e3ca2a3b87f19ccc811ba1c130271f17b58cdda4956abfcbbe9d2110",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-docsite-01/prepared.json": {
+          "bytes": 1452,
+          "sha256": "16fba4944bf0667ff661e7b6c03d168f50e0886167ab49bc06918da1b5fb0fcb",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-docsite-01/progress.json": {
+          "bytes": 1551,
+          "sha256": "b1f40ea29952dff58748900a6292d2693f3812196711324daf2abd877078add4",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-docsite-01/result.json": {
+          "bytes": 2944,
+          "sha256": "4040316f2fd09b3d8cb30b4152422b4fd63af8ba2a939b8a591ef43f608396ed",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-docsite-01/start.json": {
+          "bytes": 1474,
+          "sha256": "cd654b3debf594badce1dd2a53c6873ad65c87f1508fc13bea280804617ea305",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-docsite-01/stderr.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/three-docsite-01/stdout.raw": {
+          "bytes": 146,
+          "sha256": "4139662c56eb215180a2b03db5c110f15a590878a5ed7f30facbcf082e70a177",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/app.mjs": {
+          "bytes": 18523,
+          "sha256": "e1ec27dd7102f30b54c16b0e70d353abd9c055f26334f281efe6b89d7fb37c1f",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/checks.js": {
+          "bytes": 7720,
+          "sha256": "eb0236b96380bee580e7f675a730d2fc3db538cf72e8a5d85b8ebec39f5ff182",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/checks.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/checks.stdout": {
+          "bytes": 8567,
+          "sha256": "637c0482b5293c4bb3d9a3448a333b0e131b7e5e7b961daaf26e786f76b47b42",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/cleanup-progress.json": {
+          "bytes": 558,
+          "sha256": "cd0efdcebaa62a715bb69bb72ff23ab5b95f0106c3d9a92803858085fed75f6f",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/close.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/close.stdout": {
+          "bytes": 35,
+          "sha256": "3b58bcbadcf5fdf6abf37dfef65512df633574b1a43fd4f3883032760e2615d5",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/coupled27.png": {
+          "bytes": 53803,
+          "sha256": "3d657a23e261777682b103f63bd3fa8fa556140c827842428a1e57b504f88066",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/desktop-1280.png": {
+          "bytes": 44115,
+          "sha256": "77309f98675a642946c7a85429857be27e32097bff23fdbda25f402367168990",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/desktop-1440.png": {
+          "bytes": 48935,
+          "sha256": "c14435bcc81d7efbfce7ed66020be8366eb9ffe0fd52c631eeea766756582428",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/desktop-1920.png": {
+          "bytes": 55868,
+          "sha256": "692d0995197f52aa56fbc2ca975d9c6bde1ebe66a61a4861992882270c371a9b",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/final-snapshot.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/final-snapshot.stdout": {
+          "bytes": 890,
+          "sha256": "7bad8c4c2d9fc4687df8a0a332827d711317f9ca58a9eb4ceb574285ff05b964",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/final256.png": {
+          "bytes": 54007,
+          "sha256": "e239f88337e88ec170f5da9b8fec32cf93e6d8b113bfed507dfc52c669b5cae9",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/flight20.png": {
+          "bytes": 55100,
+          "sha256": "926b01df473a61a30ed04cf1734f58b4cc67a70514d21b53e864be85cff3a96f",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/fresh-snapshot.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/fresh-snapshot.stdout": {
+          "bytes": 900,
+          "sha256": "f3499973cd91794cabdcd0183cfe034b4a0f1003b16f95430836685ef9f711d3",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/initial.png": {
+          "bytes": 111970,
+          "sha256": "d35478378733ed14e61071c0b2046487a061f11ee5b52fc57e1034c2c75c037a",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/inputs.json": {
+          "bytes": 41415,
+          "sha256": "9b3fa0d6d4fcaa5165ab9f82218511e05affefa5d870b82f11fbaf0af222a787",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/open.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/open.stdout": {
+          "bytes": 294,
+          "sha256": "e13e972d41780f4f011e5d5a4936feb5345d0935a0c59be577a39dc29abda804",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/progress.json": {
+          "bytes": 484,
+          "sha256": "46db6dd76326f7e31de64553539639d34e9f4307218d1799d494b2af332adcd9",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/browser/result.json": {
+          "bytes": 2324,
+          "sha256": "ed891578ee9f882d3f0586ebad08f82d243f646d74e301c50b0fbf0c28481a52",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/chain3-120-capture-result.json": {
+          "bytes": 388,
+          "sha256": "870ff4b0ed418bd911814f410a0c5cec9248a67f4a3e517e176ac9e060bce4d7",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/chain3-120-capture.json": {
+          "bytes": 1179663,
+          "sha256": "a5ea9ef782c437f5330ad018a5100305604b3094b19849f941411370a5de2237",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/index.html": {
+          "bytes": 1063,
+          "sha256": "850e7c5015bd1cfaee98a1e027c9d6ff28dde3de10ba60a07c94366d0ad039e6",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/inputs.json": {
+          "bytes": 54854,
+          "sha256": "26f67167b16bd4ecf8888f9a0abfa24bde4e4932ab7fb31794385202fbd7105d",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/style.css": {
+          "bytes": 1394,
+          "sha256": "ca79c36f9df70a28cda3e3b8f2567b09bc939146504a21a01d871fe6eaab2117",
+          "mode": 420
+        },
+        "output/playwright/three-cubes-floor/three-desktop-01/worker.mjs": {
+          "bytes": 764248,
+          "sha256": "1968cc73b68953e96b395ffb18c06ff11f3969b6901c6b12476732d96a280b7a",
+          "mode": 420
+        }
+      },
+      "uniqueBlobs": 81
+    }
+  },
+  "selectedInputBytes": 5972021,
+  "selectedMemberCount": 142
+}

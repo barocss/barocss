@@ -32,7 +32,7 @@ for(let step=0;step<steps;step++){
    const caches:PointImpulse[]=points.map(()=>({normalNs:0,tangentNs:v()}));
    for(let iteration=0;iteration<sweeps;iteration++)
      for(let i=0;i<points.length;i++)
-       solvePersistentPoint(floor,box,points[i],hit.normal,caches[i]);
+       solvePersistentPoint(floor,box,points[i],hit.normal,caches[i],0);
  }
  maxHeightErrorM=Math.max(maxHeightErrorM,Math.abs(box.positionM[1]-.5));
  maxTiltRad=Math.max(maxTiltRad,2*Math.acos(Math.min(1,Math.abs(box.orientation[3]))));

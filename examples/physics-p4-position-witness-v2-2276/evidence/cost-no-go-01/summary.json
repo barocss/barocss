@@ -1,0 +1,44 @@
+{
+  "status": "NUMERICAL_PASS_COST_NO_GO_CANDIDATE_ENDED",
+  "sourceFiles": 134,
+  "stageA": "PASS_10_INDEPENDENT",
+  "stageB": "PASS_6_FULL_PHYSICAL_AND_INDEPENDENT",
+  "cost": {
+    "candidateCoreCpuNs": 2395213000,
+    "baselineCoreCpuNs": 773147000,
+    "thresholdCoreCpuNs": 695832300,
+    "ratio": 3.0980046485338493,
+    "costDecisions": 1,
+    "baselineReruns": 0
+  },
+  "nestedAttribution": {
+    "compactCpuNs": 457534000,
+    "proofCpuNs": 1868982000,
+    "legacyAdmissionCpuNs": 1671000,
+    "residualWorldCpuNs": 68697000
+  },
+  "physicalLeaves": 87102,
+  "float64Words": 45408,
+  "oldKernelCalls": 0,
+  "coldQpCalls": 0,
+  "WorldCalls": 0,
+  "original1200Steps": "NOT_RUN",
+  "publicAdoption": "NOT_RUN",
+  "desktop": "NOT_RUN",
+  "archivePins": {
+    "PROOF-02.tar": {
+      "bytes": 2836480,
+      "sha256": "2ef7ce6295b5dc532ed18aa3fd44a842afeeaaddf2812cea794b7f13332993d6"
+    },
+    "SOURCE-02.tar": {
+      "bytes": 6133760,
+      "sha256": "df370cf4c1f31d280cdb4f677e9c35b7bd3548fa0afef8de0a4973964209ed2a"
+    }
+  },
+  "firstFailure": {
+    "cursor": "one-cost-decision",
+    "type": "CostGate",
+    "message": "SAME_CORE_CPU_EXCEEDS_SAVED_90_PERCENT_GATE"
+  },
+  "next": "End this candidate without timing retries or higher caps. A different native arithmetic/reference architecture needs separate review and complete-path cost qualification."
+}

@@ -1,0 +1,57 @@
+{
+  "status": "AUTHORED_NOT_RUN",
+  "source": "examples/physics-contact-wrench-producer-2276/run.mjs",
+  "sourcePin": {
+    "bytes": 13614,
+    "sha256": "3705d19502d6d7d82db7d162a4c8f7f9aac4519e761f9a799078794feb2ccb9c"
+  },
+  "newPin": {
+    "bytes": 14105,
+    "sha256": "12d3559651410a0ded3a2195d699c622bb22f7cbe23417fbafe32b402feb64fe"
+  },
+  "edits": [
+    {
+      "label": "Original producer provenance path",
+      "old": "const home=dirname(fileURLToPath(import.meta.url)),root=resolve(home,'../..'),[buildId,id]=process.argv.slice(2);",
+      "new": "const home=dirname(fileURLToPath(import.meta.url)),root=resolve(home,'../..'),producerHome=resolve(root,'examples/physics-contact-wrench-producer-2276'),[buildId,id]=process.argv.slice(2);",
+      "count": 1
+    },
+    {
+      "label": "Native build and own harness verification",
+      "old": "assert.equal(buildResult.status,'PASS_PRIVATE_PHASE_BUILD');",
+      "new": "assert.equal(buildResult.status,'PASS_PRIVATE_NATIVE_EMITTED_BUILD');for(const[n,v]of Object.entries(buildResult.nativeHarnessPins)){const b=readFileSync(resolve(home,n));assert.equal(b.length,v.bytes);assert.equal(hash(b),v.sha256,'Native harness drift: '+n);}",
+      "count": 1
+    },
+    {
+      "label": "Verify unchanged qualified source implementation",
+      "old": "readFileSync(resolve(home,n));assert.equal(b.length,v.bytes);assert.equal(hash(b),v.sha256,'Private implementation drift: '+n)",
+      "new": "readFileSync(resolve(producerHome,n));assert.equal(b.length,v.bytes);assert.equal(hash(b),v.sha256,'Private implementation drift: '+n)",
+      "count": 1
+    },
+    {
+      "label": "Authenticate actual emitted modules/declarations",
+      "old": "const bundle=readFileSync(resolve(built,'source.mjs'));assert.equal(hash(bundle),buildResult.source.sha256);assert.equal(bundle.length,buildResult.source.bytes);",
+      "new": "assert.equal(buildResult.entry,'emitted/entry.js');for(const[n,v]of Object.entries(buildResult.emittedFiles)){const b=readFileSync(resolve(built,n));assert.equal(b.length,v.bytes);assert.equal(hash(b),v.sha256,'Emitted graph drift: '+n);}",
+      "count": 1
+    },
+    {
+      "label": "Import real NodeNext emitted JS entry",
+      "old": "api=await import(pathToFileURL(resolve(built,'source.mjs')));",
+      "new": "api=await import(pathToFileURL(resolve(built,buildResult.entry)));",
+      "count": 1
+    },
+    {
+      "label": "Output graph label only",
+      "old": "status:executionStatus+'_SOURCE_PRIVATE_PRODUCER'",
+      "new": "status:executionStatus+'_PRIVATE_EMITTED_PRODUCER'",
+      "count": 1
+    },
+    {
+      "label": "Scope labels only",
+      "old": "native:'NOT_RUN',public:'NOT_RUN',desktop:'NOT_RUN'",
+      "new": "native:executionStatus+'_PRIVATE_EMITTED_GRAPH',public:'NOT_RUN',desktop:'NOT_RUN',successfulPublicSerde:'NOT_RUN',performance:'NOT_RUN',warmChangedFrameCoverage:'NOT_COVERED'",
+      "count": 1
+    }
+  ],
+  "unchanged": "All model/options, World/control plan, gates, original phase01 body trajectory comparator, fault/retry/restore/mutation assertions and independent observer semantics."
+}

@@ -1,0 +1,15 @@
+# Bounded-codec proof harness
+
+AUTHORED_NOT_EXECUTED. Own this new harness only. The corrected wrapper/RPC, exact position bank/checker and prices/caps are reused. Ended predecessor sources/results remain unchanged. Root alone generates M1, seals and executes.
+
+Order is fresh G0, fresh U0, fresh A10, one B6. No old PASS reuse. G0 keeps p4-invariant-gcd-bank-v1 and its existing two privateStats because GCD mathematics/guards are unchanged. New producer identity and additional localized codec guard changes are bound by Source/GUARD-POLICY pins. G0 reuses exact original32 requests/oracle/manifest and unchanged invariant auditor; no M0 rerun or adapter.
+
+M1 is separate internal170s/external180s reference generation before sealing. It produces16 canonical integer strings and28 IEEE words (24 finite,4 expected nonfinite rejections). U0 then invokes one codec-bank command under one global2M meter and one unchanged parent170/180 budget shared with its independent auditor. Candidate receives requests only. Codec protocol is p4-bounded-codec-bank-v1. Keep raw big-endian lowercase word text exact. For negative zero retain input8000000000000000, exactQ0/1, mathematical RNE positive-zero word0000000000000000; do not normalize in the harness.
+
+All16 decimal results,24 finite exact/RNE results and4 expected rejections must independently pass before A10. Expected rejection count is separate from finite success count. On typed resource refusal record the actual global meter, preserve reply/cursor and stop later phases. U0 never resets its meter per entry. Fresh A10 remains original six successes/four controls; B remains one actual measured six-frame bank with432 compact/scalar calls,864 convention problems,12960 axes, six actual proof calls and0 old solver/World calls. All physical fields/words and original six metadata exceptions remain unchanged.
+
+GUARD-POLICY explicitly localizes the new bounded integer codec, fixed IEEE-word and0/±1 fast paths while retaining the existing GCD invariant. Do not claim all old guard checks remain unchanged. Prices,2M caps,8192/16385-bit bounds, tolerances, per-command170/180s,2MiB request/reply,16MiB evidence and combined64MiB explicit data stay fixed. Source/tool pins stream64KiB; child processes inherit the outer census group and cleanup kills/waits exact owned PIDs only.
+
+After all B physical and independent checks pass, one cost decision uses parent six-context CPU plus authoritative owned Node entire-lifetime resource CPU after close+wait. Gate695832300ns, no identical-baseline-boundary claim, timing retry or baseline rerun. All HOLDs and direct API/World/desktop/1200-step/public status remain unchanged.
+
+Integer-witness revision changes only exact reconstruction/KKT to the newly reviewed common-denominator integer algorithm. ALGORITHM.md is the sixth core source and is pinned before imports. All same CLI/protocol/counters/guard/prices/caps/data/physics/cost gates remain. New producer requires fresh G0/U0/A10/B6; no old numerical PASS is reused.

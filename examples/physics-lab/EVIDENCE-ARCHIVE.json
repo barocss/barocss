@@ -1,0 +1,651 @@
+{
+  "archive": "EVIDENCE-01.tar.gz",
+  "bytes": 2003336,
+  "sha256": "be034bd3f7b450401546c40a063fdf3048e47b99f2754ff2b03fbec3364eeb5c",
+  "activeDesktopProof": "browser/desktop-04/report.json",
+  "historicalPreInstructionProof": "browser/lab-01/report.json",
+  "files": [
+    {
+      "path": "build/app-inputs.json",
+      "bytes": 105259,
+      "sha256": "03efdb3d16d12b79e4464ccdf4f70b2653478f5ad07bb90133b9c3b7f808a3a5"
+    },
+    {
+      "path": "build/app.mjs",
+      "bytes": 2059655,
+      "sha256": "50460cc0e48acaf68e2e744bea2399016196b15b88f4aa5b44cf8dd6e8550410"
+    },
+    {
+      "path": "build/session.test.mjs",
+      "bytes": 430596,
+      "sha256": "81c7849e81b910afc63473f6ce027790bd284ada20a513c624a3afb74087fe6c"
+    },
+    {
+      "path": "build/test-inputs.json",
+      "bytes": 13886,
+      "sha256": "14e8fede1aa3793b36ba560337b1f779a1fb67fbfa77e20e9f4b590a52833f36"
+    },
+    {
+      "path": "browser/desktop-02/browser-checks.js",
+      "bytes": 12132,
+      "sha256": "cf68e2a8ae29c2b5ebac90fc43768866e5797888907328bbe96e6fa625f1ef3d"
+    },
+    {
+      "path": "browser/desktop-02/checks.process.json",
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    {
+      "path": "browser/desktop-02/checks.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser/desktop-02/checks.stdout",
+      "bytes": 40940,
+      "sha256": "bf43ebfa52da7c0e2344ee4d6dd344d3682e64e6a4e86a69bf75b29e80ac65ce"
+    },
+    {
+      "path": "browser/desktop-02/close.process.json",
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    {
+      "path": "browser/desktop-02/close.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser/desktop-02/close.stdout",
+      "bytes": 47,
+      "sha256": "41962a25ee8b432b95c632fa792e6eca2ace5ddaf583db5f035f41ecac993291"
+    },
+    {
+      "path": "browser/desktop-02/desktop-wide.png",
+      "bytes": 162753,
+      "sha256": "024bf8efbe4b9175fda9e9a4cf665894897757adcac2bd431ff2c197f8793a43"
+    },
+    {
+      "path": "browser/desktop-02/desktop.png",
+      "bytes": 152163,
+      "sha256": "7d2b4cb47910254c91d03cf8e86d477f788fceeb9cfe077d3eb2b9e1b7d09edd"
+    },
+    {
+      "path": "browser/desktop-02/inputs.json",
+      "bytes": 390,
+      "sha256": "c545c45a4649d884f9bb69d97c8a8029a8ac0bb868e7d4426d4b97a956221406"
+    },
+    {
+      "path": "browser/desktop-02/open.process.json",
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    {
+      "path": "browser/desktop-02/open.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser/desktop-02/open.stdout",
+      "bytes": 337,
+      "sha256": "af3874e25d63e5fd9a5c3babb2458a04c220ec9d4408daec05233bd3ee925213"
+    },
+    {
+      "path": "browser/desktop-02/report.json",
+      "bytes": 52792,
+      "sha256": "1e8dcc2576313f38e0a88c64e8cb0e27cb02ce2a8c7395e19cc96fa56cea360d"
+    },
+    {
+      "path": "browser/desktop-03/browser-checks.js",
+      "bytes": 12293,
+      "sha256": "4b06f5d713aec020033809f7b15e3b78f00b4716da82f5d665846026a2c1807a"
+    },
+    {
+      "path": "browser/desktop-03/checks.process.json",
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    {
+      "path": "browser/desktop-03/checks.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser/desktop-03/checks.stdout",
+      "bytes": 41132,
+      "sha256": "64049041f83e4ab4a78d624b90a647c860aac7d4f54795ca5895a5ba1deff00d"
+    },
+    {
+      "path": "browser/desktop-03/close.process.json",
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    {
+      "path": "browser/desktop-03/close.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser/desktop-03/close.stdout",
+      "bytes": 47,
+      "sha256": "3019ed48f17e6abda61a93d80a15bf51651f0f8846a92926c7c897521c9dcc3b"
+    },
+    {
+      "path": "browser/desktop-03/desktop-viewport.png",
+      "bytes": 117099,
+      "sha256": "a7aab674cf4f3c7373eecfe4a8cbc03305b8121b79640488c407a502eef9548e"
+    },
+    {
+      "path": "browser/desktop-03/desktop-wide.png",
+      "bytes": 162753,
+      "sha256": "024bf8efbe4b9175fda9e9a4cf665894897757adcac2bd431ff2c197f8793a43"
+    },
+    {
+      "path": "browser/desktop-03/desktop.png",
+      "bytes": 152132,
+      "sha256": "2479b17b2634bde2eeff434c42b5a486df617283d8bfa9ed63d5895c98acf7c4"
+    },
+    {
+      "path": "browser/desktop-03/inputs.json",
+      "bytes": 390,
+      "sha256": "2a47ca96812ce79bd69145b1ad8cc5c5c52fb6a1421ab43fb7d623fdd78e87af"
+    },
+    {
+      "path": "browser/desktop-03/open.process.json",
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    {
+      "path": "browser/desktop-03/open.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser/desktop-03/open.stdout",
+      "bytes": 337,
+      "sha256": "0fa15d3e1d120ccfd3e20bb087b9535d512f39d4debfcda1cf021da23987c30b"
+    },
+    {
+      "path": "browser/desktop-03/report.json",
+      "bytes": 52827,
+      "sha256": "066acfdc6c0afec26ca15f8742f29a39aec4eb725432b77f9e82fe573981ef2b"
+    },
+    {
+      "path": "browser/desktop-04/browser-checks.js",
+      "bytes": 12426,
+      "sha256": "6b6b7f6cca6c5c1af0477d75cb65ae928dd589407a9ab1119f2f5b8b897655f6"
+    },
+    {
+      "path": "browser/desktop-04/checks.process.json",
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    {
+      "path": "browser/desktop-04/checks.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser/desktop-04/checks.stdout",
+      "bytes": 41265,
+      "sha256": "59d001b1b339e8ef2e3339f19090cac34535eb7fd23b673cf3503b28068baf09"
+    },
+    {
+      "path": "browser/desktop-04/close.process.json",
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    {
+      "path": "browser/desktop-04/close.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser/desktop-04/close.stdout",
+      "bytes": 47,
+      "sha256": "286bc4e12870ceae6a9fa097ae9edcd69aff0a9215cae51fbe69efd9d7fdb4b2"
+    },
+    {
+      "path": "browser/desktop-04/desktop-viewport.png",
+      "bytes": 117100,
+      "sha256": "6d7bac5b5f24ff266a1524aef29f4d0f367a41bbc7597bca57364c82db5f6933"
+    },
+    {
+      "path": "browser/desktop-04/desktop-wide.png",
+      "bytes": 162753,
+      "sha256": "024bf8efbe4b9175fda9e9a4cf665894897757adcac2bd431ff2c197f8793a43"
+    },
+    {
+      "path": "browser/desktop-04/desktop.png",
+      "bytes": 152145,
+      "sha256": "38254f7b3372ded93ea122cdbdd2cd30a29ae460c976358e71d4da6858c1cac9"
+    },
+    {
+      "path": "browser/desktop-04/inputs.json",
+      "bytes": 390,
+      "sha256": "5d5bf190ebafc01d9803c9ea01ae201972ead9b6d1e621655464c350bb7c173c"
+    },
+    {
+      "path": "browser/desktop-04/open.process.json",
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    {
+      "path": "browser/desktop-04/open.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser/desktop-04/open.stdout",
+      "bytes": 336,
+      "sha256": "cd5e02958c92d4e720bc0b56c46e7e09558f73a07cdd0f745eb548e9936d9702"
+    },
+    {
+      "path": "browser/desktop-04/report.json",
+      "bytes": 52827,
+      "sha256": "e2b1922caa32f6931b5d5cd7ea37217a9b781a63d66a7e8735b1e495569d4e65"
+    },
+    {
+      "path": "browser/lab-01/browser-checks.js",
+      "bytes": 12019,
+      "sha256": "0264c2085ca10e0096c055928959e4c8a007e012d3103b076bb1b09ed0a344c6"
+    },
+    {
+      "path": "browser/lab-01/checks.process.json",
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    {
+      "path": "browser/lab-01/checks.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser/lab-01/checks.stdout",
+      "bytes": 40708,
+      "sha256": "38cb4b912de6e04f245c0132301a19e04df7dce1608986a912c1e5d638404206"
+    },
+    {
+      "path": "browser/lab-01/close.process.json",
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    {
+      "path": "browser/lab-01/close.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser/lab-01/close.stdout",
+      "bytes": 43,
+      "sha256": "a5c2340e49289cfe927faf7e4e0af35e79ecf15d560e96e3ffc5952829146ec2"
+    },
+    {
+      "path": "browser/lab-01/desktop.png",
+      "bytes": 152148,
+      "sha256": "d15cf0f41bc129349e4d593706de21a572ce4fbadbd558d08c5670c9c58171c2"
+    },
+    {
+      "path": "browser/lab-01/inputs.json",
+      "bytes": 382,
+      "sha256": "145cfc6250754cdf1f65320cde9936b80ee446e2974e3fa56dc2dd45d4c242ff"
+    },
+    {
+      "path": "browser/lab-01/mobile.png",
+      "bytes": 135926,
+      "sha256": "a0fb77a927ad9d4c3c473d08c124bb13af57e170366f0e1e50c71c52263098a0"
+    },
+    {
+      "path": "browser/lab-01/open.process.json",
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    {
+      "path": "browser/lab-01/open.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser/lab-01/open.stdout",
+      "bytes": 325,
+      "sha256": "c29c3fc38568e79e43a2956b59dc11df35d1150d37730667bb2634ed3638da8c"
+    },
+    {
+      "path": "browser/lab-01/report.json",
+      "bytes": 52622,
+      "sha256": "c16b8f7ceda05e43d7368e14b5ae6e7f29c5a99801ac996d32fe81685333deb8"
+    },
+    {
+      "path": "commands/physics-lab-app-build-01/prepared.json",
+      "bytes": 1482,
+      "sha256": "b85564a6b23e046e58ce64e2f2fa36b7303bc38110d5ace0ef14a54d40b7ea19"
+    },
+    {
+      "path": "commands/physics-lab-app-build-01/progress.json",
+      "bytes": 1580,
+      "sha256": "29cad5c520f90daf5881f8281cfa1705b6cfa009901bea2b7891a5b8fa7c0814"
+    },
+    {
+      "path": "commands/physics-lab-app-build-01/result.json",
+      "bytes": 2986,
+      "sha256": "7e2d5290ea408b128bfdfe3e20553dd27533dcf42894c6921e5ddc83c4a4ee27"
+    },
+    {
+      "path": "commands/physics-lab-app-build-01/start.json",
+      "bytes": 1504,
+      "sha256": "6fc863fc717937892cb438c3beaf2144a4ca975ac97dc3cb0d3ed543256e0503"
+    },
+    {
+      "path": "commands/physics-lab-app-build-01/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "commands/physics-lab-app-build-01/stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "commands/physics-lab-browser-01/prepared.json",
+      "bytes": 1508,
+      "sha256": "e7c33d1ac4e08497ec334f4d664724d4c7c6cf6d392014b313814d6de2ae7bce"
+    },
+    {
+      "path": "commands/physics-lab-browser-01/progress.json",
+      "bytes": 1607,
+      "sha256": "7607f4aaff04c8c887f267f4580ce4625056bbc5ff89ec2a45bb35f3a5da1b5e"
+    },
+    {
+      "path": "commands/physics-lab-browser-01/result.json",
+      "bytes": 3013,
+      "sha256": "ac6c31914b5a0eb6a21f9f3af8bdd6364925e706defa2d8266ca5074b56687ab"
+    },
+    {
+      "path": "commands/physics-lab-browser-01/start.json",
+      "bytes": 1530,
+      "sha256": "32434b8747cf871b3f780f9ca14d86e2fe4f5e97bde3a1b2d63d49eaf2798c5b"
+    },
+    {
+      "path": "commands/physics-lab-browser-01/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "commands/physics-lab-browser-01/stdout.raw",
+      "bytes": 1184,
+      "sha256": "dec0c04a46d8a3641d001ca545ce3759c47b75d2bfa31cd1bd8633e05b1aa727"
+    },
+    {
+      "path": "commands/physics-lab-desktop-02/prepared.json",
+      "bytes": 1512,
+      "sha256": "ed5605f7e11633db99394a03dc4e81dfb8e52f77d98331c00144fec329d3e5b9"
+    },
+    {
+      "path": "commands/physics-lab-desktop-02/progress.json",
+      "bytes": 1611,
+      "sha256": "34d35f95177715a230245f6337a7727ccdd7da5309c2b7e679398abe3bd412db"
+    },
+    {
+      "path": "commands/physics-lab-desktop-02/result.json",
+      "bytes": 3020,
+      "sha256": "31b099dc7fb39ffd685379d1247676d36a6ba458eae1413c0761d3ec185e684c"
+    },
+    {
+      "path": "commands/physics-lab-desktop-02/start.json",
+      "bytes": 1534,
+      "sha256": "74e0ba1230fb26dca1f91cf970547d0ebd62faeea788f4da847e7075f351f489"
+    },
+    {
+      "path": "commands/physics-lab-desktop-02/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "commands/physics-lab-desktop-02/stdout.raw",
+      "bytes": 1199,
+      "sha256": "985f6042b74efe786207fdd96e19b1c947b053746a8212a2256e6f2bb8e96fea"
+    },
+    {
+      "path": "commands/physics-lab-desktop-03/prepared.json",
+      "bytes": 1512,
+      "sha256": "bf8166ffe4229e899d0131078b02fac658e25c93220cab184bef19c199697fae"
+    },
+    {
+      "path": "commands/physics-lab-desktop-03/progress.json",
+      "bytes": 1610,
+      "sha256": "a63b163efc07a1bac26f90e891107f7c60550a9d735894b474f62d379b41fe15"
+    },
+    {
+      "path": "commands/physics-lab-desktop-03/result.json",
+      "bytes": 3019,
+      "sha256": "587d01c70272f3452c33926ec52287efdd4b58886d92fca93e5dc7ce66f287ac"
+    },
+    {
+      "path": "commands/physics-lab-desktop-03/start.json",
+      "bytes": 1534,
+      "sha256": "9abba9951718738b33fe910e946ec8b9ad209830dc44e6e698dd1bae0f550677"
+    },
+    {
+      "path": "commands/physics-lab-desktop-03/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "commands/physics-lab-desktop-03/stdout.raw",
+      "bytes": 1199,
+      "sha256": "a66447f8fb0981edb3ef24785ac734e464230c2271e0f9a9498f1679de0d3691"
+    },
+    {
+      "path": "commands/physics-lab-desktop-04/prepared.json",
+      "bytes": 1512,
+      "sha256": "8da459171e0842a61100c7d27f8043da9dd85c3caa5b2eeba3465ee791652822"
+    },
+    {
+      "path": "commands/physics-lab-desktop-04/progress.json",
+      "bytes": 1609,
+      "sha256": "4a74d0d0330c00f9bb42db1249b9bda437475ef58afa9e1ae70a4846a06276e0"
+    },
+    {
+      "path": "commands/physics-lab-desktop-04/result.json",
+      "bytes": 3018,
+      "sha256": "9dfced62dc22d0822ca793c2377fb6348bf0419ab14f5a09e29066ed9ea29921"
+    },
+    {
+      "path": "commands/physics-lab-desktop-04/start.json",
+      "bytes": 1534,
+      "sha256": "8b5e399efb185e32d104a22284fc21f72d176068dff84b6ceb914c4c1679bf96"
+    },
+    {
+      "path": "commands/physics-lab-desktop-04/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "commands/physics-lab-desktop-04/stdout.raw",
+      "bytes": 1199,
+      "sha256": "6cdc4b7b18dcfa35babeb02c8025e4f014302806ee89a8cca10b32884a0ff12c"
+    },
+    {
+      "path": "commands/physics-lab-docbuild-01/prepared.json",
+      "bytes": 1514,
+      "sha256": "a5b3dfb38c44d4ba74529141219bbf0aa7dfd10b76802c78bbb3b6187e690f0b"
+    },
+    {
+      "path": "commands/physics-lab-docbuild-01/progress.json",
+      "bytes": 1613,
+      "sha256": "e12e444e0fcf4944163d2f2067cd579fefdc148c4aaca56421ed38c2751b89fc"
+    },
+    {
+      "path": "commands/physics-lab-docbuild-01/result.json",
+      "bytes": 3024,
+      "sha256": "302c5ee4565ca16c57d0341032d6bd784c46b2ba0a6005ee19810b270dcfe91d"
+    },
+    {
+      "path": "commands/physics-lab-docbuild-01/start.json",
+      "bytes": 1536,
+      "sha256": "b3575cd5b8ac488eed23a5e84b3751f7aa3e40c69be9899f3c972f7c1bf9f75c"
+    },
+    {
+      "path": "commands/physics-lab-docbuild-01/stderr.raw",
+      "bytes": 472,
+      "sha256": "b4d513bbe2b301d67a30f1cec368f85433e75aff0036a694f7d03a8ecef139cb"
+    },
+    {
+      "path": "commands/physics-lab-docbuild-01/stdout.raw",
+      "bytes": 46,
+      "sha256": "e1fed0248f33abc5afd01fd1c46bb443345ff56ee668c0f1bd3488f0161961e2"
+    },
+    {
+      "path": "commands/physics-lab-docbuild-02/prepared.json",
+      "bytes": 1514,
+      "sha256": "bcf56f44be95b89ccb4a136d7c70c4d7add41ab9d7dadb0f92d82616aca7570e"
+    },
+    {
+      "path": "commands/physics-lab-docbuild-02/progress.json",
+      "bytes": 1612,
+      "sha256": "849f41f09eef57910a758f4497ce0a32357ca134d6e2d4a5bc2ee8498de4f805"
+    },
+    {
+      "path": "commands/physics-lab-docbuild-02/result.json",
+      "bytes": 3022,
+      "sha256": "88c7138e5ad0948643ea14537f670c820e5e1ed4b93a8694ddadb7c1fc6645bf"
+    },
+    {
+      "path": "commands/physics-lab-docbuild-02/start.json",
+      "bytes": 1536,
+      "sha256": "06fc5b47bc1c60b486e4ca05e553553f39ef6698bd3ac36df4b27e4e8997c27d"
+    },
+    {
+      "path": "commands/physics-lab-docbuild-02/stderr.raw",
+      "bytes": 472,
+      "sha256": "b4d513bbe2b301d67a30f1cec368f85433e75aff0036a694f7d03a8ecef139cb"
+    },
+    {
+      "path": "commands/physics-lab-docbuild-02/stdout.raw",
+      "bytes": 46,
+      "sha256": "bc213997c55384e0894db36f2a70a2e82c38c725622d73dcb9c34711ddb87228"
+    },
+    {
+      "path": "commands/physics-lab-docsite-01/prepared.json",
+      "bytes": 1476,
+      "sha256": "15c6c7d6987210df2b5354fcea1076656ac7651d46340579efa5d5e838560a2b"
+    },
+    {
+      "path": "commands/physics-lab-docsite-01/progress.json",
+      "bytes": 1573,
+      "sha256": "19c81e30c513f3241558043614f68d6a98ff2c148262adc8029edd245db353a1"
+    },
+    {
+      "path": "commands/physics-lab-docsite-01/result.json",
+      "bytes": 2980,
+      "sha256": "d122b84be781b8b69471cc0321f3be056e0c8eb46b87c5e32e36962f0194ec34"
+    },
+    {
+      "path": "commands/physics-lab-docsite-01/start.json",
+      "bytes": 1498,
+      "sha256": "c79eca77728baf57f14bd7458f7c9a000c6416cad86e4caf262fd4caeb5a4934"
+    },
+    {
+      "path": "commands/physics-lab-docsite-01/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "commands/physics-lab-docsite-01/stdout.raw",
+      "bytes": 146,
+      "sha256": "47abd916678b9ce074c8a7518af1136cc1d40bbe9430444b233b0aa61fe04b35"
+    },
+    {
+      "path": "commands/physics-lab-docsite-02/prepared.json",
+      "bytes": 1476,
+      "sha256": "582d01bcef527c96bdc74e3e22340cb4de4b1c6f2bc42cfa83a678d76cc1ace6"
+    },
+    {
+      "path": "commands/physics-lab-docsite-02/progress.json",
+      "bytes": 1574,
+      "sha256": "da288a2435a94f167aefbf51a8b41a006ae05dc1f589c33f27b9298bd0cae02e"
+    },
+    {
+      "path": "commands/physics-lab-docsite-02/result.json",
+      "bytes": 2978,
+      "sha256": "228f8742ec24f5ef25fef21a2fe308f051d334ced23d66b36ef6ca64e0cf3dee"
+    },
+    {
+      "path": "commands/physics-lab-docsite-02/start.json",
+      "bytes": 1498,
+      "sha256": "a1c76f0d0fecf4082f129a9761ed341f49dbed84b0c8e3d4c691161e44ab9bd1"
+    },
+    {
+      "path": "commands/physics-lab-docsite-02/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "commands/physics-lab-docsite-02/stdout.raw",
+      "bytes": 146,
+      "sha256": "47abd916678b9ce074c8a7518af1136cc1d40bbe9430444b233b0aa61fe04b35"
+    },
+    {
+      "path": "commands/physics-lab-session-tests-01/prepared.json",
+      "bytes": 1516,
+      "sha256": "75fab9efd72e34ac17c18c4f03b6c4cfc9b0c758a58ec5f4a5e993986ead4bc2"
+    },
+    {
+      "path": "commands/physics-lab-session-tests-01/progress.json",
+      "bytes": 1611,
+      "sha256": "ad7b1cb6c151ce2d301ce50553f0d66225dd3fea9833fcd941a498284e08a5ad"
+    },
+    {
+      "path": "commands/physics-lab-session-tests-01/result.json",
+      "bytes": 3032,
+      "sha256": "724bbbda154fd0ba92c14e307bafef690476a8a705ac591d1f01e6a7450beb35"
+    },
+    {
+      "path": "commands/physics-lab-session-tests-01/start.json",
+      "bytes": 1538,
+      "sha256": "1a7db9fbfbe75c565977cf26709589106288026412f26b7aa29499276ba0e781"
+    },
+    {
+      "path": "commands/physics-lab-session-tests-01/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "commands/physics-lab-session-tests-01/stdout.raw",
+      "bytes": 981,
+      "sha256": "861f6b011813aaaa8accd553b41ed94fa4ccd63929e762eed67f688ab9935f54"
+    },
+    {
+      "path": "commands/physics-lab-test-build-01/prepared.json",
+      "bytes": 1491,
+      "sha256": "a0eda229ecc6fdee4ec55b6d54f2afeda6facad8358a25c8097a1258b53dbe2f"
+    },
+    {
+      "path": "commands/physics-lab-test-build-01/progress.json",
+      "bytes": 1590,
+      "sha256": "5365e31660def634f3874d3cda2ea7d2884b0a379d2a9ec075c9994dd0a93119"
+    },
+    {
+      "path": "commands/physics-lab-test-build-01/result.json",
+      "bytes": 2995,
+      "sha256": "6a672a9c790855bd15349c9efea5d5f9ea7e0024addde9ebbb217699fa575787"
+    },
+    {
+      "path": "commands/physics-lab-test-build-01/start.json",
+      "bytes": 1513,
+      "sha256": "bdb454d580deee0c5033ec19374272beccb5f62671eb5a3d8067bc07dd2c2f4c"
+    },
+    {
+      "path": "commands/physics-lab-test-build-01/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "commands/physics-lab-test-build-01/stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "extract": "Extract into an empty directory. browser/desktop-04 is the current desktop-only proof. Older proof directories are historical and must not be rerun as mobile tests. build/ is generated evidence, not a compatibility API.",
+  "commandReceiptOriginalRoot": "examples/physics-world-p5-2276/evidence"
+}

@@ -1,0 +1,16 @@
+{
+  "scope": "SAVED_OLD_RECEIPT_ENCODING_ONLY_NOT_A_NEW_PHYSICS_RUN",
+  "sourcePath": "examples/physics-contact-phase-wrench-2276/evidence/phase-01/A-step1-trace.json",
+  "sourceSHA256": "cc7b7a787a6b82706450e0b648c5b66f69315c2922e022d112cb3d2b47bdd436",
+  "oldPrettyBytes": 4241382,
+  "expandedCanonicalBytes": 1552066,
+  "storedCompactDagBytes": 511557,
+  "sharedObjects": 135,
+  "sixOldSizedStoredPacketsBytes": 3069342,
+  "independentCanonicalSHA256": "cb389b93f6f86f832ebd7b9ae50c974b33e1c0f8764817282759e5612d258b2b",
+  "WorldCalls": 0,
+  "Bcalls": 0,
+  "physicalObserverCalls": 0,
+  "newProducerExecution": "NOT_RUN",
+  "caveat": "Old packet byte forecast only. New actual stored/expanded runtime guards remain authoritative; no compressed size is an uncompressed claim."
+}

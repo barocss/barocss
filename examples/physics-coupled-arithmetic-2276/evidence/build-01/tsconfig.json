@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "skipLibCheck": false,
+    "noEmitOnError": true,
+    "declaration": true,
+    "rootDir": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-coupled-arithmetic-2276/evidence/build-01/stage",
+    "outDir": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-coupled-arithmetic-2276/evidence/build-01/emitted",
+    "types": [],
+    "lib": [
+      "ES2022"
+    ],
+    "incremental": false
+  },
+  "files": [
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-coupled-arithmetic-2276/evidence/build-01/stage/physics-coupled-arithmetic-2276/production-entry.ts",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-coupled-arithmetic-2276/evidence/build-01/stage/physics-coupled-arithmetic-2276/test-entry.ts"
+  ]
+}

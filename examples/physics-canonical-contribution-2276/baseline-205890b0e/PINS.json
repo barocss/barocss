@@ -1,0 +1,11 @@
+{
+  "commit": "205890b0e95ee6e79d732ed6c566babca46d2b00",
+  "sourceDirectory": "packages/barocss-physics/src",
+  "files": {
+    "collision.ts": "8af301d4addf3b61a38fc54466a73dde48d27907f4143032d500962adbff47a3",
+    "persistent-box-contact.ts": "3f53922b557ca142a4d95e1e19d5be21828b375b75bc45ff1e57a7b9171261f1",
+    "world.ts": "449865bf2e73ed799885c7e9d0f95f7d3f09c740e42ce1f8b960384308e08266",
+    "provider-manifest.generated.ts": "86207caac84e5354d78177f795a501878b24529af39765e4350cbe42bb731209"
+  },
+  "scope": "Read-only baseline overlay at build time; not shipped or exported"
+}

@@ -1,0 +1,20 @@
+{
+  "status": "ROOT_ALL_NEW_LIFECYCLE_BROWSER_ARCHIVES_VERIFIED",
+  "archiveIndexPin": {
+    "bytes": 980356,
+    "sha256": "95efde725d9b683e36e5f9920ddcf69dba6292de5eb85af7404db8613859b5e9"
+  },
+  "transportPin": {
+    "bytes": 3771,
+    "sha256": "e1feaf8478c0001efd87c35fd28f629a8a9a26b5be82d5a2ca1efee6818af13f"
+  },
+  "logicalMembers": 2488,
+  "standardSameArchiveBackwardHardlinks": 1017,
+  "frozenRecoveryLocations": 2402,
+  "originalFrozenInputs": 2401,
+  "uncompressedTarAggregateBytes": 50288640,
+  "individualTarCapBytes": 16777216,
+  "aggregateCapClaim": false,
+  "kernelWorldBrowserObserverCalls": 0,
+  "postArchiveSupplemental": true
+}

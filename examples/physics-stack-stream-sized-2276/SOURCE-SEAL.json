@@ -1,0 +1,17 @@
+{
+  "API": false,
+  "authorImports": 0,
+  "authorPhysicsCalls": 0,
+  "authorTests": 0,
+  "files": {
+    "CONTRACT.md": "06e7a76f430cd1a69bc44e80a9dabc20f98819d07f40126518673b63a05a062f",
+    "PINS.json": "3b40366fcbbc93a5b0dc4beee256597175778a14f66a6cf946ab953e0b23fb35",
+    "archive.mjs": "d8a1e1aa4d9b1ea0d71f5999dee77f8b92fe624ff0fb4da3b50358bc3b71d735",
+    "archive.test.mjs": "9a58c80be0830baf424d5f10c245c152ef93fd3b9fc2bfe862dd06f7cf154f47",
+    "exact-size.test.mjs": "4e6536e6e132a494780ee1bd85a8141848d09a59fd29e3c02d93cf686ab3478a"
+  },
+  "fixedGroups": 23,
+  "full1200": false,
+  "old18ByteIdentical": true,
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN"
+}

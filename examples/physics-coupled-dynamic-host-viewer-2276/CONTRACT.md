@@ -1,0 +1,21 @@
+# Dynamic host desktop consumer
+
+AUTHOR DRAFT. No runtime, build, browser, decoder, observer or helper execution by this author. Root owns execution, results, archive and commit. Root must first qualify the dynamic host transaction campaign. Freeze requires the exact actual transaction Source/Native parity PASS receipt, both actual transaction proof directories and the actual clean Native proof directory. The freeze CLI has four required arguments in that order. It verifies both summaries and every retained parity file hash. It also authenticates the exact executed transaction author freeze, all its files, the generated transaction input freeze and files, and the four actual command guard receipt directories. Every guard must have status PASS, exit 0 and timedOut false. Workspace input keys are relative. External input keys stay absolute and are excluded from archives. No prerequisite result is invented.
+
+Owned files: this new directory only. Exact server port: localhost 53060. One fresh finite proof lease. Do not reuse the manual lease. Preserve all other servers, ports, tabs and files. No mobile, deployment, installs, downloads, dependencies, security policy or SDK changes.
+
+Serve the actual qualified host build-02 emitted NodeNext entry and its closed reachable JS graph. Build only the own app and immutable Viewer/GPU sources. Physics remains external to the GPU bundle. Reject any Physics source substitution. The copied display/style sources retain exact collider display triangles and Viewer API. They are render proof only, with no CAD qualification.
+
+The only Physics action controls create before/at/after in order, then take one fixed cold interval per case. Each World disposes after its final snapshot. All three must accept; before/at must have STATIC_TARGET and after DYNAMIC_TARGET under the independent golden target observer. No refusal compatibility remains. Display selection, camera reset/orbit, marker switch and desktop resize do not create, step, query or capture a World. No animation, replay simulation, warm interval, second interval or long stack claim follows.
+
+Planned census, pending actual root execution: 3 Worlds, 3 attempts, 3 accepted intervals, 192 applications, 30 queries, 27 query points, 729 anchor checks, 243 records. Keep original runtime caps and tolerances. Do not reduce the census or hide events to pass resource checks.
+
+Desktop widths: 1280, 1440, 1920. Require actual GPU pixels in both views, exact body extents/poses, native contact markers/projection and a separate pair wrench table. Page/console/network error counts must be zero. Screenshots establish rendering only.
+
+Seven browser checks include three genuine pre-dispose captures. Compare complete public/private/model words with the actual case output. Read capture views exactly twice. Mutate returned data between reads and require stored data isolation. Keep original 16-read/4-world/8192-cell capture limits, and original shared 16711680-byte diagnostic trace/copy allowance. This does not establish process RSS. No extra World or interval is allowed.
+
+Keep the original DAG encoder/decoder, original 1000000-byte canonical fragment gate, 16MiB input/request/report bound, 16711680-byte data output allowance and 180s deadline. Full DAG/report authentication precedes packet export. Resource failure is first failure; later checks remain NOT_RUN. Do not raise a budget silently.
+
+Audit first compares all six retained browser packets against actual qualified Native Node clean-run packet files. Compare whole decoded packets with no normalization or field omissions. This establishes parity only for these retained packets. Then run 18 independent jobs: initial geometry and physical, accepted geometry, full physical, constitutive cone, and the NEW host golden target observer for each case. Old physical/cone sources and gold reference remain pinned and unchanged. Observer SHA: a90cbc24442533e48316b56f23448b392a00fa922153487d24f2389d8d9173d7. Target CLI: accepted PACKET GOLD OUT.
+
+Overall HOLD, browser wire, second interval, warm and public adoption remain unchanged and unproven. Actual transaction proof remains a separate Node proof, not browser wire evidence.

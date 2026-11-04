@@ -1,0 +1,148 @@
+{
+  "status": "PASS_DYNAMIC_FIRST_INTERVAL_DESKTOP_GPU_AND_INDEPENDENT_BROWSER_DATA",
+  "campaigns": [
+    {
+      "id": "desktop-01",
+      "scope": "before1 GPU, all three physics",
+      "status": "PASS_DESKTOP_COUPLED_DYNAMIC_HOST_VIEWER_ONLY",
+      "checks": 7,
+      "independentPhysicalJobs": 18,
+      "wholeDecodedPacketParity": 6,
+      "counts": {
+        "worlds": 3,
+        "attempts": 3,
+        "records": 243,
+        "applications": 192,
+        "queries": 30,
+        "queryPoints": 27,
+        "anchorChecks": 729,
+        "traceBytes": 853375
+      },
+      "desktopWidths": [
+        1280,
+        1440,
+        1920
+      ],
+      "errors": {
+        "pageErrors": 0,
+        "consoleErrors": 0,
+        "networkErrors": 0
+      },
+      "browserVersion": "156.0.8078.80",
+      "lifecycleCapture": "PASS_GENUINE_PRE_DISPOSE_RAW_AND_CLONE_ISOLATION",
+      "browserDisposedGetters": "NOT_RUN_REFS_NOT_EXPOSED",
+      "reportPin": {
+        "bytes": 12595730,
+        "sha256": "c79a9d20a5a51ada8bf75b9e97e4e50aacf7565752895b36f9e072f1302882e8"
+      },
+      "proofPin": {
+        "bytes": 767194,
+        "sha256": "4c166ced43eb983eef069f4ae2a6d9d9f9c4a9baca5b66a74d9253727cc791d2"
+      },
+      "requestReceipt": {
+        "bytes": 3586360,
+        "sha256": "b9613775cba8982528ad2d01e6dc16924ba33ea566a3d131d70282e1f71700b4"
+      },
+      "screenshots": {
+        "desktop-1920.png": {
+          "bytes": 117236,
+          "sha256": "75bad404d64960c220e451de0beb2aa1cec4af68b2e93ac8e3964adefe0fa4a6"
+        },
+        "desktop-1440.png": {
+          "bytes": 113076,
+          "sha256": "26071be531e29fdabe93c30fc297c7555039a8bde219fcfc68501c5c8f6d748c"
+        },
+        "desktop-1280.png": {
+          "bytes": 110179,
+          "sha256": "c37bf5758fe4893aaf5f125fdb0a30338a21833c7a15e98d623ebd6c1823bed2"
+        }
+      },
+      "auditSummaryPin": {
+        "bytes": 2433,
+        "sha256": "d552aabf79bedcec2463dccce5ba512691955f924ae064a8b9913b2bc35d8433"
+      },
+      "packetParityPin": {
+        "bytes": 892,
+        "sha256": "7d7690eece7547ff0ae25a1ac756b4011ff68a43e4028ddbbf54f0598391aad8"
+      },
+      "auditGuard": "coupled-dynamic-viewer-audit-02"
+    },
+    {
+      "id": "desktop-02",
+      "scope": "after1 GPU, all three physics",
+      "status": "PASS_DESKTOP_COUPLED_DYNAMIC_HOST_VIEWER_ONLY",
+      "checks": 7,
+      "independentPhysicalJobs": 18,
+      "wholeDecodedPacketParity": 6,
+      "counts": {
+        "worlds": 3,
+        "attempts": 3,
+        "records": 243,
+        "applications": 192,
+        "queries": 30,
+        "queryPoints": 27,
+        "anchorChecks": 729,
+        "traceBytes": 853375
+      },
+      "desktopWidths": [
+        1280,
+        1440,
+        1920
+      ],
+      "errors": {
+        "pageErrors": 0,
+        "consoleErrors": 0,
+        "networkErrors": 0
+      },
+      "browserVersion": "156.0.8078.80",
+      "lifecycleCapture": "PASS_GENUINE_PRE_DISPOSE_RAW_AND_CLONE_ISOLATION",
+      "browserDisposedGetters": "NOT_RUN_REFS_NOT_EXPOSED",
+      "reportPin": {
+        "bytes": 12595744,
+        "sha256": "151c93588c7a19ec4762e27908e6c00903b463eb12b3064a6042af7b66138d3f"
+      },
+      "proofPin": {
+        "bytes": 767194,
+        "sha256": "33e1eb618904e4deb81015a321ef6aad816b225112a31f857d44357119830307"
+      },
+      "requestReceipt": {
+        "bytes": 3586360,
+        "sha256": "c601f223487fc54d87087e7fbe98e877ca8666eaa7a40329db0af0c1dc8a759f"
+      },
+      "screenshots": {
+        "desktop-1920.png": {
+          "bytes": 117319,
+          "sha256": "a0f1c2ea0e5b471d99298084e52035d88259c1b3eb19948b0e70c5b43bc7a524"
+        },
+        "desktop-1440.png": {
+          "bytes": 113173,
+          "sha256": "5a88716076f858561306fb3d064509d87053eae7f8bf3726cb1096cd6588af84"
+        },
+        "desktop-1280.png": {
+          "bytes": 110265,
+          "sha256": "abedbef4c8e49164fe26010747370fbf183342a8ef0ec7d7f765c57e3a74261d"
+        }
+      },
+      "auditSummaryPin": {
+        "bytes": 2433,
+        "sha256": "ace45bf42666f82104d640c4d791d51c77cfb42619b6f7b774cec27e2bf58ba2"
+      },
+      "packetParityPin": {
+        "bytes": 892,
+        "sha256": "7d7690eece7547ff0ae25a1ac756b4011ff68a43e4028ddbbf54f0598391aad8"
+      },
+      "auditGuard": "coupled-dynamic-viewer-audit-03"
+    }
+  ],
+  "censusBoundary": "Each separate fresh browser campaign repeats the same three cases with cap3Worlds; no single cap6 or six distinct fixtures claim",
+  "selectedLatestGPUState": "after1",
+  "actualPrimitiveGraphicsOnly": "NOT_CAD_NATIVE_SURFACE_QUALIFICATION",
+  "canonicalPhysicsPublicAdoption": "NOT_RUN",
+  "browserWireSecondIntervalWarmLongStack": "NOT_RUN_OR_UNCHANGED_NO_GO",
+  "auditRunner": "audit-browser-02.mjs; original audit runner NOT_RUN; deadline flooring only",
+  "firstAdmission": "NOT_RUN_EXTERNAL_LOAD_GATE_PRESERVED_THEN_NORMAL_ADMISSION",
+  "HOLD": "UNCHANGED",
+  "tolerancesCapsAndFirstFailures": "PRESERVED",
+  "mobile": "NOT_RUN_USER_EXCLUDED",
+  "deploy": "NOT_RUN"
+}

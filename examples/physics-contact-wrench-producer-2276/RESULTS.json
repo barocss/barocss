@@ -1,0 +1,456 @@
+{
+  "work_id": "physics-contact-wrench-producer-2276",
+  "artifact_type": "source-private-contact-wrench-producer-results",
+  "status": "EXECUTED_PASS_SOURCE_PRIVATE_PRODUCER",
+  "owner_role": "independent-evidence-writer",
+  "source_request": "Preserve executed source-private producer proof and bounded coverage",
+  "last_updated": "2026-11-03",
+  "sourceScope": "SOURCE_PRIVATE_PERSISTENT_ONLY",
+  "rawSummary": {
+    "status": "EXECUTED_PASS_SOURCE_PRIVATE_PRODUCER",
+    "executionStatus": "EXECUTED_PASS",
+    "firstFailure": null,
+    "controls": {
+      "A_initial": "EXECUTED_PASS",
+      "initialRecording2Codec": "EXECUTED_PASS",
+      "oldRejectionsBeforeFactory": "EXECUTED_PASS",
+      "initialMutationIsolation": "EXECUTED_PASS",
+      "acceptedMutationIsolation": "EXECUTED_PASS",
+      "trajectoryComparison": "EXECUTED_PASS",
+      "A_step1": "EXECUTED_PASS",
+      "knownRefusal": "EXECUTED_PASS",
+      "unknownRefusal": "EXECUTED_PASS",
+      "retryStep2": "EXECUTED_PASS",
+      "cleanTwoStepControl": "EXECUTED_PASS",
+      "restorePrefix": "EXECUTED_PASS",
+      "restoreContinue": "EXECUTED_PASS"
+    },
+    "counts": {
+      "worlds": 3,
+      "attempts": 8,
+      "records": 1411,
+      "applications": 800,
+      "queries": 58,
+      "queryPoints": 100,
+      "anchorChecks": 2700,
+      "traceBytes": 5231589
+    },
+    "acceptedSteps": 6,
+    "evidenceBytes": 3430654,
+    "observers": [
+      {
+        "label": "A-initial",
+        "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+        "firstFailure": null,
+        "counts": {
+          "events": 0,
+          "geometryQueries": 1,
+          "points": 4,
+          "corrections": 0,
+          "zeroApplications": 0,
+          "warmApplications": 0,
+          "actualWarmChangedFrame": 0,
+          "validatedNonzeroWarmFrictionChangedFrame": 0
+        },
+        "warmChangedFrameCoverage": "NOT_COVERED"
+      },
+      {
+        "label": "A-step1",
+        "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+        "firstFailure": null,
+        "counts": {
+          "events": 168,
+          "geometryQueries": 9,
+          "points": 20,
+          "corrections": 8,
+          "zeroApplications": 120,
+          "warmApplications": 0,
+          "actualWarmChangedFrame": 0,
+          "validatedNonzeroWarmFrictionChangedFrame": 0
+        },
+        "warmChangedFrameCoverage": "NOT_COVERED"
+      },
+      {
+        "label": "A-retry-step2",
+        "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+        "firstFailure": null,
+        "counts": {
+          "events": 98,
+          "geometryQueries": 9,
+          "points": 9,
+          "corrections": 8,
+          "zeroApplications": 29,
+          "warmApplications": 0,
+          "actualWarmChangedFrame": 0,
+          "validatedNonzeroWarmFrictionChangedFrame": 0
+        },
+        "warmChangedFrameCoverage": "NOT_COVERED"
+      },
+      {
+        "label": "B-clean-step1",
+        "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+        "firstFailure": null,
+        "counts": {
+          "events": 168,
+          "geometryQueries": 9,
+          "points": 20,
+          "corrections": 8,
+          "zeroApplications": 120,
+          "warmApplications": 0,
+          "actualWarmChangedFrame": 0,
+          "validatedNonzeroWarmFrictionChangedFrame": 0
+        },
+        "warmChangedFrameCoverage": "NOT_COVERED"
+      },
+      {
+        "label": "B-clean-step2",
+        "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+        "firstFailure": null,
+        "counts": {
+          "events": 98,
+          "geometryQueries": 9,
+          "points": 9,
+          "corrections": 8,
+          "zeroApplications": 29,
+          "warmApplications": 0,
+          "actualWarmChangedFrame": 0,
+          "validatedNonzeroWarmFrictionChangedFrame": 0
+        },
+        "warmChangedFrameCoverage": "NOT_COVERED"
+      },
+      {
+        "label": "C-hidden-restore-step1",
+        "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+        "firstFailure": null,
+        "counts": {
+          "events": 168,
+          "geometryQueries": 9,
+          "points": 20,
+          "corrections": 8,
+          "zeroApplications": 120,
+          "warmApplications": 0,
+          "actualWarmChangedFrame": 0,
+          "validatedNonzeroWarmFrictionChangedFrame": 0
+        },
+        "warmChangedFrameCoverage": "NOT_COVERED"
+      },
+      {
+        "label": "C-continue-step2",
+        "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+        "firstFailure": null,
+        "counts": {
+          "events": 98,
+          "geometryQueries": 9,
+          "points": 9,
+          "corrections": 8,
+          "zeroApplications": 29,
+          "warmApplications": 0,
+          "actualWarmChangedFrame": 0,
+          "validatedNonzeroWarmFrictionChangedFrame": 0
+        },
+        "warmChangedFrameCoverage": "NOT_COVERED"
+      }
+    ],
+    "traceNormalization": [
+      "world",
+      "attempt",
+      "queryId",
+      "geometry pair.id only"
+    ],
+    "depthMapping": "SAMPLED_PATCH_DEPTH_NOT_GLOBAL_MTD",
+    "native": "NOT_RUN",
+    "public": "NOT_RUN",
+    "desktop": "NOT_RUN",
+    "promotion": "BLOCKED_PENDING_SEPARATE_REVIEW",
+    "originalP4": "UNCHANGED_NO_GO"
+  },
+  "counts": {
+    "worlds": 3,
+    "attempts": 8,
+    "records": 1411,
+    "applications": 800,
+    "queries": 58,
+    "queryPoints": 100,
+    "anchorChecks": 2700,
+    "traceBytes": 5231589
+  },
+  "acceptedSteps": 6,
+  "observerPacketCount": 7,
+  "acceptedIntervalsObserved": 6,
+  "acceptedObserverApplications": 798,
+  "attemptCountsIncludeFailedAttempts": true,
+  "firstFailure": null,
+  "controls": {
+    "A_initial": "EXECUTED_PASS",
+    "initialRecording2Codec": "EXECUTED_PASS",
+    "oldRejectionsBeforeFactory": "EXECUTED_PASS",
+    "initialMutationIsolation": "EXECUTED_PASS",
+    "acceptedMutationIsolation": "EXECUTED_PASS",
+    "trajectoryComparison": "EXECUTED_PASS",
+    "A_step1": "EXECUTED_PASS",
+    "knownRefusal": "EXECUTED_PASS",
+    "unknownRefusal": "EXECUTED_PASS",
+    "retryStep2": "EXECUTED_PASS",
+    "cleanTwoStepControl": "EXECUTED_PASS",
+    "restorePrefix": "EXECUTED_PASS",
+    "restoreContinue": "EXECUTED_PASS"
+  },
+  "observerNumericMaxima": {
+    "normalNormSquared": 1.536461875688372e-16,
+    "endpointPresentationSquared": 2.665194664262679e-34,
+    "surfaceOutside": 1.1113199849685968e-20,
+    "surfaceBoundary": 1.1113199849685968e-20,
+    "pairedLineSquared": 8.000473596042276e-34,
+    "nativeLineExitASquared": 5.064417491673024e-30,
+    "nativeLineExitBSquared": 8.000484254111592e-34,
+    "acceptedPairedGapSquared": 2.351661358285862e-34,
+    "geometryProjectedDepth": 4.082021019578879e-20,
+    "GEOMETRY_DEPTH_NO_GO": 1.0511331294967537e-20,
+    "stepMomentum0": 1.3710178116784048e-16,
+    "stepMomentum1": 6.20991589133218e-18,
+    "stepMomentum2": 5.149960319306146e-19,
+    "stepSpin0": 7.302319517145613e-18,
+    "stepSpin1": 5.634567050759894e-18,
+    "stepSpin2": 1.047214753992911e-17,
+    "stepWorldOriginAngularLedger0": 7.08559869401753e-18,
+    "stepWorldOriginAngularLedger1": 5.631165579787182e-18,
+    "stepWorldOriginAngularLedger2": 6.899222678939896e-17,
+    "wholeStepEnergyLedger": 2.483949147885245e-16,
+    "acceptedNormalNorm": 1.536461875688372e-16,
+    "acceptedAnchorMidpointSquared": 5.879153395714655e-35,
+    "acceptedAbsoluteGapSquared": 2.351661358285862e-34,
+    "acceptedEndpointSquared": 7.974788736494924e-41,
+    "acceptedSurfaceOutside": 0,
+    "acceptedSurfaceBoundary": 5.200340718786344e-24,
+    "signedNativeGap": 1.902021783008169e-33,
+    "gravityKick0": 0,
+    "gravityKick1": 1.944046775411342e-18,
+    "gravityKick2": 0,
+    "drift0": 4.547161331656312e-19,
+    "drift1": 2.2098266503715418e-17,
+    "drift2": 2.514254210954624e-24,
+    "applicationLinearReciprocity0": 0,
+    "applicationLinearReciprocity1": 0,
+    "applicationLinearReciprocity2": 0,
+    "applicationMomentReciprocity0": 0,
+    "applicationMomentReciprocity1": 0,
+    "applicationMomentReciprocity2": 0,
+    "currentTangentPlane": 4.5832956092417e-21,
+    "eventMomentum0": 2.7755575615628914e-17,
+    "eventMomentum1": 3.469446951953614e-18,
+    "eventMomentum2": 4.336808689942018e-19,
+    "eventSpin0": 2.168404344971009e-18,
+    "eventSpin1": 2.0724756013046276e-18,
+    "eventSpin2": 2.488173262872951e-18,
+    "eventMidpointWork": 1.205993595750233e-17,
+    "eventRelativeWork": 0,
+    "APPLIED_TANGENT_CURRENT_PLANE": 6.009235071419252e-21,
+    "correctionQueryNormal0": 0,
+    "correctionQueryNormal1": 0,
+    "correctionQueryNormal2": 0,
+    "correctionQueryDepth": 0,
+    "CORRECTION_LAW0": 3.336510917294293e-19,
+    "CORRECTION_LAW1": 3.067031536660688e-17,
+    "CORRECTION_LAW2": 0,
+    "projectionKinetic": 0,
+    "SIGNED_GAP_RELATIVE_SQUARED": 2.480607717727561e-16,
+    "PRODUCER_onA_J0": 3.0986497386532196e-17,
+    "PRODUCER_onA_J1": 2.3071059900839005e-17,
+    "PRODUCER_onA_J2": 5.149960319306146e-19,
+    "PRODUCER_onA_M00": 9.14326337620988e-18,
+    "PRODUCER_onA_M01": 2.1135966455295088e-18,
+    "PRODUCER_onA_M02": 4.903775943887827e-18,
+    "PRODUCER_onB_J0": 3.0986497386532196e-17,
+    "PRODUCER_onB_J1": 2.3071059900839005e-17,
+    "PRODUCER_onB_J2": 5.149960319306146e-19,
+    "PRODUCER_onB_M00": 9.14326337620988e-18,
+    "PRODUCER_onB_M01": 2.1135966455295088e-18,
+    "PRODUCER_onB_M02": 4.903775943887827e-18,
+    "producerLinearReciprocity0": 0,
+    "producerLinearReciprocity1": 0,
+    "producerLinearReciprocity2": 0,
+    "producerMomentReciprocity0": 0,
+    "producerMomentReciprocity1": 0,
+    "producerMomentReciprocity2": 0
+  },
+  "selectedObserverMaximaWithUnits": {
+    "producerLinearImpulseResidualNs": 3.0986497386532196e-17,
+    "producerWorldOriginMomentResidualNms": 9.14326337620988e-18,
+    "stepMomentumResidualNs": 1.3710178116784048e-16,
+    "stepWorldOriginAngularLedgerResidualNms": 6.899222678939896e-17,
+    "wholeStepEnergyLedgerJ": 2.483949147885245e-16,
+    "appliedTangentCurrentPlaneNs": 6.009235071419252e-21,
+    "linearReciprocityResidualNs": 0,
+    "momentReciprocityResidualNms": 0
+  },
+  "observerPackets": [
+    {
+      "path": "examples/physics-contact-wrench-producer-2276/evidence/producer-01/A-initial-observer.json",
+      "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+      "counts": {
+        "events": 0,
+        "geometryQueries": 1,
+        "points": 4,
+        "corrections": 0,
+        "zeroApplications": 0,
+        "warmApplications": 0,
+        "actualWarmChangedFrame": 0,
+        "validatedNonzeroWarmFrictionChangedFrame": 0
+      },
+      "warmChangedFrameCoverage": "NOT_COVERED",
+      "executionStatus": "EXECUTED_PASS"
+    },
+    {
+      "path": "examples/physics-contact-wrench-producer-2276/evidence/producer-01/A-retry-step2-observer.json",
+      "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+      "counts": {
+        "events": 98,
+        "geometryQueries": 9,
+        "points": 9,
+        "corrections": 8,
+        "zeroApplications": 29,
+        "warmApplications": 0,
+        "actualWarmChangedFrame": 0,
+        "validatedNonzeroWarmFrictionChangedFrame": 0
+      },
+      "warmChangedFrameCoverage": "NOT_COVERED",
+      "executionStatus": "EXECUTED_PASS"
+    },
+    {
+      "path": "examples/physics-contact-wrench-producer-2276/evidence/producer-01/A-step1-observer.json",
+      "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+      "counts": {
+        "events": 168,
+        "geometryQueries": 9,
+        "points": 20,
+        "corrections": 8,
+        "zeroApplications": 120,
+        "warmApplications": 0,
+        "actualWarmChangedFrame": 0,
+        "validatedNonzeroWarmFrictionChangedFrame": 0
+      },
+      "warmChangedFrameCoverage": "NOT_COVERED",
+      "executionStatus": "EXECUTED_PASS"
+    },
+    {
+      "path": "examples/physics-contact-wrench-producer-2276/evidence/producer-01/B-clean-step1-observer.json",
+      "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+      "counts": {
+        "events": 168,
+        "geometryQueries": 9,
+        "points": 20,
+        "corrections": 8,
+        "zeroApplications": 120,
+        "warmApplications": 0,
+        "actualWarmChangedFrame": 0,
+        "validatedNonzeroWarmFrictionChangedFrame": 0
+      },
+      "warmChangedFrameCoverage": "NOT_COVERED",
+      "executionStatus": "EXECUTED_PASS"
+    },
+    {
+      "path": "examples/physics-contact-wrench-producer-2276/evidence/producer-01/B-clean-step2-observer.json",
+      "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+      "counts": {
+        "events": 98,
+        "geometryQueries": 9,
+        "points": 9,
+        "corrections": 8,
+        "zeroApplications": 29,
+        "warmApplications": 0,
+        "actualWarmChangedFrame": 0,
+        "validatedNonzeroWarmFrictionChangedFrame": 0
+      },
+      "warmChangedFrameCoverage": "NOT_COVERED",
+      "executionStatus": "EXECUTED_PASS"
+    },
+    {
+      "path": "examples/physics-contact-wrench-producer-2276/evidence/producer-01/C-continue-step2-observer.json",
+      "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+      "counts": {
+        "events": 98,
+        "geometryQueries": 9,
+        "points": 9,
+        "corrections": 8,
+        "zeroApplications": 29,
+        "warmApplications": 0,
+        "actualWarmChangedFrame": 0,
+        "validatedNonzeroWarmFrictionChangedFrame": 0
+      },
+      "warmChangedFrameCoverage": "NOT_COVERED",
+      "executionStatus": "EXECUTED_PASS"
+    },
+    {
+      "path": "examples/physics-contact-wrench-producer-2276/evidence/producer-01/C-hidden-restore-step1-observer.json",
+      "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+      "counts": {
+        "events": 168,
+        "geometryQueries": 9,
+        "points": 20,
+        "corrections": 8,
+        "zeroApplications": 120,
+        "warmApplications": 0,
+        "actualWarmChangedFrame": 0,
+        "validatedNonzeroWarmFrictionChangedFrame": 0
+      },
+      "warmChangedFrameCoverage": "NOT_COVERED",
+      "executionStatus": "EXECUTED_PASS"
+    }
+  ],
+  "coverage": {
+    "actualWarmApplications": 0,
+    "changingFrameNonzeroWarmFriction": "NOT_COVERED",
+    "privateRecording2PureCodec": "EXECUTED_PASS",
+    "successfulPublicSerializeDeserialize": "NOT_RUN",
+    "Native": "NOT_RUN",
+    "publicRuntime": "NOT_RUN",
+    "desktop": "NOT_RUN",
+    "performance": "NOT_RUN",
+    "packagePromotion": "NOT_PROMOTED",
+    "originalP4": "UNCHANGED_NO_GO"
+  },
+  "traceStorage": "Complete owned DAG pools, trace references, encoder/independent decoder and codec logs retained. Summary traceBytes5231589 is distinct from stored evidence bytes; no compressed-byte accounting substituted for expanded guards.",
+  "executionFreezeFinalHashesChecked": {
+    "encoding.mjs": "6178b80fab30deb89064fc89bcde70cf56199c8bec86495cb2be7c8381d5a05f",
+    "trace_decode.py": "db499d56e4e9db398ab0232b38ddf090f80449e9ea0322957b4cad810021a806",
+    "build.mjs": "ef8c314720db7fa656a57af07057743933eaf3bcd5eef090e94eb993e2a5b172",
+    "observer.py": "08b24e1d74b32f112b9d9b5627cd0d9e067f64c3b5709f970b9424bf94ab37fc",
+    "SOURCE-PINS-03.json": "40a48cdfb83b96f2034475f633636ac490586cb63066ee1c05cc781ab2b553ba"
+  },
+  "finalSourcePinsChecked": 118,
+  "stagedModulesChecked": 99,
+  "originalCommandReceipts": [
+    {
+      "id": "contact-wrench-producer-build-01",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-contact-wrench-producer-2276/build.mjs",
+        "build-01"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 1111.706375,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "contact-wrench-producer-run-01",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-contact-wrench-producer-2276/run.mjs",
+        "build-01",
+        "producer-01"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 12668.16625,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    }
+  ],
+  "newNumericalRuns": 0,
+  "protectedOriginalFilesChanged": 0,
+  "archive": "EVIDENCE-01.tar.gz"
+}

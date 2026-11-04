@@ -1,0 +1,31 @@
+{
+  "status": "PASS_FIXED25_NATIVE_CRC_GZIP_AND_FULL04_READER_IDENTITY",
+  "tests": 25,
+  "oldFixedGroupsByteUnchanged": 23,
+  "sourceRecheckedAfter": true,
+  "pinsSHA256": "3452608db5fcb589c3475dc9d03fae6f9d0317b82ab9e6b159a348918d44ddc9",
+  "sealSHA256": "4eaa77348b22fe3e8d7f611685ac8076bd6806802720ad56455b3e7976065258",
+  "guards": [
+    {
+      "path": "examples/physics-world-p5-2276/evidence/stack-native-crc-controls-01/result.json",
+      "bytes": 3258,
+      "sha256": "a9ec23ae64c920cf81960a94208f056b92a6e2524c95496b5050a534502961ff",
+      "elapsedMs": 1689.757333
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/stack-native-crc-full04-recovery-01/result.json",
+      "bytes": 3087,
+      "sha256": "5286530244086c367f4469d2d64f025c044634cd9b16bc3124b570d4d922669d",
+      "elapsedMs": 8092.90275
+    }
+  ],
+  "recoveredLogicalRecords": 1201,
+  "recoveredEntries": 10803,
+  "recoveredNumericLeaves": 10594384,
+  "fullRecoveryResultExactlyEqualsOldReader": true,
+  "compressedGzipIdentityFixedControl": true,
+  "compressionBackendOrParametersChanged": false,
+  "physicsCalls": 0,
+  "API": false,
+  "originalIndependentFullPhysics": false
+}

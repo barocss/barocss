@@ -1,0 +1,51 @@
+{
+  "status": "FIRST_STRICT_BUILD_NO_GO_PRESERVED",
+  "phase": "STRICT_COMPILE",
+  "diagnostic": "TS18048 test-entry.ts(74,47): core is possibly undefined inside map callback",
+  "candidateCalls": 0,
+  "testEntryCalls": 0,
+  "WorldCalls": 0,
+  "productionSource": "NOT_RUN",
+  "productionNative": "NOT_RUN",
+  "privateArithmetic": "NOT_RUN",
+  "firstFailurePolicy": "Original source, seal, strict outputs and stage remain unchanged; a separate typed continuation is required",
+  "tolerancesAndCaps": "UNCHANGED",
+  "files": {
+    "examples/physics-coupled-arithmetic-2276/AUTHOR-FREEZE-01.json": {
+      "bytes": 119797,
+      "sha256": "6f2402598a6036defb9cb167079da2755e3acee33ebf709e7d4538dfb27d1282"
+    },
+    "examples/physics-coupled-arithmetic-2276/test-entry.ts": {
+      "bytes": 6227,
+      "sha256": "77f938f401cc3b975090b5ee1944d800f6060ebc9dd44d58bb40a8b9846640d3"
+    },
+    "examples/physics-coupled-arithmetic-2276/build.mjs": {
+      "bytes": 8234,
+      "sha256": "90634835589860083faa925ed858928309493ee1ed7aba9676377afa78760277"
+    },
+    "examples/physics-coupled-arithmetic-2276/evidence/build-01/result.json": {
+      "bytes": 1478,
+      "sha256": "3bf8602e549821ec35730d2fcab0f1ee3a4a9b0acf293752d65fb20f88748c07"
+    },
+    "examples/physics-coupled-arithmetic-2276/evidence/build-01/strict.stdout": {
+      "bytes": 9715,
+      "sha256": "17c758c8ec6e2b84dc707a9bd8b0c723298d17ba8b7693093dd3e81eb5a9afbb"
+    },
+    "examples/physics-coupled-arithmetic-2276/evidence/build-01/strict.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-coupled-arithmetic-2276/evidence/materialize-01/result.json": {
+      "bytes": 402,
+      "sha256": "70222c23f1c0ca4b47000555f2a02048547cb1b1a64a9be500597d791ec3b36d"
+    },
+    "examples/physics-coupled-arithmetic-2276/evidence/materialize-01/bank.json": {
+      "bytes": 16201,
+      "sha256": "5822b2e338b8ed48e614c418d70922adad926b58137dfa5124cd0edb6fcd0361"
+    },
+    "examples/physics-world-p5-2276/evidence/coupled-arithmetic-build-01/result.json": {
+      "bytes": 3225,
+      "sha256": "3ed9ac773f9d8fe6019dea1ea9d58bca5e615db1c621ee6e966e48309fa1db33"
+    }
+  }
+}

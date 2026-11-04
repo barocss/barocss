@@ -1,0 +1,64 @@
+{
+  "status": "AUTHORED_NOT_EXECUTED",
+  "runtime": "UNCHANGED_QUALIFIED_COUPLED_CONTACT_BUILD02",
+  "sourceBundle": {
+    "path": "examples/physics-coupled-contact-2276/evidence/build-02/source.mjs",
+    "bytes": 492202,
+    "sha256": "97f64a9b225ce23182d9314c75669d3ff98363d55c9c9e0e001a6b4cf78f44ff"
+  },
+  "nativeEntry": {
+    "path": "examples/physics-coupled-contact-2276/evidence/build-02/emitted/entry.js",
+    "bytes": 551,
+    "sha256": "deaed76429c1b71bdb6a24b71fac44c03a659809819d745a140eddd04f8ecb6e"
+  },
+  "qualifiedBuild": {
+    "path": "examples/physics-coupled-contact-2276/evidence/build-02/result.json",
+    "bytes": 164940,
+    "sha256": "0a4eb5d3071707bc2ed13f32bca8748935c27b1b07970dec49f5d8d623344005"
+  },
+  "immutablePhysicsObservers": {
+    "examples/physics-coupled-contact-2276/physical-observer.py": {
+      "bytes": 25945,
+      "sha256": "f2f3116b9549ce6dcf01e8b9a99e9aa94e5a3e9b983758ccf929d370dc28d730"
+    },
+    "examples/physics-coupled-contact-2276/cone-observer.py": {
+      "bytes": 11722,
+      "sha256": "7c5821028a6cd1da2032b124bbba3bf9f32ef9c2443db847fbefa22a304c47e3"
+    },
+    "examples/physics-coupled-contact-2276/target-observer.py": {
+      "bytes": 7493,
+      "sha256": "39dd4e8a2f351e29cee2ff671c7f99fd253821ad420dfdabb4c354dd76bd6936"
+    },
+    "examples/physics-coupled-contact-2276/reference.py": {
+      "bytes": 4560,
+      "sha256": "cedbf35fb1821edd3d6c57b2eba2e3817dfefc824fae4cc2214dd50d0a2ec950"
+    }
+  },
+  "actualFaultHookSources": {
+    "examples/physics-coupled-contact-2276/evidence/build-02/stage/physics/src/private-phase.ts": {
+      "bytes": 8030,
+      "sha256": "2013c4f8fb6e2d06be9ef8a31e21219ffa4f963997934d8b8129df1e9f1bad6e"
+    },
+    "examples/physics-coupled-contact-2276/evidence/build-02/stage/physics/src/producer.ts": {
+      "bytes": 5046,
+      "sha256": "3725baed986308a863824a1c8520c9eccce6f0a7b796b3e69df626692e92c160"
+    }
+  },
+  "wireFunctions": "Actual exported serializePhysicsRecording/deserializePhysicsRecording/restorePhysicsRecording from SAME graph; oneframeonly",
+  "cleanControlFiles": {
+    "examples/physics-coupled-contact-2276/evidence/source-01/before-accepted-output.json": {
+      "bytes": 14418,
+      "sha256": "1d9c9174a6b35fca0ec3ef25e40ca1a3f4fa675e014fa578587f4f7be45f792d"
+    },
+    "examples/physics-coupled-contact-2276/evidence/native-01/before-accepted-output.json": {
+      "bytes": 14418,
+      "sha256": "1d9c9174a6b35fca0ec3ef25e40ca1a3f4fa675e014fa578587f4f7be45f792d"
+    }
+  },
+  "newRuntimeFiles": 0,
+  "newCompilerCalls": 0,
+  "authorNumericalCalls": 0,
+  "graphNormalization": "NONE",
+  "priorControlPrivateProvenance": "NOT_PROVEN_NO_MAPPING",
+  "hiddenPublicAcceptedOutputs": "NOT_RETAINED_NOT_PROVEN"
+}

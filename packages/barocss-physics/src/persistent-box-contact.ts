@@ -1,16 +1,20 @@
 import type { Body, Vec3 } from './internal-types.js';
 import { add, cross, dot, inverseInertia, scale, sub } from './math.js';
+import { contactApplication, emptyContactContribution, combineContactContributions } from './contact-contribution.js';
+import type { ContactContribution } from './contact-contribution.js';
 
 export interface PointImpulse { normalNs: number; tangentNs: Vec3 }
 
-function apply(a: Body, b: Body, pointM: Vec3, impulse: Vec3): void {
+function apply(a: Body, b: Body, pointM: Vec3, impulse: Vec3): ContactContribution {
   const armA = sub(pointM, a.positionM), armB = sub(pointM, b.positionM);
+  const contribution = contactApplication(a.positionM, b.positionM, armA, armB, impulse);
   a.velocityMps = sub(a.velocityMps, scale(impulse, a.inverseMass));
   b.velocityMps = add(b.velocityMps, scale(impulse, b.inverseMass));
   a.angularVelocityRadps = sub(a.angularVelocityRadps,
     inverseInertia(a, cross(armA, impulse)));
   b.angularVelocityRadps = add(b.angularVelocityRadps,
     inverseInertia(b, cross(armB, impulse)));
+  return contribution;
 }
 
 function relativeVelocity(a: Body, b: Body, pointM: Vec3): Vec3 {
@@ -27,18 +31,21 @@ function effectiveInverseMass(a: Body, b: Body, pointM: Vec3, direction: Vec3): 
 }
 
 export function warmStartPoint(a: Body, b: Body, pointM: Vec3, normal: Vec3,
-  impulse: PointImpulse): void {
-  apply(a, b, pointM, add(scale(normal, impulse.normalNs), impulse.tangentNs));
+  impulse: PointImpulse): ContactContribution {
+  return apply(a, b, pointM, add(scale(normal, impulse.normalNs), impulse.tangentNs));
 }
 
 export function solvePersistentPoint(a: Body, b: Body, pointM: Vec3, normal: Vec3,
-  impulse: PointImpulse): void {
+  impulse: PointImpulse, normalTargetMps: number): ContactContribution {
   const normalSpeed = dot(relativeVelocity(a, b, pointM), normal);
   const normalMass = effectiveInverseMass(a, b, pointM, normal);
-  const nextNormal = Math.max(0, impulse.normalNs - normalSpeed / normalMass);
+  const nextNormal = Math.max(0, normalTargetMps === 0
+    ? impulse.normalNs - normalSpeed / normalMass
+    : impulse.normalNs + (normalTargetMps - normalSpeed) / normalMass);
   const deltaNormal = nextNormal - impulse.normalNs;
   impulse.normalNs = nextNormal;
-  if (deltaNormal !== 0) apply(a, b, pointM, scale(normal, deltaNormal));
+  const normalContribution = deltaNormal !== 0
+    ? apply(a, b, pointM, scale(normal, deltaNormal)) : emptyContactContribution();
 
   const relative = relativeVelocity(a, b, pointM);
   const tangent = sub(relative, scale(normal, dot(relative, normal)));
@@ -60,7 +67,8 @@ export function solvePersistentPoint(a: Body, b: Body, pointM: Vec3, normal: Vec
     ? scale(requested, limit / requestedMagnitude) : requested;
   const deltaTangent = sub(nextTangent, impulse.tangentNs);
   impulse.tangentNs = nextTangent;
-  apply(a, b, pointM, deltaTangent);
+  const tangentContribution = apply(a, b, pointM, deltaTangent);
+  return combineContactContributions(normalContribution, tangentContribution);
 }
 
 export function correctPersistentPair(a: Body, b: Body, normal: Vec3,

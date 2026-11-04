@@ -1,0 +1,71 @@
+{
+  "status": "FINITE_PRIVATE_STATIC_DESKTOP_AND_INDEPENDENT_BROWSER_PASS_DYNAMIC_NO_GO",
+  "date": "2026-11-03",
+  "previousCoverage": "COVERAGE-09.json",
+  "scope": {
+    "status": "EXECUTED_PASS_DESKTOP_RENDER_AND_SEPARATE_BROWSER_STATIC_PHYSICS",
+    "results": "examples/physics-coupled-viewer-2276/RESULTS.md",
+    "executedAuthor": "AUTHOR-FREEZE-03.json",
+    "author04": "WITHDRAWN_PROPOSAL_ROOT_STALE_READ_CORRECTED_NOT_EXECUTED",
+    "browserVersion": "156.0.8078.80",
+    "checks": 6,
+    "widths": [
+      1280,
+      1440,
+      1920
+    ],
+    "pageConsoleNetworkErrors": [
+      0,
+      0,
+      0
+    ],
+    "actualCounts": {
+      "worlds": 3,
+      "attempts": 3,
+      "acceptedSteps": 2,
+      "applications": 128,
+      "queries": 22,
+      "queryPoints": 19,
+      "anchorChecks": 513,
+      "records": 169
+    },
+    "independentBrowserObserverJobs": 15,
+    "physicalCases": [
+      "before",
+      "at"
+    ],
+    "after": "TYPED_PREAPPLY_REFUSAL_RAW_ROLLBACK_NOT_DYNAMIC_PHYSICS_PASS",
+    "proof": {
+      "status": "SAVED_BROWSER_RAW_WORD_PROOF",
+      "file": "examples/physics-coupled-viewer-2276/evidence/browser-desktop-01/proof.json",
+      "rawRequestBytes": 2557412,
+      "rawRequestSHA256": "147eb0ac49d7a271ccfef4e70972c26457f6b44ec1b194bc4c6aea61da931105",
+      "storedBytes": 532144,
+      "storedSHA256": "5ed22114850604ada27a22b671a1cd3de4942d41586dcf1679a300e39535b65e",
+      "physicsObserver": "NOT_RUN",
+      "runCompletion": "CAPTURED_PREFIX_OR_TERMINAL"
+    },
+    "displayGeometry": "DISPLAY_ONLY_EXACT_PRIMITIVE_GPU_TRIANGLES_NOT_CAD_SURFACE",
+    "physicalMeasurement": "ORIGINAL_IMMUTABLE_GEOMETRY_PHYSICAL_CONE_TARGET_OBSERVERS_NOT_SCREENSHOTS",
+    "mobile": "NOT_RUN",
+    "public": "NOT_ADOPTED",
+    "wholeP03": "NO_GO_DYNAMIC_UNSUPPORTED",
+    "P4": "UNCHANGED_NO_GO",
+    "HOLD": "UNCHANGED",
+    "manualPreview": "http://127.0.0.1:53020"
+  },
+  "proofPins": {
+    "examples/physics-coupled-viewer-2276/evidence/audit-01/summary.json": {
+      "bytes": 1952,
+      "sha256": "0f3d54af6172d0d41bd914be5cc96ade3ec2ab52ba4b6d803a87fd6ae2170900"
+    },
+    "examples/physics-coupled-viewer-2276/evidence/browser-desktop-01/proof.json": {
+      "bytes": 532144,
+      "sha256": "5ed22114850604ada27a22b671a1cd3de4942d41586dcf1679a300e39535b65e"
+    },
+    "output/playwright/coupled-viewer/desktop-01/report.json": {
+      "bytes": 10582394,
+      "sha256": "8b4a8e2b8adc10fd53d96512ffe2e0f2c4008e8da5ac868c54f8185add8f460e"
+    }
+  }
+}

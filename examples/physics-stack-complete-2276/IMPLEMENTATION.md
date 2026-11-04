@@ -1,0 +1,25 @@
+# Complete runner source boundary
+
+Root alone executes this new composition. Author numerical imports, physics, tests and compiler calls are zero. The governing immutable CONTRACT.md and Root-owned fingerprint/controls receipts are unchanged.
+
+Entries use the pinned Python executable with `-B`:
+
+`run.py prefix FRESH_PREFIX_OUT REVIEWED_PINS_SHA`
+
+`run.py full FRESH_FULL_OUT REVIEWED_PINS_SHA QUALIFIED_PREFIX_OUT`
+
+Only these modes exist. Full requires this same-source/same-pins combined prefix's three16-step physical, stream-recovery and CPU receipts. Each scene has its own direct scene-owner.py group and one180s alarm. The owner starts one Node host/Worker/three-reference tree and records the qualified exact-wait CPU delta. The controller never imports physics. It runs scenes in fixed order and stops later scenes on first failure. Its181s IPC fallback only kills the registered scene owner's group if that owner failed to terminate under its180s alarm; it cannot extend scene qualification.
+
+The controller authenticates the completed stream18, realCPU48, buffered-fingerprint6 and new Window/baseline8 component receipts. It reuses those controls without new test processes. Every immutable provider/helper, executable, original reference closure and run09/runtime05 authority is pinned. A Root source-seal hash binds prefix and full. There is no current source build or production fallback.
+
+Normal metadata is prepaid as a fixed8MiB allocation INSIDE the shared280MiB cap, not in addition to it. The shared budget starts with used=8MiB and a2MiB emergency reserve inside the same280MiB. No provider/helper copies are made. Per-scene fixed normal outputs are host result<=128KiB, closure<=16KiB, input/deadline/stage<=16KiB each, owner summary<=1MiB, owner-captured host stdout<=16KiB and stderr<=4KiB, and controller-captured owner stdout/stderr<=4KiB each. Global admission/input/budget files are<=16KiB each and campaign result<=1MiB. Three scene groups plus global receipts fit the prepaid8MiB. Existing budget rewrites replace only their bounded metadata file. No unbounded per-step normal metadata or loose RPC files exist. Gzip outputs and bounded stream stop receipts are charged by the same shared budget. Numerical failure evidence uses emergency credit, at most2MiB, never normal headroom beyond the cap. All limits remain within the original exit; the original extra20MiB allowance is unused.
+
+Source diagnostics preserve actual typed failure class/code, the first observed step/arrival and bounded actual input/prepared diagnostics when available. Human-readable error strings are capped at1024 code units; numerical operand graphs are not normalized or replaced. A missing packet after external termination is explicitly unavailable. On archive/refusal evidence overflow the bounded metadata identifies that evidence refusal; it never reports a complete diagnostic or physical PASS.
+
+Producer performs one actual prepare call per credited request, verifies its original input unchanged and posts the actual result with the immutable buffered fingerprint. Built-in postMessage makes the single detached host copy. The host verifies exact type/key/UTF16/alias/number words and actual body/contact ownership linkage before using those operands. No V8 encode/decode copy or expected pose enters the engine. The old protocol's bounded serial reference and Worker-termination helpers are reused; new Window and actual960 baseline helper have their own fixed8 qualified controls.
+
+Reference IO has one pending request per child, bounded line/stderr/partial buffers, stream-archives exact wires, races stdin backpressure against the existing scene deadline, and notifies the host immediately of idle or pending fatal output/exit. Three credits bound all speculative production/proof/archive work. Cleanup closes owned Worker/references concurrently, settles admitted work, then closes/verifies the archive. Work reserves the final4s inside the same170s scene deadline. A timeout or unknown closure prevents qualification and triggers the exact scene-group cleanup.
+
+The driver compares all first16 physical JSON bytes, all words, four-phase body bytes and point words against run09 before writing AND after recovery, with all65 semantic RPC pairs per scene checked on both paths. For the full stream every child wire transcript and every recovered body-only word is checked against its write-side authority; record groups restore all numeric words. Runtime05 post-body equality is separately labeled determinism, never phase proof. The actual960 state is its own quality baseline, promoted only after contiguous complete archive acknowledgement;961+ quality waits for that promotion and its word-preserving identity.
+
+Only the controller may report original independent3600 after all three new1200 scenes, complete archive recovery, original independent gates and CPU/ownership closure pass. Prefix and per-scene reports retain originalIndependentFullPhysics:false. Optional strict-global64 certification stays NOT_QUALIFIED. Public World, API, desktop, deployment and release remain outside this campaign.

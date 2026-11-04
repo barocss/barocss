@@ -1,0 +1,27 @@
+{
+  "API": false,
+  "budget": {
+    "cap": 293601280,
+    "reserve": 2097152,
+    "used": 8691090
+  },
+  "contiguousPhysicalAccepted": 0,
+  "desktop": "NOT_RUN",
+  "firstFailure": {
+    "errorClass": "ValueError",
+    "laterScenes": "NOT_RUN",
+    "message": "OWNER_STOPPED",
+    "ownerExit": -9,
+    "scene": "ALIGNED"
+  },
+  "independentFullPhysicsSteps": 0,
+  "mode": "prefix",
+  "originalIndependentFullPhysics": false,
+  "pinsSHA": "f4b579cca5a018f55287f6fc39755debc9af6d3bba2934ab7901a126558faaea",
+  "preflightSeconds": 0.12093662517145276,
+  "publicWorld": "NOT_RUN",
+  "scenes": [],
+  "sourceSealSHA256": "78e089071b844bb50d709f1b343c6c2b5db50dcd514fab47b8a3a60ff00dfb51",
+  "status": "COMPLETE_CAMPAIGN_STOPPED",
+  "strictGlobal64MiBCertification": "NOT_QUALIFIED"
+}

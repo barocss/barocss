@@ -1,0 +1,49 @@
+{
+  "status": "COUPLED_DYNAMIC_FIRST_INTERVAL_THREE_CASE_WORLD_PASS",
+  "date": "2026-11-03",
+  "previousCoverage": "COVERAGE-14.json",
+  "scope": {
+    "status": "EXECUTED_PASS_ORIGINAL_THREE_CLEAN_WORLD_CASES",
+    "results": "examples/physics-coupled-dynamic-host-2276/CLEAN-RESULTS.json",
+    "profile": "Original before/at/after; one cold point, first interval only; private staged real World API",
+    "perGraph": {
+      "worlds": 3,
+      "attempts": 3,
+      "accepted": 3,
+      "records": 243,
+      "applications": 192,
+      "queries": 30,
+      "queryPoints": 27,
+      "anchorChecks": 729,
+      "traceBytes": 853375,
+      "independentObservers": 18,
+      "helperPlans": 3
+    },
+    "fullRawSourceNativeFiles": 26,
+    "normalization": "NONE",
+    "afterMetrics": {
+      "normalSpeedMps": 2.245727290605634e-18,
+      "coneErrorNs": 3.26936304418379e-18,
+      "oppositionErrorNs": 3.2620547630988122e-18,
+      "slipLowerMps": 0.14415413024243495,
+      "midpointWorkJ": -0.019189277255532176
+    },
+    "firstFormatBuildFailure": "PRESERVED_0_WORLD_CALLS",
+    "archiveLogicalMembersVerified": 1261,
+    "archiveFrozenWorkspaceRecoveryVerified": 1092,
+    "inheritedTypingBoundaries": "skipLibCheck true; two existing nocheck files; no new waiver; not whole-host strict typing proof",
+    "postImpulseAndWire": "AUTHORING_NOT_EXECUTED",
+    "dynamicDesktop": "AUTHORED_NOT_EXECUTED",
+    "canonicalPublicAdoption": "NOT_RUN",
+    "warmMultipointLongStack": "UNCHANGED_NO_GO_OR_NOT_RUN"
+  },
+  "next": [
+    "Post-impulse rollback and genuine recorder/restore for the admitted dynamic case",
+    "Desktop browser rendering plus independent actual-browser physics after rollback/wire pass",
+    "Warm and multipoint contact prerequisites",
+    "Original long-duration eight-box settling under unchanged gates"
+  ],
+  "HOLD": "UNCHANGED",
+  "allFirstFailures": "PRESERVED",
+  "deployment": "NOT_RUN"
+}

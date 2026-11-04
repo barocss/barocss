@@ -1,0 +1,1430 @@
+{
+  "format": "physics-state2-public-cutover-authority-map",
+  "version": 1,
+  "status": "READ_ONLY_MAPPING_NOT_IMPLEMENTED_NOT_EXECUTED",
+  "date": "2026-11-03",
+  "observedHead": "bf58c1e04020cc44e5c103cd4eea37107607d63f",
+  "scope": "Current production rigid application authority and accepted-geometry qualification, not a generic historical callsite inventory",
+  "ownedOutputOnly": "examples/physics-contact-wrench-contract-2276/PUBLIC-CUTOVER-MAP.json",
+  "physicsRuns": 0,
+  "productionEdits": 0,
+  "protectedDesignFilesChanged": false,
+  "promotion": "BLOCKED",
+  "headline": [
+    "Only collision.solve and persistent-box-contact.apply directly apply production rigid contact impulses. CCD sweep functions only relocate candidate poses; their impulses route back through those existing shared sites.",
+    "Discrete normal and friction do not always use the same actual body anchors: friction can follow position correction, and sphere/static-box friction uses exact radial arms. Accumulate each actual body anchor separately.",
+    "A canonical schema2 cutover must convert every current admitted rigid path plus accepted geometry, replay and active consumers atomically. Private persistent-box PASS cannot license empty wrench placeholders for other admitted families."
+  ],
+  "frozenAuthority": {
+    "contract": "examples/physics-contact-wrench-contract-2276/CONTRACT.md",
+    "types": "examples/physics-contact-wrench-contract-2276/types.ts",
+    "migration": "examples/physics-contact-wrench-contract-2276/MIGRATION.md",
+    "validation": "examples/physics-contact-wrench-contract-2276/validation.json",
+    "noOldApiAdapterOrRuntimeMode": true
+  },
+  "applicationSites": [
+    {
+      "id": "DISCRETE_NORMAL",
+      "entry": {
+        "file": "packages/barocss-physics/src/collision.ts",
+        "line": 176,
+        "symbol": "solve",
+        "observedLine": "export function solve(a: Body, b: Body, hit: Hit): { normalImpulseNs: number; tangentImpulseNs: Vec3 } {"
+      },
+      "writes": [
+        {
+          "file": "packages/barocss-physics/src/collision.ts",
+          "line": 191,
+          "symbol": "normal angular application on A/B",
+          "observedLine": "a.angularVelocityRadps = sub(a.angularVelocityRadps, scale(inverseInertia(a, torqueAxisA), impulse));"
+        },
+        {
+          "file": "packages/barocss-physics/src/collision.ts",
+          "line": 193,
+          "symbol": "normal linear application and interleaved correction loop",
+          "observedLine": "for (let i = 0; i < 3; i++) {"
+        }
+      ],
+      "actualArgument": "J_onB=hit.normal*impulse; J_onA=-J_onB. Torque arms were computed at line179 from pre-correction COMs.",
+      "anchors": {
+        "onA": "hit.pointM at actual normal application",
+        "onB": "hit.pointM at actual normal application",
+        "COMAuthority": "armA/armB and positions before correction, not final accepted COM"
+      },
+      "requiredProducerChange": "Return a normal producer contribution from actual vector and both anchors. Compose with tangent contribution. Capture before correction; do not include position shifts as impulse or change operation order incidentally.",
+      "earlyReturns": [
+        178,
+        200,
+        221
+      ],
+      "worldConsumer": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 363,
+        "symbol": "fallback solve shared by discrete/large/non-box persistent and CCD response",
+        "observedLine": "const resolved = solve(a, b, hit);"
+      },
+      "tests": [
+        "T01",
+        "T02",
+        "T06",
+        "T07",
+        "T08",
+        "T13"
+      ]
+    },
+    {
+      "id": "DISCRETE_FRICTION",
+      "entry": {
+        "file": "packages/barocss-physics/src/collision.ts",
+        "line": 206,
+        "symbol": "frictionArmA",
+        "observedLine": "const frictionArmA = a.shape.kind === 'sphere' && b.kind === 'static' && b.shape.kind === 'box'"
+      },
+      "writes": [
+        {
+          "file": "packages/barocss-physics/src/collision.ts",
+          "line": 232,
+          "symbol": "actual tangent linear application",
+          "observedLine": "a.velocityMps = sub(a.velocityMps, scale(tangentImpulse, a.inverseMass));"
+        },
+        {
+          "file": "packages/barocss-physics/src/collision.ts",
+          "line": 234,
+          "symbol": "actual tangent angular application",
+          "observedLine": "a.angularVelocityRadps = sub(a.angularVelocityRadps,"
+        }
+      ],
+      "actualArgument": "J_onB=tangentImpulse selected by existing full2D static solve or dynamic branch; onA=-J_onB.",
+      "anchors": {
+        "onA": "a.positionM AFTER correction + frictionArmA",
+        "onB": "b.positionM AFTER correction + frictionArmB",
+        "sphereStaticBox": "For sphereA/static-boxB, frictionArmA=normal*radiusA; for static-boxA/sphereB, frictionArmB=-normal*radiusB. Other arms use hit.pointM - current corrected COM.",
+        "warning": "The radial override intentionally preserves a representable physical lever. Do not replace it with hit.pointM subtraction or a final averaged contact. pA and pB may differ; compute M_A=pA cross J_A and M_B=pB cross J_B independently, never forge M_A=-M_B."
+      },
+      "pureSolver": {
+        "file": "packages/barocss-physics/src/contact-tangent.ts",
+        "line": 1,
+        "symbol": "solveStaticTangent module: vector request only, no body application",
+        "observedLine": "import type { Body, Vec3 } from './internal-types.js';"
+      },
+      "requiredProducerChange": "Produce the actual tangent contribution using the same computed arms and corrected COMs, then combine with the normal contribution exactly once. Preserve static/dynamic branch and original arithmetic.",
+      "tests": [
+        "T01",
+        "T02",
+        "T03",
+        "T13"
+      ]
+    },
+    {
+      "id": "PERSISTENT_APPLY",
+      "entry": {
+        "file": "packages/barocss-physics/src/persistent-box-contact.ts",
+        "line": 6,
+        "symbol": "apply",
+        "observedLine": "function apply(a: Body, b: Body, pointM: Vec3, impulse: Vec3): void {"
+      },
+      "writes": [
+        {
+          "file": "packages/barocss-physics/src/persistent-box-contact.ts",
+          "line": 8,
+          "symbol": "linear updates",
+          "observedLine": "a.velocityMps = sub(a.velocityMps, scale(impulse, a.inverseMass));"
+        },
+        {
+          "file": "packages/barocss-physics/src/persistent-box-contact.ts",
+          "line": 10,
+          "symbol": "angular updates",
+          "observedLine": "a.angularVelocityRadps = sub(a.angularVelocityRadps,"
+        }
+      ],
+      "actualArgument": "The already formed impulse vector passed to apply; same actual pointM for both bodies.",
+      "anchors": {
+        "onA": "pointM at application",
+        "onB": "pointM at application",
+        "COMAuthority": "sub(pointM,current COM) inside apply"
+      },
+      "requiredProducerChange": "Return actual producer contribution directly from this primitive. It may share a pure checked accumulator with discrete solve; it must never read trace/cache/final geometry.",
+      "tests": [
+        "T04",
+        "T05",
+        "T13"
+      ]
+    },
+    {
+      "id": "PERSISTENT_WARM_CALL",
+      "entry": {
+        "file": "packages/barocss-physics/src/persistent-box-contact.ts",
+        "line": 29,
+        "symbol": "warmStartPoint",
+        "observedLine": "export function warmStartPoint(a: Body, b: Body, pointM: Vec3, normal: Vec3,"
+      },
+      "application": {
+        "file": "packages/barocss-physics/src/persistent-box-contact.ts",
+        "line": 31,
+        "symbol": "apply(normal*cache.normal + cache.tangent)",
+        "observedLine": "apply(a, b, pointM, add(scale(normal, impulse.normalNs), impulse.tangentNs));"
+      },
+      "worldConsumer": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 342,
+        "symbol": "first actual prior hit for point",
+        "observedLine": "if (prior) warmStartPoint(a, b, point.pointM, hit.normal, impulse);"
+      },
+      "requiredProducerChange": "Return the actual warm apply contribution and World adds it once immediately. Qualified warm transport is a separate explicit force-law delta; the current production file still lacks that helper. Do not relabel raw prior T as transported or silently fold an unreviewed force repair into schema work.",
+      "tests": [
+        "T04",
+        "T05",
+        "T13"
+      ]
+    },
+    {
+      "id": "PERSISTENT_NORMAL_INCREMENT",
+      "entry": {
+        "file": "packages/barocss-physics/src/persistent-box-contact.ts",
+        "line": 34,
+        "symbol": "solvePersistentPoint",
+        "observedLine": "export function solvePersistentPoint(a: Body, b: Body, pointM: Vec3, normal: Vec3,"
+      },
+      "application": {
+        "file": "packages/barocss-physics/src/persistent-box-contact.ts",
+        "line": 43,
+        "symbol": "apply(normal*deltaNormal) when nonzero",
+        "observedLine": "if (deltaNormal !== 0) apply(a, b, pointM, scale(normal, deltaNormal));"
+      },
+      "worldConsumer": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 350,
+        "symbol": "8 inner iterations per8 outer passes",
+        "observedLine": "solvePersistentPoint(a, b, point.pointM, hit.normal, impulse,"
+      },
+      "requiredProducerChange": "Add returned actual signed increment to solve-local contribution. Negative increments count; delta==0 without apply returns zero-only contribution. Do not return nextNormal as applied impulse.",
+      "tests": [
+        "T04",
+        "T05",
+        "T13"
+      ]
+    },
+    {
+      "id": "PERSISTENT_TANGENT_INCREMENT",
+      "entry": {
+        "file": "packages/barocss-physics/src/persistent-box-contact.ts",
+        "line": 63,
+        "symbol": "deltaTangent",
+        "observedLine": "const deltaTangent = sub(nextTangent, impulse.tangentNs);"
+      },
+      "application": {
+        "file": "packages/barocss-physics/src/persistent-box-contact.ts",
+        "line": 65,
+        "symbol": "apply(deltaTangent), including zero calls",
+        "observedLine": "apply(a, b, pointM, deltaTangent);"
+      },
+      "worldConsumer": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 350,
+        "symbol": "compose all actual applications once",
+        "observedLine": "solvePersistentPoint(a, b, point.pointM, hit.normal, impulse,"
+      },
+      "requiredProducerChange": "Combine actual tangent apply contribution with normal increment; preserve anyNonzero flag across cancellation/removal. World adds the returned sum once, not the cache sum at end of manifold.",
+      "obsoleteReport": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 355,
+        "symbol": "current final cache sum resets old report",
+        "observedLine": "contact.impulseNs = 0;"
+      },
+      "tests": [
+        "T04",
+        "T05",
+        "T13"
+      ]
+    }
+  ],
+  "ccdRouting": [
+    {
+      "id": "CCD_FIXED_SPHERE_BOX",
+      "admission": {
+        "file": "packages/barocss-physics/src/ccd.ts",
+        "line": 31,
+        "symbol": "1dynamic sphere /1..8static box fixtures",
+        "observedLine": "const fixtures = bodies.filter((body) => body.kind === 'static' && !body.sensor && body.shape.kind === 'box');"
+      },
+      "sweep": {
+        "file": "packages/barocss-physics/src/ccd.ts",
+        "line": 44,
+        "symbol": "sweepSphere",
+        "observedLine": "export function sweepSphere(previous: Body, candidate: Body, fixtures: Body[]): PhysicsCcdHit | null {"
+      },
+      "poseWrites": {
+        "file": "packages/barocss-physics/src/ccd.ts",
+        "line": 57,
+        "symbol": "TOI stop minus1e-9 normal",
+        "observedLine": "if (earliest) {"
+      },
+      "dispatch": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 263,
+        "symbol": "sweep selection before solver",
+        "observedLine": "const hit = ccd.kind === 'static-boxes'"
+      },
+      "actualApplicationSites": [
+        "DISCRETE_NORMAL",
+        "DISCRETE_FRICTION"
+      ],
+      "reason": "Sphere/box has no boxFaceManifold, including persistent profile fallback. Sweep returns a CCD event and relocated pose only; do not add a second invented TOI impulse bucket.",
+      "requiredGeometry": "Requery final accepted sphere/box native geometry, not the unbiased hit time or biased-stop hit metadata.",
+      "tests": [
+        "T06"
+      ]
+    },
+    {
+      "id": "CCD_DYNAMIC_SPHERE_PAIR",
+      "admission": {
+        "file": "packages/barocss-physics/src/ccd.ts",
+        "line": 17,
+        "symbol": "two dynamic spheres, zero gravity, one selected CCD body",
+        "observedLine": "if (selected.length === 1 && bodies.length === 2 && jointCount === 0 &&"
+      },
+      "sweep": {
+        "file": "packages/barocss-physics/src/ccd-pair.ts",
+        "line": 6,
+        "symbol": "sweepSpherePair",
+        "observedLine": "export function sweepSpherePair(markedStart: Body, markedEnd: Body,"
+      },
+      "poseWrites": {
+        "file": "packages/barocss-physics/src/ccd-pair.ts",
+        "line": 17,
+        "symbol": "both bodies moved by5e-10 toward entry",
+        "observedLine": "markedEnd.positionM = sub(markedAtHit, scale(normalFixtureToBody, 5e-10));"
+      },
+      "dispatch": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 265,
+        "symbol": "sphere-pair sweep",
+        "observedLine": ": ccd.kind === 'sphere-pair'"
+      },
+      "actualApplicationSites": [
+        "DISCRETE_NORMAL",
+        "DISCRETE_FRICTION"
+      ],
+      "requiredChange": "No producer in sweepSpherePairExact or sweepSpherePair; accumulate only actual shared solve writes at the relocated candidate poses. Map lexical pair owners independently of marked/fixture naming.",
+      "tests": [
+        "T07"
+      ]
+    },
+    {
+      "id": "CCD_DYNAMIC_BOX_STATIC_BOX",
+      "admission": {
+        "file": "packages/barocss-physics/src/ccd.ts",
+        "line": 22,
+        "symbol": "axis-aligned dynamic box and static fixture",
+        "observedLine": "if (selected.length === 1 && selected[0].shape.kind === 'box' &&"
+      },
+      "sweep": {
+        "file": "packages/barocss-physics/src/ccd-box.ts",
+        "line": 23,
+        "symbol": "sweepDynamicBox",
+        "observedLine": "export function sweepDynamicBox(previous: Body, candidate: Body, fixture: Body): PhysicsCcdHit | null {"
+      },
+      "poseWrites": {
+        "file": "packages/barocss-physics/src/ccd-box.ts",
+        "line": 36,
+        "symbol": "TOI stop minus1e-9 normal",
+        "observedLine": "candidate.positionM = sub(add(previous.positionM, scale(travel, hit.fraction)),"
+      },
+      "persistentExclusion": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 123,
+        "symbol": "box CCD excludes persistent profile",
+        "observedLine": "if (ccd.kind === 'box-pair' && usePersistentBox) {"
+      },
+      "actualApplicationSites": [
+        "DISCRETE_NORMAL",
+        "DISCRETE_FRICTION"
+      ],
+      "postcondition": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 398,
+        "symbol": "post-response axis-alignment NUMERIC_LIMIT",
+        "observedLine": "if (ccd.kind === 'box-pair' && !axisAlignedBox(next[ccd.boxIndex])) {"
+      },
+      "requiredChange": "No extra CCD impulse producer. Preserve q/-q admission/sign repair, angular refusal and post-response rollback; final accepted geometry is separate from CCD-hit metadata.",
+      "tests": [
+        "T08"
+      ]
+    }
+  ],
+  "acceptedGeometry": [
+    {
+      "family": "box-box",
+      "production": [
+        {
+          "file": "packages/barocss-physics/src/collision.ts",
+          "line": 71,
+          "symbol": "boxBox SAT support-average Hit",
+          "observedLine": "function boxBox(a: Body, b: Body): Hit | null {"
+        },
+        {
+          "file": "packages/barocss-physics/src/contact-manifold.ts",
+          "line": 49,
+          "symbol": "boxFaceManifold FACE clip; EDGE falls back to one point",
+          "observedLine": "export function boxFaceManifold(a: Body, b: Body, hit: Hit): ManifoldPoint[] | null {"
+        }
+      ],
+      "currentState2Status": "NOT_IMPLEMENTED_PUBLIC; existing averaged/support/clipped presentation cannot be relabeled native witness",
+      "qualifiedWitnesses": [
+        {
+          "receipt": {
+            "file": "examples/physics-box-quantized-witness-2276/RESULTS.json",
+            "status": "PASS_INDEPENDENT_FINITE_CELL_GEOMETRY_ONLY",
+            "bytes": 7006,
+            "sha256": "c3f84cfeeb9c5b5e5f9c952e11f1dca1ded2701c316e15ad3594d3c112af7480"
+          },
+          "scope": "20 finite box-pair cases per graph, represented finite-cell witness construction only; not a universal support/MTD or dynamics proof"
+        },
+        {
+          "receipt": {
+            "file": "examples/physics-contact-wrench-native-2276/RESULTS.json",
+            "status": "EXECUTED_PASS_FINITE_PRIVATE_TYPED_SOURCE_NATIVE_AND_PARITY_ONLY",
+            "bytes": 213298,
+            "sha256": "c6b9b45df1214ad6ca257ef01a846b6dbc63d9bba9a54ce18c086f7a3782bc25"
+          },
+          "scope": "Selected actual private cold Source/Native accepted-state geometry + actual event/wrench protocol,3World8attempt6accepted each"
+        },
+        {
+          "receipt": {
+            "file": "examples/physics-warm-native-2276/RESULTS.json",
+            "status": "PASS_FINITE_SELECTED_PRIVATE_PROTOCOL",
+            "bytes": 264549,
+            "sha256": "907f6a89c9c503272b47edabc84afa70661059c2ac1e3937c21f780d31bc480e"
+          },
+          "scope": "Selected actual private changed-frame warm Source/Native4World8attempt6accepted plus public replay on private graph; no general persistent cone or public hot-path qualification"
+        }
+      ],
+      "preservedNoGo": [
+        {
+          "receipt": {
+            "file": "examples/physics-box-contact-features-2276/RESULTS.json",
+            "status": "CONFIRMED_PRESENTATION_NO_GO",
+            "bytes": 10743,
+            "sha256": "29796c9562bd9df1c798fcd9c1b30652dac314359ec0cd6eac84781cafc80e10"
+          },
+          "scope": "Original rounded-midpoint independent presentation failure remains, not overwritten by finite-cell amendment"
+        },
+        {
+          "receipt": {
+            "file": "examples/physics-persistent-friction-plane-2276/RESULTS.json",
+            "status": "OBSERVED_NO_GO_TANGENT_PLANE",
+            "bytes": 4836,
+            "sha256": "fe1d3d5b5f9c068e3f230b29da3651e4dd140400ef5ff3765c73cc17c55151f9"
+          },
+          "scope": "Current public changing-normal tangent plane and accepted paired witness baseline NO_GO; private transport/geometry does not automatically promote it"
+        }
+      ],
+      "needed": "Promote a production-owned native accepted query only after finite family/profile and performance gates. FACE+EDGE dispatcher must be explicit. Keep sampled patch correction depth distinct from signed represented-line gap and full directional overlap.",
+      "tests": [
+        "T09",
+        "T10",
+        "T11",
+        "T14"
+      ]
+    },
+    {
+      "family": "sphere-sphere",
+      "production": [
+        {
+          "file": "packages/barocss-physics/src/collision.ts",
+          "line": 25,
+          "symbol": "sphereSphere",
+          "observedLine": "function sphereSphere(a: Body, b: Body): Hit | null {"
+        }
+      ],
+      "currentState2Status": "MISSING_INDEPENDENT_ACCEPTED_NATIVE_LINE_WITNESS_QUALIFICATION",
+      "qualifiedWitnesses": [
+        {
+          "receipt": {
+            "file": "examples/physics-sphere-pair-ccd-2276/RESULTS.json",
+            "status": "PASS_BOUNDED_EXACT_SPHERE_PAIR_CCD",
+            "bytes": 6753,
+            "sha256": "33159869c70b5076fcf20ccb0707cb56555635a2a43b7a2f88744aaa6b683cbb"
+          },
+          "scope": "Finite exact swept entry/graze/miss and selected public dynamics, not new Contact.points accepted native-line schema"
+        }
+      ],
+      "needed": "At accepted poses derive/validate actual sphere surface line exits/entries and a finite represented anchor, including overlap/coincident centers/ties. Existing midpoint and CCD exact TOI are insufficient by themselves.",
+      "tests": [
+        "T07",
+        "T09",
+        "T10"
+      ]
+    },
+    {
+      "family": "sphere-box / box-sphere",
+      "production": [
+        {
+          "file": "packages/barocss-physics/src/collision.ts",
+          "line": 37,
+          "symbol": "sphereBox, including inside/on-face deterministic tie",
+          "observedLine": "function sphereBox(sphere: Body, box: Body): Hit | null {"
+        },
+        {
+          "file": "packages/barocss-physics/src/collision.ts",
+          "line": 95,
+          "symbol": "reverse lexical normal",
+          "observedLine": "if (a.shape.kind === 'box' && b.shape.kind === 'sphere') {"
+        }
+      ],
+      "currentState2Status": "MISSING_INDEPENDENT_ACCEPTED_NATIVE_LINE_WITNESS_QUALIFICATION",
+      "qualifiedWitnesses": [
+        {
+          "receipt": {
+            "file": "examples/physics-rounded-ccd-2276/RESULTS.json",
+            "status": "PASS_BOUNDED_ROUNDED_SPHERE_BOX_CCD",
+            "bytes": 7167,
+            "sha256": "27a07f726a93f7c52f25f2e868634f789dd979442d6e03e06292a783b43f43a1"
+          },
+          "scope": "Bounded exact rounded sphere/box swept-feature timing and selected World response only"
+        },
+        {
+          "receipt": {
+            "file": "examples/physics-material-boundaries-2276/RESULTS.json",
+            "status": "PASS_FINAL_FINITE_SPHERE_MATERIAL_TABLE",
+            "bytes": 5330,
+            "sha256": "589ae8f88c3f2dd64fbc9f78829f1f51f778f83f02c1fb4f9d9c2f801b449c90"
+          },
+          "scope": "Finite actual discrete sphere/floor material/impulse/spin/work table; not generic accepted native line construction"
+        }
+      ],
+      "preservedNoGo": [
+        {
+          "file": "examples/physics-contact-coverage-g2-2276/CORNER-RESULTS-01.json",
+          "scope": "Historical expanded-rectangular corner CCD witness NO_GO; later bounded rounded repair does not erase the old failure"
+        }
+      ],
+      "needed": "Accepted sphere quadratic line interval + exact native box slabs at actual represented anchor/normal; face/edge/corner/inside/corrected pose and reversed owners. Friction application radial anchor remains separate from accepted report geometry.",
+      "tests": [
+        "T01",
+        "T02",
+        "T06",
+        "T09",
+        "T10"
+      ]
+    },
+    {
+      "family": "capsule-sphere / sphere-capsule",
+      "production": [
+        {
+          "file": "packages/barocss-physics/src/collision.ts",
+          "line": 59,
+          "symbol": "capsuleSphere",
+          "observedLine": "function capsuleSphere(capsule: Body, sphere: Body): Hit | null {"
+        },
+        {
+          "file": "packages/barocss-physics/src/collision.ts",
+          "line": 99,
+          "symbol": "dispatch and reversed normals",
+          "observedLine": "if (a.shape.kind === 'capsule' && b.shape.kind === 'sphere') return capsuleSphere(a, b);"
+        }
+      ],
+      "currentState2Status": "MISSING_INDEPENDENT_ACCEPTED_NATIVE_LINE_WITNESS_QUALIFICATION",
+      "qualifiedWitnesses": [],
+      "existingChecks": "Selected rigid-pairs probes exist; no inspected receipt qualifies STATE2 paired accepted surface/line/midpoint witnesses. Capsule query/controller/sweep profile receipts are a different API.",
+      "needed": "Accepted capsule cylindrical/cap feature membership and sphere exits/entries, including axis endpoints/coincident nearest center/normal tie and lexical reversal.",
+      "tests": [
+        "T09",
+        "T10"
+      ]
+    },
+    {
+      "family": "capsule-box / box-capsule",
+      "production": [
+        {
+          "file": "packages/barocss-physics/src/capsule-contact.ts",
+          "line": 93,
+          "symbol": "capsuleBox segmentBox nearest feature",
+          "observedLine": "export function capsuleBox(capsule: Body, box: Body): Hit | null {"
+        },
+        {
+          "file": "packages/barocss-physics/src/collision.ts",
+          "line": 105,
+          "symbol": "dispatch and reverse normal",
+          "observedLine": "if (a.shape.kind === 'capsule' && b.shape.kind === 'box') return capsuleBox(a, b);"
+        }
+      ],
+      "currentState2Status": "MISSING_INDEPENDENT_ACCEPTED_NATIVE_LINE_WITNESS_QUALIFICATION",
+      "qualifiedWitnesses": [],
+      "needed": "Independent finite capsule native-line bounds and box slabs at accepted pose; current nearest axis/clamped box point and inside fallback are not paired surface witnesses.",
+      "tests": [
+        "T09",
+        "T10"
+      ]
+    },
+    {
+      "family": "capsule-capsule",
+      "production": [
+        {
+          "file": "packages/barocss-physics/src/capsule-contact.ts",
+          "line": 77,
+          "symbol": "capsuleCapsule nearest segment pair and tie normal",
+          "observedLine": "export function capsuleCapsule(a: Body, b: Body): Hit | null {"
+        }
+      ],
+      "currentState2Status": "MISSING_INDEPENDENT_ACCEPTED_NATIVE_LINE_WITNESS_QUALIFICATION",
+      "qualifiedWitnesses": [],
+      "needed": "Accepted native cylindrical/cap intervals for both capsules, parallel/degenerate/coincident segment ties and a validated represented midpoint anchor; no transfer of standalone capsule sweep qualification.",
+      "tests": [
+        "T09",
+        "T10"
+      ]
+    },
+    {
+      "family": "sensors, kinematic fixtures, filtered/disabled pairs, sleeping large-profile pairs",
+      "production": [
+        {
+          "file": "packages/barocss-physics/src/world.ts",
+          "line": 126,
+          "symbol": "admitted lexical pair set / joint disabled pairs / large-mode filter",
+          "observedLine": "const disabledPairs = new Set(joints.map((joint) =>"
+        },
+        {
+          "file": "packages/barocss-physics/src/world.ts",
+          "line": 299,
+          "symbol": "sensor branch",
+          "observedLine": "if (a.sensor || b.sensor) {"
+        },
+        {
+          "file": "packages/barocss-physics/src/world.ts",
+          "line": 315,
+          "symbol": "dormant pair skips force",
+          "observedLine": "if (largeMode && dormantPair(a, b)) continue;"
+        }
+      ],
+      "currentState2Status": "ACCEPTED_MEMBERSHIP_MIGRATION_REQUIRED",
+      "needed": "Reclassify every lawful pair family at accepted final poses under the same filter/joint-disabled policy, including cold/dormant contacts. Sensor membership produces events, no contact pair wrench. Transient sweep/contact force history cannot substitute for accepted membership. Static-static remains outside the admitted pair loop.",
+      "tests": [
+        "T10",
+        "T11",
+        "T12"
+      ]
+    }
+  ],
+  "worldAtomicBoundary": [
+    {
+      "ref": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 139,
+        "symbol": "initial contacts and activePairs are empty today",
+        "observedLine": "let contacts: PhysicsContact[] = [];"
+      },
+      "change": "At step0 independently classify accepted contact/sensor geometry, deep-copy Contact.points; seed accepted membership only, events[]/pairWrenches[] and no solver cache seeding.",
+      "tests": [
+        "T10",
+        "T11"
+      ]
+    },
+    {
+      "ref": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 273,
+        "symbol": "candidate found map and nextPersistentPoints",
+        "observedLine": "const found = new Map<string, PhysicsContact>();"
+      },
+      "change": "Create one fresh step-local pair-wrench map before actual solve calls; retain anyNonzero flag even if total J/M cancels. Actual primitive returns are sole authority; no trace/cache/report reconstruction.",
+      "tests": [
+        "T04",
+        "T05",
+        "T13"
+      ]
+    },
+    {
+      "ref": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 342,
+        "symbol": "warm call",
+        "observedLine": "if (prior) warmStartPoint(a, b, point.pointM, hit.normal, impulse);"
+      },
+      "change": "Add returned warm contribution once to actual lexical pair bucket.",
+      "tests": [
+        "T04"
+      ]
+    },
+    {
+      "ref": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 350,
+        "symbol": "persistent point solve",
+        "observedLine": "solvePersistentPoint(a, b, point.pointM, hit.normal, impulse,"
+      },
+      "change": "Add returned composed signed normal/tangent delta contribution once per call; never sum final caches into a report.",
+      "tests": [
+        "T04",
+        "T05"
+      ]
+    },
+    {
+      "ref": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 363,
+        "symbol": "generic solve",
+        "observedLine": "const resolved = solve(a, b, hit);"
+      },
+      "change": "Consume producer-returned actual normal+friction contributions for every family/CCD/large route. Do not silently emit [] for an unconverted path.",
+      "tests": [
+        "T01",
+        "T02",
+        "T03",
+        "T06",
+        "T07",
+        "T08"
+      ]
+    },
+    {
+      "ref": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 385,
+        "symbol": "current nextContacts from pass-found history",
+        "observedLine": "const nextContacts = [...found.values()];"
+      },
+      "change": "After all passes/corrections query accepted geometry independently; build accepted contact/sensor membership and begin/stay/end from accepted end poses, not found/sensed pass history.",
+      "tests": [
+        "T09",
+        "T10",
+        "T11"
+      ]
+    },
+    {
+      "ref": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 386,
+        "symbol": "sleeping support and wake adjacency",
+        "observedLine": "if (largeMode) updateSleeping(next, nextContacts, nextSleepFrames);"
+      },
+      "change": "Use accepted geometry ownership for sleep adjacency. Migrate internal PhysicsContact/sleep.ts IDs without using wrenches as support membership.",
+      "tests": [
+        "T12"
+      ]
+    },
+    {
+      "ref": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 411,
+        "symbol": "public output and recorder preflight",
+        "observedLine": "const state = publicState(next, nextContacts, nextEvents, nextJoints, nextCcdHits, nextPairStats, stepIndex + 1, dt, identity, colliderIds);"
+      },
+      "change": "Prepare deep-copied STATE2 geometry+wrenches/events and candidate cache/log before assignment-only commit. Known/unknown/native/refusal/nonfinite/recording/allocation failures discard candidate state.",
+      "tests": [
+        "T13",
+        "T15"
+      ]
+    },
+    {
+      "ref": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 415,
+        "symbol": "shared assignment-only commit",
+        "observedLine": "// Shared commit: assignments only. No allocation or callback."
+      },
+      "change": "Assign accepted bodies, accepted Contact.points, copied wrench interval, activePairs, cache, sleep and recorder atomically; repeated getState must not accumulate. Dispose clears accepted wrench state too.",
+      "tests": [
+        "T13",
+        "T15"
+      ]
+    }
+  ],
+  "visualDomains": {
+    "writer": {
+      "file": "packages/barocss-physics/src/world.ts",
+      "line": 64,
+      "symbol": "publicDomainState",
+      "observedLine": "function publicDomainState(runtime: DomainRuntime, model: PhysicsModel, identity: Identity,"
+    },
+    "stepTransaction": {
+      "file": "packages/barocss-physics/src/world.ts",
+      "line": 181,
+      "symbol": "cloth/fluid candidate output and record preflight",
+      "observedLine": "if (domainState) {"
+    },
+    "mandatoryChange": "Every cloth/fluid state constructor returns schemaVersion:2, contacts:[], pairWrenches:[], events:[] explicitly, including step0 and mocks. Visual constraints are not rigid pair-wrench applications; no decoder default for missing arrays.",
+    "recordingAdmission": "Current visual-domain recording remains unsupported at replay-validation.ts:41; do not expand that API during STATE2 migration.",
+    "tests": [
+      "T16"
+    ]
+  },
+  "recording": {
+    "type": {
+      "file": "packages/barocss-physics/src/types.ts",
+      "line": 205,
+      "symbol": "RecordedState/Recording",
+      "observedLine": "export type RecordedState = Serialized<PhysicsState>;"
+    },
+    "rootExport": {
+      "file": "packages/barocss-physics/src/index.ts",
+      "line": 1,
+      "symbol": "export all canonical types",
+      "observedLine": "export * from './types.js';"
+    },
+    "writer": {
+      "file": "packages/barocss-physics/src/replay.ts",
+      "line": 34,
+      "symbol": "initial Recording currently version1",
+      "observedLine": "const initial: Recording = { format: 'barocss-physics-recording', version: 1,"
+    },
+    "validation": {
+      "file": "packages/barocss-physics/src/replay-validation.ts",
+      "line": 32,
+      "symbol": "admitRecording before expected identity/World factory",
+      "observedLine": "export function admitRecording(input: unknown): Recording {"
+    },
+    "wire": {
+      "file": "packages/barocss-physics/src/replay-json.ts",
+      "line": 83,
+      "symbol": "BCPHREC1 magic and1MiB encoding limit",
+      "observedLine": "/** BCPHREC1 + P0 canonical typed encoding. No JSON or format migration reader. */"
+    },
+    "factoryBoundary": {
+      "file": "packages/barocss-physics/src/replay.ts",
+      "line": 69,
+      "symbol": "admit before restore factory at76",
+      "observedLine": "const recording = admitRecording(input);"
+    },
+    "exactKeys": {
+      "recording": [
+        "format",
+        "version",
+        "model",
+        "options",
+        "identity",
+        "frames",
+        "finalState"
+      ],
+      "state": [
+        "schemaVersion",
+        "identity",
+        "stepIndex",
+        "timeSeconds",
+        "bodies",
+        "joints",
+        "contacts",
+        "pairWrenches",
+        "events",
+        "ccdHits",
+        "cloths",
+        "fluids",
+        "pairStats"
+      ],
+      "contact": [
+        "colliderAId",
+        "colliderBId",
+        "bodyAId",
+        "bodyBId",
+        "points"
+      ],
+      "point": [
+        "id",
+        "normalAtoB",
+        "anchorM",
+        "pointOnAM",
+        "pointOnBM",
+        "signedGapM"
+      ],
+      "pairWrench": [
+        "colliderAId",
+        "colliderBId",
+        "bodyAId",
+        "bodyBId",
+        "onA",
+        "onB"
+      ],
+      "bodyWrench": [
+        "linearImpulseNs",
+        "angularImpulseAboutWorldOriginNms"
+      ]
+    },
+    "required": [
+      "Recording.version2, finalState.schemaVersion2 and only BCPHREC2",
+      "Reject old version/magic/contact pair keys or missing new keys with INVALID_SNAPSHOT before any reconstruction World. No converter, alias, default[] or dual runtime API.",
+      "Validate finite signed-zero-preserving vectors, lexical unique pair ownership, sorted point IDs/nonempty contacts, collider/body owners, and exact field populations. Wrench pairs need not be accepted contact pairs.",
+      "Preserve current1MiB recording,128KiB model,512frames/4096commands, node/depth limits and provider STALE_SNAPSHOT boundary. Count hidden Worlds in successful serialize/deserialize/restore tests."
+    ],
+    "comparisonBoundary": {
+      "ref": {
+        "file": "packages/barocss-physics/src/replay-compare.ts",
+        "line": 1,
+        "symbol": "equivalentReplayValue",
+        "observedLine": "export function equivalentReplayValue(left: unknown, right: unknown): boolean {"
+      },
+      "current": "Current public/private reconstruction uses relative1e-12 number comparison. Existing raw continuation/roundtrip tests independently establish exact words only for selected runs.",
+      "required": "Frozen MIGRATION requires exact new fields. Implement explicit raw-word comparison for new schema contact/wrench data, including representable tiny signed gaps and -0; do not claim current approximate reconstruction already provides this. Resolve exactness scope before canonical promotion and add tamper tests, without relaxing any physical gate."
+    },
+    "tests": [
+      "T15",
+      "T17",
+      "T18"
+    ]
+  },
+  "activeConsumerMigration": [
+    {
+      "surface": "canonical package types/root/provider graph",
+      "refs": [
+        {
+          "file": "packages/barocss-physics/src/types.ts",
+          "line": 139,
+          "symbol": "Contact",
+          "observedLine": "export interface Contact {"
+        },
+        {
+          "file": "packages/barocss-physics/src/types.ts",
+          "line": 159,
+          "symbol": "PhysicsState",
+          "observedLine": "export interface PhysicsState {"
+        },
+        {
+          "file": "packages/barocss-physics/src/internal-types.ts",
+          "line": 34,
+          "symbol": "PhysicsContact",
+          "observedLine": "export interface PhysicsContact {"
+        },
+        {
+          "file": "packages/barocss-physics/src/index.ts",
+          "line": 1,
+          "symbol": "root export",
+          "observedLine": "export * from './types.js';"
+        }
+      ],
+      "migration": "Replace canonical shapes and export ContactPoint/PairWrench/BodyContactWrench. Keep cache private. Regenerate manifest only after coherent code change; strict Source/NodeNext root+replay must have one provider identity.",
+      "tests": [
+        "T18"
+      ]
+    },
+    {
+      "surface": "active public documentation",
+      "refs": [
+        {
+          "file": "apps/library-docs/docs/packages/physics/units-and-frames.md",
+          "line": 27,
+          "symbol": "contact convention row",
+          "observedLine": "| Contact convention | Pair IDs sorted as A, B | `normalAtoB` points from A to B; `pointM` is world metres | Positive normal impulse acts along the normal on B and against it on A. `tangentImpulseOnBNs` is the accumulated world-vector impulse on B, opposite on A. |"
+        },
+        {
+          "file": "apps/library-docs/docs/packages/physics/profiles-and-lifecycle.md",
+          "line": 179,
+          "symbol": "public contact field descriptions",
+          "observedLine": "Contacts use `bodyAId`, `bodyBId`, `colliderAId`, `colliderBId`, `normalImpulseNs` and"
+        }
+      ],
+      "migration": "Describe accepted Contact.points separately from integrated onA/onB J/Mworld. Remove old pair point/impulse promises; show fixed-reference M_R=M_O-R cross J and no final-point force fiction.",
+      "tests": [
+        "T19"
+      ]
+    },
+    {
+      "surface": "public docs executable sample",
+      "refs": [
+        {
+          "file": "apps/library-docs/samples/physics-docs.test.mjs",
+          "line": 281,
+          "symbol": "BCPHREC1 assertion",
+          "observedLine": "assert.equal(Buffer.from(bytes.subarray(0, 8)).toString('ascii'), 'BCPHREC1');"
+        },
+        {
+          "file": "apps/library-docs/samples/physics-docs.test.mjs",
+          "line": 109,
+          "symbol": "state empty contacts",
+          "observedLine": "assert.equal(state.contacts.length, 0);"
+        }
+      ],
+      "migration": "Update live sample contract/wire expectations toSTATE2 and explicitly assert pairWrenches[] for free/visual states. No old-format conversion.",
+      "tests": [
+        "T16",
+        "T17",
+        "T19"
+      ]
+    },
+    {
+      "surface": "direct-canonical scene contact label",
+      "refs": [
+        {
+          "file": "examples/physics-scene/app.js",
+          "line": 39,
+          "symbol": "normalImpulseNs UI label/flash",
+          "observedLine": "? `fixture:box \u2194 part:ball \u00b7 \ucda9\uaca9\ub7c9 ${contact.normalImpulseNs.toFixed(3)} N\u00b7s`"
+        }
+      ],
+      "migration": "For a current maintained canonical sample use accepted point anchors for contact UI and actual pair on-body J/Mworld for interval UI, only independent fixed-normal decomposition where justified. Frozen historical builds/results remain immutable; no live old/new API adapter.",
+      "tests": [
+        "T19"
+      ]
+    },
+    {
+      "surface": "current physical regression sources to port into new STATE2 public campaign",
+      "refs": [
+        {
+          "file": "examples/physics-motion-foundations-2276/contact.test.ts",
+          "line": 53,
+          "symbol": "old normal/tangent impulse reconstruction",
+          "observedLine": "const normal = contact.normalAtoB.map((value) => sign * value * contact.normalImpulseNs) as Vec3;"
+        },
+        {
+          "file": "examples/physics-motion-foundations-2276/contact.test.ts",
+          "line": 86,
+          "symbol": "old contact nested mutation",
+          "observedLine": "Object.assign(state.contacts[0].tangentImpulseOnBNs, { 0: 99 });"
+        },
+        {
+          "file": "examples/physics-world-p2-2276/public.test.mjs",
+          "line": 93,
+          "symbol": "wire1 signed-zero fixture",
+          "observedLine": "assert.equal(new TextDecoder().decode(bytes.subarray(0,8)),'BCPHREC1');assert.ok(Object.is(decoded.model.gravityMps2[0],-0));assert.ok(Object.is(decoded.model.bodies[0].initial.positionM[0],-0));assert.ok(Object.is(decoded.frames[0].commands[0].forceN[0],-0));assert.deepEqual(decoded,saved);"
+        }
+      ],
+      "migration": "Create current schema2 qualification fixtures in new public-cutover campaign, retaining independent physical references and nested mutation/rollback controls; do not overwrite any frozen source/evidence archives or first failures. Current direct-canonical tests must not decompose changing-frame net J along final normal.",
+      "tests": [
+        "T01",
+        "T04",
+        "T13",
+        "T17"
+      ]
+    },
+    {
+      "surface": "current primitive contact probes",
+      "refs": [
+        {
+          "file": "examples/physics-scene/ccd-pair-probe.mjs",
+          "line": 71,
+          "symbol": "normal impulse output",
+          "observedLine": "stoppedX: retained.bodies.map((body) => body.positionM[0]), contactImpulseNs: retained.contacts[0].normalImpulseNs,"
+        },
+        {
+          "file": "examples/physics-scene/rigid-pairs-probe.mjs",
+          "line": 27,
+          "symbol": "old pointM geometry",
+          "observedLine": "near(hit.pointM[0], pointX, `${label} contact X`);"
+        },
+        {
+          "file": "examples/physics-scene/persistent-box-probe.mjs",
+          "line": 77,
+          "symbol": "old pointM mutation",
+          "observedLine": "copied.contacts[0].pointM[0] = 99;"
+        }
+      ],
+      "migration": "Use new current STATE2 fixtures for pair wrench and validated points; retain old archived probe outputs as historical only. New outputs must not fabricate paired endpoints from old pointM.",
+      "tests": [
+        "T07",
+        "T09",
+        "T13"
+      ]
+    },
+    {
+      "surface": "already schema2 private viewer/producers",
+      "refs": [
+        {
+          "file": "examples/physics-warm-viewer-2276/scene/app.mjs",
+          "line": 1,
+          "symbol": "actual private emitted provider import",
+          "observedLine": "import * as api from '/physics/entry.js';"
+        }
+      ],
+      "migration": "These bind immutable private providers and do not imply canonical adoption. After public cutover prove explicit root/provider integration; do not silently repoint successful private receipts or claim their browser transport failure is a physical failure.",
+      "tests": [
+        "T19"
+      ]
+    }
+  ],
+  "testPlan": [
+    {
+      "id": "T01",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Discrete normal/friction actual vector and each actual-anchor moment",
+      "required": "Sphere/floor and anisotropic cuboid/floor; preserve current normal/friction laws, physical momentum/spin/midpoint work. Test radial sphere arm after correction separately from common-point normal."
+    },
+    {
+      "id": "T02",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Independent body-anchor moment reciprocity boundary",
+      "required": "Static/dynamic and dynamic/dynamic; log actual A/B anchors and p cross J each side, allow free couple, no forged opposite M."
+    },
+    {
+      "id": "T03",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Negative/zero material increments and branch controls",
+      "required": "Zero/separating/resting no-Jn means no friction, reversal, zero static/dynamic coefficients and independent exact cone boundaries; no candidate solver oracle."
+    },
+    {
+      "id": "T04",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Persistent warm/normal/tangent producer accumulation",
+      "required": "Each actual warm and signed delta counted once through8x8; removed points retained in integrated J/M, cache sum never expected answer."
+    },
+    {
+      "id": "T05",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Net cancellation vs zero-only interval",
+      "required": "Any nonzero application preserves pair bucket even when totalJ/M cancel; allzero calls yield no pair; repeat getState does not add."
+    },
+    {
+      "id": "T06",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Fixed sphere-box CCD actual solve authority",
+      "required": "Face/edge/corner/tie/endpoint initial-touch ownership; no duplicate sweep contribution, actual biased-pose solver arms, accepted end geometry queried independently."
+    },
+    {
+      "id": "T07",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Dynamic sphere-pair CCD authority",
+      "required": "Both bodies actual J/M, marked/input/body order permutations, min-graze/miss controls; CCD normal labeling mapped to lexical owners."
+    },
+    {
+      "id": "T08",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Axis-aligned box CCD authority/refusal",
+      "required": "q/-q, endpoint, discrete-owned initial overlap, angular command/post-solve refusal rollback, actual generic solve wrench only."
+    },
+    {
+      "id": "T09",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Accepted native witnesses for all six primitive unordered families",
+      "required": "Actual represented anchor line intersects both native primitives; endpoints at native exits/entries, strict surface/line/midpoint and signed functional gap including tiny negative representable values; all features/reversals/admitted degeneracies frozen first."
+    },
+    {
+      "id": "T10",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Initial and final accepted geometry independent of force history",
+      "required": "Step0 touch geometry+empty events/wrenches/cache; initial touch\u2192stay; final contact without J; transient CCD impulse with no finalcontact; complete point population, no average/loss."
+    },
+    {
+      "id": "T11",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Accepted sensor membership",
+      "required": "Initial sensor overlap\u2192stay; transient sensor overlap absent at both accepted endpoints emits no invented event and no wrench."
+    },
+    {
+      "id": "T12",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Large/AABB/sleep and kinematic coverage",
+      "required": "Fresh final bounds/admitted filters/disabled pairs; sleeping contacts stay geometry with empty wrench when no apply; wake adjacency uses accepted membership; kinematic reaction ownership correct."
+    },
+    {
+      "id": "T13",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Atomic rollback and copying per producer family",
+      "required": "Known native-before-apply and unknown-after-real-bucket-mutation plus record/output/preflight failure: raw bodies, geometry, wrenches, cache/sidecars/clock/recorder fixed; actual retry exact vs clean, all hidden Worlds counted; nested point/onA/onB caller mutation isolated."
+    },
+    {
+      "id": "T14",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Explicit approved geometry/force deltas and no fallback",
+      "required": "B FACE+EDGE final geometry distinct from sampled correction depth; preserve old public plane/rounded-midpoint NO_GO; qualified warm transport separate from report migration; no scalar SAT/report fallback."
+    },
+    {
+      "id": "T15",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Public record/serialize/deserialize/restore/state2 continuation",
+      "required": "Genuine public wire calls, actual hidden creation/steps count, live restored raw state/log/cache/continuation; disposed hidden outputs not claimed retained."
+    },
+    {
+      "id": "T16",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Visual-state explicit arrays",
+      "required": "Cloth/fluid step0/step/copy mocks require schema2, contacts[],pairWrenches[],events[]; current domain recording refusal retained."
+    },
+    {
+      "id": "T17",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Exact recording shape/old-wire/tamper refusal",
+      "required": "Oldversion/magic/old contactkeys/missingstate2keys fail INVALID_SNAPSHOT before factory; new valid-format one-word signedgap/wrench/-0 tamper exactness separately tested under frozen new-field comparison policy."
+    },
+    {
+      "id": "T18",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Strict canonical entry graph and types",
+      "required": "Source +strict NodeNext emitted index/replay/consumer, allmandatory fields/no old aliases, provider-manifest complete inputs, no example/private source imports."
+    },
+    {
+      "id": "T19",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Active canonical consumers and real GPU view",
+      "required": "Current docs/samples/rendering read actual Contact.points and separately labeled J/Mworld; actual canonical browser provider proof distinct from private and screenshots never physical qualification."
+    },
+    {
+      "id": "T20",
+      "status": "PLANNED_NOT_AUTHORED_OR_RUN",
+      "proposedNewCampaign": "examples/physics-state2-public-cutover-2276/",
+      "name": "Frozen uninstrumented public profile budget",
+      "required": "Include native final geometry+wrench production in p50/p95/max, allocations/peak memory on declared hardware; p95 <= declared dt. Research guard timing is not performance proof."
+    }
+  ],
+  "preservedGaps": [
+    "Public persistent plane/gap NO_GO, original rounded-midpoint candidate presentation NO_GO, phase01 cache-report vector NO_GO, and original eight-box/P4/HOLD remain preserved.",
+    "Private cold/warm Source/Native and private public-replay protocols are finite graph-specific PASS; they are not current canonical STATE2 or general shape coverage.",
+    "P03 persistent cone three-case harness is frozen but NOT_RUN. Do not assume full static-cone branch feasibility or generic convergence from report correctness.",
+    "Viewer desktop02 is10screenPASS/fullproof retained, but original transport decoder hit1M fragments before physical observers; data04 qualification is separate work by other agents. No browser physical PASS is inferred here.",
+    "No inspected current sphere/capsule receipt establishes generic schema2 accepted native line construction for every admitted feature/scale/initial state. Missing qualification is NOT_RUN, not a fabricated measured failure.",
+    "Native witness surface1e-9 and line/midpoint1e-12 gates remain. Absolute accepted gap1e-12 applies to the specifically frozen finite profile; do not silently apply it as a universal deep-overlap admission restriction or clamp signed penetration.",
+    "Uninstrumented producer/native-geometry performance and current canonical package adoption remain NOT_RUN; promotion blocked."
+  ],
+  "excludedNonContactWrites": [
+    {
+      "ref": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 215,
+        "symbol": "command angular impulse",
+        "observedLine": "body.angularVelocityRadps = add(body.angularVelocityRadps,"
+      },
+      "reason": "User command, not contact pair impulse"
+    },
+    {
+      "ref": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 218,
+        "symbol": "joint motor application",
+        "observedLine": "if (disjointHinges) driveDisjointHingeMotors(disjointHinges, next, jointStates, motorImpulses);"
+      },
+      "reason": "Retain JointState authority; never mix with contact wrenches"
+    },
+    {
+      "ref": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 250,
+        "symbol": "forced rotation / gravity / user impulse integration",
+        "observedLine": "validateRotationResult(preparedRotation, dt);"
+      },
+      "reason": "External impulse/torque/gravity ledger only"
+    },
+    {
+      "ref": {
+        "file": "packages/barocss-physics/src/world.ts",
+        "line": 372,
+        "symbol": "joint projectJoint",
+        "observedLine": "if (!disjointHinges) for (let index = 0; index < joints.length; index++) {"
+      },
+      "reason": "JointState reactions separate"
+    },
+    {
+      "ref": {
+        "file": "packages/barocss-physics/src/persistent-box-contact.ts",
+        "line": 68,
+        "symbol": "correctPersistentPair",
+        "observedLine": "export function correctPersistentPair(a: Body, b: Body, normal: Vec3,"
+      },
+      "reason": "Pose correction, not an impulse; retain separate orbital/projection ledger"
+    },
+    {
+      "ref": {
+        "file": "packages/barocss-physics/src/sleep.ts",
+        "line": 51,
+        "symbol": "updateSleeping",
+        "observedLine": "export function updateSleeping(bodies: Body[], contacts: PhysicsContact[],"
+      },
+      "reason": "Sleep acceptance/clamping is not a contact application; independent energy/momentum controls must identify its separate effect"
+    },
+    {
+      "ref": {
+        "file": "packages/barocss-physics/src/contact-tangent.ts",
+        "line": 1,
+        "symbol": "solveStaticTangent pure request calculation",
+        "observedLine": "import type { Body, Vec3 } from './internal-types.js';"
+      },
+      "reason": "Returning a requested impulse is not actual body application authority"
+    }
+  ],
+  "minimalAtomicChange": {
+    "status": "BLOCKED_UNTIL_FAMILY_GEOMETRY_AND_PUBLIC_GATE_QUALIFICATION",
+    "minimumCodeUnits": [
+      "new production-owned actual contribution/check/combine/pair accumulator module with actual per-body anchors and anyNonzero semantics",
+      "collision.ts normal+friction producer returns preserving actual arithmetic and post-correction radial anchors",
+      "persistent-box-contact.ts apply/warm/solve returns with signed increments; no cache-as-report",
+      "production accepted-native-geometry dispatcher for every currently admitted primitive pair and accepted sensor membership; qualified box finite-cell helper cannot cover spheres/capsules by placeholder",
+      "world.ts initial/final accepted geometry+fresh step wrench map+accepted events+assignment-only combined commit and disposal",
+      "internal-types.ts/sleep.ts separate private cache, accepted ownership/membership, producer contribution",
+      "types.ts canonical STATE2/new Contact/new wrenches/Recording2 and root exports",
+      "publicDomainState explicit schema2 empty rigid arrays",
+      "replay.ts/replay-validation.ts/replay-json.ts/new-field exactness policy in replay-compare.ts",
+      "generated provider identity plus strict root/replay/consumer tests and active docs/UI migration"
+    ],
+    "forbidden": [
+      "No alternate old API profile, compatibility decoder, report adapter, empty missing-family wrench array, final-cache projection, final-point moment reconstruction or production import of an example.",
+      "No claim that contact reporting work fixes Coulomb convergence, general projection, manifold stability or all admitted geometry.",
+      "Do not narrow already admitted families silently to make a STATE2 subset pass; any admission change would require a distinct explicit breaking contract."
+    ],
+    "nextSmallestReviewableWork": "Implement/qualify shared producer authority for all current actual application primitives in a new bounded campaign, with discrete radial-anchor normal/friction controls plus private persistent regressions. Public schema switches only with accepted geometry/replay/consumers coherent; current missing-family accepted-native proofs block that switch."
+  },
+  "readSourceAndReceiptPins": {
+    "apps/library-docs/docs/packages/physics/profiles-and-lifecycle.md": {
+      "bytes": 19813,
+      "sha256": "2a6279be08c21b3e7fcb04180bd09d987e577257a45275ad5946a9ca8fe0dc81"
+    },
+    "apps/library-docs/docs/packages/physics/units-and-frames.md": {
+      "bytes": 8343,
+      "sha256": "ffa12cdeac2f01a8da0a628fd486a4eb1399c0ccab9f9b1bd451efea8dd54c74"
+    },
+    "apps/library-docs/samples/physics-docs.test.mjs": {
+      "bytes": 13829,
+      "sha256": "961a00c4a2f8ff0a50c44290909d3178f67e6bb058f0625d69fa0d21cd6d7520"
+    },
+    "examples/physics-box-contact-features-2276/RESULTS.json": {
+      "bytes": 10743,
+      "sha256": "29796c9562bd9df1c798fcd9c1b30652dac314359ec0cd6eac84781cafc80e10"
+    },
+    "examples/physics-box-quantized-witness-2276/RESULTS.json": {
+      "bytes": 7006,
+      "sha256": "c3f84cfeeb9c5b5e5f9c952e11f1dca1ded2701c316e15ad3594d3c112af7480"
+    },
+    "examples/physics-contact-coverage-g2-2276/CORNER-RESULTS-01.json": {
+      "bytes": 4857,
+      "sha256": "0763b5557dcdb4d05bd8302b7895dc9ef637f2f85602590a370ab9d2b552bad2"
+    },
+    "examples/physics-contact-wrench-contract-2276/CONTRACT.md": {
+      "bytes": 8840,
+      "sha256": "9b5ed4661c3d928a631b6c70b798a361a5366bdab9740081369f14bd1417a2a8"
+    },
+    "examples/physics-contact-wrench-contract-2276/MIGRATION.md": {
+      "bytes": 8014,
+      "sha256": "36dd367bdf4cab14b057a1c5875cc1abf2b68c04cdef11b7c5f2b45229362312"
+    },
+    "examples/physics-contact-wrench-contract-2276/types.ts": {
+      "bytes": 3744,
+      "sha256": "d86ec76d6b89cbc9e4e378cffe7a72abfdfb8e4ec39eff7e8514fbfc65bfd622"
+    },
+    "examples/physics-contact-wrench-contract-2276/validation.json": {
+      "bytes": 9757,
+      "sha256": "92748f1d72e77d8c3dd1befb3bcaf3267447b6dd9b30c275d61fd39189aa7fbf"
+    },
+    "examples/physics-contact-wrench-native-2276/RESULTS.json": {
+      "bytes": 213298,
+      "sha256": "c6b9b45df1214ad6ca257ef01a846b6dbc63d9bba9a54ce18c086f7a3782bc25"
+    },
+    "examples/physics-material-boundaries-2276/RESULTS.json": {
+      "bytes": 5330,
+      "sha256": "589ae8f88c3f2dd64fbc9f78829f1f51f778f83f02c1fb4f9d9c2f801b449c90"
+    },
+    "examples/physics-motion-foundations-2276/contact.test.ts": {
+      "bytes": 9166,
+      "sha256": "f9fbdc4aac3973009de1355832b215f57f165344b2d1c1d86745db6c3501be73"
+    },
+    "examples/physics-persistent-friction-plane-2276/RESULTS.json": {
+      "bytes": 4836,
+      "sha256": "fe1d3d5b5f9c068e3f230b29da3651e4dd140400ef5ff3765c73cc17c55151f9"
+    },
+    "examples/physics-rounded-ccd-2276/RESULTS.json": {
+      "bytes": 7167,
+      "sha256": "27a07f726a93f7c52f25f2e868634f789dd979442d6e03e06292a783b43f43a1"
+    },
+    "examples/physics-scene/app.js": {
+      "bytes": 3701,
+      "sha256": "888046dd613e8aef38835d050dec17d552cb6d85df5afc88070c64c4d03fbdfa"
+    },
+    "examples/physics-scene/ccd-pair-probe.mjs": {
+      "bytes": 4012,
+      "sha256": "3ad2cd7a2af87753bdd67a2cd5b0c576b61782eab3d0541a8e9998cb9dfc30ba"
+    },
+    "examples/physics-scene/persistent-box-probe.mjs": {
+      "bytes": 5774,
+      "sha256": "c829aaa7fcccae1d9844b211e8e40068561db7b841d898d523eeb34400538ee8"
+    },
+    "examples/physics-scene/rigid-pairs-probe.mjs": {
+      "bytes": 4658,
+      "sha256": "bd11648b524fd032090e2e703966d60a212152d4941d4041846857a3681e402a"
+    },
+    "examples/physics-sphere-pair-ccd-2276/RESULTS.json": {
+      "bytes": 6753,
+      "sha256": "33159869c70b5076fcf20ccb0707cb56555635a2a43b7a2f88744aaa6b683cbb"
+    },
+    "examples/physics-warm-native-2276/RESULTS.json": {
+      "bytes": 264549,
+      "sha256": "907f6a89c9c503272b47edabc84afa70661059c2ac1e3937c21f780d31bc480e"
+    },
+    "examples/physics-warm-viewer-2276/scene/app.mjs": {
+      "bytes": 10527,
+      "sha256": "c4ba5f3b01d9de10e0bf37c4198fc3e2570ebf8b67eba8aaa51ea1141f2d474b"
+    },
+    "examples/physics-world-p2-2276/public.test.mjs": {
+      "bytes": 14627,
+      "sha256": "902119171540b6cc784e03017fb6ae9ec04583b971674c879cc7ca9bfcca56b8"
+    },
+    "packages/barocss-physics/src/capsule-contact.ts": {
+      "bytes": 5615,
+      "sha256": "cc29d60423bd9a1883585cf164cca0b0736b9fc72e7feb3575c5208c7d892929"
+    },
+    "packages/barocss-physics/src/ccd-box.ts": {
+      "bytes": 1988,
+      "sha256": "076eadf591500684332bd19b53a780de480ccdde205196ad072a11e1abc4f7a4"
+    },
+    "packages/barocss-physics/src/ccd-pair.ts": {
+      "bytes": 1303,
+      "sha256": "87ea34e6b662b223874857651839407f351b0beaa03a4a85d1e4797744027e1a"
+    },
+    "packages/barocss-physics/src/ccd.ts": {
+      "bytes": 3183,
+      "sha256": "861e2b8fa56c746232581f1debddab0b88574df81187cb6dd2d6b8db7377d95e"
+    },
+    "packages/barocss-physics/src/collision.ts": {
+      "bytes": 14404,
+      "sha256": "8af301d4addf3b61a38fc54466a73dde48d27907f4143032d500962adbff47a3"
+    },
+    "packages/barocss-physics/src/contact-manifold.ts": {
+      "bytes": 4743,
+      "sha256": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428"
+    },
+    "packages/barocss-physics/src/contact-tangent.ts": {
+      "bytes": 2729,
+      "sha256": "5e1bddc158f9a6f307fdcc60ce8078ab36a06e372d530e7f5d05466d29bf9673"
+    },
+    "packages/barocss-physics/src/index.ts": {
+      "bytes": 570,
+      "sha256": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30"
+    },
+    "packages/barocss-physics/src/internal-types.ts": {
+      "bytes": 2615,
+      "sha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8"
+    },
+    "packages/barocss-physics/src/persistent-box-contact.ts": {
+      "bytes": 3769,
+      "sha256": "3f53922b557ca142a4d95e1e19d5be21828b375b75bc45ff1e57a7b9171261f1"
+    },
+    "packages/barocss-physics/src/replay-compare.ts": {
+      "bytes": 1023,
+      "sha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec"
+    },
+    "packages/barocss-physics/src/replay-json.ts": {
+      "bytes": 7760,
+      "sha256": "1ab8cf962443edd3be387e5095a9cce3f2071c8b44e47cc165ce82d5c00ac617"
+    },
+    "packages/barocss-physics/src/replay-validation.ts": {
+      "bytes": 8096,
+      "sha256": "ab9a7b5097515ddd3d6aa9a434d14f2ae2e04fd15c4059b473d0d708a507c82a"
+    },
+    "packages/barocss-physics/src/replay.ts": {
+      "bytes": 7119,
+      "sha256": "07bafc635620c56c479ed44b0f458cbbb470bf20b3ce2ead7248ceb0973ca408"
+    },
+    "packages/barocss-physics/src/sleep.ts": {
+      "bytes": 4411,
+      "sha256": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2"
+    },
+    "packages/barocss-physics/src/types.ts": {
+      "bytes": 11884,
+      "sha256": "37fdf1abcc20fd379304213b8c0686f8e0468d285f008aa8ebdb316882efade5"
+    },
+    "packages/barocss-physics/src/world.ts": {
+      "bytes": 30779,
+      "sha256": "449865bf2e73ed799885c7e9d0f95f7d3f09c740e42ce1f8b960384308e08266"
+    }
+  }
+}

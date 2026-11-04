@@ -25,8 +25,8 @@ for(let step=0;step<steps;step++){
   lower.velocityMps[1]+=gravity*dt;
   upper.velocityMps[1]+=gravity*dt;
   for(let iteration=0;iteration<sweeps;iteration++){
-    solvePersistentPoint(floor,lower,v(0,0,0),normal,floorImpulse);
-    solvePersistentPoint(lower,upper,v(0,1,0),normal,upperImpulse);
+    solvePersistentPoint(floor,lower,v(0,0,0),normal,floorImpulse,0);
+    solvePersistentPoint(lower,upper,v(0,1,0),normal,upperImpulse,0);
   }
   const residual=Math.max(Math.abs(lower.velocityMps[1]),Math.abs(upper.velocityMps[1]));
   maxResidual=Math.max(maxResidual,residual);

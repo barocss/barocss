@@ -1,0 +1,78 @@
+{
+  "status": "SOURCE_AUTHORED_NOT_RUN",
+  "authority": "Immutable original fixture, archived first32 Fraction receipt, independent auditor closure. No candidate formula is used as oracle. Saved extraction reused; original archive authentication is not rerun.",
+  "files": {
+    "examples/physics-stack-solver-2276/trajectory-reference.py": {
+      "bytes": 6575,
+      "sha256": "f2c1850b193a14944de657848d065c461e3ff2440e9e9bf452b6d24519af0ea0"
+    },
+    "examples/physics-motion-nogo-2276/stack-study.py": {
+      "bytes": 22180,
+      "sha256": "70a34672ef53f034fa714bcd54a120a60c672fea3fd740841064dc8ac43263e2"
+    },
+    "examples/physics-rigid-contact-reference/geometry-reference.py": {
+      "bytes": 23429,
+      "sha256": "2c8bc7f6cd809e865c986a859b8614c963c4862296920555eb31c9487411af26"
+    },
+    "examples/physics-rigid-full-pair-position-world/reference.py": {
+      "bytes": 23351,
+      "sha256": "89caf6850b49a77713c7776df9fedd200ecbe1f426ec3cdae6165cc9bf48b58c"
+    },
+    "examples/physics-rigid-full-pair-position-world/full-pair-reference.py": {
+      "bytes": 17313,
+      "sha256": "e8ca75e85b77eff3bce8be411ad108115d150406af087a5bf650be9034b3c46b"
+    },
+    "examples/physics-rigid-full-pair-position-world/nine-row-reference.py": {
+      "bytes": 2239,
+      "sha256": "9497027e8abc11c82955d06c35f0f9d9c5392c1b97b8cef0e6ccee86aa3bcbdf"
+    },
+    "examples/physics-rigid-signed-closure-world/reference.py": {
+      "bytes": 38960,
+      "sha256": "46f184b22679d928fef6fdb2f90ce219448a51af08803ad2e68680bf9f68c056"
+    },
+    "examples/physics-rigid-signed-separation-reference/reference.py": {
+      "bytes": 22829,
+      "sha256": "5e820f2b03d20007a0f74bedc4f122edcc6cf9b80cda7f794cba5837f142cdda"
+    },
+    "examples/physics-rigid-signed-separation-reference/signed-linear-reference.py": {
+      "bytes": 12426,
+      "sha256": "902b9b95d5f03e42de6e02b7e4cd51712eea7c9218d5096fc92fc64d82a72d93"
+    },
+    "examples/physics-rigid-coupled-position-reference/linear-reference.py": {
+      "bytes": 12233,
+      "sha256": "be4184012775a98747ba643d87b1e795cdb781e2b14a295405805a62cfe3feac"
+    },
+    "examples/physics-rigid-coupled-position-diagnostic/coverage-reference.py": {
+      "bytes": 13825,
+      "sha256": "8cdc81967b2484be55deb0c2df9c1b9191d739653347682538429186ac940b7a"
+    },
+    "examples/physics-rigid-feature-penetration-diagnostic/geometry-reference.py": {
+      "bytes": 13283,
+      "sha256": "9ff4ed05dc2f2f98d32533527b506d4aa0f7799bc6d86a0862ecf24f389b9841"
+    },
+    "examples/physics-stack-solver-2276/verification.ts": {
+      "bytes": 19506,
+      "sha256": "cc9ee1f949af20472e8c733a3fe57abb61683712d388af8f76adaf8d8d62b7c8"
+    },
+    "examples/physics-rigid-contact-reference/fixtures.mjs": {
+      "bytes": 909,
+      "sha256": "ca760b2945d246de1e2f32cb4763ef58bf95e87422b6d4545682c20abb3a1ac0"
+    },
+    "examples/physics-stack-solver-2276/evidence/fixture-01/fixture.json": {
+      "bytes": 211160,
+      "sha256": "da088aeff200bdcfe27927f11286e8a9f6a63f772c6f5558ae11feb2e9d769eb"
+    },
+    "examples/physics-stack-solver-2276/evidence/fixture-01/source.json": {
+      "bytes": 1912,
+      "sha256": "916ffaa6366a8398ee3feac7a55ea3521a9bd5e5c9586d6ad94c06dadff93760"
+    },
+    "examples/physics-stack-solver-2276/evidence/fixture-01/commands.json": {
+      "bytes": 831,
+      "sha256": "2875ba82de4b5d9a39ba14963dddb89e0bd72d9b4c5ba8747c3ae2f1ff5461bf"
+    },
+    "examples/physics-motion-nogo-2276/evidence/equilibrium-study-01/result.json": {
+      "bytes": 166333,
+      "sha256": "e570e89c488bc89f6a22c5a34875156b1a43628f3af1312c9437826f3b8020f9"
+    }
+  }
+}

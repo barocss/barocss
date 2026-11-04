@@ -1,0 +1,139 @@
+{
+  "status": "PRESERVED_DATA_RESOURCE_NO_GO_BEFORE_ANY_PHYSICS_OBSERVER",
+  "classification": "DATA_ONLY_NOT_PHYSICAL_FAIL",
+  "originalGuard": {
+    "kind": "P5B_OWNED_COMMAND_GUARD",
+    "receiptId": "warm-viewer-physics-audit-02",
+    "censusId": "warm-viewer-physics-audit-02",
+    "status": "FAIL",
+    "node": "v22.19.0",
+    "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "command": [
+      "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+      "-B",
+      "examples/physics-warm-viewer-2276/audit-browser.py",
+      "examples/physics-warm-viewer-2276/evidence/browser-desktop-02/proof.json",
+      "examples/physics-warm-viewer-2276/evidence/browser-desktop-02/physics-audit-01"
+    ],
+    "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+    "inputs": {
+      "command-run.mjs": {
+        "bytes": 11565,
+        "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+      }
+    },
+    "timeoutMs": 180000,
+    "terminationGraceMs": 1000,
+    "postKillCloseWaitMs": 2000,
+    "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+    "combinedOutputLimitBytes": 4194304,
+    "startedAt": "2026-11-03T01:45:10.041Z",
+    "spawnAt": "2026-11-03T01:45:10.088Z",
+    "pid": 99160,
+    "processGroupId": 99160,
+    "exit": 1,
+    "signal": null,
+    "timedOut": false,
+    "stopReason": "CENSUS_EXIT_FAILURE",
+    "processClosed": true,
+    "groupSignals": [
+      {
+        "signal": "SIGTERM",
+        "elapsedMs": 785.199416,
+        "result": "GROUP_ABSENT",
+        "code": "ESRCH"
+      }
+    ],
+    "parentWorldCalls": 0,
+    "parentReferenceCalls": 0,
+    "parentGeometryCalls": 0,
+    "retries": 0,
+    "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-physics-audit-02/summary.json",
+    "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-physics-audit-02/progress.json",
+    "errors": [],
+    "exitAt": "2026-11-03T01:45:10.826Z",
+    "stopRequestedAtMs": 785.107666,
+    "finishedAt": "2026-11-03T01:45:10.840Z",
+    "elapsedMs": 799.101,
+    "ownedGroupPresentAtFinalization": false,
+    "censusElapsedMs": 754.654542,
+    "cleanupElapsedMs": 13.993334000000004,
+    "output": {
+      "stdout": {
+        "observedBytes": 0,
+        "capturedBytes": 0,
+        "omittedBytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "eof": true,
+        "writeError": null
+      },
+      "stderr": {
+        "observedBytes": 1536,
+        "capturedBytes": 1536,
+        "omittedBytes": 0,
+        "sha256": "359298b48d634511c860da4b2cf063b530525bc297b0facddbcdf0fee900a4ea",
+        "eof": true,
+        "writeError": null
+      }
+    },
+    "censusSummary": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-physics-audit-02/summary.json",
+      "present": false
+    },
+    "censusProgress": {
+      "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-physics-audit-02/progress.json",
+      "present": true,
+      "bytes": 2038,
+      "sha256": "e9366b89905fd8a1d04c40037709abef4beb86b88cda1fbd6ffd8dae270176fc",
+      "status": "RUNNING",
+      "counts": null,
+      "referenceCallCounts": null,
+      "firstFailure": null
+    },
+    "callCountBoundary": "Only counts present in original census progress/summary/timing receipts are reported; a timeout never implies the primitive call population completed."
+  },
+  "stderrUTF8": "Traceback (most recent call last):\n  File \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-warm-viewer-2276/audit-browser.py\", line 65, in <module>\n    if __name__=='__main__':sys.exit(main(Path(sys.argv[1]).resolve(),Path(sys.argv[2]).resolve()))\n                                     ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-warm-viewer-2276/audit-browser.py\", line 21, in main\n    encoded=json.loads(path.read_text());raw=decode_packet(encoded);proof=physics.decode(raw);results=[];failure=None;controls={k:'NOT_RUN' for k in ['actual_public_wire_raw_roundtrip','A_initial','A1','A2','D_continuation2','D_raw_state_recording','hidden_and_D_actual_trace_parity']};parities=[]\n                                             ~~~~~~~~~~~~~^^^^^^^^^\n  File \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-wrench-producer-2276/trace_decode.py\", line 37, in decode_packet\n    root_fingerprint=fingerprint(decoded)\n  File \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-wrench-producer-2276/trace_decode.py\", line 13, in fingerprint\n    if size>MAX_EXPANDED_BYTES or fragments>MAX_CANONICAL_FRAGMENTS:raise ValueError('Expanded canonical trace resource bound')\n                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: Expanded canonical trace resource bound\n",
+  "originalFiles": {
+    "examples/physics-world-p5-2276/evidence/warm-viewer-physics-audit-02/prepared.json": {
+      "bytes": 1722,
+      "sha256": "ea716ccbfd09e9855e11dbf002313e64e77398d52eb3551aa1a5095a6ef62008"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-physics-audit-02/progress.json": {
+      "bytes": 2038,
+      "sha256": "e9366b89905fd8a1d04c40037709abef4beb86b88cda1fbd6ffd8dae270176fc"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-physics-audit-02/result.json": {
+      "bytes": 3433,
+      "sha256": "f6d5bb13d873bbad711d6085ae6a5a66a4ba212c108cc782423524d0adc5ca0c"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-physics-audit-02/start.json": {
+      "bytes": 1744,
+      "sha256": "99cd7bb6ff570463615334696922ebc25aa9638ea9495d7c6b919452fab092b6"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-physics-audit-02/stderr.raw": {
+      "bytes": 1536,
+      "sha256": "359298b48d634511c860da4b2cf063b530525bc297b0facddbcdf0fee900a4ea"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-physics-audit-02/stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "proof": {
+    "bytes": 2074618,
+    "sha256": "6b7cf9ac135305e70b6926494a1fa5a84e50b92d49de736754cc861a026996b8"
+  },
+  "capture": {
+    "bytes": 635,
+    "sha256": "9f7c467ad348668d574f0d168131dd239c4984a3a2968a03500174af9257a8d9"
+  },
+  "unchangedLimits": {
+    "expandedBytes": 16777216,
+    "canonicalFragments": 1000000,
+    "sharedNodes": 8192,
+    "depth": 64
+  },
+  "physicsObserverCalls": 0,
+  "WorldCalls": 0,
+  "browserRerun": "NOT_RUN"
+}

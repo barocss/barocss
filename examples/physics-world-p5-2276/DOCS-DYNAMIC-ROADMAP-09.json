@@ -1,0 +1,67 @@
+{
+  "status": "PASS_DOCS_BUILD_LINK_CHECK_AND_ACTUAL_GENERATED_NEW_ASSETS",
+  "date": "2026-11-03",
+  "implementationHead": "b2bd44f9d3bb785069c9e0494cf2c376b27b0add",
+  "inputRecordPin": {
+    "bytes": 1944,
+    "sha256": "3b145f3a1ab7f6d8e6fb9f2a14179e4536eccb99611e8f74ce3d107fd5844e28"
+  },
+  "receipts": [
+    {
+      "path": "examples/physics-world-p5-2276/evidence/coupled-dynamic-docbuild-09/result.json",
+      "pin": {
+        "bytes": 3049,
+        "sha256": "e79af2ed6c1691f31c9cda938465d5468966518424628efdfa99ba2e0b0509eb"
+      },
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "node_modules/vitepress/bin/vitepress.js",
+        "build",
+        "docs"
+      ],
+      "elapsedMs": 10263.750083
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/coupled-dynamic-docsite-09/result.json",
+      "pin": {
+        "bytes": 3004,
+        "sha256": "ee86157e67e9771d00f8a3ef5587777bb3905eb3ff02212fee9bdde8bbf109ba"
+      },
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-motion-docs-2276/check-site.mjs"
+      ],
+      "elapsedMs": 336.067584
+    }
+  ],
+  "generatedAssets": {
+    "apps/library-docs/docs/.vitepress/dist/physics-evidence/api-roadmap.txt": {
+      "bytes": 103937,
+      "sha256": "7abf0bfa593e4544f49ac477591d7b9c35309b660ae8499f2d35be35d002f025"
+    },
+    "apps/library-docs/docs/.vitepress/dist/physics-evidence/coupled-dynamic-clean.txt": {
+      "bytes": 3388,
+      "sha256": "9a8bdb05186751ff73948345292cc8f0e2389da0003a8c3d203bf6d85d72458f"
+    },
+    "apps/library-docs/docs/.vitepress/dist/physics-evidence/coupled-dynamic-transaction.txt": {
+      "bytes": 3098,
+      "sha256": "05d1c0aa5d3df05e9027468637b4b1b37c7e47a8b267e14e3d11623d10e546c6"
+    },
+    "apps/library-docs/docs/.vitepress/dist/physics-evidence/coupled-dynamic-desktop.txt": {
+      "bytes": 3878,
+      "sha256": "9f83b66a9fa3b188488ac53ad571cefc31d13fb6772c46680fe4132ba4e98061"
+    }
+  },
+  "generatedVerificationHTMLPin": {
+    "bytes": 127803,
+    "sha256": "38f91f0472a204b2236d63d041ad9d606f27160ab60c80abc8e173afd983c663"
+  },
+  "newReferenceLinks": 3,
+  "roadmapMirror": "BYTE_EQUAL",
+  "newPublicAPIExamples": "NONE; previous example runtime evidence reused",
+  "WorldCalls": 0,
+  "mobile": "NOT_RUN_USER_EXCLUDED",
+  "deployment": "NOT_RUN",
+  "HOLD": "UNCHANGED",
+  "allFirstFailures": "PRESERVED"
+}

@@ -1,0 +1,74 @@
+{
+  "status": "AUTHOR_ONLY_DYNAMIC_SELECTED_RENDER_GATE",
+  "originalCampaign": "desktop-01 PASS7/18physics/6wholepacketparity; GPU screenshots selectedbefore1",
+  "newCampaign": "desktop-02 samecensus selectedafter1 GPUwidths",
+  "WorldCalls": 0,
+  "browserCalls": 0,
+  "runtimeSourceChanges": "NONE",
+  "files": {
+    "examples/physics-coupled-dynamic-host-viewer-2276/AUTHOR-FREEZE-01.json": {
+      "bytes": 1261781,
+      "sha256": "eeded3c77eacb9aeb5148af94283fa9a4321069a5b86ee985ac78b2a945f5d97"
+    },
+    "examples/physics-coupled-dynamic-host-viewer-2276/CONTINUATION-FREEZE-02.json": {
+      "bytes": 2050,
+      "sha256": "d654a0b2ec186befdc38b8ba79d0779ab7c8d7543601cea38d37f6a544524308"
+    },
+    "examples/physics-coupled-dynamic-host-viewer-2276/browser-checks.js": {
+      "bytes": 10058,
+      "sha256": "1f9c773fa2fdfacd848c79d04741625041dddbdd5a681a771b69ca1d3b413a58"
+    },
+    "examples/physics-coupled-dynamic-host-viewer-2276/browser-run.mjs": {
+      "bytes": 3927,
+      "sha256": "43f06b8cbdfb149590b137dc284457765f9013d16ad8a0481f16b5e06620bec1"
+    },
+    "examples/physics-coupled-dynamic-host-viewer-2276/browser-checks-02.js": {
+      "bytes": 10071,
+      "sha256": "70e39bf9d20be01e37f5f1a9c23782dafda0bdf3ec8ddbb91b1a22d2f22ec8b1"
+    },
+    "examples/physics-coupled-dynamic-host-viewer-2276/browser-run-02.mjs": {
+      "bytes": 3930,
+      "sha256": "b6ee2f26fb66d9f6a1ec8f57b49bb543dc438a2864c23b468347c82aa6e17a12"
+    },
+    "examples/physics-coupled-dynamic-host-viewer-2276/RENDER-AMENDMENT-03.md": {
+      "bytes": 1212,
+      "sha256": "8f3c7dfc79120016d6b7ed775742a2f822dbee040419df0dd897ebf628fd1d69"
+    },
+    "examples/physics-coupled-dynamic-host-viewer-2276/audit-browser-02.mjs": {
+      "bytes": 5839,
+      "sha256": "9b021a8a4fdfb2acca40ab4d74459797d3c524c578cae2d3291a171fff752340"
+    },
+    "examples/physics-coupled-dynamic-host-viewer-2276/output/build-01/result.json": {
+      "bytes": 388,
+      "sha256": "592c52f46959f48c18dd57eba45fbd838959da6beb5341c021691e3150845799"
+    },
+    "examples/physics-coupled-dynamic-host-viewer-2276/evidence/audit-01/summary.json": {
+      "bytes": 2433,
+      "sha256": "d552aabf79bedcec2463dccce5ba512691955f924ae064a8b9913b2bc35d8433"
+    },
+    "examples/physics-coupled-dynamic-host-viewer-2276/evidence/audit-01/packet-parity.json": {
+      "bytes": 892,
+      "sha256": "7d7690eece7547ff0ae25a1ac756b4011ff68a43e4028ddbbf54f0598391aad8"
+    },
+    "output/playwright/coupled-dynamic-host-viewer/desktop-01/report.json": {
+      "bytes": 12595730,
+      "sha256": "c79a9d20a5a51ada8bf75b9e97e4e50aacf7565752895b36f9e072f1302882e8"
+    },
+    "output/playwright/coupled-dynamic-host-viewer/desktop-01/report-pin.json": {
+      "bytes": 156,
+      "sha256": "7abbf1f96e25e75095db4d67c88db1154ab5aa6ebc1996b3e51f6e41add41008"
+    },
+    "output/playwright/coupled-dynamic-host-viewer/desktop-01/desktop-1920.png": {
+      "bytes": 117236,
+      "sha256": "75bad404d64960c220e451de0beb2aa1cec4af68b2e93ac8e3964adefe0fa4a6"
+    },
+    "output/playwright/coupled-dynamic-host-viewer/desktop-01/desktop-1440.png": {
+      "bytes": 113076,
+      "sha256": "26071be531e29fdabe93c30fc297c7555039a8bde219fcfc68501c5c8f6d748c"
+    },
+    "output/playwright/coupled-dynamic-host-viewer/desktop-01/desktop-1280.png": {
+      "bytes": 110179,
+      "sha256": "c37bf5758fe4893aaf5f125fdb0a30338a21833c7a15e98d623ebd6c1823bed2"
+    }
+  }
+}

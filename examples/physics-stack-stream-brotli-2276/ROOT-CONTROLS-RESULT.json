@@ -1,0 +1,13 @@
+{
+  "status": "PASS_FIXED24_BROTLI_AND_NATIVE_CRC_COMPONENT",
+  "tests": 24,
+  "elapsedMs": 1685.365916,
+  "pinsSHA256": "a53edc3365fdda4ab087b9ffca646a0209d87048ff867bb6e9f80266ecd3449b",
+  "sourceSealSHA256": "93ea41c0b6c82dc1fdb62486f47152a23e8e52be51a053039bf25b9204bde474",
+  "guardResult": "examples/physics-world-p5-2276/evidence/stack-brotli-controls-01/result.json",
+  "guardResultSHA256": "486614fa6a4d6ee4e31f5a4cf17b1186bd5b64f33c149047e2209cc795435ba7",
+  "sourceRecheckedAfter": true,
+  "physicsCalls": 0,
+  "full1200": false,
+  "API": false
+}

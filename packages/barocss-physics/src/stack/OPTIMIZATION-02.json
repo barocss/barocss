@@ -1,0 +1,73 @@
+{
+  "format": "barocss-physics-stack-optimization-v1",
+  "candidate": 2,
+  "status": "SOURCE_ONLY_READY_NOT_EXECUTED",
+  "checkpointCommit": "bfa78f768213ad29deb0c02b200e9ec7a2a5f1f9",
+  "algorithm": "CANONICAL_EQUAL_DENOMINATOR_EXACT_ADD",
+  "files": {
+    "checkpointSource": {
+      "path": "examples/physics-stack-library-2276/baseline/strict-line-opt01.ts",
+      "bytes": 14873,
+      "sha256": "52996dde63132e42a655f8300bb544258c22c8b6c6296f66d03dd53ab36441e8"
+    },
+    "newSource": {
+      "path": "packages/barocss-physics/src/stack/strict-line.ts",
+      "bytes": 14939,
+      "sha256": "78b05214024c12cf679a563ea6b9fa92910021607e8567c2e61ea917601be13b"
+    },
+    "contract": {
+      "path": "examples/physics-stack-library-2276/OPTIMIZATION-02-CONTRACT.md",
+      "bytes": 5872,
+      "sha256": "e9b562c4e1063850e93cb221c974806520883e49937b66d27d25eaa16f1bfea7"
+    },
+    "originalProvenance": {
+      "path": "packages/barocss-physics/src/stack/PROVENANCE.json",
+      "bytes": 11389,
+      "sha256": "0ba21dcba3bfb56d07c300282ad00bd06515a682ad80edaf3ef2e4a093a161d2"
+    },
+    "priorOptimization": {
+      "path": "packages/barocss-physics/src/stack/OPTIMIZATION-01.json",
+      "bytes": 3023,
+      "sha256": "48bf01c29961d20d2457f872439877c8078c4b9e154b3f9e8bdb85b99546590d"
+    },
+    "actualOpt01Native": {
+      "path": "examples/physics-stack-library-2276/evidence/runtime-opt01-01/canonical-provider/dist/stack/strict-line.js",
+      "bytes": 14740,
+      "sha256": "9e3b7cb4236d4e4ddf917354979e4067b0095892b2eed952fafaa057ab3802f9"
+    },
+    "actualOpt01RuntimeReceipt": {
+      "path": "examples/physics-stack-library-2276/evidence/runtime-opt01-01/ALIGNED-result.json",
+      "bytes": 1113,
+      "sha256": "727a468bee930718347c73f2a9a794cf6360fe773277cd0e7f8751b855281f86"
+    }
+  },
+  "change": {
+    "shippingFiles": [
+      "packages/barocss-physics/src/stack/strict-line.ts"
+    ],
+    "rationalOpBeforeBranch": true,
+    "sameDenominator": "make(sum(a.n,b.n),a.d)",
+    "unequalDenominatorFallback": "EXACT_SOURCE_TEXT_UNCHANGED",
+    "allOtherSource": "EXACT_SOURCE_TEXT_UNCHANGED",
+    "newZeroIntegerGcdOrCachePaths": false,
+    "limitsOrPricesChanged": false,
+    "actualCountersMayDecrease": true,
+    "universalOldResourceRefusalParity": false,
+    "largeDResourceAdmissionChange": "PREDECLARED_IN_FIXED16_CONTRACT",
+    "rawSumGuard": "UNCHANGED16384_BITS_BEFORE_NORMALIZATION"
+  },
+  "qualification": {
+    "fixedArithmeticCases": 16,
+    "existingBoundaryCases": 19,
+    "authorNumericalCalls": 0,
+    "authorHelperCalls": 0,
+    "authorCompilerCalls": 0,
+    "actualArithmeticTests": "NOT_RUN",
+    "actualBoundaryTests": "NOT_RUN",
+    "freshPhysicalPrefixes": "NOT_RUN",
+    "runtimeDiagnostic": "NOT_RUN",
+    "fullP4": "BLOCKED",
+    "resourceQualification": false,
+    "publicAdmissionChanged": false
+  }
+}

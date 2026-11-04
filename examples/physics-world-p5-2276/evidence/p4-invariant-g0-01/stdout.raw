@@ -1,0 +1,1 @@
+{"status": "PASS_INVARIANT_G0_THIRTY_TWO_GLOBAL_METERED_PAIRS", "firstFailure": null, "counts": {"candidateCommands": 1, "independentAudits": 1, "pairsVerified": 32, "globalMeters": 1, "WorldCalls": 0, "baselineReruns": 0}}

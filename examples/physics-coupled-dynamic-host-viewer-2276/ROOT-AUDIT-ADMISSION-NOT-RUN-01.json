@@ -1,0 +1,22 @@
+{
+  "status": "NOT_RUN_EXTERNAL_HEAVY_ADMISSION_REFUSED",
+  "action": "coupled-dynamic-viewer-audit-02",
+  "gateExit": 75,
+  "requestedQueueWaitSeconds": 600,
+  "observedGateWaitSeconds": 2623,
+  "gateStartLoad": 786.48,
+  "gateEndLoad": 632.82,
+  "gateMessage": "gave up; nothing ran",
+  "ownedCommandReceiptCreated": false,
+  "auditDirectoryCreated": false,
+  "WorldCalls": 0,
+  "observerCalls": 0,
+  "browserCampaign": "ALREADY_PASS_7_CHECKS",
+  "browserReportPin": {
+    "bytes": 12595730,
+    "sha256": "c79a9d20a5a51ada8bf75b9e97e4e50aacf7565752895b36f9e072f1302882e8"
+  },
+  "laterObservedOneMinuteLoad": 44.91,
+  "policy": "No bypass, no other-worker process termination; resume only with normal gate admission",
+  "tolerancesAndCaps": "UNCHANGED"
+}

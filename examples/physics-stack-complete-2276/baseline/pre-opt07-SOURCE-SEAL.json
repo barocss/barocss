@@ -1,0 +1,48 @@
+{
+  "API": false,
+  "archiveComponentSourceSealSHA256": "f509d7a0ade48b59e718c81091c8a34fd2fe20584225ca40161efd9f9e348e1c",
+  "authorImports": 0,
+  "authorPhysicsCalls": 0,
+  "authorTestCalls": 0,
+  "contractSHA256": "cf9d8946e6e6fcaf303f6849e68abc0e1df013c1f5fe43e4d36e6aa481655427",
+  "emergencyReserveBytes": 2097152,
+  "files": {
+    "API-ADOPTION-PLAN.md": "8b65447dc699cf29700b418a32ad30bbbd91797765a4092e7e6fb8304dac949f",
+    "CONTRACT.md": "cf9d8946e6e6fcaf303f6849e68abc0e1df013c1f5fe43e4d36e6aa481655427",
+    "CONTROLS-ROOT-RESULT.json": "d3152494e29197b9fdd031762af7f4fca758d9365d9daddafea4f2f8cd3a71af",
+    "CONTROLS-ROOT-SEAL.json": "2daea725a2f5ea8905e9239a64e4f7f941fb3b0c20d08e8c5d0736490990fad1",
+    "FINGERPRINT-CONTRACT.md": "252a1a469710614b593528f12e71d9eda987cc4f53a4d7c8fb59b775500b7d53",
+    "FP-ROOT-BINDING.json": "771f269e759226a64362c2691055e1febc6054656c82943f5fc7e7654471d267",
+    "IMPLEMENTATION.md": "3100f40783836fa1f346f2da7d8391f9b97cd2569337b4943049f4ecb307efc9",
+    "PINS.json": "8fecc7607f12c94107018d29edd03acd356f70fdc31e1e0f4e820b852d751235",
+    "baseline.mjs": "09af6549726f3c9cd22b4d14132bd7c60e2a26b0b0aa204ef925057fa83912b2",
+    "controls.test.mjs": "25a69057cdeedba4f3345b7033a9c3511f632bba4e730677920e6c00ee22cb6d",
+    "driver.mjs": "285c049f89ce44f713cfd6579bedcd82feda49e0deda8cae5247ac235bb7ad0a",
+    "fingerprint.mjs": "62e32917277f5376c38b2c1f6adb34a24ef112da2985514eaa37e6073fda5448",
+    "fingerprint.test.mjs": "acec9903611dda94183dcc501adee63b5a8c47bcbe09a3365c18ca5124f183a4",
+    "host.mjs": "14a54f2802a7dcbae439b67458d9638748bec5eef4aa8f1f77b5b2cf386cd0ee",
+    "producer.mjs": "e19302b030799e309bf174f3beae7c64779cd879c4793ba14c45f841a3568649",
+    "reference.mjs": "feecbee290f68b011a078aff2e4742b6be25bfbff0a015b6ae4d61019b2a3efb",
+    "run.py": "a7fc34af5e6f9058b8a8c7a8e40984cc7fdb9432dfdb8936c179d0aae4ac348e",
+    "scene-owner.py": "726a6f1b48a3774512141f20a9bfae2abfa696d094f87a7a4698d0aa8daae29c",
+    "window.mjs": "6e87f9501e0b464a03fccd60ac700a3fc0672043e942878040a110f44e104358"
+  },
+  "metadataReserveBytes": 8388608,
+  "modes": [
+    "prefix3x16",
+    "original3x1200AfterSameSourcePrefix"
+  ],
+  "originalIndependentFullPhysics": false,
+  "pinnedFiles": 646,
+  "preservedPrefix01SourceArchive": {
+    "bytes": 74126,
+    "sha256": "296c43e2d7dfc6c3a891420cc35d2f246abaa62fae816aa0b136894a4a1ab539"
+  },
+  "priorSealSHA256": "78e089071b844bb50d709f1b343c6c2b5db50dcd514fab47b8a3a60ff00dfb51",
+  "providerDigest": "6c3bf494f3a53f7ac32154cb271ec05e6cf9eea3b495e73cc87e4d85c8636cf5",
+  "revision": "EXACT_SIZE_ARCHIVE_IMPORT_AND_PREREQUISITE_ONLY",
+  "sharedRetainedCapBytes": 293601280,
+  "sourceCompilerCalls": 0,
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN",
+  "strictGlobal64MiBCertification": "NOT_QUALIFIED"
+}

@@ -1,0 +1,26 @@
+{
+  "status": "PASS_FIXED25_STATEFUL_BROTLI_AND_NATIVE_CRC_COMPONENT",
+  "tests": 25,
+  "elapsedMs": 731.427583,
+  "pinsSHA256": "89abb2544699df7aef65ad6fac83235b7c2e42ad0faa1864accde26adc65fe35",
+  "sourceSealSHA256": "2ec99c55237d33be0097906b3b17e9c56471a835e7be22abf88155ae6bf4bc96",
+  "guardResult": "examples/physics-world-p5-2276/evidence/stack-stateful-controls-02/result.json",
+  "guardResultSHA256": "c4bd8368f7510220cc46f552fd8b10ab1a85481125adf1c991dbdb0f2047f33b",
+  "sourceRecheckedAfter": true,
+  "firstRootEnvironmentFailure": "ROOT-ENV-FIRST-FAILURE.json preserved",
+  "history": {
+    "status": "HISTORY_BANK_CONFIRMED",
+    "payloadBytes": 131072,
+    "payloadSha256": "8866ac49ab28077bffb3007d789f63bc6230e939f4b50b53aa9cda0c0b708ae9",
+    "firstAcknowledgedCompressedBytes": 131266,
+    "secondAcknowledgedCompressedIncrement": 48,
+    "strictSecondIncrementLimit": 32768,
+    "recoveredPayloads": 2,
+    "quality": 2,
+    "lgwin": 20,
+    "chunkSize": 65536
+  },
+  "physicsCalls": 0,
+  "full1200": false,
+  "API": false
+}

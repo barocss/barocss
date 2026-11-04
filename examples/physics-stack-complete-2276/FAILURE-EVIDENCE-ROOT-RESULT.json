@@ -1,0 +1,15 @@
+{
+  "status": "PASS_FIXED8_FAILURE_EVIDENCE_COMPONENT",
+  "tests": 8,
+  "elapsedMs": 229.893625,
+  "pinsSHA256": "002014de36db79b13ddc33a6a284c51f9d2d2059af2681f48bc2e09a31453a1e",
+  "guardResult": "examples/physics-world-p5-2276/evidence/stack-failure-evidence-controls-01/result.json",
+  "guardResultSHA256": "d3af58d10ae376c18114b38a1e0986f386b1900ca9ca88778c034e05a198379e",
+  "stdoutSHA256": "6d3b8185fe445aceee37177e571701284c090de34db71db0747911878d80b403",
+  "sourceRecheckedAfter": true,
+  "driverSHA256": "9041bcdce5e2c07c3ceab5575a79c2534e600833059d52e9b40bf30ba3ea566a",
+  "scope": "Failure serialization and alias selection component only; complete driver integration requires fresh prefix",
+  "physicsCalls": 0,
+  "full1200": false,
+  "API": false
+}

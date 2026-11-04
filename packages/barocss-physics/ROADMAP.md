@@ -1,13 +1,609 @@
 ---
 work_id: physics-api-roadmap-2276
 artifact_type: architecture-and-development-roadmap
-status: p5_done_bounded_localselected_p4_no_go
+status: contact_coherence_two_three512_pass_extended866_no_go
 owner_role: independent-physics-algorithm-work
 source_request: redesign the unreleased Physics library and reorganize its roadmap; preserve HOLD, NO_GO and first failures
-last_updated: 2026-11-02
+last_updated: 2026-11-04
 ---
 
 # Physics library design and roadmap
+
+## Current contact coherence checkpoint (2026-11-04)
+
+The production contact phase now projects positions once, assembles all actual
+final-pose feature contacts, and solves/applies normal motion at those same
+positions. No tolerance, iteration count, body cap or legacy fallback changed.
+Fresh strict Source and actual canonical builds, tensor/public API, refusal,
+recorder restore/continue, and both original512-step two/three-cube campaigns pass.
+Both graphs also pass the original60/120/240Hz contact campaign through1second.
+
+This fixes the previously recorded490 refusal within that512-step profile.
+It does **not** remove all accumulated error: a separately fixed three1024 gate
+first violates lateral-position tolerance at866 (1.0037318971762749e-10m versus
+1e-10m). Source returns896steps but independently passes768; Native passes768.
+No failed window is shortened. Full current-provider desktop HiDPI is NOT_RUN;
+the earlier512/384 Viewer and six-sample HiDPI are historical provider results.
+The exact-arithmetic successor is research on a separate branch, not runtime
+adoption. All original478/479/488/490 failures and the new866failure remain.
+See `examples/physics-contact-coherence-2276/RESULTS.md`.
+Studio/manufacturing/equipment/old-worker HOLDs remain. No deployment or release.
+
+Earlier milestone descriptions below retain their historical provider and scope.
+The current checkpoint above supersedes only their present-tense490/512 status.
+
+## Current qualified result and next dynamics stage (2026-11-04)
+
+The sole public World now has `rigid-stationary-cube-stack-v1`. The exact
+32-point stationary certificate and independent Fraction checks precede the
+original full ALIGNED/OFFSET/YAW1200 campaign, which passes all3600 steps with
+the unchanged geometry/position/ledger/quality gates and resource limits.
+Source and actual compiled root/replay each pass public controls and all3600
+body frames; actual Chrome WebGPU also passes all3600 steps with exact body-word
+parity. Fault/restore tests include a separately qualified nonzero first gap
+correction. See `examples/physics-stack-stationary-world-2276/RESULTS.md`.
+
+This is unforced equilibrium maintenance of eight fixed-mass yaw-only cubes,
+not general eight-body falling, restitution, frictional settling or collapse.
+The persistent profile retains its four-body cap. Its new direct zero-material
+box island uses one global normal/position candidate; other contact laws retain
+their existing8x8 loops. No old
+failure is rewritten as PASS, and the previous QR/runtime/storage results below
+remain historical. Current support supersedes their present-tense API status
+only for this new stationary profile. No legacy solver/factory fallback.
+
+Existing1/2-body centered impact dynamics are implemented separately. A fresh
+desktop adapter loads actual build15 Physics root/replay and the existing
+Source Viewer/GPU. Eleven real desktop checks pass, including six impact
+presets, numerical outgoing velocity/impulse/energy, actual upward travel and
+changed GPU pixels. This is not moving eight-body qualification.
+
+Next implementation order:
+
+1. Reuse existing gravity/free-flight and1/2-body impact evidence; identify the
+   missing small-island normal-motion contract before adding a solver.
+2. Qualify a gravity-driven single-body trajectory, then two contacting cubes,
+   using independent ballistic/momentum/energy references and fixed dt refinement.
+   Include failure rollback, common World/recorder and desktop motion in each stage.
+3. Expand to moving multi-body contact only after those gates pass. Changing
+   topology, coupled rotation, friction and simultaneous impacts keep separate
+   NO_GO entries until verified. Do not repurpose the stationary certificate.
+
+Completion date for general moving8 remains UNKNOWN. The bounded small-island
+milestones below do not predict its completion. All Studio/manufacturing/equipment/old-worker HOLDs, tolerances,
+first failures and deployment prohibition remain. Existing workers are not resumed.
+
+### Gravity and delayed-impact milestone
+
+The first two small-island cases above now pass. Actual Source/Native each use
+11Worlds/1018accepted steps including four restore replay steps. A cube falls
+from a positive gap, contacts the floor at27 and remains supported through256;
+an equal-mass pair contacts at8 then separates through256. Three1second gravity
+controls at60/120/240Hz give first-order position/energy error ratios~2.
+At120Hz the continuous-position error is0.040875m and energy defect-0.8019675J;
+this is convergence evidence, not energy conservation or millimeter accuracy.
+Existing gates, solver loops, profile and body cap are unchanged.
+
+Actual same-Native desktop03 passes both256-step trajectories, complete public
+state/ALLnumeric-word parity, real changed GPU pixels and controls at three
+desktop widths. The original GPU-readback failure and display reset race remain
+preserved separately. This stage changes the test/desktop consumers and repairs
+display observation; it adds no new production solver or public profile. See
+`examples/physics-stack-dynamic-next-2276/RESULTS.md`.
+
+Next is two moving cubes plus a floor with separated collision events, then a
+small simultaneous normal-contact problem using independent momentum/energy
+and matrix certificates. Rotating/frictional/general moving8 remains NO_GO or
+NOT_QUALIFIED. Keep numerical and actual desktop proof in the same feature stage.
+
+### Two-cube floor milestone and preserved first coupled failure
+
+The separated floor case now passes public Source/Native, each9Worlds and1022
+accepted steps including4restore replay steps. Three dt cases use896primary
+steps. Independent1e-12m public representative geometry and original SI gates
+pass; matched0.1s position/energy errors converge at first order. Actual same-
+Native desktop accepts256steps, all257states/words equal the paid numerical
+packet,5969GPU pixels change, and all three desktop widths/controls pass.
+See `examples/physics-two-cubes-floor-2276/RESULTS.md`. The observer's original
+trace-failure classification bug is preserved; two unchanged physical criteria
+now retain physical violations, and all six paid valid replies remain byte-exact.
+
+The preserved original vertical-chain baseline has Source/Native NO_GO at27:
+one World per graph accepts27 but independently passes26. Maximum projected
+velocity error0.008623153568856012m/s and position error2.934570312507212e-5m
+exceed original1e-10 gates. Representative geometry also fails1e-12m. All28
+observed states are word-equal across graphs; determinism is not accuracy.
+The old engine committed that bad state, rather than refusing it. Exact loaded
+inputs and first failures are preserved before any library repair.
+
+The private batch normal/position candidate now passes the actual captured
+FREE27 phase in Source and strict NodeNext Native, with8 actual point impulse
+applications and independent full wrench/KKT checks. Projected velocity error
+is4.441e-16m/s and position error5.552e-17m; strict geometry remains1e-12m.
+The exact isotropy identity is used only for exactly equal local inertias;
+all15 private boundary calls per graph pass. This is not a public accepted
+step or trajectory. No8x8 increase, rest snap, reference-solver copy or fallback.
+Actual common World32 and256 now pass Source/compiled independent references.
+Each graph's6Worlds/786accepted steps comprise256 coupled +8restore/continuation
+and522 affected-regression steps;786 is not the coupled trajectory length.
+Maximum coupled velocity/position errors are3.159e-15m/s and2.887e-15m,
+representative geometry8.882e-16m. Real public known-error/refusal controls retain
+state/clock/model/log and retry; unexpected identity is checked in explicitly
+untrusted diagnostic copies. Actual same-Native desktop verifies all257states/
+numeric words,2187 changed GPU pixels and three desktop widths. This supports
+the stated aligned2kg two-cube/floor120Hz case through256steps, not all admitted
+boxes. AABB for this zero-material island is explicitly rejected at creation;
+the historical rotated anisotropic input refused exact tensor symmetry with retained state.
+The later bounded repair below resolves its precontact refusal; the original
+receipt is unchanged.
+The next three-cube/floor campaign now also passes through256 in actual Source
+and compiled Worlds, after BOTH32 checkpoints pass before33. Same algorithm,
+existing4body cap,1World/256steps/2 independent references each;0 restores.
+An independent3DOF eight-subset Fraction reference measures velocity2.020e-14m/s,
+position1.244e-14m and representative geometry3.109e-15m. Six analytical and11
+observer/word controls pass. Same-Native desktop matches all257states/words,
+changes1623GPU pixels and passes all three desktop widths. First contacts are
+[1,1,27]. This extends only the aligned equal2kg zero-material120Hz family.
+See `examples/physics-three-cubes-floor-2276/RESULTS.md` and
+`examples/physics-coupled-cubes-floor-2276/RESULTS.md`. General moving8 and all
+Studio/manufacturing/equipment/old-worker HOLDs remain unchanged. No deployment.
+
+### Rotated anisotropic precontact library repair
+
+The first dependency above now passes locally. The actual package kernel in
+`src/stack/frictionless-island.ts` directly constructs the symmetric world
+inverse tensor R diag(d) R^T. Exact symmetry/SPD, actual angular operators,
+contact tolerances, iteration/resource limits and the four-body cap remain.
+This is the common World's library implementation, with no example solver or
+legacy fallback. Original precontact refusal and the first readonly-buffer
+compile / virtual-entry authorization failures are preserved.
+
+Each Source/actual canonical graph passes 20 private calls / 13 independent
+references, followed by 8 public Worlds / 212 accepted steps: the original
+rotated upper box and a rotated principal-axis impulse through 64 steps, plus
+both cases to matched 0.1 s at 60/120/240 Hz. The independent reference uses
+exact Hamilton sandwiches and analytic principal rotation. Maximum inverse-
+tensor error is 3.582e-15 /(kg m²); rotational-energy residual 2.272e-16 J.
+Upper clearance is positive throughout; lower-floor support is independently
+checked. This does not qualify anisotropic contact or off-principal contact.
+
+Continuous free-fall position error at 64/120 s remains 0.0218 m. Matched-time
+position/energy errors halve with dt, confirming existing first-order kick-drift
+behavior. Tiny tensor/algebra residuals are not continuous trajectory accuracy.
+Per graph, seven additional Worlds / 82 accepted steps (including four restore
+replays) verify rollback/retry/restore/continuation and exact prior isotropic
+32-step traces. Sixteen independent observer controls pass. Actual Native
+desktop passes two 64-step cases, 65 states/words each and changed GPU pixels
+at three desktop widths. CAD/CAD-model primitive unit/pose consumers and GPU
+CPU mesh admission pass; CAD Studio remains unintegrated/on HOLD. See
+`examples/physics-anisotropic-inertia-2276/RESULTS.md` and
+`examples/physics-anisotropic-inertia-2276/CONSUMER-READINESS.md`.
+
+Next dependencies, in order: timestep refinement and longer-horizon evidence
+for the coupled family within existing budgets/transport/recorder caps; then
+unequal mass, independently referenced anisotropic contact, changing normals/
+topology and friction. CAD arbitrary COM/full-tensor/collider-offset admission
+remains G3; product rendering and any Studio integration require their separate
+scope and gates. Original moving8/1200 remains a separate NO_GO and cannot be
+inferred from these bounded tests. All HOLDs, original failures and tolerances
+remain. No deployment.
+
+### Contact timestep, longer horizon and actual Viewer
+
+The current production `src/stack/face-contact.ts` uses the projected full-polygon
+centroid only as its correction guide. Source SHA is
+`c164a34d6245cf52a3f13274439eb6bb2dad471a47344e92aa1c30e5c94c99b6`.
+No new hook, flag, tolerance, point key, work cap or16-attempt increase is used.
+The adopted Source provider is
+`sha256:bdff69b55d4effb0deda83bb1dfc298e82f17578e0c3dec127e5ca66a03fee00`;
+actual canonical Native is
+`sha256:ea44ebf2cd364b917b3c063a2393a13dd1d4b918dc9333c47fe0cf33eee7cb58`.
+These identities supersede only the current provider, not historical results.
+
+| Current gate | Actual result and boundary |
+| --- | --- |
+| Private geometry03 | Each graph42 geometry calls/3 independent replies/20 regression cases/32 original point rows. Old successful point words remain; newly accepted old numeric refusals have independent geometric proof. |
+| Build03 | Strict Source plus actual canonical build, five successful compiler/generator commands. PREPARED is an artifact status, not a physics PASS. |
+| Tensor private02 / public API02 | Each graph20 candidate calls/13 references/0World, then8Worlds/212 accepted/8 references. Original anisotropic precontact scope stays bounded. |
+| Post-initial01 / post-regression01 | Data-only16 packets/48 initial quaternion checks; each graph7Worlds/82 accepted including4 replay steps,4 typed refusals and old two/three32-step word regressions. |
+| DT03 | Each graph6Worlds/840 accepted and independently passed/14 replies. Both aligned families60/120/240Hz through matched1second; complete Source/Native state-word parity. |
+| Original LONG02 | NO_GO at Source-three attempt490. Both graphs independently pass and compare two512/three384 only. Full512/512 is not qualified. |
+| Current HiDPI Viewer | `contact-viewer-current-hidpi-01` actual PASS36.100715s,3Worlds/896 accepted/nine Native captures/ten DPR checks/0errors/context closed/source integrity true. Proof7371685B before final receipt. |
+
+Smooth precontact position/energy ratios remain within[1.99,2.01]. Quantized
+impact indices14/27/54 satisfy the analytic one-step timing bound. Do not impose
+a smooth convergence order across the velocity jump. Original1e-10SI/1e-12m
+contact gates and all budgets remain unchanged.
+
+Long01's original479 strict-witness refusal and diagnostic/classification first
+failures are preserved. The new production path reaches past479, but long02
+then refuses `frictionless island: fresh post contact normal feasibility` at490.
+Its actual owner remains489/time4.075. Source has1002 attempts/1001 accepted,
+only896 independent-passed; Native has896 accepted/896 independent-passed.
+Source-three385..489 is observed-only, not a physical PASS. Native after384 is
+NOT_RUN. Do not infer Native490 or turn the original full UI/checkpoint into PASS.
+Those full512/512 artifacts remain NOT_RUN; an explicit separate current-prefix
+UI uses only paid512/384 windows.
+
+The display uses actual public @barocss/viewer setPackets/applyMotionFrame and
+its GPU presenter with the new canonical Physics. Actual default-DPR2 context,
+DPR1→2 and1280/1440/1920 retain the same World clock/state. Backing remains under
+4096/4MP;640×360 is an observation sample, not the native Viewer resolution.
+Current backing includes2460×1312,2777×1510 and2894×1448. It proves only the
+bounded primitive host. Studio's separate GPU viewport is not integrated or
+resumed. CAD React belongs to another Work and is not reviewed here.
+
+The library is NOT_COMPLETE. Next fix the actual490 fresh-post-contact
+feasibility boundary and requalify the original Source/Native/public/full Viewer
+horizon. Then address unequal mass, tilted/changing-normal/frictional contact
+and moving8, G3 arbitrary CAD COM/tensor/collider offsets, connected mechanisms
+and full physical domain coupling. All HOLDs, first failures and thresholds
+remain. See `examples/physics-contact-convergence-2276/RESULTS.md` and its
+`LIBRARY-STATUS.md`. No deployment or real-equipment qualification.
+
+**490 후속 데이터 감사:** 실제490 capture 감사는 거부 직전 closing velocity −1.0932118170260969e-7m/s를 확인했다. 원래1e-10 한계를 넘으므로 roundoff-only로 분류하지 않는다. 저장된384..489 진단에서는478 normal-direction error1.0310569142331814e-12가1e-12를 넘었고,488 rest velocity .04905m/s·angular velocity .0981rad/s,489 position error4.089e-4m가 관측됐다. 따라서 원인은490보다 앞설 수 있다. 이 데이터 감사의 independentTrajectoryAdded는0이며 두512·세384 자격을 넓히지 않는다.
+
+### Six-sample public library and Viewer gate
+
+`physics-sample-gallery-2276` adds six different finite library consumers:
+projectile64,elastic-box64,sphere-roll64,sphere-ccd1,principal-spin64,coupled-two128.
+Actual Source and canonical each pass12Worlds/770accepted steps including
+385repeat steps,385independent primary transitions,six reference replies,six
+invalid-command owner-preservation controls and full state/word parity. One
+Source observer-negative X perturbation is correctly rejected. Sphere rolling
+reaches no-slip by18; omega residual6.979e-16rad/s. Projectile continuous-position
+defect remains.0218m at64/120s; small discrete residuals are not continuous accuracy.
+Actual Viewer HiDPI02passes7Worlds/385steps/six complete Native packet captures,
+actual GPU changes,three desktop sizes/DPR1→2,zero errors/owned context closed.
+First desktop01resize-observer synchronization failure is preserved. Current
+package dist's121runtime modules match the paid canonical copy. Reusable local
+`dev.mjs` builds/serves with current dist and no paid receipt dependency.
+No production solver/export or tolerance changed. This finite gallery does not
+close478/488drift or490,original full-three512,moving8,G3,mechanisms or coupling.
+Next algorithm dependency stays contact/velocity/position coherence and the
+onset of aligned-rest drift, with original independent/public/full-horizon gates.
+See `examples/physics-sample-gallery-2276/RESULTS.md`. Existing HOLDs stay; no deploy.
+
+## Previous priority review, preserved before stationary qualification
+
+| Main track | Current qualified boundary |
+| --- | --- |
+| P0–P2 | Bounded common World and rigid recorder contracts/runtime pass locally. |
+| P3 / P5 | Selected disjoint hinges and fixed visual domain profiles pass; general mechanisms/coupling do not. |
+| P4 | Historical QR result: ALIGNED1200 passes live; OFFSET hits shared evidence capacity. The new stationary-only qualification is above; moving stacks remain NO_GO. |
+| P6 / P7 | Full physical domain coupling and connected-mechanism/control exits remain open. |
+
+### Current library implementation priority
+
+The current package has locally qualified actual contact-application collection
+and finite-sum validation before World commit (`8769c8a00`): Source9/Native9,
+canonical build/declarations and bounded public record/restore parity pass.
+The completed totals are currently discarded; this adds no public wrench
+capability and makes no performance claim. See
+`examples/physics-canonical-contribution-2276/RESULTS.md`.
+
+The package-owned frozen contact island under `src/stack/` now implements
+the original32-force-point normal solve and the separate36-row position solve.
+Its original1200-step qualification is still open. The current public pairwise solver is not the
+historically qualified private P4 provider. New current-package tests must
+requalify represented contact operands, phase order, independent physical
+checks and genuine emitted modules; old16-step receipts are not inherited.
+Historical sources remain evidence, with no shipping example imports or
+compatibility fallback. The JavaScript position core has an explicit NodeNext
+declaration boundary and byte-preserving build copies; strict TypeScript
+callers and actual runtime tests are separate proof boundaries.
+
+Internal implementation and numerical qualification take priority over further
+standalone proof-tool variants. No public profile/body-cap change follows from
+source presence. Fresh16-step Source/emitted gates precede the original1200
+campaign and its full geometry/position/ledger/quality/resource checks. Existing
+HOLDs, public persistent cap4,8x8 loops, tolerances and first failures remain.
+The ended cost candidates below stay ended; a new private proof-cost result
+does not by itself qualify this library engine or the original full stack.
+
+The actual package engine now passes original first32 equilibrium, invalid-input
+retention, deterministic repeat and ALIGNED/OFFSET/YAW one-step/fresh16 on both
+Source and genuine Native modules. Each graph has51 independently checked
+phase acceptances and453231 exact record numeric words. The generated ALIGNED
+first input exactly matches the saved32-point problem, including363 numeric
+words. See `examples/physics-stack-library-2276/RESULTS.md`.
+
+Its separate emitted-only runtime diagnostic returned543 ALIGNED candidates
+but accepted542 locally before the unchanged170s deadline; full independently
+accepted steps remain0. OFFSET/YAW were not run. Whole-function preparation
+accounts for168.611802125s of170.020379334s observed wall time; this is an actual
+library cost failure, separate from the old308-step complete-path timeout.
+One word-qualified16-step CPU sample places92.88 percent of sample weight under
+strict-line geometry. OPT01–05 retain every run04 physical record and all453231
+numeric words per graph on fresh Source/Native prefixes. Latest fixed arithmetic
+banks32/26/25/16 and geometric boundary19 pass per graph; canonical build08 passes.
+Original runtime failures at542/1050/1065/1166 local acceptances remain recorded.
+The OPT04 canonical diagnostic now completes ALIGNED/OFFSET/YAW1200 each with
+normal KKT, at166.543/146.165/146.909s child scene wall. This observer omits full
+independent geometry/position/ledger/quality: independently fully accepted steps
+remain0 and API/resource qualification remains open. No full-stack PASS follows.
+
+The current whole-path16-step census preserves all195 old physical request/reply
+pairs byte-exact and all record/raw words. Of20.932s observed wall,48 position
+asks account for9.511s;48 preparations7.185s. One captured reference profile
+locates repeated compact geometry and cold LP/QP work; nested profile times are
+not disjoint cost or a performance gate. Next are bounded exact library
+arithmetic and request-local reference preparation reuse. Keep every pair/axis,
+precision comparison, cold optimizer and original failure. Requalify unchanged
+physical replies before a full1200 complete-path/resource campaign. Public API,
+cap promotion and new desktop integration remain gated on those results.
+
+OPT05 also completes all3 local1200/KKT scenes, at161.173/143.057/140.331s.
+All raw streams and initial physical metadata equal OPT04 exactly; reuse of its
+paid saved-quality audit is explicitly input-identity proof with zero new
+numerical calls. Full live checks are still absent. A new make-key observation
+retains all original16-step physical results but does not justify a production
+cache or performance claim. Next validate request-local reference preparation
+and live lossless detached packets before bounded scheduling/resource tests.
+
+The separately captured OPT04 trajectory also passes every original independent
+quality gate for all3603 states, with actual frame960 baselines and241 frames per
+scene in8–10s. Maximum vertical drift is2.7755575615628914e-17m and linear speed
+2.395448185421987e-14m/s. This saved-data audit does not supply the absent complete
+contact/position/ledger/live-resource/API gates. See
+`examples/physics-stack-trajectory-audit-2276/RESULTS.md`.
+
+Request-local reference preparation now passes12 groups,6 complete old CLI
+replies and a current canonical3×16 census:195 old wire pairs/425916 record words
+exact. Root's initial432decode-count assertion failed and is preserved; source
+mapping proves288 on this world path, corrected by a data-only review. The
+separate live detached-packet3×16 gate also passes, including254544 own numeric
+words, every physical check and next-state ownership. The actual bounded three-credit Worker/three-reference composition now passes
+all48 fresh phase steps and195 old wire pairs. A separate exact after-wait CPU
+run observes9.265765s wall and complete Node-subtree CPU21.301446s user plus
+0.365372s system, without a speed ratio or1200 forecast. Existing first synthetic
+control12 failure stopped before physics and remains preserved; only its invalid
+expectation was corrected. Next is lossless bounded full-run archive handling,
+a fresh combined3×16 producer/archive gate, then original3×1200 under its original
+physical/wall/wire/scratch/output contract. The new stream archive component now
+passes all18 fixed word/corruption/boundary controls (867.339833ms outer), with
+zero physics calls. Live combined qualification remains pending; see
+`examples/physics-stack-stream-2276/RESULTS.md`.
+
+**Resource scope correction (2026-11-04):** source tracing found no global64MiB
+heap/engine-plus-oracles threshold in the original1200 exit. That number belongs
+to later offline proof or cache-owned research contracts. The previous review
+incorrectly inherited it as a whole-engine prerequisite. Keep those stricter
+profiles, limits and NO_GOs intact as NOT_QUALIFIED; do not call them PASS or
+raise them. The original280MiB compressed/20MiB fixed-evidence/2MiB emergency,
+2MiB wire, existing16MiB scratch and170s/180s scene bounds retain their actual
+scopes. Total heap/RSS certification is separate and unclaimed. Exact authority
+paths/lines and allocator exclusions are in
+`examples/physics-stack-owned-data-2276/ENVELOPE-PREMISES.md`. New full-run
+contract explicitly adopts this correction; historical contracts stay unchanged.
+
+The new complete runner first stopped on ALIGNED2 archive admission: actual
+JSON483481 bytes was below2MiB, while the conservative estimate2446850 exceeded
+it. Prefix01 remains FAIL. A distinct exact-size archive passes23 fixed controls
+under unchanged wire/scratch/output bounds; the new same-source prefix02 passes
+all48 independent phase steps,195 original wire pairs and425916 recovered words.
+See `examples/physics-stack-complete-2276/PREFIX-02-RESULTS.md`.
+
+Original full01 then contiguously verifies/archives1114 ALIGNED steps before the
+fixed scene deadline (166s actor work plus4s cleanup inside170s). First observed
+producer wait is1116; unfinished position1115 means earliest failure UNKNOWN.
+OFFSET/YAW remain NOT_RUN. Actual960 baseline promotion and155 committed terminal
+frames pass;10s/1200 and whole P4 do not. Archive206516742 bytes closes; separate
+offline recovery passes1115 groups in10.723851667s with no new physical calls.
+No output-cap failure was observed. Preserve all first failures and distinguish
+that later audit from live qualification. See
+`examples/physics-stack-complete-2276/FULL-01-RESULTS.md`.
+
+OPT06 now removes duplicate checks of already checked exact integer results.
+New32, retained32/26/25/16 and boundary19 tests pass on Source/genuine Native;
+run10 retains every original physical report,117 payload files and453231 numeric
+words per graph. Canonical build09 passes9.343297625s. Exact old arithmetic
+counters, bit peaks and refusal priority remain required. Its canonical runtime-only
+diagnostic now completes all3×1200, at157.965913125/138.402241417/136.722443083s;
+all3603 raw frames and initial physical metadata equal runtime05. Full independent
+acceptance remains0 and API false; no speed ratio or full P4 claim follows.
+The q1 archive candidate ends at its unchanged80MiB component screen after4120
+of10034 entries. A separately sourced stateful ring/hasher candidate must keep
+those screens and qualify independently. Next address measured engine/archive
+cost, then a new full campaign. No public profile, recorder or desktop promotion
+precedes original full acceptance.
+
+OPT07 removes a redundant GCD only for the square of an internally normalized
+sum. New32, all retained arithmetic banks and boundary19 pass on Source and
+genuine Native; run11 preserves all453231 physical numeric words and117 payload
+files per graph. Canonical build10 passes9.252183583s. Actual integer work can
+decrease; no universal old work-limit refusal parity is claimed. Physical
+tolerances, integer bit checks and fixed operation ceilings remain unchanged.
+Its complete1200 cost is not yet qualified.
+
+Both stateful q2 and fixed16 reference-storage candidates also end at the
+unchanged80MiB component screen:5137 and7606 of10034 entries respectively.
+The latter passes34 component tests but does not recover the full fixed input;
+CPU remains UNKNOWN on that failed screen. Neither candidate is adopted. Keep
+all three storage failures. The next full campaign uses the already qualified
+exact-size archive and actual canonical OPT07 provider. A separate8-test
+failure-evidence component now preserves the received uncommitted packet and
+its finite numbers, including signed zero, within the existing2MiB emergency
+bound. Fresh combined-prefix and full physical tests must qualify integration.
+
+The fresh OPT07 prefix03 passes48 independent steps,195 old wire pairs and
+425916 recovered numeric words. Full02 then stops at the unchanged deadline:
+ALIGNED1098 steps are fully verified/archived by the host; first observed
+position1099 deadline leaves earliest failure UNKNOWN. The failed owner has
+CPUUNKNOWN and no accepted campaign scene, so its campaign count is0. OFFSET
+and YAW are NOT_RUN. Actual received1099 evidence survives; a data-only audit
+restores84 negative-zero paths and matches four body frames to the paid
+runtime05 data. It adds no physical acceptance. Root's first audit had a wrong
+saved-file URL; that harness failure and its corrected audit remain recorded.
+Original full01 is unchanged. See `physics-stack-complete-2276` results.
+
+OPT08 changes only exact integer bit-length encoding from binary digits to
+hexadecimal digits plus an exact leading-nibble width. The isolated32 controls,
+retained32/32/32/26/25/16 and boundary19 pass on Source/genuine Native. Actual
+package run12 keeps all453231 physical numeric words and117 payload files per
+graph exact to run04; canonical build11 passes9.206205666s. Counters, checked
+peaks, bit/work limits and refusal order remain unchanged from OPT07. No current
+speed or1200-fit claim follows. Next freeze this actual canonical provider,
+run a fresh combined prefix and then the original full campaign. Shared280MiB
+remains shared across scenes; source tracing does not justify resetting it.
+
+Actual OPT08 prefix04 passes48 independent steps and425916 recovered words.
+Full03 then verifies/archives1153 ALIGNED steps before the original deadline;
+producer1155 is first observed and world1154 is unresolved, so earliest failure
+is UNKNOWN. Campaign acceptance remains0 because the owner fails; OFFSET/YAW
+are NOT_RUN. The actual960 baseline and194 completed terminal states survive,
+but the required241 states and1200/full recovery do not. Failure capture keeps
+received1153 while it is archiving; that step later commits. The packet for
+pending1154 is not included in the failure envelope. Its reached RPC evidence
+remains in the closed partial archive. No missing packet is reconstructed or
+claimed recovered. Preserve this diagnostic limit and the original first
+failure. See `examples/physics-stack-complete-2276/FULL-03-RESULTS.md`.
+
+Full05 with the same OPT09 engine and qualified native CRC now completes
+ALIGNED1200 LIVE: every original independent gate, full10803-entry recovery,
+final source authentication and clean after-wait CPU ownership pass in
+169.46208579209633s. All1201 records/10594384 words equal the paid full04
+physical record stream. This qualifies that case only; runtime headroom remains
+small. OFFSET verifies/archives328 steps before the shared recording cap, with
+RETAINED_CAP preserved in its stop receipt. First observed geometry330 stream
+error and earlier pending work leave earliest failure UNKNOWN. Its selected330
+and additional329 packets survive; YAW is NOT_RUN. Whole three-scene P4 and
+public World admission remain NO_GO/NOT_RUN. See
+`examples/physics-stack-complete-2276/FULL-05-RESULTS.md`.
+
+OPT10 exact common-denominator local projection now passes32 new controls,
+all retained banks/boundary19, Source/Native run14 full physical-word parity,
+actual canonical package build13 and canonical ESM32. Fresh complete prefix07
+passes all48 ALIGNED/OFFSET/YAW steps,425916 recovered words and195 original
+wire pairs. Full1200 for OPT10 and public World remain NOT_RUN. Its arithmetic
+work/peaks can change under the same limits; stale failed private contexts are
+explicitly refused. See `physics-stack-library-2276/RESULTS.md` and
+`physics-stack-complete-2276/PREFIX-07-RESULTS.md`.
+
+The distinct L227 archive candidate passes33 controls, then ends its single
+80MiB screen at5707 of10803 frames with RETAINED_CAP. Full recovery is NOT_RUN;
+complete owned CPU is UNKNOWN. No archive candidate is revived or tuned.
+Next verify an exact stationary normal-equilibrium witness on the identical
+authenticated32-point input, including an independent global balance check
+and the unchanged original Float/Decimal gates. A new algorithm's impulses
+can differ from nonunique old QR impulses; its physics, determinism and full
+trajectory require fresh qualification. No public admission follows from
+source existence. Keep shared280MiB, reserves, clocks, caps, tolerances, every
+first failure and all HOLDs unchanged.
+
+The current first-interval coupled-contact path has completed its finite
+arithmetic, actual World, post-impulse rollback/wire and desktop Native gates.
+Keep these separate from canonical package adoption and the original stack.
+See COVERAGE-14 through17 and the corresponding actual reports.
+
+The earliest OBSERVED blocker on the original P4 path is full-reference/runtime
+cost. That cold32-normal path already passes matched16-step ALIGNED/OFFSET/YAW
+prefixes and rejects loaded tangential speed above1e-10m/s. The separate ALIGNED
+run accepted308 steps, then stopped at180s before309. The one-point G2 lane uses
+half-.5m/inverse-inertia6I/g0; P4 uses eight half-.25m/inverse-inertia24I boxes
+and gravity. Neither provider qualifies the other. Original persistent plane,
+gap, warm and settling failures remain failures of their actual providers.
+
+Current execution order is package arithmetic/reference cost, full original1200
+independent/resource checks, atomic World/recorder/API adoption, then desktop
+consumer verification. No legacy shipping path is introduced. P6/P7 remain
+dependent on their physical profiles. The historical proof-candidate sequence
+below is preserved as evidence; its ended candidates are not the next task.
+
+Historical proof-candidate sequence:
+
+1. Qualify one NEW exact active-basis KKT certificate checker on the saved
+   full36-row position problem, starting with original ALIGNED1. Preserve its
+   distinct original32 velocity contact points and all coordinate words.
+   Existing independent cold-QP outputs and a separately authored exact checker
+   remain the numerical authority. The basis is explicitly untrusted witness
+   input; this changes the reference-proof contract and is not a cold optimizer
+   independent of producer metadata. The Python revision01 hit its unchanged2M
+   primitive limit on ALIGNED16. Revision02's common-denominator products passed
+   all10 kernel/control checks and6 full physical/independent frame checks, but
+   its one cost decision failed:2395213000ns versus saved773147000ns, with the
+   predeclared695832300ns threshold. Both revisions and first failures remain;
+   the Python candidate is ENDED, not a new public capability. See
+   `examples/physics-p4-position-witness-v2-2276/RESULTS.md`.
+2. The next separate candidate moves only exact position proof to installed
+   Node22 BigInt, retaining raw inputs, original2M proof pricing and all36-row
+   gates. Producer solutions and incompatible producer arithmetic are not proof
+   inputs. The native candidate passed A10 and all6 full physical/independent
+   frames, then ENDED on its one cost NO_GO:545702000ns parent context CPU plus
+   568623000ns owned Node complete-lifetime CPU =1114325000ns. The threshold
+   remained695832300ns. This conservative envelope includes startup/IO/shutdown
+   and is wider than the saved single-process core, not the same boundary.
+   Its setup-only NameError and zero-call counters remain preserved separately.
+   See `examples/physics-p4-native-witness-2276/RESULTS.md`.
+   The separate Lehmer candidate passed32 exact GCD/Bézout pairs with one
+   1159878-unit meter and319 accepted blocks. Its fresh position bank then hit
+   the unchanged2M cap on ALIGNED16; B/cost/World were NOT_RUN. See
+   `examples/physics-p4-lehmer-witness-2276/RESULTS.md`.
+   The entry-invariant GCD candidate passed freshG0/A10/B6, but its one
+   parent-plus-owned-child cost was845830000ns: COST_NO_GO, ENDED. The bounded
+   Float64/decimal codec candidate then passed freshG0/U0/A10/B6 with exact
+   saved physical payload identity, but its one cost was861802000ns against
+   the unchanged695832300ns threshold: COST_NO_GO, ENDED. Their explicit
+   GUARD-POLICY changes preserve prices/caps but do not claim every old guard
+   clause unchanged. See each candidate RESULTS.md. A single instrumented D0
+   ALIGNED16 diagnostic preserved every output byte/counter; its57 samples
+   locate GCD/bit/meter and rational KKT work, not an actual speed ratio.
+   The distinct dyadic integer-matrix algorithm also passed freshG0/U0/A10/B6,
+   including full saved payload and all36 KKT checks, but ENDED on its one cost
+   NO_GO:557970000ns parent +254303000ns whole child =812273000ns, above
+   the same695832300ns gate. Its maximum proof work was356696 units. Accepted
+   translation error≤2.148164124373243e-36m and margin-report error
+   ≤1.1102230246251565e-16m pass the unchanged1e-12 gate. See
+   `examples/physics-p4-integer-witness-2276/RESULTS.md`. The new direct minimal
+   radical-grid interval has actual pure17 PASS:13valid,2invalid,2resource,
+   one old SAT Meter/17 immediate independent audits,18911 operations and
+   peak16383bits under the unchanged2M/16384/64-sqrt limits. It changes
+   interval construction, not the already-existing signed-square winner test.
+   See `examples/physics-p4-radical-grid-2276/RESULTS.md`. The closed V3
+   metadata map preserves every physical word, axis/selection/tie, threshold
+   and KKT field; only proof endpoints/precision/tag/protocol and derived
+   proof-width diagnostic can change. New full6 mathematical/physical and
+   independent validations all passed:432records/864models/12960axes,
+   78888 unchanged physical leaves and8682 checked metadata paths. Its one
+   cost was559202000ns parent +234927000ns whole child =794129000ns:
+   COST_NO_GO, ENDED against the same695832300ns gate. See
+   `examples/physics-p4-radical-compact-2276/RESULTS.md`. A post-run source
+   audit revoked the NEW validator observed-graph measurement: temporary
+   dictionary-entry IDs can be reused. Its separate preallocation bound is
+   conditional pending ownership review; no corrected memory PASS is claimed.
+   Original reports/math passes/cost failure remain unchanged. The distinct
+   pair-local Gram/mixed-determinant candidate retained all15 axes, without
+   orthogonality, radius caches or pruning. Its signed27/all exactN/D/S pure
+   bank and fresh six-frame full mathematical/independent checks passed. Its
+   new corrected ownership measurement passed without repairing the old V3
+   revoked measurement. Its single cost was554815000ns parent plus244623000ns
+   whole owned Node =799438000ns against695832300ns: COST_NO_GO, ENDED.
+   See `examples/physics-p4-gram-compact-2276/RESULTS.md`. The outer zero
+   candidateChecksAttempted field is a preserved counter defect; actual
+   wrapper receipts show6 frames and6 proof calls, not zero physical work.
+   Existing geometry decoder reuse is not a new independent geometry oracle.
+   No ended candidate retime or higher limits. Original1200/World/API/desktop
+   remain NOT_RUN.
+   Do not resume ended support
+   caches, Node-SAT or primitive-axis retunes. A subset speedup is not evidence
+   that the full1200-step protocol fits180s.
+3. Qualify complete contact/position/ledger/quality cost and original inputs
+   before a fresh original ALIGNED/OFFSET/YAW1200-step campaign. Preserve all
+   first failures, fixed8x8 loops, geometry/work/settling gates and180s limits.
+4. Keep atomic public producer/geometry/caller cutover as a separate lane under
+   its existing map and individual producer gates; it need not wait for every
+   P4 or optional physics feature. No legacy compatibility route is allowed.
+   New private profile passes do not automatically adopt schema2 in canonical
+   root/replay/CAD callers; complete its source/native/API/recording checks.
+5. Advance P6/P7 only with their actual required physical laws, reactions,
+   trajectory/work/dt gates and typed endpoint prerequisites. Keep general
+   warm/multipoint friction as its own qualified profile; do not invent it as
+   the cause of the observed P4 timeout.
+
+The new cost proposal and source evidence are in
+`examples/physics-stack-next-2276/`. Saved32-point force balance and finite-cell
+witness checks are not long-time dynamics. Studio/manufacturing/equipment HOLDs,
+old tolerances and first failures remain. Desktop only; no mobile or deployment.
 
 ## Current owner publication decision (2026-11-02)
 
@@ -270,7 +866,9 @@ prototype across the wider admitted range.
 | G1d command/recorder | Source and genuine emitted root/replay pass principal-axis impulse+torque expiry and two-step general triaxial recording/restore/continue: six actual Worlds, twelve accepted steps, eight independent endpoint audits and six state/log/cache-preserving refusals. Max world-L error 1.600786710055395e-17 kg m²/s; R-entry 2.2833535057329648e-17. | One new combined Source bundle; Native reuses authenticated strict NodeNext modules. No canonical-root adoption. Nonprincipal load, motor/joint/contact/projection, persistent/large angular flow and physical coupled trajectories remain NOT_RUN. See `examples/physics-rigid-rotation-g1d-2276/INTEGRATION-RESULTS-01.md`. |
 | Admission and public adoption | Source audit fixes SI, body-to-world XYZW, world angular vectors, existing initial-q normalization, and kick/motor/free/contact/record commit order. | The fixed momentum-unit triaxial prototype excludes much of the parser's existing mass/extents/spin/dt range. Finite PASS is not authority to apply it to every admitted box, silently narrow admission or retain the incorrect anisotropic law as a compatibility fallback. Explicit supported-range resolution and affected canonical build/caller checks remain required. |
 
-### G1e public input boundary and nonprincipal loads (2026-11-02)
+### G1e historical public boundary and nonprincipal loads (2026-11-02)
+
+This checkpoint is preserved. Its whitelist and one-step horizon are superseded by the general rotation implementation below.
 
 The public Source and canonical bundled emitted root/replay now adopt only the
 explicit one-step isolated-rotor range in
@@ -320,6 +918,560 @@ for G1c/G1d are zero; G1e adds only its eight frozen baseline reference windows.
 Deterministic replay equality and physical error
 checks remain separate. Studio, manufacturing and equipment stay outside this
 independent Work. No partial develop merge, deployment or publication follows.
+
+### General continuous primitive rotation (2026-11-02)
+
+Implemented in the common World without a compatibility route: actual-momentum
+scaling for free S8 rotation, conditioned subdivisions capped64, constant-torque
+order-eight extrapolation, and uniform-volume capsule COM inertia. Removed the
+literal G1e body/load whitelist and one-step horizon; retained model ranges,
+contact iterations, movement limits, transactional recording and all tolerances.
+
+Actual Source and canonical compiled root/replay each PASS31Worlds/3925accepted
+steps,23generality cases,0.1s forced grids60/120/240Hz and30s free rotation.
+Max matched-time R error3.073e-16, omega2.299e-15rad/s, work1.253e-16J.
+Independent32-sample long-run E/L errors2.664e-14J/2.039e-14Nms. Free symmetric
+tops and isotropic forced primitives have separate analytic checks. Source/Native
+frames agree; known/unknown refusal preserves state/log, recovery/restore/actual
+continuation pass. Original compiled rotation/oriented/broadphase probes PASS.
+See `examples/physics-general-rotation-2276/RESULTS.md` for exact proof boundaries,
+commands, three-grid errors and capsule first failure0.004422625739232428Nms.
+
+Remaining: nonidentity forced-frame/anisotropic forced-capsule work and phase
+oracles, wider nonparallel time-varying loads, contact/joint/motor composition,
+G2 exact sphere-corner CCD, G3 arbitrary COM/tensors, original P4 eight-box NO_GO,
+and P6 coupled dynamics. Long-run phase, full CAD SDK/subpath closure and browser
+proof remain NOT_RUN. No engine-wide or release-gate PASS. Existing HOLDs and
+first failures remain. No deployment or release.
+
+### Desktop Physics Lab consumer (2026-11-02)
+
+`examples/physics-lab` now drives the existing public World/recorder and Viewer
+from one independent desktop sample. Box/sphere/capsule inputs, fixed steps,
+world torque/J, page-memory save/restore/real continuation and explicit512-frame
+recording stop are implemented. No numerical package or Viewer/GPU source changed.
+Four focused session tests and12desktop Chrome checks PASS at1280/1440/1920widths.
+The browser verifies accepted pose→Viewer agreement, actual GPU pixels, command
+expiry, refusal retention/recovery and the same six-time three-grid independent
+reference comparison. Live trapezoid work is explicitly approximate; screenshots
+are presentation evidence. Current active checks are desktop only per owner.
+See `examples/physics-lab/RESULTS.md`. Source consumer proof does not certify the
+published browser SDK, device-loss recovery, contact/joint composition, G2 CCD,
+P4eight-box, Studio, equipment or manufacturing. All HOLDs/NO_GO/old gates and
+first failures remain. No deployment or release.
+
+### G2 rounded sphere/static-box sweep (2026-11-03)
+
+Implemented `ccd-rounded-box.ts` and adopted directly in `ccd.ts`: exact dyadic
+initial/feature/discriminant/domain predicates, stable roots and projection
+normals. No expanded-slab sphere fallback, whitelist or new dependency. Existing
+admission,1e-9 bias, tie order, material laws and contact iterations are unchanged.
+Independent6face/12edge/8vertex oracle certifies all16 original Source then
+16Native controls. Max TOI2.384e-17, normal1.388e-16, squarednorm3.645e-16;
+old1e-12 gates remain. Original C03/public false-entry failure is preserved.
+Current C03TOI0.18899576603592683 produces1 actual contact.
+
+Each public graph passes26World/29steps plus separate1World/1step unknown-error
+atomicity; actual restore/continuation and known refusal retention pass. Original
+CCD/pair/rotation/oriented probes pass. The desktop Viewer scene passes9 checks,
+all16 original boundaries plus5feature scenarios at1280/1440/1920, including actual pixels, accepted poses and physical
+TOI/normal markers. Its first duplicate-display-ID failure remains preserved.
+See `examples/physics-rounded-ccd-2276/RESULTS.md` for bounds, commands and evidence.
+
+G2 is not wholly closed: restitution/friction switches, near-tie/extreme-scale
+coverage and contact/projection work still need selected independent tests.
+Remaining-time integration, rotating-box CCD, original P4eight-box NO_GO,
+P6coupling and full-roadmap acceptance remain separate. Existing HOLDs and all
+first failures remain. No Studio/manufacturing/equipment resume, deploy or release.
+
+### G2 persistent box restitution (2026-11-03)
+
+The old compiled public baseline is PHYSICAL_NO_GO_RESTITUTION_IGNORED:
+expected0.5m/s outgoing, actual0. A once-per-step candidate normal target now
+uses all pre-warmstart point velocities for each pair, strict closing>0.5m/s
+and minimum restitution; all existing solver iterations, friction laws, limits
+and tolerances remain. Targets are not retained in warm caches. Internal live
+inelastic studies pass explicit zero, without an optional legacy argument.
+
+Public Source and genuine emitted root/replay each pass28Worlds/287steps.
+Separate warmed-cache/restore/fault tests each pass3Worlds/9steps. Independent
+exact-rational Newton/momentum audit passes40finite impacts. Max main/warm
+velocity2.221e-16m/s, spin2.776e-16rad/s, impulse/momentum/energy8.882e-16SI;
+old1e-10/1e-12 gates unchanged. Original persistent-box probe passes, without
+rerunning or qualifying the original eight-box NO_GO. Dedicated actual GPU
+Viewer scene passes11desktop checks/six presets at1280/1440/1920. No mobile.
+See `examples/physics-persistent-impact-2276/RESULTS.md` and preserved failure.
+
+This is centered principal-axis zero-friction impact qualification. Global
+simultaneous/tilted/off-center impact, friction transitions and projection work
+remain separate. Next: finite friction mixing/stick-slip and independent
+reproduction of the anisotropic cuboid sticking candidate before any repair.
+P4eight-box/public4 limit, P6/P7, all HOLDs and first failures remain. No deploy.
+
+### G2 finite discrete friction response (2026-11-03)
+
+Two actual physical failures are preserved: original sphere nextDown(1.75)
+static impulse0.25Ns vs expected~1Ns, and centered anisotropic cuboid residual
+slip0.31043712344775254m/s vs1e-10. `collision.ts` now uses the geometric
+sphere/static-box tangent lever, a non-unit-normal orthogonal projection and
+private `contact-tangent.ts`2Dstatic solve with finite/SPD guards. No epsilon,
+iteration/admission change, singular fallback or dynamic-law replacement.
+
+Final cuboid public Source and emitted root/replay each pass27Worlds/31steps,
+with20valid finite controls and one separate invalid creation refusal. Original
+sphere table22cases passes unchanged per graph; independent physical scalar
+reference passes40cuboid audits, no candidate/World calls. Max accepted slip
+2.221e-16m/s, old1e-10 gate. Original support3000/sliding240step tests pass both
+graphs after preserving the first candidate projection regression. Invalid
+muStatic4 test remains refused; separate supported upper2case is explicit in
+cases02 and never changes admission. Actual desktop GPU Viewer passes9checks,
+four presets at1280/1440/1920, zeroerrors, no mobile. See
+`examples/physics-tangent-response-2276/RESULTS.md` and original material table.
+
+Persistent friction, sphere-pair finite-overlap lever semantics, coupled
+normal/tangent/off-center impacts and projection work remain open. These fixes
+do not repair original P4. Latest P4 source attempt accepted308steps then hit
+180s before309; corrected runners qualify matched16step prefixes only. Next
+P4 dependency is a new bounded independent-reference strategy, not an unchanged
+full-stack rerun or another ended support-radius-cache iteration. All prior
+failures, HOLDs, four-body public limit and no-deployment policy remain.
+
+### P4 exact integer SAT observer micro (2026-11-03)
+
+A new files-only integer homogeneous SAT observer passes the saved numeric
+subset on6CURRENT frames, all432PRE/HYPpair stages,864raw/normalized quaternion
+problems and12960axis visits. Independent savedDecimal authority and Fraction
+rounding-cell audit match2592binary64 numeric words exactly. Actual total
+CPU534.484ms/wall545.851ms;1,091,821integerops of2M, max5814bits of16384.
+Zero World/QP/old-reference/fixture/trig calls. The first halfway-boundary
+certificate failure and original source are preserved; stricter candidate
+termination reuses the old precision table without relaxing the observer.
+
+This is NOT a full compact_pair replacement, costGO or stack result. Exact
+feature winner has no complete independent saved certificate; scalar feature/
+normal/point/ties and reference-specific precision-delta output remain separate.
+The original192row corpus is authenticated only, not reused as a SAT oracle.
+Next must qualify a complete physical output/reference protocol and measure
+saved-frame TOTAL cost before1200steps. Source/persistent limit4 unchanged;
+original308accepted/309budget stop,16prefixPASS and older physical failures
+remain. See `examples/physics-p4-sat-2276/RESULTS.md`. No production/renderer
+change or deployment. G2's current19-branch evidence/gap map is separately in
+`examples/physics-contact-coverage-g2-2276/COVERAGE-02.json`.
+
+### P4 offline adapter and position checkpoint (2026-11-03)
+
+The local adapter-freeze check passes byte equivalence after the same solve-region
+replacement on separately authenticated old/current inputs. It makes zero World,
+step, candidate, geometry and build calls. It does not authorize automatic adapter
+adoption or establish physical accuracy. See
+`examples/physics-p4-adapter-freeze-2276/RESULTS.md`.
+
+Compact V2 passes the saved protocol subset: 6 frames,432 records,2592 numeric words
+and 13926 retained payload leaves, with zero World/QP calls. Cold-position V2 then
+passes 6 fresh cold QPs,432 records,2592 words and17394 retained payload leaves.
+The complete saved physical reply matches, including lambda, KKT, corrections,
+selection, points and ties. These are saved-frame numeric/protocol results;
+independent feature geometry and full P4 acceptance remain separate. Certificates
+stay strictly inside their binary64 rounding cells with width <= exact decimal 1e-25;
+the original represented 1e-12 m physical gate stays fixed. See
+`examples/physics-p4-compact-v2-2276/RESULTS.md` and
+`examples/physics-p4-position-v2-2276/RESULTS.md`.
+
+Position V2 core CPU is773147000 ns; whole observer CPU is 1016861000 ns.
+Primitive-axis numeric equivalence passes, but core CPU798363000 ns fails the
+fixed candidate*10<=baseline*9 cost gate against773147000 ns. That candidate is
+ended. The owned Node candidate also returns the complete compatible saved
+reply, but parent core397992000 ns plus ENTIRE wait4 child CPU686846000 ns totals
+1084838000 ns and fails the same cost gate. Its boundary conservatively includes
+child startup and epilogue and is wider than the saved baseline; it is one
+pairing, not a universal benchmark or equal-boundary speed comparison. Stdout
+and stderr reach EOF, the child exits 0 and is reaped, and no trailing stdout
+remains. Request-only CPU is nested attribution and does not set the gate.
+See `examples/physics-p4-primitive-axis-2276/RESULTS.md` and
+`examples/physics-p4-node-sat-2276/evidence/node-01/summary.json`.
+
+Full 32-point line/paired witnesses, phase ledger/quality, whole-trajectory
+output/cost and full 1200 steps remain NOT_RUN; whole P4 remains NO_GO. These
+local receipts do not change the original 308 accepted/309 budget stop, matched
+16-step prefix evidence, four-body public cap, HOLDs or earlier failures.
+No deployment or numerical rerun accompanies this tracking update.
+
+### G2 exact sphere-pair CCD (2026-11-03)
+
+The actual compiled min-radius baseline reports falsegraze at0.5 while exact
+closest gap9.999999987147026e-12m exceeds unchanged1e-12m gate. Originalinput,
+provider/source and failure remain. New `ccd-sphere-pair-exact.ts` classifies
+represented endpoints/separate radii with exact dyadic predicates; stable roots
+and projected normals construct hits. Both5e-10 inward biases, initialownership,
+currentadmission and remaining-time discard remain. No epsilon/fallback/search.
+
+Each Source/compiled public graph passes29Worlds/33steps and22direct helper
+calls. Exact closest-approach bank precedes candidateexecution; independent
+Fraction/80/120 chord audit passes88results. Max TOI3.906e-17, normal4.207e-17,
+distance1.607e-16m. Old1e-12 gates, unknown/known failure retention and replay
+pass. Original spherepairprobe passes. Actual GPU Viewer scene passes8desktop
+checks/four presets at1280/1440/1920; tiny proxies explicitly1000x. First closed-
+details driver failure remains; revised driver opens actualvisibledata. No
+mobile. See `examples/physics-sphere-pair-ccd-2276/RESULTS.md`. Sourceanalysis
+bounds intermediates<8410bits; corpusBigIntops notmetered/no2MopsPASSclaim.
+
+This is finite C06 proof, not arbitraryextremes, rotatingnonsphereCCD, remaining-
+timeflow or friction-coupled impact. P4eightbox, persistentfriction, spherepair
+finiteoverlapfriction, generalcoupledwork and P6/P7 stayopen. HOLD/no deployment.
+
+### G2 discrete unequal-material restitution (2026-11-03)
+
+A separate Source and compiled public API check passes16Worlds/16steps per graph.
+Independent precomputed Fraction momentum and Newton constraints cover centered
+fixed-sphere/fixed-cube and unequal-mass sphere impacts, unequal material minima,
+0/1 endpoints, orders and strict0.5m/s threshold neighbors. Maximum velocity
+residual4.441e-16m/s, impulse8.882e-16Ns and energy1.333e-15J meet the existing
+1e-10 gates. The reference setup zero-pivot failure is preserved; no World was
+called at that failure. No production change or new browser qualification.
+See `examples/physics-discrete-restitution-2276/RESULTS.md` and
+`examples/physics-contact-coverage-g2-2276/COVERAGE-04.json`. Persistent friction,
+general projection/coupling and original P4 remain separate NO_GO dependencies.
+
+### G2 persistent contact geometry and cache investigation (2026-11-03)
+
+A separate actual Native public baseline uses 1 World and 2 accepted steps and
+remains NO_GO. At step 2, the independent Fraction audit confirms tangent-plane
+residual 7.191714115138252e-9 Ns against the unchanged 1e-12 Ns gate. Native
+line/box audits of the accepted aggregate point and normal find paired witness
+gaps 8.508678180235096e-6 m and 5.6915981142408475e-5 m at steps 1/2, both above
+1e-12 m. This is a public accepted-contact defect. Geometry phase correspondence
+and cache handling remain under investigation; a cache-only repair is not yet
+qualified. Original states, provider/source and first failure remain in
+`examples/physics-persistent-friction-plane-2276/evidence/baseline-01/`.
+
+A separate private box feature candidate passes construction and exact
+Source/strict-NodeNext parity on 20 cases/62 returned points per graph, with zero
+World calls. Independent geometry stops in the first case at the third point:
+"rounded midpoint line misses native box". Construction/parity is therefore
+not an independent geometry PASS. This private candidate has no production
+integration. See `examples/physics-box-contact-features-2276/evidence/run-01/`
+for both verdicts. No tolerance or first failure is changed.
+
+The corrected exact quotient/remainder presentation still refuses the first
+Source case at FACE:4:2; Native and the original32 controls are not reached.
+A separate saved-output Hamilton/Fraction audit verifies4 exact certificates,
+all36 nearest-even point coordinates and3 normal coordinates. Two represented
+lines miss a native box: conflicting slab bounds differ by6.354395108e-15,
+with5.295329251e-19m boundary violation at the upper bound. Strict intersection
+has no tolerance, so this remains NO_GO. Global unrepresentability is not proved.
+The first construction retained32 rows but only28 raw coordinate rows matched;
+the maximum movement5.551e-17m is a measurement, not automatic permission.
+
+The separate finite-cell construction now passes Source/strict NodeNext20cases,
+62points and1674anchor checks per graph. An independent Hamilton/Fraction
+observer checks all3348 cell members and124 exact certificates across both
+graphs. All32 original rows now match RAW coordinates exactly, with zero
+movement. The normal stays fixed; the complete27-member cell has a frozen
+exact nearest-feasible/word-lex objective. Empty cells refuse without expansion.
+This qualifies only the named private geometry. It does not retroactively pass
+the old single-rounded-line protocol or claim a global optimum. See
+`examples/physics-box-quantized-witness-2276/RESULTS.md`.
+
+The same32-point static FORCE/MOMENT recheck also passes in both saved graphs:
+8 interfaces,8 dynamic bodies and48 scalar balance equations per graph. Exact
+Fraction residuals are ZERO under nonnegative analytic cumulative-weight loads.
+There are zero World/QP calls. The saved PRE positions do not thereby satisfy
+gap complementarity or dynamic stability; this is not a full static-contact
+solution. See `examples/physics-box-quantized-equilibrium-2276/RESULTS.md`.
+
+Next G2 dependency: per-phase force/wrench correspondence and actual cache-hit
+provenance before public geometry/recorder promotion. Distinguish final accepted
+witnesses from historical impulse application points and position correction.
+Do not project an aggregate tangent merely to hide a report/physics mismatch.
+Full P4 stays separate; recheck independent32-row equilibrium before any new
+original eight-box trajectory. Private geometry or subset cost is not P4 GO.
+
+The finite sphere-pair CCD engine/API/desktop milestone above remains its own
+qualified result. It does not qualify persistent friction, accepted box contact
+geometry, full P4, general coupled impacts or equipment behavior. Existing
+HOLDs and the no-deployment boundary remain.
+
+### G2 contact phase ledger first execution (2026-11-03)
+
+The private staged Source graph commits one step in one World/attempt, with168
+actual impulse applications,9 queries,20 query points and8 pose corrections.
+The native geometry/correction, linear/spin/fixed-origin angular momentum and
+midpoint-work/energy prefix passes the existing gates. Maximum step momentum
+residual6.616e-17Ns and energy-ledger residual2.484e-16J meet1e-10. There are
+zero warm applications: warm-frame reuse is NOT_COVERED.
+
+The first aggregate-report gate fails on X: actual event impulse differs by
+0.06810993686254845Ns against1e-10. The published aggregate is zero while the
+actual event sum is[-0.06810993686254845,0.09728269579179234,-2.174053310893481e-5]Ns.
+The patch changes from4points to2; final active cache rows have zero impulses,
+while two no-longer-active rows retain earlier applied impulses. Files-only
+exact event analysis preserves this diagnosis. It does not run gates skipped
+after the first failure. The raw driver A_step1=NOT_RUN label means validation
+was not completed; the state did execute and commit once.
+
+This is SOURCE_PRIVATE only, not current production geometry adoption or a
+Native/public/desktop PASS. Later report moment, refusal/retry/control/restore
+gates remain NOT_RUN. Geometry support alone cannot promote the old report.
+See `examples/physics-contact-phase-wrench-2276/RESULTS.md`.
+
+The clean breaking contact/wrench contract is now frozen in
+`examples/physics-contact-wrench-contract-2276/CONTRACT.md`, with a positive and
+negative TypeScript consumer check. This is a design/type result only. Proposed
+state schema2 separates accepted Contact.points from mandatory producer onA/onB
+world-origin pairWrenches. Recording2/BCPHREC2 rejects old input without aliases,
+converters, missing-field defaults or dual execution paths.
+
+The new SOURCE_PRIVATE producer implementation passes its first execution:
+3 Worlds,8 attempted and6 accepted steps,800 actual applications,58 queries,
+100 points and2700 finite-cell checks. Each actual application returns both
+bodies' impulses and world-origin moments. A fresh World-owned candidate map
+retains contributions from points that disappear before the accepted pose.
+Independent native geometry, momentum, angular momentum, work and both-side
+report checks pass. Known refusal before application and an unknown fault
+after a nonzero candidate-map update preserve accepted state/cache/time/log.
+Retry, clean control and prefix restore/continue agree in raw values. Nested
+state isolation and Recording2 rejection-before-creation checks pass. Successful
+wire round-trip uses the private pure codec; successful public serializer and
+deserializer execution remains NOT_RUN. See
+`examples/physics-contact-wrench-producer-2276/RESULTS.md`.
+
+The qualified producer campaign has zero warm applications. A separate frozen
+narrow-ledge/pretilted-cube input is independently feasible and reaches a real
+same-native-point, nonzero-tangent, changed-normal cache hit. It commits2 steps
+in1 World, with203 actual applications,19 queries/points and513 anchor checks.
+Step1 passes; the first warm event of step2 fails currentTangentPlane:
+9.141407414550243e-5 Ns exceeds the unchanged1e-12 Ns gate. The raw prior vector
+is not in the current contact plane. Remaining step2 physical gates and step3
+are NOT_RUN; a reached coverage counter is not validated physical coverage.
+Input/reference/setup-review mismatch and the first failure are preserved in
+`examples/physics-real-warm-frame-2276/`. No cache or input is injected or tuned.
+
+A separate strict NodeNext baseline fails22 staged World integration type
+diagnostics before emission/World execution. Full diagnostics are preserved
+in `examples/physics-contact-wrench-native-2276/evidence/native-01/`. No new
+type-check waiver is allowed. A genuine typed integration amendment fixes those
+errors. Its first whole-emission audit stops at an unused CAD subpath external
+import; that failure is preserved. The continuation reuses the successful
+strict emit, audits73 actual entry-reachable modules, and reports26 unused
+modules including the unexecuted CAD import. Strict declaration consumer and
+actual Source/emitted runtime both pass3 Worlds/8 attempts/6 accepted steps
+per graph. All22 saved numerical/state/record/observer packets match with no
+normalization between new graphs; only providerDigest is mapped against the
+old qualified Source. Two inherited effective instrumentation/validation
+nochecks remain explicit, so this is not full instrumentation type coverage.
+See `examples/physics-contact-wrench-native-2276/RESULTS.md`.
+
+The separate warm-only amendment projects the raw prior tangent onto the current
+represented normal before actual application. A different exact Gram reference
+passes9 helper cases. The unchanged input passes1 World/2 steps/198 actual
+applications,19 queries/points and513 anchor checks, including one genuine
+same-native-point changed-frame warm event. Maximum current-plane residual is
+1.3011501682971844e-18 Ns and energy-ledger residual4.673586713626203e-16 J.
+No tolerance, normal cache, material, input word or8x8 iteration cap changes.
+See `examples/physics-warm-transport-2276/RESULTS.md`.
+
+That immutable warm provider also passes a SOURCE_PRIVATE recording campaign:
+4 actual Worlds/8 attempts/6 accepted steps,595 applications,59 queries/points
+and1593 anchor checks. Known failure before apply and unknown failure after
+projected warm apply plus nonzero candidate-wrench-map mutation preserve raw
+accepted state/cache/frame/cursor/time/log. Retry and live restore/continue
+match. Actual exported serialize/deserialize functions run, including their
+hidden replay Worlds; wire-decoded prefix equality passes. Hidden replay traces
+match exactly, but their accepted public outputs disappear on internal disposal:
+hidden raw output equality is NOT_PROVEN, not inferred from the trace or the
+internal relative1e-12 replay comparison. See
+`examples/physics-warm-replay-2276/RESULTS.md`.
+
+The composed typed warm Source and actual emitted Native provider now pass the
+same4-World/8-attempt/6-accepted P2 protocol per graph, with595 applications,
+59 queries/points and1593 anchor checks each. All38 retained packets and the
+complete4791-byte wire match exactly between new graphs, without normalization.
+Old qualified warm Source comparison validates every providerDigest before
+mapping that field only. Strict compile, declaration consumer and actual entry
+closure pass. Hidden accepted public outputs remain NOT_PROVEN. See
+`examples/physics-warm-native-2276/RESULTS.md`.
+
+The desktop Viewer consumes that actual emitted ESM. Ten checks pass at
+1280/1440/1920, including real GPU full/detail pixels, accepted SI pose mapping,
+contact annotation, finite clock ownership, actual wire/restore and replay that
+never advances physics. Display packets are explicitly triangle proxies with
+exact primitive extents; no original CAD nativeSurface authority follows. The
+original first run's missing evidence parent causes a capture FAIL after9 checks;
+its lost full history is NOT_RETAINED and not reconstructed from Node. After
+only the parent-directory fix, desktop02 captures the complete actual4-World/
+6-attempt/6-accepted browser proof with594 applications and58 queries/points.
+Page/console/network errors are zero. Independent physical audit stops BEFORE
+any observer at the old1M canonical-fragment transport limit. This is a preserved
+data-resource NO_GO, not a physical failure. The new bounded verified-span
+transport then passes21 data-only controls on the SAME saved bytes. It validates
+all480 original pool hashes and the full6,408,953-byte canonical root SHA.
+Cumulative actual emitted spans474,164, cache413,902 bytes and maximum span3158
+meet the new stricter cumulative1M work bound,4MiB cache and4KiB span limits.
+The old1,006,660 lexical-fragment outcome stays NO_GO; no old-protocol PASS is
+invented. Original16MiB root,8192-node,64-depth and all physical gates remain.
+Independent browser physics then passes the four planned observers, actual
+A2/D2 nonzero changed-frame warm coverage, wire/live-state and hidden trace
+controls. Eight selected browser/Node observations are bit-identical; this is
+not a global cross-runtime claim. Browser/World is NOT rerun to repair decoding.
+Screen and physical results remain separate receipts. See
+`examples/physics-warm-viewer-2276/TRANSPORT-RESULTS-04.md` and the preserved
+`TRANSPORT-FAILURE-02.json`.
+
+A future atomic canonical root/replay/caller cutover still requires every current
+rigid application path and accepted geometry family, visual-state empty arrays,
+current public/Native parity and uninstrumented performance. General within-pass frame changes, native cache identity, Coulomb
+switches, all rigid pairs and original eight-box settling remain NO_GO/open.
+The P03 input reference independently certifies3 fixed before/at/after
+static-cone cases via exact native geometry and a physical3x3 contact response.
+The first actual Source before-case commits1 step in1 World/attempt,108 actual
+applications,10 queries/9 points and243 anchor checks. Force geometry, fixed
+pose and the full impulse/work/wrench ledger pass. The constitutive gate fails:
+world-X contact-velocity residual0.1410596011492487m/s exceeds1e-10 although the
+full coupled sticking impulse is inside the static cone. All64 tangent updates
+choose dynamic friction using a partial normal load. At/after remain NOT_RUN.
+The complete first failure is preserved in
+`examples/physics-persistent-cone-2276/RESULTS.md`. No input, criterion or8x8
+iteration change follows. A separate exact coupled static-only candidate now
+passes the unchanged before/at inputs in Source and actual strict NodeNext
+emitted modules. Its input-driven exact solve uses the actual native point,
+COM, quaternion and pre-application velocity. An independent virtual-unit-
+impulse matrix and Gaussian solve verify the target. The first of64 original
+slots applies the complete world impulse once;63 actual zero applications
+follow. Both static contact-velocity residuals and momentum/spin/work ledger
+residuals are zero; the maximum current tangent-plane residual is
+1.8973538018496328e-19Ns against1e-12. Each graph has3 Worlds/3 attempts/
+2 accepted steps,128 applications,22 queries,19 points and513 anchor checks.
+All33 retained Source/Native packets match without normalization. Three pure
+reference cases and eight separate input/refusal controls pass per graph.
+The unchanged outside-cone input throws COUPLED_DYNAMIC_REQUIRED before any
+application and preserves accepted model/state/cache/time/recording. This is
+refusal qualification, not dynamic physics PASS. The first build's installed
+esbuild launcher mismatch remains preserved; a fresh continuation uses the
+already installed native binary with the exact old hash and the identical
+staged source/manifest. No download, solver change or tolerance change occurs.
+See `examples/physics-coupled-contact-2276/RESULTS.md`. This private lane covers
+one first cold contact interval only. Its separate actual emitted desktop
+consumer passes6 checks across1280/1440/1920 with zero page/console/network
+errors. The full original browser DAG and actual3-World/3-attempt/2-accepted
+census pass authentication, followed by15 unchanged independent geometry,
+physical, cone and target/refusal observers. The new sample uses display-only
+primitive triangles and accepted native contact markers; screenshots are not
+physical evidence. See `examples/physics-coupled-viewer-2276/RESULTS.md`.
+The first separate transaction Source run passes known/unknown rollback after
+a genuine nonzero target application and producer-bucket mutation, independent
+failed-prefix physics, retry and raw clean-control state/recording/private-world
+storage equality. Actual serialization also executes. It then fails the hidden
+World comparison: disposal already cleared its body/contact/cache storage.
+The actual prefix is2 Worlds/4 phase attempts/2 accepted steps,129 applications,
+21 queries,19 points and513 anchor checks. Full hidden pre-dispose state was
+not retained and cannot be reconstructed as accepted output. Native,
+deserialization, live restore and parity remain NOT_RUN after this first NO_GO.
+See `examples/physics-coupled-transaction-2276/ROOT-FIRST-FAILURE-01.json`.
+The next dependency is genuine bounded pre-dispose observation under a new
+provider identity; the failed equality gate is not deleted or relaxed.
+A subsequent distinct lifecycle provider now retains actual public/private and
+attached-owner data immediately before original disposal. It preflights actual
+storage before clone-returning reads, shares the existing diagnostic byte cap,
+returns isolated copies and cannot mask original cleanup/errors. The old solver,
+geometry, codec and emitted static helper remain unchanged. Strict compilation,
+consumer and actual entry closure pass. Fresh Source/Native static controls pass
+40 complete packets. Their one-frame transaction campaigns each pass4 Worlds/
+6 phase attempts/4 accepted steps,257 applications,41 queries,37 points and999
+anchor checks;44 complete packets/wire artifacts match without normalization.
+Hidden B/C public state and complete private.world now compare from genuine
+pre-dispose captures, not cleared storage or reconstructed traces. Actual
+rollback/retry/serialization/deserialization/live restore and second-interval
+refusal pass. Across-World diagnostic cacheFrames/provenance still remain
+NOT_PROVEN; no identifier erasure is used. The old first NO_GO remains history.
+See `examples/physics-coupled-lifecycle-2276/RESULTS.md`. Its separate emitted
+browser consumer now passes7 desktop checks at1280/1440/1920, including genuine
+pre-dispose state/model/private equality, two bounded capture reads and returned-
+copy isolation. Fifteen unchanged physical observers plus a separate original-
+DAG/report comparison pass; page/console/network errors are zero. Actual browser
+census stays3 Worlds/3 attempts/2 accepted steps. No wire or second interval is
+executed by this browser campaign. See
+`examples/physics-coupled-lifecycle-viewer-2276/RESULTS.md`. Dynamic/warm
+composition, public adoption and performance remain separate NOT_RUN gates.
+
+The independent coupled dynamic reference passes the original three inputs with
+exact native geometry, virtual impulse columns and full3x3 directed80/120
+Gaussian interval proofs. The entire parameter domain has one after-case
+crossing and both precisions agree on RNE words. This is reference evidence,
+not a World PASS. The first dynamic pure implementation passes before/at but
+refuses after at the fixed262144 integer-work limit (262146 is an attempted
+charge, denied before its operation). Native/negative/parity checks stop there.
+The original source and failure remain in
+`examples/physics-coupled-dynamic-2276/RESULTS.md`. A separate positive-scale
+integer pseudo-remainder and bounded endpoint-memo implementation then passes
+Source/Native3 physical inputs plus8 admission controls:13 top-level calls per
+graph and14 complete byte-equal packets. After completes at241975 integer
+primitives under the SAME cap/prices, with771 rational constructions and66
+subdivisions. Do not compare its completed gcd total with the truncated old
+prefix as a reduction claim. The independent Gaussian/RNE/physical and exact
+polynomial/Sturm audits pass. See
+`examples/physics-coupled-dynamic-efficient-2276/RESULTS.md`. World calls in that pure cohort remain zero. A later extracted shared core
+passes the unchanged production13/cap16 per Source/Native graph, with all14
+result/certificate/counter files raw equal to efficient2429. Separate fresh
+private-entry processes each pass52 independently audited literal polynomial,
+IEEE RNE and lowered-resource cases under cap64; all53 files including the bank
+match raw. The observed sum65 spans separate production/test processes, not one
+combined64 cap. Actual production/test entry graphs share the same arithmetic
+core; production cannot reach the test entry or a lower-limit hook. First strict
+build failures TS18048 and TS4060/TS4058 remain preserved. The successful build03
+changes only erased type annotations. See
+`examples/physics-coupled-arithmetic-2276/RESULTS.md` and COVERAGE-14.
+Those arithmetic checks alone did not qualify World application. A later
+private host93a9c0674 passes the original before/at/after in actual Source and
+NodeNext Worlds: each3 Worlds/3 accepted intervals,192 actual applications,
+30 queries/27 points/729 anchors and18 independent observations. All26 retained
+files match raw. Actual after normal-speed error2.245727290605634e-18m/s and
+cone magnitude error3.26936304418379e-18Ns satisfy the unchanged1e-10/1e-12 gates.
+Post-impulse rollback and actual public serialize/deserialize/restore then pass
+in81476d8d2: each4 Worlds/6 phase attempts/4 accepted,257 applications,20 audits
+and38 full raw packet/wire matches. Hidden accepted outputs use genuine
+pre-dispose getters; hidden initial getters remain NOT_RETAINED and their
+same-model controls are explicitly bound to actual creation/start/free-input
+records. No diagnostic ID normalization is used. The second interval is still
+a typed pre-phase refusal.
+
+The separate actual Native browser consumer passes7 desktop checks and18
+independent physical jobs at1280/1440/1920. All6 complete decoded browser packets
+match actual Native Node packets without field or numeric normalization. The
+first campaign retained before1 GPU images; a separate same-census campaign
+explicitly selects after1 for all three GPU widths. Each campaign independently
+creates3 Worlds/3 accepted intervals, not one six-World census. Root viewed the
+actual after1 PNG. See `examples/physics-coupled-dynamic-host-viewer-2276/RESULTS.md`.
+These are private first-cold-one-point results, with no canonical public
+cutover, second successful interval, warm/multipoint/general inertia or full P4
+qualification. There is no scalar fallback and physical8x8 limits are unchanged.
+The concrete atomic public producer/geometry/caller migration map is
+`examples/physics-contact-wrench-contract-2276/PUBLIC-CUTOVER-MAP.json`;
+this map is static evidence, not public API adoption or20 new test passes. Original P0/P1/P2/P5 bounded receipts remain history; they do not
+automatically qualify the new state/schema boundary. Do not reconstruct a
+historical wrench from final cache or average geometry. Existing HOLDs and all
+original NO_GO/first failures remain.
+
+### G2 finite box CCD and quaternion sign (2026-11-03)
+
+The original20-case Source/Native baseline passes18Worlds/22steps per graph,
+including actual negative-identity-quaternion INVALID_CONFIG refusals. A unit
+q and -q rotate every vector identically. The one-line admission repair accepts
+both scalar signs and keeps the existing1e-12 orientation/angular thresholds.
+The amended20-case bank passes20Worlds/24steps per graph, two creation refusals
+and two command refusals. Exact face-event references give zero recorded TOI,
+geometry, velocity, impulse, spin and energy residuals on these fixed dyadic
+inputs. Hamilton-matrix physical q/-q comparison passes separately from raw
+Source/Native parity. Refusals preserve accepted state, clock and recorder.
+
+Strict NodeNext/canonical root/Source/consumer builds pass. Original thin-box
+assertions pass against the actual compiled World with bundled existing CAD
+data admission. Initial import and externalization setup refusals remain
+preserved before any World call; no CAD product or Studio work is resumed.
+Actual GPU Viewer checks pass9checks/four presets in Chrome156 at desktop
+1280/1440/1920, with zero page/console errors. No mobile tests or deployment.
+See `examples/physics-box-slab-boundaries-2276/RESULTS.md` and
+`examples/physics-contact-coverage-g2-2276/COVERAGE-05.json`. General box rotation,
+corner/tied-axis and angular-neighbor boundaries remain separate gaps.
 
 Dependency order: close the G1 admitted-rotation boundary and G2 finite coverage
 map before the corresponding general rigid/contact claim. Keep original P4

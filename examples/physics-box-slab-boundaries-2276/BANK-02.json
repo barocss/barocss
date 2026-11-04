@@ -1,0 +1,564 @@
+{
+  "method": "exact represented scalar face events and six physical halfspaces; Newton e0 normal momentum",
+  "physical": {
+    "massKg": 2,
+    "halfExtentsM": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "fixedHalfExtentsM": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "dt": 0.0078125
+  },
+  "cases": [
+    {
+      "id": "centered-y-entry",
+      "kind": "finite",
+      "classification": "HIT",
+      "toi": "1/2",
+      "normal": [
+        "0",
+        "1",
+        "0"
+      ],
+      "acceptedPositionM": [
+        "0",
+        "1",
+        "0"
+      ],
+      "velocityMps": [
+        "0",
+        "0",
+        "0"
+      ],
+      "impulseOnMovingNs": [
+        "0",
+        "512",
+        "0"
+      ],
+      "energyJ": "0",
+      "contactExpected": true,
+      "faceEvents": [
+        "0",
+        "1/2",
+        "1"
+      ]
+    },
+    {
+      "id": "negative-y-entry",
+      "kind": "finite",
+      "classification": "HIT",
+      "toi": "1/2",
+      "normal": [
+        "0",
+        "-1",
+        "0"
+      ],
+      "acceptedPositionM": [
+        "0",
+        "-1",
+        "0"
+      ],
+      "velocityMps": [
+        "0",
+        "0",
+        "0"
+      ],
+      "impulseOnMovingNs": [
+        "0",
+        "-512",
+        "0"
+      ],
+      "energyJ": "0",
+      "contactExpected": true,
+      "faceEvents": [
+        "0",
+        "1/2",
+        "1"
+      ]
+    },
+    {
+      "id": "axis-x-entry",
+      "kind": "finite",
+      "classification": "HIT",
+      "toi": "1/2",
+      "normal": [
+        "-1",
+        "0",
+        "0"
+      ],
+      "acceptedPositionM": [
+        "-1",
+        "0",
+        "0"
+      ],
+      "velocityMps": [
+        "0",
+        "0",
+        "0"
+      ],
+      "impulseOnMovingNs": [
+        "-512",
+        "0",
+        "0"
+      ],
+      "energyJ": "0",
+      "contactExpected": true,
+      "faceEvents": [
+        "0",
+        "1/2",
+        "1"
+      ]
+    },
+    {
+      "id": "axis-z-entry",
+      "kind": "finite",
+      "classification": "HIT",
+      "toi": "1/2",
+      "normal": [
+        "0",
+        "0",
+        "1"
+      ],
+      "acceptedPositionM": [
+        "0",
+        "0",
+        "1"
+      ],
+      "velocityMps": [
+        "0",
+        "0",
+        "0"
+      ],
+      "impulseOnMovingNs": [
+        "0",
+        "0",
+        "512"
+      ],
+      "energyJ": "0",
+      "contactExpected": true,
+      "faceEvents": [
+        "0",
+        "1/2",
+        "1"
+      ]
+    },
+    {
+      "id": "endpoint-entry",
+      "kind": "finite",
+      "classification": "HIT",
+      "toi": "1",
+      "normal": [
+        "0",
+        "1",
+        "0"
+      ],
+      "acceptedPositionM": [
+        "0",
+        "1",
+        "0"
+      ],
+      "velocityMps": [
+        "0",
+        "0",
+        "0"
+      ],
+      "impulseOnMovingNs": [
+        "0",
+        "256",
+        "0"
+      ],
+      "energyJ": "0",
+      "contactExpected": true,
+      "faceEvents": [
+        "0",
+        "1"
+      ]
+    },
+    {
+      "id": "beyond-endpoint",
+      "kind": "finite",
+      "classification": "MISS",
+      "toi": null,
+      "normal": [
+        "0",
+        "0",
+        "0"
+      ],
+      "acceptedPositionM": [
+        "0",
+        "3/2",
+        "0"
+      ],
+      "velocityMps": [
+        "0",
+        "-64",
+        "0"
+      ],
+      "impulseOnMovingNs": [
+        "0",
+        "0",
+        "0"
+      ],
+      "energyJ": "4096",
+      "contactExpected": false,
+      "faceEvents": [
+        "0",
+        "1"
+      ]
+    },
+    {
+      "id": "separating",
+      "kind": "finite",
+      "classification": "MISS",
+      "toi": null,
+      "normal": [
+        "0",
+        "0",
+        "0"
+      ],
+      "acceptedPositionM": [
+        "0",
+        "3",
+        "0"
+      ],
+      "velocityMps": [
+        "0",
+        "128",
+        "0"
+      ],
+      "impulseOnMovingNs": [
+        "0",
+        "0",
+        "0"
+      ],
+      "energyJ": "16384",
+      "contactExpected": false,
+      "faceEvents": [
+        "0",
+        "1"
+      ]
+    },
+    {
+      "id": "parallel-outside",
+      "kind": "finite",
+      "classification": "MISS",
+      "toi": null,
+      "normal": [
+        "0",
+        "0",
+        "0"
+      ],
+      "acceptedPositionM": [
+        "3",
+        "2",
+        "0"
+      ],
+      "velocityMps": [
+        "128",
+        "0",
+        "0"
+      ],
+      "impulseOnMovingNs": [
+        "0",
+        "0",
+        "0"
+      ],
+      "energyJ": "16384",
+      "contactExpected": false,
+      "faceEvents": [
+        "0",
+        "1"
+      ]
+    },
+    {
+      "id": "zero-travel",
+      "kind": "finite",
+      "classification": "MISS",
+      "toi": null,
+      "normal": [
+        "0",
+        "0",
+        "0"
+      ],
+      "acceptedPositionM": [
+        "0",
+        "2",
+        "0"
+      ],
+      "velocityMps": [
+        "0",
+        "0",
+        "0"
+      ],
+      "impulseOnMovingNs": [
+        "0",
+        "0",
+        "0"
+      ],
+      "energyJ": "0",
+      "contactExpected": false,
+      "faceEvents": [
+        "0",
+        "1"
+      ]
+    },
+    {
+      "id": "initial-touch-rest",
+      "kind": "finite",
+      "classification": "OWNED",
+      "toi": null,
+      "normal": [
+        "0",
+        "1",
+        "0"
+      ],
+      "acceptedPositionM": [
+        "0",
+        "1",
+        "0"
+      ],
+      "velocityMps": [
+        "0",
+        "0",
+        "0"
+      ],
+      "impulseOnMovingNs": [
+        "0",
+        "0",
+        "0"
+      ],
+      "energyJ": "0",
+      "contactExpected": true,
+      "faceEvents": [
+        "0",
+        "1"
+      ]
+    },
+    {
+      "id": "initial-overlap-rest",
+      "kind": "finite",
+      "classification": "OWNED",
+      "toi": null,
+      "normal": [
+        "0",
+        "1",
+        "0"
+      ],
+      "acceptedPositionM": [
+        "0",
+        "1",
+        "0"
+      ],
+      "velocityMps": [
+        "0",
+        "0",
+        "0"
+      ],
+      "impulseOnMovingNs": [
+        "0",
+        "0",
+        "0"
+      ],
+      "energyJ": "0",
+      "contactExpected": true,
+      "faceEvents": [
+        "0",
+        "1"
+      ]
+    },
+    {
+      "id": "initial-touch-separating",
+      "kind": "finite",
+      "classification": "OWNED",
+      "toi": null,
+      "normal": [
+        "0",
+        "0",
+        "0"
+      ],
+      "acceptedPositionM": [
+        "0",
+        "3/2",
+        "0"
+      ],
+      "velocityMps": [
+        "0",
+        "64",
+        "0"
+      ],
+      "impulseOnMovingNs": [
+        "0",
+        "0",
+        "0"
+      ],
+      "energyJ": "4096",
+      "contactExpected": false,
+      "faceEvents": [
+        "0",
+        "1"
+      ]
+    },
+    {
+      "id": "initial-overlap-closing",
+      "kind": "finite",
+      "classification": "OWNED",
+      "toi": null,
+      "normal": [
+        "0",
+        "1",
+        "0"
+      ],
+      "acceptedPositionM": [
+        "0",
+        "1",
+        "0"
+      ],
+      "velocityMps": [
+        "0",
+        "0",
+        "0"
+      ],
+      "impulseOnMovingNs": [
+        "0",
+        "128",
+        "0"
+      ],
+      "energyJ": "0",
+      "contactExpected": true,
+      "faceEvents": [
+        "0",
+        "1"
+      ]
+    },
+    {
+      "id": "translated-y-entry",
+      "kind": "finite",
+      "classification": "HIT",
+      "toi": "1/2",
+      "normal": [
+        "0",
+        "1",
+        "0"
+      ],
+      "acceptedPositionM": [
+        "5/4",
+        "1",
+        "-1/2"
+      ],
+      "velocityMps": [
+        "0",
+        "0",
+        "0"
+      ],
+      "impulseOnMovingNs": [
+        "0",
+        "512",
+        "0"
+      ],
+      "energyJ": "0",
+      "contactExpected": true,
+      "faceEvents": [
+        "0",
+        "1/2",
+        "1"
+      ]
+    },
+    {
+      "id": "torque-refusal",
+      "kind": "command",
+      "expectedError": "INVALID_COMMAND"
+    },
+    {
+      "id": "angular-impulse-refusal",
+      "kind": "command",
+      "expectedError": "INVALID_COMMAND"
+    },
+    {
+      "id": "negative-moving-quaternion",
+      "kind": "finite",
+      "classification": "HIT",
+      "toi": "1/2",
+      "normal": [
+        "0",
+        "1",
+        "0"
+      ],
+      "acceptedPositionM": [
+        "0",
+        "1",
+        "0"
+      ],
+      "velocityMps": [
+        "0",
+        "0",
+        "0"
+      ],
+      "impulseOnMovingNs": [
+        "0",
+        "512",
+        "0"
+      ],
+      "energyJ": "0",
+      "contactExpected": true,
+      "faceEvents": [
+        "0",
+        "1/2",
+        "1"
+      ],
+      "equivalentTo": "centered-y-entry",
+      "orientationProof": "Unit Hamilton rotation matrix is quadratic: R(q)=R(-q); both represented identity signs leave every vector unchanged"
+    },
+    {
+      "id": "negative-fixture-quaternion",
+      "kind": "finite",
+      "classification": "HIT",
+      "toi": "1/2",
+      "normal": [
+        "0",
+        "1",
+        "0"
+      ],
+      "acceptedPositionM": [
+        "0",
+        "1",
+        "0"
+      ],
+      "velocityMps": [
+        "0",
+        "0",
+        "0"
+      ],
+      "impulseOnMovingNs": [
+        "0",
+        "512",
+        "0"
+      ],
+      "energyJ": "0",
+      "contactExpected": true,
+      "faceEvents": [
+        "0",
+        "1/2",
+        "1"
+      ],
+      "equivalentTo": "centered-y-entry",
+      "orientationProof": "Unit Hamilton rotation matrix is quadratic: R(q)=R(-q); both represented identity signs leave every vector unchanged"
+    },
+    {
+      "id": "sensor-fixture",
+      "kind": "admission",
+      "expectedError": "INVALID_CONFIG"
+    },
+    {
+      "id": "persistent-profile",
+      "kind": "admission",
+      "expectedError": "INVALID_CONFIG"
+    }
+  ],
+  "WorldCalls": 0,
+  "candidateCalls": 0
+}

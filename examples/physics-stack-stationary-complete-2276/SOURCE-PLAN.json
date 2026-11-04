@@ -1,0 +1,107 @@
+{
+  "API": false,
+  "PINSCreated": false,
+  "SOURCE_SEALCreated": false,
+  "actualCanonicalProvider": "NOT_BOUND_BY_AUTHOR",
+  "actualFoundationAndProtocolReceipts": "ROOT_PENDING_BINDING",
+  "actualNewSourceNativeAuthority": "NOT_BOUND_BY_AUTHOR",
+  "authorCalls": {
+    "codec": 0,
+    "compiler": 0,
+    "imports": 0,
+    "largeArchiveReads": 0,
+    "physics": 0,
+    "references": 0,
+    "tests": 0
+  },
+  "files": {
+    "ADOPTION-INSTRUCTIONS.md": {
+      "bytes": 3781,
+      "sha256": "5fa3e87e2a4402e6fd3ddbeff8430ad3b7f5d4f5a58a4c10728badfd558e864e"
+    },
+    "AUTHORITY-SCHEMA.md": {
+      "bytes": 3801,
+      "sha256": "059ad839d805bfae12e45756e49ed132a858f8012780c2f001873ee29e9c236f"
+    },
+    "CONTRACT.md": {
+      "bytes": 11294,
+      "sha256": "ecd96fd95666bba6c4c60f3501cdeed6b11af071908d482bf887851bb73d211b"
+    },
+    "PHASE-CHECKPOINT-CONTRACT.md": {
+      "bytes": 1065,
+      "sha256": "c54d345dcb64bb4e9579f796c684458fa7a066e3c8c85722ca32ebc222c73690"
+    },
+    "POPULATION.md": {
+      "bytes": 3017,
+      "sha256": "b731eb297ff95dc4c36a6c4cbd42ba4f9d562ff45d76d7f3852bb0ea34348516"
+    },
+    "REFERENCE-WRAPPER-CONTRACT.md": {
+      "bytes": 2703,
+      "sha256": "11912f574907051b9e47f4722e4ea9efd4ea23ffed6b17837fe7b8122bc09c33"
+    },
+    "RUNNER-DELTA.md": {
+      "bytes": 3906,
+      "sha256": "b558659bb6c8ade5e1dc9c84597b21f4c76a25b6c4e33c165d22f3d9aabedb1f"
+    },
+    "authority.mjs": {
+      "bytes": 3161,
+      "sha256": "f67190a8fb311a0d89347b90b8f519b7d28ef03b918e83018a8bf0711b9e0f33"
+    },
+    "driver.mjs": {
+      "bytes": 27998,
+      "sha256": "dfe6abcf132fbd87f92c109e932626e064552c3f4bd6242c112c3d93ae6265d5"
+    },
+    "host.mjs": {
+      "bytes": 5252,
+      "sha256": "f28ea18fad02ea4c195fee6f881ea0f04e364144d5f4ba4b9d931c35cd26c4ac"
+    },
+    "normal-identity.mjs": {
+      "bytes": 1415,
+      "sha256": "c911b2bbb8ae313e0af56201be89e050e23b8299bb4b241d1476f0500f29c592"
+    },
+    "normal-identity.test.mjs": {
+      "bytes": 2043,
+      "sha256": "38d5b0a1591078a93cdc887d4b22bbe71597df22f150178c79bfcda0167b1cf9"
+    },
+    "phase-checkpoint.mjs": {
+      "bytes": 2184,
+      "sha256": "cd3067b45cd629a0796c43ddca6123d4e1c62c8ca766ddbaa6d9a2c32cdc9ce1"
+    },
+    "phase-checkpoint.test.mjs": {
+      "bytes": 3679,
+      "sha256": "c729974c3bb261b99901ea73530dc57ac711add30e5a0fe65e5878f9a309502c"
+    },
+    "producer.mjs": {
+      "bytes": 2813,
+      "sha256": "b1e303a4a95a8317570a832d4a01fd4cb62f16443b4acf1597bc5db4b952a6e3"
+    },
+    "reference-wrapper.py": {
+      "bytes": 2307,
+      "sha256": "19d2870c5722ec17cf7aec1134d79d44c1e357ba05673e66e59d576239bf022f"
+    },
+    "reference-wrapper.test.py": {
+      "bytes": 6261,
+      "sha256": "a4fc66deda4a6902f56909b09b61da150b40622977d1106218b14cd0f7f95e87"
+    },
+    "run.py": {
+      "bytes": 8181,
+      "sha256": "379269258227cfbdd26ad0ed337233921cad23e1216be4470929a8461ffc5571"
+    },
+    "scene-owner.py": {
+      "bytes": 13306,
+      "sha256": "242b4b5ff35ea833b8eef22d4672ce8413e969309f27af9a9c26c1cba85ff2e6"
+    }
+  },
+  "full1200": false,
+  "newProtocolControlGroups": {
+    "appliedWordIdentity": 3,
+    "phaseCheckpoint": 4,
+    "wrapper": 6
+  },
+  "notRuntimePinsOrExecutionSeal": true,
+  "oldCompleteEdited": false,
+  "profile": "STATIONARY_NORMAL_EXACT_V1",
+  "stationaryCandidateAdmission": "NOT_BOUND_BY_AUTHOR",
+  "status": "SOURCE_AUTHORED_EXTERNAL_QUALIFICATION_PENDING",
+  "strictGlobal64MiB": "NOT_QUALIFIED"
+}

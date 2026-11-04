@@ -1,0 +1,65 @@
+{
+  "status": "FINITE_PRIVATE_STATIC_PASS_DYNAMIC_NO_GO",
+  "date": "2026-11-03",
+  "scope": {
+    "status": "EXECUTED_STATIC_PASS_DYNAMIC_REQUIRED_REFUSAL_PRIVATE_COUPLED_CONTACT",
+    "results": "examples/physics-coupled-contact-2276/RESULTS.md",
+    "graphs": [
+      "source",
+      "strict-emitted-native"
+    ],
+    "perGraph": {
+      "worlds": 3,
+      "attempts": 3,
+      "applications": 128,
+      "queries": 22,
+      "queryPoints": 19,
+      "anchorChecks": 513,
+      "records": 169
+    },
+    "acceptedStepsPerGraph": 2,
+    "staticPhysicalCases": [
+      "before",
+      "at"
+    ],
+    "contactVelocityResidualMps": 0,
+    "contactVelocityGateMps": 1e-10,
+    "currentTangentPlaneResidualNs": 1.8973538018496328e-19,
+    "currentTangentPlaneGateNs": 1e-12,
+    "physicalSolve": "ONE_TOTAL_WORLD_IMPULSE_THEN63_ACTUAL_ZERO_APPLICATIONS_ORIGINAL8x8",
+    "pureHelperCasesPerGraph": 3,
+    "separateNegativeControlsPerGraph": 8,
+    "retainedPacketParity": 33,
+    "normalization": "NONE",
+    "after": "TYPED_DYNAMIC_REQUIRED_BEFORE_APPLY_RAW_ACCEPTED_DATA_PRESERVED_NOT_DYNAMIC_PASS",
+    "firstBuild": "PRESERVED_ESBUILD_LAUNCHER_AUTH_FAILURE_NO_COMPILER_HELPER_WORLD",
+    "build02": "IDENTICAL_PAID_STAGE_MANIFEST_EXISTING_NATIVE_BINARY_EXACT_OLD_HASH_STRICT_PASS",
+    "newDesktop": "AUTHORING_NOT_EXECUTED",
+    "postApplyRollbackWire": "AUTHORING_NOT_EXECUTED",
+    "warmMultipointSecondInterval": "NOT_QUALIFIED",
+    "canonicalPublicPackage": "NOT_ADOPTED",
+    "P03Whole": "NO_GO_DYNAMIC_NOT_SUPPORTED",
+    "P4": "UNCHANGED_NO_GO",
+    "HOLD": "UNCHANGED",
+    "tolerancesIterationsInputsFirstFailure": "PRESERVED"
+  },
+  "previousCoverage": "COVERAGE-08.json",
+  "proof": {
+    "examples/physics-coupled-contact-2276/evidence/source-01/summary.json": {
+      "bytes": 10548,
+      "sha256": "a4162ae3d1d054221655cfcdc00193a546e86d9bd4788166a2413eb73ab73cd9"
+    },
+    "examples/physics-coupled-contact-2276/evidence/native-01/summary.json": {
+      "bytes": 10551,
+      "sha256": "db64378786dce97cb7a1e8efa741d228ade27825e4c9e600d3c71b5c6fcf2db5"
+    },
+    "examples/physics-coupled-contact-2276/evidence/parity-01/result.json": {
+      "bytes": 7564,
+      "sha256": "084cd3078dc16763f0750c2ddc6d78709c366d35d4369bfda1d7325646b7b7d8"
+    },
+    "examples/physics-coupled-contact-2276/BUILD-FAILURE-01.json": {
+      "bytes": 1703,
+      "sha256": "c702ce2ca321f0e69046b463eda6dab260d8f1b7aa50c9fd711609c29df3ea6a"
+    }
+  }
+}

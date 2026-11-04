@@ -1,0 +1,15 @@
+{
+  "status": "ROOT_FULL_FIRST_PURE_NO_GO_ARCHIVE_VERIFIED",
+  "indexPin": {
+    "bytes": 208891,
+    "sha256": "97ea6daa8f92dced82992b15bc6fcfd1a53d3d7d630b2c505cad961eb8af2b70"
+  },
+  "logicalMembers": 132,
+  "hardlinks": 18,
+  "workspaceRecoveryEntries": 68,
+  "externalTools": "HASH_METADATA_NOT_EMBEDDED",
+  "uncompressedTarAggregateBytes": 2007040,
+  "individualTarCapBytes": 16777216,
+  "newPhysicsCompilerObserverBrowserCalls": 0,
+  "postArchiveSupplemental": true
+}

@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": [
+      "ES2022"
+    ],
+    "strict": true,
+    "declaration": true,
+    "rootDir": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src",
+    "outDir": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist",
+    "skipLibCheck": true,
+    "types": [
+      "node"
+    ],
+    "typeRoots": [
+      "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/@types"
+    ],
+    "noEmitOnError": true
+  },
+  "files": [
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/index.ts",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/src/replay.ts"
+  ]
+}

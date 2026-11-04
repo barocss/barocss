@@ -1,0 +1,15 @@
+# General continuous rigid rotation: execution contract
+
+This work replaces the G1e case whitelist and one-step horizon. It adds no compatibility API. A World retains one fixed step and transactional commit; commands apply once per step. Angular impulse is instantaneous at step start; torque is constant in world coordinates during that step. Free rotation uses actual positive principal COM moments; forced rotation uses the full tensor through body orientation. Existing model, collider, movement, and failure contracts remain.
+
+The free S8 composition keeps 27 stages and four Newton updates. A priori subdivisions bound conditioning; the maximum is 64. Constant-torque rotation uses modified midpoint levels 2/4/6/8 and order-eight extrapolation, also at most 64 a priori subdivisions. These are integration algorithms, not increased contact solver iterations. Conditioning or finite-arithmetic limits return NUMERIC_LIMIT without committing state or recording.
+
+Before execution the gates are fixed: squared quaternion norm error <=1e-12; each E/L/work invariant uses 1e-12 + 1e-12*max(1,abs(expected),abs(actual)); component trajectory error <=1e-11+1e-12*abs(reference). Directed reference width <=1e-24. No existing tolerance changes. Time refinement is reported as measured; errors below the old 1e-11 floor do not establish empirical order.
+
+The public-API campaign runs Source first, independently audits it, then imports canonical compiled root/replay. It compares 0.1 s constant-torque trajectories at dt=1/60,1/120,1/240, with six common physical targets against independent directed Taylor32 intervals at precisions80/120. Every supplied frame checks L and norm. Four authenticated old seed windows are reused, not recomputed; 44 new windows are bounded by32M Decimal operations, 8MiB/8192 retained objects, and170 s internal deadline. The external process deadline is180 s.
+
+The free matrix covers nine power-of-two mass/length scalings, three rotated frames, three axisymmetric boxes, sphere/capsule/cube, zero spin, arbitrary impulse, and three forced isotropic/axisymmetric primitives. Each runs12 accepted steps. A separate triaxial free case runs3600 steps at1/120 (30 s). Its initial, first, and one-second sample states receive independent geometry/invariant checks; every frame enters Source/Native parity hashes. Long-time phase accuracy is not claimed from conservation alone. Independent geometry/invariant calculations do not import candidate kernels.
+
+At most32 Worlds and10000 accepted steps per graph; captured evidence <=16MiB. Recorder checks cover known NUMERIC_LIMIT, unknown internal exception, unchanged state/log, recovery, restore, and actual continued execution against a fresh control. The tests do not certify arbitrary conditioning or all torque histories. Primitive COM support does not imply arbitrary tensors or CAD volume inertia.
+
+Original HOLD, NO_GO, tolerances, and first failure files remain. Studio, manufacturing, device control, full 8-box qualification, browser/product proof, deployment and release are outside this campaign. No dependencies or downloads are added.

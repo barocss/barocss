@@ -1,4 +1,4 @@
-/** Two-halfstep forced flow for the admitted one-step rotor; no retained state. */
+/** Eighth-order modified-midpoint extrapolation for constant world torque. */
 import type { Body, Quat, Vec3 } from './internal-types.js';
 import { error } from './validation.js';
 
@@ -29,13 +29,13 @@ function movement(omega: Vec3, dt: number): void {
   }
 }
 
-/** World applies J once before this call. Zero torque stays on the unchanged S8 path. */
-export function prepareForcedBoxRotation(body: Body, dt: number, torque: Vec3): ForcedResult | null {
-  if (body.kind !== 'dynamic' || body.shape.kind !== 'box' || torque.every(x => x === 0)) return null;
-  const moments = body.inertiaDiagonalKgM2;
-  if (!moments || !moments.every(x => Number.isFinite(x) && x > 0) ||
-      !Number.isFinite(dt) || dt <= 0 || dt > 1 / 60 ||
-      torque.some(x => !Number.isFinite(x) || Math.abs(x) > 1000000)) {
+/** World applies the angular impulse and motors once before this continuous flow. */
+export function prepareForcedRotation(body: Body, dt: number, torque: Vec3): ForcedResult | null {
+  if (body.kind !== 'dynamic' || torque.every(x => x === 0)) return null;
+  const moments: Vec3 = body.inertiaDiagonalKgM2 ??
+    [body.inertiaKgM2!, body.inertiaKgM2!, body.inertiaKgM2!];
+  if (!moments.every(x => Number.isFinite(x) && x > 0) ||
+      !Number.isFinite(dt) || dt <= 0 || !torque.every(Number.isFinite)) {
     error('NUMERIC_LIMIT', 'forced rotation outside finite time/inertia/load bounds');
   }
   movement(body.angularVelocityRadps, dt);
@@ -43,13 +43,15 @@ export function prepareForcedBoxRotation(body: Body, dt: number, torque: Vec3): 
   const localOmega = product(r0, body.angularVelocityRadps, true);
   const momentum = product(r0, localOmega.map((x, i) => x * moments[i]) as Vec3);
   if (!momentum.every(Number.isFinite)) error('NUMERIC_LIMIT', 'nonfinite forced initial momentum');
+  const angularRateBound = (Math.hypot(...momentum) + dt * Math.hypot(...torque)) / Math.min(...moments);
+  const subdivisions = Math.max(1, Math.ceil(dt * angularRateBound / (1 / 8)));
+  if (!Number.isFinite(subdivisions) || subdivisions > 64) {
+    error('NUMERIC_LIMIT', 'forced rotation exceeded internal subdivision limit');
+  }
   const omegaAt = (q: Quat, time: number): Vec3 => {
     const r = rotation(q);
     const stageL = momentum.map((x, i) => x + torque[i] * time) as Vec3;
-    // A finite guard for this candidate, not a public qualified input envelope.
-    if (!stageL.every(Number.isFinite) || Math.hypot(...stageL) / (1 / 16) >= 15 / 16) {
-      error('NUMERIC_LIMIT', 'forced stage momentum exceeded finite candidate bound');
-    }
+    if (!stageL.every(Number.isFinite)) error('NUMERIC_LIMIT', 'nonfinite forced stage momentum');
     const localL = product(r, stageL, true);
     const omega = product(r, localL.map((x, i) => x / moments[i]) as Vec3);
     movement(omega, dt);
@@ -57,7 +59,6 @@ export function prepareForcedBoxRotation(body: Body, dt: number, torque: Vec3): 
   };
   const rhs = (q: Quat, time: number): Quat => {
     const [a, b, c] = omegaAt(q, time), [x, y, z, w] = q;
-    // LEFT Hamilton product [omega_world,0] * raw q, exactly eight calls below.
     const rate: Quat = [(a*w+b*z-c*y)/2, (-a*z+b*w+c*x)/2,
       (a*y-b*x+c*w)/2, (-a*x-b*y-c*z)/2];
     if (!rate.every(Number.isFinite)) error('NUMERIC_LIMIT', 'nonfinite forced quaternion rate');
@@ -65,18 +66,36 @@ export function prepareForcedBoxRotation(body: Body, dt: number, torque: Vec3): 
   };
   const offset = (q: Quat, rate: Quat, h: number): Quat =>
     q.map((x, i) => x + h * rate[i]) as Quat;
+  const levels = [2, 4, 6, 8];
   let q = [...body.orientation] as Quat;
-  const h = dt / 2;
-  for (let half = 0; half < 2; half++) {
-    const t = half * h;
-    const k1 = rhs(q, t);
-    const k2 = rhs(offset(q, k1, h / 2), t + h / 2);
-    const k3 = rhs(offset(q, k2, h / 2), t + h / 2);
-    const k4 = rhs(offset(q, k3, h), t + h);
-    const next = q.map((x, i) => x + h / 6 * (k1[i] + 2*k2[i] + 2*k3[i] + k4[i])) as Quat;
+  const macroStep = dt / subdivisions;
+  for (let macro = 0; macro < subdivisions; macro++) {
+    const start = macro * macroStep;
+    const table: Quat[][] = [];
+    for (let k = 0; k < levels.length; k++) {
+      const count = levels[k], h = macroStep / count;
+      let previous = q;
+      let current = offset(q, rhs(q, start), h);
+      for (let m = 1; m < count; m++) {
+        const next = offset(previous, rhs(current, start + m * h), 2 * h);
+        previous = current;
+        current = next;
+      }
+      const endpointRate = rhs(current, start + macroStep);
+      const row: Quat[] = [current.map((x, i) =>
+        (x + previous[i] + h * endpointRate[i]) / 2) as Quat];
+      for (let j = 1; j <= k; j++) {
+        const denominator = (count / levels[k - j]) ** 2 - 1;
+        row.push(row[j - 1].map((x, i) =>
+          x + (x - table[k - 1][j - 1][i]) / denominator) as Quat);
+      }
+      table.push(row);
+    }
+    // Normalize only the complete extrapolated macro step, never a level or RHS stage.
+    const next = table[3][3];
     const norm = Math.hypot(...next);
     if (!next.every(Number.isFinite) || !Number.isFinite(norm) || norm <= 0) {
-      error('NUMERIC_LIMIT', 'nonfinite forced halfstep orientation');
+      error('NUMERIC_LIMIT', 'nonfinite forced extrapolated orientation');
     }
     q = next.map(x => x / norm) as Quat;
   }

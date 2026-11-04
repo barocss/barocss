@@ -137,6 +137,7 @@ export const sidebar = [
     items: [
       { text: 'Units and frames', link: '/packages/physics/units-and-frames', lane: 'physics-motion-2276' },
       { text: 'Profiles and lifecycle', link: '/packages/physics/profiles-and-lifecycle', lane: 'physics-motion-2276' },
+      { text: 'Host integration', link: '/packages/physics/host-integration', lane: 'physics-motion-2276' },
     ],
   },
   {

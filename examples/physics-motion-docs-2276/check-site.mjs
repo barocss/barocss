@@ -10,7 +10,8 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const docs = join(root, 'apps/library-docs/docs');
 const dist = join(docs, '.vitepress/dist');
 const routes = ['/packages/physics/', '/packages/physics/units-and-frames',
-  '/packages/physics/profiles-and-lifecycle', '/guide/robot-motion', '/reference/physics-verification'];
+  '/packages/physics/profiles-and-lifecycle', '/packages/physics/host-integration',
+  '/guide/robot-motion', '/reference/physics-verification'];
 const crosslinks = ['index.md', 'reference/limits.md', 'reference/verification.md',
   'studio/robots.md', 'packages/cad-model/index.md'];
 const sha = data => createHash('sha256').update(data).digest('hex');

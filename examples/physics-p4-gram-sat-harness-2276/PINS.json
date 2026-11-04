@@ -1,0 +1,279 @@
+{
+  "protocol": "p4-gram-r1-source-pins-v1",
+  "status": "AUTHOR_SOURCE_ONLY_NOT_EXECUTED",
+  "python": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+  "pythonVersion": "3.13.5 (main, Jun 11 2025, 15:36:57) [Clang 17.0.0 (clang-1700.0.13.3)]",
+  "candidate": "examples/physics-p4-gram-sat-2276/gram_sat.py",
+  "auditor": "examples/physics-p4-gram-sat-reference-2276/audit.py",
+  "ownedHelper": "examples/physics-p4-owned-data-2276/owned.py",
+  "ownedPins": "examples/physics-p4-owned-data-2276/PINS.json",
+  "ownedQualification": "examples/physics-p4-owned-data-2276/evidence/selftest-01/summary.json",
+  "ownedGuard": "examples/physics-world-p5-2276/evidence/p4-owned-data-selftest-01/result.json",
+  "m3Guard": "examples/physics-world-p5-2276/evidence/p4-gram-materialize-01/result.json",
+  "requests": "examples/physics-p4-gram-sat-reference-2276/evidence/bank-01/requests.json",
+  "oracle": "examples/physics-p4-gram-sat-reference-2276/evidence/bank-01/oracle.json",
+  "manifest": "examples/physics-p4-gram-sat-reference-2276/evidence/bank-01/manifest.json",
+  "sources": {
+    "examples/physics-p4-gram-design-2276/DESIGN.md": {
+      "bytes": 8872,
+      "sha256": "0dee0daef07512b6425af6fd99efb3cc6e786da90876f266c7b1b3caf76761ec"
+    },
+    "examples/physics-p4-gram-reference-design-2276/REVIEW.md": {
+      "bytes": 12431,
+      "sha256": "8fb0a2269e5357d37e17bd817e841794388fbea7f485245ed73b91bfc232ebf5"
+    },
+    "examples/physics-p4-gram-sat-2276/CONTRACT.md": {
+      "bytes": 8484,
+      "sha256": "511470c76953d68fb91767477aa024631e8dceeec2da2345c4d1575dc9971f9d"
+    },
+    "examples/physics-p4-gram-sat-2276/SCALING-NOTE.md": {
+      "bytes": 731,
+      "sha256": "0f787fb9df1255abcfa6f7e06a1f3f27070f4d804369f7df9c617d7fb2321e3f"
+    },
+    "examples/physics-p4-gram-sat-2276/gram_sat.py": {
+      "bytes": 11181,
+      "sha256": "3e241cbce819f9e9d887737759914340b6821a6960eba1a00f16895f835e450b"
+    },
+    "examples/physics-p4-gram-sat-harness-2276/CONTRACT.md": {
+      "bytes": 3799,
+      "sha256": "7523a01ca41f3b4a25a2a94797f4faea909a09cc0787c773cf77853345403154"
+    },
+    "examples/physics-p4-gram-sat-harness-2276/bounds.py": {
+      "bytes": 5981,
+      "sha256": "a3c1f37d2b8a92565bcb1a023ab9c119eb81ed8146f259e1702fc1f9e94f9af4"
+    },
+    "examples/physics-p4-gram-sat-harness-2276/run.py": {
+      "bytes": 12239,
+      "sha256": "25cfacd8cde8adda4e519e9fe168845ac2962e99581b4633d989eaae954a93dd"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/CONTRACT.md": {
+      "bytes": 12002,
+      "sha256": "637d9eb018bd0f870825953ca4e5780e8770dbf86172cb362c0a2ce0bd9faa0c"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/PINS.json": {
+      "bytes": 2774,
+      "sha256": "8075bce3ceaf5ded1e5ef867bcbafb4bd4a17b2af94a66374162f3527f152d6b"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/audit.py": {
+      "bytes": 8642,
+      "sha256": "fd7c104ec49808d3e81f0c15440ce211e5d318d2e8a0448fd5082c0b9ab64f41"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/bank-spec.json": {
+      "bytes": 1647,
+      "sha256": "3a648318aec51496d73dbf569edd7ced91e31d391f0a9e5a116812acd2d00be9"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/direct_oracle.py": {
+      "bytes": 4524,
+      "sha256": "620bfc04c6a20d04a665cdaacb29eddd8a3f063907f646f4474de97be9129ccc"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/evidence/bank-01/manifest.json": {
+      "bytes": 3897,
+      "sha256": "643b8746cc2d6f37d2fd8a3e69025c67f5b5c125e86e14459644dceceef70866"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/evidence/bank-01/oracle.json": {
+      "bytes": 177994,
+      "sha256": "a6d6e873590f32e8f565554e7b6dffdf5da30d6d298a1220a31573efe1731cab"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/evidence/bank-01/requests.json": {
+      "bytes": 7311,
+      "sha256": "0772d94d92c06fc6981807bd56256f00ea33543fbc6bbb1bc8b6770c3050724e"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/literals.py": {
+      "bytes": 3219,
+      "sha256": "733a20bcd003933912cae757b92a526b75fd6ad180a6d5651f0594e493108c04"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/materialize.py": {
+      "bytes": 2327,
+      "sha256": "83f59efe13755bf0a56904ec447b3e67528f2dc0bbf5875fcbd250408e235402"
+    },
+    "examples/physics-p4-gram-sat-reference-2276/support.py": {
+      "bytes": 5849,
+      "sha256": "7d47984bf61e6f6d0f3b089533012c855ce8b32224b402aeae9a1e31d1157d8c"
+    },
+    "examples/physics-p4-owned-data-2276/CONTRACT.md": {
+      "bytes": 8595,
+      "sha256": "e3875ee68365bc6d65b3e63ceb683c256731efbcb849e25f4900e94af7ba4c5e"
+    },
+    "examples/physics-p4-owned-data-2276/PINS.json": {
+      "bytes": 2365,
+      "sha256": "ce956b595bc56460f643dcc3d5f47e5b153dbaee4e22e0905652ae068090bcfd"
+    },
+    "examples/physics-p4-owned-data-2276/evidence/selftest-01/deep.json": {
+      "bytes": 131,
+      "sha256": "2574b71c86249bc36bf15157b4883f41da049924b6ddd4477f68af56d73d76b2"
+    },
+    "examples/physics-p4-owned-data-2276/evidence/selftest-01/duplicate.json": {
+      "bytes": 13,
+      "sha256": "d38245cfdb5d2239d67fe2a719312768b668a6928d8d97d04fbce83215e50b44"
+    },
+    "examples/physics-p4-owned-data-2276/evidence/selftest-01/file-cap--1.json": {
+      "bytes": 2097151,
+      "sha256": "54d031fbda6e05df5272ae74e58b4a6c0936ed2424ab2958338cf24cc4c0ac96"
+    },
+    "examples/physics-p4-owned-data-2276/evidence/selftest-01/file-cap-0.json": {
+      "bytes": 2097152,
+      "sha256": "92a1ed046d88e1773e80f7187ceb47570ba7c2226d1b4d7317e44b86c6ed7986"
+    },
+    "examples/physics-p4-owned-data-2276/evidence/selftest-01/file-cap-1.json": {
+      "bytes": 2097153,
+      "sha256": "bf895f1787ac529656bf75d331e619e1617e12b343a7dd5edaf5b0d5dc06b684"
+    },
+    "examples/physics-p4-owned-data-2276/evidence/selftest-01/incomplete.json": {
+      "bytes": 5,
+      "sha256": "aced72cfd547c2dd97712b69b63ce653b7f867ca39c8f5d41723047bebb6a901"
+    },
+    "examples/physics-p4-owned-data-2276/evidence/selftest-01/integer.json": {
+      "bytes": 17,
+      "sha256": "97f40b8ae3e4d3118bb4afb623d3e768f04d9bc2f913bd64296ebcd53386c1ac"
+    },
+    "examples/physics-p4-owned-data-2276/evidence/selftest-01/metadata.json": {
+      "bytes": 66,
+      "sha256": "73cd6bcd0a2ed87deed4ca71784e0379a8c257a9ffff992b8965791055cc326a"
+    },
+    "examples/physics-p4-owned-data-2276/evidence/selftest-01/nan.json": {
+      "bytes": 3,
+      "sha256": "d5b592c05dc25b5032553f1b27f4139be95e881f73db33b02b05ab20c3f9981e"
+    },
+    "examples/physics-p4-owned-data-2276/evidence/selftest-01/nonfinite.json": {
+      "bytes": 5,
+      "sha256": "d211ced314c89ef3a96c490266d9e1f5ece32bc90991512a067ff2e1b2e16bbc"
+    },
+    "examples/physics-p4-owned-data-2276/evidence/selftest-01/summary.json": {
+      "bytes": 1825,
+      "sha256": "40f2655bd12233c8ec65d3a4b13ed786c95bfd0b24c96127699fc2a14f318f75"
+    },
+    "examples/physics-p4-owned-data-2276/owned.py": {
+      "bytes": 15993,
+      "sha256": "03aef2a5fa1cec2f8389b6f668a9f170e26fae43bfb319db79fd722e9b22278f"
+    },
+    "examples/physics-p4-owned-data-2276/selftest.py": {
+      "bytes": 13326,
+      "sha256": "8b965cf09c549d0a62b6c3de43d25f424e8a43c4188de8b4fcbc853b61a6f831"
+    },
+    "examples/physics-p4-position-witness-v2-2276/RUNTIME-LAYOUT-01.json": {
+      "bytes": 913,
+      "sha256": "bc3904316e2e67f74f61140437c2ce35e170b75f194c026bc446d016d66f709e"
+    },
+    "examples/physics-p4-retained-graph-review-2276/REVIEW.md": {
+      "bytes": 6967,
+      "sha256": "3e78a311604a10d7423ab87d819da364956c9ab0db41084c45d777d1c7b4091f"
+    },
+    "examples/physics-p4-sat-2276/CONTRACT.md": {
+      "bytes": 5466,
+      "sha256": "b34c2fa0d19a4a75d0ffe14373e674478b5e233ed9092d6c5358ad5970afdea7"
+    },
+    "examples/physics-p4-sat-2276/METHOD.md": {
+      "bytes": 3061,
+      "sha256": "3d402f7721111715434708d3605118bf95f17652a31a97b2d44fe9aed4c115ad"
+    },
+    "examples/physics-p4-sat-2276/integer_sat.py": {
+      "bytes": 13025,
+      "sha256": "b1c2f4a4d291c52b9182864fea658381afd482aa34da7d300997a81bf45a3b1e"
+    },
+    "examples/physics-world-p5-2276/command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-gram-materialize-01/prepared.json": {
+      "bytes": 1608,
+      "sha256": "942807c21035583618580c1751cc14b530702ab0a0e3d37b7cf15a2bbdd91398"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-gram-materialize-01/progress.json": {
+      "bytes": 1706,
+      "sha256": "ce7cd6857a5abf7d78ac691d89b108766e4429ee2cba48e7d5551aecd16fc5d0"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-gram-materialize-01/result.json": {
+      "bytes": 3108,
+      "sha256": "923e00666a0c5135020ee3243b7b9f9a2f14a1beaf7222838006b681e8bc18a0"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-gram-materialize-01/start.json": {
+      "bytes": 1630,
+      "sha256": "37e8ea4a429c83ba21ed8bfbf0d61b178f4e0bbbb6903c645b0e4f0fc5c4ae56"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-gram-materialize-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-gram-materialize-01/stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-owned-data-selftest-01/prepared.json": {
+      "bytes": 1677,
+      "sha256": "e4df0be69d62ece745bf6957770191be3b76e364937e337a5cd581ef56414aaf"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-owned-data-selftest-01/progress.json": {
+      "bytes": 1776,
+      "sha256": "5238f106e26a23ec11834e3439a86f843b5d13f3209cb2e3cc44c07f0af76cce"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-owned-data-selftest-01/result.json": {
+      "bytes": 3183,
+      "sha256": "f44d9425f93cf8e2a019a0c584673b2b9c1ad68072a8a4ebfda2cc8c764ece70"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-owned-data-selftest-01/start.json": {
+      "bytes": 1699,
+      "sha256": "abbae95f07369209893f941a1bafeff4fcd8bc9edb9c56b42bd7935dcc6b3270"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-owned-data-selftest-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-owned-data-selftest-01/stdout.raw": {
+      "bytes": 97,
+      "sha256": "a741989720808792d9d600c0ab98cd821f42e71fe41495200be738f1e13d69f5"
+    }
+  },
+  "tools": {
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node": {
+      "bytes": 110712624,
+      "sha256": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13": {
+      "bytes": 52640,
+      "sha256": "a1f6d9dc20d4787a84dc2fe782094a7bac5946f49a962aa0af48a02f0e8d5bc5"
+    }
+  },
+  "plannedCounts": {
+    "candidateCalls": 9,
+    "meterContexts": 1,
+    "prefixAudits": 9,
+    "conventions": 18,
+    "axisSlots": 270,
+    "GramCoefficients": 378,
+    "faceCenterCoefficients": 108,
+    "signedMixedCoefficients": 486,
+    "WorldCalls": 0,
+    "costDecisions": 0
+  },
+  "M3OracleOnlyStats": {
+    "integerOperations": 49704,
+    "peakIntegerBits": 1355,
+    "axisVisits": 540,
+    "conventionProblems": 36
+  },
+  "ownedQualificationScope": "ACTUAL_SEVEN_PURE_DATA_GROUPS_ONLY_NOT_FUTURE_FULL_VALIDATOR_OR_PHYSICS",
+  "limits": {
+    "integerOperations": 2000000,
+    "integerBits": 16384,
+    "parentBytes": 25165824,
+    "nonJsonBytes": 8388608,
+    "jsonLedgerAndPhaseBytes": 16777216,
+    "independentAuditBytes": 33554432,
+    "outerTransportBytes": 8388608,
+    "combinedExplicitBytes": 67108864,
+    "perRequestReplyBytes": 2097152,
+    "evidenceBytes": 16777216,
+    "internalSeconds": 170,
+    "externalSeconds": 180
+  },
+  "M3Timing": "SEPARATE_COMPLETED_GENERATION_NOT_INCLUDED_IN_R1",
+  "authorCalls": {
+    "candidate": 0,
+    "helper": 0,
+    "reference": 0,
+    "World": 0
+  },
+  "fullB": "NOT_IMPLEMENTED_NOT_RUN_REQUIRES_SEPARATE_ROOT_APPROVAL",
+  "oldV3ObservedGraph": "UNCHANGED_UNQUALIFIED_NO_REAUDIT_OR_RETIME",
+  "archivePolicy": "WORKSPACE_FILES_ONLY_EXTERNAL_TOOL_FILES_METADATA_ONLY"
+}

@@ -1,0 +1,21 @@
+{
+  "status": "ROOT_STATIC_REVIEW_READY_NO_RUNTIME_CALLS",
+  "head": "983ed122f1d8be577c68a72793db8820d0adbbf9",
+  "branch": "codex/physics-world-p5-2276",
+  "authorFreeze": {
+    "bytes": 160103,
+    "sha256": "2d8e8a11dae1d6d7e7bf8a62439d92a829e90a5b4afa33f7ad0b02044fb69225"
+  },
+  "authenticatedFileCount": 763,
+  "scope": "FIRST_COLD_SINGLE_NATIVE_FACE_POINT_STATIC_ONLY_2CASES_PLUS_OUTSIDE_TYPED_REFUSAL",
+  "HighReview": "NO_BLOCKING_P0_P1",
+  "oldObservers": "BYTE_IDENTICAL",
+  "iterationCaps": "UNCHANGED8x8",
+  "WorldCalls": 0,
+  "candidateCalls": 0,
+  "referenceCalls": 0,
+  "HOLD": "UNCHANGED",
+  "firstFailure": "PERSISTENT_CONE_BEFORE0.1410596011492487_VS1e-10_PRESERVED",
+  "publicPromotion": "BLOCKED",
+  "desktop": "NEW_CANDIDATE_NOT_RUN_EXISTING_WARM_VIEWER_SEPARATE_PASS"
+}

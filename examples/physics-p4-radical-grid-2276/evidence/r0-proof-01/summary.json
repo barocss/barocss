@@ -1,0 +1,92 @@
+{
+  "status": "PASS_R0_PURE17_ONE_GLOBAL_METER",
+  "protocol": "p4-radical-r0-harness-v1",
+  "firstFailure": null,
+  "counts": {
+    "meterContexts": 1,
+    "candidateCallsAttempted": 17,
+    "candidateReplies": 17,
+    "auditCommandsAttempted": 17,
+    "auditPasses": 17,
+    "validVerified": 13,
+    "expectedInvalidVerified": 2,
+    "expectedResourceVerified": 2,
+    "WorldCalls": 0
+  },
+  "controls": [
+    "INDEPENDENT_PREFIX_PASS",
+    "INDEPENDENT_PREFIX_PASS",
+    "INDEPENDENT_PREFIX_PASS",
+    "INDEPENDENT_PREFIX_PASS",
+    "INDEPENDENT_PREFIX_PASS",
+    "INDEPENDENT_PREFIX_PASS",
+    "INDEPENDENT_PREFIX_PASS",
+    "INDEPENDENT_PREFIX_PASS",
+    "INDEPENDENT_PREFIX_PASS",
+    "INDEPENDENT_PREFIX_PASS",
+    "INDEPENDENT_PREFIX_PASS",
+    "INDEPENDENT_PREFIX_PASS",
+    "INDEPENDENT_PREFIX_PASS",
+    "INDEPENDENT_PREFIX_PASS",
+    "INDEPENDENT_PREFIX_PASS",
+    "INDEPENDENT_PREFIX_PASS",
+    "INDEPENDENT_PREFIX_PASS"
+  ],
+  "costDecisions": 0,
+  "baselineReruns": 0,
+  "fullPosition": "NOT_RUN_NOT_IMPLEMENTED",
+  "oldCandidates": "UNCHANGED_ENDED",
+  "pinsPin": {
+    "bytes": 8218,
+    "sha256": "998a9d40552a3d51e10d4b53841c39673ac16ca1f7fec0a073a7672d3c1fca12"
+  },
+  "requestPin": {
+    "bytes": 10964,
+    "sha256": "798bbc18f8623214e44ce7bd342e967385d31205ae6ef16369d5d389018a611e"
+  },
+  "oraclePin": {
+    "bytes": 13659,
+    "sha256": "b35acf846abd6e71c28f3318a6121cd2f9c55cb46e6a671a3e04e3dc12a5c6fb"
+  },
+  "lastAudit": {
+    "file": "audit-17.json",
+    "pin": {
+      "bytes": 852,
+      "sha256": "178331cac693709f07943c9c06835f6ac788b45ef21c27cd974c95ca295444b9"
+    },
+    "status": "EXECUTED_PASS_EXACT_RADICAL_GRID_BANK",
+    "complete": true
+  },
+  "finalAuthentication": "ALL_FROZEN_SOURCES_AND_TOOLS_EQUAL",
+  "finalStats": {
+    "integerOperations": 18911,
+    "peakIntegerBits": 16383,
+    "axisVisits": 0,
+    "conventionProblems": 0
+  },
+  "elapsedWallNs": 846459834,
+  "peakExplicitParentDataBytes": 73880,
+  "writtenEvidenceBytesBeforeSummary": 105805,
+  "laterChecks": "PHASE3_REQUIRES_SEPARATE_ROOT_MAP_REVIEW_AND_AUTHORIZATION",
+  "m2IncludedInR0Timing": false,
+  "rssQualified": false,
+  "archivePins": {
+    "SOURCE-01.tar.gz": {
+      "bytes": 74537,
+      "sha256": "71d9671f9cfb6f62adf48c674a524d54729c58c25a8a7b4bed3ef9d20fda0f75"
+    },
+    "PROOF-01.tar.gz": {
+      "bytes": 17792,
+      "sha256": "6a5104088ab950bec679569915897c33c151edd36148c42c31ce34e5d12b9e4f"
+    }
+  },
+  "notRun": [
+    "fullcompact",
+    "fullposition6B",
+    "cost",
+    "original1200",
+    "World",
+    "publicAPI",
+    "desktop"
+  ]
+}

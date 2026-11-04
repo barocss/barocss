@@ -1,0 +1,13 @@
+# Position witness arithmetic revision 02
+
+This new candidate preserves the original candidate and its first resource failure. Stage A01 passed ALIGNED1 and four rejection controls. ALIGNED16 then returned `PROOF_PRIMITIVE_LIMIT` at KKT: 2,000,000 performed primitives, 2,000,001 attempted primitives. Stage B was not run. This revision is a resource algorithm change. It is not a retry of a failed cost gate.
+
+The only executable changes are `Arithmetic.product_sum`, `Arithmetic.dot`, and the stationarity and objective expressions in `kkt`. Preparation, witness admission, one Bareiss factorization, primal-first checking, dual and complementarity checks, native comparisons, RNE, exact formatting, status schema, and every meter wrapper, price, limit, phase and counter remain unchanged. The wrapper is copied byte for byte.
+
+For each nonzero product, the new operation forms its integer numerator and positive integer denominator without reducing the product. It forms the least common denominator of the products with the original checked GCD, exact division and multiplication wrappers. It scales each numerator to that denominator, adds the integers, then calls the original rational constructor once. Thus, for products `N_i / D_i` and `D = lcm(D_i)`, it returns the reduced value of `sum(N_i * (D / D_i)) / D`. Zero products do not affect that value. No intermediate product or partial sum is rounded.
+
+This avoids the former two cross-cancellation GCDs per product and repeated rational additions. Every operation that remains is charged with the original price. There is no lower pricing, unmetered arithmetic, counter reset, alternate solver, fallback or oracle input. A larger unreduced integer can cause the existing bit refusal. It must not cause a limit increase.
+
+Each sum visits at most 36 products, with at most four rational factors per product. A dot has at most 24 products. A stationarity column has 36 products. The objective has 24 products and uses the exact reciprocal inverse-mass and exact factor one half. These formulas also serve native residual checking. All raw products, LCMs, scaled terms and sums use the original check-before-allocation integer wrappers and 16,385-bit bound. Only the final reduced rational is retained, with the original 8,192-bit bound.
+
+At most 36 numerator/denominator pairs are retained in this helper. They fit the existing 1,200-integer scratch reservation. No numeric, reference, helper, decoder, audit, compiler, World or browser call was made by the author. Root must freeze and run the unchanged Stage A10 order before the separately declared Stage B6 protocol. Numerical success and cost success remain NOT_RUN for this revision.

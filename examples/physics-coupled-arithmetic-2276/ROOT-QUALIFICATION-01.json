@@ -1,0 +1,53 @@
+{
+  "status": "PASS_RETAINED_PROOFS_AND_ALL_PROVIDER_PINS",
+  "providerFilesVerified": 39,
+  "productionParityFiles": 14,
+  "privateParityFiles": 53,
+  "physicalAudits": 6,
+  "privateAudits": 104,
+  "referenceGeneratorCalls": 0,
+  "candidateCalls": 0,
+  "WorldCalls": 0,
+  "resultPins": {
+    "examples/physics-coupled-arithmetic-2276/evidence/materialize-01/result.json": {
+      "bytes": 402,
+      "sha256": "70222c23f1c0ca4b47000555f2a02048547cb1b1a64a9be500597d791ec3b36d"
+    },
+    "examples/physics-coupled-arithmetic-2276/evidence/build-01/result.json": {
+      "bytes": 1478,
+      "sha256": "3bf8602e549821ec35730d2fcab0f1ee3a4a9b0acf293752d65fb20f88748c07"
+    },
+    "examples/physics-coupled-arithmetic-2276/evidence/build-02/result.json": {
+      "bytes": 1690,
+      "sha256": "dce69012ede2bdb616bc680cbcff76aca2964766b7bd2d55fe33ec10fe8b1a37"
+    },
+    "examples/physics-coupled-arithmetic-2276/evidence/build-03/result.json": {
+      "bytes": 3381,
+      "sha256": "d20453a8e5e987f19a68501f46b0d8bce15e49ee46c44cb2d8d3c012b5a7502b"
+    },
+    "examples/physics-coupled-arithmetic-2276/evidence/production-source-01/result.json": {
+      "bytes": 3028,
+      "sha256": "2ad18b11c9ea8dadbe6c5457cba5846aa2fd2d5279c79091823aee524940a86b"
+    },
+    "examples/physics-coupled-arithmetic-2276/evidence/production-native-01/result.json": {
+      "bytes": 3028,
+      "sha256": "bd84e172c8ef712585e6f85c321cb496accd18104e767487ab0e740d780f8e1a"
+    },
+    "examples/physics-coupled-arithmetic-2276/evidence/production-parity-01/result.json": {
+      "bytes": 2818,
+      "sha256": "8fc963482a494fbe84f5d40e7edcd55383cfaf8eb821c1a94ae98e86788efb72"
+    },
+    "examples/physics-coupled-arithmetic-2276/evidence/arithmetic-source-01/result.json": {
+      "bytes": 13665,
+      "sha256": "3e5f4be36f9214ca47ecd4b69ef58303a2f563203cbaaa06d0fd438c885d52de"
+    },
+    "examples/physics-coupled-arithmetic-2276/evidence/arithmetic-native-01/result.json": {
+      "bytes": 13658,
+      "sha256": "f1c6e88fe236194e7857a3877a89b1bc2d04e1c3890e66986d5dae20b4c9f0eb"
+    },
+    "examples/physics-coupled-arithmetic-2276/evidence/arithmetic-parity-01/result.json": {
+      "bytes": 9589,
+      "sha256": "46a0dd3b86a062c16f1ee00ee8ea82d41c4f011a6ec2518807a593ffcc184d64"
+    }
+  }
+}

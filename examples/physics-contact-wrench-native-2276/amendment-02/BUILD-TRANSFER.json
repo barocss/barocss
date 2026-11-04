@@ -1,0 +1,41 @@
+{
+  "status": "AUTHORED_NOT_COMPILED",
+  "edits": [
+    {
+      "label": "Explicit amended dual graph scope",
+      "old": "const result={status:'BUILD_NOT_COMPLETED',scope:'PRIVATE_EMITTED_NODE_NEXT_ONLY'",
+      "new": "const result={status:'BUILD_NOT_COMPLETED',scope:'PRIVATE_TYPED_SOURCE_AND_EMITTED_02'",
+      "count": 1
+    },
+    {
+      "label": "Authenticate protected baseline and amendment pins",
+      "old": " phase='authenticate-installed-typescript';",
+      "new": " const baselineFreeze=JSON.parse(readFileSync(resolve(home,'FREEZE-01.json')));for(const[path,v]of Object.entries(baselineFreeze.files))assert.deepEqual(pin(resolve(root,path)),v,'Protected native01 author source drift: '+path);\n const amendmentFreeze=JSON.parse(readFileSync(resolve(home,'FREEZE-02.json')));for(const[path,v]of Object.entries(amendmentFreeze.files))assert.deepEqual(pin(resolve(home,path)),v,'Typed amendment drift: '+path);\n result.nativeHarnessPins=amendmentFreeze.files;\n const qualifiedPrefix=JSON.parse(readFileSync(resolve(producer,'evidence/producer-01/one-frame-prefix.json')));result.qualifiedSourceProviderDigest=qualifiedPrefix.identity.providerDigest;\n phase='authenticate-installed-typescript';",
+      "count": 1
+    },
+    {
+      "label": "Apply only reviewed replacements and distinct actual provider manifest",
+      "old": " const tsFiles=tree(stage).filter(p=>p.endsWith('.ts'));",
+      "new": " phase='apply-reviewed-typed-amendment';\n const changes=['world.ts','private-phase.ts','persistent-box-contact.ts','producer.ts','phase-hit.ts'];for(const name of changes)cpSync(resolve(home,'amendment-02',name),resolve(stage,'physics/src',name));\n const manifestPath=resolve(stage,'physics/src/provider-manifest.generated.ts');\n const typedFiles=Object.fromEntries(tree(stage).filter(path=>path!==manifestPath).map(path=>[relative(stage,path),pin(path)]));\n result.manifest={format:'barocss-physics-private-typed-producer-02',version:1,graph:'PRIVATE_TYPED_SOURCE_AND_EMITTED',parentQualifiedManifestSha256:hash(JSON.stringify(sourceResult.manifest)),files:typedFiles,deltas:['admission-forbidden domain/large branches removed','typed schema2 producer and actual contribution boundaries','validated unknown-to-PhaseHit boundary'],law:'UNCHANGED_8_OUTER_8_INNER_NORMAL_TANGENT_CACHE'};\n writeFileSync(manifestPath,'export const providerManifest = '+JSON.stringify(result.manifest,null,2)+';\\n');\n result.typedStage=Object.fromEntries(tree(stage).map(path=>[relative(stage,path),pin(path)]));\n put('typed-source-manifest.json',result.manifest);put('typed-stage-pins.json',result.typedStage);\n const tsFiles=tree(stage).filter(p=>p.endsWith('.ts'));",
+      "count": 1
+    },
+    {
+      "label": "Retain strict baseline compiler invocation",
+      "old": "phase='strict-compile';run('compile'",
+      "new": "phase='strict-compile';run('compile'",
+      "count": 1
+    },
+    {
+      "label": "Build amended Source separately from actual Native graph",
+      "old": " result.status='PASS_PRIVATE_NATIVE_EMITTED_BUILD';",
+      "new": " phase='amended-source-bundle';const esbuild=realpathSync(tools.tools.esbuildBinary);const args=[resolve(stage,'entry.ts'),'--bundle','--platform=node','--format=esm','--target=es2022','--outfile='+resolve(out,'source.mjs'),'--metafile='+resolve(out,'source-metafile.json')];const sourceProcess=spawnSync(esbuild,args,{cwd:root,encoding:'utf8',timeout:30000,maxBuffer:1024*1024});writeFileSync(resolve(out,'source.stdout'),sourceProcess.stdout??'',{flag:'wx'});writeFileSync(resolve(out,'source.stderr'),sourceProcess.stderr??'',{flag:'wx'});result.commands.push({label:'source',executable:esbuild,args,status:sourceProcess.status,signal:sourceProcess.signal,error:sourceProcess.error?.message??null});assert.equal(sourceProcess.status,0,'Amended Source bundle failed');result.source=pin(resolve(out,'source.mjs'));result.sourceEntry='source.mjs';\n result.status='PASS_PRIVATE_TYPED_DUAL_GRAPH_BUILD';",
+      "count": 1
+    },
+    {
+      "label": "Preserve independent amended first-failure status",
+      "old": "result.status='FAIL_PRIVATE_NATIVE_EMITTED_BUILD';",
+      "new": "result.status='FAIL_PRIVATE_TYPED_DUAL_GRAPH_BUILD';",
+      "count": 1
+    }
+  ]
+}

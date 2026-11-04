@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "status": "FROZEN_BEFORE_IMPLEMENTATION_SOURCE_ONLY",
+  "productionPopulation": {"bodies": 9, "dynamicBodies": 8, "points": 32, "interfaces": 8, "pointsPerInterface": 4},
+  "algorithm": "TOP_DOWN_MAX4_TRIANGLES_PER_INTERFACE_EXACT_GLOBAL_CERTIFICATE",
+  "objective": "MIN_HALF_MASS_WEIGHTED_SQUARED_CHANGE_FROM_FREE_VELOCITY_SUBJECT_JV_NONNEGATIVE",
+  "limits": {"rationalOperations": 200000, "integerOperations": 2000000, "integerBits": 16384, "triangleTrials": 32},
+  "statuses": ["SOLVED_STATIONARY_WITNESS", "INVALID_INPUT", "UNSUPPORTED_PROFILE", "NO_WITNESS", "RESOURCE_LIMIT", "NUMERIC_LIMIT"],
+  "coefficientAuthority": "UNSCALED_FLOAT_SUBTRACT_CROSS_THEN_ENDPOINT_SIGN_WITH_IEEE_WORD_PROVENANCE",
+  "appliedImpulse": "EXACT_REDUCED_RATIO_SEPARATE_FROM_ROUNDED_NUMBER_DISPLAY",
+  "testCore": "EXAMPLE_SOURCE_COPY_ONLY_PRODUCTION_WRAPPER_REQUIRES8_DYNAMIC",
+  "oldSourceEdits": false,
+  "bridgeAdopted": false,
+  "publicAPI": false,
+  "fullPhysics": false,
+  "authorExecution": false
+}

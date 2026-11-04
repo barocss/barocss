@@ -122,7 +122,7 @@ export function parseBody(value: unknown, largeMode = false): Body {
       massKg / 3 * (parsedShape.halfExtentsM[0] ** 2 + parsedShape.halfExtentsM[2] ** 2),
       massKg / 3 * (parsedShape.halfExtentsM[0] ** 2 + parsedShape.halfExtentsM[1] ** 2)]
     : parsedShape.kind === 'capsule'
-      ? Array(3).fill(0.4 * massKg * (parsedShape.radiusM + parsedShape.halfLengthM) ** 2) as Vec3
+      ? capsuleMoments(massKg, parsedShape.radiusM, parsedShape.halfLengthM)
       : undefined;
   const inertia = inertiaDiagonalKgM2 ?? [inertiaKgM2!, inertiaKgM2!, inertiaKgM2!];
   return { id: input.id, kind, shape: parsedShape, positionM, sensor,
@@ -137,6 +137,19 @@ export function parseBody(value: unknown, largeMode = false): Body {
     inverseMass: 1 / massKg, restitution,
     frictionStatic: material.static, frictionDynamic: material.dynamic };
 }
+/** Uniform-density capsule, with its centreline on body Y and inertia about its COM. */
+function capsuleMoments(massKg: number, radiusM: number, halfLengthM: number): Vec3 {
+  // Cylinder and paired hemispheres share density. Their combined volume ratio cancels pi.
+  const cylinderMass = massKg * (3 * halfLengthM) / (3 * halfLengthM + 2 * radiusM);
+  const capMass = massKg - cylinderMass;
+  const radiusSquared = radiusM * radiusM;
+  const axial = cylinderMass * radiusSquared / 2 + capMass * 2 * radiusSquared / 5;
+  // Each hemisphere centroid is 3r/8 from its equatorial plane.
+  const transverse = cylinderMass * (radiusSquared / 4 + halfLengthM * halfLengthM / 3) +
+    capMass * (2 * radiusSquared / 5 + halfLengthM * halfLengthM + 3 * halfLengthM * radiusM / 4);
+  return [transverse, axial, transverse];
+}
+
 export function copyShape(value: PhysicsShape): PhysicsShape {
   return value.kind === 'sphere' ? { kind: 'sphere', radiusM: value.radiusM }
     : value.kind === 'box' ? { kind: 'box', halfExtentsM: [...value.halfExtentsM] as Vec3 }

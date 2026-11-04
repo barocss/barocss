@@ -1,0 +1,6 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BaroCSS Physics · Stack</title><link rel="stylesheet" href="/style.css"></head>
+<body><header><strong>BaroCSS <span>Physics</span></strong><div class="controls"><select id="scene" aria-label="배치"><option value="ALIGNED">정렬</option><option value="OFFSET">편심</option><option value="YAW">회전</option></select><button id="step" disabled>1스텝</button><button id="play" disabled>실행</button><button id="reset" disabled>초기화</button><button id="home" disabled>카메라</button><label><input id="markers" type="checkbox" checked>접촉점</label></div></header>
+<main><canvas id="canvas" aria-label="8개 상자 물리 시뮬레이션"></canvas></main>
+<footer><span id="status">준비 중</span><span><b id="clock">0.000</b> s · <b id="frame">0</b> / 1200</span><span id="contacts">접촉 0</span><span>1 / 120 s</span></footer><p id="error" role="alert" hidden></p>
+<script type="module" src="/app.mjs"></script></body></html>

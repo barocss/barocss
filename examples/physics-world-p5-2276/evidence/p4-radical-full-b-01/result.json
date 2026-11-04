@@ -1,0 +1,91 @@
+{
+  "kind": "P5B_OWNED_COMMAND_GUARD",
+  "receiptId": "p4-radical-full-b-01",
+  "censusId": "p4-radical-full-b-01",
+  "status": "FAIL",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+    "-B",
+    "examples/physics-p4-radical-compact-harness-2276/run.py",
+    "full-b-01",
+    "5f03524846718e93b1bf80e5674096b7b7b335d744d4537a3e86cdb2f7dce2bc"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "inputs": {
+    "command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": "2026-11-03T12:40:43.949Z",
+  "spawnAt": "2026-11-03T12:40:43.993Z",
+  "pid": 32295,
+  "processGroupId": 32295,
+  "exit": 1,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": "CENSUS_EXIT_FAILURE",
+  "processClosed": true,
+  "groupSignals": [
+    {
+      "signal": "SIGTERM",
+      "elapsedMs": 5656.205667,
+      "result": "GROUP_ABSENT",
+      "code": "ESRCH"
+    }
+  ],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/p4-radical-full-b-01/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/p4-radical-full-b-01/progress.json",
+  "errors": [],
+  "exitAt": "2026-11-03T12:40:49.605Z",
+  "stopRequestedAtMs": 5656.101542,
+  "finishedAt": "2026-11-03T12:40:49.625Z",
+  "elapsedMs": 5675.447875,
+  "ownedGroupPresentAtFinalization": false,
+  "censusElapsedMs": 5634.022042,
+  "cleanupElapsedMs": 19.346332999999504,
+  "output": {
+    "stdout": {
+      "observedBytes": 473,
+      "capturedBytes": 473,
+      "omittedBytes": 0,
+      "sha256": "070322459ac1cc723b299975ffbad3ebb1f8f0ea8b42f4b0970c358262f8083a",
+      "eof": true,
+      "writeError": null
+    },
+    "stderr": {
+      "observedBytes": 0,
+      "capturedBytes": 0,
+      "omittedBytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "eof": true,
+      "writeError": null
+    }
+  },
+  "censusSummary": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/p4-radical-full-b-01/summary.json",
+    "present": false
+  },
+  "censusProgress": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/p4-radical-full-b-01/progress.json",
+    "present": true,
+    "bytes": 1939,
+    "sha256": "79936e0119d31bb95c52e3912a9144d1135c9c7afac8eda44ebc7037d4abe7dc",
+    "status": "RUNNING",
+    "counts": null,
+    "referenceCallCounts": null,
+    "firstFailure": null
+  },
+  "callCountBoundary": "Only counts present in original census progress/summary/timing receipts are reported; a timeout never implies the primitive call population completed."
+}

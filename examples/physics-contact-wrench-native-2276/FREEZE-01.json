@@ -1,0 +1,500 @@
+{
+  "status": "BUILD_READY_FROZEN_NOT_COMPILED_NOT_RUN",
+  "date": "2026-11-03",
+  "scope": "PRIVATE_ACTUAL_EMITTED_JS_GRAPH",
+  "files": {
+    "examples/physics-contact-wrench-native-2276/CONTRACT.md": {
+      "bytes": 4592,
+      "sha256": "fe462f151989d042ea3ded1e804128ddacd32ba87b71ce1385c4086b155bedf1"
+    },
+    "examples/physics-contact-wrench-native-2276/RUNNER-TRANSFER.diff": {
+      "bytes": 9496,
+      "sha256": "1fe43df8de190395ea00768622575bfbfadae65289be1069e7e4c81f600bdc1f"
+    },
+    "examples/physics-contact-wrench-native-2276/RUNNER-TRANSFER.json": {
+      "bytes": 3110,
+      "sha256": "dbb48ec376fb437d704f7b23af6f10115493b745fc8da8bffeca5e34efe8a53d"
+    },
+    "examples/physics-contact-wrench-native-2276/build.mjs": {
+      "bytes": 7609,
+      "sha256": "4508d7582d665d845266cb6717b042f3ed4e8ca70859847451375166bc21cbc8"
+    },
+    "examples/physics-contact-wrench-native-2276/consumer-template.mts": {
+      "bytes": 1164,
+      "sha256": "7f666d38d11312ddef08859e3a0c39495853a3b89bd3db95b6319495c2ea3126"
+    },
+    "examples/physics-contact-wrench-native-2276/encoding.mjs": {
+      "bytes": 1762,
+      "sha256": "6178b80fab30deb89064fc89bcde70cf56199c8bec86495cb2be7c8381d5a05f"
+    },
+    "examples/physics-contact-wrench-native-2276/observer.py": {
+      "bytes": 24414,
+      "sha256": "08b24e1d74b32f112b9d9b5627cd0d9e067f64c3b5709f970b9424bf94ab37fc"
+    },
+    "examples/physics-contact-wrench-native-2276/package.json": {
+      "bytes": 33,
+      "sha256": "a90fc33418afa2b9cbf4768524b021135b965ecdf993457505bfae3ac44a8428"
+    },
+    "examples/physics-contact-wrench-native-2276/run.mjs": {
+      "bytes": 14105,
+      "sha256": "12d3559651410a0ded3a2195d699c622bb22f7cbe23417fbafe32b402feb64fe"
+    },
+    "examples/physics-contact-wrench-native-2276/trace_decode.py": {
+      "bytes": 2340,
+      "sha256": "db499d56e4e9db398ab0232b38ddf090f80449e9ea0322957b4cad810021a806"
+    }
+  },
+  "qualifiedSourceBuildPin": {
+    "bytes": 48815,
+    "sha256": "be31ab687cfd8e9de7417da041622a7ee6245abaa96442cdcbdac7a9a4d9c132"
+  },
+  "qualifiedSourceRunPin": {
+    "bytes": 3275,
+    "sha256": "30cad391ef29c31fb100cfb951b0d70de73105c13879b0b32e3f46e80c7b4c12"
+  },
+  "qualifiedStageFiles": {
+    "B/candidate.ts": {
+      "bytes": 15364,
+      "sha256": "1fda2dd0a8f8d39ecdbe50c391c707c800ec7f0c4be69de7bd09730b656cde48"
+    },
+    "B/native.ts": {
+      "bytes": 17864,
+      "sha256": "15a1931ed4fc5cc91bbae4fde700258a039aa3e081c128bc61030474de38200d"
+    },
+    "entry.ts": {
+      "bytes": 326,
+      "sha256": "254a30b400e5ed6fef8c6cc71e4f81af0555db68a3d56ed7d30e0a43b29e8502"
+    },
+    "physics/src/broadphase.ts": {
+      "bytes": 1371,
+      "sha256": "d93e38d78cc3d202481ceeba83631d528032426d03a8adafb2e461fc72a042a0"
+    },
+    "physics/src/cad-fluid-data.ts": {
+      "bytes": 2345,
+      "sha256": "5a15e23ba65663433501f07d2f35f323960879218d52a007efeb09ca7934ce10"
+    },
+    "physics/src/cad-proxy-admission.ts": {
+      "bytes": 7744,
+      "sha256": "898fb55af369727440fef9f4bfadba0ea455b4c800a719909e5311029a663441"
+    },
+    "physics/src/cad-proxy-pose.ts": {
+      "bytes": 1479,
+      "sha256": "8b5f50642144e335421ee6483f8b016b8a0babdb0c312ddf6ba4afbcf8bda322"
+    },
+    "physics/src/cad-proxy-types.ts": {
+      "bytes": 887,
+      "sha256": "31bbf6766887913149d6fa2185c173adb0c6b78cdb21d1556ae4ffd055666128"
+    },
+    "physics/src/cad-proxy-validation.ts": {
+      "bytes": 1598,
+      "sha256": "4429f957bb51ff2604a15478095e35642368dcf91ca0d854561693d3f99f748e"
+    },
+    "physics/src/cad-proxy.ts": {
+      "bytes": 321,
+      "sha256": "cc7715b4fc974c8ed4511ebf684cdc7c2923f7ab4b8b7f5db45b208f8e6ffa99"
+    },
+    "physics/src/capsule-contact.ts": {
+      "bytes": 5615,
+      "sha256": "cc29d60423bd9a1883585cf164cca0b0736b9fc72e7feb3575c5208c7d892929"
+    },
+    "physics/src/capsule-query/admission.ts": {
+      "bytes": 5248,
+      "sha256": "9b67efc7a8824ce49361485eff925afa50017e05bc23d900db5ec7c4e2c8760d"
+    },
+    "physics/src/capsule-query/geometry.ts": {
+      "bytes": 2570,
+      "sha256": "5fdbe1eb40f46e930161e98244a9e5ec0e00c29297caf6f91d530c98df3df4a7"
+    },
+    "physics/src/capsule-query/profile.ts": {
+      "bytes": 303,
+      "sha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff"
+    },
+    "physics/src/capsule-query/snapshot.ts": {
+      "bytes": 2537,
+      "sha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd"
+    },
+    "physics/src/capsule-query/sweep.ts": {
+      "bytes": 1861,
+      "sha256": "a8f4d16879b2ff88086ceec54cef19d04d58fb063893e7a146382cad59cbaf77"
+    },
+    "physics/src/capsule-query/types.ts": {
+      "bytes": 979,
+      "sha256": "c22d17887cd8ab889a443c828200310a4c560fd3b4f8ed49f3f1f60e5dd46f44"
+    },
+    "physics/src/capsule-query-error.ts": {
+      "bytes": 137,
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    "physics/src/capsule-query.ts": {
+      "bytes": 222,
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+    },
+    "physics/src/ccd-box.ts": {
+      "bytes": 1988,
+      "sha256": "076eadf591500684332bd19b53a780de480ccdde205196ad072a11e1abc4f7a4"
+    },
+    "physics/src/ccd-pair.ts": {
+      "bytes": 1303,
+      "sha256": "87ea34e6b662b223874857651839407f351b0beaa03a4a85d1e4797744027e1a"
+    },
+    "physics/src/ccd-rounded-box.ts": {
+      "bytes": 8125,
+      "sha256": "b4ad5a06435b1bacb796dace179f95904fd9d35e4e9dac17ead55bc2f675f59c"
+    },
+    "physics/src/ccd-slab.ts": {
+      "bytes": 1125,
+      "sha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340"
+    },
+    "physics/src/ccd-sphere-pair-exact.ts": {
+      "bytes": 5307,
+      "sha256": "2ee601d4e363d135fc356cef37a43495524449bb4dc38abe8f62848bdf28645c"
+    },
+    "physics/src/ccd.ts": {
+      "bytes": 3183,
+      "sha256": "861e2b8fa56c746232581f1debddab0b88574df81187cb6dd2d6b8db7377d95e"
+    },
+    "physics/src/character/admission.ts": {
+      "bytes": 4488,
+      "sha256": "d83cdb8231620a18935d4d4d5e19ab7ec5440b043e1df71d49d5fa42f3fecb26"
+    },
+    "physics/src/character/core.ts": {
+      "bytes": 4057,
+      "sha256": "6c6251e9782baed07be65cce68bfdbca14e2f930ca04a54ee6812cbbfc925a02"
+    },
+    "physics/src/character/ground.ts": {
+      "bytes": 1242,
+      "sha256": "bd1621641ebc9300943b88c9083710218768454acb0a5e1ba8b330086d68c321"
+    },
+    "physics/src/character/math.ts": {
+      "bytes": 859,
+      "sha256": "df0e88c320d8a189004991cd5cfc3f8de3d7bb3eecb305bb01830a11191dcdc5"
+    },
+    "physics/src/character/profile.ts": {
+      "bytes": 334,
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    "physics/src/character/query.ts": {
+      "bytes": 2733,
+      "sha256": "9ef96eeb1529dc42466445529b100affc2f56913081f0c2fc169079cffe1a8cf"
+    },
+    "physics/src/character/slide.ts": {
+      "bytes": 2555,
+      "sha256": "587d5512212e68fdc26068646152d2f8c52c3c6119d6c222de91b750c01fcd77"
+    },
+    "physics/src/character/state.ts": {
+      "bytes": 2181,
+      "sha256": "6eb744c82f24604a8ecadd6e9d86406600119a3fbc7918129f93983df7cbf47e"
+    },
+    "physics/src/character/step-assist.ts": {
+      "bytes": 3129,
+      "sha256": "9166857ad8509049a56d5b255ed59de17ee03e159581b495de7f1d985780c390"
+    },
+    "physics/src/character/types.ts": {
+      "bytes": 2552,
+      "sha256": "866c5974fd99ec08b5dc6b5edf165241f4d02a8ed87274faf4cf35b19a3fb938"
+    },
+    "physics/src/character-controller.ts": {
+      "bytes": 1363,
+      "sha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927"
+    },
+    "physics/src/cloth/constraints.ts": {
+      "bytes": 1772,
+      "sha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be"
+    },
+    "physics/src/cloth/metrics.ts": {
+      "bytes": 1805,
+      "sha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd"
+    },
+    "physics/src/cloth/profile.ts": {
+      "bytes": 655,
+      "sha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f"
+    },
+    "physics/src/cloth/solver.ts": {
+      "bytes": 1395,
+      "sha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d"
+    },
+    "physics/src/cloth/topology.ts": {
+      "bytes": 1931,
+      "sha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203"
+    },
+    "physics/src/cloth/types.ts": {
+      "bytes": 719,
+      "sha256": "bad411f3fa02e4ba7039b5d447de395074342aa207f2eeed251705b15facb6d1"
+    },
+    "physics/src/collision.ts": {
+      "bytes": 14404,
+      "sha256": "8af301d4addf3b61a38fc54466a73dde48d27907f4143032d500962adbff47a3"
+    },
+    "physics/src/contact-manifold.ts": {
+      "bytes": 4743,
+      "sha256": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428"
+    },
+    "physics/src/contact-tangent.ts": {
+      "bytes": 2729,
+      "sha256": "5e1bddc158f9a6f307fdcc60ce8078ab36a06e372d530e7f5d05466d29bf9673"
+    },
+    "physics/src/disjoint-hinge/admission.ts": {
+      "bytes": 3764,
+      "sha256": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d"
+    },
+    "physics/src/disjoint-hinge/errors.ts": {
+      "bytes": 2777,
+      "sha256": "5e51e5662fbce80bee3ccd3aa3694ee986b1492ed816d171774e261ab982bf4f"
+    },
+    "physics/src/disjoint-hinge/linear-solver.ts": {
+      "bytes": 10615,
+      "sha256": "4009d4d7f171be3a5d79ca309a14b039da54f9201b438a410a6e29ed0f90bfdf"
+    },
+    "physics/src/disjoint-hinge/measure.ts": {
+      "bytes": 4626,
+      "sha256": "97cbaf697dc8ef5caba0bf2c702699b025bcc6f906f553b623466618bbd77178"
+    },
+    "physics/src/disjoint-hinge/pose.ts": {
+      "bytes": 3194,
+      "sha256": "ab950c1f9f1a79f9f00cb26e4b3cef0e3dcaea7b16d74e345e711159706b39e4"
+    },
+    "physics/src/disjoint-hinge/postcontact.ts": {
+      "bytes": 2936,
+      "sha256": "8d07190383a64cb592165772109a4f462099743492f8373794ef7981b1431e38"
+    },
+    "physics/src/disjoint-hinge/projection.ts": {
+      "bytes": 3538,
+      "sha256": "9d0def632c07f8085e860a2dbf21f26d8073f3265eb57590607d23ea6d333b87"
+    },
+    "physics/src/disjoint-hinge/report.ts": {
+      "bytes": 5726,
+      "sha256": "d46b3e289c58b289b059928580ff2b89d9bd3ecfb11cb688d8b7a4735143973d"
+    },
+    "physics/src/disjoint-hinge/rows.ts": {
+      "bytes": 3685,
+      "sha256": "6556f07d1d7d22edb67af1b214c689c5b5c2b30628334abaec67280d7302903f"
+    },
+    "physics/src/disjoint-hinge/stage.ts": {
+      "bytes": 2648,
+      "sha256": "a66e09b816259c2bb1305fed8f90696585b9fd4b750406b0ce006cbe2c2f33ab"
+    },
+    "physics/src/disjoint-hinge/types.ts": {
+      "bytes": 1610,
+      "sha256": "89b2708fd9209932084eaa765f93ff6ea00a2d775911e8c9e607a7eb824c8cc1"
+    },
+    "physics/src/domain/admission.ts": {
+      "bytes": 11327,
+      "sha256": "1182fb21ec319132ac2f16ddec8494e3d1c4c5ac750bbe1ebab4c29817b4423e"
+    },
+    "physics/src/domain/cloth-reference.generated.ts": {
+      "bytes": 158018,
+      "sha256": "c9ee88af8e25b533c2694433502b28f51dffdeae5cce656b53eb36a187be60bc"
+    },
+    "physics/src/domain/cloth.ts": {
+      "bytes": 4349,
+      "sha256": "2454474a24928a9f3d92d635a9391c537ef74de77112fdc2f2872536cb447883"
+    },
+    "physics/src/domain/fluid.ts": {
+      "bytes": 4923,
+      "sha256": "bfcafa7cc2f2bbb4ec6e2c20797f5dc5410d995cd28305272a2c3665d827179a"
+    },
+    "physics/src/domain/types.ts": {
+      "bytes": 3839,
+      "sha256": "35fcadf07a848d919806955f6c3d934d01217ff1c26ca7d4eb4eb2807eb4ee6f"
+    },
+    "physics/src/dynamic-anchor-pair.ts": {
+      "bytes": 3072,
+      "sha256": "8ff622a6ce007e5e7fcb43f0b7c08521615ddacbc8195cde1ac4f574304b579d"
+    },
+    "physics/src/dynamic-fixed-joint.ts": {
+      "bytes": 2051,
+      "sha256": "f5a0fa82c062c7406f6edfeb2aeb169c927ddd8d0965957f630f87e118c52dfa"
+    },
+    "physics/src/dynamic-hinge-joint.ts": {
+      "bytes": 4835,
+      "sha256": "69c816393446b6e06d66849840ecf88a7d28baf72bd30c792180616f55e455f2"
+    },
+    "physics/src/fluid/boundary.ts": {
+      "bytes": 1990,
+      "sha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c"
+    },
+    "physics/src/fluid/constants.ts": {
+      "bytes": 459,
+      "sha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec"
+    },
+    "physics/src/fluid/diagnostics.ts": {
+      "bytes": 1106,
+      "sha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215"
+    },
+    "physics/src/fluid/kernel.ts": {
+      "bytes": 1112,
+      "sha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da"
+    },
+    "physics/src/fluid/neighbors.ts": {
+      "bytes": 2949,
+      "sha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3"
+    },
+    "physics/src/fluid/pbf.ts": {
+      "bytes": 5161,
+      "sha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50"
+    },
+    "physics/src/fluid/static-box.ts": {
+      "bytes": 2481,
+      "sha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9"
+    },
+    "physics/src/fluid/types.ts": {
+      "bytes": 125,
+      "sha256": "c75f020afeb760ec596c3043fc6d2a7166995ce0c3cedbc7e5424a6a83e56a62"
+    },
+    "physics/src/fluid/visual-viscosity.ts": {
+      "bytes": 1265,
+      "sha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3"
+    },
+    "physics/src/generate-provider.mjs": {
+      "bytes": 2663,
+      "sha256": "c45a6eb52df5f4840aa30006ac65d15ea0758066f63d815e4a3b394e8eb20557"
+    },
+    "physics/src/identity.ts": {
+      "bytes": 6081,
+      "sha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be"
+    },
+    "physics/src/index.ts": {
+      "bytes": 570,
+      "sha256": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30"
+    },
+    "physics/src/internal-types.ts": {
+      "bytes": 2615,
+      "sha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8"
+    },
+    "physics/src/joint-motor.ts": {
+      "bytes": 1723,
+      "sha256": "9a50b0d006ca2386cd2d79b8ba162f6850a5d08d3eb1c7d03460d606559b56ea"
+    },
+    "physics/src/joints.ts": {
+      "bytes": 7231,
+      "sha256": "b6d0ec667a96fc26ec43d9d812c5ffd0a3b7446d135bd9b18713059327c59181"
+    },
+    "physics/src/limits.ts": {
+      "bytes": 417,
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    "physics/src/math.ts": {
+      "bytes": 2421,
+      "sha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2"
+    },
+    "physics/src/model-admission.ts": {
+      "bytes": 10384,
+      "sha256": "7e77f184fed57d51ee1b0599e60c80d83b96045b139d236a37f76a4207689397"
+    },
+    "physics/src/persistent-box-contact.ts": {
+      "bytes": 4816,
+      "sha256": "d259fd0d317c453703af28266b79711142a41b21873d986f4db6e6bb0ef05a03"
+    },
+    "physics/src/private-phase.ts": {
+      "bytes": 7812,
+      "sha256": "a7b68c05f921ad29d7b420732385faf22290d57b17f8c9da261c52b7a3519922"
+    },
+    "physics/src/producer.ts": {
+      "bytes": 3546,
+      "sha256": "510344eed3e147bf2975ff70b3f7d690a47e4bf370c75d47d7ec8d5d1d8ae5c4"
+    },
+    "physics/src/recording-owner.ts": {
+      "bytes": 895,
+      "sha256": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1"
+    },
+    "physics/src/replay-compare.ts": {
+      "bytes": 1023,
+      "sha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec"
+    },
+    "physics/src/replay-json.ts": {
+      "bytes": 7760,
+      "sha256": "bdc7a0286abe05595c949a5fda0aa2522820ccb7380c0d503f3784a2c51d4fed"
+    },
+    "physics/src/replay-validation.ts": {
+      "bytes": 9475,
+      "sha256": "f8da9f6c749b45bdd3c2ae61fc1e1bf9d73218e6f286a8557cc46277179440ec"
+    },
+    "physics/src/replay.ts": {
+      "bytes": 7119,
+      "sha256": "cad01e2cdc0d5ce879e17b1e0998ce83448b1a3b2368c339a9651b227b966742"
+    },
+    "physics/src/rigid-forced-rotation.ts": {
+      "bytes": 4961,
+      "sha256": "52447f9daa9da5c7382bd59d7132e3936ddf667942cbefd3fafeb79274e06d44"
+    },
+    "physics/src/rigid-free-rotation.ts": {
+      "bytes": 11619,
+      "sha256": "63e5fd31e798a7bd85f56d0d0b5b5bad58d61e2c848594328fa74bf1c254dbbf"
+    },
+    "physics/src/rotation-validation.ts": {
+      "bytes": 780,
+      "sha256": "45281b213700f86af36ea6d1a9189ca54349d13d01c37eeb366f1cdd474c1408"
+    },
+    "physics/src/scene-profile.ts": {
+      "bytes": 1202,
+      "sha256": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7"
+    },
+    "physics/src/sleep.ts": {
+      "bytes": 4411,
+      "sha256": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2"
+    },
+    "physics/src/types.ts": {
+      "bytes": 12312,
+      "sha256": "21e897fbaf967888d7748a25e81def8a31b81312a573b642e3f12b13c8b450da"
+    },
+    "physics/src/validation.ts": {
+      "bytes": 14962,
+      "sha256": "c5787fdbe5e31a51e52fb6b91634f75b363a629bb4a88248273e85c8ffc948af"
+    },
+    "physics/src/world.ts": {
+      "bytes": 31400,
+      "sha256": "4f2eed7803f8862663a6fffff8eab9f1e4f543ed1579ed7bcec80173403086bf"
+    },
+    "physics/src/provider-manifest.generated.ts": {
+      "bytes": 15280,
+      "sha256": "f991703e7da45f244223dc2aec592a2e0495113d0db168142878c79f47e00666"
+    }
+  },
+  "inheritedTypecheckDirectives": [
+    {
+      "file": "physics/src/private-phase.ts",
+      "line": 1,
+      "text": "// @ts-nocheck",
+      "priorNonCommentSource": false
+    },
+    {
+      "file": "physics/src/producer.ts",
+      "line": 1,
+      "text": "// @ts-nocheck",
+      "priorNonCommentSource": false
+    },
+    {
+      "file": "physics/src/replay-validation.ts",
+      "line": 1,
+      "text": "// @ts-nocheck",
+      "priorNonCommentSource": false
+    },
+    {
+      "file": "physics/src/world.ts",
+      "line": 3,
+      "text": "// @ts-nocheck",
+      "priorNonCommentSource": true
+    }
+  ],
+  "authorChecks": {
+    "nodeCheckBuildMjs": "PASS",
+    "nodeCheckRunMjs": "PASS",
+    "nodeCheckEncodingMjs": "PASS",
+    "exactRunnerTransferEdits": 7,
+    "unchangedHelperCopies": 3,
+    "dataHashCheck": "PASS",
+    "TypeScriptCompilation": "NOT_RUN",
+    "WorldCalls": 0,
+    "observerRuns": 0,
+    "moduleNumericalImports": 0
+  },
+  "strictBaselinePolicy": "Preserve full first diagnostics. No added/moved nocheck, no diagnostic hiding, no typed repair before baseline. Effective inherited nocheck is an explicit limitation, not full typecheck PASS.",
+  "commands": [
+    "node examples/physics-contact-wrench-native-2276/build.mjs native-01",
+    "node examples/physics-contact-wrench-native-2276/run.mjs native-01 run-01"
+  ],
+  "publication": "NONE",
+  "promotion": "NOT_PROMOTED",
+  "publicSerdeSuccess": "NOT_RUN",
+  "warmFrameCoverage": "NOT_COVERED"
+}

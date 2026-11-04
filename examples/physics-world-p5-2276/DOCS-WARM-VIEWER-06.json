@@ -1,0 +1,112 @@
+{
+  "status": "DOC_BUILD_AND_SCOPED_SITE_PASS_AFTER_DESKTOP_AND_BROWSER_AUDIT",
+  "implementationHead": "d62523ae3",
+  "viewerCommit": "6197433f3",
+  "date": "2026-11-03",
+  "WorldCalls": 0,
+  "numericalScope": "Separate finite-profile receipts only; no full-engine/real-machine/P4/deployment qualification.",
+  "inputs": {
+    "packages/barocss-physics/ROADMAP.md": {
+      "bytes": 92280,
+      "sha256": "01ba6923c4e54295ea652ef36a516f526a947ef0308efd97b3d7a1cc70f2bef4"
+    },
+    "packages/barocss-physics/README.md": {
+      "bytes": 21555,
+      "sha256": "8557309fc4e6afa1afaca628cb53ae83a88b2fc87ef43a82cc2c340a34c0ef6f"
+    },
+    "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt": {
+      "bytes": 92280,
+      "sha256": "01ba6923c4e54295ea652ef36a516f526a947ef0308efd97b3d7a1cc70f2bef4"
+    },
+    "apps/library-docs/docs/reference/physics-verification.md": {
+      "bytes": 49670,
+      "sha256": "e937d94c64eabfd498614e924e0930c42d580d57575573ff4bebc15b3905f66b"
+    },
+    "examples/physics-world-p5-2276/WORK-STATUS.json": {
+      "bytes": 24277,
+      "sha256": "2aed4ba0defed919799a707bb969642be887c9137d8fff16edd2d60b0f4d413f"
+    },
+    "examples/physics-contact-coverage-g2-2276/README.md": {
+      "bytes": 9813,
+      "sha256": "24a5307f718cfcccfe48ec84c51f2326300d60451135663fd27e9f39dd84e95f"
+    },
+    "examples/physics-contact-coverage-g2-2276/COVERAGE-07.json": {
+      "bytes": 15119,
+      "sha256": "c7084fc5b57c49d820d8b2a6714602213662cb7958fb50fca01d9df9a4ee1867"
+    },
+    "examples/physics-contact-coverage-g2-2276/COVERAGE-08.json": {
+      "bytes": 18354,
+      "sha256": "1c9ee08dd556fea421a0e4b059187cc0309ab9fcfbb86796a9cf8ec27a044568"
+    },
+    "examples/physics-contact-wrench-contract-2276/PUBLIC-CUTOVER-MAP.json": {
+      "bytes": 64802,
+      "sha256": "00818ed02d5210e56ee26e67d051a43536dbf2bbb5498864c26292d564a143ef"
+    }
+  },
+  "receipts": {
+    "warm-viewer-docbuild-06": {
+      "prepared.json": {
+        "bytes": 1514,
+        "sha256": "7321d306ac156e1ad6799982de260c1d5490e18b049035dcccb751992d3a2d5d",
+        "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"warm-viewer-docbuild-06\",\n  \"censusId\": \"warm-viewer-docbuild-06\",\n  \"status\": \"PREPARED\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n    \"node_modules/vitepress/bin/vitepress.js\",\n    \"build\",\n    \"docs\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/apps/library-docs\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": null,\n  \"spawnAt\": null,\n  \"pid\": null,\n  \"processGroupId\": null,\n  \"exit\": null,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": false,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docbuild-06/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docbuild-06/progress.json\",\n  \"errors\": []\n}\n"
+      },
+      "progress.json": {
+        "bytes": 1611,
+        "sha256": "1a6c46e9b96d330a69fd081239256000ed6c1e281ac5f8b26d3ede0dee223bae",
+        "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"warm-viewer-docbuild-06\",\n  \"censusId\": \"warm-viewer-docbuild-06\",\n  \"status\": \"RUNNING\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n    \"node_modules/vitepress/bin/vitepress.js\",\n    \"build\",\n    \"docs\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/apps/library-docs\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": \"2026-11-03T02:23:56.593Z\",\n  \"spawnAt\": \"2026-11-03T02:23:56.620Z\",\n  \"pid\": 71992,\n  \"processGroupId\": 71992,\n  \"exit\": null,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": false,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docbuild-06/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docbuild-06/progress.json\",\n  \"errors\": [],\n  \"elapsedMs\": 26.6625,\n  \"outputCapturedBytes\": 0\n}\n"
+      },
+      "result.json": {
+        "bytes": 3025,
+        "sha256": "80e49077adb1ee6bfd62720218073d7f1d2596ffb62b1dc1eb3075ead125826f",
+        "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"warm-viewer-docbuild-06\",\n  \"censusId\": \"warm-viewer-docbuild-06\",\n  \"status\": \"PASS\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n    \"node_modules/vitepress/bin/vitepress.js\",\n    \"build\",\n    \"docs\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/apps/library-docs\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": \"2026-11-03T02:23:56.593Z\",\n  \"spawnAt\": \"2026-11-03T02:23:56.620Z\",\n  \"pid\": 71992,\n  \"processGroupId\": 71992,\n  \"exit\": 0,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": true,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docbuild-06/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docbuild-06/progress.json\",\n  \"errors\": [],\n  \"exitAt\": \"2026-11-03T02:24:07.428Z\",\n  \"finishedAt\": \"2026-11-03T02:24:07.429Z\",\n  \"elapsedMs\": 10834.96125,\n  \"ownedGroupPresentAtFinalization\": false,\n  \"censusElapsedMs\": 10810.653167,\n  \"cleanupElapsedMs\": 0,\n  \"output\": {\n    \"stdout\": {\n      \"observedBytes\": 47,\n      \"capturedBytes\": 47,\n      \"omittedBytes\": 0,\n      \"sha256\": \"8ac7c45ae1df8f12238435fd3816af423f0b85f6ac9ca938636408f649c7cba1\",\n      \"eof\": true,\n      \"writeError\": null\n    },\n    \"stderr\": {\n      \"observedBytes\": 472,\n      \"capturedBytes\": 472,\n      \"omittedBytes\": 0,\n      \"sha256\": \"b4d513bbe2b301d67a30f1cec368f85433e75aff0036a694f7d03a8ecef139cb\",\n      \"eof\": true,\n      \"writeError\": null\n    }\n  },\n  \"censusSummary\": {\n    \"path\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docbuild-06/summary.json\",\n    \"present\": false\n  },\n  \"censusProgress\": {\n    \"path\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docbuild-06/progress.json\",\n    \"present\": true,\n    \"bytes\": 1611,\n    \"sha256\": \"1a6c46e9b96d330a69fd081239256000ed6c1e281ac5f8b26d3ede0dee223bae\",\n    \"status\": \"RUNNING\",\n    \"counts\": null,\n    \"referenceCallCounts\": null,\n    \"firstFailure\": null\n  },\n  \"callCountBoundary\": \"Only counts present in original census progress/summary/timing receipts are reported; a timeout never implies the primitive call population completed.\"\n}\n"
+      },
+      "start.json": {
+        "bytes": 1536,
+        "sha256": "56144bf0d760ff000550cf5446b860217d189028d52052c3da58ff2a062a2c4d",
+        "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"warm-viewer-docbuild-06\",\n  \"censusId\": \"warm-viewer-docbuild-06\",\n  \"status\": \"SPAWNING\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n    \"node_modules/vitepress/bin/vitepress.js\",\n    \"build\",\n    \"docs\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/apps/library-docs\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": \"2026-11-03T02:23:56.593Z\",\n  \"spawnAt\": null,\n  \"pid\": null,\n  \"processGroupId\": null,\n  \"exit\": null,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": false,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docbuild-06/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docbuild-06/progress.json\",\n  \"errors\": []\n}\n"
+      },
+      "stderr.raw": {
+        "bytes": 472,
+        "sha256": "b4d513bbe2b301d67a30f1cec368f85433e75aff0036a694f7d03a8ecef139cb",
+        "text": "- building client + server bundles...\n\n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n\u001b[32m\u2713\u001b[0m building client + server bundles...\n- rendering pages...\n\u001b[32m\u2713\u001b[0m rendering pages...\n"
+      },
+      "stdout.raw": {
+        "bytes": 47,
+        "sha256": "8ac7c45ae1df8f12238435fd3816af423f0b85f6ac9ca938636408f649c7cba1",
+        "text": "\n  vitepress v1.6.4\n\nbuild complete in 10.47s.\n"
+      }
+    },
+    "warm-viewer-docsite-06": {
+      "prepared.json": {
+        "bytes": 1476,
+        "sha256": "b6c511cbf6f40fe1ca356c4a11c49e96d00086ac905c4d3534e1a07d8a271bb4",
+        "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"warm-viewer-docsite-06\",\n  \"censusId\": \"warm-viewer-docsite-06\",\n  \"status\": \"PREPARED\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n    \"examples/physics-motion-docs-2276/check-site.mjs\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": null,\n  \"spawnAt\": null,\n  \"pid\": null,\n  \"processGroupId\": null,\n  \"exit\": null,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": false,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docsite-06/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docsite-06/progress.json\",\n  \"errors\": []\n}\n"
+      },
+      "progress.json": {
+        "bytes": 1574,
+        "sha256": "40de8eb70269912224d61247796d3ffa0c080c34da88ee09b49fb650e2868b41",
+        "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"warm-viewer-docsite-06\",\n  \"censusId\": \"warm-viewer-docsite-06\",\n  \"status\": \"RUNNING\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n    \"examples/physics-motion-docs-2276/check-site.mjs\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": \"2026-11-03T02:24:07.774Z\",\n  \"spawnAt\": \"2026-11-03T02:24:07.781Z\",\n  \"pid\": 72391,\n  \"processGroupId\": 72391,\n  \"exit\": null,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": false,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docsite-06/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docsite-06/progress.json\",\n  \"errors\": [],\n  \"elapsedMs\": 7.232125,\n  \"outputCapturedBytes\": 0\n}\n"
+      },
+      "result.json": {
+        "bytes": 2980,
+        "sha256": "dd4f063570893156458c45613b86d1b41c8d8f6a843da08d25a7a84bb12e0a4c",
+        "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"warm-viewer-docsite-06\",\n  \"censusId\": \"warm-viewer-docsite-06\",\n  \"status\": \"PASS\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n    \"examples/physics-motion-docs-2276/check-site.mjs\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": \"2026-11-03T02:24:07.774Z\",\n  \"spawnAt\": \"2026-11-03T02:24:07.781Z\",\n  \"pid\": 72391,\n  \"processGroupId\": 72391,\n  \"exit\": 0,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": true,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docsite-06/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docsite-06/progress.json\",\n  \"errors\": [],\n  \"exitAt\": \"2026-11-03T02:24:08.113Z\",\n  \"finishedAt\": \"2026-11-03T02:24:08.113Z\",\n  \"elapsedMs\": 338.815708,\n  \"ownedGroupPresentAtFinalization\": false,\n  \"censusElapsedMs\": 333.594542,\n  \"cleanupElapsedMs\": 0,\n  \"output\": {\n    \"stdout\": {\n      \"observedBytes\": 146,\n      \"capturedBytes\": 146,\n      \"omittedBytes\": 0,\n      \"sha256\": \"4315ea7e13eaa9bc54ea958d1640c23489e2ccdc4b9646d579a682199ee38449\",\n      \"eof\": true,\n      \"writeError\": null\n    },\n    \"stderr\": {\n      \"observedBytes\": 0,\n      \"capturedBytes\": 0,\n      \"omittedBytes\": 0,\n      \"sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n      \"eof\": true,\n      \"writeError\": null\n    }\n  },\n  \"censusSummary\": {\n    \"path\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docsite-06/summary.json\",\n    \"present\": false\n  },\n  \"censusProgress\": {\n    \"path\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docsite-06/progress.json\",\n    \"present\": true,\n    \"bytes\": 1574,\n    \"sha256\": \"40de8eb70269912224d61247796d3ffa0c080c34da88ee09b49fb650e2868b41\",\n    \"status\": \"RUNNING\",\n    \"counts\": null,\n    \"referenceCallCounts\": null,\n    \"firstFailure\": null\n  },\n  \"callCountBoundary\": \"Only counts present in original census progress/summary/timing receipts are reported; a timeout never implies the primitive call population completed.\"\n}\n"
+      },
+      "start.json": {
+        "bytes": 1498,
+        "sha256": "82661cd1f84e2f8bed44b516557aeb700d73eb38b03a02bea1c9bef4acef73b3",
+        "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"warm-viewer-docsite-06\",\n  \"censusId\": \"warm-viewer-docsite-06\",\n  \"status\": \"SPAWNING\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n    \"examples/physics-motion-docs-2276/check-site.mjs\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": \"2026-11-03T02:24:07.774Z\",\n  \"spawnAt\": null,\n  \"pid\": null,\n  \"processGroupId\": null,\n  \"exit\": null,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": false,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docsite-06/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/warm-viewer-docsite-06/progress.json\",\n  \"errors\": []\n}\n"
+      },
+      "stderr.raw": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": ""
+      },
+      "stdout.raw": {
+        "bytes": 146,
+        "sha256": "4315ea7e13eaa9bc54ea958d1640c23489e2ccdc4b9646d579a682199ee38449",
+        "text": "{\"pages\":5,\"links\":825,\"anchors\":230,\"snippetRegions\":28,\"byteIdenticalHistoricalCopies\":14,\"proposedRoadmapCopy\":true,\"networkChecks\":\"NOT_RUN\"}\n"
+      }
+    }
+  }
+}

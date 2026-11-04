@@ -1,0 +1,3 @@
+import {createPhysicsWorld} from '@barocss/physics';
+let world=null,worlds=0,calls=0,limit=512;
+self.onmessage=event=>{const{id,type,model,options,steps}=event.data;try{let state;if(type==='reset'){if(steps!==512)throw Error('qualified full512 bound');const next=createPhysicsWorld(model,options);world?.dispose();world=next;worlds++;calls=0;limit=steps;state=world.getState();}else if(type==='step'){if(!world||calls>=limit)throw Error('finite full512 directWorld owner');state=world.step([]);calls++;}else throw Error('unknown display request');self.postMessage({id,state,worlds,calls,commands:[]});}catch(error){self.postMessage({id,error:{name:error?.name??typeof error,code:error?.code??null,message:String(error?.message??error)}});}};

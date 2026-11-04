@@ -1,0 +1,17 @@
+{
+  "API": false,
+  "authorCompressionCalls": 0,
+  "authorDataExecution": 0,
+  "authorImports": 0,
+  "authorPhysicsCalls": 0,
+  "codecImplemented": false,
+  "files": {
+    "CONTRACT.md": "7a5cbf791bd3278bb44f439ba9639e76540541a19720b627dddc4aeb5dfcb525",
+    "PINS.json": "ca36d56d3c679e952cbba0306e623f6a688b51c5767eaf0793883393afc0f16e",
+    "inspect-record.mjs": "5b875fa5a1e7d3dc5d250a8b088c52e1fcb4b4fd4bf2c3bc081d555f455e2ef1"
+  },
+  "fixedCase": "ALIGNED:2",
+  "fixedTargetMappings": 16,
+  "full1200": false,
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN"
+}

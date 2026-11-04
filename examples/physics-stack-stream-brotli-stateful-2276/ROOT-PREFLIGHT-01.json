@@ -1,0 +1,9 @@
+{
+  "status": "PASS_SOURCE_PINS_AND_UNCHANGED24_CONTROL_BYTES",
+  "sourceSealSHA256": "2ec99c55237d33be0097906b3b17e9c56471a835e7be22abf88155ae6bf4bc96",
+  "newHistoryControlSourceFrozen": true,
+  "nativeCodecCalls": 0,
+  "testCalls": 0,
+  "physicsCalls": 0,
+  "API": false
+}

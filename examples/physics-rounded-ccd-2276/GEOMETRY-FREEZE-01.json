@@ -1,0 +1,29 @@
+{
+  "phase": "before first repaired Source/Native geometric call",
+  "files": {
+    "examples/physics-rounded-ccd-2276/CONTRACT.md": {
+      "bytes": 4256,
+      "sha256": "7cd89e8c19d8d3bc7e9cebb6ee4342cd75a96f3bdb145ef14a2c72ca358a7cbf"
+    },
+    "examples/physics-rounded-ccd-2276/geometry-run.mjs": {
+      "bytes": 6364,
+      "sha256": "6e84a59c6fca57549bfdf2ffeb95a265888dcef5547c52326f3ad0667b062e9e"
+    },
+    "examples/physics-rounded-ccd-2276/reference.py": {
+      "bytes": 26122,
+      "sha256": "65c3ffc9d1f3a425dfed93d36ee963db3a99f471cf067c0301c24cdef5bf14d7"
+    },
+    "examples/physics-rounded-ccd-2276/cases.json": {
+      "bytes": 6923,
+      "sha256": "49c6844418b5f04fe4ba1476730688af3a7b932b2695e6ee8664ef6819de72e5"
+    },
+    "packages/barocss-physics/src/ccd-rounded-box.ts": {
+      "bytes": 8125,
+      "sha256": "b4ad5a06435b1bacb796dace179f95904fd9d35e4e9dac17ead55bc2f675f59c"
+    },
+    "packages/barocss-physics/src/ccd.ts": {
+      "bytes": 3183,
+      "sha256": "861e2b8fa56c746232581f1debddab0b88574df81187cb6dd2d6b8db7377d95e"
+    }
+  }
+}

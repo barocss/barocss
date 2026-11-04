@@ -1,0 +1,104 @@
+{
+  "status": "PASS_PRIVATE_COUPLED_DYNAMIC_WORLD_ORIGINAL_THREE_FIRST_INTERVALS",
+  "perGraphCounts": {
+    "worlds": 3,
+    "attempts": 3,
+    "records": 243,
+    "applications": 192,
+    "queries": 30,
+    "queryPoints": 27,
+    "anchorChecks": 729,
+    "traceBytes": 853375
+  },
+  "perGraphAccepted": 3,
+  "perGraphHelperPlans": 3,
+  "perGraphIndependentObservers": 18,
+  "fullRawParityFiles": 26,
+  "normalization": "NONE",
+  "afterActualBodyAndProducerMetrics": {
+    "normalSpeedMps": 2.245727290605634e-18,
+    "coneErrorNs": 3.26936304418379e-18,
+    "oppositionErrorNs": 3.2620547630988122e-18,
+    "slipLowerMps": 0.14415413024243495,
+    "midpointWorkJ": -0.019189277255532176
+  },
+  "tolerances": {
+    "normalSpeedMps": 1e-10,
+    "coneAndOppositionNs": 1e-12,
+    "solverOuter": 8,
+    "solverInner": 8,
+    "commandMilliseconds": 180000,
+    "evidenceBytes": 16777216
+  },
+  "typingBoundary": {
+    "strict": true,
+    "declaration": true,
+    "noEmitOnError": true,
+    "skipLibCheck": true,
+    "inheritedEffectiveNoCheck": [
+      "physics/src/private-phase.ts",
+      "physics/src/replay-validation.ts"
+    ],
+    "newWaivers": 0,
+    "wholeHostStrictTypingClaim": false
+  },
+  "firstBuildFailure": "PRESERVED_FORMAT_ONLY_BEFORE_WORLD",
+  "rows": [
+    {
+      "id": "build-01",
+      "status": "FAIL",
+      "elapsedMs": 9757.550625,
+      "guardPath": "examples/physics-world-p5-2276/evidence/coupled-dynamic-host-build-01/result.json",
+      "guardPin": {
+        "bytes": 3241,
+        "sha256": "ac797cdfc04319e7d62cc1906a22c8bf2e14736d545563ffed160a4d6f0e84d7"
+      }
+    },
+    {
+      "id": "build-02",
+      "status": "PASS",
+      "elapsedMs": 9167.12125,
+      "guardPath": "examples/physics-world-p5-2276/evidence/coupled-dynamic-host-build-02/result.json",
+      "guardPin": {
+        "bytes": 3045,
+        "sha256": "dd6529196fee0c5a75e6ad1d9522275503c86d33d4563be7573f32cfc737da31"
+      }
+    },
+    {
+      "id": "source-01",
+      "status": "PASS",
+      "elapsedMs": 6022.910458,
+      "guardPath": "examples/physics-world-p5-2276/evidence/coupled-dynamic-host-source-01/result.json",
+      "guardPin": {
+        "bytes": 3084,
+        "sha256": "65d6a79f4b38f9f72e428ce4159a80b72b45771a59875ead5a22a9db463639b8"
+      }
+    },
+    {
+      "id": "native-01",
+      "status": "PASS",
+      "elapsedMs": 5815.4675,
+      "guardPath": "examples/physics-world-p5-2276/evidence/coupled-dynamic-host-native-01/result.json",
+      "guardPin": {
+        "bytes": 3085,
+        "sha256": "0e044959490685360a5acf8020071156fa282ac66a8ecf152670d6eaf17289eb"
+      }
+    },
+    {
+      "id": "parity-01",
+      "status": "PASS",
+      "elapsedMs": 48.824708,
+      "guardPath": "examples/physics-world-p5-2276/evidence/coupled-dynamic-host-parity-01/result.json",
+      "guardPin": {
+        "bytes": 3143,
+        "sha256": "808b225cd3be0c84aa5b5518a95881f6c536181350462aa92bd717d0ba5d03ef"
+      }
+    }
+  ],
+  "WorldIntegrationScope": "PRIVATE_STAGED_REAL_WORLD_AND_RECORDER_PATH_NOT_CANONICAL_PACKAGE_ADOPTION",
+  "postImpulseTransaction": "NOT_RUN_SEPARATE_PROTOCOL",
+  "dynamicDesktop": "NOT_RUN",
+  "warmMultipointLongDurationStack": "UNCHANGED_NO_GO_OR_NOT_RUN",
+  "HOLD": "UNCHANGED",
+  "deployment": "NOT_RUN"
+}

@@ -1,0 +1,98 @@
+{
+  "base": "4ca00d04a",
+  "stage": "before first candidate build/import/geometry/API execution (inert bank separately executed)",
+  "inputs": {
+    "examples/physics-sphere-pair-ccd-2276/browser-run.mjs": {
+      "bytes": 3092,
+      "sha256": "4bfb8ee38eabae90292f8840ec46d1233bfcb7c750d1b5a31e3db995b206583f"
+    },
+    "examples/physics-sphere-pair-ccd-2276/BANK-INPUT-01.json": {
+      "bytes": 29735,
+      "sha256": "69e55381871595b92087e05abac819a472edad7d5b57161d08b78da3af535f24"
+    },
+    "examples/physics-sphere-pair-ccd-2276/BANK-01.json": {
+      "bytes": 42171,
+      "sha256": "41d5329bec1b759200b23fb42c34f94c386c3f49002fabe5881fb9e4481640a8"
+    },
+    "examples/physics-sphere-pair-ccd-2276/browser-checks.js": {
+      "bytes": 10990,
+      "sha256": "c91294ab1408bee8ab99f8ce8b232572dad8f23332f2f5cd13baa27a484ad447"
+    },
+    "examples/physics-sphere-pair-ccd-2276/bank.mjs": {
+      "bytes": 796,
+      "sha256": "126c201c264c63421b017beafcb65a63fcd1c0ff12ce594e8418c42a20cc860e"
+    },
+    "examples/physics-sphere-pair-ccd-2276/CONTRACT.md": {
+      "bytes": 3368,
+      "sha256": "39ecd51f68c2eb538bf056e8d9b1c6a142829f08ec0529139dd9d186c2c6d409"
+    },
+    "examples/physics-sphere-pair-ccd-2276/cases.mjs": {
+      "bytes": 3228,
+      "sha256": "4efd1599daae1eda46b6d996875fd5e62abbda83f36ab43b242706b72c8ff910"
+    },
+    "examples/physics-sphere-pair-ccd-2276/reference.py": {
+      "bytes": 5469,
+      "sha256": "6d839f8f6b693af219b058e7ba241996866fe84981e9deaa9390f3fe766dd473"
+    },
+    "examples/physics-sphere-pair-ccd-2276/baseline.mjs": {
+      "bytes": 1979,
+      "sha256": "aa605cc1d4fe876b127ab53db9de538198350f8e49a059e6569d53ca8c9c4693"
+    },
+    "examples/physics-sphere-pair-ccd-2276/api-run.mjs": {
+      "bytes": 13237,
+      "sha256": "62ad2696fa9b4471d5ae9026907f89ad3a8b2eb7c94513b1df4bcf75960c1d64"
+    },
+    "examples/physics-sphere-pair-ccd-2276/build/consumer.mts": {
+      "bytes": 947,
+      "sha256": "3401595c6c6c7e3828b9ef92f7cbe7228ab642c7c1301839dccf1a9157191032"
+    },
+    "examples/physics-sphere-pair-ccd-2276/build/consumer.tsconfig.json": {
+      "bytes": 562,
+      "sha256": "fe186bb17ba8f476df9bfb0b5640c94c702ca046309234f677c10909ec8adc5a"
+    },
+    "examples/physics-sphere-pair-ccd-2276/build/source-entry.ts": {
+      "bytes": 232,
+      "sha256": "9d7e1b99c7958aec31c658e09ab8acd9c2445ab42533184ef58f885246396e24"
+    },
+    "examples/physics-sphere-pair-ccd-2276/build/runtime.tsconfig.json": {
+      "bytes": 862,
+      "sha256": "cd231f829ce638176d3be54c2517eaa341fc2f303e730ad8f969c437af0c0a58"
+    },
+    "examples/physics-sphere-pair-ccd-2276/build/build.mjs": {
+      "bytes": 2487,
+      "sha256": "22e3ab03f9ef3f470edffc2636dfb92ad2fd7493bdfabe4b1435d5639a27af1d"
+    },
+    "examples/physics-sphere-pair-ccd-2276/scene/index.html": {
+      "bytes": 3784,
+      "sha256": "c354f1c769a194cc38701bbe419535babbbf0a37de67b49fb192ded78be6b337"
+    },
+    "examples/physics-sphere-pair-ccd-2276/scene/display.mjs": {
+      "bytes": 6226,
+      "sha256": "666eb100dd1cb3e1dad7d8e5d4819fd26e0168bfe8a3146d3b4978fd127aebb9"
+    },
+    "examples/physics-sphere-pair-ccd-2276/scene/style.css": {
+      "bytes": 3847,
+      "sha256": "baae85d486340d1b3376e44497481b1170fcefb2d4f8ed9719a196b7575426dd"
+    },
+    "examples/physics-sphere-pair-ccd-2276/scene/app.mjs": {
+      "bytes": 6789,
+      "sha256": "327f24fb85ff9cb8498edc72aa9ff80a38e80abc0a84eb5f18d00a3b4178dfe7"
+    },
+    "examples/physics-sphere-pair-ccd-2276/scene/server.mjs": {
+      "bytes": 3205,
+      "sha256": "57c12cac82c42e630550f27656e5b5eca64421fc86d7dc0fb9746473faf5487b"
+    },
+    "examples/physics-sphere-pair-ccd-2276/scene/scenario.mjs": {
+      "bytes": 1693,
+      "sha256": "0267821c51842d227c418111ad7a96deaf0c4e0c6a7da762ed2c386175ea3346"
+    },
+    "packages/barocss-physics/src/ccd-pair.ts": {
+      "bytes": 1303,
+      "sha256": "87ea34e6b662b223874857651839407f351b0beaa03a4a85d1e4797744027e1a"
+    },
+    "packages/barocss-physics/src/ccd-sphere-pair-exact.ts": {
+      "bytes": 5307,
+      "sha256": "2ee601d4e363d135fc356cef37a43495524449bb4dc38abe8f62848bdf28645c"
+    }
+  }
+}

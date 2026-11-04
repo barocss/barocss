@@ -1,0 +1,38 @@
+{
+  "status": "SMALL_DYNAMIC_NUMERICAL_AND_DESKTOP_CONFIRMED",
+  "records": {
+    "numerical": {
+      "path": "examples/physics-stack-dynamic-next-2276/evidence/api-01/result.json",
+      "bytes": 19736,
+      "sha256": "d2c1b84296ad01568dcdf6e8fc4716541db4ece5b600d4327eb93cc0af61465e",
+      "status": "DYNAMIC_NEXT_NUMERICAL_SOURCE_NATIVE_CONFIRMED"
+    },
+    "desktop": {
+      "path": "output/playwright/dynamic-next/dynamic-desktop-03/browser/result.json",
+      "bytes": 3312,
+      "sha256": "8c280f4553d9ee38ce45a137095718da0e9695469b4381a01d4c9df798dfb730",
+      "status": "DYNAMIC_NEXT_DESKTOP_NUMERICAL_WORDS_AND_PIXELS_CONFIRMED"
+    },
+    "observerControls": {
+      "path": "examples/physics-world-p5-2276/evidence/dynamic-next-oracle-controls-01/result.json",
+      "bytes": 3098,
+      "sha256": "00eac796a5f00e21e0c04652519d0803b2610e52cd86eac96b91c404ee9ce3e2",
+      "status": "PASS"
+    }
+  },
+  "sourceWorlds": 11,
+  "nativeWorlds": 11,
+  "acceptedPerNumericalGraph": 1018,
+  "successfulDesktopWorlds": 3,
+  "successfulDesktopAccepted": 512,
+  "desktopAllStatesAndWordsEqual": true,
+  "actualGpuPixelMotion": true,
+  "previousDesktopFailuresPreserved": true,
+  "zeroStepDiagnosticIsSeparate": true,
+  "productionSolverChanged": false,
+  "publicProfileChanged": false,
+  "generalMovingEightBody": "NOT_QUALIFIED",
+  "mobile": false,
+  "publication": false,
+  "aggregationIsFileIOOnly": true
+}

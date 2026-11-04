@@ -1,0 +1,51 @@
+{
+  "status": "AUTHORED_NOT_RUN",
+  "source": "examples/physics-warm-replay-2276/run.mjs",
+  "sourcePin": {
+    "bytes": 17338,
+    "sha256": "46a677187279c4bd3073addb5eff5930c42eaf44fd34779a5d62e9afb134c75d"
+  },
+  "newPin": {
+    "bytes": 17850,
+    "sha256": "d944d313df5c3dd368cf00a86643ff07d033ecbfc352e0e80ede07e859f91291"
+  },
+  "edits": [
+    {
+      "label": "Graph selector only",
+      "old": "[freezeId,id]=process.argv.slice(2);",
+      "new": "[freezeId,id,graph='native']=process.argv.slice(2);assert(['source','native'].includes(graph));",
+      "count": 1
+    },
+    {
+      "label": "Require complete new build before runtime import",
+      "old": "try{\n const path=realpathSync",
+      "new": "try{\n const build=JSON.parse(readFileSync(resolve(home,'evidence',freezeId,'result.json')));assert.equal(build.status,'PASS_PRIVATE_TYPED_WARM_DUAL_BUILD');\n const path=realpathSync",
+      "count": 1
+    },
+    {
+      "label": "Load sealed amended Source or actual emitted entry",
+      "old": "api=await import(pathToFileURL(resolve(root,frozen.sourceBundle)));",
+      "new": "api=await import(pathToFileURL(resolve(root,graph==='source'?frozen.sourceBundle:frozen.nativeEntry)));",
+      "count": 1
+    },
+    {
+      "label": "Distinct actual composed provider identity",
+      "old": "const initial=ar.getState(),initialPrivate=api.phasePrivateSnapshot(1);",
+      "new": "const initial=ar.getState(),initialPrivate=api.phasePrivateSnapshot(1);assert.notEqual(initial.identity.providerDigest,frozen.ancestorColdProvider);assert.notEqual(initial.identity.providerDigest,frozen.ancestorWarmProvider);",
+      "count": 1
+    },
+    {
+      "label": "Scope result label",
+      "old": "status:executionStatus+'_PRIVATE_WARM_REPLAY_PROTOCOL'",
+      "new": "status:executionStatus+'_PRIVATE_TYPED_WARM_'+graph.toUpperCase()+'_REPLAY_PROTOCOL',graph",
+      "count": 1
+    },
+    {
+      "label": "Graph metadata only",
+      "old": "sourceProvider:'IMMUTABLE_QUALIFIED_PRIVATE_WARM_BUILD01',native:'NOT_RUN'",
+      "new": "sourceProvider:graph==='source'?'PRIVATE_TYPED_WARM_SOURCE':'NOT_RUN',native:graph==='native'?executionStatus+'_PRIVATE_TYPED_WARM_EMITTED':'NOT_RUN'",
+      "count": 1
+    }
+  ],
+  "unchanged": "All model words, physical/fault/wire assertions, independent observers, fourWorld/eightAttempt/sixAccepted plan, limits, hidden-output NOT_PROVEN and 180s deadline."
+}

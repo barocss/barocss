@@ -1,0 +1,46 @@
+{
+  "status": "SECOND_STRICT_DECLARATION_BUILD_NO_GO_PRESERVED",
+  "diagnostics": [
+    "TS4060 createArithmeticContext return uses local private Variations",
+    "TS4058 inferred production/test context return cannot name Variations"
+  ],
+  "originalTS18048": "ABSENT_IN_BUILD02",
+  "candidateCalls": 0,
+  "testEntryCalls": 0,
+  "WorldCalls": 0,
+  "productionSource": "NOT_RUN",
+  "productionNative": "NOT_RUN",
+  "privateArithmetic": "NOT_RUN",
+  "tolerancesAndCaps": "UNCHANGED",
+  "repairBoundary": "Only inline return type annotation, erased in emitted JavaScript; declaration and strict checks remain required",
+  "files": {
+    "examples/physics-coupled-arithmetic-2276/test-entry-02.ts": {
+      "bytes": 6228,
+      "sha256": "7625c0856b632d340ce86ebaa0cce22905dad44581b320c38fd3690edd1e9958"
+    },
+    "examples/physics-coupled-arithmetic-2276/build-02.mjs": {
+      "bytes": 9190,
+      "sha256": "c4caa1b3bbaab112afaab692e9909a493fee1b3baac651457448047c55f32f9b"
+    },
+    "examples/physics-coupled-arithmetic-2276/CONTINUATION-FREEZE-02.json": {
+      "bytes": 124215,
+      "sha256": "dfca30cb3be7a3a68585688e1e4b04b2c71c5382e75f3e1de62bc0e671e3c977"
+    },
+    "examples/physics-coupled-arithmetic-2276/SETUP-AMENDMENT-02.md": {
+      "bytes": 3130,
+      "sha256": "394f74433558b0d1101c3e2933211ba069b27823a557a66cfc2a029853b07a1b"
+    },
+    "examples/physics-coupled-arithmetic-2276/evidence/build-02/result.json": {
+      "bytes": 1690,
+      "sha256": "dce69012ede2bdb616bc680cbcff76aca2964766b7bd2d55fe33ec10fe8b1a37"
+    },
+    "examples/physics-coupled-arithmetic-2276/evidence/build-02/strict.stdout": {
+      "bytes": 10583,
+      "sha256": "85692770926652dcb38aa1a8313114962c02b50dbf41af1fd7d7eeb3f0454d99"
+    },
+    "examples/physics-world-p5-2276/evidence/coupled-arithmetic-build-02/result.json": {
+      "bytes": 3228,
+      "sha256": "6cd3ec12c90d3799325f49508a12a938e582b8739006e3e6ce3f8750442ae015"
+    }
+  }
+}

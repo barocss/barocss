@@ -1,0 +1,55 @@
+{
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN",
+  "candidate": "OPT07_SELF_CONTAINED_NORMALIZED_SUM_SQUARE",
+  "checkpoint": "cf743ae49",
+  "source": {
+    "path": "packages/barocss-physics/src/stack/strict-line.ts",
+    "sha256": "4c6cc8b397cb2095a255cd61e33c3050e07d5a4c933f5c7d9d896764d154606b"
+  },
+  "baselineSource": {
+    "path": "examples/physics-stack-library-2276/baseline/strict-line-opt06.ts",
+    "sha256": "cce95ffc60613230e4ff114d4ae3f37e50924b8dfe9e428ef1e919172813f890"
+  },
+  "actualBaseline": {
+    "path": "examples/physics-stack-library-2276/evidence/runtime-opt06-01/canonical-provider/dist/stack/strict-line.js",
+    "sha256": "3b6e5397333ffa45a9120238416f482b6f39ac2d9ac55d4d9abd1e2a57e9416d",
+    "packagePath": "examples/physics-stack-library-2276/evidence/runtime-opt06-01/canonical-provider/package.json",
+    "packageSha256": "7ef765dcf000a0b45dd74495e60243e16516506e730afa024fc7f32b11222330",
+    "comparison": "ONE_ACTUAL_ADD_THEN_ACTUAL_GENERIC_MUL_OF_THAT_SINGLE_SUM"
+  },
+  "files": {
+    "OPTIMIZATION-07-CONTRACT.md": "b20373c7e00c752118b88be5968b7b97842eb891e2653058ed7c33531f9acf22",
+    "arithmetic-opt07.test.mts": "56ca807b93e156a74d6c79348dcdd5ae41dee75faaa6952e895bd9db1733abca",
+    "arithmetic-opt07-run.mjs": "b3af99f30f55fa79ec8cca3d13d8d5c70291282bc943e29df066a843e9eb6b67"
+  },
+  "proofBoundary": {
+    "ownedNormalization": "sumSquare_ALWAYS_CALLS_UNCHANGED_ADD_BEFORE_SQUARE",
+    "reducedProof": "COPRIME_BASES_HAVE_COPRIME_SQUARES",
+    "callerCanonicalAssumption": false,
+    "genericMul": "UNCHANGED",
+    "callSite": "ONLY_STRICT_LINE_CHECK_INNER_SUM_SQUARE",
+    "rawProductsAndBitChecks": "SAME_NUMERATOR_THEN_DENOMINATOR",
+    "zeroPriority": "BOTH_CHECKED_PRODUCTS_THEN_ZERO_BEFORE_UNIT_GUARD",
+    "nonzeroUnitGuard": "EXISTING_GUARD_CACHED_AT_OLD_POINT",
+    "nonunitStaleBitBehavior": "PRESERVE_OLD_NO_ADDITIONAL_GLOBAL_GUARD",
+    "integerWork": "NONUNIT_NORMALIZATION_OPERATIONS_OMITTED_ACTUAL_COUNTERS_DECREASE",
+    "workAdmission": "MAY_COMPLETE_WHERE_OPT06_REDUNDANT_GCD_EXHAUSTED_SAME_CAP",
+    "universalResourceRefusalParity": false,
+    "cacheOrTagOrPublicHook": false
+  },
+  "fixedTests": 32,
+  "retainedTests": [32, 32, 26, 25, 16, 19],
+  "limits": {
+    "rationalOperations": 200000,
+    "integerOperations": 2000000,
+    "integerBits": 16384,
+    "roundingSteps": 16
+  },
+  "authorCalls": {"imports": 0, "arithmetic": 0, "compiler": 0, "tests": 0, "physics": 0},
+  "nextCost": "ONE_ORIGINAL_COMPLETE1200_CAMPAIGN_AFTER_UNIT_PREFIX_BUILD_AND_STORAGE_GATES",
+  "extraRuntimeOnlyCampaignRequired": false,
+  "cost": "NOT_RUN_NO_SPEED_CLAIM",
+  "originalIndependentFullPhysics": false,
+  "API": false,
+  "strictGlobal64MiBCertification": "NOT_QUALIFIED"
+}

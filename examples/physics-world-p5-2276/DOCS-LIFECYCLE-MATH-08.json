@@ -1,0 +1,210 @@
+{
+  "status": "PASS_LIFECYCLE_DESKTOP_AND_SELECTED_DYNAMIC_ARITHMETIC_DOCS",
+  "implementationHead": "c67bc917e37a6e0164e78191a3db3e6257f36cdd",
+  "date": "2026-11-03",
+  "inputs": {
+    "packages/barocss-physics/ROADMAP.md": {
+      "bytes": 98295,
+      "sha256": "143b8a4112797454a5641ec9af4b5d5e6af274e0737ae3b429b527feda42d4b0"
+    },
+    "packages/barocss-physics/README.md": {
+      "bytes": 23561,
+      "sha256": "cb6442cc3b940f903b0fd91de362da747c3c3b3cace7f0b2a714d887178f897f"
+    },
+    "apps/library-docs/docs/reference/physics-verification.md": {
+      "bytes": 54388,
+      "sha256": "4226c103acd60057e76efec19ac4e0f208003e92e91c3f3b44c9d9df2506bd57"
+    },
+    "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt": {
+      "bytes": 98295,
+      "sha256": "143b8a4112797454a5641ec9af4b5d5e6af274e0737ae3b429b527feda42d4b0"
+    }
+  },
+  "receipts": {
+    "coupled-lifecycle-docbuild-08": {
+      "pin": {
+        "bytes": 3060,
+        "sha256": "32c401fa720934add8c9da84906a4848be4c6ad18e0ac48633bc583214137181"
+      },
+      "receipt": {
+        "kind": "P5B_OWNED_COMMAND_GUARD",
+        "receiptId": "coupled-lifecycle-docbuild-08",
+        "censusId": "coupled-lifecycle-docbuild-08",
+        "status": "PASS",
+        "node": "v22.19.0",
+        "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "command": [
+          "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+          "node_modules/vitepress/bin/vitepress.js",
+          "build",
+          "docs"
+        ],
+        "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/apps/library-docs",
+        "inputs": {
+          "command-run.mjs": {
+            "bytes": 11565,
+            "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+          }
+        },
+        "timeoutMs": 180000,
+        "terminationGraceMs": 1000,
+        "postKillCloseWaitMs": 2000,
+        "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+        "combinedOutputLimitBytes": 4194304,
+        "startedAt": "2026-11-03T04:53:40.482Z",
+        "spawnAt": "2026-11-03T04:53:40.516Z",
+        "pid": 50234,
+        "processGroupId": 50234,
+        "exit": 0,
+        "signal": null,
+        "timedOut": false,
+        "stopReason": null,
+        "processClosed": true,
+        "groupSignals": [],
+        "parentWorldCalls": 0,
+        "parentReferenceCalls": 0,
+        "parentGeometryCalls": 0,
+        "retries": 0,
+        "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/coupled-lifecycle-docbuild-08/summary.json",
+        "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/coupled-lifecycle-docbuild-08/progress.json",
+        "errors": [],
+        "exitAt": "2026-11-03T04:53:50.373Z",
+        "finishedAt": "2026-11-03T04:53:50.373Z",
+        "elapsedMs": 9891.145292,
+        "ownedGroupPresentAtFinalization": false,
+        "censusElapsedMs": 9858.425792,
+        "cleanupElapsedMs": 0,
+        "output": {
+          "stdout": {
+            "observedBytes": 46,
+            "capturedBytes": 46,
+            "omittedBytes": 0,
+            "sha256": "5ebe0bdde195994f32067c11786ff15dcddb84d25597456c26cd5e6f0f4f169e",
+            "eof": true,
+            "writeError": null
+          },
+          "stderr": {
+            "observedBytes": 472,
+            "capturedBytes": 472,
+            "omittedBytes": 0,
+            "sha256": "b4d513bbe2b301d67a30f1cec368f85433e75aff0036a694f7d03a8ecef139cb",
+            "eof": true,
+            "writeError": null
+          }
+        },
+        "censusSummary": {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/coupled-lifecycle-docbuild-08/summary.json",
+          "present": false
+        },
+        "censusProgress": {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/coupled-lifecycle-docbuild-08/progress.json",
+          "present": true,
+          "bytes": 1637,
+          "sha256": "5006a7056d60913b565024ad9e2b97440c254a6cabbfeaf1f4ee0f1e805e424e",
+          "status": "RUNNING",
+          "counts": null,
+          "referenceCallCounts": null,
+          "firstFailure": null
+        },
+        "callCountBoundary": "Only counts present in original census progress/summary/timing receipts are reported; a timeout never implies the primitive call population completed."
+      }
+    },
+    "coupled-lifecycle-docsite-08": {
+      "pin": {
+        "bytes": 3012,
+        "sha256": "6d702f43b9be0591ed3ee6b99c5d515a1c4485d3ecb73aa5db51bc1b99dc6481"
+      },
+      "receipt": {
+        "kind": "P5B_OWNED_COMMAND_GUARD",
+        "receiptId": "coupled-lifecycle-docsite-08",
+        "censusId": "coupled-lifecycle-docsite-08",
+        "status": "PASS",
+        "node": "v22.19.0",
+        "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "command": [
+          "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+          "examples/physics-motion-docs-2276/check-site.mjs"
+        ],
+        "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+        "inputs": {
+          "command-run.mjs": {
+            "bytes": 11565,
+            "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+          }
+        },
+        "timeoutMs": 180000,
+        "terminationGraceMs": 1000,
+        "postKillCloseWaitMs": 2000,
+        "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+        "combinedOutputLimitBytes": 4194304,
+        "startedAt": "2026-11-03T04:54:41.471Z",
+        "spawnAt": "2026-11-03T04:54:41.479Z",
+        "pid": 51658,
+        "processGroupId": 51658,
+        "exit": 0,
+        "signal": null,
+        "timedOut": false,
+        "stopReason": null,
+        "processClosed": true,
+        "groupSignals": [],
+        "parentWorldCalls": 0,
+        "parentReferenceCalls": 0,
+        "parentGeometryCalls": 0,
+        "retries": 0,
+        "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/coupled-lifecycle-docsite-08/summary.json",
+        "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/coupled-lifecycle-docsite-08/progress.json",
+        "errors": [],
+        "exitAt": "2026-11-03T04:54:41.571Z",
+        "finishedAt": "2026-11-03T04:54:41.571Z",
+        "elapsedMs": 100.333916,
+        "ownedGroupPresentAtFinalization": false,
+        "censusElapsedMs": 94.801,
+        "cleanupElapsedMs": 0,
+        "output": {
+          "stdout": {
+            "observedBytes": 146,
+            "capturedBytes": 146,
+            "omittedBytes": 0,
+            "sha256": "4315ea7e13eaa9bc54ea958d1640c23489e2ccdc4b9646d579a682199ee38449",
+            "eof": true,
+            "writeError": null
+          },
+          "stderr": {
+            "observedBytes": 0,
+            "capturedBytes": 0,
+            "omittedBytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "eof": true,
+            "writeError": null
+          }
+        },
+        "censusSummary": {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/coupled-lifecycle-docsite-08/summary.json",
+          "present": false
+        },
+        "censusProgress": {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/coupled-lifecycle-docsite-08/progress.json",
+          "present": true,
+          "bytes": 1598,
+          "sha256": "90ba7b84f57c480f2c665b12e20edf1eec24917148bf95d0779983e34400bfd7",
+          "status": "RUNNING",
+          "counts": null,
+          "referenceCallCounts": null,
+          "firstFailure": null
+        },
+        "callCountBoundary": "Only counts present in original census progress/summary/timing receipts are reported; a timeout never implies the primitive call population completed."
+      }
+    }
+  },
+  "WorldCalls": 0,
+  "numericalScope": "DOCS_ONLY_NO_NEW_PHYSICS",
+  "lifecycleCommit": "25da0c262",
+  "desktopCommit": "8b6b2400a",
+  "oldPureFailureCommit": "36f260949",
+  "efficientPureCommit": "c67bc917e",
+  "runtimeDynamic": "NOT_QUALIFIED",
+  "publicAdoption": "NOT_DONE",
+  "HOLD": "UNCHANGED",
+  "P4": "UNCHANGED_NO_GO",
+  "deployment": "NOT_RUN"
+}

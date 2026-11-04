@@ -1,0 +1,9 @@
+# Lifecycle evidence handoff
+
+The source is frozen by AUTHOR-FREEZE-01.json (1,428 file pins;21 own source files). Preserve it, the original contracts, both old transaction failure records and all current raw evidence. The actual eight-command sequence is already complete; do not rerun it merely to acknowledge this handoff.
+
+The build result is evidence/build-01/result.json. Fresh same-identity controls are evidence/static-source-01 and static-native-01; static-parity-01 covers40 rows. transaction-freeze-01 binds those controls before transaction-source-01 and transaction-native-01; transaction-parity-01 covers44 packet/wire rows. Capture records and original raw snapshots are retained in those directories.
+
+Recover both SOURCE and PROOF archives into one empty root. Archive names are repository-relative and standard hard links resolve within their own archive. Verify every logical member against EVIDENCE-ARCHIVE.json; compressed SHA256 alone is not member verification. The index also pins each internal member manifest. External index/forecast files exclude themselves and archive files to avoid recursion. Original absolute paths inside evidence are preserved as provenance; extraction is a hash/evidence recovery operation, not a portable numerical rerun claim. Installed external Node/TypeScript/esbuild tool binaries are declared by immutable tool pins rather than copied as repository source.
+
+Next work requires a separate frozen scope. Full cross-World diagnostic cacheFrames/provenance equality is still NOT_PROVEN. Dynamic and warm transport are unsupported in this first-interval profile; no current browser proof covers this new provider. Any public adoption or new runtime work needs its own qualification. The main documentation/server and Git were untouched by packaging.

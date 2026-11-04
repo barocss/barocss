@@ -1,0 +1,2342 @@
+{
+  "format": "efficient-pure-coupled-dynamic-results",
+  "version": 1,
+  "date": "2026-11-03",
+  "status": "PASS_BOUNDED_PURE_SOURCE_NATIVE_AND_FULL_PACKET_PARITY",
+  "scope": "PURE_TWO_ARITHMETIC_MODULES_ONLY_ZERO_WORLD",
+  "candidate": {
+    "path": "examples/physics-coupled-dynamic-efficient-2276/candidate.ts",
+    "bytes": 30801,
+    "sha256": "24294355dc1743f8d08e747ee99da85b3ce44ae40afe1ba83b4a69d8270988f3"
+  },
+  "author443": {
+    "path": "examples/physics-coupled-dynamic-efficient-2276/AUTHOR-FREEZE-01.json",
+    "bytes": 101383,
+    "sha256": "9e8fe99dccee055f400e1c51a362fc72d0adfd0e6f87ef8d1c62b73762aef9a2"
+  },
+  "providerDigest": "f3564788620b61302f2bb5dd4c896a55f989758e93809fa8efcd7c1cda215d19",
+  "sourceOriginalResult": {
+    "status": "PASS_PURE_THREE_INPUTS_AND_EIGHT_ADMISSION_CONTROLS",
+    "graph": "source",
+    "authorPin": {
+      "bytes": 101383,
+      "sha256": "9e8fe99dccee055f400e1c51a362fc72d0adfd0e6f87ef8d1c62b73762aef9a2"
+    },
+    "WorldCalls": 0,
+    "coupledCalls": 11,
+    "directStaticChecks": 2,
+    "topLevelCalls": 13,
+    "underlyingStaticCalls": 13,
+    "rows": [
+      {
+        "id": "before",
+        "status": "EXECUTED_PASS",
+        "packet": "before-packet.json",
+        "audit": "before-audit.json"
+      },
+      {
+        "id": "at",
+        "status": "EXECUTED_PASS",
+        "packet": "at-packet.json",
+        "audit": "at-audit.json"
+      },
+      {
+        "id": "after",
+        "status": "EXECUTED_PASS",
+        "packet": "after-packet.json",
+        "audit": "after-audit.json"
+      },
+      {
+        "id": "point",
+        "status": "EXECUTED_PASS_ADMISSION_ONLY",
+        "packet": "point-packet.json"
+      },
+      {
+        "id": "frame",
+        "status": "EXECUTED_PASS_ADMISSION_ONLY",
+        "packet": "frame-packet.json"
+      },
+      {
+        "id": "mass",
+        "status": "EXECUTED_PASS_ADMISSION_ONLY",
+        "packet": "mass-packet.json"
+      },
+      {
+        "id": "spin",
+        "status": "EXECUTED_PASS_ADMISSION_ONLY",
+        "packet": "spin-packet.json"
+      },
+      {
+        "id": "shape",
+        "status": "EXECUTED_PASS_ADMISSION_ONLY",
+        "packet": "shape-packet.json"
+      },
+      {
+        "id": "dynamic-material",
+        "status": "EXECUTED_PASS_ADMISSION_ONLY",
+        "packet": "dynamic-material-packet.json"
+      },
+      {
+        "id": "reported-normal-shape",
+        "status": "EXECUTED_PASS_ADMISSION_ONLY",
+        "packet": "reported-normal-shape-packet.json"
+      },
+      {
+        "id": "reported-normal-mismatch",
+        "status": "EXECUTED_PASS_ADMISSION_ONLY",
+        "packet": "reported-normal-mismatch-packet.json"
+      }
+    ],
+    "firstFailure": null,
+    "arithmeticBanks": {
+      "degreeReduction": "NOT_RUN",
+      "repeatedAndEndpointRoots": "NOT_RUN",
+      "exactDyadicRoots": "NOT_RUN",
+      "multipleAdmissibleRoots": "NOT_RUN",
+      "negativeH": "NOT_RUN",
+      "RNECells": "NOT_RUN",
+      "workExhaustion": "NOT_RUN"
+    },
+    "runtimeWorldPromotion": "BLOCKED_UNQUALIFIED_ARITHMETIC_BANKS",
+    "casePlan": {
+      "before": "EXECUTED_PASS",
+      "at": "EXECUTED_PASS",
+      "after": "EXECUTED_PASS",
+      "point": "EXECUTED_PASS_ADMISSION_ONLY",
+      "frame": "EXECUTED_PASS_ADMISSION_ONLY",
+      "mass": "EXECUTED_PASS_ADMISSION_ONLY",
+      "spin": "EXECUTED_PASS_ADMISSION_ONLY",
+      "shape": "EXECUTED_PASS_ADMISSION_ONLY",
+      "dynamic-material": "EXECUTED_PASS_ADMISSION_ONLY",
+      "reported-normal-shape": "EXECUTED_PASS_ADMISSION_ONLY",
+      "reported-normal-mismatch": "EXECUTED_PASS_ADMISSION_ONLY"
+    },
+    "providerDigest": "f3564788620b61302f2bb5dd4c896a55f989758e93809fa8efcd7c1cda215d19",
+    "bankPin": {
+      "bytes": 5818,
+      "sha256": "58371a5b250845a664fbc501e7f4f13d93d98cf191e33a94afede7bc16b6a514"
+    },
+    "evidenceBytesBeforeSummary": 94242,
+    "elapsedMs": 407.84475
+  },
+  "nativeOriginalResult": {
+    "status": "PASS_PURE_THREE_INPUTS_AND_EIGHT_ADMISSION_CONTROLS",
+    "graph": "native",
+    "authorPin": {
+      "bytes": 101383,
+      "sha256": "9e8fe99dccee055f400e1c51a362fc72d0adfd0e6f87ef8d1c62b73762aef9a2"
+    },
+    "WorldCalls": 0,
+    "coupledCalls": 11,
+    "directStaticChecks": 2,
+    "topLevelCalls": 13,
+    "underlyingStaticCalls": 13,
+    "rows": [
+      {
+        "id": "before",
+        "status": "EXECUTED_PASS",
+        "packet": "before-packet.json",
+        "audit": "before-audit.json"
+      },
+      {
+        "id": "at",
+        "status": "EXECUTED_PASS",
+        "packet": "at-packet.json",
+        "audit": "at-audit.json"
+      },
+      {
+        "id": "after",
+        "status": "EXECUTED_PASS",
+        "packet": "after-packet.json",
+        "audit": "after-audit.json"
+      },
+      {
+        "id": "point",
+        "status": "EXECUTED_PASS_ADMISSION_ONLY",
+        "packet": "point-packet.json"
+      },
+      {
+        "id": "frame",
+        "status": "EXECUTED_PASS_ADMISSION_ONLY",
+        "packet": "frame-packet.json"
+      },
+      {
+        "id": "mass",
+        "status": "EXECUTED_PASS_ADMISSION_ONLY",
+        "packet": "mass-packet.json"
+      },
+      {
+        "id": "spin",
+        "status": "EXECUTED_PASS_ADMISSION_ONLY",
+        "packet": "spin-packet.json"
+      },
+      {
+        "id": "shape",
+        "status": "EXECUTED_PASS_ADMISSION_ONLY",
+        "packet": "shape-packet.json"
+      },
+      {
+        "id": "dynamic-material",
+        "status": "EXECUTED_PASS_ADMISSION_ONLY",
+        "packet": "dynamic-material-packet.json"
+      },
+      {
+        "id": "reported-normal-shape",
+        "status": "EXECUTED_PASS_ADMISSION_ONLY",
+        "packet": "reported-normal-shape-packet.json"
+      },
+      {
+        "id": "reported-normal-mismatch",
+        "status": "EXECUTED_PASS_ADMISSION_ONLY",
+        "packet": "reported-normal-mismatch-packet.json"
+      }
+    ],
+    "firstFailure": null,
+    "arithmeticBanks": {
+      "degreeReduction": "NOT_RUN",
+      "repeatedAndEndpointRoots": "NOT_RUN",
+      "exactDyadicRoots": "NOT_RUN",
+      "multipleAdmissibleRoots": "NOT_RUN",
+      "negativeH": "NOT_RUN",
+      "RNECells": "NOT_RUN",
+      "workExhaustion": "NOT_RUN"
+    },
+    "runtimeWorldPromotion": "BLOCKED_UNQUALIFIED_ARITHMETIC_BANKS",
+    "casePlan": {
+      "before": "EXECUTED_PASS",
+      "at": "EXECUTED_PASS",
+      "after": "EXECUTED_PASS",
+      "point": "EXECUTED_PASS_ADMISSION_ONLY",
+      "frame": "EXECUTED_PASS_ADMISSION_ONLY",
+      "mass": "EXECUTED_PASS_ADMISSION_ONLY",
+      "spin": "EXECUTED_PASS_ADMISSION_ONLY",
+      "shape": "EXECUTED_PASS_ADMISSION_ONLY",
+      "dynamic-material": "EXECUTED_PASS_ADMISSION_ONLY",
+      "reported-normal-shape": "EXECUTED_PASS_ADMISSION_ONLY",
+      "reported-normal-mismatch": "EXECUTED_PASS_ADMISSION_ONLY"
+    },
+    "providerDigest": "f3564788620b61302f2bb5dd4c896a55f989758e93809fa8efcd7c1cda215d19",
+    "bankPin": {
+      "bytes": 5818,
+      "sha256": "58371a5b250845a664fbc501e7f4f13d93d98cf191e33a94afede7bc16b6a514"
+    },
+    "evidenceBytesBeforeSummary": 94242,
+    "elapsedMs": 342.86970799999995
+  },
+  "parityOriginalResult": {
+    "status": "PASS_FULL_PURE_SOURCE_NATIVE_PACKET_BYTES",
+    "WorldCalls": 0,
+    "candidateCalls": 0,
+    "normalization": "NONE",
+    "runtimeWorldPromotion": "BLOCKED_UNQUALIFIED_ARITHMETIC_BANKS",
+    "packets": [
+      {
+        "name": "bank.json",
+        "bytes": 9970,
+        "sha256": "78e3b0fa6746fa69407a7e1805b77ae56767b5cf81915a71f8f42e55ec188caf"
+      },
+      {
+        "name": "before-static-control.json",
+        "bytes": 3963,
+        "sha256": "29d255c510dee66f80bdaf675acf73b6b37506c8215ce8765cbdbc225587e46a"
+      },
+      {
+        "name": "at-static-control.json",
+        "bytes": 3831,
+        "sha256": "712db57ec98efc6b6139efa8ab98c58b8544c382573bfa2bcee66eeeb6f3e4ad"
+      },
+      {
+        "name": "after-packet.json",
+        "bytes": 16881,
+        "sha256": "552d1eadb0a79e4fc53200b44b5944bd4f98515cb76f9f7a488bd7a0518c4db2"
+      },
+      {
+        "name": "at-packet.json",
+        "bytes": 4426,
+        "sha256": "8723f1f7e323475f03f18bb85a0f9604e96c626811229ca63b8da12a832b866e"
+      },
+      {
+        "name": "before-packet.json",
+        "bytes": 4558,
+        "sha256": "39e8a0123a226834e9f0dd0d93b0755764be7d822858f51e38ee20f7d8dc2fa7"
+      },
+      {
+        "name": "dynamic-material-packet.json",
+        "bytes": 2916,
+        "sha256": "dcb9357965309d02f173d40650bbd46ee1e1fbbf96bcef0fe3c370f56f3f0723"
+      },
+      {
+        "name": "frame-packet.json",
+        "bytes": 2398,
+        "sha256": "d466cfde59e57aed70728dcf8ac236579698ed37c29a1af2c945e7ce8919641f"
+      },
+      {
+        "name": "mass-packet.json",
+        "bytes": 2431,
+        "sha256": "29c9661be9f0f26e8a1c2e6836269d0e8433619b1cf03f436a8dd6b45f5f7293"
+      },
+      {
+        "name": "point-packet.json",
+        "bytes": 2473,
+        "sha256": "9067fc1090ac899cc94ff5c175e526a09922bb32b3cb3bb0ed45b673fd45bd60"
+      },
+      {
+        "name": "reported-normal-mismatch-packet.json",
+        "bytes": 2936,
+        "sha256": "6343c39fa5c364e3af47c8e8758dd72cd52cdfb58127cf166e08c5a73bfd3012"
+      },
+      {
+        "name": "reported-normal-shape-packet.json",
+        "bytes": 2861,
+        "sha256": "e70fbb42b43e054bb1f7bb5b1e36af96ba20425c7e229888d1475a1b001edfbc"
+      },
+      {
+        "name": "shape-packet.json",
+        "bytes": 2432,
+        "sha256": "5785bf7c1232023d557fd341b9ca061ad1b74bf42d7a8f7f4379741a8e986fae"
+      },
+      {
+        "name": "spin-packet.json",
+        "bytes": 2431,
+        "sha256": "70a5ec3b95ae412f86ae61c3238c986cea5f8e0e8292b6f5087d52d9d905829f"
+      }
+    ]
+  },
+  "allSixIndependentAuditsComplete": {
+    "source": {
+      "before": {
+        "WorldCalls": 0,
+        "audit": {
+          "goldReferencePin": {
+            "bytes": 193752,
+            "sha256": "0f710491f0063fd0b0e988ea915cd6342c5e013e695057d503a27a7d7ba7c943"
+          },
+          "id": "before",
+          "independentNativeFrame": [
+            [
+              {
+                "d": "129",
+                "n": "-16"
+              },
+              {
+                "d": "129",
+                "n": "127"
+              },
+              {
+                "d": "129",
+                "n": "16"
+              }
+            ],
+            [
+              {
+                "d": "129",
+                "n": "128"
+              },
+              {
+                "d": "129",
+                "n": "16"
+              },
+              {
+                "d": "129",
+                "n": "1"
+              }
+            ],
+            [
+              {
+                "d": "129",
+                "n": "1"
+              },
+              {
+                "d": "129",
+                "n": "-16"
+              },
+              {
+                "d": "129",
+                "n": "128"
+              }
+            ]
+          ],
+          "independentWorldK": [
+            [
+              {
+                "d": "128",
+                "n": "395"
+              },
+              {
+                "d": "4",
+                "n": "-3"
+              },
+              {
+                "d": "32",
+                "n": "-15"
+              }
+            ],
+            [
+              {
+                "d": "4",
+                "n": "-3"
+              },
+              {
+                "d": "128",
+                "n": "251"
+              },
+              {
+                "d": "16",
+                "n": "-15"
+              }
+            ],
+            [
+              {
+                "d": "32",
+                "n": "-15"
+              },
+              {
+                "d": "16",
+                "n": "-15"
+              },
+              {
+                "d": "8",
+                "n": "23"
+              }
+            ]
+          ],
+          "packetPin": {
+            "bytes": 4558,
+            "sha256": "39e8a0123a226834e9f0dd0d93b0755764be7d822858f51e38ee20f7d8dc2fa7"
+          },
+          "physical": {
+            "COMSpin": [
+              {
+                "d": "1073741824",
+                "n": "227672037"
+              },
+              {
+                "d": "2147483648",
+                "n": "-386924067"
+              },
+              {
+                "d": "134217728",
+                "n": "15925203"
+              }
+            ],
+            "finalContactVelocity": [
+              {
+                "d": "1",
+                "n": "0"
+              },
+              {
+                "d": "1",
+                "n": "0"
+              },
+              {
+                "d": "1",
+                "n": "0"
+              }
+            ],
+            "midpointWork": {
+              "d": "18446744073709551616",
+              "n": "-433409006956304151"
+            },
+            "momentumAndOriginMoment": "EXACT_PHYSICAL_IDENTITIES",
+            "normalLoad": {
+              "d": "1024",
+              "n": "129"
+            },
+            "normalSpeed": {
+              "d": "1",
+              "n": "0"
+            },
+            "residuals": {
+              "cacheNormalAgreementNs": [
+                {
+                  "d": "1",
+                  "n": "0"
+                },
+                {
+                  "d": "1",
+                  "n": "0"
+                }
+              ],
+              "cachePublicTangentPlaneNs": [
+                {
+                  "d": "38685626227668133590597632",
+                  "n": "-7340025"
+                },
+                {
+                  "d": "38685626227668133590597632",
+                  "n": "-7340025"
+                }
+              ],
+              "normalSpeedMps": [
+                {
+                  "d": "1",
+                  "n": "0"
+                },
+                {
+                  "d": "1",
+                  "n": "0"
+                }
+              ],
+              "workJ": [
+                {
+                  "d": "18446744073709551616",
+                  "n": "-433409006956304151"
+                },
+                {
+                  "d": "18446744073709551616",
+                  "n": "-433409006956304151"
+                }
+              ]
+            },
+            "runtimeApplication": "NOT_RUN_PURE_TARGET_ONLY",
+            "slip": [
+              {
+                "d": "1",
+                "n": "0"
+              },
+              {
+                "d": "1",
+                "n": "0"
+              }
+            ],
+            "worldJ": [
+              {
+                "d": "8388608",
+                "n": "917503"
+              },
+              {
+                "d": "67108864",
+                "n": "9371647"
+              },
+              {
+                "d": "1073741824",
+                "n": "17825791"
+              }
+            ],
+            "worldT": [
+              {
+                "d": "8388608",
+                "n": "1048575"
+              },
+              {
+                "d": "67108864",
+                "n": "1048575"
+              },
+              {
+                "d": "1073741824",
+                "n": "1048575"
+              }
+            ]
+          },
+          "provenance": {
+            "bank": {
+              "bytes": 9970,
+              "sha256": "78e3b0fa6746fa69407a7e1805b77ae56767b5cf81915a71f8f42e55ec188caf"
+            },
+            "firstApplicationRecordIndex": 7,
+            "hostStep": 1,
+            "model": {
+              "bytes": 1417,
+              "sha256": "8f9c34238b98216656789f1d49a4c88779d55c1af1927d1b51b5f87464edb132"
+            },
+            "planRecordIndex": 5,
+            "trace": {
+              "bytes": 220197,
+              "sha256": "6b2cd4977130f1241357f29f7adbd3b94a698f61241d17da8ef1ca63eb71dd93"
+            }
+          },
+          "staticCertificateRawEquality": "ENTIRE_ORIGINAL_CERTIFICATE_UNCHANGED",
+          "staticControlPin": {
+            "bytes": 3963,
+            "sha256": "29d255c510dee66f80bdaf675acf73b6b37506c8215ce8765cbdbc225587e46a"
+          },
+          "staticMargin": {
+            "d": "1152921504606846976",
+            "n": "-34898689791"
+          }
+        },
+        "candidateCalls": 0,
+        "caps": {
+          "bits": 16384,
+          "bytes": 16777216,
+          "dagNodes": 8192,
+          "depth": 64,
+          "fragments": 1000000,
+          "rationalOps": 262144,
+          "seconds": 180
+        },
+        "elapsedSeconds": 0.08113620802760124,
+        "firstFailure": null,
+        "generalArithmeticControls": "NOT_RUN",
+        "peakBits": 409,
+        "rationalOps": 3911,
+        "readBytes": 433857,
+        "referenceGeneratorCalls": 0,
+        "runtimeWorldPromotion": "BLOCKED_UNQUALIFIED_ARITHMETIC_BANKS_AND_RUNTIME",
+        "scope": "ONE_ORIGINAL_PURE_TARGET_INPUT_ONLY",
+        "status": "EXECUTED_PASS_PURE_COUPLED_PHYSICAL_INPUT"
+      },
+      "at": {
+        "WorldCalls": 0,
+        "audit": {
+          "goldReferencePin": {
+            "bytes": 193752,
+            "sha256": "0f710491f0063fd0b0e988ea915cd6342c5e013e695057d503a27a7d7ba7c943"
+          },
+          "id": "at",
+          "independentNativeFrame": [
+            [
+              {
+                "d": "129",
+                "n": "-16"
+              },
+              {
+                "d": "129",
+                "n": "127"
+              },
+              {
+                "d": "129",
+                "n": "16"
+              }
+            ],
+            [
+              {
+                "d": "129",
+                "n": "128"
+              },
+              {
+                "d": "129",
+                "n": "16"
+              },
+              {
+                "d": "129",
+                "n": "1"
+              }
+            ],
+            [
+              {
+                "d": "129",
+                "n": "1"
+              },
+              {
+                "d": "129",
+                "n": "-16"
+              },
+              {
+                "d": "129",
+                "n": "128"
+              }
+            ]
+          ],
+          "independentWorldK": [
+            [
+              {
+                "d": "128",
+                "n": "395"
+              },
+              {
+                "d": "4",
+                "n": "-3"
+              },
+              {
+                "d": "32",
+                "n": "-15"
+              }
+            ],
+            [
+              {
+                "d": "4",
+                "n": "-3"
+              },
+              {
+                "d": "128",
+                "n": "251"
+              },
+              {
+                "d": "16",
+                "n": "-15"
+              }
+            ],
+            [
+              {
+                "d": "32",
+                "n": "-15"
+              },
+              {
+                "d": "16",
+                "n": "-15"
+              },
+              {
+                "d": "8",
+                "n": "23"
+              }
+            ]
+          ],
+          "packetPin": {
+            "bytes": 4426,
+            "sha256": "8723f1f7e323475f03f18bb85a0f9604e96c626811229ca63b8da12a832b866e"
+          },
+          "physical": {
+            "COMSpin": [
+              {
+                "d": "8192",
+                "n": "1737"
+              },
+              {
+                "d": "2048",
+                "n": "-369"
+              },
+              {
+                "d": "2048",
+                "n": "243"
+              }
+            ],
+            "finalContactVelocity": [
+              {
+                "d": "1",
+                "n": "0"
+              },
+              {
+                "d": "1",
+                "n": "0"
+              },
+              {
+                "d": "1",
+                "n": "0"
+              }
+            ],
+            "midpointWork": {
+              "d": "268435456",
+              "n": "-6306939"
+            },
+            "momentumAndOriginMoment": "EXACT_PHYSICAL_IDENTITIES",
+            "normalLoad": {
+              "d": "1024",
+              "n": "129"
+            },
+            "normalSpeed": {
+              "d": "1",
+              "n": "0"
+            },
+            "residuals": {
+              "cacheNormalAgreementNs": [
+                {
+                  "d": "1",
+                  "n": "0"
+                },
+                {
+                  "d": "1",
+                  "n": "0"
+                }
+              ],
+              "cachePublicTangentPlaneNs": [
+                {
+                  "d": "36893488147419103232",
+                  "n": "-7"
+                },
+                {
+                  "d": "36893488147419103232",
+                  "n": "-7"
+                }
+              ],
+              "normalSpeedMps": [
+                {
+                  "d": "1",
+                  "n": "0"
+                },
+                {
+                  "d": "1",
+                  "n": "0"
+                }
+              ],
+              "workJ": [
+                {
+                  "d": "268435456",
+                  "n": "-6306939"
+                },
+                {
+                  "d": "268435456",
+                  "n": "-6306939"
+                }
+              ]
+            },
+            "runtimeApplication": "NOT_RUN_PURE_TARGET_ONLY",
+            "slip": [
+              {
+                "d": "1",
+                "n": "0"
+              },
+              {
+                "d": "1",
+                "n": "0"
+              }
+            ],
+            "worldJ": [
+              {
+                "d": "64",
+                "n": "7"
+              },
+              {
+                "d": "1024",
+                "n": "143"
+              },
+              {
+                "d": "1024",
+                "n": "17"
+              }
+            ],
+            "worldT": [
+              {
+                "d": "8",
+                "n": "1"
+              },
+              {
+                "d": "64",
+                "n": "1"
+              },
+              {
+                "d": "1024",
+                "n": "1"
+              }
+            ]
+          },
+          "provenance": {
+            "bank": {
+              "bytes": 9970,
+              "sha256": "78e3b0fa6746fa69407a7e1805b77ae56767b5cf81915a71f8f42e55ec188caf"
+            },
+            "firstApplicationRecordIndex": 7,
+            "hostStep": 1,
+            "model": {
+              "bytes": 1409,
+              "sha256": "de76b4d60f43c50be503558c10cc8b2f2d20ae4846b942473c2bf25f3f533c36"
+            },
+            "planRecordIndex": 5,
+            "trace": {
+              "bytes": 220062,
+              "sha256": "a7b93bf753f0992cadc229ed634622b23d9e444246fb62cf8bc9ee46b1652910"
+            }
+          },
+          "staticCertificateRawEquality": "ENTIRE_ORIGINAL_CERTIFICATE_UNCHANGED",
+          "staticControlPin": {
+            "bytes": 3831,
+            "sha256": "712db57ec98efc6b6139efa8ab98c58b8544c382573bfa2bcee66eeeb6f3e4ad"
+          },
+          "staticMargin": {
+            "d": "1",
+            "n": "0"
+          }
+        },
+        "candidateCalls": 0,
+        "caps": {
+          "bits": 16384,
+          "bytes": 16777216,
+          "dagNodes": 8192,
+          "depth": 64,
+          "fragments": 1000000,
+          "rationalOps": 262144,
+          "seconds": 180
+        },
+        "elapsedSeconds": 0.11567429103888571,
+        "firstFailure": null,
+        "generalArithmeticControls": "NOT_RUN",
+        "peakBits": 409,
+        "rationalOps": 3911,
+        "readBytes": 433450,
+        "referenceGeneratorCalls": 0,
+        "runtimeWorldPromotion": "BLOCKED_UNQUALIFIED_ARITHMETIC_BANKS_AND_RUNTIME",
+        "scope": "ONE_ORIGINAL_PURE_TARGET_INPUT_ONLY",
+        "status": "EXECUTED_PASS_PURE_COUPLED_PHYSICAL_INPUT"
+      },
+      "after": {
+        "WorldCalls": 0,
+        "audit": {
+          "algebra": {
+            "admissibleRootCount": 1,
+            "interiorRootCount": 1,
+            "parameter": [
+              {
+                "d": "36893488147419103232",
+                "n": "11423118250490158235"
+              },
+              {
+                "d": "73786976294838206464",
+                "n": "22846236500980316471"
+              }
+            ],
+            "physicalPolynomialAscending": [
+              "-48006191526844997297057275530968248466578056822784",
+              "-464951471400697058700332041822317343163576387801856",
+              "675871420789850061783397648429021784161267624854943",
+              "3209383624948300130744235840614016158124798730055106",
+              "3471956434079271689058711748500662992964146414378911"
+            ],
+            "selectedRoot": 0,
+            "validation": "FULL_3X3_CRAMER_POLYNOMIAL_AND_CERTIFICATE_RECURRENCE_ONLY"
+          },
+          "goldReferencePin": {
+            "bytes": 193752,
+            "sha256": "0f710491f0063fd0b0e988ea915cd6342c5e013e695057d503a27a7d7ba7c943"
+          },
+          "id": "after",
+          "independentNativeFrame": [
+            [
+              {
+                "d": "129",
+                "n": "-16"
+              },
+              {
+                "d": "129",
+                "n": "127"
+              },
+              {
+                "d": "129",
+                "n": "16"
+              }
+            ],
+            [
+              {
+                "d": "129",
+                "n": "128"
+              },
+              {
+                "d": "129",
+                "n": "16"
+              },
+              {
+                "d": "129",
+                "n": "1"
+              }
+            ],
+            [
+              {
+                "d": "129",
+                "n": "1"
+              },
+              {
+                "d": "129",
+                "n": "-16"
+              },
+              {
+                "d": "129",
+                "n": "128"
+              }
+            ]
+          ],
+          "independentWorldK": [
+            [
+              {
+                "d": "128",
+                "n": "395"
+              },
+              {
+                "d": "4",
+                "n": "-3"
+              },
+              {
+                "d": "32",
+                "n": "-15"
+              }
+            ],
+            [
+              {
+                "d": "4",
+                "n": "-3"
+              },
+              {
+                "d": "128",
+                "n": "251"
+              },
+              {
+                "d": "16",
+                "n": "-15"
+              }
+            ],
+            [
+              {
+                "d": "32",
+                "n": "-15"
+              },
+              {
+                "d": "16",
+                "n": "-15"
+              },
+              {
+                "d": "8",
+                "n": "23"
+              }
+            ]
+          ],
+          "packetPin": {
+            "bytes": 16881,
+            "sha256": "552d1eadb0a79e4fc53200b44b5944bd4f98515cb76f9f7a488bd7a0518c4db2"
+          },
+          "physical": {
+            "COMSpin": [
+              {
+                "d": "4611686018427387904",
+                "n": "840670393429824513"
+              },
+              {
+                "d": "9223372036854775808",
+                "n": "-870969261386783313"
+              },
+              {
+                "d": "72057594037927936",
+                "n": "378735849461985"
+              }
+            ],
+            "finalContactVelocity": [
+              {
+                "d": "147573952589676412928",
+                "n": "-20816854410039895147"
+              },
+              {
+                "d": "73786976294838206464",
+                "n": "-1511290718303109371"
+              },
+              {
+                "d": "36893488147419103232",
+                "n": "793721435755494163"
+              }
+            ],
+            "midpointWork": {
+              "d": "340282366920938463463374607431768211456",
+              "n": "-6529772684014619032475097787217979777"
+            },
+            "momentumAndOriginMoment": "EXACT_PHYSICAL_IDENTITIES",
+            "normalLoad": {
+              "d": "37181718523570814976",
+              "n": "3434060399175693137"
+            },
+            "normalSpeed": {
+              "d": "9518519942034128633856",
+              "n": "84275"
+            },
+            "residuals": {
+              "antiparallelNs0": [
+                {
+                  "d": "15175584205819339835320049659703032185727142421153651829506048",
+                  "n": "-55783676478590734150958437951796764664357717"
+                },
+                {
+                  "d": "1896948025727417479415006207462879023254564113766127849439232",
+                  "n": "-6972959559823841768867358252466955909960737"
+                }
+              ],
+              "antiparallelNs1": [
+                {
+                  "d": "30351168411638679670640099319406064371454284842307303659012096",
+                  "n": "-5055043750118873650657604912032998057148949"
+                },
+                {
+                  "d": "3793896051454834958830012414925758046509128227532255698878464",
+                  "n": "-631880468764859206331490158940151211421889"
+                }
+              ],
+              "antiparallelNs2": [
+                {
+                  "d": "60702336823277359341280198638812128744146051640516091182055424",
+                  "n": "-142885886381225817399656213893543385268163681"
+                },
+                {
+                  "d": "485618694586218874730241589110497029943268557476916858544193536",
+                  "n": "-1143087091049806539197154190629305716001530421"
+                }
+              ],
+              "cacheNormalAgreementNs": [
+                {
+                  "d": "37181718523570814976",
+                  "n": "-233"
+                },
+                {
+                  "d": "37181718523570814976",
+                  "n": "-233"
+                }
+              ],
+              "cachePublicTangentPlaneNs": [
+                {
+                  "d": "10384593717069655257060992658440192",
+                  "n": "1355298404578309"
+                },
+                {
+                  "d": "10384593717069655257060992658440192",
+                  "n": "1355298404578309"
+                }
+              ],
+              "cacheTangentAgreementNs0": [
+                {
+                  "d": "2398220844770317565952",
+                  "n": "587"
+                },
+                {
+                  "d": "2398220844770317565952",
+                  "n": "587"
+                }
+              ],
+              "cacheTangentAgreementNs1": [
+                {
+                  "d": "2398220844770317565952",
+                  "n": "541"
+                },
+                {
+                  "d": "2398220844770317565952",
+                  "n": "541"
+                }
+              ],
+              "cacheTangentAgreementNs2": [
+                {
+                  "d": "76743067032650162110464",
+                  "n": "31139"
+                },
+                {
+                  "d": "76743067032650162110464",
+                  "n": "31139"
+                }
+              ],
+              "coneMagnitudeNs": [
+                {
+                  "d": "43896425332801061786775324358698099277824",
+                  "n": "-143513350754832911693101"
+                },
+                {
+                  "d": "10974106333200265446693831089674524819456",
+                  "n": "-35878337688708227923243"
+                }
+              ],
+              "normalSpeedMps": [
+                {
+                  "d": "9518519942034128633856",
+                  "n": "84275"
+                },
+                {
+                  "d": "9518519942034128633856",
+                  "n": "84275"
+                }
+              ],
+              "workJ": [
+                {
+                  "d": "340282366920938463463374607431768211456",
+                  "n": "-6529772684014619032475097787217979777"
+                },
+                {
+                  "d": "340282366920938463463374607431768211456",
+                  "n": "-6529772684014619032475097787217979777"
+                }
+              ]
+            },
+            "runtimeApplication": "NOT_RUN_PURE_TARGET_ONLY",
+            "slip": [
+              {
+                "d": "340282366920938463463374607431768211456",
+                "n": "49053108640325000473607879241364483031"
+              },
+              {
+                "d": "42535295865117307932921825928971026432",
+                "n": "6131638580040625059200984905170560379"
+              }
+            ],
+            "worldJ": [
+              {
+                "d": "144115188075855872",
+                "n": "7466373437963333"
+              },
+              {
+                "d": "72057594037927936",
+                "n": "7213882871655343"
+              },
+              {
+                "d": "4611686018427387904",
+                "n": "8331850389605549"
+              }
+            ],
+            "worldT": [
+              {
+                "d": "2398220844770317565952",
+                "n": "151720403574553369549"
+              },
+              {
+                "d": "4796441689540635131904",
+                "n": "44059228773553223053"
+              },
+              {
+                "d": "76743067032650162110464",
+                "n": "-740469139855551502163"
+              }
+            ]
+          },
+          "provenance": {
+            "bank": {
+              "bytes": 9970,
+              "sha256": "78e3b0fa6746fa69407a7e1805b77ae56767b5cf81915a71f8f42e55ec188caf"
+            },
+            "firstApplicationRecordIndex": 6,
+            "hostStep": 1,
+            "model": {
+              "bytes": 1416,
+              "sha256": "17d1c9e777c73221d1cfe2b39b605ac2e8077a72dab07d439ee16af93ddda620"
+            },
+            "planRecordIndex": 5,
+            "trace": {
+              "bytes": 27769,
+              "sha256": "b7f283db58d1b4d9c272d36a6cd373cdf83851d8963d851112690597487233b8"
+            }
+          },
+          "staticMargin": {
+            "d": "1152921504606846976",
+            "n": "34898723073"
+          }
+        },
+        "candidateCalls": 0,
+        "caps": {
+          "bits": 16384,
+          "bytes": 16777216,
+          "dagNodes": 8192,
+          "depth": 64,
+          "fragments": 1000000,
+          "rationalOps": 262144,
+          "seconds": 180
+        },
+        "elapsedSeconds": 0.025452833157032728,
+        "firstFailure": null,
+        "generalArithmeticControls": "NOT_RUN",
+        "peakBits": 1297,
+        "rationalOps": 7309,
+        "readBytes": 249788,
+        "referenceGeneratorCalls": 0,
+        "runtimeWorldPromotion": "BLOCKED_UNQUALIFIED_ARITHMETIC_BANKS_AND_RUNTIME",
+        "scope": "ONE_ORIGINAL_PURE_TARGET_INPUT_ONLY",
+        "status": "EXECUTED_PASS_PURE_COUPLED_PHYSICAL_INPUT"
+      }
+    },
+    "native": {
+      "before": {
+        "WorldCalls": 0,
+        "audit": {
+          "goldReferencePin": {
+            "bytes": 193752,
+            "sha256": "0f710491f0063fd0b0e988ea915cd6342c5e013e695057d503a27a7d7ba7c943"
+          },
+          "id": "before",
+          "independentNativeFrame": [
+            [
+              {
+                "d": "129",
+                "n": "-16"
+              },
+              {
+                "d": "129",
+                "n": "127"
+              },
+              {
+                "d": "129",
+                "n": "16"
+              }
+            ],
+            [
+              {
+                "d": "129",
+                "n": "128"
+              },
+              {
+                "d": "129",
+                "n": "16"
+              },
+              {
+                "d": "129",
+                "n": "1"
+              }
+            ],
+            [
+              {
+                "d": "129",
+                "n": "1"
+              },
+              {
+                "d": "129",
+                "n": "-16"
+              },
+              {
+                "d": "129",
+                "n": "128"
+              }
+            ]
+          ],
+          "independentWorldK": [
+            [
+              {
+                "d": "128",
+                "n": "395"
+              },
+              {
+                "d": "4",
+                "n": "-3"
+              },
+              {
+                "d": "32",
+                "n": "-15"
+              }
+            ],
+            [
+              {
+                "d": "4",
+                "n": "-3"
+              },
+              {
+                "d": "128",
+                "n": "251"
+              },
+              {
+                "d": "16",
+                "n": "-15"
+              }
+            ],
+            [
+              {
+                "d": "32",
+                "n": "-15"
+              },
+              {
+                "d": "16",
+                "n": "-15"
+              },
+              {
+                "d": "8",
+                "n": "23"
+              }
+            ]
+          ],
+          "packetPin": {
+            "bytes": 4558,
+            "sha256": "39e8a0123a226834e9f0dd0d93b0755764be7d822858f51e38ee20f7d8dc2fa7"
+          },
+          "physical": {
+            "COMSpin": [
+              {
+                "d": "1073741824",
+                "n": "227672037"
+              },
+              {
+                "d": "2147483648",
+                "n": "-386924067"
+              },
+              {
+                "d": "134217728",
+                "n": "15925203"
+              }
+            ],
+            "finalContactVelocity": [
+              {
+                "d": "1",
+                "n": "0"
+              },
+              {
+                "d": "1",
+                "n": "0"
+              },
+              {
+                "d": "1",
+                "n": "0"
+              }
+            ],
+            "midpointWork": {
+              "d": "18446744073709551616",
+              "n": "-433409006956304151"
+            },
+            "momentumAndOriginMoment": "EXACT_PHYSICAL_IDENTITIES",
+            "normalLoad": {
+              "d": "1024",
+              "n": "129"
+            },
+            "normalSpeed": {
+              "d": "1",
+              "n": "0"
+            },
+            "residuals": {
+              "cacheNormalAgreementNs": [
+                {
+                  "d": "1",
+                  "n": "0"
+                },
+                {
+                  "d": "1",
+                  "n": "0"
+                }
+              ],
+              "cachePublicTangentPlaneNs": [
+                {
+                  "d": "38685626227668133590597632",
+                  "n": "-7340025"
+                },
+                {
+                  "d": "38685626227668133590597632",
+                  "n": "-7340025"
+                }
+              ],
+              "normalSpeedMps": [
+                {
+                  "d": "1",
+                  "n": "0"
+                },
+                {
+                  "d": "1",
+                  "n": "0"
+                }
+              ],
+              "workJ": [
+                {
+                  "d": "18446744073709551616",
+                  "n": "-433409006956304151"
+                },
+                {
+                  "d": "18446744073709551616",
+                  "n": "-433409006956304151"
+                }
+              ]
+            },
+            "runtimeApplication": "NOT_RUN_PURE_TARGET_ONLY",
+            "slip": [
+              {
+                "d": "1",
+                "n": "0"
+              },
+              {
+                "d": "1",
+                "n": "0"
+              }
+            ],
+            "worldJ": [
+              {
+                "d": "8388608",
+                "n": "917503"
+              },
+              {
+                "d": "67108864",
+                "n": "9371647"
+              },
+              {
+                "d": "1073741824",
+                "n": "17825791"
+              }
+            ],
+            "worldT": [
+              {
+                "d": "8388608",
+                "n": "1048575"
+              },
+              {
+                "d": "67108864",
+                "n": "1048575"
+              },
+              {
+                "d": "1073741824",
+                "n": "1048575"
+              }
+            ]
+          },
+          "provenance": {
+            "bank": {
+              "bytes": 9970,
+              "sha256": "78e3b0fa6746fa69407a7e1805b77ae56767b5cf81915a71f8f42e55ec188caf"
+            },
+            "firstApplicationRecordIndex": 7,
+            "hostStep": 1,
+            "model": {
+              "bytes": 1417,
+              "sha256": "8f9c34238b98216656789f1d49a4c88779d55c1af1927d1b51b5f87464edb132"
+            },
+            "planRecordIndex": 5,
+            "trace": {
+              "bytes": 220197,
+              "sha256": "6b2cd4977130f1241357f29f7adbd3b94a698f61241d17da8ef1ca63eb71dd93"
+            }
+          },
+          "staticCertificateRawEquality": "ENTIRE_ORIGINAL_CERTIFICATE_UNCHANGED",
+          "staticControlPin": {
+            "bytes": 3963,
+            "sha256": "29d255c510dee66f80bdaf675acf73b6b37506c8215ce8765cbdbc225587e46a"
+          },
+          "staticMargin": {
+            "d": "1152921504606846976",
+            "n": "-34898689791"
+          }
+        },
+        "candidateCalls": 0,
+        "caps": {
+          "bits": 16384,
+          "bytes": 16777216,
+          "dagNodes": 8192,
+          "depth": 64,
+          "fragments": 1000000,
+          "rationalOps": 262144,
+          "seconds": 180
+        },
+        "elapsedSeconds": 0.08399266703054309,
+        "firstFailure": null,
+        "generalArithmeticControls": "NOT_RUN",
+        "peakBits": 409,
+        "rationalOps": 3911,
+        "readBytes": 433857,
+        "referenceGeneratorCalls": 0,
+        "runtimeWorldPromotion": "BLOCKED_UNQUALIFIED_ARITHMETIC_BANKS_AND_RUNTIME",
+        "scope": "ONE_ORIGINAL_PURE_TARGET_INPUT_ONLY",
+        "status": "EXECUTED_PASS_PURE_COUPLED_PHYSICAL_INPUT"
+      },
+      "at": {
+        "WorldCalls": 0,
+        "audit": {
+          "goldReferencePin": {
+            "bytes": 193752,
+            "sha256": "0f710491f0063fd0b0e988ea915cd6342c5e013e695057d503a27a7d7ba7c943"
+          },
+          "id": "at",
+          "independentNativeFrame": [
+            [
+              {
+                "d": "129",
+                "n": "-16"
+              },
+              {
+                "d": "129",
+                "n": "127"
+              },
+              {
+                "d": "129",
+                "n": "16"
+              }
+            ],
+            [
+              {
+                "d": "129",
+                "n": "128"
+              },
+              {
+                "d": "129",
+                "n": "16"
+              },
+              {
+                "d": "129",
+                "n": "1"
+              }
+            ],
+            [
+              {
+                "d": "129",
+                "n": "1"
+              },
+              {
+                "d": "129",
+                "n": "-16"
+              },
+              {
+                "d": "129",
+                "n": "128"
+              }
+            ]
+          ],
+          "independentWorldK": [
+            [
+              {
+                "d": "128",
+                "n": "395"
+              },
+              {
+                "d": "4",
+                "n": "-3"
+              },
+              {
+                "d": "32",
+                "n": "-15"
+              }
+            ],
+            [
+              {
+                "d": "4",
+                "n": "-3"
+              },
+              {
+                "d": "128",
+                "n": "251"
+              },
+              {
+                "d": "16",
+                "n": "-15"
+              }
+            ],
+            [
+              {
+                "d": "32",
+                "n": "-15"
+              },
+              {
+                "d": "16",
+                "n": "-15"
+              },
+              {
+                "d": "8",
+                "n": "23"
+              }
+            ]
+          ],
+          "packetPin": {
+            "bytes": 4426,
+            "sha256": "8723f1f7e323475f03f18bb85a0f9604e96c626811229ca63b8da12a832b866e"
+          },
+          "physical": {
+            "COMSpin": [
+              {
+                "d": "8192",
+                "n": "1737"
+              },
+              {
+                "d": "2048",
+                "n": "-369"
+              },
+              {
+                "d": "2048",
+                "n": "243"
+              }
+            ],
+            "finalContactVelocity": [
+              {
+                "d": "1",
+                "n": "0"
+              },
+              {
+                "d": "1",
+                "n": "0"
+              },
+              {
+                "d": "1",
+                "n": "0"
+              }
+            ],
+            "midpointWork": {
+              "d": "268435456",
+              "n": "-6306939"
+            },
+            "momentumAndOriginMoment": "EXACT_PHYSICAL_IDENTITIES",
+            "normalLoad": {
+              "d": "1024",
+              "n": "129"
+            },
+            "normalSpeed": {
+              "d": "1",
+              "n": "0"
+            },
+            "residuals": {
+              "cacheNormalAgreementNs": [
+                {
+                  "d": "1",
+                  "n": "0"
+                },
+                {
+                  "d": "1",
+                  "n": "0"
+                }
+              ],
+              "cachePublicTangentPlaneNs": [
+                {
+                  "d": "36893488147419103232",
+                  "n": "-7"
+                },
+                {
+                  "d": "36893488147419103232",
+                  "n": "-7"
+                }
+              ],
+              "normalSpeedMps": [
+                {
+                  "d": "1",
+                  "n": "0"
+                },
+                {
+                  "d": "1",
+                  "n": "0"
+                }
+              ],
+              "workJ": [
+                {
+                  "d": "268435456",
+                  "n": "-6306939"
+                },
+                {
+                  "d": "268435456",
+                  "n": "-6306939"
+                }
+              ]
+            },
+            "runtimeApplication": "NOT_RUN_PURE_TARGET_ONLY",
+            "slip": [
+              {
+                "d": "1",
+                "n": "0"
+              },
+              {
+                "d": "1",
+                "n": "0"
+              }
+            ],
+            "worldJ": [
+              {
+                "d": "64",
+                "n": "7"
+              },
+              {
+                "d": "1024",
+                "n": "143"
+              },
+              {
+                "d": "1024",
+                "n": "17"
+              }
+            ],
+            "worldT": [
+              {
+                "d": "8",
+                "n": "1"
+              },
+              {
+                "d": "64",
+                "n": "1"
+              },
+              {
+                "d": "1024",
+                "n": "1"
+              }
+            ]
+          },
+          "provenance": {
+            "bank": {
+              "bytes": 9970,
+              "sha256": "78e3b0fa6746fa69407a7e1805b77ae56767b5cf81915a71f8f42e55ec188caf"
+            },
+            "firstApplicationRecordIndex": 7,
+            "hostStep": 1,
+            "model": {
+              "bytes": 1409,
+              "sha256": "de76b4d60f43c50be503558c10cc8b2f2d20ae4846b942473c2bf25f3f533c36"
+            },
+            "planRecordIndex": 5,
+            "trace": {
+              "bytes": 220062,
+              "sha256": "a7b93bf753f0992cadc229ed634622b23d9e444246fb62cf8bc9ee46b1652910"
+            }
+          },
+          "staticCertificateRawEquality": "ENTIRE_ORIGINAL_CERTIFICATE_UNCHANGED",
+          "staticControlPin": {
+            "bytes": 3831,
+            "sha256": "712db57ec98efc6b6139efa8ab98c58b8544c382573bfa2bcee66eeeb6f3e4ad"
+          },
+          "staticMargin": {
+            "d": "1",
+            "n": "0"
+          }
+        },
+        "candidateCalls": 0,
+        "caps": {
+          "bits": 16384,
+          "bytes": 16777216,
+          "dagNodes": 8192,
+          "depth": 64,
+          "fragments": 1000000,
+          "rationalOps": 262144,
+          "seconds": 180
+        },
+        "elapsedSeconds": 0.08162733307108283,
+        "firstFailure": null,
+        "generalArithmeticControls": "NOT_RUN",
+        "peakBits": 409,
+        "rationalOps": 3911,
+        "readBytes": 433450,
+        "referenceGeneratorCalls": 0,
+        "runtimeWorldPromotion": "BLOCKED_UNQUALIFIED_ARITHMETIC_BANKS_AND_RUNTIME",
+        "scope": "ONE_ORIGINAL_PURE_TARGET_INPUT_ONLY",
+        "status": "EXECUTED_PASS_PURE_COUPLED_PHYSICAL_INPUT"
+      },
+      "after": {
+        "WorldCalls": 0,
+        "audit": {
+          "algebra": {
+            "admissibleRootCount": 1,
+            "interiorRootCount": 1,
+            "parameter": [
+              {
+                "d": "36893488147419103232",
+                "n": "11423118250490158235"
+              },
+              {
+                "d": "73786976294838206464",
+                "n": "22846236500980316471"
+              }
+            ],
+            "physicalPolynomialAscending": [
+              "-48006191526844997297057275530968248466578056822784",
+              "-464951471400697058700332041822317343163576387801856",
+              "675871420789850061783397648429021784161267624854943",
+              "3209383624948300130744235840614016158124798730055106",
+              "3471956434079271689058711748500662992964146414378911"
+            ],
+            "selectedRoot": 0,
+            "validation": "FULL_3X3_CRAMER_POLYNOMIAL_AND_CERTIFICATE_RECURRENCE_ONLY"
+          },
+          "goldReferencePin": {
+            "bytes": 193752,
+            "sha256": "0f710491f0063fd0b0e988ea915cd6342c5e013e695057d503a27a7d7ba7c943"
+          },
+          "id": "after",
+          "independentNativeFrame": [
+            [
+              {
+                "d": "129",
+                "n": "-16"
+              },
+              {
+                "d": "129",
+                "n": "127"
+              },
+              {
+                "d": "129",
+                "n": "16"
+              }
+            ],
+            [
+              {
+                "d": "129",
+                "n": "128"
+              },
+              {
+                "d": "129",
+                "n": "16"
+              },
+              {
+                "d": "129",
+                "n": "1"
+              }
+            ],
+            [
+              {
+                "d": "129",
+                "n": "1"
+              },
+              {
+                "d": "129",
+                "n": "-16"
+              },
+              {
+                "d": "129",
+                "n": "128"
+              }
+            ]
+          ],
+          "independentWorldK": [
+            [
+              {
+                "d": "128",
+                "n": "395"
+              },
+              {
+                "d": "4",
+                "n": "-3"
+              },
+              {
+                "d": "32",
+                "n": "-15"
+              }
+            ],
+            [
+              {
+                "d": "4",
+                "n": "-3"
+              },
+              {
+                "d": "128",
+                "n": "251"
+              },
+              {
+                "d": "16",
+                "n": "-15"
+              }
+            ],
+            [
+              {
+                "d": "32",
+                "n": "-15"
+              },
+              {
+                "d": "16",
+                "n": "-15"
+              },
+              {
+                "d": "8",
+                "n": "23"
+              }
+            ]
+          ],
+          "packetPin": {
+            "bytes": 16881,
+            "sha256": "552d1eadb0a79e4fc53200b44b5944bd4f98515cb76f9f7a488bd7a0518c4db2"
+          },
+          "physical": {
+            "COMSpin": [
+              {
+                "d": "4611686018427387904",
+                "n": "840670393429824513"
+              },
+              {
+                "d": "9223372036854775808",
+                "n": "-870969261386783313"
+              },
+              {
+                "d": "72057594037927936",
+                "n": "378735849461985"
+              }
+            ],
+            "finalContactVelocity": [
+              {
+                "d": "147573952589676412928",
+                "n": "-20816854410039895147"
+              },
+              {
+                "d": "73786976294838206464",
+                "n": "-1511290718303109371"
+              },
+              {
+                "d": "36893488147419103232",
+                "n": "793721435755494163"
+              }
+            ],
+            "midpointWork": {
+              "d": "340282366920938463463374607431768211456",
+              "n": "-6529772684014619032475097787217979777"
+            },
+            "momentumAndOriginMoment": "EXACT_PHYSICAL_IDENTITIES",
+            "normalLoad": {
+              "d": "37181718523570814976",
+              "n": "3434060399175693137"
+            },
+            "normalSpeed": {
+              "d": "9518519942034128633856",
+              "n": "84275"
+            },
+            "residuals": {
+              "antiparallelNs0": [
+                {
+                  "d": "15175584205819339835320049659703032185727142421153651829506048",
+                  "n": "-55783676478590734150958437951796764664357717"
+                },
+                {
+                  "d": "1896948025727417479415006207462879023254564113766127849439232",
+                  "n": "-6972959559823841768867358252466955909960737"
+                }
+              ],
+              "antiparallelNs1": [
+                {
+                  "d": "30351168411638679670640099319406064371454284842307303659012096",
+                  "n": "-5055043750118873650657604912032998057148949"
+                },
+                {
+                  "d": "3793896051454834958830012414925758046509128227532255698878464",
+                  "n": "-631880468764859206331490158940151211421889"
+                }
+              ],
+              "antiparallelNs2": [
+                {
+                  "d": "60702336823277359341280198638812128744146051640516091182055424",
+                  "n": "-142885886381225817399656213893543385268163681"
+                },
+                {
+                  "d": "485618694586218874730241589110497029943268557476916858544193536",
+                  "n": "-1143087091049806539197154190629305716001530421"
+                }
+              ],
+              "cacheNormalAgreementNs": [
+                {
+                  "d": "37181718523570814976",
+                  "n": "-233"
+                },
+                {
+                  "d": "37181718523570814976",
+                  "n": "-233"
+                }
+              ],
+              "cachePublicTangentPlaneNs": [
+                {
+                  "d": "10384593717069655257060992658440192",
+                  "n": "1355298404578309"
+                },
+                {
+                  "d": "10384593717069655257060992658440192",
+                  "n": "1355298404578309"
+                }
+              ],
+              "cacheTangentAgreementNs0": [
+                {
+                  "d": "2398220844770317565952",
+                  "n": "587"
+                },
+                {
+                  "d": "2398220844770317565952",
+                  "n": "587"
+                }
+              ],
+              "cacheTangentAgreementNs1": [
+                {
+                  "d": "2398220844770317565952",
+                  "n": "541"
+                },
+                {
+                  "d": "2398220844770317565952",
+                  "n": "541"
+                }
+              ],
+              "cacheTangentAgreementNs2": [
+                {
+                  "d": "76743067032650162110464",
+                  "n": "31139"
+                },
+                {
+                  "d": "76743067032650162110464",
+                  "n": "31139"
+                }
+              ],
+              "coneMagnitudeNs": [
+                {
+                  "d": "43896425332801061786775324358698099277824",
+                  "n": "-143513350754832911693101"
+                },
+                {
+                  "d": "10974106333200265446693831089674524819456",
+                  "n": "-35878337688708227923243"
+                }
+              ],
+              "normalSpeedMps": [
+                {
+                  "d": "9518519942034128633856",
+                  "n": "84275"
+                },
+                {
+                  "d": "9518519942034128633856",
+                  "n": "84275"
+                }
+              ],
+              "workJ": [
+                {
+                  "d": "340282366920938463463374607431768211456",
+                  "n": "-6529772684014619032475097787217979777"
+                },
+                {
+                  "d": "340282366920938463463374607431768211456",
+                  "n": "-6529772684014619032475097787217979777"
+                }
+              ]
+            },
+            "runtimeApplication": "NOT_RUN_PURE_TARGET_ONLY",
+            "slip": [
+              {
+                "d": "340282366920938463463374607431768211456",
+                "n": "49053108640325000473607879241364483031"
+              },
+              {
+                "d": "42535295865117307932921825928971026432",
+                "n": "6131638580040625059200984905170560379"
+              }
+            ],
+            "worldJ": [
+              {
+                "d": "144115188075855872",
+                "n": "7466373437963333"
+              },
+              {
+                "d": "72057594037927936",
+                "n": "7213882871655343"
+              },
+              {
+                "d": "4611686018427387904",
+                "n": "8331850389605549"
+              }
+            ],
+            "worldT": [
+              {
+                "d": "2398220844770317565952",
+                "n": "151720403574553369549"
+              },
+              {
+                "d": "4796441689540635131904",
+                "n": "44059228773553223053"
+              },
+              {
+                "d": "76743067032650162110464",
+                "n": "-740469139855551502163"
+              }
+            ]
+          },
+          "provenance": {
+            "bank": {
+              "bytes": 9970,
+              "sha256": "78e3b0fa6746fa69407a7e1805b77ae56767b5cf81915a71f8f42e55ec188caf"
+            },
+            "firstApplicationRecordIndex": 6,
+            "hostStep": 1,
+            "model": {
+              "bytes": 1416,
+              "sha256": "17d1c9e777c73221d1cfe2b39b605ac2e8077a72dab07d439ee16af93ddda620"
+            },
+            "planRecordIndex": 5,
+            "trace": {
+              "bytes": 27769,
+              "sha256": "b7f283db58d1b4d9c272d36a6cd373cdf83851d8963d851112690597487233b8"
+            }
+          },
+          "staticMargin": {
+            "d": "1152921504606846976",
+            "n": "34898723073"
+          }
+        },
+        "candidateCalls": 0,
+        "caps": {
+          "bits": 16384,
+          "bytes": 16777216,
+          "dagNodes": 8192,
+          "depth": 64,
+          "fragments": 1000000,
+          "rationalOps": 262144,
+          "seconds": 180
+        },
+        "elapsedSeconds": 0.025160583900287747,
+        "firstFailure": null,
+        "generalArithmeticControls": "NOT_RUN",
+        "peakBits": 1297,
+        "rationalOps": 7309,
+        "readBytes": 249788,
+        "referenceGeneratorCalls": 0,
+        "runtimeWorldPromotion": "BLOCKED_UNQUALIFIED_ARITHMETIC_BANKS_AND_RUNTIME",
+        "scope": "ONE_ORIGINAL_PURE_TARGET_INPUT_ONLY",
+        "status": "EXECUTED_PASS_PURE_COUPLED_PHYSICAL_INPUT"
+      }
+    }
+  },
+  "afterCompleteDynamicCounters": {
+    "integerOps": 241975,
+    "gcdSteps": 23153,
+    "rationalOps": 771,
+    "peakBits": 1297,
+    "subdivisions": 66,
+    "maxDyadicExponent": 66
+  },
+  "rawAfterCountersByGraph": {
+    "source": {
+      "dynamic": {
+        "gcdSteps": {
+          "$f64le": "00000000409cd640"
+        },
+        "integerOps": {
+          "$f64le": "00000000b8890d41"
+        },
+        "maxDyadicExponent": {
+          "$f64le": "0000000000805040"
+        },
+        "peakBits": {
+          "$f64le": "0000000000449440"
+        },
+        "rationalOps": {
+          "$f64le": "0000000000188840"
+        },
+        "subdivisions": {
+          "$f64le": "0000000000805040"
+        }
+      },
+      "static": {
+        "gcdSteps": {
+          "$f64le": "000000000080aa40"
+        },
+        "peakBits": {
+          "$f64le": "0000000000cc9040"
+        },
+        "rationalOps": {
+          "$f64le": "0000000000c07140"
+        }
+      },
+      "cumulativeRationalOps": {
+        "$f64le": "00000000007c9040"
+      },
+      "cumulativeGcdSteps": {
+        "$f64le": "0000000040ecd940"
+      }
+    },
+    "native": {
+      "dynamic": {
+        "gcdSteps": {
+          "$f64le": "00000000409cd640"
+        },
+        "integerOps": {
+          "$f64le": "00000000b8890d41"
+        },
+        "maxDyadicExponent": {
+          "$f64le": "0000000000805040"
+        },
+        "peakBits": {
+          "$f64le": "0000000000449440"
+        },
+        "rationalOps": {
+          "$f64le": "0000000000188840"
+        },
+        "subdivisions": {
+          "$f64le": "0000000000805040"
+        }
+      },
+      "static": {
+        "gcdSteps": {
+          "$f64le": "000000000080aa40"
+        },
+        "peakBits": {
+          "$f64le": "0000000000cc9040"
+        },
+        "rationalOps": {
+          "$f64le": "0000000000c07140"
+        }
+      },
+      "cumulativeRationalOps": {
+        "$f64le": "00000000007c9040"
+      },
+      "cumulativeGcdSteps": {
+        "$f64le": "0000000040ecd940"
+      }
+    }
+  },
+  "meterLimits": {
+    "integerOps": 262144,
+    "gcdSteps": 262144,
+    "rationalOps": 4096,
+    "peakBits": 16384,
+    "subdivisions": 256,
+    "maxDyadicExponent": 128
+  },
+  "meterComparisonBoundary": "New counts cover the completed call. Original integerOps262146 was an attempted charge denied before its operation; original gcd20194/rational732 were truncated at that failure, not complete baseline totals. No claim new totalgcd is lower; no cost percentage or universal benchmark. Same prices/caps/precision/inputs/tolerances.",
+  "guards": [
+    {
+      "name": "build-01",
+      "status": "PASS",
+      "elapsedMs": 1313.164625,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "receipt": {
+        "path": "examples/physics-world-p5-2276/evidence/coupled-dynamic-efficient-build-01/result.json",
+        "bytes": 3086,
+        "sha256": "57e98730e5f60522d0ca3dbafc267b5be4c5add28916a0bb39ed574acd890037"
+      }
+    },
+    {
+      "name": "source-01",
+      "status": "PASS",
+      "elapsedMs": 606.239333,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "receipt": {
+        "path": "examples/physics-world-p5-2276/evidence/coupled-dynamic-efficient-source-01/result.json",
+        "bytes": 3119,
+        "sha256": "1b399bdfb272fcd580d1e8261489966f2fba81b94af283ca8fa0cecd06347911"
+      }
+    },
+    {
+      "name": "native-01",
+      "status": "PASS",
+      "elapsedMs": 538.587208,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "receipt": {
+        "path": "examples/physics-world-p5-2276/evidence/coupled-dynamic-efficient-native-01/result.json",
+        "bytes": 3119,
+        "sha256": "a61ed5f5a99636762be0d09ee14a7c45eac6b7626a9864dcba2a7355107ab99e"
+      }
+    },
+    {
+      "name": "parity-01",
+      "status": "PASS",
+      "elapsedMs": 68.603334,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "receipt": {
+        "path": "examples/physics-world-p5-2276/evidence/coupled-dynamic-efficient-parity-01/result.json",
+        "bytes": 3177,
+        "sha256": "526cd989be9b4ad8872f9aa481d2b5084111fcae7501bb1404358cbb19d21a50"
+      }
+    }
+  ],
+  "guardPopulation": 4,
+  "physicalInputBoundary": {
+    "before": "SOURCE_AND_NATIVE_STATIC_TARGET_FULL_STATIC_CERT_AND_JNT_RAW_UNCHANGED",
+    "at": "SOURCE_AND_NATIVE_STATIC_TARGET_FULL_STATIC_CERT_AND_JNT_RAW_UNCHANGED",
+    "after": "SOURCE_AND_NATIVE_DYNAMIC_TARGET_GOLD80_120_RNE_INDEPENDENT_K_CRAMER_STURM_PHYSICAL_CHECKS_PASS",
+    "admissionNegatives": "EIGHT_LITERAL_REFUSAL_CONTROLS_PASS_PER_GRAPH_ADMISSION_ONLY",
+    "parity": "14_FULL_PACKETS_NO_NORMALIZATION",
+    "WorldCalls": 0
+  },
+  "notQualified": {
+    "generalArithmeticBanks": {
+      "degreeReduction": "NOT_RUN",
+      "repeatedAndEndpointRoots": "NOT_RUN",
+      "exactDyadicRoots": "NOT_RUN",
+      "multipleAdmissibleRoots": "NOT_RUN",
+      "negativeH": "NOT_RUN",
+      "RNECells": "NOT_RUN",
+      "workExhaustion": "NOT_RUN"
+    },
+    "dynamicWorldIntegration": "NOT_RUN",
+    "warm": "NOT_RUN",
+    "wireAndRollback": "NOT_RUN",
+    "browser": "NOT_RUN",
+    "publicAdoption": "NOT_RUN",
+    "performance": "NOT_QUALIFIED",
+    "wholeP4": "UNCHANGED_NO_GO",
+    "runtimeWorldPromotion": "BLOCKED_UNQUALIFIED_ARITHMETIC_BANKS_AND_ACTUAL_HOST",
+    "sharedMathCoreAndArithmeticBankRevision": "SEPARATE_AUTHORING_NOT_ACHIEVED_HERE",
+    "oldHOLD": "UNCHANGED"
+  },
+  "preservedOriginalA211Cohort": {
+    "status": "FIRST_DYNAMIC_WORK_LIMIT_NO_GO_UNCHANGED",
+    "firstFailure": {
+      "path": "examples/physics-coupled-dynamic-2276/ROOT-FIRST-PURE-FAILURE-01.json",
+      "bytes": 1234,
+      "sha256": "53ce6b5ee388920a5061e5cbbdd090444991cf28d8b68bf26214b4beda944484"
+    },
+    "floatTimeoutSetupFailure": {
+      "path": "examples/physics-coupled-dynamic-2276/ROOT-PURE-BUILD-FAILURE-01.json",
+      "bytes": 1516,
+      "sha256": "6c465ab339e516f285198e960bbed8d502a96fe0c0f27648948c27d403354ea9"
+    },
+    "candidate": {
+      "path": "examples/physics-coupled-dynamic-2276/candidate.ts",
+      "bytes": 29054,
+      "sha256": "a211f1e3e92e9e3eebc56985b1f457d1cef78e054c0f2f201c5c8cfc83c97dac"
+    },
+    "separateArchives": [
+      {
+        "path": "examples/physics-coupled-dynamic-2276/SOURCE-01.tar.gz",
+        "bytes": 285883,
+        "sha256": "f19adacdbb865bc9a5d7d57b6d34c1127dd63069f4c0b53d58ad2483d51151fb",
+        "embeddedInThisArchive": false
+      },
+      {
+        "path": "examples/physics-coupled-dynamic-2276/PROOF-01.tar.gz",
+        "bytes": 98932,
+        "sha256": "11860684f43669d3f11ee031b51d9810ce2ee3297b7a654321eba4a6e2797d5a",
+        "embeddedInThisArchive": false
+      },
+      {
+        "path": "examples/physics-coupled-dynamic-2276/EVIDENCE-ARCHIVE.json",
+        "bytes": 208891,
+        "sha256": "97ea6daa8f92dced82992b15bc6fcfd1a53d3d7d630b2c505cad961eb8af2b70",
+        "embeddedInThisArchive": false
+      }
+    ]
+  },
+  "packagingOnly": {
+    "newCompilerKernelDecoderAuditReferenceWorldBrowserCalls": 0,
+    "scriptOutsideAuthor443": true,
+    "uncompressedTarLimitBytesEach": 16777216,
+    "aggregateGateClaim": "NONE; measured sum in archive index",
+    "installedToolFiles": "LOGICAL_REALPATH_HASH_METADATA_NOT_EMBEDDED",
+    "allLogicalMembers": "READBACK_SHA_VERIFIED"
+  }
+}

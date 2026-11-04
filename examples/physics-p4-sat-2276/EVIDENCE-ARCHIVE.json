@@ -1,0 +1,195 @@
+{
+  "archive": "EVIDENCE-01.tar.gz",
+  "bytes": 308521,
+  "sha256": "c5590e0043aa2816b90c42221f3f43ba4bb994edd5f61f3930ce1fdee62d0532",
+  "uncompressedBytes": 3471195,
+  "activeProof": "evidence/micro-02/summary.json",
+  "firstFailure": "evidence/micro-01/summary.json",
+  "files": [
+    {
+      "path": "evidence/micro-01/pairs.jsonl",
+      "bytes": 22997,
+      "sha256": "f7d64e7fe23fd9dd32ceaf96a05daffb2150ed59a29ecaf3c2db72d7e5b8ec26"
+    },
+    {
+      "path": "evidence/micro-01/source-snapshot/CONTRACT.md",
+      "bytes": 5466,
+      "sha256": "b34c2fa0d19a4a75d0ffe14373e674478b5e233ed9092d6c5358ad5970afdea7"
+    },
+    {
+      "path": "evidence/micro-01/source-snapshot/FREEZE-01.json",
+      "bytes": 1313,
+      "sha256": "3067b74cc5bb21adb2ab7f31f21a506fb3d7fca4f799fe1a637c75fbda0b80f0"
+    },
+    {
+      "path": "evidence/micro-01/source-snapshot/METHOD.md",
+      "bytes": 3061,
+      "sha256": "3d402f7721111715434708d3605118bf95f17652a31a97b2d44fe9aed4c115ad"
+    },
+    {
+      "path": "evidence/micro-01/source-snapshot/README.md",
+      "bytes": 1626,
+      "sha256": "6b1cbc7e10afe3928757ea2ad7632869dfb3c99ac298128d58711738cfca2be3"
+    },
+    {
+      "path": "evidence/micro-01/source-snapshot/corpus.json",
+      "bytes": 1243,
+      "sha256": "45c88bd51eae941cd039174f1e3f79319fb1e9c4bc99c86b8ba26d677102edb6"
+    },
+    {
+      "path": "evidence/micro-01/source-snapshot/integer_sat.py",
+      "bytes": 11834,
+      "sha256": "f8c44cc49bff0f8c09be06794ba5801476319f77df707d9a04c569f81f94b4c7"
+    },
+    {
+      "path": "evidence/micro-01/source-snapshot/run.py",
+      "bytes": 9611,
+      "sha256": "a3960f697b40ccaebf927db44ef79c5012a224940c4cb45771e074e08d1c50f0"
+    },
+    {
+      "path": "evidence/micro-01/source-snapshot/verify.py",
+      "bytes": 2790,
+      "sha256": "8970cdf7bcc77dbc51f51e0c12d485afa783366f27664deb8e7ddd8018cbcdef"
+    },
+    {
+      "path": "evidence/micro-01/summary.json",
+      "bytes": 1624,
+      "sha256": "385b52b342d792c83f5200e1a0ce0904267cc65ceb284912a4d42b22b54924c4"
+    },
+    {
+      "path": "evidence/micro-02/pairs.jsonl",
+      "bytes": 1303168,
+      "sha256": "de64a046af46d5864b055b6b70d344636c3311ec271758d2a784d0c7d9450b6d"
+    },
+    {
+      "path": "evidence/micro-02/summary.json",
+      "bytes": 1115,
+      "sha256": "dc76d325b791acc6776ed385b9214ac26d00f963eb3433aff35b1709cfedc70f"
+    },
+    {
+      "path": "commands/p4-sat-micro-01/prepared.json",
+      "bytes": 1505,
+      "sha256": "b235c0233bd13af96051cfe883ac6b12dd44507501886eecf00e967aac96f0a8"
+    },
+    {
+      "path": "commands/p4-sat-micro-01/progress.json",
+      "bytes": 1820,
+      "sha256": "cc89637234926f93e2cf6cf292c390c1c19b77b8f07a73ea25f6ebaabfef5df2"
+    },
+    {
+      "path": "commands/p4-sat-micro-01/result.json",
+      "bytes": 3187,
+      "sha256": "069b3e51d71aee7646bbbbf54a0d3a06ac499c26907567f591f9bba9c51907bf"
+    },
+    {
+      "path": "commands/p4-sat-micro-01/start.json",
+      "bytes": 1527,
+      "sha256": "72b3100458587c0be2e9ffa77f5a6210b2923eb8582fc1a75ab8336c98f37f5f"
+    },
+    {
+      "path": "commands/p4-sat-micro-01/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "commands/p4-sat-micro-01/stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "commands/p4-sat-micro-02/prepared.json",
+      "bytes": 1505,
+      "sha256": "280e9a6ac874adfe141c4d6ce1d518dd7fe48d0c09ea6bc414fa9178f760eb5f"
+    },
+    {
+      "path": "commands/p4-sat-micro-02/progress.json",
+      "bytes": 1601,
+      "sha256": "771ba87dc6ed525ee9e6b3ce5a3de1f79792f69a9dedd96638bd1d84f3eaad6c"
+    },
+    {
+      "path": "commands/p4-sat-micro-02/result.json",
+      "bytes": 2991,
+      "sha256": "cf630b70af968f41696b5345c61df0721c7518934ad362195f6ac4689fa1769d"
+    },
+    {
+      "path": "commands/p4-sat-micro-02/start.json",
+      "bytes": 1527,
+      "sha256": "0f2a5b31f962ab46b0f25283f24c5b8abcd70d4ec3d4f88bfc65ae5871326e30"
+    },
+    {
+      "path": "commands/p4-sat-micro-02/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "commands/p4-sat-micro-02/stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "saved-authority/cost-census-01/ALIGNED-1-position-world.stdin.jsonl",
+      "bytes": 27751,
+      "sha256": "724ffd6804f3203a9753a29583e3f0777a4fcb54f70932eb397095092e4e79b4"
+    },
+    {
+      "path": "saved-authority/cost-census-01/ALIGNED-1-position-world.stdout.raw",
+      "bytes": 52515,
+      "sha256": "a654b24cd6d0008fe56422ef551c2701d2904b6100758dd1a9b1f204ccfb8dcf"
+    },
+    {
+      "path": "saved-authority/observable-census-01/ALIGNED-16-position-world.stdin.jsonl",
+      "bytes": 35695,
+      "sha256": "c5014cbd7b6948642ff43cced4cbd0a5d216ac90302f21857f20848c5d8fa2e1"
+    },
+    {
+      "path": "saved-authority/observable-census-01/ALIGNED-16-position-world.stdout.raw",
+      "bytes": 122825,
+      "sha256": "8d521cedc061fe03b2802809dc1290ad2a4762eb17431d265966c529fa0fd56e"
+    },
+    {
+      "path": "saved-authority/observable-census-01/OFFSET-1-position-world.stdin.jsonl",
+      "bytes": 27832,
+      "sha256": "82380db104fc1650db3bda306d5875809914586a2ebc5f179a317da115c7cdbc"
+    },
+    {
+      "path": "saved-authority/observable-census-01/OFFSET-1-position-world.stdout.raw",
+      "bytes": 52607,
+      "sha256": "138bde35877b14a22f08748b192c56cd1b896e6e435e205513c458a54ee10721"
+    },
+    {
+      "path": "saved-authority/observable-census-01/OFFSET-16-position-world.stdin.jsonl",
+      "bytes": 35351,
+      "sha256": "d63d1287858963e0b5fa2ea065df242ac6d21eeeda4d7e2e4368acca15c1265c"
+    },
+    {
+      "path": "saved-authority/observable-census-01/OFFSET-16-position-world.stdout.raw",
+      "bytes": 121814,
+      "sha256": "8228d2c51a073269f8cefe30a7dcbf1218c50343fe296c8c6046cf0d9958f515"
+    },
+    {
+      "path": "saved-authority/observable-census-01/YAW-1-position-world.stdin.jsonl",
+      "bytes": 28793,
+      "sha256": "d6885e19204ac9753acdaddbf91d3a152c3105601ecc821d39aec007af6bc525"
+    },
+    {
+      "path": "saved-authority/observable-census-01/YAW-1-position-world.stdout.raw",
+      "bytes": 54072,
+      "sha256": "d66225749932fba3140e2544e10881477442372826a49dff525b58dc961d9140"
+    },
+    {
+      "path": "saved-authority/observable-census-01/YAW-16-position-world.stdin.jsonl",
+      "bytes": 35594,
+      "sha256": "e1567a963b0a8bc416e7ce027bbcce41710112575d5ce9380dc82d2eb0a150c3"
+    },
+    {
+      "path": "saved-authority/observable-census-01/YAW-16-position-world.stdout.raw",
+      "bytes": 123188,
+      "sha256": "d31c63158d50c3d1c41e983a0ae70d7f958115f96a76b457a0a36c5ae027b22b"
+    },
+    {
+      "path": "saved-authority/separate-192-boundary.json",
+      "bytes": 1371647,
+      "sha256": "07461105327f8177195ec33ee6c94324754710d228c743434294dda22d036648"
+    }
+  ]
+}

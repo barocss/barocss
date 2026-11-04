@@ -1,0 +1,30 @@
+{
+  "status": "PASS_ALL_38_RETAINED_RAW_PACKET_AND_WIRE_HASHES_BOTH_GRAPHS",
+  "perGraphIndependentAudits": 20,
+  "rawFiles": 38,
+  "WorldCalls": 0,
+  "candidateCalls": 0,
+  "referenceGeneratorCalls": 0,
+  "files": {
+    "examples/physics-coupled-dynamic-host-2276/evidence/transaction-source-01/summary.json": {
+      "bytes": 18931,
+      "sha256": "2da53576200cb09b5f8d69e22fe1eec047a1900f72ff46fd27a70a4b2f1f167a"
+    },
+    "examples/physics-coupled-dynamic-host-2276/evidence/transaction-native-01/summary.json": {
+      "bytes": 18931,
+      "sha256": "bd58e2b5ad5410c9021cbbeb5735ace54237a7a3b355a99de36f70bc62defb33"
+    },
+    "examples/physics-coupled-dynamic-host-2276/evidence/transaction-parity-01/result.json": {
+      "bytes": 9221,
+      "sha256": "c985c662c23be70fffcbb9862d0c925a516237836255dd7ac670134bbbfe80df"
+    },
+    "examples/physics-coupled-dynamic-host-2276/TRANSACTION-AUTHOR-FREEZE-01.json": {
+      "bytes": 348386,
+      "sha256": "4ea253b457686e0af89d9c3bec23dc0915cb3afa10ae07dea964d2f60b543886"
+    },
+    "examples/physics-coupled-dynamic-host-2276/TRANSACTION-RESULTS.json": {
+      "bytes": 2617,
+      "sha256": "d86a67dce16afe8bd975b04cbf2aee732f578c8e519e7a494812b1a95dc00a42"
+    }
+  }
+}

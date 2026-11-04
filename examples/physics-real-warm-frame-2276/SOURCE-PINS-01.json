@@ -1,0 +1,76 @@
+{
+  "format": "real-warm-frame-authored-source-freeze-v1",
+  "stage": "AUTHORED_NOT_RUN",
+  "files": {
+    "examples/physics-contact-wrench-producer-2276/encoding.mjs": {
+      "bytes": 1762,
+      "sha256": "6178b80fab30deb89064fc89bcde70cf56199c8bec86495cb2be7c8381d5a05f"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/result.json": {
+      "bytes": 48815,
+      "sha256": "be31ab687cfd8e9de7417da041622a7ee6245abaa96442cdcbdac7a9a4d9c132"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/source.mjs": {
+      "bytes": 511042,
+      "sha256": "b873bef27d0676183c0dcfcab5d89920c52b63fad325bfe186e1a0cde8620380"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/producer-01/summary.json": {
+      "bytes": 3275,
+      "sha256": "30cad391ef29c31fb100cfb951b0d70de73105c13879b0b32e3f46e80c7b4c12"
+    },
+    "examples/physics-contact-wrench-producer-2276/observer.py": {
+      "bytes": 24414,
+      "sha256": "08b24e1d74b32f112b9d9b5627cd0d9e067f64c3b5709f970b9424bf94ab37fc"
+    },
+    "examples/physics-contact-wrench-producer-2276/trace_decode.py": {
+      "bytes": 2340,
+      "sha256": "db499d56e4e9db398ab0232b38ddf090f80449e9ea0322957b4cad810021a806"
+    },
+    "examples/physics-real-warm-frame-2276/ADAPTER-PROVENANCE.json": {
+      "bytes": 829,
+      "sha256": "35994f85a22235a29c74f3f21aa1dd6d9224de6c900e204c9191913bc4da993f"
+    },
+    "examples/physics-real-warm-frame-2276/CONTRACT.md": {
+      "bytes": 4498,
+      "sha256": "39eeae2abf6fe3db8a773db127b50d00fbc951c3d7d4970268b04c390a3368cd"
+    },
+    "examples/physics-real-warm-frame-2276/IMPLEMENTATION-MAPPING.md": {
+      "bytes": 3350,
+      "sha256": "5b323aa85ab6ff5dd4f92ad850e5360cee2f5bc1383ba59a76489750118781b4"
+    },
+    "examples/physics-real-warm-frame-2276/README.md": {
+      "bytes": 2162,
+      "sha256": "7ffe3ba898ab9d4152ac9b8409d7433ba334002a46551bc7721945c3a6c7f525"
+    },
+    "examples/physics-real-warm-frame-2276/freeze.mjs": {
+      "bytes": 3746,
+      "sha256": "0612ed130d65e842fc51c8bb8e7ae496a766af437719c4514d3447e99737b5b3"
+    },
+    "examples/physics-real-warm-frame-2276/observer.py": {
+      "bytes": 25098,
+      "sha256": "fd06b5dd03e14b5aec6711ea1ba4b73930f68106cc63ac3e6b8c06ad2fadebe3"
+    },
+    "examples/physics-real-warm-frame-2276/reference.py": {
+      "bytes": 13518,
+      "sha256": "513af4de8ac9ff6009893c95993d672020bdc31b447c6a65da54137fe5a1d163"
+    },
+    "examples/physics-real-warm-frame-2276/run.mjs": {
+      "bytes": 7927,
+      "sha256": "cabe6d0d54b0850a534cca421d6b7cc94d8ecd65c2cc93f4cba1d8f7c8d7601e"
+    }
+  },
+  "physicalAuditSuffixSHA256": "aeb432d2786270f7246d7adf3b17c467d8e5950fdfcd8bb320af3cb1115a39c9",
+  "caps": {
+    "Worlds": 1,
+    "totalAttempts": 3,
+    "traceRecords": 8192,
+    "applications": 4352,
+    "Bqueries": 72,
+    "queryPoints": 288,
+    "anchorChecks": 7776,
+    "evidenceBytes": 16777216
+  },
+  "stop": "first independent failure or fully validated real warm coverage; after3no coverage is NO_GO",
+  "newBuild": "NOT_RUN",
+  "serde": "NOT_RUN"
+}

@@ -1,0 +1,30 @@
+{
+  "candidate.ts": {
+    "bytes": 17864,
+    "sha256": "15a1931ed4fc5cc91bbae4fde700258a039aa3e081c128bc61030474de38200d"
+  },
+  "build.mjs": {
+    "bytes": 2793,
+    "sha256": "224cc40840207e8c5620fc809132a8b952ef58c5531fb7cbbd639e92c10c8557"
+  },
+  "run.mjs": {
+    "bytes": 6310,
+    "sha256": "908a1a10cf369e52397f53d252aaeb7c58dde9107b0fb234062a3dc4b5e3e500"
+  },
+  "reference.py": {
+    "bytes": 6436,
+    "sha256": "743e5503b2a82f469d642818c1d4689e9569e516045c79c5ea29e01868894f27"
+  },
+  "cases.json": {
+    "bytes": 24863,
+    "sha256": "97623de2d6a8795384d6985d4415579e9b6ef7410cdd90be1facdd5d9740af83"
+  },
+  "AMENDMENT-01.md": {
+    "bytes": 2985,
+    "sha256": "7883d3095e130a79575e7b9a7d15ddede609122b70c5b06f86f3ebf9a2b9bf08"
+  },
+  "CONTRACT.md": {
+    "bytes": 3578,
+    "sha256": "4d3f705e639b5435866345d46bfdf98d4388fdb7047a6772967bcabcb36a15cc"
+  }
+}

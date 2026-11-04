@@ -1,0 +1,42 @@
+{
+  "kind": "PRIVATE_EXTRACTED_SHARED_ARITHMETIC_PRODUCTION_AND_DISJOINT_TEST_ENTRY",
+  "sources": {
+    "candidate.ts": {
+      "bytes": 10908,
+      "sha256": "b9e8745e4e072c2e773790d27238c6ea527d152c2b0eeb5651c9563a85c6013d"
+    },
+    "math-core.ts": {
+      "bytes": 19134,
+      "sha256": "33cc7952740cec71994cfebae2a5a5b9d744740fc103f727be7e6be0f1dfd1ca"
+    },
+    "production-context.ts": {
+      "bytes": 250,
+      "sha256": "95110c83d5057fcc918d7c0d8d689d33b32792de16c05de1b760a8f3bef066f6"
+    },
+    "production-entry.ts": {
+      "bytes": 244,
+      "sha256": "a9930480ade3bc9cd988674a09e77168cddc08ba467171c53a619785da6555ec"
+    },
+    "test-context.ts": {
+      "bytes": 1567,
+      "sha256": "322c1883aff85af1ca95b8b82c5f7cea66080a2fb96709e1981d6661eed126e9"
+    },
+    "test-entry.ts": {
+      "bytes": 6227,
+      "sha256": "77f938f401cc3b975090b5ee1944d800f6060ebc9dd44d58bb40a8b9846640d3"
+    },
+    "limits.ts": {
+      "bytes": 362,
+      "sha256": "ea2e38d8facc0aa5e0cb9a74459277e78ad65edb0698ab594f6de4fcc4174521"
+    },
+    "types.ts": {
+      "bytes": 2693,
+      "sha256": "6c5c7f164bb25bbb933becaee7c6c13920c3408b1d58c78e6d534c9eb556d127"
+    }
+  },
+  "static": {
+    "bytes": 10841,
+    "sha256": "5ee4eb75ec8baa1036a7a60977ab1d6c39b37e1d96cbe1cc2ea7c67140781db2"
+  },
+  "providerDigest": "44c37150cdc5ae4bd8e312eb3cbe7c54113b8592f85e4504b31039e6a1074615"
+}

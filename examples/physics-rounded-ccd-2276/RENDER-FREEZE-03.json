@@ -1,0 +1,18 @@
+{
+  "phase": "before complete16boundary plus5feature desktop rendering",
+  "change": "Add exact frozen case data to scene, label initial-discrete ownership separately; core and tolerances unchanged",
+  "files": {
+    "examples/physics-rounded-ccd-2276/scene/scenario.mjs": {
+      "bytes": 3004,
+      "sha256": "34e325f95164531c2fac7089905235d9fbe3a0ca2fe71f2f9e3b99d76a116880"
+    },
+    "examples/physics-rounded-ccd-2276/scene/app.mjs": {
+      "bytes": 8952,
+      "sha256": "2e7b21338eebe1542aff22f7ed708bcb08bf4676f431718788b268cd9669fc7c"
+    },
+    "examples/physics-rounded-ccd-2276/browser-checks.js": {
+      "bytes": 8481,
+      "sha256": "2c3a8fff3568f9642e69b915cb4b391213193c54648f2fb87323b6b7b351c154"
+    }
+  }
+}

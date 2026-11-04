@@ -1,0 +1,245 @@
+{
+  "status": "PASS_VALIDATED_PROVIDER_ONLY_FULL_PACKET_AUDIT",
+  "numericalReruns": 0,
+  "source": {
+    "path": "examples/physics-contact-wrench-native-2276/digest-audit-04.py",
+    "sha256": "0f7d4dc9efef4f3363269fbda2e905755666544efc2dec9ffc3f695b99e4ff31"
+  },
+  "actualAudit": {
+    "status": "PASS_VALIDATED_PROVIDER_ONLY_FULL_PACKET_AUDIT",
+    "WorldCalls": 0,
+    "candidateCalls": 0,
+    "geometryCalls": 0,
+    "packets": [
+      {
+        "name": "A-initial-observer.json",
+        "validatedDigestOccurrences": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "A-initial-trace.json",
+        "validatedDigestOccurrences": [
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "name": "A-retry-step2-observer.json",
+        "validatedDigestOccurrences": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "A-retry-step2-trace.json",
+        "validatedDigestOccurrences": [
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "name": "A-step1-observer.json",
+        "validatedDigestOccurrences": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "A-step1-trace.json",
+        "validatedDigestOccurrences": [
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "name": "B-clean-step1-observer.json",
+        "validatedDigestOccurrences": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "B-clean-step1-trace.json",
+        "validatedDigestOccurrences": [
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "name": "B-clean-step2-observer.json",
+        "validatedDigestOccurrences": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "B-clean-step2-trace.json",
+        "validatedDigestOccurrences": [
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "name": "C-continue-step2-observer.json",
+        "validatedDigestOccurrences": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "C-continue-step2-trace.json",
+        "validatedDigestOccurrences": [
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "name": "C-hidden-restore-step1-observer.json",
+        "validatedDigestOccurrences": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "C-hidden-restore-step1-trace.json",
+        "validatedDigestOccurrences": [
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "name": "known-after.json",
+        "validatedDigestOccurrences": [
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "name": "known-before.json",
+        "validatedDigestOccurrences": [
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "name": "known-refused-trace.json",
+        "validatedDigestOccurrences": [
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "name": "one-frame-prefix.json",
+        "validatedDigestOccurrences": [
+          2,
+          2,
+          2
+        ]
+      },
+      {
+        "name": "recording2-rejections.json",
+        "validatedDigestOccurrences": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "unknown-after.json",
+        "validatedDigestOccurrences": [
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "name": "unknown-before.json",
+        "validatedDigestOccurrences": [
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "name": "unknown-refused-trace.json",
+        "validatedDigestOccurrences": [
+          2,
+          2,
+          2
+        ]
+      }
+    ],
+    "firstFailure": null,
+    "validatedDigestOccurrences": [
+      32,
+      32,
+      32
+    ],
+    "matchedPackets": 22,
+    "syntheticNegativeControls": [
+      "REJECTED_UNEXPECTED_NESTED_IDENTITY",
+      "REJECTED_UNEXPECTED_NESTED_IDENTITY"
+    ],
+    "source": "0f7d4dc9efef4f3363269fbda2e905755666544efc2dec9ffc3f695b99e4ff31",
+    "priorReceiptSha256": "960d072e0bf9ec106880446e5e3d3489e3ab5b765b5fdad222433387c4b617c7",
+    "correction": "Old mapper replaced arbitrary providerDigest values. Every actual value is now checked before mapping; old files and results unchanged.",
+    "physicalReruns": 0,
+    "actualCorruptionFound": false,
+    "normalization": "NONE between new graphs; validated own providerDigest ONLY against old Source"
+  },
+  "resultPin": {
+    "bytes": 3791,
+    "sha256": "5daebcfc941d108002918798ee333e256f9008ca4816dbb2afd817eefa70bebc"
+  },
+  "guard": {
+    "prepared.json": {
+      "bytes": 1654,
+      "sha256": "f60b10326acf0a91c63cb38277cbf22247f55d77bbf06d7f538ca1ed0459cb03",
+      "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"contact-wrench-digest-audit-04\",\n  \"censusId\": \"contact-wrench-digest-audit-04\",\n  \"status\": \"PREPARED\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13\",\n    \"-B\",\n    \"examples/physics-contact-wrench-native-2276/digest-audit-04.py\",\n    \"source-03\",\n    \"native-run-03\",\n    \"parity-03\",\n    \"digest-audit-04\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": null,\n  \"spawnAt\": null,\n  \"pid\": null,\n  \"processGroupId\": null,\n  \"exit\": null,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": false,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-digest-audit-04/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-digest-audit-04/progress.json\",\n  \"errors\": []\n}\n"
+    },
+    "progress.json": {
+      "bytes": 1753,
+      "sha256": "77156c63896b52e701485be0f57f0f7d3f7da4e79237aef171bced5fb2fe5aef",
+      "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"contact-wrench-digest-audit-04\",\n  \"censusId\": \"contact-wrench-digest-audit-04\",\n  \"status\": \"RUNNING\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13\",\n    \"-B\",\n    \"examples/physics-contact-wrench-native-2276/digest-audit-04.py\",\n    \"source-03\",\n    \"native-run-03\",\n    \"parity-03\",\n    \"digest-audit-04\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": \"2026-11-03T00:01:45.164Z\",\n  \"spawnAt\": \"2026-11-03T00:01:45.205Z\",\n  \"pid\": 11708,\n  \"processGroupId\": 11708,\n  \"exit\": null,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": false,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-digest-audit-04/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-digest-audit-04/progress.json\",\n  \"errors\": [],\n  \"elapsedMs\": 40.863125,\n  \"outputCapturedBytes\": 0\n}\n"
+    },
+    "result.json": {
+      "bytes": 3176,
+      "sha256": "6ed720ca57fb4d0b8314cf63d95554c8c5e5fe9ce0a3e9b3edd2fb4d32a12a2a",
+      "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"contact-wrench-digest-audit-04\",\n  \"censusId\": \"contact-wrench-digest-audit-04\",\n  \"status\": \"PASS\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13\",\n    \"-B\",\n    \"examples/physics-contact-wrench-native-2276/digest-audit-04.py\",\n    \"source-03\",\n    \"native-run-03\",\n    \"parity-03\",\n    \"digest-audit-04\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": \"2026-11-03T00:01:45.164Z\",\n  \"spawnAt\": \"2026-11-03T00:01:45.205Z\",\n  \"pid\": 11708,\n  \"processGroupId\": 11708,\n  \"exit\": 0,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": true,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-digest-audit-04/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-digest-audit-04/progress.json\",\n  \"errors\": [],\n  \"exitAt\": \"2026-11-03T00:01:47.150Z\",\n  \"finishedAt\": \"2026-11-03T00:01:47.151Z\",\n  \"elapsedMs\": 1986.531667,\n  \"ownedGroupPresentAtFinalization\": false,\n  \"censusElapsedMs\": 1947.800208,\n  \"cleanupElapsedMs\": 0,\n  \"output\": {\n    \"stdout\": {\n      \"observedBytes\": 258,\n      \"capturedBytes\": 258,\n      \"omittedBytes\": 0,\n      \"sha256\": \"5b221b73ef443857a52a507a282eeeec6bd5aca48c4205467369700f43e8427d\",\n      \"eof\": true,\n      \"writeError\": null\n    },\n    \"stderr\": {\n      \"observedBytes\": 0,\n      \"capturedBytes\": 0,\n      \"omittedBytes\": 0,\n      \"sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n      \"eof\": true,\n      \"writeError\": null\n    }\n  },\n  \"censusSummary\": {\n    \"path\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-digest-audit-04/summary.json\",\n    \"present\": false\n  },\n  \"censusProgress\": {\n    \"path\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-digest-audit-04/progress.json\",\n    \"present\": true,\n    \"bytes\": 1753,\n    \"sha256\": \"77156c63896b52e701485be0f57f0f7d3f7da4e79237aef171bced5fb2fe5aef\",\n    \"status\": \"RUNNING\",\n    \"counts\": null,\n    \"referenceCallCounts\": null,\n    \"firstFailure\": null\n  },\n  \"callCountBoundary\": \"Only counts present in original census progress/summary/timing receipts are reported; a timeout never implies the primitive call population completed.\"\n}\n"
+    },
+    "start.json": {
+      "bytes": 1676,
+      "sha256": "d83b4db09df04c94d04657af705ef6524ab57b362bd6f41057d0875e5f44da06",
+      "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"contact-wrench-digest-audit-04\",\n  \"censusId\": \"contact-wrench-digest-audit-04\",\n  \"status\": \"SPAWNING\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13\",\n    \"-B\",\n    \"examples/physics-contact-wrench-native-2276/digest-audit-04.py\",\n    \"source-03\",\n    \"native-run-03\",\n    \"parity-03\",\n    \"digest-audit-04\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": \"2026-11-03T00:01:45.164Z\",\n  \"spawnAt\": null,\n  \"pid\": null,\n  \"processGroupId\": null,\n  \"exit\": null,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": false,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-digest-audit-04/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-digest-audit-04/progress.json\",\n  \"errors\": []\n}\n"
+    },
+    "stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "stdout.raw": {
+      "bytes": 258,
+      "sha256": "5b221b73ef443857a52a507a282eeeec6bd5aca48c4205467369700f43e8427d",
+      "text": "{\"status\": \"PASS_VALIDATED_PROVIDER_ONLY_FULL_PACKET_AUDIT\", \"firstFailure\": null, \"matchedPackets\": 22, \"validatedDigestOccurrences\": [32, 32, 32], \"syntheticNegativeControls\": [\"REJECTED_UNEXPECTED_NESTED_IDENTITY\", \"REJECTED_UNEXPECTED_NESTED_IDENTITY\"]}\n"
+    }
+  }
+}

@@ -1,0 +1,552 @@
+{
+  "format": "bounded-evidence-archive-v1",
+  "status": "PASS_MEMBER_HASH_AND_PROTECTED_PRESERVATION_CHECK",
+  "archive": "EVIDENCE-01.tar.gz",
+  "bytes": 242441,
+  "sha256": "d255061f4e5966df2eceb2332dac7d079f934794311084e9e3b515bd0abd5e00",
+  "uncompressedTarBytes": 3645440,
+  "uncompressedPayloadBytes": 3538957,
+  "uncompressedCapBytes": 16777216,
+  "members": {
+    "HASH-MANIFEST.json": {
+      "bytes": 52856,
+      "sha256": "deb80fc471f6826a60ffbb1d4989a6687ca7e88ff9ec2e8eb3e73e4a1e1ec3de"
+    },
+    "examples/physics-box-contact-features-2276/AMENDMENT-01.md": {
+      "bytes": 2985,
+      "sha256": "7883d3095e130a79575e7b9a7d15ddede609122b70c5b06f86f3ebf9a2b9bf08"
+    },
+    "examples/physics-box-contact-features-2276/CONTRACT.md": {
+      "bytes": 3578,
+      "sha256": "4d3f705e639b5435866345d46bfdf98d4388fdb7047a6772967bcabcb36a15cc"
+    },
+    "examples/physics-box-contact-features-2276/PRESENTATION-DIAGNOSIS-CONTRACT.md": {
+      "bytes": 3946,
+      "sha256": "313042dfda74bee87758f8e09561c7bb82f91e450f830f608e891cb2ad166956"
+    },
+    "examples/physics-box-contact-features-2276/candidate.ts": {
+      "bytes": 17864,
+      "sha256": "15a1931ed4fc5cc91bbae4fde700258a039aa3e081c128bc61030474de38200d"
+    },
+    "examples/physics-box-contact-features-2276/cases.json": {
+      "bytes": 24863,
+      "sha256": "97623de2d6a8795384d6985d4415579e9b6ef7410cdd90be1facdd5d9740af83"
+    },
+    "examples/physics-box-contact-features-2276/package.json": {
+      "bytes": 97,
+      "sha256": "1c27c0974443a78fe4977ea0c606d134e56ba6751973042cdfff54b6ca079d00"
+    },
+    "examples/physics-box-quantized-witness-2276/CONTRACT.md": {
+      "bytes": 5061,
+      "sha256": "06774494e847a0ab281550add600370bb9b5f55070eb2ffbd6a21677ba7769b3"
+    },
+    "examples/physics-box-quantized-witness-2276/README.md": {
+      "bytes": 1559,
+      "sha256": "a72c2e969219b1535107f8f7edd78a3149864cebe898f81948c4f78e61b4595c"
+    },
+    "examples/physics-box-quantized-witness-2276/RESULTS.json": {
+      "bytes": 7006,
+      "sha256": "c3f84cfeeb9c5b5e5f9c952e11f1dca1ded2701c316e15ad3594d3c112af7480"
+    },
+    "examples/physics-box-quantized-witness-2276/RESULTS.md": {
+      "bytes": 3474,
+      "sha256": "a2300efad47eecec6bf0987d8914b2e067e732717ef646d10c5144891d3d9b49"
+    },
+    "examples/physics-box-quantized-witness-2276/build.mjs": {
+      "bytes": 3036,
+      "sha256": "fe3055e5d8ad7329a8f2f69ef4d8981e237082607128d57d0c6c5310c15888be"
+    },
+    "examples/physics-box-quantized-witness-2276/candidate.ts": {
+      "bytes": 14708,
+      "sha256": "023f79d1feb83627348cc37ed094d7b8111715ce4c01bd9a41f5857f22f78c21"
+    },
+    "examples/physics-box-quantized-witness-2276/cases.json": {
+      "bytes": 24863,
+      "sha256": "97623de2d6a8795384d6985d4415579e9b6ef7410cdd90be1facdd5d9740af83"
+    },
+    "examples/physics-box-quantized-witness-2276/dependencies.json": {
+      "bytes": 618,
+      "sha256": "eb1eaba57f802da00ea3723444ab5200241630510eb2ed8e9c4e32acfd819ea0"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/build-01/result.json": {
+      "bytes": 1766,
+      "sha256": "a2df0af983ea39f2fe3ff265da6c4bf2529b78fa75c75a754715bdc61fdf50bb"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/build-01/source-metafile.json": {
+      "bytes": 1050,
+      "sha256": "714ec9729c4064b2cd808c8c6a579a92d49a645fe5cc14f55a01fa1643f29f64"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/build-01/source-pins.json": {
+      "bytes": 1122,
+      "sha256": "f0edd6c4d422f5155d2636d8a8d372a9e6219ba2ced75794e2216e2714417b9d"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/build-01/source.mjs": {
+      "bytes": 29355,
+      "sha256": "9c8331efc34d7c36e15a9713dd89bf4959d47d38b526c2c263519311977ff54b"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/build-01/strict-stderr.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/build-01/strict-stdout.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/build-01/strict/physics-box-contact-features-2276/candidate.d.ts": {
+      "bytes": 384,
+      "sha256": "b873a670abcd67570a23ce8fc271cb8bc1b43f39bad88fe793d20c0b700487a8"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/build-01/strict/physics-box-contact-features-2276/candidate.js": {
+      "bytes": 17172,
+      "sha256": "4cbf3f8a0805327911c31744bd00fc9bcae1088d95ec764f36403c6c7ffd1b15"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/build-01/strict/physics-box-quantized-witness-2276/candidate.d.ts": {
+      "bytes": 312,
+      "sha256": "6490afe3daf15f9b4d2bdec7e35fe7963d3818b2e088d700256af25c6ffc4e4c"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/build-01/strict/physics-box-quantized-witness-2276/candidate.js": {
+      "bytes": 14067,
+      "sha256": "4fc7ff32aeb351a5fdcc27bb642b54af09653edec9de21010b0725b9b7ffae2b"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/frozen-inputs.json": {
+      "bytes": 66076,
+      "sha256": "7a65209528af54557877d857943d16c109588306d972b6b06f62b821a1655e4e"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/independent-cell-geometry.json": {
+      "bytes": 69530,
+      "sha256": "37e341b56137f6a812669230372d333d832a5804d203a45c257e671dc86fdfe5"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/result.json": {
+      "bytes": 1103,
+      "sha256": "b082273146304a866321bd4ffd7dbb9d36d4f207c7685779d8c4cf41d7d2f08a"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-00-failure-pre-1-input.json": {
+      "bytes": 1600,
+      "sha256": "5ff1fa80ef895e7b80d380b9686fb6a84411877072b15c943111a6acd09ad934"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-00-failure-pre-1-output.json": {
+      "bytes": 71818,
+      "sha256": "bf445b858a4aa8090362cf8ba8652646d2afc12f3e1ee631426c482a5cbb00b9"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-01-failure-accepted-1-input.json": {
+      "bytes": 1616,
+      "sha256": "3a3ddd475d71e4e3266ecdb6a3b4921038676ee95ba868cac029608f9bb89d49"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-01-failure-accepted-1-output.json": {
+      "bytes": 36230,
+      "sha256": "946789afc59759fa7d332bd828b630f537c30730866b6561876c1bae5a756f8c"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-02-failure-pre-2-input.json": {
+      "bytes": 1674,
+      "sha256": "0776856f9a521c7d9d814b8ef6af39456d9560a071178f968eb3e40427d04454"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-02-failure-pre-2-output.json": {
+      "bytes": 19972,
+      "sha256": "21631aae0399008a3ad5e88a6f4866efc586602dd0bb7b4a0a5b33d1a668c063"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-03-failure-accepted-2-input.json": {
+      "bytes": 1683,
+      "sha256": "39f43b3e681e3de2e7923f4963e6393a12a16c0b1c1f6a6355583f7f82e2c21f"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-03-failure-accepted-2-output.json": {
+      "bytes": 19844,
+      "sha256": "60adaca491e99b3b926d49a202d9f9352104245a2d2f5b05711268242519161b"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-04-original-P4-ALIGNED1-b0-b1-input.json": {
+      "bytes": 1570,
+      "sha256": "05754f10ff9cf068188a05fd4ac4bfafe189ceba9485ec64543a79100766ec74"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-04-original-P4-ALIGNED1-b0-b1-output.json": {
+      "bytes": 65951,
+      "sha256": "0f0e004b2c167f179863987e92e2f039dd26a6ae0da03bfbb2f9fd9624c44fa9"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-05-original-P4-ALIGNED1-b0-floor-input.json": {
+      "bytes": 1566,
+      "sha256": "0cc47993525bb07f2023a8730d33002ec6dcde69ceba22df73206d6705d845a8"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-05-original-P4-ALIGNED1-b0-floor-output.json": {
+      "bytes": 66672,
+      "sha256": "a81b415dcfffad73c4baf87e9f5a6373270f03648ad5e371245d689e5c97af2e"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-06-original-P4-ALIGNED1-b1-b2-input.json": {
+      "bytes": 1570,
+      "sha256": "f55ada2375d4e2418e5a09f371441e75c5a949dd1213682564da7097bca94be7"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-06-original-P4-ALIGNED1-b1-b2-output.json": {
+      "bytes": 65427,
+      "sha256": "dd003c385cb4be37c46d3d3118227044fa40b9e83fcff880554c333b4120c0e9"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-07-original-P4-ALIGNED1-b2-b3-input.json": {
+      "bytes": 1570,
+      "sha256": "4de74290f05e52a4de8fb369aec27c3d6d81d29067a286e69bbe0127de63641a"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-07-original-P4-ALIGNED1-b2-b3-output.json": {
+      "bytes": 65427,
+      "sha256": "bffc128088b229b5ee3074c62af0c717b80b1839788651dbde111dff6c2ae9dd"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-08-original-P4-ALIGNED1-b3-b4-input.json": {
+      "bytes": 1570,
+      "sha256": "144c76af8221ae209a7a892432d10a9694a57da59c389352342d5b442b13d47f"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-08-original-P4-ALIGNED1-b3-b4-output.json": {
+      "bytes": 65427,
+      "sha256": "fa4cfcd137cce2a3f1213172ef5baafeb88cd5b90496e67bfc05d07af3108049"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-09-original-P4-ALIGNED1-b4-b5-input.json": {
+      "bytes": 1570,
+      "sha256": "6b8a5aa086bee7d497c923707d0ca0283587d3395a22830b0548c8fa0d03b18d"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-09-original-P4-ALIGNED1-b4-b5-output.json": {
+      "bytes": 65427,
+      "sha256": "7f8d38705e68de35441c0c05c260e43a8d7b8725083bc95b715f4ba466eba72a"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-10-original-P4-ALIGNED1-b5-b6-input.json": {
+      "bytes": 1570,
+      "sha256": "9e0f6e0eb108ebe21cb49a899a259d39f49f117e0030e0ce96f7adcb05f42645"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-10-original-P4-ALIGNED1-b5-b6-output.json": {
+      "bytes": 65427,
+      "sha256": "fbfa05faa6e5976fb5ab6bfc5def33912f5f46df9e63d8da88ea73ea2b43bd75"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-11-original-P4-ALIGNED1-b6-b7-input.json": {
+      "bytes": 1570,
+      "sha256": "7c98b817a53c492a26ef66dd640227c2157032a057641ddf9365aa06e7235c68"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-11-original-P4-ALIGNED1-b6-b7-output.json": {
+      "bytes": 65427,
+      "sha256": "5c46d259fcef5603ee885d0394e4b811faef3107f1efeeb161b6d76cea4cdc21"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-12-axis-touch-input.json": {
+      "bytes": 1505,
+      "sha256": "e30e7251543ce9d3a1555547591e459a7ed6b30543362f11ebad3652a23d2ba6"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-12-axis-touch-output.json": {
+      "bytes": 64540,
+      "sha256": "2464d603744b6dd3f43413311defa12efe03c11b7c1b2fc9173e1737ffa0793b"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-13-axis-separated-input.json": {
+      "bytes": 1516,
+      "sha256": "3981cb0151fee835d1f1bfd4fc8038177051712e2781a821fe8dadd7f101537b"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-13-axis-separated-output.json": {
+      "bytes": 413,
+      "sha256": "68f6e73bb3891cbb52f6cb1f7271b2b45e7053b3285f458c131bca4049d8a380"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-14-axis-overlap-input.json": {
+      "bytes": 1511,
+      "sha256": "b45df7f55b2ea0f48eb0906e933bf22244e26d85e342d7c893750a3f02a16820"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-14-axis-overlap-output.json": {
+      "bytes": 65370,
+      "sha256": "e424adf294a49c30590cbaee2753fc2355547e2847d583b7768f8c5b8b87dd7e"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-15-coincident-zero-cross-input.json": {
+      "bytes": 1527,
+      "sha256": "07c9bc325262b5f236c82e4cf123363c7bf105154eb4f7c06d73dd6acc9ae965"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-15-coincident-zero-cross-output.json": {
+      "bytes": 63615,
+      "sha256": "edbcfcf107969268022be598824cc6a6a345242d85f34823d84acfd37497f4b4"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-16-reverse-pre-1-input.json": {
+      "bytes": 1600,
+      "sha256": "f3031b7f87f02bdbdcfccf55513b2e46b80facc8621e5d51d43ffe1835b9ffb1"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-16-reverse-pre-1-output.json": {
+      "bytes": 71822,
+      "sha256": "268f67f44f9bdea3640bc3615f50cfd64d4d202118d3f0a752cff1818d91971b"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-17-reflect-pre-1-input.json": {
+      "bytes": 1602,
+      "sha256": "129d30cb55cc04714c12d4f846be707c323114fcdee4a7db0b0036dcd4f62319"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-17-reflect-pre-1-output.json": {
+      "bytes": 71816,
+      "sha256": "f23ed9ab0e7d24e4d0bf0725145a9b1c41d143d4d4c5070a1e59d013a7470c1b"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-18-reverse-pre-2-input.json": {
+      "bytes": 1674,
+      "sha256": "b903a17fcfb515c5a61280bfa80074945e315e8d5bfedbce68e1b7265ad72bcc"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-18-reverse-pre-2-output.json": {
+      "bytes": 19974,
+      "sha256": "2db4f9ab2cd9555309f362274dd245c48ae91a5145a4a76b5bc68d53d153cb82"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-19-reflect-pre-2-input.json": {
+      "bytes": 1673,
+      "sha256": "ec1b6b08bce35680f7e9ea8211c03ece6629f08abd8a639cf0ff02039efd702a"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-19-reflect-pre-2-output.json": {
+      "bytes": 20008,
+      "sha256": "526dfe5317594a4e1d4563996cdb2624c70fae59ec058e18ec2b5e43e4adecdd"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-00-failure-pre-1-input.json": {
+      "bytes": 1600,
+      "sha256": "5ff1fa80ef895e7b80d380b9686fb6a84411877072b15c943111a6acd09ad934"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-00-failure-pre-1-output.json": {
+      "bytes": 71818,
+      "sha256": "bf445b858a4aa8090362cf8ba8652646d2afc12f3e1ee631426c482a5cbb00b9"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-01-failure-accepted-1-input.json": {
+      "bytes": 1616,
+      "sha256": "3a3ddd475d71e4e3266ecdb6a3b4921038676ee95ba868cac029608f9bb89d49"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-01-failure-accepted-1-output.json": {
+      "bytes": 36230,
+      "sha256": "946789afc59759fa7d332bd828b630f537c30730866b6561876c1bae5a756f8c"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-02-failure-pre-2-input.json": {
+      "bytes": 1674,
+      "sha256": "0776856f9a521c7d9d814b8ef6af39456d9560a071178f968eb3e40427d04454"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-02-failure-pre-2-output.json": {
+      "bytes": 19972,
+      "sha256": "21631aae0399008a3ad5e88a6f4866efc586602dd0bb7b4a0a5b33d1a668c063"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-03-failure-accepted-2-input.json": {
+      "bytes": 1683,
+      "sha256": "39f43b3e681e3de2e7923f4963e6393a12a16c0b1c1f6a6355583f7f82e2c21f"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-03-failure-accepted-2-output.json": {
+      "bytes": 19844,
+      "sha256": "60adaca491e99b3b926d49a202d9f9352104245a2d2f5b05711268242519161b"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-04-original-P4-ALIGNED1-b0-b1-input.json": {
+      "bytes": 1570,
+      "sha256": "05754f10ff9cf068188a05fd4ac4bfafe189ceba9485ec64543a79100766ec74"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-04-original-P4-ALIGNED1-b0-b1-output.json": {
+      "bytes": 65951,
+      "sha256": "0f0e004b2c167f179863987e92e2f039dd26a6ae0da03bfbb2f9fd9624c44fa9"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-05-original-P4-ALIGNED1-b0-floor-input.json": {
+      "bytes": 1566,
+      "sha256": "0cc47993525bb07f2023a8730d33002ec6dcde69ceba22df73206d6705d845a8"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-05-original-P4-ALIGNED1-b0-floor-output.json": {
+      "bytes": 66672,
+      "sha256": "a81b415dcfffad73c4baf87e9f5a6373270f03648ad5e371245d689e5c97af2e"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-06-original-P4-ALIGNED1-b1-b2-input.json": {
+      "bytes": 1570,
+      "sha256": "f55ada2375d4e2418e5a09f371441e75c5a949dd1213682564da7097bca94be7"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-06-original-P4-ALIGNED1-b1-b2-output.json": {
+      "bytes": 65427,
+      "sha256": "dd003c385cb4be37c46d3d3118227044fa40b9e83fcff880554c333b4120c0e9"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-07-original-P4-ALIGNED1-b2-b3-input.json": {
+      "bytes": 1570,
+      "sha256": "4de74290f05e52a4de8fb369aec27c3d6d81d29067a286e69bbe0127de63641a"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-07-original-P4-ALIGNED1-b2-b3-output.json": {
+      "bytes": 65427,
+      "sha256": "bffc128088b229b5ee3074c62af0c717b80b1839788651dbde111dff6c2ae9dd"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-08-original-P4-ALIGNED1-b3-b4-input.json": {
+      "bytes": 1570,
+      "sha256": "144c76af8221ae209a7a892432d10a9694a57da59c389352342d5b442b13d47f"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-08-original-P4-ALIGNED1-b3-b4-output.json": {
+      "bytes": 65427,
+      "sha256": "fa4cfcd137cce2a3f1213172ef5baafeb88cd5b90496e67bfc05d07af3108049"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-09-original-P4-ALIGNED1-b4-b5-input.json": {
+      "bytes": 1570,
+      "sha256": "6b8a5aa086bee7d497c923707d0ca0283587d3395a22830b0548c8fa0d03b18d"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-09-original-P4-ALIGNED1-b4-b5-output.json": {
+      "bytes": 65427,
+      "sha256": "7f8d38705e68de35441c0c05c260e43a8d7b8725083bc95b715f4ba466eba72a"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-10-original-P4-ALIGNED1-b5-b6-input.json": {
+      "bytes": 1570,
+      "sha256": "9e0f6e0eb108ebe21cb49a899a259d39f49f117e0030e0ce96f7adcb05f42645"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-10-original-P4-ALIGNED1-b5-b6-output.json": {
+      "bytes": 65427,
+      "sha256": "fbfa05faa6e5976fb5ab6bfc5def33912f5f46df9e63d8da88ea73ea2b43bd75"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-11-original-P4-ALIGNED1-b6-b7-input.json": {
+      "bytes": 1570,
+      "sha256": "7c98b817a53c492a26ef66dd640227c2157032a057641ddf9365aa06e7235c68"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-11-original-P4-ALIGNED1-b6-b7-output.json": {
+      "bytes": 65427,
+      "sha256": "5c46d259fcef5603ee885d0394e4b811faef3107f1efeeb161b6d76cea4cdc21"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-12-axis-touch-input.json": {
+      "bytes": 1505,
+      "sha256": "e30e7251543ce9d3a1555547591e459a7ed6b30543362f11ebad3652a23d2ba6"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-12-axis-touch-output.json": {
+      "bytes": 64540,
+      "sha256": "2464d603744b6dd3f43413311defa12efe03c11b7c1b2fc9173e1737ffa0793b"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-13-axis-separated-input.json": {
+      "bytes": 1516,
+      "sha256": "3981cb0151fee835d1f1bfd4fc8038177051712e2781a821fe8dadd7f101537b"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-13-axis-separated-output.json": {
+      "bytes": 413,
+      "sha256": "68f6e73bb3891cbb52f6cb1f7271b2b45e7053b3285f458c131bca4049d8a380"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-14-axis-overlap-input.json": {
+      "bytes": 1511,
+      "sha256": "b45df7f55b2ea0f48eb0906e933bf22244e26d85e342d7c893750a3f02a16820"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-14-axis-overlap-output.json": {
+      "bytes": 65370,
+      "sha256": "e424adf294a49c30590cbaee2753fc2355547e2847d583b7768f8c5b8b87dd7e"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-15-coincident-zero-cross-input.json": {
+      "bytes": 1527,
+      "sha256": "07c9bc325262b5f236c82e4cf123363c7bf105154eb4f7c06d73dd6acc9ae965"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-15-coincident-zero-cross-output.json": {
+      "bytes": 63615,
+      "sha256": "edbcfcf107969268022be598824cc6a6a345242d85f34823d84acfd37497f4b4"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-16-reverse-pre-1-input.json": {
+      "bytes": 1600,
+      "sha256": "f3031b7f87f02bdbdcfccf55513b2e46b80facc8621e5d51d43ffe1835b9ffb1"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-16-reverse-pre-1-output.json": {
+      "bytes": 71822,
+      "sha256": "268f67f44f9bdea3640bc3615f50cfd64d4d202118d3f0a752cff1818d91971b"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-17-reflect-pre-1-input.json": {
+      "bytes": 1602,
+      "sha256": "129d30cb55cc04714c12d4f846be707c323114fcdee4a7db0b0036dcd4f62319"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-17-reflect-pre-1-output.json": {
+      "bytes": 71816,
+      "sha256": "f23ed9ab0e7d24e4d0bf0725145a9b1c41d143d4d4c5070a1e59d013a7470c1b"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-18-reverse-pre-2-input.json": {
+      "bytes": 1674,
+      "sha256": "b903a17fcfb515c5a61280bfa80074945e315e8d5bfedbce68e1b7265ad72bcc"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-18-reverse-pre-2-output.json": {
+      "bytes": 19974,
+      "sha256": "2db4f9ab2cd9555309f362274dd245c48ae91a5145a4a76b5bc68d53d153cb82"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-19-reflect-pre-2-input.json": {
+      "bytes": 1673,
+      "sha256": "ec1b6b08bce35680f7e9ea8211c03ece6629f08abd8a639cf0ff02039efd702a"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-19-reflect-pre-2-output.json": {
+      "bytes": 20008,
+      "sha256": "526dfe5317594a4e1d4563996cdb2624c70fae59ec058e18ec2b5e43e4adecdd"
+    },
+    "examples/physics-box-quantized-witness-2276/package.json": {
+      "bytes": 98,
+      "sha256": "872fbd324a5f419945d817c0cd036265cb9469c9b25409ff83c810900d175dde"
+    },
+    "examples/physics-box-quantized-witness-2276/reference.py": {
+      "bytes": 11544,
+      "sha256": "bba87cd5be037320e44df78f48c4f380eeb828db64a4b731e8c58cbe63fbe7fd"
+    },
+    "examples/physics-box-quantized-witness-2276/run.mjs": {
+      "bytes": 7193,
+      "sha256": "d82f9e0d491071dcd08d74b1c0dc9e4f30fb8b97bca228ad5c3835598ced499e"
+    },
+    "examples/physics-box-quantized-witness-2276/tsconfig.json": {
+      "bytes": 260,
+      "sha256": "1369f7ed4bab3f808b46910e35343d1bc3c1cea1761956f4c81e7b0c853aa9ae"
+    },
+    "examples/physics-contact-boundary-2276/evidence/baseline-01/fixtures.json": {
+      "bytes": 948322,
+      "sha256": "6dbee5b66fa8b7fe638220181cf41ce3beed6e57456588943cc0e91fb135fe49"
+    },
+    "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/result.json": {
+      "bytes": 12356,
+      "sha256": "aa77c50446ddfbf4c69b93f222e24fd74e7b663f175c6103571ca819e72c4432"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-build-01/prepared.json": {
+      "bytes": 1497,
+      "sha256": "2f2355360169248ca5097bce33aa9472ed1148e0a58138009f4fb3ebda9abf33"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-build-01/progress.json": {
+      "bytes": 1596,
+      "sha256": "6c874f2b860ef73d80afa0e735f35f3c274145c0dc4b5881f3dba0c396445090"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-build-01/result.json": {
+      "bytes": 3003,
+      "sha256": "bf4cecc39735639d5348ed756fa1b9d4b57409b9ad2881b8a8a978157d0c8c2e"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-build-01/start.json": {
+      "bytes": 1519,
+      "sha256": "2fd6a5d256bd8b02c4251d952c2805c9d6edad00d4ddfe9c3ad62c6cb8708760"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-build-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-build-01/stdout.raw": {
+      "bytes": 160,
+      "sha256": "8e721a0f704200dcb263db96d1a5b51e7513ee275c1b9a7804bf5c76a5017804"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-reference-01/prepared.json": {
+      "bytes": 1621,
+      "sha256": "43f1bfc8ea539f534eb78935d0da7ab6ae207064af273224ccbe845dae9a05d3"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-reference-01/progress.json": {
+      "bytes": 1719,
+      "sha256": "622fd49d604fbe941969d6fe7d36ac921a2eeda0c1d1b876b43e949d140919e7"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-reference-01/result.json": {
+      "bytes": 3130,
+      "sha256": "570999e7cb5bb852b8b8a88ffa6d739884c0ef7b1def506976e75b415b45204b"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-reference-01/start.json": {
+      "bytes": 1643,
+      "sha256": "a9a109d028878a968045579511c50ddc74a233daa3155c12b814f08349a05cc9"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-reference-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-reference-01/stdout.raw": {
+      "bytes": 431,
+      "sha256": "3f27b02b28c0f664bd3c79de11756bfcf2210fc1e966470907fb7470b88d6c36"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-run-01/prepared.json": {
+      "bytes": 1501,
+      "sha256": "cafcfff5bd82bd66aa3b91a805ba5c2db63dc03db6668bbdb6ecf07f4184b6b4"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-run-01/progress.json": {
+      "bytes": 1600,
+      "sha256": "8ed3cce902335652f3c25f495d3003a8c7a791fce34cbda59f624a1c63ffffb5"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-run-01/result.json": {
+      "bytes": 3000,
+      "sha256": "b10647a6a51823a1a3a030ae3acc51e0360248a619e3e2d273462e7fe7d8ccc9"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-run-01/start.json": {
+      "bytes": 1523,
+      "sha256": "d7fe10be60b0f48d39528e7ed5e47ba6ffebb578fc2de3815e64b95edf1d8a65"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-run-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/box-quantized-run-01/stdout.raw": {
+      "bytes": 564,
+      "sha256": "daca5a59bc9e352590175684c76513c32ad9169ff76004122914ac08fd3baa2e"
+    },
+    "packaging-before-readme/README.md": {
+      "bytes": 1538,
+      "sha256": "13f395f2edeeae9435087dfc15aaee4cdf0eee1818c3429bfac3ac32972b200d"
+    }
+  },
+  "internalManifest": "HASH-MANIFEST.json",
+  "protectedOriginalFilesRechecked": 102,
+  "protectedOriginalFilesChanged": 0,
+  "transitiveSourceAndRawCasePinsRechecked": 8,
+  "existingReadmeUpdatedAndOriginalArchived": true,
+  "commandReceipts": 3,
+  "newNumericalRuns": 0,
+  "summaryStatus": "PASS_INDEPENDENT_FINITE_CELL_GEOMETRY_ONLY"
+}

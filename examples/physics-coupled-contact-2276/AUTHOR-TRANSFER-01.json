@@ -1,0 +1,92 @@
+{
+  "status": "STATIC_AUTHOR_TRANSFER_NOT_EXECUTED",
+  "ancestorBuild": {
+    "path": "examples/physics-warm-native-2276/evidence/build-01/result.json",
+    "bytes": 180705,
+    "sha256": "bc7ccc41857c8eef203007e39ec5f100cf0655f31fbb75aa39297fc86f11f1db"
+  },
+  "highMathFiles": {
+    "candidate.ts": {
+      "bytes": 10841,
+      "sha256": "5ee4eb75ec8baa1036a7a60977ab1d6c39b37e1d96cbe1cc2ea7c67140781db2"
+    },
+    "CONTRACT.md": {
+      "bytes": 6847,
+      "sha256": "6397d81a0979a27c8cf902294dcbfc2f8e4cbc9bdcea28531250f1c3dbce781f"
+    },
+    "design.md": {
+      "bytes": 4759,
+      "sha256": "2f73f533631ea663e847b4ce8b9ed38d342b5a30d7cef9e5b8152432d3870eac"
+    },
+    "reference-design.md": {
+      "bytes": 2716,
+      "sha256": "b02006b91b44d8b9221e3e5427fce9e71c8039a1a51427a47fc71c3f055d5454"
+    }
+  },
+  "exactObserverCopies": {
+    "physical-observer.py": {
+      "source": "examples/physics-persistent-cone-2276/physical-observer.py",
+      "pin": {
+        "bytes": 25945,
+        "sha256": "f2f3116b9549ce6dcf01e8b9a99e9aa94e5a3e9b983758ccf929d370dc28d730"
+      },
+      "bytesIdentical": true
+    },
+    "cone-observer.py": {
+      "source": "examples/physics-persistent-cone-2276/cone-observer.py",
+      "pin": {
+        "bytes": 11722,
+        "sha256": "7c5821028a6cd1da2032b124bbba3bf9f32ef9c2443db847fbefa22a304c47e3"
+      },
+      "bytesIdentical": true
+    }
+  },
+  "entryAuditor": {
+    "source": "examples/physics-warm-native-2276/entry-graph.mjs",
+    "pin": {
+      "bytes": 4695,
+      "sha256": "ca05f4dab521974b1e344844e7133f2647c25d233b95c5d3845bd6b5a83f01cb"
+    },
+    "bytesIdentical": true
+  },
+  "allowedChangedAncestorFiles": [
+    "entry.ts",
+    "physics/src/world.ts",
+    "physics/src/persistent-box-contact.ts",
+    "physics/src/private-phase.ts",
+    "physics/src/producer.ts",
+    "physics/src/provider-manifest.generated.ts"
+  ],
+  "newRuntimeFiles": [
+    "C/candidate.ts",
+    "physics/src/coupled-plan.ts"
+  ],
+  "noReferenceSeeds": "Actual engine inputs derive only from actual body/query geometry; no case ID/reference K/reference J/cache seed in host/helper",
+  "actualApplications": "One real total world J followed by63 real zero calls within original8x8slots; no synthetic impulse events",
+  "finalQuery": "Required producer callback validates existing final query; no extra query/helper classification",
+  "distinctIdentity": "New actual changed stage provider manifest shared by Source bundle and strict emitted graph",
+  "remainingTypedLimits": [
+    "Inherited effective nocheck in private-phase.ts",
+    "Inherited effective nocheck in replay-validation.ts"
+  ],
+  "sourceBankCases": 3,
+  "separatePureNegativeControls": 8,
+  "proposalOnlyNotRun": [
+    "axisAligned",
+    "matrixOnly",
+    "bitBudgetExhaustion",
+    "changedOwnerHost",
+    "futureWarm",
+    "secondInterval",
+    "wire",
+    "unknownFault",
+    "desktop"
+  ],
+  "authorChecks": [
+    "Node --check only",
+    "Python ast.parse only",
+    "Old observer/auditor byte equality",
+    "Exact source replacement anchors unique",
+    "No candidate import, reference execution, compiler, World, observer or numerical run"
+  ]
+}

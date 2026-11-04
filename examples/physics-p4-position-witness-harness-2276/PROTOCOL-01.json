@@ -1,0 +1,141 @@
+{
+  "protocol": "p4-position-witness-harness-run-v1",
+  "status": "AUTHORED_FOR_ROOT_REVIEW",
+  "maxNumericalCandidateChecks": 10,
+  "WorldCalls": 0,
+  "baselineReruns": 0,
+  "candidateArithmeticPreparation": "COMPLETE_NEW_PROOF_INSIDE_CANDIDATE_2M_METER_NO_HARNESS_FRACTION_PREPARATION",
+  "savedBaselineCoreCpuNs": 773147000,
+  "costRatioNumerator": 9,
+  "costRatioDenominator": 10,
+  "costRequires": "ACTUAL_STAGE_B_ALL_SIX_FULL_NUMERICAL_AND_INDEPENDENT_PASS",
+  "limits": {
+    "externalWallMs": 180000,
+    "internalWallMs": 170000,
+    "evidenceBytes": 16777216,
+    "requestBytes": 2097152,
+    "replyBytes": 2097152,
+    "explicitRetainedBytes": 67108864
+  },
+  "metadataDifferences": {
+    "replace": [
+      "/referenceProtocol",
+      "/reference/arithmetic"
+    ],
+    "add": [
+      "/reference/proofCounters",
+      "/reference/proofAuthority",
+      "/reference/witnessProvenance"
+    ],
+    "remove": [
+      "/reference/counters"
+    ]
+  },
+  "independentCheckerCommand": [
+    "checker.py",
+    "MODE",
+    "CASE_ID",
+    "REQUEST_FILE",
+    "REPLY_FILE",
+    "OUTPUT_FILE"
+  ],
+  "externalToolFiles": {
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13": {
+      "bytes": 52640,
+      "sha256": "a1f6d9dc20d4787a84dc2fe782094a7bac5946f49a962aa0af48a02f0e8d5bc5"
+    },
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node": {
+      "bytes": 110712624,
+      "sha256": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+    }
+  },
+  "firstFailurePolicy": "STOP_AND_RETAIN_UNREACHED_NOT_RUN",
+  "qualification": "NO_WORLD_NO_WARM_NO_1200_STEP_NO_PUBLIC_ADOPTION",
+  "stages": {
+    "A": {
+      "profile": "PURE_KERNEL",
+      "maxCandidateChecks": 10,
+      "SATCalls": 0,
+      "WorldCalls": 0,
+      "geometryAndForceEvidence": "AUTHENTICATE_AND_REUSE_ONLY"
+    },
+    "B": {
+      "requires": "ACTUAL_STAGE_A_ALL_PASS",
+      "freshFullWrapperCommands": 1,
+      "frames": 6,
+      "compactCalls": 432,
+      "coldQpCalls": 0,
+      "engineWorldCalls": 0,
+      "replyTransport": "ONE_EXCLUSIVE_FILE_PER_FRAME_MAX_2MIB",
+      "costTiming": "SAME_CONTEXT_EVALUATE_CORE_RETAINED_ONCE",
+      "costDecision": "ONCE_AFTER_ALL_SIX_PHYSICAL_AND_INDEPENDENT_GATES_PASS",
+      "duplicateSixFrameRuns": 0
+    }
+  },
+  "costDecisions": 1,
+  "fullWrapperCommand": [
+    "wrapper.py",
+    "world-bank",
+    "MANIFEST",
+    "OUTPUTDIR"
+  ],
+  "python": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+  "bankDirectory": "examples/physics-p4-position-witness-reference-2276/evidence/bank-01",
+  "kernelCommand": [
+    "candidate.py",
+    "kernel",
+    "REQUEST_FILE",
+    "REPLY_FILE"
+  ],
+  "wrapperSummaryFile": "summary.json",
+  "wrapperSuccessStatus": "RETURNED_SIX_WORLD_WITNESS_REPLIES_PENDING_AUDIT",
+  "wrapperSchema": {
+    "frames": "frames",
+    "caseId": "caseId",
+    "replyFile": "fullReplyFile",
+    "replyPin": "fullReplyPin",
+    "kernelFile": "kernelReplyFile",
+    "kernelPin": "kernelReplyPin",
+    "coreCpuNs": "coreCpuNs",
+    "counts": "counts"
+  },
+  "wrapperExpectedCounts": {
+    "framesAttempted": 6,
+    "framesReturned": 6,
+    "framesVerifiedByExternalAuditor": 0,
+    "proofCalls": 6,
+    "compactAttempts": 432,
+    "compactReturns": 432,
+    "scalarCalls": 432,
+    "scalarReturns": 432,
+    "coldQpCalls": 0,
+    "oldKernelCalls": 0,
+    "WorldCalls": 0,
+    "forbiddenOldCompactAttempts": 0
+  },
+  "numericalOrder": [
+    "ALIGNED-1",
+    "control-duplicate-index",
+    "control-dependent-original-row1",
+    "control-omit-ground-row7",
+    "control-reported-translation",
+    "ALIGNED-16",
+    "OFFSET-1",
+    "OFFSET-16",
+    "YAW-1",
+    "YAW-16"
+  ],
+  "exactTextRule": "VERBATIM_ORIGINAL_POSITION_N_OVER_D_INCLUDING_ZERO_AND_INTEGER_DENOMINATOR_ONE_NO_NORMALIZATION",
+  "formatCorrection": "examples/physics-p4-position-witness-2276/ROOT-FORMAT-CORRECTION-02.json",
+  "sourcePinsFile": "examples/physics-p4-position-witness-harness-2276/SOURCE-PINS-01.json",
+  "sourcePinsPin": {
+    "bytes": 25398,
+    "sha256": "1577dc2a1d8b9f684bd7d6fa63391782e5d84d4d1ceff70adcd84ef170efe7cf"
+  },
+  "wrapperManifest": "examples/physics-p4-position-witness-harness-2276/WRAPPER-BANK-01.json",
+  "wrapperExpectedSatPopulation": {
+    "conventionProblems": 864,
+    "axisVisits": 12960
+  },
+  "nodeGuard": "/Users/user/.volta/tools/image/node/22.19.0/bin/node"
+}

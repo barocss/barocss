@@ -1,0 +1,119 @@
+{
+  "status": "EXECUTED_PASS_DOC_BUILD_AND_SCOPED_SITE_CHECK",
+  "implementationHead": "43f10f7b3",
+  "date": "2026-11-03",
+  "physicsCalls": 0,
+  "proofBoundary": "Documentation only. Numerical/private/public/desktop evidence remains separately attributed; no deployment.",
+  "inputs": {
+    "packages/barocss-physics/ROADMAP.md": {
+      "bytes": 85403,
+      "sha256": "2cddc568abe24e1899120b1fd2eae01cac02637968469dd97738f247c7bbd435"
+    },
+    "packages/barocss-physics/README.md": {
+      "bytes": 20943,
+      "sha256": "f02734009c8f67d4d4fec50e411272e30cac60cf816ce63b00cbd38447ff82e9"
+    },
+    "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt": {
+      "bytes": 85403,
+      "sha256": "2cddc568abe24e1899120b1fd2eae01cac02637968469dd97738f247c7bbd435"
+    },
+    "apps/library-docs/docs/reference/physics-verification.md": {
+      "bytes": 46493,
+      "sha256": "0f30993a5ee13a52db205efbd976ea2e021d35249e35a290877ce457938b3ee3"
+    },
+    "apps/library-docs/docs/packages/physics/profiles-and-lifecycle.md": {
+      "bytes": 19813,
+      "sha256": "2a6279be08c21b3e7fcb04180bd09d987e577257a45275ad5946a9ca8fe0dc81"
+    },
+    "examples/physics-contact-coverage-g2-2276/README.md": {
+      "bytes": 9425,
+      "sha256": "a2a4236f71f4ab058dae663ae49fbca74085f605d6ec00cc26973756a71937b2"
+    },
+    "examples/physics-contact-coverage-g2-2276/COVERAGE-04.json": {
+      "bytes": 10101,
+      "sha256": "4b60b02098b32d8ccca2880b08e7c76c77630a33392966af6e98a6240dca4b79"
+    },
+    "examples/physics-contact-coverage-g2-2276/COVERAGE-05.json": {
+      "bytes": 12028,
+      "sha256": "1f5cb0daf4a62982b5dbb9613734e107f3a5b6cdacc8f14a656a79d546eeccd5"
+    },
+    "examples/physics-contact-coverage-g2-2276/COVERAGE-06.json": {
+      "bytes": 13361,
+      "sha256": "77ca30ac1cda5b3f4b4cc9b0e2f6bf11a5c40ccd9463c9caf4872e2570f813a3"
+    },
+    "examples/physics-contact-coverage-g2-2276/FINITE-CELL-ERRORS-01.json": {
+      "bytes": 981,
+      "sha256": "813369d84c6e16fba75fd6f7cb35269f435a9d0afbd83b04cf15db5fedc115ec"
+    },
+    "examples/physics-world-p5-2276/WORK-STATUS.json": {
+      "bytes": 17330,
+      "sha256": "fda2e57a15c723788732fe02d6b882b4721e6bb3c8618864ae2d179025f41857"
+    }
+  },
+  "receipts": {
+    "contact-wrench-docbuild-05": {
+      "prepared.json": {
+        "bytes": 1526,
+        "sha256": "a06f43d9ad67733f48bbade84536f1aea9b7d6d4223631cb4d8890e05dcf0642",
+        "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"contact-wrench-docbuild-05\",\n  \"censusId\": \"contact-wrench-docbuild-05\",\n  \"status\": \"PREPARED\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n    \"node_modules/vitepress/bin/vitepress.js\",\n    \"build\",\n    \"docs\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/apps/library-docs\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": null,\n  \"spawnAt\": null,\n  \"pid\": null,\n  \"processGroupId\": null,\n  \"exit\": null,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": false,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docbuild-05/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docbuild-05/progress.json\",\n  \"errors\": []\n}\n"
+      },
+      "progress.json": {
+        "bytes": 1625,
+        "sha256": "df585c1e6a41b92fa93be595ca951d178aa1c1b2a902c19b4c9a67cfc5d46a53",
+        "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"contact-wrench-docbuild-05\",\n  \"censusId\": \"contact-wrench-docbuild-05\",\n  \"status\": \"RUNNING\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n    \"node_modules/vitepress/bin/vitepress.js\",\n    \"build\",\n    \"docs\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/apps/library-docs\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": \"2026-11-02T23:07:42.044Z\",\n  \"spawnAt\": \"2026-11-02T23:07:42.078Z\",\n  \"pid\": 63770,\n  \"processGroupId\": 63770,\n  \"exit\": null,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": false,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docbuild-05/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docbuild-05/progress.json\",\n  \"errors\": [],\n  \"elapsedMs\": 34.487875,\n  \"outputCapturedBytes\": 0\n}\n"
+      },
+      "result.json": {
+        "bytes": 3044,
+        "sha256": "feb5f6d9143521a096b49142ec303bb832547e9a946a20896bd1fb110a1e5a48",
+        "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"contact-wrench-docbuild-05\",\n  \"censusId\": \"contact-wrench-docbuild-05\",\n  \"status\": \"PASS\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n    \"node_modules/vitepress/bin/vitepress.js\",\n    \"build\",\n    \"docs\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/apps/library-docs\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": \"2026-11-02T23:07:42.044Z\",\n  \"spawnAt\": \"2026-11-02T23:07:42.078Z\",\n  \"pid\": 63770,\n  \"processGroupId\": 63770,\n  \"exit\": 0,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": true,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docbuild-05/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docbuild-05/progress.json\",\n  \"errors\": [],\n  \"exitAt\": \"2026-11-02T23:07:52.110Z\",\n  \"finishedAt\": \"2026-11-02T23:07:52.110Z\",\n  \"elapsedMs\": 10066.351875,\n  \"ownedGroupPresentAtFinalization\": false,\n  \"censusElapsedMs\": 10034.110834,\n  \"cleanupElapsedMs\": 0,\n  \"output\": {\n    \"stdout\": {\n      \"observedBytes\": 46,\n      \"capturedBytes\": 46,\n      \"omittedBytes\": 0,\n      \"sha256\": \"fec058fa082bc6f26966d66c753a1ce355cb5035837dbd520a342ca8f59b239f\",\n      \"eof\": true,\n      \"writeError\": null\n    },\n    \"stderr\": {\n      \"observedBytes\": 472,\n      \"capturedBytes\": 472,\n      \"omittedBytes\": 0,\n      \"sha256\": \"b4d513bbe2b301d67a30f1cec368f85433e75aff0036a694f7d03a8ecef139cb\",\n      \"eof\": true,\n      \"writeError\": null\n    }\n  },\n  \"censusSummary\": {\n    \"path\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docbuild-05/summary.json\",\n    \"present\": false\n  },\n  \"censusProgress\": {\n    \"path\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docbuild-05/progress.json\",\n    \"present\": true,\n    \"bytes\": 1625,\n    \"sha256\": \"df585c1e6a41b92fa93be595ca951d178aa1c1b2a902c19b4c9a67cfc5d46a53\",\n    \"status\": \"RUNNING\",\n    \"counts\": null,\n    \"referenceCallCounts\": null,\n    \"firstFailure\": null\n  },\n  \"callCountBoundary\": \"Only counts present in original census progress/summary/timing receipts are reported; a timeout never implies the primitive call population completed.\"\n}\n"
+      },
+      "start.json": {
+        "bytes": 1548,
+        "sha256": "e67a7c4d398e0378345ff1b13000b7c3f4b5497333ad904fdd2709f1cb499b6c",
+        "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"contact-wrench-docbuild-05\",\n  \"censusId\": \"contact-wrench-docbuild-05\",\n  \"status\": \"SPAWNING\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n    \"node_modules/vitepress/bin/vitepress.js\",\n    \"build\",\n    \"docs\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/apps/library-docs\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": \"2026-11-02T23:07:42.044Z\",\n  \"spawnAt\": null,\n  \"pid\": null,\n  \"processGroupId\": null,\n  \"exit\": null,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": false,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docbuild-05/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docbuild-05/progress.json\",\n  \"errors\": []\n}\n"
+      },
+      "stderr.raw": {
+        "bytes": 472,
+        "sha256": "b4d513bbe2b301d67a30f1cec368f85433e75aff0036a694f7d03a8ecef139cb",
+        "text": "- building client + server bundles...\n\n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n\u001b[32m\u2713\u001b[0m building client + server bundles...\n- rendering pages...\n\u001b[32m\u2713\u001b[0m rendering pages...\n"
+      },
+      "stdout.raw": {
+        "bytes": 46,
+        "sha256": "fec058fa082bc6f26966d66c753a1ce355cb5035837dbd520a342ca8f59b239f",
+        "text": "\n  vitepress v1.6.4\n\nbuild complete in 9.46s.\n"
+      }
+    },
+    "contact-wrench-docsite-05": {
+      "prepared.json": {
+        "bytes": 1488,
+        "sha256": "3442a7a5f5979048153db9a17c079f0f9864302d0c2ab759db2a859a9460d31d",
+        "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"contact-wrench-docsite-05\",\n  \"censusId\": \"contact-wrench-docsite-05\",\n  \"status\": \"PREPARED\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n    \"examples/physics-motion-docs-2276/check-site.mjs\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": null,\n  \"spawnAt\": null,\n  \"pid\": null,\n  \"processGroupId\": null,\n  \"exit\": null,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": false,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docsite-05/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docsite-05/progress.json\",\n  \"errors\": []\n}\n"
+      },
+      "progress.json": {
+        "bytes": 1587,
+        "sha256": "e9821013ea2af012a57e541ea4fe9b91d64c710fa7762f37ee93403e59e484e7",
+        "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"contact-wrench-docsite-05\",\n  \"censusId\": \"contact-wrench-docsite-05\",\n  \"status\": \"RUNNING\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n    \"examples/physics-motion-docs-2276/check-site.mjs\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": \"2026-11-02T23:08:06.844Z\",\n  \"spawnAt\": \"2026-11-02T23:08:06.864Z\",\n  \"pid\": 64195,\n  \"processGroupId\": 64195,\n  \"exit\": null,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": false,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docsite-05/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docsite-05/progress.json\",\n  \"errors\": [],\n  \"elapsedMs\": 20.600958,\n  \"outputCapturedBytes\": 0\n}\n"
+      },
+      "result.json": {
+        "bytes": 2990,
+        "sha256": "d9d437e2e2f71433d2719562a118f87e4472d46e6893de85e663974a7505518a",
+        "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"contact-wrench-docsite-05\",\n  \"censusId\": \"contact-wrench-docsite-05\",\n  \"status\": \"PASS\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n    \"examples/physics-motion-docs-2276/check-site.mjs\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": \"2026-11-02T23:08:06.844Z\",\n  \"spawnAt\": \"2026-11-02T23:08:06.864Z\",\n  \"pid\": 64195,\n  \"processGroupId\": 64195,\n  \"exit\": 0,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": true,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docsite-05/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docsite-05/progress.json\",\n  \"errors\": [],\n  \"exitAt\": \"2026-11-02T23:08:06.946Z\",\n  \"finishedAt\": \"2026-11-02T23:08:06.946Z\",\n  \"elapsedMs\": 102.15,\n  \"ownedGroupPresentAtFinalization\": false,\n  \"censusElapsedMs\": 83.729,\n  \"cleanupElapsedMs\": 0,\n  \"output\": {\n    \"stdout\": {\n      \"observedBytes\": 146,\n      \"capturedBytes\": 146,\n      \"omittedBytes\": 0,\n      \"sha256\": \"4315ea7e13eaa9bc54ea958d1640c23489e2ccdc4b9646d579a682199ee38449\",\n      \"eof\": true,\n      \"writeError\": null\n    },\n    \"stderr\": {\n      \"observedBytes\": 0,\n      \"capturedBytes\": 0,\n      \"omittedBytes\": 0,\n      \"sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n      \"eof\": true,\n      \"writeError\": null\n    }\n  },\n  \"censusSummary\": {\n    \"path\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docsite-05/summary.json\",\n    \"present\": false\n  },\n  \"censusProgress\": {\n    \"path\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docsite-05/progress.json\",\n    \"present\": true,\n    \"bytes\": 1587,\n    \"sha256\": \"e9821013ea2af012a57e541ea4fe9b91d64c710fa7762f37ee93403e59e484e7\",\n    \"status\": \"RUNNING\",\n    \"counts\": null,\n    \"referenceCallCounts\": null,\n    \"firstFailure\": null\n  },\n  \"callCountBoundary\": \"Only counts present in original census progress/summary/timing receipts are reported; a timeout never implies the primitive call population completed.\"\n}\n"
+      },
+      "start.json": {
+        "bytes": 1510,
+        "sha256": "389be830a0f479330bf56bf74415fb9680e96bc1239bfb277c31b162a924b21e",
+        "text": "{\n  \"kind\": \"P5B_OWNED_COMMAND_GUARD\",\n  \"receiptId\": \"contact-wrench-docsite-05\",\n  \"censusId\": \"contact-wrench-docsite-05\",\n  \"status\": \"SPAWNING\",\n  \"node\": \"v22.19.0\",\n  \"executable\": \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n  \"command\": [\n    \"/Users/user/.volta/tools/image/node/22.19.0/bin/node\",\n    \"examples/physics-motion-docs-2276/check-site.mjs\"\n  ],\n  \"cwd\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276\",\n  \"inputs\": {\n    \"command-run.mjs\": {\n      \"bytes\": 11565,\n      \"sha256\": \"59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e\"\n    }\n  },\n  \"timeoutMs\": 180000,\n  \"terminationGraceMs\": 1000,\n  \"postKillCloseWaitMs\": 2000,\n  \"timingBoundary\": \"180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup\",\n  \"combinedOutputLimitBytes\": 4194304,\n  \"startedAt\": \"2026-11-02T23:08:06.844Z\",\n  \"spawnAt\": null,\n  \"pid\": null,\n  \"processGroupId\": null,\n  \"exit\": null,\n  \"signal\": null,\n  \"timedOut\": false,\n  \"stopReason\": null,\n  \"processClosed\": false,\n  \"groupSignals\": [],\n  \"parentWorldCalls\": 0,\n  \"parentReferenceCalls\": 0,\n  \"parentGeometryCalls\": 0,\n  \"retries\": 0,\n  \"censusSummaryPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docsite-05/summary.json\",\n  \"censusProgressPath\": \"/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/contact-wrench-docsite-05/progress.json\",\n  \"errors\": []\n}\n"
+      },
+      "stderr.raw": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": ""
+      },
+      "stdout.raw": {
+        "bytes": 146,
+        "sha256": "4315ea7e13eaa9bc54ea958d1640c23489e2ccdc4b9646d579a682199ee38449",
+        "text": "{\"pages\":5,\"links\":825,\"anchors\":230,\"snippetRegions\":28,\"byteIdenticalHistoricalCopies\":14,\"proposedRoadmapCopy\":true,\"networkChecks\":\"NOT_RUN\"}\n"
+      }
+    }
+  }
+}

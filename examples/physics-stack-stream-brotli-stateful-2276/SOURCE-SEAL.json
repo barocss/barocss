@@ -1,0 +1,40 @@
+{
+  "API": false,
+  "RSS": "NOT_QUALIFIED",
+  "authorCodecCalls": 0,
+  "authorImports": 0,
+  "authorPhysicsCalls": 0,
+  "authorTests": 0,
+  "codec": {
+    "chunkSize": 65536,
+    "crc": "NODE_NATIVE_CHAINED_HEADER_PAYLOAD",
+    "encoderPath": "GENERAL_RING_HASHER_NOT_FAST_FRAGMENT",
+    "largeWindow": false,
+    "lgwin": 20,
+    "quality": 2
+  },
+  "copied24ControlFilesByteIdentical": true,
+  "files": {
+    "CONTRACT.md": "f8047398312ef1e3d14f1126a21fd91a16c0d6cb8a21420f80127bf4f4e692b1",
+    "PINS.json": "89abb2544699df7aef65ad6fac83235b7c2e42ad0faa1864accde26adc65fe35",
+    "archive.mjs": "b2920b04055a674f68f4dbb7a5bb1cdfe7a5622005a0d04c9b4a1aae2b1fca95",
+    "archive.test.mjs": "265cfd92bb36be6a1910a031c0796c092a0b703a85256db527b75e89cd2167b3",
+    "crc.test.mjs": "37b30e3cd92e4f9f1c0571d7cc2602a7ed269ce0a5ab3dcef67654518c8a62c9",
+    "exact-size.test.mjs": "c5d61a99f08662a1e102cf335ba798ed51d5128d5c381ea89b262ab704f5dfc7",
+    "history.test.mjs": "6069399c7ab26ce6a9a106a3abbd366b6445a4d21c31009411c42418f974c512",
+    "replay.mjs": "131fa524a72b5c4f4ac1eb8d9d8ca5b72d33bf0f1b8ab428685722db1840fd69",
+    "screen.py": "b0d61f29a5608284196513a9536dfb112076dab6abe2b2987a24e38f75e461e5"
+  },
+  "fixedArchiveSHA256": "a7d9a3aa99dad8b1be00f0291765e01a38e3db33868ff2973a6359b4110d5e99",
+  "fixedGroups": 25,
+  "full1200": false,
+  "q1EndedUnchanged": true,
+  "q3FollowupAuthorized": false,
+  "screens": {
+    "afterWaitNodeCpuUs": 30000000,
+    "compressedBytes": 83886080,
+    "nodeWallSeconds": 45
+  },
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN",
+  "strictGlobal64MiBCertification": "NOT_QUALIFIED"
+}

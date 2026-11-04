@@ -1,34 +1,205 @@
 # @barocss/physics
 
+## Current contact coherence checkpoint (2026-11-04)
+
+The production contact phase now projects positions once, assembles all actual
+final-pose feature contacts, and solves/applies normal motion at those same
+positions. No tolerance, iteration count, body cap or legacy fallback changed.
+Fresh strict Source and actual canonical builds, tensor/public API, refusal,
+recorder restore/continue, and both original512-step two/three-cube campaigns pass.
+Both graphs also pass the original60/120/240Hz contact campaign through1second.
+
+This fixes the previously recorded490 refusal within that512-step profile.
+It does **not** remove all accumulated error: a separately fixed three1024 gate
+first violates lateral-position tolerance at866 (1.0037318971762749e-10m versus
+1e-10m). Source returns896steps but independently passes768; Native passes768.
+No failed window is shortened. Full current-provider desktop HiDPI is NOT_RUN;
+the earlier512/384 Viewer and six-sample HiDPI are historical provider results.
+The exact-arithmetic successor is research on a separate branch, not runtime
+adoption. All original478/479/488/490 failures and the new866failure remain.
+See [contact coherence results](../../examples/physics-contact-coherence-2276/RESULTS.md).
+Studio/manufacturing/equipment/old-worker HOLDs remain. No deployment or release.
+
 The [library design and development roadmap](ROADMAP.md) defines the unreleased target API and
-its staged verification. The root uses the P0 model/options contract. P5a private cloth/fluid kernels passed their bounded two-step source/native gates; the P5b common-World cutover is implemented with qualification pending. Existing HOLDs,
-public admission limits and original NO_GO receipts remain in force.
+its staged verification. The root uses the P0 model/options contract. P5a private
+cloth/fluid kernels and the selected P5b common-World source/native migration
+pass their bounded gates. Full physical domain coupling remains unqualified.
+Existing HOLDs, public admission limits and original NO_GO receipts remain in force.
 
-A bounded, renderer-neutral fixed-step 3D Physics package. Its rigid world simulates admitted spheres, oriented cubes and capsules, static/kinematic boxes, limited fixed/hinge joints and narrow opt-in CCD profiles. Dynamic noncubic boxes use only the isolated rotor described below. The same World owns a selected fixed256-particle visual basin or a fixed pinned sheet over a static sphere. The caller owns time and display. The package does not simulate exact CAD Surface or mesh collision, general joint networks, arbitrary cloth meshes or engineering fluid flow.
+The new `rigid-stationary-cube-stack-v1` uses that same World for unforced
+equilibrium maintenance of eight1kg yaw-only cubes on the original floor.
+Independent original ALIGNED/OFFSET/YAW1200-step checks, actual public
+Source/compiled paths and desktop WebGPU body-word parity pass locally.
+This does not support falling/collapse of eight bodies. The persistent-box
+cap remains4, recorder caps512frames/1MiB, and all historical failures remain.
+See [stationary World results](../../examples/physics-stack-stationary-world-2276/RESULTS.md).
 
-## Breaking G1 angular support boundary
+Existing1/2-body impact dynamics also pass11 fresh desktop checks with current
+emitted Physics, including numerical bounce values, actual upward travel and
+changed GPU pixels. See [current motion desktop results](../../examples/physics-motion-desktop-2276/RESULTS.md).
+The new direct, zero-friction/restitution box island uses one global normal and
+all-pair position solve through the same World. The aligned2kg two-cube/floor
+case passes256 primary steps in Source/actual compiled paths, independent
+global projection/geometry gates, record/restore/failure controls and same-Native
+desktop full257-state/word parity. Existing cap4 and tolerances stay fixed;
+that zero-material regime explicitly rejects AABB. The later anisotropic tensor
+repair constructs a symmetric world tensor directly. The original precontact
+rotated box and a principal-spin case now pass 64 steps, three matched-time
+step sizes, strict Source/actual compiled API and desktop checks. General tilted
+contact is not qualified. Original first failures remain.
+See [coupled dynamics results](../../examples/physics-coupled-cubes-floor-2276/RESULTS.md).
+The same algorithm also passes three aligned2kg cubes/floor through256steps,
+with an independent3DOF reference and actual desktop full-state/word/pixel checks,
+inside cap4. See [three-cube results](../../examples/physics-three-cubes-floor-2276/RESULTS.md).
+General moving8 is not qualified. No deployment.
+The latest [contact convergence / Viewer results](../../examples/physics-contact-convergence-2276/RESULTS.md)
+include an adopted projected-polygon correction guide in `src/stack/face-contact.ts`
+(source `c164a34d...`). Build03, tensor private02, public API02, initial-frame and
+failure/restore regressions pass. New DT03 passes both aligned families at
+60/120/240Hz. Original long02 is still NO_GO: Source-three refuses step490 with
+`fresh post contact normal feasibility`, retaining accepted owner489/time4.075.
+Source returns1001 total steps but independently passes896; Native returns and
+passes896. Two512/three384 are qualified in both graphs; Source385..489 is
+observed-only. The prior479 refusal and every first failure remain historical.
 
-The unreleased World now refuses unsupported dynamic noncubic boxes with
-`INVALID_CONFIG`, including former general anisotropic contact, thin-box CCD
-and dynamic CAD-box callers. Static boxes and true dynamic cubes retain their
-existing paths. Old probe inputs/results and original failures are preserved;
-this restriction is unsupported status, not a physical PASS for those cases.
+Actual current-provider HiDPI Viewer passes3Worlds/896steps, nine exact Native
+window captures and ten DPR checks. This is the bounded512/384 screen, not a
+completed512/512 campaign. Full UI/checkpoint remain NOT_RUN behind the failed
+full numerical prerequisite. The [completion audit](../../examples/physics-contact-convergence-2276/LIBRARY-STATUS.md)
+keeps the library NOT_COMPLETE. Viewer receives accepted poses; it does not own
+a second solver or clock. Studio/React/HOLD and no-deployment boundaries remain.
+Six distinct [public library samples](../../examples/physics-sample-gallery-2276/README.md)
+now pass Source/canonical analytic checks, exact repeat/word parity and actual
+HiDPI Viewer: projectile, elastic box, sphere sliding/rolling, one sphere CCD
+event, principal anisotropic spin and two-cube support. Each numerical graph
+has12Worlds/770steps including repeats; the desktop has7Worlds/385steps and six
+complete Native captures. `node examples/physics-sample-gallery-2276/dev.mjs`
+uses current built Physics dist, without paid receipt paths. This extends finite
+consumer evidence, not production solvers, general material/contact support or
+the failed full-three512 horizon. All HOLDs and first failures remain.
 
-The sole new noncubic leaf is one isolated 1 kg primitive-COM box with half
-extents `[0.1,0.2,0.3]` m, normalized identity q, world omega `[1,1,1]` rad/s,
-zero position/linear speed/gravity, discrete/direct and dt `1/120` s. It has
-no joints, other bodies, CCD, sensors or domains. Exactly one step is qualified.
-Accept empty commands, J=`[1/1024,-1/2048,1/4096]` N m s, or J together with
-tau=`[1/128,-1/256,1/512]` N m. Other loads refuse `INVALID_COMMAND`; a second
-step refuses `NUMERIC_LIMIT` without changing state or its recording.
+See [anisotropic library results](../../examples/physics-anisotropic-inertia-2276/RESULTS.md)
+and [CAD consumer readiness](../../examples/physics-anisotropic-inertia-2276/CONSUMER-READINESS.md).
+CAD/CAD-model primitive flows and GPU CPU mesh admission pass; CAD Studio has no
+Physics integration and remains on HOLD. No generic B-rep collision or full CAD
+mass-tensor import is implied.
 
-J acts once at the start; tau acts continuously in the world frame during
-that interval. The forced leaf uses the independently checked two-halfstep
-quaternion/world-momentum method; zero torque uses the qualified free map.
-There is no integrator switch, compatibility engine or second World. Other
-existing isotropic laws retain their original discretization/evidence scope.
-The former full-torque kick/free G1d K PASS proves that discrete map, not the
-continuous-torque pose. See the [support contract](../../examples/physics-rigid-rotation-g1e-2276/PUBLIC-SUPPORT-CONTRACT.md).
+The finite box CCD checkpoint accepts both signs of the identity quaternion
+without changing orientation/angular thresholds. Source/compiled20-case checks
+and9desktop GPU checks pass; see
+[`physics-box-slab-boundaries-2276`](../../examples/physics-box-slab-boundaries-2276/RESULTS.md).
+A separate private contact-witness construction passes independent geometry on
+20cases, including all32 original RAW point coordinates without movement.
+It does not qualify the public persistent solver or eight-box dynamics; see
+[`physics-box-quantized-witness-2276`](../../examples/physics-box-quantized-witness-2276/RESULTS.md).
+
+A bounded, renderer-neutral fixed-step 3D Physics package. Its rigid world simulates admitted spheres, oriented boxes and capsules, static/kinematic boxes, limited fixed/hinge joints and narrow opt-in CCD profiles. The same World owns a selected fixed256-particle visual basin or a fixed pinned sheet over a static sphere. The caller owns time and display. The package does not simulate exact CAD Surface or mesh collision, general joint networks, arbitrary cloth meshes or engineering fluid flow.
+
+## Continuous rigid rotation
+
+The common World advances free and forced rotation for admitted primitive-COM
+boxes, spheres and capsules. Mass, dimensions, initial pose, angular impulse and
+torque use the existing input ranges; there is no case whitelist or one-step
+horizon. A capsule uses uniform-density cylinder and hemisphere COM moments,
+with its centreline on body Y. Sphere-isotropic overrides remain explicit.
+
+Angular impulse acts once at step start. Torque acts continuously in world
+coordinates during the configured step, then expires. Torque-free anisotropic
+motion uses an eighth-order geometric composition. Constant torque uses
+eighth-order modified-midpoint extrapolation and affine world momentum.
+Conditioning, movement and finite-arithmetic bounds may refuse a step with
+`NUMERIC_LIMIT`; the accepted state and recording remain unchanged. There is
+no integrator switch, compatibility engine or second World.
+
+The [general rotation contract](../../examples/physics-general-rotation-2276/CONTRACT.md)
+separates admission from measured accuracy. The original G1/G1e failures and
+one-step evidence remain historical records. Contact, joint and CCD profile
+limits still apply; rotation accuracy alone does not qualify those solvers.
+
+The [desktop Physics Lab](../../examples/physics-lab/README.md) runs box, sphere and capsule rotation with the public World/recorder and existing Viewer. It includes live diagnostics, in-page save/restore and an independent fixed-case three-grid comparison.
+
+The [rounded CCD desktop scene](../../examples/physics-rounded-ccd-2276/README.md) shows the actual sphere/static-box face, edge and vertex boundary, with hit/miss and normal diagnostics. The narrow sweep now uses Euclidean distance instead of an expanded rectangular boundary.
+
+The [persistent box impact scene](../../examples/physics-persistent-impact-2276/README.md) exercises minimum restitution and the strict speed switch through the common World, recorder and desktop GPU Viewer. Centered zero-friction impacts and warmed-cache failure recovery are qualified separately from general stacks and friction.
+
+The [tangent response scene](../../examples/physics-tangent-response-2276/README.md) shows discrete anisotropic cuboid sticking and the original sphere static/dynamic boundary inputs. Independent momentum/no-slip audits and desktop rendering are recorded separately; this does not qualify persistent friction or arbitrary coupled impacts.
+
+The [two-sphere CCD scene](../../examples/physics-sphere-pair-ccd-2276/README.md) shows the corrected near-graze MISS and real head-on/graze cases through the actual World/recorder. Separate endpoint/radius words drive exact predicates; display enlargement is explicitly labelled.
+
+The local tracking checkpoint on 2026-11-03 keeps P4 and persistent friction
+NO_GO. Offline adapter byte equivalence and compact V2 saved numeric/protocol
+checks pass. Position V2 matches the complete saved physical reply on 6 cold
+QPs/432 records/2592 words/17394 retained leaves; its core CPU is773147000 ns.
+Primitive-axis CPU798363000 ns fails the fixed cost gate and that candidate is
+ended. The Node candidate also fails: parent core397992000 ns plus full owned
+wait4 child CPU686846000 ns is1084838000 ns. That conservative wider boundary is
+one saved-baseline pairing; it is not a universal benchmark. The child reaches
+both EOFs and is reaped. Full 32-point line/paired witness, ledger/quality,
+whole-trajectory cost and full 1200-step P4 remain NOT_RUN. See the
+[offline position results](../../examples/physics-p4-position-v2-2276/RESULTS.md),
+[primitive cost result](../../examples/physics-p4-primitive-axis-2276/RESULTS.md)
+and [Node receipt](../../examples/physics-p4-node-sat-2276/evidence/node-01/summary.json).
+
+A separate public Native persistent-friction baseline accepts 2 steps in 1 World
+but fails: tangent-plane residual 7.191714e-9 Ns and accepted paired-contact gaps
+8.508678e-6 m/5.691598e-5 m exceed their unchanged 1e-12 gates. Geometry phase/cache
+handling remains under investigation. Private box construction and
+Source/strict parity pass 20 cases/62 points per graph, but independent geometry
+stops at the third point of the first case because the rounded midpoint line
+misses a native box. That candidate is private and has no production integration.
+These failures do not change the separate finite sphere-pair CCD/API/desktop
+result. See the [roadmap](ROADMAP.md) for evidence paths and proof boundaries.
+HOLDs, first failures and all tolerances remain. No deployment is authorized.
+
+A private replacement separates accepted native geometry from integrated
+pair wrenches. Its first Source execution passes3 Worlds/8 attempts/6 accepted
+steps, independent physical reports, rollback, retry and restore/continue.
+Its typed Source/emitted amendment also passes the bounded cold-cache campaign
+with22 complete packet matches. A separate same-input warm projection passes
+one real changed-frame cache hit and a4-World/8-attempt recording, rollback,
+wire and restore campaign. The composed warm Source/emitted gate now passes38 complete packets and full
+wire equality. Its browser consumer passes10 desktop rendering checks and a
+separate independent physical audit of the saved finite-window trace. The
+original capture and decoder-resource failures remain preserved.
+Current public types/recording remain unchanged.
+General cache/cone laws, all producer paths, performance and full P4 still block
+adoption. See the [typed result](../../examples/physics-contact-wrench-native-2276/RESULTS.md)
+and [warm recording result](../../examples/physics-warm-replay-2276/RESULTS.md).
+
+The separate [coupled static-contact candidate](../../examples/physics-coupled-contact-2276/RESULTS.md)
+passes the unchanged before/at static-friction boundary inputs in Source and
+strict emitted JavaScript. Independent contact-velocity residuals are zero;
+all33 retained packets match. The after input refuses before application and
+preserves accepted state. Dynamic contact remains NO_GO. This private first-
+cold-interval result does not adopt a public API or qualify warm/multipoint,
+recording or long-time behavior. Its separate
+[desktop sample](../../examples/physics-coupled-viewer-2276/RESULTS.md) passes6
+rendering/control checks and15 independent checks of the actual saved browser
+physics data. Desktop widths are1280/1440/1920; no mobile tests run. The
+original0.1410596011492487m/s constitutive failure and all original criteria
+remain preserved.
+
+The separate [lifecycle observation candidate](../../examples/physics-coupled-lifecycle-2276/RESULTS.md)
+retains actual hidden validation state before disposal. Fresh Source/compiled
+controls and one-frame rollback, wire and live restore checks pass, with40 static
+and44 transaction packet matches. The old post-disposal observation failure
+remains preserved. Its [desktop consumer](../../examples/physics-coupled-lifecycle-viewer-2276/RESULTS.md)
+separately passes7 rendering/capture checks and15 unchanged physical observers
+on actual browser data. This does not qualify a second physical interval,
+dynamic contact, warm/multipoint or public adoption.
+
+The [dynamic target arithmetic](../../examples/physics-coupled-dynamic-efficient-2276/RESULTS.md)
+passes three fixed physical inputs and eight admission controls in Source and
+compiled JavaScript, against an independent directed80/120 reference. It stays
+within the unchanged integer-work cap. The original work-limit failure remains
+preserved. That cohort remains pure arithmetic with zero World calls. Later
+[shared arithmetic](../../examples/physics-coupled-arithmetic-2276/RESULTS.md),
+[private actual World](../../examples/physics-coupled-dynamic-host-2276/CLEAN-RESULTS.md),
+[post-impulse rollback/wire](../../examples/physics-coupled-dynamic-host-2276/TRANSACTION-RESULTS.md)
+and [desktop Native browser](../../examples/physics-coupled-dynamic-host-viewer-2276/RESULTS.md)
+pass their separately frozen gates. Only the original first-cold-one-point
+before/at/after profile is qualified. Canonical package schema/caller adoption,
+warm/multipoint dynamics and the original eight-box exit remain separate.
 
 | Entry point | Current result | Example |
 | --- | --- | --- |
@@ -38,7 +209,7 @@ continuous-torque pose. See the [support contract](../../examples/physics-rigid-
 
 Ordinary workspace package imports use `src` through a TypeScript-capable bundler. The complete `publishConfig` map selects compiled `dist` JavaScript/declarations for release. The `barocss-source` condition selects the same current source API and is optional during development. Plain Node does not resolve source internal `.js` imports to `.ts`. CAD Surfaces remain original display geometry; CAD admission creates a separate sphere or box simulation proxy. See the limits below before using any profile.
 
-The rigid public entry is `src/index.ts`. Public model/state types are in `types.ts`; private numerical body records are in `internal-types.ts`; model admission is in `model-admission.ts` and numerical checks are in `validation.ts`; vectors, quaternions and inertia transforms are in `math.ts`; primitive collision and contact response are in `collision.ts`; joint parsing is in `joints.ts`, anchored motor drive is in `joint-motor.ts`, and the two-dynamic-body fixed and hinge profiles are in `dynamic-fixed-joint.ts` and `dynamic-hinge-joint.ts`; CCD admission and sweeps are in `ccd.ts`, `ccd-pair.ts`, `ccd-box.ts` and `ccd-slab.ts`; optional broad-phase bounds are in `broadphase.ts`; large-scene filtering and contact-island sleep rules are in `scene-profile.ts` and `sleep.ts`; and fixed-step world state is in `world.ts`. `limits.ts` holds shared bounds.
+The rigid public entry is `src/index.ts`. Public model/state types are in `types.ts`; private numerical body records are in `internal-types.ts`; model admission is in `model-admission.ts` and numerical checks are in `validation.ts`; vectors, quaternions and inertia transforms are in `math.ts`; primitive collision and contact response are in `collision.ts`; joint parsing is in `joints.ts`, anchored motor drive is in `joint-motor.ts`, and the two-dynamic-body fixed and hinge profiles are in `dynamic-fixed-joint.ts` and `dynamic-hinge-joint.ts`; CCD admission and sweeps are in `ccd.ts`, `ccd-rounded-box.ts`, `ccd-pair.ts`, `ccd-sphere-pair-exact.ts`, `ccd-box.ts` and `ccd-slab.ts`; optional broad-phase bounds are in `broadphase.ts`; large-scene filtering and contact-island sleep rules are in `scene-profile.ts` and `sleep.ts`; and fixed-step world state is in `world.ts`. `limits.ts` holds shared bounds.
 
 ## Fixed visual models
 
@@ -202,3 +373,5 @@ Documentation build, site checks and scoped links pass. README examples compile 
 reports remain attributed to their original providers. No Viewer, Studio, hardware or manufacturing HOLD is lifted;
 original NO_GO trajectories and first-failure gates remain unchanged. P2 recording ownership has its own selected local source/emitted/native checks. P5 domain
 migration remains future work.
+
+Current failure diagnosis: 실제490 capture 감사는 거부 직전 closing velocity −1.0932118170260969e-7m/s를 확인했다. 원래1e-10 한계를 넘으므로 roundoff-only로 분류하지 않는다. 저장된384..489 진단에서는478 normal-direction error1.0310569142331814e-12가1e-12를 넘었고,488 rest velocity .04905m/s·angular velocity .0981rad/s,489 position error4.089e-4m가 관측됐다. 따라서 원인은490보다 앞설 수 있다. 이 데이터 감사의 independentTrajectoryAdded는0이며 두512·세384 자격을 넓히지 않는다.

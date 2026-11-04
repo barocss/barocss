@@ -1,0 +1,18 @@
+{
+  "status": "FINAL_REVIEW_MATCH_READY",
+  "reviewedHashes": {
+    "run.mjs": "cabe6d0d54b0850a534cca421d6b7cc94d8ecd65c2cc93f4cba1d8f7c8d7601e",
+    "freeze.mjs": "0612ed130d65e842fc51c8bb8e7ae496a766af437719c4514d3447e99737b5b3",
+    "observer.py": "fd06b5dd03e14b5aec6711ea1ba4b73930f68106cc63ac3e6b8c06ad2fadebe3",
+    "SOURCE-PINS-01.json": "61902f896727029744dc5454503a520707eaa23d6492ecf0ec0a284f4c1a1d71"
+  },
+  "preservedSetupFailure": {
+    "kind": "REVIEW_HASH_MISMATCH_BEFORE_WORLD",
+    "oldReviewedRunSHA256": "9b922c416d338b030e264af630fd5208ef3a3b04e55017df92bcc6d44b38b44c",
+    "actualRunSHA256": "cabe6d0d54b0850a534cca421d6b7cc94d8ecd65c2cc93f4cba1d8f7c8d7601e",
+    "shellContinuedDataOnlyFreezeAfterAssertion": true,
+    "WorldCalls": 0,
+    "resolution": "Final High read-only review confirms only summary status/counter labels changed; all final pins match. No physical/warm/cap/stop change."
+  },
+  "WorldCalls": 0
+}

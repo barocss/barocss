@@ -1,0 +1,29 @@
+{
+  "reason": "preserve api01 invalid-input and regression01 perpendicular-projection failures; exact cases02 input-correction; no gates or iterations changed",
+  "inputs": {
+    "examples/physics-tangent-response-2276/cases-02.mjs": {
+      "bytes": 518,
+      "sha256": "fc3eb027b4a909a96f668a867cb8421946fe60f25431e91c129eb3abe892140a"
+    },
+    "examples/physics-tangent-response-2276/INPUT-CORRECTION-02.md": {
+      "bytes": 2594,
+      "sha256": "e657c08946ca24097982e694c80221244fc3e76ddd96e30bcb19950218f383fa"
+    },
+    "examples/physics-tangent-response-2276/api-run.mjs": {
+      "bytes": 13900,
+      "sha256": "241f6563d894752e5c789833a3c76dd1f5b63e6e0806ede460d718f06759ce7a"
+    },
+    "examples/physics-tangent-response-2276/reference.py": {
+      "bytes": 6704,
+      "sha256": "192e4909feb8124d55c73d3ca4d00331e47c2fe4b73218baf1629d85a92a9f5f"
+    },
+    "packages/barocss-physics/src/collision.ts": {
+      "bytes": 14404,
+      "sha256": "8af301d4addf3b61a38fc54466a73dde48d27907f4143032d500962adbff47a3"
+    },
+    "packages/barocss-physics/src/contact-tangent.ts": {
+      "bytes": 2729,
+      "sha256": "5e1bddc158f9a6f307fdcc60ce8078ab36a06e372d530e7f5d05466d29bf9673"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "status": "MATCHED_MINIMAL_CAPTURE_PARENT_FIX_BEFORE_RERUN",
+  "sourcePinsSha256": "76573fe625b6beaf7a4b678b3d21ca17519c018631a76cd42819732d5dcc26ce",
+  "files": 949,
+  "ownedPreviousTestServer": {
+    "pid": 84149,
+    "command": "/Users/user/.volta/tools/image/node/22.19.0/bin/node examples/physics-warm-viewer-2276/scene/server.mjs",
+    "port": 53000
+  },
+  "firstDesktopRun": "PRESERVED_9_PASS_CAPTURE_FAIL_FULL_HISTORY_NOT_RETAINED",
+  "newWorldCalls": 0,
+  "physicsTolerancesCaps": "UNCHANGED"
+}

@@ -1,0 +1,11 @@
+{
+  "status": "MATCHED_HIGH_REVIEW_AFTER_DESKTOP_AND_BROWSER_PHYSICS_PASS",
+  "sourcePinsSHA256": "360404454d653445c9bf0d027bf949bc449099110e39ff485132783a3f57bb32",
+  "browserPrerequisite": {
+    "file": "examples/physics-warm-viewer-2276/evidence/browser-desktop-02/physics-audit-04/summary.json",
+    "sha256": "fc64e4de6a11c6a8329c755c2729d63dbba42294719f52eb72cb47ff003c7435"
+  },
+  "newWorldCalls": 0,
+  "plan": "THREE_FIXED_CASES_STOP_FIRST_FAILURE_NO_INPUT_OR_CAP_TUNING",
+  "target": "SOURCE_PRIVATE_PHYSICAL_CONE_BOUNDARY_ONLY"
+}

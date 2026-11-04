@@ -1,0 +1,58 @@
+{
+  "status": "FROZEN_BEFORE_FIRST_BUILD",
+  "reviewedFinalHashes": {
+    "build.mjs": "397189e7ca02976ca8820b2a2d8549f6b3491b2fc302d1ad9a5b728147e117bb",
+    "run.mjs": "e9384b092c80be7f91dfce2d3927526cdd0338bf63c51ae399ce93f0306f0bad",
+    "private-phase.ts": "dadcb8d44a2f5e536a71602faf4e3088da86bd97a2388934d1d0f2d59f13ad36",
+    "observer.py": "934bce61089da784cb77a0944bd320e6067958bdfeade8769c35bb81d0568646"
+  },
+  "sourceScope": "SOURCE_PRIVATE_ONLY",
+  "files": {
+    "observer.py": {
+      "bytes": 19429,
+      "sha256": "934bce61089da784cb77a0944bd320e6067958bdfeade8769c35bb81d0568646"
+    },
+    "IMPLEMENTATION.md": {
+      "bytes": 1725,
+      "sha256": "d9a29547ff17fb0fbd42a14bfdb1e7330e8b9577dd4d61d30ce866fa8d45558c"
+    },
+    "private-phase.ts": {
+      "bytes": 7022,
+      "sha256": "dadcb8d44a2f5e536a71602faf4e3088da86bd97a2388934d1d0f2d59f13ad36"
+    },
+    "run.mjs": {
+      "bytes": 8658,
+      "sha256": "e9384b092c80be7f91dfce2d3927526cdd0338bf63c51ae399ce93f0306f0bad"
+    },
+    "source-audit.json": {
+      "bytes": 11613,
+      "sha256": "dd17b0b1d223607021a2c77129157bb5eb1c60de4c4a44b52e15b73379fabf71"
+    },
+    "CONTRACT.md": {
+      "bytes": 6163,
+      "sha256": "d17b3f155f00d8a39e829f4df5b373bd2f9d815ec79652521713cfefbdfe90e7"
+    },
+    "IMPLEMENTATION-MAPPING.md": {
+      "bytes": 4593,
+      "sha256": "b0b9d9c21612f00902bc93718d7b3239d71608fc64a1e412b966f061652e23c3"
+    },
+    "build.mjs": {
+      "bytes": 10278,
+      "sha256": "397189e7ca02976ca8820b2a2d8549f6b3491b2fc302d1ad9a5b728147e117bb"
+    },
+    "design.md": {
+      "bytes": 12983,
+      "sha256": "1ac880e1b5d10ecc1e5699c417240dd683aaef0709cd9ea44b40fe0be9d53aef"
+    }
+  },
+  "criticalReviewFindingsResolved": [
+    "actual staged manifest/entry inventory",
+    "query-owned correction law",
+    "actual public accepted native geometry",
+    "actual tangent/warm vector and cache correspondence",
+    "query/event/final pose ownership",
+    "independent directional support overlap"
+  ],
+  "WorldCalls": 0,
+  "buildCalls": 0
+}

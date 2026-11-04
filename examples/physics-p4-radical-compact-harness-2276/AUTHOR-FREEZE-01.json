@@ -1,0 +1,1863 @@
+{
+  "protocol": "p4-direct-grid-full-six-author-freeze-v1",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "files": {
+    "examples/physics-box-quantized-equilibrium-2276/CONTRACT.md": {
+      "bytes": 1444,
+      "sha256": "f5b2eea9e32778d400d82834b3395b6f266337ef825592e47db7807997c0cd99"
+    },
+    "examples/physics-box-quantized-equilibrium-2276/FREEZE-01.json": {
+      "bytes": 5015,
+      "sha256": "8689e7a463dc64a22ad4fe816839172aa987a1a1bf797cd6e47863f8c521139f"
+    },
+    "examples/physics-box-quantized-equilibrium-2276/evidence/equilibrium-01/result.json": {
+      "bytes": 32844,
+      "sha256": "2575d9c02e7243998fe3c7b66b109c437c3207305caf3a2518f80a0acc1ea30e"
+    },
+    "examples/physics-box-quantized-equilibrium-2276/run.py": {
+      "bytes": 4315,
+      "sha256": "30d046df3484f1e3d804d816f2eba4821f37b948547ca8b4011a433257ee603a"
+    },
+    "examples/physics-box-quantized-witness-2276/cases.json": {
+      "bytes": 24863,
+      "sha256": "97623de2d6a8795384d6985d4415579e9b6ef7410cdd90be1facdd5d9740af83"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/independent-cell-geometry.json": {
+      "bytes": 69530,
+      "sha256": "37e341b56137f6a812669230372d333d832a5804d203a45c257e671dc86fdfe5"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-04-original-P4-ALIGNED1-b0-b1-output.json": {
+      "bytes": 65951,
+      "sha256": "0f0e004b2c167f179863987e92e2f039dd26a6ae0da03bfbb2f9fd9624c44fa9"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-05-original-P4-ALIGNED1-b0-floor-output.json": {
+      "bytes": 66672,
+      "sha256": "a81b415dcfffad73c4baf87e9f5a6373270f03648ad5e371245d689e5c97af2e"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-06-original-P4-ALIGNED1-b1-b2-output.json": {
+      "bytes": 65427,
+      "sha256": "dd003c385cb4be37c46d3d3118227044fa40b9e83fcff880554c333b4120c0e9"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-07-original-P4-ALIGNED1-b2-b3-output.json": {
+      "bytes": 65427,
+      "sha256": "bffc128088b229b5ee3074c62af0c717b80b1839788651dbde111dff6c2ae9dd"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-08-original-P4-ALIGNED1-b3-b4-output.json": {
+      "bytes": 65427,
+      "sha256": "fa4cfcd137cce2a3f1213172ef5baafeb88cd5b90496e67bfc05d07af3108049"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-09-original-P4-ALIGNED1-b4-b5-output.json": {
+      "bytes": 65427,
+      "sha256": "7f8d38705e68de35441c0c05c260e43a8d7b8725083bc95b715f4ba466eba72a"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-10-original-P4-ALIGNED1-b5-b6-output.json": {
+      "bytes": 65427,
+      "sha256": "fbfa05faa6e5976fb5ab6bfc5def33912f5f46df9e63d8da88ea73ea2b43bd75"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/source-11-original-P4-ALIGNED1-b6-b7-output.json": {
+      "bytes": 65427,
+      "sha256": "5c46d259fcef5603ee885d0394e4b811faef3107f1efeeb161b6d76cea4cdc21"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-04-original-P4-ALIGNED1-b0-b1-output.json": {
+      "bytes": 65951,
+      "sha256": "0f0e004b2c167f179863987e92e2f039dd26a6ae0da03bfbb2f9fd9624c44fa9"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-05-original-P4-ALIGNED1-b0-floor-output.json": {
+      "bytes": 66672,
+      "sha256": "a81b415dcfffad73c4baf87e9f5a6373270f03648ad5e371245d689e5c97af2e"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-06-original-P4-ALIGNED1-b1-b2-output.json": {
+      "bytes": 65427,
+      "sha256": "dd003c385cb4be37c46d3d3118227044fa40b9e83fcff880554c333b4120c0e9"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-07-original-P4-ALIGNED1-b2-b3-output.json": {
+      "bytes": 65427,
+      "sha256": "bffc128088b229b5ee3074c62af0c717b80b1839788651dbde111dff6c2ae9dd"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-08-original-P4-ALIGNED1-b3-b4-output.json": {
+      "bytes": 65427,
+      "sha256": "fa4cfcd137cce2a3f1213172ef5baafeb88cd5b90496e67bfc05d07af3108049"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-09-original-P4-ALIGNED1-b4-b5-output.json": {
+      "bytes": 65427,
+      "sha256": "7f8d38705e68de35441c0c05c260e43a8d7b8725083bc95b715f4ba466eba72a"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-10-original-P4-ALIGNED1-b5-b6-output.json": {
+      "bytes": 65427,
+      "sha256": "fbfa05faa6e5976fb5ab6bfc5def33912f5f46df9e63d8da88ea73ea2b43bd75"
+    },
+    "examples/physics-box-quantized-witness-2276/evidence/run-01/strict-nodenext-11-original-P4-ALIGNED1-b6-b7-output.json": {
+      "bytes": 65427,
+      "sha256": "5c46d259fcef5603ee885d0394e4b811faef3107f1efeeb161b6d76cea4cdc21"
+    },
+    "examples/physics-contact-boundary-2276/evidence/baseline-01/fixtures.json": {
+      "bytes": 948322,
+      "sha256": "6dbee5b66fa8b7fe638220181cf41ce3beed6e57456588943cc0e91fb135fe49"
+    },
+    "examples/physics-contact-boundary-2276/manifest.json": {
+      "bytes": 73147,
+      "sha256": "824cde0637a1cf033f77f673b1b4e12caf478c6b0aea6dbe9fc185b8a3f653c3"
+    },
+    "examples/physics-coupled-contact-2276/TOOLCHAIN-PINS-02.json": {
+      "bytes": 91224,
+      "sha256": "322ff3a1d49c5921fb8c96cc23c54a8a39793f437b7d944fe5cfb2363cdd1273"
+    },
+    "examples/physics-motion-nogo-2276/stack-study.py": {
+      "bytes": 22180,
+      "sha256": "70a34672ef53f034fa714bcd54a120a60c672fea3fd740841064dc8ac43263e2"
+    },
+    "examples/physics-p4-bounded-codec-witness-harness-2276/evidence/stage-b-01/summary.json": {
+      "bytes": 8375,
+      "sha256": "fd0a30c99b22c98cfaf1d65cf5a63e73d7915a7c967f470ca3de0bba565c4ee1"
+    },
+    "examples/physics-p4-codec-reference-2276/CONTRACT.md": {
+      "bytes": 10990,
+      "sha256": "c2aa61975649538a311b6c68039d52a85c73ca9ce97c446998ae0298582f8fee"
+    },
+    "examples/physics-p4-codec-reference-2276/PINS.json": {
+      "bytes": 2990,
+      "sha256": "7d1e81d17e59f25f86977817fb587d31ab2e809e7deea034a38805385be99e8a"
+    },
+    "examples/physics-p4-codec-reference-2276/audit.py": {
+      "bytes": 10739,
+      "sha256": "274f47b41d203c919aeb37db3789a5ee7b192cda3db4e2f3c46a89d11c0152ef"
+    },
+    "examples/physics-p4-codec-reference-2276/bank-spec.json": {
+      "bytes": 3178,
+      "sha256": "66be7c910a4be698cdbdd54caf13bc07f10324634679c0e8d656a4af96f6dae0"
+    },
+    "examples/physics-p4-codec-reference-2276/evidence/bank-01/manifest.json": {
+      "bytes": 3814,
+      "sha256": "8ef7f77734d71ad4263f2d9fad7f5101d31297bea9c97c03c6e38cd57d0fcfb7"
+    },
+    "examples/physics-p4-codec-reference-2276/evidence/bank-01/oracle.json": {
+      "bytes": 21139,
+      "sha256": "fa00ae164a08dcbce88ec6b3f06f0fcded989affbb5706dc63de0956f88c345e"
+    },
+    "examples/physics-p4-codec-reference-2276/evidence/bank-01/requests.json": {
+      "bytes": 10851,
+      "sha256": "f9b032698b4afc7808a41df361332c8ed1261bff0cbdabe21953ae2428b1f01b"
+    },
+    "examples/physics-p4-codec-reference-2276/materialize.py": {
+      "bytes": 3649,
+      "sha256": "01f19a04caf92b815ff2b1fc66b1987341693d93eb1800b364190c72b31db0ab"
+    },
+    "examples/physics-p4-codec-reference-2276/support.py": {
+      "bytes": 3701,
+      "sha256": "c6fd289f7e31791e39f0dc983e37c400d68a7d3356065dd400fb94532cc5e3b7"
+    },
+    "examples/physics-p4-compact-v2-2276/CONTRACT.md": {
+      "bytes": 5772,
+      "sha256": "f3c9b6651f447d823e6d019f81a82e1be8407db71e79e429490ae8e80ee9e68b"
+    },
+    "examples/physics-p4-compact-v2-2276/FREEZE-01.json": {
+      "bytes": 1487,
+      "sha256": "d3dc434cfaa9286a5342426e9e0c3e605342e1b52e30891ed8359d56ccbe0226"
+    },
+    "examples/physics-p4-compact-v2-2276/METHOD.md": {
+      "bytes": 2238,
+      "sha256": "6c2415c2cf918e88cd0f11222bcb718e27368cd66730ccea3a37dc70bba13871"
+    },
+    "examples/physics-p4-compact-v2-2276/README.md": {
+      "bytes": 1295,
+      "sha256": "5bb67650498c4a31b5786468195bcd9ffb862982429cef6391a7cc1df6eb4b1b"
+    },
+    "examples/physics-p4-compact-v2-2276/backend.py": {
+      "bytes": 3661,
+      "sha256": "94ab762e05317695b71df4da0550b1d77b137273c20901e74246a22b5bf62978"
+    },
+    "examples/physics-p4-compact-v2-2276/dependencies.json": {
+      "bytes": 2950,
+      "sha256": "e2cb5e2df61289ea74e0c75f6bb16ad3a12cfdcf126babe2fb3ee2220cdd8d5e"
+    },
+    "examples/physics-p4-compact-v2-2276/loaders.py": {
+      "bytes": 2790,
+      "sha256": "4d5a4de32e207acca67098c05aff02a9daa3051e0323c4e63a663b75437a761d"
+    },
+    "examples/physics-p4-compact-v2-2276/run.py": {
+      "bytes": 8246,
+      "sha256": "50922f2dac4787cf6051f3493c321e4144153bb33c499554a03b70f621074bda"
+    },
+    "examples/physics-p4-compact-v2-2276/verify.py": {
+      "bytes": 4826,
+      "sha256": "a8a177ebf0cd86200490dd765b507f672d4660d392056649c431240a40a1dcd2"
+    },
+    "examples/physics-p4-gcd-reference-2276/CONTRACT.md": {
+      "bytes": 10227,
+      "sha256": "f98065b52df7d6ac30ac68e8107548abe4ed38771e41ae1ab0b5c6a799bb69c3"
+    },
+    "examples/physics-p4-gcd-reference-2276/PINS.json": {
+      "bytes": 1566,
+      "sha256": "6eff75aee2254d31e6ed99773c96d08bdffd934961b34ef233419b7afacbe44b"
+    },
+    "examples/physics-p4-gcd-reference-2276/ROOT-M0-BOUNDARY-01.json": {
+      "bytes": 1453,
+      "sha256": "0b26488ddab82b95132caab37f742e042e608be4da4a9b7c1dafa757e284572c"
+    },
+    "examples/physics-p4-gcd-reference-2276/audit.py": {
+      "bytes": 8114,
+      "sha256": "9a1a0de57fd2816446875e6bd5e43180bd17b329ea0f9b850b9b50a40c81e30e"
+    },
+    "examples/physics-p4-gcd-reference-2276/bank-spec.json": {
+      "bytes": 2261,
+      "sha256": "0731fb0e0f92de465f1f7a765887284668e41d9dac40a97dd4f064ae710c9ef9"
+    },
+    "examples/physics-p4-gcd-reference-2276/evidence/bank-01/manifest.json": {
+      "bytes": 2252,
+      "sha256": "cc1f0ba2daa7c35ad7fa08213ddaa8aba6a506a880d58c3e4e2be86bfde7d36a"
+    },
+    "examples/physics-p4-gcd-reference-2276/evidence/bank-01/oracle.json": {
+      "bytes": 18532,
+      "sha256": "47bf2c2d3edc840bfb2bd87a633a0968dda0d5b8621828de939a06d7dc903bf7"
+    },
+    "examples/physics-p4-gcd-reference-2276/evidence/bank-01/requests.json": {
+      "bytes": 26601,
+      "sha256": "e7b0bdf52e6750691298173f2dcdc7ea2a039d6255d18c8398e80ad9ffde0b8c"
+    },
+    "examples/physics-p4-gcd-reference-2276/materialize.py": {
+      "bytes": 5167,
+      "sha256": "5e778886a8277f4928a7322e27d4ca5c6a756e04c6a7c33fd70e49588147de6c"
+    },
+    "examples/physics-p4-gcd-reference-2276/support.py": {
+      "bytes": 3701,
+      "sha256": "c6fd289f7e31791e39f0dc983e37c400d68a7d3356065dd400fb94532cc5e3b7"
+    },
+    "examples/physics-p4-integer-reference-review-2276/REVIEW.md": {
+      "bytes": 5881,
+      "sha256": "9f064a7ae38d8940e9fca1ec5e06ecb595c283b49a81d88f0315e34c9a6b96da"
+    },
+    "examples/physics-p4-integer-witness-2276/ALGORITHM.md": {
+      "bytes": 4712,
+      "sha256": "cab7560ca336bb04dcaf139d383abe3518f1beffc9560ad4606e3ed3811ef800"
+    },
+    "examples/physics-p4-integer-witness-2276/ALLOCATION.md": {
+      "bytes": 7554,
+      "sha256": "40a96f18e5a67c2e7176692e168025bba206feb18f096a7accaaa6ede1f068f4"
+    },
+    "examples/physics-p4-integer-witness-2276/CONTRACT.md": {
+      "bytes": 5856,
+      "sha256": "8ea59269de2b20676d99410a9de593ec98e07b010412016889bec80848e592b5"
+    },
+    "examples/physics-p4-integer-witness-2276/GUARD-POLICY.md": {
+      "bytes": 10575,
+      "sha256": "5ec35188b777324d1289bbee60453929e58542a9d53ef665232f1cc587191d74"
+    },
+    "examples/physics-p4-integer-witness-2276/candidate.mjs": {
+      "bytes": 40454,
+      "sha256": "8f146b18c8407b138c825429361304b5d3de1f8d91f306197128bc220cb5059b"
+    },
+    "examples/physics-p4-integer-witness-2276/smallworker.mjs": {
+      "bytes": 2957,
+      "sha256": "2db37e9419832e9ab04074cd66bfdfeba820e27d7472385cee73b1d929b80a65"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/ALLOCATION.md": {
+      "bytes": 2117,
+      "sha256": "6b0e9e521a74c5537634277f599acfe251f131b88617369542f00f534a19c1e2"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/AUTHOR-FREEZE-01.json": {
+      "bytes": 36078,
+      "sha256": "4c2d550cbd07e32badaa93f1caac92aaeb0944d7947526eedf9f46beeb127401"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/CONTRACT.md": {
+      "bytes": 3024,
+      "sha256": "dccd2c31749369423289250837ee54cba94df51325e4fae16e65ecea61578a1e"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/CORPUS.json": {
+      "bytes": 9206,
+      "sha256": "c73a22045d5e9fb8220838cdce51c5c3608a1e041ecc0859943a3b61ca0ae36d"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/PROTOCOL-01.json": {
+      "bytes": 8081,
+      "sha256": "4286ed31d25fa07c129cbe44d4e743d91e9e2d717ba51bbca3c335e5deaea586"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/README.md": {
+      "bytes": 1853,
+      "sha256": "2313b7eed652719258f0d1f20689e38d015ad71b6b00a1b7bd6243c4fdded502"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/SOURCE-PINS-01.json": {
+      "bytes": 35289,
+      "sha256": "b76a6abc505d0892d0afa1aacd85692a6b687c6f18d468fe48c77393b3829449"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/WRAPPER-BANK-01.json": {
+      "bytes": 21705,
+      "sha256": "bfc18709eba009a2632f179cd7afc7cba5f0ace70563e68b6661ad812b6237ad"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/bounds.py": {
+      "bytes": 5981,
+      "sha256": "a3c1f37d2b8a92565bcb1a023ab9c119eb81ed8146f259e1702fc1f9e94f9af4"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/g0-01/candidate-reply.json": {
+      "bytes": 7561,
+      "sha256": "9d0d2d2f193ab6f72b380477b69a235aae857bfbde6baf071444f3a90e7c5274"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/g0-01/candidate-request.json": {
+      "bytes": 26601,
+      "sha256": "e7b0bdf52e6750691298173f2dcdc7ea2a039d6255d18c8398e80ad9ffde0b8c"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/g0-01/candidate.process.json": {
+      "bytes": 770,
+      "sha256": "7964804948e34607ea987b0b71e2a569cf3bd5140fe6a4fc7cc40917cf18bb4e"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/g0-01/candidate.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/g0-01/candidate.stdout.raw": {
+      "bytes": 103,
+      "sha256": "f12a8519da545af70d2bb90d8e7ce066d7f5f54a127c1bffc818bc6e9d9528b8"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/g0-01/independent-gcd.json": {
+      "bytes": 2092,
+      "sha256": "fbece662a6dd1b01b20f564ca00105cc91a4c8681accd05ef5c8a99c71134d89"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/g0-01/independent.process.json": {
+      "bytes": 1080,
+      "sha256": "911dc7edbd9c1181b50fce27540f8b0f9b7fc07a8403c145b776a3c3909c1bc6"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/g0-01/independent.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/g0-01/independent.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/g0-01/summary.json": {
+      "bytes": 2504,
+      "sha256": "d6f80f0486789f77562440bf11b57971d9d559f69403a09bcd627fe5dd91f136"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-1-candidate.process.json": {
+      "bytes": 789,
+      "sha256": "186d41b91048c8ffde3654381d81721df0c3e1680d7968983742f462f9e61dce"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-1-candidate.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-1-candidate.stdout.raw": {
+      "bytes": 98,
+      "sha256": "b4d7303d6231bd49be1ed8ccd7481202c540cdece52d545af2559f5907065a5e"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-1-checker.process.json": {
+      "bytes": 1023,
+      "sha256": "23f2290982e52d850683148d2775a1bab2fe7abd3221baf2999d5b8238b7a7a1"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-1-checker.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-1-checker.stdout.raw": {
+      "bytes": 248,
+      "sha256": "c19c1b78141e3a8b46d1a2293efff18f927d8542e8a33689144f241818f66978"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-1-independent.json": {
+      "bytes": 3238,
+      "sha256": "c99d812ddbec1f5050a95a2d499b90b54e79a775cd7f0deb6ea52ccac785a965"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-1-reply.json": {
+      "bytes": 4315,
+      "sha256": "a2431d26e4c17829a718fd7f34db3b9763be6ecf23bc199125a65c866176d350"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-1-request.json": {
+      "bytes": 5791,
+      "sha256": "931b338d806ceaa7ea234af98a77aace3be1ccfc29a5cac5e4b7a6f05ecb7e28"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-16-candidate.process.json": {
+      "bytes": 791,
+      "sha256": "76a7c68cf50a214b20bf596f9defab300cbce3a25e3b08cb523f53e29a2f11f1"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-16-candidate.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-16-candidate.stdout.raw": {
+      "bytes": 99,
+      "sha256": "6f4ff91fd6b7b900167c960b94ecdfc26f33922af0f66278cdf728d79a61ad71"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-16-checker.process.json": {
+      "bytes": 1028,
+      "sha256": "ecb6edc2a337b8d21a11998d28b6e3defdf156ecb201e083b442d58498ee4e27"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-16-checker.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-16-checker.stdout.raw": {
+      "bytes": 249,
+      "sha256": "70cd6b906b1f8b328e1b579e4116291221273f5ed7bbf0d2b38c16474f96cad3"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-16-independent.json": {
+      "bytes": 4271,
+      "sha256": "c45744c7c12e6a8c798bd297df21a7ad75089ea9d5c71bc550fdd47623c6f5e4"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-16-reply.json": {
+      "bytes": 59385,
+      "sha256": "603ad6910112853e8f4bdd42eaec8a4efc96b0a026e046d8da1cb5b73f9f47be"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-ALIGNED-16-request.json": {
+      "bytes": 8084,
+      "sha256": "78d18515fb8d8f70b04fdf9c13524881d83daec81f8933d2a0142e4841e94210"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-1-candidate.process.json": {
+      "bytes": 787,
+      "sha256": "6db19df613b9515c94750d022b7882599c434738e333f5bb71dd59c69940f1b8"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-1-candidate.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-1-candidate.stdout.raw": {
+      "bytes": 98,
+      "sha256": "b4d7303d6231bd49be1ed8ccd7481202c540cdece52d545af2559f5907065a5e"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-1-checker.process.json": {
+      "bytes": 1019,
+      "sha256": "af994cdd519e3c34df95f84dc00b9becdf0824a788e593f616956a6453c2ab03"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-1-checker.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-1-checker.stdout.raw": {
+      "bytes": 247,
+      "sha256": "4be63b9fb913e85a0e874d8b2894cb27f06e60d90428f77060b08d294e7753ca"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-1-independent.json": {
+      "bytes": 3236,
+      "sha256": "d0fa59da835fcac89df827e7eee0b7db048f93c41ed469a45bdffa08e8c1dd7a"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-1-reply.json": {
+      "bytes": 4315,
+      "sha256": "a2431d26e4c17829a718fd7f34db3b9763be6ecf23bc199125a65c866176d350"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-1-request.json": {
+      "bytes": 5791,
+      "sha256": "931b338d806ceaa7ea234af98a77aace3be1ccfc29a5cac5e4b7a6f05ecb7e28"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-16-candidate.process.json": {
+      "bytes": 789,
+      "sha256": "e1742eaa5cff172f62f56828fc7ea862bacedfc59cbe42765d2ca339e0dc1438"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-16-candidate.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-16-candidate.stdout.raw": {
+      "bytes": 99,
+      "sha256": "338791fb9758b4b18a77b67a3bc072f86a3249252a2b58c9e4c81a560ea347fc"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-16-checker.process.json": {
+      "bytes": 1024,
+      "sha256": "ed78acc415520dc74dc841d8a8a001fec9a0a2231a7b354ac1b97e949ce1cce8"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-16-checker.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-16-checker.stdout.raw": {
+      "bytes": 248,
+      "sha256": "8d14ed81a8bdb322a6622ec4b7018b99cb237a762483f76ccc302d0365f749b5"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-16-independent.json": {
+      "bytes": 4264,
+      "sha256": "0bfdbc32bfe80afeeb0d3e3415877ad5689eadc56eaea0e87b217f36204439e2"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-16-reply.json": {
+      "bytes": 59159,
+      "sha256": "3ea2fda53f9b1ee6c22070acd11d0f0d17e6720dc7a368b940cc989ff5529f33"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-OFFSET-16-request.json": {
+      "bytes": 8178,
+      "sha256": "f4c3cb82e9ac56a30ce8c89ad5bd78a14166dd58c94673e98c00a053f078924c"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-1-candidate.process.json": {
+      "bytes": 781,
+      "sha256": "8a0d631950d80c566b912d82fb0d34f7bbdd9747037be49f073b2f6224daa0a3"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-1-candidate.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-1-candidate.stdout.raw": {
+      "bytes": 98,
+      "sha256": "b4d7303d6231bd49be1ed8ccd7481202c540cdece52d545af2559f5907065a5e"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-1-checker.process.json": {
+      "bytes": 1008,
+      "sha256": "d4b0dfde84cf8b5f3519ff648bf4ec13a8f94934a074f7235d0805dd7f2d503e"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-1-checker.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-1-checker.stdout.raw": {
+      "bytes": 244,
+      "sha256": "71c7aab39133d7aca72788c0907d68be96ed15703c71a605bbff89353cb9b959"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-1-independent.json": {
+      "bytes": 3234,
+      "sha256": "a0bd75fa37b8883ca2927f9e3aa9f4ed29b5e212d2e470530834da7ceb874718"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-1-reply.json": {
+      "bytes": 4315,
+      "sha256": "a2431d26e4c17829a718fd7f34db3b9763be6ecf23bc199125a65c866176d350"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-1-request.json": {
+      "bytes": 5791,
+      "sha256": "931b338d806ceaa7ea234af98a77aace3be1ccfc29a5cac5e4b7a6f05ecb7e28"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-16-candidate.process.json": {
+      "bytes": 783,
+      "sha256": "6261bfc55b007345160553ec9b50dcd81e885c46639b2b860e1233b5ab345328"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-16-candidate.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-16-candidate.stdout.raw": {
+      "bytes": 99,
+      "sha256": "e2b40a5fc9ef6f75d0dbecb54226aaa9af0d828c5349b76e5cfce362b39ca94b"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-16-checker.process.json": {
+      "bytes": 1012,
+      "sha256": "c6301a96ebc3a78e8b909e3231f795bd35bff98d19ef4e99fe47339dd57abe71"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-16-checker.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-16-checker.stdout.raw": {
+      "bytes": 245,
+      "sha256": "af9cc14224f14ee10029ec99691cb55414d62a970ef4c602de53489f23af2849"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-16-independent.json": {
+      "bytes": 4302,
+      "sha256": "3d5fa792492cf00f4332265afe785e29cd32ea56d4488e4d910c324dc393a977"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-16-reply.json": {
+      "bytes": 60651,
+      "sha256": "782268f838c2ca2ab6ff1a1c946db2fe04d488794406352a9744b8260298e214"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-YAW-16-request.json": {
+      "bytes": 8088,
+      "sha256": "3fca87b1af614918ef109ed74d8d126f18213bed62a65dfc5a81279b371bd068"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-dependent-original-row1-candidate.process.json": {
+      "bytes": 833,
+      "sha256": "145491a061995f1178d120df8bcfafdf242022866ac685de3df8c85e1f6e3df2"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-dependent-original-row1-candidate.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-dependent-original-row1-candidate.stdout.raw": {
+      "bytes": 89,
+      "sha256": "c24fcff25fe2786344dc0b2d96a476eb651730737875d9065a467a7a33cb8dfb"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-dependent-original-row1-checker.process.json": {
+      "bytes": 1111,
+      "sha256": "a3e0081cab577717bd5b347be8a3667c94075de8d96c29cb38c457717fa26b67"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-dependent-original-row1-checker.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-dependent-original-row1-checker.stdout.raw": {
+      "bytes": 270,
+      "sha256": "5fbe6331479a939869bf1347f625b64d1930bd3c6b3cfad144ad0c26d3c677fd"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-dependent-original-row1-independent.json": {
+      "bytes": 2951,
+      "sha256": "b4102af582d734a00805218e817d3b5cfc8e3133282500cfa7fe27750f13672f"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-dependent-original-row1-reply.json": {
+      "bytes": 1087,
+      "sha256": "f97aca8291ac6c32669d1d64e7ba762e745dbdf7bc8abdf3ba38b2de038b6a14"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-dependent-original-row1-request.json": {
+      "bytes": 5793,
+      "sha256": "ef31e11d5df0f51756c7c4c39fe6523a0605d1f6453dcb52016c1c7d5a8ddd4a"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-duplicate-index-candidate.process.json": {
+      "bytes": 817,
+      "sha256": "0f3aa51cca0ae8f0cd33d7a12201e3e5ccd8ae1c07c91a03c03f2c08adfb486d"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-duplicate-index-candidate.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-duplicate-index-candidate.stdout.raw": {
+      "bytes": 89,
+      "sha256": "f818a943c29c0189b17d68db9e8b96d7e7f5bd354eae8ac219ca738b63b3d1e7"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-duplicate-index-checker.process.json": {
+      "bytes": 1079,
+      "sha256": "c5ee6b0828aec8c576bd1ecc0c5cc252abfdbb918152a2fb9cafccfb4ba56166"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-duplicate-index-checker.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-duplicate-index-checker.stdout.raw": {
+      "bytes": 262,
+      "sha256": "39862a6f7ff209056d1f48db77acfa09ca677676a8c650a29f3f56c6140d1fdc"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-duplicate-index-independent.json": {
+      "bytes": 2821,
+      "sha256": "251ed4ee9804d1328be6c3c27432987272a4aef1109c4d9f3cdc4b36d6d88c78"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-duplicate-index-reply.json": {
+      "bytes": 1032,
+      "sha256": "5ce3fd8a2cc763d4d05df8f533163a8ddd31c3cf16818b883584fd05b9b0ea28"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-duplicate-index-request.json": {
+      "bytes": 5791,
+      "sha256": "76c48a9b39dd0921aa757557436bccb4ce11947531deb053be9cc417aeea260e"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-omit-ground-row7-candidate.process.json": {
+      "bytes": 819,
+      "sha256": "c82dc2ac40ff5987ae712d0be3cb61c4937e8a8fbcba3ab08a041897757a9c68"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-omit-ground-row7-candidate.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-omit-ground-row7-candidate.stdout.raw": {
+      "bytes": 89,
+      "sha256": "e36a851ac43a6c00a137f7307108c7c3b75a7caad51203a7d12674400fafb3e2"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-omit-ground-row7-checker.process.json": {
+      "bytes": 1083,
+      "sha256": "9d7c1e947f67202cca84e4d3459cdf00633e99bfca8cccfb8f15c727403da766"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-omit-ground-row7-checker.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-omit-ground-row7-checker.stdout.raw": {
+      "bytes": 263,
+      "sha256": "786e7c2e948e88208b37a31ae2493e57d54666eb43e3b33181059f11bf620ca7"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-omit-ground-row7-independent.json": {
+      "bytes": 2968,
+      "sha256": "69c6e452265a6b70c03a6158acfb05fcc683887fe6f67623ab50d407cf93ef73"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-omit-ground-row7-reply.json": {
+      "bytes": 1098,
+      "sha256": "a363513215bee6edfb4263b08b6436e6460f20a8f40441ec9ae5524f39b994cd"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-omit-ground-row7-request.json": {
+      "bytes": 5789,
+      "sha256": "138c7418a2ad02e548641115cbe2420091b81d1abe64dcfdd790c4f1075eee94"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-reported-translation-candidate.process.json": {
+      "bytes": 829,
+      "sha256": "efcf76c68b296a5c7dc92c8df8b39072025d97ec2e892930dd1ab03755ac95db"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-reported-translation-candidate.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-reported-translation-candidate.stdout.raw": {
+      "bytes": 103,
+      "sha256": "65adf8162af9ac744ab5b4d9ddbbb6b1702703e87d997e697a6d9337912f94ec"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-reported-translation-checker.process.json": {
+      "bytes": 1099,
+      "sha256": "1d820434202819ac852601214a5d6bc64f58b2117dbeda6da80150aac25092fb"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-reported-translation-checker.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-reported-translation-checker.stdout.raw": {
+      "bytes": 267,
+      "sha256": "89663383b2fa434d15cfeff7928a041fe846f6a8cd7d58cede1d395dcac44f9c"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-reported-translation-independent.json": {
+      "bytes": 3373,
+      "sha256": "c0479e6932ed5f4c49ed0844b0dcd1993375c55e7678b5220008ad53c4d74710"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-reported-translation-reply.json": {
+      "bytes": 4867,
+      "sha256": "b079b963793654027aa50002ceb8f40d096504ecfc526388b6bb23dff478f5a2"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/kernel-control-reported-translation-request.json": {
+      "bytes": 5791,
+      "sha256": "bdb1eaa7f52907ebd1c9ce9c95e1dac60c0935c9e2866fc4b984b92498099c48"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-a-01/summary.json": {
+      "bytes": 7725,
+      "sha256": "21dec0f5c17f7b488eb4db8115c8adca9ec29cf308c2c3d292a75f03d23101aa"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/stage-b-01/summary.json": {
+      "bytes": 8338,
+      "sha256": "3664189da9b5ee3a362530e8f6bf3518b815edb0d107e68afc5a2dd0cb8173e6"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/u0-01/candidate-reply.json": {
+      "bytes": 17023,
+      "sha256": "a3d43ba325f9e3dfdb6f242de489a303912277ea9fd7d0b4b7a48915a0e54d0d"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/u0-01/candidate-request.json": {
+      "bytes": 10851,
+      "sha256": "f9b032698b4afc7808a41df361332c8ed1261bff0cbdabe21953ae2428b1f01b"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/u0-01/candidate.process.json": {
+      "bytes": 771,
+      "sha256": "ff371fb216f42864b155f87f5b7883e25c31148c2449826b4328220c67fcb20e"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/u0-01/candidate.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/u0-01/candidate.stdout.raw": {
+      "bytes": 106,
+      "sha256": "9dd166fde3c55a2bf1dca2e4eff8bc1d1339a4226b1ff06c2fc5e7b18c7ac0af"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/u0-01/independent-codec.json": {
+      "bytes": 2127,
+      "sha256": "43e0f04e0cb361521d5fe6d553240acedf58243afa005eb36058e7c52f68c694"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/u0-01/independent.process.json": {
+      "bytes": 1076,
+      "sha256": "49913a16ba226ed3fcc8c76c63043a82f2a8ad344378f44a4b8ce39d51798f7d"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/u0-01/independent.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/u0-01/independent.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/evidence/u0-01/summary.json": {
+      "bytes": 2920,
+      "sha256": "405aba5c22450f869414a6b6aa5f4551ef0990da47045edc960755788a99c901"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/freeze.py": {
+      "bytes": 12078,
+      "sha256": "ea83a016ec2579fa080c60955e133a0447cd9d062c46ca588ca62c8a0c1cbc2a"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/node_bridge.py": {
+      "bytes": 11437,
+      "sha256": "559d634c0166edb2d292cad3852bcad3e0045f08a3fcd7a1e6984547bb497060"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/physical.py": {
+      "bytes": 4164,
+      "sha256": "679dcc822bea8327d073f6b17639d05c4bddf4647a8ef6b0cafc7cc19b2e0fd9"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/run-g0.py": {
+      "bytes": 6616,
+      "sha256": "fccb686699f99260eed116af3c3a4948dbb95503f8a89175a6cd95052a4e79d1"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/run-u0.py": {
+      "bytes": 8268,
+      "sha256": "556b9777834abb6ea601f08dd1289fb21d60a579fbf7d45642b5dfa9e9aa3c01"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/run.py": {
+      "bytes": 23661,
+      "sha256": "2f70376fae6c6cb4731f977a0d2ac6766af5c8d53b253915763d9f094249ae41"
+    },
+    "examples/physics-p4-integer-witness-harness-2276/wrapper.py": {
+      "bytes": 21782,
+      "sha256": "6edbb8525018c4b728093b7715e18be8b035e6959d490609286cf228e2d88ca3"
+    },
+    "examples/physics-p4-invariant-gcd-reference-2276/CONTRACT.md": {
+      "bytes": 6770,
+      "sha256": "efac38f95016152b7b6f0560b2261433070d97fc3fb8eb83eea1076167979e5b"
+    },
+    "examples/physics-p4-invariant-gcd-reference-2276/PINS.json": {
+      "bytes": 3469,
+      "sha256": "974f419ab8956773b108a4c177da9ce73dada709e1b182dfb8c2270f77700173"
+    },
+    "examples/physics-p4-invariant-gcd-reference-2276/audit.py": {
+      "bytes": 8726,
+      "sha256": "1b64a927b421946dd280ed769eeffeca5ad346bcc9fe0acccade109780926323"
+    },
+    "examples/physics-p4-invariant-gcd-reference-2276/literals.py": {
+      "bytes": 1682,
+      "sha256": "6442766999c7ca3066a4a8f91d0722815966f04c2ca46bf7692fd611dcb68f8c"
+    },
+    "examples/physics-p4-invariant-gcd-reference-2276/support.py": {
+      "bytes": 3701,
+      "sha256": "c6fd289f7e31791e39f0dc983e37c400d68a7d3356065dd400fb94532cc5e3b7"
+    },
+    "examples/physics-p4-invariant-witness-harness-2276/evidence/stage-b-01/summary.json": {
+      "bytes": 8330,
+      "sha256": "405a66eb0d388000c0418c0eb46621855aa73f6b8368dd5f16114b91772731dc"
+    },
+    "examples/physics-p4-lehmer-witness-harness-2276/evidence/stage-a-01/summary.json": {
+      "bytes": 4592,
+      "sha256": "127bc7fdff1bf7b8d4d3c95965091c69d9e7fc389c5c1c5d926ae157f652f4d1"
+    },
+    "examples/physics-p4-native-witness-harness-2276/evidence/stage-b-02/summary.json": {
+      "bytes": 9066,
+      "sha256": "a3354b4260a02fdea5d12b23d890ee565ce957f5c3be264fa16a542d8febdfd7"
+    },
+    "examples/physics-p4-position-v2-2276/CONTRACT.md": {
+      "bytes": 6280,
+      "sha256": "b98bc0ac141199ec6d1047b0b6370e221afaf8604c256ffc3e0ee6e80b128eaf"
+    },
+    "examples/physics-p4-position-v2-2276/EVIDENCE-ARCHIVE.json": {
+      "bytes": 7161,
+      "sha256": "a5b05b2211df7bad8b3e6452d80a57d629429cf8d570cdce5e57deb53810192e"
+    },
+    "examples/physics-p4-position-v2-2276/FREEZE-01.json": {
+      "bytes": 1134,
+      "sha256": "c5f56f49179a84cd948c8634a577abd1bf95d782f2131525f05af55e8b6f1b30"
+    },
+    "examples/physics-p4-position-v2-2276/README.md": {
+      "bytes": 1576,
+      "sha256": "4e516fb59553224882fb6916e31823ed587c09fbc112faa0c61f60a4bf777b55"
+    },
+    "examples/physics-p4-position-v2-2276/RESULTS.json": {
+      "bytes": 3673,
+      "sha256": "87ea0b41e95c4a1e14a967f75b34f6af28dc7b51e017baf2d119e3b469e75c5d"
+    },
+    "examples/physics-p4-position-v2-2276/dependencies.json": {
+      "bytes": 5252,
+      "sha256": "0e3138295fb65b45c4684e786d97a1c874d1a9bd813e62b8f775418fb4f3a4e0"
+    },
+    "examples/physics-p4-position-v2-2276/evidence/position-01/ALIGNED-1-reply.json": {
+      "bytes": 280483,
+      "sha256": "1eecbbaaf3e0f2d9eb42b48d2ffb7e9144218974e2edc461bb2171543f51a9c1"
+    },
+    "examples/physics-p4-position-v2-2276/evidence/position-01/ALIGNED-16-reply.json": {
+      "bytes": 366543,
+      "sha256": "d510c8d01b076d8399f0176692d6ef5f2f240ec56673ec86bdde482763f1b215"
+    },
+    "examples/physics-p4-position-v2-2276/evidence/position-01/OFFSET-1-reply.json": {
+      "bytes": 280575,
+      "sha256": "acda0577072f838d48beb26cfc23b6df0adcaa194ca5c30a55acfb9e13593fd6"
+    },
+    "examples/physics-p4-position-v2-2276/evidence/position-01/OFFSET-16-reply.json": {
+      "bytes": 365605,
+      "sha256": "3c1c32c6aca481eaae4831a42d308e48c9ba8a104d8987d8e282c9c5d02a90ea"
+    },
+    "examples/physics-p4-position-v2-2276/evidence/position-01/YAW-1-reply.json": {
+      "bytes": 280956,
+      "sha256": "15d86174bfe19760e93f2ed020097fa7020e9aae3cf152c876fda99fe1ed6be1"
+    },
+    "examples/physics-p4-position-v2-2276/evidence/position-01/YAW-16-reply.json": {
+      "bytes": 370515,
+      "sha256": "840a623fa51a2c0594bdbc6d73b02c02a2534fb5cd461068848c49839fbfa89c"
+    },
+    "examples/physics-p4-position-v2-2276/evidence/position-01/summary.json": {
+      "bytes": 8373,
+      "sha256": "97cb25276fac4cdfb7ef6f865b0e8c2a2c0cd6bf2eb4af3f0fc26190fb672ab7"
+    },
+    "examples/physics-p4-position-v2-2276/observer.py": {
+      "bytes": 9441,
+      "sha256": "bac282631421947855bce3c2eb6d2c4f50a8855b6e63236a4e35ca9cc49bbdf0"
+    },
+    "examples/physics-p4-position-v2-2276/run.py": {
+      "bytes": 9148,
+      "sha256": "c56bf6d810dfbdaddf0fbe0f93e2e4485ee7540c40952946b5329cb82d7104a4"
+    },
+    "examples/physics-p4-position-v2-2276/verify.py": {
+      "bytes": 2581,
+      "sha256": "95a53cc56639165269b24029b10ea822bf7f4f71b684b03785486ace021aad63"
+    },
+    "examples/physics-p4-position-witness-2276/CONTRACT.md": {
+      "bytes": 14351,
+      "sha256": "d4590564d03caf4bf6128537555a33f25b02f2cc7532a261d6d2ea8eacfc453a"
+    },
+    "examples/physics-p4-position-witness-2276/METERING.md": {
+      "bytes": 14418,
+      "sha256": "66849646ac9b5b1791fc09696b68032316fabfbb58d1c3188334e36a5565d37e"
+    },
+    "examples/physics-p4-position-witness-2276/ROOT-FORMAT-CORRECTION-02.json": {
+      "bytes": 2396,
+      "sha256": "36f90693acd982863adb36c8bf117a943be9a1e73b75ddcd82534cb047bd94e9"
+    },
+    "examples/physics-p4-position-witness-2276/RUNTIME-LAYOUT-01.json": {
+      "bytes": 913,
+      "sha256": "bc3904316e2e67f74f61140437c2ce35e170b75f194c026bc446d016d66f709e"
+    },
+    "examples/physics-p4-position-witness-harness-2276/evidence/stage-a-01/summary.json": {
+      "bytes": 4317,
+      "sha256": "f078f0b5b52f6e351f32fa1a91f1b64dba49bed9883953e0d9e85ed936096168"
+    },
+    "examples/physics-p4-position-witness-harness-v2-2276/evidence/stage-b-01/summary.json": {
+      "bytes": 7021,
+      "sha256": "9b87ee7d206c114aada7d1abad211ee0e199669fbe9db6370f03dcbd0b0e7ef9"
+    },
+    "examples/physics-p4-position-witness-reference-2276/CONTRACT.md": {
+      "bytes": 12892,
+      "sha256": "6666425b14752d7df8e14348e7209b9b6d5ff648645e3c2c302e441df2f6f63b"
+    },
+    "examples/physics-p4-position-witness-reference-2276/bank.json": {
+      "bytes": 24544,
+      "sha256": "8e64eab38c59f669f92b15f15e5fc7d60e0588419c9a5ed7544036637611dc13"
+    },
+    "examples/physics-p4-position-witness-reference-2276/checker.py": {
+      "bytes": 36990,
+      "sha256": "df5efdf7eba1efd5e36dfc338112c4f8655a00bb7617286544c2b8f701271490"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/kernel-ALIGNED-1.json": {
+      "bytes": 5791,
+      "sha256": "931b338d806ceaa7ea234af98a77aace3be1ccfc29a5cac5e4b7a6f05ecb7e28"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/kernel-ALIGNED-16.json": {
+      "bytes": 8084,
+      "sha256": "78d18515fb8d8f70b04fdf9c13524881d83daec81f8933d2a0142e4841e94210"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/kernel-OFFSET-1.json": {
+      "bytes": 5791,
+      "sha256": "931b338d806ceaa7ea234af98a77aace3be1ccfc29a5cac5e4b7a6f05ecb7e28"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/kernel-OFFSET-16.json": {
+      "bytes": 8178,
+      "sha256": "f4c3cb82e9ac56a30ce8c89ad5bd78a14166dd58c94673e98c00a053f078924c"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/kernel-YAW-1.json": {
+      "bytes": 5791,
+      "sha256": "931b338d806ceaa7ea234af98a77aace3be1ccfc29a5cac5e4b7a6f05ecb7e28"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/kernel-YAW-16.json": {
+      "bytes": 8088,
+      "sha256": "3fca87b1af614918ef109ed74d8d126f18213bed62a65dfc5a81279b371bd068"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/kernel-control-dependent-original-row1.json": {
+      "bytes": 5793,
+      "sha256": "ef31e11d5df0f51756c7c4c39fe6523a0605d1f6453dcb52016c1c7d5a8ddd4a"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/kernel-control-duplicate-index.json": {
+      "bytes": 5791,
+      "sha256": "76c48a9b39dd0921aa757557436bccb4ce11947531deb053be9cc417aeea260e"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/kernel-control-omit-ground-row7.json": {
+      "bytes": 5789,
+      "sha256": "138c7418a2ad02e548641115cbe2420091b81d1abe64dcfdd790c4f1075eee94"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/kernel-control-reported-translation.json": {
+      "bytes": 5791,
+      "sha256": "bdb1eaa7f52907ebd1c9ce9c95e1dac60c0935c9e2866fc4b984b92498099c48"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/original-force32-provenance.json": {
+      "bytes": 25682,
+      "sha256": "3de52afcd13f32f2cc6de42ce285339a65c3588a9a7b3c65e99b8880157b014a"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/stage-a.json": {
+      "bytes": 2601,
+      "sha256": "2cfee91e60760a806f2b5676329833d5d7e2a13f52623fce87edde216f4bfaff"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/stage-b.json": {
+      "bytes": 1731,
+      "sha256": "b1ae8bfc73fbde1a25909dd5a545a721e6935da311baabbb49c03c1aa3166560"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/world-ALIGNED-1.json": {
+      "bytes": 27751,
+      "sha256": "724ffd6804f3203a9753a29583e3f0777a4fcb54f70932eb397095092e4e79b4"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/world-ALIGNED-16.json": {
+      "bytes": 35695,
+      "sha256": "c5014cbd7b6948642ff43cced4cbd0a5d216ac90302f21857f20848c5d8fa2e1"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/world-OFFSET-1.json": {
+      "bytes": 27832,
+      "sha256": "82380db104fc1650db3bda306d5875809914586a2ebc5f179a317da115c7cdbc"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/world-OFFSET-16.json": {
+      "bytes": 35351,
+      "sha256": "d63d1287858963e0b5fa2ea065df242ac6d21eeeda4d7e2e4368acca15c1265c"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/world-YAW-1.json": {
+      "bytes": 28793,
+      "sha256": "d6885e19204ac9753acdaddbf91d3a152c3105601ecc821d39aec007af6bc525"
+    },
+    "examples/physics-p4-position-witness-reference-2276/evidence/bank-01/world-YAW-16.json": {
+      "bytes": 35594,
+      "sha256": "e1567a963b0a8bc416e7ce027bbcce41710112575d5ce9380dc82d2eb0a150c3"
+    },
+    "examples/physics-p4-position-witness-reference-2276/materialize.py": {
+      "bytes": 7992,
+      "sha256": "d2c2180144f3c2010796586a6e242a032b56311d05dd2cfab8a0bab38615e148"
+    },
+    "examples/physics-p4-position-witness-v2-2276/ALLOCATION.md": {
+      "bytes": 8303,
+      "sha256": "bb4cabfd87900650bfbe4d9aaf67c70662c6d4ed3088a9a5cf92aa5e7d6b396e"
+    },
+    "examples/physics-p4-position-witness-v2-2276/CONTRACT.md": {
+      "bytes": 14351,
+      "sha256": "d4590564d03caf4bf6128537555a33f25b02f2cc7532a261d6d2ea8eacfc453a"
+    },
+    "examples/physics-p4-position-witness-v2-2276/METERING.md": {
+      "bytes": 14418,
+      "sha256": "66849646ac9b5b1791fc09696b68032316fabfbb58d1c3188334e36a5565d37e"
+    },
+    "examples/physics-p4-position-witness-v2-2276/ROOT-APPROVAL-01.json": {
+      "bytes": 2139,
+      "sha256": "db7749ad305275e8424dcbd5817b694d2efa85d3c5021a65384fb1b022547ca8"
+    },
+    "examples/physics-p4-position-witness-v2-2276/ROOT-FORMAT-CORRECTION-02.json": {
+      "bytes": 2396,
+      "sha256": "36f90693acd982863adb36c8bf117a943be9a1e73b75ddcd82534cb047bd94e9"
+    },
+    "examples/physics-p4-position-witness-v2-2276/RUNTIME-LAYOUT-01.json": {
+      "bytes": 913,
+      "sha256": "bc3904316e2e67f74f61140437c2ce35e170b75f194c026bc446d016d66f709e"
+    },
+    "examples/physics-p4-radical-compact-2276/ALGORITHM.md": {
+      "bytes": 2353,
+      "sha256": "e9616dad4145a6f6182fb006361b0eef75d9dd23b830624f094746e4a63fbe2f"
+    },
+    "examples/physics-p4-radical-compact-2276/CONTRACT.md": {
+      "bytes": 6566,
+      "sha256": "ff2cf6d7af07db47499c4581e41cc4b024fcabbc45ce6250663f8203975201c9"
+    },
+    "examples/physics-p4-radical-compact-2276/SOURCE-PINS.json": {
+      "bytes": 2149,
+      "sha256": "f9443bd893473b0c1b1597212430db1422980026982018713ff193f116ba3f6d"
+    },
+    "examples/physics-p4-radical-compact-2276/backend.py": {
+      "bytes": 9849,
+      "sha256": "5fed3731c6b84d8563d8cd118912b34a0a1c3d711aed38ed2396d2b5fb1e3415"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/ALLOCATION.md": {
+      "bytes": 1703,
+      "sha256": "58b21f1171bc2564cbd9a22e079f13bceb60eec72518dcb57d85a55360eb377e"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/CONTRACT.md": {
+      "bytes": 3877,
+      "sha256": "0c6144cdfe274d998380e9c7fdd424e9da61d7bce378b16822e87523d0764f4e"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/CORPUS.json": {
+      "bytes": 9206,
+      "sha256": "c73a22045d5e9fb8220838cdce51c5c3608a1e041ecc0859943a3b61ca0ae36d"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/README.md": {
+      "bytes": 935,
+      "sha256": "39a7cc6df0703b39f749a6c63da961d1ffc19d7c1d67bb4147bfa8fd0d5c1e14"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/WRAPPER-BANK-01.json": {
+      "bytes": 23646,
+      "sha256": "fbd86230f10e1e9abc56729808a0b3cb0cf4bab7e33ae7e20a412b2ebad44455"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/bounds.py": {
+      "bytes": 5981,
+      "sha256": "a3c1f37d2b8a92565bcb1a023ab9c119eb81ed8146f259e1702fc1f9e94f9af4"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/freeze.py": {
+      "bytes": 2621,
+      "sha256": "980c0bf876a542bebc2b93cab85d3f7319ea81b0c9755edbb4e523a911ca14a9"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/node_bridge.py": {
+      "bytes": 11437,
+      "sha256": "559d634c0166edb2d292cad3852bcad3e0045f08a3fcd7a1e6984547bb497060"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/physical.py": {
+      "bytes": 4164,
+      "sha256": "679dcc822bea8327d073f6b17639d05c4bddf4647a8ef6b0cafc7cc19b2e0fd9"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/run.py": {
+      "bytes": 19724,
+      "sha256": "4466ffdb3b5879d8100751c56ea428f01a5373de2f36532b418099b1476d4537"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/transport.py": {
+      "bytes": 1408,
+      "sha256": "3af2c2b114c43ddcc0c535cb29257bcbc089057049d37456c7c8cab34317c5e5"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/wrapper.py": {
+      "bytes": 22234,
+      "sha256": "911c7437b0bfbd834e250b3e0ae229dd60c28711afb759936d8aeec8aa97ce23"
+    },
+    "examples/physics-p4-radical-compact-reference-2276/CONTRACT.md": {
+      "bytes": 14067,
+      "sha256": "4cc40752a20e65103bfcfe0296bdfab9fb145dd192c8fa9fe297c8b9a2dae5ad"
+    },
+    "examples/physics-p4-radical-compact-reference-2276/PINS.json": {
+      "bytes": 19743,
+      "sha256": "48085baf8ea98007f657fbd3fba512daa9b8526018f1c6b1e99c8208d7985288"
+    },
+    "examples/physics-p4-radical-compact-reference-2276/comparison.py": {
+      "bytes": 3825,
+      "sha256": "0b8787de494dbf3eb75b5319943e598445866d5467d45fa0503dff3a70e9f241"
+    },
+    "examples/physics-p4-radical-compact-reference-2276/geometry.py": {
+      "bytes": 4249,
+      "sha256": "7ecb05dbbae1b29674a379fb078d64f2e006082ebdd350b925f89859bceb19d0"
+    },
+    "examples/physics-p4-radical-compact-reference-2276/intervals.py": {
+      "bytes": 5557,
+      "sha256": "57a2952e4c5085e4dc24f0f4056f4d8f99e180e29c922ae9598febe0c711443c"
+    },
+    "examples/physics-p4-radical-compact-reference-2276/support.py": {
+      "bytes": 6347,
+      "sha256": "b62565e141b72c9ac4730bc1147b0a11e77d58411f5a13b08fe1911f415854c7"
+    },
+    "examples/physics-p4-radical-compact-reference-2276/validator.py": {
+      "bytes": 9676,
+      "sha256": "7297108cc518cd436642df9ba50e9b4c3a5052c416566e3c0b49e1f0e941aff6"
+    },
+    "examples/physics-p4-radical-grid-2276/CONTRACT.md": {
+      "bytes": 4928,
+      "sha256": "30fa88317f5b982b79f581648f00062c9c0d637ef1ee4c7eb61c169e291adad1"
+    },
+    "examples/physics-p4-radical-grid-2276/evidence/r0-proof-01/summary.json": {
+      "bytes": 2570,
+      "sha256": "21073e2d5773b89f157ef2e5e7835df4384a671358a3b9231dda50dfcfa83a2f"
+    },
+    "examples/physics-p4-radical-grid-2276/radical_grid.py": {
+      "bytes": 6513,
+      "sha256": "f9a57fa5ed8aca0a671cbb4a49b0033bfcfdc89b45466320782f88ceb5169afc"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/CONTRACT.md": {
+      "bytes": 2383,
+      "sha256": "fdd7cb93618a45d48b6d8ed352fe484383ac0ba5112a01da8d7c02e6cf1a1595"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/PINS.json": {
+      "bytes": 8218,
+      "sha256": "998a9d40552a3d51e10d4b53841c39673ac16ca1f7fec0a073a7672d3c1fca12"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/bounds.py": {
+      "bytes": 5981,
+      "sha256": "a3c1f37d2b8a92565bcb1a023ab9c119eb81ed8146f259e1702fc1f9e94f9af4"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-01.json": {
+      "bytes": 835,
+      "sha256": "57d79c78c1a73b269cff020e5e76a4764c871aceee2008841b187eb573fa5cbd"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-01.process.json": {
+      "bytes": 1060,
+      "sha256": "d99a5e2cac340750e091d91c2515f5db3d6dacab0fe2fcdb5682aff44ba9463a"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-01.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-01.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-02.json": {
+      "bytes": 840,
+      "sha256": "18f217a99a522a24c31a26a9d6a3c676f06298ec5bc74377312d882e5e10e252"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-02.process.json": {
+      "bytes": 1060,
+      "sha256": "8ece088025ec364d9122242267383bba8d38576fc46410c95f3adfe3240e5f78"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-02.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-02.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-03.json": {
+      "bytes": 842,
+      "sha256": "ee54fb127aff1da36fc64d1cb7bba6d534e32ec811eec1c6dddc7828bd1b4b7f"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-03.process.json": {
+      "bytes": 1060,
+      "sha256": "be7c6ca0c02e4cc110ed6d29d046d22aa2d79e3de52ea0cdff0cf4939150bb52"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-03.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-03.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-04.json": {
+      "bytes": 843,
+      "sha256": "aac0b982c71cf2a5374649dfcc6c44825ad19b37751e146e74620d19c9b4b60e"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-04.process.json": {
+      "bytes": 1060,
+      "sha256": "6e9007f188fd84750333882647ba96f7fcf12a67d0b95cb48115781c14306285"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-04.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-04.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-05.json": {
+      "bytes": 843,
+      "sha256": "69fcf4c9175620c128e1a07cf2c3092d19b7a74d45ce7b75eea0471c02643c18"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-05.process.json": {
+      "bytes": 1060,
+      "sha256": "df6e6b3dc93b53ee1ee600f6496265676159e10a1abd86b57a7750c2a0794664"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-05.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-05.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-06.json": {
+      "bytes": 843,
+      "sha256": "37ee4bab33bf2acb5497f50647ff67c9214ec230d5047e9dde27dec76eed5d7a"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-06.process.json": {
+      "bytes": 1060,
+      "sha256": "2c7b5c441d3720e9dafc2fcb0348f09eb51b659b3b512a58b06ab2f03d2ec0bb"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-06.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-06.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-07.json": {
+      "bytes": 843,
+      "sha256": "5c1a7261860bca20f8a0b975e84f1e55471af5309377bdc26d94a4e0ead08b38"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-07.process.json": {
+      "bytes": 1060,
+      "sha256": "ec3714a9da1fd0b2d86d8103b6ea6d7efafca8097287044f3d55d30bf1c35334"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-07.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-07.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-08.json": {
+      "bytes": 843,
+      "sha256": "f69cdd607078b66670c78e5e69b673625325f9de75e2a4833a8d2a6f787c96d3"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-08.process.json": {
+      "bytes": 1060,
+      "sha256": "0e395f8449534b5d5209925123c38d37f69686e0b748ec9e2ba52419870be517"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-08.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-08.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-09.json": {
+      "bytes": 843,
+      "sha256": "348e86da625e9c1346bf1d4c4565bd1291603298c5751d78ae8de19ae27c6f78"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-09.process.json": {
+      "bytes": 1060,
+      "sha256": "9f4bede4bd3a034c2471688d41a1d0ab216c0216081be887b1b902fcfc69b19e"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-09.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-09.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-10.json": {
+      "bytes": 845,
+      "sha256": "8060186b9d90471d21b98575d3aea71aa542547cbb4996ec1423b822fc85c41d"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-10.process.json": {
+      "bytes": 1060,
+      "sha256": "5649f0ed2bebb545bedf0100dff7431d2ea34c9c9849ef2f530cfa6a6c5f8b1e"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-10.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-10.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-11.json": {
+      "bytes": 845,
+      "sha256": "e891abba68d0fa26455451f0c2f457f239b765085551b2766167916196b24da3"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-11.process.json": {
+      "bytes": 1060,
+      "sha256": "61c0920d44b1733d443e1c8ee82fa469b970162b8f965d093401c331905a6430"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-11.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-11.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-12.json": {
+      "bytes": 847,
+      "sha256": "f95411092da51dd93b48435e00caad8af07faa3bd58a4337d406fd1bd86e536b"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-12.process.json": {
+      "bytes": 1060,
+      "sha256": "698b1a6e851bd858ef233423bb3b1d23aedaabdbbf8d412557bed0093b4ba57e"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-12.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-12.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-13.json": {
+      "bytes": 847,
+      "sha256": "11426ce88195a86a19458a96d0b6077080f1d83d3757b24a5b6696bf7867e009"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-13.process.json": {
+      "bytes": 1060,
+      "sha256": "3385c202906fa0882fe152457900cd3df99037c4d03123b993cd5b3fab256eae"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-13.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-13.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-14.json": {
+      "bytes": 847,
+      "sha256": "ea24f7995a012c1ce031a29b555be324806dadbbd87cb36aadca379823684e8f"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-14.process.json": {
+      "bytes": 1060,
+      "sha256": "57379d23525fb6190552f741b6b46fe3e4c38eb5aa08dace98586c9081731bbd"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-14.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-14.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-15.json": {
+      "bytes": 847,
+      "sha256": "cf8db762759a0774a4f059918fcc81f3379abed9efd0478e47ad9df1717cfa65"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-15.process.json": {
+      "bytes": 1060,
+      "sha256": "0f79608e84694889e47f80fbfc808071a57063f9f0722351f22584cd35f8e9f8"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-15.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-15.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-16.json": {
+      "bytes": 848,
+      "sha256": "b89af28c381e775901180a195d2bf1425148c0bdf38e36bb4060f47622b2f1f2"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-16.process.json": {
+      "bytes": 1060,
+      "sha256": "b4455fcb4e8d0156503271d1c286af2b0ca852ee27862759d790788a6ec235c2"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-16.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-16.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-17.json": {
+      "bytes": 852,
+      "sha256": "178331cac693709f07943c9c06835f6ac788b45ef21c27cd974c95ca295444b9"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-17.process.json": {
+      "bytes": 1060,
+      "sha256": "89e4d82d67d32cb0718390b3c4970270a9d3bd3f64a71fa755e5e310a3df5453"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-17.stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/audit-17.stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/prefix-01.json": {
+      "bytes": 292,
+      "sha256": "368435ea13012559fe9d19f14867d1c7fd6b83ec3939ecaee4824b0f020d310b"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/prefix-02.json": {
+      "bytes": 612,
+      "sha256": "7b31255904d34ccf79af07e2003d3361f5cc44bb61642581c8c6558f93862505"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/prefix-03.json": {
+      "bytes": 1011,
+      "sha256": "3a1e329725b9118b4def03680361815ab209ddc0ff75e57536db0453e2d76fa5"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/prefix-04.json": {
+      "bytes": 1564,
+      "sha256": "be7789f466e88e3f3f4ddef63b5677fe146671cfa3b84a81d5b57576630464c9"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/prefix-05.json": {
+      "bytes": 2430,
+      "sha256": "b5e7fed9952ca8206d702f14b3779a15673d770ea5b4f20fbee02f4ce880122e"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/prefix-06.json": {
+      "bytes": 3908,
+      "sha256": "326f465eceadf3e5dbeaa3da4deb4bb6b2ed5deefd22bf9b9e698c67e31991e2"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/prefix-07.json": {
+      "bytes": 4154,
+      "sha256": "5ad923a73cf909973ef6401cdd5f3561f76af5b287b4af8315162af29604f925"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/prefix-08.json": {
+      "bytes": 4401,
+      "sha256": "d2c5e567a8913fb56c1e32bbe106212d255e8c18faaf14fa9fdd6f66767c4434"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/prefix-09.json": {
+      "bytes": 4685,
+      "sha256": "bd4006fee91fdca1bb4ce77897c6ef64c52bcb21359a1523bf5622a4290e4124"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/prefix-10.json": {
+      "bytes": 4969,
+      "sha256": "8e65d745b4f4d6efdcd149bba3de4973dbb437ef743950c8a3660e24c4a9d3b5"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/prefix-11.json": {
+      "bytes": 5291,
+      "sha256": "62376f7ddb5c2af86af899bcba622d6f40f47688f3c746f5d67a777a2fb5ea40"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/prefix-12.json": {
+      "bytes": 5847,
+      "sha256": "46a7c826d33f51a2b8ad4afae67f2c4593357ee6b4a41a857aaea168efed360e"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/prefix-13.json": {
+      "bytes": 6403,
+      "sha256": "6042423e46b2ebe9f7d98ace624eb2a3a85f6f5a755efbec298b4597dcf0d085"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/prefix-14.json": {
+      "bytes": 6631,
+      "sha256": "37ce2d70b44d40e67bd90c7c4b28bb95a21d797632f21b2c64f16621a4da8412"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/prefix-15.json": {
+      "bytes": 6854,
+      "sha256": "28de1fdfd39b7e4210f19ce095748fc13b901786c58115d48ccc8641e0060e84"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/prefix-16.json": {
+      "bytes": 7077,
+      "sha256": "6405fbd44c1570fc079018d04a90ece2b14939c7aa7c6285be7361fefa5169f6"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/prefix-17.json": {
+      "bytes": 7303,
+      "sha256": "b42bc959c456502e2938c7c1371f18fa64467e60d41841ec4e8389f58ae67012"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/evidence/r0-01/summary.json": {
+      "bytes": 1786,
+      "sha256": "5b0e694db021831c8aa4656f3c73685e662b8cc0299f91d35b9d526aae9e7d6b"
+    },
+    "examples/physics-p4-radical-grid-harness-2276/run.py": {
+      "bytes": 9251,
+      "sha256": "5ea1f6e6f021ae910c2a1d024bdce0d8234d08ff65c1bdb037006f704e33c067"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/CONTRACT.md": {
+      "bytes": 10123,
+      "sha256": "d5b40812637c824f3939000132fb09e949462a6ffd072de11c7c0d30c962a7ab"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/MATH.md": {
+      "bytes": 7068,
+      "sha256": "38a1d7e1eee57713fe2ce72204513de33281a274005132b4e1ce464e7728af22"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/PINS.json": {
+      "bytes": 2248,
+      "sha256": "9902d80e76fd9acddf4a8d19b6f38d09905fcb0e2097ad737a8f859cf61e2c45"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/audit.py": {
+      "bytes": 7569,
+      "sha256": "7b210bbb09f89c11f50b9728f83729cde735ab6a8f721d48fa87ee658160045f"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/bank-spec.json": {
+      "bytes": 2175,
+      "sha256": "5a1ad88dac259ecf88894295c2df3ec207bf9771ebe3f49c75a74fcd8f411bac"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/evidence/bank-01/manifest.json": {
+      "bytes": 3076,
+      "sha256": "b77a9355b10ffe112d10938a023b20759736ea58ef3c2bf468cffcc8d2387263"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/evidence/bank-01/oracle.json": {
+      "bytes": 13659,
+      "sha256": "b35acf846abd6e71c28f3318a6121cd2f9c55cb46e6a671a3e04e3dc12a5c6fb"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/evidence/bank-01/requests.json": {
+      "bytes": 10964,
+      "sha256": "798bbc18f8623214e44ce7bd342e967385d31205ae6ef16369d5d389018a611e"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/materialize.py": {
+      "bytes": 2493,
+      "sha256": "2bda6d18822ae8073433b74b4605f12d44695715a5bbe9814e5e1dbefcbedb26"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/oracle_math.py": {
+      "bytes": 7355,
+      "sha256": "eb74bc6373f16aecb043f78cf414da88636ba7494e2609e8da887f2e2fb4e46e"
+    },
+    "examples/physics-p4-radical-grid-reference-2276/support.py": {
+      "bytes": 3696,
+      "sha256": "1f7b4455af801f21a0cf87d99b38354629512c645bec1e377bb23ab8fef74aa1"
+    },
+    "examples/physics-p4-radical-metadata-map-2276/EVIDENCE.json": {
+      "bytes": 2857,
+      "sha256": "ef8b871d9abadd5ddc534df537b44da1a24c63589c916a216678feb2463d830a"
+    },
+    "examples/physics-p4-radical-metadata-map-2276/LEAF-CLASSES.json": {
+      "bytes": 25151,
+      "sha256": "17ae13b6c6f519f545147d177a15b1ec0d927e9b14146171d565c9ce854dcea9"
+    },
+    "examples/physics-p4-radical-metadata-map-2276/MAP.md": {
+      "bytes": 9326,
+      "sha256": "514585569603d1d32c4a28da7c15c524d82b1f3ad6912e61273c902ae52e8259"
+    },
+    "examples/physics-p4-radical-metadata-map-2276/SCHEMA-PROPOSAL.json": {
+      "bytes": 2072,
+      "sha256": "dc0773b538d9f7a35b5aa4bd0370e69bc83e1d2bb540d163e58424634365b89d"
+    },
+    "examples/physics-p4-sat-2276/AMENDMENT-02.md": {
+      "bytes": 1858,
+      "sha256": "8e3ea9080925d170e2a28864520a532ca683bc0da94c9ff3f9396fac6fe7be12"
+    },
+    "examples/physics-p4-sat-2276/CONTRACT.md": {
+      "bytes": 5466,
+      "sha256": "b34c2fa0d19a4a75d0ffe14373e674478b5e233ed9092d6c5358ad5970afdea7"
+    },
+    "examples/physics-p4-sat-2276/METHOD.md": {
+      "bytes": 3061,
+      "sha256": "3d402f7721111715434708d3605118bf95f17652a31a97b2d44fe9aed4c115ad"
+    },
+    "examples/physics-p4-sat-2276/corpus.json": {
+      "bytes": 1243,
+      "sha256": "45c88bd51eae941cd039174f1e3f79319fb1e9c4bc99c86b8ba26d677102edb6"
+    },
+    "examples/physics-p4-sat-2276/integer_sat.py": {
+      "bytes": 13025,
+      "sha256": "b1c2f4a4d291c52b9182864fea658381afd482aa34da7d300997a81bf45a3b1e"
+    },
+    "examples/physics-p4-sat-2276/run.py": {
+      "bytes": 9611,
+      "sha256": "a3960f697b40ccaebf927db44ef79c5012a224940c4cb45771e074e08d1c50f0"
+    },
+    "examples/physics-p4-sat-2276/verify.py": {
+      "bytes": 2790,
+      "sha256": "8970cdf7bcc77dbc51f51e0c12d485afa783366f27664deb8e7ddd8018cbcdef"
+    },
+    "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/result.json": {
+      "bytes": 12356,
+      "sha256": "aa77c50446ddfbf4c69b93f222e24fd74e7b663f175c6103571ca819e72c4432"
+    },
+    "examples/physics-rigid-contact-reference/fixtures.mjs": {
+      "bytes": 909,
+      "sha256": "ca760b2945d246de1e2f32cb4763ef58bf95e87422b6d4545682c20abb3a1ac0"
+    },
+    "examples/physics-rigid-contact-reference/geometry-reference.py": {
+      "bytes": 23429,
+      "sha256": "2c8bc7f6cd809e865c986a859b8614c963c4862296920555eb31c9487411af26"
+    },
+    "examples/physics-rigid-coupled-position-diagnostic/coverage-reference.py": {
+      "bytes": 13825,
+      "sha256": "8cdc81967b2484be55deb0c2df9c1b9191d739653347682538429186ac940b7a"
+    },
+    "examples/physics-rigid-coupled-position-reference/linear-reference.py": {
+      "bytes": 12233,
+      "sha256": "be4184012775a98747ba643d87b1e795cdb781e2b14a295405805a62cfe3feac"
+    },
+    "examples/physics-rigid-feature-penetration-diagnostic/geometry-reference.py": {
+      "bytes": 13283,
+      "sha256": "9ff4ed05dc2f2f98d32533527b506d4aa0f7799bc6d86a0862ecf24f389b9841"
+    },
+    "examples/physics-rigid-full-pair-position-world/full-pair-reference.py": {
+      "bytes": 17313,
+      "sha256": "e8ca75e85b77eff3bce8be411ad108115d150406af087a5bf650be9034b3c46b"
+    },
+    "examples/physics-rigid-full-pair-position-world/nine-row-reference.py": {
+      "bytes": 2239,
+      "sha256": "9497027e8abc11c82955d06c35f0f9d9c5392c1b97b8cef0e6ccee86aa3bcbdf"
+    },
+    "examples/physics-rigid-full-pair-position-world/reference.py": {
+      "bytes": 23351,
+      "sha256": "89caf6850b49a77713c7776df9fedd200ecbe1f426ec3cdae6165cc9bf48b58c"
+    },
+    "examples/physics-rigid-signed-closure-world/reference.py": {
+      "bytes": 38960,
+      "sha256": "46f184b22679d928fef6fdb2f90ce219448a51af08803ad2e68680bf9f68c056"
+    },
+    "examples/physics-rigid-signed-separation-reference/reference.py": {
+      "bytes": 22829,
+      "sha256": "5e820f2b03d20007a0f74bedc4f122edcc6cf9b80cda7f794cba5837f142cdda"
+    },
+    "examples/physics-rigid-signed-separation-reference/signed-linear-reference.py": {
+      "bytes": 12426,
+      "sha256": "902b9b95d5f03e42de6e02b7e4cd51712eea7c9218d5096fc92fc64d82a72d93"
+    },
+    "examples/physics-stack-next-2276/CONTRACT-DRAFT.md": {
+      "bytes": 7441,
+      "sha256": "ca07cd2802e816f6ddb43de9aca22570b191aafd4c52706a5f0e47cc1684d856"
+    },
+    "examples/physics-stack-next-2276/NEXT-DEPENDENCY.md": {
+      "bytes": 7253,
+      "sha256": "329692f7ae911c0ccb22053eb1f5772484955cc794363bf78ae57b6ad32dddbf"
+    },
+    "examples/physics-stack-solver-2276/trajectory-reference.py": {
+      "bytes": 6575,
+      "sha256": "f2c1850b193a14944de657848d065c461e3ff2440e9e9bf452b6d24519af0ea0"
+    },
+    "examples/physics-world-p4-2276/evidence/cost-census-01/ALIGNED-1-position-world.stdin.jsonl": {
+      "bytes": 27751,
+      "sha256": "724ffd6804f3203a9753a29583e3f0777a4fcb54f70932eb397095092e4e79b4"
+    },
+    "examples/physics-world-p4-2276/evidence/cost-census-01/ALIGNED-1-position-world.stdout.raw": {
+      "bytes": 52515,
+      "sha256": "a654b24cd6d0008fe56422ef551c2701d2904b6100758dd1a9b1f204ccfb8dcf"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/ALIGNED-16-position-world.stdin.jsonl": {
+      "bytes": 35695,
+      "sha256": "c5014cbd7b6948642ff43cced4cbd0a5d216ac90302f21857f20848c5d8fa2e1"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/ALIGNED-16-position-world.stdout.raw": {
+      "bytes": 122825,
+      "sha256": "8d521cedc061fe03b2802809dc1290ad2a4762eb17431d265966c529fa0fd56e"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-1-position-world.stdin.jsonl": {
+      "bytes": 27832,
+      "sha256": "82380db104fc1650db3bda306d5875809914586a2ebc5f179a317da115c7cdbc"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-1-position-world.stdout.raw": {
+      "bytes": 52607,
+      "sha256": "138bde35877b14a22f08748b192c56cd1b896e6e435e205513c458a54ee10721"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-16-position-world.stdin.jsonl": {
+      "bytes": 35351,
+      "sha256": "d63d1287858963e0b5fa2ea065df242ac6d21eeeda4d7e2e4368acca15c1265c"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/OFFSET-16-position-world.stdout.raw": {
+      "bytes": 121814,
+      "sha256": "8228d2c51a073269f8cefe30a7dcbf1218c50343fe296c8c6046cf0d9958f515"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-1-position-world.stdin.jsonl": {
+      "bytes": 28793,
+      "sha256": "d6885e19204ac9753acdaddbf91d3a152c3105601ecc821d39aec007af6bc525"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-1-position-world.stdout.raw": {
+      "bytes": 54072,
+      "sha256": "d66225749932fba3140e2544e10881477442372826a49dff525b58dc961d9140"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-16-position-world.stdin.jsonl": {
+      "bytes": 35594,
+      "sha256": "e1567a963b0a8bc416e7ce027bbcce41710112575d5ce9380dc82d2eb0a150c3"
+    },
+    "examples/physics-world-p4-2276/evidence/observable-census-01/YAW-16-position-world.stdout.raw": {
+      "bytes": 123188,
+      "sha256": "d31c63158d50c3d1c41e983a0ae70d7f958115f96a76b457a0a36c5ae027b22b"
+    },
+    "examples/physics-world-p5-2276/command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-codec-materialize-01/prepared.json": {
+      "bytes": 1606,
+      "sha256": "e7b5397f31c9e59c905d41036a94a2d900c74a7a4378caf89cefece4646df837"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-codec-materialize-01/progress.json": {
+      "bytes": 1705,
+      "sha256": "10c78f8a924400639e65104f26da45de7d6ae95ecfc718890f0b6a2efdf1707f"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-codec-materialize-01/result.json": {
+      "bytes": 3108,
+      "sha256": "67f69e223118056efb70a1375074347fb947a1930cd82fb390cc3a9cd511324c"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-codec-materialize-01/start.json": {
+      "bytes": 1628,
+      "sha256": "139ef02ca322e53a812f8624e1b1ad2982bbe982ebbddf41ee818456374afb96"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-codec-materialize-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-codec-materialize-01/stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-g0-01/prepared.json": {
+      "bytes": 1529,
+      "sha256": "634c0d48cb1f96807c6c50b468d0bd87944aa3824e56ba911ca5a1d7c13e3acd"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-g0-01/progress.json": {
+      "bytes": 1628,
+      "sha256": "9052bae392877e9aa5169ee0ad7a9711c3fabf0aeda2f931e38a47294e00a009"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-g0-01/result.json": {
+      "bytes": 3019,
+      "sha256": "eb5753e63bc24983859b40ea228ce9b0d8eadded4c85d21ede09ab4174dfbbcc"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-g0-01/start.json": {
+      "bytes": 1551,
+      "sha256": "ec5ceeb884204da3224ae75aba3f7ea1f6ca66d947c68d45254f9d9d6dbfea2e"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-g0-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-g0-01/stdout.raw": {
+      "bytes": 228,
+      "sha256": "579f7e3be3d302e9b031e7f695501c95b3aa9ccba37871e56c93247ed58e1cc9"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-stage-a-01/prepared.json": {
+      "bytes": 1708,
+      "sha256": "11c193ef426c6579cfd6a7469b0c1e8d861d78f454aa1046d0c68c22dac8ba75"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-stage-a-01/progress.json": {
+      "bytes": 1807,
+      "sha256": "066cc925dbdbeb8de58f95a2d2d7ad17a267d48e5cf0bab2d1ffbfc5b3f6be91"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-stage-a-01/result.json": {
+      "bytes": 3210,
+      "sha256": "1e4c246e36279328f5081fbe1c0e6755ffd18b5b6dea54d205c63dff232fbc85"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-stage-a-01/start.json": {
+      "bytes": 1730,
+      "sha256": "00548b4a6ff226f366ad394e7406e050678e26ab09f3e06b38af7e8ccfc7881d"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-stage-a-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-stage-a-01/stdout.raw": {
+      "bytes": 371,
+      "sha256": "5e5bdc9e96e28574722a1969431846a160a74cdd3b1f26e9b155062a3e7d3379"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-stage-b-01/result.json": {
+      "bytes": 3414,
+      "sha256": "66921f865eae33514088c7b021ab9f1b77740731db597f95667b7324f2d49d68"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-u0-01/prepared.json": {
+      "bytes": 1671,
+      "sha256": "0e941c2db3355303b067fa39f88b018ded7127460024d90ec230c07f84f0ac21"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-u0-01/progress.json": {
+      "bytes": 1770,
+      "sha256": "2ea9768f6ae01841c42e00605b5681f6b7b10b2c7ddc944c4844e8109df3f7d5"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-u0-01/result.json": {
+      "bytes": 3163,
+      "sha256": "7ce6d93f2778aac44b1cce08fccac5887baf602a9ae762a6685fd06a0ab2c7d2"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-u0-01/start.json": {
+      "bytes": 1693,
+      "sha256": "ac31c0b8d0e145db7d0e9de8cbdf455207088e4732c766d2f0f7262743f6358a"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-u0-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-integer-u0-01/stdout.raw": {
+      "bytes": 290,
+      "sha256": "6e8d667091c8c6e4d7bb0cda3f161b99bdd96480e331d75be14ecba86f7c4b62"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-lehmer-gcd-materialize-01/prepared.json": {
+      "bytes": 1622,
+      "sha256": "40ef694b6a5980b91b1e4ab62aab9230acc65ba263c5af7df7160b628a40239a"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-lehmer-gcd-materialize-01/progress.json": {
+      "bytes": 1719,
+      "sha256": "ad661ec299a226c23a94032d8cb1ca959dd56c65205558e895f36d514028762a"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-lehmer-gcd-materialize-01/result.json": {
+      "bytes": 3134,
+      "sha256": "a16ad490f265e4f7708111c266b053d938a140328a1401749e1d72baf382cde1"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-lehmer-gcd-materialize-01/start.json": {
+      "bytes": 1644,
+      "sha256": "2ed944d0371a72b7dbb94a36b61ac449b955ef05f491b5353de4c72f7769dc56"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-lehmer-gcd-materialize-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-lehmer-gcd-materialize-01/stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-materialize-01/prepared.json": {
+      "bytes": 1628,
+      "sha256": "3fe4666865fe830817f222c0880f72205c135b5b488ef33ded45e6fa52b46f93"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-materialize-01/progress.json": {
+      "bytes": 1727,
+      "sha256": "f4ffef674578c255f5f2332a36c47587c9415f09fdba42df3fc8fd04430e5643"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-materialize-01/result.json": {
+      "bytes": 3130,
+      "sha256": "0a9e0f10e703aadbe06ca6e8b32df44689f4cc8be1eef773ac013edbff4bf315"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-materialize-01/start.json": {
+      "bytes": 1650,
+      "sha256": "1e34e01415539dcc6507b927c32417e0594fe6afec84e4af6dd0c7818e36bcc5"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-materialize-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-materialize-01/stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-r0-01/prepared.json": {
+      "bytes": 1622,
+      "sha256": "a25a3081d0369f2e31082f9d3921dcbe814ef8d75c69670c356d0a18d5b2ec5a"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-r0-01/progress.json": {
+      "bytes": 1719,
+      "sha256": "32d32d61cf0122bb40bc387a14e9eec7d8c39782a1f94644494fdd01eb3e5214"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-r0-01/result.json": {
+      "bytes": 3112,
+      "sha256": "46e9831ba8c5c257d9368a12cb593d60036115334dab7a3984c284c1d58909a1"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-r0-01/start.json": {
+      "bytes": 1644,
+      "sha256": "fec88c88168652217bef8582a3966e813021d4e7af677ed24596cca77d76f723"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-r0-01/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/p4-radical-r0-01/stdout.raw": {
+      "bytes": 303,
+      "sha256": "e97cccd6acd5fb20454919e71cbaa2769a604a9b3a43fd236b995f41d5d31b44"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/PROTOCOL-01.json": {
+      "bytes": 7232,
+      "sha256": "5f03524846718e93b1bf80e5674096b7b7b335d744d4537a3e86cdb2f7dce2bc"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/SOURCE-PINS-01.json": {
+      "bytes": 92538,
+      "sha256": "575e62bffed19b526fa61e550c58e12a94c950c8c01d378a8fe0bcb2fc80a11f"
+    }
+  },
+  "externalToolFiles": {
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node": {
+      "bytes": 110712624,
+      "sha256": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1"
+    },
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13": {
+      "bytes": 52640,
+      "sha256": "a1f6d9dc20d4787a84dc2fe782094a7bac5946f49a962aa0af48a02f0e8d5bc5"
+    }
+  },
+  "runProtocol": "examples/physics-p4-radical-compact-harness-2276/PROTOCOL-01.json",
+  "rootReviewedProtocolSHA256": "5f03524846718e93b1bf80e5674096b7b7b335d744d4537a3e86cdb2f7dce2bc",
+  "authorNumericalCalls": 0,
+  "authorCandidateCalls": 0,
+  "authorReferenceCalls": 0,
+  "authorWorldCalls": 0,
+  "archivePolicy": "WORKSPACE_FILES_ONLY_EXTERNAL_TOOLS_EXCLUDED"
+}

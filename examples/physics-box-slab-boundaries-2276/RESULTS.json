@@ -1,0 +1,457 @@
+{
+  "work_id": "physics-box-slab-boundaries-2276",
+  "artifact_type": "finite-box-slab-numeric-and-desktop-results",
+  "status": "PASS_FINITE_BOX_SLAB_SIGN_AND_DESKTOP_RENDER",
+  "owner_role": "independent-evidence-writer",
+  "source_request": "Preserve finite slab boundaries, quaternion sign repair and actual desktop proof",
+  "last_updated": "2026-11-03",
+  "baseline01": {
+    "status": "PASS_FINITE_BOX_SLAB_BOUNDARIES",
+    "counts": {
+      "source": {
+        "creationAttempts": 22,
+        "worlds": 18,
+        "creationRefusals": 4,
+        "acceptedSteps": 22,
+        "commandRefusals": 2,
+        "completedCases": 20
+      },
+      "native": {
+        "creationAttempts": 22,
+        "worlds": 18,
+        "creationRefusals": 4,
+        "acceptedSteps": 22,
+        "commandRefusals": 2,
+        "completedCases": 20
+      }
+    },
+    "maxima": {
+      "source": {
+        "toi": 0,
+        "geometry": 0,
+        "normal": 0,
+        "spin": 0,
+        "tangent": 0,
+        "velocity": 0,
+        "momentum": 0,
+        "energy": 0
+      },
+      "native": {
+        "toi": 0,
+        "geometry": 0,
+        "normal": 0,
+        "spin": 0,
+        "tangent": 0,
+        "velocity": 0,
+        "momentum": 0,
+        "energy": 0
+      }
+    },
+    "firstFailure": null,
+    "evidenceBytes": 1522311,
+    "budget": {
+      "casesPerGraph": 20,
+      "maxWorlds": 24,
+      "maxAcceptedSteps": 28,
+      "expectedWorlds": 18,
+      "expectedAcceptedSteps": 22,
+      "expectedCreationRefusals": 4,
+      "maxEvidenceBytesPerGraph": 16777216
+    },
+    "provider": "1779dd871 qualified sphere-pair Source bundle and canonical Native dist; no rebuild",
+    "negativeQuaternion": "frozen observed INVALID_CONFIG boundary; physical Hamilton orientation equivalence remains a separate fact",
+    "browser": "NOT_RUN",
+    "generalContactGeometry": "NOT_QUALIFIED",
+    "originalP4": "UNCHANGED_NO_GO"
+  },
+  "signApi02": {
+    "status": "PASS_FINITE_BOX_SLAB_BOUNDARIES",
+    "counts": {
+      "source": {
+        "creationAttempts": 22,
+        "worlds": 20,
+        "creationRefusals": 2,
+        "acceptedSteps": 24,
+        "commandRefusals": 2,
+        "completedCases": 20
+      },
+      "native": {
+        "creationAttempts": 22,
+        "worlds": 20,
+        "creationRefusals": 2,
+        "acceptedSteps": 24,
+        "commandRefusals": 2,
+        "completedCases": 20
+      }
+    },
+    "maxima": {
+      "source": {
+        "toi": 0,
+        "geometry": 0,
+        "normal": 0,
+        "spin": 0,
+        "tangent": 0,
+        "velocity": 0,
+        "momentum": 0,
+        "energy": 0
+      },
+      "native": {
+        "toi": 0,
+        "geometry": 0,
+        "normal": 0,
+        "spin": 0,
+        "tangent": 0,
+        "velocity": 0,
+        "momentum": 0,
+        "energy": 0
+      }
+    },
+    "firstFailure": null,
+    "evidenceBytes": 1754814,
+    "budget": {
+      "casesPerGraph": 20,
+      "maxWorlds": 24,
+      "maxAcceptedSteps": 28,
+      "expectedWorlds": 20,
+      "expectedAcceptedSteps": 24,
+      "expectedCreationRefusals": 2,
+      "maxEvidenceBytesPerGraph": 16777216
+    },
+    "provider": "sign-02 candidate build; identity quaternion sign invariance with unchanged thresholds",
+    "negativeQuaternion": "q/-q finite HIT physical equivalence by unit Hamilton rotation matrices; original refusal baseline preserved",
+    "browser": "NOT_RUN",
+    "generalContactGeometry": "NOT_QUALIFIED",
+    "originalP4": "UNCHANGED_NO_GO"
+  },
+  "signSourceChange": {
+    "oldSourcePin": {
+      "bytes": 1978,
+      "sha256": "43667cba73a01782cac3b9fe14828b67885229a6e09bc9f0e68b6a2d27057b43"
+    },
+    "currentSourcePin": {
+      "bytes": 1988,
+      "sha256": "076eadf591500684332bd19b53a780de480ccdde205196ad072a11e1abc4f7a4"
+    },
+    "onlyCodeEdit": "Math.abs(w-1) becomes Math.abs(Math.abs(w)-1) in axisAlignedBox; generated provider manifest refreshed",
+    "thresholdsChanged": false,
+    "physicalMeaning": "Unit q and -q produce the same Hamilton rotation; finite identity-sign admission repaired"
+  },
+  "historicalFreeze01PinsVerifiedInSavedArchive": 295,
+  "currentFreeze02PinsVerifiedBeforeReadmeUpdate": 294,
+  "preservedBeforeSignFix": {
+    "members": 452,
+    "archiveSha256": "e3ed42e65317f5782e7413737f4d409a822871176b9fd4b108bf29ba84b2b832",
+    "uncompressedPayloadBytes": 3814991
+  },
+  "regressionFailures": [
+    {
+      "id": "regression-01",
+      "status": "IMPORT_SETUP_FAILURE",
+      "WorldCalls": 0,
+      "reason": "ERR_MODULE_NOT_FOUND barocss-cad/src/types.js before native World import"
+    },
+    {
+      "id": "regression-02",
+      "status": "DRIVER_PREFLIGHT_FAILURE",
+      "WorldCalls": 0,
+      "reason": "Native World must not be bundled guard"
+    },
+    {
+      "id": "regression-03",
+      "status": "DRIVER_PREFLIGHT_FAILURE",
+      "WorldCalls": 0,
+      "reason": "Native World must not be bundled guard"
+    }
+  ],
+  "regression04": {
+    "status": "PASS_ORIGINAL_THIN_BOX_ASSERTIONS_NATIVE_WORLD",
+    "originalSha256": "7931f845ac23ebcd2e82482219da2b09df1095be34f0b7d26009157b99684431",
+    "effectiveSha256": "14b7ac296936b1dfc7ca2c887ba0efdaa55b43140b070effc04d6b2d0650d882",
+    "transformation": "Only import.meta.url replaced with original source URL; numerical assertions unchanged",
+    "nativeEntry": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/index.js",
+    "nativeSha256": "feda967c4a0643356c9701a1175159cf559d4fa3315e0fd08dcbd70ec7844eee",
+    "cadAdmission": "Bundled existing CAD source/data only; no product mutation",
+    "WorldCallsBeforeImport": 0
+  },
+  "desktopRender": {
+    "status": "PASS_BROWSER_BOX_SLAB",
+    "browserVersion": "156.0.8078.80",
+    "checks": [
+      {
+        "name": "paused sign-02 public World and two actual GPU boxes",
+        "status": "PASS"
+      },
+      {
+        "name": "centered-y-entry actual first-step result poses and mesh pixels",
+        "status": "PASS"
+      },
+      {
+        "name": "negative-moving-quaternion actual first-step result poses and mesh pixels",
+        "status": "PASS"
+      },
+      {
+        "name": "negative-fixture-quaternion actual first-step result poses and mesh pixels",
+        "status": "PASS"
+      },
+      {
+        "name": "parallel-outside actual first-step result poses and mesh pixels",
+        "status": "PASS"
+      },
+      {
+        "name": "q/-q physical rotation and rendered geometry match positive identity",
+        "status": "PASS"
+      },
+      {
+        "name": "desktop1280/1440/1920 and camera preserve accepted state",
+        "status": "PASS"
+      },
+      {
+        "name": "actual visible data panel toggles and shows public contact and recording state",
+        "status": "PASS"
+      },
+      {
+        "name": "keyboard step play pause reset use actual World recorder clock",
+        "status": "PASS"
+      }
+    ],
+    "presets": [
+      "centered-y-entry",
+      "negative-moving-quaternion",
+      "negative-fixture-quaternion",
+      "parallel-outside"
+    ],
+    "desktopWidths": [
+      1280,
+      1440,
+      1920
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "firstFailure": null,
+    "proofBoundary": "Desktop rendering/accepted state ownership only; numerical qualification is separate",
+    "runtime": "sign02 Source public World and recorder with actual public Viewer GPU",
+    "nativeGpuQualification": "NOT_RUN",
+    "reportPath": "output/playwright/box-slab-boundaries/render-01/report.json",
+    "reportPin": {
+      "bytes": 352800,
+      "sha256": "7132d6e3c8cef198e7df54ebff62221fbf820796979003dbb21cdfd402c31f5c"
+    }
+  },
+  "preview": {
+    "source": "output/playwright/box-slab-boundaries/render-01/desktop-1440.png",
+    "destination": "examples/physics-box-slab-boundaries-2276/preview.png",
+    "operation": "EXACT_BYTE_COPY_NO_EDIT",
+    "bytes": 124086,
+    "sha256": "ec2a66dfa5f292c9b7e5036f82d0d96c0ff48d17f1b34f8760c4639d2438fe4a"
+  },
+  "gates": {
+    "toiGeometryNormalSpinTangent": 1e-12,
+    "velocityMomentumEnergy": 1e-10,
+    "eventBranches": "STRICT_NO_EPSILON"
+  },
+  "scope": "Finite centered axis-aligned box/static-box CCD and selected desktop rendering only",
+  "unsupported": [
+    "tilted/off-center box CCD",
+    "simultaneous edge/corner events",
+    "general persistent contact geometry",
+    "native GPU runtime",
+    "CAD Studio product qualification",
+    "manufacturing/equipment validation",
+    "wholeG2/P4/mechanisms"
+  ],
+  "originalP4": "UNCHANGED_NO_GO",
+  "HOLDs": "UNCHANGED",
+  "deployment": "NOT_RUN",
+  "originalCommandReceipts": [
+    {
+      "id": "box-slab-baseline-01",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-slab-boundaries-2276/run.mjs",
+        "baseline-01"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 208.576167,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-slab-freeze-01",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-slab-boundaries-2276/freeze.mjs"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 95.014833,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-slab-freeze-02",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-slab-boundaries-2276/freeze-02.mjs"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 123.562,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-slab-original-regression-01",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-scene/thin-box-ccd-probe.mjs"
+      ],
+      "status": "FAIL",
+      "exit": 1,
+      "elapsedMs": 101.697417,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-slab-original-regression-02",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-slab-boundaries-2276/regression.mjs",
+        "regression-02"
+      ],
+      "status": "FAIL",
+      "exit": 1,
+      "elapsedMs": 398.346625,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-slab-original-regression-03",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-slab-boundaries-2276/regression.mjs",
+        "regression-03"
+      ],
+      "status": "FAIL",
+      "exit": 1,
+      "elapsedMs": 144.963125,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-slab-original-regression-04",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-slab-boundaries-2276/regression.mjs",
+        "regression-04"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 415.368,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-slab-reference-01",
+      "command": [
+        "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+        "-B",
+        "examples/physics-box-slab-boundaries-2276/reference.py"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 126.206167,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-slab-reference-02",
+      "command": [
+        "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+        "-B",
+        "examples/physics-box-slab-boundaries-2276/reference-02.py"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 85.737875,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-slab-render-01",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-slab-boundaries-2276/browser-run.mjs",
+        "render-01",
+        "http://127.0.0.1:52980"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 5098.564875,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-slab-render-build-01",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-slab-boundaries-2276/scene/server.mjs",
+        "--build"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 535.998583,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-slab-sign-api-02",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-slab-boundaries-2276/run-02.mjs",
+        "sign-api-02"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 221.928333,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    },
+    {
+      "id": "box-slab-sign-build-02",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-box-slab-boundaries-2276/build.mjs",
+        "sign-02"
+      ],
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 2759.155584,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timedOut": false
+    }
+  ],
+  "originalReadmePin": {
+    "bytes": 3130,
+    "sha256": "98ba865045e67dbaf3524828ad995ed540ee37c18f07757ceb688600e35f5cfb"
+  },
+  "readmeDocumentationUpdate": "FREEZE01 historical README bytes preserved; FREEZE02 has no README entry; neither freeze/pin refreshed. Use saved historical README for historical receipt reproduction.",
+  "protectedOriginalFilesChanged": 0,
+  "newNumericalRuns": 0,
+  "newBrowserRuns": 0,
+  "previewServerSession": "Root-owned port52980/session59493 preserved; packaging did not touch processes",
+  "archive": "EVIDENCE-01.tar.gz"
+}

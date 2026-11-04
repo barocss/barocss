@@ -1,0 +1,32 @@
+{
+  "originalPath": "examples/physics-p4-sat-2276/integer_sat.py",
+  "originalBytes": 13025,
+  "originalSha256": "b1c2f4a4d291c52b9182864fea658381afd482aa34da7d300997a81bf45a3b1e",
+  "candidatePath": "examples/physics-p4-primitive-axis-2276/integer_sat.py",
+  "candidateBytes": 14148,
+  "candidateSha256": "56e9a8b71eaa0e81de3f075e88126cfd170e05f560e9fdccd2e710c7ca908ef5",
+  "changes": [
+    {
+      "before": "        self.models = 0\n",
+      "after": "        self.models = 0\n        self.primitive_axis_attempts = 0\n        self.primitive_axis_reductions = 0\n        self.largest_axis_divisor_bits = 0\n",
+      "occurrences": 1
+    },
+    {
+      "before": "    def stats(self):\n",
+      "after": "    def primitive_axis(self, axis):\n        self.primitive_axis_attempts += 1\n        for coordinate in axis:\n            self.checked(coordinate)\n        self.tick()\n        common = self.checked(math.gcd(*axis))\n        self.largest_axis_divisor_bits = max(self.largest_axis_divisor_bits, common.bit_length())\n        if common <= 1:\n            return axis\n        self.primitive_axis_reductions += 1\n        return tuple(self.div(coordinate, common) for coordinate in axis)\n\n    def stats(self):\n",
+      "occurrences": 1
+    },
+    {
+      "before": "                    axisVisits=self.axes, conventionProblems=self.models)\n",
+      "after": "                    axisVisits=self.axes, conventionProblems=self.models,\n                    primitiveAxisAttempts=self.primitive_axis_attempts,\n                    primitiveAxisReductions=self.primitive_axis_reductions,\n                    largestAxisDivisorBits=self.largest_axis_divisor_bits)\n",
+      "occurrences": 1
+    },
+    {
+      "before": "        support_a = sum_support(ha, ba.columns, axis, m)\n",
+      "after": "        # Original zero and near-parallel predicates above use the ORIGINAL\n        # axis and denominator. Only homogeneous physical calculations shrink.\n        reduced = m.primitive_axis(axis)\n        if reduced is not axis:\n            axis = reduced\n            square = m.dot(axis, axis)\n        support_a = sum_support(ha, ba.columns, axis, m)\n",
+      "occurrences": 1
+    }
+  ],
+  "originalNearParallelExpressionUnchanged": true,
+  "gcdInternalArithmetic": "bounded standard primitive; one metered call, divisions metered separately"
+}

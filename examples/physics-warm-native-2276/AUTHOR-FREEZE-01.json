@@ -1,0 +1,3027 @@
+{
+  "format": "physics-warm-native-author-freeze",
+  "version": 1,
+  "status": "AUTHORING_SEALED_NOT_COMPILED_NOT_EXECUTED",
+  "files": {
+    "CONTRACT.md": {
+      "bytes": 5035,
+      "sha256": "6df40d8ca138687c3ce00859cdac471a6d6bc7caab9063e62042d185bfef89cd"
+    },
+    "RUNNER-TRANSFER.diff": {
+      "bytes": 10008,
+      "sha256": "9ff6a763089703bfe9672ac9a5e6d5468da31a7ce0c3f3869c6069015f7396f8"
+    },
+    "RUNNER-TRANSFER.json": {
+      "bytes": 2406,
+      "sha256": "6fb39f2d756210f325959c3468bf0f2b7b5dba675662b78a0401ac225c825084"
+    },
+    "build.mjs": {
+      "bytes": 10156,
+      "sha256": "ae78ddf66da9c595d98caa15a4e94158e133109943304a80b84b9d2bae003ca0"
+    },
+    "consumer-template.mts": {
+      "bytes": 1488,
+      "sha256": "95cadedb9aa316ed87fc9526d6f90be0b6314a04121a9db601929470a828245a"
+    },
+    "entry-graph.mjs": {
+      "bytes": 4695,
+      "sha256": "ca05f4dab521974b1e344844e7133f2647c25d233b95c5d3845bd6b5a83f01cb"
+    },
+    "fault-observer.py": {
+      "bytes": 3863,
+      "sha256": "a93f71ea1db0b5704e86de90bef98f39e958c15ffbcb53a5b312b41c51640cf6"
+    },
+    "package.json": {
+      "bytes": 33,
+      "sha256": "a90fc33418afa2b9cbf4768524b021135b965ecdf993457505bfae3ac44a8428"
+    },
+    "parity.py": {
+      "bytes": 7431,
+      "sha256": "499127f1fe4e5a7501f690f81490990c63e22efb5caa94e41e4f97144ca170ea"
+    },
+    "run.mjs": {
+      "bytes": 17850,
+      "sha256": "d944d313df5c3dd368cf00a86643ff07d033ecbfc352e0e80ede07e859f91291"
+    },
+    "trace_decode.py": {
+      "bytes": 2340,
+      "sha256": "db499d56e4e9db398ab0232b38ddf090f80449e9ea0322957b4cad810021a806"
+    }
+  },
+  "sharedFiles": {
+    "examples/physics-box-contact-features-2276/candidate.ts": {
+      "bytes": 17864,
+      "sha256": "15a1931ed4fc5cc91bbae4fde700258a039aa3e081c128bc61030474de38200d"
+    },
+    "examples/physics-box-quantized-witness-2276/candidate.ts": {
+      "bytes": 14708,
+      "sha256": "023f79d1feb83627348cc37ed094d7b8111715ce4c01bd9a41f5857f22f78c21"
+    },
+    "examples/physics-box-quantized-witness-2276/dependencies.json": {
+      "bytes": 618,
+      "sha256": "eb1eaba57f802da00ea3723444ab5200241630510eb2ed8e9c4e32acfd819ea0"
+    },
+    "examples/physics-contact-phase-wrench-2276/source-audit.json": {
+      "bytes": 11613,
+      "sha256": "dd17b0b1d223607021a2c77129157bb5eb1c60de4c4a44b52e15b73379fabf71"
+    },
+    "examples/physics-contact-wrench-contract-2276/CONTRACT.md": {
+      "bytes": 8840,
+      "sha256": "9b5ed4661c3d928a631b6c70b798a361a5366bdab9740081369f14bd1417a2a8"
+    },
+    "examples/physics-contact-wrench-contract-2276/MIGRATION.md": {
+      "bytes": 8014,
+      "sha256": "36dd367bdf4cab14b057a1c5875cc1abf2b68c04cdef11b7c5f2b45229362312"
+    },
+    "examples/physics-contact-wrench-contract-2276/TYPE-CHECK-01.json": {
+      "bytes": 4286,
+      "sha256": "5dd0656e1bac302c27e7b9d6514345ab656d2707ed8ff395bbb98f652f4705bd"
+    },
+    "examples/physics-contact-wrench-contract-2276/consumer.mts": {
+      "bytes": 1069,
+      "sha256": "38738f025a17a8da13dbce1279432a58a83aafc88d4e606ed409f7252fd565c0"
+    },
+    "examples/physics-contact-wrench-contract-2276/types.ts": {
+      "bytes": 3744,
+      "sha256": "d86ec76d6b89cbc9e4e378cffe7a72abfdfb8e4ec39eff7e8514fbfc65bfd622"
+    },
+    "examples/physics-contact-wrench-contract-2276/validation.json": {
+      "bytes": 9757,
+      "sha256": "92748f1d72e77d8c3dd1befb3bcaf3267447b6dd9b30c275d61fd39189aa7fbf"
+    },
+    "examples/physics-contact-wrench-native-2276/FREEZE-03.json": {
+      "bytes": 60283,
+      "sha256": "33cc4fb94f93923de886cc7146ab17404ab0adf7813629390888809f3bfa1a77"
+    },
+    "examples/physics-contact-wrench-native-2276/entry-graph-03.mjs": {
+      "bytes": 4695,
+      "sha256": "ca05f4dab521974b1e344844e7133f2647c25d233b95c5d3845bd6b5a83f01cb"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/B/candidate.d.ts": {
+      "bytes": 467,
+      "sha256": "81acd36ba0bae4a1a75d67b4e70741cc5b844a56d04b7e9dcc010ba628414ca6"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/B/candidate.js": {
+      "bytes": 14732,
+      "sha256": "7d4365fdfb8c1b2ad754d02e8a1a46748236134e0518aaee6d6aa5c8be104b45"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/B/native.d.ts": {
+      "bytes": 384,
+      "sha256": "b873a670abcd67570a23ce8fc271cb8bc1b43f39bad88fe793d20c0b700487a8"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/B/native.js": {
+      "bytes": 17172,
+      "sha256": "4cbf3f8a0805327911c31744bd00fc9bcae1088d95ec764f36403c6c7ffd1b15"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/entry.d.ts": {
+      "bytes": 334,
+      "sha256": "c4838cc850c4dd3569feb3f141da93e8e62d58a8f76c3d08c73cac5d75f93e34"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/entry.js": {
+      "bytes": 334,
+      "sha256": "c4838cc850c4dd3569feb3f141da93e8e62d58a8f76c3d08c73cac5d75f93e34"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/broadphase.d.ts": {
+      "bytes": 239,
+      "sha256": "9231cd9d0f59808f02ab39305893cd5a48c30774f2bacd7ffd0fcab1f8767f13"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/broadphase.js": {
+      "bytes": 1253,
+      "sha256": "f35e7453719dc2b44668bb20d6fad51a739c6b2cdb9797fe875fc81187400db3"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cad-fluid-data.d.ts": {
+      "bytes": 440,
+      "sha256": "b13135d255653f45cdd083ad7e9a3fb2877340e6c53b273674c282bc0f702a59"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cad-fluid-data.js": {
+      "bytes": 2123,
+      "sha256": "854603f2171481ec0bf8d795908eac35718518686532fb9c91a7ccd42a35feb9"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cad-proxy-admission.d.ts": {
+      "bytes": 322,
+      "sha256": "e571a8936bc6df9bfa2dfd9ba0464709947026528be2b5028fb0d7964aa5ca78"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cad-proxy-admission.js": {
+      "bytes": 7628,
+      "sha256": "ee51b4fc7e9f3c193bd993fa3f850f381142e58b48bca2b5b7ab992d9157548d"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cad-proxy-pose.d.ts": {
+      "bytes": 243,
+      "sha256": "8ed62f953840b9ed6319d507e080f771d05c48b1d3125849bbbbdde52beda981"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cad-proxy-pose.js": {
+      "bytes": 1287,
+      "sha256": "ca965a4d587c8b208c064f0d0d3a65b2b31c41c2f692f60b086e6eb2fce8b46d"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cad-proxy-types.d.ts": {
+      "bytes": 950,
+      "sha256": "4ba2ad188a191a5465bf422ee6e79b631caed56a1c7333d96ab7daa96b605d29"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cad-proxy-types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cad-proxy-validation.d.ts": {
+      "bytes": 549,
+      "sha256": "daa38774bf8e5a9bf5953ead96f9851bb5be1aa526fa6519b5d3bf0cb155343c"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cad-proxy-validation.js": {
+      "bytes": 1327,
+      "sha256": "30ff7c4b15b218924f4b6a8df561830ed254365a3b474f4e718b486fd7be5155"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cad-proxy.d.ts": {
+      "bytes": 321,
+      "sha256": "cc7715b4fc974c8ed4511ebf684cdc7c2923f7ab4b8b7f5db45b208f8e6ffa99"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cad-proxy.js": {
+      "bytes": 203,
+      "sha256": "457a52444143aee357e2be5e6673b95de67b918da30d3242747890af55a35fba"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-contact.d.ts": {
+      "bytes": 198,
+      "sha256": "e3c1d147fbc7b1f30e8e97a6067e6750a56f0f6ccf7659a9d211f65e24e4a178"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-contact.js": {
+      "bytes": 5708,
+      "sha256": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-query-error.d.ts": {
+      "bytes": 43,
+      "sha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-query-error.js": {
+      "bytes": 137,
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-query.d.ts": {
+      "bytes": 222,
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-query.js": {
+      "bytes": 73,
+      "sha256": "f44c04d06c851b807add8096cc26bf893945f53b49ab6c671148491b88e781fc"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-query/admission.d.ts": {
+      "bytes": 250,
+      "sha256": "779417df1dbf3f0f697de4a04f918007954b13fc9f301b991105bbfc0a9cefe6"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-query/admission.js": {
+      "bytes": 4867,
+      "sha256": "547d9202b0db4be3d8a4fd5266b136f750d3e015151d60e679df26ecf51da7fe"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-query/geometry.d.ts": {
+      "bytes": 536,
+      "sha256": "efb0588d7b8808333836dcc927eb7523c5a7c516467294e3743cccf056ba736b"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-query/geometry.js": {
+      "bytes": 2319,
+      "sha256": "4c9034c23c2137d54e4d2e1554b9015ff2cc6bc7776d62d8e1f3c8b905b67d04"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-query/profile.d.ts": {
+      "bytes": 357,
+      "sha256": "2b1626e82c8677593940e8100247b6fbb33e9ab53e80d9de001ec1f9a7411300"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-query/profile.js": {
+      "bytes": 294,
+      "sha256": "acfab32b60a91c29bec4b89a803902aa9b944eb2ebb6cd0d129b60e039e13210"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-query/snapshot.d.ts": {
+      "bytes": 176,
+      "sha256": "64340b99b9b456f3586ed545d7e99a570675df7972374c3ec76ecd9d73a515ea"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-query/snapshot.js": {
+      "bytes": 2468,
+      "sha256": "5ee1b97dc58a872a9cd6c56121eca158ac5f746d543729e5f197b24d08f9d55f"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-query/sweep.d.ts": {
+      "bytes": 240,
+      "sha256": "c99f678a450aa0db3d677c57c97ef5990544effca96e35196e8f3bbca073ecf3"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-query/sweep.js": {
+      "bytes": 1833,
+      "sha256": "f04e6a548504cad0bb838862f7813225592c9549fb0233e026bc6276f7b4929e"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-query/types.d.ts": {
+      "bytes": 1026,
+      "sha256": "6f1c259f0b05ffe866b493569a8d939f3493ad263381bfc5ac943705c8c31522"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/capsule-query/types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/ccd-box.d.ts": {
+      "bytes": 375,
+      "sha256": "e8c009659fab23be3f36024b61c7f693aad60e8df99cc36ea8c94c2e1d88efee"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/ccd-box.js": {
+      "bytes": 1835,
+      "sha256": "e289ada87186b13de91bfda3c91b7db3c4b4a84b3870cea0290e2bab64f54271"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/ccd-pair.d.ts": {
+      "bytes": 275,
+      "sha256": "62e7a116e62e543ffd85cbdc138788f73dddd56d81ab9ec681f277ea75d40829"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/ccd-pair.js": {
+      "bytes": 1228,
+      "sha256": "3bd501f350075f4e373eaa08ab6d0a26f74ae488e376605e4613d48a7d862830"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/ccd-rounded-box.d.ts": {
+      "bytes": 502,
+      "sha256": "bcd4f82854324d45d093b0ddf96c99153cf1a9f8cd63acd650e6c0abd17f18d5"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/ccd-rounded-box.js": {
+      "bytes": 8311,
+      "sha256": "0ed00435e556cef7a81dba538818391957c114388a8591dab65439fc33cd6992"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/ccd-slab.d.ts": {
+      "bytes": 216,
+      "sha256": "4adde0cfe2c336ea862ff7d61b3001503235d8b9e6761e73d310221a691e3646"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/ccd-slab.js": {
+      "bytes": 1088,
+      "sha256": "cf85c1dce1ebaa899cc2fc9eead7b0c25f7096caeb3a652476beb93c5f02843f"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/ccd-sphere-pair-exact.d.ts": {
+      "bytes": 545,
+      "sha256": "e308490fb137e76f53c72d808118ddd15c57f1bcc6c8eb89fcc9cd2528fed03e"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/ccd-sphere-pair-exact.js": {
+      "bytes": 5256,
+      "sha256": "3182f9776b5f9f84942379fcd1b0e3728e7f8a5b2ce669772d025f8245ed595c"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/ccd.d.ts": {
+      "bytes": 560,
+      "sha256": "ef17952c90ff59495d3120e697ae83fbc4eee9e28ae1050b25a21ceccc7069f4"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/ccd.js": {
+      "bytes": 2927,
+      "sha256": "a53793b3cc447960ce3a17cb3207b65c573b7ab3c8d379a4da75542d1929efee"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character-controller.d.ts": {
+      "bytes": 505,
+      "sha256": "58081e98e53b7c4a256dd00eac153992c61dfdbfcdbb2f15b9da8aa88df092e8"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character-controller.js": {
+      "bytes": 1083,
+      "sha256": "7a68a578b18b42e02dcacba24011b41208fa9af3b5c1b6991dd8efbae29d75b8"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/admission.d.ts": {
+      "bytes": 499,
+      "sha256": "49b1094be17da78b2a3b8cff6756f6191ddd0422886cd1985ff89c0337cfa6aa"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/admission.js": {
+      "bytes": 4100,
+      "sha256": "07cf9fb6af74299fce3e8fba82ca65871ea7e0cc67e4e73c837606be9f30e43c"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/core.d.ts": {
+      "bytes": 461,
+      "sha256": "403a8ef448bcab99937f5bdbaa5c5d49f2d0c2dbd9ea06faac8c4beb9d488287"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/core.js": {
+      "bytes": 4194,
+      "sha256": "80a53992b06c75c9216a671c52bad2f3a01b6192bbd6002458ecfe077c3a4eb4"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/ground.d.ts": {
+      "bytes": 250,
+      "sha256": "6fb19efbd8bb96956188dd9471a510686b3fd6a841b1656a4102435a4f2fdd8a"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/ground.js": {
+      "bytes": 1117,
+      "sha256": "96298ab6534e5e9e7f3da6b0850bbbb7acd73ac11534f6047617ac2bdcd2eb16"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/math.d.ts": {
+      "bytes": 400,
+      "sha256": "080a0c2c1d9a808d658028024dae011eda1fad85c72eadee8af62dfb06f5854d"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/math.js": {
+      "bytes": 686,
+      "sha256": "1afbd07dcb7940e9808e9017d665d781b5e7442bebc290c8327d0d4fb7a79174"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/profile.d.ts": {
+      "bytes": 355,
+      "sha256": "30d583b24f52cf743763b6d877a8d4d1f742a9646d000c43a64065f1836019ce"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/profile.js": {
+      "bytes": 334,
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/query.d.ts": {
+      "bytes": 655,
+      "sha256": "3849ff4e235063452e740ddf26f9352c3da945e000233a6f1763f7ebd69fe68f"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/query.js": {
+      "bytes": 2186,
+      "sha256": "3b22d2772d3724bdb3974f1d88f5298054e577286a9f73aa67e62684efca1184"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/slide.d.ts": {
+      "bytes": 319,
+      "sha256": "ccf68ac00496f485887d10f5f441ecf7b74e1ef2575ddb3432952da5daabd354"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/slide.js": {
+      "bytes": 2636,
+      "sha256": "10c7d825c4640a7837a0b69885bb422ea5a343c921430675c11955acafce3c57"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/state.d.ts": {
+      "bytes": 504,
+      "sha256": "26784670cee2b09570f457a21d1fe7a60aa2446bf67f04882fc692c0c52fa4fc"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/state.js": {
+      "bytes": 1923,
+      "sha256": "1600bb81b883944f36c687305bcb5f7134dbf6c0751e92d9206b03622eaf9633"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/step-assist.d.ts": {
+      "bytes": 445,
+      "sha256": "23f5de885452721fb565a167cdcf3eab995f71643a46569faa3b7f905cb71e79"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/step-assist.js": {
+      "bytes": 2969,
+      "sha256": "aacc69468b9db7a62a14fbb2628a4494cab01a82640c682ad72f098fcbe7c8e5"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/types.d.ts": {
+      "bytes": 2684,
+      "sha256": "1a0f85fdcf124f38bbbfeb2e99ba5896d5303281ba44f7a80f116dff1a753153"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/character/types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cloth/constraints.d.ts": {
+      "bytes": 222,
+      "sha256": "d73f6b43a6276c83a5393ad8f5888833f6e2e91289f90d8176fe4d8cdb6f6296"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cloth/constraints.js": {
+      "bytes": 1836,
+      "sha256": "6e2e0b09734222a87abdefd745540e3ff5f4f24414cfae51f85c1b96d15225d7"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cloth/metrics.d.ts": {
+      "bytes": 277,
+      "sha256": "5fb418be30e84af69659615f0c87a66d0907d9422087f8fb40ca1f03379e29b0"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cloth/metrics.js": {
+      "bytes": 1730,
+      "sha256": "78e03ac4e69c35a7be6a614e4d7aedff4e4390d64c103a28543c0f6ee056eb27"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cloth/profile.d.ts": {
+      "bytes": 604,
+      "sha256": "8f1d860e70cc6e12faa7d35c38bb116298f0ee6345e18aa53119294e531e0fa1"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cloth/profile.js": {
+      "bytes": 664,
+      "sha256": "0dc385cac798bcfde6ad9cf479b8c51cf55bfc42b478370534ccb2de1e66f807"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cloth/solver.d.ts": {
+      "bytes": 309,
+      "sha256": "02eae9d5e0564304417dcb5afc5994dc808ee261ad05c16453c36ee58a6607f0"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cloth/solver.js": {
+      "bytes": 1471,
+      "sha256": "1f7178354cc026a41996d32502ac54d888ddf83f6b955059bb43f45cc6d9453b"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cloth/topology.d.ts": {
+      "bytes": 97,
+      "sha256": "96f70c7b8084190711c77cde7e7c54ba1f549f58c0af1a92060e25d5198e8047"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cloth/topology.js": {
+      "bytes": 2033,
+      "sha256": "403cf1b19b85a3a6dd177ae8bb130b19895670e679452533df22dce26d558050"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cloth/types.d.ts": {
+      "bytes": 752,
+      "sha256": "482dbddb4b66efa7aa47e689cb8759d2c9d7b7e3e5b870e5aa500ced152bffa2"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/cloth/types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/collision.d.ts": {
+      "bytes": 535,
+      "sha256": "9d0eba9d2a95e584a98cce909b1a1206411eb2362c15425813b9b4adf056d15f"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/collision.js": {
+      "bytes": 14698,
+      "sha256": "761a123d62e14ef798a0dce21fccd37d779e09d6a164dd7f4b709810d62b6b36"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/contact-manifold.d.ts": {
+      "bytes": 320,
+      "sha256": "92763debd17ad80b2a55394adc00214c3e127cadd51cb969f496ec45100b496b"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/contact-manifold.js": {
+      "bytes": 4576,
+      "sha256": "52fcb4accfbfd3251aa977f519983c7334f0d1663bfb2424ca82bfaaec1c8fae"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/contact-tangent.d.ts": {
+      "bytes": 346,
+      "sha256": "7459a975c8a9473f4f983e7705812e4ee6cf7621d5bdddcbdf26721220322d3d"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/contact-tangent.js": {
+      "bytes": 2713,
+      "sha256": "d5a3e6a0a2fef8000b219df53569c571a6d75b6a854b5266dd84fda3c58df9d0"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/admission.d.ts": {
+      "bytes": 480,
+      "sha256": "bc64cf951244b1fc444f2800c4ecb99892a4a93ea47375bd855a06317a9f8cb4"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/admission.js": {
+      "bytes": 3562,
+      "sha256": "4a72dbe445a74c4d1e7081e07a27c9c3cab46d823d0ab9568781a1ac54ffc587"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/errors.d.ts": {
+      "bytes": 941,
+      "sha256": "9e67f3825d9fa4cb31e69bfad57a2e66ba3ae592d944e94b04c30e0791242c3e"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/errors.js": {
+      "bytes": 2793,
+      "sha256": "9195a428dd9c96e0344b8eeb1eb7c66a7197a8e152b85d5fb5aed5038256d173"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/linear-solver.d.ts": {
+      "bytes": 254,
+      "sha256": "19623809b43cc41bc5ec39fd78094543243a57f7c2bdfe0b0acde011e2975680"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/linear-solver.js": {
+      "bytes": 12015,
+      "sha256": "123d3abb62b3a9f4f5ce3807463f070194e2d528f5cec841da5e623ee6b52e8e"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/measure.d.ts": {
+      "bytes": 1226,
+      "sha256": "2b9980af657dbe8735b4473393344073d6835103c5f3b5dba98cba9811f1bf53"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/measure.js": {
+      "bytes": 4860,
+      "sha256": "e576367851b0ea5ba37e9684e867aa28ae51cb6a585ad2c40f479341dc5f95f8"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/pose.d.ts": {
+      "bytes": 1787,
+      "sha256": "e91ee521eec25fabac02cfabacb9b76371696ab206bbbe47972c7cc486fcbbb0"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/pose.js": {
+      "bytes": 3352,
+      "sha256": "ee53440b0433e7be5b1f00027aca708bb567da46f9edd193de0bab2a282c02b9"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/postcontact.d.ts": {
+      "bytes": 793,
+      "sha256": "34c797517114767513a1edf7f161ffae4da85de440d1bdff3dcd2dba42d67dde"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/postcontact.js": {
+      "bytes": 2568,
+      "sha256": "32a4a1907a4540a550e67cee03a2817d9519d77a53212b160d018c2f484b2e1a"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/projection.d.ts": {
+      "bytes": 4433,
+      "sha256": "ce03195c1d5550114fe5589106edc6a423f40e62e9468ad65debcce7fabc0753"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/projection.js": {
+      "bytes": 3825,
+      "sha256": "30e04425020bff49e75c02f1d7abf15f82fe375dd1e07a0938a4a69aa03d159a"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/report.d.ts": {
+      "bytes": 1402,
+      "sha256": "791d2f931d8f24edc833a9ff2f18df5239ed73971b7228a906fe0e6bbce522fa"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/report.js": {
+      "bytes": 5257,
+      "sha256": "7ee0b7d17e70247ce4c2dff953593e82091efabdd2932e0f4272931c69843a2f"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/rows.d.ts": {
+      "bytes": 946,
+      "sha256": "fdabe8b245fd133a9312ebcec16466b0b7981a02df88cd3e5d85e91862b173ca"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/rows.js": {
+      "bytes": 4059,
+      "sha256": "e19d8d9c3ef835e98f796b3dc9b5785473e8aaef41af34d77c49200b446d3f55"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/stage.d.ts": {
+      "bytes": 989,
+      "sha256": "167a0fbdd4e34bc5a2dc504d795c53bd14c4e6cf6e93ae61bbe1d4798c0cbd7d"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/stage.js": {
+      "bytes": 2255,
+      "sha256": "bfa6d3528889d89da9d355a4bed753ed7287fd5979735f1158c7c009de94cafd"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/types.d.ts": {
+      "bytes": 1887,
+      "sha256": "50410e8dee0bd496114f1dfa72eff31603b5bd36d76dcf609352b1f25d5607a3"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/disjoint-hinge/types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/domain/admission.d.ts": {
+      "bytes": 403,
+      "sha256": "21e43ead4806bbbc2ca4518cb481698090abdd91520fa6340a7e971427944c01"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/domain/admission.js": {
+      "bytes": 11163,
+      "sha256": "8d4a14d764742a9989a760ce27a0cc395ff818f879a9faa32f86fdaba7600960"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/domain/cloth-reference.generated.d.ts": {
+      "bytes": 92,
+      "sha256": "f13ae964106fdfa5b0464ba945640467d79b497cba1ce2b2a5c02cbf8a331490"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/domain/cloth-reference.generated.js": {
+      "bytes": 181057,
+      "sha256": "3c8e21d9612bf232074268c50bf7151290167391692a132e0619f5aedb4b75b9"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/domain/cloth.d.ts": {
+      "bytes": 434,
+      "sha256": "f24352d6ca040d469cf484ab74864764fbc7121a824469f07cf43e9ae1a5aa02"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/domain/cloth.js": {
+      "bytes": 4041,
+      "sha256": "a97392c690610d642eb7b6282385e362ee4ebe7b661319d3b70ea48fa95b6205"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/domain/fluid.d.ts": {
+      "bytes": 434,
+      "sha256": "e5a257935af3d1b8dce16da0a439bf853639ff3676eade2eb4fe6a9f1774cfa3"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/domain/fluid.js": {
+      "bytes": 4875,
+      "sha256": "c0ce5f1f97b1d19b2f6fa2bc892b5bc5bed445c3e1c56d5f4a1cd97c2ecd456f"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/domain/types.d.ts": {
+      "bytes": 2142,
+      "sha256": "cb3c90cfaee8a1bd20b48bbf4d6c2d2bea631574361cc389f3d4d7d1ccf80de5"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/domain/types.js": {
+      "bytes": 2151,
+      "sha256": "76eb7d0fc14a3ba6897ba0d649beeaba4a28172b2458782b64029af6ef5f6666"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/dynamic-anchor-pair.d.ts": {
+      "bytes": 420,
+      "sha256": "9253386fe2c10c4a5c3b8a74930e9afc5c701d13c7310a6f7ad716e8ab76ec03"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/dynamic-anchor-pair.js": {
+      "bytes": 3099,
+      "sha256": "8e20e96a9a3c803f65d78dfa21aaf530744b2c37e4f3507fd87e828190c800be"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/dynamic-fixed-joint.d.ts": {
+      "bytes": 267,
+      "sha256": "c1af834c67ae4e82753fa5f949313ec9a1686c89193f1b368e37541753b478ca"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/dynamic-fixed-joint.js": {
+      "bytes": 1935,
+      "sha256": "c637c4b13cdf432103202f895e50fae7e05c88920cf0889a67f2c16e565bfb5a"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/dynamic-hinge-joint.d.ts": {
+      "bytes": 475,
+      "sha256": "c08e405d3b85f5967e12c29b30be360b47e2e015fe72132a34788a908cea41c1"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/dynamic-hinge-joint.js": {
+      "bytes": 4671,
+      "sha256": "8780a6887f0c7cbec6ec2f059b2ada64d0e28d0224279d7ada42e4b79e84baac"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/boundary.d.ts": {
+      "bytes": 349,
+      "sha256": "fdc60e3e6b43b551c74fee3eb888476213132987c2b6f80e9a2a515041076b91"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/boundary.js": {
+      "bytes": 2027,
+      "sha256": "0411aee849b18145f75e2a602a23aab5b5e6a644bc44a47cc2944ab532d0ea18"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/constants.d.ts": {
+      "bytes": 478,
+      "sha256": "b145eaa09c8094a630d0073564d79c13e9f9623ee98d49bf291afc743f42f2bc"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/constants.js": {
+      "bytes": 396,
+      "sha256": "48cb2507298e158c9d711a3a08e36a521ccab101a26b55217d00247a9b844072"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/diagnostics.d.ts": {
+      "bytes": 180,
+      "sha256": "2e528c38ac59e450feb510f421228cba10843df87d4f1b476582eb8a814f2e47"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/diagnostics.js": {
+      "bytes": 1032,
+      "sha256": "b87d7b27266ca4b014d4b84b24b57216b12d4b0345088282b6ecd5270fa46c29"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/kernel.d.ts": {
+      "bytes": 376,
+      "sha256": "4430b3611c7ea86ba71ca51f93e02b800f11a44986182059a219f2a5ab3da157"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/kernel.js": {
+      "bytes": 1047,
+      "sha256": "264a62a2ed0aeee0c77bd5ba44a60a6d0522654ecc8f07117174c6fe328c123b"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/neighbors.d.ts": {
+      "bytes": 384,
+      "sha256": "f81f41caadaccc5b3150f144b0687a5a2910e456ac707114b927ba2ef18869fd"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/neighbors.js": {
+      "bytes": 3065,
+      "sha256": "e857766d44372269a19fb83d4bdeeabbc1816b9792230e6a9aac8cf1ea6249e5"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/pbf.d.ts": {
+      "bytes": 722,
+      "sha256": "0475a847a3b98aadce70713913ac39d7d3c03e07a261c51e20ae86231c65e19c"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/pbf.js": {
+      "bytes": 5606,
+      "sha256": "93ba3d6c2db8aee07c7307d74300888b9e48279279f6f060e157ea08b847241d"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/static-box.d.ts": {
+      "bytes": 628,
+      "sha256": "5e643a758a5988858b624b26af6ac15c94b533977421688509597490b9789ce8"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/static-box.js": {
+      "bytes": 2238,
+      "sha256": "120ee59f2212e86846bce3a73425b493d2bc98971dc230419a394a1235196b7c"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/types.d.ts": {
+      "bytes": 130,
+      "sha256": "ff8120a184ec3b4139c14031e106c41ab0ea2569747d1bd2b34bca415e69b064"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/types.js": {
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/visual-viscosity.d.ts": {
+      "bytes": 289,
+      "sha256": "f7917414df0b746457c9dc5fb9cd12e48dc2bc2ab6d4cc30f0a31a9c6e3a6b26"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/fluid/visual-viscosity.js": {
+      "bytes": 1225,
+      "sha256": "0d01bcbd68f126c9d8954b46afe523f6e7f879f129817f40fc9300c297041205"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/identity.d.ts": {
+      "bytes": 523,
+      "sha256": "bef1a44ab8fd4245d47a5cdeb09b56f7d703ad2c5ab20768350a9a1c44621330"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/identity.js": {
+      "bytes": 6977,
+      "sha256": "7f7243fcc617a32f77d517d029cb90bd99584f518ece49a7d7a4e35ae54d7791"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/index.d.ts": {
+      "bytes": 568,
+      "sha256": "b564302ed188eb8a22eaa3837ed7a69086b29bdd5c62fe6258048690e6a33277"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/index.js": {
+      "bytes": 217,
+      "sha256": "560813197ed96657e44ebd195ea1be17cf3aff51aa0bc08ec9fb1622057db2e1"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/internal-types.d.ts": {
+      "bytes": 2800,
+      "sha256": "288c355766cb51ea6e888d9ef38ea10c79600c44688d536a203b95dbca3f5c61"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/internal-types.js": {
+      "bytes": 43,
+      "sha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/joint-motor.d.ts": {
+      "bytes": 255,
+      "sha256": "fdcf91647efdad5905cf989de7d9634cb7878f9b2299c20f13b5557eef958ed4"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/joint-motor.js": {
+      "bytes": 1651,
+      "sha256": "43010c0e319717622727666e1e23f7288fdf500f1731f6fd52a443f36055c724"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/joints.d.ts": {
+      "bytes": 268,
+      "sha256": "7ed4f0eb1cf54f665d75d42ac5c49211838a2480b33ffede327a3e3460da550b"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/joints.js": {
+      "bytes": 7382,
+      "sha256": "f2893b2f8684f338a8d4832b9fa91c356fd360bf70ebf423062e21911d433ce0"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/limits.d.ts": {
+      "bytes": 476,
+      "sha256": "9389e2dca0a552e1173fd3be829ea8f2cc698a86f6e7d92ddf305404192f0b6b"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/limits.js": {
+      "bytes": 416,
+      "sha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/math.d.ts": {
+      "bytes": 893,
+      "sha256": "bdbe8b8906433f0aa9eeb9c3d6dc2016115712f7b749bd11ca135afb58b58443"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/math.js": {
+      "bytes": 2114,
+      "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/model-admission.d.ts": {
+      "bytes": 510,
+      "sha256": "9fa8004b2021ad8f9e38209ef093180e845bbd341c3f9e8281660110ff787289"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/model-admission.js": {
+      "bytes": 10761,
+      "sha256": "29a8cbe82623ce8c592da4dd7693daa625403d665e4f0a029c23b4bde0468fe7"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/persistent-box-contact.d.ts": {
+      "bytes": 578,
+      "sha256": "7f3f015ecbafba9c0be218ccf6a07ac6b73de006ae19a4c57df86dfa637ac398"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/persistent-box-contact.js": {
+      "bytes": 4652,
+      "sha256": "4b92612eab30816158735fe8f480bff747290933276bed862e2683a9e800f81b"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/phase-hit.d.ts": {
+      "bytes": 929,
+      "sha256": "7df7901b04853f4ed6efde3e232a748c87ff16333e1660131d6ea658d629741f"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/phase-hit.js": {
+      "bytes": 2380,
+      "sha256": "64a6054f02af8125cba18c6913ad3d076c70befb40f62ac5aa5ccedb4ef2c147"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/private-phase.d.ts": {
+      "bytes": 2458,
+      "sha256": "75aa1be464b35fe88d28f7de8fc13bd27bdd012d0d91523e76064fcab6703e1b"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/private-phase.js": {
+      "bytes": 8787,
+      "sha256": "cad287b79382f60165b265ca611e123d70f75c73e8ddc27fccf825c46fc5b5df"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/producer.d.ts": {
+      "bytes": 1486,
+      "sha256": "49287c1192763840321136b6b6da496efb721a5e85baf33402b99e466b4ae7fc"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/producer.js": {
+      "bytes": 4374,
+      "sha256": "00b1c4c5a593361546f1e7e423b7c1db269ffe3dcb8e094fde6796db94574991"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/provider-manifest.generated.d.ts": {
+      "bytes": 11052,
+      "sha256": "2887ec261530894005a3a94c46b17df767e6d0eff0fe353ade4ec449920b1e34"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/provider-manifest.generated.js": {
+      "bytes": 17431,
+      "sha256": "c6b2b1aa2505d2dab62ac21d5a3c79579d9579a72eac679d7b0f38c24abb0b2b"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/recording-owner.d.ts": {
+      "bytes": 940,
+      "sha256": "e904a930ad3132e81fb3587df42b0cf71b62ca04910fa6f273bfa58ed6e12bd5"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/recording-owner.js": {
+      "bytes": 46,
+      "sha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/replay-compare.d.ts": {
+      "bytes": 87,
+      "sha256": "9f0c2c538a56c78cb7fbfe9fe5131de4ce3dbe89792b7192da0b003e36021195"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/replay-compare.js": {
+      "bytes": 974,
+      "sha256": "46e92b237a3b74725e1f973bc195f3fb3c7d182ea4978f5092608706d1400875"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/replay-json.d.ts": {
+      "bytes": 695,
+      "sha256": "976f19331efa162c1043ca0c5d5febb0f64af5cb8989a8cf7028c3d92d6ca271"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/replay-json.js": {
+      "bytes": 8011,
+      "sha256": "ab338a9776f845552c46b323645bab39b1d171deb14adf1408f4dccaf7558cfb"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/replay-validation.d.ts": {
+      "bytes": 218,
+      "sha256": "a876f6e56327b9c7210c927421e7d547225f4961eb2147ac1429182dbd6501e0"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/replay-validation.js": {
+      "bytes": 9788,
+      "sha256": "85166e3b9921505fdbfa111074865dcc33c2a0a38799103d9035c94888b11f28"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/replay.d.ts": {
+      "bytes": 796,
+      "sha256": "126d9a849ec1dc0d8d8064e64a8b4a51cfba742eecba19bfecd4b453bb4168da"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/replay.js": {
+      "bytes": 6623,
+      "sha256": "d880459f24fcaecea85bd179d66359241164d4eafc68aed96ef5033b8b2c34b5"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/rigid-forced-rotation.d.ts": {
+      "bytes": 423,
+      "sha256": "a38edc2e6197df45e92a40d9e520f7297b3f83ded8dceda8cbf100f25b3cd1f4"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/rigid-forced-rotation.js": {
+      "bytes": 4913,
+      "sha256": "76a7de3e408c18d5ce78c447cd86c88f6f5e62678990dfb4dee6c000a783ea3d"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/rigid-free-rotation.d.ts": {
+      "bytes": 558,
+      "sha256": "f6db0dd5704f6deddd9c9d37b1e69707e9feaf448a657489ca35d987455545f8"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/rigid-free-rotation.js": {
+      "bytes": 11497,
+      "sha256": "88689f815d52f4c9503eaefd80fa13f146e6c4639f9a2a967c10d7116eb93e89"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/rotation-validation.d.ts": {
+      "bytes": 251,
+      "sha256": "429e47e34bf3260a16b6f583dc30230394ec86166319dc66241d3b73e87c060c"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/rotation-validation.js": {
+      "bytes": 697,
+      "sha256": "9ae367ba026027fbb0966561c54f508271f1119a479076c7bc3228a4a995f397"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/scene-profile.d.ts": {
+      "bytes": 300,
+      "sha256": "c96672aaa6baeb8cb59c16e61ab561e0cf9554214b0c8eb2fe458366bff57ae7"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/scene-profile.js": {
+      "bytes": 1138,
+      "sha256": "7a1198598bfaf64647f9ed89d76cb4f1035bd77e602d8b8c0b8a7914911b6e9f"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/sleep.d.ts": {
+      "bytes": 396,
+      "sha256": "bc4940a234b4b29d6dae5554d7c7d05fe7d8a7eadb9110afc25cf702e7bfcef2"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/sleep.js": {
+      "bytes": 4621,
+      "sha256": "681f3820fb08a61cd7f367b049f9b7bb3d2eb1a4e8f81975aec014fdefdb8250"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/types.d.ts": {
+      "bytes": 13214,
+      "sha256": "2509f063e92a5e211cbb52fe0497432052bd1afff3bb81e35cc2aeb1cbc17ed7"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/types.js": {
+      "bytes": 418,
+      "sha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/validation.d.ts": {
+      "bytes": 1401,
+      "sha256": "ac6326806207337984fa1e442913f7984710e261447daa819cc9a86d0077651a"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/validation.js": {
+      "bytes": 14590,
+      "sha256": "7a16fbadf07097048276364818d8851d77f980fe84a30dc79529eadcb2fabe2c"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/world.d.ts": {
+      "bytes": 178,
+      "sha256": "8d0c9906f7c25b589ef9a4db96adcc961fa99950ac64fd79007a9aff306af2a0"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/emitted/physics/src/world.js": {
+      "bytes": 28959,
+      "sha256": "34924cea16a69266a3bd1060b755f5a6aee350fa1d54ecea5d4318731a148c9b"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/entry-graph-audit.json": {
+      "bytes": 88231,
+      "sha256": "64993e7d2b75fbddfa17058d748339d1f95058c068dbef174dce846008155b07"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/result.json": {
+      "bytes": 185818,
+      "sha256": "2551bb884ec25150722f467eefbd1ddb7b0c79ea20a14e4f13e012b60d602388"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/source.mjs": {
+      "bytes": 475873,
+      "sha256": "a3eaa16162d3c02a14af6bae9917b393c19cac0450af7dd966815fd3cf545c32"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/B/candidate.ts": {
+      "bytes": 15364,
+      "sha256": "1fda2dd0a8f8d39ecdbe50c391c707c800ec7f0c4be69de7bd09730b656cde48"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/B/native.ts": {
+      "bytes": 17864,
+      "sha256": "15a1931ed4fc5cc91bbae4fde700258a039aa3e081c128bc61030474de38200d"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/entry.ts": {
+      "bytes": 326,
+      "sha256": "254a30b400e5ed6fef8c6cc71e4f81af0555db68a3d56ed7d30e0a43b29e8502"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/broadphase.ts": {
+      "bytes": 1371,
+      "sha256": "d93e38d78cc3d202481ceeba83631d528032426d03a8adafb2e461fc72a042a0"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/cad-fluid-data.ts": {
+      "bytes": 2345,
+      "sha256": "5a15e23ba65663433501f07d2f35f323960879218d52a007efeb09ca7934ce10"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/cad-proxy-admission.ts": {
+      "bytes": 7744,
+      "sha256": "898fb55af369727440fef9f4bfadba0ea455b4c800a719909e5311029a663441"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/cad-proxy-pose.ts": {
+      "bytes": 1479,
+      "sha256": "8b5f50642144e335421ee6483f8b016b8a0babdb0c312ddf6ba4afbcf8bda322"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/cad-proxy-types.ts": {
+      "bytes": 887,
+      "sha256": "31bbf6766887913149d6fa2185c173adb0c6b78cdb21d1556ae4ffd055666128"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/cad-proxy-validation.ts": {
+      "bytes": 1598,
+      "sha256": "4429f957bb51ff2604a15478095e35642368dcf91ca0d854561693d3f99f748e"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/cad-proxy.ts": {
+      "bytes": 321,
+      "sha256": "cc7715b4fc974c8ed4511ebf684cdc7c2923f7ab4b8b7f5db45b208f8e6ffa99"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/capsule-contact.ts": {
+      "bytes": 5615,
+      "sha256": "cc29d60423bd9a1883585cf164cca0b0736b9fc72e7feb3575c5208c7d892929"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/capsule-query-error.ts": {
+      "bytes": 137,
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/capsule-query.ts": {
+      "bytes": 222,
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/capsule-query/admission.ts": {
+      "bytes": 5248,
+      "sha256": "9b67efc7a8824ce49361485eff925afa50017e05bc23d900db5ec7c4e2c8760d"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/capsule-query/geometry.ts": {
+      "bytes": 2570,
+      "sha256": "5fdbe1eb40f46e930161e98244a9e5ec0e00c29297caf6f91d530c98df3df4a7"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/capsule-query/profile.ts": {
+      "bytes": 303,
+      "sha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/capsule-query/snapshot.ts": {
+      "bytes": 2537,
+      "sha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/capsule-query/sweep.ts": {
+      "bytes": 1861,
+      "sha256": "a8f4d16879b2ff88086ceec54cef19d04d58fb063893e7a146382cad59cbaf77"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/capsule-query/types.ts": {
+      "bytes": 979,
+      "sha256": "c22d17887cd8ab889a443c828200310a4c560fd3b4f8ed49f3f1f60e5dd46f44"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/ccd-box.ts": {
+      "bytes": 1988,
+      "sha256": "076eadf591500684332bd19b53a780de480ccdde205196ad072a11e1abc4f7a4"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/ccd-pair.ts": {
+      "bytes": 1303,
+      "sha256": "87ea34e6b662b223874857651839407f351b0beaa03a4a85d1e4797744027e1a"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/ccd-rounded-box.ts": {
+      "bytes": 8125,
+      "sha256": "b4ad5a06435b1bacb796dace179f95904fd9d35e4e9dac17ead55bc2f675f59c"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/ccd-slab.ts": {
+      "bytes": 1125,
+      "sha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/ccd-sphere-pair-exact.ts": {
+      "bytes": 5307,
+      "sha256": "2ee601d4e363d135fc356cef37a43495524449bb4dc38abe8f62848bdf28645c"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/ccd.ts": {
+      "bytes": 3183,
+      "sha256": "861e2b8fa56c746232581f1debddab0b88574df81187cb6dd2d6b8db7377d95e"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/character-controller.ts": {
+      "bytes": 1363,
+      "sha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/character/admission.ts": {
+      "bytes": 4488,
+      "sha256": "d83cdb8231620a18935d4d4d5e19ab7ec5440b043e1df71d49d5fa42f3fecb26"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/character/core.ts": {
+      "bytes": 4057,
+      "sha256": "6c6251e9782baed07be65cce68bfdbca14e2f930ca04a54ee6812cbbfc925a02"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/character/ground.ts": {
+      "bytes": 1242,
+      "sha256": "bd1621641ebc9300943b88c9083710218768454acb0a5e1ba8b330086d68c321"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/character/math.ts": {
+      "bytes": 859,
+      "sha256": "df0e88c320d8a189004991cd5cfc3f8de3d7bb3eecb305bb01830a11191dcdc5"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/character/profile.ts": {
+      "bytes": 334,
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/character/query.ts": {
+      "bytes": 2733,
+      "sha256": "9ef96eeb1529dc42466445529b100affc2f56913081f0c2fc169079cffe1a8cf"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/character/slide.ts": {
+      "bytes": 2555,
+      "sha256": "587d5512212e68fdc26068646152d2f8c52c3c6119d6c222de91b750c01fcd77"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/character/state.ts": {
+      "bytes": 2181,
+      "sha256": "6eb744c82f24604a8ecadd6e9d86406600119a3fbc7918129f93983df7cbf47e"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/character/step-assist.ts": {
+      "bytes": 3129,
+      "sha256": "9166857ad8509049a56d5b255ed59de17ee03e159581b495de7f1d985780c390"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/character/types.ts": {
+      "bytes": 2552,
+      "sha256": "866c5974fd99ec08b5dc6b5edf165241f4d02a8ed87274faf4cf35b19a3fb938"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/cloth/constraints.ts": {
+      "bytes": 1772,
+      "sha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/cloth/metrics.ts": {
+      "bytes": 1805,
+      "sha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/cloth/profile.ts": {
+      "bytes": 655,
+      "sha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/cloth/solver.ts": {
+      "bytes": 1395,
+      "sha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/cloth/topology.ts": {
+      "bytes": 1931,
+      "sha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/cloth/types.ts": {
+      "bytes": 719,
+      "sha256": "bad411f3fa02e4ba7039b5d447de395074342aa207f2eeed251705b15facb6d1"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/collision.ts": {
+      "bytes": 14404,
+      "sha256": "8af301d4addf3b61a38fc54466a73dde48d27907f4143032d500962adbff47a3"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/contact-manifold.ts": {
+      "bytes": 4743,
+      "sha256": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/contact-tangent.ts": {
+      "bytes": 2729,
+      "sha256": "5e1bddc158f9a6f307fdcc60ce8078ab36a06e372d530e7f5d05466d29bf9673"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/disjoint-hinge/admission.ts": {
+      "bytes": 3764,
+      "sha256": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/disjoint-hinge/errors.ts": {
+      "bytes": 2777,
+      "sha256": "5e51e5662fbce80bee3ccd3aa3694ee986b1492ed816d171774e261ab982bf4f"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/disjoint-hinge/linear-solver.ts": {
+      "bytes": 10615,
+      "sha256": "4009d4d7f171be3a5d79ca309a14b039da54f9201b438a410a6e29ed0f90bfdf"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/disjoint-hinge/measure.ts": {
+      "bytes": 4626,
+      "sha256": "97cbaf697dc8ef5caba0bf2c702699b025bcc6f906f553b623466618bbd77178"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/disjoint-hinge/pose.ts": {
+      "bytes": 3194,
+      "sha256": "ab950c1f9f1a79f9f00cb26e4b3cef0e3dcaea7b16d74e345e711159706b39e4"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/disjoint-hinge/postcontact.ts": {
+      "bytes": 2936,
+      "sha256": "8d07190383a64cb592165772109a4f462099743492f8373794ef7981b1431e38"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/disjoint-hinge/projection.ts": {
+      "bytes": 3538,
+      "sha256": "9d0def632c07f8085e860a2dbf21f26d8073f3265eb57590607d23ea6d333b87"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/disjoint-hinge/report.ts": {
+      "bytes": 5726,
+      "sha256": "d46b3e289c58b289b059928580ff2b89d9bd3ecfb11cb688d8b7a4735143973d"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/disjoint-hinge/rows.ts": {
+      "bytes": 3685,
+      "sha256": "6556f07d1d7d22edb67af1b214c689c5b5c2b30628334abaec67280d7302903f"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/disjoint-hinge/stage.ts": {
+      "bytes": 2648,
+      "sha256": "a66e09b816259c2bb1305fed8f90696585b9fd4b750406b0ce006cbe2c2f33ab"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/disjoint-hinge/types.ts": {
+      "bytes": 1610,
+      "sha256": "89b2708fd9209932084eaa765f93ff6ea00a2d775911e8c9e607a7eb824c8cc1"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/domain/admission.ts": {
+      "bytes": 11327,
+      "sha256": "1182fb21ec319132ac2f16ddec8494e3d1c4c5ac750bbe1ebab4c29817b4423e"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/domain/cloth-reference.generated.ts": {
+      "bytes": 158018,
+      "sha256": "c9ee88af8e25b533c2694433502b28f51dffdeae5cce656b53eb36a187be60bc"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/domain/cloth.ts": {
+      "bytes": 4349,
+      "sha256": "2454474a24928a9f3d92d635a9391c537ef74de77112fdc2f2872536cb447883"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/domain/fluid.ts": {
+      "bytes": 4923,
+      "sha256": "bfcafa7cc2f2bbb4ec6e2c20797f5dc5410d995cd28305272a2c3665d827179a"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/domain/types.ts": {
+      "bytes": 3839,
+      "sha256": "35fcadf07a848d919806955f6c3d934d01217ff1c26ca7d4eb4eb2807eb4ee6f"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/dynamic-anchor-pair.ts": {
+      "bytes": 3072,
+      "sha256": "8ff622a6ce007e5e7fcb43f0b7c08521615ddacbc8195cde1ac4f574304b579d"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/dynamic-fixed-joint.ts": {
+      "bytes": 2051,
+      "sha256": "f5a0fa82c062c7406f6edfeb2aeb169c927ddd8d0965957f630f87e118c52dfa"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/dynamic-hinge-joint.ts": {
+      "bytes": 4835,
+      "sha256": "69c816393446b6e06d66849840ecf88a7d28baf72bd30c792180616f55e455f2"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/fluid/boundary.ts": {
+      "bytes": 1990,
+      "sha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/fluid/constants.ts": {
+      "bytes": 459,
+      "sha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/fluid/diagnostics.ts": {
+      "bytes": 1106,
+      "sha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/fluid/kernel.ts": {
+      "bytes": 1112,
+      "sha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/fluid/neighbors.ts": {
+      "bytes": 2949,
+      "sha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/fluid/pbf.ts": {
+      "bytes": 5161,
+      "sha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/fluid/static-box.ts": {
+      "bytes": 2481,
+      "sha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/fluid/types.ts": {
+      "bytes": 125,
+      "sha256": "c75f020afeb760ec596c3043fc6d2a7166995ce0c3cedbc7e5424a6a83e56a62"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/fluid/visual-viscosity.ts": {
+      "bytes": 1265,
+      "sha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/generate-provider.mjs": {
+      "bytes": 2663,
+      "sha256": "c45a6eb52df5f4840aa30006ac65d15ea0758066f63d815e4a3b394e8eb20557"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/identity.ts": {
+      "bytes": 6081,
+      "sha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/index.ts": {
+      "bytes": 570,
+      "sha256": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/internal-types.ts": {
+      "bytes": 2615,
+      "sha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/joint-motor.ts": {
+      "bytes": 1723,
+      "sha256": "9a50b0d006ca2386cd2d79b8ba162f6850a5d08d3eb1c7d03460d606559b56ea"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/joints.ts": {
+      "bytes": 7231,
+      "sha256": "b6d0ec667a96fc26ec43d9d812c5ffd0a3b7446d135bd9b18713059327c59181"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/limits.ts": {
+      "bytes": 417,
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/math.ts": {
+      "bytes": 2421,
+      "sha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/model-admission.ts": {
+      "bytes": 10384,
+      "sha256": "7e77f184fed57d51ee1b0599e60c80d83b96045b139d236a37f76a4207689397"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/persistent-box-contact.ts": {
+      "bytes": 4877,
+      "sha256": "ac7730c1bf083697cbc7ecd1e3d027dc7873c66f5f902bab6a8a4dec0860e3b8"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/phase-hit.ts": {
+      "bytes": 3148,
+      "sha256": "9ddb20f79c73f41f58b2a386bd3d2a2b0bee75bbed80998e3b2b8230f05def32"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/private-phase.ts": {
+      "bytes": 7962,
+      "sha256": "1225c0ec6dc3f2a3339bfbeb00dc75d2a5dcdd6073bbc9f36d35ea51b4715d97"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/producer.ts": {
+      "bytes": 4937,
+      "sha256": "32be53571acbc0d2832ac75111196b78a56d4ba91a3be4849c45a3d2d24d4ff1"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/provider-manifest.generated.ts": {
+      "bytes": 15421,
+      "sha256": "c909bf5778da9c394aba4da5fd0bae2530392ef58bd38e8e87448db537ff6cf6"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/recording-owner.ts": {
+      "bytes": 895,
+      "sha256": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/replay-compare.ts": {
+      "bytes": 1023,
+      "sha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/replay-json.ts": {
+      "bytes": 7760,
+      "sha256": "bdc7a0286abe05595c949a5fda0aa2522820ccb7380c0d503f3784a2c51d4fed"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/replay-validation.ts": {
+      "bytes": 9475,
+      "sha256": "f8da9f6c749b45bdd3c2ae61fc1e1bf9d73218e6f286a8557cc46277179440ec"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/replay.ts": {
+      "bytes": 7119,
+      "sha256": "cad01e2cdc0d5ce879e17b1e0998ce83448b1a3b2368c339a9651b227b966742"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/rigid-forced-rotation.ts": {
+      "bytes": 4961,
+      "sha256": "52447f9daa9da5c7382bd59d7132e3936ddf667942cbefd3fafeb79274e06d44"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/rigid-free-rotation.ts": {
+      "bytes": 11619,
+      "sha256": "63e5fd31e798a7bd85f56d0d0b5b5bad58d61e2c848594328fa74bf1c254dbbf"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/rotation-validation.ts": {
+      "bytes": 780,
+      "sha256": "45281b213700f86af36ea6d1a9189ca54349d13d01c37eeb366f1cdd474c1408"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/scene-profile.ts": {
+      "bytes": 1202,
+      "sha256": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/sleep.ts": {
+      "bytes": 4411,
+      "sha256": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/types.ts": {
+      "bytes": 12312,
+      "sha256": "21e897fbaf967888d7748a25e81def8a31b81312a573b642e3f12b13c8b450da"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/validation.ts": {
+      "bytes": 14962,
+      "sha256": "c5787fdbe5e31a51e52fb6b91634f75b363a629bb4a88248273e85c8ffc948af"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-03/stage/physics/src/world.ts": {
+      "bytes": 26633,
+      "sha256": "1494459fdfaac60f5479e65669bd7a90b1342432586056b7224722f1f459c233"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/native-run-03/summary.json": {
+      "bytes": 3451,
+      "sha256": "8e5bc9254976e74ccd0db55ddb68dc6a434b80f51f27b3eab2b058f64b200619"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/parity-03/result.json": {
+      "bytes": 11830,
+      "sha256": "960d072e0bf9ec106880446e5e3d3489e3ab5b765b5fdad222433387c4b617c7"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/source-03/one-frame-prefix.json": {
+      "bytes": 7110,
+      "sha256": "08ee1873ab03757d63e05c3669ca4625b28de2d7a50641e34c9edd53b7446fd8"
+    },
+    "examples/physics-contact-wrench-native-2276/evidence/source-03/summary.json": {
+      "bytes": 3449,
+      "sha256": "47d5fb6dc262fc4b1f7b9f9e711952dd0d065d519f3337cff4208707a0534a78"
+    },
+    "examples/physics-contact-wrench-producer-2276/ENCODING-FORECAST.json": {
+      "bytes": 781,
+      "sha256": "29b561ffc7c028adae39b21b474f1fdaa15abdc2c7a8a032a91f9e417a96c358"
+    },
+    "examples/physics-contact-wrench-producer-2276/IMPLEMENTATION-MAPPING.md": {
+      "bytes": 7283,
+      "sha256": "cfaf9cc98d03a34d012d7e1215705c4d358909d24e06dc0f68e8d8d4257a0a30"
+    },
+    "examples/physics-contact-wrench-producer-2276/IMPLEMENTATION.md": {
+      "bytes": 3808,
+      "sha256": "8c70c629de8216a50c566db2f9fdf026c7837f3421adb66da4c66b00eda97cc4"
+    },
+    "examples/physics-contact-wrench-producer-2276/SOURCE-PINS-01.json": {
+      "bytes": 20253,
+      "sha256": "2b22f04dedd7066d714b11201ecd257012daccdd1349cb0f3ca710510760ba88"
+    },
+    "examples/physics-contact-wrench-producer-2276/SOURCE-PINS-02.json": {
+      "bytes": 20581,
+      "sha256": "e2995a40aeacf7dcd20f2aa2cb44c326204857fbff0cbaebc0ed356a4b5bfa80"
+    },
+    "examples/physics-contact-wrench-producer-2276/SOURCE-PINS-03.json": {
+      "bytes": 20780,
+      "sha256": "40a48cdfb83b96f2034475f633636ac490586cb63066ee1c05cc781ab2b553ba"
+    },
+    "examples/physics-contact-wrench-producer-2276/build.mjs": {
+      "bytes": 11368,
+      "sha256": "ef8c314720db7fa656a57af07057743933eaf3bcd5eef090e94eb993e2a5b172"
+    },
+    "examples/physics-contact-wrench-producer-2276/encoding.mjs": {
+      "bytes": 1762,
+      "sha256": "6178b80fab30deb89064fc89bcde70cf56199c8bec86495cb2be7c8381d5a05f"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/result.json": {
+      "bytes": 48815,
+      "sha256": "be31ab687cfd8e9de7417da041622a7ee6245abaa96442cdcbdac7a9a4d9c132"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/source.mjs": {
+      "bytes": 511042,
+      "sha256": "b873bef27d0676183c0dcfcab5d89920c52b63fad325bfe186e1a0cde8620380"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/B/candidate.ts": {
+      "bytes": 15364,
+      "sha256": "1fda2dd0a8f8d39ecdbe50c391c707c800ec7f0c4be69de7bd09730b656cde48"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/B/native.ts": {
+      "bytes": 17864,
+      "sha256": "15a1931ed4fc5cc91bbae4fde700258a039aa3e081c128bc61030474de38200d"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/entry.ts": {
+      "bytes": 326,
+      "sha256": "254a30b400e5ed6fef8c6cc71e4f81af0555db68a3d56ed7d30e0a43b29e8502"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/broadphase.ts": {
+      "bytes": 1371,
+      "sha256": "d93e38d78cc3d202481ceeba83631d528032426d03a8adafb2e461fc72a042a0"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/cad-fluid-data.ts": {
+      "bytes": 2345,
+      "sha256": "5a15e23ba65663433501f07d2f35f323960879218d52a007efeb09ca7934ce10"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/cad-proxy-admission.ts": {
+      "bytes": 7744,
+      "sha256": "898fb55af369727440fef9f4bfadba0ea455b4c800a719909e5311029a663441"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/cad-proxy-pose.ts": {
+      "bytes": 1479,
+      "sha256": "8b5f50642144e335421ee6483f8b016b8a0babdb0c312ddf6ba4afbcf8bda322"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/cad-proxy-types.ts": {
+      "bytes": 887,
+      "sha256": "31bbf6766887913149d6fa2185c173adb0c6b78cdb21d1556ae4ffd055666128"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/cad-proxy-validation.ts": {
+      "bytes": 1598,
+      "sha256": "4429f957bb51ff2604a15478095e35642368dcf91ca0d854561693d3f99f748e"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/cad-proxy.ts": {
+      "bytes": 321,
+      "sha256": "cc7715b4fc974c8ed4511ebf684cdc7c2923f7ab4b8b7f5db45b208f8e6ffa99"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/capsule-contact.ts": {
+      "bytes": 5615,
+      "sha256": "cc29d60423bd9a1883585cf164cca0b0736b9fc72e7feb3575c5208c7d892929"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/capsule-query-error.ts": {
+      "bytes": 137,
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/capsule-query.ts": {
+      "bytes": 222,
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/capsule-query/admission.ts": {
+      "bytes": 5248,
+      "sha256": "9b67efc7a8824ce49361485eff925afa50017e05bc23d900db5ec7c4e2c8760d"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/capsule-query/geometry.ts": {
+      "bytes": 2570,
+      "sha256": "5fdbe1eb40f46e930161e98244a9e5ec0e00c29297caf6f91d530c98df3df4a7"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/capsule-query/profile.ts": {
+      "bytes": 303,
+      "sha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/capsule-query/snapshot.ts": {
+      "bytes": 2537,
+      "sha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/capsule-query/sweep.ts": {
+      "bytes": 1861,
+      "sha256": "a8f4d16879b2ff88086ceec54cef19d04d58fb063893e7a146382cad59cbaf77"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/capsule-query/types.ts": {
+      "bytes": 979,
+      "sha256": "c22d17887cd8ab889a443c828200310a4c560fd3b4f8ed49f3f1f60e5dd46f44"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/ccd-box.ts": {
+      "bytes": 1988,
+      "sha256": "076eadf591500684332bd19b53a780de480ccdde205196ad072a11e1abc4f7a4"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/ccd-pair.ts": {
+      "bytes": 1303,
+      "sha256": "87ea34e6b662b223874857651839407f351b0beaa03a4a85d1e4797744027e1a"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/ccd-rounded-box.ts": {
+      "bytes": 8125,
+      "sha256": "b4ad5a06435b1bacb796dace179f95904fd9d35e4e9dac17ead55bc2f675f59c"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/ccd-slab.ts": {
+      "bytes": 1125,
+      "sha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/ccd-sphere-pair-exact.ts": {
+      "bytes": 5307,
+      "sha256": "2ee601d4e363d135fc356cef37a43495524449bb4dc38abe8f62848bdf28645c"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/ccd.ts": {
+      "bytes": 3183,
+      "sha256": "861e2b8fa56c746232581f1debddab0b88574df81187cb6dd2d6b8db7377d95e"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/character-controller.ts": {
+      "bytes": 1363,
+      "sha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/character/admission.ts": {
+      "bytes": 4488,
+      "sha256": "d83cdb8231620a18935d4d4d5e19ab7ec5440b043e1df71d49d5fa42f3fecb26"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/character/core.ts": {
+      "bytes": 4057,
+      "sha256": "6c6251e9782baed07be65cce68bfdbca14e2f930ca04a54ee6812cbbfc925a02"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/character/ground.ts": {
+      "bytes": 1242,
+      "sha256": "bd1621641ebc9300943b88c9083710218768454acb0a5e1ba8b330086d68c321"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/character/math.ts": {
+      "bytes": 859,
+      "sha256": "df0e88c320d8a189004991cd5cfc3f8de3d7bb3eecb305bb01830a11191dcdc5"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/character/profile.ts": {
+      "bytes": 334,
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/character/query.ts": {
+      "bytes": 2733,
+      "sha256": "9ef96eeb1529dc42466445529b100affc2f56913081f0c2fc169079cffe1a8cf"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/character/slide.ts": {
+      "bytes": 2555,
+      "sha256": "587d5512212e68fdc26068646152d2f8c52c3c6119d6c222de91b750c01fcd77"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/character/state.ts": {
+      "bytes": 2181,
+      "sha256": "6eb744c82f24604a8ecadd6e9d86406600119a3fbc7918129f93983df7cbf47e"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/character/step-assist.ts": {
+      "bytes": 3129,
+      "sha256": "9166857ad8509049a56d5b255ed59de17ee03e159581b495de7f1d985780c390"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/character/types.ts": {
+      "bytes": 2552,
+      "sha256": "866c5974fd99ec08b5dc6b5edf165241f4d02a8ed87274faf4cf35b19a3fb938"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/cloth/constraints.ts": {
+      "bytes": 1772,
+      "sha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/cloth/metrics.ts": {
+      "bytes": 1805,
+      "sha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/cloth/profile.ts": {
+      "bytes": 655,
+      "sha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/cloth/solver.ts": {
+      "bytes": 1395,
+      "sha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/cloth/topology.ts": {
+      "bytes": 1931,
+      "sha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/cloth/types.ts": {
+      "bytes": 719,
+      "sha256": "bad411f3fa02e4ba7039b5d447de395074342aa207f2eeed251705b15facb6d1"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/collision.ts": {
+      "bytes": 14404,
+      "sha256": "8af301d4addf3b61a38fc54466a73dde48d27907f4143032d500962adbff47a3"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/contact-manifold.ts": {
+      "bytes": 4743,
+      "sha256": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/contact-tangent.ts": {
+      "bytes": 2729,
+      "sha256": "5e1bddc158f9a6f307fdcc60ce8078ab36a06e372d530e7f5d05466d29bf9673"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/disjoint-hinge/admission.ts": {
+      "bytes": 3764,
+      "sha256": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/disjoint-hinge/errors.ts": {
+      "bytes": 2777,
+      "sha256": "5e51e5662fbce80bee3ccd3aa3694ee986b1492ed816d171774e261ab982bf4f"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/disjoint-hinge/linear-solver.ts": {
+      "bytes": 10615,
+      "sha256": "4009d4d7f171be3a5d79ca309a14b039da54f9201b438a410a6e29ed0f90bfdf"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/disjoint-hinge/measure.ts": {
+      "bytes": 4626,
+      "sha256": "97cbaf697dc8ef5caba0bf2c702699b025bcc6f906f553b623466618bbd77178"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/disjoint-hinge/pose.ts": {
+      "bytes": 3194,
+      "sha256": "ab950c1f9f1a79f9f00cb26e4b3cef0e3dcaea7b16d74e345e711159706b39e4"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/disjoint-hinge/postcontact.ts": {
+      "bytes": 2936,
+      "sha256": "8d07190383a64cb592165772109a4f462099743492f8373794ef7981b1431e38"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/disjoint-hinge/projection.ts": {
+      "bytes": 3538,
+      "sha256": "9d0def632c07f8085e860a2dbf21f26d8073f3265eb57590607d23ea6d333b87"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/disjoint-hinge/report.ts": {
+      "bytes": 5726,
+      "sha256": "d46b3e289c58b289b059928580ff2b89d9bd3ecfb11cb688d8b7a4735143973d"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/disjoint-hinge/rows.ts": {
+      "bytes": 3685,
+      "sha256": "6556f07d1d7d22edb67af1b214c689c5b5c2b30628334abaec67280d7302903f"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/disjoint-hinge/stage.ts": {
+      "bytes": 2648,
+      "sha256": "a66e09b816259c2bb1305fed8f90696585b9fd4b750406b0ce006cbe2c2f33ab"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/disjoint-hinge/types.ts": {
+      "bytes": 1610,
+      "sha256": "89b2708fd9209932084eaa765f93ff6ea00a2d775911e8c9e607a7eb824c8cc1"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/domain/admission.ts": {
+      "bytes": 11327,
+      "sha256": "1182fb21ec319132ac2f16ddec8494e3d1c4c5ac750bbe1ebab4c29817b4423e"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/domain/cloth-reference.generated.ts": {
+      "bytes": 158018,
+      "sha256": "c9ee88af8e25b533c2694433502b28f51dffdeae5cce656b53eb36a187be60bc"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/domain/cloth.ts": {
+      "bytes": 4349,
+      "sha256": "2454474a24928a9f3d92d635a9391c537ef74de77112fdc2f2872536cb447883"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/domain/fluid.ts": {
+      "bytes": 4923,
+      "sha256": "bfcafa7cc2f2bbb4ec6e2c20797f5dc5410d995cd28305272a2c3665d827179a"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/domain/types.ts": {
+      "bytes": 3839,
+      "sha256": "35fcadf07a848d919806955f6c3d934d01217ff1c26ca7d4eb4eb2807eb4ee6f"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/dynamic-anchor-pair.ts": {
+      "bytes": 3072,
+      "sha256": "8ff622a6ce007e5e7fcb43f0b7c08521615ddacbc8195cde1ac4f574304b579d"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/dynamic-fixed-joint.ts": {
+      "bytes": 2051,
+      "sha256": "f5a0fa82c062c7406f6edfeb2aeb169c927ddd8d0965957f630f87e118c52dfa"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/dynamic-hinge-joint.ts": {
+      "bytes": 4835,
+      "sha256": "69c816393446b6e06d66849840ecf88a7d28baf72bd30c792180616f55e455f2"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/fluid/boundary.ts": {
+      "bytes": 1990,
+      "sha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/fluid/constants.ts": {
+      "bytes": 459,
+      "sha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/fluid/diagnostics.ts": {
+      "bytes": 1106,
+      "sha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/fluid/kernel.ts": {
+      "bytes": 1112,
+      "sha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/fluid/neighbors.ts": {
+      "bytes": 2949,
+      "sha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/fluid/pbf.ts": {
+      "bytes": 5161,
+      "sha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/fluid/static-box.ts": {
+      "bytes": 2481,
+      "sha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/fluid/types.ts": {
+      "bytes": 125,
+      "sha256": "c75f020afeb760ec596c3043fc6d2a7166995ce0c3cedbc7e5424a6a83e56a62"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/fluid/visual-viscosity.ts": {
+      "bytes": 1265,
+      "sha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/generate-provider.mjs": {
+      "bytes": 2663,
+      "sha256": "c45a6eb52df5f4840aa30006ac65d15ea0758066f63d815e4a3b394e8eb20557"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/identity.ts": {
+      "bytes": 6081,
+      "sha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/index.ts": {
+      "bytes": 570,
+      "sha256": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/internal-types.ts": {
+      "bytes": 2615,
+      "sha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/joint-motor.ts": {
+      "bytes": 1723,
+      "sha256": "9a50b0d006ca2386cd2d79b8ba162f6850a5d08d3eb1c7d03460d606559b56ea"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/joints.ts": {
+      "bytes": 7231,
+      "sha256": "b6d0ec667a96fc26ec43d9d812c5ffd0a3b7446d135bd9b18713059327c59181"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/limits.ts": {
+      "bytes": 417,
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/math.ts": {
+      "bytes": 2421,
+      "sha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/model-admission.ts": {
+      "bytes": 10384,
+      "sha256": "7e77f184fed57d51ee1b0599e60c80d83b96045b139d236a37f76a4207689397"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/persistent-box-contact.ts": {
+      "bytes": 4816,
+      "sha256": "d259fd0d317c453703af28266b79711142a41b21873d986f4db6e6bb0ef05a03"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/private-phase.ts": {
+      "bytes": 7812,
+      "sha256": "a7b68c05f921ad29d7b420732385faf22290d57b17f8c9da261c52b7a3519922"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/producer.ts": {
+      "bytes": 3546,
+      "sha256": "510344eed3e147bf2975ff70b3f7d690a47e4bf370c75d47d7ec8d5d1d8ae5c4"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/provider-manifest.generated.ts": {
+      "bytes": 15280,
+      "sha256": "f991703e7da45f244223dc2aec592a2e0495113d0db168142878c79f47e00666"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/recording-owner.ts": {
+      "bytes": 895,
+      "sha256": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/replay-compare.ts": {
+      "bytes": 1023,
+      "sha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/replay-json.ts": {
+      "bytes": 7760,
+      "sha256": "bdc7a0286abe05595c949a5fda0aa2522820ccb7380c0d503f3784a2c51d4fed"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/replay-validation.ts": {
+      "bytes": 9475,
+      "sha256": "f8da9f6c749b45bdd3c2ae61fc1e1bf9d73218e6f286a8557cc46277179440ec"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/replay.ts": {
+      "bytes": 7119,
+      "sha256": "cad01e2cdc0d5ce879e17b1e0998ce83448b1a3b2368c339a9651b227b966742"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/rigid-forced-rotation.ts": {
+      "bytes": 4961,
+      "sha256": "52447f9daa9da5c7382bd59d7132e3936ddf667942cbefd3fafeb79274e06d44"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/rigid-free-rotation.ts": {
+      "bytes": 11619,
+      "sha256": "63e5fd31e798a7bd85f56d0d0b5b5bad58d61e2c848594328fa74bf1c254dbbf"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/rotation-validation.ts": {
+      "bytes": 780,
+      "sha256": "45281b213700f86af36ea6d1a9189ca54349d13d01c37eeb366f1cdd474c1408"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/scene-profile.ts": {
+      "bytes": 1202,
+      "sha256": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/sleep.ts": {
+      "bytes": 4411,
+      "sha256": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/types.ts": {
+      "bytes": 12312,
+      "sha256": "21e897fbaf967888d7748a25e81def8a31b81312a573b642e3f12b13c8b450da"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/validation.ts": {
+      "bytes": 14962,
+      "sha256": "c5787fdbe5e31a51e52fb6b91634f75b363a629bb4a88248273e85c8ffc948af"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/build-01/stage/physics/src/world.ts": {
+      "bytes": 31400,
+      "sha256": "4f2eed7803f8862663a6fffff8eab9f1e4f543ed1579ed7bcec80173403086bf"
+    },
+    "examples/physics-contact-wrench-producer-2276/evidence/producer-01/summary.json": {
+      "bytes": 3275,
+      "sha256": "30cad391ef29c31fb100cfb951b0d70de73105c13879b0b32e3f46e80c7b4c12"
+    },
+    "examples/physics-contact-wrench-producer-2276/observer.py": {
+      "bytes": 24414,
+      "sha256": "08b24e1d74b32f112b9d9b5627cd0d9e067f64c3b5709f970b9424bf94ab37fc"
+    },
+    "examples/physics-contact-wrench-producer-2276/private-phase.ts": {
+      "bytes": 7812,
+      "sha256": "a7b68c05f921ad29d7b420732385faf22290d57b17f8c9da261c52b7a3519922"
+    },
+    "examples/physics-contact-wrench-producer-2276/producer-transform.mjs": {
+      "bytes": 11658,
+      "sha256": "c589c54610126ce682b513c825c971e014aa29d0df2672cbe086a0d9d2cfe59f"
+    },
+    "examples/physics-contact-wrench-producer-2276/producer.ts": {
+      "bytes": 3546,
+      "sha256": "510344eed3e147bf2975ff70b3f7d690a47e4bf370c75d47d7ec8d5d1d8ae5c4"
+    },
+    "examples/physics-contact-wrench-producer-2276/run.mjs": {
+      "bytes": 13614,
+      "sha256": "3705d19502d6d7d82db7d162a4c8f7f9aac4519e761f9a799078794feb2ccb9c"
+    },
+    "examples/physics-contact-wrench-producer-2276/trace_decode.py": {
+      "bytes": 2340,
+      "sha256": "db499d56e4e9db398ab0232b38ddf090f80449e9ea0322957b4cad810021a806"
+    },
+    "examples/physics-model-input/model.mjs": {
+      "bytes": 2051,
+      "sha256": "8bbeb3712f27eb3d639dcde806fcf27f8bc5360274feefd051335b3887790baf"
+    },
+    "examples/physics-real-warm-frame-2276/CONTRACT.md": {
+      "bytes": 4498,
+      "sha256": "39eeae2abf6fe3db8a773db127b50d00fbc951c3d7d4970268b04c390a3368cd"
+    },
+    "examples/physics-real-warm-frame-2276/EVIDENCE-ARCHIVE.json": {
+      "bytes": 56874,
+      "sha256": "264dd39c7815800055ff34b5a42b415aeb5543c13d7f9647e023d14a22c05eba"
+    },
+    "examples/physics-real-warm-frame-2276/EXECUTION-REVIEW-02.json": {
+      "bytes": 943,
+      "sha256": "9105543d98cdff413e73ca40de97c05cdae0076d92cf04550e8fb59975eb2c26"
+    },
+    "examples/physics-real-warm-frame-2276/README.md": {
+      "bytes": 2162,
+      "sha256": "7ffe3ba898ab9d4152ac9b8409d7433ba334002a46551bc7721945c3a6c7f525"
+    },
+    "examples/physics-real-warm-frame-2276/SOURCE-PINS-01.json": {
+      "bytes": 3084,
+      "sha256": "61902f896727029744dc5454503a520707eaa23d6492ecf0ec0a284f4c1a1d71"
+    },
+    "examples/physics-real-warm-frame-2276/evidence/model-01/model.json": {
+      "bytes": 1333,
+      "sha256": "97d11f10914ec564a4de55f49c36c2167d2414ece32b762eb60d56599b1f57ac"
+    },
+    "examples/physics-real-warm-frame-2276/evidence/model-01/options.json": {
+      "bytes": 100,
+      "sha256": "d898d9bfc70e36d79b76b187a9ac8f2d578b5df7ad6ca5b528bf3e252d5a5f9b"
+    },
+    "examples/physics-real-warm-frame-2276/evidence/model-01/reference.json": {
+      "bytes": 18195,
+      "sha256": "1ae69d271190c504bdd2a82196bc973d99a4be6887648cfecb6162a628cb1e6c"
+    },
+    "examples/physics-real-warm-frame-2276/evidence/warm-01/summary.json": {
+      "bytes": 2509,
+      "sha256": "d64a684ce23c4c9ce33ebb9e32574f316b33261fd73612b41f7b6953e3d9cb6b"
+    },
+    "examples/physics-real-warm-frame-2276/observer.py": {
+      "bytes": 25098,
+      "sha256": "fd06b5dd03e14b5aec6711ea1ba4b73930f68106cc63ac3e6b8c06ad2fadebe3"
+    },
+    "examples/physics-real-warm-frame-2276/reference.py": {
+      "bytes": 13518,
+      "sha256": "513af4de8ac9ff6009893c95993d672020bdc31b447c6a65da54137fe5a1d163"
+    },
+    "examples/physics-real-warm-frame-2276/run.mjs": {
+      "bytes": 7927,
+      "sha256": "cabe6d0d54b0850a534cca421d6b7cc94d8ecd65c2cc93f4cba1d8f7c8d7601e"
+    },
+    "examples/physics-rigid-rotation-g1-2276/TOOLCHAIN-PINS-02.json": {
+      "bytes": 88927,
+      "sha256": "f0db4c99e1fcf5df8f238ad7729447f06b58e2177f01e282ea4f555c0802cb90"
+    },
+    "examples/physics-warm-replay-2276/CONTRACT.md": {
+      "bytes": 6441,
+      "sha256": "ce695c5250956eee66c05e73372790bdee198ae5d872d753f167068fd4754d6b"
+    },
+    "examples/physics-warm-replay-2276/IMPLEMENTATION.md": {
+      "bytes": 5081,
+      "sha256": "45b14676d285e6a53829cd9adbe86c0fdc028c3fe8790c636bf1e39d8a1e2528"
+    },
+    "examples/physics-warm-replay-2276/SOURCE-PINS-01.json": {
+      "bytes": 71898,
+      "sha256": "989a8b82bb43c171906a5055542dca5265e9688395419ec1140b4f53a2bec08d"
+    },
+    "examples/physics-warm-replay-2276/evidence/freeze-01/frozen.json": {
+      "bytes": 72962,
+      "sha256": "4abcd191a3359c4365e74c447c71b5451f374620ad67e6bf5954002b216c4eb8"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/A-initial-observer-process.json": {
+      "bytes": 360,
+      "sha256": "e4027c26aecf6762f828d51227869c6dc72ed3299483838c21fa331ce837d932"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/A-initial-observer.json": {
+      "bytes": 3035,
+      "sha256": "b27a67afdad802bca465e592b9de3cc0e734ca0ee3d9821317bdab527b293fd0"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/A-initial-trace.json": {
+      "bytes": 20839,
+      "sha256": "cf490ead85e80726e7b16483cfcbe10886ec1b8c568f6150e0f87d753b45d0fb"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/A-retry2-full-snapshot.json": {
+      "bytes": 13104,
+      "sha256": "88c36f1c01f7d369175b5eaf99bfb98a002a93923935f80c9f33b6b8ac15acdb"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/A-retry2-observer-process.json": {
+      "bytes": 362,
+      "sha256": "7722b52ceb9cc321dd08b723e7bcd5639c68b44e2e847e0d4007bcc9aedef144"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/A-retry2-observer.json": {
+      "bytes": 12106,
+      "sha256": "78b244e740b89d9e54ea1cbb11b7cde7c01044861b1dc4e0b2852bf4fbd7ca45"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/A-retry2-trace.json": {
+      "bytes": 377775,
+      "sha256": "7251d5840100e8d17b1de27a84def3036a205c09a0e2c002033aa4dc2918ee74"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/A-step1-full-snapshot.json": {
+      "bytes": 13149,
+      "sha256": "98f301dd0ccebfe7ab7e126849c3e2305cc0d117f54b3c0d36d217243a37e014"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/A-step1-observer-process.json": {
+      "bytes": 362,
+      "sha256": "46085ef52156c7d7adba45db40799aeb049d0a8c74b15b672d4111fd65445198"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/A-step1-observer.json": {
+      "bytes": 12616,
+      "sha256": "f6129ecc374b04842b713ab2a71979f7746633088dd5fc34b3c2c0974309b31a"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/A-step1-trace.json": {
+      "bytes": 452761,
+      "sha256": "c81b7bf2035e0e1db5a22453a3b47f74a9b09f8a2b5d831ca6e72e8adc24e9de"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/B-serialize-hidden-actual-hidden.json": {
+      "bytes": 441101,
+      "sha256": "7fde41f192a10100f5c866da416e848731f1060c9b6615e9ee7407a0b5602394"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/B-serialize-hidden-creation-parity.json": {
+      "bytes": 228,
+      "sha256": "f463714e8d67f9f9525ff2d36cdb360a3f2ab06e6b5b6dc929be7f9244d2a1ea"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/B-serialize-hidden-step1-parity.json": {
+      "bytes": 538,
+      "sha256": "2da2bbf6fe5a11ef50332a3a84a588548216f7a1f47a4ff1ada2163b3991e1c2"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/C-deserialize-hidden-actual-hidden.json": {
+      "bytes": 441101,
+      "sha256": "aa49adc20cdf9f6522c7b69fd420ba428815ad3d7905a5ce18841488613720f6"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/C-deserialize-hidden-creation-parity.json": {
+      "bytes": 230,
+      "sha256": "0243f34b3c17cd2850baf4a4cf4f86cb868980aa8858aefa6fbe5b824b379544"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/C-deserialize-hidden-step1-parity.json": {
+      "bytes": 540,
+      "sha256": "0d47f91bfaea67b0e534bae2a0fdf19124ee2d6131b2706353549f8427c2307a"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/D-continuation-private-parity.json": {
+      "bytes": 224,
+      "sha256": "63081b02fbbdf1b8577d11770abd7171c14e6a31bb7e4974710fe627fcc7368f"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/D-continuation-step2-parity.json": {
+      "bytes": 581,
+      "sha256": "9b675b0d640c4432386667f48ebadd07edd1b1a761bc9a1bedbbd64fb067fc5b"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/D-continue2-observer-process.json": {
+      "bytes": 362,
+      "sha256": "7722b52ceb9cc321dd08b723e7bcd5639c68b44e2e847e0d4007bcc9aedef144"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/D-continue2-observer.json": {
+      "bytes": 12106,
+      "sha256": "ca5b029435576ca97d23bdc6effb1baad2ff953e4c66c5399d471fc30f0f5166"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/D-continue2-trace.json": {
+      "bytes": 377777,
+      "sha256": "0618cbed5a93034cf4c94d4852264087f8600e97150059e6a1d149b3d90fa214"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/D-creation-parity.json": {
+      "bytes": 211,
+      "sha256": "3eeaa457a663b342acb97b9cfae6f361834bbe93a6ccd1333e5499bd82ec34c5"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/D-restored-full-snapshot.json": {
+      "bytes": 13150,
+      "sha256": "b3319dff4e4340ed88a6c9a9f062651326afaea57ee71e2ec6841e252a322c85"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/D-restored-private-parity.json": {
+      "bytes": 219,
+      "sha256": "dae9d96c426386146c79b7d4d59c2f2569c4a96ea297afb64646e630f6a2a22a"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/D-restored-step1-observer-process.json": {
+      "bytes": 362,
+      "sha256": "46085ef52156c7d7adba45db40799aeb049d0a8c74b15b672d4111fd65445198"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/D-restored-step1-observer.json": {
+      "bytes": 12624,
+      "sha256": "fcfdd3eae009bbfa789b328dac9aed09a316551df265f46930c0759194433426"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/D-restored-step1-trace.json": {
+      "bytes": 452770,
+      "sha256": "5c74f56615db47ebeda6b4a159d9a5cb3a9b71df28e873af6d7bbd6976d8991e"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/D-step1-parity.json": {
+      "bytes": 521,
+      "sha256": "6d48d13dd1a729f8ea617939798f0f255e6f533b5ac70705483793f24d112725"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/acceptedIsolation.json": {
+      "bytes": 63,
+      "sha256": "a4bd441c0d18dece91fef484e2b8f04a9f61e194170309478d069e91877f6de5"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/complete-actual-protocol.json": {
+      "bytes": 1893326,
+      "sha256": "9673b443810c08c2ca9c0cb89ba86a25de72d3da25ca3960f0b016d9de5972c6"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/decoded-prefix.json": {
+      "bytes": 6622,
+      "sha256": "5978cbfbba94723243573d0582d438d96d17d87729dc27572ffca4a6da3e6453"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/frozen-inputs.json": {
+      "bytes": 67408,
+      "sha256": "2e4efef7608b891c63673d130f79d6b0fbdea1eb03ef1bca1982c2c997673861"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/initialIsolation.json": {
+      "bytes": 63,
+      "sha256": "a4bd441c0d18dece91fef484e2b8f04a9f61e194170309478d069e91877f6de5"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/known-after.json": {
+      "bytes": 13149,
+      "sha256": "98f301dd0ccebfe7ab7e126849c3e2305cc0d117f54b3c0d36d217243a37e014"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/known-before.json": {
+      "bytes": 13149,
+      "sha256": "98f301dd0ccebfe7ab7e126849c3e2305cc0d117f54b3c0d36d217243a37e014"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/known-refused-trace.json": {
+      "bytes": 31518,
+      "sha256": "6f0d83be93f2386fd6b570a3f9deef6c0fe0ee125a9f05aa2a993a3184ae79b8"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/old-format-refusals.json": {
+      "bytes": 288,
+      "sha256": "16890cca90e222a4ba40f44f72bf937267509dadae3c4d5b441748252a02158e"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/old-wire-refusal.json": {
+      "bytes": 326,
+      "sha256": "69c1079145273852ff5ab3ef9a12d80d35c9bfb46ee80de444ea36fc64633b37"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/one-frame-prefix.json": {
+      "bytes": 6622,
+      "sha256": "71e7a6c3e771b405ac9583320fbbe643866647cf1beae9815063c05d519401f0"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/prefix-old-magic.bcphrec1": {
+      "bytes": 4791,
+      "sha256": "1dd1953ecb6f34032aaeb450e4f60202d2a5bf5a521e806a198659a36665da4a"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/prefix-old-magic.bcphrec1-pin.json": {
+      "bytes": 91,
+      "sha256": "2f516a66626f19515f74fd5567f072abc449f30f398cd15aee7858290b142c2b"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/prefix.bcphrec2": {
+      "bytes": 4791,
+      "sha256": "43c470b8cbcc82f302fb2b10c5a21a35829647c0b9b3b759e18a19b9637ae49e"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/prefix.bcphrec2-pin.json": {
+      "bytes": 91,
+      "sha256": "5471a1504454dadbcbe351fa8a2d6158f52a9412631aa300795333b1dd93c4d1"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/summary.json": {
+      "bytes": 3112,
+      "sha256": "ab00bca2ff5c1bca0ca41d7e51258e7f976ef52db95402637661be9a4c6038b9"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/unknown-after.json": {
+      "bytes": 13149,
+      "sha256": "98f301dd0ccebfe7ab7e126849c3e2305cc0d117f54b3c0d36d217243a37e014"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/unknown-before.json": {
+      "bytes": 13149,
+      "sha256": "98f301dd0ccebfe7ab7e126849c3e2305cc0d117f54b3c0d36d217243a37e014"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/unknown-refused-trace.json": {
+      "bytes": 47459,
+      "sha256": "c51c2804f455435b3886b2068a29cce4f5aa4b21005c33b572c585b65277200d"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/unknown-warm-prefix-observer-process.json": {
+      "bytes": 141,
+      "sha256": "eaaea54e109d29df54e1f171b78c4b2109a36e9ecae3bf91dc1a5c28d85a669d"
+    },
+    "examples/physics-warm-replay-2276/evidence/replay-01/unknown-warm-prefix-observer.json": {
+      "bytes": 720,
+      "sha256": "fcd73581a73e3098c88af676f6d09fb0a2d087df6bfe773391da4084b4cd8e61"
+    },
+    "examples/physics-warm-replay-2276/fault-observer.py": {
+      "bytes": 3863,
+      "sha256": "a93f71ea1db0b5704e86de90bef98f39e958c15ffbcb53a5b312b41c51640cf6"
+    },
+    "examples/physics-warm-replay-2276/freeze.mjs": {
+      "bytes": 2692,
+      "sha256": "b489e9cf4b5448ace5589311695a562afc1cbdb1e8da60cbd4da1109faeaa903"
+    },
+    "examples/physics-warm-replay-2276/pin-sources.mjs": {
+      "bytes": 1649,
+      "sha256": "b934bd27a946370f7e9fb6a074c4192d49b289c0799e8c0ea932d3004911daae"
+    },
+    "examples/physics-warm-replay-2276/run.mjs": {
+      "bytes": 17338,
+      "sha256": "46a677187279c4bd3073addb5eff5930c42eaf44fd34779a5d62e9afb134c75d"
+    },
+    "examples/physics-warm-transport-2276/CONTRACT.md": {
+      "bytes": 4827,
+      "sha256": "52a1b9f4e2e142efdb5a5465d4fd53c4411ac8ee44fbee156c432ae678d8af90"
+    },
+    "examples/physics-warm-transport-2276/EVIDENCE-ARCHIVE.json": {
+      "bytes": 80417,
+      "sha256": "a4e921fb85517ee28acea1199c2f58017bc6eb36b928411bdb711c9733937745"
+    },
+    "examples/physics-warm-transport-2276/EXECUTION-FREEZE-02.json": {
+      "bytes": 700,
+      "sha256": "c5c5540ef08e65d378d1444ab8d642819e8df74d92535d9750edb34c7cc5679b"
+    },
+    "examples/physics-warm-transport-2276/IMPLEMENTATION.md": {
+      "bytes": 6386,
+      "sha256": "6e8dcdce8735a0cce35f0685e200f39ea593b66f082b3b7019c6b0ec089ff0af"
+    },
+    "examples/physics-warm-transport-2276/OBSERVER-AMENDMENT.md": {
+      "bytes": 3829,
+      "sha256": "fbecc500ba4a2ad93f3ef1a6c27862923b98826998516d279552c7d4ecc7477a"
+    },
+    "examples/physics-warm-transport-2276/RESULTS.json": {
+      "bytes": 3658,
+      "sha256": "b546499904cc96032e03597eff07f94e3016df00bec5f5c39feca7fe0363444d"
+    },
+    "examples/physics-warm-transport-2276/SOURCE-PINS-02.json": {
+      "bytes": 47516,
+      "sha256": "97b471fe2d866ce5a90bb0fe430bd6a225a683aaf94d2c469e15a5a3a6ffbe7c"
+    },
+    "examples/physics-warm-transport-2276/bank-observer.py": {
+      "bytes": 3539,
+      "sha256": "973ff96af2009697ecbcdab7a34a3a13e3d50000f2d0a37abded4590854d5050"
+    },
+    "examples/physics-warm-transport-2276/build.mjs": {
+      "bytes": 4695,
+      "sha256": "61c99083144a91d575b49b5ec140ed7241a152c883f661f1adec27084b7da15c"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/metafile.json": {
+      "bytes": 76879,
+      "sha256": "658f5e0c929068985fbeb1d5b3c163f8fcdb28517c4d23abbb4f85526c4fea33"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/result.json": {
+      "bytes": 97208,
+      "sha256": "14e044df3ca2908836703909adaeda55b835e3caf4e4e4821b39ce98bab8b49c"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/source.mjs": {
+      "bytes": 528973,
+      "sha256": "7d9bf421e122c3f0d4a42b4ee304956af6966c0b32834935a6b481aa6cf90bc1"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/B/candidate.ts": {
+      "bytes": 15364,
+      "sha256": "1fda2dd0a8f8d39ecdbe50c391c707c800ec7f0c4be69de7bd09730b656cde48"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/B/native.ts": {
+      "bytes": 17864,
+      "sha256": "15a1931ed4fc5cc91bbae4fde700258a039aa3e081c128bc61030474de38200d"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/entry.ts": {
+      "bytes": 415,
+      "sha256": "3750463ff0e33817575f2a94dd72ad71a1ccc476bc300c56e2393d0e08dc1ea4"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/broadphase.ts": {
+      "bytes": 1371,
+      "sha256": "d93e38d78cc3d202481ceeba83631d528032426d03a8adafb2e461fc72a042a0"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/cad-fluid-data.ts": {
+      "bytes": 2345,
+      "sha256": "5a15e23ba65663433501f07d2f35f323960879218d52a007efeb09ca7934ce10"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/cad-proxy-admission.ts": {
+      "bytes": 7744,
+      "sha256": "898fb55af369727440fef9f4bfadba0ea455b4c800a719909e5311029a663441"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/cad-proxy-pose.ts": {
+      "bytes": 1479,
+      "sha256": "8b5f50642144e335421ee6483f8b016b8a0babdb0c312ddf6ba4afbcf8bda322"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/cad-proxy-types.ts": {
+      "bytes": 887,
+      "sha256": "31bbf6766887913149d6fa2185c173adb0c6b78cdb21d1556ae4ffd055666128"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/cad-proxy-validation.ts": {
+      "bytes": 1598,
+      "sha256": "4429f957bb51ff2604a15478095e35642368dcf91ca0d854561693d3f99f748e"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/cad-proxy.ts": {
+      "bytes": 321,
+      "sha256": "cc7715b4fc974c8ed4511ebf684cdc7c2923f7ab4b8b7f5db45b208f8e6ffa99"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/capsule-contact.ts": {
+      "bytes": 5615,
+      "sha256": "cc29d60423bd9a1883585cf164cca0b0736b9fc72e7feb3575c5208c7d892929"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/capsule-query-error.ts": {
+      "bytes": 137,
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/capsule-query.ts": {
+      "bytes": 222,
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/capsule-query/admission.ts": {
+      "bytes": 5248,
+      "sha256": "9b67efc7a8824ce49361485eff925afa50017e05bc23d900db5ec7c4e2c8760d"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/capsule-query/geometry.ts": {
+      "bytes": 2570,
+      "sha256": "5fdbe1eb40f46e930161e98244a9e5ec0e00c29297caf6f91d530c98df3df4a7"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/capsule-query/profile.ts": {
+      "bytes": 303,
+      "sha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/capsule-query/snapshot.ts": {
+      "bytes": 2537,
+      "sha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/capsule-query/sweep.ts": {
+      "bytes": 1861,
+      "sha256": "a8f4d16879b2ff88086ceec54cef19d04d58fb063893e7a146382cad59cbaf77"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/capsule-query/types.ts": {
+      "bytes": 979,
+      "sha256": "c22d17887cd8ab889a443c828200310a4c560fd3b4f8ed49f3f1f60e5dd46f44"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/ccd-box.ts": {
+      "bytes": 1988,
+      "sha256": "076eadf591500684332bd19b53a780de480ccdde205196ad072a11e1abc4f7a4"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/ccd-pair.ts": {
+      "bytes": 1303,
+      "sha256": "87ea34e6b662b223874857651839407f351b0beaa03a4a85d1e4797744027e1a"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/ccd-rounded-box.ts": {
+      "bytes": 8125,
+      "sha256": "b4ad5a06435b1bacb796dace179f95904fd9d35e4e9dac17ead55bc2f675f59c"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/ccd-slab.ts": {
+      "bytes": 1125,
+      "sha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/ccd-sphere-pair-exact.ts": {
+      "bytes": 5307,
+      "sha256": "2ee601d4e363d135fc356cef37a43495524449bb4dc38abe8f62848bdf28645c"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/ccd.ts": {
+      "bytes": 3183,
+      "sha256": "861e2b8fa56c746232581f1debddab0b88574df81187cb6dd2d6b8db7377d95e"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/character-controller.ts": {
+      "bytes": 1363,
+      "sha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/character/admission.ts": {
+      "bytes": 4488,
+      "sha256": "d83cdb8231620a18935d4d4d5e19ab7ec5440b043e1df71d49d5fa42f3fecb26"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/character/core.ts": {
+      "bytes": 4057,
+      "sha256": "6c6251e9782baed07be65cce68bfdbca14e2f930ca04a54ee6812cbbfc925a02"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/character/ground.ts": {
+      "bytes": 1242,
+      "sha256": "bd1621641ebc9300943b88c9083710218768454acb0a5e1ba8b330086d68c321"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/character/math.ts": {
+      "bytes": 859,
+      "sha256": "df0e88c320d8a189004991cd5cfc3f8de3d7bb3eecb305bb01830a11191dcdc5"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/character/profile.ts": {
+      "bytes": 334,
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/character/query.ts": {
+      "bytes": 2733,
+      "sha256": "9ef96eeb1529dc42466445529b100affc2f56913081f0c2fc169079cffe1a8cf"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/character/slide.ts": {
+      "bytes": 2555,
+      "sha256": "587d5512212e68fdc26068646152d2f8c52c3c6119d6c222de91b750c01fcd77"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/character/state.ts": {
+      "bytes": 2181,
+      "sha256": "6eb744c82f24604a8ecadd6e9d86406600119a3fbc7918129f93983df7cbf47e"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/character/step-assist.ts": {
+      "bytes": 3129,
+      "sha256": "9166857ad8509049a56d5b255ed59de17ee03e159581b495de7f1d985780c390"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/character/types.ts": {
+      "bytes": 2552,
+      "sha256": "866c5974fd99ec08b5dc6b5edf165241f4d02a8ed87274faf4cf35b19a3fb938"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/cloth/constraints.ts": {
+      "bytes": 1772,
+      "sha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/cloth/metrics.ts": {
+      "bytes": 1805,
+      "sha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/cloth/profile.ts": {
+      "bytes": 655,
+      "sha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/cloth/solver.ts": {
+      "bytes": 1395,
+      "sha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/cloth/topology.ts": {
+      "bytes": 1931,
+      "sha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/cloth/types.ts": {
+      "bytes": 719,
+      "sha256": "bad411f3fa02e4ba7039b5d447de395074342aa207f2eeed251705b15facb6d1"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/collision.ts": {
+      "bytes": 14404,
+      "sha256": "8af301d4addf3b61a38fc54466a73dde48d27907f4143032d500962adbff47a3"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/contact-manifold.ts": {
+      "bytes": 4743,
+      "sha256": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/contact-tangent.ts": {
+      "bytes": 2729,
+      "sha256": "5e1bddc158f9a6f307fdcc60ce8078ab36a06e372d530e7f5d05466d29bf9673"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/disjoint-hinge/admission.ts": {
+      "bytes": 3764,
+      "sha256": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/disjoint-hinge/errors.ts": {
+      "bytes": 2777,
+      "sha256": "5e51e5662fbce80bee3ccd3aa3694ee986b1492ed816d171774e261ab982bf4f"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/disjoint-hinge/linear-solver.ts": {
+      "bytes": 10615,
+      "sha256": "4009d4d7f171be3a5d79ca309a14b039da54f9201b438a410a6e29ed0f90bfdf"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/disjoint-hinge/measure.ts": {
+      "bytes": 4626,
+      "sha256": "97cbaf697dc8ef5caba0bf2c702699b025bcc6f906f553b623466618bbd77178"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/disjoint-hinge/pose.ts": {
+      "bytes": 3194,
+      "sha256": "ab950c1f9f1a79f9f00cb26e4b3cef0e3dcaea7b16d74e345e711159706b39e4"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/disjoint-hinge/postcontact.ts": {
+      "bytes": 2936,
+      "sha256": "8d07190383a64cb592165772109a4f462099743492f8373794ef7981b1431e38"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/disjoint-hinge/projection.ts": {
+      "bytes": 3538,
+      "sha256": "9d0def632c07f8085e860a2dbf21f26d8073f3265eb57590607d23ea6d333b87"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/disjoint-hinge/report.ts": {
+      "bytes": 5726,
+      "sha256": "d46b3e289c58b289b059928580ff2b89d9bd3ecfb11cb688d8b7a4735143973d"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/disjoint-hinge/rows.ts": {
+      "bytes": 3685,
+      "sha256": "6556f07d1d7d22edb67af1b214c689c5b5c2b30628334abaec67280d7302903f"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/disjoint-hinge/stage.ts": {
+      "bytes": 2648,
+      "sha256": "a66e09b816259c2bb1305fed8f90696585b9fd4b750406b0ce006cbe2c2f33ab"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/disjoint-hinge/types.ts": {
+      "bytes": 1610,
+      "sha256": "89b2708fd9209932084eaa765f93ff6ea00a2d775911e8c9e607a7eb824c8cc1"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/domain/admission.ts": {
+      "bytes": 11327,
+      "sha256": "1182fb21ec319132ac2f16ddec8494e3d1c4c5ac750bbe1ebab4c29817b4423e"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/domain/cloth-reference.generated.ts": {
+      "bytes": 158018,
+      "sha256": "c9ee88af8e25b533c2694433502b28f51dffdeae5cce656b53eb36a187be60bc"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/domain/cloth.ts": {
+      "bytes": 4349,
+      "sha256": "2454474a24928a9f3d92d635a9391c537ef74de77112fdc2f2872536cb447883"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/domain/fluid.ts": {
+      "bytes": 4923,
+      "sha256": "bfcafa7cc2f2bbb4ec6e2c20797f5dc5410d995cd28305272a2c3665d827179a"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/domain/types.ts": {
+      "bytes": 3839,
+      "sha256": "35fcadf07a848d919806955f6c3d934d01217ff1c26ca7d4eb4eb2807eb4ee6f"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/dynamic-anchor-pair.ts": {
+      "bytes": 3072,
+      "sha256": "8ff622a6ce007e5e7fcb43f0b7c08521615ddacbc8195cde1ac4f574304b579d"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/dynamic-fixed-joint.ts": {
+      "bytes": 2051,
+      "sha256": "f5a0fa82c062c7406f6edfeb2aeb169c927ddd8d0965957f630f87e118c52dfa"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/dynamic-hinge-joint.ts": {
+      "bytes": 4835,
+      "sha256": "69c816393446b6e06d66849840ecf88a7d28baf72bd30c792180616f55e455f2"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/fluid/boundary.ts": {
+      "bytes": 1990,
+      "sha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/fluid/constants.ts": {
+      "bytes": 459,
+      "sha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/fluid/diagnostics.ts": {
+      "bytes": 1106,
+      "sha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/fluid/kernel.ts": {
+      "bytes": 1112,
+      "sha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/fluid/neighbors.ts": {
+      "bytes": 2949,
+      "sha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/fluid/pbf.ts": {
+      "bytes": 5161,
+      "sha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/fluid/static-box.ts": {
+      "bytes": 2481,
+      "sha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/fluid/types.ts": {
+      "bytes": 125,
+      "sha256": "c75f020afeb760ec596c3043fc6d2a7166995ce0c3cedbc7e5424a6a83e56a62"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/fluid/visual-viscosity.ts": {
+      "bytes": 1265,
+      "sha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/generate-provider.mjs": {
+      "bytes": 2663,
+      "sha256": "c45a6eb52df5f4840aa30006ac65d15ea0758066f63d815e4a3b394e8eb20557"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/identity.ts": {
+      "bytes": 6081,
+      "sha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/index.ts": {
+      "bytes": 570,
+      "sha256": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/internal-types.ts": {
+      "bytes": 2615,
+      "sha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/joint-motor.ts": {
+      "bytes": 1723,
+      "sha256": "9a50b0d006ca2386cd2d79b8ba162f6850a5d08d3eb1c7d03460d606559b56ea"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/joints.ts": {
+      "bytes": 7231,
+      "sha256": "b6d0ec667a96fc26ec43d9d812c5ffd0a3b7446d135bd9b18713059327c59181"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/limits.ts": {
+      "bytes": 417,
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/math.ts": {
+      "bytes": 2421,
+      "sha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/model-admission.ts": {
+      "bytes": 10384,
+      "sha256": "7e77f184fed57d51ee1b0599e60c80d83b96045b139d236a37f76a4207689397"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/persistent-box-contact.ts": {
+      "bytes": 4945,
+      "sha256": "f150787a8ae4ce63cb7596d277ca441596bfc76a2a527d44710406659da6323f"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/private-phase.ts": {
+      "bytes": 7812,
+      "sha256": "a7b68c05f921ad29d7b420732385faf22290d57b17f8c9da261c52b7a3519922"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/producer.ts": {
+      "bytes": 3546,
+      "sha256": "510344eed3e147bf2975ff70b3f7d690a47e4bf370c75d47d7ec8d5d1d8ae5c4"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/provider-manifest.generated.ts": {
+      "bytes": 32464,
+      "sha256": "8e93441bacce4561921b17989463b08a7e54055b3f5273b9d8bcce36fcc5f673"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/recording-owner.ts": {
+      "bytes": 895,
+      "sha256": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/replay-compare.ts": {
+      "bytes": 1023,
+      "sha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/replay-json.ts": {
+      "bytes": 7760,
+      "sha256": "bdc7a0286abe05595c949a5fda0aa2522820ccb7380c0d503f3784a2c51d4fed"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/replay-validation.ts": {
+      "bytes": 9475,
+      "sha256": "f8da9f6c749b45bdd3c2ae61fc1e1bf9d73218e6f286a8557cc46277179440ec"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/replay.ts": {
+      "bytes": 7119,
+      "sha256": "cad01e2cdc0d5ce879e17b1e0998ce83448b1a3b2368c339a9651b227b966742"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/rigid-forced-rotation.ts": {
+      "bytes": 4961,
+      "sha256": "52447f9daa9da5c7382bd59d7132e3936ddf667942cbefd3fafeb79274e06d44"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/rigid-free-rotation.ts": {
+      "bytes": 11619,
+      "sha256": "63e5fd31e798a7bd85f56d0d0b5b5bad58d61e2c848594328fa74bf1c254dbbf"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/rotation-validation.ts": {
+      "bytes": 780,
+      "sha256": "45281b213700f86af36ea6d1a9189ca54349d13d01c37eeb366f1cdd474c1408"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/scene-profile.ts": {
+      "bytes": 1202,
+      "sha256": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/sleep.ts": {
+      "bytes": 4411,
+      "sha256": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/types.ts": {
+      "bytes": 12312,
+      "sha256": "21e897fbaf967888d7748a25e81def8a31b81312a573b642e3f12b13c8b450da"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/validation.ts": {
+      "bytes": 14962,
+      "sha256": "c5787fdbe5e31a51e52fb6b91634f75b363a629bb4a88248273e85c8ffc948af"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/warm-transport.ts": {
+      "bytes": 1514,
+      "sha256": "29ef17c17a9d7a69370af2add38e53c41dd273bbf8b6444e88cadfbd9461d00c"
+    },
+    "examples/physics-warm-transport-2276/evidence/build-01/stage/physics/src/world.ts": {
+      "bytes": 31400,
+      "sha256": "4f2eed7803f8862663a6fffff8eab9f1e4f543ed1579ed7bcec80173403086bf"
+    },
+    "examples/physics-warm-transport-2276/evidence/freeze-01/frozen.json": {
+      "bytes": 70298,
+      "sha256": "5b94779c1c426b68c1241faf8a92dbfdd977d7a4099cb64076b8a8e9c33341ff"
+    },
+    "examples/physics-warm-transport-2276/evidence/gram-01/bank.json": {
+      "bytes": 5697,
+      "sha256": "0eccb2e47e8ff9f3251fd1b3c446d2bc15cfbc93e4b01611856d398909317afd"
+    },
+    "examples/physics-warm-transport-2276/evidence/gram-01/result.json": {
+      "bytes": 268,
+      "sha256": "38639b993806fd308c31c9fd9f7fead77ddfbd4d9a0c208a88b97f0f122163a0"
+    },
+    "examples/physics-warm-transport-2276/evidence/warm-01/helper-bank-observer.json": {
+      "bytes": 2205,
+      "sha256": "e78e1b5c507dd3a498bfc0de806b2d2b2022dd54c4e779d413675937ac3682c1"
+    },
+    "examples/physics-warm-transport-2276/evidence/warm-01/initial-observer.json": {
+      "bytes": 3035,
+      "sha256": "b27a67afdad802bca465e592b9de3cc0e734ca0ee3d9821317bdab527b293fd0"
+    },
+    "examples/physics-warm-transport-2276/evidence/warm-01/step1-observer.json": {
+      "bytes": 12616,
+      "sha256": "f6129ecc374b04842b713ab2a71979f7746633088dd5fc34b3c2c0974309b31a"
+    },
+    "examples/physics-warm-transport-2276/evidence/warm-01/step2-observer.json": {
+      "bytes": 12106,
+      "sha256": "6a4de5a4f928a4462241b8e84885551b5324e33d490a58216cd3489ed215c9e9"
+    },
+    "examples/physics-warm-transport-2276/evidence/warm-01/summary.json": {
+      "bytes": 1845,
+      "sha256": "b88113ad3dafba1a4a57bb51633cf5d258eabad8c7dea091aa47c10cff057368"
+    },
+    "examples/physics-warm-transport-2276/freeze.mjs": {
+      "bytes": 4249,
+      "sha256": "0c8fa68a703ea2fde4fa249c77863c2988ddf47624acd8944d9020251f06fcb0"
+    },
+    "examples/physics-warm-transport-2276/observer.py": {
+      "bytes": 25944,
+      "sha256": "d59440bfbb139c6d7bfc728aeccd89c26415940d0e71d95dee7d4a7dd9f39235"
+    },
+    "examples/physics-warm-transport-2276/pin-sources.mjs": {
+      "bytes": 2781,
+      "sha256": "ea196859cb6476a4ff7325dd4860d508f9c73e9f353674f53c79c7a767d6da37"
+    },
+    "examples/physics-warm-transport-2276/reference.py": {
+      "bytes": 3656,
+      "sha256": "06e3782d4bfecc672ef4526f120fe02adbad14b140b324acbb16d57eacdb3eab"
+    },
+    "examples/physics-warm-transport-2276/run.mjs": {
+      "bytes": 10075,
+      "sha256": "8327b98dba0d668793c9a71da700156e1623009b444339dfb44fe8e5eaff4a19"
+    },
+    "examples/physics-warm-transport-2276/stage-patch.mjs": {
+      "bytes": 964,
+      "sha256": "f250bf5a8d03e14e1bb6f6b9279c0d58e77a911312f63ad0ae1450bb00d8dec4"
+    },
+    "examples/physics-warm-transport-2276/warm-transport.ts": {
+      "bytes": 1514,
+      "sha256": "29ef17c17a9d7a69370af2add38e53c41dd273bbf8b6444e88cadfbd9461d00c"
+    },
+    "packages/barocss-physics/src/broadphase.ts": {
+      "bytes": 1371,
+      "sha256": "d93e38d78cc3d202481ceeba83631d528032426d03a8adafb2e461fc72a042a0"
+    },
+    "packages/barocss-physics/src/cad-fluid-data.ts": {
+      "bytes": 2345,
+      "sha256": "5a15e23ba65663433501f07d2f35f323960879218d52a007efeb09ca7934ce10"
+    },
+    "packages/barocss-physics/src/cad-proxy-admission.ts": {
+      "bytes": 7744,
+      "sha256": "898fb55af369727440fef9f4bfadba0ea455b4c800a719909e5311029a663441"
+    },
+    "packages/barocss-physics/src/cad-proxy-pose.ts": {
+      "bytes": 1479,
+      "sha256": "8b5f50642144e335421ee6483f8b016b8a0babdb0c312ddf6ba4afbcf8bda322"
+    },
+    "packages/barocss-physics/src/cad-proxy-types.ts": {
+      "bytes": 887,
+      "sha256": "31bbf6766887913149d6fa2185c173adb0c6b78cdb21d1556ae4ffd055666128"
+    },
+    "packages/barocss-physics/src/cad-proxy-validation.ts": {
+      "bytes": 1598,
+      "sha256": "4429f957bb51ff2604a15478095e35642368dcf91ca0d854561693d3f99f748e"
+    },
+    "packages/barocss-physics/src/cad-proxy.ts": {
+      "bytes": 321,
+      "sha256": "cc7715b4fc974c8ed4511ebf684cdc7c2923f7ab4b8b7f5db45b208f8e6ffa99"
+    },
+    "packages/barocss-physics/src/capsule-contact.ts": {
+      "bytes": 5615,
+      "sha256": "cc29d60423bd9a1883585cf164cca0b0736b9fc72e7feb3575c5208c7d892929"
+    },
+    "packages/barocss-physics/src/capsule-query-error.ts": {
+      "bytes": 137,
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    "packages/barocss-physics/src/capsule-query.ts": {
+      "bytes": 222,
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+    },
+    "packages/barocss-physics/src/capsule-query/admission.ts": {
+      "bytes": 5248,
+      "sha256": "9b67efc7a8824ce49361485eff925afa50017e05bc23d900db5ec7c4e2c8760d"
+    },
+    "packages/barocss-physics/src/capsule-query/geometry.ts": {
+      "bytes": 2570,
+      "sha256": "5fdbe1eb40f46e930161e98244a9e5ec0e00c29297caf6f91d530c98df3df4a7"
+    },
+    "packages/barocss-physics/src/capsule-query/profile.ts": {
+      "bytes": 303,
+      "sha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff"
+    },
+    "packages/barocss-physics/src/capsule-query/snapshot.ts": {
+      "bytes": 2537,
+      "sha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd"
+    },
+    "packages/barocss-physics/src/capsule-query/sweep.ts": {
+      "bytes": 1861,
+      "sha256": "a8f4d16879b2ff88086ceec54cef19d04d58fb063893e7a146382cad59cbaf77"
+    },
+    "packages/barocss-physics/src/capsule-query/types.ts": {
+      "bytes": 979,
+      "sha256": "c22d17887cd8ab889a443c828200310a4c560fd3b4f8ed49f3f1f60e5dd46f44"
+    },
+    "packages/barocss-physics/src/ccd-box.ts": {
+      "bytes": 1988,
+      "sha256": "076eadf591500684332bd19b53a780de480ccdde205196ad072a11e1abc4f7a4"
+    },
+    "packages/barocss-physics/src/ccd-pair.ts": {
+      "bytes": 1303,
+      "sha256": "87ea34e6b662b223874857651839407f351b0beaa03a4a85d1e4797744027e1a"
+    },
+    "packages/barocss-physics/src/ccd-rounded-box.ts": {
+      "bytes": 8125,
+      "sha256": "b4ad5a06435b1bacb796dace179f95904fd9d35e4e9dac17ead55bc2f675f59c"
+    },
+    "packages/barocss-physics/src/ccd-slab.ts": {
+      "bytes": 1125,
+      "sha256": "f2bad0028aa148ec00073d02a865273389f5a032ea9fc8a3c5b244af20b7e340"
+    },
+    "packages/barocss-physics/src/ccd-sphere-pair-exact.ts": {
+      "bytes": 5307,
+      "sha256": "2ee601d4e363d135fc356cef37a43495524449bb4dc38abe8f62848bdf28645c"
+    },
+    "packages/barocss-physics/src/ccd.ts": {
+      "bytes": 3183,
+      "sha256": "861e2b8fa56c746232581f1debddab0b88574df81187cb6dd2d6b8db7377d95e"
+    },
+    "packages/barocss-physics/src/character-controller.ts": {
+      "bytes": 1363,
+      "sha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927"
+    },
+    "packages/barocss-physics/src/character/admission.ts": {
+      "bytes": 4488,
+      "sha256": "d83cdb8231620a18935d4d4d5e19ab7ec5440b043e1df71d49d5fa42f3fecb26"
+    },
+    "packages/barocss-physics/src/character/core.ts": {
+      "bytes": 4057,
+      "sha256": "6c6251e9782baed07be65cce68bfdbca14e2f930ca04a54ee6812cbbfc925a02"
+    },
+    "packages/barocss-physics/src/character/ground.ts": {
+      "bytes": 1242,
+      "sha256": "bd1621641ebc9300943b88c9083710218768454acb0a5e1ba8b330086d68c321"
+    },
+    "packages/barocss-physics/src/character/math.ts": {
+      "bytes": 859,
+      "sha256": "df0e88c320d8a189004991cd5cfc3f8de3d7bb3eecb305bb01830a11191dcdc5"
+    },
+    "packages/barocss-physics/src/character/profile.ts": {
+      "bytes": 334,
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    "packages/barocss-physics/src/character/query.ts": {
+      "bytes": 2733,
+      "sha256": "9ef96eeb1529dc42466445529b100affc2f56913081f0c2fc169079cffe1a8cf"
+    },
+    "packages/barocss-physics/src/character/slide.ts": {
+      "bytes": 2555,
+      "sha256": "587d5512212e68fdc26068646152d2f8c52c3c6119d6c222de91b750c01fcd77"
+    },
+    "packages/barocss-physics/src/character/state.ts": {
+      "bytes": 2181,
+      "sha256": "6eb744c82f24604a8ecadd6e9d86406600119a3fbc7918129f93983df7cbf47e"
+    },
+    "packages/barocss-physics/src/character/step-assist.ts": {
+      "bytes": 3129,
+      "sha256": "9166857ad8509049a56d5b255ed59de17ee03e159581b495de7f1d985780c390"
+    },
+    "packages/barocss-physics/src/character/types.ts": {
+      "bytes": 2552,
+      "sha256": "866c5974fd99ec08b5dc6b5edf165241f4d02a8ed87274faf4cf35b19a3fb938"
+    },
+    "packages/barocss-physics/src/cloth/constraints.ts": {
+      "bytes": 1772,
+      "sha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be"
+    },
+    "packages/barocss-physics/src/cloth/metrics.ts": {
+      "bytes": 1805,
+      "sha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd"
+    },
+    "packages/barocss-physics/src/cloth/profile.ts": {
+      "bytes": 655,
+      "sha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f"
+    },
+    "packages/barocss-physics/src/cloth/solver.ts": {
+      "bytes": 1395,
+      "sha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d"
+    },
+    "packages/barocss-physics/src/cloth/topology.ts": {
+      "bytes": 1931,
+      "sha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203"
+    },
+    "packages/barocss-physics/src/cloth/types.ts": {
+      "bytes": 719,
+      "sha256": "bad411f3fa02e4ba7039b5d447de395074342aa207f2eeed251705b15facb6d1"
+    },
+    "packages/barocss-physics/src/collision.ts": {
+      "bytes": 14404,
+      "sha256": "8af301d4addf3b61a38fc54466a73dde48d27907f4143032d500962adbff47a3"
+    },
+    "packages/barocss-physics/src/contact-manifold.ts": {
+      "bytes": 4743,
+      "sha256": "bd5ded2eb5b22422eb020f44129ef1f5687fc84831b123d9a6dadbf7f0d69428"
+    },
+    "packages/barocss-physics/src/contact-tangent.ts": {
+      "bytes": 2729,
+      "sha256": "5e1bddc158f9a6f307fdcc60ce8078ab36a06e372d530e7f5d05466d29bf9673"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/admission.ts": {
+      "bytes": 3764,
+      "sha256": "2088e36fc689f114d31a208263d1b1273e0e49874deee90e38b290a14df0ec3d"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/errors.ts": {
+      "bytes": 2777,
+      "sha256": "5e51e5662fbce80bee3ccd3aa3694ee986b1492ed816d171774e261ab982bf4f"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/linear-solver.ts": {
+      "bytes": 10615,
+      "sha256": "4009d4d7f171be3a5d79ca309a14b039da54f9201b438a410a6e29ed0f90bfdf"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/measure.ts": {
+      "bytes": 4626,
+      "sha256": "97cbaf697dc8ef5caba0bf2c702699b025bcc6f906f553b623466618bbd77178"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/pose.ts": {
+      "bytes": 3194,
+      "sha256": "ab950c1f9f1a79f9f00cb26e4b3cef0e3dcaea7b16d74e345e711159706b39e4"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/postcontact.ts": {
+      "bytes": 2936,
+      "sha256": "8d07190383a64cb592165772109a4f462099743492f8373794ef7981b1431e38"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/projection.ts": {
+      "bytes": 3538,
+      "sha256": "9d0def632c07f8085e860a2dbf21f26d8073f3265eb57590607d23ea6d333b87"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/report.ts": {
+      "bytes": 5726,
+      "sha256": "d46b3e289c58b289b059928580ff2b89d9bd3ecfb11cb688d8b7a4735143973d"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/rows.ts": {
+      "bytes": 3685,
+      "sha256": "6556f07d1d7d22edb67af1b214c689c5b5c2b30628334abaec67280d7302903f"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/stage.ts": {
+      "bytes": 2648,
+      "sha256": "a66e09b816259c2bb1305fed8f90696585b9fd4b750406b0ce006cbe2c2f33ab"
+    },
+    "packages/barocss-physics/src/disjoint-hinge/types.ts": {
+      "bytes": 1610,
+      "sha256": "89b2708fd9209932084eaa765f93ff6ea00a2d775911e8c9e607a7eb824c8cc1"
+    },
+    "packages/barocss-physics/src/domain/admission.ts": {
+      "bytes": 11327,
+      "sha256": "1182fb21ec319132ac2f16ddec8494e3d1c4c5ac750bbe1ebab4c29817b4423e"
+    },
+    "packages/barocss-physics/src/domain/cloth-reference.generated.ts": {
+      "bytes": 158018,
+      "sha256": "c9ee88af8e25b533c2694433502b28f51dffdeae5cce656b53eb36a187be60bc"
+    },
+    "packages/barocss-physics/src/domain/cloth.ts": {
+      "bytes": 4349,
+      "sha256": "2454474a24928a9f3d92d635a9391c537ef74de77112fdc2f2872536cb447883"
+    },
+    "packages/barocss-physics/src/domain/fluid.ts": {
+      "bytes": 4923,
+      "sha256": "bfcafa7cc2f2bbb4ec6e2c20797f5dc5410d995cd28305272a2c3665d827179a"
+    },
+    "packages/barocss-physics/src/domain/types.ts": {
+      "bytes": 3839,
+      "sha256": "35fcadf07a848d919806955f6c3d934d01217ff1c26ca7d4eb4eb2807eb4ee6f"
+    },
+    "packages/barocss-physics/src/dynamic-anchor-pair.ts": {
+      "bytes": 3072,
+      "sha256": "8ff622a6ce007e5e7fcb43f0b7c08521615ddacbc8195cde1ac4f574304b579d"
+    },
+    "packages/barocss-physics/src/dynamic-fixed-joint.ts": {
+      "bytes": 2051,
+      "sha256": "f5a0fa82c062c7406f6edfeb2aeb169c927ddd8d0965957f630f87e118c52dfa"
+    },
+    "packages/barocss-physics/src/dynamic-hinge-joint.ts": {
+      "bytes": 4835,
+      "sha256": "69c816393446b6e06d66849840ecf88a7d28baf72bd30c792180616f55e455f2"
+    },
+    "packages/barocss-physics/src/fluid/boundary.ts": {
+      "bytes": 1990,
+      "sha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c"
+    },
+    "packages/barocss-physics/src/fluid/constants.ts": {
+      "bytes": 459,
+      "sha256": "1eb1222c808e34501b19c226cba9c75a472bfb4897d31435f8588578b582c8ec"
+    },
+    "packages/barocss-physics/src/fluid/diagnostics.ts": {
+      "bytes": 1106,
+      "sha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215"
+    },
+    "packages/barocss-physics/src/fluid/kernel.ts": {
+      "bytes": 1112,
+      "sha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da"
+    },
+    "packages/barocss-physics/src/fluid/neighbors.ts": {
+      "bytes": 2949,
+      "sha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3"
+    },
+    "packages/barocss-physics/src/fluid/pbf.ts": {
+      "bytes": 5161,
+      "sha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50"
+    },
+    "packages/barocss-physics/src/fluid/static-box.ts": {
+      "bytes": 2481,
+      "sha256": "899351a48081261902684f6b0f67c6ac3e7cd3d0eba217bbdd8a331c2ff875a9"
+    },
+    "packages/barocss-physics/src/fluid/types.ts": {
+      "bytes": 125,
+      "sha256": "c75f020afeb760ec596c3043fc6d2a7166995ce0c3cedbc7e5424a6a83e56a62"
+    },
+    "packages/barocss-physics/src/fluid/visual-viscosity.ts": {
+      "bytes": 1265,
+      "sha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3"
+    },
+    "packages/barocss-physics/src/generate-provider.mjs": {
+      "bytes": 2663,
+      "sha256": "c45a6eb52df5f4840aa30006ac65d15ea0758066f63d815e4a3b394e8eb20557"
+    },
+    "packages/barocss-physics/src/identity.ts": {
+      "bytes": 6081,
+      "sha256": "ebabb654375eb0c213dca4db06769011248ed58f844b9c3f9038dfb676caf4be"
+    },
+    "packages/barocss-physics/src/index.ts": {
+      "bytes": 570,
+      "sha256": "dc4085b1a0b4e2af15198e35c43125d907c4b0991fc1c57a24ee421bb7011d30"
+    },
+    "packages/barocss-physics/src/internal-types.ts": {
+      "bytes": 2615,
+      "sha256": "29f39921c4a9806e2ade9126a5748b1a17cafb40a8ade1d67fc303cafe2916a8"
+    },
+    "packages/barocss-physics/src/joint-motor.ts": {
+      "bytes": 1723,
+      "sha256": "9a50b0d006ca2386cd2d79b8ba162f6850a5d08d3eb1c7d03460d606559b56ea"
+    },
+    "packages/barocss-physics/src/joints.ts": {
+      "bytes": 7231,
+      "sha256": "b6d0ec667a96fc26ec43d9d812c5ffd0a3b7446d135bd9b18713059327c59181"
+    },
+    "packages/barocss-physics/src/limits.ts": {
+      "bytes": 417,
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    "packages/barocss-physics/src/math.ts": {
+      "bytes": 2421,
+      "sha256": "d782fc9eab8f699e906cde0df580c625f054905f12999edf50fd60bf54e7a3c2"
+    },
+    "packages/barocss-physics/src/model-admission.ts": {
+      "bytes": 10384,
+      "sha256": "7e77f184fed57d51ee1b0599e60c80d83b96045b139d236a37f76a4207689397"
+    },
+    "packages/barocss-physics/src/persistent-box-contact.ts": {
+      "bytes": 3769,
+      "sha256": "3f53922b557ca142a4d95e1e19d5be21828b375b75bc45ff1e57a7b9171261f1"
+    },
+    "packages/barocss-physics/src/provider-manifest.generated.ts": {
+      "bytes": 8271,
+      "sha256": "86207caac84e5354d78177f795a501878b24529af39765e4350cbe42bb731209"
+    },
+    "packages/barocss-physics/src/recording-owner.ts": {
+      "bytes": 895,
+      "sha256": "378ef215a8d3c644e665492875b1993a19f5e8e514480d931cd75abacf2e74a1"
+    },
+    "packages/barocss-physics/src/replay-compare.ts": {
+      "bytes": 1023,
+      "sha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec"
+    },
+    "packages/barocss-physics/src/replay-json.ts": {
+      "bytes": 7760,
+      "sha256": "1ab8cf962443edd3be387e5095a9cce3f2071c8b44e47cc165ce82d5c00ac617"
+    },
+    "packages/barocss-physics/src/replay-validation.ts": {
+      "bytes": 8096,
+      "sha256": "ab9a7b5097515ddd3d6aa9a434d14f2ae2e04fd15c4059b473d0d708a507c82a"
+    },
+    "packages/barocss-physics/src/replay.ts": {
+      "bytes": 7119,
+      "sha256": "07bafc635620c56c479ed44b0f458cbbb470bf20b3ce2ead7248ceb0973ca408"
+    },
+    "packages/barocss-physics/src/rigid-forced-rotation.ts": {
+      "bytes": 4961,
+      "sha256": "52447f9daa9da5c7382bd59d7132e3936ddf667942cbefd3fafeb79274e06d44"
+    },
+    "packages/barocss-physics/src/rigid-free-rotation.ts": {
+      "bytes": 11619,
+      "sha256": "63e5fd31e798a7bd85f56d0d0b5b5bad58d61e2c848594328fa74bf1c254dbbf"
+    },
+    "packages/barocss-physics/src/rotation-validation.ts": {
+      "bytes": 780,
+      "sha256": "45281b213700f86af36ea6d1a9189ca54349d13d01c37eeb366f1cdd474c1408"
+    },
+    "packages/barocss-physics/src/scene-profile.ts": {
+      "bytes": 1202,
+      "sha256": "e927339931ce9ebbf2f13808017bd1106e4ed4dbfa4f63fdf2f2ed0376d94ff7"
+    },
+    "packages/barocss-physics/src/sleep.ts": {
+      "bytes": 4411,
+      "sha256": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2"
+    },
+    "packages/barocss-physics/src/types.ts": {
+      "bytes": 11884,
+      "sha256": "37fdf1abcc20fd379304213b8c0686f8e0468d285f008aa8ebdb316882efade5"
+    },
+    "packages/barocss-physics/src/validation.ts": {
+      "bytes": 14962,
+      "sha256": "c5787fdbe5e31a51e52fb6b91634f75b363a629bb4a88248273e85c8ffc948af"
+    },
+    "packages/barocss-physics/src/world.ts": {
+      "bytes": 30779,
+      "sha256": "449865bf2e73ed799885c7e9d0f95f7d3f09c740e42ce1f8b960384308e08266"
+    }
+  },
+  "prerequisites": [
+    {
+      "path": "examples/physics-contact-wrench-native-2276/evidence/native-03/result.json",
+      "status": "PASS_PRIVATE_TYPED_DUAL_GRAPH_BUILD"
+    },
+    {
+      "path": "examples/physics-contact-wrench-native-2276/evidence/source-03/summary.json",
+      "status": "EXECUTED_PASS_PRIVATE_TYPED_SOURCE_PRODUCER"
+    },
+    {
+      "path": "examples/physics-contact-wrench-native-2276/evidence/native-run-03/summary.json",
+      "status": "EXECUTED_PASS_PRIVATE_TYPED_EMITTED_PRODUCER"
+    },
+    {
+      "path": "examples/physics-contact-wrench-native-2276/evidence/parity-03/result.json",
+      "status": "PASS_FULL_PRIVATE_SOURCE_NATIVE_AND_SAVED_SOURCE_PARITY"
+    },
+    {
+      "path": "examples/physics-warm-transport-2276/evidence/build-01/result.json",
+      "status": "PASS_PRIVATE_WARM_TRANSPORT_BUILD"
+    },
+    {
+      "path": "examples/physics-warm-transport-2276/evidence/warm-01/summary.json",
+      "status": "EXECUTED_PASS_WARM_TRANSPORT"
+    },
+    {
+      "path": "examples/physics-warm-transport-2276/evidence/warm-01/helper-bank-observer.json",
+      "status": "EXECUTED_PASS_HELPER_GRAM_BANK"
+    },
+    {
+      "path": "examples/physics-warm-replay-2276/evidence/replay-01/summary.json",
+      "status": "EXECUTED_PASS_PRIVATE_WARM_REPLAY_PROTOCOL"
+    }
+  ],
+  "parserApi": {
+    "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/lib/typescript.js",
+    "bytes": 9112572,
+    "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+  },
+  "review": {
+    "agent": "/root/g2_sphere_pair_ccd",
+    "status": "READ_ONLY_NO_FURTHER_P0_P1_AFTER_PROVIDER_DIGEST_FIX",
+    "reviewedHashes": {
+      "build.mjs": "ae78ddf66da9c595d98caa15a4e94158e133109943304a80b84b9d2bae003ca0",
+      "run.mjs": "d944d313df5c3dd368cf00a86643ff07d033ecbfc352e0e80ede07e859f91291",
+      "parity.py": "499127f1fe4e5a7501f690f81490990c63e22efb5caa94e41e4f97144ca170ea"
+    }
+  },
+  "authorChecks": {
+    "javascriptSyntax": "PASS_NODE_CHECK_BUILD_RUN_ENTRY_AUDITOR",
+    "pythonSyntax": "PASS_AST_PARSE_ONLY",
+    "exactQualifiedCopies": "PASS_ENTRY_AUDITOR_FAULT_OBSERVER_TRACE_DECODER",
+    "allFrozenInputs": "PASS_BYTES_SHA256_READBACK",
+    "compiler": "NOT_RUN",
+    "World": "NOT_RUN",
+    "candidateImports": "NOT_RUN"
+  },
+  "scope": "SOURCE_PRIVATE_TYPED_WARM_DUAL_GRAPH_ONLY_NO_PROMOTION",
+  "budgetPerGraph": {
+    "Worlds": 4,
+    "attempts": 8,
+    "acceptedSteps": 6
+  },
+  "hiddenAcceptedOutputs": "NOT_RETAINED_AFTER_DISPOSE_NOT_PROVEN",
+  "commands": [
+    "node examples/physics-warm-native-2276/build.mjs build-01",
+    "node examples/physics-warm-native-2276/run.mjs build-01 source-01 source",
+    "node examples/physics-warm-native-2276/run.mjs build-01 native-01 native",
+    "python3 -B examples/physics-warm-native-2276/parity.py source-01 native-01 parity-01"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "status": "PASS_ALL_LOGICAL_CLEAN_MEMBERS_RECOVERY_AND_INSTALLED_TOOL_PINS",
+  "archiveIndexPin": {
+    "bytes": 411085,
+    "sha256": "f97e94f59fa15edf7c41c788426eb36e8452a6cb3f10547e1ae7cdee5e00769e"
+  },
+  "logicalMembersVerified": 1261,
+  "backwardHardlinksVerified": 637,
+  "frozenWorkspaceRecoveryVerified": 1092,
+  "toolMetadataVerified": 358,
+  "unsafeExtraction": false,
+  "candidateCalls": 0,
+  "referenceGeneratorCalls": 0,
+  "WorldCalls": 0
+}

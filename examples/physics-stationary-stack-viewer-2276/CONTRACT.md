@@ -1,0 +1,11 @@
+# Desktop observational proof
+
+SOURCE_ONLY. Root executes installed Playwright CLI and restarts the loopback server. No browser install/download/flags/mobile, physics implementation or renderer/app/worker edit belongs to this source slice.
+
+Fixed origin http://127.0.0.1:53043. Server requires one fresh proof ID, accepts one same-origin POST per ALIGNED/OFFSET/YAW and no remote input. Each request <=4MiB; aggregate received plus retained proof bytes <=16MiB. Expected paid body traces are host-only, never GET-served or engine input. Captured binary frames and renderer snapshot are observations, not public PhysicsRecording or restorable engine state. Actual browser words must equal authenticated paid private full01 frames byte-for-byte; mismatch is NOT_EQUAL with actual data retained, without zero normalization or physical PASS.
+
+One finite CLI invocation per scene, <=170s inner / Root180s outer. First ALIGNED starts fresh navigation; initial World1 step0, reset at0 creates World2 with no discarded accepted step. Same World2 takes one button step, real run/pause then camera/marker/1280/1440/1920 resize checks after pause settles, with accepted clock/body words unchanged. It then continues via real Run to1200 and captures all1201 frames. OFFSET/YAW select the next scene on the existing page (no reload), creating World3/4 respectively, and each accepts1200. Formal total4 Worlds/3600 accepted steps. Earlier manual desktop01 proof is separate. One outstanding worker request remains app-owned.
+
+Fresh CLI snapshot precedes each run-code scene protocol; semantic getByRole labels use actual current DOM, not stale refs. Browser errors, console errors and failed/nonlocal requests are collected over all3 scenes; no source-only or isolated Node proof substitutes for actual screen proof. Screenshot per scene. Renderer must be WebGPU with9 bodies/8 final contact markers, actual poses, and submitted vertices verified independently against public state. No calibrated force-at-centroid claim. Cleanup session command/result is retained separately after YAW or failure.
+
+All private original physics gates, tolerances, caps and existing failed profiles remain unchanged. Browser qualification remains NOT_RUN until Root records actual results.

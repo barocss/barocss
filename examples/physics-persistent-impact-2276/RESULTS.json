@@ -1,0 +1,644 @@
+{
+  "status": "PASS_BOUNDED_PERSISTENT_RESTITUTION",
+  "base": "7d0764c95",
+  "main": {
+    "status": "PASS_PERSISTENT_PUBLIC_API",
+    "pins": {
+      "CONTRACT.md": "9b096d06eea1b0eb7f33ad56402a25f4bc7d72b583c8ffc18945e99fdca52632",
+      "cases.mjs": "f2222f09a7c7ecdbba09446e1e8ac7cac66da14973368ecd330a7d520119162b",
+      "api-run.mjs": "f451a6553c12a46a4a507b1abbb1e377493a1303d1d05a89bb67b5f8412ca351"
+    },
+    "counts": {
+      "source": {
+        "worlds": 28,
+        "acceptedSteps": 287,
+        "knownRefusals": 1,
+        "unknownRefusals": 1,
+        "restores": 1
+      },
+      "native": {
+        "worlds": 28,
+        "acceptedSteps": 287,
+        "knownRefusals": 1,
+        "unknownRefusals": 1,
+        "restores": 1
+      }
+    },
+    "maxima": {
+      "source": {
+        "velocity": 2.220446049250313e-16,
+        "omega": 2.0312514643404095e-16,
+        "impulse": 4.440892098500626e-16,
+        "momentum": 8.881784197001252e-16,
+        "angularMomentum": 6.770838214468031e-17,
+        "gap": 5.898059818321144e-17,
+        "energy": 8.881784197001252e-16,
+        "tangent": 0
+      },
+      "native": {
+        "velocity": 2.220446049250313e-16,
+        "omega": 2.0312514643404095e-16,
+        "impulse": 4.440892098500626e-16,
+        "momentum": 8.881784197001252e-16,
+        "angularMomentum": 6.770838214468031e-17,
+        "gap": 5.898059818321144e-17,
+        "energy": 8.881784197001252e-16,
+        "tangent": 0
+      }
+    },
+    "firstFailure": null,
+    "evidenceBytes": 9274399,
+    "browser": "NOT_RUN",
+    "scope": "centered zero-friction principal-axis impacts and separate e0 gravity support"
+  },
+  "warm": {
+    "status": "PASS_WARMED_PERSISTENT_PUBLIC_API",
+    "pins": {
+      "WARM-CONTRACT.md": "bde74c18f9c3ffe34137fb9e3a814ab72fb52f4ad7bd942b81c8d884a12d3660",
+      "warm-run.mjs": "4bc35ed4228406834fc6521df841e9bb7b10db778cf33207af2b18454825a2fb"
+    },
+    "counts": {
+      "source": {
+        "worlds": 3,
+        "acceptedSteps": 9,
+        "restores": 1,
+        "unknownRefusals": 1
+      },
+      "native": {
+        "worlds": 3,
+        "acceptedSteps": 9,
+        "restores": 1,
+        "unknownRefusals": 1
+      }
+    },
+    "maxima": {
+      "source": {
+        "velocity": 3.469446951953614e-18,
+        "omega": 2.7755575615628914e-16,
+        "impulse": 8.881784197001252e-16,
+        "momentum": 8.881784197001252e-16,
+        "angularMomentum": 9.25185853854297e-17,
+        "gap": 5.551115123125783e-17,
+        "energy": 0,
+        "tangent": 0
+      },
+      "native": {
+        "velocity": 3.469446951953614e-18,
+        "omega": 2.7755575615628914e-16,
+        "impulse": 8.881784197001252e-16,
+        "momentum": 8.881784197001252e-16,
+        "angularMomentum": 9.25185853854297e-17,
+        "gap": 5.551115123125783e-17,
+        "energy": 0,
+        "tangent": 0
+      }
+    },
+    "firstFailure": null,
+    "evidenceBytes": 421652,
+    "originalQualification": "PRESERVED",
+    "browser": "NOT_RUN"
+  },
+  "independent": {
+    "status": "PASS_INDEPENDENT_NEWTON_MOMENTUM",
+    "audits": 40,
+    "maxima": {
+      "velocity": 2.220446049250313e-16,
+      "omega": 2.0312514643404095e-16,
+      "impulse": 4.440892098500626e-16,
+      "energy": 8.881784197001252e-16,
+      "momentum": 8.881784197001252e-16,
+      "angular": 6.770838214468031e-17,
+      "tangent": 0.0,
+      "gap": 5.551115123125783e-17
+    },
+    "cases": [
+      {
+        "graph": "source",
+        "id": "minimum-material",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "source",
+        "id": "below-threshold",
+        "eExact": "0",
+        "outgoingExact": [
+          "0",
+          "0"
+        ],
+        "impulseExact": "9007199254740991/9007199254740992"
+      },
+      {
+        "graph": "source",
+        "id": "at-threshold",
+        "eExact": "0",
+        "outgoingExact": [
+          "0",
+          "0"
+        ],
+        "impulseExact": "1"
+      },
+      {
+        "graph": "source",
+        "id": "above-threshold",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "4503599627370497/36028797018963968"
+        ],
+        "impulseExact": "22517998136852485/18014398509481984"
+      },
+      {
+        "graph": "source",
+        "id": "zero-moving",
+        "eExact": "0",
+        "outgoingExact": [
+          "0",
+          "0"
+        ],
+        "impulseExact": "4"
+      },
+      {
+        "graph": "source",
+        "id": "zero-fixed",
+        "eExact": "0",
+        "outgoingExact": [
+          "0",
+          "0"
+        ],
+        "impulseExact": "4"
+      },
+      {
+        "graph": "source",
+        "id": "unit",
+        "eExact": "1",
+        "outgoingExact": [
+          "0",
+          "2"
+        ],
+        "impulseExact": "8"
+      },
+      {
+        "graph": "source",
+        "id": "unequal-reverse-material",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "source",
+        "id": "model-order",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "source",
+        "id": "lexical-order",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "source",
+        "id": "both-orders",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "source",
+        "id": "separating",
+        "eExact": "0",
+        "outgoingExact": [
+          "0",
+          "2"
+        ],
+        "impulseExact": "0"
+      },
+      {
+        "graph": "source",
+        "id": "resting",
+        "eExact": "0",
+        "outgoingExact": [
+          "0",
+          "0"
+        ],
+        "impulseExact": "0"
+      },
+      {
+        "graph": "source",
+        "id": "axis-x",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "source",
+        "id": "axis-z",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "source",
+        "id": "dt-60",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "source",
+        "id": "dt-240",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "source",
+        "id": "equal-mass",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "-5/4",
+          "-3/4"
+        ],
+        "impulseExact": "5/2"
+      },
+      {
+        "graph": "source",
+        "id": "equal-mass-orders",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "-5/4",
+          "-3/4"
+        ],
+        "impulseExact": "5/2"
+      },
+      {
+        "graph": "source",
+        "id": "equal-mass-unit-x",
+        "eExact": "1",
+        "outgoingExact": [
+          "-2",
+          "0"
+        ],
+        "impulseExact": "4"
+      },
+      {
+        "graph": "native",
+        "id": "minimum-material",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "native",
+        "id": "below-threshold",
+        "eExact": "0",
+        "outgoingExact": [
+          "0",
+          "0"
+        ],
+        "impulseExact": "9007199254740991/9007199254740992"
+      },
+      {
+        "graph": "native",
+        "id": "at-threshold",
+        "eExact": "0",
+        "outgoingExact": [
+          "0",
+          "0"
+        ],
+        "impulseExact": "1"
+      },
+      {
+        "graph": "native",
+        "id": "above-threshold",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "4503599627370497/36028797018963968"
+        ],
+        "impulseExact": "22517998136852485/18014398509481984"
+      },
+      {
+        "graph": "native",
+        "id": "zero-moving",
+        "eExact": "0",
+        "outgoingExact": [
+          "0",
+          "0"
+        ],
+        "impulseExact": "4"
+      },
+      {
+        "graph": "native",
+        "id": "zero-fixed",
+        "eExact": "0",
+        "outgoingExact": [
+          "0",
+          "0"
+        ],
+        "impulseExact": "4"
+      },
+      {
+        "graph": "native",
+        "id": "unit",
+        "eExact": "1",
+        "outgoingExact": [
+          "0",
+          "2"
+        ],
+        "impulseExact": "8"
+      },
+      {
+        "graph": "native",
+        "id": "unequal-reverse-material",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "native",
+        "id": "model-order",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "native",
+        "id": "lexical-order",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "native",
+        "id": "both-orders",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "native",
+        "id": "separating",
+        "eExact": "0",
+        "outgoingExact": [
+          "0",
+          "2"
+        ],
+        "impulseExact": "0"
+      },
+      {
+        "graph": "native",
+        "id": "resting",
+        "eExact": "0",
+        "outgoingExact": [
+          "0",
+          "0"
+        ],
+        "impulseExact": "0"
+      },
+      {
+        "graph": "native",
+        "id": "axis-x",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "native",
+        "id": "axis-z",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "native",
+        "id": "dt-60",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "native",
+        "id": "dt-240",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "0",
+          "1/2"
+        ],
+        "impulseExact": "5"
+      },
+      {
+        "graph": "native",
+        "id": "equal-mass",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "-5/4",
+          "-3/4"
+        ],
+        "impulseExact": "5/2"
+      },
+      {
+        "graph": "native",
+        "id": "equal-mass-orders",
+        "eExact": "1/4",
+        "outgoingExact": [
+          "-5/4",
+          "-3/4"
+        ],
+        "impulseExact": "5/2"
+      },
+      {
+        "graph": "native",
+        "id": "equal-mass-unit-x",
+        "eExact": "1",
+        "outgoingExact": [
+          "-2",
+          "0"
+        ],
+        "impulseExact": "4"
+      }
+    ],
+    "candidateCalls": 0,
+    "WorldCalls": 0
+  },
+  "render": {
+    "status": "PASS_BROWSER_PERSISTENT_IMPACT",
+    "browserVersion": "156.0.8078.80",
+    "checks": [
+      {
+        "name": "paused public World and actual two-box GPU pixels",
+        "status": "PASS"
+      },
+      {
+        "name": "minimum real input and accepted contact values",
+        "status": "PASS"
+      },
+      {
+        "name": "threshold real input and accepted contact values",
+        "status": "PASS"
+      },
+      {
+        "name": "above real input and accepted contact values",
+        "status": "PASS"
+      },
+      {
+        "name": "unit real input and accepted contact values",
+        "status": "PASS"
+      },
+      {
+        "name": "zero real input and accepted contact values",
+        "status": "PASS"
+      },
+      {
+        "name": "pair real input and accepted contact values",
+        "status": "PASS"
+      },
+      {
+        "name": "outgoing motion changes GPU pixels",
+        "status": "PASS"
+      },
+      {
+        "name": "desktop widths and camera keep accepted state",
+        "status": "PASS"
+      },
+      {
+        "name": "keyboard step play pause reset and recorder clock",
+        "status": "PASS"
+      },
+      {
+        "name": "512 accepted-step cap stops playback and retains recording",
+        "status": "PASS"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "firstFailure": null
+  },
+  "commands": {
+    "persistent-impact-api-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 1208.758375,
+      "timedOut": false
+    },
+    "persistent-impact-baseline-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 236.381541,
+      "timedOut": false
+    },
+    "persistent-impact-build-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 2836.519,
+      "timedOut": false
+    },
+    "persistent-impact-docbuild-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 9478.313417,
+      "timedOut": false
+    },
+    "persistent-impact-docsite-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 336.408083,
+      "timedOut": false
+    },
+    "persistent-impact-reference-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 107.026125,
+      "timedOut": false
+    },
+    "persistent-impact-regression-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 5604.263,
+      "timedOut": false
+    },
+    "persistent-impact-render-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 14371.129541,
+      "timedOut": false
+    },
+    "persistent-impact-render-build-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 464.679834,
+      "timedOut": false
+    },
+    "persistent-impact-warm-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 192.828375,
+      "timedOut": false
+    }
+  },
+  "firstFailure": "evidence/baseline-01/result.json",
+  "notQualified": [
+    "original eight-box settling",
+    "general tilted/off-center or simultaneous impacts",
+    "friction coverage",
+    "published browser SDK",
+    "machines"
+  ],
+  "holds": "Studio/manufacturing/equipment and prior workers remain held",
+  "deploy": "NOT_RUN"
+}

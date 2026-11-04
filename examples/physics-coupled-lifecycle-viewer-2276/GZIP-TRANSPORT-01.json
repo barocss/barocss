@@ -1,0 +1,106 @@
+{
+  "status": "PASS_GZIP_STORAGE_TRANSPORT_ONLY",
+  "originalArchiveIndex": {
+    "file": "EVIDENCE-ARCHIVE.json",
+    "bytes": 980356,
+    "sha256": "95efde725d9b683e36e5f9920ddcf69dba6292de5eb85af7404db8613859b5e9"
+  },
+  "originalForecast": {
+    "file": "ARCHIVE-FORECAST.json",
+    "bytes": 1239,
+    "sha256": "e2177c2df628711835d777b0db7727126aecd8c67122aee1105df6fc80dc8518"
+  },
+  "perOriginalUncompressedTarCapBytes": 16777216,
+  "aggregateOriginalUncompressedTarBytes": 50288640,
+  "aggregateStoredGzipBytes": 7291225,
+  "verifiedLogicalMembers": 2488,
+  "reconstruction": "Gzip decompress to exact original tar bytes and SHA/size, then verify every logical member with unchanged EVIDENCE-ARCHIVE.json and SOURCE-RECOVERY.json. Standard backward tar hardlinks refer only to equal-byte/sha earlier regular members.",
+  "policy": "16MiB is per uncompressed tar, not a single aggregate. Gzip is storage transport. Raw tars stay unchanged local; root owns Git writes. Serialized/cell/copy allowance is not RSS.",
+  "archives": [
+    {
+      "originalTar": {
+        "file": "SOURCE-01.tar",
+        "bytes": 16271360,
+        "sha256": "60274de49dbf05961add9caf83e001c27712aaa8b16cdc4211a9c84a02800ad1"
+      },
+      "gzipTransport": {
+        "file": "SOURCE-01.tar.gz",
+        "bytes": 2712106,
+        "sha256": "98d07b21aeefe638fd1edc09cc92da118cabfd55210413137b37c09674e775d5"
+      },
+      "verification": {
+        "status": "PASS_EXACT_ORIGINAL_TAR_AND_ALL_LOGICAL_MEMBERS",
+        "logicalMembers": 1457,
+        "decompressedTar": {
+          "bytes": 16271360,
+          "sha256": "60274de49dbf05961add9caf83e001c27712aaa8b16cdc4211a9c84a02800ad1"
+        }
+      }
+    },
+    {
+      "originalTar": {
+        "file": "SOURCE-02.tar",
+        "bytes": 13230080,
+        "sha256": "63b22991624064f65e86ea32d8984104895ca4ad8a547fd2ab4fd69bb3ff3edc"
+      },
+      "gzipTransport": {
+        "file": "SOURCE-02.tar.gz",
+        "bytes": 3038456,
+        "sha256": "986ab766df5b8030285e8164710faa77a94bd7f00714982c1cac3b3e4045218c"
+      },
+      "verification": {
+        "status": "PASS_EXACT_ORIGINAL_TAR_AND_ALL_LOGICAL_MEMBERS",
+        "logicalMembers": 945,
+        "decompressedTar": {
+          "bytes": 13230080,
+          "sha256": "63b22991624064f65e86ea32d8984104895ca4ad8a547fd2ab4fd69bb3ff3edc"
+        }
+      }
+    },
+    {
+      "originalTar": {
+        "file": "PROOF-01.tar",
+        "bytes": 10024960,
+        "sha256": "eb47d95a57747001f0089bfd495fae788dee282c1d0c6ef6f90c3ebf0937c86b"
+      },
+      "gzipTransport": {
+        "file": "PROOF-01.tar.gz",
+        "bytes": 1291969,
+        "sha256": "a5d98b5b0f32022c94bf8c7d25a2c0e65bdc8559e412e96b87516802dca79c80"
+      },
+      "verification": {
+        "status": "PASS_EXACT_ORIGINAL_TAR_AND_ALL_LOGICAL_MEMBERS",
+        "logicalMembers": 85,
+        "decompressedTar": {
+          "bytes": 10024960,
+          "sha256": "eb47d95a57747001f0089bfd495fae788dee282c1d0c6ef6f90c3ebf0937c86b"
+        }
+      }
+    },
+    {
+      "originalTar": {
+        "file": "PROOF-02.tar",
+        "bytes": 10762240,
+        "sha256": "dc7e96f4d63f7aa8b79c97cbb22e62c2cd1403141f0b5e11673ec27758aeeeaa"
+      },
+      "gzipTransport": {
+        "file": "PROOF-02.tar.gz",
+        "bytes": 248694,
+        "sha256": "ef1a24adb6681063f4b53cb5f3a5e53a6e11bcddc56358a686ff7e02f5b879c8"
+      },
+      "verification": {
+        "status": "PASS_EXACT_ORIGINAL_TAR_AND_ALL_LOGICAL_MEMBERS",
+        "logicalMembers": 1,
+        "decompressedTar": {
+          "bytes": 10762240,
+          "sha256": "dc7e96f4d63f7aa8b79c97cbb22e62c2cd1403141f0b5e11673ec27758aeeeaa"
+        }
+      }
+    }
+  ],
+  "WorldCalls": 0,
+  "compilerCalls": 0,
+  "browserCalls": 0,
+  "observerCalls": 0,
+  "decoderCalls": 0
+}

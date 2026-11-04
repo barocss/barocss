@@ -1,0 +1,32 @@
+{
+  "status": "SOURCE_AUTHORING_NO_EXECUTION_NO_ADMISSION",
+  "originalFiles": {
+    "run.mjs": {
+      "bytes": 10915,
+      "sha256": "fae40d848da23ad9674772f914ffded2de9a68e3e283a47ec04dd40bbe23687b"
+    },
+    "campaign.mts": {
+      "bytes": 10190,
+      "sha256": "6bc510b3fa06f278b00cd856d9ac96726ad95aab754e6daef764bcf4c2006a0b"
+    },
+    "io.mjs": {
+      "bytes": 7661,
+      "sha256": "33e266bb0d9d6b86e9890b1aaef0c730a96754c90daab698d22b0bc9e2c89a97"
+    },
+    "io.test.mjs": {
+      "bytes": 1660,
+      "sha256": "1db91d93591a767426ae08c56d7ddb8c8489275065c54b950b4cca752a2850de"
+    },
+    "bundle.mjs": {
+      "bytes": 690,
+      "sha256": "a76d21a3676697ed78a8a13d7aa90a9973f00373dda70ba02ad7156c27cb9c70"
+    }
+  },
+  "exactCopies": [
+    "io.mjs",
+    "io.test.mjs",
+    "bundle.mjs"
+  ],
+  "runnerDelta": "Same original runner; mandatory actual stationary candidate admission and explicit success status",
+  "campaignDelta": "New exact solver+normal diagnostic,5 refusal controls,additive actual witness in world request and require candidate-free reply; all old physical operations/gates unchanged"
+}

@@ -1,0 +1,13 @@
+// Data/source authentication only. Never imports a candidate, World or observer.
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,mkdirSync,realpathSync,readdirSync} from 'node:fs';
+import {resolve,dirname,relative} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {createHash} from 'node:crypto';
+const home=dirname(fileURLToPath(import.meta.url)),root=resolve(home,'../..'),id=process.argv[2];assert(/^[a-z0-9][a-z0-9-]{0,63}$/.test(id??''),'fresh freeze ID');
+const pin=p=>{const b=readFileSync(p);return{bytes:b.length,sha256:createHash('sha256').update(b).digest('hex')};};
+const authorPath=resolve(home,'SOURCE-PINS-01.json'),author=JSON.parse(readFileSync(authorPath));assert.equal(author.format,'physics-warm-replay-source-freeze');for(const[p,v]of Object.entries(author.files))assert.deepEqual(pin(resolve(root,p)),v,'Frozen replay source/dependency drift '+p);
+const qualified=resolve(root,'examples/physics-warm-transport-2276'),original=JSON.parse(readFileSync(resolve(qualified,'evidence/freeze-01/frozen.json')));assert.equal(original.format,'physics-warm-transport-freeze');for(const[p,v]of Object.entries(original.files))assert.deepEqual(pin(resolve(root,p)),v,'Qualified original drift '+p);
+const receipt=JSON.parse(readFileSync(resolve(qualified,'evidence/build-01/result.json')));assert.equal(receipt.status,'PASS_PRIVATE_WARM_TRANSPORT_BUILD');assert.deepEqual(receipt.source,pin(resolve(root,original.sourceBundle)));const passed=JSON.parse(readFileSync(resolve(qualified,'evidence/warm-01/summary.json')));assert.equal(passed.status,'EXECUTED_PASS_WARM_TRANSPORT');assert.equal(passed.validatedWarmCoverage,'EXECUTED_PASS');
+const files={...author.files,...original.files,[relative(root,authorPath)]:pin(authorPath)};const frozen={format:'physics-warm-replay-freeze',version:1,sourceBundle:original.sourceBundle,modelFile:original.modelFile,optionsFile:original.optionsFile,referenceFile:original.referenceFile,encoder:original.encoder,decoder:original.decoder,observer:'examples/physics-warm-transport-2276/observer.py',files,caps:{worlds:4,attempts:8,acceptedSteps:6,records:8192,applications:4352,queries:72,queryPoints:288,anchorChecks:7776,evidenceBytes:16777216,wallMilliseconds:180000},hiddenAcceptedPublicOutput:'NOT_RETAINED_AFTER_DISPOSE',hiddenRawOutputEquality:'NOT_PROVEN'};
+const out=resolve(home,'evidence',id);mkdirSync(resolve(home,'evidence'),{recursive:true});mkdirSync(out);writeFileSync(resolve(out,'frozen.json'),JSON.stringify(frozen,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({status:'FROZEN_PRIVATE_WARM_REPLAY_INPUTS_ONLY',files:Object.keys(files).length,WorldCalls:0,candidateCalls:0}));

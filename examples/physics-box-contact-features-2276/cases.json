@@ -1,0 +1,1334 @@
+{
+  "version": 1,
+  "scope": "private native geometry only",
+  "maxCases": 24,
+  "maxPoints": 96,
+  "pins": {
+    "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/result.json": {
+      "bytes": 12356,
+      "sha256": "aa77c50446ddfbf4c69b93f222e24fd74e7b663f175c6103571ca819e72c4432"
+    },
+    "examples/physics-contact-boundary-2276/evidence/baseline-01/fixtures.json": {
+      "bytes": 948322,
+      "sha256": "6dbee5b66fa8b7fe638220181cf41ce3beed6e57456588943cc0e91fb135fe49"
+    }
+  },
+  "cases": [
+    {
+      "id": "failure-pre-1",
+      "phase": "integration-pre",
+      "a": {
+        "id": "a-floor",
+        "positionM": [
+          0,
+          -0.1,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "halfExtentsM": [
+          0.2,
+          0.1,
+          2
+        ]
+      },
+      "b": {
+        "id": "z-cube",
+        "positionM": [
+          0.004166666666666667,
+          0.49931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          4.1666666654610344e-05,
+          0.9999999991319446
+        ],
+        "halfExtentsM": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "expectedFeature": "FACE",
+      "source": "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/result.json",
+      "step": 1
+    },
+    {
+      "id": "failure-accepted-1",
+      "phase": "saved-accepted",
+      "a": {
+        "id": "a-floor",
+        "positionM": [
+          0,
+          -0.1,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "halfExtentsM": [
+          0.2,
+          0.1,
+          2
+        ]
+      },
+      "b": {
+        "id": "z-cube",
+        "positionM": [
+          0.00416660847786485,
+          0.5000170156201903,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          4.1666666654610344e-05,
+          0.9999999991319446
+        ],
+        "halfExtentsM": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "source": "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/result.json",
+      "step": 1,
+      "acceptedGapGateM": 1e-12
+    },
+    {
+      "id": "failure-pre-2",
+      "phase": "integration-pre",
+      "a": {
+        "id": "a-floor",
+        "positionM": [
+          0,
+          -0.1,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "halfExtentsM": [
+          0.2,
+          0.1,
+          2
+        ]
+      },
+      "b": {
+        "id": "z-cube",
+        "positionM": [
+          0.007765884671176059,
+          0.4994649301727562,
+          1.6191608184427735e-07
+        ],
+        "orientationXYZW": [
+          -1.773527522977914e-06,
+          -1.1670462539221588e-06,
+          -0.0002910260149086918,
+          0.9999999576496748
+        ],
+        "halfExtentsM": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "expectedFeature": "EDGE",
+      "source": "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/result.json",
+      "step": 2
+    },
+    {
+      "id": "failure-accepted-2",
+      "phase": "saved-accepted",
+      "a": {
+        "id": "a-floor",
+        "positionM": [
+          0,
+          -0.1,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "halfExtentsM": [
+          0.2,
+          0.1,
+          2
+        ]
+      },
+      "b": {
+        "id": "z-cube",
+        "positionM": [
+          0.007766262316914957,
+          0.5001137479317548,
+          1.6191608184427735e-07
+        ],
+        "orientationXYZW": [
+          -1.773527522977914e-06,
+          -1.1670462539221588e-06,
+          -0.0002910260149086918,
+          0.9999999576496748
+        ],
+        "halfExtentsM": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "source": "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/result.json",
+      "step": 2,
+      "acceptedGapGateM": 1e-12
+    },
+    {
+      "id": "original-P4-ALIGNED1-b0-b1",
+      "phase": "saved-P4-PRE",
+      "a": {
+        "id": "b0",
+        "positionM": [
+          0.0,
+          0.24931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "halfExtentsM": [
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "b": {
+        "id": "b1",
+        "positionM": [
+          0.0,
+          0.74931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "halfExtentsM": [
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "expectedFeature": "FACE",
+      "populationGroup": "original-P4-32",
+      "expectedOriginalPoints": [
+        {
+          "id": "face:b0:1:1:b1:1:-1:0",
+          "pointM": [
+            -0.25,
+            0.49931875000000003,
+            -0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b0:1:1:b1:1:-1:1",
+          "pointM": [
+            -0.25,
+            0.49931875000000003,
+            0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b0:1:1:b1:1:-1:2",
+          "pointM": [
+            0.25,
+            0.49931875000000003,
+            -0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b0:1:1:b1:1:-1:3",
+          "pointM": [
+            0.25,
+            0.49931875000000003,
+            0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "original-P4-ALIGNED1-b0-floor",
+      "phase": "saved-P4-PRE",
+      "a": {
+        "id": "b0",
+        "positionM": [
+          0.0,
+          0.24931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "halfExtentsM": [
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "b": {
+        "id": "floor",
+        "positionM": [
+          0.0,
+          -0.1,
+          0.0
+        ],
+        "orientationXYZW": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "halfExtentsM": [
+          2,
+          0.1,
+          2
+        ]
+      },
+      "expectedFeature": "FACE",
+      "populationGroup": "original-P4-32",
+      "expectedOriginalPoints": [
+        {
+          "id": "face:b0:1:-1:floor:1:1:0",
+          "pointM": [
+            -0.25,
+            -0.0003406249999999972,
+            -0.25
+          ],
+          "normal": [
+            -0.0,
+            -1.0,
+            -0.0
+          ]
+        },
+        {
+          "id": "face:b0:1:-1:floor:1:1:1",
+          "pointM": [
+            -0.25,
+            -0.0003406249999999972,
+            0.25
+          ],
+          "normal": [
+            -0.0,
+            -1.0,
+            -0.0
+          ]
+        },
+        {
+          "id": "face:b0:1:-1:floor:1:1:2",
+          "pointM": [
+            0.25,
+            -0.0003406249999999972,
+            -0.25
+          ],
+          "normal": [
+            -0.0,
+            -1.0,
+            -0.0
+          ]
+        },
+        {
+          "id": "face:b0:1:-1:floor:1:1:3",
+          "pointM": [
+            0.25,
+            -0.0003406249999999972,
+            0.25
+          ],
+          "normal": [
+            -0.0,
+            -1.0,
+            -0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "original-P4-ALIGNED1-b1-b2",
+      "phase": "saved-P4-PRE",
+      "a": {
+        "id": "b1",
+        "positionM": [
+          0.0,
+          0.74931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "halfExtentsM": [
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "b": {
+        "id": "b2",
+        "positionM": [
+          0.0,
+          1.24931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "halfExtentsM": [
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "expectedFeature": "FACE",
+      "populationGroup": "original-P4-32",
+      "expectedOriginalPoints": [
+        {
+          "id": "face:b1:1:1:b2:1:-1:0",
+          "pointM": [
+            -0.25,
+            0.99931875,
+            -0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b1:1:1:b2:1:-1:1",
+          "pointM": [
+            -0.25,
+            0.99931875,
+            0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b1:1:1:b2:1:-1:2",
+          "pointM": [
+            0.25,
+            0.99931875,
+            -0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b1:1:1:b2:1:-1:3",
+          "pointM": [
+            0.25,
+            0.99931875,
+            0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "original-P4-ALIGNED1-b2-b3",
+      "phase": "saved-P4-PRE",
+      "a": {
+        "id": "b2",
+        "positionM": [
+          0.0,
+          1.24931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "halfExtentsM": [
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "b": {
+        "id": "b3",
+        "positionM": [
+          0.0,
+          1.74931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "halfExtentsM": [
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "expectedFeature": "FACE",
+      "populationGroup": "original-P4-32",
+      "expectedOriginalPoints": [
+        {
+          "id": "face:b2:1:1:b3:1:-1:0",
+          "pointM": [
+            -0.25,
+            1.49931875,
+            -0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b2:1:1:b3:1:-1:1",
+          "pointM": [
+            -0.25,
+            1.49931875,
+            0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b2:1:1:b3:1:-1:2",
+          "pointM": [
+            0.25,
+            1.49931875,
+            -0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b2:1:1:b3:1:-1:3",
+          "pointM": [
+            0.25,
+            1.49931875,
+            0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "original-P4-ALIGNED1-b3-b4",
+      "phase": "saved-P4-PRE",
+      "a": {
+        "id": "b3",
+        "positionM": [
+          0.0,
+          1.74931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "halfExtentsM": [
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "b": {
+        "id": "b4",
+        "positionM": [
+          0.0,
+          2.24931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "halfExtentsM": [
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "expectedFeature": "FACE",
+      "populationGroup": "original-P4-32",
+      "expectedOriginalPoints": [
+        {
+          "id": "face:b3:1:1:b4:1:-1:0",
+          "pointM": [
+            -0.25,
+            1.99931875,
+            -0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b3:1:1:b4:1:-1:1",
+          "pointM": [
+            -0.25,
+            1.99931875,
+            0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b3:1:1:b4:1:-1:2",
+          "pointM": [
+            0.25,
+            1.99931875,
+            -0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b3:1:1:b4:1:-1:3",
+          "pointM": [
+            0.25,
+            1.99931875,
+            0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "original-P4-ALIGNED1-b4-b5",
+      "phase": "saved-P4-PRE",
+      "a": {
+        "id": "b4",
+        "positionM": [
+          0.0,
+          2.24931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "halfExtentsM": [
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "b": {
+        "id": "b5",
+        "positionM": [
+          0.0,
+          2.74931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "halfExtentsM": [
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "expectedFeature": "FACE",
+      "populationGroup": "original-P4-32",
+      "expectedOriginalPoints": [
+        {
+          "id": "face:b4:1:1:b5:1:-1:0",
+          "pointM": [
+            -0.25,
+            2.49931875,
+            -0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b4:1:1:b5:1:-1:1",
+          "pointM": [
+            -0.25,
+            2.49931875,
+            0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b4:1:1:b5:1:-1:2",
+          "pointM": [
+            0.25,
+            2.49931875,
+            -0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b4:1:1:b5:1:-1:3",
+          "pointM": [
+            0.25,
+            2.49931875,
+            0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "original-P4-ALIGNED1-b5-b6",
+      "phase": "saved-P4-PRE",
+      "a": {
+        "id": "b5",
+        "positionM": [
+          0.0,
+          2.74931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "halfExtentsM": [
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "b": {
+        "id": "b6",
+        "positionM": [
+          0.0,
+          3.24931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "halfExtentsM": [
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "expectedFeature": "FACE",
+      "populationGroup": "original-P4-32",
+      "expectedOriginalPoints": [
+        {
+          "id": "face:b5:1:1:b6:1:-1:0",
+          "pointM": [
+            -0.25,
+            2.99931875,
+            -0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b5:1:1:b6:1:-1:1",
+          "pointM": [
+            -0.25,
+            2.99931875,
+            0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b5:1:1:b6:1:-1:2",
+          "pointM": [
+            0.25,
+            2.99931875,
+            -0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b5:1:1:b6:1:-1:3",
+          "pointM": [
+            0.25,
+            2.99931875,
+            0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "original-P4-ALIGNED1-b6-b7",
+      "phase": "saved-P4-PRE",
+      "a": {
+        "id": "b6",
+        "positionM": [
+          0.0,
+          3.24931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "halfExtentsM": [
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "b": {
+        "id": "b7",
+        "positionM": [
+          0.0,
+          3.74931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "halfExtentsM": [
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "expectedFeature": "FACE",
+      "populationGroup": "original-P4-32",
+      "expectedOriginalPoints": [
+        {
+          "id": "face:b6:1:1:b7:1:-1:0",
+          "pointM": [
+            -0.25,
+            3.49931875,
+            -0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b6:1:1:b7:1:-1:1",
+          "pointM": [
+            -0.25,
+            3.49931875,
+            0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b6:1:1:b7:1:-1:2",
+          "pointM": [
+            0.25,
+            3.49931875,
+            -0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        {
+          "id": "face:b6:1:1:b7:1:-1:3",
+          "pointM": [
+            0.25,
+            3.49931875,
+            0.25
+          ],
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "axis-touch",
+      "phase": "fixed",
+      "a": {
+        "id": "a",
+        "positionM": [
+          0,
+          0,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "halfExtentsM": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "b": {
+        "id": "b",
+        "positionM": [
+          0,
+          1,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "halfExtentsM": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "expectedFeature": "FACE"
+    },
+    {
+      "id": "axis-separated",
+      "phase": "fixed",
+      "a": {
+        "id": "a",
+        "positionM": [
+          0,
+          0,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "halfExtentsM": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "b": {
+        "id": "b",
+        "positionM": [
+          0,
+          1.01,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "halfExtentsM": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "expectedFeature": "MISS"
+    },
+    {
+      "id": "axis-overlap",
+      "phase": "fixed",
+      "a": {
+        "id": "a",
+        "positionM": [
+          0,
+          0,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "halfExtentsM": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "b": {
+        "id": "b",
+        "positionM": [
+          0,
+          0.9,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "halfExtentsM": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "expectedFeature": "FACE"
+    },
+    {
+      "id": "coincident-zero-cross",
+      "phase": "fixed",
+      "a": {
+        "id": "a",
+        "positionM": [
+          0,
+          0,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "halfExtentsM": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "b": {
+        "id": "b",
+        "positionM": [
+          0,
+          0,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "halfExtentsM": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "expectedFeature": "FACE"
+    },
+    {
+      "id": "reverse-pre-1",
+      "phase": "integration-pre",
+      "a": {
+        "id": "z-cube",
+        "positionM": [
+          0.004166666666666667,
+          0.49931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          4.1666666654610344e-05,
+          0.9999999991319446
+        ],
+        "halfExtentsM": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "b": {
+        "id": "a-floor",
+        "positionM": [
+          0,
+          -0.1,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "halfExtentsM": [
+          0.2,
+          0.1,
+          2
+        ]
+      },
+      "expectedFeature": "FACE",
+      "source": "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/result.json",
+      "step": 1
+    },
+    {
+      "id": "reflect-pre-1",
+      "phase": "integration-pre",
+      "a": {
+        "id": "a-floor",
+        "positionM": [
+          0,
+          -0.1,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "halfExtentsM": [
+          0.2,
+          0.1,
+          2
+        ]
+      },
+      "b": {
+        "id": "z-cube",
+        "positionM": [
+          -0.004166666666666667,
+          0.49931875,
+          0.0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          -4.1666666654610344e-05,
+          0.9999999991319446
+        ],
+        "halfExtentsM": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "expectedFeature": "FACE",
+      "source": "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/result.json",
+      "step": 1
+    },
+    {
+      "id": "reverse-pre-2",
+      "phase": "integration-pre",
+      "a": {
+        "id": "z-cube",
+        "positionM": [
+          0.007765884671176059,
+          0.4994649301727562,
+          1.6191608184427735e-07
+        ],
+        "orientationXYZW": [
+          -1.773527522977914e-06,
+          -1.1670462539221588e-06,
+          -0.0002910260149086918,
+          0.9999999576496748
+        ],
+        "halfExtentsM": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "b": {
+        "id": "a-floor",
+        "positionM": [
+          0,
+          -0.1,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "halfExtentsM": [
+          0.2,
+          0.1,
+          2
+        ]
+      },
+      "expectedFeature": "EDGE",
+      "source": "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/result.json",
+      "step": 2
+    },
+    {
+      "id": "reflect-pre-2",
+      "phase": "integration-pre",
+      "a": {
+        "id": "a-floor",
+        "positionM": [
+          0,
+          -0.1,
+          0
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "halfExtentsM": [
+          0.2,
+          0.1,
+          2
+        ]
+      },
+      "b": {
+        "id": "z-cube",
+        "positionM": [
+          -0.007765884671176059,
+          0.4994649301727562,
+          1.6191608184427735e-07
+        ],
+        "orientationXYZW": [
+          -1.773527522977914e-06,
+          1.1670462539221588e-06,
+          0.0002910260149086918,
+          0.9999999576496748
+        ],
+        "halfExtentsM": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "expectedFeature": "EDGE",
+      "source": "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/result.json",
+      "step": 2
+    }
+  ]
+}

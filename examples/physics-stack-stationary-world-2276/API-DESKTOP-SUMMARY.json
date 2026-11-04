@@ -1,0 +1,96 @@
+{
+  "status": "BOUNDED_STATIONARY_WORLD_AND_DESKTOP_CONFIRMED",
+  "profile": "rigid-stationary-cube-stack-v1",
+  "evidence": {
+    "independentPrivate3600": {
+      "path": "examples/physics-stack-stationary-complete-2276/evidence/full-01/campaign-result.json",
+      "sha256": "610bedc17f2fcdc10ec841d773a36f2670c9e09dcd0d952c1e5a1f134cd6a64f",
+      "status": "ORIGINAL_INDEPENDENT_PHYSICS_3600_CONFIRMED"
+    },
+    "public-source": {
+      "path": "examples/physics-stack-stationary-world-2276/evidence/public-source-01/result.json",
+      "sha256": "5d826119e4d9917efec5ee5747ccb98e3dcc8c53309006c5120942b92e2cea18",
+      "status": "PUBLIC_WORLD_CONTROLS_AND_ORIGINAL_3600_WORDS_CONFIRMED"
+    },
+    "fault-source": {
+      "path": "examples/physics-stack-stationary-world-2276/evidence/public-fault-source-01/result.json",
+      "sha256": "88e132d6faa30a1309753629516b207c07fc97bafb66176d84395de77767a6db",
+      "status": "FAULT_CONTROLS_CONFIRMED"
+    },
+    "gap-fault-source": {
+      "path": "examples/physics-world-p5-2276/evidence/stationary-gap-fault-source-01/result.json",
+      "sha256": "ed1ed4e56aa24ffa6ea0d33066670bd8659b99a1786cb4d906bbd79ef7480b6f",
+      "status": "PASS"
+    },
+    "public-native": {
+      "path": "examples/physics-stack-stationary-world-2276/evidence/public-native-02/result.json",
+      "sha256": "ad183d3e613582e3d91ccc1e92f1aaf6e7e6e9735c9c2731a04aa7b2cca4d838",
+      "status": "PUBLIC_WORLD_CONTROLS_AND_ORIGINAL_3600_WORDS_CONFIRMED"
+    },
+    "fault-native": {
+      "path": "examples/physics-stack-stationary-world-2276/evidence/public-fault-native-01/result.json",
+      "sha256": "03843bbce420f38476a8cb864915ee127258e96d89409ffd93dc766f23faafc3",
+      "status": "FAULT_CONTROLS_CONFIRMED"
+    },
+    "gap-fault-native": {
+      "path": "examples/physics-world-p5-2276/evidence/stationary-gap-fault-native-01/result.json",
+      "sha256": "b4aa93c6d0ef603704f76d39ca09885aff9cfa453d246f43b7840224086c323b",
+      "status": "PASS"
+    },
+    "desktop-ALIGNED": {
+      "path": "output/playwright/stationary-stack/desktop-formal-01/ALIGNED-browser/result.json",
+      "sha256": "3bffab1a5debfd023389525de4e229f64a52185df5ac0f9da155c28ef57aead2",
+      "status": "DESKTOP_SCENE_OBSERVED_AND_WORD_EQUAL"
+    },
+    "desktop-OFFSET": {
+      "path": "output/playwright/stationary-stack/desktop-formal-01/OFFSET-browser/result.json",
+      "sha256": "451f9e217bbc382ddfd096626ef73ecf28d7d5eb28fde4d3413f357e8b25570e",
+      "status": "DESKTOP_SCENE_OBSERVED_AND_WORD_EQUAL"
+    },
+    "desktop-YAW": {
+      "path": "output/playwright/stationary-stack/desktop-formal-01/YAW-browser/result.json",
+      "sha256": "7072c646849eaf78366fe95bbd50ea1df04859cb5e749168aff08d6a99ac8278",
+      "status": "DESKTOP_SCENE_OBSERVED_AND_WORD_EQUAL"
+    },
+    "nativeMotion": {
+      "path": "output/playwright/persistent-impact/motion-native-01/report.json",
+      "sha256": "c2ac669c99643918c9112cbf73ea7b3b5bc1823a0acdd701fbaef97a6ad5a055",
+      "status": "CURRENT_NATIVE_MOTION_DESKTOP_CONFIRMED"
+    },
+    "stack-library-build-15": {
+      "path": "examples/physics-world-p5-2276/evidence/stack-library-build-15/result.json",
+      "sha256": "4f0b11a36748ad9bdf8344cf6390c9b04e057cef94091bf20bea238610edb536",
+      "status": "PASS"
+    },
+    "stationary-provider-identity-01": {
+      "path": "examples/physics-world-p5-2276/evidence/stationary-provider-identity-01/result.json",
+      "sha256": "bcd5e8e95c53c9093260ace4189a21ec6adda476fc6e5b0f103ad84a9a161b43",
+      "status": "PASS"
+    },
+    "stack-library-docbuild-09": {
+      "path": "examples/physics-world-p5-2276/evidence/stack-library-docbuild-09/result.json",
+      "sha256": "017dfac372a84485ae1eeb8a0ab5d57e610f2b76a4d7b5842d3d8de6d4fe4442",
+      "status": "PASS"
+    },
+    "stack-library-docsite-09": {
+      "path": "examples/physics-world-p5-2276/evidence/stack-library-docsite-09/result.json",
+      "sha256": "bf0accc1e158bd10898b5ca17f2a306428a6dd77e19150016d4f255b534e06e0",
+      "status": "PASS"
+    }
+  },
+  "independentPrivateSteps": 3600,
+  "publicSourceSteps": 3600,
+  "publicNativeSteps": 3600,
+  "desktopSteps": 3600,
+  "desktopRetainedBytes": 3620100,
+  "desktopRetainedCapBytes": 16777216,
+  "existingDynamicImpactDesktopChecks": 11,
+  "generalMovingEightBodyDynamics": "NO_GO_NOT_QUALIFIED",
+  "oldFailuresPreserved": true,
+  "HOLDsPreserved": true,
+  "originalTolerancesPreserved": true,
+  "mobile": false,
+  "deployment": false,
+  "realMachineValidation": false,
+  "aggregationIsFileIOOnly": true
+}

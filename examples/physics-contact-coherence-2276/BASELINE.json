@@ -1,0 +1,66 @@
+{
+  "workId": "physics-contact-coherence-2276",
+  "baseCommit": "df8db73d2920f10206639434800211669cba3a7b",
+  "status": "PRESERVED_EXACT_CURRENT_BASELINE_REUSED_NOT_RERUN",
+  "pins": {
+    "packages/barocss-physics/src/stack/frictionless-island.ts": {
+      "bytes": 19477,
+      "sha256": "7b61afb5c0f4651f04c95d82d4e92901fc148d21818d2cfe0e14d3dc7280d128"
+    },
+    "packages/barocss-physics/src/stack/face-contact.ts": {
+      "bytes": 5632,
+      "sha256": "c164a34d6245cf52a3f13274439eb6bb2dad471a47344e92aa1c30e5c94c99b6"
+    },
+    "packages/barocss-physics/src/stack/normal-solver.ts": {
+      "bytes": 16648,
+      "sha256": "2b7b8ed01cb61d8408087f666f4330b5034b4aa2449df0bd859b76084e940229"
+    },
+    "packages/barocss-physics/src/stack/full-pair-phase.ts": {
+      "bytes": 5854,
+      "sha256": "ad4c4e8d014528eac7aadb0dbc86ef9d376d2c9a7f0e817cccf19d661630802d"
+    },
+    "examples/physics-contact-convergence-2276/evidence/long-02/result.json": {
+      "bytes": 220229,
+      "sha256": "4cbc9e52283041be0f95c3ca1d50e0c3e63056289a4a5d76ba7e938fc54613e2"
+    },
+    "examples/physics-contact-convergence-2276/evidence/capture-490-01/result.json": {
+      "bytes": 7645,
+      "sha256": "0dbd53a68f5a954ec7059d353eb2bdea22cf148fc52493bf06d723d444d3c7ee"
+    },
+    "examples/physics-contact-convergence-2276/evidence/capture-490-01/actual-490.json": {
+      "bytes": 651275,
+      "sha256": "7f9b41090c22ef2aac33d00e86d8606a08fcf13c27cc08689c652961769f03ee"
+    },
+    "examples/physics-contact-convergence-2276/baseline/first-long-490-02/PINS.json": {
+      "bytes": 903,
+      "sha256": "21e6cf1a21b3a038ed35f28eadca23518667e752285a6e32774e68ec4cbb6996"
+    },
+    "examples/physics-contact-convergence-2276/POST-490-DESIGN.md": {
+      "bytes": 8130,
+      "sha256": "12260e419b63fc6c2221c7e7560b8aa2eb7cf824dc1e9e7b1c2dcc6cc36b211f"
+    },
+    "examples/physics-anisotropic-inertia-2276/evidence/public-build-03/result.json": {
+      "bytes": 153592,
+      "sha256": "e7947cd4e20e82c57eb6974ca52982db9da7fa650c8bb5014a486c5602cdaf9d"
+    }
+  },
+  "firstObservedSavedSuffixViolation": {
+    "stepIndex": 478,
+    "bodyId": null,
+    "gate": "geometryNormalDirection",
+    "residual": 1.0310569142331814e-12,
+    "limit": 1e-12
+  },
+  "recordedEngineRefusal": {
+    "attempt": 490,
+    "acceptedOwner": 489,
+    "sourceClosingSpeedMps": -1.0932118170722891e-07,
+    "independentExactSpeedMps": -1.0932118170260969e-07,
+    "originalGateMps": 1e-10
+  },
+  "newWorldCalls": 0,
+  "newSolverCalls": 0,
+  "newReferenceCalls": 0,
+  "holds": "UNCHANGED",
+  "publication": false
+}

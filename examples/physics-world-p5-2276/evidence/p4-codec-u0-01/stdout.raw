@@ -1,0 +1,1 @@
+{"status": "PASS_BOUNDED_CODEC_U0_SIXTEEN_DECIMALS_TWENTY_EIGHT_WORDS", "firstFailure": null, "counts": {"candidateCommands": 1, "independentAudits": 1, "decimalsVerified": 16, "finiteWordsVerified": 24, "rejectedWordsVerified": 4, "globalMeters": 1, "WorldCalls": 0, "baselineReruns": 0}}

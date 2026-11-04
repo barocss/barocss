@@ -1,0 +1,22 @@
+{
+  "status": "ROOT_ERASED_TYPE_ANNOTATIONS_ONLY_NOT_EXECUTED",
+  "firstFailure": "examples/physics-stack-stationary-witness-2276/evidence/same32-01/result.json",
+  "oldPINS_SHA256": "560b274d117dd1e81500092a229e2844d6642cf2dc256f91f6a883035334e7ad",
+  "oldSourceSHA256": "431a8271c0df65246ec0067ea9e809286f48885a0c7cec923272c25c022f239e",
+  "newSourceSHA256": "04d851c18661bd340814c37acfa47364d9bec42da0df4721971bb5823d513f40",
+  "edits": [
+    {
+      "before": "bodies:NormalBody[];normalImpulsesNs",
+      "after": "bodies:readonly NormalBody[];normalImpulsesNs",
+      "scope": "TypeScript erasure only"
+    },
+    {
+      "before": "as NormalBody['inverseInertiaWorld']",
+      "after": "as unknown as NormalBody['inverseInertiaWorld']",
+      "scope": "TypeScript erasure only"
+    }
+  ],
+  "numericStatementsChanged": false,
+  "testsChanged": false,
+  "firstFailurePreserved": true
+}

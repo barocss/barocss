@@ -1,0 +1,36 @@
+{
+  "format": "shared-arithmetic-audit-binding-01",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "production": {
+    "entry": "production-entry.ts",
+    "callCap": 16,
+    "expectedCalls": 13,
+    "efficientBaseline": "examples/physics-coupled-dynamic-efficient-2276/evidence/{source,native}-01",
+    "rawBaselineFiles": 14,
+    "normalization": "NONE",
+    "audit": "examples/physics-coupled-dynamic-reference-2276/audit-pure.py",
+    "auditSha256": "fbb772ee12e86520673dd682031d3a6b5b483bba8371a5b9029cb482a5ee8820",
+    "success": "EXECUTED_PASS_PURE_COUPLED_PHYSICAL_INPUT"
+  },
+  "privateTests": {
+    "entry": "test-entry.ts",
+    "callCap": 64,
+    "expectedCalls": 52,
+    "bank": "examples/physics-coupled-arithmetic-reference-2276/bank.json",
+    "bankSha256": "493fcb9ec70d3b594b955e4d65d18bc94fdc5658ba2fa345bf6f0040a9f6101d",
+    "materializer": "examples/physics-coupled-arithmetic-reference-2276/materialize-bank.mjs",
+    "materializerSha256": "23c373b1b08e1092564f102c8b572887ed90245bb06ae73f2f59692ced5373bd",
+    "audit": "examples/physics-coupled-arithmetic-reference-2276/audit-bank.py",
+    "auditSha256": "a6d5d1c53d8b136ffa6f3007dc51ad1670f1a33f9a690892272df695a4908078",
+    "success": "EXECUTED_PASS_INDEPENDENT_ARITHMETIC_LITERAL_CASE",
+    "packet": "{id,request,actual}, recursively all numeric fields lossless $f64le words"
+  },
+  "ordering": "Materialize data, build, production Source13+Native13+raw parity, THEN separate private Source52+Native52+raw parity. Immediate audit per original/literal, stop first unexpected failure.",
+  "sharedCore": "Actual production6JS and test4JS runtime closures both reference the identical emitted math-core.js; Source metafiles bind same staged math-core.ts. Production excludes test-context/test-entry.",
+  "lowering": "Test contexts only lower selected defaults; raised/unknown fixed key rejected before create. Production no public lower-limit argument.",
+  "completePerGraphSum": 65,
+  "combined64CapClaim": false,
+  "WorldCalls": 0,
+  "runtimePromotion": "BLOCKED_ACTUAL_HOST_NOT_QUALIFIED",
+  "authorCalls": "SYNTAX_HASH_ONLY"
+}

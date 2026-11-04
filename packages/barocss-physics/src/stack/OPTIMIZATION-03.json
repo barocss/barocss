@@ -1,0 +1,79 @@
+{
+  "format": "barocss-physics-stack-optimization-v1",
+  "candidate": 3,
+  "status": "SOURCE_ONLY_READY_NOT_EXECUTED",
+  "algorithm": "POSITIVE_CANONICAL_DENOMINATOR_DIVISIBILITY_ADD",
+  "files": {
+    "baselineSource": {
+      "path": "examples/physics-stack-library-2276/baseline/strict-line-opt02.ts",
+      "bytes": 14939,
+      "sha256": "78b05214024c12cf679a563ea6b9fa92910021607e8567c2e61ea917601be13b"
+    },
+    "newSource": {
+      "path": "packages/barocss-physics/src/stack/strict-line.ts",
+      "bytes": 15363,
+      "sha256": "c07b409b62dc5601b6d107861e4a1f6ff47f018c2731bef38e77aeea8d82adcd"
+    },
+    "contract": {
+      "path": "examples/physics-stack-library-2276/OPTIMIZATION-03-CONTRACT.md",
+      "bytes": 6593,
+      "sha256": "ad614f44aa0b0f39877d45232324be05baf0231b997babd7dbabb7b56b1df39b"
+    },
+    "originalProvenance": {
+      "path": "packages/barocss-physics/src/stack/PROVENANCE.json",
+      "bytes": 11389,
+      "sha256": "0ba21dcba3bfb56d07c300282ad00bd06515a682ad80edaf3ef2e4a093a161d2"
+    },
+    "priorOptimization01": {
+      "path": "packages/barocss-physics/src/stack/OPTIMIZATION-01.json",
+      "bytes": 3023,
+      "sha256": "48bf01c29961d20d2457f872439877c8078c4b9e154b3f9e8bdb85b99546590d"
+    },
+    "priorOptimization02": {
+      "path": "packages/barocss-physics/src/stack/OPTIMIZATION-02.json",
+      "bytes": 2857,
+      "sha256": "589443a94afb9f32f4e39444fe49a8ff654097859119b568a9aa2821bc2a9432"
+    },
+    "actualOpt02Native": {
+      "path": "examples/physics-stack-library-2276/evidence/runtime-opt02-01/canonical-provider/dist/stack/strict-line.js",
+      "bytes": 14820,
+      "sha256": "1c817289a7eb1c22caf107cc1e882b6cb4439f3d0a59161fe9229356fd9c71fe"
+    },
+    "actualOpt02FailureReceipt": {
+      "path": "examples/physics-stack-library-2276/evidence/runtime-opt02-01/ALIGNED-result.json",
+      "bytes": 1113,
+      "sha256": "af58042d89b5c2b9b44ef1850e770eae6572899cfe4893af08b6dad833c503c1"
+    }
+  },
+  "change": {
+    "shippingFiles": [
+      "packages/barocss-physics/src/stack/strict-line.ts"
+    ],
+    "rationalOpAndEqualD": "UNCHANGED_FIRST",
+    "firstDivisibility": "a.d%b.d==0_then_make(sum(a.n,multiply(b.n,checked(a.d/b.d))),a.d)",
+    "converseDivisibility": "b.d%a.d==0_then_make(sum(multiply(a.n,checked(b.d/a.d)),b.n),b.d)",
+    "nonpositiveDenominators": "ORIGINAL_FALLBACK",
+    "remainderUnitPrice": 1,
+    "integerDivisionUnitPrice": 1,
+    "scaledProductAndRawSum": "EXISTING_CHECKED_METHODS_BEFORE_GCD",
+    "fallbackAndAllOtherSource": "EXACT_SOURCE_TEXT_UNCHANGED",
+    "newGcdLcmZeroIntegerOrCacheAlgorithm": false,
+    "capsAndPricesChanged": false,
+    "actualCountersMayDiffer": true,
+    "universalResourceRefusalParity": false
+  },
+  "qualification": {
+    "fixedArithmeticCases": 25,
+    "existingBoundaryCases": 19,
+    "authorArithmeticCalls": 0,
+    "authorHelperCalls": 0,
+    "authorCompilerCalls": 0,
+    "actualArithmeticTests": "NOT_RUN",
+    "actualBoundaryTests": "NOT_RUN",
+    "actualPhysicalPrefixes": "NOT_RUN",
+    "runtimeDiagnostic": "NOT_RUN",
+    "fullP4": "BLOCKED",
+    "resourceQualification": false,
+    "publicAdmissionChanged": false
+  }
+}

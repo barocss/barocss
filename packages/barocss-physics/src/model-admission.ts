@@ -1,3 +1,4 @@
+import { STATIONARY_PROFILE, admitStationaryProfile } from './stack/stationary-profile.js';
 import type { PhysicsModel, WorldOptions } from './types.js';
 import type { Body, Joint } from './internal-types.js';
 import { copyData } from './identity.js';
@@ -33,7 +34,7 @@ function transform(value: unknown, label: string): void {
 export function admitModel(rawModel: PhysicsModel, rawOptions: WorldOptions): {
   model: PhysicsModel; options: WorldOptions; bodies: Body[]; joints: Joint[];
   disjointHinges: [ParsedPair, ParsedPair] | null;
-  domain: DomainModelData | null;
+  domain: DomainModelData | null; stationary: boolean;
 } {
   // Copy before dependent reads; getters, custom prototypes and sparse arrays never reach parsers.
   const model = copyData(rawModel);
@@ -48,15 +49,16 @@ export function admitModel(rawModel: PhysicsModel, rawOptions: WorldOptions): {
   vector(input.gravityMps2,-1000,1000,'gravityMps2');
   const opt=exact(options,['profile','fixedStepSeconds','broadPhase'],'options');
   const domain = admitDomainModel(model,options);
-  if(domain) return {model,options,bodies:[],joints:[],disjointHinges:null,domain};
-  if(!['rigid-discrete-v1','rigid-persistent-box-v1','rigid-large-v1'].includes(opt.profile as string)) error('INVALID_CONFIG','profile is not implemented');
+  if(domain) return {model,options,bodies:[],joints:[],disjointHinges:null,domain,stationary:false};
+  if(!['rigid-discrete-v1','rigid-persistent-box-v1','rigid-large-v1',STATIONARY_PROFILE].includes(opt.profile as string)) error('INVALID_CONFIG','profile is not implemented');
   finite(opt.fixedStepSeconds,1/240,1/30,'fixedStepSeconds');
-  const large=opt.profile==='rigid-large-v1';
+  const large=opt.profile==='rigid-large-v1', stationary=opt.profile===STATIONARY_PROFILE;
+  if(stationary&&opt.broadPhase!=='direct')error('INVALID_CONFIG','stationary profile requires direct broadPhase');
   if(opt.broadPhase!=='aabb' && (large||opt.broadPhase!=='direct')) error('INVALID_CONFIG','unsupported broadPhase for profile');
-  const bodyInputs=list(input.bodies,large?64:opt.profile==='rigid-persistent-box-v1'?4:32,'bodies');
+  const bodyInputs=list(input.bodies,stationary?9:large?64:opt.profile==='rigid-persistent-box-v1'?4:32,'bodies');
   if(bodyInputs.length===0) error('INVALID_CONFIG','at least one body is required');
   const colliders=list(input.colliders,bodyInputs.length,'colliders');
-  const jointInputs=list(input.joints,large?0:8,'joints');
+  const jointInputs=list(input.joints,stationary||large?0:8,'joints');
   list(input.cloths,0,'cloths'); list(input.fluids,0,'fluids');
   const bindings=list(input.sourceBindings,128,'sourceBindings');
   const ids=new Set<string>();
@@ -126,5 +128,6 @@ export function admitModel(rawModel: PhysicsModel, rawOptions: WorldOptions): {
     const refs=list(s.entityIds,128,'entityIds');if(refs.length===0||new Set(refs).size!==refs.length||refs.some(ref=>typeof ref!=='string'||!numericalIds.has(ref)))error('INVALID_CONFIG','invalid source binding references');
     const a=exact(s.approximation,['kind','lossLabel'],'approximation');if(a.kind!=='control-net-box'&&a.kind!=='control-net-sphere')error('INVALID_CONFIG','unsupported approximation');text(a.lossLabel,'lossLabel');
   }
-  return {model,options,bodies,joints,disjointHinges:disjoint?.pairs ?? null,domain:null};
+  if(stationary)admitStationaryProfile(model,options,bodies);
+  return {model,options,bodies,joints,disjointHinges:disjoint?.pairs ?? null,domain:null,stationary};
 }

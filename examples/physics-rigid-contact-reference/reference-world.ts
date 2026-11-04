@@ -234,7 +234,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
               const order = iteration % 2 ? [...manifold].reverse() : manifold;
               for (const point of order) {
                 const impulse = nextPersistentPoints.get(`${key}\u0000${point.id}`)!;
-                solvePersistentPoint(a, b, point.pointM, hit.normal, impulse);
+                solvePersistentPoint(a, b, point.pointM, hit.normal, impulse, 0);
               }
             }
             correctPersistentPair(a, b, hit.normal, hit.penetration);

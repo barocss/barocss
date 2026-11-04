@@ -1,0 +1,86 @@
+{
+  "base": "7d0764c95bd74526c1ebaa16c36889182d6be29c",
+  "stage": "before first candidate build/API/reference/render execution",
+  "inputs": {
+    "examples/physics-persistent-impact-2276/browser-run.mjs": {
+      "bytes": 3098,
+      "sha256": "53b69f40234d97596b76d37c28670fb5a5e3d837d28b92bd931108f28767b52d"
+    },
+    "examples/physics-persistent-impact-2276/browser-checks.js": {
+      "bytes": 8028,
+      "sha256": "a8920c0f7cfadb2f06de4b4c61ec1203e25cffa69b0c7c07149d9fc97e3883a4"
+    },
+    "examples/physics-persistent-impact-2276/CONTRACT.md": {
+      "bytes": 4495,
+      "sha256": "9b096d06eea1b0eb7f33ad56402a25f4bc7d72b583c8ffc18945e99fdca52632"
+    },
+    "examples/physics-persistent-impact-2276/cases.mjs": {
+      "bytes": 1794,
+      "sha256": "f2222f09a7c7ecdbba09446e1e8ac7cac66da14973368ecd330a7d520119162b"
+    },
+    "examples/physics-persistent-impact-2276/reference.py": {
+      "bytes": 6062,
+      "sha256": "6c1f378c82ffe441163951bb27ef4b850849c59b7dbbfe899253ef3b9b3ade34"
+    },
+    "examples/physics-persistent-impact-2276/baseline.mjs": {
+      "bytes": 2239,
+      "sha256": "7d08853eb34afe1fd7c655c604f4e79ffc7614146b2c70100a61a3ee3bde803e"
+    },
+    "examples/physics-persistent-impact-2276/api-run.mjs": {
+      "bytes": 11441,
+      "sha256": "f451a6553c12a46a4a507b1abbb1e377493a1303d1d05a89bb67b5f8412ca351"
+    },
+    "examples/physics-persistent-impact-2276/build/consumer.mts": {
+      "bytes": 947,
+      "sha256": "3401595c6c6c7e3828b9ef92f7cbe7228ab642c7c1301839dccf1a9157191032"
+    },
+    "examples/physics-persistent-impact-2276/build/consumer.tsconfig.json": {
+      "bytes": 564,
+      "sha256": "34bf726cc7368f0a8cc142d49c4970a47de5b4b61ce59a3c56b667d915850ca3"
+    },
+    "examples/physics-persistent-impact-2276/build/source-entry.ts": {
+      "bytes": 129,
+      "sha256": "c0c46babdfebba4f24d58e2a8c2e20a402124d36776673d67f4cc0738c926c92"
+    },
+    "examples/physics-persistent-impact-2276/build/runtime.tsconfig.json": {
+      "bytes": 862,
+      "sha256": "cd231f829ce638176d3be54c2517eaa341fc2f303e730ad8f969c437af0c0a58"
+    },
+    "examples/physics-persistent-impact-2276/build/build.mjs": {
+      "bytes": 2489,
+      "sha256": "6207b54d805387144d3438ccf636c746225a49331d1103773276df6ff2b1a27c"
+    },
+    "examples/physics-persistent-impact-2276/scene/index.html": {
+      "bytes": 2961,
+      "sha256": "8237173d37dfd7bde64f988cfc2277db0dda01b4b99cf702f52b3544296c0e6e"
+    },
+    "examples/physics-persistent-impact-2276/scene/display.mjs": {
+      "bytes": 4438,
+      "sha256": "519058bb322f30ffa8516ca77e117b61127e4e2cbe904eb51241c950e7f64e07"
+    },
+    "examples/physics-persistent-impact-2276/scene/style.css": {
+      "bytes": 3449,
+      "sha256": "6311173a1a397609a81aeb47227cb59ca1aefe6628b057a3bb9e9a7ece6c6fc5"
+    },
+    "examples/physics-persistent-impact-2276/scene/app.mjs": {
+      "bytes": 5102,
+      "sha256": "36a86fd498b60dc711dac2bd4162814fc021db97d04a100ce881441aa94747b1"
+    },
+    "examples/physics-persistent-impact-2276/scene/server.mjs": {
+      "bytes": 3209,
+      "sha256": "b033d4425d9ebc778de734e97c554bdedf5e1f4a625122afca4ad7534a862ed8"
+    },
+    "examples/physics-persistent-impact-2276/scene/scenario.mjs": {
+      "bytes": 1783,
+      "sha256": "f7759544867b3d633eb55ce1fc8869e48da9f7a1254f51758439a827d7709fd4"
+    },
+    "packages/barocss-physics/src/world.ts": {
+      "bytes": 30779,
+      "sha256": "449865bf2e73ed799885c7e9d0f95f7d3f09c740e42ce1f8b960384308e08266"
+    },
+    "packages/barocss-physics/src/persistent-box-contact.ts": {
+      "bytes": 3769,
+      "sha256": "3f53922b557ca142a4d95e1e19d5be21828b375b75bc45ff1e57a7b9171261f1"
+    }
+  }
+}

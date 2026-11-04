@@ -1,0 +1,83 @@
+{
+  "contract": "examples/physics-lab/CONTRACT.md",
+  "phase": "before final desktop-only run; harness creates output parents on fresh checkout; browser version and viewport capture added",
+  "sourceBase": "0fd6d15f6a1642707fed37d202058dafc7299a21",
+  "files": {
+    "examples/physics-lab/CONTRACT.md": {
+      "bytes": 3665,
+      "sha256": "ad20bdcbcdfab85f12400e7d073947ae3e78c79c6a992726b73d8c98e8fdb608"
+    },
+    "examples/physics-lab/EXECUTION-FREEZE-01.json": {
+      "bytes": 2189,
+      "sha256": "c77f6b4b912045f059f06dce78568f1bcdb6ab7c4243b311b4984280e8943d7f"
+    },
+    "examples/physics-lab/EXECUTION-FREEZE-02.json": {
+      "bytes": 2699,
+      "sha256": "f0ff302bf1a492867090a21a19e14e2abbc712739b6337e7d5a5df688d857643"
+    },
+    "examples/physics-lab/EXECUTION-FREEZE-03.json": {
+      "bytes": 2862,
+      "sha256": "83da6b995889807075644e4f724f3936e5e27595d6832a4931938e2f898b29bd"
+    },
+    "examples/physics-lab/README.md": {
+      "bytes": 4721,
+      "sha256": "dc9f77b5a2a3500787ba97ea2cb34a814330d4658defc2efd731e74501176719"
+    },
+    "examples/physics-lab/app.mjs": {
+      "bytes": 14877,
+      "sha256": "4f0cd7258e64a66b1bc254a06c1cdf1292f5288e2083e58acfaa05ddb0256843"
+    },
+    "examples/physics-lab/browser-checks.js": {
+      "bytes": 12293,
+      "sha256": "4b06f5d713aec020033809f7b15e3b78f00b4716da82f5d665846026a2c1807a"
+    },
+    "examples/physics-lab/browser-run.mjs": {
+      "bytes": 3080,
+      "sha256": "73cd679787e70233d3fcb6622b642182f5adff82503b729b0d6a41ada6c0dda3"
+    },
+    "examples/physics-lab/compare.mjs": {
+      "bytes": 3590,
+      "sha256": "78734227de3ea82adac3ebfedf2802ec3f473f12ac2886e9a193ccb7119385d2"
+    },
+    "examples/physics-lab/display.mjs": {
+      "bytes": 7024,
+      "sha256": "5f0ec2b17409effaf2ab1754376636e688c02e9f7171c6424ada817cdbafe06f"
+    },
+    "examples/physics-lab/index.html": {
+      "bytes": 9766,
+      "sha256": "175bb99ff84c5f0462f0d7a1bcb04d19ce4822183deab0f0129a8314b266d150"
+    },
+    "examples/physics-lab/make-reference.py": {
+      "bytes": 2689,
+      "sha256": "4a53b8653b93e96f3d01be1bf6a0f5aa5eb3484068efb6694dc8ca20b00f9193"
+    },
+    "examples/physics-lab/model.mjs": {
+      "bytes": 4629,
+      "sha256": "4b87bffe9dd73c6c61bd29f3c9c2b0a27d9fee4adf956a7d900213f55b623f53"
+    },
+    "examples/physics-lab/owned-packages.mjs": {
+      "bytes": 1210,
+      "sha256": "f13106202afb79f9ebed271e9abba1def45cbc9b2a86f365a43681be33010a4c"
+    },
+    "examples/physics-lab/reference.json": {
+      "bytes": 11090,
+      "sha256": "d3b6839be605aeff18d18fa1377387f02418d8b27e71ab27255abf14d54315ef"
+    },
+    "examples/physics-lab/server.mjs": {
+      "bytes": 4220,
+      "sha256": "43a506602c57924a5a8769f1ec21d32cf5e49e4cc7acc95cae125e611a476d5e"
+    },
+    "examples/physics-lab/session.mjs": {
+      "bytes": 8340,
+      "sha256": "22234c89e2d838747ad605a1d9ff368cc50fe86dbd0b3c001cb5f4e85ba36165"
+    },
+    "examples/physics-lab/session.test.mjs": {
+      "bytes": 4074,
+      "sha256": "27dcc5b363ab82bfe490a5c1218fa337095d005245f1d852d54b87f5086523b7"
+    },
+    "examples/physics-lab/style.css": {
+      "bytes": 9862,
+      "sha256": "382d598e71bfbc49e52fbdfd8e8e8c6619f8f7331f8e41b829fa119389a0cea9"
+    }
+  }
+}

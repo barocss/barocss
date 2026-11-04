@@ -1,0 +1,20 @@
+{
+  "status": "SETUP_PARENT_DIRECTORY_CORRECTED_BEFORE_NUMERICAL_EXECUTION",
+  "firstFailure": {
+    "command": "python3.13 -B examples/physics-p4-position-witness-reference-2276/materialize.py examples/physics-p4-position-witness-reference-2276/evidence/bank-01",
+    "exception": "FileNotFoundError",
+    "reason": "Parent evidence directory did not exist. Failure occurred at exclusive output directory creation before source authentication or numerical calls."
+  },
+  "correction": "Created evidence parent; materializer then completed once. No numerical candidate or checker ran.",
+  "result": {
+    "status": "READY_AUTHENTICATED_POSITION_WITNESS_DATA_ONLY",
+    "stageACases": 10,
+    "stageBCases": 6,
+    "writtenBytes": 285917,
+    "WorldCalls": 0,
+    "coldQpCalls": 0,
+    "candidateCalls": 0,
+    "newGeometryOrForceCalculations": 0,
+    "retainedPreparedRequestBytes": 247870
+  }
+}

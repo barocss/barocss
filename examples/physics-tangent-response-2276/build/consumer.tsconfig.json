@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": [
+      "ES2022"
+    ],
+    "strict": true,
+    "skipLibCheck": true,
+    "types": [
+      "node"
+    ],
+    "typeRoots": [
+      "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/@types"
+    ],
+    "noEmitOnError": true,
+    "noEmit": true
+  },
+  "files": [
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-tangent-response-2276/build/consumer.mts"
+  ]
+}

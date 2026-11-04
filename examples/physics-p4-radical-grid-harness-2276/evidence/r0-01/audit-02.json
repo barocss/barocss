@@ -1,0 +1,31 @@
+{
+  "protocol": "p4-independent-radical-audit-v1",
+  "status": "EXECUTED_PASS_PREFIX_RADICAL_GRID",
+  "verifiedPrefix": 2,
+  "verifiedValid": 2,
+  "verifiedExpectedInvalid": 0,
+  "verifiedExpectedResource": 0,
+  "firstFailure": null,
+  "candidateCallsByAuditor": 0,
+  "WorldCalls": 0,
+  "complete": false,
+  "requestPin": {
+    "bytes": 10964,
+    "sha256": "798bbc18f8623214e44ce7bd342e967385d31205ae6ef16369d5d389018a611e"
+  },
+  "oraclePin": {
+    "bytes": 13659,
+    "sha256": "b35acf846abd6e71c28f3318a6121cd2f9c55cb46e6a671a3e04e3dc12a5c6fb"
+  },
+  "repliesPin": {
+    "bytes": 612,
+    "sha256": "7b31255904d34ccf79af07e2003d3361f5cc44bb61642581c8c6558f93862505"
+  },
+  "finalStats": {
+    "integerOperations": 69,
+    "peakIntegerBits": 260,
+    "axisVisits": 0,
+    "conventionProblems": 0
+  },
+  "referenceMajorOperations": 148
+}

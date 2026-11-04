@@ -1,0 +1,19 @@
+{
+  "status": "PASS_FIXED11_RECEIVED_WINDOW_FAILURE_COMPONENT",
+  "oldFixedGroups": 8,
+  "newFixedGroups": 3,
+  "elapsedMs": 997.018209,
+  "pinsSHA256": "08d799fca35772dff7e67535fb7e13fd865d2af9ddb9521d26486b8cba4921dc",
+  "guardResult": "examples/physics-world-p5-2276/evidence/stack-failure-evidence-additional-01/result.json",
+  "guardResultSHA256": "59b971ecd010b2442c8a0a160a5d2775d55d4e6f4b7a5452f76a3825e0326e18",
+  "sourceRecheckedAfter": true,
+  "driverSHA256": "ce500def882ec3d23f6ae6bc1f58b6e2b1b8ff877a4e8df04fbea1f6d0e9e49b",
+  "helperSHA256": "f80dd00dcb355b86c971bbf034addd1dfdcebbbe79ce02abac3b43233f4c7688",
+  "sameEmergencyBytes": 2097152,
+  "maximumCapturedFrameAliases": 3,
+  "noSuccessPathCloneAdded": true,
+  "priorFull03MissingPacketNotRecovered": true,
+  "physicsCalls": 0,
+  "full1200": false,
+  "API": false
+}

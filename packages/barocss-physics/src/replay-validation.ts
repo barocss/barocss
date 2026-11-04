@@ -1,3 +1,4 @@
+import { STATIONARY_PROFILE, admitStationaryCommands } from './stack/stationary-profile.js';
 import type { Recording } from './types.js';
 import { admitModel } from './model-admission.js';
 import { parseCommands } from './validation.js';
@@ -47,7 +48,7 @@ export function admitRecording(input: unknown): Recording {
     const f = record(frame, ['stepIndex','commands'], 'frame');
     if (f.stepIndex !== index + 1 || !Array.isArray(f.commands) || f.commands.length > 64) replayError('INVALID_SNAPSHOT', 'frame cursor or commands are invalid');
     commandCount += f.commands.length;
-    try { parseCommands(f.commands, admitted.bodies); } catch { replayError('INVALID_SNAPSHOT', 'frame commands are invalid'); }
+    try { parseCommands(f.commands, admitted.bodies); if(options.profile===STATIONARY_PROFILE)admitStationaryCommands(f.commands as Recording['frames'][number]['commands']); } catch { replayError('INVALID_SNAPSHOT', 'frame commands are invalid'); }
   }
   if (commandCount > 4096) replayError('INVALID_SNAPSHOT', 'recording command limit exceeded');
   const state = record(data.finalState, ['identity','stepIndex','timeSeconds','bodies','joints','contacts','events','ccdHits','cloths','fluids','pairStats'], 'final state');

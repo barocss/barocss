@@ -1,0 +1,71 @@
+{
+  "status": "LIFECYCLE_SOURCE_NATIVE_AND_DESKTOP_PASS",
+  "date": "2026-11-03",
+  "previousCoverage": "COVERAGE-11.json",
+  "scope": {
+    "node": {
+      "status": "EXECUTED_SOURCE_NATIVE_STATIC_AND_ONE_FRAME_TRANSACTION_PASS",
+      "commit": "25da0c262",
+      "results": "examples/physics-coupled-lifecycle-2276/RESULTS.md",
+      "staticPacketParity": 40,
+      "transactionPacketWireParity": 44,
+      "normalization": "NONE",
+      "staticPerGraph": {
+        "worlds": 3,
+        "attempts": 3,
+        "acceptedSteps": 2,
+        "applications": 128,
+        "queries": 22,
+        "points": 19,
+        "anchors": 513
+      },
+      "transactionPerGraph": {
+        "worlds": 4,
+        "attempts": 6,
+        "acceptedSteps": 4,
+        "applications": 257,
+        "queries": 41,
+        "points": 37,
+        "anchors": 999
+      },
+      "hiddenBCAcceptedPublicPrivate": "GENUINE_PRE_DISPOSE_CAPTURE_RAW_EQUAL",
+      "oldFailure": "PRESERVED_0210d2889_NOT_REWRITTEN",
+      "crossWorldDiagnosticProvenance": "NOT_PROVEN",
+      "captureBound": "SERIALIZED_DATA_CELLS_AND_COPY_ALLOWANCE_NOT_RSS",
+      "physicalSecondInterval": "NOT_SUPPORTED",
+      "dynamicWarmMultipointPublicP4": "NOT_QUALIFIED"
+    },
+    "browser": {
+      "status": "EXECUTED_PASS7_DESKTOP_AND15_BROWSER_PHYSICAL_OBSERVERS",
+      "commit": "8b6b2400a",
+      "results": "examples/physics-coupled-lifecycle-viewer-2276/RESULTS.md",
+      "manualPreview": "http://127.0.0.1:53040",
+      "widths": [
+        1280,
+        1440,
+        1920
+      ],
+      "checks": 7,
+      "originalPhysicalObservers": 15,
+      "lifecycleData": "PASS_COMPLETE_BROWSER_CAPTURE_RAW_VS_ORIGINAL_PROOF",
+      "genuinePreDisposeCaptures": 3,
+      "explicitBulkReads": 2,
+      "physicsCensus": {
+        "worlds": 3,
+        "attempts": 3,
+        "acceptedSteps": 2,
+        "applications": 128,
+        "queries": 22,
+        "points": 19,
+        "anchors": 513
+      },
+      "pageConsoleNetworkErrors": 0,
+      "oldUIUnchanged": true,
+      "mobile": "NOT_RUN",
+      "wireDynamicWarmSecondInterval": "NOT_RUN",
+      "public": "NOT_ADOPTED"
+    }
+  },
+  "HOLD": "UNCHANGED",
+  "allFirstFailures": "PRESERVED"
+}

@@ -1,0 +1,23 @@
+{
+  "API": false,
+  "RSS": "NOT_QUALIFIED",
+  "authorCompilerCalls": 0,
+  "authorProviderCalls": 0,
+  "authorTestCalls": 0,
+  "complete64MiBData": "NOT_QUALIFIED",
+  "files": {
+    "CONTRACT.md": "b6210f6cabaf4c407c369063320bd8800c730db36fb532131006d3704c419126",
+    "PINS.json": "1c7de45057a200997f48f8f05cf14ae4665279844fb9cea2af414bdb1c9c5bbb",
+    "collect-real.py": "45b00ab383ceacba248c49c0057c0f4bfe1f5c632f64c49657a2fcc79500094a",
+    "host.mjs": "f6ace087356d1212d04cfb93d47fdf67e5c353da2011bc9f57d70d0b5499c7fd"
+  },
+  "full1200": false,
+  "pinnedFiles": 37,
+  "pipelineSourceSealSHA256": "c74b021da1d1a5b9af2ef814efc92c14fd0d7009c1202c89fa2d90b2892241f7",
+  "recordNumericWords": 425916,
+  "resourceQualification": false,
+  "reusesControlsWithoutRerun": 18,
+  "semanticWirePairs": 195,
+  "status": "SOURCE_READY_AUTHOR_NOT_RUN",
+  "steps": 48
+}

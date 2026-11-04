@@ -1,0 +1,29 @@
+{
+  "status": "PASS_FIXED3_CLOSED_PHASE_PROGRESS_COMPONENT",
+  "groups": 3,
+  "elapsedMs": 101.537167,
+  "guardResult": "examples/physics-world-p5-2276/evidence/stack-phase-checkpoint-controls-01/result.json",
+  "guardPin": {
+    "bytes": 3079,
+    "sha256": "73c4fa0c6f6dc2462a43a497b56742a8648e1ea3d4c53ffdca7df77410953b83"
+  },
+  "files": {
+    "examples/physics-stack-complete-2276/phase-checkpoint.mjs": {
+      "bytes": 1983,
+      "sha256": "c5d393633b391e4a6eeb57efb6038d8cfa79c1d29e3c3bdfc376fac4c3ecc96d"
+    },
+    "examples/physics-stack-complete-2276/phase-checkpoint.test.mjs": {
+      "bytes": 2271,
+      "sha256": "c1c7021145e3cb1d381489768050b62bad78e4391f3fda5708312a2620f4d6b0"
+    },
+    "examples/physics-stack-complete-2276/driver.mjs": {
+      "bytes": 26745,
+      "sha256": "3018d518830f2c276873fff1bf5e819d177c41adbafb71f33a515dea538abe2c"
+    }
+  },
+  "prepaidMetadataReserveUnchanged": 8388608,
+  "checkpointMaximumBytes": 65536,
+  "noAdditionalPhysicsCalls": true,
+  "API": false,
+  "full1200": false
+}

@@ -1,0 +1,44 @@
+{
+  "status": "SOURCE_READY_ROOT_ERASED_TYPEFIX_FIRST_COMPILER_FAILURE_PRESERVED",
+  "ownedSources": {
+    "packages/barocss-physics/src/stack/stationary-normal.ts": "04d851c18661bd340814c37acfa47364d9bec42da0df4721971bb5823d513f40",
+    "examples/physics-stack-stationary-witness-2276/CONTRACT.md": "b47b4a92e6ff413035507a45a7c67fdc494cac0c1c8a124590e4d08c19c2b0a5",
+    "examples/physics-stack-stationary-witness-2276/CONTRACT.json": "d616f7ea928f87c26323163be37cf425e747455c012b20e4d255cabb5bffb660",
+    "examples/physics-stack-stationary-witness-2276/IMPLEMENTATION-CONTRACT.md": "a20f03ca87b9f4f2d940796340b58bfe07d61e61e3578a071f571a3f8050ffaa",
+    "examples/physics-stack-stationary-witness-2276/unit-source.ts": "bd398513e7cd8866accdc31b608bd60c16c5d0dc14ded04824ef0680af7cbcec",
+    "examples/physics-stack-stationary-witness-2276/adapter.ts": "ecafc09288455b68ce501496771467e6f28b1b350f33629d16db9a49905d67b2",
+    "examples/physics-stack-stationary-witness-2276/controls.test.mts": "bc0e1a5099f7f0f878082a46eb187a0cfa2f9f805f049b7d90eaf6648f42e017",
+    "examples/physics-stack-stationary-witness-2276/checker.py": "2bf19818ab0900db84fdb847648aae0e6dd0765fb9b0e0dc59970a7f0bdb7360",
+    "examples/physics-stack-stationary-witness-2276/checker-test.py": "a23c76e22c6f74d219613ce9002c794f8aaadee0141f39c7429b4ebecf0948eb",
+    "examples/physics-stack-stationary-witness-2276/TYPEFIX-01.json": "b9020cb7dcd09e0e64f329526b7555248568a157f6ecd25ce0b18675cec8a707"
+  },
+  "authorities": {
+    "examples/physics-stack-solver-2276/evidence/fixture-01/fixture.json": "da088aeff200bdcfe27927f11286e8a9f6a63f772c6f5558ae11feb2e9d769eb",
+    "examples/physics-stack-solver-2276/verification.ts": "cc9ee1f949af20472e8c733a3fe57abb61683712d388af8f76adaf8d8d62b7c8"
+  },
+  "tools": {
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node": "0d005c18e095027ca8f9fe1cc1126f767ee4ad7b004f4d6fb781ec4228a7c5d1",
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13": "a1f6d9dc20d4787a84dc2fe782094a7bac5946f49a962aa0af48a02f0e8d5bc5"
+  },
+  "fixedNodeTests": 32,
+  "positiveReceiptCount": 11,
+  "checkerControls": 8,
+  "unitCopy": "EXACT_SOURCE_TYPE_IMPORT_RELOCATION_PLUS_NEWLINE_EXPORT_SOLVECORE_EXACT_TRIANGLE",
+  "runner": {
+    "path": "examples/physics-stack-stationary-witness-2276/run.mjs",
+    "owner": "ROOT_SEPARATE_FREEZE_NOT_PINNED_HERE"
+  },
+  "authorCalls": {
+    "imports": 0,
+    "compiler": 0,
+    "tests": 0,
+    "solver": 0,
+    "physics": 0,
+    "codec": 0
+  },
+  "productionBridgeAdopted": false,
+  "actualSame32Gate": "NOT_RUN_BY_AUTHOR",
+  "actualGeometricGreedyTrap": "NOT_PROVEN_ALGEBRAIC_UNIT_TRAP_ONLY",
+  "fullPhysics": false,
+  "publicAPI": false
+}

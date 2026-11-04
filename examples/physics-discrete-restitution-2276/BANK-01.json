@@ -1,0 +1,262 @@
+{
+  "method": "exact linear conservation plus Newton constraints",
+  "cases": [
+    {
+      "id": "fixed-sphere-minimum",
+      "kind": "fixed-sphere",
+      "ea": 0.25,
+      "eb": 1,
+      "speed": 2,
+      "reverse": false,
+      "swap": false,
+      "reference": {
+        "velocityA": "1/2",
+        "velocityB": "0",
+        "impulseA": "5",
+        "energyBefore": "4",
+        "energyAfter": "1/4"
+      }
+    },
+    {
+      "id": "fixed-sphere-materials",
+      "kind": "fixed-sphere",
+      "ea": 1,
+      "eb": 0.25,
+      "speed": 2,
+      "reverse": false,
+      "swap": false,
+      "reference": {
+        "velocityA": "1/2",
+        "velocityB": "0",
+        "impulseA": "5",
+        "energyBefore": "4",
+        "energyAfter": "1/4"
+      }
+    },
+    {
+      "id": "fixed-sphere-orders",
+      "kind": "fixed-sphere",
+      "ea": 0.25,
+      "eb": 1,
+      "speed": 2,
+      "reverse": true,
+      "swap": true,
+      "reference": {
+        "velocityA": "1/2",
+        "velocityB": "0",
+        "impulseA": "5",
+        "energyBefore": "4",
+        "energyAfter": "1/4"
+      }
+    },
+    {
+      "id": "fixed-sphere-zero",
+      "kind": "fixed-sphere",
+      "ea": 0,
+      "eb": 1,
+      "speed": 2,
+      "reverse": false,
+      "swap": false,
+      "reference": {
+        "velocityA": "0",
+        "velocityB": "0",
+        "impulseA": "4",
+        "energyBefore": "4",
+        "energyAfter": "0"
+      }
+    },
+    {
+      "id": "fixed-sphere-elastic",
+      "kind": "fixed-sphere",
+      "ea": 1,
+      "eb": 1,
+      "speed": 2,
+      "reverse": false,
+      "swap": false,
+      "reference": {
+        "velocityA": "2",
+        "velocityB": "0",
+        "impulseA": "8",
+        "energyBefore": "4",
+        "energyAfter": "4"
+      }
+    },
+    {
+      "id": "fixed-cube-minimum",
+      "kind": "fixed-cube",
+      "ea": 0.25,
+      "eb": 1,
+      "speed": 2,
+      "reverse": false,
+      "swap": false,
+      "reference": {
+        "velocityA": "1/2",
+        "velocityB": "0",
+        "impulseA": "5",
+        "energyBefore": "4",
+        "energyAfter": "1/4"
+      }
+    },
+    {
+      "id": "fixed-cube-zero",
+      "kind": "fixed-cube",
+      "ea": 0,
+      "eb": 1,
+      "speed": 2,
+      "reverse": false,
+      "swap": false,
+      "reference": {
+        "velocityA": "0",
+        "velocityB": "0",
+        "impulseA": "4",
+        "energyBefore": "4",
+        "energyAfter": "0"
+      }
+    },
+    {
+      "id": "fixed-cube-elastic",
+      "kind": "fixed-cube",
+      "ea": 1,
+      "eb": 1,
+      "speed": 2,
+      "reverse": false,
+      "swap": false,
+      "reference": {
+        "velocityA": "2",
+        "velocityB": "0",
+        "impulseA": "8",
+        "energyBefore": "4",
+        "energyAfter": "4"
+      }
+    },
+    {
+      "id": "two-spheres-minimum",
+      "kind": "two-spheres",
+      "ea": 0.25,
+      "eb": 1,
+      "speed": 2,
+      "reverse": false,
+      "swap": false,
+      "reference": {
+        "velocityA": "-1/2",
+        "velocityB": "0",
+        "impulseA": "-3",
+        "energyBefore": "5/2",
+        "energyAfter": "1/4"
+      }
+    },
+    {
+      "id": "two-spheres-materials",
+      "kind": "two-spheres",
+      "ea": 1,
+      "eb": 0.25,
+      "speed": 2,
+      "reverse": false,
+      "swap": false,
+      "reference": {
+        "velocityA": "-1/2",
+        "velocityB": "0",
+        "impulseA": "-3",
+        "energyBefore": "5/2",
+        "energyAfter": "1/4"
+      }
+    },
+    {
+      "id": "two-spheres-orders",
+      "kind": "two-spheres",
+      "ea": 0.25,
+      "eb": 1,
+      "speed": 2,
+      "reverse": true,
+      "swap": true,
+      "reference": {
+        "velocityA": "-1/2",
+        "velocityB": "0",
+        "impulseA": "-3",
+        "energyBefore": "5/2",
+        "energyAfter": "1/4"
+      }
+    },
+    {
+      "id": "two-spheres-zero",
+      "kind": "two-spheres",
+      "ea": 0,
+      "eb": 1,
+      "speed": 2,
+      "reverse": false,
+      "swap": false,
+      "reference": {
+        "velocityA": "-1/5",
+        "velocityB": "-1/5",
+        "impulseA": "-12/5",
+        "energyBefore": "5/2",
+        "energyAfter": "1/10"
+      }
+    },
+    {
+      "id": "two-spheres-elastic",
+      "kind": "two-spheres",
+      "ea": 1,
+      "eb": 1,
+      "speed": 2,
+      "reverse": false,
+      "swap": false,
+      "reference": {
+        "velocityA": "-7/5",
+        "velocityB": "3/5",
+        "impulseA": "-24/5",
+        "energyBefore": "5/2",
+        "energyAfter": "5/2"
+      }
+    },
+    {
+      "id": "threshold-below",
+      "kind": "fixed-sphere",
+      "ea": 0.25,
+      "eb": 0.75,
+      "speed": 0.49999999999999994,
+      "reverse": false,
+      "swap": false,
+      "reference": {
+        "velocityA": "0",
+        "velocityB": "0",
+        "impulseA": "9007199254740991/9007199254740992",
+        "energyBefore": "81129638414606663681390495662081/324518553658426726783156020576256",
+        "energyAfter": "0"
+      }
+    },
+    {
+      "id": "threshold-equal",
+      "kind": "fixed-sphere",
+      "ea": 0.25,
+      "eb": 0.75,
+      "speed": 0.5,
+      "reverse": false,
+      "swap": false,
+      "reference": {
+        "velocityA": "0",
+        "velocityB": "0",
+        "impulseA": "1",
+        "energyBefore": "1/4",
+        "energyAfter": "0"
+      }
+    },
+    {
+      "id": "threshold-above",
+      "kind": "fixed-sphere",
+      "ea": 0.25,
+      "eb": 0.75,
+      "speed": 0.5000000000000001,
+      "reverse": false,
+      "swap": false,
+      "reference": {
+        "velocityA": "4503599627370497/36028797018963968",
+        "velocityB": "0",
+        "impulseA": "22517998136852485/18014398509481984",
+        "energyBefore": "20282409603651679431146506027009/81129638414606681695789005144064",
+        "energyAfter": "20282409603651679431146506027009/1298074214633706907132624082305024"
+      }
+    }
+  ],
+  "WorldCalls": 0
+}

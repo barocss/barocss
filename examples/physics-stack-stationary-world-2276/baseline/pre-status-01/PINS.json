@@ -1,0 +1,22 @@
+{
+  "packages/barocss-physics/ROADMAP.md": {
+    "bytes": 123844,
+    "sha256": "e5cd51ea13eac44a1e65879ce6ca3d7f4c7e34ff3331917f6cbf8cd206f2294d"
+  },
+  "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt": {
+    "bytes": 123844,
+    "sha256": "e5cd51ea13eac44a1e65879ce6ca3d7f4c7e34ff3331917f6cbf8cd206f2294d"
+  },
+  "examples/physics-world-p5-2276/WORK-STATUS.json": {
+    "bytes": 95714,
+    "sha256": "d1719d568067a84cffba6643c196f3d2859321c925eb23741ff0dc3aff76a28f"
+  },
+  "apps/library-docs/docs/reference/physics-verification.md": {
+    "bytes": 58928,
+    "sha256": "e69e4e9b92c3e6ef627d2ddc093a099b4336bb9ae84e90d3e60077f656dfe9e0"
+  },
+  "apps/library-docs/docs/packages/physics/profiles-and-lifecycle.md": {
+    "bytes": 19813,
+    "sha256": "2a6279be08c21b3e7fcb04180bd09d987e577257a45275ad5946a9ca8fe0dc81"
+  }
+}

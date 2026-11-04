@@ -58,3 +58,138 @@ Finish G1a staged rotation qualification. Then freeze a small G2 independent bou
 The current source performed one actual model admission, one CCD-profile admission and one sweepSphere call. The independent files-only observer performed one point audit,41 checked Fraction operations and0sqrt/trig/ODE/helper/World calls. The first geometric failure stops the later biased-stop audit and native graph. No World was constructed or advanced.
 
 The capture guard exits0; the witness guard exits1 for the preserved geometric NO_GO, with normal EOF/process closure. This failure shows that the returned expanded rectangular-box boundary is earlier than an exact rounded sphere/box contact. It does not establish tunnelling, refute an explicitly conservative broad-phase guarantee, or change existing face-aligned CCD receipts. Exact/conservative profile semantics and a bounded feature-aware repair are the next G2 dependency. No numerical limit, material law, public source or original8-box contract was changed.
+
+
+## Current finite checkpoint (2026-11-03)
+
+The table above is the original inventory. [COVERAGE-04.json](./COVERAGE-04.json)
+records later finite proofs without editing inventories01–03. Discrete unequal
+material restitution now has an independent16-case Source/Native proof. The
+persistent changing-normal public baseline has a new tangent-plane and paired
+witness NO_GO. It does not identify all internal PRE force points or prove that
+cache projection alone repairs the physics. A private native box candidate is
+kept separate from public World and full eight-box qualification. Original
+first failures and all numeric/iteration gates remain. No blanket engine PASS.
+
+The source-private contact/wrench producer now passes the bounded one-case
+geometry, actual impulse/moment report and rollback/retry/restore contract.
+`COVERAGE-06.json` records3 Worlds/8 attempts/6 accepted steps. Actual warm
+applications are zero; Native/public/desktop/performance and original P4 remain
+separate and unqualified. The earlier aggregate-report NO_GO is preserved.
+
+`COVERAGE-08.json` records composed typed Source/Native warm recording passes,
+10 desktop checks and the separate independent browser physical pass. The first
+capture loss and old decoder resource NO_GO remain preserved. The next exact
+cone before-case is a new source-only constitutive NO_GO; at/after remain
+NOT_RUN. No blanket contact law, public package or original P4 PASS follows.
+
+## Coupled cold static contact checkpoint (2026-11-03)
+
+Source and actual strict emitted Native pass the original before/at inputs with
+zero independent static contact-velocity residual. All33 retained packets match
+without normalization. Per graph:3 Worlds/3 attempts/2 accepted steps,128 actual
+applications,22 queries,19 points and513 anchor checks. Three pure reference
+cases and eight separate refusal controls pass. After is a genuine typed
+COUPLED_DYNAMIC_REQUIRED refusal before application with raw accepted data
+preserved, not dynamic physics PASS. Original cone first failure and the new
+precompiler esbuild-launcher failure remain preserved. See COVERAGE-09.json and
+`examples/physics-coupled-contact-2276/RESULTS.md`. Post-application transaction,
+wire and new-candidate desktop qualification are separate pending work; current
+public adoption, dynamic P03, warm/multipoint and original P4 remain NO_GO/open.
+All original criteria and HOLDs remain.
+
+## Coupled static desktop checkpoint (2026-11-03)
+
+The separate actual emitted browser consumer passes6 desktop checks at
+1280/1440/1920 and15 unchanged independent geometry/physical/cone/target jobs
+on the complete authenticated actual browser proof. Page/console/network errors
+are zero. Actual census is3 Worlds/3 attempts/2 accepted steps,128 applications,
+22 queries/19 points/513 anchors. Only before/at static physics pass; after is
+a typed PREapply refusal with raw accepted data preserved. See COVERAGE-10.json
+and `examples/physics-coupled-viewer-2276/RESULTS.md`. AUTHOR03/build01 executed;
+withdrawn04 was a corrected stale-read proposal, not a browser/source failure.
+GPU triangles are display-only and screenshots are not numerical evidence.
+No mobile/deployment/public adoption or dynamic P03/full P4 qualification follows.
+
+## Transaction first observation failure (2026-11-03)
+
+Source actual rollback after nonzero J/bucket mutation, independent fault-prefix
+physics, clean retry and complete raw public/recording/private-world equality
+pass. Actual serialization executes. The next hidden B comparison fails because
+disposal cleared its world storage; genuine pre-dispose full accepted output was
+not retained. Prefix2 Worlds/4 phase attempts/2 accepted steps,129 applications,
+21 queries/19 points/513 anchors. Native, deserialization, live D restore and
+parity remain NOT_RUN. COVERAGE-11.json and ROOT-FIRST-FAILURE-01 preserve this
+NO_GO. A new bounded pre-dispose observer is a dependency, not an achieved gate.
+No failed condition is deleted, relaxed or filled using reconstructed data.
+
+## Genuine lifecycle and dynamic arithmetic checkpoints (2026-11-03)
+
+The distinct lifecycle provider25da0c262 passes40 static and44 transaction
+packet/wire matches between Source/Native. Real pre-dispose captures close the
+hidden accepted-state observation gap without reconstructing output; old0210
+NO_GO stays unchanged. Its browser8b6b2400a passes7 desktop checks and15 unchanged
+physical observers plus raw lifecycle proof comparison, with zero UI errors.
+See COVERAGE-12.json. The current preview is localhost53040.
+
+Independent reference c1d9a640c is READY. Original dynamic pure36f260949 stops at
+a denied262146 attempted charge under262144; that prefix is not a completed cost.
+Efficientc67bc917e passes3 physical inputs and8 admission controls per Source/Native
+graph,13 top-level calls and14 full packets. After completes241975 integer
+primitives under unchanged prices/caps. Zero Worlds run. General arithmetic
+boundary banks and runtime host integration still block promotion; the original
+production13-call/cap16 remains separate from new private test-entry work. See
+COVERAGE-13.json. Dynamic World, warm/multipoint, public adoption and P4 remain
+NO_GO/open; no mobile/deployment or machine-accuracy claim follows.
+
+## Shared arithmetic boundary checkpoint (2026-11-03)
+
+Source and actual NodeNext Native each pass the unchanged production13/cap16
+regression, with all14 complete packet/counter files raw equal to efficient2429.
+Separate fresh private-entry processes each pass52 independently audited
+literal polynomial/RNE/resource cases under cap64; all53 files including bank
+match raw between Source/Native. Their observed sum65 is across separate
+processes, not one combined64 cap. Shared production arithmetic has no test
+entry or lowering hook. World calls remain0 for this checkpoint. First strict
+compile failures01/02 remain preserved;03 changes only erased type annotations.
+See COVERAGE-14.json and `examples/physics-coupled-arithmetic-2276/RESULTS.md`.
+Actual dynamic World is the next priority, before desktop and original long-stack
+expansion. HOLDs, tolerances, old failures and NoDeploy remain unchanged.
+
+## Actual coupled dynamic World checkpoint (2026-11-03)
+
+The new private host passes original before/at/after in Source and actual
+NodeNext Native: each3Worlds/3attempts/3accepted,192applications,30queries,
+27points/729anchors. All18independent observations pergraph pass; full26files
+match raw. Actual dynamic normal-speed residual2.245727290605634e-18m/s,
+cone magnitude residual3.26936304418379e-18Ns and opposition residual
+3.2620547630988122e-18Ns satisfy unchanged1e-10/1e-12 gates. This qualifies only
+one cold exact point and first interval. Initial ESM-format build NO_GO remains.
+Inherited typing boundaries are explicit, no new waivers. See COVERAGE-15.json
+and `examples/physics-coupled-dynamic-host-2276/CLEAN-RESULTS.md`. Post-impulse
+rollback/wire, dynamic desktop, warm/multipoint, public adoption and original
+long-duration eight-box settling remain separate unqualified gates.
+
+## Dynamic after transaction checkpoint (2026-11-03)
+
+Source/Native each pass4Worlds/6phase attempts/4accepted intervals and20independent
+audits, including genuine post-J/bucket rollback and actual serialize/deserialize/
+restore. Full38packet/wire files match raw; valid wire is4771bytes. Hidden
+accepted outputs use genuine pre-dispose getters. Hidden initial getter is
+NOT_RETAINED; same-model initial controls are explicitly bound to actual hidden
+creation/attempt/free-input/cache records. No ID normalization. Second interval
+remains a typed pre-phase refusal, not physics success. See COVERAGE-16.json and
+`examples/physics-coupled-dynamic-host-2276/TRANSACTION-RESULTS.md`.
+
+## Dynamic desktop and priority review (2026-11-03)
+
+Two separate finite desktop campaigns each pass7checks,18independent physical
+observations and6whole decoded packet comparisons with actual Native Node.
+The first screenshots before1; the latest explicitly selects after1 at
+1280/1440/1920. Each has3Worlds/3accepted/192applications. Both original proofs
+remain. No mobile or deployment. See COVERAGE-17.json and the dynamic host
+viewer RESULTS.md. The earliest observed original P4 blocker is full-reference/
+runtime cost after ALIGNED308; the different successful one-point G2 profile
+does not qualify those eight boxes. A new exact full36-position-row certificate
+proposal is design only, not an ended cache/SAT/axis retune. Original tolerances,
+all first failures and required long-stack exits remain.

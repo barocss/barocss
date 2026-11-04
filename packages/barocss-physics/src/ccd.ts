@@ -1,7 +1,7 @@
 import type { Body, PhysicsCcdHit, Vec3 } from './internal-types.js';
 import { add, localPoint, rotate, scale, sub } from './math.js';
 import { error } from './validation.js';
-import { sweepBox } from './ccd-slab.js';
+import { sweepRoundedBox } from './ccd-rounded-box.js';
 import { axisAlignedBox } from './ccd-box.js';
 
 export type CcdProfile =
@@ -48,8 +48,8 @@ export function sweepSphere(previous: Body, candidate: Body, fixtures: Body[]): 
   let earliest: PhysicsCcdHit | null = null;
   for (const fixture of fixtures) {
     if (fixture.shape.kind !== 'box') continue;
-    const expanded = fixture.shape.halfExtentsM.map((extent) => extent + radius) as Vec3;
-    const hit = sweepBox(localPoint(fixture, previous.positionM), localPoint(fixture, candidate.positionM), expanded);
+    const hit = sweepRoundedBox(localPoint(fixture, previous.positionM),
+      localPoint(fixture, candidate.positionM), fixture.shape.halfExtentsM, radius);
     if (!hit || earliest && hit.fraction >= earliest.toiFraction) continue;
     earliest = { bodyId: previous.id, fixtureId: fixture.id, toiFraction: hit.fraction,
       normalFixtureToBody: rotate(fixture.orientation, hit.normalLocal) };

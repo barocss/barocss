@@ -1,0 +1,116 @@
+{
+  "status": "GCD32_PASS_POSITION_RESOURCE_NO_GO_FIRST_FAILURE_PRESERVED",
+  "sourceFiles": 155,
+  "G0": {
+    "pairsVerified": 32,
+    "globalMeters": 1,
+    "performed": 1159878,
+    "acceleratedBlocks": 319,
+    "inputBits": 8192,
+    "independent": "exact oracle, divisibility and Bezout identity"
+  },
+  "A": {
+    "calls": 6,
+    "independentPasses": 5,
+    "firstFailure": {
+      "cursor": "ALIGNED-16",
+      "type": "ValueError",
+      "message": "KERNEL_EXPECTED_STATUS"
+    }
+  },
+  "firstActualKernelFailure": {
+    "protocol": "p4-position-witness-kernel-v1",
+    "status": "UNRESOLVED",
+    "ok": false,
+    "resolved": false,
+    "reason": "PROOF_PRIMITIVE_LIMIT",
+    "certificate": null,
+    "metrics": null,
+    "proofCounters": {
+      "pricing": "p4-position-witness-primitives-v1",
+      "limit": 2000000,
+      "performed": 2000000,
+      "attempted": 2000001,
+      "phasePerformed": {
+        "parse": 6775,
+        "prepare": 328707,
+        "factor": 1271624,
+        "kkt": 392894,
+        "rne": 0,
+        "compare": 0
+      },
+      "phaseAttempted": {
+        "parse": 6775,
+        "prepare": 328707,
+        "factor": 1271624,
+        "kkt": 392895,
+        "rne": 0,
+        "compare": 0
+      },
+      "operationCounts": {
+        "READ_FIELD": 876,
+        "READ_CHAR": 2242,
+        "WRITE_CHAR": 0,
+        "READ_BYTE": 1224,
+        "ADD": 133051,
+        "SUB": 92472,
+        "MUL": 103286,
+        "NEG": 634,
+        "CMP": 1445962,
+        "BIT_LENGTH": 131470,
+        "SHL": 1140,
+        "SHR": 5858,
+        "AND": 306,
+        "OR": 1365,
+        "QUOT": 67478,
+        "REM": 9926,
+        "F64_CAST": 774,
+        "F64_PACK": 153,
+        "F64_FROM_SMALL_INT": 0,
+        "F64_SCALE_POW2": 0,
+        "F64_FINITE": 774,
+        "F64_CMP": 113,
+        "F64_ABS": 36,
+        "F64_SUB": 36,
+        "F64_HYPOT3": 36,
+        "DIVMOD": 394
+      },
+      "gcdRemainders": 9926,
+      "normalizations": 172,
+      "factorizationAttempts": 1,
+      "pivots": 8,
+      "allRows": 36,
+      "dynamicDof": 24,
+      "witnessRows": 8,
+      "peakInputBits": 115,
+      "peakReducedBits": 1760,
+      "peakIntermediateBits": 3104,
+      "denied": {
+        "phase": "kkt",
+        "operation": "CMP",
+        "price": 1,
+        "attempted": 2000001
+      },
+      "resetCount": 0
+    },
+    "violations": [
+      "PROOF_PRIMITIVE_LIMIT"
+    ]
+  },
+  "costDecision": "NOT_RUN",
+  "B": "NOT_RUN",
+  "WorldCalls": 0,
+  "original1200Steps": "NOT_RUN",
+  "publicAPI": "NOT_RUN",
+  "desktop": "NOT_RUN",
+  "archivePins": {
+    "SOURCE-01.tar.gz": {
+      "bytes": 670880,
+      "sha256": "79a1e5419deb4fd031b28aa7894d31e76ff4cfd31d51ff0ff4b15ffa14737184"
+    },
+    "PROOF-01.tar.gz": {
+      "bytes": 33128,
+      "sha256": "0b288c5d2083ca6a1a901960c28f54e0eabeecb00741338b2c28db18a3ff72fa"
+    }
+  }
+}

@@ -1,0 +1,180 @@
+{
+  "work_id": "physics-p4-node-sat-2276",
+  "artifact_type": "bounded-evidence-results",
+  "status": "NUMERIC_EQ_PASS_NODE_COST_NO_GO",
+  "owner_role": "independent-evidence-writer",
+  "source_request": "Preserve completed bounded evidence and its first failure",
+  "last_updated": "2026-11-03",
+  "sourceSummary": "examples/physics-p4-node-sat-2276/evidence/node-01/summary.json",
+  "sourceSummaryPin": {
+    "bytes": 11802,
+    "sha256": "c9ad22c5daff9b6828e562259092c1f0c2e308020f32dd62361403da651fcc37"
+  },
+  "counts": {
+    "framesAttempted": 6,
+    "framesReturned": 6,
+    "framesVerified": 6,
+    "compactAttempts": 432,
+    "compactReturns": 432,
+    "scalarCalls": 432,
+    "scalarReturns": 432,
+    "coldKernelAttempts": 6,
+    "coldKernelReturns": 6,
+    "coldQpAttempts": 6,
+    "coldQpReturns": 6,
+    "forbiddenOldCompactAttempts": 0,
+    "oldDecimalSatCalls": 0,
+    "oldObserverBaselineCalls": 0,
+    "WorldCalls": 0,
+    "fixtureCalls": 0,
+    "trigSeedCalls": 0,
+    "compactRecordsVerified": 432,
+    "numericWordsVerified": 2592,
+    "retainedPayloadLeavesVerified": 17394
+  },
+  "firstFailure": {
+    "type": "COST_NO_GO",
+    "message": "frozen10percent conservative aggregate CPU gain not met",
+    "baselineCoreCpuNs": 773147000,
+    "candidateCoreCpuNs": 1084838000,
+    "counts": {
+      "framesAttempted": 6,
+      "framesReturned": 6,
+      "framesVerified": 6,
+      "compactAttempts": 432,
+      "compactReturns": 432,
+      "scalarCalls": 432,
+      "scalarReturns": 432,
+      "coldKernelAttempts": 6,
+      "coldKernelReturns": 6,
+      "coldQpAttempts": 6,
+      "coldQpReturns": 6,
+      "forbiddenOldCompactAttempts": 0,
+      "oldDecimalSatCalls": 0,
+      "oldObserverBaselineCalls": 0,
+      "WorldCalls": 0,
+      "fixtureCalls": 0,
+      "trigSeedCalls": 0,
+      "compactRecordsVerified": 432,
+      "numericWordsVerified": 2592,
+      "retainedPayloadLeavesVerified": 17394
+    }
+  },
+  "originalCommandReceipts": [
+    {
+      "receiptId": "p4-node-sat-01",
+      "command": [
+        "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+        "-B",
+        "examples/physics-p4-node-sat-2276/run.py",
+        "node-01"
+      ],
+      "status": "FAIL",
+      "exit": 1,
+      "timedOut": false,
+      "elapsedMs": 1493.369417,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup"
+    }
+  ],
+  "newNumericalRuns": 0,
+  "originalFilesChanged": 0,
+  "sourceContractEvidencePreserved": true,
+  "archive": "EVIDENCE-01.tar.gz",
+  "fullP4": "NO_GO",
+  "apiExpansion": "NOT_QUALIFIED",
+  "renderQualification": "NOT_RUN",
+  "numericCompatibility": "PASS_COMPLETE_SAVED_PHYSICAL_REPLY",
+  "costGO": "NO_GO",
+  "pairedCost": {
+    "baselineCoreCpuNs": 773147000,
+    "parentObserverCoreCpuNs": 397992000,
+    "entireOwnedChildLifetimeCpuNs": 686846000,
+    "conservativeCandidateCoreCpuNs": 1084838000,
+    "requiredGainFraction": 0.1,
+    "observedConservativeGainFraction": -0.403145844192631,
+    "candidateBoundaryConservativelyWider": true,
+    "exactSameTimingBoundaryClaimed": false,
+    "childStartupAndEpilogueIncluded": true,
+    "savedBaselineOnePairing": true,
+    "baselineRerun": false,
+    "requestCpuUsedForGate": false,
+    "noFurtherTuningAuthorized": true
+  },
+  "pairedCostBaseline": {
+    "path": "examples/physics-p4-position-v2-2276/evidence/position-01/summary.json",
+    "coreCpuNs": 773147000,
+    "field": "observerIncludingCompactQpCpuNs",
+    "candidateBoundary": "parent observer cores plus ENTIRE owned Node lifetime CPU, conservatively wider",
+    "comparison": "candidate*10 <= baseline*9",
+    "baselineRerun": false
+  },
+  "ownedNodeLifecycle": {
+    "starts": 1,
+    "ready": 1,
+    "requests": 445,
+    "replies": 445,
+    "parentPgid": 16735,
+    "signals": [],
+    "pid": 16744,
+    "childPgid": 16735,
+    "readyCumulativeCpu": {
+      "userUs": 18632,
+      "systemUs": 4592,
+      "totalUs": 23224
+    },
+    "exitCode": 0,
+    "stdoutEOF": true,
+    "stderrEOF": true,
+    "reaped": true,
+    "trailingStdoutBytes": 0,
+    "stderr": "",
+    "cleanupWallNs": 11024041,
+    "requestCpuUsNestedOnly": 596067,
+    "lastKernelStats": {
+      "integerOperations": 1122437,
+      "peakIntegerBits": 5814,
+      "axisVisits": 12960,
+      "conventionProblems": 864
+    },
+    "ownedWait4": {
+      "userSeconds": 0.665284,
+      "systemSeconds": 0.021561999999999998,
+      "totalCpuNs": 686846000,
+      "maxRss": 77840384
+    },
+    "completeCleanLifecycle": true
+  },
+  "satCounters": {
+    "integerOperations": 1122437,
+    "peakIntegerBits": 5814,
+    "axisVisits": 12960,
+    "conventionProblems": 864
+  },
+  "timing": {
+    "timingBoundary": "Parent core plus ENTIRE owned wait4 child CPU; conservative wider baseline. Terminal summary write excluded.",
+    "elapsedBatchWallNs": 1326913375,
+    "parentBatchCpuNs": 692813000,
+    "parentProcessLifetimeCpuNs": 734443000,
+    "ownedChildLifetimeCpuNs": 686846000,
+    "wholeParentPlusOwnedChildCpuNs": 1421289000,
+    "perRequestCpu": "NESTED_ATTRIBUTION_ONLY_NOT_GATE"
+  },
+  "originalQpBudgetsUnchanged": true,
+  "originalPhysicalGatesUnchanged": true,
+  "numericUncertainty": {
+    "intervalWidthMaxM": "exact decimal1e-25",
+    "strictOwnBinary64RoundingCell": true,
+    "physicalDifferenceGateM": "represented binary64 1e-12",
+    "uncertainBoundary": "REFUSE"
+  },
+  "unsupported": [
+    "independent geometry NO_GO repair",
+    "32-point line/paired witness",
+    "ledger/quality",
+    "full1200-step P4"
+  ],
+  "candidateEndedNoRerunOrTuning": true,
+  "savedAuthorityPairs": 6
+}

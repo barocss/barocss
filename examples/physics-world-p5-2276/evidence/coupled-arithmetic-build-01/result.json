@@ -1,0 +1,89 @@
+{
+  "kind": "P5B_OWNED_COMMAND_GUARD",
+  "receiptId": "coupled-arithmetic-build-01",
+  "censusId": "coupled-arithmetic-build-01",
+  "status": "FAIL",
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "examples/physics-coupled-arithmetic-2276/build.mjs",
+    "build-01"
+  ],
+  "cwd": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "inputs": {
+    "command-run.mjs": {
+      "bytes": 11565,
+      "sha256": "59bcc0b00e3d606e44fe04eed586a9604885eb390b53a2e90413f1a7bcc2828e"
+    }
+  },
+  "timeoutMs": 180000,
+  "terminationGraceMs": 1000,
+  "postKillCloseWaitMs": 2000,
+  "timingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+  "combinedOutputLimitBytes": 4194304,
+  "startedAt": "2026-11-03T05:06:18.391Z",
+  "spawnAt": "2026-11-03T05:06:18.400Z",
+  "pid": 74262,
+  "processGroupId": 74262,
+  "exit": 1,
+  "signal": null,
+  "timedOut": false,
+  "stopReason": "CENSUS_EXIT_FAILURE",
+  "processClosed": true,
+  "groupSignals": [
+    {
+      "signal": "SIGTERM",
+      "elapsedMs": 598.45575,
+      "result": "GROUP_ABSENT",
+      "code": "ESRCH"
+    }
+  ],
+  "parentWorldCalls": 0,
+  "parentReferenceCalls": 0,
+  "parentGeometryCalls": 0,
+  "retries": 0,
+  "censusSummaryPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/coupled-arithmetic-build-01/summary.json",
+  "censusProgressPath": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/coupled-arithmetic-build-01/progress.json",
+  "errors": [],
+  "exitAt": "2026-11-03T05:06:18.989Z",
+  "stopRequestedAtMs": 598.349041,
+  "finishedAt": "2026-11-03T05:06:19.002Z",
+  "elapsedMs": 611.587208,
+  "ownedGroupPresentAtFinalization": false,
+  "censusElapsedMs": 604.612583,
+  "cleanupElapsedMs": 13.238166999999976,
+  "output": {
+    "stdout": {
+      "observedBytes": 1305,
+      "capturedBytes": 1305,
+      "omittedBytes": 0,
+      "sha256": "a9e6629f94972edec8161e4410e2ec61ad555546d9cd59efa9e77bfcc0fb45e7",
+      "eof": true,
+      "writeError": null
+    },
+    "stderr": {
+      "observedBytes": 0,
+      "capturedBytes": 0,
+      "omittedBytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "eof": true,
+      "writeError": null
+    }
+  },
+  "censusSummary": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/coupled-arithmetic-build-01/summary.json",
+    "present": false
+  },
+  "censusProgress": {
+    "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/coupled-arithmetic-build-01/progress.json",
+    "present": true,
+    "bytes": 1832,
+    "sha256": "062c40b271f8d36be2ee326e84ab8d74e0e3582f2ab6568fb20d8e4aa16da013",
+    "status": "RUNNING",
+    "counts": null,
+    "referenceCallCounts": null,
+    "firstFailure": null
+  },
+  "callCountBoundary": "Only counts present in original census progress/summary/timing receipts are reported; a timeout never implies the primitive call population completed."
+}

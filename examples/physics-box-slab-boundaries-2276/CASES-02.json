@@ -1,0 +1,289 @@
+{
+  "physical": {
+    "massKg": 2,
+    "halfExtentsM": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "fixedHalfExtentsM": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "dt": 0.0078125
+  },
+  "cases": [
+    {
+      "id": "centered-y-entry",
+      "kind": "finite",
+      "start": [
+        0,
+        2,
+        0
+      ],
+      "velocity": [
+        0,
+        -256,
+        0
+      ]
+    },
+    {
+      "id": "negative-y-entry",
+      "kind": "finite",
+      "start": [
+        0,
+        -2,
+        0
+      ],
+      "velocity": [
+        0,
+        256,
+        0
+      ]
+    },
+    {
+      "id": "axis-x-entry",
+      "kind": "finite",
+      "start": [
+        -2,
+        0,
+        0
+      ],
+      "velocity": [
+        256,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "axis-z-entry",
+      "kind": "finite",
+      "start": [
+        0,
+        0,
+        2
+      ],
+      "velocity": [
+        0,
+        0,
+        -256
+      ]
+    },
+    {
+      "id": "endpoint-entry",
+      "kind": "finite",
+      "start": [
+        0,
+        2,
+        0
+      ],
+      "velocity": [
+        0,
+        -128,
+        0
+      ]
+    },
+    {
+      "id": "beyond-endpoint",
+      "kind": "finite",
+      "start": [
+        0,
+        2,
+        0
+      ],
+      "velocity": [
+        0,
+        -64,
+        0
+      ]
+    },
+    {
+      "id": "separating",
+      "kind": "finite",
+      "start": [
+        0,
+        2,
+        0
+      ],
+      "velocity": [
+        0,
+        128,
+        0
+      ]
+    },
+    {
+      "id": "parallel-outside",
+      "kind": "finite",
+      "start": [
+        2,
+        2,
+        0
+      ],
+      "velocity": [
+        128,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "zero-travel",
+      "kind": "finite",
+      "start": [
+        0,
+        2,
+        0
+      ],
+      "velocity": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "initial-touch-rest",
+      "kind": "finite",
+      "start": [
+        0,
+        1,
+        0
+      ],
+      "velocity": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "initial-overlap-rest",
+      "kind": "finite",
+      "start": [
+        0,
+        0.75,
+        0
+      ],
+      "velocity": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "initial-touch-separating",
+      "kind": "finite",
+      "start": [
+        0,
+        1,
+        0
+      ],
+      "velocity": [
+        0,
+        64,
+        0
+      ]
+    },
+    {
+      "id": "initial-overlap-closing",
+      "kind": "finite",
+      "start": [
+        0,
+        0.75,
+        0
+      ],
+      "velocity": [
+        0,
+        -64,
+        0
+      ]
+    },
+    {
+      "id": "translated-y-entry",
+      "kind": "finite",
+      "start": [
+        1.25,
+        2,
+        -0.5
+      ],
+      "fixtureCenter": [
+        1.25,
+        0,
+        -0.5
+      ],
+      "velocity": [
+        0,
+        -256,
+        0
+      ]
+    },
+    {
+      "id": "torque-refusal",
+      "kind": "command",
+      "command": {
+        "kind": "torque",
+        "bodyId": "moving",
+        "torqueNm": [
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "id": "angular-impulse-refusal",
+      "kind": "command",
+      "command": {
+        "kind": "angularImpulse",
+        "bodyId": "moving",
+        "angularImpulseNms": [
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "id": "negative-moving-quaternion",
+      "kind": "finite",
+      "mutation": "negative-moving-q",
+      "start": [
+        0,
+        2,
+        0
+      ],
+      "velocity": [
+        0,
+        -256,
+        0
+      ],
+      "equivalentTo": "centered-y-entry"
+    },
+    {
+      "id": "negative-fixture-quaternion",
+      "kind": "finite",
+      "mutation": "negative-fixture-q",
+      "start": [
+        0,
+        2,
+        0
+      ],
+      "velocity": [
+        0,
+        -256,
+        0
+      ],
+      "equivalentTo": "centered-y-entry"
+    },
+    {
+      "id": "sensor-fixture",
+      "kind": "admission",
+      "mutation": "sensor-fixture",
+      "expectedError": "INVALID_CONFIG"
+    },
+    {
+      "id": "persistent-profile",
+      "kind": "admission",
+      "mutation": "persistent-profile",
+      "expectedError": "INVALID_CONFIG"
+    }
+  ]
+}

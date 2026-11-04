@@ -1,0 +1,14 @@
+{
+  "status": "PASS_ALL_TRANSACTION_MEMBERS_RECOVERY_AND_CURRENT_TOOL_PINS",
+  "archiveIndexPin": {
+    "bytes": 465291,
+    "sha256": "a94d0350d81bbe9897c04978afa34d0f0bb3a7e2601d486f4f9adea8009e016b"
+  },
+  "logicalMembersVerified": 1421,
+  "backwardHardlinksVerified": 720,
+  "frozenWorkspaceRecoveryVerified": 1226,
+  "toolMetadataVerified": 358,
+  "unsafeExtraction": false,
+  "candidateCalls": 0,
+  "WorldCalls": 0
+}

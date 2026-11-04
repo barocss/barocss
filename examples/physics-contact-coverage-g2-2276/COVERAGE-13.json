@@ -1,0 +1,32 @@
+{
+  "status": "PURE_DYNAMIC_SELECTED_INPUTS_PASS_WORLD_BLOCKED",
+  "date": "2026-11-03",
+  "previousCoverage": "COVERAGE-12.json",
+  "scope": {
+    "status": "PASS_PURE_THREE_INPUTS_AND_EIGHT_ADMISSION_CONTROLS",
+    "commit": "c67bc917e",
+    "results": "examples/physics-coupled-dynamic-efficient-2276/RESULTS.md",
+    "WorldCalls": 0,
+    "perGraphCalls": {
+      "coupledCalls": 11,
+      "directStaticChecks": 2,
+      "topLevelCalls": 13,
+      "underlyingStaticCalls": 13
+    },
+    "sourceNativePackets": 14,
+    "normalization": "NONE",
+    "afterCompleteIntegerOps": 241975,
+    "integerCap": 262144,
+    "rationalOps": 771,
+    "gcdSteps": 23153,
+    "peakBits": 1297,
+    "subdivisionsAndExponent": 66,
+    "oldFirstFailure": "PRESERVED_36f260949_262146_DENIED_ATTEMPT_TRUNCATED_NOT_COMPLETED",
+    "reference": "INDEPENDENT_REFERENCE_READY_c1d9a640c",
+    "runtimeWorldPromotion": "BLOCKED_UNQUALIFIED_ARITHMETIC_BANKS",
+    "sharedCoreAndBoundaryBank": "AUTHORING_ONLY_NOT_EXECUTED",
+    "production13CallCap16": "UNCHANGED_SEPARATE_FROM_NEW_PRIVATE_BANK"
+  },
+  "HOLD": "UNCHANGED",
+  "allFirstFailures": "PRESERVED"
+}

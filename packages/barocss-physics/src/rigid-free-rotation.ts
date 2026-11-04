@@ -1,4 +1,4 @@
-/** Bounded triaxial free flow for the admitted one-step rotor; no retained state. */
+/** Eighth-order composition of implicit midpoint free rotation; no retained state. */
 import type { Body, Quat, Vec3 } from './internal-types.js';
 import { advanceOrientation, inverse, multiplyQuaternion, rotate } from './math.js';
 import { error } from './validation.js';
@@ -25,7 +25,6 @@ export const triaxialFreeRotationCoefficients = Object.freeze({
   exponents, roots, a, b, weights: Object.freeze(expanded),
 });
 
-const MOMENTUM_UNIT = 1 / 16;
 const ROUNDING_UNIT = 2 ** -52;
 const unitVectorBound = (value: Vec3): boolean =>
   value.every((component) => Number.isFinite(component) && Math.abs(component) <= 1);
@@ -133,19 +132,18 @@ function midpoint(p0: Vec3, diagonal: Vec3, signedStep: number): { p: Vec3; omeg
   return { p: guess, omegaMid: middle.map((value, index) => value * diagonal[index]) as Vec3 };
 }
 
-export function prepareTriaxialFreeRotation(body: Body, dt: number): FreeRotationResult | null {
+export function prepareFreeRotation(body: Body, dt: number): FreeRotationResult | null {
   // G1B_PREPARE_ENTRY: one call after actual angular actions/motors, before candidate writes.
-  if (body.kind !== 'dynamic' || body.shape.kind !== 'box') return null;
-  const moments = body.inertiaDiagonalKgM2;
-  if (!moments) error('NUMERIC_LIMIT', 'missing triaxial primitive inertia');
-  if (moments[0] === moments[1] || moments[1] === moments[2] || moments[0] === moments[2]) return null;
-  // G1B_TRIAXIAL_ENTRY: true unequal actual admitted moments, no epsilon class.
+  if (body.kind !== 'dynamic') return null;
+  const moments: Vec3 = body.inertiaDiagonalKgM2 ??
+    [body.inertiaKgM2!, body.inertiaKgM2!, body.inertiaKgM2!];
   if (!moments.every((value) => Number.isFinite(value) && value > 0) ||
-      !Number.isFinite(dt) || dt <= 0 || dt > 1 / 60) {
+      !Number.isFinite(dt) || dt <= 0) {
     error('NUMERIC_LIMIT', 'triaxial flow outside qualified time/inertia bounds');
   }
+  if (moments[0] === moments[1] && moments[1] === moments[2]) return null;
   if (body.angularVelocityRadps.every((value) => value === 0)) {
-    // G1B_ZERO_RETURN: exact zero-copy case, separately qualified later.
+    // Preserve the exact stationary state without scaling zero momentum.
     return { orientation: [...body.orientation], angularVelocityRadps: [...body.angularVelocityRadps] as Vec3 };
   }
   const magnitude = Math.hypot(...body.orientation);
@@ -153,39 +151,47 @@ export function prepareTriaxialFreeRotation(body: Body, dt: number): FreeRotatio
   let orientation = body.orientation.map((value) => value / magnitude) as Quat;
   const localOmega = rotate(inverse(orientation), body.angularVelocityRadps);
   if (!localOmega.every(Number.isFinite)) error('NUMERIC_LIMIT', 'nonfinite triaxial body spin');
+  const momentum = localOmega.map((value, index) => moments[index] * value) as Vec3;
+  const momentumNorm = Math.hypot(...momentum);
+  const momentumScale = 2 * momentumNorm;
+  if (!momentum.every(Number.isFinite) || !Number.isFinite(momentumScale) || momentumNorm === 0) {
+    error('NUMERIC_LIMIT', 'free rotation momentum outside finite range');
+  }
   if (localOmega.filter((value) => value !== 0).length === 1) {
-    // G1B_PRINCIPAL_RETURN: exact uniform principal-spin reduction, later controls.
+    // A single body-axis component has exact uniform rotation.
     return { orientation: advanceOrientation(orientation, body.angularVelocityRadps, dt),
       angularVelocityRadps: [...body.angularVelocityRadps] };
   }
-  // G1B_GENERAL_ENTRY: M follows this fixed27-stage path, with no retained momentum.
-  const diagonal = moments.map((value) => MOMENTUM_UNIT / value) as Vec3;
-  if (!diagonal.every(Number.isFinite) ||
-      2 * Math.max(Math.abs(diagonal[2] - diagonal[1]), Math.abs(diagonal[0] - diagonal[2]),
-        Math.abs(diagonal[1] - diagonal[0])) >= 5) {
-    error('NUMERIC_LIMIT', 'triaxial derivative outside qualified range');
+  const diagonal = moments.map((value) => momentumScale / value) as Vec3;
+  let p = momentum.map((value) => value / momentumScale) as Vec3;
+  if (!diagonal.every(Number.isFinite) || Math.hypot(...p) > 1 / 2 + 4 * ROUNDING_UNIT) {
+    error('NUMERIC_LIMIT', 'free rotation scaled momentum outside bound');
   }
-  let p = localOmega.map((value, index) => moments[index] * value / MOMENTUM_UNIT) as Vec3;
-  const momentumNorm = Math.hypot(...p);
-  // G1B_INITIAL_MOMENTUM: observe actual moments/diagonal/localOmega/p/momentumNorm.
-  if (!Number.isFinite(momentumNorm) || momentumNorm >= 15 / 16) {
-    error('NUMERIC_LIMIT', 'triaxial momentum outside qualified range');
+  const maximumDifference = Math.max(Math.abs(diagonal[2] - diagonal[1]),
+    Math.abs(diagonal[0] - diagonal[2]), Math.abs(diagonal[1] - diagonal[0]));
+  const maximumWeight = Math.max(...triaxialFreeRotationCoefficients.weights.map(Math.abs));
+  // |p_i| <= 1 gives ||h F'(p)/2||_infinity <= |h| max |D_i-D_j|.
+  const subdivisions = Math.max(1, Math.ceil(4 * maximumWeight * dt * maximumDifference));
+  if (!Number.isFinite(subdivisions) || subdivisions > 64) {
+    error('NUMERIC_LIMIT', 'free rotation exceeded internal subdivision limit');
   }
-  for (let stage = 0; stage < 27; stage++) {
-    const weight = triaxialFreeRotationCoefficients.weights[stage];
-    if (!Number.isFinite(weight) || Math.abs(weight) >= 3) error('NUMERIC_LIMIT', 'invalid triaxial composition coefficient');
-    const signedStep = weight * dt;
-    const prepared = midpoint(p, diagonal, signedStep);
-    const vector = prepared.omegaMid.map((value) => signedStep * value / 2) as Vec3;
-    const deltaNorm = Math.hypot(...vector, 1);
-    if (!Number.isFinite(deltaNorm) || deltaNorm === 0) error('NUMERIC_LIMIT', 'invalid Cayley increment');
-    const delta: Quat = [vector[0] / deltaNorm, vector[1] / deltaNorm, vector[2] / deltaNorm, 1 / deltaNorm];
-    const composed = multiplyQuaternion(orientation, delta);
-    const composedNorm = Math.hypot(...composed);
-    if (!Number.isFinite(composedNorm) || composedNorm === 0) error('NUMERIC_LIMIT', 'nonfinite Cayley orientation');
-    orientation = composed.map((value) => value / composedNorm) as Quat;
-    p = prepared.p;
-    // G1B_STAGE_COMPLETE: observe stage/weight/signedStep/p/orientation without recomputation.
+  for (let subdivision = 0; subdivision < subdivisions; subdivision++) {
+    for (let stage = 0; stage < 27; stage++) {
+      const weight = triaxialFreeRotationCoefficients.weights[stage];
+      if (!Number.isFinite(weight) || Math.abs(weight) >= 3) error('NUMERIC_LIMIT', 'invalid triaxial composition coefficient');
+      const signedStep = weight * (dt / subdivisions);
+      const prepared = midpoint(p, diagonal, signedStep);
+      const vector = prepared.omegaMid.map((value) => signedStep * value / 2) as Vec3;
+      const deltaNorm = Math.hypot(...vector, 1);
+      if (!Number.isFinite(deltaNorm) || deltaNorm === 0) error('NUMERIC_LIMIT', 'invalid Cayley increment');
+      const delta: Quat = [vector[0] / deltaNorm, vector[1] / deltaNorm, vector[2] / deltaNorm, 1 / deltaNorm];
+      const composed = multiplyQuaternion(orientation, delta);
+      const composedNorm = Math.hypot(...composed);
+      if (!Number.isFinite(composedNorm) || composedNorm === 0) error('NUMERIC_LIMIT', 'nonfinite Cayley orientation');
+      orientation = composed.map((value) => value / composedNorm) as Quat;
+      p = prepared.p;
+      // G1B_STAGE_COMPLETE: observe stage/weight/signedStep/p/orientation without recomputation.
+    }
   }
   const angularVelocityRadps = rotate(orientation, p.map((value, index) => value * diagonal[index]) as Vec3);
   // G1B_GENERAL_RETURN: validate this result at the World boundary before assignment.

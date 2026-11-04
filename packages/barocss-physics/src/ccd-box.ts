@@ -9,7 +9,7 @@ const ANGULAR_TOLERANCE = 1e-12;
 export function axisAlignedBox(body: Body): boolean {
   return body.shape.kind === 'box' &&
     body.orientation.slice(0, 3).every((component) => Math.abs(component) <= ANGULAR_TOLERANCE) &&
-    Math.abs(body.orientation[3] - 1) <= ANGULAR_TOLERANCE &&
+    Math.abs(Math.abs(body.orientation[3]) - 1) <= ANGULAR_TOLERANCE &&
     body.angularVelocityRadps.every((component) => Math.abs(component) <= ANGULAR_TOLERANCE);
 }
 

@@ -1,0 +1,21 @@
+# Public Viewer consumer: two/three-body contact through512
+
+Root alone builds/serves/executes. Build requires explicit paid DT and long result paths, actual sourceIntegrity PASS, both32 barriers,6World840steps per DT graph and2World1024steps per long graph, plus controls01 CONTACT_CONVERGENCE_OBSERVER_CONTROLS_CONFIRMED with0World/candidate. No numerical or provider file changes. Example commands, using fresh IDs:
+
+```
+node examples/physics-contact-convergence-2276/server.mjs --build contact-viewer-01 --dt examples/physics-contact-convergence-2276/evidence/dt-02/result.json --long examples/physics-contact-convergence-2276/evidence/long-01/result.json
+node examples/physics-contact-convergence-2276/server.mjs contact-viewer-01
+node examples/physics-contact-convergence-2276/browser-run.mjs contact-viewer-01
+```
+
+Loopback53050. Genuine canonical Native Physics root comes from the qualified long result's buildManifest. Actual workspace public @barocss/viewer / GPU Source are bundled with existing ownedPackages; this is not a new Native whole-Viewer package claim. The Root-owned display.mjs and VIEWER-ADAPTER-CONTRACT.md are authenticated dependencies. No direct-WebGPU renderer fallback, product Viewer/GPU changes, React/CAD Studio changes, marker API or fluid-marker substitution exists.
+
+Worker owns sole public directWorld, step([]), max512, no recorder/restore. Initial two-body World1 has0steps; reset createsWorld2, which accepts512. Selecting three-body createsWorld3, which accepts512. Formal total3Worlds/1024accepted; each case retains513 actual states. Start/pause/resume/step/reset and camera/1280/1440/1920 use one outstanding worker message and coherent model/state epoch handling. No expected pose becomes physics input. Display receives each newly accepted state once; status/control updates do not resubmit unchanged poses or advance Physics.
+
+Every actual trajectory is captured as five bounded packets[0,32],[32,128],[128,256],[256,384],[384,512] per case, one boundary overlap. FullJSON and ALLbinary64 words match the same paid Native window packets exactly. Host retains expected files only; GET serves authored initial models/options/windows, never expected states. Max513 states retained in current browser case; no monolithic oversized513-word packet or recording claim. Host capture identity/order/scene/step bounds and fixed proofID are strict, all ten packets preserved.
+
+Real public Viewer setPackets/applyMotionFrame path displays centered box proxies for3/4 bodies. Explicit contact_lab bindings link accepted body ID to surface ID. Physics metres become pose mm once, scale1; Viewer mmToSceneUnit.001 yields scene metres. Basis part-xyz-matches-rhyup/sourceUnitmm/right-handed-y-up is explicit; no silent CAD Z/Y conversion. Fresh Viewer owns no assembly; public applyMotionFrame refuses assembly authored pose override. Translation<=10000mm/time<=3600s and existing Viewer bounds remain unchanged. Raw proxy packet corners plus public motion.displayPoses are independently quaternion-transformed and checked within1e-6m. These are public pose/packet observations, not private GPU Float32 buffer measurements. Native CAD provenance is false; arbitrary CAD assemblies are not qualified.
+
+Actual public Viewer readPixels640×360 RGBA establishes physical display changes: original blue>40 predicate/initial colored>100/physical changed pixels>10. Same-camera held/flight20 images are compared; actual pre26/interface27/final512 screenshots and public pose mappings are checked. Adjacent floor/lower/(middle)/upper contacts only; lower and middle support from1, upper from27. Contact markers are explicitly unsupported and no checkbox is shown. Geometry1e-12 numerical gates remain the independent oracle's;1e-6 display mapping is separate. Energies are model-derived with body-local rotation frame and separate potential, not conservation.
+
+Inner170/outer180 browser guard, POST2MiB/window, words512KiB, proof16MiB includingCLI/screenshots, bundle16MiB/assets1MiB/metadata1MiB/2048 inputs. Serve authenticates prebuilt bytes without rebuild. Exact used numerical, adapter, Viewer/GPU, provider and input hashes before build/after browser. First failures remain; no automatic retry, cap/time/tolerance raise. No mobile, deployment, Studio/worker/HOLD release, general contact or moving-eight claim.

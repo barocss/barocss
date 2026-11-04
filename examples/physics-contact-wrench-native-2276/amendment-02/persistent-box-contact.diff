@@ -1,0 +1,32 @@
+--- native01/persistent-box-contact.ts
++++ native02/persistent-box-contact.ts
+@@ -1,11 +1,11 @@
+-import {actualContribution,emptyContribution,combineContribution} from './producer.js';
++import {actualContribution,emptyContribution,combineContribution,type PairContribution} from './producer.js';
+ import { bodyWords, phaseKind, phaseApplyBefore, phaseApplyAfter, phaseNoNormal, phaseCorrectionBefore, phaseCorrectionAfter } from './private-phase.js';
+ import type { Body, Vec3 } from './internal-types.js';
+ import { add, cross, dot, inverseInertia, scale, sub } from './math.js';
+ 
+ export interface PointImpulse { normalNs: number; tangentNs: Vec3 }
+ 
+-function apply(a: Body, b: Body, pointM: Vec3, impulse: Vec3): any {
++function apply(a: Body, b: Body, pointM: Vec3, impulse: Vec3): PairContribution {
+   const traceApply = phaseApplyBefore(a,b,pointM,impulse);
+   const armA = sub(pointM, a.positionM), armB = sub(pointM, b.positionM);
+   a.velocityMps = sub(a.velocityMps, scale(impulse, a.inverseMass));
+@@ -33,13 +33,13 @@
+ }
+ 
+ export function warmStartPoint(a: Body, b: Body, pointM: Vec3, normal: Vec3,
+-  impulse: PointImpulse): any {
++  impulse: PointImpulse): PairContribution {
+   phaseKind('warm',{actualPriorApplication:true});
+   return apply(a, b, pointM, add(scale(normal, impulse.normalNs), impulse.tangentNs));
+ }
+ 
+ export function solvePersistentPoint(a: Body, b: Body, pointM: Vec3, normal: Vec3,
+-  impulse: PointImpulse, normalTargetMps: number): any {
++  impulse: PointImpulse, normalTargetMps: number): PairContribution {
+   let producerContribution=emptyContribution();
+   const normalSpeed = dot(relativeVelocity(a, b, pointM), normal);
+   const normalMass = effectiveInverseMass(a, b, pointM, normal);

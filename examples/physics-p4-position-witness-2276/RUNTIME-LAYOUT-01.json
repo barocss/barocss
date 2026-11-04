@@ -1,0 +1,31 @@
+{
+  "kind": "ROOT_RUNTIME_OBJECT_LAYOUT_METADATA",
+  "python": "3.13.5 (main, Jun 11 2025, 15:36:57) [Clang 17.0.0 (clang-1700.0.13.3)]",
+  "executable": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+  "executablePin": {
+    "bytes": 52640,
+    "sha256": "a1f6d9dc20d4787a84dc2fe782094a7bac5946f49a962aa0af48a02f0e8d5bc5"
+  },
+  "intInfo": {
+    "bitsPerDigit": 30,
+    "sizeofDigit": 4
+  },
+  "sizes": {
+    "int0": 28,
+    "int1": 28,
+    "int8192Bits": 1120,
+    "int16385Bits": 2212,
+    "emptyList": 56,
+    "list24": 248,
+    "list25": 256,
+    "tuple2": 56,
+    "emptyDict": 64,
+    "emptyAscii": 41,
+    "ascii2467": 2508
+  },
+  "purpose": "Conservative explicit-data preallocation bounds; this is metadata calibration, not a candidate or physics oracle call",
+  "candidateCalls": 0,
+  "referenceCalls": 0,
+  "WorldCalls": 0,
+  "rssMeasured": false
+}

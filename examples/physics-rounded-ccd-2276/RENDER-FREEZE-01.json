@@ -1,0 +1,42 @@
+{
+  "phase": "after independent Source/Native geometry and public API pass; before desktop GPU calls",
+  "desktopOnly": true,
+  "files": {
+    "examples/physics-rounded-ccd-2276/CONTRACT.md": {
+      "bytes": 4256,
+      "sha256": "7cd89e8c19d8d3bc7e9cebb6ee4342cd75a96f3bdb145ef14a2c72ca358a7cbf"
+    },
+    "examples/physics-rounded-ccd-2276/browser-checks.js": {
+      "bytes": 6856,
+      "sha256": "32dcb576e16c09190f306034e1744da2796f121ea1b836b9b79815a983286244"
+    },
+    "examples/physics-rounded-ccd-2276/browser-run.mjs": {
+      "bytes": 3080,
+      "sha256": "5fcfe3f4ada8fb9e4dc697fcd9414a81917fab45c7166e3ebdfa10c38ff63184"
+    },
+    "examples/physics-rounded-ccd-2276/scene/app.mjs": {
+      "bytes": 8869,
+      "sha256": "ba3df5d7b2cb13b5eb303a64261cd7fb46a08a9b33e3dd9dc6b8b3615a27e639"
+    },
+    "examples/physics-rounded-ccd-2276/scene/display.mjs": {
+      "bytes": 7120,
+      "sha256": "f17b88180ace4580b239d81d7e51ff7fa99c462f9072ed1808318890c3f1864d"
+    },
+    "examples/physics-rounded-ccd-2276/scene/index.html": {
+      "bytes": 3217,
+      "sha256": "65c3f2c5ef685564166bae93e0700332d9c2bd89b69f4557ce80a8856d5f1fea"
+    },
+    "examples/physics-rounded-ccd-2276/scene/scenario.mjs": {
+      "bytes": 2327,
+      "sha256": "cf7256e29d801084b3cee5344997b7c3fa1c560ad132366d9ef3f4e8ad5ffccc"
+    },
+    "examples/physics-rounded-ccd-2276/scene/server.mjs": {
+      "bytes": 2899,
+      "sha256": "85302b8d63e4c230bd6448b26003ebfe44adaf2335bad02aadf0ebbd801c14ff"
+    },
+    "examples/physics-rounded-ccd-2276/scene/style.css": {
+      "bytes": 3449,
+      "sha256": "6311173a1a397609a81aeb47227cb59ca1aefe6628b057a3bb9e9a7ece6c6fc5"
+    }
+  }
+}

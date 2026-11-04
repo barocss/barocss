@@ -1,0 +1,51 @@
+--- qualified-integer-sat-02
++++ primitive-axis-candidate
+@@ -19,6 +19,9 @@
+         self.peak_bits = 0
+         self.axes = 0
+         self.models = 0
++        self.primitive_axis_attempts = 0
++        self.primitive_axis_reductions = 0
++        self.largest_axis_divisor_bits = 0
+ 
+     def tick(self):
+         self.operations += 1
+@@ -89,9 +92,24 @@
+             current = following
+         raise MicroFailure('SQRT_ITERATION_LIMIT')
+ 
++    def primitive_axis(self, axis):
++        self.primitive_axis_attempts += 1
++        for coordinate in axis:
++            self.checked(coordinate)
++        self.tick()
++        common = self.checked(math.gcd(*axis))
++        self.largest_axis_divisor_bits = max(self.largest_axis_divisor_bits, common.bit_length())
++        if common <= 1:
++            return axis
++        self.primitive_axis_reductions += 1
++        return tuple(self.div(coordinate, common) for coordinate in axis)
++
+     def stats(self):
+         return dict(integerOperations=self.operations, peakIntegerBits=self.peak_bits,
+-                    axisVisits=self.axes, conventionProblems=self.models)
++                    axisVisits=self.axes, conventionProblems=self.models,
++                    primitiveAxisAttempts=self.primitive_axis_attempts,
++                    primitiveAxisReductions=self.primitive_axis_reductions,
++                    largestAxisDivisorBits=self.largest_axis_divisor_bits)
+ 
+ 
+ def dyadic(value):
+@@ -214,6 +232,12 @@
+         if zero:
+             classifications.append(dict(axis=index, exactZero=True, nearParallel=False, marginSign=None))
+             continue
++        # Original zero and near-parallel predicates above use the ORIGINAL
++        # axis and denominator. Only homogeneous physical calculations shrink.
++        reduced = m.primitive_axis(axis)
++        if reduced is not axis:
++            axis = reduced
++            square = m.dot(axis, axis)
+         support_a = sum_support(ha, ba.columns, axis, m)
+         support_b = sum_support(hb, bb.columns, axis, m)
+         center = abs(m.dot(delta, axis))

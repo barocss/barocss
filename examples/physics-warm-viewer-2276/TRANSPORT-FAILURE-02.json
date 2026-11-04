@@ -1,0 +1,389 @@
+{
+  "status": "ACTUAL_RENDER_PASS_THEN_DATA_TRANSPORT_AUDIT_FAILURE",
+  "date": "2026-11-03",
+  "desktop": {
+    "status": "PASS_DESKTOP_WARM_VIEWER_ONLY",
+    "checks": [
+      {
+        "name": "actual browser emitted ESM schema2 and finite paused World",
+        "status": "PASS"
+      },
+      {
+        "name": "full and contact-detail GPU pixels accepted matrices projections markers",
+        "status": "PASS"
+      },
+      {
+        "name": "A step1 actual recorder prefix and clock",
+        "status": "PASS"
+      },
+      {
+        "name": "A step2 actual accepted geometry wrench and detail motion",
+        "status": "PASS"
+      },
+      {
+        "name": "desktop1280/1440/1920 camera panels and actual marker pixels",
+        "status": "PASS"
+      },
+      {
+        "name": "stored-frame select and play never advance clock or counts",
+        "status": "PASS"
+      },
+      {
+        "name": "genuine public wire serializer and decoder hidden Worlds",
+        "status": "PASS"
+      },
+      {
+        "name": "public restore returns actual live D raw prefix",
+        "status": "PASS"
+      },
+      {
+        "name": "D continuation raw A2 parity and terminal guards",
+        "status": "PASS"
+      },
+      {
+        "name": "lossless original browser trace export and zero runtime/network errors",
+        "status": "PASS"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "networkErrors": [],
+    "actualCounts": {
+      "worlds": 4,
+      "attempts": 6,
+      "records": 898,
+      "applications": 594,
+      "queries": 58,
+      "queryPoints": 58,
+      "anchorChecks": 1566,
+      "traceBytes": 4189638
+    },
+    "guard": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 11218.723084,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-warm-viewer-2276/browser-run.mjs",
+        "desktop-02",
+        "http://127.0.0.1:53000"
+      ]
+    }
+  },
+  "capture": {
+    "status": "SAVED_BROWSER_RAW_WORD_PROOF",
+    "proofId": "desktop-02",
+    "file": "examples/physics-warm-viewer-2276/evidence/browser-desktop-02/proof.json",
+    "rawRequestBytes": 6408953,
+    "rawRequestSHA256": "a1de64902db20524129e9a5c53df0569550e5875e7ada00aae4c032416003ebf",
+    "storedBytes": 2074618,
+    "storedSHA256": "6b7cf9ac135305e70b6926494a1fa5a84e50b92d49de736754cc861a026996b8",
+    "providerReceipt": {
+      "bytes": 180705,
+      "sha256": "bc7ccc41857c8eef203007e39ec5f100cf0655f31fbb75aa39297fc86f11f1db"
+    },
+    "runCompletion": "TERMINAL_SUCCESS_CAPTURE",
+    "physicsObserver": "NOT_RUN",
+    "browserNodeParity": "NOT_RUN",
+    "expandedCanonicalSha256": "a1de64902db20524129e9a5c53df0569550e5875e7ada00aae4c032416003ebf",
+    "expandedCanonicalBytes": 6408953,
+    "proofTransport": "ORIGINAL_FULL_ACTUAL_BROWSER_PROOF_RETAINED_UNCHANGED"
+  },
+  "auditFailure": {
+    "status": "ACTUAL_DATA_DECODER_RESOURCE_FAILURE_BEFORE_PHYSICAL_OBSERVERS",
+    "guard": {
+      "status": "FAIL",
+      "exit": 1,
+      "elapsedMs": 799.101,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "command": [
+        "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+        "-B",
+        "examples/physics-warm-viewer-2276/audit-browser.py",
+        "examples/physics-warm-viewer-2276/evidence/browser-desktop-02/proof.json",
+        "examples/physics-warm-viewer-2276/evidence/browser-desktop-02/physics-audit-01"
+      ]
+    },
+    "stderrFile": "examples/physics-world-p5-2276/evidence/warm-viewer-physics-audit-02/stderr.raw",
+    "stderrPin": {
+      "bytes": 1536,
+      "sha256": "359298b48d634511c860da4b2cf063b530525bc297b0facddbcdf0fee900a4ea"
+    },
+    "exactError": "ValueError: Expanded canonical trace resource bound",
+    "failingFunction": "qualified trace_decode.py fingerprint(decoded) full root",
+    "failingLimit": "MAX_CANONICAL_FRAGMENTS=1000000",
+    "expandedByteLimit": 16777216,
+    "storedAndExpandedBytesWithinLimit": true,
+    "observerCalls": 0,
+    "independentPhysicalChecks": "NOT_RUN",
+    "physicalFailure": "NOT_ESTABLISHED",
+    "observerOutputDirectory": "examples/physics-warm-viewer-2276/evidence/browser-desktop-02/physics-audit-01",
+    "observerOutputFiles": 0
+  },
+  "browserNodeParity": "NOT_RUN",
+  "firstDesktop01": {
+    "status": "PRESERVED_SEPARATELY_ACTUAL_CAPTURE_FAILURE",
+    "fullPhaseHistory": "NOT_RETAINED",
+    "metadata": "examples/physics-warm-viewer-2276/CAPTURE-FAILURE-01.json"
+  },
+  "executedCodePins": {
+    "examples/physics-warm-viewer-2276/SOURCE-PINS-03.json": {
+      "bytes": 178798,
+      "sha256": "76573fe625b6beaf7a4b678b3d21ca17519c018631a76cd42819732d5dcc26ce"
+    },
+    "examples/physics-warm-viewer-2276/EXECUTION-REVIEW-03.json": {
+      "bytes": 508,
+      "sha256": "01a8e703749246caf53a7c440d61e28b576d055daaafed03a3f09cb8c833c4cd"
+    },
+    "examples/physics-warm-viewer-2276/scene/server.mjs": {
+      "bytes": 7793,
+      "sha256": "5527ac2397b35c9cad6305dcddf90a646590bdd80eb9ad68004d78f44b0589e8"
+    },
+    "examples/physics-warm-viewer-2276/scene/app.mjs": {
+      "bytes": 10527,
+      "sha256": "c4ba5f3b01d9de10e0bf37c4198fc3e2570ebf8b67eba8aaa51ea1141f2d474b"
+    },
+    "examples/physics-warm-viewer-2276/scene/display.mjs": {
+      "bytes": 7416,
+      "sha256": "0c80b1174f2db3517ac3043d53cf6a159306bb0f71a54626967bed655fdd1382"
+    },
+    "examples/physics-warm-viewer-2276/audit-browser.py": {
+      "bytes": 7858,
+      "sha256": "fcc89dece81f4aafde9d1b4d1062fb423cb81607cd2c47d17a60552a8114404a"
+    },
+    "examples/physics-warm-viewer-2276/browser-node-parity.py": {
+      "bytes": 4537,
+      "sha256": "d569c97304d30bf28691d9d78a78ab486afc2f304b10db79d8a7e378a53583db"
+    },
+    "examples/physics-warm-viewer-2276/browser-run.mjs": {
+      "bytes": 3356,
+      "sha256": "122b06780fe9fd16b2244445ea03efc567ae0ec82494ba870ca5b3c25dc7c46f"
+    },
+    "examples/physics-warm-viewer-2276/browser-checks.js": {
+      "bytes": 12675,
+      "sha256": "75ef95fea16233b59673559189018844622f37a531f2df9a8093020c804b7fb0"
+    },
+    "examples/physics-warm-viewer-2276/output/scene/app.mjs": {
+      "bytes": 1619628,
+      "sha256": "3d37387f3e7b0ffdb4fef6b524dd7aab7bb05297dc8a4c67f5239e902575f793"
+    },
+    "examples/physics-warm-viewer-2276/output/scene/inputs.json": {
+      "bytes": 124359,
+      "sha256": "09d4f3dd546d3329a1cf9affa4152c2e97f2aa1c047b6dbc6d8442398514ed83"
+    },
+    "examples/physics-contact-wrench-producer-2276/trace_decode.py": {
+      "bytes": 2340,
+      "sha256": "db499d56e4e9db398ab0232b38ddf090f80449e9ea0322957b4cad810021a806"
+    }
+  },
+  "originalArtifactPins": {
+    "output/playwright/warm-viewer/desktop-02/visible-data.png": {
+      "bytes": 185226,
+      "sha256": "5af24ce5c2a05cb0a119b4bad00a25577c4e68c4be23935debc896a1dd4b69ec"
+    },
+    "output/playwright/warm-viewer/desktop-02/open.stdout": {
+      "bytes": 242,
+      "sha256": "ceca123da66cb046157e866554cdf1933c1f615acc47ef0829afb87fd6eb4bdb"
+    },
+    "output/playwright/warm-viewer/desktop-02/report.json": {
+      "bytes": 1656655,
+      "sha256": "b27d970d5c8ca4f7dfea6b747074dc36709b44b050b43533eb006e640b93833f"
+    },
+    "output/playwright/warm-viewer/desktop-02/close.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "output/playwright/warm-viewer/desktop-02/checks.stdout": {
+      "bytes": 621346,
+      "sha256": "fb368d5e508d1dcf7000d6c0938ac375198de01ca6b51534b1c28c7a60387c7a"
+    },
+    "output/playwright/warm-viewer/desktop-02/checks.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "output/playwright/warm-viewer/desktop-02/browser-checks.js": {
+      "bytes": 12629,
+      "sha256": "c08f2b0e204b347b0cf995d06f83df75e36f194fb05ce1f4ccbe6c8909cb4c92"
+    },
+    "output/playwright/warm-viewer/desktop-02/close.stdout": {
+      "bytes": 47,
+      "sha256": "fcebd7ddc8d9ab42d34cc03681a58c02212bb0ba861bcfb20c3b54088930961d"
+    },
+    "output/playwright/warm-viewer/desktop-02/open.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "output/playwright/warm-viewer/desktop-02/desktop-1920.png": {
+      "bytes": 112177,
+      "sha256": "e76d9f51842b0a476bcb973f5e56be48214ad38d51e98ca330f4826a8a59aa95"
+    },
+    "output/playwright/warm-viewer/desktop-02/accepted-A2.png": {
+      "bytes": 105650,
+      "sha256": "0e6a23b94acbcc3cae6796b307f8173a666de1c1a97f747fcc8e46c56aaa9e4c"
+    },
+    "output/playwright/warm-viewer/desktop-02/desktop-1440.png": {
+      "bytes": 105650,
+      "sha256": "0e6a23b94acbcc3cae6796b307f8173a666de1c1a97f747fcc8e46c56aaa9e4c"
+    },
+    "output/playwright/warm-viewer/desktop-02/inputs.json": {
+      "bytes": 390,
+      "sha256": "bd8ce12188ee21b8b02a1c3773ba157a8524da4e29ad467102a8a8195b4fadc9"
+    },
+    "output/playwright/warm-viewer/desktop-02/open.process.json": {
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    "output/playwright/warm-viewer/desktop-02/checks.process.json": {
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    "output/playwright/warm-viewer/desktop-02/desktop-1280.png": {
+      "bytes": 102697,
+      "sha256": "763e33f1afc627931a727ecedf82c4421e8d8a84c30efb21e61f2c8c0b24c5bd"
+    },
+    "output/playwright/warm-viewer/desktop-02/restored-D2.png": {
+      "bytes": 112205,
+      "sha256": "c85f624a4bf8adeed2356c023fe300e5e9f55912fb7a4a5e011b13de3ffddb74"
+    },
+    "output/playwright/warm-viewer/desktop-02/close.process.json": {
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+    },
+    "examples/physics-warm-viewer-2276/evidence/browser-desktop-02/capture.json": {
+      "bytes": 635,
+      "sha256": "9f7c467ad348668d574f0d168131dd239c4984a3a2968a03500174af9257a8d9"
+    },
+    "examples/physics-warm-viewer-2276/evidence/browser-desktop-02/proof.json": {
+      "bytes": 2074618,
+      "sha256": "6b7cf9ac135305e70b6926494a1fa5a84e50b92d49de736754cc861a026996b8"
+    }
+  },
+  "guardFilePins": {
+    "examples/physics-world-p5-2276/evidence/warm-viewer-build-02/result.json": {
+      "bytes": 2990,
+      "sha256": "3cd8367eb5cf50f6cfb5a4e983986e8937ace8daa89c6c207f3ad6a5f052e417"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-build-02/prepared.json": {
+      "bytes": 1485,
+      "sha256": "80df1a79525802674bc08b7ae429478f9897c6d8e6aa6a87440f747219a4b424"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-build-02/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-build-02/start.json": {
+      "bytes": 1507,
+      "sha256": "62e3d2509b586e4d6c562e7fe28517e0ff53fce733951d51b9878d6ad2b80ab3"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-build-02/progress.json": {
+      "bytes": 1584,
+      "sha256": "e60c449376e5c784507b75dda05397ebfe612da85a3aac5822e0412ad52f9c43"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-build-02/stdout.raw": {
+      "bytes": 124360,
+      "sha256": "58d86bfba238133ce8149fd8de740aaa7b04d3f10e76fe84483daeb26b43596f"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-desktop-02/result.json": {
+      "bytes": 3035,
+      "sha256": "153b4366800e8438b4724622f277a0ffc1588f36289dc654c410721d02e02dd1"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-desktop-02/prepared.json": {
+      "bytes": 1525,
+      "sha256": "80de5c654e98f8322c7c9a052adc9530bdba7d83c834e1a5a655ad9cc7e26b48"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-desktop-02/stderr.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-desktop-02/start.json": {
+      "bytes": 1547,
+      "sha256": "0f0f29a22e355f6007cbfc4adcb747f4adc7ac2726589aaa49ea4cc36f528bc6"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-desktop-02/progress.json": {
+      "bytes": 1623,
+      "sha256": "a44d33b86c2595fe0f59fb8aa070477e9cf98c4d12fc9fea9805f8f3f721145b"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-desktop-02/stdout.raw": {
+      "bytes": 1046,
+      "sha256": "5c46f2c231a30e1557fa7ed340d0a94c73aabb0ea2970cc784f9ab34d05405b2"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-physics-audit-02/result.json": {
+      "bytes": 3433,
+      "sha256": "f6d5bb13d873bbad711d6085ae6a5a66a4ba212c108cc782423524d0adc5ca0c"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-physics-audit-02/prepared.json": {
+      "bytes": 1722,
+      "sha256": "ea716ccbfd09e9855e11dbf002313e64e77398d52eb3551aa1a5095a6ef62008"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-physics-audit-02/stderr.raw": {
+      "bytes": 1536,
+      "sha256": "359298b48d634511c860da4b2cf063b530525bc297b0facddbcdf0fee900a4ea"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-physics-audit-02/start.json": {
+      "bytes": 1744,
+      "sha256": "99cd7bb6ff570463615334696922ebc25aa9638ea9495d7c6b919452fab092b6"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-physics-audit-02/progress.json": {
+      "bytes": 2038,
+      "sha256": "e9366b89905fd8a1d04c40037709abef4beb86b88cda1fbd6ffd8dae270176fc"
+    },
+    "examples/physics-world-p5-2276/evidence/warm-viewer-physics-audit-02/stdout.raw": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "allGuardSummaries": {
+    "warm-viewer-build-02": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 707.542208,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-warm-viewer-2276/scene/server.mjs",
+        "--build"
+      ]
+    },
+    "warm-viewer-desktop-02": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 11218.723084,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "examples/physics-warm-viewer-2276/browser-run.mjs",
+        "desktop-02",
+        "http://127.0.0.1:53000"
+      ]
+    },
+    "warm-viewer-physics-audit-02": {
+      "status": "FAIL",
+      "exit": 1,
+      "elapsedMs": 799.101,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false,
+      "command": [
+        "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+        "-B",
+        "examples/physics-warm-viewer-2276/audit-browser.py",
+        "examples/physics-warm-viewer-2276/evidence/browser-desktop-02/proof.json",
+        "examples/physics-warm-viewer-2276/evidence/browser-desktop-02/physics-audit-01"
+      ]
+    }
+  },
+  "subsequentWork": {
+    "scope": "New04 DATA-only DAG-aware verified-span decoder/adapters owned by other agents",
+    "original03Sources": "IMMUTABLE",
+    "sameBrowserProofRequired": true,
+    "anotherBrowserOrWorldRun": "NOT_AUTHORIZED_BY_THIS_RECORD",
+    "capsAndPhysicsGates": "UNCHANGED"
+  },
+  "metadataWorldCalls": 0,
+  "metadataDecoderOrObserverCalls": 0,
+  "promotion": "BLOCKED"
+}

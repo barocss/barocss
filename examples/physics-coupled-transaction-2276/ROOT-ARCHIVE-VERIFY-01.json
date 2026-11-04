@@ -1,0 +1,15 @@
+{
+  "status": "ROOT_INDEPENDENT_FULL_ARCHIVE_READBACK_PASS",
+  "indexPin": {
+    "bytes": 961929,
+    "sha256": "4abd7244367486501667f5be0a58f9d4f580fb08b5752dc1964b876eff1f07de"
+  },
+  "logicalMembers": 1459,
+  "hardlinks": 817,
+  "recoveryMappings": 1347,
+  "uncompressedTarBytes": 14376960,
+  "allMemberHashesAndLinkTargetsAndCurrentInputs": "VERIFIED",
+  "WorldCalls": 0,
+  "protocol": "PRESERVED_SOURCE_PARTIAL_PASS_HIDDEN_POSTDISPOSE_OBSERVATION_NO_GO",
+  "postArchiveSupplementalReceipt": true
+}

@@ -1,19 +1,41 @@
 {
-  "asOf": "2026-11-02",
-  "branch": "codex/physics-world-p5-2276",
+  "asOf": "2026-11-04",
+  "branch": "codex/physics-contact-coherence-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "G1e exact one-step isolated rotor, nonprincipal angular impulse and continuous world torque",
-    "status": "ADOPTED_BOUNDED_SOURCE_AND_CANONICAL_ROOT_REPLAY",
-    "scope": "Actual16World16accepted incl2internalreplay,6independentendpointaudits,18steprefusals24configrefusals. Wider dynamicnoncubicboxes explicitlyunsupported. Newcontinuous-forcefirstfailurepreserved.",
-    "results": "examples/physics-rigid-rotation-g1e-2276/evidence/g1e-canonical-01/summary.json"
+    "status": "CONTACT_COHERENCE_TWO_THREE512_PASS_EXTENDED866_NO_GO",
+    "source": "b064c35dbbbfec85ce91f6140adc9e98fb0efeac754ce65768a69c56ae910880",
+    "longPerGraph": {
+      "worlds": 2,
+      "accepted": 1024,
+      "independent": 1024,
+      "references": 10
+    },
+    "dtPerGraph": {
+      "worlds": 6,
+      "accepted": 840,
+      "independent": 840,
+      "references": 14
+    },
+    "extended": {
+      "firstViolation": 866,
+      "metric": "middle lateralPositionM",
+      "actual": 1.0037318971762749e-10,
+      "limit": 1e-10,
+      "sourceAccepted": 896,
+      "sourceIndependent": 768,
+      "nativeAcceptedAndIndependent": 768
+    },
+    "desktop": "NEW_PROVIDER_NOT_RUN",
+    "report": "examples/physics-contact-coherence-2276/RESULTS.md",
+    "wholeEngine": "NOT_COMPLETE"
   },
   "mainSlices": {
     "P0": "CONTRACT_COMPLETE_LOCAL",
     "P1": "COMMON_WORLD_BOUNDED_LOCAL_PASS",
     "P2": "RIGID_RECORDING_BOUNDED_LOCAL_PASS",
     "P3": "SELECTED_DISJOINT_HINGE_PASS_NOT_GENERAL_MECHANISMS",
-    "P4": "ORIGINAL_EIGHT_BOX_NO_GO",
+    "P4": "STATIONARY_EIGHT_CUBE_PROFILE_LOCAL_PASS_GENERAL_MOVING_STACK_NO_GO",
     "P5": "DONE_BOUNDED_LOCALSELECTED_RENDER_SDK_IMPLEMENTATION_NOT_RUN",
     "P6a": "PRIVATE_IMPULSE_LEAF_PASS_FULL_COUPLING_NOT_SUPPORTED",
     "P6b": "NOT_STARTED",
@@ -33,20 +55,341 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "G1 finite input boundary and J/JT micro adopted in common World after actualSource/canonicalNative checks. Support dt120/one acceptedstep literalisolatedrotor only. Nextdependenciesthree-dtforcedtrajectory/longerhorizon/otherinertia/frames/contact-joint-motor. Originaloriented/thinCCD/dynamicCADacceptance remains breakingunsupported; no releasegate waiver. No runtime active.",
-  "progressMethod": "5of9main bounded slices selected complete; not a weighted56percent; track added gates and profile limits separately",
+  "active": "Phase01 contactcoherence b064: original two512+three512 and dt60/120/240 PASS Source/canonical. Extendedthree1024 NO_GO first866 lateral1.0037318971762749e-10>1e-10. ExactsuccessorSOURCE_ONLY; no newproviderfullHiDPI. PreserveHOLD/firstfailures; publishboundedcheckpointonly.",
+  "latestStackImplementation": {
+    "results": "examples/physics-stack-library-2276/RESULTS.md",
+    "entry": "packages/barocss-physics/src/stack/prepare-step.ts",
+    "qualification": "PACKAGE_INTERNAL_ORIGINAL_NINE_BODY_PROFILE_ONLY",
+    "sourceAndNativePrefix": "run04..run09 PASS; all453231 numeric words, reports and117payloadfiles per graph exactly match run04",
+    "phaseAcceptedPerGraph": 51,
+    "numericRecordWordsPerGraph": 453231,
+    "originalFirst32InputWordsMatched": 363,
+    "independentReferenceRepliesPerGraph": 210,
+    "opt01BoundaryTestsPerGraph": "19/19 PASS",
+    "opt01BaselinePayload": "Exact run-04 to run-05 physical records/raw words; zero metadata exceptions",
+    "runtime01": "ALIGNED543 returned/542 local+normalKKT accepted; step543 internal170s deadline; OFFSET/YAW NOT_RUN; independent full accepted0",
+    "runtimeOpt01": "Actual canonical snapshot: ALIGNED1051 returned/1050 local+normalKKT accepted; step1051 unchanged170s deadline; OFFSET/YAW NOT_RUN; full independent accepted0",
+    "opt02": "Arithmetic16 and boundary19 per graph PASS; run-06 full prefix453231word identity PASS; canonical build-05 PASS; runtime ALIGNED1066 returned/1065 local+normalKKT then same170s deadline. FullP4 remains NO_GO. Next exact denominator-divisibility addition paths.",
+    "profile01": "Qualified16-step word parity;92.88 percent sample weight under strict-line; sampling not benchmark",
+    "publicWorldAndApi": "NOT_RUN; existing cap4 and8x8 unchanged",
+    "full1200": "LOCAL_RUNTIME_COMPLETED; full independent original P4/resource exit remains NO_GO_NOT_QUALIFIED",
+    "desktop": "NOT_RUN for new internal engine",
+    "opt03": "25/25, prior16/16 and boundary19/19 PASS; run07 exact prefix parity; build06 PASS; runtime1167 returned/1166 local accepted before unchanged170s. Preserved NO_GO.",
+    "opt04": "26/26, prior25/25 and16/16 and boundary19/19 PASS; run08 exact prefix parity; build07 PASS8.100317708s.",
+    "runtimeOpt04": {
+      "status": "RUNTIME_DIAGNOSTIC_COMPLETED",
+      "phaseAndNormalKktStepsPerScene": 1200,
+      "scenes": [
+        "ALIGNED",
+        "OFFSET",
+        "YAW"
+      ],
+      "childSceneWallSeconds": [
+        166.543123958,
+        146.164993208,
+        146.909394667
+      ],
+      "fullIndependentlyAccepted": 0,
+      "API": false,
+      "resourceQualification": false,
+      "providerDigest": "4a765881cfe2aeb6bb04611baf29174035e6f58436d423c7090efdafbddc66a3"
+    },
+    "wholepathCensus": "census01 PASS exact195 old physical pairs and all48 prefix steps; parent20.931844875s, position asks9.510570873s, prepare7.184726545s; observation only",
+    "savedTrajectoryQuality": {
+      "status": "PASS_SAVED_ORIGINAL_QUALITY_ALL_3603_FRAMES",
+      "results": "examples/physics-stack-trajectory-audit-2276/RESULTS.md",
+      "statesPerScene": 1201,
+      "settlingFramesPerScene": 241,
+      "baselineStep": 960,
+      "maxVerticalDriftM": 2.7755575615628914e-17,
+      "maxLinearSpeedMps": 2.395448185421987e-14,
+      "prefixEvaluateResultsExact": 51,
+      "independentlyFullAccepted": 0,
+      "API": false
+    },
+    "opt05": "32/32, retained26/26+25/25+16/16 and19/19 boundary PASS; run09 fullprefix identity PASS; canonicalbuild08 PASS8.051469084s",
+    "runtimeOpt05": {
+      "status": "RUNTIME_DIAGNOSTIC_COMPLETED",
+      "localAndNormalKktStepsPerScene": 1200,
+      "childSceneWallSeconds": [
+        161.172798625,
+        143.056669083,
+        140.330518834
+      ],
+      "allRawStreamsByteExactTo": "runtime-opt04-01",
+      "savedQualityReuse": "exactphysicalinputidentity; zero new referencecalls",
+      "providerDigest": "6c3bf494f3a53f7ac32154cb271ec05e6cf9eea3b495e73cc87e4d85c8636cf5",
+      "fullIndependentlyAccepted": 0,
+      "API": false,
+      "resourceQualification": false
+    },
+    "preparedReference": {
+      "status": "PREPARED_OBSERVATIONAL_CENSUS_PHYSICAL_PARITY_CONFIRMED",
+      "tests": "12groups and6oldCLIreplylines PASS",
+      "rootProbeFirstFailure": "own432decoderassertion incorrect; failedreceipt preserved; source-backed288 corrected via captureddata-only review",
+      "steps": 48,
+      "numericLeaves": 425916,
+      "originalWirePairsByteExact": 195,
+      "parentWallSeconds": 20.197439959,
+      "positionAskSeconds": 9.243110622,
+      "prepareSeconds": 6.702886584,
+      "resourceQualification": false,
+      "API": false
+    },
+    "livePackets": {
+      "status": "LIVE_PACKET_PREFIX_PHYSICAL_PARITY_CONFIRMED",
+      "fixedTests": 20,
+      "preparedPackets": 48,
+      "liveNumericLeavesVerified": 254544,
+      "recordNumericLeaves": 425916,
+      "oldWirePairsExact": 195,
+      "maxEncodedBytes": 103332,
+      "maxConservativeAdmissionBytes": 711148,
+      "nextOwner": "DETACHED_CANDIDATE_BODIES_ONLY",
+      "wholeParentWallSeconds": 20.331178834,
+      "resourceQualification": false,
+      "API": false
+    },
+    "pipeline": {
+      "status": "PIPELINE_PREFIX_PHYSICAL_PARITY_CONFIRMED",
+      "acceptedAndArchived": 48,
+      "referencesPassed": {
+        "contacts": 48,
+        "world": 48,
+        "step-ledger": 48,
+        "quality": 51
+      },
+      "oldWirePairsByteExact": 195,
+      "recordNumericLeaves": 425916,
+      "firstControlFailure": "prefix01 control12 requested prohibited laterverification; no numericalcalls; baselinepreserved; implementationunchanged; prefix02 current18 PASS",
+      "API": false
+    },
+    "realPrefixCpu": {
+      "status": "CPU_COMPLETE_REAL_PREFIX",
+      "wholeObservedWallSecondsBeforeReceipt": 9.265764666954055,
+      "nodeSubtreeCpuSeconds": {
+        "user": 21.301446,
+        "system": 0.365372
+      },
+      "controllerObservedSpanSeconds": {
+        "user": 0.098934,
+        "system": 0.023456
+      },
+      "controllerWholeLifetime": "NOT_CLAIMED",
+      "wait4MaxrssBytes": 237879296,
+      "rssBoundary": "creditedsubtreeMAX, notsimultaneoustotal orNodeonly or64MiBDATA",
+      "full1200": false
+    },
+    "resourceScopeCorrection": {
+      "authority": "examples/physics-stack-owned-data-2276/ENVELOPE-PREMISES.md",
+      "global64EngineThreshold": "NOT_IN_ORIGINAL_1200_EXIT; priorinheritancecorrected",
+      "strictOfflineProofAndCache64Profiles": "UNCHANGED_LIMITS_AND_NO_GO; stillNOT_QUALIFIED",
+      "originalLimits": "280MiBcompressed +20MiBfixedevidence +2MiBemergency;2MiBwire;existing16MiBscratch;170inner180outerperscene",
+      "heapRssCertification": "NOT_CLAIMED"
+    },
+    "streamArchiveComponent": {
+      "status": "PASS_18_FIXED_COMPONENT_TESTS",
+      "elapsedMs": 867.339833,
+      "results": "examples/physics-stack-stream-2276/RESULTS.md",
+      "liveComposition": "NOT_RUN",
+      "full1200": false,
+      "API": false
+    },
+    "opt06": {
+      "status": "SOURCE_NATIVE_FIXED_ARITHMETIC_AND_PHYSICAL_PREFIX_CANONICAL_BUILD_PASS",
+      "fixedNewTestsPerGraph": 32,
+      "retainedTestsPerGraph": [
+        32,
+        26,
+        25,
+        16,
+        19
+      ],
+      "phaseStepsPerGraph": 51,
+      "numericWordsPerGraph": 453231,
+      "fullPayloadFilesPerGraph": 117,
+      "canonicalBuildSeconds": 9.343297625,
+      "cost": "RUNTIME_ONLY_ALL_3X1200_COMPLETED_NO_FULL_PHASE_EXIT",
+      "API": false
+    },
+    "completePrefix02": {
+      "status": "COMBINED_PREFIX_CONFIRMED",
+      "results": "examples/physics-stack-complete-2276/PREFIX-02-RESULTS.md",
+      "contiguousSteps": 48,
+      "referencePairs": 195,
+      "recoveredNumericWords": 425916,
+      "API": false
+    },
+    "originalCompleteFull01": {
+      "status": "NO_GO_COST",
+      "results": "examples/physics-stack-complete-2276/FULL-01-RESULTS.md",
+      "scene": "ALIGNED",
+      "contiguousAccepted": 1114,
+      "firstObservedStep": 1116,
+      "earliestFailingStep": "UNKNOWN",
+      "unresolvedPositionStep": 1115,
+      "actual960BaselinePromoted": true,
+      "committedTerminalFrames": 155,
+      "ownerWallSecondsBeforeFinalReceipt": 166.32361983298324,
+      "compressedArchiveBytes": 206516742,
+      "outputCapFailureObserved": false,
+      "laterScenes": "NOT_RUN",
+      "offlineRecovery": "PASS_SEPARATE_DATA_ONLY_1115_GROUPS",
+      "full1200": false,
+      "API": false
+    },
+    "runtimeOpt06": {
+      "status": "RUNTIME_DIAGNOSTIC_COMPLETED",
+      "localAndNormalKktStepsPerScene": 1200,
+      "childSceneWallSeconds": [
+        157.965913125,
+        138.402241417,
+        136.722443083
+      ],
+      "all3603FramesByteExactTo": "runtime-opt05-01",
+      "physicalInitialMetadataExact": true,
+      "runtimeDigest": "7acdbb4af249c7c8492aadbac94b5d107f1e73fe07d84dd018c29c2d3dd3e331",
+      "fullIndependentlyAccepted": 0,
+      "API": false
+    },
+    "opt07": {
+      "status": "SOURCE_NATIVE_PREFIX_AND_BUILD_PASS_FULL_COST_NOT_QUALIFIED",
+      "arithmeticGroups": 32,
+      "retainedGroups": [
+        32,
+        32,
+        26,
+        25,
+        16
+      ],
+      "boundaryGroups": 19,
+      "physicalNumericWordsPerGraph": 453231,
+      "completePayloadFilesPerGraph": 117,
+      "canonicalBuildSeconds": 9.252183583,
+      "providerDigest": "6a504f420b8d2db5e60cd8b73103ac0c136381d56a966cb41ee54feda4336305",
+      "actualWorkCanDecrease": true,
+      "API": false
+    },
+    "failureEvidence": {
+      "status": "PASS_FIXED8_COMPONENT_DRIVER_INTEGRATION_PENDING",
+      "result": "examples/physics-stack-complete-2276/FAILURE-EVIDENCE-ROOT-RESULT.json",
+      "emergencyBytes": 2097152,
+      "full1200": false
+    },
+    "referenceStorageScreen": {
+      "status": "ENDED_NO_GO_RETAINED_CAP",
+      "controlGroupsPassed": 34,
+      "entriesAtStop": 7606,
+      "fixedInputEntries": 10034,
+      "compressedBytes": 83886080,
+      "fullRecovery": "NOT_RUN",
+      "completeCPU": "UNKNOWN",
+      "adopted": false
+    },
+    "opt08": {
+      "status": "SOURCE_NATIVE_PREFIX_AND_BUILD_PASS_FULL_COST_NOT_QUALIFIED",
+      "sourceSHA256": "abb2036ddd46c146a42299173d471a360afc7c30226f694f58c1515fab10f2af",
+      "isolatedGroups": 32,
+      "retainedGroups": [
+        32,
+        32,
+        32,
+        26,
+        25,
+        16
+      ],
+      "boundaryGroups": 19,
+      "physicalNumericWordsPerGraph": 453231,
+      "completePayloadFilesPerGraph": 117,
+      "canonicalBuildSeconds": 9.206205666,
+      "providerDigest": "09e0eaba79ac8b7ac3bfe268849cf72a0d429b54b71032ad63b9ecd8b6479c2a",
+      "API": false
+    },
+    "completeFull02": {
+      "status": "COST_NO_GO",
+      "hostFullyVerifiedAndArchived": 1098,
+      "campaignAccepted": 0,
+      "firstObservedStep": 1099,
+      "firstObservedGate": "position1 IO deadline",
+      "earliestFailingStep": "UNKNOWN",
+      "laterScenes": "NOT_RUN",
+      "selectedActualFailurePacket": 1099,
+      "negativeZeroPathsRecovered": 84,
+      "offlineDataAuditAddsPhysicalAcceptance": 0,
+      "sharedOutputBytes": 212219837,
+      "sharedOutputCapBytes": 293601280,
+      "wholeClosedTreeCPU": "UNKNOWN"
+    },
+    "completeFull03": {
+      "status": "COST_NO_GO",
+      "hostFullyVerifiedAndArchived": 1153,
+      "campaignAccepted": 0,
+      "firstObservedStep": 1155,
+      "firstObservedGate": "producer deadline",
+      "earliestFailingStep": "UNKNOWN",
+      "laterScenes": "NOT_RUN",
+      "selectedActualFailurePacket": 1153,
+      "selectedPacketLaterCommitted": true,
+      "unresolved1154PacketInFailureEnvelope": false,
+      "reachedRPCsInClosedArchive": true,
+      "compressedBytes": 213852828,
+      "sharedOutputBytes": 222383149,
+      "sharedOutputCapBytes": 293601280,
+      "wholeClosedTreeCPU": "UNKNOWN"
+    },
+    "completeFull05": {
+      "status": "ONE_LIVE_SCENE_CONFIRMED_SHARED_CAP_NO_GO",
+      "alignedLiveAccepted": 1200,
+      "alignedOwnerSeconds": 169.46208579209633,
+      "alignedClosedCPU": "COMPLETE",
+      "alignedOriginalAllGates": true,
+      "alignedArchiveRecoveredEntries": 10803,
+      "alignedFullRecordNumericLeaves": 10594384,
+      "offsetHostCommitted": 328,
+      "offsetOriginalStopCode": "RETAINED_CAP",
+      "offsetFirstObservedStep": 330,
+      "offsetEarliestFailingStep": "UNKNOWN",
+      "offsetAdditionalReceived329Persisted": true,
+      "YAW": "NOT_RUN",
+      "campaignAccepted": 1200,
+      "wholeThreeSceneQualification": false,
+      "API": false
+    },
+    "opt10": "Exact common-denominator local projection, same limits; run14 all453231 words and117payloadfiles pergraph exactrun04; canonical aggregate0449ad0eeaf504c416e2de9659a280797773962dd9c075c23fb5f3a05a15a7e5; fresh completeprefix07 48steps/425916words PASS; full1200/API/desktop NOT_RUN."
+  },
+  "latestGramProofCandidate": {
+    "results": "examples/physics-p4-gram-compact-2276/RESULTS.md",
+    "status": "SIX_MATH_AND_INDEPENDENT_PASS_COST_NO_GO_ENDED",
+    "parentCpuNs": 554815000,
+    "ownedNodeLifetimeCpuNs": 244623000,
+    "costEnvelopeNs": 799438000,
+    "unchangedGateNs": 695832300,
+    "oldV3MemoryMeasurement": "REVOKED_UNCHANGED; new corrected-memory tests do not repair it",
+    "next": "No retime or new standalone variant; actual package runtime priority"
+  },
+  "latestCanonicalImplementation": {
+    "status": "BOUNDED_LOCAL_PASS_INTERNAL_CONTACT_CONTRIBUTION",
+    "results": "examples/physics-canonical-contribution-2276/RESULTS.md",
+    "sourceTests": "9/9 PASS",
+    "nativeTests": "9/9 PASS",
+    "canonicalBuildAndDeclarationConsumer": "PASS",
+    "publicApiNumericLeavesPerComparison": 1650,
+    "newPublicCapability": false,
+    "limits": "Internal actual-application collection/finite validation only; completed totals currently discarded. No STATE2/P4/geometry/performance/desktop promotion. Run01 signed-zero expectation failures preserved."
+  },
+  "progressMethod": "Prior5of9boundedmilestones retained as historicalqualifications; newcontact-schema delta requiresseparateP0/P1/P2/P5outputrequalification. No weightedpercent orwhole-enginePASS.",
   "forecasts": {
     "firstImpulseResult": "ACHIEVED2026-11-02",
     "nextG1Baseline": "ACHIEVED2026-11-02; actual physical NO_GO preserved",
     "wholeRoadmap": "NO_RELIABLE_DATE_YET; reassess from G1/P4/coupling evidence, no whole-engine date promised",
-    "nextG1Repair": "ACHIEVED2026-11-02 for exactone-step publicrotor; broaderG1limitsremain. Whole-roadmap dateunknown.",
+    "nextG1Repair": "ACHIEVED2026-11-02 for continuous primitive angular flow; remaining contact/coupling/CCD and whole-roadmap date unknown.",
     "nextG1Trajectory": "ACHIEVED2026-11-02 compositeSource+freshNative; all72refinementchecks beloworiginal1e-11floor, nomeasuredorderclaim."
   },
   "reportCadence": "milestone,firstfailure,directionchange; report qualified scope,remaining dependency,and revised confidence",
   "invariants": "HOLD, original NO_GO, tolerances and first failures preserved. Owner explicitly authorized current checkpoint develop push on2026-11-02; no deploy/release or held-worker resume; not whole-roadmap completion.",
   "addedGateProgress": {
-    "G1": "BOUNDED_PUBLIC_RANGE_ADOPTED: new exactisolatedone-stepJ/JT with explicitINVALID_CONFIG/INVALID_COMMAND/NUMERIC_LIMIT outsideleaf. Oldcontinuous-torquefullkickbaseline PHYSICAL_NO_GO preserved; correctedmicro+actualcanonicalAPIpassed. G1dK is discrete-map evidence only. Broaderinputs/horizon/contact/control remain open.",
-    "G2": "STATIC19BRANCH_MAP_COMPLETE; ACTUAL_SOURCE_CORNER_EXACT_CONTACT_NO_GO; reference1/World0/nativeNOT_RUN; other numerical gaps open",
+    "G1": "GENERAL_CONTINUOUS_PRIMITIVE_ROTATION_PASS; see physics-general-rotation-2276; old one-step restriction retired with original evidence retained. Wider phase/control/contact qualification remains separate.",
+    "G2": "BOUNDED_CONTACT_CCD_AND_PRIVATE_FIRST_COLD_COUPLED_CONTACT_PASS; historical persistent plane/gap/warm failures preserved; general warm/multipoint/contact and original P4 exits remain open",
     "G7": "PER_CAMPAIGN_TRUST_GATE; NO_BLANKET_PASS"
   },
   "sourceCorrection": "G1b/ADMISSION-NORMALIZATION-CORRECTION-01.json: Body constructor already normalizes admitted initialq; prior inferredinitialnormguardmismatch unestablished. Broader boundary qualification stillNOT_RUN.",
@@ -56,5 +399,2346 @@
     "wholeRoadmapComplete": false,
     "deploymentAuthorized": false,
     "holdReleaseAuthorized": false
+  },
+  "latestBrowserConsumer": {
+    "profile": "Private actual Native first-interval coupled dynamic contact",
+    "status": "PASS_DESKTOP_ONLY_AFTER_SELECTED_1280_1440_1920",
+    "results": "examples/physics-coupled-dynamic-host-viewer-2276/RESULTS.md",
+    "latestCampaign": "desktop-02",
+    "checks": 7,
+    "independentPhysicalJobs": 18,
+    "wholeDecodedBrowserNodePackets": 6,
+    "notRun": [
+      "mobile user excluded",
+      "browser wire",
+      "second successful interval",
+      "warm/multipoint",
+      "original eight-box P4",
+      "canonical public adoption"
+    ]
+  },
+  "latestCcdConsumer": {
+    "status": "PASS_DESKTOP_ONLY",
+    "results": "examples/physics-rounded-ccd-2276/RESULTS.md",
+    "url": "http://127.0.0.1:52900",
+    "checks": 9,
+    "boundaryCases": 16,
+    "existingLabChecks": 12
+  },
+  "latestMaterialConsumer": {
+    "status": "PASS_DESKTOP_ONLY",
+    "results": "examples/physics-persistent-impact-2276/RESULTS.md",
+    "url": "http://127.0.0.1:52920",
+    "checks": 11,
+    "presets": 6
+  },
+  "latestTangentConsumer": {
+    "status": "PASS_DESKTOP_ONLY",
+    "results": "examples/physics-tangent-response-2276/RESULTS.md",
+    "url": "http://127.0.0.1:52940",
+    "checks": 9,
+    "presets": 4
+  },
+  "P4FirstUnfinishedBoundary": {
+    "sourceAttemptAcceptedSteps": 308,
+    "refusedBeforeStep": 309,
+    "reason": "180000ms execution budget; correctedrunner16stepSource/Nativeprefixonly",
+    "physicalSettlingQualification": "NO_GO_NOT_RUN_FULL1200",
+    "next": "Independent full32-point line/paired witness, phase ledger/quality and whole-trajectory output/cost strategy; saved cold-positionV2 is subset PASS. Primitive-axis and owned-Node cost candidates NO_GO; do not repeat ended candidates or unchanged full-stack runs."
+  },
+  "latestOfflineReference": {
+    "profile": "P4 saved full cold-position V2 numeric subset",
+    "status": "PASS_OFFLINE_FULL_COLD_POSITION_V2_FULL_P4_NO_GO",
+    "frames": 6,
+    "coldQpCalls": 6,
+    "compactRecords": 432,
+    "numericWords": 2592,
+    "retainedPayloadLeaves": 17394,
+    "WorldCalls": 0,
+    "completeSavedPhysicalReplyCompatible": true,
+    "independentFeatureGeometry": "NOT_QUALIFIED",
+    "coreCpuNs": 773147000,
+    "totalObserverCpuNs": 1016861000,
+    "wholeTrajectoryCostGO": "NOT_RUN",
+    "full32PointLinePairedWitness": "NOT_RUN",
+    "phaseLedgerQuality": "NOT_RUN",
+    "full1200StepP4": "NOT_RUN",
+    "fullP4": "NO_GO",
+    "results": "examples/physics-p4-position-v2-2276/RESULTS.md"
+  },
+  "g2EvidenceMap": "examples/physics-contact-coverage-g2-2276/COVERAGE-05.json",
+  "latestPairCcdConsumer": {
+    "status": "PASS_DESKTOP_ONLY",
+    "results": "examples/physics-sphere-pair-ccd-2276/RESULTS.md",
+    "url": "http://127.0.0.1:52960",
+    "checks": 8,
+    "presets": 4
+  },
+  "previousOfflineSatReference": {
+    "profile": "P4 saved integer SAT numeric subset",
+    "status": "PASS_SUBSET_FULL_P4_NO_GO",
+    "frames": 6,
+    "pairStages": 432,
+    "numericWords": 2592,
+    "axes": 12960,
+    "integerOps": 1091821,
+    "peakBits": 5814,
+    "wallMs": 545.851334,
+    "cpuMs": 534.484,
+    "WorldCalls": 0,
+    "QPCalls": 0,
+    "oldReferenceCalls": 0,
+    "fullOutputCompatible": false,
+    "costGO": "NOT_RUN",
+    "results": "examples/physics-p4-sat-2276/RESULTS.md"
+  },
+  "offlineP4Checkpoints": {
+    "adapterFreeze": {
+      "status": "PASS_P4_ADAPTER_BYTE_EQUIVALENCE",
+      "WorldCalls": 0,
+      "stepCalls": 0,
+      "candidateCalls": 0,
+      "geometryCalls": 0,
+      "buildCalls": 0,
+      "physicalQualification": "NOT_RUN",
+      "results": "examples/physics-p4-adapter-freeze-2276/RESULTS.md"
+    },
+    "compactV2": {
+      "status": "PASS_OFFLINE_COMPACT_V2_PROTOCOL_SUBSET",
+      "frames": 6,
+      "records": 432,
+      "numericWords": 2592,
+      "retainedPayloadLeaves": 13926,
+      "WorldCalls": 0,
+      "QPCalls": 0,
+      "results": "examples/physics-p4-compact-v2-2276/RESULTS.md"
+    },
+    "primitiveAxis": {
+      "status": "NUMERIC_EQ_PASS_COST_NO_GO",
+      "candidateEnded": true,
+      "candidateCoreCpuNs": 798363000,
+      "savedBaselineCoreCpuNs": 773147000,
+      "costGate": "candidate*10 <= baseline*9",
+      "savedBaselineOnePairing": true,
+      "results": "examples/physics-p4-primitive-axis-2276/RESULTS.md"
+    },
+    "ownedNode": {
+      "status": "NUMERIC_EQ_PASS_NODE_COST_NO_GO",
+      "completeSavedPhysicalReplyCompatible": true,
+      "parentCoreCpuNs": 397992000,
+      "entireWait4ChildCpuNs": 686846000,
+      "conservativeAggregateCpuNs": 1084838000,
+      "savedBaselineCoreCpuNs": 773147000,
+      "candidateBoundaryConservativelyWider": true,
+      "savedBaselineOnePairing": true,
+      "universalBenchmarkClaimed": false,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "reaped": true,
+      "exitCode": 0,
+      "furtherTuningAuthorized": false,
+      "results": "examples/physics-p4-node-sat-2276/evidence/node-01/summary.json"
+    }
+  },
+  "persistentFrictionInvestigation": {
+    "status": "NO_GO_GEOMETRY_PHASE_CACHE_UNDER_INVESTIGATION",
+    "graph": "Native public World",
+    "worlds": 1,
+    "acceptedSteps": 2,
+    "tangentPlaneResidualNs": 7.191714115138252e-09,
+    "tangentPlaneGateNs": 1e-12,
+    "acceptedPairedWitnessGapM": [
+      8.508678180235096e-06,
+      5.6915981142408475e-05
+    ],
+    "pairedWitnessGateM": 1e-12,
+    "privateBoxConstruction": {
+      "status": "PASS_PRIVATE_CONSTRUCTION_AND_GRAPH_PARITY",
+      "graphs": [
+        "source",
+        "strict-nodenext"
+      ],
+      "casesPerGraph": 20,
+      "pointsPerGraph": 62,
+      "WorldCalls": 0,
+      "independentGeometry": "NO_GO_INDEPENDENT_PRIVATE_BOX_GEOMETRY",
+      "firstFailureCase": "failure-pre-1",
+      "firstFailurePoint": 3,
+      "firstFailure": "rounded midpoint line misses native box",
+      "productionIntegration": "NOT_RUN",
+      "results": "examples/physics-box-contact-features-2276/evidence/run-01/",
+      "firstIndependentFailurePreserved": "run-01 source case1 point3 rounded midpoint line misses native box",
+      "amendedPresentation": {
+        "status": "PRIVATE_GEOMETRY_NO_GO",
+        "correctRounding": "Exact quotient/remainder nearest ties-to-even",
+        "attemptedCases": 1,
+        "completedCases": 0,
+        "NativeCalls": 0,
+        "WorldCalls": 0,
+        "reason": "FLOAT_PRESENTATION_LINE_MISSES_NATIVE_BOX",
+        "presentationPointId": "FACE:4:2",
+        "run": "examples/physics-box-contact-features-2276/evidence/run-03/result.json",
+        "firstDriftRefusal": "run-02 source drift before imports;0candidatecalls",
+        "independentDiagnostic": {
+          "status": "CONFIRMED_PRESENTATION_NO_GO",
+          "exactCertificatesVerified": 4,
+          "correctlyRoundedCoordinates": 36,
+          "correctlyRoundedNormalCoordinates": 3,
+          "representedLinesHitBoth": 2,
+          "representedLinesMissNativeBox": 2,
+          "maxBoundaryOutsideAtUpperM": 5.295329250875593e-19,
+          "parameterGap": 6.354395108405335e-15,
+          "globalUnrepresentability": "NOT_PROVED",
+          "report": "examples/physics-box-contact-features-2276/evidence/run-03/presentation-audit.json"
+        }
+      }
+    },
+    "results": "examples/physics-persistent-friction-plane-2276/evidence/baseline-01/"
+  },
+  "latestDiscreteRestitution": {
+    "status": "PASS_FINITE_DISCRETE_RESTITUTION",
+    "worldsPerGraph": 16,
+    "stepsPerGraph": 16,
+    "independentReference": "Precomputed Fraction momentum plus relative separation velocity constraints",
+    "maxVelocityResidualMps": 4.440892098500626e-16,
+    "maxImpulseResidualNs": 8.881784197001252e-16,
+    "maxEnergyResidualJ": 1.3322676295501878e-15,
+    "referenceSetupFirstFailurePreserved": true,
+    "browser": "NOT_RUN_NO_PRODUCTION_CHANGE",
+    "results": "examples/physics-discrete-restitution-2276/RESULTS.md"
+  },
+  "documentationCheckpoint": {
+    "status": "PASS_BUILD_AND_SITE",
+    "buildReceipt": "examples/physics-world-p5-2276/evidence/reference-geometry-docbuild-04/result.json",
+    "siteReceipt": "examples/physics-world-p5-2276/evidence/reference-geometry-docsite-04/result.json",
+    "newBrowserRun": "PASS_BOX_SLAB_SOURCE_VIEWER_RENDER_01",
+    "mobile": "NOT_RUN",
+    "deployment": "NOT_RUN"
+  },
+  "latestPrivateContactGeometry": {
+    "status": "PASS_INDEPENDENT_FINITE_CELL_GEOMETRY_ONLY",
+    "casesPerGraph": 20,
+    "pointsPerGraph": 62,
+    "anchorChecksPerGraph": 1674,
+    "originalSameRawRowsPerGraph": 32,
+    "originalMovementM": 0,
+    "WorldCalls": 0,
+    "publicPersistentPhysics": "UNCHANGED_NO_GO",
+    "originalP4": "UNCHANGED_NO_GO",
+    "report": "examples/physics-box-quantized-witness-2276/RESULTS.md"
+  },
+  "latestBoxCcd": {
+    "status": "SOURCE_NATIVE_FINITE_AND_DESKTOP_PASS",
+    "worldsPerGraph": 20,
+    "stepsPerGraph": 24,
+    "creationRefusalsPerGraph": 2,
+    "commandRefusalsPerGraph": 2,
+    "maxNumericResidual": 0,
+    "oldNegativeQuaternionRefusal": "PRESERVED_BASELINE_01",
+    "originalThinBoxRegression": "PASS_NATIVE_WORLD_WITH_BUNDLED_CAD_DATA",
+    "regressionInitialImportAndExternalizationRefusals": "PRESERVED_BEFORE_WORLD_IMPORT",
+    "results": "examples/physics-box-slab-boundaries-2276/RESULTS.md",
+    "desktop": {
+      "status": "PASS_BROWSER_BOX_SLAB",
+      "checks": 9,
+      "presets": 4,
+      "widths": [
+        1280,
+        1440,
+        1920
+      ],
+      "browser": "Chrome156",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "url": "http://127.0.0.1:52980",
+      "mobile": "NOT_RUN"
+    }
+  },
+  "same32StaticBalance": {
+    "status": "PASS_SAME_32_STATIC_FORCE_MOMENT_ONLY",
+    "graphs": [
+      "source",
+      "strict-nodenext"
+    ],
+    "pointsPerGraph": 32,
+    "interfacesPerGraph": 8,
+    "dynamicBodiesPerGraph": 8,
+    "scalarBalanceEquationsPerGraph": 48,
+    "maximumResidualExact": "0",
+    "sameRawPointRowsPerGraph": 32,
+    "WorldCalls": 0,
+    "gapComplementarity": "NOT_QUALIFIED",
+    "dynamicSettling": "NOT_QUALIFIED",
+    "results": "examples/physics-box-quantized-equilibrium-2276/RESULTS.md"
+  },
+  "contactPhaseWrench": {
+    "status": "SOURCE_PRIVATE_EXECUTED_REPORT_VECTOR_NO_GO",
+    "graph": "SOURCE_PRIVATE",
+    "worlds": 1,
+    "attempts": 1,
+    "committedSteps": 1,
+    "actualImpulseApplications": 168,
+    "zeroApplications": 120,
+    "queries": 9,
+    "queryPoints": 20,
+    "corrections": 8,
+    "firstReportVectorResidualNs": 0.06810993686254845,
+    "reportVectorGateNs": 1e-10,
+    "actualImpulseOnBNs": [
+      -0.06810993686254845,
+      0.09728269579179234,
+      -2.174053310893481e-05
+    ],
+    "publishedImpulseOnBNs": [
+      0,
+      0,
+      0
+    ],
+    "checkedPrefix": "native geometry/correction/momentum/angular/work/energy ledger only",
+    "warmFrame": "NOT_COVERED_NO_WARM_APPLICATION",
+    "unreached": [
+      "later report moment gates",
+      "known refusal",
+      "unknown refusal",
+      "retry",
+      "clean control",
+      "restore continuation",
+      "Native",
+      "public promotion",
+      "desktop"
+    ],
+    "rawAstep1ControlLabel": "NOT_RUN means incomplete validation;actual state committed once",
+    "results": "examples/physics-contact-phase-wrench-2276/RESULTS.md"
+  },
+  "previousSpherePairMilestone": {
+    "profile": "G2 sphere-pair CCD exact predicates",
+    "status": "BOUNDED_SOURCE_NATIVE_INDEPENDENT_AND_DESKTOP_PASS",
+    "scope": "29World33steps+22directhelpercalls/graph; exactbank22 and independent88audit;8desktopchecks4presets;originalfalsegrazeandrenderfailurepreserved",
+    "results": "examples/physics-sphere-pair-ccd-2276/RESULTS.md"
+  },
+  "previousPhysicsLabConsumer": {
+    "profile": "Desktop Physics Lab: public Source World/recorder/Viewer",
+    "status": "PASS_DESKTOP_ONLY_1280_1440_1920",
+    "scope": "12realdesktopbrowserchecks;4sessiontests;0.1s fixedJ+torque independent3grid18matchedframes;displayproxyonly;512recordcapunchanged",
+    "results": "examples/physics-lab/RESULTS.md",
+    "notRun": [
+      "published browser SDK",
+      "GPU device-loss recovery",
+      "contact/joint coupling",
+      "8-box qualification"
+    ],
+    "ownerConstraint": "No further mobile checks; earlier pre-instruction execution preserved."
+  },
+  "contactWrenchContract": {
+    "status": "DESIGN_TYPES_PASS_PRIVATE_SOURCE_IMPLEMENTATION_PASS_CANONICAL_NOT_ADOPTED",
+    "contract": "examples/physics-contact-wrench-contract-2276/CONTRACT.md",
+    "typeCheck": "examples/physics-contact-wrench-contract-2276/TYPE-CHECK-01.json",
+    "plannedStateSchemaVersion": 2,
+    "plannedRecordingVersion": 2,
+    "legacyCompatibility": false,
+    "runtimeCanonicalPackage": "UNCHANGED_V1_PENDING_QUALIFICATION",
+    "requalificationRequired": [
+      "P0 output-state delta",
+      "P1 canonical output and all producer paths",
+      "P2 new recording/wire schema",
+      "P5 visual explicit empty arrays",
+      "active callers and documentation",
+      "Native/public/performance"
+    ],
+    "oldBoundedReceipts": "PRESERVED_NOT_AUTOMATIC_NEW_SCHEMA_PASS"
+  },
+  "contactWrenchProducer": {
+    "status": "EXECUTED_PASS_SOURCE_PRIVATE_PRODUCER",
+    "results": "examples/physics-contact-wrench-producer-2276/RESULTS.md",
+    "worlds": 3,
+    "attempts": 8,
+    "acceptedSteps": 6,
+    "applications": 800,
+    "queries": 58,
+    "queryPoints": 100,
+    "anchorChecks": 2700,
+    "warmApplications": 0,
+    "warmChangedFrame": "NOT_COVERED",
+    "knownUnknownRollback": "EXECUTED_PASS",
+    "retryCleanRestoreContinue": "EXECUTED_PASS",
+    "privatePureWireCodec": "EXECUTED_PASS",
+    "successfulPublicSerializeDeserialize": "NOT_RUN",
+    "nativePublicDesktopPerformance": "NOT_RUN",
+    "canonicalPackage": "UNCHANGED",
+    "originalFirstFailure": "PRESERVED_SEPARATE_PHASE_RUN"
+  },
+  "currentG2EvidenceMap": "examples/physics-contact-coverage-g2-2276/COVERAGE-08.json",
+  "realWarmFrameBaseline": {
+    "status": "EXECUTED_NO_GO_REAL_WARM_FRAME",
+    "results": "examples/physics-real-warm-frame-2276/RESULTS.md",
+    "worlds": 1,
+    "attempts": 2,
+    "committedSteps": 2,
+    "actualApplications": 203,
+    "queries": 19,
+    "queryPoints": 19,
+    "anchorChecks": 513,
+    "firstFailure": "currentTangentPlane",
+    "firstFailureResidualNs": 9.141407414550243e-05,
+    "gateNs": 1e-12,
+    "firstFailureLocation": "step2 firstwarm actual application;record6 outerpass0",
+    "coverage": "REAL_BRANCH_REACHED_PHYSICAL_NO_GO_NOT_QUALIFIED",
+    "inputAdjusted": false,
+    "cacheInjected": false,
+    "step3": "NOT_RUN",
+    "laterPhysicalGates": "NOT_RUN_AFTER_FIRST_FAILURE"
+  },
+  "privateNativeCompileBaseline": {
+    "status": "EXECUTED_FAIL_STRICT_NODE_NEXT",
+    "diagnostics": 22,
+    "affectedModule": "staged physics/src/world.ts",
+    "WorldCalls": 0,
+    "runtimeNative": "NOT_RUN",
+    "receipt": "examples/physics-world-p5-2276/evidence/contact-wrench-native-build-01/result.json",
+    "newTypecheckSuppressions": 0,
+    "countCorrection": {
+      "previousProvisionalCount": 23,
+      "actualErrorLines": 22,
+      "source": "preserved native-01/compile.stdout error TS lines; no diagnostic removed"
+    }
+  },
+  "privateWarmTransport": {
+    "status": "EXECUTED_PASS_SOURCE_PRIVATE_ONE_CHANGED_FRAME_CASE",
+    "commit": "cbf63c6b1",
+    "results": "examples/physics-warm-transport-2276/RESULTS.md",
+    "worlds": 1,
+    "attempts": 2,
+    "acceptedSteps": 2,
+    "applications": 198,
+    "queries": 19,
+    "queryPoints": 19,
+    "anchorChecks": 513,
+    "realQualifiedWarmApplications": 1,
+    "helperBankCases": 9,
+    "maxCurrentTangentPlaneResidualNs": 1.3011501682971844e-18,
+    "maxEnergyLedgerResidualJ": 4.673586713626203e-16,
+    "nativePublicDesktopPerformance": "NOT_RUN",
+    "wireRestoreRollbackForAmendedProvider": "NOT_RUN",
+    "withinPassNormalChangeGeneralIdentityAndCoulombSwitches": "NOT_QUALIFIED",
+    "firstFailure": "PRESERVED_E0086B7BA",
+    "publicPackage": "NOT_ADOPTED"
+  },
+  "privateNativeTypedAmendment": {
+    "status": "STRICT_CONSUMER_SOURCE_NATIVE_AND_FULL_22_PACKET_PARITY_PASS",
+    "actualCompileDiagnostics": 0,
+    "emittedFiles": 198,
+    "WorldCalls": 6,
+    "firstFailure": "Non-native output dependency: @barocss/cad in unused emitted CAD subpath",
+    "actualEntryClosure": {
+      "reachable": 73,
+      "unused": 26,
+      "externalCADSubpath": "NOT_EXECUTED"
+    },
+    "declarationConsumerAndRuntime": "EXECUTED_PASS",
+    "originalBaseline22Diagnostics": "PRESERVED",
+    "commit": "bf229e6d1",
+    "results": "examples/physics-contact-wrench-native-2276/RESULTS.md",
+    "perGraph": {
+      "worlds": 3,
+      "attempts": 8,
+      "acceptedSteps": 6,
+      "applications": 800,
+      "queries": 58,
+      "points": 100,
+      "anchorChecks": 2700
+    },
+    "normalization": "NONE newSource/Native;providerDigestONLY oldSource",
+    "effectiveInheritedNochecks": 2,
+    "warmChangedFrame": "NOT_COVERED_ZERO_WARM",
+    "canonicalPublicDesktopPerformance": "NOT_RUN",
+    "providerDigestFollowupAudit": "PASS_ALL32_OCCURRENCES_PER_GRAPH_2_NEGATIVE_CONTROLS_DATA_ONLY_5EF4EE844"
+  },
+  "warmRecordingProtocol": {
+    "status": "EXECUTED_PASS_SOURCE_PRIVATE_WARM_REPLAY_PROTOCOL",
+    "commit": "5d6891b06",
+    "results": "examples/physics-warm-replay-2276/RESULTS.md",
+    "worlds": 4,
+    "attempts": 8,
+    "acceptedSteps": 6,
+    "applications": 595,
+    "queries": 59,
+    "points": 59,
+    "anchorChecks": 1593,
+    "projectedWarmUnknownFaultRollback": "EXECUTED_PASS",
+    "actualExportedWireFunctions": "EXECUTED_PASS_PRIVATE_PROVIDER",
+    "wireDecodedPrefixRawEquality": "EXECUTED_PASS",
+    "liveRestoreContinueRawEquality": "EXECUTED_PASS",
+    "hiddenActualTraceParity": "EXECUTED_PASS",
+    "hiddenAcceptedRawOutputEquality": "NOT_PROVEN_NOT_RETAINED_AFTER_DISPOSE",
+    "nativeProductionDesktopPerformance": "NOT_RUN"
+  },
+  "nextP03Reference": {
+    "status": "INPUT_REFERENCE_READY",
+    "cases": 3,
+    "WorldCalls": 0,
+    "source": "examples/physics-persistent-cone-design-2276/CONTRACT.md",
+    "physics": "GENERATOR_ONLY_SEE_SEPARATE_P03_BASELINE"
+  },
+  "typedWarmSourceNative": {
+    "status": "EXECUTED_PASS_TYPED_WARM_SOURCE_NATIVE_AND_WIRE_PARITY",
+    "commit": "e32819527",
+    "results": "examples/physics-warm-native-2276/RESULTS.md",
+    "perGraph": {
+      "worlds": 4,
+      "attempts": 8,
+      "acceptedSteps": 6,
+      "applications": 595,
+      "queries": 59,
+      "points": 59,
+      "anchorChecks": 1593
+    },
+    "matchedPackets": 38,
+    "wireBytes": 4791,
+    "newGraphNormalization": "NONE",
+    "publicPackageDesktopPerformance": "NOT_RUN",
+    "hiddenAcceptedRawOutputEquality": "NOT_PROVEN"
+  },
+  "warmDesktop": {
+    "status": "PASS_10_DESKTOP_AND_SEPARATE_INDEPENDENT_FINITE_PHYSICS",
+    "viewports": [
+      1280,
+      1440,
+      1920
+    ],
+    "actualWorlds": 4,
+    "attempts": 6,
+    "acceptedSteps": 6,
+    "applications": 594,
+    "queries": 58,
+    "points": 58,
+    "anchorChecks": 1566,
+    "errors": {
+      "page": 0,
+      "console": 0,
+      "network": 0
+    },
+    "displayGeometry": "DISPLAY_ONLY_GPU_TRIANGLES_NOT_CAD_ORIGINAL",
+    "rawProof": "examples/physics-warm-viewer-2276/evidence/browser-desktop-02/proof.json",
+    "browserPhysicsAudit": "EXECUTED_PASS_BROWSER_PHYSICS_FINITE_WINDOW",
+    "mobile": "NOT_RUN",
+    "firstDesktop01": "PRESERVED_CAPTURE_FAILURE_9_PASS_FULL_HISTORY_NOT_RETAINED",
+    "P03Physics": "SOURCE_BEFORE_NO_GO_AFTER_SCREEN_COMPLETED",
+    "qualifiedObservers": 4,
+    "qualifyingWarmIntervals": [
+      "A2",
+      "D_continuation2"
+    ],
+    "browserNodeBitObservation": "OBSERVED_BITS_EQUAL_8_ROWS_NOT_GLOBAL",
+    "transportDataControls": 21,
+    "originalPoolNodesVerified": 480,
+    "canonicalRootBytes": 6408953,
+    "newActualCumulativeSpanFragments": 474164,
+    "oldLexicalFragmentCount": 1006660,
+    "oldDecoderOutcome": "PRESERVED_RESOURCE_NO_GO",
+    "newBrowserOrWorldRerunsForDecoderFix": 0,
+    "hiddenAcceptedRawOutputEquality": "NOT_PROVEN",
+    "canonicalPublicPackage": "NOT_ADOPTED",
+    "commit": "6197433f3",
+    "manualPreview": "http://127.0.0.1:53001"
+  },
+  "P03Baseline": {
+    "status": "EXECUTED_NO_GO_PRIVATE_PERSISTENT_CONE",
+    "results": "examples/physics-persistent-cone-2276/RESULTS.md",
+    "commit": "d62523ae3",
+    "worlds": 1,
+    "attempts": 1,
+    "committedSteps": 1,
+    "applications": 108,
+    "queries": 10,
+    "queryPoints": 9,
+    "anchorChecks": 243,
+    "firstFailure": "eventsStaticZeroContactVelocity0",
+    "residualMps": 0.1410596011492487,
+    "gateMps": 1e-10,
+    "allTangentBranchesDynamic": 64,
+    "exactGlobalStickingFeasible": true,
+    "geometryAndWorkLedger": "EXECUTED_PASS",
+    "atAfter": "NOT_RUN",
+    "inputTolerancesIterations": "UNCHANGED",
+    "next": "EXACT_COUPLED_STATIC_ONLY_CANDIDATE_NO_SCALAR_FALLBACK"
+  },
+  "P03Static": {
+    "status": "EXECUTED_STATIC_PASS_DYNAMIC_REQUIRED_REFUSAL_PRIVATE_COUPLED_CONTACT",
+    "results": "examples/physics-coupled-contact-2276/RESULTS.md",
+    "graphs": [
+      "source",
+      "strict-emitted-native"
+    ],
+    "perGraph": {
+      "worlds": 3,
+      "attempts": 3,
+      "applications": 128,
+      "queries": 22,
+      "queryPoints": 19,
+      "anchorChecks": 513,
+      "records": 169
+    },
+    "acceptedStepsPerGraph": 2,
+    "staticPhysicalCases": [
+      "before",
+      "at"
+    ],
+    "contactVelocityResidualMps": 0,
+    "contactVelocityGateMps": 1e-10,
+    "currentTangentPlaneResidualNs": 1.8973538018496328e-19,
+    "currentTangentPlaneGateNs": 1e-12,
+    "physicalSolve": "ONE_TOTAL_WORLD_IMPULSE_THEN63_ACTUAL_ZERO_APPLICATIONS_ORIGINAL8x8",
+    "pureHelperCasesPerGraph": 3,
+    "separateNegativeControlsPerGraph": 8,
+    "retainedPacketParity": 33,
+    "normalization": "NONE",
+    "after": "TYPED_DYNAMIC_REQUIRED_BEFORE_APPLY_RAW_ACCEPTED_DATA_PRESERVED_NOT_DYNAMIC_PASS",
+    "firstBuild": "PRESERVED_ESBUILD_LAUNCHER_AUTH_FAILURE_NO_COMPILER_HELPER_WORLD",
+    "build02": "IDENTICAL_PAID_STAGE_MANIFEST_EXISTING_NATIVE_BINARY_EXACT_OLD_HASH_STRICT_PASS",
+    "newDesktop": "EXECUTED_PASS_SEPARATE6CHECKS15INDEPENDENTPHYSICALJOBS",
+    "postApplyRollbackWire": "QUALIFIED_DISTINCT_LIFECYCLE_PROVIDER_ONE_FRAME_25da0c262",
+    "warmMultipointSecondInterval": "NOT_QUALIFIED",
+    "canonicalPublicPackage": "NOT_ADOPTED",
+    "P03Whole": "NO_GO_DYNAMIC_NOT_SUPPORTED",
+    "P4": "UNCHANGED_NO_GO",
+    "HOLD": "UNCHANGED",
+    "tolerancesIterationsInputsFirstFailure": "PRESERVED",
+    "commit": "7370857bc"
+  },
+  "coupledStaticDesktop": {
+    "status": "EXECUTED_PASS_DESKTOP_RENDER_AND_SEPARATE_BROWSER_STATIC_PHYSICS",
+    "results": "examples/physics-coupled-viewer-2276/RESULTS.md",
+    "executedAuthor": "AUTHOR-FREEZE-03.json",
+    "author04": "WITHDRAWN_PROPOSAL_ROOT_STALE_READ_CORRECTED_NOT_EXECUTED",
+    "browserVersion": "156.0.8078.80",
+    "checks": 6,
+    "widths": [
+      1280,
+      1440,
+      1920
+    ],
+    "pageConsoleNetworkErrors": [
+      0,
+      0,
+      0
+    ],
+    "actualCounts": {
+      "worlds": 3,
+      "attempts": 3,
+      "acceptedSteps": 2,
+      "applications": 128,
+      "queries": 22,
+      "queryPoints": 19,
+      "anchorChecks": 513,
+      "records": 169
+    },
+    "independentBrowserObserverJobs": 15,
+    "physicalCases": [
+      "before",
+      "at"
+    ],
+    "after": "TYPED_PREAPPLY_REFUSAL_RAW_ROLLBACK_NOT_DYNAMIC_PHYSICS_PASS",
+    "proof": {
+      "status": "SAVED_BROWSER_RAW_WORD_PROOF",
+      "file": "examples/physics-coupled-viewer-2276/evidence/browser-desktop-01/proof.json",
+      "rawRequestBytes": 2557412,
+      "rawRequestSHA256": "147eb0ac49d7a271ccfef4e70972c26457f6b44ec1b194bc4c6aea61da931105",
+      "storedBytes": 532144,
+      "storedSHA256": "5ed22114850604ada27a22b671a1cd3de4942d41586dcf1679a300e39535b65e",
+      "physicsObserver": "NOT_RUN",
+      "runCompletion": "CAPTURED_PREFIX_OR_TERMINAL"
+    },
+    "displayGeometry": "DISPLAY_ONLY_EXACT_PRIMITIVE_GPU_TRIANGLES_NOT_CAD_SURFACE",
+    "physicalMeasurement": "ORIGINAL_IMMUTABLE_GEOMETRY_PHYSICAL_CONE_TARGET_OBSERVERS_NOT_SCREENSHOTS",
+    "mobile": "NOT_RUN",
+    "public": "NOT_ADOPTED",
+    "wholeP03": "NO_GO_DYNAMIC_UNSUPPORTED",
+    "P4": "UNCHANGED_NO_GO",
+    "HOLD": "UNCHANGED",
+    "manualPreview": "http://127.0.0.1:53020",
+    "commit": "9315582a7"
+  },
+  "P03TransactionFirstFailure": {
+    "status": "PRESERVED_FIRST_TRANSACTION_OBSERVATION_NO_GO",
+    "originalSummary": {
+      "path": "examples/physics-coupled-transaction-2276/evidence/source-01/summary.json",
+      "bytes": 21867,
+      "sha256": "5186688a9e753361f8706f64cda874386beda985169d6fde5b256536a4242401"
+    },
+    "firstFailurePhase": "serializeOneFrame",
+    "firstFailureMessageLine": "B-serialize-hidden raw accepted private storage complete private.world",
+    "actualCounts": {
+      "worlds": 2,
+      "attempts": 4,
+      "records": 175,
+      "applications": 129,
+      "queries": 21,
+      "queryPoints": 19,
+      "anchorChecks": 513,
+      "traceBytes": 589480
+    },
+    "acceptedSteps": 2,
+    "passedControls": [
+      "initialGeometry",
+      "initialPhysical",
+      "knownRollback",
+      "unknownPostApplyRollback",
+      "unknownActualPrefix",
+      "cleanRetry",
+      "retryGeometry",
+      "retryPhysical",
+      "retryCone",
+      "retryTarget",
+      "cleanPublicRawEquality",
+      "cleanPrivateWorldRawEquality",
+      "serializeOneFrame"
+    ],
+    "BChecker": "ACTUALLY_STARTED_AND_FAILED_POST_DISPOSE_PRIVATE_WORLD_EQUALITY; original control label NOT_RUN retained unchanged",
+    "failureBoundary": "Actual hiddenB accepted then disposed; current private.world arrays empty, no pre-dispose full snapshot retained by old access path",
+    "native": "NOT_RUN_AFTER_FIRST_FAILURE",
+    "deserializeRestoreParity": "NOT_RUN_AFTER_FIRST_FAILURE",
+    "oldToleranceAndRuntime": "UNCHANGED",
+    "futureRequirement": "Genuine pre-dispose accepted snapshot observation; no reconstructed hidden state or deleted equality gate",
+    "engineAccuracyConclusion": "NOT_A_NEW_CONSTITUTIVE_FAILURE; observation equality NOT_PROVEN/NO_GO",
+    "commit": "0210d2889"
+  },
+  "coupledDynamicDesign": {
+    "status": "DESIGN_ONLY_NO_CANDIDATE_NO_NUMERICAL_RUN",
+    "commit": "31334b18e",
+    "contract": "examples/physics-coupled-dynamic-design-2276/CONTRACT.md",
+    "physical": "NO_GO_NOT_QUALIFIED"
+  },
+  "latestDocs": {
+    "status": "PASS",
+    "receipt": "examples/physics-world-p5-2276/DOCS-LIFECYCLE-MATH-08.json",
+    "buildElapsedMs": 9891.145292,
+    "siteElapsedMs": 100.333916,
+    "deployment": "NOT_RUN"
+  },
+  "lifecycleQualified": {
+    "status": "EXECUTED_SOURCE_NATIVE_STATIC_AND_ONE_FRAME_TRANSACTION_PASS",
+    "commit": "25da0c262",
+    "results": "examples/physics-coupled-lifecycle-2276/RESULTS.md",
+    "staticPacketParity": 40,
+    "transactionPacketWireParity": 44,
+    "normalization": "NONE",
+    "staticPerGraph": {
+      "worlds": 3,
+      "attempts": 3,
+      "acceptedSteps": 2,
+      "applications": 128,
+      "queries": 22,
+      "points": 19,
+      "anchors": 513
+    },
+    "transactionPerGraph": {
+      "worlds": 4,
+      "attempts": 6,
+      "acceptedSteps": 4,
+      "applications": 257,
+      "queries": 41,
+      "points": 37,
+      "anchors": 999
+    },
+    "hiddenBCAcceptedPublicPrivate": "GENUINE_PRE_DISPOSE_CAPTURE_RAW_EQUAL",
+    "oldFailure": "PRESERVED_0210d2889_NOT_REWRITTEN",
+    "crossWorldDiagnosticProvenance": "NOT_PROVEN",
+    "captureBound": "SERIALIZED_DATA_CELLS_AND_COPY_ALLOWANCE_NOT_RSS",
+    "physicalSecondInterval": "NOT_SUPPORTED",
+    "dynamicWarmMultipointPublicP4": "NOT_QUALIFIED"
+  },
+  "latestLifecycleDesktop": {
+    "status": "EXECUTED_PASS7_DESKTOP_AND15_BROWSER_PHYSICAL_OBSERVERS",
+    "commit": "8b6b2400a",
+    "results": "examples/physics-coupled-lifecycle-viewer-2276/RESULTS.md",
+    "manualPreview": "http://127.0.0.1:53040",
+    "widths": [
+      1280,
+      1440,
+      1920
+    ],
+    "checks": 7,
+    "originalPhysicalObservers": 15,
+    "lifecycleData": "PASS_COMPLETE_BROWSER_CAPTURE_RAW_VS_ORIGINAL_PROOF",
+    "genuinePreDisposeCaptures": 3,
+    "explicitBulkReads": 2,
+    "physicsCensus": {
+      "worlds": 3,
+      "attempts": 3,
+      "acceptedSteps": 2,
+      "applications": 128,
+      "queries": 22,
+      "points": 19,
+      "anchors": 513
+    },
+    "pageConsoleNetworkErrors": 0,
+    "oldUIUnchanged": true,
+    "mobile": "NOT_RUN",
+    "wireDynamicWarmSecondInterval": "NOT_RUN",
+    "public": "NOT_ADOPTED"
+  },
+  "efficientDynamicPure": {
+    "status": "PASS_PURE_THREE_INPUTS_AND_EIGHT_ADMISSION_CONTROLS",
+    "commit": "c67bc917e",
+    "results": "examples/physics-coupled-dynamic-efficient-2276/RESULTS.md",
+    "WorldCalls": 0,
+    "perGraphCalls": {
+      "coupledCalls": 11,
+      "directStaticChecks": 2,
+      "topLevelCalls": 13,
+      "underlyingStaticCalls": 13
+    },
+    "sourceNativePackets": 14,
+    "normalization": "NONE",
+    "afterCompleteIntegerOps": 241975,
+    "integerCap": 262144,
+    "rationalOps": 771,
+    "gcdSteps": 23153,
+    "peakBits": 1297,
+    "subdivisionsAndExponent": 66,
+    "oldFirstFailure": "PRESERVED_36f260949_262146_DENIED_ATTEMPT_TRUNCATED_NOT_COMPLETED",
+    "reference": "INDEPENDENT_REFERENCE_READY_c1d9a640c",
+    "runtimeWorldPromotion": "BLOCKED_ACTUAL_HOST_AND_REMAINING_GATES",
+    "sharedCoreAndBoundaryBank": "EXECUTED_PASS_PRODUCTION_13_AND_PRIVATE_52_SOURCE_NATIVE",
+    "production13CallCap16": "UNCHANGED_SEPARATE_FROM_NEW_PRIVATE_BANK"
+  },
+  "uiPreference": "2026-11-03 user AGENTS: UI controls/state/results, omit explanatory layers where possible; detailed explanations in docs. Frozen prior evidence/UI unchanged.",
+  "arithmeticNext": {
+    "status": "EXECUTED_PASS_FINITE_SHARED_ARITHMETIC",
+    "results": "examples/physics-coupled-arithmetic-2276/RESULTS.json",
+    "providerDigest": "563358d90def9027f39d4e0a7744c436f849660f5bfd1b2dc1d5094d6b37bff9",
+    "productionPerGraph": {
+      "actualCalls": 13,
+      "cap": 16,
+      "fullFilesRawEqualToEfficient": 14,
+      "allCounterWordsEqual": true
+    },
+    "privateTestEntryPerGraph": {
+      "actualCalls": 52,
+      "cap": 64,
+      "independentAudits": 52,
+      "fullFilesRawEqualSourceNative": 53
+    },
+    "observedAcrossSeparateProcessesPerGraph": 65,
+    "combined64CapClaim": false,
+    "WorldCalls": 0,
+    "strictCompileFirstFailures": [
+      "build-01 TS18048 preserved at3179b6018",
+      "build-02 TS4060/TS4058 preserved"
+    ],
+    "successfulBuild": "build-03 type annotations only; original math bodies unchanged",
+    "archive": {
+      "path": "examples/physics-coupled-arithmetic-2276/EVIDENCE-01.tar.gz",
+      "logicalMembersVerified": 715,
+      "frozenWorkspaceRecoveryVerified": 234,
+      "toolMetadataVerified": 359
+    },
+    "algorithmsMetersLimitsPrecision": "UNCHANGED",
+    "WorldPromotion": "FINITE_THREE_CLEAN_WORLD_CASES_PASS_ATOMICITY_WIRE_DESKTOP_PUBLIC_GATES_REMAIN"
+  },
+  "currentPriorityOrder": [
+    "Prove exact normal-contact arithmetic on actual failed inputs with unchanged64iteration/SI/geometry gates.",
+    "Adopt only independently qualified successor into World; rerun tensor/public/owner/dt/512/1024.",
+    "Run same-provider desktopHiDPI after numericalPASS; desktoponly.",
+    "General moving8/originalP4 and othercontact/material/connectedmechanism profiles remain separate NO_GO.",
+    "Do not resume Studio/manufacturing/equipment/oldworkers; no deploy."
+  ],
+  "dynamicHost": {
+    "status": "EXECUTED_PASS_ORIGINAL_THREE_CLEAN_WORLD_CASES",
+    "results": "examples/physics-coupled-dynamic-host-2276/CLEAN-RESULTS.json",
+    "profile": "Original before/at/after; one cold point, first interval only; private staged real World API",
+    "perGraph": {
+      "worlds": 3,
+      "attempts": 3,
+      "accepted": 3,
+      "records": 243,
+      "applications": 192,
+      "queries": 30,
+      "queryPoints": 27,
+      "anchorChecks": 729,
+      "traceBytes": 853375,
+      "independentObservers": 18,
+      "helperPlans": 3
+    },
+    "fullRawSourceNativeFiles": 26,
+    "normalization": "NONE",
+    "afterMetrics": {
+      "normalSpeedMps": 2.245727290605634e-18,
+      "coneErrorNs": 3.26936304418379e-18,
+      "oppositionErrorNs": 3.2620547630988122e-18,
+      "slipLowerMps": 0.14415413024243495,
+      "midpointWorkJ": -0.019189277255532176
+    },
+    "firstFormatBuildFailure": "PRESERVED_0_WORLD_CALLS",
+    "archiveLogicalMembersVerified": 1261,
+    "archiveFrozenWorkspaceRecoveryVerified": 1092,
+    "inheritedTypingBoundaries": "skipLibCheck true; two existing nocheck files; no new waiver; not whole-host strict typing proof",
+    "postImpulseAndWire": "EXECUTED_PASS_AFTER_SOURCE_NATIVE_38_FULL_RAW_FILES",
+    "dynamicDesktop": "EXECUTED_PASS_AFTER_SELECTED_7_CHECKS_18_PHYSICAL_JOBS_6_FULL_PACKET_PARITY",
+    "canonicalPublicAdoption": "NOT_RUN",
+    "warmMultipointLongStack": "UNCHANGED_NO_GO_OR_NOT_RUN"
+  },
+  "dynamicTransaction": {
+    "status": "PASS_DYNAMIC_AFTER_ROLLBACK_AND_GENUINE_ONE_FRAME_WIRE_SOURCE_NATIVE",
+    "profile": "Original after model, empty commands, first accepted interval only",
+    "perGraphCounts": {
+      "worlds": 4,
+      "attempts": 6,
+      "records": 337,
+      "applications": 257,
+      "queries": 41,
+      "queryPoints": 37,
+      "anchorChecks": 999,
+      "traceBytes": 1216253
+    },
+    "perGraphAccepted": 4,
+    "perGraphHelperPlans": 5,
+    "perGraphDirectStepCalls": 4,
+    "perGraphHiddenReplayCalls": 3,
+    "perGraphTotalObservedStepCalls": 7,
+    "perGraphIndependentAudits": 20,
+    "rawParityFiles": 38,
+    "normalization": "NONE",
+    "wirePin": {
+      "bytes": 4771,
+      "sha256": "293976328e1204c87bebcc619ef2a6b38b319ef493a2fc8a61b784f09faff758"
+    },
+    "rollback": "RAW_EQUAL_AFTER_KNOWN_PREQUERY_AND_UNKNOWN_ACTUAL_POST_J_BUCKET_MUTATION",
+    "hiddenAcceptedState": "GENUINE_PRE_DISPOSE_FULL_PUBLIC_PRIVATE_OWNER_RAW_EQUAL",
+    "hiddenInitialGetter": "NOT_RETAINED",
+    "hiddenInitialAuthority": "SAME_MODEL_INITIAL_CONTROL_BOUND_TO_ACTUAL_CREATION_ATTEMPT_FREE_INPUT",
+    "privateDiagnosticCacheFrameAndTraceEqualityAcrossWorlds": "NOT_PROVEN_NO_ID_MAP",
+    "secondInterval": "TYPED_REFUSAL_BEFORE_PHASE_BEGIN_WITH_ACCEPTED_AND_DIAGNOSTIC_STATE_PRESERVED",
+    "commandPopulation": "EMPTY_ONLY",
+    "runtimeChanged": "NONE_FROM_QUALIFIED_HOST_BUILD02",
+    "guards": [
+      {
+        "path": "examples/physics-world-p5-2276/evidence/coupled-dynamic-tx-freeze-01/result.json",
+        "pin": {
+          "bytes": 3077,
+          "sha256": "62f251f66ea6f9f6f6cdd4752c9f8517fee5796ddd1a8507bff89a3ce05cdb24"
+        },
+        "elapsedMs": 466.09125
+      },
+      {
+        "path": "examples/physics-world-p5-2276/evidence/coupled-dynamic-tx-source-01/result.json",
+        "pin": {
+          "bytes": 3105,
+          "sha256": "2643a0ae5b1e65ef85d3017a7a62b70473604690e115e8b9a4be9ea454bae0f7"
+        },
+        "elapsedMs": 7866.29275
+      },
+      {
+        "path": "examples/physics-world-p5-2276/evidence/coupled-dynamic-tx-native-01/result.json",
+        "pin": {
+          "bytes": 3106,
+          "sha256": "2df04ec3935b934154947fc46fb280dfb2692d7aa20c087899592cda9da4c0c9"
+        },
+        "elapsedMs": 7911.372291
+      },
+      {
+        "path": "examples/physics-world-p5-2276/evidence/coupled-dynamic-tx-parity-01/result.json",
+        "pin": {
+          "bytes": 3171,
+          "sha256": "d23d707ad39989e0bc4c22741651dd0822a0cda0ae3ca90ecfd1ce99f8734208"
+        },
+        "elapsedMs": 236.070792
+      }
+    ],
+    "warmMultipointAndLongStack": "UNCHANGED_NO_GO_OR_NOT_RUN",
+    "canonicalPublicAdoption": "NOT_RUN",
+    "browserWire": "NOT_RUN",
+    "HOLD": "UNCHANGED",
+    "deploy": "NOT_RUN"
+  },
+  "priorLastNumericalMilestone": {
+    "profile": "G2 boxCCD identity quaternion sign",
+    "status": "BOUNDED_SOURCE_NATIVE_INDEPENDENT_AND_DESKTOP_PASS",
+    "scope": "20cases/20World24steps pergraph,2creation2commandrefusals,exactface-eventbankzeroresidual;9desktopchecks4presets",
+    "results": "examples/physics-box-slab-boundaries-2276/RESULTS.md"
+  },
+  "priorLatestBrowserConsumer": {
+    "profile": "Desktop boxCCD publicSourceWorld/recorder/Viewer",
+    "status": "PASS_DESKTOP_ONLY_1280_1440_1920",
+    "scope": "9realdesktopchecks4presets,acceptedXYZW/TOI/meshposes/qsignphysicalequivalence,0errors",
+    "results": "examples/physics-box-slab-boundaries-2276/RESULTS.md",
+    "notRun": [
+      "Native GPU browser graph",
+      "device-loss",
+      "privatecontactphase/wrench",
+      "original8boxP4"
+    ]
+  },
+  "dynamicDesktop": {
+    "status": "PASS_DYNAMIC_FIRST_INTERVAL_DESKTOP_GPU_AND_INDEPENDENT_BROWSER_DATA",
+    "campaigns": [
+      {
+        "id": "desktop-01",
+        "scope": "before1 GPU, all three physics",
+        "status": "PASS_DESKTOP_COUPLED_DYNAMIC_HOST_VIEWER_ONLY",
+        "checks": 7,
+        "independentPhysicalJobs": 18,
+        "wholeDecodedPacketParity": 6,
+        "counts": {
+          "worlds": 3,
+          "attempts": 3,
+          "records": 243,
+          "applications": 192,
+          "queries": 30,
+          "queryPoints": 27,
+          "anchorChecks": 729,
+          "traceBytes": 853375
+        },
+        "desktopWidths": [
+          1280,
+          1440,
+          1920
+        ],
+        "errors": {
+          "pageErrors": 0,
+          "consoleErrors": 0,
+          "networkErrors": 0
+        },
+        "browserVersion": "156.0.8078.80",
+        "lifecycleCapture": "PASS_GENUINE_PRE_DISPOSE_RAW_AND_CLONE_ISOLATION",
+        "browserDisposedGetters": "NOT_RUN_REFS_NOT_EXPOSED",
+        "reportPin": {
+          "bytes": 12595730,
+          "sha256": "c79a9d20a5a51ada8bf75b9e97e4e50aacf7565752895b36f9e072f1302882e8"
+        },
+        "proofPin": {
+          "bytes": 767194,
+          "sha256": "4c166ced43eb983eef069f4ae2a6d9d9f9c4a9baca5b66a74d9253727cc791d2"
+        },
+        "requestReceipt": {
+          "bytes": 3586360,
+          "sha256": "b9613775cba8982528ad2d01e6dc16924ba33ea566a3d131d70282e1f71700b4"
+        },
+        "screenshots": {
+          "desktop-1920.png": {
+            "bytes": 117236,
+            "sha256": "75bad404d64960c220e451de0beb2aa1cec4af68b2e93ac8e3964adefe0fa4a6"
+          },
+          "desktop-1440.png": {
+            "bytes": 113076,
+            "sha256": "26071be531e29fdabe93c30fc297c7555039a8bde219fcfc68501c5c8f6d748c"
+          },
+          "desktop-1280.png": {
+            "bytes": 110179,
+            "sha256": "c37bf5758fe4893aaf5f125fdb0a30338a21833c7a15e98d623ebd6c1823bed2"
+          }
+        },
+        "auditSummaryPin": {
+          "bytes": 2433,
+          "sha256": "d552aabf79bedcec2463dccce5ba512691955f924ae064a8b9913b2bc35d8433"
+        },
+        "packetParityPin": {
+          "bytes": 892,
+          "sha256": "7d7690eece7547ff0ae25a1ac756b4011ff68a43e4028ddbbf54f0598391aad8"
+        },
+        "auditGuard": "coupled-dynamic-viewer-audit-02"
+      },
+      {
+        "id": "desktop-02",
+        "scope": "after1 GPU, all three physics",
+        "status": "PASS_DESKTOP_COUPLED_DYNAMIC_HOST_VIEWER_ONLY",
+        "checks": 7,
+        "independentPhysicalJobs": 18,
+        "wholeDecodedPacketParity": 6,
+        "counts": {
+          "worlds": 3,
+          "attempts": 3,
+          "records": 243,
+          "applications": 192,
+          "queries": 30,
+          "queryPoints": 27,
+          "anchorChecks": 729,
+          "traceBytes": 853375
+        },
+        "desktopWidths": [
+          1280,
+          1440,
+          1920
+        ],
+        "errors": {
+          "pageErrors": 0,
+          "consoleErrors": 0,
+          "networkErrors": 0
+        },
+        "browserVersion": "156.0.8078.80",
+        "lifecycleCapture": "PASS_GENUINE_PRE_DISPOSE_RAW_AND_CLONE_ISOLATION",
+        "browserDisposedGetters": "NOT_RUN_REFS_NOT_EXPOSED",
+        "reportPin": {
+          "bytes": 12595744,
+          "sha256": "151c93588c7a19ec4762e27908e6c00903b463eb12b3064a6042af7b66138d3f"
+        },
+        "proofPin": {
+          "bytes": 767194,
+          "sha256": "33e1eb618904e4deb81015a321ef6aad816b225112a31f857d44357119830307"
+        },
+        "requestReceipt": {
+          "bytes": 3586360,
+          "sha256": "c601f223487fc54d87087e7fbe98e877ca8666eaa7a40329db0af0c1dc8a759f"
+        },
+        "screenshots": {
+          "desktop-1920.png": {
+            "bytes": 117319,
+            "sha256": "a0f1c2ea0e5b471d99298084e52035d88259c1b3eb19948b0e70c5b43bc7a524"
+          },
+          "desktop-1440.png": {
+            "bytes": 113173,
+            "sha256": "5a88716076f858561306fb3d064509d87053eae7f8bf3726cb1096cd6588af84"
+          },
+          "desktop-1280.png": {
+            "bytes": 110265,
+            "sha256": "abedbef4c8e49164fe26010747370fbf183342a8ef0ec7d7f765c57e3a74261d"
+          }
+        },
+        "auditSummaryPin": {
+          "bytes": 2433,
+          "sha256": "ace45bf42666f82104d640c4d791d51c77cfb42619b6f7b774cec27e2bf58ba2"
+        },
+        "packetParityPin": {
+          "bytes": 892,
+          "sha256": "7d7690eece7547ff0ae25a1ac756b4011ff68a43e4028ddbbf54f0598391aad8"
+        },
+        "auditGuard": "coupled-dynamic-viewer-audit-03"
+      }
+    ],
+    "censusBoundary": "Each separate fresh browser campaign repeats the same three cases with cap3Worlds; no single cap6 or six distinct fixtures claim",
+    "selectedLatestGPUState": "after1",
+    "actualPrimitiveGraphicsOnly": "NOT_CAD_NATIVE_SURFACE_QUALIFICATION",
+    "canonicalPhysicsPublicAdoption": "NOT_RUN",
+    "browserWireSecondIntervalWarmLongStack": "NOT_RUN_OR_UNCHANGED_NO_GO",
+    "auditRunner": "audit-browser-02.mjs; original audit runner NOT_RUN; deadline flooring only",
+    "firstAdmission": "NOT_RUN_EXTERNAL_LOAD_GATE_PRESERVED_THEN_NORMAL_ADMISSION",
+    "HOLD": "UNCHANGED",
+    "tolerancesCapsAndFirstFailures": "PRESERVED",
+    "mobile": "NOT_RUN_USER_EXCLUDED",
+    "deploy": "NOT_RUN"
+  },
+  "roadmapReview": {
+    "date": "2026-11-03",
+    "status": "CURRENT_EVIDENCE_AND_PRIORITY_RECONCILED",
+    "correction": "Original P4 cost stop is observed first; new warm/multipoint failure on that cold-normal path is not established",
+    "P4Profile": "Eight1kg half-.25 boxes, inverse inertia24I, gravity, original1/120s",
+    "G2Profile": "One1kg half-.5 cube, inverse inertia6I, zero gravity, first exact cold contact only",
+    "costCandidate": "DESIGN_ONLY_NEW_FULL36_ROW_UNTRUSTED_BASIS_EXACT_KKT_CERTIFICATE; not a fourth cache/axis retune",
+    "requiredBeforeCandidateExecution": "Complete frozen operation pricing/bounds, independent controls and original six saved cold-QP authorities",
+    "publicCutover": "SEPARATE_REQUIRED_GATED_LANE; no whole-P4 prerequisite implied",
+    "completionEstimate": "NO_RELIABLE_WHOLE_ENGINE_DATE_OR_WEIGHTED_PERCENT",
+    "HOLD": "UNCHANGED",
+    "mobile": "NOT_RUN",
+    "deployment": "NOT_RUN",
+    "documentationBuild": "EXECUTED_PASS_DOCS_09_BUILD_LINK_AND_GENERATED_ASSETS",
+    "implementationHead": "b2bd44f9d"
+  },
+  "roadmapCommitMeaning": "Historical baseline roadmap commit; currentreview is ROADMAP-REVIEW-20261103.json",
+  "latestPositionWitness": {
+    "status": "NUMERICAL_PASS_COST_NO_GO_ENDED",
+    "results": "examples/physics-p4-position-witness-v2-2276/RESULTS.md",
+    "kernelChecks": 10,
+    "fullPhysicalAndIndependentFrames": 6,
+    "candidateCoreCpuNs": 2395213000,
+    "savedBaselineCoreCpuNs": 773147000,
+    "thresholdCoreCpuNs": 695832300,
+    "costDecisions": 1,
+    "baselineReruns": 0,
+    "WorldCalls": 0,
+    "original1200Steps": "NOT_RUN",
+    "publicAdoption": "NOT_RUN",
+    "desktop": "NOT_RUN",
+    "firstResourceFailure": "examples/physics-p4-position-witness-2276/RESULTS.md",
+    "allocationEvidence": "Frame graph measurements only; old whole-file110MB tool hash transient was outside measurement. Whole-protocol64MiB not qualified; first record preserved."
+  },
+  "nextNativePositionWitness": {
+    "status": "ENDED_NUMERICAL_PASS_COST_NO_GO",
+    "runtime": "existing pinned Node22 BigInt; no new dependency",
+    "scope": "position proof only; Python compact unchanged",
+    "costBoundary": "parent core CPU plus owned Node complete-lifetime CPU; conservative envelope, not same boundary",
+    "publicAdoption": "NOT_RUN"
+  },
+  "latestNativePositionWitness": {
+    "status": "NUMERICAL_PASS_CONSERVATIVE_COST_NO_GO_ENDED",
+    "results": "examples/physics-p4-native-witness-2276/RESULTS.md",
+    "kernelChecks": 10,
+    "fullPhysicalAndIndependentFrames": 6,
+    "parentCoreCpuNs": 545702000,
+    "ownedNodeLifetimeCpuNs": 568623000,
+    "conservativeEnvelopeCpuNs": 1114325000,
+    "thresholdCpuNs": 695832300,
+    "sameBaselineBoundary": false,
+    "actualNumericalBanks": 1,
+    "wrapperCommandAttempts": 2,
+    "priorWrapperAttempt": "NameError before any compact/proof/worker call; preserved",
+    "costDecisions": 1,
+    "baselineReruns": 0,
+    "WorldCalls": 0,
+    "original1200Steps": "NOT_RUN",
+    "publicAPI": "NOT_RUN",
+    "desktop": "NOT_RUN"
+  },
+  "nextLehmerPositionWitness": {
+    "status": "GCD32_PASS_POSITION_ALIGNED16_PRIMITIVE_NO_GO_B_NOT_RUN",
+    "firstGate": "32 independent exact GCD pairs with one2M primitive meter",
+    "nextGates": [
+      "freshA10",
+      "oneB6fullphysical/independent",
+      "oneconservativeCPUcostdecision"
+    ],
+    "limits": "Original prices,2M,8192/16385bits,170/180s and physical tolerances unchanged"
+  },
+  "latestLehmerPositionWitness": {
+    "results": "examples/physics-p4-lehmer-witness-2276/RESULTS.md",
+    "GCD32": "EXACT_AND_BEZOUT_PASS",
+    "G0GlobalPrimitives": 1159878,
+    "acceptedBlocks": 319,
+    "positionCalls": 6,
+    "positionIndependentPasses": 5,
+    "firstFailure": "ALIGNED16 PROOF_PRIMITIVE_LIMIT at2M; attempt2000001 denied",
+    "B": "NOT_RUN",
+    "cost": "NOT_RUN",
+    "WorldCalls": 0,
+    "publicAPI": "NOT_RUN",
+    "desktop": "NOT_RUN"
+  },
+  "nextInvariantPositionWitness": {
+    "status": "ENDED_NUMERICAL_PASS_COST_NO_GO",
+    "policy": "New localized GCD entry/remainder invariant explicitly overrides old per-REM guard clause; no unchanged-clause claim.",
+    "unchanged": "All actual operation prices,2M/bit/time limits, physical gates and first failures",
+    "gates": [
+      "fresh32-pair exact/Bézout audit",
+      "freshA10",
+      "oneB6fullphysical+independent",
+      "oneparent-plus-fullchildCPUcostdecision"
+    ]
+  },
+  "latestInvariantPositionWitness": {
+    "results": "examples/physics-p4-invariant-witness-2276/RESULTS.md",
+    "G0": "PASS32",
+    "A": "PASS10",
+    "B": "PASS6_PHYSICAL_AND_INDEPENDENT",
+    "parentCoreCpuNs": 534950000,
+    "ownedChildLifetimeCpuNs": 310880000,
+    "conservativeEnvelopeCpuNs": 845830000,
+    "thresholdCpuNs": 695832300,
+    "costDecisions": 1,
+    "baselineReruns": 0,
+    "WorldCalls": 0
+  },
+  "latestBoundedCodecPositionWitness": {
+    "status": "ALL_G0_U0_A_B_NUMERICAL_PASS_COST_NO_GO_ENDED",
+    "sourceFiles": 179,
+    "guardPolicy": {
+      "path": "examples/physics-p4-bounded-codec-witness-2276/GUARD-POLICY.md",
+      "scope": "GCD_REM_PLUS_BOUNDED_INTEGER_CODEC_AND_F64_WORD_CONSTANT_FASTPATHS_ONLY",
+      "allOldGuardChecksUnchanged": false,
+      "pricesAndCapsUnchanged": true,
+      "pin": {
+        "bytes": 10575,
+        "sha256": "5ec35188b777324d1289bbee60453929e58542a9d53ef665232f1cc587191d74"
+      }
+    },
+    "G0": {
+      "pairs": 32,
+      "performed": 466279
+    },
+    "U0": {
+      "integers": 16,
+      "finiteWords": 24,
+      "expectedRejections": 4,
+      "performed": 192217,
+      "privateStats": {
+        "guardedGcdEntries": 20,
+        "invariantRemainders": 46,
+        "guardedTextEntries": 64,
+        "constantF64Returns": 4,
+        "fixedWordDecodes": 20
+      }
+    },
+    "A": "FRESH10_CANDIDATE_AND10_INDEPENDENT_PASS",
+    "B": "FRESH6_FULL_PHYSICAL_AND6_INDEPENDENT_PASS",
+    "cost": {
+      "parentCoreCpuNs": 562091000,
+      "childLifetimeCpuNs": 299711000,
+      "conservativeEnvelopeCpuNs": 861802000,
+      "savedBaselineCoreCpuNs": 773147000,
+      "costBoundaryIdenticalToSavedBaseline": false
+    },
+    "thresholdCpuNs": 695832300,
+    "costDecisions": 1,
+    "baselineReruns": 0,
+    "nestedParentCPU": {
+      "compactCpuNs": 469359000,
+      "parentBridgeCpuNs": 22713000,
+      "residualWorldCpuNs": 70019000,
+      "legacyAdmissionCpuNs": 1776000
+    },
+    "physicalLeaves": 87102,
+    "float64Words": 45408,
+    "maxBProofPrimitives": 497019,
+    "worker": {
+      "protocol": "p4-native-witness-rpc-v1",
+      "workerStarts": 1,
+      "requestCalls": 6,
+      "workerClosed": true,
+      "exit": 0,
+      "pid": 82147,
+      "childCpuAuthority": "RESOURCE_RUSAGE_CHILDREN_DELTA_AFTER_CLOSE_AND_WAIT",
+      "childLifetimeCpuNs": 299711000,
+      "resourceBefore": {
+        "userSeconds": 0,
+        "systemSeconds": 0
+      },
+      "resourceAfter": {
+        "userSeconds": 0.288052,
+        "systemSeconds": 0.011659
+      },
+      "selfReportedChildCpuUsed": false,
+      "sentBytes": 41909,
+      "receivedBytes": 246748,
+      "parentTransportLimitBytes": 4194304,
+      "childTransportReservedBytes": 4194304,
+      "maxExplicitTransportReservedBytes": 1637096,
+      "stderrBytes": 0,
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "cleanupError": null,
+      "scope": "ONE_OWNED_NODE_WORKER_ONLY_NO_PROCESS_RSS_CLAIM"
+    },
+    "WorldCalls": 0,
+    "original1200Steps": "NOT_RUN",
+    "publicAPI": "NOT_RUN",
+    "desktop": "NOT_RUN",
+    "firstFailure": {
+      "cursor": "one-cost-decision",
+      "type": "CostGate",
+      "message": "CONSERVATIVE_NATIVE_CPU_ENVELOPE_EXCEEDS_FIXED_695832300NS_GATE"
+    },
+    "archivePins": {
+      "SOURCE-01.tar.gz": {
+        "bytes": 705176,
+        "sha256": "7fe685e3ddb5729b5410e2156569711a59a251279bdee41e232c460777fdd17a"
+      },
+      "PROOF-01.tar.gz": {
+        "bytes": 329636,
+        "sha256": "13db650aa70584976283714b775d6b72cb3e8adf498a3178263bb0c99f40407f"
+      }
+    },
+    "next": "One separately declared instrumented CPU diagnostic; no repeated cost eligibility for ended candidates.",
+    "results": "examples/physics-p4-bounded-codec-witness-2276/RESULTS.md"
+  },
+  "cpuDiagnostic": {
+    "status": "PASS_INSTRUMENTED_IDENTICAL_BYTES_FIELDS_COUNTERS_ONLY",
+    "results": "examples/physics-p4-cpu-census-2276/RESULTS.md",
+    "samples": 57,
+    "timeDeltaSampleWeightUs": 75375,
+    "authoritativeCostCPU": "NOT_MEASURED",
+    "actualSpeedRatio": "NOT_MEASURED",
+    "costDecisions": 0,
+    "retiredEligibility": "UNCHANGED_ENDED"
+  },
+  "nextIntegerPositionWitness": {
+    "status": "ENDED_NUMERICAL_PASS_COST_NO_GO",
+    "scope": "Unit-mass global dyadic integer KKT proof; same immutable GCD/codec/position/physical banks",
+    "gates": [
+      "independent math review",
+      "freshG0",
+      "freshU0",
+      "freshA10",
+      "oneB6physical+independent+conservativeCPUdecision"
+    ],
+    "thresholdCpuNs": 695832300,
+    "WorldCalls": 0,
+    "original1200Steps": "NOT_RUN",
+    "publicAPI": "NOT_RUN",
+    "desktop": "NOT_RUN"
+  },
+  "latestIntegerPositionWitness": {
+    "status": "FRESH_G0_U0_A10_B6_NUMERICAL_PASS_COST_NO_GO_ENDED",
+    "sourceFiles": 182,
+    "A": {
+      "candidateChecksAttempted": 10,
+      "candidateRepliesRetained": 10,
+      "independentChecksAttempted": 10,
+      "independentChecksPassed": 10,
+      "freshFullWrapperCommands": 0,
+      "fullFramesVerified": 0,
+      "costDecisions": 0,
+      "WorldCalls": 0,
+      "baselineReruns": 0
+    },
+    "B": {
+      "candidateChecksAttempted": 0,
+      "candidateRepliesRetained": 0,
+      "independentChecksAttempted": 6,
+      "independentChecksPassed": 6,
+      "freshFullWrapperCommands": 1,
+      "fullFramesVerified": 6,
+      "costDecisions": 1,
+      "WorldCalls": 0,
+      "baselineReruns": 0
+    },
+    "cost": {
+      "parentCoreCpuNs": 557970000,
+      "childLifetimeCpuNs": 254303000,
+      "conservativeEnvelopeCpuNs": 812273000,
+      "costBoundaryIdenticalToSavedBaseline": false,
+      "savedBaselineCoreCpuNs": 773147000
+    },
+    "thresholdCpuNs": 695832300,
+    "firstFailure": {
+      "cursor": "one-cost-decision",
+      "type": "CostGate",
+      "message": "CONSERVATIVE_NATIVE_CPU_ENVELOPE_EXCEEDS_FIXED_695832300NS_GATE"
+    },
+    "maxProofPrimitives": 356696,
+    "wrapperFrames": [
+      {
+        "caseId": "ALIGNED-1",
+        "scene": "ALIGNED",
+        "step": 1,
+        "fullReplyFile": "ALIGNED-1-reply.json",
+        "kernelReplyFile": "ALIGNED-1-kernel.json",
+        "fullReplyPin": {
+          "bytes": 281343,
+          "sha256": "fe7dd83b2145c7a412295c441d745199c5b0c0ccb82ae573a28d67c803b6ca44"
+        },
+        "kernelReplyPin": {
+          "bytes": 4315,
+          "sha256": "caa61431a5f0ff2978c750dd3fe4cec85d13dfcacb20a5667cb4f12aae2f8efd"
+        },
+        "modelExactFile": "ALIGNED-1-model-exact.json",
+        "modelExactPin": {
+          "bytes": 6021,
+          "sha256": "409ba22046bb295b6687254a409dd898690b3fa045036cd5eb69c758cc14f626"
+        },
+        "coreCpuNs": 66726000,
+        "compactCpuNs": 51251000,
+        "parentBridgeCpuNs": 4394000,
+        "legacyAdmissionCpuNs": 290000,
+        "legacyOuterCalls": {
+          "admissionCalls": 1,
+          "arithmeticInstances": 2,
+          "problemEquivalenceIntegerComparisons": 1848
+        },
+        "legacyOuterRetainedBytes": 438177,
+        "legacyOuterPostReplyRetainedBytes": 3261843,
+        "residualWorldCpuNs": 11081000
+      },
+      {
+        "caseId": "ALIGNED-16",
+        "scene": "ALIGNED",
+        "step": 16,
+        "fullReplyFile": "ALIGNED-16-reply.json",
+        "kernelReplyFile": "ALIGNED-16-kernel.json",
+        "fullReplyPin": {
+          "bytes": 367463,
+          "sha256": "fa82c20ebd9b604d57da874c6defceb4b99fb5c25eadfae05aaeeed521ae1dac"
+        },
+        "kernelReplyPin": {
+          "bytes": 59385,
+          "sha256": "57a36f0d85d64402c59e1b56237c2f2400197fbf4f8e6e80e5c14d596f56a528"
+        },
+        "modelExactFile": "ALIGNED-16-model-exact.json",
+        "modelExactPin": {
+          "bytes": 11997,
+          "sha256": "2de98f229f3af7eb9d8e130032ab42195caac1802d21a99e752248e143625904"
+        },
+        "coreCpuNs": 125469000,
+        "compactCpuNs": 108614000,
+        "parentBridgeCpuNs": 4590000,
+        "legacyAdmissionCpuNs": 304000,
+        "legacyOuterCalls": {
+          "admissionCalls": 1,
+          "arithmeticInstances": 2,
+          "problemEquivalenceIntegerComparisons": 1848
+        },
+        "legacyOuterRetainedBytes": 449687,
+        "legacyOuterPostReplyRetainedBytes": 3398085,
+        "residualWorldCpuNs": 12265000
+      },
+      {
+        "caseId": "OFFSET-1",
+        "scene": "OFFSET",
+        "step": 1,
+        "fullReplyFile": "OFFSET-1-reply.json",
+        "kernelReplyFile": "OFFSET-1-kernel.json",
+        "fullReplyPin": {
+          "bytes": 281435,
+          "sha256": "6323baa41096251ed5a1c2e1b2a671ba67763a0e4b52237542e50992d276d1f5"
+        },
+        "kernelReplyPin": {
+          "bytes": 4315,
+          "sha256": "caa61431a5f0ff2978c750dd3fe4cec85d13dfcacb20a5667cb4f12aae2f8efd"
+        },
+        "modelExactFile": "OFFSET-1-model-exact.json",
+        "modelExactPin": {
+          "bytes": 6021,
+          "sha256": "409ba22046bb295b6687254a409dd898690b3fa045036cd5eb69c758cc14f626"
+        },
+        "coreCpuNs": 63035000,
+        "compactCpuNs": 50541000,
+        "parentBridgeCpuNs": 2194000,
+        "legacyAdmissionCpuNs": 274000,
+        "legacyOuterCalls": {
+          "admissionCalls": 1,
+          "arithmeticInstances": 2,
+          "problemEquivalenceIntegerComparisons": 1848
+        },
+        "legacyOuterRetainedBytes": 437272,
+        "legacyOuterPostReplyRetainedBytes": 3260938,
+        "residualWorldCpuNs": 10300000
+      },
+      {
+        "caseId": "OFFSET-16",
+        "scene": "OFFSET",
+        "step": 16,
+        "fullReplyFile": "OFFSET-16-reply.json",
+        "kernelReplyFile": "OFFSET-16-kernel.json",
+        "fullReplyPin": {
+          "bytes": 366525,
+          "sha256": "c78ab87fe7de6dd0a417bde620bcf82fb82862524c04bc0f506d20b2a2a37a89"
+        },
+        "kernelReplyPin": {
+          "bytes": 59159,
+          "sha256": "c5b556ef9a9c53847f7a0a9d40c99259a2f837f8e5e260b5ccaf30eb28ee5c2d"
+        },
+        "modelExactFile": "OFFSET-16-model-exact.json",
+        "modelExactPin": {
+          "bytes": 12090,
+          "sha256": "fe32ea9206542dbdb5f9c8dad77a7649c7e0ffbb7af6517f237e51393ae29685"
+        },
+        "coreCpuNs": 113113000,
+        "compactCpuNs": 96232000,
+        "parentBridgeCpuNs": 4734000,
+        "legacyAdmissionCpuNs": 282000,
+        "legacyOuterCalls": {
+          "admissionCalls": 1,
+          "arithmeticInstances": 2,
+          "problemEquivalenceIntegerComparisons": 1848
+        },
+        "legacyOuterRetainedBytes": 446613,
+        "legacyOuterPostReplyRetainedBytes": 3394941,
+        "residualWorldCpuNs": 12147000
+      },
+      {
+        "caseId": "YAW-1",
+        "scene": "YAW",
+        "step": 1,
+        "fullReplyFile": "YAW-1-reply.json",
+        "kernelReplyFile": "YAW-1-kernel.json",
+        "fullReplyPin": {
+          "bytes": 281816,
+          "sha256": "800a558fe645df6c57358a503382ec9e668df0fecb1b60f056e64b99d0a377c6"
+        },
+        "kernelReplyPin": {
+          "bytes": 4315,
+          "sha256": "caa61431a5f0ff2978c750dd3fe4cec85d13dfcacb20a5667cb4f12aae2f8efd"
+        },
+        "modelExactFile": "YAW-1-model-exact.json",
+        "modelExactPin": {
+          "bytes": 6021,
+          "sha256": "409ba22046bb295b6687254a409dd898690b3fa045036cd5eb69c758cc14f626"
+        },
+        "coreCpuNs": 73507000,
+        "compactCpuNs": 60819000,
+        "parentBridgeCpuNs": 2181000,
+        "legacyAdmissionCpuNs": 285000,
+        "legacyOuterCalls": {
+          "admissionCalls": 1,
+          "arithmeticInstances": 2,
+          "problemEquivalenceIntegerComparisons": 1848
+        },
+        "legacyOuterRetainedBytes": 439965,
+        "legacyOuterPostReplyRetainedBytes": 3275487,
+        "residualWorldCpuNs": 10507000
+      },
+      {
+        "caseId": "YAW-16",
+        "scene": "YAW",
+        "step": 16,
+        "fullReplyFile": "YAW-16-reply.json",
+        "kernelReplyFile": "YAW-16-kernel.json",
+        "fullReplyPin": {
+          "bytes": 371435,
+          "sha256": "fd545f8be2a8448f582b371ed57466fb86c6855d9db61a5156e240c2c2c3344f"
+        },
+        "kernelReplyPin": {
+          "bytes": 60651,
+          "sha256": "459bc48617e680f7cf201418254ff59a70562e64ca61ed722d951e4dd4cf0a80"
+        },
+        "modelExactFile": "YAW-16-model-exact.json",
+        "modelExactPin": {
+          "bytes": 11959,
+          "sha256": "7ba33c2b626848057d40639b44a480c7f1e0786b6123b7195e37c49122095f07"
+        },
+        "coreCpuNs": 116120000,
+        "compactCpuNs": 98358000,
+        "parentBridgeCpuNs": 5189000,
+        "legacyAdmissionCpuNs": 284000,
+        "legacyOuterCalls": {
+          "admissionCalls": 1,
+          "arithmeticInstances": 2,
+          "problemEquivalenceIntegerComparisons": 1848
+        },
+        "legacyOuterRetainedBytes": 446198,
+        "legacyOuterPostReplyRetainedBytes": 3404288,
+        "residualWorldCpuNs": 12573000
+      }
+    ],
+    "worker": {
+      "protocol": "p4-native-witness-rpc-v1",
+      "workerStarts": 1,
+      "requestCalls": 6,
+      "workerClosed": true,
+      "exit": 0,
+      "pid": 42188,
+      "childCpuAuthority": "RESOURCE_RUSAGE_CHILDREN_DELTA_AFTER_CLOSE_AND_WAIT",
+      "childLifetimeCpuNs": 254303000,
+      "resourceBefore": {
+        "userSeconds": 0,
+        "systemSeconds": 0
+      },
+      "resourceAfter": {
+        "userSeconds": 0.24182599999999999,
+        "systemSeconds": 0.012477
+      },
+      "selfReportedChildCpuUsed": false,
+      "sentBytes": 41909,
+      "receivedBytes": 246724,
+      "parentTransportLimitBytes": 4194304,
+      "childTransportReservedBytes": 4194304,
+      "maxExplicitTransportReservedBytes": 1637084,
+      "stderrBytes": 0,
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "cleanupError": null,
+      "scope": "ONE_OWNED_NODE_WORKER_ONLY_NO_PROCESS_RSS_CLAIM"
+    },
+    "archivePins": {
+      "SOURCE-01.tar.gz": {
+        "bytes": 697717,
+        "sha256": "85a62c6acc1f264f23354724246ad414e3ef441423985ebad372a307be5f0da3"
+      },
+      "PROOF-01.tar.gz": {
+        "bytes": 327680,
+        "sha256": "10a3acb6411e28398ba622a73d441c8f6c29a3b2158802fa3633ba54c5468d81"
+      }
+    },
+    "original1200": "NOT_RUN",
+    "publicAPI": "NOT_RUN",
+    "desktop": "NOT_RUN",
+    "WorldCalls": 0,
+    "sealSetupAttempt": "Initial freeze argparse rejected missing three required flags before file creation or numerical work; corrected invocation sealed once.",
+    "acceptedKernelMetricMaxima": {
+      "translationDifferenceM": 2.148164124373243e-36,
+      "objectiveDifferenceKgM2": 3.8396260997499504e-22,
+      "certificateReportedDifference": 2.148164124373243e-36,
+      "marginReportedDifferenceM": 1.1102230246251565e-16,
+      "objectiveReportedDifferenceKgM2": 3.8396260997499504e-22,
+      "primalViolationM": 3.306385822763573e-38,
+      "negativeMultiplierKgM": 0,
+      "complementarityKgM2": 6.020453919619368e-40,
+      "stationarityKgM": 2.148164124373243e-36
+    },
+    "expectedMismatchControlMetricMaxima": {
+      "translationDifferenceM": 2.3283064365386963e-10,
+      "objectiveDifferenceKgM2": 3.8396260997499504e-22,
+      "certificateReportedDifference": 2.3283064365386963e-10,
+      "marginReportedDifferenceM": 2.3283064365386963e-10,
+      "objectiveReportedDifferenceKgM2": 1.5861590347820783e-13,
+      "primalViolationM": 2.3283064365386963e-10,
+      "negativeMultiplierKgM": 0,
+      "complementarityKgM2": 1.2689270079135273e-12,
+      "stationarityKgM": 2.3283064365386963e-10
+    },
+    "results": "examples/physics-p4-integer-witness-2276/RESULTS.md"
+  },
+  "radicalGridR0": {
+    "status": "PASS_R0_PURE17_ONE_GLOBAL_METER",
+    "protocol": "p4-radical-r0-harness-v1",
+    "firstFailure": null,
+    "counts": {
+      "meterContexts": 1,
+      "candidateCallsAttempted": 17,
+      "candidateReplies": 17,
+      "auditCommandsAttempted": 17,
+      "auditPasses": 17,
+      "validVerified": 13,
+      "expectedInvalidVerified": 2,
+      "expectedResourceVerified": 2,
+      "WorldCalls": 0
+    },
+    "controls": [
+      "INDEPENDENT_PREFIX_PASS",
+      "INDEPENDENT_PREFIX_PASS",
+      "INDEPENDENT_PREFIX_PASS",
+      "INDEPENDENT_PREFIX_PASS",
+      "INDEPENDENT_PREFIX_PASS",
+      "INDEPENDENT_PREFIX_PASS",
+      "INDEPENDENT_PREFIX_PASS",
+      "INDEPENDENT_PREFIX_PASS",
+      "INDEPENDENT_PREFIX_PASS",
+      "INDEPENDENT_PREFIX_PASS",
+      "INDEPENDENT_PREFIX_PASS",
+      "INDEPENDENT_PREFIX_PASS",
+      "INDEPENDENT_PREFIX_PASS",
+      "INDEPENDENT_PREFIX_PASS",
+      "INDEPENDENT_PREFIX_PASS",
+      "INDEPENDENT_PREFIX_PASS",
+      "INDEPENDENT_PREFIX_PASS"
+    ],
+    "costDecisions": 0,
+    "baselineReruns": 0,
+    "fullPosition": "NOT_RUN_NOT_IMPLEMENTED",
+    "oldCandidates": "UNCHANGED_ENDED",
+    "pinsPin": {
+      "bytes": 8218,
+      "sha256": "998a9d40552a3d51e10d4b53841c39673ac16ca1f7fec0a073a7672d3c1fca12"
+    },
+    "requestPin": {
+      "bytes": 10964,
+      "sha256": "798bbc18f8623214e44ce7bd342e967385d31205ae6ef16369d5d389018a611e"
+    },
+    "oraclePin": {
+      "bytes": 13659,
+      "sha256": "b35acf846abd6e71c28f3318a6121cd2f9c55cb46e6a671a3e04e3dc12a5c6fb"
+    },
+    "lastAudit": {
+      "file": "audit-17.json",
+      "pin": {
+        "bytes": 852,
+        "sha256": "178331cac693709f07943c9c06835f6ac788b45ef21c27cd974c95ca295444b9"
+      },
+      "status": "EXECUTED_PASS_EXACT_RADICAL_GRID_BANK",
+      "complete": true
+    },
+    "finalAuthentication": "ALL_FROZEN_SOURCES_AND_TOOLS_EQUAL",
+    "finalStats": {
+      "integerOperations": 18911,
+      "peakIntegerBits": 16383,
+      "axisVisits": 0,
+      "conventionProblems": 0
+    },
+    "elapsedWallNs": 846459834,
+    "peakExplicitParentDataBytes": 73880,
+    "writtenEvidenceBytesBeforeSummary": 105805,
+    "laterChecks": "PHASE3_REQUIRES_SEPARATE_ROOT_MAP_REVIEW_AND_AUTHORIZATION",
+    "m2IncludedInR0Timing": false,
+    "rssQualified": false,
+    "archivePins": {
+      "SOURCE-01.tar.gz": {
+        "bytes": 74537,
+        "sha256": "71d9671f9cfb6f62adf48c674a524d54729c58c25a8a7b4bed3ef9d20fda0f75"
+      },
+      "PROOF-01.tar.gz": {
+        "bytes": 17792,
+        "sha256": "6a5104088ab950bec679569915897c33c151edd36148c42c31ce34e5d12b9e4f"
+      }
+    },
+    "notRun": [
+      "fullcompact",
+      "fullposition6B",
+      "cost",
+      "original1200",
+      "World",
+      "publicAPI",
+      "desktop"
+    ],
+    "results": "examples/physics-p4-radical-grid-2276/RESULTS.md"
+  },
+  "nextRadicalCompact": {
+    "status": "ENDED_MATHEMATICAL_PASS_COST_NO_GO_OBSERVED_MEMORY_MEASUREMENT_REVOKED",
+    "compactProtocol": "p4-compact-direct-grid-v1",
+    "fullProtocol": "p4-position-witness-direct-grid-v3",
+    "metadataMap": "examples/physics-p4-radical-metadata-map-2276/MAP.md",
+    "componentReuse": "Immutable existing geometry decoder and qualified integer proof source; old cost stays ENDED; not a new independent geometry oracle",
+    "next": [
+      "fresh6fullphysical",
+      "fresh6independentV3certificate+KKT",
+      "oneconservativeCPUcost695832300ns",
+      "completepathcost/resourcegate",
+      "original1200",
+      "currentWorldAPIadoption",
+      "desktoponlyrender"
+    ],
+    "WorldCalls": 0,
+    "publicAPI": "NOT_RUN",
+    "desktop": "NOT_RUN"
+  },
+  "latestRadicalCompact": {
+    "protocol": "p4-direct-grid-full-six-harness-v1",
+    "status": "NO_GO_POSITION_WITNESS_STAGE_B_COST",
+    "firstFailure": {
+      "cursor": "one-cost-decision",
+      "type": "CostGate",
+      "message": "CONSERVATIVE_NATIVE_CPU_ENVELOPE_EXCEEDS_FIXED_695832300NS_GATE"
+    },
+    "cases": [
+      {
+        "id": "ALIGNED-1",
+        "status": "EXECUTED_PASS",
+        "independent": {
+          "path": "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/ALIGNED-1-independent.json",
+          "pin": {
+            "bytes": 137443,
+            "sha256": "24118e76dd589d0203990cfb3bab40f5072ed5f7e03364f9fcbf2e342c161ac5"
+          },
+          "status": "EXECUTED_PASS_FULL_DIRECT_GRID_REFERENCE",
+          "physicalLeavesCompared": 13315,
+          "concreteExceptionsConsumed": 1447,
+          "certificateRenamesDescended": 72,
+          "auditorBoundedPeakOwnedBytes": 28699022,
+          "auditorObservedRetainedPeakBytes": 347708,
+          "parentAuditRetainedBytes": 2533939
+        },
+        "physical": {
+          "status": "EXECUTED_PASS_CLOSED_MAP_FULL_PHYSICAL",
+          "report": "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/ALIGNED-1-independent.json"
+        },
+        "coreCpuNs": 63736000
+      },
+      {
+        "id": "ALIGNED-16",
+        "status": "EXECUTED_PASS",
+        "independent": {
+          "path": "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/ALIGNED-16-independent.json",
+          "pin": {
+            "bytes": 138558,
+            "sha256": "c6c31c39070fc25c80c2c118976346f0a521dbda36e76309b1c77fbadb2c1278"
+          },
+          "status": "EXECUTED_PASS_FULL_DIRECT_GRID_REFERENCE",
+          "physicalLeavesCompared": 12877,
+          "concreteExceptionsConsumed": 1447,
+          "certificateRenamesDescended": 72,
+          "auditorBoundedPeakOwnedBytes": 32525962,
+          "auditorObservedRetainedPeakBytes": 347708,
+          "parentAuditRetainedBytes": 2739919
+        },
+        "physical": {
+          "status": "EXECUTED_PASS_CLOSED_MAP_FULL_PHYSICAL",
+          "report": "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/ALIGNED-16-independent.json"
+        },
+        "coreCpuNs": 130297000
+      },
+      {
+        "id": "OFFSET-1",
+        "status": "EXECUTED_PASS",
+        "independent": {
+          "path": "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/OFFSET-1-independent.json",
+          "pin": {
+            "bytes": 137440,
+            "sha256": "09520042113a18233fa48cd4dd3fc08d5c767d86ba7c680680fb899266604053"
+          },
+          "status": "EXECUTED_PASS_FULL_DIRECT_GRID_REFERENCE",
+          "physicalLeavesCompared": 13315,
+          "concreteExceptionsConsumed": 1447,
+          "certificateRenamesDescended": 72,
+          "auditorBoundedPeakOwnedBytes": 28704212,
+          "auditorObservedRetainedPeakBytes": 347708,
+          "parentAuditRetainedBytes": 2538917
+        },
+        "physical": {
+          "status": "EXECUTED_PASS_CLOSED_MAP_FULL_PHYSICAL",
+          "report": "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/OFFSET-1-independent.json"
+        },
+        "coreCpuNs": 63977000
+      },
+      {
+        "id": "OFFSET-16",
+        "status": "EXECUTED_PASS",
+        "independent": {
+          "path": "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/OFFSET-16-independent.json",
+          "pin": {
+            "bytes": 138548,
+            "sha256": "d1e6913902689c7945d9257daa6b05bbf788d1ce634433c12ec45481ac3c038f"
+          },
+          "status": "EXECUTED_PASS_FULL_DIRECT_GRID_REFERENCE",
+          "physicalLeavesCompared": 12883,
+          "concreteExceptionsConsumed": 1447,
+          "certificateRenamesDescended": 72,
+          "auditorBoundedPeakOwnedBytes": 32484822,
+          "auditorObservedRetainedPeakBytes": 347708,
+          "parentAuditRetainedBytes": 2742603
+        },
+        "physical": {
+          "status": "EXECUTED_PASS_CLOSED_MAP_FULL_PHYSICAL",
+          "report": "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/OFFSET-16-independent.json"
+        },
+        "coreCpuNs": 113205000
+      },
+      {
+        "id": "YAW-1",
+        "status": "EXECUTED_PASS",
+        "independent": {
+          "path": "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/YAW-1-independent.json",
+          "pin": {
+            "bytes": 137432,
+            "sha256": "b3cee8de79117877077069a64afb294e1473eab15e2d9bc46b6a3592c98b6905"
+          },
+          "status": "EXECUTED_PASS_FULL_DIRECT_GRID_REFERENCE",
+          "physicalLeavesCompared": 13567,
+          "concreteExceptionsConsumed": 1447,
+          "certificateRenamesDescended": 72,
+          "auditorBoundedPeakOwnedBytes": 28777882,
+          "auditorObservedRetainedPeakBytes": 347708,
+          "parentAuditRetainedBytes": 2553886
+        },
+        "physical": {
+          "status": "EXECUTED_PASS_CLOSED_MAP_FULL_PHYSICAL",
+          "report": "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/YAW-1-independent.json"
+        },
+        "coreCpuNs": 72338000
+      },
+      {
+        "id": "YAW-16",
+        "status": "EXECUTED_PASS",
+        "independent": {
+          "path": "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/YAW-16-independent.json",
+          "pin": {
+            "bytes": 138581,
+            "sha256": "9bb624269c218da5a949e8db4e0a7f0bc9b62b2a2a67c5ea60d7b43e430cb20a"
+          },
+          "status": "EXECUTED_PASS_FULL_DIRECT_GRID_REFERENCE",
+          "physicalLeavesCompared": 12931,
+          "concreteExceptionsConsumed": 1447,
+          "certificateRenamesDescended": 72,
+          "auditorBoundedPeakOwnedBytes": 32637852,
+          "auditorObservedRetainedPeakBytes": 347708,
+          "parentAuditRetainedBytes": 2759918
+        },
+        "physical": {
+          "status": "EXECUTED_PASS_CLOSED_MAP_FULL_PHYSICAL",
+          "report": "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/YAW-16-independent.json"
+        },
+        "coreCpuNs": 115649000
+      }
+    ],
+    "controls": {
+      "ALIGNED-1": "EXECUTED_PASS",
+      "ALIGNED-16": "EXECUTED_PASS",
+      "OFFSET-1": "EXECUTED_PASS",
+      "OFFSET-16": "EXECUTED_PASS",
+      "YAW-1": "EXECUTED_PASS",
+      "YAW-16": "EXECUTED_PASS"
+    },
+    "counts": {
+      "candidateChecksAttempted": 0,
+      "candidateRepliesRetained": 0,
+      "independentChecksAttempted": 6,
+      "independentChecksPassed": 6,
+      "freshFullWrapperCommands": 1,
+      "fullFramesVerified": 6,
+      "costDecisions": 1,
+      "WorldCalls": 0,
+      "baselineReruns": 0
+    },
+    "stageB": "PASS_SIX_FULL_POSITION_REFERENCES_AND_INDEPENDENT_CHECKS",
+    "costDecision": "NO_GO",
+    "wholeP4": "UNCHANGED_NO_GO",
+    "directAPI": "NOT_RUN",
+    "desktop": "NOT_RUN",
+    "executionBoundary": "OFFLINE_SAVED_REQUESTS_ONLY_NEW_COMBINATION",
+    "componentCostEligibility": "OLD_INTEGER_COST_ENDED_NOT_REVIVED",
+    "rerunG0": 0,
+    "rerunU0": 0,
+    "rerunA": 0,
+    "freezePin": {
+      "bytes": 92934,
+      "sha256": "ca611370d2c5f9b490695a3e6095cad8c786aa0488ee4d92ae3fa941f97cd33f"
+    },
+    "qualifiedPrerequisites": {
+      "integerA10": {
+        "bytes": 7725,
+        "sha256": "21dec0f5c17f7b488eb4db8115c8adca9ec29cf308c2c3d292a75f03d23101aa"
+      },
+      "R0": {
+        "bytes": 1786,
+        "sha256": "5b0e694db021831c8aa4656f3c73685e662b8cc0299f91d35b9d526aae9e7d6b"
+      },
+      "numericalReruns": 0,
+      "oldCostRevived": false
+    },
+    "wrapperReturnedCounts": {
+      "framesAttempted": 6,
+      "framesReturned": 6,
+      "framesVerifiedByExternalAuditor": 0,
+      "proofCalls": 6,
+      "compactAttempts": 432,
+      "compactReturns": 432,
+      "scalarCalls": 432,
+      "scalarReturns": 432,
+      "coldQpCalls": 0,
+      "oldKernelCalls": 0,
+      "WorldCalls": 0,
+      "forbiddenOldCompactAttempts": 0
+    },
+    "wrapperFirstFailure": null,
+    "auditMemoryReservation": {
+      "parentLimitBytes": 25165824,
+      "auditorLimitBytes": 33554432,
+      "transportEncodingHashBytes": 8388608,
+      "combinedLimitBytes": 67108864,
+      "notRSS": true
+    },
+    "wrapperSummaryPin": {
+      "bytes": 6983,
+      "sha256": "39aa46d7ee32308f04a12fc7c07489406ba50464c3e82bfe00b7315df3b28242"
+    },
+    "satCounters": {
+      "integerOperations": 1100048,
+      "peakIntegerBits": 5814,
+      "axisVisits": 12960,
+      "conventionProblems": 864
+    },
+    "finalAuthentication": "ALL_FROZEN_SOURCES_AND_TOOLS_EQUAL",
+    "parentCoreCpuNs": 559202000,
+    "childLifetimeCpuNs": 234927000,
+    "conservativeEnvelopeCpuNs": 794129000,
+    "costBoundaryIdenticalToSavedBaseline": false,
+    "costAuthority": "PARENT_SIX_CONTEXT_CPU_PLUS_OWNED_NODE_ENTIRE_LIFETIME_RESOURCE_CPU",
+    "worker": {
+      "protocol": "p4-native-witness-rpc-v1",
+      "workerStarts": 1,
+      "requestCalls": 6,
+      "workerClosed": true,
+      "exit": 0,
+      "pid": 32302,
+      "childCpuAuthority": "RESOURCE_RUSAGE_CHILDREN_DELTA_AFTER_CLOSE_AND_WAIT",
+      "childLifetimeCpuNs": 234927000,
+      "resourceBefore": {
+        "userSeconds": 0,
+        "systemSeconds": 0
+      },
+      "resourceAfter": {
+        "userSeconds": 0.223626,
+        "systemSeconds": 0.011301
+      },
+      "selfReportedChildCpuUsed": false,
+      "sentBytes": 41909,
+      "receivedBytes": 246724,
+      "parentTransportLimitBytes": 4194304,
+      "childTransportReservedBytes": 4194304,
+      "maxExplicitTransportReservedBytes": 1637084,
+      "stderrBytes": 0,
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "cleanupError": null,
+      "scope": "ONE_OWNED_NODE_WORKER_ONLY_NO_PROCESS_RSS_CLAIM"
+    },
+    "savedBaselineCoreCpuNs": 773147000,
+    "elapsedWallNs": 5547798875,
+    "peakExplicitRetainedDataBytes": 2759918,
+    "explicitDataBoundary": "Accounted retained Python data, not process RSS",
+    "writtenEvidenceBytesBeforeSummary": 3082155,
+    "laterChecks": "NOT_RUN_AFTER_FIRST_FAILURE",
+    "setupIOAuditTiming": "Wrapper attribution separately reported; node whole lifetime authority includes startup/IO/shutdown; no subtracting child self timing",
+    "warm": "NOT_RUN",
+    "original1200Steps": "NOT_RUN",
+    "baselineRemeasured": false,
+    "archivePins": {
+      "SOURCE-01.tar.gz": {
+        "bytes": 1000593,
+        "sha256": "4cf9a031b09cf4ae05a72632f4a709667c6051e5f8e7aefa4c87af759a624848"
+      },
+      "PROOF-01.tar.gz": {
+        "bytes": 258756,
+        "sha256": "6aa78127be7fe54d0599aa29c678055950ffc4913dfce1ef71cca3d9ab8992f8"
+      }
+    },
+    "results": "examples/physics-p4-radical-compact-2276/RESULTS.md",
+    "postRunResourceAudit": {
+      "status": "OBSERVED_AUDITOR_GRAPH_MEASUREMENTS_UNQUALIFIED",
+      "defect": "allocation recursively tracks temporary dict.items tuples; freed temporary IDs may be reused and omit real owned graphs, while also counting nonowned temporaries",
+      "revokedMeasurements": [
+        "audit.explicitRetainedBytes",
+        "audit.observedRetainedPeakBytes",
+        "their dependent observed-graph gates"
+      ],
+      "separatePreallocationBound": "Recorded32637852B includes JSON preallocation/helper/scratch; structural proof under separate review, not a corrected observed measurement",
+      "mathematicalCertificates": "UNCHANGED_SIX_PASS",
+      "firstCostFailure": "UNCHANGED_NO_GO_794129000",
+      "originalProofRecords": "PRESERVED_UNMODIFIED",
+      "oldCandidateEligibility": "ENDED_NO_RETIME"
+    }
+  },
+  "nextGramSat": {
+    "status": "PURE_R1_SOURCE_AUTHORING_NOT_EXECUTED",
+    "scope": "Pair-local Gram plus signed27 mixed determinants, arbitrary exact basis; same all15 per-convention N/D/S and report, no radius cache/pruning/Node relocation",
+    "required": [
+      "independent derivation/sign/scaling review",
+      "new corrected data-ownership measurement qualification",
+      "fixed R1 literal bank: all15 exactNDS + signed27",
+      "one fresh6fullphysical+independent",
+      "one cost695832300",
+      "completepath",
+      "original1200",
+      "API",
+      "desktoponly"
+    ],
+    "WorldCalls": 0,
+    "publicAPI": "NOT_RUN",
+    "desktop": "NOT_RUN",
+    "R1FixedScope": {
+      "pairs": 9,
+      "conventions": 18,
+      "axisSlots": 270,
+      "gramCoefficients": 378,
+      "signedFaceCenters": 108,
+      "signedMixedTriples": 486,
+      "validOnly": true,
+      "genericLargePreparedIntegerOverflowQualification": "NOT_RUN"
+    }
+  },
+  "priorSelectedNumericalMilestoneBeforeStack1114": {
+    "profile": "G2 private first-cold-one-point coupled static/dynamic contact",
+    "status": "FINITE_ARITHMETIC_WORLD_TRANSACTION_AND_DESKTOP_NATIVE_PASS",
+    "scope": "Original3cases; SourceNative clean3World each and26rawfiles; Tx4World/6attempt/4accepted each20audits38rawfiles; desktopafter-selected7checks18audits6wholepacketparity",
+    "results": "examples/physics-coupled-dynamic-host-viewer-2276/RESULTS.md",
+    "canonicalAdoption": "NOT_RUN"
+  },
+  "priorNumericalMilestoneBeforeStationaryFull3600": {
+    "profile": "P4 original eight-box ALIGNED complete live scene",
+    "status": "ALIGNED_LIVE1200_CONFIRMED_WHOLE_THREE_SCENE_NO_GO",
+    "scope": "ALIGNED1200 alloriginalindependentgates/fullarchive/finalsourceauth/cleanCPU169.46208579209633s. OFFSET328hostcommitted then sharedcap;YAWNOT_RUN. Campaigncontiguous1200, originalIndependentFullPhysics false.",
+    "results": "examples/physics-stack-complete-2276/FULL-05-RESULTS.md",
+    "canonicalAdoption": "PUBLIC_WORLD_NOT_RUN"
+  },
+  "stationaryWorld": {
+    "privateComplete": "examples/physics-stack-stationary-complete-2276/evidence/full-01/campaign-result.json",
+    "publicSource": "examples/physics-stack-stationary-world-2276/evidence/public-source-01/result.json",
+    "publicNative": "examples/physics-stack-stationary-world-2276/evidence/public-native-02/result.json",
+    "desktop": "output/playwright/stationary-stack/desktop-formal-01",
+    "sourceNativeFaultGroups": 6,
+    "sourceNativeNonzeroGapFaultGroups": 6,
+    "gapTrajectoryBeyondFirstIndependentStep": "NOT_QUALIFIED",
+    "originalSharedEvidenceBytes": 186002682,
+    "originalSharedEvidenceCapBytes": 293601280,
+    "publicMaxSteps": 1200,
+    "recordingMaxFramesUnchanged": 512,
+    "persistentBodyCapUnchanged": 4,
+    "generalMovingEightBodies": "NO_GO",
+    "realEquipment": "NOT_VALIDATED",
+    "deployment": false,
+    "mobileTests": false
+  },
+  "currentNativeMotionDesktop": {
+    "result": "output/playwright/persistent-impact/motion-native-01/report.json",
+    "status": "CURRENT_NATIVE_MOTION_DESKTOP_CONFIRMED",
+    "checks": 11,
+    "scope": "existing1/2body centered no-gravity/no-friction impact; actual Native Physics, Source Viewer/GPU",
+    "outgoingSpeedMps": 0.5,
+    "normalImpulseNs": 5,
+    "postImpactEnergyJ": 0.25,
+    "generalEightBodyDynamics": false
+  },
+  "smallDynamicTrajectories": {
+    "result": "examples/physics-stack-dynamic-next-2276/RESULTS.md",
+    "numerical": "examples/physics-stack-dynamic-next-2276/evidence/api-01/result.json",
+    "desktop": "output/playwright/dynamic-next/dynamic-desktop-03/browser/result.json",
+    "status": "NUMERICAL_SOURCE_NATIVE_AND_SAME_PROVIDER_DESKTOP_PASS",
+    "worldsPerNumericalGraph": 11,
+    "acceptedPerNumericalGraph": 1018,
+    "replayedPerGraph": 4,
+    "desktopFormalWorlds": 3,
+    "desktopFormalAccepted": 512,
+    "firstFallContactStep": 27,
+    "firstPairContactStep": 8,
+    "continuousPositionErrorsM": [
+      0.08175000000000146,
+      0.04087500000000702,
+      0.020437499999993804
+    ],
+    "signedEnergyErrorsJ": [
+      -1.6039349999998518,
+      -0.8019674999999259,
+      -0.400983750000294
+    ],
+    "energyConserved": false,
+    "firstDesktopFailures": [
+      "transparent2DWebGPUreadback",
+      "displaySnapshotResetModelStateRace"
+    ],
+    "newProductionSolver": false,
+    "newPublicProfile": false,
+    "generalMovingEightBodies": "NO_GO_NOT_QUALIFIED",
+    "mobileTests": false,
+    "deployment": false
+  },
+  "twoCubesFloor": {
+    "results": "examples/physics-two-cubes-floor-2276/RESULTS.md",
+    "numerical": "SOURCE_NATIVE_PASS_9_WORLDS_1022_STEPS_EACH",
+    "desktop": "PASS_2_WORLDS_256_ACCEPTED_257_STATES",
+    "firstContacts120Hz": [
+      27,
+      47
+    ],
+    "gpuChangedPixels": 5969,
+    "strictPublicGeometryGateM": 1e-12,
+    "coupledDynamicChain": false,
+    "referenceRepair": "two output failure classifications only;6paid replies byteexact;0newWorldcalls",
+    "deployment": false,
+    "mobile": false
+  },
+  "coupledCubesFloor": {
+    "results": "examples/physics-coupled-cubes-floor-2276/RESULTS.md",
+    "baseline": "examples/physics-coupled-cubes-floor-2276/evidence/baseline-02/result.json",
+    "status": "SOURCE_NATIVE_PHYSICAL_NO_GO_STEP27",
+    "worldsPerGraph": 1,
+    "engineAcceptedPerGraph": 27,
+    "independentlyPassedPerGraph": 26,
+    "velocityErrorMps": 0.008623153568856012,
+    "positionErrorM": 2.934570312507212e-05,
+    "repair": "PRIVATE_CANDIDATE_SOURCE_ONLY",
+    "publicRepair": "NOT_RUN",
+    "desktopRepair": "NOT_RUN",
+    "oldFailureAndLoadedSourcesPreserved": true
+  },
+  "stationaryEightMilestone": {
+    "profile": "rigid-stationary-cube-stack-v1: unforced equilibrium maintenance only",
+    "status": "PRIVATE_ORIGINAL_3600_PUBLIC_SOURCE_NATIVE_3600_AND_DESKTOP_3600_PASS",
+    "scope": "ALIGNED/OFFSET/YAW each1200 all original private gates plus exact Fraction witness; public root/replay Source/Native exactbodywordparity; real Chrome WebGPU each1200. Not moving eight-body dynamics.",
+    "results": "examples/physics-stack-stationary-world-2276/RESULTS.md",
+    "canonicalAdoption": "SOLE_PUBLIC_WORLD_BOUNDED_PROFILE_LOCAL"
+  },
+  "twoCubeMilestone": {
+    "profile": "rigid-persistent-box-v1: aligned2kg two-dynamic-cube/floor, e0/friction0/direct120Hz",
+    "status": "PUBLIC_SOURCE_NATIVE_256_RESTORE_FAILURE_AND_DESKTOP_PASS",
+    "scope": "256 primary coupled transitions/257 full states; eachgraph campaign6Worlds786accepted incl8restore/continuation and522regressions. ActualNative desktop2Worlds256steps ALLnumericwords+GPU2187pixels/3desktopwidths. No general moving8/anisotropic/frictional claim.",
+    "results": "examples/physics-coupled-cubes-floor-2276/RESULTS.md",
+    "canonicalAdoption": "SOLE_PUBLIC_WORLD_GLOBAL_ZERO_MATERIAL_ISLAND_LOCAL"
+  },
+  "previousNumericalMilestoneBeforeContactConvergence": {
+    "profile": "rigid-persistent-box-v1: rotated primitive-COM anisotropic precontact / principal-spin with lower-floor support",
+    "status": "LIBRARY_SOURCE_CANONICAL_REFERENCE_ROLLBACK_RESTORE_DESKTOP_CONSUMERS_PASS",
+    "scope": "Per Physics graph 20 private calls/13 refs; public 8 Worlds/212 steps/8 refs; failure/regression 7 Worlds/82 accepted including4restore. Native desktop3Worlds/128steps/65states per scenario/changedGPU927,2172/three desktop widths. CAD/CAD-model primitives and GPU CPU-only consumer2World16steps per graph. No anisotropic contact/offprincipal contact/generic CAD fulltensor or Studio integration.",
+    "results": "examples/physics-anisotropic-inertia-2276/RESULTS.md",
+    "canonicalAdoption": "ACTUAL_LIBRARY_SYMMETRIC_WORLD_TENSOR_THROUGH_SOLE_WORLD_NO_FALLBACK_EXISTING_CAP4",
+    "initialFrameAudit": "PAID_DATA_ONLY_PASS_16_PACKETS_48_AUTHORED_INITIAL_ATTITUDES_5_NEGATIVE_CONTROLS_2_PRESERVED_OLD_OBSERVER_BLIND_SPOTS_NO_WORLD_RERUN"
+  },
+  "previousContact479Milestone": {
+    "profile": "rigid-persistent-box-v1: aligned equal2kg two/three cubes/floor; direct, e0/friction0",
+    "status": "DT_SOURCE_NATIVE_AND_HIDPI_VIEWER_PASS_LONG_THREE_479_NO_GO",
+    "scope": "EachgraphDT6World840accepted840independent14refs; longtwo512each andthree384each independentlypassed; Source-three479refuses at478 after94unverifiedreturns, Native479NOT_RUN. ActualViewerHiDPI3World896steps9Nativewordwindows/DPR1to2/three desktop sizes, no markers/nativeCAD/React/Studio claim.",
+    "results": "examples/physics-contact-convergence-2276/RESULTS.md",
+    "canonicalAdoption": "ACTUAL_EXISTING_COMMON_WORLD_BOUNDED_QUALIFICATION_NO_NEW_PUBLIC_API",
+    "completion": "NOT_COMPLETE",
+    "next": "Independently certify479geometry repair and alloldsuccess/32point regressions beforeproduction/fullhorizon expansion."
+  },
+  "previousContact479ActiveNote": "Contactdt1s at60/120/240 and actualHiDPIViewer two512/three384 PASS. Long-three479NO_GO preserved, acceptedstate478 unchanged. Diagnosticfinds strictlinecorrectionguide stagnation; privateoldNUMERIC->candidateACCEPT needsstrong independentbank proof, no productionadoptionyet. CADReactotherWork; Studio/manufacturing/equipment/old-worker HOLD and allgates/firstfailures remain. No deployment.",
+  "currentContactPostRepair": {
+    "build": "public-build-03 PREPARED: exact5compilercommandsPASS, notnumerical",
+    "privateGeometryEach": {
+      "calls": 42,
+      "references": 3,
+      "regressionCases": 20,
+      "originalPointRows": 32
+    },
+    "tensorPrivateEach": {
+      "calls": 20,
+      "references": 13,
+      "worlds": 0
+    },
+    "publicEach": {
+      "worlds": 8,
+      "steps": 212,
+      "references": 8
+    },
+    "postInitial": {
+      "packets": 16,
+      "quaternions": 48,
+      "worlds": 0
+    },
+    "postRegressionEach": {
+      "worlds": 7,
+      "acceptedSteps": 82,
+      "replayedSteps": 4,
+      "typedRefusals": 4
+    },
+    "newLongFirstFailure": {
+      "graph": "source",
+      "attempt": 490,
+      "acceptedCursor": 489,
+      "timeSeconds": 4.075,
+      "code": "NUMERIC_LIMIT",
+      "reason": "frictionless island: fresh post contact normal feasibility",
+      "ownerRetained": true,
+      "native490": "NOT_RUN"
+    },
+    "currentViewer": {
+      "status": "PASS_BOUNDED_CURRENT_PROVIDER_PREFIX_ONLY",
+      "id": "contact-viewer-current-hidpi-01",
+      "worlds": 3,
+      "acceptedSteps": 896,
+      "nativeCaptures": 9,
+      "densityChecks": 10,
+      "errors": 0,
+      "ownedContextClosed": true,
+      "sourceIntegrity": true,
+      "proofBytesBeforeFinalReceipt": 7371685
+    },
+    "full512512UiAndFullCheckpoint15": "NOT_RUN_BLOCKED_BY_LONG02_NO_GO",
+    "capture490Diagnostic": {
+      "status": "CAPTURE_AUDIT_PASS_NOT_PHYSICAL_PASS",
+      "wallMs": 24534.7885,
+      "closingVelocityMps": -1.0932118170260969e-07,
+      "closingVelocityLimitMps": 1e-10,
+      "earlierObservedDiagnostic": {
+        "step478NormalDirectionError": 1.0310569142331814e-12,
+        "normalDirectionLimit": 1e-12,
+        "step488RestVelocityMps": 0.04905,
+        "step488AngularVelocityRadps": 0.0981,
+        "step489PositionErrorM": 0.0004089
+      },
+      "independentTrajectoryAdded": 0,
+      "causeMayPrecede490": true,
+      "qualifiedPrefixUnchanged": "two512_three384"
+    }
+  },
+  "latestSampleGallery": {
+    "status": "SIX_BOUNDED_PUBLIC_SAMPLES_AND_ACTUAL_HIDPI_PASS",
+    "results": "examples/physics-sample-gallery-2276/RESULTS.md",
+    "baseCommit": "f17bd7ef3",
+    "eachNumericalGraph": {
+      "worlds": 12,
+      "acceptedStepsIncludingRepeat": 770,
+      "independentlyPassedPrimarySteps": 385,
+      "positiveReferenceReplies": 6,
+      "typedRefusalOwnerControls": 6
+    },
+    "sourceNegativeObserverControls": 1,
+    "desktop": {
+      "proofId": "gallery-desktop-02",
+      "worldsIncludingZeroReset": 7,
+      "steps": 385,
+      "completeNativePacketCaptures": 6,
+      "actualDPR2": true,
+      "mobile": false,
+      "sourceIntegrity": true,
+      "errors": 0,
+      "firstDesktop01FailurePreserved": true
+    },
+    "productionAlgorithmChanged": false,
+    "wholeEngineComplete": false,
+    "originalLongThree512": "NO_GO_UNCHANGED",
+    "currentPackageRuntimeFilesMatchCanonical": 121,
+    "reusablePreview": "node examples/physics-sample-gallery-2276/dev.mjs",
+    "nextAlgorithmDependency": "478/488onset-of-rest-drift and490contact/velocity/positioncoherence; independent+SourceNative+originalfull512gates first",
+    "holds": "Studio/manufacturing/equipment/oldworkers unchanged;CADReact otherWork",
+    "publication": false
+  },
+  "previousContactCoherencePublicationBaseline": {
+    "active": "Productionfacec164 adopted after independent private geometry03 PASS. Build03/private02/api02/post-initial01/post-regression01/dt03 PASS. Long02fullNO_GO Source490 fresh post contact normal feasibility, owner489/time4.075 retained. Current Nativeea44 ViewerHiDPI prefix two512/three384 actualPASS3W896/9windows/10DPRchecks; notfull512512. Original479 and every firstfailure retained. CADReactotherWork; Studio/manufacturing/equipment/old-worker HOLD unchanged; no deploy.",
+    "lastNumericalMilestone": {
+      "profile": "rigid-persistent-box-v1: aligned equal2kg two/three cubes/floor; direct e0/friction0",
+      "status": "POST_FACE_REPAIR_DT03_AND_CURRENT_HIDPI_PREFIX_PASS_LONG02_THREE490_NO_GO",
+      "scope": "EachgraphDT6World840accepted840independent14refs. Long02Source2World1002attempt1001accepted896independent; Native2World896accepted896independent9refs. Two512/three384 qualified; Source-three385..489 observed-only. Current-provider actualHiDPI3World896steps9Nativecaptures10DPRchecks0errors/contextclosed/sourceIntegritytrue. Full512512UI/checkpointNOT_RUN; libraryNOT_COMPLETE.",
+      "productionFaceContactSourceSha256": "c164a34d6245cf52a3f13274439eb6bb2dad471a47344e92aa1c30e5c94c99b6",
+      "sourceProviderDigest": "sha256:bdff69b55d4effb0deda83bb1dfc298e82f17578e0c3dec127e5ca66a03fee00",
+      "nativeProviderDigest": "sha256:ea44ebf2cd364b917b3c063a2393a13dd1d4b918dc9333c47fe0cf33eee7cb58",
+      "results": "examples/physics-contact-convergence-2276/RESULTS.md",
+      "canonicalAdoption": "ACTUAL_COMMON_WORLD_FACE_GUIDE_REPAIR_WITH_UNCHANGED_GATES",
+      "completion": "NOT_COMPLETE",
+      "next": "Resolveactual490freshpostcontactnormalfeasibility; requalifyoriginalSourceNative/public/fullViewer, no cap/tol change."
+    },
+    "branch": "codex/physics-sample-gallery-2276"
   }
 }

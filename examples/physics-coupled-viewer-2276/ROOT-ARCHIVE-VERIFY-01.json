@@ -1,0 +1,49 @@
+{
+  "status": "ROOT_INDEPENDENT_GZIP_TAR_ALL_MEMBER_RECOVERY_VERIFIED",
+  "transportPin": {
+    "bytes": 4221,
+    "sha256": "620960e93524fcfcec7b1787ee3e50d436c8af7a993059bac5cc4a2a77a908d9"
+  },
+  "archiveIndexPin": {
+    "bytes": 659128,
+    "sha256": "7be47e5cc526ab7a2f68cbf5030018203ee555bbc06bf70ae64a227a47c7b652"
+  },
+  "logicalMembers": 1956,
+  "distinctOriginalPaths": 1953,
+  "byteIdenticalCrossArchiveDuplicates": [
+    {
+      "archive": "PROOF-01.tar",
+      "sourcePath": "examples/physics-coupled-viewer-2276/AUTHOR-FREEZE-01.json",
+      "pin": {
+        "bytes": 360334,
+        "sha256": "8f4e453f201c939c07caacf5590b644acffb178cf4ea6b6ea4836cded7fd66e3"
+      }
+    },
+    {
+      "archive": "PROOF-01.tar",
+      "sourcePath": "examples/physics-coupled-viewer-2276/AUTHOR-FREEZE-02.json",
+      "pin": {
+        "bytes": 360515,
+        "sha256": "fa068cfdfa8325ce672945c7f00450ad5c97bd5c101dcabd136188a6c81f886a"
+      }
+    },
+    {
+      "archive": "PROOF-01.tar",
+      "sourcePath": "examples/physics-coupled-viewer-2276/AUTHOR-FREEZE-03.json",
+      "pin": {
+        "bytes": 360697,
+        "sha256": "0e3b3470f1900707422bd12e60e57c8da3a59609c7baef60d9bcd8741699cdaf"
+      }
+    }
+  ],
+  "originalFrozenInputs": 1840,
+  "recoverySnapshotRows": 27,
+  "uncompressedTarAggregateBytes": 47503360,
+  "perTarCapBytes": 16777216,
+  "aggregateCapClaim": false,
+  "WorldCalls": 0,
+  "newPhysicsOrBrowserCalls": 0,
+  "actualExecutedAuthor": "03_BUILD01",
+  "rootCheckerCorrection": "Initial checker wrongly required sourcePath unique across separate SOURCE/PROOF archives; every duplicate is now read/hash verified identical, no archive/gate changed",
+  "postArchiveSupplementalReceipt": true
+}

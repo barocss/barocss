@@ -1,0 +1,103 @@
+{
+  "artifact_type": "bounded-evidence-results",
+  "work_id": "physics-p4-position-v2-2276",
+  "owner_role": "independent-evidence-writer",
+  "source_request": "Preserve completed bounded P4 evidence and proof boundaries",
+  "last_updated": "2026-11-03",
+  "status": "PASS_OFFLINE_FULL_COLD_POSITION_V2",
+  "sourceSummary": "examples/physics-p4-position-v2-2276/evidence/position-01/summary.json",
+  "sourceSummaryPin": {
+    "bytes": 8373,
+    "sha256": "97cb25276fac4cdfb7ef6f865b0e8c2a2c0cd6bf2eb4af3f0fc26190fb672ab7"
+  },
+  "command": [
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+    "-B",
+    "examples/physics-p4-position-v2-2276/run.py",
+    "position-01"
+  ],
+  "commandReceipt": "examples/physics-world-p5-2276/evidence/p4-position-v2-01/result.json",
+  "commandStatus": "PASS",
+  "commandExit": 0,
+  "newNumericalRuns": 0,
+  "sourceContractsDependenciesReadmeUnchanged": true,
+  "oldSchemaAndEvidencePreserved": true,
+  "apiQualification": "NOT_RUN",
+  "renderQualification": "NOT_RUN",
+  "fullP4": "NO_GO",
+  "wholeTrajectoryCostGO": "NOT_RUN",
+  "unsupported": [
+    "32-point line80/120 agreement at1e-60",
+    "paired witness1e-12",
+    "phase ledger and quality8–10s",
+    "complete trajectory output/cost",
+    "1200-step P4"
+  ],
+  "archive": "EVIDENCE-01.tar.gz",
+  "counts": {
+    "framesAttempted": 6,
+    "framesReturned": 6,
+    "framesVerified": 6,
+    "compactAttempts": 432,
+    "compactReturns": 432,
+    "scalarCalls": 432,
+    "scalarReturns": 432,
+    "coldKernelAttempts": 6,
+    "coldKernelReturns": 6,
+    "coldQpAttempts": 6,
+    "coldQpReturns": 6,
+    "forbiddenOldCompactAttempts": 0,
+    "oldDecimalSatCalls": 0,
+    "oldObserverBaselineCalls": 0,
+    "WorldCalls": 0,
+    "fixtureCalls": 0,
+    "trigSeedCalls": 0,
+    "compactRecordsVerified": 432,
+    "numericWordsVerified": 2592,
+    "retainedPayloadLeavesVerified": 17394
+  },
+  "firstFailure": null,
+  "kernelCounters": {
+    "integerOperations": 1122449,
+    "peakIntegerBits": 5814,
+    "axisVisits": 12960,
+    "conventionProblems": 864
+  },
+  "metadataChange": {
+    "referenceProtocol": "p4-full-position-observer-v2",
+    "removed": "precisionMaxDifferenceM",
+    "added": "maxCertifiedSatWidthM and satCertificateV2",
+    "oldSchemaEdited": false
+  },
+  "numericUncertainty": {
+    "certificateMaxWidthM": "1e-25 exact decimal",
+    "strictOwnBinary64RoundingCell": true,
+    "definitePhysicalGateM": "represented binary64 1e-12",
+    "unresolvedBoundary": "REFUSE",
+    "unchangedPhysicalGates": true,
+    "independentWinnerFeature": "NOT_QUALIFIED"
+  },
+  "timing": {
+    "guardElapsedMs": 1163.534541,
+    "guardChildElapsedMs": 1131.008375,
+    "guardDeadlineMs": 180000,
+    "processClosed": true,
+    "ownedChildPresentAtFinalization": false,
+    "guardTimingBoundary": "180000ms census deadline; termination/reaping/final receipt are separate bounded cleanup",
+    "guardReceiptIsSeparateFromObserverCpu": true,
+    "timedOut": false,
+    "elapsedWallNs": 1036200792,
+    "totalCpuNs": 1016861000,
+    "observerTimingBoundary": "All setup, frames, payload output and audits; terminal summary write excluded. Nested roots overlap.",
+    "nestedAttributionOverlaps": true,
+    "coreObserverIncludingCompactQpCpuNs": 773147000,
+    "dataAccounting": "Explicit retained data/scratch accounting; not total RSS",
+    "peakExplicitDataBytes": 3645422
+  },
+  "fullSavedAuthorityPairs": 6,
+  "retainedOriginalPayloadFieldsPerCompactRecord": 9,
+  "maximumObservedCertificateWidthM": 1.4693679385278594e-38,
+  "originalQpBudgetsUnchanged": true,
+  "originalPhysicalGatesUnchanged": true,
+  "costGO": "NOT_RUN"
+}

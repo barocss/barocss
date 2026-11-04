@@ -1,0 +1,140 @@
+{
+  "status": "READ_ONLY_SOURCE_AND_SAVED_DATA_PINS",
+  "files": {
+    "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/summary.json": {
+      "bytes": 7849,
+      "sha256": "0053a15d06d173731f265c591ff8a07de783a6eb40e189a79b4a88eb616075a6"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/full-bank/summary.json": {
+      "bytes": 6983,
+      "sha256": "39aa46d7ee32308f04a12fc7c07489406ba50464c3e82bfe00b7315df3b28242"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/ALIGNED-1-independent.json": {
+      "bytes": 137443,
+      "sha256": "24118e76dd589d0203990cfb3bab40f5072ed5f7e03364f9fcbf2e342c161ac5"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/full-bank/ALIGNED-1-reply.json": {
+      "bytes": 281584,
+      "sha256": "034ef1e585d47e7ab1374447f068f224db5bc5a9e4003ece9e049bbd5b880ac3"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/ALIGNED-16-independent.json": {
+      "bytes": 138558,
+      "sha256": "c6c31c39070fc25c80c2c118976346f0a521dbda36e76309b1c77fbadb2c1278"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/full-bank/ALIGNED-16-reply.json": {
+      "bytes": 372878,
+      "sha256": "90c8c0520ca885ee5901377dd4df53a397be328b4cdf92c4111fdbd71346900c"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/OFFSET-1-independent.json": {
+      "bytes": 137440,
+      "sha256": "09520042113a18233fa48cd4dd3fc08d5c767d86ba7c680680fb899266604053"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/full-bank/OFFSET-1-reply.json": {
+      "bytes": 281676,
+      "sha256": "466bd8d1e30d42db0d76ca69f19cd0756a6fa15975b2ef36eae6dbd3d52255c0"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/OFFSET-16-independent.json": {
+      "bytes": 138548,
+      "sha256": "d1e6913902689c7945d9257daa6b05bbf788d1ce634433c12ec45481ac3c038f"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/full-bank/OFFSET-16-reply.json": {
+      "bytes": 371937,
+      "sha256": "bea282bfd9e60bbc7d64a0554b48c9d6e20094dbc1a70fbabea6b8bcfb7d7e2a"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/YAW-1-independent.json": {
+      "bytes": 137432,
+      "sha256": "b3cee8de79117877077069a64afb294e1473eab15e2d9bc46b6a3592c98b6905"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/full-bank/YAW-1-reply.json": {
+      "bytes": 282058,
+      "sha256": "386dd74a02e95e19c91609aceb424ecc41001978c394be82dfbd272205a5ea56"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/YAW-16-independent.json": {
+      "bytes": 138581,
+      "sha256": "9bb624269c218da5a949e8db4e0a7f0bc9b62b2a2a67c5ea60d7b43e430cb20a"
+    },
+    "examples/physics-p4-radical-compact-harness-2276/evidence/full-b-01/full-bank/YAW-16-reply.json": {
+      "bytes": 376847,
+      "sha256": "4aec4ac4d00fef04bc719ac4e3993cc7134cf0cf063d5c009aa2c4ed440371bc"
+    },
+    "examples/physics-world-p4-2276/CACHE-CONTRACT.md": {
+      "bytes": 11189,
+      "sha256": "d4f53304f6c1bb11c31c35c695c564970fb8b44c88b7ef6debf28b14f94f3812"
+    },
+    "examples/physics-world-p4-2276/v2/SCOPE-CONTRACT.md": {
+      "bytes": 9864,
+      "sha256": "9bd49605d1e1cb70d8f2ecdff2cc3f4c62dd2f497b679f656cef9ab202c8cbd3"
+    },
+    "examples/physics-world-p4-2276/v3/SCOPE-CONTRACT.md": {
+      "bytes": 10749,
+      "sha256": "611d9da9911eebc3df290c2dbdcc22489fd70c9c1f3e6efddf337de7f6d91b41"
+    },
+    "examples/physics-world-p4-2276/README.md": {
+      "bytes": 17656,
+      "sha256": "8e431529ba35b733994fd950a933ac2bd812b5fedbe4d8328a77dffd204144e6"
+    },
+    "examples/physics-p4-sat-2276/integer_sat.py": {
+      "bytes": 13025,
+      "sha256": "b1c2f4a4d291c52b9182864fea658381afd482aa34da7d300997a81bf45a3b1e"
+    },
+    "examples/physics-p4-radical-compact-reference-2276/support.py": {
+      "bytes": 6347,
+      "sha256": "b62565e141b72c9ac4730bc1147b0a11e77d58411f5a13b08fe1911f415854c7"
+    },
+    "examples/physics-p4-radical-compact-reference-2276/validator.py": {
+      "bytes": 9676,
+      "sha256": "7297108cc518cd436642df9ba50e9b4c3a5052c416566e3c0b49e1f0e941aff6"
+    },
+    "examples/physics-p4-node-sat-2276/RESULTS.md": {
+      "bytes": 2751,
+      "sha256": "03cd65b17a7d64163aed64376ba199a5b0622acaf34ed42ada92f35458d3f245"
+    },
+    "examples/physics-stack-next-2276/COMPLETE-COST-INPUTS.md": {
+      "bytes": 2617,
+      "sha256": "89160154ed59d064cb1e47226b6d07100d37c5f00778d239ecae10e965c52cc0"
+    },
+    "examples/physics-p4-complete-path-design-2276/DESIGN.md": {
+      "bytes": 10293,
+      "sha256": "4252083ddc7f9b072a7f4c74b3a654d9172274cf78725f936807f5d48f57e6f3"
+    },
+    "examples/physics-world-p4-2276/support-radius-results.json": {
+      "bytes": 3949,
+      "sha256": "5975f7523c7b92a9ab3443f66632017d82e5e9292eb04e6b34787cb42d46b29d"
+    },
+    "examples/physics-world-p4-2276/v2/results.json": {
+      "bytes": 3555,
+      "sha256": "50c3e2c4a071ae8ee40e0d1223333e9965797452c72e02db3311af56ff945814"
+    },
+    "examples/physics-world-p4-2276/v3/results.json": {
+      "bytes": 4318,
+      "sha256": "ee4930f1ca8e2e7b52b79a7f2e72d32a5178c265aa5f706916d4ca768d5f102c"
+    },
+    "examples/physics-p4-retained-graph-review-2276/REVIEW.md": {
+      "bytes": 6967,
+      "sha256": "3e78a311604a10d7423ab87d819da364956c9ab0db41084c45d777d1c7b4091f"
+    },
+    "examples/physics-p4-gram-design-2276/DESIGN.md": {
+      "bytes": 8872,
+      "sha256": "0dee0daef07512b6425af6fd99efb3cc6e786da90876f266c7b1b3caf76761ec"
+    }
+  },
+  "authorNumericalCalls": 0,
+  "newAuditOrCostCommands": 0,
+  "highDesignReview": {
+    "author": "/root/g2_sphere_pair_ccd",
+    "boundary": "MESSAGE_DESIGN_REVIEW_NO_CANDIDATE_SOURCE_OR_NUMERICAL_PASS",
+    "claims": [
+      "ONE pair/ONE convention local AA/BB/AB and signed EA.B/A.EB/(delta cross A).B tables; discard before next",
+      "No result/weighted-radius cache or Node SAT port",
+      "Arbitrary raw AA/BB not identity",
+      "All15 exact NDS plus SIGNED27 required; Bj cross Bk orientation",
+      "New intermediate prebound may refuse where direct fits; no fallback",
+      "No CPU forecast"
+    ],
+    "source": "examples/physics-p4-gram-design-2276/DESIGN.md",
+    "sourcePin": {
+      "bytes": 8872,
+      "sha256": "0dee0daef07512b6425af6fd99efb3cc6e786da90876f266c7b1b3caf76761ec"
+    }
+  }
+}

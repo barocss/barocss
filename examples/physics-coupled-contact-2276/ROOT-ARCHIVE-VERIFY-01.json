@@ -1,0 +1,34 @@
+{
+  "status": "ROOT_INDEPENDENT_FULL_ARCHIVE_READBACK_PASS",
+  "index": {
+    "bytes": 843911,
+    "sha256": "2a1d39d8692812d184ab1a0c3b45e2b9ff0e2253f389690a9ad131f9623a90df"
+  },
+  "archives": [
+    {
+      "file": "SOURCE-01.tar.gz",
+      "archivePin": {
+        "bytes": 1323024,
+        "sha256": "ee020893d34377654e1f63239d52c3825229adcb9338fbb0f5d5c7a3c6fdeb9c"
+      },
+      "logicalFileCount": 1122,
+      "uncompressedTarBytes": 8550400
+    },
+    {
+      "file": "PROOF-01.tar.gz",
+      "archivePin": {
+        "bytes": 343939,
+        "sha256": "a9b08d284839382ce916e75a5b2c01a4e998338a34685e17b23deac6296e8ca1"
+      },
+      "logicalFileCount": 274,
+      "uncompressedTarBytes": 3727360
+    }
+  ],
+  "logicalMembers": 1396,
+  "hardlinks": 801,
+  "recoveryMappings": 886,
+  "aggregateTarBytes": 12277760,
+  "allLogicalBytesAndLinkTargetsAndCurrentInputHashes": "VERIFIED",
+  "WorldCalls": 0,
+  "postArchiveSupplementalReceipt": true
+}

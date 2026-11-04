@@ -1,0 +1,54 @@
+{
+  "base": "1779dd871",
+  "stage": "before single primitive-axis candidate numerical run; fixed10percentCPUgate",
+  "inputs": {
+    "examples/physics-p4-primitive-axis-2276/observer.py": {
+      "bytes": 9441,
+      "sha256": "bac282631421947855bce3c2eb6d2c4f50a8855b6e63236a4e35ca9cc49bbdf0"
+    },
+    "examples/physics-p4-primitive-axis-2276/dependencies.json": {
+      "bytes": 6799,
+      "sha256": "f5bf2d492d6b94827926dec34868048d423e7ec625ae2ebafb1015235acfcfbd"
+    },
+    "examples/physics-p4-primitive-axis-2276/run.py": {
+      "bytes": 11787,
+      "sha256": "6bf3fdc76d7a5ee8d3de15282fc463100d3205597c98acaf6bc14f2779fa2523"
+    },
+    "examples/physics-p4-primitive-axis-2276/METHOD.md": {
+      "bytes": 2122,
+      "sha256": "b5ad937ff8d47b6aaee3ed930a0cdec0885a9f9cee3c02d84f17723d01c9a430"
+    },
+    "examples/physics-p4-primitive-axis-2276/runner-source-transfer.diff": {
+      "bytes": 6102,
+      "sha256": "78a2d71e02e2593f7fde46bcb760809b9e3a234699b0edb80583166c7871b8f3"
+    },
+    "examples/physics-p4-primitive-axis-2276/integer_sat.py": {
+      "bytes": 14148,
+      "sha256": "56e9a8b71eaa0e81de3f075e88126cfd170e05f560e9fdccd2e710c7ca908ef5"
+    },
+    "examples/physics-p4-primitive-axis-2276/CONTRACT.md": {
+      "bytes": 4780,
+      "sha256": "b77f885a640a1976cf815d06e7906d77091874f005509110cdb54274571d4999"
+    },
+    "examples/physics-p4-primitive-axis-2276/integer-source-transfer.diff": {
+      "bytes": 2068,
+      "sha256": "2515e0f53ad6d1601727eaacaaf9eb71cd8bf7eed3d81d9cfe53c97e1bbc8ecf"
+    },
+    "examples/physics-p4-primitive-axis-2276/README.md": {
+      "bytes": 1243,
+      "sha256": "362d0a1797ca9c563ce8b9aaeb5ab8c14498f62c915bbb035ed2f01b2a10a551"
+    },
+    "examples/physics-p4-primitive-axis-2276/integer-source-transfer.json": {
+      "bytes": 2357,
+      "sha256": "a76545ce55ecae883a09536cfe3c59e6a6d722265b2b83cceb30f9aa26881514"
+    },
+    "examples/physics-p4-primitive-axis-2276/verify.py": {
+      "bytes": 2581,
+      "sha256": "95a53cc56639165269b24029b10ea822bf7f4f71b684b03785486ace021aad63"
+    },
+    "examples/physics-p4-primitive-axis-2276/runner-source-transfer.json": {
+      "bytes": 4500,
+      "sha256": "d8e00c21b89f0a2aa94b7b59fa45da65bc215b45df29520ac85498f4bae323bd"
+    }
+  }
+}

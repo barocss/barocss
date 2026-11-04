@@ -1,0 +1,72 @@
+{
+  "protocol": "p4-owned-data-author-pins-v1",
+  "status": "AUTHOR_AST_HASH_ONLY_NOT_EXECUTED",
+  "python": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+  "pythonVersion": "3.13.5 (main, Jun 11 2025, 15:36:57) [Clang 17.0.0 (clang-1700.0.13.3)]",
+  "files": {
+    "examples/physics-p4-owned-data-2276/owned.py": {
+      "bytes": 15993,
+      "sha256": "03aef2a5fa1cec2f8389b6f668a9f170e26fae43bfb319db79fd722e9b22278f"
+    },
+    "examples/physics-p4-owned-data-2276/selftest.py": {
+      "bytes": 13326,
+      "sha256": "8b965cf09c549d0a62b6c3de43d25f424e8a43c4188de8b4fcbc853b61a6f831"
+    },
+    "examples/physics-p4-owned-data-2276/CONTRACT.md": {
+      "bytes": 8595,
+      "sha256": "e3875ee68365bc6d65b3e63ceb683c256731efbcb849e25f4900e94af7ba4c5e"
+    },
+    "examples/physics-p4-position-witness-v2-2276/RUNTIME-LAYOUT-01.json": {
+      "bytes": 913,
+      "sha256": "bc3904316e2e67f74f61140437c2ce35e170b75f194c026bc446d016d66f709e"
+    }
+  },
+  "externalTools": {
+    "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/bin/python3.13": {
+      "bytes": 52640,
+      "sha256": "a1f6d9dc20d4787a84dc2fe782094a7bac5946f49a962aa0af48a02f0e8d5bc5"
+    }
+  },
+  "fixtureCensus": {
+    "groups": 7,
+    "unrelatedDictionaries": 1200,
+    "chainLinks": 48,
+    "fractions": 16,
+    "plainRecords": 8,
+    "visitedTraversalDepth": 50,
+    "worklistPeak": 50,
+    "unsupportedRootFixtures": 5,
+    "malformedJsonFixtures": 6,
+    "fileByteFixtures": [
+      2097151,
+      2097152,
+      2097153
+    ],
+    "subjectOwnedBytes": "INDEPENDENT_FLAT_REGISTRY_AT_ROOT_EXECUTION",
+    "subjectUniqueIds": "INDEPENDENT_FLAT_REGISTRY_AT_ROOT_EXECUTION"
+  },
+  "limits": {
+    "auditBytes": 33554432,
+    "phaseScratchBytes": 8388608,
+    "parentBytes": 25165824,
+    "outerTransportBytes": 8388608,
+    "combinedExplicitBytes": 67108864,
+    "fileBytes": 2097152,
+    "nodes": 200000,
+    "depth": 64,
+    "worklist": 65,
+    "internalSeconds": 170,
+    "externalSeconds": 180,
+    "evidenceBytes": 16777216
+  },
+  "authorCalls": {
+    "helper": 0,
+    "tests": 0,
+    "physics": 0,
+    "model": 0,
+    "reference": 0,
+    "World": 0
+  },
+  "oldV3ObservedGraph": "UNCHANGED_UNQUALIFIED_NO_REAUDIT_OR_RETIME",
+  "archivePolicy": "WORKSPACE_SOURCES_ONLY_EXTERNAL_TOOLS_METADATA_ONLY"
+}

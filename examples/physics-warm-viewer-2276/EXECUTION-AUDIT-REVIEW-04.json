@@ -1,0 +1,10 @@
+{
+  "status": "FINAL_HIGH_DATA_ONLY_REVIEW_MATCH_BEFORE_QUALIFICATION",
+  "auditPinsSha256": "d0128995263252581529ef019e44b15498844a77cc306bbeb4fa70afeab3ff4f",
+  "files": 966,
+  "newBrowserWorldCalls": 0,
+  "physicsChanged": false,
+  "sameCapturedProof": true,
+  "oldLexicalFragmentNoGo": "PRESERVED",
+  "newCostMetric": "CUMULATIVE_ACTUAL_AUTHENTICATED_BYTE_SPANS_1M_WITH_4MIB_BOUNDED_CACHE"
+}

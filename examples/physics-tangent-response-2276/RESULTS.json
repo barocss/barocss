@@ -1,0 +1,1098 @@
+{
+  "status": "PASS_BOUNDED_DISCRETE_TANGENT_RESPONSE",
+  "base": "afea04be5",
+  "api": {
+    "caseFile": "cases-02.mjs",
+    "status": "PASS_TANGENT_PUBLIC_API",
+    "pins": {
+      "CONTRACT.md": {
+        "bytes": 4070,
+        "sha256": "6f0312605acbf81ed8271219b8c33d2d054b606fab0e87ba74f6e5dc5c1c49ef"
+      },
+      "cases.mjs": {
+        "bytes": 1671,
+        "sha256": "67d56519fc87fe27adad78efc74c23279dd144b84f723664b6027425a0aa3384"
+      },
+      "cases-02.mjs": {
+        "bytes": 518,
+        "sha256": "fc3eb027b4a909a96f668a867cb8421946fe60f25431e91c129eb3abe892140a"
+      },
+      "INPUT-CORRECTION-02.md": {
+        "bytes": 2594,
+        "sha256": "e657c08946ca24097982e694c80221244fc3e76ddd96e30bcb19950218f383fa"
+      },
+      "api-run.mjs": {
+        "bytes": 13900,
+        "sha256": "241f6563d894752e5c789833a3c76dd1f5b63e6e0806ede460d718f06759ce7a"
+      },
+      "build/result.json": {
+        "bytes": 99646,
+        "sha256": "3dc56ad8242b72f576e07aa45362f84a283ce3f14e212dd9d1b017e13068ea55"
+      },
+      "build/source.mjs": {
+        "bytes": 456156,
+        "sha256": "e7df32ca170b8f655a6b44c951bfb93f7aee932b39b1e7cd1454bcf73e1d76a8"
+      },
+      "../../packages/barocss-physics/dist/index.js": {
+        "bytes": 425344,
+        "sha256": "23fa0c17dbc5daaf41ebb5cdfba87485eac26fa5e7209f7accd2cd6f849bc72c"
+      },
+      "../../packages/barocss-physics/dist/replay.js": {
+        "bytes": 6623,
+        "sha256": "d352fcab204a7e5291a3a5f1e17d2856a5628a9179de2becf7f520676a471036"
+      }
+    },
+    "counts": {
+      "source": {
+        "worlds": 27,
+        "acceptedSteps": 31,
+        "restores": 1,
+        "knownRefusals": 1,
+        "unknownRefusals": 1,
+        "creationRefusals": 1
+      },
+      "native": {
+        "worlds": 27,
+        "acceptedSteps": 31,
+        "restores": 1,
+        "knownRefusals": 1,
+        "unknownRefusals": 1,
+        "creationRefusals": 1
+      }
+    },
+    "maxima": {
+      "source": {
+        "velocity": 1.1102230246251565e-16,
+        "omega": 2.220446049250313e-16,
+        "impulse": 5.551115123125783e-17,
+        "momentum": 5.551115123125783e-17,
+        "angularMomentum": 5.551115123125783e-17,
+        "geometry": 5.551115123125783e-17,
+        "energy": 5.551115123125783e-17,
+        "work": 2.220446049250313e-16,
+        "slip": 2.220446049250313e-16,
+        "tangentPlane": 0
+      },
+      "native": {
+        "velocity": 1.1102230246251565e-16,
+        "omega": 2.220446049250313e-16,
+        "impulse": 5.551115123125783e-17,
+        "momentum": 5.551115123125783e-17,
+        "angularMomentum": 5.551115123125783e-17,
+        "geometry": 5.551115123125783e-17,
+        "energy": 5.551115123125783e-17,
+        "work": 2.220446049250313e-16,
+        "slip": 2.220446049250313e-16,
+        "tangentPlane": 0
+      }
+    },
+    "firstFailure": null,
+    "evidenceBytes": 1817246,
+    "browser": "NOT_RUN",
+    "scope": "centered primitive cuboids with principal contact normal and zero normal-tangent coupling"
+  },
+  "independent": {
+    "status": "PASS_INDEPENDENT_TANGENT_CONSTRAINTS",
+    "audits": 40,
+    "maxima": {
+      "velocity": 1.3322676295501878e-16,
+      "omega": 1.7763568394002506e-16,
+      "impulse": 7.771561172376095e-17,
+      "momentum": 5.551115123125783e-17,
+      "angularMomentum": 4.625929269271486e-17,
+      "slip": 2.220446049250313e-16,
+      "geometry": 5.551115123125783e-17,
+      "energy": 8.881784197001253e-17,
+      "work": 9.992007221626409e-17,
+      "tangentPlane": 0.0,
+      "referencePrecision": 1.0495273070955257e-81
+    },
+    "cases": [
+      {
+        "graph": "source",
+        "id": "anisotropic-base",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "reverse-both",
+        "expectedImpulseNs": [
+          "5/8",
+          "1",
+          "2/5"
+        ],
+        "expectedVelocityMps": [
+          "-3/8",
+          "0",
+          "-3/5"
+        ],
+        "expectedOmegaRadps": [
+          "-6/5",
+          "0",
+          "3/4"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "reverse-x",
+        "expectedImpulseNs": [
+          "5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "-3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "3/4"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "reverse-z",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "-3/5"
+        ],
+        "expectedOmegaRadps": [
+          "-6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "x-only",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "0"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "0"
+        ],
+        "expectedOmegaRadps": [
+          "0",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "z-only",
+        "expectedImpulseNs": [
+          "0",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "0",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "0"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "cyclic-once",
+        "expectedImpulseNs": [
+          "-2/5",
+          "-5/8",
+          "1"
+        ],
+        "expectedVelocityMps": [
+          "3/5",
+          "3/8",
+          "0"
+        ],
+        "expectedOmegaRadps": [
+          "-3/4",
+          "6/5",
+          "0"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "cyclic-twice",
+        "expectedImpulseNs": [
+          "1",
+          "-2/5",
+          "-5/8"
+        ],
+        "expectedVelocityMps": [
+          "0",
+          "3/5",
+          "3/8"
+        ],
+        "expectedOmegaRadps": [
+          "0",
+          "-3/4",
+          "6/5"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "isotropic-cube",
+        "expectedImpulseNs": [
+          "-2/5",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/5",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-6/5"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "dt-60",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "dt-120",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "dt-240",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "zero-friction",
+        "expectedImpulseNs": [
+          "0",
+          "1",
+          "0"
+        ],
+        "expectedVelocityMps": [
+          "1",
+          "0",
+          "1"
+        ],
+        "expectedOmegaRadps": [
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "upper-supported-friction",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "clear-dynamic-ray",
+        "expectedImpulseNs": [
+          "-88388347648318445456644478649903190514924404597195165271740354843574365842840952376181732261185691402669550889134542783/2500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "1",
+          "-88388347648318445456644478649903190514924404597195165271740354843574365842840952376181732261185691402669550889134542783/2500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "expectedVelocityMps": [
+          "2411611652351681554543355521350096809485075595402804834728259645156425634157159047623818267738814308597330449110865457217/2500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "0",
+          "2411611652351681554543355521350096809485075595402804834728259645156425634157159047623818267738814308597330449110865457217/2500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "expectedOmegaRadps": [
+          "265165042944955336369933435949709571544773213791585495815221064530723097528522857128545196783557074208008652667403628349/2500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "0",
+          "-265165042944955336369933435949709571544773213791585495815221064530723097528522857128545196783557074208008652667403628349/6250000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "model-order",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "lexical-order",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "both-orders",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "zero-tangent",
+        "expectedImpulseNs": [
+          "0",
+          "1",
+          "0"
+        ],
+        "expectedVelocityMps": [
+          "0",
+          "0",
+          "0"
+        ],
+        "expectedOmegaRadps": [
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      {
+        "graph": "source",
+        "id": "no-normal",
+        "expectedImpulseNs": [
+          "0",
+          "0",
+          "0"
+        ],
+        "expectedVelocityMps": [
+          "1",
+          "0",
+          "1"
+        ],
+        "expectedOmegaRadps": [
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "anisotropic-base",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "reverse-both",
+        "expectedImpulseNs": [
+          "5/8",
+          "1",
+          "2/5"
+        ],
+        "expectedVelocityMps": [
+          "-3/8",
+          "0",
+          "-3/5"
+        ],
+        "expectedOmegaRadps": [
+          "-6/5",
+          "0",
+          "3/4"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "reverse-x",
+        "expectedImpulseNs": [
+          "5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "-3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "3/4"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "reverse-z",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "-3/5"
+        ],
+        "expectedOmegaRadps": [
+          "-6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "x-only",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "0"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "0"
+        ],
+        "expectedOmegaRadps": [
+          "0",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "z-only",
+        "expectedImpulseNs": [
+          "0",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "0",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "0"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "cyclic-once",
+        "expectedImpulseNs": [
+          "-2/5",
+          "-5/8",
+          "1"
+        ],
+        "expectedVelocityMps": [
+          "3/5",
+          "3/8",
+          "0"
+        ],
+        "expectedOmegaRadps": [
+          "-3/4",
+          "6/5",
+          "0"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "cyclic-twice",
+        "expectedImpulseNs": [
+          "1",
+          "-2/5",
+          "-5/8"
+        ],
+        "expectedVelocityMps": [
+          "0",
+          "3/5",
+          "3/8"
+        ],
+        "expectedOmegaRadps": [
+          "0",
+          "-3/4",
+          "6/5"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "isotropic-cube",
+        "expectedImpulseNs": [
+          "-2/5",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/5",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-6/5"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "dt-60",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "dt-120",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "dt-240",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "zero-friction",
+        "expectedImpulseNs": [
+          "0",
+          "1",
+          "0"
+        ],
+        "expectedVelocityMps": [
+          "1",
+          "0",
+          "1"
+        ],
+        "expectedOmegaRadps": [
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "upper-supported-friction",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "clear-dynamic-ray",
+        "expectedImpulseNs": [
+          "-88388347648318445456644478649903190514924404597195165271740354843574365842840952376181732261185691402669550889134542783/2500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "1",
+          "-88388347648318445456644478649903190514924404597195165271740354843574365842840952376181732261185691402669550889134542783/2500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "expectedVelocityMps": [
+          "2411611652351681554543355521350096809485075595402804834728259645156425634157159047623818267738814308597330449110865457217/2500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "0",
+          "2411611652351681554543355521350096809485075595402804834728259645156425634157159047623818267738814308597330449110865457217/2500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        ],
+        "expectedOmegaRadps": [
+          "265165042944955336369933435949709571544773213791585495815221064530723097528522857128545196783557074208008652667403628349/2500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "0",
+          "-265165042944955336369933435949709571544773213791585495815221064530723097528522857128545196783557074208008652667403628349/6250000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "model-order",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "lexical-order",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "both-orders",
+        "expectedImpulseNs": [
+          "-5/8",
+          "1",
+          "-2/5"
+        ],
+        "expectedVelocityMps": [
+          "3/8",
+          "0",
+          "3/5"
+        ],
+        "expectedOmegaRadps": [
+          "6/5",
+          "0",
+          "-3/4"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "zero-tangent",
+        "expectedImpulseNs": [
+          "0",
+          "1",
+          "0"
+        ],
+        "expectedVelocityMps": [
+          "0",
+          "0",
+          "0"
+        ],
+        "expectedOmegaRadps": [
+          "0",
+          "0",
+          "0"
+        ]
+      },
+      {
+        "graph": "native",
+        "id": "no-normal",
+        "expectedImpulseNs": [
+          "0",
+          "0",
+          "0"
+        ],
+        "expectedVelocityMps": [
+          "1",
+          "0",
+          "1"
+        ],
+        "expectedOmegaRadps": [
+          "0",
+          "0",
+          "0"
+        ]
+      }
+    ],
+    "WorldCalls": 0,
+    "candidateCalls": 0
+  },
+  "originalSphereFinal": {
+    "status": "PASS_MATERIAL_BOUNDARIES_PUBLIC_API",
+    "pins": {
+      "CONTRACT.md": "7ed2563d64898da07a2d8e551f6d63ce3171b993eb5779ef8231953ca03f9b59",
+      "cases.mjs": "1f590ffe321400c0e9531538b3b1220ff34fdc290004a2c2220df1851724e772",
+      "api-run.mjs": "7663a339e7b5a19e0fbce85e5a6620e49faea5f52995518bf168ccb8d89b35e7",
+      "README.md": "c246aaec93cb6775847da8c88accf2c5e0ac33085cab9ed29abb396580cf1570"
+    },
+    "counts": {
+      "source": {
+        "worlds": 22,
+        "acceptedSteps": 22
+      },
+      "native": {
+        "worlds": 22,
+        "acceptedSteps": 22
+      }
+    },
+    "maxima": {
+      "source": {
+        "velocity": 0,
+        "omega": 0,
+        "impulse": 0,
+        "momentum": 1.1102230246251565e-16,
+        "angularMomentum": 0,
+        "geometry": 5.551115123125783e-17,
+        "slip": 0,
+        "energy": 2.220446049250313e-16,
+        "tangentPlane": 0
+      },
+      "native": {
+        "velocity": 0,
+        "omega": 0,
+        "impulse": 0,
+        "momentum": 1.1102230246251565e-16,
+        "angularMomentum": 0,
+        "geometry": 5.551115123125783e-17,
+        "slip": 0,
+        "energy": 2.220446049250313e-16,
+        "tangentPlane": 0
+      }
+    },
+    "firstFailure": null,
+    "evidenceBytes": 1366746,
+    "providerPinFile": "examples/physics-material-boundaries-2276/PROVIDER-PINS-03.json",
+    "providerPinSHA256": "ea48a485c28163fdf18840c2c2adfc7eb35fe37cb3e90eb53842a80eaa1c4ba6",
+    "reusedBuild": "Explicit frozen provider manifest checked before graph imports",
+    "browser": "NOT_RUN",
+    "scope": "one-step uniform sphere/finite floor discrete material boundaries"
+  },
+  "originalContactRegression": {
+    "status": "PASS_ORIGINAL_CONTACT_REGRESSION",
+    "graphs": [
+      {
+        "graph": "source",
+        "status": 0,
+        "error": null,
+        "tests": 2,
+        "definedAcceptedSteps": 3240
+      },
+      {
+        "graph": "native",
+        "status": 0,
+        "error": null,
+        "tests": 2,
+        "definedAcceptedSteps": 3240
+      }
+    ],
+    "firstFailure": null
+  },
+  "render": {
+    "status": "PASS_BROWSER_TANGENT_RESPONSE",
+    "browserVersion": "156.0.8078.80",
+    "checks": [
+      {
+        "name": "paused public World and actual cuboid floor GPU pixels",
+        "status": "PASS"
+      },
+      {
+        "name": "cuboid actual first-step impulse spin energy and displayed slip",
+        "status": "PASS"
+      },
+      {
+        "name": "static-next-down actual first-step impulse spin energy and displayed slip",
+        "status": "PASS"
+      },
+      {
+        "name": "static-exact actual first-step impulse spin energy and displayed slip",
+        "status": "PASS"
+      },
+      {
+        "name": "dynamic-next-up actual first-step impulse spin energy and displayed slip",
+        "status": "PASS"
+      },
+      {
+        "name": "desktop1280/1440/1920 centered cuboid and camera retain accepted state",
+        "status": "PASS"
+      },
+      {
+        "name": "sphere accepted travel changes real GPU pixels",
+        "status": "PASS"
+      },
+      {
+        "name": "sphere keyboard step play pause reset and recorder clock",
+        "status": "PASS"
+      },
+      {
+        "name": "sphere512 recording cap retains accepted state",
+        "status": "PASS"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "firstFailure": null
+  },
+  "commands": {
+    "tangent-response-api-01": {
+      "status": "FAIL",
+      "exit": 1,
+      "elapsedMs": 109.52725,
+      "timedOut": false
+    },
+    "tangent-response-api-02": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 269.911208,
+      "timedOut": false
+    },
+    "tangent-response-baseline-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 386.881708,
+      "timedOut": false
+    },
+    "tangent-response-build-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 3013.166542,
+      "timedOut": false
+    },
+    "tangent-response-build-02": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 2784.480292,
+      "timedOut": false
+    },
+    "tangent-response-contact-regression-01": {
+      "status": "FAIL",
+      "exit": 1,
+      "elapsedMs": 420.572458,
+      "timedOut": false
+    },
+    "tangent-response-contact-regression-02": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 640.18725,
+      "timedOut": false
+    },
+    "tangent-response-docbuild-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 9638.846833,
+      "timedOut": false
+    },
+    "tangent-response-docsite-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 337.128375,
+      "timedOut": false
+    },
+    "tangent-response-persistent-regression-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 5586.350666,
+      "timedOut": false
+    },
+    "tangent-response-reference-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 107.0385,
+      "timedOut": false
+    },
+    "tangent-response-render-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 10593.55575,
+      "timedOut": false
+    },
+    "material-boundaries-api-01": {
+      "status": "FAIL",
+      "exit": 1,
+      "elapsedMs": 156.113625,
+      "timedOut": false
+    },
+    "material-boundaries-api-02": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 248.484667,
+      "timedOut": false
+    },
+    "material-boundaries-api-03": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 228.03675,
+      "timedOut": false
+    }
+  },
+  "firstFailures": [
+    "evidence/baseline-01/result.json",
+    "material-evidence/api-01/summary.json",
+    "evidence/api-01/summary.json",
+    "evidence/regression-01/summary.json"
+  ],
+  "remaining": [
+    "P4original8boxNO_GO",
+    "persistentfriction",
+    "spherepairfinite-overlap",
+    "offcenter/simultaneousnormal-tangentcoupling",
+    "projectionwork",
+    "near-tie/extremeCCD",
+    "P6/P7"
+  ],
+  "deployment": "NOT_RUN"
+}

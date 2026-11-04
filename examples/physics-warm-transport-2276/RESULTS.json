@@ -1,0 +1,131 @@
+{
+  "status": "EXECUTED_PASS_PRIVATE_SOURCE_WARM_TRANSPORT_ONLY",
+  "date": "2026-11-03",
+  "summary": {
+    "status": "EXECUTED_PASS_WARM_TRANSPORT",
+    "executionStatus": "EXECUTED_PASS",
+    "firstFailure": null,
+    "controls": {
+      "helperBank": "EXECUTED_PASS",
+      "initial": "EXECUTED_PASS",
+      "step1": "EXECUTED_PASS",
+      "step2": "EXECUTED_PASS",
+      "step3": "NOT_RUN"
+    },
+    "worldCreationsAttempted": 1,
+    "stepAttempts": 2,
+    "acceptedSteps": 2,
+    "counts": {
+      "worlds": 1,
+      "attempts": 2,
+      "records": 297,
+      "applications": 198,
+      "queries": 19,
+      "queryPoints": 19,
+      "anchorChecks": 513,
+      "traceBytes": 1383731
+    },
+    "validatedWarmCoverage": "EXECUTED_PASS",
+    "observedWarmCounterCoverage": "COVERED",
+    "observations": [
+      {
+        "label": "initial",
+        "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+        "executionStatus": "EXECUTED_PASS",
+        "firstFailure": null,
+        "counts": {
+          "events": 0,
+          "geometryQueries": 1,
+          "points": 1,
+          "corrections": 0,
+          "zeroApplications": 0,
+          "warmApplications": 0,
+          "actualWarmChangedFrame": 0,
+          "validatedNonzeroWarmFrictionChangedFrame": 0
+        },
+        "warmChangedFrameCoverage": "NOT_COVERED"
+      },
+      {
+        "label": "step1",
+        "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+        "executionStatus": "EXECUTED_PASS",
+        "firstFailure": null,
+        "counts": {
+          "events": 99,
+          "geometryQueries": 9,
+          "points": 9,
+          "corrections": 8,
+          "zeroApplications": 28,
+          "warmApplications": 0,
+          "actualWarmChangedFrame": 0,
+          "validatedNonzeroWarmFrictionChangedFrame": 0
+        },
+        "warmChangedFrameCoverage": "NOT_COVERED"
+      },
+      {
+        "label": "step2",
+        "status": "PASS_PRIVATE_PRODUCER_ONE_INTERVAL",
+        "executionStatus": "EXECUTED_PASS",
+        "firstFailure": null,
+        "counts": {
+          "events": 99,
+          "geometryQueries": 9,
+          "points": 9,
+          "corrections": 1,
+          "zeroApplications": 28,
+          "warmApplications": 1,
+          "actualWarmChangedFrame": 1,
+          "validatedNonzeroWarmFrictionChangedFrame": 1
+        },
+        "warmChangedFrameCoverage": "COVERED"
+      }
+    ],
+    "evidenceBytes": 1009082,
+    "inputAdjustedAtRuntime": false,
+    "cacheInjected": false,
+    "newBuild": "ROOT_ONLY_DISTINCT_PROVIDER",
+    "warmObserverAmendment": "OBSERVER-AMENDMENT-01",
+    "serde": "NOT_RUN",
+    "restore": "NOT_RUN",
+    "publicNativeDesktop": "NOT_RUN",
+    "promotion": "BLOCKED",
+    "originalP4": "UNCHANGED_NO_GO"
+  },
+  "guardReceipts": {
+    "reference": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 68.486875,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false
+    },
+    "build": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 408.017916,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false
+    },
+    "freeze": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 93.852292,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false
+    },
+    "run": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 2655.484917,
+      "processClosed": true,
+      "ownedGroupPresentAtFinalization": false
+    }
+  },
+  "originalBaseline": "PRESERVED_EXECUTED_NO_GO_REAL_WARM_FRAME",
+  "publicSerde": "NOT_RUN",
+  "restore": "NOT_RUN",
+  "rollback": "NOT_RUN",
+  "native": "NOT_RUN",
+  "desktop": "NOT_RUN",
+  "promotion": "BLOCKED"
+}

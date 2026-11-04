@@ -9,7 +9,7 @@ import { providerManifest } from './provider-manifest.generated.js';
 import type { Body, PhysicsCcdHit, PhysicsContact, PhysicsEvent, PhysicsJointState, PhysicsPairStats,  PhysicsRayHit, Vec3 } from './internal-types.js';
 import { MAX_STEPS, MAX_STEP_DISPLACEMENT_M, SOLVER_PASSES } from './limits.js';
 import { error, parseCommands, copyBody, queryRecord, queryVector, queryNumber, includeSensors } from './validation.js';
-import { add, scale, inverseInertia, advanceOrientation } from './math.js';
+import { add, cross, dot, scale, sub, inverseInertia, advanceOrientation } from './math.js';
 import { projectJoint } from './joints.js';
 import { driveDynamicHingeMotor, driveHingeMotor } from './joint-motor.js';
 import { admitDynamicHingeCommands, admitDynamicHingeScene } from './dynamic-hinge-joint.js';
@@ -29,9 +29,14 @@ import { initializeFluid, prepareFluid } from './domain/fluid.js';
 import type { ClothCandidate, ClothDefinition, ClothOutput, FluidCandidate, FluidDefinition, FluidOutput } from './domain/types.js';
 import { CLOTH_MAX_STEPS } from './cloth/profile.js';
 import { FLUID_MAX_STEPS } from './fluid/constants.js';
-import { admitRotationSupport, admitRotationCommands, validateRotationResult } from './rotation-support.js';
-import { prepareTriaxialFreeRotation } from './rigid-free-rotation.js';
-import { prepareForcedBoxRotation } from './rigid-forced-rotation.js';
+import { validateRotationResult } from './rotation-validation.js';
+import { prepareFreeRotation } from './rigid-free-rotation.js';
+import { prepareForcedRotation } from './rigid-forced-rotation.js';
+import { prepareStackStep } from './stack/prepare-step.js';
+import { STATIONARY_MAX_STEPS, admitStationaryCommands } from './stack/stationary-profile.js';
+import { prepareStationaryOutput } from './stack/public-output.js';
+import { ContactPairAccumulator, type CompletedContactPair } from './contact-contribution.js';
+import { prepareFrictionlessIsland } from './stack/frictionless-island.js';
 
 function publicState(bodies: Body[], contacts: PhysicsContact[], events: PhysicsEvent[],
   joints: PhysicsJointState[], ccdHits: PhysicsCcdHit[], pairStats: PhysicsPairStats,
@@ -89,11 +94,19 @@ function publicDomainState(runtime: DomainRuntime, model: PhysicsModel, identity
 
 export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): PhysicsWorld {
   const admitted = admitModel(model, options);
-  const isolatedRotor = admitRotationSupport(admitted.model, admitted.options, admitted.bodies);
+  const islandMode = admitted.options.profile === 'rigid-persistent-box-v1' &&
+    admitted.joints.length === 0 && admitted.bodies.some(body => body.kind === 'dynamic') &&
+    admitted.bodies.every(body => (body.kind === 'dynamic' || body.kind === 'static') &&
+      body.shape.kind === 'box' && !body.sleeping && !body.sensor && !body.ccd &&
+      !body.collisionFilter && body.restitution === 0 && body.frictionStatic === 0 && body.frictionDynamic === 0);
+  if (islandMode && admitted.options.broadPhase !== 'direct') {
+    error('INVALID_CONFIG', 'frictionless island requires direct broadPhase');
+  }
   const dt = admitted.options.fixedStepSeconds;
   const domainKind = admitted.domain?.kind ?? null;
   const domainId = admitted.domain?.data.id ?? null;
-  const stepLimit = domainKind === 'cloth' ? CLOTH_MAX_STEPS : domainKind === 'fluid' ? FLUID_MAX_STEPS : MAX_STEPS;
+  const stationaryMode = admitted.stationary;
+  const stepLimit = stationaryMode ? STATIONARY_MAX_STEPS : domainKind === 'cloth' ? CLOTH_MAX_STEPS : domainKind === 'fluid' ? FLUID_MAX_STEPS : MAX_STEPS;
   // Only this clearable holder owns runtime definitions and accepted domain buffers.
   let domainState: DomainRuntime | null = null;
   if (admitted.domain?.kind === 'cloth') {
@@ -179,6 +192,47 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
         error('WORLD_LIMIT', 'recording command limit reached');
       }
       const actions = parseCommands(admittedCommands, bodies);
+      if (stationaryMode) {
+        admitStationaryCommands(admittedCommands);
+        let phase: FailureDetails['phase'] = 'prepare-output';
+        try {
+          const preparedFrames = owner ? owner.prepareFrames(admittedCommands, stepIndex + 1) : null;
+          phase = 'candidate';
+          const prepared = prepareStackStep(bodies, dt, gravity);
+          phase = 'prepare-output';
+          const output = prepareStationaryOutput(prepared, activePairs);
+          const next = prepared.candidateBodies;
+          phase = 'validation';
+          validateResult(next, output.contacts);
+          phase = 'prepare-output';
+          const nextJoints: PhysicsJointState[] = [], nextCcdHits: PhysicsCcdHit[] = [];
+          const nextPersistentPoints = new Map<string, PointImpulse>(), nextSleepFrames = next.map(() => 0);
+          const state = publicState(next, output.contacts, output.events, nextJoints, nextCcdHits,
+            output.pairStats, stepIndex + 1, dt, identity, colliderIds);
+          const preparedRecording = owner ? owner.prepare(preparedFrames!, state) : null;
+          const preparedCommandCount = owner ? owner.commandCount + admittedCommands.length : 0;
+          // Stationary shared commit: all candidate/output/log work finished; assignments only.
+          bodies = next;
+          contacts = output.contacts;
+          events = output.events;
+          jointStates = nextJoints;
+          ccdHits = nextCcdHits;
+          pairStats = output.pairStats;
+          activePairs = output.activePairs;
+          persistentPoints = nextPersistentPoints;
+          sleepFrames = nextSleepFrames;
+          stepIndex++;
+          if (owner) { owner.recording = preparedRecording!; owner.commandCount = preparedCommandCount; }
+          return state;
+        } catch (failure) {
+          if (!(failure instanceof PhysicsError)) throw failure;
+          const enriched = new PhysicsError(failure.code, failure.message, {
+            operation: owner ? 'record' : 'step', phase: failure.code === 'WORLD_LIMIT' ? 'budget' : phase,
+            domain: 'rigid', entityIds: [...failure.details.entityIds], accepted: { stepIndex, timeSeconds: stepIndex * dt } });
+          enriched.stack = failure.stack;
+          throw enriched;
+        }
+      }
       if (domainState) {
         if (admittedCommands.length !== 0) error('INVALID_COMMAND', 'visual domain commands are unsupported');
         const preparedFrames = owner ? owner.prepareFrames(admittedCommands, stepIndex + 1) : null;
@@ -205,27 +259,19 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
       if (disjointHinges) admitDisjointHingeCommands(disjointHinges, bodies, actions, admittedCommands.length);
       else if (dynamicHinge) admitDynamicHingeCommands(dynamicHinge, bodies, actions);
       if (ccd.kind === 'box-pair') rejectAngularBoxCommand(actions.get(bodies[ccd.boxIndex].id));
-      if (isolatedRotor) {
-        admitRotationCommands(actions, bodies[0].id);
-        if (stepIndex >= 1) error('NUMERIC_LIMIT', 'isolated rotor exceeded its one-step physical horizon');
-      }
+      let preparationPhase: FailureDetails['phase'] = 'prepare-output';
+      try {
       const preparedFrames = owner ? owner.prepareFrames(admittedCommands, stepIndex + 1) : null;
-      const next = bodies.map(copyBody);
+      preparationPhase = 'candidate';
+      let next = bodies.map(copyBody);
       const motorImpulses = joints.map(() => 0);
       const nextSleepFrames = sleepFrames.slice();
       if (largeMode) wakeForActions(next, contacts, actions, nextSleepFrames);
       for (const body of next) {
         if (body.kind !== 'dynamic' || (largeMode && body.sleeping)) continue;
         const action = actions.get(body.id);
-        if (isolatedRotor) {
-          body.angularVelocityRadps = add(body.angularVelocityRadps,
-            inverseInertia(body, add(action?.angularImpulseNms ?? [0, 0, 0],
-              scale([0, 0, 0], dt))));
-        } else {
-          body.angularVelocityRadps = add(body.angularVelocityRadps,
-            inverseInertia(body, add(action?.angularImpulseNms ?? [0, 0, 0],
-              scale(action?.torqueNm ?? [0, 0, 0], dt))));
-        }
+        body.angularVelocityRadps = add(body.angularVelocityRadps,
+          inverseInertia(body, action?.angularImpulseNms ?? [0, 0, 0]));
       }
       if (disjointHinges) driveDisjointHingeMotors(disjointHinges, next, jointStates, motorImpulses);
       else for (let index = 0; index < joints.length; index++) {
@@ -254,16 +300,14 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
             Math.hypot(...body.angularVelocityRadps) * dt > 10) {
             error('NUMERIC_LIMIT', `${body.id} exceeded angular movement limit`);
           }
-          if (isolatedRotor) {
-            const preparedRotation = prepareForcedBoxRotation(body, dt, action?.torqueNm ?? [0, 0, 0]) ??
-              prepareTriaxialFreeRotation(body, dt);
-            if (preparedRotation === null) error('NUMERIC_LIMIT', 'isolated rotor has no qualified rotation result');
-            validateRotationResult(preparedRotation, dt);
-            body.angularVelocityRadps = preparedRotation.angularVelocityRadps;
-            body.orientation = preparedRotation.orientation;
-          } else {
-            body.orientation = advanceOrientation(body.orientation, body.angularVelocityRadps, dt);
-          }
+          const preparedRotation = prepareForcedRotation(body, dt, action?.torqueNm ?? [0, 0, 0]) ??
+            prepareFreeRotation(body, dt) ?? {
+              orientation: advanceOrientation(body.orientation, body.angularVelocityRadps, dt),
+              angularVelocityRadps: [...body.angularVelocityRadps] as Vec3,
+            };
+          validateRotationResult(preparedRotation, dt);
+          body.angularVelocityRadps = preparedRotation.angularVelocityRadps;
+          body.orientation = preparedRotation.orientation;
           for (let i = 0; i < 3; i++) {
             body.velocityMps[i] += (action?.impulseNs?.[i] ?? 0) * body.inverseMass;
             body.velocityMps[i] += (gravity[i] + (action?.forceN?.[i] ?? 0) * body.inverseMass) * dt;
@@ -285,12 +329,25 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
       const nextCcdHits = hit ? [hit] : [];
       const nextPairStats: PhysicsPairStats = { eligiblePairs: 0, candidatePairs: 0, aabbTests: 0 };
       const found = new Map<string, PhysicsContact>();
+      const contactContributions = new ContactPairAccumulator();
       const nextPersistentPoints = new Map<string, PointImpulse>();
+      const persistentNormalTargets = new Map<string, number>();
       const sensed = new Map<string, Omit<PhysicsEvent, 'phase'>>();
       const nextJoints = jointStates.map((joint, index) => ({ ...joint,
         linearImpulseNs: [0, 0, 0] as Vec3, angularImpulseNms: [0, 0, 0] as Vec3,
         ...(joint.motorImpulseNms === undefined ? {} :
           { motorImpulseNms: motorImpulses[index] }) }));
+      let islandContributions: readonly CompletedContactPair[] = [];
+      if (islandMode) {
+        const prepared = prepareFrictionlessIsland(next, pairs, { jointCount: joints.length });
+        next = prepared.candidateBodies;
+        preparationPhase = 'prepare-output';
+        nextPairStats.eligiblePairs = prepared.pairStats.eligiblePairs;
+        nextPairStats.candidatePairs = prepared.pairStats.candidatePairs;
+        nextPairStats.aabbTests = prepared.pairStats.aabbTests;
+        for (const contact of prepared.contacts) found.set(`${contact.aId}\u0000${contact.bId}`, contact);
+        islandContributions = prepared.pairContributions;
+      } else {
       const bounds = useAabb ? next.map(bodyBounds) : null;
       for (let pass = 0; pass < SOLVER_PASSES; pass++) {
         if (bounds && pass > 0) for (let index = 0; index < next.length; index++) {
@@ -327,6 +384,23 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
           contact.penetrationM = Math.max(contact.penetrationM, hit.penetration);
           if (largeMode && dormantPair(a, b)) continue;
           if (manifold) {
+            // Capture every point before this pair's first warm start. Targets
+            // remain fixed through this step's passes and never enter the cache.
+            const restitution = Math.min(a.restitution, b.restitution);
+            for (const point of manifold) {
+              const pointKey = `${key}\u0000${point.id}`;
+              if (persistentNormalTargets.has(pointKey)) continue;
+              let target = 0;
+              if (restitution !== 0) {
+                const velocityA = add(a.velocityMps,
+                  cross(a.angularVelocityRadps, sub(point.pointM, a.positionM)));
+                const velocityB = add(b.velocityMps,
+                  cross(b.angularVelocityRadps, sub(point.pointM, b.positionM)));
+                const speed = dot(hit.normal, sub(velocityB, velocityA));
+                if (-speed > 0.5) target = -speed * restitution;
+              }
+              persistentNormalTargets.set(pointKey, target);
+            }
             for (const point of manifold) {
               const pointKey = `${key}\u0000${point.id}`;
               let impulse = nextPersistentPoints.get(pointKey);
@@ -335,14 +409,18 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
                 impulse = prior ? { normalNs: prior.normalNs, tangentNs: [...prior.tangentNs] as Vec3 }
                   : { normalNs: 0, tangentNs: [0, 0, 0] };
                 nextPersistentPoints.set(pointKey, impulse);
-                if (prior) warmStartPoint(a, b, point.pointM, hit.normal, impulse);
+                if (prior) contactContributions.add(a.id, b.id,
+                  warmStartPoint(a, b, point.pointM, hit.normal, impulse));
               }
             }
             for (let iteration = 0; iteration < 8; iteration++) {
               const order = iteration % 2 ? [...manifold].reverse() : manifold;
               for (const point of order) {
-                const impulse = nextPersistentPoints.get(`${key}\u0000${point.id}`)!;
-                solvePersistentPoint(a, b, point.pointM, hit.normal, impulse);
+                const pointKey = `${key}\u0000${point.id}`;
+                const impulse = nextPersistentPoints.get(pointKey)!;
+                contactContributions.add(a.id, b.id,
+                  solvePersistentPoint(a, b, point.pointM, hit.normal, impulse,
+                    persistentNormalTargets.get(pointKey)!));
               }
             }
             correctPersistentPair(a, b, hit.normal, hit.penetration);
@@ -355,6 +433,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
             }
           } else {
             const resolved = solve(a, b, hit);
+            contactContributions.add(a.id, b.id, resolved.contribution);
             contact.impulseNs += resolved.normalImpulseNs;
             contact.tangentImpulseNs = add(contact.tangentImpulseNs, resolved.tangentImpulseNs);
           }
@@ -370,6 +449,8 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
           if (reaction.angleRad !== undefined) nextJoints[index].angleRad = reaction.angleRad;
         }
       }
+      } // Existing pair/joint iteration belongs only to the non-island route.
+      preparationPhase = 'prepare-output';
       if (disjointHinges) {
         if (found.size !== 0 || sensed.size !== 0) {
           error('NUMERIC_LIMIT', 'disjoint hinge contact profile is unsupported');
@@ -388,6 +469,7 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
         const previous = activePairs.get(key);
         return { ...(current ?? previous!), phase: current ? previous ? 'stay' : 'begin' : 'end' };
       });
+      preparationPhase = 'validation';
       validateResult(next, nextContacts);
       if (ccd.kind === 'box-pair' && !axisAlignedBox(next[ccd.boxIndex])) {
         error('NUMERIC_LIMIT', 'box CCD contact rotated outside the admitted profile');
@@ -402,6 +484,15 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
           error('NUMERIC_LIMIT', `${joints[index].id} exceeded motor reaction limit`);
         }
       }
+      if (!islandMode) contactContributions.finish();
+      else for (const pair of islandContributions) {
+        if (!next.some(body => body.id === pair.aId) || !next.some(body => body.id === pair.bId) ||
+          [pair.onA, pair.onB].some(side => [side.linearImpulseNs, side.angularImpulseAboutWorldOriginNms]
+            .some(vector => vector.length !== 3 || vector.some(value => !Number.isFinite(value))))) {
+          error('NUMERIC_LIMIT', 'unsafe completed island contribution');
+        }
+      }
+      preparationPhase = 'prepare-output';
       const state = publicState(next, nextContacts, nextEvents, nextJoints, nextCcdHits, nextPairStats, stepIndex + 1, dt, identity, colliderIds);
       // All candidate, output and recording allocations finish before shared commit.
       const preparedRecording = owner ? owner.prepare(preparedFrames!, state) : null;
@@ -419,6 +510,14 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
       stepIndex++;
       if (owner) { owner.recording = preparedRecording!; owner.commandCount = preparedCommandCount; }
       return state;
+      } catch (failure) {
+        if (!islandMode || !(failure instanceof PhysicsError)) throw failure;
+        const enriched = new PhysicsError(failure.code, failure.message, {
+          operation: owner ? 'record' : 'step', phase: failure.code === 'WORLD_LIMIT' ? 'budget' : preparationPhase,
+          domain: 'rigid', entityIds: [...failure.details.entityIds], accepted: { stepIndex, timeSeconds: stepIndex * dt } });
+        enriched.stack = failure.stack;
+        throw enriched;
+      }
     },
     query(input): QueryResult {
       ensureActive();
@@ -466,7 +565,8 @@ export function createPhysicsWorld(model: PhysicsModel, options: WorldOptions): 
     catch (failure) {
       if (!(failure instanceof PhysicsError)) throw failure;
       const enriched = new PhysicsError(failure.code, failure.message, {
-        operation, phase: ['DISPOSED','WORLD_OWNED','REENTRANT_CALL'].includes(failure.code) ? 'lifecycle' :
+        operation, phase: (stationaryMode || islandMode) && ['candidate','validation','prepare-output','budget'].includes(failure.details.phase) && failure.details.accepted !== null ? failure.details.phase :
+          ['DISPOSED','WORLD_OWNED','REENTRANT_CALL'].includes(failure.code) ? 'lifecycle' :
           failure.code === 'WORLD_LIMIT' ? 'budget' : failure.code === 'NUMERIC_LIMIT' ? 'validation' : 'admission',
         domain: domainKind ?? 'rigid', entityIds: domainId && failure.details.entityIds.length === 0 ? [domainId] : failure.details.entityIds,
         accepted: { stepIndex, timeSeconds: stepIndex * dt } });

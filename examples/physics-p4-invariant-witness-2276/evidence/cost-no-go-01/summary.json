@@ -1,0 +1,92 @@
+{
+  "status": "INVARIANT_G0_A_B_NUMERICAL_PASS_COST_NO_GO_ENDED",
+  "sourceFiles": 163,
+  "guardPolicy": {
+    "path": "examples/physics-p4-invariant-witness-2276/GUARD-POLICY.md",
+    "scope": "GCD_REM_LOOP_ONLY_CHECKED_ENTRY_THEN_PROVEN_RANGE_INVARIANT",
+    "allOldGuardChecksUnchanged": false,
+    "pricesAndCapsUnchanged": true,
+    "pin": {
+      "bytes": 5167,
+      "sha256": "7777f9d53032c34f9fdb6c3cbfeb7e87313435aac57ae693a1be39cec533ceee"
+    }
+  },
+  "G0": {
+    "pairs": 32,
+    "performed": 474339,
+    "privateStats": {
+      "guardedGcdEntries": 32,
+      "invariantRemainders": 14476
+    }
+  },
+  "A": "FRESH10_CANDIDATE_AND10_INDEPENDENT_PASS",
+  "B": "FRESH6_COMPLETE_PHYSICAL_AND6_INDEPENDENT_PASS",
+  "cost": {
+    "parentCoreCpuNs": 534950000,
+    "childLifetimeCpuNs": 310880000,
+    "conservativeEnvelopeCpuNs": 845830000,
+    "savedBaselineCoreCpuNs": 773147000,
+    "costBoundaryIdenticalToSavedBaseline": false
+  },
+  "thresholdCpuNs": 695832300,
+  "ratioToHistoricalBaseline": 1.094009289307208,
+  "costDecisions": 1,
+  "baselineReruns": 0,
+  "nestedParentCPU": {
+    "compactCpuNs": 450632000,
+    "parentBridgeCpuNs": 20745000,
+    "residualWorldCpuNs": 63573000,
+    "legacyAdmissionCpuNs": 1662000
+  },
+  "physicalLeaves": 87102,
+  "float64Words": 45408,
+  "maxBProofPrimitives": 626038,
+  "worker": {
+    "protocol": "p4-native-witness-rpc-v1",
+    "workerStarts": 1,
+    "requestCalls": 6,
+    "workerClosed": true,
+    "exit": 0,
+    "pid": 40378,
+    "childCpuAuthority": "RESOURCE_RUSAGE_CHILDREN_DELTA_AFTER_CLOSE_AND_WAIT",
+    "childLifetimeCpuNs": 310880000,
+    "resourceBefore": {
+      "userSeconds": 0.0,
+      "systemSeconds": 0.0
+    },
+    "resourceAfter": {
+      "userSeconds": 0.302251,
+      "systemSeconds": 0.008629
+    },
+    "selfReportedChildCpuUsed": false,
+    "sentBytes": 41909,
+    "receivedBytes": 246781,
+    "parentTransportLimitBytes": 4194304,
+    "childTransportReservedBytes": 4194304,
+    "maxExplicitTransportReservedBytes": 1637112,
+    "stderrBytes": 0,
+    "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cleanupError": null,
+    "scope": "ONE_OWNED_NODE_WORKER_ONLY_NO_PROCESS_RSS_CLAIM"
+  },
+  "WorldCalls": 0,
+  "original1200Steps": "NOT_RUN",
+  "publicAPI": "NOT_RUN",
+  "desktop": "NOT_RUN",
+  "firstFailure": {
+    "cursor": "one-cost-decision",
+    "type": "CostGate",
+    "message": "CONSERVATIVE_NATIVE_CPU_ENVELOPE_EXCEEDS_FIXED_695832300NS_GATE"
+  },
+  "archivePins": {
+    "SOURCE-01.tar.gz": {
+      "bytes": 681144,
+      "sha256": "38ee73389891412530387fc27697ae7159900b8d5b81d8d6f1c441624657dc85"
+    },
+    "PROOF-01.tar.gz": {
+      "bytes": 320049,
+      "sha256": "684a68aadf2c1b263402c6071d80c9f17df7c23685ce01b89fbcfdd96b9cf434"
+    }
+  },
+  "next": "Separate bounded float64/decimal proof-guard review; no resumed timing or relaxed limits for this ended candidate."
+}

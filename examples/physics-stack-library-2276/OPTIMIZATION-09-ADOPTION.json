@@ -1,0 +1,20 @@
+{
+  "status": "ROOT_ADOPTED_AFTER_ISOLATED32_PASS_PRODUCTION_REQUALIFICATION_PENDING",
+  "oldSourceSHA256": "abb2036ddd46c146a42299173d471a360afc7c30226f694f58c1515fab10f2af",
+  "sourceSHA256": "61baf61303c5450b69329f2006883b712eee75635d7ca0d53a2100ceab1c06ed",
+  "primitiveOnly": "Skip first-present nonzero nonunit owned product zero-add in dot",
+  "adapters": [
+    {
+      "path": "examples/physics-stack-library-2276/arithmetic-opt09-retained07-run.mjs",
+      "sha256": "c84500b48b5a835f50b327874a2b61c3a5d25ad4cbda1197e83dd3dce0022d3d",
+      "changes": "productionSHAguard and fresh outputID only; original test body unchanged"
+    },
+    {
+      "path": "examples/physics-stack-library-2276/arithmetic-opt09-retained06-run.mjs",
+      "sha256": "9d5a3d1d70fda03876e8d76ec0bdd742b84b6cc81828d02d48ce4ac31028622e",
+      "changes": "productionSHAguard and fresh outputID only; original test body unchanged"
+    }
+  ],
+  "API": false,
+  "full1200": false
+}

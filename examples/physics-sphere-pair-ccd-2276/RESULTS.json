@@ -1,0 +1,229 @@
+{
+  "status": "PASS_BOUNDED_EXACT_SPHERE_PAIR_CCD",
+  "base": "4ca00d04a",
+  "api": {
+    "status": "PASS_SPHERE_PAIR_PUBLIC_API",
+    "pins": {
+      "CONTRACT.md": {
+        "bytes": 3368,
+        "sha256": "39ecd51f68c2eb538bf056e8d9b1c6a142829f08ec0529139dd9d186c2c6d409"
+      },
+      "api-run.mjs": {
+        "bytes": 13237,
+        "sha256": "62ad2696fa9b4471d5ae9026907f89ad3a8b2eb7c94513b1df4bcf75960c1d64"
+      },
+      "cases.mjs": {
+        "bytes": 3228,
+        "sha256": "4efd1599daae1eda46b6d996875fd5e62abbda83f36ab43b242706b72c8ff910"
+      },
+      "build/result.json": {
+        "bytes": 99641,
+        "sha256": "0828ea810430936840026b775c7e1a39b25da1cca65adf9f0d895e897f0b1d49"
+      },
+      "build/source.mjs": {
+        "bytes": 459877,
+        "sha256": "01c98cafc820fc71d311173121d4ffa90243bdede051fb73f106e1c02ad15766"
+      },
+      "../../packages/barocss-physics/dist/index.js": {
+        "bytes": 428916,
+        "sha256": "789bfd6c3b81fb1b62eeba8bd9f561da65b8c73786cffea1225d2e02bddb6260"
+      },
+      "../../packages/barocss-physics/dist/replay.js": {
+        "bytes": 6623,
+        "sha256": "d352fcab204a7e5291a3a5f1e17d2856a5628a9179de2becf7f520676a471036"
+      },
+      "../../packages/barocss-physics/dist/ccd-sphere-pair-exact.js": {
+        "bytes": 5256,
+        "sha256": "3182f9776b5f9f84942379fcd1b0e3728e7f8a5b2ce669772d025f8245ed595c"
+      },
+      "../../packages/barocss-physics/src/ccd-sphere-pair-exact.ts": {
+        "bytes": 5307,
+        "sha256": "2ee601d4e363d135fc356cef37a43495524449bb4dc38abe8f62848bdf28645c"
+      },
+      "../../packages/barocss-physics/src/ccd-pair.ts": {
+        "bytes": 1303,
+        "sha256": "87ea34e6b662b223874857651839407f351b0beaa03a4a85d1e4797744027e1a"
+      }
+    },
+    "counts": {
+      "source": {
+        "worlds": 29,
+        "acceptedSteps": 33,
+        "directHelperCalls": 22,
+        "knownRefusals": 1,
+        "unknownRefusals": 1,
+        "restores": 1
+      },
+      "native": {
+        "worlds": 29,
+        "acceptedSteps": 33,
+        "directHelperCalls": 22,
+        "knownRefusals": 1,
+        "unknownRefusals": 1,
+        "restores": 1
+      }
+    },
+    "maxima": {
+      "source": {
+        "toi": 2.7755575615628914e-17,
+        "distance": 1.6653345369377348e-16,
+        "normal": 0,
+        "normalNormSquared": 2.220446049250313e-16,
+        "finiteMotion": 0
+      },
+      "native": {
+        "toi": 2.7755575615628914e-17,
+        "distance": 1.6653345369377348e-16,
+        "normal": 0,
+        "normalNormSquared": 2.220446049250313e-16,
+        "finiteMotion": 0
+      }
+    },
+    "firstFailure": null,
+    "evidenceBytes": 2864897,
+    "browser": "NOT_RUN",
+    "scope": "finite represented sphere-pair rays; continuation validates reproduction only"
+  },
+  "independent": {
+    "status": "PASS_INDEPENDENT_SPHERE_PAIR_CCD",
+    "audits": 88,
+    "maxima": {
+      "toi": "3.9056625808583657650368562597268049272398592512955905470578711593717123829230869312498423456827825778622E-17",
+      "normal": "4.2067041896350767431602256406470774953297273949501747447263245898257643470412370339793146790001216883706E-17",
+      "normSquared": "8.4134091479753101189266980000409211391445118485495579770856538248170221339083951761494972743093967437744140625E-17",
+      "distance": "1.60612264229105990690148205281472581874488008172804920370424497377825900912284851074218750000000000000000E-16"
+    },
+    "WorldCalls": 0,
+    "candidateCalls": 0
+  },
+  "render": {
+    "status": "PASS_BROWSER_SPHERE_PAIR_CCD",
+    "browserVersion": "156.0.8078.80",
+    "checks": [
+      {
+        "name": "original binary64 input paused with two genuine GPU spheres",
+        "status": "PASS"
+      },
+      {
+        "name": "minimum-miss actual public first-step classification and unbiased witness",
+        "status": "PASS"
+      },
+      {
+        "name": "minimum-graze actual public first-step classification and unbiased witness",
+        "status": "PASS"
+      },
+      {
+        "name": "head-on actual public first-step classification and unbiased witness",
+        "status": "PASS"
+      },
+      {
+        "name": "graze actual public first-step classification and unbiased witness",
+        "status": "PASS"
+      },
+      {
+        "name": "desktop1280/1440/1920 miss pixels and camera preserve accepted state",
+        "status": "PASS"
+      },
+      {
+        "name": "normal head-on keyboard play pause reset and accepted recording clock",
+        "status": "PASS"
+      },
+      {
+        "name": "normal head-on512 accepted-step cap keeps physics limits active",
+        "status": "PASS"
+      }
+    ],
+    "pageErrors": [],
+    "consoleErrors": [],
+    "firstFailure": null
+  },
+  "firstFailures": [
+    "evidence/baseline-01/result.json",
+    "evidence/render-first-failure-01/browser/report.json"
+  ],
+  "commands": {
+    "sphere-pair-api-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 300.468708,
+      "timedOut": false
+    },
+    "sphere-pair-bank-input-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 63.125041,
+      "timedOut": false
+    },
+    "sphere-pair-bank-reference-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 47.848875,
+      "timedOut": false
+    },
+    "sphere-pair-build-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 2879.851208,
+      "timedOut": false
+    },
+    "sphere-pair-ccd-baseline-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 185.76275,
+      "timedOut": false
+    },
+    "sphere-pair-docbuild-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 9315.700709,
+      "timedOut": false
+    },
+    "sphere-pair-docsite-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 331.751916,
+      "timedOut": false
+    },
+    "sphere-pair-independent-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 116.783208,
+      "timedOut": false
+    },
+    "sphere-pair-original-regression-01": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 96.728917,
+      "timedOut": false
+    },
+    "sphere-pair-render-01": {
+      "status": "FAIL",
+      "exit": 1,
+      "elapsedMs": 3674.283792,
+      "timedOut": false
+    },
+    "sphere-pair-render-02": {
+      "status": "PASS",
+      "exit": 0,
+      "elapsedMs": 15154.004791,
+      "timedOut": false
+    }
+  },
+  "bounds": {
+    "integerBits": "STATIC_PROOF_LT8410",
+    "corpusIntegerOps": "NOT_METERED",
+    "TOI": 1e-12,
+    "distanceM": 1e-12,
+    "normal": 1e-12
+  },
+  "remaining": [
+    "extremefloatingoutputs",
+    "remainingtimeintegration",
+    "non-sphererotatingCCD",
+    "frictioncoupledimpacts",
+    "P4original8box",
+    "P6P7"
+  ],
+  "HOLD": "PRESERVED",
+  "deployment": "NOT_RUN"
+}

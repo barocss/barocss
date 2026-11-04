@@ -1,0 +1,33 @@
+{
+  "status": "ROOT_ADOPTION_PREPARED_PRODUCTION_NOT_CHANGED",
+  "originalSourceSHA256": "4c6cc8b397cb2095a255cd61e33c3050e07d5a4c933f5c7d9d896764d154606b",
+  "candidateSHA256": "debc13349c9d45b2dc9f8e7f59e779156928953892c41b372e7a3f5339e415ce",
+  "plannedProductionSHA256": "abb2036ddd46c146a42299173d471a360afc7c30226f694f58c1515fab10f2af",
+  "isolatedResult": "evidence/arithmetic-opt08-01/result.json",
+  "guard": "examples/physics-world-p5-2276/evidence/stack-library-arithmetic-opt08-01/result.json",
+  "testsUnchanged": true,
+  "adapters": [
+    {
+      "source": "arithmetic-opt07-run.mjs",
+      "sourceSHA256": "b3af99f30f55fa79ec8cca3d13d8d5c70291282bc943e29df066a843e9eb6b67",
+      "adapter": "arithmetic-opt08-retained07-run.mjs",
+      "adapterSHA256": "5cadfbddd9f9631496433a1197b637afecb15bae4b80f44031aef9c192b3b7fb",
+      "edits": [
+        "current production SHA assertion only",
+        "fresh output ID prefix only"
+      ]
+    },
+    {
+      "source": "arithmetic-opt07-retained06-run.mjs",
+      "sourceSHA256": "6103bdb7dc259316c67dee13ac30e22b6cf11cbde4814f6f7899a58be13c76cc",
+      "adapter": "arithmetic-opt08-retained06-run.mjs",
+      "adapterSHA256": "3fc3f15e074aff5bdc0eecb5c8d4a012905b83083a6773669a8c96eeb772e4d9",
+      "edits": [
+        "current production SHA assertion only",
+        "fresh output ID prefix only"
+      ]
+    }
+  ],
+  "scope": "Import relocation is type only; Root still must preserve full02 and apply the sole checked expression before retained production tests",
+  "API": false
+}

@@ -1,0 +1,4065 @@
+{
+  "status": "CHECKPOINT_IO_VERIFIED_NO_PHYSICS_EXECUTION",
+  "scope": "Six bounded public samples with actual Viewer HiDPI; not full engine completion",
+  "dependencies": {
+    "examples/physics-stack-library-2276/CHECKPOINT-15-PREFIX.json": {
+      "bytes": 2102462,
+      "sha256": "6b7e4b161e031cc8705be9affb004dcdd4c44d2f22aaad2b95bcdb25f404aedb"
+    },
+    "examples/physics-stack-library-2276/CHECKPOINT-15-PREFIX-SOURCE.tar.gz": {
+      "bytes": 423722,
+      "sha256": "36b076b069cc202ff0d308aa457080f226b8f24e6b3305801e30d5f3ee72daae"
+    },
+    "examples/physics-stack-library-2276/CHECKPOINT-15-PREFIX-PROOF.tar.gz": {
+      "bytes": 10592521,
+      "sha256": "8f0f6d2c3dd6a1569c55df14c86ab46e1c46c28965d7ab067b482877c76edc3c"
+    }
+  },
+  "explicitFinalIds": {
+    "numeric": "api-01",
+    "desktop": "gallery-desktop-02"
+  },
+  "requiredActualReceipts": {
+    "numeric": {
+      "status": "SAMPLE_GALLERY_SOURCE_NATIVE_ANALYTIC_CONFIRMED",
+      "failure": null,
+      "sourceIntegrity": "PASS",
+      "reports": {
+        "source": {
+          "providerDigest": "sha256:bdff69b55d4effb0deda83bb1dfc298e82f17578e0c3dec127e5ca66a03fee00",
+          "worlds": 12,
+          "acceptedSteps": 770,
+          "independentlyPassedSteps": 385,
+          "referenceReplies": 6,
+          "typedRefusals": 6,
+          "cases": {
+            "projectile": {
+              "steps": 64,
+              "packet": {
+                "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-projectile.json",
+                "bytes": 74017,
+                "sha256": "b1add75d371a8ae2654abaac6ae083ff590b3ee2da342acf31173969d2c4dfa5"
+              },
+              "reference": {
+                "ok": true,
+                "resolved": true,
+                "executionFailure": false,
+                "status": "GALLERY_SAMPLE_CONFIRMED",
+                "violations": [],
+                "metrics": {
+                  "clock": 0,
+                  "cursor": 0,
+                  "orientationSquaredNorm": 0,
+                  "authoredInitialPosition": 0,
+                  "authoredInitialMotion": 0,
+                  "orientationComponent": 0,
+                  "projectilePositionM": 1.5092094240998222e-15,
+                  "projectileVelocityMps": 4.3404169147720495e-16,
+                  "projectileSpin": 0
+                },
+                "certificate": {
+                  "caseId": "projectile",
+                  "scope": "fixed finite sample only",
+                  "candidateImports": 0,
+                  "worldCalls": 0
+                }
+              },
+              "repeatWordEqual": true
+            },
+            "elastic-box": {
+              "steps": 64,
+              "packet": {
+                "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-elastic-box.json",
+                "bytes": 99549,
+                "sha256": "593b3a3474fbc5a10490a0cd5e6e2adbb7f7d23442ff0dd10a4e4a2e3c5e4da0"
+              },
+              "reference": {
+                "ok": true,
+                "resolved": true,
+                "executionFailure": false,
+                "status": "GALLERY_SAMPLE_CONFIRMED",
+                "violations": [],
+                "metrics": {
+                  "clock": 0,
+                  "cursor": 0,
+                  "orientationSquaredNorm": 4.68728550020645e-33,
+                  "authoredInitialPosition": 0,
+                  "authoredInitialMotion": 0,
+                  "orientationComponent": 6.846375318521801e-17,
+                  "elasticDiscretePositionM": 2.4465412334917503e-16,
+                  "elasticVelocityMps": 4.705888456690843e-16,
+                  "elasticSpin": 4.440892098500626e-16,
+                  "geometryNormalDirection": 0,
+                  "geometryNormalSquared": 0,
+                  "tangentImpulseNs": 0,
+                  "tangentPlaneNs": 0,
+                  "geometryFloorPlaneM": 0,
+                  "geometryFloorBoundsM": 0,
+                  "geometryMovingFacePlaneM": 0,
+                  "geometryMovingBoundsM": 0,
+                  "elasticImpulseNs": 7.405590030096221e-15,
+                  "elasticImpactKineticLossJ": 3.3126702943253596e-16
+                },
+                "certificate": {
+                  "caseId": "elastic-box",
+                  "scope": "fixed finite sample only",
+                  "candidateImports": 0,
+                  "worldCalls": 0
+                }
+              },
+              "repeatWordEqual": true
+            },
+            "sphere-roll": {
+              "steps": 64,
+              "packet": {
+                "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-sphere-roll.json",
+                "bytes": 134024,
+                "sha256": "e270fc9af722c42c8846f2c89a5cf08bdd6f3b2b9d47c3c0b0369928b9ef6fe2"
+              },
+              "reference": {
+                "ok": true,
+                "resolved": true,
+                "executionFailure": false,
+                "status": "GALLERY_SAMPLE_CONFIRMED",
+                "violations": [],
+                "metrics": {
+                  "clock": 0,
+                  "cursor": 0,
+                  "orientationSquaredNorm": 4.754472525602835e-16,
+                  "authoredInitialPosition": 0,
+                  "authoredInitialMotion": 0,
+                  "orientationComponent": 2.567344020603366e-16,
+                  "rollingPositionM": 1.009161311063941e-15,
+                  "rollingVelocityMps": 4.3937793218577307e-16,
+                  "rollingOmegaRadps": 6.97854472621527e-16,
+                  "rollingSlipMps": 4.83110889256307e-16,
+                  "rollingTransverseEnergyJ": 3.489272363107636e-16,
+                  "rollingStartsNoLaterThanStep": 18,
+                  "geometryNormalDirection": 0,
+                  "geometryNormalSquared": 0,
+                  "tangentPlaneNs": 0,
+                  "geometryFloorPlaneM": 0,
+                  "geometryFloorBoundsM": 0,
+                  "rollingSupportImpulseNs": 2.0932329943453478e-19,
+                  "rollingTangentImpulseNs": 1.3815559146437178e-16
+                },
+                "certificate": {
+                  "caseId": "sphere-roll",
+                  "scope": "fixed finite sample only",
+                  "candidateImports": 0,
+                  "worldCalls": 0
+                }
+              },
+              "repeatWordEqual": true
+            },
+            "sphere-ccd": {
+              "steps": 1,
+              "packet": {
+                "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-sphere-ccd.json",
+                "bytes": 6074,
+                "sha256": "2b8896285924cf7d9a06891b812c8204f0eaace1beb4ae272a8c8fd0fadb6069"
+              },
+              "reference": {
+                "ok": true,
+                "resolved": true,
+                "executionFailure": false,
+                "status": "GALLERY_SAMPLE_CONFIRMED",
+                "violations": [],
+                "metrics": {
+                  "clock": 0,
+                  "cursor": 0,
+                  "orientationSquaredNorm": 0,
+                  "authoredInitialPosition": 0,
+                  "authoredInitialMotion": 0,
+                  "orientationComponent": 0,
+                  "ccdTOI": 1.9914625504213746e-17,
+                  "ccdNormal": 0,
+                  "ccdNormalSquared": 0,
+                  "ccdUnbiasedContactDistanceM": 1.3276417002809163e-16,
+                  "ccdAcceptedPositionM": 0,
+                  "ccdInelasticRest": 0,
+                  "ccdMomentumNs": 0,
+                  "ccdImpulseNs": 0,
+                  "remainingTimeIntegrated": false,
+                  "independentEntryTimeSeconds": 0.0045
+                },
+                "certificate": {
+                  "caseId": "sphere-ccd",
+                  "scope": "fixed finite sample only",
+                  "candidateImports": 0,
+                  "worldCalls": 0
+                }
+              },
+              "repeatWordEqual": true
+            },
+            "principal-spin": {
+              "steps": 64,
+              "packet": {
+                "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-principal-spin.json",
+                "bytes": 162665,
+                "sha256": "cd84d0eb550a1b386b2ad4be2b90ef8c806c7c417cd9c8cf4de04dbf5be4fed0"
+              },
+              "reference": {
+                "ok": true,
+                "resolved": true,
+                "executionFailure": false,
+                "status": "GALLERY_SAMPLE_CONFIRMED",
+                "violations": [],
+                "metrics": {
+                  "clock": 0,
+                  "cursor": 0,
+                  "orientationSquaredNorm": 4.194125386779088e-16,
+                  "authoredInitialPosition": 0,
+                  "authoredInitialMotion": 0,
+                  "orientationComponent": 2.342983327270066e-16,
+                  "principalFreePositionM": 2.003190823095401e-15,
+                  "principalFreeVelocityMps": 6.230645629064687e-15,
+                  "principalOmega": 1.8169226806846313e-15,
+                  "principalAngularMomentumNms": 9.841664520375086e-16,
+                  "principalRotationalEnergyJ": 2.271153350855798e-16,
+                  "lowerSupportedPositionM": 5.551115123125783e-17,
+                  "lowerSupportedMotion": 0,
+                  "geometryNormalDirection": 0,
+                  "geometryNormalSquared": 0,
+                  "tangentImpulseNs": 0,
+                  "tangentPlaneNs": 0,
+                  "geometryFloorPlaneM": 2.7755575615628914e-17,
+                  "geometryFloorBoundsM": 0,
+                  "geometryMovingFacePlaneM": 2.7755575615628914e-17,
+                  "geometryMovingBoundsM": 0,
+                  "lowerSupportImpulseNs": 4.1864659886906956e-19
+                },
+                "certificate": {
+                  "caseId": "principal-spin",
+                  "scope": "fixed finite sample only",
+                  "candidateImports": 0,
+                  "worldCalls": 0
+                }
+              },
+              "repeatWordEqual": true
+            },
+            "coupled-two": {
+              "steps": 128,
+              "packet": {
+                "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-coupled-two.json",
+                "bytes": 409890,
+                "sha256": "6f1a57e01795ccd20be632a3ee290002bd86e816578d0681ffe3c69454554686"
+              },
+              "reference": {
+                "ok": true,
+                "resolved": true,
+                "executionFailure": false,
+                "status": "VERIFIED",
+                "violations": [],
+                "metrics": {
+                  "omegaRadps": 1.3322676295501878e-15,
+                  "orientationComponent": 7.446300520630443e-17,
+                  "lateralPositionM": 3.0397775307089087e-16,
+                  "lateralVelocityMps": 8.284540371425448e-16,
+                  "upperFreeClosedPositionM": 2.0046684220028273e-16,
+                  "upperFreeClosedVelocityMps": 1.0599854327608682e-16,
+                  "geometryNormalSquared": 2.9757391435636075e-32,
+                  "geometryNormalDirection": 1.4892601041260885e-16,
+                  "tangentImpulseNs": 0,
+                  "geometryRepresentativeFacePlaneM": 2.220446049250313e-16,
+                  "geometryRepresentativeBoundsM": 2.220446049250313e-16,
+                  "globalNormalMultiplierNs": 8.335045616666055e-16,
+                  "globalVelocityProjectionMps": 3.191891195797325e-16,
+                  "globalPositionProjectionM": 4.440892098500626e-16,
+                  "globalActualJStationarityNs": 1.304930700533428e-15,
+                  "bodyMomentumNs": 1.304930700533428e-15,
+                  "bodyAngularMomentumNms": 4.440892098500626e-16,
+                  "maxReconstructedProjectionPotentialWorkJ": 0.14739525000000095,
+                  "globalPositionPrimalM": 5.551115123125783e-17,
+                  "globalNormalPrimalMps": 3.191891195797325e-16,
+                  "globalNormalComplementarityJ": 1.9604318168831016e-15,
+                  "globalNormalKineticEnergyJ": 8.517374739530625e-16,
+                  "globalNormalEnergyGrowthJ": 0
+                },
+                "certificates": {
+                  "scope": "FIRST_BASELINE_FIXED_2DOF_INELASTIC_VERTICAL_CHAIN",
+                  "stationaryEightCertificateReused": false,
+                  "generalDynamicEight": false,
+                  "candidateImports": 0,
+                  "candidateSolves": 0,
+                  "actualWorldCalls": "CALLER_OWNED_NOT_INFERRED",
+                  "projectionWorkBoundary": "Public exact reconstruction includes unobserved free-position rounding",
+                  "caseId": "coupled-120",
+                  "receivedStates": 129,
+                  "receivedTransitions": 128,
+                  "firstObservedFloorContact": 1,
+                  "firstObservedInterfaceContact": 27,
+                  "firstReferenceCouplingStep": 27,
+                  "lastReference": {
+                    "stepIndex": 128,
+                    "activeVelocityRows": [
+                      0,
+                      1
+                    ],
+                    "freeVelocityY": [
+                      {
+                        "n": "-26529391761576345359032177518095",
+                        "d": "324518553658426726783156020576256"
+                      },
+                      {
+                        "n": "-26529391761576399402227705964047",
+                        "d": "324518553658426726783156020576256"
+                      }
+                    ],
+                    "velocityTargetY": [
+                      {
+                        "n": "0",
+                        "d": "1"
+                      },
+                      {
+                        "n": "0",
+                        "d": "1"
+                      }
+                    ],
+                    "idealAxisNormalImpulsesNs": [
+                      {
+                        "n": "26529391761576372380629941741071",
+                        "d": "81129638414606681695789005144064"
+                      },
+                      {
+                        "n": "26529391761576399402227705964047",
+                        "d": "162259276829213363391578010288128"
+                      }
+                    ],
+                    "freePositionY": [
+                      {
+                        "n": "93408661846402521837761610357196873446637373078017",
+                        "d": "187072209578355573530071658587684226515959365500928"
+                      },
+                      {
+                        "n": "280480871424758147031187011366416007443914916215297",
+                        "d": "187072209578355573530071658587684226515959365500928"
+                      }
+                    ],
+                    "positionTargetY": [
+                      {
+                        "n": "1",
+                        "d": "2"
+                      },
+                      {
+                        "n": "3",
+                        "d": "2"
+                      }
+                    ],
+                    "positionDualRatios": [
+                      {
+                        "n": "127442942775239095597347725877786070683220854271",
+                        "d": "46768052394588893382517914646921056628989841375232"
+                      },
+                      {
+                        "n": "127442942775213263920476515110332330024132036095",
+                        "d": "93536104789177786765035829293842113257979682750464"
+                      }
+                    ],
+                    "massWeightedVelocityChangeObjective": 0.013366124999999987,
+                    "massWeightedPositionChangeObjective": 9.282031249997722e-07,
+                    "referenceGlobalKineticLossJ": 0.013366124999999987,
+                    "actualGlobalKineticLossJ": 0.013366124999999987
+                  },
+                  "reconstructedProjectionPotentialWorkSumJ": 3.208237875,
+                  "actualPositionDualExposed": false,
+                  "globalNormalExpectedZeroOnlyWhenProjectionProvesIt": true,
+                  "continuousTOIOrRemainderClaim": false
+                },
+                "galleryCaseId": "coupled-two"
+              },
+              "repeatWordEqual": true
+            }
+          },
+          "negativeReferenceControl": {
+            "ok": false,
+            "resolved": true,
+            "executionFailure": false,
+            "status": "PHYSICAL_NO_GO",
+            "violations": [
+              {
+                "stepIndex": 64,
+                "bodyId": "moving",
+                "gate": "projectilePositionM",
+                "residual": 0.00010000000000140452,
+                "limit": 1e-10
+              }
+            ],
+            "metrics": {
+              "clock": 0,
+              "cursor": 0,
+              "orientationSquaredNorm": 0,
+              "authoredInitialPosition": 0,
+              "authoredInitialMotion": 0,
+              "orientationComponent": 0,
+              "projectilePositionM": 0.00010000000000140452,
+              "projectileVelocityMps": 4.3404169147720495e-16,
+              "projectileSpin": 0
+            },
+            "certificate": {
+              "caseId": "projectile",
+              "scope": "fixed finite sample only",
+              "candidateImports": 0,
+              "worldCalls": 0
+            }
+          }
+        },
+        "native": {
+          "providerDigest": "sha256:ea44ebf2cd364b917b3c063a2393a13dd1d4b918dc9333c47fe0cf33eee7cb58",
+          "worlds": 12,
+          "acceptedSteps": 770,
+          "independentlyPassedSteps": 385,
+          "referenceReplies": 6,
+          "typedRefusals": 6,
+          "cases": {
+            "projectile": {
+              "steps": 64,
+              "packet": {
+                "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-projectile.json",
+                "bytes": 74017,
+                "sha256": "cf2bdc07022eb530244183cc6eccdec442df0b6092813e4d66e5c15f31a3fa1e"
+              },
+              "reference": {
+                "ok": true,
+                "resolved": true,
+                "executionFailure": false,
+                "status": "GALLERY_SAMPLE_CONFIRMED",
+                "violations": [],
+                "metrics": {
+                  "clock": 0,
+                  "cursor": 0,
+                  "orientationSquaredNorm": 0,
+                  "authoredInitialPosition": 0,
+                  "authoredInitialMotion": 0,
+                  "orientationComponent": 0,
+                  "projectilePositionM": 1.5092094240998222e-15,
+                  "projectileVelocityMps": 4.3404169147720495e-16,
+                  "projectileSpin": 0
+                },
+                "certificate": {
+                  "caseId": "projectile",
+                  "scope": "fixed finite sample only",
+                  "candidateImports": 0,
+                  "worldCalls": 0
+                }
+              },
+              "repeatWordEqual": true
+            },
+            "elastic-box": {
+              "steps": 64,
+              "packet": {
+                "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-elastic-box.json",
+                "bytes": 99549,
+                "sha256": "c3b5c03f033e8b988670f8e99b98988b821346ffe7d9e62568edaf257b2458b1"
+              },
+              "reference": {
+                "ok": true,
+                "resolved": true,
+                "executionFailure": false,
+                "status": "GALLERY_SAMPLE_CONFIRMED",
+                "violations": [],
+                "metrics": {
+                  "clock": 0,
+                  "cursor": 0,
+                  "orientationSquaredNorm": 4.68728550020645e-33,
+                  "authoredInitialPosition": 0,
+                  "authoredInitialMotion": 0,
+                  "orientationComponent": 6.846375318521801e-17,
+                  "elasticDiscretePositionM": 2.4465412334917503e-16,
+                  "elasticVelocityMps": 4.705888456690843e-16,
+                  "elasticSpin": 4.440892098500626e-16,
+                  "geometryNormalDirection": 0,
+                  "geometryNormalSquared": 0,
+                  "tangentImpulseNs": 0,
+                  "tangentPlaneNs": 0,
+                  "geometryFloorPlaneM": 0,
+                  "geometryFloorBoundsM": 0,
+                  "geometryMovingFacePlaneM": 0,
+                  "geometryMovingBoundsM": 0,
+                  "elasticImpulseNs": 7.405590030096221e-15,
+                  "elasticImpactKineticLossJ": 3.3126702943253596e-16
+                },
+                "certificate": {
+                  "caseId": "elastic-box",
+                  "scope": "fixed finite sample only",
+                  "candidateImports": 0,
+                  "worldCalls": 0
+                }
+              },
+              "repeatWordEqual": true
+            },
+            "sphere-roll": {
+              "steps": 64,
+              "packet": {
+                "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-sphere-roll.json",
+                "bytes": 134024,
+                "sha256": "c0ddf21eb1c2914c4649da09c1f416d8a2cfc11d5b0ecc98b06669497cb6d9d4"
+              },
+              "reference": {
+                "ok": true,
+                "resolved": true,
+                "executionFailure": false,
+                "status": "GALLERY_SAMPLE_CONFIRMED",
+                "violations": [],
+                "metrics": {
+                  "clock": 0,
+                  "cursor": 0,
+                  "orientationSquaredNorm": 4.754472525602835e-16,
+                  "authoredInitialPosition": 0,
+                  "authoredInitialMotion": 0,
+                  "orientationComponent": 2.567344020603366e-16,
+                  "rollingPositionM": 1.009161311063941e-15,
+                  "rollingVelocityMps": 4.3937793218577307e-16,
+                  "rollingOmegaRadps": 6.97854472621527e-16,
+                  "rollingSlipMps": 4.83110889256307e-16,
+                  "rollingTransverseEnergyJ": 3.489272363107636e-16,
+                  "rollingStartsNoLaterThanStep": 18,
+                  "geometryNormalDirection": 0,
+                  "geometryNormalSquared": 0,
+                  "tangentPlaneNs": 0,
+                  "geometryFloorPlaneM": 0,
+                  "geometryFloorBoundsM": 0,
+                  "rollingSupportImpulseNs": 2.0932329943453478e-19,
+                  "rollingTangentImpulseNs": 1.3815559146437178e-16
+                },
+                "certificate": {
+                  "caseId": "sphere-roll",
+                  "scope": "fixed finite sample only",
+                  "candidateImports": 0,
+                  "worldCalls": 0
+                }
+              },
+              "repeatWordEqual": true
+            },
+            "sphere-ccd": {
+              "steps": 1,
+              "packet": {
+                "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-sphere-ccd.json",
+                "bytes": 6074,
+                "sha256": "0093d5144036d5313957079ff06ee4c4033a5fe61ebdc97b099c622cadd5cb5e"
+              },
+              "reference": {
+                "ok": true,
+                "resolved": true,
+                "executionFailure": false,
+                "status": "GALLERY_SAMPLE_CONFIRMED",
+                "violations": [],
+                "metrics": {
+                  "clock": 0,
+                  "cursor": 0,
+                  "orientationSquaredNorm": 0,
+                  "authoredInitialPosition": 0,
+                  "authoredInitialMotion": 0,
+                  "orientationComponent": 0,
+                  "ccdTOI": 1.9914625504213746e-17,
+                  "ccdNormal": 0,
+                  "ccdNormalSquared": 0,
+                  "ccdUnbiasedContactDistanceM": 1.3276417002809163e-16,
+                  "ccdAcceptedPositionM": 0,
+                  "ccdInelasticRest": 0,
+                  "ccdMomentumNs": 0,
+                  "ccdImpulseNs": 0,
+                  "remainingTimeIntegrated": false,
+                  "independentEntryTimeSeconds": 0.0045
+                },
+                "certificate": {
+                  "caseId": "sphere-ccd",
+                  "scope": "fixed finite sample only",
+                  "candidateImports": 0,
+                  "worldCalls": 0
+                }
+              },
+              "repeatWordEqual": true
+            },
+            "principal-spin": {
+              "steps": 64,
+              "packet": {
+                "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-principal-spin.json",
+                "bytes": 162665,
+                "sha256": "64f9ea323340e84397e953ec97d2d193d9b3c28555f3508e6f7693441d5bcdb1"
+              },
+              "reference": {
+                "ok": true,
+                "resolved": true,
+                "executionFailure": false,
+                "status": "GALLERY_SAMPLE_CONFIRMED",
+                "violations": [],
+                "metrics": {
+                  "clock": 0,
+                  "cursor": 0,
+                  "orientationSquaredNorm": 4.194125386779088e-16,
+                  "authoredInitialPosition": 0,
+                  "authoredInitialMotion": 0,
+                  "orientationComponent": 2.342983327270066e-16,
+                  "principalFreePositionM": 2.003190823095401e-15,
+                  "principalFreeVelocityMps": 6.230645629064687e-15,
+                  "principalOmega": 1.8169226806846313e-15,
+                  "principalAngularMomentumNms": 9.841664520375086e-16,
+                  "principalRotationalEnergyJ": 2.271153350855798e-16,
+                  "lowerSupportedPositionM": 5.551115123125783e-17,
+                  "lowerSupportedMotion": 0,
+                  "geometryNormalDirection": 0,
+                  "geometryNormalSquared": 0,
+                  "tangentImpulseNs": 0,
+                  "tangentPlaneNs": 0,
+                  "geometryFloorPlaneM": 2.7755575615628914e-17,
+                  "geometryFloorBoundsM": 0,
+                  "geometryMovingFacePlaneM": 2.7755575615628914e-17,
+                  "geometryMovingBoundsM": 0,
+                  "lowerSupportImpulseNs": 4.1864659886906956e-19
+                },
+                "certificate": {
+                  "caseId": "principal-spin",
+                  "scope": "fixed finite sample only",
+                  "candidateImports": 0,
+                  "worldCalls": 0
+                }
+              },
+              "repeatWordEqual": true
+            },
+            "coupled-two": {
+              "steps": 128,
+              "packet": {
+                "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-coupled-two.json",
+                "bytes": 409890,
+                "sha256": "740893cbacd8b2cdb7ef7905bc5fe8075457624e118209454c73d234550b16b7"
+              },
+              "reference": {
+                "ok": true,
+                "resolved": true,
+                "executionFailure": false,
+                "status": "VERIFIED",
+                "violations": [],
+                "metrics": {
+                  "omegaRadps": 1.3322676295501878e-15,
+                  "orientationComponent": 7.446300520630443e-17,
+                  "lateralPositionM": 3.0397775307089087e-16,
+                  "lateralVelocityMps": 8.284540371425448e-16,
+                  "upperFreeClosedPositionM": 2.0046684220028273e-16,
+                  "upperFreeClosedVelocityMps": 1.0599854327608682e-16,
+                  "geometryNormalSquared": 2.9757391435636075e-32,
+                  "geometryNormalDirection": 1.4892601041260885e-16,
+                  "tangentImpulseNs": 0,
+                  "geometryRepresentativeFacePlaneM": 2.220446049250313e-16,
+                  "geometryRepresentativeBoundsM": 2.220446049250313e-16,
+                  "globalNormalMultiplierNs": 8.335045616666055e-16,
+                  "globalVelocityProjectionMps": 3.191891195797325e-16,
+                  "globalPositionProjectionM": 4.440892098500626e-16,
+                  "globalActualJStationarityNs": 1.304930700533428e-15,
+                  "bodyMomentumNs": 1.304930700533428e-15,
+                  "bodyAngularMomentumNms": 4.440892098500626e-16,
+                  "maxReconstructedProjectionPotentialWorkJ": 0.14739525000000095,
+                  "globalPositionPrimalM": 5.551115123125783e-17,
+                  "globalNormalPrimalMps": 3.191891195797325e-16,
+                  "globalNormalComplementarityJ": 1.9604318168831016e-15,
+                  "globalNormalKineticEnergyJ": 8.517374739530625e-16,
+                  "globalNormalEnergyGrowthJ": 0
+                },
+                "certificates": {
+                  "scope": "FIRST_BASELINE_FIXED_2DOF_INELASTIC_VERTICAL_CHAIN",
+                  "stationaryEightCertificateReused": false,
+                  "generalDynamicEight": false,
+                  "candidateImports": 0,
+                  "candidateSolves": 0,
+                  "actualWorldCalls": "CALLER_OWNED_NOT_INFERRED",
+                  "projectionWorkBoundary": "Public exact reconstruction includes unobserved free-position rounding",
+                  "caseId": "coupled-120",
+                  "receivedStates": 129,
+                  "receivedTransitions": 128,
+                  "firstObservedFloorContact": 1,
+                  "firstObservedInterfaceContact": 27,
+                  "firstReferenceCouplingStep": 27,
+                  "lastReference": {
+                    "stepIndex": 128,
+                    "activeVelocityRows": [
+                      0,
+                      1
+                    ],
+                    "freeVelocityY": [
+                      {
+                        "n": "-26529391761576345359032177518095",
+                        "d": "324518553658426726783156020576256"
+                      },
+                      {
+                        "n": "-26529391761576399402227705964047",
+                        "d": "324518553658426726783156020576256"
+                      }
+                    ],
+                    "velocityTargetY": [
+                      {
+                        "n": "0",
+                        "d": "1"
+                      },
+                      {
+                        "n": "0",
+                        "d": "1"
+                      }
+                    ],
+                    "idealAxisNormalImpulsesNs": [
+                      {
+                        "n": "26529391761576372380629941741071",
+                        "d": "81129638414606681695789005144064"
+                      },
+                      {
+                        "n": "26529391761576399402227705964047",
+                        "d": "162259276829213363391578010288128"
+                      }
+                    ],
+                    "freePositionY": [
+                      {
+                        "n": "93408661846402521837761610357196873446637373078017",
+                        "d": "187072209578355573530071658587684226515959365500928"
+                      },
+                      {
+                        "n": "280480871424758147031187011366416007443914916215297",
+                        "d": "187072209578355573530071658587684226515959365500928"
+                      }
+                    ],
+                    "positionTargetY": [
+                      {
+                        "n": "1",
+                        "d": "2"
+                      },
+                      {
+                        "n": "3",
+                        "d": "2"
+                      }
+                    ],
+                    "positionDualRatios": [
+                      {
+                        "n": "127442942775239095597347725877786070683220854271",
+                        "d": "46768052394588893382517914646921056628989841375232"
+                      },
+                      {
+                        "n": "127442942775213263920476515110332330024132036095",
+                        "d": "93536104789177786765035829293842113257979682750464"
+                      }
+                    ],
+                    "massWeightedVelocityChangeObjective": 0.013366124999999987,
+                    "massWeightedPositionChangeObjective": 9.282031249997722e-07,
+                    "referenceGlobalKineticLossJ": 0.013366124999999987,
+                    "actualGlobalKineticLossJ": 0.013366124999999987
+                  },
+                  "reconstructedProjectionPotentialWorkSumJ": 3.208237875,
+                  "actualPositionDualExposed": false,
+                  "globalNormalExpectedZeroOnlyWhenProjectionProvesIt": true,
+                  "continuousTOIOrRemainderClaim": false
+                },
+                "galleryCaseId": "coupled-two"
+              },
+              "repeatWordEqual": true
+            }
+          }
+        }
+      },
+      "files": [
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/inputs.json",
+          "bytes": 91319,
+          "sha256": "1fe2b4c4340074c9699c6610db9354c7a905bb8e765eba64bd0b199d5568b6c4"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-projectile.json",
+          "bytes": 74017,
+          "sha256": "b1add75d371a8ae2654abaac6ae083ff590b3ee2da342acf31173969d2c4dfa5"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-projectile.stdout",
+          "bytes": 478,
+          "sha256": "2bad1cee8de97c06d182bd1db663922efbd5de198e904f0780d2e493412b751a"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-projectile.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/observer-negative-input.json",
+          "bytes": 74017,
+          "sha256": "437fed4537ca99edd785eaeac17e69ad52acdeb60a4a219e0a4215c205c5a46d"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-observer-negative.stdout",
+          "bytes": 580,
+          "sha256": "7f907b8963809ec3cf2429911c70e88d970e6b4f75c87f6628a028fb24827a95"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-observer-negative.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-projectile.json",
+          "bytes": 74017,
+          "sha256": "cf2bdc07022eb530244183cc6eccdec442df0b6092813e4d66e5c15f31a3fa1e"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-projectile.stdout",
+          "bytes": 478,
+          "sha256": "2bad1cee8de97c06d182bd1db663922efbd5de198e904f0780d2e493412b751a"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-projectile.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-elastic-box.json",
+          "bytes": 99549,
+          "sha256": "593b3a3474fbc5a10490a0cd5e6e2adbb7f7d23442ff0dd10a4e4a2e3c5e4da0"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-elastic-box.stdout",
+          "bytes": 836,
+          "sha256": "42d76d0be9b7090c5e70f0a287815e08a070061149f9cad4944f86f449ccd4eb"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-elastic-box.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-elastic-box.json",
+          "bytes": 99549,
+          "sha256": "c3b5c03f033e8b988670f8e99b98988b821346ffe7d9e62568edaf257b2458b1"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-elastic-box.stdout",
+          "bytes": 836,
+          "sha256": "42d76d0be9b7090c5e70f0a287815e08a070061149f9cad4944f86f449ccd4eb"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-elastic-box.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-sphere-roll.json",
+          "bytes": 134024,
+          "sha256": "e270fc9af722c42c8846f2c89a5cf08bdd6f3b2b9d47c3c0b0369928b9ef6fe2"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-sphere-roll.stdout",
+          "bytes": 879,
+          "sha256": "009fb1779b3bb9f414c372e76f377d539061152cd2d1559cd45530075a835058"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-sphere-roll.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-sphere-roll.json",
+          "bytes": 134024,
+          "sha256": "c0ddf21eb1c2914c4649da09c1f416d8a2cfc11d5b0ecc98b06669497cb6d9d4"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-sphere-roll.stdout",
+          "bytes": 879,
+          "sha256": "009fb1779b3bb9f414c372e76f377d539061152cd2d1559cd45530075a835058"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-sphere-roll.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-sphere-ccd.json",
+          "bytes": 6074,
+          "sha256": "2b8896285924cf7d9a06891b812c8204f0eaace1beb4ae272a8c8fd0fadb6069"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-sphere-ccd.stdout",
+          "bytes": 647,
+          "sha256": "7e80fbd8fb7203b551173037e02542f2f346b63ac0e9fd2bd04b88b171bf9bfb"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-sphere-ccd.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-sphere-ccd.json",
+          "bytes": 6074,
+          "sha256": "0093d5144036d5313957079ff06ee4c4033a5fe61ebdc97b099c622cadd5cb5e"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-sphere-ccd.stdout",
+          "bytes": 647,
+          "sha256": "7e80fbd8fb7203b551173037e02542f2f346b63ac0e9fd2bd04b88b171bf9bfb"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-sphere-ccd.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-principal-spin.json",
+          "bytes": 162665,
+          "sha256": "cd84d0eb550a1b386b2ad4be2b90ef8c806c7c417cd9c8cf4de04dbf5be4fed0"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-principal-spin.stdout",
+          "bytes": 1018,
+          "sha256": "0d1c0e2fc77e32b4aafb6507a24c967912975b8b4a501840956770f89d312fc7"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-principal-spin.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-principal-spin.json",
+          "bytes": 162665,
+          "sha256": "64f9ea323340e84397e953ec97d2d193d9b3c28555f3508e6f7693441d5bcdb1"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-principal-spin.stdout",
+          "bytes": 1018,
+          "sha256": "0d1c0e2fc77e32b4aafb6507a24c967912975b8b4a501840956770f89d312fc7"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-principal-spin.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-coupled-two.json",
+          "bytes": 409890,
+          "sha256": "6f1a57e01795ccd20be632a3ee290002bd86e816578d0681ffe3c69454554686"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-coupled-two.stdout",
+          "bytes": 3163,
+          "sha256": "0360c4299b0c8da18e0e46972024efa77f0990c7750a88ef146d3551fbd68646"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/source-coupled-two.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-coupled-two.json",
+          "bytes": 409890,
+          "sha256": "740893cbacd8b2cdb7ef7905bc5fe8075457624e118209454c73d234550b16b7"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-coupled-two.stdout",
+          "bytes": 3163,
+          "sha256": "0360c4299b0c8da18e0e46972024efa77f0990c7750a88ef146d3551fbd68646"
+        },
+        {
+          "path": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-sample-gallery-2276/evidence/api-01/native-coupled-two.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "referenceCommands": [
+        {
+          "graph": "source",
+          "name": "projectile",
+          "negative": false,
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "graph": "source",
+          "name": "observer-negative",
+          "negative": true,
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "graph": "native",
+          "name": "projectile",
+          "negative": false,
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "graph": "source",
+          "name": "elastic-box",
+          "negative": false,
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "graph": "native",
+          "name": "elastic-box",
+          "negative": false,
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "graph": "source",
+          "name": "sphere-roll",
+          "negative": false,
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "graph": "native",
+          "name": "sphere-roll",
+          "negative": false,
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "graph": "source",
+          "name": "sphere-ccd",
+          "negative": false,
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "graph": "native",
+          "name": "sphere-ccd",
+          "negative": false,
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "graph": "source",
+          "name": "principal-spin",
+          "negative": false,
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "graph": "native",
+          "name": "principal-spin",
+          "negative": false,
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "graph": "source",
+          "name": "coupled-two",
+          "negative": false,
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "graph": "native",
+          "name": "coupled-two",
+          "negative": false,
+          "exit": 0,
+          "signal": null,
+          "error": null
+        }
+      ],
+      "evidenceBytes": {
+        "source": 1059156,
+        "native": 984559
+      },
+      "buildManifest": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-anisotropic-inertia-2276/evidence/public-build-03/result.json",
+      "librarySourceChanged": false,
+      "wholeEngineComplete": false,
+      "longThree512": "NO_GO_PRESERVED",
+      "mobile": false,
+      "publication": false
+    },
+    "desktop": {
+      "status": "SAMPLE_GALLERY_VIEWER_HIDPI_NATIVE_PACKETS_AND_PIXELS_CONFIRMED",
+      "firstFailure": null,
+      "actual": {
+        "status": "SAMPLE_GALLERY_VIEWER_HIDPI_NATIVE_PACKETS_AND_PIXELS_CONFIRMED",
+        "firstFailure": null,
+        "worlds": 7,
+        "acceptedSteps": 385,
+        "cases": [
+          {
+            "caseId": "projectile",
+            "steps": 64,
+            "frames": 65,
+            "initialPixels": {
+              "coloredPixels": 34843,
+              "changedPixels": 0,
+              "nativeWidth": 2460,
+              "nativeHeight": 1312,
+              "nativeBytes": 12910080,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              }
+            },
+            "finalPixels": {
+              "coloredPixels": 24190,
+              "changedPixels": 47451,
+              "nativeWidth": 2460,
+              "nativeHeight": 1312,
+              "nativeBytes": 12910080,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              }
+            },
+            "capture": {
+              "http": 200,
+              "result": {
+                "status": "CAPTURE_EQUAL",
+                "caseId": "projectile",
+                "steps": 64,
+                "expectedPin": {
+                  "bytes": 74017,
+                  "sha256": "cf2bdc07022eb530244183cc6eccdec442df0b6092813e4d66e5c15f31a3fa1e"
+                },
+                "observationalOnly": true,
+                "physicsRecording": false
+              }
+            },
+            "renderer": {
+              "kind": "@barocss/viewer",
+              "bodyCount": 1,
+              "lastStep": 64,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              },
+              "frame": "right-handed-y-up",
+              "sourceUnit": "mm",
+              "mmToSceneUnit": 0.001,
+              "motion": {
+                "basis": "part-xyz-matches-rhyup",
+                "frame": {
+                  "contextId": "contact_lab",
+                  "timeSeconds": 0.5333333333333333,
+                  "poses": [
+                    {
+                      "targetId": "moving",
+                      "translation": [
+                        66.66666666666805,
+                        2649.666666666667,
+                        0
+                      ],
+                      "rotation": [
+                        0,
+                        0,
+                        0,
+                        1
+                      ],
+                      "scale": [
+                        1,
+                        1,
+                        1
+                      ]
+                    }
+                  ]
+                },
+                "bindings": [
+                  {
+                    "contextId": "contact_lab",
+                    "targetId": "moving",
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "moving"
+                    }
+                  }
+                ],
+                "displayPoses": [
+                  {
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "moving"
+                    },
+                    "translation": [
+                      66.66666666666805,
+                      2649.666666666667,
+                      0
+                    ],
+                    "rotationXYZW": [
+                      0,
+                      0,
+                      0,
+                      1
+                    ],
+                    "scale": [
+                      1,
+                      1,
+                      1
+                    ]
+                  }
+                ]
+              },
+              "surfaces": [
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "moving"
+                }
+              ],
+              "camera": {
+                "eye": [
+                  -2.8706148721743876,
+                  4.247076581449591,
+                  2.4941531628991833
+                ],
+                "target": [
+                  -1,
+                  3,
+                  0
+                ],
+                "up": [
+                  0,
+                  1,
+                  0
+                ],
+                "fovY": 40,
+                "near": 0.01,
+                "far": 100
+              },
+              "packets": [
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "moving",
+                  "cornerMM": [
+                    -500,
+                    -500,
+                    -500
+                  ]
+                }
+              ],
+              "contactMarkers": "NOT_SUPPORTED_BY_THIS_ADAPTER",
+              "nativeCadProvenance": false
+            }
+          },
+          {
+            "caseId": "elastic-box",
+            "steps": 64,
+            "frames": 65,
+            "initialPixels": {
+              "coloredPixels": 3308,
+              "changedPixels": 0,
+              "nativeWidth": 2460,
+              "nativeHeight": 1312,
+              "nativeBytes": 12910080,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              }
+            },
+            "finalPixels": {
+              "coloredPixels": 3303,
+              "changedPixels": 451,
+              "nativeWidth": 2460,
+              "nativeHeight": 1312,
+              "nativeBytes": 12910080,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              }
+            },
+            "capture": {
+              "http": 200,
+              "result": {
+                "status": "CAPTURE_EQUAL",
+                "caseId": "elastic-box",
+                "steps": 64,
+                "expectedPin": {
+                  "bytes": 99549,
+                  "sha256": "c3b5c03f033e8b988670f8e99b98988b821346ffe7d9e62568edaf257b2458b1"
+                },
+                "observationalOnly": true,
+                "physicsRecording": false
+              }
+            },
+            "renderer": {
+              "kind": "@barocss/viewer",
+              "bodyCount": 2,
+              "lastStep": 64,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              },
+              "frame": "right-handed-y-up",
+              "sourceUnit": "mm",
+              "mmToSceneUnit": 0.001,
+              "motion": {
+                "basis": "part-xyz-matches-rhyup",
+                "frame": {
+                  "contextId": "contact_lab",
+                  "timeSeconds": 0.5333333333333333,
+                  "poses": [
+                    {
+                      "targetId": "moving",
+                      "translation": [
+                        0,
+                        701.6500000000002,
+                        0
+                      ],
+                      "rotation": [
+                        -6.846375318521801e-17,
+                        0,
+                        0,
+                        1
+                      ],
+                      "scale": [
+                        1,
+                        1,
+                        1
+                      ]
+                    },
+                    {
+                      "targetId": "floor",
+                      "translation": [
+                        0,
+                        -500,
+                        0
+                      ],
+                      "rotation": [
+                        0,
+                        0,
+                        0,
+                        1
+                      ],
+                      "scale": [
+                        1,
+                        1,
+                        1
+                      ]
+                    }
+                  ]
+                },
+                "bindings": [
+                  {
+                    "contextId": "contact_lab",
+                    "targetId": "moving",
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "moving"
+                    }
+                  },
+                  {
+                    "contextId": "contact_lab",
+                    "targetId": "floor",
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "floor"
+                    }
+                  }
+                ],
+                "displayPoses": [
+                  {
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "moving"
+                    },
+                    "translation": [
+                      0,
+                      701.6500000000002,
+                      0
+                    ],
+                    "rotationXYZW": [
+                      -6.846375318521801e-17,
+                      0,
+                      0,
+                      1
+                    ],
+                    "scale": [
+                      1,
+                      1,
+                      1
+                    ]
+                  },
+                  {
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "floor"
+                    },
+                    "translation": [
+                      0,
+                      -500,
+                      0
+                    ],
+                    "rotationXYZW": [
+                      0,
+                      0,
+                      0,
+                      1
+                    ],
+                    "scale": [
+                      1,
+                      1,
+                      1
+                    ]
+                  }
+                ]
+              },
+              "surfaces": [
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "moving"
+                },
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "floor"
+                }
+              ],
+              "camera": {
+                "eye": [
+                  6.204127658261071,
+                  3.636085105507381,
+                  8.272170211014762
+                ],
+                "target": [
+                  0,
+                  -0.5,
+                  0
+                ],
+                "up": [
+                  0,
+                  1,
+                  0
+                ],
+                "fovY": 40,
+                "near": 0.01,
+                "far": 100
+              },
+              "packets": [
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "moving",
+                  "cornerMM": [
+                    -500,
+                    -500,
+                    -500
+                  ]
+                },
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "floor",
+                  "cornerMM": [
+                    -2000,
+                    -500,
+                    -2000
+                  ]
+                }
+              ],
+              "contactMarkers": "NOT_SUPPORTED_BY_THIS_ADAPTER",
+              "nativeCadProvenance": false
+            }
+          },
+          {
+            "caseId": "sphere-roll",
+            "steps": 64,
+            "frames": 65,
+            "initialPixels": {
+              "coloredPixels": 887,
+              "changedPixels": 0,
+              "nativeWidth": 2460,
+              "nativeHeight": 1312,
+              "nativeBytes": 12910080,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              }
+            },
+            "finalPixels": {
+              "coloredPixels": 912,
+              "changedPixels": 1277,
+              "nativeWidth": 2460,
+              "nativeHeight": 1312,
+              "nativeBytes": 12910080,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              }
+            },
+            "capture": {
+              "http": 200,
+              "result": {
+                "status": "CAPTURE_EQUAL",
+                "caseId": "sphere-roll",
+                "steps": 64,
+                "expectedPin": {
+                  "bytes": 134024,
+                  "sha256": "c0ddf21eb1c2914c4649da09c1f416d8a2cfc11d5b0ecc98b06669497cb6d9d4"
+                },
+                "observationalOnly": true,
+                "physicsRecording": false
+              }
+            },
+            "renderer": {
+              "kind": "@barocss/viewer",
+              "bodyCount": 2,
+              "lastStep": 64,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              },
+              "frame": "right-handed-y-up",
+              "sourceUnit": "mm",
+              "mmToSceneUnit": 0.001,
+              "motion": {
+                "basis": "part-xyz-matches-rhyup",
+                "frame": {
+                  "contextId": "contact_lab",
+                  "timeSeconds": 0.5333333333333333,
+                  "poses": [
+                    {
+                      "targetId": "moving",
+                      "translation": [
+                        -597.0367261904772,
+                        500,
+                        0
+                      ],
+                      "rotation": [
+                        0,
+                        0,
+                        -0.3201853670250881,
+                        0.9473549127665987
+                      ],
+                      "scale": [
+                        1,
+                        1,
+                        1
+                      ]
+                    },
+                    {
+                      "targetId": "floor",
+                      "translation": [
+                        0,
+                        -250,
+                        0
+                      ],
+                      "rotation": [
+                        0,
+                        0,
+                        0,
+                        1
+                      ],
+                      "scale": [
+                        1,
+                        1,
+                        1
+                      ]
+                    }
+                  ]
+                },
+                "bindings": [
+                  {
+                    "contextId": "contact_lab",
+                    "targetId": "moving",
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "moving"
+                    }
+                  },
+                  {
+                    "contextId": "contact_lab",
+                    "targetId": "floor",
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "floor"
+                    }
+                  }
+                ],
+                "displayPoses": [
+                  {
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "moving"
+                    },
+                    "translation": [
+                      -597.0367261904772,
+                      500,
+                      0
+                    ],
+                    "rotationXYZW": [
+                      0,
+                      0,
+                      -0.3201853670250881,
+                      0.9473549127665987
+                    ],
+                    "scale": [
+                      1,
+                      1,
+                      1
+                    ]
+                  },
+                  {
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "floor"
+                    },
+                    "translation": [
+                      0,
+                      -250,
+                      0
+                    ],
+                    "rotationXYZW": [
+                      0,
+                      0,
+                      0,
+                      1
+                    ],
+                    "scale": [
+                      1,
+                      1,
+                      1
+                    ]
+                  }
+                ]
+              },
+              "surfaces": [
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "moving"
+                },
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "floor"
+                }
+              ],
+              "camera": {
+                "eye": [
+                  7.806689439192518,
+                  4.9544596261283465,
+                  10.408919252256693
+                ],
+                "target": [
+                  0,
+                  -0.25,
+                  0
+                ],
+                "up": [
+                  0,
+                  1,
+                  0
+                ],
+                "fovY": 40,
+                "near": 0.01,
+                "far": 100
+              },
+              "packets": [
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "moving",
+                  "cornerMM": [
+                    0,
+                    500,
+                    0
+                  ]
+                },
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "floor",
+                  "cornerMM": [
+                    -3000,
+                    -250,
+                    -2000
+                  ]
+                }
+              ],
+              "contactMarkers": "NOT_SUPPORTED_BY_THIS_ADAPTER",
+              "nativeCadProvenance": false
+            }
+          },
+          {
+            "caseId": "sphere-ccd",
+            "steps": 1,
+            "frames": 2,
+            "initialPixels": {
+              "coloredPixels": 162,
+              "changedPixels": 0,
+              "nativeWidth": 2460,
+              "nativeHeight": 1312,
+              "nativeBytes": 12910080,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              }
+            },
+            "finalPixels": {
+              "coloredPixels": 172,
+              "changedPixels": 765,
+              "nativeWidth": 2460,
+              "nativeHeight": 1312,
+              "nativeBytes": 12910080,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              }
+            },
+            "capture": {
+              "http": 200,
+              "result": {
+                "status": "CAPTURE_EQUAL",
+                "caseId": "sphere-ccd",
+                "steps": 1,
+                "expectedPin": {
+                  "bytes": 6074,
+                  "sha256": "0093d5144036d5313957079ff06ee4c4033a5fe61ebdc97b099c622cadd5cb5e"
+                },
+                "observationalOnly": true,
+                "physicsRecording": false
+              }
+            },
+            "renderer": {
+              "kind": "@barocss/viewer",
+              "bodyCount": 2,
+              "lastStep": 1,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              },
+              "frame": "right-handed-y-up",
+              "sourceUnit": "mm",
+              "mmToSceneUnit": 0.001,
+              "motion": {
+                "basis": "part-xyz-matches-rhyup",
+                "frame": {
+                  "contextId": "contact_lab",
+                  "timeSeconds": 0.03333333333333333,
+                  "poses": [
+                    {
+                      "targetId": "a-sphere",
+                      "translation": [
+                        -50,
+                        0,
+                        0
+                      ],
+                      "rotation": [
+                        0,
+                        0,
+                        0,
+                        1
+                      ],
+                      "scale": [
+                        1,
+                        1,
+                        1
+                      ]
+                    },
+                    {
+                      "targetId": "z-sphere",
+                      "translation": [
+                        50,
+                        0,
+                        0
+                      ],
+                      "rotation": [
+                        0,
+                        0,
+                        0,
+                        1
+                      ],
+                      "scale": [
+                        1,
+                        1,
+                        1
+                      ]
+                    }
+                  ]
+                },
+                "bindings": [
+                  {
+                    "contextId": "contact_lab",
+                    "targetId": "a-sphere",
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "a-sphere"
+                    }
+                  },
+                  {
+                    "contextId": "contact_lab",
+                    "targetId": "z-sphere",
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "z-sphere"
+                    }
+                  }
+                ],
+                "displayPoses": [
+                  {
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "a-sphere"
+                    },
+                    "translation": [
+                      -50,
+                      0,
+                      0
+                    ],
+                    "rotationXYZW": [
+                      0,
+                      0,
+                      0,
+                      1
+                    ],
+                    "scale": [
+                      1,
+                      1,
+                      1
+                    ]
+                  },
+                  {
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "z-sphere"
+                    },
+                    "translation": [
+                      50,
+                      0,
+                      0
+                    ],
+                    "rotationXYZW": [
+                      0,
+                      0,
+                      0,
+                      1
+                    ],
+                    "scale": [
+                      1,
+                      1,
+                      1
+                    ]
+                  }
+                ]
+              },
+              "surfaces": [
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "a-sphere"
+                },
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "z-sphere"
+                }
+              ],
+              "camera": {
+                "eye": [
+                  1.7280000000000002,
+                  1.1520000000000001,
+                  2.3040000000000003
+                ],
+                "target": [
+                  0,
+                  0,
+                  0
+                ],
+                "up": [
+                  0,
+                  1,
+                  0
+                ],
+                "fovY": 40,
+                "near": 0.01,
+                "far": 100
+              },
+              "packets": [
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "a-sphere",
+                  "cornerMM": [
+                    0,
+                    50,
+                    0
+                  ]
+                },
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "z-sphere",
+                  "cornerMM": [
+                    0,
+                    50,
+                    0
+                  ]
+                }
+              ],
+              "contactMarkers": "NOT_SUPPORTED_BY_THIS_ADAPTER",
+              "nativeCadProvenance": false
+            }
+          },
+          {
+            "caseId": "principal-spin",
+            "steps": 64,
+            "frames": 65,
+            "initialPixels": {
+              "coloredPixels": 1173,
+              "changedPixels": 0,
+              "nativeWidth": 2460,
+              "nativeHeight": 1312,
+              "nativeBytes": 12910080,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              }
+            },
+            "finalPixels": {
+              "coloredPixels": 1173,
+              "changedPixels": 1895,
+              "nativeWidth": 2460,
+              "nativeHeight": 1312,
+              "nativeBytes": 12910080,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              }
+            },
+            "capture": {
+              "http": 200,
+              "result": {
+                "status": "CAPTURE_EQUAL",
+                "caseId": "principal-spin",
+                "steps": 64,
+                "expectedPin": {
+                  "bytes": 162665,
+                  "sha256": "64f9ea323340e84397e953ec97d2d193d9b3c28555f3508e6f7693441d5bcdb1"
+                },
+                "observationalOnly": true,
+                "physicsRecording": false
+              }
+            },
+            "renderer": {
+              "kind": "@barocss/viewer",
+              "bodyCount": 3,
+              "lastStep": 64,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              },
+              "frame": "right-handed-y-up",
+              "sourceUnit": "mm",
+              "mmToSceneUnit": 0.001,
+              "motion": {
+                "basis": "part-xyz-matches-rhyup",
+                "frame": {
+                  "contextId": "contact_lab",
+                  "timeSeconds": 0.5333333333333333,
+                  "poses": [
+                    {
+                      "targetId": "lower",
+                      "translation": [
+                        0,
+                        500,
+                        0
+                      ],
+                      "rotation": [
+                        0,
+                        0,
+                        0,
+                        1
+                      ],
+                      "scale": [
+                        1,
+                        1,
+                        1
+                      ]
+                    },
+                    {
+                      "targetId": "upper",
+                      "translation": [
+                        0,
+                        3582.999999999998,
+                        0
+                      ],
+                      "rotation": [
+                        0.04348680403368832,
+                        0.04348680403368829,
+                        0.7057683032518077,
+                        0.7057683032518077
+                      ],
+                      "scale": [
+                        1,
+                        1,
+                        1
+                      ]
+                    },
+                    {
+                      "targetId": "floor",
+                      "translation": [
+                        0,
+                        -500,
+                        0
+                      ],
+                      "rotation": [
+                        0,
+                        0,
+                        0,
+                        1
+                      ],
+                      "scale": [
+                        1,
+                        1,
+                        1
+                      ]
+                    }
+                  ]
+                },
+                "bindings": [
+                  {
+                    "contextId": "contact_lab",
+                    "targetId": "lower",
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "lower"
+                    }
+                  },
+                  {
+                    "contextId": "contact_lab",
+                    "targetId": "upper",
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "upper"
+                    }
+                  },
+                  {
+                    "contextId": "contact_lab",
+                    "targetId": "floor",
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "floor"
+                    }
+                  }
+                ],
+                "displayPoses": [
+                  {
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "lower"
+                    },
+                    "translation": [
+                      0,
+                      500,
+                      0
+                    ],
+                    "rotationXYZW": [
+                      0,
+                      0,
+                      0,
+                      1
+                    ],
+                    "scale": [
+                      1,
+                      1,
+                      1
+                    ]
+                  },
+                  {
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "upper"
+                    },
+                    "translation": [
+                      0,
+                      3582.999999999998,
+                      0
+                    ],
+                    "rotationXYZW": [
+                      0.04348680403368832,
+                      0.04348680403368829,
+                      0.7057683032518077,
+                      0.7057683032518077
+                    ],
+                    "scale": [
+                      1,
+                      1,
+                      1
+                    ]
+                  },
+                  {
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "floor"
+                    },
+                    "translation": [
+                      0,
+                      -500,
+                      0
+                    ],
+                    "rotationXYZW": [
+                      0,
+                      0,
+                      0,
+                      1
+                    ],
+                    "scale": [
+                      1,
+                      1,
+                      1
+                    ]
+                  }
+                ]
+              },
+              "surfaces": [
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "lower"
+                },
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "upper"
+                },
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "floor"
+                }
+              ],
+              "camera": {
+                "eye": [
+                  10.052311323559499,
+                  7.983107394085236,
+                  13.403081764746
+                ],
+                "target": [
+                  0,
+                  1.2815665117122355,
+                  0
+                ],
+                "up": [
+                  0,
+                  1,
+                  0
+                ],
+                "fovY": 40,
+                "near": 0.01,
+                "far": 100
+              },
+              "packets": [
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "lower",
+                  "cornerMM": [
+                    -500,
+                    -500,
+                    -500
+                  ]
+                },
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "upper",
+                  "cornerMM": [
+                    -250,
+                    -500,
+                    -750
+                  ]
+                },
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "floor",
+                  "cornerMM": [
+                    -2000,
+                    -500,
+                    -2000
+                  ]
+                }
+              ],
+              "contactMarkers": "NOT_SUPPORTED_BY_THIS_ADAPTER",
+              "nativeCadProvenance": false
+            }
+          },
+          {
+            "caseId": "coupled-two",
+            "steps": 128,
+            "frames": 129,
+            "initialPixels": {
+              "coloredPixels": 2951,
+              "changedPixels": 0,
+              "nativeWidth": 2460,
+              "nativeHeight": 1312,
+              "nativeBytes": 12910080,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              }
+            },
+            "finalPixels": {
+              "coloredPixels": 2493,
+              "changedPixels": 1753,
+              "nativeWidth": 2460,
+              "nativeHeight": 1312,
+              "nativeBytes": 12910080,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              }
+            },
+            "capture": {
+              "http": 200,
+              "result": {
+                "status": "CAPTURE_EQUAL",
+                "caseId": "coupled-two",
+                "steps": 128,
+                "expectedPin": {
+                  "bytes": 409890,
+                  "sha256": "740893cbacd8b2cdb7ef7905bc5fe8075457624e118209454c73d234550b16b7"
+                },
+                "observationalOnly": true,
+                "physicsRecording": false
+              }
+            },
+            "renderer": {
+              "kind": "@barocss/viewer",
+              "bodyCount": 3,
+              "lastStep": 128,
+              "surface": {
+                "cssWidth": 1230,
+                "cssHeight": 656,
+                "pixelWidth": 2460,
+                "pixelHeight": 1312,
+                "devicePixelRatio": 2,
+                "requestedScale": 2,
+                "scale": 2,
+                "maxPixels": 4194304,
+                "maxDimension": 4096
+              },
+              "frame": "right-handed-y-up",
+              "sourceUnit": "mm",
+              "mmToSceneUnit": 0.001,
+              "motion": {
+                "basis": "part-xyz-matches-rhyup",
+                "frame": {
+                  "contextId": "contact_lab",
+                  "timeSeconds": 1.0666666666666667,
+                  "poses": [
+                    {
+                      "targetId": "lower",
+                      "translation": [
+                        -1.7797207582442514e-13,
+                        500,
+                        -3.0397775307089086e-13
+                      ],
+                      "rotation": [
+                        7.446300520630443e-17,
+                        -1.4060956228679186e-32,
+                        -4.3527103218051376e-17,
+                        1
+                      ],
+                      "scale": [
+                        1,
+                        1,
+                        1
+                      ]
+                    },
+                    {
+                      "targetId": "upper",
+                      "translation": [
+                        1.7797207582442514e-13,
+                        1500,
+                        3.0397775307089086e-13
+                      ],
+                      "rotation": [
+                        -5.60171122450844e-17,
+                        -2.931405724158443e-32,
+                        4.636048489548016e-17,
+                        1
+                      ],
+                      "scale": [
+                        1,
+                        1,
+                        1
+                      ]
+                    },
+                    {
+                      "targetId": "floor",
+                      "translation": [
+                        0,
+                        -500,
+                        0
+                      ],
+                      "rotation": [
+                        0,
+                        0,
+                        0,
+                        1
+                      ],
+                      "scale": [
+                        1,
+                        1,
+                        1
+                      ]
+                    }
+                  ]
+                },
+                "bindings": [
+                  {
+                    "contextId": "contact_lab",
+                    "targetId": "lower",
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "lower"
+                    }
+                  },
+                  {
+                    "contextId": "contact_lab",
+                    "targetId": "upper",
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "upper"
+                    }
+                  },
+                  {
+                    "contextId": "contact_lab",
+                    "targetId": "floor",
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "floor"
+                    }
+                  }
+                ],
+                "displayPoses": [
+                  {
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "lower"
+                    },
+                    "translation": [
+                      -1.7797207582442514e-13,
+                      500,
+                      -3.0397775307089086e-13
+                    ],
+                    "rotationXYZW": [
+                      7.446300520630443e-17,
+                      -1.4060956228679186e-32,
+                      -4.3527103218051376e-17,
+                      1
+                    ],
+                    "scale": [
+                      1,
+                      1,
+                      1
+                    ]
+                  },
+                  {
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "upper"
+                    },
+                    "translation": [
+                      1.7797207582442514e-13,
+                      1500,
+                      3.0397775307089086e-13
+                    ],
+                    "rotationXYZW": [
+                      -5.60171122450844e-17,
+                      -2.931405724158443e-32,
+                      4.636048489548016e-17,
+                      1
+                    ],
+                    "scale": [
+                      1,
+                      1,
+                      1
+                    ]
+                  },
+                  {
+                    "ref": {
+                      "modelId": "contact_lab",
+                      "surfaceId": "floor"
+                    },
+                    "translation": [
+                      0,
+                      -500,
+                      0
+                    ],
+                    "rotationXYZW": [
+                      0,
+                      0,
+                      0,
+                      1
+                    ],
+                    "scale": [
+                      1,
+                      1,
+                      1
+                    ]
+                  }
+                ]
+              },
+              "surfaces": [
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "lower"
+                },
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "upper"
+                },
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "floor"
+                }
+              ],
+              "camera": {
+                "eye": [
+                  6.467371265217729,
+                  3.9334528837361984,
+                  8.623161686956973
+                ],
+                "target": [
+                  0,
+                  -0.37812795974228797,
+                  0
+                ],
+                "up": [
+                  0,
+                  1,
+                  0
+                ],
+                "fovY": 40,
+                "near": 0.01,
+                "far": 100
+              },
+              "packets": [
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "lower",
+                  "cornerMM": [
+                    -500,
+                    -500,
+                    -500
+                  ]
+                },
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "upper",
+                  "cornerMM": [
+                    -500,
+                    -500,
+                    -500
+                  ]
+                },
+                {
+                  "modelId": "contact_lab",
+                  "surfaceId": "floor",
+                  "cornerMM": [
+                    -2000,
+                    -500,
+                    -2000
+                  ]
+                }
+              ],
+              "contactMarkers": "NOT_SUPPORTED_BY_THIS_ADAPTER",
+              "nativeCadProvenance": false
+            }
+          }
+        ],
+        "densityChecks": [
+          {
+            "width": 1280,
+            "height": 800,
+            "dpr": 2,
+            "surface": {
+              "cssWidth": 1230,
+              "cssHeight": 656,
+              "pixelWidth": 2460,
+              "pixelHeight": 1312,
+              "devicePixelRatio": 2,
+              "requestedScale": 2,
+              "scale": 2,
+              "maxPixels": 4194304,
+              "maxDimension": 4096
+            }
+          },
+          {
+            "width": 1280,
+            "height": 800,
+            "dpr": 1,
+            "surface": {
+              "cssWidth": 1230,
+              "cssHeight": 656,
+              "pixelWidth": 1230,
+              "pixelHeight": 656,
+              "devicePixelRatio": 1,
+              "requestedScale": 1,
+              "scale": 1,
+              "maxPixels": 4194304,
+              "maxDimension": 4096
+            }
+          },
+          {
+            "width": 1280,
+            "height": 800,
+            "dpr": 2,
+            "surface": {
+              "cssWidth": 1230,
+              "cssHeight": 656,
+              "pixelWidth": 2460,
+              "pixelHeight": 1312,
+              "devicePixelRatio": 2,
+              "requestedScale": 2,
+              "scale": 2,
+              "maxPixels": 4194304,
+              "maxDimension": 4096
+            }
+          },
+          {
+            "width": 1280,
+            "height": 800,
+            "dpr": 2,
+            "surface": {
+              "cssWidth": 1230,
+              "cssHeight": 656,
+              "pixelWidth": 2460,
+              "pixelHeight": 1312,
+              "devicePixelRatio": 2,
+              "requestedScale": 2,
+              "scale": 2,
+              "maxPixels": 4194304,
+              "maxDimension": 4096
+            }
+          },
+          {
+            "width": 1440,
+            "height": 900,
+            "dpr": 2,
+            "surface": {
+              "cssWidth": 1390,
+              "cssHeight": 756,
+              "pixelWidth": 2777,
+              "pixelHeight": 1510,
+              "devicePixelRatio": 2,
+              "requestedScale": 2,
+              "scale": 1.997844371413681,
+              "maxPixels": 4194304,
+              "maxDimension": 4096
+            }
+          },
+          {
+            "width": 1920,
+            "height": 1080,
+            "dpr": 2,
+            "surface": {
+              "cssWidth": 1870,
+              "cssHeight": 936,
+              "pixelWidth": 2894,
+              "pixelHeight": 1448,
+              "devicePixelRatio": 2,
+              "requestedScale": 2,
+              "scale": 1.5480009563992019,
+              "maxPixels": 4194304,
+              "maxDimension": 4096
+            }
+          },
+          {
+            "width": 1280,
+            "height": 800,
+            "dpr": 2,
+            "surface": {
+              "cssWidth": 1230,
+              "cssHeight": 656,
+              "pixelWidth": 2460,
+              "pixelHeight": 1312,
+              "devicePixelRatio": 2,
+              "requestedScale": 2,
+              "scale": 2,
+              "maxPixels": 4194304,
+              "maxDimension": 4096
+            }
+          },
+          {
+            "width": 1280,
+            "height": 800,
+            "dpr": 2,
+            "surface": {
+              "cssWidth": 1230,
+              "cssHeight": 656,
+              "pixelWidth": 2460,
+              "pixelHeight": 1312,
+              "devicePixelRatio": 2,
+              "requestedScale": 2,
+              "scale": 2,
+              "maxPixels": 4194304,
+              "maxDimension": 4096
+            }
+          },
+          {
+            "width": 1280,
+            "height": 800,
+            "dpr": 2,
+            "surface": {
+              "cssWidth": 1230,
+              "cssHeight": 656,
+              "pixelWidth": 2460,
+              "pixelHeight": 1312,
+              "devicePixelRatio": 2,
+              "requestedScale": 2,
+              "scale": 2,
+              "maxPixels": 4194304,
+              "maxDimension": 4096
+            }
+          },
+          {
+            "width": 1280,
+            "height": 800,
+            "dpr": 2,
+            "surface": {
+              "cssWidth": 1230,
+              "cssHeight": 656,
+              "pixelWidth": 2460,
+              "pixelHeight": 1312,
+              "devicePixelRatio": 2,
+              "requestedScale": 2,
+              "scale": 2,
+              "maxPixels": 4194304,
+              "maxDimension": 4096
+            }
+          },
+          {
+            "width": 1280,
+            "height": 800,
+            "dpr": 2,
+            "surface": {
+              "cssWidth": 1230,
+              "cssHeight": 656,
+              "pixelWidth": 2460,
+              "pixelHeight": 1312,
+              "devicePixelRatio": 2,
+              "requestedScale": 2,
+              "scale": 2,
+              "maxPixels": 4194304,
+              "maxDimension": 4096
+            }
+          },
+          {
+            "width": 1280,
+            "height": 800,
+            "dpr": 2,
+            "surface": {
+              "cssWidth": 1230,
+              "cssHeight": 656,
+              "pixelWidth": 2460,
+              "pixelHeight": 1312,
+              "devicePixelRatio": 2,
+              "requestedScale": 2,
+              "scale": 2,
+              "maxPixels": 4194304,
+              "maxDimension": 4096
+            }
+          }
+        ],
+        "errors": [],
+        "physicsRecording": false,
+        "contactMarkers": false,
+        "nativeCadProvenance": false,
+        "mobile": false,
+        "publication": false,
+        "contextProtocol": {
+          "controller": "ABOUT_BLANK_ZERO_WORLD",
+          "deviceScaleFactor": 2,
+          "isMobile": false,
+          "contextClosed": true,
+          "cdpDetached": true
+        }
+      },
+      "commands": [
+        {
+          "label": "open",
+          "args": [
+            "open",
+            "about:blank",
+            "--browser=chrome",
+            "--headed"
+          ],
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "fresh-snapshot",
+          "args": [
+            "snapshot"
+          ],
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "checks",
+          "args": [
+            "run-code",
+            "--filename=/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/output/playwright/physics-gallery/gallery-desktop-02/browser/checks.js"
+          ],
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "controller-final-snapshot",
+          "args": [
+            "snapshot"
+          ],
+          "exit": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "close",
+          "args": [
+            "close"
+          ],
+          "exit": 0,
+          "signal": null,
+          "error": null
+        }
+      ],
+      "sourceIntegrity": true,
+      "wholeProofBytesBeforeFinalReceipt": 4228400,
+      "physicsRecording": false,
+      "publication": false,
+      "mobile": false
+    }
+  },
+  "selectedReceipts": {
+    "examples/physics-sample-gallery-2276/evidence/api-01/result.json": {
+      "status": "SAMPLE_GALLERY_SOURCE_NATIVE_ANALYTIC_CONFIRMED",
+      "bytes": 29666,
+      "sha256": "1ab34fbddbe55a38a5283a1d856c27223b997ecc1668efb7fc1eb6996ecd3333"
+    },
+    "output/playwright/physics-gallery/gallery-desktop-02/browser/result.json": {
+      "status": "SAMPLE_GALLERY_VIEWER_HIDPI_NATIVE_PACKETS_AND_PIXELS_CONFIRMED",
+      "bytes": 45464,
+      "sha256": "44b5add593870dbf97801997d6c260f49b0835d0eee1b526f553561d74d9adc9"
+    },
+    "examples/physics-world-p5-2276/evidence/gallery-api-01/result.json": {
+      "status": "PASS",
+      "bytes": 2942,
+      "sha256": "00ce2e3dd78ce3f6c0684e8533b5d463834bb4ed820436a72919b7ce5c831a5b"
+    },
+    "examples/physics-world-p5-2276/evidence/gallery-desktop-01/result.json": {
+      "status": "FAIL",
+      "bytes": 3179,
+      "sha256": "14330105407be139fda8f13273f8b6aa868d972d500206101736902f6c35c7e2"
+    },
+    "examples/physics-world-p5-2276/evidence/gallery-desktop-02/result.json": {
+      "status": "PASS",
+      "bytes": 2986,
+      "sha256": "c4d909436dafc667e87a8d159da969a419d95654049a5c2bf27a8c39cdd08978"
+    },
+    "examples/physics-world-p5-2276/evidence/gallery-desktop-build-01/result.json": {
+      "status": "PASS",
+      "bytes": 3121,
+      "sha256": "ac661cbbdb4fb8dd00b77f24803000d3b53c76a7bbc0db7f04b17e78ba5ef79d"
+    },
+    "examples/physics-world-p5-2276/evidence/gallery-desktop-build-02/result.json": {
+      "status": "PASS",
+      "bytes": 3122,
+      "sha256": "8835e987734fd1be5f1b440ca5be1d07f38fa9d8aaaf50ef738c8e64d0fb13c5"
+    },
+    "examples/physics-world-p5-2276/evidence/gallery-dev-smoke-01/result.json": {
+      "status": "PASS",
+      "bytes": 2987,
+      "sha256": "0671a38053c3764f59c6474c04650b31c5879760953a908d26649253dd726e35"
+    },
+    "examples/physics-world-p5-2276/evidence/gallery-dist-binding-01/result.json": {
+      "status": "PASS",
+      "bytes": 3009,
+      "sha256": "67fcc99ac32a405cc8dd870d238b5f6637df4f7f8880b433ffe64f2cff0282a7"
+    },
+    "examples/physics-world-p5-2276/evidence/gallery-docbuild-01/result.json": {
+      "status": "PASS",
+      "bytes": 2998,
+      "sha256": "609c2f278cc8d2f45fbb49858994c4af0412d63d3197d6d81387546b00144ebd"
+    },
+    "examples/physics-world-p5-2276/evidence/gallery-docsite-01/result.json": {
+      "status": "PASS",
+      "bytes": 2954,
+      "sha256": "32522434fff7fe305a1878c06c0818f1fbe2346e9b25661a692560664c5aae90"
+    },
+    "examples/physics-world-p5-2276/evidence/gallery-source-syntax-01/result.json": {
+      "status": "PASS",
+      "bytes": 3399,
+      "sha256": "a74d8e213ff49e748f75c04c72192f49a44bb10343b661fd721e24e66c283500"
+    },
+    "examples/physics-sample-gallery-2276/evidence/dev-smoke-01/result.json": {
+      "status": "GALLERY_DEVELOPER_ENTRY_BUILDS_AND_SERVES",
+      "bytes": 592,
+      "sha256": "5d8c13888b1a96bd15fe3f7771e3b7825ffa6422f4e66d792585e2f48cfc6606",
+      "historicalStatusPreserved": true
+    },
+    "output/playwright/physics-gallery/gallery-desktop-01/browser/result.json": {
+      "status": "SAMPLE_GALLERY_DESKTOP_NO_GO",
+      "bytes": 6292,
+      "sha256": "59828baa40f6d05f83755a1833ab9518e7570cff0e5027fb18d2fccaab1a188a",
+      "historicalStatusPreserved": true
+    },
+    "examples/physics-sample-gallery-2276/baseline/desktop-first-01/result.json": {
+      "status": "SAMPLE_GALLERY_DESKTOP_NO_GO",
+      "bytes": 6292,
+      "sha256": "59828baa40f6d05f83755a1833ab9518e7570cff0e5027fb18d2fccaab1a188a",
+      "historicalStatusPreserved": true
+    },
+    "examples/physics-sample-gallery-2276/evidence/dist-binding-01/result.json": {
+      "status": "GALLERY_PACKAGE_DIST_RUNTIME_BYTES_CONFIRMED",
+      "bytes": 36578,
+      "sha256": "7d891d6a282e8e3a3f41ff0c13fe0464ccb3ed72202456f0a70cce9fa80914d6",
+      "historicalStatusPreserved": true
+    }
+  },
+  "qualificationBoundaries": {
+    "eachNumericalGraph": {
+      "worlds": 12,
+      "acceptedStepsIncludingRepeat": 770,
+      "independentlyPassedPrimarySteps": 385,
+      "references": 6,
+      "typedRefusals": 6
+    },
+    "sourceObserverNegativeControls": 1,
+    "desktop": {
+      "worldsIncludingZeroReset": 7,
+      "steps": 385,
+      "cases": 6,
+      "completeNativePacketCaptures": 6,
+      "realViewerGPU": true,
+      "ownedDPR2": true
+    },
+    "providerReusedFromDependency15": true,
+    "newCompilerCalls": 0,
+    "newPhysicsCalls": 0,
+    "newReferenceCalls": 0,
+    "newBrowserCalls": 0,
+    "historicalLongThree512": "NO_GO_PRESERVED",
+    "wholeEngineComplete": false,
+    "mobile": "NOT_RUN",
+    "publication": false
+  },
+  "selectionRecord": {
+    "allNewGalleryEvidenceAndBaselines": true,
+    "allGalleryPlaywrightOutputs": true,
+    "closedGuardNames": [
+      "gallery-api-01",
+      "gallery-desktop-01",
+      "gallery-desktop-02",
+      "gallery-desktop-build-01",
+      "gallery-desktop-build-02",
+      "gallery-dev-smoke-01",
+      "gallery-dist-binding-01",
+      "gallery-docbuild-01",
+      "gallery-docsite-01",
+      "gallery-source-syntax-01"
+    ],
+    "excludedSelfPrefixes": [
+      "gallery-checkpoint-",
+      "gallery-archive-"
+    ]
+  },
+  "archiveInputLimitBytesPerFile": 16777216,
+  "selectedInputLimitBytes": 536870912,
+  "externalLocalOriginalsNotInArchives": {},
+  "archives": {
+    "source": {
+      "file": "SOURCE.tar.gz",
+      "bytes": 151013,
+      "sha256": "4fa3fc0f54e571b007ef9f60afba581db0959fb03d781b179e19534ba9a4e094",
+      "members": {
+        "apps/library-docs/docs/packages/physics/host-integration.md": {
+          "bytes": 7888,
+          "sha256": "234e534ded768e23118d6de4e7afab1952848ebb2d829f39806651e4ca018546",
+          "mode": 420
+        },
+        "apps/library-docs/docs/packages/physics/index.md": {
+          "bytes": 15129,
+          "sha256": "043490b9ad02b009105b847022d6479c008fbdac18e9c58964ccf91ab2c221c9",
+          "mode": 420
+        },
+        "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt": {
+          "bytes": 140249,
+          "sha256": "2c439f34a7f24d738fb2cd04a6069877dc7c49be94007302b8db45a99479c3b7",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/DESKTOP-CONTRACT.md": {
+          "bytes": 5980,
+          "sha256": "318806bb4ead140825a77a513098910364f5689bdabc0e7a06df4f58ce34bb64",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/NUMERICAL-CONTRACT.md": {
+          "bytes": 6746,
+          "sha256": "f8e56474dc05102185abd28f919b75a83334f207a36590a518bf13dfc9593a34",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/README.md": {
+          "bytes": 5395,
+          "sha256": "5aa05edba962c4648e6277c849dba19ad81fa48524e7c2b75d24f549f668b4df",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/RESULTS.md": {
+          "bytes": 8722,
+          "sha256": "e995a4c34e8c8d493b0864214a560eae3750953ed4862aa13c2f2e08f4b2ddd0",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/RUN-CONTRACT.md": {
+          "bytes": 2940,
+          "sha256": "3b97c2222a8ac597d8a7a575089203c5726a33ffdb560f081fcf10e3e9b1fae1",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/browser-checks.js": {
+          "bytes": 9318,
+          "sha256": "2d07b38d4a90183261c4b3cf865c3995d78926eeaa00b7ed4dd581705d69ebc1",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/browser-run.mjs": {
+          "bytes": 5430,
+          "sha256": "8e50fe50eeeb80fadcb7d0db5e285ff2c761efd3fe19d4b65d2a89904da75439",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/cases.mjs": {
+          "bytes": 2725,
+          "sha256": "755f6d3994600da297b54be31d504d3830c9f005696793615243a16ad32f18ec",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/checkpoint.py": {
+          "bytes": 11712,
+          "sha256": "a68401885c9c5cb633d20ee80f118831439f966581e08ffc83939d5018898a01",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/dev-smoke.mjs": {
+          "bytes": 3421,
+          "sha256": "f292863e9e4bbb50d5a51030d036cf014a60c75f1ca52011aaf46fb8ebc6537b",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/dev.mjs": {
+          "bytes": 3947,
+          "sha256": "4b5e0c4497ba3bfbb33dbd92f323f37a40f377462975151b71a9b18a8d8c7409",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/dist-audit.mjs": {
+          "bytes": 2107,
+          "sha256": "6c3c384a9c60d51ce54a8711dc3918b3aef4781c234af908ab12bf3b7250c5c6",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/oracle.py": {
+          "bytes": 20138,
+          "sha256": "c13c4fb01a9cf5c86a36f7d93e1b562bae4ec362235588de5d088a6fefe3bd85",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/run.mjs": {
+          "bytes": 11578,
+          "sha256": "e9545ad8329002df3472921679d7c9458fb95dcc800f739db0ab5e2083c7a4fd",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/scene/app.mjs": {
+          "bytes": 5475,
+          "sha256": "74a7cea5bd168b79a5cac65e6279b18555f905cd6fac207125011d029279d8d3",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/scene/display.mjs": {
+          "bytes": 7849,
+          "sha256": "63fe70f126f155199568afbbc0b0e20827a124fb8510874b420acbde175cf2a3",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/scene/index.html": {
+          "bytes": 961,
+          "sha256": "650834fafd610bf9fdcb0034edc294aa8667d99a1d08793570560d888b89e4e1",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/scene/style.css": {
+          "bytes": 1394,
+          "sha256": "ca79c36f9df70a28cda3e3b8f2567b09bc939146504a21a01d871fe6eaab2117",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/scene/transport.mjs": {
+          "bytes": 860,
+          "sha256": "2be4ac5403b82e4de4963116a73fd7d7cd26f43f69982dc4a6e1c08397d4a3a6",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/scene/worker.mjs": {
+          "bytes": 913,
+          "sha256": "4a512f6644cc499be0c5a3c2d2bb517dc61ef4b3790c21a9ceadcf605463d946",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/server.mjs": {
+          "bytes": 9398,
+          "sha256": "79b5dffac4222629ede616004a086e5ea0ba16643a6172906d662f1fa7684b3b",
+          "mode": 420
+        },
+        "examples/physics-stack-library-2276/checkpoint-08.py": {
+          "bytes": 13951,
+          "sha256": "e5094bd827d79f269512bef1713a73270bb5f7f735a5e331c204339e4900963e",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/WORK-STATUS.json": {
+          "bytes": 107506,
+          "sha256": "e26be9fc2b3db641975d0122e0a971173789e0496c117e90a821ced907949b82",
+          "mode": 420
+        },
+        "packages/barocss-physics/README.md": {
+          "bytes": 28998,
+          "sha256": "f8898df3092948b0b7e106eb50f7fb7bd532661f3407de54a6a48187bbaeae20",
+          "mode": 420
+        },
+        "packages/barocss-physics/ROADMAP.md": {
+          "bytes": 140249,
+          "sha256": "2c439f34a7f24d738fb2cd04a6069877dc7c49be94007302b8db45a99479c3b7",
+          "mode": 420
+        }
+      },
+      "uniqueBlobs": 27
+    },
+    "proof": {
+      "file": "PROOF.tar.gz",
+      "bytes": 1556901,
+      "sha256": "d122e13e3958be087a0169ec0f3c3d97bcc4c029ce2fa34d2b533b92ef2393d4",
+      "members": {
+        "examples/physics-sample-gallery-2276/baseline/desktop-first-01/DESKTOP-CONTRACT.md": {
+          "bytes": 5169,
+          "sha256": "0b2873d6b00ba8494b17707953fd06145eca7dc1a00b3a3c50e74cb0a99bc46b",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/baseline/desktop-first-01/PINS.json": {
+          "bytes": 1966,
+          "sha256": "9829031d4be589c5a26395b8f76c8e7ac9454fd078384f324df5fbefdc307fb6",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/baseline/desktop-first-01/browser-checks.js": {
+          "bytes": 9147,
+          "sha256": "023765e5c6d89f1df99575813111c369c320707d83553090b69e42c6f1a01448",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/baseline/desktop-first-01/browser-run.mjs": {
+          "bytes": 5430,
+          "sha256": "8e50fe50eeeb80fadcb7d0db5e285ff2c761efd3fe19d4b65d2a89904da75439",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/baseline/desktop-first-01/build-inputs.json": {
+          "bytes": 233996,
+          "sha256": "3347dcfd9f2afe3e1f8d8d0d3b0777fb2e039cddbf8ff1f4da2b369e01386a2a",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/baseline/desktop-first-01/guard-result.json": {
+          "bytes": 3179,
+          "sha256": "14330105407be139fda8f13273f8b6aa868d972d500206101736902f6c35c7e2",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/baseline/desktop-first-01/result.json": {
+          "bytes": 6292,
+          "sha256": "59828baa40f6d05f83755a1833ab9518e7570cff0e5027fb18d2fccaab1a188a",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/baseline/desktop-first-01/scene/app.mjs": {
+          "bytes": 5475,
+          "sha256": "74a7cea5bd168b79a5cac65e6279b18555f905cd6fac207125011d029279d8d3",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/baseline/desktop-first-01/scene/display.mjs": {
+          "bytes": 7849,
+          "sha256": "63fe70f126f155199568afbbc0b0e20827a124fb8510874b420acbde175cf2a3",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/baseline/desktop-first-01/scene/index.html": {
+          "bytes": 961,
+          "sha256": "650834fafd610bf9fdcb0034edc294aa8667d99a1d08793570560d888b89e4e1",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/baseline/desktop-first-01/scene/style.css": {
+          "bytes": 1394,
+          "sha256": "ca79c36f9df70a28cda3e3b8f2567b09bc939146504a21a01d871fe6eaab2117",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/baseline/desktop-first-01/scene/transport.mjs": {
+          "bytes": 860,
+          "sha256": "2be4ac5403b82e4de4963116a73fd7d7cd26f43f69982dc4a6e1c08397d4a3a6",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/baseline/desktop-first-01/scene/worker.mjs": {
+          "bytes": 913,
+          "sha256": "4a512f6644cc499be0c5a3c2d2bb517dc61ef4b3790c21a9ceadcf605463d946",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/baseline/desktop-first-01/server.mjs": {
+          "bytes": 9398,
+          "sha256": "79b5dffac4222629ede616004a086e5ea0ba16643a6172906d662f1fa7684b3b",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/inputs.json": {
+          "bytes": 91319,
+          "sha256": "1fe2b4c4340074c9699c6610db9354c7a905bb8e765eba64bd0b199d5568b6c4",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-coupled-two.json": {
+          "bytes": 409890,
+          "sha256": "740893cbacd8b2cdb7ef7905bc5fe8075457624e118209454c73d234550b16b7",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-coupled-two.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-coupled-two.stdout": {
+          "bytes": 3163,
+          "sha256": "0360c4299b0c8da18e0e46972024efa77f0990c7750a88ef146d3551fbd68646",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-elastic-box.json": {
+          "bytes": 99549,
+          "sha256": "c3b5c03f033e8b988670f8e99b98988b821346ffe7d9e62568edaf257b2458b1",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-elastic-box.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-elastic-box.stdout": {
+          "bytes": 836,
+          "sha256": "42d76d0be9b7090c5e70f0a287815e08a070061149f9cad4944f86f449ccd4eb",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-principal-spin.json": {
+          "bytes": 162665,
+          "sha256": "64f9ea323340e84397e953ec97d2d193d9b3c28555f3508e6f7693441d5bcdb1",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-principal-spin.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-principal-spin.stdout": {
+          "bytes": 1018,
+          "sha256": "0d1c0e2fc77e32b4aafb6507a24c967912975b8b4a501840956770f89d312fc7",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-projectile.json": {
+          "bytes": 74017,
+          "sha256": "cf2bdc07022eb530244183cc6eccdec442df0b6092813e4d66e5c15f31a3fa1e",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-projectile.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-projectile.stdout": {
+          "bytes": 478,
+          "sha256": "2bad1cee8de97c06d182bd1db663922efbd5de198e904f0780d2e493412b751a",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-sphere-ccd.json": {
+          "bytes": 6074,
+          "sha256": "0093d5144036d5313957079ff06ee4c4033a5fe61ebdc97b099c622cadd5cb5e",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-sphere-ccd.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-sphere-ccd.stdout": {
+          "bytes": 647,
+          "sha256": "7e80fbd8fb7203b551173037e02542f2f346b63ac0e9fd2bd04b88b171bf9bfb",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-sphere-roll.json": {
+          "bytes": 134024,
+          "sha256": "c0ddf21eb1c2914c4649da09c1f416d8a2cfc11d5b0ecc98b06669497cb6d9d4",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-sphere-roll.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/native-sphere-roll.stdout": {
+          "bytes": 879,
+          "sha256": "009fb1779b3bb9f414c372e76f377d539061152cd2d1559cd45530075a835058",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/observer-negative-input.json": {
+          "bytes": 74017,
+          "sha256": "437fed4537ca99edd785eaeac17e69ad52acdeb60a4a219e0a4215c205c5a46d",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/result.json": {
+          "bytes": 29666,
+          "sha256": "1ab34fbddbe55a38a5283a1d856c27223b997ecc1668efb7fc1eb6996ecd3333",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-coupled-two.json": {
+          "bytes": 409890,
+          "sha256": "6f1a57e01795ccd20be632a3ee290002bd86e816578d0681ffe3c69454554686",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-coupled-two.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-coupled-two.stdout": {
+          "bytes": 3163,
+          "sha256": "0360c4299b0c8da18e0e46972024efa77f0990c7750a88ef146d3551fbd68646",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-elastic-box.json": {
+          "bytes": 99549,
+          "sha256": "593b3a3474fbc5a10490a0cd5e6e2adbb7f7d23442ff0dd10a4e4a2e3c5e4da0",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-elastic-box.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-elastic-box.stdout": {
+          "bytes": 836,
+          "sha256": "42d76d0be9b7090c5e70f0a287815e08a070061149f9cad4944f86f449ccd4eb",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-observer-negative.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-observer-negative.stdout": {
+          "bytes": 580,
+          "sha256": "7f907b8963809ec3cf2429911c70e88d970e6b4f75c87f6628a028fb24827a95",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-principal-spin.json": {
+          "bytes": 162665,
+          "sha256": "cd84d0eb550a1b386b2ad4be2b90ef8c806c7c417cd9c8cf4de04dbf5be4fed0",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-principal-spin.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-principal-spin.stdout": {
+          "bytes": 1018,
+          "sha256": "0d1c0e2fc77e32b4aafb6507a24c967912975b8b4a501840956770f89d312fc7",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-projectile.json": {
+          "bytes": 74017,
+          "sha256": "b1add75d371a8ae2654abaac6ae083ff590b3ee2da342acf31173969d2c4dfa5",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-projectile.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-projectile.stdout": {
+          "bytes": 478,
+          "sha256": "2bad1cee8de97c06d182bd1db663922efbd5de198e904f0780d2e493412b751a",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-sphere-ccd.json": {
+          "bytes": 6074,
+          "sha256": "2b8896285924cf7d9a06891b812c8204f0eaace1beb4ae272a8c8fd0fadb6069",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-sphere-ccd.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-sphere-ccd.stdout": {
+          "bytes": 647,
+          "sha256": "7e80fbd8fb7203b551173037e02542f2f346b63ac0e9fd2bd04b88b171bf9bfb",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-sphere-roll.json": {
+          "bytes": 134024,
+          "sha256": "e270fc9af722c42c8846f2c89a5cf08bdd6f3b2b9d47c3c0b0369928b9ef6fe2",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-sphere-roll.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/source-sphere-roll.stdout": {
+          "bytes": 879,
+          "sha256": "009fb1779b3bb9f414c372e76f377d539061152cd2d1559cd45530075a835058",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/api-01/start.json": {
+          "bytes": 53,
+          "sha256": "e99752f5c34de1a180aa59fb08649ae90e079db02b489290b60baeb0f7ba79d5",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/dev-smoke-01/result.json": {
+          "bytes": 592,
+          "sha256": "5d8c13888b1a96bd15fe3f7771e3b7825ffa6422f4e66d792585e2f48cfc6606",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/dev-smoke-01/stderr.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/dev-smoke-01/stdout.raw": {
+          "bytes": 108,
+          "sha256": "d82f81560200a1cae4da2e52dc3f5367abaf8f2ad1f9b6d866e9e32779f9f2e2",
+          "mode": 420
+        },
+        "examples/physics-sample-gallery-2276/evidence/dist-binding-01/result.json": {
+          "bytes": 36578,
+          "sha256": "7d891d6a282e8e3a3f41ff0c13fe0464ccb3ed72202456f0a70cce9fa80914d6",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-api-01/prepared.json": {
+          "bytes": 1454,
+          "sha256": "c43bb5736c760e84f96b532568616cab008e31cb3ebe576673cfed588c1c6d67",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-api-01/progress.json": {
+          "bytes": 1552,
+          "sha256": "31b00dc89773a2e9dd6817c8403812a14088559490e9537e87da2efb860acc6e",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-api-01/result.json": {
+          "bytes": 2942,
+          "sha256": "00ce2e3dd78ce3f6c0684e8533b5d463834bb4ed820436a72919b7ce5c831a5b",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-api-01/start.json": {
+          "bytes": 1476,
+          "sha256": "87305d4eba9133bb0dae6a135c63000d4b542c2ffa98074bfec4997853168eff",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-api-01/stderr.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-api-01/stdout.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-01/prepared.json": {
+          "bytes": 1490,
+          "sha256": "d9e2db1ea6d7db90a65ec903c9fd4766d39ce8cef0070e90e9f5968d3a9e7caf",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-01/progress.json": {
+          "bytes": 1809,
+          "sha256": "cd6c6d7f89c13bd18570bb4cd8f49ef495d39877cb5bfcb2002e7269af3c3689",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-01/result.json": {
+          "bytes": 3179,
+          "sha256": "14330105407be139fda8f13273f8b6aa868d972d500206101736902f6c35c7e2",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-01/start.json": {
+          "bytes": 1512,
+          "sha256": "1a36f5732b88a4d1929b0b7ca35d4d1cc742c79a872b8b70574c4228fccfe177",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-01/stderr.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-01/stdout.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-02/prepared.json": {
+          "bytes": 1490,
+          "sha256": "ccb7f808b78aa6075dfef2a81fdb62b1821f426e12cb263d4d85b1661c77d47a",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-02/progress.json": {
+          "bytes": 1587,
+          "sha256": "e2168ac6acb6273100078a50c6d63a37079dca6c287f273499a392c5ccad8d0a",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-02/result.json": {
+          "bytes": 2986,
+          "sha256": "c4d909436dafc667e87a8d159da969a419d95654049a5c2bf27a8c39cdd08978",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-02/start.json": {
+          "bytes": 1512,
+          "sha256": "e149cb1788d4bebf5a26e79d1826c2880c57f7fa9225f80429040d56ff624ab9",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-02/stderr.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-02/stdout.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-build-01/prepared.json": {
+          "bytes": 1613,
+          "sha256": "ab1e66b242449e3e095cc8beac5f1dfb8bea41ed6e4bde63be43063cf40eb617",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-build-01/progress.json": {
+          "bytes": 1712,
+          "sha256": "5075ffe5e2f6438efc9fe34219b6268d6e145ef9247a9c5f6ea56c4080389268",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-build-01/result.json": {
+          "bytes": 3121,
+          "sha256": "ac661cbbdb4fb8dd00b77f24803000d3b53c76a7bbc0db7f04b17e78ba5ef79d",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-build-01/start.json": {
+          "bytes": 1635,
+          "sha256": "f503eecb3bc01aa10431de5248b5714aa818882ada25d342454791e359d79045",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-build-01/stderr.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-build-01/stdout.raw": {
+          "bytes": 264,
+          "sha256": "afb05ded3de05433ddd2bb3bbb38db3f9315a241d27edad5c7224f9e8f84921a",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-build-02/prepared.json": {
+          "bytes": 1613,
+          "sha256": "6d9cce6f233334fdf50bd0336b3e0b700232ac1f8ee79d5e35bc6a8d821a4db1",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-build-02/progress.json": {
+          "bytes": 1712,
+          "sha256": "d71871d0844594109a0660e4617bf4734ad052240705c11bcb57d0af7d96e815",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-build-02/result.json": {
+          "bytes": 3122,
+          "sha256": "8835e987734fd1be5f1b440ca5be1d07f38fa9d8aaaf50ef738c8e64d0fb13c5",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-build-02/start.json": {
+          "bytes": 1635,
+          "sha256": "67b74caa5869b61d626a7634b3c24d78983226ecb306e5bedb6e48b98eea6a62",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-build-02/stderr.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-desktop-build-02/stdout.raw": {
+          "bytes": 264,
+          "sha256": "6b6315d3a989102517e76d64a8e9ae8a6d2915ebecb4f48c0673086cfc4c3398",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-dev-smoke-01/prepared.json": {
+          "bytes": 1490,
+          "sha256": "98da7e5e84f9e398583ab2dacc13b72cfa8a53215ab612ccfab0483fddf21fc1",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-dev-smoke-01/progress.json": {
+          "bytes": 1588,
+          "sha256": "00b83cc4293b69a025b78f93719c7aa999aa6973847b91b504282f5f3d99d188",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-dev-smoke-01/result.json": {
+          "bytes": 2987,
+          "sha256": "0671a38053c3764f59c6474c04650b31c5879760953a908d26649253dd726e35",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-dev-smoke-01/start.json": {
+          "bytes": 1512,
+          "sha256": "0c196f30177e0b965c7e6a3e7da293e0e198e211c16e31bf22734f319ac8aac3",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-dev-smoke-01/stderr.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-dev-smoke-01/stdout.raw": {
+          "bytes": 507,
+          "sha256": "3a5defef716dfd998876fbfd364e95e00bb4ecf947ba0cbf6609b75cde12b369",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-dist-binding-01/prepared.json": {
+          "bytes": 1506,
+          "sha256": "4f08367de09c7dafbc71c948bc5c9105acbcb329f0e099dd3dcd29a6344963f7",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-dist-binding-01/progress.json": {
+          "bytes": 1604,
+          "sha256": "33a308ff9514d9dfadcd650b6a832fae7571c106275dd441ebee9d7a9d9dc55a",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-dist-binding-01/result.json": {
+          "bytes": 3009,
+          "sha256": "67fcc99ac32a405cc8dd870d238b5f6637df4f7f8880b433ffe64f2cff0282a7",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-dist-binding-01/start.json": {
+          "bytes": 1528,
+          "sha256": "6bb2d1df3d84e75952e6bda61871fdd1b15c2863c9178d8e96d29ab21683f1ce",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-dist-binding-01/stderr.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-dist-binding-01/stdout.raw": {
+          "bytes": 101,
+          "sha256": "3472b4dc1a5f7f8d3a8b067dcb5b2565f1e792d67a5382097a22312dad76b08a",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-docbuild-01/prepared.json": {
+          "bytes": 1498,
+          "sha256": "da7156f27c5500a31106edcca3e9373ebfda04aa15e1faf4317f83dbc16ea96a",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-docbuild-01/progress.json": {
+          "bytes": 1595,
+          "sha256": "2ec181143afb34185da2d0a85d663428be76d0d0eca20e722cd7a4fb2a222893",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-docbuild-01/result.json": {
+          "bytes": 2998,
+          "sha256": "609c2f278cc8d2f45fbb49858994c4af0412d63d3197d6d81387546b00144ebd",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-docbuild-01/start.json": {
+          "bytes": 1520,
+          "sha256": "41009f59c32667c6ef811bfdb7a733ada3f392ce0324b38691099c2db2d844e4",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-docbuild-01/stderr.raw": {
+          "bytes": 472,
+          "sha256": "b4d513bbe2b301d67a30f1cec368f85433e75aff0036a694f7d03a8ecef139cb",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-docbuild-01/stdout.raw": {
+          "bytes": 47,
+          "sha256": "0f055cab8e7dc430bbd01df92da54f03162c49cae71864672ca46d84f50875f5",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-docsite-01/prepared.json": {
+          "bytes": 1460,
+          "sha256": "231337492aafb5d6342d0db86c586ce6ac5dc585a6b087d2ea29bc6f223be3f0",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-docsite-01/progress.json": {
+          "bytes": 1555,
+          "sha256": "b69a82fe4ecf390b9fdf2cf16d9015276993f8511167deee3cacd5de77991f95",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-docsite-01/result.json": {
+          "bytes": 2954,
+          "sha256": "32522434fff7fe305a1878c06c0818f1fbe2346e9b25661a692560664c5aae90",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-docsite-01/start.json": {
+          "bytes": 1482,
+          "sha256": "647da7287f8c013ea4bf008bc2bf6430bb41f0f5872311bbec28ef5692e7ecd3",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-docsite-01/stderr.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-docsite-01/stdout.raw": {
+          "bytes": 146,
+          "sha256": "5b4749be56589ef0b263629f3b227e61b3746547131947432e5e0750415cc358",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-source-syntax-01/prepared.json": {
+          "bytes": 1894,
+          "sha256": "67ccbc790fa23e9262565e24e6c37bc1a7b70d24c3653243049662cbe014f96f",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-source-syntax-01/progress.json": {
+          "bytes": 1992,
+          "sha256": "82a94ef5c46b96111b050a2bf69b9518428fe0650452981e0ad21ee5e90a9b06",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-source-syntax-01/result.json": {
+          "bytes": 3399,
+          "sha256": "a74d8e213ff49e748f75c04c72192f49a44bb10343b661fd721e24e66c283500",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-source-syntax-01/start.json": {
+          "bytes": 1916,
+          "sha256": "1639a4ba558689aaeb588e19eafbf5af5a9500bdb2000ca5c01e79b0b9121dbf",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-source-syntax-01/stderr.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "examples/physics-world-p5-2276/evidence/gallery-source-syntax-01/stdout.raw": {
+          "bytes": 73,
+          "sha256": "03b70dace16e42483cf07d20f2c3fc722add0dddde47477838b23d846fae0aee",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/app.mjs": {
+          "bytes": 1614579,
+          "sha256": "993f42c5c00353745b677f4eb31d7c63ca7b3db6ad824ffa58676211c1dc376f",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/checks.js": {
+          "bytes": 9265,
+          "sha256": "b45aa5b301f932d249e738a41e676bfc701f96388d3f48ed50b7f44271993cc4",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/checks.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/checks.stdout": {
+          "bytes": 11687,
+          "sha256": "fa5a8fa830e917b62640044efafbb753fee8a58d04f9d53e617c9a4738f8c031",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/cleanup-progress.json": {
+          "bytes": 700,
+          "sha256": "14faf0b05a0fbe264ed2683651abd568edcf77803d65f61085dfe16f959d5945",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/close.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/close.stdout": {
+          "bytes": 37,
+          "sha256": "64141e78006ab54fdfdb178494be0281320935eeb2dca06e8cdd447e5452da3e",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/failure-observer.js": {
+          "bytes": 948,
+          "sha256": "d46a15d4e8846f84d234eb41700a19e1735bc8ce54f7c9a8140a2e1eecc89ec8",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/failure-observer.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/failure-observer.stdout": {
+          "bytes": 1227,
+          "sha256": "a67887d6e92baa29c23bf14b805679c4a82142e0f1a5f56203d72b8caa81c00c",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/failure-screen.png": {
+          "bytes": 20035,
+          "sha256": "341d3ec548bc2ba4eb26e9dea22f8685681bce881db7124f938c045f1ffe20a0",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/fresh-snapshot.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/fresh-snapshot.stdout": {
+          "bytes": 59,
+          "sha256": "a4bfd2d803843b3493ad04274d505e788a6cb5499301a39f3e101bd521c1434d",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/inputs.json": {
+          "bytes": 154503,
+          "sha256": "b363c8e926e3db549f70f6db47fab976fcd1636c7de529eb58be47085a35d213",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/open.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/open.stdout": {
+          "bytes": 232,
+          "sha256": "c98a4671326e9b8466f29977b125016bd8e2952bdee122acb8011e5c0dfe594d",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/progress.json": {
+          "bytes": 247,
+          "sha256": "32f365d5a36456f26ba787474fb1ca8c6e336c7e5896600d2293f7b4af5638f0",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/result.json": {
+          "bytes": 6292,
+          "sha256": "59828baa40f6d05f83755a1833ab9518e7570cff0e5027fb18d2fccaab1a188a",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/browser/target-failure.png": {
+          "bytes": 71460,
+          "sha256": "ae70204daa7e766573fb8e9860048cd2d757ff75ea9d442fbf5aaefeb2b98f07",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/index.html": {
+          "bytes": 961,
+          "sha256": "650834fafd610bf9fdcb0034edc294aa8667d99a1d08793570560d888b89e4e1",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/inputs.json": {
+          "bytes": 233996,
+          "sha256": "3347dcfd9f2afe3e1f8d8d0d3b0777fb2e039cddbf8ff1f4da2b369e01386a2a",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/style.css": {
+          "bytes": 1394,
+          "sha256": "ca79c36f9df70a28cda3e3b8f2567b09bc939146504a21a01d871fe6eaab2117",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-01/worker.mjs": {
+          "bytes": 572940,
+          "sha256": "2352b484d8d4d062b9207d46347c76d6ebefd317ee2231d755d2d7c49b2e4392",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/app.mjs": {
+          "bytes": 1614579,
+          "sha256": "993f42c5c00353745b677f4eb31d7c63ca7b3db6ad824ffa58676211c1dc376f",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/checks.js": {
+          "bytes": 9436,
+          "sha256": "9e8a50726bf1f69c0deacd61a2d9a5f374a9e266772f7544cf8da3daa0f3ea13",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/checks.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/checks.stdout": {
+          "bytes": 28253,
+          "sha256": "55ee725f1953eec62b0d07ebb54d09c44ea884d1932299877580df3a1951f22a",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/cleanup-progress.json": {
+          "bytes": 557,
+          "sha256": "ede7272927b835c496b3b59a36ba6ba9f51b32ccb54d43860ceeaed8e854b055",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/close.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/close.stdout": {
+          "bytes": 37,
+          "sha256": "cb39ad782566cc2c4a422b3bb3f094fad6021ad0ce50fadfe114a8941f6b820b",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/controller-final-snapshot.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/controller-final-snapshot.stdout": {
+          "bytes": 59,
+          "sha256": "a4bfd2d803843b3493ad04274d505e788a6cb5499301a39f3e101bd521c1434d",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/coupled-two-final.png": {
+          "bytes": 58218,
+          "sha256": "a3cea29e4fb6e2acf020325221a2f5d859ba00eca2d4bf3b36320e2de14fadc4",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/coupled-two-initial.png": {
+          "bytes": 57739,
+          "sha256": "23d250562ef4fc215037a6921f1b09c73b802e12894d2683e40a9d6778fc1901",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/elastic-box-final.png": {
+          "bytes": 58365,
+          "sha256": "7faf776840cc1d89be29493e5a6d155660cacddf88a9d194824c245b3dc20f95",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/elastic-box-initial.png": {
+          "bytes": 56482,
+          "sha256": "50c0a94f07e93475ce8d92924314fb7e22cbd2fb25f02cbe7557ea89dc99c1fd",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/fresh-snapshot.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/fresh-snapshot.stdout": {
+          "bytes": 59,
+          "sha256": "a4bfd2d803843b3493ad04274d505e788a6cb5499301a39f3e101bd521c1434d",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/inputs.json": {
+          "bytes": 154503,
+          "sha256": "f334f0c7fa5a490dd45d0cb816f7c7c4c7ec060d089a0ad5a058267a166913a2",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/open.stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/open.stdout": {
+          "bytes": 232,
+          "sha256": "2cf93205846384f4f4364ef28c4d6d85fe416acb7a8699e77a8bf696cca4ba68",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/principal-spin-final.png": {
+          "bytes": 57776,
+          "sha256": "c069b151a75035477fc9a7b4a76049fabfe1f9886d678cb7ff905f2c21906be4",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/principal-spin-initial.png": {
+          "bytes": 54944,
+          "sha256": "1bc5cd6705b7e9b308edfcc79f363b4ea593eb47cb581d0bfcfa5787e25f86bb",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/progress.json": {
+          "bytes": 483,
+          "sha256": "da8c0beaa6fbf5287a113957fe413bf791c06ba0c66f3690a6c373f0d1743704",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/projectile-final.png": {
+          "bytes": 57993,
+          "sha256": "f70027d023cac4528afbd384ec0e4fb3da19e809a5d2b8b92d884b506d6c818e",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/projectile-initial.png": {
+          "bytes": 56478,
+          "sha256": "7ab5ec6c0e09cfc7d8489bffe66f67c1c014946a1ea850ff8a26082b40e464a1",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/result.json": {
+          "bytes": 45464,
+          "sha256": "44b5add593870dbf97801997d6c260f49b0835d0eee1b526f553561d74d9adc9",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/sphere-ccd-final.png": {
+          "bytes": 49604,
+          "sha256": "92371ff1d7916033a4cb10a7417103bc528a8eea6a2394b789de8ca2c0e339a8",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/sphere-ccd-initial.png": {
+          "bytes": 49643,
+          "sha256": "bd8cb0fa214e868ca709451ec0ee530ab06fa3329d63daf1716c84966531227d",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/sphere-roll-final.png": {
+          "bytes": 64747,
+          "sha256": "e4b8ebda52669f992ca3f50ec1f1e56fa802c8be5609b36e01ff2aca98e6002e",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/browser/sphere-roll-initial.png": {
+          "bytes": 62992,
+          "sha256": "daba7d11cb58bd338a1e2f6298bdd60ea2ce33c8028b4dda5e1dda6b895c50ec",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/coupled-two-capture-result.json": {
+          "bytes": 219,
+          "sha256": "a80f7c5cf1b3bb010360726224e1e889376c8b4cabeeded44983322465234dda",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/coupled-two-capture.json": {
+          "bytes": 420767,
+          "sha256": "1226acfa8383d79f85d00b60277621a488a914178a62a34167c817528af6c9a8",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/elastic-box-capture-result.json": {
+          "bytes": 217,
+          "sha256": "ed6945d5073a07d1bf06e1b4837e028331076aed6bdfeeb9048c49e8743217ea",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/elastic-box-capture.json": {
+          "bytes": 104731,
+          "sha256": "8e5ada520e0940f09a1bd32f3c089045974aaf74ea5d54bec663b91cd43a461c",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/index.html": {
+          "bytes": 961,
+          "sha256": "650834fafd610bf9fdcb0034edc294aa8667d99a1d08793570560d888b89e4e1",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/inputs.json": {
+          "bytes": 233996,
+          "sha256": "8566127c776ab80e4e5fb2c45300a01e53981d066982e191b7f8aff0be771993",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/principal-spin-capture-result.json": {
+          "bytes": 221,
+          "sha256": "e667092c57c60c0d80fc4810d123e948849ec1e04c2dff0d1020bb91a33e37bc",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/principal-spin-capture.json": {
+          "bytes": 169380,
+          "sha256": "d6d2e8746ddff58db705369f20dc9997256bd3205990f256b74f78b894ad8adf",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/projectile-capture-result.json": {
+          "bytes": 216,
+          "sha256": "82ce2a10949545e1588ec3ed17f7098a46379ba89795ebb6c27289cc48970f90",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/projectile-capture.json": {
+          "bytes": 76303,
+          "sha256": "0163d91ac782c55095dd3a76f5e4e297299b66d640a5f959554ed79a5c1a38fb",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/sphere-ccd-capture-result.json": {
+          "bytes": 214,
+          "sha256": "c17daf5aa932528da908a2868b7e6cbe19945c4ec9bbd3b07f1ce72a117ab23a",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/sphere-ccd-capture.json": {
+          "bytes": 13881,
+          "sha256": "779435276aa9986a45d4a4ae6d8dd4f24647efdf2cc798d4f767cb9a9b6a869c",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/sphere-roll-capture-result.json": {
+          "bytes": 218,
+          "sha256": "250d7bc317030d6b767064f49c37f2d8d1b8519dfeeacfcf33bf44c67be77f07",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/sphere-roll-capture.json": {
+          "bytes": 139563,
+          "sha256": "65cfc3b9b09c7f9d5993fefd5ed314cfc66bf5cbf17c60e5ca1486cf83f873d6",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/style.css": {
+          "bytes": 1394,
+          "sha256": "ca79c36f9df70a28cda3e3b8f2567b09bc939146504a21a01d871fe6eaab2117",
+          "mode": 420
+        },
+        "output/playwright/physics-gallery/gallery-desktop-02/worker.mjs": {
+          "bytes": 572940,
+          "sha256": "2352b484d8d4d062b9207d46347c76d6ebefd317ee2231d755d2d7c49b2e4392",
+          "mode": 420
+        }
+      },
+      "uniqueBlobs": 135
+    }
+  },
+  "selectedInputBytes": 9947340,
+  "selectedMemberCount": 215
+}

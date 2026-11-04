@@ -1,0 +1,34 @@
+{
+  "status": "PASS_SAME_32_STATIC_FORCE_MOMENT_ONLY",
+  "firstFailure": null,
+  "WorldCalls": 0,
+  "candidateCalls": 0,
+  "QpCalls": 0,
+  "dynamicSettling": "NOT_QUALIFIED",
+  "gapComplementarity": "NOT_QUALIFIED",
+  "publicPersistent": "UNCHANGED_NO_GO",
+  "originalP4": "UNCHANGED_NO_GO",
+  "counts": {
+    "source": {
+      "points": 32,
+      "interfaces": 8,
+      "dynamicBodies": 8,
+      "forceAndMomentScalarEquations": 48,
+      "sameRawOriginalRows": 32,
+      "maximumResidualExact": "0"
+    },
+    "strict-nodenext": {
+      "points": 32,
+      "interfaces": 8,
+      "dynamicBodies": 8,
+      "forceAndMomentScalarEquations": 48,
+      "sameRawOriginalRows": 32,
+      "maximumResidualExact": "0"
+    }
+  },
+  "command": "python3 -B examples/physics-box-quantized-equilibrium-2276/run.py equilibrium-01",
+  "units": {
+    "force": "N",
+    "moment": "N m"
+  }
+}
