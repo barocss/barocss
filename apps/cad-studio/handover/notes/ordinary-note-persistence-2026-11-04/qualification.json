@@ -1,0 +1,181 @@
+{
+  "work_id": "D506",
+  "status": "PASS_BOUNDED_EXISTING_PLAIN_PAPER_NOTE_LIFECYCLE",
+  "parentHead": "33d43778f0969d7b20de4d11ba246838c1232931",
+  "productChange": false,
+  "scope": "Public Note creation at paper[20,20], actual n1/default NOTE; A\u2192B/FIRST Undo A/Redo B/own project SaveClose reloadOpen B/postOpen C",
+  "groups": 5,
+  "requiredCurrentConsumers": 6,
+  "savedReviewChecks": 4115,
+  "savedChecksAreNotProductTests": true,
+  "freshExistingProductTests": 1,
+  "reusedStyleTests": 43,
+  "reusedStorageTests": 7,
+  "buildLintTypes": "D494 reused at verified current full dependency closure",
+  "commands": [
+    {
+      "name": "model-existing-one-note-lines-leader-file-only",
+      "argv": [
+        "node",
+        "/tmp/barocss-d506-root-prep01/note-test-only.mjs"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 0.977,
+      "observedTAPCounts": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "diff",
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 0.356,
+      "observedTAPCounts": {}
+    }
+  ],
+  "source": "Exact D505 actual ASME save2092B with NO notes; SHA818f1aa4e4fa20417d3c09232558ad2911920bf170a5aba6211fd9a9af01addc; no retained Note creation claim",
+  "actualGeneratedNote": {
+    "id": "n1",
+    "defaultText": "NOTE",
+    "at": [
+      20,
+      20
+    ],
+    "leader": "ABSENT"
+  },
+  "annotation": "Review note A/B/C newline Line 2; ASME source height3mm/yoffset2.55mm/linegap5mm; SVG serialization envelope0.000050001mm separate from native tolerance",
+  "retention": "Exact entire non-drawing Doc, feature history, original dimension/table/weld text and current two-body Worker keys/volume/centroid; no independent mass proof",
+  "custody": {
+    "uniqueGenericCaptureLabels": 15,
+    "distinctGenericJSONHTMLPNGFiles": 45,
+    "wrapperPins": 1889,
+    "runnerPins": 1890,
+    "currentEqualThroughRootReviewAndSavedAudit": true,
+    "ownPID": 42908,
+    "ownedProjectRemoved": true,
+    "resourcesClosed": true,
+    "errorsConsoleDownloads": 0
+  },
+  "visual": "PASS_ROOT_SIX_ORIGINAL_DESKTOP_IMAGES; not font/raster/standards accuracy",
+  "nativeCaptures": 0,
+  "physicalOracles": 0,
+  "independentPhysicalGeometry": "NOT_RUN_TEXT_ONLY_UNCHANGED_GEOMETRY",
+  "receipts": {
+    "actual": {
+      "path": "/tmp/barocss-d506-workflow-run01/receipt.json",
+      "sha256": "5baba10934ed1f35aa981a9e26a1539edfbb522a6ef1cbd09dbcfa4f5c65d127"
+    },
+    "savedReview": {
+      "path": "/tmp/barocss-d506-saved-review01/review.json",
+      "sha256": "58998861c71996329c24fb795e1a1956e52a6768d08b05a05a3c5ad7c7ed4bac"
+    },
+    "rootVisual": {
+      "path": "/tmp/barocss-d506-root-review01/review.json",
+      "sha256": "1073834df67f299a8a8714e5b5f609e78a0caf4d82d031f5152d53bd3e10fc00"
+    },
+    "checks": {
+      "path": "/tmp/barocss-d506-checks01/receipt.json",
+      "sha256": "18e9bbdea5039f071e297e8d3c4bf6dc53eb1432388a286b783c69bf3e1eb17c"
+    },
+    "reuse": {
+      "path": "/tmp/barocss-d506-root-prep01/reuse-checks01.json",
+      "sha256": "d436b40504daa0764572d2fa9109d13cf40766ef560df81754c1feb45773fe3d"
+    },
+    "config": {
+      "path": "/tmp/barocss-d506-driver01/config.json",
+      "sha256": "d497924bdc36a6d93661f7e9c4ff7f5eb78a7f2c7340ad0a875d9b766d2e9c58"
+    },
+    "sourceSeal": {
+      "path": "/tmp/barocss-d506-root-prep01/actual-seal01.json",
+      "sha256": "6503b73e7f4d3aac4b4a778472e209fa2a334c15bc042c7cf60188cb01f77104"
+    },
+    "issues": {
+      "path": "/tmp/barocss-d506-root-issues01.json",
+      "sha256": "85e305a47d9d25135f2145aa4008f80b62944d482312ff243d859f708b88a5a3"
+    }
+  },
+  "savedObserverStops": [
+    "Initial saved auditor selected actual-public-save Doc as raw ABI; fixed filter only",
+    "Second saved auditor used logical OPFS name as filesystem path; fixed saved-artifact path only; no product rerun or criterion change"
+  ],
+  "issueReview": {
+    "status": "PASS_READ_ONLY_ISSUE_CLOSURE_REVIEW",
+    "commands": [
+      [
+        "gh",
+        "issue",
+        "view",
+        "536",
+        "--repo",
+        "barocss/barocss",
+        "--json",
+        "number,title,state,body,url"
+      ],
+      [
+        "gh",
+        "issue",
+        "view",
+        "540",
+        "--repo",
+        "barocss/barocss",
+        "--json",
+        "number,title,state,body,url"
+      ]
+    ],
+    "536": "OPEN;8unchecked parent requirements",
+    "540": "OPEN;8unchecked parent requirements",
+    "action": "READ_ONLY_NO_COMMENT_OR_CLOSE"
+  },
+  "next": {
+    "MAIN": "SOURCE_GAP_INVENTORY_BEFORE_SELECTION",
+    "parallelD507": "PREPARED_NOT_RUN"
+  },
+  "limits": [
+    "One existing plain-paper Note only; no leader/editablegeometry/numericrefusal/CADReactNoteexport",
+    "No independent native/physical/fontmetrics/PDF/golden/standards/export/mobile/fullC3/issueclosure",
+    "D501 and D505 historical runner/capture custody FAIL preserved; coreNOT_MEASURED/legacy43/HOLDs unchanged"
+  ],
+  "verificationTier": {
+    "tier": "small",
+    "reason": "Existing workflow measurement only; no product, kernel, public API or test source change. Targeted existing test plus actual Studio, with an additional saved-data review."
+  },
+  "execution": {
+    "node": "22.19.0",
+    "pathPrefix": "/Users/user/Library/pnpm/nodejs/22.19.0/bin",
+    "rootCommands": [
+      "python3 /tmp/barocss-d506-root-prep01/prepare-checks.py",
+      "bash /tmp/barocss-d506-root-prep01/run-checks01.sh",
+      "python3 /tmp/barocss-d506-root-prep01/seal-actual01.py",
+      "bash /tmp/barocss-d506-root-prep01/run-studio01.sh"
+    ],
+    "savedReviewCommand": "python3 /tmp/barocss-d506-saved-review01/audit03.py",
+    "heavyGate": "/Users/user/.claude/local-mods/barocss-lanes-guard/bin/gate.sh",
+    "studioWholeWorktreeFreezeThroughRootReview": true
+  },
+  "verificationResult": {
+    "PASS": [
+      "Five actual Studio groups and six required current consumers",
+      "One fresh existing note test; 43 style and seven storage tests reused at exact source closure",
+      "4115 saved-data predicates and six root-viewed images; unique capture custody and owned cleanup"
+    ],
+    "FAIL": [
+      "Preserved saved-auditor dialect/path stops; original product run passes",
+      "D501/D505 historical custody failures remain, not repaired or replayed here"
+    ],
+    "NOT_RUN": [
+      "Independent native geometry and physical oracles",
+      "Leader workflow, PDF/golden, export, font metrics, mobile and whole C3 acceptance"
+    ]
+  }
+}

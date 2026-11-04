@@ -8,6 +8,8 @@ source_request: "Prepare a Claude handoff prompt after all current work is pushe
 last_updated: 2026-11-04
 ---
 
+[D506](../ordinary-note-persistence-2026-11-04/README.md) now qualifies the existing plain-paper Note lifecycle: 5/5 Studio groups, six current consumers, one fresh existing test, 43 style and seven storage tests reused, unique capture custody and six root-reviewed images pass. Independent physical geometry remains NOT_RUN. This supersedes older D506 NOT_RUN/next-MAIN navigation below. Next MAIN is source-gap inventory; parallel D507 remains prepared NOT_RUN. D501/D505 custody FAIL, core NOT_MEASURED, frozen 43%, open parent issues and HOLDs remain.
+
 [D504](../cad-react-polygon-design-2026-11-04/README.md) qualifies only the current convex Polygon width-60/80, height-8 bridge: 57 tests/types/lint, two captures, three exact reuses and five positive GUI/Studio consumers pass. High saved review and settled public Error/coordinate-alert UI pass; the latter adds zero physical binding. All remaining design components are proposed and unexported; B2 is next source planning. All 24 current API code examples, seven nav tests, current site check/build and eleven changed desktop docs routes pass. Preserve D505 incidental capture-custody FAIL, D506 Notes prepared NOT_RUN, core NOT_MEASURED/legacy 43/HOLDs. Final prose follows the original exact execution/cleanup/audit boundary; runtime/examples/tests/sidebar remain unchanged.
 
 
