@@ -1,0 +1,382 @@
+{
+  "workId": "D536",
+  "priority": "P1",
+  "rows": [
+    "03",
+    "07",
+    "12",
+    "16"
+  ],
+  "tier": "SMALL_VERIFICATION_ONLY",
+  "parent": "a3f7f9b1a506f49f4b97dd372b175638ed9ccbcf",
+  "status": "PASS_BOUNDED_MIXED_LINE_DIMENSION_WITH_RETAINED_ORACLE_FAILURE",
+  "models": {
+    "driverAndIdentityControl": "GPT-6.1 Sol Medium",
+    "solverNativeCurveOracleAndReview": "GPT-6.1 Sol High",
+    "rootSmallRepairs": "One reporting expression and two explicit editor source-capsule paths; no product/math/tolerance change"
+  },
+  "productChanges": 0,
+  "newVersionedSources": [
+    "apps/cad-studio/test/mixed-line-dimension-preflight.mjs",
+    "apps/cad-studio/test/mixed-line-dimension-oracles.mjs",
+    "apps/cad-studio/test/mixed-line-dimension-browser.mjs"
+  ],
+  "input": {
+    "file": "/tmp/barocss-d461-workflow-run01/07-saved-R3-opfs.bcad",
+    "bytes": 3942,
+    "sha256": "cdfeb4bda2509da3748a3c1ae071a682e7408ee0bdabb5595ae74062b30b4758",
+    "authority": "retained R3 antecedent; original S physical binding at FIRST Undo"
+  },
+  "scope": [
+    "Existing mixed line/arc/hole/construction profile, Extrude10 and Fillet3",
+    "Actual Edit sketch/Edge1 length/Finish consumer; not Round creation/radius replay",
+    "Finite source lengths60/64/68 with current allowed underconstrained motion",
+    "Named mixed-sketch document-parameter binding UNRESOLVED"
+  ],
+  "constraints": {
+    "linearLimitMM": 1e-07,
+    "angularLimitRad": 1e-09,
+    "maximumActualLinearResidualMM": 0,
+    "maximumActualAngularResidualRad": 6.123233995736766e-17,
+    "actualArc": {
+      "center": [
+        17.5,
+        37.5
+      ],
+      "radius": 3,
+      "sweep": 1.5707963267948966
+    },
+    "geometryAndMetadata": "Each emitted segment start agrees with its outline point; actual length/radius/HV/tangency residuals measured, not metadata-only.",
+    "retained": [
+      "length1=20",
+      "R3/tangents/HV",
+      "side tags and node IDs",
+      "fixed rectangular hole",
+      "construction e11 and nonconsumption",
+      "downstream n1/n2, parent/edge/ref and historical signature",
+      "root b2/nextId3/parameters"
+    ],
+    "DOF": "UI retains under-defined2DOF; no fully constrained/unique solution claim"
+  },
+  "controlled": {
+    "setterFinishHelper": {
+      "status": "PASS_CONTROLLED_HELPER_AND_NATIVE_ADMISSION_ONLY",
+      "sourcePaths": 481,
+      "positive": [
+        64,
+        68
+      ],
+      "invalid10": "PROFILE_REFUSED with Shapes1and2 overlap; captured before assertions",
+      "authority": "Controlled non-UI composition of actual helpers and finite Finish policies; not a React equality certificate."
+    },
+    "nativeObserver": {
+      "status": "PASS_THREE_NATIVE_FINAL_AND_PREFIX_STATES",
+      "sourcePaths": 475,
+      "mainClasses": 3,
+      "separatePreFilletClasses": 3
+    },
+    "firstIndependentOracle": {
+      "status": "FAIL",
+      "case": "S",
+      "error": "TypeError from shadowed b in final diagnostic counts comprehension",
+      "A_B": "NOT_RUN",
+      "chainedModelTypes": "NOT_RUN",
+      "receiptSHA256": "d58fe755f7b0788bb043c5e9782490eb12bdee82d316307dd18d423c7581a15c"
+    },
+    "finalIndependentOracle": {
+      "status": "PASS_THREE_DECLARED_NATIVE_NUMERICAL_STATES",
+      "cases": 3,
+      "originalNativeReadsReused": true,
+      "productImports": 0
+    },
+    "focusedIdentity": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "selector": "sketch-outline-field-identity"
+    }
+  },
+  "repair": {
+    "oracle": "len(b[k]) -> len(raw[brep][k]) in the final counts report only, approved by High read-only review. Python b had been overwritten by an interval tuple; no later geometry uses that container.",
+    "sourceCustody": "Before actual Studio, add settle.ts and outlineFields.ts to extraFrozen; native observer inputs did not include those actual editor producers. This was caught statically, not an actual Studio failure.",
+    "mathToleranceInspector": "UNCHANGED",
+    "firstFailurePreserved": true
+  },
+  "physical": {
+    "authority": [
+      "Independent actual authored line/arc area and first moments",
+      "Fixed rectangular hole subtraction",
+      "Fillet3 derived from actual adjacent source directions/corner, not fixedX60",
+      "Original oriented native cap line/arc integration",
+      "Whole original topology/twins/ownership/genus",
+      "Original carrier/normal/rationalD1/edge/optional pcurve witnesses",
+      "Source/pre-Fillet reference pins and separately labelled prefix data",
+      "Original fresh Worker/Doc/n2-b2 joins"
+    ],
+    "formulas": {
+      "V": "10*finalArea",
+      "centroid": "[finalMx/finalArea,finalMy/finalArea,5]",
+      "massDensity1G": "V/1000 at1g/cm3 MMGS",
+      "filletCenter": "actualCorner+3*(leftNormalIncoming+leftNormalOutgoing)/(1+dot(incoming,outgoing))"
+    },
+    "observedFinalVolumesMM3": {
+      "64": 16463.87166941154,
+      "60": 15663.87166941154,
+      "68": 17263.87166941154
+    },
+    "maximumActualNativeVolumeRelativeError": 4.419347866821345e-16,
+    "maximumActualNativeCentroidAbsoluteMM": 1.7763568394002505e-14,
+    "budgets": {
+      "constraintLinearMM": 1e-07,
+      "constraintAngularRad": 1e-09,
+      "nativeVolumeRelative": 1e-09,
+      "nativeCentroidBoundsBoundaryD1PcurveMM": 1e-09,
+      "nativeUnitNormalComponent": 1e-09,
+      "density1MassAbsoluteG": 1e-09
+    },
+    "observedFinalTopology": {
+      "bodies": 1,
+      "shells": 1,
+      "faces": 14,
+      "loops": 16,
+      "coedges": 72,
+      "edges": 36,
+      "vertices": 24
+    },
+    "observedPreFilletTopology": {
+      "bodies": 1,
+      "shells": 1,
+      "faces": 13,
+      "loops": 15,
+      "coedges": 66,
+      "edges": 33,
+      "vertices": 22
+    },
+    "genus": 1,
+    "signature": "Historical identity anchor remains; actual pre-Fillet source corner and resulting cylinder are measured separately.",
+    "limits": "Finite original boundary witnesses and actual authored geometry, not a full-domain/general Round/solver/native accuracy certificate. No inertia or displayed catalog mass qualification.",
+    "maximumActualPcurveLiftMM": 1.43215e-14
+  },
+  "selectedActionGroups": [
+    {
+      "action": "public line60 to64 and Finish A",
+      "status": "PASS"
+    },
+    {
+      "action": "line10 profile-overlap Finish refusal then Cancel retaining A",
+      "status": "PASS"
+    },
+    {
+      "action": "FIRST document Undo exact S60 after leaving local sketch",
+      "status": "PASS"
+    },
+    {
+      "action": "Redo exact captured A64",
+      "status": "PASS"
+    },
+    {
+      "action": "own project Save exact A64",
+      "status": "PASS"
+    },
+    {
+      "action": "Close/same-context reload/project Open exact A",
+      "status": "PASS"
+    },
+    {
+      "action": "post-Open line64 to68 and Finish actual B",
+      "status": "PASS"
+    }
+  ],
+  "rootActualStudio": {
+    "status": "PASS",
+    "snapshots": 14,
+    "contexts": 1,
+    "physicalBindings": 7,
+    "mainNativeCaptures": 3,
+    "separateDerivedPreFilletObservations": 3,
+    "exactWholeDocPacketReuses": 4,
+    "sourcePaths": 760,
+    "sourceUnchangedThroughCleanup": true,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "sourceChanges": 0,
+    "downloads": 0,
+    "refusalObservation": [
+      {
+        "label": "positive-line10-Finish-overlap-refusal",
+        "actualReason": "Finish the profile firstShapes 1 and 2 overlap: draw them as one outline, or put one in its own sketch.",
+        "authority": "profileOf admission refusal; not native PARAMETER or NodeEditor Apply"
+      }
+    ],
+    "ownSave": {
+      "namespace": "projects/D536-418d25a9-42e1-4b2c-affa-11ceb4c2d363",
+      "path": "D536-mixed-line.bcad",
+      "bytes": 3942,
+      "sha256": "15ae8d3b51f93e4ef2f9571ecc6646661f844732495ecff4593532f5b913debc",
+      "exactAcceptedDoc": true
+    },
+    "rootViewed": [
+      "01-driving-line64-local",
+      "03-A-line64",
+      "05-line10-Finish-refused-before-assert",
+      "10-own-project-reopened-exact-A64",
+      "13-postOpen-B-line68"
+    ],
+    "cleanup": [
+      {
+        "ownedProject": "D536-418d25a9-42e1-4b2c-affa-11ceb4c2d363",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "exactExecutedSourcesPreserved": true,
+    "persistenceLimits": "A saved/reopened; B dirty subsequent edit, not resaved. Same-context reload/project Open, not cold process or standalone verifyDocumentFile rematching."
+  },
+  "checks": {
+    "syntaxAllThreeNewModules": "PASS",
+    "finalModelTypesAfterLastDriverEdit": "PASS",
+    "finalModelTypesProof": "Final command uses set-e and records a successful command completion after source-capsule edit; earlier type logs are not added as extra test counts.",
+    "diff": "PASS",
+    "HighSavedReview": "PASS bounded original Doc/native/fresh Worker and saved arithmetic review; no product/native/browser/oracle rerun."
+  },
+  "fail": [
+    "Original oracle01 S diagnostic TypeError; no product defect established"
+  ],
+  "notRun": [
+    "Oracle01 A/B and chained types",
+    "Round creation/old radius-cycle replay",
+    "Named mixed-sketch document-parameter binding",
+    "General line-arc Round/fitter/thicken/NURBS or solver completeness",
+    "Fully constrained/unique-solution/full-domain/inertia/catalog mass acceptance",
+    "Cold-process persistence/B resave/standalone rematching",
+    "Whole kernel/Studio build, packed/declarations, fresh OCP/external download, mobile/new CI/paid live/release/develop integration"
+  ],
+  "wholeCad": "NOT_MEASURED",
+  "B01_B10": "NOT_ADJUDICATED",
+  "sourcePins": {
+    "apps/cad-studio/test/mixed-line-dimension-preflight.mjs": "4aa1fee7d33704758a005656e1f5e6b7283f97a98b6ded64ff9caef6800afad0",
+    "apps/cad-studio/test/mixed-line-dimension-oracles.mjs": "126bb93c3dde6031c35394604862482553c9c186c5cd21491436753b0093948b",
+    "apps/cad-studio/test/mixed-line-dimension-browser.mjs": "9bc883e60d29926defb62f24afce60590ad8c8a149cde214f7c3fdc3e1cc6135",
+    "apps/cad-studio/test/flow-helper.mjs": "3aaf23e8a0078a9411b8f8d2bbbc05e42a304a89cf96e59bf2faae3d313cfe6c",
+    "apps/cad-studio/src/sketch/useSketchActions.ts": "7c4f83df104d0f44e0f6d614cbd373da590e8126b5127694c84b81f3a2908f71",
+    "apps/cad-studio/src/sketch/preserveConstruction.ts": "5c859ccbfddf2ad8e64395ead454eecafce6df46bb470948be19fcf802a4c2d5",
+    "packages/barocss-cad-model/src/sketch/settle.ts": "746d341a85dbb4b8fdf4c84c2ec17f29eb094bc0462a049c3c6e8984955fb339",
+    "packages/barocss-cad-model/src/sketch/outlineFields.ts": "606d486b3572751acdb60ebcfaef51833b208bf72c022f28265d1c47b05f2d2e",
+    "packages/barocss-cad-model/src/sketch/rules.ts": "c2553a981cf2ececf3f1f0331fb639c4f3cf62d3359ffcaaf61a29b2f550edf5",
+    "packages/barocss-cad-model/src/sketch/loops.ts": "45f46b51321a33d7dd0b6a0608a28938f8c045b3d792b3023fe8664253f53a54",
+    "packages/barocss-cad-model/src/sketch/reopen.ts": "cf5a9ccd77ef516bdef59af2f69be98b7d3be43c3393d74a071e3d4931b0ea6a"
+  },
+  "externalEvidence": [
+    {
+      "path": "/tmp/barocss-d536-preflight01/receipt.json",
+      "sha256": "bdde290b78fbaf43960819126d84dd7a2f42e0e1047c0f46fa8fb82fb896eac1"
+    },
+    {
+      "path": "/tmp/barocss-d536-preflight01/run.mjs",
+      "sha256": "709c764bec1014d32bc4b35e6178f0c8233a9f78d3ca31dbdb396bba0cf8b3e2"
+    },
+    {
+      "path": "/tmp/barocss-d536-preflight01/executed-preflight-module.mjs",
+      "sha256": "4aa1fee7d33704758a005656e1f5e6b7283f97a98b6ded64ff9caef6800afad0"
+    },
+    {
+      "path": "/tmp/barocss-d536-preflight01/run.log",
+      "sha256": "7e9aabe10ed45baff4eefe2a56aaa92d928f5b15b54427f82c38010a0aa9d39c"
+    },
+    {
+      "path": "/tmp/barocss-d536-control01/receipt.json",
+      "sha256": "d92500a442adc4964a8eac3c5c6ce5b20d37d51cc88ee0171bb4f1f2f049d681"
+    },
+    {
+      "path": "/tmp/barocss-d536-admission01/receipt.json",
+      "sha256": "9931e879f86b3b0407ae84e74d5fc4402649590f2743b651c9169aceb29f1e05"
+    },
+    {
+      "path": "/tmp/barocss-d536-admission01/run.mjs",
+      "sha256": "d6196b4759dba3baa318d9983e3c46921bdd56aee4e587facf7c97c546d11ea6"
+    },
+    {
+      "path": "/tmp/barocss-d536-admission01/executed-oracles-snapshot.mjs",
+      "sha256": "aa1c0d69b31e14a7e25b228bfd9b874e23a06fb18074d9af6196e8630a4f8475"
+    },
+    {
+      "path": "/tmp/barocss-d536-oracle01/receipt.json",
+      "sha256": "d58fe755f7b0788bb043c5e9782490eb12bdee82d316307dd18d423c7581a15c"
+    },
+    {
+      "path": "/tmp/barocss-d536-oracle01/run.mjs",
+      "sha256": "b6cbc2237d69c96047ebd652ab5e0e80cbb566422583ba7dc9e7ba9078c2474a"
+    },
+    {
+      "path": "/tmp/barocss-d536-oracle01/executed-oracles.mjs",
+      "sha256": "2fe7747131c1397d0fd9ec8a33b11dcbe30d87675d88d5792ef5e9876100c792"
+    },
+    {
+      "path": "/tmp/barocss-d536-oracle01/run.log",
+      "sha256": "8435c445c3c8c94d77b80988f5354dbb3a4904d762a41c288bf62e18b421e855"
+    },
+    {
+      "path": "/tmp/barocss-d536-oracle02/receipt.json",
+      "sha256": "27daa91a4e7657cf7c859011b22df8d9cf25d7a297f23e6297325c1f522d4487"
+    },
+    {
+      "path": "/tmp/barocss-d536-oracle02/run.mjs",
+      "sha256": "1c892858b62372e807640ed95254bd49d32be6013663ce77ba96f49001184143"
+    },
+    {
+      "path": "/tmp/barocss-d536-oracle02/executed-oracles.mjs",
+      "sha256": "126bb93c3dde6031c35394604862482553c9c186c5cd21491436753b0093948b"
+    },
+    {
+      "path": "/tmp/barocss-d536-oracle02/run.log",
+      "sha256": "e344c7e1406fe19d0647ec4c3febd8b8506168fdf3ca54ba18715a2da43fe0ba"
+    },
+    {
+      "path": "/tmp/barocss-d536-checks01/outline-identity.log",
+      "sha256": "4d5d193ac3da1155e07bf22991bf9383800960af9eaa903a3cddff51e6e0f096"
+    },
+    {
+      "path": "/tmp/barocss-d536-checks01/preflight-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d536-checks01/oracle-syntax02.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d536-checks01/browser-syntax02.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d536-checks01/final-model-types04.log",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "path": "/tmp/barocss-d536-studio01/receipt.json",
+      "sha256": "05a807c60ef7bbde9e8e72b9bebaea25a1da694e3cd949076dad46388f420aeb"
+    },
+    {
+      "path": "/tmp/barocss-d536-studio01/executed-mixed-line-dimension-browser.mjs",
+      "sha256": "9bc883e60d29926defb62f24afce60590ad8c8a149cde214f7c3fdc3e1cc6135"
+    },
+    {
+      "path": "/tmp/barocss-d536-studio01/executed-mixed-line-dimension-oracles.mjs",
+      "sha256": "126bb93c3dde6031c35394604862482553c9c186c5cd21491436753b0093948b"
+    },
+    {
+      "path": "/tmp/barocss-d536-studio01/executed-mixed-line-dimension-preflight.mjs",
+      "sha256": "4aa1fee7d33704758a005656e1f5e6b7283f97a98b6ded64ff9caef6800afad0"
+    },
+    {
+      "path": "/tmp/barocss-d536-studio01/09-own-native-opfs-save.bcad",
+      "sha256": "15ae8d3b51f93e4ef2f9571ecc6646661f844732495ecff4593532f5b913debc"
+    },
+    {
+      "path": "/tmp/barocss-d536-studio01-meta/run.log",
+      "sha256": "0bdef2191576ef153f9167dde97d2938f48993ac3e90783d225939d547219b3a"
+    }
+  ]
+}
