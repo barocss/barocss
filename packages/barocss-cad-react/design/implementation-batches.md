@@ -51,3 +51,5 @@ DrawingDocument with exact source revision/scope, Sheet/View and annotations bef
 ## Status reporting
 
 For each batch report source/type/controlled tests, native physical oracle, current Worker/Viewer, Studio Open/project and docs separately as PASS/FAIL/NOT_RUN. Do not count stored kinds as completed components. User function components are unlimited; built-in capability is counted only when an actual implemented exported component has its own admitted input/output contract and evidence.
+
+D509 source candidate only: Loop, LineSegment, ArcSegment, Profile, Outer and Voids have functional proposed implementations and source-declared tests. They remain unadopted until the separate D509 checks and native/current Viewer/returned Studio proof pass. Canonical SegmentedProfiledPlate realizes all six. Regions remains proposed/unexported. Preserve D507 one-logical-output/multiple-native-pieces semantics; no connected-solid guard or first-piece selection is added.

@@ -90,3 +90,7 @@ if (result.ok) {
 Treat compiled results as immutable. Logical compiler outputs may be normalized by the existing Model reader; do not assume a compiler output key is already the accepted engine body key.
 
 `IrError` extends Error and exposes `code`. Current compiler codes are `CARDINALITY`, `TYPE`, `CYCLE`, `MISSING_REFERENCE`, `DUPLICATE_BINDING`, `DUPLICATE_ALIAS`, `DUPLICATE_KEY`, `INVALID_PARAMETER`, `EXCLUSIVE_INPUT` and `UNSUPPORTED_CAPABILITY`. These are declaration errors, not a replacement for the CAD engine's native refusal and tolerance contracts.
+
+## D509 source candidate
+
+Loop and Profile are additional closed-profile producers in the proposed source candidate; Outer/Voids provide explicit single-loop slots, and LineSegment/ArcSegment provide exact ordered Loop descriptors. Regions, arbitrary plane/face inputs, constraints and Sweep/Loft adapters remain unexported. Extrude.profile and old primitive lowerings remain compatible. Revolve holes retain their existing operation-specific native admission, with no new physical qualification. No universal containment/contact repair or refusal is promised. New execution is NOT_RUN. Part denotes one declared logical Model result, which can contain multiple native pieces; refs do not select a connected piece.

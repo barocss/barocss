@@ -30,7 +30,7 @@ Insert the returned composition as the single output of a Part with a connected 
 
 ## Composition and validation
 
-Extrude accepts Rectangle/Circle/Polygon output, including a compatible output returned by a synchronous wrapper or resolved ProfileRef. ExtrudeProps names the public exclusive-input type. The result can feed Union, Difference or a rigid transform.
+Extrude accepts Rectangle/Circle/Polygon output and, in the D509 candidate, Loop/Profile output, including a compatible output returned by a synchronous wrapper or resolved ProfileRef. ExtrudeProps names the public exclusive-input type. The result can feed Union, Difference or a rigid transform.
 
 Zero/nonfinite distance or nonfinite from refuses. Both child and profile, multiple profiles, a solid token as profile, and arbitrary face/region descriptors refuse. Surface/face extrusion supported elsewhere in Studio is not automatically admitted here.
 
@@ -45,3 +45,7 @@ The Polygon producer uses the same profile child/ref contract. D504 qualifies th
 The measured Bracket uses floor6, wall56 and declared overcut tools, with original widths80/100 and selected W80 transforms. Positive/negative distance input support is not a runtime certificate for all heights/directions.
 
 The complete code block uses current public exports; its extracted type-check result is recorded separately. Type/compiler checks do not by themselves evaluate this standalone example as a new native case. Read the [component catalog](/packages/cad-react/components), [refs and compiler](/packages/cad-react/references), [engine integration](/packages/cad-react/engine-viewer) and [current support limits](/packages/cad-react/limits).
+
+## D509 source candidate
+
+Loop and Profile are additional closed-profile producers in the proposed source candidate; Outer/Voids provide explicit single-loop slots, and LineSegment/ArcSegment provide exact ordered Loop descriptors. Regions, arbitrary plane/face inputs, constraints and Sweep/Loft adapters remain unexported. Extrude.profile and old primitive lowerings remain compatible. Revolve holes retain their existing operation-specific native admission, with no new physical qualification. No universal containment/contact repair or refusal is promised. New execution is NOT_RUN. Part denotes one declared logical Model result, which can contain multiple native pieces; refs do not select a connected piece.

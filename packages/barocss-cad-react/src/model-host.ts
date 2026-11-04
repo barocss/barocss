@@ -109,6 +109,7 @@ export class ModelHost implements ModelLifecycle {
       currentDocument: this.desired?.doc ?? null, documentJSON: this.desired ? JSON.stringify(this.desired.doc) : null,
       fingerprint: this.desired?.fingerprint ?? null, nativeOwner: owner ?? null, renderedOwner: this.rendered,
       native: body ? { key: body.key, volume: body.volume, centroid: body.centroid ?? null, bounds: body.mesh.bounds,
+        ...(body.pieces === undefined ? {} : {pieces:body.pieces}),
         deferred: body.massRef !== undefined, vertices: body.mesh.positions.length / 3, triangles: body.mesh.indices.length / 3 } : null,
       adapter: this.state, viewer: this.sink.snapshot() };
   }

@@ -1,0 +1,118 @@
+{
+  "decision": "D509",
+  "status": "NOT_READY",
+  "checkpoint": "WORK_IN_PROGRESS",
+  "checkpointBase": "a125cb67b268c0b2784b3fafef129f25051294af",
+  "scope": "Preserve the33 CAD React implementation/docs WIP paths for owner-authorized develop integration. This is not feature completion or current-source qualification.",
+  "implementation": {
+    "logicalElements": 19,
+    "priorElements": 13,
+    "added": [
+      "Loop",
+      "LineSegment",
+      "ArcSegment",
+      "Profile",
+      "Outer",
+      "Voids"
+    ],
+    "Regions": "UNEXPORTED",
+    "currentSourceReconciliation": "NOT_RUN"
+  },
+  "historicalEvidence": {
+    "testedHeads": {
+      "focused": "3067962b4b14b5bccf28342b8dd58a9ac15853e3",
+      "GUIAndNative": "217b95682b65489bc8ca72ccbeffc0b00d58aedf",
+      "StudioAndAux": "d7e868a84146a7efd16a4838cd33e4143ffdbefc"
+    },
+    "controls": {
+      "count": 76,
+      "unchangedReused": 65,
+      "freshProfiles": 11,
+      "packageTypes": "PASS",
+      "publicAPITypes": "PASS",
+      "lint": "PASS",
+      "semanticMutationsKilled": 4
+    },
+    "Profile": {
+      "status": "PASS_AT_TESTED_SOURCE",
+      "case": "60x40x8mm outer4lines, one fullCCWarc void centered30,20; radius6/8/recovery8/Reset6; all6elements realized",
+      "nativeCaptures": 2,
+      "exactDocPhysicalReuses": 3,
+      "freshPositiveConsumers": 5,
+      "GUIConsumers": 4,
+      "StudioConsumers": 1,
+      "selectedTopology": "onebody/oneshell/genus1 only for selected case"
+    },
+    "aux": {
+      "status": "PASS_AT_TESTED_SOURCE",
+      "case": "original483byte two-box Doc; one logicalb4 result with nativepieces2",
+      "currentOriginalReplyPieces": 2,
+      "currentHostPieces": 2,
+      "nativeCaptures": 0,
+      "oracleRuns": 0,
+      "exactDocPhysicalReuses": 1,
+      "freshMetadataConsumers": 1
+    },
+    "HighGUIAndNative": {
+      "status": "PASS_BOUNDED",
+      "savedPredicates": 97210,
+      "scope": "OriginalGUI/native and cleanup binding only; not whole-item or current-sourcePASS"
+    },
+    "fullViewportFit": "NOT_MEASURED",
+    "rasterPrecision": "NOT_MEASURED",
+    "StudioPaletteOcclusion": "Recorded; publicOpen/Frame/currentWorker PASS does not imply unobscured fullfit"
+  },
+  "remaining": {
+    "currentSourceReconciliation": "NOT_RUN",
+    "all30ActualFenceTSC": "NOT_RUN",
+    "sevenNavigationTests": "NOT_RUN",
+    "currentDocsCheck": "NOT_RUN",
+    "currentSiteBuild": "NOT_RUN",
+    "currentDiff": "NOT_RUN_AFTER_FINAL_PROSE",
+    "all26DesktopRoutes": "NOT_RUN",
+    "finalEligible20MDProse": "NOT_APPLIED"
+  },
+  "references": {
+    "focused": {
+      "path": "/tmp/barocss-d509-profiles-checks03/receipt.json",
+      "sha256": "ee95e1058198b904b50c078fac9ee59f9f6881739bc2c002b0cc1b5f87f7f1ce"
+    },
+    "mutants": {
+      "path": "/tmp/barocss-d509-profiles-mutations03/receipt.json",
+      "sha256": "4a2fb14829f767fb4e813a1af8a47b3a386bb917aec843c23345094ec5de1044"
+    },
+    "GUI": {
+      "path": "/tmp/barocss-d509-profiles-gui01/browser.receipt.json",
+      "sha256": "a66113db3ba04aad64204f34fbfab45b90de2b0334e9e60a46d91d2ad76a5050"
+    },
+    "native": {
+      "path": "/tmp/barocss-d509-profiles-native01/receipt.json",
+      "sha256": "a3bdcb29185b747c72daf2b230fb35c67638764388a24046908a0923484c7ffe"
+    },
+    "Studio": {
+      "path": "/tmp/barocss-d509-profiles-studio06/receipt.json",
+      "sha256": "db4d2ac887f0044ee799ec190153d68922ab316d7a5d317c285f89dbf0778221"
+    },
+    "rootStudio": {
+      "path": "/tmp/barocss-d509-root-studio-review01/review.json",
+      "sha256": "0ee9b1efd68a4cafe044d0aa7a5a6d2db2b4e86763b4fe9549869c6d895872e5"
+    },
+    "aux08": {
+      "path": "/tmp/barocss-d509-profiles-aux08/browser.receipt.json",
+      "sha256": "f8bd927840345eaf742a1e5aa16ffbdf38eb2b956ccafdab6ef4b71ff8042464"
+    },
+    "rootAux": {
+      "path": "/tmp/barocss-d509-root-aux-review01/review.json",
+      "sha256": "11d38c6931fccbb2b08cf4ac73e05bf8c967b36723933b5fa95b1a3409a4ef51"
+    }
+  },
+  "preservedFailures": [
+    "OriginalTS18046 package-typeFAIL and sparse-fixture lintFAIL",
+    "Highsaved auditor-only assumption stops, corrected withoutSUTreplay",
+    "consumer-rebind05 metadata count/map pre-executionFAIL",
+    "Aux06 wrongfixture actualFAIL/0acceptedauxstates",
+    "Aux07 logical/canonical preSUTFAIL and ownedIPCcleanupFAIL; exited child confirmed"
+  ],
+  "custodyRule": "All original full maps stay immutable historical tested-source evidence. D513/D514 changed four old-pinned Studio files; old full-map current equality is false. No key drop, waiver, automatic rebind or successful-prefix replay. Integration requires explicit actual source/dependency reconciliation.",
+  "holds": "No mobile, download/install, newPhysics activation, develop merge qualification, release or general geometry/topology promise follows from this checkpoint."
+}

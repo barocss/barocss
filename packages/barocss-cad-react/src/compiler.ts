@@ -1,4 +1,6 @@
 /** Realized geometry IR. React owns function components; this compiler only lowers committed descriptors. */
+import {loopOf} from '@barocss/cad-model/sketch/loops';
+import type {LoopSegment as ModelLoopSegment,SketchNode as ModelSketchNode} from '@barocss/cad-model/engine/doc';
 export type RefToken = object;
 export type Point2 = readonly [number, number];
 export type Point3 = readonly [number, number, number];
@@ -13,7 +15,14 @@ export interface Identity {
 export type Rectangle = Identity & { kind: 'rectangle'; min: Point2; max: Point2 };
 export type Circle = Identity & { kind: 'circle'; center: Point2; radius: number };
 export type Polygon = Identity & { kind: 'polygon'; points: readonly Point2[] };
-export type Profile = Rectangle | Circle | Polygon;
+export type LineSegment = {kind:'line-segment';key?:string;start:Point2};
+export type ArcSegment = {kind:'arc-segment';key?:string;start:Point2;center:Point2;direction:'ccw'|'cw'};
+export type Segment = LineSegment | ArcSegment;
+export type Loop = Identity & {kind:'loop';children:readonly Segment[]};
+export type Outer = {kind:'outer';key?:string} & ({children:readonly Profile[];profile?:never}|{profile:RefToken;children?:never});
+export type Voids = {kind:'voids';key?:string} & ({children:readonly Profile[];profiles?:never}|{profiles:readonly RefToken[];children?:never});
+export type ProfileComposition = Identity & {kind:'profile';children:readonly (Outer|Voids)[]};
+export type Profile = Rectangle | Circle | Polygon | Loop | ProfileComposition;
 export type Extrude = Identity & { kind: 'extrude'; distance: number; from?: number } & (
   | { children: readonly Profile[]; profile?: never }
   | { profile: RefToken; children?: never }
@@ -36,13 +45,17 @@ export type Rotate = Identity & {kind:'rotate';axis:Axis;angle:number;pivot?:Poi
 export type Solid = Extrude | Revolve | Union | Difference | Translate | Rotate | SolidRef;
 export interface Definitions { kind: 'definitions'; children: readonly (Profile | Solid)[]; key?: string }
 export interface Part { kind: 'part'; units: 'mm'; children: readonly (Solid | Definitions)[] }
-export type Node = Profile | Solid | Target | Tools | Definitions;
+export type Node = Profile | Solid | Target | Tools | Definitions | Outer | Voids | Segment;
 
 export interface BodyRef { node: number; side: 'solid' }
+type ProfileData = (
+  | {profile:'rectangle';min:[number,number];max:[number,number]}
+  | {profile:'circle';center:[number,number];radius:number}
+  | {profile:'polygon';points:[number,number][]}
+  | {profile:'loop';segments:ModelLoopSegment[]}
+) & {holes?:ModelLoopSegment[][]};
 export type NativeNode =
-  | { id: string; kind: 'sketch'; profile: 'rectangle'; min: [number, number]; max: [number, number] }
-  | { id: string; kind: 'sketch'; profile: 'circle'; center: [number, number]; radius: number }
-  | { id: string; kind: 'sketch'; profile: 'polygon'; points: [number, number][] }
+  | ({id:string;kind:'sketch'} & ProfileData)
   | { id: string; kind: 'extrude'; sketch: number; height: number; from?: number }
   | {id:string;kind:'revolve';sketch:number;axis:'x'|'y';angle:number;origin?:[number,number]}
   | { id: string; kind: 'union'; left: BodyRef; right: BodyRef }
@@ -72,7 +85,8 @@ export type CompileResult = { ok: true; changed: boolean; value: Compiled }
 interface RecordNode { node: Node; path: string }
 interface IdRecord { id: string; kind: NativeNode['kind'] }
 const fail = (code: ErrorCode, message: string): never => { throw new IrError(code, message); };
-const geometric = (kind: string) => ['rectangle', 'circle', 'polygon', 'extrude', 'revolve', 'union', 'difference', 'translate', 'rotate'].includes(kind);
+const profileKind = (kind:string) => ['rectangle','circle','polygon','loop','profile'].includes(kind);
+const geometric = (kind: string) => ['rectangle', 'circle', 'polygon', 'loop', 'profile', 'extrude', 'revolve', 'union', 'difference', 'translate', 'rotate'].includes(kind);
 const solid = (kind: string) => ['extrude', 'revolve', 'union', 'difference', 'translate', 'rotate', 'solid-ref'].includes(kind);
 const list = (n: Node): readonly Node[] => 'children' in n && n.children !== undefined ? n.children : [];
 const pair = (value: Point2): [number, number] => {
@@ -101,10 +115,12 @@ export class CompositionCompiler {
       const objectStack = new Set<object>();
       const childrenAt = new Map<string, RecordNode[]>();
       const collectChildren = (children: readonly Node[], path: string): RecordNode[] => {
+        if (!Array.isArray(children)) fail('TYPE', 'Realized children must be a dense own array');
+        for (let i=0;i<children.length;i++) if (!Object.hasOwn(children,i)) fail('TYPE', 'Realized children must be a dense own array');
         const keys = new Set<string>();
         return children.map((node, index) => {
           if (!node || typeof node !== 'object' || typeof node.kind !== 'string') fail('TYPE', 'Expected realized typed host node');
-          if (!['rectangle', 'circle', 'polygon', 'extrude', 'revolve', 'union', 'difference', 'translate', 'rotate', 'solid-ref', 'target', 'tools', 'definitions'].includes(node.kind)) {
+          if (!['rectangle', 'circle', 'polygon', 'loop', 'profile', 'outer', 'voids', 'line-segment', 'arc-segment', 'extrude', 'revolve', 'union', 'difference', 'translate', 'rotate', 'solid-ref', 'target', 'tools', 'definitions'].includes(node.kind)) {
             fail('UNSUPPORTED_CAPABILITY', `Unsupported geometry capability: ${node.kind}`);
           }
           if (node.key !== undefined) {
@@ -166,11 +182,89 @@ export class CompositionCompiler {
         if (items.length !== 1) fail('CARDINALITY', `${label} requires one output`); return items[0];
       };
       const input = (r: RecordNode, field: 'profile' | 'solid'): RecordNode => {
-        const n = r.node as Extrude | Revolve | Target | Translate | Rotate;
+        const n = r.node as Extrude | Revolve | Target | Translate | Rotate | Outer;
         const token = field in n ? (n as unknown as Record<string, RefToken>)[field] : undefined;
         const hasChildren = 'children' in n && n.children !== undefined;
         if ((token !== undefined) === hasChildren) fail('EXCLUSIVE_INPUT', `Supply ${field} reference OR children`);
         return token === undefined ? exactlyOne(children(r), field) : resolve(token);
+      };
+      // Descriptor resolution allocates no IDs and emits no native sketch.
+      const described = new Map<string,ProfileData>(), profileStates = new Map<string,'active'|'done'>();
+      const strictPair = (value:unknown):[number,number] => {
+        if(!Array.isArray(value)||value.length!==2||!Object.hasOwn(value,0)||!Object.hasOwn(value,1)||!Number.isFinite(value[0])||!Number.isFinite(value[1])) return fail('INVALID_PARAMETER','Dense finite local XY coordinate pair required');
+        return [value[0],value[1]];
+      };
+      const singleLoop = (data:ProfileData):ProfileData => {
+        if(data.holes?.length) fail('UNSUPPORTED_CAPABILITY','Outer and Voids require single-loop sources without holes');
+        switch(data.profile){
+          case 'rectangle':strictPair(data.min);strictPair(data.max);break;
+          case 'circle':strictPair(data.center);break;
+          case 'polygon':for(const point of data.points)strictPair(point);break;
+          case 'loop':for(const segment of data.segments){strictPair(segment.start);if(segment.kind==='arc')strictPair(segment.center);}break;
+        }
+        return data;
+      };
+      const copiedLoop = (data:ProfileData):ModelLoopSegment[] => {
+        singleLoop(data);const copied:ModelLoopSegment[]=[];
+        // Existing Model helper performs exact primitive-to-loop conversion, never sampled outlines.
+        for(const segment of loopOf({kind:'sketch',...data} as ModelSketchNode)){
+          copied.push(segment.kind==='line'?{kind:'line',start:strictPair(segment.start)}:{kind:'arc',start:strictPair(segment.start),center:strictPair(segment.center),direction:segment.direction});
+        }
+        return copied;
+      };
+      const readProfile = (r:RecordNode):ProfileData => {
+        const n=r.node;if(!profileKind(n.kind))return fail('TYPE','Closed profile producer required');
+        if(profileStates.get(r.path)==='active')return fail('CYCLE','Profile descriptor reference cycle');
+        if(profileStates.get(r.path)==='done')return described.get(r.path)!;
+        profileStates.set(r.path,'active');let data:ProfileData;
+        switch(n.kind){
+          case 'rectangle':{
+            const min=pair(n.min),max=pair(n.max);if(!(max[0]>min[0]&&max[1]>min[1]))fail('INVALID_PARAMETER','Rectangle needs positive extents');data={profile:'rectangle',min,max};break;
+          }
+          case 'circle':{
+            if(!Number.isFinite(n.radius)||n.radius<=0)fail('INVALID_PARAMETER','Positive finite radius required');data={profile:'circle',center:pair(n.center),radius:n.radius};break;
+          }
+          case 'polygon':{
+            if(!Array.isArray(n.points)||n.points.length<3||n.points.length>1024)fail('INVALID_PARAMETER','Polygon requires 3 to 1024 points');const points:[number,number][]=[];
+            for(let i=0;i<n.points.length;i++){
+              if(!Object.hasOwn(n.points,i))fail('INVALID_PARAMETER','Polygon points must be dense finite coordinate pairs');const point=n.points[i];
+              if(!Array.isArray(point)||point.length!==2||!Object.hasOwn(point,0)||!Object.hasOwn(point,1)||!Number.isFinite(point[0])||!Number.isFinite(point[1]))fail('INVALID_PARAMETER','Polygon points must be dense finite coordinate pairs');points.push([point[0],point[1]]);
+            }
+            data={profile:'polygon',points};break;
+          }
+          case 'loop':{
+            const entries=children(r);if(entries.length<1||entries.length>1024)fail('CARDINALITY','Loop requires 1 to 1024 segment descriptors');const segments:ModelLoopSegment[]=[];
+            for(let i=0;i<entries.length;i++){if(!Object.hasOwn(entries,i))fail('TYPE','Loop segment list must be dense');const entry=entries[i],segment=entry.node;if(children(entry).length)fail('CARDINALITY','Loop segments cannot contain geometry');
+              if(segment.kind==='line-segment')segments.push({kind:'line',start:strictPair(segment.start)});
+              else if(segment.kind==='arc-segment'){
+                if(segment.direction!=='ccw'&&segment.direction!=='cw')fail('INVALID_PARAMETER','ArcSegment direction must be ccw or cw');segments.push({kind:'arc',start:strictPair(segment.start),center:strictPair(segment.center),direction:segment.direction});
+              }else fail('TYPE','Loop accepts LineSegment and ArcSegment descriptors only');
+            }
+            data={profile:'loop',segments};break;
+          }
+          case 'profile':{
+            const slots=children(r),outers=slots.filter(s=>s.node.kind==='outer'),voids=slots.filter(s=>s.node.kind==='voids');
+            if(outers.length!==1||voids.length>1||slots.length!==1+voids.length)fail('CARDINALITY','Profile requires one Outer and at most one Voids');
+            const outer=singleLoop(readProfile(input(outers[0],'profile')));data={...outer};
+            if(voids.length){
+              const group=voids[0],node=group.node as Voids,hasRefs='profiles'in node&&node.profiles!==undefined,hasChildren='children'in node&&node.children!==undefined;
+              if(hasRefs===hasChildren)fail('EXCLUSIVE_INPUT','Supply Voids profiles references OR children');let sources:RecordNode[];
+              if(hasRefs){
+                const refs=node.profiles;if(!Array.isArray(refs)||refs.length<1||refs.length>64)fail('CARDINALITY','Voids requires 1 to 64 single-loop sources');sources=[];
+                for(let i=0;i<refs.length;i++){if(!Object.hasOwn(refs,i))fail('MISSING_REFERENCE','Voids reference list must be dense');sources.push(resolve(refs[i]));}
+              }else sources=children(group);
+              if(sources.length<1||sources.length>64)fail('CARDINALITY','Voids requires 1 to 64 single-loop sources');const holes:ModelLoopSegment[][]=[];
+              for(let i=0;i<sources.length;i++){if(!Object.hasOwn(sources,i))fail('TYPE','Voids child list must be dense');holes.push(copiedLoop(readProfile(sources[i])));}data={...outer,holes};
+            }
+            break;
+          }
+          default:return fail('TYPE','Closed profile producer required');
+        }
+        described.set(r.path,data);profileStates.set(r.path,'done');return data;
+      };
+      const materializeProfile = (r:RecordNode):number => {
+        const have=indices.get(r.path);if(have!==undefined)return have;
+        const data=readProfile(r),index=emit({id:id(r,'region','sketch'),kind:'sketch',...data});indices.set(r.path,index);return index;
       };
       const lower = (r: RecordNode, expected: 'profile' | 'solid'): number => {
         const n = r.node;
@@ -178,37 +272,14 @@ export class CompositionCompiler {
           if (expected !== 'solid') fail('TYPE', 'Solid reference cannot be used as a profile producer');
           return lower(resolve(n.ref), 'solid');
         }
-        const actual = n.kind === 'rectangle' || n.kind === 'circle' || n.kind === 'polygon' ? 'profile' : solid(n.kind) ? 'solid' : 'slot';
+        const actual = profileKind(n.kind) ? 'profile' : solid(n.kind) ? 'solid' : 'slot';
         if (actual !== expected) fail('TYPE', `Expected ${expected}, received ${actual}`);
+        if(expected==='profile')return materializeProfile(r);
         if (states.get(r.path) === 'active') fail('CYCLE', 'Geometry reference cycle');
         if (states.get(r.path) === 'done') return indices.get(r.path)!;
         states.set(r.path, 'active');
         let index: number;
         switch (n.kind) {
-          case 'rectangle': {
-            const min = pair(n.min), max = pair(n.max);
-            if (!(max[0] > min[0] && max[1] > min[1])) fail('INVALID_PARAMETER', 'Rectangle needs positive extents');
-            index = emit({ id: id(r, 'region', 'sketch'), kind: 'sketch', profile: 'rectangle', min, max }); break;
-          }
-          case 'circle':
-            if (!Number.isFinite(n.radius) || n.radius <= 0) fail('INVALID_PARAMETER', 'Positive finite radius required');
-            index = emit({ id: id(r, 'region', 'sketch'), kind: 'sketch', profile: 'circle', center: pair(n.center), radius: n.radius }); break;
-          case 'polygon': {
-            if (!Array.isArray(n.points) || n.points.length < 3 || n.points.length > 1024) {
-              fail('INVALID_PARAMETER', 'Polygon requires 3 to 1024 points');
-            }
-            const points: [number, number][] = [];
-            for (let i = 0; i < n.points.length; i++) {
-              if (!Object.hasOwn(n.points, i)) fail('INVALID_PARAMETER', 'Polygon points must be dense finite coordinate pairs');
-              const point = n.points[i];
-              if (!Array.isArray(point) || point.length !== 2 || !Object.hasOwn(point, 0) || !Object.hasOwn(point, 1)
-                || !Number.isFinite(point[0]) || !Number.isFinite(point[1])) {
-                fail('INVALID_PARAMETER', 'Polygon points must be dense finite coordinate pairs');
-              }
-              points.push([point[0], point[1]]);
-            }
-            index = emit({ id: id(r, 'region', 'sketch'), kind: 'sketch', profile: 'polygon', points }); break;
-          }
           case 'extrude': {
             const sketch = lower(input(r, 'profile'), 'profile');
             if (!Number.isFinite(n.distance) || n.distance === 0 || !Number.isFinite(n.from ?? 0)) fail('INVALID_PARAMETER', 'Finite nonzero extrusion distance required');

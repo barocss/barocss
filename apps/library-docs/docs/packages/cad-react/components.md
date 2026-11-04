@@ -104,3 +104,18 @@ The inner Rotate lowers before the outer Translate. No matrix or trigonometry is
 `Definitions` takes `children` declaring profiles or solids for typed reuse. Its definitions do not add independent Part outputs. See [references](/packages/cad-react/references) for `ProfileHandle`, `SolidHandle`, `ProfileRef` and `SolidRef`.
 
 Normal function components, props, hooks, Fragments and keyed arrays can compose these components within synchronous admission. React keys and mounted identities preserve supported feature identity; remounting creates new identity. No component has a public native-ID prop. Internal Suspense/Offscreen/async behavior is outside admission, including when a wrapper hides it.
+
+## D509 profile composition candidate
+
+Source candidate only; adoption and all new checks/native/Viewer/Studio proof are NOT_RUN. The candidate adds six functional declarations while preserving the existing 13 elements.
+
+| Component | Input and role |
+| --- | --- |
+| [Loop](/packages/cad-react/components/loop) | Ordered 1..1024 exact segment descriptors; optional profile ref |
+| [LineSegment](/packages/cad-react/components/line-segment) | Finite start pair inside Loop; no native ID or ref |
+| [ArcSegment](/packages/cad-react/components/arc-segment) | Finite start/center and explicit ccw/cw direction inside Loop |
+| [Profile](/packages/cad-react/components/profile) | Exactly one Outer, optional one Voids; optional profile ref |
+| [Outer](/packages/cad-react/components/outer) | Exactly one single-loop child or profile reference |
+| [Voids](/packages/cad-react/components/voids) | 1..64 single-loop children or dense profile references |
+
+Profile and Loop produce typed profile data. Outer/Voids and LineSegment/ArcSegment are structural descriptors, not independent native features. Composite Profile emits its own consumed sketch without emitting orphan sketches for its sources. Extrude.profile and optional same-Part refs remain valid. Circle sources convert through the existing exact loop helper; no sampled approximation. Extrude admits explicit holes in its existing native bounds. Revolve uses one outer with holes, no additional regions; its geometry admission differs and new holed Revolve physical proof is NOT_RUN. Sweep/Loft, Regions, arbitrary planes, face inputs and constraints remain unexported. Part is one logical Model output and can contain multiple native pieces; no connected-solid guard is added.

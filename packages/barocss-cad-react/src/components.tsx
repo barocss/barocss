@@ -9,8 +9,8 @@ export interface ModelLifecycle {
   complete(model: Compiled): void;
   detached(): void;
 }
-type Kind = 'part' | 'rectangle' | 'circle' | 'polygon' | 'extrude' | 'revolve' | 'union' | 'difference' | 'target' | 'tools' | 'definitions' | 'translate' | 'rotate';
-export interface ProfileHandle { readonly kind: 'rectangle' | 'circle' | 'polygon' }
+type Kind = 'part' | 'rectangle' | 'circle' | 'polygon' | 'loop' | 'profile' | 'outer' | 'voids' | 'line-segment' | 'arc-segment' | 'extrude' | 'revolve' | 'union' | 'difference' | 'target' | 'tools' | 'definitions' | 'translate' | 'rotate';
+export interface ProfileHandle { readonly kind: 'rectangle' | 'circle' | 'polygon' | 'loop' | 'profile' }
 export interface SolidHandle { readonly kind: 'extrude' | 'revolve' | 'union' | 'difference' | 'translate' | 'rotate' }
 export type ProfileRef = React.RefObject<ProfileHandle | null>;
 export type SolidRef = React.RefObject<SolidHandle | null>;
@@ -65,6 +65,11 @@ class Session {
         case 'rectangle': return { ...meta, kind: 'rectangle', min: p.min as Point2, max: p.max as Point2 };
         case 'polygon': return { ...meta, kind: 'polygon', points: p.points as readonly Point2[] };
         case 'circle': return { ...meta, kind: 'circle', center: p.center as Point2, radius: p.radius as number };
+        case 'loop': case 'profile': return {...meta,kind:entry.kind,children:nested} as NodeIR;
+        case 'line-segment': return {...meta,kind:entry.kind,start:p.start} as NodeIR;
+        case 'arc-segment': return {...meta,kind:entry.kind,start:p.start,center:p.center,direction:p.direction} as NodeIR;
+        case 'outer': return {kind:entry.kind,key:entry.key,...(p.profile===undefined?{children:nested}:{profile:p.profile,...(nested.length?{children:nested}:{})})} as NodeIR;
+        case 'voids': return {kind:entry.kind,key:entry.key,...(p.profiles===undefined?{children:nested}:{profiles:p.profiles,...(nested.length?{children:nested}:{})})} as NodeIR;
         case 'revolve': return {...meta,kind:entry.kind,axis:p.axis,angle:p.angle,...(p.origin===undefined?{}:{origin:p.origin}),...(p.profile===undefined?{children:nested}:{profile:p.profile,...(nested.length?{children:nested}:{})})} as NodeIR;
         case 'extrude': return { ...meta, kind: 'extrude', distance: p.distance as number,
           ...(p.from === undefined ? {} : { from: p.from as number }),
@@ -153,3 +158,16 @@ export function Rotate({ref,children,...props}:RotateProps){return <Host kind="r
 
 export type RevolveProps={axis:'x'|'y';angle:number;origin?:Point2;ref?:SolidRef}&({children:React.ReactNode;profile?:never}|{profile:ProfileRef;children?:never});
 export function Revolve({ref,children,...props}:RevolveProps){return <Host kind="revolve" props={props} binding={ref}>{children}</Host>;}
+
+export interface LoopProps {children:React.ReactNode;ref?:ProfileRef}
+export interface LineSegmentProps {start:Point2}
+export interface ArcSegmentProps {start:Point2;center:Point2;direction:'ccw'|'cw'}
+export interface ProfileProps {children:React.ReactNode;ref?:ProfileRef}
+export type OuterProps={children:React.ReactNode;profile?:never}|{profile:ProfileRef;children?:never};
+export type VoidsProps={children:React.ReactNode;profiles?:never}|{profiles:readonly ProfileRef[];children?:never};
+export function Loop({ref,children}:LoopProps){return <Host kind="loop" props={{}} binding={ref}>{children}</Host>;}
+export function LineSegment(props:LineSegmentProps){return <Host kind="line-segment" props={{start:props.start}}/>;}
+export function ArcSegment(props:ArcSegmentProps){return <Host kind="arc-segment" props={{start:props.start,center:props.center,direction:props.direction}}/>;}
+export function Profile({ref,children}:ProfileProps){return <Host kind="profile" props={{}} binding={ref}>{children}</Host>;}
+export function Outer({children,...props}:OuterProps){return <Host kind="outer" props={props}>{children}</Host>;}
+export function Voids({children,...props}:VoidsProps){return <Host kind="voids" props={props}>{children}</Host>;}

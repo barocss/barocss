@@ -31,7 +31,7 @@ Place this composition as the single output inside a Part with a connected lifec
 
 ## Composition and validation
 
-Rectangle, Circle and Polygon are the current closed profile adapters. Use one child or one profile reference. Definitions can hold a referenced profile; Boolean operations and Translate/Rotate can consume the resulting solid. Declaration tests for those combinations do not qualify every combination as a native physical case.
+Rectangle, Circle and Polygon are the prior closed profile adapters. The D509 candidate adds Loop/Profile sources; holed Revolve remains subject to its separate native limits and is not physically qualified by the selected Extrude case. Use one child or one profile reference. Definitions can hold a referenced profile; Boolean operations and Translate/Rotate can consume the resulting solid. Declaration tests for those combinations do not qualify every combination as a native physical case.
 
 Angles that are zero, negative, nonfinite or greater than 360° are refused. Invalid axes, sparse/nonfinite explicit origins, missing/wrong-kind references, mixed child/ref and wrong cardinality refuse. Staged native IDs commit only on accepted compilation. Compiler refusal retains its prior accepted source; ModelHost invalidation clears its current desired document. A stale visible shape does not establish current acceptance.
 
@@ -46,3 +46,7 @@ The actual checks use only the rectangle shown above, the y axis and the omitted
 The browser uses working Angle and Reset controls, public group collapse/reopen and a 1200 ms idle sample. Those panel actions preserve the exact document and current geometry ownership. Reset returns the exact original document and rendered frame. Public Studio Open and Frame all consume that returned 90° document with fresh root Worker values. Three native captures plus two exact 90° subproof reuses bind five fresh consumers; they are not five native captures.
 
 The standalone code block is the measured geometry recipe, but the physical proof also depends on the current connected host and source pins. The x axis, Circle, explicit origin and downstream combinations remain outside actual physical qualification until separately measured. D463 is historical Studio evidence; it is not current React native proof. No new kernel algorithm, tolerance, face/UV, asynchronous admission or general SDK guarantee follows.
+
+## D509 source candidate
+
+Loop and Profile are additional closed-profile producers in the proposed source candidate; Outer/Voids provide explicit single-loop slots, and LineSegment/ArcSegment provide exact ordered Loop descriptors. Regions, arbitrary plane/face inputs, constraints and Sweep/Loft adapters remain unexported. Extrude.profile and old primitive lowerings remain compatible. Revolve holes retain their existing operation-specific native admission, with no new physical qualification. No universal containment/contact repair or refusal is promised. New execution is NOT_RUN. Part denotes one declared logical Model result, which can contain multiple native pieces; refs do not select a connected piece.

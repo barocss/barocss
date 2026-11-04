@@ -6,3 +6,5 @@ export {Translate,Rotate} from './components.js';
 export type {TranslateProps,RotateProps,SolidInput} from './components.js';
 export {Revolve} from './components.js';
 export type {RevolveProps} from './components.js';
+export {Loop,LineSegment,ArcSegment,Profile,Outer,Voids} from './components.js';
+export type {LoopProps,LineSegmentProps,ArcSegmentProps,ProfileProps,OuterProps,VoidsProps} from './components.js';

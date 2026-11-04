@@ -16,7 +16,8 @@
     "public-api.tsx",
     "../../examples/**/*.tsx",
     "revolve-api.tsx",
-    "polygon-api.tsx"
+    "polygon-api.tsx",
+    "profiles-api.tsx"
   ],
   "extends": "../../tsconfig.json"
 }

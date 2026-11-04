@@ -12,7 +12,7 @@ test('all ten top menus retain their labels and own one canonical group', () => 
 test('nested CAD React pages and the CAD Object API keep their section', () => {
   const react = sidebar.find(item => item.text === 'CAD React'), links = [];
   const visit = item => { if (item.link) links.push(item.link); for (const child of item.items ?? []) visit(child); }; visit(react);
-  assert.equal(links.length,20);assert.equal(links.filter(p => p.startsWith('/packages/cad-react/components/')).length,13);
+  assert.equal(links.length,26);assert.equal(links.filter(p => p.startsWith('/packages/cad-react/components/')).length,19);
   assert.deepEqual(sidebarByRoute['/packages/cad-react/'],[react]);
   assert.deepEqual(sidebarByRoute['/packages/api'],[sidebar.find(item => item.text === 'CAD')]);
   const withoutAlias = {...sidebarByRoute}; delete withoutAlias['/packages/api'];
