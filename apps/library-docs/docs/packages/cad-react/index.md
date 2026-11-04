@@ -8,8 +8,9 @@ The current package is TypeScript source in this repository. It is not a publish
 
 | Operation | Components | Result |
 |---|---|---|
-| Closed planar profile | `Rectangle`, `Circle` | Profile input for an extrusion |
+| Closed planar profile | `Rectangle`, `Circle` | Profile input for Extrude or Revolve |
 | Solid extrusion | `Extrude` | Existing native extrusion of one profile |
+| Solid revolution | `Revolve` | Existing sketch-axis revolution of one closed profile |
 | Solid union | `Union` | Join at least two realized solids |
 | Ordered subtraction | `Difference`, `Target`, `Tools` | Subtract tools from one target |
 | Rigid placement | `Translate`, `Rotate` | Existing Model body-transform nodes |
@@ -45,7 +46,7 @@ For the complete existing ModelNode inventory and the missing adapter backlog, r
 
 | Entry point | Runtime exports |
 |---|---|
-| `@barocss/cad-react` | `Part`, `Rectangle`, `Circle`, `Extrude`, `Union`, `Difference`, `Target`, `Tools`, `Definitions`, `Translate`, `Rotate`, `CompositionCompiler`, `IrError` |
+| `@barocss/cad-react` | `Part`, `Rectangle`, `Circle`, `Extrude`, `Revolve`, `Union`, `Difference`, `Target`, `Tools`, `Definitions`, `Translate`, `Rotate`, `CompositionCompiler`, `IrError` |
 | `@barocss/cad-react/engine` | `ModelHost` |
 | `@barocss/cad-react/viewer` | `ExistingViewerHost` |
 
@@ -53,6 +54,8 @@ All public type exports are listed with their contracts on the component, refere
 
 ## Current evidence
 
-The original package App/Bracket checkpoint measures widths80→100→80 with the real existing Worker/Viewer, exact returned-document/frame identity, a public Studio Open and independent native checks at both widths. Its24 controlled tests and package/API types pass. Those results cover the original declared example, not arbitrary React programs or geometry.
+The original package App/Bracket checkpoint measures widths 80→100→80 with the real existing Worker/Viewer, exact returned-document/frame identity, a public Studio Open and independent native checks at both widths. Its 24 controlled tests and package/API types pass. Those results cover the original declared example, not arbitrary React programs or geometry.
 
-The Translate/Rotate extension has34 controlled tests and package/API types/lint passing. Its selected W80 cardinal transform states and exact returned-document Studio Open have independent native evidence. The current desktop examples add a right inspector with working collapse/reopen, numeric controls, real readiness and Reset. Both Transform and Width examples have fresh UI evidence; [validation limits](/packages/cad-react/limits) distinguish those consumers from reused native proof. API acceptance and finite runtime states remain separate.
+The Translate/Rotate extension has 34 controlled tests and package/API types/lint passing. Its selected W80 cardinal transform states and exact returned-document Studio Open have independent native evidence. The current desktop examples add a right inspector with working collapse/reopen, numeric controls, real readiness and Reset. Both Transform and Width examples have fresh UI evidence; [validation limits](/packages/cad-react/limits) distinguish those consumers from reused native proof. API acceptance and finite runtime states remain separate.
+
+The Revolve extension adds a sixth existing-operation adapter. Its 44 unique controlled tests, package/API types and lint pass. Selected actual rectangle/y-axis/omitted-origin states 90°/180°/360° and public Reset 90° pass with exact returned-document Studio Open. The [Revolve page](/packages/cad-react/components/revolve) and [support limits](/packages/cad-react/limits) state the finite geometry boundary. Final independent saved-data review passes 41014 saved checks plus five post-write 64-hex document checks, separate from 44 controlled tests.

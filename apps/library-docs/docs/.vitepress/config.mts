@@ -1,5 +1,5 @@
 import { defineConfig, type DefaultTheme } from 'vitepress';
-import { sidebar } from './sidebar.mjs';
+import { navigationSections, sidebarByRoute } from './sidebar.mjs';
 
 type SidebarSourceItem = {
   text: string;
@@ -29,20 +29,10 @@ export default defineConfig({
   lastUpdated: true,
   markdown: { languageAlias: { mjs: 'js' } },
   themeConfig: {
-    nav: [
-      { text: 'Guide', link: '/guide/getting-started' },
-      { text: 'CAD', link: '/packages/cad/' },
-      { text: 'CAD Model', link: '/packages/cad-model/' },
-      { text: 'CAD React', link: '/packages/cad-react/' },
-      { text: 'Physics', link: '/packages/physics/' },
-      { text: 'GPU', link: '/packages/gpu/' },
-      { text: 'Studio', link: '/studio/' },
-      { text: 'Viewer', link: '/packages/viewer/' },
-      { text: 'Agent', link: '/agent/' },
-      { text: 'How it works', link: '/how/' },
-      { text: 'Reference', link: '/reference/refusals' },
-    ],
-    sidebar: sidebar.map(navigationItem),
+    nav: navigationSections.map(({ text, link, activeMatch }) => ({ text, link, activeMatch })),
+    sidebar: Object.fromEntries(Object.entries(sidebarByRoute).map(([prefix, items]) => [
+      prefix, items.map(navigationItem),
+    ])),
     outline: [2, 3],
     search: { provider: 'local' },
   },

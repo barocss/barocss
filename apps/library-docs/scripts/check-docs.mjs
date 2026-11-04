@@ -9,10 +9,11 @@ import { spawnSync } from 'node:child_process';
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { join, relative, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { sidebar } from '../docs/.vitepress/sidebar.mjs';
+import { sidebar, navigationSections, sidebarByRoute } from '../docs/.vitepress/sidebar.mjs';
+import { sidebarScopeProblems } from './sidebar-scopes.mjs';
 
 const docs = resolve(dirname(fileURLToPath(import.meta.url)), '../docs');
-const problems = [];
+const problems = sidebarScopeProblems(sidebar, navigationSections, sidebarByRoute);
 const publicDir = join(docs, 'public'), SHOT_MAX = 250 * 1024, TOTAL_MAX = 10 * 1024 * 1024;
 /** A link to a file (it has an extension), not a page. */
 const isFile = link => /\.[a-z0-9]+$/i.test(link.split('#')[0]);

@@ -9,9 +9,9 @@ export interface ModelLifecycle {
   complete(model: Compiled): void;
   detached(): void;
 }
-type Kind = 'part' | 'rectangle' | 'circle' | 'extrude' | 'union' | 'difference' | 'target' | 'tools' | 'definitions' | 'translate' | 'rotate';
+type Kind = 'part' | 'rectangle' | 'circle' | 'extrude' | 'revolve' | 'union' | 'difference' | 'target' | 'tools' | 'definitions' | 'translate' | 'rotate';
 export interface ProfileHandle { readonly kind: 'rectangle' | 'circle' }
-export interface SolidHandle { readonly kind: 'extrude' | 'union' | 'difference' | 'translate' | 'rotate' }
+export interface SolidHandle { readonly kind: 'extrude' | 'revolve' | 'union' | 'difference' | 'translate' | 'rotate' }
 export type ProfileRef = React.RefObject<ProfileHandle | null>;
 export type SolidRef = React.RefObject<SolidHandle | null>;
 type CadRef = React.RefObject<ProfileHandle | SolidHandle | null>;
@@ -64,6 +64,7 @@ class Session {
       switch (entry.kind) {
         case 'rectangle': return { ...meta, kind: 'rectangle', min: p.min as Point2, max: p.max as Point2 };
         case 'circle': return { ...meta, kind: 'circle', center: p.center as Point2, radius: p.radius as number };
+        case 'revolve': return {...meta,kind:entry.kind,axis:p.axis,angle:p.angle,...(p.origin===undefined?{}:{origin:p.origin}),...(p.profile===undefined?{children:nested}:{profile:p.profile,...(nested.length?{children:nested}:{})})} as NodeIR;
         case 'extrude': return { ...meta, kind: 'extrude', distance: p.distance as number,
           ...(p.from === undefined ? {} : { from: p.from as number }),
           ...(p.profile === undefined ? {children:nested} : {profile:p.profile,...(nested.length ? {children:nested} : {})}) } as NodeIR;
@@ -146,3 +147,6 @@ export type TranslateProps={offset:Point3;ref?:SolidRef}&SolidInput;
 export type RotateProps={axis:Axis;angle:number;pivot?:Point3;ref?:SolidRef}&SolidInput;
 export function Translate({ref,children,...props}:TranslateProps){return <Host kind="translate" props={props} binding={ref}>{children}</Host>;}
 export function Rotate({ref,children,...props}:RotateProps){return <Host kind="rotate" props={props} binding={ref}>{children}</Host>;}
+
+export type RevolveProps={axis:'x'|'y';angle:number;origin?:Point2;ref?:SolidRef}&({children:React.ReactNode;profile?:never}|{profile:ProfileRef;children?:never});
+export function Revolve({ref,children,...props}:RevolveProps){return <Host kind="revolve" props={props} binding={ref}>{children}</Host>;}

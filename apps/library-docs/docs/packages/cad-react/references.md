@@ -43,12 +43,15 @@ A profile token cannot be used as a solid operand, and a solid token cannot be a
 | Public type | Meaning |
 |---|---|
 | `ProfileHandle` | Readonly kind `rectangle` or `circle` |
-| `SolidHandle` | Readonly kind `extrude`, `union`, `difference`, `translate` or `rotate` |
+| `SolidHandle` | Readonly kind `extrude`, `revolve`, `union`, `difference`, `translate` or `rotate` |
 | `ProfileRef` | React object ref containing `ProfileHandle|null` |
 | `SolidRef` | React object ref containing `SolidHandle|null` |
 | `ModelLifecycle` | Declaration dirty/invalid/complete/detached callbacks |
-| `ExtrudeProps`, `TargetProps` | Profile or solid input prop contracts |
+| `ExtrudeProps`, `RevolveProps` | Exclusive one-profile child or ProfileRef input; their numeric operation parameters differ |
+| `TargetProps` | Exclusive one-solid child or SolidRef input |
 | `TranslateProps`, `RotateProps`, `SolidInput` | Existing body-transform and exclusive solid-input contracts |
+
+Extrude and Revolve share the child-or-profile-reference rule. Their exported prop types express that union directly; there is no public `ProfileInput` type export. Revolve outputs a SolidRef and can take part in Definitions, Boolean and rigid-transform declarations. Controlled composition checks do not qualify every combined shape as a new native case.
 
 ## Identity and invalid declarations
 

@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D499: expose existing CAD React Revolve with selected90/180/360/Reset90 and returned-document Studio proof;44 controlled tests and final High saved audit pass; docs types/check/build and seven navigation tests pass; 37 desktop checkpoints cover 10 menus and category-owned topics](notes/cad-react-revolve-2026-11-04/README.md).
+
 - [D502: measure one existing no-row Tapped availability/Cancel boundary with two passing links, no row load or native physical qualification; positive M6 lifecycle remains NOT_RUN](notes/tapped-no-row-boundary-2026-11-04/README.md).
 
 - [D501: record seven observed ordinary countersink workflow groups with original angular-observer failure, root output-routing error, overall runner FAIL and irrecoverable receipt-custody FAIL; 11,560 High saved-evidence checks qualify the bounded physical workflow while runner/custody FAIL remain](notes/ordinary-countersink-workflow-2026-11-04/README.md).

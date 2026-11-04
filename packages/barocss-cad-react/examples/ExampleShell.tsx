@@ -46,14 +46,14 @@ function Inspector({host,error,controls,onReset}:InspectorProps){
     <footer className="cad-demo__inspector-footer"><button className="cad-demo__reset" type="button" onClick={onReset}>Reset</button></footer>
   </aside>;
 }
-export function ExampleShell({canvas,host,error,controls,onReset,children}:{
-  canvas:React.RefObject<HTMLCanvasElement|null>;host:ModelHost|null;error:string|null;controls:React.ReactNode;onReset:()=>void;children:React.ReactNode;
+export function ExampleShell({canvas,host,error,controls,onReset,children,documentName="Bracket"}:{
+  canvas:React.RefObject<HTMLCanvasElement|null>;host:ModelHost|null;error:string|null;controls:React.ReactNode;onReset:()=>void;children:React.ReactNode;documentName?:string;
 }){
   return <main className="cad-demo">
     <section className="cad-demo__workspace" aria-label="Model workspace">
-      <header className="cad-demo__workspace-header"><span className="cad-demo__brand">CAD<span>React</span></span><span className="cad-demo__document">Bracket</span></header>
+      <header className="cad-demo__workspace-header"><span className="cad-demo__brand">CAD<span>React</span></span><span className="cad-demo__document">{documentName}</span></header>
       <div className="cad-demo__viewport"><div className="cad-demo__canvas-frame">
-        <canvas ref={canvas} width={1000} height={700} tabIndex={0} aria-label="CAD bracket"/>
+        <canvas ref={canvas} width={1000} height={700} tabIndex={0} aria-label={`CAD ${documentName.toLowerCase()}`}/>
       </div></div>
       {children}
     </section>

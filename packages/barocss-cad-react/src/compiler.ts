@@ -17,6 +17,10 @@ export type Extrude = Identity & { kind: 'extrude'; distance: number; from?: num
   | { children: readonly Profile[]; profile?: never }
   | { profile: RefToken; children?: never }
 );
+export type Revolve = Identity & {kind:'revolve';axis:'x'|'y';angle:number;origin?:Point2} & (
+  | {children:readonly Profile[];profile?:never}
+  | {profile:RefToken;children?:never}
+);
 export type Union = Identity & { kind: 'union'; children: readonly Solid[] };
 export type SolidRef = { kind: 'solid-ref'; ref: RefToken; key?: string };
 export type Target = { kind: 'target'; key?: string } & (
@@ -28,7 +32,7 @@ export type Difference = Identity & { kind: 'difference'; children: readonly (Ta
 export type TransformInput = {children:readonly Solid[];solid?:never}|{solid:RefToken;children?:never};
 export type Translate = Identity & {kind:'translate';offset:Point3} & TransformInput;
 export type Rotate = Identity & {kind:'rotate';axis:Axis;angle:number;pivot?:Point3} & TransformInput;
-export type Solid = Extrude | Union | Difference | Translate | Rotate | SolidRef;
+export type Solid = Extrude | Revolve | Union | Difference | Translate | Rotate | SolidRef;
 export interface Definitions { kind: 'definitions'; children: readonly (Profile | Solid)[]; key?: string }
 export interface Part { kind: 'part'; units: 'mm'; children: readonly (Solid | Definitions)[] }
 export type Node = Profile | Solid | Target | Tools | Definitions;
@@ -38,6 +42,7 @@ export type NativeNode =
   | { id: string; kind: 'sketch'; profile: 'rectangle'; min: [number, number]; max: [number, number] }
   | { id: string; kind: 'sketch'; profile: 'circle'; center: [number, number]; radius: number }
   | { id: string; kind: 'extrude'; sketch: number; height: number; from?: number }
+  | {id:string;kind:'revolve';sketch:number;axis:'x'|'y';angle:number;origin?:[number,number]}
   | { id: string; kind: 'union'; left: BodyRef; right: BodyRef }
   | { id: string; kind: 'difference'; parent: BodyRef; tool: BodyRef }
   | {id:string;kind:'translate';parent:BodyRef;offset:[number,number,number]}
@@ -65,8 +70,8 @@ export type CompileResult = { ok: true; changed: boolean; value: Compiled }
 interface RecordNode { node: Node; path: string }
 interface IdRecord { id: string; kind: NativeNode['kind'] }
 const fail = (code: ErrorCode, message: string): never => { throw new IrError(code, message); };
-const geometric = (kind: string) => ['rectangle', 'circle', 'extrude', 'union', 'difference', 'translate', 'rotate'].includes(kind);
-const solid = (kind: string) => ['extrude', 'union', 'difference', 'translate', 'rotate', 'solid-ref'].includes(kind);
+const geometric = (kind: string) => ['rectangle', 'circle', 'extrude', 'revolve', 'union', 'difference', 'translate', 'rotate'].includes(kind);
+const solid = (kind: string) => ['extrude', 'revolve', 'union', 'difference', 'translate', 'rotate', 'solid-ref'].includes(kind);
 const list = (n: Node): readonly Node[] => 'children' in n && n.children !== undefined ? n.children : [];
 const pair = (value: Point2): [number, number] => {
   if (!Array.isArray(value) || value.length !== 2 || !value.every(Number.isFinite)) fail('INVALID_PARAMETER', 'Two finite coordinates required');
@@ -97,7 +102,7 @@ export class CompositionCompiler {
         const keys = new Set<string>();
         return children.map((node, index) => {
           if (!node || typeof node !== 'object' || typeof node.kind !== 'string') fail('TYPE', 'Expected realized typed host node');
-          if (!['rectangle', 'circle', 'extrude', 'union', 'difference', 'translate', 'rotate', 'solid-ref', 'target', 'tools', 'definitions'].includes(node.kind)) {
+          if (!['rectangle', 'circle', 'extrude', 'revolve', 'union', 'difference', 'translate', 'rotate', 'solid-ref', 'target', 'tools', 'definitions'].includes(node.kind)) {
             fail('UNSUPPORTED_CAPABILITY', `Unsupported geometry capability: ${node.kind}`);
           }
           if (node.key !== undefined) {
@@ -159,7 +164,7 @@ export class CompositionCompiler {
         if (items.length !== 1) fail('CARDINALITY', `${label} requires one output`); return items[0];
       };
       const input = (r: RecordNode, field: 'profile' | 'solid'): RecordNode => {
-        const n = r.node as Extrude | Target | Translate | Rotate;
+        const n = r.node as Extrude | Revolve | Target | Translate | Rotate;
         const token = field in n ? (n as unknown as Record<string, RefToken>)[field] : undefined;
         const hasChildren = 'children' in n && n.children !== undefined;
         if ((token !== undefined) === hasChildren) fail('EXCLUSIVE_INPUT', `Supply ${field} reference OR children`);
@@ -191,6 +196,12 @@ export class CompositionCompiler {
             if (!Number.isFinite(n.distance) || n.distance === 0 || !Number.isFinite(n.from ?? 0)) fail('INVALID_PARAMETER', 'Finite nonzero extrusion distance required');
             index = emit({ id: id(r, 'solid', 'extrude'), kind: 'extrude', sketch, height: n.distance,
               ...(n.from === undefined ? {} : { from: n.from }) }); break;
+          }
+          case 'revolve': {
+            const sketch=lower(input(r,'profile'),'profile');
+            if((n.axis!=='x'&&n.axis!=='y')||!Number.isFinite(n.angle)||!(n.angle>0&&n.angle<=360)) fail('INVALID_PARAMETER','Revolve requires sketch x/y axis and finite angle in (0,360]');
+            if(n.origin!==undefined&&(!Array.isArray(n.origin)||n.origin.length!==2||!Number.isFinite(n.origin[0])||!Number.isFinite(n.origin[1]))) fail('INVALID_PARAMETER','Revolve origin requires two finite mm coordinates');
+            index=emit({id:id(r,'solid','revolve'),kind:'revolve',sketch,axis:n.axis,angle:n.angle,...(n.origin===undefined?{}:{origin:[...n.origin] as [number,number]})});break;
           }
           case 'translate': {
             const parent=lower(input(r,'solid'),'solid');

@@ -11,6 +11,7 @@ Each supported React element has its own props, complete example, logical/native
 | [Part](/packages/cad-react/components/part) | [Extrude](/packages/cad-react/components/extrude) | [Target](/packages/cad-react/components/target) | [Translate](/packages/cad-react/components/translate) |
 | [Rectangle](/packages/cad-react/components/rectangle) | [Union](/packages/cad-react/components/union) | [Tools](/packages/cad-react/components/tools) | [Rotate](/packages/cad-react/components/rotate) |
 | [Circle](/packages/cad-react/components/circle) | [Difference](/packages/cad-react/components/difference) | [Definitions](/packages/cad-react/components/definitions) | |
+| | [Revolve](/packages/cad-react/components/revolve) | | |
 
 ## Part
 
@@ -44,6 +45,10 @@ Supply dense finite coordinate tuples. These components are profile producers, n
 
 `ExtrudeProps` is the public prop type. The input is profile geometry. An internal Sketch node is a document-storage detail, not a public `sketch={...}` prop. Native face/region extrusion available elsewhere in Studio is not automatically a source capability here.
 
+## Revolve
+
+Revolve accepts one closed profile child or typed `profile` reference, required sketch `axis="x"|"y"`, required finite angle in `(0,360]` degrees and optional finite two-coordinate origin. It returns a solid reference. The adapter lowers the existing Model node; it adds no native math. Declaration/types/lint checks and the selected rectangle90/180/360/Reset 90 actual flow pass; broader profile/axis/origin combinations remain unqualified. Read the [Revolve contract](/packages/cad-react/components/revolve).
+
 ## Union and Difference
 
 | Component | Props | Contract |
@@ -73,7 +78,7 @@ This is existing CAD Boolean evaluation, with the backend's native geometry/refu
 | `Translate` | `offset:[x,y,z]`, one solid input | `ref:SolidRef` |
 | `Rotate` | `axis:"x"|"y"|"z"`, `angle` in degrees, one solid input | `pivot:[x,y,z]`, `ref:SolidRef` |
 
-A solid input is exactly one realized solid child or `solid:SolidRef`. `SolidInput`, `TranslateProps` and `RotateProps` are exported. Offset and explicit pivot require three finite coordinates, including all three indexed array elements. Sparse arrays refuse. Angle must be finite with absolute value at most3600; zero is allowed. An omitted pivot remains omitted and uses the existing backend origin default.
+A solid input is exactly one realized solid child or `solid:SolidRef`. `SolidInput`, `TranslateProps` and `RotateProps` are exported. Offset and explicit pivot require three finite coordinates, including all three indexed array elements. Sparse arrays refuse. Angle must be finite with absolute value at most 3600; zero is allowed. An omitted pivot remains omitted and uses the existing backend origin default.
 
 ```tsx
 import { Translate, Rotate, Extrude, Rectangle } from '@barocss/cad-react';

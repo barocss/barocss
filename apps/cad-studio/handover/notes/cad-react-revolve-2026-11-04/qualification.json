@@ -1,0 +1,259 @@
+{
+  "work_id": "D499",
+  "status": "PASS_BOUNDED_REVOLVE_AND_ROUTE_SCOPED_DOCUMENTATION",
+  "tier": "FEATURE_EXISTING_CAD_REACT_REVOLVE_AND_DOCS_NAVIGATION",
+  "scope": "Rectangle[10,20]..[20,50];axisy;originomitted;90\u2192180\u2192360\u2192publicReset90;exactreturned2node/n1/b1DocpublicStudioOpen+FrameAll",
+  "package": "PRIVATE_0.0.0_EXPERIMENTAL_WORKSPACE_SOURCE_NO_PUBLISH",
+  "implementation": "ReactadapterforEXISTINGModelrevolve;noCAD/Model/kernel/Worker/rendererAPI/math/tolerancechanges",
+  "receipts": {
+    "checks": {
+      "path": "/tmp/barocss-d499-checks02/receipt.json",
+      "sha256": "d04368f7c97af8c2a30daa75609122e070c915cd155aaf56a783027cfeb150d1"
+    },
+    "browser": {
+      "path": "/tmp/barocss-d499-gui-run01/browser.receipt.json",
+      "sha256": "eab517d44c82223ca6e1c6462b0b28a9ab892bcddb07a44dde9346055fbd3416"
+    },
+    "native": {
+      "path": "/tmp/barocss-d499-native-run01/receipt.json",
+      "sha256": "bac28f62524dc71946397c93de26bd3684f6b31a9d257cf1385db8b7cfef180e"
+    },
+    "studio": {
+      "path": "/tmp/barocss-d499-studio-run01/receipt.json",
+      "sha256": "2dce366a7ceaa327303f7f754db705869e0794607fabd7951e432b85c0725abe"
+    },
+    "rootGUIReview": {
+      "path": "/tmp/barocss-d499-root/gui-actual01-review.json",
+      "sha256": "0938cff51585c4feab328d3080793a34b5aaeb8ecd46240a7cacb33167d8b7c5"
+    },
+    "rootStudioReview": {
+      "path": "/tmp/barocss-d499-root/studio-actual01-review.json",
+      "sha256": "317262ab47e9b06a40ae1db9369009d7c86a006b36558cc7dae6b167ea45a8c9"
+    },
+    "highFinal": {
+      "path": "/tmp/barocss-d499-high-final01/review.json",
+      "sha256": "eb1305b89208b3016fc20aa218dff91885d48e21976d80b0fe4806459016b509"
+    },
+    "highManifest": {
+      "path": "/tmp/barocss-d499-high-final01/manifest.json",
+      "sha256": "6302a06bcd7684b01a030d505eeb054c4d97a0d5f58ec6a27de60dde37f09a4e"
+    },
+    "sourceApproval": {
+      "path": "/tmp/barocss-d499-source-review01/review.json",
+      "sha256": "f69b62cd92e40e501c675a26b312341055764307186d0e0cdea88f84517053cc"
+    },
+    "geometryManifest": {
+      "path": "/tmp/barocss-d499-geometry01/manifest.json",
+      "sha256": "9cdcf5ef92b292c6133c403ee966ef952675bbef698e76b71a92366984f27223"
+    },
+    "docsChecks03": {
+      "path": "/tmp/barocss-d499-docs-checks03/receipt.json",
+      "sha256": "4c4d954208e9f1f690417468dfacc2bb0a658b0d226cd6e7c9401c319028dcc0"
+    },
+    "docsChecks04": {
+      "path": "/tmp/barocss-d499-docs-checks04/receipt.json",
+      "sha256": "ba5eecb86d295315cb5a3ecc00fca5c3c488563ceb78b1aaa183577dae2bc5b2"
+    },
+    "docsPreview01": {
+      "path": "/tmp/barocss-d499-docs-preview-run01/receipt.json",
+      "sha256": "d2755c3a5c14099c6cd4e5ed71058ce03013e5244873a842e8909cf197ba3e24"
+    },
+    "docsPreview03": {
+      "path": "/tmp/barocss-d499-docs-preview-run03/receipt.json",
+      "sha256": "8180ecd2d9868cb12b50f42f779b59c44c1dd1f9edf0823f310add8cc50c2d32"
+    },
+    "rootDocsReview03": {
+      "path": "/tmp/barocss-d499-root/docs-preview03-review.json",
+      "sha256": "0085a803b6e55103b0d7041b1d00a63b8381e0f1cb55405f9ca969fba2790734"
+    },
+    "docsChecks06PreservedFail": {
+      "path": "/tmp/barocss-d499-docs-checks06/receipt.json",
+      "sha256": "488888b03a85750a4aecaa3cfba84853d56cac4b2fdf09416874fecaede8758e"
+    },
+    "docsChecks07": {
+      "path": "/tmp/barocss-d499-docs-checks07/receipt.json",
+      "sha256": "bab40fa980b434d087f9a24278260c0431cbb756ed6d016298704b59d981bd4c"
+    },
+    "docsPreview04": {
+      "path": "/tmp/barocss-d499-docs-preview-run04/receipt.json",
+      "sha256": "68f0fe4210adcaa9d74260c97ceb4a60811593944e13d5dc1de5f245d345872e"
+    },
+    "rootDocsReview04": {
+      "path": "/tmp/barocss-d499-root/docs-preview04-review.json",
+      "sha256": "05f63a2f8ea1c2737d9ebfebda98939bb8eb24f240c122f2cb9f9c2247808d06"
+    }
+  },
+  "controlledTests": {
+    "unique": 44,
+    "originalPassingReused": 43,
+    "correctedNamedTestFresh": 1,
+    "originalFailure": "DUPLICATE_KEY from two same-key profile fixture children; preserved",
+    "fix": "Only second profile fixture key section\u2192section-2; validation order/error expectation unchanged"
+  },
+  "commands": [
+    {
+      "name": "previously-failed-cardinality-test-only",
+      "argv": [
+        "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node",
+        "--test",
+        "--test-name-pattern=^profile cardinality, exclusive source, wrong-kind and scoped references fail closed$",
+        "tests/revolve.test.mjs"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 0.296,
+      "observedTAPCounts": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "package-types",
+      "argv": [
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/.bin/tsc",
+        "--noEmit",
+        "-p",
+        "tsconfig.json"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 14.287,
+      "observedTAPCounts": {}
+    },
+    {
+      "name": "public-api-example-types",
+      "argv": [
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/.bin/tsc",
+        "--noEmit",
+        "-p",
+        "tests/types/tsconfig.json"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 13.96,
+      "observedTAPCounts": {}
+    },
+    {
+      "name": "package-lint",
+      "argv": [
+        "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/.bin/eslint",
+        "src",
+        "tests",
+        "examples"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 1.3,
+      "observedTAPCounts": {}
+    },
+    {
+      "name": "diff",
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationSeconds": 0.053,
+      "observedTAPCounts": {}
+    }
+  ],
+  "runtime": {
+    "status": "PASS",
+    "guiStates": 4,
+    "studioConsumers": 1,
+    "newNativeCaptures": 3,
+    "exactA90PhysicalReuses": 2,
+    "totalFreshConsumers": 5,
+    "ui": "PublicAngle/Reset/collapse/reopen/idle1200ms;freshoriginalhost/Worker/Viewerowners;exactDoc/frame return;desktoponly",
+    "topology": {
+      "partial": "genus0;6faces12edges8vertices;two radial caps",
+      "full360": "genus1;8faces16edges8vertices;no radial caps;reciprocal periodicgraph"
+    },
+    "pcurvesObserved": 0
+  },
+  "physicalBudgets": {
+    "volumeRelative": 1e-09,
+    "centroidBoundsBoundaryAbsoluteMM": 1e-09,
+    "normalComponentAbsolute": 1e-09
+  },
+  "maximumObservedErrors": {
+    "nativeVolumeRelative": 7.591363620159993e-15,
+    "nativeVolumeAbsoluteMM3": 2.1464074961841106e-10,
+    "centroidAbsoluteMM": 4.618527782440651e-14,
+    "boundsAbsoluteMM": 3.552713678800501e-15,
+    "normalComponentAbsolute": 2.220446049250313e-16,
+    "workerNativeVolumeCentroid": 0
+  },
+  "highFinal": {
+    "status": "PASS",
+    "savedChecks": 41014,
+    "postWrite64HexDocChecks": 5,
+    "notProductTests": true,
+    "originalObserverAckDialectStop": "PRESERVED; saved02 correction only; no runtime/criteria rerun"
+  },
+  "custody": {
+    "actualGUI": 4399,
+    "outer": 4445,
+    "helper": 3045,
+    "throughExecutionCleanupSavedAudit": "PASS_CURRENT_AT_RECORDED_CHECKPOINT",
+    "postAuditProseDelta": "PackageREADME and docs edited afterwards; original full4399 pins are historical, not claimed currently exact",
+    "runtimeExampleTestModules": "UNCHANGED_AFTER_AUDIT"
+  },
+  "documentation": {
+    "status": "PASS_CURRENT_TOPIC_SCOPED_NAVIGATION",
+    "pages": 19,
+    "logicalComponents": 12,
+    "operationAdapters": 6,
+    "sourceModelKinds": 75,
+    "newActualMarkdownFences": 1,
+    "prior21ByteExact": true,
+    "newFenceTypes": "PASS_DOCS03_REUSED_AT_EXACT_22_FENCE_AND_API_BYTES",
+    "siteCheck": "PASS_DOCS07_CURRENT_92_REGISTERED_PAGES",
+    "siteBuild": "PASS_DOCS07_CURRENT",
+    "preview": "PASS_PREVIEW04_TEN_TOPMENUS_26_TOPICS_AND_OVERVIEW",
+    "focusedSidebarTests": 7,
+    "topMenus": 10,
+    "rawDesktopCheckpoints": 37,
+    "visibleComponentLinks": 12,
+    "unchangedPageEligibility": 13,
+    "wrapperSourcePins": 3389,
+    "runnerSourcePins": 3390,
+    "ownPreviewPIDAbsent": 69115,
+    "errors": 0,
+    "originalPreview01": "Historical unified-sidebar proof; current scoped navigation is preview03",
+    "editorialPreview02": "SUPERSEDED_NOT_RUN",
+    "mobile": "NOT_RUN_OWNER_RULE",
+    "rootViewedRepresentativeImages": 14,
+    "rootComparedRawOwnerAndSidebar": 37,
+    "topicOwners": {
+      "CAD": 19,
+      "CAD Model": 6,
+      "GPU": 1
+    },
+    "overviewOwner": "Introduction",
+    "allTopicURLsLabelsLanesPreserved": true,
+    "onlyOwningTopMenuActive": true,
+    "currentContentProof": "Preview03 six editorial CAD React routes remain byte-exact; 94 prior Markdown inputs are byte-equal, distinct from 92 registered page count.",
+    "preservedFailure": "Checks06:6 PASS/1 FAIL; checker stripped anchors and falsely treated distinct anchored links as duplicates. Narrow helper correction preserves full href identity; all seven helper-dependent tests pass in checks07.",
+    "supersededNotRun": [
+      "Editorial preview02",
+      "Topic checks05"
+    ]
+  },
+  "limits": [
+    "Only selected rectangle/y/omittedorigin states physicallyqualified;not generalaxis/Circle/nonzeroorigin/arbitraryangle/combinedBoolean",
+    "No publicFaceUV/asyncguarantee/nativequery/newgeometry/HOLDrelease/mobile/PDF/standards/SDKrelease/install/deploy",
+    "Finite native topology/boundary/carrier witnesses notfullparameter-domainproof;Workerdisplaymesh notphysicalauthority"
+  ],
+  "mainLane": "D501 remains PARTIAL with runner/custody FAIL; D502 positive M6 NOT_RUN; D503 measurement 6/6 and High audit PASS, publication next.",
+  "global": "CoreNOT_MEASURED;legacy43frozen;allHOLDs/PDFdeferralunchanged;noissueclosure/Git/releasebythisagent"
+}

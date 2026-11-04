@@ -80,8 +80,12 @@ This code changes model props through ordinary React state. It needs the separat
 
 ## Current desktop controls
 
-The repository App and TransformApp share a right inspector with compact numeric fields, collapsible groups, actual host status and Reset. Folding controls leaves Part mounted. Status polling is owned by a separate inspector child and stops on unmount; the measured idle interval changes no document, request, checkpoint or owner.
+The repository App, TransformApp and RevolveApp share a right inspector with compact numeric fields, collapsible groups, actual host status and Reset. Folding controls leaves Part mounted. Status polling is owned by a separate inspector child and stops on unmount; the measured idle interval changes no document, request, checkpoint or owner.
 
-The Width example measures80→100→Reset80. Transform measures A(30,90°)→B(50,90°)→C(50,180°)→ResetA. Reset restores the actual initial props. Source/request counts are observed, not assumed from the number of control edits. Canvas buffer1000×700 and displayed10:7 aspect are retained. See [validation limits](/packages/cad-react/limits) for current native/consumer evidence and finite scope.
+The Width example measures 80→100→Reset80. Transform measures A(30,90°)→B(50,90°)→C(50,180°)→ResetA. Reset restores the actual initial props. Source/request counts are observed, not assumed from the number of control edits. Canvas buffer 1000×700 and displayed 10:7 aspect are retained. See [validation limits](/packages/cad-react/limits) for current native/consumer evidence and finite scope.
 
 Global translation followed by automatic framing may leave pixels identical. The proof checks world document, centroid/bounds and fresh owners instead of forcing a pixel difference. Exact return document/frame is a finite observation, not general raster precision.
+
+## Revolved section inspector
+
+`examples/RevolveApp.tsx` connects the same existing engine/Viewer lifecycle to `RevolvedSection`. The [complete Revolve recipe](/packages/cad-react/components/revolve) uses rectangle `[10,20]..[20,50]`, axis y and omitted origin. The actual Angle field measures 90°→180°→360°→public Reset 90°. Working collapse/reopen and 1200 ms idle leave the geometry and owners stable. The returned document opens through public Studio Open and Frame all. No arbitrary-axis, Circle or explicit-origin physical certificate follows from these selected states. See [current evidence](/packages/cad-react/limits#current-evidence); final saved-data review passes 41014 saved checks plus five post-write 64-hex document checks.

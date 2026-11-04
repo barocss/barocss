@@ -9,6 +9,7 @@ export const sidebar = [
       { text: 'Getting started', link: '/guide/getting-started', lane: 'outer' },
       { text: 'Concepts', link: '/guide/concepts', lane: 'coordinator' },
       { text: 'Robot motion', link: '/guide/robot-motion', lane: 'physics-motion-2276' },
+      { text: 'How it works', link: '/how/', lane: 'kernel' },
     ],
   },
   {
@@ -37,6 +38,31 @@ export const sidebar = [
           { text: 'Errors', link: '/packages/api#errors', lane: 'API' },
         ],
       },
+      {
+        text: 'How it works',
+        collapsed: true,
+        items: [
+          { text: 'Booleans of curved solids', link: '/how/boolean', lane: 'kernel' },
+          { text: 'NURBS curves and surfaces', link: '/how/nurbs', lane: 'kernel' },
+          { text: 'Tessellating a B-rep for display', link: '/how/tessellation', lane: 'kernel' },
+          { text: 'Volume, centroid and inertia', link: '/how/mass-properties', lane: 'kernel' },
+          { text: 'Fillets: the rolling ball', link: '/how/fillets', lane: 'kernel' },
+          { text: 'Exact arithmetic for planar solids', link: '/how/exact-boolean', lane: 'kernel' },
+          { text: 'Hidden lines for drawings', link: '/how/hidden-lines', lane: 'kernel' },
+          { text: 'Booleans of upright extrusions', link: '/how/prismatic', lane: 'kernel' },
+          { text: 'Meshes, native tools and the BVH', link: '/how/mesh-boolean', lane: 'kernel' },
+          { text: 'Closest points on curves and surfaces', link: '/how/closest-point', lane: 'kernel' },
+          { text: 'Where a curve meets a plane', link: '/how/curve-roots', lane: 'kernel' },
+          { text: 'Threads, gears and springs', link: '/how/threads-gears', lane: 'kernel' },
+          { text: 'Subdivision surfaces as exact B-splines', link: '/how/subd', lane: 'kernel' },
+          { text: 'Sheet metal: bends and the flat pattern', link: '/how/sheet-metal', lane: 'kernel' },
+          { text: 'Mesh processing: simplify, repair, offset', link: '/how/mesh-processing', lane: 'kernel' },
+          { text: 'Tolerances and numbers', link: '/how/tolerance', lane: 'kernel' },
+          { text: 'What makes a B-rep valid', link: '/how/validity', lane: 'kernel' },
+          { text: 'Reading STEP and IGES', link: '/how/import', lane: 'kernel' },
+          { text: 'How results are checked', link: '/how/verification', lane: 'kernel' },
+        ],
+      },
     ],
   },
   {
@@ -52,6 +78,18 @@ export const sidebar = [
       { text: 'Route bundles', link: '/packages/cad-model/#route-bundles-in-code', lane: 'outer' },
       { text: 'Assembly and robot motions', link: '/packages/cad-model/#assembly-and-robot-motions', lane: 'outer' },
       { text: 'Studio document', link: '/packages/cad-model/#the-studio-document', lane: 'outer' },
+      {
+        text: 'How it works',
+        collapsed: true,
+        items: [
+          { text: 'Solving sketch constraints', link: '/how/sketch-solver', lane: 'kernel' },
+          { text: 'Names that survive edits', link: '/how/naming', lane: 'kernel' },
+          { text: 'Lofts, sweeps and revolves', link: '/how/loft-sweep', lane: 'kernel' },
+          { text: 'Text from font outlines', link: '/how/text', lane: 'outer' },
+          { text: 'Assemblies, robots and drawings', link: '/how/cad-model', lane: 'outer' },
+          { text: 'Machining, printing and moulding checks', link: '/how/manufacturing-previews', lane: 'outer' },
+        ],
+      },
     ],
   },
   {
@@ -67,6 +105,7 @@ export const sidebar = [
           { text: 'Rectangle', link: '/packages/cad-react/components/rectangle', lane: 'outer' },
           { text: 'Circle', link: '/packages/cad-react/components/circle', lane: 'outer' },
           { text: 'Extrude', link: '/packages/cad-react/components/extrude', lane: 'outer' },
+          { text: 'Revolve', link: '/packages/cad-react/components/revolve', lane: 'outer' },
           { text: 'Union', link: '/packages/cad-react/components/union', lane: 'outer' },
           { text: 'Difference', link: '/packages/cad-react/components/difference', lane: 'outer' },
           { text: 'Target', link: '/packages/cad-react/components/target', lane: 'outer' },
@@ -106,6 +145,13 @@ export const sidebar = [
       { text: 'Depth of field', link: '/packages/gpu/#depth-of-field', lane: 'GPU' },
       { text: 'Errors', link: '/packages/gpu/#errors', lane: 'GPU' },
       { text: 'WebGPU and WebGL2', link: '/packages/gpu/#webgpu-and-webgl2', lane: 'GPU' },
+      {
+        text: 'How it works',
+        collapsed: true,
+        items: [
+          { text: 'Rendering a model on the GPU', link: '/how/gpu', lane: 'GPU' },
+        ],
+      },
     ],
   },
   {
@@ -192,40 +238,6 @@ export const sidebar = [
     ],
   },
   {
-    text: 'How it works',
-    link: '/how/',
-    lane: 'kernel',
-    collapsed: true,
-    items: [
-      { text: 'Booleans of curved solids', link: '/how/boolean', lane: 'kernel' },
-      { text: 'NURBS curves and surfaces', link: '/how/nurbs', lane: 'kernel' },
-      { text: 'Tessellating a B-rep for display', link: '/how/tessellation', lane: 'kernel' },
-      { text: 'Volume, centroid and inertia', link: '/how/mass-properties', lane: 'kernel' },
-      { text: 'Fillets: the rolling ball', link: '/how/fillets', lane: 'kernel' },
-      { text: 'Exact arithmetic for planar solids', link: '/how/exact-boolean', lane: 'kernel' },
-      { text: 'Hidden lines for drawings', link: '/how/hidden-lines', lane: 'kernel' },
-      { text: 'Solving sketch constraints', link: '/how/sketch-solver', lane: 'kernel' },
-      { text: 'Names that survive edits', link: '/how/naming', lane: 'kernel' },
-      { text: 'Booleans of upright extrusions', link: '/how/prismatic', lane: 'kernel' },
-      { text: 'Meshes, native tools and the BVH', link: '/how/mesh-boolean', lane: 'kernel' },
-      { text: 'Closest points on curves and surfaces', link: '/how/closest-point', lane: 'kernel' },
-      { text: 'Where a curve meets a plane', link: '/how/curve-roots', lane: 'kernel' },
-      { text: 'Lofts, sweeps and revolves', link: '/how/loft-sweep', lane: 'kernel' },
-      { text: 'Threads, gears and springs', link: '/how/threads-gears', lane: 'kernel' },
-      { text: 'Text from font outlines', link: '/how/text', lane: 'outer' },
-      { text: 'Subdivision surfaces as exact B-splines', link: '/how/subd', lane: 'kernel' },
-      { text: 'Sheet metal: bends and the flat pattern', link: '/how/sheet-metal', lane: 'kernel' },
-      { text: 'Mesh processing: simplify, repair, offset', link: '/how/mesh-processing', lane: 'kernel' },
-      { text: 'Tolerances and numbers', link: '/how/tolerance', lane: 'kernel' },
-      { text: 'What makes a B-rep valid', link: '/how/validity', lane: 'kernel' },
-      { text: 'Reading STEP and IGES', link: '/how/import', lane: 'kernel' },
-      { text: 'How results are checked', link: '/how/verification', lane: 'kernel' },
-      { text: 'Rendering a model on the GPU', link: '/how/gpu', lane: 'GPU' },
-      { text: 'Assemblies, robots and drawings', link: '/how/cad-model', lane: 'outer' },
-      { text: 'Machining, printing and moulding checks', link: '/how/manufacturing-previews', lane: 'outer' },
-    ],
-  },
-  {
     text: 'Reference',
     collapsed: true,
     items: [
@@ -238,3 +250,119 @@ export const sidebar = [
     ],
   },
 ];
+
+// The full sidebar above is the canonical page/lane inventory.
+// Topic routes use their owning category; the overview belongs to Guide.
+function activeMatchFor(prefixes) {
+  const patterns = prefixes.map(prefix => {
+    if (prefix === '/') return '/';
+    if (prefix === '/how/') return '/how/?';
+    if (prefix.startsWith('/how/')) return `${prefix}/?`;
+    return `${prefix.replace(/\/$/, '')}(?:/.*)?`;
+  });
+  return `^(?:${patterns.join('|')})$`;
+}
+
+export const navigationSections = [
+  {
+    text: 'Guide', link: '/guide/getting-started', group: 'Introduction',
+    prefixes: [
+      '/guide/',
+      '/how/',
+      '/',
+    ],
+  },
+  {
+    text: 'CAD', link: '/packages/cad/', group: 'CAD',
+    prefixes: [
+      '/packages/cad/',
+      '/packages/api',
+      '/how/boolean',
+      '/how/nurbs',
+      '/how/tessellation',
+      '/how/mass-properties',
+      '/how/fillets',
+      '/how/exact-boolean',
+      '/how/hidden-lines',
+      '/how/prismatic',
+      '/how/mesh-boolean',
+      '/how/closest-point',
+      '/how/curve-roots',
+      '/how/threads-gears',
+      '/how/subd',
+      '/how/sheet-metal',
+      '/how/mesh-processing',
+      '/how/tolerance',
+      '/how/validity',
+      '/how/import',
+      '/how/verification',
+    ],
+  },
+  {
+    text: 'CAD Model', link: '/packages/cad-model/', group: 'CAD Model',
+    prefixes: [
+      '/packages/cad-model/',
+      '/how/sketch-solver',
+      '/how/naming',
+      '/how/loft-sweep',
+      '/how/text',
+      '/how/cad-model',
+      '/how/manufacturing-previews',
+    ],
+  },
+  {
+    text: 'CAD React', link: '/packages/cad-react/', group: 'CAD React',
+    prefixes: [
+      '/packages/cad-react/',
+    ],
+  },
+  {
+    text: 'Physics', link: '/packages/physics/', group: 'Physics',
+    prefixes: [
+      '/packages/physics/',
+    ],
+  },
+  {
+    text: 'GPU', link: '/packages/gpu/', group: 'GPU',
+    prefixes: [
+      '/packages/gpu/',
+      '/how/gpu',
+    ],
+  },
+  {
+    text: 'Studio', link: '/studio/', group: 'Studio',
+    prefixes: [
+      '/studio/',
+    ],
+  },
+  {
+    text: 'Viewer', link: '/packages/viewer/', group: 'Viewer',
+    prefixes: [
+      '/packages/viewer/',
+    ],
+  },
+  {
+    text: 'Agent', link: '/agent/', group: 'AI agent',
+    prefixes: [
+      '/agent/',
+    ],
+  },
+  {
+    text: 'Reference', link: '/reference/refusals', group: 'Reference',
+    prefixes: [
+      '/reference/',
+    ],
+  },
+].map(section => ({ ...section, activeMatch: activeMatchFor(section.prefixes) }));
+
+// VitePress sorts by path segment count, preserving insertion order for ties.
+// Explicit /how/topic routes must precede the /how/ overview fallback.
+const routeEntries = navigationSections.flatMap(section => {
+  const group = sidebar.find(item => item.text === section.group);
+  if (!group) throw new Error(`Missing sidebar group: ${section.group}`);
+  return section.prefixes.map(prefix => [prefix, [group]]);
+});
+export const sidebarByRoute = Object.fromEntries([
+  ...routeEntries.filter(([prefix]) => prefix.startsWith('/how/') && prefix !== '/how/'),
+  ...routeEntries.filter(([prefix]) => !prefix.startsWith('/how/') || prefix === '/how/'),
+]);
