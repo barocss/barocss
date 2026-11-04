@@ -7,19 +7,56 @@ For fixed-step dynamics, contact research, numerical errors and retained NO_GO r
 [Physics verification](/reference/physics-verification). For joint timing and pose sampling, read
 [Robot motion](/guide/robot-motion).
 
-## Unit and conformance tests
+## Package test commands
 
-- **The kernel** (`pnpm test` in `packages/barocss-cad`) runs its tests and the conformance suite against the built
-  package. `pnpm build:library` comes first.
-  - The conformance suite has over 400 cases, in folders named by the roadmap step that added each.
-  - Each case states the outputs any correct implementation must give: volume, centroid, area, bodies, topology, face
-    names, a watertight mesh, a STEP round trip, or the error it is refused with.
-  - Each says where its expected values come from: closed form, an independent tool, or this kernel. See
-    [B-rep, robustness and refusals](/packages/cad/robustness).
-- **The document model** (`packages/barocss-cad-model`) and **the studio** (`apps/cad-studio`) have test suites of
-  their own, for the commands, the tools and their gates, drawings, manufacturing, robots and files.
-- **This site's samples** (`pnpm test:samples` in `apps/library-docs`) run every code sample the pages show, through
-  the packages' sources and the real `cad-mcp` and `cad-cli`.
+Run the commands below from the repository root with the installed workspace dependencies. Each default has a
+different scope. A default test command does not run every optional command for that package.
+
+| Library | Default command | Scope and prerequisites |
+|---|---|---|
+| CAD kernel | `pnpm --filter @barocss/cad test` | Runs `test/*.test.mjs` against emitted CAD JavaScript, including kernel and conformance checks. Run `build:library` first; `test` does not build. |
+| CAD document model | `pnpm --filter @barocss/cad-model test` | Bundles each `test/*.test.ts` file with TypeScript sources using esbuild, then runs Node tests. This is not a type check or packed-consumer check. Optional name arguments select matching files. |
+| CAD React | `pnpm --filter @barocss/cad-react test` | Runs `tests/*.test.mjs`, including controlled host and React DOM tests. This does not start a native browser or run the separate public type guards. |
+| CAD interop | `pnpm --filter @barocss/cad-interop test` | Builds interop, runs `test/interop.test.mjs`, verifies the paired world-points codec, and checks the two world-reader TypeScript configurations. Native loader and integration commands are separate. |
+| GPU | `pnpm --filter @barocss/gpu test` | Runs the explicit Node test list in its manifest with the CAD dist loader. Build both CAD and GPU with their `build:library` commands first. This default does not run `test:browser`. |
+| Viewer | `pnpm --filter @barocss/viewer test` | Runs only `tests/clipping-contract.test.mjs`. It bundles current sources for the Viewer/Presenter/camera and CPU picking contract. It does not verify native GPU pixels, device transport or all Viewer behavior. |
+
+The CAD API smoke command is a smaller, explicit path:
+
+```sh
+pnpm --filter @barocss/cad test:api-smoke
+```
+
+It runs the existing fast esbuild transpilation of current CAD sources into `dist`, then runs
+`api-part.test.mjs`, `api-verbs.test.mjs` and `api-mmgs.test.mjs` serially (currently 22 cases). It checks current
+JavaScript behavior of the facade, verbs and MMGS results. The fast build does not clear `dist`, rebuild declarations
+or type-check sources. Old `.d.ts` files can remain. A smoke pass does not establish complete type, packed-consumer,
+independent native-reader, browser or full-suite acceptance.
+
+Studio and documentation checks are separate from these six libraries:
+
+- `pnpm --filter @barocss/cad-studio-app test` bundles `test/*.test.ts` with workspace sources and runs Node tests.
+  Optional name arguments select matching files. It does not start the Studio browser flow.
+- `pnpm --filter @barocss/library-docs test:samples` runs the site's executable samples through package sources and
+  the real `cad-mcp` and `cad-cli`. It does not establish browser or external-reader acceptance.
+
+### Optional checks
+
+| Command | Separate check and requirements |
+|---|---|
+| `pnpm --filter @barocss/cad type-check` and `pnpm --filter @barocss/cad build:library` | Check CAD types and perform the full build, including declaration output. The full build clears CAD `dist` first. |
+| `pnpm --filter @barocss/cad test:consumer` | Checks actual packed runtime and TypeScript consumers. Requires a current full CAD build. |
+| `pnpm --filter @barocss/cad test:exchange` | Runs the independent exchange-reader gates. Requires the configured external interpreter/readers and current-head packed evidence. It is not part of the API smoke command. |
+| `pnpm --filter @barocss/cad rb`, `rb:seed`, `rb:props`, `rb:fuzz`, `rb:commute` | Run the selected robustness, seed, property, fuzz or operation-order checks. Their oracles and limits are described below and in their decision records. |
+| `pnpm --filter @barocss/cad-react test:types` | Runs public TypeScript consumer guards, including the example sources selected by that test configuration. |
+| `pnpm --filter @barocss/cad-interop test:native`, `test:babylon`, `test:integration` | Run the selected native loader, Babylon loader or CAD/GPU integration path. These scripts include their declared library builds; inspect their own requirements before execution. |
+| `pnpm --filter @barocss/gpu test:consumer` and `pnpm --filter @barocss/gpu test:browser` | Run the separate compiled-consumer or real-browser lists. Current CAD/GPU builds are prerequisites; browser checks also require the installed supported browser and GPU environment. |
+| `pnpm --filter @barocss/cad-studio-app test:browser` | Runs the Studio browser flow described below. Renderer, selected steps, browser and server requirements belong to that run. |
+
+Conformance cases state their expected volumes, centroids, areas, topology, face names, meshes, STEP round trips or
+refusals. They identify whether the expected values come from closed form, an independent tool or this kernel. See
+[B-rep, robustness and refusals](/packages/cad/robustness). Record which command and cases actually ran; the inventory
+above is a description of source scripts, not a new execution result.
 
 The supported loop-motion tests separate driver timing and solved closure from collision checks. They compare
 four-bar and slider-crank poses with independent geometry and check typed refusals. A supported path's empty
@@ -116,13 +153,55 @@ These results also differ from standards conformity, manufacturing acceptance an
 
 Exports are read back by tools written by others:
 
-- **Running them.** The tools run outside the product, and their readings are committed beside each test case. The
-  tests compare the studio's output with those readings.
+- **Running them.** The tools run outside the product. Versioned fixtures and numerical summaries in decision
+  records can retain their results. Raw run logs, screenshots and temporary reader outputs remain external evidence;
+  this page does not require committing those artifacts. A comparison with a retained reading is distinct from a
+  fresh execution of the external reader. Record the exact input bytes, tool and source scope for either result.
 - **URDF:** urdfdom's `check_urdf`.
 - **MJCF:** MuJoCo. The model's structure and its kinematics match the studio's.
 - **USD:** OpenUSD (`usd-core`) and UsdPhysics' own parser.
 - **DXF:** `ezdxf`, which must audit the file clean and read back every entity.
 - **SDF:** not yet read back by an external validator. That waits for the owner's go-ahead.
+
+### Independent prismatic file check
+
+From the repository root, use the existing STEP file and independently specified expected JSON for the admitted
+prismatic fixture. Replace the two input paths below with those files:
+
+```sh
+python3 -I apps/cad-studio/test/part21-prism-check.py /tmp/cad-prism/box.step /tmp/cad-prism/box-expected.json --selftest
+```
+
+The expected JSON supplies `productCount`, `solidCount`, aggregate `bounds` and per-solid `solidBounds` from the
+fixture's literal dimensions and placements. The checker uses only Python's standard library and imports no product
+code. It checks Part21 records, references, AP214 schema, millimetre units, counts and reachable vertex bounds for
+its eight-vertex prism profile. `--selftest` also checks escaped-string/comment decoys and detects five deliberately
+corrupted inputs. It does not evaluate surfaces, calculate solid volume, prove manifold topology or replace OCCT/OCP
+or a general STEP reader. This is a structural and prismatic bounds check, not general physical validation.
+
+### Manual Studio consumer run
+
+The existing desktop material driver starts its owned Studio server and browser, uses public actions, and checks
+literal box/density arithmetic against displayed mass, central inertia and BOM values. It also exercises Undo/Redo,
+native Save and fresh Open. From `apps/cad-studio`, with Node 22, Python 3, installed workspace dependencies,
+Playwright and Chrome available, run:
+
+```sh
+D526_SOURCE_FROZEN=1 PW_DIR=/absolute/installed/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' CAD_STUDIO_CHAT_PORT=52391 node test/public-density-material-browser.mjs /tmp/cad-material-run01
+```
+
+Set `PW_DIR` to the installed Playwright module directory and `CHROME` to the installed browser executable. Choose a
+free chat port and a new absolute output directory outside the repository; the driver creates that directory.
+Freeze all worktree writers before setting `D526_SOURCE_FROZEN=1`, keep them frozen through cleanup, and serialize
+this run with other heavy checks. The historical environment-variable name is required by this unchanged driver.
+The helper records source hashes, screenshots, JSON states, oracle results and cleanup receipts without editing
+product source. Review the receipt and screenshots; the command itself is not a new pass result.
+
+The catalog UI covers valid Aluminium 6061 and mild Steel inputs. It bypasses the public density facade and does not
+exercise arbitrary invalid densities. Its displayed-value arithmetic checks do not establish general native B-rep
+accuracy. Keep these raw outputs outside Git. The native Save download is the run's own local `.bcad` artifact;
+this command does not authorize external downloads, browser installation or a fresh OCP run. Retained external-reader
+evidence remains distinct from either command above.
 
 ## Verification tiers
 
@@ -148,7 +227,9 @@ Preserve original inputs, settings, warnings and failed runs when comparing resu
 
 The tiers below set software check coverage. They do not replace the four experiment stages above.
 
-Work is checked in tiers, recorded in the handover:
+The following T1/T2/T3 schedule is a historical verification schedule. It does not replace the active CAD Studio
+handoff's SMALL/FEATURE/FULL policy. Use that handoff to select current checks and approvals, and record the actual
+commands and outcomes. The historical schedule was:
 
 - **T1, at every checkpoint:**
   - the changed packages' lint and type check;

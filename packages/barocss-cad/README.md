@@ -12,6 +12,27 @@ compiled checkpoint and publication.
 build configuration. Published files include compiled modules/declarations,
 original source, this README and the MIT LICENSE. Compiled runtime import needs no repository build scripts or TypeScript loader.
 
+## API runtime smoke check
+
+From the repository root, run:
+
+```sh
+pnpm --filter @barocss/cad test:api-smoke
+```
+
+This command first runs the existing `node scripts/tool.mjs build:fast` path. It transpiles the
+current CAD TypeScript sources to JavaScript in `dist` with esbuild. It then runs these three
+existing files, one test file at a time: `api-part.test.mjs`, `api-verbs.test.mjs` and
+`api-mmgs.test.mjs` (currently 22 API cases). The checks exercise the document facade, modeling
+verbs and MMGS results through the emitted JavaScript.
+
+The fast build does not clear `dist`, rebuild `.d.ts` declarations or run TypeScript checks.
+Existing declarations can therefore remain from an older full build. This command supplies a
+current-runtime JavaScript smoke check only. Run `type-check` and `build:library` for their separate
+type and complete build checks. `test` remains the broader kernel test command and requires a
+current build first. Packed consumers, independent native readers, GPU/browser flows and full
+acceptance are separate checks. See the [verification command inventory](../../apps/library-docs/docs/reference/verification.md).
+
 ## Mesh conversion ownership
 
 `brepFromTriangles` returns newly owned planar B-rep data. Properties on its B-rep, face and

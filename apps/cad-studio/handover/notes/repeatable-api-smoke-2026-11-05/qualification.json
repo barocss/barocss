@@ -1,0 +1,132 @@
+{
+  "workId": "D532",
+  "priority": "P0-R12",
+  "rows": [
+    "04",
+    "16",
+    "22",
+    "32"
+  ],
+  "tier": "SMALL",
+  "parent": "b722ae92f338b7da783f606fd3a6d7b5ca72550c",
+  "model": "GPT-6.1 Sol Medium",
+  "status": "BOUNDED_REPEATABLE_ENTRY_POINT_QUALIFIED",
+  "initialFinding": "Named current-source API smoke absent; default CAD test uses emitted dist and does not build. No new product runtime defect claimed.",
+  "implementation": "Add test:api-smoke: existing build:fast then three serial existing API test files. No test, geometry, schema, CI or dependency change.",
+  "command": "pnpm --filter @barocss/cad test:api-smoke",
+  "controlled": {
+    "status": "PASS",
+    "tests": 22,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "node": "22.19.0"
+  },
+  "inventory": {
+    "status": "SOURCE_REVIEW_ONLY",
+    "libraries": [
+      "CAD",
+      "Model",
+      "CAD React",
+      "CAD interop",
+      "GPU",
+      "Viewer"
+    ],
+    "other": [
+      "Studio",
+      "documentation samples"
+    ],
+    "runtimeScope": "Only the new CAD smoke is newly run; other default/optional commands described from source, not marked PASS.",
+    "boundaries": [
+      "fast build current JS only, old declarations can remain",
+      "default Viewer CPU clipping contract only",
+      "default GPU requires current CAD and GPU dist",
+      "optional packed, external, browser and manual checks remain separate"
+    ],
+    "physicalAndManualExamples": [
+      "Versioned stdlib Part21 prismatic structural/bounds checker; source description only, no new reader execution",
+      "Unchanged actual public-density-material browser invocation with freeze/installed-tools/external-output prerequisites"
+    ]
+  },
+  "rootActualStudio": {
+    "status": "PASS",
+    "unchangedDriver": "apps/cad-studio/test/public-density-material-browser.mjs",
+    "historicalQualificationLabel": "D526/P0-R06 retained; current D532 execution/receipt separate",
+    "snapshots": 9,
+    "contexts": 2,
+    "oracles": 5,
+    "sourcePaths": 293,
+    "sourceChanges": 0,
+    "consoleErrors": 0,
+    "pageErrors": 0,
+    "ownSaveDownloads": 1,
+    "externalDownloads": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "rootViewed": [
+      "01-aluminium-body",
+      "04-steel-bom",
+      "09-fresh-own-open-steel-bom"
+    ],
+    "scope": [
+      "20x10x10 box",
+      "Aluminium 6061 2.7g/cm3: 5.4g",
+      "Steel mild 7.85g/cm3:15.7g",
+      "BOM one part",
+      "first material Undo/Redo",
+      "own native Save and fresh-context Open"
+    ],
+    "oracle": "Five isolated Python literal-dimension/density displayed-value checks; no product imports. Mass display tolerance0.05g, central inertia0.5gmm2, exact displayed centroid10/5/5 and volume2000.",
+    "limits": "Valid catalog UI bypasses public facade and test launcher. This is desktop consumer regression, not API invalid-input/native geometry/declaration/packed acceptance."
+  },
+  "checks": {
+    "diff": "PASS",
+    "JSON": "PASS",
+    "priorD531TypesAndLint": "Retained unchanged relevant source scope; no TS/test/helper edits in D532. No fresh type/lint PASS claimed."
+  },
+  "fail": [],
+  "notRun": [
+    "Other package defaults and optional inventory commands",
+    "Fresh native/external reader, OCP setup/download",
+    "New declarations/type/full-kernel/full-Studio build",
+    "New CI, mobile, paid live, release/develop merge"
+  ],
+  "progress": {
+    "P0": "R01\u2013R12 bounded records D521\u2013D532; R04 native collision remains UNKNOWN",
+    "B01_B10": "NOT_ADJUDICATED",
+    "wholeCad": "NOT_MEASURED"
+  },
+  "sourcePins": {
+    "packages/barocss-cad/package.json": "ef063c5472e24c06a5513bfff3cd986596b366ed625f4c5464afcdcab15751d0",
+    "packages/barocss-cad/README.md": "e9906b4c2e768bcce1fdf4e62ca55bbb0098518b5f0551894f0a41884b92a38a",
+    "packages/barocss-cad/scripts/tool.mjs": "48b69b528c87674f6a5367439a5e1c34ccd291b31bd85c3d762a92dbb59ac118",
+    "packages/barocss-cad/test/api-part.test.mjs": "a2e0fbceedf765034e20b5cb3635b1abcf2f5e9088ee904a7d6004df34f23c8b",
+    "packages/barocss-cad/test/api-verbs.test.mjs": "97ebcaccce312c7f22270e4631ef4f328c5ab12a038476e80b9d7ed584d2212d",
+    "packages/barocss-cad/test/api-mmgs.test.mjs": "8082a106ca636642fec5b31e7081e02b1ffcc0f7a8096a7687e9d6c5fc495c26",
+    "apps/library-docs/docs/reference/verification.md": "e83037d1133721bb8db2f51cb86069b15e6512bf9769b5347021d2e8166feff4",
+    "apps/cad-studio/test/public-density-material-browser.mjs": "2998ed079044573d9f8778b947f7e1f89fef5a3ad8a0d1e531ecaeba68e5443a",
+    "apps/cad-studio/test/flow-helper.mjs": "3aaf23e8a0078a9411b8f8d2bbbc05e42a304a89cf96e59bf2faae3d313cfe6c"
+  },
+  "externalEvidence": [
+    {
+      "path": "/tmp/barocss-d532-checks01/node.log",
+      "sha256": "c2c2fa5216720772107a091a7bdc2b12a2ea492d41f94568aa56074f981625c5"
+    },
+    {
+      "path": "/tmp/barocss-d532-checks01/api-smoke.log",
+      "sha256": "239c4db7c12a0470cc54cb652ab60a95cf8f318bab94c17b1c41afe261814294"
+    },
+    {
+      "path": "/tmp/barocss-d532-studio01-meta/run.log",
+      "sha256": "6a3d3a04e2ce270eb442a07f826bd9b7a8e0bf7c51aa9e10f25d6655d579d797"
+    },
+    {
+      "path": "/tmp/barocss-d532-studio01/receipt.json",
+      "sha256": "28683c94566c55e07befbd5334b4d39ead337e7efae9dd1160bc1e09bf809811"
+    }
+  ]
+}

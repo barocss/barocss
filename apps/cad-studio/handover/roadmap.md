@@ -1,15 +1,15 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-05 · Priority authority: D520 · Latest delivery: D531 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-05 · Priority authority: D520 · Latest delivery: D532 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** [D531](notes/public-step-loss-report-2026-11-05/README.md) exposes Model.stepReport with explicit unsupported CAD/backend refusal:73 controlled checks,185 docs samples,10 killed mutants/two FULL approvals and root Studio Preview pass. Current PUBLIC files match both complete D406 native-reader inputs; historical readback reuse is exact-byte-bound, not a fresh reader run. Legacy text/all-body/refusal rules remain.
-- **Next MAIN:** D532 / P0-R12, add a reproducible current-JS CAD API smoke and document default/optional/browser/physical/manual entry points. The selected22-case smoke must rebuild JS first; types/declarations/packed/native/WebGPU/full-suite proof remain separate. Run one changed representative command and root actual desktop consumer. Read [P0 acceptance](roadmap-tracks/01-reliability.md).
+- **Current position:** [D532](notes/repeatable-api-smoke-2026-11-05/README.md) adds the current-JS CAD API smoke and source-based default/optional command inventory. The new command passes22 cases; root actual Studio material/BOM/Undo/Redo/Save/freshOpen passes9 snapshots/five literal arithmetic oracles. Other listed commands are not new runtime results.
+- **Next MAIN:** D533 / P1, rows07/08/12/16, qualify one ordinary Hole+Chamfer dependency lifecycle. Match the retained D449/D508 source input, freeze the native/independent profile with Sol High, then test upstream finishing edit, retained Hole references/refusal/history, project persistence and post-Open re-edit. Existing bracket and isolated finishing proofs are not new coverage. Read [core workflows](roadmap-tracks/02-core-workflows.md).
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
-- **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01–B10 baseline coverage **NOT_ADJUDICATED**. The legacy43% is frozen history. P0 has12 acceptance items; R01–R11 have bounded D521–D531 closeouts; R04 native collision remains UNKNOWN; R12 remains open. This is backlog state, not a whole-CAD percentage.
+- **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01–B10 baseline coverage **NOT_ADJUDICATED**. The legacy43% is frozen history. P0 has12 acceptance items; R01–R12 have bounded D521–D532 closeouts; R04 native collision remains UNKNOWN; no whole-product acceptance follows. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).
 
 ## Product order
@@ -18,7 +18,7 @@ P0 findings that can lose work, export stale geometry or misattribute results ta
 
 | Order | Deliverable and boundary | Current position | Detailed acceptance |
 | --- | --- | --- | --- |
-| **P0** | Document safety, current geometry/output, public API ownership and truthful failure/provenance |R01–R11 bounded corrections qualified by D521–D531; R04 native collision UNKNOWN. R12 next; broad readiness and CAD-native report production remain separate. | [Reliability queue](roadmap-tracks/01-reliability.md) |
+| **P0** | Document safety, current geometry/output, public API ownership and truthful failure/provenance |R01–R12 bounded closeouts qualified by D521–D532; R04 native collision UNKNOWN. Broad readiness, CAD-native report production and each record's remaining limits stay separate. | [Reliability queue](roadmap-tracks/01-reliability.md) |
 | **P1** | Useful daily parts: constrained sketch, extrude/revolve, Boolean, hole/finish/pattern, upstream edit, stable refs, measure/history and Save/Open | Existing combined and individual workflows qualified at cited scopes; no whole-family completion. Audit the remaining representative workflows rather than replay all successful prefixes. | [Core workflows](roadmap-tracks/02-core-workflows.md) |
 | **P2** | Engineering drawings and exchange: dimensions/sections/details, revisions, units, explicit losses, independent reads | Existing drawing/exchange profiles qualified; current 3MF and facade-loss gaps belong to P0. ASME PDF mismatch remains deferred. | [Core workflows](roadmap-tracks/02-core-workflows.md) |
 | **P3** | Static assemblies: placement, mates, nested selection, linked revisions, material/BOM/drawings | D511/D512 bounded workflows and D513 card fix qualified. No generic assembly or dynamics completion. | [Core workflows](roadmap-tracks/02-core-workflows.md) |
