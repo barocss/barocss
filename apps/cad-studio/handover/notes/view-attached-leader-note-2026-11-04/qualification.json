@@ -1,0 +1,168 @@
+{
+  "decision": "D510",
+  "status": "PASS_BOUNDED_EXISTING_LEADER_NOTE_LIFECYCLE",
+  "scope": "C3 existing view-attached leader Note across two sheets, text/history/project lifecycle",
+  "productChanges": 0,
+  "coverage": {
+    "public view-attached leader Note creation and text A": "PASS",
+    "public leader Note text A to B": "PASS",
+    "Move Top view S2 to S1 with leader visibility": "PASS",
+    "FIRST Undo S2B and Redo S1B": "PASS",
+    "own Save Close reload Open S1B": "PASS",
+    "post-Open Move Top back to S2": "PASS"
+  },
+  "acceptedDocs": 7,
+  "bothSheetSVGObservations": 14,
+  "nativeCaptures": 0,
+  "physicalOracles": 0,
+  "independentPhysicalAndSignatureCertificate": "NOT_RUN",
+  "actualNote": {
+    "id": "n1",
+    "leader": {
+      "view": "top",
+      "at": [
+        14.999999305725101,
+        6.00000084686279
+      ]
+    },
+    "at": [
+      20,
+      20
+    ]
+  },
+  "declaredViewLocalPointer": [
+    15,
+    6
+  ],
+  "pointerBoundary": "Actual stored coordinate retained exactly. No ideal-target1e-9 placement, snapping or coordinate rewrite claim.",
+  "signatureCounts": {
+    "00-public-Open-unsigned-before-Drawing": 0,
+    "00-Drawing-before-first-public-commit": 0,
+    "01-first-public-Note-commit-default-before-assert": 0
+  },
+  "noteStyle": {
+    "standard": "ABSENT",
+    "preset": "PLAIN",
+    "heightMM": 3.5,
+    "firstLineOffsetMM": 2.975,
+    "lineGapMM": 5
+  },
+  "SVGSerializationEnvelopeMM": 5.0001e-05,
+  "maxObservedAffineSVGErrorMM": 1.3801615210695672e-05,
+  "tests": {
+    "freshSelectedPureSheetOwnership": 1,
+    "freshFail": 0,
+    "freshSkip": 0,
+    "reusedExistingNote": 1,
+    "reusedStorage": 7,
+    "D494BuildLintFinalStudioModelTypes": "UNCHANGED_SOURCE_REUSE"
+  },
+  "savedAudit": {
+    "status": "PASS_SAVED_DOC_SVG_CUSTODY_ONLY",
+    "checks": 2199,
+    "classification": "Saved Doc/SVG/hash/arithmetic checks, not product tests"
+  },
+  "custody": {
+    "wrapperPins": 1992,
+    "helperInitialPins": 1992,
+    "helperFrozenPins": 1993,
+    "currentEqualThroughRootReview": true,
+    "genericUniqueLabels": 26,
+    "genericJSONHTMLPNGFiles": 78,
+    "rootViewedPNGs": 9,
+    "ownPID": 88309,
+    "ownPIDAbsent": true,
+    "ownedProjectRemoved": true,
+    "resourcesClosed": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "preservedBoundaries": [
+    "Authored dimension refs/near/place and view ownership retained; no independent dimension value accuracy certificate",
+    "Empty S2 after moving Top retains existing no-view warning; no issue-free claim",
+    "Owned filename changes unauthored title fallback",
+    "No PDF/export/download/mobile, CAD React Note export, full C3/standards certificate or issue closure",
+    "D501/D505 custody FAILs, all HOLDs, overall NOT_MEASURED and frozen legacy43 remain unchanged"
+  ],
+  "executionHistory": "First actual six-group run PASS. No failed SUT attempt or replay.",
+  "parallel": "D509 six-component candidate03 and full-flow sources SOURCE_APPROVED_NOT_ADOPTED at this checkpoint",
+  "commands": [
+    "python3 /tmp/barocss-d510-leader-rootprep01/prepare-checks.py",
+    "bash /tmp/barocss-d510-leader-rootprep01/run-checks01.sh",
+    "python3 /tmp/barocss-d510-leader-rootprep01/seal-actual01.py",
+    "bash /tmp/barocss-d510-leader-rootprep01/run-studio01.sh",
+    "python3 /tmp/barocss-d510-publication-prep01/audit-saved.py"
+  ],
+  "evidence": {
+    "actual": {
+      "path": "/tmp/barocss-d510-leader-workflow-run01/receipt.json",
+      "sha256": "015cf9172c8e7155cda5ec60912a5e88a22c88431f83b793a1087199ef8a7495"
+    },
+    "rootReview": {
+      "path": "/tmp/barocss-d510-root-review01/review.json",
+      "sha256": "36f3bf5a1ff01834117127442af1c342ea657fff26a74ef26338efda5b6a952f"
+    },
+    "savedReview": {
+      "path": "/tmp/barocss-d510-publication-prep01/saved-review.json",
+      "sha256": "a4e6bd8f18614ff625b89fc4744c58e779397f88be52ca68ffe64fe0386f4651"
+    },
+    "checks": {
+      "path": "/tmp/barocss-d510-leader-checks01/receipt.json",
+      "sha256": "5b828c3a58c17c73c23b17da3dcbc6d5efe6c03b231867baf78a4cc58ac0a9fc"
+    },
+    "reuse": {
+      "path": "/tmp/barocss-d510-leader-rootprep01/reuse-checks01.json",
+      "sha256": "a94cc84ce7385b337e4927f3e3171602986923bb6331ad305495a69b75bdf89b"
+    },
+    "config": {
+      "path": "/tmp/barocss-d510-leader-driver01/config.json",
+      "sha256": "5309e07554025c29b00cdef6bbef01741a2370609608a3fbb093a781888ef259"
+    },
+    "seal": {
+      "path": "/tmp/barocss-d510-leader-rootprep01/actual-seal01.json",
+      "sha256": "e5b6852159a3b5024b270fd5d3f4c4334281cd7d1b1d1f0b66fdd3210576e0dd"
+    },
+    "input": {
+      "path": "/tmp/barocss-d510-leader-driver01/retained-d398-two-sheets.bcad",
+      "sha256": "9962d4fe41afea65cfb6ebd58493fc26af1d831012e8d7353fdb44883ff922eb"
+    },
+    "issueReview": {
+      "path": "/tmp/barocss-d510-issue-review01.json",
+      "sha256": "c4343455ebb45e86127e9222892aba4a0cfe079243bc1630a1641fdde80c5c39"
+    }
+  },
+  "rawArtifacts": "TMP only; no raw artifacts copied into Git",
+  "productHEAD": "290ee11e75acfc3cdfc24197d73475d7c7a98f37",
+  "verificationTier": {
+    "tier": "small",
+    "reason": "Existing note/text/view-ownership measurement only, with no product/API/kernel or test source changes. Targeted test and actual Studio; saved Medium review additional."
+  },
+  "executionEnvironment": {
+    "node": "22.19.0",
+    "heavyGate": "/Users/user/.claude/local-mods/barocss-lanes-guard/bin/gate.sh",
+    "wholeWorktreeFrozenThroughCleanupAndRootImageReview": true
+  },
+  "issueReview": {
+    "540": "OPEN_PARENT_REQUIREMENTS_UNMET",
+    "commentOrCloseSent": false
+  },
+  "verificationResult": {
+    "PASS": [
+      "Six actual Studio groups/seven accepted Docs/fourteen both-sheet observations",
+      "One fresh selected sheet-ownership test; existing note1/storage7 reused at exact declared source pins",
+      "2199 saved Doc/SVG/hash/arithmetic predicates and nine root-viewed original images",
+      "All1992wrapper/1993frozen helper pins and own cleanup current"
+    ],
+    "FAIL": [
+      "No new actual SUT failure",
+      "D501/D505 historical custody FAIL remains"
+    ],
+    "NOT_RUN": [
+      "Independent native geometry, physical oracle, signature or dimension-value certification",
+      "Ideal-target1e-9mm pointer placement",
+      "PDF/export/mobile/standards/wholeC3/release"
+    ]
+  },
+  "nextMAIN": "Source audit D511 C4 driven-pattern seed material propagation/BOM total/history/project; actual availability NOT_RUN"
+}

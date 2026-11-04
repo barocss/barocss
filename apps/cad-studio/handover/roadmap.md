@@ -23,6 +23,8 @@ Sketch editing, solid modeling, feature history, native files and local-project 
 
 Current bounded checkpoints and next work:
 
+- **C3 leader Note D510:** D510 qualifies the existing view-attached leader Note lifecycle across two sheets (6/6 groups). Text/history/project/view ownership pass; physical and signature certification remain NOT_RUN. [Evidence](notes/view-attached-leader-note-2026-11-04/README.md). One fresh selected test, eight exact-source reuses and 2,199 saved predicates are separate counts. Next MAIN source audit is D511 C4 driven-pattern material/BOM coherence; actual NOT_RUN. D509 remains source-approved/unadopted at this checkpoint. This supersedes older parked-leader/next-MAIN navigation below.
+
 - **C2 Chamfer D508:** D508 closes the D449 Chamfer project persistence/post-Open edit gap for its retained straight edge only (5/5 public groups). Full viewport fit/raster remain NOT_MEASURED. [Evidence](notes/chamfer-project-persistence-2026-11-04/README.md). Two captures/three exact-Doc reuses/five current bindings, one fresh test and High185 saved predicates pass. This supersedes older D508 prepared0/5 navigation below. D509 six-profile-component source candidate remains unadopted; C3 leader Notes remain parked.
 
 - **Parallel CAD React D507:** [D507](notes/cad-react-compound-baseline-2026-11-04/README.md) measures existing CAD React compound semantics: one logical b4 result can contain two native pieces. Fresh57 checks, one native capture and current Viewer/Studio bindings pass; 13 current elements remain and six Profile proposals are unadopted. Next MAIN D508 ordinary Chamfer is prepared 0/5 actual. Global acceptance remains UNENUMERATED; row-label and candidate-ledger counts are not completion.
