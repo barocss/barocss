@@ -8,6 +8,10 @@ source_request: "Prepare a Claude handoff prompt after all current work is pushe
 last_updated: 2026-11-04
 ---
 
+D512 qualifies the existing C4 nested selection/card and fresh BOM across the retained parent revision: 2/2 public groups, two Docs, two fresh native captures and two bindings. The sub1/p2 card retains its path while position z0→5 and folded face n3.top→n4.top update; BOM changes nested Qty2 to Qty1/1. Five fresh tests and final High saved review pass. No product change, ideal Hole or aggregate mass-precision certificate; core NOT_MEASURED and HOLDs remain. [Evidence](../nested-selection-bom-revision-2026-11-04/README.md).
+
+This supersedes older next-MAIN navigation. Next MAIN is a remaining-acceptance source audit; no next runtime item is selected yet. D509 remains separate applied WIP with bounded GUI/native PASS and Studio/aux/docs NOT_RUN.
+
 D511 qualifies the existing C4 patterned-material/BOM lifecycle: 5/5 public groups, six accepted Docs, two native captures and four exact whole-Doc reuses. Seed steel propagates to all four instances; BOM displays 118.8/147.6 g through FIRST Undo/Redo, own project Open and post-Open Reset. Three fresh tests and final High saved review pass. No product change; core NOT_MEASURED and all HOLDs remain. [Evidence](../patterned-material-bom-mass-2026-11-04/README.md).
 
 This supersedes older next-D511/unadopted-D509 navigation below. D509 is separate applied WIP with 76 focused tests and 4 mutants PASS; its GUI/native/Studio/docs actuals are NOT_RUN. Next MAIN is a retained-evidence source audit for the next nonheld C4 workflow.

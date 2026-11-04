@@ -6,6 +6,8 @@ A bounded closeout does not close an entire feature family, format, standard or 
 
 ## Active priority authority — D445
 
+D512 qualifies the existing C4 nested selection/card and fresh BOM across the retained parent revision: 2/2 public groups, two Docs, two fresh native captures and two bindings. The sub1/p2 card retains its path while position z0→5 and folded face n3.top→n4.top update; BOM changes nested Qty2 to Qty1/1. Five fresh tests and final High saved review pass. No product change, ideal Hole or aggregate mass-precision certificate; core NOT_MEASURED and HOLDs remain. [Evidence](notes/nested-selection-bom-revision-2026-11-04/README.md).
+
 D511 qualifies the existing C4 patterned-material/BOM lifecycle: 5/5 public groups, six accepted Docs, two native captures and four exact whole-Doc reuses. Seed steel propagates to all four instances; BOM displays 118.8/147.6 g through FIRST Undo/Redo, own project Open and post-Open Reset. Three fresh tests and final High saved review pass. No product change; core NOT_MEASURED and all HOLDs remain. [Evidence](notes/patterned-material-bom-mass-2026-11-04/README.md).
 
 The [D445 core CAD priority decision](notes/core-cad-priority-2026-11-02/README.md) and [Claude handoff](notes/claude-handoff-2026-11-02/README.md) are the current continuation entry points. This owner-selected order supersedes only the former active sequence **10 → 11 → 13 → 14**. Other operating constraints, tolerances and owner gates remain unchanged. The 34 row IDs and scope links remain the scope inventory.
