@@ -4,7 +4,12 @@ Current roadmap status is authoritative in the [roadmap index](roadmap.md).
 This page is a navigation index. It does not repeat numeric proof or reinterpret old acceptance.
 The complete original D1–D417 record body is preserved byte-for-byte in the [decision archive](decisions-history-through-D417.md).
 
-## Decision navigation — current checkpoint
+## Decision navigation — latest records
+
+Record summaries retain their time-of-writing scope and status. Use [the current roadmap](roadmap.md) for the active queue and present state; older next-item text below is historical.
+
+- [D520: rebuild current roadmap, preserve all34 scope rows/history, queue P0 safety and D521 version ownership; documentation only](notes/cad-roadmap-replan-2026-11-04/README.md).
+- [D519: complete package and Studio source audit; distinguish guard/contract gaps from unrun runtime reproduction](notes/cad-package-studio-audit-2026-11-04/README.md).
 
 - [D518: investigate published Physics versus uncommitted EXACT04, preserve rank gaps and source Work; no adoption or new runtime](notes/physics-exact04-takeover-audit-2026-11-04/README.md).
 - [D509: current runtime/30 fence types/26 docs routes pass; stable active-color images and prose follow-ups keep the checkpoint partial](notes/cad-react-profile-composition-2026-11-04/README.md).
