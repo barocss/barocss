@@ -1,3 +1,4 @@
+import type { ViewportRecoveryNotice } from './viewportRecovery';
 // WebGL2 renderer for the studio viewport.
 // Pipeline: MSAA scene pass (background, grid, contact shadow, clay-shaded bodies, wide crease
 // edges) → resolve colour + depth → screen-space ambient occlusion composite to the canvas.
@@ -147,6 +148,8 @@ export interface RenderPathTraceSession {
 }
 
 export interface ViewRenderer {
+  /** Private Studio feedback, after a recovered frame and its device queue have completed. */
+  setRecoveryHost?(host: (notice: ViewportRecoveryNotice) => void): void;
   /** Host-driven frames (GPU viewer): its own frame requests go here instead of to its own animation frame (PERF3 A2). */
   setRequestHost?(request: () => void): void;
   aoEnabled: boolean;

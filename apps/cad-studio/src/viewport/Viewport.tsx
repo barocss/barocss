@@ -1,3 +1,4 @@
+import { viewportRecoveryHost, type ViewportRecoveryNotice } from './viewportRecovery';
 import type { ClearanceDisplay } from './clearanceDisplay';
 import { useEffect, useImperativeHandle, useMemo, useRef, useState, useSyncExternalStore, forwardRef } from 'react';
 import { countRender } from '../devRenders';
@@ -111,6 +112,7 @@ interface Props {
   clearance?: ClearanceDisplay | null;
   /** Reports backend capability failures to the existing application controls. */
   onDisplayModeStatus?(status: DisplayModeStatus): void;
+  onRecoveryNotice?(notice: ViewportRecoveryNotice): void;
   /** Which renderer draws, once one has started (G10: what WebGL2 does not draw is said in the app). */
   onBackend?(backend: 'webgpu' | 'webgl2'): void;
   bodies: BodyResult[];
@@ -580,10 +582,13 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
 
   // WebGPU (the @barocss/gpu viewer) when the browser has it, else WebGL2; ?renderer=webgl2 forces the latter.
   useEffect(() => {
-    let live = true, observer: ResizeObserver | null = null;
+    let live = true, observer: ResizeObserver | null = null, recoveryOwner: object | null = null;
     const start = (r: ViewRenderer, name: 'webgpu' | 'webgl2') => {
       if (!live) { r.dispose?.(); return; }
-      renderer.current = r; r.setTheme(theme.current); r.aoEnabled = ao.current; r.trackFrameCost(frameCostOn.current); r.setRequestHost?.(() => requestRef.current());
+      const owner = recoveryOwner = {};
+      renderer.current = r;
+      r.setRecoveryHost?.(viewportRecoveryHost(() => live && recoveryOwner === owner, notice => propsRef.current.onRecoveryNotice?.(notice)));
+      r.setTheme(theme.current); r.aoEnabled = ao.current; r.trackFrameCost(frameCostOn.current); r.setRequestHost?.(() => requestRef.current());
       observer = new ResizeObserver(request); observer.observe(canvas.current!);
       setBackend(name);
     };
@@ -591,7 +596,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     const forced = new URLSearchParams(location.search).get('renderer');
     if (forced !== 'webgl2' && 'gpu' in navigator) GpuRenderer.create(canvas.current!).then(r => start(r, 'webgpu'), webgl);
     else webgl();
-    return () => { live = false; observer?.disconnect(); renderer.current?.dispose?.(); renderer.current = null; };
+    return () => { live = false; recoveryOwner = null; observer?.disconnect(); renderer.current?.dispose?.(); renderer.current = null; };
   }, []);
   // A new pixel ratio (the window on another screen, the page zoomed) draws again at the new resolution.
   useEffect(() => {

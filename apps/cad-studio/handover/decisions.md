@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D525: qualify current-owner GPU recovery/startup and preserve newer notices;81 checks, independent review and actual recovery/terminal Save pass](notes/viewport-recovery-ownership-2026-11-05/README.md).
+
 - [D524: compare owned full mesh inputs and exclude previous shared upload;47 checks, High review and root native smoke pass; native collision UNKNOWN](notes/gpu-mesh-input-ownership-2026-11-05/README.md).
 
 - [D523: refuse stale/incomplete 3MF and late ZIP output;29 checks, actual Studio and independent assembly file reads pass](notes/three-mf-current-assembly-2026-11-05/README.md).

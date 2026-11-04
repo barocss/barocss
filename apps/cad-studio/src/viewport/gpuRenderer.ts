@@ -1,3 +1,4 @@
+import { createViewportRecovery, type ViewportRecoveryNotice } from './viewportRecovery';
 // The studio viewport on the @barocss/gpu viewer (WebGPU): the same interface as the WebGL2 Renderer, so
 // the viewport keeps its own camera, pointer handling and overlays. Bodies are lit meshes with their edges
 // as lines; hovered and selected faces are vertex colours, hovered and selected edges a wider line on top,
@@ -182,7 +183,7 @@ export class GpuRenderer implements ViewRenderer {
   private contactLinks: ReadonlySet<string> = new Set();
 
   private host: { request: () => void } = { request: () => {} };
-  private constructor(readonly canvas: HTMLCanvasElement, private readonly viewer: Viewer) {
+  private constructor(readonly canvas: HTMLCanvasElement, private readonly viewer: Viewer, private readonly recovery = createViewportRecovery(viewer)) {
     // (DEV: the viewer, for the bench's pick timings, G9.)
     // (G15: the labels in the page's own mono font — IBM Plex Mono, as the SVG chips were — drawn again once it has loaded.)
     viewer.labelFont = LABEL_FONT;
@@ -194,6 +195,8 @@ export class GpuRenderer implements ViewRenderer {
       (window as unknown as { __studioShareCopies: (on: boolean) => void }).__studioShareCopies = on => this.setShareCopies(on);
     }
   }
+  setRecoveryHost(host: (notice: ViewportRecoveryNotice) => void): void { this.recovery.setHost(host); }
+
   /** Where the viewer's frame requests go: the viewport's request (one draw per animation frame). */
   setRequestHost(request: () => void): void { this.host.request = request; }
 
@@ -202,12 +205,18 @@ export class GpuRenderer implements ViewRenderer {
     // (Host-driven frames: the viewer's own requests go to the viewport's frame loop, which draws once per animation
     // frame; the viewer scheduling its own as well drew every change twice, PERF3 A2.)
     const host = { request: () => {} };
-    const viewer = await createViewer(canvas, { controls: false, camera: { up: [0, 0, 1] }, pixelRatio: pixelRatio(), onRequestRender: () => host.request() });
-    viewer.outlineWidth = SELECTION_OUTLINE_WIDTH;
-    const r = new GpuRenderer(canvas, viewer);
-    r.host = host;
-    r.setTheme('dark');
-    return r;
+    const recovery = createViewportRecovery();
+    let viewer: Viewer | undefined;
+    try {
+      viewer = await createViewer(canvas, { controls: false, camera: { up: [0, 0, 1] }, pixelRatio: pixelRatio(), onRequestRender: () => host.request(),
+        onError: message => { recovery.report(message); console.error('[barocss viewer]', message); } });
+      recovery.attach(viewer);
+      viewer.outlineWidth = SELECTION_OUTLINE_WIDTH;
+      const r = new GpuRenderer(canvas, viewer, recovery);
+      r.host = host;
+      r.setTheme('dark');
+      return r;
+    } catch (error) { recovery.dispose(); viewer?.dispose(); throw error; }
   }
 
   setTheme(name: ThemeName): void {
@@ -1213,7 +1222,7 @@ export class GpuRenderer implements ViewRenderer {
     return c.convertToBlob({ type: 'image/png' });
   }
 
-  dispose(): void { this.setPrintDisplay(null); this.setCamDisplay(null); this.setAnnotationDrawings(null); this.viewer.dispose(); }
+  dispose(): void { this.recovery.dispose(); this.setPrintDisplay(null); this.setCamDisplay(null); this.setAnnotationDrawings(null); this.viewer.dispose(); }
 }
 
 /** Texture coordinates by box projection: each vertex across the body's box on its face's two other axes. */

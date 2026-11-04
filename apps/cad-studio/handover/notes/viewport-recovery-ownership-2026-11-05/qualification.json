@@ -1,0 +1,178 @@
+{
+  "workId": "D525",
+  "priority": "P0-R05",
+  "rows": [
+    6,
+    20,
+    32
+  ],
+  "date": "2026-11-05",
+  "tier": "FEATURE",
+  "baseline": "facb5e88ac710c73cf75440661ff716f6f8deae7",
+  "status": "BOUNDED_RECOVERY_FEEDBACK_QUALIFIED",
+  "implementationModel": "GPT-6.1 Sol Medium",
+  "independentSourceReview": "APPROVED (GPT-6.1 Sol Medium)",
+  "candidate": "D517 pinned source reused selectively; startup/notice gaps corrected; raw candidate preserved",
+  "checks": {
+    "originalControlled": "NOT_RUN (helper absent; missing import is not reproduction)",
+    "fixedControlled": {
+      "pass": 81,
+      "fail": 0,
+      "newRecoveryCases": 24,
+      "relatedRendererCases": 57
+    },
+    "StudioTypes": "PASS",
+    "finalModelTypes": "PASS",
+    "driverObserverSyntax": "PASS",
+    "diff": "PASS"
+  },
+  "rootActualStudio": {
+    "baseline": "REPRODUCED_FEEDBACK_CONTRACT_FAIL; actual device replacement and continuity PASS",
+    "fixedSuccessAndNewerError": "PASS",
+    "fixedTerminalAndSave": "PASS",
+    "deliberateOwnedDeviceDestructions": {
+      "baseline": 1,
+      "fixedSuccessFlow": 2,
+      "terminal": 1
+    },
+    "injections": [
+      "Second success flow holds RETURN of original native acquired replacement device, then releases same device",
+      "Terminal flow rejects exactly one replacement requestDevice with D525_INJECTED_REPLACEMENT_REQUEST_DEVICE_REJECTION after real owned device loss"
+    ],
+    "observedSuccessNotices": [
+      {
+        "sequence": 0,
+        "time": 5348.5,
+        "title": "Restoring viewport",
+        "hint": "Your model remains open."
+      },
+      {
+        "sequence": 1,
+        "time": 5401.799999952316,
+        "title": "Viewport restored",
+        "hint": "Your model remains open."
+      }
+    ],
+    "expectedNativeTerminalConsoleErrors": [
+      "[barocss viewer] Device lost (Device was destroyed.) and could not be recreated: D525_INJECTED_REPLACEMENT_REQUEST_DEVICE_REJECTION"
+    ],
+    "unexpectedConsoleErrors": 0,
+    "pageErrors": 0,
+    "changesDuringRuns": 0,
+    "sourcePathCounts": [
+      291,
+      292,
+      292
+    ],
+    "changedCommonPaths": [
+      "apps/cad-studio/src/App.tsx",
+      "apps/cad-studio/src/viewport/Viewport.tsx",
+      "apps/cad-studio/src/viewport/gpuRenderer.ts",
+      "apps/cad-studio/src/viewport/renderer.ts",
+      "apps/cad-studio/test/native-device-recovery-observer.mjs",
+      "apps/cad-studio/test/viewport-recovery-current-studio-browser.mjs"
+    ],
+    "addedSourcePaths": [
+      "apps/cad-studio/src/viewport/viewportRecovery.ts"
+    ],
+    "rootViewed": [
+      "baseline01/03",
+      "fixed01/02",
+      "fixed01/03",
+      "fixed01/09",
+      "terminal01/02",
+      "terminal01/03"
+    ],
+    "terminalSavedDocEqual": true,
+    "localArtifactDownloads": 1,
+    "networkDependencyDownloads": 0,
+    "cleanupEach": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ]
+  },
+  "limits": [
+    "Actual startup/fallback/disposal/renderer replacement and Undo-action toast priority are controlled only; normal public Undo/Redo is actual",
+    "Progress notice is captured in DOM mutation timeline; fast recovery means fixed02 PNG already shows restored",
+    "Current-viewer test observer wraps callback getter identity and restores before context close; it does not qualify disposal ownership in GUI",
+    "Terminal failure and second-cycle delay are deliberate test injections, not organic host failure statistics",
+    "No new GPU API, B-rep/tolerance/schema, global toast redesign, automatic document write/reload or general geometry/performance certificate",
+    "No whole kernel, production build, CI, mobile, release or develop integration",
+    "Whole CAD/core NOT_MEASURED; epic541 remains open"
+  ],
+  "externalEvidence": [
+    {
+      "path": "/tmp/barocss-d525-fixed-checks01/tests.log",
+      "sha256": "031ddd2f35b83f0536840bac29c9f7c513c371410326c6c3b317df29046deb36"
+    },
+    {
+      "path": "/tmp/barocss-d525-fixed-checks01/studio-types.log",
+      "sha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+    },
+    {
+      "path": "/tmp/barocss-d525-fixed-checks01/model-types.log",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "path": "/tmp/barocss-d517-recovery-candidate01/manifest.json",
+      "sha256": "e9253fcef7f6a40b7e2e05728a953428d012f3733038aca033f70345d2ef9f62"
+    },
+    {
+      "path": "/tmp/barocss-d517-recovery-candidate01/candidate.patch",
+      "sha256": "3b5d6cd8c2a30125e18c802da92c645b177e95731000f4afd857bdd593df4975"
+    },
+    {
+      "path": "/tmp/barocss-d525-studio-repro01/receipt.json",
+      "sha256": "bfcf2ce02895742f3cb6dd1e43ad4070c6a5150a5edaa103ae7a3c3161cacf3e"
+    },
+    {
+      "path": "/tmp/barocss-d525-studio-repro01-meta/run.log",
+      "sha256": "70ff990da3dc024a8d3b1813f8aeeaff5ca8853eae3e0936500ef277d3c950fc"
+    },
+    {
+      "path": "/tmp/barocss-d525-studio-fixed01/receipt.json",
+      "sha256": "a605e2b62f0b5df013f0158e4d2bbcbda9d243c305645b998432ae9e114d9a9b"
+    },
+    {
+      "path": "/tmp/barocss-d525-studio-fixed01-meta/run.log",
+      "sha256": "c1cc8c07fc686e5aa7b26b126f1e68912c038788e15fa61e1fe10f3ae8fcf97c"
+    },
+    {
+      "path": "/tmp/barocss-d525-studio-terminal01/receipt.json",
+      "sha256": "eaba12f36b86dd6f270c25d2480798557f67c3e3f6c127429987de5ac7241f04"
+    },
+    {
+      "path": "/tmp/barocss-d525-studio-terminal01-meta/run.log",
+      "sha256": "48d1f27ab2426c46af67141d3b2119199ea80ded67b5699a21bedded873270bf"
+    },
+    {
+      "path": "/tmp/barocss-d525-studio-repro01/03-native-device-recovered.png",
+      "sha256": "e7382620754b684562d1dfd014eb7bd623e5d18998b9c7d5994ab2b017f832a4"
+    },
+    {
+      "path": "/tmp/barocss-d525-studio-fixed01/02-native-recovery-observed.png",
+      "sha256": "d329936145a8ef9018e827dba606c55691589734704f83260e9e787ec31fa839"
+    },
+    {
+      "path": "/tmp/barocss-d525-studio-fixed01/03-native-device-recovered.png",
+      "sha256": "d329936145a8ef9018e827dba606c55691589734704f83260e9e787ec31fa839"
+    },
+    {
+      "path": "/tmp/barocss-d525-studio-fixed01/09-late-recovery-keeps-newer-open-error.png",
+      "sha256": "8f817286d4311c88644e510c45877cac7be4fb7fe9383d2d0589ab9fcd72ac87"
+    },
+    {
+      "path": "/tmp/barocss-d525-studio-terminal01/02-terminal-injected-replacement-failure.png",
+      "sha256": "d1ad9784940a3db0cb4e1d5e1c306f34172de376622f3587334b4e97787ee9eb"
+    },
+    {
+      "path": "/tmp/barocss-d525-studio-terminal01/03-terminal-work-saved.png",
+      "sha256": "f8062024bbedd9c90796e66085dc5f790c815ce7c893afe48f0857983cdaffcc"
+    },
+    {
+      "path": "/tmp/barocss-d525-studio-terminal01/terminal-unsaved-work.bcad",
+      "sha256": "598a8e3a88db6c722359d08414d4005bf57654303dc2e4153a976370fa906ffe"
+    }
+  ]
+}
