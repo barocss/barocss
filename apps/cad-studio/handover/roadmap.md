@@ -6,6 +6,8 @@ A bounded closeout does not close an entire feature family, format, standard or 
 
 ## Active priority authority — D445
 
+D511 qualifies the existing C4 patterned-material/BOM lifecycle: 5/5 public groups, six accepted Docs, two native captures and four exact whole-Doc reuses. Seed steel propagates to all four instances; BOM displays 118.8/147.6 g through FIRST Undo/Redo, own project Open and post-Open Reset. Three fresh tests and final High saved review pass. No product change; core NOT_MEASURED and all HOLDs remain. [Evidence](notes/patterned-material-bom-mass-2026-11-04/README.md).
+
 The [D445 core CAD priority decision](notes/core-cad-priority-2026-11-02/README.md) and [Claude handoff](notes/claude-handoff-2026-11-02/README.md) are the current continuation entry points. This owner-selected order supersedes only the former active sequence **10 → 11 → 13 → 14**. Other operating constraints, tolerances and owner gates remain unchanged. The 34 row IDs and scope links remain the scope inventory.
 
 Sketch editing, solid modeling, feature history, native files and local-project versions already exist. An open feature family or collaboration scope does not mean those daily functions are absent. Report reproduced defects separately from unverified breadth and unsupported extensions.

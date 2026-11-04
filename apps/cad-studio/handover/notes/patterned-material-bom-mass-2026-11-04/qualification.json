@@ -1,0 +1,210 @@
+{
+  "work_id": "D511",
+  "status": "PASS_BOUNDED_EXISTING_PATTERN_MATERIAL_BOM_LIFECYCLE",
+  "scope": "Existing skipped-pattern seed material propagation, current BOM mass and history/project/reset lifecycle",
+  "productChanges": 0,
+  "groups": {
+    "retained accepted H14 default material availability": "PASS",
+    "public seed steel propagates to four and current BOM": "PASS",
+    "FIRST Undo default and Redo steel": "PASS",
+    "own project Save Close reload Open steel": "PASS",
+    "post-Open public material Reset to definition": "PASS"
+  },
+  "acceptedDocBindings": 6,
+  "nativeCaptures": 2,
+  "exactWholeDocReuses": 4,
+  "firstIntegratedActualRun": "PASS_NO_SUT_FAILURE_OR_REPLAY",
+  "publicBOM": {
+    "freshMountEachBinding": true,
+    "cubeQty": 4,
+    "baseB1Qty": 1,
+    "totalPlacedPartQty": 4,
+    "defaultDisplayG": "118.8",
+    "steelExactG": "147.64",
+    "steelDisplayG": "147.6",
+    "roundingEnvelopeG": 0.05,
+    "perRowMassCentroid": "NOT_PUBLISHED",
+    "rawBOMWorkerPayload": "NOT_PUBLISHED"
+  },
+  "native": {
+    "worldBodiesPerCapture": 5,
+    "volumeRelativeBudget": 1e-09,
+    "massCentroidBoundsCarrierPcurveAbsoluteBudget": 1e-09,
+    "materialDensitiesGPerCM3": {
+      "assumedDefaultAl6061": 2.7,
+      "steel": 7.85
+    },
+    "densityStandardCertificate": "NOT_RUN_EXISTING_LIBRARY_ESTIMATES"
+  },
+  "publicInstances": {
+    "settledVolumeEachMM3": 1400,
+    "volumePrecision": "ROUNDED_INTEGER_UI",
+    "seedMaterialEditable": true,
+    "threeDrivenMaterialsDisabled": true,
+    "steelResetOnlySeed": true,
+    "rawPlacedWorkerVC": "NOT_MEASURED_UNAVAILABLE_EXISTING_HOOK",
+    "rootWorker": "CURRENT_ROOT_b1_VC_ONLY"
+  },
+  "invariants": "Only all four actual regenerated occurrence looks change. Original patterncount5/skip1, IDs, poses, H14, geometry definitions, b1 look key, RevB and retained ./D490-cube.bcad link remain exact.",
+  "checks": {
+    "freshSelectedExistingTests": 3,
+    "fail": 0,
+    "skip": 0,
+    "reusedStorageTests": 7,
+    "reusedStoragePins": 1841,
+    "D494BuildLintFinalStudioModelTypesPins": 1853,
+    "newProductOrTestSourceChanges": 0,
+    "fullKernel": "NOT_RUN_NO_BREP_ALGORITHM_CHANGE"
+  },
+  "custody": {
+    "wrapperPins": 1943,
+    "helperFrozenPins": 1944,
+    "currentEqualThroughCleanupAndRootReview": true,
+    "genericLabels": 44,
+    "genericJSONHTMLPNGPaths": 132,
+    "rootOriginalPNGsViewed": 9,
+    "ownPID": 28543,
+    "ownPIDAbsent": true,
+    "ownedProjectRemoved": true,
+    "resourcesClosed": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "inheritedD509PathsPreserved": 33
+  },
+  "visualLimits": [
+    "All four cubes visible in reviewed BOM views; base left portion under palette",
+    "Seed material row below screenshot viewport; public action and DOM controls retained",
+    "Full fit/raster precision NOT_MEASURED"
+  ],
+  "highFinal": {
+    "status": "PASS_FINAL_SAVED_HIGH_REVIEW",
+    "savedPredicates": 247494,
+    "failures": 0,
+    "classification": "Saved geometry/hash/exact-arithmetic predicates, not product tests",
+    "nativeMaxima": {
+      "volumeAbsolute": 2.2737367544323206e-13,
+      "volumeRelative": 2.220446049250313e-16,
+      "centroidAbsolute": 1.4210854715202004e-14,
+      "massAbsoluteG": 1.7763568394002505e-15,
+      "boundsAbsolute": 0,
+      "planeAbsolute": 0,
+      "planeNormalAbsolute": 0,
+      "lineEndpointAbsolute": 0,
+      "pcurveThirdCoordinate": 0,
+      "completePcurveLiftAbsolute": 0,
+      "curveSampleAbsolute": 0,
+      "pcurveSampleAbsolute": 0,
+      "planeAreaAbsolute": 0,
+      "rootWorkerVolumeAbsolute": 0,
+      "rootWorkerCentroidAbsolute": 1.4210854715202004e-14,
+      "publicAggregateRoundingG": 0.03999999999999204
+    },
+    "exactFractionIntegralResidual": {
+      "volumeMM3": 0,
+      "centroidMM": 0
+    },
+    "exactPublicRoundingG": "1/25",
+    "path": "/tmp/barocss-d511-high-final01/final-summary.json",
+    "sha256": "6b6eeaa007e364506b752fb1147f948dba07ed8e1e1a34fa24be603eee4b1ecb"
+  },
+  "retainedStops": "One post-run saved-summary reader TypeError misread an integer as a list; corrected without any SUT/native/oracle replay. No new product or actual runner failure. High saved audit01 stopped at predicate6 because its reader assumed a direct source hash map rather than the actual {count,hashes} sidecar. Saved-only audit02 corrected that observer without changing criteria or replaying SUT/native/oracle.",
+  "global": "D501/D505 custody FAILs, core NOT_MEASURED, frozen legacy43 and all HOLDs unchanged",
+  "commands": [
+    "python3 /tmp/barocss-d511-material-rootprep01/prepare-checks.py",
+    "bash /tmp/barocss-d511-material-rootprep01/run-checks01.sh",
+    "python3 /tmp/barocss-d511-material-rootprep01/seal-actual01.py",
+    "bash /tmp/barocss-d511-material-rootprep01/run-studio01.sh",
+    "python3 /tmp/barocss-d511-root01/review-actual.py",
+    "python3 /tmp/barocss-d511-high-final01/audit-saved02.py"
+  ],
+  "evidence": {
+    "actual": {
+      "path": "/tmp/barocss-d511-material-workflow-run01/receipt.json",
+      "sha256": "b7384fc792afca7d5a1045faa4ecf741cba0dc3f6563549f9145dd92fbcb9d74"
+    },
+    "rootReview": {
+      "path": "/tmp/barocss-d511-root01/root-review.json",
+      "sha256": "0a098c1e5cd62035337e2f5d59a5f9ff1a10113c372e1f95b29d3af7f0510010"
+    },
+    "checks": {
+      "path": "/tmp/barocss-d511-material-checks01/receipt.json",
+      "sha256": "d1a22eae46d2aeb9bef084eb7c392ea42a37bf72eacb764a6a6b5d666d53fdc5"
+    },
+    "reuse": {
+      "path": "/tmp/barocss-d511-material-rootprep01/reuse-checks01.json",
+      "sha256": "cac5c9ddc460e2c366c292d17043f0c99a2646d5bfe5d7f23bf04c54046bc2f2"
+    },
+    "geometryManifest": {
+      "path": "/tmp/barocss-d511-geometry01/manifest.json",
+      "sha256": "48db598bc0bb5a80e24247711d150db793cc6376a1a2ecc12519c5396f6817d3"
+    },
+    "config": {
+      "path": "/tmp/barocss-d511-material-driver01/config.json",
+      "sha256": "e852ca2dff2fe02ab24e2db76cc41d8627a92a3c2d28224a0e3d4f8284e6cdd5"
+    },
+    "sourceInput": {
+      "path": "/tmp/barocss-d511-material-driver01/retained-d490-source-H14.bcad",
+      "sha256": "3ace5ca3ba8ec449ce97e50abebd8d70d7cadd5eb328379cda98b9e620200595"
+    },
+    "assemblyInput": {
+      "path": "/tmp/barocss-d511-material-driver01/retained-d490-assembly-H14.bcad",
+      "sha256": "1b64f056276789d59db3f06e0af39f568e684e50ed63010b3f5cf81015ace646"
+    },
+    "highFinal": {
+      "path": "/tmp/barocss-d511-high-final01/final-summary.json",
+      "sha256": "6b6eeaa007e364506b752fb1147f948dba07ed8e1e1a34fa24be603eee4b1ecb"
+    },
+    "issueReview": {
+      "path": "/tmp/barocss-d511-root01/issue-review.json",
+      "sha256": "1d2f902b82dea40871116fa311c9fa3c8d2a6ddc508ea1e79435fba2e4c7a74f"
+    }
+  },
+  "rawArtifacts": "TMP only; no raw artifacts in Git",
+  "completed": true,
+  "decision": "D511",
+  "priority": "C4",
+  "relatedRows": [
+    "10",
+    "12",
+    "16"
+  ],
+  "productHEAD": "3067962b4b14b5bccf28342b8dd58a9ac15853e3",
+  "verificationTier": {
+    "tier": "small",
+    "reason": "Existing material/pattern/BOM workflow measurement; no product, public API, kernel or test-source changes. Selected tests and actual Studio; independent High saved review additionally retained."
+  },
+  "issueReview": {
+    "538": "OPEN_PARENT_EIGHT_REQUIREMENTS_REMAIN",
+    "2233": "OPEN_BROADER_LINKED_OVERRIDE_RESEARCH_SCOPE_REMAINS",
+    "commentOrCloseSent": false
+  },
+  "parallelCADReact": "D509 source applied as 33 uncommitted paths; focused76 unique tests/types/lint and4mutants PASS. GUI/native/Studio/docs actuals NOT_RUN. Independent from D511.",
+  "models": {
+    "implementationAndTestPreparation": "GPT-6.1 Sol Medium",
+    "geometryAndSavedReview": "GPT-6.1 Sol High",
+    "actualStudioAndImageReview": "Root"
+  },
+  "executionEnvironment": {
+    "node": "22.19.0",
+    "heavyGate": "/Users/user/.claude/local-mods/barocss-lanes-guard/bin/gate.sh",
+    "wholeWorktreeFrozenThroughCleanupAndRootImageReview": true
+  },
+  "verificationResult": {
+    "PASS": [
+      "Five first-run Studio groups and six current native/public bindings",
+      "Three fresh selected existing tests, seven storage tests and D494 build/lint/types reused at exact declared source closure",
+      "Independent High saved review:247494 predicates,zero failures",
+      "Root nine original images,1943wrapper/1944helper pins and own cleanup"
+    ],
+    "FAIL": [],
+    "NOT_RUN": [
+      "Raw placed Worker V/C and BOM per-row mass/centroid are unavailable",
+      "Full kernel: no B-rep algorithm changed",
+      "Material datasheet/inertia/full-fit/raster/mobile/PDF/general assembly/release"
+    ]
+  },
+  "retainedHistoricalFailures": [
+    "D501/D505 custody FAILs remain unchanged"
+  ]
+}

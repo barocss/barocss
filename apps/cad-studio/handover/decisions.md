@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- D511 qualifies the existing C4 patterned-material/BOM lifecycle: 5/5 public groups, six accepted Docs, two native captures and four exact whole-Doc reuses. Seed steel propagates to all four instances; BOM displays 118.8/147.6 g through FIRST Undo/Redo, own project Open and post-Open Reset. Three fresh tests and final High saved review pass. No product change; core NOT_MEASURED and all HOLDs remain. [Evidence](notes/patterned-material-bom-mass-2026-11-04/README.md).
+
 - **D510 — C3 existing leader Note lifecycle:** Six public groups PASS, seven accepted Docs and fourteen both-sheet SVG observations. Creation/edit, Top S2→S1, FIRST Undo/Redo, own project Open and post-Open return S2 retain the actual Note and view ownership. Zero native/oracles; no full C3 or physical certificate. [Evidence](notes/view-attached-leader-note-2026-11-04/README.md).
 
 - **D508 — C2 retained Chamfer persistence:** Five public groups PASS: retained Open3, own Save/Close/reload/Open3, post-Open Distance3→2, FIRST Undo3 and Redo2. Two native captures, three exact whole-Doc reuses and five fresh Worker/physical bindings. No product change or full C2 claim. High final saved review passes 185 predicates. See [notes/chamfer-project-persistence-2026-11-04/README.md](notes/chamfer-project-persistence-2026-11-04/README.md).

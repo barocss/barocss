@@ -8,6 +8,10 @@ source_request: "Prepare a Claude handoff prompt after all current work is pushe
 last_updated: 2026-11-04
 ---
 
+D511 qualifies the existing C4 patterned-material/BOM lifecycle: 5/5 public groups, six accepted Docs, two native captures and four exact whole-Doc reuses. Seed steel propagates to all four instances; BOM displays 118.8/147.6 g through FIRST Undo/Redo, own project Open and post-Open Reset. Three fresh tests and final High saved review pass. No product change; core NOT_MEASURED and all HOLDs remain. [Evidence](../patterned-material-bom-mass-2026-11-04/README.md).
+
+This supersedes older next-D511/unadopted-D509 navigation below. D509 is separate applied WIP with 76 focused tests and 4 mutants PASS; its GUI/native/Studio/docs actuals are NOT_RUN. Next MAIN is a retained-evidence source audit for the next nonheld C4 workflow.
+
 D510 passes the retained two-sheet leader Note lifecycle: 6 groups, 7 Docs, 14 sheet observations, 0 native/oracles. Actual generated n1/anchor/defaults retained; signature counts stay zero. Historical FAIL/HOLD/global boundaries stay unchanged. D509 remains approved source preparation, unadopted at this checkpoint. [Evidence](../view-attached-leader-note-2026-11-04/README.md). Next MAIN is D511 C4 material/BOM source-availability audit, actual NOT_RUN. This supersedes older parked-leader/next-MAIN navigation below; core readiness stays NOT_MEASURED.
 
 D508: retained D449 Chamfer project persistence and post-Open3→2 workflow PASS, 5 groups / 2 native captures / 3 exact reuses / 5 bindings. Root reviewed 7 images; full fit/raster NOT_MEASURED. High final saved review passes 185 predicates. D509 remains parallel unadopted source preparation; C3 leader Note parked. [Evidence](../chamfer-project-persistence-2026-11-04/README.md). This supersedes older D508 prepared0/5 navigation below. Core readiness remains NOT_MEASURED; no global denominator is frozen.
