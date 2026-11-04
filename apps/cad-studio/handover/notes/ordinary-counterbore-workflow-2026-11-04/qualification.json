@@ -1,0 +1,308 @@
+{
+  "work_id": "D500",
+  "status": "PASS_BOUNDED_CURRENT_STUDIO_ORDINARY_COUNTERBORE_NATIVE_CONSUMER_QUALIFICATION",
+  "tier": "SMALL_EXISTING_C1_C2_MEASUREMENT_NO_PRODUCT_CHANGE",
+  "models": {
+    "routine": "GPT-6.1 Sol Medium",
+    "geometryAndFinalSavedAudit": "GPT-6.1 Sol High"
+  },
+  "productChanges": 0,
+  "sourceAudit": {
+    "path": "/tmp/barocss-d500-source-audit01/manifest.json",
+    "sha256": "161286e1d9d0fd5bd3a7ff45b594fd6d0cc936be8f32e558428ef62ebd49e187"
+  },
+  "geometryManifest": {
+    "path": "/tmp/barocss-d500-geometry01/manifest.json",
+    "sha256": "506d4102c80235bd40a6f5679fb17ac0e73e934c2eea46d63200e9092e45ac16"
+  },
+  "input": {
+    "path": "/tmp/barocss-d500-geometry01/seed.bcad",
+    "sha256": "0c602dc99f33ab44ec37fd84a5fd70adb4ee6b23c9e2d61fd71eebde6ffffd0d",
+    "bytes": 1089,
+    "geometry": "80 x 40 x 10 mm; bounds [-20,-20,0]..[60,20,10]"
+  },
+  "groups": {
+    "public-counterbore-depth3": "PASS",
+    "child-depth4": "PASS",
+    "source-H12-fixeddepth4": "PASS",
+    "FIRSTUndo-B-Redo-C": "PASS",
+    "both-zero-refusals-retain-C": "PASS",
+    "owned-project-Open-C": "PASS",
+    "postOpen-depth2": "PASS"
+  },
+  "counts": {
+    "newStrictNativeHoleDocClasses": 4,
+    "exactWholeDocReuses": 5,
+    "freshBindings": 9,
+    "pickOnlyMappingEvaluations": 1,
+    "seedStrictPhysicalCaptures": 0,
+    "seedPhysicalOracles": 0
+  },
+  "recipe": {
+    "stock": "unchanged D447 n0locked rectangle[-20,-20]..[60,20],n1ExtrudeH10/12",
+    "pilot": {
+      "id": "n2",
+      "kind": "hole",
+      "parent": {
+        "node": 1,
+        "side": "solid"
+      },
+      "center": [
+        20,
+        0
+      ],
+      "radius": 2,
+      "face": "n1.top",
+      "depth": "ABSENT_THROUGH"
+    },
+    "counterbore": {
+      "id": "n3",
+      "kind": "hole",
+      "parent": {
+        "node": 2,
+        "side": "solid"
+      },
+      "center": [
+        20,
+        0
+      ],
+      "radius": 4,
+      "face": "n1.top",
+      "depth": "3\u21924\u21922 only declaredstates"
+    },
+    "output": {
+      "b3": {
+        "node": 3,
+        "side": "solid"
+      }
+    },
+    "nextId": 4,
+    "invariants": "All stockconstraints/sideTags/IDs/order/bothcentres/radii/parentlinks/namedfaces exact. No made/pattern/axis/side/tap/countersink fields. Both omittedaxisZ/sidemaxdefaults."
+  },
+  "physicalContract": {
+    "material": "stock minus R2throughfullH and ONLY additional R2..R4 upperannulus depthd. Do not double-subtract R4disk abovealreadyremoved pilot.",
+    "volume": "(3200-4*pi)*H-12*pi*d",
+    "firstMomentZ": "(3200-4*pi)*H^2/2-12*pi*d*(H-d/2)",
+    "centroid": "[20,0,firstMomentZ/volume]",
+    "bounds": "[-20,-20,0]..[60,20,H]",
+    "topology": "one strict closedsolid/shell with genus1/Euler0, stepped open throughbore (not blinddisk/genus0). Counts observed, not hardcoded genericadmission.",
+    "carriers": "six outwardstockplanes plus annularshoulder ZH-d,normal+Z,r2..4; inwardR2 cylinder trimmedZ0..H-d; inwardR4 cylinder trimmedZH-d..H. All originalcarrier/loop/edge/vertex data retained.",
+    "fourRims": [
+      {
+        "radius": 2,
+        "z": "0"
+      },
+      {
+        "radius": 2,
+        "z": "H-d"
+      },
+      {
+        "radius": 4,
+        "z": "H-d"
+      },
+      {
+        "radius": 4,
+        "z": "H"
+      }
+    ],
+    "carrierTrimBoundary": "Untrimmed surface probes prove support/radius/normal only. Actual ordered loopcurves prove finiteband,annularshoulder,rim and materialbounds. No oversizedcarrierpole-bound substitution."
+  },
+  "budgets": {
+    "volumeRelative": 1e-09,
+    "centroidBoundsCarrierRadiusAxisEndpointPcurveAbsoluteMM": 1e-09,
+    "density1MassAbsoluteG": 1e-09,
+    "nativeStrict": "Existing strict/tolerancecap unchanged; no generic policy edit.",
+    "finiteSamples": "Independent puredeBoor3line/9curvededge/5pcurve/5x5surface; completeoriginaltopology+trim traversal. No full parameter-domain theorem.",
+    "pcurvePresence": "Optionalfieldpolicy unchanged; everyactualpresentpcurve lifted within bothnativeedge budget and1e-9profiletarget, no synthesis."
+  },
+  "acceptedStates": [
+    {
+      "height": 10,
+      "counterboreDepth": 3
+    },
+    {
+      "height": 10,
+      "counterboreDepth": 4
+    },
+    {
+      "height": 12,
+      "counterboreDepth": 4
+    },
+    {
+      "height": 12,
+      "counterboreDepth": 2
+    }
+  ],
+  "checks": {
+    "status": "PASS",
+    "uniqueFreshModelPass": 11,
+    "receipt": {
+      "path": "/tmp/barocss-d500-checks01/receipt.json",
+      "sha256": "7e6401edbfe77fa20f1ba769788a9c8ff29afe79d135b500d082ad828d3ffead"
+    },
+    "commands": [
+      {
+        "name": "model-counterbore-feature-handles",
+        "argv": [
+          "node",
+          "scripts/test.mjs",
+          "feature-handles.test.ts"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 0.726,
+        "observedTAPCounts": {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "skipped": 0
+        }
+      },
+      {
+        "name": "diff",
+        "argv": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 0.053,
+        "observedTAPCounts": {}
+      }
+    ],
+    "unchangedReuse": {
+      "path": "/tmp/barocss-d500-root/unchanged-reuse01.json",
+      "sha256": "3bb9139cdd77c73bf889e20cf381d04e2a91eb8e1476d34181f5c51f1db894ea"
+    },
+    "reusedD498ProductTests": 12,
+    "reuseCurrentPins": 1845,
+    "D494BuildLintStudioFinalModelTypesRepositoryPins": 1841,
+    "newBuildTypesLintFullKernel": "NOT_RUN_UNCHANGED_RECEIPTS_REUSED_NO_BREP_CHANGE"
+  },
+  "seedMap": {
+    "status": "EXACT_COMPILED_MAP_REUSED_ONE_FRESH_PICK_ONLY_EVALUATION",
+    "reuseReceipt": {
+      "path": "/tmp/barocss-d500-root/seed-map-reuse01.json",
+      "sha256": "a158c24731e805277af4dffffa9ba74dbdbb8d6553037308a359fa00316eb7e7"
+    },
+    "unchangedNativeProducerPins": 1944,
+    "unchangedMetafileInputs": 463,
+    "newCompile": false,
+    "strictSeedCaptures": 0,
+    "seedPhysicalOracles": 0,
+    "seedPhysicalBaseline": "NOT_QUALIFIED"
+  },
+  "actual": {
+    "status": "PASS",
+    "receipt": {
+      "path": "/tmp/barocss-d500-workflow-run01/receipt.json",
+      "sha256": "8518c295119ce5c1e8f811644aff9f49c627025aaeed68a62da5bcc4acde032b"
+    },
+    "rootReview": {
+      "path": "/tmp/barocss-d500-root/actual01-review.json",
+      "sha256": "e0b4fed96163e203965b1e661ad8ee9732cc28d619e1915b9a5ff2c7f81f4c9c"
+    },
+    "config": {
+      "path": "/tmp/barocss-d500-driver01/config.json",
+      "sha256": "520df0bf534a641d6c935865eaf9583956106552c5bf4fe3a66b0d60db646dc8"
+    },
+    "wrapperPins": 2617,
+    "helperPins": 2618,
+    "nativeProducerPins": 1944,
+    "sourceThroughCleanupCurrent": "EXACT",
+    "ownedWrapperPIDGone": 52242,
+    "cleanup": [
+      {
+        "ownedProject": "D500-counterbore-run01",
+        "namespace": "REMOVED_AND_ABSENT"
+      },
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "rootReviewedImages": 9,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "nativeErrorsMax": {
+      "volumeAbsoluteMM3": 8.003553375601768e-11,
+      "volumeRelative": 2.096608736445214e-15,
+      "centroidAbsoluteMM": 5.684341886080802e-14,
+      "boundsAbsoluteMM": 0
+    },
+    "workerErrorsMax": {
+      "volumeRelative": 0,
+      "centroidAbsoluteMM": 2.1278066768041185e-18
+    }
+  },
+  "highFinal": {
+    "status": "PASS_BOUNDED_SAVED_D500_ORDINARY_COUNTERBORE_LIFECYCLE_AUDIT",
+    "path": "/tmp/barocss-d500-high-final01/review.json",
+    "sha256": "f70dc3fb725e7f5653875bb63156975caa90b85156c3090cce278f9c7f07613c",
+    "savedChecks": 12755,
+    "freshProductTestsSeparate": 11,
+    "reusedProductTestsSeparate": 12,
+    "command": "python3 -I /tmp/barocss-d500-high-final01/audit-saved02.py",
+    "scriptSHA256": "bba9762795dd6ab2be9bd001da779352cbc0fb1cf02d5c0cef2129c9411c08f6",
+    "execution": "Saved file/hash/scalar/topology arithmetic only. No native/oracle/SUT/build/test/browser rerun; no repository/capsule edit.",
+    "preservedAuditorStatusDialectStop": {
+      "path": "/tmp/barocss-d500-high-final01/audit01-stop.json",
+      "sha256": "d502161724230ef7320e6c89e1c25f96cb11abce32b6a162742424ba670f139c",
+      "bytes": 664
+    },
+    "observerCorrection": "Audit02 binds exact D500 root PASS status and root counts layout. Physical/Doc/source/budget assertions unchanged; no product, native, oracle, build, test or browser rerun.",
+    "physicalErrorMaxima": {
+      "volumeAbsoluteMM3": 8.003553375601768e-11,
+      "volumeRelative": 2.096608736445214e-15,
+      "centroidAbsoluteMM": 5.684341886080802e-14,
+      "boundsAbsoluteMM": 0.0,
+      "density1MassAbsoluteG": 7.815970093361102e-14,
+      "maximumEndpointGapMM": 0.0,
+      "maximumPcurveLiftGapMM": 1.0950198975068616e-14,
+      "maximumCarrierResidualMM": 6.439293542825908e-15,
+      "workerVolumeRelative": 0.0,
+      "workerCentroidAbsoluteMM": 2.1278066768041185e-18
+    },
+    "observedNativeTopology": {
+      "eachSelectedState": {
+        "bodies": 1,
+        "shells": 1,
+        "faces": 11,
+        "loops": 14,
+        "coedges": 48,
+        "edges": 24,
+        "vertices": 16
+      },
+      "allNineSameObservedCounts": true,
+      "genus": 1,
+      "boundary": "Open throughR2 pilot and upperR4 counterbore,annularshoulder and four complete circular rim witnesses from saved independent full trim traversal"
+    }
+  },
+  "commands": {
+    "focusedChecks": "bash /tmp/barocss-d500-root/run-checks01.sh",
+    "actual": "bash /tmp/barocss-d500-root/run-studio01.sh",
+    "execution": "Node 22.19.0, serial root-owned heavy gate, load below 40; all worktree writers frozen through actual cleanup"
+  },
+  "limits": [
+    "One existing principal +Z two-node counterbore lifecycle; no new command or geometry admission.",
+    "Original native supports and independent analytic oracle establish physics, not rounded UI/display meshes.",
+    "Current Worker supplies V/C/fresh/massReady, not native root bounds.",
+    "Palette partly occludes stock; full-fit, raster and inertia NOT_MEASURED.",
+    "No other axis/type/pattern/clearance/manufacturing/PDF/mobile/export/download/install/paid/browser CI/release."
+  ],
+  "global": {
+    "coreReadiness": "NOT_MEASURED",
+    "legacy43": "FROZEN",
+    "holds": "UNCHANGED",
+    "issue536": "ROOT_LIVE_READ_OPEN_ALL_EIGHT_REQUIRED_FEATURE_CHECKBOXES_UNCHECKED_NO_ISSUE_COMMENT_OR_CLOSE"
+  },
+  "next": {
+    "main": "PROVISIONAL_D501_EXISTING_ORDINARY_COUNTERSINK_SOURCE_EVIDENCE_AUDIT_ONLY_IF_GAP_CONFIRMED",
+    "parallelD499": "PRIVATE_WIP_FIRST_PACKAGE_CHECK_43_PASS_1_DUPLICATE_FIXTURE_KEY_FAIL_CORRECTION_TMP_ONLY_TYPES_LINT_ACTUAL_NOT_RUN"
+  },
+  "rawArtifacts": "TMP_ONLY_NOT_COMMITTED",
+  "physicalProofBoundary": "One captured native.mass/massPropertiesOf bound to original BRep plus independent analytical reference and raw BRep/support/trim proof. Separate brepMass result NOT_CAPTURED_NOT_REQUIRED; no dual native mass integration claim."
+}

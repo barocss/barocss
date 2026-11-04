@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D500: qualify one existing ordinary counterbore depth/source/history/two-refusal/project lifecycle; seven desktop groups and 12,755 final High saved-evidence checks pass](notes/ordinary-counterbore-workflow-2026-11-04/README.md).
+
 - [D498: qualify one existing ordinary blind Hole depth/source/history/refusal/project lifecycle; seven desktop groups and10037 final High saved-evidence checks pass](notes/ordinary-blind-hole-workflow-2026-11-04/README.md).
 
 - [D497: qualify existing CAD React Translate/Rotate, both example right inspectors and eighteen-page component/support documentation with current desktop route proof; retain source/type/inventory/observer stops](notes/cad-react-transforms-docs-2026-11-04/README.md).
