@@ -66,6 +66,20 @@ desktop rendering also pass, with separate receipts in
 [Physics verification](/reference/physics-verification).
 Admission alone does not qualify arbitrary mass ratios, tilted boxes, friction,
 simultaneous elastic impact or moving eight-body stacks.
+The island prepares every body's tensor. A rotated anisotropic box can refuse
+with `NUMERIC_LIMIT` even before that box touches another body. The isolated
+rotor example below uses `rigid-discrete-v1` and has separate G1 evidence.
+
+The same World also passes the aligned three-cube/floor case within the existing
+four-body cap. Lower and middle supports start at step1; the falling top joins
+the chain at27. Source/compiled256-step results pass an independent3DOF global
+reference and actual same-Native desktop state/word/pixel checks. This extends
+the stated equal2kg, zero-friction/restitution120Hz family only.
+
+<<< @/../samples/physics-island.test.mjs#three-cubes-floor-step
+
+The numerical case has0 restore calls; earlier two-cube recorder restoration
+is separate evidence. General four-body topology and moving8 remain unqualified.
 
 ### Isolated noncubic rotor
 

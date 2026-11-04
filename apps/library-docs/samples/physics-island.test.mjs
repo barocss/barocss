@@ -50,3 +50,26 @@ test('the zero-friction island has an explicit direct-broadphase boundary', () =
   assert.throws(() => createPhysicsWorld(model, { ...options, broadPhase: 'aabb' }),
     error => error instanceof PhysicsError && error.code === 'INVALID_CONFIG');
 });
+
+test('three cubes and floor stay within the existing four-body profile', () => {
+  // #region three-cubes-floor-step
+  const chain = structuredClone(model);
+  chain.revision = 'docsThreeCubes1';
+  chain.bodies.find(body => body.id === 'upper').initial.positionM[1] = 2.75;
+  chain.bodies.push(cube('middle', 1.5));
+  chain.colliders.push({ ...structuredClone(chain.colliders[0]),
+    id: 'hull:middle', bodyId: 'middle' });
+  const world = createPhysicsWorld(chain, options);
+  try {
+    for (let i = 0; i < 32; i++) world.step([]);
+    const state = world.getState();
+    assert.equal(state.stepIndex, 32);
+    assert.equal(state.contacts.length, 3);
+    for (const [id, height] of [['lower', 0.5], ['middle', 1.5], ['upper', 2.5]]) {
+      const body = state.bodies.find(value => value.id === id);
+      assert.ok(Math.abs(body.positionM[1] - height) <= 1e-10);
+      assert.ok(Math.abs(body.velocityMps[1]) <= 1e-10);
+    }
+  } finally { world.dispose(); }
+  // #endregion three-cubes-floor-step
+});

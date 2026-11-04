@@ -116,6 +116,21 @@ retained state; friction, elastic networks and general moving8 remain outside.
 No screenshot is used as a physical oracle. See
 `examples/physics-coupled-cubes-floor-2276/RESULTS.md`. HOLDs and original gates remain.
 
+The passed-scope expansion to three aligned2kg cubes and the same floor also
+passes256steps in each actual Source/compiled World. Both32-step checkpoints
+pass before the same Worlds continue; there is1World/256steps/2 reference calls
+per graph and0 restores. Independent3DOF Fraction projection enumerates8 active
+subsets without production solver imports. Maximum velocity/position errors are
+2.020e-14m/s and1.244e-14m, representative geometry3.109e-15m; all original
+gates remain. Six analytical projection cases and11 observer/word controls pass,
+including a terminal1e-11m witness rejection. Actual same-Native desktop matches
+all257 states/words, detects1623 changed GPU pixels and passes three desktop
+widths/controls. First contacts[1,1,27] show support of the lower two followed by
+the falling top. This uses the existing4body cap and unchanged library algorithm.
+It does not qualify arbitrary4body layouts or moving8. See
+`examples/physics-three-cubes-floor-2276/RESULTS.md`. All historical NO_GOs/HOLDs
+remain; no real-equipment claim, mobile test or deployment follows.
+
 ## Sphere-pair CCD checkpoint
 
 Exact represented endpoint/radius predicates fix an observed false graze: the

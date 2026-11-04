@@ -3,11 +3,11 @@
   "branch": "codex/physics-world-p5-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "rigid-persistent-box-v1: aligned2kg two-dynamic-cube/floor, e0/friction0/direct120Hz",
-    "status": "PUBLIC_SOURCE_NATIVE_256_RESTORE_FAILURE_AND_DESKTOP_PASS",
-    "scope": "256 primary coupled transitions/257 full states; eachgraph campaign6Worlds786accepted incl8restore/continuation and522regressions. ActualNative desktop2Worlds256steps ALLnumericwords+GPU2187pixels/3desktopwidths. No general moving8/anisotropic/frictional claim.",
-    "results": "examples/physics-coupled-cubes-floor-2276/RESULTS.md",
-    "canonicalAdoption": "SOLE_PUBLIC_WORLD_GLOBAL_ZERO_MATERIAL_ISLAND_LOCAL"
+    "profile": "rigid-persistent-box-v1: aligned2kg three-dynamic-cube/floor, e0/friction0/direct120Hz",
+    "status": "PUBLIC_SOURCE_NATIVE_256_REFERENCE_CONTROLS_AND_DESKTOP_PASS",
+    "scope": "Eachgraph1World256steps2references/0restore; both32gatebefore33, exactfull257stateswords. 6analytic+11observercontrols 0World. ActualNative desktop2World256steps full257words+GPU1623pixels/3desktopwidths. No arbitrary4body/tilted/friction/general8 qualification.",
+    "results": "examples/physics-three-cubes-floor-2276/RESULTS.md",
+    "canonicalAdoption": "SAME_QUALIFIED_COMMON_WORLD_ALGORITHM_EXISTING_BODY_CAP4"
   },
   "mainSlices": {
     "P0": "CONTRACT_COMPLETE_LOCAL",
@@ -34,7 +34,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Two-cube/floor StageA separated PASS. StageB coupled productionisland now actualpublic32/256 SourceNative independentPASS,6World786accepted pergraph incl256main/8restore+continue/522regression. Failurecontrols7World13returned pergraph PASS; actualNative desktop2World256steps257ALLwords+2187changedGPUpixels/3desktopwidths PASS. OldfirstNO_GO27/tool/type/tensor/observerfailures preserved. Next3dynamiccubes+floor independent3DOFreference SOURCE_IN_PROGRESS,notqualified. HOLD/gates unchanged; nodeploy.",
+  "active": "CommonWorld frictionless normalisland qualified for aligned2kg two/three cubes+floor120Hz256primarysteps. Two-case SourceNative6World786campaigninclrestore/failurecontrols+desktop257wordsGPU2187 PASS; three-case each1World256/2reference no restore, independent3DOF/6analytic11observercontrols+desktop257wordsGPU1623 PASS. Sourcealgorithmunchanged forthree. AllHOLD/gates/firstfailures preserved. Nextanisotropictensorconstruction/currentpre-touchrefusal andcoupleddt/horizon beforegeneraltopology/friction/moving8. No deploy.",
   "latestStackImplementation": {
     "results": "examples/physics-stack-library-2276/RESULTS.md",
     "entry": "packages/barocss-physics/src/stack/prepare-step.ts",
@@ -2577,5 +2577,12 @@
     "scope": "ALIGNED/OFFSET/YAW each1200 all original private gates plus exact Fraction witness; public root/replay Source/Native exactbodywordparity; real Chrome WebGPU each1200. Not moving eight-body dynamics.",
     "results": "examples/physics-stack-stationary-world-2276/RESULTS.md",
     "canonicalAdoption": "SOLE_PUBLIC_WORLD_BOUNDED_PROFILE_LOCAL"
+  },
+  "twoCubeMilestone": {
+    "profile": "rigid-persistent-box-v1: aligned2kg two-dynamic-cube/floor, e0/friction0/direct120Hz",
+    "status": "PUBLIC_SOURCE_NATIVE_256_RESTORE_FAILURE_AND_DESKTOP_PASS",
+    "scope": "256 primary coupled transitions/257 full states; eachgraph campaign6Worlds786accepted incl8restore/continuation and522regressions. ActualNative desktop2Worlds256steps ALLnumericwords+GPU2187pixels/3desktopwidths. No general moving8/anisotropic/frictional claim.",
+    "results": "examples/physics-coupled-cubes-floor-2276/RESULTS.md",
+    "canonicalAdoption": "SOLE_PUBLIC_WORLD_GLOBAL_ZERO_MATERIAL_ISLAND_LOCAL"
   }
 }

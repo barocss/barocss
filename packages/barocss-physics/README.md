@@ -20,10 +20,13 @@ all-pair position solve through the same World. The aligned2kg two-cube/floor
 case passes256 primary steps in Source/actual compiled paths, independent
 global projection/geometry gates, record/restore/failure controls and same-Native
 desktop full257-state/word parity. Existing cap4 and tolerances stay fixed;
-that zero-material regime explicitly rejects AABB, and rotated anisotropic
-contact still refuses exact tensor symmetry. Original first failures remain.
+that zero-material regime explicitly rejects AABB. Rotated anisotropic input
+can refuse exact tensor symmetry before that body touches anything. Original first failures remain.
 See [coupled dynamics results](../../examples/physics-coupled-cubes-floor-2276/RESULTS.md).
-Three-cube/floor validation is next; general moving8 is not qualified. No deployment.
+The same algorithm also passes three aligned2kg cubes/floor through256steps,
+with an independent3DOF reference and actual desktop full-state/word/pixel checks,
+inside cap4. See [three-cube results](../../examples/physics-three-cubes-floor-2276/RESULTS.md).
+General moving8 is not qualified. No deployment.
 
 The finite box CCD checkpoint accepts both signs of the identity quaternion
 without changing orientation/angular thresholds. Source/compiled20-case checks

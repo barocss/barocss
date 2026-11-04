@@ -229,6 +229,8 @@ The fixed natural rotated anisotropic box is still **NO_GO**: its represented
 world inverse-inertia columns fail exact symmetry. Both direct and recorder
 World calls refuse with NUMERIC_LIMIT/candidate at cursor0 and preserve complete
 owner data. Passing this refusal test does not qualify anisotropic contact.
+The rotated body is initially clear of the other boxes: this profile prepares
+all admitted body tensors, so its refusal can precede that body's first touch.
 AABB in the new zero-material regime and a5body persistent model reject at
 creation with INVALID_CONFIG and unchanged authored input.
 

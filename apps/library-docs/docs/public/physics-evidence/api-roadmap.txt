@@ -111,10 +111,24 @@ numeric words,2187 changed GPU pixels and three desktop widths. This supports
 the stated aligned2kg two-cube/floor120Hz case through256steps, not all admitted
 boxes. AABB for this zero-material island is explicitly rejected at creation;
 rotated anisotropic input still refuses exact tensor symmetry with retained state.
-Next is a source-frozen3DOF reference and bounded three-cube/floor campaign
-within the existing4body cap; expand only after its own gates pass. See
+The next three-cube/floor campaign now also passes through256 in actual Source
+and compiled Worlds, after BOTH32 checkpoints pass before33. Same algorithm,
+existing4body cap,1World/256steps/2 independent references each;0 restores.
+An independent3DOF eight-subset Fraction reference measures velocity2.020e-14m/s,
+position1.244e-14m and representative geometry3.109e-15m. Six analytical and11
+observer/word controls pass. Same-Native desktop matches all257states/words,
+changes1623GPU pixels and passes all three desktop widths. First contacts are
+[1,1,27]. This extends only the aligned equal2kg zero-material120Hz family.
+See `examples/physics-three-cubes-floor-2276/RESULTS.md` and
 `examples/physics-coupled-cubes-floor-2276/RESULTS.md`. General moving8 and all
 Studio/manufacturing/equipment/old-worker HOLDs remain unchanged. No deployment.
+
+Next dependencies, in order: mathematically symmetric actual anisotropic world
+inertia construction with independent tensor/application checks (current input
+can refuse before touch); timestep refinement and longer-horizon evidence for
+the coupled family within existing budgets/transport/recorder caps; then unequal
+mass, changing normals/topology and friction. Original moving8/1200 remains a
+separate NO_GO and cannot be inferred from these256-step four-body tests.
 
 ## Previous priority review, preserved before stationary qualification
 
