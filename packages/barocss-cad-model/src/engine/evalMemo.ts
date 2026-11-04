@@ -14,13 +14,16 @@ import { bearingDependencyKey } from './bearingContext';
 
 export type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 const KEEP = 16;
-const kept = new Map<string, Promise<EvalResult | null>>();
 const memos = new WeakMap<Evaluate, Evaluate>();
 
-/** The evaluation by content: the same part again is the result already made (or being made). */
+/** The evaluation by content for this callback: distinct evaluators do not borrow each other's results. */
 export function rememberedEvaluate(evaluate: Evaluate): Evaluate {
   let m = memos.get(evaluate);
-  if (!m) { m = (doc: StudioDoc) => evaluateKept(doc, evaluate); memos.set(evaluate, m); memos.set(m, m); }
+  if (!m) {
+    // KEEP is per evaluator. Fresh callbacks deliberately share no cached work.
+    const kept = new Map<string, Promise<EvalResult | null>>();
+    m = (doc: StudioDoc) => evaluateKept(doc, evaluate, kept); memos.set(evaluate, m); memos.set(m, m);
+  }
   return m;
 }
 const LONG_TEXT = 1 << 16, LONG_ARRAY = 1 << 12, TEXTS = 8;
@@ -70,12 +73,12 @@ export function evaluationKey(doc: StudioDoc): string {
   const part = evaluatedPart(doc);
   return `${doc.nodes.map(nodeKey).join('\u0001')}\u0002${JSON.stringify({ ...part, nodes: [], shopRows: provenanceOfTree(doc), bearingDependencies: bearingDependencyKey(part) }, shortened)}`;
 }
-function evaluateKept(doc: StudioDoc, evaluate: Evaluate): Promise<EvalResult | null> {
+function evaluateKept(doc: StudioDoc, evaluate: Evaluate, kept: Map<string, Promise<EvalResult | null>>): Promise<EvalResult | null> {
   const key = evaluationKey(doc), have = kept.get(key);
   if (have) { kept.delete(key); kept.set(key, have); return have; }
   const result = evaluate(doc);
   kept.set(key, result); if (kept.size > KEEP) kept.delete(kept.keys().next().value!);
-  void result.then(r => forgetUnless(key, result, !!r?.ok), () => forgetUnless(key, result, false));
+  void result.then(r => forgetUnless(kept, key, result, !!r?.ok), () => forgetUnless(kept, key, result, false));
   return result;
 }
-function forgetUnless(key: string, result: Promise<EvalResult | null>, ok: boolean) { if (!ok && kept.get(key) === result) kept.delete(key); }
+function forgetUnless(kept: Map<string, Promise<EvalResult | null>>, key: string, result: Promise<EvalResult | null>, ok: boolean) { if (!ok && kept.get(key) === result) kept.delete(key); }

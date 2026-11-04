@@ -1,5 +1,5 @@
 ---
-work_id: D526
+work_id: D527
 artifact_type: current-cad-handoff
 status: ready-for-next-bounded-task
 last_updated: 2026-11-05
@@ -31,11 +31,11 @@ Node must be22.19.0; before each commit verify easylogic <cyberuls@gmail.com>. U
 
 ## Next item
 
-Latest delivery [D526](../public-model-density-2026-11-05/README.md) aligns public Model density refusal with CAD.29 tests,4 behavioral mutant kills, multiple independent audits, Studio/final Model types and read-only refusal docs check pass. Root actual finite-material/BOM/UndoRedo/Save/Open plus5 independent display-arithmetic checks pass; this UI path bypasses the facade. Packed consumer, overflow/provenance/observation changes and general geometry are not claimed.
+Latest delivery [D527](../evaluator-memo-ownership-2026-11-05/README.md) isolates private evaluator caches.81 checks, Studio/final Model types and root actual reference Open pass. Distinct-callback proof is controlled; actual valid/lost/renamed/moved/held-reopen/unrelated-refusal flow is consumer regression. Capacity is16 per live evaluator, no memory/latency certificate.
 
-Earlier R01–R05 bounded records are linked from the [P0 queue](../../roadmap-tracks/01-reliability.md). Retain D524's native-collision UNKNOWN and unchanged cross-copy tolerances, and D525's controlled-only startup/disposal/Undo-action boundaries. The current index owns status; the handoff does not repeat the decision ledger.
+Earlier R01–R06 bounded records are linked from the [P0 queue](../../roadmap-tracks/01-reliability.md). Retain D524's native-collision UNKNOWN and unchanged cross-copy tolerances, and D525's controlled-only startup/disposal/Undo-action boundaries. The current index owns status; the handoff does not repeat the decision ledger.
 
-**D527 / P0-R07: evaluation memo ownership.** evalMemo.ts has module-global kept Map keyed only by document evaluationKey, despite per-callback wrappers. Reproduce distinct callbacks sharing success/pending results. Move the existing16-entry Map into each rememberedEvaluate wrapper, preserving WeakMap/idempotence, LRU and same-promise refusal/rejection eviction. SMALL private repair; affected memo/reference/history tests and root actual reference-Open/history consumer. Do not invent callback equivalence or claim performance improves; new callback identities may lose unsafe shared cache hits.
+**D528 / P0-R08: CAD React settled Worker failure.** Existing EnginePort.onFailure marks adapter failed, but ModelHost may still report pending/no error after a settled success. Reproduce via controlled Host and one deliberate malformed protocol request to the owned real Worker; never fabricate onerror/status callbacks. Add current readable failure and explicit caller-owned engine.restart() retry, then rerender the same Part at current props/IDs. Prefer unchanged Part rerender over key/App remount. No new engine ownership, automatic restart, public renderer or breadth. FEATURE independent review, focused checks and root actual existing Viewer plus recovered returned-Doc Studio proof. R09 public observation remains separate.
 
 Use the selected SMALL/FEATURE/FULL tier, required checks and root's own actual desktop Studio flow. One bounded category milestone gets one decision and normal push. Reuse eligible passing antecedents; preserve first failures and rerun only failed/changed steps with necessary setup. Every announcement names P priority, row IDs, concrete acceptance and measured coverage. Whole CAD/core readiness remains NOT_MEASURED; frozen legacy43% is not current progress.
 
@@ -53,6 +53,6 @@ Read and retain the [previous handoff §5](../codex-handoff-2026-11-01/README.md
 
 Run one heavy job under gate.sh at a time. Do not write anything in the worktree while an actual Studio flow runs. Terminate only owned PIDs. The last test edit requires final Model tsc; whole kernel runs remain B-rep-core-only. Public API/geometry/tolerance changes need FULL review/mutations; new behavior needs FEATURE review/actual; private bounded repair needs SMALL checks/actual. Numerical claims require independent physical/native evidence, not display geometry or hashes alone. Raw logs/screenshots/archives stay outside Git; record commands/counts in small decision notes/qualification JSON.
 
-D519/D520 do not claim new Studio/runtime/physical PASS; D521–D526 add only their recorded bounded controlled and actual Studio proofs. D482's later historical full-kernel result supersedes the old D433-latest wording but is not a current-head suite pass. D501/D505 custody failures and the owner-deferred PDF mismatch remain recorded. Close a related issue only after all its acceptance is supported; no issue is closed by this plan.
+D519/D520 do not claim new Studio/runtime/physical PASS; D521–D527 add only their recorded bounded controlled and actual Studio proofs. D482's later historical full-kernel result supersedes the old D433-latest wording but is not a current-head suite pass. D501/D505 custody failures and the owner-deferred PDF mismatch remain recorded. Close a related issue only after all its acceptance is supported; no issue is closed by this plan.
 
 The exact previous handoff remains in [history-through-D518.md](history-through-D518.md). Its old next-item/WIP/latest statements are historical; use current roadmap for state. Earlier [D445](../core-cad-priority-2026-11-02/README.md) and [D446](../develop-integration-2026-11-02/README.md) remain scope/integration records, not current execution order.

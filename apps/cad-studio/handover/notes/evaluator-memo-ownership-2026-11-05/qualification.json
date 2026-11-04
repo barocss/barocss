@@ -1,0 +1,135 @@
+{
+  "workId": "D527",
+  "priority": "P0-R07",
+  "rows": [
+    12,
+    16
+  ],
+  "date": "2026-11-05",
+  "tier": "SMALL",
+  "baseline": "2f5724eeaad9bed034e9698df25599244f42f3cb",
+  "status": "BOUNDED_EVALUATOR_OWNERSHIP_FIX_QUALIFIED",
+  "implementationModel": "GPT-6.1 Sol Medium",
+  "independentAudit": "NOT_REQUIRED for private SMALL repair; prior source preflight and root inspection separate",
+  "checks": {
+    "originalControlled": {
+      "pass": 7,
+      "fail": 6,
+      "total": 13
+    },
+    "fixedModel": {
+      "pass": 72,
+      "fail": 0,
+      "new": 13,
+      "related": 59
+    },
+    "fixedStudio": {
+      "pass": 9,
+      "fail": 0
+    },
+    "uniqueControlledTotal": 81,
+    "StudioTypes": "PASS",
+    "finalModelTypes": "PASS",
+    "existingDriverSyntax": "PASS",
+    "diff": "PASS"
+  },
+  "rootActualStudio": {
+    "status": "PASS_REFERENCE_OPEN_CONSUMER_REGRESSION",
+    "driver": "existing reference-open-browser.mjs unchanged; historical D399 qualification label retained",
+    "fullMode": true,
+    "sourcePaths": 754,
+    "memoSourcePinned": "7f1bf28d474f2d57e84e3b1be84935cd5769a7c6cc67cd66503fd9283a100207",
+    "changedDuringRun": 0,
+    "states": 8,
+    "contexts": 8,
+    "cases": [
+      "valid signed band Open with3bodies",
+      "lost/renamed/moved references holdfeatureandretain2bodies/source edge names",
+      "fresh context Open of each acceptedheldDoc fixture",
+      "unrelated zeroheight stays ordinary refusal without reference suppression"
+    ],
+    "rootViewed": [
+      "01-valid",
+      "02-renamed-held",
+      "04-unrelated-refusal"
+    ],
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ]
+  },
+  "semantics": [
+    "Each rememberedEvaluate callback owns its own content-keyed16-entry LRU",
+    "Same callback/content-equivalent Doc shares pending/successful Promise as before",
+    "Refused/null/rejected results evict only the exact still-current Promise in their own cache",
+    "Existing weak wrapper identity and rememberedEvaluate(wrapper) idempotence remain",
+    "Capacity is16 per live evaluator, not16 globally; new callback identities lose unsafe shared hits"
+  ],
+  "limits": [
+    "Actual referenceOpen consumer does not directly force private distinct evaluator callbacks; that proof is controlled",
+    "No actual apply_ops/chat script mutation/historySave/UndoRedo replay in this driver; history consumers have focused controlled tests",
+    "Reopened heldDocs are prewritten external accepted fixtures, not native Save/export/download",
+    "No broad memory/latency improvement or callback equivalence contract; same-function content-key semantics remain",
+    "No new geometry/tolerance/API/schema/provenance, physical oracle, general reference family or raster-fit certificate",
+    "No whole kernel, production build, CI, mobile, release or develop integration",
+    "Whole CAD/core NOT_MEASURED; broad reliability/history acceptance remains open"
+  ],
+  "sourcePins": {
+    "packages/barocss-cad-model/src/engine/evalMemo.ts": "7f1bf28d474f2d57e84e3b1be84935cd5769a7c6cc67cd66503fd9283a100207",
+    "packages/barocss-cad-model/test/evalMemo-ownership.test.ts": "f8748459294ac7dc17ded9004088d86325a24439e4afcebb9780035d1a21bedc",
+    "apps/cad-studio/test/reference-open-browser.mjs": "f61440968a65bb3f2eebff30d9394e482d06ddf5932b061d0f3f1ca743a407cd"
+  },
+  "externalEvidence": [
+    {
+      "path": "/tmp/barocss-d527-baseline-controls01/tests.log",
+      "sha256": "28d65f5581afc573f4c3a06016aba418f6073ff121a887ebfb92b6f1b4997c3d"
+    },
+    {
+      "path": "/tmp/barocss-d527-fixed-checks01/model-tests.log",
+      "sha256": "dc362562f1f58d3209459f015966fe18f272ad415667b4e6b4e32f6c5e92c0b0"
+    },
+    {
+      "path": "/tmp/barocss-d527-fixed-checks01/studio-tests.log",
+      "sha256": "ba0b46685c09564a4497cb7b710c7e79db22073fb846a8246fb40aa23b3da00a"
+    },
+    {
+      "path": "/tmp/barocss-d527-fixed-checks01/studio-types.log",
+      "sha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+    },
+    {
+      "path": "/tmp/barocss-d527-fixed-checks01/model-types.log",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "path": "/tmp/barocss-d527-studio-reference01/receipt.json",
+      "sha256": "b2614ba8cb70504a57a7d5ebfd3f75c7f973d09f002cce78416712f5091a5885"
+    },
+    {
+      "path": "/tmp/barocss-d527-studio-reference01-meta/run.log",
+      "sha256": "8f8f313eb3f4259ab3f294bcd4549fe0d2c9f0d552fa338bdf9ac860d45fe081"
+    },
+    {
+      "path": "/tmp/barocss-d527-studio-reference01/01-valid.png",
+      "sha256": "21a59679985024c6274b1f285a84c93dd8f997b5697a42b4141dbcfefce61c8d"
+    },
+    {
+      "path": "/tmp/barocss-d527-studio-reference01/02-renamed-held.png",
+      "sha256": "87e3782efc02e3592047c91ad96924158482e7ac0d2c0fbea5684c706cf36981"
+    },
+    {
+      "path": "/tmp/barocss-d527-studio-reference01/04-unrelated-refusal.png",
+      "sha256": "47dbfbf2032a92582d4a7ed1d054cdfe37b87fefb36578585913131dfafa9a7f"
+    }
+  ]
+}
