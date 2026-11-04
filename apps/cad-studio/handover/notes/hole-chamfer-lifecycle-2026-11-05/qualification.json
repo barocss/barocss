@@ -1,0 +1,356 @@
+{
+  "workId": "D533",
+  "priority": "P1",
+  "rows": [
+    "07",
+    "08",
+    "12",
+    "16"
+  ],
+  "tier": "SMALL_VERIFICATION_ONLY",
+  "parent": "84cc6ed07040addad34893546277f3cf474effab",
+  "status": "PASS_BOUNDED_COMPOSED_LIFECYCLE_WITH_RETAINED_HARNESS_FAIL",
+  "models": {
+    "driverAndChecks": "GPT-6.1 Sol Medium",
+    "nativeGeometryOracleAndSavedReview": "GPT-6.1 Sol High"
+  },
+  "productChanges": 0,
+  "sourceChanges": "Two reusable verification drivers; no product/schema/admission/tolerance change. Browser readiness guard and pinned continuation mode corrected after original failure.",
+  "input": {
+    "path": "/tmp/barocss-d449-category-run01/chamfer-edited.bcad",
+    "bytes": 607,
+    "sha256": "bff9ee71ea46e2432a186016c8e74d639c15b08803fe388f6a9dd5980059b7bb",
+    "origin": "Retained D449 actual Chamfer3, previously used by D508; seed only pick-map antecedent now."
+  },
+  "profile": {
+    "stockBounds": [
+      [
+        -20,
+        -20,
+        0
+      ],
+      [
+        60,
+        20,
+        10
+      ]
+    ],
+    "A": {
+      "chamferDistance": 3,
+      "holeDiameter": 4
+    },
+    "B": {
+      "chamferDistance": 2,
+      "holeDiameter": 4
+    },
+    "C": {
+      "chamferDistance": 2,
+      "holeDiameter": 6
+    },
+    "hole": {
+      "centerWorldXY": [
+        20,
+        0
+      ],
+      "through": "Z",
+      "parent": "n2",
+      "face": "n1.top",
+      "id": "n3",
+      "bodyKey": "b3"
+    },
+    "otherSource": "Original rectangle constraints/sideTags n0, Extrude n1, n2 edge/signature and parent remain exact."
+  },
+  "controlled": {
+    "nativeAdmission": {
+      "status": "PASS_NATIVE_ADMISSION_ONLY",
+      "classes": 3,
+      "sourcePaths": 472,
+      "freshActualGUI": false
+    },
+    "independentPython": {
+      "status": "PASS_THREE_DECLARED_NATIVE_NUMERICAL_STATES",
+      "cases": 3,
+      "productImports": 0,
+      "worker": "Not supplied in controlled native admission"
+    },
+    "focusedNodeTests": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "selector": "finish-limits hole-types"
+    }
+  },
+  "physical": {
+    "oracle": "Independent literal box minus triangular wedge minus disjoint cylinder, rational boundary/D1 and original graph traversal. Product inspector observes original native data.",
+    "V": "32000-40*d*d-10*pi*r*r",
+    "centroid": [
+      "20",
+      "40*d*d*(20-d/3)/V",
+      "(160000-40*d*d*(10-d/3)-50*pi*r*r)/V"
+    ],
+    "massDensity1": "V/1000 g at1g/cm3; native public functions explicitly MMGS",
+    "bounds": [
+      [
+        -20,
+        -20,
+        0
+      ],
+      [
+        60,
+        20,
+        10
+      ]
+    ],
+    "nativeCountsObserved": {
+      "bodies": 1,
+      "shells": 1,
+      "faces": 9,
+      "loops": 11,
+      "coedges": 42,
+      "edges": 21,
+      "vertices": 14,
+      "genus": 1
+    },
+    "nativeMethod": "quadrature; no tessellated geometry authority",
+    "checks": [
+      "original whole-Doc/native JS bytes+hash",
+      "default/strict/output validity",
+      "one closed connected genus1 solid",
+      "complete original topology/twins/trim ownership",
+      "seven outer plane roles and inward bore",
+      "full top/bottom circular rims",
+      "independent rational edges/surfaces/D1 probes and native names",
+      "exact authorship/parent/signature and fresh actual Worker binding"
+    ],
+    "optionalPcurves": "Observed zero; no pcurve invented or lift presence claimed.",
+    "budgets": {
+      "volumeRelative": 1e-09,
+      "centroidBoundsCarrierEndpointD1PcurveAbsoluteMM": 1e-09,
+      "unitNormalComponent": 1e-09,
+      "density1MassAbsoluteG": 1e-09
+    },
+    "maximumActualQualifiedVolumeRelativeError": 3.112609845846244e-15,
+    "maximumActualQualifiedCentroidAbsoluteMM": 1.4210854715202004e-14,
+    "expectedVolumesMM3": {
+      "3/4": 31514.33629385641,
+      "2/4": 31714.33629385641,
+      "2/6": 31557.256661176918
+    },
+    "limits": "Finite rational witnesses, not a full-domain theorem. No inertia or displayed catalog mass qualification; UI default Aluminium is separate from explicit density1 native comparisons.",
+    "maximumActualQualifiedDensity1MassAbsoluteG": 9.948e-14
+  },
+  "selectedActionGroups": [
+    {
+      "action": "Through Hole4 real top-face creation",
+      "status": "PASS_AGGREGATE_EXACT_SCOPE"
+    },
+    {
+      "action": "upstream Chamfer3 to2",
+      "status": "PASS_AGGREGATE_EXACT_SCOPE"
+    },
+    {
+      "action": "FIRST Undo A",
+      "status": "PASS_AGGREGATE_EXACT_SCOPE"
+    },
+    {
+      "action": "Redo B",
+      "status": "PASS_AGGREGATE_EXACT_SCOPE"
+    },
+    {
+      "action": "new Chamfer1000 preview typed refusal/disabled Apply/Cancel retains B",
+      "status": "PASS_AGGREGATE_EXACT_SCOPE"
+    },
+    {
+      "action": "own local project Save exact B",
+      "status": "PASS_AGGREGATE_EXACT_SCOPE"
+    },
+    {
+      "action": "Close/same-context reload/project Open current B",
+      "status": "PASS_AGGREGATE_EXACT_SCOPE"
+    },
+    {
+      "action": "geometry-changing post-Open Hole4 to6 C",
+      "status": "PASS_AGGREGATE_EXACT_SCOPE"
+    }
+  ],
+  "rootActual": {
+    "Studio01": {
+      "status": "FAIL_RETAINED_READINESS_HARNESS",
+      "snapshots": 14,
+      "passedPhysicalBindings": 6,
+      "failedPhysicalBindings": 1,
+      "qualifiedNativeCaptures": 2,
+      "qualifiedExactDocReuses": 4,
+      "sourcePaths": 757,
+      "failure": "At Open12, Doc B installed while old sample Worker b2 is still pending; initial ready matched old sample before asynchronous Open. Subsequent failure capture settles fresh current b3.",
+      "executedSourcesPreserved": true
+    },
+    "Studio02": {
+      "status": "PASS",
+      "mode": "BOUNDED_PROJECT_CONTINUATION",
+      "snapshots": 5,
+      "passedPhysicalBindings": 4,
+      "nativeCaptures": 2,
+      "exactDocReuses": 2,
+      "sourcePaths": 758,
+      "scope": "Pinned actual B input; necessary new project roundtrip and post-Open C only; passed create/edit/history/refusal prefix NOT_RERUN"
+    },
+    "aggregate": {
+      "selectedGroups": 8,
+      "qualifiedPhysicalBindings": 10,
+      "uniqueNativeClasses": 3,
+      "nativeCaptures": 4,
+      "exactDocReuses": 6,
+      "notTenUniqueScenarios": true,
+      "unchangedCommonPinsExcludingDriver": 756,
+      "onlyChangedCommonPath": [
+        "apps/cad-studio/test/hole-chamfer-lifecycle-browser.mjs"
+      ]
+    },
+    "continuationInput": {
+      "namespace": "projects/D533-08d68d88-5c07-46ff-a3b0-72aa3b2e961b",
+      "path": "D533-hole-chamfer.bcad",
+      "bytes": 1764,
+      "sha256": "5ef280347fcc0f2d923d64b998b9646948bd0b7f3fa310c59851a2f9fbf3c9d9",
+      "exactAcceptedDoc": true
+    },
+    "rootViewed": [
+      "Studio01/03-hole4-on-chamfer3",
+      "Studio01/09-NEW-chamfer1000-preview-refused",
+      "Studio01/11-own-project-save",
+      "Studio02/12-own-project-reopened",
+      "Studio02/14-postOpen-hole6-on-chamfer2"
+    ],
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "sourceChangesDuringExecution": 0,
+    "downloads": 0,
+    "cleanup": "Both own OPFS namespaces removed and absence verified; both own contexts/Chrome/servers closed.",
+    "persistenceLimit": "Project B is persisted/reopened; C is the subsequent accepted in-memory re-edit. Same browser context reload, not cold process/profile restart."
+  },
+  "checks": {
+    "newDriverSyntax": "PASS",
+    "oracleModuleSyntax": "PASS",
+    "diff": "PASS",
+    "finalModelTypesAfterLastDriverEdit": "PASS",
+    "HighSavedReview": "PASS bounded original six physical bindings plus continuation four; original FAIL remains. No audit rerun or product fix."
+  },
+  "firstFailure": {
+    "status": "FAIL",
+    "receiptSHA256": "d69676a2b6a4b4f9ecf62af26b57a993c6aefe8d61380cdc5de1137fb69eb327",
+    "productGeometryDefectEstablished": false,
+    "repair": "Expected Doc equality before existing freshness waits; no expected-numeric polling, relaxed limit or repeated failed oracle. Original receipt untouched."
+  },
+  "notRun": [
+    "Default full lifecycle with corrected driver from scratch",
+    "NodeEditor invalid Apply behavior",
+    "Generic Hole/Chamfer/Boolean/cylinder-slant interactions",
+    "Full-domain/inertia/general native accuracy certificate",
+    "Fresh external/OCP reader, packed/full-kernel/full-Studio build",
+    "Cold process persistence, final C resave, mobile, CI, paid live, downloads, release/develop integration"
+  ],
+  "wholeCad": "NOT_MEASURED",
+  "B01_B10": "NOT_ADJUDICATED",
+  "sourcePins": {
+    "apps/cad-studio/test/hole-chamfer-lifecycle-browser.mjs": "9424c19dfccc35e3c25fbfa7565c05486796697612152e0ff305ae675800491f",
+    "apps/cad-studio/test/hole-chamfer-lifecycle-oracles.mjs": "b854b64d553d186dec59cec87376ac29495e55fc6d73bae2e5a9bbae12ef31af",
+    "apps/cad-studio/test/flow-helper.mjs": "3aaf23e8a0078a9411b8f8d2bbbc05e42a304a89cf96e59bf2faae3d313cfe6c",
+    "packages/barocss-cad-model/src/app/commands.ts": "4ca09b32f834da00a840b065b1cd30f8cd9c815dce912e4b7546fea600456f8d",
+    "packages/barocss-cad-model/src/app/editFields.ts": "86a0017245a75c023e6eb23abfbda7716c055e6dfa139e79f00384afb7c3c50c",
+    "packages/barocss-cad-model/src/engine/part.ts": "2f92406182ee602b66f414f0ccf9bf15311298386b92aae88c6b3a52b8ff2e2c",
+    "packages/barocss-cad-model/src/engine/evaluate.ts": "6b7750e77ab82aa19382087d6c038ae3acc6ea634c5603421308dac636d809b1",
+    "packages/barocss-cad/src/part/part-model.ts": "355decd0abd692fccf77dbbc93c6b5605a578d0a6315bff0a75ff67dd5cb991d",
+    "packages/barocss-cad/src/part/part-finish.ts": "b7812605cc8ecdde100a07569bd19bdebc4addb725b47a8343101c1ea25bd5d0"
+  },
+  "externalEvidence": [
+    {
+      "path": "/tmp/barocss-d533-admission01/receipt.json",
+      "sha256": "105d13a313513f77daa55cd87fa30d55ce04ab13141f52b637571de329e676de"
+    },
+    {
+      "path": "/tmp/barocss-d533-admission01/run.mjs",
+      "sha256": "56ddeba3d11b3ae08d2e0642c212252e09c7e867b15e2a42533353332f584905"
+    },
+    {
+      "path": "/tmp/barocss-d533-admission01/executed-oracles-snapshot.mjs",
+      "sha256": "b854b64d553d186dec59cec87376ac29495e55fc6d73bae2e5a9bbae12ef31af"
+    },
+    {
+      "path": "/tmp/barocss-d533-admission01/run.log",
+      "sha256": "72f9db8222cec127ac370bb4fa6ff2930f95ea76d9979493bff0efe088150c72"
+    },
+    {
+      "path": "/tmp/barocss-d533-oracle01/receipt.json",
+      "sha256": "a817c0c851316430f4a22e83cff852c8b73228cc67e8c48ca5cb120d1b92b8d3"
+    },
+    {
+      "path": "/tmp/barocss-d533-oracle01/run.mjs",
+      "sha256": "b266e5618fde7be0481c082e16f3d44b68d6d15a70b98ba06a46db61f3097997"
+    },
+    {
+      "path": "/tmp/barocss-d533-oracle01/executed-oracles.mjs",
+      "sha256": "b854b64d553d186dec59cec87376ac29495e55fc6d73bae2e5a9bbae12ef31af"
+    },
+    {
+      "path": "/tmp/barocss-d533-oracle01/run.log",
+      "sha256": "1ef4b57c6ddc80cc702493f4546e307124038164138c8a1bca42059ab07bb24d"
+    },
+    {
+      "path": "/tmp/barocss-d533-checks01/focused.log",
+      "sha256": "60f78bf2c9b2648d306c39e072bbadd626c11b3c8c04e2ecb3891717b699c071"
+    },
+    {
+      "path": "/tmp/barocss-d533-checks01/final-model-types.log",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "path": "/tmp/barocss-d533-checks01/final-model-types02.log",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "path": "/tmp/barocss-d533-checks01/browser-syntax02.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d533-checks01/diff02.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d533-studio01/receipt.json",
+      "sha256": "d69676a2b6a4b4f9ecf62af26b57a993c6aefe8d61380cdc5de1137fb69eb327"
+    },
+    {
+      "path": "/tmp/barocss-d533-studio01/executed-hole-chamfer-lifecycle-browser.mjs",
+      "sha256": "7e4610e8df9908226e467f1f4678913acee007a0317418493f29b20b3fb8c6c6"
+    },
+    {
+      "path": "/tmp/barocss-d533-studio01/executed-hole-chamfer-lifecycle-oracles.mjs",
+      "sha256": "b854b64d553d186dec59cec87376ac29495e55fc6d73bae2e5a9bbae12ef31af"
+    },
+    {
+      "path": "/tmp/barocss-d533-studio01/11-own-native-opfs-save.bcad",
+      "sha256": "5ef280347fcc0f2d923d64b998b9646948bd0b7f3fa310c59851a2f9fbf3c9d9"
+    },
+    {
+      "path": "/tmp/barocss-d533-studio01-meta/run.log",
+      "sha256": "f2524c62994e86089103688607a9a0653ecde3d03e7477b7954cc47b3ff0e23c"
+    },
+    {
+      "path": "/tmp/barocss-d533-studio02/receipt.json",
+      "sha256": "dfd0282cad5e45aab0ce64f3ad45bc6e77bd2663eaa1359969314c202b39006f"
+    },
+    {
+      "path": "/tmp/barocss-d533-studio02-meta/run.log",
+      "sha256": "fab19cbdb8cf303a547b2e0ba888ff561c7c698dc4c5843d5fef5f134f1d4109"
+    },
+    {
+      "path": "/tmp/barocss-d533-studio02/executed-hole-chamfer-lifecycle-browser.mjs",
+      "sha256": "9424c19dfccc35e3c25fbfa7565c05486796697612152e0ff305ae675800491f"
+    },
+    {
+      "path": "/tmp/barocss-d533-studio02/executed-hole-chamfer-lifecycle-oracles.mjs",
+      "sha256": "b854b64d553d186dec59cec87376ac29495e55fc6d73bae2e5a9bbae12ef31af"
+    }
+  ]
+}
