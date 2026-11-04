@@ -1,0 +1,129 @@
+{
+  "work_id": "D502",
+  "status": "PASS_ONE_NO_ROW_TAPPED_AVAILABILITY_CANCEL_BOUNDARY_ONLY",
+  "tier": "SMALL_EXISTING_PUBLIC_AVAILABILITY_MEASUREMENT_NO_PRODUCT_CHANGE",
+  "actor": "GPT-6.1 Sol Medium",
+  "productChanges": 0,
+  "cases": 1,
+  "observations": 2,
+  "coverage": {
+    "noRowTappedAvailability": "PASS",
+    "publicCancelRetainsSeed": "PASS"
+  },
+  "input": {
+    "path": "/tmp/barocss-d498-geometry01/seed.bcad",
+    "sha256": "0c602dc99f33ab44ec37fd84a5fd70adb4ee6b23c9e2d61fd71eebde6ffffd0d",
+    "bytes": 1089,
+    "stockMM": [
+      80,
+      40,
+      10
+    ],
+    "fastenerSizes": "ABSENT",
+    "rowSources": "ABSENT"
+  },
+  "retainedAntecedentSearch": {
+    "manifest": {
+      "path": "/tmp/barocss-d502-source-audit01/manifest02.json",
+      "sha256": "d58dc5711c2d36820501b6d9b57e6acf44ca9fc6280fe6c433ed87713a0334ee"
+    },
+    "search": {
+      "path": "/tmp/barocss-d502-source-audit01/retained-doc-search.json",
+      "sha256": "be85cec0333fa890bccc3b8f6a786fec54e6f40ab727988c06e49718543b29cc"
+    },
+    "files": 4317,
+    "plain": 4277,
+    "compressed": 40,
+    "readErrors": 0,
+    "eligibleAuthoredFastenerSizesDocCandidates": 0,
+    "scope": "Current worktree handover notes plus eight named known actual TMP antecedent directories only; not other worktrees or unrelated user files"
+  },
+  "actual": {
+    "status": "PASS",
+    "receipt": {
+      "path": "/tmp/barocss-d502-workflow-run01/receipt.json",
+      "sha256": "a528d486be6d6e79d690d38c63d6674ffa0ac2bdd5f57df86124dc652af507e7"
+    },
+    "rootReview": {
+      "path": "/tmp/barocss-d502-root/actual01-review.json",
+      "sha256": "a81fef66295f1b47c02b89303bc5439e2a14355ca87fb494296b2f45d4eb7dd6"
+    },
+    "config": {
+      "path": "/tmp/barocss-d502-driver01/config.json",
+      "sha256": "d3eb80a84dbd4dcce1de579f8a23fc585adaf3bf2c5f716c52476575aefb3e14"
+    },
+    "threadOptions": [],
+    "threadDOMValue": "",
+    "sourceDefaultThread": "M6_SOURCE_DEFAULT_NOT_A_SELECTED_AVAILABLE_ROW",
+    "defaultDiameter": 8,
+    "derivedM6TapDrill": "NOT_AVAILABLE_NOT_CLAIMED",
+    "renderedNotice": "[FASTENER_SIZE_ROW] no row for M6",
+    "previewStatus": "refused",
+    "ApplyDisabled": true,
+    "Cancel": "Exact seed Doc/history/currentWorker/real picked top retained; active command null",
+    "wrapperPins": 2603,
+    "helperPins": 2603,
+    "sourceThroughCleanupCurrent": "EXACT",
+    "rootReviewedImages": 2,
+    "ownedWrapperPIDGone": 7059,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "counts": {
+    "explicitNativeStrictCaptures": 0,
+    "independentPhysicalOracles": 0,
+    "acceptedTappedFeatures": 0,
+    "personRowLoads": 0,
+    "projectSaves": 0,
+    "freshPickOnlyMappingEvaluations": 1,
+    "freshMapBuilds": 0
+  },
+  "pickMapReuse": {
+    "path": "/tmp/barocss-d502-root/seed-map-reuse01.json",
+    "sha256": "3eeb93058af4016e770283fd9c09d3e740a8371a7b984e55c8cd8c4fd98b999c"
+  },
+  "physicalStatus": "NOT_QUALIFIED_NOT_REQUESTED",
+  "positiveTappedLifecycle": "NOT_RUN_NO_ELIGIBLE_PERSON_LOADED_DATA",
+  "checks": {
+    "freshProductTests": 0,
+    "reusedProductTests": 23,
+    "D500Model": 11,
+    "D498ModelAndCAD": 12,
+    "priorExactReuseEvidence": {
+      "path": "/tmp/barocss-d501-root/unchanged-reuse01.json",
+      "sha256": "c1257844d783abad73bf40151f2e5ad9078eee97ffb1126fcacbaff8d1baa978"
+    },
+    "currentSourceClosure": "Root confirms current unchanged source; 2603 actual pins exact through cleanup/current",
+    "D494SemanticBuildLintStudioFinalModelTypesPins": 1841,
+    "newBuildTypesLintFullKernel": "NOT_RUN_UNCHANGED_RECEIPTS_REUSED"
+  },
+  "commands": {
+    "actual": "bash /tmp/barocss-d502-root/run-studio01.sh",
+    "execution": "Node22.19, root-owned gate/freeze; sealed config.output only, fresh absent output and no CLI override/input overlap"
+  },
+  "personLoadedBoundary": "Preserved. No Library load, invented row, guessed M6 data, injected option or requested new approval workflow.",
+  "limits": [
+    "Existing no-row availability and Cancel retention only; no missing-feature claim.",
+    "Before/after currentWorker V/C/body references are retention observations, not independent physical accuracy.",
+    "No cosmetic thread/rings/helix/native tap/standards/manufacturing/CNC/project persistence acceptance.",
+    "No mobile/PDF/export/download/install/paid/release or HOLD change."
+  ],
+  "global": {
+    "coreReadiness": "NOT_MEASURED",
+    "legacy43": "FROZEN",
+    "holds": "UNCHANGED",
+    "issue536": "OPEN",
+    "D501": "PARTIAL_PHYSICAL_WORKFLOW_QUALIFIED_RUNNER_AND_RECEIPT_CUSTODY_FAIL_RETAINED"
+  },
+  "next": {
+    "main": "PROVISIONAL_D503_C3_COUNTERBORE_CALLOUT_SOURCE_PERSISTENCE_REVISION_AUDIT_D331_D454_D500",
+    "parallelD499": "SEPARATE_GUI_FOUR_STATES_THREE_NATIVE_TWO_REUSES_FIVE_CONSUMERS_PASS_HIGH_SAVED_REVIEW_PENDING"
+  },
+  "rawArtifacts": "TMP_ONLY_NOT_COMMITTED"
+}
