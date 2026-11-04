@@ -1,0 +1,233 @@
+{
+  "decision": "D507",
+  "status": "PASS_BOUNDED_CURRENT_API_COMPOUND_BASELINE",
+  "productHEAD": "9c41eefa470fe30ee66ebb036c1bf620fee21713",
+  "scope": "Existing API only: two disjoint 10x10x8 mm boxes, gap10, current Union; one logical b4 output, two native B-rep bodies. No new component or API adoption.",
+  "focusedChecks": {
+    "status": "PASS",
+    "freshControlledTests": 57,
+    "skipped": 0,
+    "otherGroups": [
+      "package-types",
+      "api-types",
+      "lint",
+      "diff-check"
+    ],
+    "originalD50457": "PASS_HISTORICAL_UNCHANGED",
+    "firstD507ReusePreflight": "FAIL_REQUIRED_ROOT_INPUT_CLOSURE_NO_GUI_OR_NATIVE_STARTED",
+    "freshChecksMeaning": "New d507-focused-checks-v1; not reuse of uncaptured historical root manifests"
+  },
+  "observations": {
+    "GUIStates": 1,
+    "StudioStates": 2,
+    "logicalModelOutputs": 1,
+    "logicalKey": "b4",
+    "nativeBodies": 2,
+    "originalEngineReplyPieces": 2,
+    "originalEngineReplyMassDeferred": true,
+    "HostReadPieces": "ABSENT",
+    "StudioWorkerPieces": "ABSENT",
+    "volumeMM3": 1600,
+    "centroidMM": [
+      15,
+      5,
+      4
+    ],
+    "boundsMM": {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        30,
+        10,
+        8
+      ]
+    },
+    "originalPcurves": 48
+  },
+  "counts": {
+    "nativeCaptures": 1,
+    "exactDocPhysicalReuses": 1,
+    "freshPositiveConsumers": 2,
+    "StudioNewNativeCaptures": 0,
+    "StudioOracleRuns": 0
+  },
+  "savedHighAudit": {
+    "status": "PASS",
+    "predicates": 71,
+    "scope": "Saved GUI/native evidence only; original Studio NOT_RUN field remains historical, later Studio proof is separate",
+    "floatingCentroidAssumptionFailure": "Retained; corrected to existing1e-9 budget without product replay"
+  },
+  "custody": {
+    "GUIpins": 4936,
+    "nativePins": 4942,
+    "StudioOuterPins": 4996,
+    "StudioHelperInitial": 1841,
+    "StudioHelperFrozen": 1855,
+    "StudioHelperAddedDeclaredKeys": 14,
+    "frozenAfterCleanupEqual": true,
+    "rootReviewedImages": 3,
+    "StudioOwnedPIDAbsent": 82182,
+    "errorsDownloadsExternal": 0,
+    "StudioRootObserverStop": "Initial subset was incorrectly compared to expanded frozen map; retained stop, corrected saved-reader comparison, no SUT replay"
+  },
+  "adoption": {
+    "currentLogicalElements": 13,
+    "newExports": 0,
+    "runtimeDelta": "NONE",
+    "futureProfileComponents": [
+      "Loop",
+      "LineSegment",
+      "ArcSegment",
+      "Profile",
+      "Outer",
+      "Voids"
+    ],
+    "futureProfileStatus": "UNADOPTED_SOURCE_PREPARATION_ONLY",
+    "designProseDelta": "APPLIED: three internal design Markdown files after actual execution/root reviews; no runtime or public-docs change",
+    "postExecutionDocPaths": [
+      "apps/cad-studio/handover/notes/cad-react-compound-baseline-2026-11-04/README.md",
+      "apps/cad-studio/handover/notes/cad-react-compound-baseline-2026-11-04/qualification.json",
+      "apps/cad-studio/handover/decisions.md",
+      "apps/cad-studio/handover/roadmap.md",
+      "apps/cad-studio/handover/roadmap-rows/05.md",
+      "apps/cad-studio/handover/roadmap-rows/32.md",
+      "apps/cad-studio/handover/roadmap-rows/16.md",
+      "apps/cad-studio/handover/notes/claude-handoff-2026-11-02/README.md",
+      "packages/barocss-cad-react/design/README.md",
+      "packages/barocss-cad-react/design/component-catalogue.md",
+      "packages/barocss-cad-react/design/implementation-batches.md"
+    ]
+  },
+  "progress": {
+    "rowLabelDistribution": [
+      7,
+      15,
+      12
+    ],
+    "rows": 34,
+    "meaning": "Scope labels only, not CAD completion",
+    "C1C4Ledger": "Candidate54records/48profiles; not completion",
+    "globalAcceptanceDenominator": "UNENUMERATED",
+    "coreWorkflowReadiness": "NOT_MEASURED",
+    "legacy43percent": "FROZEN"
+  },
+  "nextMAIN": "D508 ordinary C2 Chamfer: five proposed groups, 0/5 actual, higher-priority source gap; C3 leader safely parked",
+  "artifacts": {
+    "checks": {
+      "path": "/tmp/barocss-d507-baseline-checks02/receipt.json",
+      "sha256": "933e4a8daa0f73193f617dcbf7a86af1ee7b4c8da50e3bc9ba3426521c231154"
+    },
+    "checkClosure": {
+      "path": "/tmp/barocss-d507-baseline-reuse02/receipt.json",
+      "sha256": "104917e92c4de9a34b797bdf23d97b37bfba9c1466201374b57797871a979a94"
+    },
+    "GUI": {
+      "path": "/tmp/barocss-d507-baseline-gui02/browser.receipt.json",
+      "sha256": "1c10412385fc72afb1c18e73bdf8efc680e879539077e05b549f030bb568c901"
+    },
+    "native": {
+      "path": "/tmp/barocss-d507-baseline-native02/receipt.json",
+      "sha256": "4eccc68d0eb6d235c729e3cf5e4ee05364f8ac80e093186f7068e7e86777024c"
+    },
+    "physicalOracle": {
+      "path": "/tmp/barocss-d507-baseline-native02/original-consumer-oracle.stdout.json",
+      "sha256": "ca0aac3a7f47c3da646b4663b16696706afe0fc967bfeb2ca29ec9ee67d8f606"
+    },
+    "actualDoc": {
+      "path": "/tmp/barocss-d507-baseline-native02/actual-current-api.bcad",
+      "sha256": "732bd5fecea53790b374faea3033568b3ce65fc81c6054a668dc6cc83bd44543"
+    },
+    "nativeMetafile": {
+      "path": "/tmp/barocss-d507-baseline-native02/inspector-metafile.json",
+      "sha256": "62214edfeeff5154833fbce2749a3ede0ea2fd78b3e13d8c56c6ae0d51d72140"
+    },
+    "rootGUIAndNativeReview": {
+      "path": "/tmp/barocss-d507-baseline-root02/root-review01.json",
+      "sha256": "867da836ebb824e5713be92e26ce7cd279f1a526d732767279c513f9830dae1b"
+    },
+    "HighSavedReview": {
+      "path": "/tmp/barocss-d507-baseline-high-saved01/saved-qualification.json",
+      "sha256": "e28068702734d1ae860c79b3bac31d21e5a495c33909780c25fffa8bc322fc33"
+    },
+    "Studio": {
+      "path": "/tmp/barocss-d507-baseline-studio01/receipt.json",
+      "sha256": "abab152853c34ff3302dd5734405be95a0342dcaa6d334925139559694ffb097"
+    },
+    "rootStudioReview": {
+      "path": "/tmp/barocss-d507-baseline-studio-root01/root-review01.json",
+      "sha256": "56fa5ed9f36d4851bef9ffca525a0d8d1bde60e28a04281fbe7ad2953391ad32"
+    },
+    "progressAudit": {
+      "path": "/tmp/barocss-roadmap-progress-2026-11-04-01/report.md",
+      "sha256": "90b9dc6b0f9cdd4c70432a3221ae871a79fcf49b18fff64322542757fb5873d5"
+    },
+    "HighStudioSupplement": {
+      "path": "/tmp/barocss-d507-baseline-studio-high-saved01/saved-supplement.json",
+      "sha256": "b72d705e4f16df322e998aa0c75b6e565176e9ba69001dda6ccd0d9cfabcdcf8"
+    },
+    "firstPreflight": {
+      "path": "/tmp/barocss-d507-baseline-root01/first-preflight-preserved01.json",
+      "sha256": "dafb05d1809a2212922be20dec612ce3d45317ae476be1abfcb287a4c564a0f3"
+    }
+  },
+  "limits": [
+    "One fixed current compound case only; no general Boolean, connected-solid, SolidSet/selection or topology admission.",
+    "No Save/persisted re-edit, viewport-fit/raster precision, Profile implementation or release claim.",
+    "Existing failures, owner HOLDs and positive row-loaded Tapped NOT_RUN remain.",
+    "Raw logs/images/source inventories stay TMP; only this compact hash metadata and prose are proposed for repository publication."
+  ],
+  "savedHighStudioSupplement": {
+    "status": "PASS",
+    "predicates": 34,
+    "productReplay": false,
+    "scope": "Saved exact-Doc/current-Worker physical reuse binding only; no new oracle/capture"
+  },
+  "verificationTier": {
+    "tier": "small",
+    "reason": "Existing API measurement and internal design prose only; no new public/runtime/kernel surface. Independent High saved reviews add71 and34 predicates, separate from57 fresh product tests."
+  },
+  "execution": {
+    "node": "22.19.0",
+    "rootCommands": [
+      "bash /tmp/barocss-d507-baseline-root01/run-baseline.sh (initial reuse preflight failed before all outputs)",
+      "bash /tmp/barocss-d507-baseline-root02/run-baseline.sh (fresh57/types/lint/diff, GUI, native, oracle)",
+      "D507_BASELINE_SOURCE_FROZEN=1 node /tmp/barocss-d507-baseline-studio-prep01/seal-root.mjs /tmp/barocss-d507-baseline-studio-root01/draft.json /tmp/barocss-d507-baseline-studio-config01.json --root-gated",
+      "bash /tmp/barocss-d507-baseline-studio-root01/run-studio.sh"
+    ],
+    "heavyGate": "/Users/user/.claude/local-mods/barocss-lanes-guard/bin/gate.sh",
+    "serialHeavyRuns": true,
+    "wholeWorktreeFreezeThroughCleanupAndRootImages": true
+  },
+  "issueClosure": "NOT_ELIGIBLE_BOUNDED_CASE_ONLY_NO_COMMENT_OR_CLOSE",
+  "verificationResult": {
+    "PASS": [
+      "57 fresh controlled tests/no skip; package/API types/lint/diff",
+      "One original GUI state and exact full EnginePort reply",
+      "Independent original native geometry/physical oracle and71 saved High predicates",
+      "Two public Studio Open/Frame observations/one fresh Worker binding and34 saved High predicates"
+    ],
+    "FAIL": [
+      "First required-input reuse preflight retained; no GUI/native execution started",
+      "Saved-reader exact-float and initial/frozen-map assumptions retained; no product replay",
+      "D501/D505 historical custody FAIL remains"
+    ],
+    "NOT_RUN": [
+      "New Profile components/API or Host.pieces adoption",
+      "Save/post-Open re-edit for this compound case",
+      "Full viewport-fit/raster precision/general compound/Boolean/connected-solid acceptance",
+      "Public docs build/preview because public docs are unchanged"
+    ]
+  },
+  "postPublicationSourceBoundary": {
+    "all467ActualNativeProducerInputs": "UNCHANGED",
+    "historicalFull4942And4996MapsCurrentAfterProse": "NOT_CLAIMED",
+    "changedHistoricalNativePins": [
+      "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react/design/README.md",
+      "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react/design/component-catalogue.md",
+      "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react/design/implementation-batches.md"
+    ]
+  }
+}

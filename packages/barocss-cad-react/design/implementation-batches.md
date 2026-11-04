@@ -26,7 +26,7 @@ Acceptance: ordered closure and reference grammar; loop/void/region capability m
 
 ## B3: bounded Hole and ordinary body operations
 
-Hole numeric center/radius/axis/side/depth uses existing Model fields and no selection. One ordinary blind through lifecycle can be adapted from main D498 exact source semantics; React native/current Viewer evidence is still new. Intersect/Scale follow exact one-solid contracts. Mirror/Split/Separate/body patterns wait for SolidSet/SelectBody contract; never assume one body. Counterbore is explicit ordered recipe, Countersink existing field; tapped positive stays blocked on person-loaded data without starting a download/data task.
+Hole numeric center/radius/axis/side/depth uses existing Model fields and no selection. One ordinary blind through lifecycle can be adapted from main D498 exact source semantics; React native/current Viewer evidence is still new. Intersect/Scale need operation-specific logical-output and native-piece capability checks. Mirror/Split/Separate/body patterns wait for an audited named-output cardinality and SolidSet/SelectBody contract. One logical output can contain multiple native pieces; a named-output set must not be inferred from that count, and no first-output shortcut is allowed. Counterbore is explicit ordered recipe, Countersink existing field; tapped positive stays blocked on person-loaded data without starting a download/data task.
 
 ## B4: sketch authoring and constraints
 
