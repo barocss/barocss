@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D496: qualify retained printed-tolerance project persistence, Lower/Upper re-edit and exact history across six aggregate groups; preserve oracle/pin/navigation stops and unresolved actual03 reset](notes/printed-tolerance-persistence-2026-11-04/README.md).
 - [D495: deliver a private compositional CAD React package with current props80→100→80, existing Worker/Viewer, public Studio Open and independent native physics; preserve fixture/type/capsule preparation failures](notes/cad-react-package-2026-11-04/README.md).
 
 - [D494: extract three exact native-face finishing cases behind original owner helpers and close the retained Draft project/post-Open edit gap; preserve the missing-type build failure](notes/part-native-face-finish-extraction-2026-11-04/README.md).
