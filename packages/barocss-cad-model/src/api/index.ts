@@ -5,7 +5,7 @@ export { part, StudioPart, type DrawingSettingsInput, type StudioTextOptions, ty
 export { fontFromBytes, type FontSource, type FontSourceMetadata } from '../engine/font/source';
 export type { CastingOptions } from './outputs';
 export { studioBackend } from './studio';
-export type { MassResult, MeshData } from './core';
+export type { MassResult, MeshData, StepReport } from './core';
 export { BodyQuery, EdgeQuery, FaceQuery, meshSelection, type AxisName, type Direction, type EdgeInfo, type FaceInfo } from './select';
 export { BarocssError, type FacadeCode, type RefusalWhere } from './refusal';
 export type { LibraryPartInput } from './library';

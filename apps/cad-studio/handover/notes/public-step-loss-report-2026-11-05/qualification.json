@@ -1,0 +1,345 @@
+{
+  "workId": "D531",
+  "priority": "P0-R11",
+  "rows": [
+    4,
+    13
+  ],
+  "tier": "FULL",
+  "baseline": "8fdf94a3d0d3f5e686f762100e77d89948e87ed1",
+  "status": "BOUNDED_MODEL_STEP_REPORT_AND_EXPLICIT_UNSUPPORTED_BACKEND_POLICY_QUALIFIED",
+  "implementationModel": "GPT-6.1 Sol Medium",
+  "independentAudits": [
+    "APPROVED GPT-6.1 Sol Medium",
+    "APPROVED GPT-6.1 Sol Medium; replay tool and test-only fix also approved"
+  ],
+  "originalControlled": {
+    "tests": 19,
+    "pass": 2,
+    "fail": 17,
+    "missingReportContractFailures": 16,
+    "namespaceFixtureOracleFailures": 1,
+    "constructorAdmissionControl": "Not an executed report refusal"
+  },
+  "fixedControlled": {
+    "unique": 73,
+    "new": 19,
+    "relatedModel": 32,
+    "relatedCAD": 22,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "docsSamples": {
+    "pass": 185,
+    "fail": 0
+  },
+  "checks": {
+    "CADTypes": "PASS",
+    "StudioTypes": "PASS",
+    "finalModelTypesAfterLastTestEdit": "PASS",
+    "scopedLint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "CADRuntimePreparation": "existing build:fast JS only; library/declaration/packed build NOT_RUN"
+  },
+  "mutations": {
+    "positiveBaseline": 19,
+    "killed": 10,
+    "casesPerVariant": 19,
+    "assertionFailures": [
+      8,
+      10,
+      10,
+      1,
+      2,
+      2,
+      1,
+      12,
+      1,
+      1
+    ],
+    "cancelled": 0,
+    "sourceTreeMutation": false
+  },
+  "publicContract": {
+    "reportFields": [
+      "text",
+      "source",
+      "omitted?"
+    ],
+    "ModelSupport": true,
+    "ModelSourceMeaning": "Document revision, not representation or output hash",
+    "CADNativeReport": "UNAVAILABLE; no fabricated loss-free report",
+    "backendCapability": "optional; unsupported existing backends retain legacy step",
+    "legacyStep": "string, names and all-body semantics unchanged",
+    "omittedDetached": true,
+    "omittedAbsencePreserved": true,
+    "bandRefusal": "unchanged; no new partial band geometry permission",
+    "newScannerOrWriterChange": false
+  },
+  "retainedIndependentReadback": {
+    "status": "PASS_EXACT_PUBLIC_INPUT_ELIGIBILITY_ONLY",
+    "nativeReaderExecutedNow": false,
+    "proof": "Current public report and legacy text equal entire two retained STEP files and current direct report; source/input custody unchanged",
+    "sourceCount": 669,
+    "sourceUnchanged": true,
+    "inputUnchanged": true,
+    "cases": [
+      {
+        "name": "box",
+        "bytes": 6523,
+        "sha256": "17422b076f9c617e1297487e042943659cd8133c7102426dd362e4b385c66152",
+        "retainedNativeInputSha256": "17422b076f9c617e1297487e042943659cd8133c7102426dd362e4b385c66152",
+        "valid": true,
+        "solids": 1,
+        "volume": 39999.99999999999,
+        "bbox": [
+          0,
+          0,
+          0,
+          80,
+          50,
+          10
+        ],
+        "loadWarningCount": 0,
+        "loadFailureCount": 0,
+        "transferWarningCount": 0,
+        "transferFailureCount": 0
+      },
+      {
+        "name": "assembly",
+        "bytes": 14513,
+        "sha256": "4103e2691d11938cf584aaafd778825dadd9ab9e14561e953b474d36f81dc9fa",
+        "retainedNativeInputSha256": "4103e2691d11938cf584aaafd778825dadd9ab9e14561e953b474d36f81dc9fa",
+        "valid": true,
+        "solids": 3,
+        "volume": 3000,
+        "bbox": [
+          -20,
+          0,
+          0,
+          100,
+          90,
+          5
+        ],
+        "loadWarningCount": 0,
+        "loadFailureCount": 0,
+        "transferWarningCount": 0,
+        "transferFailureCount": 0
+      }
+    ],
+    "flags": "Explicit empty ShapeProcess before/after; not all built-in translator adjustments disabled",
+    "currentOCPSetup": "Removed per owner; no install/download",
+    "broaderGeometry": "NOT_RUN"
+  },
+  "rootActualStudio": {
+    "status": "PASS_EXISTING_PREVIEW_CONSUMER_REGRESSION",
+    "driver": "unchanged step-export-preview-browser.mjs; historical qualification label retained",
+    "STEP_PREVIEW_REMAINING": "unset/full prefix",
+    "states": 3,
+    "contexts": 1,
+    "sourcePaths": 755,
+    "sourceChanges": 0,
+    "unknownPageErrors": 0,
+    "unknownConsoleErrors": 0,
+    "downloads": 0,
+    "cases": [
+      "assembly history/flattening/names/appearance/PMI/datums losses + exact Doc",
+      "Cancel/Escape",
+      "Open invalidates preparation",
+      "closed mesh tessellated/planar/auto selection + Close",
+      "New invalidates preparation"
+    ],
+    "rootViewed": [
+      "01-assembly-step-preview",
+      "02-mesh-options",
+      "03-new-clears-preparation"
+    ],
+    "cleanup": "Own context/Chrome/Vite closed",
+    "notNewFacadeCall": true
+  },
+  "retainedFailures": [
+    "16 original missing API assertions",
+    "1 original+first-fixed namespace fixture oracle",
+    "first Model type check unreachable error access after assert narrowing; runtime assertion preserved"
+  ],
+  "notRun": [
+    "Fresh native reader",
+    "General curved/offset/seam/AP242/STEP acceptance",
+    "CAD-native report producer",
+    "GUI Export/Save/download or injected delayed timing",
+    "Whole kernel/Studio production build, library/declaration/packed/version-crossing consumer",
+    "CI/mobile/release/develop integration"
+  ],
+  "wholeCad": "NOT_MEASURED",
+  "sourcePins": {
+    "packages/barocss-cad/src/api/part.ts": "8a69ae41960cb41b3a56cde7591e5d3c9ffa4e0627c319449ef72351af9b1de1",
+    "packages/barocss-cad/src/api/index.ts": "6a3e50a3fef705ef1b434100c4ce5f1856166c2f45b46b0ec4ca5366cdea712e",
+    "packages/barocss-cad-model/src/api/core.ts": "5071233a4aa4d3f81fa94d97ccdbdf3fc9fa189b35702b4f87520e4b46d70ba7",
+    "packages/barocss-cad-model/src/api/studio.ts": "6276846aa8ffaad14c30848000e51a960dbbc8432cb3c0a6c39ad53801cb2a3c",
+    "packages/barocss-cad-model/src/api/index.ts": "4f2b1e604a138067711076873955dd7cb52018006e38c8318cda916610c5a0c3",
+    "packages/barocss-cad-model/test/api-step-report.test.ts": "d5c83d69ef82fd159a41414d2e1cdbf57527089260a07d4317577ea804d2e860",
+    "packages/barocss-cad-model/test/api-step-report-types.ts": "c57e6084cc79b51352faeb44a3990acbd192bb4f1d8adc0b134d98084d4c15d2",
+    "packages/barocss-cad-model/scripts/test-step-report-mutations.mjs": "ca8a05eff3ef5da023c2323779828da03c66d5d2a74947f17a6e2b91cfee5c2f",
+    "apps/cad-studio/test/step-report-native-replay.mjs": "f84f9a9f3fbb272174bc87ce204fcc2f692988fa1d44241c01738ca131e3ab6a",
+    "apps/cad-studio/test/step-export-preview-browser.mjs": "f3771e84c7ee9e8316cd0b6c5d1fc2f6ed87a6bddabd23bcdb815833abc06859",
+    "apps/cad-studio/test/exchange-profile-producer.mjs": "e47b4cebbb5e31a792ccdc951b987c583189d95072bbaafdbc13cdc23d3d9a35",
+    "apps/library-docs/docs/packages/api.md": "d5d336b993c8a0e0cccf8c1da956a71b0c4d48e2dd9d008608f9fd060d5a886a",
+    "apps/cad-studio/handover/notes/step-native-reader-2026-11-01/qualification.json": "c6524562b64a34bc0fad6a499f606886166b8d2c8fac57cb90b90b785ef60e05"
+  },
+  "externalEvidence": [
+    {
+      "path": "/tmp/barocss-d531-baseline-controls01/api-step-report-types.ts",
+      "sha256": "c57e6084cc79b51352faeb44a3990acbd192bb4f1d8adc0b134d98084d4c15d2"
+    },
+    {
+      "path": "/tmp/barocss-d531-baseline-controls01/api-step-report.test.ts",
+      "sha256": "003471970e89fed5c4791591b3b8cfb70685ec20444c34b08b5cee5e7e2cafdd"
+    },
+    {
+      "path": "/tmp/barocss-d531-baseline-controls01/source-pins.json",
+      "sha256": "241d72024ad1106a84b02d317d80eb96db28b1276b46612ddec1b72b682efb72"
+    },
+    {
+      "path": "/tmp/barocss-d531-baseline-controls01/tests.log",
+      "sha256": "6cd2bcb450ff013ea2622af25430be7792d71c0d129b90377b5fd9c3f9b575a9"
+    },
+    {
+      "path": "/tmp/barocss-d531-fixed-checks01/scoped-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d531-fixed-checks01/cad-types.log",
+      "sha256": "fabc05746de64cbaead19f20560ff5e6676b8e5d0f398b0fb0324053c5fa12df"
+    },
+    {
+      "path": "/tmp/barocss-d531-fixed-checks01/cad-build-fast.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d531-fixed-checks01/cad-api-tests.log",
+      "sha256": "68c4a0e7fe9289e85b71b2e9fc8d93aa2ab7564445d936b58a3d6dcbd8ff6e60"
+    },
+    {
+      "path": "/tmp/barocss-d531-fixed-checks01/new-tests03.log",
+      "sha256": "41bec755a1b2978271f9c12f7eaf429b3894a32718549e2095ee7c5bbf4f43a6"
+    },
+    {
+      "path": "/tmp/barocss-d531-fixed-checks01/model-tests02.log",
+      "sha256": "97dfb8c6477a9928d7b1e3fb20e5bb184610bb8b6edc3222abdbcd66138d63ee"
+    },
+    {
+      "path": "/tmp/barocss-d531-fixed-checks01/docs-samples.log",
+      "sha256": "c51003b5e7cd1eb801bac26b6a3ad61cde7b86086f084fecc074df4e5faa384a"
+    },
+    {
+      "path": "/tmp/barocss-d531-fixed-checks01/test-lint02.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d531-fixed-checks01/studio-types.log",
+      "sha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+    },
+    {
+      "path": "/tmp/barocss-d531-fixed-checks01/new-tests.log",
+      "sha256": "b4d7086406d2067e9d5e740a6acc460a9594f3061aea6680a6193f367bdb5aea"
+    },
+    {
+      "path": "/tmp/barocss-d531-fixed-checks01/final-model-types02.log",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "path": "/tmp/barocss-d531-fixed-checks01/final-model-types.log",
+      "sha256": "d8b5ec9c1eea70150e29c4fd9b6032c9eb64dec3afe256caf379ac253256ab33"
+    },
+    {
+      "path": "/tmp/barocss-d531-mutations01/omitted-alias.log",
+      "sha256": "d269e73721bf53ca5a1b2f055a87fbe8f679f920a77946c44c32547521437f6f"
+    },
+    {
+      "path": "/tmp/barocss-d531-mutations01/source-wrong.log",
+      "sha256": "e20772d4ecb7fa2889e0b914d584ed3178cbfd41d8d79afadcabb56d7cf61a33"
+    },
+    {
+      "path": "/tmp/barocss-d531-mutations01/duplicate-export.log",
+      "sha256": "eb39693186a9889e5c684849e72fbdcd1692dfb7b467948dc225873326f27797"
+    },
+    {
+      "path": "/tmp/barocss-d531-mutations01/name-drop.log",
+      "sha256": "450e806e37a503b3389404c74d14bc8aca6b9dbadb5251a18d617eb5eb34f2cc"
+    },
+    {
+      "path": "/tmp/barocss-d531-mutations01/runner.log",
+      "sha256": "c8eb8bff2094122a93902f29d8c7259ebdc6dacbe4356084045616a24bcbe798"
+    },
+    {
+      "path": "/tmp/barocss-d531-mutations01/legacy-shape.log",
+      "sha256": "ec4b2bdc33edc08dfd96f424300348ce14d0f873553b24213a5ed1102d429bd3"
+    },
+    {
+      "path": "/tmp/barocss-d531-mutations01/omitted-absence.log",
+      "sha256": "5510bfc13c36890058b2a02db2415ca3e2691aa30d9f29d4db92c977ac37476a"
+    },
+    {
+      "path": "/tmp/barocss-d531-mutations01/baseline.log",
+      "sha256": "40350cbd1a8bc84a5012a3cc2fac57d4ae2df17f64b044a0bc995b3fb6d1ec6d"
+    },
+    {
+      "path": "/tmp/barocss-d531-mutations01/backend-report-loss-drop.log",
+      "sha256": "f8b702a62ffdb9a2bfebfc3ac45e36064784db0c7823dc42e440eca6117aea5e"
+    },
+    {
+      "path": "/tmp/barocss-d531-mutations01/band-guard-drop.log",
+      "sha256": "2399650bef48cdbc7fd3c53cfcbfa09c90eb6068c600a4ff9448d461f3c6a33c"
+    },
+    {
+      "path": "/tmp/barocss-d531-mutations01/syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d531-mutations01/body-drop.log",
+      "sha256": "991b139a204873e785ca018926a63e97772c4bfb4aad5653c56ca4a55187510b"
+    },
+    {
+      "path": "/tmp/barocss-d531-mutations01/omitted-drop.log",
+      "sha256": "253b45cca135cf56932df6e4630dcc6ae2f3cadee5b6f5ceba891e8dce3f179a"
+    },
+    {
+      "path": "/tmp/barocss-d531-mutations01/diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d531-mutations01/summary.json",
+      "sha256": "d5c7e495681485e3aace03db9b8ed556f625b3645d520b3864b5fe9b635bcc73"
+    },
+    {
+      "path": "/tmp/barocss-d531-replay01/comparison.json",
+      "sha256": "aea3dd56438ffbbb768e06fe51957f25a963d7315439b8430ea2a90ff965cac1"
+    },
+    {
+      "path": "/tmp/barocss-d531-replay01/measurement.json",
+      "sha256": "5a28f1357217c28b6b4e2f95926211695555f602fcc6d8666b04a26856e89d1f"
+    },
+    {
+      "path": "/tmp/barocss-d531-replay01-meta/producer.log",
+      "sha256": "469e8aafe98257988d9fce19a0cb7a60997a590f7d2a024d3f3c314c30cc0c77"
+    },
+    {
+      "path": "/tmp/barocss-d531-public-replay01/receipt.json",
+      "sha256": "c3d9248805204b370e9cd99e5aef936c0e29a770e89573a10f0807039862043c"
+    },
+    {
+      "path": "/tmp/barocss-d531-public-replay01-meta/run.log",
+      "sha256": "9938e73c176c786cae88f12deafecad684cae37b8f43514933bebc7e5c59b62e"
+    },
+    {
+      "path": "/tmp/barocss-d531-studio-preview01/receipt.json",
+      "sha256": "b238eb21dbd8b233f9f2a4f3663545b4933a1ef18e026ce08fb0e469dfd80d68"
+    },
+    {
+      "path": "/tmp/barocss-d531-studio-preview01-meta/run.log",
+      "sha256": "72ed3a624caa64b604564b8b591336c147cbc7c28370416256043ad10091abfe"
+    }
+  ]
+}

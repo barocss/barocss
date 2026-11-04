@@ -2,7 +2,7 @@
 // part implementation (Part, PartBackend) that cad-model's facade extends. See api-conventions.md §11–§12 and
 // apps/cad-studio/handover/notes/api-facade-design.md.
 export { part, KernelPart, kernelBackend } from './kernel.js';
-export { Part, withParameters, type PartBackend, type Density, type Tool, type FeatureInfo } from './part.js';
+export { Part, withParameters, type PartBackend, type Density, type Tool, type FeatureInfo, type StepReport } from './part.js';
 export {
   sewSpec, thickenSpec, boxSpec, cylindricalWrapSpec, cylinderSpec, extrudeSpec, revolveSpec, holeSpec, filletSpec, chamferSpec, shellSpec, booleanSpec, linearPatternSpec, rectangularFeaturePatternSpec, fillFeaturePatternSpec, curveFeaturePatternSpec, circularPatternSpec, moveSpec, rotateSpec, mirrorSpec, scaleSpec, splitSpec, studioSpec, type StudioCommand,
   param, isParam, type Param, type Dim, type Bound, type Resolved,

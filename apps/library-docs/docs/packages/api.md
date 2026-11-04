@@ -260,7 +260,16 @@ Two separate parts aren't combined: merging two documents would renumber one's i
 
 - `.mass({ density })` gives the chosen body's mass properties. The kernel keeps no material library, so it
   takes a density; cad-model's part also takes a material id.
-- `.step(name?)` writes every body as one STEP AP214 file.
+- `.step(name?)` writes every body as one STEP AP214 file and returns its text.
+- `.stepReport(name?)` uses the same name, all-body selection and export rules, and returns
+  `{ text, source, omitted? }` when the backend supports reports. On the CAD model backend, `source` is the source
+  document revision string. It does not identify a native or mesh representation. `omitted` contains the existing
+  exporter's applicable loss messages, such as feature history, parameters, flattened assemblies, names, appearance,
+  drawings, datums, infill or missing bounding-box validation. An absent list does not certify a loss-free interchange.
+  The returned object and its optional list are detached data. Band sheets still cause the same typed export refusal;
+  reporting does not enable a partial band-sheet export. The kernel CAD backend and external backends without this
+  optional capability refuse with `UNAVAILABLE`; they do not invent a report from the legacy text. Other backends
+  define their own source provenance string.
 - `.stl()` writes the body as binary STL. It's on the kernel part only.
 - `.meshes()` gives each body's display mesh as `{ key, positions, normals, indices, lines }`. `lines` are the display
   edges as segment pairs: the edges a selector offers, with seams and smooth joins left out.

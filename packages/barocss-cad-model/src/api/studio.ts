@@ -14,7 +14,7 @@ import { checkNode } from '../chat/features';
 import { captureSignatures } from '../engine/references';
 import { checkValues } from '../chat/toolKit';
 import type { BodyResult } from '../engine/evaluate';
-import { bodiesOf, massOf, meshesOf, stepOf } from './core';
+import { bodiesOf, massOf, meshesOf, stepOf, stepReportOf } from './core';
 import { meshSelection } from './select';
 
 // (The faces, edges and bodies a spec names: a face or edge names its body; a verb on the body as a whole names it, and a
@@ -117,6 +117,7 @@ export const studioBackend: PartBackend<StudioDoc> = {
   select: (doc, body) => meshSelection(bodyOf(doc, body).mesh),
   mass: (doc, body, density) => massOf(bodyOf(doc, body), density),
   step: stepOf,
+  stepReport: stepReportOf,
   meshes: meshesOf,
   parameters: doc => doc.parameters,
   withParameters(doc, parameters) {

@@ -7,8 +7,8 @@ import { fromEvaluation, fromExport, refuse } from './refusal';
 
 
 /** A body's display triangles: its key, positions and normals (x, y, z per vertex) and indices — the shape gpu's GeometryInput takes. */
-export type { MeshData, MassResult } from '@barocss/cad/api';
-import type { MeshData, MassResult } from '@barocss/cad/api';
+export type { MeshData, MassResult, StepReport } from '@barocss/cad/api';
+import type { MeshData, MassResult, StepReport } from '@barocss/cad/api';
 
 
 // (The evaluation's revision tag: the facade keeps no revision history of its own; the core's evaluation memo keys on the document.)
@@ -41,14 +41,17 @@ export function meshesOf(doc: StudioDoc): MeshData[] {
 }
 
 /** The document's exact solids as one STEP AP214 file. */
-export function stepOf(doc: StudioDoc, name: string): string {
-  // (A band sheet is not in STEP yet and this call has no channel to say so: refused rather than dropped silently.)
+export function stepReportOf(doc: StudioDoc, name: string): StepReport {
+  // Keep the facade's existing refusal of partially omitted band sheets in both export paths.
   try {
     const step = exportStudioStep(doc, { name }), sheet = step.omitted?.find(x => x.startsWith('band sheet'));
     if (sheet) throw new Error(sheet);
-    return step.text;
+    return step;
   } catch (e) { throw fromExport(e instanceof Error ? e.message : String(e)); }
 }
+
+/** The same guarded export, with the legacy text-only result. */
+export function stepOf(doc: StudioDoc, name: string): string { return stepReportOf(doc, name).text; }
 
 /** The material id a body names (its own, else the brief's), if any. */
 export function materialOf(doc: StudioDoc, key: string): string | undefined {

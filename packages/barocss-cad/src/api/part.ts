@@ -32,6 +32,8 @@ export interface PartBackend<D> {
   mass(doc: D, body: string, density: number): MassResult;
   /** Every body of the part as one STEP AP214 file. */
   step(doc: D, name: string): string;
+  /** The existing export with producer provenance and applicable losses, when the backend can report them. */
+  stepReport?(doc: D, name: string): StepReport;
   meshes(doc: D): MeshData[];
   /** The document's parameters (R7.4d), and the document with them replaced, evaluated (its refusal, typed). */
   parameters(doc: D): Readonly<Record<string, number>>;
@@ -41,6 +43,9 @@ export interface PartBackend<D> {
   /** The feature suppressed or not (the studio's History toggle), evaluated; refused where the document can't hold it. */
   suppress(doc: D, id: string, suppressed: boolean): D;
 }
+
+/** A STEP export with producer-defined source provenance and the losses that producer reports. */
+export interface StepReport { text: string; source: string; omitted?: string[] }
 
 /** A feature as `features()` lists it: its stable id, kind and the studio's label for it. */
 export interface FeatureInfo { readonly id: string; readonly kind: string; readonly label: string }
@@ -242,6 +247,13 @@ export class Part<D> {
 
   /** The part (every body) as one STEP AP214 file, named after the part unless another name is given. */
   step(name: string = this.name): string { return this.backend.step(this.#doc, name); }
+
+  /** The same all-body STEP export with provenance and loss messages; refused if the backend cannot report them. */
+  stepReport(name: string = this.name): StepReport {
+    if (!this.backend.stepReport) throw refuse('UNAVAILABLE', 'this backend does not provide STEP export reports');
+    const report = this.backend.stepReport(this.#doc, name);
+    return { text: report.text, source: report.source, ...(report.omitted !== undefined ? { omitted: [...report.omitted] } : {}) };
+  }
 
   /** Each body's display triangles, in the common mesh shape (§10.3) gpu's GeometryInput takes. */
   meshes(): MeshData[] { return this.backend.meshes(this.#doc); }
