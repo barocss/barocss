@@ -1,0 +1,45 @@
+{
+  "status": "SECOND_UI_SNAPSHOT_RESET_RACE_PRESERVED",
+  "reason": "reset assigned the new scenario before awaiting the Worker state; snapshot energy briefly paired old body IDs with the new model.",
+  "physicsChange": false,
+  "gravityFullCapture": "output/playwright/dynamic-next/dynamic-desktop-02/gravity-fall-capture-result.json",
+  "pairAcceptedSteps": 0,
+  "files": {
+    "examples/physics-stack-dynamic-next-2276/browser-checks.js": {
+      "bytes": 8168,
+      "sha256": "4fe3f454f9351962a375898acc4fd8cc84fa0cf94ad0a8cf6be36ae0afbcc9aa"
+    },
+    "examples/physics-stack-dynamic-next-2276/browser-run.mjs": {
+      "bytes": 5043,
+      "sha256": "2b7ded42cd412b20e6437e07d0d9b7a266befbbcfed9725c4321b26a25e2295c"
+    },
+    "examples/physics-stack-dynamic-next-2276/DESKTOP-CONTRACT.md": {
+      "bytes": 4529,
+      "sha256": "a926b273c9a2f4409215dbe68619d33180d51ecaab863c16887f5f2d54e095d8"
+    },
+    "examples/physics-stack-dynamic-next-2276/scene/transport.mjs": {
+      "bytes": 862,
+      "sha256": "dfaf0a2b4d087e289252fb3f9e1604ab940efddb3295f74b10bbf19f603b45a0"
+    },
+    "examples/physics-stack-dynamic-next-2276/scene/worker.mjs": {
+      "bytes": 853,
+      "sha256": "c1b8986c120bebafaf1edcf35b09f14ba11e5539306a2670cfea8b24b47eba2e"
+    },
+    "examples/physics-stack-dynamic-next-2276/scene/index.html": {
+      "bytes": 1116,
+      "sha256": "1dcbe3f42f42dbcb35fd6c32f1055e3a73483b2d8d0a2b8986efbb9bc46bbbd4"
+    },
+    "examples/physics-stack-dynamic-next-2276/scene/style.css": {
+      "bytes": 1394,
+      "sha256": "ca79c36f9df70a28cda3e3b8f2567b09bc939146504a21a01d871fe6eaab2117"
+    },
+    "examples/physics-stack-dynamic-next-2276/scene/renderer.mjs": {
+      "bytes": 9932,
+      "sha256": "66f305e2a59a02ce409ea8bbed85115b6c5c5ccc66842b838b75ada6ac7df8d0"
+    },
+    "examples/physics-stack-dynamic-next-2276/scene/app.mjs": {
+      "bytes": 4533,
+      "sha256": "7ba014671ff0c2f56008637237f08bddfe157526dc4d618024ebb0cff733db78"
+    }
+  }
+}

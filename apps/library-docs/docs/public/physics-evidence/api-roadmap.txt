@@ -48,6 +48,29 @@ Completion date for general moving8 remains UNKNOWN until the first small-island
 results. All Studio/manufacturing/equipment/old-worker HOLDs, tolerances,
 first failures and deployment prohibition remain. Existing workers are not resumed.
 
+### Gravity and delayed-impact milestone
+
+The first two small-island cases above now pass. Actual Source/Native each use
+11Worlds/1018accepted steps including four restore replay steps. A cube falls
+from a positive gap, contacts the floor at27 and remains supported through256;
+an equal-mass pair contacts at8 then separates through256. Three1second gravity
+controls at60/120/240Hz give first-order position/energy error ratios~2.
+At120Hz the continuous-position error is0.040875m and energy defect-0.8019675J;
+this is convergence evidence, not energy conservation or millimeter accuracy.
+Existing gates, solver loops, profile and body cap are unchanged.
+
+Actual same-Native desktop03 passes both256-step trajectories, complete public
+state/ALLnumeric-word parity, real changed GPU pixels and controls at three
+desktop widths. The original GPU-readback failure and display reset race remain
+preserved separately. This stage changes the test/desktop consumers and repairs
+display observation; it adds no new production solver or public profile. See
+`examples/physics-stack-dynamic-next-2276/RESULTS.md`.
+
+Next is two moving cubes plus a floor with separated collision events, then a
+small simultaneous normal-contact problem using independent momentum/energy
+and matrix certificates. Rotating/frictional/general moving8 remains NO_GO or
+NOT_QUALIFIED. Keep numerical and actual desktop proof in the same feature stage.
+
 ## Previous priority review, preserved before stationary qualification
 
 | Main track | Current qualified boundary |

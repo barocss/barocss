@@ -1,0 +1,49 @@
+{
+  "status": "FIRST_DESKTOP_PIXEL_FAILURE_SOURCE_PRESERVED",
+  "physicsAcceptedSteps": 0,
+  "firstFailure": "real GPU cube pixels",
+  "proof": "output/playwright/dynamic-next/dynamic-desktop-01/browser/result.json",
+  "failedScreenshot": "NOT_CAPTURED_BEFORE_ASSERTION",
+  "files": {
+    "examples/physics-stack-dynamic-next-2276/server.mjs": {
+      "bytes": 8628,
+      "sha256": "b69e6bf10fff5066757fc324d25624baf6b98c930acda115b79740eef2befcb9"
+    },
+    "examples/physics-stack-dynamic-next-2276/browser-run.mjs": {
+      "bytes": 4033,
+      "sha256": "6c48c0d4ab1210549be5631a8122b955dfd47d16ef0d015c3604279b63dc4efe"
+    },
+    "examples/physics-stack-dynamic-next-2276/browser-checks.js": {
+      "bytes": 8158,
+      "sha256": "80113deccedc02c6645cf6ce1a54bb60b418b7196424e91db75ad225494583d7"
+    },
+    "examples/physics-stack-dynamic-next-2276/DESKTOP-CONTRACT.md": {
+      "bytes": 3676,
+      "sha256": "48087f9fe13437051394921d837e71d1426a1da916f9f3efee6ac5d0f837f6cb"
+    },
+    "examples/physics-stack-dynamic-next-2276/scene/transport.mjs": {
+      "bytes": 862,
+      "sha256": "dfaf0a2b4d087e289252fb3f9e1604ab940efddb3295f74b10bbf19f603b45a0"
+    },
+    "examples/physics-stack-dynamic-next-2276/scene/worker.mjs": {
+      "bytes": 853,
+      "sha256": "c1b8986c120bebafaf1edcf35b09f14ba11e5539306a2670cfea8b24b47eba2e"
+    },
+    "examples/physics-stack-dynamic-next-2276/scene/index.html": {
+      "bytes": 1116,
+      "sha256": "1dcbe3f42f42dbcb35fd6c32f1055e3a73483b2d8d0a2b8986efbb9bc46bbbd4"
+    },
+    "examples/physics-stack-dynamic-next-2276/scene/style.css": {
+      "bytes": 1394,
+      "sha256": "ca79c36f9df70a28cda3e3b8f2567b09bc939146504a21a01d871fe6eaab2117"
+    },
+    "examples/physics-stack-dynamic-next-2276/scene/renderer.mjs": {
+      "bytes": 8318,
+      "sha256": "d65ec6a43a29562cc69e8fb76c8e1d537d9f7a046746f0efd78600df8bf890bf"
+    },
+    "examples/physics-stack-dynamic-next-2276/scene/app.mjs": {
+      "bytes": 4496,
+      "sha256": "8989903adde58751852772fed94ad29e50c3fa0a62a865b553a8edbda4b91e85"
+    }
+  }
+}

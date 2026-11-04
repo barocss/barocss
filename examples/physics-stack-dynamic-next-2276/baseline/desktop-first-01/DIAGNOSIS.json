@@ -1,0 +1,34 @@
+{
+  "status": "FIRST_BROWSER_READBACK_FAILURE_PRESERVED",
+  "firstFormalAcceptedSteps": 0,
+  "diagnosticWorlds": 1,
+  "diagnosticAcceptedSteps": 0,
+  "actualScreenshot": "Visible blue cube and floor",
+  "oldOffscreenReadback": {
+    "width": 640,
+    "height": 360,
+    "coloredPixels": 0,
+    "opaquePixels": 0,
+    "nonzeroPixels": 0
+  },
+  "conclusion": "2D drawImage(WebGPU canvas) returned transparent pixels despite actual rendered screenshot. No numerical criterion changes.",
+  "plannedCorrection": "Read the same GPU pipelines/vertices into fixed640x360 render target and copy within one command encoder; keep blue>40 and changed>10 thresholds.",
+  "pins": {
+    "output/playwright/dynamic-next/dynamic-desktop-01/browser/result.json": {
+      "bytes": 1108,
+      "sha256": "fa927db4e33f18617ad8abb2ac1feb73079f183f26348af35e0ca9942ec5367e"
+    },
+    "output/playwright/dynamic-next/dynamic-desktop-01/browser/checks.stdout": {
+      "bytes": 38,
+      "sha256": "842eb110a96ad802c5dd45c66d316df92564fea369090bcd168d8606b95d2fee"
+    },
+    "examples/physics-world-p5-2276/evidence/dynamic-render-diagnostic-01/stdout.raw": {
+      "bytes": 1586,
+      "sha256": "977bb4efd4243c08519102f453ed960f65a6b60ccfdd8e6f00c203a79de5a011"
+    },
+    "output/playwright/dynamic-next/diagnostic-01/initial.png": {
+      "bytes": 108952,
+      "sha256": "856fa0486bbae4458cdce08f49576199a44060f104eeba1a6d37311597bec31e"
+    }
+  }
+}

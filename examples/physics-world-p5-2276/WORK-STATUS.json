@@ -34,7 +34,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Stationary exact32point/48DOF witness, original3600 independent checks, actual soleWorld SourceNative3600 and desktop3600 PASS. Current Native1/2body dynamic impact desktop11checks PASS. Next gravity-driven small-island trajectory before moving multibody extension. All old failures/HOLDs/gates preserved.",
+  "active": "Stationary original/public/desktop3600 locally PASS. New small dynamic gravity-fall and delayed-pair SourceNative each11World1018steps, independent Fraction/convergence and actual desktop512steps/fullstate+word+GPU motion PASS. Next two cubes plus floor with separated events, then small simultaneous normal island. General moving8 remains NO_GO/NOT_QUALIFIED.",
   "latestStackImplementation": {
     "results": "examples/physics-stack-library-2276/RESULTS.md",
     "entry": "packages/barocss-physics/src/stack/prepare-step.ts",
@@ -2508,5 +2508,38 @@
     "normalImpulseNs": 5,
     "postImpactEnergyJ": 0.25,
     "generalEightBodyDynamics": false
+  },
+  "smallDynamicTrajectories": {
+    "result": "examples/physics-stack-dynamic-next-2276/RESULTS.md",
+    "numerical": "examples/physics-stack-dynamic-next-2276/evidence/api-01/result.json",
+    "desktop": "output/playwright/dynamic-next/dynamic-desktop-03/browser/result.json",
+    "status": "NUMERICAL_SOURCE_NATIVE_AND_SAME_PROVIDER_DESKTOP_PASS",
+    "worldsPerNumericalGraph": 11,
+    "acceptedPerNumericalGraph": 1018,
+    "replayedPerGraph": 4,
+    "desktopFormalWorlds": 3,
+    "desktopFormalAccepted": 512,
+    "firstFallContactStep": 27,
+    "firstPairContactStep": 8,
+    "continuousPositionErrorsM": [
+      0.08175000000000146,
+      0.04087500000000702,
+      0.020437499999993804
+    ],
+    "signedEnergyErrorsJ": [
+      -1.6039349999998518,
+      -0.8019674999999259,
+      -0.400983750000294
+    ],
+    "energyConserved": false,
+    "firstDesktopFailures": [
+      "transparent2DWebGPUreadback",
+      "displaySnapshotResetModelStateRace"
+    ],
+    "newProductionSolver": false,
+    "newPublicProfile": false,
+    "generalMovingEightBodies": "NO_GO_NOT_QUALIFIED",
+    "mobileTests": false,
+    "deployment": false
   }
 }

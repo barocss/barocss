@@ -43,6 +43,34 @@ case; the body travels upward and actual GPU pixels change. This is zero-gravity
 zero-friction impact, not a gravity-driven eight-body test. Next are small-island
 gravity trajectories and corresponding desktop motion before expansion.
 
+## Gravity flight and delayed collision with desktop motion
+
+The existing public persistent-box profile now has separate bounded trajectory
+evidence: a cube falling from Y0.75m to a floor, and two equal2kg cubes with an
+initial0.125m surface gap. Source and actual compiled root/replay each pass
+11Worlds/1018accepted steps, record/restore/continue, repeat and known/unknown
+failure retention. The fall contacts at27 and remains supported through256;
+the pair contacts at8 and then separates through256. Independent Fraction
+ballistic, Newton/momentum/energy/gap checks pass, with exact Source/Native
+numeric-word parity. Five paid observer positives and12negative controls plus
+signed-zero restoration pass separately, with no new World calls.
+
+Three1second free-gravity controls at60/120/240Hz show continuous-position
+errors0.08175/0.040875/0.0204375m and signed energy defects
+-1.603935/-0.8019675/-0.40098375J. Both error ratios are~2 under the original
+criteria. The integrator is first-order; this is not mechanical-energy
+conservation, exact TOI or millimeter accuracy. Projection work is separate.
+
+Actual desktop03 uses the same Native inputs/provider, passes all256steps per
+scene and compares all257public states/numeric words exactly with paid Native
+data. Fixed-resolution real GPU readback changes3149/1554pixels during motion;
+camera, step/play/pause/reset, separate kinetic/potential fields and
+1280/1440/1920 widths pass with zero page/console/network errors. Screenshots
+prove rendering only. First transparent-readback and scene-reset failures are
+preserved with their original source/proof; neither changed physics criteria.
+See `examples/physics-stack-dynamic-next-2276/RESULTS.md` on this branch.
+No new solver/profile, moving8, mobile, equipment validation or deployment follows.
+
 ## Sphere-pair CCD checkpoint
 
 Exact represented endpoint/radius predicates fix an observed false graze: the
