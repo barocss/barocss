@@ -105,9 +105,9 @@ The inner Rotate lowers before the outer Translate. No matrix or trigonometry is
 
 Normal function components, props, hooks, Fragments and keyed arrays can compose these components within synchronous admission. React keys and mounted identities preserve supported feature identity; remounting creates new identity. No component has a public native-ID prop. Internal Suspense/Offscreen/async behavior is outside admission, including when a wrapper hides it.
 
-## D509 profile composition candidate
+## D509 profile composition
 
-Source candidate only; adoption and all new checks/native/Viewer/Studio proof are NOT_RUN. The candidate adds six functional declarations while preserving the existing 13 elements.
+D509 implements Loop, LineSegment, ArcSegment, Profile, Outer and Voids. The existing thirteen logical elements remain; the package now has nineteen. The 76 source-checkpoint controls (65 reused with unchanged inputs and 11 newly run), package/API types, lint and four semantic mutation controls pass. The selected all-six SegmentedProfiledPlate passes four original Viewer states and native proof. Returned-document Studio Open/F and the separate compound-metadata consumer pass at their saved source checkpoints. Current-source Studio continuation and fresh documentation verification are recorded separately from geometry evidence.
 
 | Component | Input and role |
 | --- | --- |

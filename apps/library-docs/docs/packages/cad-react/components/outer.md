@@ -1,6 +1,6 @@
 # Outer
 
-D509 source candidate. This component is proposed in a temporary working copy and is not current repository API until root adoption. Tests/types/native/Viewer/Studio/docs execution are NOT_RUN. No additional feature-family qualification is implied.
+D509 implements Loop, LineSegment, ArcSegment, Profile, Outer and Voids. The existing thirteen logical elements remain; the package now has nineteen. The 76 source-checkpoint controls (65 reused with unchanged inputs and 11 newly run), package/API types, lint and four semantic mutation controls pass. The selected all-six SegmentedProfiledPlate passes four original Viewer states and native proof. Returned-document Studio Open/F and the separate compound-metadata consumer pass at their saved source checkpoints. Current-source Studio continuation and fresh documentation verification are recorded separately from geometry evidence.
 
 ## Inputs and output
 
@@ -23,4 +23,6 @@ Insert this composition under an existing Part with the existing engine/Viewer l
 
 Missing/excess slots, incompatible realized kinds, mixed child/ref sources, missing/wrong-scope/duplicate/cyclic tokens and malformed new descriptor fields refuse. A rejected declaration retains the prior accepted immutable Doc and retires its freshness. Geometry-dependent touching/outside/clipping rules remain native and differ between Extrude and Revolve. No universal containment/contact refusal is claimed.
 
-The selected D509 physical proposal is a60x40 plate with one centered r6→8→Reset6 through-hole at height8, with exact returned Studio Open/Frame. Its one-body/genus1 expectation is source-only until High native and actual current consumers run. Source tests are not physical proof. No new renderer, native face/UV, sideTags/topology guarantee, Sweep/Loft, manufacturing, download, mobile or release is added.
+The measured canonical case is a60×40×8 mm plate: one Loop of four LineSegments as Outer and one Loop with a full CCW ArcSegment as Voids, centered at[30,20], radius6→8→Reset6. All six new elements are realized. Two native captures and two exact-Doc reuses bind four original GUI consumers; one native body/one shell/genus1 is proved only for these states. Blank NaN input waits for visible Error and finite-coordinate alert, submits no extra engine call, retires freshness and retains the preceding radius8 frame. Collapse/reopen/idle/Reset also pass. Recorded Studio Open/F and its fresh Worker binding pass for the exact returned document at that source checkpoint, with source and cleanup verification. Full viewport fitting and raster precision are NOT_MEASURED; the Studio palette can occlude the plate. No general topology, face/UV, NURBS, arbitrary-hole, release or mobile qualification follows.
+
+The example above is a declaration example. Physical evidence comes from the pinned all-six SegmentedProfiledPlate recipe; equal dimensions do not create an additional producer certificate.

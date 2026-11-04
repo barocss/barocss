@@ -30,7 +30,7 @@ Insert the returned composition as the single output of a Part with a connected 
 
 ## Composition and validation
 
-Extrude accepts Rectangle/Circle/Polygon output and, in the D509 candidate, Loop/Profile output, including a compatible output returned by a synchronous wrapper or resolved ProfileRef. ExtrudeProps names the public exclusive-input type. The result can feed Union, Difference or a rigid transform.
+Extrude accepts Rectangle/Circle/Polygon output and, in the D509 implementation, Loop/Profile output, including a compatible output returned by a synchronous wrapper or resolved ProfileRef. ExtrudeProps names the public exclusive-input type. The result can feed Union, Difference or a rigid transform.
 
 Zero/nonfinite distance or nonfinite from refuses. Both child and profile, multiple profiles, a solid token as profile, and arbitrary face/region descriptors refuse. Surface/face extrusion supported elsewhere in Studio is not automatically admitted here.
 
@@ -46,6 +46,8 @@ The measured Bracket uses floor6, wall56 and declared overcut tools, with origin
 
 The complete code block uses current public exports; its extracted type-check result is recorded separately. Type/compiler checks do not by themselves evaluate this standalone example as a new native case. Read the [component catalog](/packages/cad-react/components), [refs and compiler](/packages/cad-react/references), [engine integration](/packages/cad-react/engine-viewer) and [current support limits](/packages/cad-react/limits).
 
-## D509 source candidate
+## D509 profile composition
 
-Loop and Profile are additional closed-profile producers in the proposed source candidate; Outer/Voids provide explicit single-loop slots, and LineSegment/ArcSegment provide exact ordered Loop descriptors. Regions, arbitrary plane/face inputs, constraints and Sweep/Loft adapters remain unexported. Extrude.profile and old primitive lowerings remain compatible. Revolve holes retain their existing operation-specific native admission, with no new physical qualification. No universal containment/contact repair or refusal is promised. New execution is NOT_RUN. Part denotes one declared logical Model result, which can contain multiple native pieces; refs do not select a connected piece.
+D509 implements Loop, LineSegment, ArcSegment, Profile, Outer and Voids. The existing thirteen logical elements remain; the package now has nineteen. The 76 source-checkpoint controls (65 reused with unchanged inputs and 11 newly run), package/API types, lint and four semantic mutation controls pass. The selected all-six SegmentedProfiledPlate passes four original Viewer states and native proof. Returned-document Studio Open/F and the separate compound-metadata consumer pass at their saved source checkpoints. Current-source Studio continuation and fresh documentation verification are recorded separately from geometry evidence.
+
+Loop and Profile produce closed-profile data. Outer/Voids and LineSegment/ArcSegment are structural descriptors, not extra native features. Extrude.profile, old Rectangle/Circle/Polygon lowerings and staged identities remain compatible. Exact circle conversion uses the existing helper with no sampling. Regions, arbitrary plane/face inputs, constraints and Sweep/Loft adapters remain unexported. Holed Revolve keeps its own native admission and remains physically unqualified by this Extrude case. No universal contact/containment repair or refusal is promised. Part remains one logical Model result that can contain multiple native pieces.

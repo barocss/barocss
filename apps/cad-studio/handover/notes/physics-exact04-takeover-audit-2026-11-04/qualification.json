@@ -1,0 +1,61 @@
+{
+  "work_id": "D518",
+  "status": "READ_ONLY_HANDOFF_INVESTIGATION_COMPLETE_NOT_ADOPTED",
+  "sourceWork": "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276",
+  "sourceHEAD": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "targetAtInvestigation": "a7b5676402ce2266504cf69ff512c29be044c9ef",
+  "originalSourceWorkUnchanged": true,
+  "namedDocumentsReadInFull": 8,
+  "STOPPinsVerified": 8,
+  "trackedWIP": 11,
+  "untrackedSourceFilesOutsidePatch": [
+    "packages/barocss-physics/src/stack/exact-normal.ts",
+    "packages/barocss-physics/src/stack/normal-types.ts"
+  ],
+  "minimalLibraryDeltaPaths": 11,
+  "savedReceiptChecks": 297,
+  "newSourceWorldOrSolverRuns": 0,
+  "newBuildBrowserArchiveRuns": 0,
+  "currentCADAdoption": "NOT_RUN_PENDING_FULL_CROSS_PACKAGE_AUDIT",
+  "publishedVsLocal": "Develop0a838 contains original512-pass profile and866NO_GO; EXACT04 is local uncommitted source, no CI inheritance.",
+  "actualPriorEvidence": "Selected public6 tests; dt840perpath, two independent512cases, one continuousthree-box1024, six-gallery/numeric and HiDPI receipts match original source/tool pins. Not fresh executions in CAD Work.",
+  "rankBoundary": {
+    "impact27": {
+      "represented": 10,
+      "physicalOperands": 9
+    },
+    "tilted490FullRows": {
+      "represented": 8,
+      "physicalOperands": 7
+    },
+    "resolved": false
+  },
+  "missingCloseout": [
+    "Final EXACT04 docs",
+    "CHECKPOINT.json",
+    "SOURCE.tar.gz",
+    "PROOF.tar.gz",
+    "Independent final archive verification"
+  ],
+  "reuseLimit": "Original hashes validate original Work receipts. Target path/tool/dependency changes require explicit affected-check qualification; current Node22.19 does not inherit local unpublished CI.",
+  "holds": "Studio Physics/manufacturing/equipment/release remain held. Old Physics chat/workers are not resumed.",
+  "next": "D519 read-only audit of all CAD-related packages, APIs, evidence and roadmap alignment before further implementation.",
+  "evidence": {
+    "summary": {
+      "path": "/tmp/barocss-d518-physics-takeover01/final-summary.json",
+      "sha256": "6c9648571cecf01d91401c3e3a450fd06d2455a4ab099d06a4798ca52990b5f3"
+    },
+    "report": {
+      "path": "/tmp/barocss-d518-physics-takeover01/REPORT.md",
+      "sha256": "34db6192d37334b0ec387dc646c7479024fd530dfd6faffeb8c1e28fe3fc1d29"
+    },
+    "manifest": {
+      "path": "/tmp/barocss-d518-physics-takeover01/MANIFEST.json",
+      "sha256": "9b9f5325482662123b45192425353aab2f3698d378a9abfe9b1848de712e5dd5"
+    },
+    "candidate": {
+      "path": "/tmp/barocss-d518-physics-takeover01/adoption-candidate.json",
+      "sha256": "863b53b0768ec3024c4c22c897e27128c7fa6fa1f8bc0beb2d1c826111307d66"
+    }
+  }
+}

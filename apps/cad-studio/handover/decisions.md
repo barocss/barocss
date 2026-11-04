@@ -6,6 +6,9 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D518: investigate published Physics versus uncommitted EXACT04, preserve rank gaps and source Work; no adoption or new runtime](notes/physics-exact04-takeover-audit-2026-11-04/README.md).
+- [D509: current runtime/30 fence types/26 docs routes pass; stable active-color images and prose follow-ups keep the checkpoint partial](notes/cad-react-profile-composition-2026-11-04/README.md).
+
 - [D516: integrate latest develop while preserving the D509 checkpoint; 31 fresh tests/types/build, independent source review and root Studio pass](notes/develop-integration-2026-11-04/README.md).
 - [D515: current bounded >120ms drag measurement, no new defect reproduced; one actual execution shared with D516](notes/slow-drag-cadence-current-2026-11-04/README.md).
 

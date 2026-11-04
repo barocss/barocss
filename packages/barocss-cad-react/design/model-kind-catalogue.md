@@ -8,7 +8,7 @@ Source-only catalogue. Native declaration fields are quoted, not a JSON passthro
 - State: PARTIAL. Output: profile.
 - Native fields: `| ({ kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] } & OnPlane)`
 - React inputs: Use the typed native fields in declaration, replacing numeric sketch index with ProfileRef and BodyRef with SolidRef. Named edge/face lists require owner/version-bound selection refs, not strings or mesh indices. See catalogue family override.
-- Boundary: Rectangle/Circle/Polygon expose three closed-profile producers in the current D504 adapter; loop/band, constraints, plane/face association and other SketchNode fields remain outside its React inputs. Polygon has selected width-60/80 pentagon native/Worker/Viewer/Studio evidence, not a general outline certificate.
+- Boundary: Rectangle/Circle/Polygon retain the D504 profile scope. D509 adds exact Loop/Profile with LineSegment/ArcSegment and explicit Outer/Voids composition, with selected all-six plate native/Viewer proof and Studio Open/F and current Worker binding pass. Band, additional regions, arbitrary plane/face association, constraints and remaining SketchNode fields stay unexported. This is not a general outline or topology certificate.
 - Implementation: packages/barocss-cad-react/src/compiler.ts + components.tsx + index.ts; split new domain modules only when used
 - Proof gap: Every unexposed entry requires types/compiler/real ReactDOM, existing native operation, current Worker/Viewer and returned Studio Open evidence before export is counted as delivered. Existing ADAPTER entries keep finite D495/D497/D499 scope.
 

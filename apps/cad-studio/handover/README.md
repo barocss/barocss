@@ -1,6 +1,6 @@
 # CAD Studio handover — current entry
 
-**Latest (2026-11-04):** Start with the [current continuation handoff](notes/claude-handoff-2026-11-02/README.md), then the [roadmap](roadmap.md) and [decisions](decisions.md). D516 integrates the new develop; D515 measures current slow-drag cadence. D513/D514 retain their bounded freshness and native-edge selection fixes. Earlier operating and coordination text below is historical; the current handoff and owner directions take precedence.
+**Latest (2026-11-04):** Start with the [current continuation handoff](notes/claude-handoff-2026-11-02/README.md), then the [roadmap](roadmap.md) and [decisions](decisions.md). D518 records the Physics investigation; D519 full package/roadmap audit is next. D509 current evidence remains partial. D516 integrates the new develop; D515 measures current slow-drag cadence. D513/D514 retain their bounded freshness and native-edge selection fixes. Earlier operating and coordination text below is historical; the current handoff and owner directions take precedence.
 
 The [owner roadmap](notes/owner-roadmap-2026-10-22.md) defines the full product
 goal. The [message example](notes/coordination-message-pattern-2026-10-22.md)

@@ -8,7 +8,7 @@ The current package is TypeScript source in this repository. It is not a publish
 
 | Operation | Components | Result |
 |---|---|---|
-| Closed planar profile | `Rectangle`, `Circle`, `Polygon`, candidate `Loop`, `Profile` | Profile input for Extrude or Revolve |
+| Closed planar profile | `Rectangle`, `Circle`, `Polygon`, `Loop`, `Profile` | Profile input for Extrude or Revolve |
 | Solid extrusion | `Extrude` | Existing native extrusion of one profile |
 | Solid revolution | `Revolve` | Existing sketch-axis revolution of one closed profile |
 | Solid union | `Union` | Join at least two realized solids |
@@ -64,6 +64,6 @@ The Translate/Rotate extension has 34 controlled tests and package/API types/lin
 
 The Revolve extension adds a sixth existing-operation adapter. Its 44 unique controlled tests, package/API types and lint pass. Selected actual rectangle/y-axis/omitted-origin states 90°/180°/360° and public Reset 90° pass with exact returned-document Studio Open. The [Revolve page](/packages/cad-react/components/revolve) and [support limits](/packages/cad-react/limits) state the finite geometry boundary. Final independent saved-data review passes 41014 saved checks plus five post-write 64-hex document checks, separate from 44 controlled tests.
 
-## D509 candidate boundary
+## D509 checkpoint
 
-The source candidate has 19 logical elements: the prior 13 plus Loop, LineSegment, ArcSegment, Profile, Outer and Voids. The six new component contracts are listed in [components](/packages/cad-react/components). Expected focused count is 76 (57 existing + 19 new); all new execution remains NOT_RUN. This is not CAD completion. ProfileApp uses SegmentedProfiledPlate with all six new elements; its selected future physical case is radius6→8→Reset6 in a 60×40×8 mm plate.
+The package has19 logical elements: the prior13 plus Loop, LineSegment, ArcSegment, Profile, Outer and Voids. The six new component contracts are listed in [components](/packages/cad-react/components). Current76 control evidence is PASS (65 unchanged reused+11 fresh), along with package/APItypes,lint and four semantic mutation controls. Selected native/currentViewer proof passes; Studio Open/F and current Worker binding pass, and fresh docs verification is NOT_RUN. This is not CAD completion. ProfileApp uses SegmentedProfiledPlate with all six new elements; its selected physical case is radius6→8→Reset6 in a 60×40×8 mm plate.

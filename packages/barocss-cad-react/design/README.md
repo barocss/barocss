@@ -1,6 +1,6 @@
 # CAD React domain design
 
-Status: domain design with B1 Polygon implemented and qualified only for the selected case. All remaining proposed components are unexported unless the current package API states otherwise. The design does not certify their implementation or runtime support. Polygon has current controlled/type/lint and selected width-60/80 pentagon native/Worker/Viewer/Studio evidence. Exact source inventories and raw hash evidence stay outside the repository.
+Status: domain design with B1 Polygon and the bounded D509 six-element Loop/Profile implementation. All remaining proposed components are unexported unless the current package API states otherwise. The design does not certify their implementation or runtime support. Polygon has current controlled/type/lint and selected width-60/80 pentagon native/Worker/Viewer/Studio evidence. Exact source inventories and raw hash evidence stay outside the repository.
 
 ## Architecture
 
@@ -14,7 +14,7 @@ The design has separate output kinds: profile, wire, sketch entity, region set, 
 
 Current Part remains a synchronous root with Definitions and exactly one declared logical Model output. A logical output can contain multiple native B-rep pieces; it does not promise one connected solid. D507 measured this existing contract for two disjoint boxes under one Union output b4, with the original EnginePort reply reporting pieces: 2. This bounded result does not qualify all compound geometry. Future Assembly and DrawingDocument are separate document roots; they do not nest as solid operands. PartDefinition contains one complete Part recipe and can be placed by Instance. A Part cannot consume its own occurrence or an ancestor definition.
 
-Closed producers can be used directly as an operation child. Profile can combine one Outer, zero or more Voids and zero or more Regions. Each slot receives compatible realized closed loops or tokens. Profile is an explicit composition, not an inferred union of arbitrary sketch entities. Keep boundaries and their declared identities. Native admission decides intersection/contact/containment. Do not implement new geometric repairs or tolerance rules in React.
+Closed producers can be used directly as an operation child. Current Profile has exactly one Outer and at most one Voids slot containing1..64 single-loop sources. Regions remains proposed and unexported; additional regions and arbitrary planes are not current props. Each slot receives compatible realized closed loops or tokens. Profile is an explicit composition, not an inferred union of arbitrary sketch entities. Keep boundaries and their declared identities. Native admission decides intersection/contact/containment. Do not implement new geometric repairs or tolerance rules in React.
 
 Sketch is a separate authoring scope. It owns entities, local entity/point/segment tokens, construction flags, constraints, and an explicit profile result. Wire contains an ordered open chain and cannot be passed to solid Extrude. An open Bezier is a wire/entity only. The existing Studio spline/ellipse workflow stores polygon/arc outlines plus metadata; an Ellipse component cannot claim an exact general NURBS profile from that fact.
 
@@ -59,7 +59,7 @@ On dirty/invalid/detached state retain the last accepted immutable document but 
 
 ## Representative compositions
 
-The first example below is a proposed API. Profile/Outer/Voids are NOT current exports. Polygon is now a current export with the selected D504 pentagon evidence. Profile, Outer and Voids in this proposed composition remain unexported. It shows a multi-loop plate without manual native IDs. Current Rectangle/Circle/Extrude remain valid.
+The first example uses the current Profile/Outer/Voids vocabulary without manual native IDs. Its two-void convenience composition is an illustration, not the selected D509 all-six one-void physical certificate. Current Rectangle/Circle/Extrude and the D504 Polygon scope remain valid.
 
 ```tsx
 function MountProfile({ width, ref }: { width: number; ref?: ProfileRef }) {
@@ -101,4 +101,6 @@ Read [component catalogue](./component-catalogue.md), [Model kind catalogue](./m
 
 Existing HOLDs remain: Studio UI redesign, nonzero-cone STEP offsets, #2258 public-thicken/fitter, #2266 widening, NURBS breadth, new Physics/Motion, manufacturing P2/PG11, PDF mismatch, browser CI, schema/download/release. No component count or percentage follows from 75 storage kinds.
 
-D509 source candidate only: Loop, LineSegment, ArcSegment, Profile, Outer and Voids have functional proposed implementations and source-declared tests. They remain unadopted until the separate D509 checks and native/current Viewer/returned Studio proof pass. Canonical SegmentedProfiledPlate realizes all six. Regions remains proposed/unexported. Preserve D507 one-logical-output/multiple-native-pieces semantics; no connected-solid guard or first-piece selection is added.
+D509 checkpoint: D509 implements Loop, LineSegment, ArcSegment, Profile, Outer and Voids. The existing thirteen logical elements remain; the package now has nineteen. The 76 source-checkpoint controls (65 reused with unchanged inputs and 11 newly run), package/API types, lint and four semantic mutation controls pass. The selected all-six SegmentedProfiledPlate passes four original Viewer states and native proof. Returned-document Studio Open/F and the separate compound-metadata consumer pass at their saved source checkpoints. Current-source Studio continuation and fresh documentation verification are recorded separately from geometry evidence.
+
+Loop and Profile produce closed-profile data. Outer/Voids and LineSegment/ArcSegment are structural descriptors, not extra native features. Extrude.profile, old Rectangle/Circle/Polygon lowerings and staged identities remain compatible. Exact circle conversion uses the existing helper with no sampling. Regions, arbitrary plane/face inputs, constraints and Sweep/Loft adapters remain unexported. Holed Revolve keeps its own native admission and remains physically unqualified by this Extrude case. No universal contact/containment repair or refusal is promised. Part remains one logical Model result that can contain multiple native pieces.
