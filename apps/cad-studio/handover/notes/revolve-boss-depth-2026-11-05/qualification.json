@@ -1,0 +1,135 @@
+{
+  "decision": "D540",
+  "tier": "SMALL_VERIFICATION_ONLY",
+  "parent": "64c5a9e4819a6eb67a5813aaa3a2b0253774cd0b",
+  "branch": "local/cad-dev",
+  "productSourceChanges": 0,
+  "scope": {
+    "priority": "P1",
+    "rows": [
+      "07",
+      "08",
+      "12",
+      "16"
+    ],
+    "case": "B03-FULL exact retained support boss Depth16/20",
+    "acceptedActionGroups": 8,
+    "declaredActionGroups": 8,
+    "B03": "NOT_ADJUDICATED",
+    "trueShaftFlangeClaimed": false,
+    "wholeCadCore": "NOT_MEASURED",
+    "aggregatePercent": "NOT_PUBLISHED"
+  },
+  "PASS": {
+    "newControlledPositiveNativeClasses": 1,
+    "archivedNativeClasses": 1,
+    "controlledDepth0TypedRefusal": {
+      "code": "PARAMETER",
+      "feature": "n2",
+      "message": "rectangle min must be below max on both axes",
+      "actualWorkerClassificationClaimed": false
+    },
+    "controlledPins": 474,
+    "archivedPinsUnchanged": 466,
+    "independentPythonPhysicalClasses": 2,
+    "actualRuns": 1,
+    "actualBindings": 8,
+    "actualSnapshots": 14,
+    "actualNewNativeCaptures": 0,
+    "actualExactNativeReuses": 8,
+    "actualSourcePins": 771,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "helperSyntaxChecks": 2,
+    "finalModelTypes": "final-model-types01.log",
+    "sourceAndMathIndependentReview": "PASS",
+    "rootOriginalPngReview": 5,
+    "firstDocumentUndoAfterRefusal": true
+  },
+  "FAIL": {
+    "newPreparationNativeOracleActualFailures": 0,
+    "D501HistoricalCustodyFailurePreserved": true
+  },
+  "REUSED": {
+    "D539StudioTypes": "studio-types02.log",
+    "D539SelectionControls": 10,
+    "D537FocusedModelStudioControls": 68,
+    "D537DocsSamples": 185,
+    "D537ReactTypes": "react-types03.log"
+  },
+  "NOT_RUN": [
+    "Full kernel: no B-rep-core change",
+    "Fresh feature creation",
+    "True circular shaft/flange and other B03 cases",
+    "Full-domain geometry",
+    "Original pcurves absent: UV lift NOT_EXERCISED",
+    "Cold browser process/profile",
+    "Final post-Open A resave",
+    "Catalog-material mass/inertia",
+    "Mobile/exchange/develop merge/release"
+  ],
+  "formula": {
+    "height": "H=9+Depth, Depth16 or20",
+    "plate": "P=23840+40*pi",
+    "volume": "P+pi*(91*H-1000)",
+    "centroid": "[10*P/V,0,(5*P+pi*(45.5*H^2-5000))/V]",
+    "bounds": "[-20,-20,0]..[40,20,H]",
+    "density1MassG": "V/1000",
+    "deltaVolumeMM3": "364*pi"
+  },
+  "numeric": {
+    "volumeRelativeMaximum": 4.0469395335310506e-15,
+    "massDensity1AbsoluteMaximumG": 1.1336826242906584e-13,
+    "centroidAbsoluteMaximumMM": 2.668490441139435e-14,
+    "planarTrimAreaAbsoluteMaximumMM2": 1.6758986630319722e-13,
+    "endpointGapMaximumMM": 1.5644299148406073e-14,
+    "independentPointAndEdgeMaximumMM": 1.4210854715202004e-14,
+    "independentD1Maximum": 8.201225296703465e-15,
+    "outwardNormalComponentMaximum": 6.106226635438361e-15,
+    "originalPcurveCount": 0,
+    "pcurveLift": "NOT_EXERCISED",
+    "pcurveLiftGapMM": null,
+    "nativeVolumeRelativeBudget": 1e-09,
+    "nativeCoordinateBudgetMM": 1e-09,
+    "sourceLinearBudgetMM": 1e-07,
+    "sourceAngularBudgetRad": 1e-09
+  },
+  "save": {
+    "namespace": "projects/D540-35389e71-505c-4cef-9221-0faf95709552",
+    "path": "D540-revolve-boss-depth.bcad",
+    "bytes": 3431,
+    "sha256": "c6a346bae5143a3f17942b0946f6052ed584a84023905da4b28095f08180fc34",
+    "exactAcceptedDoc": true,
+    "postOpenAResaved": false,
+    "sameContextReload": true,
+    "fullFitClaimed": false
+  },
+  "cleanup": [
+    {
+      "ownedProject": "D540-35389e71-505c-4cef-9221-0faf95709552",
+      "namespace": "REMOVED_AND_ABSENT"
+    },
+    "CONTEXT_CLOSED",
+    "BROWSER_CLOSED",
+    "SERVER_CLOSED"
+  ],
+  "receipts": {
+    "actualSHA256": "12f442d84b8c80009b974c0b3e8e76a77b82b43ac5c78c3a3fa90f4485f2bd36",
+    "independentSHA256": "19e267ec13933d752db7ebfe8909353c98c8f0d8e1a30c7b0fbb0b73c70c762c"
+  },
+  "sourceHashes": {
+    "apps/cad-studio/test/revolve-boss-depth-oracles.mjs": "85e6885358d2044f9c872d3aa2b6c325144ba6651bfa818a9e4dd709800ea0c3",
+    "apps/cad-studio/test/revolve-boss-depth-browser.mjs": "ca3dfe3551c4d21aeb1e66a2adb334e2136f90cb04910d59382be7c29e062b1c"
+  },
+  "issues": {
+    "checkedLive": [
+      534,
+      551
+    ],
+    "closed": [],
+    "completionComments": 0
+  },
+  "next": "D541 / P1 B03 true shaft/flange supported-profile selection"
+}

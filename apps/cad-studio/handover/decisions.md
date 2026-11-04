@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D540: qualify full-Revolve boss source Depth8/8 through retained downstream features and current Studio; B03 remains unadjudicated](notes/revolve-boss-depth-2026-11-05/README.md).
+
 - [D539: qualify B02 v1 enclosure11/11 and repair explicit Edges picking; preserve first Studio failure and joined continuation proof](notes/parametric-enclosure-2026-11-05/README.md).
 
 - [D538: adjudicate B01 v1 support12/12 with retained creation and nine current bracket/Measure/refusal-history/project bindings](notes/support-bracket-baseline-2026-11-05/README.md).
