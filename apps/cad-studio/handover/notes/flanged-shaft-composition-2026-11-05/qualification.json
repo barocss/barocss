@@ -1,0 +1,165 @@
+{
+  "decision": "D541",
+  "tier": "SMALL_VERIFICATION_ONLY",
+  "parent": "f4e9eca734c183878b36a8fe3e830aa0995e69a6",
+  "productSourceChanges": 0,
+  "scope": {
+    "priority": "P1",
+    "rows": [
+      "07",
+      "08",
+      "12",
+      "16"
+    ],
+    "case": "B03-SHAFT circular flange and shaft R20/R10, ThroughR3, outer topR1",
+    "acceptedActionGroups": 11,
+    "declaredActionGroups": 11,
+    "B03": "NOT_ADJUDICATED",
+    "wholeCadCore": "NOT_MEASURED",
+    "aggregatePercent": "NOT_PUBLISHED"
+  },
+  "PASS": {
+    "controlledAdmissionRows": 7,
+    "controlledPins": 474,
+    "independentPreservedNativePositiveStates": 6,
+    "actualRuns": 1,
+    "actualBindings": 12,
+    "actualSnapshots": 31,
+    "positiveActualNativeCaptures": 7,
+    "exactWholeDocNativeReuses": 5,
+    "finalPhysicalHeightClasses": 2,
+    "finalRawSourceClasses": 3,
+    "actualSourcePins": 760,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "rootOriginalPngViews": 6,
+    "helperSyntax": 3,
+    "finalModelTypes": "final-model-types02.log",
+    "independentSourceReview": "PASS",
+    "firstDocumentUndoAfterRefusal": true,
+    "independentSavedPhysicalConsumerAudit": "PASS"
+  },
+  "FAIL": {
+    "newNativeOracleActualRuntimeFailures": 0,
+    "staticFinding": "Four imported MJS recipe/utility dependencies absent from original760-file inventory; effective executed strings/hash joins verified, future manifest hardened",
+    "D501HistoricalCustodyFailurePreserved": true
+  },
+  "REUSED": {
+    "D539StudioTypes": "studio-types02.log",
+    "D539SelectionControls": 10,
+    "D537FocusedModelStudioControls": 68,
+    "D537DocsSamples": 185,
+    "D537ReactTypes": "react-types03.log"
+  },
+  "NOT_RUN": [
+    "Actual replay with bookkeeping-only inventory additions",
+    "Full kernel: no B-rep-core change",
+    "Other shaft/flange/finish families and whole B03",
+    "Final pcurves absent: UV lifting NOT_EXERCISED",
+    "Full-domain geometry",
+    "Cold process and final post-Open resave",
+    "Catalog material mass/inertia",
+    "Mobile/exchange/develop integration/release"
+  ],
+  "numeric": {
+    "volumeRelativeMaximum": 5.8057370796094934e-15,
+    "massDensity1AbsoluteMaximumG": 9.928715318468622e-14,
+    "centroidAbsoluteMaximumMM": 2.632603823837262e-14,
+    "endpointGapMaximumMM": 5.709847617720292e-15,
+    "carrierGapMaximumMM": 3.2307490016592055e-13,
+    "rationalObservationGapMaximumMM": 2.597568272670903e-14,
+    "normalComponentMaximum": 2.290390099801698e-13,
+    "prefixPcurveCounts": [
+      12,
+      24,
+      36
+    ],
+    "prefixPcurveLiftMaximumMM": 7.944109290391274e-15,
+    "finalNonNullPcurveCount": 0,
+    "finalPcurveStatus": "NOT_EXERCISED",
+    "finalPcurveLiftGapMM": null,
+    "nativeRelativeAndCoordinateBudget": 1e-09
+  },
+  "nativeReferences": {
+    "cap": "n3.top",
+    "observedRimNames": [
+      "n3.side0#1|n3.top",
+      "n3.side0#2|n3.top"
+    ],
+    "historicalSharedCurveAnchor": {
+      "k": "curve",
+      "p": [
+        10,
+        0,
+        30
+      ],
+      "s": 0,
+      "n": 2
+    },
+    "torusProductClassification": "OTHER_RETAINED",
+    "torusIndependentCarrier": "OUTER_QUARTER_MAJOR9_MINOR1_AXIS_Z",
+    "finalTopology": {
+      "faces": 11,
+      "loops": 14,
+      "edges": 22,
+      "vertices": 14,
+      "genus": 1
+    }
+  },
+  "sourceProvenance": {
+    "A": "Both Cylinder receipts present",
+    "B": "Shaft receipt removed; flange retained",
+    "FIRSTUndo": "Both original receipts restored",
+    "postOpenHeight25": "Shaft receipt absent; A geometry but raw source differs"
+  },
+  "save": {
+    "namespace": "projects/D541-9d15c3c4-4784-4ea8-883d-4b866e4411b2",
+    "path": "D541-flanged-shaft.bcad",
+    "bytes": 1881,
+    "sha256": "040377833c4cc200d4d52eddb927ab37297ac95e0eaa020c1a484cfd0b5cfd87",
+    "exactAcceptedDoc": true,
+    "postOpenResaved": false,
+    "sameContextReload": true
+  },
+  "cleanup": [
+    {
+      "ownedProject": "D541-9d15c3c4-4784-4ea8-883d-4b866e4411b2",
+      "namespace": "REMOVED_AND_ABSENT"
+    },
+    "CONTEXT_CLOSED",
+    "BROWSER_CLOSED",
+    "SERVER_CLOSED"
+  ],
+  "sourceInventory": {
+    "executedDriverSHA256": "47f0026f09f821ded4d49dcb908e8db9b77f4fd281e282e9f7191eb66bf07c81",
+    "currentDriverSHA256": "9e586225a32d392cd4b45318dd2bcf766633b5bc757503100f6c8842e227a32d",
+    "postRunDelta": "Only four added initialFiles paths; executed Python/TS unchanged and byte-joined",
+    "effectiveSourceJoin": {
+      "status": "PASS_GENERATED_EXECUTABLE_BYTES_AND_IMPORTED_HELPERS_JOIN",
+      "oracleSHA256": "90dd418ab1ea683e688d7129044cfadf669161ab3c501a484a4a8d869c8a97fc",
+      "inspectorSHA256": "22f7e6214891758870972ff51e4dac1fcde5bf35c4fc165709085141d98750a4",
+      "hashes": {
+        "apps/cad-studio/test/bracket-baseline-oracles.mjs": "8c56da2bdbcb7f86fc448368426fba4403360a3f0ae1cc57007d4ab56c8863a2",
+        "apps/cad-studio/test/enclosure-baseline-oracles.mjs": "e8dcdc433389b6980b6627e1c668cf1020313ed140698889721151f86f56fdfe",
+        "apps/cad-studio/test/enclosure-admission-preflight.mjs": "1c8c9afc8053fbc3509631b008eeddb26773f28050106ba3daab0e5930c59215",
+        "apps/cad-studio/test/flanged-shaft-admission-preflight.mjs": "782fe2169e9d1c06d86df7cfaef70ce7dcecb9fd149e2a58797df8c78505e3b7"
+      },
+      "limits": "Post-run read-only join; helper files were not separate760capsule entries. Future driver inventory adds them without changing executable behavior."
+    }
+  },
+  "receipts": {
+    "actualSHA256": "c039b8919fa848c2fe86065b3c910bdebd31603436e298b50dabc189983e22cb",
+    "independentSHA256": "1395f86180d02bd942daafb37c178444bcd028637e58642a8fa1d97ce59ad109"
+  },
+  "issues": {
+    "closed": [],
+    "completionComments": 0,
+    "checkedLive": [
+      534,
+      551
+    ]
+  },
+  "next": "D542 / P1 B03 retained partial Revolve and Hole-branch evidence adjudication"
+}
