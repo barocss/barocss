@@ -1,6 +1,8 @@
 /** Realized geometry IR. React owns function components; this compiler only lowers committed descriptors. */
 export type RefToken = object;
 export type Point2 = readonly [number, number];
+export type Point3 = readonly [number, number, number];
+export type Axis = 'x' | 'y' | 'z';
 export interface Identity {
   key?: string;
   alias?: string;
@@ -23,7 +25,10 @@ export type Target = { kind: 'target'; key?: string } & (
 );
 export interface Tools { kind: 'tools'; children: readonly Solid[]; key?: string }
 export type Difference = Identity & { kind: 'difference'; children: readonly (Target | Tools)[] };
-export type Solid = Extrude | Union | Difference | SolidRef;
+export type TransformInput = {children:readonly Solid[];solid?:never}|{solid:RefToken;children?:never};
+export type Translate = Identity & {kind:'translate';offset:Point3} & TransformInput;
+export type Rotate = Identity & {kind:'rotate';axis:Axis;angle:number;pivot?:Point3} & TransformInput;
+export type Solid = Extrude | Union | Difference | Translate | Rotate | SolidRef;
 export interface Definitions { kind: 'definitions'; children: readonly (Profile | Solid)[]; key?: string }
 export interface Part { kind: 'part'; units: 'mm'; children: readonly (Solid | Definitions)[] }
 export type Node = Profile | Solid | Target | Tools | Definitions;
@@ -34,7 +39,9 @@ export type NativeNode =
   | { id: string; kind: 'sketch'; profile: 'circle'; center: [number, number]; radius: number }
   | { id: string; kind: 'extrude'; sketch: number; height: number; from?: number }
   | { id: string; kind: 'union'; left: BodyRef; right: BodyRef }
-  | { id: string; kind: 'difference'; parent: BodyRef; tool: BodyRef };
+  | { id: string; kind: 'difference'; parent: BodyRef; tool: BodyRef }
+  | {id:string;kind:'translate';parent:BodyRef;offset:[number,number,number]}
+  | {id:string;kind:'rotate';parent:BodyRef;axis:Axis;angle:number;pivot?:[number,number,number]};
 export interface NativeDoc {
   format: 'barocss-cad-model'; schema: 3; units: 'mm'; nextId: number;
   parameters: Record<string, number>; nodes: NativeNode[]; outputs: Record<string, BodyRef>;
@@ -58,8 +65,8 @@ export type CompileResult = { ok: true; changed: boolean; value: Compiled }
 interface RecordNode { node: Node; path: string }
 interface IdRecord { id: string; kind: NativeNode['kind'] }
 const fail = (code: ErrorCode, message: string): never => { throw new IrError(code, message); };
-const geometric = (kind: string) => ['rectangle', 'circle', 'extrude', 'union', 'difference'].includes(kind);
-const solid = (kind: string) => ['extrude', 'union', 'difference', 'solid-ref'].includes(kind);
+const geometric = (kind: string) => ['rectangle', 'circle', 'extrude', 'union', 'difference', 'translate', 'rotate'].includes(kind);
+const solid = (kind: string) => ['extrude', 'union', 'difference', 'translate', 'rotate', 'solid-ref'].includes(kind);
 const list = (n: Node): readonly Node[] => 'children' in n && n.children !== undefined ? n.children : [];
 const pair = (value: Point2): [number, number] => {
   if (!Array.isArray(value) || value.length !== 2 || !value.every(Number.isFinite)) fail('INVALID_PARAMETER', 'Two finite coordinates required');
@@ -90,7 +97,7 @@ export class CompositionCompiler {
         const keys = new Set<string>();
         return children.map((node, index) => {
           if (!node || typeof node !== 'object' || typeof node.kind !== 'string') fail('TYPE', 'Expected realized typed host node');
-          if (!['rectangle', 'circle', 'extrude', 'union', 'difference', 'solid-ref', 'target', 'tools', 'definitions'].includes(node.kind)) {
+          if (!['rectangle', 'circle', 'extrude', 'union', 'difference', 'translate', 'rotate', 'solid-ref', 'target', 'tools', 'definitions'].includes(node.kind)) {
             fail('UNSUPPORTED_CAPABILITY', `Unsupported geometry capability: ${node.kind}`);
           }
           if (node.key !== undefined) {
@@ -152,7 +159,7 @@ export class CompositionCompiler {
         if (items.length !== 1) fail('CARDINALITY', `${label} requires one output`); return items[0];
       };
       const input = (r: RecordNode, field: 'profile' | 'solid'): RecordNode => {
-        const n = r.node as Extrude | Target;
+        const n = r.node as Extrude | Target | Translate | Rotate;
         const token = field in n ? (n as unknown as Record<string, RefToken>)[field] : undefined;
         const hasChildren = 'children' in n && n.children !== undefined;
         if ((token !== undefined) === hasChildren) fail('EXCLUSIVE_INPUT', `Supply ${field} reference OR children`);
@@ -184,6 +191,17 @@ export class CompositionCompiler {
             if (!Number.isFinite(n.distance) || n.distance === 0 || !Number.isFinite(n.from ?? 0)) fail('INVALID_PARAMETER', 'Finite nonzero extrusion distance required');
             index = emit({ id: id(r, 'solid', 'extrude'), kind: 'extrude', sketch, height: n.distance,
               ...(n.from === undefined ? {} : { from: n.from }) }); break;
+          }
+          case 'translate': {
+            const parent=lower(input(r,'solid'),'solid');
+            if(!Array.isArray(n.offset)||n.offset.length!==3||!Number.isFinite(n.offset[0])||!Number.isFinite(n.offset[1])||!Number.isFinite(n.offset[2])) fail('INVALID_PARAMETER','Translate offset requires three finite mm coordinates');
+            index=emit({id:id(r,'solid','translate'),kind:'translate',parent:body(parent),offset:[...n.offset]});break;
+          }
+          case 'rotate': {
+            const parent=lower(input(r,'solid'),'solid');
+            if(!['x','y','z'].includes(n.axis)||!Number.isFinite(n.angle)||Math.abs(n.angle)>3600) fail('INVALID_PARAMETER','Rotate requires an axis and finite angle within the existing native limit');
+            if(n.pivot!==undefined&&(!Array.isArray(n.pivot)||n.pivot.length!==3||!Number.isFinite(n.pivot[0])||!Number.isFinite(n.pivot[1])||!Number.isFinite(n.pivot[2]))) fail('INVALID_PARAMETER','Rotate pivot requires three finite mm coordinates');
+            index=emit({id:id(r,'solid','rotate'),kind:'rotate',parent:body(parent),axis:n.axis,angle:n.angle,...(n.pivot===undefined?{}:{pivot:[...n.pivot] as [number,number,number]})});break;
           }
           case 'union': {
             const operands = children(r);

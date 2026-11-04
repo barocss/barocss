@@ -1,0 +1,506 @@
+{
+  "work_id": "D497",
+  "status": "BOUNDED_PRIVATE_TRANSFORMS_CURRENT_INSPECTOR_AND_18_PAGE_DOCS_QUALIFIED",
+  "tier": "FEATURE_EXISTING_CAD_REACT_TRANSLATE_ROTATE_AND_OWNER_REQUESTED_DOCS_CATEGORY",
+  "parentHead": "447bf8a2ac3752d671fe9b83fbfc2c191b84eb68",
+  "runtime": "Ordinary React DOM registration; existing Model Rotate/Translate nodes, EnginePort/Worker and existing Viewer; no new renderer/kernel/protocol/dependency",
+  "scope": "W80 bracket:RotateZ90 thenTranslate[30,40,5],publicdx50,publicangle180,returndx30/angle90; actualreturned22nodeDocb21 publicStudioOpen",
+  "packageStatus": "PRIVATE_0.0.0_EXPERIMENTAL_SOURCE_ONLY_NO_INSTALL_OR_PUBLISH",
+  "receipts": {
+    "checks": {
+      "path": "/tmp/barocss-d497-checks01/receipt.json",
+      "sha256": "ebfa9b30256d4ba74319de19029c3e5c434285bd65cacdeb5e09af8d923db825"
+    },
+    "browser": {
+      "path": "/tmp/barocss-d497-package-run01/browser.receipt.json",
+      "sha256": "829bc662b1890d3f0e37d7222e3539160b000d1e1325b0df7c003bdc76106992"
+    },
+    "studio": {
+      "path": "/tmp/barocss-d497-studio-run01/receipt.json",
+      "sha256": "ba6000b365b5d4031f482c0dbc39f294c8f8d2c5acfc63bcd0ae2c3ddb552975"
+    },
+    "native": {
+      "path": "/tmp/barocss-d497-native-run01/receipt.json",
+      "sha256": "cccf869110873480c3550d9709174948ba502eab9cf59605a4e7d608814c3755"
+    },
+    "rootReview": {
+      "path": "/tmp/barocss-d497-root/actual01-review.json",
+      "sha256": "747d5527d8d666cda224e30d0f4b0a393899ea622eb295fb2a2b77894ac83c0b"
+    },
+    "sourceApproval": {
+      "path": "/tmp/barocss-d497-source-review02/review.json",
+      "sha256": "51062db0dbda2508734c3fe5b39491233fb4c7c82734f5f0f9b6c17f467180cc"
+    },
+    "geometryManifest": {
+      "path": "/tmp/barocss-d497-geometry01/manifest.json",
+      "sha256": "c117f45822d4409e58b44498172dc8d92b2e7d8169658a4c5fdc95c4d8519542"
+    },
+    "sourceImplementation": {
+      "path": "/tmp/barocss-d497-implementation01/package-changed-pins.json",
+      "sha256": "d08f9f3a0fe0dee7f3f8ad96a712b1aebaf77a13410c91b62002a92b458b07b6"
+    },
+    "fixture": {
+      "path": "/tmp/barocss-d497-integration01/SOURCE-READY.json",
+      "sha256": "83864e86a425f04dcb645047da9f2d34a382b1c6958e9ea64d5ab4514a2ccdc9"
+    },
+    "actualConfig": {
+      "path": "/tmp/barocss-d497-root/actual-config01.json",
+      "sha256": "dcacaa0ef879bda9e783a5911207ff23bb6beca27134123b6193a1b4a9885d36"
+    },
+    "currentUIFocusedTypesLintAndHistoricalSixPageBuild": {
+      "path": "/tmp/barocss-d497-docs-ui-checks03/receipt.json",
+      "sha256": "913c25995e5ab2032d6d8fc39ca158383d1c551cec0358e6ec0a4014d694f116"
+    }
+  },
+  "checks": {
+    "status": "PASS",
+    "uniqueTests": 34,
+    "existing": 24,
+    "newCompiler": 6,
+    "newReactDOM": 4,
+    "commands": [
+      {
+        "name": "package-controlled-unit-tests",
+        "argv": [
+          "node",
+          "--test",
+          "--test-concurrency=1",
+          "tests/adapter.test.mjs",
+          "tests/compiler.test.mjs",
+          "tests/model-host.test.mjs",
+          "tests/react-host.test.mjs",
+          "tests/viewer-sink.test.mjs",
+          "tests/transforms.test.mjs",
+          "tests/react-transforms.test.mjs"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 2.189,
+        "observedTAPCounts": {
+          "tests": 34,
+          "pass": 34,
+          "fail": 0,
+          "skipped": 0
+        }
+      },
+      {
+        "name": "package-types",
+        "argv": [
+          "node",
+          "../../node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "-p",
+          "tsconfig.json"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 15.531,
+        "observedTAPCounts": {}
+      },
+      {
+        "name": "public-api-example-types",
+        "argv": [
+          "node",
+          "../../node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "-p",
+          "tests/types/tsconfig.json"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-react",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 17.218,
+        "observedTAPCounts": {}
+      },
+      {
+        "name": "package-lint",
+        "argv": [
+          "node",
+          "node_modules/eslint/bin/eslint.js",
+          "packages/barocss-cad-react/src",
+          "packages/barocss-cad-react/tests",
+          "packages/barocss-cad-react/examples"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 1.496,
+        "observedTAPCounts": {}
+      },
+      {
+        "name": "diff",
+        "argv": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+        "status": "PASS",
+        "exitCode": 0,
+        "durationSeconds": 0.077,
+        "observedTAPCounts": {}
+      }
+    ],
+    "modelFinalTypes": "REUSED_IDENTICAL_D495_D494_MODEL_AND_DEPENDENCY_SOURCE_NO_MODEL_TEST_EDITS",
+    "fullKernelOrSuite": "NOT_RUN_NO_BREP_ALGORITHM_CHANGE"
+  },
+  "actual": {
+    "status": "PASS_ROOT_REVIEWED",
+    "selectedReadyBrowserStates": 4,
+    "readyEvaluationRevisions": [
+      1,
+      2,
+      3,
+      5
+    ],
+    "totalHostRequests": 5,
+    "mergedResults": 4,
+    "publicStudioOpenStates": 1,
+    "nativeCaptures": 3,
+    "newPhysicalOracles": 3,
+    "exactAPhysicalSubproofReuses": 2,
+    "freshConsumerBindings": 5,
+    "wrapperPins": 4398,
+    "localStudioHelperPins": 3001,
+    "rootReviewedImages": 6,
+    "cleanup": "SOURCE_EQUAL_THROUGH_CLEANUP_OWNED_PIDS_GONE_CONTEXT_BROWSER_SERVER_WORKERS_CLOSED",
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "return": "EXACT_DOC_IDS_AND_FRAMEBUFFER",
+    "globalTranslation": "AUTO_FIT_A_B_PIXELS_IDENTICAL_WORLD_DOC_CENTROID_BOUNDS_AND_FRESH_FRAME_OWNER_VALIDATED",
+    "phase": "ORIGINAL_PRE_INSPECTOR_TRANSFORM_AND_STUDIO_NATIVE_PROOF_RETAINED"
+  },
+  "physicalContract": {
+    "volumeMM3": "660*80-1680-216*pi",
+    "sourceCentroid": "[40,(27900*80-95760-5832*pi)/V,(10380*80-68880-648*pi)/V]",
+    "world90": "C=[dx-Cy,40+Cx,5+Cz];bounds[dx-60,40,5]..[dx,120,61]",
+    "world180": "C=[dx-Cx,40-Cy,5+Cz];bounds[dx-80,-20,5]..[dx,40,61]",
+    "budgets": {
+      "volumeAbsoluteMM3": 1e-06,
+      "centroidBoundsMM": 1e-08,
+      "carrierMM": 1e-07
+    },
+    "nativeTruth": "RAW_WORLD_BREP_PRESERVED_WITH_CAPTURED_JS_JSON_AND_SHA",
+    "analysis": "SEPARATE_LITERAL_INVERSE_CARDINAL_PERMUTATION_FOR_UNCHANGED_D495_D483_CARRIER_SUBPROOF_NOT_NATIVE_CAPTURE",
+    "sampling": "FINITE_3_LINE_9_CURVED_5_PCURVE_5X5_SURFACE_NOT_FULL_DOMAIN",
+    "topology": {
+      "bodies": 1,
+      "shells": 1,
+      "faces": 28,
+      "loops": 36,
+      "coedges": 148,
+      "edges": 74,
+      "vertices": 46
+    }
+  },
+  "highFinal": {
+    "status": "PASS_BOUNDED_SAVED_CARDINAL_WORLD_NATIVE_CONSUMER_AUDIT",
+    "path": "/tmp/barocss-d497-high-final01/review.json",
+    "sha256": "193c2d43d62878a588e0643efcbca49d0cf65ced4acd65d326da6862b41330f2",
+    "savedChecks": 7959,
+    "productTestsSeparate": 34,
+    "physicalErrorMaxima": {
+      "nativeWorldVolumeAbsolute": 4.3655745685100555e-11,
+      "nativeWorldCentroidAbsolute": 7.105427357601002e-14,
+      "nativeWorldBoundsAbsolute": 0.0,
+      "directWorldAnalyticCarrierResidual": 1.7763568394002505e-15,
+      "sourceFrameRadialCarrierResidual": 1.1102230246251565e-14,
+      "sourceFrameIndependentPcurveGap": 2.929642751054232e-14,
+      "browserWorkerNativeVolumeAbsolute": 0.0,
+      "browserWorkerNativeCentroidAbsolute": 0.0,
+      "browserWorkerNativeBoundsAbsolute": 0.0,
+      "studioWorkerNativeVolumeAbsolute": 0.0,
+      "studioWorkerNativeCentroidAbsolute": 0.0
+    },
+    "command": "python3 -I /tmp/barocss-d497-high-final01/audit-saved.py",
+    "execution": "SAVED_HASH_AND_CARDINAL_ARITHMETIC_ONLY_NO_PRODUCT_NATIVE_ORACLE_BUILD_TEST_SUT"
+  },
+  "docsSite": {
+    "status": "PASS_CURRENT_EIGHTEEN_PAGES_TYPES_CHECK_BUILD_AND_LOCAL_DESKTOP_ROUTE_WALK",
+    "implementation": "EXISTING_VITEPRESS_PLAIN_MARKDOWN",
+    "pages": 18,
+    "basePages": 6,
+    "individualComponentPages": [
+      "Part",
+      "Rectangle",
+      "Circle",
+      "Extrude",
+      "Union",
+      "Difference",
+      "Target",
+      "Tools",
+      "Definitions",
+      "Translate",
+      "Rotate"
+    ],
+    "supportMap": {
+      "scope": "SOURCE_AST_ONLY_COMPLETE_75_TOP_LEVEL_MODELNODE_KINDS_NOT_RUNTIME_QUALIFICATION",
+      "source": "packages/barocss-cad-model/src/engine/doc.ts",
+      "sourceSHA256": "b35d4dedc69cb4921489084cd1c52e6fe0770b03916fd5000553b6728fdbe799",
+      "inventory": {
+        "path": "/tmp/barocss-cad-react-docs03/model-node-kinds.json",
+        "sha256": "933c3ee6ff76521da5cdebc34db8077ea2927f4712ff80ddd25b9426ca3fde8c"
+      },
+      "coverage": {
+        "path": "/tmp/barocss-cad-react-docs03/model-node-coverage.json",
+        "sha256": "491b964ab8f87a09b4a14a3ec727ab7940dc376aaebc84d8b0f064c6e97759dd"
+      },
+      "newExportsOrHoldRelease": false
+    },
+    "actualMarkdownBlocks": 21,
+    "priorTenTypechecksReused": "BYTE_IDENTICAL_ACCEPTED_DOCS02_TYPES_COMMAND_PASS",
+    "newElevenTypechecks": "PASS_CURRENT_PUBLIC_EXPORTS",
+    "all21CodeByteEquality": {
+      "path": "/tmp/barocss-d497-docs-delivery04/code-block-equality.json",
+      "sha256": "af4dc603297eb8d0e6b91ff6397ceae2666c7b8c1c5d9b65a7c0be49afb5dff9"
+    },
+    "currentChecks": {
+      "path": "/tmp/barocss-d497-docs-checks-final01/receipt.json",
+      "sha256": "5800813645283f0a4f2caab1b4c2bb1f9cca83b53ec2f8f2278a9409ad762c8d"
+    },
+    "commands": [
+      {
+        "name": "eleven-new-actual-markdown-example-types",
+        "argv": [
+          "node",
+          "node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "-p",
+          "/tmp/barocss-cad-react-docs04/extracted/tsconfig.json"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+        "status": "PASS",
+        "exitCode": 0,
+        "seconds": 0.648,
+        "log": "/tmp/barocss-d497-docs-checks-final01/eleven-new-actual-markdown-example-types.log",
+        "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "current-eighteen-page-site-check",
+        "argv": [
+          "node",
+          "apps/library-docs/scripts/check-docs.mjs"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+        "status": "PASS",
+        "exitCode": 0,
+        "seconds": 22.118,
+        "log": "/tmp/barocss-d497-docs-checks-final01/current-eighteen-page-site-check.log",
+        "logSHA256": "2ae58feb26621b2c19aed395accd79856e2fbd8dc5d148d6d3337349c8303d64"
+      },
+      {
+        "name": "current-vitepress-site-build",
+        "argv": [
+          "pnpm",
+          "--filter",
+          "@barocss/library-docs",
+          "build"
+        ],
+        "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+        "status": "PASS",
+        "exitCode": 0,
+        "seconds": 11.152,
+        "log": "/tmp/barocss-d497-docs-checks-final01/current-vitepress-site-build.log",
+        "logSHA256": "d2096ffb82768e0e83d12c6cf6fd691b8a0a84ec1152071c2ede167f5ef0fedf"
+      }
+    ],
+    "sourcePins": 4693,
+    "sourceEqual": true,
+    "siteCheckObserved": {
+      "pages": 91,
+      "beingWritten": 0,
+      "shots": 55,
+      "labels": 940
+    },
+    "siteBuild": "PASS_EXISTING_LARGE_CHUNK_WARNING_RETAINED",
+    "localPreview": {
+      "status": "PASS_LOCAL_DESKTOP_DOCS_CATEGORY_PREVIEW",
+      "receipt": {
+        "path": "/tmp/barocss-d497-docs-preview-run-final02/receipt.json",
+        "sha256": "373ccd147bdbf72e6bfbbbb468d9f24c29db80ad7a53be38daa5d82888fdd29a"
+      },
+      "review": {
+        "path": "/tmp/barocss-d497-docs-delivery04/preview-review-final02.json",
+        "sha256": "ebaae5a3b57fa8584e6f7389c62ec28c3ad444f3eb9c80b87fadb843e60a8fa9"
+      },
+      "viewportCSSpx": [
+        1440,
+        1000
+      ],
+      "publicCategoryRoutes": 18,
+      "rawStatesAndImages": 20,
+      "imagesViewed": 20,
+      "fences": 21,
+      "sourcePins": 5317,
+      "sourceEqualThroughCleanupAndReview": true,
+      "errors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "externalRequests": 0,
+      "cleanup": {
+        "contextClosed": true,
+        "browserClosed": true,
+        "ownPreviewPID": 87047,
+        "signalSent": "SIGTERM",
+        "killReturned": true,
+        "exitCode": null,
+        "signalCode": "SIGTERM",
+        "portClosed": true,
+        "protocol": "OWN_CHILD_SIGTERM_AND_AWAIT_NOT_IPC_GRACEFUL"
+      },
+      "signalTruth": "OWN_PREVIEW_CHILD_SIGTERM_AWAIT_NOT_IPC_GRACEFUL",
+      "visualLimit": "Immediate snapshots can retain preceding sidebar highlight; currentURL/H1/content checked; indicator timing/raster precision notasserted"
+    },
+    "retainedFailures": {
+      "initialTypeEnvironment": {
+        "status": "FAIL_TEMP_AMBIENT_NODE_TYPE_RESOLUTION",
+        "receipt": {
+          "path": "/tmp/barocss-d497-docs-checks01/receipt.json",
+          "sha256": "6958fe292f532743a3420f305c4864d0da3f41f3b243cb0b9ed035ea63be23fa"
+        },
+        "remainingSiteCheckAndBuild": "NOT_RUN_IN_FIRST_ATTEMPT",
+        "correction": "NEW_DOCS02_TEMP_TYPE_ROOTS_USE_EXISTING_ROOT_NODE_AND_REACT_TYPES_NO_STUBS_INSTALL_OR_PRODUCT_CHANGE",
+        "codeBlocks": "10_ACTUAL_MARKDOWN_BLOCKS_BYTE_IDENTICAL",
+        "packageTestsAndActualReplay": false
+      },
+      "canonicalInventory": {
+        "failedSiteCheck": {
+          "path": "/tmp/barocss-d497-docs-checks02/receipt.json",
+          "sha256": "36a1b287c74a7644ad4e1a66e548c3d35eceafe9f53965d5f37bcc6fcb53dd74"
+        },
+        "reviewedRefresh": {
+          "path": "/tmp/barocss-d497-inventory-review01/review.json",
+          "sha256": "4e65784393449a520a4e0f14cebe0e5f3bb6c752ef9cb7d97c71e62bd21da736"
+        },
+        "generationReceipt": {
+          "path": "/tmp/barocss-d497-inventory-checks01/receipt.json",
+          "sha256": "1c5f212759086ecd5f2076a3b80863a0f3937d4b330712faf52a5d71beee6c60"
+        },
+        "before": 6469,
+        "after": 6472,
+        "cause": "Historical committed source exposure/origin changes; approved observational refresh; no new generator/policy exemption"
+      },
+      "preview01": {
+        "receipt": {
+          "path": "/tmp/barocss-d497-docs-preview-run-final01/receipt.json",
+          "sha256": "8458bb6f471a816b8821451acfde79562653c013d73dc660618ca1cec565fbb4"
+        },
+        "status": "FAIL_OBSERVER_SPA_URL_BEFORE_CONTENT_SETTLED",
+        "correction": "New immutable observer waits current sourceH1 before raw, strictpostraw criteria unchanged",
+        "repeated": "DOCS_NAVIGATION_ONLY_NO_TYPES_BUILD_UI_NATIVE_REPEAT"
+      }
+    },
+    "publication": "NOT_RUN_NOT_REQUESTED"
+  },
+  "commands": {
+    "controlled": "bash /tmp/barocss-d497-root/run-checks01.sh",
+    "actual": "bash /tmp/barocss-d497-root/run-actual01.sh",
+    "finalDocsChecks": "bash /tmp/barocss-d497-docs-delivery04/run-checks.sh",
+    "docsPreview01": "bash /tmp/barocss-d497-docs-preview-final01/run-preview.sh",
+    "docsPreviewRecovery02": "bash /tmp/barocss-d497-docs-preview-final01/run-recovery02.sh"
+  },
+  "limits": [
+    "No new public EngineClient or Worker extraction",
+    "No arbitrary-axis native qualification,nonzero pivot/inertia/nativeFaceUV/general face producer",
+    "No general hidden Suspense/async admission; existing synchronous caller boundary",
+    "Only selected ready states qualified; intermediate retired declaration not a separate physical proof",
+    "Studio palette occlusion persists;fullfit/rasterprecision NOT_MEASURED",
+    "No mobile/PDF/export/distribution/install/release/deploy"
+  ],
+  "global": {
+    "coreReadiness": "NOT_MEASURED",
+    "legacy43": "FROZEN",
+    "holds": "UNCHANGED",
+    "PDF": "OWNER_DEFERRED"
+  },
+  "rawArtifacts": "TMP_ONLY_NOT_COMMITTED",
+  "postAuditDocumentationChange": {
+    "path": "/tmp/barocss-d497-root/post-audit-doc-change01.json",
+    "sha256": "b5d3442607f2fb7ab66c957d13650dbf62ef5a2537395014ed165b9e7abf4915",
+    "currentPackageREADMEProseOnly": {
+      "path": "packages/barocss-cad-react/README.md",
+      "sha256": "56733a7121c596dc11fa8ca05ff6bb522209b7b7d117581fd119b9acac042bc1",
+      "scope": "Current UI/docs capability explanation; runtime/geometry sources unchanged; currentdocs5317pins include these bytes"
+    }
+  },
+  "currentExampleUI": {
+    "status": "PASS_ROOT_REVIEWED_AND_HIGH_SAVED_AUDITED",
+    "rootReview": {
+      "path": "/tmp/barocss-d497-root/ui-actual01-review.json",
+      "sha256": "587f5999fdcf8686d953af227d47429d57293163b5c9dc760aac14902f771b8c"
+    },
+    "transform": {
+      "path": "/tmp/barocss-d497-ui-transform-run01/browser.receipt.json",
+      "sha256": "5af597e11aeb1bd64531bf7108ce26d700c6a307d89df2003b4a02846162f588"
+    },
+    "width": {
+      "path": "/tmp/barocss-d497-ui-width-run01/browser.receipt.json",
+      "sha256": "19617f7b06c1ee8fc49d99024d241c2d15f2ed3aa153d67ccb8e9a98f4d9548d"
+    },
+    "transformReadyRevisionsAndRequests": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "widthReadyRevisionsAndRequests": [
+      1,
+      2,
+      3
+    ],
+    "freshUIConsumers": 7,
+    "savedPhysicalSubproofReuses": 7,
+    "newNativeCaptures": 0,
+    "newPhysicalOracleRuns": 0,
+    "retainedPhysicalSources": [
+      "D495 widths80/100",
+      "D497 selected transformA/B/C"
+    ],
+    "currentStudioReplay": false,
+    "collapseReopenIdle1200msPublicReset": "PASS_BOTH_APPS",
+    "statusPolling": "Inspector child only; cleaned owned timer; no Part/checkpoint/request churn",
+    "canvasBuffer": [
+      1000,
+      700
+    ],
+    "displayAspect": "10:7",
+    "inspectorWidthCSSpx": 280,
+    "documentOverflow": false,
+    "binder01Failure": {
+      "path": "/tmp/barocss-d497-ui-bindings01/receipt.json",
+      "sha256": "e841b310a8e7f3fec784467fc6b32b076a28abde6715b68f8c10cb24a040e41e"
+    },
+    "binderFailureCause": "Descriptive statusTimer string prefix only;4Transform raw bindings retained",
+    "binder02SavedOnlyPass": {
+      "path": "/tmp/barocss-d497-ui-bindings02/receipt.json",
+      "sha256": "d1eef8cb801711340ac92c16bec879959652fe59f71532f0ca6736acaa59a6e5"
+    },
+    "HighFinal": {
+      "path": "/tmp/barocss-d497-ui-high-final01/review.json",
+      "sha256": "954703c1963dfce2c3e88436dc2737a3941b7677192181f85193341cfbeffb65",
+      "status": "PASS",
+      "savedChecks": 20132,
+      "notProductTests": true
+    },
+    "sourceCustody": {
+      "wrapper01": 4446,
+      "savedWrapper02": 4448,
+      "eligiblePhysicalPins": 1491,
+      "consumerPins": 436,
+      "throughCleanup": "EQUAL"
+    },
+    "rootReviewedImages": 9,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "cleanup": "OWNED_CONTEXT_BROWSER_SERVER_WORKERS_CLOSED_AND_PIDS_GONE"
+  },
+  "next": {
+    "mainD498": "C1_C2_SOURCE_AUDIT_IN_PROGRESS_INDEPENDENT_OF_CAD_REACT",
+    "futureReactBridges": "ROADMAP_SOURCE_AUDIT_BACKLOG_NOT_EXPORTS_NO_NEW_APPROVAL_FLOW",
+    "currentDeliveryGit": "ROOT_FINAL_REVIEW_NAMED_ADD_COMMIT_PUSH_NOT_DONE_BY_AUTHOR"
+  }
+}

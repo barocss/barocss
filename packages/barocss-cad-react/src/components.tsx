@@ -1,7 +1,7 @@
 /** Real ordinary React realization. Hidden DOM markers own ordering, not rendering. */
 import * as React from 'react';
 import { CompositionCompiler, IrError, type Part as PartIR, type Node as NodeIR,
-  type Compiled, type Point2 } from './compiler.js';
+  type Compiled, type Point2, type Point3, type Axis } from './compiler.js';
 
 export interface ModelLifecycle {
   dirty(): void;
@@ -9,9 +9,9 @@ export interface ModelLifecycle {
   complete(model: Compiled): void;
   detached(): void;
 }
-type Kind = 'part' | 'rectangle' | 'circle' | 'extrude' | 'union' | 'difference' | 'target' | 'tools' | 'definitions';
+type Kind = 'part' | 'rectangle' | 'circle' | 'extrude' | 'union' | 'difference' | 'target' | 'tools' | 'definitions' | 'translate' | 'rotate';
 export interface ProfileHandle { readonly kind: 'rectangle' | 'circle' }
-export interface SolidHandle { readonly kind: 'extrude' | 'union' | 'difference' }
+export interface SolidHandle { readonly kind: 'extrude' | 'union' | 'difference' | 'translate' | 'rotate' }
 export type ProfileRef = React.RefObject<ProfileHandle | null>;
 export type SolidRef = React.RefObject<SolidHandle | null>;
 type CadRef = React.RefObject<ProfileHandle | SolidHandle | null>;
@@ -67,6 +67,7 @@ class Session {
         case 'extrude': return { ...meta, kind: 'extrude', distance: p.distance as number,
           ...(p.from === undefined ? {} : { from: p.from as number }),
           ...(p.profile === undefined ? {children:nested} : {profile:p.profile,...(nested.length ? {children:nested} : {})}) } as NodeIR;
+        case 'translate': case 'rotate': return {...meta,kind:entry.kind,...(entry.kind==='translate'?{offset:p.offset}:{axis:p.axis,angle:p.angle,...(p.pivot===undefined?{}:{pivot:p.pivot})}),...(p.solid===undefined?{children:nested}:{solid:p.solid,...(nested.length?{children:nested}:{})})} as NodeIR;
         case 'union': return { ...meta, kind: 'union', children: nested } as NodeIR;
         case 'difference': return { ...meta, kind: 'difference', children: nested } as NodeIR;
         case 'target': return { kind: 'target', key: entry.key, ...(p.solid === undefined ? {children:nested} : {solid:p.solid,...(nested.length ? {children:nested} : {})}) } as NodeIR;
@@ -139,3 +140,9 @@ export type TargetProps = {children:React.ReactNode;solid?:never}|{solid:SolidRe
 export function Target({children,...props}:TargetProps) {return <Host kind="target" props={props}>{children}</Host>;}
 export function Tools({children}:{children:React.ReactNode}) {return <Host kind="tools" props={{}}>{children}</Host>;}
 export function Definitions({children}:{children:React.ReactNode}) {return <Host kind="definitions" props={{}}>{children}</Host>;}
+
+export type SolidInput = {children:React.ReactNode;solid?:never}|{solid:SolidRef;children?:never};
+export type TranslateProps={offset:Point3;ref?:SolidRef}&SolidInput;
+export type RotateProps={axis:Axis;angle:number;pivot?:Point3;ref?:SolidRef}&SolidInput;
+export function Translate({ref,children,...props}:TranslateProps){return <Host kind="translate" props={props} binding={ref}>{children}</Host>;}
+export function Rotate({ref,children,...props}:RotateProps){return <Host kind="rotate" props={props} binding={ref}>{children}</Host>;}

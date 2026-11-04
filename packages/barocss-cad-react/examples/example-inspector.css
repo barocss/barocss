@@ -1,0 +1,57 @@
+.cad-demo,
+.cad-demo * { box-sizing: border-box; }
+.cad-demo {
+  --cad-accent: #4b91ff;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  width: 100%;
+  height: 100svh;
+  min-height: 560px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  color: #202731;
+  background: #f0f2f7;
+  font: 12px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.cad-demo__workspace { display: grid; grid-template-rows: 56px minmax(0, 1fr); min-width: 0; min-height: 0; }
+.cad-demo__workspace-header { display: flex; align-items: center; gap: 26px; padding: 0 28px; border-bottom: 1px solid #dfe3eb; }
+.cad-demo__brand { font-size: 13px; font-weight: 650; letter-spacing: -.3px; }
+.cad-demo__brand > span { margin-left: 4px; color: #6f7989; font-weight: 450; }
+.cad-demo__document { padding-left: 24px; border-left: 1px solid #d4dae4; color: #788292; font-size: 11px; }
+.cad-demo__viewport { display: grid; place-items: center; min-width: 0; min-height: 0; padding: 24px; }
+.cad-demo__canvas-frame { width: 100%; max-width: calc((100svh - 104px) * 1.4285714286); aspect-ratio: 10 / 7; }
+.cad-demo__canvas-frame > canvas { display: block; width: 100%; height: auto; max-width: 100%; aspect-ratio: 10 / 7; border: 0; outline: none; }
+.cad-demo__canvas-frame > canvas:focus-visible { outline: 2px solid var(--cad-accent); outline-offset: 5px; }
+.cad-demo__inspector { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow-y: auto; border-left: 1px solid #111419; color: #c5cbd4; background: #21252b; }
+.cad-demo__inspector-header { display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #333840; color: #f0f2f5; font-size: 12px; font-weight: 600; }
+.cad-demo__status { display: inline-flex; align-items: center; gap: 6px; color: #919aa8; font-size: 10px; font-weight: 400; }
+.cad-demo__status > span { width: 5px; height: 5px; border-radius: 50%; background: #687382; }
+.cad-demo__status[data-state="ready"] > span { background: var(--cad-accent); }
+.cad-demo__status[data-state="failed"] { color: #e5c5bc; }
+.cad-demo__controls { flex: 1; }
+.cad-demo__group { margin: 0; border-bottom: 1px solid #333840; }
+.cad-demo__group > summary { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 14px; list-style: none; cursor: pointer; color: #e2e6ec; font-size: 11px; font-weight: 600; user-select: none; }
+.cad-demo__group > summary::-webkit-details-marker { display: none; }
+.cad-demo__group > summary > svg { fill: none; stroke: #7c8797; stroke-width: 1.5; transform: rotate(-90deg); transition: transform 140ms ease; }
+.cad-demo__group[open] > summary > svg { transform: rotate(0); }
+.cad-demo__group > summary:focus-visible { outline: 1px solid var(--cad-accent); outline-offset: -4px; }
+.cad-demo__group-content { padding: 0 20px 20px; }
+.cad-demo__field { display: grid; grid-template-columns: minmax(0, 1fr) 116px; align-items: center; gap: 12px; margin: 0; color: #9ca6b5; font-size: 11px; }
+.cad-demo__field + .cad-demo__field { margin-top: 10px; }
+.cad-demo__number { display: flex; align-items: center; min-width: 0; border: 1px solid #3b424d; border-radius: 3px; background: #191d23; transition: border-color 140ms ease, box-shadow 140ms ease; }
+.cad-demo__number:focus-within { border-color: var(--cad-accent); box-shadow: 0 0 0 1px #4b91ff24; }
+.cad-demo__number > input { width: 100%; min-width: 0; margin: 0; padding: 7px 2px 7px 10px; border: 0; outline: none; color: #e1e8f2; background: transparent; font: inherit; font-variant-numeric: tabular-nums; color-scheme: dark; }
+.cad-demo__unit { padding: 0 9px 0 5px; color: #667386; font-size: 10px; }
+.cad-demo__error { margin: 16px 20px; padding: 10px 0; border-top: 1px solid #785c55; color: #e5c5bc; font-size: 11px; overflow-wrap: anywhere; }
+.cad-demo__inspector-footer { padding: 18px 20px; border-top: 1px solid #333840; }
+.cad-demo__reset { width: 100%; padding: 8px 12px; border: 1px solid #414b59; border-radius: 3px; color: #bac6d6; background: #292f38; cursor: pointer; font: inherit; font-size: 11px; transition: background-color 140ms ease, border-color 140ms ease; }
+.cad-demo__reset:hover { border-color: #63748b; background: #333d4a; }
+.cad-demo__reset:active { background: #202832; }
+.cad-demo__reset:focus-visible { outline: 2px solid var(--cad-accent); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .cad-demo__group > summary > svg,
+  .cad-demo__number,
+  .cad-demo__reset { transition: none; }
+}

@@ -4,6 +4,7 @@ import {type ModelHost,type EnginePort,type MassPolicy} from '../src/engine.js';
 import {ExistingViewerHost} from '../src/viewer.js';
 import {Bracket} from './Bracket.js';
 import {connectHost} from './connect-host.js';
+import {ExampleShell,InspectorGroup,NumericField} from './ExampleShell.js';
 
 /** The consumer supplies its existing client and provenance-aware mass merger.
  * It must grant this host exclusive evaluation use of the client. No Worker is created here. */
@@ -27,11 +28,9 @@ export function App({engine,massPolicy,onHost}: {
     });
     return()=>{retired=true;owned?.dispose();onHost?.(null);};
   },[engine,massPolicy,onHost]);
-  return <main>
-    <label>Width <input aria-label="Width" type="number" min="80" max="100" step="20" value={width}
-      onChange={event=>setWidth(event.currentTarget.valueAsNumber)}/></label>
-    <canvas ref={canvas} width={1000} height={700} tabIndex={0} aria-label="CAD bracket"/>
-    {error&&<p role="alert">{error}</p>}
+  return <ExampleShell canvas={canvas} host={host} error={error} onReset={()=>setWidth(80)} controls={
+    <InspectorGroup title="Dimensions"><NumericField label="Width" ariaLabel="Width" value={width} min={80} max={100} step={20} unit="mm" onChange={setWidth}/></InspectorGroup>
+  }>
     {host&&<Part admission="synchronous" lifecycle={host}><Bracket width={width}/></Part>}
-  </main>;
+  </ExampleShell>;
 }

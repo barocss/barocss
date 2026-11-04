@@ -43,6 +43,22 @@ function SharedProfile() {
 
 Pass the object as a token, not `.current`. Forward it through ordinary components when needed. Handles expose profile/solid kind only; they provide no synchronous geometry. Callback refs are not dependency tokens. Bindings are scoped to one Part; missing/wrong-kind/duplicate/cyclic refs and incompatible operands refuse. Current host identity and normal React keys preserve mounted feature IDs under supported changes. Remounts create new identity. Ref objects and automatic IDs do not reconnect source code to a saved document after reload.
 
+## Rigid transforms
+
+`Translate` and `Rotate` accept exactly one realized solid child or `solid={solidRef}`. They also expose an optional typed solid ref for reuse through Definitions. Profile tokens, mixed ref/child inputs and missing or cyclic solid references refuse through the existing compiler contract.
+
+```tsx
+<Translate offset={[30,40,5]}>
+  <Rotate axis="z" angle={90} pivot={[0,0,0]}>
+    <Bracket width={80}/>
+  </Rotate>
+</Translate>
+```
+
+The nested Rotate lowers before its outer Translate, using existing Model nodes and solid parent refs. Offset and optional pivot require three finite mm coordinates, including each explicit array index; sparse arrays refuse. Axis is x/y/z, angle is finite degrees within the existing absolute3600 limit, and zero is allowed. An omitted pivot stays omitted and uses the existing backend origin default. No transform matrix, trigonometry, tolerance, Worker or renderer is implemented here. Mounted identities/keys retain native IDs; rejected declarations preserve the last accepted document and retire its freshness through the existing lifecycle.
+
+`examples/TransformApp.tsx` supplies desktop Translation X/Rotation Z inputs around the original W80 Bracket. D497 passes 34 controlled tests, package/API types and lint. Its four selected ready states (30/90,50/90,50/180,returned30/90) use the current Worker/Viewer, and the exact returned document opens in Studio. Three new native captures/three physical oracles and two exact-A subproof reuses bind five current consumers. Final saved-data review passes 7959 checks, separate from product tests. The D495 checkpoint below describes the original App. See the [CAD React documentation](../../apps/library-docs/docs/packages/cad-react/index.md) and [D497 qualification](../../apps/cad-studio/handover/notes/cad-react-transforms-docs-2026-11-04/README.md). A global translation followed by automatic framing can produce identical pixels, so frame freshness and world geometry must be checked separately. General native Face/UV producers, async admission and persistent source-code reconnection remain outside this addition.
+
 ## Engine and Viewer ownership
 
 Create `ModelHost` after React commit, call `connect()`, and provide it as Part's lifecycle. Its constructor starts no Worker or subscription. Inject an existing client with exclusive evaluation use and a provenance-aware mass merger:
@@ -74,7 +90,7 @@ The host separates declaration ownership, native request revisions, mass readine
 
 A user wrapper can hide an internal Suspense boundary whose null fallback leaves a structurally valid smaller Tools graph. The ordinary registry cannot universally detect that intent. Internal Suspense/Offscreen/async transitions are unsupported even if a wrapper hides them; resolve async inputs outside the whole Part before mounting it. This package does not claim whole-intent atomicity for arbitrary React work. No custom reconciler is installed to hide that limit.
 
-Closed profile primitives/extrusion and the declared Boolean composition are the initial capability set. Sketch constraints/multiple-region selection, surface extrusion, general planar-face producers, topology queries, native Face/UV picks, general Suspense, persistent source identity, STEP/STL export convenience, mobile, CI and release are separate work. Native geometry/refusal/budgets remain the existing CAD engine's authority.
+Closed profile primitives/extrusion, the declared Boolean composition and existing Model rigid Translate/Rotate lowering form the current capability set. Sketch constraints/multiple-region selection, surface extrusion, general planar-face producers, topology queries, native Face/UV picks, general Suspense, persistent source identity, STEP/STL export convenience, mobile, CI and release are separate work. Native geometry/refusal/budgets remain the existing CAD engine's authority.
 
 ## Validation boundaries
 
@@ -94,3 +110,9 @@ Use the installed Node22.19.0 and existing dependencies. This private source pac
 ### Current measured checkpoint
 
 [D495 qualification](../../apps/cad-studio/handover/notes/cad-react-package-2026-11-04/README.md) records24 unique controlled tests, package/API-example types, lint and final Model types PASS. The current package App/Bracket passes actual props80→100→80 with the existing Worker/Viewer, exact Doc/frame restoration, a separate public Studio Open and independent native physics at both widths. Two captures/two physical-oracle runs and two exact80 physical-subproof reuses bind four current consumers. The preserved fixture/type and Studio preflight failures, recovery-only execution, source custody and finite sampling limits remain explicit there. This is the private source-package checkpoint; distribution/install/dist output, general async/Face-UV and release remain unqualified.
+
+### Current example inspector and documentation
+
+The desktop App and TransformApp now share a right inspector with real numeric controls, collapsible groups, actual host status and Reset. Fresh Width80→100→Reset80 and TransformA→B→C→ResetA flows pass with exact returned Doc/frame, current native/render/frame ownership,1000×700 buffer/10:7 display and no overflow. Collapse/reopen and1200ms idle do not change geometry requests/checkpoints/owners. Status polling lives in the inspector child and is cleaned up on unmount. Seven fresh UI consumers reuse seven exact eligible saved native physical subproofs; no native/oracle/Studio replay is claimed for this presentation change. Observed Transform ready revisions1/2/3/4 and Width1/2/3 are measurements, not a one-request-per-prop guarantee.
+
+The [CAD React documentation category](../../apps/library-docs/docs/packages/cad-react/index.md) contains component-by-component pages and a [full Model-to-React support map](../../apps/library-docs/docs/packages/cad-react/support-map.md). The existing Model backend is broader than these first adapters. Future bridges follow roadmap/source audit; the map does not create exports or release existing HOLDs. Current docs checks and local route verification are recorded with the final delivery receipt, separately from native and package tests.

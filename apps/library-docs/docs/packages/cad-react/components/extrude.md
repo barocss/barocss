@@ -1,0 +1,45 @@
+# Extrude
+
+Turns one supported closed profile into a solid using the existing Model extrusion. Sketch lowering is internal storage; there is no public sketch prop.
+
+Import `Extrude` from `@barocss/cad-react`. This private experimental workspace API is not a published installable package.
+
+## Props and output
+
+| Prop | Input/default | Meaning |
+|---|---|---|
+| `distance` | Required finite nonzero number | Signed extrusion height in millimetres; no default. |
+| `from` | Optional finite number | Local starting coordinate; omission preserves the existing backend default at the local origin. |
+| `children` | Exactly one realized profile | Exclusive with profile. |
+| `profile` | ProfileRef | Exclusive with children. |
+| `ref` | Optional SolidRef | Reuse the resulting solid within this Part. |
+
+## Example
+
+```tsx
+import { Extrude, Rectangle } from '@barocss/cad-react';
+
+export function Floor() {
+  return <Extrude from={0} distance={6}>
+    <Rectangle min={[0,0]} max={[80,60]} />
+  </Extrude>;
+}
+```
+
+Insert the returned composition as the single output of a Part with a connected lifecycle. Any Definitions in the example remain logical siblings of that output; Target/Tools are used only inside Difference.
+
+## Composition and validation
+
+Extrude accepts Rectangle/Circle output, including a compatible output returned by a synchronous wrapper or resolved ProfileRef. ExtrudeProps names the public exclusive-input type. The result can feed Union, Difference or a rigid transform.
+
+Zero/nonfinite distance or nonfinite from refuses. Both child and profile, multiple profiles, a solid token as profile, and arbitrary face/region descriptors refuse. Surface/face extrusion supported elsewhere in Studio is not automatically admitted here.
+
+## References and identity
+
+The result is a solid handle of kind extrude. Feature IDs and the profile sketch linkage are automatic; source props do not expose native node indices.
+
+## Measured boundary
+
+The measured Bracket uses floor6, wall56 and declared overcut tools, with original widths80/100 and selected W80 transforms. Positive/negative distance input support is not a runtime certificate for all heights/directions.
+
+The complete code block uses current public exports; its extracted type-check result is recorded separately. Type/compiler checks do not by themselves evaluate this standalone example as a new native case. Read the [component catalog](/packages/cad-react/components), [refs and compiler](/packages/cad-react/references), [engine integration](/packages/cad-react/engine-viewer) and [current support limits](/packages/cad-react/limits).

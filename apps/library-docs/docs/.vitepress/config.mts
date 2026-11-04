@@ -33,6 +33,7 @@ export default defineConfig({
       { text: 'Guide', link: '/guide/getting-started' },
       { text: 'CAD', link: '/packages/cad/' },
       { text: 'CAD Model', link: '/packages/cad-model/' },
+      { text: 'CAD React', link: '/packages/cad-react/' },
       { text: 'Physics', link: '/packages/physics/' },
       { text: 'GPU', link: '/packages/gpu/' },
       { text: 'Studio', link: '/studio/' },
