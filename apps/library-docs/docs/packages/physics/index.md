@@ -14,6 +14,8 @@ and unreleased. Local implementation and numerical evidence do not establish act
 publication, hardware validation or manufacturing acceptance. Existing HOLD and historical NO_GO
 decisions remain in force. See [Physics verification](/reference/physics-verification).
 
+For CAD, GPU and Viewer host ownership, see [host integration](./host-integration).
+
 ## Choose the owning API
 
 | Need | Owning entry or API | Scope |

@@ -1,8 +1,10 @@
 # @barocss/physics
 
 The [library design and development roadmap](ROADMAP.md) defines the unreleased target API and
-its staged verification. The root uses the P0 model/options contract. P5a private cloth/fluid kernels passed their bounded two-step source/native gates; the P5b common-World cutover is implemented with qualification pending. Existing HOLDs,
-public admission limits and original NO_GO receipts remain in force.
+its staged verification. The root uses the P0 model/options contract. P5a private
+cloth/fluid kernels and the selected P5b common-World source/native migration
+pass their bounded gates. Full physical domain coupling remains unqualified.
+Existing HOLDs, public admission limits and original NO_GO receipts remain in force.
 
 The new `rigid-stationary-cube-stack-v1` uses that same World for unforced
 equilibrium maintenance of eight1kg yaw-only cubes on the original floor.
@@ -30,6 +32,22 @@ The same algorithm also passes three aligned2kg cubes/floor through256steps,
 with an independent3DOF reference and actual desktop full-state/word/pixel checks,
 inside cap4. See [three-cube results](../../examples/physics-three-cubes-floor-2276/RESULTS.md).
 General moving8 is not qualified. No deployment.
+The latest [contact convergence / Viewer results](../../examples/physics-contact-convergence-2276/RESULTS.md)
+include an adopted projected-polygon correction guide in `src/stack/face-contact.ts`
+(source `c164a34d...`). Build03, tensor private02, public API02, initial-frame and
+failure/restore regressions pass. New DT03 passes both aligned families at
+60/120/240Hz. Original long02 is still NO_GO: Source-three refuses step490 with
+`fresh post contact normal feasibility`, retaining accepted owner489/time4.075.
+Source returns1001 total steps but independently passes896; Native returns and
+passes896. Two512/three384 are qualified in both graphs; Source385..489 is
+observed-only. The prior479 refusal and every first failure remain historical.
+
+Actual current-provider HiDPI Viewer passes3Worlds/896steps, nine exact Native
+window captures and ten DPR checks. This is the bounded512/384 screen, not a
+completed512/512 campaign. Full UI/checkpoint remain NOT_RUN behind the failed
+full numerical prerequisite. The [completion audit](../../examples/physics-contact-convergence-2276/LIBRARY-STATUS.md)
+keeps the library NOT_COMPLETE. Viewer receives accepted poses; it does not own
+a second solver or clock. Studio/React/HOLD and no-deployment boundaries remain.
 See [anisotropic library results](../../examples/physics-anisotropic-inertia-2276/RESULTS.md)
 and [CAD consumer readiness](../../examples/physics-anisotropic-inertia-2276/CONSUMER-READINESS.md).
 CAD/CAD-model primitive flows and GPU CPU mesh admission pass; CAD Studio has no
@@ -325,3 +343,5 @@ Documentation build, site checks and scoped links pass. README examples compile 
 reports remain attributed to their original providers. No Viewer, Studio, hardware or manufacturing HOLD is lifted;
 original NO_GO trajectories and first-failure gates remain unchanged. P2 recording ownership has its own selected local source/emitted/native checks. P5 domain
 migration remains future work.
+
+Current failure diagnosis: 실제490 capture 감사는 거부 직전 closing velocity −1.0932118170260969e-7m/s를 확인했다. 원래1e-10 한계를 넘으므로 roundoff-only로 분류하지 않는다. 저장된384..489 진단에서는478 normal-direction error1.0310569142331814e-12가1e-12를 넘었고,488 rest velocity .04905m/s·angular velocity .0981rad/s,489 position error4.089e-4m가 관측됐다. 따라서 원인은490보다 앞설 수 있다. 이 데이터 감사의 independentTrajectoryAdded는0이며 두512·세384 자격을 넓히지 않는다.

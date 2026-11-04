@@ -34,10 +34,11 @@ export function faceContact(a: Body,b: Body,selection: SATFeatureSelection): Con
     add(add(incidentCentre,scale(ia[it[0]],u*ie[it[0]])),scale(ia[it[1]],v*ie[it[1]])));
   for(const i of rt){poly=clipFace(poly,centre,ra[i],re[i]);poly=clipFace(poly,centre,scale(ra[i],-1),re[i]);}
   const planeNormalAtoB=isA?n:scale(n,-1);
-  const candidates=poly.map(p=>{
+  const projected=poly.map(p=>{
     const separation=dot(sub(p,centre),n),r=sub(p,scale(n,separation));
     return {p,r,separation,u:dot(sub(r,centre),ra[rt[0]]),v:dot(sub(r,centre),ra[rt[1]])};
-  }).filter(p=>p.separation<=WITNESS_TOLERANCE_M);
+  });
+  const candidates=projected.filter(p=>p.separation<=WITNESS_TOLERANCE_M);
   if(!candidates.length) error('NUMERIC_LIMIT',WITNESS_MESSAGE);
   const selected=candidates.length<=4?candidates:
     [[-1,-1],[1,-1],[1,1],[-1,1]].map(([u,v])=>candidates.reduce((best,p)=>
@@ -48,7 +49,7 @@ export function faceContact(a: Body,b: Body,selection: SATFeatureSelection): Con
   // Keep the selected rows/keys/order. Only representable final witness placement changes.
   const referencePlane:FacePlane={axis,side},incidentPlane:FacePlane={axis:incidentAxis,side:incidentSide};
   const faceA=isA?referencePlane:incidentPlane,faceB=isA?incidentPlane:referencePlane;
-  const interior=scale(candidates.reduce((sum,p)=>add(sum,scale(add(p.r,p.p),.5)),[0,0,0] as Vec3),1/candidates.length);
+  const interior=scale(projected.reduce((sum,p)=>add(sum,scale(add(p.r,p.p),.5)),[0,0,0] as Vec3),1/projected.length);
   let movedPoints=0,maximumSteps=0;
   let exact:StrictLineContext;
   let points:ReturnType<typeof point>[];

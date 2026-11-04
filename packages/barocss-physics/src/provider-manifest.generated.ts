@@ -93,7 +93,7 @@ export const providerManifest = {
     "sleep.ts": "f02ac9d68560fc8ce8f529c68a6d8657155e3f6b36beb4907534871e375569f2",
     "stack/contact-types.ts": "7191984e5ee106de91c68ce4efb6c40afe8f5122b7a53e0ad2c5762191edfb47",
     "stack/edge-contact.ts": "58f1189ab830195628fe485e7885351595a86bbdbe6341d7b02ea9ff63aa9184",
-    "stack/face-contact.ts": "37dcbd7601ad05b403207e5030dd04c64582169eed59631338cd41942e1c1063",
+    "stack/face-contact.ts": "c164a34d6245cf52a3f13274439eb6bb2dad471a47344e92aa1c30e5c94c99b6",
     "stack/frictionless-island.ts": "7b61afb5c0f4651f04c95d82d4e92901fc148d21818d2cfe0e14d3dc7280d128",
     "stack/full-pair-apply.ts": "d4c7e503337e318d1dae9d2f93ad7310e078f2123159894542014a4945ef3f04",
     "stack/full-pair-core.mjs": "75941f67d5359c3734a68c93dd571313bdcab030a170205dee6e22d592119a46",

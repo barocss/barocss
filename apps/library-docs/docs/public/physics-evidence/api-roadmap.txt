@@ -1,7 +1,7 @@
 ---
 work_id: physics-api-roadmap-2276
 artifact_type: architecture-and-development-roadmap
-status: stationary_stack_local_pass_moving_multibody_no_go
+status: bounded_contact_current_viewer_pass_long_three_490_no_go
 owner_role: independent-physics-algorithm-work
 source_request: redesign the unreleased Physics library and reorganize its roadmap; preserve HOLD, NO_GO and first failures
 last_updated: 2026-11-04
@@ -164,6 +164,61 @@ remains G3; product rendering and any Studio integration require their separate
 scope and gates. Original moving8/1200 remains a separate NO_GO and cannot be
 inferred from these bounded tests. All HOLDs, original failures and tolerances
 remain. No deployment.
+
+### Contact timestep, longer horizon and actual Viewer
+
+The current production `src/stack/face-contact.ts` uses the projected full-polygon
+centroid only as its correction guide. Source SHA is
+`c164a34d6245cf52a3f13274439eb6bb2dad471a47344e92aa1c30e5c94c99b6`.
+No new hook, flag, tolerance, point key, work cap or16-attempt increase is used.
+The adopted Source provider is
+`sha256:bdff69b55d4effb0deda83bb1dfc298e82f17578e0c3dec127e5ca66a03fee00`;
+actual canonical Native is
+`sha256:ea44ebf2cd364b917b3c063a2393a13dd1d4b918dc9333c47fe0cf33eee7cb58`.
+These identities supersede only the current provider, not historical results.
+
+| Current gate | Actual result and boundary |
+| --- | --- |
+| Private geometry03 | Each graph42 geometry calls/3 independent replies/20 regression cases/32 original point rows. Old successful point words remain; newly accepted old numeric refusals have independent geometric proof. |
+| Build03 | Strict Source plus actual canonical build, five successful compiler/generator commands. PREPARED is an artifact status, not a physics PASS. |
+| Tensor private02 / public API02 | Each graph20 candidate calls/13 references/0World, then8Worlds/212 accepted/8 references. Original anisotropic precontact scope stays bounded. |
+| Post-initial01 / post-regression01 | Data-only16 packets/48 initial quaternion checks; each graph7Worlds/82 accepted including4 replay steps,4 typed refusals and old two/three32-step word regressions. |
+| DT03 | Each graph6Worlds/840 accepted and independently passed/14 replies. Both aligned families60/120/240Hz through matched1second; complete Source/Native state-word parity. |
+| Original LONG02 | NO_GO at Source-three attempt490. Both graphs independently pass and compare two512/three384 only. Full512/512 is not qualified. |
+| Current HiDPI Viewer | `contact-viewer-current-hidpi-01` actual PASS36.100715s,3Worlds/896 accepted/nine Native captures/ten DPR checks/0errors/context closed/source integrity true. Proof7371685B before final receipt. |
+
+Smooth precontact position/energy ratios remain within[1.99,2.01]. Quantized
+impact indices14/27/54 satisfy the analytic one-step timing bound. Do not impose
+a smooth convergence order across the velocity jump. Original1e-10SI/1e-12m
+contact gates and all budgets remain unchanged.
+
+Long01's original479 strict-witness refusal and diagnostic/classification first
+failures are preserved. The new production path reaches past479, but long02
+then refuses `frictionless island: fresh post contact normal feasibility` at490.
+Its actual owner remains489/time4.075. Source has1002 attempts/1001 accepted,
+only896 independent-passed; Native has896 accepted/896 independent-passed.
+Source-three385..489 is observed-only, not a physical PASS. Native after384 is
+NOT_RUN. Do not infer Native490 or turn the original full UI/checkpoint into PASS.
+Those full512/512 artifacts remain NOT_RUN; an explicit separate current-prefix
+UI uses only paid512/384 windows.
+
+The display uses actual public @barocss/viewer setPackets/applyMotionFrame and
+its GPU presenter with the new canonical Physics. Actual default-DPR2 context,
+DPR1→2 and1280/1440/1920 retain the same World clock/state. Backing remains under
+4096/4MP;640×360 is an observation sample, not the native Viewer resolution.
+Current backing includes2460×1312,2777×1510 and2894×1448. It proves only the
+bounded primitive host. Studio's separate GPU viewport is not integrated or
+resumed. CAD React belongs to another Work and is not reviewed here.
+
+The library is NOT_COMPLETE. Next fix the actual490 fresh-post-contact
+feasibility boundary and requalify the original Source/Native/public/full Viewer
+horizon. Then address unequal mass, tilted/changing-normal/frictional contact
+and moving8, G3 arbitrary CAD COM/tensor/collider offsets, connected mechanisms
+and full physical domain coupling. All HOLDs, first failures and thresholds
+remain. See `examples/physics-contact-convergence-2276/RESULTS.md` and its
+`LIBRARY-STATUS.md`. No deployment or real-equipment qualification.
+
+**490 후속 데이터 감사:** 실제490 capture 감사는 거부 직전 closing velocity −1.0932118170260969e-7m/s를 확인했다. 원래1e-10 한계를 넘으므로 roundoff-only로 분류하지 않는다. 저장된384..489 진단에서는478 normal-direction error1.0310569142331814e-12가1e-12를 넘었고,488 rest velocity .04905m/s·angular velocity .0981rad/s,489 position error4.089e-4m가 관측됐다. 따라서 원인은490보다 앞설 수 있다. 이 데이터 감사의 independentTrajectoryAdded는0이며 두512·세384 자격을 넓히지 않는다.
 
 ## Previous priority review, preserved before stationary qualification
 
