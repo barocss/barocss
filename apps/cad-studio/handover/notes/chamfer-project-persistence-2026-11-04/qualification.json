@@ -1,0 +1,220 @@
+{
+  "decision": "D508",
+  "scope": "C2 retained straight-edge Chamfer project persistence and post-Open distance edit",
+  "status": "PASS_BOUNDED_EXISTING_CHAMFER_PERSISTENCE",
+  "productChanges": 0,
+  "input": {
+    "path": "/tmp/barocss-d449-category-run01/chamfer-edited.bcad",
+    "sha256": "bff9ee71ea46e2432a186016c8e74d639c15b08803fe388f6a9dd5980059b7bb"
+  },
+  "groups": [
+    {
+      "action": "Public Open retained Chamfer3",
+      "status": "PASS"
+    },
+    {
+      "action": "Own project Save Close same-context reload Open3",
+      "status": "PASS"
+    },
+    {
+      "action": "Public post-Open Distance3 to2 Apply",
+      "status": "PASS"
+    },
+    {
+      "action": "FIRST Undo exact3",
+      "status": "PASS"
+    },
+    {
+      "action": "Redo exact2",
+      "status": "PASS"
+    }
+  ],
+  "nativeCaptures": 2,
+  "exactWholeDocReuses": 3,
+  "freshWorkerPhysicalBindings": 5,
+  "freshTests": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0,
+    "name": "finish: a fillet or chamfer up to the wall fits; a larger one is refused, not distorted"
+  },
+  "reuse": {
+    "storageTests": 7,
+    "storagePins": 1841,
+    "D494BuildLintFinalStudioModelTypesPins": 1853,
+    "sourceMismatches": 0
+  },
+  "budgets": {
+    "volumeRelative": 1e-09,
+    "centroidBoundsBoundaryCarrierPcurveD1AbsoluteMM": 1e-09,
+    "outwardUnitNormalComponent": 1e-09
+  },
+  "invariants": "Only n2.distance3 to2 changes; n0/n1/n2, rectangle outline/constraints/sideTags, parent, edge/signature, b2 and nextId3 remain exact.",
+  "physicalTargets": {
+    "distance3": {
+      "volume": 31640,
+      "centroid": [
+        "20",
+        "171/791",
+        "3919/791"
+      ]
+    },
+    "distance2": {
+      "volume": 31840,
+      "centroid": [
+        "20",
+        "58/597",
+        "2972/597"
+      ]
+    }
+  },
+  "rootReview": {
+    "status": "PASS",
+    "imagesViewed": 7,
+    "wrapperPins": 1889,
+    "helperInitialPins": 1889,
+    "helperFrozenPins": 1891,
+    "currentSourceEqual": true,
+    "ownPID": 8347,
+    "ownPIDAbsent": true,
+    "ownedProjectRemoved": true,
+    "resourcesClosed": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0
+  },
+  "highFinal": {
+    "status": "PASS",
+    "savedPredicates": 185,
+    "productTestsExecuted": 0,
+    "productReplay": false,
+    "path": "/tmp/barocss-d508-high-saved-final01/saved-qualification.json",
+    "sha256": "b4ce34d79d3a93b228fc4ae7529fd3d3039b9da874c91e12c94fd134d1fc5cca",
+    "maximumErrors": {
+      "nativeVolumeRelative": 1.142581283634332e-16,
+      "nativeCentroidMM": 3.885780586188048e-16,
+      "WorkerVolumeRelative": 1.142581283634332e-16,
+      "WorkerCentroidMM": 3.885780586188048e-16,
+      "boundaryVolumeRelative": 0.0,
+      "boundaryCentroidMM": 0.0
+    },
+    "originalSavedOracleMaximumGeometryErrors": {
+      "maximumEndpointGapMM": 0.0,
+      "maximumPcurveLiftGapMM": 0.0,
+      "maximumIndependentProbePointGapMM": 1.0658141036401503e-14,
+      "maximumIndependentD1ComponentGapMM": 1.7763568394002505e-15,
+      "maximumIndependentEdgeProbeGapMM": 0.0,
+      "maximumCarrierResidualMM": 0.0,
+      "maximumOutwardNormalComponentError": 1.1102230246251565e-16
+    },
+    "observedPcurvesPerPhysicalClass": [
+      0,
+      0
+    ]
+  },
+  "observationBoundary": {
+    "fullViewportFit": "NOT_MEASURED",
+    "rasterPrecision": "NOT_MEASURED",
+    "cameraCause": "NOT_DETERMINED",
+    "reason": "Project Open image is visibly cropped; physical state passes."
+  },
+  "preexecutionObserverCorrection": "driver02 passes captured state.doc to f.same after unchanged semantic expectedDoc equality. No failed SUT run or replay.",
+  "notRun": [
+    "Creation/edge selection/refusal replay",
+    "Final project Open2",
+    "Full C2 or Chamfer family qualification",
+    "PDF/export/download/mobile/release"
+  ],
+  "historicalBoundaries": "D501 and D505 custody FAIL records, all HOLDs, overall NOT_MEASURED and frozen legacy43 remain unchanged.",
+  "next": {
+    "parallel": "D509 six real profile components SOURCE_PREPARED_NOT_ADOPTED;76 expected tests NOT_RUN",
+    "future": "C3 view-attached leader Note remains parked NOT_RUN"
+  },
+  "commands": [
+    "python3 /tmp/barocss-d508-chamfer-root-prep02/prepare-checks.py",
+    "bash /tmp/barocss-d508-chamfer-root-prep02/run-checks01.sh",
+    "python3 /tmp/barocss-d508-chamfer-root-prep02/seal-actual01.py",
+    "bash /tmp/barocss-d508-chamfer-root-prep02/run-studio01.sh"
+  ],
+  "evidence": {
+    "input": {
+      "path": "/tmp/barocss-d449-category-run01/chamfer-edited.bcad",
+      "sha256": "bff9ee71ea46e2432a186016c8e74d639c15b08803fe388f6a9dd5980059b7bb"
+    },
+    "originalReceipt": {
+      "path": "/tmp/barocss-d449-category-run01/receipt.json",
+      "sha256": "84ecfb8daf291964a2ef1048be1e461a0521789a30d6d0ff8d3d9ac432c958c2"
+    },
+    "actual": {
+      "path": "/tmp/barocss-d508-chamfer-workflow-run02/receipt.json",
+      "sha256": "e30975a01742da452c8fb73016383bc8b636d6f2d8f6abcb4228920c0163bd3e"
+    },
+    "rootReview": {
+      "path": "/tmp/barocss-d508-chamfer-root-review01/review.json",
+      "sha256": "1478a472987d6e88559b534441c3caf9629b8c1ca629a21ed5e56d7e83733104"
+    },
+    "checks": {
+      "path": "/tmp/barocss-d508-chamfer-checks02/receipt.json",
+      "sha256": "b50b078315bc31e6aecf9517657c335c7b7e0ba69ab2bae6c2da1adb5ee7b6b1"
+    },
+    "reuse": {
+      "path": "/tmp/barocss-d508-chamfer-root-prep02/reuse-checks01.json",
+      "sha256": "699f7fe94a1cf50a491720d9be1ae46d0ca101b3c08d79aaab93f66531311852"
+    },
+    "geometryManifest": {
+      "path": "/tmp/barocss-d508-chamfer-geometry01/manifest.json",
+      "sha256": "b697a001325516bd5f0c5d84ccb95b11a6550e29172751a0d0249e16ac15cbeb"
+    },
+    "config": {
+      "path": "/tmp/barocss-d508-chamfer-driver02/config.json",
+      "sha256": "a342fa06cb706f0572490b2d78f01599983a72593f9601281d5c69c0ceb435c9"
+    },
+    "highFinal": {
+      "path": "/tmp/barocss-d508-high-saved-final01/saved-qualification.json",
+      "sha256": "b4ce34d79d3a93b228fc4ae7529fd3d3039b9da874c91e12c94fd134d1fc5cca"
+    },
+    "issueReview": {
+      "path": "/tmp/barocss-d508-issue-review01.json",
+      "sha256": "9122d238e6ed45d720fe2b588e9723a4e3b24c8f5069fd259232a3b423c5a1d9"
+    }
+  },
+  "rawArtifacts": "TMP only; no raw evidence copied into Git",
+  "productHEAD": "2192db2fb8406a90399367f4106f2e48fa30cc67",
+  "issueReview": {
+    "primary536": "OPEN_PARENT_REQUIREMENTS_UNMET",
+    "generality2259_2260_2261": "OPEN_UNRELATED_WIDER_GEOMETRY_REQUIREMENTS",
+    "commentOrCloseSent": false
+  },
+  "verificationTier": {
+    "tier": "small",
+    "reason": "Existing selected workflow measurement only; no product/API/kernel or test source change. Targeted test and actual Studio; saved High physics review is additional."
+  },
+  "executionEnvironment": {
+    "node": "22.19.0",
+    "heavyGate": "/Users/user/.claude/local-mods/barocss-lanes-guard/bin/gate.sh",
+    "wholeWorktreeFrozenThroughCleanupAndRootImages": true
+  },
+  "verificationResult": {
+    "PASS": [
+      "Five actual public Studio groups",
+      "Two current native captures/three exact-Doc reuses/five fresh physical Worker bindings",
+      "One fresh existing finishing-limit test; seven storage tests reused at exact declared source pins",
+      "High185saved predicates; root7images/source/cleanup"
+    ],
+    "FAIL": [
+      "No new actual product or workflow failure",
+      "D501/D505 historical custody failures remain"
+    ],
+    "NOT_RUN": [
+      "Creation/edge selection/refusal replay",
+      "Final project Open2",
+      "Full C2 or Chamfer family qualification",
+      "PDF/export/download/mobile/release",
+      "Full kernel: no B-rep core change"
+    ],
+    "NOT_MEASURED": [
+      "Full viewport fit/raster precision; project Open visibly cropped"
+    ]
+  },
+  "sourceClosureScope": "D4941853/D4961841 declared source-pin reuse verified unchanged; no whole-repository or broader product-readiness equivalence claimed."
+}

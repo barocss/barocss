@@ -6,6 +6,8 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- **D508 — C2 retained Chamfer persistence:** Five public groups PASS: retained Open3, own Save/Close/reload/Open3, post-Open Distance3→2, FIRST Undo3 and Redo2. Two native captures, three exact whole-Doc reuses and five fresh Worker/physical bindings. No product change or full C2 claim. High final saved review passes 185 predicates. See [notes/chamfer-project-persistence-2026-11-04/README.md](notes/chamfer-project-persistence-2026-11-04/README.md).
+
 - [D507: measure one existing CAD React logical Union result with two native pieces; current Viewer and Studio Open/Frame pass, no new API adopted](notes/cad-react-compound-baseline-2026-11-04/README.md).
 
 - [D506: qualify five existing plain-paper Note creation/edit/history/project groups; six current consumers and unique capture custody pass](notes/ordinary-note-persistence-2026-11-04/README.md).

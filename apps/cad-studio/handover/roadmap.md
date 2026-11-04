@@ -23,6 +23,8 @@ Sketch editing, solid modeling, feature history, native files and local-project 
 
 Current bounded checkpoints and next work:
 
+- **C2 Chamfer D508:** D508 closes the D449 Chamfer project persistence/post-Open edit gap for its retained straight edge only (5/5 public groups). Full viewport fit/raster remain NOT_MEASURED. [Evidence](notes/chamfer-project-persistence-2026-11-04/README.md). Two captures/three exact-Doc reuses/five current bindings, one fresh test and High185 saved predicates pass. This supersedes older D508 prepared0/5 navigation below. D509 six-profile-component source candidate remains unadopted; C3 leader Notes remain parked.
+
 - **Parallel CAD React D507:** [D507](notes/cad-react-compound-baseline-2026-11-04/README.md) measures existing CAD React compound semantics: one logical b4 result can contain two native pieces. Fresh57 checks, one native capture and current Viewer/Studio bindings pass; 13 current elements remain and six Profile proposals are unadopted. Next MAIN D508 ordinary Chamfer is prepared 0/5 actual. Global acceptance remains UNENUMERATED; row-label and candidate-ledger counts are not completion.
 
 - **C3 Notes D506:** [Existing plain-paper Note lifecycle](notes/ordinary-note-persistence-2026-11-04/README.md) passes 5/5 groups and six Doc/Worker/SVG observations, including FIRST Undo/Redo, own project Open and post-Open edit. One fresh existing test, 43 style and seven storage tests reused, 4,115 saved checks and six root-reviewed images pass. Native captures/oracles are zero; independent physical geometry is NOT_RUN. This supersedes older D506 NOT_RUN and next-MAIN navigation below. Next MAIN starts with source-gap inventory; parallel D507 is prepared, not executed. D501/D505 custody FAIL and all HOLDs remain.
