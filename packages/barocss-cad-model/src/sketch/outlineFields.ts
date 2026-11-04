@@ -1,8 +1,10 @@
+import { refusal } from '../engine/refusal';
 // The feature editor's fields for a sketch drawn as a constrained outline: one per driving dimension kept
 // in the sketch node. Changing one re-solves the outline with all its constraints and rewrites the
 // profile; a value the constraints cannot take leaves the nodes unchanged.
 import { NODE_EXTRA_FIELDS, type ModelNode, type SketchNode, type SketchOutline } from '../engine/doc';
-import type { EditField } from '../app/editFields';
+import { bindSketchLengthNode, unbindSketchLengthNode, resolveDrivenSketch } from './driven';
+import type { BindableField, EditField } from '../app/editFields';
 import { outlineOf, profileOf } from './loops';
 import { commitDimension, dimensionLabel, dimensionValue } from './rules';
 import { mainShape, outlinePolygon, rebindDims, resolveSketchDims, sketchShapes } from './reopen';
@@ -51,7 +53,24 @@ function replaced(old: SketchNode, next: SketchNode): SketchNode {
 }
 
 export function outlineFields(nodes: Nodes, s: number, prefix: string, params: Readonly<Record<string, number>> = {}): EditField[] {
-  const sk = nodes[s] as SketchNode | undefined;
+  const stored = nodes[s];
+  if (stored?.kind === 'driven-sketch') {
+    const binding = stored.bindings[0], index = stored.seed.sideTags.outer.indexOf(binding.entity), key = 'len' + index;
+    const field: BindableField = {
+      kind: 'number', key: prefix + 'o' + key, label: prefix + dimensionLabel(outlinePolygon(stored.seed.outline), key), unit: 'mm',
+      get: n => { const node = n[s]; return node.kind === 'driven-sketch' ? drivingValue(resolveDrivenSketch(node, params).outline!, key) ?? NaN : node.kind === 'sketch' && node.outline ? drivingValue(node.outline, key) ?? NaN : NaN; },
+      param: n => n[s].kind === 'driven-sketch' ? n[s].bindings[0].value.parameter : null,
+      bind: (n, name) => n.map((node, i) => i === s ? bindSketchLengthNode(node, binding.entity, name, params) : node),
+      set: (n, value) => {
+        const node = n[s]; if (node.kind !== 'driven-sketch') return n as ModelNode[];
+        const numeric = unbindSketchLengthNode(node, params), current = drivingValue(numeric.outline!, key);
+        if (value !== current) throw refusal('PARAMETER_UNBINDABLE', 'Unbind this sketch length before editing its numeric value.');
+        return n.map((x, i) => i === s ? numeric : x);
+      },
+    };
+    return [field];
+  }
+  const sk = stored as SketchNode | undefined;
   if (!sk || sk.kind !== 'sketch' || !sk.outline) return [];
   const outline = (n: Nodes): SketchOutline => {
     const node = n[s] as SketchNode;
@@ -63,7 +82,7 @@ export function outlineFields(nodes: Nodes, s: number, prefix: string, params: R
   };
   return drivingDimensions(sk.outline).map((key): EditField => {
     const label = dimensionLabel(outlinePolygon(sk.outline!), key);
-    return {
+    const field: EditField = {
       kind: 'number', key: prefix + 'o' + key, label: prefix + label, unit: key.startsWith('ang') ? '°' : 'mm',
       get: n => drivingValue(outline(n), key) ?? dimensionValue(outlinePolygon(outline(n)), key) ?? NaN,
       set: (n, v) => {
@@ -82,5 +101,19 @@ export function outlineFields(nodes: Nodes, s: number, prefix: string, params: R
         return n.map((x, k) => k === s ? replaced(old, rebindDims(old, next.node, params).node) : x);
       },
     };
+    const match = /^len(\d+)$/.exec(key), index = match ? Number(match[1]) : -1, entity = sk.sideTags?.outer[index];
+    if (entity && sk.profile === 'loop' && sk.segments[index]?.kind === 'line') {
+      // Eligibility is checked by the semantic binder; generic changed-leaf binding stays unchanged.
+      try { bindSketchLengthNode(sk, entity, 'DrivenEligibility', { ...params, DrivenEligibility: drivingValue(sk.outline!, key)! }); }
+      catch { return field; }
+      const bindable: BindableField = { ...field,
+        get: n => n[s]?.kind === 'driven-sketch' ? (outlineFields(n, s, prefix, params)[0] as BindableField).get(n) : field.get(n),
+        set: (n, value) => n[s]?.kind === 'driven-sketch' ? (outlineFields(n, s, prefix, params)[0] as BindableField).set(n, value) : field.set(n, value),
+        param: (n: Nodes) => { const node = n[s]; return node?.kind === 'driven-sketch' ? node.bindings[0].value.parameter : null; },
+        bind: (n: Nodes, name: string) => n.map((node, i) => i === s ? bindSketchLengthNode(node, entity, name, params) : node),
+      };
+      return bindable;
+    }
+    return field;
   });
 }

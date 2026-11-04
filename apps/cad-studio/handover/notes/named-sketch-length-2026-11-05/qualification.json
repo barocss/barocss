@@ -1,0 +1,241 @@
+{
+  "decision": "D537",
+  "tier": "FULL",
+  "parent": "3a9f2177981aa8a96f82396f8bd30ea9bea76171",
+  "branch": "local/cad-dev",
+  "scope": {
+    "priority": "P1",
+    "rows": [
+      "04",
+      "07",
+      "12",
+      "16"
+    ],
+    "feature": "Version1 single stable outer LINE named driving length",
+    "acceptanceGroups": {
+      "accepted": 12,
+      "declared": 12,
+      "ids": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8",
+        "F9",
+        "F10",
+        "F11",
+        "F12"
+      ],
+      "boundary": "finite v1 workflow; not a whole CAD denominator"
+    },
+    "wholeCad": "NOT_MEASURED",
+    "baselineB01ToB10": "NOT_ADJUDICATED"
+  },
+  "PASS": {
+    "uniqueFocused": {
+      "Model": 46,
+      "Studio": 22,
+      "total": 68,
+      "new": 25,
+      "related": 43
+    },
+    "docsSamples": 185,
+    "mutantsKilled": 10,
+    "mutantsDeclared": 10,
+    "mutantPositiveAssertions": {
+      "Model": 16,
+      "StudioHook": 4
+    },
+    "types": [
+      "final-model-types07",
+      "studio-types06",
+      "react-types03"
+    ],
+    "syntax": [
+      "browser",
+      "oracles",
+      "mutations"
+    ],
+    "lint": {
+      "errors": 0,
+      "warnings": 4,
+      "warningScope": "explicit any in new geometry tests"
+    },
+    "independentReviews": 2,
+    "controlledNonUiStates": [
+      "A64",
+      "B68",
+      "U64",
+      "renamed68"
+    ],
+    "controlledSourcePins": 466,
+    "oldReaderActualOwnProject": "unknown driven-sketch refused",
+    "actualQualification": "joined eligible prefix and changed-tail continuation"
+  },
+  "FAIL_preserved": [
+    {
+      "attempt": "baseline01 pin collector",
+      "cause": "virtual stdin source treated as real file",
+      "stateAssertions": "NOT_RUN"
+    },
+    {
+      "attempt": "Studio controlled01",
+      "pass": 15,
+      "fail": 7,
+      "cause": "wrong cwd for existing d348 fixture",
+      "continuation": "only failed7 PASS from correct cwd"
+    },
+    {
+      "attempt": "Model types02",
+      "errors": 3,
+      "cause": "contextual BindableField typing and two-member tuple inference",
+      "final": "PASS"
+    },
+    {
+      "attempt": "controlled inspector01",
+      "cause": "virtual stdin source path collection before state assertions",
+      "continuation": "external collector fix; control02 PASS"
+    },
+    {
+      "attempt": "actual Studio01",
+      "cause": "wrong automation field label",
+      "newBindings": 0
+    },
+    {
+      "attempt": "actual Studio02",
+      "cause": "disabled labelled input and select share a label; option-enabled automation retargets to disabled first control",
+      "passingPrefixBindings": 8,
+      "continuation": "div field markup, affected bind recheck and missing tail only in Studio03"
+    }
+  ],
+  "actual": {
+    "qualifiedBindings": 11,
+    "mainNativeCaptures": 7,
+    "labelledPreFilletCaptures": 7,
+    "wholeDocPacketReuses": 4,
+    "physicalLengthsMM": [
+      64,
+      68
+    ],
+    "runs": [
+      {
+        "directory": "/tmp/barocss-d537-studio01",
+        "status": "FAIL",
+        "snapshots": 3,
+        "bindings": 0,
+        "sourcePins": 761,
+        "receiptSHA256": "7d7e900aebc6ea18c823a572a7825c8ca38526295db18bf669d300e167905348"
+      },
+      {
+        "directory": "/tmp/barocss-d537-studio02",
+        "status": "FAIL_WITH_ELIGIBLE_PREFIX",
+        "snapshots": 18,
+        "bindings": 8,
+        "mainCaptures": 4,
+        "reuses": 4,
+        "sourcePins": 762,
+        "receiptSHA256": "8f72fc9ff53dee3441c079fa5ebace0096f139b01d31d1e1403505de1e0b3c1e"
+      },
+      {
+        "directory": "/tmp/barocss-d537-studio03",
+        "status": "PASS_CHANGED_BIND_AND_CONTINUATION_TAIL",
+        "snapshots": 8,
+        "bindings": 3,
+        "mainCaptures": 3,
+        "reuses": 0,
+        "sourcePins": 763,
+        "receiptSHA256": "a475186817efce7298d47ddc8f1c5c0934e2f9806c1e7bfc11e06a40e9dcdc76"
+      }
+    ],
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "downloads": 0,
+    "sourceHashesUnchangedWithinEveryRun": true,
+    "ownedProjectRemovedAndAbsent": true,
+    "allOwnedContextsBrowsersServersClosed": true,
+    "rootViewedOriginalScreenshots": true,
+    "oneUninterruptedSuccessfulRun": false,
+    "draftWorkerSubmissions": 0,
+    "accepted68WorkerSubmissionsObserved": 2
+  },
+  "ownProject": {
+    "bytes": 4576,
+    "sha256": "fab4a5d398b0ae8dfa5b3f1e5ecf1df4faad20bff7c105eee2c6642168c06cf3",
+    "state": "raw named Span68, seed60",
+    "dirtySubsequentStatesResaved": false
+  },
+  "numeric": {
+    "sourceLinearResidualMaxMM": 0,
+    "sourceAngularResidualMaxRad": 6.123233995736766e-17,
+    "sourceLinearBudgetMM": 1e-07,
+    "sourceAngularBudgetRad": 1e-09,
+    "nativeBudget": 1e-09,
+    "maxVolumeRelativeError": 4.419347866821345e-16,
+    "maxCentroidAbsErrorMM": 1.7763568394002505e-14,
+    "maxPcurveLiftMM": 1.432144669219779e-14,
+    "freeDof": 2,
+    "geometryAuthority": "independent actual-source line/arc integration and original native graph/cap traversal",
+    "density": {
+      "value": 1,
+      "unit": "g/cm3",
+      "volume": "mm3",
+      "mass": "g"
+    },
+    "finalCounts": {
+      "faces": 14,
+      "loops": 16,
+      "edges": 36,
+      "vertices": 24,
+      "genus": 1
+    },
+    "preFilletCounts": {
+      "faces": 13,
+      "loops": 15,
+      "edges": 33,
+      "vertices": 22,
+      "genus": 1
+    }
+  },
+  "source": {
+    "drivenSHA256": "b9cbffabd5e1bd28d43e146182f4ab0b5d6ca3e6da48e79038a9e415654bd0e2",
+    "partSHA256": "f0d3dc0e5321ff11e13413ff1ad84bdda0ad555f2824b5d482467041cfa36460",
+    "seedSHA256": "cdfeb4bda2509da3748a3c1ae071a682e7408ee0bdabb5595ae74062b30b4758",
+    "rawEvidenceCommitted": false,
+    "postExecutionEdit": "one whitespace-only browser-driver blank line; exact executed source remains pinned externally"
+  },
+  "runtime": {
+    "node": "22.19.0",
+    "PW_DIR": "/Users/user/.cache/barocss-playwright/node_modules/playwright",
+    "CHROME": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "CAD_STUDIO_CHAT_PORT": 52391,
+    "gate": "/Users/user/.claude/local-mods/barocss-lanes-guard/bin/gate.sh",
+    "heavyJobsSerial": true,
+    "worktreeWritesDuringActual": false
+  },
+  "issues": {
+    "532": "OPEN: broader CON requirements unmet",
+    "549": "already CLOSED on live inspection; no closure action"
+  },
+  "NOT_RUN": [
+    "general or multiple or radius bindings",
+    "bound topology edits",
+    "generic solver and full constraint coverage",
+    "wider geometry/inertia/manufacturing",
+    "cold-process project recovery",
+    "final dirty-state resave",
+    "standalone file rematching",
+    "full kernel or packed builds",
+    "fresh external/OCP reader",
+    "mobile",
+    "downloads",
+    "paid live",
+    "new CI",
+    "develop integration",
+    "release"
+  ],
+  "next": "D538 / P1 B01 retained-evidence ledger and first uncovered daily-bracket acceptance step"
+}

@@ -22,14 +22,21 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDel
       {filletType && <FilletTypeFields type={filletType} mode={draft[index]?.kind === 'fillet' && draft[index].radii ? 'varying' : 'constant'} fixed />}
       {onEditSketch && <button className="ghost" aria-label="Edit sketch" title="Reopen the sketch this feature is made from, with its constraints" onClick={onEditSketch}><Icon name="draw" small /> Edit sketch</button>}
       {fields.length ? fields.map(f => (
-        <label key={f.key} className="field"><span>{f.label}</span>
+        <div key={f.key} className="field"><span>{f.label}</span>
           {f.kind === 'number' ? <span className="num"><input type="number" step="any" aria-label={f.label} value={typed[f.key] ?? f.get(draft)} disabled={pending || !!(f as BindableField).param?.(draft)} onChange={e => { const t = e.target.value, v = Number(t); setTyped(m => ({ ...m, [f.key]: t })); if (t.trim() !== '' && Number.isFinite(v)) setDraft(d => f.set(d, v)); }} />{f.unit && <em>{f.unit}</em>}
             {names.length > 0 && 'bind' in f && <select className="param-bind" disabled={pending} aria-label={`${f.label} parameter`} data-tip="Parameter" data-tip-desc="Bind this value to a named parameter (Parameters panel)" value={(f as BindableField).param(draft) ?? ''}
-              onChange={e => { const b = f as BindableField, name = e.target.value; if (!name) { setDraft(d => b.set(d, b.get(d))); return; } const next = b.bind(draft, name); if (next) { setDraft(next); setTyped(m => Object.fromEntries(Object.entries(m).filter(([k]) => k !== f.key))); } else onRefuse(`${f.label} is not stored as it is shown, so it cannot take a parameter.`); }}>
+              onChange={e => {
+                const b = f as BindableField, name = e.target.value;
+                try {
+                  const next = name ? b.bind(draft, name) : b.set(draft, b.get(draft));
+                  if (next) { setDraft(next); setTyped(m => Object.fromEntries(Object.entries(m).filter(([k]) => k !== f.key))); }
+                  else onRefuse(`${f.label} is not stored as it is shown, so it cannot take a parameter.`);
+                } catch (error) { onRefuse(error instanceof Error ? error.message.replace(/^\[\w+\] /, '') : String(error)); }
+              }}>
               <option value="">ƒ</option>{names.map(n => <option key={n} value={n}>{n}</option>)}</select>}</span>
             : f.kind === 'choice' ? <select disabled={pending} aria-label={f.label} value={f.get(draft)} onChange={e => setDraft(d => f.set(d, e.target.value))}>{f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
             : <input type="checkbox" className="check" disabled={pending} aria-label={f.label} checked={f.get(draft)} onChange={e => setDraft(d => f.set(d, e.target.checked))} />}
-        </label>
+        </div>
       )) : <div className="empty">This feature has no editable dimensions.</div>}
       {draft[index]?.kind === 'fill-feature-pattern' && <FillPatternHints />}
       {onDelete && <button className="ghost danger" disabled={pending} aria-label="Delete feature" title="Delete this feature (and the sketch only it uses) · Undo restores it" onClick={onDelete}><Icon name="delete" small /> Delete feature</button>}

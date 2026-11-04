@@ -212,7 +212,7 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
     case 'housing-ref': return firstProblem(checkBearingHousingRef(v));
     case 'positive-index': return typeof v === 'number' && Number.isSafeInteger(v) && v >= 1 ? null : 'a positive safe integer';
     case 'shaft-node': return typeof v === 'number' && Number.isInteger(v) && nodes[v]?.kind === 'shaft' ? null : 'an existing shaft node index';
-    case 'body-node': return typeof v === 'number' && Number.isInteger(v) && v >= 0 && v < nodes.length && nodes[v].kind !== 'sketch' ? null : 'an existing body node index';
+    case 'body-node': return typeof v === 'number' && Number.isInteger(v) && v >= 0 && v < nodes.length && nodes[v].kind !== 'sketch' && nodes[v].kind !== 'driven-sketch' ? null : 'an existing body node index';
     case 'text': return typeof v === 'string' ? null : 'text';
     case 'num': return typeof v === 'number' && Number.isFinite(v) ? null : 'a number';
     case 'pos': return typeof v === 'number' && v > 0 ? null : 'a positive number';
@@ -334,7 +334,7 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
     case 'names1': return Array.isArray(v) && v.length > 0 && v.every(n => typeof n === 'string') ? null : 'a non-empty list of edge names';
     case 'sketch': {
       if (!Number.isInteger(v) || (v as number) < 0 || (v as number) >= nodes.length) return `the index of an earlier sketch (0–${nodes.length - 1})`;
-      return nodes[v as number].kind === 'sketch' ? null : `feature ${v} is a ${nodes[v as number].kind}, not a sketch`;
+      return (nodes[v as number].kind === 'sketch' || nodes[v as number].kind === 'driven-sketch') ? null : `feature ${v} is a ${nodes[v as number].kind}, not a sketch`;
     }
     case 'loft-guide': {
       // (CG1.3: a general guide, a polynomial B-spline on sections stacked by z; its knots and shape are the kernel's to admit.)
@@ -394,7 +394,7 @@ export function renumber(node: ModelNode, map: (i: number) => number): ModelNode
   const n = { ...node } as Record<string, unknown> & ModelNode;
   if ('sketch' in n && typeof n.sketch === 'number') n.sketch = map(n.sketch);
   if (n.kind === 'loft') { (n as Extract<ModelNode, { kind: 'loft' }>).sections = n.sections.map(s => ({ ...s, sketch: map(s.sketch) })); if (n.from) (n as { from: number[] }).from = n.from.map(map); }
-  if (n.kind === 'sketch' && n.on) (n as { on: BodyRef }).on = ref(n.on);
+  if ((n.kind === 'sketch' || n.kind === 'driven-sketch') && n.on) (n as { on: BodyRef }).on = ref(n.on);
   if (n.kind === 'sketch' && n.association !== undefined) { parentsOf(n); n.association = { ...n.association, source: ref(n.association.source) }; }
   if ((n.kind === 'gear' || n.kind === 'rack' || n.kind === 'bevel-gear' || n.kind === 'worm') && n.mesh) (n as { mesh: GearMesh }).mesh = { ...n.mesh, gear: map(n.mesh.gear) };
   // (R12c.3b, D157: the shaft a key, ring or pin goes on, and a key's hub keyway.)
@@ -460,7 +460,7 @@ export function deleteFeature(doc: StudioDoc, index: number): { doc: StudioDoc; 
   if (!Number.isInteger(index) || index < 0 || index >= nodes.length) return { error: `There is no feature ${index} (features 0–${nodes.length - 1}).` };
   const users = (i: number) => nodes.flatMap((n, k) => usesOf(n).includes(i) ? [k] : []);
   const removed = new Set([index]);
-  for (const s of parentsOf(nodes[index])) if (nodes[s]?.kind === 'sketch' && users(s).every(k => k === index)) removed.add(s);
+  for (const s of parentsOf(nodes[index])) if ((nodes[s]?.kind === 'sketch' || nodes[s]?.kind === 'driven-sketch') && users(s).every(k => k === index)) removed.add(s);
   const blocking = [...removed].flatMap(users).filter(k => !removed.has(k));
   // (FRf, O121: a skeleton or sketch frames follow: refused, typed, naming them.)
   const followers = followersOf(nodes, index);
@@ -518,7 +518,7 @@ export function featureDependents(doc: StudioDoc, index: number): number[] {
     const n = nodes[k];
     if (usesOf(n).some(p => gone.has(p)) || named(n).some(name => nodesOfName(nodes, name).some(i => gone.has(i)))) gone.add(k);
   }
-  return [...gone].filter(k => k !== index && nodes[k].kind !== 'sketch').sort((a, b) => a - b);
+  return [...gone].filter(k => k !== index && nodes[k].kind !== 'sketch' && nodes[k].kind !== 'driven-sketch').sort((a, b) => a - b);
 }
 
 /**
@@ -530,10 +530,10 @@ function steps(nodes: readonly ModelNode[]): [number, number][] {
   let i = nodes.length - 1;
   while (i >= 0) {
     const n = nodes[i];
-    if (n.kind === 'sketch') { out.unshift([i, i]); i--; continue; }
+    if (n.kind === 'sketch' || n.kind === 'driven-sketch') { out.unshift([i, i]); i--; continue; }
     let first = i - (('made' in n && n.made?.nodes) ? n.made.nodes - 1 : 0);
     // Its own sketches just before it.
-    while (first > 0 && nodes[first - 1].kind === 'sketch' && users(first - 1).length && users(first - 1).every(k => k >= first && k <= i)) first--;
+    while (first > 0 && (nodes[first - 1].kind === 'sketch' || nodes[first - 1].kind === 'driven-sketch') && users(first - 1).length && users(first - 1).every(k => k >= first && k <= i)) first--;
     out.unshift([first, i]); i = first - 1;
   }
   return out;
@@ -551,7 +551,7 @@ export function moveFeature(doc: StudioDoc, index: number, dir: -1 | 1): { doc: 
   const [early, late] = dir < 0 ? [other, all[at]] : [all[at], other];
   const inEarly = (k: number) => k >= early[0] && k <= early[1];
   for (let k = late[0]; k <= late[1]; k++) {
-    const n = nodes[k], uses = [...usesOf(n), ...(n.kind === 'sketch' && n.on ? [n.on.node] : [])].filter(inEarly);
+    const n = nodes[k], uses = [...usesOf(n), ...((n.kind === 'sketch' || n.kind === 'driven-sketch') && n.on ? [n.on.node] : [])].filter(inEarly);
     const names = named(n).flatMap(name => nodesOfName(nodes, name)).filter(inEarly);
     if (uses.length || names.length) return { error: `${dir < 0 ? 'It' : 'The next step'} is built on ${dir < 0 ? 'the step before it' : 'it'}: it cannot come first.` };
   }

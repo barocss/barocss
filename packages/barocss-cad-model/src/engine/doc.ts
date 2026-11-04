@@ -361,6 +361,21 @@ export type SketchNode =
   | ({ kind: 'sketch'; profile: 'loop'; segments: LoopSegment[] } & OnPlane)
   | ({ kind: 'sketch'; profile: 'band'; band: SketchBand } & OnPlane);
 
+/** Numeric authored geometry for the one-line named driving-length contract. */
+type NumericSketchValue<T> = T extends Dim ? number : T extends readonly unknown[] ? { [K in keyof T]: NumericSketchValue<T[K]> } : T extends object ? { [K in keyof T]: NumericSketchValue<T[K]> } : T;
+export type NumericDrivenSketchSeed = {
+  profile: 'loop'; segments: NumericSketchValue<LoopSegment>[];
+  outline: Omit<SketchOutline, 'spline' | 'ellipse'>;
+  sideTags: NonNullable<Extract<SketchNode, { profile: 'loop' }>['sideTags']>;
+  holes?: NumericSketchValue<LoopSegment>[][]; regions?: NumericSketchValue<LoopSegment>[][];
+  construction?: unknown[];
+};
+export type DrivenSketchNode = {
+  kind: 'driven-sketch'; version: 1; seed: NumericDrivenSketchSeed;
+  bindings: [{ kind: 'line-length'; entity: string; value: { parameter: string } }];
+  plane?: DocPlane; on?: BodyRef;
+} & NodeExtras;
+
 /**
  * A feature of the part; `suppressed`: left out of the model for now (see engine/part.ts), kept in its history.
  * `id`: its stable feature id (`n<k>`, see engine/ids.ts): the prefix of its faces' and edges' names.
@@ -378,7 +393,7 @@ export type NodeExtras = { suppressed?: true; id?: string; rematched?: Record<st
  */
 export const NODE_EXTRA_FIELDS = ['suppressed', 'id', 'rematched', 'sigs', 'held', 'bought'] as const satisfies readonly (keyof NodeExtras)[];
 export const _nodeFieldsComplete: [Exclude<keyof NodeExtras, typeof NODE_EXTRA_FIELDS[number]>] extends [never] ? true : never = true;
-type ModelNodeBase = SketchNode | TextNode | TextReliefNode | CylindricalWrapNode
+type ModelNodeBase = DrivenSketchNode | SketchNode | TextNode | TextReliefNode | CylindricalWrapNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made }
   /** The sketch turned about its X or Y axis (through `origin`, default the sketch origin) towards +Z. */
@@ -973,7 +988,8 @@ export function carryOver(next: StudioDoc, was: StudioDoc, doc: StudioDoc): Stud
 
 export const emptyDoc = (): StudioDoc => ({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {}, nextId: 0 });
 
-export const isSolidNode = (node: ModelNode) => node.kind !== 'sketch' && node.kind !== 'skeleton';
+export const isSketchNode = (node: ModelNode): node is (SketchNode | DrivenSketchNode) & NodeExtras => node.kind === 'sketch' || node.kind === 'driven-sketch';
+export const isSolidNode = (node: ModelNode) => node.kind !== 'sketch' && node.kind !== 'driven-sketch' && node.kind !== 'skeleton';
 
 /** A gear meshing with an earlier one (node `gear`). */
 export interface GearMesh { gear: number; direction?: number; centerDistance?: Dim; phase?: number }
@@ -993,6 +1009,7 @@ export const usesOf = (node: ModelNode): number[] => node.kind === 'oring' ? [no
 
 export function parentsOf(node: ModelNode): number[] {
   switch (node.kind) {
+    case 'driven-sketch': return [];
     case 'sketch': {
       if (node.association === undefined) return [];
       const a = node.association;
@@ -1020,7 +1037,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   nodes.forEach(node => {
     // (A library part added to a body consumes it, as a Boolean's first body.)
     if (node.kind === 'library' && node.addTo) { consumed.add(node.addTo.side === 'solid' ? String(node.addTo.node) : `${node.addTo.node}_${node.addTo.side}`); return; }
-    if (node.kind === 'sketch' || node.kind === 'skeleton' || node.kind === 'text' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'band-surface' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
+    if (node.kind === 'sketch' || node.kind === 'driven-sketch' || node.kind === 'skeleton' || node.kind === 'text' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'band-surface' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -1137,6 +1154,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'cylindrical-wrap': return 'Cylindrical wrap';
     case 'band-surface': return 'Band surface';
     case 'text-relief': return `${node.mode === 'emboss' ? 'Text emboss' : 'Text engrave'} · ${node.text}`;
+    case 'driven-sketch': return 'Sketch · driven outline';
     case 'sketch': return `Sketch · ${node.profile === 'loop' ? 'outline' : node.profile}`;
     case 'extrude': {
       const s = nodes[node.sketch];

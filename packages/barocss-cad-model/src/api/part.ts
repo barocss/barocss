@@ -450,7 +450,7 @@ export class StudioPart extends Part<StudioDoc> {
    * bearing (null: back to the default for their kind). The BOM and the purchase list then list them as bought.
    */
   bought(value: boolean | null = true, features?: readonly string[]): this {
-    const ids = features ?? this.document.nodes.flatMap(n => n.id && n.kind !== 'sketch' ? [n.id] : []);
+    const ids = features ?? this.document.nodes.flatMap(n => n.id && n.kind !== 'sketch' && n.kind !== 'driven-sketch' ? [n.id] : []);
     const known = new Set(this.document.nodes.flatMap(n => n.id ? [n.id] : [])), unknown = ids.filter(f => !known.has(f));
     if (unknown.length) throw refuse('FEATURE_UNKNOWN', `no feature ${unknown.join(', ')}; the features are ${[...known].join(', ') || 'none'}`);
     return this.next(setBought(this.document, ids.map(f => `base:${f}`), value), this.focus);

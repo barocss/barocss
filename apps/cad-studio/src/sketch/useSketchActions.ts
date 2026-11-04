@@ -123,7 +123,9 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   };
   /** Reopens the sketch node `index` in the sketcher (Select tool, its kept constraints back); Finish writes it back in place. */
   const editSketch = (index: number) => {
-    const stored = doc.nodes[index]; if (stored?.kind !== 'sketch') return;
+    const stored = doc.nodes[index];
+    if (stored?.kind === 'driven-sketch') { setToast({ title: 'Cannot edit sketch', hint: 'Unbind the line length before editing this sketch.', detail: '' }); return; }
+    if (stored?.kind !== 'sketch') return;
     let node: SketchNode;
     try { node = stored.association !== undefined ? resolveAssociativeSketch(doc, index) : stored; }
     catch (error) { setToast({ title: 'Cannot open linked sketch', hint: error instanceof Error ? error.message : String(error), detail: '' }); return; }
@@ -151,6 +153,9 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   };
   const finishSketch = useCallback(() => {
     if (!canChangeDocument()) return;
+    if (sketch?.editNode !== undefined && (doc.nodes[sketch.editNode]?.kind === 'driven-sketch' || docNow.current.nodes[sketch.editNode]?.kind === 'driven-sketch')) {
+      setToast({ title: 'Cannot edit sketch', hint: 'Unbind the line length before editing this sketch.', detail: '' }); return;
+    }
     if (!sketch || (!sketch.shape && !sketch.done?.length)) { setSketch(null); return; }
     const requestedGeneration = sketchGeneration.current;
     const linked = !!(sketch.association || sketch.associationDetached);

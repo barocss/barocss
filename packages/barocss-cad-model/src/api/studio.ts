@@ -131,7 +131,7 @@ export const studioBackend: PartBackend<StudioDoc> = {
   suppress(doc, id, suppressed) {
     // (The History panel's toggle, App.tsx: the flag added, or the key taken away; never on a sketch, a split or a separate.)
     const i = doc.nodes.findIndex(n => n.id === id), node = doc.nodes[i];
-    if (node.kind === 'sketch' || node.kind === 'split' || node.kind === 'separate') throw refuse('UNAVAILABLE', `a ${node.kind} can't be suppressed (the History offers no toggle for it)`);
+    if (node.kind === 'sketch' || node.kind === 'driven-sketch' || node.kind === 'split' || node.kind === 'separate') throw refuse('UNAVAILABLE', `a ${node.kind} can't be suppressed (the History offers no toggle for it)`);
     if (!!node.suppressed === suppressed) return doc;
     const { suppressed: _s, ...rest } = node; void _s;
     const next = { ...doc, nodes: doc.nodes.map((x, k) => k !== i ? x : suppressed ? { ...x, suppressed: true as const } : rest as ModelNode) };

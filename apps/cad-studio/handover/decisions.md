@@ -6,6 +6,27 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — latest records
 
+- [D537: deliver one persistent named sketch LINE contract; FULL checks and joined root Studio pass, original failures retained](notes/named-sketch-length-2026-11-05/README.md).
+
+- [D536: qualify numeric mixed driving-line Edit/Finish and preserve the oracle preparation failure](notes/mixed-line-dimension-2026-11-05/README.md).
+
+- [D535: qualify Shell source width, collapse retention and current parent geometry](notes/shell-width-lifecycle-2026-11-05/README.md).
+
+- [D534: qualify Linear CUT source/spacing/count/suppression and project lifecycle](notes/linear-cut-pattern-lifecycle-2026-11-05/README.md).
+
+- [D533: qualify the composed Through Hole and Chamfer lifecycle with retained first readiness failure](notes/hole-chamfer-lifecycle-2026-11-05/README.md).
+
+- [D532: add the repeatable fast public API smoke entry and verification inventory](notes/repeatable-api-smoke-2026-11-05/README.md).
+
+- [D531: expose bounded public STEP loss reporting with current Studio preview](notes/public-step-loss-report-2026-11-05/README.md).
+
+- [D530: preserve bounded public native mass provenance and explicit estimation](notes/public-mass-provenance-2026-11-05/README.md).
+
+- [D529: own React observations while preserving declared extension borrowing](notes/react-observation-ownership-2026-11-05/README.md).
+
+- [D528: qualify settled React Worker failure and explicit restart](notes/react-settled-worker-recovery-2026-11-05/README.md).
+
+
 - [D527: isolate content memo per evaluator while retaining LRU/eviction;81 tests and root actual reference Open pass](notes/evaluator-memo-ownership-2026-11-05/README.md).
 
 - [D526: align public Model positive-finite density refusal;29 tests,4 mutant kills, multiple audits and root material/BOM Studio pass](notes/public-model-density-2026-11-05/README.md).

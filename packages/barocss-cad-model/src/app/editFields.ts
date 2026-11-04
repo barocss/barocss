@@ -84,6 +84,7 @@ function bandFields(nodes: Nodes, s: number, prefix: string): EditField[] {
 /** Width, depth and corner of a rectangle; diameter and centre of a circle; a drawn outline's driving dimensions. */
 function sketchFields(nodes: Nodes, s: number, prefix: string, params: Record<string, number> = {}): EditField[] {
   const sk = nodes[s] as SketchNode | undefined, out: EditField[] = [];
+  if (nodes[s]?.kind === 'driven-sketch') return outlineFields(nodes, s, prefix, params);
   if (!sk || sk.kind !== 'sketch') return out;
   const at = (n: Nodes) => n[s] as SketchNode;
   if (sk.profile === 'rectangle') {
@@ -126,7 +127,7 @@ export interface EditScope { readonly context?: BearingAssemblyContext; readonly
 export function editFields(nodes: Nodes, i: number, params?: Record<string, number>, bearingAssembly?: BearingAssemblyInput, scope?: EditScope): EditField[] {
   const raw = editFieldsRaw(nodes, i, bearingAssembly, scope, params ?? scope?.doc?.parameters ?? {});
   if (!params) return raw;
-  return raw.map(f => f.kind !== 'number' || (nodes[i]?.kind === 'sew' && f.key === 'tol') ? f : {
+  return raw.map(f => f.kind !== 'number' || 'bind' in f || (nodes[i]?.kind === 'sew' && f.key === 'tol') ? f : {
     ...f,
     get: n => within(params, () => f.get(n)).value,
     set: (n, v) => within(params, () => f.set(n, v)).value,
@@ -134,7 +135,7 @@ export function editFields(nodes: Nodes, i: number, params?: Record<string, numb
     bind: (n: Nodes, name: string) => {
       if (((n[i]?.kind === 'linear-feature-pattern' || n[i]?.kind === 'curve-feature-pattern') && f.key === 'count') || ((n[i]?.kind === 'rectangular-feature-pattern' || n[i]?.kind === 'fill-feature-pattern') && (f.key === 'count' || f.key === 'count2'))) return null;
       if (n[i]?.kind === 'fill-feature-pattern' && (f.key === 'anchorX' || f.key === 'anchorY')) return null;
-      if (!(name in params)) return null;
+      if (!Object.hasOwn(params, name)) return null;
       const next = within(params, () => f.set(n, params[name])).value;
       // (The value must land as it is in one place: then that place holds the reference.)
       const where = changedLeaf(n, next);
@@ -164,6 +165,7 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
   const number = (key: string, label: string, unit: 'mm' | '°' | '%' | undefined, get: (n: ModelNode) => number, set: (n: ModelNode, v: number) => ModelNode) =>
     out.push({ kind: 'number', key, label, ...(unit ? { unit } : {}), get: n => get(self(n)), set: (n, v) => replace(n, i, set(self(n), v)) });
   switch (node.kind) {
+    case 'driven-sketch': case 'sketch': return sketchFields(nodes, i, '', parameters);
     case 'extrude':
       out.push(...sketchFields(nodes, node.sketch, '', parameters));
       number('h', 'Distance', 'mm', n => num((n as typeof node).height), (n, v) => ({ ...(n as typeof node), height: v }));

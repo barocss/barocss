@@ -847,7 +847,7 @@ export function App() {
     if (!canChangeDocument()) return false;
     // Counted as the History bar shows them: sketches are part of the feature made from them.
     const nextFeatureIds = marker !== null ? new Set(next.nodes.map((_, i) => featureId(next.nodes, i))) : null;
-    const dropped = !whole && marker !== null && nextFeatureIds ? doc.nodes.slice(marker).filter((n, i) => n.kind !== 'sketch' && !nextFeatureIds.has(featureId(doc.nodes, marker + i))).length : 0;
+    const dropped = !whole && marker !== null && nextFeatureIds ? doc.nodes.slice(marker).filter((n, i) => n.kind !== 'sketch' && n.kind !== 'driven-sketch' && !nextFeatureIds.has(featureId(doc.nodes, marker + i))).length : 0;
     // Commands build on the evaluated document, which follows the model only: what they leave as it was
     // there (every field but the model's own: engine/doc.ts carryOver) is the document's newest.
     const was = evaluatedRef.current;
@@ -1718,6 +1718,7 @@ export function App() {
   /** A sketch's profile as DXF, 1:1 in its plane (R11b, O1). */
   const exportSketchDxf = (index: number) => {
     const n = doc.nodes[index];
+    if (n?.kind === 'driven-sketch') { setToast({ title: 'Could not write the DXF', hint: 'Unbind the line length before exporting this sketch.', detail: '' }); return; }
     if (n?.kind !== 'sketch') return;
     try { downloadBytes(sketchDxf(n, doc.parameters).bytes, `${fileName}-sketch-${index + 1}.dxf`, 'image/vnd.dxf'); }
     catch (e) { setToast({ title: 'Could not write the DXF', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
@@ -2213,7 +2214,14 @@ export function App() {
       {skel.session && !rendering && !drawing && <SkeletonPanel editor={skel} name={skel.session.node === null ? 'new skeleton' : featureLabel(doc.nodes[skel.session.node], skel.session.node, doc.nodes)} />}
       {!cageEd.session && !skel.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <SelectionInspector model={{ doc, evaluated, bodies, fresh, busy, massReady }} selection={selection} materialSettings={{ material, setMaterial }}
         display={{ showBox, setShowBox, inertiaAt, setInertiaAt }} changes={{ commit, setSelection, edgesToCurves, loadBendTable, setFlatView, setCutListView, separate }}>
-        {editNode !== null && <NodeEditor nodes={doc.nodes} parameters={doc.parameters} doc={doc} pending={parameterEdit?.kind === 'direct'} pendingLabel={doc.nodes[editNode]?.kind === 'fill-feature-pattern' ? 'Checking the fill cut pattern…' : 'Checking the path cut pattern…'} bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n?.kind === 'sketch' ? editNode : n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
+        {editNode !== null && <NodeEditor nodes={doc.nodes} parameters={doc.parameters} doc={doc} pending={parameterEdit?.kind === 'direct'} pendingLabel={doc.nodes[editNode]?.kind === 'fill-feature-pattern' ? 'Checking the fill cut pattern…' : 'Checking the path cut pattern…'} bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode} onEditSketch={(() => {
+          const n = doc.nodes[editNode], s = n?.kind === 'sketch' || n?.kind === 'driven-sketch' ? editNode : n && 'sketch' in n ? n.sketch : null;
+          if (s === null || (doc.nodes[s]?.kind !== 'sketch' && doc.nodes[s]?.kind !== 'driven-sketch')) return undefined;
+          return () => {
+            if (doc.nodes[s]?.kind === 'driven-sketch') { setToast({ title: 'Cannot edit sketch', hint: 'Unbind the line length before editing this sketch.', detail: '' }); return; }
+            editSketch(s);
+          };
+        })()} onApply={nodes => {
           if (!canChangeDocument()) return;
           const scope = bearingEditScope.current;
           const next = { ...doc, nodes: dropStaleMade(doc.nodes, nodes) };

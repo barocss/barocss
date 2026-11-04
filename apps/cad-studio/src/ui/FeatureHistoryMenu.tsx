@@ -18,14 +18,14 @@ export function FeatureHistoryMenu({ doc, ctx, marker, historyMenu, close, edito
   const { toggleSuppress, reorder, setMarker, deleteNode } = history;
   const totalNodes = doc.nodes.length;
   return <>      {historyMenu && doc.nodes[historyMenu.index] && (() => {
-        const i = historyMenu.index, n = doc.nodes[i], sk = n.kind === 'sketch' ? i : 'sketch' in n && typeof n.sketch === 'number' && doc.nodes[n.sketch]?.kind === 'sketch' ? n.sketch : null;
+        const i = historyMenu.index, n = doc.nodes[i], sk = n.kind === 'sketch' || n.kind === 'driven-sketch' ? i : 'sketch' in n && typeof n.sketch === 'number' && (doc.nodes[n.sketch]?.kind === 'sketch' || doc.nodes[n.sketch]?.kind === 'driven-sketch') ? n.sketch : null;
         return <ContextMenu at={historyMenu.at} title={featureLabel(n, i, doc.nodes).toUpperCase()} ctx={ctx} commands={false} onClose={() => close()} onRun={() => {}}
           actions={[
             { label: 'Edit', icon: 'cad-edit', run: () => { setEditNode(i); setInstanceSel([]); setDirectSel([]); } },
             ...(sk !== null ? [{ label: 'Edit sketch', icon: 'cad-sketch', run: () => editSketch(sk) }, { label: 'Export sketch DXF', icon: 'download', run: () => exportSketchDxf(sk) }] : []),
             ...(n.kind === 'skeleton' ? [{ label: 'Edit in 3D sketch', icon: 'cad-sketch3d', run: () => { cancel(); beginSkeleton(i); setSelection(emptySel); setEditNode(null); } }] : []),
             // (A split's halves are separate bodies the model refers to: it stays.)
-            ...(n.kind !== 'sketch' && n.kind !== 'split' && n.kind !== 'separate' ? [{ label: n.suppressed ? 'Unsuppress' : 'Suppress', icon: n.suppressed ? 'visibility' : 'visibility_off', run: () => toggleSuppress(i) }] : []),
+            ...(n.kind !== 'sketch' && n.kind !== 'driven-sketch' && n.kind !== 'split' && n.kind !== 'separate' ? [{ label: n.suppressed ? 'Unsuppress' : 'Suppress', icon: n.suppressed ? 'visibility' : 'visibility_off', run: () => toggleSuppress(i) }] : []),
             { label: 'Move earlier', icon: 'arrow_back', run: () => reorder(i, -1) },
             { label: 'Move later', icon: 'arrow_forward', run: () => reorder(i, 1) },
             { label: 'Roll back to here', icon: 'undo', run: () => setMarker(i + 1 >= totalNodes ? null : i + 1) },

@@ -26,7 +26,7 @@ export function threadsOf(nodes: readonly ModelNode[], sizes: FastenerSizes): Ma
       // (A nut's bore is a hole in its sketch; a shank's circle has none.)
       for (let k = i - (made.nodes ?? 2) + 1; k <= i; k++) {
         const e = nodes[k], sk = e?.kind === 'extrude' ? nodes[e.sketch] : undefined;
-        out.set(featureId(nodes, k), { d: size.d, pitch: size.pitch, radius: size.d / 2, internal: !!(sk?.kind === 'sketch' && sk.holes?.length) });
+        out.set(featureId(nodes, k), { d: size.d, pitch: size.pitch, radius: size.d / 2, internal: !!(sk?.kind === 'sketch' ? sk.holes?.length : sk?.kind === 'driven-sketch' ? sk.seed.holes?.length : false) });
       }
     }
   });

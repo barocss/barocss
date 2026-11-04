@@ -140,7 +140,7 @@ export function bearingHousingPatch(value: string): { housing?: number; housingR
   return { housing: Number(value) };
 }
 export function bearingHousingOptions(nodes: readonly ModelNode[], assembly?: BearingAssemblyInput, context?: BearingAssemblyContext): { value: string; label: string }[] {
-  const own = nodes.flatMap((n, i) => n.kind === 'sketch' ? [] : [{ value: String(i), label: `n${i}: ${featureLabel(n, i, nodes)}` }]);
+  const own = nodes.flatMap((n, i) => n.kind === 'sketch' || n.kind === 'driven-sketch' ? [] : [{ value: String(i), label: `n${i}: ${featureLabel(n, i, nodes)}` }]);
   const other: { value: string; label: string }[] = [];
   if (assembly || context) {
     const targets = assembly ? [{ id: 'base', name: 'base', doc: assembly.root }, ...(assembly.root.instances ?? []).filter(i => !i.hidden)] : context!.targets.filter(t => !t.hidden).map(t => ({ id: t.part, name: t.part, doc: t.doc }));

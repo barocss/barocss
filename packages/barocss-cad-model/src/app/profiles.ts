@@ -1,9 +1,10 @@
+import { resolveDrivenSketch } from '../sketch/driven';
 // Finished sketches as profiles the feature commands take (Extrude, Revolve, Pipe, Loft): which sketches no
 // feature uses yet, the picked ones, where they lie (outlines in world space, to draw and pick), and the
 // sketches of a loft brought onto its first section's plane (the kernel lofts sections of one plane).
 import type { LoftSectionFrame } from '@barocss/cad';
 import type { Vec3 } from '../engine/mesh';
-import { NODE_EXTRA_FIELDS, parentsOf, type LoopSegment, type ModelNode, type SketchNode } from '../engine/doc';
+import { NODE_EXTRA_FIELDS, parentsOf, type LoopSegment, type ModelNode, type NodeExtras, type DrivenSketchNode, type SketchNode } from '../engine/doc';
 import { toLocal, toWorld, xyPlane, yAxisOf, type SketchPlane } from '../sketch/plane';
 import { loopOf } from '../sketch/loops';
 import { resolveSketchDims } from '../sketch/reopen';
@@ -15,8 +16,9 @@ const num = (v: unknown) => Number(v);
 type Params = Readonly<Record<string, number>>;
 // A stored sketch with its `{ parameter }` sizes as numbers now; refuses a missing or non-finite parameter (as reopen does).
 // With the sketch's index, a refusal names that sketch ("Sketch 2 uses parameter W, …").
-const valued = (n: SketchNode, params: Params, index?: number): SketchNode => {
+const valued = (n: SketchNode | DrivenSketchNode, params: Params, index?: number): SketchNode => {
   // (B1: a band sketch is the loop its sources make now; a band that cannot be made is refused, never kept as it was.)
+  if (n.kind === 'driven-sketch') return resolveDrivenSketch(n, params);
   if (n.profile === 'band') return bandProfile(n, params, index);
   try { return resolveSketchDims(n, params); } catch (e) {
     if (index === undefined || !isRefusal(e, 'PARAMETER_UNKNOWN')) throw e;
@@ -35,23 +37,23 @@ function collectParameters(v: unknown, names: Set<string>): void {
 /** The parameters picked sketches are bound to, once each by name, with their values now (a bound size that cannot be read is left out). */
 export function boundParameters(nodes: readonly ModelNode[], picked: readonly number[], params: Params = {}): [string, number][] {
   const names = new Set<string>();
-  for (const i of picked) if (nodes[i]?.kind === 'sketch') collectParameters(nodes[i], names);
+  for (const i of picked) if (nodes[i]?.kind === 'sketch' || nodes[i]?.kind === 'driven-sketch') collectParameters(nodes[i], names);
   return [...names].sort().flatMap(name => Object.hasOwn(params, name) && Number.isFinite(params[name]) ? [[name, params[name]] as [string, number]] : []);
 }
 
 /** Sketch nodes no later node uses: the profiles waiting for a feature. */
 export function unusedSketches(nodes: readonly ModelNode[]): number[] {
   const used = new Set(nodes.flatMap(parentsOf));
-  return nodes.flatMap((n, i) => n.kind === 'sketch' && !used.has(i) ? [i] : []);
+  return nodes.flatMap((n, i) => (n.kind === 'sketch' || n.kind === 'driven-sketch') && !used.has(i) ? [i] : []);
 }
 /** The sketches a profile command works on: the picked ones, else the newest unused one. */
 export function pickedSketches(nodes: readonly ModelNode[], picked: readonly number[] | undefined): number[] {
   const free = unusedSketches(nodes);
-  if (picked?.length) return picked.filter(i => nodes[i]?.kind === 'sketch');
+  if (picked?.length) return picked.filter(i => nodes[i]?.kind === 'sketch' || nodes[i]?.kind === 'driven-sketch');
   return free.length ? [free[free.length - 1]] : [];
 }
 
-export const planeOf = (n: SketchNode): SketchPlane => n.plane ? { origin: [...n.plane.origin] as Vec3, normal: [...n.plane.normal] as Vec3, xAxis: [...n.plane.xAxis] as Vec3 } : xyPlane();
+export const planeOf = (n: SketchNode | DrivenSketchNode): SketchPlane => n.plane ? { origin: [...n.plane.origin] as Vec3, normal: [...n.plane.normal] as Vec3, xAxis: [...n.plane.xAxis] as Vec3 } : xyPlane();
 
 /** A loop of line and arc segments as points in the plane (arcs sampled about every 6°). */
 export function sampleLoop(loop: readonly LoopSegment[]): XY[] {
@@ -69,12 +71,12 @@ export function sampleLoop(loop: readonly LoopSegment[]): XY[] {
   return out;
 }
 /** Every loop of a sketch (main, regions, holes) as closed world polylines (parameter-bound sizes at the document's values; refuses a missing parameter). */
-export function profileRings(stored: SketchNode, params: Params = {}): Vec3[][] {
+export function profileRings(stored: SketchNode | DrivenSketchNode, params: Params = {}): Vec3[][] {
   const n = valued(stored, params), plane = planeOf(n);
   return [loopOf(n), ...(n.regions ?? []), ...(n.holes ?? [])].map(loop => sampleLoop(loop).map(p => toWorld(plane, p)));
 }
 /** The middle of a sketch's main loop (plane coordinates; parameter-bound sizes at the document's values; refuses a missing parameter). */
-export function profileMiddle(stored: SketchNode, params: Params = {}): XY {
+export function profileMiddle(stored: SketchNode | DrivenSketchNode, params: Params = {}): XY {
   const pts = sampleLoop(loopOf(valued(stored, params)));
   return [pts.reduce((s, p) => s + p[0], 0) / (pts.length || 1), pts.reduce((s, p) => s + p[1], 0) / (pts.length || 1)];
 }
@@ -88,7 +90,7 @@ export function profileMiddle(stored: SketchNode, params: Params = {}): XY {
  */
 export function loftSections(nodes: readonly ModelNode[], picked: readonly number[], params: Params = {}): { plane: SketchPlane; sections: { node: SketchNode; z: number; source: number }[] } | { error: string } {
   if (picked.length < 2) return { error: 'Pick two or more sketches (Shift-click) to loft through.' };
-  const sketches = picked.map(i => ({ i, n: valued(nodes[i] as SketchNode, params, i) })), base = planeOf(sketches[0].n);
+  const sketches = picked.map(i => ({ i, n: valued(nodes[i] as SketchNode | DrivenSketchNode, params, i) })), base = planeOf(sketches[0].n);
   const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
   const out: { node: SketchNode; z: number; source: number }[] = [];
   for (const { i, n } of sketches) {
@@ -114,12 +116,12 @@ export function framedLoftSections(nodes: readonly ModelNode[], picked: readonly
   const sections: { node: SketchNode; frame: LoftSectionFrame; source: number }[] = [];
   for (const source of picked) {
     const node = nodes[source];
-    if (!Number.isInteger(source) || node?.kind !== 'sketch') return { error: 'A picked loft section is not a finished sketch.' };
+    if (!Number.isInteger(source) || (node?.kind !== 'sketch' && node?.kind !== 'driven-sketch')) return { error: 'A picked loft section is not a finished sketch.' };
     const valuedNode = valued(node, params, source);
     // (After `valued`, as loftSections does: a band sketch is the strip or loop its sources make, and a strip has a hole.)
     if (valuedNode.regions?.length || valuedNode.holes?.length) return { error: `Sketch ${source + 1} has holes or several shapes: a loft section is one closed shape.` };
     const plane = planeOf(node);
-    const copy = structuredClone(valuedNode) as typeof node;
+    const copy = structuredClone(valuedNode) as SketchNode & NodeExtras;
     for (const key of NODE_EXTRA_FIELDS) delete copy[key];
     // Use the existing SketchPlane meaning, including yAxisOf's clean behavior. Do not carry or round profiles.
     sections.push({ node: copy, frame: { origin: [...plane.origin] as Vec3, xAxis: [...plane.xAxis] as Vec3, yAxis: yAxisOf(plane) }, source });

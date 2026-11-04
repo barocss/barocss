@@ -9,7 +9,7 @@ import { bodyKeyFor } from '../engine/ids';
 export function rootOf(nodes: readonly ModelNode[], index: number): number {
   for (let i = index, guard = 0; guard < 4096; guard++) {
     const n = nodes[i]; if (!n) return index;
-    const solids = parentsOf(n).filter(p => nodes[p] && nodes[p].kind !== 'sketch');
+    const solids = parentsOf(n).filter(p => nodes[p] && nodes[p].kind !== 'sketch' && nodes[p].kind !== 'driven-sketch');
     if (!solids.length) return i;
     i = solids[0];
   }

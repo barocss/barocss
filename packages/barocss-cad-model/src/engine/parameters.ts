@@ -1,3 +1,4 @@
+import { bindSketchLengthNode, unbindSketchLengthNode } from '../sketch/driven';
 // A part's named parameters (H1 = 20 …) as core functions, verb(doc, …) → doc (O21; api-conventions §3): added, given
 // new values, renamed everywhere they are used, removed with their uses keeping the value, and bound to a feature's
 // value. The studio's Parameters panel, the agent's features.parameters action and the facade's withParameters call
@@ -22,7 +23,7 @@ function checkValue(name: string, v: unknown): asserts v is number {
   if (typeof v !== 'number' || !Number.isFinite(v)) throw refusal('VALUE', `${name} takes a number, not ${String(v)}`);
 }
 function checkKnown(doc: StudioDoc, names: readonly string[]): void {
-  const unknown = names.filter(k => !(k in doc.parameters));
+  const unknown = names.filter(k => !Object.hasOwn(doc.parameters, k));
   if (unknown.length) throw refusal('PARAMETER_UNKNOWN', `no parameter ${unknown.join(', ')}; the parameters are ${listed(doc.parameters)}`);
 }
 
@@ -37,7 +38,7 @@ export function withParameters(doc: StudioDoc, edits: Readonly<Record<string, nu
 export function addParameters(doc: StudioDoc, values: Readonly<Record<string, number>>): StudioDoc {
   for (const [k, v] of Object.entries(values)) {
     checkName(k); checkValue(k, v);
-    if (k in doc.parameters) throw refusal('PARAMETER_EXISTS', `there is a parameter ${k} already; set its value instead`);
+    if (Object.hasOwn(doc.parameters, k)) throw refusal('PARAMETER_EXISTS', `there is a parameter ${k} already; set its value instead`);
   }
   return { ...doc, parameters: { ...doc.parameters, ...values } };
 }
@@ -46,7 +47,7 @@ export function addParameters(doc: StudioDoc, values: Readonly<Record<string, nu
 export function renameParameter(doc: StudioDoc, from: string, to: string): StudioDoc {
   checkKnown(doc, [from]); checkName(to);
   if (to === from) return doc;
-  if (to in doc.parameters) throw refusal('PARAMETER_EXISTS', `there is a parameter ${to} already`);
+  if (Object.hasOwn(doc.parameters, to)) throw refusal('PARAMETER_EXISTS', `there is a parameter ${to} already`);
   const parameters = Object.fromEntries(Object.entries(doc.parameters).map(([k, v]) => [k === from ? to : k, v]));
   const configurations = doc.configurations && Object.fromEntries(Object.entries(doc.configurations).map(([c, vs]) => [c, Object.fromEntries(Object.entries(vs).map(([k, v]) => [k === from ? to : k, v]))]));
   return { ...doc, parameters, nodes: referencesRenamed(doc.nodes, from, to), ...(configurations ? { configurations } : {}) };
@@ -56,7 +57,7 @@ export function renameParameter(doc: StudioDoc, from: string, to: string): Studi
 export function removeParameter(doc: StudioDoc, name: string): StudioDoc {
   checkKnown(doc, [name]);
   const { [name]: value, ...parameters } = doc.parameters;
-  return { ...doc, parameters, nodes: referencesRenamed(doc.nodes, name, value) };
+  return { ...doc, parameters, nodes: referencesRenamed(doc.nodes.map(n => n.kind === 'driven-sketch' && n.bindings.some(b => b.value.parameter === name) ? unbindSketchLengthNode(n, doc.parameters) : n), name, value) };
 }
 
 /** Where a parameter goes: a feature (its index, or its stable id) and its value's key, as edit_feature names them. */
@@ -64,7 +65,8 @@ export interface Binding { feature: number | string; value: string; parameter: s
 /**
  * A feature's value bound to a parameter (the feature editor's ƒ): the value becomes the parameter's, held by
  * reference at the one place the value is written. A value written to more than one place, or not as it is (a
- * diameter stored as a radius), can't take one (PARAMETER_UNBINDABLE).
+ * diameter stored as a radius), can't take one (PARAMETER_UNBINDABLE). A supported mixed-outline
+ * LINE length uses an explicit driven-sketch recipe and solves its numeric seed at document evaluation.
  */
 export function bindParameter(doc: StudioDoc, b: Binding): StudioDoc {
   checkKnown(doc, [b.parameter]);
@@ -107,4 +109,21 @@ function uses(v: unknown, name: string): boolean {
   if (Array.isArray(v)) { for (const x of v) if (x && typeof x === 'object' && uses(x, name)) return true; return false; }
   for (const x of Object.values(v)) if (x && typeof x === 'object' && uses(x, name)) return true;
   return false;
+}
+
+/** Bind one existing driving LINE dimension, identified by its stable outer side ID. */
+export function bindSketchLength(doc: StudioDoc, feature: number | string, entity: string, parameter: string): StudioDoc {
+  checkKnown(doc, [parameter]);
+  const i = typeof feature === 'number' ? feature : nodeIndexOf(doc.nodes, feature);
+  if (!Number.isInteger(i) || i < 0 || i >= doc.nodes.length) throw refusal('NO_FEATURE', `no feature ${JSON.stringify(feature)}`);
+  const node = bindSketchLengthNode(doc.nodes[i], entity, parameter, doc.parameters);
+  return { ...doc, nodes: doc.nodes.map((n, k) => k === i ? node : n) };
+}
+/** Keep the current solved numeric profile and remove its named driving recipe. */
+export function unbindSketchLength(doc: StudioDoc, feature: number | string): StudioDoc {
+  const i = typeof feature === 'number' ? feature : nodeIndexOf(doc.nodes, feature);
+  if (!Number.isInteger(i) || i < 0 || i >= doc.nodes.length) throw refusal('NO_FEATURE', `no feature ${JSON.stringify(feature)}`);
+  const node = doc.nodes[i];
+  if (node.kind !== 'driven-sketch') throw refusal('PARAMETER_UNBINDABLE', 'This feature has no named sketch length binding.');
+  return { ...doc, nodes: doc.nodes.map((n, k) => k === i ? unbindSketchLengthNode(node, doc.parameters) : n) };
 }

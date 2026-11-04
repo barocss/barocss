@@ -188,7 +188,7 @@ function keyExists(doc: StudioDoc, key: string): boolean {
   const m = /^b(\d+)(?:_(.+))?$/.exec(key);
   if (!m) return true;
   const at = nodeIndexOf(doc.nodes, `n${m[1]}`);
-  return at >= 0 && doc.nodes[at].kind !== 'sketch';
+  return at >= 0 && doc.nodes[at].kind !== 'sketch' && doc.nodes[at].kind !== 'driven-sketch';
 }
 /** Whether a face name can name a face of the part: every feature it names is in the part. */
 const faceExists = (doc: StudioDoc, name: string): boolean => { const ids = featureIdsOf(name); return ids.length > 0 && ids.every(id => nodeIndexOf(doc.nodes, id) >= 0); };

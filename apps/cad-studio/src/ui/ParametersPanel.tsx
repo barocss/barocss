@@ -35,8 +35,10 @@ export function ParametersPanel({ doc, onChange, onError, onClose }: {
     set({ parameters: next.parameters, nodes: next.nodes, configurations: next.configurations });
   };
   const remove = (name: string) => {
-    const next = removeParameter(doc, name);
-    set({ parameters: next.parameters, nodes: next.nodes });
+    try {
+      const next = removeParameter(doc, name);
+      set({ parameters: next.parameters, nodes: next.nodes });
+    } catch (error) { onError(error instanceof Error ? error.message.replace(/^\[\w+\] /, '') : String(error)); }
   };
   const add = () => {
     const name = adding.name.trim(), v = Number(adding.value);

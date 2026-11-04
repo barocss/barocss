@@ -1,3 +1,4 @@
+import { resolveDrivenSketch } from '../sketch/driven';
 import { fillPatternDocumentProblem } from './fillFeaturePattern';
 import { circularPatternSpanProblem } from './circularPatternSpan';
 import { curvePatternDocumentProblem, resolveCurveFeaturePatternPath } from './curveFeaturePattern';
@@ -112,6 +113,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     // (FRf: a skeleton makes no feature — toPartDocument leaves it out; frames on it take its points.)
     case 'skeleton': throw new Error('a skeleton makes no kernel feature');
     // The drawn outline and its constraints are the studio's own (the kernel takes the solved profile).
+    case 'driven-sketch': throw refusal('BAD_REFERENCE', 'Driven sketch requires document parameter resolution before kernel conversion.');
     case 'sketch': {
       if (node.association !== undefined) throw associationError('linked sketches require document-prefix resolution before kernel conversion.');
       if (node.profile === 'band') throw refusal('VALUE', 'A band sketch must be resolved first (bandProfile).');
@@ -450,7 +452,7 @@ function associationSource(doc: StudioDoc, index: number): number {
   if (doc.instances?.length) throw associationError('assembly recipes are not supported.');
   if (!source || !Number.isInteger(source.node) || source.node < 0 || source.node >= index || source.side !== 'solid' || Object.keys(source).some(k => k !== 'node' && k !== 'side')) throw associationError('the source must be an earlier same-document solid; forward and cyclic references are not supported.');
   const parent = doc.nodes[source.node];
-  if (!parent || parent.kind === 'sketch' || parent.kind === 'skeleton' || parent.suppressed) throw associationError('the source solid is missing or suppressed.');
+  if (!parent || parent.kind === 'sketch' || parent.kind === 'driven-sketch' || parent.kind === 'skeleton' || parent.suppressed) throw associationError('the source solid is missing or suppressed.');
   if (typeof a.sourceFeature !== 'string' || featureId(doc.nodes, source.node) !== a.sourceFeature || doc.nodes.filter((_, i) => featureId(doc.nodes, i) === a.sourceFeature).length !== 1) throw associationError('the source feature binding is missing, changed or ambiguous.');
   if (typeof a.face !== 'string' || !a.face || a.face.includes('+')) throw associationError('one persistent named face is required.');
   if (!Number.isFinite(a.insetMM) || a.insetMM <= 0) throw associationError('the inset must be finite and positive.');
@@ -540,6 +542,7 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
     if (i >= limit) return;
     if (hasText && features.length > CadPartLimits.features) checkTextExpansion(features);
     prefixEnds.set(i, features.length);
+    if (node.kind === 'driven-sketch') { features.push(...featuresOf(resolveDrivenSketch(node, params), i, CadPartLimits.features - features.length)); return; }
     if (node.kind === 'skeleton') return;
     if (node.kind === 'sketch') {
       // (B1: a band sketch is regenerated from its construction sources, parameters resolved, wherever it is evaluated.)

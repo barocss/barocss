@@ -211,3 +211,26 @@ Sew retains the existing natural-boundary matching, orientation and closed
 B-rep checks. Open or disconnected inputs refuse. Boundary fitting and volume
 orientation use native sampling. This route does not add trim sewing, healing
 or a general overlap or self-intersection certificate.
+
+
+### Named sketch driving lengths
+
+A finished numeric loop with an existing LINE driving length and stable side IDs can bind that length to a named parameter. Use the stable outer side ID, not a coordinate or displayed length:
+
+```ts
+import { bindSketchLength, unbindSketchLength, withParameters } from '@barocss/cad-model/engine/parameters';
+
+const bound = bindSketchLength(doc, 'n0', 'e1', 'Width');
+const changed = withParameters(bound, { Width: 68 });
+const numeric = unbindSketchLength(changed, 'n0');
+```
+
+`bindParameter(doc, { feature: 1, value: 'olen0', parameter: 'Width' })` also uses this semantic binding when that feature uses a supported sketch. Other existing feature bindings keep their single-value behavior.
+
+The saved node has `kind: 'driven-sketch'`, `version: 1`, the original numeric `seed`, and exactly one `line-length` binding. The seed includes its loop segments, outline and stable side tags. Numeric holes, regions and supported construction shapes remain in the seed. The document keeps this recipe in Save/Open and history. Schema 3 and 4 retain their existing meaning. Older readers refuse the new unknown kind instead of displaying an old solved profile.
+
+`toPartDocument` resolves the recipe from the document's current own parameters, solves a temporary numeric profile, and then lowers that profile. It does not replace the saved seed with the last solution. Missing parameters, invalid lengths, failed solves and unsupported records refuse the operation. Direct `featureOf` conversion requires document resolution and refuses a raw driven node. Ordinary sketches keep their existing behavior.
+
+The bound sketch field permits parameter replacement and unbinding. The existing ƒ unbind action materializes the current value. Other numeric outline setters are unavailable until unbinding. `renameParameter` renames the recipe reference. `removeParameter` first materializes each affected sketch at its current value. Dictionary updates remain pure; the producer evaluates them before accepting geometry.
+
+Version 1 supports one existing outer LINE length. It does not bind an arc radius, hole dimension, region dimension or construction dimension. It does not accept association, band, spline, ellipse, parameter expressions in the seed, arbitrary extra seed fields, or multiple bindings. Assembly flattening refuses driven recipes. Frame-follow and route-bundle sketch admission retain their existing supported sketch contracts. Loft profile helpers produce numeric snapshots at current values; these snapshots do not retain a live recipe.

@@ -75,7 +75,7 @@ export function bodySteps(nodes: readonly ModelNode[], top: number): number[] {
     // (A shape of several steps shows as itself: skip over its inner steps.)
     out.push(i);
     const n = nodes[i], inner = 'made' in n && n.made?.nodes ? n.made.nodes - 1 : 0;
-    const solids = parentsOf(n).filter(p => nodes[p] && nodes[p].kind !== 'sketch' && !(inner && p >= i - inner));
+    const solids = parentsOf(n).filter(p => nodes[p] && nodes[p].kind !== 'sketch' && nodes[p].kind !== 'driven-sketch' && !(inner && p >= i - inner));
     if (!solids.length) break;
     i = solids[0];
   }

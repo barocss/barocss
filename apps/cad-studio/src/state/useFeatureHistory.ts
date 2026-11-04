@@ -62,7 +62,7 @@ export function useFeatureHistory({ model, worker, changes, onNotice: setToast }
   /** Leaves a feature out of the model (or brings it back): checked by evaluating first, like any edit. */
   const toggleSuppress = (i: number) => {
     if (!canChangeDocument()) return;
-    const n = doc.nodes[i]; if (!n) return;
+    const n = doc.nodes[i]; if (!n || n.kind === 'sketch' || n.kind === 'driven-sketch') return;
     const next = { ...doc, nodes: doc.nodes.map((x, k) => k !== i ? x : x.suppressed ? (({ suppressed: _s, ...rest }) => rest as ModelNode)(x) : { ...x, suppressed: true as const }) };
     const label = featureLabel(n, i, doc.nodes);
     engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), nextRevision()).then(e => {
@@ -98,7 +98,7 @@ export function useFeatureHistory({ model, worker, changes, onNotice: setToast }
     else if (selection.bodies.length) { indices = [...new Set(selection.bodies.flatMap(body))]; what = selection.bodies.length === 1 ? 'the body' : `${selection.bodies.length} bodies`; }
     else if (selection.faces.length || selection.edges.length) {
       const owner = featureOfPick(selection, bodies, nodes), k = (selection.faces[0] ?? selection.edges[0]).body;
-      const base = owner !== null && parentsOf(nodes[owner]).every(p => nodes[p]?.kind === 'sketch');
+      const base = owner !== null && parentsOf(nodes[owner]).every(p => nodes[p]?.kind === 'sketch' || nodes[p]?.kind === 'driven-sketch');
       if (owner === null || base) { indices = body(k); what = 'the body'; } else { indices = [owner]; what = featureLabel(nodes[owner], owner, nodes); }
     }
     if (!indices.length) return;

@@ -1,3 +1,4 @@
+import { resolveDrivenSketch } from '../sketch/driven';
 // Editing a feature already in the part by dragging: the feature's own dimensions (the feature editor's
 // fields, app/editFields.ts) as a command, with arrows in the viewport where they act. Selecting a body
 // shows them; dragging one opens the edit with the usual preview, limits and Apply.
@@ -32,8 +33,9 @@ function edited(nodes: readonly ModelNode[], index: number, v: Values, params?: 
 }
 
 /** Arrows for an extrude's profile and distance: width and depth (a rectangle), diameter (a circle), distance. */
-function extrudeHandles(nodes: readonly ModelNode[], index: number): HandleSpec[] {
-  const e = nodes[index] as Extract<ModelNode, { kind: 'extrude' }>, sk = nodes[e.sketch] as SketchNode | undefined;
+function extrudeHandles(nodes: readonly ModelNode[], index: number, params: Readonly<Record<string, number>> = {}): HandleSpec[] {
+  const e = nodes[index] as Extract<ModelNode, { kind: 'extrude' }>, raw = nodes[e.sketch];
+  const sk = raw?.kind === 'driven-sketch' ? resolveDrivenSketch(raw, params) : raw as SketchNode | undefined;
   if (!sk || sk.kind !== 'sketch') return [];
   const plane = planeOf(sk), n = plane.normal, h = num(e.height), from = num(e.from ?? 0);
   if (!Number.isFinite(h)) return [];
@@ -78,7 +80,8 @@ function placedHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): Ha
 }
 /** A revolve's angle: an arc about its axis from the profile's middle. */
 function revolveHandles(nodes: readonly ModelNode[], index: number, params?: Readonly<Record<string, number>>): HandleSpec[] {
-  const r = nodes[index] as Extract<ModelNode, { kind: 'revolve' }>, sk = nodes[r.sketch] as SketchNode | undefined;
+  const r = nodes[index] as Extract<ModelNode, { kind: 'revolve' }>, raw = nodes[r.sketch];
+  const sk = raw?.kind === 'driven-sketch' ? resolveDrivenSketch(raw, params ?? {}) : raw as SketchNode | undefined;
   if (!sk || sk.kind !== 'sketch') return [];
   const plane = planeOf(sk), o: [number, number] = r.origin ? [num(r.origin[0]), num(r.origin[1])] : [0, 0];
   const d0: [number, number] = r.dir ?? (r.axis === 'x' ? [1, 0] : [0, 1]), l = Math.hypot(d0[0], d0[1]) || 1, d: [number, number] = [d0[0] / l, d0[1] / l];
@@ -148,7 +151,7 @@ export function editCommand(index: number, nodes: readonly ModelNode[], rows: Pi
     build: (ctx, v) => ({ ...ctx.doc, nodes: dropStaleMade(ctx.doc.nodes, edited(ctx.doc.nodes, index, v, ctx.doc.parameters)) }),
     handles: (ctx, v) => {
       const now = edited(ctx.doc.nodes, index, v, ctx.doc.parameters), n = now[index];
-      if (n.kind === 'extrude') return extrudeHandles(now, index);
+      if (n.kind === 'extrude') return extrudeHandles(now, index, ctx.doc.parameters);
       if (n.kind === 'hole') return holeHandles(ctx, now, index);
       if (n.kind === 'split' || n.kind === 'linear-pattern') return placedHandles(ctx, now, index);
       if (n.kind === 'revolve') return revolveHandles(now, index, ctx.doc.parameters);

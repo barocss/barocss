@@ -19,6 +19,7 @@ export function flattenAssembly(doc: StudioDoc): StudioDoc { return flattenPlan(
 export function flattenPlan(doc: StudioDoc): { doc: StudioDoc; placed: { id: string; serial: number }[] } {
   const pathProblem = fillPatternDocumentProblem(doc) ?? curvePatternDocumentProblem({ instances: [{ doc }] });
   if (pathProblem) throw refusal('VALUE', pathProblem);
+  if (doc.nodes.some(n => n.kind === 'driven-sketch')) throw refusal('BAD_REFERENCE', 'Driven sketch: flattening named recipes is not supported.');
   assertRouteBundleDocument(doc);
   if (doc.schema === 4 || Object.prototype.hasOwnProperty.call(doc, 'routeBundles') || doc.nodes.some(n => Object.prototype.hasOwnProperty.call(n, 'routeBundleMember'))) throw refusal('BAD_REFERENCE', 'Route bundle: flattening linked route documents is not supported.');
   if (doc.nodes.some(n => n.kind === 'sketch' && n.association !== undefined)) throw refusal('BAD_REFERENCE', 'Associative sketch: flattening recipes is not supported.');
@@ -51,6 +52,7 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
   if (node.sigs) node = { ...node, sigs: Object.fromEntries(Object.entries(node.sigs).map(([n, v]) => [name(n), v])) };
   if (node.rematched) node = { ...node, rematched: Object.fromEntries(Object.entries(node.rematched).map(([n, v]) => [name(n), name(v)])) };
   switch (node.kind) {
+    case 'driven-sketch': throw refusal('BAD_REFERENCE', 'Driven sketch: flattening named recipes is not supported.');
     case 'sketch': return node.on ? { ...node, on: ref(node.on) } : node;
     case 'text': case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'sprocket': case 'pulley': case 'coupling': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'library': case 'sheet-contour': return node;
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return { ...node, sketch: node.sketch + k };

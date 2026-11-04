@@ -68,7 +68,7 @@ export async function proposalNeededAtL2(base: StudioDoc, cur: ChatState, evalua
   // (A sketch is part of the feature built from it: a box's width and height are one feature's values.)
   const nodes = cur.doc.nodes, index = new Map(nodes.map((_, i) => [featureId(nodes, i), i])), consumer = new Map<number, number>();
   nodes.forEach((n, j) => { const r = n as { sketch?: unknown; sections?: { sketch?: unknown }[] }; for (const k of [r.sketch, ...(r.sections ?? []).map(x => x.sketch)]) if (typeof k === 'number' && !consumer.has(k)) consumer.set(k, j); });
-  const owners = new Set(d.changed.map(c => { const i = index.get(c.id)!; return nodes[i]?.kind === 'sketch' && consumer.has(i) ? consumer.get(i)! : i; }));
+  const owners = new Set(d.changed.map(c => { const i = index.get(c.id)!; return (nodes[i]?.kind === 'sketch' || nodes[i]?.kind === 'driven-sketch') && consumer.has(i) ? consumer.get(i)! : i; }));
   if (owners.size > 1) return `this turn changes ${owners.size} features (${d.changed.map(c => c.label).join(', ')})`;
   if (d.parameters && Object.values(d.parameters).some(p => p.before === undefined || p.after === undefined)) return 'this turn adds or removes parameters';
   const before = new Map(base.nodes.map((n, i) => [featureId(base.nodes, i), n]));
@@ -184,7 +184,7 @@ export interface ProposalPart { id: string; label: string; kind: 'added' | 'chan
 export function proposalParts(base: StudioDoc, after: StudioDoc): ProposalPart[] {
   const diff = treeDiff(base, after), out: ProposalPart[] = [];
   const index = new Map(after.nodes.map((_, i) => [featureId(after.nodes, i), i]));
-  const own = new Set([...diff.added, ...diff.changed].map(x => x.id).filter(x => after.nodes[index.get(x)!]?.kind !== 'sketch'));
+  const own = new Set([...diff.added, ...diff.changed].map(x => x.id).filter(x => after.nodes[index.get(x)!]?.kind !== 'sketch' && after.nodes[index.get(x)!]?.kind !== 'driven-sketch'));
   for (const kind of ['added', 'changed'] as const) for (const x of diff[kind]) {
     if (!own.has(x.id)) continue;
     // (A change put back leaves what is built on it standing, as it stood before: only an added feature has children.)
@@ -192,7 +192,7 @@ export function proposalParts(base: StudioDoc, after: StudioDoc): ProposalPart[]
     out.push({ id: x.id, label: x.label, kind, children });
   }
   const baseIndex = new Map(base.nodes.map((_, i) => [featureId(base.nodes, i), i]));
-  for (const x of diff.deleted) if (base.nodes[baseIndex.get(x.id)!]?.kind !== 'sketch') out.push({ id: x.id, label: x.label, kind: 'deleted', children: [] });
+  for (const x of diff.deleted) if (base.nodes[baseIndex.get(x.id)!]?.kind !== 'sketch' && base.nodes[baseIndex.get(x.id)!]?.kind !== 'driven-sketch') out.push({ id: x.id, label: x.label, kind: 'deleted', children: [] });
   return out;
 }
 /** The parts left out with everything that depends on them (unticking a parent unticks its children). */
