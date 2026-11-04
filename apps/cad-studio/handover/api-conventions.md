@@ -31,6 +31,11 @@ isn't in `.doc`. The agent stays on the JSON v2 tools.
   - Lengths are in mm. Angles in documents and options are in degrees.
   - Mass is in g. Density is in g/cm³, the way materials are quoted.
   - Volume is in mm³, area in mm², and inertia in g·mm².
+  - Mass results may add the native producer's `method`: `closed-form`, `planar-exact`, `quadrature` or
+    `tessellated`. Planar exactness refers to the represented planar/facet boundary, not an original smooth source.
+    The optional `volumeBasis: { method: 'tessellated', bound: number | null }` carries the existing volume-error
+    estimate in mm³, not a certified bound; null means unavailable. Density does not scale that estimate or change
+    the method. Missing legacy/custom metadata is omitted, never inferred from a family or a missing basis.
   - Force is in N, moment in N·mm, stiffness in N/mm, and stress and moduli in MPa (R7.7b, 2026-10-24).
   - **No unit suffixes in names** (owner, 2026-10-24, widened the same day from the facades' options to everything):
     every quantity is in the units above, so names don't repeat them — `w`, `d`, `h`, `r`, `deg`, `distance`,

@@ -90,7 +90,8 @@ const CASES = [['plate', plate, plateDoc], ['cup', cup, cupDoc], ['ring', ring, 
 // (exportStep stamps the export's time in FILE_NAME; the two runs are compared without it.)
 const unstamped = text => text.replace(/'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d'/g, "'stamp'");
 // (The kernel's mass is MMGS since R7.3b: the facade's result shape over it, nothing converted.)
-const mmgs = m => ({ volume: m.volume, mass: m.mass, centroid: [...m.centroid], inertia: m.inertia.map(row => [...row]) });
+const mmgs = m => ({ volume: m.volume, mass: m.mass, centroid: [...m.centroid], inertia: m.inertia.map(row => [...row]), method: m.method,
+    ...(m.method === 'tessellated' ? { volumeBasis: { method: 'tessellated', bound: m.volumeBound ?? null } } : {}) });
 
 for (const [name, built, hand] of CASES) {
   test(`${name}: the facade writes the hand-written CadPartDocument, byte for byte`, () => {

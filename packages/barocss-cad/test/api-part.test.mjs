@@ -32,7 +32,8 @@ test('the facade writes the hand-written CadPartDocument, byte for byte', () => 
 test('its mass, STEP, STL and meshes are the kernel\'s own on that document, byte for byte', () => {
   const [output] = evaluateCadPart(handWritten()).outputs, m = massPropertiesOf(output, 2.7);
   // (The kernel's mass is MMGS since R7.3b: the facade's result shape over it, nothing converted.)
-  const expected = { volume: m.volume, mass: m.mass, centroid: [...m.centroid], inertia: m.inertia.map(row => [...row]) };
+  const expected = { volume: m.volume, mass: m.mass, centroid: [...m.centroid], inertia: m.inertia.map(row => [...row]), method: m.method,
+    ...(m.method === 'tessellated' ? { volumeBasis: { method: 'tessellated', bound: m.volumeBound ?? null } } : {}) };
   assert.equal(JSON.stringify(bracket().mass({ density: 2.7 })), JSON.stringify(expected));
   assert.equal(unstamped(bracket().step()), unstamped(exportStep(output, { name: 'bracket' })));
   assert.deepEqual(Buffer.from(bracket().stl()), Buffer.from(exportStl(output)));

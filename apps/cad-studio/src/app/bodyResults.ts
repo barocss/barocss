@@ -1,7 +1,7 @@
 import type { PartInstance } from '@barocss/cad-model/engine/doc';
 import { placedMassFields, type BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { matchesNativeMassPatch } from '@barocss/cad-model/engine/nativeMassWire';
-export type MassFields = Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'>;
+export type MassFields = Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis' | 'massMethod'>;
 /** O18: the same bodies to draw — each key and mesh as before (only masses may differ). */
 export function sameMeshes(a: readonly BodyResult[], b: readonly BodyResult[]): boolean {
   if (a === b) return true;

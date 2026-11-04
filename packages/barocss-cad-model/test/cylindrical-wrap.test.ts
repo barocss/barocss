@@ -53,7 +53,7 @@ test('cylindrical wrap facade, hand recipe and HUD use the same immutable docume
   const snapshot = evaluateCadPart(toPartDocument(hand)), output = outputOf(snapshot, n.id!), expected = massPropertiesOf(output, 2.7);
   const result = evaluateDoc(hand, 1); assert.ok(result.ok, result.ok ? '' : result.error.detail);
   assert.equal(result.bodies.length, 1); assert.equal(result.bodies[0].volume, expected.volume);
-  assert.deepEqual(made.mass({ density: 2.7 }), { volume: expected.volume, mass: expected.mass, centroid: expected.centroid, inertia: expected.inertia });
+  assert.deepEqual(made.mass({ density: 2.7 }), { volume: expected.volume, mass: expected.mass, centroid: expected.centroid, inertia: expected.inertia, method: expected.method });
   assert.equal(result.bodies[0].cylindricalWrap?.literalStoredBrepClosureCertified, false);
   assert.equal(nativeSIOfBody(result.bodies[0]).ok, false);
   assert.match(result.bodies[0].notes!.map(n => n.text).join(' '), /closed reference/);

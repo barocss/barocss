@@ -152,7 +152,9 @@ for (const c of CASES) {
     assert.deepEqual(p.bodies(), r.bodies.map(b => b.key));
     for (const body of r.bodies) {
       // R7 contract: the core and facade both return MMGS; no second inertia conversion.
-      const m = bodyMass(body, 1.2)!, expected = { volume: body.volume, mass: m.mass, centroid: m.centroid, inertia: m.inertia.map(row => [...row]) };
+      const m = bodyMass(body, 1.2)!, expected = { volume: body.volume, mass: m.mass, centroid: m.centroid, inertia: m.inertia.map(row => [...row]),
+        ...(body.massMethod !== undefined ? { method: body.massMethod } : {}),
+        ...(body.volumeBasis ? { volumeBasis: { ...body.volumeBasis } } : {}) };
       assert.equal(JSON.stringify(p.body(body.key).mass({ density: 1.2 })), JSON.stringify(expected));
     }
     const core = exportStudioStep(doc, { name: c.name });

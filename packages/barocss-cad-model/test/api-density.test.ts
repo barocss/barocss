@@ -33,7 +33,7 @@ for (const [facade, make] of Object.entries(factories)) {
     test(`${facade} density ${density} retains analytic MMGS mass, inertia, volume and centroid`, () => {
       const p = make(), doc = structuredClone(p.doc), result = p.mass({ density });
       const expectedMass = 6 * density;
-      assert.deepEqual(Object.keys(result), ['volume', 'mass', 'centroid', 'inertia']);
+      assert.deepEqual(Object.keys(result), ['volume', 'mass', 'centroid', 'inertia', 'method']);
       close(result.volume, 6000); close(result.mass, expectedMass); result.centroid.forEach((value, i) => close(value, [5, 10, 15][i]));
       const diagonal = [expectedMass * (20 ** 2 + 30 ** 2) / 12, expectedMass * (10 ** 2 + 30 ** 2) / 12, expectedMass * (10 ** 2 + 20 ** 2) / 12];
       result.inertia.forEach((row, i) => row.forEach((value, j) => close(value, i === j ? diagonal[i] : 0)));

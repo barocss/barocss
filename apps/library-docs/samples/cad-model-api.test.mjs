@@ -63,7 +63,7 @@ test('one bracket three ways: the document by hand, the agent\'s commands and th
     .hole(body => body.faces().facing('+z'), { d: 8, x: 20, y: 20 })
     .fillet(body => body.edges().along('z'), { radius: 2 });
 
-  const mass = bracket.mass('al6061');      // or mass({ density: 2.7 }): { volume, mass, centroid, inertia }
+  const mass = bracket.mass('al6061');      // or mass({ density: 2.7 }); native results also report method and an optional volumeBasis
   const step = bracket.step();              // STEP AP214 text
   const meshes = bracket.meshes();          // [{ key, positions, normals, indices }], one a body
   // #endregion bracket

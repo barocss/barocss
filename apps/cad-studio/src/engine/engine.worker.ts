@@ -45,7 +45,7 @@ shareMeshes(true);
 // the worker works them out and posts them by mass ref, unplaced (the client places them by each body's massPlace — the
 // path a placed part would take, kept ready). A newer evaluation of the part drops the part's queued ones (its own reply
 // queues what it still needs), so an edit's reply never waits for an old evaluation's masses.
-export type MassReply = { masses: { ref: number; fields: Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'>; nativeMass: NativeMassEnvelope }[] };
+export type MassReply = { masses: { ref: number; fields: Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis' | 'massMethod'>; nativeMass: NativeMassEnvelope }[] };
 /** How long one tick works out masses before it yields to the next request (one body at least). */
 const MASS_TICK_MS = 30;
 /** How long the worker waits with no request before it starts on masses: one body's (a spring's quadrature, ~2 s) cannot be

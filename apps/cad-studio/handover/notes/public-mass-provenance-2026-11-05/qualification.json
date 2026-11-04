@@ -1,0 +1,371 @@
+{
+  "workId": "D530",
+  "priority": "P0-R10",
+  "rows": [
+    4,
+    16
+  ],
+  "tier": "FULL",
+  "baseline": "2bcf798ec29575e1abaa5415d3de7ac3b4bca548",
+  "status": "BOUNDED_NATIVE_MASS_PROVENANCE_QUALIFIED",
+  "implementationModel": "GPT-6.1 Sol Medium",
+  "independentAudits": [
+    "APPROVED GPT-6.1 Sol Medium",
+    "APPROVED GPT-6.1 Sol Medium; retained after test-only fixes and serial runner flag"
+  ],
+  "originalControlled": {
+    "tests": 29,
+    "pass": 6,
+    "fail": 23,
+    "nativeProviderPreconditions": "PASS before missing-facade-field assertions"
+  },
+  "fixedControlled": {
+    "unique": 126,
+    "new": 32,
+    "related": 94,
+    "ModelSelectedIncludingNew27": 95,
+    "unchangedCADForcedProvider": 3,
+    "StudioIncludingNew2": 6,
+    "CADAPI": 22,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "docsSamples": {
+    "pass": 185,
+    "fail": 0
+  },
+  "checks": {
+    "CADTypes": "PASS",
+    "StudioTypes": "PASS",
+    "scopedLint": "PASS",
+    "finalModelTypesAfterLastRunnerEdit": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "CADRuntimePreparation": "existing build:fast current JS dist; declarations/library/packed build NOT_RUN"
+  },
+  "mutations": {
+    "positiveBaseline": 32,
+    "killed": 11,
+    "casesPerVariant": 32,
+    "assertionFailures": [
+      6,
+      3,
+      7,
+      5,
+      8,
+      3,
+      4,
+      3,
+      5,
+      2,
+      3
+    ],
+    "cancelled": 0,
+    "sourceTreeMutation": false,
+    "childFileConcurrency": 1
+  },
+  "rootActual": {
+    "baselineRepro02": "PASS_NUMERICS_AND_TRANSPORT_OMISSION_WITNESS; no retrospective exact-input-binding qualification",
+    "fixed01": "PASS_EXACT_NATIVE_INPUT_METHOD_AND_CURRENT_CONSUMER",
+    "fixedBinding": [
+      "existing WireReceiver decodes clones of actual posted input",
+      "canonical evaluatedPart input and evaluationKey",
+      "body key and request/native epoch/id/revision/slot",
+      "pending body/ref join for deferred fields"
+    ],
+    "methodCheckpoints": [
+      "initial settled Box",
+      "fresh own-file Open"
+    ],
+    "materialStages": "numeric consumer evidence only",
+    "actualMethod": "closed-form from original same-Doc native MassProps",
+    "volumeSanityAbsMm3": 1e-08,
+    "states": 9,
+    "contexts": 2,
+    "sourcePaths": 1029,
+    "sourceChanges": 0,
+    "unknownPageErrors": 0,
+    "unknownConsoleErrors": 0,
+    "independentLiteralDisplayOracles": 5,
+    "expectedOwnSaveBlobDownloads": 1,
+    "externalDownloads": 0,
+    "materials": [
+      {
+        "name": "Aluminium 6061",
+        "densityGPerCm3": 2.7,
+        "massG": 5.4
+      },
+      {
+        "name": "Steel (mild)",
+        "densityGPerCm3": 7.85,
+        "massG": 15.7
+      }
+    ],
+    "displayTolerance": {
+      "massG": 0.05,
+      "centralInertiaGmm2": 0.5
+    },
+    "exactDocUndoRedoSaveFreshOpen": true,
+    "rootViewed": [
+      "repro02/03",
+      "fixed01/01",
+      "fixed01/04",
+      "fixed01/08"
+    ],
+    "cleanup": "All own contexts/Chrome/Vite closed"
+  },
+  "semantics": {
+    "methods": [
+      "closed-form",
+      "planar-exact",
+      "quadrature",
+      "tessellated"
+    ],
+    "legacyMethod": "omitted, never inferred",
+    "basisUnits": "mm3 refinement error estimate, not certified bound",
+    "basisMissing": null,
+    "basisZeroPreserved": true,
+    "basisDetached": true,
+    "densityScalesBasis": false,
+    "nativeSIAuthority": "unchanged separate private basis",
+    "exactResultKeyShape": "additive method changes exact key/JSON equality; structural optional compatibility tested"
+  },
+  "retainedFailures": [
+    "23 original behavioral assertions",
+    "repro01 exact2000 floating identity harness failure",
+    "first fixed Model30:29pass1 overstrict mass comparison; old literal formula retained",
+    "first CAD22:14pass8 stale-dist failures; fresh build resolves",
+    "one lint self-package test import",
+    "one assertion-narrowed basis mutation type error"
+  ],
+  "notRun": [
+    "Organic tessellated fallback",
+    "Native GUI quadrature/planar/tessellated/placed families; direct or controlled tests only",
+    "Fresh independent native geometry reader or general precision certificate",
+    "Broad timing/memory",
+    "Declaration/library/packed/version-crossing consumers",
+    "Whole kernel/Studio production build, CI/mobile/release/develop integration"
+  ],
+  "wholeCad": "NOT_MEASURED",
+  "sourcePins": {
+    "packages/barocss-cad/src/api/core.ts": "b2c888e8e93c1d36a22920a1875bb7159f68e4cbdcb9c7457957ebc839edcbeb",
+    "packages/barocss-cad-model/src/api/core.ts": "83a3f7c32c152bc54b6fc70350990c98cbe3c5a714923cb687dde5fbd15ff576",
+    "packages/barocss-cad-model/src/engine/evaluate.ts": "6b7750e77ab82aa19382087d6c038ae3acc6ea634c5603421308dac636d809b1",
+    "packages/barocss-cad-model/src/engine/nativeMassWire.ts": "e6e1a38c6fc1235f55a23a50807b1c5815916a2dd37dd9d9abfa7a87c9903885",
+    "apps/cad-studio/src/app/bodyResults.ts": "8b52c36f66a3cc7484621581ae5a466d95d3d637e748152352ad2fc1381689fd",
+    "apps/cad-studio/src/engine/engine.worker.ts": "d04e619029c49ec205079a099cd2ac37e304fcafd37f69f8d2629e3343151304",
+    "packages/barocss-cad-model/test/api-mass-provenance.test.ts": "b12d395a86d8f5603b0e1ece870ab5bc8825f5f3fb90943897a7f4e8c93bba42",
+    "packages/barocss-cad-model/test/api-mass-provenance-types.ts": "c5fc7fef1cf5bf8a01eec675b208816071c92e7da3c7365c5ca74ab50ed7d08b",
+    "packages/barocss-cad-model/test/cad-mass-provenance.test.ts": "dcc0a1880e3f7817b9d839571d6cb4a34aa96a6a10d3d3b2e9b18ed94522ddfd",
+    "packages/barocss-cad-model/test/helpers/cad-mass-provider.mjs": "c2802d68854f26e338a82b50cb2c5efa8843700c4318909bfa788af34b2ef64d",
+    "packages/barocss-cad-model/scripts/test-mass-provenance-mutations.mjs": "6d195c53006981e43500c5a1c882bfdbb492ccb4454c73cccb32c2a4155c2401",
+    "apps/cad-studio/test/mass-provenance.test.ts": "f3f6c98319889d4bce48d7d472a435edcb6cc6f3dac28c4830c076d7f94db08f",
+    "apps/cad-studio/test/mass-provenance-browser.mjs": "4fc4c820518a2da1d5ab0b50fbc83dec0f495f0cbf12e410225dc2323451467f",
+    "apps/cad-studio/handover/api-conventions.md": "d3662e48b0001e820dfbcd8bab77999ee972adfb934572bc40a8a2de12fe6c0a",
+    "apps/library-docs/docs/packages/api.md": "22b47195d23a3fb7282b2f957f82d4a05c708681a6424ab03ca1781d9b768303",
+    "apps/library-docs/samples/cad-model-api.test.mjs": "6741e4d38dc35944214c08e10d8bdf9f6ce09a42c347d4dc1c9addc3439c41cd",
+    "packages/barocss-cad-model/test/api-density.test.ts": "6c6a93ba6a173ed098e45e481244f6ae1294ecac518c4410997438b90c460340",
+    "packages/barocss-cad-model/test/api-mmgs.test.ts": "d1bab184cf516ccbaaa0a4a380ee7e36079aa7fa2999a25e9eea716becfb1235",
+    "packages/barocss-cad-model/test/cylindrical-wrap.test.ts": "9d9396129b0a249e05c5d10db28dd2a94456f24d045576e020d77553057224b3",
+    "packages/barocss-cad-model/test/api-part.test.ts": "7a41be87a881533a2b510ef4826bdd1b0e2a54ff7253b5a8261c02183818cf8f",
+    "packages/barocss-cad-model/test/api-verbs.test.ts": "f987cc432bc1fdd1e39cb8290fd30119db0847af73a486b469ad6c8d8cbe5a00",
+    "packages/barocss-cad/test/api-part.test.mjs": "a2e0fbceedf765034e20b5cb3635b1abcf2f5e9088ee904a7d6004df34f23c8b",
+    "packages/barocss-cad/test/api-verbs.test.mjs": "97ebcaccce312c7f22270e4631ef4f328c5ab12a038476e80b9d7ed584d2212d",
+    "packages/barocss-cad/test/api-mmgs.test.mjs": "8082a106ca636642fec5b31e7081e02b1ffcc0f7a8096a7687e9d6c5fc495c26"
+  },
+  "externalEvidence": [
+    {
+      "path": "/tmp/barocss-d530-baseline-controls01/studio-tests.log",
+      "sha256": "26a177ad1bbd27bee112d510934441bc6e3ad7fba53b843f2679a8b74277dbd0"
+    },
+    {
+      "path": "/tmp/barocss-d530-baseline-controls01/source-pins.json",
+      "sha256": "3e78bf90556a800b9326e30f4a77f6949fe65cd154d7af33abe209720f56491f"
+    },
+    {
+      "path": "/tmp/barocss-d530-baseline-controls01/model-tests.log",
+      "sha256": "60218e121d3a0c1df8ec1dce3ac045c66c3dacb0acd3ec04e8a02497c18c012a"
+    },
+    {
+      "path": "/tmp/barocss-d530-baseline-controls01/packages__barocss-cad-model__test__api-mass-provenance-types.ts",
+      "sha256": "c5fc7fef1cf5bf8a01eec675b208816071c92e7da3c7365c5ca74ab50ed7d08b"
+    },
+    {
+      "path": "/tmp/barocss-d530-baseline-controls01/packages__barocss-cad-model__test__api-mass-provenance.test.ts",
+      "sha256": "782a17feb91ae4e7b517b491a3782a00cb544b11a2acd62f11f21eacc51d03cd"
+    },
+    {
+      "path": "/tmp/barocss-d530-baseline-controls01/apps__cad-studio__test__mass-provenance.test.ts",
+      "sha256": "f3f6c98319889d4bce48d7d472a435edcb6cc6f3dac28c4830c076d7f94db08f"
+    },
+    {
+      "path": "/tmp/barocss-d530-baseline-controls02/api-mass-provenance.test.ts",
+      "sha256": "782b736eb207a5da4167ccb0770374545c5ec607bbaad260934fc878711f6773"
+    },
+    {
+      "path": "/tmp/barocss-d530-baseline-controls02/model-tests.log",
+      "sha256": "6f731fc9ad91e6c3dc0d05395de7adc7e4c8dafc439c177ab87ecebb5a632bdb"
+    },
+    {
+      "path": "/tmp/barocss-d530-baseline-controls02/source-pin.json",
+      "sha256": "e95fdc4d9672102f5e1b0fbe5d7a73d268583f607c9f8dda00c0cdc9c062edd5"
+    },
+    {
+      "path": "/tmp/barocss-d530-fixed-checks01/scoped-lint.log",
+      "sha256": "99278debf319e87382e68051337248a3bb2db8c2571b45281b272e2850b89841"
+    },
+    {
+      "path": "/tmp/barocss-d530-fixed-checks01/studio-tests.log",
+      "sha256": "47137032f3e5e436bd5519aad1474f0854966c2573e3882ec18b28edcaf350fd"
+    },
+    {
+      "path": "/tmp/barocss-d530-fixed-checks01/cad-types.log",
+      "sha256": "fabc05746de64cbaead19f20560ff5e6676b8e5d0f398b0fb0324053c5fa12df"
+    },
+    {
+      "path": "/tmp/barocss-d530-fixed-checks01/cad-build-fast.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d530-fixed-checks01/cad-api-tests.log",
+      "sha256": "5527a7ef489946e5d98356b4bdcf7fd3d79a022f403d96c9376fbd6b406dc636"
+    },
+    {
+      "path": "/tmp/barocss-d530-fixed-checks01/model-tests02.log",
+      "sha256": "1249a75f9577a3a40557fcc7117f7c82b5186227d709723e1f95b0a46fcacc27"
+    },
+    {
+      "path": "/tmp/barocss-d530-fixed-checks01/docs-samples.log",
+      "sha256": "809e53767efe5c49491ac5835fe8b72617ffb6e002e664392fa364419118f6e4"
+    },
+    {
+      "path": "/tmp/barocss-d530-fixed-checks01/scoped-lint02.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d530-fixed-checks01/test-lint03.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d530-fixed-checks01/studio-types.log",
+      "sha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+    },
+    {
+      "path": "/tmp/barocss-d530-fixed-checks01/new-model-tests03.log",
+      "sha256": "aa443ddad1148cad7b8bbd698150140f2dbf142ead0d261f49df4bc994f1fa12"
+    },
+    {
+      "path": "/tmp/barocss-d530-fixed-checks01/final-model-types02.log",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "path": "/tmp/barocss-d530-fixed-checks01/new-model-tests.log",
+      "sha256": "e501245c609c0bb69fbf2c25875bacf3954152c185f53903dad2638592a7aede"
+    },
+    {
+      "path": "/tmp/barocss-d530-fixed-checks01/new-model-tests04.log",
+      "sha256": "2351e4d699d294eaea7e3f620f0e23499e4752e55109ff07775249f748968c28"
+    },
+    {
+      "path": "/tmp/barocss-d530-fixed-checks01/final-model-types.log",
+      "sha256": "910e9b9cf82be288d9b07ad06233280296a6f4172297b7d13748d32b8e5a6731"
+    },
+    {
+      "path": "/tmp/barocss-d530-fixed-checks01/cad-api-tests02.log",
+      "sha256": "cf2b17a510208689748b37b8c2c33275dd9a31e2d4165ed1c9ca0f90ba5beada"
+    },
+    {
+      "path": "/tmp/barocss-d530-mutations01/estimate-alias.log",
+      "sha256": "74a5d8dbcfc238b8a92e4e4a4d8a675f952adf785b0ec5caadf8874e967bc501"
+    },
+    {
+      "path": "/tmp/barocss-d530-mutations01/cad-method-drop.log",
+      "sha256": "41d8a198217ee4e8a3112eec8608a84ea8f83fd0e9d53674900602511bea705b"
+    },
+    {
+      "path": "/tmp/barocss-d530-mutations01/deferred-method-drop.log",
+      "sha256": "34b6ca4e5ad6025c31c95274fbaa12b5cbe81a6958854e0cbb24a54029d1c96c"
+    },
+    {
+      "path": "/tmp/barocss-d530-mutations01/runner.log",
+      "sha256": "34af2407bd4d4260da4894681076a1f7a184c91083caf067dfde38bc8e7deeaa"
+    },
+    {
+      "path": "/tmp/barocss-d530-mutations01/method-allowlist-drop.log",
+      "sha256": "37b51ad725cbb3f94d8250aa532ae95bb5afa35b800fd88174ce6c5ca81032b7"
+    },
+    {
+      "path": "/tmp/barocss-d530-mutations01/producer-method-constant.log",
+      "sha256": "26a34b9ad43c3cf4d7402bffc867da76074b71d3ff2a708fb5a8b7103276cfc4"
+    },
+    {
+      "path": "/tmp/barocss-d530-mutations01/cad-basis-drop.log",
+      "sha256": "45764c734429631ab0bae5b934d3a614ca88ca4bb988c27f05fa4d839ea77d96"
+    },
+    {
+      "path": "/tmp/barocss-d530-mutations01/baseline.log",
+      "sha256": "4ab4677f1a5286f6bc69151aa80bd231a9fc1039d683a8c14f1592556a7db3fb"
+    },
+    {
+      "path": "/tmp/barocss-d530-mutations01/signature-method-omit.log",
+      "sha256": "a62a136716ec8f2448f62c453c7ed89ea146cd738e735be6f112a1b2cc6c8939"
+    },
+    {
+      "path": "/tmp/barocss-d530-mutations01/producer-method-drop.log",
+      "sha256": "1358e771483d3efa2f9fe867730ecefd511bf18148bebe4def0611e439e07d54"
+    },
+    {
+      "path": "/tmp/barocss-d530-mutations01/model-method-drop.log",
+      "sha256": "50f6624185c37f5700ae6de871cb6ba3dcf05b6202574b17e40cf57960239e9d"
+    },
+    {
+      "path": "/tmp/barocss-d530-mutations01/syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d530-mutations01/model-basis-drop.log",
+      "sha256": "bcff031686c23269b649e2aef1e1cbdc36b5f4e8ddc88854d015e1cd2404f2f9"
+    },
+    {
+      "path": "/tmp/barocss-d530-mutations01/diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d530-mutations01/estimate-density-scale.log",
+      "sha256": "f6b9f1a953635dd54c6c71093bb56a89ea9b39d2222f7e390a1ff04ad28bcedc"
+    },
+    {
+      "path": "/tmp/barocss-d530-mutations01/final-model-types.log",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "path": "/tmp/barocss-d530-mutations01/summary.json",
+      "sha256": "ec930a5bc9c64623275f388abe56ea633ac6ca903e9221359032b1a37d9e3b7c"
+    },
+    {
+      "path": "/tmp/barocss-d530-mass-repro01/receipt.json",
+      "sha256": "cc674c3fd3ef10e8fc96a7e18a570846a2e86d33c947ea92e1dcee84edf47bc2"
+    },
+    {
+      "path": "/tmp/barocss-d530-mass-repro01-meta/run.log",
+      "sha256": "1e8f43902170d03688e8d4e83a9f0794b696609b00344df69bd2f55922018d42"
+    },
+    {
+      "path": "/tmp/barocss-d530-mass-repro02/receipt.json",
+      "sha256": "bb5e85540940eb13430b58b7bba16cf8ecc6bca7c8cbe8273f59bbd1877f87db"
+    },
+    {
+      "path": "/tmp/barocss-d530-mass-repro02-meta/run.log",
+      "sha256": "c974ab49cc55a0cf9fb0bf1884163c98e211a120934f10330571029035787d09"
+    },
+    {
+      "path": "/tmp/barocss-d530-mass-fixed01/receipt.json",
+      "sha256": "77a3104c160abf9ebe90d1448d34760f777d35c5c41c7152dd9490dfbeea3794"
+    },
+    {
+      "path": "/tmp/barocss-d530-mass-fixed01-meta/run.log",
+      "sha256": "b95a67a8424070817394e522eee8f720c337eba6f2b80af5f10bb9b8b3547ddd"
+    }
+  ]
+}

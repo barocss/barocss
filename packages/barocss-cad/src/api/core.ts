@@ -10,7 +10,13 @@ export type { Vec3 } from './select.js';
 import type { Vec3 } from './select.js';
 
 /** A body's mass properties at a density, in MMGS (api-conventions.md §2): mm³, g, mm, and g·mm² about the centre of mass. */
-export interface MassResult { volume: number; mass: number; centroid: Vec3; inertia: number[][] }
+export interface MassResult {
+  volume: number; mass: number; centroid: Vec3; inertia: number[][];
+  /** The native producer's method, when that producer supplies one. */
+  method?: ReturnType<typeof massPropertiesOf>['method'];
+  /** Tessellation volume-error estimate in mm³, not a certified bound. Never scaled by material density. */
+  volumeBasis?: { method: 'tessellated'; bound: number | null };
+}
 /** A body's display triangles in the common mesh shape (api-conventions.md §10.3): mm, Z up — what gpu's GeometryInput takes. */
 export interface MeshData {
   /** Coordinate storage can retain native doubles; both types remain world millimetres, Z up. */
@@ -43,7 +49,8 @@ export function massOf(output: CadPartOutput, density: number): MassResult {
   try { m = massPropertiesOf(output, density); } catch (e) { throw fromKernel(e); }
   return {
     volume: m.volume, mass: m.mass, centroid: [m.centroid[0], m.centroid[1], m.centroid[2]],
-    inertia: m.inertia.map(row => [...row]),
+    inertia: m.inertia.map(row => [...row]), method: m.method,
+    ...(m.method === 'tessellated' ? { volumeBasis: { method: 'tessellated' as const, bound: m.volumeBound ?? null } } : {}),
   };
 }
 

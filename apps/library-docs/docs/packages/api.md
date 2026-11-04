@@ -75,9 +75,9 @@ commands into the document. Calling the facade does not control an open Studio s
   time. Robot samples check angular metadata, B1 inertia/gravity and the CLI's shared B2 duty/report adapters.
   Further field changes and final combined checks are pending. Native robot files retain their format-specific SI units.
 - **Results are plain data.** Mass results contain `volume` in mm³, `mass` in g, `centroid` in mm and
-  `inertia` in g·mm² about the centre of mass. A numeric `density` is in g/cm³.
-  It must be positive and finite. Both facades refuse other numeric densities with `BarocssError`,
-  code `DENSITY`, from `facade`.
+  `inertia` in g·mm² about the centre of mass. A numeric `density` is in g/cm³. Density must be positive and finite; both facades refuse other numeric densities with `BarocssError`, code `DENSITY`, from `facade`. Native producers also report optional `method` provenance:
+  `closed-form`, `planar-exact`, `quadrature` or `tessellated`. `planar-exact` describes the represented planar or facet boundary; it does not recover a smooth source from a mesh. `quadrature` describes numerical integration over the represented surfaces. These method names are not accuracy certificates. Legacy or custom Model bodies without producer metadata omit `method`; the facade does not infer it from the body's family or a missing estimate.
+  A reported tessellated result can include `volumeBasis: { method: 'tessellated', bound }`. Despite its existing field name, `bound` is an estimate of volume error in mm³, derived from the mesh refinement change, rather than a certified error bound. `null` means no estimate was supplied; zero remains a reported zero estimate. Other native methods omit this basis. Density changes mass and inertia, while the method and volume estimate remain unchanged. The returned basis is detached from the producer's record.
 - **The agent's words.** The modelling verbs are the agent's v2 command names, and their options are that command's
   value names, with no unit in the name: `box({ w, d, h })`, `hole(face, { d, x, y })`, `fillet(edges, { radius })`.
   Where no command names a value, the option is named for it: `mass({ density })`. Two verbs are named for their

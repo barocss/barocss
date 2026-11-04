@@ -31,9 +31,9 @@ function keyed(outputId: string, nodes: readonly ModelNode[]): { key: string; re
   return at ? { key, ref: { node: at.node, side: at.side as Side } } : { key };
 }
 
-/** A volume found from the mesh, and how far it may be off (O179). */
+/** A tessellated volume and its error estimate in mm³ (O179), not a certified bound. */
 export interface VolumeBasis { method: 'tessellated'; bound: number | null }
-/** The volume basis of the kernel's mass properties: a tessellated one's, with its bound; none for an exact method. */
+/** The reported tessellation estimate; other or unknown methods supply no volume basis. */
 export function volumeBasisOf(m: { readonly method?: string; readonly volumeBound?: number }): VolumeBasis | undefined {
   return m.method === 'tessellated' ? { method: 'tessellated', bound: m.volumeBound ?? null } : undefined;
 }
@@ -63,11 +63,12 @@ export interface BodyResult {
    */
   area?: number; areaBasis?: 'exact' | 'display mesh';
   /**
-   * O179 (the kernel's D200): how its volume was found when not exactly — 'tessellated', a curved body the quadrature
-   * could not integrate, from the mesh; `bound` the volume's change from a mesh of half the segments (about three
-   * times the error). Absent: exact (quadrature, planar or closed form). Its mass and centroid are as good.
+   * O179 (the kernel's D200): a tessellated volume's reported change from a mesh of half the segments.
+   * `bound` is an error estimate in mm³, not a certified bound. An absent basis alone does not establish exactness.
    */
   volumeBasis?: VolumeBasis;
+  /** The actual native mass producer method; absent while pending or for legacy/custom bodies. */
+  massMethod?: MassProps['method'];
   /** Centre of mass (mm), with the volume (uniform density). */
   centroid?: [number, number, number];
   /** Inertia about the centre of mass (g·mm², aluminium at 2.7 g/cm³; scale by density for another material). */
@@ -141,9 +142,9 @@ const nativeMasses = new WeakMap<object, MassProps>();
 /** Internal native-export lookup only: no evaluation, integration, public body field or inferred provenance. */
 export const nativeMassPropertiesOfBody = (body: Pick<BodyResult, 'inertia'>): MassProps | undefined => body.inertia ? nativeMasses.get(body.inertia) : undefined;
 /** The body's mass fields from its mass properties (null: no positive volume). */
-function massFields(m: MassProps | null): Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'> {
+function massFields(m: MassProps | null): Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis' | 'massMethod'> {
   const basis = m ? volumeBasisOf(m) : undefined;
-  const fields: Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'> = m ? { volume: m.volume, mass: m.mass, centroid: [m.centroid[0], m.centroid[1], m.centroid[2]] as [number, number, number], inertia: m.inertia.map(r => [...r]), ...(basis ? { volumeBasis: basis } : {}) } : { volume: null, mass: null };
+  const fields: Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis' | 'massMethod'> = m ? { volume: m.volume, mass: m.mass, massMethod: m.method, centroid: [m.centroid[0], m.centroid[1], m.centroid[2]] as [number, number, number], inertia: m.inertia.map(r => [...r]), ...(basis ? { volumeBasis: basis } : {}) } : { volume: null, mass: null };
   if (m && fields.inertia) { nativeMasses.set(fields.inertia, m); rememberNativeMass(fields, m); }
   return fields;
 }
@@ -166,7 +167,7 @@ function deferredRef(o: CadPartOutput): number {
  * A deferred body's mass fields, as the evaluation would have given them (its placements applied, `massPlace`), or
  * undefined when its B-rep is gone.
  */
-export function massOfRef(ref: number, place: readonly { m: readonly number[]; t: readonly number[] }[] = []): Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'> | undefined {
+export function massOfRef(ref: number, place: readonly { m: readonly number[]; t: readonly number[] }[] = []): Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis' | 'massMethod'> | undefined {
   const brep = massRefs.get(ref)?.deref(), o = brep && pendingOutputs.get(brep);
   return o ? placedMassFields(massFields(massOfBrep(o)), place) : undefined;
 }

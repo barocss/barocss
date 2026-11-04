@@ -2,7 +2,7 @@
 import { readNativeSIInertia, type NativeSIInertiaResult } from '@barocss/cad/internal/native-si-mass';
 import type { BodyResult } from './evaluate';
 
-export type MassFields = Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'>;
+export type MassFields = Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis' | 'massMethod'>;
 export interface NativeMassSource { epoch: number; requestId: number; revision: number; slot: string }
 interface Basis { result: NativeSIInertiaResult; rotations: number[][] }
 export type NativeMassEnvelope = NativeMassSource & { bodyKey: string | null; massRef: number | null; signature: string } & (
@@ -18,7 +18,7 @@ const unavailable = { ok: false, code: 'NATIVE_SI_PROVENANCE_UNAVAILABLE', reaso
 const signature = (value: unknown): string => JSON.stringify(value, (_k, v) => typeof v === 'number' && Object.is(v, -0) ? '\u0000-0' : v);
 const tensorSignature = (body: Pick<BodyResult, 'inertia'>): string => signature(body.inertia ?? null);
 function fieldsSignature(body: Partial<BodyResult>): string {
-  return signature([body.volume ?? null, body.mass ?? null, body.centroid ?? null, body.inertia ?? null, body.volumeBasis ?? null, body.massPlace ?? null]);
+  return signature([body.volume ?? null, body.mass ?? null, body.centroid ?? null, body.inertia ?? null, body.volumeBasis ?? null, body.massPlace ?? null, body.massMethod ?? null]);
 }
 function remember(body: Pick<BodyResult, 'inertia'>, basis: Basis): void {
   if (body.inertia) tensors.set(body.inertia, { basis, signature: tensorSignature(body) });
@@ -62,6 +62,7 @@ function validFields(body: Partial<BodyResult>): boolean {
   if (!scalar(body.volume) || !scalar(body.mass)) return false;
   if (body.centroid !== undefined && !vector(body.centroid, 3)) return false;
   if (body.inertia !== undefined && (!Array.isArray(body.inertia) || body.inertia.length !== 3 || !Array.from(body.inertia).every(row => vector(row, 3)))) return false;
+  if (body.massMethod !== undefined && !['closed-form', 'planar-exact', 'quadrature', 'tessellated'].includes(body.massMethod)) return false;
   if (body.volumeBasis !== undefined && (body.volumeBasis.method !== 'tessellated' || !scalar(body.volumeBasis.bound))) return false;
   return body.massPlace === undefined || (Array.isArray(body.massPlace) && Array.from(body.massPlace).every(p => record(p) && vector(p.m, 9) && vector(p.t, 3)));
 }
