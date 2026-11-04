@@ -1,0 +1,141 @@
+{
+  "workId": "D524",
+  "priority": "P0-R04",
+  "rows": [
+    6,
+    20,
+    32
+  ],
+  "date": "2026-11-05",
+  "tier": "SMALL",
+  "baseline": "4784149ebddd7502e61a8f2a74c893de9ce0560a",
+  "status": "BOUNDED_RENDERER_FIX_QUALIFIED_NATIVE_COLLISION_UNKNOWN",
+  "implementationModel": "GPT-6.1 Sol Medium",
+  "sharingToleranceReview": "APPROVED (GPT-6.1 Sol High; source review only)",
+  "checks": {
+    "initialBaseline": {
+      "pass": 2,
+      "fail": 28,
+      "total": 30
+    },
+    "expandedOriginalBaseline": {
+      "pass": 2,
+      "fail": 34,
+      "total": 36
+    },
+    "fixedControlled": {
+      "pass": 47,
+      "fail": 0,
+      "new": 38,
+      "existingInstancePose": 3,
+      "existingSelectionEdge": 6
+    },
+    "StudioTypes": "PASS",
+    "finalModelTypes": "PASS",
+    "driverObserverSyntax": "PASS",
+    "diff": "PASS"
+  },
+  "rootActualStudio": {
+    "before": "PASS_NATIVE_SMOKE_NO_COLLISION_REPRODUCED",
+    "fixed": "PASS_NATIVE_SMOKE_NO_COLLISION_REPRODUCED",
+    "nativeReachability": "NOT_REPRODUCED_IN_THIS_FLOW; broader native collision UNKNOWN",
+    "sourcePathsEach": 292,
+    "producerDelta": [
+      "apps/cad-studio/src/viewport/gpuRenderer.ts"
+    ],
+    "changedDuringRuns": 0,
+    "sameFullNativeInputStates": 9,
+    "setBodiesCallsEach": 7,
+    "geometryWriteBufferCallsEach": 40,
+    "rootViewed": [
+      "before01/03",
+      "before01/06",
+      "fixed01/04",
+      "fixed01/06",
+      "fixed01/09"
+    ],
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ]
+  },
+  "semantics": [
+    "Exact owned six-array/bounds/key comparison for root and instance cache reuse, including copied and in-place changed inputs",
+    "Snapshots allocated only when a new resource set is built; unchanged comparisons allocate no full snapshot",
+    "Root resource pool key shortlists candidates; full values decide reuse",
+    "A changed same-instance body cannot rejoin its previous shared Shape; body keys preserve this through reorder",
+    "Shape.ref uses owned snapshot values rather than mutable caller buffers",
+    "Existing cross-instance G10 approximate rigid-copy sharing/tolerances remain unchanged; no blanket byte-exact cross-copy claim"
+  ],
+  "limits": [
+    "Controlled recording Viewer uploads, not a reproduced native Studio sampled-signature collision",
+    "Actual native flow is one box Distance8to12 with body/face/straight-edge selection, Undo/Redo/clear",
+    "Native prepared data and vertex/index writeBuffer calls observed; no GPU memory readback or physical accuracy oracle",
+    "No broad performance/memory certificate;40uploads in both selected runs are not a general performance benchmark",
+    "No curved-instance actual GUI case, thread-line alias policy or public input immutability contract change",
+    "No B-rep/tolerance/API change, full kernel, production build, CI, mobile, release or develop integration",
+    "Whole CAD/core NOT_MEASURED; broader rendering epic remains open"
+  ],
+  "externalEvidence": [
+    {
+      "path": "/tmp/barocss-d524-baseline-controls01/tests.log",
+      "sha256": "743d19bb1cda3c7f6ef154125482983157baf9fbb2ce7ec84fb6a026c42260c5"
+    },
+    {
+      "path": "/tmp/barocss-d524-baseline-controls02/tests.log",
+      "sha256": "ccb3e09197889989e819b299dfd45e570d368835307c52636e29aa6c9b4a1862"
+    },
+    {
+      "path": "/tmp/barocss-d524-fixed-checks01/tests.log",
+      "sha256": "918630d5c7a1222fc467e1ba60045e5538101647eb30182dc0824f3a60510bae"
+    },
+    {
+      "path": "/tmp/barocss-d524-fixed-checks01/studio-types.log",
+      "sha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+    },
+    {
+      "path": "/tmp/barocss-d524-fixed-checks01/model-types.log",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "path": "/tmp/barocss-d524-studio-before01/receipt.json",
+      "sha256": "9cfd59632e0f5d715ec9f828dc4b4d8499497a0317a2bcdddbd05127ddd16c4d"
+    },
+    {
+      "path": "/tmp/barocss-d524-studio-before01-meta/run.log",
+      "sha256": "b10f1ed3c8d1708c16bca4ae159a7e7444e00ec8ed54706a3060ce069148a5e9"
+    },
+    {
+      "path": "/tmp/barocss-d524-studio-fixed01/receipt.json",
+      "sha256": "af36b9b7a9dc37ca826af4e88abd4df09429032bdfb75681dc4618c156d886cb"
+    },
+    {
+      "path": "/tmp/barocss-d524-studio-fixed01-meta/run.log",
+      "sha256": "7657ff48929d8e6a4b7a7c40c2a8a46b39e9dfb548adeec27f9f453d71863343"
+    },
+    {
+      "path": "/tmp/barocss-d524-studio-before01/03-edited-current-mesh.png",
+      "sha256": "15407da8ab124e2a6935e5c482b5a324bc23659c24a387edc7e1cea29d12f4ea"
+    },
+    {
+      "path": "/tmp/barocss-d524-studio-before01/06-selected-current-edge.png",
+      "sha256": "32cbe8071d91bd7d00fb0c6491ed535daf542c83cf60de90b940a72e244a07c5"
+    },
+    {
+      "path": "/tmp/barocss-d524-studio-fixed01/04-selected-current-body.png",
+      "sha256": "01af61fdc80e0fe354696745042c081af16fa343bdbefd6ec6312a51ef475aca"
+    },
+    {
+      "path": "/tmp/barocss-d524-studio-fixed01/06-selected-current-edge.png",
+      "sha256": "32cbe8071d91bd7d00fb0c6491ed535daf542c83cf60de90b940a72e244a07c5"
+    },
+    {
+      "path": "/tmp/barocss-d524-studio-fixed01/09-cleared-current-native-mesh.png",
+      "sha256": "46d5567de1f1c6a5167f07bb2181aa8a49453de37d81b62320f83ac435745db7"
+    }
+  ]
+}

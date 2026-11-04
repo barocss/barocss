@@ -92,19 +92,32 @@ const mix = (a: Vec3, b: Vec3, k: number): Vec3 => [a[0] + (b[0] - a[0]) * k, a[
 interface PlacedInstance {
   /** Each body's own look (roadmap 10 ①: the occurrence's or definition's colour, face colours, hidden), set with the instance. */
   looks: (InstanceRenderLook | undefined)[];
-  id: string; sigs: string[]; threadLines: Float32Array | undefined; surfaces: Mesh[]; edges: Mesh[]; threads: Mesh | null;
+  id: string; sigs: MeshSignature[]; threadLines: Float32Array | undefined; surfaces: Mesh[]; edges: Mesh[]; threads: Mesh | null;
   shapes: (Shape | null)[]; shareT: Float64Array[]; sharing: boolean[]; edgeBody: number[]; edgeSharing: boolean[]; bodies: BodyResult[];
 }
 /** Copies' one tessellation (G10): a reference copy's display mesh, the inverse of its placement, the geometries made from it and the meshes drawing them. */
 interface Shape { key: string; ref: DisplayMesh; inverse: Float64Array; surface: Geometry; edges: Geometry | null; users: Set<Mesh>; colorKey: string | null }
-interface Body { result: BodyResult; surface: Mesh; edges: Mesh | null; highlight: Mesh | null; geometries: Geometry[]; sig: string; state: string; tile?: number; runs: FaceRuns; painted: Painted | null }
+interface Body { result: BodyResult; surface: Mesh; edges: Mesh | null; highlight: Mesh | null; geometries: Geometry[]; sig: MeshSignature; state: string; tile?: number; runs: FaceRuns; painted: Painted | null }
 
-/** A mesh's content in a few numbers (sizes, bounds and a sample of positions): equal for a re-evaluation that changed nothing. */
-function signature(r: BodyResult): string {
-  const m = r.mesh, p = m.positions, step = Math.max(1, Math.floor(p.length / 997));
-  let h = 2166136261;
-  for (let i = 0; i < p.length; i += step) { h ^= Math.round(p[i] * 1e4); h = Math.imul(h, 16777619); }
-  return [r.key, p.length, m.indices.length, m.edgeLines.length, ...m.bounds.min, ...m.bounds.max, h >>> 0].join(',');
+/** Owned upload inputs. Callers can reuse or mutate their buffers after a previous set. */
+interface MeshSignature { key: string; mesh: DisplayMesh }
+function copyMesh(m: DisplayMesh): DisplayMesh {
+  return { ...m, positions: m.positions.slice(), normals: m.normals.slice(), indices: m.indices.slice(),
+    faceOfVertex: m.faceOfVertex.slice(), edgeLines: m.edgeLines.slice(), edgeOfSegment: m.edgeOfSegment.slice(),
+    bounds: { min: [...m.bounds.min], max: [...m.bounds.max] } };
+}
+function signature(r: BodyResult): MeshSignature { return { key: r.key, mesh: copyMesh(r.mesh) }; }
+const sameValues = (a: ArrayLike<number>, b: ArrayLike<number>) => {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (!Object.is(a[i], b[i])) return false;
+  return true;
+};
+/** Compare every uploaded value and pick/paint mapping; unchanged inputs allocate no new snapshot. */
+function sameMesh(saved: MeshSignature, result: BodyResult): boolean {
+  const a = saved.mesh, b = result.mesh;
+  return saved.key === result.key && sameValues(a.bounds.min, b.bounds.min) && sameValues(a.bounds.max, b.bounds.max)
+    && sameValues(a.positions, b.positions) && sameValues(a.normals, b.normals) && sameValues(a.indices, b.indices)
+    && sameValues(a.faceOfVertex, b.faceOfVertex) && sameValues(a.edgeLines, b.edgeLines) && sameValues(a.edgeOfSegment, b.edgeOfSegment);
 }
 
 
@@ -238,20 +251,19 @@ export class GpuRenderer implements ViewRenderer {
   setBodies(results: BodyResult[]): void {
     // The same bodies again (a re-evaluation, a preview becoming the part): keep their GPU meshes, so
     // nothing is rebuilt and the frame does not flash.
-    const sigs = results.map(signature);
-    if (sigs.length === this.bodies.length && sigs.every((s, i) => s === this.bodies[i].sig)) {
+    if (results.length === this.bodies.length && results.every((r, i) => sameMesh(this.bodies[i].sig, r))) {
       this.bodies.forEach((b, i) => { b.result = results[i]; });
       return;
     }
-    // Otherwise each body whose mesh is unchanged keeps its GPU meshes (wherever it now stands in the
-    // list); only new ones are built, and gone ones released. (setState paints them: state '' is unpainted.)
+    // A key only narrows the candidates. Exact owned input values decide whether a resource can remain.
     const pool = new Map<string, Body[]>();
-    for (const b of this.bodies) pool.set(b.sig, [...(pool.get(b.sig) ?? []), b]);
+    for (const b of this.bodies) pool.set(b.sig.key, [...(pool.get(b.sig.key) ?? []), b]);
     const was = this.bodies;
     this.bodies = results.map((result, bi) => {
-      const old = pool.get(sigs[bi])?.shift();
+      const candidates = pool.get(result.key), at = candidates?.findIndex(b => sameMesh(b.sig, result)) ?? -1;
+      const old = at >= 0 ? candidates!.splice(at, 1)[0] : undefined;
       if (old) { if (was[bi] !== old) old.state = ''; old.result = result; return old; }
-      return this.makeBody(result, sigs[bi]);
+      return this.makeBody(result, signature(result));
     });
     for (const list of pool.values()) for (const b of list) { b.surface.remove(); b.edges?.remove(); this.dropHighlight(b); b.geometries.forEach(g => g.dispose()); }
     this.placeGround();
@@ -537,7 +549,7 @@ export class GpuRenderer implements ViewRenderer {
     this.ground.visible = this.settings ? this.settings.environment.ground : true;
   }
 
-  private makeBody(result: BodyResult, sig: string): Body {
+  private makeBody(result: BodyResult, sig: MeshSignature): Body {
     const m = result.mesh, I = m.indices, faces = new Uint32Array(I.length / 3);
     for (let t = 0; t < faces.length; t++) faces[t] = m.faceOfVertex[I[3 * t]];
     const surfaceGeometry = this.viewer.createGeometry({ positions: m.positions, normals: m.normals, uvs: boxUVs(m.positions, m.normals, m.bounds), indices: I, faces });
@@ -949,11 +961,11 @@ export class GpuRenderer implements ViewRenderer {
   shareCopies = true;
   private shapes = new Map<string, Shape[]>();
   /** The shape a body is a copy of under its placement P, and the matrix that moves the shape's geometry onto it; or a new shape with it as the reference. */
-  private shapeOf(mesh: DisplayMesh, P: Float64Array): { shape: Shape; T: Float64Array } {
+  private shapeOf(mesh: DisplayMesh, P: Float64Array, owned: DisplayMesh, previous?: Shape | null): { shape: Shape; T: Float64Array } {
     const key = topologyKey(mesh), list = this.shapes.get(key) ?? [];
-    for (const shape of list) { const T = multiply(P, shape.inverse); if (movedCopy(shape.ref, mesh, T)) return { shape, T }; }
+    for (const shape of list) { if (shape === previous) continue; const T = multiply(P, shape.inverse); if (movedCopy(shape.ref, mesh, T)) return { shape, T }; }
     const shape: Shape = {
-      key, ref: mesh, inverse: invert(P), users: new Set(), colorKey: null,
+      key, ref: owned, inverse: invert(P), users: new Set(), colorKey: null,
       surface: this.viewer.createGeometry({ positions: mesh.positions, normals: mesh.normals, indices: mesh.indices }),
       edges: mesh.edgeLines.length ? this.viewer.createGeometry({ positions: mesh.edgeLines, topology: 'lines' }) : null,
     };
@@ -992,9 +1004,14 @@ export class GpuRenderer implements ViewRenderer {
     const had = new Map(this.instances.map(it => [it.id, it]));
     this.instanceMeshes = new Map(items.map(it => [it.id, it.bodies.map(b => b.mesh)]));
     this.instances = items.map(it => {
-      const sigs = it.bodies.map(signature), old = had.get(it.id);
-      if (old && old.sigs.length === sigs.length && old.sigs.every((x, i) => x === sigs[i]) && sameLines(old.threadLines, it.threads)) { had.delete(it.id); old.looks = bodyLooksOf(it.bodies, it.looks); return old; }
-      const made = this.makeInstance(it, sigs); made.looks = bodyLooksOf(it.bodies, it.looks);
+      const old = had.get(it.id);
+      if (old && old.sigs.length === it.bodies.length && old.sigs.every((s, i) => sameMesh(s, it.bodies[i])) && sameLines(old.threadLines, it.threads)) { had.delete(it.id); old.bodies = it.bodies; old.looks = bodyLooksOf(it.bodies, it.looks); return old; }
+      // A changed owner cannot rejoin its own stale shape through G10's cross-copy rounding tolerance.
+      const previous = it.bodies.map(body => {
+        const bi = old?.sigs.findIndex(s => s.key === body.key) ?? -1;
+        return old && bi >= 0 && !sameMesh(old.sigs[bi], body) ? old.shapes[bi] : null;
+      });
+      const made = this.makeInstance(it, it.bodies.map(signature), previous); made.looks = bodyLooksOf(it.bodies, it.looks);
       return made;
     });
     for (const it of had.values()) this.dropInstance(it);
@@ -1002,9 +1019,9 @@ export class GpuRenderer implements ViewRenderer {
     this.paintInstances(); this.placePreview(); this.applyClip();
   }
 
-  private makeInstance(it: InstanceItem, sigs: string[]): PlacedInstance {
+  private makeInstance(it: InstanceItem, sigs: MeshSignature[], previous: (Shape | null | undefined)[] = []): PlacedInstance {
     // (G10: with a placement, each body joins the copies of its shape — or starts a shape — and draws it through its matrix.)
-    const P = this.shareCopies && it.placement ? it.placement : null, found = it.bodies.map(b => P ? this.shapeOf(b.mesh, P) : null);
+    const P = this.shareCopies && it.placement ? it.placement : null, found = it.bodies.map((b, bi) => P ? this.shapeOf(b.mesh, P, sigs[bi].mesh, previous[bi]) : null);
     const out: PlacedInstance = {
       looks: [], id: it.id, sigs, threadLines: it.threads, bodies: it.bodies,
       shapes: found.map(f => f?.shape ?? null), shareT: found.map(f => f?.T ?? IDENTITY), sharing: found.map(f => !!f),
