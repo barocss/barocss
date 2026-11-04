@@ -1,3 +1,4 @@
+import { pickVertex } from './vertexPick';
 import { viewportRecoveryHost, type ViewportRecoveryNotice } from './viewportRecovery';
 import type { ClearanceDisplay } from './clearanceDisplay';
 import { useEffect, useImperativeHandle, useMemo, useRef, useState, useSyncExternalStore, forwardRef } from 'react';
@@ -434,14 +435,11 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   /** A corner of the body under the pointer within 7 px (an end of one of its edges), when the filter takes corners. */
   const vertexAt = (x: number, y: number, w: number, h: number, hit: { face: FaceRef | null; edge: EdgeRef | null }): { body: number; at: Vec3 } | null => {
     const f = propsRef.current.pickFilter ?? 'all', bi = hit.edge?.body ?? hit.face?.body;
-    if (bi === undefined || f === 'face' || f === 'body') return null;
+    if (bi === undefined) return null;
     const mesh = propsRef.current.bodies[bi]?.mesh; if (!mesh) return null;
     const print = propsRef.current.printDisplay;
     if (print && hit.face && mesh.faces.some(face => face.index === hit.face!.face && face.id === 'section-cap')) return null;
-    let best: Vec3 | null = null, d0 = 7;
-    // (Each edge's two ends in turn: no pair array an edge, a pointer move at a time; PERF3 C17.)
-    for (const e of mesh.edges) for (let k = 0; k < 2; k++) { const p = k ? e.b : e.a; if (print?.printed && p[2] > print.top + 1e-7) continue; const q = camera.current.project(p as Vec3, w, h), d = Math.hypot(q[0] - x, q[1] - y); if (d < d0) { d0 = d; best = [...p] as Vec3; } }
-    return best ? { body: bi, at: best } : null;
+    return pickVertex(f, bi, mesh.edges, x, y, p => camera.current.project(p as Vec3, w, h), print?.printed ? print.top : undefined);
   };
   const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | 'tool' | 'spline' | null; splineArm?: { hit: SplineHandleHit; pointerId: number }; splineHit?: SplineHandleHit; splineStart?: SketchShape; splineLast?: SketchShape; splineLastDef?: SplineDef; pointerId?: number; x: number; y: number; moved: boolean; x0?: number; y0?: number;
     /** A gizmo drag: what was hit, the pointer's start and last points, and what it means so far. */

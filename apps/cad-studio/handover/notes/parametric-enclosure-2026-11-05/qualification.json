@@ -1,0 +1,185 @@
+{
+  "decision": "D539",
+  "tier": "FEATURE",
+  "parent": "b463b8328a11728951c5916bcc0829a174b43205",
+  "branch": "local/cad-dev",
+  "scope": {
+    "priority": "P1",
+    "rows": [
+      "07",
+      "08",
+      "12",
+      "16",
+      "20"
+    ],
+    "scenario": "B02 v1 true Shell with mounting rail, Through Hole row and outer R1 corners",
+    "acceptedActionGroups": 11,
+    "declaredActionGroups": 11,
+    "wholeCadCore": "NOT_MEASURED",
+    "aggregateBaselinePercent": "NOT_PUBLISHED"
+  },
+  "productChange": {
+    "problem": "Explicit Edges selection was overridden by a nearby body vertex",
+    "fix": "Actual shared hover/click nearest-endpoint search admits vertices only for All; explicit filters retain their own picks",
+    "files": [
+      "apps/cad-studio/src/viewport/Viewport.tsx",
+      "apps/cad-studio/src/viewport/vertexPick.ts"
+    ],
+    "publicGeometryOrSchemaChange": false
+  },
+  "PASS": {
+    "controlledNativeRows": 9,
+    "controlledSourcePins": 473,
+    "independentPreservedPositiveNativeStates": 8,
+    "newVertexControls": 4,
+    "existingSelectionControls": 6,
+    "focusedTotal": 10,
+    "studioTypes": "studio-types02.log",
+    "finalModelTypes": "final-model-types02.log",
+    "helperSyntaxChecks": 3,
+    "affectedLintErrors": 0,
+    "independentSourceMathReview": "PASS",
+    "independentFeatureReview": "PASS",
+    "rootOriginalPngReview": {
+      "oldFailure": 1,
+      "current": 6
+    },
+    "joinedConsumerBindings": 12,
+    "positiveNativeCaptures": 7,
+    "exactWholeDocNativeReuses": 5,
+    "sameFailedTarget": {
+      "world": [
+        60,
+        -20,
+        5
+      ],
+      "edge": 1,
+      "pixelDistance": 0,
+      "maximumEyeComponentDifference": 0
+    },
+    "firstDocumentUndoAfterRefusal": true,
+    "independentSavedNativePhysicalAudit": "PASS"
+  },
+  "FAIL": {
+    "firstActualRun": "Studio01 Edges filter selected vertex [58,-18,2] instead of edge1 at [60,-20,5]",
+    "retained": true,
+    "newOracleOrNativeControlFailures": 0
+  },
+  "REUSED": {
+    "D537DocsSamples": 185,
+    "D537ReactTypes": "react-types03.log",
+    "run01Prefix": "Box has no pointer pick; Union uses outliner; Hole uses Faces already excluding vertices. Preserve exact old-source scope.",
+    "D537FocusedModelStudioControls": 68
+  },
+  "NOT_RUN": [
+    "Full kernel: no B-rep core edit",
+    "General enclosure/feature families",
+    "Full-domain periodic/trim proof",
+    "Cold browser process/profile",
+    "Final post-Open D resave",
+    "Catalog-material mass/inertia",
+    "Mobile",
+    "Exchange",
+    "Develop merge/release"
+  ],
+  "numeric": {
+    "authority": "Independent source-validated Decimal targets and original native rational/graph/trim/finite pcurve witnesses",
+    "volumeRelativeMaximum": 2.1717216120676632e-14,
+    "massDensity1AbsoluteMaximumG": 2.3408217858624674e-13,
+    "centroidAbsoluteMaximumMM": 8.27574488030145e-14,
+    "endpointGapMaximumMM": 0,
+    "carrierGapMaximumMM": 1.3766765505351941e-14,
+    "outwardNormalComponentMaximum": 2.609024107869118e-14,
+    "pcurveLiftGapMaximumMM": 1.464821375527116e-14,
+    "pcurveBranch": "EXERCISED_FINITE_ORIGINAL_WITNESSES",
+    "nativeVolumeRelativeBudget": 1e-09,
+    "nativeCoordinateBudgetMM": 1e-09,
+    "sourceLinearBudgetMM": 1e-07,
+    "sourceAngularBudgetRad": 1e-09
+  },
+  "runs": [
+    {
+      "label": "Studio01",
+      "status": "FAIL",
+      "sourcePins": 763,
+      "snapshots": 15,
+      "bindings": 3,
+      "positiveCaptures": 3,
+      "nativeReuses": 0,
+      "sourceChanges": 0,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "receiptSHA256": "e0fccc604f5952b5ea08f7c3ed49d402af66b85de9257f35111c624f4af7f695",
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    },
+    {
+      "label": "Studio02",
+      "status": "PASS",
+      "sourcePins": 767,
+      "snapshots": 24,
+      "bindings": 9,
+      "positiveCaptures": 4,
+      "nativeReuses": 5,
+      "sourceChanges": 0,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "downloads": 0,
+      "receiptSHA256": "bd4b644c9398f84648e31b128c18ebf5e71f9c3998012f37cd48659e167f8692",
+      "cleanup": [
+        {
+          "ownedProject": "D539-ef4a2adc-bccc-44d5-bdda-e1593fdc5e0a",
+          "namespace": "REMOVED_AND_ABSENT"
+        },
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ]
+    }
+  ],
+  "issues": {
+    "checkedLive": [
+      529,
+      534,
+      551
+    ],
+    "remaining": "Whole workspace, feature-family and general graph criteria remain unmet",
+    "completionComments": 0,
+    "closed": []
+  },
+  "next": "D540 / P1 B03 retained evidence adjudication and first missing supported interaction",
+  "save": {
+    "namespace": "projects/D539-ef4a2adc-bccc-44d5-bdda-e1593fdc5e0a",
+    "path": "D539-enclosure.bcad",
+    "bytes": 3798,
+    "sha256": "9b3ebd4c9a6d3a05c62e79633da617422bd03cfb5b8109846708bfbc0ea0a042",
+    "exactAcceptedDoc": true,
+    "postOpenDResaved": false
+  },
+  "refusal": {
+    "actualReason": "The wall is too thickThe design was not changed. Adjust the values and try again.Detailsa wall of 3 mm leaves no hollow inside this body",
+    "actualWorkerCode": "PARAMETER",
+    "actualWorkerRequestId": 14,
+    "requestDocAuthority": "EXACT_EVALUATION_DOC_MATERIALIZED_FROM_ACTUALLY_OBSERVED_WIRE_ADDED_IDS_NO_POSITIONAL_FALLBACK",
+    "requestDocKind": "Worker evaluatedPart JSON; stripped nextId is not a saved project Doc",
+    "requestDocSha256": "4c98f5e537ae130f3e2b473d11659f0fc7d60f1295638d0beaeb67477b161857",
+    "nativeRefusalFile": "18-separate-native-refusal.json",
+    "separateNativeFeature": "n2",
+    "separateNativeAuthority": "Separate native evaluation of exact journal-materialized rejected Worker Doc; Worker FriendlyError itself exposes no feature",
+    "acceptedDocRetained": true,
+    "acceptedBodyRetained": true,
+    "historyRetained": true
+  },
+  "sourceHashes": {
+    "apps/cad-studio/src/viewport/Viewport.tsx": "c08beb6277bde30fdd5eab30195dd2267cd4544fe2fb3df0c68a94077f8d0730",
+    "apps/cad-studio/src/viewport/vertexPick.ts": "906e8267f565a7a9b7efb8f8ae20f67c79cc35aa0a2ccda0e140957210a40872",
+    "apps/cad-studio/test/vertex-pick-filter.test.ts": "dd976163c9ddfb49509d35579c9ef4a00f54a46b06563218d809de3fababe70d",
+    "apps/cad-studio/test/enclosure-admission-preflight.mjs": "1c8c9afc8053fbc3509631b008eeddb26773f28050106ba3daab0e5930c59215",
+    "apps/cad-studio/test/enclosure-baseline-oracles.mjs": "e8dcdc433389b6980b6627e1c668cf1020313ed140698889721151f86f56fdfe",
+    "apps/cad-studio/test/enclosure-baseline-browser.mjs": "13438e53f66e81be9217fe50249ff442899835d97363b49f90651b513683500f"
+  }
+}

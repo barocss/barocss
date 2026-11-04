@@ -29,7 +29,7 @@ The12 groups match the original same-part workflow. Each group includes its list
 | B01-11 | Save this complete editable part in an owned local project, Close/reload/fresh Open and preserve exact accepted identity. | Current owned project saves3431-byte W80 exactly, Closes/reloads/Opens in the same context. Native file Open ancestry remains retained. Cold-process recovery is excluded. |
 | B01-12 | After Open, change width again and retain geometry, reference strings and driving intent. | Current post-Open width60/Finish and actual Measure56 pass. The new W60 state is dirty and is not claimed resaved. |
 
-B01 v1 is accepted12/12 action groups. This is the selected bracket denominator, not12 equal parts of all CAD. B02–B10 remain NOT_ADJUDICATED; aggregate baseline coverage is not published and whole CAD/core remains NOT_MEASURED.
+B01 v1 is accepted12/12 action groups. This is the selected bracket denominator, not12 equal parts of all CAD. B02 is separately accepted11/11 by [D539](10-b02-evidence-ledger.md); B03–B10 remain NOT_ADJUDICATED. Aggregate baseline coverage is not published and whole CAD/core remains NOT_MEASURED.
 
 ## Frozen current execution supplement
 
