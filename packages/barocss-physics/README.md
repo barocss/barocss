@@ -1,5 +1,25 @@
 # @barocss/physics
 
+## Current contact coherence checkpoint (2026-11-04)
+
+The production contact phase now projects positions once, assembles all actual
+final-pose feature contacts, and solves/applies normal motion at those same
+positions. No tolerance, iteration count, body cap or legacy fallback changed.
+Fresh strict Source and actual canonical builds, tensor/public API, refusal,
+recorder restore/continue, and both original512-step two/three-cube campaigns pass.
+Both graphs also pass the original60/120/240Hz contact campaign through1second.
+
+This fixes the previously recorded490 refusal within that512-step profile.
+It does **not** remove all accumulated error: a separately fixed three1024 gate
+first violates lateral-position tolerance at866 (1.0037318971762749e-10m versus
+1e-10m). Source returns896steps but independently passes768; Native passes768.
+No failed window is shortened. Full current-provider desktop HiDPI is NOT_RUN;
+the earlier512/384 Viewer and six-sample HiDPI are historical provider results.
+The exact-arithmetic successor is research on a separate branch, not runtime
+adoption. All original478/479/488/490 failures and the new866failure remain.
+See [contact coherence results](../../examples/physics-contact-coherence-2276/RESULTS.md).
+Studio/manufacturing/equipment/old-worker HOLDs remain. No deployment or release.
+
 The [library design and development roadmap](ROADMAP.md) defines the unreleased target API and
 its staged verification. The root uses the P0 model/options contract. P5a private
 cloth/fluid kernels and the selected P5b common-World source/native migration

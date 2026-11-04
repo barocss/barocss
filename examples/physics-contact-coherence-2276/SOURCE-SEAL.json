@@ -1,0 +1,35 @@
+{
+  "status": "SOURCE_ONLY_FROZEN_BEFORE_EXECUTION",
+  "files": {
+    "CONTRACT.md": "f1e930bc2016819f0f5ede8cb1b0435bdb2ab6ae456609037dd41083da0fc2e2",
+    "candidate-frictionless-island.ts": "199b2f70127cfa1ac5a274bc46282c688a5e0c1a620b657352248eec3cb767f3",
+    "oracle.py": "65d26e05a8f0971005104437403d075ad044252f7137edfe2df85e799aa47a6a",
+    "private-run.mjs": "8e5d112afeecb0f95ea1552fa4d77602f50e9542cc00641ab3875943e3353644",
+    "baseline/frictionless-island.ts": "7b61afb5c0f4651f04c95d82d4e92901fc148d21818d2cfe0e14d3dc7280d128",
+    "TOOL-RESOLUTION-ADDENDUM.md": "7bd269fe4ad45b3c55d914ca42506578872922cd0ababbe2db3992dd2329b0a6",
+    "package.json": "a90fc33418afa2b9cbf4768524b021135b965ecdf993457505bfae3ac44a8428",
+    "MODULE-KIND-ADDENDUM.md": "e3cc3a5ebaf41e8454cfa841eb0b45a4c242b5e4e0dc4ef033610f18c1e97b3a"
+  },
+  "authorExecution": "NONE",
+  "productionEdited": false,
+  "plannedPerGraph": {
+    "worlds": 0,
+    "originalKernelCalls": 1,
+    "candidateCalls": 1,
+    "referenceCalls": 1
+  },
+  "publicWorldAdopted": false,
+  "restRecoveryClaim": false,
+  "rootToolResolutionRepair": {
+    "previousSealSHA256": "2589a8282199fee31e697eafe646812bbe47e4ce6354caa351d167a259801c2c",
+    "firstFailure": "evidence/private-01/result.json",
+    "newRun": "private-02",
+    "candidateAndOracleUnchanged": true
+  },
+  "rootModuleKindRepair": {
+    "previousSealSHA256": "df3e3c3ff625eab757090f0eafc799bb80f7a800e9045b3cb62c653367a9812f",
+    "firstFailure": "evidence/private-02/result.json",
+    "newRun": "private-03",
+    "candidateAndOracleUnchanged": true
+  }
+}

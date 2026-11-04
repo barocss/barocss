@@ -16,6 +16,17 @@ decisions remain in force. See [Physics verification](/reference/physics-verific
 
 For CAD, GPU and Viewer host ownership, see [host integration](./host-integration).
 
+## Current contact verification
+
+The current contact coherence implementation passes the original two-cube and
+three-cube512-step numerical campaigns in Source and actual compiled World,
+with unchanged tolerances. Its extended three-cube campaign still fails at866:
+lateral error1.0037318971762749e-10m exceeds1e-10m. The library is not complete.
+New-provider full desktop HiDPI remains unrun; the gallery and earlier Viewer
+results below belong to their recorded providers. See the
+[roadmap evidence](/physics-evidence/api-roadmap.txt). All first failures and
+Studio/manufacturing/equipment HOLDs remain. No deployment.
+
 ## Run the local sample gallery
 
 The repository gallery has six independently checked finite examples: projectile,

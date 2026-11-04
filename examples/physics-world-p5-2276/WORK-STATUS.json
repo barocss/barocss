@@ -1,18 +1,34 @@
 {
   "asOf": "2026-11-04",
-  "branch": "codex/physics-sample-gallery-2276",
+  "branch": "codex/physics-contact-coherence-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "rigid-persistent-box-v1: aligned equal2kg two/three cubes/floor; direct e0/friction0",
-    "status": "POST_FACE_REPAIR_DT03_AND_CURRENT_HIDPI_PREFIX_PASS_LONG02_THREE490_NO_GO",
-    "scope": "EachgraphDT6World840accepted840independent14refs. Long02Source2World1002attempt1001accepted896independent; Native2World896accepted896independent9refs. Two512/three384 qualified; Source-three385..489 observed-only. Current-provider actualHiDPI3World896steps9Nativecaptures10DPRchecks0errors/contextclosed/sourceIntegritytrue. Full512512UI/checkpointNOT_RUN; libraryNOT_COMPLETE.",
-    "productionFaceContactSourceSha256": "c164a34d6245cf52a3f13274439eb6bb2dad471a47344e92aa1c30e5c94c99b6",
-    "sourceProviderDigest": "sha256:bdff69b55d4effb0deda83bb1dfc298e82f17578e0c3dec127e5ca66a03fee00",
-    "nativeProviderDigest": "sha256:ea44ebf2cd364b917b3c063a2393a13dd1d4b918dc9333c47fe0cf33eee7cb58",
-    "results": "examples/physics-contact-convergence-2276/RESULTS.md",
-    "canonicalAdoption": "ACTUAL_COMMON_WORLD_FACE_GUIDE_REPAIR_WITH_UNCHANGED_GATES",
-    "completion": "NOT_COMPLETE",
-    "next": "Resolveactual490freshpostcontactnormalfeasibility; requalifyoriginalSourceNative/public/fullViewer, no cap/tol change."
+    "status": "CONTACT_COHERENCE_TWO_THREE512_PASS_EXTENDED866_NO_GO",
+    "source": "b064c35dbbbfec85ce91f6140adc9e98fb0efeac754ce65768a69c56ae910880",
+    "longPerGraph": {
+      "worlds": 2,
+      "accepted": 1024,
+      "independent": 1024,
+      "references": 10
+    },
+    "dtPerGraph": {
+      "worlds": 6,
+      "accepted": 840,
+      "independent": 840,
+      "references": 14
+    },
+    "extended": {
+      "firstViolation": 866,
+      "metric": "middle lateralPositionM",
+      "actual": 1.0037318971762749e-10,
+      "limit": 1e-10,
+      "sourceAccepted": 896,
+      "sourceIndependent": 768,
+      "nativeAcceptedAndIndependent": 768
+    },
+    "desktop": "NEW_PROVIDER_NOT_RUN",
+    "report": "examples/physics-contact-coherence-2276/RESULTS.md",
+    "wholeEngine": "NOT_COMPLETE"
   },
   "mainSlices": {
     "P0": "CONTRACT_COMPLETE_LOCAL",
@@ -39,7 +55,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "Productionfacec164 adopted after independent private geometry03 PASS. Build03/private02/api02/post-initial01/post-regression01/dt03 PASS. Long02fullNO_GO Source490 fresh post contact normal feasibility, owner489/time4.075 retained. Current Nativeea44 ViewerHiDPI prefix two512/three384 actualPASS3W896/9windows/10DPRchecks; notfull512512. Original479 and every firstfailure retained. CADReactotherWork; Studio/manufacturing/equipment/old-worker HOLD unchanged; no deploy.",
+  "active": "Phase01 contactcoherence b064: original two512+three512 and dt60/120/240 PASS Source/canonical. Extendedthree1024 NO_GO first866 lateral1.0037318971762749e-10>1e-10. ExactsuccessorSOURCE_ONLY; no newproviderfullHiDPI. PreserveHOLD/firstfailures; publishboundedcheckpointonly.",
   "latestStackImplementation": {
     "results": "examples/physics-stack-library-2276/RESULTS.md",
     "entry": "packages/barocss-physics/src/stack/prepare-step.ts",
@@ -1221,11 +1237,11 @@
     "WorldPromotion": "FINITE_THREE_CLEAN_WORLD_CASES_PASS_ATOMICITY_WIRE_DESKTOP_PUBLIC_GATES_REMAIN"
   },
   "currentPriorityOrder": [
-    "Qualify bounded lossless stream archive and exact single-copy/buffered-fingerprint producer in fresh3x16, preserving every original physical word",
-    "Original ALIGNED/OFFSET/YAW1200 complete strictcontact/all36position/ledger/quality/actual960baseline under ORIGINAL170/180s and wire/scratch/output scopes",
-    "Atomic commonWorld/command/recorder/API adoption only for passedprofile; no legacy route",
-    "Desktop-only emitted library consumer and rendering tests",
-    "P6/P7 required coupledphysical profiles aftertheir prerequisites"
+    "Prove exact normal-contact arithmetic on actual failed inputs with unchanged64iteration/SI/geometry gates.",
+    "Adopt only independently qualified successor into World; rerun tensor/public/owner/dt/512/1024.",
+    "Run same-provider desktopHiDPI after numericalPASS; desktoponly.",
+    "General moving8/originalP4 and othercontact/material/connectedmechanism profiles remain separate NO_GO.",
+    "Do not resume Studio/manufacturing/equipment/oldworkers; no deploy."
   ],
   "dynamicHost": {
     "status": "EXECUTED_PASS_ORIGINAL_THREE_CLEAN_WORLD_CASES",
@@ -1591,7 +1607,7 @@
     "policy": "New localized GCD entry/remainder invariant explicitly overrides old per-REM guard clause; no unchanged-clause claim.",
     "unchanged": "All actual operation prices,2M/bit/time limits, physical gates and first failures",
     "gates": [
-      "fresh32-pair exact/B\u00e9zout audit",
+      "fresh32-pair exact/Bézout audit",
       "freshA10",
       "oneB6fullphysical+independent",
       "oneparent-plus-fullchildCPUcostdecision"
@@ -2708,5 +2724,21 @@
     "nextAlgorithmDependency": "478/488onset-of-rest-drift and490contact/velocity/positioncoherence; independent+SourceNative+originalfull512gates first",
     "holds": "Studio/manufacturing/equipment/oldworkers unchanged;CADReact otherWork",
     "publication": false
+  },
+  "previousContactCoherencePublicationBaseline": {
+    "active": "Productionfacec164 adopted after independent private geometry03 PASS. Build03/private02/api02/post-initial01/post-regression01/dt03 PASS. Long02fullNO_GO Source490 fresh post contact normal feasibility, owner489/time4.075 retained. Current Nativeea44 ViewerHiDPI prefix two512/three384 actualPASS3W896/9windows/10DPRchecks; notfull512512. Original479 and every firstfailure retained. CADReactotherWork; Studio/manufacturing/equipment/old-worker HOLD unchanged; no deploy.",
+    "lastNumericalMilestone": {
+      "profile": "rigid-persistent-box-v1: aligned equal2kg two/three cubes/floor; direct e0/friction0",
+      "status": "POST_FACE_REPAIR_DT03_AND_CURRENT_HIDPI_PREFIX_PASS_LONG02_THREE490_NO_GO",
+      "scope": "EachgraphDT6World840accepted840independent14refs. Long02Source2World1002attempt1001accepted896independent; Native2World896accepted896independent9refs. Two512/three384 qualified; Source-three385..489 observed-only. Current-provider actualHiDPI3World896steps9Nativecaptures10DPRchecks0errors/contextclosed/sourceIntegritytrue. Full512512UI/checkpointNOT_RUN; libraryNOT_COMPLETE.",
+      "productionFaceContactSourceSha256": "c164a34d6245cf52a3f13274439eb6bb2dad471a47344e92aa1c30e5c94c99b6",
+      "sourceProviderDigest": "sha256:bdff69b55d4effb0deda83bb1dfc298e82f17578e0c3dec127e5ca66a03fee00",
+      "nativeProviderDigest": "sha256:ea44ebf2cd364b917b3c063a2393a13dd1d4b918dc9333c47fe0cf33eee7cb58",
+      "results": "examples/physics-contact-convergence-2276/RESULTS.md",
+      "canonicalAdoption": "ACTUAL_COMMON_WORLD_FACE_GUIDE_REPAIR_WITH_UNCHANGED_GATES",
+      "completion": "NOT_COMPLETE",
+      "next": "Resolveactual490freshpostcontactnormalfeasibility; requalifyoriginalSourceNative/public/fullViewer, no cap/tol change."
+    },
+    "branch": "codex/physics-sample-gallery-2276"
   }
 }

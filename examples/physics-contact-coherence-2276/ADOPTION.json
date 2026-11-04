@@ -1,0 +1,29 @@
+{
+  "status": "COHERENCE_PRIVATE_QUALIFIED_PRODUCTION_ADOPTION_WIP",
+  "productionKernelPath": "packages/barocss-physics/src/stack/frictionless-island.ts",
+  "productionKernelSha": "b064c35dbbbfec85ce91f6140adc9e98fb0efeac754ce65768a69c56ae910880",
+  "privateQualification": {
+    "path": "examples/physics-contact-coherence-2276/evidence/private-03/result.json",
+    "sha256": "2ac5f2caa246db4fbb3bf0c6309937f4ae2b5f068e30107b6bf4c79b7f964112",
+    "status": "PRIVATE_CONTACT_COHERENCE_SOURCE_NATIVE_CONFIRMED"
+  },
+  "candidateSource": {
+    "path": "examples/physics-contact-coherence-2276/candidate-frictionless-island.ts",
+    "sha256": "199b2f70127cfa1ac5a274bc46282c688a5e0c1a620b657352248eec3cb767f3"
+  },
+  "sourceMapping": [
+    {
+      "candidatePath": "examples/physics-contact-coherence-2276/candidate-frictionless-island.ts",
+      "candidateSha256": "199b2f70127cfa1ac5a274bc46282c688a5e0c1a620b657352248eec3cb767f3",
+      "productionPath": "packages/barocss-physics/src/stack/frictionless-island.ts",
+      "productionSha256": "b064c35dbbbfec85ce91f6140adc9e98fb0efeac754ce65768a69c56ae910880"
+    }
+  ],
+  "mappingOnly": "Exact candidate body; imports relocated src/stack->./ and src/->../",
+  "previousProductionKernelSha": "7b61afb5c0f4651f04c95d82d4e92901fc148d21818d2cfe0e14d3dc7280d128",
+  "privateSnapshotsOnly": true,
+  "publicScopeExpanded": false,
+  "fullRuntimeAndDesktop": "NOT_RUN",
+  "holds": "UNCHANGED",
+  "publication": false
+}

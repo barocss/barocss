@@ -31,9 +31,9 @@ export interface AppliedNormalCertificate {
   postValidationCholeskyFactorizations: number;
 }
 export interface FrictionlessIslandDiagnostics {
-  freeBodies: Body[]; pairs: PositionPair[]; freeGeometry: IslandGeometry[];
+  integratedFreeBodies: Body[]; positionCandidateBodies: Body[] | null; normalInputBodies: Body[] | null; normalGeometry: IslandGeometry[]; pairs: PositionPair[];
   normalProblem: NormalProblem | null; normalResult: NormalSolverResult | null;
-  applications: IslandApplication[]; velocityBodies: Body[] | null;
+  applications: IslandApplication[]; impulseAppliedBodies: Body[] | null;
   appliedNormalCertificate: AppliedNormalCertificate | null;
   positionAttempt: FullPairPositionAttempt | null; positionStats: FullPairPositionStats | null;
   postGeometry: IslandGeometry[]; pairContributions: readonly CompletedContactPair[];
@@ -201,11 +201,17 @@ function representative(a: Body, b: Body, geometry: ContactGeometry): Vec3 {
   return mean;
 }
 
+function sameGeometryRows(a: ContactGeometry, b: ContactGeometry): boolean {
+  return a.planeNormalAtoB.every((value, i) => Object.is(value, b.planeNormalAtoB[i])) &&
+    a.points.length === b.points.length && a.points.every((point, i) =>
+      point.key === b.points[i].key && point.midpointM.every((value, j) => Object.is(value, b.points[i].midpointM[j])));
+}
+
 /** Caller supplies actual post-integration FREE bodies and every sorted eligible pair. */
 export function prepareFrictionlessIsland(freeBodies: readonly Body[], pairs: readonly PositionPair[],
   context: { jointCount: number }): PreparedFrictionlessIsland {
-  const diagnostics: FrictionlessIslandDiagnostics = { freeBodies: [], pairs: [], freeGeometry: [],
-    normalProblem: null, normalResult: null, applications: [], velocityBodies: null,
+  const diagnostics: FrictionlessIslandDiagnostics = { integratedFreeBodies: [], positionCandidateBodies: null, normalInputBodies: null, normalGeometry: [], pairs: [],
+    normalProblem: null, normalResult: null, applications: [], impulseAppliedBodies: null,
     appliedNormalCertificate: null, positionAttempt: null, positionStats: null, postGeometry: [],
     pairContributions: [], normalSolverCalls: 0, positionPhaseCalls: 0, positionSolverCalls: 0 };
   try {
@@ -220,16 +226,36 @@ export function prepareFrictionlessIsland(freeBodies: readonly Body[], pairs: re
     for (const body of freeBodies) if (body.kind === 'static')
       need(body.inverseInertiaLocal.every((value: number) => value === 0), 'prescribed static inverse inertia');
     const working = freeBodies.map(copyBody);
-    diagnostics.freeBodies = working.map(copyBody);
+    diagnostics.integratedFreeBodies = working.map(copyBody);
     diagnostics.pairs = pairs.map(([a, b]): PositionPair => [a, b]);
+    diagnostics.positionPhaseCalls++;
+    diagnostics.positionSolverCalls = null;
+    try {
+      const position = runFullPairPositionPhase(working, pairs);
+      diagnostics.positionAttempt = position.attempt;
+      diagnostics.positionStats = position.stats;
+      diagnostics.positionSolverCalls = position.stats.solverCalls;
+    } catch (error) {
+      if (error instanceof PositionPhaseFailure) {
+        diagnostics.positionAttempt = error.attempt;
+        diagnostics.positionStats = error.stats;
+        diagnostics.positionSolverCalls = error.stats.solverCalls;
+      }
+      throw error;
+    }
+    diagnostics.positionCandidateBodies = working.map(copyBody);
+    diagnostics.normalInputBodies = working.map(copyBody);
     const points: NormalProblem['points'][number][] = [];
     for (const [aIndex, bIndex] of pairs) {
       const a = working[aIndex], b = working[bIndex], hit = detect(a, b);
-      if (!hit) continue;
       const geometry = featureContact(a, b);
-      need(geometry && geometry.points.length > 0, 'actual free contact geometry');
+      if (!geometry) {
+        need(!hit, 'actual projected hit requires contact geometry');
+        continue;
+      }
+      need(geometry.points.length > 0, 'actual projected-pose contact geometry');
       const key = pairKey(a, b);
-      diagnostics.freeGeometry.push({ aIndex, bIndex, aId: a.id, bId: b.id, pairKey: key,
+      diagnostics.normalGeometry.push({ aIndex, bIndex, aId: a.id, bId: b.id, pairKey: key,
         hit: structuredClone(hit), geometry });
       for (const point of geometry.points) points.push({ id: JSON.stringify([key, point.key]),
         aId: a.id, bId: b.id, pointM: [...point.midpointM], normalAtoB: [...geometry.planeNormalAtoB] });
@@ -246,7 +272,7 @@ export function prepareFrictionlessIsland(freeBodies: readonly Body[], pairs: re
       'complete global normal solve');
     const totals = new ContactPairAccumulator(), byId = new Map(working.map((body, index) => [body.id, index]));
     let pointIndex = 0;
-    for (const patch of diagnostics.freeGeometry) for (const point of patch.geometry.points) {
+    for (const patch of diagnostics.normalGeometry) for (const point of patch.geometry.points) {
       const a = working[patch.aIndex], b = working[patch.bIndex], lambda = solved.normalImpulsesNs[pointIndex];
       need(Number.isFinite(lambda) && lambda >= 0 && problem.points[pointIndex].id === JSON.stringify([patch.pairKey, point.key]),
         'nonnegative actual point impulse/link');
@@ -266,28 +292,13 @@ export function prepareFrictionlessIsland(freeBodies: readonly Body[], pairs: re
     }
     need(pointIndex === points.length, 'every normal point applied exactly once');
     diagnostics.pairContributions = totals.finish();
-    diagnostics.velocityBodies = working.map(copyBody);
+    diagnostics.impulseAppliedBodies = working.map(copyBody);
     validateResult(working, []);
-    diagnostics.appliedNormalCertificate = validateApplied(diagnostics.freeBodies, working, problem, solved, diagnostics.applications);
-    diagnostics.positionPhaseCalls++;
-    diagnostics.positionSolverCalls = null;
-    try {
-      const position = runFullPairPositionPhase(working, pairs);
-      diagnostics.positionAttempt = position.attempt;
-      diagnostics.positionStats = position.stats;
-      diagnostics.positionSolverCalls = position.stats.solverCalls;
-    } catch (error) {
-      if (error instanceof PositionPhaseFailure) {
-        diagnostics.positionAttempt = error.attempt;
-        diagnostics.positionStats = error.stats;
-        diagnostics.positionSolverCalls = error.stats.solverCalls;
-      }
-      throw error;
-    }
+    diagnostics.appliedNormalCertificate = validateApplied(diagnostics.normalInputBodies!, working, problem, solved, diagnostics.applications);
     const impulseTotals = new Map<string, number>();
     for (const application of diagnostics.applications)
       impulseTotals.set(application.pairKey, finite((impulseTotals.get(application.pairKey) ?? 0) + application.normalImpulseNs));
-    const freePenetrations = new Map(diagnostics.freeGeometry.map(patch => [patch.pairKey, patch.hit?.penetration ?? 0]));
+    const freePenetrations = new Map(diagnostics.positionAttempt!.initialDetections.map(entry => [entry.pairKey, entry.hit?.penetration ?? 0]));
     const contacts: PhysicsContact[] = [], retained = new Set<string>();
     for (const [aIndex, bIndex] of pairs) {
       const a = working[aIndex], b = working[bIndex], key = pairKey(a, b);
@@ -296,6 +307,8 @@ export function prepareFrictionlessIsland(freeBodies: readonly Body[], pairs: re
         need((impulseTotals.get(key) ?? 0) === 0, 'applied pair needs fresh post witness');
         continue;
       }
+      const normalPatch = diagnostics.normalGeometry.find(patch => patch.aIndex === aIndex && patch.bIndex === bIndex);
+      need(normalPatch && sameGeometryRows(normalPatch.geometry, geometry), 'normal and final contact rows retain exact words');
       diagnostics.postGeometry.push({ aIndex, bIndex, aId: a.id, bId: b.id, pairKey: key,
         hit: detect(a, b), geometry });
       for (const point of geometry.points) {
@@ -307,6 +320,7 @@ export function prepareFrictionlessIsland(freeBodies: readonly Body[], pairs: re
         penetrationM: freePenetrations.get(key) ?? 0, impulseNs: impulseTotals.get(key) ?? 0, tangentImpulseNs: [0, 0, 0] });
       retained.add(key);
     }
+    need(diagnostics.postGeometry.length === diagnostics.normalGeometry.length, 'complete final normal patch set');
     for (const [key, impulse] of impulseTotals) need(impulse === 0 || retained.has(key), 'all applied pair summaries retained');
     need(byId.size === working.length, 'body identity retained');
     validateResult(working, contacts);

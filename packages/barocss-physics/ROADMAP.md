@@ -1,13 +1,36 @@
 ---
 work_id: physics-api-roadmap-2276
 artifact_type: architecture-and-development-roadmap
-status: bounded_contact_current_viewer_pass_long_three_490_no_go
+status: contact_coherence_two_three512_pass_extended866_no_go
 owner_role: independent-physics-algorithm-work
 source_request: redesign the unreleased Physics library and reorganize its roadmap; preserve HOLD, NO_GO and first failures
 last_updated: 2026-11-04
 ---
 
 # Physics library design and roadmap
+
+## Current contact coherence checkpoint (2026-11-04)
+
+The production contact phase now projects positions once, assembles all actual
+final-pose feature contacts, and solves/applies normal motion at those same
+positions. No tolerance, iteration count, body cap or legacy fallback changed.
+Fresh strict Source and actual canonical builds, tensor/public API, refusal,
+recorder restore/continue, and both original512-step two/three-cube campaigns pass.
+Both graphs also pass the original60/120/240Hz contact campaign through1second.
+
+This fixes the previously recorded490 refusal within that512-step profile.
+It does **not** remove all accumulated error: a separately fixed three1024 gate
+first violates lateral-position tolerance at866 (1.0037318971762749e-10m versus
+1e-10m). Source returns896steps but independently passes768; Native passes768.
+No failed window is shortened. Full current-provider desktop HiDPI is NOT_RUN;
+the earlier512/384 Viewer and six-sample HiDPI are historical provider results.
+The exact-arithmetic successor is research on a separate branch, not runtime
+adoption. All original478/479/488/490 failures and the new866failure remain.
+See `examples/physics-contact-coherence-2276/RESULTS.md`.
+Studio/manufacturing/equipment/old-worker HOLDs remain. No deployment or release.
+
+Earlier milestone descriptions below retain their historical provider and scope.
+The current checkpoint above supersedes only their present-tense490/512 status.
 
 ## Current qualified result and next dynamics stage (2026-11-04)
 
