@@ -1,0 +1,255 @@
+{
+  "workId": "D529",
+  "priority": "P0-R09",
+  "rows": [
+    4,
+    16,
+    32
+  ],
+  "tier": "FULL",
+  "baseline": "c444797a773de216a16226c34d685506e0206678",
+  "status": "BOUNDED_PUBLIC_OWNED_OBSERVATIONS_QUALIFIED",
+  "implementationModel": "GPT-6.1 Sol Medium",
+  "independentAudits": [
+    "APPROVED GPT-6.1 Sol Medium",
+    "APPROVED GPT-6.1 Sol Medium; also runner-only canonical-path repair"
+  ],
+  "originalControlled": {
+    "tests": 13,
+    "pass": 4,
+    "fail": 9
+  },
+  "fixedControlled": {
+    "tests": 52,
+    "new": 13,
+    "related": 39,
+    "pass": 52,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "checks": {
+    "ReactTypes": "PASS",
+    "consumerTupleOwnerExamplesTypes": "PASS",
+    "lint": "PASS",
+    "StudioTypes": "PASS",
+    "finalModelTypesAfterLastRunnerEdit": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS"
+  },
+  "mutations": {
+    "baseline": {
+      "pass": 13,
+      "fail": 0
+    },
+    "killed": 8,
+    "casesPerVariant": 13,
+    "assertionFailures": [
+      1,
+      3,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "cancelled": 0,
+    "inWorktreeSourceEdits": 0,
+    "run01": "HARNESSFAIL canonical /var path mismatch; no qualified mutants"
+  },
+  "rootActual": {
+    "baseline": "PASS_HARNESS_NINE_ALIASES_REPRODUCED",
+    "fixed": "PASS_NINE_OWNED_MUTATIONS_ISOLATED",
+    "classification": "Deliberate public observation consumer mutation, not organic incidence",
+    "sourcePaths": 1230,
+    "sourceChanges": 0,
+    "baselineStates": 3,
+    "fixedStates": 6,
+    "fixedContexts": 2,
+    "unknownPageErrors": 0,
+    "unknownConsoleErrors": 0,
+    "downloads": 0,
+    "baselineDocHeight": [
+      8,
+      19
+    ],
+    "baselineFingerprintChanged": false,
+    "fixedDocHeight": [
+      8,
+      8
+    ],
+    "subsequentPublicRadius": 10,
+    "currentNativeAndViewerFrame": true,
+    "returnedStudioDocExact": true,
+    "returnedStudioBodies": 1,
+    "rootViewed": [
+      "repro01/03",
+      "fixed01/03",
+      "fixed01/04",
+      "fixed01/06"
+    ],
+    "cleanup": "All owned contexts/Chrome/static HTTP/Studio Vite closed"
+  },
+  "ownership": {
+    "detached": [
+      "accepted Doc",
+      "submitted list and records",
+      "native centroid",
+      "native bounds min/max",
+      "adapter outer state",
+      "ExistingViewerHost pixels record"
+    ],
+    "shared": [
+      "EngineAdapter-issued frozen Owner tokens",
+      "caller-supplied Owner identity without extra freeze",
+      "adapter.error:unknown extension",
+      "custom sink.snapshot():unknown extension"
+    ],
+    "noWholeReadOrMeshCopy": true
+  },
+  "retainedDocsSamples": "D528185 PASS eligible unchanged sample producers/examples; no new R09 run",
+  "notRun": [
+    "Organic mutation incidence",
+    "Broad document-copy timing/memory certificate",
+    "Independent numerical oracle, native Save/export",
+    "Packed consumer, whole Studio production build, whole kernel, CI/mobile/release/develop integration",
+    "Broad CAD React or whole CAD completion"
+  ],
+  "wholeCad": "NOT_MEASURED",
+  "sourcePins": {
+    "packages/barocss-cad-react/src/model-host.ts": "c356fd880ef29eeed4e10b3d08a2f89d6af272e594703c08d5b3e141d4ae91ba",
+    "packages/barocss-cad-react/src/viewer.ts": "ca00b9fb6004618a492809750339d3f29494a88f4dd5a62b02cc86001a5090a2",
+    "packages/barocss-cad-react/tests/compile.mjs": "8e9b23dd244da80b6950f4fecfb1d6ca88423f92f4231cce7438d7b5eed10ac9",
+    "packages/barocss-cad-react/tests/observation-ownership.test.mjs": "e7ab5098684116be2f36de1cfdca212044ea7c03b406f280435c9499d175ca29",
+    "packages/barocss-cad-react/tests/types/observation-api.tsx": "7566575cc623a4bfbfe6e640a4e662d7311398c75e56006c9d64788196fb0cda",
+    "packages/barocss-cad-react/tests/types/tsconfig.json": "8225ffb34af8ada3392a347989ce1d761e3ddc44bb589da930dee0d7ed0a7e0d",
+    "packages/barocss-cad-react/scripts/test-observation-mutations.mjs": "889ed0915d81239ce7100fed69e99274c6743fa6cba771909c9e841226f8aff2",
+    "packages/barocss-cad-react/tests/observation-current-browser.mjs": "ee0086a415922744205fab72101acdc9c00242fa05fc04ade47a0be608e64758",
+    "packages/barocss-cad-react/tests/observation-studio-fixture.tsx": "1a2226d87da4cd6434cb22724a6cbe7969844d8386e7fb1cc91d41bc5f8badad",
+    "packages/barocss-cad-react/README.md": "dc66d8242b7d8d0921de61534ccc49354ba232bc9ac424ca73f480d5a835899b",
+    "apps/library-docs/docs/packages/cad-react/engine-viewer.md": "55cd2c34a1715bef04c80d175d235767d21bac5accbd6e11e2b2a1c9720c05ec"
+  },
+  "externalEvidence": [
+    {
+      "path": "/tmp/barocss-d529-baseline-controls01/observation-api.tsx",
+      "sha256": "7566575cc623a4bfbfe6e640a4e662d7311398c75e56006c9d64788196fb0cda"
+    },
+    {
+      "path": "/tmp/barocss-d529-baseline-controls01/tsconfig.json",
+      "sha256": "8225ffb34af8ada3392a347989ce1d761e3ddc44bb589da930dee0d7ed0a7e0d"
+    },
+    {
+      "path": "/tmp/barocss-d529-baseline-controls01/tests.log",
+      "sha256": "b57a106e7964364f09724d38c834c6d443a89486a90434726f39560ba728948b"
+    },
+    {
+      "path": "/tmp/barocss-d529-baseline-controls01/baseline-test-pins.json",
+      "sha256": "3e85dd53955231439f0ab47029bae915e839af55f5c947029d93b11172e32278"
+    },
+    {
+      "path": "/tmp/barocss-d529-baseline-controls01/observation-ownership.test.mjs",
+      "sha256": "e7ab5098684116be2f36de1cfdca212044ea7c03b406f280435c9499d175ca29"
+    },
+    {
+      "path": "/tmp/barocss-d529-fixed-checks01/lint.log",
+      "sha256": "b4a1eced578d6d0c346ae6065036ff0efc3ec36bc067bb4dfe39a16319e3e2f5"
+    },
+    {
+      "path": "/tmp/barocss-d529-fixed-checks01/model-types.log",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "path": "/tmp/barocss-d529-fixed-checks01/consumer-types.log",
+      "sha256": "c619ee4e5b3a102c63c1b29297a38d1a05c41c6a4a3340c4765ea112ee5515bf"
+    },
+    {
+      "path": "/tmp/barocss-d529-fixed-checks01/studio-types.log",
+      "sha256": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+    },
+    {
+      "path": "/tmp/barocss-d529-fixed-checks01/tests.log",
+      "sha256": "cb249f91ab4a4268620f93ba6e3efab083ea10274ec56b736055af8e42515d85"
+    },
+    {
+      "path": "/tmp/barocss-d529-fixed-checks01/react-types.log",
+      "sha256": "ddbd989c56c51e7ec5061885e06a85461439a9ffee360f275cb9566eb7a7f989"
+    },
+    {
+      "path": "/tmp/barocss-d529-mutations01/runner.log",
+      "sha256": "288e2f11c3829ae429ac90fb198dd1f8acc33f46152d91e873228b2fad1675a2"
+    },
+    {
+      "path": "/tmp/barocss-d529-mutations02/submitted-array-alias.log",
+      "sha256": "160635b153cf259f66a4910d7e7acd0bcc5830b06949a43f77136a7219f4b194"
+    },
+    {
+      "path": "/tmp/barocss-d529-mutations02/adapter-state-alias.log",
+      "sha256": "6273a6c778116c5588b1c282ac345f717e04d656242f2aa38ac2cb8702da7caf"
+    },
+    {
+      "path": "/tmp/barocss-d529-mutations02/centroid-alias.log",
+      "sha256": "fbaa7de6dc25194ab53e08f4a7598bdd379b39827cdccd582ad4c0524be9a2a9"
+    },
+    {
+      "path": "/tmp/barocss-d529-mutations02/runner.log",
+      "sha256": "76e11d9fdeda7b4eff0376bcd90958e2354f7563020cd35d711c4b608293c5a2"
+    },
+    {
+      "path": "/tmp/barocss-d529-mutations02/bounds-min-alias.log",
+      "sha256": "b2645fdf601c8c7c53e6a598947d459e7f71fc017ded0314d98da29531fb41e7"
+    },
+    {
+      "path": "/tmp/barocss-d529-mutations02/document-alias.log",
+      "sha256": "1d091e33127915820ab9f5a745d3626cc6712fff146ff493ad77872ffbadb9b3"
+    },
+    {
+      "path": "/tmp/barocss-d529-mutations02/baseline.log",
+      "sha256": "6ab18d9f9488a1b22874f99d8b215fc75edd1e7b09dfdd33237155ba5b9011b9"
+    },
+    {
+      "path": "/tmp/barocss-d529-mutations02/submitted-entry-alias.log",
+      "sha256": "09bb61456088d5718b6b35423ded4011da0081d644bd7c222fc839d5634ad753"
+    },
+    {
+      "path": "/tmp/barocss-d529-mutations02/pixel-diagnostics-alias.log",
+      "sha256": "c4e41662f11bfb4f6d9f1e46d0d7e32204669c0762488f8c1eb46d8230fab501"
+    },
+    {
+      "path": "/tmp/barocss-d529-mutations02/syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d529-mutations02/bounds-max-alias.log",
+      "sha256": "0224b5c35cf9449c63253bfa3bf3cddf33292459e02d3263e7ebbd94e0eb8e23"
+    },
+    {
+      "path": "/tmp/barocss-d529-mutations02/diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/barocss-d529-mutations02/final-model-types.log",
+      "sha256": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+    },
+    {
+      "path": "/tmp/barocss-d529-mutations02/summary.json",
+      "sha256": "a839734b2e30ded0a7207e6452fdda2a86953306fc0091cb852829ebc236ea43"
+    },
+    {
+      "path": "/tmp/barocss-d529-observation-repro01/receipt.json",
+      "sha256": "b9d179859ed5a0fa82ff2a31e9ce6080217fea2b815a75af7866e0c669676d3f"
+    },
+    {
+      "path": "/tmp/barocss-d529-observation-repro01-meta/run.log",
+      "sha256": "6c9ee69c9e619b98df94a4de2726fa6097e0d45d4e81d2c6d78d80a53f188223"
+    },
+    {
+      "path": "/tmp/barocss-d529-observation-fixed01/receipt.json",
+      "sha256": "54aabab35b16323564e534838cfe517c0832d258d636a1ec1f300b8b5cc646a7"
+    },
+    {
+      "path": "/tmp/barocss-d529-observation-fixed01-meta/run.log",
+      "sha256": "49abfabf8a657bfc64b631c6601ccadb07ffc11e39027c59e264a4ab202aba6b"
+    }
+  ]
+}

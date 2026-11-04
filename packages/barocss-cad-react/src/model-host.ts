@@ -109,6 +109,7 @@ export class ModelHost implements ModelLifecycle {
     return !this.disposed && !this.pendingModel && this.desired?.fingerprint === owner.fingerprint
       && this.adapter.state.desired === owner && this.adapter.state.freshNative;
   }
+  /** Detached host-owned diagnostics; Owner identities and extension payloads retain their own contracts. */
   read() {
     const owner = this.native?.owner;
     const current = !!owner && this.current(owner);
@@ -117,13 +118,14 @@ export class ModelHost implements ModelLifecycle {
     const error = this.error ?? (this.state?.phase === 'failed' ? errorMessage(this.state.error) : null);
     return { status: this.disposed ? 'disposed' : (this.error !== null || this.state?.phase === 'failed') ? 'failed' : current && this.rendered === owner ? 'ready' : 'pending',
       error, pendingModel: this.pendingModel, checkpoints: this.checkpoints, requests: this.requests,
-      merges: this.merges, ignored: this.ignored, submitted: this.submitted,
-      currentDocument: this.desired?.doc ?? null, documentJSON: this.desired ? JSON.stringify(this.desired.doc) : null,
+      merges: this.merges, ignored: this.ignored, submitted: this.submitted.map(entry => ({ ...entry })),
+      currentDocument: this.desired ? structuredClone(this.desired.doc) : null, documentJSON: this.desired ? JSON.stringify(this.desired.doc) : null,
       fingerprint: this.desired?.fingerprint ?? null, nativeOwner: owner ?? null, renderedOwner: this.rendered,
-      native: body ? { key: body.key, volume: body.volume, centroid: body.centroid ?? null, bounds: body.mesh.bounds,
+      native: body ? { key: body.key, volume: body.volume, centroid: body.centroid ? [...body.centroid] as [number, number, number] : null,
+        bounds: { min: [...body.mesh.bounds.min] as [number, number, number], max: [...body.mesh.bounds.max] as [number, number, number] },
         ...(body.pieces === undefined ? {} : {pieces:body.pieces}),
         deferred: body.massRef !== undefined, vertices: body.mesh.positions.length / 3, triangles: body.mesh.indices.length / 3 } : null,
-      adapter: this.state, viewer: this.sink.snapshot() };
+      adapter: this.state ? { ...this.state } : null, viewer: this.sink.snapshot() };
   }
   dispose() {
     if (this.disposed) return;

@@ -44,7 +44,7 @@ export class ExistingViewerHost implements ExistingViewerSink {
       displayMeshes: state.displayMeshes ? { revision: state.displayMeshes.revision,
         authority: state.displayMeshes.authority, bodies: state.displayMeshes.bodies.map(body => ({ bodyId: body.bodyId,
           vertices: body.positions.length / 3, triangles: body.indices.length / 3 })) } : null,
-      mountedOwner: this.mountedOwner, frameOwner: this.frameOwner, pixels: this.pixels };
+      mountedOwner: this.mountedOwner, frameOwner: this.frameOwner, pixels: this.pixels ? { ...this.pixels } : null };
   }
   dispose() {
     if (this.disposed) return;

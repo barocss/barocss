@@ -1,15 +1,15 @@
 # CAD roadmap — current status and execution order
 
-Updated 2026-11-05 · Priority authority: D520 · Latest delivery: D528 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
+Updated 2026-11-05 · Priority authority: D520 · Latest delivery: D529 · Audit baseline: `ccce78c671c8a5c09718c1cf6005a90027b75adc`
 
 This is the only current status index. Detailed tracks define acceptance; the 34 stable row pages retain scope and issue navigation. Immutable decision notes retain results. Do not append chronological status paragraphs here. [D520 decision](notes/cad-roadmap-replan-2026-11-04/README.md) supersedes D445 execution order and historical next-item text, while retaining its safeguards and bounded proofs.
 
 ## Now and next
 
-- **Current position:** [D528](notes/react-settled-worker-recovery-2026-11-05/README.md) qualifies CAD React settled Worker failure and explicit caller-owned Retry:39 controlled checks,185 docs samples, root actual existing Viewer recovery and recovered-Doc Studio Open pass. Same props/IDs persist; no automatic restart. Native fault is deliberate protocol injection, not organic incidence.
-- **Next MAIN:** D529 / P0-R09, establish detached owned observations for Doc/submitted/native bounds/centroid/adapter fields and Viewer pixels while retaining frozen Owner identity and unknown custom extension boundaries. FULL review/mutations plus root actual Viewer and Studio. Read [P0 acceptance](roadmap-tracks/01-reliability.md).
+- **Current position:** [D529](notes/react-observation-ownership-2026-11-05/README.md) detaches owned CAD React observations while preserving Owner/unknown-extension identity:52 controlled checks,8 killed mutants, two FULL source approvals and root actual Viewer plus returned-Doc Studio pass. Native reproduction deliberately mutates public observations; no organic-incidence or copy-performance claim.
+- **Next MAIN:** D530 / P0-R10, retain native closed-form/planar-exact/quadrature/tessellated method through eager/deferred/placement results and both public mass facades; expose existing tessellated volume estimates without guessing method or inventing precision. FULL review/mutations and root actual Studio property/BOM consumer. Read [P0 acceptance](roadmap-tracks/01-reliability.md).
 - **Active branch:** `local/cad-dev`. Before work fetch both remote refs and preserve unexpected WIP. Latest develop integration is D516, merge `4d733c0f622dadf0b8d84d4395b696779e9b1e84`, incorporating develop `0a838f9543a29a864df5917ac2bb877540c8aa73`. No new develop merge or release is authorized by this plan.
-- **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01–B10 baseline coverage **NOT_ADJUDICATED**. The legacy43% is frozen history. P0 has12 acceptance items; R01–R08 have bounded D521–D528 closeouts; R04 native collision remains UNKNOWN; R09–R12 remain open. This is backlog state, not a whole-CAD percentage.
+- **Measured progress:** whole CAD and core readiness **NOT_MEASURED**; B01–B10 baseline coverage **NOT_ADJUDICATED**. The legacy43% is frozen history. P0 has12 acceptance items; R01–R09 have bounded D521–D529 closeouts; R04 native collision remains UNKNOWN; R10–R12 remain open. This is backlog state, not a whole-CAD percentage.
 - **Evidence correction:** D482 records2167 PASS/0 FAIL/2 existing SKIP in a later full-kernel run than D433. Neither result is a new full-suite PASS at this audit HEAD. [D482 record](notes/vertical-contact-refusal-2026-11-04/README.md).
 
 ## Product order
@@ -18,7 +18,7 @@ P0 findings that can lose work, export stale geometry or misattribute results ta
 
 | Order | Deliverable and boundary | Current position | Detailed acceptance |
 | --- | --- | --- | --- |
-| **P0** | Document safety, current geometry/output, public API ownership and truthful failure/provenance |R01–R08 bounded corrections qualified by D521–D528; R04 native collision UNKNOWN. R09 next; R10–R12 remain source/contract work by dependencies and confirmed impact. | [Reliability queue](roadmap-tracks/01-reliability.md) |
+| **P0** | Document safety, current geometry/output, public API ownership and truthful failure/provenance |R01–R09 bounded corrections qualified by D521–D529; R04 native collision UNKNOWN. R10 next; R11–R12 remain source/contract work by dependencies and confirmed impact. | [Reliability queue](roadmap-tracks/01-reliability.md) |
 | **P1** | Useful daily parts: constrained sketch, extrude/revolve, Boolean, hole/finish/pattern, upstream edit, stable refs, measure/history and Save/Open | Existing combined and individual workflows qualified at cited scopes; no whole-family completion. Audit the remaining representative workflows rather than replay all successful prefixes. | [Core workflows](roadmap-tracks/02-core-workflows.md) |
 | **P2** | Engineering drawings and exchange: dimensions/sections/details, revisions, units, explicit losses, independent reads | Existing drawing/exchange profiles qualified; current 3MF and facade-loss gaps belong to P0. ASME PDF mismatch remains deferred. | [Core workflows](roadmap-tracks/02-core-workflows.md) |
 | **P3** | Static assemblies: placement, mates, nested selection, linked revisions, material/BOM/drawings | D511/D512 bounded workflows and D513 card fix qualified. No generic assembly or dynamics completion. | [Core workflows](roadmap-tracks/02-core-workflows.md) |
