@@ -1,0 +1,103 @@
+{
+  "work_id": "D516",
+  "status": "PASS_BOUNDED_DEVELOP_INTEGRATION",
+  "tier": "feature",
+  "ownerRequest": "Merge the latest pushed develop while preserving current CAD and CAD React work.",
+  "CADBase": "a125cb67b268c0b2784b3fafef129f25051294af",
+  "D509Checkpoint": "04f1f8b710beac437f5c4c0c4c8d0b00ce007963",
+  "developInput": "0a838f9543a29a864df5917ac2bb877540c8aa73",
+  "mergeCommit": "4d733c0f622dadf0b8d84d4395b696779e9b1e84",
+  "incomingPaths": 3445,
+  "overlap": [
+    "apps/library-docs/docs/.vitepress/sidebar.mjs"
+  ],
+  "mergePolicy": "Normal merge, no stash/reset/rebase/amend/force. Both Physics Host integration and six CAD React links retained.",
+  "preservation": {
+    "D509OriginalPaths": 33,
+    "unchangedExceptIntendedSidebarUnion": 32,
+    "checkpointPathsIncludingPartialNotes": 35,
+    "checkpointUntouchedExceptSidebar": 34
+  },
+  "freshTests": {
+    "dragWall": 24,
+    "sidebar": 7,
+    "fail": 0,
+    "skip": 0
+  },
+  "reusedTests": {
+    "D513": 13,
+    "D514": 6,
+    "actualPriorPinCount": 1633,
+    "eligibility": "All prior pin bytes plus renderer/test hashes verified; incoming change paths do not touch CAD/Model/GPU/Viewer/React product source."
+  },
+  "freshChecks": {
+    "StudioTypes": "PASS",
+    "StudioViteBuild": "PASS",
+    "FinalModelTypes": "PASS",
+    "diff": "PASS"
+  },
+  "independentFeatureSourceReview": "PASS_GPT_6_1_SOL_MEDIUM",
+  "actualStudio": {
+    "status": "PASS_ROOT_EXECUTED",
+    "sharedWith": "D515",
+    "distinctRuns": 1,
+    "nativeCaptures": 0,
+    "independentPhysicalOracles": 0,
+    "wrapperSourcePins": 1614,
+    "helperSourcePins": 290,
+    "sourceEqualThroughCleanupAndImages": true,
+    "rootViewedImages": 2,
+    "cleanup": "CONTEXT_BROWSER_SERVER_CLOSED",
+    "errors": 0,
+    "consoleErrors": 0,
+    "changes": 0,
+    "downloads": 0,
+    "semanticBoundary": "Actual existing 48-hole slow drag, whole/rolled previews and Escape restoring exact document. No Apply/Save."
+  },
+  "nativeProducerReview": {
+    "actualInputs": 467,
+    "workspaceInputs": 465,
+    "TMPInputs": 2,
+    "incomingPathIntersection": 0,
+    "physicalQualification": "NOT_CLAIMED_BY_SOURCE_INTERSECTION"
+  },
+  "notRun": [
+    "Full CAD kernel: CAD/Model geometry unchanged",
+    "Physics runtime qualification or feature activation",
+    "CAD React current reconciliation and documentation/preview completion",
+    "Mobile, release, npm publication, deployment"
+  ],
+  "globalCompletion": "NOT_MEASURED",
+  "D509": "WORK_IN_PROGRESS_NOT_READY; checkpoint preserves historical evidence, not a completed component/documentation claim.",
+  "metadataErratum": "Raw checks sourceClosure text says1684; full reused map actually1633, all verified. No numeric admission used that descriptive literal.",
+  "models": {
+    "sourceAuditAndPreparation": "GPT-6.1 Sol Medium",
+    "actualStudioAndImages": "root"
+  },
+  "evidence": {
+    "checks": {
+      "path": "/tmp/barocss-d516-integration-checks01/receipt.json",
+      "sha256": "1c6f4e27e31d2621d4d40e40d4c5fb017d4b61a1da0025d5473add55279f046c"
+    },
+    "Studio": {
+      "path": "/tmp/barocss-d516-d515-studio-run01/receipt.json",
+      "sha256": "9e14f7a3906994ae158fbc5a08e632f3504345fcf36042176cd3711febdc7ef9"
+    },
+    "rootReview": {
+      "path": "/tmp/barocss-d516-integration-root01/root-actual-review.json",
+      "sha256": "31ffb06a300e3859f937cae4b03064f97a2e96907289e554deb0b0f2e99e8406"
+    },
+    "independentSourceReview": {
+      "path": "/tmp/barocss-d516-feature-integration-review01/review.json",
+      "sha256": "d2ca5faa4fa21a218d5831fb5264ff2339658d189309053dfa13bdf0235b15bd"
+    },
+    "nativeSourceIntersection": {
+      "path": "/tmp/barocss-d509-integration-checkpoint01/native467-develop-intersection.json",
+      "sha256": "0bb15e4bfde0ef6b19631d13898ac3aa75a33838cba5455a59cd4d9334a0db10"
+    },
+    "initialInventory": {
+      "path": "/tmp/barocss-d516-integration-root01/inventory.json",
+      "sha256": "f88b892ee20aa0e520f0a9f7460237c63b69433435e442ca281e9ec09c88c1f5"
+    }
+  }
+}
