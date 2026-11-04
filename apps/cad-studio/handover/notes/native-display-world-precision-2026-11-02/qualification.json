@@ -1,0 +1,727 @@
+{
+  "work_id": "D426",
+  "artifact_type": "native-display-world-precision-qualification",
+  "status": "QUALIFIED_BOUNDED_NATIVE_MODEL_WORLD_PROFILE",
+  "owner_role": "executor",
+  "source_request": "Continue the roadmap autonomously; announce row and overall estimate",
+  "last_updated": "2026-11-02",
+  "rows": [
+    13,
+    16
+  ],
+  "overallPercent": 43,
+  "tier": "full",
+  "sourceCheckpoint": "2521b21db4728549c9b6b9f84d5086ab2fc85399",
+  "models": {
+    "geometryAuthor": "GPT-6.1 Sol High",
+    "independentReviewer": "GPT-6.1 Sol High",
+    "studioAndActual": "GPT-6.1 Sol Medium"
+  },
+  "units": {
+    "length": "mm",
+    "area": "mm^2",
+    "volume": "mm^3",
+    "mass": "g",
+    "inertia": "g*mm^2",
+    "time": "ms"
+  },
+  "assessment": {
+    "status": "FIRST_NATIVE_MODEL_NARROWING_REPRODUCED",
+    "source": "Kernel Float64 samples copied through Number builder; engine/mesh.ts first Float32 cast then bounds scan.",
+    "cases": [
+      {
+        "name": "original-far",
+        "inputSha256": "55ba8745e35a1b2bdd9db664dc381f9d50d7c07c480ed9bd7eaad5bbdcb551a0",
+        "kernel": {
+          "type": "Float64Array",
+          "vertices": 522,
+          "unique": 484,
+          "triangles": 964,
+          "degenerate": 0,
+          "min": [
+            998999.9990056084,
+            -998000.0009943796,
+            996999.9989999998
+          ],
+          "max": [
+            999000.0009943917,
+            -997999.9990056204,
+            997000.001
+          ],
+          "extents": [
+            0.0019887833623215556,
+            0.0019887592643499374,
+            0.0020000002114102244
+          ]
+        },
+        "model": {
+          "type": "Float32Array",
+          "vertices": 522,
+          "unique": 1,
+          "triangles": 964,
+          "degenerate": 964,
+          "min": [
+            999000,
+            -998000,
+            997000
+          ],
+          "max": [
+            999000,
+            -998000,
+            997000
+          ],
+          "extents": [
+            0,
+            0,
+            0
+          ]
+        },
+        "modelEqualsDirectKernelFloat32Cast": true,
+        "inputUnchanged": true
+      },
+      {
+        "name": "original-centered",
+        "inputSha256": "91046e3f5b0bc5f8829de48704bbb9d21e7aab5e167f25622ced46536ed68468",
+        "kernel": {
+          "type": "Float64Array",
+          "vertices": 552,
+          "unique": 514,
+          "triangles": 1024,
+          "degenerate": 0,
+          "min": [
+            -0.0009962900100075728,
+            -0.0009956044981891043,
+            -0.0010000000000000002
+          ],
+          "max": [
+            0.0009962900100075726,
+            0.0009956044981891043,
+            0.001
+          ],
+          "extents": [
+            0.0019925800200151457,
+            0.0019912089963782086,
+            0.002
+          ]
+        },
+        "model": {
+          "type": "Float32Array",
+          "vertices": 552,
+          "unique": 514,
+          "triangles": 1024,
+          "degenerate": 0,
+          "min": [
+            -0.0009962900076061487,
+            -0.0009956045541912317,
+            -0.0010000000474974513
+          ],
+          "max": [
+            0.0009962900076061487,
+            0.0009956045541912317,
+            0.0010000000474974513
+          ],
+          "extents": [
+            0.0019925800152122974,
+            0.0019912091083824635,
+            0.0020000000949949026
+          ]
+        },
+        "modelEqualsDirectKernelFloat32Cast": true,
+        "inputUnchanged": true
+      },
+      {
+        "name": "ordinary-centered",
+        "inputSha256": "d0ee039e695dc5679f1266ab974a1bcc38df5d5eabee975b5b0e50cd4aaafb2d",
+        "kernel": {
+          "type": "Float64Array",
+          "vertices": 552,
+          "unique": 514,
+          "triangles": 1024,
+          "degenerate": 0,
+          "min": [
+            -4.981450050037863,
+            -4.978022490945521,
+            -5.000000000000001
+          ],
+          "max": [
+            4.981450050037863,
+            4.978022490945522,
+            5.000000000000001
+          ],
+          "extents": [
+            9.962900100075727,
+            9.956044981891043,
+            10.000000000000002
+          ]
+        },
+        "model": {
+          "type": "Float32Array",
+          "vertices": 552,
+          "unique": 514,
+          "triangles": 1024,
+          "degenerate": 0,
+          "min": [
+            -4.981450080871582,
+            -4.978022575378418,
+            -5
+          ],
+          "max": [
+            4.981450080871582,
+            4.978022575378418,
+            5
+          ],
+          "extents": [
+            9.962900161743164,
+            9.956045150756836,
+            10
+          ]
+        },
+        "modelEqualsDirectKernelFloat32Cast": true,
+        "inputUnchanged": true
+      }
+    ],
+    "placement": {
+      "translation": [
+        999000,
+        -998000,
+        997000
+      ],
+      "mesh": {
+        "type": "Float32Array",
+        "vertices": 552,
+        "unique": 1,
+        "triangles": 1024,
+        "degenerate": 1024,
+        "min": [
+          999000,
+          -998000,
+          997000
+        ],
+        "max": [
+          999000,
+          -998000,
+          997000
+        ],
+        "extents": [
+          0,
+          0,
+          0
+        ]
+      },
+      "bounds": {
+        "min": [
+          999000,
+          -998000,
+          997000
+        ],
+        "max": [
+          999000,
+          -998000,
+          997000
+        ]
+      }
+    },
+    "inputUnchanged": true,
+    "independentLiteralSpacing": {
+      "spacing": 0.0625,
+      "halfSpacing": 0.03125,
+      "radius": 0.001,
+      "centersExactBinary32": true,
+      "limits": "Literal Float32 cell proof, not shader execution or generic error certificate."
+    }
+  },
+  "selectedContract": [
+    "Native bodyMesh world positions and edgeLines retain Float64; native geometry, mass, tolerances and units unchanged.",
+    "Legacy generated/imported triangle meshes can retain Float32 with the same world-coordinate meaning.",
+    "Shared CAD MeshData coordinate TYPES ONLY widen to Float32Array | Float64Array; original Model reexport/type identity remains. CAD runtime/B-rep math unchanged. Inherited StudioPart.meshes preserves corrected bytes without a new downcast.",
+    "placeBody copies preserve typed-array constructor; wire copies/transfers and API slices retain precision and ownership.",
+    "Studio WebGL explicitly converts Float64 to Float32 at its existing gl.FLOAT upload boundary to preserve byte compatibility. No GPU precision claim."
+  ],
+  "excludedProfiles": [
+    "GPU/WebGL large-world rendering, GPU picking, camera fit, overlays, clip/light/shadow/customshader semantics: D427.",
+    "Legacy triangleMesh/directDisplay, clip, compact/explode and other explicit Float32-derived paths are not newly qualified.",
+    "Model translate admission beyond its existing 10000 limit is not authorized by private placeBody tests.",
+    "Clearance and print draw adapters deliberately produce Float32 copies from canonical Float64 geometry. Canonical data and indices remain intact; far overlays not accepted.",
+    "Large-assembly performance not measured; retained native coordinate/line scalars use8bytes, compared with4 for Float32."
+  ],
+  "checks": {
+    "preFix": {
+      "status": "EXPECTED_FAILURES_REPRODUCED",
+      "pass": 0,
+      "fail": 13,
+      "numericCollapseFailures": 8,
+      "storageContractFailures": 5,
+      "elapsed": 591.601292,
+      "limits": "Initial box fixture hit the unchanged Model translate guard; corrected to valid native transform before the recorded final pre-fix run. Private placeBody tests do not expand public translation admission. Five failures assert the intended storage contract; eight assert numeric collapse. Final file adds one legacy Float32 placement control, for14 tests."
+    },
+    "modelFocused": {
+      "status": "PASS",
+      "pass": 60,
+      "fail": 0,
+      "skip": 0,
+      "newTests": 14,
+      "existingTests": 46,
+      "elapsed": 11173.973333,
+      "scope": "Native source/edge precision, rigid placement/sharing, wire ownership/reuse, inherited/direct API and affected existing consumers."
+    },
+    "modelTypes": {
+      "status": "PASS",
+      "finalAfterLastStudioTestEdit": true
+    },
+    "studioFocused": {
+      "status": "PASS",
+      "uniquePass": 11,
+      "fail": 0,
+      "scope": "2 GL upload,2 draw adapter,7 section tests; initial9 are a subset, not20 unique."
+    },
+    "studioTypes": {
+      "status": "PASS_FINAL"
+    },
+    "independent": {
+      "status": "PASS_BOUNDED",
+      "sourceMathApi": "Shared type identity/inheritance, exact Float64 retention, copy/transfer ownership and explicit GPU/draw byte compatibility reviewed.",
+      "minimalDelta": "Independent reversion of approved Model constructor/type delta reproduces exact baseline mesh/evaluate hashes; no mass/placement arithmetic change.",
+      "baselinePass": 14,
+      "actual": "Reviewer recalculated bounds, unique vertices and triangle areas from real wire arrays; checked both receipts, four images and exact D425 numeric fields."
+    },
+    "mutation": {
+      "status": "PASS_FOUR_NUMERIC_KILLS",
+      "uniqueMutants": 4,
+      "caught": 4,
+      "survived": 0,
+      "harnessErrors": 0,
+      "arrayClassOnlyKills": 0,
+      "scope": "All mutations keep Float64 class while numerically narrowing native positions/lines, placement assignment or wire copies.",
+      "results": [
+        {
+          "name": "native-position-narrowing",
+          "elapsed": 960.2915409999998,
+          "pass": 10,
+          "fail": 4,
+          "sourceSha256": {
+            "mesh": "6dfd3d3aae576e57735c371396b0b8c468b5f1792e5fdfa9c9bc500aea6be8a4",
+            "evaluate": "a95fa6211f4ac066d4c1dd58130c7f6b6a8221044992e191403d1ff80ff06c91",
+            "wire": "f69d6a8b5b100b3de4b5c1066b0877be95cd5ae9e379a8ff990a2b8ea59aec46"
+          },
+          "mutatedSourceSha256": {
+            "mesh": "e163c070d6a6d421d062d8f2ed6b72eb0311e96933d32eaf8f0fcf4b6a612480",
+            "evaluate": "a95fa6211f4ac066d4c1dd58130c7f6b6a8221044992e191403d1ff80ff06c91",
+            "wire": "f69d6a8b5b100b3de4b5c1066b0877be95cd5ae9e379a8ff990a2b8ea59aec46"
+          },
+          "testSha256": "62eb5924012ff23d1ee2d1ced1d44f16e456907192a2f63c82d40aea6282fed9",
+          "bundleSha256": "7bf2e8b6182447ef10bcab317c3911b39932b38c22b49659ebdba5d55b6635c2"
+        },
+        {
+          "name": "native-line-narrowing",
+          "elapsed": 619.6667079999997,
+          "pass": 13,
+          "fail": 1,
+          "sourceSha256": {
+            "mesh": "6dfd3d3aae576e57735c371396b0b8c468b5f1792e5fdfa9c9bc500aea6be8a4",
+            "evaluate": "a95fa6211f4ac066d4c1dd58130c7f6b6a8221044992e191403d1ff80ff06c91",
+            "wire": "f69d6a8b5b100b3de4b5c1066b0877be95cd5ae9e379a8ff990a2b8ea59aec46"
+          },
+          "mutatedSourceSha256": {
+            "mesh": "2b512e1fb6fb184e315be6be7811a9d94f609ea4a688e152f7216fdd41e88a52",
+            "evaluate": "a95fa6211f4ac066d4c1dd58130c7f6b6a8221044992e191403d1ff80ff06c91",
+            "wire": "f69d6a8b5b100b3de4b5c1066b0877be95cd5ae9e379a8ff990a2b8ea59aec46"
+          },
+          "testSha256": "62eb5924012ff23d1ee2d1ced1d44f16e456907192a2f63c82d40aea6282fed9",
+          "bundleSha256": "ddcae7be39d0763132ab7d8ec93bfddfa8ce9f4001b85e414278da094e1dcaa6"
+        },
+        {
+          "name": "placement-writeback-narrowing",
+          "elapsed": 603.9166249999998,
+          "pass": 7,
+          "fail": 7,
+          "sourceSha256": {
+            "mesh": "6dfd3d3aae576e57735c371396b0b8c468b5f1792e5fdfa9c9bc500aea6be8a4",
+            "evaluate": "a95fa6211f4ac066d4c1dd58130c7f6b6a8221044992e191403d1ff80ff06c91",
+            "wire": "f69d6a8b5b100b3de4b5c1066b0877be95cd5ae9e379a8ff990a2b8ea59aec46"
+          },
+          "mutatedSourceSha256": {
+            "mesh": "6dfd3d3aae576e57735c371396b0b8c468b5f1792e5fdfa9c9bc500aea6be8a4",
+            "evaluate": "97b3a8e8d7aed7a684321f9a32f69920b1c48e364359d321f3bef6432949fdf5",
+            "wire": "f69d6a8b5b100b3de4b5c1066b0877be95cd5ae9e379a8ff990a2b8ea59aec46"
+          },
+          "testSha256": "62eb5924012ff23d1ee2d1ced1d44f16e456907192a2f63c82d40aea6282fed9",
+          "bundleSha256": "9a9990ab6f984db9ec85dd4459b9be00c6f3304dd34813ecc5e44e425ba2fd1e"
+        },
+        {
+          "name": "wire-copy-narrowing",
+          "elapsed": 606.6422919999995,
+          "pass": 13,
+          "fail": 1,
+          "sourceSha256": {
+            "mesh": "6dfd3d3aae576e57735c371396b0b8c468b5f1792e5fdfa9c9bc500aea6be8a4",
+            "evaluate": "a95fa6211f4ac066d4c1dd58130c7f6b6a8221044992e191403d1ff80ff06c91",
+            "wire": "f69d6a8b5b100b3de4b5c1066b0877be95cd5ae9e379a8ff990a2b8ea59aec46"
+          },
+          "mutatedSourceSha256": {
+            "mesh": "6dfd3d3aae576e57735c371396b0b8c468b5f1792e5fdfa9c9bc500aea6be8a4",
+            "evaluate": "a95fa6211f4ac066d4c1dd58130c7f6b6a8221044992e191403d1ff80ff06c91",
+            "wire": "3248b6452139349260053e198d252b527211246e435f35ccf4ba18a99313b4ff"
+          },
+          "testSha256": "62eb5924012ff23d1ee2d1ced1d44f16e456907192a2f63c82d40aea6282fed9",
+          "bundleSha256": "cd8ddabb7df168bfbac6aead607bd889ea75a45593f1e0e63cf88fc955a1832e"
+        }
+      ]
+    },
+    "actualWebGPU": {
+      "status": "PASS",
+      "exit": 0,
+      "receiptSha256": "1e09057dfb5b688c6e95caf4a70b4d899b38265a48d2b0e50e2969ce4d23fa08",
+      "frozenFiles": 746,
+      "afterFiles": 746,
+      "cleanupFiles": 746,
+      "capsulesEqual": true,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "changes": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "states": [
+        {
+          "label": "ordinary-bracket",
+          "backend": "webgpu",
+          "positionsType": "Float64Array",
+          "edgeLinesType": "Float64Array",
+          "geometry": {
+            "vertices": 156,
+            "unique": 72,
+            "nondegenerate": 144,
+            "degenerate": 0,
+            "min": [
+              0,
+              0,
+              0
+            ],
+            "max": [
+              64,
+              32,
+              8
+            ],
+            "spans": [
+              64,
+              32,
+              8
+            ]
+          },
+          "bodyText": {
+            "volume": "15982 mm\u00b3",
+            "mass": "43.2 g",
+            "area": "5733 mm\u00b2",
+            "bounds": "64 \u00d7 32 \u00d7 8"
+          },
+          "partText": {
+            "mass": "43.2 g",
+            "bounds": "64 \u00d7 32 \u00d7 8"
+          },
+          "docUnchanged": true,
+          "unchangedD425Fields": {
+            "volume": true,
+            "mass": true,
+            "area": true,
+            "centroid": true,
+            "inertia": true
+          }
+        },
+        {
+          "label": "compound-far",
+          "backend": "webgpu",
+          "positionsType": "Float64Array",
+          "edgeLinesType": "Float64Array",
+          "geometry": {
+            "vertices": 522,
+            "unique": 484,
+            "nondegenerate": 964,
+            "degenerate": 0,
+            "min": [
+              998999.9990056084,
+              -998000.0009943799,
+              996999.9989999998
+            ],
+            "max": [
+              999000.0009943917,
+              -997999.9990056204,
+              997000.001
+            ],
+            "spans": [
+              0.0019887833623215556,
+              0.001988759497180581,
+              0.0020000002114102244
+            ]
+          },
+          "bodyText": {
+            "volume": "4.19e-9 mm\u00b3",
+            "mass": "1.13e-11 g",
+            "area": "1.26e-5 mm\u00b2",
+            "bounds": "1.99e-3 \u00d7 1.99e-3 \u00d7 2.00e-3"
+          },
+          "partText": {
+            "mass": "1.13e-11 g",
+            "bounds": "1.99e-3 \u00d7 1.99e-3 \u00d7 2.00e-3"
+          },
+          "docUnchanged": true,
+          "unchangedD425Fields": {
+            "volume": true,
+            "mass": true,
+            "area": true,
+            "centroid": true,
+            "inertia": true
+          }
+        },
+        {
+          "label": "compound-centered",
+          "backend": "webgpu",
+          "positionsType": "Float64Array",
+          "edgeLinesType": "Float64Array",
+          "geometry": {
+            "vertices": 552,
+            "unique": 514,
+            "nondegenerate": 1024,
+            "degenerate": 0,
+            "min": [
+              -0.0009962900100075728,
+              -0.0009956044981891043,
+              -0.0010000000000000002
+            ],
+            "max": [
+              0.0009962900100075726,
+              0.0009956044981891043,
+              0.001
+            ],
+            "spans": [
+              0.0019925800200151457,
+              0.0019912089963782086,
+              0.002
+            ]
+          },
+          "bodyText": {
+            "volume": "4.19e-9 mm\u00b3",
+            "mass": "1.13e-11 g",
+            "area": "1.26e-5 mm\u00b2",
+            "bounds": "1.99e-3 \u00d7 1.99e-3 \u00d7 2.00e-3"
+          },
+          "partText": {
+            "mass": "1.13e-11 g",
+            "bounds": "1.99e-3 \u00d7 1.99e-3 \u00d7 2.00e-3"
+          },
+          "docUnchanged": true,
+          "unchangedD425Fields": {
+            "volume": true,
+            "mass": true,
+            "area": true,
+            "centroid": true,
+            "inertia": true
+          }
+        }
+      ]
+    },
+    "actualWebGLCompatibility": {
+      "status": "PASS",
+      "exit": 0,
+      "receiptSha256": "a698cea1d822e0ceccb4575e3597b21fe1072a5f3782195b9417f345d8554d5d",
+      "frozenFiles": 746,
+      "afterFiles": 746,
+      "cleanupFiles": 746,
+      "capsulesEqual": true,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "changes": 0,
+      "downloads": 0,
+      "cleanup": [
+        "CONTEXT_CLOSED",
+        "BROWSER_CLOSED",
+        "SERVER_CLOSED"
+      ],
+      "states": [
+        {
+          "label": "ordinary-bracket",
+          "backend": "webgl2",
+          "positionsType": "Float64Array",
+          "edgeLinesType": "Float64Array",
+          "geometry": {
+            "vertices": 156,
+            "unique": 72,
+            "nondegenerate": 144,
+            "degenerate": 0,
+            "min": [
+              0,
+              0,
+              0
+            ],
+            "max": [
+              64,
+              32,
+              8
+            ],
+            "spans": [
+              64,
+              32,
+              8
+            ]
+          },
+          "bodyText": {
+            "volume": "15982 mm\u00b3",
+            "mass": "43.2 g",
+            "area": "5733 mm\u00b2",
+            "bounds": "64 \u00d7 32 \u00d7 8"
+          },
+          "partText": {
+            "mass": "43.2 g",
+            "bounds": "64 \u00d7 32 \u00d7 8"
+          },
+          "docUnchanged": true,
+          "unchangedD425Fields": {
+            "volume": true,
+            "mass": true,
+            "area": true,
+            "centroid": true,
+            "inertia": true
+          }
+        }
+      ]
+    },
+    "kernelFull": "NOT_RUN_NO_CAD_CORE_CHANGE_REUSE_D424",
+    "initialModelTypes": {
+      "status": "FAIL_COMPATIBILITY_CONTRACT",
+      "scope": "Initial Model-local type widening conflicts with inherited CAD PartBackend/Part.meshes Float32-only MeshData; private helper/test types also found.",
+      "resolution": "Shared coordinate type-only widening selected, retain original API reexport; update private ArrayLike/union helper annotations without numeric changes. Final check pending."
+    },
+    "cadBuild": {
+      "status": "PASS",
+      "scope": "Stable build and full CAD types; shared MeshData interface widened only, B-rep/runtime unchanged."
+    },
+    "cadApi": {
+      "status": "PASS",
+      "pass": 6,
+      "fail": 0,
+      "skip": 0,
+      "elapsed": 656.10325
+    },
+    "studioInitialTypes": {
+      "status": "FAIL_COMPATIBILITY_CONSUMERS",
+      "errors": 6,
+      "record": "/tmp/barocss-d426-consumer/check01/studio-types.log",
+      "resolution": "Private input annotations widen; clearance/print adapters explicitly retain existing Float32 draw contract without changing source data. Final check below."
+    },
+    "lint": {
+      "status": "PASS",
+      "modelAndCadFiles": 7,
+      "studioFiles": 9,
+      "warnings": 0,
+      "diff": "PASS",
+      "driverSyntax": "PASS_Node22.19.0"
+    },
+    "sourceCapsuleScope": {
+      "runtimePaths": "Every changed runtime path used by these flows matches the actual frozen capsules.",
+      "typeOnlyOutsideCapsule": [
+        "packages/barocss-cad-model/src/machining/access.ts",
+        "packages/barocss-cad-model/src/rb9/rungs-enclosure.ts"
+      ],
+      "separateProof": "Their unchanged algorithms and widened annotations are covered by types, related tests, scoped source review and separate hashes; not falsely included in the746-file claim."
+    },
+    "navigation": {
+      "status": "PASS",
+      "node": "22.19.0",
+      "checkedLocalLinks": 2389,
+      "newBroken": 0,
+      "archivesUnchanged": true
+    }
+  },
+  "history": {
+    "D425Actual": "PASS labels; far raw Float32 bounds min=max, no tiny rendering acceptance.",
+    "D423OriginalFullFailure": "UNRESOLVED_NOT_REPRODUCED; preserved separately from D424 current full PASS."
+  },
+  "artifacts": [
+    "/tmp/barocss-d426-assessment",
+    "/tmp/barocss-d426-independent",
+    "/tmp/barocss-d426-consumer",
+    "/tmp/barocss-d426-browser-webgpu-run01",
+    "/tmp/barocss-d426-browser-webgl-run01"
+  ],
+  "next": "D427 camera-relative GPU/GL precision and picking assessment after bounded D426; no automatic spherical OFFSET extension.",
+  "executionHold": {
+    "status": "NOT_RUN_LOAD_GATE",
+    "attempt": "One post-edit focused/type attempt returned gate75 after30s atload56.05; no tests executed. Later retry started below40. Preserve as execution availability, not product failure."
+  },
+  "source": {
+    "packages/barocss-cad/src/api/core.ts": "666910e745599de151e0a7e5b3131a10616a9c3274d4359a5a27b0d64caf2641",
+    "packages/barocss-cad-model/src/engine/mesh.ts": "6dfd3d3aae576e57735c371396b0b8c468b5f1792e5fdfa9c9bc500aea6be8a4",
+    "packages/barocss-cad-model/src/engine/evaluate.ts": "a95fa6211f4ac066d4c1dd58130c7f6b6a8221044992e191403d1ff80ff06c91",
+    "packages/barocss-cad-model/src/machining/access.ts": "aa80852e71c12d42cc0b9b7c44cc00fad5ecf24db2bd9583c5ae0b5ce06e0af0",
+    "packages/barocss-cad-model/src/rb9/rungs-enclosure.ts": "446d606d60f9fde1a7b14f482f97eae409f570b19a9219784e2597ad2c5a2dc4",
+    "packages/barocss-cad-model/test/flexible-subassembly.test.ts": "1a0d2e38dc52040d065403d0c3beb4e0002bce7819a996c62ed0348307ea0a10",
+    "packages/barocss-cad-model/test/native-display-precision.test.ts": "62eb5924012ff23d1ee2d1ced1d44f16e456907192a2f63c82d40aea6282fed9",
+    "apps/cad-studio/src/viewport/renderer.ts": "7c7b5f850512e626b7c7ea823e54b6ec16953a54a0e50f334ebdf704369cbbcb",
+    "apps/cad-studio/src/viewport/gpuRenderer.ts": "44949ce26bddc8b5a2728355e96b307b717090194966d12fd715d79cb5558a2f",
+    "apps/cad-studio/src/app/bodyResults.ts": "a64ff2f838cd408982ffe80fb7746aa92f34bb03b0b26e016927d539500bda37",
+    "apps/cad-studio/src/viewport/sectionView.ts": "e788c0af830abf0f138997a931e636a5e7e3c588af34fd8759dd788c488757dc",
+    "apps/cad-studio/src/viewport/clearanceAnalysis.ts": "343d5a31ba0316117511cce1318d055d8cf1f6ddc1845004e5c3bc34537216b9",
+    "apps/cad-studio/src/viewport/printOverlayGeometry.ts": "5d7001188144ca6226eb48f1ffdfff0d92dd493329e77028a10da57a032ce281",
+    "apps/cad-studio/test/gl-world-buffer-upload.test.ts": "321441c7ac2063a5060936f5633898c17afb714b1525a7f2a89da3fbc6088dd0",
+    "apps/cad-studio/test/draw-world-buffer-copy.test.ts": "5becfc790971affcb5436ac3984662e5f61e600d2df0f464cfdd5bb8f82dfb5f",
+    "apps/cad-studio/test/native-mesh-precision-browser.mjs": "6e2efa1b976b1d4a30e1e2428db8d6bf665e5c75087fc719c9eaaf89f50d84c9",
+    "apps/cad-studio/handover/api-conventions.md": "2d29aefe141e4b8579c7f5b906e216bd13abee2b3eaa345afe83222d7262c172"
+  },
+  "visualReview": {
+    "root": "All four screenshots viewed; ordinary WebGPU/GL Bracket visibly valid and dock bounds nonzero for both tiny inputs.",
+    "independent": "All four images checked with actual data.",
+    "far": "Still not visible: GPU geometry processing and minimum camera fit remain unqualified.",
+    "center": "Tiny point only.",
+    "acceptance": "Native Model CPU/transport/genuine sample bounds and ordinary GL byte compatibility only."
+  },
+  "heavy": {
+    "ownJobsSerial": true,
+    "postAcquisitionSoleHolderChecks": "PASS independent, final Studio and both actual windows",
+    "authorException": "2of2; gate admitted another external holder/race; no own parallel job; now idle.",
+    "blockedAttempt": "gate75 after30s load56.05, no jobs executed",
+    "actualStartLoads": {
+      "webgpu": 20.54,
+      "webgl2": 16.27
+    },
+    "rule": "Node22.19.0, gate heavy30, load<40 at start, no foreign process/lease killed or released; no worktree writes through either actual cleanup."
+  },
+  "commands": [
+    "TEST_CONCURRENCY=1 node packages/barocss-cad-model/scripts/test.mjs native-display-precision",
+    "TEST_CONCURRENCY=1 node packages/barocss-cad-model/scripts/test.mjs native-display-precision meshWire native-mass-wire chord flexible-subassembly api-part api-mmgs api-assembly api-studio-commands cnc-access",
+    "pnpm --filter @barocss/cad-model type-check",
+    "pnpm --filter @barocss/cad build:library",
+    "node --test --test-concurrency=1 packages/barocss-cad/test/api-part.test.mjs packages/barocss-cad/test/api-mmgs.test.mjs",
+    "pnpm exec eslint packages/barocss-cad/src/api/core.ts packages/barocss-cad-model/src/engine/mesh.ts packages/barocss-cad-model/src/engine/evaluate.ts packages/barocss-cad-model/src/machining/access.ts packages/barocss-cad-model/src/rb9/rungs-enclosure.ts packages/barocss-cad-model/test/flexible-subassembly.test.ts packages/barocss-cad-model/test/native-display-precision.test.ts",
+    "node /tmp/barocss-d426-independent/mutations.mjs baseline native-position-narrowing native-line-narrowing placement-writeback-narrowing wire-copy-narrowing",
+    "TEST_CONCURRENCY=2 node apps/cad-studio/scripts/test.mjs gl-world-buffer-upload draw-world-buffer-copy section-view section-cutout",
+    "pnpm --filter @barocss/cad-studio-app type-check",
+    "pnpm --filter @barocss/cad-model type-check",
+    "node --check apps/cad-studio/test/native-mesh-precision-browser.mjs",
+    "NATIVE_MESH_PRECISION_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' CAD_STUDIO_CHAT_PORT=52391 node apps/cad-studio/test/native-mesh-precision-browser.mjs /tmp/barocss-d426-browser-webgpu-run01 /tmp/barocss-d423-consumer/fixtures",
+    "Same command with NATIVE_MESH_RENDERER=webgl2 and output /tmp/barocss-d426-browser-webgl-run01.",
+    "pnpm exec eslint --no-warn-ignored apps/cad-studio/src/viewport/renderer.ts apps/cad-studio/src/viewport/gpuRenderer.ts apps/cad-studio/src/app/bodyResults.ts apps/cad-studio/src/viewport/sectionView.ts apps/cad-studio/src/viewport/clearanceAnalysis.ts apps/cad-studio/src/viewport/printOverlayGeometry.ts apps/cad-studio/test/gl-world-buffer-upload.test.ts apps/cad-studio/test/draw-world-buffer-copy.test.ts apps/cad-studio/test/native-mesh-precision-browser.mjs",
+    "PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH node apps/cad-studio/handover/scripts/check-navigation.mjs"
+  ],
+  "issues": {
+    "2263": "OPEN: broader format acceptance incomplete; D426 corrects an accuracy boundary, not STEP breadth.",
+    "2266": "NURBS widening remains deferred.",
+    "2248": "Research/named-frame work remains held."
+  },
+  "actualAcceptance": {
+    "tinySampleSpanOpenInterval": [
+      0.0019,
+      0.00201
+    ],
+    "tinyUniqueVerticesGreaterThan": 100,
+    "tinyNondegenerateTrianglesGreaterThan": 100,
+    "degenerateTriangles": 0,
+    "bounds": "Exactly recomputed from observed wire coordinates",
+    "literalVolumeRelativeBudget": 1e-06,
+    "nativeMassFields": "All observed fields exactly equal compatible D425 source",
+    "limits": "Finite fixture profile and genuine mesh samples; not an exact surface extrema, general accuracy or pixel/picking certificate."
+  }
+}

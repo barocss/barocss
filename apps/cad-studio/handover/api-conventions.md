@@ -165,11 +165,11 @@ tests either move to `evaluateCadPart` fixtures or go with them.
      and frames already are.
 
    New code uses these. The 13 `Vec3`/`V3`/`Vector3` declarations converge in R7.3c, where they cross a package.
-3. **Mesh data:** `{ key, positions: Float32Array, normals?: Float32Array, indices: Uint32Array }` in mm and Z up. It
-   optionally adds `faceIds` and `lines`, the display lines (the selectable edges as segment pairs), which gpu draws as
+3. **Mesh data:** `{ key, positions: Float32Array | Float64Array, normals?: Float32Array, indices: Uint32Array }` in mm and Z up. Native Model bodies retain Float64 coordinates; legacy producers can retain Float32.
+   It optionally adds `faceIds` and `lines: Float32Array | Float64Array`, the display lines (the selectable edges as segment pairs), which gpu draws as
    line geometry (`topology: 'lines'`). The field is `lines`, not `edges`: gpu's `GeometryInput.edges` already means
    per-segment ids (R7.5b, finding 9). This is the facades' `.meshes()` shape, and gpu's `GeometryInput` takes it as it
-   is.
+   is. Float64 storage preserves CPU world values; current GPU/WebGL uploads still use Float32 and do not gain far-coordinate rendering precision from this type change (D426; rendering follow-up D427).
 4. **References to topology** across a package boundary are `{ body, face?, edge? }`, carrying the persistent names
    (`n1.side0|n1.side1`). Indices stay inside one package.
 5. **Stored and transmitted formats** carry the header `{ format, schema }`. The documents are unreleased and track the

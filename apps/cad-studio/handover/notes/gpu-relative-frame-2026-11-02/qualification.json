@@ -1,0 +1,1264 @@
+{
+  "work_id": "D434",
+  "artifact_type": "gpu-relative-raster-frame",
+  "status": "BOUNDED_QUALIFIED",
+  "owner_role": "executor",
+  "source_request": "Continue autonomously by roadmap while owner sleeps",
+  "last_updated": "2026-11-02",
+  "rows": [
+    6,
+    13,
+    16
+  ],
+  "overallPercent": 43,
+  "sourceCheckpoint": "24fbabbf59a355130b0015d3996653eb9b6beec9",
+  "tier": "full: private GPU coordinate representation and world-effect accuracy; independent audits and physical mutations; no B-rep change",
+  "models": {
+    "sourceAndPrecisionDesign": "GPT-6.1 Sol High",
+    "independentMathReview": "GPT-6.1 Sol High",
+    "actualDriver": "GPT-6.1 Sol Medium"
+  },
+  "checks": {
+    "design": {
+      "status": "PASS_PREIMPLEMENTATION_BOUNDED_DESIGN_ACK_ONLY",
+      "selectedDesignSha256": "f1b049c109b0a5141d5d9ccb11379ad70e1701de4f93a33cb3a562da412ceae8",
+      "exactPredicatesSha256": "8d9e44175860dc4ced946d43b31edc42537fb649d4a38f10cb0d23734df52904",
+      "normalProvenanceSha256": "05f0cc718d2fedbad87ddb54b55ec121e65eb3131e0fcdaedd645b7a0bca5d91",
+      "independentReviewSha256": "4ed3a9150084d30ad7636b7ab45eebc1b6f3950b3735ae08714a56d4084dfad4"
+    },
+    "source": "PASS_FINAL_SOURCE_AND_DECLARED_NATIVE_BOUNDARIES",
+    "focused": {
+      "status": "PASS_SOURCE_UNIT_ONLY",
+      "newUnique": 42,
+      "newMain": 36,
+      "newPayload": 6,
+      "existingUnique": 176,
+      "totalUnique": 218,
+      "fail": 0,
+      "reuse": "Unchanged payload6 and earlier172 successes reused; modified2softshadowfiles20 supersede earlier16passes+4layoutfailures, counted once",
+      "authorReceiptSha256": "b3bcce08ae8725ab2aa4b3d7d01deba739f88ea054434bb109f7fda2e79bf715"
+    },
+    "independent": {
+      "status": "PASS_SOURCE_AND_12_ISOLATED_CHECKS",
+      "receiptSha256": "3741d2dcbf63549700c45f3e6339b6ad4c46de8ae376668b154b412471f0f877",
+      "sourceReviewSha256": "f6be66a625d2193a2cf33b7da76b1881be7427bb480ffce7ae797bfba4ace612",
+      "sourcePrefixCertificateSha256": "f4c340099f11a9819f87e9082cb1933352598e2acafea9b6db6b173bb4e59c31",
+      "baselinePass": 12,
+      "initialFailure": {
+        "pass": 11,
+        "fail": 1,
+        "class": "INDEPENDENT_TEST_SIGNED_ZERO_NORMAL_VALUE; strictObjectIs -0/+0 was invalid for physical numeric comparison",
+        "failureRecordSha256": "c7360fd2ad86ff3292dbb8e35cbff2f2921d04ac68983b3b0751e6bd7a371c98",
+        "repair": "Scratch numeric actual===expected only; nonzero exact and original prefix-byte/input snapshot Object.is checks unchanged. Source/oracles/budgets not edited."
+      }
+    },
+    "mutation": {
+      "status": "PASS_5_CLEAN_ASSERTION_KILLS",
+      "physical": 4,
+      "lifecycle": 1,
+      "crashes": 0,
+      "survivors": 0,
+      "outcomes": {
+        "worldUpload": {
+          "pass": 9,
+          "fail": 3
+        },
+        "omitOriginCancellation": {
+          "pass": 9,
+          "fail": 3
+        },
+        "zeroGridPhase": {
+          "pass": 11,
+          "fail": 1
+        },
+        "omitDecodeOrigin": {
+          "pass": 11,
+          "fail": 1
+        },
+        "ignoreStaleInputs": {
+          "pass": 11,
+          "fail": 1
+        }
+      }
+    },
+    "typesAndLint": {
+      "status": "PASS_GPU_REBUILD_TYPES_OWNED_LINT_CODE_SHAPE",
+      "addedNestedLoopFunctions": 0,
+      "productionFilesCodeShape": 8
+    },
+    "actualStudio": {
+      "status": "PASS_BOUNDED_SIX_PROFILE_RECEIPT_UNION_WITH_CERTIFIED_REUSE",
+      "aggregate": {
+        "declaredProfiles": 6,
+        "currentSelectedProfiles": [
+          3,
+          6
+        ],
+        "certifiedRetainedProfiles": [
+          1,
+          2,
+          4,
+          5
+        ],
+        "genuineFaceBodyUISelections": 24,
+        "additionalGenuineCPUOrUIEdgeSelections": 2,
+        "continuousCPUQueries": 12,
+        "hardwareSurfaceMeshDepthQueries": 12,
+        "productProjections": 48,
+        "proofBoundary": "Scoped receipt union plus bounded source/control-flow certificate; no single final six-profile run or historicalFAIL status rewrite."
+      },
+      "run01": {
+        "run01ReceiptSha256": "c5fd2a17584a866dc1525243df3ceb35d72565e997d1f471fddb847583888f63",
+        "completedProfiles": [
+          "01 original far sphere perspective",
+          "02 same far sphere orthographic",
+          "03 centered sphere orthographic"
+        ],
+        "passedBoundaries": [
+          "render",
+          "CPU ray",
+          "hardware mesh/depth and independent native point",
+          "product projection",
+          "genuine pointer routes",
+          "hide/Undo restore"
+        ],
+        "firstFailure": "Historical JSON inertia distinguishes -0/+0 at I12/I21; all7 numerical values and nonzero entries exactly match. Independent classification is driver-only.",
+        "laterProfiles": "05 far native edge box and06 positive grid NOT_RUN",
+        "frozenAfterCleanupCount": 843,
+        "frozenAfterCleanupExact": true,
+        "separateAfterCapsule": "NOT_WRITTEN_ON_STOPPED_FAIL; do not claim three snapshots",
+        "pageErrors": 0,
+        "consoleErrors": 0,
+        "changes": 0,
+        "cleanup": "4contexts/browser/serverclosed; sole gate released; root verified",
+        "firstFailureClass": "FAIL_DRIVER_HISTORICAL_JSON_SIGNED_ZERO_NOT_SOURCE_OR_PHYSICAL_REGRESSION",
+        "independentClassification": "All7 parsed quantities exactly equal D433 historical JSON; trace differs only at I12/I21 signedzero. Existing retainedJsonZeros accepted only for historical comparison; nonzero exact and within-run raw/bytes/snapshots strict unchanged.",
+        "consumerPartialSummarySha256": "c725297c1428bf4f22bcc10c1fa9679313ffaeb0ad2d1c4023e66435b651c01a",
+        "completedHardwareQueries": 6,
+        "completedGenuineUIPicks": 12,
+        "runtimePassiveBodies": 300,
+        "runtimeMissingDirectSources": [
+          "packages/barocss-gpu/src/api/scene.ts",
+          "packages/barocss-gpu/src/viewer/shaders/path-trace.ts"
+        ],
+        "rootRestoredImagesViewed": 3,
+        "numeric": [
+          {
+            "label": "01-far-perspective",
+            "physicalMax": 5.820766091346741e-10,
+            "physicalBound": 4.007081310258706e-08,
+            "hardCap": 1.988759497180581e-07,
+            "decodeMax": 0,
+            "texture": null,
+            "changedPixels": 118336,
+            "rootRestoredImageViewed": true
+          },
+          {
+            "label": "02-far-orthographic",
+            "physicalMax": 0,
+            "physicalBound": 1.0736688713876968e-07,
+            "hardCap": 1.988759497180581e-07,
+            "decodeMax": 0,
+            "texture": {
+              "roi": {
+                "left": 610,
+                "right": 690,
+                "top": 540,
+                "bottom": 620
+              },
+              "samples": 12800,
+              "mean": 0.454595656249993,
+              "p95": 1,
+              "max": 3.0000000000000284,
+              "fractionAbove1_5": 0.00234375,
+              "threshold": 1.5,
+              "scope": "Exact D429 fixed center+[40,120]80x80 interior ROI and luma second-difference rule"
+            },
+            "changedPixels": 114244,
+            "rootRestoredImageViewed": true
+          },
+          {
+            "label": "03-centered-orthographic",
+            "physicalMax": 3.2868095049039953e-09,
+            "physicalBound": 1.0785798421995468e-07,
+            "hardCap": 1.9912089963782087e-07,
+            "decodeMax": 1.3552527156068805e-20,
+            "texture": {
+              "roi": {
+                "left": 610,
+                "right": 690,
+                "top": 540,
+                "bottom": 620
+              },
+              "samples": 12800,
+              "mean": 0.4550391406249941,
+              "p95": 1,
+              "max": 3.0000000000000284,
+              "fractionAbove1_5": 0.0028125,
+              "threshold": 1.5,
+              "scope": "Exact D429 fixed center+[40,120]80x80 interior ROI and luma second-difference rule"
+            },
+            "changedPixels": 114244,
+            "rootRestoredImageViewed": true
+          }
+        ],
+        "continuation": "Driver-only historical zero comparison and explicit resume04..06; preserve6 predeclared cases, do not repeat completed01..03.",
+        "independentRun01Partial": {
+          "status": "PASS_THREE_COMPLETED_PROFILES_WITHIN_OVERALL_FAIL",
+          "reviewSha256": "862b7d51d3cc6cf7c41ef3a3aefd2499031d0a876db9deb6dc78deffd5e95544",
+          "auditSha256": "ec966614793e5cf7f5fe50f8775f46c82eaf675c08b89df661161247b13e9729",
+          "driverFailureReviewSha256": "f85e0679f1552b5f3f4d1363a7ba4aa1321f51e9d2f916c78730362fba6023d4",
+          "ownNativeOracleCPU": 6,
+          "ownNativeOracleGPU": 6,
+          "genuineUIPicks": 12,
+          "projections": 24,
+          "retainedPins": 104,
+          "passiveRuntimeBodies": 300,
+          "frozenCleanup": 843,
+          "rootAndIndependentViewed": 3,
+          "hardwareScope": "Hardware mesh/depth proved; null uninstanced semantic field is not independent raw instance-bit readback proof. Triangle/face post-readback CPU semantics."
+        },
+        "retainedForCurrentSourceCases": [
+          1,
+          2
+        ],
+        "supersededOldCase": 3
+      },
+      "run02": {
+        "status": "FAIL_DRIVER_UNSUPPORTED_DISPLAY_ENUM",
+        "receiptSha256": "292b58a1c244a4efdf0f50a82ea8f8e0c695efd8206750be0569de79d1e3c29a",
+        "scope": "04..06 only;01..03 not repeated",
+        "firstFailure": "Profile04 edgeWitness selectOption('shaded') times out because no such CAD display mode exists in current public UI. Existing enum is shaded-with-edges/hidden-lines-removed/hidden-lines-dashed/wireframe/x-ray.",
+        "completedProfiles": 0,
+        "preceding04Boundaries": "Native adoption/packets, CPU and hardware/decode/native physical points, genuine face/body and CPU edge ordinal checks passed before unsupported selector. No line-render contrast or hide/Undo/profile completion claimed.",
+        "later05And06": "NOT_RUN",
+        "frozenCleanupCount": 844,
+        "frozenCleanupExact": true,
+        "separateAfterCapsule": "NOT_WRITTEN_ON_STOPPED_FAIL",
+        "errors": 0,
+        "consoleErrors": 0,
+        "changes": 0,
+        "cleanup": "Context/browser/serverclosed; gateENDnone rootverified",
+        "additionalPreexecutionFinding": "ExistingDOMtoolrail occludes x140..270 horizontal gridstrip and samplex170. CPU ray admission alone does not establish DOM visibility. No actual grid failure occurred; positivegrid NOT_RUN. Preserve finding and predeclare exposed sample locations without RGB fitting or threshold changes."
+      },
+      "run03": {
+        "status": "FAIL_DRIVER_HIDDEN_LINE_IDENTITY_FILTER",
+        "receiptSha256": "f79e0d529e86af45a5150f4aead4fff85ebc50c82394a7061abbbfb6b90999b4",
+        "consumerPartialSummarySha256": "f27e3c48123ebbf25a987cce92db236fd92d56412fe10f18025ac4ae56c18077",
+        "scope": "04..06 only; original01..03 not repeated",
+        "completedProfiles": 0,
+        "preceding04Boundaries": "CPU and hardware/decode/native physical point checks PASS; real UI/CPU edge2 selection; public native-line visibility diagnostic changes77pixels atRGB20 (>10), exact public snapshot and packet restore PASS. Full body hide/Undo NOT_COMPLETE.",
+        "max04GPUPhysicalError": 6.601130448657955e-05,
+        "computed04Budget": 0.0005120221541993648,
+        "hardCap": 0.0006000000000000001,
+        "firstFailure": "Hidden body correctly makes native line pickable=false/visible=false; scratch snapshot filter wrongly requires pickable=true. SourceGpuRenderer.setState655 and independent review confirm driver identity filter error; no product/source change.",
+        "selectedRepair": "Capture native public line IDs from initial strict unique/pickable/native-payload binding; subsequent hidden/restored snapshots resolve those exact IDs and exact geometry/ordinals without requiring pickability, record/assert false hidden and exact true restoration.",
+        "later05And06": "NOT_RUN",
+        "frozenCleanupCount": 845,
+        "frozenCleanupExact": true,
+        "separateAfterCapsule": "NOT_WRITTEN_ON_STOPPED_FAIL",
+        "errors": 0,
+        "consoleErrors": 0,
+        "changes": 0,
+        "cleanup": "Context/browser/serverclosed and gateENDnone independently/root verified"
+      },
+      "run04": {
+        "status": "FAIL_SOURCE_ORTHOGRAPHIC_GRID_FADE",
+        "receiptSha256": "861ee4b2f4b5313883899e5700e18fa5abeb4d182d68ec776cc47fcadc455914",
+        "consumerPartialSummarySha256": "143a1148e5b46d0b8e19a0db0fbdc43f3b52e2d64dbc8e68c5d8b6018bf58511",
+        "scope": "04..06 only;04/05 COMPLETEPASS,06 stops before picks/hideUndo",
+        "completedProfiles": [
+          "04 new ordinary box",
+          "05 far native edge box"
+        ],
+        "frozenCleanupCount": 845,
+        "frozenCleanupExact": true,
+        "separateAfterCapsule": "NOT_WRITTEN_ON_STOPPED_FAIL",
+        "errors": 0,
+        "consoleErrors": 0,
+        "changes": 0,
+        "downloads": 0,
+        "cleanup": "3contexts/browser/serverclosed; gateENDnone rootverified",
+        "grid": {
+          "linePixel": [
+            566.3180893285597,
+            511.04573146924395
+          ],
+          "fourStripMeans": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "fourStripFractions": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "requiredMeanGreaterThan": 2,
+          "requiredFractionGreaterThan": 0.7,
+          "DOMExposedPixelProbes": 2600,
+          "admittedRays": 4,
+          "rayAdmission": "Positive nongrazing gridplane, actualclipW/reverseddepth, outsidebody and groundbehind allPASS",
+          "cause": "Orthographic grid fade uses inverseVP near-plane p0, not eye-plane. Actual packed p0-to-plane distance about.050585 exceeds packed fadeEnd.04335824027657509, giving fade0 anddiscard. Signednear=-.04335823933876275; eyeZ=.007226372866525204. Phasepack/minor/major are correct; source defect independently confirmed.",
+          "picksAndHideRestore": "NOT_RUN_DUE_GRID_STOP"
+        },
+        "independent": {
+          "reviewSha256": "6f160fb2cd7d769c49945bac978b43c3cdd123bd82499b5cfd94471a349b523a",
+          "auditSha256": "0cac4d78684d09a17d8f66d8d993aa14a9760fcc0a8aed52e0fd32a63c22d2ff",
+          "causeSha256": "aa7fd45ddc69d0c892658e7dc0be6b2fb403c99664c9d1efbb0c8b4592404e46",
+          "analysisOnlyFailureSha256": "201a89e6c39435948047357433fed0f4dc3308e9befea65f728d9eee42e6d7ff",
+          "analysisFailureClass": "INVALID_ANALYSIS_EXPECTATION_NOT_PRODUCT; ordinary AO radius draft1 versus actual source-derived1.47885090526. Preserved; no source/helper/budget edit.",
+          "ownNativeCPU": 4,
+          "ownNativeGPU": 4,
+          "genuinePointerRecords": 8,
+          "projections": 16
+        },
+        "rootRestoredImagesViewed": [
+          "04 ordinary",
+          "05 far native edges"
+        ],
+        "selectedNext": "Sharedorthographic eye-plane correction subsequentlyqualified by sourcev2, newactualshader11frames and currentnative03/06 run05. Retained01/02/04/05 require immutable7587 source/control-flow/far-fade certificate.",
+        "numeric": [
+          {
+            "label": "04-new-ordinary-box",
+            "physicalMax": 6.601130448657955e-05,
+            "physicalBound": 0.0005120221541993648,
+            "hardCap": 0.0006000000000000001,
+            "lineChangedPixels": 77,
+            "surfacePixels": {
+              "box": {
+                "left": 279,
+                "right": 861,
+                "top": 316,
+                "bottom": 684
+              },
+              "changed": 172306,
+              "total": 214176,
+              "fraction": 0.8045065740325713,
+              "rgbThreshold": 20,
+              "scope": "Body/helper image difference; not by itself a physical surface oracle"
+            },
+            "documentNativeRestoredExactly": true
+          },
+          {
+            "label": "05-far-native-edges",
+            "physicalMax": 8.149072527885437e-10,
+            "physicalBound": 4.88222289699215e-08,
+            "hardCap": 1.999999978579581e-07,
+            "lineChangedPixels": 76,
+            "surfacePixels": {
+              "box": {
+                "left": 315,
+                "right": 825,
+                "top": 224,
+                "bottom": 776
+              },
+              "changed": 274680,
+              "total": 281520,
+              "fraction": 0.9757033248081841,
+              "rgbThreshold": 20,
+              "scope": "Body/helper image difference; not by itself a physical surface oracle"
+            },
+            "documentNativeRestoredExactly": true
+          }
+        ]
+      },
+      "run05": {
+        "status": "PASS_CURRENT_03_AND_06_INDEPENDENTLY_AUDITED",
+        "receiptSha256": "5dd2198f5e781308fdf721fcd5f75e3368034c706d86065db60291fdbea34807",
+        "consumerFinalSummarySha256": "f2b0871a5ad899e238c9c33433d2a42d7e51533e3641365d4381f1e0718665b2",
+        "selectedCurrentCases": [
+          3,
+          6
+        ],
+        "certifiedRetainedCases": [
+          1,
+          2,
+          4,
+          5
+        ],
+        "sourceFrozenAfterCleanupCount": 856,
+        "sourceFrozenAfterCleanupExact": true,
+        "contextsClosed": 2,
+        "browserServerClosed": true,
+        "gateReleased": true,
+        "errors": 0,
+        "consoleErrors": 0,
+        "changes": 0,
+        "downloads": 0,
+        "rootViewed": [
+          "03 restored",
+          "06 visible",
+          "06 hidden",
+          "06 restored"
+        ],
+        "profiles": [
+          {
+            "label": "03-centered-orthographic",
+            "physicalMax": 3.2868095049039953e-09,
+            "physicalBound": 1.0785798421995468e-07,
+            "hardCap": 1.9912089963782087e-07,
+            "decodeMax": 1.3552527156068805e-20,
+            "texture": {
+              "roi": {
+                "left": 610,
+                "right": 690,
+                "top": 540,
+                "bottom": 620
+              },
+              "samples": 12800,
+              "mean": 0.4550391406249941,
+              "p95": 1,
+              "max": 3.0000000000000284,
+              "fractionAbove1_5": 0.0028125,
+              "threshold": 1.5,
+              "scope": "Exact D429 fixed center+[40,120]80x80 interior ROI and luma second-difference rule"
+            },
+            "grid": null,
+            "pixels": {
+              "box": {
+                "left": 401,
+                "right": 739,
+                "top": 331,
+                "bottom": 669
+              },
+              "changed": 114244,
+              "total": 114244,
+              "fraction": 1,
+              "rgbThreshold": 20,
+              "scope": "Body/helper image difference; not by itself a physical surface oracle"
+            },
+            "documentRestoredExactly": true,
+            "nativeArraysRestoredExactly": true
+          },
+          {
+            "label": "06-positive-grid-box",
+            "physicalMax": 1.733409249471407e-11,
+            "physicalBound": 1.1112218300271245e-07,
+            "hardCap": 1.999999978579581e-07,
+            "decodeMax": 0,
+            "texture": null,
+            "grid": {
+              "linePixel": [
+                566.3180893285597,
+                511.04573146924395
+              ],
+              "ranges": [
+                {
+                  "vertical": true,
+                  "coordinate": 566.3180893285597,
+                  "from": 70,
+                  "to": 200
+                },
+                {
+                  "vertical": true,
+                  "coordinate": 566.3180893285597,
+                  "from": 770,
+                  "to": 900
+                },
+                {
+                  "vertical": false,
+                  "coordinate": 511.04573146924395,
+                  "from": 840,
+                  "to": 970
+                },
+                {
+                  "vertical": false,
+                  "coordinate": 511.04573146924395,
+                  "from": 980,
+                  "to": 1110
+                }
+              ],
+              "exposedProbeCount": 2600,
+              "strips": [
+                {
+                  "mean": 5.450375384615386,
+                  "fractionAbove1_5": 1,
+                  "minimumMean": 2,
+                  "minimumFraction": 0.7
+                },
+                {
+                  "mean": 6.453787692307691,
+                  "fractionAbove1_5": 1,
+                  "minimumMean": 2,
+                  "minimumFraction": 0.7
+                },
+                {
+                  "mean": 5.642399999999992,
+                  "fractionAbove1_5": 1,
+                  "minimumMean": 2,
+                  "minimumFraction": 0.7
+                },
+                {
+                  "mean": 5.642399999999992,
+                  "fractionAbove1_5": 1,
+                  "minimumMean": 2,
+                  "minimumFraction": 0.7
+                }
+              ],
+              "coloredAxes": 0,
+              "total": 1560,
+              "scope": "Default real Studio10/50mm positive grid lines and original-axis absence; no grid setting changes",
+              "admittedRayCount": 4,
+              "allRaysPass": true,
+              "minimumAbsoluteRayPlaneCosine": 0.9999999506527119,
+              "depthRange": [
+                0.4166611766800797,
+                0.4166716863698878
+              ],
+              "allOutsideBody": true,
+              "groundBehindAll": true,
+              "rawRayAndPacketEvidence": "/tmp only; not committed"
+            },
+            "pixels": {
+              "box": {
+                "left": 401,
+                "right": 739,
+                "top": 331,
+                "bottom": 669
+              },
+              "changed": 114244,
+              "total": 114244,
+              "fraction": 1,
+              "rgbThreshold": 20,
+              "scope": "Body/helper image difference; not by itself a physical surface oracle"
+            },
+            "documentRestoredExactly": true,
+            "nativeArraysRestoredExactly": true
+          }
+        ]
+      },
+      "finalIndependent": {
+        "status": "ACK_BOUNDED_SIX_PROFILE_UNION",
+        "reviewSha256": "9babb86bf789c41ffeb4f61fc70dd4c4a831d1463a2811fd04e395d1276b1b08",
+        "auditSha256": "fbacb119ffacd3a98f3c98d9d8f8140f88f2e91dc7388015b76dbe7d9533d361",
+        "currentNativeCPUQueries": 4,
+        "currentNativeGPUQueries": 4,
+        "currentGenuineUIPicks": 8,
+        "currentProjections": 16,
+        "currentInputsCopiedAndVerified": 117,
+        "currentPassiveRuntimeBodiesVerified": 150,
+        "aggregateNativeCPUQueries": 12,
+        "aggregateNativeGPUQueries": 12,
+        "aggregateSurfaceUIPicks": 24,
+        "aggregateProjections": 48,
+        "currentGridBoxExactPhysics": "6faces/12edges/8vertices; all9 inertia/PSD; centroid1ULP; maxIerror3.08149e-33 versus1.30967e-29 bound",
+        "analysisOnlyFailure": "Compensated Python sum did not match sequential JS ROI sum bitwise; original preserved, sequential contract-order accumulation matches exactly. Source/helpers/budgets unchanged."
+      }
+    },
+    "farRasterAndHardwarePick": "PASS_DECLARED_NATIVE_PROFILES_ONLY; unsupported/generalfar profiles remain unqualified",
+    "fullKernel": "NOT_RUN_NO_BREP_CHANGE; latest D433 PASS2066/FAIL0/SKIP2",
+    "authorBatch01": {
+      "status": "STOPPED_FAIL_HARNESS",
+      "oldExistingAPINegativeWitness": {
+        "pass": 0,
+        "fail": 2,
+        "skip": 0,
+        "failureClass": "BOTH_NUMERIC_ERR_ASSERTION",
+        "scope": "Existing old APIs, no missing new-helper/import/class failure"
+      },
+      "gpuBuild": "PASS",
+      "newPayload": {
+        "pass": 6,
+        "fail": 0
+      },
+      "otherNewTestFile": "FAIL_ERR_MODULE_NOT_FOUND_CAD_SRC_TYPES_JS; mathematical assertions NOT_RUN",
+      "repair": "Existing test CAD-dist loader omitted from command; command-only fix; no source/test/tolerance edit. Preserve /tmp/barocss-d434-author/batch01."
+    },
+    "authorBatch02": {
+      "status": "STOPPED_FAIL_NUMERIC_GRID_PHASE",
+      "newFocused": {
+        "tests": 31,
+        "pass": 30,
+        "fail": 1,
+        "failureClass": "CLEAN_ERR_ASSERTION_POSITIVE_GRID_PHASE"
+      },
+      "cause": "Large negative JS remainder is mathematically periodic but loses tiny local phase after Float32 addition/cancellation.",
+      "selectedRepair": "Balanced remainder in[-period/2,period/2], independently per minor/major BEFORE Float32; no numeric tolerance widening; original attempt preserved.",
+      "remaining": "Existing affected tests/types/lint NOT_RUN in this batch"
+    },
+    "authorBatch03": {
+      "status": "STOPPED_FAIL_LEGACY_TEST_LAYOUT_ASSUMPTIONS",
+      "gpuRebuild": "PASS",
+      "correctedNewFocused": {
+        "tests": 31,
+        "pass": 31,
+        "fail": 0
+      },
+      "existingAffected": {
+        "tests": 176,
+        "pass": 172,
+        "fail": 4,
+        "failureClass": "ERR_ASSERTION_OLD_END_OFFSETS_POINT_SOFT3_SPOT_SOFT1"
+      },
+      "repair": "Test-only reads use unchanged legacy starts2304/2240 and old-end2320 bounds rather than new FRAME_BYTES end; numeric assertions and budgets unchanged. Original log preserved.",
+      "remaining": "types/lint/code-shape NOT_RUN at stop"
+    },
+    "genericGPU": {
+      "status": "PASS_7_REAL_WEBGPU_CASES_NOT_NATIVE_STUDIO",
+      "cases": [
+        "relative public primitives/recovery/fallback",
+        "basic Viewer",
+        "contour",
+        "finishes",
+        "G15a trace",
+        "directional shadow layers",
+        "G7 cap AA"
+      ],
+      "pass": 7,
+      "fail": 0,
+      "skip": 0,
+      "sourceBeforeAfterCleanup": {
+        "count": 538,
+        "exact": true
+      },
+      "projectionProfiles": {
+        "perspective": {
+          "coverage": 4224,
+          "sameStateRestoreDifference": 0,
+          "budget": {
+            "pointBound": 1.2834783238855892e-08,
+            "pointCeiling": 2.0000000000000002e-07,
+            "error": 6.984919309616089e-10,
+            "depthBound": 1.234003366137404e-09,
+            "depthError": 6.891787054236209e-11,
+            "decodeError": 0,
+            "cssBound": 6.499627275851427e-05,
+            "expected": [
+              999000.0003184739,
+              -998000.0001971505,
+              997000
+            ],
+            "depth": 0.0009999999310821295,
+            "packed": [
+              2.060608148574829,
+              0,
+              0,
+              0,
+              0,
+              2.7474775314331055,
+              0,
+              0,
+              0,
+              0,
+              0,
+              -1,
+              0,
+              0,
+              9.999999747378752e-06,
+              0.009999999776482582
+            ],
+            "halfHeight": 0.0036397023460517605
+          }
+        },
+        "orthographic": {
+          "coverage": 4224,
+          "sameStateRestoreDifference": 0,
+          "budget": {
+            "pointBound": 5.768616679474592e-08,
+            "pointCeiling": 2.0000000000000002e-07,
+            "error": 0,
+            "depthBound": 4.669034202416386e-07,
+            "depthError": 9.934107481068821e-09,
+            "decodeError": 0,
+            "cssBound": 6.288604670518293e-05,
+            "expected": [
+              999000.0003184739,
+              -998000.0001971505,
+              997000
+            ],
+            "depth": 0.4166666567325592,
+            "packed": [
+              206.06080627441406,
+              0,
+              0,
+              0,
+              0,
+              274.74774169921875,
+              0,
+              0,
+              0,
+              0,
+              8.333333015441895,
+              0,
+              0,
+              0,
+              0.4166666567325592,
+              1
+            ],
+            "halfHeight": 0.0036397023460517605
+          }
+        }
+      },
+      "primitiveUpdates": {
+        "linePixels": 188,
+        "pointPixels": 62,
+        "contourPixels": 136,
+        "changedPixels": 250
+      },
+      "deviceRecovery": true,
+      "errors": [],
+      "resourcesClosed": true,
+      "cleanup": {
+        "disposed": true,
+        "restored": true
+      },
+      "rootViewedAll3PNGs": true,
+      "independentReviewSha256": "43b2a630ad1e59f406650d1819e0a3c88df5e30a78621670a6ac9cb563cda05c",
+      "independentAuditSha256": "7306241a248b2de206a189504decfde8e76cf79521551cec94f357bdaf5321f7",
+      "independentAnalysisFailures": {
+        "sha256": "38532451a0e39fa9c975db113e09b70394b32e967bbe0938e9dc4c1d944b96b7",
+        "class": "INVALID_ANALYSIS_EXPECTATION_NOT_PRODUCT cross-projection PNG equality +scratchPythonSyntaxError; preserved, no source/image/helper/budget changes"
+      },
+      "limits": "Generic flat quad/primitives only; no native Studio six-profile or positive world-grid phase proof. Same-state restoration0 is retained; cross-projection byte equality was never a product requirement."
+    },
+    "rootPreexecutionAttempt01": {
+      "status": "FAIL_DRIVER_LINT_ONLY",
+      "driverSha256": "b7c8059d4c5d4b26c521a6531e00a548077ae588eae989931295515c9f4f6e61",
+      "driverSyntax": "PASS",
+      "flowSyntax": "PASS",
+      "lintErrors": 4,
+      "firstFailure": "Four unused scratch driver functions: projectionWitness, edgeStats, spacing, worldPositions. Actual native Studio NOT_RUN; Model/Studio types NOT_RUN in this stopped attempt.",
+      "logSha256": "d038182b57304c36e78ad669d4396e8be0798db7b0f1633bdbe7658d24a4a681",
+      "repair": "Remove unused functions only; retain numeric checks, physical budgets, source and previous sealed driver."
+    },
+    "rootFinalPreexecution": {
+      "status": "PASS",
+      "driverSyntax": "PASS",
+      "flowSyntax": "PASS",
+      "driverLint": "PASS",
+      "flowLint": "PASS",
+      "modelTypesAfterLastDriverEdit": "PASS",
+      "studioTypes": "PASS",
+      "driverSha256": "c8fc8a7c2e0f63de7619b0eb66897af940f1e913ac8879c4535c08bac7caecf8",
+      "casesSha256": "942a315d46f7cf731fc2707827476d26577b4adcfb5e0e3fb38c5124df8841b4",
+      "runtimeSourceManifestSha256": "5319a38fc85a195d86eb33f2afcdf90368ae634a94f3b8d70665d4632b0c61dd",
+      "readinessManifestSha256": "2d1d12ca1662d06c2ad1994844f003ab5fe7aa7db8d11e58fbf8ce31a9a01c4c",
+      "readinessPins": 104,
+      "allCurrentPinsExact": true,
+      "logs": {
+        "driver-syntax": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "flow-syntax": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "driver-lint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "flow-lint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model-types": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed",
+        "studio-types": "eb79216b763623531673433413de1f6339d8e6efdd87fc14231ff9dfab7191ee"
+      },
+      "command": "/bin/zsh /tmp/barocss-d434-root-checks/run02.sh (Node22.19.0; sole heavy gate; owned lint and Model/Studio tsc)"
+    },
+    "rootScopedResumePreexecution": {
+      "status": "PASS",
+      "driverSha256": "b0071b3fecf27c47d8e872f2aaa00cc6b4e5e5e14fd90ec7eebbaa62a2b0f758",
+      "readinessManifestSha256": "422b45d8d9a93f7c1a21ec0d8470c6272ba9d2da444187ef2e442b59511abd3e",
+      "readinessPins": 105,
+      "allCurrentPinsExact": true,
+      "driverSyntax": "PASS",
+      "driverLint": "PASS",
+      "modelTypesAfterLastDriverEdit": "PASS",
+      "unchangedFlowAndStudioChecks": "REUSED_FINAL_RUN02_PASS",
+      "scope": "Explicit start4; full6case manifest retained, priorreceiptSHA and completed01..03 plus unchanged50runtimepins required. Historical comparator only normalizes zero sign; same-run raw comparisons untouched.",
+      "command": "/bin/zsh /tmp/barocss-d434-root-checks/run03.sh (Node22.19.0; sole heavy gate)",
+      "logs": {
+        "driver-syntax": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "driver-lint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model-types": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+      }
+    },
+    "rootLineGridRepairPreexecution": {
+      "status": "PASS",
+      "driverSha256": "97ac1563a7dad1e256d8d0f893cda0d27739a14413482730c03f2334b6ff79c1",
+      "readinessManifestSha256": "363a154f76aaabc12cc9e833be1310f6304e8021e7a70b56ca19c219c686e0b4",
+      "readinessPins": 106,
+      "allCurrentPinsExact": true,
+      "samplingContractSha256": "22113d185ae338b0d3367970659099eb300246d7aa9a04969276b617a9c429b2",
+      "driverSyntax": "PASS",
+      "driverLint": "PASS",
+      "modelTypesAfterLastDriverEdit": "PASS",
+      "unchangedFlowAndStudioChecks": "REUSED_FINAL_RUN02_PASS",
+      "repairs": "Public native-line Mesh.visible diagnostic only, exact finally restoration and packet proof; no shaded UI exists. Gridonly public notice dismissal, fixed source/layout strips before first06 actual, every used \u00b14/\u00b11 pixel DOM admission, unchanged physical and image thresholds. CPU/GPU/strip evidence persisted before later failures.",
+      "sampling": {
+        "version": "D434-preactual-grid-sampling-v2",
+        "priorRun01Overall": "FAIL_DRIVER_HISTORICAL_JSON_SIGNED_ZERO",
+        "priorRun02Overall": "FAIL_DRIVER_UNSUPPORTED_DISPLAY_ENUM",
+        "reason": "Actual DOM toolrail covers old leftstrip; bottomtoolbar crosses old930 endpoint. New locations fixed from source/layout before first06 execution, not RGB success.",
+        "publicStabilization": "GRIDCASEONLY record then dismiss actual STEP notice through existing f.dismissToasts; no scene/effect/camera settings changed.",
+        "strips": [
+          {
+            "axis": "vertical",
+            "range": [
+              70,
+              200
+            ]
+          },
+          {
+            "axis": "vertical",
+            "range": [
+              770,
+              900
+            ]
+          },
+          {
+            "axis": "horizontalRight",
+            "range": [
+              840,
+              970
+            ]
+          },
+          {
+            "axis": "horizontalRight",
+            "range": [
+              980,
+              1110
+            ]
+          }
+        ],
+        "samplesPerStrip": 130,
+        "lineAndReferencePixelOffsets": [
+          -4,
+          -1,
+          0,
+          1,
+          4
+        ],
+        "DOMAdmission": "Every sampled physical pixel center must elementFromPoint an exposed canvas; reject without searching alternative RGB locations.",
+        "raySamples": "At each fixedstripmidpoint, actual publicCamera.ray, positive nongrazing gridplane intersection, actualclipW/depth, outsidebody and groundbehind are mandatory.",
+        "unchangedThresholds": {
+          "meanGreaterThan": 2,
+          "fractionAbove1_5GreaterThan": 0.7,
+          "nativeLineChangedPixelsGreaterThan": 10,
+          "nativeLineRGBThreshold": 20
+        },
+        "lineIsolation": "PUBLIC_VIEWER_MESH_VISIBILITY_DIAGNOSTIC exact native line binding; no nonexistent UI enum; finally restore exact public snapshot/packets"
+      },
+      "command": "export PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH\nexport PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright\nexport CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'\nexport CAD_STUDIO_CHAT_PORT=52391\nexport RELATIVE_RASTER_SOURCE_FROZEN=1\nnode /tmp/barocss-d434-probe/relative-raster-browser.mjs /tmp/barocss-d434-probe/run03 /tmp/barocss-d434-probe/raster-cases.json /tmp/barocss-d434-probe/candidate-source-manifest.json 4 /tmp/barocss-d434-probe/run01/receipt.json\n",
+      "checkerCommand": "/bin/zsh /tmp/barocss-d434-root-checks/run04.sh",
+      "logs": {
+        "driver-syntax": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "driver-lint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model-types": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+      }
+    },
+    "rootHiddenIdentityRepairPreexecution": {
+      "status": "PASS_ROOT_AND_INDEPENDENT_DRIVER_REVIEW",
+      "driverSha256": "f3023979c0487e338804ed8669d12634f99b83773e35c5b8463287bd1e052f42",
+      "readinessManifestSha256": "41bfe742cf7dce3ad5223cb1bb62c6310d2865b4b4ac9467c4ce5dcf402536fc",
+      "readinessPins": 106,
+      "allCurrentPinsExact": true,
+      "driverSyntax": "PASS",
+      "driverLint": "PASS",
+      "modelTypesAfterLastDriverEdit": "PASS",
+      "unchangedFlowAndStudioChecks": "REUSED_FINAL_RUN02_PASS",
+      "sourceHelpersCapsSampling": "UNCHANGED",
+      "repair": "Initial visible/pickable native-line binding remains strict; later known publicIDs select hidden lines with exact Object.is endpoints and native ordinals, assert hidden/unpickable false flags and exact restored records.",
+      "command": "export PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH\nexport PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright\nexport CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'\nexport CAD_STUDIO_CHAT_PORT=52391\nexport RELATIVE_RASTER_SOURCE_FROZEN=1\nnode /tmp/barocss-d434-probe/relative-raster-browser.mjs /tmp/barocss-d434-probe/run04 /tmp/barocss-d434-probe/raster-cases.json /tmp/barocss-d434-probe/candidate-source-manifest.json 4 /tmp/barocss-d434-probe/run01/receipt.json\n",
+      "checkerCommand": "/bin/zsh /tmp/barocss-d434-root-checks/run05.sh",
+      "logs": {
+        "driver-syntax": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "driver-lint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model-types": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+      }
+    },
+    "gridFadeSourceRevision": {
+      "status": "PASS_SOURCE_BUILD_TYPES_LINT_CODE_SHAPE_SYNTAX_BROWSER_NOT_RUN",
+      "oldGridSha256": "dbe0c8792d374bf0e087fbf8b5b8d7003a0114a057cb42225ce85d2f57b9bb97",
+      "newGridSha256": "0f23e343d85d2f29c212052123e1381b021789ed28550b85aaa84a6fff8a0798",
+      "sourceManifestSha256": "af43c0cd765311160b594c0d83ac24091da802d1c22724c1e81339c89cd6c8bd",
+      "sourceCertificateSha256": "1fd824e08494417f77c6a7ebbb0d12058e178b93db901fb0c0d1cc35ed88295b",
+      "changedProductionPaths": [
+        "packages/barocss-gpu/src/viewer/shaders/grid.ts"
+      ],
+      "fix": "Retain old distance RHS verbatim, override only orthographic distance with abs(dot(hit-eye,normalize(dir))) from the parallel ray eye-plane. No phase/height/depth/clip/opacity/grazing/caps changes. Shared legacy+relative orthographic GRID pixels intentionally corrected.",
+      "perspectiveRHSByteIdentical": true,
+      "reversalRecoversOldGridExactly": true,
+      "isolatedRealShaderControl": "NEW public WebGPU pipeline with actual production gridWGSL and Camera/packFrame;11fixed-pose frames varying signednear/far,axial/behindeye/oblique/perspective; NOT support for Viewer manual-grid mode. Native03/06 actual Viewer remains required.",
+      "existingChecksReuse": "Unchanged218focused/12independent/5mutations retained; all generic7 old receipts preserved as priorgrid revision with new affected shader control required. D433 fullkernel reused, noBRep change.",
+      "authorFinalV2ReceiptSha256": "b1bc6f36a8d2aead33d420a72fc37ef5ef48fe6ad4ef374fd83f1b99547def8d"
+    },
+    "gridFadeShaderActual": {
+      "status": "PASS_REAL_PRODUCTION_WGSL_OWN_WEBGPU_PIPELINE_NOT_VIEWER_MANUAL_GRID",
+      "tapPass": 1,
+      "tapFail": 0,
+      "tapSkip": 0,
+      "gpuFrames": 11,
+      "receiptSha256": "ae66f76a4b0ac4190d5f34b69f5ab67f32dbe318e524ca2f87866e3244c38fd2",
+      "actualWGSLSha256": "ff7ad39e45e0b363a4399ab7574718267ba9745fb90cd24b8606c5047584cc83",
+      "actualWGSLMatchesBuiltProduction": true,
+      "sourceDistTestsBeforeAfterCleanupCount": 540,
+      "sourceDistTestsBeforeAfterCleanupExact": true,
+      "errors": [],
+      "cleanup": {
+        "disposed": true,
+        "ownDevice": true
+      },
+      "resourcesClosed": true,
+      "gateReleased": true,
+      "rootViewed": [
+        "axial-2.png",
+        "perspective-2.png"
+      ],
+      "scope": "Axial3+signedbehindeye2 exactRGBA equality; oblique3/perspective3 admitted physical line probes, no crossclip wholeimage equality claim there. Dedicatedpipeline depthComparealways/raw premultipliedRGBA provesactualshader behavior, notunsupportedViewer manualclip admission. Freshnative03/06 stillrequired.",
+      "frames": [
+        {
+          "name": "axial",
+          "near": -4,
+          "far": 4,
+          "nonzero": 9840,
+          "rgbaSha256": "260ae5b13d750c7eec054626447185e449e0774a2dda24b14958f9680e43dfbd",
+          "minProbeAlpha": 128,
+          "minProbeRGB": 107
+        },
+        {
+          "name": "axial",
+          "near": 0.25,
+          "far": 4.25,
+          "nonzero": 9840,
+          "rgbaSha256": "260ae5b13d750c7eec054626447185e449e0774a2dda24b14958f9680e43dfbd",
+          "minProbeAlpha": 128,
+          "minProbeRGB": 107
+        },
+        {
+          "name": "axial",
+          "near": -32,
+          "far": 32,
+          "nonzero": 9840,
+          "rgbaSha256": "260ae5b13d750c7eec054626447185e449e0774a2dda24b14958f9680e43dfbd",
+          "minProbeAlpha": 128,
+          "minProbeRGB": 107
+        },
+        {
+          "name": "behind",
+          "near": -4,
+          "far": 4,
+          "nonzero": 9840,
+          "rgbaSha256": "260ae5b13d750c7eec054626447185e449e0774a2dda24b14958f9680e43dfbd",
+          "minProbeAlpha": 128,
+          "minProbeRGB": 107
+        },
+        {
+          "name": "behind",
+          "near": -32,
+          "far": 32,
+          "nonzero": 9840,
+          "rgbaSha256": "260ae5b13d750c7eec054626447185e449e0774a2dda24b14958f9680e43dfbd",
+          "minProbeAlpha": 128,
+          "minProbeRGB": 107
+        },
+        {
+          "name": "oblique",
+          "near": -4,
+          "far": 4,
+          "nonzero": 15856,
+          "rgbaSha256": "60ce1d713988d75823a891ea2f96fecf8654985f56be9cc91cc7a383cf51fc13",
+          "minProbeAlpha": 153,
+          "minProbeRGB": 107
+        },
+        {
+          "name": "oblique",
+          "near": 0.25,
+          "far": 8.25,
+          "nonzero": 14880,
+          "rgbaSha256": "9582e8ef23893e334b9a1735cc73841d831a44661acf7bba5b6cb059e100d274",
+          "minProbeAlpha": 153,
+          "minProbeRGB": 107
+        },
+        {
+          "name": "oblique",
+          "near": -32,
+          "far": 32,
+          "nonzero": 15856,
+          "rgbaSha256": "5b0c8b31ec9c932a39e6842bfb0b5b816f6cb1105ddce489649e55f685df6026",
+          "minProbeAlpha": 153,
+          "minProbeRGB": 107
+        },
+        {
+          "name": "perspective",
+          "near": 0.25,
+          "far": 8.25,
+          "nonzero": 19077,
+          "rgbaSha256": "0ddd5799b0e25496d20167917b9598d3e8ca0b1efc293dfd9769d566821722c9",
+          "minProbeAlpha": 153,
+          "minProbeRGB": 107
+        },
+        {
+          "name": "perspective",
+          "near": 0.5,
+          "far": 16.5,
+          "nonzero": 19076,
+          "rgbaSha256": "2f588c65c8c5f95612352e72ceef60b258509cdd16cfa5b1ba216dd4865aafc3",
+          "minProbeAlpha": 153,
+          "minProbeRGB": 107
+        },
+        {
+          "name": "perspective",
+          "near": 0.0009765625,
+          "far": 64,
+          "nonzero": 19124,
+          "rgbaSha256": "c35e166f4b2157e74bf5b242b68c03769d9f6f51204e92bf00f9efcd144a5366",
+          "minProbeAlpha": 153,
+          "minProbeRGB": 107
+        }
+      ],
+      "command": "/bin/bash /tmp/barocss-d434-author/grid-fade-v2/browser-run01.sh",
+      "executedRecipeSha256": "db0aa57105b52192f4483d17a42135e903a73cde1e5d7727407c42a60a9cbe90",
+      "independentAuditSha256": "5472c1d7b1fa272c93d8066f3b6d2dc2875c3d091e80d4eb23359e2f638e8ae2"
+    },
+    "boundedGridReuseCertificate": {
+      "status": "PASS_BOUNDED_REUSE_NOT_COMPILED_PIXEL_EQUIVALENCE",
+      "certificateSha256": "7587be5eef12172c5ce437bb08ef58de5cd67dc737e832b29bbeffdbc276aa83",
+      "oldGridSha256": "dbe0c8792d374bf0e087fbf8b5b8d7003a0114a057cb42225ce85d2f57b9bb97",
+      "newGridSha256": "0f23e343d85d2f29c212052123e1381b021789ed28550b85aaa84a6fff8a0798",
+      "otherRuntimePinsExact": 49,
+      "runtimePins": 50,
+      "reusedNativeCases": [
+        "01 far perspective",
+        "02 far orthographic",
+        "04 ordinary perspective",
+        "05 far edge box perspective"
+      ],
+      "freshNativeCasesRequired": [
+        "03 centered orthographic",
+        "06 positive grid box orthographic"
+      ],
+      "far02DiscardMarginGreaterThan": 996998,
+      "far02Units": "mm",
+      "sourceScope": "Perspective RHS math untouched; far02 entire-screen old/new grid fade0 established via affine four-corner extrema with conservative binary32 reserve. General shader/pixel byte equality not claimed. Newactualproductionshader11frames independently audited; requiredcurrentnative03/06 subsequentlyPASS inrun05.",
+      "analysisOnlyFirstFailure": "INVALID_ANALYSIS_BASELINE_REFERENCE: seal tool first used refreshed live consumer manifest asoldbaseline; preserved and corrected to immutable run04.sourceFrozen. No source/helper/budget change."
+    },
+    "rootFinalGridNativePreexecution": {
+      "status": "PASS",
+      "driverSha256": "e44648f84f0779758d6007a2c8484ede9da5e4d1fc806397c02a0aa09c9eefae",
+      "readinessManifestSha256": "40f99c47d864b789c13c588293a28cf80164b47015feb9f096a87384931c1fa0",
+      "readinessPins": 117,
+      "allCurrentPinsExact": true,
+      "sourceManifestSha256": "ed044140543fc47a93b967a494a53a991a8b17e2b7856d4a36deb0ae3befbcaa",
+      "casesSha256": "942a315d46f7cf731fc2707827476d26577b4adcfb5e0e3fb38c5124df8841b4",
+      "reuseContractSha256": "b6bf3e465bff269cf1c3ed3d69960a55d509b380fb2dc714d5bcc4ce113b5cde",
+      "certificateSha256": "7587be5eef12172c5ce437bb08ef58de5cd67dc737e832b29bbeffdbc276aa83",
+      "driverSyntax": "PASS",
+      "driverLint": "PASS",
+      "modelTypesAfterLastDriverAndTestEdit": "PASS",
+      "unchangedFlowAndStudioChecks": "REUSED_FINAL_RUN02_PASS",
+      "selectedCurrentCases": [
+        3,
+        6
+      ],
+      "certifiedRetainedCases": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "rootReview": "Finalpreflightchecks certificateexactstatus/source/case/priorreceiptfields+other49map; preservesallprioroverallFAIL; old03pixelsnotreused. Physical/source/native/gridpose/ROI/sampling2211/caps unchanged.",
+      "command": "export PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH\nexport PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright\nexport CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'\nexport CAD_STUDIO_CHAT_PORT=52391\nexport RELATIVE_RASTER_SOURCE_FROZEN=1\nnode /tmp/barocss-d434-probe/relative-raster-browser.mjs /tmp/barocss-d434-probe/run05 /tmp/barocss-d434-probe/raster-cases.json /tmp/barocss-d434-probe/candidate-source-manifest.json 3,6 /tmp/barocss-d434-probe/run01/receipt.json /tmp/barocss-d434-probe/run04/receipt.json /tmp/barocss-d434-probe/scoped-grid-reuse.json\n",
+      "checkerCommand": "/bin/zsh /tmp/barocss-d434-root-checks/run06.sh",
+      "logs": {
+        "driver-syntax": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "driver-lint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model-types": "11e09a2f920c18c2d8294c030b7675d1812739685676f9ec03459eeb23cb28ed"
+      }
+    },
+    "navigation": {
+      "status": "PASS",
+      "rowPages": 34,
+      "checkedLocalLinks": 2436,
+      "newBroken": 0,
+      "roadmapArchiveSha256": "1325b18b05f71ca1ffb8cb56552d7e0ee95bb516792a1ef77096a2b24cf1ad2e",
+      "decisionsArchiveSha256": "ab13b705211d7b76b52e43b2f3fa7d603a7db95a941a53c9ac5e709c8a3075c7",
+      "gitDiffCheck": "PASS",
+      "oldKnownMissingArchiveEvidencePath": "UNCHANGED_PREEXISTING"
+    }
+  },
+  "limits": [
+    "Select exact private coordinate and packet contracts before product edits.",
+    "Do not hide participating default features or change native data, camera policy or geometry tolerances.",
+    "Hardware surface mesh/depth query uses triangle draw; reported triangle/face and native edge UI selection are CPU semantics. GPU line rendering/payload and null-instance field are separately scoped.",
+    "A bounded raster correction does not certify arbitrary scales, path tracing or compute.",
+    "No new dependency/download/paid execution/develop integration/release."
+  ],
+  "selectedRepresentation": {
+    "CPU": "Retain native/public world coordinates, bounds, transforms, camera matrices, ray and unproject contracts",
+    "O": "Exact public camera.target when maxabs>=65536, attached retainedF64 exists and all resident profile predicates pass",
+    "G": "Each prepared finite bounds midpoint, componentwise lo+(hi-lo)/2; zero in complete legacy mode",
+    "upload": "Numeric Float32(P-G) before narrowing",
+    "object": "Uninstanced Number B=T(-O)*M*T(G); preserve authored linear normal matrix",
+    "hardwareDecode": "Capture actual uploaded relativeVP32, Number inverse and original DoubleO; decode pixel center and add O once; independent native physical oracle separate",
+    "unsupported": "Complete coherent legacy frame and uploads; no feature hidden or public refusal/config flag added"
+  },
+  "privateABI": {
+    "frame": {
+      "oldBytes": 2320,
+      "bytes": 2368,
+      "originOffset": 2320,
+      "minorMajorPhaseOffset": 2336,
+      "axisOffset": 2352,
+      "additionalGPUBytesMainAnd14ShadowBuffers": 720,
+      "additionalCPUFrameScratchBytes": 96
+    },
+    "object": {
+      "oldBytes": 256,
+      "bytes": 272,
+      "oldStride": 256,
+      "stride": 512,
+      "meshOriginOffset": 256,
+      "additionalGPUBytesPerAllocatedSlot": 256,
+      "additionalCPUStagingBytesPerAllocatedSlot": 256
+    },
+    "instance": {
+      "bytes": 68,
+      "unchanged": true
+    },
+    "ordinaryControl": "Original payload-prefix/coefficient values and position/instance bytes; appended zeros and changed total length/stride explicitly declared"
+  },
+  "preexecutionCaps": {
+    "status": "SELECTED_BEFORE_CHECKS_NOT_RESULTS",
+    "coefficientEnvelopeCSSPixels": "computed envelope must itself be <0.01",
+    "GPUWorldPoint": "computed physical error envelope must itself be <1e-4 smallest positive represented body span",
+    "CPU": "D432 projection <.001CSS and nativeCPU8ULP+64EPSlocalScale budgets unchanged",
+    "numericProposalSha256": "76ca33f54ef25e0327a3da39d8654702784cf8e7e1ff7c4a62584896454f0b64"
+  },
+  "sixthFixture": {
+    "status": "PASS_LOCAL_FIXTURE_PREPARATION_ONLY",
+    "stepSha256": "d5f430adb274e2066b93a9a423ee1ca825b85b2ae0e19a5ff7870ba7bc3fbd0b",
+    "receiptSha256": "c1630eba561276546ab54b00aff72e7de15e93f16bbf66e0998ecbd219f4e1c9",
+    "physicalChecksSha256": "b6bb9da427da8b8f0fdbbb637c5f54cf4500d0b1fbc36385ddde09b0d465fd76",
+    "requestedCenterRecipe": "[999000+2**-16,-998000+3*2**-16,0]",
+    "representedSpans": [
+      0.001999999978579581,
+      0.001999999978579581,
+      0.001999999978579581
+    ],
+    "validBrep": true,
+    "faces": 6,
+    "edges": 12,
+    "vertices": 8,
+    "boundaryGaps": 0,
+    "twoDensityScalarChecks": 30,
+    "sourcePredictedPhaseCSSPixels": [
+      3.6819106714375,
+      11.0457314692358
+    ],
+    "phaseRecordSha256": "286fc54c3253145aa28a29494a54ed9af72f0a530096f6dacb59907b866cab53",
+    "actualAdmission": "NOT_RUN; recompute actual pose/canvas/clip and outside-body grid witnesses before product acceptance",
+    "gridSourceCorrection": "Studio explicitly uses cell10/major5; generic automatic tiny grid does not describe Studio. Earlier ungenerated center proposals remain preserved under/tmp; only this final positive-grid fixture was generated."
+  },
+  "independentActualHelper": {
+    "status": "FROZEN_BEFORE_INDEPENDENT_OR_ACTUAL_RUN",
+    "path": "/tmp/barocss-d434-independent/raster-oracle.mjs",
+    "sha256": "1ffc075e5d74e9706f95916af0ad1111f503ed09328834594e751411b6fc35a2",
+    "scope": "Independent basis/Gauss-Jordan/vertex interval/perturbed native plane/pixel-center/decode/grid; no product imports",
+    "phase": "Circular phase equivalence accepts balanced encoding; first actual still NOT_RUN; no helper or budget change for source repair",
+    "contractSha256": "4819ffa3cabb9edc52744862b87a39e2927558603b154f4ab764f437a3e11fe9",
+    "timing": "Executable library completed after initial author own checks; unchanged proposal76ca and fixed caps predated them. Independent and actual runs still NOT_RUN at library freeze."
+  },
+  "sourceReviewCorrections": [
+    {
+      "status": "SOURCE_UNIT_AND_INDEPENDENT_PASS",
+      "class": "LIFECYCLE_INPUT_SNAPSHOT",
+      "finding": "JSON.stringify(grid/lights) erases Object.is distinctions; grid.cell null(auto)->NaN during pending readback without requestRender can collide.",
+      "repair": "Module-level explicit scalar/vector value flattening with Object.is; pending-readback regression; no geometry/projection/numeric-budget change."
+    },
+    {
+      "status": "SOURCE_UNIT_AND_INDEPENDENT_PASS",
+      "class": "PRIVATE_ADMISSION_PACKED_NORMAL_MATRIX",
+      "counterexample": "Finite M=diag(1e-40,1,1) has finite B32 but existing normalMatrixInto reciprocal1e40 narrows to Infinity; no public guard rejected it.",
+      "repair": "Check actual existing normalMatrixInto coefficients for finite Float32; complete legacy fallback, no normal repair/public throw."
+    },
+    {
+      "status": "SOURCE_UNIT_AND_INDEPENDENT_PASS",
+      "class": "PRIVATE_ADMISSION_NORMALIZED_DIRECTION",
+      "counterexample": "Finite nonzero light.direction[1e-320,0,0] normalizes through reciprocal overflow to Inf/NaN.",
+      "repair": "Check existing normalized direction finite/nonzero before relative shadows; no public light algorithm change."
+    },
+    {
+      "status": "SOURCE_UNIT_AND_INDEPENDENT_PASS",
+      "class": "PRIVATE_ADMISSION_FLOAT32_COORDINATES",
+      "counterexample": "Native local cube with affine translation/O1e40 can keep finite relative B/VP while appended O narrows to Infinity.",
+      "repair": "Float32-finite private coordinate metadata/pose/grid checks; complete legacy fallback only, no new public input error."
+    }
+  ],
+  "testHarnessCache": {
+    "status": "PASS_FINAL_FLOW_SYNTAX_LINT_AND_ACTUAL856_SOURCE_INTEGRITY",
+    "path": "apps/cad-studio/test/flow-helper.mjs",
+    "change": "Vite cacheDir is output/vite-cache; D434 output is /tmp so runtime cache also stays outside frozen worktree",
+    "scope": "Actual-flow infrastructure only; no product/GPU math change or accepted GPU test repeat required"
+  },
+  "authorFinalReceiptSha256": "613ed0c8f3793a537bc59f6e59cfa566cb5236f6597522bb90dc9c0654cccd1d",
+  "authorSourceManifestSha256": "29d24a1583eec9b88e79ac8658f99f0ff5d9c7d6ad36aea9e939e7df7d84058d",
+  "rootTooling": [
+    {
+      "stage": "Draft genericGPU note population",
+      "failure": "KeyError genericGPU before file write",
+      "repair": "Initialize the new qualification section explicitly; no source/test/data/budget change or check repeat."
+    }
+  ],
+  "currentSixProfileSummary": [
+    {
+      "id": "01",
+      "label": "01-far-perspective",
+      "run": "run01",
+      "physicalError": 5.820766091346741e-10,
+      "computedBound": 4.007081310258706e-08,
+      "hardCap": 1.988759497180581e-07
+    },
+    {
+      "id": "02",
+      "label": "02-far-orthographic",
+      "run": "run01",
+      "physicalError": 0,
+      "computedBound": 1.0736688713876968e-07,
+      "hardCap": 1.988759497180581e-07
+    },
+    {
+      "id": "03",
+      "label": "03-centered-orthographic",
+      "run": "run05",
+      "physicalError": 3.2868095049039953e-09,
+      "computedBound": 1.0785798421995468e-07,
+      "hardCap": 1.9912089963782087e-07
+    },
+    {
+      "id": "04",
+      "label": "04-new-ordinary-box",
+      "run": "run04",
+      "physicalError": 6.601130448657955e-05,
+      "computedBound": 0.0005120221541993648,
+      "hardCap": 0.0006000000000000001
+    },
+    {
+      "id": "05",
+      "label": "05-far-native-edges",
+      "run": "run04",
+      "physicalError": 8.149072527885437e-10,
+      "computedBound": 4.88222289699215e-08,
+      "hardCap": 1.999999978579581e-07
+    },
+    {
+      "id": "06",
+      "label": "06-positive-grid-box",
+      "run": "run05",
+      "physicalError": 1.733409249471407e-11,
+      "computedBound": 1.1112218300271245e-07,
+      "hardCap": 1.999999978579581e-07
+    }
+  ],
+  "commands": {
+    "newMain": "node --import ./packages/barocss-gpu/tests/cad-dist.mjs --test --test-concurrency=1 packages/barocss-gpu/tests/viewer-relative-raster.test.mjs",
+    "newPayload": "node --test --test-concurrency=1 packages/barocss-gpu/tests/viewer-relative-raster-payload.test.mjs",
+    "existingAffected": "node --import ./packages/barocss-gpu/tests/cad-dist.mjs --test --test-concurrency=1 packages/barocss-gpu/tests/viewer-world-precision.test.mjs packages/barocss-gpu/tests/viewer-core.test.mjs packages/barocss-gpu/tests/viewer-display.test.mjs packages/barocss-gpu/tests/viewer-shadow-multi.test.mjs packages/barocss-gpu/tests/viewer-shadow-point.test.mjs packages/barocss-gpu/tests/viewer-shadow-point-soft.test.mjs packages/barocss-gpu/tests/viewer-shadow-spot.test.mjs packages/barocss-gpu/tests/viewer-shadow-spot-soft.test.mjs packages/barocss-gpu/tests/viewer-path-trace.test.mjs packages/barocss-gpu/tests/viewer-path-trace-material-maps.test.mjs packages/barocss-gpu/tests/viewer-path-trace-lifecycle.test.mjs packages/barocss-gpu/tests/viewer-cap-samples.test.mjs packages/barocss-gpu/tests/viewer-depth-of-field.test.mjs packages/barocss-gpu/tests/pick-instance-readback.test.mjs packages/barocss-gpu/tests/mesh-instance-atomicity.test.mjs packages/barocss-gpu/tests/viewer-pixel-ratio.test.mjs",
+    "genericInitial": "/bin/bash /tmp/barocss-d434-author/browser-batch01-executed.sh",
+    "genericGrid": "/bin/bash /tmp/barocss-d434-author/grid-fade-v2/browser-run01.sh",
+    "finalRoot": "/bin/zsh /tmp/barocss-d434-root-checks/run06.sh"
+  },
+  "deliveryInventory": {
+    "status": "PASS_POSTCOMMIT_BEFORE_PUSH",
+    "files": 29,
+    "newFiles": 10,
+    "rawEvidenceFiles": 0,
+    "author": "easylogic <cyberuls@gmail.com>",
+    "codeCommit": "8abfb8fe7b925c98d6d6f69464a8e9ddf48e0e47",
+    "initialInventoryFailure": "Invented100KB new-artifact cap was incorrectly applied to existing decisions.md(123325bytes); Python assertion failed. Shell lacked fail-fast and continued to normalcommit. Earlier configured identity had passed; postcommit configured+actualauthor and all29 named files/new-only sizes recheckedPASS beforepush. No source/test/evidence change; no amend/reset used.",
+    "scope": "Postcommit delivery metadata only; existing final source/native/type receipts reused."
+  }
+}

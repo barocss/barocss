@@ -1,0 +1,294 @@
+{
+  "id": "D441",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "276d946facbd6621ee052d448a9f5fa70ae8e71e",
+  "roadmapRows": [
+    13,
+    12
+  ],
+  "overallEstimatePercent": 43,
+  "validationTier": "small",
+  "model": "GPT-6.1 Sol Medium",
+  "scope": "Printable ASCII writer-produced even-backslash-run literal strings only; single decode, no Unicode/directive expansion",
+  "baselineReceiptSHA256": "5acbee91996308c8f45997d46da568a299374525cddeef877c82ad1d279def7b",
+  "baselineCasesSHA256": "c7c498ae2b30fcd8628a5d7ef311ffc2ffa230f53517cc543ea13573266264c2",
+  "baselineRunnerSHA256": "37a0ff276e9806928cf9d9305eabaca66b8d9bc529ebb0a59be4607c75bb8f9d",
+  "baselineRecipeSHA256": "32fe093aaac063e6055bf2f76cf283c0c8181f84f12ccaf41e1ead1146a04298",
+  "baselinePins": 729,
+  "baselineCalls": {
+    "writer": 5,
+    "import": 5,
+    "validationRead": 5,
+    "strictChecks": "Accepted imports only",
+    "physicalBoundary": "Writer can compute validation properties internally; no standalone physical qualification"
+  },
+  "baselineResults": [
+    {
+      "case": "01",
+      "literal": "ordinary",
+      "expectedBackslashes": 0,
+      "actualBackslashes": 0,
+      "literalMatch": true,
+      "importStatus": "ACCEPTED",
+      "strictValid": true,
+      "rawWriterChecks": {
+        "header": true,
+        "product": true,
+        "face": true
+      },
+      "producerWholeFileSHA256": "7c83f414e9fd9d3634f759b08451f810ef826048502c040f0353c5f2e0792277"
+    },
+    {
+      "case": "02",
+      "literal": "one\\slash",
+      "expectedBackslashes": 1,
+      "actualBackslashes": 2,
+      "literalMatch": false,
+      "importStatus": "ACCEPTED",
+      "strictValid": true,
+      "rawWriterChecks": {
+        "header": true,
+        "product": true,
+        "face": true
+      },
+      "producerWholeFileSHA256": "eabaecf85d8683c831ecb346c3f2595cf6d4aaa29f176ba36a021c46b1b5dce8"
+    },
+    {
+      "case": "03",
+      "literal": "repeat\\\\slashes",
+      "expectedBackslashes": 2,
+      "actualBackslashes": 4,
+      "literalMatch": false,
+      "importStatus": "ACCEPTED",
+      "strictValid": true,
+      "rawWriterChecks": {
+        "header": true,
+        "product": true,
+        "face": true
+      },
+      "producerWholeFileSHA256": "42ddc12c245be8894ea16c6e2fc0d416253001b8e56bd54747617d24ad32fe6b"
+    },
+    {
+      "case": "04",
+      "literal": "O'Brien\\DATA; /*x*/ ENDSEC;",
+      "expectedBackslashes": 1,
+      "actualBackslashes": 2,
+      "literalMatch": false,
+      "importStatus": "ACCEPTED",
+      "strictValid": true,
+      "rawWriterChecks": {
+        "header": true,
+        "product": true,
+        "face": true
+      },
+      "producerWholeFileSHA256": "2280de90a91e9dbcd769ba100e83b53877adf9c326ae67ce2948ed05ff7a50d2"
+    },
+    {
+      "case": "05",
+      "literal": "\\X2\\0041\\X0\\",
+      "expectedBackslashes": 4,
+      "actualBackslashes": 8,
+      "literalMatch": false,
+      "importStatus": "ACCEPTED",
+      "strictValid": true,
+      "rawWriterChecks": {
+        "header": true,
+        "product": true,
+        "face": true
+      },
+      "producerWholeFileSHA256": "39df54284e6eee31f1c46b3a5d26285b1638def556b46bdbcdfc67a2b7ae2229"
+    }
+  ],
+  "fixture": "Retained ordinary near-origin planar30x12x6 native; no new geometry profile",
+  "selectedCorrection": {
+    "decode": "Every backslash run is even AND all completed characters printableASCII -> decode literal pairs once",
+    "opaque": "Any odd run/nonASCII/control -> return whole completed string unchanged; no partial decode",
+    "preserved": "Quote handling, D439 section/comment lexer, writer bytes/goldens, numeric/geometry/refusal/limits/API unchanged",
+    "preexecDraft": "Naive pair replacement was not executed and is retained separately; adjacent opaque directives motivate the guard",
+    "completedValueBoundary": "Classification/decode occurs after the unchanged doubled-quote handler; held whole values are the exact previous string values, not a full Unicode decoder"
+  },
+  "standardReference": {
+    "url": "https://www.steptools.com/stds/step/IS_final_p21e3.html",
+    "document": "Public ISO TC184/SC4/WG11 N304 text dated2015-07-30",
+    "clauses": [
+      "6.4.3.1",
+      "6.4.3.2",
+      "6.4.3.3"
+    ],
+    "use": "Literal reverse-solidus pair rule and distinct control-directive boundaries; paraphrased, no standard source copied/downloaded into repository",
+    "boundary": "No full-standard or Unicode/directive decoding qualification"
+  },
+  "candidate": {
+    "status": "PASS_SCOPED",
+    "receiptSHA256": "16983532df092464ae815a1ab0ea6abc72a3ae8c8d8256e754c0fae0d81b6003",
+    "sourceSHA256": "145e94fdfa100912d005aeaf45f0af2737a8713f0d3f0ee61619c5250a34d71a",
+    "testSHA256": "b6bf46586781252d761d7e0cc7047fc8dcf4d0da80df6700c0bf733bdf8b02ec",
+    "sourceCertificateSHA256": "4397c61cd79ee38a75d9bf75e5e24cc49184291fa2d8bc15d625ef5c84c57413",
+    "cad": {
+      "pass": 11,
+      "fail": 0,
+      "skip": 0,
+      "groups": "new3/quoted5/validation3"
+    },
+    "model": {
+      "pass": 6,
+      "fail": 0,
+      "groups": "STEP profile losses including six D421 whole files and source keys"
+    },
+    "producerSameInputFullFiles": {
+      "pass": 5,
+      "regeneratedGoldens": false,
+      "artifactSHA256": "6d372e6903382ce0da4521a6ad076826efc391fbd4d6f6234ae43170e3d9a8a6"
+    },
+    "rawQuotedTokenOracles": 5,
+    "literalCyclesPerCase": 3,
+    "opaqueCoverage": [
+      "Adjacent PAGE/ALPHABET directives",
+      "Adjacent X0/end and X2/start",
+      "Mixed literal pair and odd escape",
+      "Unknown single escape",
+      "NonASCII with even pair",
+      "Control char with even pair"
+    ],
+    "build": "PASS",
+    "sourceTestDriverLint": "PASS",
+    "codeShape": "PASS",
+    "finalModelTypesAfterLastTestAndDriverEdit": "PASS",
+    "fixedPinsBeforeAfter": 22,
+    "geometryAndWriterOutsideHelper": "Exact original importer a15 recovered; D439 lexer/numeric/geometry/refusals/limits unchanged, writer9922 and D421 test4014 unchanged",
+    "fullKernel": "NOT_RUN; no B-rep core change"
+  },
+  "actualStudio": {
+    "status": "PASS_BOUNDED_OPEN_FIT_PREVIEW_CANCEL",
+    "receiptSHA256": "e13a72dfe04750b5a91aaae036e16f3fed5e2b09f3d031d39baa16fd91380e70",
+    "driverSHA256": "a04a2c15c589e22d1bf97c20cd9e7e4e4702304ce50ae56de32a6101aca0e450",
+    "readinessSHA256": "4e3654bd536741fae651c06c17a3a20b41b9214d1c73a8ca53cc0ca9e3cef6c3",
+    "inputSHA256": "2280de90a91e9dbcd769ba100e83b53877adf9c326ae67ce2948ed05ff7a50d2",
+    "inputBytes": 6665,
+    "nativeFaceName": "n0.O'Brien\\DATA; /*x*/ ENDSEC;",
+    "nativeLiteralBackslashes": 1,
+    "publicReadId": 3,
+    "publicReadRevision": 2,
+    "realWriterRequestReply": 5,
+    "source": "47a11e55930e7f8a",
+    "preparedSHA256": "ce32f860a29ed1c1a62763a0cc691a9a1ad828779d3dc86c98bde95f76d674aa",
+    "preparedBytes": 6833,
+    "rawEncodedBackslashes": 2,
+    "extraLosses": [],
+    "cancel": "Exact document/native/seven property-basis fields/accepted source/camera including F64/F32 matrix bytes",
+    "rootVisual": "PASS: root viewed all3 original/preview/cancel PNGs; large gray rectangular profile and preview panel visible. Name evidence comes from captured worker values, not text in the image.",
+    "fixedInputPins": 786,
+    "frozenAfterCleanupCurrentHashes": 1057,
+    "rootCurrentRehash": "PASS_1057",
+    "passiveModuleBodies": 70,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "downloads": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "ownWrapperPID": 93053,
+    "ownPIDAbsent": "PASS_ROOT_CHECK",
+    "gateAfter": "none",
+    "limits": "No output reopen/new physical target/Unicode/header-product-structure transfer claim; stepMeshes preference persistence is separate from document retention"
+  },
+  "limits": [
+    "Public decoded face-name scope; header/product raw writer bytes separate because metadata is not returned by importStep",
+    "Rawtokenreader remains independent tokenizer with predeclared quoted bytes; no kernel/directive decoder copied into it",
+    "Opaque/mixed/unknown/Unicode general interchange remains unqualified",
+    "No new API/schema/dependency/geometry/tolerance/fitter/download/OCP/paidcall/release"
+  ],
+  "productEdits": [
+    "packages/barocss-cad/src/io/step-import.ts"
+  ],
+  "actualRawTokenAudit": {
+    "status": "PASS_EXACT_RAW_QUOTED_TOKENS_AND_CURRENT_LITERAL_VALUE",
+    "artifactSHA256": "7fdfc8443551d6f73c60f4d2cfb12db70f6a1dbaf16556083ca3f15d4b03ec46",
+    "scriptSHA256": "dcf0d4f4bc317de74dce70bb9d7cfff166fd93806ecd056fed0b54c2fc1cb66e",
+    "readerSHA256": "64dc4a400ae8448dfb145212651e1699d4ddaf146f1350978f8022ba5fe6af54",
+    "observations": [
+      {
+        "sha256": "2280de90a91e9dbcd769ba100e83b53877adf9c326ae67ce2948ed05ff7a50d2",
+        "bytes": 6665,
+        "firstFaceRawQuotedToken": "'O''Brien\\\\DATA; /*x*/ ENDSEC;'",
+        "rawReverseSolidusCount": 2,
+        "counts": {
+          "MANIFOLD_SOLID_BREP": 1,
+          "ADVANCED_FACE": 6,
+          "EDGE_CURVE": 12,
+          "VERTEX_POINT": 8
+        },
+        "schema": [
+          "AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 1 }"
+        ],
+        "validationRepresentationNames": [
+          "volume",
+          "surface area",
+          "centroid",
+          "bounding box"
+        ]
+      },
+      {
+        "sha256": "ce32f860a29ed1c1a62763a0cc691a9a1ad828779d3dc86c98bde95f76d674aa",
+        "bytes": 6833,
+        "firstFaceRawQuotedToken": "'n0.O''Brien\\\\DATA; /*x*/ ENDSEC;'",
+        "rawReverseSolidusCount": 2,
+        "counts": {
+          "MANIFOLD_SOLID_BREP": 1,
+          "ADVANCED_FACE": 6,
+          "EDGE_CURVE": 12,
+          "VERTEX_POINT": 8
+        },
+        "schema": [
+          "AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 1 }"
+        ],
+        "validationRepresentationNames": [
+          "volume",
+          "surface area",
+          "centroid",
+          "bounding box"
+        ]
+      }
+    ],
+    "scope": "Raw quoted token equals predeclared constant; actual public decoded face value equals independent literal. No Unicode/control decoding, product/header metadata retention, new physical accuracy or output reimport claim.",
+    "newSUTCalls": 0,
+    "decoder": "Independent token/statement reader compares raw quoted tokens to frozen constants; no backslash/directive semantic decoder copied into it"
+  },
+  "rawAuditAttempt01": {
+    "status": "NOT_RUN",
+    "artifactSHA256": "a05222bf5592b3c408efe2dee34d1f25e79713c6c21004249d2a510f99ce1416",
+    "reason": "Load75.15 before gate acquisition; raw parsing and SUT body never started",
+    "retry": "Same script source in new owned actual-read02 after globalidle/load14.19; passed"
+  },
+  "commands": [
+    "bash /tmp/barocss-d441-probe/baseline-gated-recipe.sh",
+    "bash /tmp/barocss-d441-probe/candidate-gated-recipe.sh",
+    "LITERAL_BACKSLASH_SOURCE_FROZEN=1 node /tmp/barocss-d441-probe/literal-backslash-preview-browser.mjs /tmp/barocss-d441-probe/studio-run01 /tmp/barocss-d441-probe/studio-cases.json /tmp/barocss-d441-probe/studio-source-manifest.json (Node22.19.0, installed PW_DIR/CHROME/chat52391, soleown gate/allwriters frozen throughcleanup)",
+    "python3 -B -I /tmp/barocss-d441-root/actual-read02/audit.py (own sole gate; no SUT calls)"
+  ],
+  "issueReview": {
+    "issue": 2263,
+    "state": "OPEN",
+    "reason": "Bounded supported literal face-string fix only; opaque/Unicode/product metadata/assembly/AP242 presentation/PMI and remaining offset/topology acceptance incomplete"
+  },
+  "notRun": [
+    "Full kernel: no B-rep core change",
+    "New physical accuracy/oracle/geometry tolerance",
+    "Unicode/directive interpretation or generic encoded-string certification",
+    "Output reopen or product/header metadata readback",
+    "Download/OCP/externalSDK/paidcall",
+    "Develop integration/release/npm/deploy"
+  ],
+  "finalNavigation": {
+    "status": "PASS",
+    "node": "22.19.0",
+    "rowPages": 34,
+    "checkedLocalLinks": 2471,
+    "newBroken": 0,
+    "knownMissingHistoricalPaths": 1,
+    "archiveHashesUnchanged": true
+  }
+}

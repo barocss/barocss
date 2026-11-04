@@ -6,6 +6,7 @@ import { assertBoundaryBindings } from './brep-boundary-binding-internal.js';
 // (mesh bodies) are integrated exactly from their triangles and loops, once per B-rep.
 import { regionMoments } from './curved-arrangement.js';
 import { recordIntegralMass, transferNativeMassBasis, unsupportedNativeMass } from '../internal/native-si-mass-state.js';
+import { transformBrep } from './brep-transform.js';
 import { planar, tessellateBrep } from './brep-tessellate.js';
 import { brepQuadratureIntegrals } from './brep-mass-quadrature.js';
 import { facetIntegrals } from '../mesh/facet-patch.js';
@@ -70,8 +71,24 @@ export function prismaticMassProperties(solid: PrismaticSolid, density: number):
  * The quadrature's integrals, kept per B-rep and step (PERF3 C16): mass properties and surface area read the same
  * run — a STEP export's validation properties ask for both — and a B-rep is a value. Read only by the callers.
  */
-const quadratures = new WeakMap<Brep, Map<number, number[] | null>>();
-function quadrature(brep: Brep, q: number): number[] | null {
+interface LocalQuadrature { readonly integrals: number[]; readonly origin: Point | null }
+const quadratures = new WeakMap<Brep, Map<number, LocalQuadrature | null>>();
+/** One common 3D origin, only where all translated subtractions are exact and keep the native range. */
+function quadratureOrigin(brep: Brep): Point | null {
+  const lo: Point = [Infinity, Infinity, Infinity], hi: Point = [-Infinity, -Infinity, -Infinity], origin: Point = [0, 0, 0];
+  for (const f of brep.faces) {
+    if (f.surface.kind === 'facets') return null;
+    for (const row of f.surface.controlPoints) for (const p of row) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], p[k]); hi[k] = Math.max(hi[k], p[k]); }
+  }
+  for (const e of brep.edges) for (const p of e.curve.controlPoints) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], p[k]); hi[k] = Math.max(hi[k], p[k]); }
+  for (const v of brep.vertices) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], v.point[k]); hi[k] = Math.max(hi[k], v.point[k]); }
+  for (let k = 0; k < 3; k++) {
+    // Sterbenz: same-sign poles and this midpoint have magnitude ratios at most two. Wide axes stay unchanged.
+    if (lo[k] > 0 && hi[k] <= 2 * lo[k] || hi[k] < 0 && -lo[k] <= -2 * hi[k]) origin[k] = (lo[k] + hi[k]) / 2;
+  }
+  return origin[0] === 0 && origin[1] === 0 && origin[2] === 0 ? null : origin;
+}
+function quadrature(brep: Brep, q: number): LocalQuadrature | null {
   let byQ = quadratures.get(brep);
   if (!byQ) { byQ = new Map(); quadratures.set(brep, byQ); }
   if (byQ.has(q)) return byQ.get(q)!;
@@ -79,16 +96,18 @@ function quadrature(brep: Brep, q: number): number[] | null {
   byQ.set(q, out);
   return out;
 }
-function quadratureOf(brep: Brep, q: number): number[] | null {
+function quadratureOf(brep: Brep, q: number): LocalQuadrature | null {
   try {
+    // Miss only: the original identity owns the cache. UV pcurves, knots, weights and tolerances are unchanged.
+    const origin = quadratureOrigin(brep), local = origin ? transformBrep(brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1], offset: [-origin[0], -origin[1], -origin[2]] }) : brep;
     // (Integrated without the tessellation, the result does not depend on q: no second pass.)
-    const coarse = brepQuadratureIntegrals(brep, q), fine = coarse?.meshed ? brepQuadratureIntegrals(brep, 2 * q) : coarse;
+    const coarse = brepQuadratureIntegrals(local, q), fine = coarse?.meshed ? brepQuadratureIntegrals(local, 2 * q) : coarse;
     if (!coarse || !fine) return null;
-    if (!coarse.meshed) return coarse.integrals;
+    if (!coarse.meshed) return { integrals: coarse.integrals, origin };
     // Richardson per kind of meshed face: those with a pole err with the square of the step, the others (their
     // trims' strips integrated) with its cube; the faces integrated exactly are the same on both.
     const s0 = coarse.squared!, s1 = fine.squared!, c0 = coarse.cubed!, c1 = fine.cubed!;
-    return fine.integrals.map((x, k) => x - s1[k] - c1[k] + (4 * s1[k] - s0[k]) / 3 + (8 * c1[k] - c0[k]) / 7);
+    return { integrals: fine.integrals.map((x, k) => x - s1[k] - c1[k] + (4 * s1[k] - s0[k]) / 3 + (8 * c1[k] - c0[k]) / 7), origin };
   } catch { return null; }
 }
 
@@ -102,7 +121,7 @@ export function brepSurfaceArea(brep: Brep, options: { readonly segmentsPerQuart
   const poly = polyhedralIntegrals(brep);
   if (poly) return poly[10];
   const q = options.quadratureSegments ?? 8, Q = q > 0 ? quadrature(brep, q) : null;
-  if (Q && Q[10] > 0) return Q[10];
+  if (Q && Q.integrals[10] > 0) return Q.integrals[10];
   const curved = brep.faces.some(f => f.surface.kind === 'surface' && (f.surface.degreeU > 1 || f.surface.degreeV > 1));
   const mesh = tessellateBrep(brep, { segmentsPerQuarter: curved ? options.segmentsPerQuarter ?? 64 : 1 }), p = mesh.positions, ix = mesh.indices;
   let area = 0;
@@ -123,12 +142,27 @@ export function brepSurfaceArea(brep: Brep, options: { readonly segmentsPerQuart
 export function brepMassProperties(brep: Brep, density: number, options: { readonly segmentsPerQuarter?: number; readonly quadratureSegments?: number } = {}): MassProperties {
   assertBoundaryBindings(brep);
   const poly = polyhedralIntegrals(brep);
-  if (poly && poly[0] > 0) return solidMassFromIntegrals(poly, density, 'planar-exact');
+  if (poly && poly[0] > 0) {
+    const local = polyhedralFrames.get(poly);
+    if (!local || local.origin[0] === 0 && local.origin[1] === 0 && local.origin[2] === 0) return solidMassFromIntegrals(poly, density, 'planar-exact');
+    const props = solidMassFromIntegrals(local.integrals, density, 'planar-exact');
+    // The tensor is already centroidal. Restore only the centroid, without rebuilding large world raw moments.
+    const result: MassProperties = { ...props, centroid: [props.centroid[0] + local.origin[0], props.centroid[1] + local.origin[1], props.centroid[2] + local.origin[2]] };
+    transferNativeMassBasis(props, result);
+    return result;
+  }
   const curved = brep.faces.some(f => f.surface.kind === 'surface' && (f.surface.degreeU > 1 || f.surface.degreeV > 1));
   const q = options.quadratureSegments ?? 8;
   if (curved && q > 0) {
     const Q = quadrature(brep, q);
-    if (Q && Q[0] > 0) return solidMassFromIntegrals(Q, density, 'quadrature');
+    if (Q && Q.integrals[0] > 0) {
+      const props = solidMassFromIntegrals(Q.integrals, density, 'quadrature');
+      if (!Q.origin) return props;
+      // Inertia is about the centroid: translate only the centroid, never reconstruct large world raw moments.
+      const result: MassProperties = { ...props, centroid: [props.centroid[0] + Q.origin[0], props.centroid[1] + Q.origin[1], props.centroid[2] + Q.origin[2]] };
+      transferNativeMassBasis(props, result);
+      return result;
+    }
   }
   const segments = curved ? options.segmentsPerQuarter ?? 64 : 1, I = meshIntegrals(brep, segments);
   if (!curved) return solidMassFromIntegrals(I, density, 'planar-exact');
@@ -181,6 +215,8 @@ export function combineMassProperties(parts: readonly { readonly props: MassProp
 
 /** Each B-rep's polyhedral integrals (null: not polyhedral), worked out once: a B-rep is a value. */
 const polyhedral = new WeakMap<Brep, readonly number[] | null>();
+/** The public raw array remains in world coordinates; mass also keeps its pre-reconstruction frame privately. */
+const polyhedralFrames = new WeakMap<readonly number[], { readonly integrals: readonly number[]; readonly origin: Point }>();
 /**
  * The ten volume integrals and the area (eleventh) of a body whose every face is a facet patch or a planar face
  * bounded by straight edges, exactly and without a tessellation: tetrahedra from the body's centre over each
@@ -227,7 +263,9 @@ function polyhedralOf(brep: Brep): readonly number[] | null {
     for (let k = 0; k < 10; k++) I[k] += J[k];
     I[10] += area2 / 2;
   }
-  return fromCentreAt(I, o);
+  const world = fromCentreAt(I, o);
+  polyhedralFrames.set(world, { integrals: I, origin: o });
+  return world;
 }
 const faceScratch = new Float64Array(10);
 /** One fan triangle's cone from the centre (a, b, c about it) added to the ten integrals; its doubled area along n, signed. */

@@ -1185,7 +1185,7 @@ export class GpuRenderer implements ViewRenderer {
 }
 
 /** Texture coordinates by box projection: each vertex across the body's box on its face's two other axes. */
-function boxUVs(P: Float32Array, N: Float32Array, b: { min: Vec3; max: Vec3 }): Float32Array {
+function boxUVs(P: Float32Array | Float64Array, N: Float32Array, b: { min: Vec3; max: Vec3 }): Float32Array {
   const uv = new Float32Array((P.length / 3) * 2), span = [0, 1, 2].map(k => Math.max(1e-9, b.max[k] - b.min[k]));
   for (let v = 0; v < P.length / 3; v++) {
     const n = [Math.abs(N[3 * v]), Math.abs(N[3 * v + 1]), Math.abs(N[3 * v + 2])], k = n[0] >= n[1] && n[0] >= n[2] ? 0 : n[1] >= n[2] ? 1 : 2;

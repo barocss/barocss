@@ -1,0 +1,281 @@
+{
+  "workId": "D420",
+  "status": "QUALIFIED",
+  "kind": "Owner-authorized develop integration; no new product capability",
+  "ownerAuthorization": "2026-11-01: merge all completed work into develop and continue roadmap",
+  "PR": "https://github.com/barocss/barocss/pull/2274",
+  "requestedSnapshot": "b6b631675b679e2cd5478b1847e3526453953ab8",
+  "developBefore": "970b39cb8b6dc156a2e723f2cbc43ba7b5a334bd",
+  "requestedUnmergedCommits": 214,
+  "checkedMergeCandidate": "cdc6c9878cd2067caaf097544070e971f824aa53",
+  "integrationRepairCommits": 1,
+  "candidateCommitsReachable": 215,
+  "mergeMethod": "merge with expected_head_sha; published history preserved",
+  "mergeVerification": {
+    "status": "PASS",
+    "mergeCommit": "12411c89b9a0f9de7e5066a5ea8f3d292c9476a8",
+    "develop": "12411c89b9a0f9de7e5066a5ea8f3d292c9476a8",
+    "cadBranch": "12411c89b9a0f9de7e5066a5ea8f3d292c9476a8",
+    "tree": "de1815d6a8272f0351a9d72e090436ad487374e7",
+    "expectedTree": "de1815d6a8272f0351a9d72e090436ad487374e7",
+    "parents": [
+      "970b39cb8b6dc156a2e723f2cbc43ba7b5a334bd",
+      "cdc6c9878cd2067caaf097544070e971f824aa53"
+    ],
+    "all215CandidateCommitsReachable": true,
+    "requestedD419SnapshotReachable": true,
+    "eightQualifiedCriticalHashesUnchanged": true,
+    "actualRuntime": "Reused scoped D419 source-compatible proof; no new runtime execution",
+    "otherWorktrees": "No checkouts or file writes performed",
+    "branch": "local/cad-dev",
+    "statusShort": "?? .claude/"
+  },
+  "model": "GPT-6.1 Sol Medium: aggregate audit and five-driver lint repair; root GitHub/Git coordination",
+  "CI": {
+    "prRun": 41297098274,
+    "loaderRun": 41297098129,
+    "testAndBuildJob": 124821784736,
+    "fullJob": 124820231921,
+    "firstFailedRun": 41296198892,
+    "firstFailedJob": 124817607219,
+    "successSteps": [
+      {
+        "command": "pnpm",
+        "args": [
+          "type-check"
+        ],
+        "status": 0,
+        "seconds": 126.902
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "lint"
+        ],
+        "status": 0,
+        "seconds": 37.42
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "exec",
+          "eslint",
+          "--no-warn-ignored",
+          "--",
+          "apps/barocss-site/src/indext.ts",
+          "apps/barocss-site/vite.config.ts"
+        ],
+        "status": 0,
+        "seconds": 1.017
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "exec",
+          "eslint",
+          "--no-warn-ignored",
+          "--",
+          "apps/cad-studio/handover/scripts/check-navigation.mjs",
+          "... 550 args"
+        ],
+        "status": 0,
+        "seconds": 13.018
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "exec",
+          "eslint",
+          "--no-warn-ignored",
+          "--",
+          "apps/cad-viewer/assembly-points.js",
+          "... 51 args"
+        ],
+        "status": 0,
+        "seconds": 2.466
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "exec",
+          "eslint",
+          "--no-warn-ignored",
+          "--",
+          "apps/library-docs/docs/.vitepress/components/algorithms/ports/bernstein-roots.mjs",
+          "... 46 args"
+        ],
+        "status": 0,
+        "seconds": 2.199
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "build:library"
+        ],
+        "status": 0,
+        "seconds": 73.316
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "--recursive",
+          "--filter",
+          "./apps/**",
+          "--if-present",
+          "run",
+          "build"
+        ],
+        "status": 0,
+        "seconds": 65.322
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "--filter",
+          "@barocss/library-docs",
+          "run",
+          "build"
+        ],
+        "status": 0,
+        "seconds": 17.857
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "--filter",
+          "@barocss/library-docs",
+          "run",
+          "check:docs"
+        ],
+        "status": 0,
+        "seconds": 42.753
+      }
+    ],
+    "failedSteps": [
+      {
+        "command": "pnpm",
+        "args": [
+          "type-check"
+        ],
+        "status": 0,
+        "seconds": 142.718
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "lint"
+        ],
+        "status": 0,
+        "seconds": 41.558
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "exec",
+          "eslint",
+          "--no-warn-ignored",
+          "--",
+          "apps/barocss-site/src/indext.ts",
+          "apps/barocss-site/vite.config.ts"
+        ],
+        "status": 0,
+        "seconds": 1.155
+      },
+      {
+        "command": "pnpm",
+        "args": [
+          "exec",
+          "eslint",
+          "--no-warn-ignored",
+          "--",
+          "apps/cad-studio/handover/scripts/check-navigation.mjs",
+          "... 550 args"
+        ],
+        "status": 1,
+        "seconds": 13.716
+      }
+    ]
+  },
+  "lintRepair": {
+    "files": 5,
+    "originalErrors": 6,
+    "originalWarnings": 214,
+    "scopedFinalErrors": 0,
+    "scopedFinalWarnings": 0,
+    "nodeSyntaxChecks": 5,
+    "ASTStringAndAssertionTimingInvariants": {
+      "status": "PASS",
+      "escapeASTEqual": true,
+      "awaitedInitializerPreserved": true,
+      "assertionASTsUnchanged": true,
+      "timingCallsUnchanged": true,
+      "escapeDecodedStringSequenceEqual": true
+    },
+    "productRuntimeFilesChanged": false,
+    "workflowOrPolicyChanged": false,
+    "paths": [
+      "apps/cad-studio/test/drawing-dimstyle-browser.mjs",
+      "apps/cad-studio/test/drawing-linear-clearance-browser.mjs",
+      "apps/cad-studio/test/drawing-tolerance-printable-browser.mjs",
+      "apps/cad-studio/test/instance-pattern-browser.mjs",
+      "apps/cad-studio/test/nested-mate-browser.mjs"
+    ]
+  },
+  "PASS": [
+    "Exact candidate-head Test and Build aggregate and Loader CPU/types",
+    "Five-driver scoped lint/syntax and behavior-invariant proof",
+    "Merged develop tree equals checked candidate tree",
+    "Requested completed snapshot and all215candidate commits reachable from develop",
+    "D419 eight critical source hashes unchanged; all other files except five harness cleanups equal requested snapshot",
+    "Fast-forward-only currentworktree synchronization; remoteCADbranch restored after GitHub automatic head deletion"
+  ],
+  "FAIL": [
+    {
+      "stage": "First PR CI full job",
+      "result": "Types and rootlint passed; all-app lint failed6errors in5drivers",
+      "resolved": "Dead imports/bindings and redundant escape removed, awaited check preserved; exact-head CI rerun passed",
+      "artifact": "/tmp/barocss-d420-integration/ci-first-failure.json"
+    }
+  ],
+  "NOT_RUN": [
+    "New product/runtime/browser execution: source-compatible D419 actual evidence reused, not relabelled a new run",
+    "Package/runtime suites are not ordinary CI coverage",
+    "Manual release, npm publication, deployment and broad format/geometry acceptance"
+  ],
+  "reusedActual": {
+    "record": "../step-analytic-offset-2026-11-01/qualification.json",
+    "states": 3,
+    "frozenFilesAsExecuted": 751,
+    "sourceEquality": "Product/runtime unchanged; D419 report-only post-actual oracle key exception remains explicitly recorded",
+    "noNewRuntimePassClaim": true
+  },
+  "compatibility": [
+    "D360 intentionally retires legacy object/createCadModel/cad APIs and experiments",
+    "Additive drawing API options and D417 owned-mesh header/knot restriction retained",
+    "No blanket aggregate API-compatibility or release acceptance claim"
+  ],
+  "holds": [
+    "Future develop PRs remain owner-directed; this authorization covers current completed batch",
+    "Manufacturing P2/PG11 and Motion/Physics HOLDs unchanged",
+    "New SDK/dependency downloads require separate approval",
+    "Rows13/16/30 and general STEP research remain open"
+  ],
+  "commands": [
+    "git fetch origin",
+    "git rev-list --left-right --count origin/develop...HEAD",
+    "git diff --name-only origin/develop...HEAD",
+    "pnpm exec eslint apps/cad-studio/test/drawing-dimstyle-browser.mjs apps/cad-studio/test/drawing-linear-clearance-browser.mjs apps/cad-studio/test/drawing-tolerance-printable-browser.mjs apps/cad-studio/test/instance-pattern-browser.mjs apps/cad-studio/test/nested-mate-browser.mjs",
+    "node --check apps/cad-studio/test/drawing-dimstyle-browser.mjs",
+    "node --check apps/cad-studio/test/drawing-linear-clearance-browser.mjs",
+    "node --check apps/cad-studio/test/drawing-tolerance-printable-browser.mjs",
+    "node --check apps/cad-studio/test/instance-pattern-browser.mjs",
+    "node --check apps/cad-studio/test/nested-mate-browser.mjs",
+    "GitHub merge_pull_request(PR2274, merge_method=merge, expected_head_sha=cdc6c9878cd2067caaf097544070e971f824aa53)",
+    "git diff --exit-code cdc6c9878cd2067caaf097544070e971f824aa53 origin/develop --",
+    "git merge-base --is-ancestor b6b631675b679e2cd5478b1847e3526453953ab8 origin/develop",
+    "git merge --ff-only origin/develop",
+    "git push origin local/cad-dev"
+  ],
+  "artifactPolicy": "All raw CI logs/inventories/diffs remain /tmp/barocss-d420-integration or GitHub; no new raw evidence committed",
+  "next": "D421 bounded STEP header/product-name replacement loss warning"
+}

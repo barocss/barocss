@@ -157,3 +157,11 @@ fn brdfLayered(v: vec3f, l: vec3f, base: vec3f, metallic: f32, a: f32, layer: La
   return c;
 }
 `;
+
+/** Raster-only coordinate restoration; the trace material and its shared WGSL stay unchanged. */
+export const rasterMaterialLayerWGSL = materialLayerWGSL.replace(
+  'return transpose(r) * (world - object.model[3].xyz) / max(dot(r[0], r[0]), 1e-30);',
+  `let local = transpose(r) * (world - object.model[3].xyz) / max(dot(r[0], r[0]), 1e-30);
+  if (frame.origin.w == 0.0) { return local; }
+  return local + transpose(r) * (r * object.meshOrigin.xyz) / max(dot(r[0], r[0]), 1e-30);`,
+);

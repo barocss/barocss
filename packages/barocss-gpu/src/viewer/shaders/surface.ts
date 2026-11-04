@@ -1,6 +1,6 @@
 // The viewer's WGSL: surface (R2c: shaders.ts split by program, shaders.ts the facade).
 import { common, MAX_DIRECTIONAL, MAX_SPOT } from './common.js';
-import { materialLayerWGSL } from './material-layer.js';
+import { rasterMaterialLayerWGSL } from './material-layer.js';
 
 /**
  * A shader material's part of the surface shader: WGSL declarations, and an expression of the linear
@@ -386,7 +386,7 @@ fn litColor(in: VOut, front: bool) -> vec4f {
 // ---- G15a: surface finishes, a clear coat, an oil film ----------------------------------------------------------------
 /** What a point's shading takes beyond its colour: its (finished) normal and roughness, the direction its marks run and how
  *  much they stretch the highlights (0 none), the clear coat (amount, roughness, over the unfinished normal) and the film. */
-` + materialLayerWGSL + /* wgsl */ `
+` + rasterMaterialLayerWGSL + /* wgsl */ `
 @fragment fn fsLit(in: VOut, @builtin(front_facing) front: bool) -> @location(0) vec4f { return litColor(in, front); }
 // Order-independent transparency (G11, weighted blended): the premultiplied colour weighted by nearness into the
 // accumulation, its alpha into the revealage (what of the background still shows), summed in any order. The weight

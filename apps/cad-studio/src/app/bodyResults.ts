@@ -39,7 +39,7 @@ export function samePlacement(a: PartInstance, b: PartInstance): boolean {
 }
 
 /** A closed mesh's volume by its triangles (the divergence theorem), for the flow's section check (G19). */
-export function meshVolume(m: { positions: Float32Array; indices: Uint32Array }): number {
+export function meshVolume(m: { positions: ArrayLike<number>; indices: Uint32Array }): number {
   let v = 0;
   for (let t = 0; t < m.indices.length; t += 3) {
     const a = 3 * m.indices[t], b = 3 * m.indices[t + 1], c = 3 * m.indices[t + 2], P = m.positions;

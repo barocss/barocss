@@ -3,7 +3,7 @@
 import { ViewerError } from './viewer-error.js';
 import type { MeshCost } from './viewer.js';
 import { transformBox, unionBox, type Box3 } from './bounds.js';
-import { prepareScalars, segmentInstances, vertexColors, fillVertexColors, type PreparedGeometry } from './geometry.js';
+import { prepareScalars, segmentInstances, pointInstances, rasterOrigin, vertexColors, fillVertexColors, type PreparedGeometry } from './geometry.js';
 import { BufferUsage, type BindGroup, type Buffer, type Device, type Texture } from './gpu.js';
 import { linear, parseColor, type Color } from './lights.js';
 import { identity, multiply, normalMatrixInto, srgbToLinear, type Mat4, type Vec3 } from './math.js';
@@ -211,7 +211,7 @@ export class Geometry {
     if (this.data.contour) throw new ViewerError('GEOMETRY_INVALID', 'A contour has no vertex colours');
     this.data.colors = vertexColors(colors ?? undefined, this.data.vertexCount);
     if (this.gpu?.colors) this.gpu.device.queue.writeBuffer(this.gpu.colors, 0, this.data.colors);
-    else if (this.gpu) this.gpu.device.queue.writeBuffer(this.gpu.positions, 0, new Uint8Array(segmentInstances(this.data)));
+    else if (this.gpu) this.gpu.device.queue.writeBuffer(this.gpu.positions, 0, new Uint8Array(this.data.topology === 'points' ? pointInstances(this.data) : segmentInstances(this.data)));
     this.owner.requestRender();
   }
   /**
@@ -442,6 +442,8 @@ export class Mesh {
       f[o + 56] = ax[0]; f[o + 57] = ax[1]; f[o + 58] = ax[2]; f[o + 59] = m.clearcoatRoughness;
       f[o + 60] = og[0]; f[o + 61] = og[1]; f[o + 62] = og[2]; f[o + 63] = m.film;
     } else f.fill(0, o + 52, o + 64);
+    const origin = rasterOrigin(this.geometry.data);
+    f[o + 64] = origin[0]; f[o + 65] = origin[1]; f[o + 66] = origin[2]; f[o + 67] = 0;
   }
 }
 

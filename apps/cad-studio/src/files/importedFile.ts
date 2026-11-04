@@ -7,6 +7,7 @@ import { stepLengthUnit } from '@barocss/cad-model/engine/stepUnits';
 import { readMeshFile } from '@barocss/cad-model/engine/meshImport';
 import { DWG_ROUTES, dwgRefusal } from '@barocss/cad-model/sketch/dxfRead';
 import { emptyDirect } from '../app/directGeometry';
+import { quantityText } from '../ui/quantityText';
 import type { EngineClient } from '../engine/client';
 import type { MeshImportController } from './useMeshImport';
 export interface ImportOwner { isCurrent(): boolean }
@@ -65,7 +66,7 @@ export async function openImportedFile(file: File, { doc, ownership, worker, mes
         if (unit.to !== 1) for (let k = 0; k < n; k++) next = withNode(next, { kind: 'scale', parent: { node: 0, side: n > 1 ? `part${k}` as Side : 'solid' }, factor: unit.to, pivot: [0, 0, 0] });
         if (!onOpened(next, name)) return;
         const vol = read.bodies.reduce((t, b) => t + (b.volume ?? 0), 0) * unit.to ** 3;
-        setToast({ title: 'STEP opened', hint: `${n} solid${n === 1 ? '' : 's'}, ${unit.declared ? `in ${unit.name}` : 'no length unit declared (read as millimetres)'}${unit.to !== 1 ? `, scaled ×${unit.to} to millimetres` : ''}; ${Math.round(vol).toLocaleString('en-US')} mm³ in all. Only the solids come in (no colours, names or assembly structure).`, detail: '' });
+        setToast({ title: 'STEP opened', hint: `${n} solid${n === 1 ? '' : 's'}, ${unit.declared ? `in ${unit.name}` : 'no length unit declared (read as millimetres)'}${unit.to !== 1 ? `, scaled ×${unit.to} to millimetres` : ''}; ${quantityText(vol, Math.round(vol).toLocaleString('en-US'))} mm³ in all. Only the solids come in (no colours, names or assembly structure).`, detail: '' });
         return;
       }
       // An STL or OBJ file starts a new part from its closed mesh, once its unit is chosen (the files say none).

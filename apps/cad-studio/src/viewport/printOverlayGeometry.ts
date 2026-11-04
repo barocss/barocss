@@ -75,7 +75,8 @@ export class PrintOverlayGeometry {
     const top = display.printed ? display.top : undefined;
     if (this.supportMesh !== display.supportMesh || this.supportTop !== top) {
       const mesh = clipPrintSupport(display.supportMesh, top);
-      this.support = { name: 'supports', positions: mesh.positions, normals: mesh.normals, indices: mesh.indices, color: [0.34, 0.8, 0.43], opacity: 0.3 };
+      // The overlay draw contract is Float32; the source support mesh is not rewritten.
+      this.support = { name: 'supports', positions: mesh.positions instanceof Float64Array ? new Float32Array(mesh.positions) : mesh.positions, normals: mesh.normals, indices: mesh.indices, color: [0.34, 0.8, 0.43], opacity: 0.3 };
       this.supportMesh = display.supportMesh; this.supportTop = top;
     }
     if (this.support) this.support.visible = display.supports;

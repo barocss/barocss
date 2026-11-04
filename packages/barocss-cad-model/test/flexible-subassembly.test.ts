@@ -65,7 +65,7 @@ test('two occurrences with 0 and 90 degrees: the lid stands by independent rotat
   const bodies = (id: string) => { const r = evaluatePart(placedDoc(doc.instances!.find(i => i.id === id)!, doc), 1); assert.ok(r.ok); return r.bodies; };
   const [shut, open] = [bodies('sub1'), bodies('sub2')];
   assert.equal(shut.length, 2); assert.equal(open.length, 2);
-  const centroid = (b: { mesh: { positions: Float32Array } }) => { const p = b.mesh.positions, c = [0, 0, 0]; for (let i = 0; i < p.length; i++) c[i % 3] += p[i]; return c.map(v => v / (p.length / 3)); };
+  const centroid = (b: { mesh: { positions: ArrayLike<number> } }) => { const p = b.mesh.positions, c = [0, 0, 0]; for (let i = 0; i < p.length; i++) c[i % 3] += p[i]; return c.map(v => v / (p.length / 3)); };
   // The plate's vertices are the same set (the second occurrence 300 mm along X); the lid's centroid moved by the turn.
   nearAll(centroid(open[0]).map((v, k) => v - (k === 0 ? 300 : 0)), centroid(shut[0]), 'plate', 1e-3);
   const Ro = rotationMatrix([90, 0, 0]), apply = (R: readonly number[], p: readonly number[]) => [0, 1, 2].map(i => R[i * 3] * p[0] + R[i * 3 + 1] * p[1] + R[i * 3 + 2] * p[2]);

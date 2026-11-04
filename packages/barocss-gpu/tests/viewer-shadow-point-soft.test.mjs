@@ -15,7 +15,7 @@ const lightError = error => error instanceof ViewerError && error.code === 'LIGH
 const close = (a, b, epsilon = 1e-11) => assert.ok(Math.abs(a - b) <= epsilon * Math.max(1, Math.abs(b)), `${a} != ${b}`);
 const slots = faces => [...new Array(8).fill(null), ...faces];
 const pack = (lights, frames, into = null) => packFrame(identity(), new Camera(), lights, {}, null, undefined, null, null, into, frames);
-const paramsStart = 576;
+const paramsStart = 2304 / 4, legacyEnd = 2320 / 4;
 function project(matrix, p) {
   const v = [...p, 1], clip = [0, 1, 2, 3].map(row => v.reduce((sum, value, col) => sum + matrix[col * 4 + row] * value, 0));
   return { depth: clip[2] / clip[3], axial: clip[3], uv: [clip[0] / clip[3] * 0.5 + 0.5, 0.5 - clip[1] / clip[3] * 0.5] };
@@ -35,12 +35,12 @@ function faceOf(ray) {
 }
 
 test('zero or omitted point emitter radius preserves the complete prior PCF prefix and zero new metadata', () => {
-  assert.equal(FRAME_BYTES, 2320); assert.equal(MAX_SHADOWS, 14);
+  assert.equal(FRAME_BYTES, 2368); assert.equal(MAX_SHADOWS, 14);
   const omitted = point(), zero = point({ shadowRadius: 0 }), a = pointShadowFrames(omitted, scene, null, 1024), b = pointShadowFrames(zero, scene, null, 1024);
   a.forEach((frame, i) => assert.deepEqual(frame.viewProjection, b[i].viewProjection));
   const pa = pack([omitted], slots(a)), pb = pack([zero], slots(b));
-  assert.deepEqual(pa, pb); assert.equal(pa.byteLength - 16, 2304);
-  assert.deepEqual([...pa.slice(paramsStart)], [0, 0, 0, 0]);
+  assert.deepEqual(pa, pb); assert.equal(pa.slice(0, legacyEnd).byteLength - 16, 2304);
+  assert.deepEqual([...pa.slice(paramsStart, legacyEnd)], [0, 0, 0, 0]);
   const soft = point({ shadowRadius: 0.25 }), ps = pack([soft], slots(pointShadowFrames(soft, scene, null, 1024)));
   assert.deepEqual(ps.slice(0, paramsStart), pa.slice(0, paramsStart));
 });
@@ -126,7 +126,7 @@ test('point PCSS parameters append after spot PCSS while all previous frame and 
   frames[4] = spotShadowFrame(spot, scene, null, 1024);
   const packed = pack(lights, frames), previous = pack(lights.map(light => light === selected ? { ...light, shadowRadius: 0 } : light), frames);
   assert.deepEqual(packed.slice(0, paramsStart), previous.slice(0, paramsStart));
-  assert.deepEqual([...packed.slice(paramsStart)], [...Float32Array.from([faces[0].near, faces[0].far, 0.5, 0])]);
+  assert.deepEqual([...packed.slice(paramsStart, legacyEnd)], [...Float32Array.from([faces[0].near, faces[0].far, 0.5, 0])]);
   assert.equal(new Uint32Array(packed.buffer)[557], 2); assert.equal(packed[563], 0.25);
   assert.equal(packed[219], 0.25, 'legacy directional softness keeps its original field');
 });
@@ -136,14 +136,14 @@ test('point PCSS metadata clears on incomplete six-face input, zero radius, disa
   assert.equal(packed[paramsStart + 2], 0.25);
   for (const missing of [8, 10, 13]) {
     const partial = frames.slice(); partial[missing] = null; pack([light], partial, packed);
-    assert.deepEqual([...packed.slice(paramsStart)], [0, 0, 0, 0]); assert.equal(new Uint32Array(packed.buffer)[557], 0);
+    assert.deepEqual([...packed.slice(paramsStart, legacyEnd)], [0, 0, 0, 0]); assert.equal(new Uint32Array(packed.buffer)[557], 0);
   }
   const sparse = frames.slice(); delete sparse[12]; pack([light], sparse, packed);
-  assert.deepEqual([...packed.slice(paramsStart)], [0, 0, 0, 0]);
+  assert.deepEqual([...packed.slice(paramsStart, legacyEnd)], [0, 0, 0, 0]);
   pack([light], frames, packed); assert.equal(packed[paramsStart + 2], 0.25);
-  light.shadowRadius = 0; pack([light], frames, packed); assert.deepEqual([...packed.slice(paramsStart)], [0, 0, 0, 0]);
+  light.shadowRadius = 0; pack([light], frames, packed); assert.deepEqual([...packed.slice(paramsStart, legacyEnd)], [0, 0, 0, 0]);
   light.shadowRadius = 0.25; pack([light], frames, packed); light.castShadow = false;
-  assert.equal(pack([light], frames, packed), packed); assert.deepEqual([...packed.slice(paramsStart)], [0, 0, 0, 0]);
+  assert.equal(pack([light], frames, packed), packed); assert.deepEqual([...packed.slice(paramsStart, legacyEnd)], [0, 0, 0, 0]);
 });
 
 test('point PCSS preparation leaves caller data untouched and six faces own their near-far and eye snapshots', () => {

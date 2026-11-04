@@ -1,0 +1,318 @@
+{
+  "id": "D442",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "1913e332e36eb0a48659c6141e01e98787397355",
+  "roadmapRows": [
+    13,
+    12
+  ],
+  "overallEstimatePercent": 43,
+  "validationTier": "small",
+  "model": "GPT-6.1 Sol Medium",
+  "scope": "Truthful existing Preview loss disclosure for selected native face.name/edge.name characters outside printableASCII; no writer/Unicode capability change",
+  "baselineReceiptSHA256": "35d08fccc09023789b323b757dd47a72afaf90a1b83c5e92758bb28f9bbbfbb5",
+  "baselineCalls": {
+    "partBreps": 2,
+    "exportStudioStep": 2,
+    "standalonePhysics": 0
+  },
+  "baselinePins": 741,
+  "fixtures": "Two locallyauthored4;1 near-origin30x12x6 one-solid files; only face label differs, ASCII vs rawUTF8 Face-\u00e9",
+  "baselineResults": [
+    {
+      "case": "01",
+      "inputSHA256": "630310fba7313e25ecd8be0105b31a552390009248267254d13cc0c8fe171c9b",
+      "nativeFaceName": "n0.ordinary",
+      "counts": {
+        "bodies": 1,
+        "faces": 6,
+        "edges": 12,
+        "vertices": 8
+      },
+      "strictValid": true,
+      "preparedSHA256": "cb57cdede30e0a7ae222bc9876d88e43326014ab2da8914fd3d92a3f7a4f81e9",
+      "preparedBytes": 6860,
+      "source": "35f2137d55ca9eb0",
+      "omitted": [],
+      "writtenTokenAsPredeclared": true,
+      "documentRetained": true
+    },
+    {
+      "case": "02",
+      "inputSHA256": "d54b9d57f05c715771a77ad7ddbb8de31c443e82a73ab1661285555103628a32",
+      "nativeFaceName": "n0.Face-\u00e9",
+      "counts": {
+        "bodies": 1,
+        "faces": 6,
+        "edges": 12,
+        "vertices": 8
+      },
+      "strictValid": true,
+      "preparedSHA256": "c57bf905ab0afa302b6352a3c03cc129dedbbc5b09658097389dd4bc8fec75f2",
+      "preparedBytes": 6858,
+      "source": "3a2523949bd417ff",
+      "omitted": [],
+      "writtenTokenAsPredeclared": true,
+      "documentRetained": true
+    }
+  ],
+  "reproducedDefect": "UTF8 native n0.Face-\u00e9 is retained before writer, becomes n0.Face-_ in reachable exported face, but omitted is empty; ASCII control remains exact",
+  "selectedScope": {
+    "fields": [
+      "actual face.name",
+      "actual edge.name"
+    ],
+    "selection": "Same breps array after existing take/role/band-sheet/visible-instance selection; base look.hidden is not an export filter",
+    "message": "Non-ASCII and control characters in native face and edge names are not retained in this STEP file.",
+    "excluded": [
+      "No surface/curve/unusedface/edge.id fallback or rawSTEP input scan",
+      "Body.id and tess-specific metadata outside this bounded fix",
+      "No claim that geometry is included or that replacement is the only cause when preprocessing drops fields"
+    ],
+    "sourceFiles": [
+      "packages/barocss-cad-model/src/engine/evaluate.ts",
+      "packages/barocss-cad-model/test/step-native-name-loss.test.ts"
+    ]
+  },
+  "standardReference": {
+    "url": "https://www.steptools.com/stds/step/IS_final_p21e3.html",
+    "clauses": [
+      "5.2",
+      "6.4.3.1",
+      "8.2.2"
+    ],
+    "use": "Valid local rawUTF8class1fixture usesimplementation_level4;1; incomingfixture only, outgoingwriter unchanged",
+    "downloadedFile": false,
+    "copiedStandardText": false
+  },
+  "candidate": {
+    "status": "PASS",
+    "tests": {
+      "pass": 15,
+      "fail": 0,
+      "skip": 0,
+      "newNativeName": 6,
+      "existingProfileLosses": 6,
+      "existingBboxLosses": 3
+    },
+    "fixedPinsBeforeAfterCurrent": 14,
+    "twoBaselineWholeBytesAndSourceKeysExact": [
+      {
+        "id": "01",
+        "textSHA256": "cb57cdede30e0a7ae222bc9876d88e43326014ab2da8914fd3d92a3f7a4f81e9",
+        "expectedTextSHA256": "cb57cdede30e0a7ae222bc9876d88e43326014ab2da8914fd3d92a3f7a4f81e9",
+        "source": "35f2137d55ca9eb0",
+        "expectedSource": "35f2137d55ca9eb0",
+        "omitted": []
+      },
+      {
+        "id": "02",
+        "textSHA256": "c57bf905ab0afa302b6352a3c03cc129dedbbc5b09658097389dd4bc8fec75f2",
+        "expectedTextSHA256": "c57bf905ab0afa302b6352a3c03cc129dedbbc5b09658097389dd4bc8fec75f2",
+        "source": "3a2523949bd417ff",
+        "expectedSource": "3a2523949bd417ff",
+        "omitted": [
+          "Non-ASCII and control characters in native face and edge names are not retained in this STEP file."
+        ]
+      }
+    ],
+    "checks": [
+      "driver Node22 syntax",
+      "source/test eslint",
+      "driver stdin eslint",
+      "final Model tsc after last test/driver edit"
+    ],
+    "notRun": [
+      "CAD build (unchanged writer/importer)",
+      "full kernel (no B-rep core change)",
+      "new physics"
+    ],
+    "recipeSHA256": "285c4d0766c4f34083647709f2c4963204c7d1cdc066af59aff27610a950da1e",
+    "receiptSHA256": "12c29633e72dd0c175e35538a536b98fbec416e639093556be227838cf738567",
+    "rootReviewSHA256": "57beebbfb5ab78d13b6c803c21e4e4f57463e3c2558d9ba3d86a3271f278df13",
+    "meaningfulCases": [
+      "Included retained UTF-8 face and edge names",
+      "Printable literal backslash and existing header-only control warning",
+      "Ignored header/product/surface/curve names with explicit fixture insertion preconditions",
+      "Hidden occurrence exclusion, visible occurrence inclusion, base look.hidden export behavior",
+      "Saved user label and excluded infill mesh label are not native fields"
+    ],
+    "execution": "One accepted candidate batch; no candidate test failure or retry"
+  },
+  "actualStudio": {
+    "status": "PASS",
+    "receiptSHA256": "21a2213410fa51f7a3c2ae258fa4dcf65762e30002426deedae7ce128a310c1c",
+    "driverSHA256": "87d0c1a4b1ed0b8a767df89d760b133728a0f28f5794d36a6115f5ed35adfd74",
+    "wrapperSHA256": "56a9ba9f5b99d666809b1070d25259a7413faf93a23b26fe72920dc5da741f51",
+    "fixedPinsBeforeAfterCleanupCurrent": 778,
+    "frozenCapsuleBeforeAfterCleanupCurrent": 1049,
+    "passiveRuntimeBodiesRehashed": 70,
+    "missingDirectSources": [
+      "apps/cad-studio/src/viewport/Camera.ts",
+      "apps/cad-studio/test/flow-helper.mjs"
+    ],
+    "route": "One valid raw UTF-8 STEP public Open, Escape/F public Fit, one real worker STEP Preview, Cancel",
+    "nativeFaceName": "n0.Face-\u00e9",
+    "preparedSHA256": "5705a861add51901befac5e277f91f1fca4419f12568fc603b44fd0f10afde34",
+    "preparedBytes": 6890,
+    "actualSource": "17ef25f79a73505e",
+    "writerRequestReply": 5,
+    "lossItems": [
+      "Non-ASCII and control characters in native face and edge names are not retained in this STEP file."
+    ],
+    "authoredDocumentNativeSevenQuantitiesSourceAndCameraBytesRetainedExactly": true,
+    "rootVisualReview": "PASS: three PNGs show the model, one right-dock loss item and the retained model after Cancel",
+    "errors": 0,
+    "consoleErrors": 0,
+    "changes": 0,
+    "downloads": 0,
+    "ownWrapperPIDAbsent": 12377,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "gateReleased": true,
+    "proofBoundary": "The actual filename and document source differ from offline fixtures; actual prepared bytes/source are recorded separately. Passive source responses are provenance, not semantic-equivalence proof."
+  },
+  "limits": [
+    "Only selected actual native face/edge names are inspected; body IDs and tess-specific metadata remain outside this fix",
+    "Printable ASCII and existing literal backslashes retain their prior policy; no Unicode/directive writer/reader feature",
+    "No geometry, tolerance, format, public API, schema or dependency change",
+    "No new physics, full kernel, download, OCP, paid call, release or develop integration",
+    "This item does not close rows 12/13/16 or #2263/#2248/#2266; overall estimate remains43%"
+  ],
+  "baselineOutcome": {
+    "PASS": "Both native reads accepted and strict-valid; two output tokens match the existing ASCII policy",
+    "FAIL": "The raw UTF-8 native face name changes in output while omitted is empty",
+    "NOT_RUN": "No baseline actual Studio run; source reproduction used public offline Model calls"
+  },
+  "sourceCorrection": {
+    "status": "PASS_SOURCE_ONLY",
+    "file": "packages/barocss-cad-model/src/engine/evaluate.ts",
+    "beforeSHA256": "65be1ca46f1c48f378d5f80d6c6d00a36c51caac8e9fdf1f2a5ccaaed4cc0c9e",
+    "afterSHA256": "74db7911897485dbd199bc79deda762ae827e617d179d429bca9b5d6c48cbb99",
+    "testSHA256": "05ecbf9bcf7cb748dad2ae033a1d067f037824e9acf29b786b8b8e616186be63",
+    "reversingSelectedHelperAndOmittedAppendRestoresExactOriginal": true,
+    "existingSelectionWriterTextSourceAndOldWarningRelativeOrderUnchanged": true,
+    "fields": "Only actual face.name/edge.name or empty string in the existing selected breps array",
+    "writerSHA256Unchanged": "9922a7d822fbb0d02b359b36c62ca2bf93c718e2b8704365bfeee6df625176e3",
+    "importerSHA256Unchanged": "145e94fdfa100912d005aeaf45f0af2737a8713f0d3f0ee61619c5250a34d71a"
+  },
+  "actualRawTokenAudit": {
+    "status": "PASS_EXACT_RAW_TOKENS_NATIVE_LABEL_AND_ONE_VISIBLE_LOSS",
+    "reader": "Retained stdlib Part21 graph/token reader; raw strings only, no kernel imports, Unicode directive decoder or SUT calls",
+    "observations": [
+      {
+        "sha256": "d54b9d57f05c715771a77ad7ddbb8de31c443e82a73ab1661285555103628a32",
+        "bytes": 6475,
+        "firstFaceRawQuotedToken": "'Face-\u00e9'",
+        "selectedFaceReachableFromShape": true,
+        "counts": {
+          "MANIFOLD_SOLID_BREP": 1,
+          "ADVANCED_FACE": 6,
+          "EDGE_CURVE": 12,
+          "VERTEX_POINT": 8
+        },
+        "schema": [
+          "AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 1 }"
+        ],
+        "validationRepresentationNames": [
+          "volume",
+          "surface area",
+          "centroid",
+          "bounding box"
+        ]
+      },
+      {
+        "sha256": "5705a861add51901befac5e277f91f1fca4419f12568fc603b44fd0f10afde34",
+        "bytes": 6890,
+        "firstFaceRawQuotedToken": "'n0.Face-_'",
+        "selectedFaceReachableFromShape": true,
+        "counts": {
+          "MANIFOLD_SOLID_BREP": 1,
+          "ADVANCED_FACE": 6,
+          "EDGE_CURVE": 12,
+          "VERTEX_POINT": 8
+        },
+        "schema": [
+          "AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 1 }"
+        ],
+        "validationRepresentationNames": [
+          "volume",
+          "surface area",
+          "centroid",
+          "bounding box"
+        ]
+      }
+    ],
+    "publicNativeFaceName": "n0.Face-\u00e9",
+    "actualWriterRequestReply": 5,
+    "source": "17ef25f79a73505e",
+    "cancelWholeHeldStateExact": true,
+    "lossItems": [
+      "Non-ASCII and control characters in native face and edge names are not retained in this STEP file."
+    ],
+    "scope": "Raw incoming UTF8 face token and reachable ASCII prepared face match constants; actual public native label remains UTF8 and Preview exposes exactly the declared loss. No new Unicode writer/decoder, physical accuracy, format conformance or output reimport claim.",
+    "auditSHA256": "8e51c5fb703a2c669fcd8616e152f3d1f973d25d0ea50402f49c75d7041894dd",
+    "readerSHA256": "64dc4a400ae8448dfb145212651e1699d4ddaf146f1350978f8022ba5fe6af54"
+  },
+  "commands": [
+    "bash /tmp/barocss-d442-probe/baseline-gated-recipe.sh",
+    "bash /tmp/barocss-d442-probe/candidate-gated-recipe.sh",
+    "TEST_CONCURRENCY=1 node packages/barocss-cad-model/scripts/test.mjs step-native-name-loss step-profile-losses step-bbox-loss",
+    "pnpm --filter @barocss/cad-model type-check",
+    "bash /tmp/barocss-d442-probe/run-studio-once.sh",
+    "python3 /tmp/barocss-d442-root/audit-actual.py /tmp/barocss-d442-root/actual-read01 21a2213410fa51f7a3c2ae258fa4dcf65762e30002426deedae7ce128a310c1c",
+    "node apps/cad-studio/handover/scripts/check-navigation.mjs"
+  ],
+  "runtime": {
+    "node": "22.19.0",
+    "gate": "Single own heavy holder; preflight idle/load<40 and post-acquire sole own PID/load<40; own release only",
+    "worktreeFrozenThroughActualCleanup": true,
+    "implementationAndChecksModel": "GPT-6.1 Sol Medium",
+    "newDownloads": 0,
+    "paidCalls": 0,
+    "OCPUsed": false
+  },
+  "resultClasses": {
+    "PASS": [
+      "15 focused Model tests",
+      "Two unchanged complete baseline outputs and source keys",
+      "Source/test/driver checks and final Model types",
+      "One actual Studio Open/Fit/Preview/Cancel with one loss item",
+      "Separate actual raw graph/token audit and root visual/integrity review"
+    ],
+    "FAIL": [
+      "Preserved baseline: the UTF-8 native face name was silently changed"
+    ],
+    "NOT_RUN": [
+      "Full kernel: no B-rep core change",
+      "CAD build: writer/importer unchanged",
+      "New physical accuracy qualification",
+      "General Unicode/directive grammar or writer support",
+      "Output reopen/download, paid live calls, release/develop integration"
+    ]
+  },
+  "issueReview": {
+    "issue": 2263,
+    "state": "OPEN",
+    "reviewedCommentsBeforePublication": 27,
+    "unmetAcceptance": [
+      "Multi-level shared assembly definitions and placements",
+      "Exact AP242 presentation names/colours and sheets",
+      "PMI subset",
+      "Remaining offset/topology profiles"
+    ],
+    "conclusion": "This bounded loss disclosure does not satisfy the complete issue acceptance"
+  },
+  "finalNavigation": {
+    "status": "PASS",
+    "node": "22.19.0",
+    "rowPages": 34,
+    "checkedLocalLinks": 2476,
+    "newBroken": 0,
+    "knownMissingHistoricalPaths": 1,
+    "archiveHashesUnchanged": true
+  }
+}

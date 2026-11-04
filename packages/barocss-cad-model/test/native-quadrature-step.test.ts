@@ -28,6 +28,24 @@ function thin(doc: StudioDoc): StudioDoc {
   assert.deepEqual(ctx.selection, before); assert.deepEqual(result.nodes.slice(0, doc.nodes.length), doc.nodes);
   assert.equal(result.nodes.at(-1)?.kind, 'difference'); return result;
 }
+// Follow each MRI's unit references rather than requiring a superseded complex-unit entity name.
+// The measure must use one plain derived element whose length base is millimetres at the requested power.
+function assertMeasureUnit(step: string, measureName: string, exponent: number): void {
+  const entities = new Map([...step.matchAll(/^#(\d+)=(.*);$/gm)].map(([, id, entity]) => [id, entity]));
+  const measures = [...entities.values()].filter(entity => entity.startsWith(`MEASURE_REPRESENTATION_ITEM('${measureName}',`));
+  assert.equal(measures.length, 1, `one ${measureName} validation measure`);
+  const unitId = /,#(\d+)\)$/.exec(measures[0])?.[1];
+  assert.ok(unitId, 'the measure references a unit');
+  const unit = entities.get(unitId);
+  assert.ok(unit && /^DERIVED_UNIT\(\(#\d+\)\)$/.test(unit), `plain derived unit: ${unit}`);
+  const elementId = /#(\d+)/.exec(unit)?.[1];
+  assert.ok(elementId);
+  const element = /^DERIVED_UNIT_ELEMENT\(#(\d+),([+-]?[\d.]+)\)$/.exec(entities.get(elementId) ?? '');
+  assert.ok(element, 'the derived unit references one dimensional element');
+  assert.equal(Number(element[2]), exponent, `the ${measureName} unit has the required power`);
+  const length = entities.get(element[1]);
+  assert.ok(length?.includes('LENGTH_UNIT()') && length.includes('SI_UNIT(.MILLI.,.METRE.)'), `millimetre base: ${length}`);
+}
 function verifyStep(doc: StudioDoc, expectedLevels: number[]) {
   const before = structuredClone(doc), brep = native(doc), nativeBefore = structuredClone(brep), check = checkBrep(brep, { strict: true });
   assert.equal(check.valid, true); assert.equal(brep.bodies.length, 1); assert.equal(brep.bodies[0].kind, 'solid'); assert.equal(brep.shells.length, 1); assert.equal(brep.shells[0].closed, true);
@@ -36,7 +54,7 @@ function verifyStep(doc: StudioDoc, expectedLevels: number[]) {
   // This is exactly the Model function called by the actual engine.step worker. It supplies BReps, not upright mass.
   const written = exportStudioStep(doc, { name: 'D344 target-only native cylinder', timestamp });
   assert.ok(written.text.includes("SI_UNIT(.MILLI.,.METRE.)"));
-  assert.match(written.text, /VOLUME_UNIT\(\)/); assert.match(written.text, /AREA_UNIT\(\)/); assert.ok(written.text.includes(`source revision ${written.source}`));
+  assertMeasureUnit(written.text, 'volume measure', 3); assertMeasureUnit(written.text, 'surface area measure', 2); assert.ok(written.text.includes(`source revision ${written.source}`));
   const properties = stepValidationProperties(written.text); assert.ok(properties.volume !== undefined); assert.ok(properties.area !== undefined); assert.ok(properties.centroid); assert.ok(properties.box);
   oracle.assertNearRational(properties.volume, reference.volume, 1e-11 * guide, 'STEP native stored-node volume');
   assert.ok(Math.abs(properties.volume / guide - 1) < 1e-11, 'Rounded circle volume guide is separate from the independent native-node reference');

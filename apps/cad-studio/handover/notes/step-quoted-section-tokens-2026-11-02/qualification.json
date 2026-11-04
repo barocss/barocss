@@ -1,0 +1,217 @@
+{
+  "id": "D439",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "2c14361ebeb8830eca9ecf164aba7a475a1acecb",
+  "roadmapRows": [
+    13,
+    12
+  ],
+  "overallEstimatePercent": 43,
+  "scope": "Quote-aware first DATA section and real comments only; preserve literal section/comment tokens and doubled quotes, downstream parser and geometry unchanged",
+  "validationTier": "small",
+  "model": "GPT-6.1 Sol Medium",
+  "baselineReceiptSHA256": "1527ed2d1ba4391dd027a91a9453a41bc026d63daeb23c49484651dcfe7bcdda",
+  "baselineRunnerSHA256": "af8538763a87a0d4868534b0fe1b983be38ab0abaf9ccbe2215db6090d4c228f",
+  "baselineRecipeSHA256": "28edd8f3c94cd137b6e6313ee8f08cf90845ed3a4050a55a33d41f165a739e93",
+  "baselineReadinessSHA256": "e6e961e265aa97f59d4fc886a49c68c0f43be08704cfb55eaf6a436479411d61",
+  "baselineCalls": {
+    "exports": 8,
+    "imports": 8,
+    "validationReads": 8,
+    "strictChecks": "Accepted imports only",
+    "physicalScope": "Writer can compute mass internally; no standalone mass/new physical qualification"
+  },
+  "fixture": {
+    "native": "Retained D433 ordinary planar near-origin BRep",
+    "min": [
+      0,
+      0,
+      0
+    ],
+    "max": [
+      30,
+      12,
+      6
+    ],
+    "faces": 6,
+    "edges": 12,
+    "vertices": 8
+  },
+  "reproducedDefects": [
+    {
+      "case": "02",
+      "label": "ENDSEC;",
+      "importStatus": "REFUSED",
+      "importMessage": "B-rep: STEP: unterminated string",
+      "exactFaceName": null,
+      "validationStatus": "REFUSED",
+      "fileSHA256": "828e540368e33e65997d1ed55eac435736657aaa8cf44cd42b4d706ae707bc6e"
+    },
+    {
+      "case": "03",
+      "label": "DATA;",
+      "importStatus": "REFUSED",
+      "importMessage": "B-rep: STEP: expected an instance near .step','2026-11-02T00:00:00',(",
+      "exactFaceName": null,
+      "validationStatus": "REFUSED",
+      "fileSHA256": "168bdf021506c27a65c59295049f37704822b46a9c3260f5bc19ac363813e022"
+    },
+    {
+      "case": "04",
+      "label": "/*x*/",
+      "importStatus": "ACCEPTED",
+      "importMessage": null,
+      "exactFaceName": false,
+      "validationStatus": "ACCEPTED",
+      "fileSHA256": "9f00cc1a980c46eb6cb0937524e5645acf2e160c90aa652ff6b39ad73fe10137"
+    },
+    {
+      "case": "06",
+      "label": "DATA; /* literal */ O'Brien ENDSEC;",
+      "importStatus": "REFUSED",
+      "importMessage": "B-rep: STEP: expected an instance near O''Brien ",
+      "exactFaceName": null,
+      "validationStatus": "REFUSED",
+      "fileSHA256": "e41842c74a340ec3ef190e959232ffcc6d1019ca18aa79952828c06bdba64947"
+    }
+  ],
+  "baselineControls": [
+    "ordinary",
+    "doubled quote",
+    "real comments between entity tokens",
+    "real comments with section-token decoys"
+  ],
+  "baselineResult": "Three quoted-token inputs refused by both readers; one literal comment name lost on otherwise strict-valid import; four controls pass",
+  "sourceBeforeAfter": "728 baseline source/dist/native/script readiness pins stable",
+  "actualStudio": {
+    "status": "PASS",
+    "receiptSHA256": "eaa4af5d0bb89c64f99d288611fe7da80c9c64c7d344613baedbe8492fbeb51c",
+    "inputSHA256": "e41842c74a340ec3ef190e959232ffcc6d1019ca18aa79952828c06bdba64947",
+    "inputBytes": 6728,
+    "preparedSHA256": "a57a7501cc294c229a7b0009836d95239b006e6a13585a1dd3b99188d4145a90",
+    "preparedBytes": 6840,
+    "writerRequestReply": 5,
+    "source": "f04db87ae85ccf90",
+    "decodedFaceName": "n0.DATA; /* literal */ O'Brien ENDSEC;",
+    "planarBounds": {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        30,
+        12,
+        6
+      ]
+    },
+    "extraLosses": [],
+    "cancel": "Exact whole held document/native/seven fields/accepted source/camera including F64/F32 matrix bytes",
+    "fixedInputPins": 750,
+    "sourceFrozenAfterCleanupCurrent": 1056,
+    "rootRehash": "PASS_1056",
+    "passiveRuntimeBodies": 70,
+    "screenshots": "Root reviewed3; original/preview/cancel. UI presence only, not pixel/physical acceptance.",
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "downloads": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "ownWrapperPID": 30693,
+    "ownPIDAbsent": "PASS_ROOT_CHECK",
+    "gateAfter": "none",
+    "scope": "One public quoted planar Open, one real STEP prepare, Cancel. No output reopen, Save, download, new physical accuracy claim."
+  },
+  "candidateChecks": {
+    "status": "PASS_SCOPED_WITH_PRESERVED_FAILURE",
+    "currentUniqueCADTests": 18,
+    "newTests": 5,
+    "existingTests": 13,
+    "independentRawStringFiles": 8,
+    "build": "PASS",
+    "syntax": "PASS_TEST_AND_DRIVER",
+    "lint": "PASS_THREE_OWNED_FILES_AND_DRIVER",
+    "codeShape": "PASS",
+    "finalModelTypesAfterLastTestAndDriverEdit": "PASS",
+    "sourcePins": {
+      "packages/barocss-cad/src/io/step-import.ts": "a15e900818fe2d3675ee9c7bb6e3d270d248ab2a4e839daefe99e36560978d06",
+      "packages/barocss-cad/test/step-quoted-tokens.test.mjs": "a72f037a00d6aeb52e6df3214e6060306fb97f20c62c7a5f7e4c7ddaa436d923",
+      "packages/barocss-cad/test/step.test.mjs": "8e18c1fc647ed77dffe8471b15a1385d5309bb0f3e440f084517f179f966df37"
+    },
+    "firstFailureReceiptSHA256": "c0565fbcf9be589f4c1f2441e0e73bdf746dd8238968fdd28468893e1dc660c2",
+    "finalReceiptSHA256": "a8a7d28503759aa90492221556061f6cb27d13f803ba26db3d8e495aebe7013b",
+    "reuse": "17 unchanged current test passes plus revised failed test pass; no fresh full18 group or broad baseline rerun",
+    "fullKernel": "NOT_RUN; no B-rep core change"
+  },
+  "limits": [
+    "No new schema, public API, runtime dependency, fitting, geometry/tolerance/limit or multiple-DATA support",
+    "No external download, paid live call, OCP, full-kernel repeat, develop integration or release",
+    "Independent string/graph read reuses D404/D437 stdlib lexer; no physical oracle rerun"
+  ],
+  "preservedFirstCandidateFailure": {
+    "pass": 17,
+    "fail": 1,
+    "stage": "Existing step.test.mjs analytic-import test expected SPHERICAL_SURFACE refusal from a fixture now using CONICAL_SURFACE",
+    "classification": "PRE_EXISTING_D436_STALE_TEST_EXPECTATION_BY_SOURCE_AND_HISTORY",
+    "evidence": "D436 d05a22f445d95d532165dd3c62647e414fa63217 changed unsupportedOffsetStep to CONICAL while this predicate still expected SPHERICAL. Existing downstream parser/geometry source is byte-identical. No baseline SUT replay is claimed.",
+    "repair": "One predicate only: same CAPABILITY code plus exact anchored existing CONICAL reason. No production change or numerical target relaxation.",
+    "historySHA256": "dc17fd3763b41dd5bc5ec05ca4a038ae57e6cddfd8c138672fb558a976877d2e"
+  },
+  "preExecutionTestReview": {
+    "entityWordControl": "Replaced before execution with DA/* separator */TA; no downstream unknown-entity syntax expansion",
+    "drafts": "Original entity-word and intermediate numeric drafts retained in /tmp; no SUT failure claimed"
+  },
+  "downstreamPreservation": {
+    "status": "PASS_ROOT_BYTE_EXACT",
+    "oldFullImporterSHA256": "15b285e1673797c5a6c9ee8d8d24d76ccd68b78f817389b1540dc418f8f459a2",
+    "certificateSHA256": "624f15204925abae1f65e8c8d4aa18bf159de262cdbd7b0df8ff4978458def8d",
+    "scope": "Existing parseData value/entity parser through EOF is byte-identical; no geometry/limits/tolerance/fit/import guards changed",
+    "newPublicAPI": false
+  },
+  "actualPreflight01": {
+    "status": "NOT_RUN",
+    "reason": "Foreign g1b-micro-01 PID16791 and load36.57; stopped before acquisition/browser. No foreign process touched.",
+    "retry": "Fresh global idle/load24.78, same source/command and new wrapper02; one actual flow only"
+  },
+  "actualRawStringAudit": {
+    "status": "PASS_BOUNDED",
+    "artifactSHA256": "ec424764dc295f201d8ca514606ca3a562051f9fde41a6def81b2630a9477fc2",
+    "scriptSHA256": "1c62854ac2b61a0d08b3ff797be2ab4396c53f9ff634cb4e049559252068f085",
+    "readerSHA256": "64dc4a400ae8448dfb145212651e1699d4ddaf146f1350978f8022ba5fe6af54",
+    "scope": "Independent stdlib token/statement parser reads exact original and actual prepared bytes; no kernel imports/product calls",
+    "labels": "Literal source name and exact n0-prefixed actual name retained; doubled quote decoded once; literal comment markers and section tokens preserved",
+    "graph": "Each file AP214,1solid/6faces/12edges/8vertices, no dangling references, volume/area/centroid/bbox representations present",
+    "notClaimed": "No new geometry evaluation, physical oracle, full Part21 certification, product/body-name preservation, or output reimport"
+  },
+  "commands": [
+    "bash /tmp/barocss-d439-probe/baseline-gated-recipe.sh",
+    "bash /tmp/barocss-d439-probe/candidate-gated-recipe.sh",
+    "bash /tmp/barocss-d439-probe/candidate-remaining-recipe.sh",
+    "QUOTED_STEP_SOURCE_FROZEN=1 node /tmp/barocss-d439-probe/quoted-step-preview-browser.mjs /tmp/barocss-d439-probe/studio-run01 /tmp/barocss-d439-probe/studio-cases.json /tmp/barocss-d439-probe/studio-source-manifest.json (Node22.19.0, installed PW_DIR/CHROME/chat52391, sole own gate)",
+    "python3 -B -I /tmp/barocss-d439-root/actual-read01/audit.py (own sole gate; no product calls)"
+  ],
+  "issueReview": {
+    "issue": 2263,
+    "state": "OPEN",
+    "reason": "Bounded literal supported face-name correction only; assembly trees, AP242 presentation/PMI/sheets, product/body names and remaining offsets/topology still unmet"
+  },
+  "notRun": [
+    "Full kernel: no B-rep core change; D433 latest full checkpoint unchanged",
+    "Download/OCP/external SDK/paid call",
+    "Output reopen or new physical/raster accuracy",
+    "Develop integration/release/npm/deploy"
+  ],
+  "finalNavigation": {
+    "status": "PASS",
+    "node": "22.19.0",
+    "rowPages": 34,
+    "checkedLocalLinks": 2462,
+    "newBroken": 0,
+    "knownMissingHistoricalPaths": 1,
+    "archiveHashesUnchanged": true
+  }
+}

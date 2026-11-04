@@ -87,7 +87,7 @@ test('STEP from other systems: analytic surfaces, closed circles, seams and pole
   // What cannot be read yet is refused by name.
   const { unsupportedOffsetStep } = await import('./step-offset-fixtures.mjs');
   assert.throws(() => evaluateCadPart(D([{ id: 'i', kind: 'import', step: unsupportedOffsetStep() }])),
-    e => e.code === 'CAPABILITY' && /OFFSET_SURFACE basis SPHERICAL_SURFACE is not supported yet/.test(e.message));
+    e => e.code === 'CAPABILITY' && /OFFSET_SURFACE basis CONICAL_SURFACE is not supported yet \(direct plane, cylinder or sphere only\)$/.test(e.message));
   // A hole across the seam itself is not cut yet.
   assert.throws(() => importStep(pocketedCylinderStep(5, 10, 340, 380)), e => e instanceof BrepError && /across the seam/.test(e.message));
   // A profile off the plane through its axis is not turned yet.

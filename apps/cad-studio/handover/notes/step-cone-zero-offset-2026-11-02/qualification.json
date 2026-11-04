@@ -1,0 +1,372 @@
+{
+  "id": "D444",
+  "status": "BOUNDED_QUALIFIED",
+  "baseline": "aff54c47d5186cb8f156771982570df5cf23e40e",
+  "roadmapRows": [
+    13,
+    16
+  ],
+  "overallEstimatePercent": 43,
+  "validationTier": "full geometry; no full-kernel repeat because B-rep core unchanged",
+  "models": {
+    "geometryAuthor": "GPT-6.1 Sol High",
+    "independentSourceMathBehaviorMutationAudit": "GPT-6.1 Sol High",
+    "consumerModelAndActual": "GPT-6.1 Sol Medium"
+  },
+  "selectedScope": "Exact-zero scalar-token direct CONICAL_SURFACE OFFSET on a positive regular-frustum subset, with unchanged legacy cone construction",
+  "baselineReuse": {
+    "decision": "D443",
+    "nativeReceiptSHA256": "c461b22ffe6f0c00db9230d82218e8860def121080cd8f8cb474e2e7a2f7974c",
+    "actualReceiptSHA256": "8103b6ab2c05f685bad4ce8136806015e6ccacd9165e18ff9112c37ef3fc621b",
+    "oldImporterSHA256": "145e94fdfa100912d005aeaf45f0af2737a8713f0d3f0ee61619c5250a34d71a",
+    "rerun": false
+  },
+  "source": {
+    "files": {
+      "packages/barocss-cad/src/io/step-import.ts": "3b93a1c9ebaf951f16033aed146a77a3a64abad9baf4c6adcc1e6f6f1cb2eccf",
+      "packages/barocss-cad/test/step-cone-zero-offset.test.mjs": "03d279ce9fea05a093f40cd1abd791bb1e639fd823e2b1ca606a1c12b1d13189",
+      "packages/barocss-cad/src/io/step-offset-internal.ts": "d65d1aee476bb5251cd898b5ee6cfaff6ceb5f50b679d398714e3cb175aac29c",
+      "packages/barocss-cad/dist/io/step-import.js": "3defca5eace8d3e842c6b40439c2e7aef4605babbfed95347640803bf9e3e085"
+    },
+    "newPublicAPI": false,
+    "coreChanged": false,
+    "algorithm": "Private metadata comes only from the actual parsed scalar third attribute of a simple OFFSET entity. All mantissa digits must be zero; exponent digits do not affect zero. No source-wide scan, numeric replacement or other-family rewrite.",
+    "identity": "Direct cone only, strict cone-local source attributes; construct with exact legacy frameOf/radius/Math.tan path. No offsetFrameOf output substitution.",
+    "profile": "One connected outer four-use loop, two closed CIRCLE rims and a LINE seam in opposite senses. Per-use source validation precedes shared cache returns; original endpoint/pinning checks run after splitting.",
+    "representation": "Use actual padded profile endpoints with finite nonzero spans and positive computed/exact represented-coefficient radii. Check every stored control/positive weight before exact affine-rank3 witness, original200000operation/8192bit budget. Necessary conditions only.",
+    "sourceProof": "Old plane/cylinder/sphere dispatch, sphere precision helpers, legacy frameOf and plain cone construction recover exactly outside selected changes.",
+    "sourceOnlyCertificateSHA256": "b70a53d48cec193ea285b5749d5b9ec0bf9e6f91dabece4ae225277cb3d9c0bc"
+  },
+  "sourceAudits": {
+    "status": "PASS",
+    "reviewSHA256": "59539cf8c93a5205b99bac18e5ee6c4351aec47fae49ce77fa70c8cbb394d705",
+    "reviewedFinalSource": "3b93a1c9ebaf951f16033aed146a77a3a64abad9baf4c6adcc1e6f6f1cb2eccf",
+    "preExecutionFindingsFixed": [
+      "Full finite control/positive weight scan precedes early rank witness",
+      "Declared frustum loop checks cyclic endpoint connectivity"
+    ],
+    "typeCorrection": "Exactly3 erased assertions after existing runtime guards; independent removal restores reviewed e4bd5d1b source exactly",
+    "typeReversalCertificateSHA256": "e12fec1e3233231ecca79d03dc448c90ab2aa6167976f7b3553710674393f470",
+    "limits": "No general normal/trim/immersion/physical accuracy or whole-schema theorem"
+  },
+  "author": {
+    "status": "PASS",
+    "receiptSHA256": "d46149f59839493fa7b9f76224b3a3ea7a0bd52e597508c14bb4d35be11e322e",
+    "uniqueCurrentTests": {
+      "pass": 161,
+      "fail": 0,
+      "skip": 0,
+      "composition": {
+        "unchangedNewTestsReusedRun03": 23,
+        "correctedFailedCaseRun04": 1,
+        "previouslyNotRunAffectedTestsRun04": 137
+      },
+      "testNameUnionCount": 161
+    },
+    "checks": {
+      "CADbuild": "PASS_RUN03_REUSED_SOURCE_UNCHANGED",
+      "newTestSyntax": "PASS_RUN04_AFTER_LAST_TEST_EDIT",
+      "CADtypes": "PASS_RUN04",
+      "ownedSourceAndTestLint": "PASS_RUN04_0ERROR_0WARNING",
+      "codeShape": "PASS_RUN04_119_32_269_69"
+    },
+    "remainderSourcePinsBeforeAfter": 384,
+    "newCases": [
+      "Immutable D443 control and zero inputs; complete native IDs/names/coordinates/weights/knots/senses/tolerances and original6d5d7736 native hash",
+      "Oblique nonunit frame and cap-first shared-edge exact native comparisons",
+      "Exact-zero spellings/advisory flags and raw nonzero-underflow refusals",
+      "Actual scalar provenance with quoted/nested/comment decoys",
+      "Typed malformed direct/wrapper/frame/orientation and unsupported nested/oriented/cyclic cases",
+      "Cached unsupported primitive, raw LINE endpoint binding and loop connectivity",
+      "Padded-apex and world-rounded rank2 necessary representation refusals"
+    ],
+    "commands": {
+      "build": "(cd packages/barocss-cad && node scripts/tool.mjs build)",
+      "newOriginal24": "node --test --test-concurrency=1 packages/barocss-cad/test/step-cone-zero-offset.test.mjs",
+      "correctedOnly": "node --test --test-concurrency=1 --test-name-pattern='^a world-rounded planar cone patch gets a named representation refusal$' packages/barocss-cad/test/step-cone-zero-offset.test.mjs",
+      "affected8": "node --test --test-concurrency=1 packages/barocss-cad/test/step.test.mjs packages/barocss-cad/test/step-offset.test.mjs packages/barocss-cad/test/step-sphere-offset.test.mjs packages/barocss-cad/test/step-sphere-representability.test.mjs packages/barocss-cad/test/step-quoted-tokens.test.mjs packages/barocss-cad/test/step-literal-backslash.test.mjs packages/barocss-cad/test/step-validation.test.mjs packages/barocss-cad/test/step-tessellated.test.mjs",
+      "types": "(cd packages/barocss-cad && node scripts/tool.mjs type-check)",
+      "lint": "node node_modules/eslint/bin/eslint.js packages/barocss-cad/src/io/step-import.ts packages/barocss-cad/test/step-cone-zero-offset.test.mjs",
+      "shape": "node packages/barocss-cad/scripts/code-shape.mjs --check"
+    },
+    "reuse": "23 exact unchanged passing bodies from run03 +1 corrected failed fixture case +137 previously unrun affected tests; no24case repeat or rebuild after test-only correction"
+  },
+  "history": {
+    "preservedFirstFailures": {
+      "run01": {
+        "receiptSHA256": "96a64d5d5a0f399c4c981e856d0232cfccf7f5f0d1a1826cfedd1b7d22db1d6e",
+        "classification": "6TS_narrowing_diagnostics;noSUTtests;failed_emitted_outputs_unqualified"
+      },
+      "run02": {
+        "receiptSHA256": "b9ceba73d237bb6e896ff123767a16fc4d329d3cd3a978cae6f876a60d2e593c",
+        "classification": "Foreigngate_NOT_ADMITTED;nolease/build/SUT"
+      },
+      "run03": {
+        "receiptSHA256": "2999a6563bc07cd5a30cf0466ed410faf7f8adc1779dfcb87c46a053fa20df40",
+        "classification": "BuildPASS23PASS1ASSERTFAIL;oldseamrefusalblockedintendedrankpath"
+      }
+    },
+    "typeCorrection": "6 compiler diagnostics before product tests, fixed only erased assertions; failed emitted outputs unqualified and replaced by fresh successful build",
+    "fixtureCorrection": {
+      "firstResult": "23PASS1ASSERTFAIL: original farXY fixture reached an existing seam/opposite-side refusal before intended rank guard",
+      "change": "Only failed fixture becomes exact90degreeZ permutation P=[999000-y,x,z], D=[-y,x,z]; Y/seam/opposite and height retained while stored X collapses to a plane",
+      "unchanged": "Radius1e-12, height6, angle1e-12degrees, product source/guards/budgets/tolerances and expected rank reason",
+      "independentReview": "SOURCE/GEOMETRY PASS before execution; corrected isolated case1PASS0FAIL",
+      "reverseCertificateSHA256": "d484d1e811ee5be9f6072c0b73b86abeabf000aed7d69eec59054c603ecc99c1"
+    },
+    "resourceNotRun": "Foreign gate holder caused run02 NOT_ADMITTED before lease/build/SUT; later readiness-only retry changed output directory and did not disturb foreign PID",
+    "mutationHarnessCorrection": "Before execution, root required explicit returned/typed/untyped outcomes so loader/runtime errors cannot become semantic assertion kills. No mutant ran before correction.",
+    "REALDraftCorrection": "Before any consumer SUT/UI run, retain bare1E-9999 draft as NOT_EXECUTED and use1.E-9999 in a new literal-only actual fixture; only distance-token grammar is qualified, not full-file schema conformance"
+  },
+  "independent": {
+    "status": "PASS",
+    "campaignSHA256": "2ecabbde950c8c75a7b9dba48aac10cabf1a564e3f98cadffd81b1bca586c5ac",
+    "receiptSHA256": "ba03cfe8d2ef976998e8c2cfc6a5a5b21166c51070f7d368ce2cafe239eacd09",
+    "summarySHA256": "9debf0f5da6109159b8cd43b81e59ba2e9ac44660d8d444ac2883897843aa687",
+    "behaviorChecks": 25,
+    "mutationCount": 8,
+    "killed": 8,
+    "survivors": 0,
+    "invalid": 0,
+    "safeFallbackReasonOnly": 0,
+    "killKinds": {
+      "WRONG_SUCCESS": 6,
+      "WRONG_REFUSAL": 1,
+      "NATIVE_OUTPUT_MISMATCH": 1
+    },
+    "mutationAxes": [
+      "Numeric-only zero",
+      "Exponent digits treated as mantissa",
+      "Source-wide zero decoy",
+      "Shared-edge cache bypass",
+      "OffsetFrame construction substitution",
+      "Strict frame attribute omission",
+      "Stored rank guard omission",
+      "Actual padded profile omission"
+    ],
+    "fixedInputRowsBeforeAfterCurrent": 730,
+    "manifestSHA256": "2658cae6f533293089ed7c20354ab653067fd45430382911363d0be84d39b393",
+    "mutantsLoadedAndCanonicalControlsPassed": true,
+    "untypedAndLoaderErrorsCannotCountAsKills": true,
+    "productWorktreeWrites": 0,
+    "rootCurrentRehash": "PASS",
+    "ownPIDAbsent": 88306,
+    "gateReleased": true
+  },
+  "independentInputProof": {
+    "status": "PASS_INDEPENDENT_EXACT_TOKEN_AND_UNCHANGED_GRAPH_PROOF",
+    "fixtures": [
+      {
+        "path": "/tmp/barocss-d443-author/frustum-control.step",
+        "sha256": "82a6a31b874d158b8d799bc35798ac0b4706c0c44f3f3efeaf475cb8de367fcd",
+        "bytes": 2261
+      },
+      {
+        "path": "/tmp/barocss-d443-author/frustum-zero-offset.step",
+        "sha256": "4cf2dde3679f70694c9323bd37e9123ffdda962a6249cb13c6a9f53b8d0033ed",
+        "bytes": 2296
+      },
+      {
+        "path": "/tmp/barocss-d444-consumer/frustum-underflow-real.step",
+        "sha256": "a9c197b841b407872470cc9e0f33c0daa6f70875156bb470ac40cab09279c412",
+        "bytes": 2302
+      }
+    ],
+    "onlyChangedValue": "Actual third distance token of reachable #33:0. to1.E-9999",
+    "exactReverseToZeroBytes": true,
+    "sourceToken": "1.E-9999",
+    "standardREALTokenForm": true,
+    "exactDecimalZero": false,
+    "binary64Zero": true,
+    "reusedGraphAuditSHA256": "c8dbe7f8fb6985a61d2368680c37bb171f9649a1ad4041678d007110c9abb035",
+    "graphReason": "D443 already verified these immutable plain/zero graphs and regular branch; the new input changes only one numeric distance token, preserving every reference, entity, frame, boundary and header byte.",
+    "productCalls": 0,
+    "limits": [
+      "Selected scalar/graph identity only; no full schema conformance or nonzero offset geometry qualification",
+      "Original bare1E-9999 draft retained NOT_EXECUTED as lexer-compatibility spelling; actual uses REAL1.E-9999"
+    ],
+    "primaryReference": "https://www.steptools.com/stds/step/IS_final_p21e3.html Table2/6.4.2",
+    "receiptSHA256": "cfb1319573131cb9584398e0af632744c91cfa4fe4c7ab7f1ef5df0b156108a0"
+  },
+  "modelCompatibility": {
+    "status": "PASS",
+    "receiptSHA256": "e2af0e247bd5905dc5cb63a2ed9f262823dbf18287fd39b9dbd97346873cb1cd",
+    "publicPairCalls": {
+      "partBreps": 2,
+      "evaluateDoc": 2,
+      "exportStudioStep": 2
+    },
+    "native": "Complete public partBreps results exact, no ID normalization",
+    "displayAndSevenQuantities": "Complete current body/display equality",
+    "writer": "Two9696bytefiles differ only one explicitly matched source-revision description",
+    "sources": {
+      "plain": "8d2080a1008a5044",
+      "zero": "4e2af745fae4408e"
+    },
+    "plainSTEPsha256": "c5c8b00206e3e9171c6b55bd46238bb090fef0c13801783841a6883a5f5c06d7",
+    "zeroSTEPsha256": "e13d1083831692ccf36dde0cb8adfe3d4841ff6b4efa757861d0ac5dba2a0405",
+    "legacyTests": {
+      "pass": 12,
+      "fail": 0,
+      "skip": 0,
+      "scope": "Existing offset units/refusal6 and STEP profile losses6; no new physical qualification"
+    },
+    "staleModelPredicate": {
+      "beforeSHA256": "ae5b05d6f3d4ee4c7f60f0087eaf3668db16b6aabfa49294ce095f0cf2c0a490",
+      "afterSHA256": "58ee2d3e37e8646834c2eb80f339506965a5ee2ff533c86406cf4a810f798b81",
+      "exactOnlyChange": "One expected unsupported basis SPHERICAL_SURFACE to CONICAL_SURFACE, matching unchanged D436 nonzero malformed fixture",
+      "oldPredicateSUTReplay": "NOT_RUN_SOURCE_MISMATCH_FOUND_BEFORE_EXECUTION",
+      "thresholdChanges": 0
+    },
+    "driverSyntaxLint": "PASS",
+    "ModelTestLint": "PASS",
+    "finalModelTypesAfterLastTestAndDriverEdit": "PASS",
+    "fixedInputPinsBeforeAfterCurrent": 772
+  },
+  "actualAudit": {
+    "status": "PASS_PLAIN_ZERO_ADMISSION_UNDERFLOW_REFUSAL_RETENTION",
+    "receiptSHA256": "d24477fc506f7fc5ae4c1075b3820935e76fc4c541a6a5615b9d8f69b3c6c575",
+    "fixedPinsBeforeAfterCleanupCurrent": 772,
+    "frozenCapsuleBeforeAfterCleanupCurrent": 1042,
+    "passiveRuntimeBodies": 70,
+    "missingDirectSources": [
+      "apps/cad-studio/src/viewport/Camera.ts",
+      "apps/cad-studio/test/flow-helper.mjs"
+    ],
+    "ownWrapperPIDAbsent": 7755,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "classification": {
+      "capture": "OBSERVED_REAL_WORKER",
+      "requestId": 9,
+      "requestRevision": 6,
+      "replyRevision": 6,
+      "ok": false,
+      "error": {
+        "title": "The kernel could not build this",
+        "hint": "Undo the last change, or adjust the values and try again.",
+        "detail": "OFFSET_SURFACE basis CONICAL_SURFACE is not supported yet (direct plane, cylinder or sphere only)",
+        "code": "CAPABILITY"
+      },
+      "typedCode": "CAPABILITY"
+    },
+    "acceptedSourceLineages": {
+      "plain": {
+        "originalReadId": 3,
+        "originalReadRevision": 2,
+        "requestId": 4,
+        "revision": 3,
+        "bodyKey": "b0",
+        "massRef": 2
+      },
+      "zero": {
+        "originalReadId": 6,
+        "originalReadRevision": 4,
+        "requestId": 7,
+        "revision": 5,
+        "bodyKey": "b0",
+        "massRef": 3
+      }
+    },
+    "completeNativeDisplayAndSevenQuantitiesEqual": true,
+    "distinctAuthoredInputBytesRetained": true,
+    "refusalWholeHeldStateExact": true,
+    "notice": "Could not open this fileThe kernel can\u2019t read it as STEP: OFFSET_SURFACE basis CONICAL_SURFACE is not supported yet (direct plane, cylinder or sphere only). Your part is unchanged.DetailsOFFSET_SURFACE basis CONICAL_SURFACE is not supported yet (direct plane, cylinder or sphere only)",
+    "gateReleased": true
+  },
+  "actualStudio": {
+    "status": "PASS",
+    "receiptSHA256": "d24477fc506f7fc5ae4c1075b3820935e76fc4c541a6a5615b9d8f69b3c6c575",
+    "wrapperSHA256": "d24f1c7cfcf43e2ba3b6099cdd0398d26dfb89b1130255413095e763ec1efea0",
+    "driverSHA256": "f69d762a090a313369c4827ce2fb95fe6fdc25bd7571218584fee14a83c554b7",
+    "states": 3,
+    "route": "Plain public Open/Fit; exact-zero public Open/Fit accepted; REAL1.E-9999 attempted Open refused",
+    "nativeDisplayAndSevenQuantities": "EXACT across two accepted states",
+    "authoredPlainAndZeroInputs": "Distinct original STEP bytes and own source lineages retained",
+    "underflowActualWorker": "request9/revision6/reply6, okfalse, CAPABILITY, exact existing named CONICAL basis detail",
+    "zeroHeldStateAfterRefusal": "Exact authored/adopted/native/sevenfields/acceptedSource/camera/F64andF32matrixbytes/meshes/effects/environment/grid/lights",
+    "rootVisualReview": "PASS three PNGs: visible plain, visible zero, same zero with readable named refusal",
+    "errors": 0,
+    "consoleErrors": 0,
+    "changes": 0,
+    "downloads": 0,
+    "fixedPinsBeforeAfterCleanupCurrent": 772,
+    "frozenCapsuleBeforeAfterCleanupCurrent": 1042,
+    "passiveRuntimeBodiesRehashed": 70,
+    "missingDirectSources": [
+      "apps/cad-studio/src/viewport/Camera.ts",
+      "apps/cad-studio/test/flow-helper.mjs"
+    ],
+    "wholeWorktreeFrozenThroughCleanup": true,
+    "resourcesClosed": [
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "ownPIDAbsent": 7755,
+    "gateReleased": true,
+    "proofBoundary": "Passive transformed bodies provide provenance, not semantic-equivalence or new physical accuracy proof. No actual export/reopen."
+  },
+  "commands": [
+    "bash /tmp/barocss-d444-author/run-candidate-once.sh (first compiler failure preserved)",
+    "bash /tmp/barocss-d444-author/run-candidate-v3-once.sh",
+    "bash /tmp/barocss-d444-author/run-remainder-once.sh",
+    "bash /tmp/barocss-d444-audit/run-once.sh",
+    "bash /tmp/barocss-d444-consumer/consumer-checks-gated-recipe.sh",
+    "python3 /tmp/barocss-d444-root/input-proof.py",
+    "bash /tmp/barocss-d444-consumer/run-studio-once.sh",
+    "node apps/cad-studio/handover/scripts/check-navigation.mjs"
+  ],
+  "runtime": {
+    "node": "22.19.0",
+    "heavyGate": "Global idle/load<40 before acquire; sole own PID/load<40 after acquire; own release only",
+    "newDownloads": 0,
+    "OCPUsed": false,
+    "priorOCPcacheSourceBuild": "ABSENT_VERIFIED",
+    "paidCalls": 0
+  },
+  "resultClasses": {
+    "PASS": [
+      "Current CAD161 and Model12 tests, with explicit23case reuse",
+      "Independent source/identity-math,25behavior and8valid semantic mutation checks",
+      "Public Model native/display/quantities and source-specific writer comparison",
+      "One three-state actual Studio flow plus root image/current-hash review",
+      "Build/CADtypes/Modeltypes/lint/code-shape"
+    ],
+    "FAIL": [
+      "First build6TypeScript narrowing diagnostics before SUT",
+      "Original rank-test fixture23PASS1ASSERTFAIL, preserved before the targeted input-only correction"
+    ],
+    "NOT_RUN": [
+      "Resource admission run02 before lease/build/SUT",
+      "Full kernel: no B-rep core change",
+      "Nonzero/general cone offsets, improved legacy physical accuracy or full schema qualification",
+      "Download/OCP/customer corpus/paid call/export reopen/develop integration/release"
+    ]
+  },
+  "issueReview": {
+    "issue": 2263,
+    "state": "OPEN",
+    "reviewedCommentsBeforePublication": 29,
+    "unmet": "Nonzero/general offsets, wider topology, shared assemblies, AP242 names/colours/presentation, sheets and PMI acceptance remain incomplete"
+  },
+  "followUps": [
+    "Nonzero cone offsets need signed normal/nappe/apex, bounded raw-angle/frame/reduction error and full original-tolerance boundary proof",
+    "Rank3/profile/source checks are necessary bounded conditions, not global immersion/trim/volume/normal theorems",
+    "Plain cone and other supported families keep existing accuracy/grammar limits",
+    "Preserve #2258 fitter/public-thicken and #2266 widening HOLDs; manufacturing/Physics/Motion not activated",
+    "UI remains a later row15 discussion; overall coarse row-class estimate remains43%"
+  ],
+  "finalNavigation": {
+    "status": "PASS",
+    "node": "22.19.0",
+    "rowPages": 34,
+    "checkedLocalLinks": 2485,
+    "newBroken": 0,
+    "knownMissingHistoricalPaths": 1,
+    "archiveHashesUnchanged": true
+  }
+}
