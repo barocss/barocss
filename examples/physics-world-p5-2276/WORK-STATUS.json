@@ -1,13 +1,14 @@
 {
   "asOf": "2026-11-04",
-  "branch": "codex/physics-world-p5-2276",
+  "branch": "codex/physics-anisotropic-inertia-2276",
   "roadmapCommit": "357caa03f",
   "lastNumericalMilestone": {
-    "profile": "rigid-persistent-box-v1: aligned2kg three-dynamic-cube/floor, e0/friction0/direct120Hz",
-    "status": "PUBLIC_SOURCE_NATIVE_256_REFERENCE_CONTROLS_AND_DESKTOP_PASS",
-    "scope": "Eachgraph1World256steps2references/0restore; both32gatebefore33, exactfull257stateswords. 6analytic+11observercontrols 0World. ActualNative desktop2World256steps full257words+GPU1623pixels/3desktopwidths. No arbitrary4body/tilted/friction/general8 qualification.",
-    "results": "examples/physics-three-cubes-floor-2276/RESULTS.md",
-    "canonicalAdoption": "SAME_QUALIFIED_COMMON_WORLD_ALGORITHM_EXISTING_BODY_CAP4"
+    "profile": "rigid-persistent-box-v1: rotated primitive-COM anisotropic precontact / principal-spin with lower-floor support",
+    "status": "LIBRARY_SOURCE_CANONICAL_REFERENCE_ROLLBACK_RESTORE_DESKTOP_CONSUMERS_PASS",
+    "scope": "Per Physics graph 20 private calls/13 refs; public 8 Worlds/212 steps/8 refs; failure/regression 7 Worlds/82 accepted including4restore. Native desktop3Worlds/128steps/65states per scenario/changedGPU927,2172/three desktop widths. CAD/CAD-model primitives and GPU CPU-only consumer2World16steps per graph. No anisotropic contact/offprincipal contact/generic CAD fulltensor or Studio integration.",
+    "results": "examples/physics-anisotropic-inertia-2276/RESULTS.md",
+    "canonicalAdoption": "ACTUAL_LIBRARY_SYMMETRIC_WORLD_TENSOR_THROUGH_SOLE_WORLD_NO_FALLBACK_EXISTING_CAP4",
+    "initialFrameAudit": "PAID_DATA_ONLY_PASS_16_PACKETS_48_AUTHORED_INITIAL_ATTITUDES_5_NEGATIVE_CONTROLS_2_PRESERVED_OLD_OBSERVER_BLIND_SPOTS_NO_WORLD_RERUN"
   },
   "mainSlices": {
     "P0": "CONTRACT_COMPLETE_LOCAL",
@@ -34,7 +35,7 @@
       "G6 recording if enabled"
     ]
   },
-  "active": "CommonWorld frictionless normalisland qualified for aligned2kg two/three cubes+floor120Hz256primarysteps. Two-case SourceNative6World786campaigninclrestore/failurecontrols+desktop257wordsGPU2187 PASS; three-case each1World256/2reference no restore, independent3DOF/6analytic11observercontrols+desktop257wordsGPU1623 PASS. Sourcealgorithmunchanged forthree. AllHOLD/gates/firstfailures preserved. Nextanisotropictensorconstruction/currentpre-touchrefusal andcoupleddt/horizon beforegeneraltopology/friction/moving8. No deploy.",
+  "active": "Rotated anisotropic precontact tensor NO_GO repaired in library. Source/actual canonical numeric, reference controls, rollback/restore and desktop pass. Continuous gravity discretization remains first order; 64/120s position error0.0218m. Next coupled dt refinement/longer horizon before unequal mass/anisotropic contact/topology/friction/moving8. CAD consumers bounded; Studio/manufacturing/equipment/old-worker HOLD, tolerances and first failures preserved. No deployment.",
   "latestStackImplementation": {
     "results": "examples/physics-stack-library-2276/RESULTS.md",
     "entry": "packages/barocss-physics/src/stack/prepare-step.ts",
@@ -524,11 +525,11 @@
     "graph": "Native public World",
     "worlds": 1,
     "acceptedSteps": 2,
-    "tangentPlaneResidualNs": 7.191714115138252e-9,
+    "tangentPlaneResidualNs": 7.191714115138252e-09,
     "tangentPlaneGateNs": 1e-12,
     "acceptedPairedWitnessGapM": [
-      0.000008508678180235096,
-      0.000056915981142408475
+      8.508678180235096e-06,
+      5.6915981142408475e-05
     ],
     "pairedWitnessGateM": 1e-12,
     "privateBoxConstruction": {
@@ -666,7 +667,7 @@
     "actualImpulseOnBNs": [
       -0.06810993686254845,
       0.09728269579179234,
-      -0.00002174053310893481
+      -2.174053310893481e-05
     ],
     "publishedImpulseOnBNs": [
       0,
@@ -758,7 +759,7 @@
     "queryPoints": 19,
     "anchorChecks": 513,
     "firstFailure": "currentTangentPlane",
-    "firstFailureResidualNs": 0.00009141407414550243,
+    "firstFailureResidualNs": 9.141407414550243e-05,
     "gateNs": 1e-12,
     "firstFailureLocation": "step2 firstwarm actual application;record6 outerpass0",
     "coverage": "REAL_BRANCH_REACHED_PHYSICAL_NO_GO_NOT_QUALIFIED",
@@ -2565,7 +2566,7 @@
     "engineAcceptedPerGraph": 27,
     "independentlyPassedPerGraph": 26,
     "velocityErrorMps": 0.008623153568856012,
-    "positionErrorM": 0.00002934570312507212,
+    "positionErrorM": 2.934570312507212e-05,
     "repair": "PRIVATE_CANDIDATE_SOURCE_ONLY",
     "publicRepair": "NOT_RUN",
     "desktopRepair": "NOT_RUN",

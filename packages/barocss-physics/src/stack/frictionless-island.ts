@@ -2,7 +2,7 @@
 import { PhysicsError, type Body, type Hit, type PhysicsContact, type PhysicsPairStats, type Vec3 } from '../internal-types.js';
 import { copyBody } from '../validation.js';
 import { detect, validateResult } from '../collision.js';
-import { add, cross, dot, inertia, inverseInertia, scale, sub } from '../math.js';
+import { add, cross, dot, inertia, inverseInertia, rotate, scale, sub } from '../math.js';
 import { contactApplication, ContactPairAccumulator } from '../contact-contribution.js';
 import type { CompletedContactPair, ContactContribution } from '../contact-contribution.js';
 import { featureContact } from './geometry.js';
@@ -74,12 +74,23 @@ function worldInverse(body: Body): Mat3 {
     // R(cI)R^T = cI for every physical rotation. Exact equality, no tensor repair.
     return [[c, 0, 0], [0, c, 0], [0, 0, c]];
   }
-  const columns = ([[1, 0, 0], [0, 1, 0], [0, 0, 1]] as Vec3[])
-    .map(axis => inverseInertia(body, axis));
-  // Keep the actual represented columns. No averaging, symmetry repair or fixed I24.
-  return [[columns[0][0], columns[1][0], columns[2][0]],
-    [columns[0][1], columns[1][1], columns[2][1]],
-    [columns[0][2], columns[1][2], columns[2][2]]];
+  const axes = ([[1, 0, 0], [0, 1, 0], [0, 0, 1]] as Vec3[])
+    .map(axis => rotate(body.orientation, axis));
+  const tensor: [[number, number, number], [number, number, number], [number, number, number]] =
+    [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  // Construct the symmetric bilinear form directly. No separately rounded
+  // operator columns are averaged or repaired; actual impulse application and
+  // its independent applied-normal checks still use inverseInertia unchanged.
+  for (let row = 0; row < 3; row++) for (let column = row; column < 3; column++) {
+    let value = 0;
+    for (let axis = 0; axis < 3; axis++) {
+      const weighted = finite(axes[axis][row] * local[axis]);
+      value = finite(value + finite(weighted * axes[axis][column]));
+    }
+    tensor[row][column] = value;
+    tensor[column][row] = value;
+  }
+  return tensor;
 }
 function normalBody(body: Body): NormalBody {
   return { id: body.id, positionM: [...body.positionM], velocityMps: [...body.velocityMps],

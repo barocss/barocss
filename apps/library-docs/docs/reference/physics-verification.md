@@ -111,8 +111,9 @@ changed GPU pixels, separate kinetic/potential display and1280/1440/1920
 controls with no page/console errors. The executable
 [two-cube example](/packages/physics/profiles-and-lifecycle#two-cubes-and-a-floor)
 passes2 tests. This qualifies the aligned equal2kg cubes/floor at120Hz through
-256steps. Rotated anisotropic contact still refuses with NUMERIC_LIMIT and
-retained state; friction, elastic networks and general moving8 remain outside.
+256steps. The historical rotated-anisotropic precontact refusal is preserved;
+the bounded later repair below resolves that tensor construction. Anisotropic
+contact, friction, elastic networks and general moving8 remain unqualified.
 No screenshot is used as a physical oracle. See
 `examples/physics-coupled-cubes-floor-2276/RESULTS.md`. HOLDs and original gates remain.
 
@@ -130,6 +131,51 @@ the falling top. This uses the existing4body cap and unchanged library algorithm
 It does not qualify arbitrary4body layouts or moving8. See
 `examples/physics-three-cubes-floor-2276/RESULTS.md`. All historical NO_GOs/HOLDs
 remain; no real-equipment claim, mobile test or deployment follows.
+
+## Rotated anisotropic precontact repair
+
+The actual Physics library directly constructs the symmetric inverse tensor
+from the rotated principal axes, evaluating each independent entry once. It
+does not average a bad matrix, weaken exact symmetry/SPD or change tolerance,
+iteration, body-count or recorder limits. The original rotated box's failure
+at cursor 0, actual pre-island FREE, first compile failure and first consumer
+authorization failure remain intact.
+
+Each strict Source / actual canonical Physics graph passes 20 private calls
+with 13 independent replies, then 8 public Worlds / 212 accepted steps. Exact
+Hamilton-sandwich tensor checks are independent of the production bilinear
+construction. Public references check ballistic kick-drift, analytic principal
+spin, lower-floor impulse and strict 1e-12 m representative geometry. Natural
+and principal-spin cases run 64 steps; both also run to 0.1 s at 60/120/240 Hz.
+The upper does not contact within these horizons. Maximum inverse-tensor error
+is 3.582e-15 /(kg m²), angular-speed error 1.817e-15 rad/s and rotational-energy
+residual 2.272e-16 J against the unchanged gates.
+
+Continuous free-fall position error at 64/120 s is 0.0218 m, with an energy
+defect of −0.427716 J. The three matched-time position errors are
+0.008175 / 0.0040875 / 0.00204375 m; energy errors halve too. These are separate
+first-order integration errors, not the tiny tensor/algebra residuals.
+Seven additional Worlds / 82 accepted steps per graph include four restore
+replays, failure rollback/retry/continuation and exact prior two/three-cube
+isotropic 32-step traces. Sixteen reference controls pass, including rejection
+of a 1e-11 m witness shift without changing the 1e-12 m gate.
+
+Actual same-Native Chrome/WebGPU passes two 64-step scenarios (three Worlds
+including an initial zero-step reset), full 65-state/command word equality per
+case, 927 / 2172 changed pixels and desktop widths 1280/1440/1920. Displayed
+rotational energy independently matches 3/208 J. No screenshot is a physical
+oracle. Two executable documentation examples pass.
+
+Bounded CAD Surface proxy and CAD-model MMGS/primitive consumers each pass in
+both Physics graphs (two Worlds / 16 steps per graph). Actual CAD meshes enter
+the GPU facade's CPU scene data; no GPU-library render-device claim follows.
+The other libraries use workspace Source APIs, not freshly qualified compiled
+packages. CAD Studio has no Physics dependency/World integration and remains
+SOURCE INSPECTION ONLY / HOLD. Exact B-rep contact, arbitrary COM/full-tensor
+import, off-principal/anisotropic contact, friction and moving8 remain outside.
+See `examples/physics-anisotropic-inertia-2276/RESULTS.md` and
+`CONSUMER-READINESS.md`. All prior HOLDs, failures and thresholds remain. No
+mobile test, deployment, manufacturing or equipment claim follows.
 
 ## Sphere-pair CCD checkpoint
 

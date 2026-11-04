@@ -94,7 +94,7 @@ export const providerManifest = {
     "stack/contact-types.ts": "7191984e5ee106de91c68ce4efb6c40afe8f5122b7a53e0ad2c5762191edfb47",
     "stack/edge-contact.ts": "58f1189ab830195628fe485e7885351595a86bbdbe6341d7b02ea9ff63aa9184",
     "stack/face-contact.ts": "37dcbd7601ad05b403207e5030dd04c64582169eed59631338cd41942e1c1063",
-    "stack/frictionless-island.ts": "7721f76f9122112c5bf8aaff202f27ce4cbc5fbe47560f8591264d4c17728e6f",
+    "stack/frictionless-island.ts": "7b61afb5c0f4651f04c95d82d4e92901fc148d21818d2cfe0e14d3dc7280d128",
     "stack/full-pair-apply.ts": "d4c7e503337e318d1dae9d2f93ad7310e078f2123159894542014a4945ef3f04",
     "stack/full-pair-core.mjs": "75941f67d5359c3734a68c93dd571313bdcab030a170205dee6e22d592119a46",
     "stack/full-pair-exact.mjs": "258732a572bd6b2d1606db97cd2b637bfd252ce5fb59ee31cb30b0e9d298cd32",

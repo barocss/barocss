@@ -66,9 +66,11 @@ desktop rendering also pass, with separate receipts in
 [Physics verification](/reference/physics-verification).
 Admission alone does not qualify arbitrary mass ratios, tilted boxes, friction,
 simultaneous elastic impact or moving eight-body stacks.
-The island prepares every body's tensor. A rotated anisotropic box can refuse
-with `NUMERIC_LIMIT` even before that box touches another body. The isolated
-rotor example below uses `rigid-discrete-v1` and has separate G1 evidence.
+The island prepares every body's tensor. Its historical rotated-anisotropic
+precontact refusal is preserved. The later symmetric tensor construction passes
+the bounded precontact cases below; this does not qualify general tilted contact.
+The isolated rotor example further below uses `rigid-discrete-v1` and has separate
+G1 evidence.
 
 The same World also passes the aligned three-cube/floor case within the existing
 four-body cap. Lower and middle supports start at step1; the falling top joins
@@ -80,6 +82,28 @@ the stated equal2kg, zero-friction/restitution120Hz family only.
 
 The numerical case has0 restore calls; earlier two-cube recorder restoration
 is separate evidence. General four-body topology and moving8 remain unqualified.
+
+### Rotated noncubic box before contact
+
+The same `rigid-persistent-box-v1` World now advances the original rotated
+2 kg box without its old precontact tensor-symmetry refusal. Primitive COM,
+direct broad phase and existing limits remain. This executable example runs a
+single noncubic box for 12 contact-free steps:
+
+<<< @/../samples/physics-anisotropic.test.mjs#anisotropic-model
+
+A world-frame angular impulse acts once. The example maps body X to world Y
+and checks the analytic principal-axis speed of 3/13 rad/s:
+
+<<< @/../samples/physics-anisotropic.test.mjs#anisotropic-principal-step
+
+Separate Source/actual compiled verification uses a lower cube and floor as
+well: 64-step natural and principal-spin cases, both at three matched-time step
+sizes, rollback/restore and actual desktop state-word/GPU checks pass. Upper
+clearance stays positive. This proves precontact motion and selected lower-floor
+support, not anisotropic impact, general contact or friction. Continuous gravity
+position error at 64/120 s is 0.0218 m; dt refinement confirms first-order
+kick-drift. See [verification](/reference/physics-verification#rotated-anisotropic-precontact-repair).
 
 ### Isolated noncubic rotor
 

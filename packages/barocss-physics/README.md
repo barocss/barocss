@@ -20,13 +20,21 @@ all-pair position solve through the same World. The aligned2kg two-cube/floor
 case passes256 primary steps in Source/actual compiled paths, independent
 global projection/geometry gates, record/restore/failure controls and same-Native
 desktop full257-state/word parity. Existing cap4 and tolerances stay fixed;
-that zero-material regime explicitly rejects AABB. Rotated anisotropic input
-can refuse exact tensor symmetry before that body touches anything. Original first failures remain.
+that zero-material regime explicitly rejects AABB. The later anisotropic tensor
+repair constructs a symmetric world tensor directly. The original precontact
+rotated box and a principal-spin case now pass 64 steps, three matched-time
+step sizes, strict Source/actual compiled API and desktop checks. General tilted
+contact is not qualified. Original first failures remain.
 See [coupled dynamics results](../../examples/physics-coupled-cubes-floor-2276/RESULTS.md).
 The same algorithm also passes three aligned2kg cubes/floor through256steps,
 with an independent3DOF reference and actual desktop full-state/word/pixel checks,
 inside cap4. See [three-cube results](../../examples/physics-three-cubes-floor-2276/RESULTS.md).
 General moving8 is not qualified. No deployment.
+See [anisotropic library results](../../examples/physics-anisotropic-inertia-2276/RESULTS.md)
+and [CAD consumer readiness](../../examples/physics-anisotropic-inertia-2276/CONSUMER-READINESS.md).
+CAD/CAD-model primitive flows and GPU CPU mesh admission pass; CAD Studio has no
+Physics integration and remains on HOLD. No generic B-rep collision or full CAD
+mass-tensor import is implied.
 
 The finite box CCD checkpoint accepts both signs of the identity quaternion
 without changing orientation/angular thresholds. Source/compiled20-case checks

@@ -110,7 +110,9 @@ untrusted diagnostic copies. Actual same-Native desktop verifies all257states/
 numeric words,2187 changed GPU pixels and three desktop widths. This supports
 the stated aligned2kg two-cube/floor120Hz case through256steps, not all admitted
 boxes. AABB for this zero-material island is explicitly rejected at creation;
-rotated anisotropic input still refuses exact tensor symmetry with retained state.
+the historical rotated anisotropic input refused exact tensor symmetry with retained state.
+The later bounded repair below resolves its precontact refusal; the original
+receipt is unchanged.
 The next three-cube/floor campaign now also passes through256 in actual Source
 and compiled Worlds, after BOTH32 checkpoints pass before33. Same algorithm,
 existing4body cap,1World/256steps/2 independent references each;0 restores.
@@ -123,12 +125,45 @@ See `examples/physics-three-cubes-floor-2276/RESULTS.md` and
 `examples/physics-coupled-cubes-floor-2276/RESULTS.md`. General moving8 and all
 Studio/manufacturing/equipment/old-worker HOLDs remain unchanged. No deployment.
 
-Next dependencies, in order: mathematically symmetric actual anisotropic world
-inertia construction with independent tensor/application checks (current input
-can refuse before touch); timestep refinement and longer-horizon evidence for
-the coupled family within existing budgets/transport/recorder caps; then unequal
-mass, changing normals/topology and friction. Original moving8/1200 remains a
-separate NO_GO and cannot be inferred from these256-step four-body tests.
+### Rotated anisotropic precontact library repair
+
+The first dependency above now passes locally. The actual package kernel in
+`src/stack/frictionless-island.ts` directly constructs the symmetric world
+inverse tensor R diag(d) R^T. Exact symmetry/SPD, actual angular operators,
+contact tolerances, iteration/resource limits and the four-body cap remain.
+This is the common World's library implementation, with no example solver or
+legacy fallback. Original precontact refusal and the first readonly-buffer
+compile / virtual-entry authorization failures are preserved.
+
+Each Source/actual canonical graph passes 20 private calls / 13 independent
+references, followed by 8 public Worlds / 212 accepted steps: the original
+rotated upper box and a rotated principal-axis impulse through 64 steps, plus
+both cases to matched 0.1 s at 60/120/240 Hz. The independent reference uses
+exact Hamilton sandwiches and analytic principal rotation. Maximum inverse-
+tensor error is 3.582e-15 /(kg m²); rotational-energy residual 2.272e-16 J.
+Upper clearance is positive throughout; lower-floor support is independently
+checked. This does not qualify anisotropic contact or off-principal contact.
+
+Continuous free-fall position error at 64/120 s remains 0.0218 m. Matched-time
+position/energy errors halve with dt, confirming existing first-order kick-drift
+behavior. Tiny tensor/algebra residuals are not continuous trajectory accuracy.
+Per graph, seven additional Worlds / 82 accepted steps (including four restore
+replays) verify rollback/retry/restore/continuation and exact prior isotropic
+32-step traces. Sixteen independent observer controls pass. Actual Native
+desktop passes two 64-step cases, 65 states/words each and changed GPU pixels
+at three desktop widths. CAD/CAD-model primitive unit/pose consumers and GPU
+CPU mesh admission pass; CAD Studio remains unintegrated/on HOLD. See
+`examples/physics-anisotropic-inertia-2276/RESULTS.md` and
+`examples/physics-anisotropic-inertia-2276/CONSUMER-READINESS.md`.
+
+Next dependencies, in order: timestep refinement and longer-horizon evidence
+for the coupled family within existing budgets/transport/recorder caps; then
+unequal mass, independently referenced anisotropic contact, changing normals/
+topology and friction. CAD arbitrary COM/full-tensor/collider-offset admission
+remains G3; product rendering and any Studio integration require their separate
+scope and gates. Original moving8/1200 remains a separate NO_GO and cannot be
+inferred from these bounded tests. All HOLDs, original failures and tolerances
+remain. No deployment.
 
 ## Previous priority review, preserved before stationary qualification
 
